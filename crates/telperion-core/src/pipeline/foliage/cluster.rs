@@ -7,7 +7,6 @@
 use super::{organs, CanopyParams};
 #[cfg(feature = "geometry")]
 use super::{rosette, station, Instances};
-use telperion_space::organ;
 use crate::{
     math::Vec3,
     tree::{Cluster, Tree},
@@ -18,13 +17,16 @@ use crate::{
     rng::Rng,
     tree::{cluster_key, leaf_stream},
 };
+use telperion_space::organ;
 
 /// The clusters this family seats on this tree: every short shoot's tip
 /// that keeps its leaves at the cauline share (fn-277), none on a
 /// leafless canopy.
 pub(super) fn of<'a>(tree: &'a Tree, p: &CanopyParams) -> impl Iterator<Item = &'a Cluster> {
     let (cauline, leafless) = (p.cauline, p.size == 0.0);
-    let kept = move |c: &&Cluster| telperion_space::organs(cauline, cluster_tip(tree, c), organ::CAULINE) == 1;
+    let kept = move |c: &&Cluster| {
+        telperion_space::organs(cauline, cluster_tip(tree, c), organ::CAULINE) == 1
+    };
     tree.clusters.iter().filter(move |_| !leafless).filter(kept)
 }
 
@@ -41,13 +43,19 @@ pub(super) fn placement(p: &CanopyParams, key: u32, j: u32) -> CanopyParams {
 /// Leaves one cluster places, each of its leaves its leaflets.
 pub(super) fn leaves(tree: &Tree, p: &CanopyParams, c: &Cluster) -> u32 {
     let key = cluster_tip(tree, c);
-    (0..c.leaves).map(|j| organs::leaflets(&placement(p, key, j)) as u32).sum()
+    (0..c.leaves)
+        .map(|j| organs::leaflets(&placement(p, key, j)) as u32)
+        .sum()
 }
 
 /// Leaves the clusters place.
 pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
     let overflow = || Error::ResourceLimit("foliage count overflow");
-    of(tree, p).try_fold(0usize, |total, c| total.checked_add(leaves(tree, p, c) as usize).ok_or_else(overflow))
+    of(tree, p).try_fold(0usize, |total, c| {
+        total
+            .checked_add(leaves(tree, p, c) as usize)
+            .ok_or_else(overflow)
+    })
 }
 
 /// The tip's laid heading, where the engine laid it, else its chord.
@@ -110,9 +118,24 @@ pub(super) fn clothe(
             let axis = station::axis(at, radial, heading, p);
             let (share, colour) = unfolded.leaf(true, key, j);
             let from = out.leaves.len();
-            let table = placement(&CanopyParams { size: p.size * share, ..p }, key, j);
+            let table = placement(
+                &CanopyParams {
+                    size: p.size * share,
+                    ..p
+                },
+                key,
+                j,
+            );
             station::reserve(out, organs::leaflets(&table), p)?;
-            rosette::fan(at, axis, heading, radial, (table, organs::leaflets(&table), None), (&mut rng, None), out)?;
+            rosette::fan(
+                at,
+                axis,
+                heading,
+                radial,
+                (table, organs::leaflets(&table), None),
+                (&mut rng, None),
+                out,
+            )?;
             // A colouring leaf is drawn as one withering (fn-270 R5c).
             if colour > 0.0 {
                 out.wither(from);

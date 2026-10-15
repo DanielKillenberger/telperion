@@ -79,7 +79,10 @@ fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
         let request = json!({"family": id, "outputs": {"field": true}});
         if params::by_identity(id).unwrap().space.species.is_none() {
             let refused = generate(request).err();
-            assert!(matches!(refused, Some(Error::InvalidInput("no engine species"))), "{id}");
+            assert!(
+                matches!(refused, Some(Error::InvalidInput("no engine species"))),
+                "{id}"
+            );
             continue;
         }
         let (_, meta) = generate(request).unwrap_or_else(|e| panic!("{id}: {e}"));
@@ -188,7 +191,10 @@ fn every_shipped_preset_builds_through_the_main_entry() {
         let request = json!({"family": id, "outputs": {"surface": true, "foliage": true}});
         if params::by_identity(id).unwrap().space.species.is_none() {
             let refused = generate(request).err();
-            assert!(matches!(refused, Some(Error::InvalidInput("no engine species"))), "{id}");
+            assert!(
+                matches!(refused, Some(Error::InvalidInput("no engine species"))),
+                "{id}"
+            );
             continue;
         }
         let (_, meta) = generate(request)

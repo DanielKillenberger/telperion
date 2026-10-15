@@ -25,7 +25,10 @@ pub use capture_grown::{grow_capture_grown, grow_capture_grown_at, grow_capture_
 pub use capture_hierarchy::grow_capture_hierarchy_at;
 pub use capture_layout::{grow_capture_layout, grow_capture_layout_at};
 pub use capture_light::grow_capture_light_at;
-pub use capture_settled::{grow_capture_settle_tables, grow_capture_settled, grow_capture_retired, grow_capture_settled_at, grow_cycle_is_the_reference, settle_sag_turn, SettleTo};
+pub use capture_settled::{
+    grow_capture_retired, grow_capture_settle_tables, grow_capture_settled,
+    grow_capture_settled_at, grow_cycle_is_the_reference, settle_sag_turn, SettleTo,
+};
 pub use capture_units::{grow_capture_units, grow_capture_units_at};
 pub use census::{Census, Cycle};
 pub use paused::{admitted, tree_digest, within_year, Paused, Retiring};
@@ -62,12 +65,7 @@ pub fn grow_census(species: &Species, request: Request) -> Result<Cycled> {
 /// The one cycle, its working set as `working` begins it (the tests'
 /// references: every axis open, or none retired), grown to its age in one
 /// call.
-fn run(
-    species: &Species,
-    request: Request,
-    census: bool,
-    working: Working,
-) -> Result<Cycled> {
+fn run(species: &Species, request: Request, census: bool, working: Working) -> Result<Cycled> {
     let started = crate::clock::seconds();
     let mut paused = Paused::with(species, request, census, working)?;
     paused.grow_to(request.age)?;
@@ -124,9 +122,19 @@ pub(crate) fn girth_apart(a: &Structure, b: &Structure) -> Option<(f64, f64)> {
     let bare = |t: &Structure| {
         let mut t = t.clone();
         for axis in &mut t.axes {
-            (axis.base, axis.heading, axis.side, axis.joined) = (Default::default(), Default::default(), Default::default(), None);
+            (axis.base, axis.heading, axis.side, axis.joined) = (
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                None,
+            );
             for p in &mut axis.phytomers {
-                (p.radius, p.tip, p.heading, p.side) = (0.0, Default::default(), Default::default(), Default::default());
+                (p.radius, p.tip, p.heading, p.side) = (
+                    0.0,
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                );
             }
         }
         t
@@ -136,7 +144,13 @@ pub(crate) fn girth_apart(a: &Structure, b: &Structure) -> Option<(f64, f64)> {
     }
     let mut shift: Vec<f64> = (a.axes.iter().zip(&b.axes))
         .flat_map(|(x, y)| x.phytomers.iter().zip(&y.phytomers))
-        .map(|(p, q)| if p.radius == q.radius { 0.0 } else { ((p.radius - q.radius) / q.radius.abs().max(1e-12)).abs() })
+        .map(|(p, q)| {
+            if p.radius == q.radius {
+                0.0
+            } else {
+                ((p.radius - q.radius) / q.radius.abs().max(1e-12)).abs()
+            }
+        })
         .collect();
     shift.sort_by(f64::total_cmp);
     let most = shift.last().copied().unwrap_or(0.0);

@@ -45,15 +45,15 @@ pub(crate) use build::{faces, segments, Faces};
 pub(crate) use curve::{curve, rows as curve_rows, traced};
 #[cfg(feature = "geometry")]
 pub use curve::{
-    Curve, CurveCluster, CurvePoint, CurveRun, Demand, PackedPoint, Tessellation, CLUSTER_WORDS, SECTION_FLOATS, Viewer, Budget, RIBBON, SCALES, CLUSTER, LEVELS,
-    POINT_WORDS,
+    Budget, Curve, CurveCluster, CurvePoint, CurveRun, Demand, PackedPoint, Tessellation, Viewer,
+    CLUSTER, CLUSTER_WORDS, LEVELS, POINT_WORDS, RIBBON, SCALES, SECTION_FLOATS,
 };
-#[cfg(feature = "geometry")]
-pub(crate) use rings::{rings, Rings, Sweep};
 #[cfg(feature = "geometry")]
 use rings::Resweep;
 #[cfg(all(feature = "geometry", target_os = "linux", target_arch = "x86_64"))]
 use rings::Swept;
+#[cfg(feature = "geometry")]
+pub(crate) use rings::{rings, Rings, Sweep};
 #[cfg(feature = "geometry")]
 use {
     crate::{math::Transcendental, tree::Tree},

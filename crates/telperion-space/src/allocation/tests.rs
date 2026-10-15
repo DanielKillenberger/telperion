@@ -163,7 +163,10 @@ fn sizes_keep_each_orders_mean_whole_and_favour_light() {
             }
             let total: f64 = members.iter().map(|&i| presence[i]).sum();
             let mean = members.iter().map(|&i| s[i] * presence[i]).sum::<f64>() / total;
-            assert!((mean - 1.0).abs() < F32_FEW, "ψ {psi} group {g}: mean {mean}");
+            assert!(
+                (mean - 1.0).abs() < F32_FEW,
+                "ψ {psi} group {g}: mean {mean}"
+            );
         }
         // Groups 2 and 3 hold one bud each: whole to the bit.
         assert_eq!((s[4], s[7]), (1.0, 1.0), "ψ {psi}");

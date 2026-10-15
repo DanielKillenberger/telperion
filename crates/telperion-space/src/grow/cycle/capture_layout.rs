@@ -45,22 +45,38 @@ pub fn grow_capture_layout_at(species: &Species, request: Request, cycle: u32) -
     for c in 1..cycle {
         g.year(c, c < request.age, &mut advanced, &mut |_| {})?;
     }
-    assert!(g.couple.is_none() && g.fine.is_none(), "the whole tree, laid");
+    assert!(
+        g.couple.is_none() && g.fine.is_none(),
+        "the whole tree, laid"
+    );
     let old: Vec<usize> = g.axes.iter().map(|a| a.phytomers.len()).collect();
     advanced.clear();
     advanced.extend(g.live.iter().map(|a| a.axis));
     g.step(cycle, &mut |_| {})?;
     let first_new = g.sketch.as_ref().expect("sketching").pencils.len();
-    let mut grew: Vec<usize> = advanced.iter().copied().filter(|&i| i < first_new).collect();
+    let mut grew: Vec<usize> = advanced
+        .iter()
+        .copied()
+        .filter(|&i| i < first_new)
+        .collect();
     grew.sort_unstable();
     let rows = Rows::of(&g, &old, &grew, first_new);
     let mut c = Capture { arrays: Vec::new() };
     let n = g.axes.len();
-    let counts = [cycle, request.age, first_new as u32, n as u32, rows.phyt.len() as u32];
+    let counts = [
+        cycle,
+        request.age,
+        first_new as u32,
+        n as u32,
+        rows.phyt.len() as u32,
+    ];
     c.u32s("lay_counts", &counts);
     c.f32s("lay_form", &form(species));
     c.f32s("lay_globals", &[cone(), ground()]);
-    c.u32s("lay_grew", &grew.iter().map(|&i| i as u32).collect::<Vec<_>>());
+    c.u32s(
+        "lay_grew",
+        &grew.iter().map(|&i| i as u32).collect::<Vec<_>>(),
+    );
     c.u32s("lay_generations", &generations(&g, first_new));
     c.u32s("in_axes", &g.axis_columns(&rows));
     c.u32s("in_units", &g.unit_columns(&rows));
@@ -199,7 +215,8 @@ impl Rows {
             let from = pencils.get(i).map_or(0, |p| p.units);
             rows.unit_first[i] = rows.units.len() as u32;
             rows.units_from[i] = from as u32;
-            rows.units.extend((from..g.draws[i].units.len()).map(|k| (i, k)));
+            rows.units
+                .extend((from..g.draws[i].units.len()).map(|k| (i, k)));
         }
         rows
     }
@@ -241,9 +258,18 @@ impl Grower<'_> {
             let d = &self.draws[i];
             let (origin, parent, node, whorl) = match a.origin {
                 Origin::Seed => (0, NONE, 0, 0.0),
-                Origin::Lateral { parent, node, slot, whorl, woken } => {
-                    (1 | u32::from(slot) << 8 | u32::from(woken) << 16, parent as u32, node as u32, whorl as f32)
-                }
+                Origin::Lateral {
+                    parent,
+                    node,
+                    slot,
+                    whorl,
+                    woken,
+                } => (
+                    1 | u32::from(slot) << 8 | u32::from(woken) << 16,
+                    parent as u32,
+                    node as u32,
+                    whorl as f32,
+                ),
                 Origin::Continuation { parent } => (2, parent as u32, 0, 0.0),
                 Origin::Relay { parent, node } => (3, parent as u32, node as u32, 0.0),
             };
@@ -261,7 +287,15 @@ impl Grower<'_> {
                 (a.blend as f32).to_bits(),
                 a.phase.to_bits(),
                 bits(a.rank),
-                b[0], b[1], b[2], h[0], h[1], h[2], s[0], s[1], s[2],
+                b[0],
+                b[1],
+                b[2],
+                h[0],
+                h[1],
+                h[2],
+                s[0],
+                s[1],
+                s[2],
                 (d.birth[0] as f32).to_bits(),
                 (d.birth[1] as f32).to_bits(),
                 tk(d.sleep),
@@ -284,7 +318,9 @@ impl Grower<'_> {
     /// The pending units' columns (`UNIT`): survival, persistence, size
     /// and their phytomers' size from the bud's vigour.
     fn unit_columns(&self, rows: &Rows) -> Vec<u32> {
-        let mut cols: Vec<Vec<u32>> = (0..UNIT).map(|_| Vec::with_capacity(rows.units.len())).collect();
+        let mut cols: Vec<Vec<u32>> = (0..UNIT)
+            .map(|_| Vec::with_capacity(rows.units.len()))
+            .collect();
         for &(i, k) in &rows.units {
             let u = self.draws[i].units[k];
             let row = [
@@ -303,7 +339,9 @@ impl Grower<'_> {
     /// The arena's phytomers' columns (`PHYT`); a phytomer laid this
     /// cycle carries its leaf's area and a mark.
     fn phyt_columns(&self, rows: &Rows, laid: &[std::ops::Range<usize>]) -> Vec<u32> {
-        let mut cols: Vec<Vec<u32>> = (0..PHYT).map(|_| Vec::with_capacity(rows.phyt.len())).collect();
+        let mut cols: Vec<Vec<u32>> = (0..PHYT)
+            .map(|_| Vec::with_capacity(rows.phyt.len()))
+            .collect();
         for &(i, j) in &rows.phyt {
             let p = &self.axes[i].phytomers[j];
             assert_eq!(p.radius, 0.0, "a phytomer laid without girth");
@@ -316,7 +354,15 @@ impl Grower<'_> {
                 (p.key >> 32) as u32,
                 p.cycle,
                 bits(self.draws[i].nodes[j]),
-                t[0], t[1], t[2], h[0], h[1], h[2], s[0], s[1], s[2],
+                t[0],
+                t[1],
+                t[2],
+                h[0],
+                h[1],
+                h[2],
+                s[0],
+                s[1],
+                s[2],
                 bits(p.scale),
                 bits(p.grown),
                 bits(p.size),

@@ -48,7 +48,10 @@ fn survivors(species: &Species, age: u32) -> (usize, usize) {
     let by: HashMap<(u64, usize, u32), bool> = (next.axes.iter())
         .map(|a| ((a.lineage, a.pa, a.birth), a.apex_end.is_none()))
         .collect();
-    let living = rest.iter().filter(|k| by.get(k).copied().unwrap_or(false)).count();
+    let living = rest
+        .iter()
+        .filter(|k| by.get(k).copied().unwrap_or(false))
+        .count();
     (rest.len(), living)
 }
 
@@ -57,10 +60,16 @@ fn survivors(species: &Species, age: u32) -> (usize, usize) {
 #[test]
 fn a_tip_on_the_ground_dies_at_one_and_runs_on_at_zero() {
     let (rest, living) = survivors(&with_hazard(0.0), 10);
-    assert!(rest > 10 && living * 2 > rest, "at 0: {living} of {rest} live on");
+    assert!(
+        rest > 10 && living * 2 > rest,
+        "at 0: {living} of {rest} live on"
+    );
     let (rest, living) = survivors(&with_hazard(1.0), 10);
     assert!(rest > 0, "at 1 some tip still reaches the ground");
-    assert_eq!(living, 0, "at 1: {living} of {rest} tips on the ground live on");
+    assert_eq!(
+        living, 0,
+        "at 1: {living} of {rest} tips on the ground live on"
+    );
 }
 
 /// The hazard reads the rough layout, which a ground hazard grows where
@@ -68,7 +77,14 @@ fn a_tip_on_the_ground_dies_at_one_and_runs_on_at_zero() {
 /// reach the ground, so the young birch grows less wood.
 #[test]
 fn a_ground_hazard_acts_without_shade() {
-    let count = |h| grow(&with_hazard(h), request(10, Light::NEUTRAL)).unwrap().phytomer_count();
+    let count = |h| {
+        grow(&with_hazard(h), request(10, Light::NEUTRAL))
+            .unwrap()
+            .phytomer_count()
+    };
     let (runs, stops) = (count(0.0), count(1.0));
-    assert!(stops < runs, "neutral light: {stops} phytomers at 1, {runs} at 0");
+    assert!(
+        stops < runs,
+        "neutral light: {stops} phytomers at 1, {runs} at 0"
+    );
 }

@@ -14,8 +14,7 @@
 use super::GrowInput;
 use crate::math::Vec3;
 use crate::tree::{
-    Bloom, BudFate, Cluster, Leafing, Node, NodeIdentity, NodeKind,
-    ShootState, Tree,
+    Bloom, BudFate, Cluster, Leafing, Node, NodeIdentity, NodeKind, ShootState, Tree,
 };
 use crate::{Error, Result};
 use telperion_space::{Origin, Request, Structure};
@@ -109,7 +108,13 @@ pub struct ConvertRow {
 /// What another executor grows and draws the family's tree by: the
 /// engine's species, the request, the scale it is drawn at, each PA's
 /// conversion row, and the rows its stem establishes by.
-pub(super) type Grows = (telperion_space::Species, Request, f64, Vec<ConvertRow>, Option<Establishing>);
+pub(super) type Grows = (
+    telperion_space::Species,
+    Request,
+    f64,
+    Vec<ConvertRow>,
+    Option<Establishing>,
+);
 
 pub(super) fn growth(input: GrowInput) -> Result<Grows> {
     let (species, request) = asked(&input)?;
@@ -128,7 +133,13 @@ pub(super) fn growth(input: GrowInput) -> Result<Grows> {
         season: r.season,
     });
     let rows = rows.collect();
-    Ok((species.clone(), request, input.supernatural.scale(), rows, establishing))
+    Ok((
+        species.clone(),
+        request,
+        input.supernatural.scale(),
+        rows,
+        establishing,
+    ))
 }
 
 /// The converted tree drawn at `scale` times its natural size (fn-217
@@ -366,7 +377,9 @@ fn unfolded(
     for (i, axis) in structure.axes.iter().enumerate() {
         let start = match axis.origin {
             Origin::Seed => Some((0, false, true)),
-            Origin::Lateral { parent, node, .. } => drawn[parent].get(node).map(|&n| (n, true, false)),
+            Origin::Lateral { parent, node, .. } => {
+                drawn[parent].get(node).map(|&n| (n, true, false))
+            }
             // A relay takes its parent's run on from its join, the node drawn
             // where it joins (`telperion_space::Join`, fn-244), and the
             // stopped module's head beyond turns aside as a lateral of its
@@ -515,7 +528,11 @@ fn unfolded(
                 keys.push(d.key);
                 lengths.push(std::mem::take(&mut pending));
                 if unfolding_on {
-                    unfolded.push(unfolding.node((i, place), &rows[axis.pa], (structure.age, p.cycle)));
+                    unfolded.push(unfolding.node(
+                        (i, place),
+                        &rows[axis.pa],
+                        (structure.age, p.cycle),
+                    ));
                 }
                 if leafing_on {
                     let (older, before, last) = wood.take().unwrap();
@@ -539,7 +556,10 @@ fn unfolded(
                     clustered.push(cluster.0 > 0);
                 }
             }
-            for &(c, _) in joins[i].iter().filter(|(_, j)| j.node == place && j.t >= join::ONE) {
+            for &(c, _) in joins[i]
+                .iter()
+                .filter(|(_, j)| j.node == place && j.t >= join::ONE)
+            {
                 joined[c] = Some((parent, place + 1));
             }
             if thin {
@@ -611,10 +631,10 @@ mod ceiling_tests;
 mod cluster_tests;
 #[cfg(test)]
 mod coarse_tests;
+mod establish;
 pub mod growth;
 #[cfg(test)]
 mod leafing_tests;
-mod establish;
 pub use establish::Establishing;
 mod join;
 mod unfolding;

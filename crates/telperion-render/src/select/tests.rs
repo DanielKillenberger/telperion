@@ -126,7 +126,11 @@ fn interleaved(instances: usize, levels: usize) -> mesh::Foliage {
                 let class = id % (levels + 1);
                 // The culled class behind the eye keeps a unit scale, so its
                 // sphere stays clear of the near plane.
-                let scale = if class == levels { 1.0 } else { (1u32 << class) as f32 };
+                let scale = if class == levels {
+                    1.0
+                } else {
+                    (1u32 << class) as f32
+                };
                 let mut matrix = [0.0; 16];
                 for i in [0, 5, 10] {
                     matrix[i] = scale;
@@ -219,7 +223,9 @@ fn an_inflorescence_is_kept_or_dropped_whole() {
     gpu.submit([encoder.finish()]);
     let counts = selection.counted(&gpu).expect("counts read back");
     let bytes = buffer::read(&gpu, selection.lists.as_ref().unwrap()).expect("lists read back");
-    let words: Vec<u32> = (bytes.as_chunks::<4>().0.iter()).map(|w| u32::from_ne_bytes(*w)).collect();
+    let words: Vec<u32> = (bytes.as_chunks::<4>().0.iter())
+        .map(|w| u32::from_ne_bytes(*w))
+        .collect();
     let mut chosen = vec![4u32; 4_000];
     for (level, &count) in counts.iter().enumerate().take(4) {
         let start = level * selection.stride as usize / size_of::<u32>();
@@ -230,7 +236,10 @@ fn an_inflorescence_is_kept_or_dropped_whole() {
     let mut kept = 0;
     for unit in chosen.chunks(4) {
         let drawn: Vec<bool> = unit.iter().map(|&c| c < 4).collect();
-        assert!(drawn.iter().all(|&d| d == drawn[0]), "a unit split: {unit:?}");
+        assert!(
+            drawn.iter().all(|&d| d == drawn[0]),
+            "a unit split: {unit:?}"
+        );
         kept += usize::from(drawn[0]);
     }
     assert!((200..800).contains(&kept), "{kept} of 1000 units kept");
@@ -254,11 +263,23 @@ fn a_forced_level_stays_within_each_kind_s_ladder() {
     let mut foliage = interleaved(400, 2);
     let p = |x, y| Vec3::new(x, y, 0.0);
     foliage.element = Element {
-        positions: vec![p(-1.0, 0.0), p(1.0, 0.0), p(0.0, 1.0), p(-1e-6, 0.0), p(1e-6, 0.0), p(0.0, 1e-6)],
-        coords: vec![0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2.0, 0.0, -2.0, 1.0, -2.0, 2.0],
+        positions: vec![
+            p(-1.0, 0.0),
+            p(1.0, 0.0),
+            p(0.0, 1.0),
+            p(-1e-6, 0.0),
+            p(1e-6, 0.0),
+            p(0.0, 1e-6),
+        ],
+        coords: vec![
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2.0, 0.0, -2.0, 1.0, -2.0, 2.0,
+        ],
         level_indices: vec![3, 4, 5, 3, 4, 5, 0, 1, 2, 0, 1, 2],
         levels: [(0, 1e30), (3, 1e29), (6, 0.25), (9, 0.0)]
-            .map(|(at, deviation)| Section { indices: at..at + 3, deviation })
+            .map(|(at, deviation)| Section {
+                indices: at..at + 3,
+                deviation,
+            })
             .to_vec(),
         ..Element::default()
     };
@@ -283,7 +304,11 @@ fn a_forced_level_stays_within_each_kind_s_ladder() {
         selection.dispatch(&gpu, &mut encoder, &camera, (2, 2), true, None);
         gpu.submit([encoder.finish()]);
         let counts = selection.counted(&gpu).expect("counts read back");
-        assert_eq!((counts[rachis], counts[floret]), (200, 200), "forced {forced}: {counts:?}");
+        assert_eq!(
+            (counts[rachis], counts[floret]),
+            (200, 200),
+            "forced {forced}: {counts:?}"
+        );
     }
 }
 
@@ -306,32 +331,46 @@ fn a_thin_rachis_takes_the_coarsest_ribbon_true_to_its_axis() {
     coords.extend((0..12).flat_map(|i| [-2.0, i as f32]));
     // Four rachis levels (ribbons over 2, 4 and 8 segments, the tube),
     // then two floret levels.
-    let level_indices: Vec<u32> = (0..4u32).flat_map(|k| [3 + 3 * k, 4 + 3 * k, 5 + 3 * k]).chain([0, 1, 2, 0, 1, 2]).collect();
+    let level_indices: Vec<u32> = (0..4u32)
+        .flat_map(|k| [3 + 3 * k, 4 + 3 * k, 5 + 3 * k])
+        .chain([0, 1, 2, 0, 1, 2])
+        .collect();
     let deviations = [1e30, 1e29, 1e28, 1e27, 0.25, 0.0];
     let element = Element {
         positions,
         coords,
         levels: (0..6u32)
-            .map(|k| Section { indices: 3 * k..3 * k + 3, deviation: deviations[k as usize] })
+            .map(|k| Section {
+                indices: 3 * k..3 * k + 3,
+                deviation: deviations[k as usize],
+            })
             .collect(),
         level_indices,
         ..Element::default()
     };
     let foliage = |heading: Vec3| {
         let face = Vec3::Y.cross(heading);
-        let face = if face.length_squared() > 0.0 { face.normalized() } else { Vec3::Z };
+        let face = if face.length_squared() > 0.0 {
+            face.normalized()
+        } else {
+            Vec3::Z
+        };
         let side = heading.cross(face);
         let r = Reference::spanning(Vec3::new(-1.0, -1.0, -2.0), Vec3::new(1.0, 1.0, 0.0));
         let mut out = Instances::new(r);
         let s = 1e-4;
         let mut m = [0.0f32; 16];
         for (c, v) in [side, heading, face].iter().enumerate() {
-            (m[4 * c], m[4 * c + 1], m[4 * c + 2]) = ((v.x * s) as f32, (v.y * s) as f32, (v.z * s) as f32);
+            (m[4 * c], m[4 * c + 1], m[4 * c + 2]) =
+                ((v.x * s) as f32, (v.y * s) as f32, (v.z * s) as f32);
         }
         (m[14], m[15]) = (-1.0, 1.0);
         out.push(&m);
         out.leaves[0][2] |= WITHERED;
-        mesh::Foliage { element: element.clone(), instances: out }
+        mesh::Foliage {
+            element: element.clone(),
+            instances: out,
+        }
     };
     for (droop, viewport, chosen) in [(1.0, 2, 0), (1.0, 2_000, 2), (0.0, 2_000, 0)] {
         let tree = foliage(Vec3::X);
@@ -346,9 +385,19 @@ fn a_thin_rachis_takes_the_coarsest_ribbon_true_to_its_axis() {
             far: 10.0,
         };
         let mut encoder = gpu.encoder(&Default::default());
-        selection.dispatch(&gpu, &mut encoder, &camera, (viewport, viewport), true, None);
+        selection.dispatch(
+            &gpu,
+            &mut encoder,
+            &camera,
+            (viewport, viewport),
+            true,
+            None,
+        );
         gpu.submit([encoder.finish()]);
         let counts = selection.counted(&gpu).expect("counts read back");
-        assert_eq!(counts[chosen], 1, "droop {droop} at {viewport} px: {counts:?}");
+        assert_eq!(
+            counts[chosen], 1,
+            "droop {droop} at {viewport} px: {counts:?}"
+        );
     }
 }

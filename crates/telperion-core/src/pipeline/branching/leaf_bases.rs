@@ -25,13 +25,13 @@
 //! on the bark, carried outward as a wedge, so neighbours meet edge to edge
 //! and the trunk reads as the diamond lattice of flat-faced boots.
 use super::lattice;
-use telperion_space::{organ, organs};
 use crate::{
     math::{Transcendental, Vec3},
     pipeline::foliage::{self, CanopyParams},
     tree::{Node, NodeKind, Section, SectionRing, Tree},
     Error, Result,
 };
+use telperion_space::{organ, organs};
 
 /// The most retained bases one stem may keep: a rail wide enough for any
 /// trunk a table has asked to clothe.
@@ -142,8 +142,9 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
             if packed(p) {
                 (from, axis) = centreline(tree, &stem, &depth, p.rosette_depth, want, girth);
             }
-            let (sin, cos) = ((crown.rosette_fronds + f64::from(k)) * p.rosette_divergence.to_radians())
-                .sin_cos_fixed();
+            let (sin, cos) = ((crown.rosette_fronds + f64::from(k))
+                * p.rosette_divergence.to_radians())
+            .sin_cos_fixed();
             let (normal, binormal) = carried(rosette.axis, axis, reference);
             let radial = (normal * cos + binormal * sin).normalized();
             let (lean, upright) = pitch.to_radians().sin_cos_fixed();

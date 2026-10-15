@@ -46,7 +46,10 @@ impl Program {
                 (made, started.elapsed())
             };
             let asked: Vec<_> = descs.iter().map(|d| s.spawn(move || timed(d))).collect();
-            asked.into_iter().map(|h| h.join().expect("a pipeline made")).collect()
+            asked
+                .into_iter()
+                .map(|h| h.join().expect("a pipeline made"))
+                .collect()
         });
         #[cfg(target_arch = "wasm32")]
         descs

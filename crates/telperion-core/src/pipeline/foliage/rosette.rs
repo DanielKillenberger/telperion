@@ -30,6 +30,8 @@
 //! The rows, their rails and the apices are read with the placement compiled
 //! out, so the leaf plan can tell a frond crown from a clothed one; only the
 //! placing itself needs the `geometry` feature.
+#[cfg(feature = "geometry")]
+use super::organs::{apex, frond_key, frond_leaflets, placement};
 use super::{
     crown::{Crown, Split},
     CanopyParams,
@@ -42,8 +44,6 @@ use super::{
 use crate::rng::Rng;
 #[cfg(feature = "geometry")]
 use crate::Error;
-#[cfg(feature = "geometry")]
-use super::organs::{apex, frond_key, frond_leaflets, placement};
 use crate::{
     math::{Transcendental, Vec3},
     tree::Tree,
@@ -89,12 +89,19 @@ pub(super) fn deepest(p: &CanopyParams) -> f64 {
     let living = [p.rosette_fronds.floor(), p.rosette_fronds.ceil()];
     // The skirt's last frond fades a place further down (fn-270 R5b).
     let depth = |fronds: f64| {
-        let p = CanopyParams { rosette_fronds: fronds, ..*p };
+        let p = CanopyParams {
+            rosette_fronds: fronds,
+            ..*p
+        };
         p.rosette_depth * ((fronds + kept) / spacing(&p))
     };
     match kept == 0. {
         true => p.rosette_depth,
-        false => living.into_iter().filter(|&f| f > 0.).map(depth).fold(p.rosette_depth, f64::max),
+        false => living
+            .into_iter()
+            .filter(|&f| f > 0.)
+            .map(depth)
+            .fold(p.rosette_depth, f64::max),
     }
 }
 
@@ -151,7 +158,10 @@ pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
         let crown = Crown::of(tree, &p);
         for serial in crown.serials() {
             let leaves = frond_leaflets(&p, crown.leaflets(serial as f64), frond_key(stem, serial));
-            total = total.checked_add(leaves).filter(|t| *t <= p.max_instances).ok_or_else(budget)?;
+            total = total
+                .checked_add(leaves)
+                .filter(|t| *t <= p.max_instances)
+                .ok_or_else(budget)?;
         }
     }
     Ok(total)
@@ -189,7 +199,12 @@ pub(super) struct Frond {
 /// over the skirt's last. Its turn on the spiral is its serial's, so a
 /// frond holds still as the crown grows above it. The placement and the
 /// leaf plan both read this.
-pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams, crown: Crown, blade: f64) -> impl Iterator<Item = Frond> {
+pub(super) fn fronds(
+    rosette: &Rosette,
+    p: &CanopyParams,
+    crown: Crown,
+    blade: f64,
+) -> impl Iterator<Item = Frond> {
     let (fronds, steps) = (p.rosette_fronds, spacing(p));
     let oldest = (fronds - 1.).max(0.);
     let total = fronds + skirt(p);
@@ -204,18 +219,40 @@ pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams, crown: Crown, blade: f
         let (sin, cos) = (serial as f64 * p.rosette_divergence.to_radians()).sin_cos_fixed();
         let radial = normal * cos + binormal * sin;
         let living = |k: f64| {
-            let age = if oldest > 0. { k.min(oldest) / oldest } else { 0. };
-            ((p.rosette_pitch + p.rosette_pitch_spread * age).to_radians(), p.rosette_depth * age, 1.0)
+            let age = if oldest > 0. {
+                k.min(oldest) / oldest
+            } else {
+                0.
+            };
+            (
+                (p.rosette_pitch + p.rosette_pitch_spread * age).to_radians(),
+                p.rosette_depth * age,
+                1.0,
+            )
         };
-        let dead = |k: f64| (p.skirt_pitch.to_radians(), p.rosette_depth * (k / steps), p.skirt_length);
+        let dead = |k: f64| {
+            (
+                p.skirt_pitch.to_radians(),
+                p.rosette_depth * (k / steps),
+                p.skirt_length,
+            )
+        };
         // How far it has turned from living to dead over its last living
         // place, and how far it has left the skirt.
-        let turned = if skirt(&p) > 0. { (k - oldest).clamp(0.0, 1.0) } else { 0.0 };
+        let turned = if skirt(&p) > 0. {
+            (k - oldest).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
         let (a, b) = (living(k), dead(k.max(fronds)));
         let mix = |x: f64, y: f64| x + (y - x) * turned;
         let (pitch, depth, length) = (mix(a.0, b.0), mix(a.1, b.1), mix(a.2, b.2));
         let share = unfolded * established * (total - k).clamp(0.0, 1.0);
-        let canopy = CanopyParams { size: p.size * length * share, rachis_length: p.rachis_length * length * share, ..p };
+        let canopy = CanopyParams {
+            size: p.size * length * share,
+            rachis_length: p.rachis_length * length * share,
+            ..p
+        };
         let (canopy, split) = crown.segments(canopy, &p, serial as f64, blade);
         let (lean, upright) = pitch.sin_cos_fixed();
         Frond {
@@ -259,7 +296,15 @@ pub(super) fn clothe(
             let count = frond_leaflets(p, frond.canopy.leaflet_count, key);
             let c = placement(&frond.canopy, key);
             reserve(out, count, *p)?;
-            fan(at, heading, radial, rosette.axis, (c, count, frond.split), (&mut rng, None), out)?;
+            fan(
+                at,
+                heading,
+                radial,
+                rosette.axis,
+                (c, count, frond.split),
+                (&mut rng, None),
+                out,
+            )?;
             if frond.dead {
                 out.wither(from);
             }
@@ -290,7 +335,17 @@ pub(super) fn fan(
 ) -> Result<()> {
     if count == 1 {
         let length = split.map_or(1.0, |s| lone(&s, &p));
-        out.push(&matrix(point, heading, tangent, normal, CanopyParams { size: p.size * length, ..p }, rng)?);
+        out.push(&matrix(
+            point,
+            heading,
+            tangent,
+            normal,
+            CanopyParams {
+                size: p.size * length,
+                ..p
+            },
+            rng,
+        )?);
         return Ok(());
     }
     let (_, side) = frame(heading);
@@ -350,7 +405,9 @@ pub(crate) fn stem_node(tree: &Tree, rosette: &Rosette) -> u32 {
 }
 
 pub(crate) fn stem_key(tree: &Tree, rosette: &Rosette) -> u64 {
-    tree.nodes[tree.nodes[rosette.apex].branch as usize].identity.birth_order()
+    tree.nodes[tree.nodes[rosette.apex].branch as usize]
+        .identity
+        .birth_order()
 }
 
 /// The stream one frond draws from: its leaflets' scatter and size, in order.

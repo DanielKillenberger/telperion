@@ -104,7 +104,6 @@ fn the_stations_between_are_graded_by_height() {
     }
 }
 
-
 /// The share of its room each first-order axis of a few leader stations
 /// stops short by, station by station and member by member.
 fn shortfalls(ragged_reach: f64, key: u32) -> Vec<f64> {

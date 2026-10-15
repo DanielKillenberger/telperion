@@ -25,16 +25,35 @@ fn light(stamped: &[&'static str], stamps: &[(String, f64, f64)]) -> Vec<(String
 }
 
 fn cases() -> Vec<(&'static str, u32, u64)> {
-    let named = |id: &str| CATALOGUE.iter().map(|c| c.1).find(|c| *c == id).expect("a shipped preset");
+    let named = |id: &str| {
+        CATALOGUE
+            .iter()
+            .map(|c| c.1)
+            .find(|c| *c == id)
+            .expect("a shipped preset")
+    };
     match std::env::var("LIGHT_CASES") {
         Ok(v) => v
             .split(',')
             .map(|c| {
                 let p: Vec<&str> = c.split(':').collect();
-                (named(p[0]), p[1].parse().expect("an age"), p[2].parse().expect("a seed"))
+                (
+                    named(p[0]),
+                    p[1].parse().expect("an age"),
+                    p[2].parse().expect("a seed"),
+                )
             })
             .collect(),
-        Err(_) => CATALOGUE.iter().map(|c| (c.1, Preset::from_id(c.1).expect("a preset").parameters().age as u32, 42)).collect(),
+        Err(_) => CATALOGUE
+            .iter()
+            .map(|c| {
+                (
+                    c.1,
+                    Preset::from_id(c.1).expect("a preset").parameters().age as u32,
+                    42,
+                )
+            })
+            .collect(),
     }
 }
 
@@ -46,12 +65,17 @@ fn the_light_phase_is_timed() {
         return;
     };
     for (id, age, seed) in cases() {
-        let growth = telperion_core::pipeline::executor::growth(&Preset::from_id(id).expect("a preset").parameters()).expect("a growth");
+        let growth = telperion_core::pipeline::executor::growth(
+            &Preset::from_id(id).expect("a preset").parameters(),
+        )
+        .expect("a growth");
         let g = grown_from(growth.species, growth.request.light, (age, seed));
         let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
         let hinted = Sizes::hinted(hint(&g.species, age).expect("a hint")).expect("sized");
         drop(grow(&gpu, &kit, &t, &g.tables, (hinted, age)).expect("a build"));
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("freed");
         assert!(super::super::profile::start(&gpu), "timestamps");
         let (b, _, grew) = grow(&gpu, &kit, &t, &g.tables, (hinted, age)).expect("a build");
         let stamps = super::super::profile::finish(&gpu);
@@ -59,9 +83,14 @@ fn the_light_phase_is_timed() {
         let total: f64 = stamps.iter().map(|(_, a, z)| (z - a) * 1e-6).sum();
         let kernels = light(&grew.stamped, &stamps);
         let (ms, n) = kernels.iter().fold((0.0, 0), |s, k| (s.0 + k.1, s.1 + k.2));
-        let by: Vec<String> = kernels.iter().map(|k| format!("{} {:.1} ({})", k.0, k.1, k.2)).collect();
+        let by: Vec<String> = kernels
+            .iter()
+            .map(|k| format!("{} {:.1} ({})", k.0, k.1, k.2))
+            .collect();
         println!("{id} {age} seed {seed}: light {ms:.1} ms in {n} dispatches of {total:.1} ms stamped, {} dispatches; dormant {}, moved {}; {}", stamps.len(), b.light.dormant, grew.moves, by.join(", "));
         drop(b);
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("freed");
     }
 }

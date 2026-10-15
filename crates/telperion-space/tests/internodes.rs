@@ -64,7 +64,10 @@ fn the_spread_moves_no_node_and_keeps_the_mean_length() {
             assert_eq!(a.phytomers.len(), b.phytomers.len(), "{name}");
             for (p, q) in a.phytomers.iter().zip(&b.phytomers) {
                 let apart = (p.scale - q.scale).abs() / p.scale.abs().max(1e-12);
-                assert!(apart <= telperion_space::agree::PATHS.scale, "{name}: scale {apart}");
+                assert!(
+                    apart <= telperion_space::agree::PATHS.scale,
+                    "{name}: scale {apart}"
+                );
                 assert_eq!(p.key(), q.key(), "{name}");
             }
         }

@@ -84,7 +84,12 @@ fn the_scale_draws_the_natural_tree_enlarged() {
         // Leaves keep their spacing along the enlarged wood and their size;
         // a short shoot's cluster keeps its count (fn-248).
         let tips = |b: &pipeline::Built| -> f64 {
-            b.skeleton.tree.clusters.iter().map(|c| f64::from(c.leaves)).sum()
+            b.skeleton
+                .tree
+                .clusters
+                .iter()
+                .map(|c| f64::from(c.leaves))
+                .sum()
         };
         let count = leaves(&b) as f64 - tips(&b);
         let base = leaves(&natural) as f64 - tips(&natural);

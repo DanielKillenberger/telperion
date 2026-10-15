@@ -28,7 +28,9 @@ const PRESETS: [(Preset, &str); 8] = [
 ];
 
 fn let_go(gpu: &Gpu) {
-    gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("let go");
+    gpu.device
+        .poll(wgpu::PollType::wait_indefinitely())
+        .expect("let go");
 }
 
 /// A phase, its stamped milliseconds and its dispatches.
@@ -73,7 +75,11 @@ fn by_kernel(stamps: &[(String, f64, f64)]) -> ((f64, String), f64) {
 /// work included), and its unstamped wall with the settle. Then at the
 /// sizes a build without letting go settles on, so it never begins again
 /// or moves: each phase's stamped time, the build's and the settle's.
-fn measured(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (preset, name, age, seed): (Preset, &str, u32, u64)) {
+fn measured(
+    gpu: &Gpu,
+    (kit, k): (&Kit, &Kernels),
+    (preset, name, age, seed): (Preset, &str, u32, u64),
+) {
     let g = grown(preset, age, seed);
     let t = Tables::new(gpu, &g.tables, &g.chain).expect("tables");
     let label = format!("{name} {age} seed {seed}");
@@ -110,7 +116,10 @@ fn measured(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (preset, name, age, seed): (P
         let_go(gpu);
     }
     walls.sort_by(|a, b| a.0.total_cmp(&b.0));
-    println!("{label}: letting go, unstamped wall {:.3} s, growing {:.3} s of it (median of 3)", walls[1].0, walls[1].1);
+    println!(
+        "{label}: letting go, unstamped wall {:.3} s, growing {:.3} s of it (median of 3)",
+        walls[1].0, walls[1].1
+    );
     let (b, sizes, _) = grow(gpu, kit, &t, &g.tables, (Sizes::least(), age)).expect("a build");
     drop(b);
     let_go(gpu);
@@ -141,7 +150,10 @@ fn measured(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (preset, name, age, seed): (P
 #[ignore = "a measurement"]
 fn the_executor_is_measured() {
     let _held = super::super::whole_tree();
-    let mut cases: Vec<_> = PRESETS.iter().map(|&(p, n)| (p, n, p.parameters().age as u32, 42)).collect();
+    let mut cases: Vec<_> = PRESETS
+        .iter()
+        .map(|&(p, n)| (p, n, p.parameters().age as u32, 42))
+        .collect();
     cases.push((Preset::OregonWhiteOak, "oregon-white-oak", 80, 1));
     let Some((gpu, kit)) = device() else {
         return;

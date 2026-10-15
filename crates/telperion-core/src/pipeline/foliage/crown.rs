@@ -72,7 +72,11 @@ impl Crown {
                 [y.budburst, y.elongation, y.expansion, slots],
                 [self.establishment, self.early, 0.0, 0.0],
             ],
-            _ => [[0.0, self.life, -1.0, 0.0], [0.0, 0.0, 0.0, slots], [0.0; 4]],
+            _ => [
+                [0.0, self.life, -1.0, 0.0],
+                [0.0, 0.0, 0.0, slots],
+                [0.0; 4],
+            ],
         }
     }
 
@@ -154,7 +158,9 @@ impl Crown {
     /// kept for the frond's life, so no year turns a frond's size. Whole
     /// with no establishment, and on a crown no engine grew.
     pub fn established(&self, serial: f64) -> f64 {
-        self.born(serial).map_or(1.0, |born| establishment(self.early, self.establishment, born))
+        self.born(serial).map_or(1.0, |born| {
+            establishment(self.early, self.establishment, born)
+        })
     }
 
     /// The leaflets frond `serial` was made with (fn-275 R2b): by the
@@ -173,7 +179,8 @@ impl Crown {
     /// to the mature count, on a log scale: `ln n / ln N` (fn-275 R2b).
     /// Whole with no establishment, and on a crown no engine grew.
     pub fn pinnate(&self, serial: f64) -> f64 {
-        self.born(serial).map_or(1.0, |born| unfold::course(born / self.establishment))
+        self.born(serial)
+            .map_or(1.0, |born| unfold::course(born / self.establishment))
     }
 
     /// Frond `serial`'s table `c` as segments of one blade that splits
@@ -183,7 +190,13 @@ impl Crown {
     /// long it is (`Split`), a leaf element reaching `unit` metres at a
     /// size of one. A frond made mature, or one that groups no leaflets,
     /// is `c` as it is, with no split.
-    pub fn segments(&self, c: CanopyParams, p: &CanopyParams, serial: f64, unit: f64) -> (CanopyParams, Option<Split>) {
+    pub fn segments(
+        &self,
+        c: CanopyParams,
+        p: &CanopyParams,
+        serial: f64,
+        unit: f64,
+    ) -> (CanopyParams, Option<Split>) {
         let f = self.pinnate(serial);
         let grouped = p.leaflet_count > 1. && p.rachis_length > 0. && p.size > 0. && unit > 0.;
         if f >= 1.0 || !grouped {
@@ -232,7 +245,11 @@ impl Split {
     /// moving to the mature leaflet's by `f` on a log scale. At `n` one
     /// the entire blade. A blade or leaflet of no length scales nothing.
     pub fn segment(&self, k: usize, n: usize, blade: f64, leaflet: f64) -> (f64, f64) {
-        let station = if n == 1 { 0.0 } else { (k + 1) as f64 / n as f64 };
+        let station = if n == 1 {
+            0.0
+        } else {
+            (k + 1) as f64 / n as f64
+        };
         let base = station * self.f;
         if blade <= 0.0 || leaflet <= 0.0 {
             return (base, 1.0);

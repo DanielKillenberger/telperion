@@ -10,9 +10,9 @@ mod data;
 // The resident build's stages after the cycle's: the folds, sweep,
 // stations, rings, placement and handoff (fn-212, fn-256 task 3).
 mod resident;
-pub use resident::{Admitted, GrowingTree};
 #[cfg(target_arch = "wasm32")]
 pub(crate) use resident::BROWSER;
+pub use resident::{Admitted, GrowingTree};
 mod io;
 mod positions;
 mod preparation;
@@ -294,17 +294,17 @@ mod tests;
 mod unfold_tests;
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
-mod lobed_tests;
-#[cfg(all(test, not(target_arch = "wasm32")))]
-mod readback_tests;
-#[cfg(all(test, not(target_arch = "wasm32")))]
-mod program_tests;
+mod cpu_builds_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod ledger_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
-mod release_tests;
+mod lobed_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
-mod cpu_builds_tests;
+mod program_tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod readback_tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod release_tests;
 
 #[cfg(test)]
 use crate::whole_tree::whole_tree;

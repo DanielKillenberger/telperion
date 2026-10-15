@@ -80,7 +80,13 @@ pub const FALL: u32 = 0x0fa1_1e17;
 
 impl Unfolded {
     /// A node drawn at the whole year: every leaf whole, none falling.
-    pub const WHOLE: Self = Self { grow: 1.0, fall: 0.0, colour: 0.0, regrow: 0.0, life: 0 };
+    pub const WHOLE: Self = Self {
+        grow: 1.0,
+        fall: 0.0,
+        colour: 0.0,
+        regrow: 0.0,
+        life: 0,
+    };
 
     /// The share of its whole size, and how far it has coloured, station
     /// `ordinal` of a run keyed `key` draws its leaf at, its wood keeping
@@ -97,7 +103,10 @@ impl Unfolded {
         let gone = (self.fall * f32::from(u16::MAX)).round() as u16;
         let here = !(gone != 0 && keeps(gone, key ^ FALL, ordinal));
         let regrow = if kept { self.regrow } else { 0.0 };
-        (f64::from(f32::from(u8::from(here)) + regrow), f64::from(self.colour))
+        (
+            f64::from(f32::from(u8::from(here)) + regrow),
+            f64::from(self.colour),
+        )
     }
 }
 

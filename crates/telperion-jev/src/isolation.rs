@@ -13,11 +13,7 @@ const FORBIDDEN_CRATES: &[&str] = &[
     "src",
 ];
 
-const FORBIDDEN_MARKERS: &[&str] = &[
-    ENDPOINT,
-    "telperion-jev",
-    "telperion_jev",
-];
+const FORBIDDEN_MARKERS: &[&str] = &[ENDPOINT, "telperion-jev", "telperion_jev"];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IsolationHit {

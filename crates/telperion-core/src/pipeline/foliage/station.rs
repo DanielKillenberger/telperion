@@ -55,7 +55,9 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
     let mut sink = Instances::new(out.reference);
     let leaves = (kept.iter().enumerate())
         .filter(|(_, k)| k.is_some())
-        .try_fold(0usize, |n, (k, _)| n.checked_add(super::organs::leaflets(&placement(&p, key, k as u32))))
+        .try_fold(0usize, |n, (k, _)| {
+            n.checked_add(super::organs::leaflets(&placement(&p, key, k as u32)))
+        })
         .ok_or(Error::ResourceLimit("foliage count overflow"))?;
     reserve(out, leaves, p)?;
     for (k, distance) in stations.into_iter().enumerate() {
@@ -98,12 +100,23 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
                 ))?;
             point = point * (1. - p.surface_contact) + seat * p.surface_contact;
         }
-        let into = if kept[k].is_some() { &mut *out } else { &mut sink };
+        let into = if kept[k].is_some() {
+            &mut *out
+        } else {
+            &mut sink
+        };
         // A leaf still expanding is drawn at its share, a falling one
         // whole until its abscission day (fn-270 R5, R5c).
         let unfolded = tree.unfolding(nodes[segment + 1]);
         let (share, colour) = unfolded.leaf(kept[k].unwrap_or(true), tree.key(nodes[1]), k as u32);
-        let table = placement(&CanopyParams { size: p.size * share, ..p }, key, k as u32);
+        let table = placement(
+            &CanopyParams {
+                size: p.size * share,
+                ..p
+            },
+            key,
+            k as u32,
+        );
         let count = super::organs::leaflets(&table);
         let from = into.leaves.len();
         // Leaflets past a station's first draw on its own stream, so its
@@ -136,7 +149,10 @@ pub(super) fn placement(p: &CanopyParams, key: u32, k: u32) -> CanopyParams {
 /// The stream the leaflets past the first of station `k` of the run keyed
 /// `key` draw on.
 fn leaflet_stream(seed: u32, key: u32, k: u32) -> u32 {
-    crate::tree::leaf_stream(seed, crate::tree::mix32(key ^ k.wrapping_add(1).wrapping_mul(0x9e37_79b9)))
+    crate::tree::leaf_stream(
+        seed,
+        crate::tree::mix32(key ^ k.wrapping_add(1).wrapping_mul(0x9e37_79b9)),
+    )
 }
 
 /// Metres between leaves on a run no twig layer marks: the row's share of the

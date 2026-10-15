@@ -288,7 +288,9 @@ fn organ(
     let element = foliage::bloom_element(&inputs.bloom)?;
     let p = &inputs.bloom;
     let instances = match leaf {
-        Some(leaf) => foliage::place_blooms_in(tree, p, request.season, foliage::bloom_box(leaf, p))?,
+        Some(leaf) => {
+            foliage::place_blooms_in(tree, p, request.season, foliage::bloom_box(leaf, p))?
+        }
         None => foliage::place_blooms(tree, p, request.season)?,
     };
     Ok(Some(crate::mesh::Foliage { element, instances }))

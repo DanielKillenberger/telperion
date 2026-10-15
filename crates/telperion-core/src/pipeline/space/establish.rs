@@ -35,7 +35,11 @@ impl Establishing {
         let state = species.states.get(*trunk.first()?)?;
         let nodes: f64 = state.zones.iter().map(|z| z.nodes.mean()).sum();
         let rise = state.internode * nodes;
-        (rise > 0.0).then_some(Self { years: canopy.frond_establishment, early: canopy.frond_early_share, rise })
+        (rise > 0.0).then_some(Self {
+            years: canopy.frond_establishment,
+            early: canopy.frond_early_share,
+            rise,
+        })
     }
 
     /// The device's words (`dress.wgsl`'s `Cfg`): none where dormant.
@@ -54,7 +58,11 @@ impl Establishing {
     }
 
     /// `structure` with its stem established; untouched where dormant.
-    pub(super) fn apply<'s>(this: Option<Self>, structure: &'s Structure, trunk: &[usize]) -> Cow<'s, Structure> {
+    pub(super) fn apply<'s>(
+        this: Option<Self>,
+        structure: &'s Structure,
+        trunk: &[usize],
+    ) -> Cow<'s, Structure> {
         let Some(e) = this else {
             return Cow::Borrowed(structure);
         };
@@ -126,25 +134,54 @@ mod tests {
     fn an_axis_off_the_stem_is_carried_whole() {
         let family = Preset::OregonWhiteOak.parameters();
         let species = family.space.species.unwrap();
-        let request = Request { age: 8, seed: 3, budget: 1 << 24, light: family.space.light };
+        let request = Request {
+            age: 8,
+            seed: 3,
+            budget: 1 << 24,
+            light: family.space.light,
+        };
         let before = grow(&species, request).unwrap();
         let trunk = &family.space.trunk;
-        let e = Some(Establishing { years: 6.75, early: 0.1, rise: 0.4 });
+        let e = Some(Establishing {
+            years: 6.75,
+            early: 0.1,
+            rise: 0.4,
+        });
         let after = Establishing::apply(e, &before, trunk);
         let mut carried = 0;
         for (a, b) in before.axes.iter().zip(&after.axes) {
-            let drops: Vec<f64> = a.phytomers.iter().zip(&b.phytomers).map(|(p, q)| p.tip.z - q.tip.z).collect();
+            let drops: Vec<f64> = a
+                .phytomers
+                .iter()
+                .zip(&b.phytomers)
+                .map(|(p, q)| p.tip.z - q.tip.z)
+                .collect();
             assert!(drops.iter().all(|d| *d >= 0.0), "a phytomer was raised");
             if trunk.contains(&a.pa) {
-                assert!(a.phytomers.iter().zip(&b.phytomers).all(|(p, q)| q.radius <= p.radius));
+                assert!(a
+                    .phytomers
+                    .iter()
+                    .zip(&b.phytomers)
+                    .all(|(p, q)| q.radius <= p.radius));
                 continue;
             }
             let base = a.base.z - b.base.z;
-            assert!(drops.iter().all(|d| (d - base).abs() < 1e-12), "an axis off the stem bent");
-            assert!(a.phytomers.iter().zip(&b.phytomers).all(|(p, q)| p.radius == q.radius));
+            assert!(
+                drops.iter().all(|d| (d - base).abs() < 1e-12),
+                "an axis off the stem bent"
+            );
+            assert!(a
+                .phytomers
+                .iter()
+                .zip(&b.phytomers)
+                .all(|(p, q)| p.radius == q.radius));
             carried += usize::from(base > 0.0);
         }
         assert!(carried > 0, "no axis off the stem was carried");
-        assert_eq!(Establishing::apply(None, &before, trunk).as_ref(), &before, "dormant moved");
+        assert_eq!(
+            Establishing::apply(None, &before, trunk).as_ref(),
+            &before,
+            "dormant moved"
+        );
     }
 }

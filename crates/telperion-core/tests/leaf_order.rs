@@ -13,7 +13,10 @@ type Tree = Vec<(u64, Vec<[f64; 5]>)>;
 
 fn of(s: &Structure) -> Tree {
     let row = |p: &telperion_space::Phytomer| [p.tip.x, p.tip.y, p.tip.z, p.radius, p.scale];
-    s.axes.iter().map(|a| (a.lineage, a.phytomers.iter().map(row).collect())).collect()
+    s.axes
+        .iter()
+        .map(|a| (a.lineage, a.phytomers.iter().map(row).collect()))
+        .collect()
 }
 
 fn written(t: &Tree) -> Vec<u8> {
@@ -37,7 +40,9 @@ fn read(bytes: &[u8]) -> Tree {
     (0..n)
         .map(|_| {
             let lineage = word();
-            let rows = (0..word()).map(|_| std::array::from_fn(|_| f64::from_bits(word()))).collect();
+            let rows = (0..word())
+                .map(|_| std::array::from_fn(|_| f64::from_bits(word())))
+                .collect();
             (lineage, rows)
         })
         .collect()
@@ -60,7 +65,9 @@ fn keyed(t: &Tree) -> HashMap<(u64, u32), usize> {
 fn shape(t: &Tree) -> (usize, usize, f64, f64) {
     let tips = || t.iter().flat_map(|a| &a.1);
     let extent = |k: usize| {
-        let (lo, hi) = tips().fold((f64::MAX, f64::MIN), |(lo, hi), r| (lo.min(r[k]), hi.max(r[k])));
+        let (lo, hi) = tips().fold((f64::MAX, f64::MIN), |(lo, hi), r| {
+            (lo.min(r[k]), hi.max(r[k]))
+        });
         hi - lo
     };
     let height = tips().map(|r| r[2]).fold(0.0, f64::max);
@@ -76,7 +83,9 @@ fn compared(now: &Tree, before: &Tree) {
         let k = seen.entry(*l).or_insert(0);
         *k += 1;
         match at.get(&(*l, *k)) {
-            Some(&j) if before[j].1.len() == rows.len() => pairs.extend((0..rows.len()).map(|r| (i, j, r))),
+            Some(&j) if before[j].1.len() == rows.len() => {
+                pairs.extend((0..rows.len()).map(|r| (i, j, r)))
+            }
             Some(_) => unmatched.1 += 1,
             None => unmatched.0 += 1,
         }
@@ -93,7 +102,11 @@ fn compared(now: &Tree, before: &Tree) {
             differ += usize::from(x.to_bits() != y.to_bits());
             let scale = x.abs().max(y.abs());
             abs.push((x - y).abs());
-            rel.push(if x == y || scale == 0.0 { 0.0 } else { (x - y).abs() / scale });
+            rel.push(if x == y || scale == 0.0 {
+                0.0
+            } else {
+                (x - y).abs() / scale
+            });
         }
         let tail = |v: &mut Vec<f64>| {
             v.sort_by(f64::total_cmp);
@@ -109,10 +122,18 @@ fn compared(now: &Tree, before: &Tree) {
 fn the_leaf_order_moves_a_tree() {
     let env = |k: &str| std::env::var(k).unwrap_or_else(|_| panic!("{k} is set"));
     let preset = Preset::from_id(&env("LEAF_PRESET")).expect("a preset");
-    let (age, seed): (u32, u64) = (env("LEAF_AGE").parse().expect("an age"), env("LEAF_SEED").parse().expect("a seed"));
+    let (age, seed): (u32, u64) = (
+        env("LEAF_AGE").parse().expect("an age"),
+        env("LEAF_SEED").parse().expect("a seed"),
+    );
     let family = preset.parameters();
     let species = family.space.species.expect("an engine species");
-    let request = Request { age, seed, budget: 20_000_000, light: family.space.light };
+    let request = Request {
+        age,
+        seed,
+        budget: 20_000_000,
+        light: family.space.light,
+    };
     let t = of(&grow_cycle(&species, request).expect("a tree").structure);
     let (axes, phytomers, height, crown) = shape(&t);
     println!("LEAF {preset:?} {age} seed {seed}: {axes} axes, {phytomers} phytomers, height {height:.4} m, crown {crown:.4} m");

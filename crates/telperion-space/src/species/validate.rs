@@ -112,7 +112,10 @@ impl PaState {
         }
         // A shoot and the leaf at its last node are whole within the year
         // (fn-270 R5), so a whole year draws them whole.
-        let days = [("elongation", self.elongation), ("expansion", self.expansion)];
+        let days = [
+            ("elongation", self.elongation),
+            ("expansion", self.expansion),
+        ];
         for (name, value) in days {
             if !admits(name, value) {
                 return refuse(format!("{at}.{name}"), "a span of days lies in 0 to 365");
@@ -126,7 +129,10 @@ impl PaState {
         }
         // R5c: a leaf's lifespan, and its season's days on the calendar.
         if !admits("leaf_life", self.leaf_life) {
-            return refuse(format!("{at}.leaf_life"), "a leaf's years lie in 0 to never");
+            return refuse(
+                format!("{at}.leaf_life"),
+                "a leaf's years lie in 0 to never",
+            );
         }
         let calendar = [
             ("budburst", self.budburst),
@@ -220,8 +226,20 @@ impl Zone {
         if !admits("zone.buds", self.buds) {
             return refuse(format!("{at}.buds"), "a node carries 1 to 6 buds");
         }
-        table(&format!("{at}.lateral"), &self.lateral, pa, count, "zone.lateral")?;
-        table(&format!("{at}.dormant"), &self.dormant, pa, count, "zone.dormant")?;
+        table(
+            &format!("{at}.lateral"),
+            &self.lateral,
+            pa,
+            count,
+            "zone.lateral",
+        )?;
+        table(
+            &format!("{at}.dormant"),
+            &self.dormant,
+            pa,
+            count,
+            "zone.dormant",
+        )?;
         if !admits("zone.delay", self.delay) {
             return refuse(format!("{at}.delay"), "a delay lies in 0 to 1000 years");
         }

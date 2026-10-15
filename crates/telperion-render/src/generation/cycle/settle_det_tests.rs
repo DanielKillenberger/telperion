@@ -29,19 +29,34 @@ fn fresh(g: &Grown, sizes: Sizes) -> Option<Vec<u32>> {
 fn the_node_table_is_the_same_on_every_context_and_block_cap() {
     let _held = super::super::whole_tree();
     let mut differ = Vec::new();
-    for (preset, name, age) in [(Preset::OregonWhiteOak, "oregon-white-oak", 9), (Preset::NorwaySpruce, "norway-spruce", 12)] {
+    for (preset, name, age) in [
+        (Preset::OregonWhiteOak, "oregon-white-oak", 9),
+        (Preset::NorwaySpruce, "norway-spruce", 12),
+    ] {
         let g = grown(preset, age, 42);
         let Some(first) = fresh(&g, Sizes::least()) else {
             return;
         };
-        let mut runs: Vec<(String, Sizes)> = (2..=10).map(|k| (format!("context {k}"), Sizes::least())).collect();
+        let mut runs: Vec<(String, Sizes)> = (2..=10)
+            .map(|k| (format!("context {k}"), Sizes::least()))
+            .collect();
         for cap in [64, 128, 1024] {
-            runs.push((format!("block cap {cap}"), Sizes { block_cap: cap, ..Sizes::least() }));
+            runs.push((
+                format!("block cap {cap}"),
+                Sizes {
+                    block_cap: cap,
+                    ..Sizes::least()
+                },
+            ));
         }
         for (label, sizes) in runs {
             let again = fresh(&g, sizes).expect("a device");
-            let parted = again.iter().zip(&first).filter(|(a, b)| a != b).count() + again.len().abs_diff(first.len());
-            println!("{name} {age}, {label}: {} words, {parted} differ", first.len());
+            let parted = again.iter().zip(&first).filter(|(a, b)| a != b).count()
+                + again.len().abs_diff(first.len());
+            println!(
+                "{name} {age}, {label}: {} words, {parted} differ",
+                first.len()
+            );
             if parted > 0 {
                 differ.push(format!("{name} {label}"));
             }
@@ -55,13 +70,19 @@ fn young_trees_grown_with_retirement_are_the_reference_the_settle_is_held_to() {
     let mut differ = Vec::new();
     for (preset, name, age) in YOUNG {
         let g = grown(preset, age, 42);
-        let (apart, retired) = telperion_space::grow_cycle_is_the_reference(&g.species, g.request).expect("a tree");
-        println!("{name} {age}: {retired} retired, girth apart from the reference's tree {apart:?}");
+        let (apart, retired) =
+            telperion_space::grow_cycle_is_the_reference(&g.species, g.request).expect("a tree");
+        println!(
+            "{name} {age}: {retired} retired, girth apart from the reference's tree {apart:?}"
+        );
         // The reference's tree but for the girth frozen as a subtree closes
         // (fn-270 R4): at most 5.4e-5 on the shipped presets.
         if !apart.is_some_and(|(_, most)| most <= 1e-4) {
             differ.push(name);
         }
     }
-    assert!(differ.is_empty(), "grow_cycle is not the reference: {differ:?}");
+    assert!(
+        differ.is_empty(),
+        "grow_cycle is not the reference: {differ:?}"
+    );
 }

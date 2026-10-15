@@ -313,10 +313,14 @@ mod tests {
             ("fate", include_str!("fate.wgsl")),
         ];
         for (name, body) in bodies {
-            let module = naga::front::wgsl::parse_str(&shader(body)).unwrap_or_else(|e| panic!("{name}: {e}"));
-            naga::valid::Validator::new(naga::valid::ValidationFlags::all(), naga::valid::Capabilities::all())
-                .validate(&module)
-                .unwrap_or_else(|e| panic!("{name}: {e:?}"));
+            let module = naga::front::wgsl::parse_str(&shader(body))
+                .unwrap_or_else(|e| panic!("{name}: {e}"));
+            naga::valid::Validator::new(
+                naga::valid::ValidationFlags::all(),
+                naga::valid::Capabilities::all(),
+            )
+            .validate(&module)
+            .unwrap_or_else(|e| panic!("{name}: {e:?}"));
         }
     }
 }

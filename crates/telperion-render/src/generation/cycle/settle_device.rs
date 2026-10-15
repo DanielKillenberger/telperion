@@ -114,7 +114,15 @@ pub(super) const T_SCALED: usize = 7;
 pub(super) const T_PLACE: usize = 5;
 
 /// The place module's entries.
-pub(super) const PLACE_ENTRIES: [&str; 7] = ["scale_main", "attach_main", "thick_main", "frame_main", "lever_main", "sized_main", "walk_main"];
+pub(super) const PLACE_ENTRIES: [&str; 7] = [
+    "scale_main",
+    "attach_main",
+    "thick_main",
+    "frame_main",
+    "lever_main",
+    "sized_main",
+    "walk_main",
+];
 pub(super) const SCALE: usize = 0;
 pub(super) const ATTACH: usize = 1;
 pub(super) const THICK_E: usize = 2;
@@ -284,6 +292,15 @@ impl Table {
         let at_np = round64(at_nu + u64::from(units) + 1);
         let words = at_np + u64::from(NP_COLS) * skp;
         let small = |x: u64| u32::try_from(x).expect("the node table's words in a u32");
-        Self { kept, units, phyts, sk: small(sk), skp: small(skp), at_nu: small(at_nu), at_np: small(at_np), words }
+        Self {
+            kept,
+            units,
+            phyts,
+            sk: small(sk),
+            skp: small(skp),
+            at_nu: small(at_nu),
+            at_np: small(at_np),
+            words,
+        }
     }
 }

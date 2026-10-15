@@ -4,8 +4,8 @@
 //! (FINE-CONTRACT.md D2,
 //! D3 and D18's node presences), so the kernel draws a unit's nodes, their
 //! order and their buds as `grow_unit` does.
-use crate::error::Result;
 use crate::contract::{grid, ln_of, logit_of, ticks};
+use crate::error::Result;
 use crate::grow::alone::rules;
 use crate::grow::node_wood;
 use crate::lineage::{threshold, ONE};
@@ -117,7 +117,9 @@ impl Units {
                             dormant,
                             wake,
                             sleeps,
-                            placed: (0..zone.places()).map(|k| threshold(zone.share(k))).collect(),
+                            placed: (0..zone.places())
+                                .map(|k| threshold(zone.share(k)))
+                                .collect(),
                             sleep_windows,
                         }
                     })

@@ -10,8 +10,8 @@ use crate::transcendental::Transcendental;
 pub mod keys;
 
 pub(crate) use keys::{
-    ABORTION, CONTINUATION, DOMINANCE, DORMANT, END, ENDED, FAILED, INSERTION, INTERNODE, MOVE,
-    LAID, PLACED, RELAY, ROLL, SHED, TROPISM, VIABILITY, WANDER, ZONE,
+    ABORTION, CONTINUATION, DOMINANCE, DORMANT, END, ENDED, FAILED, INSERTION, INTERNODE, LAID,
+    MOVE, PLACED, RELAY, ROLL, SHED, TROPISM, VIABILITY, WANDER, ZONE,
 };
 
 /// A hashed path from the root.
@@ -391,12 +391,15 @@ mod organ_tests {
     #[test]
     fn a_fraction_of_organs_is_split_at_each_bearer() {
         assert!((0..1000).all(|key| organs(3.0, key, organ::LEAFLETS) == 3));
-        let drawn: Vec<u32> = (0..10_000).map(|key| organs(2.3, mix32(key), organ::LEAFLETS)).collect();
+        let drawn: Vec<u32> = (0..10_000)
+            .map(|key| organs(2.3, mix32(key), organ::LEAFLETS))
+            .collect();
         assert!(drawn.iter().all(|&n| n == 2 || n == 3));
         let mean = drawn.iter().sum::<u32>() as f64 / drawn.len() as f64;
         assert!((mean - 2.3).abs() < 0.02, "{mean}");
         // Two rows of one bearer draw apart.
-        let apart = (0..1000).filter(|&k| organs(0.5, k, organ::FRONDS) != organs(0.5, k, organ::SKIRT));
+        let apart =
+            (0..1000).filter(|&k| organs(0.5, k, organ::FRONDS) != organs(0.5, k, organ::SKIRT));
         assert!(apart.count() > 300);
     }
 }

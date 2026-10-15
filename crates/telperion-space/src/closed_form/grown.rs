@@ -25,11 +25,21 @@ impl Walk<'_, f64> {
 
     /// The expected axes a bud grows, its own among them: none for a bud
     /// of a PA no age lives in, which the grower never sprouts.
-    pub(super) fn axes(&mut self, k: usize, m: usize, carried: Carried, first: Option<First>) -> f64 {
+    pub(super) fn axes(
+        &mut self,
+        k: usize,
+        m: usize,
+        carried: Carried,
+        first: Option<First>,
+    ) -> f64 {
         self.total(Total::Axes, (k, m, carried, first))
     }
 
-    fn total(&mut self, what: Total, (k, m, carried, first): (usize, usize, Carried, Option<First>)) -> f64 {
+    fn total(
+        &mut self,
+        what: Total,
+        (k, m, carried, first): (usize, usize, Carried, Option<First>),
+    ) -> f64 {
         let own = match what {
             Total::Phytomers => 0.0,
             Total::Axes => 1.0,
@@ -40,7 +50,14 @@ impl Walk<'_, f64> {
         }
     }
 
-    fn lived_grown(&mut self, what: Total, k: usize, m: usize, carried: Carried, first: Option<First>) -> f64 {
+    fn lived_grown(
+        &mut self,
+        what: Total,
+        k: usize,
+        m: usize,
+        carried: Carried,
+        first: Option<First>,
+    ) -> f64 {
         if m == 0 {
             return 0.0;
         }

@@ -29,22 +29,36 @@ fn a_tree_grown_in_year_by_year_is_the_tree_built_at_once() {
             block_on(gen.grow_to(&mut tree, at)).unwrap();
             assert_eq!(tree.committed(), Some(year), "{id}: grown to {at}");
             let drawn = block_on(gen.settle(&tree, at)).unwrap();
-            assert!((0.0..=1.0).contains(&drawn.colouring), "{id} at {at}: colouring {}", drawn.colouring);
+            assert!(
+                (0.0..=1.0).contains(&drawn.colouring),
+                "{id} at {at}: colouring {}",
+                drawn.colouring
+            );
             renderer.submit_prepared(drawn).unwrap();
         }
         let whole = block_on(gen.settle(&tree, age)).unwrap();
         assert_eq!(whole.colouring, 1.0);
         assert_eq!(whole.bounds(), bounds, "{id}: bounds");
-        assert!(gen.read_instances(&whole).unwrap().leaves == want, "{id}: the leaves grown in are not the leaves built at once");
+        assert!(
+            gen.read_instances(&whole).unwrap().leaves == want,
+            "{id}: the leaves grown in are not the leaves built at once"
+        );
         for (refused, name) in [
-            (block_on(gen.grow_to(&mut tree, age + 1.0)).err(), "age.horizon"),
+            (
+                block_on(gen.grow_to(&mut tree, age + 1.0)).err(),
+                "age.horizon",
+            ),
             (block_on(gen.grow_to(&mut tree, f64::NAN)).err(), "age"),
             (block_on(gen.settle(&tree, age - 1.5)).err(), "at"),
         ] {
             let refused = refused.expect("refused").to_string();
             assert!(refused.contains(name), "{id}: {refused}");
         }
-        assert_eq!(tree.committed(), Some(age as u32), "a refusal moved nothing");
+        assert_eq!(
+            tree.committed(),
+            Some(age as u32),
+            "a refusal moved nothing"
+        );
     }
 }
 
@@ -61,10 +75,15 @@ fn a_draw_that_fails_to_place_spends_the_tree() {
     (family.age, family.canopy.max_instances) = (6.0, 1);
     let mut tree = block_on(gen.begin_growth(&family)).unwrap();
     block_on(gen.grow_to(&mut tree, 6.0)).unwrap();
-    let refused = block_on(gen.settle(&tree, 6.0)).err().expect("over the instance budget");
+    let refused = block_on(gen.settle(&tree, 6.0))
+        .err()
+        .expect("over the instance budget");
     assert!(refused.to_string().contains("instance"), "{refused}");
     assert_eq!(tree.committed(), None);
-    let again = block_on(gen.grow_to(&mut tree, 6.0)).err().expect("spent").to_string();
+    let again = block_on(gen.grow_to(&mut tree, 6.0))
+        .err()
+        .expect("spent")
+        .to_string();
     assert!(again.contains("state.failed"), "{again}");
 }
 
@@ -88,18 +107,31 @@ fn a_grow_in_draw_lets_the_drawn_tree_go_only_where_it_fits_alone() {
         block_on(gen.grow_to(&mut tree, f64::from(year))).unwrap();
         let admitted = Generator::draw_admission(&tree, &renderer, u64::MAX).unwrap();
         assert_eq!(admitted, Admitted::Beside, "year {year}");
-        renderer.submit_prepared(block_on(gen.settle(&tree, f64::from(year))).unwrap()).unwrap();
+        renderer
+            .submit_prepared(block_on(gen.settle(&tree, f64::from(year))).unwrap())
+            .unwrap();
     }
     block_on(gen.grow_to(&mut tree, 8.0)).unwrap();
     block_on(crate::generation::io::complete(&gen.gpu)).unwrap();
-    let (held, drawn, next) = (gen.gpu.ledger.live(), Generator::tree_buffer_bytes(&renderer), tree.expected_draw());
+    let (held, drawn, next) = (
+        gen.gpu.ledger.live(),
+        Generator::tree_buffer_bytes(&renderer),
+        tree.expected_draw(),
+    );
     assert!(drawn > 0 && next > 0, "drawn {drawn}, expected {next}");
     let budget = |b: u64| Generator::draw_admission(&tree, &renderer, b);
     assert_eq!(budget(held + next).unwrap(), Admitted::Beside);
     assert_eq!(budget(held + next - 1).unwrap(), Admitted::MakeRoom);
     let refused = budget(held - drawn + next - 1).unwrap_err().to_string();
-    assert!(refused.contains("even with the drawn tree let go"), "{refused}");
-    assert_eq!(Generator::tree_buffer_bytes(&renderer), drawn, "a refusal keeps the drawn tree");
+    assert!(
+        refused.contains("even with the drawn tree let go"),
+        "{refused}"
+    );
+    assert_eq!(
+        Generator::tree_buffer_bytes(&renderer),
+        drawn,
+        "a refusal keeps the drawn tree"
+    );
     // A draw refused by name is refused before anything is let go.
     for at in [f64::NAN, 6.5] {
         assert!(gen.drawable(&tree, at).is_err(), "at {at}");
@@ -112,5 +144,9 @@ fn a_grow_in_draw_lets_the_drawn_tree_go_only_where_it_fits_alone() {
     renderer.release_tree();
     let up = renderer.submit_prepared(block_on(gen.settle(&tree, 8.0)).unwrap());
     assert!(up.is_ok() && Generator::tree_buffer_bytes(&renderer) > 0);
-    assert!(tree.last_draw() >= before, "the draw at 8 measured {} after {before} at 7", tree.last_draw());
+    assert!(
+        tree.last_draw() >= before,
+        "the draw at 8 measured {} after {before} at 7",
+        tree.last_draw()
+    );
 }

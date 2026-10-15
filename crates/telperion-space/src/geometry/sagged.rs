@@ -27,8 +27,7 @@ pub(super) fn sag_angle(
     // (fn-203).
     // Where either frame has no side (a phytomer never laid, as a chain
     // resolved alone meets it), the lever is not carried: as before.
-    let frames = Frame::of(q3(phytomer.heading), q3(phytomer.side))
-        .zip(Frame::of(running, across));
+    let frames = Frame::of(q3(phytomer.heading), q3(phytomer.side)).zip(Frame::of(running, across));
     let now = frames
         .as_ref()
         .map_or(load.moment, |(from, to)| from.carry(to, load.moment));
@@ -50,9 +49,16 @@ pub(super) fn sag_angle(
     // again, to none at the angle's cut.
     let square = sub(running, scaled(pivot, dot(running, pivot)));
     let down = [0.0, 0.0, -1.0];
-    let room = between(0.0, atan2(dot(cross(square, down), pivot), dot(square, down)));
+    let room = between(
+        0.0,
+        atan2(dot(cross(square, down), pivot), dot(square, down)),
+    );
     let room = if room < -0.25 { room + 1.0 } else { room };
-    let room = if room > 0.5 { 2.0 * (0.75 - room) } else { room };
+    let room = if room > 0.5 {
+        2.0 * (0.75 - room)
+    } else {
+        room
+    };
     // The unbent lever's moment caps the turned one's.
     let cap = unit_w(torque(load.moment)).1 + log2_q(carried);
     let angle = turn(now, cap, form.sag, phytomer.radius, f64::from(length));
@@ -93,4 +99,3 @@ impl Frame {
         (0..3).fold([0.0; 3], |sum, k| add(sum, scaled(axes[k], parts[k])))
     }
 }
-

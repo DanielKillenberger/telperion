@@ -43,8 +43,12 @@ const FREE_SHARE: f64 = 0.85;
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn native(gpu: &crate::Gpu, held: u64) -> u64 {
     let stated = std::env::var("TELPERION_DEVICE_BUDGET_MIB").ok();
-    let stated = stated.and_then(|m| m.trim().parse::<u64>().ok()).map_or(NATIVE, |m| m << 20);
-    let free = gpu.free_device_memory().map_or(u64::MAX, |f| held + (f as f64 * FREE_SHARE) as u64);
+    let stated = stated
+        .and_then(|m| m.trim().parse::<u64>().ok())
+        .map_or(NATIVE, |m| m << 20);
+    let free = gpu
+        .free_device_memory()
+        .map_or(u64::MAX, |f| held + (f as f64 * FREE_SHARE) as u64);
     stated.min(free)
 }
 
@@ -195,7 +199,9 @@ mod tests {
     fn a_tree_with_no_expectation_makes_room_first() {
         let ordinary = telperion_core::presets::by_identity("ordinary").unwrap();
         let species = ordinary.space.species.as_ref().unwrap();
-        assert!(telperion_space::expected_kept(species, 40).unwrap().is_none());
+        assert!(telperion_space::expected_kept(species, 40)
+            .unwrap()
+            .is_none());
         let admitted = |held: u64, drawn: u64| admit(&ordinary, held << 20, drawn << 20, BROWSER);
         assert_eq!(admitted(0, 0).unwrap(), Admitted::Beside);
         assert_eq!(admitted(1_757, 1_700).unwrap(), Admitted::MakeRoom);

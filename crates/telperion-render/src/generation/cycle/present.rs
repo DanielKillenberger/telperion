@@ -13,7 +13,17 @@ use super::settle_run::View;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
-const ENTRIES: [&str; 9] = ["keys_main", "insert_main", "match_main", "gone_main", "axes_main", "present_main", "gather_main", "count_main", "place_main"];
+const ENTRIES: [&str; 9] = [
+    "keys_main",
+    "insert_main",
+    "match_main",
+    "gone_main",
+    "axes_main",
+    "present_main",
+    "gather_main",
+    "count_main",
+    "place_main",
+];
 const KEYS: usize = 0;
 const INSERT: usize = 1;
 const MATCH: usize = 2;
@@ -34,7 +44,9 @@ impl Kernels {
     pub(super) fn new(gpu: &Gpu) -> Self {
         let source = format!("{}\n{}", super::contract(), include_str!("present.wgsl"));
         let read = [true, true, false, false, false, false, true];
-        Self { pass: io::Pass::new(gpu, source, &read, &ENTRIES) }
+        Self {
+            pass: io::Pass::new(gpu, source, &read, &ENTRIES),
+        }
     }
 }
 
@@ -49,7 +61,11 @@ pub(super) struct Presented {
 
 impl Presented {
     pub(super) fn view(&self) -> View<'_> {
-        View { nt: &self.nt, table: &self.table, starts: &self.starts }
+        View {
+            nt: &self.nt,
+            table: &self.table,
+            starts: &self.starts,
+        }
     }
 }
 
@@ -70,7 +86,8 @@ mod w {
 
 /// A buffer the presentation writes, copies into and reads back.
 fn storage(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
-    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
+    let usage =
+        wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
     io::buffer(gpu, label, words.max(4) * 4, usage, &[])
 }
 
@@ -105,7 +122,20 @@ impl Work {
         let (gone, gphyt, starts) = (take(pkept + 1), take(pkept + 1), take(depths + 1));
         let (gather, shift) = (take(2 * (depths + 1)), take(3 * (kept + pkept)));
         let (pos_now, pos_gone, scan) = (take(kept), take(pkept), take(kept + pkept + 1));
-        Self { keys, old, now_of, gone, gphyt, starts, gather, shift, pos_now, pos_gone, scan, words: at }
+        Self {
+            keys,
+            old,
+            now_of,
+            gone,
+            gphyt,
+            starts,
+            gather,
+            shift,
+            pos_now,
+            pos_gone,
+            scan,
+            words: at,
+        }
     }
 }
 
@@ -119,7 +149,13 @@ struct Rec<'a> {
 }
 
 impl Rec<'_> {
-    fn run(&mut self, e: &mut wgpu::CommandEncoder, entry: usize, words: &[(usize, u32)], (base, count): (u32, u32)) -> Result<()> {
+    fn run(
+        &mut self,
+        e: &mut wgpu::CommandEncoder,
+        entry: usize,
+        words: &[(usize, u32)],
+        (base, count): (u32, u32),
+    ) -> Result<()> {
         if count == 0 {
             return Ok(());
         }
@@ -146,25 +182,77 @@ fn ranges(starts: &[u32], depths: usize) -> Vec<(u32, u32)> {
 /// `now`, settled, drawn `fraction` into its year from `before`, last
 /// year's drawing (none before the first year), each PA's `unfold` row
 /// (elongation, expansion, internode spread, cluster leaves, budburst).
-pub(super) async fn present(gpu: &Gpu, (k, scan): (&Kernels, &io::Pass), (now, before): (View<'_>, Option<View<'_>>), unfold: &[f32], fraction: f32) -> Result<Presented> {
+pub(super) async fn present(
+    gpu: &Gpu,
+    (k, scan): (&Kernels, &io::Pass),
+    (now, before): (View<'_>, Option<View<'_>>),
+    unfold: &[f32],
+    fraction: f32,
+) -> Result<Presented> {
     let (t, prev) = (now.table, before.unwrap_or(now));
     let pkept = if before.is_some() { prev.table.kept } else { 0 };
     let now_depths = now.starts.len().saturating_sub(1);
-    let prev_depths = if before.is_some() { prev.starts.len().saturating_sub(1) } else { 0 };
+    let prev_depths = if before.is_some() {
+        prev.starts.len().saturating_sub(1)
+    } else {
+        0
+    };
     let depths = now_depths.max(prev_depths);
     let work_at = Work::new(u64::from(t.kept), u64::from(pkept), depths as u64);
     let work = storage(gpu, "present work", work_at.words)?;
     let mask = (2 * pkept).max(64).next_power_of_two() - 1;
     let hash = zeroed(gpu, "present hash", u64::from(mask) + 1)?;
-    let unfold = io::buffer(gpu, "present rows", (unfold.len() as u64).max(4) * 4, wgpu::BufferUsages::STORAGE, bytemuck::cast_slice(unfold))?;
-    let prev_starts: Vec<u32> = (0..=depths).map(|d| prev.starts.get(d).copied().unwrap_or(pkept).min(pkept)).collect();
-    let prev_starts = if before.is_some() { prev_starts } else { vec![0; depths + 1] };
-    gpu.queue.write_buffer(&work, work_at.starts * 4, bytemuck::cast_slice(&prev_starts));
+    let unfold = io::buffer(
+        gpu,
+        "present rows",
+        (unfold.len() as u64).max(4) * 4,
+        wgpu::BufferUsages::STORAGE,
+        bytemuck::cast_slice(unfold),
+    )?;
+    let prev_starts: Vec<u32> = (0..=depths)
+        .map(|d| prev.starts.get(d).copied().unwrap_or(pkept).min(pkept))
+        .collect();
+    let prev_starts = if before.is_some() {
+        prev_starts
+    } else {
+        vec![0; depths + 1]
+    };
+    gpu.queue.write_buffer(
+        &work,
+        work_at.starts * 4,
+        bytemuck::cast_slice(&prev_starts),
+    );
     let p = prev.table;
     let mut cfg = [0u32; w::WORDS];
-    let fixed = [widest(gpu).0, 0, 0, t.sk, t.skp, t.at_np, t.kept, t.phyts, p.sk, p.skp, p.at_np, pkept];
+    let fixed = [
+        widest(gpu).0,
+        0,
+        0,
+        t.sk,
+        t.skp,
+        t.at_np,
+        t.kept,
+        t.phyts,
+        p.sk,
+        p.skp,
+        p.at_np,
+        pkept,
+    ];
     cfg[..fixed.len()].copy_from_slice(&fixed);
-    let col = [u64::from(mask), work_at.keys, work_at.old, work_at.now_of, work_at.gone, work_at.gphyt, work_at.starts, work_at.gather, work_at.shift, work_at.pos_now, work_at.pos_gone, work_at.scan];
+    let col = [
+        u64::from(mask),
+        work_at.keys,
+        work_at.old,
+        work_at.now_of,
+        work_at.gone,
+        work_at.gphyt,
+        work_at.starts,
+        work_at.gather,
+        work_at.shift,
+        work_at.pos_now,
+        work_at.pos_gone,
+        work_at.scan,
+    ];
     for (i, v) in col.iter().enumerate() {
         cfg[w::MASK + i] = *v as u32;
     }
@@ -175,7 +263,13 @@ pub(super) async fn present(gpu: &Gpu, (k, scan): (&Kernels, &io::Pass), (now, b
     // The keys, the matches, the gone counts and their scans.
     let (now_ranges, prev_ranges) = (ranges(now.starts, depths), ranges(&prev_starts, depths));
     let gathered = {
-        let mut r = Rec { gpu, k, buffers: [now.nt, prev.nt, &small, &work, &hash, &small2, &unfold].map(|b| &**b), cfg, held: Vec::new() };
+        let mut r = Rec {
+            gpu,
+            k,
+            buffers: [now.nt, prev.nt, &small, &work, &hash, &small2, &unfold].map(|b| &**b),
+            cfg,
+            held: Vec::new(),
+        };
         let mut e = gpu.encoder(&Default::default());
         for (d, &range) in prev_ranges.iter().enumerate() {
             r.run(&mut e, KEYS, &[(w::DEPTH, d as u32)], range)?;
@@ -197,7 +291,9 @@ pub(super) async fn present(gpu: &Gpu, (k, scan): (&Kernels, &io::Pass), (now, b
         gpu.submit([e.finish()]);
         let fault = words(gpu, &work, 0, 1).await?;
         if fault[0] != 0 {
-            return Err(io::error("two axes of one year share a key: the years cannot be told apart".into()));
+            return Err(io::error(
+                "two axes of one year share a key: the years cannot be told apart".into(),
+            ));
         }
         words(gpu, &work, work_at.gather, 2 * (depths as u64 + 1)).await?
     };
@@ -219,10 +315,19 @@ pub(super) async fn present(gpu: &Gpu, (k, scan): (&Kernels, &io::Pass), (now, b
         cfg[w::COUNTS + i] = *a as u32;
     }
     let counts = storage(gpu, "present children", 3 * okept + u64::from(pkept))?;
-    let mut r = Rec { gpu, k, buffers: [now.nt, prev.nt, &nt, &work, &counts, &leaf, &unfold].map(|b| &**b), cfg, held: Vec::new() };
+    let mut r = Rec {
+        gpu,
+        k,
+        buffers: [now.nt, prev.nt, &nt, &work, &counts, &leaf, &unfold].map(|b| &**b),
+        cfg,
+        held: Vec::new(),
+    };
     let mut e = gpu.encoder(&Default::default());
     for c in 0..NP_COLS {
-        let (from, to) = (u64::from(t.at_np) + c * u64::from(t.skp), u64::from(o.at_np) + c * u64::from(o.skp));
+        let (from, to) = (
+            u64::from(t.at_np) + c * u64::from(t.skp),
+            u64::from(o.at_np) + c * u64::from(o.skp),
+        );
         e.copy_buffer_to_buffer(now.nt, from * 4, &nt, to * 4, u64::from(t.phyts) * 4);
     }
     // Each depth placed below the one above: its children counted onto
@@ -232,23 +337,74 @@ pub(super) async fn present(gpu: &Gpu, (k, scan): (&Kernels, &io::Pass), (now, b
     let mut scans = Vec::new();
     for d in 1..depths {
         let (up, here) = (starts[d - 1], starts[d]);
-        let words = [(w::START_HERE, here), (w::START_UP, up), (w::DEPTH, d as u32)];
-        r.run(&mut e, COUNT, &[&words[..], &[(w::WHICH, 0)]].concat(), now_ranges[d])?;
-        r.run(&mut e, COUNT, &[&words[..], &[(w::WHICH, 1)]].concat(), prev_ranges[d])?;
-        e.copy_buffer_to_buffer(&counts, u64::from(up) * 4, &work, work_at.scan * 4, u64::from(here - up).max(1) * 4);
-        let s = Scan::new(gpu, scan, (&work, work_at.scan, here - up), &sums, (&tally, 0))?;
+        let words = [
+            (w::START_HERE, here),
+            (w::START_UP, up),
+            (w::DEPTH, d as u32),
+        ];
+        r.run(
+            &mut e,
+            COUNT,
+            &[&words[..], &[(w::WHICH, 0)]].concat(),
+            now_ranges[d],
+        )?;
+        r.run(
+            &mut e,
+            COUNT,
+            &[&words[..], &[(w::WHICH, 1)]].concat(),
+            prev_ranges[d],
+        )?;
+        e.copy_buffer_to_buffer(
+            &counts,
+            u64::from(up) * 4,
+            &work,
+            work_at.scan * 4,
+            u64::from(here - up).max(1) * 4,
+        );
+        let s = Scan::new(
+            gpu,
+            scan,
+            (&work, work_at.scan, here - up),
+            &sums,
+            (&tally, 0),
+        )?;
         s.record(scan, &mut e);
         scans.push(s);
-        r.run(&mut e, PLACE, &[&words[..], &[(w::WHICH, 0)]].concat(), now_ranges[d])?;
-        r.run(&mut e, PLACE, &[&words[..], &[(w::WHICH, 1)]].concat(), prev_ranges[d])?;
+        r.run(
+            &mut e,
+            PLACE,
+            &[&words[..], &[(w::WHICH, 0)]].concat(),
+            now_ranges[d],
+        )?;
+        r.run(
+            &mut e,
+            PLACE,
+            &[&words[..], &[(w::WHICH, 1)]].concat(),
+            prev_ranges[d],
+        )?;
     }
     for entry in [AXES, PRESENT] {
         for d in 0..depths {
             let words = [(w::DEPTH, d as u32)];
-            r.run(&mut e, entry, &[&words[..], &[(w::WHICH, 0)]].concat(), now_ranges[d])?;
-            r.run(&mut e, entry, &[&words[..], &[(w::WHICH, 1)]].concat(), prev_ranges[d])?;
+            r.run(
+                &mut e,
+                entry,
+                &[&words[..], &[(w::WHICH, 0)]].concat(),
+                now_ranges[d],
+            )?;
+            r.run(
+                &mut e,
+                entry,
+                &[&words[..], &[(w::WHICH, 1)]].concat(),
+                prev_ranges[d],
+            )?;
         }
     }
     gpu.submit([e.finish()]);
-    Ok(Presented { nt, table, starts, leaf })
+    Ok(Presented {
+        nt,
+        table,
+        starts,
+        leaf,
+    })
 }

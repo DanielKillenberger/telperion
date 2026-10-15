@@ -151,11 +151,8 @@ impl Specimen {
         result?;
         radius::solve(&mut self.tree, self.params.envelope, self.radii)?;
         self.identify();
-        self.local.seed(
-            &self.tree,
-            &self.config,
-            self.params.twigs.resolved()?,
-        );
+        self.local
+            .seed(&self.tree, &self.config, self.params.twigs.resolved()?);
         if !self.tree.diagnostics.node_capped {
             self.local.advance(
                 &mut self.tree,

@@ -36,10 +36,7 @@ async fn holding<T>(
     cell: &RefCell<Option<GrowingTree>>,
     work: impl AsyncFnOnce(&mut GrowingTree) -> std::result::Result<T, JsError>,
 ) -> std::result::Result<T, JsError> {
-    let mut tree = cell
-        .borrow_mut()
-        .take()
-        .ok_or_else(busy)?;
+    let mut tree = cell.borrow_mut().take().ok_or_else(busy)?;
     let out = work(&mut tree).await;
     *cell.borrow_mut() = Some(tree);
     out
@@ -53,7 +50,9 @@ fn family_of(family: &str) -> std::result::Result<telperion_core::Family, JsErro
 }
 
 /// The prepared generator, or the reason there is none yet.
-fn generator(state: &generation::Generation) -> std::result::Result<Rc<crate::generation::Generator>, JsError> {
+fn generator(
+    state: &generation::Generation,
+) -> std::result::Result<Rc<crate::generation::Generator>, JsError> {
     state.borrow().generator.clone().ok_or_else(|| {
         JsError::new("the GPU programs are not prepared; await preparePrograms first")
     })
@@ -61,7 +60,10 @@ fn generator(state: &generation::Generation) -> std::result::Result<Rc<crate::ge
 
 /// What drawing the tree in `cell` does under the page's budget beside the
 /// tree on the canvas: beside it, or it let go first; refused by name.
-fn draw_admitted(live: &Rc<RefCell<Option<Live>>>, cell: &RefCell<Option<GrowingTree>>) -> std::result::Result<Admitted, JsError> {
+fn draw_admitted(
+    live: &Rc<RefCell<Option<Live>>>,
+    cell: &RefCell<Option<GrowingTree>>,
+) -> std::result::Result<Admitted, JsError> {
     let held = cell.try_borrow().map_err(|_| busy())?;
     let tree = held.as_ref().ok_or_else(busy)?;
     Generator::draw_admission(tree, &borrow(live)?.renderer, BROWSER).map_err(js_error)
@@ -100,7 +102,10 @@ impl WebRenderer {
         future_to_promise(async move {
             let family = parsed?;
             let request = Request::begin(state.clone()).map_err(JsError::new)?;
-            let tree = generator(&state)?.begin_growth(&family).await.map_err(js_error)?;
+            let tree = generator(&state)?
+                .begin_growth(&family)
+                .await
+                .map_err(js_error)?;
             request.check().map_err(JsError::new)?;
             let tree = Rc::new(RefCell::new(Some(tree)));
             Ok(JsValue::from(WebGrowth { tree }))
@@ -136,13 +141,19 @@ impl WebRenderer {
     /// name, and that tree stays.
     #[wasm_bindgen(js_name = drawGrowth)]
     pub fn draw_growth(&self, growth: &WebGrowth, at: f64) -> js_sys::Promise {
-        let (state, cell, live) = (self.generation.clone(), growth.tree.clone(), self.live.clone());
+        let (state, cell, live) = (
+            self.generation.clone(),
+            growth.tree.clone(),
+            self.live.clone(),
+        );
         future_to_promise(async move {
             let request = Request::begin(state.clone()).map_err(JsError::new)?;
             let generator = generator(&state)?;
             // A draw refused by name is refused before the canvas is let go.
             let held = cell.try_borrow().map_err(|_| busy())?;
-            generator.drawable(held.as_ref().ok_or_else(busy)?, at).map_err(js_error)?;
+            generator
+                .drawable(held.as_ref().ok_or_else(busy)?, at)
+                .map_err(js_error)?;
             drop(held);
             let made_room = draw_admitted(&live, &cell)? == Admitted::MakeRoom;
             if made_room {
@@ -160,7 +171,8 @@ impl WebRenderer {
             let submitted = live.renderer.submit_prepared(prepared).map_err(js_error)?;
             live.renderer.set_family(&family);
             live.redraw.ask();
-            let mut value: serde_json::Value = serde_json::from_str(&submitted_json(&submitted)).expect("submitted JSON");
+            let mut value: serde_json::Value =
+                serde_json::from_str(&submitted_json(&submitted)).expect("submitted JSON");
             value["madeRoom"] = serde_json::json!(made_room);
             Ok(JsValue::from_str(&value.to_string()))
         })

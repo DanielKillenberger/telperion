@@ -6,7 +6,7 @@
 //!
 //!   cargo run --profile ci -p telperion-render --example resident_stills -- <out dir> [preset,...]
 use std::time::Instant;
-use telperion_core::{math::Vec3, presets::CATALOGUE, presets::by_identity, surface::Bounds};
+use telperion_core::{math::Vec3, presets::by_identity, presets::CATALOGUE, surface::Bounds};
 use telperion_render::{
     generation::{Delivery, Generator},
     hero_pose, render, write_png, Camera, Gpu, Renderer, GROUND_REACH, STILL_FORMAT,
@@ -39,19 +39,29 @@ fn nearer(bounds: &Bounds, hero: &Camera, share: f64) -> Camera {
 
 fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let out = args.first().ok_or("usage: resident_stills <out dir> [preset,...]")?;
+    let out = args
+        .first()
+        .ok_or("usage: resident_stills <out dir> [preset,...]")?;
     std::fs::create_dir_all(out).map_err(|e| e.to_string())?;
     let only: Option<Vec<&str>> = args.get(1).map(|a| a.split(',').collect());
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let gen = Generator::new(&renderer).map_err(|e| e.to_string())?;
-    for id in CATALOGUE.iter().map(|c| c.1).filter(|id| only.as_ref().is_none_or(|o| o.contains(id))) {
+    for id in CATALOGUE
+        .iter()
+        .map(|c| c.1)
+        .filter(|id| only.as_ref().is_none_or(|o| o.contains(id)))
+    {
         let family = by_identity(id).map_err(|e| e.to_string())?;
         // The drawn tree let go first, as a page short of room does.
         renderer.release_tree();
         let t = Instant::now();
         // `STILLS_CPU=1` draws the CPU reference route instead.
-        let first = if std::env::var_os("STILLS_CPU").is_some() { Delivery::Cpu } else { Delivery::Resident };
+        let first = if std::env::var_os("STILLS_CPU").is_some() {
+            Delivery::Cpu
+        } else {
+            Delivery::Resident
+        };
         // A refusal is reported and the preset skipped, never rebuilt on
         // the CPU (fn-256 R1).
         let prepared = match gen.prepare(&family, first) {
@@ -63,12 +73,19 @@ fn main() -> Result<(), String> {
         };
         let ms = t.elapsed().as_secs_f64() * 1e3;
         let leaves = prepared.count();
-        renderer.submit_prepared(prepared).map_err(|e| e.to_string())?;
+        renderer
+            .submit_prepared(prepared)
+            .map_err(|e| e.to_string())?;
         renderer.set_family(&family);
         let bounds = renderer.bounds().ok_or("nothing to frame")?;
         let hero = hero_pose(bounds, f64::from(SIZE.0) / f64::from(SIZE.1), GROUND_REACH);
-        for (view, camera) in [("whole", hero), ("mid", nearer(&bounds, &hero, 0.4)), ("close", nearer(&bounds, &hero, 0.12))] {
-            let still = render(&mut renderer, &camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
+        for (view, camera) in [
+            ("whole", hero),
+            ("mid", nearer(&bounds, &hero, 0.4)),
+            ("close", nearer(&bounds, &hero, 0.12)),
+        ] {
+            let still =
+                render(&mut renderer, &camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
             let path = std::path::Path::new(out).join(format!("{id}-{view}.png"));
             write_png(&path, &still).map_err(|e| e.to_string())?;
         }

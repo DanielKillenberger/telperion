@@ -66,7 +66,9 @@ impl Kernels {
     pub(super) fn new(gpu: &Gpu) -> Self {
         let mut reads = vec![true; 3];
         reads.extend([false; 5]);
-        Self { cycle: io::Pass::new(gpu, super::source(), &reads, &ENTRIES) }
+        Self {
+            cycle: io::Pass::new(gpu, super::source(), &reads, &ENTRIES),
+        }
     }
 }
 
@@ -101,5 +103,10 @@ pub(super) fn counts(caps: super::state::Caps, zones: u32) -> Counts {
     let job_at = 2 * b_at;
     let zone_at = (u64::from(job_at) + u64::from(JW) * u64::from(jobs)).next_multiple_of(64) as u32;
     let words = u64::from(zone_at) + u64::from(ZW * jobs * zones.max(1));
-    Counts { job_at, jobs, zone_at, words }
+    Counts {
+        job_at,
+        jobs,
+        zone_at,
+        words,
+    }
 }

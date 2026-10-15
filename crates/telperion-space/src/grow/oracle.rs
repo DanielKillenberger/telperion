@@ -291,7 +291,10 @@ mod tests {
         // oracle names the tree-wide sum it parts in.
         let sums = crate::grow::partition::PHASES;
         assert!(
-            probed.first.iter().all(|f| f.is_some_and(|(_, p)| sums.contains(&p))),
+            probed
+                .first
+                .iter()
+                .all(|f| f.is_some_and(|(_, p)| sums.contains(&p))),
             "{:?}",
             probed.first
         );

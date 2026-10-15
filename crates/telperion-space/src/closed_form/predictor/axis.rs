@@ -42,7 +42,10 @@ impl Walk<'_> {
         end(step.failed, step.i - 1, NONE_RUN, NONE);
         for (l, table) in step.lived.iter().zip(&parts.lived) {
             let grown = (l.weight, &l.sleeping[..]);
-            let run = times(NONE_RUN, self.unit(k, (step.i, grown), (&parts.zones, 1.0), t));
+            let run = times(
+                NONE_RUN,
+                self.unit(k, (step.i, grown), (&parts.zones, 1.0), t),
+            );
             let child = whole(table.as_deref().expect("built"), t - l.relay.at as i64);
             end(
                 l.weight,
@@ -104,7 +107,11 @@ impl Walk<'_> {
             // stands at, 1 + s (phi - 1) (fn-231).
             let (whole, s) = zone.whole_places();
             let psi = 1.0 + s * (phi - 1.0);
-            let f = if s > 0.0 { phi.powi(whole) * psi } else { phi.powi(whole) };
+            let f = if s > 0.0 {
+                phi.powi(whole) * psi
+            } else {
+                phi.powi(whole)
+            };
             let pmf = &self.pmfs[k][zp.z];
             let (g, tilted, replaced) = match laid < 1.0 {
                 true => tilts(&Count::laid_pmf(pmf, laid), f, zone),

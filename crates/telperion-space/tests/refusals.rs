@@ -84,7 +84,13 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
         (|s| s.states[0].leaf_years = -0.5, "states[0].leaf_years"),
         (|s| s.states[0].elongation = 366.0, "states[0].elongation"),
         (|s| s.states[0].expansion = f64::NAN, "states[0].expansion"),
-        (|s| { s.states[0].elongation = 300.0; s.states[0].expansion = 66.0 }, "states[0].expansion"),
+        (
+            |s| {
+                s.states[0].elongation = 300.0;
+                s.states[0].expansion = 66.0
+            },
+            "states[0].expansion",
+        ),
         (
             |s| s.states[1].leaf_years = f64::NAN,
             "states[1].leaf_years",

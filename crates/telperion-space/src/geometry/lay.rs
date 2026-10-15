@@ -399,7 +399,9 @@ pub(crate) fn lay(
     trunk: bool,
 ) -> std::result::Result<Layer, Stop> {
     let turning = tropism(axis.lineage, state.form.tropism_spread);
-    let mut layer = Layer::bent(frame, curve, turning).inheriting(inherited).taking_over(take);
+    let mut layer = Layer::bent(frame, curve, turning)
+        .inheriting(inherited)
+        .taking_over(take);
     for (k, phytomer) in axis.phytomers.iter_mut().enumerate() {
         layer.step(phytomer, state, bend, load.map(|l| &l[k]), trunk)?;
     }

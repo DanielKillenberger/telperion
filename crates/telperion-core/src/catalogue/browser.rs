@@ -35,7 +35,8 @@ const HEADER: &str =
 
 /// The engine species' indexed rows, which the catalogue's rows do not hold
 /// and the engine judges (fn-198, `presets/space.rs`).
-const SPACE: &str = "/** The engine species: the indexed `/space` rows (fn-198); absent on a family with none. */
+const SPACE: &str =
+    "/** The engine species: the indexed `/space` rows (fn-198); absent on a family with none. */
 export interface Family {
   space?: SpaceRows;
 }

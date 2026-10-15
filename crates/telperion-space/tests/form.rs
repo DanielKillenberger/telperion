@@ -479,7 +479,11 @@ fn a_stem_without_secondary_growth_is_a_column() {
     for (k, p) in column.iter().enumerate() {
         let established = form.pipe * p.scale;
         // The established pipe is its product in f32 (fn-254).
-        assert!((p.radius - established).abs() < 1e-6 * established, "{k}: {}", p.radius);
+        assert!(
+            (p.radius - established).abs() < 1e-6 * established,
+            "{k}: {}",
+            p.radius
+        );
     }
     let (base, apex) = (column[0].radius, column[column.len() - 1].radius);
     assert!((base / apex - 1.0).abs() < 1e-6, "{base} against {apex}");

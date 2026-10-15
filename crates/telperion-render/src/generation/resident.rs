@@ -20,7 +20,11 @@ pub(crate) use budget::BROWSER;
 impl Kit {
     /// The kernels and the tools made side by side (`io::pair`).
     fn new(gpu: &crate::Gpu) -> Self {
-        let (kernels, tools) = super::io::pair(gpu, || super::cycle::tree::Kernels::new(gpu), || build::Tools::new(gpu));
+        let (kernels, tools) = super::io::pair(
+            gpu,
+            || super::cycle::tree::Kernels::new(gpu),
+            || build::Tools::new(gpu),
+        );
         Self { kernels, tools }
     }
 }
@@ -43,7 +47,9 @@ impl super::Generator {
         let scopes = super::io::scope(&self.gpu);
         let gpu = &self.gpu;
         // The wood's passes made beside the kit.
-        self.resident.get_or_init(|| super::io::pair(gpu, || Kit::new(gpu), || drop(crate::curve::passes(gpu))).0);
+        self.resident.get_or_init(|| {
+            super::io::pair(gpu, || Kit::new(gpu), || drop(crate::curve::passes(gpu))).0
+        });
         super::io::programs_ready(&self.gpu, scopes).await
     }
 
@@ -149,42 +155,42 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
 
 // The browser's expected peak is checked in a browser alone; natively it
 // is tested, and the native budget caps every build.
-#[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
-pub(super) mod budget;
 #[cfg(test)]
 pub(super) mod agree_tests;
-#[cfg(test)]
-mod organ_tests;
 mod boots;
 #[cfg(test)]
 mod boots_tests;
+#[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
+pub(super) mod budget;
 mod build;
 #[cfg(test)]
 mod full_card_tests;
-mod growing;
 #[cfg(test)]
 mod grow_in_peak;
+mod growing;
 #[cfg(test)]
 mod growing_cost;
 #[cfg(test)]
 mod growing_tests;
+#[cfg(test)]
+mod organ_tests;
 pub use growing::GrowingTree;
+mod florets;
+pub(super) mod fold;
+mod handoff;
 #[cfg(test)]
 mod hang_tests;
 #[cfg(test)]
 mod repeat_tests;
+mod rings;
 #[cfg(test)]
 mod room_tests;
 #[cfg(test)]
 mod route_tests;
+mod sort;
 #[cfg(test)]
 mod stalk_tests;
-#[cfg(test)]
-mod thin_tests;
-pub(super) mod fold;
-mod florets;
-mod handoff;
-mod rings;
-mod sort;
 mod stations;
 mod sweep;
+#[cfg(test)]
+mod thin_tests;

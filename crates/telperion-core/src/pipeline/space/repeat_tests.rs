@@ -21,7 +21,10 @@ fn grown(family: &crate::Family) -> telperion_space::Structure {
 }
 
 fn on(threads: usize, family: &crate::Family) -> telperion_space::Structure {
-    let pool = rayon::ThreadPoolBuilder::new().num_threads(threads).build().unwrap();
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(threads)
+        .build()
+        .unwrap();
     pool.install(|| grown(family))
 }
 
@@ -70,7 +73,10 @@ fn the_print_tells_a_bit_and_a_build_order_apart() {
     let base = print(&tree);
     let n = tree.axes.len();
     let bears = |i: usize| tree.axes.iter().any(|a| a.origin.parent() == Some(i));
-    assert!(!bears(n - 1) && !bears(n - 2), "the last two axes bear nothing");
+    assert!(
+        !bears(n - 1) && !bears(n - 2),
+        "the last two axes bear nothing"
+    );
 
     let mut bit = tree.clone();
     let p = &mut bit.axes[0].phytomers[0];
@@ -79,7 +85,10 @@ fn the_print_tells_a_bit_and_a_build_order_apart() {
 
     let mut swapped = tree.clone();
     swapped.axes.swap(n - 1, n - 2);
-    assert_eq!(telperion_space::digest(&swapped), telperion_space::digest(&tree));
+    assert_eq!(
+        telperion_space::digest(&swapped),
+        telperion_space::digest(&tree)
+    );
     assert_ne!(print(&swapped), base, "build order");
 
     let mut nan = tree.clone();

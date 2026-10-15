@@ -1,14 +1,14 @@
 //! The tree once grown: its living apexes marked, its presences assigned,
 //! shed, sized, thickened and laid.
 use super::{Grower, Grown, Options, Pass, Record, Request, Stage};
-use crate::error::{Error, Result};
 use crate::contract::presence::{q, real, times};
+use crate::error::{Error, Result};
 use crate::geometry::{place, scale};
 use crate::girth::{attachments, attachments_past, disused, thicken, Girth};
 use crate::presence::assign;
 use crate::sag;
-use crate::species::Species;
 use crate::shed::{shed, shed_past};
+use crate::species::Species;
 use crate::structure::{Origin, Structure};
 
 impl<'a> Grower<'a> {
@@ -72,7 +72,9 @@ impl<'a> Grower<'a> {
         let grown = keeps.then(|| match self.working.as_ref() {
             Some(w) => {
                 let r = w.retirement();
-                attachments_past(&self.axes, species, (request.age, threads), &|i| r.frozen_root(i))
+                attachments_past(&self.axes, species, (request.age, threads), &|i| {
+                    r.frozen_root(i)
+                })
             }
             None => attachments(&self.axes, species, request.age, threads),
         });
@@ -126,8 +128,22 @@ pub(super) struct Settling<'a> {
 impl Settling<'_> {
     /// The rest of the settle: the shed tree scaled, thickened and, with
     /// `lay`, laid and sagged.
-    pub(super) fn settle_lay(self, options: Options, lay: bool, stage: &mut dyn FnMut(Stage)) -> Result<Grown> {
-        let Self { mut structure, girth, index, records, grown: count, marked, species, threads } = self;
+    pub(super) fn settle_lay(
+        self,
+        options: Options,
+        lay: bool,
+        stage: &mut dyn FnMut(Stage),
+    ) -> Result<Grown> {
+        let Self {
+            mut structure,
+            girth,
+            index,
+            records,
+            grown: count,
+            marked,
+            species,
+            threads,
+        } = self;
         scale(&mut structure, species, threads);
         stage(Stage::Pass(Pass::Scale));
         // Girth needs no geometry; placing reads it where wood meets the

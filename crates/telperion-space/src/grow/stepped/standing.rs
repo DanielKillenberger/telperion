@@ -5,9 +5,9 @@
 use super::stands::{Stands, Stood};
 use super::{Counts, Executor};
 use crate::closed_form::boundary::Rows;
+use crate::contract::presence::{q, real, times};
 use crate::error::{refuse, Result};
 use crate::fine::Made;
-use crate::contract::presence::{q, real, times};
 use crate::grow::realized::Assigned;
 use crate::grow::{start, Options, Request, Rules};
 use crate::species::Species;

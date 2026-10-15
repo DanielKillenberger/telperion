@@ -63,15 +63,27 @@ impl Growth {
     pub fn year(&self, fraction: f64) -> Option<crate::tree::Year> {
         let s = telperion_space::unfold::Season::of(self.species.states.first()?);
         let age = f64::from(self.request.age) - 1.0 + fraction.min(1.0);
-        Some(crate::tree::Year { age, budburst: s.budburst, elongation: s.elongation, expansion: s.expansion })
+        Some(crate::tree::Year {
+            age,
+            budburst: s.budburst,
+            elongation: s.elongation,
+            expansion: s.expansion,
+        })
     }
 }
 
 /// The family read for another executor (`Growth`). A family with no
 /// engine species is refused by name.
 pub fn growth(family: &Family) -> Result<Growth> {
-    let (species, request, scale, rows, establishing) = super::space::growth(GrowInput::of(family))?;
-    Ok(Growth { species, request, scale, rows, establishing })
+    let (species, request, scale, rows, establishing) =
+        super::space::growth(GrowInput::of(family))?;
+    Ok(Growth {
+        species,
+        request,
+        scale,
+        rows,
+        establishing,
+    })
 }
 
 /// The whole-tree summaries an executor holding the whole tree folds
@@ -141,7 +153,9 @@ pub fn resident(family: &Family, s: Summaries) -> Result<Expansion> {
     let states = species.map(|s| &s.states[..]).unwrap_or_default();
     Ok(Expansion {
         bearing: [super::space::STRUCTURAL * s.root, s.stem * shoot],
-        retains: states.iter().any(|s| crate::tree::retention(s.leaf_years).0 != u32::MAX),
+        retains: states
+            .iter()
+            .any(|s| crate::tree::retention(s.leaf_years).0 != u32::MAX),
         tree: Tree::default(),
         inputs,
         element,
@@ -188,7 +202,8 @@ impl Grown {
         check_shell(&self.inputs)?;
         let reference = Reference::grown(&tree, plan.reach.clone()?);
         let root = tree.nodes.first().map_or(0.0, |n| n.radius);
-        let slender = tree.stem_radius(|i| tree.pipe(i)[1]) * self.inputs.leaves.canopy.shoot_radius;
+        let slender =
+            tree.stem_radius(|i| tree.pipe(i)[1]) * self.inputs.leaves.canopy.shoot_radius;
         Ok(Expansion {
             bearing: [super::space::STRUCTURAL * root, slender],
             retains: !tree.leafing.is_empty(),

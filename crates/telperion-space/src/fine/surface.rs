@@ -4,9 +4,9 @@
 //! and its topology as the CPU reference executor grows it, which the
 //! executor's tests hold the GPU's against.
 use super::tables::Units;
-use crate::error::Result;
 use crate::contract::presence::q;
 use crate::contract::{logit_of, neg_log2_of, ticks, INF};
+use crate::error::Result;
 use crate::lineage::threshold;
 use crate::presence::{FLOOR, RATE, SPAN};
 use crate::species::Species;
@@ -64,7 +64,6 @@ pub struct ChainTables {
 }
 
 impl ChainTables {
-
     /// The tables of `species` grown to `age` through the one cycle
     /// (fn-255), whose buds may read light and which decides no lasting
     /// before growth: the device's units and wake (fn-256).
@@ -85,13 +84,8 @@ impl ChainTables {
             .map(|pa| {
                 let s = &species.states[pa];
                 let rises = s.rises().then(|| s.abortion_rise as f32);
-                let abortion = (s.abortion > 0.0).then(|| {
-                    (
-                        threshold(s.abortion),
-                        neg_log2_of(1.0 - s.abortion),
-                        rises,
-                    )
-                });
+                let abortion = (s.abortion > 0.0)
+                    .then(|| (threshold(s.abortion), neg_log2_of(1.0 - s.abortion), rises));
                 let stake = 1.0 - s.relay_ended;
                 PaRow {
                     life: ticks(s.life()),

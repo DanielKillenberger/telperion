@@ -208,7 +208,9 @@ fn converges(p: Preset, q: Preset, age: u32) -> Vec<String> {
         for k in 0..3 {
             let (far, mid, near) = (off[0][k], off[1][k], off[2][k]);
             if near > 1e-4 || near > mid.max(1e-9) || mid > far.max(1e-9) {
-                failed.push(format!("{p:?} to {q:?} at {age}, end {end}, measure {k}: {far:e} {mid:e} {near:e}"));
+                failed.push(format!(
+                    "{p:?} to {q:?} at {age}, end {end}, measure {k}: {far:e} {mid:e} {near:e}"
+                ));
             }
         }
     }

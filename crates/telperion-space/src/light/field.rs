@@ -162,9 +162,14 @@ impl Field {
             for (i, w) in field.grid.corners(at) {
                 let i = i.expect("a leaf inside its box");
                 let q = (f64::from(area) * f64::from(w) / QUANTUM).round();
-                let sum = (q <= f64::from(u32::MAX)).then(|| quanta[i].checked_add(q as u32)).flatten();
+                let sum = (q <= f64::from(u32::MAX))
+                    .then(|| quanta[i].checked_add(q as u32))
+                    .flatten();
                 let Some(sum) = sum else {
-                    return refuse("light.deposit", "a lattice node holds at most 2^32 quanta of 2^-20 m² of leaf area");
+                    return refuse(
+                        "light.deposit",
+                        "a lattice node holds at most 2^32 quanta of 2^-20 m² of leaf area",
+                    );
                 };
                 quanta[i] = sum;
             }
@@ -240,6 +245,9 @@ impl Field {
         let size = self.grid.size.map(|s| s as usize);
         let density: Vec<f64> = self.density.iter().map(|&d| f64::from(d)).collect();
         let light = super::swept_all(extinction, directions, size, &density, threads);
-        self.light = light.into_iter().map(|l| l.clamp(0.0, 1.0) as f32).collect();
+        self.light = light
+            .into_iter()
+            .map(|l| l.clamp(0.0, 1.0) as f32)
+            .collect();
     }
 }

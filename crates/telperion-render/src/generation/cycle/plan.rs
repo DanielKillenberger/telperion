@@ -54,13 +54,34 @@ pub(super) struct Gated {
 
 pub(super) enum Step {
     /// A dispatch, and the phase its time is counted in.
-    Dispatch { pass: PassId, entry: usize, bind: wgpu::BindGroup, size: Size, phase: &'static str },
-    Copy { from: wgpu::Buffer, at: u64, to: wgpu::Buffer, to_at: u64, bytes: u64 },
-    Clear { buffer: wgpu::Buffer, at: u64, bytes: Option<u64> },
+    Dispatch {
+        pass: PassId,
+        entry: usize,
+        bind: wgpu::BindGroup,
+        size: Size,
+        phase: &'static str,
+    },
+    Copy {
+        from: wgpu::Buffer,
+        at: u64,
+        to: wgpu::Buffer,
+        to_at: u64,
+        bytes: u64,
+    },
+    Clear {
+        buffer: wgpu::Buffer,
+        at: u64,
+        bytes: Option<u64>,
+    },
     /// The first rows of a column, a count only the device knows: the
     /// most its bounds allow (`size`, in words), no more than `most`
     /// bytes. A clear, where a dispatch cleared them, costs no dispatch.
-    Zeroed { buffer: wgpu::Buffer, at: u64, size: Size, most: u64 },
+    Zeroed {
+        buffer: wgpu::Buffer,
+        at: u64,
+        size: Size,
+        most: u64,
+    },
     Point(usize),
 }
 
@@ -88,8 +109,20 @@ pub(super) struct Plan {
     points: Vec<Point>,
 }
 
-fn storage(gpu: &Gpu, label: &'static str, words: u64, usage: wgpu::BufferUsages, init: &[u32]) -> Result<Owned> {
-    io::buffer(gpu, label, words.max(4) * 4, usage | wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC, bytemuck::cast_slice(init))
+fn storage(
+    gpu: &Gpu,
+    label: &'static str,
+    words: u64,
+    usage: wgpu::BufferUsages,
+    init: &[u32],
+) -> Result<Owned> {
+    io::buffer(
+        gpu,
+        label,
+        words.max(4) * 4,
+        usage | wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        bytemuck::cast_slice(init),
+    )
 }
 
 /// Records slots, programs, points and steps.
@@ -115,14 +148,31 @@ impl<'g> Builder<'g> {
         let plan = Plan {
             census: storage(gpu, "census", census::WORDS as u64, none, &[])?,
             cfgs: storage(gpu, "plan cfgs", u64::from(SLOTS * SLOT_WORDS), none, &[])?,
-            uniforms: io::buffer(gpu, "plan uniforms", u64::from(SLOTS * SLOT_WORDS) * 4, wgpu::BufferUsages::UNIFORM, &[])?,
+            uniforms: io::buffer(
+                gpu,
+                "plan uniforms",
+                u64::from(SLOTS * SLOT_WORDS) * 4,
+                wgpu::BufferUsages::UNIFORM,
+                &[],
+            )?,
             given: storage(gpu, "plan given", u64::from(SIZED), none, &[])?,
             sized: Default::default(),
             code: storage(gpu, "plan code", 4, none, &[])?,
             points: Vec::new(),
         };
         let (early, late) = (Vec::new(), Vec::new());
-        Ok(Self { gpu, plan, image: Vec::new(), progs: Vec::new(), early, late, sized: Vec::new(), steps: Vec::new(), gates: Vec::new(), phase: "start" })
+        Ok(Self {
+            gpu,
+            plan,
+            image: Vec::new(),
+            progs: Vec::new(),
+            early,
+            late,
+            sized: Vec::new(),
+            steps: Vec::new(),
+            gates: Vec::new(),
+            phase: "start",
+        })
     }
 
     /// A new point: the programs and slots that follow run and fill there.
@@ -136,22 +186,37 @@ impl<'g> Builder<'g> {
             p.slots.1 = slot;
         }
         let at = self.plan.points.len();
-        self.plan.points.push(Point { first: self.progs.len() as u32, n: 0, early: 0, slots: (slot, slot), bind: None, _cfg: None });
-        self.steps.push(Gated { gate: Vec::new(), step: Step::Point(at) });
+        self.plan.points.push(Point {
+            first: self.progs.len() as u32,
+            n: 0,
+            early: 0,
+            slots: (slot, slot),
+            bind: None,
+            _cfg: None,
+        });
+        self.steps.push(Gated {
+            gate: Vec::new(),
+            step: Step::Point(at),
+        });
     }
 
     /// A slot holding `words`, its other words none.
     pub(super) fn slot(&mut self, words: &[u32]) -> u32 {
         let at = self.image.len() as u32 / SLOT_WORDS;
-        assert!(at < SLOTS && words.len() <= SLOT_WORDS as usize, "a slot the plan holds");
+        assert!(
+            at < SLOTS && words.len() <= SLOT_WORDS as usize,
+            "a slot the plan holds"
+        );
         self.image.extend(words);
-        self.image.resize(self.image.len() + SLOT_WORDS as usize - words.len(), 0);
+        self.image
+            .resize(self.image.len() + SLOT_WORDS as usize - words.len(), 0);
         at
     }
 
     /// Word `w` of `slot` computed on the device at this point.
     pub(super) fn set(&mut self, slot: u32, w: usize, e: E) {
-        self.late.push(program(Dst::Cfg(slot * SLOT_WORDS + w as u32), &e));
+        self.late
+            .push(program(Dst::Cfg(slot * SLOT_WORDS + w as u32), &e));
     }
 
     /// A census word computed on the device at this point.
@@ -172,13 +237,21 @@ impl<'g> Builder<'g> {
     pub(super) fn groups(&mut self, groups: E) -> Size {
         let k = self.sized.len() as u32;
         assert!(k < SIZED, "a size the plan holds");
-        self.early.push(program(Dst::Raise(census::Flag::Given.word()), &groups.clone().gt(E::Given(k))));
+        self.early.push(program(
+            Dst::Raise(census::Flag::Given.word()),
+            &groups.clone().gt(E::Given(k)),
+        ));
         self.sized.push(groups);
         Size::Bounded(k)
     }
 
     /// A bind of `pass` with `slot` as its uniform and `rest` after it.
-    pub(super) fn bind(&self, pass: &io::Pass, slot: u32, rest: &[&wgpu::Buffer]) -> wgpu::BindGroup {
+    pub(super) fn bind(
+        &self,
+        pass: &io::Pass,
+        slot: u32,
+        rest: &[&wgpu::Buffer],
+    ) -> wgpu::BindGroup {
         let mut entries = vec![wgpu::BindGroupEntry {
             binding: 0,
             resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
@@ -187,12 +260,24 @@ impl<'g> Builder<'g> {
                 size: std::num::NonZeroU64::new(u64::from(SLOT_WORDS) * 4),
             }),
         }];
-        entries.extend(rest.iter().enumerate().map(|(i, b)| wgpu::BindGroupEntry { binding: i as u32 + 1, resource: b.as_entire_binding() }));
-        self.gpu.device.create_bind_group(&wgpu::BindGroupDescriptor { label: Some("plan"), layout: &pass.layout, entries: &entries })
+        entries.extend(rest.iter().enumerate().map(|(i, b)| wgpu::BindGroupEntry {
+            binding: i as u32 + 1,
+            resource: b.as_entire_binding(),
+        }));
+        self.gpu
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("plan"),
+                layout: &pass.layout,
+                entries: &entries,
+            })
     }
 
     pub(super) fn step(&mut self, step: Step) {
-        self.steps.push(Gated { gate: self.gates.clone(), step });
+        self.steps.push(Gated {
+            gate: self.gates.clone(),
+            step,
+        });
     }
 
     /// The steps recorded until `leave` under `cond` as well.
@@ -204,14 +289,31 @@ impl<'g> Builder<'g> {
         self.gates.pop();
     }
 
-    pub(super) fn dispatch(&mut self, (pass, entry): (PassId, usize), bind: wgpu::BindGroup, size: Size) {
-        self.step(Step::Dispatch { pass, entry, bind, size, phase: self.phase });
+    pub(super) fn dispatch(
+        &mut self,
+        (pass, entry): (PassId, usize),
+        bind: wgpu::BindGroup,
+        size: Size,
+    ) {
+        self.step(Step::Dispatch {
+            pass,
+            entry,
+            bind,
+            size,
+            phase: self.phase,
+        });
     }
 
     /// `bytes` of `from` at `at` into the census at word `w`.
     pub(super) fn tally(&mut self, from: &wgpu::Buffer, at: u64, w: usize, bytes: u64) {
         let to = (*self.plan.census).clone();
-        self.step(Step::Copy { from: from.clone(), at, to, to_at: 4 * w as u64, bytes });
+        self.step(Step::Copy {
+            from: from.clone(),
+            at,
+            to,
+            to_at: 4 * w as u64,
+            bytes,
+        });
     }
 
     /// The steps recorded since the last take.
@@ -232,13 +334,42 @@ impl<'g> Builder<'g> {
         }
         let gpu = self.gpu;
         self.plan.sized = std::rc::Rc::new(std::mem::take(&mut self.sized));
-        self.plan.code = storage(gpu, "plan code", code.len() as u64, wgpu::BufferUsages::empty(), &code)?;
-        gpu.queue.write_buffer(&self.plan.cfgs, 0, bytemuck::cast_slice(&self.image));
-        gpu.queue.write_buffer(&self.plan.uniforms, 0, bytemuck::cast_slice(&self.image));
+        self.plan.code = storage(
+            gpu,
+            "plan code",
+            code.len() as u64,
+            wgpu::BufferUsages::empty(),
+            &code,
+        )?;
+        gpu.queue
+            .write_buffer(&self.plan.cfgs, 0, bytemuck::cast_slice(&self.image));
+        gpu.queue
+            .write_buffer(&self.plan.uniforms, 0, bytemuck::cast_slice(&self.image));
         for p in &mut self.plan.points {
-            let words = [p.first, p.n, census::FLAGS as u32, census::FLAG_NAMES.len() as u32, p.early, 0, 0, 0];
-            let cfg = io::buffer(gpu, "plan point", 32, wgpu::BufferUsages::UNIFORM, bytemuck::cast_slice(&words))?;
-            let all = [&*cfg, &self.plan.code, &self.plan.census, &self.plan.cfgs, &self.plan.given];
+            let words = [
+                p.first,
+                p.n,
+                census::FLAGS as u32,
+                census::FLAG_NAMES.len() as u32,
+                p.early,
+                0,
+                0,
+                0,
+            ];
+            let cfg = io::buffer(
+                gpu,
+                "plan point",
+                32,
+                wgpu::BufferUsages::UNIFORM,
+                bytemuck::cast_slice(&words),
+            )?;
+            let all = [
+                &*cfg,
+                &self.plan.code,
+                &self.plan.census,
+                &self.plan.cfgs,
+                &self.plan.given,
+            ];
             p.bind = Some(vm.pass.bind(gpu, &all));
             p._cfg = Some(cfg);
         }
@@ -249,7 +380,12 @@ impl<'g> Builder<'g> {
 impl Plan {
     /// Point `k` run: its programs, then its slots into the uniforms;
     /// whether it dispatched.
-    pub(super) fn run_point(&self, vm: &super::vm::Kernels, e: &mut wgpu::CommandEncoder, k: usize) -> bool {
+    pub(super) fn run_point(
+        &self,
+        vm: &super::vm::Kernels,
+        e: &mut wgpu::CommandEncoder,
+        k: usize,
+    ) -> bool {
         let p = &self.points[k];
         if p.n > 0 {
             vm.pass.run(e, p.bind.as_ref().expect("finished"), 0, 1);

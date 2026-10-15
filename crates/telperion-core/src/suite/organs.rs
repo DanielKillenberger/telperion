@@ -19,8 +19,15 @@ fn placed(f: &Family) -> foliage::Instances {
     let tree = mesh::grow(f).expect("the skeleton grows");
     let twig = TwigPlacement::of(f).expect("the twig rows resolve");
     let reference = Reference::of(f).expect("the reference box");
-    foliage::place(&tree, f.skeleton.envelope, f.skeleton.seed, f.canopy, Some(twig), reference)
-        .expect("the crown is placed")
+    foliage::place(
+        &tree,
+        f.skeleton.envelope,
+        f.skeleton.seed,
+        f.canopy,
+        Some(twig),
+        reference,
+    )
+    .expect("the crown is placed")
 }
 
 /// The cauline share keeps that share of the leaf-bearing wood by its
@@ -86,13 +93,28 @@ fn a_fractional_crown_stands_within_its_box() {
     palm.canopy.frond_life = 0.0;
     palm.canopy.skirt_fronds = 2.0;
     palm.canopy.rosette_fronds = 0.01;
-    assert_eq!(mesh::build(&palm).unwrap().foliage_instances(), 0, "no living frond");
+    assert_eq!(
+        mesh::build(&palm).unwrap().foliage_instances(),
+        0,
+        "no living frond"
+    );
     (palm.skeleton.seed, palm.canopy.leaf_bases) = (7, 0.0);
     (palm.canopy.rosette_fronds, palm.canopy.skirt_fronds) = (2.01, 128.0);
-    (palm.canopy.rosette_depth, palm.canopy.leaflet_count, palm.canopy.rachis_length) = (100.0, 1.0, 0.0);
+    (
+        palm.canopy.rosette_depth,
+        palm.canopy.leaflet_count,
+        palm.canopy.rachis_length,
+    ) = (100.0, 1.0, 0.0);
     let leaves = mesh::build(&palm).unwrap().foliage.instances;
     assert!(!leaves.leaves.is_empty());
     let floor = leaves.reference.min.y;
-    let lowest = leaves.leaves.iter().map(|l| leaves.reference.position(*l).y).fold(f64::INFINITY, f64::min);
-    assert!(lowest > floor + 1e-3 * leaves.reference.extent.y, "{lowest} on the floor {floor}");
+    let lowest = leaves
+        .leaves
+        .iter()
+        .map(|l| leaves.reference.position(*l).y)
+        .fold(f64::INFINITY, f64::min);
+    assert!(
+        lowest > floor + 1e-3 * leaves.reference.extent.y,
+        "{lowest} on the floor {floor}"
+    );
 }

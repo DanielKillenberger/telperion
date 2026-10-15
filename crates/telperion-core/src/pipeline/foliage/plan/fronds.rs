@@ -44,7 +44,10 @@ pub(super) fn describe(
     let mut total = 0usize;
     for apex in &rosette::rosettes(tree) {
         let system = system[apex.apex];
-        let (stem, node) = (rosette::stem_key(tree, apex), rosette::stem_node(tree, apex));
+        let (stem, node) = (
+            rosette::stem_key(tree, apex),
+            rosette::stem_node(tree, apex),
+        );
         let at = organs::apex(&p, node);
         if !rosette::bearing(&at) {
             continue;
@@ -54,8 +57,12 @@ pub(super) fn describe(
             let key = organs::frond_key(node, frond.serial);
             let per = organs::frond_leaflets(&at, frond.canopy.leaflet_count, key);
             let c = organs::placement(&frond.canopy, key);
-            total = total.checked_add(per).filter(|t| *t <= p.max_instances && *t <= u32::MAX as usize).ok_or_else(budget)?;
-            out.try_reserve(per).map_err(|_| Error::ResourceLimit("foliage plan allocation"))?;
+            total = total
+                .checked_add(per)
+                .filter(|t| *t <= p.max_instances && *t <= u32::MAX as usize)
+                .ok_or_else(budget)?;
+            out.try_reserve(per)
+                .map_err(|_| Error::ResourceLimit("foliage plan allocation"))?;
             let mut rng = rosette::stream(seed, stem, &frond);
             if per == 1 {
                 // One blade at the station, turned as `fan` turns it.

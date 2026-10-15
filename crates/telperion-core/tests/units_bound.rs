@@ -52,9 +52,16 @@ fn the_floor_counts_the_ages_a_cycle_chains() {
 fn cases() -> Vec<(String, Family)> {
     let only = std::env::var("UNITS_PRESETS").ok();
     let range = std::env::var("UNITS_AGES").ok();
-    let range = range.as_deref().and_then(|r| r.split_once('-')).and_then(|(a, b)| Some((a.parse().ok()?, b.parse().ok()?)));
+    let range = range
+        .as_deref()
+        .and_then(|r| r.split_once('-'))
+        .and_then(|(a, b)| Some((a.parse().ok()?, b.parse().ok()?)));
     let mut out = Vec::new();
-    for id in CATALOGUE.iter().map(|c| c.1).filter(|id| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == *id))) {
+    for id in CATALOGUE
+        .iter()
+        .map(|c| c.1)
+        .filter(|id| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == *id)))
+    {
         let last = (by_identity(id).expect("a shipped preset").age.round() as u32).max(80);
         let (from, to) = range.unwrap_or((1, last));
         for age in from..=to.min(last) {
@@ -68,7 +75,10 @@ fn cases() -> Vec<(String, Family)> {
             for seed in SEEDS {
                 let (x, y) = (at(a, age, seed), at(b, age, seed));
                 for t in T {
-                    out.push((format!("{a} to {b} at {age} t {t} {seed}"), families(&x, &y, t).expect("a frame")));
+                    out.push((
+                        format!("{a} to {b} at {age} t {t} {seed}"),
+                        families(&x, &y, t).expect("a frame"),
+                    ));
                 }
             }
         }
@@ -85,14 +95,22 @@ fn cases() -> Vec<(String, Family)> {
 fn the_floor_against_the_units_the_cpu_grows() {
     let cases = cases();
     let grow = std::env::var("UNITS_GROW").map_or(true, |g| g != "0");
-    let workers = std::env::var("UNITS_WORKERS").ok().and_then(|w| w.parse().ok()).unwrap_or(2);
+    let workers = std::env::var("UNITS_WORKERS")
+        .ok()
+        .and_then(|w| w.parse().ok())
+        .unwrap_or(2);
     let next = std::sync::atomic::AtomicUsize::new(0);
-    let (most, past) = (std::sync::atomic::AtomicU32::new(0), std::sync::Mutex::new(Vec::new()));
+    let (most, past) = (
+        std::sync::atomic::AtomicU32::new(0),
+        std::sync::Mutex::new(Vec::new()),
+    );
     std::thread::scope(|s| {
         for _ in 0..workers {
             s.spawn(|| loop {
                 let k = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                let Some((name, family)) = cases.get(k) else { break };
+                let Some((name, family)) = cases.get(k) else {
+                    break;
+                };
                 let g = growth(family).expect("a growth");
                 let floor = telperion_space::most_units(&g.species);
                 most.fetch_max(floor, std::sync::atomic::Ordering::Relaxed);
@@ -100,11 +118,22 @@ fn the_floor_against_the_units_the_cpu_grows() {
                     println!("{name}: floor {floor}");
                     continue;
                 }
-                let census = telperion_space::grow_census(&g.species, g.request).expect("grown").census.expect("a census");
-                let counted = census.cycles.iter().fold([0; 2], |m, c| std::array::from_fn(|w| m[w].max(c.jobs[w])));
-                println!("{name}: floor {floor}, counted {} living, {} waking", counted[0], counted[1]);
+                let census = telperion_space::grow_census(&g.species, g.request)
+                    .expect("grown")
+                    .census
+                    .expect("a census");
+                let counted = census
+                    .cycles
+                    .iter()
+                    .fold([0; 2], |m, c| std::array::from_fn(|w| m[w].max(c.jobs[w])));
+                println!(
+                    "{name}: floor {floor}, counted {} living, {} waking",
+                    counted[0], counted[1]
+                );
                 if counted.iter().any(|&c| c > floor) {
-                    past.lock().unwrap().push(format!("{name}: floor {floor}, counted {counted:?}"));
+                    past.lock()
+                        .unwrap()
+                        .push(format!("{name}: floor {floor}, counted {counted:?}"));
                 }
             });
         }

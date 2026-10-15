@@ -4,7 +4,7 @@
 #[cfg(test)]
 use super::hier_build::{Hierarchy, Kernels, X_GENS, X_UNPLACED};
 #[cfg(test)]
-use super::hier_scan::{Scan, uniform, widest};
+use super::hier_scan::{uniform, widest, Scan};
 #[cfg(test)]
 use crate::buffer::Owned;
 #[cfg(test)]

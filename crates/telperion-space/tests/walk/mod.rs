@@ -27,7 +27,10 @@ pub fn spread<T: Send>(count: usize, work: impl Fn(usize) -> T + Sync) -> Vec<T>
         let workers: Vec<_> = (0..cores.min(count))
             .map(|_| {
                 scope.spawn(|| {
-                    let one = rayon::ThreadPoolBuilder::new().num_threads(1).build().unwrap();
+                    let one = rayon::ThreadPoolBuilder::new()
+                        .num_threads(1)
+                        .build()
+                        .unwrap();
                     one.install(|| {
                         let mut done = Vec::new();
                         loop {

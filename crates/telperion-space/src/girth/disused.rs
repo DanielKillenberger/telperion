@@ -212,7 +212,13 @@ pub(crate) fn attachments_given(
     (from, leaf_mean): (Stand, Option<f64>),
     given: Given<f64>,
 ) -> Grown {
-    attachments_with(axes, species, (age, threads), (from, leaf_mean), (given, NONE))
+    attachments_with(
+        axes,
+        species,
+        (age, threads),
+        (from, leaf_mean),
+        (given, NONE),
+    )
 }
 
 fn attachments_with(
@@ -348,5 +354,4 @@ pub(crate) fn above(parents: &[Option<usize>], fade: &[f64], top: f32) -> Vec<f3
     above
 }
 
-impl Grown {
-}
+impl Grown {}

@@ -28,10 +28,10 @@ mod tests;
 mod unit;
 mod wake;
 
+use crate::contract::presence::{q, real, times, ONE};
 use crate::dormant::{Sleeper, Woken};
 use crate::error::{refuse, Error, Result};
 use crate::fine::lineage_order;
-use crate::contract::presence::{q, real, times, ONE};
 use crate::light::Light;
 use crate::lineage::Key;
 use crate::presence::{Draws, Windows};

@@ -96,7 +96,11 @@ impl Scan {
             layout: &pass.layout,
             entries: &entries,
         });
-        Ok(Self { bind, rows, _cfg: cfg })
+        Ok(Self {
+            bind,
+            rows,
+            _cfg: cfg,
+        })
     }
 
     pub(super) fn record(&self, pass: &io::Pass, e: &mut wgpu::CommandEncoder) {

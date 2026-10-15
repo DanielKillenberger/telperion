@@ -64,7 +64,15 @@ pub fn grow_capture_tables(species: &Species, request: Request) -> Result<Captur
     c.f32s("lay_form", &form(species));
     c.f32s("lay_globals", &[cone(), ground()]);
     let pa: Vec<f32> = (species.states.iter())
-        .flat_map(|s| [s.upkeep, s.balance_hazard, s.tolerance, s.apical_control, s.shade_size])
+        .flat_map(|s| {
+            [
+                s.upkeep,
+                s.balance_hazard,
+                s.tolerance,
+                s.apical_control,
+                s.shade_size,
+            ]
+        })
         .map(|x| x as f32)
         .collect();
     c.f32s("hier_pa", &pa);

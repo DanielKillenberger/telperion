@@ -9,10 +9,10 @@
 //! real the CPU holds as an f32's f64 is that f32. An experiment entry
 //! point, wired into nothing.
 use super::super::sketch::{Pencil, Sketch};
-use super::super::{Grower, Options, Request, start};
+use super::super::{start, Grower, Options, Request};
 use super::capture::Capture;
 use crate::allocation::TIP;
-use crate::error::{Result, refuse};
+use crate::error::{refuse, Result};
 use crate::species::Species;
 use crate::structure::Origin;
 

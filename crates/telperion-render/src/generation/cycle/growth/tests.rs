@@ -14,7 +14,10 @@ use telperion_core::pipeline::executor;
 /// The least tables, compacted after every cycle: every move and
 /// compaction a small tree can meet.
 fn forced() -> Sizes {
-    Sizes { compact: Compact::Every, ..Sizes::least() }
+    Sizes {
+        compact: Compact::Every,
+        ..Sizes::least()
+    }
 }
 
 /// The node table's column of each axis's grown index (`settle_compact.wgsl`'s
@@ -55,17 +58,29 @@ fn a_tree_grown_on_on_the_device_is_the_tree_grown_at_once() {
     for (preset, name, h) in YOUNG {
         let family = preset.parameters();
         let growth = executor::growth(&family).expect("a growth");
-        let g = grown_from(growth.species.clone(), growth.request.light, (h, growth.request.seed));
+        let g = grown_from(
+            growth.species.clone(),
+            growth.request.light,
+            (h, growth.request.seed),
+        );
         let once = {
             let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
             let (b, ..) = grow_now(&gpu, &k.build, &t, &g.tables, (forced(), h)).expect("a build");
-            let s = settle_now(&gpu, (&k.build, &k.settle), (&b, &t), (&constants(&g), SettleTo::Laid)).expect("a settle");
+            let s = settle_now(
+                &gpu,
+                (&k.build, &k.settle),
+                (&b, &t),
+                (&constants(&g), SettleTo::Laid),
+            )
+            .expect("a settle");
             digest(&gpu, &s)
         };
         let seed = g.request.seed;
         let mut whole = GrowthState::sized_now(&gpu, &k, &growth, (seed, h));
         // Nothing grown yet: refused by name, the state left to grow on.
-        let unborn = block(whole.settle(&gpu, &k, 0.0)).err().expect("no tree before a year");
+        let unborn = block(whole.settle(&gpu, &k, 0.0))
+            .err()
+            .expect("no tree before a year");
         assert!(unborn.to_string().contains("at: "), "{unborn}");
         block(whole.grow_to(&gpu, &k, f64::from(h))).expect("grown");
         let at_once = digest(&gpu, &block(whole.settled(&gpu, &k)).expect("settled"));
@@ -83,11 +98,16 @@ fn a_tree_grown_on_on_the_device_is_the_tree_grown_at_once() {
             block(s.settle(&gpu, &k, f64::from(h) - 0.5)).expect("drawn within the year");
             let on = digest(&gpu, &block(s.settled(&gpu, &k)).expect("settled"));
             let grew = &s.growing.as_ref().expect("a build").grew;
-            println!("{name} paused at {a}: moves {} after cycles {:?}, compactions {}", grew.moves, grew.moved_at, grew.compactions);
+            println!(
+                "{name} paused at {a}: moves {} after cycles {:?}, compactions {}",
+                grew.moves, grew.moved_at, grew.compactions
+            );
             paused.push((a, first == again, on));
         }
         println!("{name} {h}: once {once:x}, through the state {at_once:x}, paused {paused:x?}");
-        let same = paused.iter().all(|(_, repeats, on)| *repeats && *on == at_once);
+        let same = paused
+            .iter()
+            .all(|(_, repeats, on)| *repeats && *on == at_once);
         if once != at_once || !same {
             differ.push(name);
         }
@@ -122,7 +142,10 @@ fn a_request_the_device_cannot_meet_is_refused_by_name() {
     growth.request.budget = 200;
     let mut s = GrowthState::sized_now(&gpu, &k, &growth, (7, 8));
     let failed = (1..=8).find_map(|y| block(s.grow_to(&gpu, &k, f64::from(y))).err());
-    assert!(failed.is_some(), "a budget of 200 phytomers holds the beech to 8");
+    assert!(
+        failed.is_some(),
+        "a budget of 200 phytomers holds the beech to 8"
+    );
     assert_eq!(s.committed(), None);
     named(block(s.grow_to(&gpu, &k, 8.0)), "state.failed");
     named(block(s.settle(&gpu, &k, 8.0)).map(drop), "state.failed");
@@ -152,7 +175,11 @@ fn a_lit_tree_grows_on_beside_the_tree_drawn() {
     }
     let peak = gpu.ledger.take_peak();
     assert!(drawn.is_some());
-    println!("the oak to 12 year by year, its last tree drawn: peak {} MiB of {}", peak >> 20, budget >> 20);
+    println!(
+        "the oak to 12 year by year, its last tree drawn: peak {} MiB of {}",
+        peak >> 20,
+        budget >> 20
+    );
     assert!(peak <= budget);
     let mut s = block(GrowthState::begin(&gpu, &k, &growth, (7, 12), budget)).expect("begun");
     block(s.grow_to(&gpu, &k, 6.0)).expect("grown");
@@ -160,25 +187,46 @@ fn a_lit_tree_grows_on_beside_the_tree_drawn() {
     let before = read_words(&gpu, &drawn.waves[1].buffer, 0, 64).expect("the tree drawn");
     s.budget = gpu.ledger.live() + (1 << 20);
     let refused = block(s.grow_to(&gpu, &k, 7.0)).expect_err("no room beside the tree drawn");
-    assert!(refused.to_string().contains("the device budget"), "{refused}");
+    assert!(
+        refused.to_string().contains("the device budget"),
+        "{refused}"
+    );
     assert_eq!(s.committed(), None);
-    assert_eq!(read_words(&gpu, &drawn.waves[1].buffer, 0, 64).expect("the tree drawn"), before);
+    assert_eq!(
+        read_words(&gpu, &drawn.waves[1].buffer, 0, 64).expect("the tree drawn"),
+        before
+    );
     // A draw with no room beside the tree drawn spends the state too.
     let mut s = block(GrowthState::begin(&gpu, &k, &growth, (7, 12), budget)).expect("begun");
     block(s.grow_to(&gpu, &k, 6.0)).expect("grown");
     s.budget = gpu.ledger.live() + 1;
-    let refused = block(s.settle(&gpu, &k, 6.0)).err().expect("no room to draw");
-    assert!(refused.to_string().contains("the device budget"), "{refused}");
+    let refused = block(s.settle(&gpu, &k, 6.0))
+        .err()
+        .expect("no room to draw");
+    assert!(
+        refused.to_string().contains("the device budget"),
+        "{refused}"
+    );
     let spent = |e: crate::RenderError| assert!(e.to_string().contains("state.failed"), "{e}");
     spent(block(s.grow_to(&gpu, &k, 6.0)).expect_err("spent"));
     spent(block(s.settle(&gpu, &k, 6.0)).err().expect("spent"));
-    assert_eq!(read_words(&gpu, &drawn.waves[1].buffer, 0, 64).expect("the tree drawn"), before);
+    assert_eq!(
+        read_words(&gpu, &drawn.waves[1].buffer, 0, 64).expect("the tree drawn"),
+        before
+    );
 }
 
 impl GrowthState {
     /// `sized` from the least tables, compacted every cycle, blocked on,
     /// under 4 GiB.
     pub(super) fn sized_now(gpu: &Gpu, k: &Kernels, growth: &Growth, at: (u64, u32)) -> Self {
-        block(Self::sized(gpu, k, growth, at, (Start::Sizes(forced()), 4 << 30))).expect("begun")
+        block(Self::sized(
+            gpu,
+            k,
+            growth,
+            at,
+            (Start::Sizes(forced()), 4 << 30),
+        ))
+        .expect("begun")
     }
 }

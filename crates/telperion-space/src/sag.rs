@@ -208,7 +208,8 @@ pub(crate) fn gather(
                     // A relay's load enters where its wood does (`girth`,
                     // fn-244): by its share at the node whose span it
                     // stands in, the rest at the node before (or the base).
-                    Origin::Relay { .. } => match crate::girth::attached(axes, species, members[c]) {
+                    Origin::Relay { .. } => match crate::girth::attached(axes, species, members[c])
+                    {
                         Some((k, t)) => {
                             let at = load.share(t);
                             at_node[k].add(at);

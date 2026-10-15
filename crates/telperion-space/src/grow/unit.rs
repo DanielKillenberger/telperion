@@ -3,8 +3,8 @@
 //! and sleeping buds put to sleep.
 use super::shoot::{Rules, Shoot};
 use super::{Apex, Certain};
-use crate::error::{Error, Result};
 use crate::contract::{decide, presence};
+use crate::error::{Error, Result};
 use crate::lineage::{self, Key, ZONE};
 use crate::schedule::Cut;
 use crate::species::{ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
@@ -46,7 +46,10 @@ impl Shoot<'_, '_> {
                     let place_key = node_key.child(slot as u64);
                     let d = place_key.draw();
                     let stands = lineage::placed(place_key, zone.share(slot));
-                    *bud = stands.then(|| lineage::bud(lateral, d)).flatten().map(|pa| (pa, d));
+                    *bud = stands
+                        .then(|| lineage::bud(lateral, d))
+                        .flatten()
+                        .map(|pa| (pa, d));
                 }
                 // Ordered by the first place's draw, which every node has, so
                 // a place a fraction grows moves no node; by its bits, and

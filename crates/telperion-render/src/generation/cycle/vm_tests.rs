@@ -18,7 +18,9 @@ fn expressions() -> Vec<E> {
         a.clone().div(z.clone()),
         a.clone().min(b.clone()).max(E::C(5)),
         a.clone().gt(b.clone()).sel(E::C(1 << 30), E::C(17)),
-        b.clone().gt(a.clone()).sel(a.clone().div(E::C(256)), b.clone().mul(E::C(2))),
+        b.clone()
+            .gt(a.clone())
+            .sel(a.clone().div(E::C(256)), b.clone().mul(E::C(2))),
         E::C(65535 * 64).add(a.clone().sub(E::C(1 << 25)).min(E::C(1 << 26))),
         z.gt(E::C(0)).sel(E::C(0), a.add(b).div(E::C(65535))),
     ]
@@ -39,11 +41,30 @@ fn the_sizing_programs_compute_what_the_host_does() {
         code.extend(program(Dst::Cfg(j as u32), e));
     }
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-    let store = |label, words: &[u32]| io::buffer(&gpu, label, (words.len().max(4) * 4) as u64, usage, bytemuck::cast_slice(words)).unwrap();
+    let store = |label, words: &[u32]| {
+        io::buffer(
+            &gpu,
+            label,
+            (words.len().max(4) * 4) as u64,
+            usage,
+            bytemuck::cast_slice(words),
+        )
+        .unwrap()
+    };
     let (code_b, census_b) = (store("vm code", &code), store("vm census", &census));
-    let (cfgs, args) = (store("vm cfgs", &vec![0; exprs.len()]), store("vm args", &[0; 4]));
+    let (cfgs, args) = (
+        store("vm cfgs", &vec![0; exprs.len()]),
+        store("vm args", &[0; 4]),
+    );
     let run = |words: [u32; 8]| {
-        let cfg = io::buffer(&gpu, "vm cfg", 32, wgpu::BufferUsages::UNIFORM, bytemuck::cast_slice(&words)).unwrap();
+        let cfg = io::buffer(
+            &gpu,
+            "vm cfg",
+            32,
+            wgpu::BufferUsages::UNIFORM,
+            bytemuck::cast_slice(&words),
+        )
+        .unwrap();
         let bind = k.pass.bind(&gpu, &[&cfg, &code_b, &census_b, &cfgs, &args]);
         let mut e = gpu.encoder(&Default::default());
         k.pass.run(&mut e, &bind, 0, 1);
@@ -52,10 +73,19 @@ fn the_sizing_programs_compute_what_the_host_does() {
     };
     let n = exprs.len() as u32;
     let want: Vec<u32> = exprs.iter().map(|e| e.eval(&census)).collect();
-    assert_eq!(&run([0, n, 0, 0, 0, 0, 0, 0])[..want.len()], &want[..], "the device's words are the host's");
+    assert_eq!(
+        &run([0, n, 0, 0, 0, 0, 0, 0])[..want.len()],
+        &want[..],
+        "the device's words are the host's"
+    );
     // The census's word 3 as a flag, raised: every word the point sets
     // is none.
-    assert!(run([0, n, 3, 1, 0, 0, 0, 0])[..want.len()].iter().all(|&w| w == 0), "a raised flag leaves no word");
+    assert!(
+        run([0, n, 3, 1, 0, 0, 0, 0])[..want.len()]
+            .iter()
+            .all(|&w| w == 0),
+        "a raised flag leaves no word"
+    );
 }
 
 /// Expressions as the plan sizes dispatches: a range's share of a count,
@@ -79,7 +109,11 @@ fn the_hosts_bounds_hold_every_value() {
             for y in (lo[1]..=hi[1]).step_by(13) {
                 for z in lo[2]..=hi[2] {
                     let v = e.eval(&[x, y, z]);
-                    assert!((least..=most).contains(&v), "{e:?} at {:?}: {v} outside {least}..={most}", [x, y, z]);
+                    assert!(
+                        (least..=most).contains(&v),
+                        "{e:?} at {:?}: {v} outside {least}..={most}",
+                        [x, y, z]
+                    );
                 }
             }
         }

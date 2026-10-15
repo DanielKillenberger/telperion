@@ -16,7 +16,11 @@ use std::fmt::Write as _;
 use std::path::PathBuf;
 use telperion_core::presets::Preset;
 
-const CASES: [(&str, u32, u64); 3] = [("telperion", 82, 42), ("oregon-white-oak", 40, 42), ("european-beech", 40, 42)];
+const CASES: [(&str, u32, u64); 3] = [
+    ("telperion", 82, 42),
+    ("oregon-white-oak", 40, 42),
+    ("european-beech", 40, 42),
+];
 
 /// The census words beside the count: the laid axes, the living before
 /// and after the balance, the axes, the woken buds and the units at the
@@ -43,23 +47,35 @@ fn reuse_is_counted() {
         return;
     };
     let only = std::env::var("REUSE_PRESETS").ok();
-    for (id, age, seed) in CASES.into_iter().filter(|c| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == c.0))) {
-        let growth = telperion_core::pipeline::executor::growth(&Preset::from_id(id).expect("a preset").parameters()).expect("a growth");
+    for (id, age, seed) in CASES
+        .into_iter()
+        .filter(|c| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == c.0)))
+    {
+        let growth = telperion_core::pipeline::executor::growth(
+            &Preset::from_id(id).expect("a preset").parameters(),
+        )
+        .expect("a growth");
         let g = grown_from(growth.species, growth.request.light, (age, seed));
         let mut t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
         t.counted = true;
         let hinted = Sizes::hinted(hint(&g.species, age).expect("a hint")).expect("sized");
         let (b, _, grew) = grow_now(&gpu, &kit, &t, &g.tables, (hinted, age)).expect("a build");
         drop(b);
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("freed");
         let mut csv = String::from("cycle");
-        BESIDE.iter().for_each(|(name, _)| write!(csv, ",{name}").unwrap());
+        BESIDE
+            .iter()
+            .for_each(|(name, _)| write!(csv, ",{name}").unwrap());
         csv.push_str(",blocks");
         (0..c::REUSED).for_each(|w| write!(csv, ",{:?}", word(w)).unwrap());
         let mut total = [0u64; c::REUSED];
         for (k, read) in grew.censuses.iter().enumerate() {
             write!(csv, "\n{}", k + 1).unwrap();
-            BESIDE.iter().for_each(|(_, w)| write!(csv, ",{}", read[*w]).unwrap());
+            BESIDE
+                .iter()
+                .for_each(|(_, w)| write!(csv, ",{}", read[*w]).unwrap());
             write!(csv, ",{}", read[c::LVL + read[c::LEVELS] as usize]).unwrap();
             for (w, t) in total.iter_mut().enumerate() {
                 write!(csv, ",{}", read[c::REUSE + w]).unwrap();
@@ -67,7 +83,11 @@ fn reuse_is_counted() {
             }
         }
         std::fs::write(out.join(format!("{id}-reuse.csv")), csv).expect("written");
-        let sum: Vec<String> = total.iter().enumerate().map(|(w, t)| format!("{:?} {t}", word(w))).collect();
+        let sum: Vec<String> = total
+            .iter()
+            .enumerate()
+            .map(|(w, t)| format!("{:?} {t}", word(w)))
+            .collect();
         println!("{id} {age}: {}", sum.join(", "));
     }
 }

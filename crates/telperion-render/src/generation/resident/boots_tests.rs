@@ -51,22 +51,40 @@ struct Apart {
 }
 
 fn most(a: &[f64], b: &[f64]) -> f64 {
-    a.iter().zip(b).map(|(x, y)| (x - y).abs()).fold(0.0, f64::max)
+    a.iter()
+        .zip(b)
+        .map(|(x, y)| (x - y).abs())
+        .fold(0.0, f64::max)
 }
 
 /// The device's bases against the CPU's: the first way they disagree.
 fn compare(device: &[Base], cpu: &[Base]) -> Result<Apart, String> {
     if device.len() != cpu.len() {
-        return Err(format!("count: {} bases against {}", device.len(), cpu.len()));
+        return Err(format!(
+            "count: {} bases against {}",
+            device.len(),
+            cpu.len()
+        ));
     }
     let theirs: HashMap<(u32, u32), &Base> = cpu.iter().map(|b| (b.key, b)).collect();
-    let mut a = Apart { bases: device.len(), ..Apart::default() };
+    let mut a = Apart {
+        bases: device.len(),
+        ..Apart::default()
+    };
     for d in device {
-        let c = theirs.get(&d.key).ok_or(format!("base {:?}: none on the CPU", d.key))?;
+        let c = theirs
+            .get(&d.key)
+            .ok_or(format!("base {:?}: none on the CPU", d.key))?;
         if d.bearer != c.bearer {
-            return Err(format!("base {:?}: borne on {} against {}", d.key, d.bearer, c.bearer));
+            return Err(format!(
+                "base {:?}: borne on {} against {}",
+                d.key, d.bearer, c.bearer
+            ));
         }
-        a.position = a.position.max(most(&d.from, &c.from)).max(most(&d.tip, &c.tip));
+        a.position = a
+            .position
+            .max(most(&d.from, &c.from))
+            .max(most(&d.tip, &c.tip));
         a.position = a.position.max(most(&d.radii, &c.radii));
         match (&d.cell, &c.cell) {
             (Some(x), Some(y)) => {
@@ -115,21 +133,34 @@ fn words(gpu: &crate::Gpu, b: &wgpu::Buffer, n: usize) -> Vec<u32> {
 /// The bases the device hangs on `f`'s stems.
 fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Base> {
     let growth = executor::growth(f).unwrap();
-    let rows = executor::bases(f).unwrap().expect("a family that hangs bases");
+    let rows = executor::bases(f)
+        .unwrap()
+        .expect("a family that hangs bases");
     let (mut dressed, _) = pollster::block_on(tree::drawn(gpu, k, &growth)).unwrap();
     let hung = pollster::block_on(hanger.hang(gpu, &mut dressed, Some(&rows))).unwrap();
     let seed = &dressed.waves[1];
-    let all = words(gpu, &seed.buffer, seed.axes as usize * CA_WORDS + seed.phyts as usize * CV);
+    let all = words(
+        gpu,
+        &seed.buffer,
+        seed.axes as usize * CA_WORDS + seed.phyts as usize * CV,
+    );
     let record = |r: u32| &all[seed.axes as usize * CA_WORDS + r as usize * CV..][..CV];
     let key_of = |id: u32| record(id - seed.base)[24];
-    let stems = words(gpu, hung.stems.as_ref().unwrap(), 2 + seed.phyts as usize * AW as usize);
+    let stems = words(
+        gpu,
+        hung.stems.as_ref().unwrap(),
+        2 + seed.phyts as usize * AW as usize,
+    );
     // Each stem's slot: its apex, its first base and its bases (fn-277).
     let slot = |t: usize, f: usize| stems[2 + t * AW as usize + f] as usize;
     let stem_of = |b: usize| (0..stems[0] as usize).rfind(|&t| slot(t, 1) <= b).unwrap();
     let boots = dressed.waves.last().unwrap();
     let n = hung.bases as usize;
     let recs = words(gpu, &boots.buffer, CA_WORDS + 2 * n * CV);
-    let cells = hung.cells.as_ref().map(|c| words(gpu, c, n * SECTION_FLOATS));
+    let cells = hung
+        .cells
+        .as_ref()
+        .map(|c| words(gpu, c, n * SECTION_FLOATS));
     let f = |w: u32| f64::from(f32::from_bits(w));
     (0..n)
         .map(|b| {
@@ -139,7 +170,10 @@ fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Bas
             let second = &recs[CA_WORDS + (2 * b + 1) * CV..][..CV];
             let cell = cells.as_ref().map(|c| {
                 let mut out = [0.0; SECTION_FLOATS];
-                for (o, &w) in out.iter_mut().zip(&c[b * SECTION_FLOATS..][..SECTION_FLOATS]) {
+                for (o, &w) in out
+                    .iter_mut()
+                    .zip(&c[b * SECTION_FLOATS..][..SECTION_FLOATS])
+                {
                     *o = f(w);
                 }
                 out
@@ -149,7 +183,10 @@ fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Bas
                 bearer: key_of(first[16]),
                 from: [f(first[0]), f(first[1]), f(first[2])],
                 tip: [f(second[0]), f(second[1]), f(second[2])],
-                radii: [first[3], first[4], first[5], second[3], second[4], second[5]].map(f),
+                radii: [
+                    first[3], first[4], first[5], second[3], second[4], second[5],
+                ]
+                .map(f),
                 cell,
             }
         })
@@ -166,7 +203,11 @@ fn cpu(f: &Family) -> Vec<Base> {
     let clothed: Vec<usize> = (tree.stem_apices().into_iter())
         .filter(|&apex| {
             let (mut at, mut run) = (apex, 0.0);
-            while let Some(q) = tree.nodes[at].parent.map(|q| q as usize).filter(|&q| tree.nodes[q].stem) {
+            while let Some(q) = tree.nodes[at]
+                .parent
+                .map(|q| q as usize)
+                .filter(|&q| tree.nodes[q].stem)
+            {
                 run += tree.nodes[at].position.distance(tree.nodes[q].position);
                 at = q;
             }
@@ -176,7 +217,11 @@ fn cpu(f: &Family) -> Vec<Base> {
     let per = p.leaf_bases as usize;
     let n = clothed.len() * per;
     let start = tree.nodes.len() - 2 * n;
-    let packed = tree.sections.len().checked_sub(n).filter(|_| p.leaf_base_width > 0.0);
+    let packed = tree
+        .sections
+        .len()
+        .checked_sub(n)
+        .filter(|_| p.leaf_base_width > 0.0);
     (0..n)
         .map(|b| {
             let (first, second) = (&tree.nodes[start + 2 * b], &tree.nodes[start + 2 * b + 1]);
@@ -187,7 +232,12 @@ fn cpu(f: &Family) -> Vec<Base> {
                 for (k, w) in [s.origin, s.axis, s.radial, s.across].iter().enumerate() {
                     out[3 * k..3 * k + 3].copy_from_slice(&v(*w));
                 }
-                out[12..16].copy_from_slice(&[s.corners[0][0], s.corners[0][1], s.corners[1][0], s.corners[1][1]]);
+                out[12..16].copy_from_slice(&[
+                    s.corners[0][0],
+                    s.corners[0][1],
+                    s.corners[1][0],
+                    s.corners[1][1],
+                ]);
                 out[16] = s.flatness;
                 for (k, r) in s.rings.iter().enumerate() {
                     out[17 + 3 * k..20 + 3 * k].copy_from_slice(&[r.reach, r.rise, r.scale]);
@@ -199,7 +249,14 @@ fn cpu(f: &Family) -> Vec<Base> {
                 bearer: tree.key(first.parent.unwrap() as usize),
                 from: v(first.position),
                 tip: v(second.position),
-                radii: [first.radius, first.start_radius, first.base_radius, second.radius, second.start_radius, second.base_radius],
+                radii: [
+                    first.radius,
+                    first.start_radius,
+                    first.base_radius,
+                    second.radius,
+                    second.start_radius,
+                    second.base_radius,
+                ],
                 cell,
             }
         })
@@ -213,31 +270,47 @@ fn swept(gpu: &crate::Gpu, f: &Family) -> ((usize, usize), f64) {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     let kit = gen.kit();
-    let built = pollster::block_on(super::build::build(gpu, &gen, &kit.kernels, &kit.tools, f)).unwrap();
+    let built =
+        pollster::block_on(super::build::build(gpu, &gen, &kit.kernels, &kit.tools, f)).unwrap();
     let (points, clusters, p, k, _) = built.prepared.wood.as_ref().unwrap().blocks();
     let points = words(gpu, points, p as usize * POINT_WORDS);
     let clusters = words(gpu, clusters, k as usize * CLUSTER_WORDS);
-    let point = |i: u32| CurvePoint::unpack(points[i as usize * POINT_WORDS..][..POINT_WORDS].try_into().unwrap());
+    let point = |i: u32| {
+        CurvePoint::unpack(
+            points[i as usize * POINT_WORDS..][..POINT_WORDS]
+                .try_into()
+                .unwrap(),
+        )
+    };
     let mut mine: Vec<(u32, u32)> = Vec::new();
     for c in clusters.chunks(CLUSTER_WORDS).filter(|c| c[4] & 4 != 0) {
         if mine.last() != Some(&(c[2], c[3])) {
             mine.push((c[2], c[3]));
         }
     }
-    let theirs = executor::grow(f).unwrap().expansion().unwrap().curve().unwrap();
+    let theirs = executor::grow(f)
+        .unwrap()
+        .expansion()
+        .unwrap()
+        .curve()
+        .unwrap();
     let shaped: Vec<_> = theirs.runs.iter().filter(|r| r.section.is_some()).collect();
     let mut apart: f64 = 0.0;
     for &(first, count) in &mine {
         let at = point(first + 1).centre;
         let near = shaped.iter().min_by(|a, b| {
-            let d = |r: &&&telperion_core::surface::CurveRun| theirs.points[r.first as usize + 1].centre.distance(at);
+            let d = |r: &&&telperion_core::surface::CurveRun| {
+                theirs.points[r.first as usize + 1].centre.distance(at)
+            };
             d(a).total_cmp(&d(b))
         });
         let want = theirs.run_points(near.expect("a shaped run on the CPU"));
         assert_eq!(want.len(), count as usize, "a base's samples");
         for (i, c) in want.iter().enumerate() {
             let m = point(first + i as u32);
-            apart = apart.max(m.centre.distance(c.centre)).max((m.radius - c.radius).abs());
+            apart = apart
+                .max(m.centre.distance(c.centre))
+                .max((m.radius - c.radius).abs());
         }
     }
     ((mine.len(), shaped.len()), apart)
@@ -254,11 +327,15 @@ fn every_leaf_base_is_hung_as_the_cpu_hangs_it() {
     for age in [Some(12), None] {
         let f = family("date-palm", age);
         let (mine, theirs) = (device(&gpu, &k, &hanger, &f), cpu(&f));
-        let apart = compare(&mine, &theirs).unwrap_or_else(|e| panic!("date palm at {}: {e}", f.age));
+        let apart =
+            compare(&mine, &theirs).unwrap_or_else(|e| panic!("date palm at {}: {e}", f.age));
         println!("date palm at {}: {apart:?}", f.age);
         assert!(apart.bases > 0, "no base hung");
         let (runs, swept) = swept(&gpu, &f);
-        println!("date palm at {}: shaped runs {runs:?}, apart {swept:e}", f.age);
+        println!(
+            "date palm at {}: shaped runs {runs:?}, apart {swept:e}",
+            f.age
+        );
         assert_eq!(runs.0, runs.1, "shaped runs");
         assert!(swept <= POSITION, "swept {swept:e}");
         // The controls: a base missing, and one cell's corner moved.

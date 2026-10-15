@@ -30,7 +30,12 @@ fn prepare_grows_every_preset_on_the_device_and_draws_it() {
         renderer.submit_prepared(prepared).unwrap();
         // Each tree draws: a frame's device error fails the still.
         let camera = crate::hero_pose(renderer.bounds().unwrap(), 4.0 / 3.0, crate::GROUND_REACH);
-        assert!(crate::render(&mut renderer, &camera, 320, 240).unwrap().has_subject(), "{id}");
+        assert!(
+            crate::render(&mut renderer, &camera, 320, 240)
+                .unwrap()
+                .has_subject(),
+            "{id}"
+        );
     }
 }
 
@@ -69,7 +74,11 @@ fn large_to_small() {
         renderer.submit_prepared(prepared).unwrap();
         let tree = Generator::tree_buffer_bytes(&renderer);
         let held = gen.gpu.ledger.live();
-        println!("spruce {age}: {leaves} leaves in {ms:.0} ms; held {} MB, tree {} MB", held >> 20, tree >> 20);
+        println!(
+            "spruce {age}: {leaves} leaves in {ms:.0} ms; held {} MB, tree {} MB",
+            held >> 20,
+            tree >> 20
+        );
     }
 }
 
@@ -101,7 +110,9 @@ fn a_failed_build_leaves_the_drawn_tree_drawing() {
     // The next build draws again.
     let next = gen.prepare(&first, Delivery::Resident).unwrap();
     renderer.submit_prepared(next).unwrap();
-    assert!(crate::render(&mut renderer, &camera, 320, 240).unwrap().has_subject());
+    assert!(crate::render(&mut renderer, &camera, 320, 240)
+        .unwrap()
+        .has_subject());
 }
 
 /// fn-235 R3: a build over the device budget is refused by name before
@@ -224,7 +235,10 @@ fn the_foliage_budget_holds_the_whole_trees_leaves() {
     assert_eq!(device.map(|e| e.to_string()), Some(whole));
     // A budget of exactly the tree's leaves holds it.
     family.canopy.max_instances = count as usize;
-    assert_eq!(gen.prepare(&family, Delivery::Resident).unwrap().count(), count);
+    assert_eq!(
+        gen.prepare(&family, Delivery::Resident).unwrap().count(),
+        count
+    );
 }
 
 /// fn-212 task 11, Astra's finding 7: a canopy of zero leaf size places
@@ -246,7 +260,9 @@ fn a_zero_leaf_size_places_no_leaves() {
     // The leafless tree draws.
     renderer.submit_prepared(prepared).unwrap();
     let camera = crate::hero_pose(renderer.bounds().unwrap(), 4.0 / 3.0, crate::GROUND_REACH);
-    assert!(crate::render(&mut renderer, &camera, 320, 240).unwrap().has_subject());
+    assert!(crate::render(&mut renderer, &camera, 320, 240)
+        .unwrap()
+        .has_subject());
 }
 
 /// fn-212 task 11, Astra's finding 8: what the CPU path draws, the
@@ -295,7 +311,10 @@ fn a_flowering_tree_draws_every_floret_on_either_path() {
     let whole = pollster::block_on(gen.prepare_whole(&family, Delivery::Resident)).unwrap();
     let cpu = gen.prepare(&family, Delivery::Cpu).unwrap();
     assert!(florets(&whole) > 0, "the beech flowers");
-    assert!(resident.organ.is_some(), "the device path holds its florets");
+    assert!(
+        resident.organ.is_some(),
+        "the device path holds its florets"
+    );
     assert_eq!(florets(&resident), florets(&whole));
     assert_eq!(florets(&cpu), florets(&whole));
 }

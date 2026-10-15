@@ -3,15 +3,15 @@
 //! of block caps and sweep widths the default is chosen from.
 use super::columns::Cap;
 use super::compare::Agreement;
-use super::hier_build::{CAP, Hierarchy, Kernels};
+use super::hier_build::{Hierarchy, Kernels, CAP};
 use super::hier_columns::{Cpu, Hier};
-use super::hier_compare::{Out, blocks, children, compare, words};
+use super::hier_compare::{blocks, children, compare, words, Out};
 use super::hier_device::Sums;
 use super::hier_plan::Plan;
 use super::hier_scan::zeroed;
 use super::hier_tests::{captured, device, summed, tree};
-use crate::Gpu;
 use crate::buffer::Owned;
+use crate::Gpu;
 use telperion_core::presets::Preset;
 use telperion_space::Capture;
 

@@ -1,8 +1,6 @@
 //! Bark changes shading, never the bytes that locate a silhouette.
 mod common;
-use telperion_core::{
-    material::MaterialParams, math::Vec3, mesh, surface::SurfaceMesh,
-};
+use telperion_core::{material::MaterialParams, math::Vec3, mesh, surface::SurfaceMesh};
 use telperion_render::{render, Camera, Renderer, View, STILL_FORMAT};
 
 fn hash(mesh: &SurfaceMesh) -> u64 {

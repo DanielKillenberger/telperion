@@ -63,7 +63,10 @@ const PHYTS: [(&str, u32, Kind); 7] = [
 
 /// An f32 column's words as the f64s that hold them.
 fn widened(words: &[u32]) -> Vec<u32> {
-    words.iter().flat_map(|&x| two(f64::from(f32::from_bits(x)).to_bits())).collect()
+    words
+        .iter()
+        .flat_map(|&x| two(f64::from(f32::from_bits(x)).to_bits()))
+        .collect()
 }
 
 fn two(x: u64) -> [u32; 2] {
@@ -75,26 +78,62 @@ fn two(x: u64) -> [u32; 2] {
 fn field(name: &str, kind: Kind, words: Vec<u32>) -> Field {
     let single = name.starts_with("phase") || PLACES.contains(&name);
     match kind {
-        Kind::F32 if !single => Field { name: name.into(), kind: Kind::F64, words: widened(&words) },
-        _ => Field { name: name.into(), kind, words },
+        Kind::F32 if !single => Field {
+            name: name.into(),
+            kind: Kind::F64,
+            words: widened(&words),
+        },
+        _ => Field {
+            name: name.into(),
+            kind,
+            words,
+        },
     }
 }
 
 /// An axis's frame's and a phytomer's place's nine f32s, by name.
 const PLACES: [&str; 18] = [
-    "base x", "base y", "base z", "heading x", "heading y", "heading z", "side x", "side y", "side z",
-    "tip x", "tip y", "tip z", "ph heading x", "ph heading y", "ph heading z", "ph side x", "ph side y", "ph side z",
+    "base x",
+    "base y",
+    "base z",
+    "heading x",
+    "heading y",
+    "heading z",
+    "side x",
+    "side y",
+    "side z",
+    "tip x",
+    "tip y",
+    "tip z",
+    "ph heading x",
+    "ph heading y",
+    "ph heading z",
+    "ph side x",
+    "ph side y",
+    "ph side z",
 ];
 
 /// Each row's axis, from each axis's count of rows.
 fn owners(counts: &[u32]) -> Vec<u32> {
-    counts.iter().enumerate().flat_map(|(a, &n)| std::iter::repeat_n(a as u32, n as usize)).collect()
+    counts
+        .iter()
+        .enumerate()
+        .flat_map(|(a, &n)| std::iter::repeat_n(a as u32, n as usize))
+        .collect()
 }
 
 impl Settled {
     /// The device's settled tree as far as `to` and what lies beside it.
-    pub(super) fn snapshot(&self, gpu: &Gpu, state: &State, to: SettleTo) -> Result<(Snapshot, Beside)> {
-        let mut beside = Beside { error: self.error.to_vec(), ..Beside::default() };
+    pub(super) fn snapshot(
+        &self,
+        gpu: &Gpu,
+        state: &State,
+        to: SettleTo,
+    ) -> Result<(Snapshot, Beside)> {
+        let mut beside = Beside {
+            error: self.error.to_vec(),
+            ..Beside::default()
+        };
         if self.error[0] != 0 {
             return Ok((Snapshot::default(), beside));
         }
@@ -105,7 +144,9 @@ impl Settled {
             let at = (c * t.sk) as usize;
             match kind.words() {
                 1 => nt[at..at + k].to_vec(),
-                _ => (0..k).flat_map(|f| [nt[at + f], nt[at + t.sk as usize + f]]).collect(),
+                _ => (0..k)
+                    .flat_map(|f| [nt[at + f], nt[at + t.sk as usize + f]])
+                    .collect(),
             }
         };
         let mut s = Snapshot::default();
@@ -113,46 +154,73 @@ impl Settled {
             s.axes.fields.push(field(name, kind, col(c, kind)));
         }
         s.axes.axis = (0..t.kept).collect();
-        s.lineage = col(5, Kind::U64).chunks(2).map(|w| u64::from(w[0]) | u64::from(w[1]) << 32).collect();
+        s.lineage = col(5, Kind::U64)
+            .chunks(2)
+            .map(|w| u64::from(w[0]) | u64::from(w[1]) << 32)
+            .collect();
         let units = &nt[t.at_nu as usize..t.at_nu as usize + t.units as usize];
-        s.units.fields.push(field("presence", Kind::F32, units.to_vec()));
+        s.units
+            .fields
+            .push(field("presence", Kind::F32, units.to_vec()));
         s.units.axis = owners(&col(19, Kind::U32));
         let p = t.phyts as usize;
         for (name, c, kind) in PHYTS {
             let at = (t.at_np + c * t.skp) as usize;
             let words = match kind.words() {
                 1 => nt[at..at + p].to_vec(),
-                _ => (0..p).flat_map(|r| [nt[at + r], nt[at + t.skp as usize + r]]).collect(),
+                _ => (0..p)
+                    .flat_map(|r| [nt[at + r], nt[at + t.skp as usize + r]])
+                    .collect(),
             };
             s.phyts.fields.push(field(name, kind, words));
         }
         s.phyts.axis = owners(&col(21, Kind::U32));
         if to != SettleTo::Shed {
             let at = (t.at_np + 11 * t.skp) as usize;
-            s.phyts.fields.push(field("radius", Kind::F32, nt[at..at + p].to_vec()));
+            s.phyts
+                .fields
+                .push(field("radius", Kind::F32, nt[at..at + p].to_vec()));
             beside.joined = joins(&(33..38).map(|c| col(c, Kind::U32)).collect::<Vec<_>>());
         }
         if to == SettleTo::Placed {
             let q = (u64::from(d::Y_COLS * t.sk), u64::from(t.skp));
             let cols = read_words(gpu, &self.pw, q.0 + 5 * q.1, 6 * q.1)?;
-            beside.levers = (0..p).flat_map(|r| (0..6).map(move |c| (r, c))).map(|(r, c)| cols[c * t.skp as usize + r]).collect();
+            beside.levers = (0..p)
+                .flat_map(|r| (0..6).map(move |c| (r, c)))
+                .map(|(r, c)| cols[c * t.skp as usize + r])
+                .collect();
         }
         if matches!(to, SettleTo::Laid | SettleTo::Placed) {
             for (k, name) in PLACES[..9].iter().enumerate() {
-                s.axes.fields.push(field(name, Kind::F32, col(24 + k as u32, Kind::F32)));
+                s.axes
+                    .fields
+                    .push(field(name, Kind::F32, col(24 + k as u32, Kind::F32)));
             }
             for (k, name) in PLACES[9..].iter().enumerate() {
                 let at = (t.at_np + (12 + k as u32) * t.skp) as usize;
-                s.phyts.fields.push(field(name, Kind::F32, nt[at..at + p].to_vec()));
+                s.phyts
+                    .fields
+                    .push(field(name, Kind::F32, nt[at..at + p].to_vec()));
             }
         }
         beside.index = read_words(gpu, &self.work, l.a(d::W_FINAL, 0), u64::from(l.n))?;
         let cap = u64::from(state.caps.axes);
-        let (lo, hi) = (read_words(gpu, &state.axes, 6 * cap, u64::from(l.n))?, read_words(gpu, &state.axes, 7 * cap, u64::from(l.n))?);
-        beside.grown = lo.iter().zip(&hi).map(|(&l, &h)| u64::from(l) | u64::from(h) << 32).collect();
+        let (lo, hi) = (
+            read_words(gpu, &state.axes, 6 * cap, u64::from(l.n))?,
+            read_words(gpu, &state.axes, 7 * cap, u64::from(l.n))?,
+        );
+        beside.grown = lo
+            .iter()
+            .zip(&hi)
+            .map(|(&l, &h)| u64::from(l) | u64::from(h) << 32)
+            .collect();
         let mean = read_words(gpu, &self.atom, d::T_LEAF as u64 + 2, 1)?[0];
         let has = self.flags & 3 == 3;
-        let value = if has { f64::from(f32::from_bits(mean)).to_bits() } else { 0 };
+        let value = if has {
+            f64::from(f32::from_bits(mean)).to_bits()
+        } else {
+            0
+        };
         beside.leaf_mean = vec![u64::from(has), value];
         beside.disused = self.disused(gpu, state, &beside.index)?;
         Ok((s, beside))
@@ -164,15 +232,29 @@ impl Settled {
         let l = &self.layout;
         let n = u64::from(l.n);
         let read = |c: u32| read_words(gpu, &self.work, l.a(c, 0), n);
-        let (on, radius, share, node) = (read(d::W_DON)?, read(d::W_DR)?, read(d::W_DS)?, read(d::W_NODE)?);
+        let (on, radius, share, node) = (
+            read(d::W_DON)?,
+            read(d::W_DR)?,
+            read(d::W_DS)?,
+            read(d::W_NODE)?,
+        );
         let cap = u64::from(state.caps.axes);
         let parent = read_words(gpu, &state.axes, 4 * cap, n)?;
         let origin = read_words(gpu, &state.axes, 3 * cap, n)?;
         let real = |x: u32| f64::from(f32::from_bits(x)).to_bits();
         let mut out = Vec::new();
         for i in (0..l.n as usize).filter(|&i| on[i] != 0) {
-            let at = if origin[i] & 0xff == 1 { u64::from(node[i]) } else { u64::from(u32::MAX) };
-            out.extend([u64::from(index[parent[i] as usize]), at, real(radius[i]), real(share[i])]);
+            let at = if origin[i] & 0xff == 1 {
+                u64::from(node[i])
+            } else {
+                u64::from(u32::MAX)
+            };
+            out.extend([
+                u64::from(index[parent[i] as usize]),
+                at,
+                real(radius[i]),
+                real(share[i]),
+            ]);
         }
         Ok(out)
     }
@@ -185,7 +267,13 @@ fn joins(cols: &[Vec<u32>]) -> Vec<u64> {
     (0..cols[0].len())
         .flat_map(|f| match cols[0][f] {
             0 => [0; 5],
-            _ => [1, u64::from(cols[1][f]), u64::from(cols[2][f]), real(cols[3][f]), real(cols[4][f])],
+            _ => [
+                1,
+                u64::from(cols[1][f]),
+                u64::from(cols[2][f]),
+                real(cols[3][f]),
+                real(cols[4][f]),
+            ],
         })
         .collect()
 }
@@ -194,32 +282,55 @@ fn joins(cols: &[Vec<u32>]) -> Vec<u64> {
 /// columns.
 pub(super) fn cpu_settled(c: &Cap, to: SettleTo) -> (Snapshot, Beside) {
     let error = c.u32s("s_error");
-    let mut beside = Beside { error: error.clone(), ..Beside::default() };
+    let mut beside = Beside {
+        error: error.clone(),
+        ..Beside::default()
+    };
     if error[0] != 0 {
         return (Snapshot::default(), beside);
     }
     let words = |name: &str, kind: Kind| -> Vec<u32> {
         match kind {
             Kind::U32 | Kind::F32 => c.u32s(&format!("s_{name}")),
-            _ => c.u64s(&format!("s_{name}")).into_iter().flat_map(two).collect(),
+            _ => c
+                .u64s(&format!("s_{name}"))
+                .into_iter()
+                .flat_map(two)
+                .collect(),
         }
     };
     let mut s = Snapshot::default();
     for (name, _, kind) in AXES {
         let kind = if name == "alive" { Kind::F64 } else { kind };
-        s.axes.fields.push(Field { name: name.into(), kind, words: words(name, kind) });
+        s.axes.fields.push(Field {
+            name: name.into(),
+            kind,
+            words: words(name, kind),
+        });
     }
     s.lineage = c.u64s("s_lineage");
     s.axes.axis = (0..s.lineage.len() as u32).collect();
-    s.units.fields.push(Field { name: "presence".into(), kind: Kind::F64, words: words("unit", Kind::F64) });
+    s.units.fields.push(Field {
+        name: "presence".into(),
+        kind: Kind::F64,
+        words: words("unit", Kind::F64),
+    });
     s.units.axis = owners(&c.u32s("s_units_n"));
     for (name, _, kind) in PHYTS {
         let kind = if kind == Kind::F32 { Kind::F64 } else { kind };
-        s.phyts.fields.push(Field { name: name.into(), kind, words: words(&format!("ph_{name}"), kind) });
+        s.phyts.fields.push(Field {
+            name: name.into(),
+            kind,
+            words: words(&format!("ph_{name}"), kind),
+        });
     }
     s.phyts.axis = owners(&c.u32s("s_phyt_n"));
     if to != SettleTo::Shed {
-        s.phyts.fields.push(Field { name: "radius".into(), kind: Kind::F64, words: words("ph_radius", Kind::F64) });
+        s.phyts.fields.push(Field {
+            name: "radius".into(),
+            kind: Kind::F64,
+            words: words("ph_radius", Kind::F64),
+        });
         beside.joined = c.u64s("s_joined");
     }
     if to == SettleTo::Placed {
@@ -228,10 +339,18 @@ pub(super) fn cpu_settled(c: &Cap, to: SettleTo) -> (Snapshot, Beside) {
     if matches!(to, SettleTo::Laid | SettleTo::Placed) {
         let (frames, places) = (c.u32s("s_frame"), c.u32s("s_ph_frame"));
         for (k, name) in PLACES[..9].iter().enumerate() {
-            s.axes.fields.push(Field { name: (*name).into(), kind: Kind::F32, words: frames.iter().skip(k).step_by(9).copied().collect() });
+            s.axes.fields.push(Field {
+                name: (*name).into(),
+                kind: Kind::F32,
+                words: frames.iter().skip(k).step_by(9).copied().collect(),
+            });
         }
         for (k, name) in PLACES[9..].iter().enumerate() {
-            s.phyts.fields.push(Field { name: (*name).into(), kind: Kind::F32, words: places.iter().skip(k).step_by(9).copied().collect() });
+            s.phyts.fields.push(Field {
+                name: (*name).into(),
+                kind: Kind::F32,
+                words: places.iter().skip(k).step_by(9).copied().collect(),
+            });
         }
     }
     beside.index = c.u32s("s_index");
@@ -247,17 +366,53 @@ pub(super) fn beside_agree(a: &mut super::compare::Agreement, dev: &Beside, cpu:
     // Each grown axis's final index by its lineage (a continuation and
     // its relays share one, in order): an axis the device's arena let go
     // is one the CPU sheds (fn-256 task 5).
-    let (d, c) = (by_key(&dev.grown, &dev.index), by_key(&cpu.grown, &cpu.index));
-    let matched: Vec<u32> = c.iter().map(|(k, cpu_run)| u32::from(shed_from(cpu_run, d.get(k).map_or(&[], |r| r)))).collect();
+    let (d, c) = (
+        by_key(&dev.grown, &dev.index),
+        by_key(&cpu.grown, &cpu.index),
+    );
+    let matched: Vec<u32> = c
+        .iter()
+        .map(|(k, cpu_run)| u32::from(shed_from(cpu_run, d.get(k).map_or(&[], |r| r))))
+        .collect();
     a.eq("grown index", &matched, &vec![1; c.len()]);
-    a.eq("grown axes the CPU has", &[d.keys().filter(|k| !c.contains_key(k)).count() as u32], &[0]);
+    a.eq(
+        "grown axes the CPU has",
+        &[d.keys().filter(|k| !c.contains_key(k)).count() as u32],
+        &[0],
+    );
     a.records("leaf mean", &dev.leaf_mean, &cpu.leaf_mean, (2, &[1]));
     a.records("disused", &dev.disused, &cpu.disused, (4, &[2, 3]));
-    let wide = |v: &[u32]| v.iter().map(|&x| f64::from(f32::from_bits(x)).to_bits()).collect::<Vec<u64>>();
+    let wide = |v: &[u32]| {
+        v.iter()
+            .map(|&x| f64::from(f32::from_bits(x)).to_bits())
+            .collect::<Vec<u64>>()
+    };
     // A join's third word is an f32's bits.
-    let joins = |v: &[u64]| v.chunks(5).flat_map(|j| [j[0], j[1], f64::from(f32::from_bits(j[2] as u32)).to_bits(), j[3], j[4]]).collect::<Vec<u64>>();
-    a.records("joined", &joins(&dev.joined), &joins(&cpu.joined), (5, &[2, 3, 4]));
-    a.records("levers", &wide(&dev.levers), &wide(&cpu.levers), (6, &[0, 1, 2, 3, 4, 5]));
+    let joins = |v: &[u64]| {
+        v.chunks(5)
+            .flat_map(|j| {
+                [
+                    j[0],
+                    j[1],
+                    f64::from(f32::from_bits(j[2] as u32)).to_bits(),
+                    j[3],
+                    j[4],
+                ]
+            })
+            .collect::<Vec<u64>>()
+    };
+    a.records(
+        "joined",
+        &joins(&dev.joined),
+        &joins(&cpu.joined),
+        (5, &[2, 3, 4]),
+    );
+    a.records(
+        "levers",
+        &wide(&dev.levers),
+        &wide(&cpu.levers),
+        (6, &[0, 1, 2, 3, 4, 5]),
+    );
 }
 
 /// Each lineage's indices, in grown order.

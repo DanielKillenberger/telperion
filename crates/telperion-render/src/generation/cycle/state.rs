@@ -128,15 +128,29 @@ impl State {
     /// phytomers' grown and laid columns, the lists.
     pub(super) fn words(caps: Caps) -> [u64; 6] {
         let (a, p) = (u64::from(caps.axes), u64::from(caps.phyts));
-        [AXES * a, PENCILS * a, UNITS * u64::from(caps.units), GROWN * p, LAID * p, caps.list_words()]
+        [
+            AXES * a,
+            PENCILS * a,
+            UNITS * u64::from(caps.units),
+            GROWN * p,
+            LAID * p,
+            caps.list_words(),
+        ]
     }
 
     #[cfg(test)]
     /// The bytes the state holds.
     pub(super) fn bytes(&self) -> u64 {
-        [&self.axes, &self.units, &self.grown, &self.laid, &self.pencils, &self.lists]
-            .iter()
-            .map(|b| b.size())
-            .sum()
+        [
+            &self.axes,
+            &self.units,
+            &self.grown,
+            &self.laid,
+            &self.pencils,
+            &self.lists,
+        ]
+        .iter()
+        .map(|b| b.size())
+        .sum()
     }
 }

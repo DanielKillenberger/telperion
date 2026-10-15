@@ -34,7 +34,10 @@ pub fn carded(element: &Element) -> Cow<'_, Element> {
     // the card goes in front of the florets'.
     let front = rachis_levels(element);
     if element.levels.len() >= crate::MAX_LEVELS
-        || element.levels.get(front).is_none_or(|l| l.deviation >= deviation)
+        || element
+            .levels
+            .get(front)
+            .is_none_or(|l| l.deviation >= deviation)
     {
         return Cow::Borrowed(element);
     }
@@ -42,12 +45,14 @@ pub fn carded(element: &Element) -> Cow<'_, Element> {
     let base = out.positions.len() as u32;
     out.positions.extend(card.corners);
     if !out.coords.is_empty() {
-        out.coords.extend([0.0, -1.0, 1.0, -1.0, 1.0, 1.0, 0.0, 1.0]);
+        out.coords
+            .extend([0.0, -1.0, 1.0, -1.0, 1.0, 1.0, 0.0, 1.0]);
     }
     // The card is a patch of colour, not a floret: under CARD_PIXELS its
     // pedicel is far below a pixel and is not drawn (fn-253).
     let at = out.level_indices.len() as u32;
-    out.level_indices.extend([0, 1, 2, 0, 2, 3].map(|i| base + i));
+    out.level_indices
+        .extend([0, 1, 2, 0, 2, 3].map(|i| base + i));
     let indices = at..out.level_indices.len() as u32;
     out.levels.insert(front, Level { indices, deviation });
     Cow::Owned(out)
@@ -56,7 +61,11 @@ pub fn carded(element: &Element) -> Cow<'_, Element> {
 /// How many of `element`'s levels, from the coarsest, are a flower's
 /// rachis's alone (fn-253): none on a leaf.
 pub(crate) fn rachis_levels(element: &Element) -> usize {
-    element.levels.iter().take_while(|l| rachis(element, l)).count()
+    element
+        .levels
+        .iter()
+        .take_while(|l| rachis(element, l))
+        .count()
 }
 
 /// Whether `level` draws stalk triangles alone: a flower's rachis's.
@@ -126,7 +135,11 @@ fn card(element: &Element) -> Option<Card> {
         .filter_map(lead)
         .max_by(|a, b| a.0.total_cmp(&b.0))?
         .1;
-    let side = if axis.cross(Vec3::Y).length_squared() > 1e-6 { Vec3::Y } else { Vec3::X };
+    let side = if axis.cross(Vec3::Y).length_squared() > 1e-6 {
+        Vec3::Y
+    } else {
+        Vec3::X
+    };
     let u = side.cross(axis).normalized();
     let v = axis.cross(u);
     let half = area.sqrt() * 0.5;
@@ -145,14 +158,25 @@ mod tests {
     fn floret() -> Element {
         let p = |x, y, z| Vec3::new(x, y, z);
         Element {
-            positions: vec![p(0.0, 0.0, 0.0), p(0.01, 0.0, 0.0), p(0.0, 0.01, 0.0),
-                p(-0.01, 0.0, 0.002), p(0.0, -0.01, 0.002)],
+            positions: vec![
+                p(0.0, 0.0, 0.0),
+                p(0.01, 0.0, 0.0),
+                p(0.0, 0.01, 0.0),
+                p(-0.01, 0.0, 0.002),
+                p(0.0, -0.01, 0.002),
+            ],
             indices: vec![0, 1, 2, 0, 2, 3, 0, 3, 4],
             coords: vec![0.0; 10],
             level_indices: vec![0, 1, 2, 0, 1, 2, 0, 2, 3, 0, 3, 4],
             levels: vec![
-                Level { indices: 0..3, deviation: 0.001 },
-                Level { indices: 3..12, deviation: 0.0 },
+                Level {
+                    indices: 0..3,
+                    deviation: 0.001,
+                },
+                Level {
+                    indices: 3..12,
+                    deviation: 0.0,
+                },
             ],
             ..Element::default()
         }
@@ -168,7 +192,8 @@ mod tests {
         assert_eq!(carded.coords.len(), 2 * carded.positions.len());
         let range = levels[0].indices.clone();
         let quad = &carded.level_indices[range.start as usize..range.start as usize + 6];
-        let [a, b, c, d] = [quad[0], quad[1], quad[2], quad[5]].map(|i| carded.positions[i as usize]);
+        let [a, b, c, d] =
+            [quad[0], quad[1], quad[2], quad[5]].map(|i| carded.positions[i as usize]);
         let card = (b - a).cross(c - a).length() * 0.5 + (c - a).cross(d - a).length() * 0.5;
         let petals: f64 = element
             .indices
@@ -197,9 +222,15 @@ mod tests {
         assert!(matches!(carded(&element), Cow::Borrowed(_)));
         let mut full = floret();
         full.levels = (0..crate::MAX_LEVELS)
-            .map(|i| Level { indices: 3..12, deviation: 1e-4 / (i + 1) as f64 })
+            .map(|i| Level {
+                indices: 3..12,
+                deviation: 1e-4 / (i + 1) as f64,
+            })
             .collect();
-        assert!(matches!(carded(&full), Cow::Borrowed(_)), "a seventeenth level");
+        assert!(
+            matches!(carded(&full), Cow::Borrowed(_)),
+            "a seventeenth level"
+        );
     }
 
     #[test]
@@ -232,19 +263,37 @@ mod tests {
     fn the_card_follows_the_rachis_levels_and_drops_the_pedicel() {
         let mut e = floret();
         let p = |x, y, z| Vec3::new(x, y, z) * 1e-6;
-        e.positions.extend([p(1.0, 0.0, 0.0), p(0.0, 1.0, 0.0), p(0.0, 0.0, 1.0)]);
+        e.positions
+            .extend([p(1.0, 0.0, 0.0), p(0.0, 1.0, 0.0), p(0.0, 0.0, 1.0)]);
         e.coords.extend([-1.0, 0.0, -1.0, 1.0, -1.0, 2.0]);
         e.indices.extend([5, 6, 7]);
         e.level_indices.extend([5, 6, 7]);
         e.levels[1].indices.end += 3;
-        e.positions.extend([p(2.0, 0.0, 0.0), p(0.0, 2.0, 0.0), p(0.0, 0.0, 2.0)]);
+        e.positions
+            .extend([p(2.0, 0.0, 0.0), p(0.0, 2.0, 0.0), p(0.0, 0.0, 2.0)]);
         e.coords.extend([-2.0, 0.0, -2.0, 1.0, -2.0, 2.0]);
         let at = e.level_indices.len() as u32;
         e.level_indices.extend([8, 9, 10, 8, 10, 9]);
-        e.levels.insert(0, Level { indices: at + 3..at + 6, deviation: 1e29 });
-        e.levels.insert(0, Level { indices: at..at + 3, deviation: 1e30 });
+        e.levels.insert(
+            0,
+            Level {
+                indices: at + 3..at + 6,
+                deviation: 1e29,
+            },
+        );
+        e.levels.insert(
+            0,
+            Level {
+                indices: at..at + 3,
+                deviation: 1e30,
+            },
+        );
         let carded = carded(&e);
-        assert_eq!(&carded.levels[..2], &e.levels[..2], "the rachis levels first");
+        assert_eq!(
+            &carded.levels[..2],
+            &e.levels[..2],
+            "the rachis levels first"
+        );
         let card = carded.levels[2].indices.clone();
         assert_eq!(card.len(), 6, "the quad alone");
         assert_eq!(&carded.levels[3..], &e.levels[2..]);

@@ -21,16 +21,16 @@ mod bounded;
 mod chain;
 mod clock;
 mod closed_form;
-mod cores;
 pub mod contract;
+mod cores;
 mod couple;
 mod dormant;
 mod error;
 mod fine;
 mod geometry;
-pub mod invariants;
 mod girth;
 mod grow;
+pub mod invariants;
 mod light;
 mod lineage;
 mod memo;
@@ -53,34 +53,41 @@ pub use birch::birch;
 pub use blend::blend;
 pub use bounded::{grow_bounded, Bounded, Expected};
 pub use chain::{passed, AGES};
-pub use schedule::most_units;
-pub use closed_form::{expected_axes, expected_counts, expected_grown, expected_kept, expected_length};
+pub use closed_form::{
+    expected_axes, expected_counts, expected_grown, expected_kept, expected_length,
+};
 pub use error::{Error, Result};
 pub use fine::{
     canonical, digest, grow_coarse, identities, lineage_order, ChainTables, Coarse, PaRow, Stand,
     UnitZone, Units,
 };
 pub use grow::couple::{grow_coupled, Split};
+pub use grow::cycle::{
+    admitted, grow_capture, grow_capture_grown, grow_capture_grown_at, grow_capture_hierarchy_at,
+    grow_capture_layout, grow_capture_layout_at, grow_capture_light_at, grow_capture_tables,
+    grow_capture_units, grow_capture_units_at, grow_census, grow_cycle, tree_digest, within_year,
+    Capture, Census, Cycle, Cycled, Paused, Retiring,
+};
+pub use grow::cycle::{
+    grow_capture_retired, grow_capture_settle_tables, grow_capture_settled,
+    grow_capture_settled_at, grow_cycle_is_the_reference, settle_sag_turn, SettleTo,
+};
 pub use grow::oracle::{grow_oracle, Oracled, Read};
 pub use grow::partition::{
     grow_partitioned, Grouping, Order as PartitionOrder, Partitioned, Run as PartitionRun, PHASES,
 };
 pub use grow::subtree::Measured;
-pub use grow::cycle::{
-    grow_capture, grow_capture_grown, grow_capture_grown_at, grow_capture_hierarchy_at, grow_capture_tables, grow_capture_layout, grow_capture_layout_at, grow_capture_light_at, grow_capture_units,
-    grow_capture_units_at, grow_census, grow_cycle, tree_digest, Capture, Census, Cycle, Cycled, Paused,
-    Retiring, admitted, within_year,
-};
-pub use grow::cycle::{grow_capture_settle_tables, grow_capture_settled, grow_capture_retired, grow_capture_settled_at, grow_cycle_is_the_reference, settle_sag_turn, SettleTo};
 pub use grow::{grow, sketch, Pass, Request, Stage};
 pub use light::{bud_light, field_reads, Light};
-pub use lineage::{
-    cluster, drawn, internode_factor, join_key, lineage_key, mix32, organ, organs, placement_key, word,
-};
 pub use lineage::keys as lineage_keys;
+pub use lineage::{
+    cluster, drawn, internode_factor, join_key, lineage_key, mix32, organ, organs, placement_key,
+    word,
+};
 pub use oak::oak;
 pub use palm::palm;
 pub use presence::{FLOOR, RATE, SPAN};
+pub use schedule::most_units;
 pub use species::scale::{scale, setting, settings, zone_settings, Scale, Setting, SETTINGS};
 pub use species::{
     Form, NodeLaw, PaState, Species, Zone, BARE, MAX_BUDS, MAX_LEAF_AREA, MEDIAL, SPARE, TOP, ZONES,

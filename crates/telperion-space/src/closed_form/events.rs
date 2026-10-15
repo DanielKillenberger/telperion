@@ -199,7 +199,13 @@ fn events_of(species: &Species, laterals: &[Vec<f64>], k: usize, steps: &[Step])
             });
         }
         let grown = (step.i, step.grown, step.size, step.start);
-        unit_events(&mut out, species, (k, laterals), (grown, step.laid), &step.sleeping);
+        unit_events(
+            &mut out,
+            species,
+            (k, laterals),
+            (grown, step.laid),
+            &step.sleeping,
+        );
         relay(&mut out, step.aborted);
         if let Some(end) = step.end {
             if let Some((at, pa, onward, weight)) = end.continuation {
@@ -248,7 +254,11 @@ fn unit_events(
     let (starts, _) = zones(&counts);
     let internode = state.internode * size;
     for (z, (zone, lateral)) in state.zones.iter().zip(laterals).enumerate() {
-        let mean = if laid < 1.0 { counts[z].mean() } else { zone.nodes.mean() };
+        let mean = if laid < 1.0 {
+            counts[z].mean()
+        } else {
+            zone.nodes.mean()
+        };
         let nodes = weight * mean;
         let start = start.then(scaled(starts[z], internode));
         let wood = counts[z].wood(start, internode).map(|w| weight * w);

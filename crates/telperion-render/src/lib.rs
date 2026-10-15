@@ -7,6 +7,8 @@
 mod buffer;
 mod camera;
 mod card;
+#[cfg(test)]
+mod compile_size;
 mod curve;
 mod device;
 mod encoder;
@@ -21,11 +23,9 @@ mod programs;
 mod redraw;
 mod scene;
 mod select;
-mod shaders;
-#[cfg(test)]
-mod compile_size;
 #[cfg(test)]
 mod shader_tests;
+mod shaders;
 mod shadow;
 mod shot;
 #[cfg(not(target_arch = "wasm32"))]

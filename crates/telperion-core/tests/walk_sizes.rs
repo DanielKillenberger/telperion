@@ -7,8 +7,8 @@
 use telperion_core::{blend, presets::Preset, Family};
 use telperion_space::{grow_cycle, Request};
 use Preset::{
-    DatePalm as Palm, EuropeanBeech as Beech, Laurelin, NorwaySpruce as Spruce,
-    OregonWhiteOak as Oak, Ordinary, SilverBirch as Birch,
+    DatePalm as Palm, EuropeanBeech as Beech, Laurelin, NorwaySpruce as Spruce, Ordinary,
+    OregonWhiteOak as Oak, SilverBirch as Birch,
 };
 
 /// The engine's phytomer budget, the build's own (`pipeline/space.rs`).
@@ -131,7 +131,12 @@ fn grown(frame: &Family) -> telperion_space::Result<[f64; 2]> {
     };
     let species = frame.space.species.as_ref().expect("an engine preset");
     let cycled = grow_cycle(species, request)?;
-    let kept: usize = cycled.structure.axes.iter().map(|a| a.phytomers.len()).sum();
+    let kept: usize = cycled
+        .structure
+        .axes
+        .iter()
+        .map(|a| a.phytomers.len())
+        .sum();
     Ok([kept as f64, cycled.grown as f64])
 }
 
@@ -155,10 +160,17 @@ fn the_teaser_frame_fits_and_the_named_exceptions_grow_no_further_out() {
             panic!("{:?} at {} {}: {err}", e.walk, e.age, e.t);
         });
         let then = [0, 1].map(|k| miss(e.measured[k], e.band[k]));
-        assert!(then.iter().any(|&m| m > 0.0), "{:?} meets its oracle", e.walk);
+        assert!(
+            then.iter().any(|&m| m > 0.0),
+            "{:?} meets its oracle",
+            e.walk
+        );
         for k in 0..2 {
             if miss(grown[k], e.band[k]) > then[k] {
-                worse.push(format!("{:?} at {} t {}: count {k} {}", e.walk, e.age, e.t, grown[k]));
+                worse.push(format!(
+                    "{:?} at {} t {}: count {k} {}",
+                    e.walk, e.age, e.t, grown[k]
+                ));
             }
         }
     }

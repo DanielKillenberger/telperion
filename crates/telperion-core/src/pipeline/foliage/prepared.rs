@@ -207,12 +207,8 @@ fn prepare_inner<C>(
         if phase_error > 0.00025 {
             return Ok(None);
         }
-        for (segment, (tangent, normal, binormal)) in station::station_frame_iter(
-            &points,
-            &chord,
-            tree.seed_side(run.nodes[0]),
-        )
-        .enumerate()
+        for (segment, (tangent, normal, binormal)) in
+            station::station_frame_iter(&points, &chord, tree.seed_side(run.nodes[0])).enumerate()
         {
             let (first, last) = run.segment_stations(segment, twig);
             if run.leaves_between(tree, (twig, &p), (first, last)) == 0 {
@@ -242,7 +238,8 @@ fn prepare_inner<C>(
             let mut tile_first = first;
             while tile_first < last {
                 let tile_count = (last - tile_first).min(256);
-                let kept = run.leaves_between(tree, (twig, &p), (tile_first, tile_first + tile_count));
+                let kept =
+                    run.leaves_between(tree, (twig, &p), (tile_first, tile_first + tile_count));
                 let before = seen;
                 seen += kept;
                 if kept == 0 {

@@ -111,14 +111,25 @@ impl Stationer {
         Self {
             pass: io::Pass::new(gpu, source(), &read, &entries),
             sorter: Sorter::new(gpu),
-            scan: io::Pass::new(gpu, SCAN.into(), &[false; 3], &["blocks", "spine", "spread"]),
+            scan: io::Pass::new(
+                gpu,
+                SCAN.into(),
+                &[false; 3],
+                &["blocks", "spine", "spread"],
+            ),
         }
     }
 
     /// An exclusive scan of the first `fields` words of `n` records
     /// `stride` words apart in `data`, its totals into `totals`
     /// (`scan.wgsl`).
-    fn scan(&self, gpu: &Gpu, e: &mut wgpu::CommandEncoder, (data, n, stride, fields): (&wgpu::Buffer, u32, u32, u32), totals: &wgpu::Buffer) -> Result<()> {
+    fn scan(
+        &self,
+        gpu: &Gpu,
+        e: &mut wgpu::CommandEncoder,
+        (data, n, stride, fields): (&wgpu::Buffer, u32, u32, u32),
+        totals: &wgpu::Buffer,
+    ) -> Result<()> {
         let blocks = n.div_ceil(256);
         let groups = n.div_ceil(64);
         let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
@@ -382,8 +393,21 @@ pub(super) fn station_rows(
 /// living and dead counts, lesser first.
 fn organ_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>) -> [u32; 12] {
     let word = telperion_space::word;
-    let skirt = if p.skirt_length > 0.0 { p.skirt_fronds } else { 0.0 };
-    let crown = |fronds: f64, skirt_fronds: f64| Crown::new(year, &CanopyParams { rosette_fronds: fronds, skirt_fronds, ..*p });
+    let skirt = if p.skirt_length > 0.0 {
+        p.skirt_fronds
+    } else {
+        0.0
+    };
+    let crown = |fronds: f64, skirt_fronds: f64| {
+        Crown::new(
+            year,
+            &CanopyParams {
+                rosette_fronds: fronds,
+                skirt_fronds,
+                ..*p
+            },
+        )
+    };
     let (f, k) = (p.rosette_fronds.floor(), skirt.floor());
     let newest = |fronds: f64| (crown(fronds, k).made().ceil() as i64 - 1) as i32 as u32;
     let slots = |fronds: f64, skirt: f64| crown(fronds, skirt).slots() as u32;
@@ -413,19 +437,51 @@ fn organ_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>) -> [u3
 /// (`Crown::segments`'s strap; the element reaching `blade` metres), none
 /// where it groups no leaflets. Every row zero where the canopy stands no
 /// rosette or bears no leaves.
-fn rosette_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>, blade: f64) -> [[f32; 4]; 7] {
+fn rosette_rows(
+    p: &CanopyParams,
+    year: Option<telperion_core::tree::Year>,
+    blade: f64,
+) -> [[f32; 4]; 7] {
     if p.rosette_fronds == 0.0 || p.size == 0.0 {
         return [[0.0; 4]; 7];
     }
     let crown = Crown::new(year, p).rows().map(|r| r.map(|v| v as f32));
-    let skirt = if p.skirt_length > 0.0 { p.skirt_fronds } else { 0.0 };
-    let leaflets = if p.leaflet_count > 1.0 && p.rachis_length > 0.0 { p.leaflet_count } else { 1.0 };
+    let skirt = if p.skirt_length > 0.0 {
+        p.skirt_fronds
+    } else {
+        0.0
+    };
+    let leaflets = if p.leaflet_count > 1.0 && p.rachis_length > 0.0 {
+        p.leaflet_count
+    } else {
+        1.0
+    };
     let radians = f64::to_radians;
     let rows = [
-        [p.rosette_fronds, skirt, radians(p.rosette_divergence), p.rosette_depth],
-        [radians(p.rosette_pitch), radians(p.rosette_pitch_spread), radians(p.skirt_pitch), p.skirt_length],
-        [leaflets, p.rachis_length, p.rachis_arch, radians(p.leaflet_pitch)],
-        [p.terminal_leaflet, p.acanthophylls, p.acanthophyll_length, radians(p.acanthophyll_pitch)],
+        [
+            p.rosette_fronds,
+            skirt,
+            radians(p.rosette_divergence),
+            p.rosette_depth,
+        ],
+        [
+            radians(p.rosette_pitch),
+            radians(p.rosette_pitch_spread),
+            radians(p.skirt_pitch),
+            p.skirt_length,
+        ],
+        [
+            leaflets,
+            p.rachis_length,
+            p.rachis_arch,
+            radians(p.leaflet_pitch),
+        ],
+        [
+            p.terminal_leaflet,
+            p.acanthophylls,
+            p.acanthophyll_length,
+            radians(p.acanthophyll_pitch),
+        ],
     ]
     .map(|r| r.map(|v| v as f32));
     let [a, b, c, d] = rows;

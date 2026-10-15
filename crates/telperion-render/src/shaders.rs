@@ -41,7 +41,10 @@ pub(crate) fn sky() -> String {
 /// then the organ's unit and its stalks (fn-253).
 pub(crate) fn foliage() -> String {
     let stalk = include_str!("shaders/stalk.wgsl");
-    lit(&format!("{LEAF}\n{UNIT}\n{stalk}\n{}", include_str!("shaders/foliage.wgsl")))
+    lit(&format!(
+        "{LEAF}\n{UNIT}\n{stalk}\n{}",
+        include_str!("shaders/foliage.wgsl")
+    ))
 }
 
 /// The wood's stages, with smooth bark's terms or without them.
