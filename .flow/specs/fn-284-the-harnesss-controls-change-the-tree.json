@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-284-the-harnesss-controls-change-the-tree",
+  "created_at": "2026-10-15T08:20:55.013293Z",
+  "depends_on_epics": [],
+  "id": "fn-284-the-harnesss-controls-change-the-tree",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-284-the-harnesss-controls-change-the-tree.md",
+  "status": "open",
+  "title": "The harness's controls change the tree, and read plainly",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-15T08:20:55.032234Z"
+}
