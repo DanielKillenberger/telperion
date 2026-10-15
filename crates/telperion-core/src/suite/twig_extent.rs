@@ -46,7 +46,10 @@ fn the_twig_layer_asks_the_crown_nothing_and_builds_one_tree() {
 #[test]
 fn an_apex_that_bears_a_rosette_grows_no_twig_and_keeps_its_girth() {
     let family = params::by_identity("date-palm").unwrap();
-    assert!(family.canopy.rosette_fronds > 0.0, "the palm stands no rosette");
+    assert!(
+        family.canopy.rosette_fronds > 0.0,
+        "the palm stands no rosette"
+    );
     let (skeleton, radii) = (&family.skeleton, family.radii);
     let crowned = branching::crowned(skeleton, radii, true).unwrap().tree;
     let twigged = branching::crowned(skeleton, radii, false).unwrap().tree;

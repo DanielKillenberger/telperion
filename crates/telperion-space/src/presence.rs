@@ -7,8 +7,8 @@
 //! the expectation is a smooth function of the settings, never of the wood
 //! that grew, a branch made anywhere moves no other draw's window.
 use crate::closed_form::expected_log_lengths;
-use crate::dormant::wakes_in;
 use crate::contract::presence::{q, real, times, ONE};
+use crate::dormant::wakes_in;
 use crate::species::{Species, Zone};
 use crate::structure::{Axis, Origin};
 use crate::transcendental::Transcendental;
@@ -51,7 +51,11 @@ impl Windows {
         // A wood of none stays none: its log less a finite one is -inf.
         let woods = expected
             .iter()
-            .map(|row| row.iter().map(|&log| crate::contract::exp(contract_log(log - whole))).collect())
+            .map(|row| {
+                row.iter()
+                    .map(|&log| crate::contract::exp(contract_log(log - whole)))
+                    .collect()
+            })
             .collect();
         Self {
             expected: Arc::new(expected),

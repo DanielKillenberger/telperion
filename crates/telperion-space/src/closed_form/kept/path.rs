@@ -207,7 +207,11 @@ impl Kept<'_> {
             // stands at, 1 + s (phi - 1) (fn-231).
             let (whole, s) = zone.whole_places();
             let psi = 1.0 + s * (phi - 1.0);
-            let f = if s > 0.0 { phi.powi(whole) * psi } else { phi.powi(whole) };
+            let f = if s > 0.0 {
+                phi.powi(whole) * psi
+            } else {
+                phi.powi(whole)
+            };
             let laid = (step.laid < 1.0).then(|| Count::laid_pmf(&axis.pmfs[z], step.laid));
             let pmf = laid.as_deref().unwrap_or(&axis.pmfs[z]);
             let (g, tilted, replaced) = tilts(pmf, f, zone);

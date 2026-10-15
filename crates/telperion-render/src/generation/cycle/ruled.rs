@@ -18,7 +18,17 @@ use super::grown::Kind;
 use super::grown_compare::ByLineage;
 
 /// The integer fields counted in ticks of a time a float decides.
-const TICKS: [&str; 9] = ["spent", "below", "outlived", "aged", "sleep", "grown_ticks", "unit share", "unit size", "live spent"];
+const TICKS: [&str; 9] = [
+    "spent",
+    "below",
+    "outlived",
+    "aged",
+    "sleep",
+    "grown_ticks",
+    "unit share",
+    "unit size",
+    "live spent",
+];
 /// The float fields that are a direction's components.
 const DIRECTIONS: [&str; 6] = ["heading", "side", "running", "across", "curve", "normal"];
 
@@ -36,10 +46,15 @@ fn ticks_hold(rows: usize, of: usize, most: u32) -> bool {
 pub(super) fn findings(by: &ByLineage) -> Vec<String> {
     let mut out = Vec::new();
     if by.unmatched != (0, 0) {
-        out.push(format!("axes unmatched: device {}, cpu {}", by.unmatched.0, by.unmatched.1));
+        out.push(format!(
+            "axes unmatched: device {}, cpu {}",
+            by.unmatched.0, by.unmatched.1
+        ));
     }
     for m in by.fields.iter().filter(|m| m.differ > 0) {
-        let ticks = TICKS.iter().any(|t| m.name == *t || m.name.ends_with(&format!(" {t}")));
+        let ticks = TICKS
+            .iter()
+            .any(|t| m.name == *t || m.name.ends_with(&format!(" {t}")));
         let ok = match m.kind {
             None => false,
             Some(Kind::U32 | Kind::U64) if ticks => ticks_hold(m.differ, m.rows, m.apart as u32),
@@ -55,7 +70,10 @@ pub(super) fn findings(by: &ByLineage) -> Vec<String> {
             }
         };
         if !ok {
-            out.push(format!("{}: {} of {} rows apart, by {:.3e} of scale {:.3e}", m.name, m.differ, m.rows, m.apart, m.scale));
+            out.push(format!(
+                "{}: {} of {} rows apart, by {:.3e} of scale {:.3e}",
+                m.name, m.differ, m.rows, m.apart, m.scale
+            ));
         }
     }
     out

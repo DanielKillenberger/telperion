@@ -18,8 +18,8 @@ use crate::species::{Form, Species};
 use crate::structure::{Axis, Join, Origin, Phytomer, Structure};
 use crate::upward::Tree;
 pub(crate) use disused::{
-    above, attachments, attachments_given, attachments_past, bases, disused,
-    grown_mean, leaf_partials, Frozen, Stand,
+    above, attachments, attachments_given, attachments_past, bases, disused, grown_mean,
+    leaf_partials, Frozen, Stand,
 };
 
 /// A branch's pipe that stays in its bearer as it is shed: the bearer's
@@ -283,7 +283,15 @@ pub(crate) fn thicken_given(
                 for &(c, _, t, at, below) in relays.iter().filter(|r| r.1 == k) {
                     let weigh = |s: f32| weighed(&form, radius(s, e), established);
                     let (below, above) = (weigh(section + below), weigh(section - at));
-                    joins.push((c, Join { node: k, t, below, above }));
+                    joins.push((
+                        c,
+                        Join {
+                            node: k,
+                            t,
+                            below,
+                            above,
+                        },
+                    ));
                 }
             }
             (radius(section + at_base, e), joins)
@@ -300,7 +308,10 @@ pub(crate) fn thicken_given(
 /// nodes.
 pub(crate) fn attached(axes: &[Axis], species: &Species, i: usize) -> Option<(usize, f32)> {
     let x = crate::geometry::attach(axes, species, i)?;
-    let last = axes[axes[i].origin.parent()?].phytomers.len().checked_sub(1)?;
+    let last = axes[axes[i].origin.parent()?]
+        .phytomers
+        .len()
+        .checked_sub(1)?;
     Some(crate::geometry::split(x, last))
 }
 

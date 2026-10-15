@@ -33,33 +33,84 @@ impl Inside {
     /// The sweep, from the top level down.
     pub(super) fn plan(&self, b: &mut Builder) {
         let ret = |k| (PassId::Retire, k);
-        swept(b, (ret(rd::INSIDE), ret(rd::FOLDS[1])), (&self.levels, &self.folds), false);
+        swept(
+            b,
+            (ret(rd::INSIDE), ret(rd::FOLDS[1])),
+            (&self.levels, &self.folds),
+            false,
+        );
     }
 }
 
 impl Build {
     /// Retirement over the hierarchy's lists `parity`; its inside sweep,
     /// recorded apart.
-    pub(super) fn plan_retire(&self, b: &mut Builder, kit: &Kit, t: &Tables, bound: HierBounds, parity: usize) -> Inside {
+    pub(super) fn plan_retire(
+        &self,
+        b: &mut Builder,
+        kit: &Kit,
+        t: &Tables,
+        bound: HierBounds,
+        parity: usize,
+    ) -> Inside {
         let (s, h, r) = (self.state.caps, &self.hier, &self.retire);
         b.point();
         let words = |level: u32| {
             [
-                0, s.axes, 0, level, MAXX * 64, MAXX, 0, 0, 0, 0, 0, 0, s.axes, s.units, s.phyts, s.sleep_at(), s.sleepers,
-                s.next_at(), s.woken_at(), s.woken, r.head() as u32, r.log_cap, 0, 0,
+                0,
+                s.axes,
+                0,
+                level,
+                MAXX * 64,
+                MAXX,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                s.axes,
+                s.units,
+                s.phyts,
+                s.sleep_at(),
+                s.sleepers,
+                s.next_at(),
+                s.woken_at(),
+                s.woken,
+                r.head() as u32,
+                r.log_cap,
+                0,
+                0,
             ]
         };
         // A fade is read at the age grown, the cycle before this one
         // (fn-270 R3), never at the tree's horizon.
         let grown = E::At(c::CYCLE).sub(E::C(1));
-        let dynamic = [(0, E::At(c::LAID0)), (2, E::At(c::CYCLE)), (6, E::At(c::LEVELS)), (8, E::At(c::LIVE0)), (9, E::At(c::SLEEPERS0)), (10, E::At(c::WOKEN0)), (11, grown)];
+        let dynamic = [
+            (0, E::At(c::LAID0)),
+            (2, E::At(c::CYCLE)),
+            (6, E::At(c::LEVELS)),
+            (8, E::At(c::LIVE0)),
+            (9, E::At(c::SLEEPERS0)),
+            (10, E::At(c::WOKEN0)),
+            (11, grown),
+        ];
         let st = &self.state;
         let bound_slot = |b: &mut Builder, level: u32| {
             let slot = b.slot(&words(level));
             for (w, e) in &dynamic {
                 b.set(slot, *w, e.clone());
             }
-            let rest = [&*st.axes, &st.units, &st.grown, &st.lists, &h.lists[parity], &h.shape, &r.ret, &r.verdicts];
+            let rest = [
+                &*st.axes,
+                &st.units,
+                &st.grown,
+                &st.lists,
+                &h.lists[parity],
+                &h.shape,
+                &r.ret,
+                &r.verdicts,
+            ];
             b.bind(&kit.retire.pass, slot, &rest)
         };
         let base = bound_slot(b, 0);
@@ -80,18 +131,40 @@ impl Build {
             levels.push((bind, size, Cond::Level(l)));
         }
         // The folded levels' workgroups: the top's, and the deepest's.
-        let folds = [(E::C(0), E::At(rec::TOP)), (E::At(rec::TAIL), E::At(c::LEVELS))].map(|(lo, hi)| {
+        let folds = [
+            (E::C(0), E::At(rec::TOP)),
+            (E::At(rec::TAIL), E::At(c::LEVELS)),
+        ]
+        .map(|(lo, hi)| {
             let slot = b.slot(&words(0));
             for (w, e) in dynamic.iter().cloned().chain([(22, lo), (23, hi)]) {
                 b.set(slot, w, e);
             }
-            let rest = [&*st.axes, &st.units, &st.grown, &st.lists, &h.lists[parity], &h.shape, &r.ret, &r.verdicts];
+            let rest = [
+                &*st.axes,
+                &st.units,
+                &st.grown,
+                &st.lists,
+                &h.lists[parity],
+                &h.shape,
+                &r.ret,
+                &r.verdicts,
+            ];
             b.bind(&kit.retire.pass, slot, &rest)
         });
-        swept(b, (ret(rd::LIVING), ret(rd::FOLDS[0])), (&levels, &folds), true);
+        swept(
+            b,
+            (ret(rd::LIVING), ret(rd::FOLDS[0])),
+            (&levels, &folds),
+            true,
+        );
         if t.counted {
             let (at, bytes) = (4 * rd::L_REUSE, 4 * rd::REUSE_WORDS);
-            b.step(Step::Clear { buffer: (*r.verdicts).clone(), at, bytes: Some(bytes) });
+            b.step(Step::Clear {
+                buffer: (*r.verdicts).clone(),
+                at,
+                bytes: Some(bytes),
+            });
             b.dispatch(ret(rd::REUSED), base.clone(), laid);
             b.tally(&r.verdicts, at, c::REUSE, bytes);
         }

@@ -17,7 +17,10 @@ pub fn read(text: &str) -> Result<Family, String> {
         .into_iter()
         .partition(|l| space::holds(l.path));
     f.space = space::read(engine.iter().map(|l| (l.path, Cell::of(l)))).map_err(|why| {
-        let at = engine.iter().find(|l| why.starts_with(l.path)).map_or(0, |l| l.at);
+        let at = engine
+            .iter()
+            .find(|l| why.starts_with(l.path))
+            .map_or(0, |l| l.at);
         format!("{at}: {why}")
     })?;
     for line in rows {

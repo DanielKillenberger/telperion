@@ -196,12 +196,18 @@ fn every_row_names_the_stages_that_read_it() {
         if info.deprecated || info.growth == Growth::Only {
             assert!(info.reads.is_empty(), "{}", e.path());
         }
-        let scaffold = ["/skeleton/", "/radii/"].iter().any(|g| e.path().starts_with(g));
+        let scaffold = ["/skeleton/", "/radii/"]
+            .iter()
+            .any(|g| e.path().starts_with(g));
         if scaffold && info.reads.contains(&Stage::Grow) {
             assert_eq!(e.path(), "/skeleton/seed", "the engine reads no such row");
         }
     }
-    for path in ["/shellDepth", "/skeleton/envelope/height", "/skeleton/habit/codominance"] {
+    for path in [
+        "/shellDepth",
+        "/skeleton/envelope/height",
+        "/skeleton/habit/codominance",
+    ] {
         assert!(entry(path).unwrap().info().reads.is_empty(), "{path}");
     }
 }

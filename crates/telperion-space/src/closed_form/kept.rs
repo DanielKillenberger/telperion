@@ -309,7 +309,11 @@ impl<'a> Kept<'a> {
                 // Its count in expectation over the fade, as the executors
                 // fade it by degree (fn-231); its quantities at their powers.
                 for q in 0..WIDTH {
-                    let f = if q == COUNT { fade } else { fade.powf_fixed(p[q]) };
+                    let f = if q == COUNT {
+                        fade
+                    } else {
+                        fade.powf_fixed(p[q])
+                    };
                     sum[q] += f * (table.b[i][q] - b0[q]);
                 }
                 k_sum += table.a[i] - a0;

@@ -19,7 +19,11 @@ fn the_sun_is_drawn_again_only_when_what_it_sees_changed() {
     let frame = |renderer: &mut Renderer, view: View, camera| {
         renderer.set_view(view);
         let still = render(renderer, camera, 96, 96).expect("the frame was drawn");
-        (renderer.shadow_cached(), still.rgba, renderer.shadow_depths().unwrap())
+        (
+            renderer.shadow_cached(),
+            still.rgba,
+            renderer.shadow_depths().unwrap(),
+        )
     };
 
     let (cached, whole, map) = frame(&mut renderer, View::Whole, &hero);
@@ -29,17 +33,26 @@ fn the_sun_is_drawn_again_only_when_what_it_sees_changed() {
     for _ in 0..3 {
         frame(&mut renderer, View::Whole, &hero);
     }
-    assert!(frame(&mut renderer, View::Whole, &moved).0, "a camera move redrew the sun");
+    assert!(
+        frame(&mut renderer, View::Whole, &moved).0,
+        "a camera move redrew the sun"
+    );
     let (cached, _, bare_map) = frame(&mut renderer, View::Bare, &hero);
     assert!(!cached, "the bare view reused the crown's casters");
     assert_ne!(bare_map, map, "the bare view's map kept the crown");
     assert!(frame(&mut renderer, View::Bare, &moved).0);
     let (cached, again, again_map) = frame(&mut renderer, View::Whole, &hero);
-    assert!(!cached, "back to the whole view, the crown's casters were not redrawn");
+    assert!(
+        !cached,
+        "back to the whole view, the crown's casters were not redrawn"
+    );
     assert_eq!(again_map, map, "whole, bare, whole changed the map");
     let (cached, reused, _) = frame(&mut renderer, View::Whole, &hero);
     assert!(cached);
-    assert_eq!(reused, whole, "a frame on the reused map is not the drawn one");
+    assert_eq!(
+        reused, whole,
+        "a frame on the reused map is not the drawn one"
+    );
     assert_eq!(again, whole);
 
     let stride = SceneRow {
@@ -55,15 +68,24 @@ fn the_sun_is_drawn_again_only_when_what_it_sees_changed() {
         ..stride
     };
     renderer.set_scene(sun);
-    assert!(!frame(&mut renderer, View::Whole, &hero).0, "a moved sun reused the map");
+    assert!(
+        !frame(&mut renderer, View::Whole, &hero).0,
+        "a moved sun reused the map"
+    );
     let ground = SceneRow {
         ground_red: 0.5,
         ..sun
     };
     renderer.set_scene(ground);
-    assert!(frame(&mut renderer, View::Whole, &hero).0, "the ground's colour redrew the sun");
+    assert!(
+        frame(&mut renderer, View::Whole, &hero).0,
+        "the ground's colour redrew the sun"
+    );
     renderer.submit(&tree).unwrap();
-    assert!(!frame(&mut renderer, View::Whole, &hero).0, "a new tree reused the map");
+    assert!(
+        !frame(&mut renderer, View::Whole, &hero).0,
+        "a new tree reused the map"
+    );
 }
 
 /// fn-258: the sun's wood shares its buffers with the camera's and its

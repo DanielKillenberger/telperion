@@ -256,7 +256,11 @@ mod tests {
             assert!(scale(name).is_some(), "{name} has no scale");
         }
         for setting in SETTINGS {
-            assert!(names.contains(&setting.name), "{} is no setting", setting.name);
+            assert!(
+                names.contains(&setting.name),
+                "{} is no setting",
+                setting.name
+            );
         }
     }
 
@@ -281,7 +285,10 @@ mod tests {
         for k in 0..=20 {
             let t = f64::from(k) / 20.0;
             let walked = crate::blend(&a, &b, t).unwrap();
-            assert!((walked.states[14].cluster_leaves - 3.0 * t).abs() < 1e-12, "{t}");
+            assert!(
+                (walked.states[14].cluster_leaves - 3.0 * t).abs() < 1e-12,
+                "{t}"
+            );
         }
     }
 }

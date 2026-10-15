@@ -169,7 +169,14 @@ fn start(structure: &Structure, species: &Species, laid: &Laid, i: usize) -> Sta
         Origin::Continuation { parent } | Origin::Relay { parent, .. } => laid.trunk[parent],
         Origin::Lateral { .. } => false,
     };
-    (framed, curve, inherited, take, (bent, laid.reaches[i]), trunk)
+    (
+        framed,
+        curve,
+        inherited,
+        take,
+        (bent, laid.reaches[i]),
+        trunk,
+    )
 }
 
 /// The axes by depth from the seed, each depth in index order.
@@ -243,7 +250,14 @@ fn lay_all(
             let state = &species.states[axis.pa];
             let load = levers.map(|t| t[i].as_slice());
             let base = framed.0.z;
-            match lay(axis, (framed, curve, inherited, take), state, bend, load, trunk) {
+            match lay(
+                axis,
+                (framed, curve, inherited, take),
+                state,
+                bend,
+                load,
+                trunk,
+            ) {
                 Ok(layer) => *end = Some(layer),
                 Err(stop) => {
                     *done[k].lock().unwrap() = Some((i, (base, stop)));

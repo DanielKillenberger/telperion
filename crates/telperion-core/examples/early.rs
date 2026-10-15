@@ -28,20 +28,37 @@ fn main() {
     let (species, light, default) = preset(&args[1]);
     let age = args[2].parse().unwrap_or(default as u32);
     let seed = args[3].parse().expect("a seed");
-    let r = Request { age, seed, budget: 20_000_000, light };
+    let r = Request {
+        age,
+        seed,
+        budget: 20_000_000,
+        light,
+    };
     println!("{} age {age} seed {seed}", args[1]);
     match args[0].as_str() {
         "three" => three(&species, r, &args[4]),
-        "live" => live(&grow_census(&species, r).expect("grown").census.expect("a census")),
+        "live" => live(
+            &grow_census(&species, r)
+                .expect("grown")
+                .census
+                .expect("a census"),
+        ),
         "hint" => hint(&species, r.age),
         _ => panic!("three or live"),
     }
 }
 
 fn preset(name: &str) -> (Species, Light, f64) {
-    let (p, _) = PRESETS.iter().find(|p| p.1 == name).expect("a shipped preset");
+    let (p, _) = PRESETS
+        .iter()
+        .find(|p| p.1 == name)
+        .expect("a shipped preset");
     let family = p.parameters();
-    (family.space.species.expect("an engine species"), family.space.light, family.age)
+    (
+        family.space.species.expect("an engine species"),
+        family.space.light,
+        family.age,
+    )
 }
 
 fn three(species: &Species, r: Request, which: &str) {
@@ -52,7 +69,10 @@ fn three(species: &Species, r: Request, which: &str) {
             tree("cycle", &c.structure, c.grown, c.seconds);
             census(&c.census.expect("a census"));
         }
-        Err(e) => println!("  cycle: {e} after {:.1} s", started.elapsed().as_secs_f64()),
+        Err(e) => println!(
+            "  cycle: {e} after {:.1} s",
+            started.elapsed().as_secs_f64()
+        ),
     }
 }
 
@@ -85,7 +105,11 @@ fn quantiles(v: &mut [u32]) -> [u32; 3] {
 fn census(c: &Census) {
     let mut phases: Vec<_> = c.phases.iter().collect();
     phases.sort_by(|a, b| b.1.total_cmp(a.1));
-    let line: Vec<String> = phases.iter().take(40).map(|(k, v)| format!("{k} {v:.2}")).collect();
+    let line: Vec<String> = phases
+        .iter()
+        .take(40)
+        .map(|(k, v)| format!("{k} {v:.2}"))
+        .collect();
     println!("  phases (s): {}", line.join(", "));
     let busy = &c.cycles[c.busy as usize - 1];
     let last = c.cycles.last().expect("a cycle");
@@ -123,11 +147,23 @@ fn live(c: &Census) {
     println!("  cycle grown live share axes");
     for k in &c.cycles {
         let share = k.phytomers as f64 / k.grown.max(1) as f64;
-        println!("  {} {} {} {share:.3} {}", k.cycle, k.grown, k.phytomers, k.axes);
+        println!(
+            "  {} {} {} {share:.3} {}",
+            k.cycle, k.grown, k.phytomers, k.axes
+        );
     }
-    let peak = c.cycles.iter().max_by_key(|k| k.phytomers).expect("a cycle");
+    let peak = c
+        .cycles
+        .iter()
+        .max_by_key(|k| k.phytomers)
+        .expect("a cycle");
     let share = |k: &telperion_space::Cycle| k.phytomers as f64 / k.grown.max(1) as f64;
-    let most = c.cycles.iter().filter(|k| k.cycle > 10).map(share).fold(0.0, f64::max);
+    let most = c
+        .cycles
+        .iter()
+        .filter(|k| k.cycle > 10)
+        .map(share)
+        .fold(0.0, f64::max);
     println!(
         "  live set: largest {} in cycle {} ({:.3} of {} grown); largest share past cycle 10 {most:.3}; retired {} subtrees",
         peak.phytomers, peak.cycle, share(peak), peak.grown, c.retired
@@ -144,5 +180,9 @@ fn hint(species: &Species, age: u32) {
         (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
     }
     let kept = telperion_space::expected_kept(&unshaded, age).expect("a closed form");
-    println!("  hint: {:.0} expected kept, unshaded, in {:.3} s", kept.unwrap_or(f64::NAN), t.elapsed().as_secs_f64());
+    println!(
+        "  hint: {:.0} expected kept, unshaded, in {:.3} s",
+        kept.unwrap_or(f64::NAN),
+        t.elapsed().as_secs_f64()
+    );
 }

@@ -15,7 +15,8 @@ impl Grower<'_> {
         let mut w = self.working.take().unwrap_or_default();
         let laid = w.links.len();
         w.extend(&self.axes, n);
-        let sleeping = (self.asleep.iter().skip(cycle as usize)).flat_map(|a| a.iter().map(|s| s.parent));
+        let sleeping =
+            (self.asleep.iter().skip(cycle as usize)).flat_map(|a| a.iter().map(|s| s.parent));
         w.open_from(self.live.iter().map(|a| a.axis).chain(sleeping), laid);
         self.working = Some(w);
     }
@@ -32,7 +33,8 @@ impl Grower<'_> {
             lit[a.axis] = true;
         }
         let pencils = &sketch.pencils;
-        let upkeep = |i: usize| species.states[self.axes[i].pa].upkeep as f32 * pencils[i].wood as f32;
+        let upkeep =
+            |i: usize| species.states[self.axes[i].pa].upkeep as f32 * pencils[i].wood as f32;
         let own = |i: usize| {
             let p = &pencils[i];
             let light = match lit[i] {
@@ -49,10 +51,16 @@ impl Grower<'_> {
             let link = ws.links[i];
             let parent = link.parent.map(|p| ws.at[p]);
             if !(parent.is_some() && link.node != TIP && ws.living[i]) {
-                return Lateral { parent, ..Lateral::default() };
+                return Lateral {
+                    parent,
+                    ..Lateral::default()
+                };
             }
             let state = &species.states[ws.pa[i]];
-            let d = Key(axes[i].lineage).child(SHED).child(u64::from(cycle)).draw();
+            let d = Key(axes[i].lineage)
+                .child(SHED)
+                .child(u64::from(cycle))
+                .draw();
             let window = rules.windows.window((ws.pa[i], cycle, None), 1.0);
             let bud = Bud {
                 q: ws.light[i],
@@ -64,7 +72,11 @@ impl Grower<'_> {
                 window,
                 keep: 0.0,
             };
-            Lateral { parent, decides: true, bud }
+            Lateral {
+                parent,
+                decides: true,
+                bud,
+            }
         });
         let walked = walk(&laterals, None);
         for (&i, wk) in w.list.iter().zip(&walked) {

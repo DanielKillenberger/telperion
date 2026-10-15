@@ -1,9 +1,7 @@
 //! Stable blade coordinates carry colour and a front-face cuticle at every level.
 mod common;
 use telperion_core::pipeline::executor;
-use telperion_core::{
-    foliage::ElementParams, material::MaterialParams, math::Vec3, mesh,
-};
+use telperion_core::{foliage::ElementParams, material::MaterialParams, math::Vec3, mesh};
 use telperion_render::{render, Camera, Level, Renderer, SceneRow, View, STILL_FORMAT};
 
 #[test]

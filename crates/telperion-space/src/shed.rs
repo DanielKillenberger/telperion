@@ -249,6 +249,11 @@ pub(crate) fn faded(d: f64, birth: u32, living: Living, age: u32) -> f64 {
 /// The living of the subtree `axes` stands for, axis 0 its root, each
 /// axis `given` names standing for a subtree whose living it gives: what
 /// the whole tree's fades read of it (fn-255's retirement).
-pub(crate) fn subtree_living(axes: &[Axis], species: &Species, age: u32, given: Given<Living>) -> Living {
+pub(crate) fn subtree_living(
+    axes: &[Axis],
+    species: &Species,
+    age: u32,
+    given: Given<Living>,
+) -> Living {
     fades(axes, species, age, (given, &|_| false), Some(0)).1
 }

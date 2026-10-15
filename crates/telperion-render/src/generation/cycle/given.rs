@@ -25,7 +25,18 @@ use std::rc::Rc;
 /// moves every deeper level's first block on, and a step that reorders
 /// the levels moves it back (Telperion 82 seed 42).
 fn grows(w: usize) -> bool {
-    let counts = [c::AXES, c::UNITS, c::PHYTS, c::LAID, c::BUILT, c::GROWN, c::AXES0, c::UNITS0, c::PHYTS0, c::LAID0];
+    let counts = [
+        c::AXES,
+        c::UNITS,
+        c::PHYTS,
+        c::LAID,
+        c::BUILT,
+        c::GROWN,
+        c::AXES0,
+        c::UNITS0,
+        c::PHYTS0,
+        c::LAID0,
+    ];
     counts.contains(&w) || [c::BLOCKS0, c::LEVELS0, c::LEVELS].contains(&w)
 }
 
@@ -75,7 +86,12 @@ impl Span {
     /// was read), each word no further than its `ceiling`, a count that
     /// grows at least what the census after a compaction since the read
     /// holds (`cut`), where there was one; the cycle and its limits exact.
-    pub(super) fn new(read: &[u32], prev: Option<&[u32]>, (ceiling, cut): (&[u32], Option<&[u32]>), (cycle, limits): (u32, &Limits)) -> Self {
+    pub(super) fn new(
+        read: &[u32],
+        prev: Option<&[u32]>,
+        (ceiling, cut): (&[u32], Option<&[u32]>),
+        (cycle, limits): (u32, &Limits),
+    ) -> Self {
         let (mut lo, mut hi) = (vec![0; c::WORDS], vec![0; c::WORDS]);
         // Read only the seed: the first cycles' counts, a light's lattice
         // above all, owe nothing to it.
@@ -93,11 +109,19 @@ impl Span {
             let rate = (f64::from(now) / f64::from(before.max(1))).clamp(1.0, 4.0);
             let grown = (f64::from(most) * (rate * rate - 1.0)).min(f64::from(u32::MAX)) as u32;
             let past = if grows(w) { 64 } else { 64 + most / 8 };
-            let reach = step.saturating_mul(3).max(grown).saturating_add(past).saturating_mul(WIDTH);
+            let reach = step
+                .saturating_mul(3)
+                .max(grown)
+                .saturating_add(past)
+                .saturating_mul(WIDTH);
             // A table's count at least `FLOOR` within its rows: a young
             // tree's counts outgrow any projection (the lattice's nodes at
             // cycle 8, five times in two cycles), and cost little below it.
-            let floor = if ceiling[w] == u32::MAX { least } else { least.max(FLOOR) };
+            let floor = if ceiling[w] == u32::MAX {
+                least
+            } else {
+                least.max(FLOOR)
+            };
             hi[w] = most.saturating_add(reach).max(floor).min(ceiling[w]);
             // After a compaction, a table's counts start from what it kept:
             // its count at the end of the compacted cycle.
@@ -106,7 +130,11 @@ impl Span {
                 (Some(cut), None) => cut[w],
                 (None, _) => read[w],
             };
-            lo[w] = if grows(w) { kept.min(read[w]).min(hi[w]) } else { 0 };
+            lo[w] = if grows(w) {
+                kept.min(read[w]).min(hi[w])
+            } else {
+                0
+            };
         }
         let nodes = c::GRID + 6;
         hi[nodes] = hi[nodes].max(boxed(read, prev)).min(ceiling[nodes]);
@@ -116,7 +144,15 @@ impl Span {
         // a projection of its own, which a burst passed (the beech at 26,
         // seed 1; a walk frame's cycle 5; the oak's new axes at 9, seed 1,
         // fn-286: 224, 270, 372 then 591 a cycle).
-        for (k, (end, start)) in [(c::AXES, c::AXES0), (c::PHYTS, c::PHYTS0), (c::UNITS, c::UNITS0), (c::SLEEPERS, c::SLEEPERS0)].into_iter().enumerate() {
+        for (k, (end, start)) in [
+            (c::AXES, c::AXES0),
+            (c::PHYTS, c::PHYTS0),
+            (c::UNITS, c::UNITS0),
+            (c::SLEEPERS, c::SLEEPERS0),
+        ]
+        .into_iter()
+        .enumerate()
+        {
             let made = hi[end].saturating_sub(lo[start]);
             for w in [c::MADE + T_UNITS + k, c::MADE + T_WAKE + k] {
                 (lo[w], hi[w]) = (0, made);
@@ -137,12 +173,24 @@ impl Span {
 
 /// The bounded sizes the cycle's recorded steps take, each with whether
 /// it sizes a dispatch (its workgroups) or a clear (its rows).
-fn recorded<'a>(steps: &'a [&[Gated]], limits: &'a Limits) -> impl Iterator<Item = (u32, bool)> + 'a {
-    steps.iter().flat_map(|s| s.iter()).filter_map(move |g| match g.step {
-        Step::Dispatch { size: Size::Bounded(k), .. } if g.gate.iter().all(|c| limits.allows(c)) => Some((k, true)),
-        Step::Zeroed { size: Size::Bounded(k), .. } if g.gate.iter().all(|c| limits.allows(c)) => Some((k, false)),
-        _ => None,
-    })
+fn recorded<'a>(
+    steps: &'a [&[Gated]],
+    limits: &'a Limits,
+) -> impl Iterator<Item = (u32, bool)> + 'a {
+    steps
+        .iter()
+        .flat_map(|s| s.iter())
+        .filter_map(move |g| match g.step {
+            Step::Dispatch {
+                size: Size::Bounded(k),
+                ..
+            } if g.gate.iter().all(|c| limits.allows(c)) => Some((k, true)),
+            Step::Zeroed {
+                size: Size::Bounded(k),
+                ..
+            } if g.gate.iter().all(|c| limits.allows(c)) => Some((k, false)),
+            _ => None,
+        })
 }
 
 /// Each bounded size's workgroups this cycle: the most its expression
@@ -172,8 +220,13 @@ pub(super) struct Pending {
 
 impl Pending {
     pub(super) fn new(plan: &Plan, steps: &[&[Gated]], (limits, given): (&Limits, &[u32])) -> Self {
-        let dispatched = recorded(steps, limits).map(|(k, d)| (k, given[k as usize], d)).collect();
-        Self { sized: plan.sized.clone(), dispatched }
+        let dispatched = recorded(steps, limits)
+            .map(|(k, d)| (k, given[k as usize], d))
+            .collect();
+        Self {
+            sized: plan.sized.clone(),
+            dispatched,
+        }
     }
 
     /// Each dispatch given fewer workgroups than `census` asks: its size's
@@ -181,7 +234,13 @@ impl Pending {
     pub(super) fn short(&self, census: &[u32]) -> Vec<String> {
         (self.dispatched.iter())
             .filter(|&&(k, given, _)| self.sized[k as usize].eval(census) > given)
-            .map(|&(k, given, _)| format!("{:?} given {given} needed {}", self.sized[k as usize], self.sized[k as usize].eval(census)))
+            .map(|&(k, given, _)| {
+                format!(
+                    "{:?} given {given} needed {}",
+                    self.sized[k as usize],
+                    self.sized[k as usize].eval(census)
+                )
+            })
             .collect()
     }
 
@@ -204,13 +263,24 @@ mod tests {
     /// whose level starts fall every few cycles).
     #[test]
     fn a_levels_width_is_bounded_where_its_first_block_falls() {
-        let (mut prev, mut read, mut now) = (vec![0; c::WORDS], vec![0; c::WORDS], vec![0; c::WORDS]);
+        let (mut prev, mut read, mut now) =
+            (vec![0; c::WORDS], vec![0; c::WORDS], vec![0; c::WORDS]);
         (prev[c::LVL], prev[c::LVL + 1]) = (50, 200);
         (read[c::LVL], read[c::LVL + 1]) = (100, 200);
         (now[c::LVL], now[c::LVL + 1]) = (10, 250);
         let width = E::At(c::LVL + 1).sub(E::At(c::LVL));
-        let span = Span::new(&read, Some(&prev), (&vec![u32::MAX; c::WORDS], None), (3, &Limits::full(&Bounds::default())));
-        assert!(span.most(&width) >= width.eval(&now), "{} under {}", span.most(&width), width.eval(&now));
+        let span = Span::new(
+            &read,
+            Some(&prev),
+            (&vec![u32::MAX; c::WORDS], None),
+            (3, &Limits::full(&Bounds::default())),
+        );
+        assert!(
+            span.most(&width) >= width.eval(&now),
+            "{} under {}",
+            span.most(&width),
+            width.eval(&now)
+        );
     }
 
     /// fn-276: the beech at 26, seed 1, made more phytomers in a cycle
@@ -225,11 +295,23 @@ mod tests {
         (read[c::PHYTS0], read[c::PHYTS], read[at(T_UNITS + 1)]) = (105_000, 110_000, 5_000);
         let mut ceiling = vec![u32::MAX; c::WORDS];
         (ceiling[c::PHYTS], ceiling[c::PHYTS0]) = (200_000, 200_000);
-        let made = E::At(at(T_UNITS + 1)).add(E::At(at(T_WAKE + 1))).div(E::C(64));
-        let span = Span::new(&read, Some(&prev), (&ceiling, None), (3, &Limits::full(&Bounds::default())));
+        let made = E::At(at(T_UNITS + 1))
+            .add(E::At(at(T_WAKE + 1)))
+            .div(E::C(64));
+        let span = Span::new(
+            &read,
+            Some(&prev),
+            (&ceiling, None),
+            (3, &Limits::full(&Bounds::default())),
+        );
         let mut now = read.clone();
         (now[at(T_UNITS + 1)], now[at(T_WAKE + 1)]) = (8_000, 600);
-        assert!(span.most(&made) >= made.eval(&now), "{} under {}", span.most(&made), made.eval(&now));
+        assert!(
+            span.most(&made) >= made.eval(&now),
+            "{} under {}",
+            span.most(&made),
+            made.eval(&now)
+        );
     }
 
     /// fn-286: the oak at 9, seed 1, with its sourced sapling segment,
@@ -245,9 +327,19 @@ mod tests {
         let mut ceiling = vec![u32::MAX; c::WORDS];
         (ceiling[c::AXES], ceiling[c::AXES0]) = (4096, 4096);
         let made = E::At(at(T_UNITS)).add(E::At(at(T_WAKE))).div(E::C(64));
-        let span = Span::new(&read, Some(&prev), (&ceiling, None), (9, &Limits::full(&Bounds::default())));
+        let span = Span::new(
+            &read,
+            Some(&prev),
+            (&ceiling, None),
+            (9, &Limits::full(&Bounds::default())),
+        );
         let mut now = read.clone();
         now[at(T_UNITS)] = 591;
-        assert!(span.most(&made) >= made.eval(&now), "{} under {}", span.most(&made), made.eval(&now));
+        assert!(
+            span.most(&made) >= made.eval(&now),
+            "{} under {}",
+            span.most(&made),
+            made.eval(&now)
+        );
     }
 }

@@ -25,8 +25,8 @@ pub(crate) use place::{place, place_bearers};
 pub(crate) use q::amount;
 use q::{add, atan2, between, cross, dot, q3, rotated, scaled, sincos, sub, unit, v3, Q3, UP};
 pub(crate) use single::{bud_frame, lay_one};
-pub(crate) use stand::{split, Position};
 use stand::stand;
+pub(crate) use stand::{split, Position};
 
 /// The sine of the lean below which a parent has too little of an upper
 /// side for epitony to turn its buds by all of it: about 11.5 degrees.
@@ -222,8 +222,7 @@ fn framed(
             // The axis's running direction and side at its tip, before its
             // pull towards the vertical, which the axis carried on runs on
             // with; its phyllotaxis runs on as a phase (`phase`).
-            let heading =
-                unit(add(scaled(along, 1.0 - b), scaled(heading, b))).unwrap_or(heading);
+            let heading = unit(add(scaled(along, 1.0 - b), scaled(heading, b))).unwrap_or(heading);
             let side = add(scaled(across, 1.0 - b), scaled(side, b));
             let side = unit(sub(side, scaled(heading, dot(side, heading)))).unwrap_or(across);
             // Its base where it joins the parent, on the parent's wood.

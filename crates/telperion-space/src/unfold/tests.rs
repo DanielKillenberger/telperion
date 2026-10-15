@@ -10,7 +10,15 @@ use crate::light::Light;
 const FINEST: f64 = 2e-4;
 
 fn request(age: u32) -> Request {
-    Request { age, seed: 7, budget: 20_000_000, light: Light { extinction: 0.5, sky: 0.5 } }
+    Request {
+        age,
+        seed: 7,
+        budget: 20_000_000,
+        light: Light {
+            extinction: 0.5,
+            sky: 0.5,
+        },
+    }
 }
 
 /// Every organ's drawing by its axis's identity and its place: its tip,
@@ -21,7 +29,10 @@ fn organs(p: &Presented) -> HashMap<(u64, usize), [f64; 6]> {
     for (i, (a, id)) in p.structure.axes.iter().zip(ids).enumerate() {
         for (k, q) in a.phytomers.iter().enumerate() {
             let leaf = p.leaves[i].get(k).map_or(1.0, |&l| f64::from(l));
-            m.insert((id, k), [q.tip.x, q.tip.y, q.tip.z, q.radius, q.scale, leaf]);
+            m.insert(
+                (id, k),
+                [q.tip.x, q.tip.y, q.tip.z, q.radius, q.scale, leaf],
+            );
         }
     }
     m
@@ -40,7 +51,11 @@ fn most(a: &HashMap<(u64, usize), [f64; 6]>, b: &HashMap<(u64, usize), [f64; 6]>
     let mut most: f64 = 0.0;
     for (key, x) in a {
         let d = match b.get(key) {
-            Some(y) => x.iter().zip(y).map(|(p, q)| (p - q).abs()).fold(0.0, f64::max),
+            Some(y) => x
+                .iter()
+                .zip(y)
+                .map(|(p, q)| (p - q).abs())
+                .fold(0.0, f64::max),
             None => seen(x),
         };
         most = most.max(d);
@@ -68,7 +83,9 @@ fn the_course_runs_from_nothing_to_whole_and_back() {
 fn a_tree_drawn_within_its_year_joins_both_years_with_no_pop() {
     let species = crate::oak();
     let r = request(24);
-    let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap().presenting();
+    let mut p = Paused::begin(&species, r, Retiring::AtAge, false)
+        .unwrap()
+        .presenting();
     p.grow_to(24).unwrap();
     let before = p.digest();
     let now = p.settle().unwrap();
@@ -83,7 +100,11 @@ fn a_tree_drawn_within_its_year_joins_both_years_with_no_pop() {
     let mut new = 0;
     for (key, x) in organs(&start) {
         match year.get(&key) {
-            Some(y) => assert_eq!(x.map(f64::to_bits)[..5], y.map(f64::to_bits)[..5], "{key:?}"),
+            Some(y) => assert_eq!(
+                x.map(f64::to_bits)[..5],
+                y.map(f64::to_bits)[..5],
+                "{key:?}"
+            ),
             None => {
                 assert_eq!((x[4], x[5]), (0.0, 0.0), "a new organ starts from nothing");
                 new += 1;
@@ -93,7 +114,9 @@ fn a_tree_drawn_within_its_year_joins_both_years_with_no_pop() {
     assert!(new > 0 && organs(&start).len() > year.len());
     // An axis that stays holds every phytomer it held.
     let held = organs(&Presented::whole(now.clone()));
-    assert!(year.keys().all(|key| held.contains_key(key) || !held.contains_key(&(key.0, 0))));
+    assert!(year
+        .keys()
+        .all(|key| held.contains_key(key) || !held.contains_key(&(key.0, 0))));
 
     // At its end it is today's tree, which `settle_at` draws, the grower
     // left as it was.
@@ -108,14 +131,26 @@ fn a_tree_drawn_within_its_year_joins_both_years_with_no_pop() {
     for &f in &ladder {
         let at = organs(&draw(f));
         let near = |d: f64| if f + d < 1.0 { f + d } else { f - d };
-        let steps: Vec<f64> = [4e-4, 2e-4, 1e-4, 5e-5].iter().map(|&d| most(&at, &organs(&draw(near(d))))).collect();
+        let steps: Vec<f64> = [4e-4, 2e-4, 1e-4, 5e-5]
+            .iter()
+            .map(|&d| most(&at, &organs(&draw(near(d)))))
+            .collect();
         for w in steps.windows(2) {
             assert!(w[1] <= 0.6 * w[0] + 1e-9, "at {f}: {steps:?}");
         }
     }
-    assert!(most(&organs(&draw(1e-6)), &year.iter().map(|(k, v)| (*k, *v)).collect()) < 1e-3);
+    assert!(
+        most(
+            &organs(&draw(1e-6)),
+            &year.iter().map(|(k, v)| (*k, *v)).collect()
+        ) < 1e-3
+    );
     assert!(most(&organs(&draw(1.0 - 1e-6)), &whole) < 1e-3);
-    assert_eq!(p.digest(), before, "a draw within the year moves the grower");
+    assert_eq!(
+        p.digest(),
+        before,
+        "a draw within the year moves the grower"
+    );
     let drawn = p.settle_at(23.5).unwrap();
     assert_eq!(drawn, draw(0.5));
 }
@@ -127,7 +162,9 @@ fn a_tree_drawn_within_its_year_joins_both_years_with_no_pop() {
 #[test]
 fn a_gone_twig_at_the_thinnest_drawn_fades_as_everything_gone() {
     let species = crate::oak();
-    let mut p = Paused::begin(&species, request(24), Retiring::AtAge, false).unwrap().presenting();
+    let mut p = Paused::begin(&species, request(24), Retiring::AtAge, false)
+        .unwrap()
+        .presenting();
     p.grow_to(24).unwrap();
     let now = p.settle().unwrap();
     let mut last = p.previous().expect("the year before").clone();
@@ -145,7 +182,11 @@ fn a_gone_twig_at_the_thinnest_drawn_fades_as_everything_gone() {
         .find(|&i| drawn_ids[i] == ids[twig])
         .expect("the twig drawn, fading");
     assert_eq!(drawn.leaves[at][0], (1.0 - f) as f32, "its leaf");
-    assert_eq!(drawn.structure.axes[at].phytomers[0].radius, r * (1.0 - f), "its wood");
+    assert_eq!(
+        drawn.structure.axes[at].phytomers[0].radius,
+        r * (1.0 - f),
+        "its wood"
+    );
 }
 
 /// R5c: an organ of both years holds last year's drawing until budburst
@@ -154,23 +195,44 @@ fn a_gone_twig_at_the_thinnest_drawn_fades_as_everything_gone() {
 #[test]
 fn old_organs_move_only_while_the_shoots_grow() {
     let species = crate::oak();
-    let mut p = Paused::begin(&species, request(12), Retiring::AtAge, false).unwrap().presenting();
+    let mut p = Paused::begin(&species, request(12), Retiring::AtAge, false)
+        .unwrap()
+        .presenting();
     p.grow_to(12).unwrap();
     let now = p.settle().unwrap();
     let last = p.previous().expect("the year before").clone();
     let today = organs(&Presented::whole(now.clone()));
-    let both: Vec<_> = organs(&Presented::whole(last.clone())).into_keys().filter(|k| today.contains_key(k)).collect();
+    let both: Vec<_> = organs(&Presented::whole(last.clone()))
+        .into_keys()
+        .filter(|k| today.contains_key(k))
+        .collect();
     let draw = |f: f64| organs(&present(now.clone(), &last, &species, f));
     let held = |a: &HashMap<(u64, usize), [f64; 6]>, b: &HashMap<(u64, usize), [f64; 6]>| {
-        let still = both.iter().filter(|k| a.contains_key(k) && b.contains_key(k));
+        let still = both
+            .iter()
+            .filter(|k| a.contains_key(k) && b.contains_key(k));
         still.filter(|k| a[k][..5] != b[k][..5]).count()
     };
     let seasons = species.states.iter().map(Season::of);
     let burst = seasons.clone().map(|s| s.budburst).fold(YEAR, f64::min) / YEAR;
-    let grown = seasons.map(|s| s.budburst + s.elongation).fold(0.0, f64::max) / YEAR;
-    assert_eq!(held(&draw(0.0), &draw(burst * 0.99)), 0, "the crown moved before budburst");
-    assert_eq!(held(&draw(grown + 1e-3), &draw(1.0 - 1e-6)), 0, "the crown moved after the shoots");
-    assert!(held(&draw(0.0), &draw(1.0 - 1e-6)) > 0, "the crown never moved at all");
+    let grown = seasons
+        .map(|s| s.budburst + s.elongation)
+        .fold(0.0, f64::max)
+        / YEAR;
+    assert_eq!(
+        held(&draw(0.0), &draw(burst * 0.99)),
+        0,
+        "the crown moved before budburst"
+    );
+    assert_eq!(
+        held(&draw(grown + 1e-3), &draw(1.0 - 1e-6)),
+        0,
+        "the crown moved after the shoots"
+    );
+    assert!(
+        held(&draw(0.0), &draw(1.0 - 1e-6)) > 0,
+        "the crown never moved at all"
+    );
 }
 
 /// R5c (host): a colouring and fall that would run past the next budburst
@@ -178,17 +240,32 @@ fn old_organs_move_only_while_the_shoots_grow() {
 #[test]
 fn a_fall_past_budburst_is_compressed_to_end_at_it() {
     let mut state = crate::oak().states[0].clone();
-    (state.budburst, state.senescence, state.colouring, state.leaf_fall) = (128.0, 264.0, 16.0, 45.0);
+    (
+        state.budburst,
+        state.senescence,
+        state.colouring,
+        state.leaf_fall,
+    ) = (128.0, 264.0, 16.0, 45.0);
     (state.elongation, state.expansion) = (14.0, 35.0);
     let fits = Season::of(&state);
-    assert_eq!((fits.colouring, fits.fall), (state.colouring, state.leaf_fall));
+    assert_eq!(
+        (fits.colouring, fits.fall),
+        (state.colouring, state.leaf_fall)
+    );
     let mut ends = Vec::new();
     for grow in [150.0, 200.0, 250.0, 300.0] {
         (state.elongation, state.expansion) = (grow / 2.0, grow / 2.0);
         let s = Season::of(&state);
         let end = s.senescence + s.colouring + s.fall;
-        assert!(end <= s.budburst + 1e-9, "{grow}: {end} past {}", s.budburst);
-        assert!((s.colouring * state.leaf_fall - s.fall * state.colouring).abs() < 1e-9, "{grow}: one share of both");
+        assert!(
+            end <= s.budburst + 1e-9,
+            "{grow}: {end} past {}",
+            s.budburst
+        );
+        assert!(
+            (s.colouring * state.leaf_fall - s.fall * state.colouring).abs() < 1e-9,
+            "{grow}: one share of both"
+        );
         ends.push(end);
     }
     assert!(ends.windows(2).all(|w| w[1] <= w[0]), "{ends:?}");

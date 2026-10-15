@@ -38,9 +38,14 @@ fn main() {
         let constant = id.replace('-', "_").to_ascii_uppercase();
         let (engine, rows): (Vec<_>, Vec<_>) = rows.into_iter().partition(|r| space::holds(r.path));
         judge(name, &engine);
-        out += &format!("pub const {constant}_SPACE: &[(&str, crate::presets::space::Cell)] = &[\n");
+        out +=
+            &format!("pub const {constant}_SPACE: &[(&str, crate::presets::space::Cell)] = &[\n");
         for row in &engine {
-            out += &format!("    ({:?}, crate::presets::space::Cell::{:?}),\n", row.path, space::Cell::of(row));
+            out += &format!(
+                "    ({:?}, crate::presets::space::Cell::{:?}),\n",
+                row.path,
+                space::Cell::of(row)
+            );
         }
         out += "];\n";
         spaces += &format!("        Preset::{} => {constant}_SPACE,\n", variant(id));
@@ -71,7 +76,10 @@ fn main() {
 fn judge(name: &str, rows: &[grammar::Line]) {
     let cells = rows.iter().map(|r| (r.path, space::Cell::of(r)));
     let read = space::read(cells).unwrap_or_else(|why| {
-        let at = rows.iter().find(|r| why.starts_with(r.path)).map_or(0, |r| r.at);
+        let at = rows
+            .iter()
+            .find(|r| why.starts_with(r.path))
+            .map_or(0, |r| r.at);
         panic!("presets/{name}:{at}: {why}")
     });
     if let Some(species) = &read.species {

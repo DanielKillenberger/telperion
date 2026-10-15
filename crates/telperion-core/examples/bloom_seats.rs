@@ -46,7 +46,11 @@ fn laid(family: &Family) -> Result<Laid, String> {
     };
     let s = telperion_space::grow(species, request).map_err(|e| e.to_string())?;
     let axis = (s.axes.iter().enumerate())
-        .flat_map(|(a, x)| x.phytomers.iter().map(move |p| (p.key(), (a, x.pa, p.cycle))))
+        .flat_map(|(a, x)| {
+            x.phytomers
+                .iter()
+                .map(move |p| (p.key(), (a, x.pa, p.cycle)))
+        })
         .collect();
     Ok(Laid { axis, age: s.age })
 }
@@ -125,7 +129,9 @@ fn measure(family: &Family) -> Result<(), String> {
         flowering_seats.push(i);
         row.flowering += 1;
         *row.per_axis.entry(axis).or_default() += 1;
-        *row.wood_age.entry(laid.age.saturating_sub(cycle)).or_default() += 1;
+        *row.wood_age
+            .entry(laid.age.saturating_sub(cycle))
+            .or_default() += 1;
         row.radius.push(2e3 * tree.nodes[i].radius);
         row.cluster_tip += usize::from(tips.contains(&b.node));
         // The grown wood from the seat to its axis's last drawn node.

@@ -289,7 +289,6 @@ pub(crate) struct Digest {
 }
 
 impl Digest {
-
     /// Phase `k`'s hash: the counts' for growth, the sum's otherwise.
     pub fn finish(self, k: usize) -> u64 {
         match k {

@@ -24,7 +24,11 @@ const BW: u64 = 16;
 const UPRIGHT: f64 = 15.0;
 
 pub(super) fn source() -> String {
-    format!("{}\n{}\n{BOOTS}", super::super::cycle::KEYS, super::super::cycle::ORGANS)
+    format!(
+        "{}\n{}\n{BOOTS}",
+        super::super::cycle::KEYS,
+        super::super::cycle::ORGANS
+    )
 }
 
 pub(super) struct Hanger {
@@ -35,7 +39,9 @@ impl Hanger {
     pub(super) fn new(gpu: &Gpu) -> Self {
         let read = [true, false, false, false, false, false];
         let entries = ["kids", "apices", "place", "lattice", "hang"];
-        Self { pass: io::Pass::new(gpu, source(), &read, &entries) }
+        Self {
+            pass: io::Pass::new(gpu, source(), &read, &entries),
+        }
     }
 }
 
@@ -51,7 +57,8 @@ pub(super) struct Hung {
 }
 
 fn storage(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
-    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
+    let usage =
+        wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
     io::buffer(gpu, label, words.max(4) * 4, usage, &[])
 }
 
@@ -94,17 +101,37 @@ fn cfg(gpu: &Gpu, n: u32, seed: &Drawn, out_base: u32, p: &CanopyParams) -> Resu
 impl Hanger {
     /// The bases `p` hangs on `dressed`'s stems, appended as a wave of
     /// their own; none where `p` is none or no stem is clothed.
-    pub(super) async fn hang(&self, gpu: &Gpu, dressed: &mut Dressed, p: Option<&CanopyParams>) -> Result<Hung> {
+    pub(super) async fn hang(
+        &self,
+        gpu: &Gpu,
+        dressed: &mut Dressed,
+        p: Option<&CanopyParams>,
+    ) -> Result<Hung> {
         let (Some(p), Some(seed)) = (p, dressed.waves.get(1)) else {
             return Ok(Hung::default());
         };
         let carried = storage(gpu, "boots carried", u64::from(seed.phyts))?;
         let stems = storage(gpu, "boots stems", 2 + u64::from(seed.phyts) * AW)?;
-        let none = [storage(gpu, "boots none", 4)?, storage(gpu, "boots none", 4)?, storage(gpu, "boots none", 4)?];
+        let none = [
+            storage(gpu, "boots none", 4)?,
+            storage(gpu, "boots none", 4)?,
+            storage(gpu, "boots none", 4)?,
+        ];
         let mut e = gpu.encoder(&Default::default());
         for (entry, n) in [(KIDS, seed.phyts), (APICES, 1)] {
             let c = cfg(gpu, n, seed, 0, p)?;
-            let bind = self.pass.bind(gpu, &[&c, &seed.buffer, &carried, &stems, &none[0], &none[1], &none[2]]);
+            let bind = self.pass.bind(
+                gpu,
+                &[
+                    &c,
+                    &seed.buffer,
+                    &carried,
+                    &stems,
+                    &none[0],
+                    &none[1],
+                    &none[2],
+                ],
+            );
             self.pass.run(&mut e, &bind, entry, n.div_ceil(64).max(1));
         }
         gpu.submit([e.finish()]);
@@ -121,7 +148,11 @@ impl Hanger {
         let wave = storage(gpu, "drawn boots", words)?;
         let packed = p.leaf_base_width > 0.0;
         let cells = match packed {
-            true => Some(storage(gpu, "boot cells", u64::from(bases) * SECTION_FLOATS as u64)?),
+            true => Some(storage(
+                gpu,
+                "boot cells",
+                u64::from(bases) * SECTION_FLOATS as u64,
+            )?),
             false => None,
         };
         let out_base = dressed.ids;
@@ -129,12 +160,25 @@ impl Hanger {
         for (entry, n) in [(PLACE, bases), (LATTICE, clothed), (HANG, bases)] {
             let c = cfg(gpu, n, seed, out_base, p)?;
             let at = cells.as_ref().unwrap_or(&none[2]);
-            let bind = self.pass.bind(gpu, &[&c, &seed.buffer, &carried, &stems, &table, &wave, at]);
+            let bind = self.pass.bind(
+                gpu,
+                &[&c, &seed.buffer, &carried, &stems, &table, &wave, at],
+            );
             self.pass.run(&mut e, &bind, entry, n.div_ceil(64));
         }
         gpu.submit([e.finish()]);
-        dressed.waves.push(Drawn { buffer: wave, axes: 1, phyts: 2 * bases, base: out_base, root: false });
+        dressed.waves.push(Drawn {
+            buffer: wave,
+            axes: 1,
+            phyts: 2 * bases,
+            base: out_base,
+            root: false,
+        });
         dressed.ids += 2 * bases;
-        Ok(Hung { bases, stems: Some(stems), cells })
+        Ok(Hung {
+            bases,
+            stems: Some(stems),
+            cells,
+        })
     }
 }

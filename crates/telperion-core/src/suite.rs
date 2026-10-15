@@ -18,6 +18,8 @@ mod crown_reference;
 mod crown_retention;
 #[path = "suite/drop.rs"]
 mod drop;
+#[path = "suite/establish.rs"]
+mod establish;
 #[path = "suite/field.rs"]
 mod field;
 #[path = "suite/field_fronds.rs"]
@@ -64,8 +66,6 @@ mod pendulous;
 mod retention;
 #[path = "suite/rosette.rs"]
 mod rosette;
-#[path = "suite/establish.rs"]
-mod establish;
 #[path = "suite/sag.rs"]
 mod sag;
 #[path = "suite/skirt.rs"]

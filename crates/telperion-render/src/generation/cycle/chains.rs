@@ -10,7 +10,13 @@ use super::settle_run::View;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
-const ENTRIES: [&str; 5] = ["heads_main", "counts_main", "flag_main", "list_main", "walk_main"];
+const ENTRIES: [&str; 5] = [
+    "heads_main",
+    "counts_main",
+    "flag_main",
+    "list_main",
+    "walk_main",
+];
 const HEADS: usize = 0;
 const COUNTS: usize = 1;
 const FLAG: usize = 2;
@@ -32,7 +38,9 @@ pub(super) struct Kernels {
 impl Kernels {
     pub(super) fn new(gpu: &Gpu) -> Self {
         let source = include_str!("chains.wgsl").to_string();
-        Self { pass: io::Pass::new(gpu, source, &[true, false, false], &ENTRIES) }
+        Self {
+            pass: io::Pass::new(gpu, source, &[true, false, false], &ENTRIES),
+        }
     }
 }
 
@@ -67,13 +75,22 @@ struct Rec<'a> {
 }
 
 impl Rec<'_> {
-    fn run(&mut self, e: &mut wgpu::CommandEncoder, entry: usize, words: &[(usize, u32)], items: u32) -> Result<()> {
+    fn run(
+        &mut self,
+        e: &mut wgpu::CommandEncoder,
+        entry: usize,
+        words: &[(usize, u32)],
+        items: u32,
+    ) -> Result<()> {
         let mut cfg = self.cfg;
         for &(k, v) in words {
             cfg[k] = v;
         }
         let buf = uniform(self.gpu, &cfg)?;
-        let bind = self.k.pass.bind(self.gpu, &[&buf, self.nt, self.plan, self.atom]);
+        let bind = self
+            .k
+            .pass
+            .bind(self.gpu, &[&buf, self.nt, self.plan, self.atom]);
         self.k.pass.run(e, &bind, entry, items.div_ceil(64).max(1));
         self.held.push(buf);
         Ok(())
@@ -87,29 +104,55 @@ const WAVE: usize = 6;
 const FIRST: usize = 7;
 
 /// The chains of the laid tree `s`, planned with `scan`.
-pub(super) async fn plan(gpu: &Gpu, (k, scan): (&Kernels, &io::Pass), s: View<'_>) -> Result<Chains> {
+pub(super) async fn plan(
+    gpu: &Gpu,
+    (k, scan): (&Kernels, &io::Pass),
+    s: View<'_>,
+) -> Result<Chains> {
     let kept = s.table.kept;
     let stride = (kept + 1).next_multiple_of(64);
     let plan = zeroed(gpu, "chain plan", u64::from(COLS) * u64::from(stride))?;
     let atom = zeroed(gpu, "chain counts", COLUMNS + 4 * u64::from(stride))?;
     let cfg = [widest(gpu).0, 0, 0, kept, s.table.sk, stride, 0, 0];
-    let mut r = Rec { gpu, k, nt: s.nt, plan: &plan, atom: &atom, cfg, held: Vec::new() };
+    let mut r = Rec {
+        gpu,
+        k,
+        nt: s.nt,
+        plan: &plan,
+        atom: &atom,
+        cfg,
+        held: Vec::new(),
+    };
     let mut e = gpu.encoder(&Default::default());
     for w in s.starts.windows(2).filter(|w| w[1] > w[0]) {
-        r.run(&mut e, HEADS, &[(BASE, w[0]), (COUNT, w[1] - w[0])], w[1] - w[0])?;
+        r.run(
+            &mut e,
+            HEADS,
+            &[(BASE, w[0]), (COUNT, w[1] - w[0])],
+            w[1] - w[0],
+        )?;
     }
     r.run(&mut e, COUNTS, &[], kept)?;
     gpu.submit([e.finish()]);
     let head = words(gpu, &atom, 0, COLUMNS).await?;
     if head[0] != 0 {
-        return Err(io::error(format!("a tree of more than {WAVES} lateral orders")));
+        return Err(io::error(format!(
+            "a tree of more than {WAVES} lateral orders"
+        )));
     }
     let deepest = head[1] as usize;
     let mut waves = Vec::with_capacity(deepest + 1);
     let mut at = Wave::default();
     for w in 0..=deepest {
         let (chains, axes, phyts) = (head[WAVES + w], head[2 * WAVES + w], head[3 * WAVES + w]);
-        let wave = Wave { first: at.first + at.chains, chains, axes_at: at.axes_at + at.axes, axes, phyts_at: at.phyts_at + at.phyts, phyts };
+        let wave = Wave {
+            first: at.first + at.chains,
+            chains,
+            axes_at: at.axes_at + at.axes,
+            axes,
+            phyts_at: at.phyts_at + at.phyts,
+            phyts,
+        };
         waves.push(wave);
         at = wave;
     }
@@ -134,5 +177,9 @@ pub(super) async fn plan(gpu: &Gpu, (k, scan): (&Kernels, &io::Pass), s: View<'_
     }
     r.run(&mut e, WALK, &[(COUNT, chains)], chains)?;
     gpu.submit([e.finish()]);
-    Ok(Chains { plan, stride, waves })
+    Ok(Chains {
+        plan,
+        stride,
+        waves,
+    })
 }

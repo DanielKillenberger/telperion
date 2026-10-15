@@ -36,7 +36,10 @@ pub(super) fn buffer(
         Ok(buffer) => Owned::reserved(gpu, buffer, label),
         Err(refused) => {
             gpu.ledger.unreserve(size, label);
-            return Err(error(format!("the device refused the build's {label} of {} MiB: {refused}", size >> 20)));
+            return Err(error(format!(
+                "the device refused the build's {label} of {} MiB: {refused}",
+                size >> 20
+            )));
         }
     };
     if !initial.is_empty() {
@@ -49,7 +52,10 @@ pub(super) fn buffer(
 /// cannot hold it (the heap past its share, `device::HEAP_SHARE`) refuses
 /// it here, before any pass binds it; a browser reports it at the build's
 /// scopes.
-fn made(gpu: &Gpu, descriptor: &wgpu::BufferDescriptor<'_>) -> std::result::Result<wgpu::Buffer, String> {
+fn made(
+    gpu: &Gpu,
+    descriptor: &wgpu::BufferDescriptor<'_>,
+) -> std::result::Result<wgpu::Buffer, String> {
     #[cfg(not(target_arch = "wasm32"))]
     {
         let [validation, memory] = scope(gpu);
@@ -71,7 +77,11 @@ fn made(gpu: &Gpu, descriptor: &wgpu::BufferDescriptor<'_>) -> std::result::Resu
 /// thread's own, so `b` runs under scopes of its own, and what they catch
 /// is kept for `programs::ready` to report, as a refused program is.
 #[cfg(not(target_arch = "wasm32"))]
-pub(crate) fn pair<A: Send, B: Send>(gpu: &Gpu, a: impl FnOnce() -> A + Send, b: impl FnOnce() -> B + Send) -> (A, B) {
+pub(crate) fn pair<A: Send, B: Send>(
+    gpu: &Gpu,
+    a: impl FnOnce() -> A + Send,
+    b: impl FnOnce() -> B + Send,
+) -> (A, B) {
     let scoped = || {
         let [validation, memory] = scope(gpu);
         let made = b();
@@ -223,7 +233,12 @@ impl Pass {
 
     /// `entry` dispatched inside `pass`, a compute pass it shares with
     /// the dispatches beside it (unstamped): `groups` workgroups.
-    pub fn encode(&self, pass: &mut wgpu::ComputePass<'_>, (bind, entry): (&wgpu::BindGroup, usize), groups: u32) {
+    pub fn encode(
+        &self,
+        pass: &mut wgpu::ComputePass<'_>,
+        (bind, entry): (&wgpu::BindGroup, usize),
+        groups: u32,
+    ) {
         #[cfg(test)]
         crate::trace::dispatch(&self.entries[entry], groups);
         pass.set_pipeline(self.pipelines[entry].get());
@@ -234,7 +249,11 @@ impl Pass {
     /// Each of `dispatches` (a bind group, an entry, its workgroups) in
     /// order, in one compute pass; each in a stamped pass of its own while
     /// a profile is on.
-    pub fn run_all(&self, encoder: &mut wgpu::CommandEncoder, dispatches: &[(wgpu::BindGroup, usize, u32)]) {
+    pub fn run_all(
+        &self,
+        encoder: &mut wgpu::CommandEncoder,
+        dispatches: &[(wgpu::BindGroup, usize, u32)],
+    ) {
         #[cfg(test)]
         if super::profile::on() {
             for (bind, entry, groups) in dispatches {
@@ -245,7 +264,10 @@ impl Pass {
         if dispatches.is_empty() {
             return;
         }
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor { label: Some("experimental generation"), timestamp_writes: None });
+        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+            label: Some("experimental generation"),
+            timestamp_writes: None,
+        });
         for (bind, entry, groups) in dispatches {
             self.encode(&mut pass, (bind, *entry), *groups);
         }

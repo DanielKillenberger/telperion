@@ -37,12 +37,17 @@ pub(super) fn leaflets(p: &CanopyParams) -> usize {
     }
 }
 
-
 /// The leaflets the frond keyed `key` carries: its own count of them
 /// (`Crown::leaflets`) drawn on the apex's whole rows, so one drawn at no
 /// size still stands them (fn-270 R5b, fn-275 R2b).
 pub(super) fn frond_leaflets(p: &CanopyParams, count: f64, key: u32) -> usize {
-    leaflets(&placement(&CanopyParams { leaflet_count: count, ..*p }, key))
+    leaflets(&placement(
+        &CanopyParams {
+            leaflet_count: count,
+            ..*p
+        },
+        key,
+    ))
 }
 
 /// The key a frond's placement draws its leaflets and spines under.

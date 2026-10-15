@@ -3,8 +3,8 @@
 use super::shoot::Shoot;
 use super::stop::Stop;
 use super::{stop_stake, Apex};
-use crate::error::Result;
 use crate::contract::{self, presence};
+use crate::error::Result;
 use crate::lineage::{Key, END, ENDED, FAILED, RELAY, VIABILITY};
 use crate::presence::Unit;
 use crate::schedule::Carried;
@@ -70,7 +70,11 @@ impl Shoot<'_, '_> {
         let light = self.light(apex.axis);
         let viability = match self.rules.one {
             // The table's f32, shaded as the device shades it.
-            true => f64::from(contract::decide::shaded(state.viability as f32, state.shade_hazard as f32, light as f32)),
+            true => f64::from(contract::decide::shaded(
+                state.viability as f32,
+                state.shade_hazard as f32,
+                light as f32,
+            )),
             false if state.shade_hazard > 0.0 && light < 1.0 => state
                 .viability
                 .powf_fixed(light.powf_fixed(-state.shade_hazard)),

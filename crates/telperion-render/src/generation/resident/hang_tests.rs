@@ -123,9 +123,15 @@ fn every_pipeline_within_2_5_s_cold() {
         "a pipeline was still being made at 120 s, after {last:?}"
     );
     assert!(status.success(), "the build failed: {status}");
-    let slow: Vec<_> = made.iter().filter(|(_, ms)| *ms > COLD_PIPELINE_MS).collect();
+    let slow: Vec<_> = made
+        .iter()
+        .filter(|(_, ms)| *ms > COLD_PIPELINE_MS)
+        .collect();
     assert!(!made.is_empty(), "no pipeline was made");
-    assert!(slow.is_empty(), "made cold over {COLD_PIPELINE_MS} ms: {slow:?}");
+    assert!(
+        slow.is_empty(),
+        "made cold over {COLD_PIPELINE_MS} ms: {slow:?}"
+    );
     let built: f64 = (stdout.iter())
         .find_map(|l| {
             l.split_once("built in ")?

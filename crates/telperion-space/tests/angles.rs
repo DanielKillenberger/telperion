@@ -42,7 +42,10 @@ fn same_topology(name: &str, a: &Structure, b: &Structure) {
         assert_eq!(x.phytomers.len(), y.phytomers.len(), "{name}");
         for (p, q) in x.phytomers.iter().zip(&y.phytomers) {
             let apart = (p.scale - q.scale).abs() / p.scale.abs().max(1e-12);
-            assert!(apart <= telperion_space::agree::PATHS.scale, "{name}: scale {apart}");
+            assert!(
+                apart <= telperion_space::agree::PATHS.scale,
+                "{name}: scale {apart}"
+            );
             assert_eq!(p.key(), q.key(), "{name}");
         }
     }

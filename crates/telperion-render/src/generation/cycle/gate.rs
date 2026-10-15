@@ -99,7 +99,19 @@ impl Limits {
     /// The census's words the device's flags read.
     pub(super) fn words(&self) -> [u32; 11] {
         let [a, b] = self.unit_rounds;
-        [self.units, self.draws, self.deposits, self.sweeps, self.rounds, self.passes, self.top, self.tail, self.laygens, a, b]
+        [
+            self.units,
+            self.draws,
+            self.deposits,
+            self.sweeps,
+            self.rounds,
+            self.passes,
+            self.top,
+            self.tail,
+            self.laygens,
+            a,
+            b,
+        ]
     }
 }
 

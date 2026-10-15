@@ -3,8 +3,8 @@
 //! (`dress.wgsl`), into the records the fold, sweep, stations, rings and
 //! handoff read (`Dressed`); then the trunk's measures folded over them
 //! (`stems.wgsl`) and read back.
-use super::super::resident::fold::{Drawn, Dressed, CA_WORDS, CV};
 use super::super::io;
+use super::super::resident::fold::{Drawn, Dressed, CA_WORDS, CV};
 use super::chains::{Chains, Wave};
 use super::hier_scan::{uniform, widest, words, zeroed};
 use super::settle_run::View;
@@ -32,10 +32,18 @@ pub(super) struct Kernels {
 
 impl Kernels {
     pub(super) fn new(gpu: &Gpu) -> Self {
-        let source = format!("{}\n{DRESS}\n{ESTABLISH}", super::contract_with(super::ARITH));
+        let source = format!(
+            "{}\n{DRESS}\n{ESTABLISH}",
+            super::contract_with(super::ARITH)
+        );
         let entries = ["count", "nearest", "fork", "widest", "root"];
         Self {
-            dress: io::Pass::new(gpu, source, &[true, true, true, false, true, true], &["dress"]),
+            dress: io::Pass::new(
+                gpu,
+                source,
+                &[true, true, true, false, true, true],
+                &["dress"],
+            ),
             stems: io::Pass::new(gpu, STEMS.to_string(), &[false, false, false], &entries),
         }
     }
@@ -82,7 +90,8 @@ fn root() -> Vec<f32> {
 }
 
 fn storage(gpu: &Gpu, label: &'static str, words: u64, data: &[u8]) -> Result<Owned> {
-    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
+    let usage =
+        wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
     io::buffer(gpu, label, words.max(4) * 4, usage, data)
 }
 
@@ -94,20 +103,38 @@ fn records(w: &Wave) -> u64 {
 
 /// Every wave of `chains` drawn from the settled tree `s`, each from the
 /// one before, the first from the root.
-pub(super) fn dress(gpu: &Gpu, k: &Kernels, (s, chains): (View, &Chains), r: &Rows) -> Result<Dressed> {
-    let rows = storage(gpu, "dress rows", r.rows.len() as u64, bytemuck::cast_slice(r.rows))?;
+pub(super) fn dress(
+    gpu: &Gpu,
+    k: &Kernels,
+    (s, chains): (View, &Chains),
+    r: &Rows,
+) -> Result<Dressed> {
+    let rows = storage(
+        gpu,
+        "dress rows",
+        r.rows.len() as u64,
+        bytemuck::cast_slice(r.rows),
+    )?;
     let whole = storage(gpu, "dress whole leaves", 1, &[])?;
     let leaf = r.leaf.unwrap_or(&whole);
     let root = root();
     let mut waves = vec![Drawn {
-        buffer: storage(gpu, "drawn root", root.len() as u64, bytemuck::cast_slice(&root))?,
+        buffer: storage(
+            gpu,
+            "drawn root",
+            root.len() as u64,
+            bytemuck::cast_slice(&root),
+        )?,
         axes: 1,
         phyts: 1,
         base: 0,
         root: true,
     }];
     let t = s.table;
-    let mut prev = Wave { axes: 1, ..Wave::default() };
+    let mut prev = Wave {
+        axes: 1,
+        ..Wave::default()
+    };
     let (mut ids, mut held) = (1, Vec::new());
     let mut e = gpu.encoder(&Default::default());
     for (w, wave) in chains.waves.iter().enumerate() {
@@ -135,13 +162,26 @@ pub(super) fn dress(gpu: &Gpu, k: &Kernels, (s, chains): (View, &Chains), r: &Ro
             r.fraction.to_bits(),
             u32::from(r.leaf.is_some()),
         ];
-        let cfg: Vec<u32> = cfg.into_iter().chain(r.establishing.map(f32::to_bits)).collect();
+        let cfg: Vec<u32> = cfg
+            .into_iter()
+            .chain(r.establishing.map(f32::to_bits))
+            .collect();
         let cfg = uniform(gpu, &cfg)?;
         let before = &waves.last().expect("a wave").buffer;
-        let bind = k.dress.bind(gpu, &[&cfg, s.nt, &chains.plan, before, &buffer, &rows, leaf]);
-        k.dress.run(&mut e, &bind, 0, wave.chains.div_ceil(64).max(1));
+        let bind = k.dress.bind(
+            gpu,
+            &[&cfg, s.nt, &chains.plan, before, &buffer, &rows, leaf],
+        );
+        k.dress
+            .run(&mut e, &bind, 0, wave.chains.div_ceil(64).max(1));
         held.push(cfg);
-        waves.push(Drawn { buffer, axes: wave.axes, phyts: wave.phyts + wave.axes, base: ids, root: false });
+        waves.push(Drawn {
+            buffer,
+            axes: wave.axes,
+            phyts: wave.phyts + wave.axes,
+            base: ids,
+            root: false,
+        });
         ids += wave.phyts + wave.axes;
         prev = *wave;
     }

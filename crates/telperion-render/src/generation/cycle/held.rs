@@ -11,7 +11,15 @@ use std::collections::BTreeSet;
 const CONTRACT: &str = include_str!("decide.wgsl");
 
 /// The functions the units call held.
-const ROOTS: [&str; 7] = ["wake_ticks", "lived_ticks", "lived_fine", "neg_log2", "survival_fine", "abortion_fine", "exp2c"];
+const ROOTS: [&str; 7] = [
+    "wake_ticks",
+    "lived_ticks",
+    "lived_fine",
+    "neg_log2",
+    "survival_fine",
+    "abortion_fine",
+    "exp2c",
+];
 
 /// Each function of `source`, by name, as written.
 fn functions(source: &str) -> Vec<(&str, &str)> {
@@ -44,7 +52,9 @@ fn calls(body: &str, name: &str) -> bool {
 /// `body` with its marks held and each call of a name in `names` made to
 /// its held copy.
 fn renamed(body: &str, names: &BTreeSet<&str>) -> String {
-    let body = body.replace("exact_kept(", "held_kept(").replace("exact_div(", "held_div(");
+    let body = body
+        .replace("exact_kept(", "held_kept(")
+        .replace("exact_div(", "held_div(");
     let (mut out, mut word) = (String::new(), String::new());
     for c in body.chars() {
         if c.is_alphanumeric() || c == '_' {
@@ -68,23 +78,44 @@ pub(super) fn source() -> String {
     let marked = |body: &str| body.contains("exact_kept(") || body.contains("exact_div(");
     let mut reached: BTreeSet<&str> = ROOTS.into_iter().collect();
     loop {
-        let more: Vec<&str> = fns.iter().filter(|(n, _)| !reached.contains(n) && reached.iter().any(|r| calls(body_of(&fns, r), n))).map(|f| f.0).collect();
+        let more: Vec<&str> = fns
+            .iter()
+            .filter(|(n, _)| {
+                !reached.contains(n) && reached.iter().any(|r| calls(body_of(&fns, r), n))
+            })
+            .map(|f| f.0)
+            .collect();
         if more.is_empty() {
             break;
         }
         reached.extend(more);
     }
     // A function is held where it, or one it calls, holds a mark.
-    let mut held: BTreeSet<&str> = reached.iter().copied().filter(|n| marked(body_of(&fns, n))).collect();
+    let mut held: BTreeSet<&str> = reached
+        .iter()
+        .copied()
+        .filter(|n| marked(body_of(&fns, n)))
+        .collect();
     loop {
-        let more: Vec<&str> = reached.iter().copied().filter(|n| !held.contains(n) && held.iter().any(|h| calls(body_of(&fns, n), h))).collect();
+        let more: Vec<&str> = reached
+            .iter()
+            .copied()
+            .filter(|n| !held.contains(n) && held.iter().any(|h| calls(body_of(&fns, n), h)))
+            .collect();
         if more.is_empty() {
             break;
         }
         held.extend(more);
     }
-    assert!(ROOTS.iter().all(|r| held.contains(r)), "a root with nothing to hold");
-    let copies: Vec<String> = fns.iter().filter(|(n, _)| held.contains(n)).map(|(_, b)| renamed(b, &held)).collect();
+    assert!(
+        ROOTS.iter().all(|r| held.contains(r)),
+        "a root with nothing to hold"
+    );
+    let copies: Vec<String> = fns
+        .iter()
+        .filter(|(n, _)| held.contains(n))
+        .map(|(_, b)| renamed(b, &held))
+        .collect();
     copies.join("\n")
 }
 
@@ -99,10 +130,23 @@ mod tests {
     #[test]
     fn the_held_copies_hold_every_mark_they_reach() {
         let held = source();
-        assert!(!held.contains("exact_kept(") && !held.contains("exact_div("), "a mark left plain");
-        for name in ["wake_ticks_held", "lived_ticks_held", "neg_ln1m_held", "log2c_held", "lnc_held", "survival_fine_held"] {
+        assert!(
+            !held.contains("exact_kept(") && !held.contains("exact_div("),
+            "a mark left plain"
+        );
+        for name in [
+            "wake_ticks_held",
+            "lived_ticks_held",
+            "neg_ln1m_held",
+            "log2c_held",
+            "lnc_held",
+            "survival_fine_held",
+        ] {
             assert!(held.contains(&format!("fn {name}(")), "{name} missing");
         }
-        assert!(!held.contains("fn pow2_held("), "an unmarked function copied");
+        assert!(
+            !held.contains("fn pow2_held("),
+            "an unmarked function copied"
+        );
     }
 }

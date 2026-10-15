@@ -12,7 +12,9 @@
 //! Every shipped species by default.
 use std::path::Path;
 use telperion_core::{mesh, presets::Preset};
-use telperion_render::{hero_pose, render, Camera, Gpu, Renderer, View, GROUND_REACH, STILL_FORMAT};
+use telperion_render::{
+    hero_pose, render, Camera, Gpu, Renderer, View, GROUND_REACH, STILL_FORMAT,
+};
 
 const SIZE: (u32, u32) = (1920, 1080);
 const SPECIES: [&str; 8] = [
@@ -77,7 +79,8 @@ fn compare(
     let (w, h, s) = (SIZE.0 as usize, SIZE.1 as usize, scale as usize);
     for &id in species {
         for name in ["whole", "mid"] {
-            let read = |d: &Path, label: &str| std::fs::read(d.join(format!("{id}-{name}-{label}")));
+            let read =
+                |d: &Path, label: &str| std::fs::read(d.join(format!("{id}-{name}-{label}")));
             let (whole, bare) = (read(truth, "whole")?, read(truth, "bare")?);
             let (thin, thin_bare) = (read(dir, "whole")?, read(dir, "bare")?);
             let (mut errors, mut covered, mut drawn) = (Vec::new(), 0usize, 0usize);
@@ -114,10 +117,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         [mode, dir, scale, rest @ ..] if mode == "render" => {
             draw(Path::new(dir), scale.parse()?, &pick(rest))
         }
-        [mode, truth, scale, dir, rest @ ..] if mode == "compare" => {
-            compare(Path::new(truth), scale.parse()?, Path::new(dir), &pick(rest))
-        }
-        _ => Err("usage: crown_truth render <dir> <scale> | compare <truth dir> <scale> <dir>".into()),
+        [mode, truth, scale, dir, rest @ ..] if mode == "compare" => compare(
+            Path::new(truth),
+            scale.parse()?,
+            Path::new(dir),
+            &pick(rest),
+        ),
+        _ => Err(
+            "usage: crown_truth render <dir> <scale> | compare <truth dir> <scale> <dir>".into(),
+        ),
     }
 }
 

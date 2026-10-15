@@ -208,4 +208,3 @@ impl Dressed {
         Ok((points.collect(), n > CAP))
     }
 }
-

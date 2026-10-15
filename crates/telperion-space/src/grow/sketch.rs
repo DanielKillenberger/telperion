@@ -82,7 +82,11 @@ impl Grower<'_> {
     /// living apex's tip; in the coupling pass, every fine root's stand-in
     /// leaves cast too and each root reads its light at its centroid; in a
     /// fine subtree, every bud reads its root's record.
-    pub(super) fn shade(&mut self, cycle: u32, report: &mut dyn FnMut(Stage)) -> crate::error::Result<()> {
+    pub(super) fn shade(
+        &mut self,
+        cycle: u32,
+        report: &mut dyn FnMut(Stage),
+    ) -> crate::error::Result<()> {
         let mut sketch = self.sketch.take().expect("sketching");
         if let Some(reads) = self.fine.as_ref() {
             let light = reads.records.light(cycle + 1);

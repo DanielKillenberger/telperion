@@ -339,7 +339,11 @@ fn frozen_parameters_resolve_without_default_substitution() {
         // fn-277 added the cauline share; at one, every frozen tree's, all
         // leaf-bearing wood bears as it did.
         let canopy = emitted["canopy"].as_object_mut().unwrap();
-        assert_eq!(canopy.remove("cauline").unwrap().as_f64(), Some(1.0), "cauline");
+        assert_eq!(
+            canopy.remove("cauline").unwrap().as_f64(),
+            Some(1.0),
+            "cauline"
+        );
         // fn-216 added the flowers' rows. The frozen file predates them;
         // where no age flowers, which is every frozen tree, they act on
         // nothing.

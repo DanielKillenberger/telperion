@@ -430,7 +430,12 @@ impl Select {
                 Level::Chosen => -1,
                 Level::Forced(level) => level as i32,
             },
-            stalk: [self.stalk[0], self.stalk[1], self.rachis_levels as f32, self.stalk[2]],
+            stalk: [
+                self.stalk[0],
+                self.stalk[1],
+                self.rachis_levels as f32,
+                self.stalk[2],
+            ],
         }
     }
 
@@ -479,7 +484,9 @@ impl Select {
     pub(crate) fn chosen(&self, gpu: &Gpu) -> Vec<Option<u32>> {
         let counts = self.counted(gpu).expect("counts read back");
         let bytes = buffer::read(gpu, self.lists.as_ref().unwrap()).expect("lists read back");
-        let words: Vec<u32> = (bytes.as_chunks::<4>().0.iter()).map(|w| u32::from_ne_bytes(*w)).collect();
+        let words: Vec<u32> = (bytes.as_chunks::<4>().0.iter())
+            .map(|w| u32::from_ne_bytes(*w))
+            .collect();
         let mut out = vec![None; self.instances as usize];
         for (level, &count) in counts.iter().enumerate().take(self.levels.len()) {
             let start = level * self.stride as usize / size_of::<u32>();

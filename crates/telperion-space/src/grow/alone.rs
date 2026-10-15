@@ -6,9 +6,9 @@
 //! The chain grower that grew a fine root alone went with fn-256.
 use super::shoot::Rules;
 use super::{bud, Grower};
+use crate::contract::presence::{q, real, times};
 use crate::dormant::{self, Sleeper};
 use crate::error::{refuse, Result};
-use crate::contract::presence::{q, real, times};
 use crate::lineage::Key;
 use crate::presence::{Draws, Windows};
 use crate::shed::lasting;
@@ -94,7 +94,6 @@ fn bud_axis(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
 }
 
 impl Grower<'_> {
-
     /// The sleeping buds that wake in `cycle` on a chain grown alone:
     /// buds it bears, one on every axis that carries their bearer on.
     pub(super) fn borne_wakes(&mut self, asleep: Vec<Sleeper>, cycle: u32) -> Result<()> {

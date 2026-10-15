@@ -14,7 +14,6 @@ use crate::presence::{relay_node, Draws};
 use crate::species::Species;
 use crate::structure::{Axis, Origin, Vec3};
 
-
 /// A new axis's frame: base, heading and side.
 type Framed = (Vec3, Vec3, Vec3);
 

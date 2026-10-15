@@ -17,8 +17,8 @@ mod tables;
 #[cfg(test)]
 mod tests;
 
-pub use canonical::{canonical, digest, identities, lineage_order};
 pub(crate) use canonical::lineage_permutation;
+pub use canonical::{canonical, digest, identities, lineage_order};
 pub use coarse::{grow_coarse, Coarse, Stand};
 pub(crate) use realized::Made;
 pub use surface::{ChainTables, PaRow};
@@ -39,7 +39,6 @@ pub(crate) struct Clock {
 }
 
 impl Clock {
-
     /// An executor's step, awaited and timed as a phase.
     pub async fn timed<T>(&mut self, step: impl std::future::Future<Output = T>) -> T {
         let started = crate::clock::seconds();

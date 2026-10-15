@@ -282,7 +282,6 @@ fn no_shoot_falls_below_the_clearance_nor_the_clearance_above_the_crown_base() {
     );
 }
 
-
 #[test]
 fn a_walk_of_the_drop_row_lowers_the_curtain_continuously() {
     let (held_in, dropped) = (curtain(0.0), curtain(1.0));

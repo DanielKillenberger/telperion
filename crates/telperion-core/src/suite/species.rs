@@ -329,8 +329,11 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
     // What this specimen will cost, computed from the tree just grown, and
     // charged against what the whole binary may spend. The charge is released
     // when `held` is dropped, which a panicking seed does on its way out.
-    let predicted =
-        footprint::predict(&a.tree, &telperion_core::pipeline::Inputs::of(&family, family.skeleton.envelope)).unwrap();
+    let predicted = footprint::predict(
+        &a.tree,
+        &telperion_core::pipeline::Inputs::of(&family, family.skeleton.envelope),
+    )
+    .unwrap();
     let name = format!("{} seed {seed}", preset.profile_id().unwrap());
     let held = budget().charge(&name, predicted.bytes() as u64);
     if preset == Preset::NorwaySpruce {

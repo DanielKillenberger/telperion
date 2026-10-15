@@ -37,8 +37,17 @@ pub(super) fn grown(preset: Preset, age: u32, seed: u64) -> Grown {
 }
 
 /// `species`'s build of `age` from `seed`, lit as `light`.
-pub(super) fn grown_from(species: telperion_space::Species, light: telperion_space::Light, (age, seed): (u32, u64)) -> Grown {
-    let request = Request { age, seed, budget: 20_000_000, light };
+pub(super) fn grown_from(
+    species: telperion_space::Species,
+    light: telperion_space::Light,
+    (age, seed): (u32, u64),
+) -> Grown {
+    let request = Request {
+        age,
+        seed,
+        budget: 20_000_000,
+        light,
+    };
     Grown {
         tables: telperion_space::grow_capture_tables(&species, request).expect("tables"),
         chain: ChainTables::cycle(&species, age).expect("chain tables"),
@@ -51,8 +60,13 @@ pub(super) fn device() -> Option<(Gpu, Kit)> {
     let gpu = super::super::test_gpu()?;
     let started = std::time::Instant::now();
     let kit = Kit::new(&gpu);
-    gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("compiled");
-    println!("kernels compiled in {:.1} s", started.elapsed().as_secs_f64());
+    gpu.device
+        .poll(wgpu::PollType::wait_indefinitely())
+        .expect("compiled");
+    println!(
+        "kernels compiled in {:.1} s",
+        started.elapsed().as_secs_f64()
+    );
     Some((gpu, kit))
 }
 
@@ -65,11 +79,20 @@ pub(super) fn built(gpu: &Gpu, kit: &Kit, g: &Grown, cycle: u32) -> (Build, Snap
 }
 
 /// `built`, its retirement logging its verdicts where `log`.
-pub(super) fn built_with(gpu: &Gpu, kit: &Kit, g: &Grown, (cycle, log): (u32, bool)) -> (Build, Snapshot) {
+pub(super) fn built_with(
+    gpu: &Gpu,
+    kit: &Kit,
+    g: &Grown,
+    (cycle, log): (u32, bool),
+) -> (Build, Snapshot) {
     let mut t = Tables::new(gpu, &g.tables, &g.chain).expect("tables");
     t.log = log;
-    let (b, sizes, grew) = grow(gpu, kit, &t, &g.tables, (Sizes::least(), cycle)).unwrap_or_else(|e| panic!("cycle {cycle}: {e}"));
-    println!("grown to {:?} with {:?}, moved {}; workgroups given {} for {} needed", sizes.caps, sizes.bounds, grew.moves, grew.over.given, grew.over.needed);
+    let (b, sizes, grew) = grow(gpu, kit, &t, &g.tables, (Sizes::least(), cycle))
+        .unwrap_or_else(|e| panic!("cycle {cycle}: {e}"));
+    println!(
+        "grown to {:?} with {:?}, moved {}; workgroups given {} for {} needed",
+        sizes.caps, sizes.bounds, grew.moves, grew.over.given, grew.over.needed
+    );
     let snap = b.snapshot(gpu, cycle).expect("a readback");
     (b, snap)
 }
@@ -77,11 +100,17 @@ pub(super) fn built_with(gpu: &Gpu, kit: &Kit, g: &Grown, (cycle, log): (u32, bo
 /// The CPU's tree of `g` at `age` and the device's, compared: what breaks
 /// the ruled standard, with the report printed.
 pub(super) fn held_to_cpu(gpu: &Gpu, kit: &Kit, g: &Grown, age: u32) -> Vec<String> {
-    let capture = telperion_space::grow_capture_grown(&g.species, g.request).expect("the CPU's tree");
+    let capture =
+        telperion_space::grow_capture_grown(&g.species, g.request).expect("the CPU's tree");
     let cpu = cpu_snapshot(&Cap(&capture));
     let (_, dev) = built(gpu, kit, g, age);
     let by = by_lineage(&dev, &cpu);
-    println!("{} axes, {} phytomers\n{}", cpu.lineage.len(), cpu.grown, by.report());
+    println!(
+        "{} axes, {} phytomers\n{}",
+        cpu.lineage.len(),
+        cpu.grown,
+        by.report()
+    );
     super::ruled::findings(&by)
 }
 
@@ -94,10 +123,16 @@ fn young_trees_grow_on_the_device_as_on_the_cpu() {
     let mut apart = Vec::new();
     // `CYCLE_ONLY` names one preset, for a first run of a change.
     let only = std::env::var("CYCLE_ONLY").ok();
-    for (preset, name, age) in YOUNG.into_iter().filter(|y| only.as_deref().is_none_or(|o| o == y.1)) {
+    for (preset, name, age) in YOUNG
+        .into_iter()
+        .filter(|y| only.as_deref().is_none_or(|o| o == y.1))
+    {
         print!("{name} {age}: ");
         let found = held_to_cpu(&gpu, &kit, &grown(preset, age, 42), age);
         apart.extend(found.into_iter().map(|f| format!("{name}: {f}")));
     }
-    assert!(apart.is_empty(), "the device's trees are not the CPU's: {apart:#?}");
+    assert!(
+        apart.is_empty(),
+        "the device's trees are not the CPU's: {apart:#?}"
+    );
 }

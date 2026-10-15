@@ -44,7 +44,10 @@ fn leaflets(f: &Family) -> f64 {
 fn walked(a: &Family, b: &Family, t: f64) -> Family {
     let mut f = a.clone();
     catalogue::walk(a, b, t, &mut f);
-    let (x, y) = (a.space.species.as_ref().unwrap(), b.space.species.as_ref().unwrap());
+    let (x, y) = (
+        a.space.species.as_ref().unwrap(),
+        b.space.species.as_ref().unwrap(),
+    );
     f.space.species = Some(telperion_space::blend(x, y, t).unwrap());
     f
 }
@@ -53,16 +56,45 @@ fn walked(a: &Family, b: &Family, t: f64) -> Family {
 fn law(f: &Family) -> Vec<(String, f64)> {
     let c = &f.canopy;
     let each = leaflets(f);
-    let skirt = if c.skirt_length > 0.0 { c.skirt_fronds } else { 0.0 };
+    let skirt = if c.skirt_length > 0.0 {
+        c.skirt_fronds
+    } else {
+        0.0
+    };
     let grouped = c.rachis_length > 0.0 && c.leaflet_count > 1.0;
     let mut out = vec![
         ("wood leaves per station".to_string(), c.cauline * each),
-        ("crown leaves per apex".to_string(), (c.rosette_fronds + skirt) * each),
-        ("spines per frond".to_string(), if grouped && c.acanthophyll_length > 0.0 { c.acanthophylls } else { 0.0 }),
-        ("bases per stem".to_string(), if c.leaf_base_length > 0.0 { c.leaf_bases } else { 0.0 }),
+        (
+            "crown leaves per apex".to_string(),
+            (c.rosette_fronds + skirt) * each,
+        ),
+        (
+            "spines per frond".to_string(),
+            if grouped && c.acanthophyll_length > 0.0 {
+                c.acanthophylls
+            } else {
+                0.0
+            },
+        ),
+        (
+            "bases per stem".to_string(),
+            if c.leaf_base_length > 0.0 {
+                c.leaf_bases
+            } else {
+                0.0
+            },
+        ),
     ];
-    for (k, s) in f.space.species.iter().flat_map(|s| s.states.iter().enumerate()) {
-        out.push((format!("cluster leaves per short shoot, age {k}"), s.cluster_leaves * each * c.cauline));
+    for (k, s) in f
+        .space
+        .species
+        .iter()
+        .flat_map(|s| s.states.iter().enumerate())
+    {
+        out.push((
+            format!("cluster leaves per short shoot, age {k}"),
+            s.cluster_leaves * each * c.cauline,
+        ));
     }
     out
 }
@@ -87,7 +119,12 @@ fn steepest(from: &str, to: &str, age: f64, seed: u32) -> Vec<(String, f64, f64)
             continue;
         }
         let (step, at) = (1..series.len())
-            .map(|i| ((series[i] - series[i - 1]).abs() / most, i as f64 / STEPS as f64))
+            .map(|i| {
+                (
+                    (series[i] - series[i - 1]).abs() / most,
+                    i as f64 / STEPS as f64,
+                )
+            })
             .fold((0.0, 0.0), |m, s| if s.0 > m.0 { s } else { m });
         out.push((name.clone(), step, at));
     }
@@ -97,10 +134,15 @@ fn steepest(from: &str, to: &str, age: f64, seed: u32) -> Vec<(String, f64, f64)
 #[test]
 fn every_film_walk_changes_its_leaf_forms_by_degree() {
     // Each walk and seed at once.
-    let walks: Vec<_> = WALKS.iter().flat_map(|w| SEEDS.map(|seed| (*w, seed))).collect();
+    let walks: Vec<_> = WALKS
+        .iter()
+        .flat_map(|w| SEEDS.map(|seed| (*w, seed)))
+        .collect();
     let found: Vec<_> = std::thread::scope(|scope| {
         let jobs: Vec<_> = (walks.iter())
-            .map(|&((from, to, age), seed)| scope.spawn(move || ((from, to, age, seed), steepest(from, to, age, seed))))
+            .map(|&((from, to, age), seed)| {
+                scope.spawn(move || ((from, to, age, seed), steepest(from, to, age, seed)))
+            })
             .collect();
         jobs.into_iter().map(|j| j.join().unwrap()).collect()
     });
@@ -109,7 +151,9 @@ fn every_film_walk_changes_its_leaf_forms_by_degree() {
         for (form, step, at) in forms {
             println!("{from} to {to} at {age}, seed {seed}: {form} {step:.5} at t {at:.3}");
             if step > BOUND {
-                refused.push(format!("{from} to {to}, seed {seed}: {form} {step:.4} at t {at:.3}"));
+                refused.push(format!(
+                    "{from} to {to}, seed {seed}: {form} {step:.4} at t {at:.3}"
+                ));
             }
         }
     }

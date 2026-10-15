@@ -188,7 +188,10 @@ pub fn runs(
     }
     // The most leaflets a station draws, which bounds a run before it is
     // counted.
-    let most = organs::leaflets(&CanopyParams { leaflet_count: p.leaflet_count.ceil(), ..p }) as u32;
+    let most = organs::leaflets(&CanopyParams {
+        leaflet_count: p.leaflet_count.ceil(),
+        ..p
+    }) as u32;
     let mut total = 0u32;
     let (mut points, mut chord) = (Vec::new(), Vec::new());
     for nodes in bearing_runs(tree, p) {

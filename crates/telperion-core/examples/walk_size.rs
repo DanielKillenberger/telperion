@@ -17,9 +17,7 @@
 //!     <from> <to> <age> <seed> <t,t,...>
 use std::time::Instant;
 use telperion_core::{blend, presets::Preset, Family};
-use telperion_space::{
-    expected_grown, expected_kept, grow_cycle, Light, Request, Species,
-};
+use telperion_space::{expected_grown, expected_kept, grow_cycle, Light, Request, Species};
 
 /// Twice the engine's budget: a point past it is reported, not grown on.
 const CAP: u32 = 40_000_000;
@@ -56,8 +54,8 @@ fn main() -> Result<(), String> {
     for t in ts.split(',') {
         let t: f64 = t.parse().map_err(|_| "a share")?;
         let walked = blend::families(&a, &b, t).map_err(|e| e.to_string())?;
-        let bare = telperion_space::blend(species(&a), species(&b), t)
-            .map_err(|e| e.to_string())?;
+        let bare =
+            telperion_space::blend(species(&a), species(&b), t).map_err(|e| e.to_string())?;
         let (age, light) = (walked.age as u32, walked.space.light);
         let band = match bands.iter().find(|(key, _)| *key == (age, light)) {
             Some((_, band)) => *band,
@@ -143,7 +141,12 @@ fn predicted(species: &Species, age: u32) -> String {
 /// past the cap.
 fn grown(species: &Species, request: Request) -> Option<Counts> {
     let cycled = grow_cycle(species, request).ok()?;
-    let kept: usize = cycled.structure.axes.iter().map(|a| a.phytomers.len()).sum();
+    let kept: usize = cycled
+        .structure
+        .axes
+        .iter()
+        .map(|a| a.phytomers.len())
+        .sum();
     Some([kept as f64, cycled.grown as f64])
 }
 

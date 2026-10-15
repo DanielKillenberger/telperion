@@ -371,14 +371,13 @@ fn a_rachis_stands_at_each_flowering_tip() {
         assert!(at.distance(node.position) < 1e-6);
         let axis = Vec3::new(m[4].into(), m[5].into(), m[6].into());
         assert!((axis.length() - node.radius).abs() < 1e-9);
-        assert!(axis.normalized().dot(Vec3::Y) > 1.0 - 1e-9, "along the shoot");
+        assert!(
+            axis.normalized().dot(Vec3::Y) > 1.0 - 1e-9,
+            "along the shoot"
+        );
     }
-    let none = |p: &BloomParams, season| {
-        instances(&tree, p, season)
-            .concat()
-            .iter()
-            .all(|(_, r)| !r)
-    };
+    let none =
+        |p: &BloomParams, season| instances(&tree, p, season).concat().iter().all(|(_, r)| !r);
     assert!(none(&BloomParams { rachis: 0.0, ..p }, None), "no rachis");
     assert!(none(&p, Some(p.opens + 0.5)), "no floret, no rachis");
 }
@@ -396,13 +395,20 @@ fn the_stalks_stand_at_the_origin_in_their_levels() {
     let pedicel = (SIDES * 2) as usize;
     assert!(kinds[..pedicel].iter().all(|k| *k == PEDICEL));
     let ribbon = 2 * (3 + 5 + RINGS as usize);
-    assert!(kinds[pedicel..pedicel + ribbon].iter().all(|k| *k == RIBBON));
-    assert!(kinds[pedicel + ribbon..].iter().all(|k| *k == RACHIS_VERTEX));
+    assert!(kinds[pedicel..pedicel + ribbon]
+        .iter()
+        .all(|k| *k == RIBBON));
+    assert!(kinds[pedicel + ribbon..]
+        .iter()
+        .all(|k| *k == RACHIS_VERTEX));
     // The coarse ribbons skip rings, the fine ribbon and the tube run
     // through every one, where the pedicels sit.
     let rings = |l: &crate::pipeline::foliage::Level| {
         let at = &e.level_indices[l.indices.start as usize..l.indices.end as usize];
-        let mut r: Vec<u32> = at.iter().map(|&i| e.coords[2 * i as usize + 1] as u32 / SIDES).collect();
+        let mut r: Vec<u32> = at
+            .iter()
+            .map(|&i| e.coords[2 * i as usize + 1] as u32 / SIDES)
+            .collect();
         r.sort_unstable();
         r.dedup();
         r
@@ -416,13 +422,20 @@ fn the_stalks_stand_at_the_origin_in_their_levels() {
     let (front, florets) = e.levels.split_at(RACHIS_LEVELS);
     let triangles: Vec<usize> = front.iter().map(|l| level(l).len() / 3).collect();
     let segments = RINGS as usize - 1;
-    assert_eq!(triangles, [4, 8, 2 * segments, 2 * SIDES as usize * segments]);
+    assert_eq!(
+        triangles,
+        [4, 8, 2 * segments, 2 * SIDES as usize * segments]
+    );
     assert_eq!(front[0].deviation, RACHIS_LEVEL);
     for (l, expected) in front.iter().zip(&rings_of) {
         assert!(level(l).iter().all(|&i| i as usize >= rachis));
         assert_eq!(&rings(l), expected);
     }
-    let pedicels = |v: &[u32]| v.iter().filter(|&&i| (first..rachis).contains(&(i as usize))).count();
+    let pedicels = |v: &[u32]| {
+        v.iter()
+            .filter(|&&i| (first..rachis).contains(&(i as usize)))
+            .count()
+    };
     for l in florets {
         assert_eq!(pedicels(&level(l)), 6 * SIDES as usize);
         assert!(level(l).iter().all(|&i| (i as usize) < rachis));

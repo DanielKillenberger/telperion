@@ -146,5 +146,9 @@ impl Flag {
 
 /// The flags set in `census`, each with its word's value.
 pub(super) fn raised(census: &[u32]) -> Vec<(Flag, u32)> {
-    FLAG_NAMES.iter().map(|&f| (f, census[f.word()])).filter(|f| f.1 != 0).collect()
+    FLAG_NAMES
+        .iter()
+        .map(|&f| (f, census[f.word()]))
+        .filter(|f| f.1 != 0)
+        .collect()
 }

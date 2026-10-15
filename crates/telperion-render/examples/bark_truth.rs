@@ -48,7 +48,12 @@ fn trunk(target: Vec3, at: f64, fov: f64) -> Camera {
 
 fn shot(renderer: &Renderer, size: (u32, u32), text: &str) -> Camera {
     let aspect = f64::from(size.0) / f64::from(size.1);
-    shot_pose(renderer.bounds().unwrap(), aspect, GROUND_REACH, &Shot::parse(text).unwrap())
+    shot_pose(
+        renderer.bounds().unwrap(),
+        aspect,
+        GROUND_REACH,
+        &Shot::parse(text).unwrap(),
+    )
 }
 
 /// The frame probe's close pose: the hero pose at a quarter of its distance.
@@ -66,30 +71,84 @@ fn fixtures() -> Vec<Fixture> {
     let wide = (800, 500);
     let harness = (480, 270);
     vec![
-        Fixture { name: "oak-trunk", family: oak(), size: wide,
-            camera: |_, _| trunk(Vec3::new(0.0, 2.0, 0.0), 1.0, 38.0) },
-        Fixture { name: "oak-grazing", family: oak(), size: wide,
-            camera: |_, _| trunk(Vec3::new(-0.24, 2.0, -0.24), 1.0, 20.0) },
-        Fixture { name: "spruce-grazing", family: seeded(Preset::NorwaySpruce, 7, None),
-            size: wide, camera: |_, _| trunk(Vec3::new(-0.24, 0.9, -0.24), 1.0, 20.0) },
-        Fixture { name: "oak-2x", family: oak(), size: wide,
-            camera: |_, _| trunk(Vec3::new(0.0, 2.0, 0.0), 2.0, 38.0) },
-        Fixture { name: "oak-4x", family: oak(), size: wide,
-            camera: |_, _| trunk(Vec3::new(0.0, 2.0, 0.0), 4.0, 38.0) },
-        Fixture { name: "beech-base", family: seeded(Preset::EuropeanBeech, 1, Some(80.0)),
-            size: wide, camera: |r, s| shot(r, s,
-                r#"{"azimuth":30,"elevation":0,"fill":1,"targetHeight":0.04,"fov":45,"distance":1.2}"#) },
-        Fixture { name: "birch-bark", family: seeded(Preset::SilverBirch, 1, Some(80.0)),
-            size: wide, camera: |r, s| shot(r, s,
-                r#"{"azimuth":30,"elevation":0,"fill":1,"targetHeight":0.06,"fov":45,"distance":1.5}"#) },
-        Fixture { name: "oak-close", family: seeded(Preset::OregonWhiteOak, 1, None),
-            size: harness, camera: close },
-        Fixture { name: "spruce-close", family: seeded(Preset::NorwaySpruce, 1, None),
-            size: harness, camera: close },
-        Fixture { name: "birch-close", family: seeded(Preset::SilverBirch, 1, None),
-            size: harness, camera: close },
-        Fixture { name: "telperion-close", family: seeded(Preset::Telperion, 1, None),
-            size: harness, camera: close },
+        Fixture {
+            name: "oak-trunk",
+            family: oak(),
+            size: wide,
+            camera: |_, _| trunk(Vec3::new(0.0, 2.0, 0.0), 1.0, 38.0),
+        },
+        Fixture {
+            name: "oak-grazing",
+            family: oak(),
+            size: wide,
+            camera: |_, _| trunk(Vec3::new(-0.24, 2.0, -0.24), 1.0, 20.0),
+        },
+        Fixture {
+            name: "spruce-grazing",
+            family: seeded(Preset::NorwaySpruce, 7, None),
+            size: wide,
+            camera: |_, _| trunk(Vec3::new(-0.24, 0.9, -0.24), 1.0, 20.0),
+        },
+        Fixture {
+            name: "oak-2x",
+            family: oak(),
+            size: wide,
+            camera: |_, _| trunk(Vec3::new(0.0, 2.0, 0.0), 2.0, 38.0),
+        },
+        Fixture {
+            name: "oak-4x",
+            family: oak(),
+            size: wide,
+            camera: |_, _| trunk(Vec3::new(0.0, 2.0, 0.0), 4.0, 38.0),
+        },
+        Fixture {
+            name: "beech-base",
+            family: seeded(Preset::EuropeanBeech, 1, Some(80.0)),
+            size: wide,
+            camera: |r, s| {
+                shot(
+                    r,
+                    s,
+                    r#"{"azimuth":30,"elevation":0,"fill":1,"targetHeight":0.04,"fov":45,"distance":1.2}"#,
+                )
+            },
+        },
+        Fixture {
+            name: "birch-bark",
+            family: seeded(Preset::SilverBirch, 1, Some(80.0)),
+            size: wide,
+            camera: |r, s| {
+                shot(
+                    r,
+                    s,
+                    r#"{"azimuth":30,"elevation":0,"fill":1,"targetHeight":0.06,"fov":45,"distance":1.5}"#,
+                )
+            },
+        },
+        Fixture {
+            name: "oak-close",
+            family: seeded(Preset::OregonWhiteOak, 1, None),
+            size: harness,
+            camera: close,
+        },
+        Fixture {
+            name: "spruce-close",
+            family: seeded(Preset::NorwaySpruce, 1, None),
+            size: harness,
+            camera: close,
+        },
+        Fixture {
+            name: "birch-close",
+            family: seeded(Preset::SilverBirch, 1, None),
+            size: harness,
+            camera: close,
+        },
+        Fixture {
+            name: "telperion-close",
+            family: seeded(Preset::Telperion, 1, None),
+            size: harness,
+            camera: close,
+        },
     ]
 }
 
@@ -108,11 +167,23 @@ fn draw(dir: &Path) -> Result<(), Box<dyn std::error::Error>> {
         let camera = (f.camera)(&renderer, f.size);
         renderer.pin_curve_viewport(Some(f.size));
         renderer.set_view(View::Clay);
-        write(dir, &format!("{}-clay", f.name), &render(&mut renderer, &camera, f.size.0, f.size.1)?)?;
+        write(
+            dir,
+            &format!("{}-clay", f.name),
+            &render(&mut renderer, &camera, f.size.0, f.size.1)?,
+        )?;
         renderer.set_view(View::Bare);
-        write(dir, &format!("{}-1", f.name), &render(&mut renderer, &camera, f.size.0, f.size.1)?)?;
+        write(
+            dir,
+            &format!("{}-1", f.name),
+            &render(&mut renderer, &camera, f.size.0, f.size.1)?,
+        )?;
         let (w, h) = (f.size.0 * SCALE, f.size.1 * SCALE);
-        write(dir, &format!("{}-{SCALE}", f.name), &render(&mut renderer, &camera, w, h)?)?;
+        write(
+            dir,
+            &format!("{}-{SCALE}", f.name),
+            &render(&mut renderer, &camera, w, h)?,
+        )?;
         renderer.pin_curve_viewport(None);
         eprintln!("drew {}", f.name);
     }
@@ -150,7 +221,11 @@ fn agreement(high: &[u8], low: &[u8], width: u32, wood: &[(usize, usize)]) -> (f
     let mut errors: Vec<f64> = errors.iter().map(|e| e.abs()).collect();
     let mean = errors.iter().sum::<f64>() / n;
     errors.sort_by(f64::total_cmp);
-    (mean, errors.get(errors.len() * 95 / 100).copied().unwrap_or(0.0), bias)
+    (
+        mean,
+        errors.get(errors.len() * 95 / 100).copied().unwrap_or(0.0),
+        bias,
+    )
 }
 
 fn compare(truth: &Path, dir: &Path) -> Result<(), Box<dyn std::error::Error>> {
@@ -159,7 +234,12 @@ fn compare(truth: &Path, dir: &Path) -> Result<(), Box<dyn std::error::Error>> {
         let wood = mask(&read(truth, "clay")?, f.size);
         let high = read(truth, &SCALE.to_string())?;
         let (mean, p95, bias) = agreement(&high, &read(dir, "1")?, f.size.0, &wood);
-        let own = agreement(&read(dir, &SCALE.to_string())?, &read(dir, "1")?, f.size.0, &wood);
+        let own = agreement(
+            &read(dir, &SCALE.to_string())?,
+            &read(dir, "1")?,
+            f.size.0,
+            &wood,
+        );
         println!(
             "{{\"fixture\":\"{}\",\"pixels\":{},\"mean\":{mean:.3},\"p95\":{p95:.2},\"bias\":{bias:.3},\"own_mean\":{:.3},\"own_p95\":{:.2}}}",
             f.name,

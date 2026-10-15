@@ -50,7 +50,11 @@ impl GrowingTree {
     /// none before a first draw.
     pub(super) fn expected_draw(&self) -> u64 {
         let [last, before] = self.drew.get().map(|b| b as f64);
-        let grew = if before > 0.0 { (last / before).max(1.0) } else { 1.0 };
+        let grew = if before > 0.0 {
+            (last / before).max(1.0)
+        } else {
+            1.0
+        };
         (last * grew * DRAW_MARGIN) as u64
     }
 
@@ -86,9 +90,18 @@ impl Generator {
     /// draws now, by the budget's one rule (`budget::room`): beside it, or
     /// it let go first, or refused by name with it kept.
     #[cfg(any(test, target_arch = "wasm32"))]
-    pub fn draw_admission(tree: &GrowingTree, renderer: &crate::Renderer, budget: u64) -> Result<super::Admitted> {
+    pub fn draw_admission(
+        tree: &GrowingTree,
+        renderer: &crate::Renderer,
+        budget: u64,
+    ) -> Result<super::Admitted> {
         let held = renderer.gpu().ledger.live();
-        super::budget::room(held, Self::tree_buffer_bytes(renderer), tree.expected_draw(), budget)
+        super::budget::room(
+            held,
+            Self::tree_buffer_bytes(renderer),
+            tree.expected_draw(),
+            budget,
+        )
     }
 
     /// `family`'s tree before its first year, to grow at most the family's
@@ -99,8 +112,18 @@ impl Generator {
         let growth = executor::growth(family)?;
         let at = (growth.request.seed, growth.request.age);
         let budget = self.device_budget();
-        let state = self.on_device(async |kit| GrowthState::begin(&self.gpu, &kit.kernels, &growth, at, budget).await).await?;
-        Ok(GrowingTree { identity: self.identity.clone(), family: family.clone(), growth, state, drew: Cell::new([0; 2]) })
+        let state = self
+            .on_device(async |kit| {
+                GrowthState::begin(&self.gpu, &kit.kernels, &growth, at, budget).await
+            })
+            .await?;
+        Ok(GrowingTree {
+            identity: self.identity.clone(),
+            family: family.clone(),
+            growth,
+            state,
+            drew: Cell::new([0; 2]),
+        })
     }
 
     /// `tree` grown to `age` years, as `GrowthState::grow_to` grows it: a
@@ -150,17 +173,33 @@ impl Generator {
                 let mut t = Timed::default();
                 // The draw refuses an `at` outside the last year, or a spent
                 // tree, by name before anything is drawn.
-                let drawn = stage(gpu, &mut t.settle, async || tree.state.settle(gpu, &kit.kernels, at).await).await?;
+                let drawn = stage(gpu, &mut t.settle, async || {
+                    tree.state.settle(gpu, &kit.kernels, at).await
+                })
+                .await?;
                 drew = true;
                 let fraction = at - (f64::from(tree.committed().unwrap_or(0)) - 1.0);
                 let year = tree.growth.year(fraction).map(|y| Year { age: at, ..y });
-                let built = placed(gpu, (self, &kit.tools), (&tree.family, &tree.growth), (drawn, year), t).await?;
+                let built = placed(
+                    gpu,
+                    (self, &kit.tools),
+                    (&tree.family, &tree.growth),
+                    (drawn, year),
+                    t,
+                )
+                .await?;
                 Ok((built, fraction))
             })
             .await;
         let (built, fraction) = spent_after(&tree.state, drew, built)?;
-        tree.drew.set([self.gpu.ledger.watched().saturating_sub(held), tree.drew.get()[0]]);
+        tree.drew.set([
+            self.gpu.ledger.watched().saturating_sub(held),
+            tree.drew.get()[0],
+        ]);
         let colouring = telperion_space::unfold::colouring(&tree.growth.species, fraction);
-        Ok(Prepared { colouring, ..built.prepared })
+        Ok(Prepared {
+            colouring,
+            ..built.prepared
+        })
     }
 }

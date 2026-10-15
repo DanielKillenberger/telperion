@@ -85,6 +85,8 @@ macro_rules! preset_values {
     };
 }
 
+// The value files' numbers, as authored (a right angle written 1.5708).
+#[allow(clippy::approx_constant)]
 mod compiled {
     use super::Preset;
     include!(concat!(env!("OUT_DIR"), "/presets.rs"));

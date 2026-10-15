@@ -18,8 +18,15 @@ use pollster::block_on;
 /// One labelled census line, MB.
 fn census(id: &str, what: &str, bytes: u64, by: &[(&'static str, u64)]) {
     let mb = |b: u64| b as f64 / 1e6;
-    let rows: Vec<String> = by.iter().map(|(l, b)| format!("{l} {:.0}", mb(*b))).collect();
-    println!("CENSUS {id} {what}: {:.0} MB: {}", mb(bytes), rows.join(", "));
+    let rows: Vec<String> = by
+        .iter()
+        .map(|(l, b)| format!("{l} {:.0}", mb(*b)))
+        .collect();
+    println!(
+        "CENSUS {id} {what}: {:.0} MB: {}",
+        mb(bytes),
+        rows.join(", ")
+    );
 }
 
 /// A buffer let go ahead of its owner leaves the ledger once the device
@@ -61,7 +68,8 @@ fn grows_in_under_the_page_budget() {
     if let Ok(age) = std::env::var("GROW_AGE") {
         family.age = age.parse().expect("GROW_AGE is a number");
     }
-    let budget = std::env::var("GROW_BUDGET_MIB").map_or(super::budget::BROWSER, |m| m.parse::<u64>().unwrap() << 20);
+    let budget = std::env::var("GROW_BUDGET_MIB")
+        .map_or(super::budget::BROWSER, |m| m.parse::<u64>().unwrap() << 20);
     let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     block_on(gen.prepare_programs()).unwrap();
@@ -69,7 +77,9 @@ fn grows_in_under_the_page_budget() {
     let label = format!("{id}@{}", family.age);
     gpu.ledger.take_peak_census();
     // The harness opens the tree built at once, and keeps it up.
-    let built = gen.prepare(&family, Delivery::Resident).expect("built at once");
+    let built = gen
+        .prepare(&family, Delivery::Resident)
+        .expect("built at once");
     let (peak, by) = gpu.ledger.take_peak_census();
     census(&label, "built at once", peak, &by);
     renderer.submit_prepared(built).unwrap();
@@ -78,14 +88,19 @@ fn grows_in_under_the_page_budget() {
     let (mut failed, mut room, mut worst) = (None, vec![], 0.0f64);
     for year in 1..=tree.horizon() {
         let up = Generator::tree_buffer_bytes(&renderer);
-        let grown = step("grow", year, block_on(gen.grow_to(&mut tree, f64::from(year))));
+        let grown = step(
+            "grow",
+            year,
+            block_on(gen.grow_to(&mut tree, f64::from(year))),
+        );
         let (peak, by) = gpu.ledger.take_peak_census();
         if peak > most {
             (most, at_most) = (peak, (year, "grow", by));
         }
         let admitted = match grown {
             Some(e) => Err(e),
-            None => Generator::draw_admission(&tree, &renderer, budget).map_err(|e| format!("draw at {year}: {e}")),
+            None => Generator::draw_admission(&tree, &renderer, budget)
+                .map_err(|e| format!("draw at {year}: {e}")),
         };
         let expected = tree.expected_draw();
         if admitted.as_ref().is_ok_and(|a| *a == Admitted::MakeRoom) {
@@ -93,10 +108,16 @@ fn grows_in_under_the_page_budget() {
             block_on(crate::generation::io::complete(&gpu)).unwrap();
             room.push(year);
         }
-        let drawn = admitted.and_then(|_| block_on(gen.settle(&tree, f64::from(year))).map_err(|e| format!("draw at {year}: {e}")));
+        let drawn = admitted.and_then(|_| {
+            block_on(gen.settle(&tree, f64::from(year))).map_err(|e| format!("draw at {year}: {e}"))
+        });
         if let (Ok(_), added, true) = (&drawn, tree.last_draw(), expected >= 64 << 20) {
             worst = worst.max(added as f64 / expected as f64);
-            println!("DRAW {label} {year}: {} MB added, {} MB expected", added / 1_000_000, expected / 1_000_000);
+            println!(
+                "DRAW {label} {year}: {} MB added, {} MB expected",
+                added / 1_000_000,
+                expected / 1_000_000
+            );
         }
         let (peak, by) = gpu.ledger.take_peak_census();
         if peak > most {
@@ -114,14 +135,31 @@ fn grows_in_under_the_page_budget() {
             }
         }
         if year % 10 == 0 {
-            println!("YEAR {label} {year}: {} MB held between draws, the peak so far {} MB", gpu.ledger.live() / 1_000_000, most / 1_000_000);
+            println!(
+                "YEAR {label} {year}: {} MB held between draws, the peak so far {} MB",
+                gpu.ledger.live() / 1_000_000,
+                most / 1_000_000
+            );
         }
     }
     let (year, phase, by) = at_most;
-    census(&label, &format!("grow-in peak ({phase} at {year})"), most, &by);
-    println!("GROWN {label} under {} MiB: peak {} MiB, {}", budget >> 20, most >> 20, failed.as_deref().unwrap_or("grown whole"));
+    census(
+        &label,
+        &format!("grow-in peak ({phase} at {year})"),
+        most,
+        &by,
+    );
+    println!(
+        "GROWN {label} under {} MiB: peak {} MiB, {}",
+        budget >> 20,
+        most >> 20,
+        failed.as_deref().unwrap_or("grown whole")
+    );
     println!("ROOM {label}: the drawn tree let go before the draws of years {room:?}; a draw's bytes at most {worst:.3} of those expected");
     if let Some(e) = failed {
-        assert!(e.contains("the device budget"), "{label}: refused by the budget by name, not the device: {e}");
+        assert!(
+            e.contains("the device budget"),
+            "{label}: refused by the budget by name, not the device: {e}"
+        );
     }
 }

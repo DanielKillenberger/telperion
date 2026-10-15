@@ -87,6 +87,8 @@ pub fn log2(x: f32) -> f32 {
 /// `2^x`: none below 2^-126, the largest below 2^128 past it; `x` split
 /// into its nearest whole `n` and the rest `f` in [-1/2, 1/2], `2^f` by
 /// its Taylor series to the seventh power.
+// The series' coefficients are written out as the shaders write them.
+#[allow(clippy::approx_constant)]
 pub fn exp2(x: f32) -> f32 {
     if x < -126.0 {
         return 0.0;

@@ -19,7 +19,15 @@ pub(super) fn exact(dev: &Snapshot, cpu: &Snapshot) -> Agreement {
 }
 
 fn tables(s: &Snapshot) -> [&Table; 7] {
-    [&s.axes, &s.units, &s.phyts, &s.sleepers, &s.woken, &s.live, &s.pencils]
+    [
+        &s.axes,
+        &s.units,
+        &s.phyts,
+        &s.sleepers,
+        &s.woken,
+        &s.live,
+        &s.pencils,
+    ]
 }
 
 /// A field compared by lineage: its kind, the rows compared, those that
@@ -52,7 +60,10 @@ impl ByLineage {
             self.axes.0, self.axes.1, self.unmatched.0, self.unmatched.1
         );
         for m in self.fields.iter().filter(|m| m.differ > 0) {
-            out += &format!("{:>26} {:>10} rows {:>8} differ, worst relative {:.3e}\n", m.name, m.rows, m.differ, m.worst);
+            out += &format!(
+                "{:>26} {:>10} rows {:>8} differ, worst relative {:.3e}\n",
+                m.name, m.rows, m.differ, m.worst
+            );
         }
         out
     }
@@ -77,7 +88,11 @@ fn relative(kind: Kind, a: &[u32], b: &[u32]) -> f64 {
         return 0.0;
     }
     let scale = x.abs().max(y.abs());
-    if scale.is_finite() && scale > 0.0 { (x - y).abs() / scale } else { 1.0 }
+    if scale.is_finite() && scale > 0.0 {
+        (x - y).abs() / scale
+    } else {
+        1.0
+    }
 }
 
 /// Each axis's rows in a table kept in axis order: its first and count.
@@ -93,7 +108,11 @@ fn rows_by_axis(t: &Table) -> HashMap<u32, (usize, usize)> {
 fn fields(d: &Table, c: &Table, pairs: &[(usize, usize)], out: &mut Vec<Matched>) {
     for (fd, fc) in d.fields.iter().zip(&c.fields) {
         let w = fd.kind.words();
-        let mut m = Matched { name: fd.name.clone(), kind: Some(fd.kind), ..Matched::default() };
+        let mut m = Matched {
+            name: fd.name.clone(),
+            kind: Some(fd.kind),
+            ..Matched::default()
+        };
         for &(i, j) in pairs {
             let (a, b) = (&fd.words[w * i..w * i + w], &fc.words[w * j..w * j + w]);
             m.rows += 1;
@@ -124,17 +143,28 @@ fn keys(lineage: &[u64]) -> Vec<(u64, u32)> {
 
 /// The two trees matched by lineage.
 pub(super) fn by_lineage(dev: &Snapshot, cpu: &Snapshot) -> ByLineage {
-    let at: HashMap<(u64, u32), usize> = keys(&cpu.lineage).into_iter().enumerate().map(|(i, l)| (l, i)).collect();
+    let at: HashMap<(u64, u32), usize> = keys(&cpu.lineage)
+        .into_iter()
+        .enumerate()
+        .map(|(i, l)| (l, i))
+        .collect();
     let pairs: Vec<(usize, usize)> = (keys(&dev.lineage).iter().enumerate())
         .filter_map(|(i, l)| at.get(l).map(|&j| (i, j)))
         .collect();
     let mut out = ByLineage {
         axes: (dev.lineage.len(), cpu.lineage.len()),
-        unmatched: (dev.lineage.len() - pairs.len(), cpu.lineage.len() - pairs.len()),
+        unmatched: (
+            dev.lineage.len() - pairs.len(),
+            cpu.lineage.len() - pairs.len(),
+        ),
         fields: Vec::new(),
     };
     fields(&dev.axes, &cpu.axes, &pairs, &mut out.fields);
-    for (d, c) in [(&dev.units, &cpu.units), (&dev.phyts, &cpu.phyts), (&dev.pencils, &cpu.pencils)] {
+    for (d, c) in [
+        (&dev.units, &cpu.units),
+        (&dev.phyts, &cpu.phyts),
+        (&dev.pencils, &cpu.pencils),
+    ] {
         let (rd, rc) = (rows_by_axis(d), rows_by_axis(c));
         let mut rows = Vec::new();
         let mut short = 0;
@@ -146,7 +176,12 @@ pub(super) fn by_lineage(dev: &Snapshot, cpu: &Snapshot) -> ByLineage {
         }
         fields(d, c, &rows, &mut out.fields);
         let name = d.fields.first().map_or("rows", |f| f.name.as_str());
-        out.fields.push(Matched { name: format!("{name}: rows unmatched"), rows: rows.len(), differ: short, ..Matched::default() });
+        out.fields.push(Matched {
+            name: format!("{name}: rows unmatched"),
+            rows: rows.len(),
+            differ: short,
+            ..Matched::default()
+        });
     }
     out
 }

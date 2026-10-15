@@ -24,16 +24,26 @@ fn refused(families: &[(String, Family)]) -> Vec<String> {
     let gen = Generator::new(&renderer).expect("a generator");
     let mut out = Vec::new();
     for (name, family) in families {
-        let cpu = telperion_core::mesh::build(family).unwrap_or_else(|e| panic!("{name}: the CPU refused: {e}"));
-        assert!(cpu.foliage_instances() > 0 || family.age < 2.0, "{name}: the CPU built a bare tree");
+        let cpu = telperion_core::mesh::build(family)
+            .unwrap_or_else(|e| panic!("{name}: the CPU refused: {e}"));
+        assert!(
+            cpu.foliage_instances() > 0 || family.age < 2.0,
+            "{name}: the CPU built a bare tree"
+        );
         match gen.prepare(family, Delivery::Resident) {
             Ok(p) => {
                 assert_eq!(p.backend, Backend::Gpu, "{name}: built off the device");
-                println!("{name}: device {} instances, CPU {}", p.count(), cpu.foliage_instances());
+                println!(
+                    "{name}: device {} instances, CPU {}",
+                    p.count(),
+                    cpu.foliage_instances()
+                );
             }
             Err(e) => out.push(format!("{name}: {e}")),
         }
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("freed");
     }
     out
 }
@@ -44,7 +54,10 @@ fn refused(families: &[(String, Family)]) -> Vec<String> {
 fn walk_frames_near_the_beech_build_on_the_device() {
     let mut frames = Vec::new();
     for seed in [7, 1] {
-        let (a, b) = (at("european-beech", 40.0, seed), at("norway-spruce", 40.0, seed));
+        let (a, b) = (
+            at("european-beech", 40.0, seed),
+            at("norway-spruce", 40.0, seed),
+        );
         for t in [0.00037, 0.01, 0.1] {
             let family = telperion_core::blend::families(&a, &b, t).expect("a walk frame");
             frames.push((format!("beech to spruce at 40, seed {seed}, t {t}"), family));
@@ -81,7 +94,10 @@ const T: [f64; 6] = [0.0, 0.01, 0.1, 0.5, 0.9, 1.0];
 fn sweep_cases() -> Vec<(String, Family)> {
     let only = std::env::var("SWEEP_PRESETS").ok();
     let range = std::env::var("SWEEP_AGES").ok();
-    let range = range.as_deref().and_then(|r| r.split_once('-')).and_then(|(a, b)| Some((a.parse().ok()?, b.parse().ok()?)));
+    let range = range
+        .as_deref()
+        .and_then(|r| r.split_once('-'))
+        .and_then(|(a, b)| Some((a.parse().ok()?, b.parse().ok()?)));
     let walks = std::env::var("SWEEP_WALKS").ok();
     let mut out = Vec::new();
     if walks.as_deref() != Some("1") {
@@ -90,7 +106,10 @@ fn sweep_cases() -> Vec<(String, Family)> {
             let last = (by_identity(id).expect("a shipped preset").age.round() as u32).max(80);
             let (from, to) = range.unwrap_or((1, last));
             for age in from..=to.min(last) {
-                out.extend([1, 7, 42].map(|seed| (format!("{id} {age} {seed}"), at(id, f64::from(age), seed))));
+                out.extend(
+                    [1, 7, 42]
+                        .map(|seed| (format!("{id} {age} {seed}"), at(id, f64::from(age), seed))),
+                );
             }
         }
     }
@@ -128,14 +147,22 @@ fn every_tree_builds_on_the_device() {
         // other processes fill the card.
         let cap = super::resident::budget::native(&gpu, gpu.ledger.live()) >> 20;
         match gen.prepare(&family, Delivery::Resident) {
-            Ok(p) => println!("{name}: {} instances, {:.0} ms, cap {cap} MiB", p.count(), clock.elapsed_ms()),
-            Err(e) if super::io::over_budget(&e) || e.to_string().contains("engine's budget") => println!("{name}: refused by the budget (cap {cap} MiB): {e}"),
+            Ok(p) => println!(
+                "{name}: {} instances, {:.0} ms, cap {cap} MiB",
+                p.count(),
+                clock.elapsed_ms()
+            ),
+            Err(e) if super::io::over_budget(&e) || e.to_string().contains("engine's budget") => {
+                println!("{name}: refused by the budget (cap {cap} MiB): {e}")
+            }
             Err(e) => {
                 println!("{name}: REFUSED (cap {cap} MiB): {e}");
                 refused.push(format!("{name}: {e}"));
             }
         }
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("freed");
     }
     assert!(refused.is_empty(), "{refused:#?}");
 }
@@ -147,7 +174,10 @@ fn every_tree_builds_on_the_device() {
 #[test]
 #[ignore = "the spruce at 62 on the device under the native 4 GiB budget"]
 fn the_spruce_at_62_starts_with_room_to_move() {
-    let refused = refused_on_device(&[("norway-spruce at 62, seed 1".into(), at("norway-spruce", 62.0, 1))]);
+    let refused = refused_on_device(&[(
+        "norway-spruce at 62, seed 1".into(),
+        at("norway-spruce", 62.0, 1),
+    )]);
     assert!(refused.is_empty(), "{refused:#?}");
 }
 
@@ -166,7 +196,9 @@ fn refused_on_device(families: &[(String, Family)]) -> Vec<String> {
             Ok(p) => println!("{name}: {} instances, cap {cap} MiB", p.count()),
             Err(e) => out.push(format!("{name} (cap {cap} MiB): {e}")),
         }
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("freed");
     }
     out
 }

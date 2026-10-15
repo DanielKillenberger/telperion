@@ -19,7 +19,13 @@ use telperion_space::Capture;
 
 /// `columns` columns of `from`, `a` rows apart from word `at_a`, into
 /// `into`, `b` rows apart from word `at_b`, each `a` rows long.
-fn columns(e: &mut wgpu::CommandEncoder, (from, into): (&Owned, &Owned), columns: u64, (a, b): (u64, u64), (at_a, at_b): (u64, u64)) {
+fn columns(
+    e: &mut wgpu::CommandEncoder,
+    (from, into): (&Owned, &Owned),
+    columns: u64,
+    (a, b): (u64, u64),
+    (at_a, at_b): (u64, u64),
+) {
     for k in 0..columns {
         e.copy_buffer_to_buffer(from, 4 * (at_a + k * a), into, 4 * (at_b + k * b), 4 * a);
     }
@@ -27,7 +33,12 @@ fn columns(e: &mut wgpu::CommandEncoder, (from, into): (&Owned, &Owned), columns
 
 /// `old` kept where its rows did not grow, else a new buffer of `words`
 /// with `copy` submitted from it.
-fn kept(gpu: &Gpu, old: Owned, (grew, label, words): (bool, &'static str, u64), copy: &dyn Fn(&mut wgpu::CommandEncoder, &Owned, &Owned)) -> Result<Owned> {
+fn kept(
+    gpu: &Gpu,
+    old: Owned,
+    (grew, label, words): (bool, &'static str, u64),
+    copy: &dyn Fn(&mut wgpu::CommandEncoder, &Owned, &Owned),
+) -> Result<Owned> {
     if !grew {
         return Ok(old);
     }
@@ -43,7 +54,11 @@ impl State {
     async fn moved(self, gpu: &Gpu, n: super::state::Caps) -> Result<State> {
         let o = self.caps;
         let w = u64::from;
-        let table = |cols, (a, b): (u32, u32)| move |e: &mut wgpu::CommandEncoder, f: &Owned, t: &Owned| columns(e, (f, t), cols, (w(a), w(b)), (0, 0));
+        let table = |cols, (a, b): (u32, u32)| {
+            move |e: &mut wgpu::CommandEncoder, f: &Owned, t: &Owned| {
+                columns(e, (f, t), cols, (w(a), w(b)), (0, 0))
+            }
+        };
         let axes = (o.axes, n.axes);
         let lists = o.sleepers != n.sleepers || o.next != n.next || o.woken != n.woken;
         let copy_lists = |e: &mut wgpu::CommandEncoder, f: &Owned, t: &Owned| {
@@ -62,16 +77,54 @@ impl State {
         // A table group at a time, the device waited on after each so its
         // old tables are freed before the next group's are made: a move
         // holds one group twice at most (fn-270 R4).
-        let grown = kept(gpu, self.grown, (o.phyts != n.phyts, "cycle state phytomers grown", fresh[3]), &table(GROWN, phyts))?;
-        let laid = kept(gpu, self.laid, (o.phyts != n.phyts, "cycle state phytomers laid", fresh[4]), &table(LAID, phyts))?;
+        let grown = kept(
+            gpu,
+            self.grown,
+            (o.phyts != n.phyts, "cycle state phytomers grown", fresh[3]),
+            &table(GROWN, phyts),
+        )?;
+        let laid = kept(
+            gpu,
+            self.laid,
+            (o.phyts != n.phyts, "cycle state phytomers laid", fresh[4]),
+            &table(LAID, phyts),
+        )?;
         super::super::io::complete(gpu).await?;
-        let axes_t = kept(gpu, self.axes, (axes.0 != axes.1, "cycle state axes", fresh[0]), &table(AXES, axes))?;
-        let pencils = kept(gpu, self.pencils, (axes.0 != axes.1, "cycle state pencils", fresh[1]), &table(PENCILS, axes))?;
+        let axes_t = kept(
+            gpu,
+            self.axes,
+            (axes.0 != axes.1, "cycle state axes", fresh[0]),
+            &table(AXES, axes),
+        )?;
+        let pencils = kept(
+            gpu,
+            self.pencils,
+            (axes.0 != axes.1, "cycle state pencils", fresh[1]),
+            &table(PENCILS, axes),
+        )?;
         super::super::io::complete(gpu).await?;
-        let units = kept(gpu, self.units, (o.units != n.units, "cycle state units", fresh[2]), &table(UNITS, (o.units, n.units)))?;
-        let lists = kept(gpu, self.lists, (lists, "cycle state lists", fresh[5]), &copy_lists)?;
+        let units = kept(
+            gpu,
+            self.units,
+            (o.units != n.units, "cycle state units", fresh[2]),
+            &table(UNITS, (o.units, n.units)),
+        )?;
+        let lists = kept(
+            gpu,
+            self.lists,
+            (lists, "cycle state lists", fresh[5]),
+            &copy_lists,
+        )?;
         super::super::io::complete(gpu).await?;
-        Ok(State { caps: n, grown, laid, axes: axes_t, pencils, units, lists })
+        Ok(State {
+            caps: n,
+            grown,
+            laid,
+            axes: axes_t,
+            pencils,
+            units,
+            lists,
+        })
     }
 }
 
@@ -86,7 +139,13 @@ impl Hierarchy {
         columns(e, (&self.shape, &new.shape), SHAPE, (a, b), (0, 0));
         columns(e, (&self.counts, &new.counts), COUNTS, (a, b), (0, 0));
         for k in 0..2 {
-            columns(e, (&self.lists[k], &new.lists[k]), LISTS, (a + 64, b + 64), (0, 0));
+            columns(
+                e,
+                (&self.lists[k], &new.lists[k]),
+                LISTS,
+                (a + 64, b + 64),
+                (0, 0),
+            );
         }
         e.copy_buffer_to_buffer(&self.tally, 0, &new.tally, 0, self.tally.size());
         Ok(new)
@@ -100,7 +159,12 @@ impl Build {
     /// again, then that scratch made anew; every other buffer kept. A move
     /// holds no more than the old tables beside the new (fn-270 R4: the
     /// tables grow by observed counts, so moves are the rule).
-    pub(super) async fn moved(mut self, gpu: &Gpu, (t, tables): (&Tables, &Capture), (now, next): (Sizes, Sizes)) -> Result<Build> {
+    pub(super) async fn moved(
+        mut self,
+        gpu: &Gpu,
+        (t, tables): (&Tables, &Capture),
+        (now, next): (Sizes, Sizes),
+    ) -> Result<Build> {
         let (o, n) = (now.caps, next.caps);
         let (s, axes) = (n.axes, o.axes != n.axes);
         let live = axes || o.next != n.next;
@@ -137,13 +201,37 @@ impl Build {
             let (want, nodes) = next.lit();
             self.light.ensure(gpu, want, nodes)?;
         }
-        let new = |keep: Owned, grew: bool, label, words: u64| if grew { zeroed(gpu, label, words) } else { Ok(keep) };
+        let new = |keep: Owned, grew: bool, label, words: u64| {
+            if grew {
+                zeroed(gpu, label, words)
+            } else {
+                Ok(keep)
+            }
+        };
         let counts = device::counts(n, t.zones).words;
         Ok(Build {
-            sums: if live { Sums::alloc(gpu, s, n.next, t.pas)? } else { self.sums },
-            tree: new(self.tree, axes, "cycle tree", u64::from(hier_columns::TREE as u32 * s))?,
-            layout: if axes { Layout::new(gpu, &t.form, s)? } else { self.layout },
-            inputs: new(self.inputs, live, "cycle inputs", 2 * u64::from(n.next) + 7 * u64::from(s))?,
+            sums: if live {
+                Sums::alloc(gpu, s, n.next, t.pas)?
+            } else {
+                self.sums
+            },
+            tree: new(
+                self.tree,
+                axes,
+                "cycle tree",
+                u64::from(hier_columns::TREE as u32 * s),
+            )?,
+            layout: if axes {
+                Layout::new(gpu, &t.form, s)?
+            } else {
+                self.layout
+            },
+            inputs: new(
+                self.inputs,
+                live,
+                "cycle inputs",
+                2 * u64::from(n.next) + 7 * u64::from(s),
+            )?,
             counts: new(self.counts, counted, "cycle counts", counts)?,
             flags: new(self.flags, axes, "cycle flags", 2 * u64::from(s))?,
             scan_sums: new(self.scan_sums, axes, "cycle scan sums", sums_words(s, 1))?,
@@ -162,14 +250,24 @@ impl Build {
     /// cycle reads let go and the device waited on, so the settle's own
     /// are made in the room they held (fn-256 task 5: the Two Trees' settle
     /// passed the 4 GiB budget beside them).
-    pub(super) async fn settling(mut self, gpu: &Gpu, (t, tables): (&Tables, &Capture)) -> Result<Build> {
+    pub(super) async fn settling(
+        mut self,
+        gpu: &Gpu,
+        (t, tables): (&Tables, &Capture),
+    ) -> Result<Build> {
         let least = super::build_grow::Sizes::least();
         let s = 64;
         self.hier = Hierarchy::new(gpu, s, self.hier.cap)?;
         self.sums = Sums::alloc(gpu, s, s, t.pas)?;
         self.light = Light::new(gpu, &Cap(tables))?;
         self.compactor = super::compact::Compactor::new(gpu, least.caps, s)?;
-        for (b, label) in [(&mut self.tree, "cycle tree"), (&mut self.inputs, "cycle inputs"), (&mut self.counts, "cycle counts"), (&mut self.flags, "cycle flags"), (&mut self.scan_sums, "cycle scan sums")] {
+        for (b, label) in [
+            (&mut self.tree, "cycle tree"),
+            (&mut self.inputs, "cycle inputs"),
+            (&mut self.counts, "cycle counts"),
+            (&mut self.flags, "cycle flags"),
+            (&mut self.scan_sums, "cycle scan sums"),
+        ] {
             *b = zeroed(gpu, label, 4)?;
         }
         self.layout.lists = zeroed(gpu, "layout lists", 4)?;

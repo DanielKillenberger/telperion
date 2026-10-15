@@ -55,11 +55,25 @@ fn words(gpu: &Gpu, b: &wgpu::Buffer) -> Vec<u32> {
 
 fn storage(gpu: &Gpu, label: &'static str, init: &[u32]) -> Owned {
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-    io::buffer(gpu, label, 4 * init.len() as u64, usage, bytemuck::cast_slice(init)).expect("a buffer")
+    io::buffer(
+        gpu,
+        label,
+        4 * init.len() as u64,
+        usage,
+        bytemuck::cast_slice(init),
+    )
+    .expect("a buffer")
 }
 
 fn uniform(gpu: &Gpu, words: &[u32]) -> Owned {
-    io::buffer(gpu, "probe cfg", 4 * words.len() as u64, wgpu::BufferUsages::UNIFORM, bytemuck::cast_slice(words)).expect("a uniform")
+    io::buffer(
+        gpu,
+        "probe cfg",
+        4 * words.len() as u64,
+        wgpu::BufferUsages::UNIFORM,
+        bytemuck::cast_slice(words),
+    )
+    .expect("a uniform")
 }
 
 fn run(gpu: &Gpu, pass: &io::Pass, buffers: &[&wgpu::Buffer], groups: u32) {
@@ -82,19 +96,39 @@ fn every_fault_of_a_dispatch_reaches_the_tally() {
     let pass = io::Pass::new(&gpu, src, &reads, &["faults_main"]);
     let (n, groups) = (64 * 64, 64);
     // `layout.wgsl`'s `Cfg`: the axes' stride is `n`.
-    let cfg = uniform(&gpu, &[n, groups * 64, 1, 0, n, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    let cfg = uniform(
+        &gpu,
+        &[n, groups * 64, 1, 0, n, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    );
     let lost: Vec<u32> = (0..16)
         .map(|_| {
             let held = ["form", "units", "grown", "laid"].map(|l| storage(&gpu, l, &[0; 4]));
-            let (axes, pencils) = (storage(&gpu, "axes", &vec![0; 64 * n as usize]), storage(&gpu, "pencils", &[0; 4]));
-            let (lists, counts) = (storage(&gpu, "lists", &[0; 64]), storage(&gpu, "counts", &[0; 4]));
+            let (axes, pencils) = (
+                storage(&gpu, "axes", &vec![0; 64 * n as usize]),
+                storage(&gpu, "pencils", &[0; 4]),
+            );
+            let (lists, counts) = (
+                storage(&gpu, "lists", &[0; 64]),
+                storage(&gpu, "counts", &[0; 4]),
+            );
             let [form, units, grown, laid] = &held;
-            run(&gpu, &pass, &[&cfg, form, units, grown, laid, &axes, &pencils, &lists, &counts], groups);
+            run(
+                &gpu,
+                &pass,
+                &[
+                    &cfg, form, units, grown, laid, &axes, &pencils, &lists, &counts,
+                ],
+                groups,
+            );
             words(&gpu, &lists)[T_FAULT as usize]
         })
         .filter(|&tally| tally != 0x7f)
         .collect();
-    assert!(lost.is_empty(), "the tally lost a fault in {} of 16 dispatches: {lost:x?}", lost.len());
+    assert!(
+        lost.is_empty(),
+        "the tally lost a fault in {} of 16 dispatches: {lost:x?}",
+        lost.len()
+    );
 }
 
 /// A lateral counted while the round emits writes no axis: every word of
@@ -121,9 +155,20 @@ fn a_counted_lateral_writes_no_axis() {
     let axes = storage(&gpu, "probe axes", &fill);
     let counts = storage(&gpu, "probe counts", &vec![0; (nodes * t.rows) as usize]);
     let s = &b.state;
-    run(&gpu, &pass, &[&cfg, &t.table, &t.words, &b.inputs, &axes, &s.units, &s.grown, &s.lists, &counts], groups);
+    run(
+        &gpu,
+        &pass,
+        &[
+            &cfg, &t.table, &t.words, &b.inputs, &axes, &s.units, &s.grown, &s.lists, &counts,
+        ],
+        groups,
+    );
     let laterals: u64 = words(&gpu, &counts).iter().map(|&n| u64::from(n)).sum();
-    let written = words(&gpu, &axes).iter().zip(&fill).filter(|(a, f)| a != f).count();
+    let written = words(&gpu, &axes)
+        .iter()
+        .zip(&fill)
+        .filter(|(a, f)| a != f)
+        .count();
     println!("{laterals} laterals counted, {written} axis words written");
     assert!(laterals > 0, "the probe counted no lateral");
     assert_eq!(written, 0, "a counted lateral wrote {written} axis words");

@@ -50,7 +50,10 @@ pub fn grow_capture_units_at(species: &Species, request: Request, cycle: u32) ->
     let live = std::mem::take(&mut g.live);
     g.grow_live(live, cycle, &mut |_| {})?;
     g.wake(cycle)?;
-    assert!(g.asleep[cycle as usize].is_empty(), "the wake takes its cycle's buds");
+    assert!(
+        g.asleep[cycle as usize].is_empty(),
+        "the wake takes its cycle's buds"
+    );
     g.capture_state(&mut c, "out", &before);
     Ok(c)
 }
@@ -69,7 +72,13 @@ impl Before {
     /// Nothing before: every axis's units, phytomers and sleeping buds
     /// (from cycle 0 on) and every woken bud are taken as added.
     pub(super) fn nothing() -> Self {
-        Self { phyts: Vec::new(), units: Vec::new(), asleep: Vec::new(), woken: 0, cycle: 0 }
+        Self {
+            phyts: Vec::new(),
+            units: Vec::new(),
+            asleep: Vec::new(),
+            woken: 0,
+            cycle: 0,
+        }
     }
 
     fn of(g: &Grower, cycle: u32) -> Self {
@@ -99,7 +108,10 @@ impl Before {
 fn tk(t: f64) -> u32 {
     assert!(t >= 0.0 && grid(t) == t, "a time off the tick grid: {t}");
     let ticks = t * CYCLE;
-    assert!(ticks < f64::from(1u32 << 31), "a time past the columns: {t}");
+    assert!(
+        ticks < f64::from(1u32 << 31),
+        "a time past the columns: {t}"
+    );
     ticks as u32
 }
 
@@ -113,7 +125,13 @@ fn f(x: f64) -> f32 {
 fn origin(o: Origin) -> (u32, u32, u32, u64) {
     match o {
         Origin::Seed => (0, NONE, 0, 0),
-        Origin::Lateral { parent, node, slot, whorl, woken } => (
+        Origin::Lateral {
+            parent,
+            node,
+            slot,
+            whorl,
+            woken,
+        } => (
             1 | u32::from(slot) << 8 | u32::from(woken) << 16,
             parent as u32,
             node as u32,
@@ -139,9 +157,15 @@ impl Grower<'_> {
         c.f32s("pa_viability", &st(&|s| s.viability));
         c.f32s("pa_shade_hazard", &st(&|s| s.shade_hazard));
         c.f32s("pa_ground_hazard", &st(&|s| s.ground_hazard));
-        let sheds: Vec<u32> = states.iter().map(|s| u32::from(s.shedding.is_finite())).collect();
+        let sheds: Vec<u32> = states
+            .iter()
+            .map(|s| u32::from(s.shedding.is_finite()))
+            .collect();
         c.u32s("pa_sheds", &sheds);
-        let delay: Vec<u64> = states.iter().map(|s| (s.shedding + 1.0).to_bits()).collect();
+        let delay: Vec<u64> = states
+            .iter()
+            .map(|s| (s.shedding + 1.0).to_bits())
+            .collect();
         c.u64s("pa_delay", &delay);
         let mut windows = Vec::new();
         for stake in 0..3 {
@@ -155,7 +179,12 @@ impl Grower<'_> {
         }
         c.f32s("pa_windows", &windows);
         let buds: Vec<u64> = (states.iter())
-            .flat_map(|s| ALONG.iter().filter(|&&z| z < s.zones.len()).map(|&z| s.zones[z].buds))
+            .flat_map(|s| {
+                ALONG
+                    .iter()
+                    .filter(|&&z| z < s.zones.len())
+                    .map(|&z| s.zones[z].buds)
+            })
             .map(f64::to_bits)
             .collect();
         c.u64s("zone_buds", &buds);
@@ -198,8 +227,14 @@ impl Grower<'_> {
         c.u32s(&name("node"), &node);
         c.u64s(&name("whorl"), &whorl);
         c.u64s(&name("blend"), &ax64(&|i| self.axes[i].blend.to_bits()));
-        c.u32s(&name("apex_end"), &ax(&|i| self.axes[i].apex_end.map_or(0, |e| e + 1)));
-        c.u32s(&name("phyt_n"), &ax(&|i| self.axes[i].phytomers.len() as u32));
+        c.u32s(
+            &name("apex_end"),
+            &ax(&|i| self.axes[i].apex_end.map_or(0, |e| e + 1)),
+        );
+        c.u32s(
+            &name("phyt_n"),
+            &ax(&|i| self.axes[i].phytomers.len() as u32),
+        );
         c.u64s(&name("root"), &self.roots);
         c.u64s(&name("horizon"), &ax64(&|i| self.horizon[i].to_bits()));
         c.u32s(&name("spent"), &ax(&|i| tk(self.units[i])));
@@ -217,7 +252,10 @@ impl Grower<'_> {
         self.capture_added(c, prefix, before);
         let live: Vec<u32> = self.live.iter().map(|a| a.axis as u32).collect();
         c.u32s(&name("live_axis"), &live);
-        c.u32s(&name("live_spent"), &self.live.iter().map(|a| tk(a.spent)).collect::<Vec<_>>());
+        c.u32s(
+            &name("live_spent"),
+            &self.live.iter().map(|a| tk(a.spent)).collect::<Vec<_>>(),
+        );
         c.u64s(&name("grown"), &[self.rules.grown]);
     }
 
@@ -225,9 +263,16 @@ impl Grower<'_> {
     fn capture_draws(&self, c: &mut Capture, prefix: &str) {
         let name = |n: &str| format!("{prefix}_{n}");
         let d = &self.draws;
-        let ax = |g: &dyn Fn(&crate::presence::Draws) -> u32| -> Vec<u32> { d.iter().map(g).collect() };
-        c.u64s(&name("b0"), &d.iter().map(|x| x.birth[0].to_bits()).collect::<Vec<_>>());
-        c.u64s(&name("b1"), &d.iter().map(|x| x.birth[1].to_bits()).collect::<Vec<_>>());
+        let ax =
+            |g: &dyn Fn(&crate::presence::Draws) -> u32| -> Vec<u32> { d.iter().map(g).collect() };
+        c.u64s(
+            &name("b0"),
+            &d.iter().map(|x| x.birth[0].to_bits()).collect::<Vec<_>>(),
+        );
+        c.u64s(
+            &name("b1"),
+            &d.iter().map(|x| x.birth[1].to_bits()).collect::<Vec<_>>(),
+        );
         c.u32s(
             &name("flags"),
             &ax(&|x| {
@@ -240,7 +285,10 @@ impl Grower<'_> {
                     | u32::from(x.alive) << 6
             }),
         );
-        c.u32s(&name("below"), &ax(&|x| u32::try_from(x.below).expect("below a tick")));
+        c.u32s(
+            &name("below"),
+            &ax(&|x| u32::try_from(x.below).expect("below a tick")),
+        );
         c.u32s(&name("outlived"), &ax(&|x| x.outlived.map_or(0, tk)));
         c.u32s(&name("ended_relays"), &ax(&|x| x.ended_relays));
         c.u32s(&name("aged"), &ax(&|x| tk(x.aged)));
@@ -253,10 +301,16 @@ impl Grower<'_> {
     /// `before`, by axis (and by the cycle they wake in).
     fn capture_added(&self, c: &mut Capture, prefix: &str, before: &Before) {
         let name = |n: &str| format!("{prefix}_{n}");
-        let (mut ua, mut us, mut up, mut ush, mut usz, mut ushade) = (vec![], vec![], vec![], vec![], vec![], vec![]);
+        let (mut ua, mut us, mut up, mut ush, mut usz, mut ushade) =
+            (vec![], vec![], vec![], vec![], vec![], vec![]);
         for (i, d) in self.draws.iter().enumerate() {
             assert_eq!(d.shade.len(), d.units.len(), "a shade a unit");
-            for (k, u) in d.units.iter().enumerate().skip(before.units.get(i).copied().unwrap_or(0)) {
+            for (k, u) in d
+                .units
+                .iter()
+                .enumerate()
+                .skip(before.units.get(i).copied().unwrap_or(0))
+            {
                 ua.push(i as u32);
                 us.push(f(u.survive));
                 up.push(f(u.persist));
@@ -287,7 +341,9 @@ impl Grower<'_> {
         c.f32s(&name("phyt_node"), &pn);
         self.capture_asleep(c, prefix, before);
         let woken = &self.woken[before.woken..];
-        let w = |g: &dyn Fn(&crate::dormant::Woken) -> u32| -> Vec<u32> { woken.iter().map(g).collect() };
+        let w = |g: &dyn Fn(&crate::dormant::Woken) -> u32| -> Vec<u32> {
+            woken.iter().map(g).collect()
+        };
         c.u32s(&name("woken_axis"), &w(&|x| x.axis as u32));
         c.u32s(&name("woken_bearer"), &w(&|x| x.bearer as u32));
         c.u32s(&name("woken_next"), &w(&|x| x.next as u32));
@@ -323,7 +379,9 @@ impl Grower<'_> {
                 key.push(s.key);
             }
         }
-        let names = ["wake", "parent", "node", "unit", "slot", "pa", "own", "sleep", "slept"];
+        let names = [
+            "wake", "parent", "node", "unit", "slot", "pa", "own", "sleep", "slept",
+        ];
         for (n, col) in names.iter().zip(&cols) {
             c.u32s(&name(n), col);
         }

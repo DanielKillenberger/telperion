@@ -72,11 +72,21 @@ fn report(table: &str, d: &Table, c: &Table, pairs: &[(usize, usize)]) {
                 let (x, y) = (value(fd.kind, a), value(fd.kind, b));
                 let scale = x.abs().max(y.abs());
                 abs.push((x - y).abs());
-                rel.push(if x == y { 0.0 } else if scale.is_finite() && scale > 0.0 { (x - y).abs() / scale } else { 1.0 });
+                rel.push(if x == y {
+                    0.0
+                } else if scale.is_finite() && scale > 0.0 {
+                    (x - y).abs() / scale
+                } else {
+                    1.0
+                });
             }
         }
         if rel.is_empty() {
-            println!("FIELD {table} {:>22} integer {:>9} rows, {differ} differ", fd.name, pairs.len());
+            println!(
+                "FIELD {table} {:>22} integer {:>9} rows, {differ} differ",
+                fd.name,
+                pairs.len()
+            );
             continue;
         }
         let tail = |v: &mut Vec<f64>| {
@@ -93,14 +103,29 @@ fn report(table: &str, d: &Table, c: &Table, pairs: &[(usize, usize)]) {
 
 /// The two laid trees by lineage, reported.
 fn compared(label: &str, dev: &Snapshot, cpu: &Snapshot) {
-    let at: HashMap<(u64, u32), usize> = keys(&cpu.lineage).into_iter().enumerate().map(|(i, l)| (l, i)).collect();
-    let pairs: Vec<(usize, usize)> = keys(&dev.lineage).iter().enumerate().filter_map(|(i, l)| at.get(l).map(|&j| (i, j))).collect();
+    let at: HashMap<(u64, u32), usize> = keys(&cpu.lineage)
+        .into_iter()
+        .enumerate()
+        .map(|(i, l)| (l, i))
+        .collect();
+    let pairs: Vec<(usize, usize)> = keys(&dev.lineage)
+        .iter()
+        .enumerate()
+        .filter_map(|(i, l)| at.get(l).map(|&j| (i, j)))
+        .collect();
     println!(
         "{label}: axes device {} cpu {}, unmatched device {} cpu {}",
-        dev.lineage.len(), cpu.lineage.len(), dev.lineage.len() - pairs.len(), cpu.lineage.len() - pairs.len()
+        dev.lineage.len(),
+        cpu.lineage.len(),
+        dev.lineage.len() - pairs.len(),
+        cpu.lineage.len() - pairs.len()
     );
     report("axes", &dev.axes, &cpu.axes, &pairs);
-    for (name, d, c) in [("units", &dev.units, &cpu.units), ("phytomers", &dev.phyts, &cpu.phyts), ("pencils", &dev.pencils, &cpu.pencils)] {
+    for (name, d, c) in [
+        ("units", &dev.units, &cpu.units),
+        ("phytomers", &dev.phyts, &cpu.phyts),
+        ("pencils", &dev.pencils, &cpu.pencils),
+    ] {
         let (rd, rc) = (rows_by_axis(d), rows_by_axis(c));
         let (mut rows, mut short) = (Vec::new(), 0);
         let total = |t: &Table| t.axis.len();
@@ -132,11 +157,16 @@ fn default_ages_laid_plain_by_lineage() {
     let k = Kernels::new(&gpu);
     for (preset, name) in PRESETS.into_iter().filter(|p| p.1 == only) {
         let given = |k: &str| std::env::var(k).ok().and_then(|v| v.parse().ok());
-        let (age, seed) = (given("SETTLE_AGE").unwrap_or(preset.parameters().age as u32), given("SETTLE_SEED").unwrap_or(42));
+        let (age, seed) = (
+            given("SETTLE_AGE").unwrap_or(preset.parameters().age as u32),
+            given("SETTLE_SEED").unwrap_or(42),
+        );
         let g = grown(preset, age, u64::from(seed));
         let (b, s, dev, beside) = settled(&gpu, (&kit, &k), &g, SettleTo::Laid);
         drop((s, b));
-        let capture = telperion_space::grow_capture_settled_at(&g.species, g.request, SettleTo::Laid).expect("the CPU's tree");
+        let capture =
+            telperion_space::grow_capture_settled_at(&g.species, g.request, SettleTo::Laid)
+                .expect("the CPU's tree");
         let cpu = cpu_settled(&Cap(&capture), SettleTo::Laid);
         drop(capture);
         let mean = |v: &[u64]| v.get(1).map(|&m| f64::from_bits(m));

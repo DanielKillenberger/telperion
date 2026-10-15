@@ -27,7 +27,9 @@ const PIPELINED: u32 = 120;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let [id, rest @ ..] = &args[..] else {
-        return Err("usage: frames <preset> [full|relief-off|parallax-off|no-rachis] [view...]".into());
+        return Err(
+            "usage: frames <preset> [full|relief-off|parallax-off|no-rachis] [view...]".into(),
+        );
     };
     let variant = rest.first().map_or("full", String::as_str);
     let mut family = Preset::from_id(id).ok_or("no preset")?.parameters();

@@ -306,7 +306,10 @@ fn landing_on_the_ground_walks_by_degree() {
     // change no more than four times the noise floor is the arithmetic's.
     let refined = walk::refine(&setting, 1, worst.from, worst.to, 5, 8);
     let (jumps, floor) = refined.jumps(&setting, 1, 100.0);
-    println!("landing: changes {:?}, noise floor {floor:?}", refined.changes);
+    println!(
+        "landing: changes {:?}, noise floor {floor:?}",
+        refined.changes
+    );
     assert!(!jumps, "a jump: {:?}, floor {floor:?}", refined.changes);
 }
 

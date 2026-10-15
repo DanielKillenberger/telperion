@@ -12,8 +12,8 @@ use super::super::compute::{self, Placement};
 use super::super::cycle::tree::{self, Kernels};
 use super::super::{data, io, Backend, Clock, Generator, Metrics, Prepared, Resident};
 use super::boots::Hanger;
-use super::fold::{Dressed, Dresser};
 use super::florets::Organ;
+use super::fold::{Dressed, Dresser};
 use super::handoff::{union, Handoff};
 use super::rings::Ringer;
 use super::stations::{station_rows, Stationed, Stationer};
@@ -45,9 +45,22 @@ impl Tools {
         let ((hanger, dresser), ((sweeper, stationer), (ringer, handoff))) = pair(
             gpu,
             || pair(gpu, || Hanger::new(gpu), || Dresser::new(gpu)),
-            || pair(gpu, || pair(gpu, || Sweeper::new(gpu), || Stationer::new(gpu)), || pair(gpu, || Ringer::new(gpu), || Handoff::new(gpu))),
+            || {
+                pair(
+                    gpu,
+                    || pair(gpu, || Sweeper::new(gpu), || Stationer::new(gpu)),
+                    || pair(gpu, || Ringer::new(gpu), || Handoff::new(gpu)),
+                )
+            },
         );
-        Self { hanger, dresser, sweeper, stationer, ringer, handoff }
+        Self {
+            hanger,
+            dresser,
+            sweeper,
+            stationer,
+            ringer,
+            handoff,
+        }
     }
 }
 
@@ -86,7 +99,11 @@ pub(super) struct Built {
 
 /// `work` awaited and its device work waited for, its milliseconds in
 /// `time`: each stage's own, natively and in a browser alike.
-pub(super) async fn stage<T>(gpu: &Gpu, time: &mut f64, work: impl AsyncFnOnce() -> Result<T>) -> Result<T> {
+pub(super) async fn stage<T>(
+    gpu: &Gpu,
+    time: &mut f64,
+    work: impl AsyncFnOnce() -> Result<T>,
+) -> Result<T> {
     let t = Clock::now();
     let out = work().await?;
     io::complete(gpu).await?;
@@ -129,8 +146,18 @@ pub(super) async fn crowned(
     let growth = executor::growth(family)?;
     placeable(family)?;
     let mut t = Timed::default();
-    let drawn = stage(gpu, &mut t.settle, async || tree::drawn(gpu, k, &growth).await).await?;
-    placed(gpu, (gen, tools), (family, &growth), (drawn, growth.year(fraction)), t).await
+    let drawn = stage(gpu, &mut t.settle, async || {
+        tree::drawn(gpu, k, &growth).await
+    })
+    .await?;
+    placed(
+        gpu,
+        (gen, tools),
+        (family, &growth),
+        (drawn, growth.year(fraction)),
+        t,
+    )
+    .await
 }
 
 /// `family`'s leaves refused where the device places them on neither
@@ -138,7 +165,9 @@ pub(super) async fn crowned(
 pub(super) fn placeable(family: &Family) -> Result<()> {
     match executor::stations(family) {
         true => Ok(()),
-        false => Err(refused("leaves the device places on neither twig stations nor a rosette")),
+        false => Err(refused(
+            "leaves the device places on neither twig stations nor a rosette",
+        )),
     }
 }
 
@@ -170,7 +199,16 @@ pub(super) async fn placed(
             return Err(Error::ResourceLimit("the device's crown front").into());
         }
         let (root, stem) = (trunk.root, trunk.stem);
-        Ok(executor::resident(family, Summaries { folds, crown, corners, root, stem })?)
+        Ok(executor::resident(
+            family,
+            Summaries {
+                folds,
+                crown,
+                corners,
+                root,
+                stem,
+            },
+        )?)
     })
     .await?;
     let seats = x.seats();
@@ -182,7 +220,9 @@ pub(super) async fn placed(
     let sweeper = &tools.sweeper;
     let rows = rows(surface, height);
     let swept = stage(gpu, &mut t.sweep, async || {
-        sweeper.sweep(gpu, &dressed, rows, hung.cells.as_ref()).await
+        sweeper
+            .sweep(gpu, &dressed, rows, hung.cells.as_ref())
+            .await
     })
     .await?;
     let ids = dressed.ids;

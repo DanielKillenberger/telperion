@@ -20,7 +20,12 @@ pub(super) fn constants(g: &Grown) -> Vec<u32> {
 }
 
 /// The device's tree grown and settled as far as `to`, read back.
-pub(super) fn settled(gpu: &Gpu, (kit, k): (&Kit, &Kernels), g: &Grown, to: SettleTo) -> (Build, Settled, Snapshot, Beside) {
+pub(super) fn settled(
+    gpu: &Gpu,
+    (kit, k): (&Kit, &Kernels),
+    g: &Grown,
+    to: SettleTo,
+) -> (Build, Settled, Snapshot, Beside) {
     let (b, _) = built(gpu, kit, g, g.request.age);
     let t = Tables::new(gpu, &g.tables, &g.chain).expect("tables");
     let s = settle(gpu, (kit, k), (&b, &t), (&constants(g), to)).expect("a settle");
@@ -39,7 +44,8 @@ fn young_trees_settle_as_the_cpu(to: SettleTo) {
     let mut apart = Vec::new();
     for (preset, name, age) in YOUNG {
         let g = grown(preset, age, 42);
-        let capture = telperion_space::grow_capture_settled_at(&g.species, g.request, to).expect("the CPU's tree");
+        let capture = telperion_space::grow_capture_settled_at(&g.species, g.request, to)
+            .expect("the CPU's tree");
         let cpu = cpu_settled(&Cap(&capture), to);
         let (_, s, dev, beside) = settled(&gpu, (&kit, &k), &g, to);
         let found = held((&dev, &beside), (&cpu.0, &cpu.1));
@@ -51,7 +57,10 @@ fn young_trees_settle_as_the_cpu(to: SettleTo) {
         );
         apart.extend(found.into_iter().map(|f| format!("{name}: {f}")));
     }
-    assert!(apart.is_empty(), "the device's settled trees are apart from the CPU's: {apart:#?}");
+    assert!(
+        apart.is_empty(),
+        "the device's settled trees are apart from the CPU's: {apart:#?}"
+    );
 }
 
 /// What breaks the ruled standard between the device's settle and the
@@ -62,7 +71,12 @@ pub(super) fn held(dev: (&Snapshot, &Beside), cpu: (&Snapshot, &Beside)) -> Vec<
     let mut found = super::ruled::findings(&by);
     let mut a = Agreement::default();
     beside_agree(&mut a, dev.1, cpu.1);
-    found.extend(a.fields.iter().filter(|f| f.2 > 0).map(|f| format!("{}: {}", f.0, f.3)));
+    found.extend(
+        a.fields
+            .iter()
+            .filter(|f| f.2 > 0)
+            .map(|f| format!("{}: {}", f.0, f.3)),
+    );
     found
 }
 
@@ -104,10 +118,14 @@ fn a_tree_without_phytomers_collapses_on_the_device_as_on_the_cpu() {
     }
     g.tables = telperion_space::grow_capture_tables(&g.species, g.request).expect("tables");
     g.chain = telperion_space::ChainTables::cycle(&g.species, g.request.age).expect("chain tables");
-    let capture = telperion_space::grow_capture_settled_at(&g.species, g.request, SettleTo::Shed).expect("the CPU's tree");
+    let capture = telperion_space::grow_capture_settled_at(&g.species, g.request, SettleTo::Shed)
+        .expect("the CPU's tree");
     let cpu = cpu_settled(&Cap(&capture), SettleTo::Shed);
     let (_, s, dev, beside) = settled(&gpu, (&kit, &k), &g, SettleTo::Shed);
     assert_eq!(s.error[0], 1, "the device's tree collapsed");
     let found = held((&dev, &beside), (&cpu.0, &cpu.1));
-    assert!(found.is_empty(), "the device's collapse is the CPU's: {found:?}");
+    assert!(
+        found.is_empty(),
+        "the device's collapse is the CPU's: {found:?}"
+    );
 }

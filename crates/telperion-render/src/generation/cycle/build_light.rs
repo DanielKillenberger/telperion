@@ -11,7 +11,13 @@ use crate::{Gpu, Result};
 
 fn storage(gpu: &Gpu, label: &'static str, words: u64, init: &[u32]) -> Result<Owned> {
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-    io::buffer(gpu, label, words.max(4) * 4, usage, bytemuck::cast_slice(init))
+    io::buffer(
+        gpu,
+        label,
+        words.max(4) * 4,
+        usage,
+        bytemuck::cast_slice(init),
+    )
 }
 
 /// The light's buffers, at capacities grown as the tree asks.
@@ -83,7 +89,14 @@ impl Light {
             tips_cap: 0,
             nodes_cap: 0,
         };
-        out.ensure(gpu, Lit { leaves: 1024, tips: 1024 }, 4096)?;
+        out.ensure(
+            gpu,
+            Lit {
+                leaves: 1024,
+                tips: 1024,
+            },
+            4096,
+        )?;
         Ok(out)
     }
 
@@ -109,7 +122,12 @@ impl Light {
             self.quanta = storage(gpu, "light quanta", u64::from(cap), &[])?;
             self.field = storage(gpu, "light field", u64::from(cap), &[])?;
             // Each direction's depth, an f32 a node.
-            self.depths = storage(gpu, "light depths", u64::from(self.n_dirs) * u64::from(cap), &[])?;
+            self.depths = storage(
+                gpu,
+                "light depths",
+                u64::from(self.n_dirs) * u64::from(cap),
+                &[],
+            )?;
         }
         self.nodes_cap = cap;
         Ok(())
@@ -118,7 +136,14 @@ impl Light {
     #[cfg(test)]
     /// The bytes the light holds resident and as scratch.
     pub(super) fn bytes(&self) -> (u64, u64) {
-        let b = [&self.points, &self.reads, &self.state, &self.grid, &self.quanta, &self.field];
+        let b = [
+            &self.points,
+            &self.reads,
+            &self.state,
+            &self.grid,
+            &self.quanta,
+            &self.field,
+        ];
         (b.iter().map(|b| b.size()).sum(), self.depths.size())
     }
 
@@ -126,7 +151,14 @@ impl Light {
     /// the leaves and tips none (the device writes them), its sweep chunk
     /// and its range's first item, and the directions.
     pub(super) fn words(&self, (chunk, base): (u32, u32)) -> Vec<u32> {
-        cfg([0, 0], (self.n_dirs, self.nodes_cap), (self.lit, self.dormant), (chunk, base), (self.reach, self.open), &self.dirs)
+        cfg(
+            [0, 0],
+            (self.n_dirs, self.nodes_cap),
+            (self.lit, self.dormant),
+            (chunk, base),
+            (self.reach, self.open),
+            &self.dirs,
+        )
     }
 
     /// The workgroups a sweep's dispatch takes: a tile of every direction
@@ -134,12 +166,23 @@ impl Light {
     /// layers.
     pub(super) fn sweep_tiles(&self, (x, y): (E, E)) -> E {
         let more = E::C(self.reach * (LAYERS - 1));
-        x.add(more.clone()).div(E::C(TILE)).mul(y.add(more).div(E::C(TILE))).mul(E::C(self.n_dirs))
+        x.add(more.clone())
+            .div(E::C(TILE))
+            .mul(y.add(more).div(E::C(TILE)))
+            .mul(E::C(self.n_dirs))
     }
 
     /// The buffers a dispatch binds after its uniform.
     pub(super) fn buffers(&self) -> [&wgpu::Buffer; 7] {
-        [&self.points, &self.state, &self.grid, &self.quanta, &self.field, &self.depths, &self.reads]
+        [
+            &self.points,
+            &self.state,
+            &self.grid,
+            &self.quanta,
+            &self.field,
+            &self.depths,
+            &self.reads,
+        ]
     }
 }
 
@@ -148,7 +191,16 @@ impl Light {
 const GRID: u64 = 12;
 /// The box's state before a cycle: its least and most nodes none yet, no
 /// error, no leaf with area.
-pub(super) const START: [u32; 8] = [i32::MAX as u32, i32::MAX as u32, i32::MAX as u32, i32::MIN as u32, i32::MIN as u32, i32::MIN as u32, 0, i32::MIN as u32];
+pub(super) const START: [u32; 8] = [
+    i32::MAX as u32,
+    i32::MAX as u32,
+    i32::MAX as u32,
+    i32::MIN as u32,
+    i32::MIN as u32,
+    i32::MIN as u32,
+    0,
+    i32::MIN as u32,
+];
 
 /// The sweep's tile, a side's cells, and the layers a dispatch takes
 /// (`light_sweep.wgsl`): its workgroup's memory holds two layers of
@@ -169,9 +221,29 @@ pub(super) fn sweeps_of(layers: u32) -> u32 {
 }
 
 /// A dispatch's uniform words (`light.wgsl`'s `Cfg`).
-pub(super) fn cfg([leaves, tips]: [u32; 2], (dirs, capacity): (u32, u32), (lit, dormant): (bool, bool), (chunk, base): (u32, u32), (reach, open): (u32, f32), sky: &[u32]) -> Vec<u32> {
+pub(super) fn cfg(
+    [leaves, tips]: [u32; 2],
+    (dirs, capacity): (u32, u32),
+    (lit, dormant): (bool, bool),
+    (chunk, base): (u32, u32),
+    (reach, open): (u32, f32),
+    sky: &[u32],
+) -> Vec<u32> {
     let row = super::plan::MAXX * 64;
-    let mut words = vec![leaves, tips, dirs, capacity, u32::from(lit), row, chunk, reach, base, 1, open.to_bits(), u32::from(dormant)];
+    let mut words = vec![
+        leaves,
+        tips,
+        dirs,
+        capacity,
+        u32::from(lit),
+        row,
+        chunk,
+        reach,
+        base,
+        1,
+        open.to_bits(),
+        u32::from(dormant),
+    ];
     words.extend(sky);
     words.resize(12 + 8 * DIRECTIONS, 0);
     words
@@ -189,8 +261,15 @@ pub(super) fn sky(k: f64, directions: &[u64]) -> (Vec<u32>, u32) {
         let [ox, oy, path, share] = d.map(f64::from_bits);
         let (a, b) = (ox.floor(), oy.floor());
         let (tx, ty) = (ox - a, oy - b);
-        let w = [(1.0 - tx) * (1.0 - ty), (1.0 - tx) * ty, tx * (1.0 - ty), tx * ty];
-        reach = reach.max((a as i32).unsigned_abs()).max((b as i32).unsigned_abs());
+        let w = [
+            (1.0 - tx) * (1.0 - ty),
+            (1.0 - tx) * ty,
+            tx * (1.0 - ty),
+            tx * ty,
+        ];
+        reach = reach
+            .max((a as i32).unsigned_abs())
+            .max((b as i32).unsigned_abs());
         words.extend([a as i32 as u32, b as i32 as u32]);
         words.extend(w.map(|w| (w as f32).to_bits()));
         words.extend([((k * path) as f32).to_bits(), (share as f32).to_bits()]);
@@ -205,14 +284,21 @@ const F_LEAF_AREA: usize = 18;
 
 /// Whether no PA deposits leaf area: every leaf's area is nothing.
 fn leafless(tables: &Cap) -> bool {
-    tables.f32s("lay_form").chunks(FORM).all(|row| row[F_LEAF_AREA] == 0.0)
+    tables
+        .f32s("lay_form")
+        .chunks(FORM)
+        .all(|row| row[F_LEAF_AREA] == 0.0)
 }
 
 /// A node's light at no depth: the directions' shares, each times
 /// `exp(-0)`, summed in order, held to one and rounded to f32, as the CPU
 /// takes them.
 pub(super) fn open_light(directions: &[u64]) -> f32 {
-    let sum = directions.as_chunks::<4>().0.iter().fold(0.0, |s, d| s + f64::from_bits(d[3]));
+    let sum = directions
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .fold(0.0, |s, d| s + f64::from_bits(d[3]));
     sum.clamp(0.0, 1.0) as f32
 }
 
@@ -223,5 +309,8 @@ pub(super) fn open(directions: &[u64]) -> bool {
 
 /// The refusals in an errors word, by name.
 pub(super) fn refusals(errors: u32) -> Vec<&'static str> {
-    (0..REFUSALS.len()).filter(|b| errors >> b & 1 == 1).map(|b| REFUSALS[b]).collect()
+    (0..REFUSALS.len())
+        .filter(|b| errors >> b & 1 == 1)
+        .map(|b| REFUSALS[b])
+        .collect()
 }

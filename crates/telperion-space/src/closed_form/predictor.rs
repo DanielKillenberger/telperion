@@ -36,7 +36,6 @@ pub(crate) struct Predictor {
 }
 
 impl Predictor {
-
     /// The counts of `species` grown to `age` under `windows`, the tree's,
     /// for every PA a bud can grow in and every age 0 to the tree's: the
     /// walk the rows' counts are held to (`tests.rs`).

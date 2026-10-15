@@ -385,4 +385,3 @@ fn a_stem_born_on_a_stem_leaves_from_a_socket_not_the_ground() {
         fork.position.y
     );
 }
-

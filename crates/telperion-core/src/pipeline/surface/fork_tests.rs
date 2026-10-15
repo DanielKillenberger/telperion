@@ -198,10 +198,7 @@ fn a_grown_clump_parts_cleanly_and_one_at_the_ground_is_untouched() {
     assert!((lean(off[0]) - 24.0).abs() < 2.0);
     // At the ground no node is a fork: both stems leave the root.
     let (_, tree) = grown(0.0);
-    assert!(!super::paths::paths(&tree)
-        .unwrap()
-        .forks
-        .contains(&true));
+    assert!(!super::paths::paths(&tree).unwrap().forks.contains(&true));
 }
 
 #[test]

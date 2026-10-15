@@ -79,7 +79,10 @@ fn a_crown_of_small_leaves_draws_fewer_and_covers_the_same() {
     };
     let (whole, bare, drawn) = pair(96);
     let (fine_whole, fine_bare, fine_drawn) = pair(384);
-    let (small, large) = (covered(&whole, &bare, 1), covered(&fine_whole, &fine_bare, 4));
+    let (small, large) = (
+        covered(&whole, &bare, 1),
+        covered(&fine_whole, &fine_bare, 4),
+    );
     eprintln!("drawn {drawn} of {crown} at 96 px, {fine_drawn} at 384; covered {small:.4} against {large:.4}");
     assert!(
         f64::from(drawn) < 0.5 * f64::from(fine_drawn),

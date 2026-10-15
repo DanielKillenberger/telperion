@@ -136,10 +136,20 @@ fn the_earliest_failing_stage_answers() {
             schedule,
             ..Request::mesh()
         };
-        let error = outputs(&tree, &Inputs::of(&family, family.skeleton.envelope), request).err();
+        let error = outputs(
+            &tree,
+            &Inputs::of(&family, family.skeleton.envelope),
+            request,
+        )
+        .err();
         assert_eq!(error, Some(Error::InvalidInput("surface parameters")));
     }
-    let error = outputs(&tree, &Inputs::of(&family, family.skeleton.envelope), request(false, true, false)).err();
+    let error = outputs(
+        &tree,
+        &Inputs::of(&family, family.skeleton.envelope),
+        request(false, true, false),
+    )
+    .err();
     assert_eq!(error, Some(Error::InvalidInput("shell depth")));
 }
 
@@ -159,7 +169,12 @@ fn the_wood_fails_before_the_plan() {
                 schedule,
                 ..Request::mesh()
             };
-            let error = outputs(&tree, &Inputs::of(&family, family.skeleton.envelope), request).err();
+            let error = outputs(
+                &tree,
+                &Inputs::of(&family, family.skeleton.envelope),
+                request,
+            )
+            .err();
             let surface = Some(Error::InvalidInput("surface parameters"));
             assert_eq!(error, surface, "{contact} {schedule:?}");
         }
@@ -173,7 +188,12 @@ fn the_element_fails_before_the_twig_rows() {
     let tree = scaffold(&family).unwrap();
     family.skeleton.twigs.twig.diameter = -1.0;
     family.element.axial_segments = 0;
-    let error = outputs(&tree, &Inputs::of(&family, family.skeleton.envelope), request(false, true, false)).err();
+    let error = outputs(
+        &tree,
+        &Inputs::of(&family, family.skeleton.envelope),
+        request(false, true, false),
+    )
+    .err();
     assert_eq!(error, Some(Error::InvalidInput("leaf segments")));
 }
 
@@ -187,10 +207,26 @@ fn the_leaves_own_rings_fail_after_the_plan() {
     family.surface.radial_segments = 0;
     let leaves = request(false, true, false);
     let surface = Some(Error::InvalidInput("surface parameters"));
-    assert_eq!(outputs(&tree, &Inputs::of(&family, family.skeleton.envelope), leaves).err(), surface);
+    assert_eq!(
+        outputs(
+            &tree,
+            &Inputs::of(&family, family.skeleton.envelope),
+            leaves
+        )
+        .err(),
+        surface
+    );
     family.element.axial_segments = 0;
     let element = Some(Error::InvalidInput("leaf segments"));
-    assert_eq!(outputs(&tree, &Inputs::of(&family, family.skeleton.envelope), leaves).err(), element);
+    assert_eq!(
+        outputs(
+            &tree,
+            &Inputs::of(&family, family.skeleton.envelope),
+            leaves
+        )
+        .err(),
+        element
+    );
 }
 
 /// Every shipped preset builds every artifact kind through the pipeline, one
@@ -207,7 +243,11 @@ fn every_shipped_preset_builds_every_artifact_through_the_pipeline() {
         let grown = skeleton(GrowInput::of(&family));
         if family.space.species.is_none() {
             let refused = grown.err();
-            assert_eq!(refused, Some(Error::InvalidInput("no engine species")), "{id}");
+            assert_eq!(
+                refused,
+                Some(Error::InvalidInput("no engine species")),
+                "{id}"
+            );
             continue;
         }
         let mut tree = grown

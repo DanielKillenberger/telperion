@@ -31,7 +31,11 @@ fn apart(dev: &[Node], tree: &telperion_core::tree::Tree) -> Apart {
         by_key.insert(tree.key(i), i);
         by_identity.insert(tree.nodes[i].identity.birth_order(), i);
     }
-    let mut out = Apart { device: dev.len(), cpu: tree.nodes.len() - 1, ..Apart::default() };
+    let mut out = Apart {
+        device: dev.len(),
+        cpu: tree.nodes.len() - 1,
+        ..Apart::default()
+    };
     for d in dev {
         let found = match d.identity {
             Some(k) => by_identity.get(&k),
@@ -41,7 +45,11 @@ fn apart(dev: &[Node], tree: &telperion_core::tree::Tree) -> Apart {
         let n = &tree.nodes[i];
         let p = [n.position.x, n.position.y, n.position.z];
         let r = [n.radius, n.start_radius, n.base_radius];
-        let most = |a: [f32; 3], b: [f64; 3]| (0..3).map(|c| (f64::from(a[c]) - b[c]).abs()).fold(0.0, f64::max);
+        let most = |a: [f32; 3], b: [f64; 3]| {
+            (0..3)
+                .map(|c| (f64::from(a[c]) - b[c]).abs())
+                .fold(0.0, f64::max)
+        };
         out.matched += 1;
         out.position = out.position.max(most(d.position, p));
         out.radius = out.radius.max(most(d.radii, r));
@@ -52,7 +60,8 @@ fn apart(dev: &[Node], tree: &telperion_core::tree::Tree) -> Apart {
         out.retention += usize::from(!tree.leafing.is_empty() && d.retention != (l.keep, l.was));
         let (fall, colour, regrow, life) = d.season;
         let shares = [(fall, u.fall), (colour, u.colour), (regrow, u.regrow)];
-        let apart = shares.iter().any(|(a, b)| (a - b).abs() > 1e-4) || life.abs_diff(u32::from(u.life)) > 1;
+        let apart = shares.iter().any(|(a, b)| (a - b).abs() > 1e-4)
+            || life.abs_diff(u32::from(u.life)) > 1;
         out.season += usize::from(!tree.unfolding.is_empty() && apart);
     }
     out
@@ -78,13 +87,22 @@ fn a_tree_drawn_within_its_year_on_the_device_is_the_cpus() {
         for f in [0.02, 0.35, 0.6, 0.88, 0.95] {
             let at = f64::from(h) - 1.0 + f;
             let (dressed, _) = block(dev.settle(&gpu, &k, at)).expect("drawn");
-            let a = apart(&drawn_nodes(&gpu, &dressed), &growth::settle(&cpu, at).expect("drawn"));
+            let a = apart(
+                &drawn_nodes(&gpu, &dressed),
+                &growth::settle(&cpu, at).expect("drawn"),
+            );
             println!("{name} {h} at {f}: {a:?}");
             assert_eq!(a.device, a.cpu, "{name} at {f}: nodes");
             assert!(a.matched * 1000 >= a.device * 999, "{name} at {f}: {a:?}");
-            assert!(a.position < 1e-3 && a.radius < 1e-5 && a.leaf < 1e-3, "{name} at {f}: {a:?}");
-            assert_eq!((a.retention, a.season), (0, 0), "{name} at {f}: retentions and season");
+            assert!(
+                a.position < 1e-3 && a.radius < 1e-5 && a.leaf < 1e-3,
+                "{name} at {f}: {a:?}"
+            );
+            assert_eq!(
+                (a.retention, a.season),
+                (0, 0),
+                "{name} at {f}: retentions and season"
+            );
         }
     }
 }
-

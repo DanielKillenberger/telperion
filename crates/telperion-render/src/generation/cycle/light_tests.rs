@@ -66,7 +66,10 @@ impl Agreement {
     /// Whether the named real output, a light of at most one, is within
     /// the ruled tolerance of the CPU's (`ruled.rs`).
     fn within(&self, name: &str) -> bool {
-        self.0.iter().filter(|r| r.0 == name).all(|r| f64::from(r.4) <= super::ruled::FLOAT_TOLERANCE)
+        self.0
+            .iter()
+            .filter(|r| r.0 == name)
+            .all(|r| f64::from(r.4) <= super::ruled::FLOAT_TOLERANCE)
     }
 
     fn report(&self) -> String {
@@ -183,7 +186,10 @@ fn young_differ(holds: &dyn Fn(&Agreement) -> bool) -> Vec<String> {
 fn young_lights_agree_with_the_cpu() {
     let _held = super::super::whole_tree();
     let differ = young_differ(&agrees);
-    assert!(differ.is_empty(), "the device's light is not the CPU's: {differ:?}");
+    assert!(
+        differ.is_empty(),
+        "the device's light is not the CPU's: {differ:?}"
+    );
 }
 
 /// The refusals only the deposit raises: a leaf's area, a node's quanta
@@ -214,22 +220,45 @@ fn a_dormant_lattice_reads_as_the_swept_one() {
         return;
     };
     let mut differ = Vec::new();
-    for (preset, name, age, at) in [(Preset::Telperion, "telperion", 14, 10), (Preset::OregonWhiteOak, "oregon-white-oak", 8, 5)] {
+    for (preset, name, age, at) in [
+        (Preset::Telperion, "telperion", 14, 10),
+        (Preset::OregonWhiteOak, "oregon-white-oak", 8, 5),
+    ] {
         let c = captured(preset, age, 42, at);
         let cap = Cap(&c);
         let mut lit = Lit::new(&cap, capacity(&cap), None);
-        assert!(lit.lit && super::build_light::open(&cap.u64s("light_directions")), "{name}: a lit site under an open sky of one");
-        lit.leaves.iter_mut().skip(3).step_by(4).for_each(|area| *area = 0.0);
+        assert!(
+            lit.lit && super::build_light::open(&cap.u64s("light_directions")),
+            "{name}: a lit site under an open sky of one"
+        );
+        lit.leaves
+            .iter_mut()
+            .skip(3)
+            .step_by(4)
+            .for_each(|area| *area = 0.0);
         let swept = reads(&gpu, &k, &lit);
         lit.dormant = true;
         let dormant = reads(&gpu, &k, &lit);
-        let n = swept.0.iter().zip(&dormant.0).filter(|(a, b)| a != b).count();
-        println!("{name} {age} at {at}: {} tips, {n} reads differ, refusals {:x} and {:x}", swept.0.len(), swept.1, dormant.1);
+        let n = swept
+            .0
+            .iter()
+            .zip(&dormant.0)
+            .filter(|(a, b)| a != b)
+            .count();
+        println!(
+            "{name} {age} at {at}: {} tips, {n} reads differ, refusals {:x} and {:x}",
+            swept.0.len(),
+            swept.1,
+            dormant.1
+        );
         if n > 0 || swept.0.len() != dormant.0.len() || swept.1 & !DEPOSIT != dormant.1 {
             differ.push(name);
         }
     }
-    assert!(differ.is_empty(), "a dormant lattice reads apart from the swept one: {differ:?}");
+    assert!(
+        differ.is_empty(),
+        "a dormant lattice reads apart from the swept one: {differ:?}"
+    );
 }
 
 fn median(mut v: Vec<f64>) -> f64 {

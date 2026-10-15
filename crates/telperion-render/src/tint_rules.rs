@@ -36,11 +36,22 @@ pub(crate) fn findings(source: &str) -> Vec<String> {
     out
 }
 
-const BARRIERS: [&str; 4] = ["workgroupBarrier", "storageBarrier", "textureBarrier", "workgroupUniformLoad"];
-const PURE: [&str; 12] = ["min", "max", "select", "u32", "i32", "f32", "vec2", "vec3", "vec4", "clamp", "array", "bitcast"];
+const BARRIERS: [&str; 4] = [
+    "workgroupBarrier",
+    "storageBarrier",
+    "textureBarrier",
+    "workgroupUniformLoad",
+];
+const PURE: [&str; 12] = [
+    "min", "max", "select", "u32", "i32", "f32", "vec2", "vec3", "vec4", "clamp", "array",
+    "bitcast",
+];
 
 pub(crate) fn strip(s: &str) -> String {
-    s.lines().map(|l| l.split("//").next().unwrap_or("")).collect::<Vec<_>>().join("\n")
+    s.lines()
+        .map(|l| l.split("//").next().unwrap_or(""))
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 fn tokens(s: &str) -> Vec<String> {
@@ -53,7 +64,11 @@ fn tokens(s: &str) -> Vec<String> {
             i += 1;
         } else if c.is_alphanumeric() || c == '_' {
             let start = i;
-            while i < cs.len() && (cs[i].is_alphanumeric() || cs[i] == '_' || cs[i] == '.' && cs[start].is_ascii_digit()) {
+            while i < cs.len()
+                && (cs[i].is_alphanumeric()
+                    || cs[i] == '_'
+                    || cs[i] == '.' && cs[start].is_ascii_digit())
+            {
                 i += 1;
             }
             out.push(cs[start..i].iter().collect());
@@ -66,7 +81,9 @@ fn tokens(s: &str) -> Vec<String> {
 }
 
 fn is_ident(t: &str) -> bool {
-    t.chars().next().is_some_and(|c| c.is_alphabetic() || c == '_')
+    t.chars()
+        .next()
+        .is_some_and(|c| c.is_alphabetic() || c == '_')
 }
 
 /// Every `bitcast<f32>` of a literal or a constant whose bits are a NaN
@@ -76,7 +93,9 @@ fn nan_constants(toks: &[String]) -> Vec<String> {
     let mut values: HashMap<&str, u64> = HashMap::new();
     for k in 0..toks.len() {
         if toks[k] == "const" && k + 1 < toks.len() {
-            let end = (k..toks.len()).find(|&j| toks[j] == ";").unwrap_or(toks.len());
+            let end = (k..toks.len())
+                .find(|&j| toks[j] == ";")
+                .unwrap_or(toks.len());
             if let Some(v) = toks[k..end].iter().find_map(|t| literal(t)) {
                 values.entry(toks[k + 1].as_str()).or_insert(v);
             }
@@ -84,14 +103,19 @@ fn nan_constants(toks: &[String]) -> Vec<String> {
     }
     let mut out = Vec::new();
     for k in 0..toks.len().saturating_sub(5) {
-        let cast = toks[k] == "bitcast" && toks[k + 1] == "<" && toks[k + 2] == "f32" && toks[k + 4] == "(";
+        let cast = toks[k] == "bitcast"
+            && toks[k + 1] == "<"
+            && toks[k + 2] == "f32"
+            && toks[k + 4] == "(";
         if !cast || toks.get(k + 6).is_none_or(|t| t != ")") {
             continue;
         }
         let arg = toks[k + 5].as_str();
         let bits = literal(arg).or_else(|| values.get(arg).copied());
         if bits.is_some_and(|v| (v as u32 >> 23) & 0xff == 0xff) {
-            out.push(format!("bitcast<f32>({arg}): a NaN or infinite f32 constant"));
+            out.push(format!(
+                "bitcast<f32>({arg}): a NaN or infinite f32 constant"
+            ));
         }
     }
     out
@@ -116,7 +140,11 @@ fn uniform_globals(toks: &[String]) -> HashSet<String> {
             "const" | "override" if depth == 0 && k + 1 < toks.len() => {
                 out.insert(toks[k + 1].clone());
             }
-            "var" if depth == 0 && toks.get(k + 1).is_some_and(|t| t == "<") && toks.get(k + 2).is_some_and(|t| t == "uniform") => {
+            "var"
+                if depth == 0
+                    && toks.get(k + 1).is_some_and(|t| t == "<")
+                    && toks.get(k + 2).is_some_and(|t| t == "uniform") =>
+            {
                 if let Some(j) = (k..toks.len()).find(|&j| toks[j] == ">") {
                     out.insert(toks[j + 1].clone());
                 }
@@ -144,17 +172,27 @@ fn functions(toks: &[String]) -> Vec<Function> {
             continue;
         }
         let name = toks[k + 1].clone();
-        let open = (k..toks.len()).find(|&j| toks[j] == "(").expect("parameters");
+        let open = (k..toks.len())
+            .find(|&j| toks[j] == "(")
+            .expect("parameters");
         let close = matching(toks, open, "(", ")");
         let mut uniform_params = Vec::new();
         for j in open..close {
-            if toks[j] == "builtin" && matches!(toks[j + 2].as_str(), "workgroup_id" | "num_workgroups") {
+            if toks[j] == "builtin"
+                && matches!(toks[j + 2].as_str(), "workgroup_id" | "num_workgroups")
+            {
                 uniform_params.push(toks[j + 4].clone());
             }
         }
-        let start = (close..toks.len()).find(|&j| toks[j] == "{").expect("a body");
+        let start = (close..toks.len())
+            .find(|&j| toks[j] == "{")
+            .expect("a body");
         let end = matching(toks, start, "{", "}");
-        out.push(Function { name, uniform_params, body: toks[start + 1..end].to_vec() });
+        out.push(Function {
+            name,
+            uniform_params,
+            body: toks[start + 1..end].to_vec(),
+        });
         k = end + 1;
     }
     out
@@ -197,9 +235,13 @@ fn barred(fns: &[Function]) -> HashSet<String> {
 fn uniform_returning(fns: &[Function], globals: &HashSet<String>) -> HashSet<String> {
     let mut out = HashSet::new();
     for f in fns {
-        let returns: Vec<usize> = (0..f.body.len()).filter(|&j| f.body[j] == "return").collect();
+        let returns: Vec<usize> = (0..f.body.len())
+            .filter(|&j| f.body[j] == "return")
+            .collect();
         let expr = |j: usize| {
-            let end = (j..f.body.len()).find(|&e| f.body[e] == ";").unwrap_or(f.body.len());
+            let end = (j..f.body.len())
+                .find(|&e| f.body[e] == ";")
+                .unwrap_or(f.body.len());
             &f.body[j + 1..end]
         };
         let uniform = !returns.is_empty()
@@ -208,7 +250,9 @@ fn uniform_returning(fns: &[Function], globals: &HashSet<String>) -> HashSet<Str
                 let e = expr(j);
                 let field = |k: usize| k > 0 && e[k - 1] == ".";
                 e.first().is_some_and(|t| t == "workgroupUniformLoad")
-                    || (0..e.len()).filter(|&k| is_ident(&e[k]) && !field(k)).all(|k| globals.contains(&e[k]) || PURE.contains(&e[k].as_str()))
+                    || (0..e.len())
+                        .filter(|&k| is_ident(&e[k]) && !field(k))
+                        .all(|k| globals.contains(&e[k]) || PURE.contains(&e[k].as_str()))
             });
         if uniform {
             out.insert(f.name.clone());
@@ -338,9 +382,16 @@ impl Walk<'_> {
     fn simple(&mut self, k: usize, b: usize, control: bool) -> usize {
         let end = (k..b).find(|&j| self.toks[j] == ";").unwrap_or(b);
         let s = &self.toks[k..end];
-        if s.iter().any(|t| self.barred.contains(t)) && !(control && !self.returned && !self.jumped) {
-            let what = s.iter().find(|t| self.barred.contains(*t)).expect("a barrier");
-            self.out.push(format!("fn {}: {what} under non-uniform control", self.name));
+        if s.iter().any(|t| self.barred.contains(t)) && !(control && !self.returned && !self.jumped)
+        {
+            let what = s
+                .iter()
+                .find(|t| self.barred.contains(*t))
+                .expect("a barrier");
+            self.out.push(format!(
+                "fn {}: {what} under non-uniform control",
+                self.name
+            ));
         }
         match s.first().map(String::as_str) {
             Some("return") if !control || self.jumped => self.returned = true,
@@ -354,14 +405,19 @@ impl Walk<'_> {
             if let Some(name) = name.filter(|n| is_ident(n)) {
                 let assigned = !decl || s.get(2).is_some_and(|t| t == ":" || t == "=");
                 let u = control && self.uniform(k + e + 1, end);
-                let compound = e > 0 && matches!(s[e - 1].as_str(), "+" | "-" | "*" | "/" | "|" | "&" | "^");
+                let compound =
+                    e > 0 && matches!(s[e - 1].as_str(), "+" | "-" | "*" | "/" | "|" | "&" | "^");
                 if assigned && u && (decl || !compound || self.uniform.contains(name.as_str())) {
                     self.uniform.insert(name.clone());
                 } else {
                     self.uniform.remove(name.as_str());
                 }
             }
-        } else if s.len() >= 2 && (s[s.len() - 1] == "+" && s[s.len() - 2] == "+" || s[s.len() - 1] == "-" && s[s.len() - 2] == "-") && !control {
+        } else if s.len() >= 2
+            && (s[s.len() - 1] == "+" && s[s.len() - 2] == "+"
+                || s[s.len() - 1] == "-" && s[s.len() - 2] == "-")
+            && !control
+        {
             self.uniform.remove(&s[0]);
         }
         end + 1

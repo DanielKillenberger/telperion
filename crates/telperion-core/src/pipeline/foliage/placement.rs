@@ -1,9 +1,9 @@
 //! Leaf placement: every station on every bearing run, as a transform.
 use super::{
     canopy::validate,
-    clumping, cluster,
+    clumping, cluster, organs,
     plan::{bearing_runs, cauline, kept, micrometres, walk},
-    organs, rosette,
+    rosette,
     station::{self, place_run, reserve_all, station_count, Run},
     CanopyParams, Instances, Reference, TwigPlacement,
 };
@@ -48,7 +48,16 @@ pub fn place_on_surface(
         return place(tree, envelope, seed, p, twig, reference);
     }
     let contacts = AttachmentSurface::new(tree, envelope.height, surface)?;
-    place_on(tree, envelope, seed, p, twig, Some(&contacts), reference, SUITE_BLADE)
+    place_on(
+        tree,
+        envelope,
+        seed,
+        p,
+        twig,
+        Some(&contacts),
+        reference,
+        SUITE_BLADE,
+    )
 }
 /// Everything both the builder and the count check before a leaf is placed,
 /// and whether this tree and this family bear any at all.
@@ -92,7 +101,10 @@ fn runs(tree: &Tree, p: CanopyParams, twig: Option<TwigPlacement>) -> Vec<Vec<us
         None => {
             let slender = tree.stem_radius(|i| tree.pipe(i)[1]) * p.shoot_radius;
             let shoots = shoots(tree, slender);
-            shoots.into_iter().filter(|run| cauline(tree, p, run)).collect()
+            shoots
+                .into_iter()
+                .filter(|run| cauline(tree, p, run))
+                .collect()
         }
     }
 }

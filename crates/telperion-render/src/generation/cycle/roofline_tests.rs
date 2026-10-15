@@ -20,7 +20,11 @@ use std::path::{Path, PathBuf};
 use telperion_core::presets::Preset;
 use telperion_space::SettleTo;
 
-const CASES: [(&str, u32, u64); 3] = [("telperion", 82, 42), ("oregon-white-oak", 40, 42), ("european-beech", 40, 42)];
+const CASES: [(&str, u32, u64); 3] = [
+    ("telperion", 82, 42),
+    ("oregon-white-oak", 40, 42),
+    ("european-beech", 40, 42),
+];
 
 #[test]
 #[ignore = "a measurement"]
@@ -35,20 +39,34 @@ fn the_roofline_is_measured() {
     let settling = Kernels::new(&gpu);
     let only = std::env::var("ROOFLINE_PRESETS").ok();
     let named = std::env::var("ROOFLINE_CASES").ok();
-    let cases = named.as_ref().map_or(CASES.to_vec(), |v| v.split(',').map(case).collect());
+    let cases = named
+        .as_ref()
+        .map_or(CASES.to_vec(), |v| v.split(',').map(case).collect());
     let root = out.clone();
-    for (id, age, seed) in cases.into_iter().filter(|c| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == c.0))) {
+    for (id, age, seed) in cases
+        .into_iter()
+        .filter(|c| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == c.0)))
+    {
         // A named case's files in a directory of its own: one preset's
         // seeds would otherwise write over each other.
-        let out = if named.is_some() { root.join(format!("{id}-{age}-{seed}")) } else { root.clone() };
+        let out = if named.is_some() {
+            root.join(format!("{id}-{age}-{seed}"))
+        } else {
+            root.clone()
+        };
         std::fs::create_dir_all(&out).expect("the case's directory");
-        let growth = telperion_core::pipeline::executor::growth(&Preset::from_id(id).expect("a preset").parameters()).expect("a growth");
+        let growth = telperion_core::pipeline::executor::growth(
+            &Preset::from_id(id).expect("a preset").parameters(),
+        )
+        .expect("a growth");
         let g = grown_from(growth.species, growth.request.light, (age, seed));
         let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
         let hinted = Sizes::hinted(hint(&g.species, age).expect("a hint")).expect("sized");
         // Warm: the build's buffers and the driver's caches made once.
         drop(grow(&gpu, &kit, &t, &g.tables, (hinted, age)).expect("a build"));
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("freed");
         assert!(super::super::profile::start(&gpu), "timestamps");
         let (b, _, grew) = grow(&gpu, &kit, &t, &g.tables, (hinted, age)).expect("a build");
         let stamps = super::super::profile::finish(&gpu);
@@ -57,22 +75,43 @@ fn the_roofline_is_measured() {
         let (lit, dirs) = (b.light.lit(), b.light.n_dirs);
         // The settle the build runs on what it grew, every pass stamped.
         assert!(super::super::profile::start(&gpu), "timestamps");
-        let settled = settle_now(&gpu, (&kit, &settling), (&b, &t), (&super::settle_tests::constants(&g), SettleTo::Laid)).expect("a settle");
+        let settled = settle_now(
+            &gpu,
+            (&kit, &settling),
+            (&b, &t),
+            (&super::settle_tests::constants(&g), SettleTo::Laid),
+        )
+        .expect("a settle");
         let mut csv = String::from("pass,ns\n");
         for (pass, a, z) in super::super::profile::finish(&gpu) {
             writeln!(csv, "{pass},{:.0}", z - a).unwrap();
         }
         write(&out, &format!("{id}-settle.csv"), &csv);
         drop((settled, b));
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("freed");
         // Each dispatch's cycle: the cycle whose recording it fell in, a
         // compaction counted with the cycle before it.
-        let cycle_of = |k: usize| grew.ends.iter().position(|&e| k < e).map_or(age, |c| c as u32 + 1);
+        let cycle_of = |k: usize| {
+            grew.ends
+                .iter()
+                .position(|&e| k < e)
+                .map_or(age, |c| c as u32 + 1)
+        };
         let mut csv = String::from("cycle,phase,kernel,ns\n");
         let mut compacted = Vec::new();
         for (k, (phase, (kernel, a, z))) in grew.stamped.iter().zip(&stamps).enumerate() {
-            let cycle = if k < grew.ends[0] && *phase == "start" { 0 } else { cycle_of(k) };
-            let cycle = if *phase == COMPACTION { cycle - 1 } else { cycle };
+            let cycle = if k < grew.ends[0] && *phase == "start" {
+                0
+            } else {
+                cycle_of(k)
+            };
+            let cycle = if *phase == COMPACTION {
+                cycle - 1
+            } else {
+                cycle
+            };
             if *phase == COMPACTION && compacted.last() != Some(&cycle) {
                 compacted.push(cycle);
             }
@@ -83,7 +122,9 @@ fn the_roofline_is_measured() {
         (0..256).for_each(|w| write!(csv, ",w{w}").unwrap());
         for (c, read) in grew.censuses.iter().enumerate() {
             write!(csv, "\n{}", c + 1).unwrap();
-            read[..256].iter().for_each(|w| write!(csv, ",{w}").unwrap());
+            read[..256]
+                .iter()
+                .for_each(|w| write!(csv, ",{w}").unwrap());
         }
         write(&out, &format!("{id}-census.csv"), &csv);
         println!("{id} {age}: {} dispatches, compacted after {compacted:?}, lit {lit}, directions {dirs}", stamps.len());
@@ -101,8 +142,20 @@ fn the_roofline_is_measured() {
 /// A case named `id:age:seed`, its id a shipped preset's.
 fn case(named: &str) -> (&'static str, u32, u64) {
     let mut part = named.split(':');
-    let id = part.next().and_then(|id| telperion_core::presets::CATALOGUE.iter().map(|c| c.1).find(|c| *c == id)).expect("a shipped preset");
-    let mut number = || part.next().and_then(|n| n.parse::<u64>().ok()).expect("an age and a seed");
+    let id = part
+        .next()
+        .and_then(|id| {
+            telperion_core::presets::CATALOGUE
+                .iter()
+                .map(|c| c.1)
+                .find(|c| *c == id)
+        })
+        .expect("a shipped preset");
+    let mut number = || {
+        part.next()
+            .and_then(|n| n.parse::<u64>().ok())
+            .expect("an age and a seed")
+    };
     (id, number() as u32, number())
 }
 
@@ -112,7 +165,17 @@ fn visits(l: &Lives) -> String {
     csv.push_str("cycle,held,held_3,held_5,held_10,changed,stopped,grew,grew_3,grew_5,grew_10,live,live_3,live_5,live_10,laid,laid_3,laid_5,laid_10\n");
     for (c, v) in l.cycles.iter().enumerate().skip(1) {
         let q = |x: &[u64; 4]| x.map(|n| n.to_string()).join(",");
-        writeln!(csv, "{c},{},{},{},{},{},{}", q(&v.held), v.changed, v.stopped, q(&v.grew), q(&v.live), q(&v.laid)).unwrap();
+        writeln!(
+            csv,
+            "{c},{},{},{},{},{},{}",
+            q(&v.held),
+            v.changed,
+            v.stopped,
+            q(&v.grew),
+            q(&v.live),
+            q(&v.laid)
+        )
+        .unwrap();
     }
     csv
 }
@@ -174,23 +237,61 @@ fn peaks(gpu: &Gpu, out: &Path) {
 
 /// The best stamped time in ns of 20 dispatches of `source`'s `main`.
 fn best(gpu: &Gpu, (source, groups): (&str, u32), (a, b): (&wgpu::Buffer, &wgpu::Buffer)) -> f64 {
-    let module = gpu.device.create_shader_module(wgpu::ShaderModuleDescriptor { label: Some("roofline"), source: wgpu::ShaderSource::Wgsl(source.into()) });
-    let pipeline = gpu.device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("roofline"),
-        layout: None,
-        module: &module,
-        entry_point: Some("main"),
-        compilation_options: Default::default(),
-        cache: None,
+    let module = gpu
+        .device
+        .create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("roofline"),
+            source: wgpu::ShaderSource::Wgsl(source.into()),
+        });
+    let pipeline = gpu
+        .device
+        .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+            label: Some("roofline"),
+            layout: None,
+            module: &module,
+            entry_point: Some("main"),
+            compilation_options: Default::default(),
+            cache: None,
+        });
+    let entries = [
+        wgpu::BindGroupEntry {
+            binding: 0,
+            resource: a.as_entire_binding(),
+        },
+        wgpu::BindGroupEntry {
+            binding: 1,
+            resource: b.as_entire_binding(),
+        },
+    ];
+    let group = gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
+        label: None,
+        layout: &pipeline.get_bind_group_layout(0),
+        entries: &entries,
     });
-    let entries = [wgpu::BindGroupEntry { binding: 0, resource: a.as_entire_binding() }, wgpu::BindGroupEntry { binding: 1, resource: b.as_entire_binding() }];
-    let group = gpu.device.create_bind_group(&wgpu::BindGroupDescriptor { label: None, layout: &pipeline.get_bind_group_layout(0), entries: &entries });
-    let set = gpu.device.create_query_set(&wgpu::QuerySetDescriptor { label: None, ty: wgpu::QueryType::Timestamp, count: 40 });
-    let resolved = super::super::io::buffer(gpu, "roofline stamps", 320, wgpu::BufferUsages::QUERY_RESOLVE | wgpu::BufferUsages::COPY_SRC, &[]).expect("stamps");
+    let set = gpu.device.create_query_set(&wgpu::QuerySetDescriptor {
+        label: None,
+        ty: wgpu::QueryType::Timestamp,
+        count: 40,
+    });
+    let resolved = super::super::io::buffer(
+        gpu,
+        "roofline stamps",
+        320,
+        wgpu::BufferUsages::QUERY_RESOLVE | wgpu::BufferUsages::COPY_SRC,
+        &[],
+    )
+    .expect("stamps");
     let mut e = gpu.encoder(&Default::default());
     for k in 0..20u32 {
-        let writes = wgpu::ComputePassTimestampWrites { query_set: &set, beginning_of_pass_write_index: Some(2 * k), end_of_pass_write_index: Some(2 * k + 1) };
-        let mut pass = e.begin_compute_pass(&wgpu::ComputePassDescriptor { label: None, timestamp_writes: Some(writes) });
+        let writes = wgpu::ComputePassTimestampWrites {
+            query_set: &set,
+            beginning_of_pass_write_index: Some(2 * k),
+            end_of_pass_write_index: Some(2 * k + 1),
+        };
+        let mut pass = e.begin_compute_pass(&wgpu::ComputePassDescriptor {
+            label: None,
+            timestamp_writes: Some(writes),
+        });
         pass.set_pipeline(&pipeline);
         pass.set_bind_group(0, &group, &[]);
         pass.dispatch_workgroups(groups, 1, 1);
@@ -200,5 +301,8 @@ fn best(gpu: &Gpu, (source, groups): (&str, u32), (a, b): (&wgpu::Buffer, &wgpu:
     let raw = super::super::io::read(gpu, &resolved, 320).expect("read");
     let ticks: &[u64] = bytemuck::cast_slice(&raw);
     let period = f64::from(gpu.queue.get_timestamp_period());
-    ticks.chunks(2).map(|t| (t[1] - t[0]) as f64 * period).fold(f64::INFINITY, f64::min)
+    ticks
+        .chunks(2)
+        .map(|t| (t[1] - t[0]) as f64 * period)
+        .fold(f64::INFINITY, f64::min)
 }

@@ -78,7 +78,12 @@ pub fn within_year(committed: u32, at: f64) -> Result<f64> {
 impl<'a> Paused<'a> {
     /// The grower before its first cycle, for a tree of at most
     /// `horizon.age` cycles, with a census where `census`.
-    pub fn begin(species: &'a Species, horizon: Request, retiring: Retiring, census: bool) -> Result<Self> {
+    pub fn begin(
+        species: &'a Species,
+        horizon: Request,
+        retiring: Retiring,
+        census: bool,
+    ) -> Result<Self> {
         let working = match retiring {
             Retiring::AtAge => Working::default(),
             Retiring::Never => Working::reference(),
@@ -86,7 +91,12 @@ impl<'a> Paused<'a> {
         Self::with(species, horizon, census, working)
     }
 
-    pub(super) fn with(species: &'a Species, request: Request, census: bool, working: Working) -> Result<Self> {
+    pub(super) fn with(
+        species: &'a Species,
+        request: Request,
+        census: bool,
+        working: Working,
+    ) -> Result<Self> {
         let (mut g, keeps) = start(species, request, Options::default())?;
         (g.one, g.rules.one) = (true, true);
         g.working = Some(Box::new(working));
@@ -99,7 +109,18 @@ impl<'a> Paused<'a> {
         let clock = crate::clock::seconds();
         let (advanced, phases) = (Vec::new(), Phases::new());
         let (presenting, previous) = (false, None);
-        Ok(Self { g, keeps, request, committed: 0, advanced, phases, clock, failed: false, presenting, previous })
+        Ok(Self {
+            g,
+            keeps,
+            request,
+            committed: 0,
+            advanced,
+            phases,
+            clock,
+            failed: false,
+            presenting,
+            previous,
+        })
     }
 
     /// The grower keeping the tree drawn a year before the age grown, so
@@ -127,7 +148,10 @@ impl<'a> Paused<'a> {
     /// Refused by name where a failure left the grower spent.
     pub fn usable(&self) -> Result<()> {
         match self.failed {
-            true => refuse("state.failed", "a growth that failed cannot go on or be drawn"),
+            true => refuse(
+                "state.failed",
+                "a growth that failed cannot go on or be drawn",
+            ),
             false => Ok(()),
         }
     }
@@ -172,7 +196,10 @@ impl<'a> Paused<'a> {
         for cycle in self.committed + 1..=age {
             // The last cycle's layout and light are read by no bud.
             let sketching = cycle < self.request.age;
-            self.g.year(cycle, sketching, &mut self.advanced, &mut |s| tick(phases, clock, s))?;
+            self.g
+                .year(cycle, sketching, &mut self.advanced, &mut |s| {
+                    tick(phases, clock, s)
+                })?;
             self.g.count(cycle);
             self.committed = cycle;
         }
@@ -184,9 +211,16 @@ impl<'a> Paused<'a> {
     pub fn settle(&self) -> Result<Structure> {
         self.usable()?;
         let at = self.committed;
-        let request = Request { age: at, ..self.request };
+        let request = Request {
+            age: at,
+            ..self.request
+        };
         let copy = self.g.settled_copy(at);
-        let grown = copy.settle((request, Options::default()), (true, self.keeps), &mut |_| {})?;
+        let grown = copy.settle(
+            (request, Options::default()),
+            (true, self.keeps),
+            &mut |_| {},
+        )?;
         Ok(lineage_order(grown.structure))
     }
 
@@ -200,10 +234,17 @@ impl<'a> Paused<'a> {
             return Ok(Presented::whole(self.settle()?));
         }
         if !self.presenting {
-            return refuse("at", "a tree is drawn within its year where it keeps the year before");
+            return refuse(
+                "at",
+                "a tree is drawn within its year where it keeps the year before",
+            );
         }
         let tree = self.settle()?;
-        let empty = Structure { age: 0, pas: tree.pas, axes: Vec::new() };
+        let empty = Structure {
+            age: 0,
+            pas: tree.pas,
+            axes: Vec::new(),
+        };
         let before = self.previous.as_ref().unwrap_or(&empty);
         Ok(present(tree, before, self.g.species, f))
     }
@@ -211,7 +252,13 @@ impl<'a> Paused<'a> {
     /// The tree at the horizon, settled as `grow_cycle` settles it, with
     /// its census.
     pub(super) fn finish(self, started: f64) -> Result<Cycled> {
-        let Self { g, keeps, request, mut phases, .. } = self;
+        let Self {
+            g,
+            keeps,
+            request,
+            mut phases,
+            ..
+        } = self;
         let mut g = g;
         let (grown, light_seconds) = (g.rules.grown, g.light_seconds);
         let retired = g.working.as_ref().map_or(0, |w| w.retirement().roots());
@@ -220,9 +267,11 @@ impl<'a> Paused<'a> {
             c.ended(&g.axes);
         }
         let mut clock = crate::clock::seconds();
-        let settled = g.settle((request, Options::default()), (true, keeps), &mut |s: Stage| {
-            tick(&mut phases, &mut clock, s)
-        })?;
+        let settled = g.settle(
+            (request, Options::default()),
+            (true, keeps),
+            &mut |s: Stage| tick(&mut phases, &mut clock, s),
+        )?;
         if let Some(c) = taken.as_mut() {
             c.phases = phases;
             c.retired = retired;
@@ -245,8 +294,23 @@ impl<'a> Paused<'a> {
         let mut h = Digest(std::collections::hash_map::DefaultHasher::new());
         let pencils = g.sketch.as_ref().map(|s| &s.pencils);
         let counts = (g.rules.grown, g.rules.age, self.committed);
-        write(&mut h, &(counts, &g.horizon, &g.marked, &g.units, &g.successor, &g.roots));
-        write(&mut h, &(&g.axes, &g.draws, &g.live, &g.asleep, &g.woken, &g.wakes, &g.handed));
+        write(
+            &mut h,
+            &(
+                counts,
+                &g.horizon,
+                &g.marked,
+                &g.units,
+                &g.successor,
+                &g.roots,
+            ),
+        );
+        write(
+            &mut h,
+            &(
+                &g.axes, &g.draws, &g.live, &g.asleep, &g.woken, &g.wakes, &g.handed,
+            ),
+        );
         write(&mut h, &(pencils, &g.leaves, &g.working));
         h.0.finish()
     }

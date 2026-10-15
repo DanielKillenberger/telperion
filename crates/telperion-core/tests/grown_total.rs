@@ -77,14 +77,20 @@ fn the_expected_axes_count_the_buds_that_live() {
         }
         (st.relay, st.relay_ended, st.relay_failed) = (0.0, 0.0, 0.0);
         for z in &mut st.zones {
-            z.lateral.iter_mut().chain(z.dormant.iter_mut()).for_each(|p| *p = 0.0);
+            z.lateral
+                .iter_mut()
+                .chain(z.dormant.iter_mut())
+                .for_each(|p| *p = 0.0);
         }
     }
     for age in [1, 7, 40] {
         assert_eq!(expected_axes(&lone, age).unwrap(), 1.0, "at {age}");
     }
     let beech = species(Preset::EuropeanBeech);
-    let (young, old) = (expected_axes(&beech, 7).unwrap(), expected_axes(&beech, 40).unwrap());
+    let (young, old) = (
+        expected_axes(&beech, 7).unwrap(),
+        expected_axes(&beech, 40).unwrap(),
+    );
     assert!(1.0 < young && young < old, "{young} then {old}");
     assert!(expected_axes(&beech, 0).is_err());
 }

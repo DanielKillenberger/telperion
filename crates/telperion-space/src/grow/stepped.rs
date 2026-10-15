@@ -48,8 +48,19 @@ pub(super) struct Executor<'a> {
 impl<'a> Executor<'a> {
     /// An executor about to grow `coarse`'s first cycle, its roots at
     /// `cut` by `counts`, standing on `stands`.
-    pub(super) fn new(coarse: Grower<'a>, (counts, cut): (Counts, f64), request: Request, stands: stands::Stands) -> Self {
-        Self { coarse, counts, cut, request, stands }
+    pub(super) fn new(
+        coarse: Grower<'a>,
+        (counts, cut): (Counts, f64),
+        request: Request,
+        stands: stands::Stands,
+    ) -> Self {
+        Self {
+            coarse,
+            counts,
+            cut,
+            request,
+            stands,
+        }
     }
 
     fn cycle(&mut self, cycle: u32) -> Result<()> {

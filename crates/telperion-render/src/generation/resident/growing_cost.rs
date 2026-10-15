@@ -35,7 +35,10 @@ fn frame(renderer: &mut Renderer, target: &Frame) -> f64 {
     renderer.draw(&camera, SIZE, target.target());
     let done = Arc::new(std::sync::atomic::AtomicBool::new(false));
     let flag = done.clone();
-    renderer.gpu().queue.on_submitted_work_done(move || flag.store(true, Ordering::Release));
+    renderer
+        .gpu()
+        .queue
+        .on_submitted_work_done(move || flag.store(true, Ordering::Release));
     while !done.load(Ordering::Acquire) {
         renderer.gpu().device.poll(wgpu::PollType::Poll).unwrap();
         std::thread::yield_now();
@@ -64,7 +67,9 @@ fn frames(gpu: Gpu, family: Family, phase: Arc<AtomicU8>) -> (Vec<f64>, Vec<f64>
 /// The `p`th percentile of `v`, sorted in place.
 fn pct(v: &mut [f64], p: f64) -> f64 {
     v.sort_by(f64::total_cmp);
-    v.get(((v.len() as f64 - 1.0) * p).round() as usize).copied().unwrap_or(f64::NAN)
+    v.get(((v.len() as f64 - 1.0) * p).round() as usize)
+        .copied()
+        .unwrap_or(f64::NAN)
 }
 
 #[test]
@@ -76,7 +81,10 @@ fn grows_in_and_draws_while_growing() {
     let steps: u32 = std::env::var("GROW_STEPS").map_or(1, |s| s.parse().unwrap());
     let only = std::env::var("GROW_PRESETS").ok();
     for &(_, id, _, _) in telperion_core::presets::CATALOGUE {
-        if only.as_ref().is_some_and(|o| !o.split(',').any(|p| p == id)) {
+        if only
+            .as_ref()
+            .is_some_and(|o| !o.split(',').any(|p| p == id))
+        {
             continue;
         }
         let family = telperion_core::presets::by_identity(id).unwrap();
@@ -108,7 +116,11 @@ fn grows_in_and_draws_while_growing() {
                 let t = Instant::now();
                 let drawn = block_on(gen.settle(&tree, at)).unwrap();
                 let ms = t.elapsed().as_secs_f64() * 1e3;
-                if k == steps { whole.push(ms) } else { within.push(ms) }
+                if k == steps {
+                    whole.push(ms)
+                } else {
+                    within.push(ms)
+                }
                 // Held as the page holds the tree it drew, until the next.
                 held = Some(drawn);
             }

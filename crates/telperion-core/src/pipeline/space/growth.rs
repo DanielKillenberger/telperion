@@ -6,7 +6,9 @@
 //! years: growth commits whole cycles, and a draw within the year unfolds
 //! this year's shoots and leaves and moves the rest from the year before
 //! (`telperion_space::unfold`, R5 and R5a).
-use super::{engine, fits, foreseen, pa_rows, scaled, unfolded, Establishing, PaRow, Unfolding, BUDGET, KEPT};
+use super::{
+    engine, fits, foreseen, pa_rows, scaled, unfolded, Establishing, PaRow, Unfolding, BUDGET, KEPT,
+};
 use crate::presets::Family;
 use crate::tree::Tree;
 use crate::{Error, Result};
@@ -31,11 +33,21 @@ impl Params {
         let input = super::GrowInput::of(family);
         input.supernatural.validate()?;
         let space = input.space.as_ref();
-        let species = space.species.clone().ok_or(Error::InvalidInput("no engine species"))?;
+        let species = space
+            .species
+            .clone()
+            .ok_or(Error::InvalidInput("no engine species"))?;
         let rows = pa_rows(&species);
         let (light, trunk, scale) = (space.light, space.trunk.clone(), input.supernatural.scale());
         let establishing = Establishing::of(&input.canopy, &species, &trunk);
-        Ok(Self { species, light, trunk, rows, scale, establishing })
+        Ok(Self {
+            species,
+            light,
+            trunk,
+            rows,
+            scale,
+            establishing,
+        })
     }
 }
 
@@ -63,12 +75,22 @@ impl GrowthState<'_> {
 /// name, and one whose tree is expected past the ceiling before it grows.
 pub fn begin(params: &Params, seed: u32, horizon: f64) -> Result<GrowthState<'_>> {
     if horizon.fract() != 0.0 || !(0.0..=f64::from(u32::MAX)).contains(&horizon) {
-        return Err(Error::InvalidValue { field: "horizon", value: format!("{horizon}") });
+        return Err(Error::InvalidValue {
+            field: "horizon",
+            value: format!("{horizon}"),
+        });
     }
     let age = horizon as u32;
     foreseen(&params.species, age, KEPT)?;
-    let request = Request { age, seed: u64::from(seed), budget: BUDGET, light: params.light };
-    let paused = Paused::begin(&params.species, request, Retiring::AtAge, false).map_err(engine)?.presenting();
+    let request = Request {
+        age,
+        seed: u64::from(seed),
+        budget: BUDGET,
+        light: params.light,
+    };
+    let paused = Paused::begin(&params.species, request, Retiring::AtAge, false)
+        .map_err(engine)?
+        .presenting();
     Ok(GrowthState { params, paused })
 }
 
@@ -89,7 +111,11 @@ pub fn settle(state: &GrowthState, at: f64) -> Result<Tree> {
     let drawn = state.paused.settle_at(at).map_err(engine)?;
     fits(&drawn.structure, KEPT)?;
     let p = state.params;
-    let unfolding = Unfolding { leaves: &drawn.leaves, fraction: drawn.fraction, gone: drawn.gone };
+    let unfolding = Unfolding {
+        leaves: &drawn.leaves,
+        fraction: drawn.fraction,
+        gone: drawn.gone,
+    };
     let structure = Establishing::apply(p.establishing, &drawn.structure, &p.trunk);
     let (mut tree, _) = unfolded(&structure, (&p.trunk, &p.rows), unfolding);
     scaled(&mut tree, p.scale);

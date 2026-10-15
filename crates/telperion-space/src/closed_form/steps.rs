@@ -253,7 +253,8 @@ fn steps_to(
         };
         let cut: Option<Vec<Count>> = laid.map(|c| {
             let laws = state.zones.iter().map(|z| Count::pmf(z.nodes));
-            laws.map(|p| Count::of_pmf(&Count::laid_pmf(&p, c.laid()))).collect()
+            laws.map(|p| Count::of_pmf(&Count::laid_pmf(&p, c.laid())))
+                .collect()
         });
         let (lays, lay_starts, lay_whole) = match &cut {
             Some(c) => {
@@ -265,7 +266,11 @@ fn steps_to(
         let internode = state.internode * size;
         let mut sleeping = Vec::with_capacity(state.zones.len());
         for (z, zone) in state.zones.iter().enumerate() {
-            let mean = if cut.is_some() { lays[z].mean() } else { zone.nodes.mean() };
+            let mean = if cut.is_some() {
+                lays[z].mean()
+            } else {
+                zone.nodes.mean()
+            };
             let nodes = survival * mean;
             let start = path.then(scaled(lay_starts[z], internode));
             let bearer = ((k, carried, m), i, abortion);

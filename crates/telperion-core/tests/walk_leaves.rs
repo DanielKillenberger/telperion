@@ -47,7 +47,11 @@ impl Draw {
     fn off(&self) -> Option<f64> {
         (self.organs >= ORGANS).then(|| {
             let miss = (self.drawn - self.expected).abs();
-            if miss < 1e-6 { 0.0 } else { miss / self.sigma }
+            if miss < 1e-6 {
+                0.0
+            } else {
+                miss / self.sigma
+            }
         })
     }
 }
@@ -68,7 +72,13 @@ fn counted(tree: &telperion_core::tree::Tree, f: &Family) -> [f64; 5] {
     let mut runs = std::collections::BTreeSet::new();
     for s in &segments {
         match s.cluster {
-            Some((_, leaves)) => (short, held, tips) = (short + f64::from(s.count), held + f64::from(leaves), tips + 1.0),
+            Some((_, leaves)) => {
+                (short, held, tips) = (
+                    short + f64::from(s.count),
+                    held + f64::from(leaves),
+                    tips + 1.0,
+                )
+            }
             None => {
                 wood += f64::from(s.count);
                 runs.insert(s.key);
@@ -92,14 +102,34 @@ fn draws(f: &Family) -> Vec<Draw> {
     };
     let [wood, short, held, runs, tips] = counted(&tree, &with(&|_| ()));
     let [stations, _, _, _, _] = counted(&tree, &with(&|g| g.canopy.leaflet_count = 1.0));
-    let [_, _, _, all_runs, all_tips] = counted(&tree, &with(&|g| (g.canopy.cauline, g.canopy.leaflet_count) = (1.0, 1.0)));
+    let [_, _, _, all_runs, all_tips] = counted(
+        &tree,
+        &with(&|g| (g.canopy.cauline, g.canopy.leaflet_count) = (1.0, 1.0)),
+    );
     let mut one = f.clone();
     one.canopy.leaflet_count = 1.0;
-    let ones = executor::expand(tree.clone(), &one).unwrap().mesh().unwrap().foliage.instances.leaves.len() as f64;
+    let ones = executor::expand(tree.clone(), &one)
+        .unwrap()
+        .mesh()
+        .unwrap()
+        .foliage
+        .instances
+        .leaves
+        .len() as f64;
     let (crown, fronds) = (total - wood - short, ones - stations - held);
     let grouped = c.rachis_length > 0.0 && c.leaflet_count > 1.0;
-    let (each, var) = if grouped { split(c.leaflet_count) } else { (1.0, 0.0) };
-    let leaflets = |form, organs: f64, drawn| Draw { form, organs, drawn, expected: organs * each, sigma: (organs * var).sqrt() };
+    let (each, var) = if grouped {
+        split(c.leaflet_count)
+    } else {
+        (1.0, 0.0)
+    };
+    let leaflets = |form, organs: f64, drawn| Draw {
+        form,
+        organs,
+        drawn,
+        expected: organs * each,
+        sigma: (organs * var).sqrt(),
+    };
     let bearers = all_runs + all_tips;
     let mut out = vec![
         leaflets("leaflets per station", stations, wood),
@@ -122,13 +152,33 @@ fn draws(f: &Family) -> Vec<Draw> {
     ];
     // A short shoot holds its cluster's whole leaves (one where its age
     // states less than one), every short-shooting age the same count.
-    let counts: Vec<f64> = f.space.species.iter().flat_map(|s| &s.states).map(|s| s.cluster_leaves).filter(|&n| n > 0.0).collect();
+    let counts: Vec<f64> = f
+        .space
+        .species
+        .iter()
+        .flat_map(|s| &s.states)
+        .map(|s| s.cluster_leaves)
+        .filter(|&n| n > 0.0)
+        .collect();
     if let Some(&n) = counts.first() {
-        assert!(counts.iter().all(|&m| m == n), "short shoots of unlike counts: {counts:?}");
+        assert!(
+            counts.iter().all(|&m| m == n),
+            "short shoots of unlike counts: {counts:?}"
+        );
         let (mean, var) = if n >= 1.0 { split(n) } else { (1.0, 0.0) };
-        out.push(Draw { form: "leaves per short shoot", organs: tips, drawn: held, expected: tips * mean, sigma: (tips * var).sqrt() });
+        out.push(Draw {
+            form: "leaves per short shoot",
+            organs: tips,
+            drawn: held,
+            expected: tips * mean,
+            sigma: (tips * var).sqrt(),
+        });
     }
-    assert!(out[4].organs < ORGANS, "fronds per apex on {} apices is not held", out[4].organs);
+    assert!(
+        out[4].organs < ORGANS,
+        "fronds per apex on {} apices is not held",
+        out[4].organs
+    );
     out
 }
 
@@ -138,7 +188,13 @@ fn refused(name: &str, ts: &[f64], frames: &[Vec<Draw>]) -> Vec<String> {
     for (t, frame) in ts.iter().zip(frames) {
         for d in frame {
             if d.off().is_some_and(|off| off > SIGMAS) {
-                let Draw { form, organs, drawn, expected, sigma } = d;
+                let Draw {
+                    form,
+                    organs,
+                    drawn,
+                    expected,
+                    sigma,
+                } = d;
                 out.push(format!("{name} at {t:.4}: {form}, {drawn} drawn on {organs} against {expected:.1} (sigma {sigma:.2})"));
             }
         }
@@ -152,8 +208,13 @@ fn jumps(walk: (Preset, Preset), (t0, t1): (f64, f64), n: usize) -> Vec<String> 
     let mut out = Vec::new();
     for seed in SEEDS {
         let (a, b) = (end(walk.0, seed), end(walk.1, seed));
-        let ts: Vec<f64> = (0..=n).map(|i| t0 + (t1 - t0) * i as f64 / n as f64).collect();
-        let frames: Vec<_> = ts.iter().map(|&t| draws(&blend::families(&a, &b, t).unwrap())).collect();
+        let ts: Vec<f64> = (0..=n)
+            .map(|i| t0 + (t1 - t0) * i as f64 / n as f64)
+            .collect();
+        let frames: Vec<_> = ts
+            .iter()
+            .map(|&t| draws(&blend::families(&a, &b, t).unwrap()))
+            .collect();
         out.extend(refused(&format!("{walk:?} seed {seed}"), &ts, &frames));
     }
     out
@@ -205,9 +266,15 @@ fn a_listed_walk_draws_its_law() {
     let (a, b) = (end(from), end(to));
     let text = std::fs::read_to_string(file).unwrap();
     let ts: Vec<f64> = text.lines().map(|l| l.trim().parse().unwrap()).collect();
-    let frames: Vec<_> = ts.iter().map(|&t| draws(&blend::families(&a, &b, t).unwrap())).collect();
+    let frames: Vec<_> = ts
+        .iter()
+        .map(|&t| draws(&blend::families(&a, &b, t).unwrap()))
+        .collect();
     for (t, frame) in ts.iter().zip(&frames) {
-        let offs: Vec<String> = frame.iter().map(|d| d.off().map_or("-".into(), |o| format!("{o:.2}"))).collect();
+        let offs: Vec<String> = frame
+            .iter()
+            .map(|d| d.off().map_or("-".into(), |o| format!("{o:.2}")))
+            .collect();
         println!("{t:.4}\t{}", offs.join("\t"));
     }
     let found = refused(&format!("{from} to {to}"), &ts, &frames);

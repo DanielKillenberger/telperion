@@ -4,12 +4,12 @@
 use super::super::io;
 use super::columns::Cap;
 use super::compare::Agreement;
-use super::hier_build::{CAP, Hierarchy, Kernels};
+use super::hier_build::{Hierarchy, Kernels, CAP};
 use super::hier_columns::{Cpu, Hier};
 use super::hier_compare::{blocks, children, compare, words};
 use super::hier_device::Sums;
-use crate::Gpu;
 use crate::buffer::Owned;
+use crate::Gpu;
 use telperion_core::presets::Preset;
 use telperion_space::{Capture, Request};
 

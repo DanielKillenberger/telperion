@@ -11,14 +11,30 @@ use std::time::Instant;
 
 /// A module's WGSL and which of its storage bindings it only reads.
 fn module(name: &str) -> (String, Vec<bool>) {
-    let [three, four] = [[true; 3].iter().chain(&[false; 5]).copied().collect::<Vec<_>>(), [true; 4].iter().chain(&[false; 4]).copied().collect()];
+    let [three, four] = [
+        [true; 3]
+            .iter()
+            .chain(&[false; 5])
+            .copied()
+            .collect::<Vec<_>>(),
+        [true; 4].iter().chain(&[false; 4]).copied().collect(),
+    ];
     match name {
         "units" => (super::source(), three.clone()),
         "layout" => (super::layout_source(), three),
-        "light" => (super::light_source(), [true].iter().chain(&[false; 6]).copied().collect()),
+        "light" => (
+            super::light_source(),
+            [true].iter().chain(&[false; 6]).copied().collect(),
+        ),
         "sums" => (super::hier_cycle_source(), four),
-        "place" => (super::settle_device::place_source(), vec![true, true, false, false, false]),
-        "settle" => (super::settle_device::source(), vec![true, true, true, false, false, false, true, true]),
+        "place" => (
+            super::settle_device::place_source(),
+            vec![true, true, false, false, false],
+        ),
+        "settle" => (
+            super::settle_device::source(),
+            vec![true, true, true, false, false, false, true, true],
+        ),
         other => panic!("no module {other}"),
     }
 }
@@ -41,13 +57,20 @@ fn a_module_is_made_cold() {
     };
     let name = std::env::var("CYCLE_BISECT_MODULE").unwrap_or_else(|_| "units".into());
     let entry = std::env::var("CYCLE_BISECT_ENTRY").unwrap_or_else(|_| "cycle_main".into());
-    let edits = std::env::var("CYCLE_BISECT_EDITS").map(|p| std::fs::read_to_string(p).expect("the edits")).unwrap_or_default();
+    let edits = std::env::var("CYCLE_BISECT_EDITS")
+        .map(|p| std::fs::read_to_string(p).expect("the edits"))
+        .unwrap_or_default();
     let (source, reads) = module(&name);
     let source = edited(source, &edits);
     let started = Instant::now();
     let pass = io::Pass::new(&gpu, source, &reads, &[entry.as_str()]);
-    gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("made");
-    println!("BISECT {name} {entry}: {:.2} s", started.elapsed().as_secs_f64());
+    gpu.device
+        .poll(wgpu::PollType::wait_indefinitely())
+        .expect("made");
+    println!(
+        "BISECT {name} {entry}: {:.2} s",
+        started.elapsed().as_secs_f64()
+    );
     drop(pass);
 }
 
@@ -66,19 +89,32 @@ fn the_cycle_is_made_cold() {
     };
     let way = std::env::var("CYCLE_COMPILE").unwrap_or_else(|_| "seq".into());
     let done = |started: Instant| {
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("made");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("made");
         started.elapsed().as_secs_f64()
     };
     let makers: [(&str, &(dyn Fn() + Sync)); 9] = [
-        ("units and wake", &|| drop(super::device::Kernels::new(&gpu))),
+        ("units and wake", &|| {
+            drop(super::device::Kernels::new(&gpu))
+        }),
         ("layout", &|| drop(super::lay_device::Kernels::new(&gpu))),
         ("hierarchy", &|| drop(super::hier_build::Kernels::new(&gpu))),
         ("light", &|| drop(super::light_device::Kernels::new(&gpu))),
         ("glue", &|| drop(super::glue::Kernels::new(&gpu))),
         ("sizing", &|| drop(super::vm::Kernels::new(&gpu))),
-        ("retirement", &|| drop(super::retire_device::Kernels::new(&gpu))),
+        ("retirement", &|| {
+            drop(super::retire_device::Kernels::new(&gpu))
+        }),
         ("settle", &|| drop(super::settle_device::Kernels::new(&gpu))),
-        ("scan", &|| drop(io::Pass::new(&gpu, super::hier_scan_source(), &[false; 3], &["scan_up", "scan_down"]))),
+        ("scan", &|| {
+            drop(io::Pass::new(
+                &gpu,
+                super::hier_scan_source(),
+                &[false; 3],
+                &["scan_up", "scan_down"],
+            ))
+        }),
     ];
     let started = Instant::now();
     if way == "parts" {
