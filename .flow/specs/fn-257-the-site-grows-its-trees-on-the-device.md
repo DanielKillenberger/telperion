@@ -33,4 +33,4 @@ A probe page the owner opens in Chrome (workers never run WebGPU in a browser): 
 
 ## Boundaries
 
-The engine's field query only. The owner (2026-10-15): "that really shouldn't be here but on killenberger.com": the site's page, its measurement in Chrome as a page, what a visitor without WebGPU sees (R1b's "the site's decision") and the grove's verdict belong to the killenberger.com repository; here R3 is measured through the package entry the site calls. Depends on fn-256. Not a release item (fn-237, 2026-10-15): killenberger.com stays on 0.1.4 until it moves.
+The engine's field query only. The owner (2026-10-15): "that really shouldn't be here but on killenberger.com": the site's page, its measurement in Chrome as a page, what a visitor without WebGPU sees (R1b's "the site's decision") and the grove's verdict belong to the killenberger.com repository; here R3 is measured through the package entry the site calls. Depends on fn-256. Release item (owner, 2026-10-15: "no let's do a proper 0.2.0 release with this shipped"): 0.2.0's `telperion/field` grows on the device; killenberger.com moves to it in its own repository.

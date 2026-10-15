@@ -50,7 +50,7 @@ The owner on the four that ask for size: "i think all have a similar problem is 
 
 ## Scope: the site is the site's repository (owner, 2026-10-15)
 
-"257 defines killenberger.com integration? that really shouldn't be here but on killenberger.com". This repository ships the engine, the harness and the npm package; moving killenberger.com off 0.1.4, its speed in Chrome, what a visitor without WebGPU sees and the grove's verdict are the killenberger.com repository's work, which pins 0.1.4 until it moves. R0a's site bar, R2's "the site's field against 0.1.4" and R3's grove verdict leave this release; fn-257 keeps only the engine's side (the field query grown on the device, its contract and its per-tree cost) and is no longer a release dependency.
+"257 defines killenberger.com integration? that really shouldn't be here but on killenberger.com". This repository ships the engine, the harness and the npm package; moving killenberger.com off 0.1.4, its speed in Chrome, what a visitor without WebGPU sees and the grove's verdict are the killenberger.com repository's work, which pins 0.1.4 until it moves. R0a's site bar, R2's "the site's field against 0.1.4" and R3's grove verdict leave this release; fn-257 keeps only the engine's side (the field query grown on the device, its contract and its per-tree cost) and stays a release dependency (owner, 2026-10-15: "no let's do a proper 0.2.0 release with this shipped"): its per-tree bar, 0.1.4's, is measured through the package entry.
 
 ## Boundaries
 
