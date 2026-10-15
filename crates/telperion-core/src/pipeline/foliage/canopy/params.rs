@@ -12,6 +12,7 @@ crate::catalogue::rows! {
             Bounds::closed(0.0, 1.0) => [Plan, Expand] {
             wire: 88,
             check: input(Site::Canopy, 0, "shoot radius"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             growth: Growth::Differs("measured against the root node, and capped by \
                 `twig.bearingDiameter`"),
             note: "Above zero the leaf box uses the trunk radius.",
@@ -36,6 +37,7 @@ crate::catalogue::rows! {
         pub divergence: f64 = "divergence" "degrees" Bounds::closed(-1e9, 1e9) => [Expand] {
             wire: 90,
             check: input(Site::Canopy, 2, "divergence"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             note: "Past a phase-error bound, station preparation leaves the GPU for the CPU.",
             blend: Blend::Degrees,
             dial: bounded("foliage_divergence", "the degrees each successive leaf is turned \
@@ -66,6 +68,7 @@ crate::catalogue::rows! {
         pub outward: f64 = "outward" "-" Bounds::closed(-1.0, 1.0) => [Expand] {
             wire: 93,
             check: input(Site::Canopy, 4, "outward"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             note: "Rosette fronds ignore it.",
             dial: bounded("leaf_outward", "how far a leaf turns away from the trunk", [0.25, 0.5]),
         },
@@ -73,6 +76,7 @@ crate::catalogue::rows! {
         pub upward: f64 = "upward" "-" Bounds::closed(-1.0, 1.0) => [Expand] {
             wire: 94,
             check: input(Site::Canopy, 5, "upward"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             note: "Rosette fronds ignore it.",
             dial: bounded("leaf_upward", "how far a leaf turns toward the sky", [0.25, 0.5]),
         },
@@ -81,6 +85,7 @@ crate::catalogue::rows! {
             Bounds::closed(-1.0, 1.0) => [Expand] {
             wire: 95,
             check: input(Site::Canopy, 6, "forward lean"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             dial: bounded("leaf_forward_lean", "how far a leaf leans along its shoot", [0.25, 0.5]),
         },
         /// Further lean along the shoot on radials that face upward.
@@ -88,6 +93,7 @@ crate::catalogue::rows! {
             Bounds::closed(-2.0, 2.0) => [Expand] {
             wire: 96,
             check: input(Site::Canopy, 7, "lean rise"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             dial: bounded("leaf_lean_rise", "further lean along the shoot for leaves whose \
                 radial faces up", [0.5, 1.0]),
         },
@@ -194,6 +200,7 @@ crate::catalogue::rows! {
             Bounds::closed(0.0, 1.0) => [Plan, Expand] {
             wire: 367,
             check: input(Site::Canopy, 15, "cauline share"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             dial: bounded("cauline", "the share of leaf-bearing wood that bears its leaves \
                 along it; at zero only a crown bears leaves", [0.05, 0.2]),
         },
@@ -203,6 +210,7 @@ crate::catalogue::rows! {
             Bounds::closed(-1e9, 1e9) => [Grow, Plan, Expand] {
             wire: 105,
             check: input(Site::Rosette, 0, "rosette divergence"),
+            applies: "no rosette and no leaf bases (`rosetteFronds` and `leafBases` zero)",
             note: "Also the leaf bases' spiral, rosette or none.",
             blend: Blend::Degrees,
             dial: tuned("rosette_divergence", "the degrees each successive frond is turned",
@@ -240,6 +248,7 @@ crate::catalogue::rows! {
             Bounds::closed(0.0, 100.0) => [Grow, Plan, Expand] {
             wire: 108,
             check: input(Site::Rosette, 3, "rosette depth"),
+            applies: "no rosette and no leaf bases (`rosetteFronds` and `leafBases` zero)",
             note: "Leaf bases start below it, rosette or none; the deepest frond sets the leaf \
                 box's reach.",
             dial: tuned("rosette_depth", "metres the frond insertions spread down the axis",
@@ -253,6 +262,7 @@ crate::catalogue::rows! {
             Bounds::closed(1.0, crate::pipeline::foliage::MAX_LEAFLETS as f64) => [Plan, Expand] {
             wire: 109,
             check: input(Site::Rosette, 20, "leaflet count"),
+            applies: "`rachisLength` zero",
             note: "Leaflets group only above one and with `rachisLength` above zero.",
             blend: Blend::Log,
             dial: bounded("leaflet_count", "leaflets along one frond's rachis", [2.0, 8.0]),

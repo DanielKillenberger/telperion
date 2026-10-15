@@ -9,9 +9,14 @@
 //! already geometric (host decision 19). `settings` lists every
 //! setting of an age by name, its fields named one by one, so a setting
 //! added to `PaState`, `Form` or `Zone` does not compile until it is listed
-//! there, and one listed with no scale here is refused.
+//! there, and one listed with no row in the table (`table.rs`) is refused.
 use super::{NodeLaw, PaState, Zone};
 use crate::transcendental::Transcendental;
+
+mod table;
+pub use table::{Setting, SETTINGS};
+#[cfg(test)]
+mod edges;
 
 /// How a setting mixes between two species.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -39,83 +44,14 @@ pub const OUTCOMES: &[(&str, &str)] = &[
     ("viability", "relay_failed"),
 ];
 
-/// Every setting's scale, by the name `settings` gives it.
-pub const SCALES: &[(&str, Scale)] = &[
-    ("lifespan", Log { floor: 1.0 }),
-    ("continuation", Outcome),
-    ("viability", Outcome),
-    ("shedding", Kept),
-    ("internode", Log { floor: 1e-3 }),
-    ("insertion", Linear),
-    ("divergence", Linear),
-    ("abortion", Outcome),
-    ("abortion_rise", Linear),
-    ("relay", Outcome),
-    ("relay_ended", Outcome),
-    ("relay_failed", Outcome),
-    ("relay_at", Linear),
-    ("epitony", Linear),
-    ("erection", Log { floor: 0.01 }),
-    ("readiness", Linear),
-    ("rhythm", Linear),
-    ("straightening", Linear),
-    // Phase E (fn-197): an area, a cost and a rate are magnitudes; a
-    // response's exponent, a share and a balance mix by value.
-    ("leaf_area", Log { floor: 1e-4 }),
-    // fn-216: a share of nodes, by value.
-    ("flowering", Linear),
-    // fn-223: a whole count of leaves, and an angle, by value.
-    ("cluster_leaves", Linear),
-    ("cluster_spread", Linear),
-    // fn-248: a span of years that may be infinite, by the share it keeps.
-    ("leaf_years", Kept),
-    // fn-270 R5: spans of days, magnitudes.
-    ("elongation", Log { floor: 1.0 }),
-    ("expansion", Log { floor: 1.0 }),
-    // fn-270 R5c: a lifespan that may be infinite, by the share it keeps;
-    // days of the calendar by value, spans of days as magnitudes.
-    ("leaf_life", Kept),
-    ("budburst", Linear),
-    ("senescence", Linear),
-    ("colouring", Log { floor: 1.0 }),
-    ("leaf_fall", Log { floor: 1.0 }),
-    ("shade_hazard", Linear),
-    // fn-252 R2: a share of survival, by value.
-    ("ground_hazard", Linear),
-    ("shade_size", Linear),
-    ("apical_control", Linear),
-    ("upkeep", Log { floor: 1e-3 }),
-    ("balance_hazard", Log { floor: 0.01 }),
-    ("tolerance", Linear),
-    ("retained", Linear),
-    ("leaf_girth", Linear),
-    ("form.tropism", Log { floor: 0.1 }),
-    ("form.elevation", Linear),
-    ("form.wander", Log { floor: 0.05 }),
-    ("form.plane", Linear),
-    ("form.pipe", Log { floor: 1e-5 }),
-    ("form.exponent", Linear),
-    ("form.ripening", Log { floor: 1.0 }),
-    ("form.dominance", Linear),
-    ("form.roll", Linear),
-    ("form.sag", Log { floor: 1e-5 }),
-    ("form.secondary", Linear),
-    ("form.bend_length", Log { floor: 0.1 }),
-    ("form.internode_spread", Linear),
-    ("form.insertion_spread", Linear),
-    ("form.tropism_spread", Linear),
-    ("zone.nodes.min", Linear),
-    ("zone.nodes.max", Linear),
-    ("zone.buds", Linear),
-    ("zone.lateral", Linear),
-    ("zone.dormant", Linear),
-    ("zone.delay", Log { floor: 0.1 }),
-    ("zone.rate", Log { floor: 0.01 }),
-];
+/// The setting named `name`, as the table states it.
+pub fn setting(name: &str) -> Option<&'static Setting> {
+    SETTINGS.iter().find(|s| s.name == name)
+}
 
 /// The scale of the setting named `name`, if the table holds one.
 pub fn scale(name: &str) -> Option<Scale> {
-    SCALES.iter().find(|(n, _)| *n == name).map(|&(_, s)| s)
+    setting(name).map(|s| s.scale)
 }
 
 impl Scale {
@@ -317,8 +253,8 @@ mod tests {
         for name in &names {
             assert!(scale(name).is_some(), "{name} has no scale");
         }
-        for (name, _) in SCALES {
-            assert!(names.contains(name), "{name} is no setting");
+        for setting in SETTINGS {
+            assert!(names.contains(&setting.name), "{} is no setting", setting.name);
         }
     }
 
