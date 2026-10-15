@@ -24,3 +24,9 @@ Would remove it: a per-preset memory estimate printed before the probe starts, o
 Doing: the workspace gate at the end of task 1.
 Slowed by: the 10 GB claim is never admitted (8 GB available, 2 GB reserve), and under a 6 GB cap the gate is killed. The gate is unproven for this commit; the narrow suites that cover the change (core `catalogue`, `parameter_reference`, the probe's compile, the harness typecheck) passed.
 Would remove it: memory freed on the desk (the owner's dev server and browser hold most of it), or the gate split so a crate's suite can run under a smaller cap.
+
+## 2026-10-15, closing: three presets outgrow every cap the probe was given
+
+Doing: the controls probe on Norway spruce, Telperion and Laurelin.
+Slowed by: each was killed at 6 GB with two builds and with one, and again at 10 GB with four (host: retry once at the normal setting). About 25 minutes across the attempts; those three presets are unprobed.
+Would remove it: a probe that builds those trees younger or one row at a time under a measured per-build memory figure, or a desk slot with more than 10 GB for this check.
