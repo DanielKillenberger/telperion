@@ -55,3 +55,8 @@
 - **Slowed by:** `telperion-heavy` held the 12 GB run from 16:06 to 16:40 while the desk's room swung between -1 and 11 GB; the run then refused with the same error on round 3's rows, so the refusal predates this round and the wait bought one bit.
 - **Cost:** 34 minutes of waiting.
 - **Would remove it:** a stored per-preset, per-age, per-seed build status (which trees refuse on the branch's tip), so a refusal is looked up before it is reproduced; and an ask sized from the tree's expected nodes.
+
+## 2026-10-15, seed-7 limbs probe (fork)
+
+- Writing a scratch summary script with a heredoc to `$SP/...` was blocked by the dcg hook (redirect to a dynamic path); rewrote it with the Write tool and literal paths. Cost: one round trip, ~2 minutes. Would remove it: probes that take an output path argument rather than relying on shell redirects.
+- No matplotlib or PIL on the machine; plotted the limb lines as SVG and converted with `rsvg-convert`. Cost: ~3 minutes.
