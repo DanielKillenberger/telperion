@@ -110,13 +110,17 @@ impl Span {
         }
         let nodes = c::GRID + 6;
         hi[nodes] = hi[nodes].max(boxed(read, prev)).min(ceiling[nodes]);
-        // The phytomers a cycle's units and wake make are its phytomer
-        // table's end less its start, each held as the table is (fn-276,
-        // host 2026-10-14): never a projection of their own, which a
-        // burst passed (the beech at 26, seed 1; a walk frame's cycle 5).
-        let made = hi[c::PHYTS].saturating_sub(lo[c::PHYTS0]);
-        for w in [c::MADE + T_UNITS + 1, c::MADE + T_WAKE + 1] {
-            (lo[w], hi[w]) = (0, made);
+        // What a cycle's units and wake make, the axes, phytomers, units
+        // and sleeping buds (`plan_made`'s order), is each table's end less
+        // its start, held as the table is (fn-276, host 2026-10-14): never
+        // a projection of its own, which a burst passed (the beech at 26,
+        // seed 1; a walk frame's cycle 5; the oak's new axes at 9, seed 1,
+        // fn-286: 224, 270, 372 then 591 a cycle).
+        for (k, (end, start)) in [(c::AXES, c::AXES0), (c::PHYTS, c::PHYTS0), (c::UNITS, c::UNITS0), (c::SLEEPERS, c::SLEEPERS0)].into_iter().enumerate() {
+            let made = hi[end].saturating_sub(lo[start]);
+            for w in [c::MADE + T_UNITS + k, c::MADE + T_WAKE + k] {
+                (lo[w], hi[w]) = (0, made);
+            }
         }
         (lo[c::CYCLE], hi[c::CYCLE]) = (cycle, cycle);
         for (k, v) in limits.words().into_iter().enumerate() {
@@ -225,6 +229,25 @@ mod tests {
         let span = Span::new(&read, Some(&prev), (&ceiling, None), (3, &Limits::full(&Bounds::default())));
         let mut now = read.clone();
         (now[at(T_UNITS + 1)], now[at(T_WAKE + 1)]) = (8_000, 600);
+        assert!(span.most(&made) >= made.eval(&now), "{} under {}", span.most(&made), made.eval(&now));
+    }
+
+    /// fn-286: the oak at 9, seed 1, with its sourced sapling segment,
+    /// made 224, 270, 372 then 591 new axes a cycle; the dispatch over
+    /// them, given from the cycle 7 read, was given 9 workgroups for the
+    /// 10 it needed. It is given what its axis table's span holds.
+    #[test]
+    fn a_burst_of_made_axes_is_within_its_table() {
+        let (mut prev, mut read) = (vec![0; c::WORDS], vec![0; c::WORDS]);
+        let at = |w: usize| c::MADE + w;
+        (prev[c::AXES0], prev[c::AXES], prev[at(T_UNITS)]) = (282, 506, 224);
+        (read[c::AXES0], read[c::AXES], read[at(T_UNITS)]) = (506, 776, 270);
+        let mut ceiling = vec![u32::MAX; c::WORDS];
+        (ceiling[c::AXES], ceiling[c::AXES0]) = (4096, 4096);
+        let made = E::At(at(T_UNITS)).add(E::At(at(T_WAKE))).div(E::C(64));
+        let span = Span::new(&read, Some(&prev), (&ceiling, None), (9, &Limits::full(&Bounds::default())));
+        let mut now = read.clone();
+        now[at(T_UNITS)] = 591;
         assert!(span.most(&made) >= made.eval(&now), "{} under {}", span.most(&made), made.eval(&now));
     }
 }
