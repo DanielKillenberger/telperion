@@ -19,6 +19,9 @@ export interface GrowerParams {
   family: Family;
   /** uint32. Varies the detail; it does not gamble on the outcome. */
   seed: number;
+  /** The family as the preset or look states it: what a control is
+   *  changed from, and what a reset returns it to. Never sent. */
+  preset: Family;
 }
 
 export const DEFAULT_PARAMS: GrowerParams = {

@@ -12,13 +12,16 @@
 //! them at the lifetime their inputs exist.
 mod browser;
 mod check;
+mod group;
 mod mount;
 mod reference;
 mod scalar;
+mod space;
 mod walk;
 
 pub use browser::browser;
 pub use check::check;
+pub use group::Group;
 pub use mount::{entries, entry, locate, Entry};
 pub use reference::reference;
 pub use scalar::{Kind, Scalar, Typed};
@@ -370,6 +373,9 @@ pub struct Info {
     pub dial: Dial,
     /// Read by no production stage; parsed, overlaid and written as before.
     pub deprecated: bool,
+    /// The control's label where the key, spaced, would mislead; empty
+    /// where it reads plainly.
+    pub label: &'static str,
 }
 impl Info {
     /// The optional fields' defaults; `rows!` always states the rest.
@@ -386,6 +392,7 @@ impl Info {
         blend: Blend::Linear,
         dial: Dial::Derived,
         deprecated: false,
+        label: "",
     };
 }
 

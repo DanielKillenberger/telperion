@@ -15,8 +15,10 @@
 
 import type { Dispatch, SetStateAction } from "react";
 
-import type { Parameter } from "../src/browser/parameters.generated";
+import { SPACE_SETTINGS, type Parameter } from "../src/browser/parameters.generated";
 import type { GrowerParams } from "./params";
+import { stated } from "./space";
+import { SpaceDial } from "./space-dials";
 import { admit, groupOf, labelOf, readRow, shownRows, slider, writeRow, type Value } from "./rows";
 
 /** Rows another control owns: the seed box and the age dial. */
@@ -141,5 +143,11 @@ export function Dials({ params, setParams }: {
         ))}
       </details>
     ))}
+    <details className="gd-dials">
+      <summary>engine</summary>
+      {stated(params.preset, SPACE_SETTINGS).map(s => (
+        <SpaceDial key={s.name} s={s} params={params} setParams={setParams} />
+      ))}
+    </details>
   </>;
 }

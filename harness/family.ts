@@ -11,14 +11,16 @@ import type { GrowerParams } from "./params";
  * here knows what will.
  * ------------------------------------------------------------------ */
 
-/** A preset's parameters, as the panel's dials: the family as authored
- *  and its seed on the seed box. Exact: `toFamily` applied to the result
+/** A preset's parameters, as the panel's dials: the family as authored,
+ *  its seed on the seed box, and the family kept as the preset to tell a
+ *  changed control by. Exact: `toFamily` applied to the result
  *  is the preset's family. */
 export function presetToParams(preset: TreePreset): GrowerParams {
   const { id: _id, name: _name, note: _note, ...family } = preset;
   return {
     family: structuredClone(family),
     seed: family.skeleton.seed,
+    preset: structuredClone(family),
   };
 }
 

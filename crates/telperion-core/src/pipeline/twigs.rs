@@ -15,6 +15,7 @@ crate::catalogue::rows! {
             wire: 41,
             check: value(Site::Twig, 0, "twig diameter"),
             applies: "`canopy.shootRadius` above zero",
+            label: "leaf box: twig thickness",
             note: "Wood at or below half of it is a twig; it is also the twig radius, the cap on \
                 childless tips (with `twigTipTaper`), and the leaf box's size where \
                 `canopy.shootRadius` is zero.",

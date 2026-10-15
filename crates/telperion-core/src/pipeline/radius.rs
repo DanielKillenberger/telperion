@@ -20,6 +20,7 @@ crate::catalogue::rows! {
             wire: 74,
             check: value(Site::Radius, 1, "trunkRadius"),
             applies: "`canopy.shootRadius` zero",
+            label: "leaf box: wood radius",
             note: "Also sizes the leaf box where `canopy.shootRadius` is above zero.",
             dial: tuned("trunk_radius", "the trunk's radius at the ground as a share of the \
                 height",
