@@ -40,8 +40,10 @@ const SORTED: usize = 12;
 /// every node's.
 const WORDS: u64 = 7;
 /// The primitives a bucket holds on average, and the most buckets a grid
-/// takes: a cell's walk stays short, and the grid's words small.
-const PER_BUCKET: f64 = 4.0;
+/// takes: fewer, fuller buckets walk faster than many near-empty ones
+/// under a cell's reach (the spruce's 36-cell query 84 ms at 4, 62 at 16,
+/// 66 at 64), and the grid's words stay small.
+const PER_BUCKET: f64 = 16.0;
 const MOST_BUCKETS: f64 = (1u32 << 22) as f64;
 /// An answer's flag past `field.wgsl`'s tally of limb systems in one cell.
 const OVER: u32 = 4;
