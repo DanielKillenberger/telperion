@@ -14,7 +14,7 @@
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-10-16T03:08:23.881150Z",
+  "plan_reviewed_at": "2026-10-16T07:41:22.265496Z",
   "ready": true,
   "review_attempts": [
     {
@@ -181,11 +181,63 @@
       "task": "fn-291-the-cpu-entry-builds-every-shipped.1",
       "timestamp": "2026-10-16T03:58:09.940310Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a8eb4a3a4a5905e8b8a3ca6f635db3afbdbfe343f06039ef19bab0968d64ce07",
+      "backend": "codex",
+      "base_sha": "e07c14283464cfa3aee79806ddead179e856f8c4",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6a0306a6c10f81add4696ea0f2968cab",
+            "classification": "introduced",
+            "findingId": "finding-6a0306a6c10f81add4696ea0f2968cab",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-bc6a66b77fa4aab50c52f5ee9ad70621",
+            "classification": "introduced",
+            "findingId": "finding-bc6a66b77fa4aab50c52f5ee9ad70621",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "3e10c49bf72d40e012acf502e873319444caa4fa",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1179,
+      "output_sha256": "53a954f1b89c1e73bf1f30709a88864da8865893c23e687c921b14c071777ea1",
+      "reservation_id": "9550cba8e05549d3953b54c65ef259e8",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-16T07:41:22.262936Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-291-the-cpu-entry-builds-every-shipped.1": 1,
-    "plan": 1,
+    "plan": 2,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
@@ -208,5 +260,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T07:40:11.559694Z"
+  "updated_at": "2026-10-16T07:41:22.265957Z"
 }

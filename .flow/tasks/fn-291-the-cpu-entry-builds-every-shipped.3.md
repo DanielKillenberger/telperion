@@ -7,8 +7,8 @@ satisfies: [R2]
 R2b. Store the wood's per-vertex data in the smallest layout the drawing allows: normals oct-encoded, bark coords in 16 bits. Each field's precision is bounded by a test at the drawn tolerance. The CPU entry hands JS positions, normals and indices (`src/browser/core.ts:91,161`). A changed normals type is a package format change, so the TypeScript types, README and a migration note change with it. Coords never reach JS.
 
 **Size:** M
-**Files:** `crates/telperion-core/src/pipeline/surface.rs`, `crates/telperion-core/src/pipeline/surface/{build,rings,normals}.rs`, `crates/telperion-core/src/pipeline/surface/curve/pack.rs`, `crates/telperion-wasm/src/lib.rs`, `src/browser/core.ts`, `README.md`, `docs/migration-*.md` (or the repo's existing migration notes), tests under `crates/telperion-render/tests/bark_*.rs`, `crates/telperion-core/src/suite/surface_*.rs`
-**Touches:** [crates/telperion-core/src/**, crates/telperion-wasm/**, crates/telperion-render/**, src/browser/**, tests/browser/**, README.md, docs/**]
+**Files:** `.flow/evidence/fn-291-the-cpu-entry-builds-every-shipped/PROBE.md`, `crates/telperion-core/src/pipeline/surface.rs`, `crates/telperion-core/src/pipeline/surface/{build,rings,normals}.rs`, `crates/telperion-core/src/pipeline/surface/curve/pack.rs`, `crates/telperion-wasm/src/lib.rs`, `src/browser/core.ts`, `README.md`, `docs/migration-*.md` (or the repo's existing migration notes), tests under `crates/telperion-render/tests/bark_*.rs`, `crates/telperion-core/src/suite/surface_*.rs`
+**Touches:** [.flow/evidence/fn-291-the-cpu-entry-builds-every-shipped/**, crates/telperion-core/src/**, crates/telperion-wasm/**, crates/telperion-render/**, src/browser/**, tests/browser/**, README.md, docs/**]
 
 ### Approach
 - Reuse `octahedral`/`unoctahedral` in `surface/curve/pack.rs:161-186` (move them where both can read them; no copy). Bark coords quantise over a reference range, as `foliage::Reference` does for leaves.
