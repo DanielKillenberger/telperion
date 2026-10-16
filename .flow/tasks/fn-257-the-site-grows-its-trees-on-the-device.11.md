@@ -4,6 +4,8 @@ satisfies: [R3]
 # fn-257-the-site-grows-its-trees-on-the-device.11 The site field asks only for what it reads, and its query's time is accounted
 
 ## Description
+**Superseded (host, 2026-10-16):** the owner re-scoped the field to R8 while this task ran; the primitives and the per-cube query it would have tuned are deleted by task 13. Its remaining scope is the measurements it made before the re-scope (FIELD-TIME.md: the field path's stages and their times), which task 12 reuses; no remedy to the deleted path is taken.
+
 The owner (2026-10-16, spec section "The owner's decisions on reuse and the site field's time"): the spruce's site field (`growField` + a 36³ query, about 0.50 s) against its build (about 381 ms). Measure, then take each cost with a general remedy.
 
 (a) Whether `growField` (`generation/resident/field/make.rs` `grow`: `tree::drawn` → `build::readied` → stations → primitives → index) runs drawing stages whose outputs the field never reads (dress, drawn records, sweep products, bark/normal/colour words, foliage generation...). If so, the field path asks the one pipeline for only what it reads: no second chain, no copied stage; a stage's unread outputs are not requested (a flag or request set the stages already honour, or a narrower entry the build's own path also passes through).
@@ -26,13 +28,8 @@ The owner (2026-10-16, spec section "The owner's decisions on reuse and the site
 - `crates/telperion-render/src/generation/resident/build.rs` — `readied`
 - `crates/telperion-render/src/generation/resident/field/ask.rs`, `field_query.wgsl` — the query
 - `.flow/evidence/fn-257-the-site-grows-its-trees-on-the-device/RESULTS.md`, `SPRUCE.md`, `measure.sh`
-
 ## Acceptance
-- [ ] FIELD-TIME.md: the field path's stages with their time and which outputs the field reads; the query's 65 ms split into dispatches, readbacks, buffer creation, traversal and arithmetic.
-- [ ] Each non-arithmetic cost with a general remedy taken (or named with why none applies); one pipeline, no second chain.
-- [ ] Paired warm 16-run medians before and after: the spruce's site field (grow + 36³ query), and the oak's and birch's; field answers byte-identical at 24³, 36³ and 48³ for every preset.
-- [ ] Harness build times not worse, its trees byte-identical; focused tests green; codex impl-review SHIP.
-
+- [ ] FIELD-TIME.md holds what was measured before the re-scope (the field path's stages, their times, the outputs the field reads), committed; no change to the deleted path.
 ## Done summary
 TBD
 
