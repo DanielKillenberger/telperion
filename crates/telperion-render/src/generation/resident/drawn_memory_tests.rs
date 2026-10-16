@@ -14,6 +14,39 @@ fn megabytes(at: &[(&'static str, u64)], top: usize) -> String {
         .join(", ")
 }
 
+/// Every foliage buffer the drawn tree keeps, in bytes (fn-292).
+fn foliage_bytes(at: &[(&'static str, u64)]) -> String {
+    (at.iter().filter(|(l, _)| l.starts_with("foliage ")))
+        .map(|(l, b)| format!("{l} {b}"))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+/// Each layer's leaves and levels as the still's selection counted them,
+/// with the level lists the base (0a6664741) allocated for that crown,
+/// computed: a whole leaf count per level, with the buffer's headroom.
+fn base_lists(renderer: &Renderer) -> String {
+    let alignment = renderer
+        .gpu
+        .device
+        .limits()
+        .min_storage_buffer_offset_alignment;
+    [("leaves", &renderer.foliage), ("organ", &renderer.organ)]
+        .iter()
+        .filter_map(|(layer, foliage)| {
+            let counted = foliage.counted(&renderer.gpu)?;
+            let leaves: u64 = counted.iter().map(|&c| u64::from(c)).sum();
+            let levels = (counted.len() as u64).checked_sub(1)?;
+            let stride = (leaves * 4).div_ceil(u64::from(alignment)) * u64::from(alignment);
+            let base = crate::buffer::Region::capacity_for(stride * levels);
+            Some(format!(
+                "{layer} {leaves} leaves at {levels} levels, base lists {base}"
+            ))
+        })
+        .collect::<Vec<_>>()
+        .join("; ")
+}
+
 fn named(at: &[(&'static str, u64)], label: &str) -> f64 {
     at.iter()
         .filter(|(l, _)| *l == label)
@@ -47,6 +80,11 @@ fn the_drawing_s_memory() {
             let camera = crate::hero_pose(bounds, 4.0 / 3.0, crate::GROUND_REACH);
             crate::render(&mut renderer, &camera, 1280, 960).expect("a still");
             pollster::block_on(crate::generation::io::complete(&gen.gpu)).expect("idle");
+            println!(
+                "FOLIAGE {id} {seed}: kept {}; {}",
+                foliage_bytes(&kept),
+                base_lists(&renderer)
+            );
             let drawing = gen.gpu.ledger.census_now();
             let grew: Vec<(&'static str, u64)> = drawing
                 .iter()
