@@ -23,9 +23,9 @@
     "fn-257-the-site-grows-its-trees-on-the-device.9": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 2,
-  "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-10-16T13:49:11.468897Z",
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-16T13:51:22.682111Z",
   "review_attempts": [
     {
       "artifact_sha256": "94ee9c483bf833b629cb8cc0e96ed8138b03782c141687117956991234822301",
@@ -1481,6 +1481,90 @@
       "timestamp": "2026-10-16T13:49:11.456163Z",
       "tool_calls": 25,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "50fe8dc4a9580d2029ed6ac9a6f42e7c37d5b87499e3d5c77e52c8abbb6bf36a",
+      "backend": "codex",
+      "base_sha": "0a6664741d395edb5c0665b6d80ab5772178336e",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-caecb710bdcfdc12b0bf3e5118c597c3",
+            "classification": "introduced",
+            "findingId": "finding-caecb710bdcfdc12b0bf3e5118c597c3",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-cef7bf8b0e4325d7183b81c5b4f03562",
+            "classification": "introduced",
+            "findingId": "finding-cef7bf8b0e4325d7183b81c5b4f03562",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ae92750c6fb41fb2a2ee8abaea98831d",
+            "classification": "introduced",
+            "findingId": "finding-ae92750c6fb41fb2a2ee8abaea98831d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2f1e68786a614c95e41d16949e189220",
+            "classification": "introduced",
+            "findingId": "finding-2f1e68786a614c95e41d16949e189220",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-cfeeac9fab8a898f6bce131c48c32cad",
+            "classification": "introduced",
+            "findingId": "finding-cfeeac9fab8a898f6bce131c48c32cad",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "withdrawn"
+          },
+          {
+            "chainRoot": "finding-547ac4caf107000e620089bfcb9b6d07",
+            "classification": "introduced",
+            "findingId": "finding-547ac4caf107000e620089bfcb9b6d07",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 6,
+      "head_sha": "561c42386fd40974f255a6937d3ef574414345b7",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1073,
+      "output_sha256": "4956c7259987cf6831faada39d01f9cf10a24c5cb2ac439e35ecd7f38179d9b6",
+      "reservation_id": "0f8fee9d750748dab153915c53be7c20",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-16T13:51:22.676983Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1492,8 +1576,8 @@
     "impl:fn-257-the-site-grows-its-trees-on-the-device.7": 2,
     "impl:fn-257-the-site-grows-its-trees-on-the-device.8": 1,
     "impl:fn-257-the-site-grows-its-trees-on-the-device.9": 2,
-    "plan": 5,
-    "plan#completion": 2
+    "plan": 7,
+    "plan#completion": 3
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -1523,5 +1607,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T13:50:25.578584Z"
+  "updated_at": "2026-10-16T13:51:22.682910Z"
 }
