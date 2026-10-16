@@ -37,9 +37,12 @@ The native entry test cannot reproduce this; only the wasm32 binding in Node can
 - [ ] PROBE.md ends with the R2 options the table leaves open, for the host; no generator or entry code changed
 
 ## Done summary
-TBD
+R1 probe done; no generator or entry code changed. PROBE.md tables all 8 shipped presets at their preset ages x seeds 1, 7, 42 through the built dist CPU entry in Node, one fresh process per case, with outcome class, nodes, Wasm memory and time. 4 of 24 cases fail, all `core-error: surface allocation`: telperion (82) and laurelin (80) at seeds 7 and 42. Foliage-only builds the same trees. A traced throwaway wasm build names each failing reservation: normals in faces() for three cases, coords in rings() for telperion seed 42. Each is an exact request over what the 4 GiB memory had left. The native counting-allocator trace puts the wood buffers at 3.5 to 3.8 GiB and the build's live heap at 4.2 to 4.5 GiB, so these trees as drawn exceed 32-bit Wasm. R2 is a host decision; the options are listed at the end of PROBE.md.
 
+stage: impl-review - ran [round 1 NEEDS_WORK (3 findings, all fixed in a73fbb802) .. re-review SHIP] (model: gpt-6.1-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6697f7d255e73be3334d9d8c63978268a2d0319d, a73fbb802d3077d81eff4c8aa8a97be0c326aadd
+- Tests: node .flow/evidence/fn-291-the-cpu-entry-builds-every-shipped/probe-dist.mjs dist .flow/evidence/fn-291-the-cpu-entry-builds-every-shipped/raw/probe.jsonl, node scripts/test-dist.mjs (fails: Tree core: surface allocation, reproduced)
 - PRs:
