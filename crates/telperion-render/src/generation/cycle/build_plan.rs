@@ -333,6 +333,12 @@ pub(super) fn record(
                 kit.pass(*id)
                     .encode(&mut pass, (bind, *entry), groups(*size, given));
                 phases.push(phase);
+                #[cfg(test)]
+                if super::dispatch_probe::Noop::on() && super::dispatch_probe::Noop::probes(*id, phase) {
+                    let noop = &kit.noop;
+                    noop.pass
+                        .encode(&mut pass, (&noop.bind, 0), groups(*size, given));
+                }
             }
         }
         drop(pass);

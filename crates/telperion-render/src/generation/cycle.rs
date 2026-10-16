@@ -19,6 +19,8 @@ mod chains;
 mod columns;
 mod compact;
 #[cfg(test)]
+mod dispatch_probe;
+#[cfg(test)]
 mod compare;
 #[cfg(test)]
 mod compile_tests;

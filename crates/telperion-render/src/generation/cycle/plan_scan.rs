@@ -32,12 +32,30 @@ pub(super) fn scanned(
     (tally, to): (&wgpu::Buffer, u64),
     rows: E,
 ) {
+    scanned_if(b, pass, (data, at, cap, shape), sums, (tally, to), rows, None);
+}
+
+/// `scanned`, its dispatches none where `on` is 0 (a pass folded into
+/// one dispatch, `plan_hier.rs`).
+pub(super) fn scanned_if(
+    b: &mut Builder,
+    pass: &io::Pass,
+    (data, at, cap, shape): (&Owned, u64, u32, Shape),
+    sums: &Owned,
+    (tally, to): (&wgpu::Buffer, u64),
+    rows: E,
+    on: Option<E>,
+) {
     // The tally bound from a 64-word boundary, its first total past it.
     let (base, out) = (to / 64 * 64, (to % 64) as u32);
     let slot = b.slot(&[0, 0, MAXX, shape.stride, shape.fields, out, 0, 0]);
     b.set(slot, 0, rows.clone());
     b.set(slot, 6, E::C(1));
-    let up = b.groups(rows.clone().div(E::C(SPAN)).max(E::C(1)));
+    let up = rows.clone().div(E::C(SPAN)).max(E::C(1));
+    let up = b.groups(match on {
+        Some(on) => on.sel(up, E::C(0)),
+        None => up,
+    });
     let down = b.groups(
         rows.clone()
             .gt(E::C(SPAN))

@@ -12,7 +12,7 @@ use super::hier_build::{R_LVL_START, X_FAULT, X_GENS, X_LEVELS, X_UNPLACED};
 use super::hier_device::{self as hd, BUD_BLOCK, CLEARED, FROM_TREE, V_FLAG};
 use super::hier_plan as hp;
 use super::plan::{Builder, PassId, Size, Step, MAXX};
-use super::plan_scan::{scanned, COLUMN};
+use super::plan_scan::{scanned, scanned_if, COLUMN};
 use super::vm::E;
 
 /// How far the hierarchy's loops are recorded: generations a step
@@ -95,50 +95,72 @@ impl Build {
         let blocks = E::At(c::BLOCKS0).add(new.clone());
         let levels = E::At(c::LEVELS0).add(E::At(c::GENS));
         b.point();
-        // A round past the step's generations places nothing: its
-        // dispatches are empty.
-        let mut rounds = Vec::new();
-        for r in 0..bound.gens {
+        // A narrow pass runs folded in one workgroup (`hier_blocks.wgsl`,
+        // `pass_main`), a wide one as its nine dispatches. The host gives
+        // both their bounds' workgroups, so each runs on a slot whose new
+        // axes are none unless the device finds the pass its own.
+        let wide = new
+            .clone()
+            .gt(E::C(hp::FOLD_NEW))
+            .max(blocks.clone().gt(E::C(hp::FOLD_ROWS)));
+        #[cfg(test)]
+        let wide = match super::dispatch_probe::apart() {
+            true => E::C(1),
+            false => wide,
+        };
+        let mut slot = |b: &mut Builder, r: u32, own: E| {
             let slot = b.slot(&words(r));
             for (w, e) in [
                 (0, old.clone()),
-                (1, n.clone()),
+                (1, own.sel(n.clone(), old.clone())),
                 (6, blocks.clone()),
                 (7, levels.clone()),
             ] {
                 b.set(slot, w, e);
             }
+            self.hier_bind(b, kit, slot, parity)
+        };
+        let base = slot(b, 0, E::C(1));
+        // A round past the step's generations places nothing: its
+        // dispatches are empty.
+        let mut rounds = Vec::new();
+        for r in 0..bound.gens {
             let active = E::At(c::GENS).gt(E::C(r));
-            let over = b.groups(active.clone().sel(new.clone().div(E::C(64)), E::C(0)));
-            rounds.push((self.hier_bind(b, kit, slot, parity), over, active));
+            let apart = active.clone().sel(wide.clone(), E::C(0));
+            let folded = active.clone().sel(E::C(1).sub(wide.clone()), E::C(0));
+            let binds = (slot(b, r, apart.clone()), slot(b, r, folded.clone()));
+            rounds.push((binds, apart, folded));
         }
         let groups = |b: &mut Builder, e: E| b.groups(e.div(E::C(64)));
         let (g_new, g_n) = (groups(b, new.clone()), groups(b, n.clone()));
         let _ = old;
-        let scan = |b: &mut Builder, col: u64, rows: E, to: u64| {
+        let scan_if = |b: &mut Builder, col: u64, rows: E, to: u64, on: Option<E>| {
             let at = col * u64::from(s);
-            scanned(
+            scanned_if(
                 b,
                 &kit.hier.scan,
                 (&h.counts, at, s, COLUMN),
                 &h.sums,
                 (&h.tally, to),
                 rows,
+                on,
             );
         };
+        let scan = |b: &mut Builder, col: u64, rows: E, to: u64| scan_if(b, col, rows, to, None);
         scan(b, hp::C_KIDS, n.clone(), hp::X_KIDS);
-        let base = rounds[0].0.clone();
         b.dispatch(build(hp::KID_PLACE), base.clone(), g_new);
         b.dispatch(build(hp::KID_MERGE), base.clone(), g_n);
         assert!(
             rounds.len() <= c::ROUNDS && bound.passes as usize <= PASSES,
             "the passes the census holds"
         );
-        for (r, (bind, over, active)) in rounds.iter().enumerate() {
+        for (r, ((bind, fold_bind), apart, folded)) in rounds.iter().enumerate() {
+            let over = b.groups(apart.clone().sel(new.clone().div(E::C(64)), E::C(0)));
             let (rows, fresh) = (
-                active.clone().sel(blocks.clone(), E::C(0)),
-                active.clone().sel(new.clone(), E::C(0)),
+                apart.clone().sel(blocks.clone(), E::C(0)),
+                apart.clone().sel(new.clone(), E::C(0)),
             );
+            let folded = b.groups(folded.clone());
             b.enter(Cond::Round(r as u32));
             for p in 0..bound.passes {
                 b.enter(Cond::Pass(p));
@@ -148,13 +170,14 @@ impl Build {
                     at: 4 * X_UNPLACED,
                     bytes: Some(4),
                 });
-                b.dispatch(build(hp::TARGET), bind.clone(), *over);
-                scan(b, hp::C_JOIN, rows.clone(), hp::X_JOIN);
-                b.dispatch(build(hp::JOIN_PLACE), bind.clone(), *over);
-                b.dispatch(build(hp::DECIDE), bind.clone(), *over);
-                scan(b, hp::C_OPEN, fresh.clone(), hp::X_OPEN);
-                b.dispatch(build(hp::ASSIGN), bind.clone(), *over);
-                b.dispatch(build(hp::FOLLOW), bind.clone(), *over);
+                b.dispatch(build(hp::TARGET), bind.clone(), over);
+                scan_if(b, hp::C_JOIN, rows.clone(), hp::X_JOIN, Some(apart.clone()));
+                b.dispatch(build(hp::JOIN_PLACE), bind.clone(), over);
+                b.dispatch(build(hp::DECIDE), bind.clone(), over);
+                scan_if(b, hp::C_OPEN, fresh.clone(), hp::X_OPEN, Some(apart.clone()));
+                b.dispatch(build(hp::ASSIGN), bind.clone(), over);
+                b.dispatch(build(hp::FOLLOW), bind.clone(), over);
+                b.dispatch(build(hp::PASS), fold_bind.clone(), folded);
                 b.tally(
                     &h.tally,
                     4 * X_UNPLACED,

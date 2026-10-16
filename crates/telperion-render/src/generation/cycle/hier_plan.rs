@@ -26,6 +26,13 @@ pub(super) const MEMBER_OLD: usize = 12;
 pub(super) const MEMBER_NEW: usize = 13;
 pub(super) const MEMBER_START: usize = 14;
 pub(super) const LEVEL_MERGE: usize = 15;
+pub(super) const PASS: usize = 16;
+
+/// The widest pass folded into one workgroup: its new axes, as one scan
+/// of `hier_blocks.wgsl`'s `FOLD_SPAN`, and its blocks, scanned there a
+/// chunk at a time.
+pub(super) const FOLD_NEW: u32 = 256;
+pub(super) const FOLD_ROWS: u32 = 1024;
 
 pub(super) const C_KIDS: u64 = 0;
 pub(super) const C_KID_FILL: u64 = 1;

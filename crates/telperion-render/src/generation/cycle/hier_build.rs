@@ -15,7 +15,7 @@ use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
 /// The build's entries.
-pub(super) const ENTRIES: [&str; 16] = [
+pub(super) const ENTRIES: [&str; 17] = [
     "begin_main",
     "depth_main",
     "kid_place_main",
@@ -32,6 +32,7 @@ pub(super) const ENTRIES: [&str; 16] = [
     "member_new_main",
     "member_start_main",
     "level_merge_main",
+    "pass_main",
 ];
 
 /// The shape's, counts', lists' and buckets' columns, and the tally's

@@ -59,6 +59,7 @@ fn compiled(gpu: &Gpu) -> Kit {
         glue,
         vm,
         retire,
+        noop: super::dispatch_probe::Noop::new(gpu),
     }
 }
 

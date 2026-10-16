@@ -70,7 +70,10 @@ fn has_room(b: u32) -> bool {
 // its waiters for fresh spills).
 @compute @workgroup_size(64)
 fn target_main(@builtin(global_invocation_id) id: vec3<u32>) {
-    let k = index(id);
+    target_at(index(id));
+}
+
+fn target_at(k: u32) {
     let i = cfg.n_old + k;
     if !waiting(i) {
         return;
@@ -94,7 +97,10 @@ fn target_main(@builtin(global_invocation_id) id: vec3<u32>) {
 // The pass's waiters listed under their targets, by fill.
 @compute @workgroup_size(64)
 fn join_place_main(@builtin(global_invocation_id) id: vec3<u32>) {
-    let k = index(id);
+    join_place_at(index(id));
+}
+
+fn join_place_at(k: u32) {
     let i = cfg.n_old + k;
     if !waiting(i) || count(C_TARGET, k) == NONE {
         return;
@@ -119,7 +125,10 @@ fn rank_of(i: u32, t: u32) -> u32 {
 // above the state, a fresh spill's group; its opening flag for the scan.
 @compute @workgroup_size(64)
 fn decide_main(@builtin(global_invocation_id) id: vec3<u32>) {
-    let k = index(id);
+    decide_at(index(id));
+}
+
+fn decide_at(k: u32) {
     let i = cfg.n_old + k;
     if i >= cfg.n_new {
         return;
@@ -150,7 +159,10 @@ fn decide_main(@builtin(global_invocation_id) id: vec3<u32>) {
 // in the full block's slots, and the last group's made its open spill.
 @compute @workgroup_size(64)
 fn assign_main(@builtin(global_invocation_id) id: vec3<u32>) {
-    let k = index(id);
+    assign_at(index(id));
+}
+
+fn assign_at(k: u32) {
     let i = cfg.n_old + k;
     if i >= cfg.n_new || shape[at(H_GEN, i)] != cfg.round {
         return;
@@ -197,6 +209,10 @@ fn follow_main(@builtin(global_invocation_id) id: vec3<u32>) {
     if k == 0u && cfg.n_new > cfg.n_old {
         atomicAdd(&tally[X_BLOCKS], atomicLoad(&tally[X_OPEN]));
     }
+    follow_at(k);
+}
+
+fn follow_at(k: u32) {
     let i = cfg.n_old + k;
     if !waiting(i) {
         return;
@@ -208,4 +224,101 @@ fn follow_main(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let waiters = scanned(C_JOIN, count(C_TARGET, k) & ~AT_FULL, cfg.block_rows, X_JOIN);
     shape[at(H_BLOCK, i)] = bucket[at(U_GROUPS, waiters.x + (state >> 2u))];
+}
+
+// fn-257 R6: a placing pass folded into one workgroup where the pass is
+// narrow (`hier_plan.rs`: `FOLD_NEW` new axes or fewer, `FOLD_ROWS` blocks
+// or fewer): the joiners' and fills' rows cleared, then each step above over every new
+// axis in the order the separate dispatches run them, the joiners' and
+// openings' scans in the workgroup, a chunk of `FOLD_SPAN` rows at a
+// time, each step behind a barrier. The same words, in one dispatch for
+// nine (`plan_hier.rs`).
+const FOLD_LANES: u32 = 256u;
+const FOLD_SPAN: u32 = 1024u;
+
+var<workgroup> f_lanes: array<u32, FOLD_LANES>;
+
+fn fold_barrier() {
+    storageBarrier();
+    workgroupBarrier();
+}
+
+// Column `col`'s first `rows` counts scanned in place, exclusively, four
+// rows a lane in chunks of `FOLD_SPAN`; the total into tally word `total`.
+fn fold_scan(lane: u32, col: u32, rows: u32, total: u32) {
+    var start = 0u;
+    for (var c = 0u; c < rows; c += FOLD_SPAN) {
+        let first = c + lane * 4u;
+        var own = 0u;
+        for (var r = 0u; r < 4u; r++) {
+            if first + r < rows {
+                own += count(col, first + r);
+            }
+        }
+        workgroupBarrier();
+        f_lanes[lane] = own;
+        workgroupBarrier();
+        for (var d = 1u; d < FOLD_LANES; d *= 2u) {
+            var add = 0u;
+            if lane >= d {
+                add = f_lanes[lane - d];
+            }
+            workgroupBarrier();
+            f_lanes[lane] += add;
+            workgroupBarrier();
+        }
+        var run = start + f_lanes[lane] - own;
+        for (var r = 0u; r < 4u; r++) {
+            if first + r < rows {
+                let v = count(col, first + r);
+                atomicStore(&counts[at(col, first + r)], run);
+                run += v;
+            }
+        }
+        start += f_lanes[FOLD_LANES - 1u];
+    }
+    if lane == 0u {
+        atomicStore(&tally[total], start);
+    }
+    fold_barrier();
+}
+
+@compute @workgroup_size(256)
+fn pass_main(@builtin(local_invocation_index) lane: u32) {
+    // A pass not folded: its slot holds no new axes.
+    let n = cfg.n_new - cfg.n_old;
+    if n == 0u {
+        return;
+    }
+    let rows = cfg.block_rows;
+    for (var r = lane; r < rows; r += FOLD_LANES) {
+        atomicStore(&counts[at(C_JOIN, r)], 0u);
+        atomicStore(&counts[at(C_JOIN_FILL, r)], 0u);
+    }
+    fold_barrier();
+    for (var k = lane; k < n; k += FOLD_LANES) {
+        target_at(k);
+    }
+    fold_barrier();
+    fold_scan(lane, C_JOIN, rows, X_JOIN);
+    for (var k = lane; k < n; k += FOLD_LANES) {
+        join_place_at(k);
+    }
+    fold_barrier();
+    for (var k = lane; k < n; k += FOLD_LANES) {
+        decide_at(k);
+    }
+    fold_barrier();
+    fold_scan(lane, C_OPEN, n, X_OPEN);
+    for (var k = lane; k < n; k += FOLD_LANES) {
+        assign_at(k);
+    }
+    fold_barrier();
+    if lane == 0u {
+        atomicAdd(&tally[X_BLOCKS], atomicLoad(&tally[X_OPEN]));
+    }
+    fold_barrier();
+    for (var k = lane; k < n; k += FOLD_LANES) {
+        follow_at(k);
+    }
 }

@@ -34,6 +34,8 @@ pub(super) struct Kit {
     pub glue: glue::Kernels,
     pub vm: vm::Kernels,
     pub retire: super::retire_device::Kernels,
+    #[cfg(test)]
+    pub noop: super::dispatch_probe::Noop,
 }
 
 impl Kit {
@@ -83,6 +85,8 @@ impl Kit {
             glue,
             vm,
             retire,
+            #[cfg(test)]
+            noop: super::dispatch_probe::Noop::new(gpu),
         }
     }
 
