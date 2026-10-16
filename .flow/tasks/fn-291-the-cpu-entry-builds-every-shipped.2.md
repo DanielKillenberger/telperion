@@ -39,19 +39,19 @@ Wasm memory pages never return. A native counting allocator measures the live se
 - [ ] The probe's high-water mark for the four failing cases and Telperion/Laurelin seed 1 is recorded after R2a
 - [ ] PROBE.md states the floor with R2b's per-vertex compaction plus the measured slack; over 3,584 MiB means NEEDS_HUMAN with the gap
 ## Done summary
-Blocked:
-NEEDS_HUMAN: stop condition met (PROBE.md, "Gap (stop condition met)").
+R2a is built and measured. `fitted()` in `pipeline::build` gives back growth's spare tree capacity before the wood reserves anything: 604 MiB down to 483 MiB for telperion. The test `the_built_tree_keeps_no_spare_capacity` went red, then green. All 8 presets' dist outputs hash identically before and after.
 
-R2a is built and measured in 9d344192c: `fitted()` gives back growth's spare tree capacity, every preset's dist outputs are byte-identical, and the test went red, then green. It lowers no failing case's Wasm high-water mark.
+PROBE.md records:
+- the Wasm memory at each wood reservation, before and after R2a
+- the live floor after R2a: 3,551 MiB for telperion with R2b, only at zero slack
+- the contiguity bound: the 1,651 MiB index run over growth's 2,693 MiB of fragmented memory makes the high-water mark at least 4,344 MiB
 
-R2b cannot reach 3.5 GiB:
-- Its live floor for telperion is 3,551 MiB, and that holds only at zero slack.
-- The 1,651 MiB index run cannot land in growth's fragmented 2.69 GiB, where no free run of 831 MiB exists. The high-water mark is therefore at least 4,344 MiB.
+R2a and R2b alone cannot fit Telperion. The host answered with R2d and R2e, re-planned as tasks 5, 6 and 3.
 
-The levers are the index layout (a run table, or chunks) or growth's peak and fragmentation. Both are the host's call.
+stage: impl-review - ran [round 1 NEEDS_WORK (R2a missing, signed shift) .. round 2 NEEDS_WORK (stale floor) .. re-plan reset .. SHIP] (model: gpt-6.1-sol)
 
-The codex impl-review is at its round cap of 2. Round 1 was NEEDS_WORK and fixed. Round 2 was NEEDS_WORK (the floor used the pre-R2a tree) and fixed in b9e4377fb. That fix is not re-reviewed, because flowctl escalated at the cap.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 734f3b19a1f78f8d79159a82b6cffa3e73f70c8f, 38a18b753801ee9350381d5fc4e486f4a9cdc1b2, 9d344192c8ea7fc503d2cfc6d253f300c01b33f1, b9e4377fb0c30daaed035e53b0a7028d7aa20458, d9cf2d59de068ad4f91624810aff07ee50f0d371, d9355e9a38615e82e30bdd9784e1469e8483c196, c9f788b92996106a10d7e818add40eeafcfc2bca, de6cac85d57cf93d41154eb60b024ebf55a80b1c, 5e9910d34ffdce974c7dd647844300c2220a4230, bf4527a2311eb5d5ec78af1b4eb0bf03a323f760
+- Tests: cargo test --profile ci -p telperion-core --lib -- pipeline::tests::the_built_tree_keeps_no_spare_capacity (red then green), node .flow/evidence/fn-291-the-cpu-entry-builds-every-shipped/hash-dist.mjs (8 presets identical)
 - PRs:
