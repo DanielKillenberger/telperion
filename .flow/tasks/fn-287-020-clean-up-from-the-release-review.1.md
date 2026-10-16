@@ -40,9 +40,16 @@ R1. The resident position programme's `admit`, `radii` and `finish` entries and 
 - [ ] `cargo build --profile ci -p telperion-render` and `cargo build --profile ci --target wasm32-unknown-unknown -p telperion-render` succeed with no new warning
 - [ ] Route, lobed and generation comparison tests and the seated resident tests pass; workspace gate green
 ## Done summary
-TBD
+Production `Generator::create` makes the position pass from `positions::entries()`, which is `positions::ENTRIES = ["emit"]` alone; under `cfg(test)` `admit`, `radii`, `finish` are appended at indices 1-3. `begin_positions`, `complete_positions`, `emit_positions`, `UploadedWood`, `upload_wood` and their helpers are test-only; production `prepare_whole(family)` is the CPU delivery and the old resident branch is the test-only `prepare_whole_resident` (sharing `on_cpu`, `assemble`). `buffer::Lent` is removed (gating its `Borrowed` variant alone fails E0392); `compute_buffer_async` takes any `Deref<Target = wgpu::Buffer>` rings and the lent bytes explicitly, the values the enum gave. Test: `generation::tests::production_makes_only_the_position_emit_entry` (no GPU).
 
+Evidence: workspace gate once at 787682963, `telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`, 2026-10-16T06:26:41+02:00 to 07:00:25+02:00 (2,024 s): 1,407 passed, 0 failed, 103 ignored. Native and wasm32 `cargo build --profile ci -p telperion-render` warning sets identical to the base. Baseline: green (generation filter 115/0/39 before, 116/0/39 after).
+
+Follow-ups: `position_*` metrics are now written only by the test oracle (out of scope per spec); the pre-existing `ring_vertices` `expect` reachable through `for_cpu_output` + `begin_growth`/`settle`; `assemble` takes seven parameters (reviewer FYI). Touches widened by the conductor to `buffer.rs` and `generation/compute.rs`.
+
+stage: impl-review - ran (codex, three draws: correctness, contracts, integration; SHIP, 0 findings)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 20c0f41793f82370ae3ee1003aa0d52358c4cb8c, 51e6a00cd08727643d5abe9498d0669992e4204e, 78768296357427da83f2286001a2f796bf1dd3b2
+- Tests: telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast (1407 passed, 0 failed, 103 ignored), cargo build --profile ci -p telperion-render; cargo build --profile ci --target wasm32-unknown-unknown -p telperion-render (warning-neutral)
 - PRs:
