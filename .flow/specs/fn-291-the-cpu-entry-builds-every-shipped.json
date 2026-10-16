@@ -1,11 +1,74 @@
 {
   "branch_name": "fn-291-the-cpu-entry-builds-every-shipped",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-16T02:52:21.832518Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-291-the-cpu-entry-builds-every-shipped",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-16T03:08:23.881150Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "9933cfbd8f6f8908f4ce46ba40bcf77884101ffa20b93557e169c46e362fec16",
+      "backend": "codex",
+      "base_sha": "6a6d5abcba776e4463dde952df983f193e0d0494",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6a0306a6c10f81add4696ea0f2968cab",
+            "classification": "introduced",
+            "findingId": "finding-6a0306a6c10f81add4696ea0f2968cab",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "544d0d1597f403b3a1104a29631b628f89378db2",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 197852,
+      "output_sha256": "b9c802d4110e1332565592e4f720e946a5526c3e4af2609b01f78cf4f3a5dc3e",
+      "reservation_id": "280acb1fc3794e399222163142fd5d28",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-16T03:08:23.876408Z",
+      "tool_calls": 10,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-291-the-cpu-entry-builds-every-shipped.md",
   "status": "open",
   "title": "The CPU entry builds every shipped preset or refuses it by name",
@@ -20,5 +83,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T03:06:31.983169Z"
+  "updated_at": "2026-10-16T03:08:23.883440Z"
 }

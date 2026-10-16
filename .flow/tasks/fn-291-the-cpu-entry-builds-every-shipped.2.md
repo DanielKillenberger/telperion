@@ -7,8 +7,8 @@ satisfies: [R2]
 Implement the R2 choice the host made from task 1's PROBE.md (recorded in this task's spec before start). Either (a) a sizing or memory fix in the wood stage so the failing presets build in the wasm32 entry, re-measured with task 1's probe, or (b) a wasm32-gated refusal predicted before allocation, named with its cause and remedy in the pattern of the phytomer ceiling, and stated in the README and the entry's types. A refusal of a shipped preset at its preset age needs the owner's word, quoted in the done summary.
 
 **Size:** M
-**Files:** decided by the host's choice; likely `crates/telperion-core/src/pipeline/surface/build.rs`, `crates/telperion-core/src/pipeline/surface.rs`, `crates/telperion-core/src/pipeline/space.rs`, `src/browser/core.ts`, `README.md`
-**Touches:** [crates/telperion-core/src/pipeline/**, crates/telperion-wasm/**, src/browser/core.ts, README.md, docs/**]
+**Files:** decided by the host's choice; likely `.flow/evidence/fn-291-the-cpu-entry-builds-every-shipped/PROBE.md`, `crates/telperion-core/src/pipeline/surface/build.rs`, `crates/telperion-core/src/pipeline/surface.rs`, `crates/telperion-core/src/pipeline/space.rs`, `src/browser/core.ts`, `README.md`
+**Touches:** [.flow/evidence/fn-291-the-cpu-entry-builds-every-shipped/PROBE.md, crates/telperion-core/src/pipeline/**, crates/telperion-wasm/**, src/browser/core.ts, README.md, docs/**]
 
 ### Approach
 - A refusal follows `OVER` / `foreseen` / `fits` in `crates/telperion-core/src/pipeline/space.rs` (wasm32-gated, predicted before the allocation), never a fallback that draws a different tree.
