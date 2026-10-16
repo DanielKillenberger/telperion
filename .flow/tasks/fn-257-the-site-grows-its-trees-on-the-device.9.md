@@ -17,9 +17,10 @@ Order:
 - Every shipped preset's tree byte-identical to the base at seeds 1, 7, 42; harness build times no worse.
 
 ## Done summary
-TBD
+A zone's node order written a byte a node (spruce peak 1,624.5 -> 1,586.8 MB, Telperion 2,740.3 -> 2,690.0), every preset byte-identical at seeds 1, 7, 42, warm time unchanged; TABLES.md inventories every growth table; the next lossless step is under 2 % and stops; float quantisation reported for fn-285. Codex SHIP after a recorded round reset.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4dc918a82
+- Tests: drawn_hashes 24 trees, drawn_warm paired 16 runs
 - PRs:
