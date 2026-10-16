@@ -15,9 +15,9 @@ The spruce at 40, seed 1, warm, RTX 3080:
 | grow: the cycles (device busy, census waits) | about 260 | about 260 | 67 % | yes: the census waits are the device working (no gap between cycles, 0.03 ms) |
 | grow: of it, dispatch launch and order | about 26 | about 26 | 7 % | no: DISPATCH.md; task 4's fold measured slower |
 | grow: the one compaction (after cycle 37) | 25–31 host, about 5 device | the same | about 1–2 % of wall | partly: see below |
-| settle | 43.0 | 41.2 | 11 % | about half: 21 ms device, 12 ms making its 426 MB of buffers, 10 readbacks each on its own submission's result |
+| settle | 43.0 | about 37 | 10 % | about half: 21 ms device, 12 ms making its 426 MB of buffers, 10 readbacks each on its own submission's result |
 | plan, trunk | 11.0, 8.2 | 10.3, 7.8 | 5 % | yes: each one readback waits on the previous stage's device work (plan's own device time 0.4 ms) |
-| whole `tree::drawn` | 395.8 | 385.8 | | |
+| whole `tree::drawn` | 395.8 | about 381 (medians, the two taken) | | |
 | field on top: readied, stations, primitives, index | 56 | 56 | | readied 23.5, stations 16.6, primitives 9.6, index 6.4 |
 | field query, 36 cells a side | 63–67 | 63–67 | | the query kernel |
 
@@ -34,7 +34,10 @@ The spruce at 40, seed 1, warm, RTX 3080:
   - **Dropping the read** (`PROBE_NOCUT`, the pre-compaction census used instead): the spruce went 6.0 ms *slower* (the next cycles' workgroups are bounded by the larger counts) and Telperion (two compactions) 10.0 ms faster (`raw/t8/warm-nocut.txt`). Without the `cut` the next move check reads counts the compaction already cut, so a needless move becomes likely.
   - **Sizing it in:** the tables would be sized to the uncompacted rows, about a fifth more phytomers' and axes' rows, near 100 MB of peak, to save about 5–10 ms.
   - Neither is a clear gain, so the compaction stays.
-- **The settle's, plan's and trunk's readbacks: none to batch.** Each of the settle's 10 reads decides what the next submission records: the depths, then the sweeps' tallies, then faults and the first error after each lay. The plan's and trunk's single reads wait on the device work before them. Two pairs read words of the same submission (`faults` and `first_error`; the sweeps' tally, kept and long). Merging them saves a map round trip each, under 1 ms in all.
+- **The settle's, plan's and trunk's readbacks: the reads of one submission batched, taken.**
+  - **Batched:** the sweeps' tally, kept counts and longest lengths are now one read (`settle_run.rs`). Each lay's faults and first error are one read too (`settle_place.rs`'s `laid`), with the same refusal by name. That leaves 7 of the settle's 10 reads.
+  - **Warm `tree::drawn`:** spruce 385.3 to 380.5 ms (medians 381.3 to 380.1; the base's spread 12.5 from one slow run), Telperion 837.5 to 833.2 (sd 4.0, 2.3; `raw/t8/warm-reads.txt`). 24 of 24 trees are byte-identical.
+  - **The rest stay:** each of the remaining reads decides what the next submission records (the depths, the sweeps, whether to lay again). The plan's and trunk's single reads wait on the device work before them.
 - **The spruce's 80.8 MB without a label: named, kept.** Charged under its own labels now (`buffer.rs`'s `allocate`), it is the foliage's level lists (60.4 MB) and selection scratch (20.4 MB). The selection writes both every frame and the draws read the lists, so both are read data:
   - **The scratch** is the selection's ranks and per-group counts.
   - **The lists** are one list per detail level, each with room for every leaf (`select.wgsl`: `level * stride + offset`), because the draws bind a level at a fixed offset. One list of all leaves, levels end to end, would hold 15 MB.

@@ -461,11 +461,12 @@ async fn sweeps(
         r.run((d::KEEP, "settle sweeps"), &at(k, dc), dc.1)?;
     }
     r.submit(e);
-    let tally = read(r.gpu, &r.atom, 0, 64).await?;
-    refuse(tally[d::T_FAULT])?;
-    let kept = read(r.gpu, &r.atom, u64::from(d::T_KDCOUNT), depths.len() as u64).await?;
-    let long = read(r.gpu, &r.atom, u64::from(d::T_KDLONG), depths.len() as u64).await?;
-    Ok((tally, kept, long))
+    // The tally, the kept depths' counts and their longest, in one read.
+    let n = depths.len();
+    let words = read(r.gpu, &r.atom, 0, u64::from(d::T_KDLONG) + n as u64).await?;
+    refuse(words[d::T_FAULT])?;
+    let at = |k: u32| words[k as usize..k as usize + n].to_vec();
+    Ok((words[..64].to_vec(), at(d::T_KDCOUNT), at(d::T_KDLONG)))
 }
 
 /// The third submission: the lineage order a depth at a time, then the
