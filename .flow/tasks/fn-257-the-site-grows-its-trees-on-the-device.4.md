@@ -17,9 +17,10 @@ Kept only past the noise: if the bound is under twice the pairs' spread, the fol
 - If folded: every preset's tree byte-identical, the saving measured paired, the gate green. If dropped: no production code changes.
 
 ## Done summary
-TBD
+Probed the hierarchy step's launches (5.7 ms, sd 2.3, on the oak: past the noise), built the fold of narrow placing passes into one workgroup (every preset byte-identical), measured it paired: 3.5-5.6 ms slower on the oak, about 11 ms on the spruce. Dropped; no production code changed; the experiment is on fn-257-r6-fold-experiment (8069cec80). Codex impl-review SHIP.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 74f59d96e, a98a0bf27
+- Tests: cargo test --profile ci -p telperion-render --lib the_fold_leaves_every_preset -- --ignored (on 8069cec80), PROBE_FOLD=1 cargo test ... the_balance_dispatches_cost -- --ignored
 - PRs:
