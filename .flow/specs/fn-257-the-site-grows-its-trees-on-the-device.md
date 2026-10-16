@@ -72,6 +72,8 @@ Reusing growth's buffers across builds (about 33 ms on the spruce) is not taken:
 
 The owner, on why the site field costs more than the build: "so what's the output of the build phase? if not the field? why couldn't we evaluate the 36^3 query directly from that product?" and "making another format just for the fun of it doesn't make sense to me if the build output isn't that field..". So R1' and task 5's compact primitives are replaced by:
 
+The owner (2026-10-16): "we defined we wanted a clean pipeline with consumers that take the output from previous stages". So the field is a consumer of the drawn stage's output through the one pipeline (docs/pipeline.md: stages private, no second chain), as the renderer is: no intermediate stage or format stands between the drawn records and the grid read-out, and docs/pipeline.md's field section is rewritten to say so.
+
 - **R8 (one form of the tree):** the field reads the build's drawn records directly; the field-primitive format, its index, the compact primitive layout and the per-cube query are deleted. A field request names its grid (resolution over the tree's bounds); one device pass splats every drawn segment and leaf-bearing segment into the cells it touches (wood flag, thickest radius, leaf estimate, owning limb), and only the grid is read back.
 - **R8a (same answers):** every preset at 24, 36 and 48 cells, seeds 1 and 5678, within the tolerances the field holds today against the CPU reference; the CPU reference itself reads the CPU's drawn tree the same way.
 - **R8b (contract):** the package's field entry takes the grid and returns it; arbitrary-cube queries go, with a migration note beside `cut`'s; the TypeScript types and README change with it.
