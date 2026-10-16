@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { growField, prepareField } from "./index";
+import { deviceCells, growField, prepareField } from "./index";
 
 /* The field entry point in Node (fn-257 R3a): Node has no WebGPU, so every
  * growth rejects by name, and nothing falls back to a CPU growth. Its input
@@ -17,5 +17,13 @@ describe("the field entry point without WebGPU", () => {
     await expect(growField("european-beech", 1.5)).rejects.toThrow("seed");
     await expect(growField("european-beech", 2 ** 32)).rejects.toThrow("seed");
     await expect(growField("european-beech", 1, { limbOrder: -1 })).rejects.toThrow("limbOrder");
+  });
+
+  it("refuses a malformed batch whole, judged before single precision", () => {
+    expect(() => deviceCells(new Float64Array(5))).toThrow("packed");
+    expect(() => deviceCells(new Float64Array([0, 1, 0, 0.5, 0, 2, 0, -0.1]))).toThrow("field query");
+    expect(() => deviceCells(new Float64Array([0, 1, 0, -1e-50]))).toThrow("field query");
+    expect(() => deviceCells(new Float64Array([0, 1, 0, 0.5, Number.NaN, 2, 0, 0.1]))).toThrow("field query");
+    expect(deviceCells(new Float64Array([0, 1, 0, 0.5]))).toEqual(new Float32Array([0, 1, 0, 0.5]));
   });
 });

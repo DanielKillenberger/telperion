@@ -191,6 +191,92 @@ fn list<T: std::str::FromStr>(var: &str, or: &str) -> Vec<T> {
         .collect()
 }
 
+/// `family`'s reference field and the device's, asked of the same cells.
+fn both(
+    gen: &Generator,
+    family: &telperion_core::presets::Family,
+    limb_order: Option<u32>,
+) -> (telperion_core::field::Field, super::DeviceField) {
+    let request = Request {
+        field: Some(limb_order),
+        ..Request::default()
+    };
+    let reference = pipeline::build(family, request).expect("the reference");
+    let reference = reference.outputs.field.expect("a field");
+    let field = pollster::block_on(gen.grow_field(family, limb_order)).expect("grown");
+    (reference, field)
+}
+
+fn words(cells: &[(Vec3, f64)]) -> Vec<f32> {
+    cells
+        .iter()
+        .flat_map(|(c, h)| [c.x as f32, c.y as f32, c.z as f32, *h as f32])
+        .collect()
+}
+
+/// The device's name for each reference limb system: the one it shares
+/// the most cells with.
+fn names(cpu: &[telperion_core::field::Occupancy], dev: &[super::Answer]) -> HashMap<u32, u32> {
+    let mut shared: HashMap<u32, HashMap<u32, u64>> = HashMap::new();
+    for (c, d) in cpu.iter().zip(dev) {
+        if let (Some(c), Some(d)) = (c.limb, d.limb) {
+            *shared.entry(c).or_default().entry(d).or_default() += 1;
+        }
+    }
+    (shared.iter())
+        .map(|(c, m)| (*c, *m.iter().max_by_key(|(d, n)| (**n, std::cmp::Reverse(**d))).unwrap().0))
+        .collect()
+}
+
+/// A cell that meets more limb systems than one tally holds is answered,
+/// a window of systems at a time, as the CPU answers it: the birch's
+/// whole crown in one cube, its 387 systems at its own order.
+#[test]
+fn a_cell_crowded_with_limbs_names_the_cpu_s_limb() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let gen = pollster::block_on(Generator::for_fields_async(gpu.clone())).expect("a generator");
+    let family = telperion_core::presets::by_identity("silver-birch").expect("a preset");
+    let (reference, field) = both(&gen, &family, None);
+    assert!(field.named() > super::field::TALLY, "{}", field.named());
+    let b = reference.bounds().expect("bounds");
+    let cells = grid(&b, 24);
+    let cpu: Vec<_> = cells.iter().map(|(c, h)| reference.query(*c, *h).expect("answered")).collect();
+    let dev = pollster::block_on(gen.query_field(&field, &words(&cells))).expect("answered");
+    let named = names(&cpu, &dev);
+    let centre = (b.min + b.max) * 0.5;
+    let half = (b.max - b.min).x.max((b.max - b.min).y).max((b.max - b.min).z) * 0.5;
+    let whole = reference.query(centre, half).expect("answered");
+    let mine = pollster::block_on(gen.query_field(&field, &words(&[(centre, half)]))).expect("answered");
+    let limb = whole.limb.expect("a limb");
+    assert_eq!(mine[0].limb, named.get(&limb).copied(), "the whole crown's limb");
+    assert!((f64::from(mine[0].leaves) / whole.leaves - 1.0).abs() < 1e-3);
+}
+
+/// A field on a lost device is refused by name, never answered.
+#[test]
+fn a_field_on_a_lost_device_is_refused_by_name() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let gen = pollster::block_on(Generator::for_fields_async(gpu.clone())).expect("a generator");
+    let family = telperion_core::presets::by_identity("date-palm").expect("a preset");
+    let field = pollster::block_on(gen.grow_field(&family, None)).expect("grown");
+    gpu.device.destroy();
+    for cells in [&[0.0, 1.0, 0.0, 0.5][..], &[]] {
+        let refused = pollster::block_on(gen.query_field(&field, cells)).expect_err("refused");
+        assert!(refused.to_string().contains("lost"), "{refused}");
+    }
+    let refused = pollster::block_on(gen.grow_field(&family, None)).err().expect("refused");
+    assert!(refused.to_string().contains("lost"), "{refused}");
+}
+
+/// R2 measured: every preset (`FIELD_PRESETS`), its seeds (`FIELD_SEEDS`)
+/// and grids (`FIELD_SIDES`, 24, 36 and 48 cells a side), each held to
+/// its tolerance, with each field's warm growth, its query and its bytes.
 #[test]
 #[ignore = "device limits: every preset's field on the device against the CPU's"]
 fn the_device_field_answers_as_the_cpu_field() {
@@ -202,6 +288,7 @@ fn the_device_field_answers_as_the_cpu_field() {
     let only = std::env::var("FIELD_PRESETS").ok();
     let seeds: Vec<u32> = list("FIELD_SEEDS", "1");
     let sides: Vec<u32> = list("FIELD_SIDES", "24,36,48");
+    let mut past = Vec::new();
     println!("| Preset | Seed | Side | wood J | radius off | foliage J | leaves err | total | limbs | grow ms | query ms | field MB |");
     println!("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|");
     let ids = telperion_core::presets::CATALOGUE.iter().map(|c| c.1);
@@ -209,72 +296,22 @@ fn the_device_field_answers_as_the_cpu_field() {
         for &seed in &seeds {
             let mut family = telperion_core::presets::by_identity(id).expect("a preset");
             family.skeleton.seed = seed;
-            let request = Request {
-                field: Some(None),
-                ..Request::default()
-            };
-            let built = pipeline::build(&family, request).expect("the reference");
-            if let Some(plan) = &built.outputs.plan {
-                let named: std::collections::BTreeSet<u32> = plan.descriptors.iter().map(|d| d.system).collect();
-                let leaves: u64 = plan.descriptors.iter().map(|d| u64::from(d.count)).sum();
-                println!("{id} {seed}: the reference plans {} segments, {} leaves, {} systems; {} nodes", plan.descriptors.len(), leaves, named.len(), built.skeleton.tree.nodes.len());
-            }
-            let reference = built.outputs.field.expect("a field");
-            let b = reference.bounds().expect("bounds");
-            // Warm: the second of two.
-            let mut grow_ms = 0.0;
-            let mut field = None;
-            for _ in 0..2 {
-                drop(field.take());
-                let t = Clock::now();
-                field = Some(pollster::block_on(gen.grow_field(&family, None)).expect("grown"));
-                grow_ms = t.elapsed_ms();
-            }
-            let field = field.expect("a field");
-            if let (Some(plan), true) = (&built.outputs.plan, std::env::var("FIELD_NEAREST").is_ok()) {
-                let ours = field.prims(&gpu, u64::from(field.wood), u64::from(field.leaves));
-                let ours: Vec<Vec3> = ours
-                    .iter()
-                    .filter(|p| p[3] >= 0.0)
-                    .map(|p| Vec3::new(f64::from(p[0] + p[4]) * 0.5, f64::from(p[1] + p[5]) * 0.5, f64::from(p[2] + p[6]) * 0.5))
-                    .collect();
-                let mut far = Vec::new();
-                for d in &plan.descriptors {
-                    let c = (d.endpoints[0] + d.endpoints[1]) * 0.5;
-                    let near = ours.iter().map(|o| o.distance(c)).fold(f64::INFINITY, f64::min);
-                    far.push(near);
-                }
-                far.sort_by(f64::total_cmp);
-                let q = |f: f64| far[((far.len() - 1) as f64 * f) as usize];
-                println!("{id} {seed}: {} reference centres, {} ours; nearest median {:.4} m, 90% {:.4}, most {:.4}", far.len(), ours.len(), q(0.5), q(0.9), q(1.0));
-            }
-            let systems: std::collections::BTreeSet<u32> = field.systems(&gpu).into_iter().collect();
-            println!("{id} {seed}: {} wood, {} leaf segments, {} systems, {} leaves", field.wood, field.leaves, systems.len(), field.leaf_total(&gpu));
+            // Warm: the second growth of two.
+            let (reference, field) = both(&gen, &family, None);
+            drop(field);
+            let t = Clock::now();
+            let field = pollster::block_on(gen.grow_field(&family, None)).expect("grown");
+            let grow_ms = t.elapsed_ms();
+            let fronds = family.canopy.rosette_fronds > 0.0;
             for &n in &sides {
-                let cells = grid(&b, n);
-                let cpu: Vec<_> = cells
-                    .iter()
-                    .map(|(c, h)| reference.query(*c, *h).expect("answered"))
-                    .collect();
-                let words: Vec<f32> = cells
-                    .iter()
-                    .flat_map(|(c, h)| [c.x as f32, c.y as f32, c.z as f32, *h as f32])
-                    .collect();
-                let named: std::collections::BTreeSet<u32> = cpu.iter().filter_map(|o| o.limb).collect();
-                println!("{id} {seed} {n}: the reference's cells name {} systems", named.len());
+                let cells = grid(&reference.bounds().expect("bounds"), n);
+                let cpu: Vec<_> = cells.iter().map(|(c, h)| reference.query(*c, *h).expect("answered")).collect();
                 let t = Clock::now();
-                let dev = match pollster::block_on(gen.query_field(&field, &words)) {
-                    Ok(dev) => dev,
-                    Err(e) => {
-                        println!("| {id} | {seed} | {n} | refused: {e} |");
-                        continue;
-                    }
-                };
+                let dev = pollster::block_on(gen.query_field(&field, &words(&cells))).expect("answered");
                 let query_ms = t.elapsed_ms();
                 let m = compare(&cpu, &dev);
-                let fronds = family.canopy.rosette_fronds > 0.0;
                 if let Err(m) = within(&m, fronds) {
-                    println!("{id} {seed} {n}: past its tolerance: {m}");
+                    past.push(format!("{id} {seed} {n}: {m}"));
                 }
                 println!(
                     "| {id} | {seed} | {n} | {:.4} | {:.4} | {:.4} | {:.4} | {:.4} | {:.4} | {grow_ms:.0} | {query_ms:.1} | {:.1} |",
@@ -284,4 +321,5 @@ fn the_device_field_answers_as_the_cpu_field() {
             }
         }
     }
+    assert!(past.is_empty(), "past their tolerances: {past:#?}");
 }

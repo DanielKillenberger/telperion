@@ -79,9 +79,20 @@ impl super::Generator {
     }
 
     /// `field`'s answers for `cells`, four words a cell: a closed cube's
-    /// centre and half extent (fn-257).
+    /// centre and half extent (fn-257). On a lost device it is refused by
+    /// name, the loss reported before any failure it caused.
     pub async fn query_field(&self, field: &DeviceField, cells: &[f32]) -> Result<Vec<Answer>> {
-        field.query(&self.gpu, &self.kit().tools, cells).await
+        if let Some(lost) = self.gpu.lost() {
+            return Err(lost);
+        }
+        let answered = field.query(&self.gpu, &self.kit().tools, cells).await;
+        answered.map_err(|e| self.gpu.lost().unwrap_or(e))
+    }
+
+    /// The device's loss, where it is lost: the reason no field grows or
+    /// answers on it (fn-257).
+    pub fn lost(&self) -> Option<crate::RenderError> {
+        self.gpu.lost()
     }
 
     /// The device's kernels and tools, made on first use.

@@ -12,7 +12,10 @@
 // thickest that does, the leaves the segments that meet it carry inside
 // it, and the limb system with the most of them, the lower on a tie.
 // Each primitive is met once, in the first bucket of its box and the
-// cell's both hold.
+// cell's both hold. A cell met by more systems than its tally holds is
+// flagged, and asked again a window of systems at a time (`cfg.flip` the
+// window's first, `NONE` for none): each window's answer is its best
+// system and that system's leaves.
 @compute @workgroup_size(64)
 fn query(@builtin(global_invocation_id) id: vec3<u32>) {
     let c = index_of(id);
@@ -23,6 +26,7 @@ fn query(@builtin(global_invocation_id) id: vec3<u32>) {
     let center = cell.xyz;
     let half = cell.w;
     let inflation = half * sqrt(3.0);
+    let window = cfg.flip;
     let lo = bucket(center - inflation);
     let hi = bucket(center + inflation);
     var wood = false;
@@ -83,6 +87,9 @@ fn query(@builtin(global_invocation_id) id: vec3<u32>) {
                     let leaves = count * inside(pa.xyz, pb.xyz, center, half);
                     total += leaves;
                     let system = owner[k];
+                    if window != NONE && (system < window || system - window >= TALLY) {
+                        continue;
+                    }
                     var j = 0u;
                     while j < held && systems[j] != system {
                         j += 1u;
@@ -110,5 +117,8 @@ fn query(@builtin(global_invocation_id) id: vec3<u32>) {
         }
     }
     let flags = select(0u, WOOD, wood) | select(0u, FOLIAGE, foliage) | select(0u, OVER, over);
+    if window != NONE {
+        total = most;
+    }
     answers[c] = vec4<u32>(flags, bitcast<u32>(radius), bitcast<u32>(total), best);
 }

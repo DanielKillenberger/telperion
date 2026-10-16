@@ -101,6 +101,17 @@ export async function growField(species: string, seed: number, options: GrowOpti
   return new Tree(field, species, seed);
 }
 
+/** The batch as the device takes it, in single precision, judged as
+ * given: before the rounding a tiny negative half extent would pass as
+ * zero. A malformed batch is refused whole. */
+export function deviceCells(cells: Float64Array): Float32Array {
+  if (!(cells instanceof Float64Array) || cells.length % 4) throw Error("Field cells require packed Float64Array x,y,z,halfExtent");
+  for (let i = 0; i < cells.length; i++) {
+    if (!Number.isFinite(cells[i]) || (i % 4 === 3 && cells[i] < 0)) throw Error("invalid input: field query");
+  }
+  return new Float32Array(cells);
+}
+
 class Tree implements FieldTree {
   readonly species: string;
   readonly seed: number;
@@ -116,8 +127,7 @@ class Tree implements FieldTree {
   async query(cells: Float64Array): Promise<FieldAnswer> {
     const field = this.field;
     if (!field) throw Error("Field tree is released");
-    if (!(cells instanceof Float64Array) || cells.length % 4) throw Error("Field cells require packed Float64Array x,y,z,halfExtent");
-    const words = (await field.query(new Float32Array(cells))) as Uint32Array;
+    const words = (await field.query(deviceCells(cells))) as Uint32Array;
     const n = words.length / 4;
     const answer = { flags: new Uint8Array(n), woodRadius: new Float32Array(n), leaves: new Float32Array(n), limbs: new Uint32Array(n) };
     const floats = new Float32Array(words.buffer, words.byteOffset, words.length);

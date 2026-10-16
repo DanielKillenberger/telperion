@@ -2,33 +2,59 @@
 //! worker with no canvas (`telperion/field`). The tree grows on the
 //! device and its field stays there; a query crosses the binding as the
 //! cells going in and their answers coming out. Without WebGPU, or on a
-//! device that cannot run the programs, every call rejects by name.
+//! lost device, every call rejects by name.
 use super::*;
 use crate::generation::{DeviceField, Generator};
+use wasm_bindgen_futures::JsFuture;
 
 thread_local! {
-    /// The device and the programs every field of this instance grows on,
-    /// made on the first.
+    /// The device and the programs every field of this instance grows on.
     static FIELDS: RefCell<Option<Rc<Generator>>> = const { RefCell::new(None) };
+    /// Their making while it is under way: every call that asks for them
+    /// meanwhile waits on this one, so one instance makes one device.
+    static MAKING: RefCell<Option<js_sys::Promise>> = const { RefCell::new(None) };
 }
 
 /// The instance's generator, its device requested and its programs
-/// compiled on first use.
+/// compiled once, however many calls ask at once. A lost device is
+/// refused by name and let go, so the next call asks for another.
 async fn fields() -> std::result::Result<Rc<Generator>, JsError> {
     if let Some(made) = FIELDS.with(|f| f.borrow().clone()) {
+        if let Some(lost) = made.lost() {
+            FIELDS.with(|f| f.borrow_mut().take());
+            return Err(js_error(lost));
+        }
         return Ok(made);
     }
-    let gpu = Gpu::request(None).await.map_err(js_error)?;
-    let made = Generator::for_fields_async(gpu).await.map_err(js_error)?;
-    made.prepare_programs().await.map_err(js_error)?;
-    let made = Rc::new(made);
-    FIELDS.with(|f| *f.borrow_mut() = Some(made.clone()));
-    Ok(made)
+    let making = MAKING.with(|m| {
+        m.borrow_mut()
+            .get_or_insert_with(|| {
+                future_to_promise(async {
+                    let gpu = Gpu::request(None).await.map_err(js_error)?;
+                    let made = Generator::for_fields_async(gpu).await.map_err(js_error)?;
+                    made.prepare_programs().await.map_err(js_error)?;
+                    FIELDS.with(|f| *f.borrow_mut() = Some(Rc::new(made)));
+                    Ok(JsValue::UNDEFINED)
+                })
+            })
+            .clone()
+    });
+    let made = JsFuture::from(making).await;
+    MAKING.with(|m| m.borrow_mut().take());
+    made.map_err(|e| {
+        let message = e.dyn_ref::<js_sys::Error>().map(|e| String::from(e.message()));
+        JsError::new(&message.unwrap_or_else(|| "the device for fields was not made".into()))
+    })?;
+    FIELDS
+        .with(|f| f.borrow().clone())
+        .ok_or_else(|| JsError::new("the device for fields was not made"))
 }
 
-/// A shipped species' field at a seed, on the device until released.
+/// A shipped species' field at a seed, on the device it grew on until
+/// released.
 #[wasm_bindgen]
 pub struct WebField {
+    made: Rc<Generator>,
     field: Rc<RefCell<Option<DeviceField>>>,
     bounds: [f32; 6],
 }
@@ -57,7 +83,12 @@ impl WebField {
             let field = made.grow_field(&family, limb_order).await.map_err(js_error)?;
             let bounds = field.bounds;
             let field = Rc::new(RefCell::new(Some(field)));
-            Ok(WebField { field, bounds }.into())
+            Ok(WebField {
+                made,
+                field,
+                bounds,
+            }
+            .into())
         })
     }
 
@@ -71,10 +102,11 @@ impl WebField {
     /// (wood 1, foliage 2), its thickest wood radius and its leaves (each
     /// a float's bits) and its limb system (`u32::MAX` where none).
     pub fn query(&self, cells: Vec<f32>) -> js_sys::Promise {
-        let field = self.field.clone();
+        let (made, field) = (self.made.clone(), self.field.clone());
         future_to_promise(async move {
-            let made = fields().await?;
-            let held = field.borrow();
+            let held = field
+                .try_borrow()
+                .map_err(|_| JsError::new("the field is being released"))?;
             let field = held
                 .as_ref()
                 .ok_or_else(|| JsError::new("the field is released"))?;

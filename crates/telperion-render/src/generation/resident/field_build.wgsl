@@ -8,6 +8,10 @@
 @group(0) @binding(4) var<storage, read_write> prims: array<vec4<f32>>;
 @group(0) @binding(5) var<storage, read_write> owner: array<u32>;
 @group(0) @binding(6) var<storage, read_write> index: array<atomic<u32>>;
+// Each node's dense name of the system it opens: one where it opens one,
+// none elsewhere, then scanned (`marks`), so a field's limbs are named
+// 0, 1, 2 and a crowded cell is asked a window of them at a time.
+@group(0) @binding(7) var<storage, read_write> dense: array<u32>;
 
 fn word(i: u32, f: u32) -> u32 {
     return bitcast<u32>(nodes[i * NW + f]);
@@ -170,6 +174,17 @@ fn inherit(@builtin(global_invocation_id) id: vec3<u32>) {
     atomicStore(&work[at(PTR + next, i)], atomicLoad(&work[at(PTR + was, p)]));
 }
 
+// Whether each node opens the system it is in, before the scan that
+// names the systems densely.
+@compute @workgroup_size(64)
+fn marks(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = index_of(id);
+    if i >= cfg.nodes {
+        return;
+    }
+    dense[i] = u32(atomicLoad(&work[at(VAL + cfg.flip, i)]) == i);
+}
+
 fn grow_box(lo: vec3<f32>, hi: vec3<f32>) {
     let b = WORDS * cfg.nodes;
     for (var c = 0u; c < 3u; c++) {
@@ -236,7 +251,7 @@ fn leaves(@builtin(global_invocation_id) id: vec3<u32>) {
     let k = cfg.nodes + g;
     prims[2u * k] = vec4<f32>(a, reach);
     prims[2u * k + 1u] = vec4<f32>(b, f32(segs[s + 25u]));
-    owner[k] = atomicLoad(&work[at(VAL + cfg.flip, on)]);
+    owner[k] = dense[atomicLoad(&work[at(VAL + cfg.flip, on)])];
     grow_box(min(a, b) - reach, max(a, b) + reach);
 }
 
@@ -258,7 +273,7 @@ fn leaflets(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let count = segs[s + 25u];
     let first = segs[s + 24u];
-    let system = atomicLoad(&work[at(VAL + cfg.flip, segs[cfg.segs * GW + g])]);
+    let system = dense[atomicLoad(&work[at(VAL + cfg.flip, segs[cfg.segs * GW + g])])];
     let heading = f[2].xyz;
     let grown = f[5].w;
     let mature = bitcast<f32>(segs[s + 28u]);
