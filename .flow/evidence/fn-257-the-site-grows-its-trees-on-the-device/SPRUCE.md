@@ -15,7 +15,7 @@ The spruce at 40, seed 1, warm, RTX 3080:
 | grow: the cycles (device busy, census waits) | about 260 | about 260 | 67 % | yes: the census waits are the device working (no gap between cycles, 0.03 ms) |
 | grow: of it, dispatch launch and order | about 26 | about 26 | 7 % | no: DISPATCH.md; task 4's fold measured slower |
 | grow: the one compaction (after cycle 37) | 25–31 host, about 5 device | the same | about 1–2 % of wall | partly: see below |
-| settle | 43.0 | about 37 | 10 % | about half: 21 ms device, 12 ms making its 426 MB of buffers, 10 readbacks each on its own submission's result |
+| settle | 43.0 | about 37 | 10 % | about half: 21 ms device, 12 ms making its 426 MB of buffers, 7 readbacks (10 before), each on its own submission's result |
 | plan, trunk | 11.0, 8.2 | 10.3, 7.8 | 5 % | yes: each one readback waits on the previous stage's device work (plan's own device time 0.4 ms) |
 | whole `tree::drawn` | 395.8 | about 381 (medians, the two taken) | | |
 | field on top: readied, stations, primitives, index | 56 | 56 | | readied 23.5, stations 16.6, primitives 9.6, index 6.4 |
