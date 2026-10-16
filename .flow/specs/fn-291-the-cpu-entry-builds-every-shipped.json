@@ -8,10 +8,7 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-291-the-cpu-entry-builds-every-shipped",
-  "impl_review_rounds": {
-    "fn-291-the-cpu-entry-builds-every-shipped.1": 0,
-    "fn-291-the-cpu-entry-builds-every-shipped.2": 2
-  },
+  "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -349,9 +346,10 @@
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-291-the-cpu-entry-builds-every-shipped.1": 1,
-    "plan": 2,
-    "plan#completion": 0
+    "impl:fn-291-the-cpu-entry-builds-every-shipped.1": 2,
+    "impl:fn-291-the-cpu-entry-builds-every-shipped.2": 1,
+    "plan": 3,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -374,5 +372,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T08:02:58.999397Z"
+  "updated_at": "2026-10-16T08:03:24.749104Z"
 }
