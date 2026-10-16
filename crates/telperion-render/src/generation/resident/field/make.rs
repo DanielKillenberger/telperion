@@ -31,19 +31,29 @@ pub(in super::super) async fn grow(
     let _capped = gpu.ledger.capped(gen.device_budget());
     let growth = executor::growth(family)?;
     placeable(family)?;
+    let clock = super::super::super::Clock::now();
+    let mut at = Vec::new();
     let drawn = tree::drawn(gpu, kernels, &growth).await?;
+    at.push(clock.elapsed_ms());
     let Readied { x, swept, ids, .. } = readied(gpu, tools, family, drawn, &mut Timed::default()).await?;
+    at.push(clock.elapsed_ms());
     let rows = station_rows(&x, x.section()?.segments, None, growth.year(1.0));
     let device = tools.stationer.stations(gpu, &swept, ids, rows).await?;
+    at.push(clock.elapsed_ms());
     // A frond's leaflets stand as primitives of their own.
     let fronds = rows.rosette[0][0] > 0.0;
     let mut cfg = cfg(&x, (ids, device.segments), limb_order);
     let leaflets = if fronds { u64::from(device.stations) } else { 0 };
     let prims = u64::from(ids) + u64::from(device.segments) + leaflets;
     let made = primitives(gpu, tools, (&swept.nodes, &device, fronds), &mut cfg, prims).await?;
+    at.push(clock.elapsed_ms());
     drop((swept, device));
     super::index::grid(&mut cfg, &made.bounds, prims);
     let index = super::index::index(gpu, tools, &cfg, (&made.prims, &made.owner)).await?;
+    at.push(clock.elapsed_ms());
+    if std::env::var("CYCLE_TRACE").is_ok() {
+        eprintln!("TRACE field: drawn, readied, stationed, made, indexed at {at:.1?} ms");
+    }
     Ok(DeviceField {
         prims: made.prims,
         owner: made.owner,

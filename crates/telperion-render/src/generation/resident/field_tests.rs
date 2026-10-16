@@ -255,6 +255,25 @@ fn a_cell_crowded_with_limbs_names_the_cpu_s_limb() {
     assert!((f64::from(mine[0].leaves) / whole.leaves - 1.0).abs() < 1e-3);
 }
 
+/// The same tree's field answers the same, to the bit, however the
+/// device fills its buckets: grown twice, asked twice.
+#[test]
+fn the_device_field_answers_the_same_every_time() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let gen = pollster::block_on(Generator::for_fields_async(gpu.clone())).expect("a generator");
+    let family = telperion_core::presets::by_identity("silver-birch").expect("a preset");
+    let (reference, first) = both(&gen, &family, None);
+    let cells = words(&grid(&reference.bounds().expect("bounds"), 24));
+    let once = pollster::block_on(gen.query_field(&first, &cells)).expect("answered");
+    drop(first);
+    let again = pollster::block_on(gen.grow_field(&family, None)).expect("grown");
+    let twice = pollster::block_on(gen.query_field(&again, &cells)).expect("answered");
+    assert!(once == twice, "the answers moved");
+}
+
 /// A field on a lost device is refused by name, never answered.
 #[test]
 fn a_field_on_a_lost_device_is_refused_by_name() {

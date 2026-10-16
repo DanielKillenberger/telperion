@@ -18,9 +18,9 @@ pub(super) use make::grow;
 pub(super) const FIELD: &str = include_str!("field.wgsl");
 const BUILD: &str = include_str!("field_build.wgsl");
 const QUERY_SOURCE: &str = include_str!("field_query.wgsl");
-const ENTRIES: [&str; 14] = [
+const ENTRIES: [&str; 13] = [
     "clear", "widest", "carrier", "opens", "order", "own", "inherit", "wood", "leaves", "leaflets",
-    "count", "fill", "sorted", "marks",
+    "count", "fill", "marks",
 ];
 const CLEAR: usize = 0;
 const WIDEST: usize = 1;
@@ -34,8 +34,7 @@ const LEAVES: usize = 8;
 const LEAFLETS: usize = 9;
 const COUNT: usize = 10;
 const FILL: usize = 11;
-const SORTED: usize = 12;
-const MARKS: usize = 13;
+const MARKS: usize = 12;
 /// A node's work words (`field.wgsl`'s `WORDS`), and the box's six after
 /// every node's.
 const WORDS: u64 = 7;

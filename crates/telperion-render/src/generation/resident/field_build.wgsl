@@ -458,24 +458,3 @@ fn fill(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 }
 
-// Each bucket's list in its primitives' order, so every cell sums them
-// in one order however the fill ran.
-@compute @workgroup_size(64)
-fn sorted(@builtin(global_invocation_id) id: vec3<u32>) {
-    let b = index_of(id);
-    if b >= cfg.buckets {
-        return;
-    }
-    let list = 2u * cfg.buckets + 1u;
-    let first = list + atomicLoad(&index[b]);
-    let n = atomicLoad(&index[cfg.buckets + 1u + b]);
-    for (var i = 1u; i < n; i++) {
-        let v = atomicLoad(&index[first + i]);
-        var j = i;
-        while j > 0u && atomicLoad(&index[first + j - 1u]) > v {
-            atomicStore(&index[first + j], atomicLoad(&index[first + j - 1u]));
-            j -= 1u;
-        }
-        atomicStore(&index[first + j], v);
-    }
-}

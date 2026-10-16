@@ -1,10 +1,10 @@
 //! The grid of buckets a field's primitives are listed in: each
-//! primitive in every bucket its box meets, each bucket's list in its
-//! primitives' order.
+//! primitive in every bucket its box meets, in whatever order the device
+//! fills them (the query's answers do not depend on it).
 use super::super::super::io;
 use super::super::build::Tools;
 use super::{read_words, storage, unbound, Cfg, Rec};
-use super::{COUNT, FILL, SORTED};
+use super::{COUNT, FILL};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
@@ -33,7 +33,7 @@ pub(super) fn grid(cfg: &mut Cfg, b: &[f32; 6], prims: u64) {
 }
 
 /// Each primitive listed in the buckets its box meets: counted, scanned
-/// into each bucket's first place, filled and put in order. The index's
+/// into each bucket's first place, and filled. The index's
 /// words: the buckets' firsts and the total, their fills, the lists.
 pub(super) async fn index(
     gpu: &Gpu,
@@ -41,6 +41,7 @@ pub(super) async fn index(
     cfg: &Cfg,
     (prim, owner): (&Owned, &Owned),
 ) -> Result<Owned> {
+    let clock = super::super::super::Clock::now();
     let mut r = Rec {
         gpu,
         held: Vec::new(),
@@ -57,16 +58,19 @@ pub(super) async fn index(
     tools.stationer.scan(gpu, &mut e, (&counts, b, 1, 1), &total)?;
     gpu.submit([e.finish()]);
     let listed = read_words(gpu, &total, 0, 1).await?[0];
+    let counted = clock.elapsed_ms();
     let words = 2 * u64::from(b) + 1 + u64::from(listed);
     let index = storage(gpu, "field index", words, &[])?;
     let mut e = gpu.encoder(&Default::default());
     e.copy_buffer_to_buffer(&counts, 0, &index, 0, u64::from(b) * 4);
     e.copy_buffer_to_buffer(&total, 0, &index, u64::from(b) * 4, 4);
     let on = [&*n[0], &n[1], &n[2], prim, owner, &index, &n[3]];
-    for (entry, items) in [(FILL, prims), (SORTED, b)] {
-        r.run(&mut e, (f, entry, items, cfg), &on)?;
-    }
+    r.run(&mut e, (f, FILL, prims, cfg), &on)?;
     gpu.submit([e.finish()]);
+    let submitted = clock.elapsed_ms();
     io::complete(gpu).await?;
+    if std::env::var("CYCLE_TRACE").is_ok() {
+        eprintln!("TRACE index: {b} buckets, {listed} listed; counted {counted:.1}, submitted {submitted:.1}, done {:.1} ms", clock.elapsed_ms());
+    }
     Ok(index)
 }
