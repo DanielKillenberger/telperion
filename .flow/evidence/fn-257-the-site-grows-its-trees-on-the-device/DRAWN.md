@@ -29,3 +29,11 @@ Where each candidate sits:
 1. **The drawn records.** Should they be compacted for the dress's interim peak alone? That is 130 MB on the spruce, with ten shaders and every reader of the approved trees changed, and nothing a consumer holds is lowered.
 2. **The vertex budget.** Should a compact vertex pay off as memory (the budget restated in vertices, host decisions 19 and 21) or as detail (the same bytes, more vertices)? Either way the surfaced wood's normals change, and the stills would need viewing.
 3. **The 80.8 MB unattributed.** The spruce's kept tree charges 80.8 MB as unattributed (`Owned::new`). It should be named before it is weighed.
+
+## The host's decisions (coordinator, 2026-10-16)
+
+1. **The drawn records: not taken.** Compacting them lowers no peak that matters and touches ten shaders behind the approved trees.
+2. **The vertex attributes: not taken for 0.2.0.** At a fixed byte budget they buy detail, not memory; that is fn-285's detail-by-view question.
+3. **The spruce's 80.8 MB without a label: moved to task 8.** It is to be labelled, and freed if no consumer reads it.
+
+Task 10 closes with the measurement above and no code change.
