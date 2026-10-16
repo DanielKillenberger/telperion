@@ -12,7 +12,7 @@
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-10-16T07:41:22.265496Z",
+  "plan_reviewed_at": "2026-10-16T08:08:16.298577Z",
   "ready": true,
   "review_attempts": [
     {
@@ -343,12 +343,72 @@
       "task": "fn-291-the-cpu-entry-builds-every-shipped.2",
       "timestamp": "2026-10-16T08:00:00.319637Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "44c489c7c80039360f8fa91ac1c2dc18db9da598a5064346d30c2e4f7d50e5a9",
+      "backend": "codex",
+      "base_sha": "d9355e9a38615e82e30bdd9784e1469e8483c196",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6a0306a6c10f81add4696ea0f2968cab",
+            "classification": "introduced",
+            "findingId": "finding-6a0306a6c10f81add4696ea0f2968cab",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-bc6a66b77fa4aab50c52f5ee9ad70621",
+            "classification": "introduced",
+            "findingId": "finding-bc6a66b77fa4aab50c52f5ee9ad70621",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-754bf8234587654a55c01407c90189e1",
+            "classification": "introduced",
+            "findingId": "finding-754bf8234587654a55c01407c90189e1",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "5e9910d34ffdce974c7dd647844300c2220a4230",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1300,
+      "output_sha256": "b8af1a90cc43c6f2fd7a4af25ed33adc882ac53a22cdb9e08af98bc1e9c4a005",
+      "reservation_id": "fbfdd4ce077048e5ad2587c9385f971c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-16T08:08:16.296278Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-291-the-cpu-entry-builds-every-shipped.1": 2,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.2": 1,
-    "plan": 3,
+    "plan": 4,
     "plan#completion": 1
   },
   "review_pending_rounds": {},
@@ -372,5 +432,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T08:06:38.756609Z"
+  "updated_at": "2026-10-16T08:08:16.299043Z"
 }
