@@ -149,18 +149,6 @@ pub extern "C" fn buffer_ptr(slot: u32) -> *const u8 {
         let e = e.borrow();
         let o = &e.output;
         match slot {
-            0 => o
-                .surface
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.positions.as_ptr().cast()),
-            1 => o
-                .surface
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.normals.as_ptr().cast()),
-            2 => o
-                .surface
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.indices.as_ptr().cast()),
             3 => o.element_positions.as_ptr().cast(),
             4 => o.element_indices.as_ptr().cast(),
             5 => o.instances.leaves.as_ptr().cast(),
@@ -187,12 +175,8 @@ pub extern "C" fn buffer_ptr(slot: u32) -> *const u8 {
                 .snapshot
                 .as_ref()
                 .map_or(std::ptr::null(), |s| s.leaves.topology.as_ptr().cast()),
-            // Surface coordinates, two floats a vertex, beside the positions
-            // in slots 0 and 3. A consumer that ignores them reads as before.
-            14 => o
-                .surface
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.coords.as_ptr().cast()),
+            // Slots 0 to 2 and 14 held the flat wood, which is written in
+            // chunks now.
             15 => o.element_coords.as_ptr().cast(),
             // Slots 16 to 18 held the removed growth path's buffers.
             // Beside the occupancy bits in slot 8: one f32 leaf-count
@@ -237,9 +221,6 @@ pub extern "C" fn buffer_len(slot: u32) -> usize {
         let e = e.borrow();
         let o = &e.output;
         match slot {
-            0 => o.surface.as_ref().map_or(0, |s| s.positions.len()),
-            1 => o.surface.as_ref().map_or(0, |s| s.normals.len()),
-            2 => o.surface.as_ref().map_or(0, |s| s.indices.len()),
             3 => o.element_positions.len(),
             4 => o.element_indices.len(),
             5 => o.instances.leaves.len() * telperion_core::foliage::WORDS,
@@ -254,7 +235,6 @@ pub extern "C" fn buffer_len(slot: u32) -> usize {
                 .map_or(0, |s| s.wood_index.topology.len()),
             12 => o.snapshot.as_ref().map_or(0, |s| s.leaves.bounds.len()),
             13 => o.snapshot.as_ref().map_or(0, |s| s.leaves.topology.len()),
-            14 => o.surface.as_ref().map_or(0, |s| s.coords.len()),
             15 => o.element_coords.len(),
             19 => e.leaves.len(),
             20 => e.limbs.len(),

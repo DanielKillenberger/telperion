@@ -26,12 +26,13 @@ fn tapered_closed_surface_has_normals_and_bounds() {
         flare_depth: 0.0,
         ..SurfaceParams::default()
     };
-    let mesh = build(&straight(), 24.0, &params).unwrap();
+    let wood = build(&straight(), 24.0, &params).unwrap();
+    let mesh = wood.flattened();
     assert_eq!(mesh.positions.len(), 26 * 3);
     assert_eq!(mesh.indices.len(), 3 * 8 * 6);
     assert_eq!(mesh.normals.len(), mesh.positions.len());
-    assert_eq!(mesh.bounds.unwrap().min.y, 0.0);
-    assert_eq!(mesh.bounds.unwrap().max.y, 8.0);
+    assert_eq!(wood.bounds.unwrap().min.y, 0.0);
+    assert_eq!(wood.bounds.unwrap().max.y, 8.0);
     for i in 0..3 {
         for k in 0..8 {
             let p = &mesh.positions[(i * 8 + k) * 3..];
@@ -69,7 +70,7 @@ fn empty_degenerate_and_invalid_are_atomic() {
     let mesh = build(&tree, 24.0, &p).unwrap();
     assert_eq!(mesh.runs, 1);
     tree.nodes[2].position = Vec3::ZERO;
-    assert!(build(&tree, 24.0, &p).unwrap().positions.is_empty());
+    assert!(build(&tree, 24.0, &p).unwrap().chunks.is_empty());
     for invalid in [f64::NAN, f64::INFINITY, -1.0, 0.0] {
         assert!(build(&straight(), invalid, &p).is_err());
     }
@@ -107,7 +108,7 @@ fn fork_socket_is_contained_and_thickest_child_continues() {
     let side_start = (4 * 24 + 2) * 3;
     let limit =
         tree.nodes[1].radius * (1.0 - params.lobe_depth) * (std::f64::consts::PI / 24.0).cos();
-    for p in mesh.positions[side_start..side_start + 24 * 3]
+    for p in mesh.chunks[0].positions[side_start..side_start + 24 * 3]
         .as_chunks::<3>()
         .0
     {
@@ -125,7 +126,7 @@ fn root_only_and_float32_limits() {
         nodes: vec![Node::root()],
         ..Tree::default()
     };
-    assert!(build(&root, 24.0, &p).unwrap().positions.is_empty());
+    assert!(build(&root, 24.0, &p).unwrap().chunks.is_empty());
     let mut tree = straight();
     for n in &mut tree.nodes {
         n.position.x = 1e40;
@@ -143,7 +144,7 @@ fn root_only_and_float32_limits() {
     }
     let flat = build(&tree, 24.0, &p).unwrap();
     assert_eq!(flat.dropped, 2 * 20);
-    assert!(flat.normals.iter().all(|v| v.is_finite()));
+    assert!(flat.chunks[0].normals.iter().all(|v| v.is_finite()));
     for params in [
         SurfaceParams {
             radial_segments: 2,
@@ -162,7 +163,9 @@ fn root_only_and_float32_limits() {
 fn reversed_path_keeps_finite_frames() {
     let mut tree = straight();
     tree.nodes[2].position = Vec3::new(0.0, 2.0, 0.0);
-    let mesh = build(&tree, 24.0, &SurfaceParams::default()).unwrap();
+    let mesh = build(&tree, 24.0, &SurfaceParams::default())
+        .unwrap()
+        .flattened();
     assert!(mesh
         .positions
         .iter()
@@ -182,7 +185,7 @@ fn every_vertex_carries_how_far_along_and_how_far_around_it_lies() {
         flare_depth: 0.0,
         ..SurfaceParams::default()
     };
-    let mesh = build(&straight(), 24.0, &params).unwrap();
+    let mesh = build(&straight(), 24.0, &params).unwrap().flattened();
     assert_eq!(mesh.coords.len(), mesh.positions.len() / 3 * 2);
     let turn = std::f64::consts::TAU as f32;
     // Three rings up a trunk whose nodes stand four metres apart, then the two
@@ -203,7 +206,9 @@ fn every_vertex_carries_how_far_along_and_how_far_around_it_lies() {
     // The same holds with the flare's buried ring and a twisted, lobed
     // profile: the distance never goes backwards up a run and the angle stays
     // inside one turn.
-    let mesh = build(&straight(), 24.0, &SurfaceParams::default()).unwrap();
+    let mesh = build(&straight(), 24.0, &SurfaceParams::default())
+        .unwrap()
+        .flattened();
     assert_eq!(mesh.coords.len(), mesh.positions.len() / 3 * 2);
     let p = SurfaceParams::default();
     let segments = p.radial_segments.max(p.lobes * 4) as usize;

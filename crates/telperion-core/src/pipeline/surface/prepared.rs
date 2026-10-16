@@ -130,25 +130,25 @@ fn prepared(
 ) -> Result<(PreparedSurface, Vec<Option<[usize; 4]>>)> {
     tree.validate()?;
     let sweep = Sweep { drawn: true, edges };
-    let rings = super::rings::rings_mode(tree, height, params, sweep, false)?;
+    let rings = super::rings::rings_mode(tree, height, params, sweep, false, usize::MAX)?;
     let mut p = PreparedSurface::default();
-    if rings.runs.is_empty() {
+    let [chunk] = &rings.chunks[..] else {
         return Ok((p, rings.edges));
-    }
+    };
     let segments = rings.segments;
     let seg = segments as u32;
     p.segments = seg;
-    p.rings = reserved(rings.positions.len() / 3 / segments)?;
+    p.rings = reserved(chunk.positions.len() / 3 / segments)?;
     p.runs = reserved(rings.runs.len())?;
+    p.run_table = reserved(rings.runs.len())?;
     p.angles = reserved(segments)?;
     p.angles.extend(
         angular::samples(segments, params)?
             .iter()
             .map(|a| a.angle as f32),
     );
-    let mut base = 0;
-    for table in &rings.runs {
-        let count = rings.count(table);
+    for (piece, table) in rings.layout.pieces.iter().zip(&rings.runs) {
+        let (base, count, table) = (piece.base, piece.rings, table.span);
         let run = Run {
             base: u32::try_from(base).map_err(|_| Error::ResourceLimit("surface vertices"))?,
             first_index: table.first_index,
@@ -157,7 +157,7 @@ fn prepared(
             index_count: table.index_count,
         };
         run.visit_triangles(seg, |triangle| {
-            if !admitted(&rings.positions, triangle)? {
+            if !admitted(&chunk.positions, triangle)? {
                 p.fallback = true;
             }
             Ok(())
@@ -165,17 +165,17 @@ fn prepared(
         for i in 0..count {
             let start = base + i * segments;
             p.rings.push([
-                rings.coords[start * 2],
-                ring_radius(&rings.positions[start * 3..(start + segments) * 3]),
+                chunk.coords[start * 2],
+                ring_radius(&chunk.positions[start * 3..(start + segments) * 3]),
             ]);
         }
         p.runs.push(run);
+        p.run_table.push(table);
         p.index_count = table.first_index + table.index_count;
-        base += rings.vertices(table);
     }
-    p.bounds = Some(bounds(&rings.positions));
-    p.positions = rings.positions;
-    p.run_table = rings.runs;
+    p.bounds = Some(rings.bounds());
+    let mut rings = rings;
+    p.positions = std::mem::take(&mut rings.chunks[0].positions);
     Ok((p, rings.edges))
 }
 pub(super) fn admitted(positions: &[f32], t: [u32; 3]) -> Result<bool> {

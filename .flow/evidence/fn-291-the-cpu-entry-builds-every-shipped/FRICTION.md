@@ -18,3 +18,9 @@ Slowed: `engine.dispose()` drops the instance but its Wasm memory is freed only 
 Cost: about 5 minutes.
 Would remove it: one process per heavy preset (as probe-dist.mjs does), or a forced GC between builds in evidence tooling.
 
+
+## 2026-10-16 - task 5: the core crate's suite outran a 10-minute foreground call
+Doing: the focused run of `cargo test --profile ci -p telperion-core` after the chunked wood, under `telperion-heavy 12 --threads 4`.
+Slowed: the crate's suite grows every shipped preset several times (species suites, the shipped-preset pipeline test, the attachment test over CATALOGUE and IN_WORK); four threads under the heavy cap took past the 600 s tool limit, so the run went to the background and the worker waited on it.
+Cost: over 10 minutes of wall clock for one crate.
+Would remove it: a named filter set for "the wood's tests" (surface, mesh, species digests) that a task touching the surface runs instead of the whole crate.

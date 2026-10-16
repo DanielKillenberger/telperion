@@ -290,7 +290,7 @@ fn every_shipped_preset_builds_every_artifact_through_the_pipeline() {
             let out = outputs(&tree, &inputs, request)
                 .unwrap_or_else(|e| panic!("preset {id}: {kind}: {e}"));
             let built = match kind {
-                "surface" => out.wood.is_some_and(|w| !w.indices.is_empty()),
+                "surface" => out.wood.is_some_and(|w| w.triangles() > 0),
                 "leaves" => out.leaves.is_some_and(|l| l.retained > 0),
                 "field" => out.field.is_some(),
                 _ => out.structure.is_some_and(|s| !s.nodes.is_empty()),

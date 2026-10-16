@@ -400,7 +400,11 @@ fn grows(a: &str, b: &str, step: usize) {
     }
     let mesh = mesh::build(&family).unwrap_or_else(|e| panic!("{a}->{b} at {at}: {e}"));
     assert!(
-        mesh.wood.positions.iter().all(|v| v.is_finite())
+        mesh.wood
+            .chunks
+            .iter()
+            .flat_map(|c| &c.positions)
+            .all(|v| v.is_finite())
             && mesh.bounds.min.is_finite()
             && mesh.bounds.max.is_finite(),
         "{a}->{b} at {at}: a position is not finite"

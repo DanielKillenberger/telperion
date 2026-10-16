@@ -25,6 +25,8 @@ fn every_presets_rings_are_drawn_from_its_curve_to_the_bit() {
     let _turn = crate::one_tree::turn();
     for (id, tree, height, params) in trees() {
         let mesh = build(&tree, height, &params).unwrap();
+        let runs = mesh.runs;
+        let mesh = mesh.flattened();
         let curve = curve(&tree, height, &params).unwrap();
         let (positions, coords) = curve.rings(segments(&params)).unwrap();
         let bits = |v: &[f32]| v.iter().map(|x| x.to_bits()).collect::<Vec<_>>();
@@ -34,7 +36,7 @@ fn every_presets_rings_are_drawn_from_its_curve_to_the_bit() {
             "{id}: positions differ"
         );
         assert!(bits(&coords) == bits(&mesh.coords), "{id}: coords differ");
-        assert_eq!(curve.runs.len(), mesh.runs, "{id}: runs");
+        assert_eq!(curve.runs.len(), runs, "{id}: runs");
         if id == "date-palm" {
             assert!(
                 !curve.sections.is_empty(),

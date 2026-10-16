@@ -18,59 +18,75 @@ pub(crate) struct Sweep {
 }
 
 pub(crate) struct Rings {
-    /// Three floats a vertex: every ring of a run, then its two caps where
+    /// Each chunk's points: three floats a vertex, every ring of a piece,
+    /// then its caps where drawn; and two floats a vertex of coords, where
     /// drawn.
-    pub(super) positions: Vec<f32>,
-    /// Two floats a vertex, where drawn.
-    pub(super) coords: Vec<f32>,
-    /// Each node's lower and upper ring, then its run's first and last, as
-    /// vertex offsets into `positions`, where the sweep kept them.
+    pub(super) chunks: Vec<RingChunk>,
+    /// Each node's lower and upper ring, then the first and last ring of the
+    /// piece that answers for it, as ring addresses (`chunks::address`),
+    /// where the sweep kept them.
     pub(super) edges: Vec<Option<[usize; 4]>>,
-    /// The run table as swept, where drawn: widest run first, ties in path
-    /// order, each run's span before the mesh step drops any triangle.
-    pub(super) runs: Vec<SurfaceRun>,
+    /// The runs and their pieces, in the sweep's order.
+    pub(super) layout: Layout,
+    /// The run table as swept, one entry a piece, where drawn: widest run
+    /// first, ties in path order, each span before the mesh step drops any
+    /// triangle.
+    pub(super) runs: Vec<WoodRun>,
     pub(super) segments: usize,
     /// The workers the sweep ran on, where it ran in parallel.
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     pub(super) workers: Option<usize>,
 }
 
+/// One chunk's points and coords.
+#[derive(Debug, Default, Clone)]
+pub(crate) struct RingChunk {
+    pub(super) positions: Vec<f32>,
+    pub(super) coords: Vec<f32>,
+}
+
 impl Rings {
-    /// The rings in a run of the table.
-    pub(super) fn count(&self, run: &SurfaceRun) -> usize {
-        run.index_count as usize / (self.segments * 6)
-    }
-
-    /// The vertices of a run of the table: its rings and two caps.
-    pub(super) fn vertices(&self, run: &SurfaceRun) -> usize {
-        self.count(run) * self.segments + 2
-    }
-
-    /// The wood: these rings' positions, coords and run table, moved, around
-    /// the faces the mesh step built on them.
+    /// The wood: these rings' chunks and run table, moved, around the faces
+    /// the mesh step built on them.
     pub(crate) fn into_mesh(self, faces: Faces) -> SurfaceMesh {
         let run_table = faces.run_table.unwrap_or(self.runs);
+        let chunks = self.chunks.into_iter().zip(faces.chunks);
         SurfaceMesh {
-            positions: self.positions,
-            indices: faces.indices,
-            normals: faces.normals,
-            coords: self.coords,
+            chunks: chunks
+                .map(|(rings, faces)| SurfaceChunk {
+                    positions: rings.positions,
+                    normals: faces.normals,
+                    coords: rings.coords,
+                    indices: faces.indices,
+                })
+                .collect(),
             bounds: faces.bounds,
             runs: run_table.len(),
             run_table,
             dropped: faces.dropped,
         }
     }
+
+    /// The box around every point.
+    pub(super) fn bounds(&self) -> Bounds {
+        bounds(self.chunks.iter().map(|c| &c.positions[..]))
+    }
 }
 
-/// Sweeps the rings of every solved path.
+/// Sweeps the rings of every solved path: a drawn wood in chunks of at most
+/// `CHUNK_VERTICES` vertices, bare rings in one.
 pub(crate) fn rings(
     tree: &Tree,
     height: f64,
     params: &SurfaceParams,
     sweep: Sweep,
 ) -> Result<Rings> {
-    rings_mode(tree, height, params, sweep, true)
+    let limit = if sweep.drawn {
+        CHUNK_VERTICES
+    } else {
+        usize::MAX
+    };
+    rings_mode(tree, height, params, sweep, true, limit)
 }
 
 pub(super) fn rings_mode(
@@ -79,6 +95,7 @@ pub(super) fn rings_mode(
     params: &SurfaceParams,
     sweep: Sweep,
     parallel_allowed: bool,
+    limit: usize,
 ) -> Result<Rings> {
     tree.validate()?;
     params.validate()?;
@@ -91,9 +108,9 @@ pub(super) fn rings_mode(
     };
     let paths = paths(tree)?;
     let mut out = Rings {
-        positions: Vec::new(),
-        coords: Vec::new(),
+        chunks: Vec::new(),
         edges,
+        layout: Layout::default(),
         runs: Vec::new(),
         segments,
         #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
@@ -114,32 +131,96 @@ pub(super) fn rings_mode(
         distance: &distance,
         angular: &angular,
     };
-    let extent = extent_of(&paths, segments, at.buried())?;
     let longest = at.longest()?;
     let mut scratch = Scratch::new(longest)?;
-    if !sweep.drawn {
-        out.positions = reserved(extent.positions - paths.runs.len() * 6)?;
-        return in_turn(at, out, sweep, scratch, 0..paths.runs.len());
+    let ordered = if sweep.drawn {
+        rank(at, &mut scratch)?
+    } else {
+        let mut order = reserved(paths.runs.len())?;
+        order.extend((0..paths.runs.len()).map(|path_id| (path_id, 0.0)));
+        order
+    };
+    let rings = ordered.iter().map(|o| at.rings(o.0));
+    out.layout = Layout::new(rings, segments, sweep.drawn, limit)?;
+    if sweep.edges {
+        at.record(&mut out.edges, &ordered, &out.layout);
     }
-    let ordered = rank(at, &mut scratch)?;
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
-    if parallel_allowed {
-        let vertices = extent.positions / 3;
-        let admitted = parallel::admitted(at, &ordered, longest, vertices, extent.indices);
+    if parallel_allowed && sweep.drawn {
+        let admitted = parallel::admitted(at, &ordered, longest, &out.layout);
         if let Some(workers) = admitted {
             drop(scratch);
-            return match parallel::rings(at, &ordered, &mut out, sweep, longest, workers) {
-                Ok(()) => table(at, ordered, out),
-                Err(_) => rings_mode(tree, height, params, sweep, false),
+            return match parallel::rings(at, &ordered, &mut out, longest, workers) {
+                Ok(()) => table(ordered, out),
+                Err(_) => rings_mode(tree, height, params, sweep, false, limit),
             };
         }
     }
     #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
     let _ = parallel_allowed;
-    out.positions = reserved(extent.positions)?;
-    out.coords = reserved(extent.coords)?;
-    let out = in_turn(at, out, sweep, scratch, ordered.iter().map(|o| o.0))?;
-    table(at, ordered, out)
+    let pieces = &out.layout.pieces;
+    out.chunks = written(at, &ordered, &out.layout, pieces, sweep.drawn, &mut scratch)?;
+    if !sweep.drawn {
+        return Ok(out);
+    }
+    table(ordered, out)
+}
+
+/// The chunks `pieces` fill, whole runs of them in order, each chunk
+/// reserved at its exact size as its first piece is written.
+pub(super) fn written(
+    at: Swept,
+    ordered: &[(usize, f64)],
+    layout: &Layout,
+    pieces: &[Piece],
+    drawn: bool,
+    scratch: &mut Scratch,
+) -> Result<Vec<RingChunk>> {
+    let Some(first) = pieces.first().map(|p| p.chunk) else {
+        return Ok(Vec::new());
+    };
+    let count = pieces.last().map_or(0, |p| p.chunk + 1) - first;
+    let mut chunks: Vec<RingChunk> = reserved(count)?;
+    for run in pieces.chunk_by(|a, b| a.run == b.run) {
+        for piece in run {
+            if piece.chunk - first == chunks.len() {
+                let vertices = layout.chunks[piece.chunk];
+                chunks.push(RingChunk {
+                    positions: reserved(vertices * 3)?,
+                    coords: if drawn {
+                        reserved(vertices * 2)?
+                    } else {
+                        Vec::new()
+                    },
+                });
+            }
+        }
+        let path_id = ordered[run[0].run].0;
+        let (samples, frame) = scratch.sweep(at, path_id);
+        let ring = samples.len() * at.segments();
+        let shape = at.section(path_id);
+        let mut v = 0;
+        emit_run(samples, frame, at.ring(), shape, drawn, |xyz, coord| {
+            for piece in run {
+                // Run vertex `v`: a ring the piece holds, or the cap it holds.
+                let holds = run.len() == 1
+                    || if v < ring {
+                        (piece.first..piece.first + piece.rings).contains(&(v / at.segments()))
+                    } else {
+                        (v == ring && piece.lead) || (v > ring && piece.tail)
+                    };
+                if holds {
+                    let chunk = &mut chunks[piece.chunk - first];
+                    chunk.positions.extend(xyz);
+                    if drawn {
+                        chunk.coords.extend(coord);
+                    }
+                }
+            }
+            v += 1;
+        })?;
+    }
+    Ok(chunks)
 }
 
 /// One run's samples and frames, reused run after run.
@@ -231,47 +312,25 @@ impl Swept<'_> {
         section::of(self.tree, self.paths, &self.paths.runs[path_id])
     }
 
-    /// Records a path's contact rings, its run starting at vertex `base`.
-    pub(super) fn record(&self, edges: &mut [Option<[usize; 4]>], path_id: usize, base: usize) {
-        let path = &self.paths.runs[path_id];
-        let nodes = &self.paths.nodes[path.start..path.end];
-        let offset = usize::from(path.trunk && self.buried());
-        let segments = self.angular.len();
-        record_edges(edges, nodes, base, self.rings(path_id), segments, offset);
+    /// Points round a ring.
+    pub(super) fn segments(&self) -> usize {
+        self.angular.len()
     }
-}
 
-/// The ring step in turn: each path's rings in the given order, after the
-/// ones before it.
-fn in_turn(
-    at: Swept,
-    mut out: Rings,
-    sweep: Sweep,
-    mut scratch: Scratch,
-    order: impl Iterator<Item = usize>,
-) -> Result<Rings> {
-    for path_id in order {
-        if sweep.edges {
-            at.record(&mut out.edges, path_id, out.positions.len() / 3);
+    /// Records every node's contact rings over the layout of `ordered`.
+    pub(super) fn record(
+        &self,
+        edges: &mut [Option<[usize; 4]>],
+        ordered: &[(usize, f64)],
+        layout: &Layout,
+    ) {
+        for pieces in layout.runs() {
+            let path = &self.paths.runs[ordered[pieces[0].run].0];
+            let nodes = &self.paths.nodes[path.start..path.end];
+            let offset = usize::from(path.trunk && self.buried());
+            chunks::record(edges, nodes, pieces, self.segments(), offset, layout.shift);
         }
-        let (samples, frame) = scratch.sweep(at, path_id);
-        let (positions, coords) = (&mut out.positions, &mut out.coords);
-        let shape = at.section(path_id);
-        emit_run(
-            samples,
-            frame,
-            at.ring(),
-            shape,
-            sweep.drawn,
-            |xyz, coord| {
-                positions.extend(xyz);
-                if sweep.drawn {
-                    coords.extend(coord);
-                }
-            },
-        )?;
     }
-    Ok(out)
 }
 
 /// Each node's distance along the wood from the root.
@@ -301,20 +360,27 @@ pub(super) fn rank(at: Swept, scratch: &mut Scratch) -> Result<Vec<(usize, f64)>
     Ok(ordered)
 }
 
-/// The ranked runs as the run table. It is allocated after the rings, so
-/// the ranking's space joins the sweep's freed scratch below them.
-pub(super) fn table(at: Swept, ordered: Vec<(usize, f64)>, mut out: Rings) -> Result<Rings> {
-    let segments = at.angular.len();
+/// The ranked runs as the run table, a piece an entry. It is allocated
+/// after the rings, so the ranking's space joins the sweep's freed scratch
+/// below them.
+pub(super) fn table(ordered: Vec<(usize, f64)>, mut out: Rings) -> Result<Rings> {
     let too_many = || Error::ResourceLimit("surface indices");
-    let mut runs = reserved(ordered.len())?;
+    let mut runs = reserved(out.layout.pieces.len())?;
     let mut first_index = 0u32;
-    for (path_id, largest_radius) in ordered {
-        let count = at.rings(path_id) * segments * 6;
+    let mut chunk = 0;
+    for piece in &out.layout.pieces {
+        if piece.chunk != chunk {
+            (chunk, first_index) = (piece.chunk, 0);
+        }
+        let count = piece.indices(out.segments, true);
         let index_count = u32::try_from(count).map_err(|_| too_many())?;
-        runs.push(SurfaceRun {
-            first_index,
-            index_count,
-            largest_radius,
+        runs.push(WoodRun {
+            chunk: chunk as u32,
+            span: SurfaceRun {
+                first_index,
+                index_count,
+                largest_radius: ordered[piece.run].1,
+            },
         });
         first_index = first_index.checked_add(index_count).ok_or_else(too_many)?;
     }

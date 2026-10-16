@@ -5,7 +5,7 @@
 //! still fails, naming the count.
 use telperion_core::{
     math::Vec3,
-    surface::{build, SurfaceMesh, SurfaceParams},
+    surface::{build, SurfaceChunk, SurfaceMesh, SurfaceParams, WoodRun},
     tree::{Node, Tree},
     Error,
 };
@@ -50,31 +50,34 @@ fn run(at: Vec3, rings: &[(f64, f64)]) -> Tree {
     }
 }
 
-fn corner(mesh: &SurfaceMesh, index: u32) -> Vec3 {
-    let p = &mesh.positions[index as usize * 3..];
+fn corner(chunk: &SurfaceChunk, index: u16) -> Vec3 {
+    let p = &chunk.positions[index as usize * 3..];
     Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)
 }
 
-fn normal(mesh: &SurfaceMesh, index: usize) -> Vec3 {
-    let n = &mesh.normals[index * 3..];
+fn normal(chunk: &SurfaceChunk, index: usize) -> Vec3 {
+    let n = &chunk.normals[index * 3..];
     Vec3::new(n[0] as f64, n[1] as f64, n[2] as f64)
 }
 
-/// The spans tile the buffer in order, every kept triangle has area in
-/// float32, and every vertex carries a unit normal.
+/// The spans tile each chunk's indices in order, every kept triangle has
+/// area in float32, and every vertex carries a unit normal.
 fn honest(mesh: &SurfaceMesh) {
-    let mut next = 0;
+    let mut next = vec![0; mesh.chunks.len()];
     for run in &mesh.run_table {
-        assert_eq!(run.first_index, next);
-        next += run.index_count;
+        let next = &mut next[run.chunk as usize];
+        assert_eq!(run.span.first_index, *next);
+        *next += run.span.index_count;
     }
-    assert_eq!(next as usize, mesh.indices.len());
-    for t in mesh.indices.as_chunks::<3>().0 {
-        let [a, b, c] = t.map(|i| corner(mesh, i));
-        assert!((c - b).cross(a - b).length_squared() > 0.0);
-    }
-    for i in 0..mesh.normals.len() / 3 {
-        assert!((normal(mesh, i).length() - 1.0).abs() < 1e-6);
+    for (chunk, &next) in mesh.chunks.iter().zip(&next) {
+        assert_eq!(next as usize, chunk.indices.len());
+        for t in chunk.indices.as_chunks::<3>().0 {
+            let [a, b, c] = t.map(|i| corner(chunk, i));
+            assert!((c - b).cross(a - b).length_squared() > 0.0);
+        }
+        for i in 0..chunk.normals.len() / 3 {
+            assert!((normal(chunk, i).length() - 1.0).abs() < 1e-6);
+        }
     }
 }
 
@@ -85,11 +88,12 @@ const WHOLE: usize = 2 * 2 * SEGMENTS + 2 * SEGMENTS;
 fn a_ring_collapsed_to_one_point_drops_the_strips_that_meet_it() {
     let tree = run(Vec3::ZERO, &[(0.0, 1.0), (4.0, 1e-300), (8.0, 1.0)]);
     let mesh = build(&tree, 24.0, &params()).unwrap();
-    for k in 0..SEGMENTS as u32 {
-        assert_eq!(corner(&mesh, SEGMENTS as u32 + k), Vec3::new(0.0, 4.0, 0.0));
+    for k in 0..SEGMENTS as u16 {
+        let chunk = &mesh.chunks[0];
+        assert_eq!(corner(chunk, SEGMENTS as u16 + k), Vec3::new(0.0, 4.0, 0.0));
     }
     assert_eq!(mesh.dropped, 2 * SEGMENTS);
-    assert_eq!(mesh.indices.len(), 3 * (WHOLE - 2 * SEGMENTS));
+    assert_eq!(mesh.triangles(), WHOLE - 2 * SEGMENTS);
     honest(&mesh);
 }
 
@@ -107,8 +111,9 @@ fn a_tip_below_float32_resolution_far_out_drops_its_cap() {
     assert_eq!(mesh.dropped, 2 * SEGMENTS);
     honest(&mesh);
     let top = 3 * SEGMENTS + 1;
-    assert_eq!(corner(&mesh, top as u32), at + Vec3::new(0.0, 8.0, 0.0));
-    assert!(normal(&mesh, top).distance(Vec3::Y) < 1e-6);
+    let chunk = &mesh.chunks[0];
+    assert_eq!(corner(chunk, top as u16), at + Vec3::new(0.0, 8.0, 0.0));
+    assert!(normal(chunk, top).distance(Vec3::Y) < 1e-6);
 }
 
 #[test]
@@ -129,14 +134,15 @@ fn the_run_table_shrinks_only_the_run_that_dropped() {
     assert_eq!(whole.run_table.len(), 2);
     assert_eq!(mesh.run_table[0], whole.run_table[0]);
     assert_eq!(
-        mesh.run_table[1].index_count,
-        whole.run_table[1].index_count - 3 * 2 * SEGMENTS as u32
+        mesh.run_table[1].span.index_count,
+        whole.run_table[1].span.index_count - 3 * 2 * SEGMENTS as u32
     );
     honest(&mesh);
     // Each span still addresses its own vertices, and only them.
     let span = |r: usize| {
-        let run = mesh.run_table[r];
-        let indices = &mesh.indices[run.first_index as usize..][..run.index_count as usize];
+        let WoodRun { chunk, span } = mesh.run_table[r];
+        let indices = &mesh.chunks[chunk as usize].indices;
+        let indices = &indices[span.first_index as usize..][..span.index_count as usize];
         (
             *indices.iter().min().unwrap(),
             *indices.iter().max().unwrap(),
@@ -145,7 +151,7 @@ fn the_run_table_shrinks_only_the_run_that_dropped() {
     let (trunk, limb) = (span(0), span(1));
     assert_eq!(trunk.0, 0);
     assert!(trunk.1 < limb.0);
-    assert_eq!(limb.1 as usize, mesh.positions.len() / 3 - 1);
+    assert_eq!(limb.1 as usize, mesh.vertices() - 1);
 }
 
 /// Rings stacked a micrometre apart a hundred kilometres up: one float32
@@ -167,9 +173,12 @@ fn a_vertex_left_without_a_triangle_faces_out_from_its_ring() {
     // straight out from the axis it sits around.
     for k in 0..SEGMENTS {
         let v = 2 * SEGMENTS + k;
-        let p = corner(&mesh, v as u32);
+        let p = corner(&mesh.chunks[0], v as u16);
         let out = Vec3::new(p.x, 0.0, p.z).normalized();
-        assert!(normal(&mesh, v).distance(out) < 1e-6, "vertex {k}");
+        assert!(
+            normal(&mesh.chunks[0], v).distance(out) < 1e-6,
+            "vertex {k}"
+        );
     }
 }
 

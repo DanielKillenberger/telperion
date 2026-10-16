@@ -34,10 +34,10 @@ pub struct TreeMesh {
 }
 impl TreeMesh {
     pub fn wood_vertices(&self) -> usize {
-        self.wood.positions.len() / 3
+        self.wood.vertices()
     }
     pub fn wood_triangles(&self) -> usize {
-        self.wood.indices.len() / 3
+        self.wood.triangles()
     }
     pub fn foliage_instances(&self) -> usize {
         self.foliage.instances.len()
