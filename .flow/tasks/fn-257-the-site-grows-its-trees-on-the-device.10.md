@@ -17,9 +17,10 @@ Order:
 - Stills unchanged to the eye (viewed); the agreement tests within their stated tolerances; harness build times no worse; gate green.
 
 ## Done summary
-TBD
+Measured where the drawing sits (DRAWN.md); by the host's decisions no compaction is taken (drawn records lower no peak that matters; vertex compaction is fn-285's detail question); the unlabelled 80.8 MB moves to task 8. Codex SHIP.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 56a36b44f
+- Tests: cargo test --profile ci -p telperion-render --lib the_drawing_s_memory -- --ignored
 - PRs:
