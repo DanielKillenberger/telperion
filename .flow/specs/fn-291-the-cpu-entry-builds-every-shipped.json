@@ -10,7 +10,8 @@
   "id": "fn-291-the-cpu-entry-builds-every-shipped",
   "impl_review_rounds": {
     "fn-291-the-cpu-entry-builds-every-shipped.2": 0,
-    "fn-291-the-cpu-entry-builds-every-shipped.5": 2,
+    "fn-291-the-cpu-entry-builds-every-shipped.3": 0,
+    "fn-291-the-cpu-entry-builds-every-shipped.5": 0,
     "fn-291-the-cpu-entry-builds-every-shipped.6": 0
   },
   "next_task": 1,
@@ -663,11 +664,133 @@
       "task": "fn-291-the-cpu-entry-builds-every-shipped.6",
       "timestamp": "2026-10-16T11:36:13.799610Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "960e3e15b5daa581628f1be466721bb28b2f01d14f6c6b43682403ef471326b8",
+      "backend": "codex",
+      "base_sha": "9eed854d0821071fe48745704ed4a6fa6ecde247",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-93779ea6699b9f605416a3580b604fff",
+            "classification": "introduced",
+            "findingId": "finding-93779ea6699b9f605416a3580b604fff",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0feeaea42713f7207fa2bf4882fd2f1e",
+            "classification": "introduced",
+            "findingId": "finding-0feeaea42713f7207fa2bf4882fd2f1e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-9c7a80fe8adf747a623760ed59e7b7a3",
+            "classification": "introduced",
+            "findingId": "finding-9c7a80fe8adf747a623760ed59e7b7a3",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-9fc47f8d41db52ea6617cb930b11f210",
+            "classification": "introduced",
+            "findingId": "finding-9fc47f8d41db52ea6617cb930b11f210",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e371228cc233af3364f64842dd705eed",
+            "classification": "introduced",
+            "findingId": "finding-e371228cc233af3364f64842dd705eed",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "cd0f2bd6d3664c99001cafd2688028fd973fc571",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1369,
+      "output_sha256": "ebfc76706aaa76e86fbbb7c07bb586f3b4c95ef9bcec244a41a6de61d541d8f4",
+      "reservation_id": "650dfb677a184f7bb07da00cb55254c5",
+      "round_consumed": true,
+      "scope": "impl:fn-291-the-cpu-entry-builds-every-shipped.5",
+      "superseded_by": null,
+      "task": "fn-291-the-cpu-entry-builds-every-shipped.5",
+      "timestamp": "2026-10-16T12:18:18.472079Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "c06f94446fea6867eb4c5a4d3fcbebbc8acf49d9b18e05be01f44e6a022de40c",
+      "backend": "codex",
+      "base_sha": "293f6225bd64eab325c7dde29f17326742377fcd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-899b76fe1e016488c3ab0a63c2edbef0",
+            "classification": "introduced",
+            "findingId": "finding-899b76fe1e016488c3ab0a63c2edbef0",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "007fb6155065fe831ebfe9c29ed403ee47aa14bf",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 745,
+      "output_sha256": "d0c1e8c9713a752912dbd0600d865b1124a0e46fe7414ea2e73211c7d8957286",
+      "reservation_id": "abf5df1e3a494ef990a3ad2da37f79b3",
+      "round_consumed": true,
+      "scope": "impl:fn-291-the-cpu-entry-builds-every-shipped.3",
+      "superseded_by": null,
+      "task": "fn-291-the-cpu-entry-builds-every-shipped.3",
+      "timestamp": "2026-10-16T12:29:50.776993Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-291-the-cpu-entry-builds-every-shipped.1": 2,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.2": 2,
+    "impl:fn-291-the-cpu-entry-builds-every-shipped.3": 1,
+    "impl:fn-291-the-cpu-entry-builds-every-shipped.5": 2,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.6": 1,
     "plan": 4,
     "plan#completion": 1
@@ -677,6 +800,7 @@
   "review_transport_failures": {
     "impl:fn-291-the-cpu-entry-builds-every-shipped.1": 0,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.2": 0,
+    "impl:fn-291-the-cpu-entry-builds-every-shipped.3": 0,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.5": 0,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.6": 0,
     "plan": 0
@@ -695,5 +819,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T11:36:13.802111Z"
+  "updated_at": "2026-10-16T12:29:50.780380Z"
 }
