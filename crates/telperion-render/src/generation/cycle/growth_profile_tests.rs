@@ -361,3 +361,107 @@ fn floor(gpu: &crate::Gpu) -> String {
     }
     s
 }
+
+/// fn-257 task 9's inventory: every buffer growth holds at its peak, by
+/// label, with each table's rows (`Caps`) and most, for `PROFILE_CASES`
+/// (the spruce at 40 and Telperion at 82 by default).
+#[test]
+#[ignore = "a measurement"]
+fn growth_tables() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let k = Kernels::new(&gpu);
+    let cases = std::env::var("PROFILE_CASES").unwrap_or_else(|_| "norway-spruce:40:1,telperion:82:1".into());
+    for case in cases.split(',') {
+        let mut part = case.split(':');
+        let id = part.next().expect("an id");
+        let age: f64 = part.next().expect("an age").parse().expect("an age");
+        let seed: u32 = part.next().expect("a seed").parse().expect("a seed");
+        let mut family = telperion_core::presets::by_identity(id).expect("a preset");
+        (family.age, family.skeleton.seed) = (age, seed);
+        let growth = executor::growth(&family).expect("a growth");
+        let (species, request) = (&growth.species, growth.request);
+        let tables = telperion_space::grow_capture_tables(species, request).expect("tables");
+        let chain = ChainTables::cycle(species, request.age).expect("chain tables");
+        let t = Tables::new(&gpu, &tables, &chain).expect("uploaded");
+        let hint = build_arena::hint(species, request.age).expect("a hint");
+        gpu.ledger.take_peak_census();
+        let (b, sizes, grew) = pollster::block_on(grow_hinted(&gpu, &k.build, &t, &tables, (hint, request.age)))
+            .expect("grown");
+        let (peak, at) = gpu.ledger.take_peak_census();
+        println!("\n## {id} {age} seed {seed}: growth's peak {:.1} MB\n", peak as f64 / 1e6);
+        println!("caps {:?}\nmost {:?}\n", sizes.caps, grew.most);
+        println!("| Buffer | MB |\n|---|--:|");
+        for (label, bytes) in at {
+            println!("| {label} | {:.1} |", bytes as f64 / 1e6);
+        }
+        drop(b);
+    }
+}
+
+/// fn-257 task 9's identity check: each shipped preset's drawn tree at
+/// `HASH_SEEDS` (1, 7, 42), hashed, with its growth's peak, to compare a
+/// narrowed layout against its base build by build.
+#[test]
+#[ignore = "a measurement"]
+fn drawn_hashes() {
+    use std::hash::{Hash, Hasher};
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let k = Kernels::new(&gpu);
+    let seeds = std::env::var("HASH_SEEDS").unwrap_or_else(|_| "1,7,42".into());
+    for id in telperion_core::presets::CATALOGUE.iter().map(|c| c.1) {
+        for seed in seeds.split(',').map(|s| s.parse::<u32>().expect("a seed")) {
+            let mut family = telperion_core::presets::by_identity(id).expect("a preset");
+            family.skeleton.seed = seed;
+            let growth = executor::growth(&family).expect("a growth");
+            gpu.ledger.take_peak_census();
+            let (dressed, _) = pollster::block_on(tree::drawn(&gpu, &k, &growth)).expect("drawn");
+            let peak = gpu.ledger.take_peak_census().0;
+            let nodes = super::super::resident::agree_tests::drawn_nodes(&gpu, &dressed);
+            let mut h = std::collections::hash_map::DefaultHasher::new();
+            format!("{nodes:?}").hash(&mut h);
+            println!("HASH {id} {seed} {:016x} {} nodes, peak {:.1} MB", h.finish(), nodes.len(), peak as f64 / 1e6);
+        }
+    }
+}
+
+/// Warm `tree::drawn` of each of `PROFILE_CASES` (the spruce at 40 and
+/// Telperion at 82), `WARM_RUNS` times after one to warm: each run's
+/// milliseconds, for a binary against its base's, alternated.
+#[test]
+#[ignore = "a measurement"]
+fn drawn_warm() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let k = Kernels::new(&gpu);
+    let cases = std::env::var("PROFILE_CASES").unwrap_or_else(|_| "norway-spruce:40:1,telperion:82:1".into());
+    let runs: usize = std::env::var("WARM_RUNS").ok().and_then(|r| r.parse().ok()).unwrap_or(5);
+    for case in cases.split(',') {
+        let mut part = case.split(':');
+        let id = part.next().expect("an id");
+        let age: f64 = part.next().expect("an age").parse().expect("an age");
+        let seed: u32 = part.next().expect("a seed").parse().expect("a seed");
+        let mut family = telperion_core::presets::by_identity(id).expect("a preset");
+        (family.age, family.skeleton.seed) = (age, seed);
+        let growth = executor::growth(&family).expect("a growth");
+        let mut ms = Vec::new();
+        for r in 0..=runs {
+            gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("idle");
+            let t = Clock::now();
+            let drawn = pollster::block_on(tree::drawn(&gpu, &k, &growth)).expect("drawn");
+            if r > 0 {
+                ms.push(t.elapsed_ms());
+            }
+            drop(drawn);
+        }
+        let list: Vec<String> = ms.iter().map(|m| format!("{m:.1}")).collect();
+        println!("WARM {id} {}", list.join(" "));
+    }
+}

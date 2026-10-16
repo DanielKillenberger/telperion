@@ -87,9 +87,11 @@ const Z_LAST: u32 = 2u;
 const Z_LAT: u32 = 3u;
 const Z_SLEEP: u32 = 4u;
 const Z_FAULT: u32 = 5u;
-// Then each zone's nodes in their order along the unit (`sorted`), `MOST`
-// words a zone.
+// Then each zone's nodes in their order along the unit (`sorted`), each
+// node's index under `MOST` in a byte, `ORDER_WORDS` words a zone (fn-257
+// task 9: written narrow where it is made).
 const Z_ORDER: u32 = 6u;
+const ORDER_WORDS: u32 = MOST / 4u;
 
 fn zw(z: u32, f: u32) -> u32 {
     return counts[cfg.zone_at + f * cfg.job_cap * cfg.zones + job * cfg.zones + z];
@@ -193,7 +195,8 @@ fn sleepers_placed(z: u32, zat: u32, s: u32, cycle: u32) {
 
 // Zone `z`'s node `m`'th along the unit, as `order_zone` kept it.
 fn ordered(z: u32, m: u32) -> u32 {
-    return counts[cfg.zone_at + Z_ORDER * cfg.job_cap * cfg.zones + (job * cfg.zones + z) * MOST + m];
+    let at = cfg.zone_at + Z_ORDER * cfg.job_cap * cfg.zones + (job * cfg.zones + z) * ORDER_WORDS;
+    return (counts[at + m / 4u] >> (8u * (m % 4u))) & 0xffu;
 }
 
 // Zone `z`'s nodes in their order along the unit (D4), kept.
@@ -202,9 +205,13 @@ fn order_zone(z: u32, zat: u32) {
     let n = zw(z, Z_N);
     var drawn: array<u32, MOST>;
     sorted(zk, n, &drawn);
-    let at = cfg.zone_at + Z_ORDER * cfg.job_cap * cfg.zones + (job * cfg.zones + z) * MOST;
-    for (var m = 0u; m < n; m++) {
-        counts[at + m] = drawn[m];
+    let at = cfg.zone_at + Z_ORDER * cfg.job_cap * cfg.zones + (job * cfg.zones + z) * ORDER_WORDS;
+    for (var m = 0u; m < n; m += 4u) {
+        var word = 0u;
+        for (var b = 0u; b < 4u && m + b < n; b++) {
+            word |= drawn[m + b] << (8u * b);
+        }
+        counts[at + m / 4u] = word;
     }
 }
 

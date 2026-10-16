@@ -56,7 +56,8 @@ pub(super) const JW: u32 = 130 + FRAMES * 35 + (FRAMES - 1) * 6;
 /// t = 0.01 chains eleven sliver ages); a species past it is refused by
 /// name before its build.
 pub(super) const FRAMES: u32 = 11;
-pub(super) const ZW: u32 = 6 + 64;
+/// A zone: six words, then its order along the unit, a byte a node.
+pub(super) const ZW: u32 = 6 + 64 / 4;
 
 pub(super) struct Kernels {
     pub(super) cycle: io::Pass,
