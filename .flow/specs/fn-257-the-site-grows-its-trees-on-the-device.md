@@ -54,3 +54,7 @@ The engine's field query only. The owner (2026-10-15): "that really shouldn't be
 ## Compact from the start (owner, 2026-10-16)
 
 "if you define a different format to write in the beginning and not convert at the end that should get the savings throughout?" So R7 is: every table is laid out compact where it is created, never converted at the end. During growth only lossless narrowing (counts, indices, flags and ids in the narrowest width their range allows, packed bit-fields, padding removed), so the trees stay byte-identical, each preset's peak and warm time measured before and after; lossy layouts only for data growth never reads back (the drawn records, the field's resident primitives, wood normals and bark coordinates), their precision bounded by tests. What quantising growth's own floats would save, and its risk to the approved trees, is measured and reported for fn-285, not taken.
+
+## Host decisions after task 8 (2026-10-16)
+
+Reusing growth's buffers across builds (about 33 ms on the spruce) is not taken: it raises the build's peak from 1,587 MB to about 2,250 MB and holds 1.6 GB between builds, against the owner's memory direction. The compaction stays as it is (removing its read or sizing it in was no clear gain). The foliage's level lists (80.8 MB, about 15 MB laid end to end) are fn-292. With these, the spruce's remaining non-kernel costs are about 26 ms of dispatch launches (folding measured slower, DISPATCH.md) and about 33 ms of buffer creation (the reuse above); the rest is kernel arithmetic, fn-285's.
