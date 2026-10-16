@@ -1,10 +1,11 @@
 //! Where a growth unit's wood and buds stand along its axis, in
-//! expectation (fn-209, the stand-in's envelope). A zone's nodes follow the
-//! zones before it in the order `ALONG` gives, each an internode long; its
-//! nodes stand in order of their first place's draw (`grow/unit.rs`), the
-//! largest draw at the base, so the PA that draw gives a place-0 bud
-//! decides how far up the zone it stands. Every other place and every
-//! sleeping bud stands at a node of no preferred rank.
+//! expectation (fn-209), as the kept tables read it (`kept/path.rs`). A
+//! zone's nodes follow the zones before it in the order `ALONG` gives,
+//! each an internode long; its nodes stand in order of their first place's
+//! draw (`grow/unit.rs`), the largest draw at the base, so the PA that
+//! draw gives a place-0 bud decides how far up the zone it stands. Every
+//! other place and every sleeping bud stands at a node of no preferred
+//! rank.
 use crate::species::{NodeLaw, MAX_NODES_PER_ZONE};
 use crate::transcendental::Transcendental;
 
@@ -131,22 +132,6 @@ fn placed(count: f64, rank: f64, rank2: f64, start: Along, l: f64) -> Along {
         mean: start.mean + l * r1,
         square: start.square + 2.0 * l * start.mean * r1 + l * l * r2,
     }
-}
-
-/// E[d^p], p = 1 to 3, of a lateral's dominance share d = 1 - D (1 - u⁴),
-/// u uniform (`geometry::dominance`).
-pub(crate) fn dominance(d: f64) -> [f64; 3] {
-    if d <= 0.0 {
-        return [1.0; 3];
-    }
-    let c = 1.0 - d;
-    // E[u^4i] = 1 / (4i + 1).
-    let e = |i: i32| 1.0 / f64::from(4 * i + 1);
-    [
-        c + d * e(1),
-        c * c + 2.0 * c * d * e(1) + d * d * e(2),
-        c.powi(3) + 3.0 * c * c * d * e(1) + 3.0 * c * d * d * e(2) + d.powi(3) * e(3),
-    ]
 }
 
 /// E[d^p] of a lateral's dominance share d = 1 - D (1 - u⁴), u uniform, for
