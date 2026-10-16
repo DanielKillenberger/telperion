@@ -39,8 +39,18 @@ Wasm memory pages never return. A native counting allocator measures the live se
 - [ ] The probe's high-water mark for the four failing cases and Telperion/Laurelin seed 1 is recorded after R2a
 - [ ] PROBE.md states the floor with R2b's per-vertex compaction plus the measured slack; over 3,584 MiB means NEEDS_HUMAN with the gap
 ## Done summary
-TBD
+Blocked:
+NEEDS_HUMAN: stop condition met (PROBE.md, "Gap (stop condition met)").
 
+R2a is built and measured in 9d344192c: `fitted()` gives back growth's spare tree capacity, every preset's dist outputs are byte-identical, and the test went red, then green. It lowers no failing case's Wasm high-water mark.
+
+R2b cannot reach 3.5 GiB:
+- Its live floor for telperion is 3,551 MiB, and that holds only at zero slack.
+- The 1,651 MiB index run cannot land in growth's fragmented 2.69 GiB, where no free run of 831 MiB exists. The high-water mark is therefore at least 4,344 MiB.
+
+The levers are the index layout (a run table, or chunks) or growth's peak and fragmentation. Both are the host's call.
+
+The codex impl-review is at its round cap of 2. Round 1 was NEEDS_WORK and fixed. Round 2 was NEEDS_WORK (the floor used the pre-R2a tree) and fixed in b9e4377fb. That fix is not re-reviewed, because flowctl escalated at the cap.
 ## Evidence
 - Commits:
 - Tests:
