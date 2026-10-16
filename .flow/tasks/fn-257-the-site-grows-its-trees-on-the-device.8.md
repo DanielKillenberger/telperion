@@ -13,9 +13,10 @@ The owner accepts the spruce's about 0.51 s "only if that is the clear best perf
 - The trees unchanged (bytes or stills); the field's R2 tolerances hold; the harness build times no worse on any preset; gate and npm test green.
 
 ## Done summary
-TBD
+Profiled the spruce (SPRUCE.md). Taken: CPU tables side by side (spruce -7.3 ms, Telperion -19.9), the reads of one settle submission batched (-4.8/-4.3); the 80.8 MB named (foliage level lists and selection scratch, both read; a level-list layout proposed as its own spec). Not taken, for the host: pooled growth buffers (about 33 ms against about +660 MB peak and 1.6 GB held between builds); the compaction (removing its read measured mixed, sizing it in about 100 MB). Trees byte-identical; codex SHIP.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5da269673, 7f08fbd12, 371426fb9
+- Tests: drawn_warm paired 16 runs, drawn_hashes 24 trees
 - PRs:
