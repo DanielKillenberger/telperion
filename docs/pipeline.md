@@ -51,7 +51,7 @@ Folds, envelope, bins, beyond, crown_point   the whole-tree folds of some nodes,
 
 An executor that holds the whole tree on its device (fn-256 task 3) hands the pipeline only its summaries (`executor::resident`, `Summaries`): the whole-tree folds (`Folds`), the crown front, the leaf box's corners, the root's radius and the stem radius, and the pipeline returns the rows, element, twig placement, box and bearing bounds its drawing stages read. No node of the tree crosses.
 
-Each step is synchronous CPU work. The device's build is async end to end (fn-256 task 3): natively the caller blocks on it, and a browser awaits it, since WebGPU completes a readback only on the page's event loop. The GPU executor keeps its own schedule: it calls the steps between its GPU submissions exactly where it called the stage functions, so the position upload still runs while the CPU prepares stations (`preparation.rs`, the overlap after `begin_positions`), and every timing it reports covers the same work. `Expansion::mesh` is the pipeline's own CPU build of the prepared tree, the reference the GPU falls back to.
+Each step is synchronous CPU work. The device's build is async end to end (fn-256 task 3): natively the caller blocks on it, and a browser awaits it, since WebGPU completes a readback only on the page's event loop. The GPU executor keeps its own schedule: it calls the steps between its GPU submissions exactly where it called the stage functions, and every timing it reports covers the same work. `Expansion::mesh` is the pipeline's own CPU build of the prepared tree, the reference the GPU falls back to.
 
 `expand` takes a tree the caller already holds, for the renderer's tests of the GPU kernels on hand-built trees, under the envelope that tree grew to. It builds no tree, and nothing outside the pipeline converts the engine's structure, so the tree-space examples' handed-in path is closed (fn-198): growing one stays inside the pipeline, so `expand` opens no second chain. Expansion opens by hanging the shed leaf bases on the stems (fn-204), so a handed-in tree is clothed exactly as a grown one; a tree that already carries its bases is clothed again.
 
@@ -68,9 +68,10 @@ The two agree by lineage, not to the bit: integers exactly, floats within the li
 
 - a draw is 53 bits, compared as an integer with a probability's threshold `ceil(p · 2^53)`;
 - tables computed once per species point are supplied to both executors;
-- a per-bud threshold is computed in one specified fixed point, time in ticks of 2^-20 cycle (host decision 1, `telperion_space::fixed`).
+- a probability, a log, a lead, a window and a presence are ordinary f32 on both executors, by the same operations, with the contract's own logarithms and powers (`telperion_space::contract`, the device's `cycle/decide.wgsl`);
+- time is a count of ticks of 2^-20 cycle, which the CPU holds in an f64, where every count below 2^53 is exact, and which is never accumulated in an f32.
 
-The site's coarse tree (`telperion_space::grow_coarse`, a cut above which the structure is grown whole and below which stands are drawn) remains on the CPU's stepped executor until fn-257 replaces it.
+The site's field (fn-257) is grown and held on the device, through the renderer's module as the harness grows its tree: a page's `query(cells)` is answered on the device and reads back only its cells' answers (`src/field/index.ts`, `docs/field-package.md`). There is no `cut` and no CPU coarse route; the slim field crate (`telperion-field`) is gone, and `telperion_space::grow_coarse` is read only by its own tests.
 
 ## Flowers (fn-216)
 
