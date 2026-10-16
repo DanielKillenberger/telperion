@@ -67,3 +67,12 @@ Reusing growth's buffers across builds (about 33 ms on the spruce) is not taken:
 
 - **Buffer reuse across builds, declined:** "keeping buffers for 33ms costing 663mb seems not worth it". A reuse limited in time (freed after an idle spell) is a later idea for fn-285.
 - **"Why is the build faster than the site field?"** The spruce's site field is the build (about 381 ms), the field's primitives (about 56 ms) and the 36³ query (about 65 ms), about 0.50 s. Before fn-257 closes, as part of its completion pass (through the flow, codex review): (a) measure whether `growField` runs the drawing build's dress and drawn stages it does not read for the field; if so, the field path stops after what it reads (one pipeline, no second chain, only not asking for outputs it does not use); (b) measure where the query's 65 ms goes (dispatches, readbacks, index traversal against arithmetic). Each is taken with a general remedy, measured paired warm over 16 runs with the field's answers identical, and the spruce's site-field time reported before and after.
+
+## The field is a read-out of the build, not a second format (owner, 2026-10-16)
+
+The owner, on why the site field costs more than the build: "so what's the output of the build phase? if not the field? why couldn't we evaluate the 36^3 query directly from that product?" and "making another format just for the fun of it doesn't make sense to me if the build output isn't that field..". So R1' and task 5's compact primitives are replaced by:
+
+- **R8 (one form of the tree):** the field reads the build's drawn records directly; the field-primitive format, its index, the compact primitive layout and the per-cube query are deleted. A field request names its grid (resolution over the tree's bounds); one device pass splats every drawn segment and leaf-bearing segment into the cells it touches (wood flag, thickest radius, leaf estimate, owning limb), and only the grid is read back.
+- **R8a (same answers):** every preset at 24, 36 and 48 cells, seeds 1 and 5678, within the tolerances the field holds today against the CPU reference; the CPU reference itself reads the CPU's drawn tree the same way.
+- **R8b (contract):** the package's field entry takes the grid and returns it; arbitrary-cube queries go, with a migration note beside `cut`'s; the TypeScript types and README change with it.
+- **R8c (measured):** the spruce's site field, warm, paired against today's, and the held memory per tree after the read-out.
