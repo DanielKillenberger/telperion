@@ -54,3 +54,7 @@ The engine's field query only. The owner (2026-10-15): "that really shouldn't be
 ## Compact from the start (owner, 2026-10-16)
 
 "if you define a different format to write in the beginning and not convert at the end that should get the savings throughout?" So R7 is: every table is laid out compact where it is created, never converted at the end. During growth only lossless narrowing (counts, indices, flags and ids in the narrowest width their range allows, packed bit-fields, padding removed), so the trees stay byte-identical, each preset's peak and warm time measured before and after; lossy layouts only for data growth never reads back (the drawn records, the field's resident primitives, wood normals and bark coordinates), their precision bounded by tests. What quantising growth's own floats would save, and its risk to the approved trees, is measured and reported for fn-285, not taken.
+
+## Decision Context
+
+- R5's "a build never resizes mid-growth" is held for every shipped preset (task 3: no preset moves, SIZED.md). Moves stay the general mechanism for parameters off the presets (walks between species, the harness's dials), growing tables by observed counts, and a count past a table is still refused by name (`build_size::refusal`). Refusing every build whose estimate falls short would refuse trees the owner wants built (fn-291: every shipped preset and walk builds, no refusal by name). Host, 2026-10-16, on the plan review's finding.
