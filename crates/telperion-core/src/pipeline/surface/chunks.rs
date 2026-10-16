@@ -3,7 +3,8 @@
 //! needs one long free run of memory. A run longer than a chunk is split at
 //! ring boundaries into pieces that repeat `OVERLAP` rings, so every ring
 //! pair a piece draws, and the pair either side of it a contact query reads,
-//! lies in one chunk.
+//! lies in one chunk. Its last piece repeats its first ring and bottom cap
+//! too, so both caps draw there, after every strip, in the run's order.
 use super::*;
 use std::ops::Range;
 
@@ -31,17 +32,22 @@ pub(super) struct Piece {
 }
 
 impl Piece {
-    /// The caps it holds where the sweep draws them.
-    pub(super) fn caps(&self, drawn: bool) -> usize {
-        if drawn {
-            usize::from(self.lead) + usize::from(self.tail)
-        } else {
-            0
-        }
+    /// Whether it is the last piece of a split run, which holds the run's
+    /// first ring and bottom cap again.
+    pub(super) fn repeats(&self) -> bool {
+        self.tail && !self.lead
+    }
+
+    /// The vertices it holds past its rings where the sweep draws caps: the
+    /// repeated first ring, then each cap it holds, bottom before top.
+    fn extra(&self, segments: usize, drawn: bool) -> usize {
+        let repeats = usize::from(self.repeats());
+        let caps = usize::from(self.lead) + repeats + usize::from(self.tail);
+        usize::from(drawn) * (repeats * segments + caps)
     }
 
     pub(super) fn vertices(&self, segments: usize, drawn: bool) -> usize {
-        self.rings * segments + self.caps(drawn)
+        self.rings * segments + self.extra(segments, drawn)
     }
 
     /// The ring pairs it draws and answers contact queries for, by the lower
@@ -54,20 +60,25 @@ impl Piece {
     }
 
     /// The indices it draws: six a segment of each pair, and three a segment
-    /// of each cap.
+    /// of each cap, both caps in the run's last piece.
     pub(super) fn indices(&self, segments: usize, drawn: bool) -> usize {
-        (self.pairs().len() * 2 + self.caps(drawn)) * segments * 3
+        let caps = 2 * usize::from(drawn && self.tail);
+        (self.pairs().len() * 2 + caps) * segments * 3
     }
 
-    /// Where run vertex `v` sits in its chunk: a ring vertex this piece holds,
-    /// or one of the run's caps, `rings` rings past its first.
+    /// Where run vertex `v` sits in its chunk: a ring vertex this piece holds
+    /// or repeats, or one of the run's caps, `rings` rings past its first.
     pub(super) fn local(&self, v: usize, rings: usize, segments: usize) -> usize {
-        let ring = rings * segments;
+        let (ring, past) = (rings * segments, self.base + self.rings * segments);
+        let repeats = usize::from(self.repeats());
         if v < ring {
+            if repeats == 1 && v < segments {
+                return past + v;
+            }
             return self.base + v - self.first * segments;
         }
-        let top = v - ring;
-        self.base + self.rings * segments + top * usize::from(self.lead)
+        let bottom = past + repeats * segments;
+        bottom + (v - ring) * usize::from(self.lead || self.repeats())
     }
 }
 
@@ -127,13 +138,14 @@ impl Layout {
             out.open()?;
             loop {
                 let rest = count - piece.first;
-                let lead = usize::from(drawn && piece.lead);
-                if rest * segments + lead + usize::from(drawn) <= limit {
-                    piece.rings = rest;
+                (piece.rings, piece.tail) = (rest, true);
+                if piece.vertices(segments, drawn) <= limit {
                     out.place(piece, piece.vertices(segments, drawn), limit)?;
                     break;
                 }
-                piece.rings = (limit - lead) / segments;
+                // Short of the whole rest, so the last piece moves on.
+                let lead = usize::from(drawn && piece.lead);
+                piece.rings = ((limit - lead) / segments).min(rest - 1);
                 piece.tail = false;
                 out.place(piece, piece.vertices(segments, drawn), limit)?;
                 out.open()?;

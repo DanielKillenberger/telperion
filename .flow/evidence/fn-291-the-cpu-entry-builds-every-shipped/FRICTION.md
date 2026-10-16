@@ -30,3 +30,9 @@ Doing: the red run of one new unit test (`chunks::tests::the_end_of_a_full_odd_c
 Slowed: another job held the heavy room (4 GB free for a 12 GB request) from 11:07 to 11:39; the test itself ran in 0.00 s.
 Cost: 31 minutes of wall clock.
 Would remove it: a smaller admission request for a single-test run (the crate's test binary was already built; 12 GB is the whole-suite figure), or an admission class for incremental test runs.
+
+## 2026-10-16 - task 5 (cap order fix): the flat-digest check was killed at the 8 GB cap
+Doing: re-running `flatdigest.rs 1,42 --expect` after the split-run cap fix, under `telperion-heavy 8`.
+Slowed: telperion seed 42 natively needs more than 8 GB; the wrapper killed the run after 13 of 16 lines, and it was re-run at 14 GB.
+Cost: about 3 minutes and one extra build-and-run.
+Would remove it: PROBE.md naming the cap the equivalence check needs (14 GB at seeds 1 and 42) next to the command.

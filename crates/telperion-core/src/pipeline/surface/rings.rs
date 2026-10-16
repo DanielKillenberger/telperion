@@ -202,12 +202,22 @@ pub(super) fn written(
         let mut v = 0;
         emit_run(samples, frame, at.ring(), shape, drawn, |xyz, coord| {
             for piece in run {
-                // Run vertex `v`: a ring the piece holds, or the cap it holds.
+                // Run vertex `v`: a ring the piece holds, or the cap it holds;
+                // a split run's last piece takes its first ring again from
+                // the first piece before its bottom cap.
+                if drawn && v == ring && piece.repeats() {
+                    let (lead, segments) = (run[0], at.segments());
+                    let (held, rest) = chunks.split_at_mut(piece.chunk - first);
+                    let (from, to) = (&held[lead.chunk - first], &mut rest[0]);
+                    let at = |n: usize| lead.base * n..(lead.base + segments) * n;
+                    to.positions.extend_from_slice(&from.positions[at(3)]);
+                    to.coords.extend_from_slice(&from.coords[at(2)]);
+                }
                 let holds = run.len() == 1
                     || if v < ring {
                         (piece.first..piece.first + piece.rings).contains(&(v / at.segments()))
                     } else {
-                        (v == ring && piece.lead) || (v > ring && piece.tail)
+                        (v == ring && (piece.lead || piece.repeats())) || (v > ring && piece.tail)
                     };
                 if holds {
                     let chunk = &mut chunks[piece.chunk - first];

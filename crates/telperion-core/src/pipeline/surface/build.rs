@@ -185,7 +185,9 @@ fn span(start: usize, end: usize) -> Result<[u32; 2]> {
 /// A run split across `chunks`, its pieces' chunks from the first: its
 /// points gathered whole and shaded as one run, so the split moves no
 /// normal and drops no other triangle; then each piece's normals copied
-/// and each triangle handed, in draw order, to the piece that draws it.
+/// and each triangle handed, in draw order, to the piece that draws it: a
+/// strip to the piece its pair belongs to, a cap to the last piece, which
+/// repeats the first ring, so the caps draw after every strip.
 fn split(
     rings: &Rings,
     resweep: &Resweep,
@@ -216,8 +218,7 @@ fn split(
             .map(|p| chunks[p.chunk - lead.chunk].indices.len()),
     );
     let owner = |t: [u32; 3]| match t.iter().max().map(|&v| v as usize) {
-        Some(v) if v == ring + 1 => tail,
-        Some(v) if v == ring => lead,
+        Some(v) if v >= ring => tail,
         _ => {
             let low = t.iter().min().map_or(0, |&v| v as usize) / segments;
             let mut pieces = run.iter();
@@ -243,7 +244,11 @@ fn split(
         let chunk = &mut chunks[piece.chunk - lead.chunk];
         let held = piece.first * segments * 3..(piece.first + piece.rings) * segments * 3;
         chunk.normals.extend_from_slice(&normals[held]);
-        for (_, v) in [(piece.lead, ring), (piece.tail, ring + 1)]
+        if piece.repeats() {
+            chunk.normals.extend_from_slice(&normals[..segments * 3]);
+        }
+        let bottom = piece.lead || piece.repeats();
+        for (_, v) in [(bottom, ring), (piece.tail, ring + 1)]
             .into_iter()
             .filter(|c| c.0)
         {

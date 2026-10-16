@@ -7,7 +7,8 @@ use crate::tree::Node;
 #[test]
 fn runs_fill_chunks_in_order_and_a_long_run_splits() {
     let (segments, limit) = (4, 64);
-    // 15 rings and caps is 62 vertices; 3 is 14; 38 is 154 and splits.
+    // 15 rings and caps is 62 vertices; 3 is 14; 38 is 154 and splits, its
+    // last piece repeating the first ring and bottom cap.
     let layout = Layout::new([15, 3, 38, 2].into_iter(), segments, true, limit).unwrap();
     let pieces: Vec<_> = layout
         .pieces
@@ -22,16 +23,16 @@ fn runs_fill_chunks_in_order_and_a_long_run_splits() {
             (2, 2, 0, 0, 15, true, false),
             (2, 3, 0, 12, 16, false, false),
             (2, 4, 0, 25, 13, false, true),
-            (3, 4, 53, 0, 2, true, true),
+            (3, 5, 0, 0, 2, true, true),
         ]
     );
-    assert_eq!(layout.chunks, [62, 14, 61, 64, 63]);
+    assert_eq!(layout.chunks, [62, 14, 61, 64, 58, 10]);
     assert!(layout.chunks.iter().all(|&n| n <= limit));
     let split = &layout.pieces[2..5];
     let pairs: Vec<_> = split.iter().flat_map(|p| p.pairs()).collect();
     assert_eq!(pairs, (0..37).collect::<Vec<_>>());
     let extent = layout.extent(segments);
-    assert_eq!(extent.chunks, 5);
+    assert_eq!(extent.chunks, 6);
     assert_eq!(extent.indices, (15 + 3 + 38 + 2) * segments * 6);
 }
 
@@ -74,7 +75,8 @@ fn corner(positions: &[f32], normals: &[f32], coords: &[f32], i: usize) -> Corne
 /// A trunk of 140,000 vertices splits over three chunks and changes no
 /// value: every vertex its pieces hold is the vertex the trunk has swept
 /// whole, every triangle the whole trunk draws is drawn once from the same
-/// corners, in its draw order within each chunk, and every seat on the rings
+/// corners, in its draw order over the chunks laid end to end, caps last
+/// in the last chunk, and every seat on the rings
 /// lands where it lands on rings swept apart. The chunks hold no more than
 /// their limit, each reserved at its exact size.
 #[test]
@@ -132,26 +134,21 @@ fn a_run_longer_than_a_chunk_splits_with_no_value_changed() {
     assert!(pieces
         .iter()
         .all(|p| p.span.largest_radius == pieces[0].span.largest_radius));
+    // The pieces' spans laid end to end, chunk after chunk, draw the whole
+    // trunk's triangles in its order: every strip, then the caps in turn.
     let mut all = Vec::new();
     for WoodRun { chunk, span } in pieces {
         let c = &mesh.chunks[*chunk as usize];
         let at = |i: u16| corner(&c.positions, &c.normals, &c.coords, i as usize);
-        let range = span.first_index as usize..(span.first_index + span.index_count) as usize;
-        let mine: Vec<[Corner; 3]> = c.indices.as_chunks::<3>().0[range.start / 3..range.end / 3]
-            .iter()
-            .map(|t| t.map(at))
-            .collect();
-        let mut order = expected.iter();
-        assert!(
-            mine.iter().all(|t| order.any(|e| e == t)),
-            "chunk {chunk}: draw order"
+        let range =
+            span.first_index as usize / 3..(span.first_index + span.index_count) as usize / 3;
+        all.extend(
+            c.indices.as_chunks::<3>().0[range]
+                .iter()
+                .map(|t| t.map(at)),
         );
-        all.extend(mine);
     }
-    let mut expected = expected;
-    expected.sort();
-    all.sort();
-    assert_eq!(all, expected);
+    assert!(all == expected, "the split trunk's draw order");
     let read = AttachmentSurface::on_wood(&kept).unwrap();
     let swept = AttachmentSurface::new(&tree, height, &params).unwrap();
     for (node, n) in tree.nodes.iter().enumerate().skip(1) {
