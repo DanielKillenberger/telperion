@@ -37,8 +37,14 @@ fn main() {
     let mut a = std::env::args().skip(1);
     let id = a.next().unwrap();
     let seed: u32 = a.next().unwrap().parse().unwrap();
-    let wood = a.next().map_or(true, |w| w != "foliage");
-    let leaves = a.next().map_or(true, |w| w != "surface");
+    // One selector, as the dist probe takes it: both, surface or foliage.
+    let which = a.next().unwrap_or_else(|| "both".into());
+    let (wood, leaves) = match which.as_str() {
+        "both" => (true, true),
+        "surface" => (true, false),
+        "foliage" => (false, true),
+        other => panic!("outputs: both, surface or foliage, not {other}"),
+    };
     let mut f = params::by_identity(&id).unwrap();
     f.skeleton.seed = seed;
     let built = pipeline::build(&f, pipeline::Request { wood, leaves, ..Default::default() }).unwrap();

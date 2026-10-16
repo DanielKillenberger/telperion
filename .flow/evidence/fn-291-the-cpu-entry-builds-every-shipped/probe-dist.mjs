@@ -10,6 +10,7 @@ import { appendFileSync } from 'node:fs';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 
+const REFUSALS = ['no engine species', 'more than 4,000,000 phytomers'];
 const OUTPUTS = { both: { surface: true, foliage: true }, surface: { surface: true }, foliage: { foliage: true } };
 
 async function one(dist, id, seed, which) {
@@ -31,8 +32,11 @@ async function one(dist, id, seed, which) {
       timings: d.timings,
     });
   } catch (e) {
-    const named = e instanceof Error && e.message.startsWith('Tree core:');
-    row.outcome = named ? 'refused' : `trap:${e?.constructor?.name}`;
+    // A refusal R1 accepts names its cause; any other core error is a
+    // failure of the entry, and anything not from the core is a trap.
+    const message = e instanceof Error ? e.message : '';
+    row.outcome = REFUSALS.some(r => message.includes(r)) ? 'refused'
+      : message.startsWith('Tree core:') ? 'core-error' : `trap:${e?.constructor?.name}`;
     row.error = String(e?.message ?? e);
   }
   row.ms = Math.round(performance.now() - started);

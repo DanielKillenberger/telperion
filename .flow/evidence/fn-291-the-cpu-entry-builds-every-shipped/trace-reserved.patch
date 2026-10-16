@@ -1,0 +1,16 @@
+# fn-291 R1 trace: a throwaway build of the wasm binding whose `reserved()`
+# names its call site, the request and the memory at the failure. Applied,
+# built into a scratch CARGO_TARGET_DIR, copied over a scratch copy of dist/
+# as telperion.wasm, run with `probe-dist.mjs --case <scratch dist> <id> <seed> surface`,
+# and reverted; it is never committed to the crate.
+--- a/crates/telperion-core/src/pipeline/surface.rs
++++ b/crates/telperion-core/src/pipeline/surface.rs
+@@ fn reserved
+-fn reserved<T>(n: usize) -> Result<Vec<T>> {
++#[track_caller]
++fn reserved<T>(n: usize) -> Result<Vec<T>> {
++    let at = core::panic::Location::caller();
+     let mut out = Vec::new();
+     out.try_reserve_exact(n)
+-        .map_err(|_| Error::ResourceLimit("surface allocation"))?;
++        .map_err(|_| Error::ResourceLimit(Box::leak(format!("surface allocation TRACE at={}:{} requested={} elem={} pages={}", at.file(), at.line(), n * size_of::<T>(), n, core::arch::wasm32::memory_size(0)).into_boxed_str())))?;
