@@ -23,7 +23,10 @@ pub(crate) fn lay_one(
     let ends = |p: usize| layers[p].as_ref().map(Layer::ends).expect("laid");
     let framed = frame(axes, species, i, &ends);
     let carried = match axes[i].carried_on() {
-        Some((parent, b)) => layers[parent].as_ref().expect("laid").handed_take(reaches[parent], b),
+        Some((parent, b)) => layers[parent]
+            .as_ref()
+            .expect("laid")
+            .handed_take(reaches[parent], b),
         None => NO_TAKE,
     };
     let take = joined(taken(axes, species, i, &ends), carried);

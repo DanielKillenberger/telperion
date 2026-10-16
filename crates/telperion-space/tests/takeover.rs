@@ -68,7 +68,9 @@ fn a_take_over_without_relays_is_dormant() {
 fn handovers(tree: &Structure) -> Vec<(f64, f64)> {
     let angle = |a: Vec3, b: Vec3| a.dot(b).clamp(-1.0, 1.0).acos();
     let step = |p: &[telperion_space::Phytomer]| -> f64 {
-        p.windows(2).map(|w| angle(w[0].heading, w[1].heading)).fold(0.0, f64::max)
+        p.windows(2)
+            .map(|w| angle(w[0].heading, w[1].heading))
+            .fold(0.0, f64::max)
     };
     tree.axes
         .iter()

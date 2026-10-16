@@ -199,7 +199,9 @@ fn a_join_gone_with_its_bearer_fades_with_it() {
     let species = crate::oak();
     // The oak at 27, seed 7, is the first from 20 with a relay gone with
     // its bearer.
-    let mut p = Paused::begin(&species, request(27), Retiring::AtAge, false).unwrap().presenting();
+    let mut p = Paused::begin(&species, request(27), Retiring::AtAge, false)
+        .unwrap()
+        .presenting();
     p.grow_to(27).unwrap();
     let now = p.settle().unwrap();
     let mut last = p.previous().expect("the year before").clone();
@@ -223,7 +225,10 @@ fn a_join_gone_with_its_bearer_fades_with_it() {
         let j = drawn.structure.axes[at].joined.expect("its join");
         let keep = kept(f);
         assert_eq!((j.below, j.above), (below * keep, above * keep), "at {f}");
-        assert!(j.above < FINEST * keep, "at {f}: wood above the join drawn while it fades");
+        assert!(
+            j.above < FINEST * keep,
+            "at {f}: wood above the join drawn while it fades"
+        );
     }
 }
 

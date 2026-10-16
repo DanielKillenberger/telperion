@@ -154,7 +154,10 @@ fn start(structure: &Structure, species: &Species, laid: &Laid, i: usize) -> Sta
         Some((parent, b)) => layer(parent).handed_take(laid.reaches[parent], b),
         None => NO_TAKE,
     };
-    let take = joined(taken(&structure.axes, species, i, &|p| layer(p).ends()), carried);
+    let take = joined(
+        taken(&structure.axes, species, i, &|p| layer(p).ends()),
+        carried,
+    );
     // A continuation or relay carries its bearer's wander on.
     let curve = match axis.origin {
         Origin::Continuation { parent } | Origin::Relay { parent, .. } => layer(parent).curve(),
