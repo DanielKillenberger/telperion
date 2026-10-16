@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-225-growth-off-one-core-in-the-browser.md",
-  "status": "open",
+  "status": "done",
   "title": "Growth off one core in the browser",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T01:02:57.357991Z"
+  "updated_at": "2026-10-15T22:48:02.780627Z"
 }

@@ -4,7 +4,7 @@ satisfies: [R3]
 # fn-212-tree-space-fine-geometry-dressed-on-the.6 Stations and contact rings on the device
 
 ## Description
-CONTRACT.md's probe, third part: leaf stations and contact rings for fine roots on the device, counts from record data (D2), seated leaves against the CPU reference.
+The contract's probe, third part: leaf stations and contact rings for fine roots on the device, counts from record data (D2), seated leaves against the CPU reference.
 
 ## Acceptance
 - Seated leaves within fn-125's bound of the CPU reference; counts equal.
@@ -22,9 +22,8 @@ Stations and contact rings for the fine roots built on the device, and their sea
   - half-micrometre rounding;
   - contact grazing.
 - **Counts are equal** on every tree except for the rounding class on spruce 80 s1.
-- **Gate:** render 161 passed, CPU 988 passed. Evidence: TASK6.md.
+- **Gate:** render 161 passed, CPU 988 passed.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 023d3d19, bfc5ee20, e17ed84d, 809fdc47
 - Tests: cargo test --profile ci -p telperion-render --no-fail-fast, cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render

@@ -1,34 +1,43 @@
 # A walk never grows a tree larger than its ends
 
-## Goal & Context
+## Goal
 
-Found by the teaser session (2026-10-09) on F4 d1b1efa9: the oak → birch walk at age 80, seed 7, fails at t ≈ 0.0750 with "resource limit: engine phytomer budget" (the hard 20M budget, `pipeline/space.rs:25`). Repro: `headless --preset oregon-white-oak --family {"age":80} --to silver-birch --to-family {"age":80} --seed 7 --walk 6 --hold 0`; frames 1-23 render and frame 24 at t = 0.07504803866484144 fails. Both ends are far below the budget (oak 2.19M nodes, birch 2.93M at seed 7, age 80), so a point near the oak end grows more than 6× either end. fn-230's size factor is shrink-only against the ends' weighted geometric-mean counts, and fn-231 made the ends continuous, so this contradicts both. Unknown, to be measured: whether the solve's predicted counts at that point are within budget (the closed form is light-neutral, and the oak grows by light past its prediction, fn-214), whether the shrink factor reaches its floor, or whether something else grows. Host (2026-10-09): release map item (the harness's walks), with the age-walk spec fn-250.
+Found by the teaser session (2026-10-09) on F4 d1b1efa9: the oak → birch walk at age 80, seed 7, failed at t ≈ 0.0750 with "resource limit: engine phytomer budget" (the hard 20M budget), although both ends are far below it (oak 2.19M nodes, birch 2.93M), contradicting fn-230's shrink-only size factor and fn-231's continuous ends. Host (2026-10-09): release map item (the harness's walks), with the age-walk spec fn-250. Scope: the walk's sizing.
 
-## Requirements
+## Decisions
 
-- **R1 (repro first):** the failure reproduced as a standalone test at the exact t; at that point, the predicted kept and grown counts against the realized ones, the solved factor and whether it hit a bound, and which ages or rows grow; the cause named and checked against the code before any fix.
-- **R1b (the cleaner design, owner 2026-10-09: "cleaner design sounds good"):** a walk is a straight line through parameter space, but rows that act multiplicatively (probabilities, counts, lifespans, rates) are interpolated in their natural scale (probabilities in log-odds, positive counts, lengths and lifespans in log), additive rows (angles, fractions of a range) linearly; each row's scale is declared once in the catalogue. Boundaries: magnitudes use the shifted logs `species/scale.rs` already defines for zeros; probabilities use log-odds with the same shift, so exact 0 and 1 stay finite; t = 0 and 1 return each end's rows exactly; a structural zero at one end (an unused age, an absent zone, infinite shedding) keeps its meaning and ramps in by fn-231's making draws, so no age or zone appears whole; whole-count validation holds. Boundary tests cover canonical unused ages, absent zones and infinite shedding. The oracle, used for the deletion decision and for R2 and R3 alike: at the same seed, light and age as the frame, the frame's realized kept and grown phytomer counts each lie between the smaller and the larger of the two ends' realized counts, widened by 10 %. Measured on the fn-230 strips, fn-250's age walk and this spec's repro: the realized size along the walk with linear rows, with natural-scale rows, and with the size factor on and off. If natural-scale rows keep every frame within its ends' sizes, the size factor is deleted (docs/principles.md, "Question, delete, then optimise"); if not, it stays only for what the measurement shows it still catches, and the oak's light-driven growth is noted for fn-245 (light is today a switch between ways of building).
-- **R2 (fixed):** every frame of a walk between two shipped species at 40 and 80 meets the oracle above and never fails on the budget; the fix by the cause R1 names, stated before code, by degree, both executors.
-- **R3 (proved):** a sweep of every pair of shipped branching species and the date palm (oak, birch, beech, spruce, ordinary, palm; the palm's size is its fronds, `a_walk_to_the_palm_is_never_grown_to_its_ends_size`) at 40 and 80, seeds 1, 7 and 42, at fine t near both ends and in between, every frame meeting the oracle; fn-230/fn-231 tests and the walk digest held or re-pinned with evidence; gate and npm test green.
+- Owner (2026-10-09), on interpolating multiplicative rows in their natural scale (log-odds, logs; each row's scale declared once): "cleaner design sounds good".
+- Host (2026-10-09), on R1/R1b's measurement: the cause is light, not the size solve. Only the oak read light; the walk mixes its extinction and light-response rows toward the birch's zeros, so a frame is shaded less and grows toward the oak's unshaded size (37.3M predicted); the size factor (0.996) solves on light-neutral counts. Natural-scale rows rejected on evidence: 10 of 45 frames met the oracle against 30 for linear rows with the size factor, undershooting by two orders; the owner's "cleaner design" was taken on a premise that did not hold. Linear rows and the size factor stay. fn-250's age walk did not reproduce. The light half waits for fn-255; until then frames past the budget fail with the named error, never a fallback.
+- Host (2026-10-14, re-measured on F4 after fn-255): the defect is gone (`the_oak_to_birch_frame_the_teaser_refused_builds`). The oracle's reference becomes the ends' spread across seeds 1, 7 and 42 at the frame's light, widened by 10 %, with two whole phytomers of slack for seedlings. Ends are grown once per walk.
+- Host (2026-10-14, after the room check): a two-sided size factor is not built: the laterals cannot lift oak ↔ spruce at 40 to its ends (47 % and 32 % short at full room), "question, delete, then optimise". The size factor stays shrink-only; the oak ↔ spruce dip is a named exception and a later spec; the release film's path avoids that step (fn-272).
+- Host (2026-10-14, after the seed-spread oracle): the oracle is not widened to pass the rest; the nine failing frames are named exceptions with measured numbers and fn-273 takes them. R2/R3 close on this record.
 
-## Decisions (host, 2026-10-09, on R1/R1b's measurement, walksize `WALKS.md`)
+## Acceptance Criteria
 
-- **Cause:** light, not the size solve. Only the oak reads light today; the walk mixes its extinction (0.5 → 0) and its light-response rows toward the birch's zeros, so a frame is shaded less and responds less, and grows toward the oak's unshaded size (37.3M predicted, 17.2M grown at its own light; 22.6M at extinction 0.25). The size factor (0.996 there) solves on light-neutral counts and cannot see it.
-- **Natural-scale rows are rejected on evidence:** 10 of 45 frames met the oracle against 30 for linear rows with the size factor, and they undershoot by two orders (beech → spruce at 80, t = 0.5: 0.01M against ends of 1.61M and 4.78M). The owner's "cleaner design" was taken on the premise that it would keep frames within their ends; it does not. Linear rows and the size factor stay.
-- **fn-250's age walk did not reproduce** (each frame equals the oak grown at that age); fn-250 needs nothing.
-- **The light half waits for fn-255:** once every species reads light by degree, the oak/birch asymmetry that drives this is gone and the size solve's counts can be read at the frame's light. The oracle stays as written (ends at the frame's light). R2/R3 are re-measured on fn-255's grower; until then the oak → birch frames past the budget fail with the named budget error, never a fallback. The red repro test stays on the walksize branch (`d4cc14c4`), unmerged.
-- **R3's sweep cost** (4 growths a frame, 35-110 s at 80) is cut to the frames R1b used plus the repro when re-run, unless the measurement shows a new failing pair.
+- **R1:** the failure reproduced as a standalone test at the exact t; predicted against realized counts, the solved factor, and the cause named against the code — met (cause: light).
+- **R1b:** natural-scale interpolation of multiplicative rows measured against linear rows and the size factor on the oracle; the size factor deleted if natural-scale rows keep every frame within its ends — met (measured; natural-scale rejected, size factor kept).
+- **R2:** every frame of a walk between two shipped species at 40 and 80 meets the oracle and never fails on the budget; fix by the cause, by degree, both executors — met on the budget; 9 named exceptions to fn-273 (host, 2026-10-14).
+- **R3:** sweep of every pair of shipped branching species and the date palm at 40 and 80, seeds 1, 7, 42; fn-230/fn-231 tests and walk digest held — met on the seed-spread record (86 of 95 frames).
 
-## Boundaries
+## Result
 
-The walk's sizing. Release map item.
+- `examples/walk_size.rs`: 86 of 95 frames meet the seed-spread oracle; none nears the budget. The nine exceptions (oak ↔ spruce dips at 40 and 80, predicted 0.33M against 0.97M and 1.15M; birch → oak at 40 up to 21 % over at seeds 7 and 42; oak → birch at 80 t = 0.01, 6 % over; oak → ordinary at 40 t = 0.75 just under; beech → oak at 80 t = 0.5, 22 % under; palm → Laurelin at age 3) are held at their measured numbers by `tests/walk_sizes.rs` until fn-273.
+- The film's seedlings at age 1 pass; its birch → oak step is judged in the film by the owner.
+- Gate 1,348 passed; npm test 162. Impl-review SHIP.
 
-## Decisions (host, 2026-10-14, re-measured on F4 after fn-255; WALKS.md)
+## Open
 
-- The defect the spec is named for is gone: the teaser frame builds (`the_oak_to_birch_frame_the_teaser_refused_builds`), no frame of 80 nears the budget, and the age walk and Laurelin -> Telperion pass at every frame.
-- **A dip below both ends (oak <-> spruce, predicted 0.33M against 0.97M and 1.15M) is a defect for the film and for continuity of size:** the size factor becomes two-sided, solving toward the predicted weighted geometric mean of the ends from either side, by degree through the same rows it moves today. Fail-early: measure on the five dipping frames whether the rows it moves have room to reach the target before building it into the walk; if not, return with the shortfall.
-- **The oracle's reference is the ends' spread across seeds**, not one seed's count: a frame's realized counts lie between the smallest and largest of the two ends' counts over seeds 1, 7 and 42 at the frame's light, widened by 10%. One seed's light-driven spread (the oak at 80 keeps 1.47M-3.39M) is natural variation, not a walk defect.
-- **Seedlings:** the oracle allows two whole phytomers of slack below or above, since counts at a few dozen phytomers are whole numbers.
-- The walk example regrows both ends at every frame although their light no longer changes (FRICTION.md): ends are grown once per walk.
-- **After the room check (host, 2026-10-14):** the laterals cannot lift oak <-> spruce at 40 to its ends (47% and 32% short at full room), so the two-sided factor is not built: it would add a solve that reaches neither the target nor the oracle on the frames it was for ("question, delete, then optimise"). The size factor stays shrink-only. The oak <-> spruce dip is recorded as a known property of today's walk, a named exception in the sweep with its measured shortfall, and its cause (what the row mixture does to branching between a monopodial whorled crown and a broad one) is a later spec. Decisions 2 to 4 above are built; the release film's path avoids the oak <-> spruce step (fn-272).
-- **After the seed-spread oracle (host, 2026-10-14; WALKS.md "The seed-spread oracle"):** 86 of 95 frames meet it and none nears the budget, which was this spec's defect. The oracle is not widened to pass the rest: the nine failing frames are named exceptions with their measured numbers (oak <-> spruce dips at 40 and 80; birch -> oak at 40 keeping up to 21% over its band at seeds 7 and 42; oak -> birch at 80 t = 0.01, 6% over; oak -> ordinary at 40 t = 0.75 just under; beech -> oak at 80 t = 0.5, 22% under; palm -> Laurelin at age 3), and fn-273 takes them all: a walk's size between its ends, from either side. The release film's seedlings are at age 1, where every palm -> Laurelin frame passes; its birch -> oak step is judged in the film by the owner. R2/R3 close on this record.
+- fn-273: a walk's size between its ends, from either side (the nine exceptions).
+- The oak ↔ spruce dip's cause (row mixture between a monopodial whorled crown and a broad one): a later spec.
+
+## Friction
+
+- Measuring a frame's realized size needed a realized grown count on the build's result -> proposed, plus an oracle cached per walk.
+- Re-measuring regrew both ends every frame -> ends grown once per walk (built).
+- The exception test's first run waited on admission -> the repro grows through the engine alone; admission could count a job's measured peak (proposed).
+- The workspace gate OOMs below 13 GB / 2 threads in telperion-core's unit tests -> a declared memory size or a nextest group for heavy tests (proposed).
+
+## Evidence
+
+- `.flow/evidence/fn-251-a-walk-never-grows-a-tree-larger-than/WALKS.md` (measurements and host decisions; cited by `tests/walk_sizes.rs`)
+- `.flow/evidence/fn-251-a-walk-never-grows-a-tree-larger-than/natural-scale.patch` (the rejected natural-scale interpolation)

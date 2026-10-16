@@ -59,7 +59,7 @@ Stills, the oak preset at 40, seed 7, the top of the crown, the whole year's cam
 | laurelin (80) | 1,790 | 3,281 | 3,627 | 3,859 |
 | oregon-white-oak (40) | 475 | 874 | 711 | 770 |
 
-The state keeps last year's laid node table (Telperion about 370 MB) and settles it on every `grow_to` that commits a year. Telperion's draw within its year first peaked at 4,478 MB, past the 4 GiB default (4,295 MB); this year's settle is now freed before the presented tree is drawn, and it peaks at 4,160 MB, 135 MB under (Laurelin 4,160 before, 3,859 after). Before this task the grown-on peaks were Telperion 3,072 and Laurelin 2,836 (MEMORY.md): last year's table and its settle on `grow_to` cost about 840 MB on Telperion.
+The state keeps last year's laid node table (Telperion about 370 MB) and settles it on every `grow_to` that commits a year. Telperion's draw within its year first peaked at 4,478 MB, past the 4 GiB default (4,295 MB); this year's settle is now freed before the presented tree is drawn, and it peaks at 4,160 MB, 135 MB under (Laurelin 4,160 before, 3,859 after). Before this task the grown-on peaks were Telperion 3,072 and Laurelin 2,836 (task 3's census): last year's table and its settle on `grow_to` cost about 840 MB on Telperion.
 
 Warm build times, A/B against the task's base on the same machine (ms, base / task): ordinary 464 / 477, oak 237 / 234, spruce 449 / 453, beech 194 / 202, birch 218 / 221, palm 73 / 73, Telperion 1,283 / 1,253, Laurelin 1,158 / 1,157; device peaks identical.
 

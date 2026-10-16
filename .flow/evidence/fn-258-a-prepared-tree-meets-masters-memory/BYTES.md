@@ -4,7 +4,7 @@ Measured 2026-10-10 on the fn-258 branch at 7803f205 (F4) and on master at ebd2e
 
 ## How it was measured
 
-One probe (`tools/src/main.rs`) built against each tree, as the parity scorecard's was: `Generator::prepare(Resident)`, `submit_prepared`, `set_family` (F4) or `set_material` (master), one draw, then three more builds in the same process, as the harness retunes. Then, with the last tree resident:
+One probe (a scratch binary, archived) built against each tree, as the parity scorecard's was: `Generator::prepare(Resident)`, `submit_prepared`, `set_family` (F4) or `set_material` (master), one draw, then three more builds in the same process, as the harness retunes. Then, with the last tree resident:
 
 - **GPU bytes by owner:** the device allocator's report (`wgpu::Device::generate_allocator_report`), each live allocation under its buffer label, plus the allocator's reserved total and `nvidia-smi`'s process figure. A label is grouped by the code that allocates it (below).
 - **CPU bytes:** `VmRSS` and `VmHWM` after the builds. For the oak at 40 the probe also called `malloc_trim(0)`: RSS fell from 782 to 310 MB (master: 212 to 201 MB). So most of F4's resident CPU after a build is freed heap glibc keeps, and the cost that matters is the peak: the preparation's working set. In a browser that peak stays, because a Wasm memory never shrinks.

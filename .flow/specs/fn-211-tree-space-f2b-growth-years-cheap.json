@@ -10,7 +10,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-211-tree-space-f2b-growth-years-cheap.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space F2b: growth years, cheap",
   "tracker": {
     "baseHashFlow": null,
@@ -23,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T17:34:25.916819Z"
+  "updated_at": "2026-10-15T22:48:18.126073Z"
 }

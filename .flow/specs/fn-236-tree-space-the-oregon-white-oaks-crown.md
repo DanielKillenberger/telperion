@@ -1,28 +1,55 @@
 # Tree space: the Oregon white oak's crown reads as an open-grown oak
 
-## Goal & Context
+## Goal
 
-The owner's verdict on 2026-10-09, looking at the oak's field stills (fn-214 cut sweep, `oak-{1234,5678}-n36-cuts.png`): the new oak "look[s] weird". The same gap shows in fn-226's R5 sheet against O-WHOLE (`.refs/fn9/quga788B.jpg`): today's oak at 80 is a smaller, open, irregular crown on a short trunk, a few long diagonal limbs past the crown's edge, where the reference and the old 0.1.4 oak are a broad, dense, closed dome. fn-226 showed the gap predates its light work (R2's before/after pairs) and is not the light model's: it is the oak's own values and growth. The owner's goal (2026-10-09): "make it all the way. Ship it all together" - the release carries the engine, the species and killenberger.com's move off 0.1.4, so the oak must read as an oak in the harness and in the site's grove before release.
+The owner's verdict on 2026-10-09, on the oak's field stills (fn-214 cut sweep): the new oak "look[s] weird". fn-226's R5 sheet showed the same against O-WHOLE (`.refs/fn9/quga788B.jpg`): today's oak at 80 was a smaller, open, irregular crown on a short trunk with long diagonal limbs past the crown's edge, where the reference and the old 0.1.4 oak are a broad, dense, closed dome. The gap predates fn-226's light work; it is the oak's own values and growth. Owner (2026-10-09): "make it all the way. Ship it all together": the release carries the engine, the species and killenberger.com's move off 0.1.4, so the oak must read as an oak in the harness and in the site's grove. The oak's values only, plus host-minted gap specs.
 
-## Requirements
+## Decisions
 
-- **R1 (model, as fn-213 did for the birch):** a MODEL-OAK.md in the evidence folder, written before any value moves: what the open-grown *Quercus garryana* crown is in the sources (crown width to height, crown base, limb habit, leaf density), each with its source and stated age and growing condition, and the oak's current engine values read against them: the preset's `/space` rows in `crates/telperion-core/presets/oregon-white-oak.values`, which production, the still tools and the site's field read, kept equal to `telperion_space::oak()` in `crates/telperion-space/src/oak.rs` as `every_engine_preset_carries_the_engines_species` requires, with a stated capability assessment of which traits values can reach. The species runner (`docs/species-onboarding.md`) is not used: its Tune stage moves only parameter-catalogue dials, not the engine's `/space` rows, and the oak's catalogue manifest is empty. A trait values cannot reach stops for the host, who mints its own spec.
-- **R2 (rounds):** rounds on the oak's engine values, changed in the preset's `/space` rows and mirrored into `oak.rs` in the same commit, each round rendered from the updated preset with the existing still tools fn-213 used (`space_oak` and the field stills), until the stills read as the reference's form at 40 and 80, seeds 1, 7, 42: a broad dense dome, crown width and height within the sources' ranges, no limbs past the crown's edge beyond the reference's; each round's stills beside O-WHOLE and the old 0.1.4 oak, viewed; every number measured.
-- **R3 (the site's scale):** the oak's field at the site's grids (n = 36 and 48, age 40, the grove's seeds `seedOf(date#layer.i)` sampled) beside 0.1.4's, viewed: reads as a round oak.
-- **R4 (cost):** build time and nodes at 40 and 80 measured each round against today's; the site's coarse-field timing (fn-214's harness) re-measured on the final values, so fn-214 can choose the oak's cut.
-- **R5 (verdict):** the owner's verdict on the final round's stills; the task stays open until it.
-- **R6:** gate and npm test green; other species byte-identical.
+- R1 model (`MODEL-OAK.md`) before any value moved: sourced traits T1-T9 (broad, rounded, dense crown; width about height; short bole; few massive crooked ascending limbs) and derived target ranges (at 80: height 14-24 m, crown 10-20 m, DBH 41-81 cm; width/height 1.0-1.3). The species runner was not used (its Tune moves only catalogue dials, not `/space` rows).
+- Host after round 1 (2026-10-09): leaf rows join the brief; size at 80 comes first; the ordinary tree keeps its rows (owner: "an ordinary size whatever"). After the leaf rounds: Astra found values not exhausted (reserve buds, fine-order `shadeSize`, fine-order placement); round 3 ran on those.
+- **Owner verdict (2026-10-14), in the harness at the fork (`owner-2026-10-14-fork.jpg`):** "oak has multiple problems.. leaves growing way too numerous and on branches and it also has branches clipping in each other". Traced in `DEFECTS.md`; same on the release branch before fn-275, so not a regression.
+- Host rulings (2026-10-14): (a, b) a value round: `leafYears` 1 on every age (Q. garryana is deciduous, FNA), `shootRadius` from sources, acceptance the sourced leaf area index (3.2-3.3 Phillips et al. 2003; mean 4.4 Karlik & McKay 2002). (c) limbs through each other: two host-minted gap specs (the fork's joined surface; limb avoidance). After round 4: `/canopy/size` to a typical blade (72.5 mm, the middle of FNA's 25-120 mm); structural rounds resume, at most three; the refusal at 80, seed 7 (`unsolved radii`) is the host's own spec.
+- **Owner's choice of round (2026-10-15):** "round 4 looks ok but nothing like the reference" and "between round 4 + 5 i'd definitely choose 4". Round 4 with the 72.5 mm blade ships (`56c9c8a2d`, `5ae542cd2`); round 5 reverted (`6de1d30bd`).
+- Seed 7's long zigzag low limbs (owner, 2026-10-15: "seed 7 specifically doesn't look like a real tree. Lower branches that grow to long and zigzag weirdly"): cause in `CAUSE.md` (young-stem sprigs 3.5 m long, relays hooking 57 deg); fixed by the sourced sapling segment (0.031 m, Hibbs & Yoder 1993) and fn-286's relay take-over. Owner: "definitely better".
 
-## Boundaries
+## Acceptance Criteria
 
-The oak's values only, plus host-minted gap specs it depends on. Depends on fn-198. fn-214 task 3 (the site's coarse default and timing) depends on it.
+- **R1:** MODEL-OAK.md written before values moved, sourced traits and a capability assessment — met.
+- **R2:** Rounds on the oak's `/space` rows, mirrored into `oak.rs`, stills at 40 and 80 beside O-WHOLE and 0.1.4, viewed, until they read as the reference — partial: round 4 chosen by the owner; the closed dome unmet.
+- **R3:** The site's field at n = 36 and 48 beside 0.1.4's — measured at round 3 (three of six grove seeds still irregular at 40).
+- **R4:** Build time and nodes measured each round; the coarse-field timing re-measured — met.
+- **R5:** The owner's verdict on the final round — round 4 chosen (not the species verdict); seed 7 fix "definitely better".
+- **R6:** Gate and npm test green; other species byte-identical — met.
 
-**Owner verdict (2026-10-14), in the harness at the oak's fork (`owner-2026-10-14-fork.png`):** "oak has multiple problems.. leaves growing way too numerous and on branches and it also has branches clipping in each other". Three defects, each to reproduce and trace before any value moves: (a) leaves along the older limbs (a fringe of leaf sprays lining the wood inside the crown, where an oak bears its leaves on the current year's shoots), (b) too many leaves (342,878 at 40, seed 1, against the sources' leaf count or leaf area), (c) limbs passing through each other at the fork, with a sharp collar ring where the trunk meets its limbs. The same on the release branch before fn-275 (stills compared 2026-10-14), so none is a regression of this week's work. A cause in the generator is its own gap spec, minted by the host.
+## Result
 
-**Host rulings on the defects (2026-10-14, after `DEFECTS.md`):** (a) and (b) are a value round within R2: `leafYears` = 1 on every age (Q. garryana is winter-deciduous, FNA: "Trees or shrubs, deciduous"); `shootRadius` down to the value the sources and the beech support, its derivation stated and within its documented dial range; the twig leaf spacing only from a sourced value (leaves per shoot, or oak leaves' clustering toward the shoot tip), checked against the source text. The round's acceptance is the sourced leaf area index: 3.2 to 3.3 for Q. garryana groves (Phillips et al. 2003), a mean of 4.4 for open Q. douglasii (Karlik & McKay 2002). The rows are mirrored into `oak.rs` in the same commit; the round's stills at 40 and 80, seeds 1, 7, 42 (whole tree, limb, crown edge) are viewed beside round 3 and O-WHOLE, and crown density measured. If the crown opens so far that it no longer reads as a dense dome, the round stops and reports with the stills; no row the host has not ruled on wins density back. (c) stays out of the round: the host mints two gap specs, the fork's joined surface and limb avoidance.
+- Round 3: closed crowns at 80 (width/height 1.09-1.12, gaps 0.14-0.16), but 342,878 leaves at 40 combed along older limbs.
+- Round 4 (leaves on the current year's shoots): leaves in tufts at shoot tips, no comb; 47,248-70,247 leaves at 40; gaps 0.31-0.42; with the typical blade the leaf area over hull 1.9-2.8 at 40.
+- Round 5 (trunk lives four years) widened toward O-WHOLE at 40 seed 1 but at 80 read bushy with foliage to the ground; reverted.
+- Device warm build (round 4 blade): 247 ms at 40, 1,119 ms at 80, device peak 782 / 4,209 MB; the structure, not the leaf count, sets the time.
 
-**Host rulings after round 4 (2026-10-14, on `compare4-40.png`):** round 4's leaves are right (tufts at the shoot tips, no comb). Against O-WHOLE both rounds share the real gap: the reference is a broad, low dome, wider than tall, on a short trunk, where the engine's oak is a tall, narrow, upright crown; leaf area is a constraint, not the lever for the dome. (1) `/canopy/size` to a typical blade, not FNA's largest: a sourced mean or typical blade length for Q. garryana if one exists, checked against its text, else the middle of FNA's 25-120 mm, stated; the leaf area index must then land in the sources' 3.2 to 4.4, and the report says where it lands. (2) R2's rounds resume on the oak's structural `/space` rows: the targets are O-WHOLE's form measured from the photo (crown width to height, crown base to height, trunk height to the first scaffold limbs) and MODEL-OAK.md's ranges, with crown gaps back to round 3's level or denser; one cause a round (scaffold limb angles and count, apical dominance and the leader's lead, lateral vigour), each move sourced or measured and mirrored into `oak.rs` in the same commit, each round's stills at 40 and 80 (seeds 1, 7, 42 where they build) beside O-WHOLE, viewed. The rounds stop after three, or earlier when a round reads as the reference, and report with the sheet for the owner. (3) The refusal at 80, seed 7 (`unsolved radii`, on round 3's rows too) is the host's own spec; the sheets leave it out, noted. The host runs the gate on the merged branch; each round runs the oak's preset tests.
+## Open
 
-## Owner's choice of round (2026-10-15)
+- The closed dome of O-WHOLE: fn-285, after the release (round 4 at 80, seed 1: gaps 0.43; age 120 refuses at the phytomer budget).
+- Limbs passing through each other and the collar ring: the host's two gap specs.
+- Low branches under the crown dying by degree: fn-282 (post-release).
+- DBH at 80 runs 1.5-2.7 times the derived range.
 
-From full-size stills of rounds 3, 4 (typical blade) and 5 beside O-WHOLE: "round 4 looks ok but nothing like the reference" and "between round 4 + 5 i'd definitely choose 4". Round 4 with the 72.5 mm blade ships (`56c9c8a2d`, `5ae542cd2`); round 5 is reverted (`6de1d30bd`). Not yet the species verdict: the closed dome of O-WHOLE remains unmet (round 4 at 80, seed 1: gaps 0.43; age 120 refuses at the engine's phytomer budget).
+## Friction
+
+- Variable-path redirects blocked by the guard -> probes take an output path argument.
+- No still tool for the 0.1.4 oak, no value-row writer on the branch -> keep each release's stills once in `.refs/`; merge `space_rows`.
+- No measure of a closed crown to steer by -> a silhouette shot (flat background, unlit leaf mask) in the still runner.
+- Other sessions' load and probe builds queued behind heavy jobs -> local setup.
+- A leaf probe needed a rebuild (first after a merge over ten minutes) -> the still runner reading a value file behind a flag.
+- An 80-year probe waited 34 minutes for 12 GB, then met a refusal round 3 already had -> a stored per-preset, per-age, per-seed build status.
+
+## Evidence
+
+- `.flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/MODEL-OAK.md` (sources, target ranges, capability assessment)
+- `.flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/DEFECTS.md`, `defects.sh`, `oak_defects.rs` (the 2026-10-14 defects traced; cited by the preset)
+- `.flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/SHEET-4.md` (round 4's rows, sources and measures; cited by `radii_tests.rs`)
+- `.flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/CAUSE.md`, `seed7/` (seed 7's low limbs; cited by tests)
+- `.flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/oak_measure.rs`, `measure.sh`, `photo_crown.py` (the form measures)
+- `.flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/owner-2026-10-14-fork.jpg` (the owner's verdict still)

@@ -20,7 +20,6 @@ The conversion sets each engine node's identity to its phytomer's lineage key (`
 - R3: HASHES.md: every engine preset changes in identity alone (masked skeleton equal); beech, oak and spruce draw byte-identical; the date palm's fronds now draw from their apex's lineage (same count and leaf box), its pins moved in 531fd9ab, and the before/after still is viewed: one tree, jitter only.
 - R4: render half (161 passed), workspace without render (994 passed), npm test (143 passed), all on 69c63dec's code.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 77b725fb, 455a88b8, 531fd9ab, 69c63dec
 - Tests: cargo test --profile ci -p telperion-render --no-fail-fast, cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render, npm test

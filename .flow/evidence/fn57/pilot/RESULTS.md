@@ -2,7 +2,7 @@
 
 Model `jev-latest`, `POST /v1/systemone`, key from `TYPESAFE_API_KEY` through `bash -ic`.
 Every request answered in 0.56 to 0.78 s. Input 500 to 5,500 tokens; output 17 to 816.
-Scripts: `jev.py` (caller), `build_exp.py` (exp 1 to 3), `build_exp2.py` (exp 4 and 5).
+Scripts: `jev.py` (caller), `build_exp.py` (exp 1 to 3) (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn57/pilot/build_exp.py`), `build_exp2.py` (exp 4 and 5) (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn57/pilot/build_exp2.py`).
 Sources fetched raw with curl into `refs/` (OWIC oak page, Iowa State spruce page, NCTA spruce page).
 
 ## Exp 1: screen candidate sentences from a source (12 sentences, 3 questions each)

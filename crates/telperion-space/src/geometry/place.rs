@@ -4,7 +4,7 @@
 //! laid, the error is the one of the first in index order, as laying them
 //! in turn would give.
 use super::lay::{lay, Layer, Lift, Stop, GROUND_TOLERANCE};
-use super::{bend, frame, reaches, taken, Take};
+use super::{bend, frame, joined, reaches, taken, Take, NO_TAKE};
 use crate::cores::{map, picked, spread, PIECE};
 use crate::error::{Error, Result};
 use crate::sag::Lever;
@@ -147,8 +147,17 @@ fn place_where(
 fn start(structure: &Structure, species: &Species, laid: &Laid, i: usize) -> Start {
     let layer = |p: usize| laid.layers[p].as_ref().expect("laid");
     let framed = frame(&structure.axes, species, i, &|p| layer(p).ends());
-    let take = taken(&structure.axes, species, i, &|p| layer(p).ends());
     let axis = &structure.axes[i];
+    // A continuation or relay carries on what its parent's take-over has
+    // left, as far as it is still the parent's continuation.
+    let carried = match axis.carried_on() {
+        Some((parent, b)) => layer(parent).handed_take(laid.reaches[parent], b),
+        None => NO_TAKE,
+    };
+    let take = joined(
+        taken(&structure.axes, species, i, &|p| layer(p).ends()),
+        carried,
+    );
     // A continuation or relay carries its bearer's wander on.
     let curve = match axis.origin {
         Origin::Continuation { parent } | Origin::Relay { parent, .. } => layer(parent).curve(),

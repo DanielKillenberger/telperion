@@ -18,7 +18,6 @@ Three exact levers, every tree identical to the bit (measures hash 80, seeds 1 a
 
 All cores vs end of task 2: oak 80 -9 to -14%, spruce 80 -4 to -7%, beech 80 -12 to -13%. One core vs before task 2: no slower (oak 80 s1 repeated: means 7,351 to 7,036 ms). Peak memory: oak s7 3.95 to 3.72 GB, spruce 2.06 to 1.99 GB. Workspace gate 1,113 passed. Host questions in RESULT.md section 5 (cross-axis arena layout; one-core visiting order).
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: a353489f, e8c7996b, f55c91b1, 784cbd6c
 - Tests: measures hash 80 1,7 all both (all cores and taskset -c 0), cargo test --profile ci -p telperion-space, cargo test --profile ci --workspace --no-fail-fast, cargo build --release --target wasm32-unknown-unknown -p telperion-wasm

@@ -24,9 +24,6 @@ Native builds are held to a device budget: 4 GiB by default, and no more than 85
 - Review: codex NEEDS_WORK on four findings (ledger record drop, overlapping caps, records outside the arena, hint overflow), all fixed; the re-review returned SHIP.
 - Open: the oak at 80 no longer fits 4 GiB, because its hint over-sizes its axis tables; the sweep's bound comes from the lattice's nodes, as the species carry no height row; the Two Trees are 3 to 5% slower than task 4.
 
-stage: impl-review - ran (codex, 3 reviewers then 1; SHIP)
-
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: c7ff2e08408af144224d90d757a7887f533fcd8a, d7c2be70804242be8494302824861e74cf55d4b4, e263a3348530e0e2f3151559b15934641e743eb2, 8daa8e79646b944651acacef709dae179d492c8a, c1980467bb40d88076bb8e3b52bb9d4d6c94f051, b10d1e2a884350732536d764a04735f5ddf99893, 8bcdd447d6217cfbcee0a83d4b193fd2003fb38e, 57316e48730f70b95f0518d384583bb77e7026ea, 69a5da5d68b59c0c623647e74e824c8f08b4afe0
 - Tests: cargo test --profile ci --workspace --no-fail-fast, telperion-render lib under the GPU lock (169 passed), npm test (162 passed), every_preset_grows_in_its_hinted_arena (ignored gate, 24 builds, 0 moves)

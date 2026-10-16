@@ -7,16 +7,12 @@
 > user (turn 3, on the proposed contents: the split, a naga emission gate, crown depth and seed as exported attributes, the bake as a stated fallback, no engine-specific material): "capture it"
 
 ## Goal & Context
-<!-- scope: business -->
-<!-- Goal & Context: 20% [user], 50% [paraphrase], 30% [strategy] -->
 
 The owner asked whether the bark and leaf materials fn-14, fn-26, fn-29 and fn-32 built can be exported to other engines, and how that would work. [user] The answer today is: partly. Every material term is a numeric row on the family, so the parameters already travel on the wire and blend anywhere. The shading is written as pure functions of the vertex coordinates the mesh carries and of the row uniforms, in WGSL, which the renderer's own toolchain can emit as HLSL, GLSL, Metal and SPIR-V. What does not travel is the last step: the wood and blade fragments end in a function that mixes the surface with this renderer's sun, sky hemisphere, shadow lookup and sheen. An engine lights surfaces itself and wants the surface's inputs, not our light. [paraphrase]
 
 This spec makes that split: a surface function per surface kind that returns what any physically based pipeline consumes, and a gate that proves the function is expressible in the engine languages, without an engine in the loop. It is the first step of the Unreal proof the strategy schedules, taken now while the shader contract is fresh from fn-32. [paraphrase] The strategy asks exactly this: portable tree and rendering data separate from engine-specific drawing and material implementations, so future engines preserve the same fidelity without an external-engine proof in every rendering pass. [strategy:The core and integration]
 
 ## Architecture & Data Models
-<!-- scope: technical -->
-<!-- Architecture: 70% [paraphrase], 30% [inferred] -->
 
 - **One surface function per surface kind.** `wood` and `blade` each get a function of the vertex coordinates (world position, normal, the circle-embedded arc and along coordinates and radius on wood; blade coordinates, facing and the placement seed on leaves) and the row uniforms, returning base colour, the perturbed normal, roughness and occlusion. Nothing inside it reads a light, a shadow map or the sky. The renderer's fragment stages become consumers: they call the surface function and then apply this renderer's lighting to its outputs, so every picture stays byte-identical. [paraphrase]
 - **What stays on the lighting side.** The sun, the sky hemisphere, the shadow lookup, transmission through the blade, the sheen lobe, tone mapping, and sky occlusion by crown depth. Crown depth and the per-leaf seed leave the lighting pass as attributes an engine can read, so interior darkening and per-leaf identity are reproducible from the mesh contract rather than from our pass. [paraphrase]
@@ -25,7 +21,6 @@ This spec makes that split: a surface function per surface kind that returns wha
 - **Footprint filtering travels.** The distance and resolution contract is a property of the surface function, built on screen-space derivatives every shading language has; it moves with the function unchanged. [paraphrase]
 
 ## API Contracts
-<!-- scope: technical -->
 
 - **Surface function signatures**, one per kind, taking the vertex coordinates and the uniform block and returning a struct of base colour, normal, roughness and occlusion; no other output and no light input. Existing rows are unchanged; no new row is added by this spec. [inferred]
 - **Exported attributes.** Crown depth per wood vertex and the placement seed per leaf instance appear in the engine-neutral mesh and instance output alongside the coordinates already exported; the browser and native consumers may ignore them. [paraphrase]
@@ -33,7 +28,6 @@ This spec makes that split: a surface function per surface kind that returns wha
 - **Views and commands unchanged.** [inferred]
 
 ## Edge Cases & Constraints
-<!-- scope: technical -->
 
 - **Byte identity.** Every pinned still, the redraw check and the clay room must be byte-identical before and after the split; the split is a refactor, and the pictures are its test. [paraphrase]
 - **Cost.** The native oak frame and the browser orbit stay within run-to-run noise of their pre-split numbers; the split moves code, not work. [inferred]
@@ -41,7 +35,6 @@ This spec makes that split: a surface function per surface kind that returns wha
 - **No engine in the loop.** The gate proves expressibility, not appearance in an engine; the Unreal proof is separate work. [paraphrase]
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
 - **R1:** Wood and blade shading each pass through one surface function that returns base colour, perturbed normal, roughness and occlusion from the vertex coordinates and the row uniforms only, with no light, shadow or sky read inside it, and the renderer lights those outputs. Errors: a surface function that reads any lighting uniform fails the criterion. [paraphrase]
 - **R2:** Every pinned still, the redraw check and the clay room are byte-identical before and after the split, and the native oak frame and the browser orbit stay within run-to-run noise of the pre-split numbers, recorded beside them. Errors: any changed pixel or a cost move outside noise stops the spec with the number. [paraphrase]
@@ -50,7 +43,6 @@ This spec makes that split: a surface function per surface kind that returns wha
 - **R5:** The row-to-uniform binding table is generated by the existing build step and lists every row with its slot, component and range, kept in sync by a test that fails when a row is added without an entry. Errors: a row missing from the table fails the test naming the row. [inferred]
 
 ## Boundaries
-<!-- scope: business -->
 
 - No engine-specific material, plugin or import path; the engine proof consumes this contract and is its own spec. [paraphrase]
 - No new appearance term and no row change; the split moves code, and fn-32 owns the bark's look. [paraphrase]
@@ -58,16 +50,13 @@ This spec makes that split: a surface function per surface kind that returns wha
 - Lighting stays this renderer's; sky occlusion, shadow and transmission are not made portable by this spec beyond the attributes they need. [paraphrase]
 
 ## Decision Context
-<!-- scope: both -->
 
 ### Motivation
-<!-- scope: business -->
 
 - The owner's question was whether the materials can be exported to various engines, and the capture followed the host's answer that one split makes them so. [paraphrase]
 - Taken now, while the shader contract is fresh from fn-32 and before an engine proof forces it under pressure. [paraphrase]
 
 ### Implementation Tradeoffs
-<!-- scope: technical -->
 
 - A surface function over a per-engine rewrite: the functions are pure and already transpile through the toolchain in hand, so one source serves every target, which is the strategy's no-engine-specific-material rule. [paraphrase]
 - An emission gate over an engine proof as the acceptance: the gate costs seconds and no engine licence, and catches the constructs that would fail at import; appearance in an engine is judged when the engine proof runs. [paraphrase]

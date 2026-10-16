@@ -13,8 +13,9 @@ R2, R3, R4: the end-to-end retune gate for beech, spruce and lit oak at ages 40 
 - Workspace gate; Codex review.
 
 ## Done summary
-TBD
+Not implemented: superseded (host, 2026-10-16, Astra's release review); see the spec's 'Closed as superseded'.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

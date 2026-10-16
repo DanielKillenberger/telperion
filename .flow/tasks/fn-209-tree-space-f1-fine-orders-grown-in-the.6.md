@@ -32,7 +32,6 @@ Realized mechanics on both executors (REALIZED.md, "The GPU mirror built").
 - Timing (cut 1,024, warm): spruce 80 1.08 to 1.12 s on the GPU against 1.09 to 1.13 s on 32 cores and 8.5 to 8.6 s on one; the beech 2 to 7 times slower than 32 cores. Phase 1's growth is most of the GPU's time; proposals for the host in REALIZED.md.
 - Option 4 removed: the GPU's committed kernels and tests, `grow_committed` and its support; P2 stays as a named probe.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 837edc7c, 75b553ca, ab1d0dcb, 19d8ad2e, cae01463, 7baafe8c, aa747fdb, d00eb019, 8d6b2fac, 78c21bb7, 689ede1c, beabe892
 - Tests: cargo test --profile ci --workspace --no-fail-fast, cargo test --profile ci -p telperion-render generation::fine (GPU lock), FINE_CUT={256,1024,4096} cargo test --profile ci -p telperion-render realized_at_40_and_80 -- --ignored --nocapture

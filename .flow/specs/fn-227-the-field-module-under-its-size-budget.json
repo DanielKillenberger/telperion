@@ -135,7 +135,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-227-the-field-module-under-its-size-budget.md",
-  "status": "open",
+  "status": "done",
   "title": "The field module under its size budget",
   "tracker": {
     "baseHashFlow": null,
@@ -148,5 +148,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-13T08:08:01.615746Z"
+  "updated_at": "2026-10-15T22:48:17.076474Z"
 }

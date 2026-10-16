@@ -1,16 +1,37 @@
 # The same binary draws the same leaves every run
 
-## Goal & Context
+## Goal
 
-fn-258's FRICTION.md and RESULT.md (2026-10-10): on the fine-executor trees (spruce, Telperion), two runs of the same binary at the same seed, pose and age differ in 0.08-0.16% of pixels, all on leaves; the palm and the oak (which grow on the CPU) are byte-identical. A cut meant to change nothing could therefore only be held to that noise, not proved. AGENTS.md "Generator evolution" keeps repeatability within an implementation as a contract, and fn-254 R4 check 1 asks it of growth. Unknown, to be found first: whether the variation is in growth (the device grower), in leaf placement or packing, or in drawing (instance order under atomics, thinning ranks).
+fn-258 (2026-10-10) found that on the fine-executor trees (spruce, Telperion) two runs of the same binary at the same seed, pose and age differ in 0.08-0.16 % of pixels, all on leaves, while the CPU-grown palm and oak are byte-identical; a cut meant to change nothing could only be held to that noise. AGENTS.md "Generator evolution" keeps repeatability within an implementation as a contract. Find the first stage whose output differs and make it order-independent on the device.
 
-## Requirements
+## Decisions
 
-- **R1 (repro first):** a standalone test that builds the spruce at its default age and seed twice in fresh contexts and compares the prepared leaf instances and drawn segments byte for byte; red on F4. The device-grown node table's numbering is out of scope: it moved to fn-256 R2 (host, 2026-10-11) with `.flow/evidence/fn-261-the-same-binary-draws-the-same-leaves/grown-probe-and-queue-experiment.patch` as its check. Then the first stage whose output differs, named and checked against the code.
-- **R2 (fixed):** that stage made order-independent (deterministic prefix allocation or a stable sort by lineage key, never a float atomic), on the device; the test green over 10 repeats on every fine-executor preset; frame time and build time before and after.
-- **R3 (proved):** two stills of the same view byte-identical for every shipped preset; gate and npm test green.
+- Host (2026-10-11): the device-grown node table's numbering is out of scope; it moved to fn-256 R2 with `.flow/evidence/fn-261-the-same-binary-draws-the-same-leaves/grown-probe-and-queue-experiment.patch` as its check. fn-261 closes on leaves and segments.
+- The fix sorts runs by an integer key (no float, no atomic), keeping a root's runs together and roots in their stubs' order (fn-212 host decision 3).
 
-## Boundaries
+## Acceptance Criteria
 
-Repeatability within one executor. Cross-executor agreement is fn-254's.
+- **R1:** standalone test building the spruce twice in fresh contexts, comparing leaf instances and segments byte for byte; red on F4; first differing stage named against the code — met (`the_spruce_builds_the_same_leaves_twice`; segments and leaves equal as sets, only order differs).
+- **R2:** that stage made order-independent on the device; green over 10 repeats on every fine-executor preset; frame and build time before and after — met.
+- **R3:** two stills of the same view byte-identical for every shipped preset; gate and npm test green — met (all 8 presets).
 
+## Result
+
+Cause: `stations.wgsl` `owned` ranked each bearing run within its root by `atomicAdd`, so leaf indices varied and `foliage.wgsl` drew each leaf with another leaf's `vary(id)`. Fix: `keys` writes each run's (stub, first node), a bitonic sort (`sort.wgsl`) orders them, `starts` numbers runs in sorted order; the `owned` pass is gone. Ten builds of each device preset (spruce, beech, birch, Telperion, Laurelin) byte-identical; all eight shipped presets' stills byte-identical (pre-fix spruce: 31,574 differing pixels). Cost: the stations stage about +3.5 ms at least (spruce 9.6-10.8 → 13.4-23.2 ms), hidden in 20-27 s builds; frame time unchanged. Gate green (render 239 passed), `npm test` 155.
+
+## Open
+
+- Device-grown node numbering is not stable run to run (beech intermittently, Laurelin always; leaves, segments, stills unaffected); a sorted overflow queue fixed the beech but not Laurelin, so growth has another unnamed order source -> fn-256 R2.
+- A shared device sort for `sweep.wgsl`'s bitonic and `sort.wgsl` (host note, left).
+
+## Friction
+
+- First R1 run deadlocked 10 minutes on the non-reentrant test mutex holding the GPU lock -> fn-237 R12.
+- dcg hook blocked restoring base files to time the pre-fix binary -> local setup; a before/after probe recipe suggested.
+- `compare -metric AE` intensity-weighted again -> fn-259 R4's pixel-difference helper.
+- Package-by-package gate ran jev before core -> fn-237 R10.
+- "Grown tree" read as the pipeline's part; review caught it -> test-only readback of the device node table suggested (fn-256 R2).
+
+## Evidence
+
+- `.flow/evidence/fn-261-the-same-binary-draws-the-same-leaves/grown-probe-and-queue-experiment.patch` (node-table probe and queue experiment; fn-256 R2's check)

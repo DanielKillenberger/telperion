@@ -11,7 +11,7 @@ The stills come from this command, run from the worktree root:
 target/ci/examples/space_two_trees laurelin <out> 80 <seed>   # space_laurelin when this sheet was made
 ```
 
-I viewed every still on the final sheets: seeds 1, 7 and 42, where 42 is the preset's default seed. Astra's readings are in `astra/`.
+I viewed every still on the final sheets: seeds 1, 7 and 42, where 42 is the preset's default seed.
 
 ## The values (R1)
 
@@ -75,7 +75,7 @@ All numbers are measured once on this machine, 4 rayon threads, seed as shown.
 | the same | 42 | 4.5 s; 4.65M leaves | 11.1 s; 11.43M leaves, 14.76M florets |
 | device, resident (`prepare_timing`, the harness's `setTreeGpu` route) | 42 | 144.5 s (beech 80) | 139.5 s; peak 5.46 GB |
 
-- **The device route has a fixed cost.** The shipped beech at 40 (240k leaves) also takes 136.9 s on the device route. So Laurelin's own cost there cannot be separated from the route's (FRICTION.md). On the CPU route the group costs about 2.1 to 2.5 times the beech at 80, and the times move by up to a third from run to run (seed 1 off took 2.7 s and 4.0 s in two runs).
+- **The device route has a fixed cost.** The shipped beech at 40 (240k leaves) also takes 136.9 s on the device route. So Laurelin's own cost there cannot be separated from the route's. On the CPU route the group costs about 2.1 to 2.5 times the beech at 80, and the times move by up to a third from run to run (seed 1 off took 2.7 s and 4.0 s in two runs).
 - **Florets.** One raceme stands on each flowering node of age 14, and the scale does not change their number. The leaves rise with the scale (S1).
 
 ## Gate (measured)
@@ -91,5 +91,5 @@ All numbers are measured once on this machine, 4 rayon threads, seed as shown.
 ## Open for the host
 
 1. **Harness default seed.** The default seed (42) builds 11.4M leaves and 14.8M florets, which takes about 11 s on the CPU route. Whether the harness should open her at another seed or age for cost is a question for the host.
-2. **Device-route cost.** The device route's fixed cost of about 140 s (FRICTION.md) makes her device cost unreadable.
+2. **Device-route cost.** The device route's fixed cost of about 140 s makes her device cost unreadable.
 3. **Astra's optional polish.** Astra's round-8 suggestions are not applied: 10 % less rim intensity and more variation in raceme length.

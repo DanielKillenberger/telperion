@@ -18,3 +18,7 @@ Depends on fn-198 and fn-209. The birch waits on fn-213. Does not change the ful
 ## Closed (host, 2026-10-13)
 
 Superseded by fn-257 (the site grows its trees on the device; owner, 2026-10-11): the site no longer grows a coarse field on the CPU, so the structure-above-the-cut field and its module size are replaced by fn-257 R1-R3 and fn-237 R8.
+
+## Closed as superseded (host, 2026-10-16)
+
+Astra's release review (2026-10-16, `.flow/evidence/fn-237-release-the-tree-space-engine-replaces/ASTRA-RELEASE-REVIEW.md`): its own "Closed (host, 2026-10-13)" section; fn-257 supersedes the CPU coarse-field route. Its requirements are not implemented and are not to be executed.

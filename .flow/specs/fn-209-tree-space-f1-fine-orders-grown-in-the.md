@@ -38,3 +38,7 @@ Three comparisons stay distinct (Astra): CPU against GPU under the contract (R1)
 Depends on fn-206; amends fn-125's boundary that growth stays on the CPU (recorded in fn-125 when F4 is accepted, as fn-198's R5 says). The engine's integration into the pipeline and harness is F4 (fn-198). The coarse growth above the cut, the oak's yearly passes above all, is F2b. A spruce frame at 58 ms is fn-176's level of detail. Cheaper stand-ins for view-dependent resolution are a later spec (DESIGN-RULE.md, outcome).
 
 Evidence for this spec, before and after the rescope, lives in `.flow/evidence/fn-209-tree-space-f1-trees-resolved-on-demand/` (the spec's id before its retitle).
+
+## Closed as superseded (host, 2026-10-16)
+
+Astra's release review (2026-10-16, `.flow/evidence/fn-237-release-the-tree-space-engine-replaces/ASTRA-RELEASE-REVIEW.md`): the old CPU-above-the-cut, GPU-fine-root design is superseded by fn-255/256's complete cycle; its measurements stand and any live performance obligation moves to fn-285. Its requirements are not implemented and are not to be executed.

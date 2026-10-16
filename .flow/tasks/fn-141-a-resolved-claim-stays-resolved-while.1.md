@@ -4,14 +4,15 @@ satisfies: [R1, R2]
 # fn-141-a-resolved-claim-stays-resolved-while.1 Implement fn-141-a-resolved-claim-stays-resolved-while
 
 ## Description
-TBD
+Key verify's claim decisions on the claim instead of the whole `select.json`.
 
 ## Acceptance
-Every R-ID in the parent spec's ## Acceptance Criteria is satisfied; judge this task against the spec's criteria directly.
+Spec R1-R2.
 
 ## Done summary
-Verify keys each claim decision on the claim (pointer, value, source id, sentence) instead of the whole select.json checksum, so a resolution stays bound while its claim is unchanged. Red test first; gate 1053 passed, 0 failed.
+Claim decisions keyed on pointer, value, source id and sentence; a resolution stays bound while its claim is unchanged. Red test first; gate 1053 passed.
+
 ## Evidence
 - Commits: db9364fb
-- Tests: cargo test --profile ci --workspace --no-fail-fast (1053 passed, 0 failed)
+- Tests: cargo test --profile ci --workspace --no-fail-fast (1053 passed)
 - PRs:

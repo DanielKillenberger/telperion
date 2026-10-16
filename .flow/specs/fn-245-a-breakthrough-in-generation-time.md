@@ -19,3 +19,7 @@ The owner (2026-10-09), after the release branch's harness: "build time isn't fi
 ## Boundaries
 
 Map for fn-254..259, which are release items (the owner, 2026-10-09, on the release bar). No code in this spec.
+
+## Accounted (host, 2026-10-16)
+
+Astra's release review (2026-10-16, `.flow/evidence/fn-237-release-the-tree-space-engine-replaces/ASTRA-RELEASE-REVIEW.md`): the map's live work is fn-237's (fn-257 in 0.2.0) and fn-285's (the kernel programme after it); its council decisions and failed-experiment conclusions stand. This spec keeps no backlog of its own and closes once fn-257 qualifies.

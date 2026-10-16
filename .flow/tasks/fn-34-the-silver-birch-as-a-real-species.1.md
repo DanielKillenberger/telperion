@@ -18,8 +18,6 @@ The silver birch ships as a catalogue species on the mature path, accepted by th
 
 Three defects the owner named are outside this spec and stay real on the mature path: the ring at the fork (fn-66), the flat-ended limbs (fn-4), the veins' tone and relief (fn-60). The European beech continues in fn-62, the ash in fn-56.
 
-stage: impl-review - skipped(config: review.backend none; the host checked each round's diff)
-
 ## Evidence
 - Commits: 04d7ce8afc511525101f7e1a9b807c0823710827, e2309e2b84255ef0ba9171bbad262db163b118b8, 3b635d6f3fa645914c621ad7b0730133bd5921c9, 3ebe0f19e6ce9ba7ec38573b5d010600968b9a8c, cbeb9223507551f1d2ef3772e4bb833876fdbe37, c5a9ac7d1523f9e076b5c5949ff9ad0390bd3f47
 - Tests: npm run species:qa (48/48 numeric, none capped; visual unassessed by design), cargo test --release --workspace, clippy -D warnings, cargo fmt --check (round 26 worker), npm test (77 then 83 after fn-65), npm run typecheck

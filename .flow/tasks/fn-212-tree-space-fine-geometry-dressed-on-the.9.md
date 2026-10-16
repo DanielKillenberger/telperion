@@ -14,7 +14,6 @@ Host decision (2026-10-07) after task 7's profile: the stations' `bases` pass nu
 ## Done summary
 The stations' bases pass is a three-pass parallel exclusive scan (bases, blocks, spread); every run's first station and segment equal the serial walk's (held by the station fast test). Retimed on the real path, spruce 80 seed 1, five builds a side alternately at load under 10: stations 273 to 29 ms, device 857 to 710 ms median, 9.3x against today plus baseline B's conversion. Gate: render 162, CPU 988 passed.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 2904c35d
 - Tests: cargo test --profile ci -p telperion-render --no-fail-fast, cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast, cargo test --profile ci -p telperion-render three_x -- --ignored

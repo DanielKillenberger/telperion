@@ -19,7 +19,7 @@ The shape the spec states holds: fronds grow to their mature size over establish
 | `frondEarlyShare` | 0.1 | Laboratory plantlets "are usually about 35 to 45 cm long with 4 to 5 leaves" (FAO 156 ch. V, `fao156-ch5.md`, 989d34975cc7e7e2), 0.40 m against "3 to 6 m long (4 m average)" (ch. I) | declared stand-in: the plantlet's age is not stated, and its length is the plant's, not a leaf's |
 | curve | logistic course | Pallardy 2008: "seasonal and lifetime growth of shoots ... generally conform to such a [sigmoid] pattern" (already `unfold::course`) | sourced (fn-270) |
 
-No source on disk or found gives a seedling's or a young palm's leaf length at a stated early age (FRICTION.md).
+No source on disk or found gives a seedling's or a young palm's leaf length at a stated early age (see the spec's Friction).
 
 ## Shipped age
 

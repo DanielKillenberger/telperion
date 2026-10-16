@@ -1,48 +1,30 @@
-## Goal & Context
-<!-- scope: business -->
+# The specimen says what it will cost
 
-Nothing bounds what the species suite holds. One test keeps `SEEDS_IN_FLIGHT = 4` specimens at once (`crates/telperion-core/tests/species.rs:429`), cargo runs the four heavy tests together on any host with four or more cores, and the product is whatever the host's core count and the specimen's size happen to multiply to. On a box with less headroom the kernel decides instead, which is the OOM fn-84's FRICTION.md recorded, where cargo reported `signal: 9` as a failing test and every suite after `species` never ran. [user]
+## Goal
+Nothing bounded what the species suite held: each heavy test kept `SEEDS_IN_FLIGHT = 4` specimens, cargo ran the four heavy tests together, and on a small box the kernel decided (fn-84's OOM, `signal: 9` read as a failing test). The constant's comment ("a spruce placement is about 350 MB") had drifted three times (941, 470, 88 MB), because the number was written down instead of computed. Baseline at 38e6c57f (ci, whole species binary, VmHWM): 5,695 MB / 49.12 s at 32 threads, 5,602 / 47.76 at 4, 3,486 / 74.45 at 2, 2,589 / 104.03 at 1. This spec makes the specimen say what it will cost, computed from the tree it just grew, and admits seeds against one budget the whole binary shares.
 
-The constant is the evidence for why a constant is the wrong mechanism. That line's comment says "a spruce placement is about 350 MB". The real figure was 941 MB before fn-85, 470 MB after it, and 88 MB after fn-86. Three drifts, in both directions, none caught, because the number was written down instead of computed. [user]
-
-Measured on this spec's base `38e6c57f`, after fn-86 landed, `ci` profile, whole species binary, peak RSS polled from `/proc/<pid>/status` VmHWM: 5,695 MB at 32 threads in 49.12 s, 5,602 MB at 4 threads in 47.76 s, 3,486 MB at 2 threads in 74.45 s, 2,589 MB at 1 thread in 104.03 s. Recorded in `.flow/evidence/fn-87-the-specimen-says-what-it-will-cost/BASELINE.md`. [user]
-
-This spec makes the specimen say what it will cost, computed from the tree it just grew, and admits seeds against one budget the whole test binary shares. [user]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-- **The counts come from the builders, extracted, not from the tree.** `Tree` is `{ nodes, crossover, diagnostics }` (`crates/telperion-core/src/tree.rs:76`) and carries no station, run or vertex count. They are derived inside the builders on allocated scratch: `surface/paths.rs`, `foliage/placement.rs::bearing_runs`, `foliage/station.rs`, and `foliage/short_shoots.rs::each`. Persisting them on `Tree` is closed off, because `tests/species.rs:40` bincode-serialises the tree straight into the digest, so a new field moves all 49 committed digests. So the counting logic is lifted out of each builder into a function the builder and the predictor both call. One implementation, no second copy to drift. [inferred]
-- **The prediction may allocate, bounded.** It builds no mesh, no placement buffer and no matrix, and its own scratch is O(nodes). "Allocates nothing" was the wrong bar: what matters is that it is cheap against the build it sizes. `branching::generate` is 54 ms on the spruce against 3,328 ms for foliage, so an O(nodes) pass before the expensive part is noise. [inferred]
-- **A specimen's resident set is named, and measured as capacity.** It is the tree's nodes, the wood's positions, normals, coords and indices, and the leaf vector, each as `capacity * size_of::<element>()`. Length is not the measure: `station.rs::reserve` grows the leaf vector per run with `try_reserve`, `cull` keeps capacity through `retain`, and the surface indices keep theirs after degenerate triangles are dropped. The prediction closes that gap rather than absorbing it: `place` reserves once, to the prediction, so capacity is the prediction. [inferred]
-- **One budget for the whole binary, not one per test.** Each of the four heavy tests calls `in_flight` independently (`tests/species.rs:232`), so a per-test division of available memory would let all four spend the same budget at once. A process-wide admission budget is created once, charges each grown seed its prediction, and releases on drop so a panicking seed cannot leak its charge. [inferred]
-- **Three numbers, not two: what the machine keeps, what the process may reach, and what admission may charge.** `MemAvailable` is read once from `/proc/meminfo` at binary start. The machine keeps a reserve of the larger of 2 GB or a quarter of it, and what is left is the **process ceiling** the suite holds itself to. Admission may charge only two thirds of that ceiling; the remaining third is headroom for the two things the prediction does not size, and it is inside the ceiling rather than outside it. Admission is `floor(charge_limit / predicted)` clamped to the core count. [inferred]
-- **The headroom is sized by what it has to absorb, both named.** The prediction may underestimate the retained buffers by up to the 15 percent R3 allows, and transient allocations sit on top of them: `tests/species.rs:40` serialises the tree into a bincode buffer while the specimen's own buffers are still live, and `species_metrics/mod.rs:150` allocates adjacency scratch. Charges bounded at two thirds of the ceiling leave half again of the charge limit for both, which is why the ceiling survives a saturated budget. [inferred]
-- **What happens when one specimen will not fit.** When a single specimen's prediction exceeds the charge limit, the suite does not silently admit it and hope: it admits one, and records by name that it is running outside the bound, with the predicted size and the charge limit, so an OOM reads as a stated condition rather than a mystery `signal: 9`. The ceiling assertion is waived for that stated state and only for it. [inferred]
-- **The prediction is allowed to underestimate, by a stated margin.** It sizes the retained buffers, not the transient ones: the surface builder's scratch, the bincode buffer the digest serialises into, and the metrics pass all allocate on top. The margin is what R3 measures and the reserve is what covers it. [inferred]
+## Decisions
+- Owner, 2026-09-19: the memory fix is fn-86; this scheduling work is separate, with the figure calculable from the tree instantly rather than a constant maintained over time.
+- The first dispatch returned `BLOCKED: DESIGN_CONFLICT`: the spec claimed the tree carries station and vertex counts and `tree.rs:76` says otherwise; two dispatches lost. Architecture bullets now cite file and line.
+- Plan review (gpt-6-astra high, two rounds, 2026-09-19): admitting at least one specimen breaks a universal bound, and four tests each calling `in_flight` would each spend the same budget; the budget became three numbers: the machine's reserve (larger of 2 GB or a quarter of `MemAvailable`), the process ceiling, and a charge limit at two thirds of it, the headroom covering the 15% underestimate and the named transient allocations.
+- Counting logic lifted out of the builders into one function each that builder and predictor share; `Tree` gains no field (its bincode feeds the digests). A static thread cap was rejected.
 
 ## Acceptance Criteria
-<!-- scope: both -->
+- **R1:** A core function predicts resident bytes from the grown tree, building no mesh or matrix, O(nodes) scratch; no nodes predicts zero — met (`footprint::predict`).
+- **R2:** One implementation of the counting; builder counts equal predicted per species for the four with presets — met (clumped families asserted at or under).
+- **R3:** Prediction within 15% of measured capacity from live objects — met exactly (asserted equal on every seed).
+- **R4:** No literal byte count; changing the leaf's size moves the prediction — met.
+- **R5:** One binary-wide budget, charge limit two thirds of the ceiling; concurrent mixed admissions never exceed it, panics release, admission never zero — met.
+- **R6:** `SEEDS_IN_FLIGHT` gone; peak VmHWM under the process ceiling, a saturated budget included; a lone over-limit specimen is named — met.
+- **R7:** Wall time within 15% of 49.12 s at 32 cores; smaller hosts run narrower, not killed — met (26.46, 39.80, 35.47 s).
 
-- **R1:** A core function returns the predicted resident bytes of a specimen from its grown tree and its family. It builds no mesh, no placement buffer and no matrix, and its own scratch is O(nodes). Errors: a tree with no nodes predicts zero rather than failing.
-- **R2:** The counting logic has exactly one implementation. The builder and the predictor call the same function for stations, runs and vertices, and a test asserts the builder's own produced counts equal the predicted counts exactly, per species, for the four catalogue species with executable presets (the European ash has none; `tests/species.rs:166` asserts its lookup fails).
-- **R3:** The prediction is within 15 percent of the measured resident size for those four species, measured as the capacity of each named buffer times its element size, and it never exceeds it by more than that margin in either direction. The measurement is taken from the live objects, not from a recorded figure.
-- **R4:** No literal byte count for a specimen, a leaf or a vertex exists anywhere in the prediction or the harness. A test changes the stored leaf's size and asserts the prediction moves with it, which is what fails today.
-- **R5:** One admission budget is shared by the whole test binary, and its charge limit is two thirds of the process ceiling. A test drives concurrent admissions of mixed predicted cost against an injected budget and asserts that the sum of charges never exceeds it, that a seed releases its charge on panic as well as on drop, and that admission is never zero.
-- **R6:** `SEEDS_IN_FLIGHT` is gone. On a host whose charge limit admits at least two specimens, the binary's peak VmHWM stays under the **process ceiling**, which is a different and larger number than the charge limit admission spends: a test saturates the budget with charges summing to the whole charge limit and asserts the peak still sits under the ceiling. On a host where one specimen exceeds the charge limit, the suite admits one and reports that state by name, and only that state waives the assertion.
-- **R7:** Wall time does not regress on a host with room: the suite at 32 cores stays within 15 percent of the 49.12 s recorded in BASELINE.md, and a host with less memory runs narrower and slower rather than being killed.
+## Result
+Commits 33429197, 75153b12. `surface::extent`, `station::walk`/`station_count` and `short_shoots::count` are shared by builder and predictor; `foliage::place` reserves the crown once, exactly. Three desk runs as free memory fell: ceiling 15,304 / 13,960 / 13,352 MiB, peak VmHWM 12,539 / 11,750 / 11,222 MiB, wall 26.46 / 39.80 / 35.47 s; charge limit saturated within half a percent; resident 1.23-1.27x charged against the 1.5 allowed. Peak is about twice the old 5,695 MB because the suite now spends what the machine can spare. No digest moved.
 
-## Boundaries
-<!-- scope: business -->
+## Open
+Under nextest each test is its own process, so four heavy tests are four budgets reading the same `MemAvailable`; whether the bound should be shared across processes was escalated as a design question.
 
-- No stored byte changes. No generator output moves, no digest moves, and `Tree` gains no field.
-- The leaf encoding is fn-86 and the cull copy was fn-85, both landed. This spec predicts and schedules; it changes neither.
-- The wood mesh's own size is not reduced here. After fn-86 it is the largest remaining term per specimen and that is its own question.
-- No CI configuration and no `package.json` thread cap. A static cap was considered and rejected: it bounds only the outer factor, does nothing above four threads on this suite, and still leaves one test holding four specimens.
-
-## Decision Context
-
-- The owner chose on 2026-09-19 that the memory fix is fn-86 and that this scheduling work is captured separately, with the requirement that the figure be calculable from the tree instantly rather than a constant maintained over time. [user]
-- The first dispatch returned `BLOCKED: DESIGN_CONFLICT`: the spec's original architecture bullet claimed the grown tree carries the station and vertex counts, and `tree.rs:76` says otherwise. The claim was one `grep` from being checkable and cost two dispatches before a line was written. Architecture bullets in this spec now cite the file and line they assert about. [user]
-- A plan review at `gpt-6-astra` high effort on 2026-09-19 found five further defects in this spec, two of which were contradictions rather than omissions: admitting at least one specimen necessarily breaks a universal memory bound, and four heavy tests each calling `in_flight` would each spend the same process-wide budget. R5 and R6 are the answers to those. A second round found the remaining half: a reserve cannot both sit outside the asserted ceiling and cover the overhead inside it. The budget is now three numbers, the machine's reserve, the process ceiling and the charge limit at two thirds of it, with the headroom between the last two sized by the 15 percent underestimate and the two named transient allocations. [user]
-- Maintainability (plan review): duplication - none identified; structure - none identified. [user]
+## Friction
+- Admission policy and prediction inputs needed host decisions (two worker blockers) -> answered by the spec's three-number budget and shared counting functions.
+- An unchecked architecture claim cost two bridge dispatches -> rule: architecture claims cite the code (now in AGENTS.md).
+- The workspace gate ran twice because no command named the gate's profile -> one gate command and profile (now in AGENTS.md).

@@ -27,7 +27,6 @@ Ground routing (host decision 3) is built: roots whose reach bound comes within 
 
 The frame-correction accident is recorded with its size in FRAME-CORRECTION.md and not fixed, per the host's direction. GPU-DEVICE.md lists what the realized-totals change would touch in the GPU executor.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: a2b18180, d0b3c0a0, f86ceeba, 13987193, 80370cda
 - Tests: cargo test --profile ci --workspace --no-fail-fast, FINE_GPU_LOCK=<lock> cargo test --profile ci -p telperion-render fine_geometry_at_40_and_80 -- --ignored --nocapture

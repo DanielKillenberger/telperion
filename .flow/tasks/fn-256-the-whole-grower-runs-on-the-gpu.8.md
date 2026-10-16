@@ -9,9 +9,6 @@ Each confirmed race has a red-then-green test; an unconfirmed one is recorded wi
 ## Done summary
 Both suspected races reproduced red and fixed green, each through the real kernel's function by a probe entry (`race_tests.rs`): `fault_out` now ORs into the layout's tally with `atomicOr` (`lists` is `array<atomic<u32>>`), and `node_laterals` only counts where `what` is 0 (no index, no window read, no axis written). Red: the tally kept one bit in 16 of 16 dispatches; 2 axis words written. Green: every bit; none written. Node tables byte-identical on every preset (PROOF.md).
 
-stage: impl-review - ran (codex, three reviewers, one review covering tasks 8 and 9 from base 101f65378, the merge of fn-198: SHIP)
-
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 564be9296, 8f2fe513c
 - Tests: cargo test --profile ci -p telperion-render --lib race_tests (red at 564be9296, green at 8f2fe513c), cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast (1066 passed), cargo test --profile ci -p telperion-render --no-fail-fast, GPU lock (272 passed, 37 ignored), npm test (162 passed)

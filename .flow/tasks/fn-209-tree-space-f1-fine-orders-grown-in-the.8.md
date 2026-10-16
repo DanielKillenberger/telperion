@@ -18,7 +18,6 @@ Bar: the GPU at least 3x faster than 32 CPU cores on spruce 80 and faster than 3
 ## Done summary
 fn-209-predictor merged into the realized driver; every tree identical (digests, measures hash 80). GPU build made fast without moving a bit: region and buffer pools, pack a workgroup a chain, asks in their own pass, options a and b (log-odds tables, one draw logit per lead), reach rows and species tables built beside the structure, small waves in larger regions, phase 4 overlapped with the landing. Warm from parameters: spruce 80 1.08-1.12 s to 0.44-0.46 s (2.1-2.3x 32 cores; fine stage 3.5x); beech 80 152/205 ms against 158/263 ms on 32 cores. Spruce whole-build 3x missed: its CPU stages alone are about 300 ms; options for the host in REALIZED.md, task 8. Gate green.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 543c4400, 5de838b0, fc2c57b2, a5c28c82, 21b8cd81, 5c371321, 5a5d2ad9, bf347388, ca4be70e, 14d214f8, f5f6ddfd, 5b89186b, 7120ccb0, a70177d0, 0afdf45b
 - Tests: cargo test --profile ci --workspace --no-fail-fast

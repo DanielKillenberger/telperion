@@ -21,9 +21,7 @@ Every R-ID in the parent spec's ## Acceptance Criteria is satisfied; judge this 
 - The spec's Architecture section records the confirmed validator map and the host decisions. `docs/generation-limits-inventory.json` has one surface height entry and a new `trunkHeight` floor entry.
 - **Friction:** 3 entries in `.flow/evidence/fn-123-a-familys-rows-can-be-validated-without/FRICTION.md`. The agreement test adds about 40 s to each gate run.
 
-Tier: session (actual model: claude-opus-5-5)
 
-stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
 - Commits: 7c735bb0536439bc28fc2deb6c38865632799a6f, a9187b2328a30237cc78ee31cc3715b145b45b50, 38fc200cd72bc29717e5a7a297c8ce91fb77275d, 5e46fabe22a07c7fa4bbc3adfc2f271b79569d3c, 34cb440386ef3621ecb17be88faab49334244e2c, 19f35ff9108b2ea0025b01d29d644505c7a9ee75
 - Tests: cargo test --profile ci -p telperion-core --lib family::tests, cargo test --profile ci -p telperion-jev --test dial_bounds, cargo test --profile ci --workspace --no-fail-fast (suite_rc=0; 131 test-result lines: 970 passed, 0 failed, 21 ignored), baseline: none run pre-edit (project rule: the gate runs once, at the end of a task)

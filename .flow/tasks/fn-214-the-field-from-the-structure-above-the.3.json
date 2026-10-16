@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-214-the-field-from-the-structure-above-the",
   "spec_path": ".flow/tasks/fn-214-the-field-from-the-structure-above-the.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "The coarse field is the field package's default",
   "updated_at": "2026-10-08T07:13:03.691974Z"
 }

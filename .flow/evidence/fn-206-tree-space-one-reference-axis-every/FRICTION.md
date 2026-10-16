@@ -24,7 +24,7 @@
 ## 2026-10-05, worker, task 1
 
 - **Doing:** fractional lifespans.
-- **Slowed by:** a design question: units keyed by count pop at whole lifespans (RESULT.md, section 4). Stopped there; R3 waits on it.
+- **Slowed by:** a design question: units keyed by count pop at whole lifespans (RESULT.md, section 4) (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-206-tree-space-one-reference-axis-every/RESULT.md`). Stopped there; R3 waits on it.
 - **Cost:** R3 and the gate wait on the host.
 - **Would remove it:** the host's answer.
 

@@ -44,8 +44,8 @@ For matched numeric primitives/native-Wasm comparisons, use absolute position to
 fixtures through the Three.js stage, and `scripts/benchmarks/measure.mjs` and
 `memory.mjs` measured that stage's frame and heap costs. All three drew with the
 renderer this repository no longer has; they were retired with it in fn22 task 7,
-last runnable at commit `43b5881`. Their evidence is unchanged and their code is
-in Git history. The native half of the comparison remains:
+last runnable at commit `43b5881`. Their evidence was mostly archived on 2026-10-16 (see
+`.flow/evidence/ARCHIVE-MANIFEST.md`) and their code is in Git history. The native half of the comparison remains:
 
 ```sh
 REFERENCE_OUTPUT=/tmp/telperion-surface-reference node crates/telperion-core/tests/surface_reference.mjs ordinary telperion laurelin
@@ -227,7 +227,7 @@ branching, not mesh or foliage generation, measurement or end-to-end time.
 
 The separate `fn19-visibility-v2.2` diagnostic protocol lives at
 [visibility-v2/protocol.json](../../.flow/evidence/fn19/visibility-v2/protocol.json),
-and its images, admissions and receipts are unchanged. Its runner drew filtered
+and stays; its images, admissions and receipts were archived on 2026-10-16 (recoverable through `.flow/evidence/ARCHIVE-MANIFEST.md` at `8dab10634`). Its runner drew filtered
 local anatomy through the Three.js renderer and retired with the rest of the fn19
 visual rig; what it captured was always declared filtering, never a natural
 full-foliage or density comparison, and every image it produced still requires

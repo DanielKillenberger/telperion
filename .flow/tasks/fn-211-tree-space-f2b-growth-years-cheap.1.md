@@ -18,7 +18,6 @@ PROFILE.md in .flow/evidence/fn-211-tree-space-f2b-growth-years-cheap/ has the p
 
 Measurement only: the timers were a hand patch, kept as profile-instrumentation.patch and reverse-applied. Nothing under crates/ or src changed, so no workspace gate was run.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 77d42091
 - Tests:

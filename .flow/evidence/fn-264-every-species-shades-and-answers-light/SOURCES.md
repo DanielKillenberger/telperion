@@ -1,12 +1,12 @@
 # fn-264 R1a and R2: sources, Jev's choices and the checks (worker, 2026-10-12)
 
-Every value below was cut from a fetched source, offered to Jev as one candidate among every number in its passage (with `none`), copied by code from the passage bytes, and then checked by the worker against the fetched source text. `jev select` recalls lengths and ages only (FRICTION.md), so the candidates came from a scratch extractor run through `jev ask`. Ledger entries are under `ledger/` (ignored); fetched sources stay in the session scratchpad.
+Every value below was cut from a fetched source, offered to Jev as one candidate among every number in its passage (with `none`), copied by code from the passage bytes, and then checked by the worker against the fetched source text. `jev select` recalls lengths and ages only (see the spec's Friction), so the candidates came from a scratch extractor run through `jev ask`. Ledger entries are under `ledger/` (ignored); fetched sources stay in the session scratchpad.
 
 ## Shipped
 
 | Row | Value | Source, age and condition | Jev | Checked |
 |---|--:|---|---|---|
-| site `extinction` (all presets) | 0.5 | Bréda 2003, J. Exp. Bot. 54: 2403, on individual tree crowns (leaf area density x path): "k equals 0.5 if leaf-angle distribution is assumed to be spherical (Ross, 1981)". Species-free. | `fn264-pick:18ddda653291e939-3dbf09-0`, 1.00 | yes; the oak's 0.5, "cited from memory" in fn-197 STEP3.md, holds |
+| site `extinction` (all presets) | 0.5 | Bréda 2003, J. Exp. Bot. 54: 2403, on individual tree crowns (leaf area density x path): "k equals 0.5 if leaf-angle distribution is assumed to be spherical (Ross, 1981)". Species-free. | `fn264-pick:18ddda653291e939-3dbf09-0`, 1.00 | yes; the oak's 0.5, "cited from memory" in fn-197 STEP3.md (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-197-tree-space-e-light-and-the-carbon/STEP3.md`), holds |
 | beech `leafArea` (and the Two Trees) | 0.0015723 m² | Hladká and Čaňová 2005, J. For. Sci. 51(4), Table 2: mean of 25 sunlit leaves, 15.723 cm², 1998; model tree 80 years, 35 m, mixed beech-fir-spruce stand at Poľana, 850-860 m. Shaded leaves 21.648 cm² (`fn264-pick:18dddb168cb357ec-3e6648-0`). | `fn264-pick:18dddb1675e2f05d-3e652d-0`, 0.99 | yes |
 
 - **One leaf a node.** The beech module already bears one leaf a node (inferred, fn-193); its short shoot's cluster of four stands for its three to five metamers' leaves, which the same source supports ("There were mainly 4 leaves on shoots, 7 to 9 leaves on terminal ones", `fn264-pick:18dddb16a58d9b75-3e677f-0`). So every living age carries one leaf's area, as the oak's do.
@@ -57,4 +57,4 @@ Niinemets and Valladares 2006, Ecol. Monogr. 76: 521, Appendix A, 0 (none) to 5 
 
 1. **The size response (ψ) is not mapped from shade tolerance.** At any ψ near the oak's, the oak-anchored mapping turns the birch's long shoots into bare whips, and the tolerance score has no basis for setting ψ. ψ stays what each species had before fn-264: zero, dormant, for every species that had none. A species gets a size response only from a source or an owner verdict. The shade hazard's mapping stays.
 2. **Leaf girth stays 1.0, shared.** Under the pipe model disused pipes persist as heartwood, so a limb keeping girth from leaves it once bore is botanically defensible; it is the smaller cause.
-3. **Wood lying on the ground** predates fn-264, and the owner likes the ground-running feature. fn-252 (ground contact by degree) owns it; the finding is filed there (`fn-252-.../FN264-BIRCH.md`).
+3. **Wood lying on the ground** predates fn-264, and the owner likes the ground-running feature. fn-252 (ground contact by degree) owns it; the finding is filed there (`fn-252-.../FN264-BIRCH.md`) (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-252-a-shoot-that-reaches-the-ground-stops/FN264-BIRCH.md`).
