@@ -261,5 +261,5 @@ mod input;
 #[cfg(not(feature = "geometry"))]
 mod planned;
 mod stage;
-#[cfg(test)]
+#[cfg(all(test, feature = "geometry"))]
 mod tests;

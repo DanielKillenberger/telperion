@@ -35,7 +35,7 @@ use crate::catalogue::{bounded, input, value, Blend, Bounds as Rail, Site};
 pub(crate) use attachment::AttachmentSurface;
 #[cfg(feature = "geometry")]
 pub use build::build;
-#[cfg(test)]
+#[cfg(all(test, feature = "geometry"))]
 pub use build::extent;
 #[cfg(feature = "geometry")]
 use build::*;
