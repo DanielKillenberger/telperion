@@ -39,9 +39,21 @@ R4 in the package, with R2b. The CPU entry returns the wood as chunks. In each c
 
 
 ## Done summary
-TBD
+The CPU entry returns the wood as chunks. Metadata carries `surfaceChunks`, and `chunk_ptr`/`chunk_len` read each chunk's positions, oct-encoded normals (2×i16) and u16 indices. The core writes the normals oct-encoded and the bark coords as 2×u16 as each chunk is written, so the saving is in Wasm memory. One precision test per field: normals within 1e-4 rad, coords within half a code.
 
+The flat slots are gone, so an old reader of `surface.positions` gets a type error. The package exports `decodeNormals` and `SurfaceChunk`. Updated: README, `docs/pipeline.md`, `bindings.mjs` and `test-dist.mjs`; new migration note `docs/migration-0.2-wood-chunks.md`.
+
+Probe (PROBE.md "Task 6"):
+- telperion: 1,640 MiB at seed 1; 2,777 MiB at seeds 7 and 42
+- laurelin: 1,639 MiB at seed 1; 2,783 MiB at seed 7; 2,755 MiB at seed 42
+- all under the 3,584 MiB bar
+
+Checks: `npm test` (170 tests), `npm run test:dist`, tsc, and the core, render and wasm crate tests that read the wood.
+
+stage: impl-review - ran [fan-out correctness/contracts/integration: SHIP; 2 P2 fixed after in 6d374b93c] (model: gpt-6.1-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e0a0c70d5394546195dfbe5c67dd8e5b6d0f9412, 6d374b93c8a9e2fc97ecbe3118498a4b697d5711
+- Tests: npm test, npm run test:dist, npx tsc --noEmit
 - PRs:
