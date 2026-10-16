@@ -48,3 +48,9 @@ Doing: `npm run rust:test:wasm` (tests/browser/bindings.mjs in headless Chromium
 Slowed: the suite stops at checks unrelated to the wood that fail on this base: "ordinary has local branches and a leaf plan" (nodes 152,178 = crossover), "bad height" (envelope height -1 builds; devfield's dist does the same), "caps explicitly partial" and "valid empty outputs" (growth.maxNodes is not honoured). The new chunk checks were replayed in Node against the built Wasm instead (`.flow/tmp/t6/abi.mjs`, all pass).
 Cost: about 15 minutes and three headless runs.
 Would remove it: bringing bindings.mjs up to the current generator (or running it in CI so it cannot go stale); out of this task's scope.
+
+## 2026-10-16 - task 3: the redirect guard refused scratch paths held in a variable
+Doing: writing measurement output to the session scratchpad through a shell variable (`> $S/x.log`).
+Slowed: the dcg hook refuses any redirect whose target it cannot read literally. Three commands were refused and had to be rewritten as small scripts with literal paths.
+Cost: about 5 minutes and three retries.
+Would remove it: an evidence helper that takes the output path as an argument, or measurement commands written as scripts from the start, as `trace.sh` and `hash.sh` now are.
