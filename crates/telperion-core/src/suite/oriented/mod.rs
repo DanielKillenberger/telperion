@@ -42,7 +42,6 @@ pub fn leaflets(tree: &Tree, leaves: &Instances, element: &Element) -> Field {
                 count: 1,
                 system: 0,
                 side: x * half.x,
-                stand: None,
             }
         })
         .collect();

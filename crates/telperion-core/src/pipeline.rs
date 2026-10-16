@@ -22,7 +22,7 @@
 //! answer is the error the build met first run in turn - the wood's, then
 //! the Plan's, the leaves', the field's.
 //! The rings' error is the wood's where the wood is drawn, else the leaves'.
-use crate::{presets::Family, tree::Tree, Error, Result};
+use crate::{presets::Family, tree::Tree, Result};
 use field::Field;
 use foliage::{plan, Element, Instances};
 pub(crate) use input::{grown_envelope, GrowInput, Inputs, PlanInput};
@@ -47,11 +47,6 @@ pub struct Request {
     pub leaves: bool,
     /// A field at the family's limb order (`Some(None)`) or at a stated one.
     pub field: Option<Option<u32>>,
-    /// The cut, in expected kept phytomers, at or below which a fine root
-    /// stands in the field as its expected occupancy and is never grown
-    /// (fn-214); 0, the default, grows every root. A coarse tree is answered
-    /// as a field and a structure alone.
-    pub cut: u32,
     pub structure: bool,
     pub schedule: Schedule,
     /// The time of year flowers are drawn at, as a share of the year; none
@@ -67,7 +62,6 @@ impl Default for Request {
             curve: false,
             leaves: false,
             field: None,
-            cut: 0,
             structure: false,
             schedule: Schedule::default(),
             season: None,
@@ -207,16 +201,7 @@ pub(crate) fn clothe(tree: &mut Tree, inputs: &Inputs) -> Result<()> {
 /// read once, into each stage's own input.
 pub fn build(family: &Family, request: Request) -> Result<Built> {
     let started = (request.clock)();
-    if request.cut > 0 && (request.wood || request.curve || request.leaves) {
-        return Err(Error::InvalidInput(
-            "a coarse tree is answered as a field alone; it has no wood or leaves to draw",
-        ));
-    }
-    let input = GrowInput {
-        cut: request.cut,
-        ..GrowInput::of(family)
-    };
-    let mut skeleton = skeleton(input)?;
+    let mut skeleton = skeleton(GrowInput::of(family))?;
     let inputs = Inputs::of(family, grown_envelope(&skeleton.tree));
     clothe(&mut skeleton.tree, &inputs)?;
     // The skeleton's time keeps the clothing it always held.

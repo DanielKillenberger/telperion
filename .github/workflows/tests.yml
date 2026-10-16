@@ -185,7 +185,7 @@ jobs:
       - uses: ./.github/actions/nextest
         with:
           packages: >-
-            ${{ needs.receipts.outputs.rust-wasm != 'true' && 'telperion-wasm telperion-field telperion-space' || '' }}
+            ${{ needs.receipts.outputs.rust-wasm != 'true' && 'telperion-wasm telperion-space' || '' }}
             ${{ needs.receipts.outputs.rust-jev != 'true' && 'telperion-jev' || '' }}
 
   # Reached whatever the crate jobs did; a crate's receipt is written only

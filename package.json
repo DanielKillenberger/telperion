@@ -42,8 +42,7 @@
       "import": "./dist/voxelize.js"
     },
     "./telperion.wasm": "./dist/telperion.wasm",
-    "./telperion-render.wasm": "./dist/telperion-render.wasm",
-    "./telperion-field.wasm": "./dist/telperion-field.wasm"
+    "./telperion-render.wasm": "./dist/telperion-render.wasm"
   },
   "engines": {
     "node": ">=20"

@@ -486,6 +486,20 @@ impl Species {
         })
     }
 
+    /// The species with every row `reads_light` reads at 0: the tree the
+    /// closed form predicts, whose expectations size a build and a blend
+    /// (fn-257: the birch's ground hazard, left out of one copy of this
+    /// list, sized its device build from nothing).
+    pub fn unlit(&self) -> Species {
+        let mut unlit = self.clone();
+        for s in &mut unlit.states {
+            (s.shade_hazard, s.ground_hazard, s.shade_size) = (0.0, 0.0, 0.0);
+            (s.balance_hazard, s.leaf_girth) = (0.0, 0.0);
+        }
+        debug_assert!(!unlit.reads_light());
+        unlit
+    }
+
     /// Refuses, by name, every input the engine cannot draw.
     pub fn validate(&self) -> Result<()> {
         let count = self.states.len();

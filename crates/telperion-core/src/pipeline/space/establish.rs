@@ -14,7 +14,7 @@
 use super::FINEST;
 use crate::pipeline::foliage::{establishment, waited, CanopyParams};
 use std::borrow::Cow;
-use telperion_space::{Coarse, Origin, Species, Structure};
+use telperion_space::{Origin, Species, Structure};
 
 /// The rows a stem establishes by: the crown's establishment years and
 /// early share, and its trunk PA's rise a year.
@@ -69,18 +69,6 @@ impl Establishing {
         let mut out = structure.clone();
         e.lower(&mut out, trunk);
         Cow::Owned(out)
-    }
-
-    /// A coarse tree established, each fine root's stand-in carried with
-    /// the axis it stands for.
-    pub(super) fn coarse(this: Option<Self>, mut coarse: Coarse, trunk: &[usize]) -> Coarse {
-        if let Some(e) = this {
-            let carried = e.lower(&mut coarse.structure, trunk);
-            for s in &mut coarse.stands {
-                s.base.z -= carried[s.axis];
-            }
-        }
-        coarse
     }
 
     /// Lowers and narrows the stem of `structure` and carries what it

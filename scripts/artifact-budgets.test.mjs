@@ -6,12 +6,13 @@ import { budgets, check, declaredGrowth, findBase } from './artifact-budgets.mjs
  * injected reader so nothing here touches the network. */
 const b = await budgets();
 const recorded = Object.fromEntries(b.artifacts.map(a => [a.path, a.baselineBytes]));
-const FIELD = 'dist/telperion-field.wasm';
+const FIELD = 'dist/telperion-render.wasm';
 const MAIN = 'dist/telperion.wasm';
-// fn-150's first slim build: 355,100 to 526,965 bytes (its FRICTION.md).
+// fn-150's first slim build: 355,100 to 526,965 bytes (its FRICTION.md),
+// replayed on the render module now that the slim one is gone (fn-257).
 const fn150 = { base: { ...recorded, [FIELD]: 355_100 }, head: { ...recorded, [FIELD]: 526_965 } };
 // fn-170's fork rule: master 1,395,510 and 358,698 bytes to its CI build.
-const fn170 = { base: { ...recorded, [MAIN]: 1_395_510, [FIELD]: 358_698 }, head: recorded };
+const fn170 = { base: { ...recorded, [MAIN]: 1_395_510 }, head: recorded };
 const on = (/** @type {Record<string, number>} */ sizes) => ({ label: 'abcd1234', sizes });
 
 describe('artifact ceilings', () => {
@@ -33,7 +34,7 @@ describe('growth per PR', () => {
   it('fails fn-150s rejected slim build, naming the base and the growth', () => {
     const fails = check(b, fn150.head, { base: on(fn150.base) });
     expect(fails).toContain(
-      `${FIELD}: 526965 bytes, +48.4% over 355100 on the base abcd1234, above the 5% growth share per PR; name telperion-field.wasm in the PR's Decisions section, or shrink the artifact`,
+      `${FIELD}: 526965 bytes, +48.4% over 355100 on the base abcd1234, above the 5% growth share per PR; name telperion-render.wasm in the PR's Decisions section, or shrink the artifact`,
     );
   });
 
@@ -51,7 +52,7 @@ describe('growth per PR', () => {
     const grown = { ...recorded, [FIELD]: 380_000, [MAIN]: 1_500_000 };
     const body = [
       '## Change', 'telperion.wasm is not declared here.',
-      '## Decisions', '- D1: the leaf plan grows `dist/telperion-field.wasm` by 5 percent.',
+      '## Decisions', '- D1: the leaf plan grows `dist/telperion-render.wasm` by 5 percent.',
       '## Open', '- telperion.wasm grows too.',
     ].join('\r\n');
     const declared = declaredGrowth(b, body);

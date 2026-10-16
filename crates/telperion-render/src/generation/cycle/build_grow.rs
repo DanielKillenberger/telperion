@@ -162,6 +162,11 @@ pub(super) struct Grew {
     pub ends: Vec<usize>,
     #[cfg(test)]
     pub censuses: Vec<Vec<u32>>,
+    /// fn-257's growth profile: each cycle's host milliseconds recording
+    /// and submitting it, waiting for the census before it, and readying
+    /// the arena after that census (moves and compactions).
+    #[cfg(test)]
+    pub host: Vec<[f64; 3]>,
 }
 
 impl Grew {
@@ -296,6 +301,12 @@ impl Growing {
             )));
         }
         let mut grew = Grew::default();
+        if std::env::var("CYCLE_TRACE").is_ok() {
+            eprintln!(
+                "TRACE begun: {:?}; points {}, tips {}, nodes {}",
+                sizes.caps, sizes.points, sizes.tips, sizes.nodes
+            );
+        }
         // A build let go before this one freed first (`Ledger::destroy`).
         super::super::io::complete(gpu).await?;
         let b = Build::new(gpu, t, (tables, sizes.caps, sizes.block_cap), sizes.lit())?;
@@ -393,17 +404,27 @@ impl Growing {
         grew.stamped.extend(stamped);
         #[cfg(test)]
         grew.ends.push(grew.stamped.len());
+        #[cfg(test)]
+        grew.host.push([clock.elapsed_ms(), 0.0, 0.0]);
         if cycle == 1 {
             return Ok(self);
         }
+        #[cfg(test)]
+        let waited = super::super::Clock::now();
         let read = match self.tail.take() {
             // The census a pause read early, its stop already checked.
             Some(read) => read,
             None => self.read(gpu, (cycle - 1, t.budget)).await?,
         };
+        #[cfg(test)]
+        let (waited, readied) = (waited.elapsed_ms(), super::super::Clock::now());
         let mut g = self
             .ready(gpu, (kit, t, tables), (cycle, end), &read)
             .await?;
+        #[cfg(test)]
+        if let Some(h) = g.grew.host.last_mut() {
+            (h[1], h[2]) = (waited, readied.elapsed_ms());
+        }
         g.prev = g.last.replace(read);
         Ok(g)
     }
@@ -487,6 +508,12 @@ impl Growing {
             .then(|| grown(sizes, (read, self.last.as_deref(), fallen), t.budget))
             .flatten()
         {
+            if std::env::var("CYCLE_TRACE").is_ok() {
+                eprintln!(
+                    "TRACE moved after cycle {cycle}: {:?} -> {:?}; points {} -> {}, tips {} -> {}, nodes {} -> {}",
+                    sizes.caps, next.caps, sizes.points, next.points, sizes.tips, next.tips, sizes.nodes, next.nodes
+                );
+            }
             self.b = self.b.moved(gpu, (t, tables), (sizes, next)).await?;
             let plan = self.b.plan(gpu, kit, t, next.bounds)?;
             let mut e = gpu.encoder(&Default::default());

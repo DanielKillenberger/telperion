@@ -47,6 +47,8 @@ mod grown_tests;
 mod grown_time_tests;
 mod growth;
 #[cfg(test)]
+mod growth_profile_tests;
+#[cfg(test)]
 mod halt_tests;
 mod held;
 mod hier_build;

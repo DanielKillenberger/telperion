@@ -468,30 +468,6 @@
     "reason": "A leaf reach is a finite non-negative length; anything else is an invalid plan."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/field.rs",
-    "site": ". max ( 0 . )",
-    "classification": "algorithm",
-    "reason": "A coarse tree's stand-in answers nothing below the ground (fn-214 host decision), so its foliage bounds stop there; the tree is not truncated."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/field.rs",
-    "site": ". max ( 0 . )",
-    "classification": "algorithm",
-    "reason": "A coarse tree's stand-in's wood answers nothing below the ground (fn-214 host decision), so its wood bounds stop there; the tree is not truncated."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/field.rs",
-    "site": "if id > = self . standing & & center . y < 0 . {",
-    "classification": "algorithm",
-    "reason": "A stand-in's wood answers no cell below the ground (fn-214 host decision); the grown tree's wood is untouched."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/field/stand.rs",
-    "site": "if center . y < 0 . 0 | | half < = 0 . 0 | | self . leaves < = 0 . 0 {",
-    "classification": "algorithm",
-    "reason": "A stand-in answers no cell below the ground, no point query and nothing when it expects no leaves (fn-214 host decision); occupancy is a chance, not a limit."
-  },
-  {
     "path": "crates/telperion-core/src/pipeline/field/cuboid.rs",
     "site": "if breadth . is_nan ( ) | | breadth < = 0 . {",
     "classification": "parameter",
@@ -1486,18 +1462,6 @@
     "site": "if let Some ( k ) = ( 0 . . AGES ) . find ( | & k | stated [ k ] & & states [ k ] . lifespan < = 0 . 0 ) {",
     "classification": "algorithm",
     "reason": "Refuses a /space row on an age with no lifespan, which the engine's canonical form would overwrite; it limits no generated population."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline.rs",
-    "site": "if request . cut > 0 & & ( request . wood | | request . curve | | request . leaves ) {",
-    "classification": "algorithm",
-    "reason": "fn-214: refuses wood, curve or leaves for a coarse tree, whose fine roots stand as expectations with no wood to draw; it limits no generated population."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/space.rs",
-    "site": "if input . cut > 0 {",
-    "classification": "algorithm",
-    "reason": "fn-214: a cut grows the structure above it with its fine roots as their expectations; 0 grows every root. The cut is the request's, not a limit on what the engine generates."
   },
   {
     "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",

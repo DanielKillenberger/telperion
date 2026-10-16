@@ -1,13 +1,14 @@
 import { pathToFileURL } from 'node:url';
 
 /* ------------------------------------------------------------------ *
- * THE SLIM ENTRY POINT, IN A BROWSER WORKER
+ * THE FIELD ENTRY POINT, IN A BROWSER WORKER
  *
  * A module worker imports src/field/index.ts from the served origin,
- * lets it fetch the slim Wasm from beside itself (no bundler-resolved
- * URL, no source passed), grows one tree and answers one query. The
- * page never touches the module: a homepage runs this off its main
- * thread, so the smoke does too.
+ * lets it fetch the renderer's Wasm from beside itself (no
+ * bundler-resolved URL, no source passed), grows one tree on the
+ * worker's WebGPU device and answers one query (fn-257). The page never
+ * touches the module: a homepage runs this off its main thread, so the
+ * smoke does too. It needs a browser with WebGPU in workers.
  * ------------------------------------------------------------------ */
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ? pathToFileURL(process.env.PLAYWRIGHT_MODULE).href : 'playwright');
 const url = process.env.BROWSER_URL ?? 'http://127.0.0.1:5184';
@@ -24,9 +25,9 @@ try {
       const { min, max } = tree.bounds;
       const centre = [0, 1, 2].map(a => (min[a] + max[a]) / 2);
       const half = Math.max(...max.map((v, a) => v - min[a])) / 2;
-      const one = tree.query(new Float64Array([...centre, half]));
+      const one = await tree.query(new Float64Array([...centre, half]));
       let refused = false;
-      try { tree.query(new Float64Array([...centre, -1])); } catch { refused = true; }
+      try { await tree.query(new Float64Array([...centre, -1])); } catch { refused = true; }
       tree.release();
       postMessage({ bounds: tree.bounds, flags: [...one.flags], limbs: [...one.limbs], leaves: [...one.leaves], woodRadius: [...one.woodRadius], refused, noLimb: NO_LIMB });`;
     const worker = new Worker(URL.createObjectURL(new Blob([code], { type: 'text/javascript' })), { type: 'module' });

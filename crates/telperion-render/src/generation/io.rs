@@ -45,6 +45,8 @@ pub(super) fn buffer(
     if !initial.is_empty() {
         gpu.queue.write_buffer(&buffer, 0, initial);
     }
+    #[cfg(test)]
+    crate::trace::made(size, initial.len() as u64);
     Ok(buffer)
 }
 
@@ -227,6 +229,8 @@ impl Pass {
     ) {
         #[cfg(test)]
         crate::trace::dispatch(&self.entries[entry], groups);
+        #[cfg(test)]
+        crate::trace::own_pass();
         let mut pass = self.begin(encoder, bind, entry);
         pass.dispatch_workgroups(groups.min(self.maximum), groups.div_ceil(self.maximum), 1);
     }

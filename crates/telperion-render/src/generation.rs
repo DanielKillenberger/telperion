@@ -12,7 +12,7 @@ mod data;
 mod resident;
 #[cfg(target_arch = "wasm32")]
 pub(crate) use resident::BROWSER;
-pub use resident::{Admitted, GrowingTree};
+pub use resident::{Admitted, Answer, DeviceField, GrowingTree};
 mod io;
 mod positions;
 mod preparation;
@@ -188,6 +188,11 @@ impl Generator {
     }
     pub async fn for_cpu_output_async(gpu: Gpu) -> Result<Self> {
         Self::create(gpu, Arc::new(()), false).await
+    }
+    /// A generator with no renderer, for fields grown on the device
+    /// (fn-257): a worker's or a test's.
+    pub async fn for_fields_async(gpu: Gpu) -> Result<Self> {
+        Self::create(gpu, Arc::new(()), true).await
     }
     async fn create(gpu: Gpu, identity: Arc<()>, resident_allowed: bool) -> Result<Self> {
         let scopes = io::scope(&gpu);

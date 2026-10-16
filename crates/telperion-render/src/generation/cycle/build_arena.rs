@@ -29,6 +29,17 @@ pub(super) const ARENA: [f64; TABLES] = [
     1.4303, 1.0235, 2.2452, 0.0115, 0.1397, 0.0064, 0.4604, 0.2743,
 ];
 
+/// Each table's room past its measured most (`TABLES`' order): a table
+/// grows when its rows two cycles on, projected from the census a cycle
+/// late, would pass seven eighths of it (`build_size::grown`), so a table
+/// sized to its most alone moved near the end of the build: the units and
+/// the woken buds, which the spruce sets, by one move (`GROWTH`) after
+/// cycle 38 of 40, and the lattice's nodes, which grow by its box
+/// (`given::boxed`), by two at Telperion's 66 and 77 of 82 and once more at
+/// 79 at seed 7, near three and a half times its most (fn-257 task 3
+/// review: no shipped preset moves).
+const HEADROOM: [f64; TABLES] = [1.0, 1.5, 1.0, 1.0, 1.0, 1.5, 1.0, 3.5];
+
 /// The most rows a table holds: its words index it in 32 bits, its
 /// widest table (the pencils) 59 words a row.
 const MOST_ROWS: u32 = 1 << 26;
@@ -77,10 +88,7 @@ pub(super) struct Hint {
 /// The closed form's expectations of `species` at `age`, its light's
 /// terms let go where it reads light (the form is light-neutral).
 pub(super) fn hint(species: &telperion_space::Species, age: u32) -> Result<Hint> {
-    let mut unshaded = species.clone();
-    for s in &mut unshaded.states {
-        (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
-    }
+    let unshaded = species.unlit();
     let refused = |e: telperion_space::Error| super::super::io::error(e.to_string());
     let kept = telperion_space::expected_kept(&unshaded, age.max(1)).map_err(refused)?;
     let axes = telperion_space::expected_axes(&unshaded, age.max(1)).map_err(refused)?;
@@ -131,7 +139,7 @@ impl Sizes {
 
     /// `hinted` at `margin` past each table's measured most.
     fn at_margin(h: Hint, margin: f64) -> Result<Self> {
-        let most = ARENA[1..].iter().fold(0.0, |m: f64, r| m.max(*r));
+        let most = (ARENA.iter().zip(HEADROOM).skip(1)).fold(0.0, |m: f64, (r, h)| m.max(r * h));
         if !(h.kept * most * margin <= f64::from(MOST_ROWS)
             && h.axes * ARENA[0] * margin <= f64::from(MOST_ROWS))
         {
@@ -148,7 +156,8 @@ impl Sizes {
         }
         let least = Sizes::least();
         let rows = |k: usize, floor: u32| {
-            ((if k == 0 { h.axes } else { h.kept } * ARENA[k] * margin).ceil() as u32).max(floor)
+            let most = if k == 0 { h.axes } else { h.kept } * ARENA[k] * HEADROOM[k];
+            ((most * margin).ceil() as u32).max(floor)
         };
         let l = least.caps;
         let caps = Caps {
@@ -245,6 +254,20 @@ impl Sizes {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// fn-257: every shipped preset's build is sized from its expectations,
+    /// never from the least tables a missing prediction leaves (the
+    /// birch's ground hazard did, and it moved 23 times a build).
+    #[test]
+    fn every_preset_is_sized_from_its_expectations() {
+        for &(_, id, ..) in telperion_core::presets::CATALOGUE {
+            let family = telperion_core::presets::by_identity(id).expect("a preset");
+            let growth = telperion_core::pipeline::executor::growth(&family).expect("a growth");
+            let h = hint(&growth.species, growth.request.age).expect("a hint");
+            Sizes::at_margin(h, MARGIN).expect("sized");
+            assert!(h.kept > 0.0, "{id}: {h:?}");
+        }
+    }
 
     /// The integration review's oak at 500: a hint whose tables pass the
     /// rows the device indexes is refused by name, never wrapped.

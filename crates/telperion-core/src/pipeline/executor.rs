@@ -271,6 +271,13 @@ impl Expansion {
     pub fn wood_reach(&self) -> Result<[f64; 4]> {
         Ok(self.inputs.plan.reach.clone()?.terms())
     }
+    /// The terms of a planned leaf's reach from its wood (`Plan::reach`):
+    /// `[seat, rachis, blade]`, which the device's field reaches by
+    /// (fn-257).
+    pub fn leaf_reach(&self) -> [f64; 3] {
+        let s = &self.inputs.surface.params;
+        foliage::plan::leaf_reach(s, self.canopy(), &self.element)
+    }
     /// The bounds an executor drawing its own nodes decides their kinds and
     /// leaf-bearing by (fn-212 task 6): wood under the first is fine wood,
     /// a twig where nothing grows from it; wood within the second bears

@@ -853,6 +853,7 @@ fn rosette(apex: u32, station0: u32, g: u32) {
         segs[s + 15u] = NONE;
         segs[s + 24u] = first;
         segs[s + 25u] = leaflets;
+        owns(g + i, apex);
         first += leaflets;
         segs[s + 26u] = 0u;
         segs[s + 27u] = mix32(stream + (u32(serial) + 1u) * 0x9e3779b9u);
@@ -864,6 +865,12 @@ fn rosette(apex: u32, station0: u32, g: u32) {
         // A frond is drawn whole (fn-270 R5).
         unfolded(s, NONE, NONE, 0u);
     }
+}
+
+// The node segment `g` stands on, after every segment's words: the
+// field reads its limb system (fn-257).
+fn owns(g: u32, node: u32) {
+    segs[atomicLoad(&counts[2u]) * GW + g] = node;
 }
 
 // A segment's leaves within the year (`place.wgsl`'s `Segment`, fn-270
@@ -929,6 +936,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         put4(at + 20u, vec4<f32>(0.0, -1.0, nodes[first * NW + 30u], f32(word(first, 9u) >> LEAVES)));
         segs[at + 24u] = station0;
         segs[at + 25u] = count;
+        owns(g, first);
         segs[at + 26u] = 0u;
         segs[at + 27u] = mix32(word(first, 25u) ^ KEY_CLUSTER.x);
         for (var c = 0u; c < 4u; c++) {
@@ -1022,6 +1030,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
             put4(at + 20u, vec4<f32>(metres(along), metres(wood), sin(turn), cos(turn)));
             segs[at + 24u] = station0 + seen;
             segs[at + 25u] = leaves;
+            owns(g, b);
             segs[at + 26u] = tile;
             segs[at + 27u] = key;
             for (var c = 0u; c < 4u; c++) {
