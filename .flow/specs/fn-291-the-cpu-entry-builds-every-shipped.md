@@ -29,6 +29,14 @@ Release item (fn-237). Found by the host on 2026-10-16 while checking fn-257's r
 - **R2c (proof):** all 24 cases of PROBE.md build with the Wasm high-water mark at or under 3.5 GiB (headroom), stills of Telperion and Laurelin unchanged to the eye, every other preset's surface byte-identical or within the bounded precision; the probe joins `test:dist`.
 - Fewer sides on thin wood (PROBE.md option 3) changes the tree's look and is not taken here; if R2a-R2b cannot reach the bar, the run stops and reports the measured gap.
 
+## Host decision after task 2's floor (2026-10-16)
+
+PROBE.md: growth leaves 2.6-2.7 GiB of Wasm memory in fragments, and the wood's index buffer is one 1,651 MiB run, so R2a and R2b cannot fit Telperion at seed 7. Following the owner's direction on fn-257 ("if you define a different format to write in the beginning and not convert at the end that should get the savings throughout?"; "if we can compress it further even better"):
+
+- **R2d (wood in pieces, compact from the start):** the surface is written as chunks of at most 65,536 vertices, each with 16-bit indices, allocated chunk by chunk, so no buffer needs one large free run and the index bytes halve; the package returns the chunks (TypeScript types, README and a migration note change with it; the GPU path and the harness unchanged).
+- **R2e (growth compact from the start, lossless):** the CPU growth's tables narrowed where they are created (counts, indices, flags and ids in the narrowest width their range allows, padding removed), trees byte-identical, the post-growth Wasm footprint measured per preset; the same rule as fn-257's.
+- The plan changed, so the review rounds restart with this re-plan; task 2's round-2 finding (the floor after R2a) is re-reviewed in the new round.
+
 ## Strategy Alignment
 
 Active tracks served by this plan:
