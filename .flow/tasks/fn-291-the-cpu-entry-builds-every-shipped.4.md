@@ -35,9 +35,23 @@ R2c and R3: the proof, and the check that keeps it. All 24 PROBE.md cases build 
 - [ ] `npm run test:dist` runs every case in its own process with the 3.5 GiB assertion, passes locally, and runs in CI's package job
 - [ ] Gate and `npm test` green; outputs under raw/
 ## Done summary
-TBD
+`npm run test:dist` now builds every shipped preset at seeds 1, 7 and 42 through `dist/telperion.js`, one child process per case. Each case checks its wood chunks and fails if `memoryBytes` passes 3.5 GiB, naming the entry, preset and seed. The field entry's WebGPU refusal check stays. `docs/principles.md` names the check. CI's package job already runs it, and no job sets a timeout, so `tests.yml` is unchanged.
 
+Measured (PROBE.md "Task 4"):
+- All 24 cases build under the bar, in 4 min 3 s. The highest is laurelin seed 7 at 2,789 MiB; telperion at seeds 7 and 42 is 2,777 MiB.
+- Surface check against the pre-chunk base dist covers the 6 other presets at 3 seeds plus telperion and laurelin at seed 1. Positions and absolute indices are byte-identical in all 20 cases. The worst decoded normal is 6.47e-5 rad, inside the 1e-4 rad bound.
+- Stills of Telperion and Laurelin at seeds 1, 7 and 42 were drawn from the entry's own mesh by a software rasterizer (`still.mjs`). At seed 1 they are compared against the base dist; at seeds 7 and 42, against the base native flat mesh, whose positions and indices hash equal. No pixel differs by more than 1 grey level. All six sheets were viewed: unchanged to the eye.
+- Gate: 1,412 passed, 0 failed, 103 ignored, after a 55-minute admission wait. `npm test`: 170 passed.
+- Not run: `npm run rust:test:wasm`, the bindings suite (excluded by the host).
+
+Friction: two admission waits and a refused pipe (FRICTION.md).
+
+Tier: (conductor dispatch)
+
+stage: impl-review - ran [codex, one reviewer (correctness): SHIP, no findings]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 50ea727f27024d5754dae21decc4c93c66c2ca19, 51700113c26cc84046dc54b992ebab2c2478d34a
+- Tests: telperion-heavy 6 --threads 2 -- npm run test:dist, node .flow/evidence/fn-291-the-cpu-entry-builds-every-shipped/surface-check.mjs <base-dist> dist <scratch> <ids> 1,7,42, .flow/evidence/fn-291-the-cpu-entry-builds-every-shipped/stills.sh, telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast, npm test
 - PRs:

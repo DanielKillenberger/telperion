@@ -11,6 +11,7 @@
   "impl_review_rounds": {
     "fn-291-the-cpu-entry-builds-every-shipped.2": 0,
     "fn-291-the-cpu-entry-builds-every-shipped.3": 0,
+    "fn-291-the-cpu-entry-builds-every-shipped.4": 0,
     "fn-291-the-cpu-entry-builds-every-shipped.5": 0,
     "fn-291-the-cpu-entry-builds-every-shipped.6": 0
   },
@@ -784,12 +785,48 @@
       "task": "fn-291-the-cpu-entry-builds-every-shipped.3",
       "timestamp": "2026-10-16T12:29:50.776993Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e2f96305b7042985f5135f38e33861ece457cb086f5c6d37dec053fbd7b78e5b",
+      "backend": "codex",
+      "base_sha": "fff95943e08adfb649721d05cf05f63a6ffe542a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "50ea727f27024d5754dae21decc4c93c66c2ca19",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "c97447673e674e16bb358c82e16782ba",
+      "round_consumed": true,
+      "scope": "impl:fn-291-the-cpu-entry-builds-every-shipped.4",
+      "superseded_by": null,
+      "task": "fn-291-the-cpu-entry-builds-every-shipped.4",
+      "timestamp": "2026-10-16T13:28:36.756576Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-291-the-cpu-entry-builds-every-shipped.1": 2,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.2": 2,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.3": 1,
+    "impl:fn-291-the-cpu-entry-builds-every-shipped.4": 1,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.5": 2,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.6": 1,
     "plan": 4,
@@ -801,6 +838,7 @@
     "impl:fn-291-the-cpu-entry-builds-every-shipped.1": 0,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.2": 0,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.3": 0,
+    "impl:fn-291-the-cpu-entry-builds-every-shipped.4": 0,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.5": 0,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.6": 0,
     "plan": 0
@@ -819,5 +857,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T12:29:50.780380Z"
+  "updated_at": "2026-10-16T13:28:36.758717Z"
 }
