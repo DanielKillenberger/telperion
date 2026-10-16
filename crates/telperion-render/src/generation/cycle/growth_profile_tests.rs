@@ -387,6 +387,7 @@ fn growth_tables() {
         let chain = ChainTables::cycle(species, request.age).expect("chain tables");
         let t = Tables::new(&gpu, &tables, &chain).expect("uploaded");
         let hint = build_arena::hint(species, request.age).expect("a hint");
+        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("idle");
         gpu.ledger.take_peak_census();
         let (b, sizes, grew) = pollster::block_on(grow_hinted(&gpu, &k.build, &t, &tables, (hint, request.age)))
             .expect("grown");
@@ -419,6 +420,8 @@ fn drawn_hashes() {
             let mut family = telperion_core::presets::by_identity(id).expect("a preset");
             family.skeleton.seed = seed;
             let growth = executor::growth(&family).expect("a growth");
+            // The last tree's buffers let go before the peak restarts.
+            gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("idle");
             gpu.ledger.take_peak_census();
             let (dressed, _) = pollster::block_on(tree::drawn(&gpu, &k, &growth)).expect("drawn");
             let peak = gpu.ledger.take_peak_census().0;
