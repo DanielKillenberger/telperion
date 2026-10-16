@@ -311,7 +311,7 @@ peak had two full readback copies, not three simultaneously.
 
 Task fn-91.2's matched seed-1 native comparison is recorded in
 `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/READBACK.md`, with the
-fresh-process wait4 protocol in `readback-measure.py`. Hash verification runs in
+fresh-process wait4 protocol in `readback-measure.py` (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/readback-measure.py`). Hash verification runs in
 separate processes so its extra verification clone is excluded from timing/RSS.
 
 ### Resident wood expansion

@@ -17,7 +17,7 @@ The owner requested a cleanup PR after fn-91 merged hundreds of evidence files: 
 
 ## Result
 
-Removed 602 generated fn-91 artifacts (19,536,031 bytes); kept 232 reports, JSON summaries/provenance, replay sources and patches, plus fn-91's recovery README and checksum manifest (`ARCHIVE.json`). Originals are recoverable from revision `c4871093bd7ef208c2c3f65fb46a223c4e397a0b`. A host-side verify script checked all 602 checksums against the local archive, the ignore rules, retained Markdown links and code/test exclusions (commit `3f6476e4`).
+Removed 602 generated fn-91 artifacts (19,536,031 bytes); kept 232 reports, JSON summaries/provenance, replay sources and patches, plus fn-91's recovery README and checksum manifest (`ARCHIVE.json`) (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/ARCHIVE.json`). Originals are recoverable from revision `c4871093bd7ef208c2c3f65fb46a223c4e397a0b`. A host-side verify script checked all 602 checksums against the local archive, the ignore rules, retained Markdown links and code/test exclusions (commit `3f6476e4`).
 
 ## Open
 

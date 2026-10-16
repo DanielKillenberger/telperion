@@ -11,7 +11,9 @@ The owner judged fn-26's stills "very cartoony". Relief did its job; what still 
 - Rows over image textures: a texture cannot be blended or walked through tree space.
 - Cavity from fn-26's relief height (one multiply per fragment) over screen-space AO, which is the reserve if crevices still read flat.
 - Sky occlusion from crown depth, extending fn-14's interior darkening to the wood; no new light, shadow map or vertex layout change.
-- Round 5 (recentring the crest/fissure map on the field's face mean after a host QA finding) owner-authorised with an extended budget: "pls go ahead" (2026-09-14).
+- Round 4 checkpoint: the oak fissure offset was owner-approved (recorded as "round 4 checkpoint; owner-approved oak fissure offset"; source: archived checks.json).
+- Round 5 (recentring the crest/fissure map on the field's face mean after a host QA finding) owner-authorised with an extended budget: "pls go ahead" (2026-09-14). The owner extended the commit budget for round 5 on 2026-09-14 (source: archived REPORT.md).
+- The bark references `owner-white-oak-bark.png`, `owner-black-oak-bark.png` and `owner-norway-spruce-bark.png` were owner-supplied local references (copied from the fn-26 worktree into `.refs/fn29/`, never redistributed; source: archived owner-reference-metadata.json).
 
 ## Acceptance Criteria
 

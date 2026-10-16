@@ -12,6 +12,7 @@ fn-63 landed the gap loop (PR #38, 2026-09-18) with six of seven criteria eviden
 - > user: "there should also be a path to escalate to human. We don't want to burn tokens on dead ends etc. So we should have judgement calls evaluating certainty of success within reasonable token amounts. If there's high uncertainty or unusually high complexity or other implementation risk loop should escalate."
 - Owner, 2026-09-18: merge fn-63 and carry its seventh criterion here; the species is the date palm, chosen as a deliberate curve ball over the recommended European ash, knowing several gaps would route to the owner.
 - Owner, 2026-09-19: fn-89's model-allocation policy and fn-68's visual readiness are prerequisites; fn-88 retired; a supported catalogue species is the routine-path control. No gap is fabricated; extra captures need a budget exception.
+- Owner, 2026-09-18, the goal the loop serves: "most tree species in the world, onboarded by swarms of cheap, fast agents running the `add-species` loop." The unit that matters is cost per species at swarm scale (source: archived ECONOMICS.md).
 
 ## Acceptance Criteria
 - **R1:** A real species run halts on a gap the loop can take, with capability line, options and judgments — met (palm halted on `apical-rosette`, `pinnate-frond`, then trunk organs).

@@ -2,7 +2,7 @@
 
 ## Goal
 
-The silver birch (fn-213) failed Astra's trait (b) on sheet 3: an old birch's lower trunk is dark and fissured, but the material rows gave one bark colour to all thick wood, so the 80-year base read "predominantly white with black speckling rather than a convincing dark, fissured lower trunk". The host deferred it as its own capability (fn-213 SHEET-1.md decision c, 2026-10-07). Many species' bark changes with girth. Renderer material and preset rows only; no engine change.
+The silver birch (fn-213) failed Astra's trait (b) on sheet 3: an old birch's lower trunk is dark and fissured, but the material rows gave one bark colour to all thick wood, so the 80-year base read "predominantly white with black speckling rather than a convincing dark, fissured lower trunk". The host deferred it as its own capability (fn-213 SHEET-1.md (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-213-tree-space-the-silver-birch-as-a-point/SHEET-1.md`) decision c, 2026-10-07). Many species' bark changes with girth. Renderer material and preset rows only; no engine change.
 
 ## Decisions
 

@@ -1,12 +1,13 @@
 # Evidence archive manifest
 
-The owner asked on 2026-10-16 to reduce the release's evidence to what is actually needed ("I assume 20% of evidence will get us 80% of what's actually needed"). This cleanup removed 1741 committed evidence files (211,019,745 bytes). Each spec's decision record now lives in its spec markdown; the kept evidence is the protected inputs that code, tests, docs and the catalogue load or cite, small summaries, and one compressed JPEG per still an owner verdict rests on.
+The owner asked on 2026-10-16 to reduce the release's evidence to what is actually needed ("I assume 20% of evidence will get us 80% of what's actually needed"). This cleanup removed 1724 committed evidence files (210,906,983 bytes). Each spec's decision record now lives in its spec markdown; the kept evidence is the protected inputs that code, tests, docs and the catalogue load or cite, small summaries, and one compressed JPEG per still an owner verdict rests on.
 
 - Source revision: `8dab106345660cbd3c4ccb8ea045b92a0aee9eed` (branch fn-198-tree-space-f-the-engine-in-production). History is not rewritten; every file below stays in that revision.
 - Recover one file: `git show 8dab106345660cbd3c4ccb8ea045b92a0aee9eed:<path> > <path>`
 - Recover a whole directory: `git checkout 8dab106345660cbd3c4ccb8ea045b92a0aee9eed -- .flow/evidence/<dir>`
 - Verify: `sha256sum <path>` must equal the first column.
-- Two provenance records name files removed here and were left unedited because they record hashes, not links: `fn19/onboarding-examples/seed-audit.json` and `fn19/final/inspection.json`.
+- Provenance records that name files archived here were left unedited because they record hashes or historical captures, not links to follow: `fn19/onboarding-examples/seed-audit.json`, `fn19/final/inspection.json`, `fn19/final/independent-review.json`, `fn19/visibility-v2/protocol.json`, `fn26/stills.json`, `fn32/stills.json`, `fn32/references.json`, `fn-68-tuning-loop-code-steps-the-dials-jev/retention-manifest.json`, `fn-68-tuning-loop-code-steps-the-dials-jev/vision-replay-v2.json` and the `experiments/fn9-iterations/` captures (whose README names this manifest). Recover what they name with the command above.
+- After review (2026-10-16) 17 files cited by source comments or by live specs were restored and are no longer listed here.
 
 Columns: sha256, bytes, path.
 
@@ -65,14 +66,12 @@ c2737aac4211d5acddbd9416f8ee6f45c88ffb455d230c78952f3e33434a64c5  5657  .flow/ev
 34e5d2e42c1d65e745f73086a2e0b269c491177122b6dbdb92ba9863df1f2f96  806  .flow/evidence/fn-143-a-cheaper-crown-envelope/skeleton-dump.rs
 155e0c6db04fad008891dec01cb948365093e128735d08eca1d1f3d0501015a7  1717  .flow/evidence/fn-143-a-cheaper-crown-envelope/stills-diff.json
 53cba2a1dd8ea91e818c6934d623060f7f839f872f60c9250338ddd97f5e1e67  844  .flow/evidence/fn-143-a-cheaper-crown-envelope/stills-diff.py
-6b32998a6359dafd674042514816a78b83889a15073b0b3f960006de34622ad5  3444  .flow/evidence/fn-150-the-slim-field-package-grows-every/FRICTION.md
 3aadc681d3f295d81561b023fbac08e8c02681c8d04dee10c6ba2ac5b491a2f1  1907  .flow/evidence/fn-151-the-design-principles-are-checked/FRICTION.md
 352c4921bd86326d3089fb04178aeb5d119986f45dc0c959c11183db17be1318  1935  .flow/evidence/fn-152-one-parameter-table-the-generator-flows/FRICTION.md
 8080de18ce9b19705841ecdffb8c0c53814f65f74e04146d077dff00edc18200  1502  .flow/evidence/fn-152-one-parameter-table-the-generator-flows/build-time-checks.txt
 180d6622bb2523c712a94d4f49b972f39e30d9b0a1e9139732b35f0b432d415e  596  .flow/evidence/fn-152-one-parameter-table-the-generator-flows/dial-table-equivalence.txt
 605443f084060fd3f6fe6116e3cb7f965d8788af836ca8321284f2d8cbe19879  6021  .flow/evidence/fn-152-one-parameter-table-the-generator-flows/impl-review-receipt.json
 ce790162732da2f61f9950377651e8cc1740fa15bbe245e1d361ad7867a4b047  2995  .flow/evidence/fn-153-releases-publish-cis-tested-artifact-in/FRICTION.md
-587d7c805ee0d291f0ef6e94bb6e1db7b5b240682147fe12d5c17983e214092d  12223  .flow/evidence/fn-157-a-species-values-are-the-confident/FRICTION.md
 daae97c64f8d9b6fa6a60327ef6582b4f56f76ddca01c2497ea52855754f70ad  15104  .flow/evidence/fn-157-a-species-values-are-the-confident/beech-live-2026-09-26.md
 49469a8e5249e92eb8c494027005dceb032b54adf34f98e21beca8fb374d180e  3862  .flow/evidence/fn-158-stages-take-typed-inputs-behind-one/FRICTION.md
 7e5df4ad1042fa0102daac9446a964faf57ab5f727a06996bd28e1ce96ff6e1e  7817  .flow/evidence/fn-158-stages-take-typed-inputs-behind-one/RESULTS.md
@@ -202,7 +201,6 @@ b97ee60c72fc8be98b11102640a4cccb281a04f14a5bfd28a330d896a37dbeb3  2544  .flow/ev
 581eb4cdfed462f9d5f2327d34ebb28e84c6b0978b8591343e53362e89b4bc8d  1708  .flow/evidence/fn-204-leaf-base-clothing-runs-in-expansion/DIGESTS.md
 087ab1e94e9738acd3276fc7d368d9521a60651236d61c2e4338883d5bb77454  905  .flow/evidence/fn-204-leaf-base-clothing-runs-in-expansion/FRICTION.md
 4e2d722466a480e23ed784d4243959b1781f844808db1bc4374ebb8aa543d44a  2470  .flow/evidence/fn-205-tree-space-girth-from-secondary-growth/EVIDENCE.md
-c99104af6dc5db9ff6ea8bc47724d8933a0638107024f1aa649c02fad4ab7d89  4446  .flow/evidence/fn-206-tree-space-one-reference-axis-every/FRICTION.md
 69e78f8ad51161ee3673ce776520c97ec4f57f024f2dbac4fff97411b2afccd0  51247  .flow/evidence/fn-206-tree-space-one-reference-axis-every/RESULT.md
 c4fbbaa08bf3a5409b67b01f58acd43fac6768a336a6ef9ebe59cec53296ccf2  426  .flow/evidence/fn-207-tree-space-wander-bends-over-a-length/FRICTION.md
 9b037d59fad4014a82539742b3fc668feb37681c9cef3944b9261beda0b175c5  2734  .flow/evidence/fn-207-tree-space-wander-bends-over-a-length/RESULT.md
@@ -224,7 +222,6 @@ d1702e580f3e5d1004f64e7be6d5f28103c9e49c68e3d2a1c7d12ce57351ed40  1328  .flow/ev
 ae56362fdde2f5906f3936930fdad1355e6f505f2488a602f8c95c87cc5542e5  10683  .flow/evidence/fn-210-tree-space-f2-the-exact-speed-levers/RESULT.md
 9842bc10f55acf963f27dfe3d0986395e4930a194702d0f10ac9f46784606f05  5300  .flow/evidence/fn-212-tree-space-fine-geometry-dressed-on-the/ASTRA-REVIEW-IMPL.md
 ba9e6bae4fa016d88a8e96aa1d4aae0dd18b9bafc3b5ccd516d81fc53a89c609  21678  .flow/evidence/fn-212-tree-space-fine-geometry-dressed-on-the/AUDIT.md
-6573e30a8f9fac789f1b7a8bdef8d404d1c18f004c07d5e8141372b847892ee0  31488  .flow/evidence/fn-212-tree-space-fine-geometry-dressed-on-the/CONTRACT.md
 7e30d38d54d28deadb8a43158066199272eb05f01c177760336445d81f7e6c2e  15843  .flow/evidence/fn-212-tree-space-fine-geometry-dressed-on-the/FRICTION.md
 40b6542cbb5321832c22b68ba0b2809de2e3adc6e8e5bba8e4384bb609b7ddf1  25719  .flow/evidence/fn-212-tree-space-fine-geometry-dressed-on-the/TASK10.md
 419fe0ec29fc156442381ca164b4fb7c7b0e9002751f5019d7f3fa98b10125f9  9246  .flow/evidence/fn-212-tree-space-fine-geometry-dressed-on-the/TASK11.md
@@ -263,7 +260,6 @@ a638bc8685373def9350f1f3113c8aa3966d1b10ea65f96f67ecf03ba7fe4b47  3621  .flow/ev
 f44ba1603f2bf1ca2ca6af88366bbe08418dd0fbd3a2fb712ec799cc2174f95d  1476  .flow/evidence/fn-212-tree-space-fine-geometry-dressed-on-the/wasm-grow.mjs
 dc2616ba3366b661766318aa4df1bfcbd93a8dd0fa925febe6f7c8b9874178ee  8990  .flow/evidence/fn-213-tree-space-the-silver-birch-as-a-point/COMPARE.md
 1d384970f5d3882a529b1023d0d638e2b39bf247ac05a8cc543ad78c7df41f7d  7021  .flow/evidence/fn-213-tree-space-the-silver-birch-as-a-point/SHEET-1.md
-22c9f9ed00c4bef40fff6030da02198dcd8b76970b9c378fa95671bccfe27945  8234  .flow/evidence/fn-213-tree-space-the-silver-birch-as-a-point/SHEET-10.md
 51988ee46f743635bac9896a241704eaa3bee03dfcb54595e2a83e27622b87f2  11738  .flow/evidence/fn-213-tree-space-the-silver-birch-as-a-point/SHEET-11.md
 228cd823e4879ddece32a5d03e0b0886d229cf1c420d61bacae04a2a7eaf03e6  8240  .flow/evidence/fn-213-tree-space-the-silver-birch-as-a-point/SHEET-12.md
 74095e46ccf2b07c1d91ee7fe994155459f0fe72261bbebfab497455ccfe8b4c  12312  .flow/evidence/fn-213-tree-space-the-silver-birch-as-a-point/SHEET-13.md
@@ -283,10 +279,8 @@ aa6dc41fc071da5b1e6d5dbe9094e83eb17122210090f99a607974d063b4ce63  1752  .flow/ev
 abe22a1d575ddb11293ceaf12fb5ee0a97e44a0c9bdd1b3a5138d753cbd05c5d  7534  .flow/evidence/fn-215-tree-space-the-ordinary-tree-as-the/SHEET.md
 7d1dc12f60dbd1da45d0e3a919b6aae8591b606fe888dca6e3345693667c143c  2509  .flow/evidence/fn-216-tree-space-flowers-on-the-engine-path/STILLS.md
 f9a2a1a1da75c7a741202c94bbfdcf5fc515ea50a5f29b19b6aa8a99de4f0e74  664  .flow/evidence/fn-216-tree-space-flowers-on-the-engine-path/overlays/beech-blossom.json
-4e38d944cb39339a125caa28c4fbef7c588b6c5d7db8bbf0798a1d2f3571136a  667  .flow/evidence/fn-216-tree-space-flowers-on-the-engine-path/overlays/oak-catkins.json
 69b833b76b707818d70ba2ba24d97cc21a661286affa001fb1ba22298ef32bc3  664  .flow/evidence/fn-216-tree-space-flowers-on-the-engine-path/overlays/walk-from.json
 fa04868234522a49ad2ca1720f3e6c56c29980addc1e8452c3ea639f310ce240  11700  .flow/evidence/fn-217-tree-space-the-supernatural-group-on/ASTRA-REVIEW-DESIGN.md
-71061b4c23dce8d90f9ab91393a54f8b339a6beefa4d627c89c1151e3d296076  1663  .flow/evidence/fn-217-tree-space-the-supernatural-group-on/FRICTION.md
 068ae684a1b25fae3b83495a87babaae9755b8df660de684029e03f8887ae338  1829  .flow/evidence/fn-217-tree-space-the-supernatural-group-on/HORN.md
 5b43103606250ae417078084a73017a6e5cce91e46c74a4b6152476843a71a60  7789  .flow/evidence/fn-217-tree-space-the-supernatural-group-on/TASK2.md
 b67e78022d4bfc6d0fbfbfab1c2b4a50975e9de045b0274ac33b879c1fd94666  7157  .flow/evidence/fn-217-tree-space-the-supernatural-group-on/TASK3.md
@@ -330,12 +324,10 @@ b21005f209f51de787e627b895f0c5744020d8b9116d0291beb47fab314f9f7c  1469  .flow/ev
 239d15ad8f66a0e8e307d4e995451999c96573cda95b2893ede5d977ac4c40a8  6261  .flow/evidence/fn-231-the-engines-walk-is-continuous-at-its/FRICTION.md
 87820f530504fde12e3fdf46949e8752ace0224a816a33baf666d376c697b82a  2640  .flow/evidence/fn-234-blossom-shows-from-a-distance/FRICTION.md
 f38465969c7debc25fd8f7695550050b2d31e00879564062cb1c5a39f42b0acb  20423  .flow/evidence/fn-234-blossom-shows-from-a-distance/MEASURE.md
-de3743b8a81ee94b47b19ca2b2e599f74ab8e7870ab16e76a315bf30cd14b533  4456  .flow/evidence/fn-235-the-harness-never-hangs-the-gpu/FRICTION.md
 14b72919a71ea7a871ecfc54f823a0f3dcf2738f3e044e44631988739d352e10  4626  .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/ASTRA-CROWN.md
 46c7ed013ffef82c74a29ba2698f447bd31dc9affa3b6e6a7e91bed417158397  5717  .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/FRICTION.md
 63d869ce1b9393949bda98a4e60a94548e883b5f825668cfc327525aa2d14522  9699  .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/SHEET-1.md
 fa0d5df5f0349de19c05393e0fb5a3ea10c491b184936b17bdf525cc8bb94579  5070  .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/SHEET-2.md
-9f9cc7a52f3fdf21e59b86fa90840de780967f159ea275e42e02f5bd6bd0f930  11310  .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/SHEET-3.md
 af84a81b2a4366a991cb582c5feccee7d902b540f48b7b5dd3a4c2ccd5b0bec1  2657  .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/SHEET-5.md
 734565cd84000e07373d59543ad7a4c6964198ad511bebb92f9eb39b1d467cdb  1519  .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/TIME.md
 f91750fb847dd96188dc402af8554e2a1462b5ccf768218abf928fb33e7e91f2  957  .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/compare_sheet.sh
@@ -345,7 +337,6 @@ fe21dd1c98564f32c2f723e5c36f8be9cbbb32e3790be440fdaf37b3500f9f46  1868  .flow/ev
 65ee852e127028456612e32b603461263cd9f0bed2a1a51f829de05f189f3b5c  4061  .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/old_oak.rs
 4522ca91e267bb677119f0a70b7ea6c18f7420dfea096965641cc8bc70d597cb  539521  .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/owner-2026-10-14-fork.png
 3b774771a28886a89e06fde76ced2b0be25fbc26832c932fee913abc5b8e4b2c  1081  .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/render_round.sh
-b6a19921dfeb44657d3ba4404f55538c79479b1424b105601fb1027b41e49230  1157  .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/seed7/lines.sh
 3b6310403ec54b2458a63033bc752aba29a060e4f3c93ccc7df8856eb74006ca  1031  .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/time.sh
 3d9c47c10029510a70b1910a81bb1b6ad66a7a469b89ff689a9f3481a745cf0e  1384  .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/views.sh
 08007446d14d75bc7620d746e6be7ed83b44b088a8a829ec626a7d2a452ba90a  1113  .flow/evidence/fn-238-a-blend-between-species-solves-in-about/FRICTION.md
@@ -386,7 +377,6 @@ c1fd9b689c89e1c96fc65d505eb98c42601adc2887d43758a66a3b83c66ac8c9  273560  .flow/
 2470fee6c6e3ff1cfa8ca5268a5d957a9b43538404b2b2cfbe6654bad089b1f6  604598  .flow/evidence/fn-253-flowers-hang-from-the-tree/STALKS-telperion.jpg
 5a30faf5d4499a56ac8f4d6361ad0f5bca017546f94a4d2c40ca46a842424d7d  1771  .flow/evidence/fn-254-growth-runs-on-ordinary-floats/ASTRA.md
 44792a598fe689b598ace94e3e34784d2186de0fcd9fe250e7f4ffc358da65d4  7535  .flow/evidence/fn-254-growth-runs-on-ordinary-floats/CHECKS.md
-339446cf98900bd1b2e3ca299142cfc97f3038e230c2dd462f87131f22357190  3864  .flow/evidence/fn-254-growth-runs-on-ordinary-floats/FRICTION.md
 0a654c9207012dbe482edf22188cc3aece4e6d376b367f9e9dde87983a834665  19450  .flow/evidence/fn-254-growth-runs-on-ordinary-floats/INVENTORY.md
 2d6c39bae5d34fc3528c531a836f3c05cb5fae62a52b439e48b2b55171f3ae40  1627  .flow/evidence/fn-254-growth-runs-on-ordinary-floats/STILLS.md
 189f7c6b58f7ae78632c97728207022276754e5901f026267b3bb91110c44c1b  3051  .flow/evidence/fn-254-growth-runs-on-ordinary-floats/TIMINGS.md
@@ -401,7 +391,6 @@ a7cc41f1911f9a1d7a3b6d8811cb13a4666ab7617468d3a6554b2b852cf175ed  2259  .flow/ev
 008a3a3d87493658b993f947797fe6e44bace74ab72c9f8f5d74776cbfb3e9bc  4686  .flow/evidence/fn-255-one-growth-law-reads-light-for-every/candidate/volumes.rs
 30233fb8c27de60620415b1bde3faaa40bd72ab2f91d1fa8f62ae2540d3b782f  6998  .flow/evidence/fn-255-one-growth-law-reads-light-for-every/candidate/volumes/tests.rs
 ad346482991aeef4c0c944deec64cd2fde147401aeb6911641cb711d3d003c4e  7449  .flow/evidence/fn-255-one-growth-law-reads-light-for-every/candidate/volumes/tree.rs
-0275b2122672c95f844c672d809da6b89f8d0b0fa360629dc5578d71d95ea5fe  2829  .flow/evidence/fn-258-a-prepared-tree-meets-masters-memory/FRICTION.md
 1f06c78c8d34cb03224c7d00757a7cb29b7a47e1bc46a12906f710434440dcaa  1428  .flow/evidence/fn-258-a-prepared-tree-meets-masters-memory/tools/budget_whatif.py
 84cbd7f85fb635e591c96c5c609c664e4d04d6b5b1b6c81a4f65407ed37937d7  2351  .flow/evidence/fn-258-a-prepared-tree-meets-masters-memory/tools/bytes_md.py
 e5640ef6be656f132c36ca37ac6fee38392e1330a74bf2bfec7e2bfb184bc38d  575  .flow/evidence/fn-258-a-prepared-tree-meets-masters-memory/tools/new/Cargo.toml
@@ -412,20 +401,15 @@ f71cce4b17c18615ef3cb39f3c730dd13f7d937628276a3b47c9bf98341a54f5  13295  .flow/e
 a0e29331a85839d6cfdd4a04be30bef4439e287ab1a493508152a1fa13bdc966  705  .flow/evidence/fn-258-a-prepared-tree-meets-masters-memory/tools/sweep.sh
 0006eb399741f02beeba946d7babba758a7a1bb7a105d6439684bdb5f5e68118  2464  .flow/evidence/fn-258-a-prepared-tree-meets-masters-memory/tools/table.py
 ab8569120837f4f3e13f68cbe5abd0019bdb89aeb8df4fefe6b203e037bfe54e  2292  .flow/evidence/fn-260-every-shader-and-every-presets-size-are/CHECKS.md
-1f212fbb81d428f84769be1ea5a15b6bbeddb06afba7b3542cdf7c55b45553a2  1776  .flow/evidence/fn-260-every-shader-and-every-presets-size-are/FRICTION.md
-1306c39c771d281dc5aa1bbf71fe9eb14fd328c8eda7648042ca1161e0168d6e  2232  .flow/evidence/fn-261-the-same-binary-draws-the-same-leaves/FRICTION.md
 ecf7d4a5841f78d9ed0cdda8bf7692ac22781dd2e1bb69d5fbfb36de04ab478d  7603  .flow/evidence/fn-261-the-same-binary-draws-the-same-leaves/REPEAT.md
 9e2ac6ec6dc69dbb7f9e4db0d7109880eb5650e0bd2f222fc72dfc4baa56f07f  6382  .flow/evidence/fn-263-the-birch-grows-the-same-wood-on-the/BIRCH.md
 625b8b207f22986ce16c8d6cc54b0820d02823072684fc79e65944165ed5af6f  1490  .flow/evidence/fn-263-the-birch-grows-the-same-wood-on-the/FRICTION.md
 91185ea66bbaa84c62efae3ed8301ac3e9d7ec79ff721a8c2dc6d506fff745cc  3770  .flow/evidence/fn-264-every-species-shades-and-answers-light/FRICTION.md
 ed4df89562f1eba9fae17a5e31caa9c61797b21296ab757a12d251ee38ae7657  5219  .flow/evidence/fn-264-every-species-shades-and-answers-light/INVENTORY.md
 80108e2c29e24ccc3857874265eba8f5051893b83f3284ce84aab0c77f669911  16039  .flow/evidence/fn-264-every-species-shades-and-answers-light/MEASURE.md
-275aa624fad33b33ea205932b24c3cc305b9204cb1d20651a1bcaed5de8bb691  2019  .flow/evidence/fn-266-the-device-draws-the-palms-leaf-base/FRICTION.md
 cafa463249d361cf35e6dbf75d1070ad42cd495f4c78e521368fb89609a39edb  5082  .flow/evidence/fn-270-growth-continues-from-any-age-in-less/CONTINUATION.md
 5c92c67be22337f6e6eb63c3532aaf2c64ee377bf53b8585d8fc761ec6dc9a3b  14206  .flow/evidence/fn-270-growth-continues-from-any-age-in-less/FRICTION.md
-f65f943fb51eb234db5e9ce2b9b74d4ddcec433505f9580dc132e70bb12ca596  7738  .flow/evidence/fn-270-growth-continues-from-any-age-in-less/GROWBUDGET.md
 eef3ba60121ddd3ac7426b71f12eba9d7c4dede6eaa97bdd87044b7a8b7cc63b  19176  .flow/evidence/fn-270-growth-continues-from-any-age-in-less/MEMORY.md
-af6044802418e1c2b867ef93130473b8f2de31f7492c6834d5bbf5e6f58c4046  13216  .flow/evidence/fn-270-growth-continues-from-any-age-in-less/PREMISES.md
 2226de838bf5b2342e4ad721682b7881b709766b92c2f33221e856c551da3f63  7076  .flow/evidence/fn-270-growth-continues-from-any-age-in-less/council/astra-8.md
 57e512b3ef5aff11ced9c6c59673ef3142c20f8229998f2b29c13cfc00d1814e  3349  .flow/evidence/fn-270-growth-continues-from-any-age-in-less/council/round8.md
 df6075b24176119b51ba0fc647d88fbc41b2f129ba4dea663ad6e4139209eb22  2466  .flow/evidence/fn-271-the-local-gate-runs-in-minutes/FRICTION.md

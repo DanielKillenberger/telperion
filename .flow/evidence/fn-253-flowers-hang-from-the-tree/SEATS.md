@@ -32,7 +32,7 @@ Seats by wood age (years since the phytomer under them grew), Laurelin seed 42: 
 Nothing that is drawn.
 - **The rows.** Laurelin's rachis is 0.72 m with a 24 mm pedicel, six florets, hanging (droop 1). Telperion's is 0.39 m with a 45 mm pedicel, five florets, standing (droop -1).
 - **The gap,** from the seat's wood surface to the floret's base, mm p10 / median / p90: Laurelin 50 / 167 / 391 (seed 42) and 50 / 170 / 394 (seed 1); Telperion 49 / 118 / 245 and 48 / 116 / 245. Every floret has its seat within one reach (rachis plus pedicel).
-- **Checked against the code.** `bloom.rs` `inflorescence` lays the axis (`Axis::laid`, eight segments from the node along the bud's side, turned toward hanging or standing by the droop), places floret `i` at `t = (i + 0.5) / florets` along it, and pushes one transform per floret at `at + stalk * pedicel`. The organ element (`bloom.rs` `element`) is the petals and the stamens alone. The axis and stalks are used for placement and never emitted, as fn-217's review said (ASTRA-REVIEW-DESIGN.md §5).
+- **Checked against the code.** `bloom.rs` `inflorescence` lays the axis (`Axis::laid`, eight segments from the node along the bud's side, turned toward hanging or standing by the droop), places floret `i` at `t = (i + 0.5) / florets` along it, and pushes one transform per floret at `at + stalk * pedicel`. The organ element (`bloom.rs` `element`) is the petals and the stamens alone. The axis and stalks are used for placement and never emitted, as fn-217's review said (ASTRA-REVIEW-DESIGN.md (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-217-tree-space-the-supernatural-group-on/ASTRA-REVIEW-DESIGN.md`) §5).
 
 ### The seating rule, checked against the code, on both executors
 

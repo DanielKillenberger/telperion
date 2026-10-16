@@ -14,6 +14,7 @@ Owner quotes:
 - Proof by receipt: a release requires a green receipt for every suite on the exact commit from master's CI and re-runs nothing; a missing or red receipt refuses, never rebuilds as a fallback.
 - One artifact: master's CI builds and tests the package once and uploads it; the release publishes it unchanged. wasm-bindgen-cli is the prebuilt binary at the `Cargo.lock` pin. A merge to master with a new `package.json` version releases with no hand tag.
 - Host (2026-09-25): publishing does not live in `tests.yml`. `tests.yml`'s `package` job builds once, runs `npm pack` and `test:dist` on the tarball's own `dist`, and uploads `package` (tarball + `.sha256`). `release.yml` runs on `workflow_run` of a successful Tests push run on master, reads its `head_sha`, checks each suite by green job or by its `scripts/ci-key.mjs` key in master's cache, downloads and sha256-verifies the artifact. Its OIDC `workflow_ref` still names `release.yml`, so the npm trusted publisher needs no change.
+- owner (2026-09-25), decision recorded as: "the owner decided that publishing does not live in tests.yml"; PR #118 was restructured to publish from `release.yml` (source: archived FRICTION.md).
 - Host (2026-09-25): tag first — the annotated `v<version>` tag is pushed on `head_sha` before `npm publish`, so a rerun converges; a tag on another commit refuses; an already-published version publishes nothing.
 - R6 added: trusted publishing with no stored npm token (already true since 0.1.0: `_npmUser` is the OIDC publisher).
 

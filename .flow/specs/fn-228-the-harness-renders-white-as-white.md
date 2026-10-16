@@ -2,7 +2,7 @@
 
 ## Goal
 
-The silver birch's leaf rows were set to a measured linear colour (S2-Oslo's sunlit leaves, blue-to-green 0.46) yet rendered at 0.57-0.65, and the white stem's bark rows (0.92) at 1.06-1.19 (fn-213 SHEET-11.md, round 11b): the scene's light, not the rows, added blue, so every species likely read cooler than its photographs. Owner (2026-10-08): "white-and-grey check ok". The scene's lighting only; species colours are their own specs.
+The silver birch's leaf rows were set to a measured linear colour (S2-Oslo's sunlit leaves, blue-to-green 0.46) yet rendered at 0.57-0.65, and the white stem's bark rows (0.92) at 1.06-1.19 (fn-213 SHEET-11.md (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-213-tree-space-the-silver-birch-as-a-point/SHEET-11.md`), round 11b): the scene's light, not the rows, added blue, so every species likely read cooler than its photographs. Owner (2026-10-08): "white-and-grey check ok". The scene's lighting only; species colours are their own specs.
 
 ## Decisions
 

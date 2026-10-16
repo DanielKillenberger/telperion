@@ -15,6 +15,7 @@ The twig layer treated the crown's outline as a wall: each planned stride asked 
 - R4 targets set from R1: queries at least 80% lower on the oak, 85% beech, 95% birch, 30% spruce, 40% Telperion; growth time at least 20% lower on the beech and 80% on the birch; no preset slower (warm median outside the base's warm range, interleaved rounds).
 - Host decisions on what removing the wall broke (2026-10-02): packed-leaf box and field cells sized from the grown tree; curtain floor held by an exact height cut per stride; the hang row fades in from zero; containment assertions retire to excursion reports; the drop walk's monotonic check takes a 1 cm tolerance (why the dial is weak is fn-184's R1); the surface-collapse generator fixture is retired (no catalogue tree reproduces a drop in seeds 1 to 64); the oak's stuck crown width traced before deciding.
 - owner (2026-10-02): no twig layer where the pipeline clears it; host: an apex bearing a rosette is not a tip and keeps its girth (the palm's crown top had been 0.24 m or 3.5 mm by accident).
+- owner (2026-10-02), decision on the containment tests, recorded as: "Deleted, owner (2026-10-02): the containment parts of `species::fixed_*`, `growth`, `habit`, `drop` and the shortened-limb `limb_tests`. The scaffold-in-share check stays." (source: archived R4-RESULT.md)
 - fn-173 waits on this spec and is re-scoped from its residual time; fn-182 follows this spec. The 40-to-10 bisection fix is not taken (it keeps the wall).
 
 ## Acceptance Criteria

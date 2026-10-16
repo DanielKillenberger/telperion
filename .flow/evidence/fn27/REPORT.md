@@ -301,7 +301,7 @@ not closed by passing timings or by the implementer's image inspection.
 > _verdict (owner, ):_
 
 Aids: [paired crown crop](oak-crown-comparison.jpg), [lit oak](oak-final.jpg),
-[lit spruce](spruce-final.jpg), [clay oak](oak-clay.png),
+[lit spruce](spruce-final.jpg), [clay oak](oak-clay.png) (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn27/oak-clay.png`),
 [fn-14 oak](../fn14/oregon-white-oak-hero.jpg),
 [oak orbit record](oak-browser-orbit.json) and
 [spruce orbit record](spruce-browser-orbit.json). For the owner's live orbit

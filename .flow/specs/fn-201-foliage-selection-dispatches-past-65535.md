@@ -2,7 +2,7 @@
 
 ## Goal
 
-The renderer's foliage selection (`crates/telperion-render/src/select.rs`) dispatched one dimension of `instances / WORKGROUP` groups, and wgpu panics above 65,535 groups (about 4.2M instances): "dispatch group size dimension ([74572, 1, 1]) must be less or equal to 65535" (fn-194 FRICTION.md, 2026-10-04). The spruce had to thin its needles to stay under it, and Astra failed it for missing needle mass. An obvious fix under AGENTS.md "Friction reports" (host, 2026-10-04): the dispatch only, no change to which leaves are selected, LOD or frame budget.
+The renderer's foliage selection (`crates/telperion-render/src/select.rs`) dispatched one dimension of `instances / WORKGROUP` groups, and wgpu panics above 65,535 groups (about 4.2M instances): "dispatch group size dimension ([74572, 1, 1]) must be less or equal to 65535" (fn-194 FRICTION.md (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-194-tree-space-d-the-norway-spruce-as-a/FRICTION.md`), 2026-10-04). The spruce had to thin its needles to stay under it, and Astra failed it for missing needle mass. An obvious fix under AGENTS.md "Friction reports" (host, 2026-10-04): the dispatch only, no change to which leaves are selected, LOD or frame budget.
 
 ## Decisions
 

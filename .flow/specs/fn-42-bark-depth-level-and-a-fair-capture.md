@@ -15,6 +15,9 @@ fn-32 gave the bark a plate network that the owner judged "much much better. but
 - The thin chipped profile is an explicit authored row, `plateEdgeShape` (0 rounded, 1 revised, blended), not the smooth-term optimisation flag, which would have changed shape when lichen or lenticels are on.
 - Colour refinement (2026-09-20): the owner called the revised shape "much better" and asked for red/brown layered colour in this spec; directional overlapping flakes go to a separate spec (fn-90).
 - Owner acceptance (2026-09-20): "hm forogt the birch materials but that's probably just tuning from here? if you confirm that i can attest the distance render looks good i'm happy to merge this (squash merge)". The host confirmed birch's controls were preserved; R5 resolved and squash merge authorised.
+- Owner acceptance scope (2026-09-20): the owner accepted the appearance and live distance render and authorized squash merge after the inherited hero failure had been disclosed. The historical hero absolute result (0.03 gate; 0.467093 before, 0.467411 after) remains failed, with an acceptance exception supported by the controlled baseline comparison and the owner's live verdict (source: archived REPORT.md, "Acceptance, 2026-09-20").
+- Integration (2026-09-20): the owner confirmed acceptance of the warmer version; PR #47 squash-merged as a63802a2 after all nine checks passed, the owner's direct approval supplying the merge decision (source: archived REPORT.md and LANDING.md).
+- Owner prompts recorded as friction (2026-09-19): the owner had to prompt continuation after the host ended the reference search early, and asked why work stopped after the colour/parallax checkpoint; the host keeps the full spec objective across worker returns (source: archived FRICTION.md).
 
 ## Acceptance Criteria
 
