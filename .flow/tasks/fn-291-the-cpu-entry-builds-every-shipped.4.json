@@ -4,7 +4,8 @@
   "claimed_at": null,
   "created_at": "2026-10-16T07:39:55.038405Z",
   "depends_on": [
-    "fn-291-the-cpu-entry-builds-every-shipped.3"
+    "fn-291-the-cpu-entry-builds-every-shipped.3",
+    "fn-291-the-cpu-entry-builds-every-shipped.6"
   ],
   "id": "fn-291-the-cpu-entry-builds-every-shipped.4",
   "priority": null,
@@ -12,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-291-the-cpu-entry-builds-every-shipped.4.md",
   "status": "todo",
   "title": "R2c and R3: all 24 cases under 3.5 GiB, stills of the entry's mesh, the probe in test:dist; gate and npm test",
-  "updated_at": "2026-10-16T07:39:55.038405Z"
+  "updated_at": "2026-10-16T08:06:37.789214Z"
 }
