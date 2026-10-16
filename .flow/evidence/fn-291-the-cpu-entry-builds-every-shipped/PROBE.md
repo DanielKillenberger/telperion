@@ -410,3 +410,9 @@ The base native mesh's positions and indices hash equal to the new dist's at see
 | laurelin 42 | 168 px, max 1 | 0 px |
 
 No pixel differs by more than one grey level of 255. I viewed all six sheets. **Verdict: unchanged to the eye** for Telperion and Laurelin at seeds 1, 7 and 42.
+
+### Gate and `npm test`
+
+- Gate, run once at 50ea727f2 through the declared invocation (`CARGO_TARGET_DIR` the worktree's `target/`): `telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`. 1,412 passed, 0 failed, 103 ignored. It was admitted at 16:20:51 after 55 minutes of waiting (FRICTION.md) and finished at 16:58:20. Raw: `raw/gate-t4.log`.
+- `npm test`: 19 files, 170 tests passed. Raw: `raw/npm-test-t4.log`.
+- Not run: `npm run rust:test:wasm`. Its suite includes a browser field test, and the host excluded it for this task, so the bindings suite is not run here.

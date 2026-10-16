@@ -60,3 +60,9 @@ Doing: rendering the Telperion and Laurelin stills (`stills.sh` under `telperion
 Slowed: the dcg hook refuses `driver | node still.mjs`, as an unverifiable pipeline consumer, so the tool now spawns the driver itself; then another job held the heavy room (room 4 to 11 GB for a 14 GB request) from 14:44 for more than 10 minutes before any still was drawn.
 Cost: about 5 minutes on the pipe, and 22 minutes of admission (14:44 to 15:06) in which smaller jobs were admitted ahead of the 14 GB request and no still was drawn. Split into per-step requests (8 GB a dist still, 10 GB a native one), the same twelve renders were admitted at once and took 7 minutes (15:11 to 15:18).
 Would remove it: done in `stills.sh`, which now admits each step at its own size. A general form: an admission that does not starve a large request behind a stream of smaller ones.
+
+## 2026-10-16 - task 4: the gate starves behind smaller heavy jobs
+Doing: the declared gate, `telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`, queued at 15:26 after the review.
+Slowed: other workers' 10 GB jobs (`--gpu 6`) were admitted while the gate's 12 GB request waited; at 15:38 it was still waiting (room 1 to 9 GB). The declared size cannot be lowered without a new measurement (AGENTS.md).
+Cost: 55 minutes of admission (15:25:59 to 16:20:51) before the 35-minute run began.
+Would remove it: admission that queues requests in order, so a waiting larger request is not passed by every smaller one.
