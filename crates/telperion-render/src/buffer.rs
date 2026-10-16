@@ -365,22 +365,6 @@ impl Owned {
     }
 }
 
-/// A buffer a pass binds, its own or one another owner lends it.
-pub(crate) enum Lent<'a> {
-    Own(Owned),
-    Borrowed(&'a wgpu::Buffer),
-}
-
-impl std::ops::Deref for Lent<'_> {
-    type Target = wgpu::Buffer;
-    fn deref(&self) -> &wgpu::Buffer {
-        match self {
-            Lent::Own(b) => b,
-            Lent::Borrowed(b) => b,
-        }
-    }
-}
-
 impl std::ops::Deref for Owned {
     type Target = wgpu::Buffer;
     fn deref(&self) -> &wgpu::Buffer {

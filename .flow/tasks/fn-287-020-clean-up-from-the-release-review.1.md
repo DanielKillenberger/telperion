@@ -8,7 +8,7 @@ R1. The resident position programme's `admit`, `radii` and `finish` entries and 
 
 **Size:** M
 **Files:** `crates/telperion-render/src/generation.rs`, `crates/telperion-render/src/generation/positions.rs`, `crates/telperion-render/src/generation/preparation.rs`, `crates/telperion-render/src/generation/sources.rs`, `crates/telperion-render/src/generation/wood.rs` (the oracle upload `upload_wood`/`UploadedWood` and helpers), possibly `crates/telperion-render/src/generation/io.rs`
-**Touches:** [crates/telperion-render/src/generation.rs, crates/telperion-render/src/generation/positions.rs, crates/telperion-render/src/generation/preparation.rs, crates/telperion-render/src/generation/sources.rs, crates/telperion-render/src/generation/wood.rs, crates/telperion-render/src/generation/io.rs, crates/telperion-render/src/generation/*tests.rs, crates/telperion-render/src/generation/resident/*tests.rs]
+**Touches:** [crates/telperion-render/src/generation.rs, crates/telperion-render/src/generation/positions.rs, crates/telperion-render/src/generation/preparation.rs, crates/telperion-render/src/generation/sources.rs, crates/telperion-render/src/generation/wood.rs, crates/telperion-render/src/generation/io.rs, crates/telperion-render/src/buffer.rs, crates/telperion-render/src/generation/compute.rs, crates/telperion-render/src/generation/*tests.rs, crates/telperion-render/src/generation/resident/*tests.rs]
 
 ### Approach
 - `Generator::create` (generation.rs, the `positions` `io::Pass::new` with `["emit", "admit", "radii", "finish"]`): production names `emit` only; the three oracle entries are added only under `cfg(test)`, from one entry table (a const for the production entries and a `cfg(test)` extension), never a runtime switch and never a second constructor.

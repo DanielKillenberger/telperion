@@ -286,16 +286,16 @@ impl Generator {
             if count == 0 {
                 self.empty()
             } else {
+                let rings = &*uploaded_wood.as_ref().unwrap().positions;
                 let p = foliage::prepared::PreparedStations {
                     segments,
                     count,
                     ring_size,
-                    rings: crate::buffer::Lent::Borrowed(
-                        &uploaded_wood.as_ref().unwrap().positions,
-                    ),
+                    rings,
                 };
                 let (leaves, twig) = (x.leaves(), x.twig());
-                self.compute_buffer_async(p, &leaves, twig, element, x.reference(), &mut metrics)
+                let (lent, reference) = (rings.size(), x.reference());
+                self.compute_buffer_async(p, lent, &leaves, twig, element, reference, &mut metrics)
                     .await
             }
         } else {
