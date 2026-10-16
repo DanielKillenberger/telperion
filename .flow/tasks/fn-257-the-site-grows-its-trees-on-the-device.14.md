@@ -11,6 +11,7 @@ R8b: `telperion/field` takes the grid (resolution over the tree's bounds) and re
 **Touches:** [src/browser/**, tests/browser/**, crates/telperion-render/src/web/field.rs, src/field/**, src/probe/field/**, docs/field-package.md, README.md, scripts/test-dist.mjs, scripts/artifact-budgets.json, crates/telperion-wasm/src/**]
 
 ### Approach
+- The Rust half (Wasm field exports, `WebField`) moved to task 13 (host); this task is the TypeScript entry, its types and tests, the voxelizer, the docs, `test-dist`, the budgets and the browser binding tests against the rebuilt Wasm.
 - `WebField`: the field request names the grid (`n`, the spec's grid definition); it returns `{ n, cell, origin }` and one answer per cell; `query(cells)` goes. `n` outside 3..=256 or past the device's limits is refused by name before any work (Node test for each).
 - TS: `FieldTree` / `FieldAnswer` types for the grid; `voxelize` consumes the grid; the probe worker times grow + grid.
 - `voxelize.ts`'s `grid` stays the definition; `voxelize` reads the returned grid instead of building cells to query.
