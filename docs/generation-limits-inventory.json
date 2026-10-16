@@ -1726,5 +1726,17 @@
     "site": ". max ( 0 . )",
     "classification": "algorithm",
     "reason": "The oldest living frond's place on the spiral is one short of the apex's whole fronds, none below the first (fn-277); it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/chunks.rs",
+    "site": ". min ( rest - 1 )",
+    "classification": "algorithm",
+    "reason": "A split run's middle piece stops one ring short of the run's end, so the last piece always holds rings; it bounds a piece by the run it cuts, not a generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/chunks.rs",
+    "site": "if repeats = = 1 & & v < segments {",
+    "classification": "algorithm",
+    "reason": "Addresses the first ring a split run's last piece repeats; it selects a vertex's place in its chunk and limits nothing generated."
   }
 ]
