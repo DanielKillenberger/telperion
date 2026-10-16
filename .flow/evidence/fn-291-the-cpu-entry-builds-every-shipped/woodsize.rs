@@ -43,6 +43,7 @@ fn main() {
         "both" => (true, true),
         "surface" => (true, false),
         "foliage" => (false, true),
+        "skeleton" => (false, false),
         other => panic!("outputs: both, surface or foliage, not {other}"),
     };
     let mut f = params::by_identity(&id).unwrap();

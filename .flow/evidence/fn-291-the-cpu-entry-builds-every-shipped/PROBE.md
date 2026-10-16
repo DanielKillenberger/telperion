@@ -97,3 +97,60 @@ This is a design choice, and task 1 does not make it. The options the measuremen
 5. **memory64 or a second binding.** Out of scope under the spec's Boundaries.
 
 Options 1, 3 and 4 change what a shipped preset promises. Option 2 is the only one that changes nothing the owner set, but the measured margin says it may not hold for every seed.
+
+## Task 2: where the Wasm memory goes, and the floor R2a and R2b can reach
+
+I measured this on 2db376e1e, before any R2a code change. It is the measure-first step of task 2.
+- `trace-pages.py` is a throwaway traced build of the binding. It is applied, built into a scratch target and reverted, so it is never committed patched.
+- It records the Wasm memory at the end of growth and around every wood reservation of at least 16 MiB.
+- `trace-case.mjs` runs one case through it. Raw rows: `raw/trace-base.jsonl`.
+- Native live sets come from `woodsize.rs` (now with a `skeleton` selector). Raw rows: `raw/woodsize-skeleton.log`.
+
+### Wasm memory (MiB) at each step, surface and foliage
+
+| case | after growth | rings `positions` | rings `coords` | faces `normals` | faces `indices` |
+|---|---|---|---|---|---|
+| telperion 1 | 1,519 | +491, 1,519 → 2,011 | +327, → 2,338 | +491, → 2,829 | +975, → 3,805 |
+| telperion 7 | 2,693 | +831, → 3,524 | +554, → 4,078 | +831, **fails** at 4,078 | — |
+| telperion 42 | 2,740 | +831, → 3,572 | +554, **fails** at 3,572 | — | — |
+| laurelin 7 | 2,578 | +773, → 3,352 | +515, reused, 3,352 | +773, **fails** at 3,352 | — |
+| laurelin 42 | 2,618 | +777, → 3,396 | +518, reused, 3,396 | +777, **fails** at 3,396 | — |
+
+The growth stage alone leaves 2.6 to 2.7 GiB of Wasm memory, and those pages never return. A native skeleton-only build of telperion seed 7 peaks at 3,003 MiB and keeps 604 MiB. Its nodes `Vec` is the largest single allocation at 528 MiB.
+
+About 2 GiB of that memory is free once growth ends. Even so, the first large wood reservation never reuses it: `positions` grows the memory by its full size in every case. Only laurelin's `coords` fit into the freed space. The allocator needs one contiguous run for each buffer, and growth leaves its free space in pieces.
+
+### The floor
+
+The floor is the smallest live set at the end of the build that R2a and R2b allow. These allocations are all alive together, because the CPU entry hands them to JS:
+- positions as they are (f32 ×3)
+- normals oct-encoded at 4 B a vertex (R2b)
+- indices as they are (u32; R2b covers per-vertex data only)
+- the leaf instances (12 B a leaf)
+- the tree, which `faces()` and the leaves read and which the metadata reads at the end
+
+Bark coords never reach JS. The floor is given twice: with coords freed by R2a, and with coords kept at 2×u16 as R2b names them. It assumes perfect R2a: no fragmentation and nothing else alive.
+
+| case | positions | normals (oct) | indices | tree | leaves | floor, coords freed | floor, coords u16 |
+|---|---|---|---|---|---|---|---|
+| telperion 7 | 831 | 277 | 1,651 | 604 | 32 | **3,395** | **3,672** |
+| telperion 42 | 831 | 277 | 1,651 | 604 | 32 | **3,395** | **3,672** |
+| laurelin 7 | 774 | 258 | 1,537 | 604 | 30 | **3,203** | **3,461** |
+| laurelin 42 | 778 | 259 | 1,545 | 604 | 30 | **3,216** | **3,475** |
+
+The bar is 3,584 MiB (3.5 GiB).
+- **Coords u16, as R2b names them:** telperion at seeds 7 and 42 is 88 MiB over the bar even with perfect R2a.
+- **Coords freed:** telperion's floor is 189 MiB (5%) under the bar. That margin assumes zero allocator slack.
+
+The measurements contradict zero slack.
+- Telperion seed 1 builds today at 3,805 MiB against a live end set of 2,586 MiB, so the slack is 1,219 MiB.
+- Every failing case grows the memory past its 2.6 to 2.7 GiB growth peak for its first wood buffer.
+- At a 2.69 GiB growth peak, the 2,759 MiB of wood outputs cannot all land in the about 2.09 GiB that growth frees. At least about 670 MiB must grow the memory beyond the peak, so the high-water mark is at least about 3.36 GiB before any fragmentation.
+
+Other seeds are not covered. Telperion at seeds 7 and 42 is 3.36M nodes, under the wasm32 ceiling of 4M kept phytomers. A larger seed takes the floor up in proportion.
+
+**Gap (stop condition met).** With R2b as written (oct normals, u16 bark coords), the floor for Telperion is 3,672 MiB against a 3,584 MiB bar: 88 MiB over before any slack. With coords also freed, it is 3,395 MiB: 189 MiB under the bar only at zero slack, while the measured slack is 1,219 MiB on the one case that builds. R2a and R2b cannot reach the bar with headroom.
+
+The lever the measurements point to is the index buffer: 1,651 MiB, 43% of the wood. Every index follows from the ring topology (`surface/prepared.rs`; base, rings and sides per run), except dropped zero-area triangles. Handing JS a run table instead of `indices` would bring the floor to about 1.7 to 2.0 GiB. Growth's 2.7 GiB peak would then be the high-water mark. That changes the package's output format, it is not per-vertex data, and it is the host's call. So is any change to positions' precision or to growth's peak.
+
+No crate code was changed in task 2. Every preset's wood is unchanged.
