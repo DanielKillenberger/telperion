@@ -196,6 +196,8 @@ mod boots_tests;
 pub(super) mod budget;
 mod build;
 #[cfg(test)]
+mod drawn_memory_tests;
+#[cfg(test)]
 mod field_probe_tests;
 #[cfg(test)]
 mod full_card_tests;
