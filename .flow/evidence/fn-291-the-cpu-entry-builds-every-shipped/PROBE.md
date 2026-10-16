@@ -215,3 +215,45 @@ R2b cannot close the gap. Its live floor (3,551 MiB for telperion) is only under
 The levers the measurements point to are both outside R2a and R2b as decided, and both are the host's call:
 - **The index buffer.** It is 1,651 MiB, 43% of the wood. It is derivable from the ring topology, so it could be handed to JS as a run table, or in pieces under a run of 831 MiB.
 - **Growth's 2.7 GiB peak and its fragmentation.**
+
+## Task 5: the wood in chunks
+
+Measured 2026-10-16 on 5b2636d62 (the chunked wood). The CPU wood is now written as chunks of at most 65,536 vertices, each with its own positions, normals, coords and `u16` indices, each buffer reserved on its own at exact size as its chunk is written. No wood buffer needs a free run larger than 768 KiB (a full chunk's positions or normals).
+
+### Values unchanged
+
+The longest run of any shipped preset at its own seed is 9,642 vertices (date-palm), so no shipped run splits. `flatdigest-base.rs` digested each preset's flat wood on the base commit 9eed854d0: FNV-1a over every position, normal and coord's bits, then every index in draw order. `flatdigest.rs` digests the chunks laid end to end (`SurfaceMesh::flattened`, indices made absolute) in the same way. All 8 digest lines are identical (raw: `raw/flatdigest-base.log`, `raw/flatdigest-chunks.log`):
+
+| preset (seed 42) | digest | vertices | chunks |
+|---|---|---|---|
+| ordinary | 5faf7f491f2f7cf0 | 3,338,382 | 52 |
+| oregon-white-oak | 755c892c91da12dd | 6,300,258 | 97 |
+| norway-spruce | 6b12178fadc5850e | 24,527,020 | 376 |
+| european-beech | 13e40e280c7135c2 | 5,499,992 | 85 |
+| silver-birch | b8a46eac9d5c6c78 | 6,708,960 | 103 |
+| date-palm | 060aa52679caaeb4 | 25,494 | 1 |
+| telperion | e31b0b89bcbbb198 | 72,631,958 | 1,113 |
+| laurelin | da746f7a93aa7735 | 67,981,374 | 1,042 |
+
+The species digests (`suite/species.rs`) and the bark hashes (`telperion-render/tests/bark_*.rs`) hash the chunks laid end to end, and none was re-pinned. A run longer than a chunk is covered by `chunks::tests::a_run_longer_than_a_chunk_splits_with_no_value_changed` (140,000 vertices over three chunks).
+
+### The high-water mark
+
+`probe-dist.mjs` on the built `dist/`, one fresh engine per case, surface and foliage. Raw rows: `raw/probe-chunks.jsonl`. The trace is `trace-pages.py`, now also marking the end of the wood's mesh step, because chunk reservations fall under its 16 MiB floor. Raw rows: `raw/trace-chunks.jsonl`. Wasm memory in MiB:
+
+| case | before (task 2) | after growth | after the wood | high-water | outcome |
+|---|---|---|---|---|---|
+| telperion 1 | 3,805 | - | - | 2,132 | built, 1,985,625 nodes |
+| telperion 7 | fails at 4,078 | 2,693 | 3,574 | **3,608** | built, 3,358,968 nodes |
+| telperion 42 | fails at 3,572 | - | - | **3,608** | built, 3,359,470 nodes |
+| laurelin 1 | 3,586 | - | - | 2,100 | built, 1,859,572 nodes |
+| laurelin 7 | fails at 3,868 | 2,578 | 3,329 | 3,567 | built, 3,127,437 nodes |
+| laurelin 42 | fails at 3,915 | 2,618 | 3,345 | 3,583 | built, 3,143,212 nodes |
+
+Every case builds. The chunks land in the memory growth freed: telperion seed 7's wood keeps 3,042 MiB live (positions 831, normals 831, coords 554, `u16` indices 826) and grows the memory by only 881 MiB past growth's 2,693. Telperion at seeds 7 and 42 is still 24 MiB over the 3,584 MiB bar. Laurelin 42 is 1 MiB under it.
+
+### R2b's projected effect
+
+R2b stores each vertex's normal oct-encoded in 4 B (from 12) and its bark coords in 2 × `u16` (from 8): 12 B saved a vertex. Telperion seed 7 has 72.6M vertices, so R2b saves 554 MiB of normals and 277 MiB of coords, 831 MiB in all. The wood stage grew the memory by 881 MiB, so a wood 831 MiB smaller fits all but about 50 MiB of itself into what growth freed. Projected high-water: about 3,608 - 831 = 2,777 MiB for telperion, under the bar by about 800 MiB. That assumes the saving comes off the top of the memory, which is inferred, not measured: it holds if the smaller chunks land where the larger ones did. The bar needs only 24 MiB of the 831 to come off the top. **The bar is in reach; no stop.** Task 6 measures it.
+
+The trace patch was applied, built into a scratch target and reverted; the crate was never committed patched.

@@ -1,8 +1,9 @@
 """fn-291 task 2: a throwaway traced wasm build of the CPU entry.
 
-`apply <root> <save-dir>` saves the three files it edits into <save-dir> and
-patches them so every wood reservation of at least 16 MiB, and the end of
-growth, records (where, MiB requested, Wasm MiB before, Wasm MiB after) into
+`apply <root> <save-dir>` saves the files it edits into <save-dir> and
+patches them so every wood reservation of at least 16 MiB, the end of
+growth and (task 5, where the chunks reserve under 16 MiB each) the end of
+the wood's mesh step, records (where, MiB requested, Wasm MiB before, Wasm MiB after) into
 a static the entry's metadata returns as `trace`. `revert <root> <save-dir>`
 copies the saved files back. Build the binding into a scratch target between
 the two, copy it over a scratch copy of dist/ as telperion.wasm and run
@@ -50,6 +51,10 @@ FILES = {
         "    let inputs = Inputs::of(family, grown_envelope(&skeleton.tree));\n",
         "    crate::wasm_mark(\"grown\".into(), 0, crate::wasm_mib());\n"
         "    let inputs = Inputs::of(family, grown_envelope(&skeleton.tree));\n",
+    )],
+    "crates/telperion-core/src/pipeline/drawn.rs": [(
+        "    let wood = wood?;\n",
+        "    crate::wasm_mark(\"wood\".into(), 0, crate::wasm_mib());\n    let wood = wood?;\n",
     )],
     "crates/telperion-wasm/src/generate.rs": [(
         "    let meta = json!({\n",
