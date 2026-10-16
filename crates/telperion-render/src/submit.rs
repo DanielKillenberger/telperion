@@ -97,6 +97,7 @@ pub(crate) fn fits_count(limits: &wgpu::Limits, mesh: &TreeMesh, instances: usiz
         ("foliage level counters", selection.counts, stored),
         ("foliage indirect arguments", selection.arguments, stored),
         ("foliage selection scratch", selection.scratch, stored),
+        ("foliage level starts", selection.starts, stored),
     ];
     for (buffer, payload, limit) in payloads {
         // The allocation is judged, not the payload: buffers are taken with
