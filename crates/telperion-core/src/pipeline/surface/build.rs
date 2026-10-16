@@ -47,6 +47,7 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     let sweep = Sweep {
         drawn: true,
         edges: false,
+        distances: false,
     };
     let rings = rings(tree, height, params, sweep)?;
     let faces = faces(&rings, tree, height, params)?;
@@ -65,10 +66,10 @@ pub(crate) struct Faces {
     pub(super) dropped: usize,
 }
 
-/// One chunk's normals and indices.
+/// One chunk's normals (`encode::normal`) and indices.
 #[derive(Debug, Default)]
 pub(crate) struct FaceChunk {
-    pub(super) normals: Vec<f32>,
+    pub(super) normals: Vec<i16>,
     pub(super) indices: Vec<u16>,
 }
 
@@ -125,7 +126,8 @@ pub(crate) fn faces(
 /// The faces of the chunks `pieces` fill, whole runs of them in order: each
 /// chunk's buffers reserved at their exact size as its first piece is
 /// shaded, each piece's span of its chunk's indices pushed to `spans`, and
-/// the triangles dropped.
+/// the triangles dropped. A run's normals are summed in floats over the run
+/// and then encoded.
 pub(super) fn shaded(
     rings: &Rings,
     resweep: &Resweep,
@@ -139,6 +141,9 @@ pub(super) fn shaded(
     let indices = rings.layout.indices(segments, true)?;
     let count = pieces.last().map_or(0, |p| p.chunk + 1) - first;
     let mut chunks: Vec<FaceChunk> = reserved(count)?;
+    let whole = pieces.iter().filter(|p| p.lead && p.tail);
+    let longest = whole.map(|p| p.vertices(segments, true)).max();
+    let mut normals = reserved(longest.unwrap_or(0) * 3)?;
     let mut dropped = 0;
     for run in pieces.chunk_by(|a, b| a.run == b.run) {
         for piece in run {
@@ -147,7 +152,7 @@ pub(super) fn shaded(
                     return Err(Error::ResourceLimit("surface chunk"));
                 }
                 chunks.push(FaceChunk {
-                    normals: reserved(rings.layout.chunks[piece.chunk] * 3)?,
+                    normals: reserved(rings.layout.chunks[piece.chunk] * 2)?,
                     indices: reserved(indices[piece.chunk])?,
                 });
             }
@@ -161,17 +166,32 @@ pub(super) fn shaded(
         let (base, count) = (piece.base, piece.rings);
         let vertices = count * segments + 2;
         let positions = &rings.chunks[piece.chunk].positions[base * 3..(base + vertices) * 3];
-        chunk.normals.resize((base + vertices) * 3, 0.0);
+        normals.clear();
+        normals.resize(vertices * 3, 0.0);
         let start = chunk.indices.len();
-        let normals = &mut chunk.normals[base * 3..];
         let indices = &mut chunk.indices;
         let keep = |t: [u32; 3]| indices.extend(t.map(|i| (base + i as usize) as u16));
         dropped += shade(
-            positions, count, segments, piece.run, resweep, normals, keep,
+            positions,
+            count,
+            segments,
+            piece.run,
+            resweep,
+            &mut normals,
+            keep,
         )?;
+        encoded(&normals, &mut chunk.normals);
         spans.push(span(start, chunk.indices.len())?);
     }
     Ok((chunks, dropped))
+}
+
+/// Unit normals, three floats each, encoded onto the end of `out`.
+fn encoded(normals: &[f32], out: &mut Vec<i16>) {
+    for n in normals.as_chunks::<3>().0 {
+        let [x, y, z] = n.map(f64::from);
+        out.extend(encode::normal(Vec3::new(x, y, z)));
+    }
 }
 
 /// A piece's span of its chunk's indices, from where it started to `end`.
@@ -243,16 +263,16 @@ fn split(
     for (piece, &start) in run.iter().zip(&starts) {
         let chunk = &mut chunks[piece.chunk - lead.chunk];
         let held = piece.first * segments * 3..(piece.first + piece.rings) * segments * 3;
-        chunk.normals.extend_from_slice(&normals[held]);
+        encoded(&normals[held], &mut chunk.normals);
         if piece.repeats() {
-            chunk.normals.extend_from_slice(&normals[..segments * 3]);
+            encoded(&normals[..segments * 3], &mut chunk.normals);
         }
         let bottom = piece.lead || piece.repeats();
         for (_, v) in [(bottom, ring), (piece.tail, ring + 1)]
             .into_iter()
             .filter(|c| c.0)
         {
-            chunk.normals.extend_from_slice(&normals[v * 3..v * 3 + 3]);
+            encoded(&normals[v * 3..v * 3 + 3], &mut chunk.normals);
         }
         spans.push(span(start, chunk.indices.len())?);
     }

@@ -144,7 +144,7 @@ fn root_only_and_float32_limits() {
     }
     let flat = build(&tree, 24.0, &p).unwrap();
     assert_eq!(flat.dropped, 2 * 20);
-    assert!(flat.chunks[0].normals.iter().all(|v| v.is_finite()));
+    assert!(flat.flattened().normals.iter().all(|v| v.is_finite()));
     for params in [
         SurfaceParams {
             radial_segments: 2,
@@ -188,14 +188,20 @@ fn every_vertex_carries_how_far_along_and_how_far_around_it_lies() {
     let mesh = build(&straight(), 24.0, &params).unwrap().flattened();
     assert_eq!(mesh.coords.len(), mesh.positions.len() / 3 * 2);
     let turn = std::f64::consts::TAU as f32;
+    // Each coord is kept in sixteen bits, so it decodes within half a code:
+    // of the trunk's eight metres along, and of a turn around.
+    let (metres, around) = (8.0 / 131_070.0 * 1.001, turn / 131_070.0 * 1.001);
     // Three rings up a trunk whose nodes stand four metres apart, then the two
     // caps that close it.
     for (ring, along) in [0.0, 4.0, 8.0].into_iter().enumerate() {
         for k in 0..8 {
             let c = &mesh.coords[(ring * 8 + k) * 2..];
-            assert_eq!(c[0], along, "ring {ring} is not {along} m along the trunk");
             assert!(
-                (c[1] - k as f32 / 8.0 * turn).abs() < 1e-6,
+                (c[0] - along).abs() <= metres,
+                "ring {ring} is not {along} m along the trunk"
+            );
+            assert!(
+                (c[1] - k as f32 / 8.0 * turn).abs() <= around,
                 "vertex {k} of ring {ring} is at {} around it",
                 c[1]
             );
@@ -217,7 +223,7 @@ fn every_vertex_carries_how_far_along_and_how_far_around_it_lies() {
         for (k, c) in ring.as_chunks::<2>().0.iter().enumerate() {
             assert!(c[0] >= previous, "{} m along is below {previous}", c[0]);
             assert!(
-                (c[1] - k as f32 / segments as f32 * turn).abs() < 1e-6,
+                (c[1] - k as f32 / segments as f32 * turn).abs() <= around,
                 "{} is not vertex {k} of a ring of {segments}",
                 c[1]
             );

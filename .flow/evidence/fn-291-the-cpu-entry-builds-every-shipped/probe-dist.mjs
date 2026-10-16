@@ -26,8 +26,9 @@ async function one(dist, id, seed, which) {
     const d = tree.diagnostics;
     Object.assign(row, {
       outcome: 'built', nodes: d.nodes,
-      surfaceFloats: tree.surface?.positions.length ?? 0,
-      surfaceIndices: tree.surface?.indices.length ?? 0,
+      surfaceChunks: tree.surface?.chunks.length ?? 0,
+      surfaceFloats: (tree.surface?.chunks ?? []).reduce((n, c) => n + c.positions.length, 0),
+      surfaceIndices: (tree.surface?.chunks ?? []).reduce((n, c) => n + c.indices.length, 0),
       leaves: tree.foliage?.leaves.length ?? 0,
       timings: d.timings,
     });

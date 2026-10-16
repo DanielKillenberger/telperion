@@ -69,9 +69,9 @@ pub(crate) fn predict(tree: &Tree, inputs: &Inputs) -> Result<Footprint> {
 /// The same reading taken off the live objects: what the specimen in hand
 /// actually holds, so a prediction can be held to it.
 ///
-/// `normals` is `positions`' equal by construction - the sweep reserves each
-/// chunk's two at its vertices - so the wood's two vertex buffers are read
-/// as one count.
+/// `normals` is `coords`' equal by construction - the sweep reserves each
+/// chunk's two at two components a vertex - so the wood's two encoded
+/// vertex buffers are read as one count.
 pub(crate) fn measure(tree: &Tree, wood: &SurfaceMesh, crown: &Instances) -> Footprint {
     let sum = |f: fn(&SurfaceChunk) -> usize| wood.chunks.iter().map(f).sum();
     Footprint {
@@ -108,15 +108,15 @@ mod tests {
         };
         assert_eq!(one_more(|f| f.nodes = 1), size_of::<Node>());
         assert_eq!(one_more(|f| f.leaves = 1), size_of::<Leaf>());
-        // One more vertex is three position floats, three normal floats and
-        // two coordinate floats; one more triangle is three indices, each a
-        // `u16` into its chunk.
+        // One more vertex is three position floats, two oct normal `i16`
+        // and two coordinate `u16`; one more triangle is three indices, each
+        // a `u16` into its chunk.
         assert_eq!(
             one_more(|f| {
                 f.wood.positions = 3;
                 f.wood.coords = 2;
             }),
-            8 * size_of::<f32>()
+            3 * size_of::<f32>() + 2 * size_of::<i16>() + 2 * size_of::<u16>()
         );
         assert_eq!(one_more(|f| f.wood.indices = 3), 3 * size_of::<u16>());
         // And the stored leaf's own size is its words, not a number beside it.

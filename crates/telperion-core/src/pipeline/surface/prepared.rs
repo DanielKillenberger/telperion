@@ -129,7 +129,11 @@ fn prepared(
     edges: bool,
 ) -> Result<(PreparedSurface, Vec<Option<[usize; 4]>>)> {
     tree.validate()?;
-    let sweep = Sweep { drawn: true, edges };
+    let sweep = Sweep {
+        drawn: true,
+        edges,
+        distances: true,
+    };
     let rings = super::rings::rings_mode(tree, height, params, sweep, false, usize::MAX)?;
     let mut p = PreparedSurface::default();
     let [chunk] = &rings.chunks[..] else {
@@ -165,7 +169,7 @@ fn prepared(
         for i in 0..count {
             let start = base + i * segments;
             p.rings.push([
-                chunk.coords[start * 2],
+                chunk.distances[p.rings.len()],
                 ring_radius(&chunk.positions[start * 3..(start + segments) * 3]),
             ]);
         }

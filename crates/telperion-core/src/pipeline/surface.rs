@@ -17,6 +17,7 @@ mod chunks;
 pub mod compact;
 #[cfg(feature = "geometry")]
 mod curve;
+pub mod encode;
 #[cfg(feature = "geometry")]
 mod frames;
 #[cfg(feature = "geometry")]
@@ -101,9 +102,10 @@ pub struct WoodRun {
 /// arithmetic is written once and read twice.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct WoodExtent {
-    /// Floats in every chunk's `positions`, and the same count again in `normals`.
+    /// Floats in every chunk's `positions`: three a vertex.
     pub positions: usize,
-    /// Floats in every chunk's `coords`: two a vertex.
+    /// Components in every chunk's `coords`, two a vertex, and the same
+    /// count again in `normals`.
     pub coords: usize,
     /// Indices in every chunk's `indices`.
     pub indices: usize,
@@ -112,9 +114,9 @@ pub struct WoodExtent {
 }
 impl WoodExtent {
     /// Bytes the four buffers keep, each count times the size of the type
-    /// that holds it. `positions` is counted twice: `normals` is its equal.
+    /// that holds it. `coords` is counted twice: `normals` is its equal.
     pub fn bytes(&self) -> usize {
-        (self.positions * 2 + self.coords) * size_of::<f32>() + self.indices * size_of::<u16>()
+        self.positions * size_of::<f32>() + (self.coords * 2 + self.indices) * size_of::<u16>()
     }
 }
 
@@ -268,11 +270,14 @@ pub struct Bounds {
 #[derive(Debug, Default, PartialEq)]
 pub struct SurfaceChunk {
     pub positions: Vec<f32>,
-    pub normals: Vec<f32>,
-    /// Two floats per vertex: metres along the branch from the root, and the
-    /// angle around it in radians. Bark is drawn along them; no geometry here
-    /// reads them back.
-    pub coords: Vec<f32>,
+    /// Two snorm16 a vertex: its unit normal folded onto the octahedron
+    /// (`encode::unnormal`).
+    pub normals: Vec<i16>,
+    /// Two unorm16 a vertex: metres along the branch from the root over the
+    /// mesh's `along`, and the angle around it over a turn
+    /// (`encode::uncoord`). Bark is drawn along them; no geometry here reads
+    /// them back.
+    pub coords: Vec<u16>,
     pub indices: Vec<u16>,
 }
 #[derive(Debug, Default, PartialEq)]
@@ -281,6 +286,9 @@ pub struct SurfaceMesh {
     /// fit; a run longer than a chunk is split across chunks.
     pub chunks: Vec<SurfaceChunk>,
     pub bounds: Option<Bounds>,
+    /// The longest distance along the wood from the root, in metres: the
+    /// range every chunk's first coord is quantised over.
+    pub along: f64,
     pub runs: usize,
     pub run_table: Vec<WoodRun>,
     /// Triangles dropped because their float32 corners span no area; each
@@ -296,8 +304,9 @@ impl SurfaceMesh {
     pub fn triangles(&self) -> usize {
         self.chunks.iter().map(|c| c.indices.len() / 3).sum()
     }
-    /// The chunks laid end to end, indices made absolute: the flat buffers
-    /// the chunks exist to avoid, for tests and evidence tooling only.
+    /// The chunks laid end to end, indices made absolute and normals and
+    /// coords decoded to floats: the flat buffers the chunks exist to avoid,
+    /// for tests and evidence tooling only.
     #[doc(hidden)]
     pub fn flattened(&self) -> FlatWood {
         let mut flat = FlatWood::default();
@@ -306,8 +315,14 @@ impl SurfaceMesh {
             flat.indices
                 .extend(chunk.indices.iter().map(|&i| base + u32::from(i)));
             flat.positions.extend(&chunk.positions);
-            flat.normals.extend(&chunk.normals);
-            flat.coords.extend(&chunk.coords);
+            for &n in chunk.normals.as_chunks::<2>().0 {
+                let n = encode::unnormal(n);
+                flat.normals.extend([n.x as f32, n.y as f32, n.z as f32]);
+            }
+            for &c in chunk.coords.as_chunks::<2>().0 {
+                flat.coords
+                    .extend(encode::uncoord(c, self.along).map(|v| v as f32));
+            }
         }
         flat
     }

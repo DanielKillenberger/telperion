@@ -176,6 +176,7 @@ impl AttachmentSurface<'static> {
         let rings = vec![RingChunk {
             positions: rings,
             coords: Vec::new(),
+            distances: Vec::new(),
         }];
         Self::bounded(Cow::Owned(rings), ONE, Cow::Owned(edges), segments)
     }

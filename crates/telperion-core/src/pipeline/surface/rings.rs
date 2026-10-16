@@ -15,6 +15,9 @@ pub(crate) struct Sweep {
     pub(crate) drawn: bool,
     /// Each node's contact rings, which only seated leaves read.
     pub(crate) edges: bool,
+    /// Each ring's distance along in place of a drawn wood's bark coords:
+    /// all the prepared surface reads of them.
+    pub(crate) distances: bool,
 }
 
 pub(crate) struct Rings {
@@ -33,16 +36,31 @@ pub(crate) struct Rings {
     /// triangle.
     pub(super) runs: Vec<WoodRun>,
     pub(super) segments: usize,
+    /// The longest distance along the wood, which coords are quantised over.
+    pub(super) along: f64,
     /// The workers the sweep ran on, where it ran in parallel.
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     pub(super) workers: Option<usize>,
 }
 
-/// One chunk's points and coords.
+/// One chunk's points, and its coords (`encode::coord`) or its rings'
+/// distances along.
 #[derive(Debug, Default, Clone)]
 pub(crate) struct RingChunk {
     pub(super) positions: Vec<f32>,
-    pub(super) coords: Vec<f32>,
+    pub(super) coords: Vec<u16>,
+    pub(super) distances: Vec<f32>,
+}
+
+/// What a sweep keeps beside each point.
+#[derive(Debug, Clone, Copy)]
+pub(super) enum Coords {
+    /// Nothing: bare rings.
+    None,
+    /// Bark coords, the distance along quantised over the wood's longest.
+    Bark(f64),
+    /// One distance along a ring, as a float.
+    Distances,
 }
 
 impl Rings {
@@ -61,6 +79,7 @@ impl Rings {
                 })
                 .collect(),
             bounds: faces.bounds,
+            along: self.along,
             runs: run_table.len(),
             run_table,
             dropped: faces.dropped,
@@ -113,6 +132,7 @@ pub(super) fn rings_mode(
         layout: Layout::default(),
         runs: Vec::new(),
         segments,
+        along: 0.0,
         #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
         workers: None,
     };
@@ -123,6 +143,7 @@ pub(super) fn rings_mode(
     let height = height.max(1e-6);
     let angular = angular::samples(segments, params)?;
     let distance = distances(tree)?;
+    out.along = distance.iter().copied().fold(0.0, f64::max);
     let at = Swept {
         tree,
         height,
@@ -159,7 +180,12 @@ pub(super) fn rings_mode(
     #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
     let _ = parallel_allowed;
     let pieces = &out.layout.pieces;
-    out.chunks = written(at, &ordered, &out.layout, pieces, sweep.drawn, &mut scratch)?;
+    let coords = match (sweep.drawn, sweep.distances) {
+        (false, _) => Coords::None,
+        (true, false) => Coords::Bark(out.along),
+        (true, true) => Coords::Distances,
+    };
+    out.chunks = written(at, &ordered, &out.layout, pieces, coords, &mut scratch)?;
     if !sweep.drawn {
         return Ok(out);
     }
@@ -173,9 +199,10 @@ pub(super) fn written(
     ordered: &[(usize, f64)],
     layout: &Layout,
     pieces: &[Piece],
-    drawn: bool,
+    coords: Coords,
     scratch: &mut Scratch,
 ) -> Result<Vec<RingChunk>> {
+    let drawn = !matches!(coords, Coords::None);
     let Some(first) = pieces.first().map(|p| p.chunk) else {
         return Ok(Vec::new());
     };
@@ -185,13 +212,18 @@ pub(super) fn written(
         for piece in run {
             if piece.chunk - first == chunks.len() {
                 let vertices = layout.chunks[piece.chunk];
+                let per = |n: usize| match coords {
+                    Coords::Bark(_) => n * 2,
+                    _ => 0,
+                };
+                let rings = |n: usize| match coords {
+                    Coords::Distances => n / at.segments(),
+                    _ => 0,
+                };
                 chunks.push(RingChunk {
                     positions: reserved(vertices * 3)?,
-                    coords: if drawn {
-                        reserved(vertices * 2)?
-                    } else {
-                        Vec::new()
-                    },
+                    coords: reserved(per(vertices))?,
+                    distances: reserved(rings(vertices))?,
                 });
             }
         }
@@ -205,7 +237,7 @@ pub(super) fn written(
                 // Run vertex `v`: a ring the piece holds, or the cap it holds;
                 // a split run's last piece takes its first ring again from
                 // the first piece before its bottom cap.
-                if drawn && v == ring && piece.repeats() {
+                if matches!(coords, Coords::Bark(_)) && v == ring && piece.repeats() {
                     let (lead, segments) = (run[0], at.segments());
                     let (held, rest) = chunks.split_at_mut(piece.chunk - first);
                     let (from, to) = (&held[lead.chunk - first], &mut rest[0]);
@@ -222,8 +254,15 @@ pub(super) fn written(
                 if holds {
                     let chunk = &mut chunks[piece.chunk - first];
                     chunk.positions.extend(xyz);
-                    if drawn {
-                        chunk.coords.extend(coord);
+                    match coords {
+                        Coords::Bark(along) => {
+                            let [d, angle] = coord.map(f64::from);
+                            chunk.coords.extend(encode::coord(d, angle, along));
+                        }
+                        Coords::Distances if v < ring && v % at.segments() == 0 => {
+                            chunk.distances.push(coord[0]);
+                        }
+                        _ => {}
                     }
                 }
             }

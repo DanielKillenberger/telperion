@@ -106,7 +106,9 @@ fn final_fn6_geometry_comparison() {
             error <= 8.0 * f32::EPSILON as f64 * c[0].max(1.0),
             "{id} position error {error}"
         );
-        assert!(normal_error <= 1e-5, "{id} normal error {normal_error}");
+        // The wood keeps its normals octahedral in two snorm16, decoded
+        // within 1e-4 radians (`encode` tests), so a component within 1e-4.
+        assert!(normal_error <= 1e-4, "{id} normal error {normal_error}");
         if let Some(bounds) = wood.bounds {
             for (k, (lo, hi)) in [
                 (bounds.min.x, bounds.max.x),

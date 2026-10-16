@@ -175,7 +175,7 @@ pub extern "C" fn buffer_ptr(slot: u32) -> *const u8 {
                 .snapshot
                 .as_ref()
                 .map_or(std::ptr::null(), |s| s.leaves.topology.as_ptr().cast()),
-            // Slots 0 to 2 and 14 held the flat wood, which is written in
+            // Slots 0 to 2 and 14 held the flat wood; `chunk_ptr` reads its
             // chunks now.
             15 => o.element_coords.as_ptr().cast(),
             // Slots 16 to 18 held the removed growth path's buffers.
@@ -250,6 +250,31 @@ pub extern "C" fn buffer_len(slot: u32) -> usize {
             _ => 0,
         }
     })
+}
+/// One field of wood chunk `chunk`, as bytes: 0 its positions, three f32 a
+/// vertex; 1 its normals, two i16 a vertex, octahedral; 2 its indices, u16
+/// local to the chunk. The metadata's `surfaceChunks` counts the chunks;
+/// any other chunk or field is empty.
+fn chunk_field(o: &Output, chunk: u32, field: u32) -> (*const u8, usize) {
+    let chunk = o
+        .surface
+        .as_ref()
+        .and_then(|s| s.chunks.get(chunk as usize));
+    match (chunk, field) {
+        (Some(c), 0) => (c.positions.as_ptr().cast(), c.positions.len()),
+        (Some(c), 1) => (c.normals.as_ptr().cast(), c.normals.len()),
+        (Some(c), 2) => (c.indices.as_ptr().cast(), c.indices.len()),
+        _ => (std::ptr::null(), 0),
+    }
+}
+#[no_mangle]
+pub extern "C" fn chunk_ptr(chunk: u32, field: u32) -> *const u8 {
+    ENGINE.with(|e| chunk_field(&e.borrow().output, chunk, field).0)
+}
+/// Elements, not bytes, in one field of one wood chunk (`chunk_ptr`).
+#[no_mangle]
+pub extern "C" fn chunk_len(chunk: u32, field: u32) -> usize {
+    ENGINE.with(|e| chunk_field(&e.borrow().output, chunk, field).1)
 }
 /// Explicit experiment export; ordinary builds and queries never allocate snapshots.
 #[no_mangle]

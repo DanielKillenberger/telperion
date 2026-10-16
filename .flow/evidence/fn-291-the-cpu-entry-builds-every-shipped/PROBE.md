@@ -261,3 +261,20 @@ Every case builds. The chunks land in the memory growth freed: telperion seed 7'
 R2b stores each vertex's normal oct-encoded in 4 B (from 12) and its bark coords in 2 × `u16` (from 8): 12 B saved a vertex. Telperion seed 7 has 72.6M vertices, so R2b saves 554 MiB of normals and 277 MiB of coords, 831 MiB in all. The wood stage grew the memory by 881 MiB, so a wood 831 MiB smaller fits all but about 50 MiB of itself into what growth freed. Projected high-water: about 3,608 - 831 = 2,777 MiB for telperion, under the bar by about 800 MiB. That assumes the saving comes off the top of the memory, which is inferred, not measured: it holds if the smaller chunks land where the larger ones did. The bar needs only 24 MiB of the 831 to come off the top. **The bar is in reach; no stop.** Task 6 measures it.
 
 The trace patch was applied, built into a scratch target and reverted; the crate was never committed patched.
+
+## Task 6: the entry returns the chunks, normals and coords compact
+
+The wood is compact from the start. The mesh step sums each run's normals in floats, then writes each chunk's normals octahedral in two snorm16 (4 B a vertex, from 12). The ring step writes bark coords in two unorm16 (4 B, from 8): the distance along over the wood's longest, the angle over a turn. The CPU entry returns each chunk's positions, oct normals and `u16` indices (`chunk_ptr`/`chunk_len`, `surfaceChunks` in the metadata); the flat slots 0, 1, 2 and 14 are gone. The bounds are tested in `surface::encode::tests`: a decoded normal within 1e-4 rad over 200,000 directions and the octahedron's folds, a decoded coord within half a code.
+
+`probe-dist.mjs` on the rebuilt `dist/`, one fresh engine per case, surface and foliage. Raw rows: `raw/probe-task6.jsonl`. Wasm memory in MiB, against the 3,584 MiB bar:
+
+| case | task 5 | task 6 | chunks | outcome |
+|---|---|---|---|---|
+| telperion 1 | 2,132 | 1,640 | 658 | built, 1,985,625 nodes |
+| telperion 7 | 3,608 | **2,777** | 1,114 | built, 3,358,968 nodes |
+| telperion 42 | 3,608 | **2,777** | 1,113 | built, 3,359,470 nodes |
+| laurelin 1 | 2,100 | 1,639 | 616 | built, 1,859,572 nodes |
+| laurelin 7 | 3,567 | 2,783 | 1,037 | built, 3,127,437 nodes |
+| laurelin 42 | 3,583 | 2,755 | 1,042 | built, 3,143,212 nodes |
+
+Every case builds under the bar. Telperion at seeds 7 and 42 is 807 MiB under it, the 2,777 MiB task 5 projected: the 831 MiB R2b saves came off the top. `npm run test:dist` builds Telperion seed 7 through `dist/telperion.js` in 1,114 chunks and checks each one.

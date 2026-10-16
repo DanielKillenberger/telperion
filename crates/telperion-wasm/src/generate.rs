@@ -169,6 +169,8 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         // Stations the plan counts before any cull; zero without a plan.
         "leavesPlanned":leaf_plan.map_or(0,|p|p.total),
         "surfaceBounds":out.surface.as_ref().and_then(|s|s.bounds).map(|b|bounds(b.min,b.max)),
+        // The wood's chunks, each read field by field through `chunk_ptr`.
+        "surfaceChunks":out.surface.as_ref().map_or(0,|s|s.chunks.len()),
         "foliageBounds":leaf_bounds,
         // The box every leaf position is quantised against. A reader of the
         // placement buffer decodes its three words with nothing else.

@@ -56,8 +56,8 @@ fn corner(chunk: &SurfaceChunk, index: u16) -> Vec3 {
 }
 
 fn normal(chunk: &SurfaceChunk, index: usize) -> Vec3 {
-    let n = &chunk.normals[index * 3..];
-    Vec3::new(n[0] as f64, n[1] as f64, n[2] as f64)
+    let n = &chunk.normals[index * 2..];
+    telperion_core::surface::encode::unnormal([n[0], n[1]])
 }
 
 /// The spans tile each chunk's indices in order, every kept triangle has
@@ -75,7 +75,7 @@ fn honest(mesh: &SurfaceMesh) {
             let [a, b, c] = t.map(|i| corner(chunk, i));
             assert!((c - b).cross(a - b).length_squared() > 0.0);
         }
-        for i in 0..chunk.normals.len() / 3 {
+        for i in 0..chunk.normals.len() / 2 {
             assert!((normal(chunk, i).length() - 1.0).abs() < 1e-6);
         }
     }
@@ -176,7 +176,8 @@ fn a_vertex_left_without_a_triangle_faces_out_from_its_ring() {
         let p = corner(&mesh.chunks[0], v as u16);
         let out = Vec3::new(p.x, 0.0, p.z).normalized();
         assert!(
-            normal(&mesh.chunks[0], v).distance(out) < 1e-6,
+            // Within the encoded normal's 1e-4 radians.
+            normal(&mesh.chunks[0], v).distance(out) < 1e-4,
             "vertex {k}"
         );
     }

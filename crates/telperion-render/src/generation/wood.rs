@@ -69,8 +69,8 @@ pub(super) fn compute_fits(limits: &wgpu::Limits, sizes: &[u64], runs: u64) -> b
 
 pub(super) fn cpu_bytes(wood: &telperion_core::surface::SurfaceMesh) -> u64 {
     let chunk = |c: &telperion_core::surface::SurfaceChunk| {
-        (c.positions.capacity() + c.normals.capacity() + c.coords.capacity()) * 4
-            + c.indices.capacity() * 2
+        c.positions.capacity() * 4
+            + (c.normals.capacity() + c.coords.capacity() + c.indices.capacity()) * 2
     };
     (wood.chunks.iter().map(chunk).sum::<usize>()
         + wood.chunks.capacity() * size_of::<telperion_core::surface::SurfaceChunk>()

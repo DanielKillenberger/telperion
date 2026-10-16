@@ -378,11 +378,7 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
     let wood = surface::build(&a.tree, family.skeleton.envelope.height, &family.surface).unwrap();
     assert!(wood.triangles() > 0);
     for chunk in &wood.chunks {
-        assert!(chunk
-            .positions
-            .iter()
-            .chain(&chunk.normals)
-            .all(|v| v.is_finite()));
+        assert!(chunk.positions.iter().all(|v| v.is_finite()));
         let vertices = chunk.positions.len() / 3;
         assert!(vertices <= surface::CHUNK_VERTICES);
         assert!(chunk.indices.iter().all(|&i| (i as usize) < vertices));
@@ -468,8 +464,8 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
     for chunk in &wood.chunks {
         assert_eq!(
             chunk.normals.capacity(),
-            chunk.positions.capacity(),
-            "{name}: the wood's two vertex buffers are read as one count"
+            chunk.coords.capacity(),
+            "{name}: the wood's two encoded vertex buffers are read as one count"
         );
     }
     let flat = wood.flattened();

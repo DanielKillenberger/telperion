@@ -77,7 +77,7 @@ fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
                 "{id}: a chunk of {vertices} vertices"
             );
             assert_eq!(end as usize, chunk.indices.len(), "{id}");
-            assert_eq!(chunk.normals.len(), chunk.positions.len(), "{id}");
+            assert_eq!(chunk.normals.len(), vertices * 2, "{id}");
             assert_eq!(chunk.coords.len(), vertices * 2, "{id}");
             assert!(
                 chunk.indices.iter().all(|&i| (i as usize) < vertices),

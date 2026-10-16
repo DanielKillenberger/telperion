@@ -1,4 +1,4 @@
-use super::rings::{written, Scratch};
+use super::rings::{written, Coords, Scratch};
 use super::*;
 use std::{mem::size_of, ops::Range, thread};
 const MAX_WORKERS: usize = 8;
@@ -19,10 +19,10 @@ fn envelope(
     workers: usize,
 ) -> bool {
     let table = size_of::<WoodRun>() as u128;
-    let output = vertices as u128 * 32 + indices as u128 * 2 + runs as u128 * table;
+    let output = vertices as u128 * 20 + indices as u128 * 2 + runs as u128 * table;
     let serial = output + prep as u128 + order as u128 + scratch as u128 + angular as u128;
     let descriptors = runs as u128 * table;
-    let a = vertices as u128 * 20
+    let a = vertices as u128 * 16
         + prep as u128
         + angular as u128
         + descriptors
@@ -200,10 +200,17 @@ pub(super) fn rings(
     if count < 2 {
         return Err(failed());
     }
-    let layout = &out.layout;
+    let (layout, along) = (&out.layout, out.along);
     let parts = on_workers(layout, count, |pieces| {
         let mut scratch = Scratch::new(longest)?;
-        written(at, ordered, layout, pieces, true, &mut scratch)
+        written(
+            at,
+            ordered,
+            layout,
+            pieces,
+            Coords::Bark(along),
+            &mut scratch,
+        )
     })?;
     let mut chunks = reserved(layout.chunks.len())?;
     chunks.extend(parts.into_iter().flatten());

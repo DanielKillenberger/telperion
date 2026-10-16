@@ -64,12 +64,12 @@ fn trunk(nodes: usize) -> Tree {
     }
 }
 
-/// A corner as its bits: position, normal and coords.
-type Corner = [u32; 8];
+/// A corner as its bits: position, encoded normal and coords.
+type Corner = ([u32; 3], [i16; 2], [u16; 2]);
 
-fn corner(positions: &[f32], normals: &[f32], coords: &[f32], i: usize) -> Corner {
-    let (p, n, t) = (&positions[i * 3..], &normals[i * 3..], &coords[i * 2..]);
-    [p[0], p[1], p[2], n[0], n[1], n[2], t[0], t[1]].map(f32::to_bits)
+fn corner(positions: &[f32], normal: [i16; 2], coords: &[u16], i: usize) -> Corner {
+    let (p, t) = (&positions[i * 3..], &coords[i * 2..]);
+    ([p[0], p[1], p[2]].map(f32::to_bits), normal, [t[0], t[1]])
 }
 
 /// A trunk of 140,000 vertices splits over three chunks and changes no
@@ -86,6 +86,7 @@ fn a_run_longer_than_a_chunk_splits_with_no_value_changed() {
     let sweep = Sweep {
         drawn: true,
         edges: true,
+        distances: false,
     };
     let rings =
         |limit| super::super::rings::rings_mode(&tree, height, &params, sweep, false, limit);
@@ -116,7 +117,11 @@ fn a_run_longer_than_a_chunk_splits_with_no_value_changed() {
         |t| drawn.push(t),
     );
     assert_eq!(dropped, Ok(0));
-    let at = |i: u32| corner(&flat.positions, &normals, &flat.coords, i as usize);
+    let at = |i: u32| {
+        let n = &normals[i as usize * 3..][..3];
+        let n = encode::normal(Vec3::new(n[0].into(), n[1].into(), n[2].into()));
+        corner(&flat.positions, n, &flat.coords, i as usize)
+    };
     let expected: Vec<[Corner; 3]> = drawn.iter().map(|t| t.map(at)).collect();
 
     assert_eq!(mesh.chunks.len(), 3);
@@ -139,7 +144,10 @@ fn a_run_longer_than_a_chunk_splits_with_no_value_changed() {
     let mut all = Vec::new();
     for WoodRun { chunk, span } in pieces {
         let c = &mesh.chunks[*chunk as usize];
-        let at = |i: u16| corner(&c.positions, &c.normals, &c.coords, i as usize);
+        let at = |i: u16| {
+            let n = &c.normals[i as usize * 2..];
+            corner(&c.positions, [n[0], n[1]], &c.coords, i as usize)
+        };
         let range =
             span.first_index as usize / 3..(span.first_index + span.index_count) as usize / 3;
         all.extend(

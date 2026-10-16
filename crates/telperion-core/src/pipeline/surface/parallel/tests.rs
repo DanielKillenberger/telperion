@@ -10,6 +10,7 @@ fn capacity_gate_requires_both_phases_to_fit() {
 const DRAWN: Sweep = Sweep {
     drawn: true,
     edges: false,
+    distances: false,
 };
 /// Both phases on every worker, whatever the admission would say, in chunks
 /// of at most `limit` vertices.
@@ -36,6 +37,7 @@ fn candidate(tree: &Tree, params: &SurfaceParams, limit: usize) -> Result<Surfac
         layout,
         runs: Vec::new(),
         segments,
+        along: distance.iter().copied().fold(0.0, f64::max),
         workers: None,
     };
     rings(at, &ordered, &mut out, at.longest()?, workers())?;

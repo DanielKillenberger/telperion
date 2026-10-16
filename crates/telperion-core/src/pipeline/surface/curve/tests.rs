@@ -25,7 +25,8 @@ fn every_presets_rings_are_drawn_from_its_curve_to_the_bit() {
     let _turn = crate::one_tree::turn();
     for (id, tree, height, params) in trees() {
         let mesh = build(&tree, height, &params).unwrap();
-        let runs = mesh.runs;
+        let (runs, along) = (mesh.runs, mesh.along);
+        let kept: Vec<u16> = mesh.chunks.iter().flat_map(|c| c.coords.clone()).collect();
         let mesh = mesh.flattened();
         let curve = curve(&tree, height, &params).unwrap();
         let (positions, coords) = curve.rings(segments(&params)).unwrap();
@@ -35,7 +36,12 @@ fn every_presets_rings_are_drawn_from_its_curve_to_the_bit() {
             bits(&positions) == bits(&mesh.positions),
             "{id}: positions differ"
         );
-        assert!(bits(&coords) == bits(&mesh.coords), "{id}: coords differ");
+        // The wood keeps its coords encoded; the curve's encode to them.
+        let encoded = coords.as_chunks::<2>().0.iter().flat_map(|c| {
+            let [d, angle] = c.map(f64::from);
+            encode::coord(d, angle, along)
+        });
+        assert!(encoded.eq(kept), "{id}: coords differ");
         assert_eq!(curve.runs.len(), runs, "{id}: runs");
         if id == "date-palm" {
             assert!(

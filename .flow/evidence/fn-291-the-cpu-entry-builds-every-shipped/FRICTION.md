@@ -36,3 +36,15 @@ Doing: re-running `flatdigest.rs 1,42 --expect` after the split-run cap fix, und
 Slowed: telperion seed 42 natively needs more than 8 GB; the wrapper killed the run after 13 of 16 lines, and it was re-run at 14 GB.
 Cost: about 3 minutes and one extra build-and-run.
 Would remove it: PROBE.md naming the cap the equivalence check needs (14 GB at seeds 1 and 42) next to the command.
+
+## 2026-10-16 - task 6: a 590 s test call waited out its whole budget for admission
+Doing: the core crate's integration tests after the encoded wood, under `telperion-heavy 14 --threads 8`.
+Slowed: another worktree's workspace gate (devfield, `cargo test --workspace`) held the heavy room; the wrapper printed "room 4 GB for 14" every 30 s until the 590 s timeout, and no test ran. The crate-wide run before it had also hit 590 s, its lib suite alone taking 405 s.
+Cost: about 20 minutes of wall clock, nothing measured.
+Would remove it: an admission that fails fast with a reason when the room is held by another job's gate, and the named wood filter set the task 5 entry asks for.
+
+## 2026-10-16 - task 6: the browser binding suite fails before reaching the wood
+Doing: `npm run rust:test:wasm` (tests/browser/bindings.mjs in headless Chromium) for the chunk reads task 6 added.
+Slowed: the suite stops at checks unrelated to the wood that fail on this base: "ordinary has local branches and a leaf plan" (nodes 152,178 = crossover), "bad height" (envelope height -1 builds; devfield's dist does the same), "caps explicitly partial" and "valid empty outputs" (growth.maxNodes is not honoured). The new chunk checks were replayed in Node against the built Wasm instead (`.flow/tmp/t6/abi.mjs`, all pass).
+Cost: about 15 minutes and three headless runs.
+Would remove it: bringing bindings.mjs up to the current generator (or running it in CI so it cannot go stale); out of this task's scope.
