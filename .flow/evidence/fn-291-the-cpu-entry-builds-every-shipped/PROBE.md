@@ -357,3 +357,56 @@ Byte identity:
 - A native driver (scratch, `joins`) compares the grown tree's `telperion_space::digest` and a hash of every relay's join, bit for bit, on a base worktree and on the narrowed checkout. Both are equal for all 24 cases: `raw/digest-t3-base.txt` and `raw/digest-t3-after.txt`.
 
 The larger lever is still the capacity slack named above: about 230 MiB in the phytomer `Vec`s, and `axes`, `pencils` and `draws` at 2^21 for 1.41M axes. It is not narrowing, so it is left to the host.
+
+## Task 4: the proof, and the check that keeps it
+
+Measured 2026-10-16 on fff95943e (tasks 1, 2, 3, 5 and 6 landed), `npm run build` dist, Node v26.8.1.
+
+### All 24 cases, through `npm run test:dist`
+
+`scripts/test-dist.mjs` now builds every shipped preset at seeds 1, 7 and 42 through `dist/telperion.js`, surface and foliage, each case in its own child process with a fresh engine. Each case checks its wood chunks and fails when `memoryBytes` passes 3,758,096,384 (3.5 GiB, 3,584 MiB). A failing case is named as `telperion.js: <preset> seed <n>: <cause>`, and all failures are listed before the script exits nonzero. The field entry's WebGPU refusal check is kept. The run took 4 min 3 s on the owner's desk (15:21:22 to 15:25:25 under `telperion-heavy 6 --threads 2`). Raw: `raw/test-dist-24.log`.
+
+| preset | seed 1 | seed 7 | seed 42 |
+|---|---|---|---|
+| ordinary | 81 | 108 | 126 |
+| oregon-white-oak | 291 | 342 | 298 |
+| norway-spruce | 1,240 | 1,231 | 1,199 |
+| european-beech | 98 | 172 | 210 |
+| silver-birch | 202 | 309 | 251 |
+| date-palm | 3 | 3 | 3 |
+| telperion | 1,641 | **2,777** | **2,777** |
+| laurelin | 1,640 | 2,789 | 2,757 |
+
+Wasm memory in MiB after the build, one engine per case. All 24 build; the highest is laurelin at seed 7, 795 MiB under the 3,584 MiB bar. Node counts are R1's, unchanged. Against R1's table, every preset's memory fell but the date palm's, 3 MiB before and after (the spruce went from 2,036 to 1,199 MiB at seed 42), and the four failures now build.
+
+The failure message was exercised by hand: `node scripts/test-dist.mjs --case nope 1` prints `telperion.js: nope seed 1: Cannot read properties of undefined (reading 'skeleton')` and exits 1.
+
+CI's package job already runs `npm run test:dist` on the dist unpacked from the tarball. No job there sets `timeout-minutes`, so GitHub's 360-minute default holds and `.github/workflows/tests.yml` is unchanged.
+
+### Every other preset's surface, against the base dist
+
+`surface-check.mjs` builds each case in the base dist (`dist-orig`, the pre-chunk 2db376e1e, whose hashes match `raw/hash-base.txt`) and in the new dist, each in its own process. It compares the positions and the indices made absolute in draw order by hash, and each decoded normal with the base's float normal by angle. Raw: `raw/surface-check.log`.
+
+- The 6 other presets at seeds 1, 7 and 42, and telperion and laurelin at seed 1 (20 cases): positions and indices byte-identical in every case.
+- The worst decoded normal is 6.47e-5 rad (norway-spruce seed 42), inside task 6's 1e-4 rad bound in every case.
+- Bark coords never reach JS through this entry, so there is nothing of theirs to compare here; task 6's `surface::encode::tests` bounds them.
+
+### Stills of the CPU entry's own mesh
+
+`still.mjs` rasterizes the wood a source hands over: orthographic from +z, y up, depth-tested, each triangle flat-shaded (Lambert) by the mean of its three vertex normals, 768 px a panel. Two panels: the whole tree, and the trunk's foot at a twelfth of its height, where a normal's error would show first on wide, smooth faces. The pair shares one camera. `stills.sh` draws them:
+
+- Seed 1: the base flat dist against the new chunked dist.
+- Seeds 7 and 42, which the base dist never built: the new dist against the base native flat mesh, written by `flatmesh-base.rs` (built against a worktree of 2db376e1e, wood and leaves requested as the entry asks).
+
+The base native mesh's positions and indices hash equal to the new dist's at seeds 7 and 42 for both trees, so the only difference in those pairs is the normals' encoding. Each sheet is before, after, and their difference ×8 inverted. Raw: `raw/stills/*.png`, `raw/stills-steps.log`; the six sheets together: `stills.jpg`.
+
+| case | whole tree | trunk's foot |
+|---|---|---|
+| telperion 1 | 104 px differ, max 1 level | 0 px |
+| telperion 7 | 97 px, max 1 | 961 px, max 1 |
+| telperion 42 | 118 px, max 1 | 0 px |
+| laurelin 1 | 106 px, max 1 | 1,027 px, max 1 |
+| laurelin 7 | 100 px, max 1 | 0 px |
+| laurelin 42 | 168 px, max 1 | 0 px |
+
+No pixel differs by more than one grey level of 255. I viewed all six sheets. **Verdict: unchanged to the eye** for Telperion and Laurelin at seeds 1, 7 and 42.

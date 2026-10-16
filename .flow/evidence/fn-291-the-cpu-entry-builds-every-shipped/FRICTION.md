@@ -54,3 +54,9 @@ Doing: writing measurement output to the session scratchpad through a shell vari
 Slowed: the dcg hook refuses any redirect whose target it cannot read literally. Three commands were refused and had to be rewritten as small scripts with literal paths.
 Cost: about 5 minutes and three retries.
 Would remove it: an evidence helper that takes the output path as an argument, or measurement commands written as scripts from the start, as `trace.sh` and `hash.sh` now are.
+
+## 2026-10-16 - task 4: the stills waited for admission, and a pipe into node was refused
+Doing: rendering the Telperion and Laurelin stills (`stills.sh` under `telperion-heavy 14`), and first piping the native base mesh driver into the still tool.
+Slowed: the dcg hook refuses `driver | node still.mjs`, as an unverifiable pipeline consumer, so the tool now spawns the driver itself; then another job held the heavy room (room 4 to 11 GB for a 14 GB request) from 14:44 for more than 10 minutes before any still was drawn.
+Cost: about 5 minutes on the pipe, and 22 minutes of admission (14:44 to 15:06) in which smaller jobs were admitted ahead of the 14 GB request and no still was drawn. Split into per-step requests (8 GB a dist still, 10 GB a native one), the same twelve renders were admitted at once and took 7 minutes (15:11 to 15:18).
+Would remove it: done in `stills.sh`, which now admits each step at its own size. A general form: an admission that does not starve a large request behind a stream of smaller ones.
