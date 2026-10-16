@@ -344,7 +344,7 @@ impl Presenting<'_> {
                 a.side = mix3(b.side, a.side, f);
                 a.vigour = mix(b.vigour, a.vigour, f);
                 a.blend = mix(b.blend, a.blend, f);
-                if let (Some(j), Some(was)) = (a.joined.as_mut(), b.joined) {
+                if let (Some(j), Some(was)) = (a.joined.as_mut(), b.joined()) {
                     if j.node == was.node {
                         j.t = mix(f64::from(was.t), f64::from(j.t), f) as f32;
                         j.below = mix(was.below, j.below, f);
@@ -465,7 +465,7 @@ impl Presenting<'_> {
     /// The radius of the phytomer a relay `a` joins on its bearer, as
     /// drawn; none for any other axis.
     fn bearer_radius(&self, a: &Axis) -> Option<f64> {
-        let (Origin::Relay { parent, .. }, Some(j)) = (a.origin, a.joined) else {
+        let (Origin::Relay { parent, .. }, Some(j)) = (a.origin, a.joined()) else {
             return None;
         };
         self.structure.axes[parent]

@@ -222,7 +222,7 @@ fn a_join_gone_with_its_bearer_fades_with_it() {
         let at = (drawn.gone..drawn.structure.axes.len())
             .find(|&i| drawn_ids[i] == ids[relay])
             .expect("the relay drawn, fading");
-        let j = drawn.structure.axes[at].joined.expect("its join");
+        let j = drawn.structure.axes[at].joined().expect("its join");
         let keep = kept(f);
         assert_eq!((j.below, j.above), (below * keep, above * keep), "at {f}");
         assert!(

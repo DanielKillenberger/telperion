@@ -125,7 +125,7 @@ pub(crate) fn carried(
             // as far as it lived past the waking (`Woken::kept`), so a
             // lifespan crossing a whole cycle moves it by degree (Codex
             // round 5 on fn-206).
-            let ended_here = axes[axis].apex_end == Some(cycle) && draws[axis].outlived.is_some();
+            let ended_here = axes[axis].apex_end == Some(cycle) && draws[axis].outlived().is_some();
             if axes[axis].apex_end.is_none() || ended_here {
                 out.push((presence_real, axis));
             }
@@ -331,7 +331,7 @@ impl Woken {
         let share = q(self.share);
         // A bearer whose age ended within the waking cycle: the part of
         // the cycle it lived past the waking (times on the tick grid).
-        if let (Some(used), Some(end)) = (bearer.outlived, axes[self.bearer].apex_end) {
+        if let (Some(used), Some(end)) = (bearer.outlived(), axes[self.bearer].apex_end) {
             if end == self.cycle && successor[self.bearer].is_empty() {
                 return real((q(used) + share - ONE).max(0.0));
             }
@@ -356,7 +356,7 @@ impl Woken {
             Some(unit) => {
                 let stopped = axes[self.bearer].apex_end == Some(self.cycle + 1) && !bearer.failed;
                 let carried = times(q(unit.survive), q(unit.persist));
-                match bearer.outlived {
+                match bearer.outlived() {
                     // Its age ended within that unit's cycle and nothing
                     // carries it on: it bears the bud as far as it lived
                     // into the cycle, as it does a bud that wakes in that

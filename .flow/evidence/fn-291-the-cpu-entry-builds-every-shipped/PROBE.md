@@ -319,3 +319,41 @@ Post-growth Wasm memory: the `grown` mark of `trace-pages.py` on a traced build 
 | date-palm | 1 | 1 | 1 |
 | telperion | 1,519 | 2,693 | 2,740 |
 | laurelin | 1,445 | 2,578 | 2,618 |
+
+### What was narrowed
+
+Two layouts changed. Neither narrows a value, so neither needs a range bound. No float, no lineage key and no index changed width.
+
+- `Axis.joined` is `Option<Box<Join>>`. `Axis::joined()` still returns `Option<Join>`.
+- `Draws.outlived` is an `f64` and a flag, read through `Draws::outlived()` and set by `Draws::outlive`. The callers now build a fresh axis's draws with `Draws::made`, because the private fields rule out `..Draws::default()` outside the module.
+- The test `grow::tests::an_axis_and_its_draws_stay_compact` holds the native sizes at 232 and 144 B. On the base they are 264 and 152 B.
+- A wasm32 build of the same `size_of` calls gives `Axis` 192 B and `Draws` 104 B, as projected.
+
+### After (measured on the narrowed tree)
+
+Native tables, telperion seed 7, as the settle begins. Raw rows: `raw/tablesize-after.jsonl`.
+- The tables go from 2,541 MiB to 2,461 MiB (-80): `axes` from 528 to 464, `draws` from 304 to 288.
+- The build's native heap peak goes from 3,003 MiB to 2,880 MiB (-123).
+
+Wasm memory after growth, MiB, before → after. Raw rows: `raw/grown-after.jsonl`.
+
+| preset | seed 1 | seed 7 | seed 42 |
+|---|---|---|---|
+| ordinary | 80 → 81 (+1) | 105 → 101 (-4) | 126 → 122 (-4) |
+| oregon-white-oak | 289 → 290 (+1) | 361 → 341 (-20) | 319 → 298 (-21) |
+| norway-spruce | 1,245 → 1,239 (-6) | 1,215 → 1,230 (+15) | 1,204 → 1,198 (-6) |
+| european-beech | 79 → 77 (-2) | 137 → 133 (-4) | 169 → 165 (-4) |
+| silver-birch | 170 → 162 (-8) | 319 → 308 (-11) | 262 → 250 (-12) |
+| date-palm | 1 → 1 (+0) | 1 → 1 (+0) | 1 → 1 (+0) |
+| telperion | 1,519 → 1,487 (-32) | 2,693 → 2,652 (-41) | 2,740 → 2,646 (-94) |
+| laurelin | 1,445 → 1,420 (-25) | 2,578 → 2,584 (+6) | 2,618 → 2,621 (+3) |
+
+**The saving is small, and it does not follow the table bytes case by case.** The tables shrink by about 3%. Wasm memory after growth falls by up to 94 MiB (telperion seed 42), and in three cases it rises by 3 to 15 MiB (laurelin seeds 7 and 42, the spruce at seed 7).
+
+The likely reason is that the memory after growth is set by where the allocator places the doubling `Vec`s, not by their sum. That is inferred, not measured. The build's final high-water does not move for telperion: 2,776 MiB at seed 7 and 2,777 MiB at seed 42, before and after. The wood stage sets it, not growth.
+
+Byte identity:
+- `hash-dist.mjs` gives the same hash for all 8 presets at seeds 1, 7 and 42 (24 of 24): `raw/hash-t3-base.txt` and `raw/hash-t3-after.txt`.
+- A native driver (scratch, `joins`) compares the grown tree's `telperion_space::digest` and a hash of every relay's join, bit for bit, on a base worktree and on the narrowed checkout. Both are equal for all 24 cases: `raw/digest-t3-base.txt` and `raw/digest-t3-after.txt`.
+
+The larger lever is still the capacity slack named above: about 230 MiB in the phytomer `Vec`s, and `axes`, `pencils` and `draws` at 2^21 for 1.41M axes. It is not narrowing, so it is left to the host.

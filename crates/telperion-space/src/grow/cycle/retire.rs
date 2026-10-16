@@ -383,7 +383,7 @@ fn copied(t: &Tree, w: &Working, part: &[usize], stub: &dyn Fn(usize) -> bool) -
                 rank: a.rank,
                 sleep: a.sleep,
                 phase: a.phase,
-                joined: a.joined,
+                joined: a.joined.clone(),
             }
         })
         .collect();
