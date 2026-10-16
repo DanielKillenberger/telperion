@@ -213,7 +213,7 @@ impl Generator {
                 &gpu,
                 sources::positions(),
                 &[true, true, false, false, false, false],
-                &["emit", "admit", "radii", "finish"],
+                &positions::entries(),
             )
         });
         io::programs_ready(&gpu, scopes).await?;

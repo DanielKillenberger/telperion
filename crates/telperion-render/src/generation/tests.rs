@@ -538,3 +538,15 @@ fn compact_position_candidate_does_not_override_station_capability() {
     .unwrap()
     .is_none());
 }
+
+/// Production makes of the position programme only `emit`, which the
+/// resident build's ring seating runs; the comparison route's entries
+/// follow it, test-only (fn-287 R1).
+#[test]
+fn production_makes_only_the_position_emit_entry() {
+    assert_eq!(super::positions::ENTRIES, ["emit"]);
+    assert_eq!(
+        super::positions::entries(),
+        ["emit", "admit", "radii", "finish"]
+    );
+}
