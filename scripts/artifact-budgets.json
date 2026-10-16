@@ -13,15 +13,15 @@
     },
     {
       "path": "dist/telperion-render.wasm",
-      "ceilingBytes": 2800000,
-      "reason": "fn-212 task 10 host decision 4, 2026-10-08, on the branch (the owner accepted raised ceilings there): raised from the owner's 2200000 (2026-09-27: headroom for the render module) to the measured 2732171 bytes plus a small margin, once the fine roots' device executor ships in the render module (its shaders and kernels)",
+      "ceilingBytes": 3700000,
+      "reason": "owner, 2026-10-16 (fn-237, \"fix the rest as proposed\"): raised to the size measured on fn-257's branch (3601258 bytes) and a small margin for this release; fn-242 brings the modules down after it",
       "baselineBytes": 1985291,
       "baselineOn": "master ed23f773 CI package (PR #131)"
     },
     {
       "path": "dist/telperion.js",
-      "ceilingBytes": 153565,
-      "reason": "fn-198 host decision 6, 2026-10-07, on the branch only and for the owner to decide: raised from the owner's 150000 (2026-09-27: headroom for the main entry script) to the measured size once the presets carry the engine species' rows",
+      "ceilingBytes": 200000,
+      "reason": "owner, 2026-10-16 (fn-237, \"fix the rest as proposed\"): raised to the size measured on fn-257's branch (194685 bytes) and a small margin for this release; fn-242 brings the modules down after it",
       "baselineBytes": 119550,
       "baselineOn": "master ed23f773 CI package (PR #131)"
     },
@@ -31,6 +31,13 @@
       "reason": "owner, 2026-09-27: headroom for the field entry script",
       "baselineBytes": 2720,
       "baselineOn": "master ed23f773 CI package (PR #131)"
+    },
+    {
+      "path": "dist/wasm-source.js",
+      "ceilingBytes": 70000,
+      "reason": "fn-257, 2026-10-16: the chunk the main and the field entries share since the field grows through the renderer's glue (64,564 bytes on fn-257's branch); owner's 2026-10-16 decision on raised ceilings, fn-242 after the release",
+      "baselineBytes": 64564,
+      "baselineOn": "fn-257-device-field bdf5c51b3, npm run build"
     },
     {
       "path": "dist/voxelize.js",
