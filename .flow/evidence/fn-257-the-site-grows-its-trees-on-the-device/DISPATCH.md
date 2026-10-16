@@ -1,0 +1,12 @@
+# fn-257 R6: the tiny dispatches, bounded (worker, 2026-10-16)
+
+GROWTH-PROFILE.md put 12,000-14,700 dispatches under 20 µs at 60-74 ms a tree, and the levers line estimated merging them at 30-40 ms. Those milliseconds are the stamped build's, where every dispatch runs in a pass of its own (5-13 µs a launch on this card, `raw/profile/floor.md`). Unstamped, consecutive dispatches share a compute pass (`build_plan.rs`, the recorder's runs), where a dependent dispatch costs about 1.7 µs: 13,000-16,000 dispatches a tree are about 22-27 ms of the 176-358 ms growth, the most any batching can take back.
+
+What they are (oak at 40, cycle 20, `raw/r5/oregon-white-oak-1-stamps.csv`): the hierarchy's step, a round's placing passes each `target`, a scan, `join_place`, `decide`, a scan, `assign`, `follow` (about 84 a cycle); the units and wake rounds, `decide`, `zones`, `after`, `written`, `sprouted`, `placed` per round (about 90); the layout's generations (about 35); the folds and sums by level. Each reads what the one before wrote across the whole table, so none can share a dispatch with its neighbour without a barrier across workgroups, which WebGPU has only between dispatches. The passes already share a compute pass where no copy, clear or sizing point stands between them; the 707 sizing points a tree (`vm_main`, each with the copy of its sizes into the uniforms) break about 700 passes, at most about 5-8 ms.
+
+Two levers remain, each a kernel's redesign rather than a batching:
+
+- **Folding narrow levels into one workgroup**, as `fold.wgsl` already folds the sums' narrow block levels: a hierarchy level or a units round whose rows fit one workgroup runs its whole step chain in one dispatch with workgroup barriers. Bound: the share of the 22-27 ms on levels that narrow; not measured.
+- **Placing passes stopped once a round has placed everything**: the passes after an empty one are recorded and dispatched anyway (`plan_hier.rs`, the `for p in 0..bound.passes` loop, sized by the round, not by what is left). A sizing point between passes could size the next from the last pass's unplaced count. Bound: up to about 70 dispatches a cycle, roughly 5 ms a tree, and one more point a pass.
+
+Neither is taken in this task: the owner put the kernels' own speed after the release, and the measured bound (about 22-27 ms, 5-10 % of growth) is under the estimate the owner accepted the levers on. The task is held for the host's call.

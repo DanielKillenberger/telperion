@@ -42,8 +42,6 @@ mod geometry_benchmark;
 mod growth;
 #[path = "suite/growth_reference.rs"]
 mod growth_reference;
-#[path = "suite/identity.rs"]
-mod identity;
 #[path = "suite/leaf_base_lattice.rs"]
 mod leaf_base_lattice;
 #[path = "suite/leaf_bases.rs"]
