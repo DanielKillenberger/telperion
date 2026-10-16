@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-257-the-site-grows-its-trees-on-the-device",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "needs_work",
+  "completion_reviewed_at": "2026-10-16T12:24:49.409686Z",
   "created_at": "2026-10-09T19:56:28.426262Z",
   "default_impl": null,
   "default_review": null,
@@ -23,7 +23,7 @@
     "fn-257-the-site-grows-its-trees-on-the-device.9": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 0,
+  "plan_review_rounds": 1,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-10-16T07:42:26.203098Z",
   "review_attempts": [
@@ -1351,6 +1351,51 @@
       "task": "fn-257-the-site-grows-its-trees-on-the-device.9",
       "timestamp": "2026-10-16T12:18:11.642342Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "c9f1b0288f60f1244f07e69ad363ca3119a3ee5b25bea84cd3a152d3c8968915",
+      "backend": "codex",
+      "base_sha": "ba86e1da8cc4e7899c332b453bb57f894831af6a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3baea347aa6831c277c34e1f55f13244",
+            "classification": "introduced",
+            "findingId": "finding-3baea347aa6831c277c34e1f55f13244",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "15ae836094a907362a547f79845b1cac37a74f05",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 482621,
+      "output_sha256": "2d54f302f3ab4429eeb52d9c23deefda3be92657efd2c6a3fd2b33bfb8d98519",
+      "reservation_id": "23c4c29e5807490b921256cac85a308e",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-16T12:24:49.397412Z",
+      "tool_calls": 24,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -1368,6 +1413,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-257-the-site-grows-its-trees-on-the-device.10": 0,
     "impl:fn-257-the-site-grows-its-trees-on-the-device.3": 0,
     "impl:fn-257-the-site-grows-its-trees-on-the-device.4": 0,
@@ -1392,5 +1438,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T12:18:11.645757Z"
+  "updated_at": "2026-10-16T12:24:49.417028Z"
 }
