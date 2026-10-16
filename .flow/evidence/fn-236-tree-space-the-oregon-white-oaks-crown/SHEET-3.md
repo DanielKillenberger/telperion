@@ -1,5 +1,8 @@
 # fn-236 sheet 3: round 3, the fine orders fill the crown (worker, 2026-10-09)
 
+> Archived 2026-10-16: `SHEET-2.md`, `ASTRA-CROWN.md`, `oak_views.rs` and `views.sh` named below are not kept; see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/<file>`.
+
+
 Round 3 follows the host's decisions after the leaf rounds (SHEET-2.md) and Astra's review (ASTRA-CROWN.md). It is built on round 1's structure with L3's leaves, and judged at 80 from four azimuths. **At 80 the three seeds read as broad, closed crowns.** Round 3 is committed in `2c6854f3`: the preset's rows and `oak()` together, with `every_engine_preset_carries_the_engines_species` green.
 
 ## What moved

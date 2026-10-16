@@ -4,44 +4,18 @@ satisfies: [R1, R2, R3, R4]
 # fn-46-young-shoots-take-their-own-colour.1 Implement Young shoots take their own colour
 
 ## Description
-Every piece of wood took the trunk's bark colour, so the birch's hanging
-curtain drew in white and the crown read as frost. This task adds four
-material rows (`shootRed`, `shootGreen`, `shootBlue`, `shootRadius`): wood
-under the radius takes the shoot colour and blends to the bark colour by
-twice it, in the wood shader beside the existing radius-based maturity
-term, before mottle, cavity and occlusion. The birch states a dark
-red-brown under 1 cm (VT Dendrology, Atkinson 1992, S-BARE's winter haze);
-the beech an olive grey-brown under 4 mm, stated and not rendered here.
-A host-authorised value pass then matched the birch's leaf faces to
-S-WHOLE's own leaf pixels and lowered its interior darkening.
+Add four material rows (`shootRed`, `shootGreen`, `shootBlue`, `shootRadius`): wood under the radius takes the shoot colour and blends to bark by twice it, before mottle, cavity and occlusion. Birch dark red-brown under 1 cm; beech olive grey-brown under 4 mm.
 
 ## Acceptance
-- [x] **R1** the four rows railed and refused by name, on the wire,
-      blended, on the harness, in the regenerated metadata; the five
-      neutral presets' stills hash identically before and after.
-- [x] **R2** the blend continuous on a synthetic cone (two broken shaders
-      failed the test), mottle still acts on young wood, native and
-      browser draw the same shader.
-- [x] **R3** round 8 rendered and recorded in REPORT.md and
-      `.flow/evidence/fn34/rounds.tsv` (the `round8-fn46` rows); the
-      48-case protocol unchanged.
-- [x] **R4** `crates/telperion-render/tests/shoot_colour.rs` and the rail
-      and wire tests.
-
-## NEEDS_HUMAN — the verdict on round 8, and the dark leaf mass
-
-Commits dbd848a, 9f83930, ff9859e, 2ec33ef. Gates green. The host read
-S-WHOLE: the first birch that reads as a weeping birch, dark strands under
-green leaves on two white stems. The leaf mass is far too dark (35 against
-83), and the worker measured that no leaf row reaches it: even white
-leaves read 78, one per cent of leaf pixels sit above half brightness
-against the photograph's twenty, and shadow, transmission, orientation and
-colour are not the cause. That is fn-52's (a leaf mass lit as a canopy).
-The oak's hero frame measures 3.59 ms median against fn-29's 3.60 ms.
+- [x] R1 rows railed, wire, blend, harness, metadata; five neutral presets' stills hash identically.
+- [x] R2 blend continuous on a synthetic cone; mottle still applies; native and browser share the shader.
+- [x] R3 round 8 recorded (`round8-fn46` rows in `.flow/evidence/fn34/rounds.tsv`); 48-case protocol unchanged.
+- [x] R4 `crates/telperion-render/tests/shoot_colour.rs` plus rail and wire tests.
 
 ## Done summary
-Young wood takes its own colour below a radius, by rows; the birch's dark shoots are stated. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
+Young wood takes its own colour below a radius. Round 8's birch read as a weeping birch; its leaf mass was too dark (35 vs 83), handed to fn-52. Oak hero frame 3.59 ms vs 3.60 ms. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the beech's verdict moved to fn-62.
+
 ## Evidence
-- Commits: 34bf9c2d
-- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
+- Commits: 34bf9c2d (branch: dbd848a, 9f83930, ff9859e, 2ec33ef)
+- Tests: cargo test --release -p telperion-core/-p telperion-render, clippy, npm run typecheck, npm test, node tests/species.mjs --measure-only (48 cases)
 - PRs:

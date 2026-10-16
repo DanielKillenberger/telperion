@@ -48,7 +48,7 @@ This was a throwaway probe, not committed. It is the cycle with no rough layout,
   - a subtree with no living apex and no sleeping bud has a fixed subtotal, because its wood no longer grows;
   - so freezing that subtotal and adding it at the same place keeps every f32 sum identical.
 
-  The same holds for allot, where such a subtree has no lit presence and takes no vigour. This needs no design call. The work is a compacted index space through `balance.rs`, `contract::shed::walk`, `allocation::vigours_from` and `sizes`. It would cut Balance and Allot, which run over every axis every cycle, roughly by the share of axes that stay open: 13 to 40% are active apexes in the busiest cycle (EARLY.md). Memory falls only if retired axes' phytomers also leave the grower, which reaches the settle (see 2 below).
+  The same holds for allot, where such a subtree has no lit presence and takes no vigour. This needs no design call. The work is a compacted index space through `balance.rs`, `contract::shed::walk`, `allocation::vigours_from` and `sizes`. It would cut Balance and Allot, which run over every axis every cycle, roughly by the share of axes that stay open: 13 to 40% are active apexes in the busiest cycle (council early test 1). Memory falls only if retired axes' phytomers also leave the grower, which reaches the settle (see 2 below).
 - **4. Incremental layout.** It is already incremental, read from `draw.rs`:
   - `draw_bent` continues from `pencil.units` and `pencil.laid`;
   - `sketch_round` frames only the axes made in the cycle;
@@ -136,7 +136,7 @@ Restricting retirement to species without `keeps` would be the engine switch COU
 
 ## Decision 1 (subtree order): not started
 
-There is no profile of where Units' 3.1 s goes. `perf_event_paranoid` is 2 and there is no sudo (FRICTION.md).
+There is no profile of where Units' 3.1 s goes. `perf_event_paranoid` is 2 and there is no sudo (local setup).
 
 **Locality is a hypothesis, not a measurement.** The live apexes are already visited in near index order, because new axes append in live order. The per-unit code is the same as F4's roots, which grow the same units in under 1.2 s.
 
@@ -263,7 +263,7 @@ Default age, seed 42, 4 cores, one process per build (`raw/cost-final`). Peak me
 | silver-birch (40) | 0.18 | 0.21 | 0.71 | 182 | 193 | 362 → 252 |
 | ordinary (40) | 0.48 | 0.48 | 0.35 | 206 | 206 | 154 → 112 |
 
-**The cycle's phases (s), before (EARLY.md) and after:**
+**The cycle's phases (s), before (council early test 1) and after:**
 
 | Phase | Telperion before | Telperion after | Spruce before | Spruce after |
 |---|--:|--:|--:|--:|

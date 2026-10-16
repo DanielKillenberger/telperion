@@ -49,7 +49,7 @@
 ## 2026-10-08: no leaf close-up shot in the still runner
 
 - **Doing:** the leaf close-up per age.
-- **Slowed by:** `space/still.rs` has no shot nearer than the 9 m limb view, so a scratch example (`leaf_closeup.rs`) was written and copied into the render crate to run, and a round-10 preset copy swapped in to render the round-10 close-ups.
+- **Slowed by:** `space/still.rs` has no shot nearer than the 9 m limb view, so a scratch example (`leaf_closeup.rs`) (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-213-tree-space-the-silver-birch-as-a-point/leaf_closeup.rs`) was written and copied into the render crate to run, and a round-10 preset copy swapped in to render the round-10 close-ups.
 - **Cost:** about 10 minutes, one extra build.
 - **Would remove it:** a `leaf` shot in the still runner (camera under a metre from an outer leaf).
 

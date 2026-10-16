@@ -16,11 +16,6 @@ All three host rulings are built, and none changes a word: the node tables and t
 - **Exact:** all 24 node-table hashes (8 presets at caps 64, 128 and 1,024) match the post-task-9 hashes, and all 24 stills are pixel-identical to task 11's. The arena gate passes on every preset at seeds 1, 7 and 42 with no move and no refusal.
 - **Gate:** the workspace without the renderer passed 1,066 tests; the renderer under the GPU lock passed 273; npm test passed 162.
 
-stage: impl-review - ran (codex, three reviewers, base d8285cb3c: SHIP, no findings)
-
-Tier: worker on the session model (Opus 5.5).
-
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 55f6d4fe38fe7d72136fc788ec844980a30b049e, 9d12b725e07da26c4c10dcae6632eedd7087e86f, 2656c0ddbba8f65aa58a512968a08f7d842440c4, cd7af62be5854e27760affa0c0739dc8b3bb6569
 - Tests: cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast, cargo test --profile ci -p telperion-render --no-fail-fast (GPU lock), npm test, node_tables_are_hashed NODES_CAPS=64,128,1024, every_preset_grows_in_its_hinted_arena, the_roofline_is_measured (measure.sh)

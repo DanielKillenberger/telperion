@@ -32,7 +32,7 @@ Seats by wood age (years since the phytomer under them grew), Laurelin seed 42: 
 Nothing that is drawn.
 - **The rows.** Laurelin's rachis is 0.72 m with a 24 mm pedicel, six florets, hanging (droop 1). Telperion's is 0.39 m with a 45 mm pedicel, five florets, standing (droop -1).
 - **The gap,** from the seat's wood surface to the floret's base, mm p10 / median / p90: Laurelin 50 / 167 / 391 (seed 42) and 50 / 170 / 394 (seed 1); Telperion 49 / 118 / 245 and 48 / 116 / 245. Every floret has its seat within one reach (rachis plus pedicel).
-- **Checked against the code.** `bloom.rs` `inflorescence` lays the axis (`Axis::laid`, eight segments from the node along the bud's side, turned toward hanging or standing by the droop), places floret `i` at `t = (i + 0.5) / florets` along it, and pushes one transform per floret at `at + stalk * pedicel`. The organ element (`bloom.rs` `element`) is the petals and the stamens alone. The axis and stalks are used for placement and never emitted, as fn-217's review said (ASTRA-REVIEW-DESIGN.md §5).
+- **Checked against the code.** `bloom.rs` `inflorescence` lays the axis (`Axis::laid`, eight segments from the node along the bud's side, turned toward hanging or standing by the droop), places floret `i` at `t = (i + 0.5) / florets` along it, and pushes one transform per floret at `at + stalk * pedicel`. The organ element (`bloom.rs` `element`) is the petals and the stamens alone. The axis and stalks are used for placement and never emitted, as fn-217's review said (ASTRA-REVIEW-DESIGN.md (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-217-tree-space-the-supernatural-group-on/ASTRA-REVIEW-DESIGN.md`) §5).
 
 ### The seating rule, checked against the code, on both executors
 
@@ -175,7 +175,7 @@ The raceme view (`raw/r3d/*-raceme.png`) now shows each rachis and its pedicels.
 
 ### The stills (viewed)
 
-`STALKS-laurelin.jpg` and `STALKS-telperion.jpg`, at the whole, mid, close and raceme views (1920×1080 sources in `raw/r3d/`).
+`STALKS-laurelin.jpg` and Telperion's share-1 sheet (archived), at the whole, mid, close and raceme views (1920×1080 sources in `raw/r3d/`).
 - **Laurelin.** Her racemes hang as golden chains from the shoot tips; at the raceme view each horn hangs on its pedicel from a thin dark rachis that leaves the twig.
 - **Telperion.** His candles stand upright from the tips on a thin rachis, five florets on each; at the mid and whole views the white is heavy.
 
@@ -234,7 +234,7 @@ The host accepts the rachis's cost at the whole view: +2.9 % on Laurelin and +4.
 
 ## R4: the sheets and Astra round 2 (worker, 2026-10-10)
 
-**The owner's sheets, on the unit-thinned build (viewed).** `STALKS-laurelin.jpg` and `STALKS-telperion.jpg`, at the whole, mid, close and raceme views (seed 1, 1920×1080 sources in `raw/r3e/`).
+**The owner's sheets, on the unit-thinned build (viewed).** `STALKS-laurelin.jpg` and Telperion's share-1 sheet (archived), at the whole, mid, close and raceme views (seed 1, 1920×1080 sources in `raw/r3e/`).
 - **Laurelin.** Her racemes hang from the shoot tips as golden chains; at the raceme view each horn hangs on its pedicel from a thin rachis that leaves the twig.
 - **Telperion.** His candles stand on their rachis at the tips. His white is heavy at the whole and mid views, which is pending with the owner.
 
@@ -353,7 +353,7 @@ Per the decision, stopped with the numbers. The trial is kept on its own branch;
 - the bound is that plus about 5 points, as fn-246 set it;
 - the owner's eye against the 4× reference is the real gate. The comment states each of these.
 
-**The pairs for the owner** (viewed): `STALKS-laurelin-whole-reference.jpg` and `STALKS-telperion-whole-reference.jpg`.
+**The pairs for the owner** (viewed): Laurelin's whole-view reference pair (archived) and Telperion's whole-view reference pair (archived).
 - **What each holds:** the whole view at 1920×1080 as the harness draws it, beside the same frame drawn at 4× and box-reduced in linear light (`examples/crown_truth`, raw in `raw/truth/`).
 - **What they show:** Laurelin's gold reads denser and brighter in the live frame than in the reference; Telperion's white reads close, the live frame a little whiter.
 

@@ -1,32 +1,38 @@
 # The harness's controls change the tree, and read plainly
 
-Release (owner, 2026-10-15: "we need to add a spec to the release to fix the harness sliders. While we're at it we may as well redesign it to be more easily usable and intuitive"). The owner found lean doing nothing on the date palm, height doing nothing on the ordinary tree, and "none of the params do anything".
+## Goal
 
-## Cause (diagnosed 2026-10-15; raw tables in fn-237 evidence raw/diag-params/)
+The owner (2026-10-15) found lean doing nothing on the date palm, height doing nothing on the ordinary tree, and "none of the params do anything", and asked for the harness's sliders to be fixed and the panel redesigned to be easier to use. Diagnosis: the harness rebuilt correctly, but of 365 shown rows about 80 changed no tree (scaffold rows the engine never reads, plus the density and torsion adapters), `reach` was a column from the removed growth path, and the engine's `/space` rows (where the palm's lean and the ordinary's height live) were not offered at all. Harness and catalogue browser table only; no tree's values or engine change. Release item.
 
-- The harness rebuilds on every change with the new values (code read, 72 harness tests green). The defect is what the panel shows.
-- `shownRows()` returns 365 rows. Moving each to its window's far end on the palm, ordinary, oak and birch through `pipeline::build`: 182 change some tree; about 99 are honestly dormant for the species (82 supernatural, 16 bloom); about 80 change no tree at all: `/shellDepth`, `/skeleton/{step, attractors, samplingAttemptsPerAttractor}`, all `/skeleton/habit/*`, `/skeleton/envelope/*`, `/skeleton/bias/*`, `/skeleton/growth/*`, all `/skeleton/twigs/*` but `twig/{diameter, internodeLength, stationsPerInternode}`, `/radii/*` but `trunkRadius`; and the density and torsion adapters. On the palm 197 of 364 change nothing.
-- Why: the engine reads only `space.species`, age, seed, light, canopy, `space.trunk` and `supernatural.scale` (`pipeline/space.rs:163`), and the grown envelope replaces the family's (`pipeline.rs:220`). `reach` is computed as `"mature"` unless deprecated or growth-only (`catalogue/browser.rs:121-127`), a column from the removed growth path; `tests/dormancy.rs` is ignored (`:178`, `:201`).
-- The engine's `/space` rows are mapped by `presets/space.rs::read` but are not catalogue groups, so `catalogue::browser()` never emits them (`browser.rs:21-23`). Scaling each key by 1.25: on ordinary 33 keys change the tree, 11 leave their bounds, 10 are unread there; on the palm 14, 6 and 34. Their bounds and meanings live in `species/scale.rs::settings` and the engine's `validate`, not the catalogue. The palm's lean is `/space/ages/2/form/{elevation, tropism, wander}`; ordinary's height is age with `internode` and `elongation`.
+## Decisions
+
+- Owner (2026-10-15): "we need to add a spec to the release to fix the harness sliders. While we're at it we may as well redesign it to be more easily usable and intuitive".
+- Host design (R2): one control per engine key moves all of the species' age classes together on the row's declared scale (log multiplies, linear offsets), opening to per-age values; bounds, units and meanings from one table in `telperion-space` (`species/scale/table.rs`) that `validate` also reads.
+- Host design (R3): groups by what a control does — size and age; trunk and form; branching; leaves and fronds; flowers and fruit; bark and colour; supernatural; a closed "advanced" group — with plain labels, units, one-line meanings, changed-from-preset marks with resets, and a filter box.
+- Deleting the old skeleton rows from the catalogue is out of scope (its own spec if no consumer reads them).
 
 ## Requirements
 
-- **R1 (owner):** every control the harness shows changes the drawn tree of the species on screen, or says beside it that it is dormant for this species and why. A row no shipped tree reads is never shown. An ordinary test builds every shipped preset, moves each shown control within its window, and asserts the tree changes or the row is declared dormant for that preset. A row's `reach` is derived from what the engine reads, never authored by hand.
-- **R2 (owner, host design):** the engine's `/space` rows are offered. One control per key moves all of the species' age classes together on the row's declared scale (`species::scale`: a log-scale row multiplies, a linear row offsets), and opens to the per-age values for finer work.
-- **R3 (owner: "more easily usable and intuitive"; host design):**
-  - Controls are grouped by what they do to the tree, most telling first: size and age; trunk and form; branching; leaves and fronds; flowers and fruit; bark and colour; supernatural (dormant unless the species has it).
-  - Each control has a plain label with units and a one-line meaning from the catalogue.
-  - Each control and group shows when it differs from the species' preset, with a reset per control, per group and for the whole tree.
-  - A filter box finds a control by name or meaning.
-  - Engine-internal rows (sampler tries, level-of-detail and similar) sit in a closed "advanced" group.
-- **R4:** every change still builds at once under the existing live budget (fn-270); grow-in and play the year are unchanged.
-- **R5:** the owner's verdict in the harness on two or three species.
+- **R1:** every shown control changes the species' drawn tree or says why it is dormant; unread rows never shown; `reach` derived from what the engine reads; an ordinary probe test per preset — met (80 rows leave the panel, 365 → 285; adapters removed; `tests/dormancy.rs` replaced by the on-demand probe `tests/controls.rs`).
+- **R2:** the engine's `/space` rows offered, one control per key on its scale — met.
+- **R3:** controls grouped, labelled plainly, marked when changed, resettable, filterable — met.
+- **R4:** every change builds at once under the live budget; grow-in and play the year unchanged — met.
+- **R5:** the owner's verdict in the harness on two or three species — met.
 
-## Boundaries
+## Result
 
-- No change to any tree's values or the engine; the harness and the catalogue's browser table only.
-- Deleting the old skeleton rows from the catalogue is out of scope unless no consumer reads them; if none does, that is its own spec.
+Probe (frozen binary): palm 166 live / 115 dormant / 2 refused, ordinary 154/128/1, oak 154/126/3, beech 154/128/1, birch 155/126/2; one unexplained row on each, `/canopy/clumpSystemOrder`, which carries dormancy text instead. Engine-key probe: palm 17 live / 39 dormant, ordinary 49/9, oak 51/7, beech 49/9, birch 52/6; refused by name: `zone.nodes.min` everywhere (min above max), elongation and expansion on the palm (sum over the year). Gate 1,409 passed, 0 failed; `npm test` 179.
 
-## Owner's verdict (R5, 2026-10-15)
+Owner verdict (R5, 2026-10-15, release branch `f2f8a06bd`): "sliders change the tree yes. Yes settings are clear. groups seem ok to." Accepted.
 
-In the harness on the release branch (`f2f8a06bd`): "sliders change the tree yes. Yes settings are clear. groups seem ok to." Accepted. Open: Norway spruce, Telperion and Laurelin were never probed (memory); `clumpSystemOrder` carries dormancy text instead of a probe pass.
+## Open
+
+- Norway spruce, Telperion and Laurelin were never probed (memory caps on the desk).
+- `clumpSystemOrder` carries dormancy text instead of a probe pass.
+
+## Friction
+
+- A catalogue reference rewrite queued as a heavy job -> a small binary building only `telperion-core` for generated files.
+- A 10 GB claim never admitted on the desk -> `telperion-heavy` explains its wait; claims sized to single-crate builds.
+- The probe outgrew the admitted memory; three presets outgrew every cap -> per-preset memory estimate, probe sizing its concurrency, younger or row-at-a-time builds.
+- The gate could not run on the desk while the owner's dev server and browser held memory -> free desk memory or split the gate by crate.

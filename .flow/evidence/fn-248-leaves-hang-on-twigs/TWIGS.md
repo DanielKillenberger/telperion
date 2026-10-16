@@ -13,7 +13,7 @@ The leading hypothesis holds, but it is only half the cause. The scale makes eve
   - It regrows the engine structure at natural size to recover each node's wood age, as structure age minus phytomer cycle. The conversion does not carry age into `Tree`.
 - Raw output: `raw/twig_layer.log`.
 - Stills: `crates/telperion-render/examples/space_two_trees.rs`, run on the device (whole, mid and close views, group off and on). They are in `raw/stills/`, and every still was viewed.
-- Comparison sheet: `TWIGS-sheet.jpg`. It sets the close and mid views beside two real beech shoots from Wikimedia Commons (CC0; `File:20170921Fagus sylvatica2.jpg` and `File:20170921Fagus sylvatica1.jpg`; EXIF stripped; local copies in `raw/refs/`).
+- Comparison sheet: the comparison sheet (archived). It sets the close and mid views beside two real beech shoots from Wikimedia Commons (CC0; `File:20170921Fagus sylvatica2.jpg` and `File:20170921Fagus sylvatica1.jpg`; EXIF stripped; local copies in `raw/refs/`).
 
 ## Numbers (seed 1)
 
@@ -80,7 +80,7 @@ The fix's design, as the task asked: how the scale should apply to the finest or
 
 ## Host design (2026-10-09), before Astra's review
 
-I viewed `TWIGS-sheet.jpg`. The engine's shoots carry a solid fringe of leaves, like caterpillars or fern fronds. The real beech shoots carry leaves 2-4 cm apart, alternating on thin twigs, each on a visible petiole. The scale makes the twigs read as branches. Three parts, each by degree:
+I viewed the comparison sheet (archived). The engine's shoots carry a solid fringe of leaves, like caterpillars or fern fronds. The real beech shoots carry leaves 2-4 cm apart, alternating on thin twigs, each on a visible petiole. The scale makes the twigs read as branches. Three parts, each by degree:
 
 1. **Leaves follow wood age, not wood radius.** A per-PA engine row, `leaf_years`, sets how many years a phytomer bears its leaf: 1 means current-year wood only, and fractional values blend by degree. At the default (unbounded), today's radius rule decides, and every other species stays byte-identical.
    - **The beech:** `leaf_years` = 1. Its spurs (short shoots) carry the leaves on older wood through fn-223's clusters: `cluster_leaves` 2-3, sourced in the beech's model.
@@ -92,7 +92,7 @@ I viewed `TWIGS-sheet.jpg`. The engine's shoots carry a solid fringe of leaves, 
 
 Order of work: build part 3 first and measure, then parts 1 and 2. Stills follow each part.
 
-## Host decision (2026-10-09), after Astra's review (ASTRA-TWIGS.md)
+## Host decision (2026-10-09), after Astra's review (Astra's review, archived)
 
 Astra's order is adopted: fix the natural tree's foliage first, then measure whether the scale still needs work. "Question, delete, then optimise."
 
@@ -156,7 +156,7 @@ The scope is large: an engine row, the conversion on both executors, the plan, s
 ### Part 2: spacing
 
 - **The value.** `/skeleton/twigs/twig/internodeLength` goes from 0.006 to 0.025 on the beech, Laurelin and Telperion. That is one leaf per node of the shoot's 2.5 cm internode (estimated, fn-193 SOURCES.md).
-- **How it was chosen.** On close stills of the beech at 80 at 6, 15, 25 and 35 mm, against the two beech-shoot photographs (`TWIGS-spacing.jpg`). At 25 mm the leaves alternate along a visible thin shoot, as they do in the photographs. At 35 mm the sprays thin out.
+- **How it was chosen.** On close stills of the beech at 80 at 6, 15, 25 and 35 mm, against the two beech-shoot photographs (the spacing sheet (archived)). At 25 mm the leaves alternate along a visible thin shoot, as they do in the photographs. At 35 mm the sprays thin out.
 - **The comment.** The row's stale comment ("a leaf every 5 cm") now states the value.
 
 ### Proof
@@ -196,7 +196,7 @@ The scope is large: an engine row, the conversion on both executors, the plan, s
 
 ### The stills (viewed)
 
-The sheets are `TWIGS-beech40.jpg`, `TWIGS-spacing.jpg` and `TWIGS-after.jpg`; the full set is under `raw/before`, `raw/after-part1`, `raw/after-part2` and `raw/spacing`.
+The sheets are the beech-at-40 sheet (archived), the spacing sheet (archived) and `TWIGS-after.jpg`; the full set is under `raw/before`, `raw/after-part1`, `raw/after-part2` and `raw/spacing`.
 
 - **Beech 40.** The crown is thinner, and the twigs show between the leaves. At mid, sprays carry leaves spaced along visible shoots. At close, a single spray carries a fan of leaves.
 - **Beech 80 and 92.** At mid and whole, the fine wood is now visible as a bare twig layer inside the crown, with leaves at the shoot ends and spurs. The caterpillar and fern-frond sprays are gone. The crown reads as more open than before; whether it now reads too bare is the owner's call.
@@ -317,7 +317,7 @@ Both targets are met. Height and spread are within 10 % of today's, and the shoo
 - Laurelin: 89 ms at base → 68.9 ms.
 - Florets dominate both draws: 8.6M and 10.4M, unchanged.
 
-**The stills, viewed** (`TWIGS-part3.jpg`, `TWIGS-part3-whole.jpg`).
+**The stills, viewed** (`TWIGS-part3.jpg`, the part-3 whole sheet (archived)).
 - **Close.** The twigs are now ordinary twigs: thin shoots with leaves on petioles beside the real shoot. The racemes (Laurelin) and the corymbs (Telperion) dominate the view.
 - **Whole.** Both crowns now read as open, branchy and nearly leafless, a winter tree hung with flowers. Each tree now carries the natural beech's fine wood and leaves, within 1 % (365,167 against the beech's 361,315 at 80; 526,031 against 520,885 at 92), spread over a crown about 2.5 times as wide. That is about one sixth of the leaf density per area of crown. Under the uniform scale after parts 1 and 2 (468,203 leaves on Laurelin), the crown was already more open than before; its branch systems, 2.5 times larger, still filled more of it than the ordinary-sized ones do now. The two whole views are side by side in `raw/part3-whole-vs-part2.jpg`.
 
@@ -374,7 +374,7 @@ Crown leaf area index (LAI): the one-sided leaf area over the area of the crown'
   - Lifespan 5 with clusters of 4: 5.7 and 8.2.
   - The ratio between age 40 and age 80 stays about 1.4 under each lever, so no setting puts both inside 5 to 7.
 - **Lateral shares.** The fine ages' lateral shares were left as they are. Branch systems already bear short shoots at 0.7 (the top of [LET]'s A24 range) and shoots at 0.6 (the top of A34's).
-- **The stills** (`TWIGS-lai-beech.jpg`, viewed). At 80 the crown is fuller than before, with leaves at the spurs among the visible twigs. At 40 the sprays carry their leaves spaced along thin shoots.
+- **The stills** (the beech LAI sheet (archived), viewed). At 80 the crown is fuller than before, with leaves at the spurs among the visible twigs. At 40 the sprays carry their leaves spaced along thin shoots.
 
 ### The Two Trees cannot reach that LAI within the browser's phytomer ceiling: stopped for the host
 
@@ -431,7 +431,7 @@ The third table is not built.
 
 Both whole views are above 30. Telperion's close view stays below fn-246's 34.
 
-**The stills (viewed, `TWIGS-size.jpg`).**
+**The stills (viewed, the leaf-size sheet (archived)).**
 - Both crowns are fuller.
 - Close up, the leaves are large and sit on ordinary thin twigs.
 - Laurelin's racemes and Telperion's corymbs stay prominent.
@@ -466,7 +466,7 @@ The device route (the harness) lifts the ceiling and grows him: seed 7 has 4.9M 
 - LAI: **6.08** with the group on; 7.30 off.
 - Frame rate (`frames.rs`, 1080p, best of 3): **90.8** fps whole, 25.8 close.
 
-**Astra's reading** (`astra/size-r1.md`, prompt in `astra/size-r1-prompt.txt`). The sheets are both trees at seeds 1 and 7, group off and on, at whole, mid and close views, with the real shoot. The verdict is **AGREE**:
+**Astra's reading** (`the size round-1 answer (archived)`, prompt in `the size round-1 prompt (archived)`). The sheets are both trees at seeds 1 and 7, group off and on, at whole, mid and close views, with the real shoot. The verdict is **AGREE**:
 - off: PASS
 - on: PASS ("large leaves attached through slender petioles to thin shoots")
 - twigs: PASS
@@ -557,7 +557,7 @@ His age is set to **82**: the largest at or under 3.8M, a 5 % margin to `WASM_KE
 
 Telperion's close view is now above fn-246's 34 fps.
 
-**Astra** (`astra/florets-r1.md`, `astra/florets-r2.md`; sheets in `raw/florets/`). Each sheet carries the whole, mid and close views and a 1:1 crop of the mid view at 1080p.
+**Astra** (`the florets round-1 answer (archived)`, `astra/florets-r2.md`; sheets in `raw/florets/`). Each sheet carries the whole, mid and close views and a 1:1 crop of the mid view at 1080p.
 - **Round 1, at 2.4×, with Telperion also at 3.0×:**
   - Laurelin, mid: FAIL. The racemes read; single florets read as "jagged golden marks".
   - Telperion at 2.4×, mid: FAIL.

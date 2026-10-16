@@ -25,7 +25,6 @@ A naga parse and validation of every generation shader now runs in an ordinary t
 
 Open for the host: growth's per-wave readback. The options are a device-side wave expansion now, or leaving it to F4.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 1aa3a5e8, e79d9ba9, 7a9de446
 - Tests: cargo test --profile ci --workspace --no-fail-fast, FINE_GPU_LOCK=<lock> cargo test --profile ci -p telperion-render fine_geometry_at_40_and_80 -- --ignored --nocapture

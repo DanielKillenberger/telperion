@@ -18,7 +18,6 @@ Part 2: the WGSL quotient is now Knuth's algorithm D in 16-bit digits. It matche
 
 The gate is green: render 168 passed, the rest 1,013 passed.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 2e41e078, 62432ff6, 8a08be03
 - Tests: cargo test --profile ci -p telperion-render --no-fail-fast, cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render

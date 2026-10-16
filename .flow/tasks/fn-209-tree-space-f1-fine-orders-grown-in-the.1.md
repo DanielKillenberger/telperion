@@ -29,7 +29,6 @@ Fine roots grow from their records alone on the CPU reference executor (`crates/
   - The executor's home before F4.
 - `docs/pipeline.md` gains a "Fine growth" section.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: ffeaec59, 43f0dbce
 - Tests: cargo test --profile ci --workspace --no-fail-fast (exit 0, 12m21s, under the GPU lock), cargo test --profile ci -p telperion-space --lib fine:: (12 passed)

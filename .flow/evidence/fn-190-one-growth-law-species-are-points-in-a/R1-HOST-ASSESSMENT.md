@@ -25,4 +25,4 @@ The host stops the run after round 5 instead of spending round 6: the rounds are
 2. **Run round 6 on round 4's light** (where the bole held), with spread from branch angle and gravitropism per axis category and the main line's balance read against the tree's reserve. Low odds of meeting R1 in one round; the time bar would still fail.
 3. **Change where the speed bar applies:** the probe proves form, and the time bar binds the production implementation (R5) instead of the probe. This is the owner's call: the bar is the owner's equal-detail rule.
 
-Probe code: `crates/telperion-render/examples/growth_law/` on branch `fn-190-one-growth-law-species-are-points-in-a` (scratch, never merged). Round reports: `R1-ROUND1.md` to `R1-ROUND5.md`; host decisions per round in the spec.
+Probe code: `crates/telperion-render/examples/growth_law/` on branch `fn-190-one-growth-law-species-are-points-in-a` (scratch, never merged). The per-round reports and the spec history with the host decisions per round are archived (`.flow/evidence/ARCHIVE-MANIFEST.md`).

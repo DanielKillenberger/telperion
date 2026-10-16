@@ -107,7 +107,7 @@ Light (`/space/light`) stays the site's (extinction 0.5, sky 0.5): fn-226's verd
 
 ## Round 1 (2026-10-09)
 
-Leader 6 years, limb internode 0.035 m, ψ 0.5 on limbs and boughs, boughs ascending at 0.9 rad, no retained pipe, more short shoots with a thinner pipe. The values, measures, stills and the probes behind them are in SHEET-1.md. It reaches the sizes, the stem and the tuft; it does not reach T1's closed, round crown, which stops for the host.
+Leader 6 years, limb internode 0.035 m, ψ 0.5 on limbs and boughs, boughs ascending at 0.9 rad, no retained pipe, more short shoots with a thinner pipe. (round 1's sheet, archived; decisions in the spec). It reaches the sizes, the stem and the tuft; it does not reach T1's closed, round crown, which stops for the host.
 
 ## The leaves (host decision after round 1: the leaf rows join the brief)
 
@@ -122,4 +122,4 @@ Today's leaf rows (preset, round 1): blade 100 × 75 mm (`/element/length`, `/wi
 
 ## Round 3 (2026-10-09)
 
-On round 1's structure with L3's leaves (140 mm blades, FNA's upper bound, L1): twigs moved to the branch systems' medial nodes at a wider angle, twigs living 5 years at 0.98, the fine orders' light share at 1.0, the fork's limbs at 0.8. All **estimated**. At 80 the three seeds read as broad, closed crowns from four azimuths (width over height 1.09 to 1.12, projected foliage gaps 0.14 to 0.16, against 0.23 to 0.32 for round 1). Measures, probes, the site's field and cost are in SHEET-3.md.
+On round 1's structure with L3's leaves (140 mm blades, FNA's upper bound, L1): twigs moved to the branch systems' medial nodes at a wider angle, twigs living 5 years at 0.98, the fine orders' light share at 1.0, the fork's limbs at 0.8. All **estimated**. At 80 the three seeds read as broad, closed crowns from four azimuths (width over height 1.09 to 1.12, projected foliage gaps 0.14 to 0.16, against 0.23 to 0.32 for round 1). (round 3's sheet, archived; result in the spec).

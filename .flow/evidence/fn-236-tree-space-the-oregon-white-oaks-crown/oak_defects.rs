@@ -6,7 +6,7 @@
 //!   oak_defects <out dir> <ages> <seeds> [<path>=<value>...]
 //!
 //! The family is the preset's value file on disk with each `<path>=<value>`
-//! row replaced or added (as `oak_views.rs`), so a probe needs no rebuild.
+//! row replaced or added, so a probe needs no rebuild.
 //! With `OAK_NO_STILLS` set no GPU is used.
 //!
 //! - (a, b) leaves: the planned leaves by the age of the wood they are
@@ -470,7 +470,7 @@ fn main() -> Result<(), String> {
             );
             if let Some(r) = renderer.as_mut() {
                 // From eye height a few metres off, as the owner stood in
-                // the harness (owner-2026-10-14-fork.png).
+                // the harness (owner-2026-10-14-fork.jpg).
                 let at = tree.nodes[f_node].position;
                 for az in [0.0, 90.0, 180.0, 270.0] {
                     let path = format!("{out}/oak-{age}-{seed}-fork-{{v}}-{az:.0}.png");

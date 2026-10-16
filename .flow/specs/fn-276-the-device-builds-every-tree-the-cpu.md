@@ -1,34 +1,37 @@
 # The device builds every tree the CPU builds
 
-## Goal & Context
+## Goal
 
-fn-272's film (FILM.md, defect 1, 2026-10-14): the device build refuses trees the CPU builds. Beech to Norway spruce at age 40, walk t = 0.00037, 0.01 and 0.1 at seeds 7 and 1: "the build passed its sizes at cycle N: UnitRounds (0x1)" (t = 0.5, 0.9 and both ends build). The Laurelin alone at age 20: "Given (0x1)". The harness and the site build on the device (fn-257), so a dial the owner can reach refuses a real tree; a walk refused on the device runs only on the slow CPU path (Laurelin to Telperion took 1,203 s on the CPU in the film). Both are size-table refusals (fn-270 R4's tables sized by observed counts), unchecked: whether the tables' estimate, a cap or the walk's blended parameters cause them is unknown.
+fn-272's film (defect 1, 2026-10-14): the device refused trees the CPU builds — beech to Norway spruce at age 40 at walk t = 0.00037, 0.01 and 0.1 (seeds 7 and 1) with "UnitRounds (0x1)", and the Laurelin alone at 20 with "Given (0x1)". The harness and site build on the device, so a dial the owner can reach refused a real tree. Reproduce, find the cause against the CPU's counts, size the tables so every tree the budget holds builds on the device, and sweep. Release item (fn-237).
 
-## Requirements
+## Decisions
 
-- **R1 (repro first, standalone):** each refusal reproduced as its own test on the device, red; the CPU build of the same params and seed succeeds in the same test.
-- **R2 (cause):** the table or limit each one passes, against the count the CPU build measures; written down before any fix.
-- **R3 (fix by degree):** tables sized so every tree the CPU builds within the device budget builds on the device; a tree over the budget is still refused by name before submit where its least tables can't fit (fn-270's rule). No species branch, no fallback to the CPU.
-- **R4 (sweep):** every shipped preset at every whole age from 1 to its horizon and to 80, and the film path's walk frames at t = 0, 0.01, 0.1, 0.5, 0.9, 1 for every adjacent pair, at seeds 1, 7 and 42, built on the device: none refused except by the budget, named.
-- **R5:** gate, npm test, review.
+- Host (2026-10-14), fix 1, the species floor: the floor drops the failure term (it was about twice the CPU's count and cost Telperion 6.4 % of its warm build); each cycle's limit is the larger of the observed projection and the floor of units a job grows where none fails; a failure relay past both is still refused by name; `FRAMES` rises to the smallest value holding every floor in the sweep (stop above 16); CPU census counters stay only where a test reads them.
+- Host: fix 3, the node table grows by the box its dispatch is given, its memory charged to the ledger.
+- Host: the made-phytomers dispatch takes its span from the phytomer table's sized counts (the nine Given refusals first confirmed red at 850eb039a).
+- Host: the walk observation (a lifespan of 0 mixed by value) is not fn-276's; recorded for the walk specs.
+- Host (task 2, from the sweep): a build's start margin leaves room for its largest first move (`Sizes::first_move`, checked with `Ledger::fits`), the same ladder, no species branch.
+- Host: the gate queued once; if not admitted in 30 minutes it is skipped and the host runs it on the merged branch.
 
-## Boundaries
+## Acceptance Criteria
 
-Release item (fn-237): the harness and the site reach these trees. Speed of the CPU walk path is not in scope.
+- **R1:** each refusal reproduced as a standalone device test, red, with the CPU build of the same params succeeding — met (`generation::cpu_builds_tests`, seven families).
+- **R2:** the table or limit each passes, against the CPU's count, written before any fix — met (UnitRounds: three stepped limits, units rounds, layout and hierarchy generations, sized from presets at default ages with slack 2, exceeded on walk frames; Given: the made-phytomers dispatch).
+- **R3:** tables sized so every tree the CPU builds within budget builds on the device; over-budget trees refused by name before submit; no species branch or CPU fallback — met.
+- **R4:** every preset at every whole age to its horizon and to 80, and the film's walk frames at seeds 1, 7, 42, built on the device; none refused except by the budget — met (2,034 cases).
 
-## Host rulings (host, 2026-10-14), on R2 (`.flow/evidence/fn-276-the-device-builds-every-tree-the-cpu/CAUSE.md`)
+## Result
 
-- **Fix 1, the species floor: (c) with a measured (b)** (host, 2026-10-14, replacing the first wording after `FLOOR.md`). The reason: the floor with its failure term was about twice the CPU's count, cost Telperion 6.4% of its warm build (more than fn-256 task 12 saved), and passed the job's 6 frames on six walk frames the CPU grows with at most 4 units a job.
-  - The floor drops the failure term. It bounds the units a job grows when no unit fails. Each cycle's limit is the larger of the observed projection (as today) and that floor. A failure relay that passes both is still refused by name (UnitRounds).
-  - Measure the Two Trees' warm build cost with it. It is expected to be about today's; report if it costs more than 1%.
-  - `FRAMES` rises to the smallest value that holds every floor in the R4 sweep. Measure its memory at the jobs actually dispatched per preset, charged to the ledger. If it would need more than 16, stop and report.
-  - R4's sweep is the judge. Any refusal other than the budget's is a stop and a report, with the frame. The CPU-count check runs alongside, so the floor's margin is recorded.
-  - The CPU census's counters stay only where a test reads them.
-- **Fix 3, the node table: yes.** One rule with the dispatch span: the box projected side by side. Measure its memory cost per preset, charged to the ledger that the fn-270-grow-budget branch fixed. Merge that branch's `buffer.rs` fix if the ledger is touched, or tell the host.
-- **The walk observation** (a lifespan of 0 mixed by value): noted, and not fn-276's; the host records it for the walk specs.
-- **Then:** R4's sweep, then the gate once (`telperion-heavy 9 --gpu 4 --threads 4`; if it has not started within 30 minutes, it is skipped and the host runs it on the merged branch), npm test if TypeScript changed, codex review to SHIP, `flowctl done`. The fn-270-grow-budget branch's `buffer.rs` fix is merged only if the ledger is touched, sequenced by the host.
-- **The made-phytomers dispatch** (host, 2026-10-14, after `SWEEP.md`): the dispatch over the phytomers a cycle's units and wake made takes its limit from the phytomer table's sized counts, its end less its start. That is the rule the table already lives by; the count gets no projection from its own history.
-  - First, confirm the nine Given refusals are red at the base commit (850eb039a).
-  - Then measure GPU time on Telperion at 82 and the beech at 30, alternated, and re-run the sweep: the nine cases first, then the whole sweep. Any refusal other than the budget's is a stop and a report.
-- **The Norway spruce at 60 to 80, at the browser's budget** (`TELPERION_DEVICE_BUDGET_MIB=6144`, as the harness has): does it build there, and why is 62 refused (its units table) while 63 to 68 build (and 69 on is refused by its pencils)? Report it; fix it here only where the cause is the same sizing rule.
-- **The gate:** `telperion-heavy 10 --gpu 4 --threads 4`, queued once; if it is not admitted in 30 minutes, it is skipped and reported.
+Three causes fixed: the species floor (`telperion_space::most_units`) beside the observed projection for the units rounds and both generation limits (a job holds 11 frames); the node table grows by its dispatch's box; the made-phytomers dispatch spans the phytomer table. Sweep: 2,034 cases, budget refusals only, CPU count at or under the floor everywhere. Cost: Telperion 82 GPU time +0.8 %; peak 2,484 → 2,631 MB. Task 2: the spruce at 62 (red, 4,203 of 4,096 MiB) builds with room for its first move; the spruce at 60-80 at 6,144 MiB builds at all 63 seed/age points (card cap 5,640-5,838 MiB); at native 4 GiB it builds to 72 except 69 at seed 42, later ages refused by name at later moves; the other 1,794 cases unchanged; GPU time unchanged. Gate 1,383 passed, 1 false failure (a shader edited during the run; passes on HEAD); codex SHIP.
+
+## Open
+
+None (the full gate is the host's on the merged branch).
+
+## Friction
+
+- A refusal names only the first flag raised; three device runs to find three limits -> test switch recording every stepped limit with counts.
+- The CPU census had no per-apex units count -> count it in the census.
+- dcg refused variable-path redirects -> local setup.
+- CPU check of every preset at every age OOM at 8 GB (two spruces near 80 at once) -> size workers by expected tree size.
+- Editing a shader while the gate ran failed `every_shader_file_is_checked` -> run the gate from a frozen copy or hold edits.

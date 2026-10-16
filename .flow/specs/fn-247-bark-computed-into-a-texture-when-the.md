@@ -2,7 +2,7 @@
 
 ## Goal & Context
 
-fn-246 measured the wood's shaded pass at about 30 ms at close views on the oak and the Two Trees, the cost of supersampling the procedural bark relief 9 to 25 times a pixel; a one-sample prefilter was 3× faster but measurably noisier against a 4x supersampled truth (sharp plate walls and furrow edges need more than one sample), and no expected occlusion or tint term could remove it (FPS.md). The owner chose (2026-10-09): ship the prefilter now, and after the release compute each tree's bark into a texture when the tree is built, at runtime (never offline), mipmapped so the hardware filters it: fast and clean.
+fn-246 measured the wood's shaded pass at about 30 ms at close views on the oak and the Two Trees, the cost of supersampling the procedural bark relief 9 to 25 times a pixel; a one-sample prefilter was 3× faster but measurably noisier against a 4x supersampled truth (sharp plate walls and furrow edges need more than one sample), and no expected occlusion or tint term could remove it (fn-246). The owner chose (2026-10-09): ship the prefilter now, and after the release compute each tree's bark into a texture when the tree is built, at runtime (never offline), mipmapped so the hardware filters it: fast and clean.
 
 ## Requirements
 

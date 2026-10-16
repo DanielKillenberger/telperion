@@ -18,6 +18,9 @@ Probe (b) and the oak on the GPU (DESIGN-INTERLEAVE.md, "After Astra's review", 
 Not implemented: superseded (host, 2026-10-16, Astra's release review); see the spec's 'Closed as superseded'.
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
+
+Before: blocked on an owner-level design decision (host, 2026-10-07; TASK5-GPU.md); interim option C, light-reading roots on the CPU.
+
 ## Evidence
 - Commits:
 - Tests:

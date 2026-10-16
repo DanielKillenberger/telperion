@@ -9,7 +9,7 @@ Each claim carries one marker:
 - **estimate**: a cost from the pass structure, with nothing built or measured;
 - **unknown**: not checked.
 
-Frame costs are estimates. The only measured frame times used are fn-208's 80-year engine trees at 960 × 720 with 4 samples (`.flow/evidence/fn-208-tree-space-f3-wood-surfaced-on-the-gpu/STEP5.md:40-55`). The beech hero is 2.7 ms vegetation, 3.3 ms surfacing and 6.7 ms frame. The oak hero is 17.0, 2.6 and 20.2 ms.
+Frame costs are estimates. The only measured frame times used are fn-208's 80-year engine trees at 960 × 720 with 4 samples (fn-208 STEP5, archived; the numbers are in the fn-208 spec). The beech hero is 2.7 ms vegetation, 3.3 ms surfacing and 6.7 ms frame. The oak hero is 17.0, 2.6 and 20.2 ms.
 
 ## 0. The recommendations at a glance
 
@@ -270,7 +270,7 @@ The trees' light mixes through the emitter list (§3.3) whichever option is take
 - The floret has no centre, stamens or eye tint. The `bloomEye*` base tint FLOWERS-DESIGN.md §3 proposed was not built (`material/params.rs:208-257` holds only the two faces).
 - The organ inherits the leaves' canopy-normal bend (`frame.rs:221-245`; `foliage.wgsl:174-178`), which lights a petal as part of the crown's mass. *Inferred:* that flattens the shading within a flower.
 
-*Inferred causes of "flat white scraps" (STILLS.md):*
+*Inferred causes of "flat white scraps" (fn-216 stills reading):*
 
 1. no centre;
 2. one even colour per face;
@@ -294,7 +294,7 @@ The trees' light mixes through the emitter list (§3.3) whichever option is take
 - A sub-pixel floret is rasterised as is, with 4 samples and no alpha-to-coverage (`pass.rs:17`, `:251`, `:311`).
 - *Inferred:* at the hero pose a 3 cm floret on a 25 m tree spans about one sample or less, so its coverage is a hit or a miss.
 - The organ's coarsest level replicates the petal's three-point ladder (`bloom.rs:132-143`; the anchors are base, widest section and tip, `pipeline/foliage/levels.rs:171-186`). Whether that loses area at distance is *unknown*.
-- A value cause is also possible: the beech test was a beech, whose flowers are inconspicuous (STILLS.md, host decision 2).
+- A value cause is also possible: the beech test was a beech, whose flowers are inconspicuous (fn-216 host decision 2).
 
 **Options.**
 
@@ -370,7 +370,7 @@ The spec could split along the brief's own seams: (a) scale and leaves, (b) ligh
 11. **Writhe:** W1, not ported.
 12. **Split:** one spec, or three along the brief's seams.
 
-Not in this design: the Two Trees' values (fn-218, fn-219); wind; the organ in the sun's shadow pass (fn-125, FLORETS.md "Shadows").
+Not in this design: the Two Trees' values (fn-218, fn-219); wind; the organ in the sun's shadow pass (fn-125; fn-229 recorded that flowers cast no shadow).
 
 ## 6. Host decisions (2026-10-08)
 
@@ -396,7 +396,7 @@ Release lens: the owner's goal is a release PR; the old generator's Telperion an
 
 ## 7. After Astra's review (host, 2026-10-08)
 
-Astra's findings are in ASTRA-REVIEW-DESIGN.md; every one is taken.
+Astra's review (archived) raised the findings below; every one is taken.
 
 1. **X2 extended (P1).** Every legendary visual is a group override that applies over the natural row only while `enabled`:
    - the flowering share;

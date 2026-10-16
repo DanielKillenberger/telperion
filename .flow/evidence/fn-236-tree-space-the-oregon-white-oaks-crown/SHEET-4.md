@@ -19,8 +19,8 @@ The acceptance is a leaf area index of 3.2 to 3.3 (Phillips et al. 2003, groves)
 | 40, 1 | 47,248 | 8.4 | 0.378 | 0.256 |
 | 40, 7 | 70,247 | 10.4 | 0.308 | 0.202 |
 | 40, 42 | 47,921 | 7.2 | 0.421 | 0.248 |
-| 80, 1 | 254,764 | 9.7 | 0.311 | 0.158 (SHEET-3) |
-| 80, 42 | 214,119 | 8.8 | 0.302 | 0.143 (SHEET-3) |
+| 80, 1 | 254,764 | 9.7 | 0.311 | 0.158 |
+| 80, 42 | 214,119 | 8.8 | 0.302 | 0.143 |
 
 - Every leaf now stands on wood of age 0.
 - The leaf area index is 2 to 3 times the sources'. The drawn leaf averages 96 cm², at `/canopy/size` 1.4, FNA's largest blade. The host has not ruled on that row.

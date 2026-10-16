@@ -1,17 +1,45 @@
 # The harness never hangs the GPU
 
-## Goal & Context
+## Goal
 
-On 2026-10-08 the owner could not open the harness (`npm run dev` on the birch branch, fn-213 round 14, which carries F4 up to fn-223): every load took a long time, then reported "the GPU device was lost: A valid external Instance reference no longer exists", and Chrome's GPU process crashed until Chrome blocked WebGPU. The host reproduced it in a separate headless Chrome on the RTX 3080 with the GPU otherwise idle: `?species=silver-birch&age=20` sat at "building..." for 90 s, the page responsive, while the same tree builds natively in well under a second, so GPU work never finished and Chrome's watchdog killed the GPU process. Afterwards no new Chrome on the machine got a WebGPU adapter, even a fresh headless profile on a blank page. Separately, the kernel logged hundreds of NVIDIA "can't alloc VA space for mapping" errors whenever the workers' GPU test runs ran beside the browser. Checked after a clean reboot (host, 2026-10-08 23:45): headless Chrome with the hardware adapter, `?species=silver-birch&age=20` on the birch branch, sat at "building..." for 60 s again. After one such hang every new Chrome, even a fresh profile on a blank page, gets no WebGPU adapter ("A valid external Instance reference no longer exists") until the machine reboots, while native Vulkan keeps working (a GPU test passes in 2.7 s). So each browser repro costs the owner a reboot. Which GPU step hangs, and whether F4 and other species hang too, is unknown. Host-created release blocker (2026-10-08): the harness is the owner's judging tool and the web package is the product.
+On 2026-10-08 the owner could not open the harness (`npm run dev` on the birch branch, fn-213 round 14): every load took a long time, then reported "the GPU device was lost: A valid external Instance reference no longer exists", and Chrome's GPU process crashed until Chrome blocked WebGPU. The host reproduced it in headless Chrome on the RTX 3080: `?species=silver-birch&age=20` sat at "building..." for 60-90 s while the same tree builds natively in under a second; after one hang no new Chrome got a WebGPU adapter until a reboot. The kernel also logged NVIDIA "can't alloc VA space" errors when workers' GPU tests ran beside the browser. Host-created release blocker (2026-10-08): the harness is the owner's judging tool and the web package is the product. Harness and browser GPU path only.
 
-## Requirements
+## Decisions
 
-- **R1 (repro first, natively):** because a browser hang wedges WebGPU until reboot, the hang is found natively: the browser's build path (the wasm entry's device route, `crates/telperion-render/src/web.rs`) run on native wgpu under the browser's device limits and features, on the birch branch's birch at 20, each native repro in its own process under a wall-clock `timeout` that kills the process (a killed process releases its GPU context; a CPU-side poll deadline alone does not cancel submitted work), with the identity of each step logged before its submission so the last logged step names the one that never completed; after a timeout nothing is re-run until that step is identified. The step that never completes is named; a standalone test is red on it before any fix. If the native run does not hang, stop and report with what differs from the browser before any browser repro. A browser repro is run at most once per fix, only after the native test is green, and only with the owner's go (it may cost a reboot).
-- **R2 (fix, bounded):** the cause fixed so a build either finishes or fails by name. Bounded means: every shader loop has an explicit iteration cap derived from its inputs, and every submission's work is capped (dispatches and workgroups per submit) so that, measured on the RTX 3080, no single submission of a shipped species at 80 runs longer than 1 s (well under Chrome's GPU watchdog); a test asserts the caps and the measured worst submission.
-- **R3 (budget and loss):** WebGPU exposes no free-memory figure, so no admission check can guarantee a build fits a card other applications share. The policy is therefore two parts. Admission: the stated budget (`fine/budget.rs`) keeps a stated headroom for textures, pipelines, driver allocations and other applications (the shipped value and its headroom recorded with the measurement behind them; supported condition: the reference 10 GiB card with up to 3 GiB held by other applications), and a build over it is refused by name with the previous tree kept, shown by a deterministic test. Loss: if the device is lost anyway, the harness says so by name, keeps the previous tree's parameters, and rebuilds on a fresh device on the owner's retry, never looping; shown by a test that forces a device loss. R5's mature trees fit the admission budget at the supported condition.
-- **R4 (tests beside the browser):** GPU tests that push the device to its limits (out-of-memory probes) are marked and excluded from the default render suite unless asked for, so a test run beside an open harness cannot exhaust the driver's address space; a test asserts the marked set is excluded by default; stated in docs.
-- **R5:** the owner opens beech, birch and oak at 40 and 80 in the harness without a device loss; gate and npm test green.
+Full record in `REPRO.md`. Host, 2026-10-09:
+- Find the hang natively (a browser hang costs a reboot); a browser repro only after a native fix and with the owner's go.
+- **First:** measure, then slim `grow` in the same single pipeline (a split is the host's call); 6 GiB browser budget (10 GiB card less 3 GiB for other applications less 1 GiB for textures, pipelines, driver; the spruce at 80 peaks at 5.48 GiB); a lost device is named and rebuilt once on the owner's retry, never looping.
+- **Second:** a split of `move_on`/`grow_unit` allowed only if it adds at most 5 % build time (it measured 11-13 % on the beech, so not built). No async pipeline creation for now (wgpu 30 has no public API for it). Per-pipeline cold bound 2.5 s.
+- **Third:** `grow` is a named exception at 20 s cold (cause: the apex loop's inlined 64-bit contract-A arithmetic). The budget counts the drawn tree: a build that fits only alone releases the drawn tree first; one that does not fit alone is refused by name with the drawn tree kept. R2's per-submission caps still required.
 
-## Boundaries
+## Acceptance Criteria
 
-Harness and browser GPU path only. Release blocker for fn-198.
+- **R1:** The hang found natively on the browser's build path, each step logged, a standalone test red on it — met: the chain grower's `grow` pipeline took 92-145 s to compile on a cold NVIDIA cache (`hang_tests::browser_route`); no tree hung on a warm cache.
+- **R2:** Every shader loop capped from its inputs; no submission of a shipped species at 80 longer than 1 s, asserted by a test — met (worst 177 ms, 256 dispatches, 2^23 workgroups).
+- **R3:** A stated admission budget refusing by name with the previous tree kept; a forced device loss named and rebuilt on retry — met.
+- **R4:** Device-limit GPU tests excluded from the default render suite unless asked — met.
+- **R5:** The owner opens beech, birch and oak at 40 and 80 in the harness without a device loss; gates green — gates green; the browser check left to the owner after the host's go.
+
+## Result
+
+`grow` slimmed in one pipeline from 92-145 s to 13-17 s cold, output unchanged, held as the named 20 s exception; every other pipeline under 2.5 s; the first tree builds in 5 s besides `grow`, cold. Cold-compile timings read the machine's load (`grow` 12-45 s at load 7-40).
+
+## Open
+
+- R5's browser check (cold profile, beech/birch/oak at 40 and 80) is the owner's.
+- If Chrome still loses the device on a first build: async creation or a less-inlining contract-A arithmetic, the host's choice.
+- Branch `scratch-fn-235-birch` holds fn-213's birch for the repro only; never merge it.
+- Twice the spruce at 80 exited 101 after the beech's; parallel GPU tests failed on VA-space exhaustion when other worktrees ran GPU tests outside the lock.
+
+## Friction
+
+- Cherry-picking fn-213's preset commits conflicted on evidence files F4 had deleted -> species branches whose preset commits touch only presets.
+- No CLI prints a preset's page JSON (148 s vitest startup per dump) -> proposed `npm run family -- <species> <age>`.
+- The hang only reproduced with `__GL_SHADER_DISK_CACHE=0`, after ~20 min of warm runs -> repros should turn the driver's shader cache off by default.
+- Bisecting cold compiles on a loaded machine (±30 %) and cold bounds failing with load -> an idle machine or reserved cores for the GPU lock holder; format the three drifting files once on master.
+- No async pipeline creation in wgpu 30 -> needs a host decision (raw `web_sys` call or a wgpu change).
+- Other worktrees' GPU tests ran outside this session's lock -> one GPU lock for every worktree.
+
+## Evidence
+
+- `.flow/evidence/fn-235-the-harness-never-hangs-the-gpu/REPRO.md` (the repro, bisection, three host decision rounds; cited by `compile_size.rs`)

@@ -1,20 +1,46 @@
 # Tree space: Telperion
 
-## Goal & Context
+## Goal
 
-Telperion, the elder of the Two Trees, on the engine path per the brief: the beech's architecture older and loftier; leaves dark green above, silver beneath; countless white-silver blossoms; cool silver light falling as dew; waxing as Laurelin wanes. With the group off, a convincing very old beech. Looks better than today's harness Telperion (owner, 2026-10-07).
+Telperion, the elder of the Two Trees, on the engine path per the host's brief (fn-198 VISION-TWO-TREES.md): the beech's architecture older and loftier; leaves dark green above, silver beneath; countless white-silver blossoms; cool silver light falling as dew; waxing as Laurelin wanes. With the group off, a convincing very old beech. Looks better than today's harness Telperion (owner, 2026-10-07: full creative freedom for the Two Trees).
 
-## Programme
+## Decisions
 
-One species per spec (AGENTS.md); the tree-space programme (`docs/tree-space.md`); the host's design brief `.flow/evidence/fn-198-tree-space-f-the-engine-in-production/VISION-TWO-TREES.md` (owner, 2026-10-07: full creative freedom for the Two Trees; flow memory: the four missing species). Judging: the host views every still first; the tree passes when the host is confident and Astra, on the same sheet independently, agrees. Capability gaps go to the host and become their own specs. Errors, not fallbacks; every setting by degree; presets are values.
+- Cycle strip and light are after the release (fn-232; host, 2026-10-08, fn-217 DESIGN.md section 6). Scale and judging follow Laurelin (fn-218).
+- Values: the `european-beech` rows at `/age` 92, then the group: scale 2.4 (47-50 m against Laurelin's 44.5), dark fronts, silver underside by a warm-tinted strong mirror (the cameras below the crown see mostly undersides, so they set the crown's colour at distance), flowering 1.0 on age 14, upright candles of 9 florets (hanging clusters read as speckle), cool white petals, grey eye.
+- **His age is the release's ceiling:** 92 is the oldest the browser grows (`WASM_KEPT` refuses 93-110); 120 runs the device out of memory; 140 exceeds the wood buffer; 160 the engine budget. Round 13 at 110 (scale 2.2) passed with the host and Astra and waits for fn-209's fine path to lift the Wasm bound.
+- Astra: DISAGREE at rounds 7 and 10, AGREE at 11, 13 and 14 ("mature, old beeches"); round-14 polish notes optional, not applied.
+- Owner's species verdict (2026-10-15, fn-237 R3 table): 'can accept for now'; flowers and magic after the release. fn-286's take-over 0.5 approved.
 
-## Requirements
+## Acceptance Criteria
 
-- **R1:** Telperion's values in the `telperion` preset; builds natively and in the harness.
-- **R2:** The gate as Laurelin's (fn-218 R2): sheets with the group off (a very old beech) and on (the legendary tree) at the whole-tree, mid and close views, beside the brief's reading of the text; host confident and Astra agrees. The two trees' cycle strip and their light are after the release (fn-232; host, 2026-10-08, fn-217 DESIGN.md §6), so no cycle strip here.
-- **R3 (what the release's capabilities give him):** built from fn-217's group (scale, the silver leaf underside, eye and stamens) and fn-234's petal albedo: leaves read dark green above and silver beneath where they turn; countless white-silver blossoms read at the whole-tree view as a distinct white across the crown; the scale chosen and fn-217 §8.4's contact error measured at it against fn-125's screen.
-- **R4:** gate and npm test green; the cost of his build at his scale measured in the harness's native route.
+- **R1:** Telperion's values in the `telperion` preset; builds natively and in the harness — met (native and Wasm byte-identical).
+- **R2:** Sheets off and on at whole, mid and close views; host confident and Astra agrees — met (round 14 AGREE).
+- **R3:** Built from fn-217's group and fn-234's petal albedo: dark above, silver beneath, white-silver blossom distinct at whole-tree view; scale chosen and contact error measured — met.
+- **R4:** Gate and npm test green; cost at his scale measured on the native route — met.
 
-## Boundaries
+## Result
 
-Depends on the flowers spec (fn-216), the supernatural group (fn-217), blossom at distance (fn-234) and Laurelin's spec (fn-218), whose choices of scale and judging he follows. A trait the release's capabilities cannot draw stops for the host.
+- Off hashes to the beech's mesh at one age (`the_two_trees_with_the_group_off_are_the_beech`).
+- Contact (age 92, seed 42, scale 2.4): 16.6M leaves, step 1.50 mm, worst 0.47 mm (0.56 % of the smallest leaf), inside fn-125's screen.
+- Cost: CPU route 8.0-14.3 s, 9.1M-16.6M leaves, 10.4M-17.8M florets (~2.3x the beech); device route 4.0-4.5 s, peak RSS 391-479 MB.
+- Host reading: off an open-grown old beech; on a silver-green crown with white across it, still a tree; close up florets crowd into papery white masses.
+- Gate on `52ab0912`: render 207 passed, workspace 1,067 passed, npm test 143 passed.
+
+## Open
+
+- Age: set `/age` 110 and scale 2.2 when fn-209's fine path lifts the Wasm bound.
+- Darker fronts need the leaf's transmission and sheen under the group.
+- Astra's optional polish (smaller, less overlapping blossom; brighter undersides).
+- The sheet example's close camera can frame a hidden floret.
+- Owner: flowers and magic after the release.
+
+## Friction
+
+- Four rounds tuned a leaf face the cameras barely see -> proposed a face mask (front share per view) printed by the sheet example.
+- Age ceilings found by failing renders (engine, device, Wasm), the tightest last -> proposed a size estimate and a `foreseen` vs `WASM_KEPT` check in the sheet example, and preparing each sheet tree on the resident route.
+- An all-SHIP review fan-out's finalize refused its merge plan (no findings container) -> proposed treating a SHIP draw with no findings as an empty list.
+
+## Evidence
+
+- `.flow/evidence/fn-219-tree-space-telperion/SHEET.md` (values, ceilings, Astra rounds, contact, cost; cited by `telperion.values`)

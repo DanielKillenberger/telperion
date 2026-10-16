@@ -45,7 +45,7 @@ oak 80 7 2222419 3178df24b438dc29     palm 80 7 1473 84ca7b46a037c49d
 
 ## Clusters and florets on the merged layout (`raw/merge-223/seam.log`)
 
-- **`clusters_match_across_the_seam`:** 128 clusters stand above the cut and 195 in fine roots. Tips are 9.90e-7 m apart and headings 5.20e-4 rad apart, as in fn-223's RESULT.md.
+- **`clusters_match_across_the_seam`:** 128 clusters stand above the cut and 195 in fine roots. Tips are 9.90e-7 m apart and headings 5.20e-4 rad apart, as in fn-223's RESULT.md (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-223-leaves-cluster-at-the-engines-short/RESULT.md`).
 - **`florets_on_the_device_match_the_whole_tree`:** passes on the beech and the spruce.
 
 ## Gate and npm (raw output in `raw/merge-223/`)

@@ -4,7 +4,7 @@ The host's instruction: run R3b's deletions as far as they do not break the rend
 
 ## Done in fn-255
 
-- **The cycle's f32 deposit option is deleted.** The cycle deposits integer quanta only, as the host adopted. The comparison that decided it is in EARLY.md (test 2). The census no longer reads a second lattice, and the early example's deposit mode is gone.
+- **The cycle's f32 deposit option is deleted.** The cycle deposits integer quanta only, as the host adopted. The comparison that decided it was the council's early test 2 (archived; summarised in the spec). The census no longer reads a second lattice, and the early example's deposit mode is gone.
 - **The refused light candidate** was already out of the crate (`candidate/`, evidence only).
 
 **Tried and reverted: routing `telperion_space::grow` through the one cycle, and deleting `grow_marked`** (2026-10-11).

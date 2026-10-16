@@ -11,9 +11,6 @@ The arena's ratios are measured again with every species lit. Every preset at se
 
 Open for the host: Telperion's production build now peaks at 4,209 MB, 85 MB under the 4 GiB native default (task 13 tip: 3,849 MB). The added memory is the records, now 412 MB, and the units.
 
-stage: impl-review - ran (codex, 3 reviewers, SHIP, no findings)
-
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 5d7b49839a67fb1c66faebdd143f1402951b460b, e9693d6e8f2a0b139850fb6f04a48aa83e273d42, b363619f60a950018624168bb5251e45be688d53, e62797a0a294073a79cd22653f945e6bce986eed, c60091375cea708d0fb14e98f2a124828097c4dc
 - Tests: cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast, cargo test --profile ci -p telperion-render --no-fail-fast, npm test, cargo test --profile ci -p telperion-render every_preset_grows_in_its_hinted_arena -- --ignored, cargo test --profile ci -p telperion-render arena_ratios -- --ignored

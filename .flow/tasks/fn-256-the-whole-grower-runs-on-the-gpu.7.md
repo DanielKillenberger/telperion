@@ -13,9 +13,6 @@ The roofline for Telperion 82, the oak 40 and the beech 40 (seed 42) on the devi
 - **Distance from the roofline.** Every phase but compaction runs 6x to 270x above its roofline time: at most 17% of peak bandwidth (an upper estimate) and at most 4% of peak ALU. The time is latency: small dispatches, single-workgroup folds (25% of the beech), and the unlit lattice (19% of Telperion).
 - **Short-lived laterals.** On Telperion, 76% of grown phytomers sit on laterals living under 5 years, and they cost 61% to 77% of GPU time by records visited. On the oak the figures are 73% and 66% to 72%; on the beech, 62% and 67% to 69%.
 
-stage: impl-review - skipped(policy: risk - measurement only: test-only instrumentation and an evidence file, no production path changed)
-
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 457f1193d
 - Tests: cargo test --profile ci -p telperion-render the_roofline_is_measured -- --ignored --nocapture (ROOFLINE_OUT=raw/t7, RAYON_NUM_THREADS=4, under the GPU lock): 1 passed, python3 roofline.py raw/t7

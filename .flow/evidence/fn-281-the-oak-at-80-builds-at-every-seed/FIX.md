@@ -25,7 +25,7 @@ The digest sweep covered the same 20 shards at seeds 1 to 50 (`sweep.sh`), from 
 
 ## Bytes
 
-`compare.py` holds each tree's digest on the fix against the base's: 487 trees are unchanged and 463 change. `BYTES.txt` lists each changed tree with the nodes removed. Every change is the expected one. In every tree that changed, the fall in the count of nodes thinner than `FINEST` equals the nodes removed, with no exception. The palm and the Norway spruce do not change at all.
+`compare.py` holds each tree's digest on the fix against the base's: 487 trees are unchanged and 463 change. The per-tree list of changed trees and nodes removed is archived. Every change is the expected one. In every tree that changed, the fall in the count of nodes thinner than `FINEST` equals the nodes removed, with no exception. The palm and the Norway spruce do not change at all.
 
 | Preset and age | Trees changed of 50 | Nodes removed | Share of the tree, most |
 |---|---|---|---|
@@ -64,6 +64,6 @@ The wood removed is under 0.2 mm in radius. At most it takes 0.024% of a crown's
 
 ## R4: the 486 nodes thinner than FINEST in the oak at 80, seed 7
 
-The fix removes all 486, along with the one at radius zero: 487 nodes, from 2,193,278 to 2,192,791 (`BYTES.txt`). The conversion's tree on the fix draws no wood thinner than `FINEST` (`radii_tests::where_the_oak_at_80_seed_7_draws_wood_thinner_than_finest`, `radii_tests-fix.log`). There is no remainder.
+The fix removes all 486, along with the one at radius zero: 487 nodes, from 2,193,278 to 2,192,791. The conversion's tree on the fix draws no wood thinner than `FINEST` (`radii_tests::where_the_oak_at_80_seed_7_draws_wood_thinner_than_finest`, `radii_tests-fix.log`). There is no remainder.
 
 Across the sweep, one tree still draws such wood after the fix: the ordinary tree at 80, seed 48, keeps one node thinner than `FINEST`, down from 43. Its source was not classified. The oak's classification test reads one tree.

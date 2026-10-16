@@ -12,7 +12,6 @@ Overnight scope step 1 (spec, 'Overnight scope'). First a survey, written as INT
 ## Done summary
 Survey and proposal in INTEGRATION.md (7b87437b); host decisions 1-9 appended (b7b2acbd).
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 7b87437b, b7b2acbd
 - Tests:

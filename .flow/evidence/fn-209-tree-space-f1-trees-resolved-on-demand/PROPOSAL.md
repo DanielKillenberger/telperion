@@ -104,7 +104,7 @@ Each new form needs an oracle check before anything is built on it (docs/tree-sp
 
 **How a stand-in is drawn:**
 - **Wood.** Under the resolution rule below, a stand-in's whole box is under half a pixel, so its wood is sub-pixel. It is drawn as nothing; F3's true-width ribbons serve resolved wood.
-- **Foliage.** Expected leaves in the current cycle × P(alive), as keyed leaf instances through the existing leaf path (`select.rs`), placed by keyed draws within the envelope's density. Leaves stay leaves, with no alpha coverage. fn-208 deleted coverage ribbons because they read pale (RESULT.md, "Deleted").
+- **Foliage.** Expected leaves in the current cycle × P(alive), as keyed leaf instances through the existing leaf path (`select.rs`), placed by keyed draws within the envelope's density. Leaves stay leaves, with no alpha coverage. fn-208 deleted coverage ribbons because they read pale (RESULT.md, "Deleted") (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-208-tree-space-f3-wood-surfaced-on-the-gpu/RESULT.md`).
 - **The risk:** a cloud of stand-in leaves may read unlike resolved twigs at the same distance. It is judged on stills at R3.
 
 **The error metric that decides resolution.** A stand-in is resolved when its envelope's projected box exceeds half a pixel. That is the conservative bound: the stand-in places nothing exactly, so its error is its extent.

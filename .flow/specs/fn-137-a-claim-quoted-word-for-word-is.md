@@ -1,36 +1,23 @@
 # A claim quoted word for word is accepted by code
 
-## Conversation Evidence
+## Goal
 
-> fn-80 live run, 2026-09-24: the palm's height "50 - 100 feet", verbatim in A1's size table, was flagged `claim-unsupported` (Jev "supports" at 0.65 against the 0.8 auto-accept cut); the cheap tier may only `replace-source` or `drop-value`, the search rounds were spent, and the decision reached the owner.
-> user (2026-09-24): "Accept, and fix (Recommended)" — verbatim spans are accepted by code so they stop reaching the owner.
+In fn-80's live run (2026-09-24) the palm's height "50 - 100 feet", verbatim in A1's size table, was flagged `claim-unsupported` (Jev "supports" at 0.65 against the 0.8 auto-accept cut); the cheap tier could only replace or drop it, the search rounds were spent, and it reached the owner. A value whose exact span stands in the cited sentence is supported by the text itself. Owner (2026-09-24): "Accept, and fix (Recommended)".
 
-## Goal & Context
-<!-- scope: business -->
+## Decisions
 
-A value whose exact span stands in the cited sentence of an admitted source is supported by the source text itself; Jev's confidence that the page supports it only matters when the value is not quoted verbatim. Today every verbatim value on a noisy page reaches the owner. [user]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-- **What exists, checked 2026-09-24 on the fn-80 branch.** `cite.rs` (the listing rule around line 345-370) lists a claim whose relation is `supports` when `confidence < cuts.citation_auto_accept`; the palm's height was listed at 0.65 below 0.8. [checked]
-- **Shape.** [host design] Code checks, before the confidence cut, whether the claim's span (the number and unit as selected) occurs verbatim in the cited sentence, after whitespace normalisation only. A verbatim span with relation `supports` is not listed on confidence; the other listing rules (site-quality criterion, height-at-age kind) still apply. A non-verbatim span keeps today's rule. The record says `verbatim` so the reason is visible.
+- Host design: before the confidence cut, code checks whether the claim's span occurs verbatim in the cited sentence (whitespace normalisation only); a verbatim `supports` claim is not listed on confidence and the record says `verbatim`. Other listing rules (site-quality criterion, height-at-age kind) still apply.
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** A red test on the palm's height claim ("50 - 100 feet" in A1's sentence, supports at 0.65): after the fix it is not listed, and the record says verbatim. [inferred]
-- **R2:** A supports claim whose span is not in its sentence is still listed below the cut; a verbatim span on a site-quality criterion is still listed. [inferred]
-- **R3:** The gate is green: `cargo test --profile ci --workspace --no-fail-fast`. [paraphrase]
+- **R1:** The palm's height claim (supports 0.65) is not listed after the fix and reads `verbatim` — met (red then green).
+- **R2:** A non-verbatim span below the cut and a verbatim site-quality criterion are still listed — met.
+- **R3:** Gate green — met (1049 passed).
 
-## Decision Context
+## Result
 
-- The owner approved this fix on 2026-09-24. [user]
+Landed in `f8fdcb24` (`cite.rs` `list_reason`, `is_verbatim()`); carried by the fn-149 rewrite (#121).
 
-## Open Questions
+## Open
 
-- None.
-
-## Settled
-
-Closed as landed (2026-09-26, fn-149 R8): carried by the fn-149 runner rewrite, merged in #121 (c2ac430b).
+None.

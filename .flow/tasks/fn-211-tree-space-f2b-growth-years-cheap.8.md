@@ -15,7 +15,6 @@ Astra accepted CONTRACT-A.md with changes (ASTRA-REVIEW-CONTRACT-A.md, binding).
 ## Done summary
 CONTRACT-A.md's Part 2 revised point by point against Astra's review (R1.1-R1.6, R2.1-R2.7, R3, R4 cited): 256-bit exact intermediates rounded once and narrowed with a check; order-free sums (a bound proven before accumulation, or a saturating magnitude sum) whose refusal depends only on the terms; orientations (T) and amounts (A) with between/toward/half rules; 60/64-bit radian constants; normalisation with guard precision, levers normalised from W; CORDIC and W log2/exp2 specified to the bit with measured error bounds; the zero and endpoint cases; one position domain (2^12 m); deposits conserving area by residual; sweep guarantee stated precisely; the re-lay inside A; D16's threshold, equality and window. Built: telperion_space::fixed::feedback (CPU) and fine/feedback*.wgsl (GPU mirror). The conformance probe: 14 selectors, 229,400 cases with Astra's counterexamples first, every word and status equal. The feedback slice: 20,000 leaves and 3,000 buds, lattice and reads equal across three orders, three chunkings and a forced retry. No tree changed. Open for the host: one layout implementation for the fixed-point rough layout and the f64 final lay (CONTRACT-A.md 2.14).
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 83b34510, e9698801, 70988faa, a664b5e0
 - Tests: cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render, cargo test --profile ci -p telperion-render --no-fail-fast (under gpu.lock)
