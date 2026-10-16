@@ -41,7 +41,8 @@
     "fn-284-the-harnesss-controls-change-the-tree",
     "fn-286-a-relay-runs-back-onto-the-line-it",
     "fn-287-020-clean-up-from-the-release-review",
-    "fn-291-the-cpu-entry-builds-every-shipped"
+    "fn-291-the-cpu-entry-builds-every-shipped",
+    "fn-292-the-foliages-level-lists-hold-only-what"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -61,5 +62,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T02:52:22.297471Z"
+  "updated_at": "2026-10-16T10:51:47.361659Z"
 }

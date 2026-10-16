@@ -58,3 +58,7 @@ The engine's field query only. The owner (2026-10-15): "that really shouldn't be
 ## Decision Context
 
 - R5's "a build never resizes mid-growth" is held for every shipped preset (task 3: no preset moves, SIZED.md). Moves stay the general mechanism for parameters off the presets (walks between species, the harness's dials), growing tables by observed counts, and a count past a table is still refused by name (`build_size::refusal`). Refusing every build whose estimate falls short would refuse trees the owner wants built (fn-291: every shipped preset and walk builds, no refusal by name). Host, 2026-10-16, on the plan review's finding.
+
+## Host decisions after task 8 (2026-10-16)
+
+Reusing growth's buffers across builds (about 33 ms on the spruce) is not taken: it raises the build's peak from 1,587 MB to about 2,250 MB and holds 1.6 GB between builds, against the owner's memory direction. The compaction stays as it is (removing its read or sizing it in was no clear gain). The foliage's level lists (80.8 MB, about 15 MB laid end to end) are fn-292. With these, the spruce's remaining non-kernel costs are about 26 ms of dispatch launches (folding measured slower, DISPATCH.md) and about 33 ms of buffer creation (the reuse above); the rest is kernel arithmetic, fn-285's.
