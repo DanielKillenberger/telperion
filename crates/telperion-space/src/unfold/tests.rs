@@ -189,6 +189,44 @@ fn a_gone_twig_at_the_thinnest_drawn_fades_as_everything_gone() {
     );
 }
 
+/// fn-286 review: a gone relay's join on a bearer gone with it fades with
+/// everything gone, so wood above it judged too thin a year before stays
+/// too thin for the fading cutoff (`FINEST` by `1 - f`) all the way; the
+/// join no longer mixes towards its bearer's thinning wood, which drew a
+/// stub there part-way through the year.
+#[test]
+fn a_join_gone_with_its_bearer_fades_with_it() {
+    let species = crate::oak();
+    // The oak at 27, seed 7, is the first from 20 with a relay gone with
+    // its bearer.
+    let mut p = Paused::begin(&species, request(27), Retiring::AtAge, false).unwrap().presenting();
+    p.grow_to(27).unwrap();
+    let now = p.settle().unwrap();
+    let mut last = p.previous().expect("the year before").clone();
+    let (here, ids) = (index(&now), identities(&last));
+    let gone = |j: usize| !here.contains_key(&ids[j]);
+    let relay = (0..last.axes.len())
+        .find(|&j| {
+            let a = &last.axes[j];
+            gone(j) && a.joined.is_some() && a.origin.parent().is_some_and(gone)
+        })
+        .expect("a relay gone with its bearer");
+    let (below, above) = (3e-4, 1.5e-4);
+    let j = last.axes[relay].joined.as_mut().unwrap();
+    (j.below, j.above) = (below, above);
+    for f in [0.25, 0.5, 0.9] {
+        let drawn = present(now.clone(), &last, &species, f);
+        let drawn_ids = identities(&drawn.structure);
+        let at = (drawn.gone..drawn.structure.axes.len())
+            .find(|&i| drawn_ids[i] == ids[relay])
+            .expect("the relay drawn, fading");
+        let j = drawn.structure.axes[at].joined.expect("its join");
+        let keep = kept(f);
+        assert_eq!((j.below, j.above), (below * keep, above * keep), "at {f}");
+        assert!(j.above < FINEST * keep, "at {f}: wood above the join drawn while it fades");
+    }
+}
+
 /// R5c: an organ of both years holds last year's drawing until budburst
 /// and this year's once its shoot has elongated; summer, autumn and
 /// winter stand still but for what falls and fades.

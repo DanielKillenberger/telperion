@@ -608,10 +608,12 @@ fn present_gone(g: u32) {
     let to = work[cfg.w_pos_gone + g];
     let kind = na_prev(NA_KIND, g) & 0xffu;
     var moved = vec3<f32>(0.0);
+    var stays = false;
     if kind != SEED {
         let p = na_out(NA_PARENT, to);
         let q = na_prev(NA_PARENT, g);
         let mine = work[cfg.w_now_of + q];
+        stays = mine != 0u;
         if mine == 0u {
             moved = vec3<f32>(f(work[cfg.w_shift + 3u * p]), f(work[cfg.w_shift + 3u * p + 1u]), f(work[cfg.w_shift + 3u * p + 2u]));
         } else {
@@ -640,8 +642,17 @@ fn present_gone(g: u32) {
         // A gone leaf's share, marked 2 past it for the dress.
         leaf[p] = 2.0 + keep;
     }
-    // A gone relay's join fades into its bearer's own wood.
-    join_from(to, cfg.f, true);
+    // A gone relay's join fades into its bearer's own wood where the
+    // bearer stays; on a bearer gone with it, it fades with everything
+    // else (`unfold::Presenting::fade`).
+    if stays {
+        join_from(to, cfg.f, true);
+    } else if na_out(NA_JOINED, to) != 0u && (na_out(NA_KIND, to) & 0xffu) == RELAYED {
+        let keep = kept(cfg.f);
+        for (var c = NA_JOINED + 3u; c < NA_JOINED + 5u; c++) {
+            set_na(c, to, b(f(na_out(c, to)) * keep));
+        }
+    }
 }
 
 // How far the place a gone axis stood on has moved: presented axis `p`,

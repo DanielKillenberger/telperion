@@ -8,7 +8,7 @@ use super::sketch::Pencil;
 use super::Grower;
 use crate::cores::{map, picked, PIECE};
 use crate::error::{Error, Result};
-use crate::geometry::{bend, dominance, frame, taken, Layer};
+use crate::geometry::{bend, dominance, frame, joined, taken, Layer, NO_TAKE};
 
 use crate::presence::{relay_node, Draws};
 use crate::species::Species;
@@ -283,6 +283,11 @@ fn pencil<'p>(
     let axis = &axes[i];
     // A relay carries on the pulls of the axis it replaces, as the final
     // lay has it, at that axis's age and reach so far (fn-206).
+    // ... and what its take-over has left, over the same reach so far.
+    let carried = match axis.carried_on() {
+        Some((parent, b)) => of(parent).layer.handed_take(of(parent).layer.run(), b),
+        None => NO_TAKE,
+    };
     let handed = match axis.carried_on() {
         Some((parent, b)) => {
             let p = &axes[parent];
@@ -323,7 +328,7 @@ fn pencil<'p>(
     let pencil = Pencil {
         layer: Layer::bent(framed, curve, turning)
             .inheriting(handed)
-            .taking_over(taken(axes, species, i, &ends)),
+            .taking_over(joined(taken(axes, species, i, &ends), carried)),
         base_scale: f64::from(inherited * vigour * share as f32),
         running: 1.0,
         rank: 0.0,
