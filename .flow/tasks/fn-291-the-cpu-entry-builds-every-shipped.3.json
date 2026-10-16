@@ -11,6 +11,6 @@
   "spec": "fn-291-the-cpu-entry-builds-every-shipped",
   "spec_path": ".flow/tasks/fn-291-the-cpu-entry-builds-every-shipped.3.md",
   "status": "todo",
-  "title": "test:dist holds the package entry to the R1 matrix in CI; gate and npm test green",
-  "updated_at": "2026-10-16T03:06:24.392238Z"
+  "title": "R2b: compact per-vertex wood (oct normals, 16-bit bark coords) with bounded precision",
+  "updated_at": "2026-10-16T07:39:54.571702Z"
 }

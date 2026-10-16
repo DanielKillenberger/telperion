@@ -9,12 +9,12 @@ The refusal comes from the wood's buffer reservation (`try_reserve_exact`, mappe
 ## Acceptance Criteria
 
 - **R1 (probe first):** every shipped preset at its preset age, seeds 1, 7, 42, through the built `dist/` CPU entry in Node with surface and foliage: pass or the error, with the Wasm memory high-water mark (`memoryBytes` from a fresh engine per case) and the node count where it built; the cause of each failure traced to code (the allocation, its size, what sized it) and written down before any fix. Errors: a refusal by name ("no engine species", the phytomer ceiling) is recorded as that refusal, not as a failure of this spec; a Wasm trap or `RangeError` is recorded with its message, distinct from a `Tree core:` error.
-- **R2 (host decides from R1):** either the entry builds them (a sizing or memory fix, measured in the same probe), or the limit is a named, documented refusal that the package's README and types state, with the owner's word if a shipped preset at its preset age is refused. Errors: a refusal names the preset's cause and its remedy, never the bare "surface allocation"; no fallback path that draws a different tree.
+- **R2 (owner, 2026-10-16; see "The owner's decision on R2"):** every shipped preset at every seed builds through the CPU entry by a memory fix, with no refusal by name for a shipped preset: R2a frees what the surface stage does not read before it allocates and writes the wood's buffers once at final size; R2b stores the wood's per-vertex data compactly with each field's precision bounded by a test; R2c proves all 24 PROBE.md cases build at or under 3.5 GiB of Wasm memory, Telperion and Laurelin unchanged to the eye, other presets byte-identical or within the bounded precision, and the probe in `test:dist`. Errors: a family that truly cannot be built is refused before allocation with a named cause, never a bare "surface allocation"; fewer sides on thin wood is not a remedy; if R2a and R2b cannot reach the bar, the run stops and reports the measured gap.
 - **R3:** `test:dist` runs in CI's package job and passes, covering the R1 matrix or the part of it R2 settles; gate (`cargo test --profile ci --workspace --no-fail-fast`) and `npm test` green. Errors: a preset the entry neither builds nor refuses by name fails the script naming the entry, preset and seed.
 
 ## Early proof point
 
-Task fn-291-the-cpu-entry-builds-every-shipped.1 validates the core approach (the probe table and traced cause). If it shows the choice is between a memory or sizing fix and refusing a shipped preset by name, the host decides R2 before fn-291-the-cpu-entry-builds-every-shipped.2 starts; task 2's shape follows that decision.
+Task fn-291-the-cpu-entry-builds-every-shipped.1 settled R1 (PROBE.md). Task fn-291-the-cpu-entry-builds-every-shipped.2 proves the memory approach: R2a measured on the four failing cases, and the floor that R2b's per-vertex compaction can reach computed from the measured buffers. If that floor plus the measured Wasm slack is over 3.5 GiB, the run stops there and reports the gap; changing the index layout or the side count is not this plan's call.
 
 ## Boundaries
 
@@ -36,12 +36,14 @@ Active tracks served by this plan:
 
 ## Decision Context
 
-R2 is deliberately left to the host after R1 (owner instruction in the dispatch): a sizing fix keeps every preset drawable; a refusal by name changes what the package promises and needs the owner's word for a shipped preset.
+R1 showed the failing wood needs more than 32-bit Wasm holds as drawn (PROBE.md). The owner chose a memory fix over refusal (section above). Measured facts the tasks build on: the CPU entry hands JS positions, normals and indices only (bark coords stay in Wasm); the native stills draw from the curve, not from the CPU entry's mesh, so "unchanged to the eye" is judged on a still of the CPU entry's own mesh; indices (1,651 MiB for Telperion seed 7) are not per-vertex data, so compacting them is outside R2b as decided and goes back to the host if the floor needs it.
 
 ## Quick commands
 
 ```bash
 CARGO_TARGET_DIR=$PWD/target telperion-heavy 8 --threads 8 -- npm run build
+E=.flow/evidence/fn-291-the-cpu-entry-builds-every-shipped
+node $E/probe-dist.mjs dist $E/raw/probe-after.jsonl 1,7,42 telperion,laurelin
 telperion-heavy 6 --threads 2 -- npm run test:dist
 ```
 
@@ -50,5 +52,5 @@ telperion-heavy 6 --threads 2 -- npm run test:dist
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
 | R1 | (probe first): every shipped preset at its preset age, seeds 1, 7, 42, through the built `dist/` CPU entry in Node with surface and foliage: pass or the error, with the Wasm memory high-water mark (`memoryBytes` from a fresh engine per case) and the node count where it built; the cause of each failure traced to code (the allocation, its size, what sized it) and written down before any fix. Errors: a refusal by name ("no engine species", the phytomer ceiling) is recorded as that refusal, not as a failure of this spec; a Wasm trap or `RangeError` is recorded with its message, distinct from a `Tree core:` error. | fn-291-the-cpu-entry-builds-every-shipped.1 | — |
-| R2 | (host decides from R1): either the entry builds them (a sizing or memory fix, measured in the same probe), or the limit is a named, documented refusal that the package's README and types state, with the owner's word if a shipped preset at its preset age is refused. Errors: a refusal names the preset's cause and its remedy, never the bare "surface allocation"; no fallback path that draws a different tree. | fn-291-the-cpu-entry-builds-every-shipped.2 | — |
-| R3 | `test:dist` runs in CI's package job and passes, covering the R1 matrix or the part of it R2 settles; gate (`cargo test --profile ci --workspace --no-fail-fast`) and `npm test` green. Errors: a preset the entry neither builds nor refuses by name fails the script naming the entry, preset and seed. | fn-291-the-cpu-entry-builds-every-shipped.3 | — |
+| R2 | (owner, 2026-10-16; see "The owner's decision on R2"): every shipped preset at every seed builds through the CPU entry by a memory fix, with no refusal by name for a shipped preset: R2a frees what the surface stage does not read before it allocates and writes the wood's buffers once at final size; R2b stores the wood's per-vertex data compactly with each field's precision bounded by a test; R2c proves all 24 PROBE.md cases build at or under 3.5 GiB of Wasm memory, Telperion and Laurelin unchanged to the eye, other presets byte-identical or within the bounded precision, and the probe in `test:dist`. Errors: a family that truly cannot be built is refused before allocation with a named cause, never a bare "surface allocation"; fewer sides on thin wood is not a remedy; if R2a and R2b cannot reach the bar, the run stops and reports the measured gap. | fn-291-the-cpu-entry-builds-every-shipped.2, fn-291-the-cpu-entry-builds-every-shipped.3, fn-291-the-cpu-entry-builds-every-shipped.4 | — |
+| R3 | `test:dist` runs in CI's package job and passes, covering the R1 matrix or the part of it R2 settles; gate (`cargo test --profile ci --workspace --no-fail-fast`) and `npm test` green. Errors: a preset the entry neither builds nor refuses by name fails the script naming the entry, preset and seed. | fn-291-the-cpu-entry-builds-every-shipped.4 | — |
