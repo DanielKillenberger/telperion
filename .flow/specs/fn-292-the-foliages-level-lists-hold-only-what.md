@@ -30,7 +30,7 @@ flowchart LR
 
 ## Early proof point
 
-Task fn-292-the-foliages-level-lists-hold-only-what.1 validates the core approach (the per-level lists read back from the end-to-end layout equal the old layout's, level by level, and the stills are byte-identical). If it fails, re-evaluate how the start reaches the draw (a dynamic offset on a start buffer) before continuing with fn-292-the-foliages-level-lists-hold-only-what.2.
+Task fn-292-the-foliages-level-lists-hold-only-what.1 validates the core approach (every preset's ordered per-level leaf ids at the hero and close views, read back from the end-to-end layout, equal the base's, and the spruce's and Laurelin's stills are pixel-identical). If it fails, re-evaluate how the start reaches the draw (a dynamic offset on a start buffer) before continuing with fn-292-the-foliages-level-lists-hold-only-what.2.
 
 ## Boundaries
 

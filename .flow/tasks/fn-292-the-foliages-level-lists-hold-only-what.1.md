@@ -8,7 +8,7 @@ One list of `instances` words replaces one list per level; the scatter writes ea
 
 **Size:** M
 **Files:** `crates/telperion-render/src/select.rs`, `crates/telperion-render/src/select/bind.rs`, `crates/telperion-render/src/select/frame.rs`, `crates/telperion-render/src/shaders/select.wgsl`, `crates/telperion-render/src/shaders/foliage.wgsl`, `crates/telperion-render/src/foliage.rs`, `crates/telperion-render/src/submit.rs`, tests
-**Touches:** [crates/telperion-render/src/select.rs, crates/telperion-render/src/select/**, crates/telperion-render/src/shaders/select.wgsl, crates/telperion-render/src/shaders/foliage.wgsl, crates/telperion-render/src/shaders/shadow.wgsl, crates/telperion-render/src/foliage.rs, crates/telperion-render/src/submit.rs, crates/telperion-render/tests/submit.rs, crates/telperion-render/src/generation/resident/stalk_tests.rs]
+**Touches:** [crates/telperion-render/src/select.rs, crates/telperion-render/src/select/**, crates/telperion-render/src/shaders/select.wgsl, crates/telperion-render/src/shaders/foliage.wgsl, crates/telperion-render/src/shaders/shadow.wgsl, crates/telperion-render/src/foliage.rs, crates/telperion-render/src/submit.rs, crates/telperion-render/tests/submit.rs, crates/telperion-render/src/generation/resident/stalk_tests.rs, crates/telperion-render/src/generation/resident/**_tests.rs]
 
 ### Approach
 - `sizes()` (`select.rs:65-76`): lists = align(instances × 4); a new start buffer = levels × alignment; scratch unchanged. Keep the buffer labels ("foliage level lists", "foliage selection scratch") and add one for the starts so the ledger names it.
@@ -16,6 +16,7 @@ One list of `instances` words replaces one list per level; the scatter writes ea
 - `select/bind.rs`: the draw layout's list binding loses `has_dynamic_offset` and its `stride` window; a new start binding takes the dynamic offset. `bind_level` passes `alignment × level`; the leaf view (`bind_leaf`) and the shadow pass (`foliage.rs` `draw_shadow`, which shares the layout and reads only placements) bind slot 0 / a valid offset.
 - `frame::Uniforms.stride` and foliage `frame.stride` (`select.rs:~420-428`): repurpose or remove; check both consumers.
 - `submit::fits` (`submit.rs:60-120`) judges the new sizes by the same names.
+- **First, on the base (its own commit, before the layout changes):** an ignored measurement test (beside `generation/resident/drawn_memory_tests.rs`) that builds every shipped preset at its default age, seed 1, renders the hero pose and the close pose at fixed sizes, reads each level's ordered leaf ids back (test-only readback through `chosen()`), and prints per preset, view and level the count and a hash of the ordered ids. Run it on the base, keep the output in `raw/before/levels.txt`; after the change it must print the same lines.
 - `chosen()` / `counted` test helpers (`select.rs:~485-499`) read each level from its start (read the start buffer back).
 
 ### Investigation targets
@@ -34,14 +35,13 @@ One list of `instances` words replaces one list per level; the scatter writes ea
 - WebGPU core has no indirect first instance; the start must reach the shader through a binding.
 - The unseen bucket is counter index `levels`; it has a scratch slot and no list.
 - The renderer's still is the proof of identity: render the base and the change at the same views and compare pixels (task 2 does every preset).
-
 ## Acceptance
 - [ ] Lists sized `align(instances × 4)` once, not per level; a start buffer of `levels` aligned slots; `select/tests.rs`'s size test and `tests/submit.rs`'s admission cases updated to the new sizes and names.
 - [ ] Every existing selection test passes reading each level from its start (`compaction_preserves_placement_order_at_every_level`, the > 65,535-group crown, the forced level, inflorescences, thin rachis).
 - [ ] New test: a frame where one level gets no leaves, its start equals the next level's and the other levels' lists are unchanged; and a forced level starts at 0.
 - [ ] The shadow pass and the leaf view draw with the new layout (`tests/shadow.rs`, `tests/thinning.rs`, `tests/conformance.rs`, `tests/walk.rs` green).
+- [ ] Early proof: the ordered-leaf-id measurement prints identical lines before (`raw/before/levels.txt`, run on the base commit) and after (`raw/after/levels.txt`) for every preset, hero and close; the spruce's and Laurelin's whole and close stills are pixel-identical to `raw/before/`. Either failing stops task 2.
 - [ ] Focused crate tests green; no full gate here (task 2).
-
 ## Done summary
 TBD
 

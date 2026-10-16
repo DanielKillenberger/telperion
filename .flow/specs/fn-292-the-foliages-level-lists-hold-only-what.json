@@ -10,10 +10,79 @@
   "id": "fn-292-the-foliages-level-lists-hold-only-what",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-16T12:41:38.500025Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "c6b1fd7fce706dbb35e7bc1462d279b954f76ccaa686ea98ffe7b21f547aceed",
+      "backend": "codex",
+      "base_sha": "0a6664741d395edb5c0665b6d80ab5772178336e",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7b44d4eddea73e2cf91f010155902e52",
+            "classification": "introduced",
+            "findingId": "finding-7b44d4eddea73e2cf91f010155902e52",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-cdea82da1a08e7af4499d3b8e23a6878",
+            "classification": "introduced",
+            "findingId": "finding-cdea82da1a08e7af4499d3b8e23a6878",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-fc694697285963084062b53e1e5492d9",
+            "classification": "introduced",
+            "findingId": "finding-fc694697285963084062b53e1e5492d9",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2bf606f3c26be2f251983c5efd01fc81bb35559d",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 327012,
+      "output_sha256": "1eb55d9d6b8da7e3568f3b788affae23f17b6a01e3ec985b72a4a700e0c430e1",
+      "reservation_id": "602ef19fb72240429927acbc3bcf0ee7",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-16T12:41:38.491497Z",
+      "tool_calls": 19,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-292-the-foliages-level-lists-hold-only-what.md",
   "status": "open",
   "title": "The foliage's level lists hold only what each level draws",
@@ -28,5 +97,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T12:38:56.463347Z"
+  "updated_at": "2026-10-16T12:42:05.360700Z"
 }
