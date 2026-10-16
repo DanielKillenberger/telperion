@@ -105,9 +105,12 @@ pub(in crate::generation) async fn drawn(
     let refused = |what: &str| super::super::io::error(format!("the species' {what}"));
     let trace = std::env::var("CYCLE_TRACE").is_ok();
     let clock = super::super::Clock::now();
-    let tables = telperion_space::grow_capture_tables(species, request)
-        .map_err(|e| refused(&e.to_string()))?;
-    let chain = ChainTables::cycle(species, request.age).map_err(|e| refused(&e.to_string()))?;
+    let (tables, chain) = side_by_side(
+        || telperion_space::grow_capture_tables(species, request),
+        || ChainTables::cycle(species, request.age),
+    );
+    let tables = tables.map_err(|e| refused(&e.to_string()))?;
+    let chain = chain.map_err(|e| refused(&e.to_string()))?;
     let t = Tables::new(gpu, &tables, &chain)?;
     let at_tables = clock.elapsed_ms();
     let hint = super::build_arena::hint(species, request.age)?;
@@ -143,4 +146,23 @@ pub(in crate::generation) async fn drawn(
         eprintln!("TRACE tree: tables {at_tables:.0} ms, grown {at_grown:.0}, settled {at_settled:.0}, drawn {:.0}", clock.elapsed_ms());
     }
     Ok((dressed, measured))
+}
+
+/// `a` and `b`, two independent CPU tables, made natively on two threads
+/// (fn-257 task 8: the spruce's 10 ms each, side by side), in turn in a
+/// browser's one thread.
+fn side_by_side<A: Send, B: Send>(
+    a: impl FnOnce() -> A + Send,
+    b: impl FnOnce() -> B + Send,
+) -> (A, B) {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::thread::scope(|s| {
+            let b = s.spawn(b);
+            let a = a();
+            (a, b.join().expect("a table made beside another"))
+        })
+    }
+    #[cfg(target_arch = "wasm32")]
+    (a(), b())
 }

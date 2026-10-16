@@ -55,7 +55,9 @@ pub(super) async fn index(
     let on = [&*n[0], &n[1], &n[2], prim, owner, &counts, &n[3]];
     r.run(&mut e, (f, COUNT, prims, cfg), &on)?;
     let total = storage(gpu, "field bucket total", 4, &[])?;
-    tools.stationer.scan(gpu, &mut e, (&counts, b, 1, 1), &total)?;
+    tools
+        .stationer
+        .scan(gpu, &mut e, (&counts, b, 1, 1), &total)?;
     gpu.submit([e.finish()]);
     let listed = read_words(gpu, &total, 0, 1).await?[0];
     let counted = clock.elapsed_ms();

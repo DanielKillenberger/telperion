@@ -15,7 +15,10 @@ fn megabytes(at: &[(&'static str, u64)], top: usize) -> String {
 }
 
 fn named(at: &[(&'static str, u64)], label: &str) -> f64 {
-    at.iter().filter(|(l, _)| *l == label).map(|(_, b)| *b as f64 / 1e6).sum()
+    at.iter()
+        .filter(|(l, _)| *l == label)
+        .map(|(_, b)| *b as f64 / 1e6)
+        .sum()
 }
 
 #[test]
@@ -47,7 +50,12 @@ fn the_drawing_s_memory() {
             let drawing = gen.gpu.ledger.census_now();
             let grew: Vec<(&'static str, u64)> = drawing
                 .iter()
-                .map(|(l, b)| (*l, b.saturating_sub(kept.iter().find(|k| k.0 == *l).map_or(0, |k| k.1))))
+                .map(|(l, b)| {
+                    (
+                        *l,
+                        b.saturating_sub(kept.iter().find(|k| k.0 == *l).map_or(0, |k| k.1)),
+                    )
+                })
                 .filter(|e| e.1 > 0)
                 .collect();
             println!(

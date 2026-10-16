@@ -48,7 +48,9 @@ fn growth_profile() {
         return;
     };
     let k = Kernels::new(&gpu);
-    gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("compiled");
+    gpu.device
+        .poll(wgpu::PollType::wait_indefinitely())
+        .expect("compiled");
     let floor = floor(&gpu);
     std::fs::write(out.join("floor.md"), &floor).expect("written");
     println!("{floor}");
@@ -65,13 +67,17 @@ fn growth_profile() {
         // Whole: warm, the second of two.
         let mut whole = 0.0;
         for _ in 0..2 {
-            gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("idle");
+            gpu.device
+                .poll(wgpu::PollType::wait_indefinitely())
+                .expect("idle");
             let t = Clock::now();
             let drawn = pollster::block_on(tree::drawn(&gpu, &k, &growth)).expect("drawn");
             whole = t.elapsed_ms();
             drop(drawn);
         }
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("idle");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("idle");
         writeln!(report, "whole `tree::drawn`, warm: {whole:.1} ms\n").unwrap();
         // Staged, unstamped.
         COUNTED.take();
@@ -80,7 +86,9 @@ fn growth_profile() {
         report.push_str(&staged.table());
         report.push_str(&staged.cycles());
         // Stamped.
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("idle");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("idle");
         let stamped = pollster::block_on(stages(&gpu, &k, &growth, true));
         report.push_str(&stamped.gpu(&out, id, seed));
         report.push_str(&staged.records);
@@ -109,7 +117,8 @@ async fn stages(gpu: &crate::Gpu, k: &Kernels, growth: &Growth, stamping: bool) 
             st.stamps.push((name, stamps));
             assert!(super::super::profile::start(gpu), "timestamps");
         }
-        st.stages.push((name, ms, COUNTED.take(), gpu.ledger.take_peak_census().1));
+        st.stages
+            .push((name, ms, COUNTED.take(), gpu.ledger.take_peak_census().1));
         *clock = Clock::now();
     };
     if stamping {
@@ -126,9 +135,14 @@ async fn stages(gpu: &crate::Gpu, k: &Kernels, growth: &Growth, stamping: bool) 
         .expect("grown");
     mark(&mut st, "grow", &mut clock);
     let b = b.settling(gpu, (&t, &tables)).await.expect("settling");
-    let s = settle(gpu, (&k.build, &k.settle), (&b, &t), (&t.settle_pa, SettleTo::Laid))
-        .await
-        .expect("settled");
+    let s = settle(
+        gpu,
+        (&k.build, &k.settle),
+        (&b, &t),
+        (&t.settle_pa, SettleTo::Laid),
+    )
+    .await
+    .expect("settled");
     mark(&mut st, "settle", &mut clock);
     drop(b);
     let planned = chains::plan(gpu, (&k.chains, &k.build.hier.scan), s.view())
@@ -192,7 +206,11 @@ impl Staged {
             let mut p = peak.clone();
             p.sort_by_key(|x| std::cmp::Reverse(x.1));
             let sum: u64 = p.iter().map(|x| x.1).sum();
-            let top: Vec<String> = p.iter().take(4).map(|(l, b)| format!("{l} {:.1}", *b as f64 / 1e6)).collect();
+            let top: Vec<String> = p
+                .iter()
+                .take(4)
+                .map(|(l, b)| format!("{l} {:.1}", *b as f64 / 1e6))
+                .collect();
             writeln!(s, " {:.1} | {} |", sum as f64 / 1e6, top.join(", ")).unwrap();
         }
         writeln!(s, "| total | {total:.1} |").unwrap();
@@ -230,7 +248,11 @@ impl Staged {
                 (Some(f), Some(l)) => (l - f.1) / 1e6,
                 _ => 0.0,
             };
-            let small: Vec<f64> = stamps.iter().map(|(_, a, z)| z - a).filter(|d| *d < 20e3).collect();
+            let small: Vec<f64> = stamps
+                .iter()
+                .map(|(_, a, z)| z - a)
+                .filter(|d| *d < 20e3)
+                .collect();
             writeln!(
                 s,
                 "| {name} | {ms:.1} | {} | {busy:.1} | {span:.1} | {:.1} | {} | {:.1} |",
@@ -242,17 +264,37 @@ impl Staged {
             .unwrap();
         }
         let g = self.grew.as_ref().expect("grown");
-        let grow = &self.stamps.iter().find(|x| x.0 == "grow").expect("grow stamped").1;
+        let grow = &self
+            .stamps
+            .iter()
+            .find(|x| x.0 == "grow")
+            .expect("grow stamped")
+            .1;
         if grow.len() != g.stamped.len() {
-            writeln!(s, "\ngrowth stamps {} against {} recorded phases: no per-cycle split.", grow.len(), g.stamped.len()).unwrap();
+            writeln!(
+                s,
+                "\ngrowth stamps {} against {} recorded phases: no per-cycle split.",
+                grow.len(),
+                g.stamped.len()
+            )
+            .unwrap();
             return s;
         }
-        let cycle_of = |k: usize| g.ends.iter().position(|&e| k < e).map_or(g.ends.len(), |c| c + 1);
+        let cycle_of = |k: usize| {
+            g.ends
+                .iter()
+                .position(|&e| k < e)
+                .map_or(g.ends.len(), |c| c + 1)
+        };
         let mut by = vec![(0.0f64, f64::MAX, 0.0f64, 0usize); g.ends.len() + 1];
         let mut csv = String::from("cycle,phase,kernel,ns\n");
         for (i, ((kernel, a, z), phase)) in grow.iter().zip(&g.stamped).enumerate() {
             let c = cycle_of(i);
-            let c = if *phase == super::build_grow::COMPACTION { c - 1 } else { c };
+            let c = if *phase == super::build_grow::COMPACTION {
+                c - 1
+            } else {
+                c
+            };
             let e = &mut by[c.min(g.ends.len())];
             (e.0, e.1, e.2, e.3) = (e.0 + z - a, e.1.min(*a), e.2.max(*z), e.3 + 1);
             writeln!(csv, "{c},{phase},{kernel},{:.0}", z - a).unwrap();
@@ -262,7 +304,9 @@ impl Staged {
         (0..256).for_each(|w| write!(census, ",w{w}").unwrap());
         for (c, read) in g.censuses.iter().enumerate() {
             write!(census, "\n{}", c + 1).unwrap();
-            read[..256].iter().for_each(|w| write!(census, ",{w}").unwrap());
+            read[..256]
+                .iter()
+                .for_each(|w| write!(census, ",{w}").unwrap());
         }
         std::fs::write(out.join(format!("{id}-{seed}-census.csv")), census).expect("written");
         s.push_str("\n| Cycle | passes | GPU busy ms | GPU span ms | gap before ms |\n|--:|--:|--:|--:|--:|\n");
@@ -272,7 +316,13 @@ impl Staged {
                 continue;
             }
             let gap = last_end.map_or(0.0, |l: f64| (first - l) / 1e6);
-            writeln!(s, "| {c} | {n} | {:.2} | {:.2} | {gap:.2} |", busy / 1e6, (end - first) / 1e6).unwrap();
+            writeln!(
+                s,
+                "| {c} | {n} | {:.2} | {:.2} | {gap:.2} |",
+                busy / 1e6,
+                (end - first) / 1e6
+            )
+            .unwrap();
             last_end = Some(*end);
         }
         s
@@ -312,7 +362,10 @@ fn floor(gpu: &crate::Gpu) -> String {
     let bind = d.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("floor"),
         layout: &pipeline.get_bind_group_layout(0),
-        entries: &[wgpu::BindGroupEntry { binding: 0, resource: buffer.as_entire_binding() }],
+        entries: &[wgpu::BindGroupEntry {
+            binding: 0,
+            resource: buffer.as_entire_binding(),
+        }],
     });
     let run = |own: bool, groups: u32, submits: u32| {
         let (mut best, mut recorded) = (f64::MAX, f64::MAX);
@@ -349,7 +402,14 @@ fn floor(gpu: &crate::Gpu) -> String {
         (best, recorded)
     };
     let mut s = String::from("## The dispatch floor (10,000 dependent dispatches, warm, best of 5)\n\n| Passes | Workgroups | Submits | ms | of which recording and submitting ms | µs a dispatch |\n|---|--:|--:|--:|--:|--:|\n");
-    for (own, groups, submits) in [(true, 1, 1), (false, 1, 1), (true, 1024, 1), (false, 1024, 1), (true, 1, 40), (false, 1, 40)] {
+    for (own, groups, submits) in [
+        (true, 1, 1),
+        (false, 1, 1),
+        (true, 1024, 1),
+        (false, 1024, 1),
+        (true, 1, 40),
+        (false, 1, 40),
+    ] {
         let (ms, rec) = run(own, groups, submits);
         writeln!(
             s,
@@ -373,7 +433,8 @@ fn growth_tables() {
         return;
     };
     let k = Kernels::new(&gpu);
-    let cases = std::env::var("PROFILE_CASES").unwrap_or_else(|_| "norway-spruce:40:1,telperion:82:1".into());
+    let cases = std::env::var("PROFILE_CASES")
+        .unwrap_or_else(|_| "norway-spruce:40:1,telperion:82:1".into());
     for case in cases.split(',') {
         let mut part = case.split(':');
         let id = part.next().expect("an id");
@@ -387,12 +448,23 @@ fn growth_tables() {
         let chain = ChainTables::cycle(species, request.age).expect("chain tables");
         let t = Tables::new(&gpu, &tables, &chain).expect("uploaded");
         let hint = build_arena::hint(species, request.age).expect("a hint");
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("idle");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("idle");
         gpu.ledger.take_peak_census();
-        let (b, sizes, grew) = pollster::block_on(grow_hinted(&gpu, &k.build, &t, &tables, (hint, request.age)))
-            .expect("grown");
+        let (b, sizes, grew) = pollster::block_on(grow_hinted(
+            &gpu,
+            &k.build,
+            &t,
+            &tables,
+            (hint, request.age),
+        ))
+        .expect("grown");
         let (peak, at) = gpu.ledger.take_peak_census();
-        println!("\n## {id} {age} seed {seed}: growth's peak {:.1} MB\n", peak as f64 / 1e6);
+        println!(
+            "\n## {id} {age} seed {seed}: growth's peak {:.1} MB\n",
+            peak as f64 / 1e6
+        );
         println!("caps {:?}\nmost {:?}\n", sizes.caps, grew.most);
         println!("| Buffer | MB |\n|---|--:|");
         for (label, bytes) in at {
@@ -421,14 +493,21 @@ fn drawn_hashes() {
             family.skeleton.seed = seed;
             let growth = executor::growth(&family).expect("a growth");
             // The last tree's buffers let go before the peak restarts.
-            gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("idle");
+            gpu.device
+                .poll(wgpu::PollType::wait_indefinitely())
+                .expect("idle");
             gpu.ledger.take_peak_census();
             let (dressed, _) = pollster::block_on(tree::drawn(&gpu, &k, &growth)).expect("drawn");
             let peak = gpu.ledger.take_peak_census().0;
             let nodes = super::super::resident::agree_tests::drawn_nodes(&gpu, &dressed);
             let mut h = std::collections::hash_map::DefaultHasher::new();
             format!("{nodes:?}").hash(&mut h);
-            println!("HASH {id} {seed} {:016x} {} nodes, peak {:.1} MB", h.finish(), nodes.len(), peak as f64 / 1e6);
+            println!(
+                "HASH {id} {seed} {:016x} {} nodes, peak {:.1} MB",
+                h.finish(),
+                nodes.len(),
+                peak as f64 / 1e6
+            );
         }
     }
 }
@@ -444,8 +523,12 @@ fn drawn_warm() {
         return;
     };
     let k = Kernels::new(&gpu);
-    let cases = std::env::var("PROFILE_CASES").unwrap_or_else(|_| "norway-spruce:40:1,telperion:82:1".into());
-    let runs: usize = std::env::var("WARM_RUNS").ok().and_then(|r| r.parse().ok()).unwrap_or(5);
+    let cases = std::env::var("PROFILE_CASES")
+        .unwrap_or_else(|_| "norway-spruce:40:1,telperion:82:1".into());
+    let runs: usize = std::env::var("WARM_RUNS")
+        .ok()
+        .and_then(|r| r.parse().ok())
+        .unwrap_or(5);
     for case in cases.split(',') {
         let mut part = case.split(':');
         let id = part.next().expect("an id");
@@ -456,7 +539,9 @@ fn drawn_warm() {
         let growth = executor::growth(&family).expect("a growth");
         let mut ms = Vec::new();
         for r in 0..=runs {
-            gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("idle");
+            gpu.device
+                .poll(wgpu::PollType::wait_indefinitely())
+                .expect("idle");
             let t = Clock::now();
             let drawn = pollster::block_on(tree::drawn(&gpu, &k, &growth)).expect("drawn");
             if r > 0 {
