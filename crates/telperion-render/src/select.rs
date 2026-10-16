@@ -497,6 +497,25 @@ impl Select {
         out
     }
 
+    /// Each level's list as the last dispatch left it, in the order its draw
+    /// reads it: level *k* is `counts[k]` words from the level's start.
+    #[cfg(test)]
+    pub(crate) fn level_lists(&self, gpu: &Gpu) -> Vec<Vec<u32>> {
+        let (Some(lists), Some(counts)) = (&self.lists, self.counted(gpu)) else {
+            return Vec::new();
+        };
+        let bytes = buffer::read(gpu, lists).expect("lists read back");
+        let words: Vec<u32> = (bytes.as_chunks::<4>().0.iter())
+            .map(|w| u32::from_ne_bytes(*w))
+            .collect();
+        (counts.iter().enumerate().take(self.levels.len()))
+            .map(|(level, &count)| {
+                let start = level * self.stride as usize / size_of::<u32>();
+                words[start..start + count as usize].to_vec()
+            })
+            .collect()
+    }
+
     /// What the last frame's pass counted: one entry per level, coarsest
     /// first, and the leaves no level drew. Reading it stalls on the device,
     /// so it is a check and a record, never a per-frame call.
