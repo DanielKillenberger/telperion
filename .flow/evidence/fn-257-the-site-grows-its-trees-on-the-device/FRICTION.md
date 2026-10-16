@@ -3,3 +3,10 @@
 - 2026-10-16 (fn-257 task 3 gate): the gate at `telperion-heavy 8 --threads 3` was killed at its 8 GB cap partway through `telperion-core`'s tests (~70 min in); the desk had 9 GB of room, so 12 GB waited and 8 GB died. Cost ~70 min. Would remove: the gate's peak by package documented beside `telperion-heavy`, or a gate that runs package by package under one cap.
 - 2026-10-16 02:00 (fn-257 task 6): another session's gate and npm test held 24 GB of `telperion-heavy`'s room for over an hour; my core test waited at "room 2 GB for 9". Cost: the wait (~1 h+). Would remove: a queue that serves heavy jobs in order across sessions, or one desk-wide gate at a time announced to other sessions.
 - 2026-10-16 (fn-257 task 7 review): reviewing a task whose head is followed by unrelated uncommitted work needs a second worktree at the head; flowctl writes review state into that worktree's `.flow/specs/*.json`, so moving it to the next head was refused ("Aborting", unnoticed in the output), and the first round reviewed an empty range. Cost: one review round (~10 min) and a hand-written merged file to finalize it. Would remove: `impl-review --head <sha>` reviewing a range without checking it out, or flowctl keeping review state outside the tracked spec file.
+
+## 2026-10-16, task 9's review cap (worker)
+
+- **Doing:** task 9's codex impl-review.
+- **What hindered:** both rounds asked for the same thing, the inventory of growth's small tables. Round 2 judged 713ad7ff7. The fix, 186569209, a row for every remaining table, landed after it. The third run was refused: `MAX_REVIEW_ITERATIONS=2`, escalate to a human.
+- **Cost:** about 25 minutes; task 9 is held at in_progress.
+- **What would remove it:** the review's first finding naming every row the inventory needed, or a round cap that counts a finding fixed in place as converging.
