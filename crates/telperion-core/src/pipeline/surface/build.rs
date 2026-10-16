@@ -11,7 +11,7 @@ pub(super) struct Sample {
     pub(super) d: f64,
 }
 /// Radial segments a ring is cut into: never fewer than four to a lobe.
-pub(super) fn segments(params: &SurfaceParams) -> usize {
+pub(crate) fn segments(params: &SurfaceParams) -> usize {
     params.radial_segments.max(params.lobes * 4) as usize
 }
 
@@ -57,7 +57,7 @@ pub fn extent(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<WoodEx
     tree.validate()?;
     params.validate()?;
     crate::pipeline::surface::height(height)?;
-    let paths = paths(&tree.nodes)?;
+    let paths = paths(tree)?;
     if paths.runs.is_empty() {
         return Ok(WoodExtent::default());
     }

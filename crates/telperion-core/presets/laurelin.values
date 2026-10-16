@@ -1,51 +1,732 @@
-# Laurelin, the golden tree.
+# Laurelin, the golden tree: the younger of the Two Trees (fn-218).
 # Rows off the default family, checked against the catalogue as core compiles.
+#
+# Her natural base is the European beech, open-grown and broad: "young
+# green like the new-opened beech" (VISION-TWO-TREES.md). Every row from
+# here to the supernatural group is the european-beech preset's but her
+# age, so with the group off she is that beech at 80, to the byte.
 
-/skeleton/seed = 2
-/skeleton/attractors = 1060
+# The winter photograph (B-BARE, fn-54): a straight trunk clear to about
+# a fifth of the height, a core that stays the thickest wood to about
+# half of it and runs on toward the top, and limbs that leave it 25 to
+# 40 degrees from vertical and rise straight alongside it before they
+# spread; their side branches rise with them, so the fine wood is an
+# upward broom and not a tangle. Stations 2.6 m apart from a crown base
+# of 1.9 m put the first limbs at 2.6 m, two a station at 28 degrees,
+# barely bending (0.1) and hardly crooked. The leader runs to four fifths of
+# the height; limbs this steep carry less of the crown's top than
+# round 11's level ones did, so the core holds its girth without them
+# leaving at 65 degrees. Side branches run two thirds of their limb and
+# leave it level with its own heading, which is what widens the lower
+# crown: the limbs themselves stay close to the core.
+/skeleton/habit/apicalDominance = 0.8
+/skeleton/habit/whorlStrength = 0.15
+/skeleton/habit/leaderInternode = 2.6
+/skeleton/habit/lateralsPerStation = 2
+/skeleton/habit/lateralPitch = 28.0
+/skeleton/habit/pitchVariation = 6.0
+/skeleton/habit/risePrimary = 0.1
+/skeleton/habit/crookedness = 3.0
+/skeleton/habit/lateralSpacing = 2.0
+/skeleton/habit/lateralLengthRatio = 0.65
+/skeleton/habit/attractorWeight = 0.0
+/skeleton/habit/twigTipTaper = 0.25
+/skeleton/habit/sheddingThreshold = 0.0
 
-# The Two Trees are an order of magnitude taller than a forest tree,
-# and every spacing here is a length in metres.
-/skeleton/habit/apicalDominance = 0.15
-/skeleton/habit/whorlStrength = 0.2
-/skeleton/habit/leaderInternode = 10.0
-/skeleton/habit/lateralsPerStation = 4
-/skeleton/habit/lateralSpacing = 10.0
-/skeleton/habit/lateralLengthRatio = 0.45
-/skeleton/envelope/height = 132.0
-/skeleton/envelope/crownBase = 0.24
-/skeleton/envelope/spread = 0.58
-/skeleton/envelope/fullness = 0.38
-/skeleton/envelope/shoulder = 3.2
-/skeleton/bias/gravitropism = 0.55
-/skeleton/bias/lean = 0.06
-/skeleton/bias/supernatural/enabled = true
-/skeleton/bias/supernatural/writheAmplitude = 0.05
-/skeleton/bias/supernatural/writheWavelength = 0.8
-/skeleton/bias/supernatural/spiralRate = 0.6
-/skeleton/twigs/twig/length = 0.5
-/skeleton/twigs/internodeFactor = 6.0
-/skeleton/growth/maxTurnPerStep = 46.0
-/radii/trunkRadius = 0.055
-/radii/forkExponent = 2.7
-/radii/lengthTaper = 0.35
-/surface/lobes = 4
-/surface/lobeDepth = 0.24
-/surface/twistRate = 0.8
-/surface/flareRadius = 3.1
-/canopy/spacing = 0.0065
-/canopy/divergence = 99.502
-/canopy/clump = 9
-/canopy/clumpSpan = 0.36
-/canopy/outward = 0.72
-/canopy/upward = 0.22
-/canopy/scatter = 22.0
-/canopy/size = 1.5
-/canopy/sizeVariation = 0.4
-/material/fissureStrength = 0.12
-/material/crestStrength = 0.1
-/material/barkMottleStrength = 0.05
-/material/cavityStrength = 0.2
-/material/bladeMottleStrength = 0.04
-/material/cuticleGloss = 0.3
-/material/skyOcclusionStrength = 0.2
+# An upright oval, widest a little below the middle of the crown and
+# rounding to its top (B-BARE: width over height about 0.74). The shell
+# starts at 0.06 of the height, so no wood and no leaf stands under 1.9 m.
+
+# A beech's crown is lumpy where its limbs end and hollow where they
+# do not. Four or five broad lobes around a wavelength most of the
+# tree's own height, at not quite a fifth of the radius.
+/skeleton/bias/gravitropism = 0.0
+/skeleton/bias/lean = 0.0
+
+# The twig law is two generations deep and says so: a lateral born at
+# generation two is a twig whatever the pipe model left its radius.
+/skeleton/twigs/generations = 2
+/skeleton/twigs/laterals = 4
+
+# The twig layer starts on wood under 0.28 of the trunk's radius, so the
+# side branches of steep limbs carry shoots along most of their length
+# and the crown's inside is not bare wood under a shell of leaves.
+/skeleton/twigs/limbRadius = 0.28
+
+# Four twig laterals a station fill the crown; a twig a quarter of its
+# parent's length pays for them and for the wider twig layer, so the
+# heaviest protocol seed stays well under the node ceiling.
+/skeleton/twigs/lengthRatio = 0.23
+
+# Short shoots carry most of the leaves, so the long shoots only have
+# to spread the crown: each stands out at 40 degrees, rising with the
+# broom its limb makes, turned by the golden angle, with a leaf every
+# 2.5 cm, one a node of the shoot's 2.5 cm internodes (estimated, fn-193
+# SOURCES.md), chosen on stills against photographs of beech shoots from
+# 6 mm, 15, 25 and 35 mm (fn-248). Two-ranked at 32 degrees with a leaf
+# every 2 cm, every spray was a flat frond and the crown read as a hemlock
+# (owner and host, round 11).
+/skeleton/twigs/angle = 40.0
+/skeleton/twigs/divergence = 137.5
+/skeleton/twigs/twig/internodeLength = 0.025
+/skeleton/twigs/twig/bearingDiameter = 0.03
+
+# A trunk a little over a metre through at breast height, a third of
+# the default taper per metre, and a fork exponent of 2.9: a parent's
+# radius is the n-th root of the sum of its children's n-th powers, so a
+# higher n lets the core keep its girth ("much more thick core trunks
+# for almost the entire height", owner, round 5c). Round 6 found a cliff
+# at 2.8 under limbs at 48 degrees, where a few degrees of limb angle
+# collapsed the twig layer; under these steep limbs every protocol seed
+# grows its whole twig layer.
+/radii/trunkRadius = 0.016
+/radii/lengthTaper = 0.2
+/radii/forkExponent = 2.9
+
+# A beech stands on a modest flare, not the oak's buttress.
+/surface/flareRadius = 1.5
+/element/length = 0.08
+/element/width = 0.05
+/element/connectorLength = 0.008
+/element/widestAt = 0.45
+/element/baseFullness = 0.75
+/element/tipSharpness = 0.7
+/element/axialSegments = 8
+/shellDepth = 1.0
+
+# Each limb system keeps a leaf mass of its own (fn-54): the leaves are
+# thinned within a quarter of the way from the wall between two
+# systems to their centres, so the crown breaks into rounded clumps
+# with gaps between them, as B-WHOLE's does; the spurs stand a
+# centimetre closer than round 18's to give back what the gaps take.
+
+# A beech leaf is held flat and turned every way about its shoot;
+# leaning along it (0.45) laid the leaves down the twig like needles.
+# Scattered 80 degrees rather than 45, fewer lie edge-on to an eye
+# below the crown, where a level leaf reads as a needle.
+/canopy/forwardLean = 0.1
+/canopy/outward = 0.0
+/canopy/upward = 0.3
+
+# A tenth larger with less spread, so the largest leaf stays inside
+# the sourced 4 to 10 cm.
+/canopy/size = 1.1
+/canopy/divergence = 180.0
+/canopy/scatter = 80.0
+/canopy/sizeVariation = 0.12
+
+# Darker, owner (fn-193, 2026-10-04): matched by render, as fn-40 did.
+# The 80-cycle space beech's trunk base, rendered under the stills' sun
+# and sky, reads the mean linear colour of S3's limb bark
+# (.flow/references/european-beech/S3-branching-limbs.jpg, every pixel
+# greener than blue: 0.091/0.086/0.034); the render reads 0.089/0.086/0.035.
+/material/barkRed = 0.04
+/material/barkGreen = 0.04
+/material/barkBlue = 0.0165
+
+# Rough, not glossy, in the oak's and the spruce's range after the
+# owner read the close-ups as plastic. At B-BASE's own light the old
+# 0.4 highlight was already all but unseen; 0.95 leaves a sheen of
+# three code values, where 0.9 left five.
+/material/barkRoughness = 0.95
+
+# Young shoots light olive- to grey-brown (VT Dendrology, Fagus
+# sylvatica: "slender, zigzag, light brown"; OSU: stems olive-brown),
+# grey by the second or third year. B-BARE's winter crown haze reads
+# linear 0.064/0.055/0.033 to 0.149/0.136/0.097 on its own exposure,
+# R:G:B 1:0.86:0.52 in its darker band. The birch's matched still
+# drew a row redder by 0.85 in green and 0.78 in blue, so the row is
+# set greener than the band; unrendered until the beech's table lands.
+# Smooth grey from about 1.6 cm across.
+/material/shootRed = 0.14
+/material/shootGreen = 0.13
+/material/shootBlue = 0.085
+/material/shootRadius = 0.004
+
+# Darker, owner (fn-193): matched by render to S2 Nettleden's summer
+# crown (mean linear colour of a 500 px crop inside it at 700,250:
+# 0.062/0.069/0.032), read from the rendered crown of the 80-cycle space
+# beech under the stills' light, which reads 0.064/0.075/0.042; the back
+# face keeps its earlier ratio to the front.
+/material/leafFrontRed = 0.021
+/material/leafFrontGreen = 0.0158
+/material/leafFrontBlue = 0.0067
+/material/leafBackRed = 0.037
+/material/leafBackGreen = 0.0307
+/material/leafBackBlue = 0.0114
+
+/material/hueRangeLow = -0.02
+/material/hueRangeHigh = 0.02
+/material/brightnessRangeLow = -0.1
+/material/brightnessRangeHigh = 0.1
+/material/interiorDarkening = 0.35
+
+# Smooth bark: the ridge field only as a 2 mm grain with no furrow and
+# no tint. At a centimetre and more it drew vertical wavy ridges with
+# bright rims on B-BASE; tinted at 2 mm, a crackle glaze. Plates a metre
+# long: at 4 cm they drew the bole as stacked horizontal bands (fn-193,
+# round 18; owner-approved for materials).
+/material/ridgeScale = 0.002
+/material/plateScale = 1.0
+/material/furrowStrength = 0.0
+/material/roughnessDetail = 0.08
+/material/veinScale = 7.0
+/material/veinContrast = 0.4
+/material/transmissionStrength = 0.5
+/material/transmissionRed = 0.22
+/material/transmissionGreen = 0.5
+/material/transmissionBlue = 0.08
+/material/thickness = 0.6
+/material/fissureRed = -0.04
+/material/fissureGreen = -0.03
+/material/fissureBlue = -0.02
+/material/crestRed = 0.06
+/material/crestGreen = 0.055
+/material/crestBlue = 0.045
+/material/barkMottleScale = 0.12
+/material/barkMottleStrength = 0.04
+/material/cavityStrength = 0.35
+/material/bladeMottleScale = 5.0
+/material/bladeMottleStrength = 0.1
+/material/marginWidth = 0.04
+/material/marginRed = 0.02
+/material/marginGreen = 0.04
+/material/marginBlue = 0.008
+
+# A matte cuticle's glint: at 0.48, the glossiest leaf in the
+# catalogue, the sun's white highlight read as plastic (owner,
+# fn-54); the oak's is 0.35 and the birch's 0.28.
+/material/cuticleGloss = 0.18
+/material/skyOcclusionStrength = 0.35
+
+# A dense crown lit as one mass (fn-52): the lighting normal bends
+# most of the way to the crown's outward direction and the sun wraps
+# a little past the terminator, so the sky-lit top and the sunward
+# shell carry the crown. A thin blade transmits close to evenly
+# (Jacquemoud & Ustin 2019, Leaf Optical Properties), sky and sun
+# alike. The glossy cuticle's sheen sits above a smooth wax's 0.04:
+# B-WHOLE's brightest centre pixels are a pale, sky-lit green,
+# 149/180/152, not sky; at 0.1 the whole crown greyed. Set against
+# B-WHOLE's centre, sRGB 71/94/74 under overcast, where this row
+# drew 61/84/65 before the short shoots.
+/material/canopyNormal = 0.8
+/material/lightWrap = 0.4
+/material/diffuseTransmission = 1.0
+/material/leafSheen = 0.08
+
+# The crown over a leaf takes its sky, so the dome's underside falls
+# into its own shade: B-WHOLE's leaf mass falls from 125 at the top
+# sixth to 52 at the bottom, and 0.15 a radius drew 91 to 55, where
+# no shade drew the bottom brighter than the middle. Under the short
+# shoots' denser mass, 0.1 lifts the centre by two and a half points
+# over 0.15 and still falls from 126 at the top sixth to 76.
+/material/crownShade = 0.1
+
+# Each clump of leaves takes the sky from what hangs under it (fn-54):
+# B-WHOLE's crown reads as lit billows with shade pockets under and
+# between them, which one smooth ellipsoid cannot draw. The whole of
+# the row, so a leaf under a full clump sees none of the sky its
+# own mass holds off.
+/material/lobeShade = 0.7
+
+# Lichen and lenticels turned down so limbs read smooth, as S3's do
+# (owner, fn-193: the white flecks read as a speckled bark). No strip
+# peels.
+/material/lichenScale = 0.04
+/material/lichenCoverage = 0.1
+/material/lichenRed = 0.8
+/material/lichenGreen = 0.82
+/material/lichenBlue = 0.76
+/material/lichenStrength = 0.3
+/material/lenticelDensity = 6.0
+/material/lenticelLength = 0.08
+/material/lenticelStrength = 0.1
+/material/lenticelTint = -0.3
+
+# fn-55: a dielectric's foot under the one highlight, and the blade's
+# cells between its veins at ninety a blade. fn-71 sets the bark's
+# grain at 2 mm cells, three pixels at B-BASE's 1440, where the
+# close-up reads 2.37 against the resolution contract's 3.0; 1 mm
+# cells sat on the half-size still's Nyquist edge and read 2.76.
+/material/barkGrainScale = 0.002
+/material/barkGrainStrength = 0.3
+/material/bladeGrainScale = 90.0
+/material/bladeGrainStrength = 0.3
+
+# Left at the default family:
+# The default dead colour: this table keeps no skirt to show it on.
+# No plate network: smooth bark has none to draw.
+
+# The rows the tree-space example restated for a tree that grows its own
+# shoots (fn-193 to fn-196): leaves along the grown shoots, no clusters
+# seated along slender wood.
+/canopy/shootRadius = 0.018
+
+# The age the harness opens the tree at (fn-198 host decision 5); the
+# engine grows the tree to it. Laurelin is an old beech: at 40 the beech
+# is a 10 m sapling, at 80 a broad dome 18 m tall and 19 m across.
+/age = 80.0
+
+# The engine species (fn-198 host decision 1): telperion_space::beech (fn-193; SOURCES.md there).
+# The envelope is derived from the grown tree (host decision 7).
+# Deciduous (fn-248): every age's wood keeps its leaves for one year, so
+# leaves stand on the current year's shoots alone, and the short shoots
+# (age 14) bear theirs at their tips while they live: four, one for each
+# metamer of [LET]'s "usually 3 or 4", the beech bearing one leaf a node
+# (inferred), fanned 0.6 rad either side (estimated). The short shoots
+# live four years (estimated, from three), which brings the crown's leaf
+# area index to 5.2 at 40 and 7.3 at 80, in the range measured in beech
+# forests (Glatthorn et al. 2017, For. Ecol. Manage.: 7.1 in primeval
+# and 7.4 in production stands on average; fn-248 TWIGS.md).
+# fn-270 R5: within the year a shoot elongates over 14 days from bud
+# burst and a leaf expands over 14 from its node's unfolding. Species
+# "with fixed growth normally complete shoot expansion in 2 to 6 weeks"
+# (Kozlowski and Pallardy 1997, Growth Control in Woody Plants), the
+# beech among them (the beech's rows): the low end. "The beginning of bud break occurred on
+# DOY 117 of 2012 ... Full foliation was attained on DOY 131" (Urban et
+# al. 2014, iForest 8: 438): 14 days; the long term's 104 to 132, 28
+# days, is the shoot's 14 and its last leaf's 14.
+# fn-270 R5c (the beech's rows): a beech leaf lives 0.55 years and falls each autumn: leaf
+# unfolding "average day of year (DOY) of leaf unfolding (LU) onset ...
+# was 115", leaf colouring "the average onset of LC was recorded on 264"
+# and the first fall phase 16 days on (Skvareninova et al. 2024, Front.
+# Plant Sci. 15: 1242695: colouring 280 - 264, derived); "The bulk of the
+# leaf litter fell from the beginning of October until mid-November"
+# (Jacob et al. 2010, Oecologia 164: 1083): about 45 days, derived; its
+# lifespan from unfolding to the litter's end, 115 to 315 (Marien et al.
+# 2019, New Phytol.: "3-4 wk later than leaf senescence onset"), 200 days,
+# derived, its years rounded down: a leaf lives to its fall's end at most.
+/space/ages/2/lifespan = 9.0
+/space/ages/2/internode = 0.07
+/space/ages/2/insertion = 0.3
+/space/ages/2/divergence = 2.4
+/space/ages/2/abortion = 0.5
+/space/ages/2/relay = 1.0
+/space/ages/2/relayEnded = 1.0
+/space/ages/2/relayFailed = 1.0
+/space/ages/2/relayAt = 0.15
+/space/ages/2/epitony = 0.6
+/space/ages/2/takeover = 0.5
+/space/ages/2/erection = 0.1
+/space/ages/2/straightening = 1.0
+/space/ages/2/leafArea = 0.0015723
+/space/ages/2/leafYears = 1.0
+/space/ages/2/elongation = 14.0
+/space/ages/2/expansion = 14.0
+/space/ages/2/leafLife = 0.54
+/space/ages/2/budburst = 115.0
+/space/ages/2/senescence = 264.0
+/space/ages/2/colouring = 16.0
+/space/ages/2/leafFall = 45.0
+/space/ages/2/shadeHazard = 0.16923076923076938
+/space/ages/2/upkeep = 0.35
+/space/ages/2/balanceHazard = 0.33846153846153876
+/space/ages/2/leafGirth = 1.0
+/space/ages/2/form/tropism = 0.6
+/space/ages/2/form/elevation = 1.4
+/space/ages/2/form/wander = 0.2
+/space/ages/2/form/plane = 1.5707963267948966
+/space/ages/2/form/pipe = 0.008
+/space/ages/2/form/exponent = 2.6
+/space/ages/2/zones/0/buds = 1.0
+/space/ages/2/zones/0/nodes/min = 3.0
+/space/ages/2/zones/0/nodes/max = 4.0
+/space/ages/2/zones/1/buds = 1.0
+/space/ages/2/zones/1/nodes/min = 2.0
+/space/ages/2/zones/1/nodes/max = 3.0
+/space/ages/2/zones/1/lateral/9 = 0.35
+/space/ages/2/zones/2/buds = 1.0
+/space/ages/2/zones/2/nodes/min = 1.0
+/space/ages/2/zones/2/nodes/max = 1.0
+/space/ages/2/zones/2/lateral/9 = 0.8
+/space/ages/4/lifespan = 40.0
+/space/ages/4/insertion = 0.7
+/space/ages/4/abortion = 0.3
+/space/ages/4/relay = 1.0
+/space/ages/4/relayEnded = 1.0
+/space/ages/4/relayFailed = 1.0
+/space/ages/4/relayAt = 0.15
+/space/ages/4/epitony = 0.6
+/space/ages/4/takeover = 0.5
+/space/ages/4/straightening = 1.0
+/space/ages/4/leafArea = 0.0015723
+/space/ages/4/leafYears = 1.0
+/space/ages/4/elongation = 14.0
+/space/ages/4/expansion = 14.0
+/space/ages/4/leafLife = 0.54
+/space/ages/4/budburst = 115.0
+/space/ages/4/senescence = 264.0
+/space/ages/4/colouring = 16.0
+/space/ages/4/leafFall = 45.0
+/space/ages/4/shadeHazard = 0.16923076923076938
+/space/ages/4/upkeep = 0.35
+/space/ages/4/balanceHazard = 0.33846153846153876
+/space/ages/4/leafGirth = 1.0
+/space/ages/4/form/tropism = 0.6
+/space/ages/4/form/elevation = 1.35
+/space/ages/4/form/wander = 1.2
+/space/ages/4/form/pipe = 0.008
+/space/ages/4/form/exponent = 2.6
+/space/ages/4/form/ripening = 15.0
+/space/ages/4/form/roll = 1.2
+/space/ages/4/zones/0/buds = 1.0
+/space/ages/4/zones/0/nodes/min = 2.0
+/space/ages/4/zones/0/nodes/max = 3.0
+/space/ages/4/zones/1/buds = 1.0
+/space/ages/4/zones/1/nodes/min = 2.0
+/space/ages/4/zones/1/nodes/max = 3.0
+/space/ages/4/zones/1/lateral/9 = 0.27
+/space/ages/4/zones/1/lateral/14 = 0.3
+/space/ages/4/zones/2/buds = 1.0
+/space/ages/4/zones/2/nodes/min = 1.0
+/space/ages/4/zones/2/nodes/max = 1.0
+/space/ages/4/zones/2/lateral/6 = 0.3
+/space/ages/4/zones/2/lateral/7 = 0.2
+/space/ages/5/lifespan = 2.0
+/space/ages/5/continuation = 0.0
+/space/ages/5/divergence = 2.4
+/space/ages/5/leafArea = 0.0015723
+/space/ages/5/leafYears = 1.0
+/space/ages/5/elongation = 14.0
+/space/ages/5/expansion = 14.0
+/space/ages/5/leafLife = 0.54
+/space/ages/5/budburst = 115.0
+/space/ages/5/senescence = 264.0
+/space/ages/5/colouring = 16.0
+/space/ages/5/leafFall = 45.0
+/space/ages/5/shadeHazard = 0.16923076923076938
+/space/ages/5/upkeep = 0.35
+/space/ages/5/balanceHazard = 0.33846153846153876
+/space/ages/5/leafGirth = 1.0
+/space/ages/5/form/tropism = 0.3
+/space/ages/5/form/elevation = 1.5707963267948966
+/space/ages/5/form/wander = 0.2
+/space/ages/5/form/plane = 1.5707963267948966
+/space/ages/5/form/pipe = 0.008
+/space/ages/5/form/exponent = 2.6
+/space/ages/5/zones/0/buds = 1.0
+/space/ages/5/zones/0/nodes/min = 2.0
+/space/ages/5/zones/0/nodes/max = 3.0
+/space/ages/5/zones/1/buds = 1.0
+/space/ages/5/zones/1/nodes/min = 2.0
+/space/ages/5/zones/1/nodes/max = 2.0
+/space/ages/5/zones/1/lateral/6 = 0.3
+/space/ages/5/zones/1/lateral/7 = 0.5
+/space/ages/5/zones/2/buds = 1.0
+/space/ages/5/zones/2/nodes/min = 1.0
+/space/ages/5/zones/2/nodes/max = 1.0
+/space/ages/5/zones/2/lateral/6 = 0.9
+/space/ages/6/lifespan = 70.0
+/space/ages/6/continuation = 0.0
+/space/ages/6/viability = 0.995
+/space/ages/6/insertion = 0.7
+/space/ages/6/abortion = 0.3
+/space/ages/6/relay = 1.0
+/space/ages/6/relayEnded = 1.0
+/space/ages/6/relayFailed = 1.0
+/space/ages/6/relayAt = 0.15
+/space/ages/6/epitony = 0.6
+/space/ages/6/takeover = 0.5
+/space/ages/6/straightening = 0.6
+/space/ages/6/leafArea = 0.0015723
+/space/ages/6/leafYears = 1.0
+/space/ages/6/elongation = 14.0
+/space/ages/6/expansion = 14.0
+/space/ages/6/leafLife = 0.54
+/space/ages/6/budburst = 115.0
+/space/ages/6/senescence = 264.0
+/space/ages/6/colouring = 16.0
+/space/ages/6/leafFall = 45.0
+/space/ages/6/shadeHazard = 0.16923076923076938
+/space/ages/6/upkeep = 0.35
+/space/ages/6/balanceHazard = 0.33846153846153876
+/space/ages/6/leafGirth = 1.0
+/space/ages/6/form/tropism = 0.6
+/space/ages/6/form/elevation = 0.3
+/space/ages/6/form/wander = 1.2
+/space/ages/6/form/pipe = 0.008
+/space/ages/6/form/exponent = 2.6
+/space/ages/6/form/ripening = 15.0
+/space/ages/6/form/roll = 1.2
+/space/ages/6/zones/0/buds = 1.0
+/space/ages/6/zones/0/nodes/min = 2.0
+/space/ages/6/zones/0/nodes/max = 3.0
+/space/ages/6/zones/1/buds = 1.0
+/space/ages/6/zones/1/nodes/min = 2.0
+/space/ages/6/zones/1/nodes/max = 3.0
+/space/ages/6/zones/1/lateral/9 = 0.27
+/space/ages/6/zones/1/lateral/14 = 0.3
+/space/ages/6/zones/2/buds = 1.0
+/space/ages/6/zones/2/nodes/min = 1.0
+/space/ages/6/zones/2/nodes/max = 1.0
+/space/ages/6/zones/2/lateral/7 = 0.16
+/space/ages/7/lifespan = 30.0
+/space/ages/7/continuation = 0.0
+/space/ages/7/viability = 0.995
+/space/ages/7/insertion = 0.7
+/space/ages/7/abortion = 0.35
+/space/ages/7/relay = 1.0
+/space/ages/7/relayEnded = 1.0
+/space/ages/7/relayFailed = 1.0
+/space/ages/7/relayAt = 0.15
+/space/ages/7/epitony = 0.6
+/space/ages/7/takeover = 0.5
+/space/ages/7/straightening = 0.6
+/space/ages/7/leafArea = 0.0015723
+/space/ages/7/leafYears = 1.0
+/space/ages/7/elongation = 14.0
+/space/ages/7/expansion = 14.0
+/space/ages/7/leafLife = 0.54
+/space/ages/7/budburst = 115.0
+/space/ages/7/senescence = 264.0
+/space/ages/7/colouring = 16.0
+/space/ages/7/leafFall = 45.0
+/space/ages/7/shadeHazard = 0.16923076923076938
+/space/ages/7/upkeep = 0.35
+/space/ages/7/balanceHazard = 0.33846153846153876
+/space/ages/7/leafGirth = 1.0
+/space/ages/7/form/tropism = 0.6
+/space/ages/7/form/elevation = 0.2
+/space/ages/7/form/wander = 1.2
+/space/ages/7/form/pipe = 0.008
+/space/ages/7/form/exponent = 2.6
+/space/ages/7/form/ripening = 15.0
+/space/ages/7/form/roll = 1.2
+/space/ages/7/zones/0/buds = 1.0
+/space/ages/7/zones/0/nodes/min = 2.0
+/space/ages/7/zones/0/nodes/max = 3.0
+/space/ages/7/zones/1/buds = 1.0
+/space/ages/7/zones/1/nodes/min = 2.0
+/space/ages/7/zones/1/nodes/max = 3.0
+/space/ages/7/zones/1/lateral/9 = 0.27
+/space/ages/7/zones/1/lateral/14 = 0.3
+/space/ages/7/zones/2/buds = 1.0
+/space/ages/7/zones/2/nodes/min = 1.0
+/space/ages/7/zones/2/nodes/max = 1.0
+/space/ages/7/zones/2/lateral/8 = 0.14
+/space/ages/8/lifespan = 25.0
+/space/ages/8/continuation = 0.0
+/space/ages/8/viability = 0.995
+/space/ages/8/insertion = 0.7
+/space/ages/8/straightening = 0.25
+/space/ages/8/leafArea = 0.0015723
+/space/ages/8/leafYears = 1.0
+/space/ages/8/elongation = 14.0
+/space/ages/8/expansion = 14.0
+/space/ages/8/leafLife = 0.54
+/space/ages/8/budburst = 115.0
+/space/ages/8/senescence = 264.0
+/space/ages/8/colouring = 16.0
+/space/ages/8/leafFall = 45.0
+/space/ages/8/shadeHazard = 0.16923076923076938
+/space/ages/8/upkeep = 0.35
+/space/ages/8/balanceHazard = 0.33846153846153876
+/space/ages/8/leafGirth = 1.0
+/space/ages/8/form/tropism = 0.25
+/space/ages/8/form/elevation = 0.6
+/space/ages/8/form/wander = 1.2
+/space/ages/8/form/pipe = 0.008
+/space/ages/8/form/exponent = 2.6
+/space/ages/8/form/ripening = 15.0
+/space/ages/8/form/roll = 1.2
+/space/ages/8/zones/0/buds = 1.0
+/space/ages/8/zones/0/nodes/min = 2.0
+/space/ages/8/zones/0/nodes/max = 3.0
+/space/ages/8/zones/1/buds = 1.0
+/space/ages/8/zones/1/nodes/min = 2.0
+/space/ages/8/zones/1/nodes/max = 3.0
+/space/ages/8/zones/1/lateral/9 = 0.27
+/space/ages/8/zones/1/lateral/14 = 0.3
+/space/ages/8/zones/2/buds = 1.0
+/space/ages/8/zones/2/nodes/min = 1.0
+/space/ages/8/zones/2/nodes/max = 1.0
+/space/ages/8/zones/2/lateral/9 = 0.45
+/space/ages/9/lifespan = 10.0
+/space/ages/9/viability = 0.95
+/space/ages/9/shedding = 1.0
+/space/ages/9/internode = 0.03
+/space/ages/9/insertion = 1.0
+/space/ages/9/leafArea = 0.0015723
+/space/ages/9/leafYears = 1.0
+/space/ages/9/elongation = 14.0
+/space/ages/9/expansion = 14.0
+/space/ages/9/leafLife = 0.54
+/space/ages/9/budburst = 115.0
+/space/ages/9/senescence = 264.0
+/space/ages/9/colouring = 16.0
+/space/ages/9/leafFall = 45.0
+/space/ages/9/shadeHazard = 0.16923076923076938
+/space/ages/9/upkeep = 0.35
+/space/ages/9/balanceHazard = 0.33846153846153876
+/space/ages/9/leafGirth = 1.0
+/space/ages/9/form/tropism = 0.8
+/space/ages/9/form/elevation = 0.35
+/space/ages/9/form/wander = 0.5
+/space/ages/9/form/pipe = 0.0009
+/space/ages/9/form/roll = 1.2
+/space/ages/9/zones/0/buds = 1.0
+/space/ages/9/zones/0/nodes/min = 1.0
+/space/ages/9/zones/0/nodes/max = 2.0
+/space/ages/9/zones/1/buds = 1.0
+/space/ages/9/zones/1/nodes/min = 2.0
+/space/ages/9/zones/1/nodes/max = 3.0
+/space/ages/9/zones/1/lateral/14 = 0.7
+/space/ages/9/zones/2/buds = 1.0
+/space/ages/9/zones/2/nodes/min = 1.0
+/space/ages/9/zones/2/nodes/max = 1.0
+/space/ages/9/zones/2/lateral/9 = 0.08
+/space/ages/9/zones/3/buds = 1.0
+/space/ages/9/zones/3/nodes/min = 1.0
+/space/ages/9/zones/3/nodes/max = 2.0
+/space/ages/9/zones/3/lateral/12 = 0.65
+/space/ages/12/lifespan = 5.0
+/space/ages/12/continuation = 0.0
+/space/ages/12/viability = 0.95
+/space/ages/12/shedding = 1.0
+/space/ages/12/internode = 0.025
+/space/ages/12/insertion = 1.0
+/space/ages/12/leafArea = 0.0015723
+/space/ages/12/leafYears = 1.0
+/space/ages/12/elongation = 14.0
+/space/ages/12/expansion = 14.0
+/space/ages/12/leafLife = 0.54
+/space/ages/12/budburst = 115.0
+/space/ages/12/senescence = 264.0
+/space/ages/12/colouring = 16.0
+/space/ages/12/leafFall = 45.0
+/space/ages/12/shadeHazard = 0.16923076923076938
+/space/ages/12/upkeep = 0.35
+/space/ages/12/balanceHazard = 0.33846153846153876
+/space/ages/12/leafGirth = 1.0
+/space/ages/12/form/tropism = 1.0
+/space/ages/12/form/elevation = 0.15
+/space/ages/12/form/wander = 1.0
+/space/ages/12/form/pipe = 0.0009
+/space/ages/12/zones/0/buds = 1.0
+/space/ages/12/zones/0/nodes/min = 1.0
+/space/ages/12/zones/0/nodes/max = 1.0
+/space/ages/12/zones/1/buds = 1.0
+/space/ages/12/zones/1/nodes/min = 2.0
+/space/ages/12/zones/1/nodes/max = 3.0
+/space/ages/12/zones/1/lateral/14 = 0.6
+/space/ages/14/lifespan = 4.0
+/space/ages/14/continuation = 0.0
+/space/ages/14/viability = 0.9
+/space/ages/14/shedding = 1.0
+/space/ages/14/internode = 0.006
+/space/ages/14/insertion = 0.9
+/space/ages/14/leafArea = 0.0015723
+/space/ages/14/clusterLeaves = 4.0
+/space/ages/14/clusterSpread = 0.6
+/space/ages/14/leafYears = 1.0
+/space/ages/14/elongation = 14.0
+/space/ages/14/expansion = 14.0
+/space/ages/14/leafLife = 0.54
+/space/ages/14/budburst = 115.0
+/space/ages/14/senescence = 264.0
+/space/ages/14/colouring = 16.0
+/space/ages/14/leafFall = 45.0
+/space/ages/14/shadeHazard = 0.16923076923076938
+/space/ages/14/upkeep = 0.35
+/space/ages/14/balanceHazard = 0.33846153846153876
+/space/ages/14/leafGirth = 1.0
+/space/ages/14/form/pipe = 0.00095
+/space/ages/14/zones/0/buds = 1.0
+/space/ages/14/zones/0/nodes/min = 3.0
+/space/ages/14/zones/0/nodes/max = 5.0
+/space/ages/2/trunk = true
+/space/ages/4/trunk = true
+/space/ages/5/trunk = true
+
+# The supernatural group (fn-217): off, every row below is dormant and the
+# tree is the beech above. The petals' and the eye's colours are natural
+# rows, dormant while no age flowers, which is the case with the group off.
+/supernatural/enabled = true
+
+# Broad and nearly as tall as Telperion (fn-248): the beech's coarse ages
+# (stem, leader, fork, limbs, boughs, spurs) grow internodes 2.6 times and
+# pipes 3.4 times the natural ones, while the fine ages (branch systems,
+# shoots, short shoots) stay the beech's. The engine computes attachment
+# and girth, so her shoots and the wood under her leaves are the beech's
+# own, at 45 m tall and 44 m across, as the old uniform scale of 2.5 drew
+# her. Her natural internodes: 0.07 m on the stem, 0.04 on the others;
+# pipes 0.008.
+/supernatural/internode/age2 = 0.182
+/supernatural/internode/age4 = 0.104
+/supernatural/internode/age5 = 0.104
+/supernatural/internode/age6 = 0.104
+/supernatural/internode/age7 = 0.104
+/supernatural/internode/age8 = 0.104
+/supernatural/pipe/age2 = 0.0272
+/supernatural/pipe/age4 = 0.0272
+/supernatural/pipe/age5 = 0.0272
+/supernatural/pipe/age6 = 0.0272
+/supernatural/pipe/age7 = 0.0272
+/supernatural/pipe/age8 = 0.0272
+# Leaves larger than the beech's (fn-248): her crown is about 2.5 times
+# as wide on the beech's own fine wood and twigs, so leaves 2.4 times the
+# element (the beech's 1.1) bring the crown's leaf area index to 6.2, in the
+# range measured in beech forests (Glatthorn et al. 2017).
+/supernatural/canopy/size = 2.4
+
+# Young green like the new-opened beech, with edges of glittering gold.
+/supernatural/material/leafFrontRed = 0.03
+/supernatural/material/leafFrontGreen = 0.1
+/supernatural/material/leafFrontBlue = 0.02
+/supernatural/material/leafBackRed = 0.06
+/supernatural/material/leafBackGreen = 0.12
+/supernatural/material/leafBackBlue = 0.035
+/supernatural/material/marginRed = 0.75
+/supernatural/material/marginGreen = 0.52
+/supernatural/material/marginBlue = 0.04
+/supernatural/marginReflectance = 0.9
+/supernatural/roughness = 0.25
+
+# Clusters of yellow flame, each floret shaped like a glowing horn: hanging
+# racemes of narrow-opened florets whose petals curl out into a mouth
+# (fn-217 DESIGN.md 9), at the tips of the short shoots, so
+# the crown stays green at the whole-tree view with gold through it. Amber
+# throats deepen the gold toward flame. Settled on stills (fn-218 SHEET.md).
+# Florets three times their old size (fn-248, owner): in proportion to
+# the larger leaves, the largest Astra preferred; fewer, so the share of
+# the frame they cover holds at the whole and mid views (seed 1, organ
+# mask: whole 0.320 and mid 0.150, within 1 % of the smaller florets').
+# At the mid view they do not yet read as single flowers (fn-248
+# TWIGS.md).
+# Each inflorescence stands at its short shoot's tip (fn-253), at most
+# one a shoot, so every tip flowers: that seats as many inflorescences
+# as the share along the shoots did, or as near as the tips allow.
+/supernatural/flowering/age14 = 1.0
+/supernatural/bloom/florets = 6.0
+/supernatural/bloom/rachis = 0.72
+/supernatural/bloom/droop = 1.0
+/supernatural/bloom/pedicel = 0.024
+/supernatural/bloom/spread = 30.0
+/supernatural/bloom/taper = 0.35
+/supernatural/bloom/petals = 5.0
+/supernatural/bloom/open = 9.0
+/supernatural/bloom/petalLength = 0.09
+/supernatural/bloom/petalWidth = 0.03
+/supernatural/bloom/petalWidest = 0.9
+/supernatural/bloom/petalCup = 0.6
+/supernatural/bloom/petalCurl = 0.45
+/supernatural/bloom/stamens = 5.0
+/supernatural/bloom/stamenLength = 0.048
+/supernatural/bloom/stamenWidth = 0.0018
+/supernatural/bloom/scatter = 0.1
+/material/bloomFrontRed = 0.75
+/material/bloomFrontGreen = 0.32
+/material/bloomFrontBlue = 0.015
+/material/bloomBackRed = 0.65
+/material/bloomBackGreen = 0.27
+/material/bloomBackBlue = 0.015
+/material/bloomEyeRed = 0.7
+/material/bloomEyeGreen = 0.2
+/material/bloomEyeBlue = 0.01
+/material/bloomEyeShare = 0.5
+# fn-270 R5c (the beech's): a falling leaf turns "copper", #b66325 in the
+# xkcd colour survey's named colours, as linear reflectance; named, not
+# measured.
+/material/leafDeadRed = 0.468
+/material/leafDeadGreen = 0.1246
+/material/leafDeadBlue = 0.0185

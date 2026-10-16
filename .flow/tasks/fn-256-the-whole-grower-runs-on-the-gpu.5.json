@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-12T07:32:33.703674Z",
+  "depends_on": [],
+  "id": "fn-256-the-whole-grower-runs-on-the-gpu.5",
+  "priority": null,
+  "spec": "fn-256-the-whole-grower-runs-on-the-gpu",
+  "spec_path": ".flow/tasks/fn-256-the-whole-grower-runs-on-the-gpu.5.md",
+  "status": "done",
+  "title": "Device budget guard, live-set census, fixed arena",
+  "updated_at": "2026-10-12T07:32:33.703674Z"
+}

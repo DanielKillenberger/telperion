@@ -323,7 +323,13 @@ impl Builder<'_> {
             }
             let mut child = Axis::new(at, direction, length, axis.order + 1, key);
             child.bound = bound;
-            child.fork = fork::decide(&self.habit, key, self.envelope.height, position.y, Some(spacing));
+            child.fork = fork::decide(
+                &self.habit,
+                key,
+                self.envelope.height,
+                position.y,
+                Some(spacing),
+            );
             out.push(child);
         }
         out

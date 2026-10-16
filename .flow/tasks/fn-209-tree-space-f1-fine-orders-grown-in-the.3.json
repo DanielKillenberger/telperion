@@ -1,0 +1,19 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T16:03:06.470832Z",
+  "depends_on": [
+    "fn-209-tree-space-f1-fine-orders-grown-in-the.2",
+    "fn-209-tree-space-f1-fine-orders-grown-in-the.4",
+    "fn-209-tree-space-f1-fine-orders-grown-in-the.5",
+    "fn-209-tree-space-f1-fine-orders-grown-in-the.6"
+  ],
+  "id": "fn-209-tree-space-f1-fine-orders-grown-in-the.3",
+  "priority": null,
+  "spec": "fn-209-tree-space-f1-fine-orders-grown-in-the",
+  "spec_path": ".flow/tasks/fn-209-tree-space-f1-fine-orders-grown-in-the.3.md",
+  "status": "done",
+  "title": "End to end, fidelity and the age walk",
+  "updated_at": "2026-10-06T21:55:57.623801Z"
+}

@@ -1,0 +1,171 @@
+{
+  "branch_name": "fn-266-the-device-draws-the-palms-leaf-base",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-12T03:41:26.986154Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-266-the-device-draws-the-palms-leaf-base",
+  "impl_review_rounds": {
+    "fn-266-the-device-draws-the-palms-leaf-base.1": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-12T03:44:25.995035Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "68dd02b2c394eab072b00e0683699dc4fba7687de39653f57b95170d5ae14866",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-343c2df92e6ca9637919b72cbe3c9ae2",
+            "classification": "introduced",
+            "findingId": "finding-343c2df92e6ca9637919b72cbe3c9ae2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a845d947477c71a34dd7c56420d670031122e8be",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1014634,
+      "output_sha256": "320cd93b05bf6a75bbdb8bb02a842e7e9b14968298a8c18ceaae26292ee2f34a",
+      "reservation_id": "c6090ac4f7b64a908bacec471478e77f",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-12T03:43:57.710484Z",
+      "tool_calls": 33,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "20d4b40fa83ad6e85a42348fdb1c6836c3f6cb176897676eddcc044ea3ed5b33",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-343c2df92e6ca9637919b72cbe3c9ae2",
+            "classification": "introduced",
+            "findingId": "finding-343c2df92e6ca9637919b72cbe3c9ae2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a845d947477c71a34dd7c56420d670031122e8be",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 356,
+      "output_sha256": "c28ae4051cf1ad6705ea0c9709026b6067729e866753ce76d1fb0e462fad0e47",
+      "reservation_id": "738b9ce979554713a8eefa68c7efcea9",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-12T03:44:25.992338Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "70577544b2c89ca29551bbbc52a779d42a14131de5acc5d6291faf9665fe2abb",
+      "backend": "codex",
+      "base_sha": "1c8899091492b4461f5bf84fef9e88cf2dc268ba",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "51918a2dbb9cd3a255634f85ea27c9a13c1787e4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "46ff2c4751934fc59957e3e285c5628b",
+      "round_consumed": true,
+      "scope": "impl:fn-266-the-device-draws-the-palms-leaf-base.1",
+      "superseded_by": null,
+      "task": "fn-266-the-device-draws-the-palms-leaf-base.1",
+      "timestamp": "2026-10-12T05:33:46.062574Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-266-the-device-draws-the-palms-leaf-base.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-266-the-device-draws-the-palms-leaf-base.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-266-the-device-draws-the-palms-leaf-base.md",
+  "status": "done",
+  "title": "The device draws the palm's leaf-base lattice",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-13T08:11:19.211275Z"
+}

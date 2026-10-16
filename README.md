@@ -49,15 +49,16 @@ The giant snapshot alone is about 129 MB, so opt in only when needed.
 `npm install telperion` also ships the slim growth-and-field package: the
 `telperion/field` export grows a species at a seed and answers occupancy
 queries over it, and `telperion/field/voxelize` is an example reading of
-those answers as cubes. Both are built by `npm run build` into `dist`, with
-the slim Wasm beside `field.js`; the main entry `telperion.js` loads
-`telperion.wasm` and `telperion-render.wasm` from beside itself the same
-way, so a site serves the three Wasm files next to the JavaScript. Each
+those answers as cubes; the field grows on the device (WebGPU), through
+`telperion-render.wasm`, and rejects by name without it. Both are built by
+`npm run build` into `dist`; `field.js` and the main entry `telperion.js`
+load `telperion.wasm` and `telperion-render.wasm` from beside themselves, so
+a site serves the two Wasm files next to the JavaScript. Each
 `new URL("./name.wasm", import.meta.url)` in `dist` is a literal, which
 Vite, webpack and Rollup read as an asset and emit into a site's own build;
-the files are also exported as `telperion/telperion.wasm`,
-`telperion/telperion-render.wasm` and `telperion/telperion-field.wasm` for a
-bundler's `?url` import, passed as `source`. In Node each entry reads its
+the files are also exported as `telperion/telperion.wasm` and
+`telperion/telperion-render.wasm` for a bundler's `?url` import, passed as
+`source`. In Node each entry reads its
 file from disk. [docs/field-package.md](docs/field-package.md)
 describes the entry point, the voxelizer's dials, and the Node smoke.
 

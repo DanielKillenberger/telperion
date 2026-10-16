@@ -218,7 +218,7 @@ none failed.
 
 ## The stills
 
-[oak-hero.png](oak-hero.png) and [spruce-hero.png](spruce-hero.png) are seed 7,
+[oak-hero.jpg](oak-hero.jpg) and [spruce-hero.jpg](spruce-hero.jpg) are seed 7,
 whole view, hero pose, 1600x1000, written by the native headless target on the
 RTX 3080, the same command, pose and size as fn-22's stills so the two can be
 laid over each other.
@@ -253,8 +253,8 @@ message. The Norway spruce runs that same path and reports 32.619 ms native and
 and one frame of the turn at 60.10 ms. Every spruce number here is recorded and
 gated nowhere.
 
-**R4: accepted by the owner (2026-09-09).** [oak-hero.png](oak-hero.png) is committed beside
-[fn-22's](../fn22/oak-hero.png) for the comparison. The slot below is the
+**R4: accepted by the owner (2026-09-09).** [oak-hero.jpg](oak-hero.jpg) is committed beside
+[fn-22's](../fn22/oak-hero.jpg) for the comparison. The slot below is the
 owner's, and the spec closes only on an accepting verdict.
 
 **Parked question, partly answered.** fn-22 left the spruce's browser-native gap
@@ -269,8 +269,8 @@ for the needle spec, with a new pair of numbers to ask it about.
 ## Owner verdict
 
 One slot, the owner's, against the fn-22 oak still. Left empty deliberately.
-Compare [.flow/evidence/fn23/oak-hero.png](oak-hero.png) with
-[.flow/evidence/fn22/oak-hero.png](../fn22/oak-hero.png): same preset, same seed,
+Compare [.flow/evidence/fn23/oak-hero.jpg](oak-hero.jpg) with
+[.flow/evidence/fn22/oak-hero.jpg](../fn22/oak-hero.jpg): same preset, same seed,
 same pose, same size, same machine, one rendered at the finest level throughout
 and one at whatever level each leaf's projected error allowed.
 

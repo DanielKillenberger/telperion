@@ -19,10 +19,10 @@ it("serializes builds, coalesces pending families and publishes only the latest 
   queue.submit("oak-1", success, failure);
   queue.submit("spruce-2", success, failure);
   queue.submit("oak-7", success, failure);
-  expect(run.mock.calls).toEqual([["oak-1"]]);
+  expect(run.mock.calls.map(([input]) => input)).toEqual(["oak-1"]);
   first.resolve("old");
   await flush();
-  expect(run.mock.calls).toEqual([["oak-1"], ["oak-7"]]);
+  expect(run.mock.calls.map(([input]) => input)).toEqual(["oak-1", "oak-7"]);
   expect(success).not.toHaveBeenCalled();
   last.resolve("latest");
   await flush();

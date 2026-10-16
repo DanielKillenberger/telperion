@@ -70,16 +70,24 @@ fn surviving_diagnostics_match_radius_law_and_empty_state() {
 }
 
 /// A field request places no leaf where the family has a plan, and the
-/// metadata says which stages ran, for every shipped preset (R1). The
-/// beech, with short shoots and limb clumping, keeps the placed path; the
-/// date palm's fronds are planned as ribbons (fn-150).
+/// metadata says which stages ran, for every shipped preset the pipeline
+/// grows (R1); the date palm's fronds are planned as ribbons (fn-150). A
+/// preset with no engine species is refused by name (fn-198).
 #[test]
 fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
     for &(_, id, _, _) in params::CATALOGUE.iter() {
-        let (_, meta) = generate(json!({"family": id, "outputs": {"field": true}}))
-            .unwrap_or_else(|e| panic!("{id}: {e}"));
+        let request = json!({"family": id, "outputs": {"field": true}});
+        if params::by_identity(id).unwrap().space.species.is_none() {
+            let refused = generate(request).err();
+            assert!(
+                matches!(refused, Some(Error::InvalidInput("no engine species"))),
+                "{id}"
+            );
+            continue;
+        }
+        let (_, meta) = generate(request).unwrap_or_else(|e| panic!("{id}: {e}"));
         let stages = &meta["stages"];
-        let planned = id != "european-beech";
+        let planned = true;
         assert_eq!(stages["plan"], json!(planned), "{id}: {stages}");
         assert_eq!(stages["placement"], json!(!planned), "{id}: {stages}");
         assert_eq!(stages["cull"], json!(!planned), "{id}: {stages}");
@@ -110,7 +118,7 @@ fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
 }
 
 /// R10: `"field": true` and the family's own order answer byte for byte
-/// alike; a deeper order parts the oak's crown into more systems; a
+/// alike; a shallower order parts the oak's crown into fewer systems; a
 /// malformed order is refused by name.
 #[test]
 fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
@@ -145,11 +153,13 @@ fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
             .collect::<std::collections::HashSet<_>>()
             .len()
     };
-    let finer = answers(json!({"limbOrder": order + 3}));
+    // The engine's oak at 40 has no system past its family's order, so a
+    // shallower order parts it into fewer (fn-198: 41 at order 0, 144 at 2).
+    let coarser = answers(json!({"limbOrder": 0}));
     assert!(
-        limbs(&finer) > limbs(&default),
+        limbs(&coarser) < limbs(&default),
         "{} against {}",
-        limbs(&finer),
+        limbs(&coarser),
         limbs(&default)
     );
     assert!(default.iter().any(|o| o.wood && o.wood_radius > 0.0));
@@ -173,11 +183,20 @@ fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
 }
 
 /// Entry coverage (fn-151 R2): every shipped preset builds its wood and its
-/// leaves through the main binding; a failure names the entry and the preset.
+/// leaves through the main binding, or is refused by name where it has no
+/// engine species (fn-198); a failure names the entry and the preset.
 #[test]
 fn every_shipped_preset_builds_through_the_main_entry() {
     for &(_, id, _, _) in params::CATALOGUE.iter() {
         let request = json!({"family": id, "outputs": {"surface": true, "foliage": true}});
+        if params::by_identity(id).unwrap().space.species.is_none() {
+            let refused = generate(request).err();
+            assert!(
+                matches!(refused, Some(Error::InvalidInput("no engine species"))),
+                "{id}"
+            );
+            continue;
+        }
         let (_, meta) = generate(request)
             .unwrap_or_else(|e| panic!("entry telperion (main Wasm): preset {id}: {e}"));
         let leaves = meta["instances"].as_u64().unwrap_or(0);

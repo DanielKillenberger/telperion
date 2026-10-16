@@ -26,7 +26,7 @@ fn palm(bases: u32) -> Family {
     f.skeleton.habit.crookedness = 0.;
     f.skeleton.habit.attractor_weight = 0.;
     f.skeleton.bias = BiasParams::NONE;
-    f.canopy.leaf_bases = bases;
+    f.canopy.leaf_bases = f64::from(bases);
     f.canopy.leaf_base_width = 1.;
     f.canopy.leaf_base_flatness = 1.;
     f.canopy.leaf_base_weathering = 0.;
@@ -219,6 +219,7 @@ fn lattice(count: u32, width: f64) -> (f64, f64, f64, usize) {
 
 /// R1: at width 1 and a flat section the bases tile the bark and their outer
 /// ends alike, at 32, 96 and 256 bases.
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn bases_at_full_width_tile_the_trunk_edge_to_edge() {
     for count in [32, 96, 256] {

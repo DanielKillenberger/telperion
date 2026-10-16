@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-15T08:24:12.434269Z",
+  "depends_on": [
+    "fn-284-the-harnesss-controls-change-the-tree.2"
+  ],
+  "id": "fn-284-the-harnesss-controls-change-the-tree.3",
+  "priority": null,
+  "spec": "fn-284-the-harnesss-controls-change-the-tree",
+  "spec_path": ".flow/tasks/fn-284-the-harnesss-controls-change-the-tree.3.md",
+  "status": "done",
+  "title": "The panel reads plainly",
+  "updated_at": "2026-10-15T08:24:12.434269Z"
+}

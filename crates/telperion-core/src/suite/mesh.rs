@@ -24,11 +24,21 @@ fn contains(b: Bounds, p: Vec3) -> bool {
 
 #[test]
 fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
+    let _turn = crate::one_tree::turn();
     for id in IDENTITIES {
         let family = Preset::from_id(id).expect("preset identity").parameters();
-        let m = specimens::mesh(&family);
+        // An engine preset's tree is the engine's, built as production builds
+        // it; the scaffold grows the species-less tables alone (fn-198).
+        let m = match family.space.species {
+            Some(_) => mesh::build(&family).expect("the preset builds"),
+            None => specimens::mesh(&family),
+        };
         let mut end = 0;
         let mut radius = f64::INFINITY;
+        // Widest first on each side of the fine roots' seam: the structure
+        // above the cut, then the fine roots (fn-212 D5), so the order
+        // starts over at most once.
+        let mut sides = 1;
         assert_eq!(m.wood.run_table.len(), m.wood.runs);
         for (i, run) in m.wood.run_table.iter().enumerate() {
             assert_eq!(run.first_index, end, "{id}: run {i}");
@@ -36,10 +46,11 @@ fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
                 run.index_count > 0 && run.index_count % 3 == 0,
                 "{id}: run {i}"
             );
+            if run.largest_radius > radius {
+                sides += 1;
+            }
             assert!(
-                run.largest_radius.is_finite()
-                    && run.largest_radius >= 0.0
-                    && run.largest_radius <= radius,
+                run.largest_radius.is_finite() && run.largest_radius >= 0.0 && sides <= 2,
                 "{id}: run {i}"
             );
             end += run.index_count;
@@ -85,7 +96,7 @@ fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
 
 #[test]
 fn a_family_the_generator_rejects_surfaces_its_own_message() {
-    let mut family = Preset::from_id("ordinary")
+    let mut family = Preset::from_id("date-palm")
         .expect("preset identity")
         .parameters();
     family.shell_depth = 2.0;

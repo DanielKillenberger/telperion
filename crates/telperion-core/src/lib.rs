@@ -29,6 +29,7 @@ extern crate self as telperion_core;
 pub mod presets;
 pub mod ranges;
 pub mod rng;
+pub mod supernatural;
 pub mod tree;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -49,5 +50,7 @@ impl std::fmt::Display for Error {
 impl std::error::Error for Error {}
 pub type Result<T> = std::result::Result<T, Error>;
 
+#[cfg(test)]
+mod one_tree;
 #[cfg(all(test, feature = "geometry", feature = "json"))]
 mod suite;

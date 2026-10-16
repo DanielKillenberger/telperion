@@ -1,0 +1,118 @@
+{
+  "branch_name": "fn-218-tree-space-laurelin",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-07T08:35:28.568135Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-198-tree-space-f-the-engine-in-production",
+    "fn-216-tree-space-flowers-on-the-engine-path",
+    "fn-217-tree-space-the-supernatural-group-on",
+    "fn-234-blossom-shows-from-a-distance"
+  ],
+  "id": "fn-218-tree-space-laurelin",
+  "impl_review_rounds": {
+    "fn-218-tree-space-laurelin.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T00:28:13.006737Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "2ef2fe1aca3d648c24efe7424075219d7c909d1a90528c77ab1133e55aa1c333",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7f16328910a1db6b20208b80b1f01991ee9bb3d8",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 432496,
+      "output_sha256": "dbce87b168b50167a2b01202cfdce11eb126af3bed89b9c4afa8237cfc88daa8",
+      "reservation_id": "34e7fdc8b2e741ad9dbf806520a5300b",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T00:28:12.998331Z",
+      "tool_calls": 25,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "f6bb3b8da7e75b7635adb21cb97fe8bc338667e24943ac73056190e417947bbd",
+      "backend": "codex",
+      "base_sha": "7181dbff31747c6805f900cac5b6b41acbb1e014",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ea19bd5792807ec38ee592dc7b001abe4468fedc",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "f49ae779f19c4e02aa53f56d11bfe8c8",
+      "round_consumed": true,
+      "scope": "impl:fn-218-tree-space-laurelin.1",
+      "superseded_by": null,
+      "task": "fn-218-tree-space-laurelin.1",
+      "timestamp": "2026-10-09T01:45:56.837916Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-218-tree-space-laurelin.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-218-tree-space-laurelin.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-218-tree-space-laurelin.md",
+  "status": "done",
+  "title": "Tree space: Laurelin",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-15T20:15:49.413193Z"
+}

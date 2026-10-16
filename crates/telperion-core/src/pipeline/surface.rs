@@ -35,29 +35,29 @@ use crate::catalogue::{bounded, input, value, Blend, Bounds as Rail, Site};
 pub(crate) use attachment::AttachmentSurface;
 #[cfg(feature = "geometry")]
 pub use build::build;
-#[cfg(test)]
+#[cfg(all(test, feature = "geometry"))]
 pub use build::extent;
 #[cfg(feature = "geometry")]
 use build::*;
 #[cfg(feature = "geometry")]
-pub(crate) use build::{faces, Faces};
+pub(crate) use build::{faces, segments, Faces};
 #[cfg(feature = "geometry")]
-pub(crate) use curve::curve;
+pub(crate) use curve::{curve, rows as curve_rows, traced};
 #[cfg(feature = "geometry")]
 pub use curve::{
-    Curve, CurveCluster, CurvePoint, CurveRun, Demand, PackedPoint, Tessellation, CLUSTER_WORDS, SECTION_FLOATS, Viewer, Budget, RIBBON, SCALES, CLUSTER, LEVELS,
-    POINT_WORDS,
+    Budget, Curve, CurveCluster, CurvePoint, CurveRun, Demand, PackedPoint, Tessellation, Viewer,
+    CLUSTER, CLUSTER_WORDS, LEVELS, POINT_WORDS, RIBBON, SCALES, SECTION_FLOATS,
 };
-#[cfg(feature = "geometry")]
-pub(crate) use rings::{rings, Rings, Sweep};
 #[cfg(feature = "geometry")]
 use rings::Resweep;
 #[cfg(all(feature = "geometry", target_os = "linux", target_arch = "x86_64"))]
 use rings::Swept;
 #[cfg(feature = "geometry")]
+pub(crate) use rings::{rings, Rings, Sweep};
+#[cfg(feature = "geometry")]
 use {
     crate::{math::Transcendental, tree::Tree},
-    frames::frames,
+    frames::{frames, seed},
     paths::paths,
     samples::sample_path,
 };
@@ -187,6 +187,7 @@ crate::catalogue::rows! {
         pub fork_socket: f64 = "forkSocket" "share" Rail::closed(0.0, 0.9) => [Expand] {
             wire: 85,
             check: input(Site::Surface, 8, "surface parameters"),
+            applies: "a stem that never forks",
             dial: bounded("fork_socket", "how deeply a child branch is set into its parent at a \
                 fork", [0.15, 0.3]),
         },
@@ -206,6 +207,7 @@ crate::catalogue::rows! {
             Rail::closed(1.0, 4.0) => [Plan, Expand] {
             wire: 87,
             check: input(Site::Surface, 9, "surface parameters"),
+            applies: "a stem that never forks",
             note: "Seats leaves and sizes the leaf box where surface contact is on.",
             dial: bounded("fork_swell", "how much wood thickens at a fork", [0.5, 1.0]),
         },

@@ -160,7 +160,7 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
     };
     let leaf_plan = o.plan.as_ref();
     let meta = json!({
-        "nodes":tree.nodes.len(),"crossover":tree.crossover,"shed":built.skeleton.shed,
+        "nodes":tree.nodes.len(),"crossover":tree.crossover,
         "capped":tree.diagnostics.node_capped,"levelCapped":tree.diagnostics.level_capped,
         "attractionCapped":tree.diagnostics.attraction_capped,"complete":tree.diagnostics.complete(),
         "twigDetail":twig_detail(tree.diagnostics),

@@ -1,0 +1,321 @@
+{
+  "branch_name": "fn-246-the-harness-holds-60-fps-on-every",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T09:21:24.291757Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-246-the-harness-holds-60-fps-on-every",
+  "impl_review_rounds": {
+    "fn-246-the-harness-holds-60-fps-on-every.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T09:25:56.576514Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "757da932913e1e05c3d09fa165b4349be860f49a676cab82c76d68dcfb9f5208",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c423df1258e51308273548e190a43c52",
+            "classification": "introduced",
+            "findingId": "finding-c423df1258e51308273548e190a43c52",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1a29a2d174d28e09d8d5b99b0a40768a",
+            "classification": "introduced",
+            "findingId": "finding-1a29a2d174d28e09d8d5b99b0a40768a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-448773bc6fcdd17dc5600f4ec02044ac",
+            "classification": "introduced",
+            "findingId": "finding-448773bc6fcdd17dc5600f4ec02044ac",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2b99642c159b819a898e9167977b49cd",
+            "classification": "introduced",
+            "findingId": "finding-2b99642c159b819a898e9167977b49cd",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "31046db5402a0f6f3755ed2c6ed771de8c48886a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 307620,
+      "output_sha256": "cccf11f79e80f064b794c92ee6b46d6d95ef01c8f6b4c35cbcdc9d379bd202e4",
+      "reservation_id": "4c4b1ba468e245829cc774f2696ae681",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T09:24:39.476388Z",
+      "tool_calls": 29,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "665a86c84a17cfa23a5e40a333100fb0d32af33be1b8150c1d789d6c00b56d03",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c423df1258e51308273548e190a43c52",
+            "classification": "introduced",
+            "findingId": "finding-c423df1258e51308273548e190a43c52",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1a29a2d174d28e09d8d5b99b0a40768a",
+            "classification": "introduced",
+            "findingId": "finding-1a29a2d174d28e09d8d5b99b0a40768a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-448773bc6fcdd17dc5600f4ec02044ac",
+            "classification": "introduced",
+            "findingId": "finding-448773bc6fcdd17dc5600f4ec02044ac",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2b99642c159b819a898e9167977b49cd",
+            "classification": "introduced",
+            "findingId": "finding-2b99642c159b819a898e9167977b49cd",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "31046db5402a0f6f3755ed2c6ed771de8c48886a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1016,
+      "output_sha256": "39950d8d33765aa834ea8ed3d328bf393cca4c5d79a04e59d111e304998cc157",
+      "reservation_id": "4a75bbf8ca0343a4af3d876f963721c9",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T09:25:56.573933Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "c6d97475d0e30ddec3f595705aff74f14bfe92d1cc01f97d1394c9dd21835307",
+      "backend": "codex",
+      "base_sha": "4bc51b6bf7537a42519ae02f608cf3acd57a596c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-755f5843507912769cd8e54a68d50bf2",
+            "classification": "introduced",
+            "findingId": "finding-755f5843507912769cd8e54a68d50bf2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-604acd106d99bc71a01eca5258db153c",
+            "classification": "introduced",
+            "findingId": "finding-604acd106d99bc71a01eca5258db153c",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-47aa4cbea44b5ebcbf499a633719db8e",
+            "classification": "introduced",
+            "findingId": "finding-47aa4cbea44b5ebcbf499a633719db8e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-fa9abcaa7c198493fe160f9d152d40c1",
+            "classification": "introduced",
+            "findingId": "finding-fa9abcaa7c198493fe160f9d152d40c1",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8fa0b1d0b1311d000693d86c6ce952040096b66c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 3688,
+      "output_sha256": "d7b1e36138c2fa9e9d0ce1a501f6894adafae08b85dfa94bc74230b6ffce7ed3",
+      "reservation_id": "ba7b2a9cd6574d7d89f00065f943215c",
+      "round_consumed": true,
+      "scope": "impl:fn-246-the-harness-holds-60-fps-on-every.1",
+      "superseded_by": null,
+      "task": "fn-246-the-harness-holds-60-fps-on-every.1",
+      "timestamp": "2026-10-09T13:01:55.579757Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2347259637879eb471bd9d10fae8b299782ff696ae1f7d373ef6b9bb4bde960c",
+      "backend": "codex",
+      "base_sha": "4bc51b6bf7537a42519ae02f608cf3acd57a596c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-755f5843507912769cd8e54a68d50bf2",
+            "classification": "introduced",
+            "findingId": "finding-755f5843507912769cd8e54a68d50bf2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-604acd106d99bc71a01eca5258db153c",
+            "classification": "introduced",
+            "findingId": "finding-604acd106d99bc71a01eca5258db153c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-47aa4cbea44b5ebcbf499a633719db8e",
+            "classification": "introduced",
+            "findingId": "finding-47aa4cbea44b5ebcbf499a633719db8e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-fa9abcaa7c198493fe160f9d152d40c1",
+            "classification": "introduced",
+            "findingId": "finding-fa9abcaa7c198493fe160f9d152d40c1",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a30b1fa49f70682ccf54a218c862a2812354bc6a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1226,
+      "output_sha256": "ee2dd92c320c85592f7f78e1b804ee92a071d70800a144681776b805fc6ccdd9",
+      "reservation_id": "12d34eba2f8f4780b829b356f090d715",
+      "round_consumed": true,
+      "scope": "impl:fn-246-the-harness-holds-60-fps-on-every.1",
+      "superseded_by": null,
+      "task": "fn-246-the-harness-holds-60-fps-on-every.1",
+      "timestamp": "2026-10-09T13:18:28.263827Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-246-the-harness-holds-60-fps-on-every.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-246-the-harness-holds-60-fps-on-every.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-246-the-harness-holds-60-fps-on-every.md",
+  "status": "done",
+  "title": "The harness holds 60 fps on every shipped tree",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T13:19:28.895881Z"
+}

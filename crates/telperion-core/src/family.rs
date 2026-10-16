@@ -3,7 +3,7 @@
 use crate::catalogue::{bounded, input, value, Blend, Bounds, Dial, Growth, Site};
 use crate::{
     branching::SkeletonParams,
-    foliage::{CanopyParams, ElementParams},
+    foliage::{BloomParams, CanopyParams, ElementParams},
     material::MaterialParams,
     radius::RadiusParams,
     surface::SurfaceParams,
@@ -13,19 +13,20 @@ use crate::{
 crate::catalogue::rows! {
     #[derive(Debug, Clone)]
     pub struct Family in "" {
-        /// The specimen's age in years: the age the species' literature
-        /// dimensions refer to. No build reads it: the direct build is the
-        /// mature tree whatever the row says.
-        pub age: f64 = "age" "years" Bounds::closed(0.0, 1_000_000.0) => [] {
+        /// The specimen's age in years: the engine grows the family's species
+        /// for this many years, so the tree is the one it is at that age
+        /// (fn-198). A whole number of years.
+        pub age: f64 = "age" "years" Bounds::closed(0.0, 1_000_000.0) => [Grow] {
             wire: 0,
             check: value(Site::Age, 0, "age"),
-            growth: Growth::Only,
-            note: "Refused off its range in `params::parse` and `Family::validate`; the species \
-                runner pins it beside the height as the growth reference. The growth path that \
-                read it was removed (fn-181).",
-            blend: Blend::Weighted,
-            dial: Dial::Excluded("Identity of a specimen, not a look: no build reads it, and the \
-                direct build the tuner measures is the mature tree whatever it says."),
+            growth: Growth::Same,
+            note: "Refused off its range in `params::parse` and `Family::validate`, and refused \
+                by name at the skeleton where it is not a whole number of years: the engine \
+                grows a year a cycle. The harness opens an engine preset at 40 (fn-198 host \
+                decision 5).",
+            blend: Blend::Count,
+            dial: Dial::Excluded("The age the tree is drawn at, which the viewer sets; the \
+                tuner judges a species at its ages, never by stepping one."),
         },
         pub skeleton: SkeletonParams,
         pub radii: RadiusParams,
@@ -33,16 +34,24 @@ crate::catalogue::rows! {
         pub canopy: CanopyParams,
         pub element: ElementParams,
         pub material: MaterialParams,
-        /// How deep into the crown leaves are kept, as a share of the crown's
-        /// widest radius; a leaf further in than that is dropped. Raising it
-        /// keeps more of the crown's interior foliage, and one keeps it all.
+        /// What flowers where the engine's ages flower (fn-216).
+        pub bloom: BloomParams,
+        /// The tree-space engine's species, the ages that are stem and the
+        /// site's light: the indexed `/space` rows (`presets/space.rs`).
+        pub space: crate::presets::space::Space,
+        /// The legendary traits, off on every natural species (fn-217).
+        pub supernatural: crate::supernatural::Supernatural,
+        /// How deep into the crown leaves were kept, as a share of the crown's
+        /// widest radius. Checked and read by nothing past the check: the
+        /// cull it set kept every leaf on every engine preset and was removed
+        /// (fn-198 R1, fn-212 R2); whether the row goes is the owner's call.
         pub shell_depth: f64 = "shellDepth" "share of the crown's widest radius"
-            Bounds::closed(0.0, 1.0) => [Cull] {
-            wire: 241,
+            Bounds::closed(0.0, 1.0) => [] {
+            wire: 236,
             check: input(Site::Shell, 0, "shell depth"),
             growth: Growth::Differs("measured against the envelope at the specimen's age"),
-            note: "`foliage::cull` and the GPU executor's preparation check it again; the \
-                planned field counts stations before the cull and does not read it.",
+            note: "The leaves stage checks it again; no cull reads it since fn-212 R2, and \
+                the planned field does not read it.",
             dial: bounded("shell_depth", "how deep into the crown leaves are kept, as a share of \
                 its widest radius", [0.15, 0.3]),
         },
@@ -62,21 +71,53 @@ impl Default for Family {
             canopy: CanopyParams::default(),
             element: ElementParams::default(),
             material: MaterialParams::default(),
+            bloom: BloomParams::default(),
+            space: Default::default(),
+            supernatural: Default::default(),
             shell_depth: 0.45,
         }
     }
 }
 impl Family {
-    /// Every row judged as the build judges it, each refused by the name it
-    /// refuses it by, with no attractor scattered, no node grown and no leaf
+    /// Every row judged as the build judges it, the supernatural group's
+    /// overrides laid over the rows they stand in for, each refused by the
+    /// name it refuses it by, with no attractor scattered, no node grown and no leaf
     /// placed. The checks run in the order the build reaches them. A scatter
     /// that falls short of its count is left to growth: that depends on the
-    /// seed as much as on any row.
+    /// seed as much as on any row. Last, the natural material, bloom and
+    /// canopy rows and the engine species an override stands in for are
+    /// judged as written, so a family whose group is on holds no row that
+    /// switching it off would refuse.
     pub fn validate(&self) -> Result<()> {
+        use crate::foliage::TwigPlacement;
+        self.supernatural.validate()?;
+        self.applied().judged()?;
+        self.material.validate()?;
+        crate::catalogue::check(BloomParams::CHECKS, &self.bloom, Site::Bloom)?;
+        crate::pipeline::canopy_rows(self.canopy, Some(TwigPlacement::of(self)?))?;
+        match &self.space.species {
+            Some(species) => species.validate().map_err(|e| Error::InvalidValue {
+                field: "engine",
+                value: e.to_string(),
+            }),
+            None => Ok(()),
+        }
+    }
+
+    /// Every row but the supernatural group's, as `validate` judges the
+    /// family the build reads.
+    fn judged(&self) -> Result<()> {
         use crate::foliage::{Instances, Reference, TwigPlacement};
         use crate::pipeline::{build_element, canopy_rows, height, validate_skeleton};
         self.material.validate()?;
         crate::catalogue::check(Self::CHECKS, self, Site::Age)?;
+        // The engine species, as the engine judges it before it grows.
+        if let Some(species) = &self.space.species {
+            species.validate().map_err(|e| Error::InvalidValue {
+                field: "engine",
+                value: e.to_string(),
+            })?;
+        }
         validate_skeleton(&self.skeleton, self.radii)?;
         // A zero ceiling grows nothing; the build has nothing to sweep, so a
         // family refuses it here.
@@ -86,6 +127,7 @@ impl Family {
         self.surface.validate()?;
         height(self.skeleton.envelope.height)?;
         build_element(self.element)?;
+        crate::catalogue::check(BloomParams::CHECKS, &self.bloom, Site::Bloom)?;
         canopy_rows(self.canopy, Some(TwigPlacement::of(self)?))?;
         Instances::new(Reference::of(self)?).validate()?;
         crate::catalogue::check(Self::CHECKS, self, Site::Shell)

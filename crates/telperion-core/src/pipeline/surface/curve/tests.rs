@@ -1,5 +1,5 @@
 use super::*;
-use crate::pipeline::{clothe, skeleton, GrowInput, Inputs};
+use crate::pipeline::{clothe, scaffold, Inputs};
 use crate::presets::{Preset, CATALOGUE, IN_WORK};
 
 /// Every values preset's clothed skeleton, its surface rows and its name.
@@ -9,8 +9,8 @@ fn trees() -> Vec<(&'static str, Tree, f64, SurfaceParams)> {
         .chain(IN_WORK)
         .map(|&(_, id, _, _)| {
             let family = Preset::from_id(id).unwrap().parameters();
-            let mut tree = skeleton(GrowInput::of(&family)).unwrap().tree;
-            let inputs = Inputs::of(&family);
+            let mut tree = scaffold(&family).unwrap();
+            let inputs = Inputs::of(&family, family.skeleton.envelope);
             clothe(&mut tree, &inputs).unwrap();
             (id, tree, inputs.surface.height, inputs.surface.params)
         })
@@ -22,6 +22,7 @@ fn trees() -> Vec<(&'static str, Tree, f64, SurfaceParams)> {
 /// for all but the lobed legends), its shaped leaf-base cells included.
 #[test]
 fn every_presets_rings_are_drawn_from_its_curve_to_the_bit() {
+    let _turn = crate::one_tree::turn();
     for (id, tree, height, params) in trees() {
         let mesh = build(&tree, height, &params).unwrap();
         let curve = curve(&tree, height, &params).unwrap();
@@ -72,6 +73,7 @@ fn clusters_bound_every_ring_and_their_ladder_rises() {
 /// place, 2.4e-7 of its distance from the origin).
 #[test]
 fn packed_points_stand_within_their_stated_error() {
+    let _turn = crate::one_tree::turn();
     for (id, tree, height, params) in trees() {
         let curve = curve(&tree, height, &params).unwrap();
         let segments = segments(&params);

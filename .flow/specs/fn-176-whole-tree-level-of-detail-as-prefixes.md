@@ -10,7 +10,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 70% [paraphrase], 30% [inferred] -->
 
 Today the only level of detail is each leaf's shape: the generator builds nested levels of the leaf mesh and the renderer picks one per leaf, per frame, at half a pixel of error. Every leaf and every run of wood is drawn at any distance. One tree fits the frame (fn-5 measured 8 branch orders at 1.28 ms of a 16.7 ms frame), but a forest, fn-86's and fn-6's target, does not, and nothing makes a distant tree cheaper. [paraphrase]
 
@@ -20,7 +19,6 @@ This spec gives the whole tree level of detail: fewer leaves and simpler wood wi
 
 ## Architecture & Data Models
 <!-- scope: technical -->
-<!-- Architecture: 50% [paraphrase], 50% [inferred] -->
 
 - **One ordering, many prefixes.** The generator orders each kind of data once, and every coarser draw reads a prefix of it; there are no separate reduced models. This is the pattern fn-15's motion levels and the leaf-shape levels already follow. [paraphrase]
 - **Leaves: stochastic pruning per cluster** (Cook & Halstead, Pixar 2007). A cluster is the leaves one run bears. Each cluster stores a stratified random pruning order over its own leaves, fixed per tree and uncorrelated with position, as an index list into the leaf buffer; the leaf buffer itself is never reordered, so every leaf keeps its index, and with it the `vary(id)` colour and mottle and fn-15's flutter phase. Each frame, each cluster picks its own kept fraction from its own projected size, as the renderer already judges each leaf by its own depth (`select.wgsl`), so a hero tree prunes its far clusters and keeps its near ones whole; within a cluster the kept leaves are a prefix of its order. A cluster keeps at least one leaf. Survivors are scaled so the cluster's drawn leaf area equals its full leaf area: the scale is the full area divided by the kept area, with transition weights counted, not `1/u`, because leaves differ in area. Leaves in the transition window shrink out rather than vanish, and colours move toward the cluster mean by the paper's contrast correction. Pruning starts only where a leaf's projected size reaches the pixel, the line leaf-shape selection already draws. (One fraction per tree was rejected: a tree spans near and far in one frame. A prefix over a whole-tree order was rejected: a near leaf late in the order would force every leaf before it to be drawn.) [paraphrase]
@@ -101,16 +99,3 @@ None found.
 - Whether shadows and leaf flutter use the view's kept fraction; resolved by the walk's stills.
 - Whether contrast correction runs on shader inputs or on shaded colour; resolved by the R2 colour test.
 - The ring-segment error metric for wood; resolved in planning against the leaf-shape levels' deviation rule.
-
-## Requirement coverage
-
-| R-ID | Task |
-|------|------|
-| R1 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R2 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R3 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R4 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R5 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R6 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R7 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R8 | fn-N.M (TBD - populate via /flow-next:plan) |

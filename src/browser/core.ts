@@ -44,7 +44,7 @@ export interface FoliageAnatomy {
 }
 export interface Diagnostics {
   biologicalUnits: number | null; foliageAnatomy: FoliageAnatomy | null;
-  nodes: number; crossover: number; shed: number; capped: boolean; levelCapped: boolean;
+  nodes: number; crossover: number; capped: boolean; levelCapped: boolean;
   attractionCapped: boolean; complete: boolean;
   /** Twig detail kept, in sixteenths of a generation, where the node budget reduced the tree. */
   twigDetail: number | null;
@@ -102,6 +102,8 @@ export interface TreeOutput {
   field?: { bounds: Bounds | null; query(cells: Float64Array): FieldQuery; snapshot(): FieldSnapshot };
   diagnostics: Diagnostics;
 }
+// An address the core returns is an i32: one past 2 GiB of its memory
+// reads negative, so each is read unsigned (`>>> 0`).
 interface Exports extends WebAssembly.Exports {
   memory: WebAssembly.Memory;
   request_alloc(n: number): number; request_ptr(): number;
@@ -131,7 +133,7 @@ export class TreeEngine {
   }
   private metadata(): unknown {
     const e = this.e;
-    return JSON.parse(new TextDecoder().decode(new Uint8Array(e.memory.buffer, e.metadata_ptr(), e.metadata_len())));
+    return JSON.parse(new TextDecoder().decode(new Uint8Array(e.memory.buffer, e.metadata_ptr() >>> 0, e.metadata_len())));
   }
   private check(code: number): void {
     if (code) throw Error(`Tree core: ${(this.metadata() as { error: string }).error}`);
@@ -149,16 +151,16 @@ export class TreeEngine {
     }));
     const e = this.e;
     this.check(e.request_alloc(request.length));
-    new Uint8Array(e.memory.buffer, e.request_ptr(), request.length).set(request);
+    new Uint8Array(e.memory.buffer, e.request_ptr() >>> 0, request.length).set(request);
     this.check(e.build());
     const transfer = performance.now();
     const diagnostics = this.metadata() as Diagnostics;
-    const f32 = (slot: number) => new Float32Array(e.memory.buffer, e.buffer_ptr(slot), e.buffer_len(slot)).slice();
-    const u32 = (slot: number) => new Uint32Array(e.memory.buffer, e.buffer_ptr(slot), e.buffer_len(slot)).slice();
+    const f32 = (slot: number) => new Float32Array(e.memory.buffer, e.buffer_ptr(slot) >>> 0, e.buffer_len(slot)).slice();
+    const u32 = (slot: number) => new Uint32Array(e.memory.buffer, e.buffer_ptr(slot) >>> 0, e.buffer_len(slot)).slice();
     const result: TreeOutput = { diagnostics };
     if (outputs.surface) result.surface = { positions: f32(0), normals: f32(1), indices: u32(2), bounds: diagnostics.surfaceBounds };
     if (outputs.foliage) result.foliage = { positions: f32(3), indices: u32(4), leaves: u32(5), reference: diagnostics.foliageReference, anatomy: diagnostics.foliageAnatomy, bounds: diagnostics.foliageBounds };
-    if (outputs.structure) result.structure = { values: new Float64Array(e.memory.buffer, e.buffer_ptr(6), e.buffer_len(6)).slice(), topology: u32(7) };
+    if (outputs.structure) result.structure = { values: new Float64Array(e.memory.buffer, e.buffer_ptr(6) >>> 0, e.buffer_len(6)).slice(), topology: u32(7) };
     if (outputs.field) result.field = { bounds: structuredClone(diagnostics.fieldBounds), query: cells => this.query(diagnostics.revision, cells), snapshot: () => this.snapshot(diagnostics) };
     diagnostics.timings.transferMs = performance.now() - transfer;
     diagnostics.timings.buildMs = performance.now() - started;
@@ -171,8 +173,8 @@ export class TreeEngine {
       this.check(e.field_snapshot(diagnostics.revision));
       const meta = this.metadata() as { woodNodes: number; leafNodes: number; planNodes: number; extractionMs: number };
       const copy = performance.now();
-      const f64 = (slot: number) => new Float64Array(e.memory.buffer, e.buffer_ptr(slot), e.buffer_len(slot)).slice();
-      const u32 = (slot: number) => new Uint32Array(e.memory.buffer, e.buffer_ptr(slot), e.buffer_len(slot)).slice();
+      const f64 = (slot: number) => new Float64Array(e.memory.buffer, e.buffer_ptr(slot) >>> 0, e.buffer_len(slot)).slice();
+      const u32 = (slot: number) => new Uint32Array(e.memory.buffer, e.buffer_ptr(slot) >>> 0, e.buffer_len(slot)).slice();
       result = {
         schema: 2, revision: diagnostics.revision, bounds: structuredClone(diagnostics.fieldBounds),
         wood: f64(9),
@@ -189,13 +191,13 @@ export class TreeEngine {
     if (!(cells instanceof Float64Array) || cells.length % 4) throw Error("Field cells require packed Float64Array x,y,z,halfExtent");
     const e = this.e;
     this.check(e.query_alloc(cells.length / 4));
-    new Float64Array(e.memory.buffer, e.query_ptr(), cells.length).set(cells);
+    new Float64Array(e.memory.buffer, e.query_ptr() >>> 0, cells.length).set(cells);
     this.check(e.query(revision));
     return {
-      flags: new Uint8Array(e.memory.buffer, e.buffer_ptr(8), e.buffer_len(8)).slice(),
-      woodRadius: new Float32Array(e.memory.buffer, e.buffer_ptr(25), e.buffer_len(25)).slice(),
-      leaves: new Float32Array(e.memory.buffer, e.buffer_ptr(19), e.buffer_len(19)).slice(),
-      limbs: new Uint32Array(e.memory.buffer, e.buffer_ptr(20), e.buffer_len(20)).slice(),
+      flags: new Uint8Array(e.memory.buffer, e.buffer_ptr(8) >>> 0, e.buffer_len(8)).slice(),
+      woodRadius: new Float32Array(e.memory.buffer, e.buffer_ptr(25) >>> 0, e.buffer_len(25)).slice(),
+      leaves: new Float32Array(e.memory.buffer, e.buffer_ptr(19) >>> 0, e.buffer_len(19)).slice(),
+      limbs: new Uint32Array(e.memory.buffer, e.buffer_ptr(20) >>> 0, e.buffer_len(20)).slice(),
     };
   }
 }

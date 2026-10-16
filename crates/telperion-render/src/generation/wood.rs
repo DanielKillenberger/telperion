@@ -1,24 +1,31 @@
 //! The wood's ring positions on the device, which the leaves' stations seat
 //! on. The wood itself is drawn from its curve (fn-208, host decision 20).
-use super::{io, Clock, Generator, Metrics};
-use crate::Result;
-use telperion_core::surface::{prepared::PreparedSurface, SurfaceRun};
+use telperion_core::surface::SurfaceRun;
+#[cfg(test)]
+use {
+    super::{io, Clock, Generator, Metrics},
+    crate::{buffer::Owned, Result},
+    telperion_core::surface::prepared::PreparedSurface,
+};
 
+#[cfg(test)]
 pub(super) struct UploadedWood {
-    pub positions: wgpu::Buffer,
+    pub positions: Owned,
     /// The positions kernel's run and ring metadata, where it made them.
-    pub metadata: Option<wgpu::Buffer>,
+    pub metadata: Option<Owned>,
     pub(super) runs: Vec<SurfaceRun>,
 }
+#[cfg(test)]
 impl UploadedWood {
     pub fn gpu_metadata_bytes(&self) -> u64 {
-        self.metadata.as_ref().map_or(0, wgpu::Buffer::size)
+        self.metadata.as_ref().map_or(0, |b| b.size())
     }
 
     pub fn metadata_bytes(&self) -> u64 {
         (self.runs.capacity() * size_of::<SurfaceRun>()) as u64
     }
 }
+#[cfg(test)]
 impl Generator {
     /// The CPU's ring positions on the device, for the stations to read.
     pub(super) fn upload_wood(
@@ -52,6 +59,7 @@ impl Generator {
     }
 }
 
+#[cfg(test)]
 pub(super) fn compute_fits(limits: &wgpu::Limits, sizes: &[u64], runs: u64) -> bool {
     let stored = limits
         .max_buffer_size
@@ -69,6 +77,7 @@ pub(super) fn cpu_bytes(wood: &telperion_core::surface::SurfaceMesh) -> u64 {
         + wood.run_table.capacity() * size_of::<SurfaceRun>()) as u64
 }
 
+#[cfg(test)]
 pub(super) fn prepared_cpu_bytes(p: &PreparedSurface) -> u64 {
     ((p.positions.capacity() + p.angles.capacity()) * 4
         + p.rings.capacity() * 8

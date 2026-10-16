@@ -329,13 +329,11 @@ impl Field {
                 let mut foliage = false;
                 index.each(wood_cell, &mut |id| {
                     let s = &sweeps[id];
-                    if s.meets(center, half_extent, inflation) {
-                        foliage = true;
-                        tally.add(
-                            s.system,
-                            s.count * s.segment.share_inside(center, half_extent),
-                        );
+                    if !s.meets(center, half_extent, inflation) {
+                        return;
                     }
+                    foliage = true;
+                    tally.add(s.system, s.count * s.segment.share_inside(center, half_extent));
                 });
                 Occupancy {
                     wood,

@@ -72,7 +72,6 @@ fn full(f: &Family) -> Result<Value, Box<dyn std::error::Error>> {
     let structure = o.structure.as_ref().map(|s| (&s.nodes, &s.topology));
     Ok(json!({
         "tree": digest(&built.skeleton.tree),
-        "shed": built.skeleton.shed,
         "element": digest(&o.element),
         "plan": digest(&o.plan),
         "wood": digest(&o.wood),
@@ -98,7 +97,7 @@ fn metrics(m: &Metrics) -> String {
         (m.gpu_positions, m.wood_prepared_cpu_bytes),
         (m.wood_metadata_cpu_bytes, m.wood_gpu_peak_bytes),
         (m.wood_backend, m.wood_fallback, m.base_cpu_bytes),
-        (m.wood_cpu_bytes, m.retained_gpu_bytes, m.input_instances),
+        (m.wood_cpu_bytes, m.retained_gpu_bytes),
         (
             m.instances,
             m.descriptor_cpu_bytes,

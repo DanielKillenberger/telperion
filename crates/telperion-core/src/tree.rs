@@ -3,12 +3,18 @@
 //! the specimen provides a cached packed layout when a consumer reads it.
 //! Timeline nodes retain their birth identity and slot after their death year;
 //! the legacy envelope builder still compacts. Consumer reads exclude dead nodes.
+mod bloom;
+mod cluster;
 mod identity;
+mod leafing;
 mod section;
 mod shoot;
 use crate::{math::Vec3, Error, Result};
+pub use bloom::Bloom;
+pub use cluster::{cluster_key, Cluster};
 pub use identity::NodeIdentity;
 pub(crate) use identity::NodeKey;
+pub use leafing::{keeps, kept_share, retention, Leafing, Unfolded, FALL, KEEP, LIFE};
 pub use section::{Section, SectionRing};
 pub use shoot::{BudFate, ShootState};
 
@@ -23,7 +29,8 @@ pub enum NodeKind {
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Node {
-    /// Stable birth identity, assigned by the owning specimen; never a storage index.
+    /// Stable identity, never a storage index: the scaffold specimen's birth
+    /// order, or the engine phytomer's lineage key (fn-220).
     pub identity: NodeIdentity,
     pub shoot: ShootState,
     pub position: Vec3,
@@ -128,8 +135,122 @@ pub struct Tree {
     /// `sections` is: a specimen's bytes are the ones they always were.
     #[cfg_attr(feature = "json", serde(skip))]
     pub pipe: Vec<[f64; 2]>,
+    /// Each node's wood's frame as the engine laid it, its heading and the
+    /// side its first bud faces (y up), where the engine grew the tree:
+    /// what a run seeds its frame from at its socket (fn-212, host
+    /// decision 2026-10-07; every run since fn-256). Never stored, as
+    /// `sections`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub frames: Vec<[f32; 6]>,
+    /// Each node's key, from its axis's lineage and its phytomer's place
+    /// along the axis (`node_key`): what a run's leaves draw their random
+    /// values by, whatever order an executor walks the runs in (fn-212,
+    /// host decision 2026-10-07). Empty on a tree no engine grew, whose
+    /// nodes key by their index. Never stored, as `sections`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub keys: Vec<u32>,
+    /// Each node's wood as the engine grew it, in metres: the internodes
+    /// of the phytomers it draws, each its PA's length at its scale,
+    /// summed. Record data, the same on every executor, which a run's
+    /// stations are counted and split by (fn-212 D2, host decision
+    /// 2026-10-07). Empty on a tree no engine grew, whose wood is its
+    /// chord. Never stored, as `sections`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub grown: Vec<f64>,
+    /// The nodes that may flower, in node order (fn-216). Empty on every
+    /// tree whose ages bear none, and never stored, as `sections` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub blooms: Vec<Bloom>,
+    /// The short shoots' tips, in node order (fn-223). Empty on every tree
+    /// whose ages state no cluster, and never stored, as `sections` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub clusters: Vec<Cluster>,
+    /// Whether each node is a short shoot's wood, which bears no leaf along
+    /// its length (fn-223). Empty where `clusters` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub clustered: Vec<bool>,
+    /// Each node's leaf retention by its wood's age (fn-248). Empty on
+    /// every tree whose ages bear for ever, and never stored, as
+    /// `clusters` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub leafing: Vec<Leafing>,
+    /// Each node's leaves drawn within its year (fn-270 R5, R5c). Empty
+    /// on a tree drawn whole, and never stored, as `leafing` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub unfolding: Vec<Unfolded>,
+    /// The year the engine grew the tree to and draws it in (fn-270 R5b),
+    /// which ages a rosette's fronds; none on a tree no engine grew. Never
+    /// stored, as `leafing` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub year: Option<Year>,
 }
+
+/// The year a tree is drawn in (fn-270 R5b): its age in years, whole or a
+/// fraction into its last, and its stem's days from the whole age to
+/// budburst and of a shoot's elongation and a leaf's expansion
+/// (`telperion_space::unfold::Season`).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Year {
+    pub age: f64,
+    pub budburst: f64,
+    pub elongation: f64,
+    pub expansion: f64,
+}
+
+/// A 32-bit finaliser: the one the leaves' draws already use.
+pub fn mix32(z: u32) -> u32 {
+    telperion_space::mix32(z)
+}
+
+/// A node's key: its axis's lineage and its phytomer's place along the
+/// axis, mixed; the GPU executor's drawing computes the same words.
+pub fn node_key(lineage: u64, place: usize) -> u32 {
+    let low = mix32(lineage as u32);
+    let high = mix32(low ^ (lineage >> 32) as u32);
+    mix32(high ^ place as u32)
+}
+
+/// The random stream a run's leaves draw from: the family's seed and the
+/// key of the run's first node (fn-212, host decision 2026-10-07).
+pub fn leaf_stream(seed: u32, key: u32) -> u32 {
+    mix32(seed ^ 0x2c9e_1a7f ^ key)
+}
+
 impl Tree {
+    /// Whether node `i` is a short shoot's wood (`clustered`).
+    pub fn is_clustered(&self, i: usize) -> bool {
+        self.clustered.get(i).copied().unwrap_or(false)
+    }
+    /// Node `i`'s leaf retention (`leafing`): every station kept where the
+    /// tree records none.
+    pub fn leafing(&self, i: usize) -> Leafing {
+        self.leafing.get(i).copied().unwrap_or(Leafing::ALL)
+    }
+    /// Node `i`'s leaves drawn within its year (`unfolding`): whole where
+    /// the tree records none.
+    pub fn unfolding(&self, i: usize) -> Unfolded {
+        self.unfolding.get(i).copied().unwrap_or(Unfolded::WHOLE)
+    }
+    /// Node `i`'s key (`keys`), or its index where no engine grew it.
+    pub fn key(&self, i: usize) -> u32 {
+        self.keys.get(i).copied().unwrap_or(i as u32)
+    }
+    /// Node `i`'s grown wood (`grown`), or its chord from its parent where
+    /// no engine grew it.
+    pub fn grown_length(&self, i: usize) -> f64 {
+        self.grown.get(i).copied().unwrap_or_else(|| {
+            let n = &self.nodes[i];
+            n.parent.map_or(0.0, |p| {
+                self.nodes[p as usize].position.distance(n.position)
+            })
+        })
+    }
+    /// The side a run seeds its frame from: its attachment's laid side,
+    /// where the engine laid the tree's frames.
+    pub(crate) fn seed_side(&self, attach: usize) -> Option<crate::math::Vec3> {
+        let f = self.frames.get(attach)?.map(f64::from);
+        Some(crate::math::Vec3::new(f[3], f[4], f[5]))
+    }
     /// Node `i`'s radii as the pipe model solved them, `[start, distal]`,
     /// whatever `girthHold` drew: the radii leaf-bearing decisions read.
     pub(crate) fn pipe(&self, i: usize) -> [f64; 2] {

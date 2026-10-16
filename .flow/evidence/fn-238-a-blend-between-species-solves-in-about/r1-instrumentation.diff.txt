@@ -1,0 +1,132 @@
+diff --git i/crates/telperion-core/src/blend.rs w/crates/telperion-core/src/blend.rs
+index fa899137..f6766354 100644
+--- i/crates/telperion-core/src/blend.rs
++++ w/crates/telperion-core/src/blend.rs
+@@ -9,7 +9,7 @@ use crate::{
+     Error, Result,
+ };
+ 
+-mod size;
++pub mod size;
+ 
+ /// The family at `t` between `a` and `b`, where 0 is `a` and 1 is `b`, both
+ /// returned unchanged. The two rows are read at one seed — the result carries
+diff --git i/crates/telperion-core/src/blend/size.rs w/crates/telperion-core/src/blend/size.rs
+index 047eab66..fc0411be 100644
+--- i/crates/telperion-core/src/blend/size.rs
++++ w/crates/telperion-core/src/blend/size.rs
+@@ -20,6 +20,14 @@ const STEPS: usize = 64;
+ /// The solve stops when the prediction is the target to this share.
+ const TOLERANCE: f64 = 1e-12;
+ 
++pub static PROBE: std::sync::Mutex<Vec<(&'static str, f64)>> = std::sync::Mutex::new(Vec::new());
++fn probe<T>(name: &'static str, f: impl FnOnce() -> T) -> T {
++    let s = std::time::Instant::now();
++    let r = f();
++    PROBE.lock().unwrap().push((name, s.elapsed().as_secs_f64()));
++    r
++}
++
+ /// A light-neutral predicted count of a species at an age.
+ type Count = fn(&Species, u32) -> Result<f64>;
+ 
+@@ -115,14 +123,14 @@ fn solve(at: impl Fn(f64) -> Result<f64>, top: f64, high: f64) -> Result<f64> {
+ 
+ /// The species' expected kept phytomers at `age` with its light rows at 0.
+ fn kept(species: &Species, age: u32) -> Result<f64> {
+-    let kept = expected_kept(&neutral(species), age).map_err(refused)?;
++    let kept = probe("kept", || expected_kept(&neutral(species), age)).map_err(refused)?;
+     kept.ok_or(REFUSED)
+ }
+ 
+ /// The species' expected grown phytomers at `age`, the shed ones included,
+ /// with its light rows at 0.
+ fn grown(species: &Species, age: u32) -> Result<f64> {
+-    let counts = expected_counts(&neutral(species), age).map_err(refused)?;
++    let counts = probe("grown", || expected_counts(&neutral(species), age)).map_err(refused)?;
+     Ok((0..species.states.len()).map(|pa| counts.total(pa)).sum())
+ }
+ 
+diff --git i/crates/telperion-space/src/closed_form.rs w/crates/telperion-space/src/closed_form.rs
+index f5a74ad9..87c61e7a 100644
+--- i/crates/telperion-space/src/closed_form.rs
++++ w/crates/telperion-space/src/closed_form.rs
+@@ -33,6 +33,11 @@ use crate::species::Species;
+ use crate::structure::CountTable;
+ use events::{events, first_events, Event};
+ 
++pub static PROBE: [std::sync::atomic::AtomicUsize; 5] = [const { std::sync::atomic::AtomicUsize::new(0) }; 5];
++fn bump(i: usize, n: usize) { PROBE[i].fetch_add(n, std::sync::atomic::Ordering::Relaxed); }
++pub static NS: [std::sync::atomic::AtomicU64; 3] = [const { std::sync::atomic::AtomicU64::new(0) }; 3];
++fn ns(i: usize, s: std::time::Instant) { NS[i].fetch_add(s.elapsed().as_nanos() as u64, std::sync::atomic::Ordering::Relaxed); }
++
+ /// The expected phytomers per PA and cycle of a tree grown `age` cycles.
+ pub fn expected_counts(species: &Species, age: u32) -> Result<CountTable> {
+     species.validate()?;
+@@ -127,17 +132,26 @@ impl Walk<'_, CountTable> {
+         first: Option<First>,
+     ) -> CountTable {
+         let key = sub(self.species, k, m, carried, first);
++        bump(0, 1);
+         if let Some(table) = self.memo.get(&key) {
+-            return table.clone();
++            let s = std::time::Instant::now();
++            let t = table.clone();
++            ns(2, s);
++            return t;
+         }
++        bump(1, 1);
+         let mut table = CountTable::new(self.species.states.len(), m);
+-        for event in events(
++        let s = std::time::Instant::now();
++        let evs = events(
+             self.species,
+             &self.laterals[k],
+             &mut self.living,
+             (k, m, carried),
+             first,
+-        ) {
++        );
++        ns(0, s);
++        bump(2, evs.len());
++        for event in evs {
+             match event {
+                 Event::Nodes { at, count, .. } => table.add(k, at, count),
+                 Event::Bud {
+@@ -149,7 +163,10 @@ impl Walk<'_, CountTable> {
+                     ..
+                 } => {
+                     let sub = self.counts(pa, m - at, carried, first);
++                    let s = std::time::Instant::now();
++                    bump(3, sub.pas * sub.cycles);
+                     add_shifted(&mut table, &sub, at, weight);
++                    ns(1, s);
+                 }
+             }
+         }
+diff --git i/crates/telperion-space/src/closed_form/predictor.rs w/crates/telperion-space/src/closed_form/predictor.rs
+index 9a1d2803..e927c8b7 100644
+--- i/crates/telperion-space/src/closed_form/predictor.rs
++++ w/crates/telperion-space/src/closed_form/predictor.rs
+@@ -215,6 +215,8 @@ impl<'a> Walk<'a> {
+             match self.parts(top, step.as_ref()) {
+                 Ok(parts) => {
+                     let table = self.table(top, step.as_ref(), &parts);
++                    super::PROBE[4].fetch_add(table.a.len(), std::sync::atomic::Ordering::Relaxed);
++                    super::PROBE[2].fetch_add(1_000_000_000, std::sync::atomic::Ordering::Relaxed);
+                     self.lived.insert(key, Rc::new(table));
+                     stack.pop();
+                 }
+diff --git i/crates/telperion-space/src/lib.rs w/crates/telperion-space/src/lib.rs
+index 311102b9..9288b49a 100644
+--- i/crates/telperion-space/src/lib.rs
++++ w/crates/telperion-space/src/lib.rs
+@@ -49,7 +49,7 @@ pub use beech::beech;
+ pub use blend::blend;
+ pub use bounded::{grow_bounded, Bounded, Expected};
+ pub use chain::{passed, AGES};
+-pub use closed_form::{expected_counts, expected_kept, expected_length};
++pub use closed_form::{expected_counts, expected_kept, expected_length, PROBE, NS};
+ pub use error::{Error, Result};
+ pub use fine::{
+     bearer_frame, canonical, chain_cases, digest, grow_roots, identities, landed, lineage_order,

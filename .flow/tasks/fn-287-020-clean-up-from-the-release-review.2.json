@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T04:01:00.516815Z",
+  "depends_on": [
+    "fn-287-020-clean-up-from-the-release-review.1"
+  ],
+  "id": "fn-287-020-clean-up-from-the-release-review.2",
+  "priority": null,
+  "spec": "fn-287-020-clean-up-from-the-release-review",
+  "spec_path": ".flow/tasks/fn-287-020-clean-up-from-the-release-review.2.md",
+  "status": "done",
+  "title": "Delete the envelope experiment, make the metadata true, declare the gate's one invocation",
+  "updated_at": "2026-10-16T04:01:00.516815Z"
+}

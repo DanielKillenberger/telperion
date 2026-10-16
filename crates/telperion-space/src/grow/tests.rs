@@ -1,5 +1,6 @@
 //! The speed levers leave every tree as it was (fn-210).
 use super::{run, Certain, Grown, Options};
+use crate::tolerance::unlit;
 use crate::{beech, oak, palm, spruce, Light, Request, Species};
 use std::collections::HashSet;
 
@@ -31,17 +32,19 @@ const LIT: Light = Light {
 /// that sheds early is the last growth some kept bearer had: its fade then
 /// reads the twig, and the twig may not be left ungrown.
 fn long_kept_bearers() -> Species {
-    let mut species = beech();
+    let mut species = unlit(beech());
     for state in &mut species.states[9..13] {
         state.shedding = 6.0;
     }
     species
 }
 
+/// The shed-certain shortcut serves only a species that reads no light, so
+/// the beech and the spruce stand as they grew unlit, before fn-264.
 fn species() -> [(&'static str, Species); 4] {
     [
-        ("beech", beech()),
-        ("spruce", spruce()),
+        ("beech", unlit(beech())),
+        ("spruce", unlit(spruce())),
         ("palm", palm()),
         ("beech with long-kept bearers", long_kept_bearers()),
     ]
@@ -167,4 +170,92 @@ fn many_cores_grow_the_tree_one_does() {
             assert_eq!(one.grown, many.grown, "{name} seed {seed}");
         }
     }
+}
+
+/// Every pass reports as it ends, before its stage (fn-211): the oak in
+/// light, whose every pass runs.
+#[test]
+fn every_pass_is_reported() {
+    use super::{Pass, Stage};
+    let request = Request {
+        age: 11,
+        seed: 1,
+        budget: 20_000_000,
+        light: LIT,
+    };
+    let mut reported = Vec::new();
+    run(
+        &oak(),
+        request,
+        &mut |s| reported.push(s),
+        true,
+        Options::default(),
+    )
+    .unwrap();
+    let passes: HashSet<Pass> = reported
+        .iter()
+        .filter_map(|s| match s {
+            Stage::Pass(p) => Some(*p),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(passes.len(), Pass::SagPlace as usize + 1, "{passes:?}");
+    let at = |s: Stage| reported.iter().position(|&r| r == s).unwrap();
+    assert!(at(Stage::Pass(Pass::Wake)) < at(Stage::Grown));
+    assert!(at(Stage::Pass(Pass::ShadeRead)) < at(Stage::Lit));
+    assert!(at(Stage::Pass(Pass::LeafMean)) < at(Stage::Settled));
+    assert!(at(Stage::Pass(Pass::SagPlace)) < at(Stage::Laid));
+}
+
+/// fn-197 step 2, moved from `tests/light.rs` when `grow` became the
+/// cycle (fn-256): the oak without sag, erection, straightening, take-over
+/// (fn-286: like straightening, it fades over the reach later years
+/// extend) or shedding, its rough layout (`sketch`) against the final lay of the
+/// engine that sketches it (`whole`): every phytomer where the final lay
+/// puts it, but for wood near the ground, which the final lay eases by
+/// its girth.
+#[test]
+fn without_what_later_years_add_the_rough_layout_is_the_final_one() {
+    let mut species = oak();
+    for state in &mut species.states {
+        state.form.sag = 0.0;
+        state.erection = 0.0;
+        state.straightening = 0.0;
+        state.takeover = 0.0;
+        state.shedding = f64::INFINITY;
+    }
+    let lit = Request {
+        age: 25,
+        seed: 3,
+        budget: 20_000_000,
+        light: Light {
+            extinction: 0.5,
+            sky: 0.5,
+        },
+    };
+    let laid = super::whole(&species, lit).unwrap();
+    let rough = super::sketch(&species, lit).unwrap();
+    let worst = deviation(&laid, &rough, 0.5);
+    // The layout is f32 (fn-254): the two walks part by a last place of a
+    // position (2.4e-7 m at 3 m), which the walk carries on (1.8e-5 m the
+    // most measured).
+    assert!(
+        worst < 1e-4,
+        "a phytomer above 0.5 m stands {worst} m from its final place"
+    );
+}
+
+/// The farthest any phytomer standing above `above` metres in `a` stands
+/// from its place in `b`.
+fn deviation(a: &crate::Structure, b: &crate::Structure, above: f64) -> f64 {
+    assert_eq!(a.axes.len(), b.axes.len());
+    let mut worst = 0.0f64;
+    for (x, y) in a.axes.iter().zip(&b.axes) {
+        for (p, q) in x.phytomers.iter().zip(&y.phytomers) {
+            if p.tip.z > above {
+                worst = worst.max((p.tip - q.tip).length());
+            }
+        }
+    }
+    worst
 }

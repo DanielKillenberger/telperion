@@ -37,7 +37,7 @@ vegetation pass on the GPU.
 
 Driver NVIDIA 610.57.04. The raw records are [oak](oak-native-timing.json) and
 [spruce](spruce-native-timing.json); the stills beside them are
-[oak-hero.png](oak-hero.png) and [spruce-hero.png](spruce-hero.png).
+[oak-hero.jpg](oak-hero.jpg) and [spruce-hero.jpg](spruce-hero.jpg).
 
 What each frame draws, in three draw calls either way:
 

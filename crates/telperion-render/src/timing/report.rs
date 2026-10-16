@@ -62,8 +62,11 @@ pub struct Report {
     p95_ms: Option<f64>,
     /// The selection compute pass, median and tail.
     selection: Option<[f64; 2]>,
-    /// The sun's depth pass, median and tail.
+    /// The sun's depth pass, median and tail. A frame that reused the map
+    /// drawn before it costs nothing and counts as zero here (fn-246).
     shadow: Option<[f64; 2]>,
+    /// How many measured frames reused the sun's map rather than drawing it.
+    shadow_cached: usize,
     /// The wood's surfacing compute pass, median and tail (fn-208).
     surfacing: Option<[f64; 2]>,
     /// The three passes the tree costs together, per frame and then ranked:
@@ -115,12 +118,18 @@ impl Report {
     /// stands on its own account: a pair no pass wrote reads as a zero rather
     /// than a duration and is refused, and a refused pass takes only itself and
     /// the total with it. The frame's own verdict judges the frame.
+    ///
+    /// `cached` says, frame by frame, whether the sun's map was reused rather
+    /// than drawn (fn-246). Such a frame's shadow costs exactly nothing,
+    /// whatever its pair read, and is counted apart; it is a measurement of
+    /// zero, never an unwritten pair, and only a drawn map's pair is judged.
     pub fn with_passes(
         mut self,
         vegetation: &[f64],
         selection: &[f64],
         shadow: &[f64],
         surfacing: &[f64],
+        cached: &[bool],
     ) -> Self {
         if !self.verdict.is_valid() {
             return self;
@@ -130,8 +139,22 @@ impl Report {
                 .then(|| ranked(samples, [0.5, 0.95]))
         };
         self.selection = measured(selection);
-        self.shadow = measured(shadow);
         self.surfacing = measured(surfacing);
+        let drawn: Vec<f64> = shadow
+            .iter()
+            .zip(cached)
+            .filter(|(_, reused)| !**reused)
+            .map(|(sample, _)| *sample)
+            .collect();
+        let shadow: Vec<f64> = shadow
+            .iter()
+            .zip(cached)
+            .map(|(sample, reused)| if *reused { 0.0 } else { *sample })
+            .collect();
+        let accounted = shadow.len() == vegetation.len() && cached.len() == shadow.len();
+        self.shadow_cached = cached.iter().filter(|reused| **reused).count();
+        self.shadow = (accounted && (drawn.is_empty() || durations(&drawn)))
+            .then(|| ranked(&shadow, [0.5, 0.95]));
         if self.selection.is_none() || self.shadow.is_none() || self.surfacing.is_none() {
             return self;
         }
@@ -213,6 +236,7 @@ impl Report {
             p95_ms: None,
             selection: None,
             shadow: None,
+            shadow_cached: 0,
             surfacing: None,
             total: None,
             levels: Vec::new(),
@@ -255,6 +279,12 @@ impl Report {
     /// read against its baseline.
     pub fn shadow_p50_ms(&self) -> Option<f64> {
         self.shadow.map(|pair| pair[0])
+    }
+
+    /// How many measured frames reused the sun's map, each counted as zero
+    /// in the shadow pass's numbers.
+    pub fn shadow_cached(&self) -> usize {
+        self.shadow_cached
     }
 
     /// The p95 shadow pass, milliseconds.
@@ -313,6 +343,7 @@ impl Report {
         if let Some([median, tail]) = self.shadow {
             fields.push(format!("\"shadow_p50_ms\": {median:.4}"));
             fields.push(format!("\"shadow_p95_ms\": {tail:.4}"));
+            fields.push(format!("\"shadow_cached\": {}", self.shadow_cached));
         }
         if let Some([median, tail]) = self.surfacing {
             fields.push(format!("\"surfacing_p50_ms\": {median:.4}"));

@@ -1,0 +1,19 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T07:36:57.106472Z",
+  "depends_on": [
+    "fn-257-the-site-grows-its-trees-on-the-device.4",
+    "fn-257-the-site-grows-its-trees-on-the-device.5",
+    "fn-257-the-site-grows-its-trees-on-the-device.9",
+    "fn-257-the-site-grows-its-trees-on-the-device.10"
+  ],
+  "id": "fn-257-the-site-grows-its-trees-on-the-device.8",
+  "priority": null,
+  "spec": "fn-257-the-site-grows-its-trees-on-the-device",
+  "spec_path": ".flow/tasks/fn-257-the-site-grows-its-trees-on-the-device.8.md",
+  "status": "todo",
+  "title": "The spruce's cost that is not kernel arithmetic",
+  "updated_at": "2026-10-16T07:41:11.038327Z"
+}

@@ -1,0 +1,257 @@
+{
+  "branch_name": "fn-248-leaves-hang-on-twigs",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T12:09:41.744925Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-248-leaves-hang-on-twigs",
+  "impl_review_rounds": {
+    "fn-248-leaves-hang-on-twigs.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T12:12:54.223543Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "8b6f0acf79dcc834a91322fd9d151cfcfe89fc73e274c2e046de8ec3fa85ccbd",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c67a521afa65ca3a10799c220463ad62",
+            "classification": "introduced",
+            "findingId": "finding-c67a521afa65ca3a10799c220463ad62",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0d96ea6dff9c4a191dc2acd2db436e19",
+            "classification": "introduced",
+            "findingId": "finding-0d96ea6dff9c4a191dc2acd2db436e19",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "be4cad8f5af6714b62b78d583d0562547c03a756",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 361739,
+      "output_sha256": "9896e6e4390dc4a76d38bb6e5f957a582327b3a1c47edfc86b1ff46d2e43812e",
+      "reservation_id": "830abb5586514f03bcaf402e001f5795",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T12:12:07.657869Z",
+      "tool_calls": 24,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2ee7174b08cfc73806f93d3326f90d4fe9d6643c72affd3388ae7c13e0839fda",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c67a521afa65ca3a10799c220463ad62",
+            "classification": "introduced",
+            "findingId": "finding-c67a521afa65ca3a10799c220463ad62",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0d96ea6dff9c4a191dc2acd2db436e19",
+            "classification": "introduced",
+            "findingId": "finding-0d96ea6dff9c4a191dc2acd2db436e19",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "be4cad8f5af6714b62b78d583d0562547c03a756",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 677,
+      "output_sha256": "9f0254ea5bf6c597b0b24de546e45e4a6db9cc4d194a5ca3a5a00ba2772a3f0e",
+      "reservation_id": "4f18d5fd88a3455fb22f41b6cb94eacd",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T12:12:54.220844Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "9a4b9d326fcc8e912e77cb9653354dca816be71fb311d1968e3eb2aa5046aa6a",
+      "backend": "codex",
+      "base_sha": "c6cd30d3c9a208cbf627ec67c8a6edca436befb4",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1337859f5f1d2e303de2f5aab82648bc",
+            "classification": "introduced",
+            "findingId": "finding-1337859f5f1d2e303de2f5aab82648bc",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-bbf88c9493d9812aa837f5c849cad9ea",
+            "classification": "introduced",
+            "findingId": "finding-bbf88c9493d9812aa837f5c849cad9ea",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e6ee1bee6b62ac0199c04d5fa0ba71682a7a0f67",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1622,
+      "output_sha256": "a2152992ecef75892ae7660afc9ff77b9376b2894496b28b925d154f1bd47d35",
+      "reservation_id": "05d9857dbc67481c95cbb79f026a2058",
+      "round_consumed": true,
+      "scope": "impl:fn-248-leaves-hang-on-twigs.1",
+      "superseded_by": null,
+      "task": "fn-248-leaves-hang-on-twigs.1",
+      "timestamp": "2026-10-09T13:55:57.803775Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d665d3a8f9cea9f65ed19a66438a7afb51ea75d31ef713df9ff835dc153b3d06",
+      "backend": "codex",
+      "base_sha": "2329d19ee621f1ecc17b543583d2ce7ee8b36768",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-64408d9c306530392151531cc26d5b0a",
+            "classification": "introduced",
+            "findingId": "finding-64408d9c306530392151531cc26d5b0a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-530eff9aeef234080181bc264a4cf48b",
+            "classification": "introduced",
+            "findingId": "finding-530eff9aeef234080181bc264a4cf48b",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "97492f0971f2ff5d01968eedc8d675fe9763c348",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1217,
+      "output_sha256": "b9df21d8bfea3a3f7cbcbf5dbb3289f0ec77f186e0c7f88d901be731cd11c7b9",
+      "reservation_id": "6868f7ed297147779e76e67cbfdcfeb9",
+      "round_consumed": true,
+      "scope": "impl:fn-248-leaves-hang-on-twigs.1",
+      "superseded_by": null,
+      "task": "fn-248-leaves-hang-on-twigs.1",
+      "timestamp": "2026-10-09T20:47:24.135346Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-248-leaves-hang-on-twigs.1": 2,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-248-leaves-hang-on-twigs.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-248-leaves-hang-on-twigs.md",
+  "status": "done",
+  "title": "Leaves hang on twigs",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T20:48:27.957974Z"
+}

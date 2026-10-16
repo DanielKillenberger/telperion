@@ -27,6 +27,8 @@ struct Varying {
     @location(4) @interpolate(flat) mass: f32,
     // One where the placement is a withered leaf, drawn in the dead colour.
     @location(5) @interpolate(flat) withered: f32,
+    // One on a flower's stalk, drawn in the shoot's colour (fn-253).
+    @location(6) @interpolate(flat) stalk: f32,
 };
 
 /// The depth in its own mass of the cell a placement stands in. A grid of no
@@ -53,18 +55,62 @@ fn vertex(
     let base = id * LEAF_WORDS;
     let words = vec3<u32>(placements[base], placements[base + 1u], placements[base + 2u]);
     let placement = leaf_transform(words, u.leaf_box_min.xyz, u.leaf_box_extent.xyz);
-    let world = placement * vec4<f32>(position, 1.0);
+    // A leaf selection kept from a thinned share is drawn enlarged by the
+    // inverse root of that share, so the share covers what all of it would
+    // (fn-246): its size on screen from the frame's pixels a metre (eye.w)
+    // and the element's bounding radius (leaf_box_min.w). An organ's
+    // inflorescence is thinned and enlarged as one, about its seat (fn-253).
+    let organ = u.stalk.x > 0.0;
+    var centre = placement[3].xyz;
+    var reach = u.leaf_box_min.w * leaf_scale(words);
+    if (organ) {
+        centre = unit_seat(unit_rachis(id), u.leaf_box_min.xyz, u.leaf_box_extent.xyz);
+        reach = u.stalk.x + u.stalk.w + u.leaf_box_min.w;
+    }
+    let depth = max((u.view_projection * vec4<f32>(centre, 1.0)).w, 1e-4);
+    let kept = sqrt(max(leaf_kept(2.0 * reach * u.eye.w / depth), 1e-4));
+    var world = placement * vec4<f32>(position / select(kept, 1.0, organ), 1.0);
+    var facing = (placement * vec4<f32>(normal, 0.0)).xyz;
+    // A flower's stalks (fn-253) run between ends no transform of the
+    // floret moves, at widths in metres: laid from the instance, never
+    // scaled with it. An organ's rachis instance draws its rachis alone,
+    // a floret its petals, stamens and pedicel; the rest of the element
+    // folds to a point outside the frame.
+    let rachis = u.stalk.x > 0.0 && leaf_withered(words);
+    let kind = coord.x;
+    let stalk = kind < -0.5;
+    let code = u32(max(coord.y, 0.0) + 0.5);
+    let ring = code / STALK_SIDES;
+    let side = code % STALK_SIDES;
+    let frame = leaf_rotation(words.x);
+    let folded = rachis != (kind < -1.5);
+    if (stalk && kind < -1.5) {
+        let s = rachis_vertex(placement[3].xyz, frame[1], leaf_scale(words), ring, side, kind < -2.5);
+        world = vec4<f32>(s.at, 1.0);
+        facing = s.normal;
+    } else if (stalk) {
+        let s = pedicel_vertex(placement[3].xyz, frame, ring, side);
+        world = vec4<f32>(s.at, 1.0);
+        facing = s.normal;
+    }
+    if (organ) {
+        world = vec4<f32>(centre + (world.xyz - centre) / kept, 1.0);
+    }
     let offsets = vary(id);
     var out: Varying;
     out.clip = u.view_projection * world;
-    out.normal = (placement * vec4<f32>(normal, 0.0)).xyz;
+    if (folded) {
+        out.clip = vec4<f32>(2.0, 2.0, 2.0, 1.0);
+    }
+    out.normal = facing;
     out.world = world.xyz;
+    out.stalk = select(0.0, 1.0, stalk);
     // Restore the side before interpolation, then fold in the fragment.
     // Shared coarse triangles can cross the midrib without erasing it.
     out.coord = vec2<f32>(coord.x, coord.y * sign(position.x));
     out.leaf = vec3<f32>(offsets, depth_in_crown(placement[3].xyz));
     out.mass = 0.0;
-    out.withered = select(0.0, 1.0, leaf_withered(words));
+    out.withered = select(0.0, 1.0, leaf_withered(words) && !rachis);
     if (u.crown_shade.y > 0.0) {
         out.mass = mass_depth(placement[3].xyz);
     }
@@ -107,6 +153,20 @@ fn leaf_grain(coord: vec2<f32>, seed: vec2<f32>, pixel: vec2<f32>,
         leaf_cells(coord + cy, seed, pixel) - here);
 }
 
+/// The share of a pixel's footprint on the leaf, `at` in a leaf coordinate
+/// over [0, 1], that falls in the band [`low`, `high`]: the band's edges
+/// filtered over `footprint`, and where the footprint spans the whole leaf,
+/// the band's share of the coordinate, which the margin weighs to its area
+/// (fn-217 DESIGN.md 8.2). The band is set in leaf space, never in pixels.
+/// A coordinate that stands still, as a stamen's does, is wholly in or out.
+fn band(at: f32, low: f32, high: f32, footprint: f32) -> f32 {
+    let half = 0.5 * max(footprint, 1e-6);
+    let start = max(at - half, 0.0);
+    let end = min(at + half, 1.0);
+    let inside = max(min(end, high) - max(start, low), 0.0);
+    return inside / max(end - start, 1e-12);
+}
+
 /// The share of the sky that reaches a leaf at `world` through the crown
 /// standing over it: the chord straight up, where an overcast sky is
 /// brightest, taken at the row's shade per crown radius. All of it at zero.
@@ -131,10 +191,16 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     // withered leaf has aged to one colour on either face.
     var face = select(u.leaf_back.rgb, u.leaf_front.rgb, front);
     if (in.withered > 0.5) {
-        face = u.leaf_dead.rgb;
+        face = select(mix(face, u.leaf_dead.rgb, u.leaf_dead.w), u.leaf_dead.rgb, u.leaf_dead.w >= 1.0);
     }
     let scale = u.leaf_colour_detail.x;
     let pixel = fwidth(in.coord);
+    // A floret's eye (fn-217 F1): its petals turn toward the eye's colour
+    // from their base up the row's share of their length, and the stamens,
+    // which stand at the base, take it whole. None on a leaf.
+    if (u.bloom_eye.w > 0.0) {
+        face = mix(face, u.bloom_eye.rgb, band(in.coord.x, 0.0, u.bloom_eye.w, pixel.x));
+    }
     // Geometry derivatives before any row branch: WGSL wants them in
     // uniform control flow, including in Chromium.
     let dx = dpdx(in.world);
@@ -159,7 +225,12 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     }
     let edge = max(abs(in.coord.y), in.coord.x);
     let width = max(pixel.x, pixel.y);
-    let margin = smoothstep(1.0 - u.margin.w - width, 1.0 + width, edge)
+    // The band's coordinate does not run with the leaf's area, so as the
+    // footprint grows past the leaf the share it tends to is weighed to the
+    // band's measured area share.
+    let area = u.leaf_colour_detail.w / max(u.margin.w, 1e-6);
+    let margin = band(edge, 1.0 - u.margin.w, 1.0, width)
+        * mix(1.0, area, smoothstep(0.5, 2.0, width))
         * select(0.0, 1.0, u.margin.w > 0.0);
     let hue = mix(u.leaf_variation.x, u.leaf_variation.y, in.leaf.x);
     let brightness = 1.0 + mix(u.leaf_variation.z, u.leaf_variation.w, in.leaf.y);
@@ -213,6 +284,33 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     if (front && u.reflectance.y > 0.0 && any(direct > vec3<f32>(0.0))) {
         mirrored = highlight(n, u.sun_direction.xyz, to_eye, u.reflectance.y, 1.0 - gloss);
     }
+    // The supernatural group's mirrors (fn-217 E2): a metal's on the
+    // underside, tinted by the group's back tint, and on the margin band of
+    // either face, tinted by the colour the band shows. Each takes its share
+    // of the sun from the face's diffuse, as the cuticle's glint does: the
+    // front glint and the underside's are never on one face, and within the
+    // band the rim's share adds to the face's, the two together at most all
+    // of it. None of it at a reflectance of zero, on every natural leaf.
+    let back = select(u.leaf_reflection.w, 0.0, front);
+    let rough = u.reflectance.w;
+    var silver = vec2<f32>(0.0);
+    var rim = vec2<f32>(0.0);
+    if (any(direct > vec3<f32>(0.0))) {
+        if (back > 0.0) {
+            silver = highlight(n, u.sun_direction.xyz, to_eye, back, rough);
+        }
+        if (u.reflectance.z > 0.0 && margin > 0.0) {
+            rim = highlight(n, u.sun_direction.xyz, to_eye, u.reflectance.z, rough);
+        }
+    }
+    // The two mirrors share what the cuticle's glint leaves: past it, both
+    // are scaled down together, in what they reflect as in what they take.
+    let added = silver.x + margin * rim.x;
+    let room = max(1.0 - mirrored.x, 0.0);
+    let share = select(1.0, room / added, added > room);
+    let given = mirrored.x + added * share;
+    let metal = (u.leaf_reflection.rgb * (silver.x * silver.y)
+        + colour * (margin * rim.x * rim.y)) * share;
     // The leaves of its own mass standing over it take their share of the
     // sky and of what passes through, so a clump's face is lit and what
     // hangs under it falls into its shade.
@@ -222,16 +320,28 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
         shaded *= own;
         through *= own;
     }
-    var radiance = colour * (shaded + direct * (1.0 - mirrored.x)) + through
-        + direct * mirrored.x * mirrored.y;
+    // The underside's metal mirrors the sky as well, its share taken from
+    // the sky's diffuse on that face.
+    let sky_given = sheen(n, to_eye, back);
+    var radiance = colour * (shaded * (1.0 - sky_given) + direct * (1.0 - given)) + through
+        + direct * mirrored.x * mirrored.y + direct * metal;
+    let mirror = reflect(-to_eye, n);
     if (u.canopy.w > 0.0) {
         // The cuticle returns the sky its own face mirrors, most of it at
         // grazing. Reflection is the surface's, so it reads the face, as the
         // sun's glint does; the bent normal stands for light arriving through
         // the mass, and on its silhouette would mirror the sky off every rim.
-        let mirror = reflect(-to_eye, n);
         radiance += sheen(n, to_eye, u.canopy.w) * occluded_ambient(mirror, in.leaf.z)
             * interior * overhead * own;
+    }
+    if (back > 0.0) {
+        radiance += u.leaf_reflection.rgb * sky_given * occluded_ambient(mirror, in.leaf.z)
+            * interior * overhead * own;
+    }
+    // A flower's stalk is the shoot's young wood (fn-253): its colour under
+    // the light the face reads, with nothing passed through or mirrored.
+    if (in.stalk > 0.5) {
+        radiance = u.shoot.rgb * (shaded + direct);
     }
     return vec4<f32>(tone(radiance), 1.0);
 }

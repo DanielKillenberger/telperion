@@ -13,26 +13,34 @@ lies dormant; its couplings and conflicting bounds; how a walk between two
 families moves it; and the tuning dial it offers. A deprecated row is read by
 no production stage and is kept on the wire for compatibility.
 
+Colour rows (unit `reflectance`) are linear reflectances per channel, not
+display (sRGB) values, all on one scale under one exposure: a dark broadleaf
+face is a few hundredths (the beech's leaf 0.021/0.016/0.007), a white birch
+bark 0.78/0.76/0.70. A display value typed into a leaf row is ten or more
+times too bright. Petal rows are albedos on the same scale: a white petal is
+about 0.8 and draws near white at the whole-tree view, where fn-216's 0.1 drew
+grey (fn-234).
+
 ## `/ (the family)`
 
 ### `/age`
 
-The specimen's age in years: the age the species' literature dimensions refer to. No build reads it: the direct build is the mature tree whatever the row says.
+The specimen's age in years: the engine grows the family's species for this many years, so the tree is the one it is at that age (fn-198). A whole number of years.
 
 - real, years, [0, 1000000], default 100
-- read by no stage of the direct build; removed growth path: only the growth path read it
+- read by grow; removed growth path: as the direct build
 - checked: Age site, rank 0, as invalid value `age`
-- note: Refused off its range in `params::parse` and `Family::validate`; the species runner pins it beside the height as the growth reference. The growth path that read it was removed (fn-181).
-- blend: linear, clamped to its ends; dial: none: Identity of a specimen, not a look: no build reads it, and the direct build the tuner measures is the mature tree whatever it says.
+- note: Refused off its range in `params::parse` and `Family::validate`, and refused by name at the skeleton where it is not a whole number of years: the engine grows a year a cycle. The harness opens an engine preset at 40 (fn-198 host decision 5).
+- blend: rounded to the nearest; dial: none: The age the tree is drawn at, which the viewer sets; the tuner judges a species at its ages, never by stepping one.
 
 ### `/shellDepth`
 
-How deep into the crown leaves are kept, as a share of the crown's widest radius; a leaf further in than that is dropped. Raising it keeps more of the crown's interior foliage, and one keeps it all.
+How deep into the crown leaves were kept, as a share of the crown's widest radius. Checked and read by nothing past the check: the cull it set kept every leaf on every engine preset and was removed (fn-198 R1, fn-212 R2); whether the row goes is the owner's call.
 
 - real, share of the crown's widest radius, [0, 1], default 0.45
-- read by cull; removed growth path: measured against the envelope at the specimen's age
+- read by no stage of the direct build; removed growth path: measured against the envelope at the specimen's age
 - checked: Shell site, rank 0, as invalid input `shell depth`
-- note: `foliage::cull` and the GPU executor's preparation check it again; the planned field counts stations before the cull and does not read it.
+- note: The leaves stage checks it again; no cull reads it since fn-212 R2, and the planned field does not read it.
 - blend: linear; dial: `shell_depth` (how deep into the crown leaves are kept, as a share of its widest radius), window its bounds (validated bound), steps 0.15 and 0.3
 
 ## `/skeleton`
@@ -52,7 +60,7 @@ The specimen: every stage keys its random stream by it, so another seed draws an
 How many pull points are scattered through the crown for the branches to grow toward. Raising it fills the crown with more and finer branching; at an `attractor_weight` of zero none are scattered and the row does nothing.
 
 - count (usize), points, [0, 1000000], default 500
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Sampling site, rank 1, as invalid input `attractors`
 - dormant: `attractorWeight` zero
 - note: `attractorWeight` above zero with none is refused (`attractor weight and attractor count`); the scattered count sets the default `influenceRadius`.
@@ -63,7 +71,7 @@ How many pull points are scattered through the crown for the branches to grow to
 How many random tries the sampler may spend on each pull point before it gives up. Raising it lets a narrow or deeply lobed crown reach its full count of points instead of settling for fewer.
 
 - count (u32), tries, [1, 4294967295], default 64
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Sampling site, rank 0, as invalid value `samplingAttemptsPerAttractor`
 - dormant: `attractorWeight` zero
 - note: Too few tries for the envelope's shape is a hard error at the scatter.
@@ -74,7 +82,7 @@ How many random tries the sampler may spend on each pull point before it gives u
 How far the crown grows in one step, as a share of the tree's height; the distance at which a pull point is used up is twice it. Raising it grows the crown in longer, coarser strides.
 
 - real, share of height, (0, ∞], default 0.022
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Step site, rank 0, as invalid input `growth step`
 - note: Sets the default step, kill and influence distances (`default_growth`); an overriding `stepDistance` leaves kill and influence on `height·step`.
 - blend: linear; dial: `step` (how far the crown grows in one step, as a share of the height), window [0.011, 0.033] (capped: capped both ways: the generator validates no closed range here (only positive and finite); the row stays at the preset span until the generator authors one), steps 0.0025 and 0.005, presets span [0.011, 0.033]
@@ -86,7 +94,7 @@ How far the crown grows in one step, as a share of the tree's height; the distan
 Samples available to find an axis's room within the crown.
 
 - count (u32), samples, [1, 4294967295], default 96
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 0, as invalid value `reachProbeSteps`
 - dormant: needs `lateralOrders` of one or more: only first-order laterals probe their room
 - blend: rounded to the nearest; dial: none: A sampling budget: samples spent finding an axis's room, not a look the owner can ask for (crates/telperion-core/src/branching/traits.rs:15).
@@ -96,7 +104,7 @@ Samples available to find an axis's room within the crown.
 How far the leader persists into the crown, 0 to 1.
 
 - real, share, [0, 1], default 0.5
-- read by grow; removed growth path: also splits the structural and local budget, and `apicalControlLoss` divides it each year
+- read by no stage of the direct build; removed growth path: also splits the structural and local budget, and `apicalControlLoss` divides it each year
 - checked: Habit site, rank 1, as invalid input `apical dominance`
 - note: The leader runs to `bole + (height - bole)·apicalDominance`, the bole being `max(trunkHeight, height·crownBase)`.
 - blend: linear; dial: `apical_dominance` (how far the leader keeps going into the crown), window its bounds (validated bound), steps 0.15 and 0.3
@@ -106,7 +114,7 @@ How far the leader persists into the crown, 0 to 1.
 Clustering of laterals at a station against scattering along the axis.
 
 - real, share, [0, 1], default 0.3
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 2, as invalid input `whorl strength`
 - dormant: needs `lateralOrders` of one or more
 - blend: linear; dial: `whorl_strength` (how tightly laterals cluster at one station rather than scattering along the axis), window its bounds (validated bound), steps 0.15 and 0.3
@@ -116,7 +124,7 @@ Clustering of laterals at a station against scattering along the axis.
 Spacing between lateral stations on the leader, in metres.
 
 - real, m, (0, ∞], default 1.5
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 3, as invalid input `leader internode`
 - blend: linear; dial: `leader_internode` (metres between lateral stations on the leader), window [0.05, 3.45] (capped: capped both ways: the generator validates no closed range here (only positive and finite); the row stays at the preset span until the generator authors one), steps 0.5 and 1, presets span [0.05, 3.45]
 
@@ -125,7 +133,7 @@ Spacing between lateral stations on the leader, in metres.
 Laterals borne by one station of the leader.
 
 - count (u32), laterals, [1, 12], default 3
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 4, as invalid input `laterals per station`
 - dormant: needs `lateralOrders` of one or more; leader stations only
 - blend: rounded to the nearest; dial: `limbs` (limbs born at each station), window [1, 4] (authored), steps 1 and 2
@@ -135,7 +143,7 @@ Laterals borne by one station of the leader.
 Initial angle of a lateral from its parent axis, in degrees; on the upright leader this is degrees from vertical.
 
 - real, degrees, [0, 180], default 60
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 5, as invalid input `lateral pitch`
 - dormant: needs `lateralOrders` of one or more
 - blend: degrees along the shorter arc; dial: `lateral_pitch` (the degrees a lateral leaves its parent axis, from vertical on the leader), window its bounds (validated bound), steps 20 and 40, presets span [0, 118]
@@ -145,7 +153,7 @@ Initial angle of a lateral from its parent axis, in degrees; on the upright lead
 Spread of the lateral pitch, in degrees.
 
 - real, degrees, [0, 90], default 15
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 6, as invalid input `lateral pitch variation`
 - dormant: needs `lateralOrders` of one or more
 - blend: degrees along the shorter arc; dial: `pitch_variation` (the degrees that departure angle varies lateral to lateral), window its bounds (validated bound), steps 5 and 10, presets span [0, 28]
@@ -155,7 +163,7 @@ Spread of the lateral pitch, in degrees.
 Degrees the lateral pitch moves from the crown's base to its top: a station's laterals leave at `lateralPitch` plus as much of this as the station stands up the crown, none at its base and all at its top. Negative sets the upper limbs more upright than the lower; zero is one pitch everywhere.
 
 - real, degrees, [-180, 180], default 0
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 21, as invalid value `pitchByHeight`
 - dormant: needs `lateralOrders` of one or more
 - note: The crown runs from `trunkHeight` to the envelope's height; the pitch it adds to is clamped to 0 to 180 as `lateralPitch` is.
@@ -166,7 +174,7 @@ Degrees the lateral pitch moves from the crown's base to its top: a station's la
 The most a first-order axis may stop short of the shell, as a share of its room; each axis draws its own share from its own stream, and what it bears grows within the shell scaled about its station by the share it kept. Zero reaches the shell.
 
 - real, share of the room, [0, 1], default 0
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 22, as invalid value `raggedReach`
 - dormant: needs `lateralOrders` of one or more: only first-order laterals probe their room
 - blend: linear; dial: `ragged_reach` (how far short of the crown's edge a limb may stop, each limb by its own share), window its bounds (validated bound), steps 0.05 and 0.1
@@ -176,7 +184,7 @@ The most a first-order axis may stop short of the shell, as a share of its room;
 Signed bend over the length of a first-order axis; positive rises.
 
 - real, -, [-1, 1], default 0.05
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 7, as invalid input `primary rise per order`
 - note: Acts at orders zero and one, so it bends leaning stems; an upright stem has no rise to take.
 - blend: linear; dial: `rise_primary` (the bend over a first-order limb's length; positive rises), window its bounds (validated bound), steps 0.025 and 0.05, presets span [-0.03, 0.17]
@@ -186,7 +194,7 @@ Signed bend over the length of a first-order axis; positive rises.
 Signed bend over the length of a deeper axis; negative hangs.
 
 - real, -, [-1, 1], default 0
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 8, as invalid input `secondary rise per order`
 - dormant: needs `lateralOrders` of two or more
 - blend: linear; dial: `rise_secondary` (the bend over a deeper axis's length; negative hangs), window its bounds (validated bound), steps 0.25 and 0.5
@@ -196,7 +204,7 @@ Signed bend over the length of a deeper axis; negative hangs.
 Heading change between successive growth units, in degrees.
 
 - real, degrees, [0, 60], default 12
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 9, as invalid input `crookedness`
 - note: Starts above `trunkHeight` in the scaffold, and also makes the local twig layer wander.
 - blend: degrees along the shorter arc; dial: `crookedness` (limb turning and zigzag amount), window [0, 15] (authored), steps 3 and 6
@@ -206,7 +214,7 @@ Heading change between successive growth units, in degrees.
 Spacing between lateral stations away from the leader, in metres.
 
 - real, m, (0, ∞], default 0.9
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 10, as invalid input `lateral spacing`
 - dormant: needs `lateralOrders` of one or more
 - blend: linear; dial: `lateral_spacing` (metres between lateral stations away from the leader), window [0.000001, 2.925] (capped: capped both ways: the generator validates no closed range here (only positive and finite); the row stays at the preset span until the generator authors one), steps 0.5 and 1, presets span [0.000001, 2.925]
@@ -216,7 +224,7 @@ Spacing between lateral stations away from the leader, in metres.
 Length of a lateral against its supporting axis.
 
 - real, share, [0, 1], default 0.4
-- read by grow; removed growth path: `apicalControlLoss` adds the dominance it releases to it
+- read by no stage of the direct build; removed growth path: `apicalControlLoss` adds the dominance it releases to it
 - checked: Habit site, rank 11, as invalid input `lateral length ratio`
 - dormant: needs `lateralOrders` of two or more: first-order laterals take their reach from the probe
 - blend: linear; dial: `lateral_length_ratio` (a lateral's length against the axis that bears it), window its bounds (validated bound), steps 0.15 and 0.3
@@ -226,7 +234,7 @@ Length of a lateral against its supporting axis.
 Depth of rule-built orders below the leader.
 
 - count (u32), orders, [0, 8], default 3
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 12, as invalid input `lateral orders`
 - note: At zero every other lateral row lies dormant.
 - blend: rounded to the nearest; dial: `lateral_orders` (how many rule-built orders grow below the leader), window its bounds (validated bound), steps 1 and 2
@@ -236,7 +244,7 @@ Depth of rule-built orders below the leader.
 Weight of the attractor pull beside the axis's own rule heading. At zero no pull points are scattered and every axis holds its own rule heading, and any rise switches the pull on.
 
 - real, share, [0, 1], default 1
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 13, as invalid input `attractor weight`
 - note: At zero no pull point is scattered, so `attractors`, `samplingAttemptsPerAttractor`, `influenceRadius` and `killDistance` lie dormant.
 - blend: linear; dial: `attractor_weight` (how far the pull points steer an axis beside its own rule heading; at zero no pull points are scattered and every axis holds its own rule heading, and any rise switches the pull on), window its bounds (validated bound), steps 0.15 and 0.3
@@ -246,7 +254,7 @@ Weight of the attractor pull beside the axis's own rule heading. At zero no pull
 Distal twig radius against the nominal twig radius.
 
 - real, share, (0, 1], default 1
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 14, as invalid input `twig tip taper`
 - note: Scales half the twig diameter at every childless tip, structural or twig.
 - blend: linear; dial: `taper` (remaining wood thickness toward the crown edge; lower means thinner tips), window [0.05, 0.6] (authored), steps 0.1 and 0.2
@@ -256,7 +264,7 @@ Distal twig radius against the nominal twig radius.
 Monthly vigour threshold; zero disables shedding. The legacy envelope builder interprets it as shell depth.
 
 - real, share of height·spread, [0, 1], default 0.45
-- read by grow; removed growth path: an annual vigour threshold, not a shell depth (fn-161 splits the two)
+- read by no stage of the direct build; removed growth path: an annual vigour threshold, not a shell depth (fn-161 splits the two)
 - checked: Habit site, rank 15, as invalid input `shedding threshold`
 - dormant: zero sheds nothing
 - note: On the direct build it is the shed shell's depth, a share of `height·spread`, apart from `shellDepth`.
@@ -267,7 +275,7 @@ Monthly vigour threshold; zero disables shedding. The legacy envelope builder in
 The chance, 0 to 1, that a structural axis forks codominantly: each axis draws once from its own stream when it is born. At zero no axis forks and the tree stands on one stem.
 
 - real, share, [0, 1], default 0
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 16, as invalid input `codominance`
 - note: At zero the six fork rows lie dormant. Replaces `stems`: a clump is a fork at height zero.
 - blend: linear; dial: `codominance` (how likely a trunk or limb is to fork into near-equal parts; at zero no fork), window its bounds (validated bound), steps 0.1 and 0.25
@@ -277,7 +285,7 @@ The chance, 0 to 1, that a structural axis forks codominantly: each axis draws o
 Where a codominant fork falls, as a share of the tree's height: the centre of the bell each axis draws its fork height from. Zero is a fork at the root, which is a clump.
 
 - real, share of height, [0, 1], default 0
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 17, as invalid input `fork height`
 - dormant: `codominance` zero
 - note: An axis forks where it reaches the drawn height; a height it never reaches, or one at or below its own base, is no fork, except at the root.
@@ -288,7 +296,7 @@ Where a codominant fork falls, as a share of the tree's height: the centre of th
 Width of the bell a fork height is drawn from, as a share of the tree's height. Zero forks every axis that forks at exactly `forkHeight`.
 
 - real, share of height, [0, 1], default 0
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 18, as invalid input `fork height spread`
 - dormant: `codominance` zero
 - blend: linear; dial: `fork_height_spread` (how widely codominant forks scatter about their height), window its bounds (validated bound), steps 0.05 and 0.1
@@ -298,7 +306,7 @@ Width of the bell a fork height is drawn from, as a share of the tree's height. 
 The parts a codominant fork divides into, the primary among them, 2 to 4. The whole part is the full parts; the fraction grows one more in from the fork, its length and its wood that share of a whole part's.
 
 - real, parts, [2, 4], default 2
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 19, as invalid input `fork ways`
 - dormant: `codominance` zero
 - note: Replaces `stems`. The parts fill four fixed slots in order, so a part added never moves the others.
@@ -309,7 +317,7 @@ The parts a codominant fork divides into, the primary among them, 2 to 4. The wh
 Degrees of bearing between neighbouring slots of a fork, slot `k` standing `k` times this round from the primary's, about a bearing the axis's own stream decides. At zero every part leaves on one bearing.
 
 - real, degrees, [0, 120], default 90
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 20, as invalid input `fork divergence`
 - dormant: `codominance` zero
 - note: Defaults to 90 so that `codominance` builds on its own: fn-170's plane candidate stands its parts 120 apart, but at 120 a fourth part returns onto the primary's bearing, and a quarter turn keeps all four apart at every `forkWays`. Refused where two parts of a fork leave on one heading (`forks_placed`). Replaces `stemDivergence`.
@@ -320,7 +328,7 @@ Degrees of bearing between neighbouring slots of a fork, slot `k` standing `k` t
 Degrees every sibling of a fork leans from the axis it leaves; the primary leans by what `forkLeanSpread` leaves it of this.
 
 - real, degrees, [0, 45], default 26
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 23, as invalid input `fork lean`
 - dormant: `codominance` zero
 - note: Defaults to 26 so that `codominance` builds on its own: fn-170's plane candidate's lean, two degrees under the 28 the birch's photographs show. Measured from the heading of the axis at the fork. Replaces `stemLean`.
@@ -331,7 +339,7 @@ Degrees every sibling of a fork leans from the axis it leaves; the primary leans
 How far a fork's primary stands back along its axis, 0 to 1. None of it leans the primary by all of `forkLean`, as every sibling leans; all of it carries the axis straight on through the fork.
 
 - real, share, [0, 1], default 0
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 24, as invalid input `fork lean spread`
 - dormant: `codominance` zero, or `forkLean` zero
 - note: Replaces `stemLeanSpread`.
@@ -344,7 +352,7 @@ How far a fork's primary stands back along its axis, 0 to 1. None of it leans th
 The tree's height in metres. Everything else in the crown is measured against it: the crown base sits at `crown_base` of it and the widest radius is `spread` times it.
 
 - real, m, [0, ∞], default 24
-- read by grow, plan, expand, cull; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Envelope site, rank 0, as invalid input `envelope`
 - note: The family also refuses zero (`surface height`), and `height·spread` must be finite (`envelope`). It scales trunk radius, length taper, surface twist and flare, canopy spacing and the writhe.
 - blend: linear; dial: `envelope_height` (the tree's height in metres), window [6.5, 40.5] (capped: capped both ways: the envelope validates only a floor of 0 (envelope.rs:58) and no ceiling, and a clump refuses a crown that low (its stems stand outside the envelope), so the row stays at the preset span until the generator authors one), steps 5 and 10, presets span [6.5, 40.5]
@@ -354,9 +362,9 @@ The tree's height in metres. Everything else in the crown is measured against it
 Where the crown starts, as a share of the height: below it the crown has no radius at all. Raising it lifts the crown and leaves a longer bare trunk.
 
 - real, share of height, [0, 1], default 0.3
-- read by grow, expand, cull; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Envelope site, rank 1, as invalid input `envelope`
-- note: `height·crownBase` is the default `trunkHeight`, the floor of the stems' bole and the lowest a short shoot grows.
+- note: `height·crownBase` is the default `trunkHeight`, the floor of the stems' bole.
 - blend: linear; dial: `crown_base` (where the crown starts, as a share of the height), window its bounds (validated bound), steps 0.15 and 0.3
 
 ### `/skeleton/envelope/spread`
@@ -364,7 +372,7 @@ Where the crown starts, as a share of the height: below it the crown has no radi
 The crown's widest radius as a share of the height, so raising it widens the crown without making the tree taller.
 
 - real, share of height, [0, ∞], default 0.3
-- read by grow, plan, cull; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Envelope site, rank 2, as invalid input `envelope`
 - note: The cull shell is `shellDepth·height·spread` and the shed shell `sheddingThreshold·height·spread`.
 - blend: linear; dial: `spread` (the crown's widest radius as a share of the height), window [0, 0.675] (capped: ceiling capped: the generator validates only a floor here (0), so there is no validated ceiling to widen to; the ceiling stays at the preset span until the generator authors one), steps 0.1 and 0.2, presets span [0.175, 0.675]
@@ -374,7 +382,7 @@ The crown's widest radius as a share of the height, so raising it widens the cro
 Where the crown is widest, as a share of the way from the crown base to the top. Raising it carries the widest part higher, so the crown reads top-heavy.
 
 - real, share, [0, 1], default 0.45
-- read by grow, cull; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Envelope site, rank 3, as invalid input `envelope`
 - blend: linear; dial: `fullness` (where the crown is widest between its base and the top), window its bounds (validated bound), steps 0.15 and 0.3
 
@@ -383,7 +391,7 @@ Where the crown is widest, as a share of the way from the crown base to the top.
 How square the crown's outline is. Raising it holds the crown near its full width further toward the top and the base, so the profile reads boxier; lowering it tapers the outline to a point.
 
 - real, -, (0, ∞], default 2.2
-- read by grow, cull; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Envelope site, rank 4, as invalid input `envelope`
 - blend: linear; dial: `shoulder` (how square the crown's outline is; lower tapers it to a point), window [0.4, 2.8] (capped: capped both ways: the generator validates no closed range here (only positive and finite); the row stays at the preset span until the generator authors one), steps 0.5 and 1, presets span [0.4, 2.8]
 
@@ -392,7 +400,7 @@ How square the crown's outline is. Raising it holds the crown near its full widt
 How far the outline departs from the smooth shell, as a fraction of the radius there. 0 is the axisymmetric superellipse every tree was before, and every shipped table that leaves it there is untouched.
 
 - real, share of radius, [0, 0.5], default 0
-- read by grow, plan; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Outline site, rank 0, as invalid input `envelope irregularity`
 - note: Growth containment and the leaf box read it; the leaf cull, the shed and the GPU cull profile read the smooth outline.
 - blend: linear; dial: `irregularity` (crown envelope lobes and hollows), window [0, 0.5] (authored), steps 0.08 and 0.16
@@ -402,7 +410,7 @@ How far the outline departs from the smooth shell, as a fraction of the radius t
 The wavelength of that departure over the shell's own surface, as a fraction of the tree's height: small is many small lumps, 1 is a lobe as long as the tree is tall.
 
 - real, share of height, [0.05, 1], default 0.5
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Outline site, rank 1, as invalid input `envelope lobe scale`
 - dormant: `irregularity` zero, except that the curtain's drop search steps by it
 - blend: linear; dial: `lobe_scale` (how long one of those lobes runs, as a share of the height), window its bounds (validated bound), steps 0.15 and 0.3
@@ -414,7 +422,7 @@ The wavelength of that departure over the shell's own surface, as a fraction of 
 How strongly growth is pulled upward, most near the ground. Raising it makes the tree grow more erect. At zero nothing pulls growth upright, and any rise starts that pull.
 
 - real, -, [0, ∞], default 0.7
-- read by grow; removed growth path: also decides when growth-path shoots sleep
+- read by no stage of the direct build; removed growth path: also decides when growth-path shoots sleep
 - checked: Bias site, rank 0, as invalid input `growth bias`
 - blend: linear; dial: `gravitropism` (how strongly growth is pulled upright, most near the ground; at zero nothing pulls growth upright, and any rise starts that pull), window [0, 1.05] (capped: ceiling capped: the generator validates only a floor here (0), so there is no validated ceiling to widen to; the ceiling stays at the preset span until the generator authors one), steps 0.15 and 0.3, presets span [0, 1.05]
 
@@ -423,7 +431,7 @@ How strongly growth is pulled upward, most near the ground. Raising it makes the
 How far the whole tree leans off vertical, increasing with height. Raising it tips the trunk further in one direction. At zero the tree stands plumb, and any rise starts the lean.
 
 - real, -, [0, ∞], default 0.05
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Bias site, rank 1, as invalid input `growth bias`
 - note: Capped together with the writhe by `maxWritheMagnitude`.
 - blend: linear; dial: `lean` (how far the whole tree leans off vertical; at zero the tree stands plumb, and any rise starts the lean), window [0, 0.075] (capped: ceiling capped: the generator validates only a floor here (0), so there is no validated ceiling to widen to; the ceiling stays at the preset span until the generator authors one), steps 0.01 and 0.02, presets span [0, 0.075]
@@ -435,7 +443,7 @@ How far the whole tree leans off vertical, increasing with height. Raising it ti
 Whether the supernatural field bends the wood. Off, the bias reads the amplitude, wavelength and spiral as zero.
 
 - switch, switch, [0, 1], default 0
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: by a named check or not at all (see note)
 - note: Does not gate `maxWritheMagnitude`. A walk interpolates what each side applies.
 - blend: with the rows it is coupled to; dial: none: Boolean, not a numeric scalar.
@@ -445,7 +453,7 @@ Whether the supernatural field bends the wood. Off, the bias reads the amplitude
 How far a branch may wander from a straight course, as a share of the tree's height. Raising it makes the wood wind and stray more. At zero the wood holds a straight course and the spiral rate does nothing, and any rise starts the wander.
 
 - real, share of height, [0, ∞], default 0
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Bias site, rank 2, as invalid input `growth bias`
 - dormant: `enabled` off
 - note: `TAU·spiralRate·amplitude` and `TAU·amplitude/wavelength` must be finite (`supernatural numeric range`).
@@ -456,7 +464,7 @@ How far a branch may wander from a straight course, as a share of the tree's hei
 How long each of those wanders runs, as a share of the height. Raising it gives fewer, lazier bends; lowering it gives tighter kinks.
 
 - real, share of height, (0, ∞], default 0.45
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Writhe site, rank 1, as invalid input `writheWavelength`
 - dormant: `enabled` off, or `writheAmplitude` zero
 - note: Checked while dormant too.
@@ -467,7 +475,7 @@ How long each of those wanders runs, as a share of the height. Raising it gives 
 How many full turns the wander winds around the trunk over the tree's height. Raising it tightens the spiral. At zero the wander winds around nothing, and any rise starts the spiral.
 
 - real, turns over the height, [0, ∞], default 0
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Bias site, rank 3, as invalid input `growth bias`
 - dormant: `enabled` off, or `writheAmplitude` zero
 - blend: with the rows it is coupled to; dial: `spiral_rate` (how many turns the wander winds around the trunk over the height; at zero the wander winds around nothing, and any rise starts the spiral), window [0, 3.9] (capped: ceiling capped: the generator validates only a floor here (0), so there is no validated ceiling to widen to; the ceiling stays at the preset span until the generator authors one), steps 0.5 and 1, presets span [0, 3.9]
@@ -477,7 +485,7 @@ How many full turns the wander winds around the trunk over the tree's height. Ra
 The ceiling on how hard the wander may pull in any one step, so the other writhe rows cannot bend the wood arbitrarily.
 
 - real, -, [0, 8], default 0.9
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Writhe site, rank 0, as invalid value `maxWritheMagnitude`
 - note: Applies with `enabled` off, and caps the lean term with the writhe.
 - blend: with the rows it is coupled to; dial: `max_writhe_magnitude` (the ceiling on how hard the wander may pull in one step), window its bounds (validated bound), steps 1 and 2
@@ -486,11 +494,12 @@ The ceiling on how hard the wander may pull in any one step, so the other writhe
 
 ### `/skeleton/twigs/twig/diameter`
 
-The finished thickness of a twig in metres. Wood at or below half of it is drawn as a twig, so raising it thickens the twig layer and hands more of the fine wood to it.
+The leaf box's reach where foliage sits on twigs, as the thickness of the wood a leaf station is seated on, in metres; the engine sizes the grown wood itself (fn-198).
 
 - real, m, [0.000001, 1000000], default 0.005
-- read by grow, plan; removed growth path: as the direct build
+- read by plan; removed growth path: as the direct build
 - checked: Twig site, rank 0, as invalid value `twig diameter`
+- dormant: `canopy.shootRadius` above zero
 - note: Wood at or below half of it is a twig; it is also the twig radius, the cap on childless tips (with `twigTipTaper`), and the leaf box's size where `canopy.shootRadius` is zero.
 - blend: linear; dial: `twig_diameter` (the finished thickness of a twig, in metres), window its bounds (validated bound), steps 0.001 and 0.002, presets span [0.0005, 0.0065]
 
@@ -499,7 +508,7 @@ The finished thickness of a twig in metres. Wood at or below half of it is drawn
 The length in metres a twig shoot grows before it stops, and the whole of one internode on leaf-bearing wood. Raising it lengthens every twig, so the crown carries a deeper, shaggier skin.
 
 - real, m, [0.000001, 1000000], default 0.25
-- read by grow; removed growth path: also sets how far a waiting shoot reaches
+- read by no stage of the direct build; removed growth path: also sets how far a waiting shoot reaches
 - checked: Twig site, rank 1, as invalid value `twig length`
 - note: The internode floor on bearing wood; a structural run the shell stops is trimmed by it.
 - blend: linear; dial: `twig_length` (the metres a twig shoot grows before it stops), window its bounds (validated bound), steps 0.05 and 0.1, presets span [0.15, 0.55]
@@ -509,8 +518,9 @@ The length in metres a twig shoot grows before it stops, and the whole of one in
 Metres between the joints on wood thicker than the bearing diameter, and the spacing of the stations a leaf sits on. Raising it gives longer segments, so laterals and leaves sit further apart.
 
 - real, m, [0.000001, 1000000], default 0.02
-- read by grow, plan, expand; removed growth path: as the direct build
+- read by plan, expand; removed growth path: as the direct build
 - checked: Twig site, rank 2, as invalid value `twig internodeLength`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - note: Also the spacing of leaf stations; the canopy check bounds it again at [1e-6, 1e6] (`twig internode`).
 - blend: linear; dial: `twig_internode_length` (metres between the joints on wood thicker than the bearing diameter), window its bounds (validated bound), steps 0.015 and 0.03, presets span [0.000001, 0.08875]
 
@@ -521,6 +531,7 @@ How many leaf stations sit at each joint, each turned its own share of a full tu
 - count (u32), stations, [1, 32], default 1
 - read by plan, expand; removed growth path: as the direct build
 - checked: Twig site, rank 4, as invalid value `twig stationsPerInternode`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - note: Conflicting bounds: the canopy check admits 1 to 64 (`twig stations`), and this check's 1 to 32 answers first. The skeleton never reads it; with `canopy.divergence` it sets the phyllotaxis.
 - blend: rounded to the nearest; dial: `twig_stations_per_internode` (leaf stations at each joint, spread around the shoot), window its bounds (validated bound), steps 1 and 2, presets span [1, 4]
 
@@ -529,7 +540,7 @@ How many leaf stations sit at each joint, each turned its own share of a full tu
 The thickness in metres at or below which a shoot bears leaves and side shoots of its own. Raising it lets thicker wood bear, so foliage reaches further back down the branch.
 
 - real, m, [0.000001, 1000000], default 0.05
-- read by grow; removed growth path: also marks leaf-bearing wood and caps `canopy.shootRadius`
+- read by no stage of the direct build; removed growth path: also marks leaf-bearing wood and caps `canopy.shootRadius`
 - checked: Twig site, rank 3, as invalid value `twig bearingDiameter`
 - note: Wood at or below half of it takes one lateral per internode, ignoring `laterals`, and `twig.length` as its internode floor.
 - blend: linear; dial: `twig_bearing_diameter` (the thickness in metres at or below which a shoot bears leaves and side shoots), window its bounds (validated bound), steps 0.01 and 0.02, presets span [0.005, 0.065]
@@ -541,7 +552,7 @@ The thickness in metres at or below which a shoot bears leaves and side shoots o
 A shoot's length as a share of the one that bore it. Raising it makes each generation of twigs longer relative to its parent.
 
 - real, share, [0.05, 1], default 0.4
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 0, as invalid value `twig lengthRatio`
 - note: With `ratioPower` it sets the child radius; a varied draw is clamped to the bounds.
 - blend: linear; dial: `twig_length_ratio` (a shoot's length as a share of the one that bore it), window its bounds (validated bound), steps 0.15 and 0.3
@@ -551,7 +562,7 @@ A shoot's length as a share of the one that bore it. Raising it makes each gener
 How much thinner a shoot is than its parent for the same drop in length. Raising it leaves side shoots finer.
 
 - real, -, [0, 8], default 1.3
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 1, as invalid value `twig ratioPower`
 - blend: linear; dial: `twig_ratio_power` (how much finer a shoot is than its parent for the same drop in length), window its bounds (validated bound), steps 1 and 2
 
@@ -560,7 +571,7 @@ How much thinner a shoot is than its parent for the same drop in length. Raising
 The fewest of its own diameters a segment of wood may span. Raising it makes segments longer for the same thickness, so there are fewer joints and the wood reads straighter.
 
 - real, -, [0.05, 32], default 2.5
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 2, as invalid value `twig internodeFactor`
 - blend: linear; dial: `twig_internode_factor` (the fewest of its own diameters a segment of wood may span), window its bounds (validated bound), steps 0.5 and 1, presets span [1.25, 3.75]
 
@@ -569,7 +580,7 @@ The fewest of its own diameters a segment of wood may span. Raising it makes seg
 The ceiling on segments one length of wood may be cut into. It binds only where the two lengths above would cut more, and there it caps the cost rather than states a look.
 
 - count (u32), internodes, [1, 4294967295], default 32
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 9, as invalid value `twig maxInternodes`
 - blend: rounded to the nearest; dial: none: A cost cap: it binds only where the two internode lengths would cut more segments (crates/telperion-core/src/twigs.rs:221).
 
@@ -578,7 +589,7 @@ The ceiling on segments one length of wood may be cut into. It binds only where 
 How many side shoots leave each station along a twig. Raising it crowds more twigs onto the same length of wood.
 
 - count (u32), laterals, [0, 7], default 2
-- read by grow; removed growth path: also sizes the rollback checkpoint
+- read by no stage of the direct build; removed growth path: also sizes the rollback checkpoint
 - checked: Twig site, rank 3, as invalid value `twig laterals`
 - note: Held as a bitmask, which is why it stops at 7; ignored on bearing wood; at zero non-bearing shoots may sleep.
 - blend: rounded to the nearest; dial: `twig_laterals` (side shoots leaving each station along a twig), window its bounds (validated bound), steps 1 and 2
@@ -588,7 +599,7 @@ How many side shoots leave each station along a twig. Raising it crowds more twi
 Twig-law generations of branching, 1 to 6. A lateral born at or past this generation is a twig whatever the pipe model left its radius, so the twig layer's depth is a row a table states rather than a consequence of how thick the wood is.
 
 - count (u32), generations, [1, 6], default 6
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 13, as invalid input `twig generations`
 - blend: rounded to the nearest; dial: `twig_generations` (generations of twig branching below the limbs), window its bounds (validated bound), steps 1 and 2
 
@@ -597,7 +608,7 @@ Twig-law generations of branching, 1 to 6. A lateral born at or past this genera
 The share of the trunk's radius at or below which wood starts bearing twigs. Raising it lets twigs start on thicker wood, so they reach further back toward the trunk.
 
 - real, share of root radius, [0, 1], default 0.1
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 4, as invalid value `twig limbRadius`
 - note: Measured against the thickest stem where laterals are seeded and against the root node where they advance.
 - blend: linear; dial: `twig_limb_radius` (the share of the trunk's radius at or below which wood starts bearing twigs), window its bounds (validated bound), steps 0.15 and 0.3
@@ -607,7 +618,7 @@ The share of the trunk's radius at or below which wood starts bearing twigs. Rai
 How deep the outer skin of the crown is that only twigs may fill, as a share of the crown: the scaffold is grown into what is left inside it. Raising it holds the structural wood further in and leaves a deeper twig layer.
 
 - real, share, [0, 0.9], default 0.2
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 5, as invalid value `twig reach`
 - note: Shrinks the scaffold's room and, with `attractorWeight` above zero, the attractor volume; the twig layer itself is not bound by it.
 - blend: linear; dial: `twig_reach` (the depth of the crown's outer skin that only twigs fill), window its bounds (validated bound), steps 0.15 and 0.3
@@ -617,7 +628,7 @@ How deep the outer skin of the crown is that only twigs may fill, as a share of 
 The degrees a side shoot leaves its parent. Raising it swings twigs further out toward square with the branch.
 
 - real, degrees, [0, 90], default 45
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 6, as invalid value `twig angle`
 - note: Also sets the laterals' separation, `min(angle, maxTurnPerStep)`; a varied draw is clamped.
 - blend: degrees along the shorter arc; dial: `twig_angle` (the degrees a side shoot leaves its parent), window its bounds (validated bound), steps 1.5 and 3, presets span [37.5, 47.5]
@@ -627,7 +638,7 @@ The degrees a side shoot leaves its parent. Raising it swings twigs further out 
 How many degrees that departure angle varies shoot to shoot. Raising it makes the twig layer less uniform.
 
 - real, degrees, [0, 90], default 10
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 7, as invalid value `twig angleVariation`
 - blend: degrees along the shorter arc; dial: `twig_angle_variation` (the degrees that departure angle varies shoot to shoot), window its bounds (validated bound), steps 1.5 and 3, presets span [5, 15]
 
@@ -636,7 +647,7 @@ How many degrees that departure angle varies shoot to shoot. Raising it makes th
 How much shoot length varies shoot to shoot. Raising it gives a more uneven, less combed twig layer.
 
 - real, share, [0, 0.95], default 0.15
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 8, as invalid value `twig vigourVariation`
 - blend: linear; dial: `twig_vigour_variation` (how far shoot length varies shoot to shoot), window its bounds (validated bound), steps 0.15 and 0.3
 
@@ -645,7 +656,7 @@ How much shoot length varies shoot to shoot. Raising it gives a more uneven, les
 The degrees each successive shoot is turned around the wood that bears it. Raising it swings the next shoot further around, so the twigs spiral differently.
 
 - real, degrees, any finite value, default 137.508
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 12, as invalid input `twig divergence`
 - blend: degrees along the shorter arc; dial: `twig_divergence` (the degrees each successive shoot is turned around the wood that bears it), window [68.752, 206.256] (capped: capped both ways: the generator validates no closed range here (only finite); the row stays at the preset span until the generator authors one), steps 20 and 40, presets span [68.752, 206.256]
 
@@ -654,7 +665,7 @@ The degrees each successive shoot is turned around the wood that bears it. Raisi
 How strongly a shoot hangs, 0 to 3. At 0 nothing hangs and the local law is the ordinary one; at 1 a curtain takes its full droop.
 
 - real, -, [0, 3], default 0
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 14, as invalid input `hang`
 - note: Gates the curtain: the pendulous, separation, sag, variation, droop and step-clearance rows do nothing at zero. Above one it scales droop and separation, while the floor, drop and length terms take one.
 - blend: linear; dial: `twig_hang` (how strongly a shoot hangs; zero hangs nothing), window its bounds (validated bound), steps 0.5 and 1
@@ -664,7 +675,7 @@ How strongly a shoot hangs, 0 to 3. At 0 nothing hangs and the local law is the 
 Metres a pendulous shoot grows before it stops, and the length its droop reaches the cap over.
 
 - real, m, [0.05, 5], default 0.25
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 15, as invalid input `pendulous length`
 - dormant: `hang` zero
 - note: Without `sag` it caps a hanging run; with it, it is the run's length.
@@ -675,7 +686,7 @@ Metres a pendulous shoot grows before it stops, and the length its droop reaches
 Fraction of the root radius at or below which a station's shoots hang.
 
 - real, share of stem radius, [0, 1], default 1
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 16, as invalid input `pendulous radius`
 - dormant: `hang` zero
 - blend: linear; dial: `twig_pendulous_radius` (the share of the root radius at or below which a station's shoots hang), window its bounds (validated bound), steps 0.15 and 0.3
@@ -685,7 +696,7 @@ Fraction of the root radius at or below which a station's shoots hang.
 Degrees between neighbouring shoots in a curtain.
 
 - real, degrees, [1, 45], default 4
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 17, as invalid input `curtain separation`
 - dormant: `hang` zero
 - blend: degrees along the shorter arc; dial: `twig_curtain_separation` (the degrees between neighbouring shoots in a curtain), window its bounds (validated bound), steps 1.5 and 3, presets span [1.5, 11.5]
@@ -695,7 +706,7 @@ Degrees between neighbouring shoots in a curtain.
 How far toward straight down a hanging shoot's course has turned by the end of its pendulous length, 0 to 1: at 0 the shoot holds the direction it departed with and the curtain is a set of rods, at 1 it hangs vertical, and the turn is spread along the run as an arc steepest at the wood that bears it.
 
 - real, share, [0, 1], default 0
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 18, as invalid input `sag`
 - dormant: `hang` zero
 - blend: linear; dial: `twig_sag` (how far a hanging shoot's course has turned toward straight down by its end; at zero a hanging shoot holds the direction it left on and the curtain is a set of rods, and any rise starts the turn), window its bounds (validated bound), steps 0.15 and 0.3
@@ -705,7 +716,7 @@ How far toward straight down a hanging shoot's course has turned by the end of i
 How much shorter than the pendulous length a hanging shoot may run, 0 to 1: each shoot's own length is the pendulous length times one minus this times a draw in 0 to 1 keyed by the shoot and the seed. At 0 every shoot has the one length the table states.
 
 - real, share, [0, 1], default 0
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 19, as invalid input `pendulous variation`
 - dormant: `hang` zero
 - blend: linear; dial: `twig_pendulous_variation` (how much shorter than the pendulous length a hanging shoot may run; at zero every shoot runs the one length the table states, and any rise starts the variation), window its bounds (validated bound), steps 0.15 and 0.3
@@ -715,7 +726,7 @@ How much shorter than the pendulous length a hanging shoot may run, 0 to 1: each
 How far below the shell's lower surface a hanging shoot may fall, 0 to 1, as a share of the way from that surface down to the clearance: at 0 the shell binds a hanging shoot as it binds every other, at 1 the shoot may fall to the clearance. Only a shoot that hangs, only under the crown's footprint.
 
 - real, share, [0, 1], default 0
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 20, as invalid input `curtain drop`
 - note: Above zero admits wood below the shell and stops shoots sleeping.
 - blend: linear; dial: `twig_curtain_drop` (how far below the crown's own surface a hanging shoot may fall; at zero the shell binds a hanging shoot as it binds every other, and any rise starts the fall below it), window its bounds (validated bound), steps 0.15 and 0.3
@@ -725,7 +736,7 @@ How far below the shell's lower surface a hanging shoot may fall, 0 to 1, as a s
 Metres above the ground no hanging shoot falls below, 0 to 5. Never above the crown's own base, whatever the row says.
 
 - real, m, [0, 5], default 0.5
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 21, as invalid input `curtain clearance`
 - dormant: unless `sag` or `curtainDrop` is above zero
 - note: Capped by `trunkHeight` in the floor and by `height·crownBase` in the band.
@@ -736,7 +747,7 @@ Metres above the ground no hanging shoot falls below, 0 to 5. Never above the cr
 The furthest a hanging shoot may bend toward straight down. Raising it lets curtains hang more heavily.
 
 - real, -, [0, 10], default 0.35
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 10, as invalid value `twig maxDroop`
 - dormant: `hang` zero
 - blend: linear; dial: `twig_max_droop` (the furthest a hanging shoot may bend toward straight down), window its bounds (validated bound), steps 1.5 and 3
@@ -746,7 +757,7 @@ The furthest a hanging shoot may bend toward straight down. Raising it lets curt
 How close to the ground a hanging curtain may reach before it stops growing. Raising it lets curtains hang nearer the floor.
 
 - real, share, [0, 1], default 0.8
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Twig site, rank 11, as invalid value `twig curtainStepClearance`
 - dormant: `hang` zero
 - blend: linear; dial: `twig_curtain_step_clearance` (how close to the ground a hanging curtain may reach before it stops), window its bounds (validated bound), steps 0.15 and 0.3
@@ -758,7 +769,7 @@ How close to the ground a hanging curtain may reach before it stops growing. Rai
 Metres a pull point may reach to steer the wood nearest it; unset, the crown's own volume and the point count decide it. Raising it lets distant points draw a branch across the crown.
 
 - optional real, m, [0, ∞], default unset
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: by a named check or not at all (see note)
 - dormant: `attractorWeight` zero
 - note: Unset: `max(9·height·step, 2·cbrt(crown volume / points))`. Judged in the resolved configuration (`colonization configuration`).
@@ -769,7 +780,7 @@ Metres a pull point may reach to steer the wood nearest it; unset, the crown's o
 Metres within which a pull point counts as reached and stops pulling; unset, twice the step distance. Raising it uses the points up sooner, so branches stop shorter and the crown fills coarsely.
 
 - optional real, m, [0, ∞], default unset
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: by a named check or not at all (see note)
 - dormant: `attractorWeight` zero
 - note: Acts as `min(kill, growth unit)`, so above one unit it does nothing; unset, `2·height·step`. Judged in the resolved configuration (`colonization configuration`).
@@ -780,7 +791,7 @@ Metres within which a pull point counts as reached and stops pulling; unset, twi
 Metres of wood laid down in one growth step; unset, the tree's height times `step`. Raising it lays down longer, coarser segments.
 
 - optional real, m, (0, ∞], default unset
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: by a named check or not at all (see note)
 - note: Unset: `height·step`; it does not move the default kill or influence distance. Judged in the resolved configuration (`colonization configuration`).
 - blend: with the rows it is coupled to; dial: none: Null in every shipped preset, as above.
@@ -790,7 +801,7 @@ Metres of wood laid down in one growth step; unset, the tree's height times `ste
 Metres of bare trunk before the crown may start; unset, the envelope's own crown base. Raising it lifts the whole crown and leaves a longer clear bole.
 
 - optional real, m, (0, ∞], default unset
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: by a named check or not at all (see note)
 - note: Refused at or below zero (`trunkHeight`) by `resolved_growth`, then judged in the resolved configuration. Unset: `height·crownBase`; below that the stems' bole, fork and top keep `height·crownBase`.
 - blend: with the rows it is coupled to; dial: none: Null in every shipped preset, as above.
@@ -800,7 +811,7 @@ Metres of bare trunk before the crown may start; unset, the envelope's own crown
 The nodes a tree may grow; unset, the shipped default. A tree that would grow more gives up its finest twigs evenly and finishes every branch, so raising it restores fine detail only to a tree that reached it.
 
 - optional count (usize), nodes, [1, 4294967295], default unset
-- read by grow; removed growth path: zero builds an empty capped seedling
+- read by no stage of the direct build; removed growth path: zero builds an empty capped seedling
 - checked: by a named check or not at all (see note)
 - note: Unset: 250 000. Zero is refused by `Family::validate` (`maxNodes`) and above u32::MAX by `ranges::max_nodes`. Measured on the plane and beech candidates (fn-180): each 50 000 nodes more costs about 0.2 to 0.9 s of build and 90 to 150 MB of peak memory.
 - blend: with the rows it is coupled to; dial: `max_nodes` (nodes the tree may grow before it thins its finest twigs evenly; each 50 000 more costs about 0.2 to 0.9 s of build and 90 to 150 MB of peak memory), window [100000, 1000000] (capped: capped above at a million nodes, about 1.5 GB of peak memory for one build; the generator refuses only above u32::MAX), steps 50000 and 150000, stepped from 250000 where unset
@@ -810,7 +821,7 @@ The nodes a tree may grow; unset, the shipped default. A tree that would grow mo
 The most a growing shoot may turn in one step, in degrees; unset, 35. At 180 or more nothing is limited.
 
 - optional real, degrees, [0, ∞], default unset
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: by a named check or not at all (see note)
 - note: `presets::by_identity` sets 35 where a table leaves it unset, so a table and its identity differ here. Judged in the resolved configuration (`colonization configuration`).
 - blend: with the rows it is coupled to; dial: none: Null in five of the seven families, including the beech a run is pointed at. A proposal batch reads every dial's current value off the wire and refuses the whole batch when one is null (src/tuning/judgments.rs:137).
@@ -819,12 +830,13 @@ The most a growing shoot may turn in one step, in degrees; unset, 35. At 180 or 
 
 ### `/radii/trunkRadius`
 
-The trunk's radius at the ground as a share of the tree's height, so raising it thickens every piece of wood in proportion.
+The leaf box's reach where foliage sits on slender wood, as a trunk radius at the ground that is a share of the tree's height; the engine sizes the grown wood itself (fn-198).
 
 - real, share of height, [0.000004, 179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000], default 0.02
-- read by grow, plan; removed growth path: as the direct build
+- read by plan; removed growth path: as the direct build
 - checked: Radius site, rank 1, as invalid value `trunkRadius`
-- note: Also sizes the leaf box where `canopy.shootRadius` is above zero or short shoots grow.
+- dormant: `canopy.shootRadius` zero
+- note: Also sizes the leaf box where `canopy.shootRadius` is above zero.
 - blend: linear; dial: `trunk_radius` (the trunk's radius at the ground as a share of the height), window [0.000004, 0.023] (capped: ceiling capped: the generator validates only a floor here (4e-6), so there is no validated ceiling to widen to; the ceiling stays at the preset span until the generator authors one), steps 0.002 and 0.004, presets span [0.011, 0.023]
 
 ### `/radii/forkExponent`
@@ -832,7 +844,7 @@ The trunk's radius at the ground as a share of the tree's height, so raising it 
 How wood divides at a fork. The parent's area is the sum of the children's radii raised to this power, so raising it leaves the children thicker for the same parent.
 
 - real, -, [1, 8], default 2
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Radius site, rank 2, as invalid value `forkExponent`
 - blend: linear; dial: `fork_exponent` (how wood divides at a fork; higher leaves the children thicker), window its bounds (validated bound), steps 1 and 2
 
@@ -841,7 +853,7 @@ How wood divides at a fork. The parent's area is the sum of the children's radii
 How fast wood thins along its own length. Raising it makes a branch narrow more sharply from its base to its tip.
 
 - real, per height, [0, 179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000], default 0.6
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Radius site, rank 3, as invalid value `lengthTaper`
 - blend: linear; dial: `length_taper` (how fast wood thins along its own length), window [0, 0.8] (capped: ceiling capped: the generator validates only a floor here (0), so there is no validated ceiling to widen to; the ceiling stays at the preset span until the generator authors one), steps 0.1 and 0.2, presets span [0, 0.8]
 
@@ -850,7 +862,7 @@ How fast wood thins along its own length. Raising it makes a branch narrow more 
 The ceiling on accumulated taper, so no single long branch can thin away to nothing. Raising it lets long branches taper further.
 
 - real, -, [0, 64], default 12
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Radius site, rank 0, as invalid value `maxTaperExponent`
 - dormant: `lengthTaper` zero
 - blend: linear; dial: `max_taper_exponent` (the ceiling on accumulated taper along one long branch), window its bounds (validated bound), steps 2 and 4, presets span [6, 18]
@@ -860,7 +872,7 @@ The ceiling on accumulated taper, so no single long branch can thin away to noth
 The wood a lateral takes at a fork against what its own subtree asks, 0 to 1: the parent carries a lateral's pipe at this share and the lateral's wood thins by its root. At one every fork divides by the pipe model alone.
 
 - real, share, [0.01, 1], default 1
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Radius site, rank 4, as invalid value `lateralShare`
 - note: Below one a lateral leaves thinner than a continuation carrying as many tips. A lateral is the wood the scaffold marks `BudFate::Lateral`.
 - blend: linear; dial: `lateral_share` (how thin a limb leaves the axis it grows from, against its own reach; lower keeps the leaders' girth), window its bounds (validated bound), steps 0.1 and 0.2
@@ -870,7 +882,7 @@ The wood a lateral takes at a fork against what its own subtree asks, 0 to 1: th
 The wood a codominant sibling takes at a fork against its own subtree's, 0 to 1, beside the primary that carries the axis on. At one the parts divide by the pipe model alone.
 
 - real, share, [0.01, 1], default 1
-- read by grow; removed growth path: as the direct build
+- read by no stage of the direct build; removed growth path: as the direct build
 - checked: Radius site, rank 5, as invalid value `forkBalance`
 - dormant: `skeleton.habit.codominance` zero
 - note: A sibling is the wood the scaffold marks `codominant`; its share is this times the weight it has grown in by. At one a sibling takes its own pipe as the primary does.
@@ -881,7 +893,7 @@ The wood a codominant sibling takes at a fork against its own subtree's, 0 to 1,
 The share of each structural axis's reach over which it holds the girth it starts with, 0 to 0.9: past it the wood falls to the pipe model's radius by the axis's tip. At zero wood is the pipe model's.
 
 - real, share of reach, [0, 0.9], default 0
-- read by grow; removed growth path: not read
+- read by no stage of the direct build; removed growth path: not read
 - checked: Radius site, rank 6, as invalid value `girthHold`
 - note: Every part leaving the root starts an axis, as do a lateral and a codominant sibling; a fork's primary above the root carries its axis on. An axis holds the pipe model's radius where it leaves its parent. A node's share of its axis's reach is its path from there against that plus its path on along the axis to the axis's tip. Its radius is the larger of the pipe model's and the held girth, so a held fork's parts carry more wood than their parent: conservation at forks is given up over the hold, and a part's start never exceeds its parent's radius. Read once the twigs have grown, and which wood bears leaves is decided on the pipe model's radii, so no twig or leaf is added or lost; the ceiling leaves every axis a tenth of its reach to fall, so no tip ends blunt.
 - blend: linear; dial: `girth_hold` (how far along its reach a limb keeps the girth it starts with before it breaks into fine wood), window its bounds (validated bound), steps 0.05 and 0.15
@@ -891,7 +903,7 @@ The share of each structural axis's reach over which it holds the girth it start
 How short the fall after `girthHold` is: the fall lasts the hold's share divided by this, so raising it breaks the wood into twigs over a shorter distance.
 
 - real, -, [0.5, 8], default 2
-- read by grow; removed growth path: not read
+- read by no stage of the direct build; removed growth path: not read
 - checked: Radius site, rank 7, as invalid value `girthFall`
 - dormant: `girthHold` zero
 - note: Ends at the tip where the hold leaves too little reach. At 0.5 the fall is twice the hold, close to the pipe model's steady thinning; at 8 it is an eighth of it, a break over a few stations of a long limb.
@@ -976,6 +988,7 @@ How deeply a child branch is set into its parent at a fork. Raising it sinks the
 - real, share, [0, 0.9], default 0.5
 - read by expand; removed growth path: as the direct build
 - checked: Surface site, rank 8, as invalid input `surface parameters`
+- dormant: a stem that never forks
 - blend: linear; dial: `fork_socket` (how deeply a child branch is set into its parent at a fork), window its bounds (validated bound), steps 0.15 and 0.3
 
 ### `/surface/socketContainment`
@@ -995,6 +1008,7 @@ How much wood thickens at a fork. Raising it leaves a more pronounced collar whe
 - real, multiple of radius, [1, 4], default 1.35
 - read by plan, expand; removed growth path: as the direct build
 - checked: Surface site, rank 9, as invalid input `surface parameters`
+- dormant: a stem that never forks
 - note: Seats leaves and sizes the leaf box where surface contact is on.
 - blend: linear; dial: `fork_swell` (how much wood thickens at a fork), window its bounds (validated bound), steps 0.5 and 1
 
@@ -1007,6 +1021,7 @@ Wood at or below this fraction of the root radius bears foliage of its own, besi
 - real, share of root radius, [0, 1], default 0
 - read by plan, expand; removed growth path: measured against the root node, and capped by `twig.bearingDiameter`
 - checked: Canopy site, rank 0, as invalid input `shoot radius`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - note: Above zero the leaf box uses the trunk radius.
 - blend: linear; dial: `canopy_shoot_radius` (the share of the root radius at or below which wood bears foliage of its own; at zero no wood beyond the twig layer bears foliage of its own, and any rise starts clothing it), window its bounds (validated bound), steps 0.005 and 0.01, presets span [0, 0.0375]
 
@@ -1027,6 +1042,7 @@ The degrees each successive leaf is turned around its shoot. Raising it turns th
 - real, degrees, [-1000000000, 1000000000], default 137.508
 - read by expand; removed growth path: as the direct build
 - checked: Canopy site, rank 2, as invalid input `divergence`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - note: Past a phase-error bound, station preparation leaves the GPU for the CPU.
 - blend: degrees along the shorter arc; dial: `foliage_divergence` (the degrees each successive leaf is turned around its shoot), window its bounds (validated bound), steps 15 and 30, presets span [116.262, 201.246]
 
@@ -1057,6 +1073,7 @@ How far a leaf turns away from the trunk. Raising it points the leaves outward, 
 - real, -, [-1, 1], default 0.6
 - read by expand; removed growth path: as the direct build
 - checked: Canopy site, rank 4, as invalid input `outward`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - note: Rosette fronds ignore it.
 - blend: linear; dial: `leaf_outward` (how far a leaf turns away from the trunk), window its bounds (validated bound), steps 0.25 and 0.5
 
@@ -1067,6 +1084,7 @@ How far a leaf turns toward the sky. Raising it tips the leaves up.
 - real, -, [-1, 1], default 0.35
 - read by expand; removed growth path: as the direct build
 - checked: Canopy site, rank 5, as invalid input `upward`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - note: Rosette fronds ignore it.
 - blend: linear; dial: `leaf_upward` (how far a leaf turns toward the sky), window its bounds (validated bound), steps 0.25 and 0.5
 
@@ -1077,6 +1095,7 @@ Lean along the shoot, as a fraction of the radial off the wood.
 - real, share of the radial, [-1, 1], default 0
 - read by expand; removed growth path: as the direct build
 - checked: Canopy site, rank 6, as invalid input `forward lean`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - blend: linear; dial: `leaf_forward_lean` (how far a leaf leans along its shoot), window its bounds (validated bound), steps 0.25 and 0.5
 
 ### `/canopy/leanRise`
@@ -1086,6 +1105,7 @@ Further lean along the shoot on radials that face upward.
 - real, share of the radial, [-2, 2], default 0
 - read by expand; removed growth path: as the direct build
 - checked: Canopy site, rank 7, as invalid input `lean rise`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - blend: linear; dial: `leaf_lean_rise` (further lean along the shoot for leaves whose radial faces up), window its bounds (validated bound), steps 0.5 and 1
 
 ### `/canopy/surfaceContact`
@@ -1127,56 +1147,6 @@ How far leaf size varies leaf to leaf, as a share of that size. Raising it mixes
 - checked: Canopy site, rank 11, as invalid input `size variation`
 - blend: linear; dial: `leaf_size_variation` (how far leaf size varies leaf to leaf), window its bounds (validated bound), steps 0.15 and 0.3
 
-### `/canopy/shortShootSpacing`
-
-Metres between short shoots along limb and branch wood: spurs a few centimetres long, each ending in a cluster of leaves. Zero grows none.
-
-- real, m, 0 or [0.01, 1000], default 0
-- read by plan, expand; removed growth path: as the direct build
-- checked: ShortShoots site, rank 1, as invalid input `short shoot spacing`
-- note: Above zero there is no leaf plan: leaves are placed for the field, and the GPU executor falls back.
-- blend: as the density it spaces; dial: `spacing` (metres between leaf clusters), window [0.01, 0.08] (authored), steps 0.01 and 0.02
-
-### `/canopy/shortShootRadius`
-
-Wood thicker than this fraction of the stem's radius carries no short shoot, and neither does twig wood or anything below the crown base.
-
-- real, share of stem radius, [0, 1], default 0.15
-- read by expand; removed growth path: as the direct build
-- checked: ShortShoots site, rank 2, as invalid input `short shoot radius`
-- dormant: `shortShootSpacing` zero
-- blend: linear; dial: `short_shoot_radius` (the share of the stem's radius above which wood carries no short shoot), window its bounds (validated bound), steps 0.15 and 0.3
-
-### `/canopy/shortShootLength`
-
-Metres from the bark to the cluster a short shoot carries.
-
-- real, m, [0, 0.5], default 0.04
-- read by expand; removed growth path: as the direct build
-- checked: ShortShoots site, rank 3, as invalid input `short shoot length`
-- dormant: `shortShootSpacing` zero
-- blend: linear; dial: `short_shoot_length` (the metres from the bark to the cluster a short shoot carries), window its bounds (validated bound), steps 0.1 and 0.2
-
-### `/canopy/shortShootLeaves`
-
-Leaves in one short shoot's cluster, 1 to 8.
-
-- count (u32), leaves, [1, 8], default 3
-- read by expand; removed growth path: as the direct build
-- checked: ShortShoots site, rank 5, as invalid input `short shoot leaves`
-- dormant: `shortShootSpacing` zero
-- blend: rounded to the nearest; dial: `leaves` (leaves per cluster), window [2, 12] (authored), steps 2 and 4
-
-### `/canopy/shortShootSpread`
-
-Degrees either side of its short shoot's bearing a cluster's leaves fan across, held level: 90 is a half circle, 0 stacks them.
-
-- real, degrees, [0, 90], default 45
-- read by expand; removed growth path: as the direct build
-- checked: ShortShoots site, rank 4, as invalid input `short shoot spread`
-- dormant: `shortShootSpacing` zero
-- blend: degrees along the shorter arc; dial: `short_shoot_spread` (the degrees either side of its bearing a cluster's leaves fan across), window its bounds (validated bound), steps 10 and 20, presets span [22.5, 90]
-
 ### `/canopy/limbClumping`
 
 How far into each limb system the gap between it and its neighbours reaches, as a share of the way from their shared boundary to the system's centre: each limb system then keeps a rounded leaf mass of its own. Zero, the neutral, thins nothing.
@@ -1194,6 +1164,7 @@ How deep a lateral may be and still start a limb system of its own. Raising it p
 - count (u32), order, [0, ∞], default 2
 - read by plan, expand; removed growth path: as the direct build
 - checked: by a named check or not at all (see note)
+- dormant: `limbClumping` zero, but for the limb tally of a requested leaf field
 - note: No upper bound is checked. The planned field assigns limb systems by it even at `limbClumping` zero.
 - blend: rounded to the nearest; dial: `clump_system_order` (how deep a lateral may be and still start a limb system of its own), window [1, 5] (capped: capped both ways: the generator validates no closed range here (an unchecked whole number); the row stays at the preset span until the generator authors one), steps 1 and 2, presets span [1, 5]
 
@@ -1203,19 +1174,29 @@ Nearest neighbours and cell crossings in the clumping approximation.
 
 - count (u32), neighbours, [1, 4294967295], default 12
 - read by expand; removed growth path: as the direct build
-- checked: ShortShoots site, rank 0, as invalid value `clumpNeighbours`
+- checked: Clumping site, rank 0, as invalid value `clumpNeighbours`
 - dormant: `limbClumping` zero
 - blend: rounded to the nearest; dial: none: An approximation budget: neighbours and cell crossings the clumping search may spend (crates/telperion-core/src/foliage/placement.rs:85).
 
 ### `/canopy/rosetteFronds`
 
-Fronds the rosette bears at the apex of each stem. At zero no rosette stands and the canopy clothes wood as it always did; any rise makes the rosette the tree's only foliage.
+Fronds the rosette bears at the apex of each stem. At zero no rosette stands. A fraction is split by a keyed draw at each apex, which bears the whole count either side of it (fn-277).
 
-- count (u32), fronds, [0, 128], default 0
+- real, fronds, [0, 128], default 0
 - read by grow, plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 18, as invalid input `rosette fronds`
-- note: Above zero the apical twigs are cleared, fronds are planned instead of runs and the rosette is placed instead of short shoots; the GPU executor falls back.
-- blend: rounded to the nearest; dial: `rosette_fronds` (fronds in the crown at each stem apex; at zero no rosette stands), window its bounds (validated bound), steps 1 and 4
+- note: Above zero the apical twigs are cleared and fronds are planned and placed beside whatever wood `cauline` clothes.
+- blend: linear; dial: `rosette_fronds` (fronds in the crown at each stem apex; at zero no rosette stands), window its bounds (validated bound), steps 1 and 4
+
+### `/canopy/cauline`
+
+The share of leaf-bearing wood that bears its leaves along it, cauline foliage as against a crown's alone: each run of leaf-bearing wood and each short shoot keeps its leaves by a keyed draw at this share. One, every one bears; at zero none does, as a palm bears its leaves only in its crown (fn-277).
+
+- real, share of leaf-bearing wood, [0, 1], default 1
+- read by plan, expand; removed growth path: as the direct build
+- checked: Canopy site, rank 15, as invalid input `cauline share`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
+- blend: linear; dial: `cauline` (the share of leaf-bearing wood that bears its leaves along it; at zero only a crown bears leaves), window its bounds (validated bound), steps 0.05 and 0.2
 
 ### `/canopy/rosetteDivergence`
 
@@ -1224,6 +1205,7 @@ The degrees each successive frond is turned about the apex.
 - real, degrees, [-1000000000, 1000000000], default 137.508
 - read by grow, plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 0, as invalid input `rosette divergence`
+- dormant: no rosette and no leaf bases (`rosetteFronds` and `leafBases` zero)
 - note: Also the leaf bases' spiral, rosette or none.
 - blend: degrees along the shorter arc; dial: `rosette_divergence` (the degrees each successive frond is turned), window [90, 180] (authored), steps 2 and 8
 
@@ -1254,18 +1236,20 @@ Metres below the apex the frond insertions are spread down the axis. At zero eve
 - real, m, [0, 100], default 0
 - read by grow, plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 3, as invalid input `rosette depth`
+- dormant: no rosette and no leaf bases (`rosetteFronds` and `leafBases` zero)
 - note: Leaf bases start below it, rosette or none; the deepest frond sets the leaf box's reach.
 - blend: linear; dial: `rosette_depth` (metres the frond insertions spread down the axis), window [0, 4] (authored), steps 0.05 and 0.2
 
 ### `/canopy/leafletCount`
 
-Leaflets one placement carries along its rachis. One is the single blade every family drew.
+Leaflets one placement carries along its rachis. One is the single blade every family drew. A fraction is split by a keyed draw at each placement (fn-277).
 
-- count (u32), leaflets, [1, 256], default 1
+- real, leaflets, [1, 256], default 1
 - read by plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 20, as invalid input `leaflet count`
-- note: Leaflets group only above one and with `rachisLength` above zero; the GPU executor draws one blade a station regardless (fn-163).
-- blend: rounded to the nearest; dial: `leaflet_count` (leaflets along one frond's rachis), window its bounds (validated bound), steps 2 and 8
+- dormant: `rachisLength` zero
+- note: Leaflets group only above one and with `rachisLength` above zero.
+- blend: linear on the logarithm; dial: `leaflet_count` (leaflets along one frond's rachis), window its bounds (validated bound), steps 2 and 8
 
 ### `/canopy/rachisLength`
 
@@ -1311,12 +1295,12 @@ Whether a single leaflet closes the rachis's end, blended 0 to 1: the last leafl
 
 Bases of shed fronds the stem keeps below its crown, clothing the trunk. At zero the trunk is bare and the bark is what it always was; any rise carries the crown's own spiral down it.
 
-- count (u32), bases, [0, 256], default 0
+- real, bases, [0, 256], default 0
 - read by grow; removed growth path: not read
 - checked: Rosette site, rank 21, as invalid input `leaf bases`
 - dormant: `leafBaseLength` zero
-- note: Does not need a rosette: bases follow the rosette's spiral rows whether fronds stand or not.
-- blend: rounded to the nearest; dial: `leaf_bases` (bases of shed fronds the stem keeps below its crown, clothing the trunk; at zero the trunk is bare), window its bounds (validated bound), steps 4 and 16
+- note: Does not need a rosette: bases follow the rosette's spiral rows whether fronds stand or not. A fraction is split by a keyed draw at each stem (fn-277).
+- blend: linear; dial: `leaf_bases` (bases of shed fronds the stem keeps below its crown, clothing the trunk; at zero the trunk is bare), window its bounds (validated bound), steps 4 and 16
 
 ### `/canopy/leafBaseLength`
 
@@ -1384,11 +1368,12 @@ How flat-sided a lattice base is drawn: 0 the ellipse through its cell's corners
 
 Leaflets at a frond's base borne as spines rather than blades. At zero the frond carries blades all the way down; any rise hardens that many of them.
 
-- count (u32), leaflets, [0, 256], default 0
+- real, leaflets, [0, 256], default 0
 - read by plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 22, as invalid input `acanthophylls`
 - dormant: `acanthophyllLength` zero, or no leaflet grouping (`leafletCount` one or `rachisLength` zero)
-- blend: rounded to the nearest; dial: `acanthophylls` (leaflets at a frond's base borne as spines rather than blades; at zero the frond carries blades), window its bounds (validated bound), steps 1 and 4
+- note: A fraction is split by a keyed draw at each placement (fn-277).
+- blend: linear; dial: `acanthophylls` (leaflets at a frond's base borne as spines rather than blades; at zero the frond carries blades), window its bounds (validated bound), steps 1 and 4
 
 ### `/canopy/acanthophyllLength`
 
@@ -1414,11 +1399,12 @@ The degrees a spine leaves the rachis, in place of the leaflet's own pitch.
 
 Dead fronds a rosette keeps below its living crown, continuing the crown's own spiral down the stem. At zero no frond is kept and the crown ends at its oldest living frond; any rise hangs that many.
 
-- count (u32), fronds, [0, 128], default 0
+- real, fronds, [0, 128], default 0
 - read by plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 19, as invalid input `skirt fronds`
 - dormant: `skirtLength` zero, or `rosetteFronds` zero
-- blend: rounded to the nearest; dial: `skirt_fronds` (dead fronds a rosette keeps below its living crown; at zero none is kept), window its bounds (validated bound), steps 2 and 6
+- note: A fraction is split by a keyed draw at each apex (fn-277).
+- blend: linear; dial: `skirt_fronds` (dead fronds a rosette keeps below its living crown; at zero none is kept), window its bounds (validated bound), steps 2 and 6
 
 ### `/canopy/skirtPitch`
 
@@ -1439,6 +1425,36 @@ A dead frond's length as a share of a living one's, rachis and leaflets alike. A
 - checked: Rosette site, rank 17, as invalid input `skirt length`
 - dormant: `skirtFronds` zero, or `rosetteFronds` zero
 - blend: linear; dial: `skirt_length` (a dead frond's length as a share of a living one's; at zero no dead frond is drawn), window its bounds (validated bound), steps 0.05 and 0.15
+
+### `/canopy/frondLife`
+
+The years a living frond lives (fn-270 R5b): a rosette makes its living crown's count over that many years, its fronds aged by their place on the spiral, this year's emerging over its stem's elongation and unfolding by its expansion, the oldest passing into the skirt and out of it as new ones emerge above. At zero the crown makes none and stands as it is all year.
+
+- real, years, [0, 100], default 0
+- read by plan, expand; removed growth path: as the direct build
+- checked: Rosette site, rank 23, as invalid input `frond life`
+- dormant: `rosetteFronds` zero
+- blend: linear; dial: `frond_life` (the years a living frond lives; at zero the crown stands as it is all year), window its bounds (validated bound), steps 3 and 7
+
+### `/canopy/frondEstablishment`
+
+The years a rosette's crown takes to make a mature frond (fn-275 R2, R2a): a frond is made at a share of its size set by the crown's age when it was made, along the logistic course from `frondEarlyShare` to whole over these years, and keeps it for its life; the stem the rosette crowns widens by the same course and waits at the ground until the crown is established. At zero every frond is made whole and the stem rises from its first year.
+
+- real, years, [0, 100], default 0
+- read by grow, plan, expand; removed growth path: as the direct build
+- checked: Rosette site, rank 24, as invalid input `frond establishment`
+- dormant: `rosetteFronds` zero
+- blend: linear; dial: `frond_establishment` (the years a crown takes to make a mature frond and its stem to widen before it rises; at zero every frond is made whole and the stem rises from its first year), window its bounds (validated bound), steps 1 and 3
+
+### `/canopy/frondEarlyShare`
+
+The share of a mature frond's size a crown's first frond is made at while it establishes, and of its stem's girth where the stem was first laid (fn-275 R2, R2a).
+
+- real, share of a mature frond, [0, 1], default 0
+- read by grow, plan, expand; removed growth path: as the direct build
+- checked: Rosette site, rank 25, as invalid input `frond early share`
+- dormant: `frondEstablishment` zero
+- blend: linear; dial: `frond_early_share` (the share of a mature frond's size a crown's first frond is made at, and of its stem's girth where first laid), window its bounds (validated bound), steps 0.05 and 0.15
 
 ### `/canopy/maxInstances`
 
@@ -1549,6 +1565,7 @@ How far each sinus cuts toward the midrib, 0 to 1. At zero the margin is entire 
 - real, share, [0, 1], default 0
 - read by plan; removed growth path: as the direct build
 - checked: Leaf site, rank 7, as invalid input `leaf lobe depth`
+- dormant: `lobeCount` zero
 - blend: linear; dial: `leaf_lobe_depth` (how far each sinus cuts toward the midrib; at zero the margin is entire whatever the lobe count says, and any rise starts cutting the sinuses), window its bounds (validated bound), steps 0.15 and 0.3
 
 ### `/element/sectionRoundness`
@@ -1597,7 +1614,7 @@ A flat two-triangle card in place of the modelled blade: no outline, no cup or c
 
 ### `/material/barkRed`
 
-The bark's own colour, a linear reflectance per channel. Raising a channel pushes mature bark toward that colour.
+The bark's own colour, a linear reflectance per channel, not a display (sRGB) value; every colour row is on this one scale (see the reference's header). Shipped barks run 0.017 (the beech's blue) to 0.78 (the birch's white). Raising a channel pushes mature bark toward that colour.
 
 - real, reflectance, [0, 1], default 0.147
 - read by draw; removed growth path: as the direct build
@@ -1633,7 +1650,7 @@ How diffuse the bark is: 0 is a mirror, 1 is chalk.
 
 ### `/material/shootRed`
 
-The young wood's own colour, before its bark has formed. Wood thinner than `shoot_radius` takes it, and gives it up to the bark colour on a smoothstep of its radius by twice that; zero means no wood is young.
+The young wood's own colour, a linear reflectance per channel on the bark's scale, before its bark has formed. Wood thinner than `shoot_radius` takes it, and gives it up to the bark colour on a smoothstep of its radius by twice that; zero means no wood is young.
 
 - real, reflectance, [0, 1], default 0.147
 - read by draw; removed growth path: as the direct build
@@ -1670,9 +1687,68 @@ Metres. The radius below which wood is young.
 - checked: Material site, rank 80, as invalid input `young shoot radius`
 - blend: linear; dial: `material_shoot_radius` (the metres of radius below which wood counts as young), window its bounds (validated bound), steps 0.015 and 0.03
 
+### `/material/matureRed`
+
+The old bark's own colour, the one thick wood grows into. Wood takes it over the bark colour on a smoothstep of its radius from `mature_radius` to that plus `mature_span`.
+
+- real, reflectance, [0, 1], default 0.147
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 95, as invalid input `bark mature red`
+- dormant: `matureRadius` zero
+- blend: linear; dial: `material_mature_red` (the red in the old bark's colour, the one thick wood grows into), window its bounds (validated bound), steps 0.15 and 0.3
+
+### `/material/matureGreen`
+
+The green channel of `mature_red`.
+
+- real, reflectance, [0, 1], default 0.105
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 96, as invalid input `bark mature green`
+- dormant: `matureRadius` zero
+- blend: linear; dial: `material_mature_green` (the green in the old bark's colour, the one thick wood grows into), window its bounds (validated bound), steps 0.15 and 0.3
+
+### `/material/matureBlue`
+
+The blue channel of `mature_red`.
+
+- real, reflectance, [0, 1], default 0.068
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 97, as invalid input `bark mature blue`
+- dormant: `matureRadius` zero
+- blend: linear; dial: `material_mature_blue` (the blue in the old bark's colour, the one thick wood grows into), window its bounds (validated bound), steps 0.15 and 0.3
+
+### `/material/matureFurrowStrength`
+
+The furrow strength old bark takes in place of `furrow_strength`, over the same radius range as its colour: how deep it fissures.
+
+- real, -, [0, 1], default 1
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 98, as invalid input `bark mature furrow strength`
+- dormant: `matureRadius` zero, or `ridgeScale` zero
+- blend: linear; dial: `material_mature_furrow_strength` (the width and depth of old bark's furrows, which thick wood grows into), window its bounds (validated bound), steps 0.15 and 0.3
+
+### `/material/matureRadius`
+
+Metres. The radius at which bark starts to turn old; zero means no wood is old.
+
+- real, m, [0, 2], default 0
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 99, as invalid input `bark mature radius`
+- blend: linear; dial: `material_mature_radius` (the metres of radius at which bark starts to turn old; zero leaves no wood old), window its bounds (validated bound), steps 0.015 and 0.03
+
+### `/material/matureSpan`
+
+Metres. How much further the radius grows before the bark is wholly old; zero turns it at once.
+
+- real, m, [0, 2], default 0
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 100, as invalid input `bark mature span`
+- dormant: `matureRadius` zero
+- blend: linear; dial: `material_mature_span` (the metres more of radius over which bark turns wholly old), window its bounds (validated bound), steps 0.015 and 0.03
+
 ### `/material/leafFrontRed`
 
-The colour of a leaf's upper face, a linear reflectance per channel. Raising a channel pushes the sunlit face toward it.
+The colour of a leaf's upper face, a linear reflectance per channel, not a display (sRGB) value. A dark broadleaf face is a few hundredths (the beech 0.021/0.016/0.007, the oak 0.021/0.048/0.021); shipped faces run 0.007 to 0.19. Raising a channel pushes the sunlit face toward it.
 
 - real, reflectance, [0, 1], default 0.068
 - read by draw; removed growth path: as the direct build
@@ -1699,7 +1775,7 @@ The blue channel of `leaf_front_red`.
 
 ### `/material/leafBackRed`
 
-The colour of a leaf's underside, shown wherever the eye sees the back of a blade. Raising a channel pushes that face toward it.
+The colour of a leaf's underside, a linear reflectance per channel on the upper face's scale (shipped: 0.011 to 0.28), shown wherever the eye sees the back of a blade. Raising a channel pushes that face toward it.
 
 - real, reflectance, [0, 1], default 0.105
 - read by draw; removed growth path: as the direct build
@@ -1726,13 +1802,13 @@ The blue channel of `leaf_back_red`.
 
 ### `/material/leafDeadRed`
 
-The colour a dead frond has aged to, both faces alike, shown only on the fronds a rosette keeps below its living crown. Raising a channel pushes the skirt toward it.
+The colour a leaf turns as it dies, a linear reflectance per channel on the leaf faces' scale, both faces alike: the dead fronds a rosette keeps below its living crown, and a leaf colouring in autumn before it falls (fn-270 R5c), which a tree drawn within its year moves toward. Raising a channel pushes either toward it.
 
 - real, reflectance, [0, 1], default 0.3
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 87, as invalid input `leaf dead red`
-- dormant: no dead frond (`canopy.skirtFronds` zero)
-- blend: linear; dial: `material_leaf_dead_red` (the red in the colour a dead frond has aged to), window its bounds (validated bound), steps 0.05 and 0.1
+- dormant: no dead frond (`canopy.skirtFronds` zero) and no leaf that falls
+- blend: linear; dial: `material_leaf_dead_red` (the red in the colour a leaf turns as it dies), window its bounds (validated bound), steps 0.05 and 0.1
 
 ### `/material/leafDeadGreen`
 
@@ -1741,8 +1817,8 @@ The green channel of `leaf_dead_red`.
 - real, reflectance, [0, 1], default 0.25
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 88, as invalid input `leaf dead green`
-- dormant: no dead frond (`canopy.skirtFronds` zero)
-- blend: linear; dial: `material_leaf_dead_green` (the green in the colour a dead frond has aged to), window its bounds (validated bound), steps 0.05 and 0.1
+- dormant: no dead frond (`canopy.skirtFronds` zero) and no leaf that falls
+- blend: linear; dial: `material_leaf_dead_green` (the green in the colour a leaf turns as it dies), window its bounds (validated bound), steps 0.05 and 0.1
 
 ### `/material/leafDeadBlue`
 
@@ -1751,8 +1827,108 @@ The blue channel of `leaf_dead_red`.
 - real, reflectance, [0, 1], default 0.18
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 89, as invalid input `leaf dead blue`
-- dormant: no dead frond (`canopy.skirtFronds` zero)
-- blend: linear; dial: `material_leaf_dead_blue` (the blue in the colour a dead frond has aged to), window its bounds (validated bound), steps 0.05 and 0.1
+- dormant: no dead frond (`canopy.skirtFronds` zero) and no leaf that falls
+- blend: linear; dial: `material_leaf_dead_blue` (the blue in the colour a leaf turns as it dies), window its bounds (validated bound), steps 0.05 and 0.1
+
+### `/material/bloomFrontRed`
+
+The colour of a petal's upper face, a linear albedo per channel, the same quantity as the leaf faces' and not a display (sRGB) value (fn-216, fn-234): the flowers' own, drawn by the leaf shader, and the colour the petal passes when lit from behind. A white petal is about 0.8 a channel and a gold one about 0.85/0.65/0.1.
+
+- real, reflectance, [0, 1], default 0.82
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 101, as invalid input `bloom front red`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/material/bloomFrontGreen`
+
+The green channel of `bloom_front_red`.
+
+- real, reflectance, [0, 1], default 0.8
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 102, as invalid input `bloom front green`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/material/bloomFrontBlue`
+
+The blue channel of `bloom_front_red`.
+
+- real, reflectance, [0, 1], default 0.74
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 103, as invalid input `bloom front blue`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/material/bloomBackRed`
+
+The colour of a petal's underside, a linear albedo per channel as `bloom_front_red` is (fn-216): the flowers' own, drawn by the leaf shader.
+
+- real, reflectance, [0, 1], default 0.72
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 104, as invalid input `bloom back red`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/material/bloomBackGreen`
+
+The green channel of `bloom_back_red`.
+
+- real, reflectance, [0, 1], default 0.72
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 105, as invalid input `bloom back green`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/material/bloomBackBlue`
+
+The blue channel of `bloom_back_red`.
+
+- real, reflectance, [0, 1], default 0.64
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 106, as invalid input `bloom back blue`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/material/bloomEyeRed`
+
+A floret's eye: the colour its petals turn toward at their base, a linear reflectance on the petals' scale, and the stamens' colour.
+
+- real, reflectance, [0, 1], default 0.12
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 107, as invalid input `bloom eye red`
+- dormant: no age flowering, or `bloomEyeShare` zero
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/material/bloomEyeGreen`
+
+The green channel of `bloom_eye_red`.
+
+- real, reflectance, [0, 1], default 0.1
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 108, as invalid input `bloom eye green`
+- dormant: no age flowering, or `bloomEyeShare` zero
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/material/bloomEyeBlue`
+
+The blue channel of `bloom_eye_red`.
+
+- real, reflectance, [0, 1], default 0.02
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 109, as invalid input `bloom eye blue`
+- dormant: no age flowering, or `bloomEyeShare` zero
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/material/bloomEyeShare`
+
+How far up each petal from its base the eye reaches, as a share of the petal's length. Zero is no eye: the petal and its stamens are the petal's colour.
+
+- real, share of the petal, [0, 1], default 0
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 110, as invalid input `bloom eye share`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/material/hueRangeLow`
 
@@ -2037,7 +2213,7 @@ How far the blotches `blade_mottle_scale` sizes vary a leaf's colour.
 
 ### `/material/marginWidth`
 
-How wide a band along the leaf's edge takes the margin colour, and what that colour is as an offset per channel. Raising the width broadens the rim around every leaf.
+How wide a band along the leaf's edge takes the margin colour, as a share of the leaf set in leaf space, and what that colour is as an offset per channel. Raising the width broadens the rim around every leaf; a leaf under a pixel takes the band's area share.
 
 - real, -, [0, 0.5], default 0
 - read by draw; removed growth path: as the direct build
@@ -2417,7 +2593,7 @@ How far the plate network's strips curl away: they stretch across the wood into 
 
 ### `/material/peelRed`
 
-The inner bark a peeled strip leaves showing.
+The inner bark a peeled strip leaves showing, a linear reflectance like the bark's.
 
 - real, reflectance, [0, 1], default 0
 - read by draw; removed growth path: as the direct build
@@ -2511,3 +2687,1051 @@ How far that grain varies the blade's colour and tilts its normal.
 - checked: Material site, rank 61, as invalid input `leaf blade grain strength`
 - dormant: `bladeGrainScale` zero
 - blend: linear; dial: `material_blade_grain_strength` (how far that grain varies the blade's colour and tilts its normal), window its bounds (validated bound), steps 0.15 and 0.3
+
+## `/bloom`
+
+### `/bloom/florets`
+
+Florets on one inflorescence. The fractional part is the last floret's size, so a walk across counts grows one in by degree.
+
+- real, florets, [1, 64], default 1
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 0, as invalid input `bloom florets`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/rachis`
+
+Metres of the inflorescence's axis the florets stand along: zero is a cluster at the node, a few centimetres a raceme or catkin.
+
+- real, m, [0, 1], default 0
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 1, as invalid input `bloom rachis`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/droop`
+
+How the axis turns from the bud's side as it grows: 1 hangs straight down, -1 stands up as a candle, 0 holds the side.
+
+- real, share, [-1, 1], default 0
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 2, as invalid input `bloom droop`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/pedicel`
+
+Metres of stalk between the axis and each floret.
+
+- real, m, [0, 0.5], default 0.01
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 3, as invalid input `bloom pedicel`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/spread`
+
+The degrees a floret's stalk leaves the axis: small packs a spike, ninety spreads a raceme, more fans a cluster back.
+
+- real, degrees, [0, 180], default 60
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 4, as invalid input `bloom spread`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/taper`
+
+How much smaller the floret at the axis's tip is than the one at its base, as a share.
+
+- real, share, [0, 1], default 0
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 5, as invalid input `bloom taper`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/petals`
+
+Petals on a floret, turned evenly about it by the count. The fractional part is the last petal's size (host decision 4), so a walk across counts changes a flower by degree.
+
+- real, petals, [1, 12], default 5
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 6, as invalid input `bloom petals`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/open`
+
+The degrees a petal opens from the floret's axis: a bud near zero, an open blossom near ninety.
+
+- real, degrees, [0, 180], default 70
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 7, as invalid input `bloom open`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/petalLength`
+
+A petal's length in metres.
+
+- real, m, [0.0001, 1], default 0.012
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 8, as invalid input `bloom petal length`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/petalWidth`
+
+A petal's greatest width in metres.
+
+- real, m, [0.0001, 1], default 0.009
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 9, as invalid input `bloom petal width`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/petalWidest`
+
+Where a petal is widest, as a share from its base to its tip.
+
+- real, share of the petal, [0.05, 0.95], default 0.6
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 10, as invalid input `bloom petal widest point`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/petalCup`
+
+How far a petal's margins lift out of its plane, as a share of its half-width: a cupped blossom.
+
+- real, share of the half-width, [-2, 2], default 0.2
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 11, as invalid input `bloom petal cup`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/petalCurl`
+
+How far a petal bends along its length, as a share of its length at the tip: positive turns the tip out, away from the floret's axis, so a narrow-opened floret flares into a horn's mouth.
+
+- real, share of the length, [-2, 2], default 0
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 16, as invalid input `bloom petal curl`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/stamens`
+
+Stamens in a floret, a ring of filaments standing up inside its petals. The fractional part is the last stamen's size, so a walk across counts grows one in by degree; zero is none.
+
+- real, stamens, [0, 64], default 0
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 17, as invalid input `bloom stamens`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/stamenLength`
+
+A stamen's length in metres, from the floret's centre.
+
+- real, m, [0.0001, 0.1], default 0.008
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 18, as invalid input `bloom stamen length`
+- dormant: no age flowering, or `stamens` zero
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/stamenWidth`
+
+A stamen's width in metres.
+
+- real, m, [0.00001, 0.01], default 0.0004
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 19, as invalid input `bloom stamen width`
+- dormant: no age flowering, or `stamens` zero
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/scatter`
+
+How far a floret's size varies from one to the next, as a share.
+
+- real, share, [0, 1], default 0.1
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 12, as invalid input `bloom scatter`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/opens`
+
+Where in the year the flowering window opens, as a share of the year from its start.
+
+- real, share of the year, [0, 1], default 0.3
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 13, as invalid input `bloom opens`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/lasts`
+
+How long the window lasts, as a share of the year. A floret grows in and shrinks out inside it; zero flowers never.
+
+- real, share of the year, [0, 1], default 0.1
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 14, as invalid input `bloom lasts`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+### `/bloom/stagger`
+
+The share of the window the florets' openings are spread over: zero opens every floret at once.
+
+- real, share of the window, [0, 1], default 0.5
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 15, as invalid input `bloom stagger`
+- dormant: no age flowering
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
+
+## `/supernatural`
+
+### `/supernatural/enabled`
+
+Whether the legendary traits act. Off, the group reads as none: the scale is one, the reflectances zero and every override leaves its natural row as it is.
+
+- switch, switch, [0, 1], default 0
+- read by grow, plan, expand, draw; removed growth path: as the direct build
+- checked: by a named check or not at all (see note)
+- dormant: every other `/supernatural` row unset or at its natural value
+- note: A walk interpolates what each side applies, so a family that switches the group on ramps up from its natural rows.
+- blend: with the rows it is coupled to; dial: none: Boolean, not a numeric scalar.
+
+### `/supernatural/scale`
+
+How many times its natural size the tree is drawn: every position and length of the grown wood, after the engine grew it at its natural size, so its topology is the natural tree's. Leaves and flowers keep their own size; the leaves keep their spacing along the wood. One is the natural tree.
+
+- real, times the natural size, [0.1, 100], default 1
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 0, as invalid value `scale`
+- dormant: `enabled` off
+- note: Checked while dormant too. Applied once, to the converted tree, before the whole-tree folds; the device scales the wood it draws by the same value.
+- blend: with the rows it is coupled to; dial: none: A legendary row, dormant on every natural species; the Two Trees' specs open it to tuning (fn-218, fn-219).
+
+### `/supernatural/backReflectance`
+
+What a leaf's underside mirrors at normal incidence, as a metal does: the sun's glint and the sky's sheen off the back of the blade, tinted by the back tint, taken from the face's diffuse. Zero mirrors nothing and leaves the back as the natural leaf's.
+
+- real, reflectance, [0, 1], default 0
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 1, as invalid input `back reflectance`
+- dormant: `enabled` off
+- blend: with the rows it is coupled to; dial: none: A legendary row, dormant on every natural species; the Two Trees' specs open it to tuning (fn-218, fn-219).
+
+### `/supernatural/backRed`
+
+The colour the underside mirrors in, a linear reflectance per channel: a metal's reflection is its colour. Silver is near white.
+
+- real, reflectance, [0, 1], default 1
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 2, as invalid input `back tint red`
+- dormant: `enabled` off, or `backReflectance` zero
+- blend: with the rows it is coupled to; dial: none: A legendary row, dormant on every natural species; the Two Trees' specs open it to tuning (fn-218, fn-219).
+
+### `/supernatural/backGreen`
+
+The green channel of `back_red`.
+
+- real, reflectance, [0, 1], default 1
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 3, as invalid input `back tint green`
+- dormant: `enabled` off, or `backReflectance` zero
+- blend: with the rows it is coupled to; dial: none: A legendary row, dormant on every natural species; the Two Trees' specs open it to tuning (fn-218, fn-219).
+
+### `/supernatural/backBlue`
+
+The blue channel of `back_red`.
+
+- real, reflectance, [0, 1], default 1
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 4, as invalid input `back tint blue`
+- dormant: `enabled` off, or `backReflectance` zero
+- blend: with the rows it is coupled to; dial: none: A legendary row, dormant on every natural species; the Two Trees' specs open it to tuning (fn-218, fn-219).
+
+### `/supernatural/marginReflectance`
+
+What a leaf's margin band mirrors at normal incidence, on either face, tinted by the margin's colour: a metallic rim, taken from the band's diffuse. Zero mirrors nothing.
+
+- real, reflectance, [0, 1], default 0
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 5, as invalid input `margin reflectance`
+- dormant: `enabled` off, or `/material/marginWidth` zero
+- blend: with the rows it is coupled to; dial: none: A legendary row, dormant on every natural species; the Two Trees' specs open it to tuning (fn-218, fn-219).
+
+### `/supernatural/roughness`
+
+How rough the back and the margin are as mirrors: low is a sharp glint, high a broad sheen.
+
+- real, -, [0, 1], default 0.3
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 6, as invalid input `reflection roughness`
+- dormant: `enabled` off, or both reflectances zero
+- blend: with the rows it is coupled to; dial: none: A legendary row, dormant on every natural species; the Two Trees' specs open it to tuning (fn-218, fn-219).
+
+## `/supernatural/material`
+
+### `/supernatural/material/leafFrontRed`
+
+`/material/leafFrontRed` while the group is on; unset, the natural row.
+
+- optional real, reflectance, [0, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 0, as invalid input `supernatural material leafFrontRed`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/leafFrontGreen`
+
+`/material/leafFrontGreen` while the group is on; unset, the natural row.
+
+- optional real, reflectance, [0, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 1, as invalid input `supernatural material leafFrontGreen`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/leafFrontBlue`
+
+`/material/leafFrontBlue` while the group is on; unset, the natural row.
+
+- optional real, reflectance, [0, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 2, as invalid input `supernatural material leafFrontBlue`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/leafBackRed`
+
+`/material/leafBackRed` while the group is on; unset, the natural row.
+
+- optional real, reflectance, [0, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 3, as invalid input `supernatural material leafBackRed`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/leafBackGreen`
+
+`/material/leafBackGreen` while the group is on; unset, the natural row.
+
+- optional real, reflectance, [0, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 4, as invalid input `supernatural material leafBackGreen`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/leafBackBlue`
+
+`/material/leafBackBlue` while the group is on; unset, the natural row.
+
+- optional real, reflectance, [0, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 5, as invalid input `supernatural material leafBackBlue`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/marginRed`
+
+`/material/marginRed` while the group is on; unset, the natural row.
+
+- optional real, offset, [-1, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 6, as invalid input `supernatural material marginRed`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/marginGreen`
+
+`/material/marginGreen` while the group is on; unset, the natural row.
+
+- optional real, offset, [-1, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 7, as invalid input `supernatural material marginGreen`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/marginBlue`
+
+`/material/marginBlue` while the group is on; unset, the natural row.
+
+- optional real, offset, [-1, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 8, as invalid input `supernatural material marginBlue`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+## `/supernatural/bloom`
+
+### `/supernatural/bloom/florets`
+
+`/bloom/florets` while the group is on; unset, the natural row.
+
+- optional real, florets, [1, 64], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 0, as invalid input `supernatural bloom florets`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/rachis`
+
+`/bloom/rachis` while the group is on; unset, the natural row.
+
+- optional real, m, [0, 1], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 1, as invalid input `supernatural bloom rachis`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/droop`
+
+`/bloom/droop` while the group is on; unset, the natural row.
+
+- optional real, share, [-1, 1], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 2, as invalid input `supernatural bloom droop`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/pedicel`
+
+`/bloom/pedicel` while the group is on; unset, the natural row.
+
+- optional real, m, [0, 0.5], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 3, as invalid input `supernatural bloom pedicel`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/spread`
+
+`/bloom/spread` while the group is on; unset, the natural row.
+
+- optional real, degrees, [0, 180], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 4, as invalid input `supernatural bloom spread`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/taper`
+
+`/bloom/taper` while the group is on; unset, the natural row.
+
+- optional real, share, [0, 1], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 5, as invalid input `supernatural bloom taper`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/petals`
+
+`/bloom/petals` while the group is on; unset, the natural row.
+
+- optional real, petals, [1, 12], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 6, as invalid input `supernatural bloom petals`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/open`
+
+`/bloom/open` while the group is on; unset, the natural row.
+
+- optional real, degrees, [0, 180], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 7, as invalid input `supernatural bloom open`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/petalLength`
+
+`/bloom/petalLength` while the group is on; unset, the natural row.
+
+- optional real, m, [0.0001, 1], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 8, as invalid input `supernatural bloom petalLength`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/petalWidth`
+
+`/bloom/petalWidth` while the group is on; unset, the natural row.
+
+- optional real, m, [0.0001, 1], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 9, as invalid input `supernatural bloom petalWidth`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/petalWidest`
+
+`/bloom/petalWidest` while the group is on; unset, the natural row.
+
+- optional real, share of the petal, [0.05, 0.95], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 10, as invalid input `supernatural bloom petalWidest`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/petalCup`
+
+`/bloom/petalCup` while the group is on; unset, the natural row.
+
+- optional real, share of the half-width, [-2, 2], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 11, as invalid input `supernatural bloom petalCup`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/petalCurl`
+
+`/bloom/petalCurl` while the group is on; unset, the natural row.
+
+- optional real, share of the length, [-2, 2], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 16, as invalid input `supernatural bloom petalCurl`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/stamens`
+
+`/bloom/stamens` while the group is on; unset, the natural row.
+
+- optional real, stamens, [0, 64], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 17, as invalid input `supernatural bloom stamens`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/stamenLength`
+
+`/bloom/stamenLength` while the group is on; unset, the natural row.
+
+- optional real, m, [0.0001, 0.1], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 18, as invalid input `supernatural bloom stamenLength`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/stamenWidth`
+
+`/bloom/stamenWidth` while the group is on; unset, the natural row.
+
+- optional real, m, [0.00001, 0.01], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 19, as invalid input `supernatural bloom stamenWidth`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/scatter`
+
+`/bloom/scatter` while the group is on; unset, the natural row.
+
+- optional real, share, [0, 1], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 12, as invalid input `supernatural bloom scatter`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/opens`
+
+`/bloom/opens` while the group is on; unset, the natural row.
+
+- optional real, share of the year, [0, 1], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 13, as invalid input `supernatural bloom opens`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/lasts`
+
+`/bloom/lasts` while the group is on; unset, the natural row.
+
+- optional real, share of the year, [0, 1], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 14, as invalid input `supernatural bloom lasts`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/stagger`
+
+`/bloom/stagger` while the group is on; unset, the natural row.
+
+- optional real, share of the window, [0, 1], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 15, as invalid input `supernatural bloom stagger`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+## `/supernatural/canopy`
+
+### `/supernatural/canopy/size`
+
+`/canopy/size` while the group is on; unset, the natural row.
+
+- optional real, multiple of the element, [0, 1000], default unset
+- read by plan, expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 0, as invalid input `supernatural canopy size`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+## `/supernatural/flowering`
+
+### `/supernatural/flowering/age0`
+
+`/space/ages/0/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 0, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age1`
+
+`/space/ages/1/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 1, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age2`
+
+`/space/ages/2/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 2, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age3`
+
+`/space/ages/3/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 3, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age4`
+
+`/space/ages/4/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 4, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age5`
+
+`/space/ages/5/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 5, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age6`
+
+`/space/ages/6/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 6, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age7`
+
+`/space/ages/7/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 7, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age8`
+
+`/space/ages/8/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 8, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age9`
+
+`/space/ages/9/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 9, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age10`
+
+`/space/ages/10/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 10, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age11`
+
+`/space/ages/11/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 11, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age12`
+
+`/space/ages/12/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 12, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age13`
+
+`/space/ages/13/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 13, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age14`
+
+`/space/ages/14/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 14, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+## `/supernatural/internode`
+
+### `/supernatural/internode/age0`
+
+`/space/ages/0/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 0, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age1`
+
+`/space/ages/1/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 1, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age2`
+
+`/space/ages/2/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 2, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age3`
+
+`/space/ages/3/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 3, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age4`
+
+`/space/ages/4/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 4, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age5`
+
+`/space/ages/5/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 5, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age6`
+
+`/space/ages/6/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 6, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age7`
+
+`/space/ages/7/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 7, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age8`
+
+`/space/ages/8/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 8, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age9`
+
+`/space/ages/9/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 9, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age10`
+
+`/space/ages/10/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 10, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age11`
+
+`/space/ages/11/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 11, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age12`
+
+`/space/ages/12/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 12, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age13`
+
+`/space/ages/13/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 13, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age14`
+
+`/space/ages/14/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 14, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+## `/supernatural/pipe`
+
+### `/supernatural/pipe/age0`
+
+`/space/ages/0/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 0, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age1`
+
+`/space/ages/1/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 1, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age2`
+
+`/space/ages/2/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 2, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age3`
+
+`/space/ages/3/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 3, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age4`
+
+`/space/ages/4/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 4, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age5`
+
+`/space/ages/5/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 5, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age6`
+
+`/space/ages/6/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 6, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age7`
+
+`/space/ages/7/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 7, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age8`
+
+`/space/ages/8/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 8, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age9`
+
+`/space/ages/9/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 9, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age10`
+
+`/space/ages/10/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 10, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age11`
+
+`/space/ages/11/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 11, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age12`
+
+`/space/ages/12/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 12, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age13`
+
+`/space/ages/13/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 13, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age14`
+
+`/space/ages/14/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 14, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none

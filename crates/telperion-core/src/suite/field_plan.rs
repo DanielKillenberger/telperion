@@ -13,7 +13,10 @@ use telperion_core::{
     tree::{Node, NodeKind, Tree},
 };
 
-const SPECIES: [&str; 3] = ["oregon-white-oak", "silver-birch", "norway-spruce"];
+/// The scaffold's species the plan is judged on: the oak and spruce it was
+/// judged on are engine presets now, whose trees the scaffold no longer
+/// grows (fn-198); the birch and the ordinary tree are.
+const SPECIES: [&str; 2] = ["silver-birch", "ordinary"];
 
 struct Subject {
     tree: Tree,
@@ -152,6 +155,7 @@ fn over_coverage_is_at_most_twice_the_placed_field_at_a_quarter_metre() {
 
 /// R6: over a non-overlapping grid covering the tree the count estimates sum
 /// to the plan's total within one percent.
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn count_estimates_sum_to_the_plan_total_over_a_grid() {
     for id in SPECIES {
@@ -296,6 +300,7 @@ fn wood_radius_is_the_thickest_sweep_reaching_the_cell() {
 /// R4: the spruce's needles reach about two centimetres; a cell ten times
 /// that, and one a hundred times, still report the foliage a segment passes
 /// through.
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn spruce_needles_are_found_by_cells_far_larger_than_their_reach() {
     let (_, s) = subject("norway-spruce");
@@ -355,23 +360,23 @@ fn a_cube_touching_only_the_sweep_boundary_is_covered() {
     );
 }
 
-/// R1: every shipped preset but the beech, whose short shoots and limb
-/// clumping have no plan, is described by the plan; the date palm's fronds
-/// frond by frond (fn-150).
+/// R1: every shipped preset is described by the plan; the date palm's fronds
+/// frond by frond (fn-150). The beech, whose short shoots and limb clumping
+/// had none, is dressed for the engine's tree with neither (fn-198).
 #[test]
-fn every_shipped_preset_but_the_beech_has_a_plan() {
-    for (id, planned) in [
-        ("ordinary", true),
-        ("oregon-white-oak", true),
-        ("norway-spruce", true),
-        ("european-beech", false),
-        ("silver-birch", true),
-        ("telperion", true),
-        ("laurelin", true),
-        ("date-palm", true),
+fn every_shipped_preset_has_a_plan() {
+    for id in [
+        "ordinary",
+        "oregon-white-oak",
+        "norway-spruce",
+        "european-beech",
+        "silver-birch",
+        "telperion",
+        "laurelin",
+        "date-palm",
     ] {
         let family = Preset::from_id(id).unwrap().parameters();
         let twig = Some(TwigPlacement::of(&family).unwrap());
-        assert_eq!(plan::supports(family.canopy, twig), planned, "{id}");
+        assert!(plan::supports(family.canopy, twig), "{id}");
     }
 }

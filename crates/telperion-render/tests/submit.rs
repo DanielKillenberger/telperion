@@ -62,6 +62,7 @@ fn small() -> TreeMesh {
             element: Element::default(),
             instances: leaves(2),
         },
+        organ: None,
         bounds: Bounds {
             min: Vec3::ZERO,
             max: Vec3::Y,
@@ -295,14 +296,17 @@ fn a_submitted_tree_is_the_tree_the_core_counted() {
         // The same tree in eight times the pixels does not fit in the coarsest
         // level any more: the decision is the projected deviation, not a
         // constant.
+        // Leaves under a pixel are thinned into the bucket (fn-246), so the
+        // levels are read as shares of the leaves each frame drew.
         render(&mut renderer, &camera, 2_048, 2_048).expect("the larger frame was drawn");
         let near = renderer.level_counts().expect("the pass counted");
+        let coarsest = |c: &[u32]| f64::from(c[0]) / f64::from(c[..levels].iter().sum::<u32>());
         assert!(
-            near[0] <= counted[0],
+            coarsest(&near) <= coarsest(&counted),
             "{id}: more pixels chose a coarser level: {near:?}"
         );
         assert_eq!(
-            near[0] < counted[0],
+            coarsest(&near) < coarsest(&counted),
             outgrows,
             "{id}: eight times the pixels was expected to outgrow the coarsest level: \
              {outgrows}, and the counts went {counted:?} to {near:?}"
@@ -327,7 +331,7 @@ fn a_submitted_tree_is_the_tree_the_core_counted() {
 #[test]
 fn each_view_draws_what_its_name_promises() {
     let Some(gpu) = gpu() else { return };
-    let family = params::by_identity("ordinary").expect("a shipped family");
+    let family = common::ordinary();
     let tree = mesh::build(&family).expect("the core built the tree");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let submitted = renderer.submit(&tree).expect("the tree fits the device");

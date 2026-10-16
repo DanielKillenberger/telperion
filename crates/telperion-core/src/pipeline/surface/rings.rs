@@ -89,7 +89,7 @@ pub(super) fn rings_mode(
     } else {
         Vec::new()
     };
-    let paths = paths(&tree.nodes)?;
+    let paths = paths(tree)?;
     let mut out = Rings {
         positions: Vec::new(),
         coords: Vec::new(),
@@ -161,7 +161,8 @@ impl Scratch {
     /// Samples path `path_id`'s run and frames it.
     pub(super) fn sweep(&mut self, at: Swept, path_id: usize) -> (&[Sample], &[(Vec3, Vec3)]) {
         at.sample(path_id, &mut self.samples);
-        frames(&self.samples, &mut self.directions, &mut self.frame);
+        let seed = seed(at.tree, at.paths, &at.paths.runs[path_id]);
+        frames(&self.samples, &mut self.directions, &mut self.frame, seed);
         if let Some(shape) = at.section(path_id) {
             section::square(shape, &mut self.frame);
         }
@@ -359,7 +360,7 @@ impl<'t> Resweep<'t> {
 
     fn rank(&self) -> Result<Ranked> {
         let mut r = Ranked {
-            paths: paths(&self.tree.nodes)?,
+            paths: paths(self.tree)?,
             distance: distances(self.tree)?,
             angular: angular::samples(segments(self.params), self.params)?,
             ordered: Vec::new(),

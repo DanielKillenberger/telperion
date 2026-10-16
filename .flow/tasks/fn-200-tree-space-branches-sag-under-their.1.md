@@ -31,7 +31,6 @@ stage: impl-review - OVERRIDDEN (host, 2026-10-04) by host decisions 2 and 3. Co
 - Round 1, NEEDS_WORK, three P1s. (1) A vertical trunk never sagged: fixed in dd5cc47d, with test a_vertical_trunk_bends_under_a_one_sided_crown. (3) Landing normalised a vanishing lean above the ground: fixed in dd5cc47d, with test a_lateral_swept_through_straight_down_lands_by_degree.
 - Round 2: (1) confirmed fixed. (2) Zero-sag neutrality: resolved by the amended R1 and R4 (host decision 3). (3) at the ground, the vertical-wood singularity: accepted (host decision 3).
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 75ca8ac6, 1976400b, 583a391b, 1f491cfb, dd5cc47d, 36e884df
 - Tests: cargo test --profile ci -p telperion-space --no-fail-fast, cargo test --profile ci --workspace --no-fail-fast

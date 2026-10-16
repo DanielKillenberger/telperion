@@ -1,0 +1,283 @@
+{
+  "branch_name": "fn-275-a-young-palms-fronds-grow-to-their-size",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-14T08:31:40.999016Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-275-a-young-palms-fronds-grow-to-their-size",
+  "impl_review_rounds": {
+    "fn-275-a-young-palms-fronds-grow-to-their-size.1": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "f0a0f05dd203e00fbd3ea462a8b5295d796ba70fd787761c846fa3678720bb44",
+      "backend": "codex",
+      "base_sha": "17fe0dacfadffdbfe8a2a4911d4836a31fe73998",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-0f1dcdd6bcc7023697340bfab3bbf58d",
+            "classification": "introduced",
+            "findingId": "finding-0f1dcdd6bcc7023697340bfab3bbf58d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "51eca5bd2dae9893c20b56168d84d231d7129920",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1234,
+      "output_sha256": "393e48231024e9871769293dd4b486cf5c948ea4bf587a5238cad47d088b7a9b",
+      "reservation_id": "70fc0ef00aa3471fa9e4ed8a35987d7d",
+      "round_consumed": true,
+      "scope": "impl:fn-275-a-young-palms-fronds-grow-to-their-size.1",
+      "superseded_by": null,
+      "task": "fn-275-a-young-palms-fronds-grow-to-their-size.1",
+      "timestamp": "2026-10-14T09:33:23.216979Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ce24056124ec5b50bb32b1e7a6f59b53dfaa97ba2643dbfeef6ee38c98c4015a",
+      "backend": "codex",
+      "base_sha": "17fe0dacfadffdbfe8a2a4911d4836a31fe73998",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-0f1dcdd6bcc7023697340bfab3bbf58d",
+            "classification": "introduced",
+            "findingId": "finding-0f1dcdd6bcc7023697340bfab3bbf58d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "01cd3b2091d12e2263a74617fd3467186199a3f3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1145,
+      "output_sha256": "acdd4accacd845e98098569a31f3de5596393678dee98dca4441182008cb91c8",
+      "reservation_id": "8dbf9c69eef642e1b65ec9d80db106f5",
+      "round_consumed": true,
+      "scope": "impl:fn-275-a-young-palms-fronds-grow-to-their-size.1",
+      "superseded_by": null,
+      "task": "fn-275-a-young-palms-fronds-grow-to-their-size.1",
+      "timestamp": "2026-10-14T09:36:33.294064Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "713ff8a7d9ead29931f45a48c1cd00f69c01626f3eedc41717f27f093d9e6ac2",
+      "backend": "codex",
+      "base_sha": "17fe0dacfadffdbfe8a2a4911d4836a31fe73998",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-4f7cf4270171a146744f12fa7c7d9863",
+            "classification": "introduced",
+            "findingId": "finding-4f7cf4270171a146744f12fa7c7d9863",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ab16af72322925a004bb97bc4c8c847f",
+            "classification": "introduced",
+            "findingId": "finding-ab16af72322925a004bb97bc4c8c847f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0f1dcdd6bcc7023697340bfab3bbf58d",
+            "classification": "introduced",
+            "findingId": "finding-0f1dcdd6bcc7023697340bfab3bbf58d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-886d85e5dd56ea00e43fce09cec0c400",
+            "classification": "introduced",
+            "findingId": "finding-886d85e5dd56ea00e43fce09cec0c400",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4a68af15c7496fe8a3309341fe83d37d",
+            "classification": "introduced",
+            "findingId": "finding-4a68af15c7496fe8a3309341fe83d37d",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "2e42a0707ce0894d313d7577f84a9508724bbd22",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 4111,
+      "output_sha256": "c942f2cb4904ac6b7306b7316bd36a75e6c765ff8304c7b1f96c9823f74625d4",
+      "reservation_id": "cbd0b48ae0924fe9896047edb59dd718",
+      "round_consumed": true,
+      "scope": "impl:fn-275-a-young-palms-fronds-grow-to-their-size.1",
+      "superseded_by": null,
+      "task": "fn-275-a-young-palms-fronds-grow-to-their-size.1",
+      "timestamp": "2026-10-14T12:25:50.307828Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "098d86d89bac2f429312fab4bc952839d7a671865137c078ad9e3b51aa3ed333",
+      "backend": "codex",
+      "base_sha": "17fe0dacfadffdbfe8a2a4911d4836a31fe73998",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-4f7cf4270171a146744f12fa7c7d9863",
+            "classification": "introduced",
+            "findingId": "finding-4f7cf4270171a146744f12fa7c7d9863",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ab16af72322925a004bb97bc4c8c847f",
+            "classification": "introduced",
+            "findingId": "finding-ab16af72322925a004bb97bc4c8c847f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0f1dcdd6bcc7023697340bfab3bbf58d",
+            "classification": "introduced",
+            "findingId": "finding-0f1dcdd6bcc7023697340bfab3bbf58d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-886d85e5dd56ea00e43fce09cec0c400",
+            "classification": "introduced",
+            "findingId": "finding-886d85e5dd56ea00e43fce09cec0c400",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4a68af15c7496fe8a3309341fe83d37d",
+            "classification": "introduced",
+            "findingId": "finding-4a68af15c7496fe8a3309341fe83d37d",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "fe380e3a11d5e60a93a50247b9f845d8a69135b9",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1235,
+      "output_sha256": "e8441411b60760640020b75e58b1fad7dae39b1ae6ba3772fd058075a278a75a",
+      "reservation_id": "e37a78b9ea9b4499a4e0f70b00a1497f",
+      "round_consumed": true,
+      "scope": "impl:fn-275-a-young-palms-fronds-grow-to-their-size.1",
+      "superseded_by": null,
+      "task": "fn-275-a-young-palms-fronds-grow-to-their-size.1",
+      "timestamp": "2026-10-14T12:29:15.976292Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-275-a-young-palms-fronds-grow-to-their-size.1": 2
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-275-a-young-palms-fronds-grow-to-their-size.1": 0
+  },
+  "spec_path": ".flow/specs/fn-275-a-young-palms-fronds-grow-to-their-size.md",
+  "status": "done",
+  "title": "A young palm's fronds grow to their size over its establishment",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-15T20:17:25.222305Z"
+}

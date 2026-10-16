@@ -1,7 +1,7 @@
 //! The browser's parameter metadata, rendered from the catalogue: the
 //! `Family` type the package declares, each row under its meaning, and the
 //! table the harness draws its controls from.
-use super::{entries, reference::meaning, Dial, Entry, Growth, Kind};
+use super::{entries, group, reference::meaning, space, Dial, Entry, Growth, Kind};
 use crate::Family;
 use std::fmt::Write;
 
@@ -14,12 +14,16 @@ pub fn browser() -> String {
     out.push_str("export interface Family ");
     group(&mut out, &rows, &defaults, "", 0);
     out.push_str("\n\n");
+    out.push_str(SPACE);
+    space::groups(&mut out);
     out.push_str(PARAMETER);
     out.push_str("export const PARAMETERS: readonly Parameter[] = [\n");
     for entry in rows {
         parameter(&mut out, entry, &defaults);
     }
-    out.push_str("];\n");
+    out.push_str("];\n\n");
+    out.push_str(space::INTERFACE);
+    space::table(&mut out);
     out
 }
 
@@ -29,10 +33,24 @@ const HEADER: &str =
 // run it with TELPERION_WRITE_REFERENCE=1 to rewrite this file. Do not edit.
 ";
 
+/// The engine species' indexed rows, which the catalogue's rows do not hold
+/// and the engine judges (fn-198, `presets/space.rs`).
+const SPACE: &str =
+    "/** The engine species: the indexed `/space` rows (fn-198); absent on a family with none. */
+export interface Family {
+  space?: SpaceRows;
+}
+/** An age's or a zone's rows by name or index; `never` is an unbounded delay. */
+export type SpaceRows = { [key: string]: SpaceRows | number | boolean | \"never\" };
+
+";
+
 const PARAMETER: &str = "/** One catalogue row, as a control reads it. */
 export interface Parameter {
   /** The row's JSON pointer on the wire. */
   path: string;
+  /** Its label: the key, spaced, unless the catalogue words it. */
+  label: string;
   kind: \"real\" | \"count\" | \"switch\";
   /** An unset value is admitted and means \"none stated\". */
   optional: boolean;
@@ -45,8 +63,9 @@ export interface Parameter {
   zero: boolean;
   /** Where the row lies dormant; empty where it always acts. */
   applies: string;
-  /** Who reads it: the direct build, only the removed growth path, or no production stage. */
+  /** Who reads it, from the stages the catalogue names: the direct build, only the removed growth path, or no production stage. */
   reach: \"mature\" | \"growth\" | \"deprecated\";
+  group: Group;
   /** The tuning dial's window and small step, where the row offers one. */
   dial?: { window: [number, number]; step: number };
 }
@@ -106,19 +125,26 @@ fn parameter(out: &mut String, entry: Entry, defaults: &Family) {
         _ => "real",
     };
     let optional = matches!(value, Kind::OptionalReal | Kind::OptionalSize);
-    let reach = if info.deprecated {
-        "deprecated"
+    let reach = if !info.reads.is_empty() {
+        "mature"
     } else if info.growth == Growth::Only {
         "growth"
     } else {
-        "mature"
+        "deprecated"
     };
     let b = info.bounds;
+    // A row the panel never shows sits apart; a shown row has its group.
+    let group = match (group::of_row(entry.path()), reach) {
+        (Some(g), _) => g,
+        (None, "mature") => panic!("{} has no group", entry.path()),
+        (None, _) => group::Group::Advanced,
+    };
     let _ = write!(
         out,
-        "  {{ path: {}, kind: \"{kind}\", optional: {optional}, meaning: {}, unit: {}, \
-         low: {}, high: {}, lowOpen: {}, zero: {}, applies: {}, reach: \"{reach}\"",
+        "  {{ path: {}, label: {}, kind: \"{kind}\", optional: {optional}, meaning: {}, unit: {}, \
+         low: {}, high: {}, lowOpen: {}, zero: {}, applies: {}, reach: \"{reach}\", group: \"{}\"",
         text(entry.path()),
+        text(&label(entry.path(), info.label)),
         text(&meaning(info.meaning)),
         text(info.unit),
         number(b.low),
@@ -126,6 +152,7 @@ fn parameter(out: &mut String, entry: Entry, defaults: &Family) {
         b.low_open,
         b.zero,
         text(info.applies),
+        space::id(group),
     );
     if let Dial::Tuned(t) = info.dial {
         let [low, high] = t.window.unwrap_or([b.low, b.high]);
@@ -140,8 +167,24 @@ fn parameter(out: &mut String, entry: Entry, defaults: &Family) {
     out.push_str(" },\n");
 }
 
+/// A row's label: the catalogue's words, or its key spaced.
+fn label(path: &str, words: &str) -> String {
+    if !words.is_empty() {
+        return words.into();
+    }
+    let key = path.rsplit('/').next().unwrap_or(path);
+    let mut out = String::new();
+    for c in key.chars() {
+        if c.is_ascii_uppercase() {
+            out.push(' ');
+        }
+        out.push(c.to_ascii_lowercase());
+    }
+    out
+}
+
 /// A TypeScript string literal.
-fn text(s: &str) -> String {
+pub(super) fn text(s: &str) -> String {
     let mut out = String::from('"');
     for c in s.chars() {
         match c {
@@ -155,7 +198,7 @@ fn text(s: &str) -> String {
     out
 }
 
-fn number(v: f64) -> String {
+pub(super) fn number(v: f64) -> String {
     match v {
         f64::INFINITY => "Infinity".into(),
         f64::NEG_INFINITY => "-Infinity".into(),

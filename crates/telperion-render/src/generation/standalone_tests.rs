@@ -6,7 +6,10 @@ fn standalone_rejects_resident_before_generation_and_delivers_owned_cpu_mesh() {
         return;
     };
     let generator = Generator::for_cpu_output(gpu).unwrap();
+    // A young engine beech in the default dressing (fn-198).
     let mut family = Family::default();
+    let beech = telperion_core::presets::Preset::EuropeanBeech.parameters();
+    (family.space, family.age) = (beech.space, 20.0);
     family.canopy.size = f64::NAN;
     let error = generator
         .prepare(&family, Delivery::Resident)
@@ -17,7 +20,6 @@ fn standalone_rejects_resident_before_generation_and_delivers_owned_cpu_mesh() {
         .contains("standalone generation requires CPU delivery"));
     family.canopy.size = 0.1;
     family.skeleton.attractors = 16;
-    family.canopy.short_shoot_spacing = 0.0;
     family.canopy.limb_clumping = 0.0;
     let prepared = generator.prepare(&family, Delivery::Cpu).unwrap();
     assert_eq!(prepared.backend, Backend::Gpu);

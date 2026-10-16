@@ -1,10 +1,10 @@
 # fn-159-harness-browser-and-tuning-read-the.1 Harness, browser and tuning read the parameter catalogue
 
 ## Description
-TBD
+Harness, browser and tuning read the parameter catalogue.
 
 ## Acceptance
-- [ ] TBD
+- The spec's R-IDs.
 
 ## Done summary
 Implemented and merged in PR #127.

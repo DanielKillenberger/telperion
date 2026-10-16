@@ -7,7 +7,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 40% [user], 30% [checked], 30% [inferred] -->
 
 A weeping crown's lower edge is ragged: its strands end at many heights, and only the longest sweep down toward the ground. The generator's curtain ends on a straight line, the owner's verdict on the birch: "having the bottom be a straight edge doesn't look good". This spec gives the curtain a natural hem while `curtainClearance` keeps its meaning, the metres above the ground no hanging twig reaches. [user, paraphrase]
 

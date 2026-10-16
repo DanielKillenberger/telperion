@@ -28,14 +28,13 @@ pub mod field {
 
 pub mod foliage {
     #[cfg(feature = "geometry")]
-    pub use crate::pipeline::foliage::ShortShoot;
+    pub use crate::pipeline::foliage::bloom_box;
     #[cfg(test)]
     pub use crate::pipeline::foliage::*;
     pub use crate::pipeline::foliage::{
-        transform_point, withered, AnatomyGeometry, Bounds, CanopyParams, Element, ElementParams,
-        FoliageUnit, Instances, Leaf, Level, Reference, Rosette,
-        TwigPlacement, MAX_FRONDS, MAX_LEAFLETS, MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING,
-        WITHERED, WORDS,
+        blade, transform_point, withered, AnatomyGeometry, BloomParams, Bounds, CanopyParams,
+        Crown, Element, ElementParams, FoliageUnit, Instances, Leaf, Level, Reference, Rosette,
+        TwigPlacement, MAX_FRONDS, MAX_LEAFLETS, WITHERED, WORDS,
     };
     pub mod plan {
         #[cfg(test)]
@@ -62,15 +61,15 @@ pub mod radius {
 }
 
 pub mod surface {
-    #[cfg(test)]
+    #[cfg(all(test, feature = "geometry"))]
     pub use crate::pipeline::surface::*;
     pub use crate::pipeline::surface::{
         Bounds, SurfaceMesh, SurfaceParams, SurfaceRun, WoodExtent,
     };
     #[cfg(feature = "geometry")]
     pub use crate::pipeline::surface::{
-        Curve, CurveCluster, CurvePoint, CurveRun, Demand, PackedPoint, Tessellation, CLUSTER_WORDS, SECTION_FLOATS, Viewer, Budget, RIBBON, SCALES, CLUSTER,
-        LEVELS, POINT_WORDS,
+        Budget, Curve, CurveCluster, CurvePoint, CurveRun, Demand, PackedPoint, Tessellation,
+        Viewer, CLUSTER, CLUSTER_WORDS, LEVELS, POINT_WORDS, RIBBON, SCALES, SECTION_FLOATS,
     };
     #[cfg(feature = "geometry")]
     pub mod compact {

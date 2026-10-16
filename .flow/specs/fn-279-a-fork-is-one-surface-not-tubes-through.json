@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-279-a-fork-is-one-surface-not-tubes-through",
+  "created_at": "2026-10-14T13:40:23.761783Z",
+  "depends_on_epics": [],
+  "id": "fn-279-a-fork-is-one-surface-not-tubes-through",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-279-a-fork-is-one-surface-not-tubes-through.md",
+  "status": "open",
+  "title": "A fork is one surface, not tubes through each other",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-14T13:40:23.776510Z"
+}

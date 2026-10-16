@@ -1,0 +1,102 @@
+
+oak seed 1: grown in 7.90 s (7.19 us a kept phytomer), 140479 axes, 134574 chains, 1098279 phytomers, height 21.87 m
+  coupling tree by subtree size (chains over x: count, own phytomers, share of tree)
+    x  0.1 m:   18145 chains,    428958 phytomers (39.1 %)
+    x 0.25 m:    6465 chains,    249098 phytomers (22.7 %)
+    x  0.5 m:    2942 chains,    166743 phytomers (15.2 %)
+    x    1 m:    1552 chains,    109035 phytomers (9.9 %)
+    x    2 m:     673 chains,     53682 phytomers (4.9 %)
+    x    4 m:     192 chains,     20308 phytomers (1.8 %)
+  own phytomers a chain: median 5, p90 14, p99 68, max 529
+  fly-in to (1.60, 11.47, 12.25): first frame 744851 phytomers; after it 242500 in 119 frames, the most in one 9955; in all 987351 of 1098279 (89.9 %), worst frame 744851 at 40.00 m
+  whole tree at 40 m, resolved by error share 1 / 0.5 / 0.25: 70.9 % 57.0 % 41.5 %
+  whole tree at 200 m, resolved by error share 1 / 0.5 / 0.25: 37.0 % 24.6 % 16.3 %
+  junctions of 17660 subtrees under 0.5 m: base radius over the radius of its kind's mean section p5 0.10, p25 0.31, p50 0.61, p75 1.11, p95 2.02
+  light at 66123 living buds: mean 0.441; the rewrite against bud_light, most apart 0.0e0
+      one read a stand-in: |bud light - its read| median 0.0029, p95 0.0187
+    gathered under 0.25 m (18483 stand-ins): bud light mean 0.441, |change| mean 0.0002, p95 0.0006; a stand-in's light at its centroid against its buds' sum: median 0.3 %, p95 1.6 %
+      one read a stand-in: |bud light - its read| median 0.0052, p95 0.0364
+    gathered under 0.5 m (11862 stand-ins): bud light mean 0.440, |change| mean 0.0007, p95 0.0023; a stand-in's light at its centroid against its buds' sum: median 0.4 %, p95 2.4 %
+      one read a stand-in: |bud light - its read| median 0.0091, p95 0.0551
+    gathered under 1 m (7021 stand-ins): bud light mean 0.440, |change| mean 0.0020, p95 0.0059; a stand-in's light at its centroid against its buds' sum: median 0.6 %, p95 4.1 %
+      one read a stand-in: |bud light - its read| median 0.0238, p95 0.1673
+    gathered under 2 m (3284 stand-ins): bud light mean 0.438, |change| mean 0.0092, p95 0.0318; a stand-in's light at its centroid against its buds' sum: median 1.2 %, p95 8.0 %
+
+oak seed 7: grown in 17.16 s (6.63 us a kept phytomer), 342705 axes, 327030 chains, 2586468 phytomers, height 25.33 m
+  coupling tree by subtree size (chains over x: count, own phytomers, share of tree)
+    x  0.1 m:   54302 chains,   1154077 phytomers (44.6 %)
+    x 0.25 m:   19436 chains,    679405 phytomers (26.3 %)
+    x  0.5 m:    9218 chains,    483043 phytomers (18.7 %)
+    x    1 m:    4814 chains,    316682 phytomers (12.2 %)
+    x    2 m:    1996 chains,    152905 phytomers (5.9 %)
+    x    4 m:     438 chains,     48848 phytomers (1.9 %)
+  own phytomers a chain: median 5, p90 14, p99 66, max 516
+  fly-in to (10.34, -13.23, 14.37): first frame 1902057 phytomers; after it 426663 in 119 frames, the most in one 20096; in all 2328720 of 2586468 (90.0 %), worst frame 1902057 at 40.00 m
+  whole tree at 40 m, resolved by error share 1 / 0.5 / 0.25: 80.2 % 66.6 % 48.5 %
+  whole tree at 200 m, resolved by error share 1 / 0.5 / 0.25: 42.5 % 28.4 % 20.0 %
+  junctions of 55342 subtrees under 0.5 m: base radius over the radius of its kind's mean section p5 0.09, p25 0.28, p50 0.56, p75 1.07, p95 2.07
+  light at 160419 living buds: mean 0.399; the rewrite against bud_light, most apart 0.0e0
+      one read a stand-in: |bud light - its read| median 0.0017, p95 0.0121
+    gathered under 0.25 m (53367 stand-ins): bud light mean 0.399, |change| mean 0.0001, p95 0.0004; a stand-in's light at its centroid against its buds' sum: median 0.3 %, p95 1.5 %
+      one read a stand-in: |bud light - its read| median 0.0031, p95 0.0222
+    gathered under 0.5 m (36475 stand-ins): bud light mean 0.399, |change| mean 0.0005, p95 0.0015; a stand-in's light at its centroid against its buds' sum: median 0.4 %, p95 2.3 %
+      one read a stand-in: |bud light - its read| median 0.0062, p95 0.0441
+    gathered under 1 m (21305 stand-ins): bud light mean 0.398, |change| mean 0.0020, p95 0.0066; a stand-in's light at its centroid against its buds' sum: median 0.6 %, p95 4.0 %
+      one read a stand-in: |bud light - its read| median 0.0124, p95 0.0925
+    gathered under 2 m (10215 stand-ins): bud light mean 0.399, |change| mean 0.0073, p95 0.0227; a stand-in's light at its centroid against its buds' sum: median 1.4 %, p95 8.9 %
+
+beech seed 1: grown in 1.28 s (0.80 us a kept phytomer), 179171 axes, 174844 chains, 1596774 phytomers, height 17.93 m
+  coupling tree by subtree size (chains over x: count, own phytomers, share of tree)
+    x  0.1 m:   27523 chains,    696717 phytomers (43.6 %)
+    x 0.25 m:   19111 chains,    594318 phytomers (37.2 %)
+    x  0.5 m:    7694 chains,    402123 phytomers (25.2 %)
+    x    1 m:    4711 chains,    311075 phytomers (19.5 %)
+    x    2 m:    2576 chains,    202797 phytomers (12.7 %)
+    x    4 m:     546 chains,     57484 phytomers (3.6 %)
+  own phytomers a chain: median 7, p90 16, p99 78, max 404
+  fly-in to (3.23, 10.28, 10.09): first frame 1301269 phytomers; after it 248696 in 119 frames, the most in one 16448; in all 1549965 of 1596774 (97.1 %), worst frame 1301269 at 40.00 m
+  whole tree at 40 m, resolved by error share 1 / 0.5 / 0.25: 85.9 % 72.7 % 45.6 %
+  whole tree at 200 m, resolved by error share 1 / 0.5 / 0.25: 43.3 % 38.2 % 30.2 %
+  junctions of 49006 subtrees under 0.5 m: base radius over the radius of its kind's mean section p5 0.33, p25 0.80, p50 1.06, p75 1.16, p95 1.29
+
+beech seed 7: grown in 2.02 s (0.75 us a kept phytomer), 305663 axes, 298583 chains, 2704252 phytomers, height 18.40 m
+  coupling tree by subtree size (chains over x: count, own phytomers, share of tree)
+    x  0.1 m:   46704 chains,   1159945 phytomers (42.9 %)
+    x 0.25 m:   30897 chains,    966587 phytomers (35.7 %)
+    x  0.5 m:   12576 chains,    662334 phytomers (24.5 %)
+    x    1 m:    7749 chains,    520484 phytomers (19.2 %)
+    x    2 m:    3922 chains,    313194 phytomers (11.6 %)
+    x    4 m:     889 chains,     96632 phytomers (3.6 %)
+  own phytomers a chain: median 7, p90 16, p99 77, max 413
+  fly-in to (-12.51, -0.16, 10.66): first frame 2180763 phytomers; after it 394099 in 119 frames, the most in one 31341; in all 2574862 of 2704252 (95.2 %), worst frame 2180763 at 40.00 m
+  whole tree at 40 m, resolved by error share 1 / 0.5 / 0.25: 86.3 % 68.7 % 45.4 %
+  whole tree at 200 m, resolved by error share 1 / 0.5 / 0.25: 42.6 % 37.5 % 28.8 %
+  junctions of 83270 subtrees under 0.5 m: base radius over the radius of its kind's mean section p5 0.40, p25 0.66, p50 1.06, p75 1.19, p95 1.34
+
+spruce seed 1: grown in 7.35 s (1.54 us a kept phytomer), 955679 axes, 900388 chains, 4780267 phytomers, height 21.57 m
+  coupling tree by subtree size (chains over x: count, own phytomers, share of tree)
+    x  0.1 m:   67021 chains,   2543262 phytomers (53.2 %)
+    x 0.25 m:   53604 chains,   2308955 phytomers (48.3 %)
+    x  0.5 m:   10641 chains,    607523 phytomers (12.7 %)
+    x    1 m:     321 chains,     52701 phytomers (1.1 %)
+    x    2 m:     272 chains,     50413 phytomers (1.1 %)
+    x    4 m:     163 chains,     38005 phytomers (0.8 %)
+  own phytomers a chain: median 4, p90 4, p99 57, max 621
+  fly-in to (-5.71, -3.44, 8.93): first frame 4593156 phytomers; after it 143190 in 119 frames, the most in one 44420; in all 4736346 of 4780267 (99.1 %), worst frame 4593156 at 40.00 m
+  whole tree at 40 m, resolved by error share 1 / 0.5 / 0.25: 97.5 % 89.4 % 53.4 %
+  whole tree at 200 m, resolved by error share 1 / 0.5 / 0.25: 53.1 % 49.9 % 24.9 %
+  junctions of 121991 subtrees under 0.5 m: base radius over the radius of its kind's mean section p5 0.71, p25 0.90, p50 1.00, p75 1.10, p95 1.20
+
+spruce seed 7: grown in 6.62 s (1.40 us a kept phytomer), 948691 axes, 894421 chains, 4722702 phytomers, height 21.79 m
+  coupling tree by subtree size (chains over x: count, own phytomers, share of tree)
+    x  0.1 m:   66587 chains,   2511062 phytomers (53.2 %)
+    x 0.25 m:   53043 chains,   2280630 phytomers (48.3 %)
+    x  0.5 m:   10519 chains,    606464 phytomers (12.8 %)
+    x    1 m:     324 chains,     52124 phytomers (1.1 %)
+    x    2 m:     272 chains,     49576 phytomers (1.0 %)
+    x    4 m:     164 chains,     37300 phytomers (0.8 %)
+  own phytomers a chain: median 4, p90 4, p99 57, max 624
+  fly-in to (-6.04, 0.97, 9.29): first frame 4579721 phytomers; after it 107847 in 119 frames, the most in one 38747; in all 4687568 of 4722702 (99.3 %), worst frame 4579721 at 40.00 m
+  whole tree at 40 m, resolved by error share 1 / 0.5 / 0.25: 98.1 % 89.7 % 53.4 %
+  whole tree at 200 m, resolved by error share 1 / 0.5 / 0.25: 53.1 % 49.9 % 24.9 %
+  junctions of 119520 subtrees under 0.5 m: base radius over the radius of its kind's mean section p5 0.72, p25 0.91, p50 1.00, p75 1.09, p95 1.20

@@ -1,0 +1,147 @@
+{
+  "branch_name": "fn-274-the-gate-fits-beside-the-owners-desktop",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-14T01:33:18.879150Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-274-the-gate-fits-beside-the-owners-desktop",
+  "impl_review_rounds": {
+    "fn-274-the-gate-fits-beside-the-owners-desktop.1": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "3042f0b0b1e3ab86304233d1d86d4ea47f69cf43d42141dd303136caa9ad5b95",
+      "backend": "codex",
+      "base_sha": "b03523aba11d90c2bddccde6a7a5779a6115b726",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f284fd43c830d4eb94e96f17615f286e",
+            "classification": "introduced",
+            "findingId": "finding-f284fd43c830d4eb94e96f17615f286e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ca6e5eadebf873b9a291d7e8bc097ada",
+            "classification": "introduced",
+            "findingId": "finding-ca6e5eadebf873b9a291d7e8bc097ada",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6f9a8d545ae428ad84e0b945af22a945d4fc5a72",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1594,
+      "output_sha256": "dcd62f1080cd4ec10dec49c7a0d5ebeafb4cbc5ad7262c3737e53bed730a4a62",
+      "reservation_id": "a348880348a54dd1ad9eba611c5ef031",
+      "round_consumed": true,
+      "scope": "impl:fn-274-the-gate-fits-beside-the-owners-desktop.1",
+      "superseded_by": null,
+      "task": "fn-274-the-gate-fits-beside-the-owners-desktop.1",
+      "timestamp": "2026-10-14T02:46:29.416903Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "571f1c4ed47a12941d718a7dcd76dc0f169f7a9385813e7c7ed1ace2aba680f8",
+      "backend": "codex",
+      "base_sha": "b03523aba11d90c2bddccde6a7a5779a6115b726",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f284fd43c830d4eb94e96f17615f286e",
+            "classification": "introduced",
+            "findingId": "finding-f284fd43c830d4eb94e96f17615f286e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ca6e5eadebf873b9a291d7e8bc097ada",
+            "classification": "introduced",
+            "findingId": "finding-ca6e5eadebf873b9a291d7e8bc097ada",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1a8c26f29586c9f4234f90e4691808b0ca6b17df",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1106,
+      "output_sha256": "76b46ba7b481021c6fad7a4dac8bc870ce6fad422f2623744a76da17a309aee9",
+      "reservation_id": "998bb17e3ee84e3f8c8ffb5a197d565d",
+      "round_consumed": true,
+      "scope": "impl:fn-274-the-gate-fits-beside-the-owners-desktop.1",
+      "superseded_by": null,
+      "task": "fn-274-the-gate-fits-beside-the-owners-desktop.1",
+      "timestamp": "2026-10-14T02:53:00.052865Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-274-the-gate-fits-beside-the-owners-desktop.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-274-the-gate-fits-beside-the-owners-desktop.1": 0
+  },
+  "spec_path": ".flow/specs/fn-274-the-gate-fits-beside-the-owners-desktop.md",
+  "status": "done",
+  "title": "The gate fits beside the owner's desktop",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-14T03:24:51.270425Z"
+}

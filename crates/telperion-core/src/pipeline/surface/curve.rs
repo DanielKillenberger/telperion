@@ -6,7 +6,7 @@
 //! bounds a view culls by and the error each coarser ring level would make.
 //! Every tree's wood is this curve, whatever grew it: the sweep's own rings
 //! are drawn from it, so there is no second path to the surface.
-use super::{angular, build::Ring, rings::Scratch, *};
+use super::{angular, build::Ring, paths::Paths, rings::Scratch, *};
 use crate::tree::Section;
 
 mod pack;
@@ -58,6 +58,10 @@ pub struct CurveCluster {
     /// A sphere round every ring of the cluster, lobes included.
     pub centre: Vec3,
     pub reach: f64,
+    /// The box round every ring of the cluster, lobes included: each
+    /// ring's centre and, on each axis, its radius times the extent of its
+    /// plane along that axis.
+    pub bounds: Bounds,
     pub largest_radius: f64,
     pub smallest_radius: f64,
     /// For each ring level, the most a ring it leaves out stands off the
@@ -84,20 +88,42 @@ pub struct Curve {
 /// The curve of a solved tree: the sweep's samples and frames, run by run in
 /// the order the wood draws them.
 pub(crate) fn curve(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Curve> {
-    tree.validate()?;
+    traced(tree, height, params).map(|t| t.curve)
+}
+
+/// The curve with the sweep's paths and the path each of its runs follows,
+/// which the compact rings and their contacts are read from (fn-212 R2).
+pub(crate) struct Traced {
+    pub(crate) curve: Curve,
+    pub(super) paths: Paths,
+    pub(crate) order: Vec<usize>,
+}
+
+/// A curve with no run yet: the section's rows every ring reads, its
+/// lobes, their depth and the twist over the tree's `height`.
+pub(crate) fn rows(height: f64, params: &SurfaceParams) -> Result<Curve> {
     params.validate()?;
     crate::pipeline::surface::height(height)?;
-    let paths = paths(&tree.nodes)?;
-    let height = height.max(1e-6);
-    let mut out = Curve {
+    Ok(Curve {
         lobes: params.lobes,
         lobe_depth: params.lobe_depth,
         twist_rate: params.twist_rate,
-        height,
+        height: height.max(1e-6),
         ..Curve::default()
-    };
+    })
+}
+
+pub(crate) fn traced(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Traced> {
+    tree.validate()?;
+    let mut out = rows(height, params)?;
+    let height = out.height;
+    let paths = paths(tree)?;
     if paths.runs.is_empty() {
-        return Ok(out);
+        return Ok(Traced {
+            curve: out,
+            paths,
+            order: Vec::new(),
+        });
     }
     tree.validate_solved()?;
     let angular = angular::samples(segments(params), params)?;
@@ -114,7 +140,9 @@ pub(crate) fn curve(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<
     let ordered = rings::rank(at, &mut scratch)?;
     out.points = reserved(paths.nodes.len() + paths.runs.len())?;
     out.runs = reserved(ordered.len())?;
+    let mut order = reserved(ordered.len())?;
     for (path_id, largest_radius) in ordered {
+        order.push(path_id);
         let section = at.section(path_id).map(|shape| {
             out.sections.push(*shape);
             out.sections.len() as u32 - 1
@@ -143,18 +171,23 @@ pub(crate) fn curve(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<
         out.clusters = made;
         out.runs.push(run);
     }
-    Ok(out)
+    Ok(Traced {
+        curve: out,
+        paths,
+        order,
+    })
 }
 
 /// A run's clusters: consecutive points, neighbours sharing an end.
 fn clusters(curve: &Curve, index: u32, run: &CurveRun, out: &mut Vec<CurveCluster>) {
     let points = &curve.points[run.first as usize..(run.first + run.count) as usize];
-    let lobe = 1.0 + curve.lobe_depth.abs() * f64::from(u8::from(curve.lobes > 0));
+    let lobe = curve.lobe();
     let mut start = 0;
     loop {
         let end = (start + CLUSTER - 1).min(points.len() - 1);
         let span = &points[start..=end];
         let (mut lo, mut hi) = (span[0].centre, span[0].centre);
+        let mut bounds = Bounds { min: lo, max: hi };
         for p in span {
             lo = Vec3::new(
                 lo.x.min(p.centre.x),
@@ -166,6 +199,19 @@ fn clusters(curve: &Curve, index: u32, run: &CurveRun, out: &mut Vec<CurveCluste
                 hi.y.max(p.centre.y),
                 hi.z.max(p.centre.z),
             );
+            let e = ring_extent(p) * (p.radius * lobe);
+            bounds = Bounds {
+                min: Vec3::new(
+                    bounds.min.x.min(p.centre.x - e.x),
+                    bounds.min.y.min(p.centre.y - e.y),
+                    bounds.min.z.min(p.centre.z - e.z),
+                ),
+                max: Vec3::new(
+                    bounds.max.x.max(p.centre.x + e.x),
+                    bounds.max.y.max(p.centre.y + e.y),
+                    bounds.max.z.max(p.centre.z + e.z),
+                ),
+            };
         }
         let centre = (lo + hi) * 0.5;
         let largest = span.iter().map(|p| p.radius).fold(0.0, f64::max);
@@ -180,6 +226,7 @@ fn clusters(curve: &Curve, index: u32, run: &CurveRun, out: &mut Vec<CurveCluste
             count: span.len() as u32,
             centre,
             reach,
+            bounds,
             largest_radius: largest,
             smallest_radius: smallest,
             errors: ladder(span, curve.twisting()),
@@ -189,6 +236,15 @@ fn clusters(curve: &Curve, index: u32, run: &CurveRun, out: &mut Vec<CurveCluste
         }
         start = end;
     }
+}
+
+/// How far a unit ring in `p`'s plane reaches along each axis: the ring
+/// is `cos θ normal + sin θ binormal`, whose extent on axis `k` is
+/// `sqrt(normal_k² + binormal_k²)`.
+fn ring_extent(p: &CurvePoint) -> Vec3 {
+    let (n, b) = (p.normal, p.binormal);
+    let e = |n: f64, b: f64| (n * n + b * b).sqrt();
+    Vec3::new(e(n.x, b.x), e(n.y, b.y), e(n.z, b.z))
 }
 
 impl Curve {
@@ -254,12 +310,11 @@ impl Curve {
         out
     }
 
-    /// The box round every ring, lobes included.
+    /// The box round every ring, lobes included: its clusters' boxes.
     pub fn bounds(&self) -> Option<Bounds> {
         let mut bounds: Option<Bounds> = None;
         for c in &self.clusters {
-            let r = Vec3::new(c.reach, c.reach, c.reach);
-            let (min, max) = (c.centre - r, c.centre + r);
+            let Bounds { min, max } = c.bounds;
             bounds = Some(match bounds {
                 None => Bounds { min, max },
                 Some(b) => Bounds {

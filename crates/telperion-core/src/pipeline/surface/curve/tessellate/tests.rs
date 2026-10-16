@@ -176,12 +176,12 @@ fn a_budget_coarsens_the_error_and_names_it_or_refuses() {
 /// index in range and every vertex finite, its shaped cells included.
 #[test]
 fn every_presets_wood_surfaces_at_a_hero_view() {
-    use crate::pipeline::{clothe, skeleton, GrowInput, Inputs};
+    use crate::pipeline::{clothe, scaffold, Inputs};
     use crate::presets::{Preset, CATALOGUE, IN_WORK};
     for &(_, id, _, _) in CATALOGUE.iter().chain(IN_WORK) {
         let family = Preset::from_id(id).unwrap().parameters();
-        let mut tree = skeleton(GrowInput::of(&family)).unwrap().tree;
-        let inputs = Inputs::of(&family);
+        let mut tree = scaffold(&family).unwrap();
+        let inputs = Inputs::of(&family, family.skeleton.envelope);
         clothe(&mut tree, &inputs).unwrap();
         let s = inputs.surface;
         let curve = crate::pipeline::surface::curve(&tree, s.height, &s.params).unwrap();

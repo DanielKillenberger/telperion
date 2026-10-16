@@ -60,7 +60,6 @@ pub(crate) fn predict(tree: &Tree, inputs: &Inputs) -> Result<Footprint> {
         leaves: crate::pipeline::foliage::leaf_count(
             tree,
             leaf.envelope,
-            leaf.seed,
             leaf.canopy,
             Some(inputs.plan.twig.clone()?),
         )?,
@@ -163,7 +162,14 @@ mod tests {
     #[test]
     fn a_tree_with_no_nodes_predicts_nothing() {
         assert_eq!(zero().bytes(), 0);
-        let empty = predict(&Tree::default(), &Inputs::of(&crate::Family::default())).unwrap();
+        let empty = predict(
+            &Tree::default(),
+            &Inputs::of(
+                &crate::Family::default(),
+                crate::Family::default().skeleton.envelope,
+            ),
+        )
+        .unwrap();
         assert_eq!(empty, zero());
         assert_eq!(empty.bytes(), 0);
     }

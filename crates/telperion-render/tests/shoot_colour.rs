@@ -2,76 +2,13 @@
 //! thickens. A row with no shoot radius has no young wood and draws the frame
 //! it always drew, whatever shoot colour it states.
 mod common;
-use telperion_core::{
-    foliage::{Element, Instances},
-    material::MaterialParams,
-    math::Vec3,
-    mesh::{self, Foliage, TreeMesh},
-    presets::Preset,
-    surface::{Bounds, Curve, CurvePoint, CurveRun, SurfaceMesh},
-};
-use telperion_render::{render, Camera, Renderer, Still, View, STILL_FORMAT};
+#[path = "common/ramp.rs"]
+mod ramp;
+use ramp::{columns, draw, pixel, ramp, side};
+use telperion_core::{material::MaterialParams, mesh};
+use telperion_render::{Renderer, View, STILL_FORMAT};
 
-const WIDTH: u32 = 320;
-const HEIGHT: u32 = 160;
-/// The ramp: a horizontal cone along x at this height, its radius rising
-/// linearly from the thin end to the thick one.
-const LENGTH: f64 = 3.0;
-const THIN: f64 = 0.04;
-const THICK: f64 = 0.28;
-const AXIS: f64 = 2.0;
 const SHOOT: f64 = 0.1;
-
-/// A straight run along x thickening from `THIN` to `THICK`, as its curve.
-fn ramp() -> TreeMesh {
-    let rings = 151_u32;
-    let points = (0..rings)
-        .map(|ring| {
-            let along = LENGTH * f64::from(ring) / f64::from(rings - 1);
-            CurvePoint {
-                centre: Vec3::new(along - LENGTH / 2.0, AXIS, 0.0),
-                radius: THIN + (THICK - THIN) * along / LENGTH,
-                along,
-                normal: Vec3::new(0.0, 1.0, 0.0),
-                binormal: Vec3::new(0.0, 0.0, 1.0),
-            }
-        })
-        .collect();
-    let run = CurveRun {
-        first: 0,
-        count: rings,
-        trunk: false,
-        section: None,
-        largest_radius: THICK,
-    };
-    TreeMesh {
-        wood: SurfaceMesh::default(),
-        curve: Curve::of_runs(points, vec![run]),
-        foliage: Foliage {
-            element: Element::default(),
-            instances: Instances::default(),
-        },
-        bounds: Bounds {
-            min: Vec3::new(-LENGTH / 2.0, AXIS - THICK, -THICK),
-            max: Vec3::new(LENGTH / 2.0, AXIS + THICK, THICK),
-        },
-    }
-}
-
-fn side() -> Camera {
-    Camera {
-        position: Vec3::new(0.0, AXIS, 3.2),
-        target: Vec3::new(0.0, AXIS, 0.0),
-        field_of_view: 30.0,
-        near: 0.01,
-        far: 100.0,
-    }
-}
-
-fn draw(renderer: &mut Renderer, camera: &Camera, row: MaterialParams) -> Still {
-    renderer.set_material(row);
-    render(renderer, camera, WIDTH, HEIGHT).unwrap()
-}
 
 /// A white bark and a dark red-brown shoot, far apart in every channel.
 fn birchlike() -> MaterialParams {
@@ -87,29 +24,10 @@ fn birchlike() -> MaterialParams {
     }
 }
 
-/// The picture's column at a world x on the cone's axis, and the radius the
-/// wood there carries. Only columns clear of both ends are read.
-fn columns() -> impl Iterator<Item = (usize, f64)> {
-    let camera = side();
-    let half = camera.position.z * (camera.field_of_view.to_radians() / 2.0).tan();
-    let per_metre = f64::from(HEIGHT) / (2.0 * half);
-    let span = (LENGTH / 2.0 - 0.1) * per_metre;
-    let centre = f64::from(WIDTH) / 2.0;
-    ((centre - span) as usize..(centre + span) as usize).map(move |column| {
-        let x = (column as f64 + 0.5 - centre) / per_metre;
-        (column, THIN + (THICK - THIN) * (x + LENGTH / 2.0) / LENGTH)
-    })
-}
-
-fn pixel(still: &Still, column: usize) -> [i32; 3] {
-    let at = ((HEIGHT as usize / 2) * WIDTH as usize + column) * 4;
-    [0, 1, 2].map(|c| i32::from(still.rgba[at + c]))
-}
-
 #[test]
 fn a_row_with_no_shoot_radius_draws_the_bark_whatever_shoot_colour_it_states() {
     let Some(gpu) = common::gpu() else { return };
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(400);
     let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);

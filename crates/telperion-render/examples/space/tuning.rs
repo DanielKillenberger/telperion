@@ -6,7 +6,8 @@ use telperion_space::{Light, Species};
 /// The flags read, each unset until named.
 #[derive(Debug, Default)]
 pub struct Tuning {
-    light: Option<Light>,
+    /// The site's light, the preset's unless named.
+    pub light: Option<Light>,
     shade: Option<(f64, f64)>,
     control: Option<f64>,
     controls: Vec<(usize, f64)>,
@@ -67,11 +68,6 @@ impl Tuning {
             _ => return Ok(false),
         }
         Ok(true)
-    }
-
-    /// The site's light, neutral unless named.
-    pub fn light(&self) -> Light {
-        self.light.unwrap_or(Light::NEUTRAL)
     }
 
     /// Sets the named values on every PA of `species`, `--control-pas`

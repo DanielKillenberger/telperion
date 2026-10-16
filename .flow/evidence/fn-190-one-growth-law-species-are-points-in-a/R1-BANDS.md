@@ -1,6 +1,6 @@
 # fn-190 R1: pass bands for the beech, oak and spruce, 2026-10-03
 
-Written before tuning, for Astra's review. Measures are `score.rs` (probe9) as R3-PROBE9 defines them; H is the top node's height. "lat/m" and "generations" are R3-PROBE8's: laterals per metre of non-structural wood, and lateral starts counted from structural wood along each terminal path.
+Written before tuning, for Astra's review. Measures are `score.rs` (probe9) as R3-PROBE9 defines them; H is the top node's height. "lat/m" and "generations" are R3-PROBE8's (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-188-one-branching-law-from-trunk-to-twig/R3-PROBE8.md`): laterals per metre of non-structural wood, and lateral starts counted from structural wood along each terminal path.
 
 **Viewed (7 images, each with a 100 px grid drawn on a scratch copy; pixel readings are in the original file's pixels, read by eye from the grid, about ±15 px):** beech `S1-entzia-open-winter`, `S1-rostock-copper-winter`; oak `S1-robur-field-november`, `S1-robur-old-open-winter`, `S2-garryana-wheatfield-leaf`; spruce `S1-lawn-solitary-comb`, `S2-beskid-meadow-brush`. No S3–S5 image was viewed, so secondaries, junction ratios and fine-wood counts rest on S1 readings, literature or model inference. Preset envelopes (`packet/species.json`): beech H 32 m, spread 0.5 (W/H 1.0), crownBase 0.12; oak H 24 m, spread 0.55 (W/H 1.1), crownBase 0.16, 5 scaffold limbs; spruce H 15 m, spread 0.31 (W/H 0.62), crownBase 0.04, 16 tiers × 5.
 

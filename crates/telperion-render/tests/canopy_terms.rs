@@ -51,7 +51,7 @@ fn evaluate(gpu: &telperion_render::Gpu, rows: u64, body: &str) -> Vec<[f32; 4]>
             resource: output.as_entire_binding(),
         }],
     });
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     {
         let mut pass = encoder.begin_compute_pass(&Default::default());
         pass.set_pipeline(&pipeline);
@@ -59,7 +59,7 @@ fn evaluate(gpu: &telperion_render::Gpu, rows: u64, body: &str) -> Vec<[f32; 4]>
         pass.dispatch_workgroups(1, 1, 1);
     }
     encoder.copy_buffer_to_buffer(&output, 0, &readback, 0, size);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, recv) = std::sync::mpsc::channel();
     readback
         .slice(..)

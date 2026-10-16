@@ -11,23 +11,51 @@
 //! shrinks as the branch droops and a heavy branch hangs and stops (fn-203,
 //! the first-order large-deflection correction). Growth never reads it
 //! back.
+use crate::geometry::q::{add, length, q3, scaled, sub};
 use crate::geometry::support;
-use crate::girth::ripe;
 use crate::species::Species;
 use crate::structure::{Origin, Structure, Vec3};
-use std::f64::consts::PI;
+use crate::upward::Tree;
 
-/// Load carried: its mass and its first moment (mass times position).
-#[derive(Clone, Copy, Default)]
-struct Load {
-    mass: f64,
-    moment: Vec3,
+/// A lever or a first moment: three f32 components.
+pub(crate) type W3 = [f32; 3];
+
+/// Load carried (in f32 since fn-254): its mass and its first moment (mass
+/// times position).
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub(crate) struct Load {
+    pub mass: f32,
+    pub moment: W3,
 }
 
 impl Load {
-    fn add(&mut self, other: Load, share: f64) {
-        self.mass += other.mass * share;
-        self.moment = self.moment + other.moment * share;
+    /// A load given in reals (a GPU executor's, a borne bud's).
+    pub(crate) fn of(mass: f64, moment: Vec3) -> Self {
+        Self {
+            mass: mass as f32,
+            moment: q3(moment),
+        }
+    }
+
+    fn add(&mut self, other: Load) {
+        self.mass += other.mass;
+        self.moment = add(self.moment, other.moment);
+    }
+
+    /// `b` of it.
+    fn share(self, b: f32) -> Load {
+        Load {
+            mass: self.mass * b,
+            moment: scaled(self.moment, b),
+        }
+    }
+
+    /// What is left of it once `part` is taken.
+    fn less(self, part: Load) -> Load {
+        Load {
+            mass: self.mass - part.mass,
+            moment: sub(self.moment, part.moment),
+        }
     }
 }
 
@@ -42,28 +70,42 @@ pub(crate) struct Lever {
     /// The mass it carries times the offset of that mass's centre from
     /// the end. Turned as the phytomer has turned, crossed with gravity,
     /// it is the torque.
-    pub moment: Vec3,
+    pub moment: W3,
     /// From the phytomer's base to the tip of its axis and the axes that
     /// carry it on: turned likewise, where the wood beyond would meet the
     /// ground.
-    pub chord: Vec3,
+    pub chord: [f32; 3],
 }
 
 /// Each phytomer's lever about its far end on the unbent tree.
-pub(crate) fn levers(structure: &Structure, species: &Species) -> Vec<Vec<Lever>> {
-    let age = structure.age;
+pub(crate) fn levers(structure: &Structure, species: &Species, threads: usize) -> Vec<Vec<Lever>> {
+    levers_given(structure, species, &|_| None, threads).0
+}
+
+/// `levers`, each axis `given` names standing for a subtree gathered
+/// elsewhere whose load at its base it gives; and each axis's load at its
+/// base, by index.
+pub(crate) fn levers_given(
+    structure: &Structure,
+    species: &Species,
+    given: crate::shed::Given<Load>,
+    threads: usize,
+) -> (Vec<Vec<Lever>>, Vec<Load>) {
     let axes = &structure.axes;
-    let mut at_node: Vec<Vec<Load>> = axes
-        .iter()
-        .map(|a| vec![Load::default(); a.phytomers.len()])
-        .collect();
-    let mut at_tip = vec![Load::default(); axes.len()];
-    let mut levers: Vec<Vec<Lever>> = axes
-        .iter()
-        .map(|a| vec![Lever::default(); a.phytomers.len()])
-        .collect();
-    // The trunk: the seed axis and what carries it on, which the ground
-    // never carries.
+    let all: Vec<usize> = (0..axes.len()).collect();
+    gather(
+        axes,
+        species,
+        structure.age,
+        (&all, &trunks(axes)),
+        (&[], given),
+        threads,
+    )
+}
+
+/// Whether each axis is the trunk: the seed axis and what carries it on,
+/// which the ground never carries.
+pub(crate) fn trunks(axes: &[crate::structure::Axis]) -> Vec<bool> {
     let mut trunk = vec![false; axes.len()];
     for (i, axis) in axes.iter().enumerate() {
         trunk[i] = match axis.origin {
@@ -72,150 +114,159 @@ pub(crate) fn levers(structure: &Structure, species: &Species) -> Vec<Vec<Lever>
             Origin::Lateral { .. } => false,
         };
     }
+    trunk
+}
+
+/// A load from outside the axes gathered, standing at a node of one of
+/// them (fn-209, option 4: a borne bud's committed mass and moment).
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Borne {
+    pub axis: usize,
+    pub node: usize,
+    pub mass: f64,
+    pub moment: Vec3,
+}
+
+/// The levers of `members` (ascending; each axis's whole tree, or one
+/// chain), from their own wood, what members bear, and `borne`: each
+/// member's levers, in the members' order, and the load at its base. An
+/// axis outside the members loads nothing; an axis `given` names stands
+/// for a subtree gathered elsewhere, whose load at its base it gives
+/// (fn-209 F1, realized mechanics).
+pub(crate) fn gather(
+    axes: &[crate::structure::Axis],
+    species: &Species,
+    age: u32,
+    (members, trunk): (&[usize], &[bool]),
+    (borne, given): (&[Borne], crate::shed::Given<Load>),
+    threads: usize,
+) -> (Vec<Vec<Lever>>, Vec<Load>) {
+    let whole = members.len() == axes.len();
+    let local = |i: usize| {
+        if whole {
+            Some(i)
+        } else {
+            members.binary_search(&i).ok()
+        }
+    };
+    // The loads borne at each member's nodes, in their order.
+    let mut held: Vec<Vec<(usize, Load)>> = vec![Vec::new(); members.len()];
+    for b in borne {
+        if let Some(j) = local(b.axis) {
+            held[j].push((b.node, Load::of(b.mass, b.moment)));
+        }
+    }
     // Each axis's far tip: its own, or that of the axis that carries it
     // on. Continuations follow their parents, so a backward pass meets
     // each before its parent.
-    let mut far: Vec<Vec3> = axes
+    let mut far: Vec<[f32; 3]> = members
         .iter()
-        .map(|a| a.phytomers.last().map_or(a.base, |p| p.tip))
+        .map(|&i| q3(axes[i].phytomers.last().map_or(axes[i].base, |p| p.tip)))
         .collect();
-    for i in (0..axes.len()).rev() {
-        if let Origin::Continuation { parent } = axes[i].origin {
-            far[parent] = far[i];
-        }
-    }
-    // Children follow their parents, so a backward pass meets every load
-    // before the wood that carries it.
-    for i in (0..axes.len()).rev() {
-        let axis = &axes[i];
-        let state = &species.states[axis.pa];
-        let mut load = at_tip[i];
-        for k in (0..axis.phytomers.len()).rev() {
-            let p = &axis.phytomers[k];
-            let base = if k == 0 {
-                axis.base
-            } else {
-                axis.phytomers[k - 1].tip
-            };
-            let length = (p.tip - base).length();
-            let years = f64::from(age.saturating_sub(p.cycle)) + 1.0;
-            let leaves = state.form.pipe * p.scale * ripe(years, state.form.ripening);
-            let mass = length * (p.radius * p.radius + leaves * leaves);
-            let middle = (base + p.tip) * 0.5;
-            // The moment at the phytomer's far end: what its node bears
-            // and all beyond it, about that end. An unloaded tip bends
-            // by nothing and keeps its tropism.
-            load.add(at_node[i][k], 1.0);
-            // S - W e: the lever of the load about the end.
-            levers[i][k] = Lever {
-                moment: load.moment - p.tip * load.mass,
-                chord: far[i] - base,
-            };
-            load.add(
-                Load {
-                    mass,
-                    moment: middle * mass,
-                },
-                1.0,
-            );
-            // Wood resting on the ground is carried by it: it adds no
-            // lever to the wood before it (host, 2026-10-05).
-            if !trunk[i] {
-                let held = support(base.z.min(p.tip.z), p.radius, length);
-                load = Load {
-                    mass: load.mass * held,
-                    moment: load.moment * held,
-                };
+    for j in (0..members.len()).rev() {
+        if let Origin::Continuation { parent } = axes[members[j]].origin {
+            if let Some(q) = local(parent) {
+                far[q] = far[j];
             }
         }
-        match axis.origin {
-            Origin::Seed => {}
-            Origin::Lateral { parent, node, .. } => match at_node[parent].get_mut(node) {
-                Some(at) => at.add(load, 1.0),
-                None => at_tip[parent].add(load, 1.0),
-            },
-            // A relay's load enters at its node as far as it stands there,
-            // at the tip as far as it is still the continuation.
-            Origin::Relay { parent, node } => {
-                let b = axis.blend;
-                match at_node[parent].get_mut(node) {
-                    Some(at) => {
-                        at.add(load, b);
-                        at_tip[parent].add(load, 1.0 - b);
-                    }
-                    None => at_tip[parent].add(load, 1.0),
+    }
+    let mut levers: Vec<Vec<Lever>> = members
+        .iter()
+        .map(|&i| vec![Lever::default(); axes[i].phytomers.len()])
+        .collect();
+    let parents: Vec<Option<usize>> = members
+        .iter()
+        .map(|&i| axes[i].origin.parent().and_then(local))
+        .collect();
+    let tree = Tree::new(&parents);
+    // Each member takes what it bears at its nodes, then what its
+    // children carry, the last first, as a backward pass meets them, and
+    // hands its parent the load at its base.
+    let loads = tree.upward(
+        &mut levers,
+        threads,
+        &|j, levers: &mut Vec<Lever>, loads: &[Load], at_node: &mut Vec<Load>| {
+            let i = members[j];
+            let axis = &axes[i];
+            let state = &species.states[axis.pa];
+            at_node.clear();
+            at_node.resize(axis.phytomers.len(), Load::default());
+            let (mut at_tip, mut at_base) = (Load::default(), Load::default());
+            for &(node, load) in &held[j] {
+                if let Some(at) = at_node.get_mut(node) {
+                    at.add(load);
                 }
             }
-            Origin::Continuation { parent } => at_tip[parent].add(load, 1.0),
-        }
-    }
-    levers
+            for &c in tree.children(j) {
+                let (child, load) = (&axes[members[c]], given(members[c]).unwrap_or(loads[c]));
+                match child.origin {
+                    Origin::Seed => {}
+                    Origin::Lateral { node, .. } => match at_node.get_mut(node) {
+                        Some(at) => at.add(load),
+                        None => at_tip.add(load),
+                    },
+                    // A relay's load enters where its wood does (`girth`,
+                    // fn-244): by its share at the node whose span it
+                    // stands in, the rest at the node before (or the base).
+                    Origin::Relay { .. } => match crate::girth::attached(axes, species, members[c])
+                    {
+                        Some((k, t)) => {
+                            let at = load.share(t);
+                            at_node[k].add(at);
+                            let below = load.less(at);
+                            match k.checked_sub(1) {
+                                Some(n) => at_node[n].add(below),
+                                None => at_base.add(below),
+                            }
+                        }
+                        None => at_tip.add(load),
+                    },
+                    Origin::Continuation { .. } => at_tip.add(load),
+                }
+            }
+            let mut load = at_tip;
+            for k in (0..axis.phytomers.len()).rev() {
+                let p = &axis.phytomers[k];
+                let base = q3(if k == 0 {
+                    axis.base
+                } else {
+                    axis.phytomers[k - 1].tip
+                });
+                let tip = q3(p.tip);
+                let length = length(sub(tip, base));
+                let leaves = crate::girth::own(&state.form, p, age, p.scale, 1.0) as f32;
+                let r = p.radius as f32;
+                // length (r^2 + leaves^2).
+                let mass = (r * r + leaves * leaves) * length;
+                let middle = scaled(add(base, tip), 0.5);
+                // The moment at the phytomer's far end: what its node bears
+                // and all beyond it, about that end. An unloaded tip bends
+                // by nothing and keeps its tropism.
+                load.add(at_node[k]);
+                // S - W e: the lever of the load about the end.
+                levers[k] = Lever {
+                    moment: sub(load.moment, scaled(tip, load.mass)),
+                    chord: sub(far[j], base),
+                };
+                load.add(Load {
+                    mass,
+                    moment: scaled(middle, mass),
+                });
+                // Wood resting on the ground is carried by it: it adds no
+                // lever to the wood before it (host, 2026-10-05).
+                if !trunk[i] {
+                    load = load.share(support(base[2].min(tip[2]), r, length));
+                }
+            }
+            load.add(at_base);
+            load
+        },
+    );
+    (levers, loads)
 }
 
-/// The torque gravity puts on a `lever`: (S - W e) x (-z), horizontal,
-/// the axis the wood turns down about, its length the moment.
-pub(crate) fn torque(lever: Vec3) -> Vec3 {
-    Vec3::new(-lever.y, lever.x, 0.0)
-}
+mod turn;
+pub(crate) use turn::{held, log2_q, torque, turn, unit_w};
 
-/// The share of a lever the ground leaves to the wood before it: where
-/// the wood from a phytomer's base `height` above the ground, turned
-/// rigidly to its pose now along `chord`, would go below it, the ground
-/// carries that share, and the rest, nearer, bears with a lever as much
-/// shorter (host, 2026-10-05). Measured from the base, so it falls by
-/// degree as the phytomer's own end reaches the ground.
-pub(crate) fn held(height: f64, chord: Vec3) -> f64 {
-    let low = height + chord.z;
-    if low >= 0.0 {
-        return 1.0;
-    }
-    if height <= 0.0 {
-        return 0.0;
-    }
-    let free = height / (height - low);
-    free * free
-}
-
-/// The turn, in radians, of a phytomer `length` metres long and `radius`
-/// thick under `lever` (turned into its frame now) and its PA's `sag`,
-/// its moment never more than `cap`, the moment its unbent lever puts on
-/// it (host, 2026-10-05: the correction only ever shrinks the lever).
-/// The beam's curvature is sag times the moment over the radius to the
-/// fourth. The load, carried rigidly, falls `fall` from hanging straight
-/// below the phytomer's end, and its moment is its reach times sin(fall),
-/// so dfall/ds = -c min(reach sin(fall), cap). Where the cap holds, the
-/// fall closes at a constant rate; elsewhere tan(fall / 2) shrinks by
-/// e^(-c reach s). Integrated exactly over the phytomer: a light load
-/// turns as the small-deflection beam does, a heavy one turns until it
-/// hangs and never past, and upright wood never buckles.
-pub(crate) fn turn(lever: Vec3, cap: f64, sag: f64, radius: f64, length: f64) -> f64 {
-    let reach = lever.length();
-    if reach <= 0.0 || cap <= 0.0 {
-        return 0.0;
-    }
-    let c = sag / radius.powi(4);
-    let start = (-lever.z / reach).clamp(-1.0, 1.0).acos();
-    let low = (cap / reach).min(1.0).asin();
-    let high = PI - low;
-    let settle = |fall: f64, s: f64| 2.0 * ((fall / 2.0).tan() * (-c * reach * s).exp()).atan();
-    let (mut fall, mut left) = (start, length);
-    // Near upright the turned lever is the smaller, until its moment
-    // reaches the cap.
-    if fall > high {
-        let s = ((fall / 2.0).tan() / (high / 2.0).tan()).ln() / (c * reach);
-        if s >= left {
-            return start - settle(fall, left);
-        }
-        (fall, left) = (high, left - s);
-    }
-    // Where the cap holds, the moment is the unbent one.
-    if fall > low {
-        let rate = c * cap;
-        let s = (fall - low) / rate;
-        if s >= left {
-            return start - (fall - rate * left);
-        }
-        (fall, left) = (low, left - s);
-    }
-    start - settle(fall, left)
-}
+#[cfg(test)]
+mod tests;

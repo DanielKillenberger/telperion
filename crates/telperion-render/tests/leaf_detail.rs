@@ -1,13 +1,13 @@
 //! The blade's detail survives the level ladder and disappears on a round section.
 mod common;
 use telperion_core::pipeline::executor;
-use telperion_core::{foliage::ElementParams, material::MaterialParams, mesh, presets::Preset};
+use telperion_core::{foliage::ElementParams, material::MaterialParams, mesh};
 use telperion_render::{hero_pose, render, Level, Renderer, View, GROUND_REACH, STILL_FORMAT};
 
 #[test]
 fn veins_draw_at_every_blade_level_and_never_on_a_round_section() {
     let Some(gpu) = common::gpu() else { return };
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(20);
     let mut tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
@@ -55,7 +55,7 @@ fn transmission_reaches_the_drawn_leaf_through_the_material_uniform() {
     use telperion_core::math::Vec3;
     use telperion_render::{Camera, SceneRow};
     let Some(gpu) = common::gpu() else { return };
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(20);
     let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);

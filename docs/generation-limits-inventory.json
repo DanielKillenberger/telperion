@@ -24,12 +24,6 @@
     "reason": "The generated scalar check's stack buffer holds one group's rows; `every_group_fits_the_check` keeps every catalogue group within it, so it never limits a family."
   },
   {
-    "path": "crates/telperion-core/src/catalogue/walk.rs",
-    "site": ". min ( crate : : foliage : : SHORT_SHOOT_SPACING . 1 )",
-    "classification": "parameter",
-    "reason": "Sparse short-shoot spacing interpolates within the named validated SHORT_SHOOT_SPACING range."
-  },
-  {
     "path": "crates/telperion-core/src/pipeline/branching.rs",
     "site": ". max ( 1e - 6 )",
     "classification": "numeric",
@@ -696,12 +690,6 @@
     "reason": "The thicker of a segment's two pipe radii, which decides whether that wood bears leaves; it limits no generated population."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/foliage/short_shoots.rs",
-    "site": ". max ( tree . pipe ( i ) [ 1 ] )",
-    "classification": "algorithm",
-    "reason": "The thicker of a segment's two pipe radii, which decides whether that wood bears leaves; it limits no generated population."
-  },
-  {
     "path": "crates/telperion-core/src/pipeline/foliage/placement.rs",
     "site": "while first > 0 & & tree . pipe ( run [ first - 1 ] ) [ 1 ] < = max_radius {",
     "classification": "algorithm",
@@ -739,9 +727,9 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/foliage/plan/fronds.rs",
-    "site": "if tree . nodes . len ( ) < 2 | | p . size = = 0 . 0 {",
+    "site": "if tree . nodes . len ( ) < 2 | | p . size = = 0 . 0 | | ! rosette : : bearing ( & p ) {",
     "classification": "algorithm",
-    "reason": "Fewer than two nodes or zero foliage size is empty or disabled foliage, matching the CPU path."
+    "reason": "Fewer than two nodes, zero foliage size or no fronds is empty or disabled crown foliage, matching the CPU path."
   },
   {
     "path": "crates/telperion-core/src/pipeline/foliage/prepared.rs",
@@ -778,30 +766,6 @@
     "site": ". max ( 4e - 6 )",
     "classification": "numeric",
     "reason": "Reference-box radius floor mirrors the validated trunk-radius minimum."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/foliage/short_shoots.rs",
-    "site": ". max ( 0 . )",
-    "classification": "algorithm",
-    "reason": "Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/foliage/short_shoots.rs",
-    "site": ". min ( 1 . )",
-    "classification": "algorithm",
-    "reason": "Unit progress or blend weight saturates at its endpoint; the authored length and population remain independent."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/foliage/canopy.rs",
-    "site": "const MAX_SHORT_SHOOT_LEAVES : u32 = 8 ;",
-    "classification": "parameter",
-    "reason": "MAX_SHORT_SHOOT_LEAVES is the named validated short-shoot anatomy domain."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/foliage/short_shoots.rs",
-    "site": "if spacing = = 0 . | | p . size = = 0 . | | tree . nodes . len ( ) < 2 {",
-    "classification": "algorithm",
-    "reason": "Disabled, empty, or geometrically separated foliage has no placements to emit."
   },
   {
     "path": "crates/telperion-core/src/pipeline/foliage/station.rs",
@@ -1018,12 +982,6 @@
     "site": "if vc < = 0 . 0 & & d1 > = 0 . 0 & & d3 < = 0 . 0 {",
     "classification": "algorithm",
     "reason": "Ray/triangle closest-point region classification determines the geometric intersection."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/surface/compact.rs",
-    "site": ". max ( 1e - 6 )",
-    "classification": "numeric",
-    "reason": "The existing surface height degeneracy floor stabilizes geometry arithmetic without limiting populations."
   },
   {
     "path": "crates/telperion-core/src/pipeline/surface/compact.rs",
@@ -1266,12 +1224,6 @@
     "reason": "The three rows of one basis column of a leaf transform; a column has three."
   },
   {
-    "path": "crates/telperion-core/src/math/transcendental/hypot.rs",
-    "site": "if eb - es > 64 {",
-    "classification": "algorithm",
-    "reason": "The pinned libm's hypot shortcut: past 64 binary orders the smaller operand cannot change the rounded sum; it limits no generated population."
-  },
-  {
     "path": "crates/telperion-core/src/pipeline/branching/specimen/budget.rs",
     "site": "while high - low > 1 {",
     "classification": "algorithm",
@@ -1420,5 +1372,377 @@
     "site": ". min ( self . stretches * MOST_PIECES as u64 )",
     "classification": "algorithm",
     "reason": "The demand bound never counts more pieces a stretch than the planner cuts, MOST_PIECES (fn-208, host decision 23). It sizes a view's budget; it does not limit the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/folds.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A share of the grown tree's height (crown base, fullness) stays within its endpoint interval (fn-198 host decision 7). The share moved with the folds (fn-212 task 4)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/folds.rs",
+    "site": ". max ( 0 . 0 )",
+    "classification": "algorithm",
+    "reason": "A node's height folds as the tree's never under the ground, as the whole tree's height fold always started from 0 (fn-198 host decision 7; fn-212 task 4)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": ". max ( most [ b + 1 ] )",
+    "classification": "algorithm",
+    "reason": "The most reach any bin further out holds, a running maximum for the crown's front; it limits nothing generated (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "numeric",
+    "reason": "A node's way to the crown's end stays within the quadrant the outline is defined on, against rounding at the top (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": ". min ( BINS - 1 )",
+    "classification": "numeric",
+    "reason": "A node at the crown's very end falls in the last bin of the front's search, not past it (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": "const HALVINGS : usize = 40 ;",
+    "classification": "numeric",
+    "reason": "Bisection halvings of the shoulder's logarithmic range, about 1e-11 of a shoulder; the fit always keeps the side that holds the crown (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": "for _ in 0 . . HALVINGS {",
+    "classification": "numeric",
+    "reason": "The shoulder's bisection, HALVINGS steps (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": "for b in ( 0 . . most . len ( ) . saturating_sub ( 1 ) ) . rev ( ) {",
+    "classification": "algorithm",
+    "reason": "The running maximum over the front's bins, from the crown's end in (fn-198 host decision 11a). Over the bins handed in, which an executor folds with its own (fn-212 task 4)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": "if ! ( radius > 0 . 0 & & height > base ) {",
+    "classification": "algorithm",
+    "reason": "A crown with no reach or no span has no node to hold, and takes the narrowest shoulder: the palm's crown (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": "if ! ( radius > 0 . 0 & & height > base ) {",
+    "classification": "algorithm",
+    "reason": "The bins of a crown with no reach or no span hold nothing, as its front holds nothing (fn-198 host decision 11a; fn-212 task 4)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": "if y < = base | | y > = height | | reach < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "Only nodes strictly inside the crown's span with reach are held: the outline is zero at its ends by definition (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/space.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A codominant fork's weight rises from none at FORK_FROM to whole at FORK_AT of its parent's radius (fn-193)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/space.rs",
+    "site": ". max ( 1e - 12 )",
+    "classification": "numeric",
+    "reason": "Floating-point degeneracy tolerance normalising a relay's stem direction; it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/space.rs",
+    "site": "const BUDGET : u32 = 20_000_000 ;",
+    "classification": "numeric",
+    "reason": "The engine's phytomer safety bound, refused by name when reached (ResourceLimit); no shipped species reaches it at the harness's ages (the spruce at 80 grows 4.8M, fn-198)."
+  },
+  {
+    "path": "crates/telperion-core/src/presets/space.rs",
+    "site": "if let Some ( k ) = ( 0 . . AGES ) . find ( | & k | stated [ k ] & & states [ k ] . lifespan < = 0 . 0 ) {",
+    "classification": "algorithm",
+    "reason": "Refuses a /space row on an age with no lifespan, which the engine's canonical form would overwrite; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A share (presence, a place along the axis, a blend) held to the unit interval it is defined on; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A share (presence, a place along the axis, a blend) held to the unit interval it is defined on; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A share (presence, a place along the axis, a blend) held to the unit interval it is defined on; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A share (presence, a place along the axis, a blend) held to the unit interval it is defined on; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". max ( 0 . 0 )",
+    "classification": "algorithm",
+    "reason": "The axis tangent's first segment midpoint: an index into the laid axis, never a count."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A floret's place along its axis and its count's fraction held to the unit interval; it limits no population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A floret's place along its axis and its count's fraction held to the unit interval; it limits no population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". min ( SEGMENTS - 1 )",
+    "classification": "algorithm",
+    "reason": "The last segment of the laid axis, an index bound; it limits no population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". min ( SEGMENTS - 2 )",
+    "classification": "algorithm",
+    "reason": "The last pair of segment tangents, an index bound; it limits no population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". min ( smooth ( ( 1 . 0 - x ) / GROW ) )",
+    "classification": "algorithm",
+    "reason": "A floret grows in and fades by the lesser of its two ramps; a shape of the season, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": "const SEGMENTS : usize = 8 ;",
+    "classification": "algorithm",
+    "reason": "The segments an inflorescence axis is laid in: the resolution of one short curve, not a population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": "for k in 0 . . SEGMENTS {",
+    "classification": "algorithm",
+    "reason": "Lays the inflorescence axis in its fixed number of segments, a resolution of one curve, not a population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": "if grown < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A bloom whose presence has not grown in draws nothing: the share by degree, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": "if life < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A window of no length flowers never, as the row states."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": "if x > = 1 . 0 {",
+    "classification": "algorithm",
+    "reason": "A floret past its own stretch of the window is gone: the season, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom/stalk.rs",
+    "site": "for r in 0 . . rings . len ( ) as u32 - 1 {",
+    "classification": "algorithm",
+    "reason": "The quads between a stalk's consecutive rings, one per segment of the element's fixed nine-ring rachis or two-ring pedicel; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/blend.rs",
+    "site": "if points . iter ( ) . any ( | ( _ , w ) | bad ( w ) ) | | ! ( total > 0 . 0 & & total . is_finite ( ) ) {",
+    "classification": "algorithm",
+    "reason": "Refuses blend weights that name no point (negative, not finite, or summing to nothing); it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/blend/size.rs",
+    "site": "const STEPS : usize = 64 ;",
+    "classification": "algorithm",
+    "reason": "The blend's size solve (fn-230): a bounded regula-falsi root find on the lateral factor; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/blend/size.rs",
+    "site": "for _ in 0 . . STEPS {",
+    "classification": "algorithm",
+    "reason": "The blend's size solve (fn-230): a bounded regula-falsi root find on the lateral factor; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/blend/size.rs",
+    "site": "if high < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A blend predicted at or below its ends' size is left unshrunk (fn-230, host 2026-10-08); it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/blend/size.rs",
+    "site": "if width > 64 . 0 {",
+    "classification": "algorithm",
+    "reason": "The blend's size solve (fn-230): a bounded regula-falsi root find on the lateral factor; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/blend/size.rs",
+    "site": "while ga > 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "The blend's size solve (fn-230): a bounded regula-falsi root find on the lateral factor; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/executor.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A draw within its year is at most the whole year: the fraction is a share of the last year (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "The share of this year's fronds emerged over the stem's elongation is a share of that span (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "How far a frond has turned from living to dead is its progress over its last living place (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "The skirt's last frond fades over its last place: a share of that place (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": ". max ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "The whole years before the last start at none: a tree in its first year has grown no whole year (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": ". max ( 0 )",
+    "classification": "algorithm",
+    "reason": "The fronds a grown crown has made are a count, none before its first (fn-270 R5b'); it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A frond of this year emerges within the stem's elongation: its serial's share of the year's fronds (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/space/unfolding.rs",
+    "site": ". max ( 1 . 0 - grow )",
+    "classification": "algorithm",
+    "reason": "A gone subtree's leaves are gone no later than it fades, uniformly by the fraction (fn-270 R5a, R5c; host, 2026-10-15)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/space/unfolding.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A draw within its year is at most the whole year (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": "if made > whole + 1 . 0 {",
+    "classification": "algorithm",
+    "reason": "A frond still emerging at the year's end is made the next year: none of it stands yet (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": "if self . life < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A crown whose fronds have no life makes none (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": "if self . life < = 0 . 0 | | self . fronds < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A crown that makes no frond stands whole (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "How far through its establishment a crown is: a share of the establishment years (fn-275 R2a); it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": "if self . establishment < = 0 . 0 | | self . life < = 0 . 0 | | self . fronds < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A crown with no establishment, frond life or fronds has no establishment course: the law is dormant (fn-275 R2)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": "if years < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "An establishment of no years: the frond is whole from the start (fn-275 R2), dormant."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": "if years < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "An establishment of no years: the stem waits no rise (fn-275 R2a), dormant."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": ". max ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A frond's leaflets run on a log scale from one to the mature count; a count below one groups none (fn-275 R2b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": "if f > = 1 . 0 | | ! grouped {",
+    "classification": "algorithm",
+    "reason": "A frond made mature, or one that groups no leaflets, keeps its rows: the split is dormant there (fn-275 R2b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": "if blade < = 0 . 0 | | leaflet < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A frond drawn at no size has no blade to split; its strips scale nothing (fn-275 R2b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/space/establish.rs",
+    "site": ". max ( r . min ( FINEST ) )",
+    "classification": "numeric",
+    "reason": "An establishing stem is never narrowed below the finest wood drawn, or its whole stem would be culled (fn-275 R2a review); a drawing tolerance, not a population limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/space/establish.rs",
+    "site": ". min ( FINEST )",
+    "classification": "numeric",
+    "reason": "The finest drawn radius caps the floor above, so wood already finer than it keeps its own radius (fn-275 R2a review)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/space/establish.rs",
+    "site": "if canopy . rosette_fronds = = 0 . 0 | | canopy . frond_establishment < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A tree with no rosette or no stated establishment does not establish: the stem's establishment is dormant (fn-275 R2a)."
+  },
+  {
+    "path": "crates/telperion-core/src/catalogue/walk.rs",
+    "site": "if ! ( a > 0 . 0 & & b > 0 . 0 ) {",
+    "classification": "algorithm",
+    "reason": "A row walked on the logarithm needs both ends positive and walks linearly otherwise (fn-277); it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/plan.rs",
+    "site": "if wood . 1 = = 0 & & crown > 0 {",
+    "classification": "algorithm",
+    "reason": "A plan of a crown alone carries each leaflet's whole reach in its box, so its blade, rachis and seat are none (fn-277); it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "site": ". max ( 0 . )",
+    "classification": "algorithm",
+    "reason": "The oldest living frond's place on the spiral is one short of the apex's whole fronds, none below the first (fn-277); it does not limit generated populations."
   }
 ]

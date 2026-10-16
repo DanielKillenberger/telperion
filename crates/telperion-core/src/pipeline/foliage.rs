@@ -1,10 +1,17 @@
 //! Owned leaf elements and placements. No wood mesh is needed by this module.
+#[cfg(test)]
 use crate::math::Transcendental;
+#[cfg(feature = "geometry")]
+mod bloom;
+mod bloom_params;
 mod canopy;
 mod clumping;
+mod cluster;
+mod crown;
 mod element;
 mod leaflet;
 mod levels;
+mod organs;
 mod outline;
 pub(crate) mod packed;
 #[cfg(feature = "geometry")]
@@ -15,19 +22,28 @@ pub mod prepared;
 mod reference;
 mod rosette;
 #[cfg(feature = "geometry")]
-mod short_shoots;
-#[cfg(feature = "geometry")]
 mod station;
-use crate::{
-    envelope::{distance_to_profile, Envelope},
-    math::Vec3,
-    Error, Result,
+#[cfg(test)]
+use crate::envelope::{distance_to_profile, Envelope};
+use crate::{math::Vec3, Error, Result};
+#[cfg(feature = "geometry")]
+pub use bloom::packing_box as bloom_box;
+#[cfg(feature = "geometry")]
+pub(crate) use bloom::{
+    element as bloom_element, now as bloom_now, place as place_blooms, place_in as place_blooms_in,
+    reach as bloom_reach,
 };
+pub use bloom_params::BloomParams;
 /// Every canopy rail `place` judges, with no tree to place against.
 pub(crate) use canopy::rows as canopy_rows;
-pub use canopy::{CanopyParams, TwigPlacement, MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING};
+pub use canopy::{CanopyParams, TwigPlacement};
+pub use crown::{blade, establishment, waited, Crown};
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
+/// A frond's leaflets before any draw, for the suite's gap check (fn-275 R2c).
+#[cfg(all(test, feature = "geometry"))]
+pub(crate) use leaflet::leaflets;
 pub use levels::Level;
+pub(crate) use organs::apex;
 pub use packed::{withered, Leaf, Reference, WITHERED, WORDS};
 #[cfg(all(test, feature = "geometry"))]
 pub(crate) use placement::leaf_count;
@@ -38,16 +54,11 @@ pub(crate) use placement::place_on;
 pub use placement::{place, place_on_surface};
 #[cfg(feature = "geometry")]
 pub(crate) use reference::Reach;
+pub(crate) use rosette::stem_node;
 /// The canopy's own rails, for a pass that reads the canopy rows without
 /// placing a leaf: a bad row is refused by the name `place` refuses it by.
 pub(crate) use rosette::validate as validate_canopy;
 pub use rosette::{frame, rosettes, Rosette, MAX_FRONDS, MAX_LEAFLETS};
-#[cfg(all(test, feature = "geometry"))]
-pub use short_shoots::short_shoots;
-#[cfg(all(test, feature = "geometry"))]
-pub use short_shoots::place_short_shoots;
-#[cfg(feature = "geometry")]
-pub use short_shoots::ShortShoot;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds {
@@ -245,13 +256,42 @@ impl Instances {
         Ok(bounds)
     }
 }
-/// Keeps a leaf unless every vertex lies deeper than the shell fraction.
+/// Refuses a crown any leaf of which overflows float32 where it stands:
+/// every placed leaf is drawn. The shell's rejection (`cull`) is gone from
+/// the pipeline (fn-198 R1, fn-212 R2): at the engine presets' depths it
+/// kept every leaf it was handed, the palm's 0.85 included (measured).
+pub fn admit(instances: &Instances, element: &Element) -> Result<()> {
+    instances.validate()?;
+    element.validate()?;
+    let extent = element.positions.iter().fold(Vec3::ZERO, |a, p| {
+        Vec3::new(a.x.max(p.x.abs()), a.y.max(p.y.abs()), a.z.max(p.z.abs()))
+    });
+    let reference = instances.reference;
+    for &leaf in &instances.leaves {
+        let m = reference.unpack(leaf);
+        for row in 0..3 {
+            let bound = (m[row] as f64).abs() * extent.x
+                + (m[row + 4] as f64).abs() * extent.y
+                + (m[row + 8] as f64).abs() * extent.z
+                + (m[row + 12] as f64).abs();
+            // A NaN bound fails too: no vertex of a finite bound overflows.
+            if !(bound <= f32::MAX as f64) {
+                return Err(Error::ResourceLimit("foliage transform overflow"));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Keeps a leaf unless every vertex lies deeper than the shell fraction:
+/// the scaffold's suite alone reads it (fn-212 R2).
 ///
 /// Takes the crown it filters and hands the same allocation back with the
 /// leaves that stay. A crown of seven million leaves is 470 MB, and a second
 /// buffer at the input's own length doubled that whatever the cull dropped;
 /// retaining in place leaves one copy resident. Capacity is not shrunk: the
 /// vector keeps the block it was handed.
+#[cfg(test)]
 pub fn cull(
     mut instances: Instances,
     element: &Element,

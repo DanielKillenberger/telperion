@@ -15,7 +15,7 @@ const DRAWN: Sweep = Sweep {
 fn candidate(tree: &Tree, params: &SurfaceParams) -> Result<SurfaceMesh> {
     use super::super::rings::{distances, rank, table, Scratch};
     let height = 24.0;
-    let paths = paths(&tree.nodes)?;
+    let paths = paths(tree)?;
     let segments = segments(params);
     let distance = distances(tree)?;
     let angular = angular::samples(segments, params)?;

@@ -4,9 +4,6 @@ use telperion_core::{material::MaterialParams, surface::Curve};
 
 use crate::{device::Gpu, FrameStats};
 
-/// The switch the wood stages are built on, as the shader states it.
-const SMOOTH_ON: &str = "const SMOOTH_BARK: bool = true;";
-
 /// Whether a material draws any of smooth bark's terms: lichen, lenticels or
 /// a peeling strip. One that draws none is drawn by the pipeline without them.
 pub fn smooth_bark(m: &MaterialParams) -> bool {
@@ -32,26 +29,19 @@ impl Wood {
         self.curve.as_ref().map_or(0, |c| c.bytes())
     }
 
+    /// Lets the curve's buffers go: nothing is drawn until the next submit.
+    pub(crate) fn release(&mut self) {
+        self.curve = None;
+    }
+
     pub fn new(
         gpu: &Gpu,
         layout: &wgpu::BindGroupLayout,
         shadow: &crate::shadow::Shadow,
         surface: crate::pass::Surface,
     ) -> Self {
-        let stages = format!(
-            "{}\n{}\n{}\n{}",
-            include_str!("shaders/bark.wgsl"),
-            include_str!("shaders/plates.wgsl"),
-            include_str!("shaders/smooth.wgsl"),
-            include_str!("shaders/wood.wgsl")
-        );
-        assert!(
-            stages.contains(SMOOTH_ON),
-            "the wood stages lost their switch"
-        );
-        let plain = stages.replace(SMOOTH_ON, "const SMOOTH_BARK: bool = false;");
-        let shader = crate::pass::lit_shader(gpu, "wood", &plain);
-        let smooth = crate::pass::lit_shader(gpu, "smooth wood", &stages);
+        let shader = crate::shaders::module(gpu, "wood", crate::shaders::wood(false));
+        let smooth = crate::shaders::module(gpu, "smooth wood", crate::shaders::wood(true));
         Self {
             smooth_on: false,
             pinned: None,
@@ -63,6 +53,11 @@ impl Wood {
     /// Uploads a tree's wood as its curve; no wood leaves nothing drawn.
     pub fn submit(&mut self, gpu: &Gpu, curve: &Curve) {
         self.curve = (!curve.clusters.is_empty()).then(|| crate::curve::CurveGpu::new(gpu, curve));
+    }
+
+    /// Takes a curve already on the device (fn-212 task 7).
+    pub(crate) fn submit_on_device(&mut self, curve: crate::curve::CurveGpu) {
+        self.curve = Some(curve);
     }
 
     /// Surfaces the wood for `viewport` whatever the frame's size, or for the
@@ -77,33 +72,62 @@ impl Wood {
         self.smooth_on = smooth_bark(material);
     }
 
-    /// Records the frame's passes over the curve, where there is one.
-    pub fn tessellate(
+    /// Fits the curve's views to this frame, where there is a curve:
+    /// `None` while its programs compile, otherwise whether the sun's view
+    /// was made again (`CurveGpu::fit`). With no curve there is nothing to
+    /// wait for and nothing made.
+    pub fn fit(
         &mut self,
         gpu: &Gpu,
-        encoder: &mut wgpu::CommandEncoder,
         camera: &crate::Camera,
         viewport: (u32, u32),
         light: &crate::shadow::Light,
-        timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
-    ) {
+    ) -> Option<bool> {
         let viewport = self.pinned.unwrap_or(viewport);
         match &mut self.curve {
-            Some(curve) => curve.record(gpu, encoder, camera, viewport, light, timestamps),
-            // A timed frame writes its pair whether or not there is wood.
+            Some(curve) => curve.fit(gpu, camera, viewport, light),
+            None => Some(false),
+        }
+    }
+
+    /// Records `side`'s passes over the curve as the last `fit` sized
+    /// them. A timed frame writes its pair whether or not there is wood.
+    pub(crate) fn surface(
+        &mut self,
+        gpu: &Gpu,
+        encoder: &mut wgpu::CommandEncoder,
+        side: crate::curve::Side,
+        timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
+    ) {
+        match &mut self.curve {
+            Some(curve) => curve.surface(gpu, encoder, side, timestamps),
             None if timestamps.is_some() => {
                 drop(encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
                     label: Some("curve"),
                     timestamp_writes: timestamps,
-                }))
+                }));
             }
             None => {}
+        }
+    }
+
+    /// The frame that surfaced the curve is submitted: its demand is read.
+    pub(crate) fn submitted(&mut self) {
+        if let Some(curve) = &mut self.curve {
+            curve.submitted();
         }
     }
 
     /// The curve's views, where there is a curve.
     pub(crate) fn curve(&self) -> Option<&crate::curve::CurveGpu> {
         self.curve.as_ref()
+    }
+
+    /// The curve's view targets let go, to be made again at the next frame.
+    pub(crate) fn forget_targets(&mut self) {
+        if let Some(curve) = &mut self.curve {
+            curve.forget();
+        }
     }
 
     /// Draws the surface, or nothing when no tree has been submitted.

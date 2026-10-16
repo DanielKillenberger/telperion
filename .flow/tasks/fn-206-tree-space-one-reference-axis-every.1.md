@@ -11,9 +11,8 @@ The continuous forms of PROPOSAL.md with the host's decisions: continuation shar
 - R2: oracle holds; walk tests for every new continuous form within 30, red first where meaningful.
 
 ## Done summary
-One shared reference axis (15 ages, canonical form), every setting by degree (real buds, node bounds, shedding, lifespans), the scale table, the stop's outcomes mixed as shares, the closed form counting every grown element, through host decisions 1 to 17. Codex SHIP after nine rounds; two exact-boundary findings deferred to continuity hardening. Gate 1071/0. Strips in raw/walk6/.
+One shared reference axis (15 ages, canonical form), every setting by degree (real buds, node bounds, shedding, fractional lifespans), the scale table, stop outcomes mixed as shares, the closed form counting every grown element, through host decisions 1 to 21. Codex SHIP after nine rounds; two exact-boundary findings deferred to continuity hardening. Gate 1,071/0; on the master port 1,095/0.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: fd7d9ffe0519ef6473dc67c373477c4f9d684e5c
 - Tests: cargo test --profile ci --workspace --no-fail-fast

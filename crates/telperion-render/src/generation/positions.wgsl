@@ -1,6 +1,8 @@
 struct Config {
     rings:u32, runs:u32, segments:u32, maximum:u32,
-    ring_offset:u32, angle_offset:u32, pad:vec2u
+    ring_offset:u32, angle_offset:u32,
+    // The section's lobes and their depth (`angular.rs`, `profile`).
+    lobes:u32, depth:f32
 }
 @group(0) @binding(0) var<uniform> cfg:Config;
 @group(0) @binding(1) var<storage,read> descriptors:array<vec4u>;
@@ -25,7 +27,10 @@ fn emit(@builtin(workgroup_id) group:vec3u,@builtin(local_invocation_index) lane
     let offsets=descriptors[id*4+3];
     for(var k=lane;k<cfg.segments;k+=64u) {
         let angle=angular[k];
-        put(offsets.x+k,centre.xyz+(normal.xyz*angle.y+binormal.xyz*angle.z)*centre.w);
+        // The lobed outline at the ring's twist phase (`binormal.w`).
+        let profile=1.0+cfg.depth*cos(f32(cfg.lobes)*(angle.x+binormal.w));
+        let width=centre.w*select(profile,1.0,cfg.lobes==0u);
+        put(offsets.x+k,centre.xyz+(normal.xyz*angle.y+binormal.xyz*angle.z)*width);
     }
     if lane==0u {
         if offsets.y!=0xffffffffu { put(offsets.y,centre.xyz); }

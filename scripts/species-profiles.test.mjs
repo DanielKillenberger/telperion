@@ -22,13 +22,14 @@ const listed = (path) => JSON.parse(readFileSync(path, 'utf8')).profiles.map((pr
  *  which are unlisted in the browser and reached here by name. */
 function shippedPresets() {
   const source = readFileSync(join(ROOT, 'crates/telperion-core/src/presets.rs'), 'utf8');
-  const table = (name) => {
+  const table = (name, required = true) => {
     const body = new RegExp(`pub const ${name}:[^=]+=\\s*&\\[([\\s\\S]*?)\\];`).exec(source)?.[1];
     const ids = [...(body ?? '').matchAll(/\(\s*\d+,\s*"([a-z-]+)"/g)].map((entry) => entry[1]);
-    if (ids.length === 0) throw Error(`No ${name} preset table in presets.rs`);
+    if (body === undefined || (required && ids.length === 0)) throw Error(`No ${name} preset table in presets.rs`);
     return ids;
   };
-  return [...table('CATALOGUE'), ...table('IN_WORK')];
+  // Nothing is in work since the beech shipped (fn-198).
+  return [...table('CATALOGUE'), ...table('IN_WORK', false)];
 }
 
 /** Every one of them and the set its numbers are gated against. A preset that

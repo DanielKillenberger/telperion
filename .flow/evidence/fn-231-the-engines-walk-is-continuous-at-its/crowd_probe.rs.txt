@@ -1,0 +1,31 @@
+mod common;
+use common::tree;
+use telperion_space::{expected_counts, Form, NodeLaw, PaState, Species, Zone};
+
+fn state(lifespan: f64, continuation: f64) -> PaState {
+    let mut s = telperion_space::beech().states[0].clone();
+    s.lifespan = lifespan;
+    s.continuation = continuation;
+    s.viability = 1.0;
+    s.abortion = 0.0;
+    s.shedding = f64::INFINITY;
+    s.internode = 1.0;
+    s.form = Form::default();
+    (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+    s.zones = vec![Zone { nodes: NodeLaw::Uniform { min: 4.0, max: 4.0 }, buds: 1.0, dormant: vec![0.0; 2], delay: 0.0, rate: 0.0, lateral: vec![0.0; 2] }];
+    s
+}
+
+#[test]
+fn probe() {
+    for extra in [0.0, 1.0 / 1048576.0, 0.25, 0.5] {
+        let species = Species { states: vec![state(2.0 + extra, 1.0), state(10.0, 0.0)] };
+        let t = tree(&species, 5, 1);
+        let c = expected_counts(&species, 5).unwrap();
+        for a in &t.axes {
+            let lens: Vec<String> = a.phytomers.iter().map(|p| format!("c{} s{:.3}", p.cycle, p.scale)).collect();
+            println!("extra {extra}: PA {} {} phytomers: {}", a.pa, a.phytomers.len(), lens.join(", "));
+        }
+        println!("  closed form: PA0 {} PA1 {}", c.total(0), c.total(1));
+    }
+}

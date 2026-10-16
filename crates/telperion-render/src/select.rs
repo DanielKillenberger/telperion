@@ -80,7 +80,7 @@ pub struct Select {
     pipelines: [wgpu::ComputePipeline; 3],
     compute_layout: wgpu::BindGroupLayout,
     draw_layout: wgpu::BindGroupLayout,
-    uniforms: wgpu::Buffer,
+    uniforms: crate::buffer::Owned,
     /// The leaf view: one placement at identity and a list of one, bound
     /// through the same layout as the crown and never rewritten.
     leaf: wgpu::BindGroup,
@@ -105,6 +105,11 @@ pub struct Select {
     sphere: [f32; 4],
     /// The box the submitted crown's positions were quantised against.
     reference: telperion_core::foliage::Reference,
+    /// The organ's rachis and pedicel lengths and the rachis's droop
+    /// (`frame::Uniforms::stalk`); zero on leaves.
+    stalk: [f32; 3],
+    /// How many of the element's levels, coarsest first, are the rachis's.
+    rachis_levels: u32,
 }
 
 impl Select {
@@ -129,12 +134,15 @@ impl Select {
         let draw_layout = bind::draw_layout(gpu);
         Self {
             pipelines: bind::pipelines(gpu, &compute_layout),
-            uniforms: gpu.device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some("selection"),
-                size: size_of::<frame::Uniforms>() as u64,
-                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-                mapped_at_creation: false,
-            }),
+            uniforms: crate::buffer::Owned::create(
+                gpu,
+                &wgpu::BufferDescriptor {
+                    label: Some("selection"),
+                    size: size_of::<frame::Uniforms>() as u64,
+                    usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                },
+            ),
             leaf: bind::leaf_group(gpu, &draw_layout),
             compute_layout,
             draw_layout,
@@ -153,8 +161,34 @@ impl Select {
             stride: 0,
             forced: Level::default(),
             sphere: [0.0; 4],
+            stalk: [0.0; 3],
+            rachis_levels: 0,
             reference: telperion_core::foliage::Reference::default(),
         }
+    }
+
+    /// The organ's rachis and pedicel lengths, which size its
+    /// inflorescences, and the rachis's droop, which lays it (fn-253); zero
+    /// on the leaves, where no instance is a rachis.
+    pub(crate) fn set_stalk(&mut self, rachis: f32, pedicel: f32, droop: f32) {
+        self.stalk = [rachis, pedicel, droop];
+    }
+
+    /// Lets the crown's buffers go, back to the state before any crown.
+    pub(crate) fn release(&mut self) {
+        for held in [
+            &mut self.placements,
+            &mut self.masses,
+            &mut self.deviations,
+            &mut self.lists,
+            &mut self.counts,
+            &mut self.arguments,
+            &mut self.scratch,
+        ] {
+            *held = None;
+        }
+        (self.compute, self.draw) = (None, None);
+        (self.reset, self.levels, self.instances) = (Vec::new(), Vec::new(), 0);
     }
 
     /// The layout the foliage pipeline reads its placements and its level's
@@ -167,8 +201,16 @@ impl Select {
     /// deviations, and room for the lists, counters and indirect blocks one
     /// frame fills. A crown with no leaves, or an element with no levels,
     /// takes nothing at all and selects nothing.
-    pub fn submit(&mut self, gpu: &Gpu, foliage: &mesh::Foliage, level: Level) {
-        if !foliage.instances.is_empty() && !foliage.element.levels.is_empty() {
+    /// `element` is the one drawn, which is the foliage's own or the floret
+    /// with its card in front (`card.rs`).
+    pub fn submit(
+        &mut self,
+        gpu: &Gpu,
+        foliage: &mesh::Foliage,
+        element: &telperion_core::foliage::Element,
+        level: Level,
+    ) {
+        if !foliage.instances.is_empty() && !element.levels.is_empty() {
             buffer::write(
                 gpu,
                 &mut self.placements,
@@ -187,7 +229,7 @@ impl Select {
         }
         self.setup(
             gpu,
-            &foliage.element,
+            element,
             foliage.instances.reference,
             foliage.instances.len() as u32,
             level,
@@ -222,6 +264,7 @@ impl Select {
         self.reference = reference;
         self.levels = element.levels.iter().map(|l| l.indices.clone()).collect();
         self.sphere = frame::sphere(element);
+        self.rachis_levels = crate::card::rachis_levels(element) as u32;
         let sizes = sizes(
             self.instances as usize,
             self.levels.len(),
@@ -387,6 +430,12 @@ impl Select {
                 Level::Chosen => -1,
                 Level::Forced(level) => level as i32,
             },
+            stalk: [
+                self.stalk[0],
+                self.stalk[1],
+                self.rachis_levels as f32,
+                self.stalk[2],
+            ],
         }
     }
 
@@ -427,6 +476,25 @@ impl Select {
     /// The live placement range, for a caller that wants to see what went up.
     pub fn region(&self) -> Option<Region> {
         Some(self.placements.as_ref()?.region())
+    }
+
+    /// Each instance's level as the last dispatch chose it, or `None` for
+    /// one it gave to the unseen bucket: the lists read back (fn-253).
+    #[cfg(test)]
+    pub(crate) fn chosen(&self, gpu: &Gpu) -> Vec<Option<u32>> {
+        let counts = self.counted(gpu).expect("counts read back");
+        let bytes = buffer::read(gpu, self.lists.as_ref().unwrap()).expect("lists read back");
+        let words: Vec<u32> = (bytes.as_chunks::<4>().0.iter())
+            .map(|w| u32::from_ne_bytes(*w))
+            .collect();
+        let mut out = vec![None; self.instances as usize];
+        for (level, &count) in counts.iter().enumerate().take(self.levels.len()) {
+            let start = level * self.stride as usize / size_of::<u32>();
+            for &id in &words[start..start + count as usize] {
+                out[id as usize] = Some(level as u32);
+            }
+        }
+        out
     }
 
     /// What the last frame's pass counted: one entry per level, coarsest

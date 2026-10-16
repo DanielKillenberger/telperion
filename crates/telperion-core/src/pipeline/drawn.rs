@@ -92,6 +92,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     let wood = wood
         .zip(rings)
         .map(|((faces, _), (rings, _))| rings.into_mesh(faces));
+    let organ = organ(tree, inputs, request, prepared.reference)?;
     let curve = request
         .curve
         .then(|| crate::pipeline::surface::curve(tree, surface.height, &surface.params))
@@ -102,6 +103,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
         wood,
         curve,
         leaves: leaves.map(|(l, _)| l),
+        organ,
         field: field.map(|(f, _)| f),
         structure,
         stages,
@@ -244,12 +246,17 @@ fn leaves(
         twig,
         contacts.as_ref(),
         reference,
+        foliage::blade(element),
     )?;
     drop(contacts);
     drop(own);
     let placed_at = clock();
     let placed_count = placed.len();
-    let instances = foliage::cull(placed, element, envelope, input.shell_depth)?;
+    // The row is still checked where it was, so a request meets the same
+    // error; nothing past the check reads it (fn-212 R2).
+    foliage::range(input.shell_depth, 0., 1., "shell depth")?;
+    foliage::admit(&placed, element)?;
+    let instances = placed;
     let bounds = if request.leaves {
         instances.bounds(element)?
     } else {
@@ -263,6 +270,30 @@ fn leaves(
     };
     let ms = [rung - start, placed_at - rung, clock() - placed_at];
     Ok(Some((leaves, ms)))
+}
+
+/// The flowers (fn-216): where leaves are asked for and the tree's ages
+/// flower, the organ element and its florets, packed against the leaves'
+/// box as the device packs its own (`foliage::bloom_box`), or their own
+/// where the tree has no leaf box; none where nothing flowers.
+fn organ(
+    tree: &Tree,
+    inputs: &Inputs,
+    request: Request,
+    leaf: Option<foliage::Reference>,
+) -> Result<Option<crate::mesh::Foliage>> {
+    if !request.leaves || tree.blooms.is_empty() {
+        return Ok(None);
+    }
+    let element = foliage::bloom_element(&inputs.bloom)?;
+    let p = &inputs.bloom;
+    let instances = match leaf {
+        Some(leaf) => {
+            foliage::place_blooms_in(tree, p, request.season, foliage::bloom_box(leaf, p))?
+        }
+        None => foliage::place_blooms(tree, p, request.season)?,
+    };
+    Ok(Some(crate::mesh::Foliage { element, instances }))
 }
 
 /// The field read from placed leaves, where the plan cannot describe them.

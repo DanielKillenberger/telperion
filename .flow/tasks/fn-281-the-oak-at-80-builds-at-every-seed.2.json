@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-14T18:45:18.678467Z",
+  "depends_on": [
+    "fn-281-the-oak-at-80-builds-at-every-seed.1"
+  ],
+  "id": "fn-281-the-oak-at-80-builds-at-every-seed.2",
+  "priority": null,
+  "spec": "fn-281-the-oak-at-80-builds-at-every-seed",
+  "spec_path": ".flow/tasks/fn-281-the-oak-at-80-builds-at-every-seed.2.md",
+  "status": "done",
+  "title": "Fix A: wood drawn above a join thinner than FINEST is not drawn",
+  "updated_at": "2026-10-14T18:45:18.678467Z"
+}

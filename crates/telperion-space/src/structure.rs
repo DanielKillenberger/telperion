@@ -78,6 +78,24 @@ pub enum Origin {
     Relay { parent: usize, node: usize },
 }
 
+impl Axis {
+    /// The axis it carries on and how far it has left that axis's line:
+    /// a relay by its blend, a continuation at none, for it is a relay at
+    /// blend 0 (fn-199, host 2026-10-07); none for a lateral or the seed.
+    /// Where this relay joins its parent, as its girth set it.
+    pub fn joined(&self) -> Option<Join> {
+        self.joined
+    }
+
+    pub(crate) fn carried_on(&self) -> Option<(usize, f64)> {
+        match self.origin {
+            Origin::Relay { parent, .. } => Some((parent, self.blend)),
+            Origin::Continuation { parent } => Some((parent, 0.0)),
+            Origin::Seed | Origin::Lateral { .. } => None,
+        }
+    }
+}
+
 impl Origin {
     /// The axis this one grows from; none for the seed.
     pub fn parent(self) -> Option<usize> {
@@ -105,7 +123,9 @@ pub struct Axis {
     pub vigour: f64,
     /// A relay's place between the continuation it replaces (0) and its
     /// own bud's place and heading (1): the presence of the stop that made
-    /// it. 1 for every other axis.
+    /// it. 1 for every other axis. Where it joins its parent moves from the
+    /// parent's tip to its stand by it, and its wood and load enter there
+    /// whole (`geometry::attach`, fn-244).
     pub(crate) blend: f64,
     /// The cycle the apex stopped (died, ended, or changed PA); none, it lives.
     pub apex_end: Option<u32>,
@@ -126,6 +146,29 @@ pub struct Axis {
     /// The share of its first cycle a bud that woke still slept: its age
     /// is that much less than its birth gives.
     pub(crate) sleep: f64,
+    /// The phase its phyllotaxis starts from outside the structure, an
+    /// amount in turns: a fine root's bearer's, held
+    /// by its stub (`fine::realized::stub`); none in a whole tree, whose
+    /// axes carried on take theirs from the axes they carry on
+    /// (`geometry::phase`).
+    pub(crate) phase: f32,
+    /// A relay's join on its parent, where its girth set it; none on any
+    /// other axis.
+    pub(crate) joined: Option<Join>,
+}
+
+/// Where a relay joins its parent and the parent's girth there (fn-244
+/// host decision 4): the parent's node `node` whose span it stands in,
+/// `t` of the way along it from the node before (or the parent's base)
+/// (`geometry::attach`); the parent's radius just below the join,
+/// carrying the relay whole, and just above it, where the stopped
+/// module's head carries its own wood.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Join {
+    pub node: usize,
+    pub t: f32,
+    pub below: f64,
+    pub above: f64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -154,6 +197,17 @@ pub struct Phytomer {
     pub(crate) size: f64,
     /// The light its bud grew in (`light.rs`): 1 where nothing shades.
     pub(crate) light: f64,
+    /// How much of a node it is: its unit's presence times its node's
+    /// times the share of its cycle the unit lived (`presence::assign`),
+    /// which a relay standing on its unit reads (`geometry::stand`).
+    pub(crate) grown: f64,
+}
+
+impl Phytomer {
+    /// The key of its node's draw (D1): the same node under any settings.
+    pub fn key(&self) -> u64 {
+        self.key
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

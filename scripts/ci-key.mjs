@@ -20,7 +20,6 @@ const SHARED = [
 const CORE = 'crates/telperion-core';
 const RENDER = 'crates/telperion-render';
 const WASM = 'crates/telperion-wasm';
-const FIELD = 'crates/telperion-field';
 // The tree space's engine, outside the pipeline until phase F; it rides
 // with the small crates and reads only itself.
 const SPACE = 'crates/telperion-space';
@@ -37,18 +36,18 @@ const CORE_TESTS = [
 const SUITES = {
   'rust-core': { profile: 'ci', inputs: [CORE, ...CORE_TESTS] },
   'rust-render': { profile: 'ci', inputs: [CORE, RENDER] },
-  'rust-wasm': { profile: 'ci', inputs: [CORE, WASM, FIELD, SPACE] },
+  'rust-wasm': { profile: 'ci', inputs: [CORE, WASM, SPACE] },
   // The isolation test walks the generation crates and the browser source,
   // and the citation parser is tested on the fn-11 research section.
   'rust-jev': {
     profile: 'ci',
-    inputs: ['crates/telperion-jev', CORE, RENDER, WASM, FIELD, 'src', '.flow/specs/fn-11-growth-over-time.md'],
+    inputs: ['crates/telperion-jev', CORE, RENDER, WASM, 'src', '.flow/specs/fn-11-growth-over-time.md'],
   },
   // npm test and npm run typecheck: the pretest builds the three wasm crates.
   node: {
     profile: 'release',
     inputs: [
-      CORE, RENDER, WASM, FIELD, 'src', 'harness', 'tests',
+      CORE, RENDER, WASM, 'src', 'harness', 'tests',
       'catalogue', '.gitattributes',
       'scripts/build-wasm.mjs', 'scripts/build-render.mjs',
       'scripts/catalogue-check.mjs', 'scripts/catalogue-pages.mjs',

@@ -60,11 +60,35 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
-        leaf_area: 0.0,
+        // One leaf a node, as below, of 15.723 cm², the mean of 25 sunlit
+        // leaves of an 80-year-old, 35 m beech in a mixed stand at Poľana
+        // in 1998 (Hladká and Čaňová 2005, J. For. Sci. 51(4), Table 2;
+        // its shaded leaves 21.648 cm²); an open-grown crown is sunlit
+        // (fn-264 R2, Jev fn264-pick:18dddb1675e2f05d-3e652d-0).
+        leaf_area: 0.0015723,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        // Deciduous: every leaf stands on the current year's wood, its
+        // older wood bearing through its short shoots' clusters (fn-248).
+        leaf_years: 1.0,
+        // fn-270 R5: the days its shoot elongates and its leaf expands
+        // within the year, sourced in its preset's value file.
+        elongation: 14.0,
+        expansion: 14.0,
+        // fn-270 R5c: its leaves' lifespan and season, sourced in its
+        // preset's value file.
+        leaf_life: 0.54,
+        budburst: 115.0,
+        senescence: 264.0,
+        colouring: 16.0,
+        leaf_fall: 45.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -76,6 +100,11 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         form: Form::default(),
     }
 }
+
+/// Its shade tolerance T (Niinemets and Valladares 2006, Appendix A;
+/// Jev fn264-pick:18dddb17a32041f1-3e698a-0), which sets how it answers
+/// light (`tolerance.rs`, fn-264 R2).
+const SHADE_TOLERANCE: f64 = 4.56;
 
 /// The beech, one growth cycle a year.
 pub fn beech() -> Species {
@@ -102,6 +131,8 @@ pub fn beech() -> Species {
         relay_failed: 1.0,
         relay_at: 0.15,
         epitony: 0.6,
+        // fn-286 (2026-10-15): a relay runs half back onto the line it takes over, so the module stack reads as one limb, not a zigzag; at 1 it fights the relay's erection (RELAYS.md).
+        takeover: 0.5,
         erection: 0.1,
         straightening: 1.0,
         form: Form {
@@ -117,6 +148,9 @@ pub fn beech() -> Species {
             sag: 0.0,
             secondary: 1.0,
             bend_length: 0.0,
+            internode_spread: 0.0,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
         },
         ..state(
             9,
@@ -166,6 +200,9 @@ pub fn beech() -> Species {
             sag: 0.0,
             secondary: 1.0,
             bend_length: 0.0,
+            internode_spread: 0.0,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
         },
         ..state(
             lifespan,
@@ -189,6 +226,8 @@ pub fn beech() -> Species {
         relay_failed: 1.0,
         relay_at: 0.15,
         epitony: 0.6,
+        // fn-286 (2026-10-15): a relay runs half back onto the line it takes over, so the module stack reads as one limb, not a zigzag; at 1 it fights the relay's erection (RELAYS.md).
+        takeover: 0.5,
         straightening: 0.6,
         form: Form {
             tropism: 0.6,
@@ -233,6 +272,9 @@ pub fn beech() -> Species {
             sag: 0.0,
             secondary: 1.0,
             bend_length: 0.0,
+            internode_spread: 0.0,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
         },
         ..state(
             10,
@@ -265,12 +307,22 @@ pub fn beech() -> Species {
             sag: 0.0,
             secondary: 1.0,
             bend_length: 0.0,
+            internode_spread: 0.0,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
         },
         ..state(5, 0.0, vec![zone(1, 1, &[]), zone(2, 3, &[(SHORT, 0.6)])])
     };
     // GreenLab's PA 4: a short shoot of three to five metamers that never
-    // branches.
+    // branches. It bears its leaves at its tip while it lives (fn-248):
+    // four, one a metamer of [LET]'s "usually 3 or 4", the beech bearing
+    // one leaf a node (inferred); fanned 0.6 rad either side (estimated).
+    // It lives four years (estimated, from three), so the crown's leaf area
+    // index stands at 5.2 at 40 and 7.3 at 80, in the range measured in
+    // beech forests (Glatthorn et al. 2017: 7.1 and 7.4 on average).
     let short = PaState {
+        cluster_leaves: 4.0,
+        cluster_spread: 0.6,
         insertion: 0.9,
         viability: 0.9,
         shedding: 1.0,
@@ -288,10 +340,13 @@ pub fn beech() -> Species {
             sag: 0.0,
             secondary: 1.0,
             bend_length: 0.0,
+            internode_spread: 0.0,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
         },
-        ..state(3, 0.0, vec![zone(3, 5, &[])])
+        ..state(4, 0.0, vec![zone(3, 5, &[])])
     };
-    on_chain(vec![
+    let mut ages = vec![
         (TRUNK, trunk),
         (LEADER, leader),
         (FORK, fork),
@@ -301,5 +356,7 @@ pub fn beech() -> Species {
         (BRANCH, branch),
         (SHOOT, shoot),
         (SHORT, short),
-    ])
+    ];
+    crate::tolerance::respond(&mut ages, SHADE_TOLERANCE);
+    on_chain(ages)
 }

@@ -1,15 +1,13 @@
 //! Stable blade coordinates carry colour and a front-face cuticle at every level.
 mod common;
 use telperion_core::pipeline::executor;
-use telperion_core::{
-    foliage::ElementParams, material::MaterialParams, math::Vec3, mesh, presets::Preset,
-};
+use telperion_core::{foliage::ElementParams, material::MaterialParams, math::Vec3, mesh};
 use telperion_render::{render, Camera, Level, Renderer, SceneRow, View, STILL_FORMAT};
 
 #[test]
 fn blade_colour_rows_survive_levels_and_the_back_has_no_cuticle() {
     let Some(gpu) = common::gpu() else { return };
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(20);
     let mut tree = mesh::build(&family).unwrap();
     tree.foliage.element = executor::element(ElementParams {
@@ -98,7 +96,7 @@ fn blade_colour_rows_survive_levels_and_the_back_has_no_cuticle() {
 #[test]
 fn a_matte_needle_row_is_inert_even_with_scales_and_tints_set() {
     let Some(gpu) = common::gpu() else { return };
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(20);
     family.element.section_roundness = 1.0;
     let tree = mesh::build(&family).unwrap();

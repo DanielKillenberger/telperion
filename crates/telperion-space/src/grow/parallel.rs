@@ -4,10 +4,10 @@
 //! numbers the axes it makes as if it came first. The shares are merged
 //! in order, each moved past the axes the ones before it made, so the
 //! tree is the one grown in turn, however many cores grew it.
-use super::shoot::{Home, Line, Reads, Shoot};
+use super::shoot::{Home, Line, Reads, Shoot, Spare};
 use super::sketch::Sketch;
-use super::{Apex, Grower};
-use crate::cores::{picked, spread};
+use super::{Apex, Grower, Pass, Stage};
+use crate::cores::spread;
 use crate::dormant::{Sleeper, Woken};
 use crate::error::{Error, Result};
 use crate::presence::Draws;
@@ -31,6 +31,9 @@ pub(super) struct Share {
     woken: Vec<Woken>,
     marked: Vec<u64>,
     grown: u64,
+    jobs: [u32; 2],
+    /// Its lists to fill again: its apexes', emptied, and its own.
+    spare: Spare,
 }
 
 impl Shoot<'_, '_> {
@@ -44,18 +47,29 @@ impl Shoot<'_, '_> {
             woken: self.woken,
             marked: self.marked,
             grown: self.grown,
+            jobs: self.jobs,
+            spare: Spare {
+                next: Vec::new(),
+                leads: self.leads,
+                node_buds: self.node_buds,
+                sleeping: self.sleeping,
+            },
         }
     }
 
     /// Grows each of `apexes`' unit in `cycle`, its axis the home of the
     /// same place.
-    fn grow(mut self, apexes: Vec<Apex>, cycle: u32) -> Result<Share> {
+    fn grow(mut self, mut apexes: Vec<Apex>, cycle: u32) -> Result<Share> {
         let homes: Vec<usize> = apexes.iter().map(|a| a.axis).collect();
-        for (k, apex) in apexes.into_iter().enumerate() {
+        for (k, apex) in apexes.drain(..).enumerate() {
             self.home = (k, apex.axis);
+            self.job = 0;
             self.advance(apex, cycle)?;
+            self.jobs[0] = self.jobs[0].max(self.job);
         }
-        Ok(self.finish(homes))
+        let mut share = self.finish(homes);
+        share.spare.next = apexes;
+        Ok(share)
     }
 }
 
@@ -67,22 +81,32 @@ impl Grower<'_> {
 
     /// Grows the `live` apexes' units in `cycle`, in shares in order, and
     /// merges them into the tree.
-    pub(super) fn grow_live(&mut self, live: Vec<Apex>, cycle: u32) -> Result<()> {
+    pub(super) fn grow_live(
+        &mut self,
+        live: Vec<Apex>,
+        cycle: u32,
+        report: &mut dyn FnMut(Stage),
+    ) -> Result<()> {
         let reads = reads(self.sketch.as_ref(), self.species);
         let homes = homes(
             (&mut self.axes, &mut self.draws),
             (&mut self.units, &mut self.successor),
             &live,
         );
+        report(Stage::Pass(Pass::Homes));
         let (rules, tree) = (&self.rules, (&self.roots[..], &self.horizon[..]));
         let shoot = |homes| Shoot {
             homes,
             ..Shoot::new(rules, reads, tree)
         };
-        let shares = grow_shares(live, homes, (self.threads, self.share), &shoot, cycle)?;
+        let spare = std::mem::take(&mut self.spare);
+        let at = (self.threads, self.share);
+        let shares = grow_shares(live, homes, at, (&shoot, spare), cycle)?;
+        report(Stage::Pass(Pass::Units));
         for share in shares {
             self.absorb(share);
         }
+        report(Stage::Pass(Pass::Merge));
         if self.rules.grown > u64::from(self.rules.budget) {
             return Err(Error::Budget {
                 limit: self.rules.budget,
@@ -114,13 +138,19 @@ impl Grower<'_> {
             self.roots.push(line.root);
             self.horizon.push(line.horizon);
         }
-        self.live.extend(share.next);
+        if self.live.is_empty() {
+            self.live = share.next;
+        } else {
+            self.live.extend(share.next);
+        }
         for (wakes, sleeper) in share.asleep {
             self.asleep[wakes].push(sleeper);
         }
         self.woken.extend(share.woken);
         self.marked.extend(share.marked);
         self.rules.grown += share.grown;
+        self.jobs = std::array::from_fn(|w| self.jobs[w].max(share.jobs[w]));
+        self.spare = share.spare;
     }
 }
 
@@ -156,7 +186,9 @@ fn reads<'g>(sketch: Option<&'g Sketch>, species: &Species) -> Reads<'g> {
 }
 
 /// The living apexes' axes where they stand, in the apexes' order: each
-/// apex is its own axis, so they are apart.
+/// apex is its own axis, so they are apart. One walk up the four columns
+/// picks them (a fine root makes this list each cycle it grows, so its
+/// allocations count).
 fn homes<'g>(
     (axes, draws): (&'g mut [Axis], &'g mut [Draws]),
     (units, successor): (&'g mut [f64], &'g mut [Vec<usize>]),
@@ -165,24 +197,33 @@ fn homes<'g>(
     let mut order: Vec<(usize, usize)> =
         live.iter().enumerate().map(|(k, a)| (a.axis, k)).collect();
     order.sort_unstable();
-    let at = || order.iter().map(|&(i, _)| i);
-    let parts = picked(axes, at())
-        .into_iter()
-        .zip(picked(draws, at()))
-        .zip(picked(units, at()).into_iter().zip(picked(successor, at())));
     let mut homes: Vec<Option<Home<'g>>> = (0..live.len()).map(|_| None).collect();
-    for (&(_, k), ((axis, draws), (units, successor))) in order.iter().zip(parts) {
+    let (mut rest, mut from) = ((axes, draws, units, successor), 0);
+    for &(i, k) in &order {
+        let (axes, draws, units, successor) = rest;
+        let (axis, axes) = first(axes, i - from);
+        let (draws, d) = first(draws, i - from);
+        let (units, u) = first(units, i - from);
+        let (successor, s) = first(successor, i - from);
         homes[k] = Some(Home {
             axis,
             draws,
             units,
             successor,
         });
+        (rest, from) = ((axes, d, u, s), i + 1);
     }
     homes
         .into_iter()
         .map(|h| h.expect("every apex its own axis"))
         .collect()
+}
+
+/// `v[at]` and what follows it.
+fn first<T>(v: &mut [T], at: usize) -> (&mut T, &mut [T]) {
+    v[at..]
+        .split_first_mut()
+        .expect("an index within, increasing")
 }
 
 /// Grows `live`, each apex with its home, in shares of `share` apexes on
@@ -191,12 +232,12 @@ fn grow_shares<'g, 'a: 'g>(
     live: Vec<Apex>,
     homes: Vec<Home<'g>>,
     (threads, share): (usize, usize),
-    shoot: &(dyn Fn(Vec<Home<'g>>) -> Shoot<'g, 'a> + Sync),
+    (shoot, spare): (&(dyn Fn(Vec<Home<'g>>) -> Shoot<'g, 'a> + Sync), Spare),
     cycle: u32,
 ) -> Result<Vec<Share>> {
     let count = live.len().div_ceil(share);
     if threads <= 1 || count <= 1 {
-        return Ok(vec![shoot(homes).grow(live, cycle)?]);
+        return Ok(vec![shoot(homes).spared(spare).grow(live, cycle)?]);
     }
     let (mut live, mut homes) = (live.into_iter(), homes.into_iter());
     let work: Vec<_> = (0..count)

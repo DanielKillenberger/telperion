@@ -16,11 +16,6 @@
 /skeleton/bias/lean = 0.02
 /skeleton/bias/supernatural/writheWavelength = 0.35
 
-# A narrow envelope whose crown starts at 45 % of the height.
-/skeleton/envelope/height = 22.86
-/skeleton/envelope/crownBase = 0.45
-/skeleton/envelope/spread = 0.1
-/skeleton/envelope/shoulder = 0.45
 /skeleton/twigs/twig/diameter = 0.007
 /skeleton/twigs/hang = 2.75
 /skeleton/twigs/sag = 1.0
@@ -33,8 +28,12 @@
 /surface/flareRadius = 2.0
 
 # The crown (fn-109): a rosette of pinnate fronds at the apex and
-# nothing borne below it.
+# nothing borne below it. fn-277 (host, 2026-10-14): a palm bears its
+# leaves only in its crown at the stem's apex, none along its wood
+# (Zaid and de Wet 2002, FAO Plant Production and Protection Paper 156,
+# ch. I), so none of its wood is cauline.
 /canopy/rosetteFronds = 42
+/canopy/cauline = 0.0
 /canopy/rosettePitch = 12.5
 /canopy/rosettePitchSpread = 105.0
 /canopy/rosetteDepth = 0.35
@@ -79,6 +78,32 @@
 /canopy/skirtFronds = 16
 /canopy/skirtPitch = 165.0
 /canopy/skirtLength = 0.85
+# fn-270 R5b (host, 2026-10-14): leaves of a date palm "have a normal
+# life of 3 to 7 years" (Zaid and de Wet 2002, FAO Plant Production and
+# Protection Paper 156, ch. I): 5, the range's midpoint, which the source
+# does not state. The crown makes its 42 living fronds over that life,
+# 8.4 a year. Cross-check: "approximately 100 to 125 green leaves with an
+# annual formation of 10 to 26 new leaves" (ibid.); this crown, a third of
+# a real one's count, makes 8.4, a sixth under the range's low end.
+/canopy/frondLife = 5.0
+# fn-275 R1: a palm establishes, "the stem progressively widens as the
+# crown grows to its mature size" before the stem rises (Tomlinson and
+# Huggett 2012, Am. J. Bot. 99: 1891). Each frond is made at a share of a
+# mature one set by the crown's age when it was made, along the logistic
+# course (Pallardy 2008, as unfold's) from the early share to whole.
+# Years: tissue-culture palms "5 years old" bear leaves of 121.71, 140.43
+# and 133.43 in. against 130.29, 155 and 140 in. on their 20 to 40 year
+# old offshoot-grown mothers (Frontiers in Plant Science 16: 1516983,
+# 2025, Table 1): 0.934, 0.906 and 0.953, mean 0.931, which the course
+# reaches at year 5 over 6.75 years (code fit 6.746). Cross-check: "In 4
+# or 5 years, the crown clears the ground and the 1st flowering can be
+# expected" (Orwa et al. 2009, Agroforestree Database).
+/canopy/frondEstablishment = 6.75
+# Declared stand-in: tissue-culture plantlets leave the laboratory "about
+# 35 to 45 cm long with 4 to 5 leaves" (Zaid and de Wet 2002, FAO 156
+# ch. V), 0.40 m against the 4 m average frond (ibid. ch. I); the
+# plantlet's age is not stated and its length is the plant's, not a leaf's.
+/canopy/frondEarlyShare = 0.1
 
 # The skirt hangs against the trunk, the deepest place inside the
 # crown's envelope, where the default shell cull drops most of it.
@@ -119,3 +144,46 @@
 /material/leafDeadRed = 0.34
 /material/leafDeadGreen = 0.29
 /material/leafDeadBlue = 0.22
+
+# The age the harness opens the tree at (fn-198 host decision 5); the
+# engine grows the tree to it.
+/age = 40.0
+
+# The engine species (fn-198 host decision 1): telperion_space::palm (fn-196).
+# The envelope is derived from the grown tree (host decision 7).
+# Each node is a frond of 2.81 m² (fn-264 R2, derived); its light responses stay neutral:
+# no laterals to shed and no published shade tolerance.
+# fn-270 R5 and R5b: a frond expands over 139 days, derived with low
+# confidence: elongation "24 mm/day" with fruit to "36 mm/day" without
+# (Zhen et al. 2015, ASA-CSSA-SSSA Annual Meeting) over fronds "3 to 6 m
+# long (4 m average)" (Zaid and de Wet 2002, FAO Plant Production and
+# Protection Paper 156, ch. I): 4 m takes 111 days at 36 mm and 167 at
+# 24, and 139 is their midpoint. A whole age stands
+# at full leaf (R5c), so the stem, which grows on through the year, takes
+# the 226 days left before its last frond has expanded. Its fronds are
+# never shed: "dead or old leaves are not shed and do not drop on their
+# own" (ibid.); none falls.
+/space/ages/2/lifespan = 150.0
+/space/ages/2/continuation = 0.0
+# fn-275 R2a (host, 2026-10-14): the stem waits on its crown's
+# establishment, losing half of its 6.75 years' rise, so the internode
+# rises from 0.031 m to keep the palm at 40 at today's 21.59 m: the stem's
+# top stood at 14.885 m, laid at 12 nodes a year over 40 years less 3.375
+# waited, 14.885 / (12 x 36.625) = 0.0339 m (code measured, raw/). That is
+# 0.407 m a year, inside "30-45 cm" a year (A1).
+/space/ages/2/internode = 0.0339
+/space/ages/2/divergence = 2.399963
+/space/ages/2/readiness = 0.0
+/space/ages/2/rhythm = 0.0
+/space/ages/2/leafArea = 2.81
+/space/ages/2/elongation = 226.0
+/space/ages/2/expansion = 139.0
+/space/ages/2/form/tropism = 0.5
+/space/ages/2/form/elevation = 1.5707963267948966
+/space/ages/2/form/wander = 0.05
+/space/ages/2/form/pipe = 0.297
+/space/ages/2/form/secondary = 0.0
+/space/ages/2/zones/0/buds = 1.0
+/space/ages/2/zones/0/nodes/min = 12.0
+/space/ages/2/zones/0/nodes/max = 12.0
+/space/ages/2/trunk = true

@@ -4,12 +4,11 @@
  * The harness's half of the generator contract. The panel hands the
  * generator a GrowerParams and knows nothing else about it: the family
  * under the catalogue's own names, every row of it a control
- * (`rows.ts`), the seed on its own box, and the two named transforms
- * `family.ts` applies, density and torsion. A row the catalogue adds is
+ * (`rows.ts`) and the seed on its own box. A row the catalogue adds is
  * a control without a line here.
  * ------------------------------------------------------------------ */
 
-import { ORDINARY, type Family } from "../src/browser/core";
+import { ORDINARY, presetById, type Family } from "../src/browser/core";
 import { presetToParams } from "./family";
 
 /** Seeds are unsigned 32-bit integers, and nothing else is a seed. */
@@ -20,16 +19,21 @@ export interface GrowerParams {
   family: Family;
   /** uint32. Varies the detail; it does not gamble on the outcome. */
   seed: number;
-  /** The attractor count as a share of the density dial's span. */
-  density: number;
-  /** Master over the supernatural bending: 1 is the rows as dialled. */
-  torsion: number;
+  /** The family as the preset or look states it: what a control is
+   *  changed from, and what a reset returns it to. Never sent. */
+  preset: Family;
 }
 
 export const DEFAULT_PARAMS: GrowerParams = {
   ...presetToParams({ ...ORDINARY, id: "ordinary", name: "Ordinary", note: "" }),
-  seed: 1, density: 0.5,
+  seed: 1,
 };
+
+/** The tree the harness opens on and resets to: the engine's beech at its
+ *  preset age (fn-198 host decision 5). The Ordinary rows above stay the
+ *  dials' trait baseline; the Ordinary tree, the space's centroid since
+ *  fn-215, is not the tree it opens on. */
+export const OPENING_PARAMS: GrowerParams = { ...presetToParams(presetById("european-beech")), seed: 1 };
 
 /** The seed field is the one free-text surface on the panel, so it is
  *  the one place a value can arrive as anything at all. Parsed
@@ -41,6 +45,14 @@ export function normalizeSeed(raw: string): number | null {
   const value = Number(raw);
   if (!Number.isInteger(value) || value > SEED_MAX) return null;
   return value;
+}
+
+/** An age in a link (`?age=`): whole years from one, strictly parsed as a
+ *  seed is. Null where the text is not one, and the preset's age stands. */
+export function normalizeAge(raw: string): number | null {
+  if (!/^\d{1,6}$/.test(raw)) return null;
+  const value = Number(raw);
+  return value >= 1 ? value : null;
 }
 
 /** A fresh seed, drawn from the platform CSPRNG so consecutive rerolls

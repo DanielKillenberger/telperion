@@ -23,10 +23,7 @@ fn main() -> Result<(), String> {
     };
     let built = build(&family, request).map_err(|e| e.to_string())?;
     let o = &built.outputs;
-    println!(
-        "skeleton {:?} shed {}",
-        built.skeleton.tree, built.skeleton.shed
-    );
+    println!("skeleton {:?}", built.skeleton.tree);
     println!("element {:?}", o.element);
     println!("wood {:?}", o.wood);
     let leaves = o
