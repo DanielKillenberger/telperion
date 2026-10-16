@@ -2,7 +2,8 @@
 // from the grid of buckets.
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
-@group(0) @binding(1) var<storage, read> prims: array<vec4<f32>>;
+@group(0) @binding(1) var<storage, read> prims: array<vec4<u32>>;
+// The leaves' limb systems, the first leaf primitive's first.
 @group(0) @binding(2) var<storage, read> owner: array<u32>;
 @group(0) @binding(3) var<storage, read> index: array<u32>;
 @group(0) @binding(4) var<storage, read> cells: array<vec4<f32>>;
@@ -49,17 +50,15 @@ fn query(@builtin(global_invocation_id) id: vec3<u32>) {
                 let n = index[cfg.buckets + 1u + b];
                 for (var i = 0u; i < n; i++) {
                     let k = index[first + i];
-                    let pa = prims[2u * k];
-                    let pb = prims[2u * k + 1u];
+                    let e = endpoints(k);
+                    let a = e[0];
+                    let b = e[1];
                     // Its box, which the cell's reach must meet before
                     // anything finer is asked, and which names the one
                     // bucket the primitive is met in.
-                    var r = vec2<f32>(pa.w, pb.w);
-                    if k >= cfg.nodes {
-                        r = vec2<f32>(pa.w);
-                    }
-                    let low = min(pa.xyz - r.x, pb.xyz - r.y);
-                    let high = max(pa.xyz + r.x, pb.xyz + r.y);
+                    let r = reach(k);
+                    let low = min(a - r.x, b - r.y);
+                    let high = max(a + r.x, b + r.y);
                     if any(low > center + inflation) || any(high < center - inflation) {
                         continue;
                     }
@@ -67,28 +66,29 @@ fn query(@builtin(global_invocation_id) id: vec3<u32>) {
                         continue;
                     }
                     if k < cfg.nodes {
-                        if contains(pa.xyz, pb.xyz, pa.w, pb.w, center, inflation) {
+                        if contains(a, b, r.x, r.y, center, inflation) {
                             wood = true;
-                            radius = max(radius, max(pa.w, pb.w));
+                            radius = max(radius, max(r.x, r.y));
                         }
                         continue;
                     }
                     // A frond's leaflet is a box carrying one leaf; any
                     // other leaf-bearing segment a sweep carrying its own.
                     let leaflet = k >= cfg.nodes + cfg.segs;
-                    var count = pb.w;
+                    let high_bits = attributes(k) >> 15u;
+                    var count = f32(high_bits);
                     if leaflet {
                         count = 1.0;
-                        if !meets_box(pa, pb, center, half) {
+                        if !meets_box(a, b, r.x, high_bits, center, half) {
                             continue;
                         }
-                    } else if !contains(pa.xyz, pb.xyz, pa.w, pa.w, center, inflation) {
+                    } else if !contains(a, b, r.x, r.x, center, inflation) {
                         continue;
                     }
                     foliage = true;
-                    let leaves = fixed(count * inside(pa.xyz, pb.xyz, center, half));
+                    let leaves = fixed(count * inside(a, b, center, half));
                     total = add(total, leaves);
-                    let system = owner[k];
+                    let system = owner[k - cfg.nodes];
                     if window != NONE && (system < window || system - window >= TALLY) {
                         continue;
                     }

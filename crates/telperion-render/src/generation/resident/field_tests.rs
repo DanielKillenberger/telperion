@@ -131,9 +131,10 @@ pub(super) fn within(m: &Measures, fronds: bool) -> Result<(), String> {
     held.then_some(()).ok_or_else(|| format!("{m:?}"))
 }
 
-/// R2 on every shipped preset at seed 1, on a grid of 24 cells a side:
-/// the device's field against the CPU's (the gate's; the measurement
-/// below runs seeds, sides and timings).
+/// R2 on every shipped preset at seed 1, on grids of 24, 36 and 48 cells
+/// a side: the device's field, its primitives written compact (R7),
+/// against the CPU's (the gate's; the measurement below runs seeds and
+/// timings).
 #[test]
 fn every_preset_s_device_field_answers_within_its_tolerance() {
     let _held = super::super::whole_tree();
@@ -151,15 +152,13 @@ fn every_preset_s_device_field_answers_within_its_tolerance() {
         let reference = pipeline::build(&family, request).expect("the reference");
         let reference = reference.outputs.field.expect("a field");
         let field = pollster::block_on(gen.grow_field(&family, None)).expect("grown");
-        let cells = grid(&reference.bounds().expect("bounds"), 24);
-        let cpu: Vec<_> = cells.iter().map(|(c, h)| reference.query(*c, *h).expect("answered")).collect();
-        let words: Vec<f32> = cells
-            .iter()
-            .flat_map(|(c, h)| [c.x as f32, c.y as f32, c.z as f32, *h as f32])
-            .collect();
-        let dev = pollster::block_on(gen.query_field(&field, &words)).expect("answered");
         let fronds = family.canopy.rosette_fronds > 0.0;
-        within(&compare(&cpu, &dev), fronds).unwrap_or_else(|m| panic!("{id}: {m}"));
+        for n in [24, 36, 48] {
+            let cells = grid(&reference.bounds().expect("bounds"), n);
+            let cpu: Vec<_> = cells.iter().map(|(c, h)| reference.query(*c, *h).expect("answered")).collect();
+            let dev = pollster::block_on(gen.query_field(&field, &words(&cells))).expect("answered");
+            within(&compare(&cpu, &dev), fronds).unwrap_or_else(|m| panic!("{id} at {n}: {m}"));
+        }
     }
 }
 

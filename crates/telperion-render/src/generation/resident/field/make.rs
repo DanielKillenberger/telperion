@@ -48,7 +48,9 @@ pub(in super::super) async fn grow(
     let made = primitives(gpu, tools, (&swept.nodes, &device, fronds), &mut cfg, prims).await?;
     at.push(clock.elapsed_ms());
     drop((swept, device));
-    super::index::grid(&mut cfg, &made.bounds, prims);
+    let b = made.bounds;
+    cfg.extent = [b[3] - b[0], b[4] - b[1], b[5] - b[2], 0.0];
+    super::index::grid(&mut cfg, &b, prims);
     let index = super::index::index(gpu, tools, &cfg, (&made.prims, &made.owner)).await?;
     at.push(clock.elapsed_ms());
     if std::env::var("CYCLE_TRACE").is_ok() {
@@ -100,8 +102,9 @@ struct Made {
 }
 
 /// Each node's limb system (`clumping::systems`, by pointer jumps), the
-/// systems named densely, and each node's wood and each segment's (or
-/// frond leaflet's) leaves written as primitives.
+/// systems named densely, the box grown about each node's wood and each
+/// segment's (or frond leaflet's) leaves, and each written as a
+/// primitive within it.
 async fn primitives(
     gpu: &Gpu,
     tools: &Tools,
@@ -119,8 +122,8 @@ async fn primitives(
     lows.extend([u32::MAX; 3]);
     lows.extend([0u32; 3]);
     let work = storage(gpu, "field work", lows.len() as u64, &lows)?;
-    let prim = storage(gpu, "field primitives", prims * 8, &[])?;
-    let owner = storage(gpu, "field systems", prims, &[])?;
+    let prim = storage(gpu, "field primitives", prims * 4, &[])?;
+    let owner = storage(gpu, "field systems", prims - u64::from(ids), &[])?;
     let dense = storage(gpu, "field system names", u64::from(ids) + 1, &[])?;
     let none = unbound(gpu)?;
     let bufs = [nodes, &device.buffer, &work, &prim, &owner, &none[0], &dense];
@@ -143,10 +146,13 @@ async fn primitives(
     r.run(&mut e, (f, MARKS, ids, cfg), &bufs)?;
     let total = storage(gpu, "field systems total", 4, &[])?;
     tools.stationer.scan(gpu, &mut e, (&dense, ids, 1, 1), &total)?;
-    r.run(&mut e, (f, WOOD, ids, cfg), &bufs)?;
-    r.run(&mut e, (f, LEAVES, cfg.segs, cfg), &bufs)?;
-    if fronds {
-        r.run(&mut e, (f, LEAFLETS, cfg.segs, cfg), &bufs)?;
+    for write in [0.0, 1.0] {
+        cfg.extent[3] = write;
+        r.run(&mut e, (f, WOOD, ids, cfg), &bufs)?;
+        r.run(&mut e, (f, LEAVES, cfg.segs, cfg), &bufs)?;
+        if fronds {
+            r.run(&mut e, (f, LEAFLETS, cfg.segs, cfg), &bufs)?;
+        }
     }
     gpu.submit([e.finish()]);
     let systems = read_words(gpu, &total, 0, 1).await?[0];
