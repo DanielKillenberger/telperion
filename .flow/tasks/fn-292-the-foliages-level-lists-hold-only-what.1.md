@@ -43,9 +43,18 @@ One list of `instances` words replaces one list per level; the scatter writes ea
 - [ ] Early proof: the ordered-leaf-id measurement prints identical lines before (`raw/before/levels.txt`, run on the base commit) and after (`raw/after/levels.txt`) for every preset, hero and close; the spruce's and Laurelin's whole and close stills are pixel-identical to `raw/before/`. Either failing stops task 2.
 - [ ] Focused crate tests green; no full gate here (task 2).
 ## Done summary
-TBD
+The foliage's level lists are now one list of a word per leaf, levels end to end: the scatter writes each leaf at its level's start (the sum of the lower levels' final counts) and each start word into a "foliage level starts" buffer of `min_storage_buffer_offset_alignment` slots, and the draw binds that word at the level's dynamic offset so the vertex shader reads `list[start + instance]`. The early proof passes: the ordered leaf ids per preset, view, layer and level are identical before and after (raw/before/levels.txt vs raw/after/levels.txt, 90 lines), and the spruce's and Laurelin's whole, mid and close stills are byte-identical to raw/before.
 
+- baseline: green (both Quick commands, pre-layout-change, at 8fb9fa759)
+- measurement test committed first on the base layout (8fb9fa759, `the_drawn_levels`, ignored); layout change in 47805c6d1
+- tests: `the_levels_share_one_list_the_crown_fills_once`, `an_empty_level_starts_where_the_next_does_and_a_forced_one_at_zero` (R1 empty level, forced level); `tests/submit.rs` cases for "foliage level lists" and "foliage level starts"; shadow, thinning, conformance, walk and stalk_tests green
+- the start buffer is judged last in `submit::fits`, after the scratch, so the counter and argument cases keep naming their own buffers
+- friction: two entries in FRICTION.md (cargo fmt touching an unformatted base file; finalize refusing a zero-findings draw)
+
+stage: impl-review - ran [2026-10-16T12:51Z..2026-10-16T12:55Z]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8fb9fa759e5d6ef5cd6e43c8e283c4bb8b58403b, 47805c6d1405c7bf500f7201d114b12a4caa0363
+- Tests: cargo test --profile ci -p telperion-render --lib select, cargo test --profile ci -p telperion-render --test submit, cargo test --profile ci -p telperion-render --test shadow --test thinning --test conformance --test walk, cargo test --profile ci -p telperion-render --lib the_drawn_levels -- --ignored (before/after identical)
 - PRs:
