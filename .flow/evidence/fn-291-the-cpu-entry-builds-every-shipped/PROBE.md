@@ -278,3 +278,44 @@ The wood is compact from the start. The mesh step sums each run's normals in flo
 | laurelin 42 | 3,583 | 2,755 | 1,042 | built, 3,143,212 nodes |
 
 Every case builds under the bar. Telperion at seeds 7 and 42 is 807 MiB under it, the 2,777 MiB task 5 projected: the 831 MiB R2b saves came off the top. `npm run test:dist` builds Telperion seed 7 through `dist/telperion.js` in 1,114 chunks and checks each one.
+
+## Task 3: growth's tables, narrowed losslessly
+
+### Before (measured at 293f6225b, no code changed)
+
+`tablesize-patch.py` is a throwaway: applied, built into the driver `tablesize.rs` and reverted, never committed. It sums `capacity() * size_of` over every table the grower holds, after each cycle and as the settle begins, beside the live native heap. Raw rows: `raw/tablesize-base.jsonl`. For telperion seed 7 natively, the tables peak as the settle begins: 1,410,199 axes, 4,407,165 phytomers, 2,541 MiB of tables in a 2,543 MiB heap. So the tables are the whole growth heap; the build's native peak, 3,003 MiB, comes later, in the settle and the conversion.
+
+| table | native MiB at the peak | element, native B | element, wasm32 B |
+|---|---|---|---|
+| `axes[].phytomers` (`Phytomer`) | 805 | 136 | 136 |
+| `axes` (`Axis`) | 528 | 264 | 224 |
+| `sketch.pencils` (`Pencil`) | 366 | 192 | 168 |
+| `draws` (`Draws`) | 304 | 152 | 112 |
+| working set's `by_node` | 55 | | |
+| `draws[].units` (`Unit`) | 49 | 32 | 32 |
+| `successor` | 48 | | |
+| working set's `links` (`Link`) | 48 | 24 | 12 |
+| retirement's `log` | 48 | | |
+| `draws[].nodes` | 47 | 8 | 8 |
+| the rest, 22 tables | 241 | | |
+
+The wasm32 sizes were read from a wasm32 build of the same `size_of` calls (`wsizes`, scratch). On wasm32 `usize` is already 32 bits, so every index the scout read as narrowable to `u32` is already that width where the bar is measured. What can shrink on wasm32 is padding:
+
+- `Axis.joined: Option<Join>` is 32 B on every axis and set only on a relay that joins its parent: 2,449 of 365,865 kept axes for telperion seed 7, none while the tree grows. Behind a box it is 4 B: `Axis` goes from 224 to 192 B (native 264 to 232).
+- `Draws.outlived: Option<f64>` spends 8 B on its tag. Kept as an `f64` and a flag beside the other flags, `Draws` goes from 112 to 104 B (native 152 to 144).
+- Nothing else shrinks a table on wasm32 without narrowing a value no bound in code proves. `Phytomer`, the largest table, is eleven `f64`s and the `u64` key plus `cycle: u32`, whose 4 B pad to 8 at any narrower width. `Pencil` reaches 160 B only with its `units` and `laid` under 16 bits, which no bound proves. `Link.parent` as a sentinel saves 4 B a link (8 MiB at the peak) for about 80 changed lines, so it is left. A `u32::MAX` sentinel for `apex_end`, or `pa` as a `u8`, saves no byte on wasm32 once `joined` is boxed: the 4-byte group stays 48 B.
+
+Projected saving on wasm32 for telperion seed 7, at the axes' capacity of 2^21: 64 MiB for `Axis` and 16 MiB for `Draws`, about 80 MiB of the 2,693 MiB growth leaves (3%). The capacity slack is larger than any narrowing: the phytomer `Vec`s hold 805 MiB for 572 MiB of phytomers, and `axes`, `pencils` and `draws` sit at 2^21 for 1.41M axes. Reserving them is not narrowing; it is reported here for the host.
+
+Post-growth Wasm memory: the `grown` mark of `trace-pages.py` on a traced build of the base binding, one fresh engine per case, surface and foliage. Raw rows: `raw/grown-base.jsonl`. Output hashes of every preset (`hash-dist.mjs`, updated for task 6's chunks): `raw/hash-t3-base.txt`.
+
+| preset | seed 1 | seed 7 | seed 42 |
+|---|---|---|---|
+| ordinary | 80 | 105 | 126 |
+| oregon-white-oak | 289 | 361 | 319 |
+| norway-spruce | 1,245 | 1,215 | 1,204 |
+| european-beech | 79 | 137 | 169 |
+| silver-birch | 170 | 319 | 262 |
+| date-palm | 1 | 1 | 1 |
+| telperion | 1,519 | 2,693 | 2,740 |
+| laurelin | 1,445 | 2,578 | 2,618 |
