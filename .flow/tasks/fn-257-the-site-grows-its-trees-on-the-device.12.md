@@ -32,9 +32,12 @@ The owner asked for a quick probe before anything is deleted (spec, "The field i
 - [ ] The stages the field path runs whose outputs it does not read, each with its time.
 - [ ] Nothing in the shipped path changed; the probe is ignored-by-default test code.
 ## Done summary
-TBD
+The R8 probe is built and measured (PROBE-R8.md). It splats the field from the drawn nodes and the station segments in one device pass. Every measure falls within `within`'s tolerances on the spruce, the oak and the date palm at 24, 36 and 48, seeds 1 and 5678, as close as today's device field or closer. On the spruce, paired warm over 16 pairs, today runs 497.4 ms and the splat path 432.3 ms: a median of −63.8 ms, faster in 16 of 16. Between growth and the answers today holds 57.1 MB on the device and the splat path holds none. The leaf input recommended for both executors is the station segments, on the CPU the plan's descriptors. Limits for task 13: the 32-bit table key, the palm's frond margin at fine grids, the palm's per-executor boxes, and the palm's 5.6 ms of serial leaflets.
 
+stage: impl-review - skipped(policy: probe, measurement-only test code, nothing shipped)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 97265ecc4310863c288c8099bdbe3d7e7942c34c
+- Tests: cargo test --profile ci -p telperion-render shader_tests, cargo test --profile ci -p telperion-render splat_ -- --ignored --nocapture --test-threads 1
 - PRs:
