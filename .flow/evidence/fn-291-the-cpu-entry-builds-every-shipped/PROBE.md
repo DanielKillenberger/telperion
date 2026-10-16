@@ -235,6 +235,10 @@ The longest run of any shipped preset at its own seed is 9,642 vertices (date-pa
 | telperion | e31b0b89bcbbb198 | 72,631,958 | 1,113 |
 | laurelin | da746f7a93aa7735 | 67,981,374 | 1,042 |
 
+After the review the check asserts. Both tools take seeds, and `flatdigest.rs --expect <base log>` exits nonzero on any digest line the base did not print, or on any preset that fails to build. The base tool was rebuilt from a temporary worktree at 9eed854d0 (its own target directory) and run at seeds 1 and 42; the chunked tool ran against that log and exited 0. All 16 lines match (raw: `raw/flatdigest-base-1-42.log`, `raw/flatdigest-chunks-1-42.log`). At seed 1: ordinary bcbc6a9d6d555136, oregon-white-oak 255a56e1508e0030, norway-spruce 1a60a707e6b79534, european-beech 4a6bca73900882dc, silver-birch e23a3e810440fdc3, date-palm 19b3b6a53841c6b8, telperion 8dc054ab905a885b, laurelin f170ef631674d8e6.
+
+A split run keeps every value and each chunk keeps the run's draw order, but not the run's global order across chunks: the first piece holds the bottom cap, so its cap triangles draw before the later pieces' strips, and the bottom and top caps no longer interleave. That follows from the plan's "each split keeps its caps in the chunk that holds the cap vertices". No shipped run splits.
+
 The species digests (`suite/species.rs`) and the bark hashes (`telperion-render/tests/bark_*.rs`) hash the chunks laid end to end, and none was re-pinned. A run longer than a chunk is covered by `chunks::tests::a_run_longer_than_a_chunk_splits_with_no_value_changed` (140,000 vertices over three chunks).
 
 ### The high-water mark

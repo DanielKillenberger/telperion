@@ -225,10 +225,11 @@ pub(super) fn record(
     }
 }
 
-/// The ring address of vertex `local` of chunk `chunk`.
+/// The ring address of vertex `local` of chunk `chunk`; `local` may be the
+/// chunk's end, which is the next chunk's first address.
 #[inline]
 pub(super) fn address(chunk: usize, local: usize, shift: u32) -> usize {
-    chunk << shift | local
+    (chunk << shift) + local
 }
 
 /// A ring address split into its chunk and its vertex in the chunk.

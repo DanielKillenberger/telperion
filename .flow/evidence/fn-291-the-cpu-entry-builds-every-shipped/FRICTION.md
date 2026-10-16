@@ -24,3 +24,9 @@ Doing: the focused run of `cargo test --profile ci -p telperion-core` after the 
 Slowed: the crate's suite grows every shipped preset several times (species suites, the shipped-preset pipeline test, the attachment test over CATALOGUE and IN_WORK); four threads under the heavy cap took past the 600 s tool limit, so the run went to the background and the worker waited on it.
 Cost: over 10 minutes of wall clock for one crate.
 Would remove it: a named filter set for "the wood's tests" (surface, mesh, species digests) that a task touching the surface runs instead of the whole crate.
+
+## 2026-10-16 - task 5: a one-test red run waited 31 minutes for admission
+Doing: the red run of one new unit test (`chunks::tests::the_end_of_a_full_odd_chunk_is_the_next_chunks_start`) during the review's fix pass, under `telperion-heavy 12 --threads 4`.
+Slowed: another job held the heavy room (4 GB free for a 12 GB request) from 11:07 to 11:39; the test itself ran in 0.00 s.
+Cost: 31 minutes of wall clock.
+Would remove it: a smaller admission request for a single-test run (the crate's test binary was already built; 12 GB is the whole-suite figure), or an admission class for incremental test runs.

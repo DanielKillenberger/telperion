@@ -164,3 +164,11 @@ fn a_run_longer_than_a_chunk_splits_with_no_value_changed() {
         assert_eq!(seat(&read), seat(&swept), "{node}");
     }
 }
+
+/// The address past an exactly full chunk is the next chunk's first: a
+/// contact cache sized by it holds every ring pair of the last chunk.
+#[test]
+fn the_end_of_a_full_odd_chunk_is_the_next_chunks_start() {
+    assert_eq!(address(1, CHUNK_VERTICES, 16), 2 * CHUNK_VERTICES);
+    assert_eq!(address(1, 7, 16), CHUNK_VERTICES + 7);
+}
