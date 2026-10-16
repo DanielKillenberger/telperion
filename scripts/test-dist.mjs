@@ -9,7 +9,8 @@ const present = new Set(await readdir(dist));
 for (const file of ['telperion.js', 'telperion.wasm', 'telperion-render.wasm', 'field.js']) {
   if (!present.has(file)) throw Error(`dist/${file} is missing; run npm run build first`);
 }
-const { TreeEngine, TELPERION } = await import(new URL('telperion.js', dist));
+const { TreeEngine, TELPERION, decodeNormals } = await import(new URL('telperion.js', dist));
+if (typeof decodeNormals !== 'function') throw Error('telperion.js does not export decodeNormals');
 const { growField } = await import(new URL('field.js', dist));
 const engine = await TreeEngine.create();
 const family = structuredClone(TELPERION);
@@ -17,12 +18,12 @@ family.skeleton.seed = 7;
 const tree = engine.build(family, { surface: true, foliage: true });
 const nodes = tree.diagnostics.nodes;
 const { chunks } = tree.surface;
-if (!(nodes > 0) || chunks.length !== tree.diagnostics.surfaceChunks) throw Error('the main entry built no tree');
+if (!(nodes > 0) || chunks.length === 0 || chunks.length !== tree.diagnostics.surfaceChunks) throw Error('the main entry built no tree');
 // The wood in chunks: none past 65,536 vertices, two oct components a
 // vertex, every 16-bit index inside its own chunk.
 for (const [k, c] of chunks.entries()) {
   const vertices = c.positions.length / 3;
-  const whole = vertices > 0 && vertices <= 65536 && c.normals.length === vertices * 2;
+  const whole = vertices > 0 && vertices <= 65536 && c.normals.length === vertices * 2 && c.indices.length > 0;
   if (!whole || !c.indices.every(i => i < vertices)) throw Error(`telperion.js: Telperion seed 7, wood chunk ${k} is malformed`);
 }
 engine.dispose();
