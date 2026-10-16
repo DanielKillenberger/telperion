@@ -62,3 +62,8 @@ The engine's field query only. The owner (2026-10-15): "that really shouldn't be
 ## Host decisions after task 8 (2026-10-16)
 
 Reusing growth's buffers across builds (about 33 ms on the spruce) is not taken: it raises the build's peak from 1,587 MB to about 2,250 MB and holds 1.6 GB between builds, against the owner's memory direction. The compaction stays as it is (removing its read or sizing it in was no clear gain). The foliage's level lists (80.8 MB, about 15 MB laid end to end) are fn-292. With these, the spruce's remaining non-kernel costs are about 26 ms of dispatch launches (folding measured slower, DISPATCH.md) and about 33 ms of buffer creation (the reuse above); the rest is kernel arithmetic, fn-285's.
+
+## The owner's decisions on reuse and the site field's time (2026-10-16)
+
+- **Buffer reuse across builds, declined:** "keeping buffers for 33ms costing 663mb seems not worth it". A reuse limited in time (freed after an idle spell) is a later idea for fn-285.
+- **"Why is the build faster than the site field?"** The spruce's site field is the build (about 381 ms), the field's primitives (about 56 ms) and the 36³ query (about 65 ms), about 0.50 s. Before fn-257 closes, as part of its completion pass (through the flow, codex review): (a) measure whether `growField` runs the drawing build's dress and drawn stages it does not read for the field; if so, the field path stops after what it reads (one pipeline, no second chain, only not asking for outputs it does not use); (b) measure where the query's 65 ms goes (dispatches, readbacks, index traversal against arithmetic). Each is taken with a general remedy, measured paired warm over 16 runs with the field's answers identical, and the spruce's site-field time reported before and after.
