@@ -20,7 +20,7 @@
     "fn-257-the-site-grows-its-trees-on-the-device.6": 0,
     "fn-257-the-site-grows-its-trees-on-the-device.7": 0,
     "fn-257-the-site-grows-its-trees-on-the-device.8": 0,
-    "fn-257-the-site-grows-its-trees-on-the-device.9": 2
+    "fn-257-the-site-grows-its-trees-on-the-device.9": 1
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -1215,6 +1215,74 @@
       "task": "fn-257-the-site-grows-its-trees-on-the-device.8",
       "timestamp": "2026-10-16T10:10:29.379505Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "fb4436bd33ec3e452ca98ca088ddf85b96d29bd3d639fd558ab72dd4170711ef",
+      "backend": "codex",
+      "base_sha": "4de0fc5aebbc05a100ee2937efcae071fe86d80e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9980be7e547385edb2fa0ea0e40b9290",
+            "classification": "introduced",
+            "findingId": "finding-9980be7e547385edb2fa0ea0e40b9290",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-166bc7ec86d47bc9631be56b9c1b6249",
+            "classification": "introduced",
+            "findingId": "finding-166bc7ec86d47bc9631be56b9c1b6249",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a6b049aa9fdfcf117995f2053bb05262",
+            "classification": "introduced",
+            "findingId": "finding-a6b049aa9fdfcf117995f2053bb05262",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2a31c18b25b913de9231e35aa5545174",
+            "classification": "introduced",
+            "findingId": "finding-2a31c18b25b913de9231e35aa5545174",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "49cd6b40be5a20c6b19349f9296b5971fe59ea97",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1482,
+      "output_sha256": "0eba512b089e3548eb8298de9bf80eb3a87933f011059b4adbc400cf6f61833a",
+      "reservation_id": "9d34a7fc8226470a8fc332127278ffc5",
+      "round_consumed": true,
+      "scope": "impl:fn-257-the-site-grows-its-trees-on-the-device.9",
+      "superseded_by": null,
+      "task": "fn-257-the-site-grows-its-trees-on-the-device.9",
+      "timestamp": "2026-10-16T12:17:27.873527Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -1225,8 +1293,9 @@
     "impl:fn-257-the-site-grows-its-trees-on-the-device.6": 1,
     "impl:fn-257-the-site-grows-its-trees-on-the-device.7": 2,
     "impl:fn-257-the-site-grows-its-trees-on-the-device.8": 1,
-    "plan": 4,
-    "plan#completion": 1
+    "impl:fn-257-the-site-grows-its-trees-on-the-device.9": 1,
+    "plan": 5,
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -1255,5 +1324,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T10:10:29.382952Z"
+  "updated_at": "2026-10-16T12:17:27.877411Z"
 }

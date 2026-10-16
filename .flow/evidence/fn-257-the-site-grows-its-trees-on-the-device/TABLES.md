@@ -35,7 +35,14 @@ Rows: the spruce's tables hold 1,090,688 axes (and pencils), 1,765,374 units and
 | plan uniforms, cfgs | fixed | | 8.4 each | 8.4 each | the recorded cycle's uniform slots, u32 and f32 words | none | 0 |
 | light quanta, field | the lattice's nodes | 1 each | 6.6 each | 17.1 each | quanta (`atomic<u32>`, 2^-20 m2), density (f32) | none lossless | 0 |
 | hierarchy living, normaliser, layout flags, cycle state lists | | | 4.5, 4.4, 4.4, under 4 | 11.6, 6.3, 6.3, 5.9 | living apexes (ids, ticks, a flag); subtree order and per-block sums (f32); a flag word an axis; buds' records (ids, cycles, keys) | a flag word as a byte: layout flags | at most 3.3 MB |
-| every other buffer | | | under 4 each | under 4 each | | | under 0.3 % each |
+| cycle state lists | the buds' lists | 14 a sleeper, 5 a woken bud, 2 a living apex | 2.3 | 5.9 | `arena.wgsl`'s `S_`, `W_`: axis, bearer, unit and node ids; wake and woken cycles (at most the age); slot (under 8 places); PA (small); presence (f32); keys (64 bits) | a sleeper's slot, PA and wake cycle in one word | at most 0.5 MB |
+| light reads | the tips | 1 | 1.0 | 2.5 | the light each tip reads (f32) | none lossless | 0 |
+| cycle words | the PAs' rows | 2 (u64) | 0.3 | 0.5 | `columns.rs`'s `packed`: lifespans and windows in ticks, f32 bits in a u64 word, offsets | none: each u64 holds a value its kernels read whole | 0 |
+| plan code | the recorded cycle | 1 | 0.1 | 0.2 | the sizing VM's program words (`vm.rs`) | none | 0 |
+| census, plan given, plan point | fixed | 1 | 0.0 | 0.0 | the census's counts and the sizes the host gives each dispatch (u32) | none: kilobytes | 0 |
+| cycle table, layout form | the unit tables, the PAs | 1 | 0.0 | 0.0 | `zones.wgsl`'s unit tables (u32 offsets and counts); the form rows (f32) | none: kilobytes | 0 |
+| light grid, light state, light state start | fixed | | 0.0 | 0.0 | the lattice's box and sweep state, 32-48 bytes each | none | 0 |
+| hierarchy rows, tally, scan sums, sums scan, sums tally; cycle scan sums, scan tally, spare; compaction spare, sums, tally; layout scan sums; units scan sums | scan blocks and tallies | 1 | 0.0 each | 0.0 each | each scan's block totals and each stage's tally words (u32), kilobytes | none | 0 |
 
 ## The step taken: a zone's order, a byte a node
 
