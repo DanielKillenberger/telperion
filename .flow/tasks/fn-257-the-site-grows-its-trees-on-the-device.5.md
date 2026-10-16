@@ -19,9 +19,10 @@ How (the host's design):
 - The harness build untouched (the field is the field entry's alone).
 
 ## Done summary
-TBD
+The field's primitives are written compact where they are made: 16 B each (20-bit box fractions, the wood's far end its parent's, a leaf's a shifted 11-bit difference, halves for radii and reach), systems for the leaves alone, one decoder. Spruce 100.2 -> 57.1 MB; every preset within R2 at 24/36/48 cells at seeds 1 and 5678; the gate's test asks all three grids. A first 16-bit cut failed Telperion 5678 at 36 cells by 0.0001 and was replaced. Codex impl-review SHIP.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5d942f396
+- Tests: cargo test --profile ci -p telperion-render --lib field, FIELD_SEEDS=1,5678 cargo test --profile ci -p telperion-render --lib the_device_field_answers_as_the_cpu_field -- --ignored
 - PRs:
