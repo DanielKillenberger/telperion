@@ -24,7 +24,18 @@ Rows: the spruce's tables hold 1,090,688 axes (and pencils), 1,765,374 units and
 | retire columns | axes | 13 | 56.7 | 81.8 | `retire_cols.wgsl`'s `R_`: open, wake, wsub (cycles), fate (0-3), pend (flag); lived, alive, qb1, root lived and alive, frozen radius and sums (f32) | the cycles, fate and pend in two words | 13.1 MB (0.8 %) |
 | retire verdicts | axes | 11 | 48.0 | 69.2 | the cycle's own `C_`: closed (flag), gap (cycles), lived, end, before, weight and girth (f32) | closed beside gap | 4.4 MB |
 | hierarchy counts | axes | 12 | 52.4 | 75.5 | `atomic<u32>` counters | WGSL's narrowest atomic is 32 bits; packing two needs proven bounds | 0 |
-| inputs, shape, lists, buckets, light points, layout lists and the rest | | | under 32 each | | | under 2 % each | |
+| cycle inputs | 2 a living apex + 7 an axis | | 31.8 | 47.3 | `glue.wgsl`'s `inputs_main`: a living apex's axis (id) and time (ticks); an axis's light and kept share (f32), its size and light (f64 words) | the two f64 as f32 if they hold f32 exactly, as the units' shade does: unchecked here | at most 8.7 MB |
+| hierarchy shape | axes | 6 | 26.2 | 37.7 | `hier_cols.wgsl`'s `H_`: depth (at most 63 levels), block, spill and from (ids), generation (at most 8), level (at most 63) | depth, generation and level in one word | 8.7 MB |
+| hierarchy lists a, b | axes + 64 | 6 each | 26.2 each | 37.7 each | children, members and levels: starts and axis ids | none | 0 |
+| hierarchy buckets | axes | 5 | 21.8 | 31.4 | `U_` kids, joiners, members, sorted, groups: axis ids | none | 0 |
+| light points | the leaves and tips | 4 | 16.6 | 42.8 | position and weight (f32) | none lossless | 0 |
+| layout lists | 3 an axis | | 13.1 | 18.9 | the layout's generations' axis ids | none | 0 |
+| compaction phytomers, units, column, axes, children, members | each table's rows + 1 | 1 | 10.3, 7.1, 10.3, under 4 | 26.7, 18.2, 26.7, 6.3 each | prefix sums of kept rows (offsets up to the rows) | none | 0 |
+| cycle flags | axes | 2 | 8.7 | 12.6 | a flag, then its copy scanned in place into offsets | none (the copy is an offset) | 0 |
+| plan uniforms, cfgs | fixed | | 8.4 each | 8.4 each | the recorded cycle's uniform slots, u32 and f32 words | none | 0 |
+| light quanta, field | the lattice's nodes | 1 each | 6.6 each | 17.1 each | quanta (`atomic<u32>`, 2^-20 m2), density (f32) | none lossless | 0 |
+| hierarchy living, normaliser, layout flags, cycle state lists | | | 4.5, 4.4, 4.4, under 4 | 11.6, 6.3, 6.3, 5.9 | living apexes (ids, ticks, a flag); subtree order and per-block sums (f32); a flag word an axis; buds' records (ids, cycles, keys) | a flag word as a byte: layout flags | at most 3.3 MB |
+| every other buffer | | | under 4 each | under 4 each | | | under 0.3 % each |
 
 ## The step taken: a zone's order, a byte a node
 
@@ -57,6 +68,7 @@ Two tables hold fixed room that most rows never use. Taking it back is a layout 
 | axes' layout f32 (13 columns) and ticks/f64 pairs | 57 + | about 28 | survival, presence and abortion draws compare them against thresholds | high: a threshold compare that flips changes topology (a bud lives or dies), so the tree is no longer the same tree |
 | units' survival, persistence (f32) | 14 | about 7 | `decide.wgsl` draws | high, as above |
 | the hierarchy's sums, the cycle tree's and retirement's f32 (about 33 columns) | about 145 | about 72 | the balance and allotment (`hier_cycle.wgsl`, `hier_sweep.wgsl`) and retirement's verdicts | high: these sums decide which apexes are shed and which buds grow |
+| light points, light field | 23 (60 on Telperion) | about 12 | the light sweep | moderate, as light depths |
 | light depths | 60 (154 on Telperion) | about 30 | the light sweep's shading | moderate: light feeds survival through the same thresholds |
 
 The safe quantisation is the geometry growth never compares against a draw: headings and sides octahedral, positions as fixed point in the box. That is about 80 MB on the spruce (5 %) and changes the trees' bytes, so fn-285 would need the owner's look at stills. Everything a draw is compared against has to stay as it is.
