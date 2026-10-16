@@ -1,6 +1,6 @@
 use super::clock::Clock;
 use super::{data, io, Generator, Metrics, Resident};
-use crate::buffer::{Lent, Owned};
+use crate::buffer::Owned;
 use crate::{buffer::Held, Gpu, Result};
 use telperion_core::{
     foliage::{prepared::PreparedStations, Element, Reference, TwigPlacement},
@@ -77,17 +77,21 @@ impl Generator {
             segments: p.segments,
             count: p.count,
             ring_size: p.ring_size,
-            rings: Lent::Own(ring_buffer),
+            rings: ring_buffer,
         };
         let upload_ms = started.elapsed_ms();
-        let result = self.compute_buffer_async(stations, l, t, e, r, m).await;
+        let result = self.compute_buffer_async(stations, 0, l, t, e, r, m).await;
         m.upload_dispatch_ms += upload_ms;
         result
     }
 
-    pub(super) async fn compute_buffer_async(
+    /// The leaves `p`'s stations place, seated on its rings, and their
+    /// mass. `lent` is the bytes of rings another owner keeps live through
+    /// the mass pass; rings this call owns are freed before it.
+    pub(super) async fn compute_buffer_async<R: std::ops::Deref<Target = wgpu::Buffer>>(
         &self,
-        p: PreparedStations<Lent<'_>>,
+        p: PreparedStations<R>,
+        lent: u64,
         l: &LeafInput,
         t: TwigPlacement,
         e: &Element,
@@ -111,11 +115,6 @@ impl Generator {
         );
         let segment_buffer = upload(gpu, "generation segments", &segments, STORAGE)?;
         let ring_buffer = p.rings;
-        let retained_contacts = if matches!(ring_buffer, Lent::Borrowed(_)) {
-            ring_buffer.size()
-        } else {
-            0
-        };
         drop((p.segments, segments));
         let placed = self.place_leaves(config, (&segment_buffer, &ring_buffer), e, count)?;
         let (leaves, summary, live) = (placed.leaves, placed.summary, placed.live);
@@ -139,9 +138,7 @@ impl Generator {
         m.gpu_compute_peak_bytes = live;
         drop((segment_buffer, ring_buffer, summary));
         let start = Clock::now();
-        let masses = self
-            .mass(&leaves, count, crown, r, retained_contacts, m)
-            .await?;
+        let masses = self.mass(&leaves, count, crown, r, lent, m).await?;
         m.mass_ms = start.elapsed_ms();
         Ok(Resident {
             leaves: Held::resident(leaves, u64::from(count) * 12, "generated foliage"),

@@ -212,6 +212,7 @@ fn every_subnormal_half_decodes_to_its_ieee_value() {
 /// 0.0026 rad on the rotation and a thousandth relative on the scale. The
 /// constructed cases above measure the codec; this measures the codec against
 /// what the generator actually produces, which is the integration R2 names.
+#[cfg(feature = "geometry")]
 #[test]
 fn every_preset_placement_round_trips_inside_r2() {
     let _turn = crate::one_tree::turn();

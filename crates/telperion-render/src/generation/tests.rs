@@ -120,10 +120,11 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
             segments,
             count,
             ring_size,
-            rings: crate::buffer::Lent::Borrowed(&uploaded.positions),
+            rings: &*uploaded.positions,
         };
         let shared_leaves = pollster::block_on(generator.compute_buffer_async(
             p,
+            uploaded.positions.size(),
             &leaves(&tree, &f),
             twig,
             &element,
@@ -441,10 +442,11 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
         segments: p.segments,
         count: p.count,
         ring_size: p.ring_size,
-        rings: crate::buffer::Lent::Borrowed(&positions),
+        rings: &positions,
     };
     let leaves = pollster::block_on(g.compute_buffer_async(
         p,
+        positions.size(),
         &leaves(&tree, &f),
         twig,
         &element,
@@ -537,4 +539,16 @@ fn compact_position_candidate_does_not_override_station_capability() {
     .stations()
     .unwrap()
     .is_none());
+}
+
+/// Production makes of the position programme only `emit`, which the
+/// resident build's ring seating runs; the comparison route's entries
+/// follow it, test-only (fn-287 R1).
+#[test]
+fn production_makes_only_the_position_emit_entry() {
+    assert_eq!(super::positions::ENTRIES, ["emit"]);
+    assert_eq!(
+        super::positions::entries(),
+        ["emit", "admit", "radii", "finish"]
+    );
 }

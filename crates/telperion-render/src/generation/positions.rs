@@ -1,13 +1,31 @@
-//! Admission completes before any foliage consumes candidate geometry.
+//! The position programme. Production makes its `emit` entry alone, which
+//! the resident build's ring seating runs (`ring_vertices`); the tests
+//! add the comparison route's `admit`, `radii` and `finish`, whose
+//! admission completes before any foliage consumes candidate geometry.
+use super::{io, Generator};
+#[cfg(test)]
 use super::{
-    io,
     wood::{self, UploadedWood},
-    Clock, Generator, Metrics,
+    Clock, Metrics,
 };
 use crate::buffer::Owned;
 use crate::Result;
+#[cfg(test)]
 use telperion_core::surface::compact::CompactSurface;
 
+/// The entries production makes, by index: `emit` alone (fn-287 R1).
+pub(super) const ENTRIES: &[&str] = &["emit"];
+
+/// The entries the position pass is made with: production's, then under
+/// test the comparison route's, which index after them.
+pub(super) fn entries() -> Vec<&'static str> {
+    let entries = ENTRIES.to_vec();
+    #[cfg(test)]
+    let entries = [entries, vec!["admit", "radii", "finish"]].concat();
+    entries
+}
+
+#[cfg(test)]
 pub(super) fn cpu_bytes(p: &CompactSurface) -> u64 {
     (p.rings.capacity() * 64
         + p.angular.capacity() * 16
@@ -15,6 +33,7 @@ pub(super) fn cpu_bytes(p: &CompactSurface) -> u64 {
         + p.run_table.capacity() * size_of::<telperion_core::surface::SurfaceRun>()) as u64
 }
 
+#[cfg(test)]
 struct PendingPositions {
     surface: CompactSurface,
     positions: Owned,
@@ -23,6 +42,7 @@ struct PendingPositions {
     read: io::PendingRead,
 }
 
+#[cfg(test)]
 impl Generator {
     pub(super) async fn emit_positions(
         &self,

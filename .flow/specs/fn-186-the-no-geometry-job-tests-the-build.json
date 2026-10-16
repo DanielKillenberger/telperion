@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-186-the-no-geometry-job-tests-the-build",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-16T03:49:22.392314Z",
   "created_at": "2026-10-02T15:26:17.440933Z",
   "default_impl": null,
   "default_review": null,
@@ -10,13 +10,168 @@
     "fn-181-the-growth-path-is-removed-to-be"
   ],
   "id": "fn-186-the-no-geometry-job-tests-the-build",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-186-the-no-geometry-job-tests-the-build.1": 0
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-16T02:58:43.651030Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "879cd776827a97ed86efbedaa14f98b0b0aff4c2c8917f8729b08c885dde44d4",
+      "backend": "codex",
+      "base_sha": "6a6d5abcba776e4463dde952df983f193e0d0494",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e07df03d964f861cd2298a675ef4381e",
+            "classification": "introduced",
+            "findingId": "finding-e07df03d964f861cd2298a675ef4381e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-edd0464281db7c77e6573d91df966097",
+            "classification": "pre_existing",
+            "findingId": "finding-edd0464281db7c77e6573d91df966097",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6a6d5abcba776e4463dde952df983f193e0d0494",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 219010,
+      "output_sha256": "72a2692ee8615f2a8df8bc6968ec4b469e7bafd5cf7e7cb91d16fabe3575a767",
+      "reservation_id": "2a5a57904d9d46858219aea39fd96851",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-16T02:58:15.694462Z",
+      "tool_calls": 15,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "c19b86f2a20589f6559c26a7fffda0f295f16969f1ff335dcb747a9a34bfa8fc",
+      "backend": "codex",
+      "base_sha": "6a6d5abcba776e4463dde952df983f193e0d0494",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e07df03d964f861cd2298a675ef4381e",
+            "classification": "introduced",
+            "findingId": "finding-e07df03d964f861cd2298a675ef4381e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-edd0464281db7c77e6573d91df966097",
+            "classification": "pre_existing",
+            "findingId": "finding-edd0464281db7c77e6573d91df966097",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6a6d5abcba776e4463dde952df983f193e0d0494",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 580,
+      "output_sha256": "9c1397445b8f1395c9203433b9aafe074de4e32a702e5fbbe09612612af02c3f",
+      "reservation_id": "6d90b72d65354de1aebda4ba6c2723cf",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-16T02:58:43.648656Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "51db3feb8e42e19c920362efda25739cd787350e60dc55a27fb77174e06e6088",
+      "backend": "codex",
+      "base_sha": "bbee535ebcc025654a2ff54753e54c1d224015c3",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "729f60eb1b5e1aa542de9a778b5520694d21f2ae",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "5b66100533f54635bd7d3d18d7f4fc1c",
+      "round_consumed": true,
+      "scope": "impl:fn-186-the-no-geometry-job-tests-the-build.1",
+      "superseded_by": null,
+      "task": "fn-186-the-no-geometry-job-tests-the-build.1",
+      "timestamp": "2026-10-16T03:49:06.742945Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-186-the-no-geometry-job-tests-the-build.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-186-the-no-geometry-job-tests-the-build.1": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-186-the-no-geometry-job-tests-the-build.md",
   "status": "open",
   "title": "The no-geometry job tests the build without geometry",
@@ -31,5 +186,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T15:30:20.873305Z"
+  "updated_at": "2026-10-16T03:49:22.392321Z"
 }

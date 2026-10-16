@@ -616,7 +616,7 @@ pub use establish::Establishing;
 mod join;
 mod unfolding;
 use unfolding::Unfolding;
-#[cfg(test)]
+#[cfg(all(test, feature = "geometry"))]
 mod radii_tests;
 #[cfg(test)]
 mod relay_tests;

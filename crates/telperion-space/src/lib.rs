@@ -6,7 +6,8 @@
 //! is drawn by its zone of the growth unit; dead laterals are shed. The
 //! structures are tested against GreenLab's closed-form counts and against
 //! Letort's GreenLab simulator, run unchanged in a browser
-//! (`scripts/greenlab-oracle.mjs`). Nothing here is wired into the pipeline.
+//! (`scripts/greenlab-oracle.mjs`). The pipeline grows every tree through
+//! `grow` (`telperion-core`'s `pipeline/space.rs`).
 //!
 //! Phase B makes the space continuous (`lineage.rs`): every draw is keyed to
 //! the bud's path from the root, and every element a draw makes grows in

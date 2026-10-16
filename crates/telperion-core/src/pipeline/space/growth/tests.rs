@@ -77,6 +77,7 @@ fn a_request_the_state_cannot_meet_is_refused_by_name() {
 /// degree: in full leaf just past the whole age, falling and colouring
 /// through autumn, bare through winter, every leaf growing again from
 /// budburst, and in full leaf again just before the next whole age.
+#[cfg(feature = "geometry")]
 #[test]
 fn the_oaks_year_runs_from_full_leaf_to_full_leaf_by_degree() {
     let family = Preset::OregonWhiteOak.parameters();

@@ -39,4 +39,4 @@ trybuild = "1"
 # The repeatability check builds a tree on one core and on four (fn-254).
 rayon = "1"
 # Examples and tests read the wire the binding publishes, never a second copy.
-telperion-core = { path = ".", features = ["json"] }
+telperion-core = { path = ".", default-features = false, features = ["json"] }
