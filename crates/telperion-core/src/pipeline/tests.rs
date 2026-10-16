@@ -299,3 +299,26 @@ fn every_shipped_preset_builds_every_artifact_through_the_pipeline() {
         }
     }
 }
+
+/// The grown tree holds no spare capacity once it is clothed (fn-291 R2a):
+/// in 32-bit Wasm a growth-doubled node buffer kept a fifth more than the
+/// nodes past growth, through the wood's reservations.
+#[test]
+fn the_built_tree_keeps_no_spare_capacity() {
+    let built = build(&ordinary(), Request::default()).unwrap();
+    let t = &built.skeleton.tree;
+    let spare = [
+        t.nodes.capacity() - t.nodes.len(),
+        t.sections.capacity() - t.sections.len(),
+        t.pipe.capacity() - t.pipe.len(),
+        t.frames.capacity() - t.frames.len(),
+        t.keys.capacity() - t.keys.len(),
+        t.grown.capacity() - t.grown.len(),
+        t.blooms.capacity() - t.blooms.len(),
+        t.clusters.capacity() - t.clusters.len(),
+        t.clustered.capacity() - t.clustered.len(),
+        t.leafing.capacity() - t.leafing.len(),
+        t.unfolding.capacity() - t.unfolding.len(),
+    ];
+    assert_eq!(spare, [0; 11]);
+}

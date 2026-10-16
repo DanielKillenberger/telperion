@@ -153,4 +153,34 @@ Other seeds are not covered. Telperion at seeds 7 and 42 is 3.36M nodes, under t
 
 The lever the measurements point to is the index buffer: 1,651 MiB, 43% of the wood. Every index follows from the ring topology (`surface/prepared.rs`; base, rings and sides per run), except dropped zero-area triangles. Handing JS a run table instead of `indices` would bring the floor to about 1.7 to 2.0 GiB. Growth's 2.7 GiB peak would then be the high-water mark. That changes the package's output format, it is not per-vertex data, and it is the host's call. So is any change to positions' precision or to growth's peak.
 
-No crate code was changed in task 2. Every preset's wood is unchanged.
+### R2a, implemented and measured
+
+**Write once.** On the wasm path, every wood buffer is already reserved once at its exact final size (`surface/rings.rs:139-140`, `surface/build.rs:112-113`) and moved into the mesh, never grown or copied. The one exception is the run table, which is copied only where a triangle was dropped. That part of R2a needed no change.
+
+**Free what the surface does not read: the tree's spare capacity.** The node buffer grew by doubling, so it kept up to twice its nodes past growth. For telperion at seed 7 that is a 528 MiB buffer for 423 MiB of nodes, and `frames`, `keys` and `grown` had spare too. `pipeline::build` now calls `fitted()` after clothing, which gives that spare back before the wood reserves anything. The test `pipeline::tests::the_built_tree_keeps_no_spare_capacity` was red on the base (left `[109966, 0, 0, 109966, 109966, 109966, 0, ...]` for ordinary) and is green after.
+
+**Output unchanged.** I built `dist/` before and after and hashed every buffer the entry hands JS (surface positions, normals and indices; foliage positions, indices and leaves) with `hash-dist.mjs`, for all 8 presets at seed 1. All 8 are identical: `raw/hash-base.txt` against `raw/hash-r2a.txt`. The change touches no value, only capacity.
+
+**Measured after R2a.** Traced as before; raw rows in `raw/trace-r2a.jsonl`. Wasm memory in MiB:
+
+| case | after growth | rings `positions` | rings `coords` | faces `normals` | faces `indices` | outcome |
+|---|---|---|---|---|---|---|
+| telperion 1 | 1,519 | → 2,011 | → 2,338 | → 2,829 | → 3,805 | built, 3,805 (unchanged) |
+| telperion 7 | 2,693 | → 3,524 | → 4,078 | **fails** | — | 4,078 (unchanged) |
+| telperion 42 | 2,740 | → 3,572 | **fails** | — | — | 3,572 (unchanged) |
+| laurelin 7 | 2,578 | **reused**, 2,578 | → 3,094 | → 3,868 | **fails**, 1,537 | 3,868 |
+| laurelin 42 | 2,618 | **reused**, 2,618 | → 3,137 | → 3,915 | **fails**, 1,545 | 3,915 |
+
+- **Laurelin.** The freed spare lets laurelin's `positions` land in memory growth gave back. The failure moves from `normals` to `indices`. The build would still need about 5.4 GiB of Wasm memory to finish.
+- **Telperion.** Its `positions` still finds no contiguous free run, so nothing changes.
+- **No case gets closer to the bar.** Laurelin's high-water mark at failure rises, because it now gets one reservation further.
+
+The other R2a candidate is `edges`. It costs 40 B a node, about 128 MiB for telperion. Leaves read it, and on the serial path they run after the wood's `faces()`. Freeing it before `faces()` means running leaves before the wood, which changes the order in which the stage reports errors (`pipeline::tests::the_wood_fails_before_the_plan`). Even then it would save at most 128 MiB against the gap below. It was not taken.
+
+### Gap (stop condition met)
+
+R2a as built does not lower the high-water mark of any failing case. R2b's per-vertex compaction cannot close the gap either, by the floor above:
+- **Telperion, coords kept as u16:** 3,672 MiB live against a 3,584 MiB bar, so 88 MiB over at zero slack.
+- **Coords freed as well:** 3,395 MiB, so 189 MiB under, but only at zero slack. Measured slack is 1,219 MiB.
+
+Growth leaves 2.6 to 2.7 GiB of Wasm memory in pieces, and the wood's first buffer cannot reuse them. The lever the measurements point to is the index buffer (1,651 MiB). Growth's own peak and fragmentation is the other. Both are outside R2a and R2b as decided, and both are the host's call.

@@ -12,3 +12,9 @@ Slowed: another worktree's 12 GB heavy scope held the admission room; the sweep 
 Cost: about 15 minutes of waiting on admission.
 Would remove it: nothing in this repository; admission is working as the owner set it. A probe that reads the wood's size without building it (a wasm32 extent prediction) would make the trace a millisecond question instead of a 10 GB build.
 
+## 2026-10-16 - task 2: a hash run killed at its 8 GB cap
+Doing: hashing every preset's dist outputs before and after R2a, all 8 presets in one Node process.
+Slowed: `engine.dispose()` drops the instance but its Wasm memory is freed only by the garbage collector, so telperion and laurelin together passed the 8 GB cap and the run was killed twice before laurelin ran alone.
+Cost: about 5 minutes.
+Would remove it: one process per heavy preset (as probe-dist.mjs does), or a forced GC between builds in evidence tooling.
+

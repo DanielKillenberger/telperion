@@ -204,12 +204,31 @@ pub fn build(family: &Family, request: Request) -> Result<Built> {
     let mut skeleton = skeleton(GrowInput::of(family))?;
     let inputs = Inputs::of(family, grown_envelope(&skeleton.tree));
     clothe(&mut skeleton.tree, &inputs)?;
+    fitted(&mut skeleton.tree);
     // The skeleton's time keeps the clothing it always held.
     let grown = (request.clock)();
     let mut outputs = outputs(&skeleton.tree, &inputs, request)?;
     outputs.stages.skeleton_ms = grown - started;
     outputs.stages.total_ms = (request.clock)() - started;
     Ok(Built { skeleton, outputs })
+}
+
+/// Gives back what growth reserved past the tree's own length before the
+/// wood reserves its buffers (fn-291 R2a): a node buffer doubled while it
+/// grew keeps up to twice its nodes, and 32-bit Wasm holds the spare through
+/// the build.
+fn fitted(tree: &mut Tree) {
+    tree.nodes.shrink_to_fit();
+    tree.sections.shrink_to_fit();
+    tree.pipe.shrink_to_fit();
+    tree.frames.shrink_to_fit();
+    tree.keys.shrink_to_fit();
+    tree.grown.shrink_to_fit();
+    tree.blooms.shrink_to_fit();
+    tree.clusters.shrink_to_fit();
+    tree.clustered.shrink_to_fit();
+    tree.leafing.shrink_to_fit();
+    tree.unfolding.shrink_to_fit();
 }
 
 /// Runs stages 3 and 4 on a skeleton already grown. Without the `geometry`

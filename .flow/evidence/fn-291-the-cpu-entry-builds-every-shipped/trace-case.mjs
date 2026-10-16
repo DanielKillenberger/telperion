@@ -19,4 +19,4 @@ try {
   outcome = String(e.message);
   trace = engine.build(PRESETS.find(p => p.id === 'date-palm'), { foliage: true }).diagnostics.trace;
 }
-console.log(JSON.stringify({ id, seed: Number(seed), outputs: which, outcome, memoryMiB: engine.memoryBytes >> 20, trace }));
+console.log(JSON.stringify({ id, seed: Number(seed), outputs: which, outcome, memoryMiB: Math.floor(engine.memoryBytes / 1048576), trace }));
