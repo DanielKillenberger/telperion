@@ -17,7 +17,7 @@ pub fn compute_layout(gpu: &Gpu) -> wgpu::BindGroupLayout {
         .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("select"),
             entries: &[
-                uniform(0),
+                uniform(0, compute, false),
                 storage(1, compute, true, false),
                 storage(2, compute, true, false),
                 storage(3, compute, false, false),
@@ -40,8 +40,8 @@ pub fn draw_layout(gpu: &Gpu) -> wgpu::BindGroupLayout {
                 // How deep each cell of the crown stands in its own mass.
                 storage(2, vertex, true, false),
                 // The level being drawn arrives as a dynamic offset to its
-                // start word in the lists.
-                storage(3, vertex, true, true),
+                // start word in the lists, read as a uniform.
+                uniform(3, vertex, true),
             ],
         })
 }
@@ -123,7 +123,9 @@ pub fn leaf_group(gpu: &Gpu, layout: &wgpu::BindGroupLayout) -> wgpu::BindGroup 
         let buffer = gpu.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some(label),
             size: bytes.len() as u64,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+            usage: wgpu::BufferUsages::STORAGE
+                | wgpu::BufferUsages::UNIFORM
+                | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
         gpu.queue.write_buffer(&buffer, 0, bytes);
@@ -138,13 +140,17 @@ pub fn leaf_group(gpu: &Gpu, layout: &wgpu::BindGroupLayout) -> wgpu::BindGroup 
     group(gpu, layout, "leaf selection", whole, &start)
 }
 
-fn uniform(binding: u32) -> wgpu::BindGroupLayoutEntry {
+fn uniform(
+    binding: u32,
+    visibility: wgpu::ShaderStages,
+    has_dynamic_offset: bool,
+) -> wgpu::BindGroupLayoutEntry {
     wgpu::BindGroupLayoutEntry {
         binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
+        visibility,
         ty: wgpu::BindingType::Buffer {
             ty: wgpu::BufferBindingType::Uniform,
-            has_dynamic_offset: false,
+            has_dynamic_offset,
             min_binding_size: None,
         },
         count: None,

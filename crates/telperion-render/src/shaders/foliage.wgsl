@@ -15,7 +15,7 @@
 /// header of the grid's corner, its cell's edge and its three counts
 /// (mass.rs).
 @group(1) @binding(2) var<storage, read> masses: array<f32>;
-@group(1) @binding(3) var<storage, read> start: u32;
+@group(1) @binding(3) var<uniform> start: u32;
 
 struct Varying {
     @builtin(position) clip: vec4<f32>,

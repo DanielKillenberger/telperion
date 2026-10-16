@@ -19,6 +19,17 @@ fn the_levels_share_one_list_the_crown_fills_once() {
     // A crown of nothing asks for no list, and no levels for no starts.
     assert_eq!(sizes(0, 4, 256).lists, 0);
     assert_eq!(sizes(1_000, 0, 256).starts, 0);
+
+    // A start word is written as storage and read as a uniform, so its slot
+    // takes the wider of the two alignments, whichever that is.
+    for (uniform, storage) in [(256, 32), (64, 256)] {
+        let limits = wgpu::Limits {
+            min_uniform_buffer_offset_alignment: uniform,
+            min_storage_buffer_offset_alignment: storage,
+            ..Default::default()
+        };
+        assert_eq!(slot_alignment(&limits), 256);
+    }
 }
 
 /// R1: a level no leaf falls in this frame starts where the next level does

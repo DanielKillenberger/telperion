@@ -20,3 +20,10 @@
 - Hindered: the base was measured once per preset, so the spruce's +0.9 ms (whole) and +0.6 ms (close) after, steady over three runs, could not be told from run-to-run noise without the base binary; rebuilding the base's `frames` example in a scratch worktree with its own target dir waited about 13 minutes for `telperion-heavy` room (2 to 4 GB free of the 8 asked) before a 1.5-minute build, and the 24 base reruns then took about 10 minutes more.
 - Cost: about 25 minutes, most of it waiting for room.
 - Would remove it: the base capture taking three runs per preset (the same count the after takes), or keeping the base's built `frames` binary beside `raw/before/`.
+
+## 2026-10-16, task 2 worker, captures
+
+- Doing: saving run output under raw/ to literal paths.
+- Hindered: the dcg hook refused a redirect into a directory the same command had created with mkdir, and a redirect that would overwrite an existing build log. Each needed a second call: mkdir alone first, or a new file name.
+- Cost: about 2 minutes and two refused commands.
+- Would remove it: the hook accepting a redirect whose missing parent the same command creates.

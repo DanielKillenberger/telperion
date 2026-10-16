@@ -52,7 +52,7 @@ pub enum Level {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Sizes {
     /// Bytes between two levels' start words, so each can be bound at a
-    /// dynamic offset.
+    /// dynamic offset (`slot_alignment`).
     pub slot: u64,
     /// Every level's list end to end: each leaf is in at most one level, so
     /// the crown fills it once.
@@ -61,6 +61,16 @@ pub struct Sizes {
     pub counts: u64,
     pub arguments: u64,
     pub scratch: u64,
+}
+
+/// The spacing every start word can be bound at: the selection writes the
+/// starts as storage and the draw reads its level's as a uniform, a broadcast
+/// load where a storage word cost the vertex-bound spruce 17% of its draw.
+pub fn slot_alignment(limits: &wgpu::Limits) -> u64 {
+    u64::from(
+        (limits.min_uniform_buffer_offset_alignment)
+            .max(limits.min_storage_buffer_offset_alignment),
+    )
 }
 
 /// The bytes each selection buffer needs for this many placements at this many
@@ -278,7 +288,7 @@ impl Select {
         let sizes = sizes(
             self.instances as usize,
             self.levels.len(),
-            u64::from(gpu.device.limits().min_storage_buffer_offset_alignment),
+            slot_alignment(&gpu.device.limits()),
         );
         self.slot = sizes.slot as u32;
         if self.instances == 0 || self.levels.is_empty() {
@@ -310,7 +320,7 @@ impl Select {
             gpu,
             &mut self.starts,
             "foliage level starts",
-            storage | wgpu::BufferUsages::COPY_SRC,
+            storage | wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_SRC,
             sizes.starts,
         );
         buffer::reserve(
