@@ -173,6 +173,22 @@ impl Layer {
             .collect()
     }
 
+    /// The take-over an axis carried on of this one takes on, `blend` of
+    /// the way from its continuation to its own bud: what this walk's has
+    /// left where it ends, over its reach `total`, as far as that axis is
+    /// still its continuation (`geometry::joined`).
+    pub fn handed_take(&self, total: f64, blend: f64) -> super::Take {
+        let (keep, total) = (1.0 - blend as f32, total as f32);
+        if keep <= 0.0 || self.take <= 0.0 || total <= 0.0 {
+            return super::NO_TAKE;
+        }
+        let left = (1.0 - self.run / total).max(0.0);
+        match self.take * left * keep {
+            carried if carried > 0.0 => (self.line, carried),
+            _ => super::NO_TAKE,
+        }
+    }
+
     /// The wander's curvature where the walk stands.
     pub fn curve(&self) -> Vec3 {
         v3(self.curve)

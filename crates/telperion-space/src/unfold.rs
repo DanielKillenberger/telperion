@@ -404,10 +404,17 @@ impl Presenting<'_> {
             }
             axis.base = axis.base + shift;
             let leaves = axis.phytomers.iter_mut().map(|p| fade(p, shift)).collect();
-            // A gone relay's join fades into its bearer's own wood.
+            // A gone relay's join fades into its bearer's own wood where
+            // the bearer stays; on a bearer gone with it, it fades with
+            // everything else, so wood above it judged too thin a year
+            // before stays undrawn as it thins (fn-286 review).
+            let stays = b.origin.parent().is_some_and(|p| now.contains_key(&ids[p]));
             let bearer = self.bearer_radius(&axis);
             if let (Some(j), Some(r)) = (axis.joined.as_mut(), bearer) {
-                (j.below, j.above) = (mix(j.below, r, f), mix(j.above, r, f));
+                (j.below, j.above) = match stays {
+                    true => (mix(j.below, r, f), mix(j.above, r, f)),
+                    false => (j.below * keep, j.above * keep),
+                };
             }
             at.push((self.structure.axes.len(), shift));
             self.structure.axes.push(axis);

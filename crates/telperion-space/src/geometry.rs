@@ -260,6 +260,24 @@ pub(crate) type Take = ([f32; 3], f32);
 /// No take-over.
 pub(crate) const NO_TAKE: Take = ([0.0; 3], 0.0);
 
+/// The take-over an axis carried on runs with: its own as a relay
+/// (`taken`) and what it carries on of its parent's (`Layer::handed_take`),
+/// their lines weighted by how far each pulls. Both fade over the axis's
+/// own reach, so a continuation goes on running back onto the line its
+/// relay took over until that relay's reach is spent (fn-286 review).
+pub(crate) fn joined((mine, own): Take, (line, carried): Take) -> Take {
+    match (own > 0.0, carried > 0.0) {
+        (true, true) => {
+            let s = own + carried;
+            let at = |c: usize| (mine[c] * own + line[c] * carried) / s;
+            ([at(0), at(1), at(2)], s)
+        }
+        (true, false) => (mine, own),
+        (false, true) => (line, carried),
+        (false, false) => NO_TAKE,
+    }
+}
+
 /// Where relay `i` joins its parent (fn-244 host decision 4): its stand's
 /// place on the parent (`stand::position`) blended towards the parent's
 /// tip by its blend along the parent's scaled length, as a position in the

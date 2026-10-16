@@ -60,3 +60,55 @@ fn a_take_over_without_relays_is_dormant() {
     };
     assert_eq!(tree(0.0), tree(1.0));
 }
+
+/// Each continuation of a relay: its turn in radians off the relay's
+/// heading at its last node, to its own first phytomer as drawn, and the
+/// larger of the turns either side of it, the relay's last and the
+/// continuation's first, as the walk turns step to step.
+fn handovers(tree: &Structure) -> Vec<(f64, f64)> {
+    let angle = |a: Vec3, b: Vec3| a.dot(b).clamp(-1.0, 1.0).acos();
+    let step = |p: &[telperion_space::Phytomer]| -> f64 {
+        p.windows(2).map(|w| angle(w[0].heading, w[1].heading)).fold(0.0, f64::max)
+    };
+    tree.axes
+        .iter()
+        .filter_map(|a| match a.origin {
+            Origin::Continuation { parent } => {
+                let p = &tree.axes[parent];
+                let relayed = matches!(p.origin, Origin::Relay { .. });
+                let (last, first) = (p.phytomers.last()?, a.phytomers.first()?);
+                let n = p.phytomers.len();
+                let around = step(&p.phytomers[n.saturating_sub(2)..])
+                    .max(step(&a.phytomers[..a.phytomers.len().min(2)]));
+                relayed.then(|| (angle(last.heading, first.heading), around))
+            }
+            _ => None,
+        })
+        .collect()
+}
+
+/// fn-286 review: a relay's continuation carries on what its take-over
+/// has left, so with nothing else bending the limb, the walk turns no more
+/// where the relay's age hands on than step to step either side of it (a
+/// 0.46 rad hand-over at seed 1 before the fix).
+#[test]
+fn a_continuation_carries_its_relays_take_over_on() {
+    for seed in 1..=3 {
+        let mut species: Species = walk::species();
+        for state in &mut species.states {
+            (state.straightening, state.erection) = (0.0, 0.0);
+            (state.form.tropism, state.form.wander, state.form.sag) = (0.0, 0.0, 0.0);
+        }
+        let limb = &mut species.states[1];
+        (limb.relay, limb.relay_ended, limb.relay_failed) = (1.0, 1.0, 1.0);
+        (limb.insertion, limb.takeover) = (0.6, 1.0);
+        let turns = handovers(&walk::tree(&species, seed).unwrap());
+        assert!(!turns.is_empty(), "seed {seed} continues a relay");
+        for (at, around) in turns {
+            assert!(
+                at <= 1.5 * around + 0.02,
+                "seed {seed}: a hand-over turns {at} rad, the steps around it {around}"
+            );
+        }
+    }
+}
