@@ -94,7 +94,7 @@ was reverted.
    - **Why the extra passes are allowed:** the owner's "no extra passes" was set for the light algorithm, and nothing short of this split reaches the bound.
    - **Condition:** the split is accepted only if the build time it adds, at 40 and 80 for beech, oak and spruce, is no more than 5 % against the slimmed single pipeline (best of 3, the same machine load stated). If it adds more, stop and report the numbers.
    - **Output:** stays identical, and contract A and parity stay green.
-2. **No async creation for now.** With every pipeline at or under about 2 s, synchronous creation stays well under Chrome's GPU watchdog. The wgpu API gap is recorded in FRICTION.md and fn-235's report, and is not built around.
+2. **No async creation for now.** With every pipeline at or under about 2 s, synchronous creation stays well under Chrome's GPU watchdog. The wgpu API gap is recorded in fn-235's spec (Friction) and report, and is not built around.
    - **The bound:** at most 2.5 s per pipeline, which gives the measured 2.3 s its noise margin on this loaded machine. The first tree's cold build stays at 5 s or under. Rename the test to match.
 3. **Decisions 3 and 4 go ahead now,** whatever happens with point 1: the 6 GiB budget and the device-loss handling. After them come R4, R5's native checks, the gate, npm test, impl-review and `flowctl done`.
 

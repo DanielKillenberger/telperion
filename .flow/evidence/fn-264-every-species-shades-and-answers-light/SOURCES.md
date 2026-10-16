@@ -1,6 +1,6 @@
 # fn-264 R1a and R2: sources, Jev's choices and the checks (worker, 2026-10-12)
 
-Every value below was cut from a fetched source, offered to Jev as one candidate among every number in its passage (with `none`), copied by code from the passage bytes, and then checked by the worker against the fetched source text. `jev select` recalls lengths and ages only (FRICTION.md), so the candidates came from a scratch extractor run through `jev ask`. Ledger entries are under `ledger/` (ignored); fetched sources stay in the session scratchpad.
+Every value below was cut from a fetched source, offered to Jev as one candidate among every number in its passage (with `none`), copied by code from the passage bytes, and then checked by the worker against the fetched source text. `jev select` recalls lengths and ages only (see the spec's Friction), so the candidates came from a scratch extractor run through `jev ask`. Ledger entries are under `ledger/` (ignored); fetched sources stay in the session scratchpad.
 
 ## Shipped
 

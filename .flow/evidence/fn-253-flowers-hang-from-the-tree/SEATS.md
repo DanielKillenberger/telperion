@@ -175,7 +175,7 @@ The raceme view (`raw/r3d/*-raceme.png`) now shows each rachis and its pedicels.
 
 ### The stills (viewed)
 
-`STALKS-laurelin.jpg` and `STALKS-telperion.jpg`, at the whole, mid, close and raceme views (1920×1080 sources in `raw/r3d/`).
+`STALKS-laurelin.jpg` and Telperion's share-1 sheet (archived), at the whole, mid, close and raceme views (1920×1080 sources in `raw/r3d/`).
 - **Laurelin.** Her racemes hang as golden chains from the shoot tips; at the raceme view each horn hangs on its pedicel from a thin dark rachis that leaves the twig.
 - **Telperion.** His candles stand upright from the tips on a thin rachis, five florets on each; at the mid and whole views the white is heavy.
 
@@ -234,7 +234,7 @@ The host accepts the rachis's cost at the whole view: +2.9 % on Laurelin and +4.
 
 ## R4: the sheets and Astra round 2 (worker, 2026-10-10)
 
-**The owner's sheets, on the unit-thinned build (viewed).** `STALKS-laurelin.jpg` and `STALKS-telperion.jpg`, at the whole, mid, close and raceme views (seed 1, 1920×1080 sources in `raw/r3e/`).
+**The owner's sheets, on the unit-thinned build (viewed).** `STALKS-laurelin.jpg` and Telperion's share-1 sheet (archived), at the whole, mid, close and raceme views (seed 1, 1920×1080 sources in `raw/r3e/`).
 - **Laurelin.** Her racemes hang from the shoot tips as golden chains; at the raceme view each horn hangs on its pedicel from a thin rachis that leaves the twig.
 - **Telperion.** His candles stand on their rachis at the tips. His white is heavy at the whole and mid views, which is pending with the owner.
 
@@ -353,7 +353,7 @@ Per the decision, stopped with the numbers. The trial is kept on its own branch;
 - the bound is that plus about 5 points, as fn-246 set it;
 - the owner's eye against the 4× reference is the real gate. The comment states each of these.
 
-**The pairs for the owner** (viewed): `STALKS-laurelin-whole-reference.jpg` and `STALKS-telperion-whole-reference.jpg`.
+**The pairs for the owner** (viewed): Laurelin's whole-view reference pair (archived) and Telperion's whole-view reference pair (archived).
 - **What each holds:** the whole view at 1920×1080 as the harness draws it, beside the same frame drawn at 4× and box-reduced in linear light (`examples/crown_truth`, raw in `raw/truth/`).
 - **What they show:** Laurelin's gold reads denser and brighter in the live frame than in the reference; Telperion's white reads close, the live frame a little whiter.
 

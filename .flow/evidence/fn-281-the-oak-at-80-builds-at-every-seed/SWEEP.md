@@ -12,7 +12,7 @@
 | 90 | none among the 11 that grew | - |
 | 100 | none among the 4 that grew | - |
 
-Every one of the ten nodes is a lateral head (`branch` is itself) at radius, start and base 0, a twig with no codominant weight: the signature traced in `CAUSE.md`.
+Every one of the ten nodes is a lateral head (`branch` is itself) at radius, start and base 0, a twig with no codominant weight: the signature traced in the fn-281 spec.
 
 These presets have no refusal at their own age or at 80: the oak at its own age (40), the ordinary tree, the Norway spruce, the European beech, the silver birch, the date palm, Telperion (82) and Laurelin (80). That is 750 trees.
 

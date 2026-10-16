@@ -55,7 +55,7 @@ A layout made as the tree grows differs from the final `place` in three places:
   - The budget counts shed wood (`grow.rs:355-358`).
   - Every phytomer is grown and stored, then dropped.
   - That is phase F's lever: an apex that dies in shade stops growing at once, and the wood it would have grown is never paid for.
-- **How the rest of the time splits between the cycle loop, `assign`, `thicken` and `place` is unknown.** The engine has no stage timer (FRICTION.md, 2026-10-05).
+- **How the rest of the time splits between the cycle loop, `assign`, `thicken` and `place` is unknown.** The engine has no stage timer (friction entry, 2026-10-05; since fixed by `grow_staged`).
 
 ### Two more facts from the code
 
@@ -105,7 +105,7 @@ A layout made as the tree grows differs from the final `place` in three places:
 - One pyramid is 1 + 9 + 25 + … + 169 = 455 voxel updates at q_max = 6.
 - At 400k to 660k new phytomers in the late cycles, that is about 2–3 × 10⁸ updates per cycle.
 - Casting per occupied cell instead is the same convolution and cheaper. Its cost is unknown.
-- fn-190 round 3 measured 25.1M voxel updates for an 11k-node beech (R1-ROUND3.md).
+- fn-190 round 3 measured 25.1M voxel updates for an 11k-node beech (fn-190 round 3 report, archived).
 
 **Continuity:**
 
@@ -115,7 +115,7 @@ A layout made as the tree grows differs from the final `place` in three places:
 
 **Oracle:** the formula itself, cell by cell. It is exact but tests only the bookkeeping.
 
-**Known failure:** the shadow is local (q_max layers), so nothing high in the crown darkens seedling-era limbs, and no bole forms. fn-190's host wrote this after round 3 (SPEC-HISTORY.md, round 3 decisions).
+**Known failure:** the shadow is local (q_max layers), so nothing high in the crown darkens seedling-era limbs, and no bole forms. fn-190's host wrote this after round 3 (fn-190 spec history, round 3 decisions, archived).
 
 ### L2. Beer–Lambert on a coarse leaf-area grid, from a few sky directions
 
@@ -138,7 +138,7 @@ This is fn-190 round 4's field (zenith with a 45° cone) and round 5's (five dir
 - At 0.5 m cells, the oak's 24 × 24 × 22 m box is about 100k cells.
 - With 9 directions, a sweep is about 0.9M cell steps per cycle, or about 70M over 80 cycles.
 - On top come 8 cell writes per deposited unit and 8 reads per live apex.
-- fn-190 round 4 measured its zenith field at 24.8 ms for 0.98M cells over a whole run (R1-ROUND4.md).
+- fn-190 round 4 measured its zenith field at 24.8 ms for 0.98M cells over a whole run (fn-190 round 4 report, archived).
 
 **Continuity:**
 
@@ -156,7 +156,7 @@ This is fn-190 round 4's field (zenith with a 45° cone) and round 5's (five dir
 **Known failures (fn-190):**
 
 - **Columnar crowns came with it (rounds 4 and 5),** but there light also steered direction (round 5's phototropism) and fed a resource that went to the top. Here directions stay the species' own. That this avoids columns is a hypothesis, unverified.
-- **Low sky directions lit the lower crown's sides and lost the bole:** 0.20 H in round 4, 0.07 to 0.12 H in round 5 (R1-ROUND5.md). The zenith weight is the dial between the two.
+- **Low sky directions lit the lower crown's sides and lost the bole:** 0.20 H in round 4, 0.07 to 0.12 H in round 5 (fn-190 round 5 report, archived). The zenith weight is the dial between the two.
 
 ### L3. Whole-tree Beer–Lambert with no spatial light (GreenLab)
 
@@ -316,7 +316,7 @@ The host accepts the recommendation: an L2 Beer–Lambert grid, read through P1,
 
 ## 9. Host decisions after step 3 (host, 2026-10-05)
 
-Step 3 found that light only subtracts, and that the rough layout without sag misjudges the shade (STEP3.md).
+Step 3 found that light only subtracts, and that the rough layout without sag misjudges the shade (step 3 report, archived).
 
 7. **Relative allocation fills the outline** (Borchert–Honda, as Pałubicki 2009 uses it). It replaces ψ's absolute form.
    - A shoot's size scales by its light relative to its siblings on the same bearer: (I / Ī)^ψ, where Ī is the bearer's presence-weighted mean over its growing buds that cycle.
@@ -335,7 +335,7 @@ Step 3 found that light only subtracts, and that the rough layout without sag mi
 
 ## 10. Host decisions after step 3b (host, 2026-10-05)
 
-Step 3b found that sibling-level allocation compounds down lineages (STEP3B.md).
+Step 3b found that sibling-level allocation compounds down lineages (step 3b report, archived).
 
 11. **Whole-tree Borchert–Honda, as Pałubicki 2009 describes it.** It replaces the sibling-relative ψ.
     - Each cycle, on the latest light (full lay plus rough layout):

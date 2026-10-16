@@ -8,7 +8,7 @@ Every walk frame of fn-272's cut 3 (`frames.tsv`, the eased shares it logged to 
 |---|---|---|
 | beech to spruce | 0 | |
 | spruce to birch | 0 (was 3: frames 323, 344, 366) | |
-| birch to oak | 1 (was 4: 413, 435, 456, 463) | 0.906 to 0.916, 1.22: the steady slope CAUSE.md measured, 4 to 6 % at steps of 0.002 |
+| birch to oak | 1 (was 4: 413, 435, 456, 463) | 0.906 to 0.916, 1.22: the steady slope fn-277's cause analysis measured, 4 to 6 % at steps of 0.002 |
 | oak to palm | 22 (was the jump to 4 leaves and its tail) | see below |
 | palm to Laurelin at 1 | 19 | a steady fall from 396 leaves to the Laurelin's none, 1.2 to 1.4 a frame of 0.04 |
 
@@ -36,7 +36,7 @@ The oracle as built (`tests/walk_leaves.rs`, `forms`): each frame's leaves by fo
 
 ## The oracle as ruled (host ruling 5, rewritten): the law and the draw
 
-The per-bearer count oracle above is superseded. **The law** (`tests/walk_law.rs`, BOUND.md): every film walk at steps of 0.001, seeds 1, 7 and 42, passes at 0.02 of a form's range per step; the steepest step is 0.0128. **The draw** (`tests/walk_leaves.rs`, `a_listed_walk_draws_its_law`, raw logs `raw/draws-seg*.log`), at the film's frames, seed 7:
+The per-bearer count oracle above is superseded. **The law** (`tests/walk_law.rs`; bound stated in the fn-277 spec): every film walk at steps of 0.001, seeds 1, 7 and 42, passes at 0.02 of a form's range per step; the steepest step is 0.0128. **The draw** (`tests/walk_leaves.rs`, `a_listed_walk_draws_its_law`, raw logs `raw/draws-seg*.log`), at the film's frames, seed 7:
 
 | walk | frames | refusals | most sigmas off |
 |---|---|---|---|

@@ -6,7 +6,7 @@
 //!
 //! One JSON line per tree: build time (best of `repeats` of `grow`),
 //! phytomers grown (the stepped executor's counts, cut 1,024), kept,
-//! height, crown x / y, and the crown base live and major as R1.md
+//! height, crown x / y, and the crown base live and major as R1 (task 1, archived)
 //! defines them.
 use telperion_space::{grow, grow_stepped, oak, Expected, Grouping, Light, Origin};
 use telperion_space::{PartitionOrder, Request, Structure};
@@ -81,7 +81,7 @@ struct Measures {
     base_major: f64,
 }
 
-/// R1.md's (OAK-LIGHT.md's) definitions: the kept tips' extent; the
+/// R1's (OAK-LIGHT.md's) definitions: the kept tips' extent; the
 /// lowest lateral off the stem bearing a living apex, and among those
 /// carrying 1 % of the kept phytomers.
 fn measures(tree: &Structure) -> Measures {

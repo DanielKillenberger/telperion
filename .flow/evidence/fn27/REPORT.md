@@ -42,16 +42,15 @@ oak, and the crown comparison. A crop-gravity mistake in the comparison was
 corrected without another view; both final crop regions were verified byte for
 byte against their source pixels, with no resize or colour change.
 
-- [Lit oak hero](oak-final.png), beside [fn-14's oak](../fn14/oregon-white-oak-hero.png).
-- [Lit spruce hero](spruce-final.png), beside [fn-14's spruce](../fn14/norway-spruce-hero.png).
-- [Clay oak](oak-clay.png), beside [fn-14's clay oak](../fn14/oregon-white-oak-clay.png).
-- [Ground comparison, fn-14 above and fn-27 below](oak-ground-comparison.png):
+- [Lit oak hero](oak-final.jpg), beside [fn-14's oak](../fn14/oregon-white-oak-hero.jpg).
+- [Lit spruce hero](spruce-final.jpg), beside [fn-14's spruce](../fn14/norway-spruce-hero.jpg).
+- The clay oak beside fn-14's clay oak (archived; see `.flow/evidence/ARCHIVE-MANIFEST.md`).
+- [Ground comparison, fn-14 above and fn-27 below](oak-ground-comparison.jpg):
   the same 900 by 420 rectangle of the ground under the tree in both, the host's
   R5 aid.
-- [Crown comparison, fn-14 left and fn-27 right](oak-crown-comparison.png):
+- [Crown comparison, fn-14 left and fn-27 right](oak-crown-comparison.jpg):
   the same rectangle, x 430–1110, y 220–670, at original pixel scale.
-- The settled prefix-only evidence remains [oak-prefix.png](oak-prefix.png)
-  and [oak-prefix-timing.json](oak-prefix-timing.json), unchanged.
+- The settled prefix-only evidence (still and timing) is archived; see `.flow/evidence/ARCHIVE-MANIFEST.md`.
 
 ```sh
 cargo run --release -p telperion-render --example headless -- --preset oregon-white-oak --seed 7 --size 1600x1000 --out /tmp/flow-handover-fn27/oak-final.png --timing /tmp/flow-handover-fn27/oak-final-timing.json
@@ -301,9 +300,9 @@ not closed by passing timings or by the implementer's image inspection.
 
 > _verdict (owner, ):_
 
-Aids: [paired crown crop](oak-crown-comparison.png), [lit oak](oak-final.png),
-[lit spruce](spruce-final.png), [clay oak](oak-clay.png),
-[fn-14 oak](../fn14/oregon-white-oak-hero.png),
+Aids: [paired crown crop](oak-crown-comparison.jpg), [lit oak](oak-final.jpg),
+[lit spruce](spruce-final.jpg), [clay oak](oak-clay.png),
+[fn-14 oak](../fn14/oregon-white-oak-hero.jpg),
 [oak orbit record](oak-browser-orbit.json) and
 [spruce orbit record](spruce-browser-orbit.json). For the owner's live orbit
 judgment, run the harness on a non-5173 port, select either preset at seed 7,

@@ -11,7 +11,7 @@ The birch's branch at `713aa880` (round 14, on fn-223's clusters) took F4, `fn-1
 ## Checks
 
 - **`space_hash`** (`raw/merge-f4/hash-after.txt`): all 16 rows for beech, spruce, oak and palm at ages 40 and 80, seeds 1 and 7, equal MERGE-235.md's, node counts included.
-- **The birch's DBH** (`birch_dbh.rs`, `raw/merge-f4/dbh-after.txt`) is 30.7 / 33.0 / 30.3 cm at 40 and 59.7 / 60.3 / 62.1 cm at 80 for seeds 1 / 7 / 42, which is SHEET-14's round 14. The node counts match too.
+- **The birch's DBH** (`birch_dbh.rs`, `raw/merge-f4/dbh-after.txt`) is 30.7 / 33.0 / 30.3 cm at 40 and 59.7 / 60.3 / 62.1 cm at 80 for seeds 1 / 7 / 42, which is round 14's. The node counts match too.
 
 ## Gate (`RAYON_NUM_THREADS=4 CARGO_BUILD_JOBS=4 RUST_TEST_THREADS=4`)
 

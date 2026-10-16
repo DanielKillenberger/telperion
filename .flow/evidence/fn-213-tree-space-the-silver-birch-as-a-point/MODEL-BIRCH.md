@@ -93,7 +93,7 @@ Every tree is under the browser's ceiling of 4,000,000 kept phytomers (`pipeline
 
 ## Round 2 (2026-10-07, after the host's reading of sheet 1)
 
-The rules above stand; these values moved, each **estimated** from the stills against S1, S2 and S3 (SHEET-2.md). Where a row above gives the older value, this table supersedes it.
+The rules above stand; these values moved, each **estimated** from the stills against S1, S2 and S3 (the round-2 sheet, archived). Where a row above gives the older value, this table supersedes it.
 
 | Age or row | Sheet 1 | Round 2 | Aimed at (host's point) |
 |---|---|---|---|
@@ -115,7 +115,7 @@ Cost at round 2 (native, `--profile ci`): 315,075 to 475,769 nodes at 40 and 621
 
 ## Round 3 (2026-10-07, after the host's reading of sheet 2)
 
-Each value **estimated** from the stills (SHEET-3.md); this table supersedes the rows above.
+Each value **estimated** from the stills (the round-3 sheet, archived); this table supersedes the rows above.
 
 | Age or row | Round 2 | Round 3 | Aimed at (host's point) |
 |---|---|---|---|
@@ -128,7 +128,7 @@ A probe of 0.03 m and 0.85 rad gave a 22 m crown at 80 and a 9 m one at 40, too 
 
 ## Round 4 (2026-10-07, after Astra's and the host's reading of sheet 3)
 
-Aimed at trait (j): long, straight, nearly parallel limbs ending in regularly spaced tufts. Each value **estimated** from the stills (SHEET-4.md); this table supersedes the rows above.
+Aimed at trait (j): long, straight, nearly parallel limbs ending in regularly spaced tufts. Each value **estimated** from the stills (the round-4 sheet, archived); this table supersedes the rows above.
 
 | Age or row | Round 3 | Round 4 | Why |
 |---|---|---|---|
@@ -146,7 +146,7 @@ A first probe with `abortion` 0.15 and `dominance` 0.4 drew a narrow column (6 m
 
 ## Round 5 (2026-10-07, after the merge of fn-221 and fn-222)
 
-Each value **estimated** from the stills (SHEET-5.md); this table supersedes the rows above.
+Each value **estimated** from the stills (the round-5 sheet, archived); this table supersedes the rows above.
 
 | Row | Round 4 | Round 5 | Aimed at |
 |---|---|---|---|
@@ -160,11 +160,11 @@ A probe with old bark from 20 cm darkened the 80-year stems of seeds 7 and 42 to
 
 ## Round 7 (2026-10-07, scaffold limbs, host's decision on sheet 6)
 
-The rows and their reasons are in SHEET-7.md, "The mechanism". In short: a young-leader age (`LOW_FORK`, years 6 to 14) bearing passing branches and a few low scaffolds; the leader (years 15 to 40) bearing few limbs among passing branches; limbs steep for 25 years (was 15), viability 0.998, then spreading as boughs; round 6's forking old stem; stem wander 0.35; old bark from 0.30 m of radius over 0.07 m. All **estimated** from the stills; the scaffold structure follows the references (S1, S3) and the oak's long-lived limbs. Stem ages are now 2, 3, 4 and 5.
+The rows and their reasons are in the round-7 sheet (archived), "The mechanism". In short: a young-leader age (`LOW_FORK`, years 6 to 14) bearing passing branches and a few low scaffolds; the leader (years 15 to 40) bearing few limbs among passing branches; limbs steep for 25 years (was 15), viability 0.998, then spreading as boughs; round 6's forking old stem; stem wander 0.35; old bark from 0.30 m of radius over 0.07 m. All **estimated** from the stills; the scaffold structure follows the references (S1, S3) and the oak's long-lived limbs. Stem ages are now 2, 3, 4 and 5.
 
 ## Round 8 (2026-10-07, curtains; host's decision after the owner's verdict on round 7)
 
-The rows and their sources are in SHEET-8.md, "What moved". In short:
+The rows and their sources are in the round-8 sheet (archived), "What moved". In short:
 
 - The hanging axis (`BRANCH`) is an unbranched strand set straight down (set-point −π/2, tropism 3, wander 0.15). It grows 4 to 6 nodes of 0.06 m a year for up to 12 years, carrying only short shoots.
 - The `SHOOT` age is no longer lived.
@@ -175,7 +175,7 @@ All **estimated** from the stills and checked by `birch_measure.rs`; no value is
 
 ## Round 9 (2026-10-07, arching limbs and irregular strands)
 
-The rows and their reasons are in SHEET-9.md, "What moved". In short:
+The rows and their reasons are in the round-9 sheet (archived), "What moved". In short:
 
 - **Limbs:** they rise less steeply, pass sooner to their spreading age, and the old limbs bend over under their own load (`sag`).
 - **Strands:**
@@ -188,19 +188,19 @@ All values are **estimated** from the stills and checked by `birch_measure.rs`.
 
 ## Round 10 (2026-10-07, fn-224's spreads)
 
-The strands take fn-224's per-axis spreads: insertion ± 0.5 rad and tropism × (1 ± 0.6). Their roll rises to 1.6 rad. Young limbs return to round 8's steep rise (1.3 rad, tropism 0.9, 25 years); the old limbs keep round 9's spread and bend. Rows and measures are in SHEET-10.md. All values are **estimated**.
+The strands take fn-224's per-axis spreads: insertion ± 0.5 rad and tropism × (1 ± 0.6). Their roll rises to 1.6 rad. Young limbs return to round 8's steep rise (1.3 rad, tropism 0.9, 25 years); the old limbs keep round 9's spread and bend. Rows and measures are in the round-10 sheet (archived). All values are **estimated**.
 
 ## Round 11 (2026-10-08, the leaves; owner's verdict on round 10)
 
-Leaf rows only; no wood row moved. A leaf station every 0.06 m (one a strand node; SU03's 3 to 7 leaves a long shoot), a 5.0 × 3.7 cm triangular-ovate blade varying 0.3 on a 2.5 cm petiole with an acuminate tip (Flora of China, *Betula pendula*: "Petiole slender, 2-3 cm; leaf blade triangular-ovate or rhombic-ovate, 3-7.5 × 1.5-6 cm ... apex acuminate", `raw/lit/foc-betula-pendula.txt`), and the leaf colour read by code from S2-Oslo's sunlit leaf pixels (above the crown's median luminance; host, 2026-10-08) on its stem's exposure, linear 0.227/0.241/0.111, for front, back and transmission alike (`leaf_colour.py`). Rows, measures and stills are in SHEET-11.md.
+Leaf rows only; no wood row moved. A leaf station every 0.06 m (one a strand node; SU03's 3 to 7 leaves a long shoot), a 5.0 × 3.7 cm triangular-ovate blade varying 0.3 on a 2.5 cm petiole with an acuminate tip (Flora of China, *Betula pendula*: "Petiole slender, 2-3 cm; leaf blade triangular-ovate or rhombic-ovate, 3-7.5 × 1.5-6 cm ... apex acuminate", `raw/lit/foc-betula-pendula.txt`), and the leaf colour read by code from S2-Oslo's sunlit leaf pixels (above the crown's median luminance; host, 2026-10-08) on its stem's exposure, linear 0.227/0.241/0.111, for front, back and transmission alike (`leaf_colour.py`). Rows, measures and stills are in the round-11 sheet (archived).
 
 ## Round 12 (2026-10-08, leaves cluster at short shoots; fn-223 merged)
 
-`SHORT` (`/space/ages/14`) bears `cluster_leaves` 3 at its tip, fanned `cluster_spread` 0.6 rad either side of the tip's level bearing, and no leaf along its length. Sources: KU03 on *B. pendula* ("development of two or three leaves", `raw/lit/kull2003.md`) and SU03 on *B. maximowicziana* ("two or three leaves"). The row is a whole number, so three, the upper of the two counts, was taken because round 11's crown read see-through; **estimated**. The spread is **estimated**: no source gives the fan. The long shoots' 0.06 m spacing and every wood row are round 11's. Rows, measures and stills are in SHEET-12.md.
+`SHORT` (`/space/ages/14`) bears `cluster_leaves` 3 at its tip, fanned `cluster_spread` 0.6 rad either side of the tip's level bearing, and no leaf along its length. Sources: KU03 on *B. pendula* ("development of two or three leaves", `raw/lit/kull2003.md`) and SU03 on *B. maximowicziana* ("two or three leaves"). The row is a whole number, so three, the upper of the two counts, was taken because round 11's crown read see-through; **estimated**. The spread is **estimated**: no source gives the fan. The long shoots' 0.06 m spacing and every wood row are round 11's. Rows, measures and stills are in the round-12 sheet (archived).
 
 ## Round 13 (2026-10-08, more short shoots; host's reading of round 12)
 
-The medial nodes of the hanging strands (`BRANCH`), limbs, boughs and passing branches now bear a shoot at 0.85. The long laterals keep their shares and the short shoot takes the rest: `SHORT` is 0.845 on `BRANCH` (was 0.5), 0.58 on `LIMB` (0.35), 0.45 on `BOUGH` (0.35) and 0.45 on `SPRIG` (0.4). Source: SU03 on *B. maximowicziana*, a long shoot's leaves each carry an axillary bud and ">80 % of all current-year shoots within each first-order branch were short shoots". The 0.85 is **estimated**. Clusters, leaf rows and every form row are round 12's. The added shoots thicken the wood below them under the pipe model, so the old bark climbs the trunk (SHEET-13.md, "For the host"). Rows, measures, the colour analysis and stills are in SHEET-13.md.
+The medial nodes of the hanging strands (`BRANCH`), limbs, boughs and passing branches now bear a shoot at 0.85. The long laterals keep their shares and the short shoot takes the rest: `SHORT` is 0.845 on `BRANCH` (was 0.5), 0.58 on `LIMB` (0.35), 0.45 on `BOUGH` (0.35) and 0.45 on `SPRIG` (0.4). Source: SU03 on *B. maximowicziana*, a long shoot's leaves each carry an axillary bud and ">80 % of all current-year shoots within each first-order branch were short shoots". The 0.85 is **estimated**. Clusters, leaf rows and every form row are round 12's. The added shoots thicken the wood below them under the pipe model, so the old bark climbs the trunk (the round-13 sheet (archived), "For the host"). Rows, measures, the colour analysis and stills are in the round-13 sheet (archived).
 
 ## Round 14 (2026-10-08, the short shoot's pipe; host's decision on round 13's bark)
 
