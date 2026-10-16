@@ -26,3 +26,10 @@ The review's one gap (P1, R3'): the oak at seed 1234 over 0.1.4. Re-measured war
 - **What hindered:** the dcg hook refused a loop redirecting to `$S/$b` paths and `git show HEAD:<path> > <path>` to build the base binary; both were retyped (literal paths, a script appending to one file, and `git apply -R` of a saved patch). Another worker's GPU jobs held the desk at 70-99 % busy for 13 of the 16 field pairs, so only paired differences are meaningful.
 - **Cost:** about 5 minutes of retyping; the timings carry the desk's load.
 - **What would remove it:** a `measure-ab <base-bin> <bin> <test> <pairs>` helper beside `telperion-heavy` that alternates two binaries and appends to one file, and a desk-wide GPU queue so a timing run gets a quiet window.
+
+## 2026-10-16, task 12 (worker)
+
+- **Doing:** the R8 splat probe and its per-pass profile.
+- **What hindered:** the probe had to live under `field/` (not beside `field_probe_tests.rs` as the task named) to see the field's private `Cfg`, `Rec` and sources, and still copied `make.rs`'s `cfg`/`leaf_box` and `leaflets`' loop body because they are private or not functions. The repository's `every_shader_file_is_checked` refuses a probe `.wgsl` no validated source holds, found only on the second build; it went into `field::sources()`. The GPU profile's labels collide between the sweep and the stations (`starts`, `emit`, `blocks`, `spread`), so the sweep's share of `emit` could not be told apart.
+- **Cost:** about 10 minutes and one extra build.
+- **What would remove it:** profile labels prefixed with their pass's name, and a note in `docs/` that a test-only WGSL file joins a `#[cfg(test)] sources()` list.

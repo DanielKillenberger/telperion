@@ -13,6 +13,8 @@ use crate::{Gpu, Result};
 mod ask;
 mod index;
 mod make;
+#[cfg(test)]
+mod splat_probe_tests;
 pub(super) use make::grow;
 
 pub(super) const FIELD: &str = include_str!("field.wgsl");
@@ -64,10 +66,11 @@ impl Fielder {
 
 /// Every source the field compiles, by name: the shader tests'.
 #[cfg(test)]
-pub(super) fn sources() -> [(&'static str, String); 2] {
+pub(super) fn sources() -> [(&'static str, String); 3] {
     [
         ("resident field build", format!("{FIELD}\n{BUILD}")),
         ("resident field query", format!("{FIELD}\n{QUERY_SOURCE}")),
+        ("resident field splat probe", splat_probe_tests::source()),
     ]
 }
 
