@@ -39,9 +39,20 @@ R2, R3, R4: the dead `closed_form/envelope` experiment goes; the pipeline doc, t
 - [ ] Workspace gate green under the declared invocation; `npm test` green
 
 ## Done summary
-TBD
+The closed-form envelope experiment is deleted with its module allow, and so are the fields only it read (`Stand::dominance`, `Event::Nodes::wood`, `along::dominance`). The `along` module's `dead_code` allow went too, since nothing is left for it to hide. `docs/pipeline.md`, `telperion-space`'s lib header, `package.json` and the `FLOWERS` text now describe what ships, and the parameter reference was regenerated through the writer. AGENTS.md declares the gate's one `telperion-heavy` invocation, and the heavy-run memory note points at it.
 
+Evidence (measured): workspace gate once at 48dc77ae1, `telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`, 2026-10-16T07:11:19+02:00 to 07:45:48+02:00 (2,069 s): 1,405 passed, 0 failed, 103 ignored. That is the 1,407 at base less the 2 deleted envelope tests. `cargo test --profile ci -p telperion-space --lib`: 103/0/5. The warning set matches the base, which is one pre-existing `boundary.rs:68 laterals` warning in the non-test lib. The regenerated `docs/parameters.md` differs only in 30 identical FLOWERS lines; `parameters.generated.ts` is unchanged. `npm run catalogue:check` passes. `npm test` (under telperion-heavy 12 --threads 2) passes: 18 files, 169 tests. The reference and stale-text `rg` searches find nothing. Baseline: green via handoff (78768296, only .flow/ changed since).
+
+Also in this change: the `pipeline.md` clause about the position upload overlapping `begin_positions` was dropped, because fn-287.1 made that route test-only. The misplaced `bounded` doc line above `FLOWERS` was moved onto `bounded`.
+
+Follow-ups: `telperion_space::grow_coarse` is read only by its own tests (out of scope per spec). The worktree needed `npm ci` before `npm test` would run (FRICTION.md).
+
+Tier: worker (conductor dispatch)
+
+stage: impl-review - ran (codex, three draws: correctness, contracts, integration; SHIP, 0 findings)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9c16ea71a9bea51d4039ed3fde18325c93bd4c23, 4289e85b0cca9ebc231e8213fb7f17338a469c1f, 48dc77ae1634bb1723a7acd5dfc255037d30fc6c, 02650094198c241207a2fa5027b006f8d56ec67b
+- Tests: telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast, cargo test --profile ci -p telperion-space --lib, TELPERION_WRITE_REFERENCE=1 cargo test --profile ci -p telperion-core --test parameter_reference, npm test
 - PRs:

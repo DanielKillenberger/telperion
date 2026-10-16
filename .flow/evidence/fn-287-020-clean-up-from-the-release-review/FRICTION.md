@@ -13,3 +13,10 @@
 - Hindered by: without the variant, `Lent<'a>` no longer uses its lifetime (E0392), so the gate the plan and the return described cannot build. `Lent` was removed instead: `compute_buffer_async` takes any `Deref<Target = wgpu::Buffer>` rings and the lent bytes explicitly (0 from `compute_async`, the buffer's size from the oracle and the tests), the same values the enum gave.
 - Cost: one check build, about 2 minutes.
 - Would remove it: checking a proposed `cfg` cut with `cargo check` before writing it into a return.
+
+## 2026-10-16 - fn-287.2: the worktree had no node_modules, and the gate outlasts a foreground call
+
+- Doing: R3's `npm run catalogue:check` and the end-of-task gate.
+- Hindered by: the cleanup287 worktree carried no `node_modules`, so `npm run catalogue:check` failed until `npm ci` ran in it; and the workspace gate (about 34 minutes at `--threads 2`) exceeds the 10-minute ceiling of one foreground tool call, so the worker had to run it in the background and wait on it, against the foreground rule for gate runs.
+- Cost: about 2 minutes for the install and its diagnosis; the background wait itself costs nothing but breaks the stated rule.
+- Would remove it: the worktree kit running `npm ci` when it creates a worktree; the worker brief naming the background-and-wait path for a gate longer than 10 minutes.
