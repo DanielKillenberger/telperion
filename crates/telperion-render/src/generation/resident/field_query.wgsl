@@ -93,6 +93,7 @@ fn query(@builtin(global_invocation_id) id: vec3<u32>) {
                         continue;
                     }
                     var j = 0u;
+                    // cap: the systems held, at most `TALLY`.
                     while j < held && systems[j] != system {
                         j += 1u;
                     }
