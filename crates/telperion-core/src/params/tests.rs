@@ -147,6 +147,7 @@ fn catalogue_roundtrips_all_controls_and_identities() {
             Some(Error::InvalidInput("unknown canopy trait"))
         );
     }
+    #[cfg(feature = "geometry")]
     for (trait_name, bad, message) in [
         ("forwardLean", json!(1.5), "forward lean"),
         ("forwardLean", json!(-1.5), "forward lean"),

@@ -40,7 +40,7 @@ pub use canopy::{CanopyParams, TwigPlacement};
 pub use crown::{blade, establishment, waited, Crown};
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
 /// A frond's leaflets before any draw, for the suite's gap check (fn-275 R2c).
-#[cfg(test)]
+#[cfg(all(test, feature = "geometry"))]
 pub(crate) use leaflet::leaflets;
 pub use levels::Level;
 pub(crate) use organs::apex;

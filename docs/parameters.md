@@ -1838,7 +1838,7 @@ The colour of a petal's upper face, a linear albedo per channel, the same quanti
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 101, as invalid input `bloom front red`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/material/bloomFrontGreen`
 
@@ -1848,7 +1848,7 @@ The green channel of `bloom_front_red`.
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 102, as invalid input `bloom front green`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/material/bloomFrontBlue`
 
@@ -1858,7 +1858,7 @@ The blue channel of `bloom_front_red`.
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 103, as invalid input `bloom front blue`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/material/bloomBackRed`
 
@@ -1868,7 +1868,7 @@ The colour of a petal's underside, a linear albedo per channel as `bloom_front_r
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 104, as invalid input `bloom back red`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/material/bloomBackGreen`
 
@@ -1878,7 +1878,7 @@ The green channel of `bloom_back_red`.
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 105, as invalid input `bloom back green`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/material/bloomBackBlue`
 
@@ -1888,7 +1888,7 @@ The blue channel of `bloom_back_red`.
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 106, as invalid input `bloom back blue`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/material/bloomEyeRed`
 
@@ -1898,7 +1898,7 @@ A floret's eye: the colour its petals turn toward at their base, a linear reflec
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 107, as invalid input `bloom eye red`
 - dormant: no age flowering, or `bloomEyeShare` zero
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/material/bloomEyeGreen`
 
@@ -1908,7 +1908,7 @@ The green channel of `bloom_eye_red`.
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 108, as invalid input `bloom eye green`
 - dormant: no age flowering, or `bloomEyeShare` zero
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/material/bloomEyeBlue`
 
@@ -1918,7 +1918,7 @@ The blue channel of `bloom_eye_red`.
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 109, as invalid input `bloom eye blue`
 - dormant: no age flowering, or `bloomEyeShare` zero
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/material/bloomEyeShare`
 
@@ -1928,7 +1928,7 @@ How far up each petal from its base the eye reaches, as a share of the petal's l
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 110, as invalid input `bloom eye share`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/material/hueRangeLow`
 
@@ -2698,7 +2698,7 @@ Florets on one inflorescence. The fractional part is the last floret's size, so 
 - read by expand; removed growth path: as the direct build
 - checked: Bloom site, rank 0, as invalid input `bloom florets`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/rachis`
 
@@ -2708,7 +2708,7 @@ Metres of the inflorescence's axis the florets stand along: zero is a cluster at
 - read by expand; removed growth path: as the direct build
 - checked: Bloom site, rank 1, as invalid input `bloom rachis`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/droop`
 
@@ -2718,7 +2718,7 @@ How the axis turns from the bud's side as it grows: 1 hangs straight down, -1 st
 - read by expand; removed growth path: as the direct build
 - checked: Bloom site, rank 2, as invalid input `bloom droop`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/pedicel`
 
@@ -2728,7 +2728,7 @@ Metres of stalk between the axis and each floret.
 - read by expand; removed growth path: as the direct build
 - checked: Bloom site, rank 3, as invalid input `bloom pedicel`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/spread`
 
@@ -2738,7 +2738,7 @@ The degrees a floret's stalk leaves the axis: small packs a spike, ninety spread
 - read by expand; removed growth path: as the direct build
 - checked: Bloom site, rank 4, as invalid input `bloom spread`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/taper`
 
@@ -2748,7 +2748,7 @@ How much smaller the floret at the axis's tip is than the one at its base, as a 
 - read by expand; removed growth path: as the direct build
 - checked: Bloom site, rank 5, as invalid input `bloom taper`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/petals`
 
@@ -2758,7 +2758,7 @@ Petals on a floret, turned evenly about it by the count. The fractional part is 
 - read by plan; removed growth path: as the direct build
 - checked: Bloom site, rank 6, as invalid input `bloom petals`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/open`
 
@@ -2768,7 +2768,7 @@ The degrees a petal opens from the floret's axis: a bud near zero, an open bloss
 - read by plan; removed growth path: as the direct build
 - checked: Bloom site, rank 7, as invalid input `bloom open`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/petalLength`
 
@@ -2778,7 +2778,7 @@ A petal's length in metres.
 - read by plan; removed growth path: as the direct build
 - checked: Bloom site, rank 8, as invalid input `bloom petal length`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/petalWidth`
 
@@ -2788,7 +2788,7 @@ A petal's greatest width in metres.
 - read by plan; removed growth path: as the direct build
 - checked: Bloom site, rank 9, as invalid input `bloom petal width`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/petalWidest`
 
@@ -2798,7 +2798,7 @@ Where a petal is widest, as a share from its base to its tip.
 - read by plan; removed growth path: as the direct build
 - checked: Bloom site, rank 10, as invalid input `bloom petal widest point`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/petalCup`
 
@@ -2808,7 +2808,7 @@ How far a petal's margins lift out of its plane, as a share of its half-width: a
 - read by plan; removed growth path: as the direct build
 - checked: Bloom site, rank 11, as invalid input `bloom petal cup`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/petalCurl`
 
@@ -2818,7 +2818,7 @@ How far a petal bends along its length, as a share of its length at the tip: pos
 - read by plan; removed growth path: as the direct build
 - checked: Bloom site, rank 16, as invalid input `bloom petal curl`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/stamens`
 
@@ -2828,7 +2828,7 @@ Stamens in a floret, a ring of filaments standing up inside its petals. The frac
 - read by plan; removed growth path: as the direct build
 - checked: Bloom site, rank 17, as invalid input `bloom stamens`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/stamenLength`
 
@@ -2838,7 +2838,7 @@ A stamen's length in metres, from the floret's centre.
 - read by plan; removed growth path: as the direct build
 - checked: Bloom site, rank 18, as invalid input `bloom stamen length`
 - dormant: no age flowering, or `stamens` zero
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/stamenWidth`
 
@@ -2848,7 +2848,7 @@ A stamen's width in metres.
 - read by plan; removed growth path: as the direct build
 - checked: Bloom site, rank 19, as invalid input `bloom stamen width`
 - dormant: no age flowering, or `stamens` zero
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/scatter`
 
@@ -2858,7 +2858,7 @@ How far a floret's size varies from one to the next, as a share.
 - read by expand; removed growth path: as the direct build
 - checked: Bloom site, rank 12, as invalid input `bloom scatter`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/opens`
 
@@ -2868,7 +2868,7 @@ Where in the year the flowering window opens, as a share of the year from its st
 - read by expand; removed growth path: as the direct build
 - checked: Bloom site, rank 13, as invalid input `bloom opens`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/lasts`
 
@@ -2878,7 +2878,7 @@ How long the window lasts, as a share of the year. A floret grows in and shrinks
 - read by expand; removed growth path: as the direct build
 - checked: Bloom site, rank 14, as invalid input `bloom lasts`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ### `/bloom/stagger`
 
@@ -2888,7 +2888,7 @@ The share of the window the florets' openings are spread over: zero opens every 
 - read by expand; removed growth path: as the direct build
 - checked: Bloom site, rank 15, as invalid input `bloom stagger`
 - dormant: no age flowering
-- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+- blend: linear; dial: none: Live on Telperion and Laurelin; excluded from tuning until a species' spec opens its flowers (fn-216).
 
 ## `/supernatural`
 

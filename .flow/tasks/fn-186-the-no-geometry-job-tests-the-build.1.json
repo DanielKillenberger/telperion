@@ -6,7 +6,7 @@
   "priority": null,
   "spec": "fn-186-the-no-geometry-job-tests-the-build",
   "spec_path": ".flow/tasks/fn-186-the-no-geometry-job-tests-the-build.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement The no-geometry job tests the build without geometry",
   "updated_at": "2026-10-02T15:30:20.370211Z"
 }

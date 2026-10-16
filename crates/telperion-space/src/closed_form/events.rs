@@ -1,9 +1,9 @@
 //! One bud's development as the recursion meets it (`closed_form.rs`):
 //! its growth units, laterals, relays, continuation and sleeping buds,
 //! each weighted by its expectation, and where each stands along the
-//! bud's axis (`along.rs`), which the envelope reads (fn-209) and the
-//! counts and lengths do not.
-use super::along::{dominance, Along, Count};
+//! bud's axis (`along.rs`), which the kept tables read (`kept/path.rs`)
+//! and the counts and lengths do not.
+use super::along::{Along, Count};
 use super::steps::{first_step, scaled, steps, zones, Relay, Step};
 use crate::dormant::{First, Living, Piece};
 use crate::lineage::turn;
@@ -12,8 +12,8 @@ use crate::species::{PaState, Species, Zone};
 
 /// Where buds of one event stand and what share of a whole place's size
 /// each grows at (σ), averaged over them: E[σ^p] for p = 1 to 3, E[σ x]
-/// and E[σ² x] for x their distance along the axis, E[σ x²]; their angle
-/// to the axis, and the dominance moments of their base scale.
+/// and E[σ² x] for x their distance along the axis, E[σ x²]; and their
+/// angle to the axis.
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Stand {
     pub shares: [f64; 3],
@@ -22,7 +22,6 @@ pub(super) struct Stand {
     /// Its angle's cosine and the cosine's square, in expectation over its
     /// insertion draw (`lineage::turn`).
     pub turn: [f64; 2],
-    pub dominance: [f64; 3],
 }
 
 impl Stand {
@@ -33,7 +32,6 @@ impl Stand {
             along: [at.mean; 2],
             square: at.square,
             turn,
-            dominance: [1.0; 3],
         }
     }
 }
@@ -67,14 +65,13 @@ impl Sum {
         self.square += count * share * at.square;
     }
 
-    fn stand(&self, turn: [f64; 2], dominance: [f64; 3]) -> Stand {
+    fn stand(&self, turn: [f64; 2]) -> Stand {
         let n = if self.count > 0.0 { self.count } else { 1.0 };
         Stand {
             shares: self.shares.map(|s| s / n),
             along: self.along.map(|s| s / n),
             square: self.square / n,
             turn,
-            dominance,
         }
     }
 }
@@ -83,14 +80,8 @@ impl Sum {
 #[derive(Clone)]
 pub(super) enum Event {
     /// Phytomers of the bud's own PA grown in cycle `at`, each grown at
-    /// `size` of a whole unit's length (`schedule.rs`); and their wood's
-    /// moments along the axis, [E Σ l, E Σ l x, E Σ l x²].
-    Nodes {
-        at: usize,
-        count: f64,
-        size: f64,
-        wood: [f64; 3],
-    },
+    /// `size` of a whole unit's length (`schedule.rs`).
+    Nodes { at: usize, count: f64, size: f64 },
     /// A bud of `pa` whose first unit grows in cycle `at + 1`, carrying
     /// `carried`, `weight` of them, born at `size` (a lateral of a partial
     /// unit's node); a woken one with the law of its partial first unit;
@@ -261,12 +252,10 @@ fn unit_events(
         };
         let nodes = weight * mean;
         let start = start.then(scaled(starts[z], internode));
-        let wood = counts[z].wood(start, internode).map(|w| weight * w);
         out.push(Event::Nodes {
             at: i,
             count: nodes,
             size,
-            wood,
         });
         // Every bud place stands, the last a fraction makes with that
         // chance, a making draw (fn-231): `buds` places a node in
@@ -313,8 +302,7 @@ pub(super) fn lateral_stand(
         sum.add(n * p * zone.share(slot), 1.0, at);
     }
     let lived = species.lived(j).map(|(q, _)| &species.states[q]);
-    let d = lived.map_or(0.0, |s| s.form.dominance);
-    sum.stand(angled(lived), dominance(d))
+    sum.stand(angled(lived))
 }
 
 /// The sleeping buds of one zone's `nodes` on a growth unit of the bearer
@@ -344,8 +332,7 @@ pub(super) fn sleeping(
         }
         let species = living.species();
         let lived = species.lived(j).map(|(q, _)| &species.states[q]);
-        let d = lived.map_or(0.0, |s| s.form.dominance);
-        let stand = sum.stand(angled(lived), dominance(d));
+        let stand = sum.stand(angled(lived));
         for s in 0..(m - i) as u32 {
             let pieces = living.woken((bearer.0, z), j, s);
             if pieces.is_empty() {

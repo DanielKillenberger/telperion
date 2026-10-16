@@ -2,7 +2,7 @@
 
 ## Goal & Context
 
-`scripts/test-dist.mjs` (the package as Node loads it) fails on F4: `TreeEngine.build(TELPERION, seed 7, { surface: true, foliage: true })` in `dist/telperion.js` throws "Tree core: resource limit: surface allocation" (reproduced at 6a6d5abcb, after fn-257, 2026-10-16). The package's main entry is the README's first example, and docs/principles.md asks that every shipped preset's every artifact builds through each package entry. The script is already a step of CI's `package` job, so that job fails on this branch until the entry builds the tree or refuses it by name (checked in the workflow at plan time; the capture's "not in CI" was stale).
+`scripts/test-dist.mjs` (the package as Node loads it) fails on F4: `TreeEngine.build(TELPERION, seed 7, { surface: true, foliage: true })` in `dist/telperion.js` throws "Tree core: surface allocation" (reproduced at 6a6d5abcb, after fn-257, 2026-10-16). The package's main entry is the README's first example, and docs/principles.md asks that every shipped preset's every artifact builds through each package entry. The script is already a step of CI's `package` job, so that job fails on this branch until the entry builds the tree or refuses it by name (checked in the workflow at plan time; the capture's "not in CI" was stale).
 
 The refusal comes from the wood's buffer reservation (`try_reserve_exact`, mapped to `ResourceLimit("surface allocation")`). The 32-bit Wasm binding runs with the default 4 GiB memory. The existing wasm32 ceiling caps kept phytomers (4M, predicted before growth and checked after) and does not bound the wood's ring, normal and index buffers, so a tree under the phytomer ceiling can still exhaust memory in the surface stage (fn-198 BROWSER.md records the same message for the beech at 80 and the spruce at 60 and 70). The native entry test (`every_shipped_preset_builds_through_the_main_entry`) runs on the host allocator and cannot see the limit. Unknown until R1 runs: which presets and seeds fail, at what memory high-water mark, and which allocation is the one that fails.
 
@@ -19,6 +19,15 @@ Task fn-291-the-cpu-entry-builds-every-shipped.1 validates the core approach (th
 ## Boundaries
 
 Release item (fn-237). Found by the host on 2026-10-16 while checking fn-257's report. Out of scope: memory64 or a second binding, the device (WebGPU) entry and the field entry (fn-257 owns them), the growth path, and charting memory against age (fn-285). The field entry's Node refusal ("WebGPU is not available") stays as it is.
+
+## The owner's decision on R2 (2026-10-16)
+
+"we shouldn't refuse by name. If we have params we can't build we should refuse those cleanly, but ideally we don't have that." Every shipped preset at every seed builds through the CPU entry; a refusal is reserved for parameters that truly cannot be built, predicted before allocation and named. So R2 is a memory fix, chosen by the host from PROBE.md:
+
+- **R2a (the build's peak):** what the surface stage does not read is freed before it allocates (the grown tree's working state, the foliage plan's scratch), and the wood's intermediate buffers are written once at their final size, not grown or copied.
+- **R2b (compact wood):** the wood's per-vertex data in the smallest layout the drawing allows (for example oct-encoded normals, bark coordinates in 16-bit), each field's precision bounded by a test at the drawn tolerance; if the package's output format changes, the TypeScript types, README and a migration note change with it.
+- **R2c (proof):** all 24 cases of PROBE.md build with the Wasm high-water mark at or under 3.5 GiB (headroom), stills of Telperion and Laurelin unchanged to the eye, every other preset's surface byte-identical or within the bounded precision; the probe joins `test:dist`.
+- Fewer sides on thin wood (PROBE.md option 3) changes the tree's look and is not taken here; if R2a-R2b cannot reach the bar, the run stops and reports the measured gap.
 
 ## Strategy Alignment
 

@@ -247,6 +247,7 @@ fn the_rows_are_refused_off_their_rails() {
 /// structural wood. A leaf still sits on the
 /// wood as drawn, so the envelope's interior cull, which reads where a leaf
 /// is, may keep a handful fewer or more.
+#[cfg(feature = "geometry")]
 #[test]
 fn a_hold_adds_or_loses_no_leaf() {
     let placed = |girth_hold: f64| {

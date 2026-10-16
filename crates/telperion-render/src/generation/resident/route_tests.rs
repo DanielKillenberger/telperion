@@ -25,7 +25,7 @@ fn prepare_grows_every_preset_on_the_device_and_draws_it() {
         let prepared = gen.prepare(&family, Delivery::Resident);
         let prepared = prepared.unwrap_or_else(|e| panic!("{id}: {e}"));
         assert!(prepared.wood.is_some(), "{id}: not the device path");
-        let whole = pollster::block_on(gen.prepare_whole(&family, Delivery::Resident)).unwrap();
+        let whole = pollster::block_on(gen.prepare_whole_resident(&family)).unwrap();
         assert_eq!(prepared.count(), whole.count(), "{id}: leaves");
         renderer.submit_prepared(prepared).unwrap();
         // Each tree draws: a frame's device error fails the still.
@@ -228,7 +228,7 @@ fn the_foliage_budget_holds_the_whole_trees_leaves() {
     let mut family = family("european-beech", 30);
     let count = gen.prepare(&family, Delivery::Resident).unwrap().count();
     family.canopy.max_instances = count as usize - 1;
-    let whole = pollster::block_on(gen.prepare_whole(&family, Delivery::Resident));
+    let whole = pollster::block_on(gen.prepare_whole_resident(&family));
     let whole = whole.err().expect("the CPU reference refuses").to_string();
     assert!(whole.contains("foliage instance budget"), "{whole}");
     let device = gen.prepare(&family, Delivery::Resident).err();
@@ -252,7 +252,7 @@ fn a_zero_leaf_size_places_no_leaves() {
     let gen = Generator::new(&renderer).unwrap();
     let mut family = family("european-beech", 30);
     family.canopy.size = 0.0;
-    let whole = pollster::block_on(gen.prepare_whole(&family, Delivery::Resident)).unwrap();
+    let whole = pollster::block_on(gen.prepare_whole_resident(&family)).unwrap();
     assert_eq!(whole.count(), 0);
     let prepared = gen.prepare(&family, Delivery::Resident).unwrap();
     assert!(prepared.wood.is_some(), "not the device path");
@@ -281,7 +281,7 @@ fn the_device_path_draws_what_the_cpu_path_draws() {
         family.surface.lobes = lobes;
         family.surface.lobe_depth = 0.1;
         let at = format!("contact {contact}, lobes {lobes}");
-        let whole = pollster::block_on(gen.prepare_whole(&family, Delivery::Resident));
+        let whole = pollster::block_on(gen.prepare_whole_resident(&family));
         let whole = whole.unwrap_or_else(|e| panic!("{at}: whole: {e}"));
         let prepared = gen.prepare(&family, Delivery::Resident);
         let prepared = prepared.unwrap_or_else(|e| panic!("{at}: device: {e}"));
@@ -308,7 +308,7 @@ fn a_flowering_tree_draws_every_floret_on_either_path() {
         held + p.organ.as_ref().map_or(0, |o| o.count as usize)
     };
     let resident = gen.prepare(&family, Delivery::Resident).unwrap();
-    let whole = pollster::block_on(gen.prepare_whole(&family, Delivery::Resident)).unwrap();
+    let whole = pollster::block_on(gen.prepare_whole_resident(&family)).unwrap();
     let cpu = gen.prepare(&family, Delivery::Cpu).unwrap();
     assert!(florets(&whole) > 0, "the beech flowers");
     assert!(

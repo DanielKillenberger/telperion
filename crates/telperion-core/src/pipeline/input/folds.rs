@@ -90,7 +90,7 @@ pub(super) fn share(v: f64, of: f64) -> f64 {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "geometry"))]
 mod tests {
     use super::super::{bins, envelope, grown_envelope};
     use super::*;

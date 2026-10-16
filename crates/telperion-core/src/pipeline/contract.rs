@@ -61,7 +61,7 @@ pub mod radius {
 }
 
 pub mod surface {
-    #[cfg(test)]
+    #[cfg(all(test, feature = "geometry"))]
     pub use crate::pipeline::surface::*;
     pub use crate::pipeline::surface::{
         Bounds, SurfaceMesh, SurfaceParams, SurfaceRun, WoodExtent,
