@@ -16,7 +16,6 @@
 
 ## Goal & Context
 
-<!-- Goal & Context: 50% [user], 50% [inferred] from code read and feasibility check 2026-09-24 -->
 
 Every tree passes through one pipeline: grow, plan, expand, cull, draw. The generator owns the expansion from plan to drawn leaves and wood as a contract that engines consume, and the harness renderer is its first consumer. The expansion is one algorithm with two executors: the GPU (WGSL), and a CPU reference that defines correct and serves consumers without a GPU. There are no fallback paths; an input the pipeline cannot represent is an explicit error. This is STRATEGY.md's "Our approach" as amended on 2026-09-24. [user]
 

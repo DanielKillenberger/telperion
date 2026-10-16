@@ -24,7 +24,6 @@ Layer 1 built.
 
 See `.flow/evidence/fn-211-tree-space-f2b-growth-years-cheap/RESULT.md`.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 239612a2, fb5974ea, f3375582, 3c1c2ce4, c4c4ef39, ec0986bd, eee788d7, f271387d, 55ff41de, 6944917c, 63ce2c59, 91c7896a, 305dca0d, 6b34fd6d, 90ad91d9, 53445e1d, 78708e4d
 - Tests: cargo test --profile ci --workspace --no-fail-fast, measures hash 80 1,7 all both (all cores and taskset -c 0)

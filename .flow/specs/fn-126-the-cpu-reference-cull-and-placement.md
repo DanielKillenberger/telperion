@@ -9,7 +9,6 @@
 
 ## Goal & Context
 
-<!-- Goal & Context: 30% [user], 70% [inferred] code reading and fn-125's feasibility check -->
 
 After fn-125, every tree goes through one expansion with two executors (STRATEGY.md, amended 2026-09-24). The CPU reference executor defines correct, serves consumers without a GPU, and runs in every test that builds a tree. Today the same work is the slowest part of the CPU build. At seed 1, spruce placement takes 3,845 ms (82.5% of its build) and its cull 360 ms (fn-91 `CPU-CANDIDATE.md`). Birch placement and cull take 4.21 s together (`.flow/evidence/fn76/LOCAL.md`). This spec makes the reference executor fast once fn-125 has defined it. [inferred]
 

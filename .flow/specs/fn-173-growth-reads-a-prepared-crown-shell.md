@@ -10,7 +10,6 @@
 > user (2026-10-02): "Can we not take a step back and find something cleaner?", then, on the fast-pow probe's result: "rewrite fn-173 that way and review with astra on high. Ask it to make sure we have the most efficient and elegant solution in line with our engineering principles."
 
 ## Goal & Context
-<!-- Goal & Context: 30% [user], 70% [checked] from the 2026-09-27 growth profile and the 2026-09-27 and 2026-10-02 measurements -->
 
 Every growth step asks the crown how wide it is at a height, and each answer is computed from scratch. On master f9487810 (native, scratch sampler), `radius_at` takes 25.1% of oak seed 1's 51.3 ms growth, `radius_toward` 32.7% of beech seed 1's 103.2 ms, and `radius_at` 53.3% of birch seed 7's 268.4 ms, most of it inside the curtain search fn-174 covers. [checked]
 
@@ -66,7 +65,7 @@ The cost is the outline, not the lobes. Per query, the outline's `quadrant(p, s)
 
 ## Re-scope after fn-183 (host, 2026-10-02)
 
-fn-183 removed the twig layer's crown queries. What remains, from `R4-RESULT.md` at seed 1: about 26k queries on the oak, 36k on the beech, 20k on the birch, 169k on the spruce (scaffold containment and attractor sampling, 65% of its original count) and 239k on Telperion (shedding, 228k). At the 40 to 55 ns this table would save per query, that is roughly 1 ms of the oak's 43 ms and 1 ms of the birch's 25 ms, about 7 ms of the spruce's 36 ms, and 10 ms of Telperion's 363 ms. [inferred from checked counts]
+fn-183 removed the twig layer's crown queries. What remains, from fn-183's R4 result at seed 1: about 26k queries on the oak, 36k on the beech, 20k on the birch, 169k on the spruce (scaffold containment and attractor sampling, 65% of its original count) and 239k on Telperion (shedding, 228k). At the 40 to 55 ns this table would save per query, that is roughly 1 ms of the oak's 43 ms and 1 ms of the birch's 25 ms, about 7 ms of the spruce's 36 ms, and 10 ms of Telperion's 363 ms. [inferred from checked counts]
 
 Before any table, step 2 of "Question, delete, then optimise" applies to the two large callers: why the spruce's scaffold asks its outline 168k times (rejection sampling of attractors and edge containment), and whether Telperion's shedding (fn-172's) needs a query per node. This spec is not ready until that is answered; the outline table is built only for what survives it. [host]
 

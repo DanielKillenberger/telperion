@@ -16,7 +16,6 @@ One-core regression's cause: F1's Q32 presences turned each draw's lead into fou
 
 Host (2026-10-07): parity within noise accepted as "no slower"; the duplicate-identity check returns as a debug assertion in lineage_order (follow-up); F1's further work starts from fn-198's tip, which carries these engine changes.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 8f3ce65d
 - Tests: cargo test --profile ci --workspace --no-fail-fast, npm test

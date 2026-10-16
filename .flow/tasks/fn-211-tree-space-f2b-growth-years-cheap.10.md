@@ -13,7 +13,6 @@ Split from task 9 by the host (2026-10-07). Inside the stepped executor, the dev
 ## Done summary
 Inside the stepped executor the device runs the lit fine roots' rough layout (units sized, ranked and stepped), D16, deposits and sampling; the CPU frames each round and runs the rest. Every grower's whole state after every phase and every lattice equal the all-CPU run's on the lit oak at 24 (two re-lays) and on a neighbour that wakes D16's sheds, carried lifts and the landing: cuts 64, 256 and 1,024, three item orders and chunkings, three device deposit orders and chunkings, forced retries. Six device mutations are each caught. Timed at 80 (cut 1,024, warm): seed 1, today 8.73 s, stepped CPU 6.67 s, stepped device 13.52 s (GPU kernels 3.8 s); seed 7, 17.15 / 14.59 / 32.34 s. Identity at 80 holds by phase and tree digests. TASK10-GPU.md.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: ba848ae1, a963e86a, 11d3b703, 15c447f7
 - Tests: cargo test --profile ci -p telperion-render --no-fail-fast, cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render

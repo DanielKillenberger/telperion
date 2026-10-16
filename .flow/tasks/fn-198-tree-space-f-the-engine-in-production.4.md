@@ -19,7 +19,6 @@ F1 merged (8a1eafc1): every engine tree identical to F1's branch (32 digests). D
 
 Acceptance amended by the host (2026-10-07, decision 16): stage 2 through the GPU executor is withdrawn from this task; nothing after stage 2 reads fine roots from the device, readback is excluded by fn-209 decision 5, and the device-side readers are a spec for the owner (option c). The one-core regression found here (9-41 %) is task 5.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 8a1eafc1, f4c2ad12, fab45ab8, e905dcdd, da65120e
 - Tests: cargo test --profile ci --workspace --no-fail-fast, npm test

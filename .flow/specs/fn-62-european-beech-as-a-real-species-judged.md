@@ -6,7 +6,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 25% [user], 40% [paraphrase], 35% [inferred] -->
 
 The European beech moves out of fn-34, as the ash did, so fn-34 can close on the birch. The beech's profile, references, packet, preset and every verdict so far carry over from fn-34 (`.flow/evidence/fn34/european-beech/`, fn-34's Owner verdicts, rounds 1 to 23 in `.flow/evidence/fn34/REPORT.md`). [paraphrase]
 
