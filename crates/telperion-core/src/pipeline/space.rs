@@ -60,18 +60,6 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     let rows = pa_rows(species);
     let establishing = Establishing::of(&input.canopy, species, &input.space.trunk);
     let rows = (&input.space.trunk[..], &rows[..]);
-    // A coarse tree keeps a structure above its cut, never the tree's
-    // expected count: `fits` holds it once grown.
-    if input.cut > 0 {
-        let cut = f64::from(input.cut);
-        let coarse = telperion_space::grow_coarse(species, request, cut).map_err(engine)?;
-        fits(&coarse.structure, KEPT)?;
-        let coarse = Establishing::coarse(establishing, coarse, rows.0);
-        let (mut tree, drawn) = converted(&coarse.structure, rows);
-        tree.stands = stands::convert(&coarse, &drawn);
-        scaled(&mut tree, input.supernatural.scale());
-        return Ok(tree);
-    }
     foreseen(species, request.age, KEPT)?;
     // The engine returns its tree in its canonical lineage order, parents
     // first and siblings by lineage, whichever path built it (FINE-CONTRACT
@@ -161,10 +149,6 @@ fn scaled(tree: &mut Tree, scale: f64) {
     }
     for leafing in &mut tree.leafing {
         leafing.older *= scale;
-    }
-    for s in &mut tree.stands {
-        (s.base, s.tip) = (s.base * scale, s.tip * scale);
-        (s.radius, s.reach) = (s.radius * scale, s.reach * scale);
     }
 }
 
@@ -334,16 +318,11 @@ fn codominance(radius: f64, parent: f64) -> Option<f64> {
 /// short shoot: each node it draws is marked, and its last drawn node, its
 /// own tip, keeps the cluster; an axis that draws no node bears none.
 fn convert(structure: &Structure, rows: (&[usize], &[PaRow])) -> Tree {
-    converted(structure, rows).0
+    unfolded(structure, rows, Unfolding::WHOLE).0
 }
 
-/// `convert`'s tree and each axis's drawn nodes, base first: where a coarse
-/// tree's stands are borne (fn-214).
-fn converted(structure: &Structure, rows: (&[usize], &[PaRow])) -> (Tree, Vec<Vec<u32>>) {
-    unfolded(structure, rows, Unfolding::WHOLE)
-}
-
-/// `converted`, its leaves drawn by `unfolding`.
+/// `convert`'s tree, its leaves drawn by `unfolding`, and each axis's
+/// drawn nodes, base first.
 fn unfolded(
     structure: &Structure,
     (trunk, rows): (&[usize], &[PaRow]),
@@ -629,8 +608,6 @@ mod bloom_tests;
 mod ceiling_tests;
 #[cfg(test)]
 mod cluster_tests;
-#[cfg(test)]
-mod coarse_tests;
 mod establish;
 pub mod growth;
 #[cfg(test)]
@@ -645,6 +622,5 @@ mod radii_tests;
 mod relay_tests;
 #[cfg(test)]
 mod repeat_tests;
-mod stands;
 #[cfg(test)]
 mod tests;

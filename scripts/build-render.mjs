@@ -48,7 +48,8 @@ execFileSync('wasm-bindgen', ['--target', 'web', '--omit-default-module-path', '
 // at run time; the glue is bundled, the module never is.
 const WASM = 'telperion-render.wasm';
 await mkdir(new URL('dist/', root), { recursive: true });
-for (const dir of ['src/browser/', 'dist/']) {
+// The field entry (src/field) loads the same module from beside itself (fn-257).
+for (const dir of ['src/browser/', 'src/field/', 'dist/']) {
   await copyFile(new URL(`${OUT}/telperion_render_bg.wasm`, root), new URL(`${dir}${WASM}`, root));
 }
 console.log(`Built the renderer module and its glue into ${OUT}/, the module beside its entry as ${WASM}.`);

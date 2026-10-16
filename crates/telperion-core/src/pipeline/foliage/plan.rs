@@ -259,18 +259,6 @@ pub struct Descriptor {
     /// oriented box: the rectangle the segment sweeps from `-side` to
     /// `side`, pushed out by its radius either way along its normal.
     pub side: Vec3,
-    /// A coarse tree's fine root standing in (fn-214); `None` for every
-    /// leaf-bearing segment and leaflet.
-    pub stand: Option<Standing>,
-}
-
-/// What a stand-in adds to its descriptor: how far past a leaf's own reach
-/// it spreads (its expected wood's reach) and the key its occupancy of a
-/// cell draws under (`tree::stand_key`).
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Standing {
-    pub spread: f64,
-    pub key: u32,
 }
 
 /// Every descriptor of one tree under one family, with the family's reach.
@@ -297,10 +285,7 @@ impl Plan {
     /// distance of the segment: the wood's radius carried out to the seat,
     /// plus the rachis, plus the blade.
     pub fn reach(&self, d: &Descriptor) -> f64 {
-        d.radii[0].max(d.radii[1]) * self.seat
-            + self.rachis
-            + self.blade
-            + d.stand.map_or(0.0, |s| s.spread)
+        d.radii[0].max(d.radii[1]) * self.seat + self.rachis + self.blade
     }
 }
 
@@ -371,7 +356,6 @@ pub fn plan(
                 count: leaves,
                 system: system[run.nodes[segment + 1]],
                 side: Vec3::ZERO,
-                stand: None,
             });
         }
         total += run.leaves;
@@ -388,7 +372,6 @@ pub fn plan(
             count: cluster::leaves(tree, &p, c),
             system: system[c.node as usize],
             side: Vec3::ZERO,
-            stand: None,
         });
         total += cluster::leaves(tree, &p, c);
     }
@@ -396,7 +379,7 @@ pub fn plan(
     // wood's; the stands bear the wood's leaves alone.
     let wood = (total, descriptors.len());
     let crown = fronds::describe(tree, p, element, seed, &system, &mut descriptors)?;
-    total = stands(tree, &runs, &system, wood.0, &mut descriptors)?
+    total = (wood.0)
         .checked_add(crown)
         .filter(|&n| n as usize <= p.max_instances)
         .ok_or(Error::ResourceLimit("foliage instance budget"))?;
@@ -432,50 +415,6 @@ pub(crate) fn leaf_reach(surface: &SurfaceParams, p: CanopyParams, element: &Ele
         rachis(p),
         extent * p.size * (1.0 + p.size_variation),
     ]
-}
-
-/// A coarse tree's fine roots (fn-214), each a capsule from its wood's base
-/// to its tip, spread by its reach, on its bearer's limb system, carrying
-/// the leaves its expected kept phytomers bear at the plan's own leaves per
-/// leaf-bearing node of the tree it stands on; the plan's total with theirs.
-fn stands(
-    tree: &Tree,
-    runs: &[Run],
-    system: &[u32],
-    total: u32,
-    descriptors: &mut Vec<Descriptor>,
-) -> Result<u32> {
-    if tree.stands.is_empty() {
-        return Ok(total);
-    }
-    let nodes: usize = runs.iter().map(|r| r.nodes.len() - 1).sum();
-    let per = if nodes > 0 {
-        f64::from(total) / nodes as f64
-    } else {
-        0.0
-    };
-    descriptors
-        .try_reserve(tree.stands.len())
-        .map_err(|_| Error::ResourceLimit("foliage plan allocation"))?;
-    let mut total = total;
-    for s in &tree.stands {
-        let count = (s.phytomers * per).round() as u32;
-        total = total
-            .checked_add(count)
-            .ok_or(Error::ResourceLimit("foliage instance budget"))?;
-        descriptors.push(Descriptor {
-            endpoints: [s.base, s.tip],
-            radii: [0.0; 2],
-            count,
-            system: system[s.node as usize],
-            side: Vec3::ZERO,
-            stand: Some(Standing {
-                spread: s.reach,
-                key: s.key,
-            }),
-        });
-    }
-    Ok(total)
 }
 
 /// Every unbranched run of leaf-bearing wood that keeps its leaves at the

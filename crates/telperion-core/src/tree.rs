@@ -9,7 +9,6 @@ mod identity;
 mod leafing;
 mod section;
 mod shoot;
-mod stand;
 use crate::{math::Vec3, Error, Result};
 pub use bloom::Bloom;
 pub use cluster::{cluster_key, Cluster};
@@ -18,7 +17,6 @@ pub(crate) use identity::NodeKey;
 pub use leafing::{keeps, kept_share, retention, Leafing, Unfolded, FALL, KEEP, LIFE};
 pub use section::{Section, SectionRing};
 pub use shoot::{BudFate, ShootState};
-pub use stand::{stand_key, Stand};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
@@ -185,10 +183,6 @@ pub struct Tree {
     /// stored, as `leafing` is.
     #[cfg_attr(feature = "json", serde(skip))]
     pub year: Option<Year>,
-    /// The fine roots a coarse tree holds as their expected occupancy, never
-    /// grown (fn-214): empty on every tree grown whole. Never stored.
-    #[cfg_attr(feature = "json", serde(skip))]
-    pub stands: Vec<Stand>,
 }
 
 /// The year a tree is drawn in (fn-270 R5b): its age in years, whole or a

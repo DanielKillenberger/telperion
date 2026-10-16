@@ -42,12 +42,6 @@ if (process.env.TELPERION_WRITE_REFERENCE) {
 await mkdir(new URL('dist/', root), { recursive: true });
 await copyFile(source, new URL('src/browser/telperion.wasm', root));
 await copyFile(source, new URL('dist/telperion.wasm', root));
-// The slim binding (crates/telperion-field): the core without its geometry, no JSON.
-// Its function names are stripped here, for the package only: the download is
-// the point of the slim entry, and test binaries keep their symbols.
-const strip = ['--config', 'profile.release.package.telperion-field.strip=true'];
-execFileSync('cargo', ['build', '--release', '--target', 'wasm32-unknown-unknown', '-p', 'telperion-field', ...strip], { cwd: root, stdio: 'inherit', timeout: 600_000 });
-const slim = new URL('wasm32-unknown-unknown/release/telperion_field.wasm', target);
-await copyFile(slim, new URL('src/field/telperion-field.wasm', root));
-await copyFile(slim, new URL('dist/telperion-field.wasm', root));
-console.log(`Built the full and the slim Wasm; the family metadata was ${process.env.TELPERION_WRITE_REFERENCE ? 'rewritten' : 'current'}.`);
+// The field entry grows on the device through the renderer's module
+// (scripts/build-render.mjs, fn-257); there is no slim module.
+console.log(`Built the Wasm; the family metadata was ${process.env.TELPERION_WRITE_REFERENCE ? 'rewritten' : 'current'}.`);

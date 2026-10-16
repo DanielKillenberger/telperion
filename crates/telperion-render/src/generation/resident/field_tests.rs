@@ -111,6 +111,78 @@ pub(super) fn grid(b: &telperion_core::foliage::Bounds, n: u32) -> Vec<(Vec3, f6
     out
 }
 
+/// The tolerances R2 holds the device's field to, from the measured runs
+/// (`FIELD.md`): every cell's wood and foliage, its thickest radius within
+/// a percent, the leaves, the limbs as the same partition. A frond's
+/// leaflets are drawn on each executor's own draws, as placement's are
+/// (`every_rosette_is_placed_as_the_cpu_places_it`), so a crown of fronds
+/// is held to where its draws allow.
+pub(super) fn within(m: &Measures, fronds: bool) -> Result<(), String> {
+    let (foliage, leaves, total, limbs) = match fronds {
+        false => (0.999, 0.002, 0.001, 0.95),
+        true => (0.70, 0.40, 0.02, 0.70),
+    };
+    let held = m.wood >= 0.999
+        && m.radius <= 0.005
+        && m.foliage >= foliage
+        && m.leaves <= leaves
+        && (m.total - 1.0).abs() <= total
+        && m.limbs >= limbs;
+    held.then_some(()).ok_or_else(|| format!("{m:?}"))
+}
+
+/// R2 on every shipped preset at seed 1, on a grid of 24 cells a side:
+/// the device's field against the CPU's (the gate's; the measurement
+/// below runs seeds, sides and timings).
+#[test]
+fn every_preset_s_device_field_answers_within_its_tolerance() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let gen = pollster::block_on(Generator::for_fields_async(gpu.clone())).expect("a generator");
+    for &(_, id, ..) in telperion_core::presets::CATALOGUE {
+        let mut family = telperion_core::presets::by_identity(id).expect("a preset");
+        family.skeleton.seed = 1;
+        let request = Request {
+            field: Some(None),
+            ..Request::default()
+        };
+        let reference = pipeline::build(&family, request).expect("the reference");
+        let reference = reference.outputs.field.expect("a field");
+        let field = pollster::block_on(gen.grow_field(&family, None)).expect("grown");
+        let cells = grid(&reference.bounds().expect("bounds"), 24);
+        let cpu: Vec<_> = cells.iter().map(|(c, h)| reference.query(*c, *h).expect("answered")).collect();
+        let words: Vec<f32> = cells
+            .iter()
+            .flat_map(|(c, h)| [c.x as f32, c.y as f32, c.z as f32, *h as f32])
+            .collect();
+        let dev = pollster::block_on(gen.query_field(&field, &words)).expect("answered");
+        let fronds = family.canopy.rosette_fronds > 0.0;
+        within(&compare(&cpu, &dev), fronds).unwrap_or_else(|m| panic!("{id}: {m}"));
+    }
+}
+
+/// A query the CPU's field refuses is refused whole, and an id the
+/// catalogue does not serve is refused by name.
+#[test]
+fn the_device_field_refuses_what_the_core_refuses() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let gen = pollster::block_on(Generator::for_fields_async(gpu.clone())).expect("a generator");
+    let family = telperion_core::presets::by_identity("european-beech").expect("a preset");
+    let field = pollster::block_on(gen.grow_field(&family, None)).expect("grown");
+    for cells in [&[0.0, 1.0, 0.0, -0.1][..], &[f32::NAN, 1.0, 0.0, 0.1], &[0.0, 1.0, 0.0]] {
+        let refused = pollster::block_on(gen.query_field(&field, cells)).expect_err("refused");
+        assert!(refused.to_string().contains("field query"), "{refused}");
+    }
+    let one = pollster::block_on(gen.query_field(&field, &[0.0, 1.0, 0.0, 0.5])).expect("answered");
+    assert_eq!(one.len(), 1);
+    assert!(telperion_core::presets::by_identity("no-such-tree").is_err());
+}
+
 fn list<T: std::str::FromStr>(var: &str, or: &str) -> Vec<T> {
     std::env::var(var)
         .unwrap_or_else(|_| or.into())
@@ -200,6 +272,10 @@ fn the_device_field_answers_as_the_cpu_field() {
                 };
                 let query_ms = t.elapsed_ms();
                 let m = compare(&cpu, &dev);
+                let fronds = family.canopy.rosette_fronds > 0.0;
+                if let Err(m) = within(&m, fronds) {
+                    println!("{id} {seed} {n}: past its tolerance: {m}");
+                }
                 println!(
                     "| {id} | {seed} | {n} | {:.4} | {:.4} | {:.4} | {:.4} | {:.4} | {:.4} | {grow_ms:.0} | {query_ms:.1} | {:.1} |",
                     m.wood, m.radius, m.foliage, m.leaves, m.total, m.limbs,
