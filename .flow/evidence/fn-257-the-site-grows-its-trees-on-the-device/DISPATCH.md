@@ -35,4 +35,6 @@ Paired the same way, folded against apart (a negative difference is the fold slo
 | Oak, 256 / 1024 | 234.8 ms (sd 1.1) | 231.4 ms (sd 3.4) | -3.5 ms (sd 3.4) |
 | Spruce, 1024 / 16384, pairs 2-10 | | | about -11 ms |
 
+The pairs (folded, apart, in ms), oak at 1024 / 16384: 235.0/232.0, 235.0/229.7, 236.5/231.3, 241.9/232.9, 241.1/230.7, 235.1/229.5, 236.0/230.3, 236.7/230.2, 235.8/232.6, 237.0/234.9. Spruce: 615.8/395.6 (the cold outlier), 402.1/394.7, 410.1/413.1, 417.9/406.2, 421.4/409.1, 436.1/411.2, 421.1/413.1, 434.8/409.2, 414.2/413.7, 417.4/405.6. The probe's pairs and the step-only means were printed by the test and not kept; its run is reproducible from the experiment branch (`PROBE_PRESET`, `PROBE_PAIRS`, `PROBE_STEP`).
+
 **Decision: dropped.** The fold costs more than the launches it removes. One workgroup walks up to a thousand axes and their ranks serially where the separate dispatches spread them over the card, and the second slot a round adds its sizing words to every cycle. No production code changed. The probe and the fold are kept on the branch `fn-257-r6-fold-experiment` (8069cec80) for the record. The other lever above, placing passes stopped once a round is placed, stays unmeasured.
