@@ -51,9 +51,16 @@ AttachmentSurface reads `Rings`, not the mesh. Leaves seat on rings, so rings ma
 
 
 ## Done summary
-TBD
+The CPU wood is written as chunks of at most 65,536 vertices with u16 indices, each buffer reserved at exact size as its chunk is written.
+- A split run repeats three rings, for the leaves' contact neighbourhoods. Its last piece also repeats the first ring and the bottom-cap centre, so every cap draws there in the unsplit order (host option 3). A test fails without that fix.
+- Every preset's chunks, laid end to end, equal the base commit's flat wood bit for bit at seeds 1 and 42 (flatdigest --expect).
+- Telperion and laurelin build at every probed seed: telperion seed 7 at 3,608 MiB with chunks alone, 2,777 MiB with task 6's compact fields.
+- Stale and new parallel.rs sites in the generation-limit inventory are reconciled; the guard is green.
 
+stage: impl-review - ran [round 1 NEEDS_WORK (3 lenses) .. re-review NEEDS_WORK (draw order) .. host option 3 .. round reset per the owner's rule (converging) .. re-review SHIP] (model: gpt-6.1-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5b2636d622676362cbf955e5c416c8816c235da7, cab9e7ee0f9b368724f5f8650e0d5db69141e197, e73108ea448a086fef7400891e50d194f44c2a2b, 2f2452469f3ec66fc28aff167651c31dcfd6ea54, e8418b92872567062830291f8df419ceb81e643d, bf1921372937c766d4d46a352fd30e95ee84d2b9, 69271d9399c9066a449b636070df9643224a3447
+- Tests: cargo test --profile ci -p telperion-core (chunks, parallel, encoding, generation_limit_guard), flatdigest.rs --expect base logs, seeds 1 and 42
 - PRs:
