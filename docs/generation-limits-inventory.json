@@ -1236,24 +1236,6 @@
     "reason": "Repeated where a vertex no triangle shades has its run swept again for its frames: the same height degeneracy floor as the ring step, so the frames match the rings it swept; it does not limit generated populations."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/surface/parallel.rs",
-    "site": ". take ( n * 2 )",
-    "classification": "algorithm",
-    "reason": "A worker's part of an output buffer is its runs' vertices times the floats each vertex holds; the parts tile the whole buffer and truncate nothing."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/surface/parallel.rs",
-    "site": ". take ( n * 3 )",
-    "classification": "algorithm",
-    "reason": "A worker's part of an output buffer is its runs' vertices times the floats each vertex holds; the parts tile the whole buffer and truncate nothing."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/surface/parallel.rs",
-    "site": ". take ( nv * 3 )",
-    "classification": "algorithm",
-    "reason": "A worker's part of an output buffer is its runs' vertices times the floats each vertex holds; the parts tile the whole buffer and truncate nothing."
-  },
-  {
     "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
     "site": ". max ( 1 . )",
     "classification": "algorithm",
