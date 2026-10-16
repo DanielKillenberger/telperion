@@ -18,10 +18,8 @@ Rows: the spruce's tables hold 1,090,688 axes (and pencils), 1,765,374 units and
 | phytomers laid | phytomers | 14 | 144.6 | 373.4 | 14 f32 (tip, heading, side, scale, grown, size, rank, area) | none lossless | 0 |
 | units | units | 13 | 91.8 | 237.1 | ids (axis, prev, next, first); f32 survival and persistence; ticks (share, size); two f64 that hold f32 (`lay_state.wgsl`: shade size and light); count | the two f64 as f32 | 14.1 MB (0.9 %) |
 | phytomers grown | phytomers | 5 | 51.6 | 133.4 | 64-bit key, axis id, cycle (≤ age), f32 presence | none past a word (the cycle has no small neighbour) | 0 |
-| hierarchy sums | axes + 64 | 19 | 82.9 | 119.5 | f32 and f64 sums of the subtrees | none lossless | 0 |
-| cycle tree | axes | 15 | 65.4 | 94.3 | ids, depths, f32 | depth and level into one word | 4.4 MB |
-| light depths | the lattice's nodes | | 59.8 | 154.2 | per-node depth words | not inventoried column by column: one table | under 2 % at a column a word |
-| retire columns, verdicts | axes | 13, 11 | 56.7, 48.0 | 81.8, 69.2 | ids, flags, f32 | flags into one word | under 2 % |
+| cycle tree | axes | 15 | 65.4 | 94.3 | bearer and node (ids), PA (small), lineage (64-bit key), wood and light (f64 bits), base, running, kept, memory, size (f32), frozen upkeep (`hier_cols.wgsl`) | the PA beside another small field; none found | at most 4.4 MB |
+| hierarchy sums, light depths, retire columns, retire verdicts | axes, the lattice | | 82.9, 59.8, 56.7, 48.0 | 119.5, 154.2, 81.8, 69.2 | not classified column by column | unknown | unknown; a 2 % step would need eight of an axes table's columns packed into one word |
 | hierarchy counts | axes | 12 | 52.4 | 75.5 | `atomic<u32>` counters | WGSL's narrowest atomic is 32 bits; packing two needs proven bounds | 0 |
 | inputs, shape, lists, buckets, light points, layout lists and the rest | | | under 32 each | | | under 2 % each | |
 
@@ -36,7 +34,7 @@ Rows: the spruce's tables hold 1,090,688 axes (and pencils), 1,765,374 units and
 
 Every shipped preset's tree is byte-identical at seeds 1, 7 and 42: 24 of 24 hashes. The other peaks fell with it: oak 909.8 to 872.0 MB, birch 614.6 to 576.8, ordinary 193.9 to 180.1, Laurelin 2,519.9 to 2,469.5. The time is unchanged within the spread.
 
-**The next step stops:** the largest remaining lossless narrowing is the axes' small counts and flags, about 22 MB (1.3 %), under 2 % of the spruce's peak.
+**The next step stops:** the largest remaining lossless narrowing found is the axes' small counts and flags, about 22 MB (1.3 %), under 2 % of the spruce's peak. Four tables of 48-83 MB were not classified column by column (the inventory's "unknown" rows). Each would need eight of its columns packed into one word to reach 2 %.
 
 ## Not narrowing: room held unused (for the host)
 
