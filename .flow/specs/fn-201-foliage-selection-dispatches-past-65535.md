@@ -1,16 +1,29 @@
 # Foliage selection dispatches past 65,535 workgroups
 
-## Goal & Context
+## Goal
 
-The renderer's foliage selection (`crates/telperion-render/src/select.rs:365`) dispatches one dimension of `instances / WORKGROUP` groups. Above 65,535 groups (about 4.2M instances at a workgroup of 64) wgpu panics: "dispatch group size dimension ([74572, 1, 1]) must be less or equal to 65535" (fn-194 FRICTION.md, 2026-10-04). The spruce had to thin its needles from 2.5 to 3.5 mm to stay under the limit, and Astra's three samples on round 4 all failed it for missing needle mass. The generation path already splits a large dispatch over a second dimension (`generation/io.rs:133`). Obvious fix under AGENTS.md "Friction reports": the cause is named and the remedy changes no product behaviour (host, 2026-10-04).
+The renderer's foliage selection (`crates/telperion-render/src/select.rs`) dispatched one dimension of `instances / WORKGROUP` groups, and wgpu panics above 65,535 groups (about 4.2M instances): "dispatch group size dimension ([74572, 1, 1]) must be less or equal to 65535" (fn-194 FRICTION.md, 2026-10-04). The spruce had to thin its needles to stay under it, and Astra failed it for missing needle mass. An obvious fix under AGENTS.md "Friction reports" (host, 2026-10-04): the dispatch only, no change to which leaves are selected, LOD or frame budget.
 
-## Requirements
+## Decisions
 
-- **R1:** The select passes that dispatch per instance split their groups over x and y as `generation/io.rs` does, and the shaders reconstruct the flat index from both and skip past the end. The per-level pass is unchanged.
-- **R2:** A test, red first on the base, that selects a foliage set larger than 65,535 workgroups without a panic and selects the same instances a flat dispatch would for a set under the limit (byte-identical selection below the limit).
-- **R3:** Every shipped preset renders byte-identically (the existing headless and catalogue tests stay green).
-- **R4:** Workspace gate green.
+- Split the per-instance dispatches over x and y as `generation/io.rs` already does; the per-level prefix pass stays unchanged.
 
-## Boundaries
+## Acceptance Criteria
 
-The dispatch only. No change to which leaves are selected, to LOD or to the frame budget.
+- **R1:** Per-instance select passes split groups over x and y; shaders rebuild the flat index and skip past the end — met.
+- **R2:** A test, red on the base, selects past 65,535 workgroups without a panic and matches a flat dispatch below the limit — met.
+- **R3:** Every shipped preset renders byte-identically — met.
+- **R4:** Workspace gate green — met.
+
+## Result
+
+`grid` in `select.rs` folds workgroups into y once x runs out; `select.wgsl` rebuilds the index from `global_invocation_id` and `num_workgroups`, and a group past the end returns whole so barriers stay uniform. Below the limit the grid is `(groups, 1)`. Test `a_crown_past_one_dispatch_dimension_is_selected_in_order` (65,536 groups of 256 plus 3 leaves) panicked on the base with "([65537, 1, 1])". Gate 1,020 passed. Codex SHIP in round 2.
+
+## Open
+
+None.
+
+## Friction
+
+- Codex reviewer's sandbox has only llvmpipe, so GPU tests skip and it judged R2/R3 on reading -> hand the reviewer the implementer's GPU test logs.
+- `conformance.rs` anatomy check fired only on the crate run, not the focused `select::` run -> no fix; run `--test conformance` with focused tests when touching `select.rs`.

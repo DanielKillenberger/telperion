@@ -1,10 +1,10 @@
 # fn-160-presets-are-value-files.1 Presets are value files
 
 ## Description
-TBD
+Shipped presets become value files compiled to typed Rust.
 
 ## Acceptance
-- [ ] TBD
+- The spec's R-IDs.
 
 ## Done summary
 Implemented and merged in PR #128.

@@ -1,27 +1,36 @@
 # Tree space: sag measures its lever on the bent branch
 
-## Goal & Context
+## Goal
 
-fn-200's sag takes each phytomer's bending moment on the tree as it stands before bending (small-deflection beam theory). That holds while branches bend a little. The spruce's round 9 (fn-194) gives its old lower boughs the heavy sag S1's downward sweep needs, and there the approximation fails: a bough already hanging near vertical still carries the full horizontal lever of its unbent shape, keeps bending past vertical, and with its tip tropism turns back up into loops of wood around the trunk base (`.flow/evidence/fn-194-…/raw/round9/close-ups.png`). In a real beam the lever shrinks as the beam droops, so a heavy branch hangs and stops; it does not coil (host, 2026-10-05).
+fn-200's sag takes each phytomer's bending moment on the unbent tree (small-deflection beam theory). The spruce's round 9 (fn-194) gave its old lower boughs the heavy sag S1's sweep needs, and there it failed: a bough hanging near vertical kept its full horizontal lever, bent past vertical and, with tip tropism, looped wood round the trunk base. In a real beam the lever shrinks as it droops, so a heavy branch hangs and stops (host, 2026-10-05). Geometry only, in the sag pass; no reaction wood.
 
-## Design (host, 2026-10-05)
+## Decisions
 
-- **One march from base to tip.** Along each axis, the moment at a phytomer is taken from the load beyond it, with that load's positions rotated by the bends already applied to the phytomers before it (its bearer's and its own axis's upstream bends). The lever is the horizontal distance in that rotated pose. As an axis droops toward vertical its lever shrinks toward zero, and the bend stops by itself.
-- **No iteration and no second rule.** The load's own internal shape is the unbent one, rotated rigidly; this is the first-order large-deflection correction and is deterministic and continuous. The 0.15 rad stop short of straight down stays as a backstop only.
-- **The lever only ever shrinks (host, 2026-10-05, decision 1).** The moment is the smaller of the turned lever's and the unbent lever's, in the turned direction: continuous, never feeding back, so upright wood does not buckle. This pass models no reaction wood, so buckling is out of scope.
-- **The ground carries the load (host, 2026-10-05, decision 2).** Past the point where wood rests on the ground, it adds no lever to the wood before it, and its direction stays on the ground. This extends fn-200's ground rule.
-- **One landing bound (host, 2026-10-05, decision 4).** Wood that reaches the ground under the bent-lever sag arrives near vertical and bends where it lands, as a heavy rope does. One bound, 0.8 rad, holds for every sag (0.72 measured at the spruce's sag, 0.52 at sag 5.0). It guards against regressions; the stills judge the look.
-- **Tip tropism unchanged.** Tropism acts after sag as today; an unloaded tip still keeps it.
-- **Neutral and evolution.** With sag 0 nothing changes. Trees with small sag change little; the spruce and any tree with heavy sag change by design (AGENTS.md "Generator evolution"); the beech (sag 0) stays byte-identical.
+- Design (host, 2026-10-05): one march base to tip; the load beyond each phytomer is rotated rigidly by the upstream bends and the lever is its horizontal distance in that pose. No iteration; the 0.15 rad stop stays as backstop only; tip tropism unchanged; sag 0 neutral; heavy-sag trees change by design, the beech (sag 0) byte-identical.
+- Decision 1 (host, 2026-10-05): the lever only ever shrinks — the moment is the smaller of the turned and unbent levers, in the turned direction, so upright wood does not buckle.
+- Decision 2: the ground carries the load — wood past where it rests adds no lever, and its direction stays on the ground (extends fn-200).
+- Decision 3: R1 reworded into (i) free-air convergence and (ii) round 9's ground-coil as the red-first test.
+- Decision 4: one landing bound, 0.8 rad, for every sag (0.72 measured at the spruce's sag, 0.52 at sag 5.0); the bound guards regressions, the stills judge the look.
 
-## Requirements
+## Acceptance Criteria
 
-- **R1 (host, 2026-10-05, decision 3):** (i) In free air, a long, heavily loaded branch converges toward hanging: its turn per phytomer falls to near zero as it nears vertical. Old versus new is recorded; this part need not be red. (ii) Round 9's failure as the red-first test: a heavy, low bough that reaches the ground does not coil or swing round. Its winding stays below a bound set from the probe, and the test is red on the small-deflection sag.
-- **R2:** A test that a lightly loaded branch bends within a small tolerance of the small-deflection result (the correction is first-order).
-- **R3:** fn-200's walks (sag, ground landing) and every crate test green, the landing corner within decision 4's 0.8 rad; the walk bound of 30 holds on `form.sag` up to the spruce's heaviest value.
-- **R4:** The spruce's round-9 values re-rendered at seeds 1 and 4, trunk-base close-ups and whole tree, viewed by the host: no loops.
-- **R5:** Workspace gate; Codex review.
+- **R1:** (i) a heavy free-air branch converges toward hanging; (ii) a heavy low bough on the ground does not coil, red on the small-deflection sag — met ((ii) winds 1.61 rad on the old sag, 0.02 to 0.17 now, bound 1.2).
+- **R2:** A light branch bends within a small tolerance of the small-deflection result — met (within 1 percent of fn-200's bends from `0706c79c`).
+- **R3:** fn-200's walks and every crate test green, landing corner within 0.8 rad, walk bound 30 on `form.sag` up to the spruce's heaviest — met (worst landing 0.717 at 6e-4).
+- **R4:** Spruce round-9 values at seeds 1 and 4, close-ups and whole tree, viewed: no loops — met.
+- **R5:** Workspace gate; Codex review — met (1,038 passed; Codex SHIP round 2).
 
-## Boundaries
+## Result
 
-Geometry only, in the sag pass. No growth feedback (reaction wood is phase E or later).
+`sag::levers` keeps each phytomer's moment and chord on the unbent tree and turns both rigidly when re-laid; `sag::turn` integrates each turn exactly so it cannot overshoot hanging; `sag::held` lets the ground take its share. Codex round 1 fixes: the ground share now falls by degree as a last phytomer's end reaches the ground (chord through continuations; new test `the_ground_takes_a_carried_load_by_degree`), and R2 compares against recorded fn-200 bends. R4 on the final engine: no loops, nothing toppled (21.9 m tall; crowns 17.2 × 19.1 m and 16.7 × 14.3 m), boughs land in smooth arcs and run out radially; the hook is lost, as expected — round 10 retunes. Beech byte-identical. Sheets were in ignored `raw/`.
+
+## Open
+
+The spruce's hook retune is fn-194's round 10.
+
+## Friction
+
+- R1 as written could not be red on the old code (the backstop held free-air branches); ~60 min of probes -> run a spec's repro before marking ready.
+- Landing corner under heavy sag unnamed in the design; ~40 min, four approaches -> large-deflection landing belongs in the design (now decision 4).
+- telperion-core's fixed-beech memory ceiling (4.41 vs 4.25 GB) failed under the parallel gate, passes alone -> ceiling that holds under gate load, or run serially.
+- Render script lost its panic text -> keep the panic in the log.

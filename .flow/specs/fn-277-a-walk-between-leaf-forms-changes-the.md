@@ -1,31 +1,41 @@
 # A walk between leaf forms changes the leaves by degree
 
-## Goal & Context
+## Goal
 
-fn-272's film (FILM.md, defects 2 and 5, 2026-10-14): walking from the Oregon white oak to the date palm at age 40, the leaves go at once: 871,168 leaves at t = 0.0098, 4 at t = 0.0127 (frames 486-487), and at t = 0.08 a bare oak-shaped crown stands on a palm stem. Leaf counts also step 25-38 % between consecutive frames of spruce to birch (t = 0.16) and birch to oak (t = 0.83). Every parameter must change the tree by degree, never switch between ways of building (AGENTS.md, design principles); a jump of five orders of magnitude in one frame is a switch. Which row or rule flips (a leaf-form row read as a threshold, a rosette or canopy placement chosen by a rounded value, a count rounding) is unknown until checked.
+fn-272's film (defects 2 and 5, 2026-10-14): walking from the Oregon white oak to the date palm at 40, the leaves went at once (871,168 at t = 0.0098, 4 at t = 0.0127, then a bare oak-shaped crown on a palm stem), and counts stepped 25-38 % between frames of spruce to birch and birch to oak. Every parameter must change the tree by degree, never switch between ways of building (AGENTS.md design principles). Find the rows behind the jumps and make the leaves change continuously along every walk. Release item (fn-237); walk sizes stay fn-273.
 
-## Requirements
+## Decisions
 
-- **R1 (repro first):** the oak to palm leaf count across t in [0.009, 0.013] at fine steps, standalone, at seeds 1, 7, 42; the same for the two steps above; each as a test that fails today.
-- **R2 (cause):** the row or rule behind each jump, checked against code, written down before any fix.
-- **R3 (by degree):** the leaves change continuously along every walk: an oracle on leaf count between consecutive frames (its bound measured on the walks that pass today and stated), dormant where a species has no leaves of that form. No species branch.
-- **R4:** the film's walk frames and fn-251's walk tests pass with it; gate, npm, review; stills of oak to palm at t = 0, 0.01, 0.05, 0.2, 0.5, 1 viewed.
+- Host (2026-10-14), ruling 1, fractional counts: `rosetteFronds`, `leafletCount`, `skirtFronds`, `leafBases`, `acanthophylls` and the engine's `cluster_leaves` walk unrounded; a fraction is split by a keyed draw (fn-248's `leaf_years` pattern); whole-valued presets byte-equal.
+- Ruling 2, the rosette takeover: a new continuous row, `/canopy/cauline` (the share of leaf-bearing wood that keeps its leaves; dicots and conifers 1, the palm 0, FAO 156), replaces "any rosette frond makes the rosette the tree's only foliage".
+- Ruling 3, leaflets: one law, no form switch; `leafletCount` walks on the log scale (fn-251 R1b); peak instances along oak to palm checked against the budget first.
+- Ruling 5 (after the first review, replacing the per-bearer oracle): the oracle tests the law and the draw apart — (a) each form's expected count per bearer changes by at most a measured bound per 0.001 step of t over every film walk at seeds 1, 7, 42; (b) drawn counts lie within 4 sigma of their expectation, dormant under 30 organs.
+- Ruling 6: the device draws the same law (keyed splits and cauline share in WGSL); no CPU placement route for fractional values.
+- Host (2026-10-14): wood steps at oak to palm t 0.25-0.52 are the walk's structure and belong to fn-273.
 
-## Boundaries
+## Acceptance Criteria
 
-Release item (fn-237) because the film walks through it (fn-272 R3). Walk sizes from either side stay fn-273.
+- **R1:** oak-to-palm leaf counts across t in [0.009, 0.013] and the two other jumps, standalone, at seeds 1, 7, 42, failing today — met (`tests/walk_leaves.rs`, red on 850eb039a).
+- **R2:** the row or rule behind each jump checked against code — met: `leafletCount` 1 → 2 (t 0.004-0.005), `rosetteFronds` 0 → 1 switching the whole tree to fronds (`rosette::bearing`, t 0.0119), engine `cluster_leaves` 0 ↔ 1 on PAs 12-14 (spruce to birch t 0.167, birch to oak t 0.833).
+- **R3:** leaves change continuously along every walk; oracle bound measured and stated; dormant where a form is absent — met (ruling 5).
+- **R4:** film walk frames and fn-251's walk tests pass; stills of oak to palm viewed — met; the gate and `npm test` were not admitted in 30 minutes and run by the host on the merged branch.
 
-## Host rulings (host, 2026-10-14)
+## Result
 
-After R2 (`.flow/evidence/fn-277-a-walk-between-leaf-forms-changes-the/CAUSE.md`):
+Six counts and the cauline share walk unrounded, each bearer drawing the whole counts either side by one keyed 32-bit draw shared by CPU and device. `walk_law` sweeps every film walk at 0.001 steps: steepest step 0.0128 of a form's range against a stated bound of 0.02. `walk_leaves` holds draws within 4 sigma at the film's frames; every film walk passes except Laurelin to Telperion's draws (not admitted; the law shows nothing moving on it). Device `organ_tests` agree on the birch with 12 fronds, the oak with 1.3 leaflets and oak to palm at t 0.01, 0.3, 0.9. Render lib 191 passed. Codex SHIP after rulings 5 and 6.
 
-1. **Fractional counts.** `rosetteFronds`, `leafletCount`, `skirtFronds`, `leafBases`, `acanthophylls` and the engine's `cluster_leaves` walk unrounded. Wherever a count sets how many organs a placement, axis or apex bears, the fraction is split by a keyed draw (`leaf_years`' pattern, fn-248), so the expected count moves with the row. Whole-valued presets draw byte-equal to today.
-2. **The rosette takeover.** A new continuous row, the share of leaf-bearing wood that keeps its leaves (named botanically; every shipped dicot and conifer 1, the palm 0), applied by a keyed draw per leaf-bearing unit, replaces "any rosette frond makes the rosette the tree's only foliage". The rosette's presence is its frond count alone. The palm's 0: a palm bears its leaves only in the crown (cited as the palm's existing rows cite, or FAO 156). Default 1, dormant where absent.
-3. **Leaflets: one law, no form switch.** A leaf with a rachis bears its leaflets wherever it grows, so mid-walk the oak's wood leaves become compound by degree. `leafletCount` walks on the log scale (fn-251 R1b: log for magnitudes). Before building further, the peak instance count along oak to palm at seeds 1, 7, 42 under 1-3 together is measured against the instance budget and reported to the host; if any frame exceeds it, stop and report the frames and numbers.
-4. **The R3 oracle** is the ratio of leaf counts between consecutive frames, its bound measured on the walks that pass and stated, dormant where both frames bear none of that form.
+## Open
 
-## Host rulings after the first review (host, 2026-10-14)
+- Wood steps on oak to palm at t 0.25-0.52 -> fn-273 (FILM-WALKS.md).
+- The window tests take about 300 s of suite time.
 
-5. **The oracle tests the law and the draw apart** (host, 2026-10-14, replacing the per-bearer wording). The defect class is a switch in the law. (a) *The law is continuous:* each form's expected count per bearer, computed from the walked rows alone, unrounded (fronds per apex by leaflets per frond, leaves per station by the cauline share, cluster leaves per tip, and so on), changes by at most the measured bound per step of 0.001 in t, swept over every film walk at seeds 1, 7 and 42; the bound is stated from the walks that pass. (b) *The draw follows the law:* at the film's frames each form's drawn count per bearer lies within the sampling noise of its expectation (binomial on the fractional parts, 4 sigma), dormant where a form has fewer than 30 organs in the frame; wood is measured by station, not by metre. Reason: the per-bearer count oracle refused oak to palm (crowns of 3 to 25 leaves, whole fronds; leaves per metre on sub-internode runs) and palm to Laurelin at the film's frame spacing (a steady 1.2 to 1.4 a frame of the log-walked leaflets, 1.005 per step of 0.001) (FILM-WALKS.md). The t 0.25-0.52 wood steps stay with fn-273.
-6. **The device draws the same law.** One law on both executors, and the harness keeps every family it drew before: the keyed splits of fractional counts and the cauline share in WGSL, and the order of mixed wood and frond leaves, with the CPU/device agreement test on the default birch with `rosetteFronds` 12, a fractional-count family (`leafletCount` 1.3 on the oak) and oak to palm at t 0.01, 0.3 and 0.9. No CPU placement route for fractional values. Reason: the first review's finding that the birch with 12 fronds, drawn on the device before fn-277, was refused after it.
+## Friction
 
+- First build and core runs waited on or were killed by `telperion-heavy` caps (8 GB) -> declare 3 GB for such builds; gate's own size for partial suites; nextest to resume by test.
+- FILM.md cited a frame log path it did not name -> name cited paths.
+- Waits for room with no queue position; gate and npm unadmitted in 30 minutes -> `telperion-heavy` prints queue position; host runs the gate on the merged branch.
+- Inputs fetched from another worktree -> keep inputs in the worktree's own evidence directory.
+
+## Evidence
+
+- `.flow/evidence/fn-277-a-walk-between-leaf-forms-changes-the/FILM-WALKS.md` (every film walk under the oracle; the wood steps fn-273 takes)

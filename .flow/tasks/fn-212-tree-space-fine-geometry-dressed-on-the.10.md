@@ -31,9 +31,8 @@ In the browser (headless Chromium):
 - large-to-small and back rebuilds succeed;
 - a second 80 beside an 80 is refused by name while the old tree keeps drawing.
 
-The render module's ceiling is raised to 2,800,000 bytes, to flag in the PR. Details are in TASK10.md.
+The render module's ceiling is raised to 2,800,000 bytes, to flag in the PR.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 60028e27, 0f7383e1, 5f10ba8d, b059de8c
 - Tests: cargo test --profile ci -p telperion-render --no-fail-fast, cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast, npm test

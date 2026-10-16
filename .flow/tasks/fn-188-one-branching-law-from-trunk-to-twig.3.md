@@ -4,15 +4,14 @@ satisfies: [R3]
 # fn-188-one-branching-law-from-trunk-to-twig.3 Competitive-growth probe on the beech, throwaway, timed
 
 ## Description
-TBD
+Probe competitive growth on the beech, throwaway and timed.
 
 ## Acceptance
-- [ ] TBD
+- R3 of the spec.
 
 ## Done summary
-Lens (R1): the stills keep twig tone; pinned pose in raw/pose.json. Ablations (R2): deleting the tip continuation is a clean win (fn-189); whole-tree girth barely moves ratios; axis-relative forks give the mesh but run away (4 to 71 leaders). A topology defect remains; the owner approved the step 3 probe.
+Nine throwaway rounds of competition growth (reverted on the spec branch); graded mesh without gate, tip shoot or wall, but the beech still reads as a filled egg; closed into fn-190.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: da88cb3d, 40361290
 - Tests: cargo test --profile ci -p telperion-core --lib --no-fail-fast

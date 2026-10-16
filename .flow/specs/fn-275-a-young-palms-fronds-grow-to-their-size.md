@@ -1,23 +1,44 @@
 # A young palm's fronds grow to their size over its establishment
 
-## Goal & Context
+## Goal
 
-The owner (2026-10-14), watching the harness grow the date palm in: "also the date palm starts with full grown leaves". The rosette (`crates/telperion-core/src/pipeline/foliage/rosette.rs`) draws every frond the crown has made at the mature frond's length from year 1 (fn-270 R5b' made the first-year crown draw only the fronds it has made, not their size). A palm establishes: its first leaves are small and each new leaf is larger than the last until the crown reaches its mature size, and only then does the stem rise (establishment growth; whether the date palm's literature states it in these terms, and over how many years, is unknown until sourced). Growth is the product (AGENTS.md), so the grow-in shows a young palm wrong today.
+The owner (2026-10-14), watching the harness grow the date palm in: "also the date palm starts with full grown leaves". The rosette drew every frond at the mature length from year 1. A palm establishes: its first leaves are small, each new leaf larger, and the stem rises only once the crown is mature. Make frond size, stem girth and rise, and the seedling's entire leaves follow sourced establishment, by degree, on both executors, with the mature palm unchanged. Release item (fn-237), after fn-270.
 
-## Requirements
+## Decisions
 
-- **R1 (sources first; stop on failure):** the date palm's establishment from the literature: the length (or a share of the mature length) of its early leaves at a stated age, the years until the crown's fronds reach mature size, and whether the stem's rise waits for it; each value checked against its source text before it reaches the preset (docs/typesafe.md for screening). A row with no source is a declared stand-in, named as such. Stop and report if the sources contradict the shape below.
-- **R2 (one law, by degree):** each frond's size is set by the crown's age when that frond was made, along a sourced curve from the early share to 1 over the establishment years; a frond keeps the size it was made at (old fronds never grow or shrink). Every rosette species reads the same rows; a tree with no rosette is untouched (dormant). No species branch.
-- **R2a (the stem establishes; host, 2026-10-14):** by the same law and rows, the stem's girth follows the crown's establishment share, widening as the crown grows to its mature size, and its visible elongation waits on it: the stem stays at or below the ground until the crown is established, then elongates, by degree, on CPU and device, dormant for a tree with no rosette. Sources: "the stem progressively widens as the crown grows to its mature size. Usually this occurs before the stem becomes visible above ground" (Tomlinson and Huggett 2012, Am. J. Bot.); "Once a juvenile palm stem reaches its maximum diameter, substantial vertical elongation of the stem begins" (Broschat, UF/IFAS EP473); "The girth does not increase once the canopy of fronds has fully developed" (Zaid and de Wet 2002, FAO 156 ch. I). Before re-pinning, the mature palm's height and girth are measured against today's and their sourced values; a height change of more than a few percent stops for the host.
-  - *Host rulings, 2026-10-14:* (1) on the grown tree before drawing, in the one conversion (CPU `space.rs`, device `dress.wgsl`), reading the crown's rows once; the growth engine and its light stay untouched. (2) Option A: each stem phytomer is lowered by the rise it waited on the crown, a closed form of the age it was laid at (rise a year x the integral of the course's remainder to that age), so the lowering composes along the stem with no sum; an axis off the stem is carried by its bearing node's lowering and keeps its own lengths and girth; dormant without a rosette or the rows. (3) Height: `/space/ages/2/internode` retuned so the palm at 40 stands as today (21.59 m), inside A1's 0.30 to 0.45 m a year. (4) Girth: no change to the stem's 0.297 m radius against FAO's 1 to 1.10 m circumference in this spec (the catalogue measures across the retained bases, fn-144); noted for the species audit.
-- **R3 (today's mature palm):** at the palm's shipped age, once every living frond was made after establishment, the drawn tree is byte-equal to today's; if the sources put establishment past the shipped age, the change is measured and shown, not hidden.
-- **R4 (both executors):** the CPU and the device agree, as fn-270's rosette tests check them now; the year boundary shows no frond changing size.
-- **R5 (proof):** stills of the palm at ages 1, 3, 6 and its shipped age, and the grow-in recording at whole years (fn-270 host ruling: whole years, crossfaded), viewed; the owner's verdict.
+- Owner (2026-10-14): "also the date palm starts with full grown leaves".
+- Host (2026-10-14, R2a): the stem establishes by the same law and rows: girth follows the crown's establishment share and visible elongation waits on it (Tomlinson and Huggett 2012; Broschat, UF/IFAS EP473; FAO 156 ch. I). Rulings: (1) applied on the grown tree in the one conversion (CPU `space.rs`, device `dress.wgsl`), growth engine untouched; (2) option A: each stem phytomer lowered by a closed form of the rise it waited; (3) `/space/ages/2/internode` retuned (0.0339) so the palm at 40 stands as today (21.59 m); (4) no change to the stem's 0.297 m radius in this spec (noted for the species audit).
+- Owner (2026-10-14): "ok", to seedling leaves as a release item (R2b: entire leaves for "the first three years after seed germination", FAO 156 ch. I). Host: leaflet count = leafletCount ^ f, no new row; strips of one blade whose tips converge on the blade's tip; the 3-year (FAO) against 6.75-year clock accepted as a known simplification.
+- Owner (2026-10-15): "it looks nice other than having the leaves not being connected in a sensible way"; "yea i can see them floating" (R2c, a drawn rachis).
+- Host (2026-10-15): a drawn rachis needs the device's frond code moved into the leaf-base stage (about 1,200 lines), too large for the release; instead a young frond's segments crowd toward its base by R2b's course (segment base = f × its station). The drawn rachis moves to fn-283. The remaining spine gap is accepted, closed by fn-283.
+- Juvenile leaf form in other species (heteroblasty) is fn-278.
 
-## Boundaries
+## Acceptance Criteria
 
-Release item (fn-237), after fn-270. Juvenile leaf form (entire eophylls before pinnate leaves) is out of scope unless the sources make it the dominant read at the ages shown; then it is reported, not built.
+- **R1:** sourced establishment, each value checked against its text; stand-ins declared — met (`frondEstablishment` 6.75 years from a 2025 Frontiers tissue-culture table; `frondEarlyShare` 0.1 a declared stand-in from FAO plantlets).
+- **R2:** one law: each frond sized by the crown's age at its making along the sourced curve, kept for life; dormant without a rosette; no species branch — met. Includes R2a (stem girth and rise) and R2c (segments crowd toward the base; drawn rachis deferred).
+- **R2b:** a seedling's fronds entire, becoming pinnate by the crown's age at making, through fn-277's fractional counts; the palm at 40 byte-equal — met.
+- **R3:** the mature palm at its shipped age byte-equal — met (oldest drawn frond made at about year 33, past 6.75).
+- **R4:** CPU and device agree; no frond changes size at the year boundary — met (exact at 3 and 4).
+- **R5:** stills at 1, 3, 6 and the shipped age and the whole-year grow-in viewed; owner's verdict — met (owner's 2026-10-15 remarks led to R2c).
 
-- **R2b (owner, 2026-10-14: "ok", to the palm's seedling leaves as a release item):** a date palm's first leaves are entire ("entire leaves" for "the first three years after seed germination", FAO 156 ch. I). Each frond's leaflet count follows the crown's age when it was made, from one (an entire, strap-like leaf) to the mature count over the sourced juvenile years, by degree through fn-277's fractional counts (a keyed draw), kept for the frond's life; same rows, both executors, dormant without a rosette. After fn-277. The palm at its shipped age byte-equal. Stills at 1, 2, 3, 4 and the whole-year grow-in viewed; the owner's verdict. Leaf form in other species (heteroblasty) is fn-278, after the release.
-- **R2c (owner, 2026-10-15: "it looks nice other than having the leaves not being connected in a sensible way"; "yea i can see them floating"):** a frond draws its rachis. The rachis the leaflets are strung along (`rachisLength`, `rachisArch`) is today only a path; on a young frond of two to fifteen segments the outer segments float. The rachis is drawn as geometry along the same arched path the leaflets are placed on, from the frond's base to its last leaflet, tapering from a sourced base width to the tip, scaled with the frond (R1's size share), in leaf material. One new row, the rachis's base width in metres, sourced for the date palm; at zero the rachis is not drawn (dormant), and it is dormant without leaflet grouping. Same path and rows on CPU and device; no species branch. The mature palm changes only by the drawn rachis; its cost is measured against R0a (palm at 40 under 0.5 s warm). Stills at 2, 3, 4 and 40 viewed; the owner's verdict.
-  - **Host ruling, 2026-10-15:** the drawn rachis needs the device's frond code moved into the leaf-base stage (about 1,200 lines, the worker's estimate), too large for the release. For the release the young frond's segments crowd toward its base by R2b's course (base = f × its station position): a young frond's rachis is short against its pinnae and lengthens as it matures, so each segment's base touches its neighbour and none floats; the mature frond is unchanged. The drawn rachis, a woody axis continuous with the retained leaf base, moves to its own spec after the release.
+## Result
+
+Fronds at year 1 are 0.10-0.12 of a mature one, a knee-high rosette at 3, near-mature fronds on a ground rosette at 6, the shipped palm at 40 byte-identical. Seedling leaves: leaflet count from 1 (an entire strap) to 113, by fn-277's keyed draw; leaves at 1/2/3/4 years 10/20/45/151 (were 1,017/1,921/2,938/3,842); reach 0.79-1.21 blades with no jump from one strip to two; a leaflet with no spine within 0.75 widths of another segment; next to a basal spine and between spines up to 3.2 widths (1.39 on the mature palm), accepted. Final gate 1,407 passed, 0 failed.
+
+## Open
+
+- A drawn rachis, continuous with the retained leaf base, and closing the spine gaps -> fn-283.
+- The stem's radius against FAO's circumference -> species audit.
+
+## Friction
+
+- No source gave a young palm's leaf length at a stated age; four PMC papers scraped by hand (about 25 minutes, 60k tokens) -> source-screening tool returning candidate sentences.
+- `telperion-heavy` admission queues of 20-70 minutes (gate, focused runs, single-test probes) -> queue that reports expected wait; smaller admission class for incremental single-crate runs; measured gate peak.
+- Generation-limit inventory guard failed only at the end of a 30-minute gate -> add `cargo test -p telperion-core --test generation_limit_guard` to the focused-run recipe for `src/pipeline` changes.
+- The R2c brief assumed a rachis primitive that did not exist; two escalations -> briefs name the device stage order (`resident/build.rs`: hang, folds, sweep, stations).
+
+## Evidence
+
+- `.flow/evidence/fn-275-a-young-palms-fronds-grow-to-their-size/SOURCES.md` (R1 sources, R2a measurements and host rulings)
+- `.flow/evidence/fn-275-a-young-palms-fronds-grow-to-their-size/SEEDLING.md` (R2b and R2c: design, measurements, host rulings)

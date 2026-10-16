@@ -11,9 +11,6 @@ The per-cycle input changes were counted first (DESIGN.md §16.1). Then both exp
 
 Node tables: all 240 hashes (8 presets × caps 64/128/1,024 × ten contexts) equal the post-task-9 hashes. Normaliser blocks: not cached, so nothing to invalidate. Follow-up for task 11: `inside_main` (26 ms on Telperion) still sweeps every block.
 
-stage: impl-review - ran (codex, three reviewers, base 1c69bf648: NEEDS_WORK on the block-stamp race, fixed in 53ab77e5f; re-review SHIP)
-
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: de0eb93c917c067e985ff04bf0ef6be69c61fa1f, f7b74b3c2e3760f611cdb6a6d7a570ec42465e92, 53ab77e5fc4891411b6b4a32d1b2111f48c76db2
 - Tests: cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast, cargo test --profile ci -p telperion-render --no-fail-fast (GPU lock), NODES_CAPS=64,128,1024 NODES_CONTEXTS=10 cargo test --profile ci -p telperion-render node_tables_are_hashed -- --ignored, npm test

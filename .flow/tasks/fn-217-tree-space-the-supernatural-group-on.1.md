@@ -11,18 +11,8 @@ R1's first half. For each trait the brief names (scale; two-sided leaf colour wi
 - No product code changed.
 
 ## Done summary
-DESIGN.md (.flow/evidence/fn-217-tree-space-the-supernatural-group-on/) covers each trait: scale, the two-sided leaf with an edge, emitted light, the cycle in counterphase, and the dew. It also covers the two blossom follow-ups. For each it gives today's code with file:line, the options with frame-cost estimates, a recommendation and the neutral value, and it ends with 12 numbered decisions for the host. Key facts:
+DESIGN.md covers each trait and the two blossom follow-ups: today's code, options with frame-cost estimates, a recommendation, the neutral value, and 12 decisions for the host. fn-10's group was read only by the test-only scaffold; the renderer had one tree, no clock and no HDR target. No product code changed.
 
-- fn-10's group is read only by the test-only scaffold, so it changes no engine tree.
-- telperion and laurelin have no /space rows.
-- The renderer holds one tree, has no clock and no HDR target, and tone-maps each fragment.
-
-No product code changed.
-
-baseline: none (evidence-only task; the spec defines no Quick commands)
-stage: impl-review - skipped(config: REVIEW_MODE=none)
-
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 7e89f8a3a54b34cc130bc287b9b72e8da708e01d
 - Tests: flowctl gate classify (TIER_B docs-only; no Quick commands defined)

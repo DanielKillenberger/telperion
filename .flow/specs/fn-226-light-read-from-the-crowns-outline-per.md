@@ -1,25 +1,47 @@
 # Light read from the crown's outline, per bud
 
-## Goal & Context
+## Goal
 
-The lit oak builds 5.6-6.2 times slower than unlit at 80 (OAK-LIGHT.md in fn-211's evidence: seed 7, 14.9 s against 2.4 s). Light earns its place: the owner and host compared light on and off against the reference photographs (2026-10-08): light on is wider (25-45 % at 80), open, with a clear trunk; light off is a dense column. Owner (2026-10-08): "Couldn't we approximate effects of light in a way that's easily computed for each bud in isolation => parallelization on gpu?", "ok go on the light simplification", and "light algo should sit cleanly within the relevant gpu expansion path not adding additional passes, it should just do it in one go."
+The lit oak built 5.6-6.2 times slower than unlit at 80 (fn-211 OAK-LIGHT.md: seed 7, 14.9 s against 2.4 s). Light earns its place: owner and host compared light on and off against the reference photographs (2026-10-08): light on is wider (25-45 % at 80), open, with a clear trunk; light off is a dense column. Owner (2026-10-08): "Couldn't we approximate effects of light in a way that's easily computed for each bud in isolation => parallelization on gpu?", "ok go on the light simplification", and "light algo should sit cleanly within the relevant gpu expansion path not adding additional passes, it should just do it in one go." Boundaries: the engine's light and the growth sharing that reads it; the oak's own crown shape is a species round.
 
-R1's measurement (R1.md, task 1) moved the target. The lattice itself is 11-13 % of the lit build; the cost is the per-cycle machinery light switches on: re-lay 16-27 %, allotment 16-18 %, settle 16-21 %, rough layout 9-11 %, balance 5-6 %. Every bud reading light 1 with the passes running costs as much as lit. Width comes from allotment by light differences; the clear trunk from balance; the re-lay moves crown width, clear trunk and growth by 0-5 %. So per-bud light pays only if the sharing that reads it is per bud too. Host decisions (2026-10-08, owner "ok let's try it"): delete the re-lay first, measured; then make a bud's light and its share of growth local, against expectations the closed form supplies, so a cycle needs nothing from the rest of the tree.
+## Decisions
 
-## Requirements
+- R1's measurement moved the target: the lattice itself is 11-13 % of the lit build; the cost is the per-cycle machinery light switches on (re-lay 16-27 %, allotment 16-18 %, settle 16-21 %, rough layout 9-11 %, balance 5-6 %). Host decisions (2026-10-08, owner "ok let's try it"): delete the re-lay first, measured; then make a bud's light and its share of growth local against expectations.
+- R2: the re-lay's visible limb-level change at 80 accepted by the host (2026-10-08).
+- R4 inventory stops S1-S8 decided by the host (2026-10-08): fn-211.4's `Aggregate` as the one fine-root expectation model; `Recorded` split; CPU only in task 3 (S8 c).
+- **R5 owner verdict (2026-10-08), on the host's recommendation to close with today's model: "ok".** R3+R4 at 80 built a tree half as tall (8.2-11.9 m against 22.3-26.9 m) with a clear trunk about 2 m against 4.7 m, 44-70 % slower at 40 and not faster per phytomer at 80, though with 0 synchronisation points a cycle against 4. R5's sheet narrowed to today's model against O-WHOLE (O-BARE not cached; amended 2026-10-09: the owner, shown the sheet and told what it is, did not object).
+- The carried `apical_control` walk (31.1 and 32.1 against 30 after R2): no cheap correction (a sagless re-lay restores it but keeps 70-85 % of the re-lay's cost). Host decision (2026-10-08), option 3: keep today's model, project bound stays 30, a named exception `ROUGH_LAYOUT` in `tests/walk/degree.rs` holds the two light walks at 33.
 
-- **R1 (measure first):** done in task 1 (R1.md): cost by pass and which effect comes from which pass.
-- **R2 (delete the re-lay):** the periodic whole-tree re-lay removed; light reads the rough layout's positions. Shown on the lit oak at 40 and 80, seeds 1, 7, 42: crown width, clear trunk, phytomers grown and build time against today, and hero stills before and after, viewed; the gate green. If the stills show a visible change, it is reported before the deletion lands.
-- **R3 (local light):** each bud's light from its position in the crown's outline: Beer-Lambert transmission exp(-k * leaf area density * path length) over today's nine sky directions, chords through the outline sampled as 16 stacked cone sections solved as quadratics (no transcendental per bud), the outline's volume by a 64-point midpoint rule in fixed point once a cycle, reach measured off the seed's vertical. Evaluated inline in the step that grows the bud, on both executors, in contract A's fixed point; no light pass and no stored light field.
-  - **Where the outline comes from, one way (host, after plan review P0):** the structure above the cut is grown first, through every cycle, and folds its outline and leaf area each cycle from its own realized leaves plus each fine root's expectation from the closed form (its counts, its leaf share, and its reach bound, which exist today for light-neutral species and are extended to read the expected light of R4). It records one outline per cycle (a few scalars). Fine roots then run ahead and read the recorded history at their own cycle. Nothing a root grows flows back up per cycle, so no root waits on another; the dependency is one way, above to below. The structure above the cut is the sequential part, as it is today.
-  - **Bootstrap and degenerate cases:** before the first outline with positive volume, every bud reads light 1 (as `grow/draw.rs` initialises today); a sky ray that misses a section or is tangent to it contributes path length 0 on that section; where a section's quadratic degenerates to linear, the linear equation is solved and its inside interval clipped to the section's height bounds (a positive chord, e.g. a ray along a cone's generator); where it degenerates to a constant, the ray is wholly inside or wholly outside that section over its height span; a density denominator of 0 gives density 0; transmission is clamped to [0, 1]. Each case has an analytic test (known chord lengths and transmissions through a cone stack), and CPU/GPU parity is tested on them and on the history handover.
-- **R4 (local sharing):** before building, an inventory of what allotment and balance read today (`grow/sketch.rs::read_sizes` normalises powered vigour per PA; `grow/balance.rs` reads subtree light, upkeep, living status, remembered balance and inherited shedding) and of what the closed form supplies (counts and length expectations; its kept predictor excludes light-reading species today). Then: allotment normalises a bud's powered vigour by the per-PA mean the outline implies at that cycle (the outline's mean transmission over its volume, computed with the outline, so no closed-form light expectation is needed) in place of the cycle's actual per-PA total; balance stays as it is inside each fine root and inside the structure above the cut, and a fine root enters its bearer's balance through its expectation (as in R3's outline) rather than its realized subtree. The equations and their inputs are written into the spec's evidence before code; a quantity with no available expectation is a stop for the host, not an invention.
-- **R5 (head-to-head):** today's model (after R2) against R3+R4 on the oak at 40 and 80, seeds 1, 7, 42: the sheet with the reference photographs (O-WHOLE, O-BARE; local cache .refs/fn9; amended 2026-10-09: the owner took the verdict on the measures, R3+R4 was deleted under R6, so the sheet shows today's model against O-WHOLE only, O-BARE not being cached; the owner, shown the sheet and told what it is, did not object and the host records the narrower sheet as accepted), crown width, shed share, clear trunk, build time, and each model's pass count and synchronisation points per cycle; the owner's verdict.
-- **R6 (one model), by verdict:**
-  - **R3+R4 chosen:** it replaces today's model; the lattice, the per-cycle light exchange and allotment by actual totals are deleted; per-bud light and sharing run on the GPU executor inline in the step that grows the bud, adding no pass; walks, census, gate, npm test green.
-  - **Today's model chosen:** R3+R4 is deleted; the spec closes with R2's re-lay deletion and the verdict recorded; the inline GPU requirement does not apply, and the lit oak's cost is reported as the owner's open item.
-  - Either way, a terrain or obstacle occluder per bud is recorded as a named follow-up for the owner's cliff scenes.
+## Acceptance Criteria
 
-## Boundaries
+- **R1:** Cost by pass and which effect comes from which pass — met (task 1).
+- **R2:** The periodic whole-tree re-lay deleted, light reads the rough layout; measured and viewed on the lit oak at 40 and 80, seeds 1, 7, 42 — met (`R2.md`).
+- **R3:** Each bud's light from the crown's outline (Beer-Lambert over nine sky directions through 16 cone sections), inline, both executors — built on the CPU and measured, then deleted by the R5 verdict.
+- **R4:** Local sharing against outline expectations, inventory and equations written before code — built on the CPU, then deleted by the verdict.
+- **R5:** Head-to-head of today's model against R3+R4 on the oak with the reference sheet and measures; the owner's verdict — met: today's model.
+- **R6:** One model by verdict — met: R3+R4 deleted (`crates/` equals task 2's 3304848b); occluder follow-up recorded.
 
-The engine's light and the growth sharing that reads it. The oak's own crown shape against its reference (ragged against domed) is a species round, not this spec. The release scope is the owner's separate decision. Depends on fn-198 (F4).
+## Result
+
+- Re-lay deleted on both executors: lit oak 13-19 % faster at 40 and 27-35 % faster at 80; clear trunk unchanged; phytomers grown 0.1-2.7 % fewer; crown within 3 % at 40 and -7.7 to +4.8 % at 80.
+- After R2 the lit oak at 80 still builds about 3.7-4.5 times slower than unlit (4.65 s and 9.36 s against 1.03 s and 2.54 s).
+- R5 sheet (`sheet-today-vs-refs.jpg`, host viewed): today's oak at 80 is a smaller, open, irregular crown on a short trunk against O-WHOLE's broad dense dome; a gap that predates this spec, left to the oak's own spec.
+- Final gate: render 188 passed, workspace 1,027 passed, npm test 143 passed.
+
+## Open
+
+- The lit oak's remaining cost (allotment, settle, rough layout, balance): the owner's open item.
+- A terrain or obstacle occluder per bud, for the owner's cliff scenes: named follow-up.
+- The oak's crown form against O-WHOLE: the oak's own spec.
+
+## Friction
+
+- OAK-LIGHT.md's measuring probe sat in a gitignored `raw/` and was gone, so the definitions were re-implemented from prose -> proposed a committed measures example in `telperion-space/examples`.
+- Timing under other sessions' load (10-31) made timings unusable -> proposed a shared timing lock; local setup, reported only.
+
+## Evidence
+
+- `.flow/evidence/fn-226-light-read-from-the-crowns-outline-per/R2.md` (the re-lay deletion, measures, the walk's cause; cited by `tests/walk/degree.rs`)
+- `.flow/evidence/fn-226-light-read-from-the-crowns-outline-per/R5-R6.md` (verdict table, R6, the walk exception; cited by `tests/walk/degree.rs`)
+- `.flow/evidence/fn-226-light-read-from-the-crowns-outline-per/r2-measure.rs`, `r2-run.sh` (the measuring probe)
+- `.flow/evidence/fn-226-light-read-from-the-crowns-outline-per/sheet-today-vs-refs.jpg` (R5 sheet)

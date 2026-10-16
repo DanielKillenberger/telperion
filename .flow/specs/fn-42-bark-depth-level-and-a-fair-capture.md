@@ -1,130 +1,54 @@
 # Bark depth, level and a fair capture
 
-## Conversation Evidence
+## Goal
 
-> user (turn 1, on fn-32's round-two stills): "it's much much better. but still has much room for improvement. Not sure if in this spec or not though"
-> user (turn 2, on the host's recommendation to accept fn-32 for plates and scales and carry the remaining gaps to a new spec): "ok do it"
+fn-32 gave the bark a plate network that the owner judged "much much better. but still has much room for improvement", and the owner chose to carry the remaining gaps here. Three gaps had been measured in fn-32's round three: the oak trunk too light and cool (crop mean 140 144 133 against the reference's 118 119 114, because the level lives in fn-29's base colour row), furrows reading as crackle rather than valleys (relief capped at 4 mm by the anti-aliasing contract), and a dark fraction dominated by the trunk cylinder rather than bark. This spec added a bark-only capture at a known scale, reworked depth and relief under fn-71's one continuous footprint filter, and moved the oak and spruce colour rows, judged by numbers first and the owner's eye last.
 
-> user (2026-09-19, on the performance budget): "i think we'll have to find performance improvements all over the place anyway so i think i'd allow extra cost for now and optimize later?"
+## Decisions
 
-## Goal & Context
-<!-- scope: business -->
-<!-- Goal & Context: 20% [user], 60% [paraphrase], 20% [inferred] -->
-
-fn-32 gave the bark a plate network and the owner judged it "much much better. but still has much room for improvement." [user] Two scripted hill-climb rounds then mapped, by measurement, what fn-32's rows could not reach, and the owner chose to accept that spec for plates and scales and carry the rest here. [paraphrase]
-
-Three gaps remain, each measured in fn-32's round three and each outside that spec's boundary or its contract. The oak trunk is too light and too cool: with every fn-32 row at its darkest the crop mean reached only 140 144 133 against the reference photograph's 118 119 114, because the level lives in the bark base colour row fn-29 owns. Furrows read as crackle rather than valleys: relief depth is capped at 4 mm by the anti-aliasing contract the distance tests enforce, and widening the furrow floor over that cap reads as flakes with gaps, so the row shipped inert. And the dark fraction the references are judged by is mostly the cylinder: with every fn-32 term at zero the oak still measures 0.127 of its 0.147, because the crop compares a curved trunk under a sun with a flat photograph. [paraphrase] These are historical fn-32 findings. Re-measure the current renderer before choosing a depth change; fn-71 subsequently changed its filtering. A bark-only capture at a known scale makes the material judgeable. [inferred]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-<!-- Architecture: 50% [paraphrase], 50% [inferred] -->
-
-- **A bark-only capture at a known scale.** Render square-on oak and spruce patches at a recorded physical width. Use replacement photographs as visual morphology references; their physical scale and colour calibration are unknown. Render structure metrics are diagnostics, not photo-match scores. [user decision, 2026-09-19]
-- **Depth under one continuous filter.** Improve the resolved relief and parallax while retaining fn-71's accepted contract: relief leaves the image only through averaging its height over the pixel footprint, with no separate amplitude fade or near/far material switch. First measure the current field and depth response in the calibrated capture. [inferred]
-- **Reference-guided colour.** Existing oak and spruce bark colour rows may move to improve exposed mature bark appearance. Judge colour under the recorded render lighting; do not fit uncalibrated photographs to an exact RGB target. [user decision, 2026-09-19]
-- **Cost.** Extra rendering cost is allowed for this fidelity pass; optimization can follow. Record fresh baseline and candidate timings under the same conditions for the trunk close-up and the whole tree. The historical 5.2142 ms and 3.9823 ms figures are context, not acceptance limits. [paraphrase]
-- **Judging.** The same order as fn-32: numbers first, the owner's eye last, four images at most per round. [paraphrase]
-
-## API Contracts
-<!-- scope: technical -->
-
-- **Rows:** reuse the current physical bark and depth rows, with one explicit `plateEdgeShape` blend for the newly requested thin chipped profile. Default 0 retains the rounded profile; 1 selects the revised scales; intermediate values blend their height profiles continuously. Do not add the older proposal's near-footprint threshold. The fn-29 bark base colour and the fn-14 bark colour are existing rows that this spec is allowed to move on the oak and spruce presets. [inferred]
-- **The bark-only view:** one headless capture recipe per species with the camera distance and field of view chosen so the crop width in metres is recorded beside the still, added to the evidence recipe, not a new public view or command. [inferred]
-- **The reference scale:** record source, dimensions, credit and limitations; unknown photographed widths remain unknown. Only the rendered patch carries a calibrated physical width. [user decision, 2026-09-19]
-
-## Edge Cases & Constraints
-<!-- scope: technical -->
-
-- **Filtering remains continuous.** Every existing distance, resolution and redraw test passes at unchanged bounds. Add close-range depth coverage without relaxing those bounds. [paraphrase]
-- **Continuity through a camera walk.** The reproducible close-up footprint sweeps remain hard gates; the historical hero reconstruction has the explicit owner-accepted exception recorded below; no new amplitude fade or visible detail transition is permitted. [paraphrase]
-- **Cost, both ways.** Measure and report the full-screen trunk and whole-tree costs by the fn-26 protocol, including any regression. No hard timing ceiling gates this fidelity pass. [paraphrase]
-- **References.** Locally cached replacement exposed-bark photographs documented in REFERENCE-DECISION.md; never redistributed. Oak resolution limits fine-detail judgment. [user decision, 2026-09-19]
+- > user (turn 1, on fn-32's round-two stills): "it's much much better. but still has much room for improvement. Not sure if in this spec or not though"
+- > user (turn 2, on carrying the remaining gaps to a new spec): "ok do it"
+- > user (2026-09-19, on the performance budget): "i think we'll have to find performance improvements all over the place anyway so i think i'd allow extra cost for now and optimize later?" -> R4 requires comparable measurements and disclosure, not a ceiling.
+- Reference decision (2026-09-19): the original photographs could not be recovered and replacements lacked physical scale and calibrated RGB; the owner chose option 1, "Continue with visual reference matching". Replacement sources: MONGO's Norway spruce bark detail (2816x2112, flash-lit, unknown width; Syrio's 4000x3000 close-up as secondary) and SelecTree's labelled oak bark (650x567, limits fine-detail judgment); originals in the local `.refs` cache, never redistributed.
+- First candidate (2026-09-19): the owner said "colors look better" but expected added relief.
+- Owner visual verdict (2026-09-20) on the stronger-relief candidate: "i feel the relief highlights more clearly the structural difference between the reference and our implementation. The small scales with fine lines are quite different to our deep and more wide valleys in the relief. There's also a lack of roughness around the edges." -> not accepted; redirect to shallower plate faces, narrow separations and irregular chipped edges. Continuation authorised: "ok so pls $flow-next-flow this to the end".
+- The thin chipped profile is an explicit authored row, `plateEdgeShape` (0 rounded, 1 revised, blended), not the smooth-term optimisation flag, which would have changed shape when lichen or lenticels are on.
+- Colour refinement (2026-09-20): the owner called the revised shape "much better" and asked for red/brown layered colour in this spec; directional overlapping flakes go to a separate spec (fn-90).
+- Owner acceptance (2026-09-20): "hm forogt the birch materials but that's probably just tuning from here? if you confirm that i can attest the distance render looks good i'm happy to merge this (squash merge)". The host confirmed birch's controls were preserved; R5 resolved and squash merge authorised.
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** A bark-only recipe renders oak and spruce square-on with physical crop width, lighting and camera recorded. Report structure metrics as render diagnostics and compare exposed mature bark morphology visually with the documented replacement references. State unknown photo scale and lighting limitations; do not claim a calibrated photo score. [user decision, 2026-09-19]
-- **R2:** Scale and furrow relief matches the owner's structural feedback in the calibrated close-up: flatter faces, finer separations and irregular chipped edges rather than broad deep valleys while retaining one continuously footprint-filtered material. No separate amplitude fade or near/far switch is introduced; every existing distance, resolution, reproducible close-up footprint-sweep and redraw test passes at unchanged bounds; the inherited historical hero reconstruction is handled by the explicit owner-accepted exception below. Errors: a visible detail transition, a seam above the existing per-step bound or a moved tolerance fails the criterion. [inferred]
-- **R3:** Improve oak and spruce colour and relief readability, including restrained spatial red/brown variation among scales and exposed edges, through existing bark colour controls where possible, judged visually beside the replacement exposed-bark references and baseline under fixed render lighting. Report before/after render colour metrics without an exact photo RGB acceptance target. Owner acceptance remains R5. [user decision, 2026-09-19]
-- **R4:** Record fresh baseline and candidate timings for the whole-tree native oak frame and full-screen trunk by the fn-26 protocol, and report browser orbit frame rate. Report absolute costs and before/after differences. Extra cost is allowed for this fidelity pass, with optimization deferred; the historical native timing and 60 fps are reference targets rather than pass/fail limits. Errors: an unavailable, disjoint or contended session does not count as valid performance evidence. [paraphrase]
-- **R5:** The owner judges the bark-only stills and the eight fn-32 stills re-rendered, beside the references and beside fn-32's, answering whether the oak and the spruce bark read as real at the distance an eye would see them, and records the verdicts in this spec; the spec closes only on accepting verdicts. Errors: a rejecting verdict stops the spec with the owner's words and a one-paragraph blocker. [paraphrase]
+- **R1:** Bark-only oak and spruce recipe, square-on, physical crop width, lighting and camera recorded; structure metrics as render diagnostics; photo-scale limits stated — met.
+- **R2:** Scale and furrow relief matches the owner's structural feedback (flatter faces, finer separations, chipped edges) under one continuous footprint filter; all distance, resolution, close-up sweep and redraw tests at unchanged bounds — met, with the inherited historical hero reconstruction as an owner-accepted exception (it failed its absolute 0.03 gate before and after; no tolerance changed).
+- **R3:** Oak and spruce colour and relief readability improved with restrained red/brown variation via existing rows; before/after render colour metrics — met (mean RGB shift oak +3.66/-0.59/-2.47, spruce +1.21/-0.32/-1.41).
+- **R4:** Fresh baseline and candidate timings by the fn-26 protocol; browser orbit reported — met (cost disclosed, see Result).
+- **R5:** Owner judges bark-only stills and re-rendered fn-32 stills beside references — met (accepted 2026-09-20).
 
-## Boundaries
-<!-- scope: business -->
+## Result
 
-- No image textures; every value is a row. [strategy:Surface and rendering at scale]
-- Preserve the cellular network topology; its scale, profile proportions and localized edge shaping may change to address the owner's 2026-09-20 rejection. Do not replace the material with textures or geometry. [paraphrase]
-- No geometry change to the skeleton or the silhouette; depth stays a shading term inside the outline. [paraphrase]
-- The Two Trees and Ordinary keep their colours; only the oak and spruce presets move under R3. [inferred]
-- No engine work; the surface split is fn-41's. [paraphrase]
+- Parallax corrected; continuous shallow chipped scale profiles with `plateEdgeShape`; restrained warm recess colours on oak and spruce fissure rows; other species unchanged. A runtime-uniform GPU probe checks profile interpolation and specialisation parity at 1e-6.
+- Timing (RTX 3080, 1600x1000, seed-7 oak): native whole-tree total p50 8.9231 -> 14.5405 ms (p95 14.9348); full-screen trunk vegetation 14.8695 -> 38.4031 ms (p95 38.8321); browser orbit 66.6 fps average, wall p50 10.1 ms, p95 30.0 ms. The regression is retained for later optimisation by owner decision.
+- Landed as PR #47, squash-merged as `a63802a2` after all nine checks passed; QA SHIP.
 
-## Decision Context
-<!-- scope: both -->
+## Open
 
-### Motivation
-<!-- scope: business -->
+Directional shingling and overlapping flakes (fn-90); birch material tuning; a reproducible evidence recipe (complete camera, dimensions, seed, hashes, mask and invocation; proposed for fn-78); a bark reference catalogue with useful resolution and scale.
 
-- The owner's verdict on fn-32 was acceptance with room to improve, and the choice to carry the remainder to a new spec rather than a fourth round, because the numbers said the rows had nothing left. [paraphrase]
+## Friction
 
-### Performance decision, 2026-09-19
+Twenty entries, all reviewed at close (dispositions; none promoted to a spec without the owner):
+- Stale rendering design -> re-anchor older specs against later accepted contracts; resolved here.
+- Missing original photographs; capture build cold; GPU timing contention; slow debug grazing mask; concurrent GPU probe crash; colour-metrics Python interpreter -> local setup, not specced.
+- Capture radius contract; lighting orientation -> explicit-radius fixture and recorded patch normal, camera and light.
+- Reference search stopped early; host stopped at worker checkpoints -> keep the objective across rejected candidates and checkpoints.
+- Oak reference resolution -> possible evidence-tooling spec for original-resolution references.
+- Incomplete historical hero recipe and mask -> proposed line in fn-78.
+- Candidate distance regression; stronger relief aliasing -> existing gates caught them; keep the gates.
+- Optimisation flag chose shape -> fixed by `plateEdgeShape` with parity coverage.
+- Live QA locator; merge preparation -> inspect control roles first; `docs/pr-format.md` supersedes the old grouping proposal.
 
-The owner allows extra cost now and optimization later. R4 therefore requires comparable measurements and disclosure of regressions rather than a timing ceiling. Visual continuity, unchanged filtering-test bounds and the owner's final visual acceptance remain required. [paraphrase]
+## Evidence
 
-### Reference decision, 2026-09-19
-
-The owner chose option 1, “Continue with visual reference matching,” after the original photographs could not be recovered and replacement sources lacked physical scale and calibrated RGB. This explicitly replaces R1/R3 exact-photo calibration. The calibrated render fixture, unchanged filtering gates, performance reporting and final owner visual judgment remain required.
-
-### Owner feedback on the first candidate, 2026-09-19
-
-The owner says “colors look better” for spruce and oak, but expected added relief. This accepts the direction of the colour change, not R2 or final R5 completion. Keep those colour rows fixed during the depth pass; measure actual height contrast as well as rendered differences. The host resumes the unfinished spec after stopping at too narrow a worker checkpoint.
-
-### Implementation Tradeoffs
-<!-- scope: technical -->
-
-- The original near-only proposal is superseded by the owner's later fn-71 verdict of 2026-09-18. Preserve the accepted footprint-integral behavior while improving depth; current captures, rather than the historical four-millimetre observation alone, determine the required implementation. [inferred]
-- Moving fn-29's colour row over adding a level row: the level is one number the bark already has, and a second row for the same thing would fight the first in the blend. [inferred]
-- A bark-only capture over correcting the cylinder in the measurement: fn-32 tried a flat-field correction and it left two of three oak references with no measurable light regions; a capture that removes the cylinder is honest where a correction is a guess. [paraphrase]
-
-### Parallel execution
-
-Use an isolated branch. Only oak and spruce material rows may change for colour calibration; keep the patch confined to those rows and coordinate integration with fn-68. Do not change the leaf representation being worked in fn-86 or the species pipeline. [inferred]
-
-## Parked unknowns
-
-- Replacement reference physical scales and colour calibration are unknown and are not acceptance claims; oak fine-detail comparison is limited by its 650 × 567 source.
-
-## Strategy Alignment
-
-- Follows "Surface and rendering at scale": continuous surfaces, foliage and bark that make the structure legible from close views, without species-specific paths or hand-modelled assets, judged with measured runtime cost; hierarchy and continuous rendering representations keep rendering within game budgets from a hero tree to a forest, without visible stepping, thinning or shimmer.
-
-### Owner visual verdict, 2026-09-20
-
-> i feel the relief highlights more clearly the structural difference between the reference and our implementation. The small scales with fine lines are quite different to our deep and more wide valleys in the relief. There's also a lack of roughness around the edges.
-
-The stronger-relief candidate is not accepted. The owner identifies a morphology mismatch: small scales and fine separations in the reference versus broad deep valleys and smooth edges in the candidate. Increasing height contrast alone is not a success criterion for the next pass. Preserve the improved base colours; investigate shallower plate faces, narrow separations and irregular chipped edges. The current spec boundary preserving the accepted plate network must be reconciled with this structural feedback before a new implementation pass.
-
-### Authorized continuation, 2026-09-20
-
-The owner asks “ok so pls $flow-next-flow this to the end” after the structural correction was described. Continue the same fidelity objective with the improved colours fixed. The previous depth-only candidate and its 15%-more-height test are superseded by the explicit demand for shallower faces, fine separations and chipped edges. Preserve all existing continuity, distance and redraw tolerances. This is a refinement of the material fidelity acceptance, not authorization to waive numerical gates or invent the owner's final visual verdict.
-
-### Material independence, implementation decision 2026-09-20
-
-The thin chipped profile needs an explicit material value. Selecting it with the smooth-term optimization flag would alter bark shape when lichen or lenticels are enabled. The new plateEdgeShape row keeps that decision authored, preserves other presets at zero and lets the existing smooth shader optimization remain appearance-neutral. A runtime-uniform GPU probe checks profile interpolation and specialization parity at 1e-6 profile units. This is an implementation decision supporting the authorized structural correction.
-
-
-### Colour refinement and deferred overlap, 2026-09-20
-
-The owner says the revised shape is “much better,” then identifies more varied reference colouring with red/brown layered in and directional overlapping flakes. The owner asks to include colour in this spec and suggests separate scope for overlapping flakes. [user]
-
-Include restrained red/brown spatial colour variation for oak and spruce in R3, retaining the improved overall colour balance and current shallow chipped relief. Variation should relate to the existing scales and edges rather than uniformly warming the whole trunk. Keep the colour field continuously footprint-filtered and preserve other presets. This supersedes the earlier instruction to freeze colours during structural correction; it does not authorize another structural redesign. [paraphrase]
-
-Directional shingling, tucked-under edges and raised overlapping neighbours remain outside fn-42. They merit a separate relief-structure spec; no new spec is created by this scope decision. The favourable shape feedback is not a final R5 verdict on the forthcoming colour revision, nor a decision on the inherited hero-sweep gate. [inferred]
-
-
-### Owner acceptance and squash-merge instruction, 2026-09-20
-
-> hm forogt the birch materials but that's probably just tuning from here? if you confirm that i can attest the distance render looks good i'm happy to merge this (squash merge)
-
-The host confirmed that birch already has authored colour, roughness, marking and peel controls; those values were preserved by fn-42, and any directional overlap redesign remains separate in fn-90. The owner's acceptance of the current appearance and live distance rendering resolves R5 and authorizes a squash merge. [paraphrase]
-
-For R2, retain the failed historical hero reconstruction as an inherited evidence limitation rather than a green result. The owner accepts the live distance rendering after the before/after failure was disclosed. Acceptance uses that owner verdict, the passing unchanged native distance/resolution/redraw and close-up sweep gates, and the controlled pre-change comparison showing the inherited failure. The historical absolute 0.03 gate is explicitly excepted for this reconstruction only; no numerical tolerance was changed. [paraphrase]
+- `.flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/colour-final/{oak-flat,spruce-flat}.jpg` (final bark-only verdict stills), `colour-final/calibration.json` (capture recipe), `colour-final/comparison.json` (R3 metrics)
+- `.flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-final/{oak-trunk,oak-branch,spruce-trunk,spruce-branch}.jpg` (re-rendered fn-32 stills)
+- `.flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/spruce-reference-candidates.json` (reference sources and hashes)

@@ -1,22 +1,49 @@
 # One growth law reads light for every species
 
-## Goal & Context
+## Goal
 
-fn-245's second stage. The owner (2026-10-09): "i'm still not comfortable with only the oak growign with light... seems like it breaks our design principles". It does: `Species::reads_light()` (`crates/telperion-space/src/species.rs:423`) is any of four light rows non-zero, and it selects a different grower (the stepped CPU executor, `fine/coarse.rs::lit`, `grow.rs::apart` keeping light-reading trees off the GPU's fine roots). Astra's architecture review (fn-245 `ASTRA-ARCH.md` §1-2) proposes one cycle for every species, with light read from a frozen summary of the previous cycle's foliage, and names the light model as the open research question. fn-226's failed outline-light experiment changed light and allocation at once (its `R3-R4.md:105`), so it does not show analytic light fails. Release item.
+fn-245's second stage. The owner (2026-10-09): "i'm still not comfortable with only the oak growign with light... seems like it breaks our design principles". It did: `Species::reads_light()` (any of four light rows non-zero) selected a different grower (the stepped CPU executor, `fine/coarse.rs::lit`, `grow.rs::apart` keeping light-reading trees off the GPU's fine roots). Astra's architecture review (fn-245 `ASTRA-ARCH.md` §1-2) proposed one cycle for every species with light read from a frozen summary of the previous cycle's foliage, the light model the open research question. Release item for fn-237. Scope: the CPU executor and the light model; the GPU move is fn-256.
 
-## Requirements
+## Decisions
 
-- **R1 (one cycle, on the CPU first):** every shipped preset grows through one cycle graph: light read at each bud from the previous cycle's immutable foliage summary; bottom-up sums of capture, upkeep and presence; top-down shedding and vigour split by the apical-control law; per-PA normalisation; per-bud survival, abortion, continuation, dormancy and branching; end-of-cycle geometry and summary update; final settle. `reads_light()` and every branch it drives are deleted. Zero light coefficients give neutral terms, never another grower; the tree at zero and arbitrarily near zero follows the same code.
-- **R2 (allocation kept):** per-PA normalisation stays the actual one, `size_i = a_i × Σpresence / Σ(presence × a)` (`allocation.rs:153`); a light change and an allocation change are never tested together.
-- **R3 (the light candidate, gated):** a hierarchy of local foliage volumes (leaf area, centroid, second moments; compact ellipsoidal kernels with a closed-form ray integral) read over the existing nine sky directions (`light.rs:23`), double-buffered, finer groups near and aggregates far with a blend across the refinement interval, no double counting, presence-weighted. Measured against the current lattice as oracle: light error per bud, summaries visited per bud including the worst tail, and whether moment updates fuse into existing reductions. The two evaluators are compared on identical frozen foliage and bud positions with allocation held fixed, then on accumulated growth. No numeric pass line is set in advance: the measured light error, traversal tail and build cost go to the owner, whose approval is R3's pass (`NEEDS_HUMAN` with the evidence); a refusal stops the spec before anything is built on the candidate.
-- **R3a (degenerate foliage):** an empty snapshot gives full sky light; a summary of one leaf, a line or a plane has finite support (a floor on each kernel axis from the species' leaf size), so light stays finite; leaf area is conserved through merges; a summary's contribution goes to zero continuously as its presence does. Focused tests for empty, point, line and plane summaries, zero extinction, and continuity across a parent/child refinement.
-- **R3b (consumers in between):** after this spec every build (full CPU, the renderer's resident build, the coarse field call) runs through the one CPU cycle; the independent-chain GPU path retires with `reads_light()` and its guard, so no coupled tree reaches a grower that cannot carry its feedback, and every species grows on the CPU until fn-256. fn-255 and fn-256 merge into F4 together, so F4 never ships the interim. The stepped executor's exported types (`fine.rs:150`, `fine/coarse.rs:101`, the renderer's feedback imports) migrate to the cycle's, each consumer checked before deletion.
-- **R4 (proved):** every preset's stills (whole/mid/close) viewed beside the current branch; the oak's light response held (its shade-shedding and balance traits visible); species-to-species walks crossing zero light without a jump; build time per preset; the lattice and stepped executor removed only after R3's approval and the accumulated-growth comparison; Astra's agreement; gate and npm test green; the owner's verdict.
+- Council plan (host, 2026-10-11): the owner asked for a council of Fable and Astra; both signed `.flow/evidence/fn-245-a-breakthrough-in-generation-time/COUNCIL.md`, which governs this spec where it differs from the requirements. R3's foliage-volume light candidate is refused on its measurement (R3.md) and the lattice is the light model for every species; R3a is dropped; R3b is the CPU executor as the one cycle with explicit foliage lifetime, phase order, canonical identity, persistent adjacency and reusable scratch; light rows sourced for every species; the council's early tests 1 and 2 first.
+- Early tests: the cycle's extra cost is processing, not growth (F4's grower grows the same phytomers in a tenth of the time); a quantised integer deposit is within f32's order noise.
+- Cost (CYCLE-COST.md): the whole-tree cycle has a floor of 4.4× F4's grower on Telperion and 2.3× on spruce with no light work at all; host decisions of 2026-10-11 built a working set with frozen upkeep, exact retirement of shed subtrees, and the spike's reduction order.
+- R3b: routing production `grow` through the cycle failed the render gate's resident-against-CPU checks, so production routing, the `reads_light()` consumers and the old executors' deletion moved to fn-256 (fn-255 and fn-256 merge into F4 together).
 
-## Council plan (host, 2026-10-11)
+## Acceptance Criteria
 
-The owner asked for a council of Fable and Astra on the attack plan; both signed `.flow/evidence/fn-245-a-breakthrough-in-generation-time/COUNCIL.md`, which governs this spec where it differs from the requirements above. For this spec: R3's light-volume candidate is refused on R3.md and the lattice is the light model for every species; R3a is dropped; R3b is the CPU executor as the one cycle with explicit foliage lifetime, phase order, canonical identity, persistent adjacency and reusable scratch, records by resolution, the deletions COUNCIL.md lists, no shed-certain shortcut; light rows sourced for every species. Early tests 1 and 2 of COUNCIL.md come first.
+- **R1:** every shipped preset grows through one cycle graph; `reads_light()` and every branch it drives deleted; zero light coefficients give neutral terms, never another grower — met on the CPU (`grow_cycle`); the deletions moved with fn-256.
+- **R2:** per-PA normalisation unchanged; light and allocation never tested together — met.
+- **R3:** the light-volume candidate measured against the lattice as oracle; approval is the pass — measured and refused (council, 2026-10-11).
+- **R3a:** degenerate-foliage handling — dropped by the council.
+- **R3b:** every build runs through the one CPU cycle; the independent-chain GPU path retires — moved to fn-256 (the production switch fails the render gate without the device executor).
+- **R4:** every preset's stills viewed, the oak's light response held, walks cross zero light without a jump, build time per preset, Astra's agreement, gate and npm test green, the owner's verdict — met on the CPU; combined acceptance with fn-256.
 
-## Boundaries
+## Result
 
-The CPU executor and the light model. Moving it to the GPU is the next spec. Release item for fn-237.
+- `grow_cycle` runs every phase for every species with allocation unchanged; an unlit species grows today's tree; the oak through the cycle agrees with today's build within `agree::PATHS`; zero and 1e-30 grow the same tree. Retirement is exact against the every-axis-open reference (oak, spruce, beech, 4 seeds).
+- Every preset's stills viewed; cost and peak memory in CYCLE-COST.md.
+- Gates on the final commit: workspace without the renderer 1,070 passed; renderer 242 passed; npm test 155. Impl-review SHIP after two fixes.
+- Finding (specced as fn-265): shed wood keeps charging its bearer's upkeep; the oak at 80 keeps 10.5 % more if it stops.
+
+## Open
+
+- fn-256: production routing through the one cycle on the device; deletion of `reads_light()`, the lattice consumers and the stepped executor.
+- fn-265: shed wood stops costing its bearer.
+
+## Friction
+
+- `flowctl` not on PATH for dispatched workers -> local setup.
+- The lattice-scale candidate ran slowly -> the slowness is the finding (R3.md).
+- The amplification probe compared axes by lineage -> a documented unique per-axis key for tree diffs (proposed).
+- Restoring a throwaway patch reverted the worker's own edits -> apply throwaway patches only on a committed tree, reverse with `git apply -R` (practice).
+- No sampling profiler (`perf_event_paranoid`) -> local setup, reported.
+- R3b's production switch was tried against the whole gate -> a named list of tests that hold `grow` to another executor (proposed).
+
+## Evidence
+
+- `.flow/evidence/fn-255-one-growth-law-reads-light-for-every/R3.md` (the refused light-volume candidate against the lattice)
+- `.flow/evidence/fn-255-one-growth-law-reads-light-for-every/CYCLE-COST.md` (the cycle's cost floor and the levers built)
+- `.flow/evidence/fn-255-one-growth-law-reads-light-for-every/DESIGN.md` (the cycle graph and the candidate's design; cited by `grow/cycle.rs`)
+- `.flow/evidence/fn-255-one-growth-law-reads-light-for-every/R3B.md` (what moved to the one cycle and what went with fn-256; cited by `capture_grown.rs`)
