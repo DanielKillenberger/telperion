@@ -31,9 +31,13 @@ The owner (2026-10-16, spec section "The owner's decisions on reuse and the site
 ## Acceptance
 - [ ] FIELD-TIME.md holds what was measured before the re-scope (the field path's stages, their times, the outputs the field reads), committed; no change to the deleted path.
 ## Done summary
-TBD
+Superseded by R8 (owner, 2026-10-16) while it ran; measurements kept (FIELD-TIME.md, 09cc53d27).
+- (a) The field path runs the sweep's curve passes (lead through emit, two readbacks) and reads nothing they make: about 16 / 5 / 5 ms on the spruce, oak, birch. Laying the nodes alone (gather only), paired warm 16: spruce grow + 36³ query 498.5 -> 487.4 ms (16 of 16 faster), oak -3.5, birch -3.6 ms; answers byte-identical 24/24, harness trees 8/8, build_time within 1.5 ms. Not committed (the path is replaced by R8); the patch goes to tasks 12 and 13.
+- (b) The 65 ms query is kernel work: about 50.5 ms walking buckets, 15.9 ms arithmetic; buffers, launch and readback under 0.5 ms. R8 deletes the query.
+stage: impl-review - skipped(policy: measurement only, no shipped code; the task was superseded)
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 09cc53d27
+- Tests: field_time_tests (ignored measurement)
 - PRs:
