@@ -218,6 +218,8 @@ pub use growing::GrowingTree;
 mod field;
 #[cfg(test)]
 mod field_tests;
+#[cfg(test)]
+mod field_time_tests;
 mod florets;
 pub(super) mod fold;
 mod handoff;
