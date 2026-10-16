@@ -12,9 +12,10 @@ TBD
 - Gate and npm test green; merged into F4.
 
 ## Done summary
-TBD
+R3' measured natively per preset (RESULTS.md): oak 253-306 ms against 0.1.4's 273-332, birch 220-250 against 292-354, spruce 509-523 against about 240 (owner's about 0.35 s not met), palm 79-83 against 17; field queries made order-independent (fixed-point sums) so the per-bucket sort is gone (about 85 ms a tree). Harness builds within noise, the birch 151-172 ms faster. Sizes measured and ceilings raised per the owner (render 3.70 MB, telperion.js 200 KB, the shared chunk 70 KB new; telperion.wasm under its 1.6 MB). R11's unread scaffold pins deleted. The owner's probe page field-probe.html. Gate (after merging F4 9bd93e422): 1404 passed, the 2 guard failures fixed and re-run green; npm test 169/169. Codex reviews: empty first round (NEEDS_WORK) -> re-review SHIP; guard fixes SHIP.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: cc31606b9, bdf5c51b3, 6dfd38fec, 7334944e3
+- Tests: cargo test --profile ci --workspace --no-fail-fast, npm test
 - PRs:
