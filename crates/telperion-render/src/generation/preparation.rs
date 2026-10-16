@@ -139,7 +139,9 @@ fn base_cpu_bytes(x: &Expansion) -> u64 {
     let element = x.element();
     (x.tree().nodes.capacity() * size_of::<telperion_core::tree::Node>()
         + element.positions.capacity() * size_of::<telperion_core::math::Vec3>()
-        + (element.indices.capacity() + element.level_indices.capacity() + element.coords.capacity())
+        + (element.indices.capacity()
+            + element.level_indices.capacity()
+            + element.coords.capacity())
             * 4
         + element.levels.capacity() * size_of::<foliage::Level>()) as u64
 }

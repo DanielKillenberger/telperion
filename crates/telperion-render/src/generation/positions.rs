@@ -3,13 +3,13 @@
 //! add the comparison route's `admit`, `radii` and `finish`, whose
 //! admission completes before any foliage consumes candidate geometry.
 use super::{io, Generator};
-use crate::buffer::Owned;
-use crate::Result;
 #[cfg(test)]
 use super::{
     wood::{self, UploadedWood},
     Clock, Metrics,
 };
+use crate::buffer::Owned;
+use crate::Result;
 #[cfg(test)]
 use telperion_core::surface::compact::CompactSurface;
 
