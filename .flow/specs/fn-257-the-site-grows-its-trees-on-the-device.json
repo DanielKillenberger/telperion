@@ -18,9 +18,9 @@
     "fn-257-the-site-grows-its-trees-on-the-device.7": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 0,
-  "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-10-11T11:05:16.893618Z",
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-16T07:39:28.799279Z",
   "review_attempts": [
     {
       "artifact_sha256": "94ee9c483bf833b629cb8cc0e96ed8138b03782c141687117956991234822301",
@@ -727,6 +727,67 @@
       "task": "fn-257-the-site-grows-its-trees-on-the-device.7",
       "timestamp": "2026-10-16T02:50:33.954269Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a6a9b7d43bf5496abc562e0ca7797dd7e7529ab9c379b284a49a1d4403abca88",
+      "backend": "codex",
+      "base_sha": "e07c14283464cfa3aee79806ddead179e856f8c4",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-53a545353b75d5973379a5fd46614b5e",
+            "classification": "introduced",
+            "findingId": "finding-53a545353b75d5973379a5fd46614b5e",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-04eeb65ae8c9c7232f92010b758c962c",
+            "classification": "introduced",
+            "findingId": "finding-04eeb65ae8c9c7232f92010b758c962c",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d7301085d405ebae494f7d1aadbf60c7",
+            "classification": "introduced",
+            "findingId": "finding-d7301085d405ebae494f7d1aadbf60c7",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "c1df610dd0f348d18a11c63183b716f96c1370f8",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 264304,
+      "output_sha256": "431804a6945453d4b53fe94582fa865dc4e990b20a638df7ee54c43052c69082",
+      "reservation_id": "47c6118d39f64ef2bae529b8c0dd2803",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-16T07:39:28.792926Z",
+      "tool_calls": 19,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -758,5 +819,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T07:35:19.179614Z"
+  "updated_at": "2026-10-16T07:39:28.802824Z"
 }
