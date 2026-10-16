@@ -40,7 +40,8 @@
     "fn-275-a-young-palms-fronds-grow-to-their-size",
     "fn-284-the-harnesss-controls-change-the-tree",
     "fn-286-a-relay-runs-back-onto-the-line-it",
-    "fn-287-020-clean-up-from-the-release-review"
+    "fn-287-020-clean-up-from-the-release-review",
+    "fn-291-the-cpu-entry-builds-every-shipped"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -60,5 +61,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T22:48:26.647469Z"
+  "updated_at": "2026-10-16T02:52:22.297471Z"
 }
