@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-287-020-clean-up-from-the-release-review",
   "spec_path": ".flow/tasks/fn-287-020-clean-up-from-the-release-review.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Delete the envelope experiment, make the metadata true, declare the gate's one invocation",
   "updated_at": "2026-10-16T04:01:00.516815Z"
 }

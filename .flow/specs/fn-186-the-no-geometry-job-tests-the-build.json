@@ -173,7 +173,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-186-the-no-geometry-job-tests-the-build.md",
-  "status": "open",
+  "status": "done",
   "title": "The no-geometry job tests the build without geometry",
   "tracker": {
     "baseHashFlow": null,
@@ -186,5 +186,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T03:49:22.392321Z"
+  "updated_at": "2026-10-16T05:57:09.753487Z"
 }

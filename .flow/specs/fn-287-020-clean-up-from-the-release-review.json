@@ -263,7 +263,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-287-020-clean-up-from-the-release-review.md",
-  "status": "open",
+  "status": "done",
   "title": "0.2.0 clean-up from the release review",
   "tracker": {
     "baseHashFlow": null,
@@ -276,5 +276,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T05:55:22.628932Z"
+  "updated_at": "2026-10-16T05:57:10.642893Z"
 }
