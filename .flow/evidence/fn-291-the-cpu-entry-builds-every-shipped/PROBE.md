@@ -177,10 +177,41 @@ The lever the measurements point to is the index buffer: 1,651 MiB, 43% of the w
 
 The other R2a candidate is `edges`. It costs 40 B a node, about 128 MiB for telperion. Leaves read it, and on the serial path they run after the wood's `faces()`. Freeing it before `faces()` means running leaves before the wood, which changes the order in which the stage reports errors (`pipeline::tests::the_wood_fails_before_the_plan`). Even then it would save at most 128 MiB against the gap below. It was not taken.
 
+### The floor after R2a
+
+`fitted()` gives back the tree's spare capacity. I measured the native live set again after it; raw rows are in `raw/woodsize-skeleton-r2a.log`:
+- telperion at seeds 7 and 42: 483 MiB, down from 604
+- laurelin at seed 7: 450 MiB
+- laurelin at seed 42: 452 MiB
+
+This table supersedes the floor table above.
+
+| case | positions | normals (oct) | indices | tree after R2a | leaves | floor, coords freed | floor, coords u16 |
+|---|---|---|---|---|---|---|---|
+| telperion 7 | 831 | 277 | 1,651 | 483 | 32 | 3,274 | **3,551** |
+| telperion 42 | 831 | 277 | 1,651 | 483 | 32 | 3,274 | **3,551** |
+| laurelin 7 | 774 | 258 | 1,537 | 450 | 30 | 3,049 | 3,307 |
+| laurelin 42 | 778 | 259 | 1,545 | 452 | 30 | 3,064 | 3,323 |
+
+With R2b as written, the live floor for telperion is 3,551 MiB. That is 33 MiB under the 3,584 MiB bar, and only if Wasm adds no slack at all.
+
+The traces show what Wasm actually adds. Every buffer must be one contiguous run of memory:
+- After growth, telperion's memory stands at 2,693 MiB (seed 7) and 2,740 MiB (seed 42).
+- The first wood buffer, `positions` at 831 MiB, grows the memory by its full size, before and after R2a. So no free run of 831 MiB exists anywhere below the top: neither inside the memory growth freed nor at its end.
+- The index buffer is a single 1,651 MiB `u32` run. R2b keeps it, because it is not per-vertex data. It cannot land in any run smaller than 831 MiB.
+- So wherever it is reserved, it grows the memory by its whole size. The high-water mark is at least 2,693 + 1,651 = **4,344 MiB** for telperion seed 7, and 2,740 + 1,651 = 4,391 MiB for seed 42.
+- Both bounds are over 4 GiB itself, before positions, normals or coords are counted.
+- Laurelin is not measured as tightly. After R2a, its `positions` did find a free run of 773 MiB, and its index reservation then failed at 3,868 MiB without finding 1,537 MiB of free memory.
+- If no free run of 1,537 MiB exists after growth, the same bound for laurelin is 2,578 + 1,537 = 4,115 MiB at seed 7 and 2,618 + 1,545 = 4,163 MiB at seed 42. That condition is inferred from the failed reservation, not measured on its own.
+
+The bar is 3,584 MiB. R2b changes no term in this bound: its smaller normals and coords may fit in freed pieces, but the indices do not.
+
 ### Gap (stop condition met)
 
-R2a as built does not lower the high-water mark of any failing case. R2b's per-vertex compaction cannot close the gap either, by the floor above:
-- **Telperion, coords kept as u16:** 3,672 MiB live against a 3,584 MiB bar, so 88 MiB over at zero slack.
-- **Coords freed as well:** 3,395 MiB, so 189 MiB under, but only at zero slack. Measured slack is 1,219 MiB.
+R2a is built and measured. It does not lower the high-water mark of any failing case.
 
-Growth leaves 2.6 to 2.7 GiB of Wasm memory in pieces, and the wood's first buffer cannot reuse them. The lever the measurements point to is the index buffer (1,651 MiB). Growth's own peak and fragmentation is the other. Both are outside R2a and R2b as decided, and both are the host's call.
+R2b cannot close the gap. Its live floor (3,551 MiB for telperion) is only under the bar at zero slack. The contiguity bound shows the slack cannot be zero. Growth leaves 2.6 to 2.7 GiB of Wasm memory with no free run of 831 MiB in it, and the 1,651 MiB index buffer then needs memory of its own above that. The high-water mark is at least 4,344 MiB for telperion seed 7, which is 760 MiB over the 3,584 MiB bar and over 4 GiB itself.
+
+The levers the measurements point to are both outside R2a and R2b as decided, and both are the host's call:
+- **The index buffer.** It is 1,651 MiB, 43% of the wood. It is derivable from the ring topology, so it could be handed to JS as a run table, or in pieces under a run of 831 MiB.
+- **Growth's 2.7 GiB peak and its fragmentation.**
