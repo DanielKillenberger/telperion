@@ -33,3 +33,10 @@ The review's one gap (P1, R3'): the oak at seed 1234 over 0.1.4. Re-measured war
 - **What hindered:** the probe had to live under `field/` (not beside `field_probe_tests.rs` as the task named) to see the field's private `Cfg`, `Rec` and sources, and still copied `make.rs`'s `cfg`/`leaf_box` and `leaflets`' loop body because they are private or not functions. The repository's `every_shader_file_is_checked` refuses a probe `.wgsl` no validated source holds, found only on the second build; it went into `field::sources()`. The GPU profile's labels collide between the sweep and the stations (`starts`, `emit`, `blocks`, `spread`), so the sweep's share of `emit` could not be told apart.
 - **Cost:** about 10 minutes and one extra build.
 - **What would remove it:** profile labels prefixed with their pass's name, and a note in `docs/` that a test-only WGSL file joins a `#[cfg(test)] sources()` list.
+
+## 2026-10-16, task 13 (worker)
+
+- **Doing:** re-anchoring task 13 and listing every consumer of the field API it deletes, before any edit.
+- **What hindered:** the deletion's consumers reach past the task's Touches. `cargo test` builds examples, and three examples read the deleted API: `crates/telperion-core/examples/measure.rs` (`Field::query`, `bounds`, `storage_bytes`), `crates/telperion-core/examples/artifact_digest.rs` (`Field::snapshot`) and `crates/telperion-render/examples/generation_digest.rs` (`FieldSnapshot`, `IndexSnapshot`). Neither task 13 nor task 14 touches them, so the focused crate tests cannot compile. `crates/telperion-wasm/src/**` (a workspace member: `Field::query`, `snapshot`, `bounds`, `storage_bytes`, `FieldSnapshot`) and `crates/telperion-render/src/web/field.rs` (`query_field`, `Answer`, wasm32 only) are task 14's, so the workspace and the npm build stay broken between tasks 13 and 14.
+- **Cost:** about 15 minutes; the task stopped before any edit, per the host's rule on unforeseen consumers.
+- **What would remove it:** a plan step that greps every deleted public name across the workspace, examples included, and gives each hit to a task's Touches; or the API cut and its bindings in one task.
