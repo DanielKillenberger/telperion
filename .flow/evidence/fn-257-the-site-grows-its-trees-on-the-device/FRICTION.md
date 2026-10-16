@@ -19,3 +19,10 @@
 - **What would remove it:** flowctl reading the trunk from `git symbolic-ref refs/remotes/origin/HEAD` (or the config) and a per-spec base recorded when a spec's first task starts.
 
 The review's one gap (P1, R3'): the oak at seed 1234 over 0.1.4. Re-measured warm at 15ae83609 (`the_device_field`, two runs, desktop GPU 14-28 % busy with browsers): oak grow + 36³ query seed 1 261-267 + 16 ms (0.1.4 290), seed 1234 321-327 + 15 ms (0.1.4 273, about 65 ms over), seed 5678 287-294 + 18 ms (0.1.4 332). Growth is 20-30 ms slower than RESULTS.md's at every seed; whether that is the busy desk or a change since task 7 is not measured. Escalated to the owner, per R3's "any species over 0.1.4 is named with its gap".
+
+## 2026-10-16, task 11 (worker)
+
+- **Doing:** the site field's paired A/B (two test binaries, base and change) and the harness build's byte comparison.
+- **What hindered:** the dcg hook refused a loop redirecting to `$S/$b` paths and `git show HEAD:<path> > <path>` to build the base binary; both were retyped (literal paths, a script appending to one file, and `git apply -R` of a saved patch). Another worker's GPU jobs held the desk at 70-99 % busy for 13 of the 16 field pairs, so only paired differences are meaningful.
+- **Cost:** about 5 minutes of retyping; the timings carry the desk's load.
+- **What would remove it:** a `measure-ab <base-bin> <bin> <test> <pairs>` helper beside `telperion-heavy` that alternates two binaries and appends to one file, and a desk-wide GPU queue so a timing run gets a quiet window.
