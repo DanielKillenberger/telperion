@@ -73,3 +73,10 @@
 - **Slowed by:** the resident digest runs past the 600 s foreground limit, so the host moved it to the background mid-run; BASELINE.md names neither run's wall time.
 - **Cost:** one moved call and a second wait handle, a few minutes of attention.
 - **Would have removed it:** BASELINE.md stating each digest's wall time, so a worker launches both in the background from the start (task 2's entry asked the same of `generation_digest`).
+
+## 2026-10-18 - task 5: the checkout's target/ci was emptied under the gate
+
+- **Doing:** task 5's full gate (`telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`).
+- **Slowed by:** about 21:22, while the gate linked, `target/ci` lost every rlib (17 object files left, `examples/` and `deps/` recreated empty); the link of `grow_in` and `conformance` failed on missing rlibs and the gate stopped in under a minute. Nothing in this task deletes build output; the cause is outside the worker (a cleanup elsewhere on the machine).
+- **Cost:** one gate run lost, and the rerun builds the workspace from nothing.
+- **Would have removed it:** no cleanup of a worktree's `target/` while a worker holds the checkout, or a lock file a cleanup honours.
