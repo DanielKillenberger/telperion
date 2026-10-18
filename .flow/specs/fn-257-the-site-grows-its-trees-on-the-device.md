@@ -89,3 +89,12 @@ The probe's splat meets every tolerance on the spruce, oak and palm at 24, 36 an
 - **The owning limb's table takes a two-word key (cell, node's system id):** the dense naming goes, and the 32-bit limit that would refuse the oak and birch at n = 256 with it. The table is sized from a bound, never a guess, and the grid's memory is refused by name against the device's limits before anything is allocated.
 - **The field path asks the sweep only for the laid nodes (`gather`):** the curve passes the field never reads are not requested (task 11's measured remedy, 11.7 ms paired on the spruce, the harness's dispatches unchanged).
 - **R8a's comparison uses one grid:** each executor's field is made over its own box; the agreement test asks both over the CPU's box, since a frond's leaflets fall on each executor's own draws (the palm's boxes differ by up to 0.85 m).
+
+## The owner's decisions after R8 (2026-10-18)
+
+The owner accepted the R8 result as it stands ("Rest i accept"):
+
+- **Oak at seed 1234, 285.6 ms against 0.1.4's 273 ms, is accepted under R3'.** The excess is growth of a larger tree (397k nodes against 276k at seed 1), which is calculation and belongs to fn-285; the oak is faster than 0.1.4 at seeds 1 and 5678.
+- **Spruce at about 0.43–0.44 s is accepted** as the best this release reaches without speeding up the calculation itself; what remains outside calculation is about 26 ms of launches, and folding them measured slower. Faster growth is fn-285.
+- **The worker's decisions stand:** `n` is a required argument to `growField`; the grid definition lives in `voxelize.ts`; timings compare against 23fb243e3, the commit before R8.
+- Follow-ups: `tests/browser/bindings.mjs` (12 checks red on the release branch, no CI job) goes to fn-259's release check; the scripts and experiment still calling the removed query, and `tests/migration/README.md`, go to fn-293.
