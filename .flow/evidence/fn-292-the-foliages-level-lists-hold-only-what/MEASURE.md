@@ -25,7 +25,7 @@ The spruce's level lists fall from 60.4 MB to 20.1 MB. Its 4,024,570 leaves × 4
 
 ## Stills
 
-`resident_stills`: all 24 stills (8 presets × whole, mid, close) decode to pixel data identical to `raw/before/`, both in `raw/after/` and in `raw/uniform/`. Viewed: the spruce's whole and close, and Laurelin's whole and close.
+`resident_stills`: all 24 stills (8 presets × whole, mid, close) decode to pixel data identical to `raw/before/`, both in `raw/after/` and in `raw/uniform/`. Viewed: the spruce's whole and close, and Laurelin's whole and close. On 2026-10-18 every preset was viewed as one sheet, the base's whole, mid and close above the fix's (`raw/sheets/<preset>.jpg`, ImageMagick `montage`), all eight presets; `compare -metric AE` counts 0 differing pixels on each of the 24 pairs.
 
 ## Frame p50 (vegetation pass, ms)
 
