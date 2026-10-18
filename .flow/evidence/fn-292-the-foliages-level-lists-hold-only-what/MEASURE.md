@@ -62,3 +62,10 @@ Every preset with the fix, three runs each (`raw/uniform/frames.txt`), against t
 | laurelin | close | 11.441-12.443 | 11.700 | 11.292-11.340 | 11.318 | -3.3% |
 
 No preset is slower than the base beyond noise. Telperion and Laurelin are 3 to 6% faster.
+
+## After merging the release tip (2026-10-18, b2a262857)
+
+The release tip 0e3c8e30d was merged in with no conflicts. No file changed on both sides. Completion review (codex, base the release branch): SHIP, R1 to R3 met, before the merge.
+
+- Gate (`telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`): 1,406 passed, 0 failed, 110 ignored, 02:36:38 to 03:32:31, admission wait included (`raw/gate-merge.log`).
+- `npm test`: 18 files, 169 of 169 tests passed (`raw/npmtest-merge.log`).
