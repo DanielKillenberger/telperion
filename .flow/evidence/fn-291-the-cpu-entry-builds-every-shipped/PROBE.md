@@ -416,3 +416,13 @@ No pixel differs by more than one grey level of 255. I viewed all six sheets. **
 - Gate, run once at 50ea727f2 through the declared invocation (`CARGO_TARGET_DIR` the worktree's `target/`): `telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`. 1,412 passed, 0 failed, 103 ignored. It was admitted at 16:20:51 after 55 minutes of waiting (FRICTION.md) and finished at 16:58:20. Raw: `raw/gate-t4.log`.
 - `npm test`: 19 files, 170 tests passed. Raw: `raw/npm-test-t4.log`.
 - Not run: `npm run rust:test:wasm`. Its suite includes a browser field test, and the host excluded it for this task, so the bindings suite is not run here.
+
+## After merging the release tip (2026-10-18, 6473b5e9e)
+
+The release tip 0e3c8e30d (fn-257 R8 and others) was merged in with no conflicts. No file changed on both sides.
+
+- Gate (`telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`): 1,412 passed, 0 failed, 109 ignored, 02:29:37 to 03:00:19 (`raw/gate-merge.log`).
+- `npm test`: 19 files, 170 of 170 tests passed (`raw/npmtest-merge.log`). `npm run build` passed.
+- `npm run test:dist`: all 24 cases built, each at or under 3,584 MiB, with every high-water mark equal to task 4's table (highest laurelin seed 7 at 2,789 MiB). `field.js` refused without WebGPU (`raw/testdist-merge.log`).
+
+Completion review (codex, base the release branch): NEEDS_WORK on R2's error clause. Telperion seed 7 at a valid `surface.radialSegments` of 64 reaches 4,294,705,152 B of Wasm memory and throws the bare `Tree core: surface allocation`. It is not refused before allocation by a named cause. The wood's exact vertex count is known at `Layout::new` (`surface/rings.rs:165`), before any chunk is reserved. What is not settled is the budget it would be checked against. Freed heap is invisible from inside Wasm, so a check against 4 GiB minus the memory grown so far would refuse Telperion seed 7 at its preset settings, a shipped case. That is a ceiling like host decision 15's phytomer ceiling. It is taken to the owner/host and not invented here.

@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-291-the-cpu-entry-builds-every-shipped",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "needs_work",
+  "completion_reviewed_at": "2026-10-18T00:33:28.715286Z",
   "created_at": "2026-10-16T02:52:21.832518Z",
   "default_impl": null,
   "default_review": null,
@@ -16,7 +16,7 @@
     "fn-291-the-cpu-entry-builds-every-shipped.6": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 0,
+  "plan_review_rounds": 1,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-10-16T08:08:16.298577Z",
   "ready": true,
@@ -820,6 +820,51 @@
       "task": "fn-291-the-cpu-entry-builds-every-shipped.4",
       "timestamp": "2026-10-16T13:28:36.756576Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3d404162a40baf435de367f9aaa923292a1e9d981fcc31129252061ff7a799e5",
+      "backend": "codex",
+      "base_sha": "0e3c8e30d9ca79a401f63d34c4116949fcf22ae7",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-410acbd89169ff6362d730cfd6be28f6",
+            "classification": "introduced",
+            "findingId": "finding-410acbd89169ff6362d730cfd6be28f6",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "6473b5e9ef9e09c380b911a63f5f5cb81042004e",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 616017,
+      "output_sha256": "e3f954e6eedc479daa4f41a93e90e8324260abbd1135d68c30f855562381778c",
+      "reservation_id": "439c113a022d4928b915a29c2892e7b3",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-18T00:33:28.697039Z",
+      "tool_calls": 33,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -835,6 +880,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.1": 0,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.2": 0,
     "impl:fn-291-the-cpu-entry-builds-every-shipped.3": 0,
@@ -857,5 +903,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T13:28:36.758717Z"
+  "updated_at": "2026-10-18T00:33:28.725597Z"
 }

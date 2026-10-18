@@ -66,3 +66,9 @@ Doing: the declared gate, `telperion-heavy 12 --threads 2 -- cargo test --profil
 Slowed: other workers' 10 GB jobs (`--gpu 6`) were admitted while the gate's 12 GB request waited; at 15:38 it was still waiting (room 1 to 9 GB). The declared size cannot be lowered without a new measurement (AGENTS.md).
 Cost: 55 minutes of admission (15:25:59 to 16:20:51) before the 35-minute run began.
 Would remove it: admission that queues requests in order, so a waiting larger request is not passed by every smaller one.
+
+## 2026-10-18 - completion review: the review command's default base, and the reviewer's heavy run
+Doing: `flowctl codex completion-review fn-291-... --receipt ...` after merging the release tip.
+Slowed: the first call failed at once with `cannot resolve review snapshot: main...HEAD`, because the repository has no `main` and this spec's base is the release branch. It needed `--base fn-198-tree-space-f-the-engine-in-production`. The reviewer then reproduced its finding by building Telperion seed 7 at `radialSegments` 64 through `dist/` to 4 GiB of Wasm memory. It ran that outside `telperion-heavy`, next to the queued gate.
+Cost: one failed call (seconds). A 4 GiB run went unadmitted on the owner's desk.
+Would remove it: the review base taken from the spec's branch base, or a `review.base` config key. A reviewer prompt line asking it to run heavy repros through `telperion-heavy` (or not run them).
