@@ -438,37 +438,25 @@
     "reason": "At or past the crown's end, or NaN, the quadrant has no width left to take a root of."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/field.rs",
+    "path": "crates/telperion-core/src/pipeline/field/splat.rs",
     "site": ". clamp ( 0 . , 1 . )",
     "classification": "algorithm",
     "reason": "Normalized geometric interpolation/projection coordinate stays within its endpoint interval."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/field.rs",
-    "site": "if ! center . is_finite ( ) | | ! half_extent . is_finite ( ) | | half_extent < 0 . {",
-    "classification": "parameter",
-    "reason": "Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/field.rs",
+    "path": "crates/telperion-core/src/pipeline/field/splat.rs",
     "site": ". max ( 0 . )",
     "classification": "algorithm",
     "reason": "The share of a sweep inside a cube is a length fraction; a segment past the cube clips to none, never below."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/field.rs",
-    "site": "for axis in 0 . . 3 {",
-    "classification": "algorithm",
-    "reason": "Three coordinate axes of the cube clip."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/field.rs",
+    "path": "crates/telperion-core/src/pipeline/field/splat.rs",
     "site": "if ! reach . is_finite ( ) | | reach < 0 . {",
     "classification": "parameter",
     "reason": "A leaf reach is a finite non-negative length; anything else is an invalid plan."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/field/cuboid.rs",
+    "path": "crates/telperion-core/src/pipeline/field/splat.rs",
     "site": "if breadth . is_nan ( ) | | breadth < = 0 . {",
     "classification": "parameter",
     "reason": "A box without width is refused explicitly as invalid input; the plan never writes one."
@@ -1744,5 +1732,23 @@
     "site": ". max ( 0 . )",
     "classification": "algorithm",
     "reason": "The oldest living frond's place on the spiral is one short of the apex's whole fronds, none below the first (fn-277); it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/field.rs",
+    "site": "if ! ( cell . is_finite ( ) & & cell > 0 . 0 & & b . min . is_finite ( ) ) {",
+    "classification": "parameter",
+    "reason": "A grid over a box with no extent or non-finite corners is refused by name (fn-257 R8, `Frame::over`)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/field/splat.rs",
+    "site": ". max ( 0 . 0 )",
+    "classification": "algorithm",
+    "reason": "The first cell a record's range reaches is clamped into the grid; it bounds an index, not the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/field/splat.rs",
+    "site": ". min ( n as f64 - 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "The last cell a record's range reaches is clamped into the grid; it bounds an index, not the tree."
   }
 ]
