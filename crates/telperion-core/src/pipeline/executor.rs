@@ -16,7 +16,7 @@ use crate::{
     pipeline::foliage::{
         self,
         prepared::{self, PreparedStations},
-        BloomParams, CanopyParams, Element, ElementParams, Reference, TwigPlacement,
+        BloomParams, CanopyParams, Element, ElementParams, Reach, Reference, TwigPlacement,
     },
     pipeline::surface::{
         self,
@@ -33,13 +33,31 @@ use crate::{
 pub struct Grown {
     tree: Tree,
     inputs: Inputs,
+    retains: bool,
 }
 
 /// Stage 2: the family read once into its stage inputs, and its skeleton.
 pub fn grow(family: &Family) -> Result<Grown> {
     let tree = super::skeleton(GrowInput::of(family))?.tree;
     let inputs = Inputs::of(family, grown_envelope(&tree));
-    Ok(Grown { tree, inputs })
+    let retains = retains(family);
+    Ok(Grown {
+        tree,
+        inputs,
+        retains,
+    })
+}
+
+/// Whether some of the family's wood sheds its leaves by age (fn-248):
+/// some age of its species keeps less than all its stations, which is
+/// where the conversion records each node's retention.
+fn retains(family: &Family) -> bool {
+    let input = GrowInput::of(family);
+    let species = input.space.species.as_ref();
+    let states = species.map(|s| &s.states[..]).unwrap_or_default();
+    states
+        .iter()
+        .any(|s| crate::tree::retention(s.leaf_years).0 != u32::MAX)
 }
 
 /// What another executor grows and draws a family's tree by (fn-256
@@ -136,31 +154,57 @@ pub fn bases(family: &Family) -> Result<Option<CanopyParams>> {
 /// of the tree is held here.
 pub fn resident(family: &Family, s: Summaries) -> Result<Expansion> {
     let envelope = envelope(s.folds, s.crown.iter().copied());
-    let inputs = Inputs::of(family, envelope);
+    let wood = Wood {
+        tree: Tree::default(),
+        inputs: Inputs::of(family, envelope),
+        retains: retains(family),
+        radii: [s.root, s.stem],
+    };
+    prepared(wood, |_, reach| {
+        // The root's own box, as `Reach::wood_box` takes the root's node.
+        let out = reach.out(s.root);
+        let (a, b) = s.corners;
+        let lo = Vec3::new(a.x.min(-out), a.y.min(-out), a.z.min(-out));
+        let hi = Vec3::new(b.x.max(out), b.y.max(out), b.z.max(out));
+        Reference::spanning(lo, hi)
+    })
+}
+
+/// What an expansion is prepared around: the tree (none where the
+/// executor holds it), its inputs, whether its wood sheds leaves by age,
+/// and its root's and stem's radii.
+struct Wood {
+    tree: Tree,
+    inputs: Inputs,
+    retains: bool,
+    radii: [f64; 2],
+}
+
+/// Stage 3's descriptors, in the order their errors answer: the element
+/// and its own check, the twig placement, the shell depth and the reach
+/// the box leaves are quantised against (`reference`) is grown by.
+fn prepared(wood: Wood, reference: impl FnOnce(&Tree, Reach) -> Reference) -> Result<Expansion> {
+    let Wood {
+        tree,
+        inputs,
+        retains,
+        radii: [root, stem],
+    } = wood;
     let plan = &inputs.plan;
     let element = foliage::build_element(plan.element)?;
     element.validate()?;
     let twig = plan.twig.clone()?;
     check_shell(&inputs)?;
-    // The root's own box, as `Reach::wood_box` takes the root's node.
-    let out = plan.reach.clone()?.out(s.root);
-    let (a, b) = s.corners;
-    let lo = Vec3::new(a.x.min(-out), a.y.min(-out), a.z.min(-out));
-    let hi = Vec3::new(b.x.max(out), b.y.max(out), b.z.max(out));
+    let reference = reference(&tree, plan.reach.clone()?);
     let shoot = inputs.leaves.canopy.shoot_radius;
-    let input = GrowInput::of(family);
-    let species = input.space.species.as_ref();
-    let states = species.map(|s| &s.states[..]).unwrap_or_default();
     Ok(Expansion {
-        bearing: [super::space::STRUCTURAL * s.root, s.stem * shoot],
-        retains: states
-            .iter()
-            .any(|s| crate::tree::retention(s.leaf_years).0 != u32::MAX),
-        tree: Tree::default(),
+        bearing: [super::space::STRUCTURAL * root, stem * shoot],
+        retains,
+        tree,
         inputs,
         element,
         twig,
-        reference: Reference::spanning(lo, hi),
+        reference,
     })
 }
 
@@ -180,7 +224,13 @@ fn check_shell(inputs: &Inputs) -> Result<()> {
 /// structure (fn-198).
 pub fn expand(tree: Tree, family: &Family) -> Result<Expansion> {
     let inputs = Inputs::of(family, grown_envelope(&tree));
-    Grown { tree, inputs }.expansion()
+    let retains = retains(family);
+    Grown {
+        tree,
+        inputs,
+        retains,
+    }
+    .expansion()
 }
 
 /// The leaf element built from its rows, as the plan stage builds it.
@@ -190,29 +240,19 @@ pub fn element(params: ElementParams) -> Result<Element> {
 
 impl Grown {
     /// Stage 3's descriptors, in the order their errors answer: the leaf
-    /// bases hung on the stems, the element and its own check, the twig
-    /// placement, the shell depth and the box leaves are quantised against.
+    /// bases hung on the stems, then `prepared`'s.
     pub fn expansion(self) -> Result<Expansion> {
         let mut tree = self.tree;
         super::clothe(&mut tree, &self.inputs)?;
-        let plan = &self.inputs.plan;
-        let element = foliage::build_element(plan.element)?;
-        element.validate()?;
-        let twig = plan.twig.clone()?;
-        check_shell(&self.inputs)?;
-        let reference = Reference::grown(&tree, plan.reach.clone()?);
         let root = tree.nodes.first().map_or(0.0, |n| n.radius);
-        let slender =
-            tree.stem_radius(|i| tree.nodes[i].radius) * self.inputs.leaves.canopy.shoot_radius;
-        Ok(Expansion {
-            bearing: [super::space::STRUCTURAL * root, slender],
-            retains: !tree.leafing.is_empty(),
+        let stem = tree.stem_radius(|i| tree.nodes[i].radius);
+        let wood = Wood {
             tree,
             inputs: self.inputs,
-            element,
-            twig,
-            reference,
-        })
+            retains: self.retains,
+            radii: [root, stem],
+        };
+        prepared(wood, Reference::grown)
     }
 }
 
