@@ -40,7 +40,7 @@ fn candidate(tree: &Tree, params: &SurfaceParams, limit: usize) -> Result<Surfac
         along: distance.iter().copied().fold(0.0, f64::max),
         workers: None,
     };
-    rings(at, &ordered, &mut out, at.longest()?, workers())?;
+    rings(at, None, &ordered, &mut out, at.longest()?, workers())?;
     let out = table(ordered, out)?;
     let faces = faces(&out, &Resweep::new(tree, height, params), workers())?;
     Ok(out.into_mesh(faces))

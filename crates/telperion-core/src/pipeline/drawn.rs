@@ -9,7 +9,7 @@ use super::{
 use crate::{
     pipeline::field::Grid,
     pipeline::foliage::{self, Instances, TwigPlacement},
-    pipeline::surface::{self, AttachmentSurface, Faces, Rings, Sweep},
+    pipeline::surface::{self, AttachmentSurface, Curve, Faces, Rings, Sweep},
     tree::Tree,
     Result,
 };
@@ -29,7 +29,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     let (wood, planned) = both(
         request.schedule == Schedule::Concurrent && request.wood && places,
         || {
-            let wood = |r: &(_, _)| self::wood(tree, surface, request, &r.0);
+            let wood = |r: &(_, _, _)| self::wood(tree, surface, request, &r.0);
             request.wood.then(|| shared().and_then(wood)).transpose()
         },
         || {
@@ -55,7 +55,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
         plan_ms: prepared.ms,
         ..Stages::default()
     };
-    if let Some((_, ms)) = rings {
+    if let Some((_, _, ms)) = rings {
         stages.rings_ms = ms;
     }
     if let Some((_, ms)) = wood {
@@ -77,20 +77,27 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
         .structure
         .then(|| stage::structure(tree))
         .transpose()?;
+    let (rings, drawn_from) = match rings {
+        Some((rings, curve, _)) => (Some(rings), curve),
+        None => (None, None),
+    };
+    let traces = request.curve && drawn_from.is_none();
     #[cfg(test)]
     super::tests::count(|t| {
         let own = seats && !request.wood && leaves.is_some();
-        t.sweeps += u32::from(rings.is_some()) + u32::from(own) + u32::from(request.curve);
+        t.sweeps += u32::from(rings.is_some()) + u32::from(own) + u32::from(traces);
         t.elements += u32::from(prepared.element.is_some());
     });
     let wood = wood
         .zip(rings)
-        .map(|((faces, _), (rings, _))| rings.into_mesh(faces));
+        .map(|((faces, _), rings)| rings.into_mesh(faces));
     let organ = organ(tree, inputs, request, prepared.reference)?;
-    let curve = request
-        .curve
-        .then(|| crate::pipeline::surface::curve(tree, surface.height, &surface.params))
-        .transpose()?;
+    let curve = match drawn_from {
+        Some(curve) => Some(curve),
+        None => traces
+            .then(|| surface::curve(tree, surface.height, &surface.params))
+            .transpose()?,
+    };
     Ok(Outputs {
         element: prepared.element,
         plan: prepared.leaf_plan,
@@ -144,22 +151,30 @@ pub(super) fn both<A: Send, B>(
 const STACK: usize = 8 << 20;
 
 /// Stage 3's rings and their time: with their coords where the wood is
-/// drawn, and their contacts where leaves are seated on them.
+/// drawn, and their contacts where leaves are seated on them. A wood drawn
+/// beside its curve is traced once and drawn from the curve, which comes
+/// back with the rings.
 pub(super) fn rings(
     tree: &Tree,
     input: &SurfaceInput,
     request: Request,
     seats: bool,
-) -> Result<(Rings, f64)> {
+) -> Result<(Rings, Option<Curve>, f64)> {
     let start = (request.clock)();
     let (height, params) = (input.height, &input.params);
-    let sweep = Sweep {
-        drawn: request.wood,
-        edges: seats,
-        distances: false,
+    let (rings, curve) = if request.wood && request.curve {
+        let traced = surface::traced(tree, height, params)?;
+        let rings = surface::drawn_from(&traced, tree, height, params, seats)?;
+        (rings, Some(traced.curve))
+    } else {
+        let sweep = Sweep {
+            drawn: request.wood,
+            edges: seats,
+            distances: false,
+        };
+        (surface::rings(tree, height, params, sweep)?, None)
     };
-    let rings = surface::rings(tree, height, params, sweep)?;
-    Ok((rings, (request.clock)() - start))
+    Ok((rings, curve, (request.clock)() - start))
 }
 
 /// The wood's mesh step around its rings, and its time.

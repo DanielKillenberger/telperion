@@ -2,6 +2,7 @@
 //! points the wood draws and seated leaves read in place. It is a Plan
 //! artifact; the mesh step and the leaves both read it, and the wood takes
 //! its positions, coords and run table once the mesh step is done.
+use super::curve::{Curve, Traced};
 use super::*;
 use crate::tree::Section;
 use std::sync::OnceLock;
@@ -105,7 +106,25 @@ pub(crate) fn rings(
     } else {
         usize::MAX
     };
-    rings_mode(tree, height, params, sweep, true, limit)
+    swept(tree, height, params, sweep, None, true, limit)
+}
+
+/// A drawn wood's rings read from `traced`, the curve of the same tree:
+/// its run order, and each run's samples and frames to the bit, never
+/// swept again.
+pub(crate) fn drawn_from(
+    traced: &Traced,
+    tree: &Tree,
+    height: f64,
+    params: &SurfaceParams,
+    edges: bool,
+) -> Result<Rings> {
+    let sweep = Sweep {
+        drawn: true,
+        edges,
+        distances: false,
+    };
+    swept(tree, height, params, sweep, Some(traced), true, CHUNK_VERTICES)
 }
 
 pub(super) fn rings_mode(
@@ -113,6 +132,20 @@ pub(super) fn rings_mode(
     height: f64,
     params: &SurfaceParams,
     sweep: Sweep,
+    parallel_allowed: bool,
+    limit: usize,
+) -> Result<Rings> {
+    swept(tree, height, params, sweep, None, parallel_allowed, limit)
+}
+
+/// The rings, each run swept here or, for a drawn wood, read from the
+/// curve `traced` where one is given.
+fn swept(
+    tree: &Tree,
+    height: f64,
+    params: &SurfaceParams,
+    sweep: Sweep,
+    traced: Option<&Traced>,
     parallel_allowed: bool,
     limit: usize,
 ) -> Result<Rings> {
@@ -125,7 +158,14 @@ pub(super) fn rings_mode(
     } else {
         Vec::new()
     };
-    let paths = paths(tree)?;
+    let owned;
+    let paths = match traced {
+        Some(traced) => &traced.paths,
+        None => {
+            owned = paths(tree)?;
+            &owned
+        }
+    };
     let mut out = Rings {
         chunks: Vec::new(),
         edges,
@@ -148,13 +188,19 @@ pub(super) fn rings_mode(
         tree,
         height,
         params,
-        paths: &paths,
+        paths,
         distance: &distance,
         angular: &angular,
     };
     let longest = at.longest()?;
     let mut scratch = Scratch::new(longest)?;
-    let ordered = if sweep.drawn {
+    let curve = traced.filter(|_| sweep.drawn).map(|t| &t.curve);
+    let ordered = if let Some(traced) = traced.filter(|_| sweep.drawn) {
+        let mut order = reserved(traced.order.len())?;
+        let runs = traced.order.iter().zip(&traced.curve.runs);
+        order.extend(runs.map(|(&path_id, run)| (path_id, run.largest_radius)));
+        order
+    } else if sweep.drawn {
         rank(at, &mut scratch)?
     } else {
         let mut order = reserved(paths.runs.len())?;
@@ -179,16 +225,16 @@ pub(super) fn rings_mode(
         let admitted = parallel::admitted(at, &ordered, longest, &out.layout);
         if let Some(workers) = admitted {
             drop(scratch);
-            return match parallel::rings(at, &ordered, &mut out, longest, workers) {
+            return match parallel::rings(at, curve, &ordered, &mut out, longest, workers) {
                 Ok(()) => table(ordered, out),
-                Err(_) => rings_mode(tree, height, params, sweep, false, limit),
+                Err(_) => swept(tree, height, params, sweep, traced, false, limit),
             };
         }
     }
     #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
     let _ = parallel_allowed;
     let pieces = &out.layout.pieces;
-    out.chunks = written(at, &ordered, &out.layout, pieces, coords, &mut scratch)?;
+    out.chunks = written(at, curve, &ordered, &out.layout, pieces, coords, &mut scratch)?;
     if !sweep.drawn {
         return Ok(out);
     }
@@ -196,9 +242,11 @@ pub(super) fn rings_mode(
 }
 
 /// The chunks `pieces` fill, whole runs of them in order, each chunk
-/// reserved at its exact size as its first piece is written.
+/// reserved at its exact size as its first piece is written. Each run is
+/// read from `curve` where one is given, else swept.
 pub(super) fn written(
     at: Swept,
+    curve: Option<&Curve>,
     ordered: &[(usize, f64)],
     layout: &Layout,
     pieces: &[Piece],
@@ -231,7 +279,10 @@ pub(super) fn written(
             }
         }
         let path_id = ordered[run[0].run].0;
-        let (samples, frame) = scratch.sweep(at, path_id);
+        let (samples, frame) = match curve {
+            Some(curve) => scratch.read(curve, run[0].run),
+            None => scratch.sweep(at, path_id),
+        };
         let ring = samples.len() * at.segments();
         let shape = at.section(path_id);
         let mut v = 0;
@@ -298,6 +349,22 @@ impl Scratch {
         frames(&self.samples, &mut self.directions, &mut self.frame, seed);
         if let Some(shape) = at.section(path_id) {
             section::square(shape, &mut self.frame);
+        }
+        (&self.samples, &self.frame)
+    }
+
+    /// Run `run` of `curve`: the samples and frames the sweep traced it
+    /// from, as its points hold them.
+    pub(super) fn read(&mut self, curve: &Curve, run: usize) -> (&[Sample], &[(Vec3, Vec3)]) {
+        self.samples.clear();
+        self.frame.clear();
+        for p in curve.run_points(&curve.runs[run]) {
+            self.samples.push(Sample {
+                p: p.centre,
+                r: p.radius,
+                d: p.along,
+            });
+            self.frame.push((p.normal, p.binormal));
         }
         (&self.samples, &self.frame)
     }

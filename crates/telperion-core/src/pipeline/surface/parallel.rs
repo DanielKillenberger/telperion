@@ -1,3 +1,4 @@
+use super::curve::Curve;
 use super::rings::{written, Coords, Scratch};
 use super::*;
 use std::{mem::size_of, ops::Range, thread};
@@ -189,9 +190,11 @@ fn on_workers<'a, T: Send>(
 }
 
 /// Phase 1, the ring step for a drawn wood: each worker sweeps its chunks'
-/// runs, ranked as `ordered`, into chunks of its own.
+/// runs, ranked as `ordered`, or reads them from `curve`, into chunks of
+/// its own.
 pub(super) fn rings(
     at: Swept,
+    curve: Option<&Curve>,
     ordered: &[(usize, f64)],
     out: &mut Rings,
     longest: usize,
@@ -205,6 +208,7 @@ pub(super) fn rings(
         let mut scratch = Scratch::new(longest)?;
         written(
             at,
+            curve,
             ordered,
             layout,
             pieces,
