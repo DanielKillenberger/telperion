@@ -16,7 +16,10 @@ fn beech(scale: f64) -> Family {
 fn built(f: &Family) -> pipeline::Built {
     let request = Request {
         leaves: true,
-        field: Some(None),
+        field: Some(pipeline::FieldRequest {
+            n: 24,
+            limb_order: None,
+        }),
         ..Request::default()
     };
     pipeline::build(f, request).unwrap()
@@ -73,14 +76,13 @@ fn the_scale_draws_the_natural_tree_enlarged() {
         ] {
             assert!(close(a, b), "{s}: {a} against {b}");
         }
-        // The field reads the enlarged wood.
-        let wood = |b: &pipeline::Built| b.outputs.field.as_ref().unwrap().snapshot().unwrap().wood;
+        // The field reads the enlarged wood: its thickest sweep enlarged.
+        let wood = |b: &pipeline::Built| {
+            let cells = &b.outputs.field.as_ref().unwrap().cells;
+            cells.iter().map(|c| c.wood_radius).fold(0.0, f64::max)
+        };
         let (mine, theirs) = (wood(&b), wood(&natural));
-        assert_eq!(mine.len(), theirs.len());
-        assert!(
-            mine.iter().zip(&theirs).all(|(a, t)| close(*a, t * s)),
-            "{s}: the field's wood"
-        );
+        assert!(close(mine, theirs * s), "{s}: the field's wood");
         // Leaves keep their spacing along the enlarged wood and their size;
         // a short shoot's cluster keeps its count (fn-248).
         let tips = |b: &pipeline::Built| -> f64 {

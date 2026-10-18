@@ -71,7 +71,14 @@ The two agree by lineage, not to the bit: integers exactly, floats within the li
 - a probability, a log, a lead, a window and a presence are ordinary f32 on both executors, by the same operations, with the contract's own logarithms and powers (`telperion_space::contract`, the device's `cycle/decide.wgsl`);
 - time is a count of ticks of 2^-20 cycle, which the CPU holds in an f64, where every count below 2^53 is exact, and which is never accumulated in an f32.
 
-The site's field (fn-257) is grown and held on the device, through the renderer's module as the harness grows its tree: a page's `query(cells)` is answered on the device and reads back only its cells' answers (`src/field/index.ts`, `docs/field-package.md`). There is no `cut` and no CPU coarse route; the slim field crate (`telperion-field`) is gone, and `telperion_space::grow_coarse` is read only by its own tests.
+## The field (fn-257 R8)
+
+The field is a consumer of the drawn stage's output, as the renderer is: it reads the drawn tree's records and writes them into a grid, and no stage, format or index of its own stands between the records and the grid. A field request names its grid (`FieldRequest`: `n` cells a side over the tree's box, and the limb order); the grid is `field::Frame`, the one definition the CPU, the device and the site's voxelizer (`src/field/voxelize.ts` `grid`) read: `n - 2` cells span the box's longest axis, centred in x and z, one empty cell below. A side outside 3 to 256 is refused by name before any work.
+
+- The CPU reads the CPU's drawn tree (`pipeline/field.rs`): each solved node's tapered sweep from its parent, and each leaf-bearing record of the leaf plan (`Plan::descriptors`, a frond's leaflets as oriented boxes) with its station count and limb system. Every record writes the cells it reaches by the cell rule (`field/splat.rs`); `Outputs::field` is the grid, one `Occupancy` a cell. A family the plan cannot describe is refused by name, never placed for its field. The field needs the drawn tree, so without the `geometry` feature it is refused.
+- The device reads the device's (`Generator::grow_field`, `generation/resident/field*`): the drawn nodes as the sweep lays them, without the curve the field never reads, and the station segments; one pass writes every record into the grid on the device, and only the grid is read back. Nothing is held on the device after it. It is the site's field (`src/field/index.ts`, `docs/field-package.md`); there is no `cut` and no CPU coarse route. Without WebGPU, or on a lost device, it is refused by name.
+
+The CPU's is the device's reference: every shipped preset at 24, 36 and 48 cells a side agrees within the tolerances `resident/field_tests.rs` holds, both asked over the CPU's grid.
 
 ## Flowers (fn-216)
 

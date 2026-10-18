@@ -1,17 +1,12 @@
 //! What the C-ABI makes of a build request: the core's pipeline runs the
 //! stages, and this reads the request and hands the artifacts on as buffers
-//! and metadata. A field request reads the leaf plan and places no leaf where
-//! the family has a plan; only a foliage request, or a family without a plan,
-//! places.
+//! and metadata. A field request names its grid and reads the leaf plan; it
+//! places no leaf, and a family the plan cannot describe is refused by name.
 use crate::clock;
 use serde_json::{json, Value};
 use telperion_core::{
-    field::{Field, FieldSnapshot},
-    foliage,
-    math::Vec3,
-    params, pipeline, surface,
-    tree::NodeKind,
-    twigs, Error, Result,
+    field::Grid, foliage, math::Vec3, params, pipeline, surface, tree::NodeKind, twigs, Error,
+    Result,
 };
 
 #[derive(Default)]
@@ -23,8 +18,39 @@ pub(crate) struct Output {
     pub(crate) instances: foliage::Instances,
     pub(crate) structure: Vec<f64>,
     pub(crate) topology: Vec<u32>,
-    pub(crate) field: Option<Field>,
-    pub(crate) snapshot: Option<FieldSnapshot>,
+    pub(crate) field: FieldCells,
+}
+/// The field's grid as the binding hands it on, one entry a cell in the
+/// grid's order: the flags (wood 1, foliage 2), the leaf estimate, the limb
+/// system (`u32::MAX` for none) and the thickest wood radius.
+#[derive(Default)]
+pub(crate) struct FieldCells {
+    pub(crate) occupancy: Vec<u8>,
+    pub(crate) leaves: Vec<f32>,
+    pub(crate) limbs: Vec<u32>,
+    pub(crate) wood_radii: Vec<f32>,
+}
+impl FieldCells {
+    fn of(grid: &Grid) -> Result<Self> {
+        let n = grid.cells.len();
+        let mut out = Self::default();
+        for reserve in [
+            out.occupancy.try_reserve_exact(n),
+            out.leaves.try_reserve_exact(n),
+            out.limbs.try_reserve_exact(n),
+            out.wood_radii.try_reserve_exact(n),
+        ] {
+            reserve.map_err(|_| Error::ResourceLimit("field output"))?;
+        }
+        for c in &grid.cells {
+            out.occupancy
+                .push(u8::from(c.wood) | (u8::from(c.foliage) << 1));
+            out.leaves.push(c.leaves as f32);
+            out.limbs.push(c.limb.unwrap_or(u32::MAX));
+            out.wood_radii.push(c.wood_radius as f32);
+        }
+        Ok(out)
+    }
 }
 fn bounds(min: Vec3, max: Vec3) -> Value {
     json!({"min":[min.x,min.y,min.z],"max":[max.x,max.y,max.z]})
@@ -54,8 +80,6 @@ fn branch_diagnostics(
     }
     Ok((counts, handoffs, capped_handoffs, twig_count))
 }
-/// The field selection: absent or `false` asks for no field, `true` for the
-/// field at the family's limb order, `{"limbOrder": n}` at order `n`.
 /// The twig detail a build at its node budget kept, in sixteenths of a
 /// generation; null where the budget took none, so a reduced tree reads apart
 /// from a full one.
@@ -63,19 +87,30 @@ fn twig_detail(d: telperion_core::tree::Diagnostics) -> Option<u16> {
     d.reduced().then_some(d.twig_detail).flatten()
 }
 
-fn field_request(v: Option<&Value>) -> Result<Option<Option<u32>>> {
+/// The field selection: absent or `false` asks for no field;
+/// `{"n": n}` the grid of `n` cells a side at the family's limb order, and
+/// `{"n": n, "limbOrder": k}` at order `k`.
+fn field_request(v: Option<&Value>) -> Result<Option<pipeline::FieldRequest>> {
     let Some(v) = v else { return Ok(None) };
-    if let Some(flag) = v.as_bool() {
-        return Ok(flag.then_some(None));
+    if v.as_bool() == Some(false) {
+        return Ok(None);
     }
-    let request = v
-        .as_object()
-        .filter(|o| o.len() == 1)
-        .and_then(|o| o.get("limbOrder"))
-        .and_then(Value::as_u64)
-        .and_then(|n| u32::try_from(n).ok())
-        .ok_or(Error::InvalidInput("field limb order"))?;
-    Ok(Some(Some(request)))
+    let refused = Error::InvalidInput("field request");
+    let o = v.as_object().ok_or(refused.clone())?;
+    if o.keys().any(|k| k != "n" && k != "limbOrder") {
+        return Err(refused);
+    }
+    let whole = |key: &str| -> Result<Option<u32>> {
+        o.get(key)
+            .map(|v| v.as_u64().and_then(|n| u32::try_from(n).ok()))
+            .map(|n| n.ok_or(refused.clone()))
+            .transpose()
+    };
+    let n = whole("n")?.ok_or(refused.clone())?;
+    Ok(Some(pipeline::FieldRequest {
+        n,
+        limb_order: whole("limbOrder")?,
+    }))
 }
 pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
     let object = v
@@ -120,9 +155,18 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         branch_diagnostics(tree, f.skeleton.twigs)?;
     let mut out = Output {
         surface: o.wood,
-        field: o.field,
+        field: o
+            .field
+            .as_ref()
+            .map(FieldCells::of)
+            .transpose()?
+            .unwrap_or_default(),
         ..Output::default()
     };
+    let grid = o.field.as_ref().map(|g| {
+        let f = g.frame;
+        json!({"n": f.n, "cell": f.cell, "origin": [f.origin.x, f.origin.y, f.origin.z]})
+    });
     let mut anatomy = Value::Null;
     let mut leaf_bounds = Value::Null;
     let (mut placed_count, mut retained_count) = (0, 0);
@@ -180,16 +224,15 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         },
         "foliageAnatomy":anatomy,
         "biologicalUnits": if places && o.element.as_ref().is_some_and(|e| e.anatomy.is_some()) { Some(retained_count) } else { None },
-        "fieldBounds":out.field.as_ref().and_then(Field::bounds).map(|b|bounds(b.min,b.max)),
-        "fieldBytes":out.field.as_ref().map_or(0,Field::storage_bytes),
+        // The field's grid: its side, its cell and its least corner.
+        "field":grid,
         "timings":{"growthMs":t.skeleton_ms,"surfaceMs":wood_rings+t.wood_ms,"planMs":t.plan_ms,
             "foliageMs":leaf_rings+t.placement_ms+t.cull_ms,"fieldMs":t.field_ms,"coreMs":t.total_ms},
         // Which stages ran: placement and the cull run together, the contact
         // surface only under placement with surface contact, the plan for a
-        // field request the family's plan can describe.
+        // field request.
         "stages":{"surface":wants("surface"),"foliage":places,"placement":places,"cull":places,
-            "contacts":places && f.canopy.surface_contact > 0.0,"plan":leaf_plan.is_some(),"field":field.is_some(),
-            "fieldSource":if field.is_none() { Value::Null } else if leaf_plan.is_some() { json!("plan") } else { json!("placed") }}
+            "contacts":places && f.canopy.surface_contact > 0.0,"plan":leaf_plan.is_some(),"field":field.is_some()}
     });
     Ok((out, meta))
 }

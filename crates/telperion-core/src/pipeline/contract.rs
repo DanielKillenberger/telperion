@@ -23,7 +23,9 @@ pub mod colonization {
 }
 
 pub mod field {
-    pub use crate::pipeline::field::{Field, FieldSnapshot, IndexSnapshot, Occupancy};
+    #[cfg(all(test, feature = "geometry"))]
+    pub use crate::pipeline::field::{bounds, read};
+    pub use crate::pipeline::field::{Frame, Grid, Occupancy};
 }
 
 pub mod foliage {

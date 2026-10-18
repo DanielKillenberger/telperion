@@ -41,7 +41,10 @@ fn request(wood: bool, leaves: bool, field: bool) -> Request {
     Request {
         wood,
         leaves,
-        field: field.then_some(None),
+        field: field.then_some(FieldRequest {
+            n: 24,
+            limb_order: None,
+        }),
         ..Request::default()
     }
 }
@@ -274,7 +277,10 @@ fn every_shipped_preset_builds_every_artifact_through_the_pipeline() {
             (
                 "field",
                 Request {
-                    field: Some(None),
+                    field: Some(FieldRequest {
+                        n: 24,
+                        limb_order: None,
+                    }),
                     ..Request::default()
                 },
             ),
@@ -292,11 +298,43 @@ fn every_shipped_preset_builds_every_artifact_through_the_pipeline() {
             let built = match kind {
                 "surface" => out.wood.is_some_and(|w| w.triangles() > 0),
                 "leaves" => out.leaves.is_some_and(|l| l.retained > 0),
-                "field" => out.field.is_some(),
+                // Every shipped preset is on the leaf plan, so its field
+                // holds wood and leaves (fn-257 R8).
+                "field" => out.field.is_some_and(|g| {
+                    let any = |f: fn(&field::Occupancy) -> bool| g.cells.iter().any(f);
+                    any(|c| c.wood) && any(|c| c.foliage && c.limb.is_some())
+                }),
                 _ => out.structure.is_some_and(|s| !s.nodes.is_empty()),
             };
             assert!(built, "preset {id}: {kind}: nothing built");
         }
+    }
+}
+
+/// A field reads the leaf plan: a family it cannot describe is refused by
+/// name, never placed for its field, and a grid side outside 3 to 256 is
+/// refused before any stage runs (fn-257 R8).
+#[test]
+fn a_field_the_pipeline_cannot_read_is_refused_by_name() {
+    let _turn = crate::one_tree::turn();
+    let mut family = crate::presets::by_identity("oregon-white-oak").unwrap();
+    family.canopy.limb_clumping = 0.5;
+    let ask = |n| Request {
+        field: Some(FieldRequest {
+            n,
+            limb_order: None,
+        }),
+        ..Request::default()
+    };
+    let refused = build(&family, ask(24)).err();
+    let unplanned = "a field reads the leaf plan, which does not describe this family";
+    assert_eq!(refused, Some(Error::InvalidInput(unplanned)));
+    for n in [0, 2, 257] {
+        let side = Error::InvalidValue {
+            field: "field grid side",
+            value: n.to_string(),
+        };
+        assert_eq!(build(&family, ask(n)).err(), Some(side));
     }
 }
 

@@ -12,7 +12,7 @@ mod data;
 mod resident;
 #[cfg(target_arch = "wasm32")]
 pub(crate) use resident::BROWSER;
-pub use resident::{Admitted, Answer, DeviceField, GrowingTree};
+pub use resident::{Admitted, GrowingTree};
 mod io;
 mod positions;
 mod preparation;

@@ -1,0 +1,36 @@
+diff --git i/crates/telperion-render/src/generation/resident/field_time_tests.rs w/crates/telperion-render/src/generation/resident/field_time_tests.rs
+index 19377f910..26535bd38 100644
+--- i/crates/telperion-render/src/generation/resident/field_time_tests.rs
++++ w/crates/telperion-render/src/generation/resident/field_time_tests.rs
+@@ -67,3 +67,31 @@ fn field_answers() {
+         }
+     }
+ }
++
++/// fn-257 task 15 (measurement only, never committed to the crate): warm,
++/// per preset and seed (`FIELD_SEEDS`), the second of two read-outs at 36
++/// cells a side, with the bytes held on the device after it and the
++/// grid's own on the host. One `SITE_TIME <id> <seed> <ms> <ms> 0
++/// <host grid B> <after B>` line each, in the base's columns.
++#[test]
++#[ignore = "a measurement"]
++fn site_time() {
++    let _held = super::super::whole_tree();
++    let Some(gen) = generator() else {
++        return;
++    };
++    let seeds = std::env::var("FIELD_SEEDS").unwrap_or_else(|_| "1".into());
++    for id in presets("oregon-white-oak,silver-birch,norway-spruce") {
++        for seed in seeds.split(',').map(|s| s.parse::<u32>().expect("a seed")) {
++            let family = family(&id, seed);
++            pollster::block_on(gen.grow_field(&family, 36, None)).expect("read out");
++            let before = gen.gpu.ledger.live();
++            let t = Clock::now();
++            let grid = pollster::block_on(gen.grow_field(&family, 36, None)).expect("read out");
++            let ms = t.elapsed_ms();
++            let host = std::mem::size_of_val(grid.cells.as_slice());
++            let after = gen.gpu.ledger.live() - before;
++            println!("SITE_TIME {id} {seed} {ms:.2} {ms:.2} 0 {host} {after}");
++        }
++    }
++}

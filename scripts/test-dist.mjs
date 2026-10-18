@@ -117,7 +117,9 @@ if (args[0] === '--refused') {
   // The field grows on the device alone (fn-257): Node has no WebGPU, so it
   // rejects by name, never growing on the CPU.
   const { growField } = await import(new URL('field.js', dist));
-  const refused = await growField('silver-birch', 7).then(() => 'grown', e => String(e.message));
+  const refused = await growField('silver-birch', 7, 36).then(() => 'grown', e => String(e.message));
   if (!refused.includes('WebGPU is not available')) throw Error(`field.js in Node: ${refused}`);
-  console.log(`dist in Node ${process.version}: telperion.js built all ${PRESETS.length * SEEDS.length} cases from the Wasm beside it, each at or under ${mib(LIMIT)} MiB; field.js refused without WebGPU.`);
+  const side2 = await growField('silver-birch', 7, 2).then(() => 'grown', e => String(e.message));
+  if (!side2.includes('field grid side')) throw Error(`field.js in Node, a side of two: ${side2}`);
+  console.log(`dist in Node ${process.version}: telperion.js built all ${PRESETS.length * SEEDS.length} cases from the Wasm beside it, each at or under ${mib(LIMIT)} MiB; field.js refused without WebGPU and a side of two by name.`);
 }

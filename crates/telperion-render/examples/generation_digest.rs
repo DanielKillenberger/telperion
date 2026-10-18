@@ -8,9 +8,8 @@
 use serde_json::{json, Value};
 use std::fmt::{Debug, Write};
 use telperion_core::{
-    field::{FieldSnapshot, IndexSnapshot},
     mesh,
-    pipeline::{self, Request},
+    pipeline::{self, FieldRequest, Request},
     presets::Preset,
     Family,
 };
@@ -45,25 +44,16 @@ fn digest(v: &impl Debug) -> String {
     write!(h, "{v:?}").expect("hashing never fails");
     format!("{:016x}", h.0)
 }
-fn index(i: &IndexSnapshot) -> (&Vec<f64>, &Vec<u32>, u32) {
-    (&i.bounds, &i.topology, i.node_count)
-}
-fn snapshot(s: &FieldSnapshot) -> String {
-    digest(&(
-        &s.wood,
-        index(&s.wood_index),
-        index(&s.leaves),
-        &s.plan,
-        &s.plan_stations,
-        index(&s.plan_index),
-        &s.plan_sides,
-    ))
-}
+/// The field at 36 cells a side, at the family's limb order.
+const FIELD: Option<FieldRequest> = Some(FieldRequest {
+    n: 36,
+    limb_order: None,
+});
 fn full(f: &Family) -> Result<Value, Box<dyn std::error::Error>> {
     let request = Request {
         wood: true,
         leaves: true,
-        field: Some(None),
+        field: FIELD,
         structure: true,
         ..Request::default()
     };
@@ -76,18 +66,17 @@ fn full(f: &Family) -> Result<Value, Box<dyn std::error::Error>> {
         "plan": digest(&o.plan),
         "wood": digest(&o.wood),
         "leaves": digest(&o.leaves),
-        "field": o.field.as_ref().map(|f| f.snapshot().map(|s| snapshot(&s))).transpose()?,
+        "field": digest(&o.field),
         "structure": digest(&structure),
     }))
 }
 fn field_only(f: &Family) -> Result<Value, Box<dyn std::error::Error>> {
     let request = Request {
-        field: Some(None),
+        field: FIELD,
         ..Request::default()
     };
     let o = pipeline::build(f, request)?.outputs;
-    let field = o.field.as_ref().map(|f| f.snapshot().map(|s| snapshot(&s)));
-    Ok(json!({"field": field.transpose()?, "leaves": digest(&o.leaves), "plan": digest(&o.plan)}))
+    Ok(json!({"field": digest(&o.field), "leaves": digest(&o.leaves), "plan": digest(&o.plan)}))
 }
 /// The metrics a run reports, less their timings.
 fn metrics(m: &Metrics) -> String {

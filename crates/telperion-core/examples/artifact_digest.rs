@@ -3,7 +3,7 @@
 //!
 //!   cargo run --profile ci -p telperion-core --example artifact_digest -- <preset> | sha256sum
 use telperion_core::{
-    pipeline::{build, Request},
+    pipeline::{build, FieldRequest, Request},
     presets::Preset,
 };
 
@@ -17,7 +17,10 @@ fn main() -> Result<(), String> {
     let request = Request {
         wood: true,
         leaves: true,
-        field: Some(None),
+        field: Some(FieldRequest {
+            n: 36,
+            limb_order: None,
+        }),
         structure: true,
         ..Request::default()
     };
@@ -32,12 +35,6 @@ fn main() -> Result<(), String> {
         .map(|l| (&l.instances, l.placed, l.retained));
     println!("leaves {leaves:?}");
     println!("structure {:?}", o.structure);
-    if let Some(f) = o.field.as_ref() {
-        let s = f.snapshot().map_err(|e| e.to_string())?;
-        println!(
-            "field {:?} {:?} {:?} {:?}",
-            s.wood, s.plan, s.plan_stations, s.plan_sides
-        );
-    }
+    println!("field {:?}", o.field);
     Ok(())
 }

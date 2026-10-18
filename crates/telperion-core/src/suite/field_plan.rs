@@ -1,11 +1,10 @@
-//! The field answered from the leaf plan: conservative against the leaves the
-//! CPU placement retains, bounded in its over-coverage against the placed
-//! field, exact in its count estimates over a grid, and honest about limbs.
+//! The field read from the leaf plan: conservative against the leaves the
+//! CPU placement retains, exact in its count estimates over a grid, and
+//! honest about limbs. A cube is asked as the middle cell of a grid of three.
 use super::specimens;
-use std::collections::HashSet;
 use telperion_core::{
     envelope::Envelope,
-    field::Field,
+    field::{self, Frame, Grid, Occupancy},
     foliage::{self, plan, transform_point, CanopyParams, Element, Instances, TwigPlacement},
     math::Vec3,
     presets::{Family, Preset},
@@ -22,7 +21,6 @@ struct Subject {
     tree: Tree,
     element: Element,
     plan: plan::Plan,
-    planned: Field,
 }
 fn subject(id: &str) -> (Family, Subject) {
     let family = Preset::from_id(id).unwrap().parameters();
@@ -40,14 +38,12 @@ fn subject(id: &str) -> (Family, Subject) {
     )
     .unwrap()
     .unwrap_or_else(|| panic!("{id} has a plan"));
-    let planned = Field::planned(&tree, &plan).unwrap();
     (
         family,
         Subject {
             tree,
             element,
             plan,
-            planned,
         },
     )
 }
@@ -71,97 +67,61 @@ fn retained(family: &Family, s: &Subject) -> Instances {
     )
     .unwrap()
 }
-/// Cell centres of a grid of `cell` metres covering `bounds`.
-fn grid(bounds: foliage::Bounds, cell: f64) -> impl Iterator<Item = Vec3> {
-    let dims = [
-        bounds.max.x - bounds.min.x,
-        bounds.max.y - bounds.min.y,
-        bounds.max.z - bounds.min.z,
-    ]
-    .map(|e| (e / cell).ceil() as usize + 1);
-    let origin = bounds.min;
-    (0..dims[0]).flat_map(move |i| {
-        (0..dims[1]).flat_map(move |j| {
-            (0..dims[2]).map(move |k| {
-                origin + Vec3::new(i as f64 + 0.5, j as f64 + 0.5, k as f64 + 0.5) * cell
-            })
-        })
-    })
+/// The field of `plan` on `tree` read to `n` cells a side over its box.
+pub(super) fn grid(tree: &Tree, plan: &plan::Plan, n: u32) -> Grid {
+    let b = field::bounds(tree, plan).unwrap().unwrap();
+    field::read(tree, plan, Frame::over(b, n).unwrap()).unwrap()
+}
+/// The cell of `g` holding `p`.
+pub(super) fn holding(g: &Grid, p: Vec3) -> &Occupancy {
+    let f = g.frame;
+    let i = |v: f64, o: f64| ((v - o) / f.cell).floor() as usize;
+    let n = f.n as usize;
+    &g.cells[i(p.x, f.origin.x) + n * (i(p.y, f.origin.y) + n * i(p.z, f.origin.z))]
+}
+/// The closed cube of `half` about `centre`: the middle cell of a grid of
+/// three.
+fn cube(tree: &Tree, plan: &plan::Plan, centre: Vec3, half: f64) -> Occupancy {
+    let frame = Frame {
+        n: 3,
+        cell: 2. * half,
+        origin: centre - Vec3::new(3. * half, 3. * half, 3. * half),
+    };
+    field::read(tree, plan, frame).unwrap().cells[13]
 }
 
 /// R4: every vertex of every retained leaf lies in a cell the plan reports as
-/// foliage, at a decimetre, a quarter metre and a metre.
+/// foliage, on grids of 24, 48 and 96 cells a side.
 #[test]
 fn every_retained_leaf_vertex_lies_in_a_foliage_cell() {
     for id in SPECIES {
         let (family, s) = subject(id);
         let kept = retained(&family, &s);
-        let origin = s.planned.bounds().unwrap().min;
-        for cell in [0.1, 0.25, 1.0] {
-            let mut cells = HashSet::new();
+        for n in [24, 48, 96] {
+            let g = grid(&s.tree, &s.plan, n);
+            let (mut missed, mut all) = (0, 0);
             for m in kept.matrices() {
                 for v in &s.element.positions {
-                    let p = transform_point(&m, *v) - origin;
-                    cells.insert([
-                        (p.x / cell).floor() as i64,
-                        (p.y / cell).floor() as i64,
-                        (p.z / cell).floor() as i64,
-                    ]);
+                    all += 1;
+                    missed += usize::from(!holding(&g, transform_point(&m, *v)).foliage);
                 }
             }
-            let mut missed = 0;
-            for c in &cells {
-                let centre = origin
-                    + Vec3::new(c[0] as f64 + 0.5, c[1] as f64 + 0.5, c[2] as f64 + 0.5) * cell;
-                if !s.planned.query(centre, cell / 2.).unwrap().foliage {
-                    missed += 1;
-                }
-            }
-            assert_eq!(
-                missed,
-                0,
-                "{id} at {cell} m: {missed} of {} vertex cells report no foliage",
-                cells.len()
-            );
+            assert_eq!(missed, 0, "{id} at {n}: {missed} of {all} vertices");
         }
     }
 }
 
-/// R5: at a quarter metre the plan reports at most twice the foliage cells the
-/// placed field does, for each of the three species.
-#[test]
-fn over_coverage_is_at_most_twice_the_placed_field_at_a_quarter_metre() {
-    for id in SPECIES {
-        let (family, s) = subject(id);
-        let kept = retained(&family, &s);
-        let placed = Field::new(&s.tree, Some((&kept, &s.element))).unwrap();
-        let (mut base, mut planned) = (0usize, 0usize);
-        for c in grid(s.planned.bounds().unwrap(), 0.25) {
-            base += usize::from(placed.query(c, 0.125).unwrap().foliage);
-            planned += usize::from(s.planned.query(c, 0.125).unwrap().foliage);
-        }
-        let ratio = planned as f64 / base as f64;
-        eprintln!("{id}: base {base} planned {planned} ratio {ratio:.2}");
-        assert!(
-            ratio <= 2.0,
-            "{id}: {planned} planned cells against {base} placed"
-        );
-        assert!(
-            s.planned.storage_bytes() < placed.storage_bytes(),
-            "{id}: the plan stores more than the placed leaves"
-        );
-    }
-}
-
-/// R6: over a non-overlapping grid covering the tree the count estimates sum
-/// to the plan's total within one percent.
+/// R6: over the grid the count estimates sum to the plan's total within one
+/// percent.
 #[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn count_estimates_sum_to_the_plan_total_over_a_grid() {
     for id in SPECIES {
         let (_, s) = subject(id);
-        let sum: f64 = grid(s.planned.bounds().unwrap(), 1.0)
-            .map(|c| s.planned.query(c, 0.5).unwrap().leaves)
+        let sum: f64 = grid(&s.tree, &s.plan, 24)
+            .cells
+            .iter()
+            .map(|c| c.leaves)
             .sum();
         let total = f64::from(s.plan.total);
         assert!(
@@ -229,27 +189,21 @@ fn two_limbs(order: Option<u32>) -> (Tree, plan::Plan) {
 #[test]
 fn two_limbs_report_their_own_systems() {
     let (tree, plan) = two_limbs(None);
-    let field = Field::planned(&tree, &plan).unwrap();
-    let left = field.query(Vec3::new(-1.75, 2.75, 0.0), 0.3).unwrap();
-    let right = field.query(Vec3::new(1.75, 2.75, 0.0), 0.3).unwrap();
+    let q = |c: Vec3, half: f64| cube(&tree, &plan, c, half);
+    let left = q(Vec3::new(-1.75, 2.75, 0.0), 0.3);
+    let right = q(Vec3::new(1.75, 2.75, 0.0), 0.3);
     assert!(left.foliage && right.foliage);
     assert_eq!((left.limb, right.limb), (Some(1), Some(3)));
     assert!(left.leaves > 0.0 && right.leaves > 0.0);
     // Both runs whole, the tie broken toward the lower id.
-    let whole = field.query(Vec3::new(0.0, 2.5, 0.0), 3.0).unwrap();
+    let whole = q(Vec3::new(0.0, 2.5, 0.0), 3.0);
     assert_eq!(whole.limb, Some(1));
     assert_eq!(whole.leaves, f64::from(plan.total));
     // More of the right limb's run than the left's.
-    let lean = field.query(Vec3::new(0.5, 2.5, 0.0), 2.0).unwrap();
+    let lean = q(Vec3::new(0.5, 2.5, 0.0), 2.0);
     assert_eq!(lean.limb, Some(3));
-    let bare = field.query(Vec3::new(0.0, 0.5, 0.0), 0.1).unwrap();
+    let bare = q(Vec3::new(0.0, 0.5, 0.0), 0.1);
     assert!(bare.wood && !bare.foliage && bare.leaves == 0.0 && bare.limb.is_none());
-    assert!(field.is_planned());
-    let snapshot = field.snapshot().unwrap();
-    assert_eq!(snapshot.plan.len(), plan.descriptors.len() * 7);
-    assert_eq!(snapshot.plan_stations.len(), plan.descriptors.len() * 2);
-    assert_eq!(snapshot.leaves.node_count, 0);
-    assert!(snapshot.plan_index.node_count > 0);
 }
 
 /// R10: the plan at limb order zero keeps both limbs on the stem's system,
@@ -258,9 +212,8 @@ fn two_limbs_report_their_own_systems() {
 #[test]
 fn the_limb_order_selects_how_finely_the_crown_parts() {
     let (tree, coarse) = two_limbs(Some(0));
-    let field = Field::planned(&tree, &coarse).unwrap();
-    let left = field.query(Vec3::new(-1.75, 2.75, 0.0), 0.3).unwrap();
-    let right = field.query(Vec3::new(1.75, 2.75, 0.0), 0.3).unwrap();
+    let left = cube(&tree, &coarse, Vec3::new(-1.75, 2.75, 0.0), 0.3);
+    let right = cube(&tree, &coarse, Vec3::new(1.75, 2.75, 0.0), 0.3);
     assert_eq!((left.limb, right.limb), (Some(1), Some(1)));
     let (_, family) = two_limbs(None);
     assert_eq!(
@@ -276,23 +229,22 @@ fn the_limb_order_selects_how_finely_the_crown_parts() {
 #[test]
 fn wood_radius_is_the_thickest_sweep_reaching_the_cell() {
     let (tree, plan) = two_limbs(None);
-    let field = Field::planned(&tree, &plan).unwrap();
-    let trunk = field.query(Vec3::new(0.0, 0.5, 0.0), 0.1).unwrap();
+    let q = |c: Vec3, half: f64| cube(&tree, &plan, c, half);
+    let trunk = q(Vec3::new(0.0, 0.5, 0.0), 0.1);
     assert!(trunk.wood);
     assert_eq!(trunk.wood_radius, 0.2);
-    let twig = field.query(Vec3::new(-2.0, 3.0, 0.0), 0.05).unwrap();
+    let twig = q(Vec3::new(-2.0, 3.0, 0.0), 0.05);
     assert!(twig.wood);
     assert_eq!(twig.wood_radius, 0.005);
-    let whole = field.query(Vec3::new(0.0, 2.0, 0.0), 4.0).unwrap();
+    let whole = q(Vec3::new(0.0, 2.0, 0.0), 4.0);
     assert_eq!(whole.wood_radius, 0.2);
-    let bare = field.query(Vec3::new(0.0, -5.0, 0.0), 0.1).unwrap();
+    let bare = q(Vec3::new(0.0, -5.0, 0.0), 0.1);
     assert!(!bare.wood);
     assert_eq!(bare.wood_radius, 0.0);
     for id in SPECIES {
         let (_, s) = subject(id);
-        for c in grid(s.planned.bounds().unwrap(), 1.0) {
-            let q = s.planned.query(c, 0.5).unwrap();
-            assert_eq!(q.wood, q.wood_radius > 0.0, "{id} at {c:?}: {q:?}");
+        for c in grid(&s.tree, &s.plan, 24).cells {
+            assert_eq!(c.wood, c.wood_radius > 0.0, "{id}: {c:?}");
         }
     }
 }
@@ -308,7 +260,7 @@ fn spruce_needles_are_found_by_cells_far_larger_than_their_reach() {
     assert!(s.plan.reach(&d) < 0.05, "reach {}", s.plan.reach(&d));
     let mid = (d.endpoints[0] + d.endpoints[1]) * 0.5;
     for half in [0.12, 1.2] {
-        let q = s.planned.query(mid, half).unwrap();
+        let q = cube(&s.tree, &s.plan, mid, half);
         assert!(q.foliage && q.leaves > 0.0 && q.limb.is_some(), "{q:?}");
     }
 }
@@ -318,46 +270,25 @@ fn spruce_needles_are_found_by_cells_far_larger_than_their_reach() {
 #[test]
 fn a_cube_touching_only_the_sweep_boundary_is_covered() {
     let (tree, plan) = two_limbs(None);
-    let field = Field::planned(&tree, &plan).unwrap();
+    let q = |c: Vec3, half: f64| cube(&tree, &plan, c, half).foliage;
     let d = plan.descriptors[0];
     let reach = plan.reach(&d);
     let mid = (d.endpoints[0] + d.endpoints[1]) * 0.5;
     let half = 0.1;
-    // A face touching the sweep's side, and a point on it.
-    assert!(
-        field
-            .query(mid + Vec3::new(0., 0., reach + half), half)
-            .unwrap()
-            .foliage
-    );
-    assert!(
-        field
-            .query(mid + Vec3::new(0., 0., reach), 0.)
-            .unwrap()
-            .foliage
-    );
-    assert!(
-        !field
-            .query(mid + Vec3::new(0., 0., reach * 1.01), 0.)
-            .unwrap()
-            .foliage
-    );
+    // A face touching the sweep's side, and a cube a hair across on it.
+    let point = 1e-9;
+    assert!(q(mid + Vec3::new(0., 0., reach + half), half));
+    assert!(q(mid + Vec3::new(0., 0., reach), point));
+    assert!(!q(mid + Vec3::new(0., 0., reach * 1.01), point));
     // A corner touching it: the segment runs along (-1, 1, 0), so a cube
     // pushed out along (1, 1, 0) meets the sweep with an edge at root two
     // half extents, inside the circumsphere's root three.
     let across = Vec3::new(1., 1., 0.).normalized();
-    assert!(
-        field
-            .query(mid + across * (reach + half * 2_f64.sqrt()), half)
-            .unwrap()
-            .foliage
-    );
-    assert!(
-        !field
-            .query(mid + across * (reach + half * 3_f64.sqrt() * 1.01), half)
-            .unwrap()
-            .foliage
-    );
+    assert!(q(mid + across * (reach + half * 2_f64.sqrt()), half));
+    assert!(!q(
+        mid + across * (reach + half * 3_f64.sqrt() * 1.01),
+        half
+    ));
 }
 
 /// R1: every shipped preset is described by the plan; the date palm's fronds

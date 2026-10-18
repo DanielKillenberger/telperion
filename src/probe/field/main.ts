@@ -1,7 +1,7 @@
 /* The field probe page (fn-257 R3), served by the dev server at
  * /field-probe.html and opened by the owner in Chrome: each species the site
  * grows, at three seeds, twice (the first round on a cold shader cache, the
- * second warm), grown and queried in a worker as the site does it, beside
+ * second warm), grown and read out in a worker as the site does it, beside
  * 0.1.4's time. Never part of the library or the harness. */
 import type { Case, Message, Timed } from "./worker";
 
@@ -21,7 +21,8 @@ function show(row: Timed, warm: boolean): void {
   if (!body) return;
   const tr = document.createElement("tr");
   const old = OLD[row.species];
-  for (const text of [`${row.species}${warm ? "" : " (cold)"}`, String(row.seed), row.growMs.toFixed(0), row.queryMs.toFixed(0), (row.growMs + row.queryMs).toFixed(0), old === undefined ? "-" : String(old)]) {
+  // The growth and its 36-cell read-out are one call; no query follows it.
+  for (const text of [`${row.species}${warm ? "" : " (cold)"}`, String(row.seed), row.ms.toFixed(0), "-", row.ms.toFixed(0), old === undefined ? "-" : String(old)]) {
     const td = document.createElement("td");
     td.textContent = text;
     tr.append(td);

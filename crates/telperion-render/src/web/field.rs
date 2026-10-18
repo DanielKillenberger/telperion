@@ -1,10 +1,10 @@
-//! fn-257: a tree's field grown on a device of its own, for a page or a
+//! fn-257: a tree's field read out on a device of its own, for a page or a
 //! worker with no canvas (`telperion/field`). The tree grows on the
-//! device and its field stays there; a query crosses the binding as the
-//! cells going in and their answers coming out. Without WebGPU, or on a
-//! lost device, every call rejects by name.
+//! device and its field is read out there to the grid the call names;
+//! only the grid crosses the binding, and nothing stays on the device.
+//! Without WebGPU, or on a lost device, every call rejects by name.
 use super::*;
-use crate::generation::{DeviceField, Generator};
+use crate::generation::Generator;
 use wasm_bindgen_futures::JsFuture;
 
 thread_local! {
@@ -52,13 +52,16 @@ async fn fields() -> std::result::Result<Rc<Generator>, JsError> {
         .ok_or_else(|| JsError::new("the device for fields was not made"))
 }
 
-/// A shipped species' field at a seed, on the device it grew on until
-/// released.
+/// A shipped species' field at a seed, read out to a grid
+/// (`telperion_core::field::Frame`): `n` cells a side of `cell` metres
+/// from `origin`, cell `i + n * (j + n * k)` centred at `origin + (i +
+/// 0.5, j + 0.5, k + 0.5) * cell`.
 #[wasm_bindgen]
 pub struct WebField {
-    made: Rc<Generator>,
-    field: Rc<RefCell<Option<DeviceField>>>,
-    bounds: [f32; 6],
+    n: u32,
+    cell: f64,
+    origin: [f64; 3],
+    answers: Vec<u32>,
 }
 
 #[wasm_bindgen]
@@ -72,66 +75,60 @@ impl WebField {
         })
     }
 
-    /// `species` grown at `seed` on the device, its limb systems opened by
-    /// laterals of `limb_order` or less (the family's own where none):
-    /// resolves to the field. An id the catalogue does not serve rejects
-    /// with the core's error.
-    pub fn grow(species: String, seed: u32, limb_order: Option<u32>) -> js_sys::Promise {
+    /// `species` grown at `seed` on the device and its field read out to
+    /// `n` cells a side over its box, its limb systems opened by laterals
+    /// of `limb_order` or less (the family's own where none): resolves to
+    /// the grid. An id the catalogue does not serve, a side outside 3 to
+    /// 256 and a grid past the device's limits reject with the core's or
+    /// the device's error.
+    pub fn grow(species: String, seed: u32, n: u32, limb_order: Option<u32>) -> js_sys::Promise {
         future_to_promise(async move {
             let mut family =
                 telperion_core::presets::by_identity(&species).map_err(|e| js_error(e.into()))?;
             family.skeleton.seed = seed;
+            telperion_core::field::Frame::side(n).map_err(|e| js_error(e.into()))?;
             let made = fields().await?;
-            let field = made
-                .grow_field(&family, limb_order)
+            let grid = made
+                .grow_field(&family, n, limb_order)
                 .await
                 .map_err(js_error)?;
-            let bounds = field.bounds;
-            let field = Rc::new(RefCell::new(Some(field)));
+            let mut answers = Vec::with_capacity(grid.cells.len() * 4);
+            for a in &grid.cells {
+                let flags = u32::from(a.wood) | u32::from(a.foliage) << 1;
+                let limb = a.limb.unwrap_or(u32::MAX);
+                let (radius, leaves) = (a.wood_radius as f32, a.leaves as f32);
+                answers.extend([flags, radius.to_bits(), leaves.to_bits(), limb]);
+            }
+            let f = grid.frame;
             Ok(WebField {
-                made,
-                field,
-                bounds,
+                n: f.n,
+                cell: f.cell,
+                origin: [f.origin.x, f.origin.y, f.origin.z],
+                answers,
             }
             .into())
         })
     }
 
-    /// The field's box: its least corner, then its most, in metres.
-    pub fn bounds(&self) -> Vec<f32> {
-        self.bounds.to_vec()
+    /// The grid's cells a side.
+    pub fn n(&self) -> u32 {
+        self.n
     }
 
-    /// The answers for `cells`, four numbers a cell (a closed cube's
-    /// centre and half extent): resolves to four words a cell, its flags
-    /// (wood 1, foliage 2), its thickest wood radius and its leaves (each
-    /// a float's bits) and its limb system (`u32::MAX` where none).
-    pub fn query(&self, cells: Vec<f32>) -> js_sys::Promise {
-        let (made, field) = (self.made.clone(), self.field.clone());
-        future_to_promise(async move {
-            let held = field
-                .try_borrow()
-                .map_err(|_| JsError::new("the field is being released"))?;
-            let field = held
-                .as_ref()
-                .ok_or_else(|| JsError::new("the field is released"))?;
-            let answers = made.query_field(field, &cells).await.map_err(js_error)?;
-            let mut words = Vec::with_capacity(answers.len() * 4);
-            for a in answers {
-                let flags = u32::from(a.wood) | u32::from(a.foliage) << 1;
-                let limb = a.limb.unwrap_or(u32::MAX);
-                words.extend([flags, a.wood_radius.to_bits(), a.leaves.to_bits(), limb]);
-            }
-            Ok(js_sys::Uint32Array::from(words.as_slice()).into())
-        })
+    /// A cell's side, in metres.
+    pub fn cell(&self) -> f64 {
+        self.cell
     }
 
-    /// The field let go: its device memory freed, every later query
-    /// refused. A field answering a query is refused by name.
-    pub fn release(&self) -> std::result::Result<(), JsError> {
-        let mut held = (self.field.try_borrow_mut())
-            .map_err(|_| JsError::new("the field is answering a query"))?;
-        held.take();
-        Ok(())
+    /// The grid's least corner, in metres.
+    pub fn origin(&self) -> Vec<f64> {
+        self.origin.to_vec()
+    }
+
+    /// Four words a cell, in cell order: its flags (wood 1, foliage 2), its
+    /// thickest wood radius and its leaves (each a float's bits) and its
+    /// limb system (`u32::MAX` where none).
+    pub fn answers(&self) -> js_sys::Uint32Array {
+        js_sys::Uint32Array::from(self.answers.as_slice())
     }
 }

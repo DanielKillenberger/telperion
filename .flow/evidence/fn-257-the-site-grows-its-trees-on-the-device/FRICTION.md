@@ -26,3 +26,54 @@ The review's one gap (P1, R3'): the oak at seed 1234 over 0.1.4. Re-measured war
 - **What hindered:** the dcg hook refused a loop redirecting to `$S/$b` paths and `git show HEAD:<path> > <path>` to build the base binary; both were retyped (literal paths, a script appending to one file, and `git apply -R` of a saved patch). Another worker's GPU jobs held the desk at 70-99 % busy for 13 of the 16 field pairs, so only paired differences are meaningful.
 - **Cost:** about 5 minutes of retyping; the timings carry the desk's load.
 - **What would remove it:** a `measure-ab <base-bin> <bin> <test> <pairs>` helper beside `telperion-heavy` that alternates two binaries and appends to one file, and a desk-wide GPU queue so a timing run gets a quiet window.
+
+## 2026-10-16, task 12 (worker)
+
+- **Doing:** the R8 splat probe and its per-pass profile.
+- **What hindered:** the probe had to live under `field/` (not beside `field_probe_tests.rs` as the task named) to see the field's private `Cfg`, `Rec` and sources, and still copied `make.rs`'s `cfg`/`leaf_box` and `leaflets`' loop body because they are private or not functions. The repository's `every_shader_file_is_checked` refuses a probe `.wgsl` no validated source holds, found only on the second build; it went into `field::sources()`. The GPU profile's labels collide between the sweep and the stations (`starts`, `emit`, `blocks`, `spread`), so the sweep's share of `emit` could not be told apart.
+- **Cost:** about 10 minutes and one extra build.
+- **What would remove it:** profile labels prefixed with their pass's name, and a note in `docs/` that a test-only WGSL file joins a `#[cfg(test)] sources()` list.
+
+## 2026-10-16, task 13 (worker)
+
+- **Doing:** re-anchoring task 13 and listing every consumer of the field API it deletes, before any edit.
+- **What hindered:** the deletion's consumers reach past the task's Touches. `cargo test` builds examples, and three examples read the deleted API: `crates/telperion-core/examples/measure.rs` (`Field::query`, `bounds`, `storage_bytes`), `crates/telperion-core/examples/artifact_digest.rs` (`Field::snapshot`) and `crates/telperion-render/examples/generation_digest.rs` (`FieldSnapshot`, `IndexSnapshot`). Neither task 13 nor task 14 touches them, so the focused crate tests cannot compile. `crates/telperion-wasm/src/**` (a workspace member: `Field::query`, `snapshot`, `bounds`, `storage_bytes`, `FieldSnapshot`) and `crates/telperion-render/src/web/field.rs` (`query_field`, `Answer`, wasm32 only) are task 14's, so the workspace and the npm build stay broken between tasks 13 and 14.
+- **Cost:** about 15 minutes; the task stopped before any edit, per the host's rule on unforeseen consumers.
+- **What would remove it:** a plan step that greps every deleted public name across the workspace, examples included, and gives each hit to a task's Touches; or the API cut and its bindings in one task.
+- **Doing (resumed, 16:30):** the core's baseline and its first `cargo check` through `telperion-heavy 8 --threads 2`.
+- **What hindered:** the core's own test binary went past the 8 GB cap at two test threads and was killed after 310 passing tests, so the baseline is inconclusive. Then two other worktrees' workspace gates, at 12 GB each, held the desk, so a `cargo check` of one crate waited in the queue for over 30 minutes while the edits went on unchecked.
+- **Cost:** about 35 minutes of waiting, and the edits went on without a compiler.
+- **What would remove it:** a light lane in `telperion-heavy` for `cargo check` and clippy, which need well under 8 GB, and a core test cap measured once and stated in the host rules.
+
+## 2026-10-18, task 13 resumed (worker)
+
+- **Doing:** verifying the checkpointed edits: `cargo check --workspace --all-targets` and the wasm32 check passed in under a minute each; then the core crate's tests through `telperion-heavy 14 --threads 2`.
+- **What hindered:** another worktree's workspace gate held 12 GB, so the core run waited in the queue (room 10-11 GB for 14) for over 10 minutes with nothing else to verify on the CPU side.
+- **Cost:** 10+ minutes of waiting so far.
+- **What would remove it:** a measured per-crate cap (the core's test binary at two threads) stated in the host rules, so a worker can ask for the smallest cap that fits instead of a guessed one.
+- **Doing (03:30):** the core crate's tests at `telperion-heavy 10 --threads 1` (the 14 GB run never got room behind another worktree's 12 GB gate; 10 GB at one thread fit, about 25 minutes).
+- **What hindered:** `generation_limit_guard::generation_limits_are_classified` fails because the field's limit sites moved (`field.rs` to `field/splat.rs`, `cuboid.rs` deleted, three new clamp/refusal sites), and the inventory it reads, `docs/generation-limits-inventory.json`, is outside the task's Touches. The task stops for the host before `done`; a drafted inventory that passes the guard is in the worker's scratchpad.
+- **Cost:** about 40 minutes of queueing for the core run, then a stop on one file.
+- **What would remove it:** the same plan step as 2026-10-16's (grep every deleted public name), extended to the repository's inventories and guards that list source sites (`docs/generation-limits-inventory.json`), so they enter the Touches of the task that moves the code.
+
+## 2026-10-18, task 14 (worker)
+
+- **Doing (04:00):** the field Vitest files alone, as the host asked.
+- **What hindered:** `vitest.config.ts`'s global setup builds two native release binaries before any test file runs, and a config outside the checkout cannot resolve `vitest`, so a focused run needed a second config under `.flow/tmp/`.
+- **Cost:** about 3 minutes, and the release builds that would have run before every focused run.
+- **What would remove it:** a `vitest --project` or an env switch that skips the release binaries for files that do not call them.
+- **Doing (04:05):** `tests/browser/bindings.mjs` against the rebuilt Wasm, run alone because `scripts/test-wasm.mjs` also runs `tests/browser/field.mjs`, which needs WebGPU in a browser.
+- **What hindered:** the binding suite is in no CI job and has rotted since 2026-10-02 beyond the field: the "compact" fixture (height 4, 40 attractors) grows 152,178 to 1,005,581 nodes, `growth.maxNodes` of 0 or 20 leaves the tree whole and complete, a height of -1 builds, the beech is in the catalogue, the crookedness range is not refused, the species foliage ceiling of 40,000 is refused, and every node is below the crossover. Eleven checks fail that read no field output; they had to be collected one run at a time behind a throwing `check`.
+- **Cost:** about 20 minutes and four browser runs, and the acceptance criterion "bindings green" cannot be met inside this task.
+- **What would remove it:** the binding suite in a CI job (it needs no GPU), or deleted where the native tests already hold the same contract.
+- **Doing (04:15):** `node scripts/test-dist.mjs` on a fresh `npm run build`.
+- **What hindered:** its first step, the main entry building Telperion with `{ surface: true, foliage: true }`, is refused by the core Wasm itself (`surface allocation`, code 2, the raw C ABI with no TypeScript in between), so the script stops before it reaches `field.js`. The field half, run on its own against `dist/field.js`, refuses without WebGPU and refuses a side of two by name. The refusal is the 32-bit Wasm limit fn-291 works on.
+- **Cost:** about 5 minutes; "test-dist green" cannot be met inside this task.
+- **What would remove it:** fn-291 landing on this branch, or test-dist's main-entry tree swapped for one the 32-bit module holds (a host call, since the script's tree is the README's first example).
+
+## 2026-10-18, task 15 (worker)
+
+- **Doing:** the paired site-field measurement (release tip 23fb243e3 against R8 at d9193b9ce).
+- **What hindered:** the committed `field_time` test reads seed 1 only and neither side reports the bytes held, so seeds 1234 and 5678 and the held memory needed a scratch test in two disposable worktrees, each building its own render test binary (the task's Touches are the evidence directory). The dcg hook refused the first build command because the redirect's parent directory did not exist yet.
+- **Cost:** two render-crate test builds (minutes each) and one retyped command.
+- **What would remove it:** `field_time` taking `FIELD_SEEDS` and printing the ledger's live bytes after the read-out, so a later pairing needs only the base's build.

@@ -22,37 +22,28 @@ engine.dispose();
 
 `ORDINARY`, `TELPERION` and `LAURELIN` come from Rust preset metadata. Parameters define the family; the seed selects a specimen. `PRESETS` contains all five named templates; `TWO_TREES` contains Telperion and Laurelin. `createRenderer(canvas)` puts the Rust renderer on a canvas and draws the tree its own module generates; it is the package's only rendering path and it has no runtime dependencies. The native core uses pinned `libm` and `slotmap`; its optional `json` feature supplies the wire schema used by the Wasm binding.
 
-For a block-based consumer, request occupancy without constructing a wood surface or transferring render buffers:
+For a block-based consumer, request occupancy read out to a grid, without constructing a wood surface or transferring render buffers:
 
 ```ts
 const engine = await TreeEngine.create();
-const tree = engine.build(family, { field: true });
-const flags = tree.field!.query(new Float64Array([
-  0, 1, 0, 0.5, // cell centre x/y/z and half extent; zero means a point
-]));
-// Each byte: wood = 1, foliage = 2; zero is a valid empty cell.
+const tree = engine.build(family, { field: { n: 36 } });
+const { n, cell, origin, answer } = tree.field!;
+// 36 cells a side over the tree's box, cell i + n * (j + n * k) centred at
+// origin + (i + 0.5, j + 0.5, k + 0.5) * cell, in metres.
+answer.flags[0]; // wood = 1, foliage = 2; zero is a valid empty cell
 engine.dispose();
 ```
 
-Field handles expire on the next native build or release; copied query results remain owned. Field construction places retained foliage internally. `{ structure: true }` returns six f64 values per node (xyz, distal/proximal/base radius) and three u32 values (parent, branch, kind). The root parent is `0xffffffff`; kinds are structural 0, branch 1 and twig 2. An empty output selection still generates structure for diagnostics. Invalid inputs throw, and cap diagnostics distinguish incomplete growth from a finished tree.
+The grid is `telperion/field/voxelize`'s `grid` over the tree's own box, the one definition the device field reads too; `n` is a whole number from 3 to 256, and `{ n, limbOrder }` names limbs at that lateral order instead of the family's own. Each answer carries the cell's flags, its thickest wood radius, its leaf estimate and its owning limb, as owned copies that outlive the next build, release and disposal. The field reads the leaf plan and places no leaf; a family the plan cannot describe is refused by name. `{ structure: true }` returns six f64 values per node (xyz, distal/proximal/base radius) and three u32 values (parent, branch, kind). The root parent is `0xffffffff`; kinds are structural 0, branch 1 and twig 2. An empty output selection still generates structure for diagnostics. Invalid inputs throw, and cap diagnostics distinguish incomplete growth from a finished tree.
 
-The optional `tree.field!.snapshot()` exports an owned schema-1 CPU field snapshot
-for experiments and other consumers. It contains f64 wood segments and BVH bounds,
-u32 topology, revision, union bounds and extraction timings; the
-[exact layout](scripts/benchmarks/generation.md#portable-snapshot-contract) defines
-each array. Existing builds and queries make no snapshot copies. Extraction needs
-a live field revision: release, rebuild (including a failed native rebuild) and
-disposal invalidate the handle. Already copied arrays survive these operations,
-and caller mutations cannot change the CPU field. Extraction errors throw without
-a partial snapshot; temporary Wasm staging is released after copying or failure.
-The giant snapshot alone is about 129 MB, so opt in only when needed.
+Migrating from 0.1.4: `{ field: true }` is `{ field: { n } }`, and the field is the grid with its answers. The cube query (`tree.field.query(cells)`), the field's `bounds` and `snapshot()` are gone, and nothing replaces them: a page that queried a regular grid asks for its side, and one that queried its own cubes reads the cells of a grid fine enough for them.
 
 ## The field package
 
 `npm install telperion` also ships the slim growth-and-field package: the
-`telperion/field` export grows a species at a seed and answers occupancy
-queries over it, and `telperion/field/voxelize` is an example reading of
-those answers as cubes; the field grows on the device (WebGPU), through
+`telperion/field` export grows a species at a seed and reads its occupancy
+out to the grid the call names, and `telperion/field/voxelize` is an example
+reading of that grid as cubes; the field grows on the device (WebGPU), through
 `telperion-render.wasm`, and rejects by name without it. Both are built by
 `npm run build` into `dist`; `field.js` and the main entry `telperion.js`
 load `telperion.wasm` and `telperion-render.wasm` from beside themselves, so
@@ -277,9 +268,10 @@ Skeleton and field-construction GPU performance remain inconclusive; only their
 CPU stages and code dependencies were examined. That experiment introduced no
 production GPU query entry point. The rejected WebGPU implementation, runner and dedicated tests have
 been removed. The report retains final timing and correctness evidence from Linux
-Chromium 151 and an RTX 3080. The snapshot API and
-[CPU reproduction tools](scripts/benchmarks/generation.md) remain in use by the
-field-generation follow-up's correctness checks and measurements.
+Chromium 151 and an RTX 3080. The field snapshot and cube query its
+[CPU reproduction tools](scripts/benchmarks/generation.md) read were removed in
+0.2.0 (fn-257: the field is read out to a grid), so those tools are the report's
+record and no longer run against the package.
 
 The separate [fn-91 generation path](scripts/benchmarks/generation.md#qualified-gpu-positions)
 expands compact foliage and qualified wood inputs into GPU-resident buffers shared
