@@ -337,7 +337,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-292-the-foliages-level-lists-hold-only-what.md",
-  "status": "open",
+  "status": "done",
   "title": "The foliage's level lists hold only what each level draws",
   "tracker": {
     "baseHashFlow": null,
@@ -350,5 +350,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-18T00:36:20.649873Z"
+  "updated_at": "2026-10-18T02:57:09.899342Z"
 }

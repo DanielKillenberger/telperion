@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-292-the-foliages-level-lists-hold-only-what",
   "spec_path": ".flow/tasks/fn-292-the-foliages-level-lists-hold-only-what.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Lay the foliage's level lists end to end, each level's start read by its draw",
   "updated_at": "2026-10-16T12:43:13.402296Z"
 }
