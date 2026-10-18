@@ -40,7 +40,10 @@ fn the_grid_is_the_one_the_voxelizer_draws() {
         assert_eq!(Frame::over(b, n).err(), Some(side));
     }
     assert!(Frame::over(b, 3).is_ok() && Frame::over(b, 256).is_ok());
-    let flat = Bounds { min: b.min, max: b.min };
+    let flat = Bounds {
+        min: b.min,
+        max: b.min,
+    };
     assert_eq!(
         Frame::over(flat, 24).err(),
         Some(Error::InvalidInput("field bounds"))

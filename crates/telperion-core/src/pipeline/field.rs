@@ -15,9 +15,9 @@
 //! overestimates by at most a cell's half diagonal; finer grids shrink it.
 #[cfg(feature = "geometry")]
 mod splat;
+use crate::{math::Vec3, pipeline::foliage::Bounds, Error, Result};
 #[cfg(feature = "geometry")]
 use crate::{pipeline::foliage::plan::Plan, tree::Tree};
-use crate::{math::Vec3, pipeline::foliage::Bounds, Error, Result};
 
 /// One cell's answer. `wood_radius` is the larger end radius of the thickest
 /// wood sweep reaching the cell, in metres, zero where no wood does.
@@ -72,11 +72,7 @@ impl Frame {
         Ok(Self {
             n,
             cell,
-            origin: Vec3::new(
-                centre.x - side * 0.5,
-                b.min.y - cell,
-                centre.z - side * 0.5,
-            ),
+            origin: Vec3::new(centre.x - side * 0.5, b.min.y - cell, centre.z - side * 0.5),
         })
     }
 

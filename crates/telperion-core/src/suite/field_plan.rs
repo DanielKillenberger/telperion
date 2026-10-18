@@ -118,7 +118,11 @@ fn every_retained_leaf_vertex_lies_in_a_foliage_cell() {
 fn count_estimates_sum_to_the_plan_total_over_a_grid() {
     for id in SPECIES {
         let (_, s) = subject(id);
-        let sum: f64 = grid(&s.tree, &s.plan, 24).cells.iter().map(|c| c.leaves).sum();
+        let sum: f64 = grid(&s.tree, &s.plan, 24)
+            .cells
+            .iter()
+            .map(|c| c.leaves)
+            .sum();
         let total = f64::from(s.plan.total);
         assert!(
             (sum - total).abs() <= total * 0.01,
@@ -281,7 +285,10 @@ fn a_cube_touching_only_the_sweep_boundary_is_covered() {
     // half extents, inside the circumsphere's root three.
     let across = Vec3::new(1., 1., 0.).normalized();
     assert!(q(mid + across * (reach + half * 2_f64.sqrt()), half));
-    assert!(!q(mid + across * (reach + half * 3_f64.sqrt() * 1.01), half));
+    assert!(!q(
+        mid + across * (reach + half * 3_f64.sqrt() * 1.01),
+        half
+    ));
 }
 
 /// R1: every shipped preset is described by the plan; the date palm's fronds

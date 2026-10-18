@@ -6,8 +6,8 @@
 //! `PROBE_SEEDS` narrow it.
 //! `cargo test --profile ci -p telperion-render field_probe -- --ignored --nocapture`.
 use super::super::cycle::tree::{self, Kernels};
-use super::agree_tests::drawn_nodes;
 use super::super::Clock;
+use super::agree_tests::drawn_nodes;
 use telperion_core::pipeline::{self, executor, FieldRequest, Request};
 
 #[test]
@@ -37,7 +37,9 @@ fn field_probe() {
             let mut dressed = None;
             for _ in 0..2 {
                 drop(dressed.take());
-                gpu.device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
+                gpu.device
+                    .poll(wgpu::PollType::wait_indefinitely())
+                    .unwrap();
                 let t = Clock::now();
                 match pollster::block_on(tree::drawn(&gpu, &k, &growth)) {
                     Ok((d, _)) => dressed = Some(d),

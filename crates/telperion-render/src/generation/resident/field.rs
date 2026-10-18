@@ -152,7 +152,13 @@ impl Rec<'_> {
         words.resize(words.len().next_multiple_of(4), 0);
         let bytes = words.len() as u64 * 4;
         let usage = wgpu::BufferUsages::UNIFORM;
-        let uniform = io::buffer(self.gpu, "field cfg", bytes, usage, bytemuck::cast_slice(&words))?;
+        let uniform = io::buffer(
+            self.gpu,
+            "field cfg",
+            bytes,
+            usage,
+            bytemuck::cast_slice(&words),
+        )?;
         let mut all: Vec<&wgpu::Buffer> = vec![&uniform];
         all.extend(bufs);
         let bind = self.pass.bind(self.gpu, &all);

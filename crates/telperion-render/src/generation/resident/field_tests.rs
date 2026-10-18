@@ -45,7 +45,12 @@ fn names(from: &[Occupancy], to: &[Occupancy]) -> HashMap<u32, u32> {
             *shared.entry(f).or_default().entry(t).or_default() += 1;
         }
     }
-    let best = |m: &HashMap<u32, u64>| *m.iter().max_by_key(|(t, n)| (**n, std::cmp::Reverse(**t))).unwrap().0;
+    let best = |m: &HashMap<u32, u64>| {
+        *m.iter()
+            .max_by_key(|(t, n)| (**n, std::cmp::Reverse(**t)))
+            .unwrap()
+            .0
+    };
     shared.iter().map(|(f, m)| (*f, best(m))).collect()
 }
 
@@ -140,7 +145,11 @@ fn references(family: &Family, sides: &[u32], limb_order: Option<u32>) -> Vec<Gr
             .collect();
         let field = |b: std::thread::ScopedJoinHandle<_>| {
             let built: telperion_core::Result<pipeline::Built> = b.join().unwrap();
-            built.expect("the reference").outputs.field.expect("a field")
+            built
+                .expect("the reference")
+                .outputs
+                .field
+                .expect("a field")
         };
         built.into_iter().map(field).collect()
     })
@@ -198,14 +207,19 @@ fn the_device_field_refuses_what_the_core_refuses() {
     };
     let beech = family("european-beech", 1);
     for n in [0, 2, 257] {
-        let core = pipeline::build(&beech, ask(n, None)).err().expect("refused");
+        let core = pipeline::build(&beech, ask(n, None))
+            .err()
+            .expect("refused");
         let refused = pollster::block_on(gen.grow_field(&beech, n, None)).expect_err("refused");
         assert!(refused.to_string().contains(&core.to_string()), "{refused}");
     }
     let mut clumped = beech;
     clumped.canopy.limb_clumping = 0.5;
     let refused = pollster::block_on(gen.grow_field(&clumped, 24, None)).expect_err("refused");
-    assert!(refused.to_string().contains("leaves the device places"), "{refused}");
+    assert!(
+        refused.to_string().contains("leaves the device places"),
+        "{refused}"
+    );
     assert!(telperion_core::presets::by_identity("no-such-tree").is_err());
 }
 
@@ -220,8 +234,16 @@ fn a_cell_crowded_with_limbs_names_the_cpu_s_limb() {
         return;
     };
     let birch = family("silver-birch", 1);
-    let [fine, whole] = <[Grid; 2]>::try_from(references(&birch, &[24, 3], None)).ok().unwrap();
-    let systems = |g: &Grid| g.cells.iter().filter_map(|c| c.limb).collect::<std::collections::HashSet<_>>().len();
+    let [fine, whole] = <[Grid; 2]>::try_from(references(&birch, &[24, 3], None))
+        .ok()
+        .unwrap();
+    let systems = |g: &Grid| {
+        g.cells
+            .iter()
+            .filter_map(|c| c.limb)
+            .collect::<std::collections::HashSet<_>>()
+            .len()
+    };
     assert!(systems(&fine) > 128, "{} systems", systems(&fine));
     let named = names(&fine.cells, &device(&gen, &birch, &fine, None).cells);
     let mine = device(&gen, &birch, &whole, None).cells[13];

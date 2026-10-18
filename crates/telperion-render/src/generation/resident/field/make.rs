@@ -73,7 +73,8 @@ pub(in super::super) async fn grow(
         nodes: &swept.nodes,
         device: &device,
     };
-    read.grid(tools, &mut cfg, ask, (grid_words, answer_words)).await
+    read.grid(tools, &mut cfg, ask, (grid_words, answer_words))
+        .await
 }
 
 /// Whether a buffer of `words` fits the device's limits; refused by name

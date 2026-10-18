@@ -44,3 +44,10 @@ The review's one gap (P1, R3'): the oak at seed 1234 over 0.1.4. Re-measured war
 - **What hindered:** the core's own test binary went past the 8 GB cap at two test threads and was killed after 310 passing tests, so the baseline is inconclusive. Then two other worktrees' workspace gates, at 12 GB each, held the desk, so a `cargo check` of one crate waited in the queue for over 30 minutes while the edits went on unchecked.
 - **Cost:** about 35 minutes of waiting, and the edits went on without a compiler.
 - **What would remove it:** a light lane in `telperion-heavy` for `cargo check` and clippy, which need well under 8 GB, and a core test cap measured once and stated in the host rules.
+
+## 2026-10-18, task 13 resumed (worker)
+
+- **Doing:** verifying the checkpointed edits: `cargo check --workspace --all-targets` and the wasm32 check passed in under a minute each; then the core crate's tests through `telperion-heavy 14 --threads 2`.
+- **What hindered:** another worktree's workspace gate held 12 GB, so the core run waited in the queue (room 10-11 GB for 14) for over 10 minutes with nothing else to verify on the CPU side.
+- **Cost:** 10+ minutes of waiting so far.
+- **What would remove it:** a measured per-crate cap (the core's test binary at two threads) stated in the host rules, so a worker can ask for the smallest cap that fits instead of a guessed one.

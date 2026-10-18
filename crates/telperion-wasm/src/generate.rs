@@ -5,12 +5,8 @@
 use crate::clock;
 use serde_json::{json, Value};
 use telperion_core::{
-    field::Grid,
-    foliage,
-    math::Vec3,
-    params, pipeline, surface,
-    tree::NodeKind,
-    twigs, Error, Result,
+    field::Grid, foliage, math::Vec3, params, pipeline, surface, tree::NodeKind, twigs, Error,
+    Result,
 };
 
 #[derive(Default)]
@@ -159,7 +155,12 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         branch_diagnostics(tree, f.skeleton.twigs)?;
     let mut out = Output {
         surface: o.wood,
-        field: o.field.as_ref().map(FieldCells::of).transpose()?.unwrap_or_default(),
+        field: o
+            .field
+            .as_ref()
+            .map(FieldCells::of)
+            .transpose()?
+            .unwrap_or_default(),
         ..Output::default()
     };
     let grid = o.field.as_ref().map(|g| {

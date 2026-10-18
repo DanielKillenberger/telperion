@@ -156,7 +156,13 @@ fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
     }
     let side = generate(json!({"family": "oregon-white-oak", "outputs": {"field": {"n": 2}}}));
     assert!(
-        matches!(side.err(), Some(Error::InvalidValue { field: "field grid side", .. })),
+        matches!(
+            side.err(),
+            Some(Error::InvalidValue {
+                field: "field grid side",
+                ..
+            })
+        ),
         "the side"
     );
     let (out, meta) =

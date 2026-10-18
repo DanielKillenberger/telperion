@@ -284,7 +284,8 @@ pub(super) fn leaf_into(grid: &mut Grid, leaf: &Leaf, tally: &mut Tally) -> Resu
         let t = &mut tally.0;
         t.try_reserve(1)
             .map_err(|_| Error::ResourceLimit("field allocation"))?;
-        *t.entry((c as u64) << 32 | u64::from(leaf.system)).or_default() += estimate;
+        *t.entry((c as u64) << 32 | u64::from(leaf.system))
+            .or_default() += estimate;
     }
     Ok(())
 }

@@ -80,7 +80,14 @@ fn the_palm_estimates_sum_to_every_leaflet() {
     let o = &built.outputs;
     let total = f64::from(o.plan.as_ref().unwrap().total);
     assert_eq!(total, o.leaves.as_ref().unwrap().placed as f64);
-    let sum: f64 = o.field.as_ref().unwrap().cells.iter().map(|c| c.leaves).sum();
+    let sum: f64 = o
+        .field
+        .as_ref()
+        .unwrap()
+        .cells
+        .iter()
+        .map(|c| c.leaves)
+        .sum();
     assert!((sum - total).abs() <= total * 0.01, "{sum} against {total}");
 }
 
