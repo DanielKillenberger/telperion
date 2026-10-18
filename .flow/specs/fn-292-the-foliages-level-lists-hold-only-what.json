@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-292-levels",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-18T00:36:20.645613Z",
   "created_at": "2026-10-16T10:51:46.818336Z",
   "default_impl": null,
   "default_review": null,
@@ -284,17 +284,54 @@
       "task": "fn-292-the-foliages-level-lists-hold-only-what.2",
       "timestamp": "2026-10-16T14:09:24.191582Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "885e024ceeb485154500145042ed949d1900684e4facc9fbb890b0f0511ac76d",
+      "backend": "codex",
+      "base_sha": "0a6664741d395edb5c0665b6d80ab5772178336e",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "d1abd25ce12de88700a6af0d3042e18e308497ac",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 275490,
+      "output_sha256": "c299a4c39526aa910429fbfa9fd3d01f4b2115959940bd0ba08fc5359e4b30f7",
+      "reservation_id": "cc300ccacad4418b89b9c16e8bd62777",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-18T00:36:20.637388Z",
+      "tool_calls": 20,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-292-the-foliages-level-lists-hold-only-what.1": 1,
     "impl:fn-292-the-foliages-level-lists-hold-only-what.2": 1,
     "plan": 2,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-292-the-foliages-level-lists-hold-only-what.1": 0,
     "impl:fn-292-the-foliages-level-lists-hold-only-what.2": 0,
     "plan": 0
@@ -313,5 +350,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T14:09:24.194180Z"
+  "updated_at": "2026-10-18T00:36:20.649873Z"
 }
