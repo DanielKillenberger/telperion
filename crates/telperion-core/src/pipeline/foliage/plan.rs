@@ -5,6 +5,7 @@
 //! definition of leaf-bearing wood, and it compiles with the wood surface
 //! and the placement out.
 mod fronds;
+mod stations;
 use super::{canopy, clumping, cluster, organs, CanopyParams, Element, TwigPlacement};
 use crate::{
     envelope::Envelope,
@@ -14,6 +15,10 @@ use crate::{
     Error, Result,
 };
 use telperion_space::organ;
+#[cfg(feature = "geometry")]
+pub(crate) use stations::spacing;
+pub(crate) use stations::{station_at, station_count};
+use stations::addressable;
 
 /// Capability check only; `runs` still validates every parameter. Limb
 /// clumping and a canopy without a twig layer have no plan, so such a
@@ -129,11 +134,9 @@ impl Run {
         if tree.leafing.is_empty() {
             return last - first;
         }
-        let unit = micrometres(twig.internode_length);
-        let per = twig.stations_per_internode;
         let wood = (&self.nodes[..], &self.along[..]);
         (first..last)
-            .filter(|&k| kept(tree, wood, f64::from(k / per) * unit, k).is_some())
+            .filter(|&k| kept(tree, wood, station_at(k as usize, twig), k).is_some())
             .count() as u32
     }
     /// The leaves the stations from ordinal `first` up to `last` that keep
@@ -144,10 +147,9 @@ impl Run {
         (twig, p): (TwigPlacement, &CanopyParams),
         (first, last): (u32, u32),
     ) -> u32 {
-        let (key, unit) = (tree.key(self.nodes[1]), micrometres(twig.internode_length));
-        let per = twig.stations_per_internode;
+        let key = tree.key(self.nodes[1]);
         let wood = (&self.nodes[..], &self.along[..]);
-        let kept = |k: u32| kept(tree, wood, f64::from(k / per) * unit, k).is_some();
+        let kept = |k: u32| kept(tree, wood, station_at(k as usize, twig), k).is_some();
         (first..last)
             .filter(|&k| kept(k))
             .map(|k| organs::leaflets(&organs::placed(p, key, k)) as u32)
@@ -206,25 +208,15 @@ pub fn runs(
         if length == 0.0 {
             continue;
         }
-        if !length.is_finite() {
-            return Err(Error::ResourceLimit("shoot length overflow"));
-        }
-        let internodes = (length / micrometres(twig.internode_length))
-            .ceil()
-            .max(1.0);
-        let count = internodes * f64::from(twig.stations_per_internode);
-        let leaves = count * f64::from(most);
-        if !leaves.is_finite()
-            || leaves > p.max_instances as f64
-            || leaves >= (isize::MAX as usize / size_of::<f64>()) as f64
-            || leaves > u32::MAX as f64
-        {
+        let count = station_count(length, envelope, p, Some(twig))?;
+        let leaves = count as f64 * f64::from(most);
+        if leaves > p.max_instances as f64 || leaves >= addressable() || leaves > u32::MAX as f64 {
             return Err(Error::ResourceLimit("foliage instance budget"));
         }
         let mut run = Run {
             nodes,
             along,
-            internodes: internodes as u32,
+            internodes: (count / twig.stations_per_internode as usize) as u32,
             count: count as u32,
             leaves: 0,
         };

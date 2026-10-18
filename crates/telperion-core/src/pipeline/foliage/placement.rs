@@ -2,9 +2,9 @@
 use super::{
     canopy::validate,
     clumping, cluster, organs,
-    plan::{bearing_runs, cauline, kept, micrometres, walk},
+    plan::{bearing_runs, cauline, kept, station_at, station_count, walk},
     rosette,
-    station::{self, place_run, reserve_all, station_count, Run},
+    station::{self, place_run, reserve_all, Run},
     CanopyParams, Instances, Reference, TwigPlacement,
 };
 use crate::{
@@ -130,8 +130,7 @@ fn leaves_on(
         for k in 0..count as u32 {
             let kept = match twig {
                 Some(t) if !tree.leafing.is_empty() => {
-                    let (unit, per) = (micrometres(t.internode_length), t.stations_per_internode);
-                    kept(tree, (nodes, &along), f64::from(k / per) * unit, k).is_some()
+                    kept(tree, (nodes, &along), station_at(k as usize, t), k).is_some()
                 }
                 _ => true,
             };
