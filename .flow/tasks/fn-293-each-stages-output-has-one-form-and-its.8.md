@@ -31,9 +31,29 @@ The two open items of tasks 3 and 5, settled by the host after task 5 (spec, "Ho
 - [ ] TBD
 
 ## Done summary
-TBD
+`validate_skeleton` no longer checks the scaffold-only preconditions `inner_envelope` and `scaffold::forks_placed`. The `scaffold` module and `inner_envelope` now compile only into tests. `Delivery` and `Backend` are deleted along with `Prepared::backend` and `Metrics::wood_backend`. `Generator::prepare` and `prepare_async` now take only the family. The browser stage report drops `backend` and `woodBackend`, and so do its TS type (`src/browser/render.ts`), `generation_gpu`'s stages and the GPU smoke script.
 
+Validation, kept and dropped:
+- Dropped: `inner_envelope(..).validate()` and `scaffold::forks_placed`. The named refusal tests pass without them: `family::tests::every_row_past_its_bound_is_refused_on_every_family`, `suite::troll_limbs` (3), `catalogue_identity::every_refusal_is_the_refusal_it_was` and `telperion-jev/tests/dial_bounds.rs` (5). The scaffold's own `Specimen::new` still makes both checks for the test-built trees.
+- Kept: `resolved_growth`, because dropping it fails two refusal tests. `every_row_past_its_bound_is_refused_on_every_family` loses the refusals of `/skeleton/growth/{influenceRadius,killDistance,maxTurnPerStep,stepDistance,trunkHeight}`, and the `every_refusal_is_the_refusal_it_was` digest moves. `blend::mixed` also reads it.
+- Kept: everything in `rows` (the catalogue Sampling/Step checks, `envelope`, `bias`, `habit`, `radii.resolved`, `twigs.resolved` and the attractor-weight coupling).
+- `docs/generation-limits-inventory.json` loses 3 sites that are now test-only: `inner_envelope`'s height guard and `fork.rs`'s codominance guard and clamp.
+
+Digests equal the baseline (BASELINE.md, "After task 8"). Core: 24 lines (`raw/core-digest-t8.txt`). Render pipeline: byte-identical, `fb4ce911...` (`raw/generation-digest-t8.txt`). Resident: 24 identical lines under `telperion-heavy 10 --gpu 6` (`raw/resident-digest-t8.txt`). Non-test lines (MEASURE.md, `measure-cfg-lines.py`): telperion-core 22997 to 22825, telperion-render 23525 to 23499.
+
+Gate: `telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast` gave 1401 passed, 0 failed and 111 ignored, the same as task 5. `npm test`: 170 passed. `tsc --noEmit` is clean. Baseline: green (`cargo check --profile ci -p telperion-core -p telperion-render -p telperion-jev --all-targets`).
+
+Follow-ups (task 7, docs; outside Touches):
+- `README.md:278` still names `Delivery::Resident`.
+- The `forkDivergence` catalogue note (`traits.rs`, rendered into `docs/parameters.md`) still says "Refused where two parts of a fork leave on one heading (`forks_placed`)". That refusal is now made only by the test-only scaffold. Changing the note means regenerating `docs/parameters.md`, which is outside this task's Touches.
+- `generation_gpu`'s CPU branch still labels its stages `{"backend":"Cpu"}`. That is the example's own mode label and no type, and its provenance line already carries `mode`.
+
+Tier: not reported (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex, three draws: correctness, contracts and integration, all SHIP with no findings)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b746dee3a19d371700ab9c7ecca5741fef983fa1, 6d4cad605a6d05f96be77ddfa8beb65d03bf38b9, 5ec7ccc873ddea5357731d59c2bc00870684f506
+- Tests: telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast, npm test, artifact_digest, generation_digest, resident digest_tests::digest (seeds 1,7,42): equal to baseline
 - PRs:
