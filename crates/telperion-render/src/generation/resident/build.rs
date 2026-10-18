@@ -10,7 +10,7 @@
 //! they are.
 use super::super::compute::{self, Placement};
 use super::super::cycle::tree::{self, Kernels};
-use super::super::{data, io, Backend, Clock, Generator, Metrics, Prepared, Resident};
+use super::super::{data, io, Clock, Generator, Metrics, Prepared, Resident};
 use super::boots::Hanger;
 use super::florets::Organ;
 use super::fold::{Dressed, Dresser};
@@ -317,14 +317,12 @@ pub(super) async fn placed(
     crate::submit::fits_count(&gpu.device.limits(), &mesh, count as usize)?;
     m.instances = count;
     m.total_ms = t.inside();
-    m.wood_backend = Some(Backend::Gpu);
     let prepared = Prepared {
         identity: gen.identity.clone(),
         mesh,
         resident: Some(resident),
         organ: florets,
         wood: Some(handed.curve),
-        backend: Backend::Gpu,
         metrics: m,
         colouring: 1.0,
     };

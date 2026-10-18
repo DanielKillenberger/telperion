@@ -334,7 +334,7 @@ readback stays outside delivery timing. Resident metadata supplies actual counts
 and run spans; a replacement keeps the old tree alive until validation and adoption.
 Final buffers retain their vertex/index/storage/copy usages for later CPU uploads.
 
-Reports distinguish `woodBackend`, `woodFallback`, compact preparation, upload/
+Reports distinguish `woodFallback`, compact preparation, upload/
 dispatch and status wait, prepared CPU capacity, packed metadata CPU capacity,
 wood GPU buffers including status staging, retained buffers and each previous live
 tree's buffers. At wood expansion, add the previous live tree, new foliage buffers

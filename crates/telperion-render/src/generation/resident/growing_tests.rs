@@ -2,7 +2,7 @@
 //! as the page grows it (a year at a time, drawn within each year and put
 //! on the canvas), ends as the tree built at once, leaf for leaf; a
 //! request the tree cannot meet is refused by name.
-use super::super::{Delivery, Generator};
+use super::super::Generator;
 use crate::Renderer;
 use pollster::block_on;
 
@@ -18,7 +18,7 @@ fn a_tree_grown_in_year_by_year_is_the_tree_built_at_once() {
     for (id, age) in [("oregon-white-oak", 8.0), ("date-palm", 6.0)] {
         let mut family = telperion_core::presets::by_identity(id).unwrap();
         family.age = age;
-        let once = gen.prepare(&family, Delivery::Resident).unwrap();
+        let once = gen.prepare(&family).unwrap();
         let (want, bounds) = (gen.read_instances(&once).unwrap().leaves, once.bounds());
         let mut tree = block_on(gen.begin_growth(&family)).unwrap();
         assert_eq!((tree.committed(), tree.horizon()), (Some(0), age as u32));

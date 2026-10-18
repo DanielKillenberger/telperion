@@ -17,8 +17,8 @@
 use std::time::Instant;
 use telperion_core::presets::Preset;
 use telperion_render::{
-    generation::{Delivery, Generator},
-    hero_pose, measure, Camera, Frame, Gpu, Renderer, View, GROUND_REACH, STILL_FORMAT,
+    generation::Generator, hero_pose, measure, Camera, Frame, Gpu, Renderer, View, GROUND_REACH,
+    STILL_FORMAT,
 };
 
 const SIZE: (u32, u32) = (1920, 1080);
@@ -49,7 +49,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let generator = Generator::new(&renderer)?;
     pollster::block_on(generator.prepare_programs())?;
     let frame = Frame::new(&renderer, "frames", SIZE);
-    renderer.submit_prepared(generator.prepare(&family, Delivery::Resident)?)?;
+    renderer.submit_prepared(generator.prepare(&family)?)?;
     drop(generator);
     renderer.set_family(&family);
     let mut material = family.drawn_material();

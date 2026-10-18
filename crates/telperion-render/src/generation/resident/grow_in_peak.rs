@@ -11,7 +11,7 @@
 //!
 //!   GROW_PRESET=norway-spruce GROW_AGE=80 cargo test --profile ci \
 //!     -p telperion-render --lib grows_in_under_the_page_budget -- --ignored --nocapture
-use super::super::{Admitted, Delivery, Generator};
+use super::super::{Admitted, Generator};
 use crate::Renderer;
 use pollster::block_on;
 
@@ -77,9 +77,7 @@ fn grows_in_under_the_page_budget() {
     let label = format!("{id}@{}", family.age);
     gpu.ledger.take_peak_census();
     // The harness opens the tree built at once, and keeps it up.
-    let built = gen
-        .prepare(&family, Delivery::Resident)
-        .expect("built at once");
+    let built = gen.prepare(&family).expect("built at once");
     let (peak, by) = gpu.ledger.take_peak_census();
     census(&label, "built at once", peak, &by);
     renderer.submit_prepared(built).unwrap();

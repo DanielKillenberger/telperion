@@ -8,8 +8,8 @@
 use std::time::Instant;
 use telperion_core::{math::Vec3, presets::by_identity, presets::CATALOGUE, surface::Bounds};
 use telperion_render::{
-    generation::{Delivery, Generator},
-    hero_pose, render, write_png, Camera, Gpu, Renderer, GROUND_REACH, STILL_FORMAT,
+    generation::Generator, hero_pose, render, write_png, Camera, Gpu, Renderer, GROUND_REACH,
+    STILL_FORMAT,
 };
 
 const SIZE: (u32, u32) = (960, 720);
@@ -58,7 +58,7 @@ fn main() -> Result<(), String> {
         let t = Instant::now();
         // A refusal is reported and the preset skipped, never rebuilt on
         // the CPU (fn-256 R1).
-        let prepared = match gen.prepare(&family, Delivery::Resident) {
+        let prepared = match gen.prepare(&family) {
             Ok(p) => p,
             Err(e) => {
                 println!("{id}: refused ({e})");

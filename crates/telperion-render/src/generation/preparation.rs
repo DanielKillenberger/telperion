@@ -62,7 +62,6 @@ impl Generator {
             resident: None,
             organ: None,
             wood: None,
-            backend: Backend::Gpu,
             metrics,
             colouring: 1.0,
         })
@@ -106,7 +105,6 @@ impl Generator {
             resident,
             organ: None,
             wood: None,
-            backend: Backend::Gpu,
             metrics,
             colouring: 1.0,
         })
@@ -321,7 +319,6 @@ impl Generator {
             Some(curve) => curve,
             None => x.curve()?,
         };
-        metrics.wood_backend = Some(Backend::Gpu);
         metrics.wood_ms = started.elapsed_ms() + early_wood_ms;
         let wood = surface::SurfaceMesh::default();
         let parts = (curve, wood, full);

@@ -257,7 +257,6 @@ fn foreign_prepared_result_preserves_the_live_tree() {
         resident: None,
         organ: None,
         wood: None,
-        backend: Backend::Gpu,
         metrics: Metrics::default(),
         colouring: 1.0,
     };
@@ -549,7 +548,11 @@ fn compact_position_candidate_does_not_override_station_capability() {
 fn production_makes_only_the_position_emit_entry() {
     assert_eq!(super::positions::ENTRIES, ["emit"]);
     let module = naga::front::wgsl::parse_str(include_str!("positions.wgsl")).unwrap();
-    let made: Vec<_> = module.entry_points.iter().map(|e| e.name.as_str()).collect();
+    let made: Vec<_> = module
+        .entry_points
+        .iter()
+        .map(|e| e.name.as_str())
+        .collect();
     assert_eq!(made, super::positions::ENTRIES);
     assert_eq!(
         super::positions::entries(),

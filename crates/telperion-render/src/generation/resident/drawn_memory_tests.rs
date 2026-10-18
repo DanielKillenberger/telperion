@@ -4,7 +4,7 @@
 //! its largest buffers, the drawn records and swept nodes at that peak,
 //! the buffers the drawn tree keeps once submitted, and the buffers a
 //! still at the hero pose adds.
-use super::super::{Delivery, Generator};
+use super::super::Generator;
 use crate::Renderer;
 
 fn megabytes(at: &[(&'static str, u64)], top: usize) -> String {
@@ -70,7 +70,7 @@ fn the_drawing_s_memory() {
             let gen = Generator::new(&renderer).expect("a generator");
             pollster::block_on(crate::generation::io::complete(&gen.gpu)).expect("idle");
             gen.gpu.ledger.take_peak_census();
-            let prepared = gen.prepare(&family, Delivery::Resident).expect("prepared");
+            let prepared = gen.prepare(&family).expect("prepared");
             let (peak, at) = gen.gpu.ledger.take_peak_census();
             renderer.submit_prepared(prepared).expect("submitted");
             pollster::block_on(crate::generation::io::complete(&gen.gpu)).expect("idle");
@@ -160,7 +160,7 @@ fn the_drawn_levels() {
         let family = telperion_core::presets::by_identity(id).expect("a preset");
         let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
         let gen = Generator::new(&renderer).expect("a generator");
-        let prepared = gen.prepare(&family, Delivery::Resident).expect("prepared");
+        let prepared = gen.prepare(&family).expect("prepared");
         renderer.submit_prepared(prepared).expect("submitted");
         renderer.set_family(&family);
         let bounds = renderer.bounds().expect("a tree drawn");

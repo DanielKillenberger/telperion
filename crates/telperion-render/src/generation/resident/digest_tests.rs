@@ -5,7 +5,7 @@
 //! same lines; a change that keeps the device's trees keeps every line.
 //!
 //!   DIGEST_SEEDS=1,7,42 [DIGEST_PRESETS=norway-spruce] [DIGEST_DUMP=leaves.bin] cargo test --profile ci -p telperion-render digest -- --ignored --nocapture
-use super::super::{io, Delivery, Generator, Prepared};
+use super::super::{io, Generator, Prepared};
 use std::fmt::{Debug, Write};
 use telperion_core::pipeline::executor;
 use telperion_core::presets::{Preset, CATALOGUE};
@@ -107,7 +107,7 @@ fn digest() {
                 println!("{id} {seed}: not drawn on the device");
                 continue;
             }
-            let prepared = gen.prepare(&family, Delivery::Resident).unwrap();
+            let prepared = gen.prepare(&family).unwrap();
             println!("{id} {seed}: {}", line(&gen, &prepared));
         }
     }

@@ -6,7 +6,7 @@
 //! printed by label (fn-256 task 5's census).
 //! `cargo test --profile ci -p telperion-render build_time -- --ignored
 //! --nocapture`.
-use super::{Delivery, Generator};
+use super::Generator;
 use crate::Renderer;
 
 #[test]
@@ -39,7 +39,7 @@ fn build_time() {
         for _ in 0..2 {
             gpu.ledger.take_peak_census();
             let t = super::Clock::now();
-            let prepared = match gen.prepare(&family, Delivery::Resident) {
+            let prepared = match gen.prepare(&family) {
                 Ok(p) => p,
                 Err(e) => {
                     println!("| {id} | {} | refused: {e} | | |", family.age);

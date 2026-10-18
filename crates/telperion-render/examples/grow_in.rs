@@ -8,8 +8,8 @@
 //!     <out dir> <preset> <steps a year> [<first year>]
 use telperion_core::presets::by_identity;
 use telperion_render::{
-    generation::{Delivery, Generator},
-    hero_pose, render, write_png, Gpu, Renderer, SceneRow, GROUND_REACH, STILL_FORMAT,
+    generation::Generator, hero_pose, render, write_png, Gpu, Renderer, SceneRow, GROUND_REACH,
+    STILL_FORMAT,
 };
 
 const SIZE: (u32, u32) = (960, 720);
@@ -32,9 +32,7 @@ fn main() -> Result<(), String> {
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let gen = Generator::new(&renderer).map_err(|e| e.to_string())?;
     // The camera frames the tree at its age, built once and let go.
-    let grown = gen
-        .prepare(&family, Delivery::Resident)
-        .map_err(|e| e.to_string())?;
+    let grown = gen.prepare(&family).map_err(|e| e.to_string())?;
     let camera = hero_pose(
         grown.bounds(),
         f64::from(SIZE.0) / f64::from(SIZE.1),

@@ -1,5 +1,5 @@
 //! Optional shared GPU foliage experiment. The existing pure-core build paths
-//! remain available; every request explicitly states its delivery mode.
+//! remain available.
 mod clock;
 mod compute;
 use clock::Clock;
@@ -29,19 +29,6 @@ use crate::{buffer::Held, Gpu, Renderer, Result, Submitted};
 use std::sync::Arc;
 use telperion_core::{mesh::TreeMesh, surface::Bounds, Family};
 
-/// Requested geometry ownership, independent of the compute backend.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Delivery {
-    /// Keep the output on the renderer's device.
-    Resident,
-}
-/// Backend for the reported stage: [`Prepared::backend`] describes foliage;
-/// [`Metrics::wood_backend`] reports wood independently.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Backend {
-    /// GPU execution.
-    Gpu,
-}
 /// Diagnostics for one preparation request. `_ms` fields are host wall-clock
 /// milliseconds, not GPU timestamps; `_bytes` fields count selected allocation
 /// capacities in bytes. Stage timings can nest or overlap and must not be summed.
@@ -77,7 +64,6 @@ pub struct Metrics {
     pub wood_prepared_cpu_bytes: u64,
     pub wood_metadata_cpu_bytes: u64,
     pub wood_gpu_peak_bytes: u64,
-    pub wood_backend: Option<Backend>,
     /// Unstable diagnostic text; absent when no fallback reason was recorded.
     pub wood_fallback: Option<&'static str>,
     /// Preparation only: excludes adoption, drawing and completed-frame fencing.
@@ -113,7 +99,6 @@ pub struct Prepared {
     /// The wood's curve already on the device, which the submit takes in
     /// place of `mesh.curve` (fn-212 task 7).
     wood: Option<crate::curve::CurveGpu>,
-    pub backend: Backend,
     pub metrics: Metrics,
     /// How far the tree's falling leaves have coloured (fn-270 R5c), which
     /// the submit draws them by: whole for a tree built at once.
@@ -207,15 +192,12 @@ impl Generator {
         })
     }
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn prepare(&self, family: &Family, delivery: Delivery) -> Result<Prepared> {
-        pollster::block_on(self.prepare_async(family, delivery))
+    pub fn prepare(&self, family: &Family) -> Result<Prepared> {
+        pollster::block_on(self.prepare_async(family))
     }
-    /// `family` prepared as `delivery` asks: grown, drawn and placed on
-    /// the device whole (fn-256 R1).
-    pub async fn prepare_async(&self, family: &Family, delivery: Delivery) -> Result<Prepared> {
-        match delivery {
-            Delivery::Resident => self.prepare_resident(family).await,
-        }
+    /// `family` grown, drawn and placed on the device whole (fn-256 R1).
+    pub async fn prepare_async(&self, family: &Family) -> Result<Prepared> {
+        self.prepare_resident(family).await
     }
 }
 

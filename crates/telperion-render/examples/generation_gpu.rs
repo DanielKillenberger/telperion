@@ -4,8 +4,7 @@ use serde_json::json;
 use std::time::Instant;
 use telperion_core::{mesh, presets::Preset};
 use telperion_render::{
-    generation::{Delivery, Generator},
-    hero_pose, Frame, Gpu, Renderer, GROUND_REACH, STILL_FORMAT,
+    generation::Generator, hero_pose, Frame, Gpu, Renderer, GROUND_REACH, STILL_FORMAT,
 };
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<_> = std::env::args().collect();
@@ -54,9 +53,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let previous_tree_gpu_bytes = renderer.as_ref().map_or(0, Generator::tree_buffer_bytes);
         let start = Instant::now();
         let (count, bounds, stages, prepared, cpu) = if let Some(generator) = &generator {
-            let prepared = generator.prepare(&family, Delivery::Resident)?;
+            let prepared = generator.prepare(&family)?;
             let m = &prepared.metrics;
-            let stages = json!({"backend":format!("{:?}",prepared.backend),"positionPrepareMs":m.position_prepare_ms,"positionUploadMs":m.position_upload_ms,"positionWaitMs":m.position_wait_ms,"positionCpuBytes":m.position_cpu_bytes,"positionGpuPeakBytes":m.position_gpu_peak_bytes,"positionRetainedMetadataBytes":m.position_retained_metadata_bytes,"positionFallback":m.position_fallback,"gpuPositions":m.gpu_positions,"skeletonMs":m.skeleton_ms,"descriptorsMs":m.descriptors_ms,"uploadDispatchMs":m.upload_dispatch_ms,"placementWaitMs":m.placement_wait_ms,"massMs":m.mass_ms,"readbackMs":m.readback_ms,"woodMs":m.wood_ms,"woodPrepareMs":m.wood_prepare_ms,"woodUploadDispatchMs":m.wood_upload_dispatch_ms,"woodWaitMs":m.wood_wait_ms,"woodPreparedCpuBytes":m.wood_prepared_cpu_bytes,"woodMetadataCpuBytes":m.wood_metadata_cpu_bytes,"woodGpuPeakBytes":m.wood_gpu_peak_bytes,"woodBackend":m.wood_backend.map(|b| format!("{b:?}")),"woodFallback":m.wood_fallback,"baseCpuBytes":m.base_cpu_bytes,"woodCpuBytes":m.wood_cpu_bytes,"retainedGpuBytes":m.retained_gpu_bytes,"descriptorCpuBytes":m.descriptor_cpu_bytes,"sharedContactCpuBytes":m.shared_contact_cpu_bytes,"sharedPrepareCpuBytes":m.shared_prepare_cpu_bytes,"sharedMetadataCpuBytes":m.shared_metadata_cpu_bytes,"gpuComputePeakBytes":m.gpu_compute_peak_bytes});
+            let stages = json!({"positionPrepareMs":m.position_prepare_ms,"positionUploadMs":m.position_upload_ms,"positionWaitMs":m.position_wait_ms,"positionCpuBytes":m.position_cpu_bytes,"positionGpuPeakBytes":m.position_gpu_peak_bytes,"positionRetainedMetadataBytes":m.position_retained_metadata_bytes,"positionFallback":m.position_fallback,"gpuPositions":m.gpu_positions,"skeletonMs":m.skeleton_ms,"descriptorsMs":m.descriptors_ms,"uploadDispatchMs":m.upload_dispatch_ms,"placementWaitMs":m.placement_wait_ms,"massMs":m.mass_ms,"readbackMs":m.readback_ms,"woodMs":m.wood_ms,"woodPrepareMs":m.wood_prepare_ms,"woodUploadDispatchMs":m.wood_upload_dispatch_ms,"woodWaitMs":m.wood_wait_ms,"woodPreparedCpuBytes":m.wood_prepared_cpu_bytes,"woodMetadataCpuBytes":m.wood_metadata_cpu_bytes,"woodGpuPeakBytes":m.wood_gpu_peak_bytes,"woodFallback":m.wood_fallback,"baseCpuBytes":m.base_cpu_bytes,"woodCpuBytes":m.wood_cpu_bytes,"retainedGpuBytes":m.retained_gpu_bytes,"descriptorCpuBytes":m.descriptor_cpu_bytes,"sharedContactCpuBytes":m.shared_contact_cpu_bytes,"sharedPrepareCpuBytes":m.shared_prepare_cpu_bytes,"sharedMetadataCpuBytes":m.shared_metadata_cpu_bytes,"gpuComputePeakBytes":m.gpu_compute_peak_bytes});
             (
                 prepared.count(),
                 prepared.bounds(),
