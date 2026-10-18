@@ -235,7 +235,6 @@ pub fn build(family: &Family, request: Request) -> Result<Built> {
 fn fitted(tree: &mut Tree) {
     tree.nodes.shrink_to_fit();
     tree.sections.shrink_to_fit();
-    tree.pipe.shrink_to_fit();
     tree.frames.shrink_to_fit();
     tree.keys.shrink_to_fit();
     tree.grown.shrink_to_fit();
@@ -256,14 +255,13 @@ pub(crate) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     planned::outputs(tree, inputs, request)
 }
 
-// Today's grower (the scaffold, its twig layer and radius solve): no
-// production path reaches it since the engine is stage 2 (fn-198); the
-// suite grows its tests' trees with it until R0 removes it.
-#[cfg_attr(not(test), allow(dead_code))]
+// The scaffold's parameter groups, its leaf bases and the skeleton's
+// validation. Its grower (the scaffold, its twig layer and radius solve)
+// compiles only into tests: no production path reaches it since the engine
+// is stage 2 (fn-198), and the suite grows its tests' trees with it until
+// fn-288 removes it.
 mod bias;
-#[cfg_attr(not(test), allow(dead_code))]
 mod branching;
-#[cfg_attr(not(test), allow(dead_code))]
 mod colonization;
 pub mod contract;
 mod field;
@@ -271,13 +269,11 @@ mod foliage;
 // Reached only by the suite, which holds a prediction to the specimen.
 #[cfg(all(test, feature = "geometry"))]
 mod footprint;
-#[cfg_attr(not(test), allow(dead_code))]
 mod radius;
 mod space;
 /// Growth that continues from any age (fn-270 R2).
 pub use space::growth;
 mod surface;
-#[cfg_attr(not(test), allow(dead_code))]
 mod twigs;
 /// What the rest of the crate reads of the stages: the family's own checks.
 pub(crate) use {

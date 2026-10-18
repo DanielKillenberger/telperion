@@ -203,7 +203,7 @@ impl Grown {
         let reference = Reference::grown(&tree, plan.reach.clone()?);
         let root = tree.nodes.first().map_or(0.0, |n| n.radius);
         let slender =
-            tree.stem_radius(|i| tree.pipe(i)[1]) * self.inputs.leaves.canopy.shoot_radius;
+            tree.stem_radius(|i| tree.nodes[i].radius) * self.inputs.leaves.canopy.shoot_radius;
         Ok(Expansion {
             bearing: [super::space::STRUCTURAL * root, slender],
             retains: !tree.leafing.is_empty(),

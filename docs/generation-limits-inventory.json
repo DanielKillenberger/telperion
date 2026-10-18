@@ -37,12 +37,6 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/branching.rs",
-    "site": "if ! shell_depth . is_finite ( ) | | shell_depth < 0 . 0 {",
-    "classification": "parameter",
-    "reason": "Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching.rs",
     "site": "if height < = 0 . 0 {",
     "classification": "parameter",
     "reason": "A zero-height family has no positive-volume tree to generate."
@@ -54,252 +48,6 @@
     "reason": "The trunkHeight override is refused by name at zero or below: a crown with no bole below it leaves the build nothing to sweep (fn-123, host design)."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/branching/local/advance.rs",
-    "site": ". clamp ( crate : : ranges : : ANGLE . 0 , crate : : ranges : : ANGLE . 1 )",
-    "classification": "parameter",
-    "reason": "Derived lateral ratio/departure stays in its named validated authoring range; endpoint bounds come from ranges.rs."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/advance.rs",
-    "site": ". clamp ( crate : : ranges : : LENGTH_RATIO . 0 , crate : : ranges : : LENGTH_RATIO . 1 )",
-    "classification": "parameter",
-    "reason": "Derived lateral ratio/departure stays in its named validated authoring range; endpoint bounds come from ranges.rs."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/advance.rs",
-    "site": ". max ( 0 . 0 )",
-    "classification": "algorithm",
-    "reason": "Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/advance.rs",
-    "site": ". max ( 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "Nonempty discretization requires at least one interval or station; the upper size remains parameter-derived."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/advance.rs",
-    "site": ". max ( 1e - 6 )",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
-    "site": ". clamp ( - 1 . 0 , 1 . 0 )",
-    "classification": "numeric",
-    "reason": "Unit-vector dot-product domain for inverse trigonometry; protects against floating-point overshoot."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
-    "site": ". clamp ( 0 . 0 , 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "Normalized geometric interpolation/projection coordinate stays within its endpoint interval."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
-    "site": ". clamp ( 0 . 0 , 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "The share of a stride kept above the curtain's floor is an interpolation coordinate within the stride (fn-183)."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
-    "site": ". clamp ( 0 . 0 , t . max_droop )",
-    "classification": "parameter",
-    "reason": "Droop is limited by the caller's validated maxDroop field."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
-    "site": ". max ( 0 . 0 )",
-    "classification": "algorithm",
-    "reason": "Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
-    "site": ". max ( 1e - 9 )",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
-    "site": ". min ( ( y - floor ) . max ( 0 . 0 ) / descent . max ( 1e - 9 ) * t . curtain_step_clearance )",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
-    "site": ". min ( 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "Unit progress or blend weight saturates at its endpoint; the authored length and population remain independent."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
-    "site": ". min ( 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "Unit progress or blend weight saturates at its endpoint; the authored length and population remain independent."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
-    "site": ". min ( 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "Unit progress or blend weight saturates at its endpoint; the authored length and population remain independent."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
-    "site": ". min ( 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "The hang row's weight on the sag's turn saturates at full hang (fn-183); the authored length and population remain independent."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
-    "site": "if turn < = 1e - 12 {",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/planner.rs",
-    "site": ". clamp ( 0 . 0 , 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "Normalized geometric interpolation/projection coordinate stays within its endpoint interval."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/planner.rs",
-    "site": ". max ( 0 . 0 )",
-    "classification": "algorithm",
-    "reason": "Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/planner.rs",
-    "site": ". max ( 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "Nonempty discretization requires at least one interval or station; the upper size remains parameter-derived."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/planner.rs",
-    "site": ". max ( if bearing { 1 } else { self . twigs . laterals as usize + 1 } )",
-    "classification": "algorithm",
-    "reason": "Station spacing includes the authored laterals and bearing station; geometry determines the resulting station count."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/planner.rs",
-    "site": ". max ( self . twigs . laterals as usize + 1 )",
-    "classification": "algorithm",
-    "reason": "Station spacing includes the authored laterals and bearing station; geometry determines the resulting station count."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/planner.rs",
-    "site": ". min ( 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "Unit progress or blend weight saturates at its endpoint; the authored length and population remain independent."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/planner.rs",
-    "site": "if actual < = 1e - 9 {",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/planner.rs",
-    "site": "while along . len ( ) > 2 & & along [ along . len ( ) - 2 ] > = actual {",
-    "classification": "algorithm",
-    "reason": "Prunes a sampled polyline to its actual geometric endpoint or locates the containing edge; the two endpoints define a segment."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/planner.rs",
-    "site": "while edge < along . len ( ) - 1 & & along [ edge ] < d {",
-    "classification": "algorithm",
-    "reason": "Prunes a sampled polyline to its actual geometric endpoint or locates the containing edge; the two endpoints define a segment."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/local/seed.rs",
-    "site": "if tree . nodes . len ( ) < 2 {",
-    "classification": "algorithm",
-    "reason": "An edge or fork requires at least two endpoints/stems; empty/root-only topology has no segment to process."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
-    "site": ". clamp ( 0 . 0 , PI )",
-    "classification": "algorithm",
-    "reason": "A direction angle lies in the geometric half-circle domain."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
-    "site": ". max ( 1 )",
-    "classification": "algorithm",
-    "reason": "Nonempty discretization requires at least one interval or station; the upper size remains parameter-derived."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
-    "site": ". max ( 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "Nonempty discretization requires at least one interval or station; the upper size remains parameter-derived."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
-    "site": ". max ( 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "Nonempty discretization requires at least one interval or station; the upper size remains parameter-derived."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
-    "site": ". max ( 1e - 6 )",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
-    "site": ". max ( 1e - 9 )",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
-    "site": ". max ( 1e - 9 )",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
-    "site": ". max ( 1e - 9 )",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
-    "site": ". max ( 1e - 9 )",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
-    "site": ". clamp ( 0 . 0 , 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "A station's height share of the crown lies between the crown's base and its top by definition."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
-    "site": "if ! self . planning . contains ( next , 0 . 0 , self . config . seed ) | | next . y < self . config . trunk_height {",
-    "classification": "algorithm",
-    "reason": "Zero-length or outside-shell scaffold segments are omitted according to authored geometry."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
-    "site": "if start . distance ( position ) < = 1e - 9 {",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
-    "site": ". max ( 0 . 0 )",
-    "classification": "algorithm",
-    "reason": "Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
-    "site": ". clamp ( 0 . 0 , 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "A fork height is a share of the tree's height, between its root and its top by definition."
-  },
-  {
     "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
     "site": "if habit . codominance < = 0 . 0 {",
     "classification": "parameter",
@@ -307,33 +55,9 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
-    "site": "if params . envelope . height < = 0 . 0 | | top < = 0 . 0 {",
-    "classification": "algorithm",
-    "reason": "Zero-length or outside-shell scaffold segments are omitted according to authored geometry."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
-    "site": "if s < = 1e - 12 {",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
     "site": ". clamp ( 0 . 0 , 1 . 0 )",
     "classification": "algorithm",
     "reason": "Unit progress or blend weight saturates at its endpoint; the authored length and population remain independent."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
-    "site": "if s < = 1e - 15 {",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold/frontier.rs",
-    "site": "while budget > 0 & & ! b . tree . diagnostics . node_capped {",
-    "classification": "parameter",
-    "reason": "Progress is bounded by the caller's work budget, authored lifetime, or remaining work, not a hidden population limit."
   },
   {
     "path": "crates/telperion-core/src/pipeline/branching/specimen.rs",
@@ -343,21 +67,9 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/colonization.rs",
-    "site": ". clamp ( - 1 . 0 , 1 . 0 )",
-    "classification": "numeric",
-    "reason": "Unit-vector dot-product domain for inverse trigonometry; protects against floating-point overshoot."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/colonization.rs",
     "site": "if ! [ self . influence_radius , self . kill_distance , self . trunk_height , self . max_turn_per_step , ] . iter ( ) . all ( | x | x . is_finite ( ) & & * x > = 0 . 0 ) | | ! self . step_distance . is_finite ( ) | | self . step_distance < = 0 . 0 | | ! self . influence_radius . powi ( 2 ) . is_finite ( ) | | ! self . kill_distance . powi ( 2 ) . is_finite ( ) | | ! self . step_distance . powi ( 2 ) . is_finite ( ) {",
     "classification": "parameter",
     "reason": "Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/colonization.rs",
-    "site": "if sine < 1e - 9 {",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
   },
   {
     "path": "crates/telperion-core/src/pipeline/colonization/fill.rs",
@@ -672,14 +384,8 @@
     "reason": "Disabled, empty, or geometrically separated foliage has no placements to emit."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/foliage/plan.rs",
-    "site": ". max ( tree . pipe ( i ) [ 1 ] )",
-    "classification": "algorithm",
-    "reason": "The thicker of a segment's two pipe radii, which decides whether that wood bears leaves; it limits no generated population."
-  },
-  {
     "path": "crates/telperion-core/src/pipeline/foliage/placement.rs",
-    "site": "while first > 0 & & tree . pipe ( run [ first - 1 ] ) [ 1 ] < = max_radius {",
+    "site": "while first > 0 & & tree . nodes [ run [ first - 1 ] ] . radius < = max_radius {",
     "classification": "algorithm",
     "reason": "Finds the authored run/station's containing segment; index zero is the natural start of the polyline."
   },
@@ -814,18 +520,6 @@
     "site": "for i in 0 . . 256 {",
     "classification": "algorithm",
     "reason": "The 256-entry permutation table defines the noise algorithm; all entries are visited, with no generation truncation."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/radius.rs",
-    "site": ". max ( 1e - 6 )",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/radius/hold.rs",
-    "site": ". min ( 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "A share of an axis's reach ends at its tip: the girth's fall is cut at share one so every axis reaches the pipe radius there; it limits no generated population."
   },
   {
     "path": "crates/telperion-core/src/ranges.rs",
@@ -1081,24 +775,6 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/twigs.rs",
-    "site": ". max ( 0 . 0 )",
-    "classification": "algorithm",
-    "reason": "Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/twigs.rs",
-    "site": ". max ( 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "Nonempty discretization requires at least one interval or station; the upper size remains parameter-derived."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/twigs.rs",
-    "site": ". max ( self . internode_factor * 2 . 0 * radius )",
-    "classification": "algorithm",
-    "reason": "Internode spacing scales with wood radius and authored internode factor; larger branches determine their own station layout."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/twigs.rs",
     "site": "const MAX_GENERATIONS : u32 = 6 ;",
     "classification": "parameter",
     "reason": "MAX_GENERATIONS is the named validated twig generation domain."
@@ -1204,12 +880,6 @@
     "site": "for row in 0 . . 3 {",
     "classification": "algorithm",
     "reason": "The three rows of one basis column of a leaf transform; a column has three."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/specimen/budget.rs",
-    "site": "while high - low > 1 {",
-    "classification": "algorithm",
-    "reason": "Bisection over the twig detail levels ends when its bracket is one level wide; the levels come from the twig generations row and the bound from maxNodes, so it limits the search, not the tree (fn-180)."
   },
   {
     "path": "crates/telperion-core/src/pipeline/surface/rings.rs",

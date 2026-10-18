@@ -1,12 +1,16 @@
 //! Structural fork solve and the separate branch-local taper contract.
+#[cfg(test)]
 mod hold;
 use crate::catalogue::{bounded, tuned, value, Bounds, Growth, Site};
-use crate::math::Transcendental;
+use crate::Result;
+#[cfg(test)]
 use crate::{
     envelope::Envelope,
+    math::Transcendental,
     tree::{BudFate, Tree},
-    Error, Result,
+    Error,
 };
+#[cfg(test)]
 pub(crate) use hold::hold;
 crate::catalogue::rows! {
     #[derive(Debug, Clone, Copy, PartialEq)]
@@ -150,6 +154,7 @@ impl RadiusParams {
 /// sibling `forkBalance` of its weight, and a primary all of it. The one
 /// allocation both solves read, so the parent's wood is always the sum of
 /// the wood its children leave with.
+#[cfg(test)]
 pub(crate) fn share(tree: &Tree, j: usize, p: RadiusParams) -> f64 {
     let n = &tree.nodes[j];
     match (n.shoot.bud_fate, n.codominant) {
@@ -158,6 +163,7 @@ pub(crate) fn share(tree: &Tree, j: usize, p: RadiusParams) -> f64 {
         (BudFate::Terminal, None) => 1.0,
     }
 }
+#[cfg(test)]
 pub fn solve(tree: &mut Tree, envelope: Envelope, params: RadiusParams) -> Result<()> {
     tree.validate()?;
     envelope.validate()?;

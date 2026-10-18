@@ -99,7 +99,7 @@ fn runs(tree: &Tree, p: CanopyParams, twig: Option<TwigPlacement>) -> Vec<Vec<us
     match twig {
         Some(_) => bearing_runs(tree, p),
         None => {
-            let slender = tree.stem_radius(|i| tree.pipe(i)[1]) * p.shoot_radius;
+            let slender = tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius;
             let shoots = shoots(tree, slender);
             shoots
                 .into_iter()
@@ -235,7 +235,7 @@ fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {
     let leader = |at: usize| {
         let mut best = children[at][0];
         for &c in &children[at][1..] {
-            if tree.pipe(c)[0] > tree.pipe(best)[0] {
+            if tree.nodes[c].start_radius > tree.nodes[best].start_radius {
                 best = c;
             }
         }
@@ -268,12 +268,12 @@ fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {
             run.push(next);
             at = next;
         }
-        if tree.pipe(at)[1] > max_radius {
+        if tree.nodes[at].radius > max_radius {
             continue;
         }
         let last = run.len() - 1;
         let mut first = last;
-        while first > 0 && tree.pipe(run[first - 1])[1] <= max_radius {
+        while first > 0 && tree.nodes[run[first - 1]].radius <= max_radius {
             first -= 1;
         }
         if first == last {

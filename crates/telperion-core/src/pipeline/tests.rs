@@ -348,7 +348,6 @@ fn the_built_tree_keeps_no_spare_capacity() {
     let spare = [
         t.nodes.capacity() - t.nodes.len(),
         t.sections.capacity() - t.sections.len(),
-        t.pipe.capacity() - t.pipe.len(),
         t.frames.capacity() - t.frames.len(),
         t.keys.capacity() - t.keys.len(),
         t.grown.capacity() - t.grown.len(),
@@ -358,5 +357,5 @@ fn the_built_tree_keeps_no_spare_capacity() {
         t.leafing.capacity() - t.leafing.len(),
         t.unfolding.capacity() - t.unfolding.len(),
     ];
-    assert_eq!(spare, [0; 11]);
+    assert_eq!(spare, [0; 10]);
 }

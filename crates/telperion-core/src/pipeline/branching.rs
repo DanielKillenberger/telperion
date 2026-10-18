@@ -2,32 +2,43 @@
 use crate::math::Transcendental;
 mod lattice;
 mod leaf_bases;
+mod traits;
+// The scaffold's grower, which no production path reaches since the engine
+// is stage 2 (fn-198): the suite grows its tests' trees with it until fn-288
+// removes it. Of `scaffold` and `specimen`, only the checks `validate` makes
+// compile into production.
+#[cfg(test)]
 mod limbs;
+#[cfg(test)]
 mod local;
 mod scaffold;
 mod specimen;
-mod traits;
 use crate::catalogue::{input, tuned, value, Blend, Bounds, Dial, Growth, Site};
 use crate::ranges::DEFAULT_MAX_NODES;
+#[cfg(test)]
 use crate::{
+    envelope::distance_to_profile,
     envelope::queries::{self, Purpose},
-    envelope::{distance_to_profile, Envelope},
-    math::Vec3,
-    pipeline::bias::{BiasParams, GrowthBias},
-    pipeline::colonization::{self, GrowthConfig},
-    pipeline::radius::{self, RadiusParams},
-    pipeline::twigs::{branch_length, child_radius, TwigParams},
-    rng::Rng,
+    pipeline::bias::GrowthBias,
+    pipeline::colonization,
+    pipeline::radius,
+    pipeline::twigs::{branch_length, child_radius},
     tree::{Node, NodeKind, Tree},
-    Error, Result,
+};
+use crate::{
+    envelope::Envelope, math::Vec3, pipeline::bias::BiasParams,
+    pipeline::colonization::GrowthConfig, pipeline::radius::RadiusParams,
+    pipeline::twigs::TwigParams, rng::Rng, Error, Result,
 };
 #[cfg(test)]
 pub use leaf_bases::leaf_bases;
 pub use leaf_bases::{clothe_leaf_bases, hangs as hangs_leaf_bases, LeafBase, MAX_LEAF_BASES};
 #[cfg(test)]
 pub use local::{append, in_band as in_curtain_band};
-pub(crate) use specimen::validate as validate_skeleton;
+#[cfg(test)]
 use specimen::Specimen;
+
+pub(crate) use specimen::validate as validate_skeleton;
 pub use traits::HabitParams;
 pub const DEFAULT_STEP: f64 = 0.022;
 crate::catalogue::rows! {
@@ -231,6 +242,7 @@ impl SkeletonParams {
         Ok(c)
     }
 }
+#[cfg(test)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct GrowthReport {
     pub tree: Tree,
@@ -277,6 +289,7 @@ pub fn default_growth(e: Envelope, attractors: usize, step: f64) -> GrowthConfig
     }
 }
 /// Retain illuminated subtrees and complete leader runs; remap every parent and run ID.
+#[cfg(test)]
 pub fn shed(tree: &mut Tree, envelope: Envelope, shell_depth: f64) -> Result<usize> {
     tree.validate()?;
     envelope.validate()?;
@@ -357,6 +370,7 @@ pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthRe
 /// Generate solved structure only. Where `crowned`, every stem apex bears a
 /// rosette: it grows no twig layer and keeps its girth, since it is no tip.
 /// Representations are independent borrowed-tree requests.
+#[cfg(test)]
 pub(crate) fn crowned(
     params: &SkeletonParams,
     radii: RadiusParams,
@@ -368,6 +382,7 @@ pub(crate) fn crowned(
         shed: specimen.shed,
     })
 }
+#[cfg(test)]
 fn finish(
     tree: &mut Tree,
     params: &SkeletonParams,

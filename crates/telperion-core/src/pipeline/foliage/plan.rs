@@ -469,10 +469,10 @@ pub(super) fn cauline(tree: &Tree, p: CanopyParams, nodes: &[usize]) -> bool {
 /// `SHORTEST` in task 8): in float32 and float64 a girth within a float
 /// step of the bound read on either side of it.
 fn bearing_of(tree: &Tree, p: CanopyParams) -> impl Fn(usize) -> bool + '_ {
-    let slender = micrometres(tree.stem_radius(|i| tree.pipe(i)[1]) * p.shoot_radius);
+    let slender = micrometres(tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius);
     move |i: usize| {
         let n = &tree.nodes[i];
-        let girth = || micrometres(tree.pipe(i)[0].max(tree.pipe(i)[1]));
+        let girth = || micrometres(n.start_radius.max(n.radius));
         n.parent.is_some()
             && !tree.is_clustered(i)
             && (n.kind == NodeKind::Twig || (slender > 0. && girth() <= slender))

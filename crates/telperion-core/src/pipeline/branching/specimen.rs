@@ -1,10 +1,14 @@
 //! The direct build's grower: the scaffold and twig frontiers drained in
 //! botanical order, every node given a stable birth identity.
 use super::*;
+#[cfg(test)]
 use crate::tree::{NodeIdentity, NodeKey};
+#[cfg(test)]
 use slotmap::{DenseSlotMap, Key};
+#[cfg(test)]
 mod budget;
 
+#[cfg(test)]
 pub(crate) struct Specimen {
     pub(super) tree: Tree,
     pub(super) shed: usize,
@@ -49,6 +53,7 @@ pub(crate) fn validate(params: &SkeletonParams, radii: RadiusParams) -> Result<(
     scaffold::forks_placed(params)
 }
 
+#[cfg(test)]
 impl Specimen {
     pub(crate) fn new(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
         let twigs = rows(params, radii)?;

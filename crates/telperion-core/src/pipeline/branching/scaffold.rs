@@ -2,21 +2,27 @@
 //! habit traits, and every unit of every axis, leader included, takes its
 //! heading from one sum of the rule heading, the attractor pull and the bias
 //! field.
+#[cfg(test)]
 use super::limbs::{Bound, Limbs};
 use super::*;
+#[cfg(test)]
 use crate::envelope::queries::{self, Purpose};
 use crate::math::Transcendental;
+#[cfg(test)]
 use std::{
     collections::VecDeque,
     f64::consts::{FRAC_PI_2, PI, TAU},
 };
 
 /// Divergence of a scattered phyllotaxis, in radians.
+#[cfg(test)]
 const GOLDEN_ANGLE: f64 = 2.399_963_229_728_653;
 /// Room for the accumulated error of a run of growth units, in metres.
+#[cfg(test)]
 const TOLERANCE: f64 = 1e-9;
 /// A stream per axis, hashed from the family seed, the parent axis and the
 /// child index, so a trait step perturbs one subtree and not the whole crown.
+#[cfg(test)]
 fn axis_key(parent: u32, station: usize, member: usize) -> u32 {
     Rng::new(
         parent
@@ -27,6 +33,7 @@ fn axis_key(parent: u32, station: usize, member: usize) -> u32 {
 }
 
 #[derive(Clone)]
+#[cfg(test)]
 struct Axis {
     at: usize,
     heading: Vec3,
@@ -52,6 +59,7 @@ struct Axis {
     /// The shell the axis and everything it bears grow in.
     bound: Bound,
 }
+#[cfg(test)]
 impl Axis {
     fn new(at: usize, heading: Vec3, length: f64, order: u32, key: u32) -> Self {
         Self {
@@ -77,6 +85,7 @@ impl Axis {
 /// The step an axis of this order advances by: its own internode divided into
 /// whole growth steps, so a station always lands on a node at exactly the
 /// spacing the trait asks for.
+#[cfg(test)]
 fn growth_unit(habit: HabitParams, config: &GrowthConfig, order: u32) -> f64 {
     let spacing = if order == 0 {
         habit.leader_internode
@@ -91,6 +100,7 @@ fn growth_unit(habit: HabitParams, config: &GrowthConfig, order: u32) -> f64 {
 /// vertical plane through it. A plumb heading has no such plane, so within a
 /// micro-radian of plumb the bearing an x reference gives takes over by
 /// degree, the one a plumb heading has always taken.
+#[cfg(test)]
 fn tangent(heading: Vec3) -> Vec3 {
     let tangent = Vec3::Y.cross(heading);
     let plumb = 1.0 - tangent.length_squared() / 1e-12;
@@ -102,6 +112,7 @@ fn tangent(heading: Vec3) -> Vec3 {
 }
 /// The sideways, across and rising directions an axis heading `heading`
 /// wanders and rises in.
+#[cfg(test)]
 fn frame(heading: Vec3) -> (Vec3, Vec3, Option<Vec3>) {
     let side = heading.perpendicular();
     let across = heading.cross(side);
@@ -112,6 +123,7 @@ fn frame(heading: Vec3) -> (Vec3, Vec3, Option<Vec3>) {
         (up.length_squared() > 1e-12).then(|| up.normalized()),
     )
 }
+#[cfg(test)]
 struct Builder<'a> {
     tree: &'a mut Tree,
     envelope: Envelope,
@@ -126,6 +138,7 @@ struct Builder<'a> {
     limbs: &'a mut Limbs,
 }
 
+#[cfg(test)]
 impl Builder<'_> {
     fn capped(&mut self) -> bool {
         if self.tree.nodes.len() >= self.config.max_nodes {
@@ -483,6 +496,7 @@ impl Builder<'_> {
 }
 
 mod fork;
+#[cfg(test)]
 mod frontier;
 #[cfg(test)]
 mod limit_tests;
@@ -491,4 +505,5 @@ mod troll_tests;
 pub(super) use fork::placed as forks_placed;
 #[cfg(test)]
 pub(super) use frontier::generate;
+#[cfg(test)]
 pub(super) use frontier::Frontier;
