@@ -59,3 +59,10 @@
 - **Slowed by:** `artifact_digest` requests wood, leaves, field and structure but not `curve`, so the core digest cannot see a change to the mesh request's curve path; only `generation_digest`'s `mesh` line (`mesh::build`, `Request::mesh()`) covers it, and that run takes over ten minutes. A spot run of two presets at seed 1 was needed first.
 - **Cost:** about 5 minutes and one extra render build.
 - **Would have removed it:** `artifact_digest` requesting `curve: true` (it is the renderer's wood form), or BASELINE.md naming which digest covers which request flag.
+
+## 2026-10-18 - task 4: the limits inventory is keyed by file, so a moved function fails the gate
+
+- **Doing:** the task's full gate after moving `station_count` and `spacing` from `station.rs` to `plan/stations.rs`.
+- **Slowed by:** `tests/generation_limit_guard.rs` keys every limit site by file path, so moving a function unchanged fails the 35-minute gate (1402 passed, 1 failed) on three inventory rows, outside the task's Touches. No focused run names the guard as a reader of a file move.
+- **Cost:** one gate run's verdict lost to a bookkeeping failure, about 5 minutes to fix and re-run the guard alone.
+- **Would have removed it:** the guard named in the plan's quick commands for any task that moves code, or the inventory keyed by function rather than file.
