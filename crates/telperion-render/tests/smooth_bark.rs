@@ -22,6 +22,8 @@ const BIRCH_BARK: &str =
     r#"{"azimuth":30,"elevation":0,"fill":1,"targetHeight":0.06,"fov":45,"distance":1.5}"#;
 
 fn hash(mesh: &SurfaceMesh) -> u64 {
+    // The chunks laid end to end: the hash the flat wood had.
+    let mesh = mesh.flattened();
     mesh.positions
         .iter()
         .chain(&mesh.normals)

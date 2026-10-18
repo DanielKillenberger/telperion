@@ -53,6 +53,8 @@ export interface Diagnostics {
   /** Stations the leaf plan counts before any cull; zero without a plan. */
   leavesPlanned: number;
   surfaceBounds: Bounds | null; foliageBounds: Bounds | null;
+  /** Chunks the wood is written in; zero without a surface. */
+  surfaceChunks: number;
   /** The box every packed leaf position is quantised against. */
   foliageReference: LeafReference | null;
   fieldBounds: Bounds | null;
@@ -87,8 +89,13 @@ export interface FieldSnapshot {
   plan: { segments: Float64Array; stations: Uint32Array; sides: Float64Array; index: FieldIndexSnapshot };
   timings: { extractionMs: number; copyMs: number; totalMs: number };
 }
+/** One chunk of the wood: at most 65,536 vertices, its indices local to it.
+ * `positions` holds three f32 a vertex; `normals` two snorm16 a vertex, the
+ * unit normal folded onto the octahedron (`decodeNormals` in `./wood`). */
+export interface SurfaceChunk { positions: Float32Array; normals: Int16Array; indices: Uint16Array }
 export interface TreeOutput {
-  surface?: { positions: Float32Array; normals: Float32Array; indices: Uint32Array; bounds: Bounds | null };
+  /** The wood in chunks, each drawn on its own with 16-bit indices. */
+  surface?: { chunks: SurfaceChunk[]; bounds: Bounds | null };
   /** Three u32 words a leaf, decoded against `reference` by `./leaf`. The
    * sixteen-float form is never built here: twelve bytes are the storage. */
   foliage?: { positions: Float32Array; indices: Uint32Array; leaves: Uint32Array; reference: LeafReference | null; anatomy: FoliageAnatomy | null; bounds: Bounds | null };
@@ -109,6 +116,7 @@ interface Exports extends WebAssembly.Exports {
   request_alloc(n: number): number; request_ptr(): number;
   metadata_ptr(): number; metadata_len(): number; build(): number; release(): void;
   buffer_ptr(slot: number): number; buffer_len(slot: number): number;
+  chunk_ptr(chunk: number, field: number): number; chunk_len(chunk: number, field: number): number;
   field_snapshot(revision: number): number; field_snapshot_release(): void;
   query_alloc(count: number): number; query_ptr(): number; query(revision: number): number;
 }
@@ -158,13 +166,24 @@ export class TreeEngine {
     const f32 = (slot: number) => new Float32Array(e.memory.buffer, e.buffer_ptr(slot) >>> 0, e.buffer_len(slot)).slice();
     const u32 = (slot: number) => new Uint32Array(e.memory.buffer, e.buffer_ptr(slot) >>> 0, e.buffer_len(slot)).slice();
     const result: TreeOutput = { diagnostics };
-    if (outputs.surface) result.surface = { positions: f32(0), normals: f32(1), indices: u32(2), bounds: diagnostics.surfaceBounds };
+    if (outputs.surface) result.surface = { chunks: this.chunks(diagnostics.surfaceChunks), bounds: diagnostics.surfaceBounds };
     if (outputs.foliage) result.foliage = { positions: f32(3), indices: u32(4), leaves: u32(5), reference: diagnostics.foliageReference, anatomy: diagnostics.foliageAnatomy, bounds: diagnostics.foliageBounds };
     if (outputs.structure) result.structure = { values: new Float64Array(e.memory.buffer, e.buffer_ptr(6) >>> 0, e.buffer_len(6)).slice(), topology: u32(7) };
     if (outputs.field) result.field = { bounds: structuredClone(diagnostics.fieldBounds), query: cells => this.query(diagnostics.revision, cells), snapshot: () => this.snapshot(diagnostics) };
     diagnostics.timings.transferMs = performance.now() - transfer;
     diagnostics.timings.buildMs = performance.now() - started;
     return result;
+  }
+  /** Each wood chunk copied out of the core, chunk by chunk. */
+  private chunks(count: number): SurfaceChunk[] {
+    const e = this.e;
+    const view = <T>(type: new (b: ArrayBuffer, at: number, n: number) => T, chunk: number, field: number) =>
+      new type(e.memory.buffer, e.chunk_ptr(chunk, field) >>> 0, e.chunk_len(chunk, field));
+    return Array.from({ length: count }, (_, k) => ({
+      positions: view(Float32Array, k, 0).slice(),
+      normals: view(Int16Array, k, 1).slice(),
+      indices: view(Uint16Array, k, 2).slice(),
+    }));
   }
   private snapshot(diagnostics: Diagnostics): FieldSnapshot {
     const start = performance.now(), e = this.e;

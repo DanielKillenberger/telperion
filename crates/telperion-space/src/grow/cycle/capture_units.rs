@@ -281,7 +281,7 @@ impl Grower<'_> {
                     | u32::from(x.rest) << 2
                     | u32::from(x.carried) << 3
                     | u32::from(x.woke) << 4
-                    | u32::from(x.outlived.is_some()) << 5
+                    | u32::from(x.outlived().is_some()) << 5
                     | u32::from(x.alive) << 6
             }),
         );
@@ -289,7 +289,7 @@ impl Grower<'_> {
             &name("below"),
             &ax(&|x| u32::try_from(x.below).expect("below a tick")),
         );
-        c.u32s(&name("outlived"), &ax(&|x| x.outlived.map_or(0, tk)));
+        c.u32s(&name("outlived"), &ax(&|x| x.outlived().map_or(0, tk)));
         c.u32s(&name("ended_relays"), &ax(&|x| x.ended_relays));
         c.u32s(&name("aged"), &ax(&|x| tk(x.aged)));
         c.u32s(&name("sleep"), &ax(&|x| tk(x.sleep)));

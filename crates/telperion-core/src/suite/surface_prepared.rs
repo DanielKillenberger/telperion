@@ -22,9 +22,12 @@ fn prepared_preserves_canonical_surface_without_expanded_arrays() {
     let p = surface::prepared::prepare(&tree, 4.0, &params)
         .unwrap()
         .unwrap();
-    assert_eq!(p.positions, cpu.positions);
+    let spans: Vec<_> = cpu.run_table.iter().map(|r| r.span).collect();
+    assert_eq!(cpu.chunks.len(), 1);
     assert_eq!(p.bounds, cpu.bounds);
-    assert_eq!(p.run_table, cpu.run_table);
+    let cpu = cpu.flattened();
+    assert_eq!(p.positions, cpu.positions);
+    assert_eq!(p.run_table, spans);
     let indices: Vec<_> = p
         .runs
         .iter()
@@ -61,8 +64,9 @@ fn clumps_reserve_every_buried_ring_and_collapsed_surfaces_fall_back() {
         .unwrap()
         .unwrap();
     let cpu = surface::build(&tree, 4.0, &params).unwrap();
-    assert_eq!(p.positions, cpu.positions);
-    assert_eq!(p.run_table, cpu.run_table);
+    let spans: Vec<_> = cpu.run_table.iter().map(|r| r.span).collect();
+    assert_eq!(p.positions, cpu.flattened().positions);
+    assert_eq!(p.run_table, spans);
     assert_eq!(p.rings.capacity(), p.rings.len());
     tree.nodes[1].radius = 1e-300;
     assert!(surface::prepared::prepare(&tree, 4.0, &params)

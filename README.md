@@ -9,7 +9,10 @@ const engine = await TreeEngine.create();
 const family = structuredClone(TELPERION);
 family.skeleton.seed = 7;
 const tree = engine.build(family, { surface: true, foliage: true });
-// tree.surface: Float32 positions/normals, Uint32 indices, bounds.
+// tree.surface: the wood in chunks of at most 65,536 vertices, and bounds.
+// A chunk is Float32 positions, Int16 oct-encoded normals and Uint16 indices
+// local to it; draw each on its own. The decode is in
+// docs/migration-0.2-wood-chunks.md.
 // tree.foliage: one leaf mesh, twelve bytes a leaf - three Uint32 words with
 // the reference box they decode against - and bounds. `leafTransform` rebuilds
 // the sixteen column-major floats for a caller that wants them.
@@ -72,7 +75,7 @@ path that grew a specimen year by year was removed on 2026-10-02 (fn-181), to
 be rewritten with a different approach; [docs/growth-path.md](docs/growth-path.md)
 keeps its design and why it did not hold.
 
-The native entry is `branching::generate(&family.skeleton, family.radii)`. Its solved `Tree` can feed `surface::build`, foliage placement/culling, or `Field::new` independently. The Wasm binding assembles the requested stages; `src/browser` loads it and copies output arrays. There is no TypeScript generator and no TypeScript renderer.
+The native entry is `branching::generate(&family.skeleton, family.radii)`. Its solved `Tree` can feed `surface::build`, foliage placement/culling, or `Field::new` independently. The Wasm binding assembles the requested stages; `src/browser` loads it and copies output arrays, the wood chunk by chunk. There is no TypeScript generator and no TypeScript renderer.
 
 | Owner in `crates/telperion-core/src` | Responsibility |
 |---|---|

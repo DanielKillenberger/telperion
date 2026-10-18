@@ -1236,24 +1236,6 @@
     "reason": "Repeated where a vertex no triangle shades has its run swept again for its frames: the same height degeneracy floor as the ring step, so the frames match the rings it swept; it does not limit generated populations."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/surface/parallel.rs",
-    "site": ". take ( n * 2 )",
-    "classification": "algorithm",
-    "reason": "A worker's part of an output buffer is its runs' vertices times the floats each vertex holds; the parts tile the whole buffer and truncate nothing."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/surface/parallel.rs",
-    "site": ". take ( n * 3 )",
-    "classification": "algorithm",
-    "reason": "A worker's part of an output buffer is its runs' vertices times the floats each vertex holds; the parts tile the whole buffer and truncate nothing."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/surface/parallel.rs",
-    "site": ". take ( nv * 3 )",
-    "classification": "algorithm",
-    "reason": "A worker's part of an output buffer is its runs' vertices times the floats each vertex holds; the parts tile the whole buffer and truncate nothing."
-  },
-  {
     "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
     "site": ". max ( 1 . )",
     "classification": "algorithm",
@@ -1308,10 +1290,16 @@
     "reason": "Clusters tile a run to its last point and stop there; every point is in a cluster."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/surface/curve/pack.rs",
+    "path": "crates/telperion-core/src/pipeline/surface/encode.rs",
     "site": ". clamp ( - 1 . 0 , 1 . 0 )",
     "classification": "numeric",
-    "reason": "An octahedral component of a unit vector lies in [-1, 1]; the clamp only guards rounding before it is quantised to 16 bits. It does not limit generated populations."
+    "reason": "An octahedral component of a unit vector lies in [-1, 1]; the clamp only guards rounding before it is quantised (24 bits for the curve's frame, 16 for the wood's normals). It does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/encode.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "numeric",
+    "reason": "A bark coord's fraction of its reference range (the wood's longest distance along, or a turn) lies in [0, 1]; the clamp only guards rounding before it is quantised to 16 bits. It does not limit generated populations."
   },
   {
     "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate.rs",
@@ -1744,5 +1732,17 @@
     "site": ". max ( 0 . )",
     "classification": "algorithm",
     "reason": "The oldest living frond's place on the spiral is one short of the apex's whole fronds, none below the first (fn-277); it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/chunks.rs",
+    "site": ". min ( rest - 1 )",
+    "classification": "algorithm",
+    "reason": "A split run's middle piece stops one ring short of the run's end, so the last piece always holds rings; it bounds a piece by the run it cuts, not a generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/chunks.rs",
+    "site": "if repeats = = 1 & & v < segments {",
+    "classification": "algorithm",
+    "reason": "Addresses the first ring a split run's last piece repeats; it selects a vertex's place in its chunk and limits nothing generated."
   }
 ]

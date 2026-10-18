@@ -298,7 +298,7 @@ pub(crate) fn thicken_given(
         },
     );
     for (c, join) in given_out.iter().flat_map(|o| &o.1) {
-        structure.axes[*c].joined = Some(*join);
+        structure.axes[*c].joined = Some(Box::new(*join));
     }
     given_out.into_iter().map(|o| o.0).collect()
 }

@@ -1,9 +1,15 @@
 //! One owned engine per Wasm instance. No caller pointers enter native code.
 mod generate;
+#[cfg(any(target_arch = "wasm32", test))]
+mod live;
 use generate::{generate, Output};
 use serde_json::{json, Value};
 use std::cell::RefCell;
 use telperion_core::{math::Vec3, params, Error, Result};
+
+#[cfg(target_arch = "wasm32")]
+#[global_allocator]
+static ALLOCATOR: live::Counting = live::Counting;
 
 #[cfg(target_arch = "wasm32")]
 #[link(wasm_import_module = "env")]
@@ -53,6 +59,7 @@ fn status(e: &mut Engine, result: Result<Value>) -> u32 {
                 Error::InvalidInput(m) => (1, m.to_string()),
                 Error::InvalidValue { field, value } => (1, format!("{field} = {value}")),
                 Error::ResourceLimit(m) => (2, m.to_string()),
+                e @ Error::WoodMemory { .. } => (2, e.to_string()),
             };
             e.metadata = json!({"error": message, "code": code})
                 .to_string()
@@ -128,6 +135,8 @@ pub extern "C" fn release() {
 }
 #[no_mangle]
 pub extern "C" fn build() -> u32 {
+    #[cfg(target_arch = "wasm32")]
+    telperion_core::memory::set_left(live::left);
     ENGINE.with(|e| {
         let mut e = e.borrow_mut();
         e.output = Output::default();
@@ -149,18 +158,6 @@ pub extern "C" fn buffer_ptr(slot: u32) -> *const u8 {
         let e = e.borrow();
         let o = &e.output;
         match slot {
-            0 => o
-                .surface
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.positions.as_ptr().cast()),
-            1 => o
-                .surface
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.normals.as_ptr().cast()),
-            2 => o
-                .surface
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.indices.as_ptr().cast()),
             3 => o.element_positions.as_ptr().cast(),
             4 => o.element_indices.as_ptr().cast(),
             5 => o.instances.leaves.as_ptr().cast(),
@@ -187,12 +184,8 @@ pub extern "C" fn buffer_ptr(slot: u32) -> *const u8 {
                 .snapshot
                 .as_ref()
                 .map_or(std::ptr::null(), |s| s.leaves.topology.as_ptr().cast()),
-            // Surface coordinates, two floats a vertex, beside the positions
-            // in slots 0 and 3. A consumer that ignores them reads as before.
-            14 => o
-                .surface
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.coords.as_ptr().cast()),
+            // Slots 0 to 2 and 14 held the flat wood; `chunk_ptr` reads its
+            // chunks now.
             15 => o.element_coords.as_ptr().cast(),
             // Slots 16 to 18 held the removed growth path's buffers.
             // Beside the occupancy bits in slot 8: one f32 leaf-count
@@ -237,9 +230,6 @@ pub extern "C" fn buffer_len(slot: u32) -> usize {
         let e = e.borrow();
         let o = &e.output;
         match slot {
-            0 => o.surface.as_ref().map_or(0, |s| s.positions.len()),
-            1 => o.surface.as_ref().map_or(0, |s| s.normals.len()),
-            2 => o.surface.as_ref().map_or(0, |s| s.indices.len()),
             3 => o.element_positions.len(),
             4 => o.element_indices.len(),
             5 => o.instances.leaves.len() * telperion_core::foliage::WORDS,
@@ -254,7 +244,6 @@ pub extern "C" fn buffer_len(slot: u32) -> usize {
                 .map_or(0, |s| s.wood_index.topology.len()),
             12 => o.snapshot.as_ref().map_or(0, |s| s.leaves.bounds.len()),
             13 => o.snapshot.as_ref().map_or(0, |s| s.leaves.topology.len()),
-            14 => o.surface.as_ref().map_or(0, |s| s.coords.len()),
             15 => o.element_coords.len(),
             19 => e.leaves.len(),
             20 => e.limbs.len(),
@@ -270,6 +259,31 @@ pub extern "C" fn buffer_len(slot: u32) -> usize {
             _ => 0,
         }
     })
+}
+/// One field of wood chunk `chunk`, as bytes: 0 its positions, three f32 a
+/// vertex; 1 its normals, two i16 a vertex, octahedral; 2 its indices, u16
+/// local to the chunk. The metadata's `surfaceChunks` counts the chunks;
+/// any other chunk or field is empty.
+fn chunk_field(o: &Output, chunk: u32, field: u32) -> (*const u8, usize) {
+    let chunk = o
+        .surface
+        .as_ref()
+        .and_then(|s| s.chunks.get(chunk as usize));
+    match (chunk, field) {
+        (Some(c), 0) => (c.positions.as_ptr().cast(), c.positions.len()),
+        (Some(c), 1) => (c.normals.as_ptr().cast(), c.normals.len()),
+        (Some(c), 2) => (c.indices.as_ptr().cast(), c.indices.len()),
+        _ => (std::ptr::null(), 0),
+    }
+}
+#[no_mangle]
+pub extern "C" fn chunk_ptr(chunk: u32, field: u32) -> *const u8 {
+    ENGINE.with(|e| chunk_field(&e.borrow().output, chunk, field).0)
+}
+/// Elements, not bytes, in one field of one wood chunk (`chunk_ptr`).
+#[no_mangle]
+pub extern "C" fn chunk_len(chunk: u32, field: u32) -> usize {
+    ENGINE.with(|e| chunk_field(&e.borrow().output, chunk, field).1)
 }
 /// Explicit experiment export; ordinary builds and queries never allocate snapshots.
 #[no_mangle]

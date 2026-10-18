@@ -258,7 +258,7 @@ impl Shoot<'_, '_> {
     ) -> Result<()> {
         *self.units_mut(apex.axis) = spent;
         if why == Stop::Ended {
-            self.draws_mut(apex.axis).outlived = Some(used);
+            self.draws_mut(apex.axis).outlive(used);
         }
         let windows = self.windows();
         let axis = self.axis(apex.axis);
