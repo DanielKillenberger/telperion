@@ -109,3 +109,12 @@ hooks and test-only items) equal the baseline: core
 `raw/generation-digest-t2.txt` (byte-identical, sha256 `fb4ce911...`),
 resident `raw/resident-digest-t2.txt` (identical lines, under
 `telperion-heavy 10 --gpu 6`).
+
+## After task 3
+
+The three digests re-run after task 3's edits (the scaffold grower under
+`cfg(test)`, `Tree.pipe` deleted) equal the baseline: core
+`raw/core-digest-t3.txt` (all 24 lines), resident
+`raw/resident-digest-t3.txt` (identical lines, under
+`telperion-heavy 10 --gpu 6`), render pipeline
+`raw/generation-digest-t3.txt` (byte-identical, sha256 `fb4ce911...`).

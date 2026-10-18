@@ -65,3 +65,16 @@ whole by `#[cfg(test)]` but not named as tests: `closed_form/kept.rs`,
 `closed_form/kept/{bound,ends,mass,path,section}.rs`,
 `closed_form/boundary.rs` and `agree.rs`, 1563 lines. Less those, about
 20080 lines of the space crate compile into its non-test build.
+
+## Task 3: the scaffold grower and `Tree.pipe`
+
+`measure-lines.sh` counts files by name and so still counts the scaffold's
+modules now gated whole or in part by `#[cfg(test)]`; it reads 27962
+before and 27994 after (the gates and comments add lines).
+`measure-cfg-lines.py` (beside this file) walks the module tree from
+`lib.rs`, skips each `#[cfg(test)]` module and drops each `#[cfg(test)]`
+item, so it counts what compiles into the non-test build:
+
+| crate | non-test lines before (`e8f58a85e`) | after |
+| --- | ---: | ---: |
+| telperion-core | 25106 | 22884 |
