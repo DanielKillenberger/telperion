@@ -1,7 +1,9 @@
 {
   "branch_name": "fn-242-the-field-engines-own-size-comes-down",
   "created_at": "2026-10-09T07:01:48.766729Z",
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-293-each-stages-output-has-one-form-and-its"
+  ],
   "id": "fn-242-the-field-engines-own-size-comes-down",
   "next_task": 1,
   "plan_review_status": "unknown",
@@ -20,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T22:47:58.469391Z"
+  "updated_at": "2026-10-18T11:21:41.975835Z"
 }

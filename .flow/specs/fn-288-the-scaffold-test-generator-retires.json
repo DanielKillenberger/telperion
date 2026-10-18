@@ -1,7 +1,9 @@
 {
   "branch_name": "fn-288-the-scaffold-test-generator-retires",
   "created_at": "2026-10-15T22:47:52.443745Z",
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-293-each-stages-output-has-one-form-and-its"
+  ],
   "id": "fn-288-the-scaffold-test-generator-retires",
   "next_task": 1,
   "plan_review_status": "unknown",
@@ -20,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T22:47:52.450038Z"
+  "updated_at": "2026-10-18T11:21:41.060749Z"
 }

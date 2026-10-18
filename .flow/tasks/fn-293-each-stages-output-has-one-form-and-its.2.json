@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T11:21:25.435107Z",
+  "depends_on": [
+    "fn-293-each-stages-output-has-one-form-and-its.1"
+  ],
+  "id": "fn-293-each-stages-output-has-one-form-and-its.2",
+  "priority": null,
+  "spec": "fn-293-each-stages-output-has-one-form-and-its",
+  "spec_path": ".flow/tasks/fn-293-each-stages-output-has-one-form-and-its.2.md",
+  "status": "todo",
+  "title": "The space crate's experimental passes and test-only items leave production",
+  "updated_at": "2026-10-18T11:21:25.435107Z"
+}
