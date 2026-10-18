@@ -77,3 +77,7 @@ The review's one gap (P1, R3'): the oak at seed 1234 over 0.1.4. Re-measured war
 - **What hindered:** the committed `field_time` test reads seed 1 only and neither side reports the bytes held, so seeds 1234 and 5678 and the held memory needed a scratch test in two disposable worktrees, each building its own render test binary (the task's Touches are the evidence directory). The dcg hook refused the first build command because the redirect's parent directory did not exist yet.
 - **Cost:** two render-crate test builds (minutes each) and one retyped command.
 - **What would remove it:** `field_time` taking `FIELD_SEEDS` and printing the ledger's live bytes after the read-out, so a later pairing needs only the base's build.
+
+## 2026-10-18 — landing: push blocked by the SSH agent (local setup)
+
+Doing: pushing the release branch after merging fn-257 (e1fc54530) and closing it (19fd9ba28). Hindered: `git push` failed twice with `sign_and_send_pubkey: signing failed for ED25519 "github" from agent: communication with agent failed`, inside and outside the sandbox. Cost: about 2 minutes and the push itself, now left to the owner. Removed by: an unlocked SSH agent in the session's environment. A local setup problem on the owner's machine; reported, not specced.
