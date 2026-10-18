@@ -94,3 +94,10 @@
 - **Slowed by:** the hook refused `git checkout -- <file>` and `git show HEAD:<file> > <file>` for the revert, and a redirect to a path held in a shell variable for the digest. The revert went through `git diff | git apply -R` and the digest's redirect was spelled out in full. Separately, `cargo fmt -p telperion-core` rewrites three files the base leaves unformatted, so a crate-wide format is not safe in this tree.
 - **Cost:** about 3 minutes and three refused calls.
 - **Would have removed it:** the base formatted once (`cargo fmt --check` in CI), so a crate-wide format touches only the task's files.
+
+## 2026-10-19 - task 6: the command hook refused a heredoc edit and a script's redirect
+
+- **Doing:** rewriting `sweep.wgsl` through a Python heredoc, then writing a measuring script whose output went to a scratch path held in a variable.
+- **Slowed by:** the hook refused the heredoc ("embedded shell launcher cannot be statically verified"; the WGSL's backticks in a quoted heredoc) and a redirect to a path in a variable. Both were rewritten with the file-writing tool and literal paths.
+- **Cost:** about 5 minutes and two refused calls.
+- **Would have removed it:** the hook allowing a quoted (`<<'EOF'`) heredoc into `python3 -`, whose body the shell never expands.

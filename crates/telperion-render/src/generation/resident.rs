@@ -201,7 +201,6 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("resident stations", stations::source()),
         ("resident scan", stations::SCAN.to_string()),
         ("resident rings", rings::source()),
-        ("resident handoff", handoff::source()),
     ]
     .into_iter()
     .chain(field::sources())
@@ -242,9 +241,10 @@ mod field_tests;
 mod field_time_tests;
 mod florets;
 pub(super) mod fold;
-mod handoff;
 #[cfg(test)]
 mod hang_tests;
+#[cfg(test)]
+mod pack_tests;
 #[cfg(test)]
 mod repeat_tests;
 mod rings;

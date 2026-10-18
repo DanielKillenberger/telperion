@@ -1,6 +1,6 @@
 // The field (fn-257 R8): a read-out of the drawn stage's output to a grid,
-// as the renderer reads it. Its records are the drawn nodes as `gather`
-// lays them (`sweep.wgsl`'s `NW` words) and the station segments
+// as the renderer reads it. Its records are the drawn nodes, the dress's
+// records by id (`fold.rs`'s `Dressed`, fn-293), and the station segments
 // (`stations.wgsl`'s `GW` words). Here: each node's limb system
 // (`clumping::systems`, by pointer jumps), a frond leaflet's box as
 // placement draws it, and the box every record stands in. `field/splat.wgsl`
@@ -40,7 +40,7 @@ struct Cfg {
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
-@group(0) @binding(1) var<storage, read> nodes: array<f32>;
+@group(0) @binding(1) var<storage, read> drawn: array<f32>;
 @group(0) @binding(2) var<storage, read> segs: array<u32>;
 // The work words, `cfg.nodes` each: the widest start radius of a node's
 // carrying children and the least id of them so wide, whether the node
@@ -61,7 +61,7 @@ struct Cfg {
 
 const NONE: u32 = 0xffffffffu;
 
-const NW: u32 = 39u;
+const CV: u32 = 38u;
 
 const GW: u32 = 40u;
 
@@ -92,31 +92,42 @@ fn index_of(id: vec3<u32>) -> u32 {
     return id.x + id.y * cfg.row;
 }
 
+// Word `f` of node `i`'s drawn record (`dress.wgsl`'s `CV`).
+fn rec(i: u32, f: u32) -> f32 {
+    return drawn[i * CV + f];
+}
+
 fn word(i: u32, f: u32) -> u32 {
-    return bitcast<u32>(nodes[i * NW + f]);
+    return bitcast<u32>(rec(i, f));
+}
+
+// Its flags where the dress made it a node; none where it did not.
+fn flags(i: u32) -> u32 {
+    let f = word(i, 6u);
+    return select(0u, f, (f & MADE) != 0u);
 }
 
 fn pos(i: u32) -> vec3<f32> {
-    return vec3<f32>(nodes[i * NW], nodes[i * NW + 1u], nodes[i * NW + 2u]);
+    return vec3<f32>(rec(i, 0u), rec(i, 1u), rec(i, 2u));
 }
 
 fn parent(i: u32) -> u32 {
-    return word(i, 8u);
+    return word(i, 16u);
 }
 
 fn made(i: u32) -> bool {
-    return i == cfg.root || (word(i, 9u) & MADE) != 0u;
+    return i == cfg.root || (flags(i) & MADE) != 0u;
 }
 
 // A node of structural wood (`space.rs`'s kinds): the root, or wood as
 // thick as the bound; a retained leaf base never is.
 fn structural(i: u32) -> bool {
-    let thick = i == cfg.root || nodes[i * NW + 3u] >= cfg.bound.x;
-    return thick && (word(i, 9u) & BOOT) == 0u;
+    let thick = i == cfg.root || rec(i, 3u) >= cfg.bound.x;
+    return thick && (flags(i) & BOOT) == 0u;
 }
 
 fn sibling(i: u32) -> bool {
-    return nodes[i * NW + 5u] != 0.0;
+    return rec(i, 13u) != 0.0;
 }
 
 fn at(region: u32, i: u32) -> u32 {
@@ -151,9 +162,9 @@ struct Sweep {
 fn sweep_of(i: u32) -> Sweep {
     let p = parent(i);
     let b = pos(i);
-    let end = nodes[i * NW + 3u];
+    let end = rec(i, 3u);
     if i != cfg.root && p < cfg.nodes {
-        return Sweep(pos(p), b, nodes[i * NW + 4u], end);
+        return Sweep(pos(p), b, rec(i, 4u), end);
     }
     return Sweep(b, b, end, end);
 }
@@ -389,7 +400,7 @@ fn widest(@builtin(global_invocation_id) id: vec3<u32>) {
     if i >= cfg.nodes || !carries(i) {
         return;
     }
-    atomicMax(&work[at(WIDE, parent(i))], ord(nodes[i * NW + 4u]));
+    atomicMax(&work[at(WIDE, parent(i))], ord(rec(i, 4u)));
 }
 
 @compute @workgroup_size(64)
@@ -399,7 +410,7 @@ fn carrier(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let p = parent(i);
-    if ord(nodes[i * NW + 4u]) == atomicLoad(&work[at(WIDE, p)]) {
+    if ord(rec(i, 4u)) == atomicLoad(&work[at(WIDE, p)]) {
         atomicMin(&work[at(CARRIER, p)], i);
     }
 }

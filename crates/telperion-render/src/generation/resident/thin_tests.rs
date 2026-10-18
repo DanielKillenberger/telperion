@@ -25,7 +25,7 @@ fn the_oak_at_80_draws_no_radius_zero_node_on_the_device() {
         let mut f = telperion_core::presets::by_identity("oregon-white-oak").unwrap();
         (f.age, f.skeleton.seed) = (80.0, seed);
         let growth = executor::growth(&f).unwrap();
-        let (dressed, _) = pollster::block_on(tree::drawn(&gpu, &k, &growth)).unwrap();
+        let (dressed, _) = pollster::block_on(tree::drawn(&gpu, &k, (&growth, 0))).unwrap();
         let nodes = drawn_nodes(&gpu, &dressed);
         drop(dressed);
         let zero = nodes.iter().filter(|n| !(n.radii[0] > 0.0)).count();

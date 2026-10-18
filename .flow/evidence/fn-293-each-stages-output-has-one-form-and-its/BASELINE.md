@@ -175,3 +175,42 @@ unchanged; the leaves differ:
 
 Each moved leaf moved by about 0.19 mm, which looks like one step of the
 leaf's quantised position: a rounding boundary crossed, not a drift.
+
+## After task 6: one drawn-record buffer, the sweep writes the renderer's form
+
+Task 6's edits: the dress writes every wave into one buffer of records
+(by id, then the axes by slot, with room for the retained leaf bases);
+the sweep, stations and field read those records, the 39-word node table
+is gone; the sweep writes the packed curve and folds the demand and box,
+the handoff pass is gone; the rings read their frames from the packed
+points (host decision (a) on finding 3).
+
+- **Core:** `raw/core-digest-t6.txt`, all 24 lines equal `raw/core-digest-t8.txt`.
+- **Render pipeline:** `raw/generation-digest-t6.txt` byte-identical (sha256 `fb4ce911...`).
+- **Resident:** `raw/resident-digest-t6.txt` (`telperion-heavy 10 --gpu 6`, `DIGEST_BOUNDS=1`, log beside it).
+  21 of 24 lines equal the baseline. The norway spruce's three lines are
+  re-pinned: their points, clusters, sections and demand hashes are
+  unchanged, and only the leaves hash moved. Every tree's box
+  (`DIGEST_BOUNDS`, not hashed by the lines) equals the base build's
+  box, 24 of 24. The base was taken at `2f437cbd4` with the same switch,
+  in `raw/resident-digest-t6-base.log`.
+
+| preset | seed | line sha256 (re-pinned) | measured difference (`raw/t6-leaves-moved.txt`) |
+| --- | ---: | --- | --- |
+| norway-spruce | 1 | `946eb18751e42a277f00493b48ca0cdddf5fafeb061cc9f778135fd756284984` | 1 of 4,024,570 leaves moved, at most 0.194 mm; no rotation or scale changed |
+| norway-spruce | 7 | `3e5e30bcb2361c50ba8424d2564eccc28394c9545fd5289e72edc829f4ed137b` | 6 of 3,925,478 leaves moved, at most 0.197 mm; no rotation or scale changed |
+| norway-spruce | 42 | `14c998d0083b02c6b352e03b3254f2b8df4c1a10dc75c9da1324aadfce15fbe5` | 10 of 4,084,402 leaves moved, at most 0.195 mm; no rotation or scale changed |
+
+These are the same counts and distances the probe measured (above): the
+leaves were compared value by value (`DIGEST_DUMP`, base binary against
+after binary).
+
+- **Stills:** the spruce at seeds 1, 7 and 42 at the hero pose, 960x720
+  (`DIGEST_STILLS`), before and after. They are identical pixel for pixel
+  (decoded image data compared), so there is no visible difference.
+- **CPU and device (for fn-289):** the CPU reference's spruce leaves
+  (`prepare_whole_resident`, `DIGEST_CPU`) did not match the device's leaf
+  for leaf before this change either: the counts differ at seeds 1 and 7
+  (4,024,568 against 4,024,570; 3,925,480 against 3,925,478), and every
+  leaf differs by index (`raw/t6-cpu-vs-device.txt`). The 1, 6 and 10
+  moved leaves are a device-side change. No second path was built.

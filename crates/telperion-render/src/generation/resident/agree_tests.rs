@@ -7,7 +7,7 @@
 //! (fn-256 DESIGN.md 9.1). `AGREE_PRESETS` and `AGREE_AGE` widen them.
 use super::super::cycle::tree::{self, Kernels};
 use super::super::{io, Generator};
-use super::fold::{CA_WORDS, CV};
+use super::fold::CV;
 use super::stations::GW;
 use crate::Renderer;
 use std::collections::{BTreeSet, HashMap};
@@ -74,7 +74,7 @@ pub(in crate::generation) struct Node {
 /// Every node the device drew for `f`.
 fn device_nodes(gpu: &crate::Gpu, k: &Kernels, f: &Family) -> Vec<Node> {
     let growth = executor::growth(f).unwrap();
-    let (dressed, _) = pollster::block_on(tree::drawn(gpu, k, &growth)).unwrap();
+    let (dressed, _) = pollster::block_on(tree::drawn(gpu, k, (&growth, 0))).unwrap();
     drawn_nodes(gpu, &dressed)
 }
 
@@ -83,16 +83,16 @@ pub(in crate::generation) fn drawn_nodes(
     gpu: &crate::Gpu,
     dressed: &super::fold::Dressed,
 ) -> Vec<Node> {
-    let mut waves: Vec<Vec<Vec<u32>>> = Vec::new();
-    for w in &dressed.waves {
-        let words = w.axes as usize * CA_WORDS + w.phyts as usize * CV;
-        let bytes = io::read(gpu, &w.buffer, (words.max(4) * 4) as u64).unwrap();
-        let all: &[u32] = bytemuck::cast_slice(&bytes);
-        let records = all[w.axes as usize * CA_WORDS..]
-            .chunks(CV)
-            .map(<[u32]>::to_vec);
-        waves.push(records.collect());
-    }
+    let words = dressed.ids as usize * CV;
+    let bytes = io::read(gpu, &dressed.records, (words * 4) as u64).unwrap();
+    let all: &[u32] = bytemuck::cast_slice(&bytes);
+    let waves: Vec<Vec<Vec<u32>>> = (dressed.waves.iter())
+        .map(|w| {
+            let at = w.base as usize * CV;
+            let records = all[at..at + w.phyts as usize * CV].chunks(CV);
+            records.map(<[u32]>::to_vec).collect()
+        })
+        .collect();
     let keys: HashMap<u32, u32> = (waves.iter().flatten())
         .filter(|r| r[6] & 2 != 0)
         .map(|r| (r[14], r[24]))

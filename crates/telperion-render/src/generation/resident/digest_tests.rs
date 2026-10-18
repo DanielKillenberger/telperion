@@ -4,7 +4,7 @@
 //! its demand), each hashed. Two builds of the same generator print the
 //! same lines; a change that keeps the device's trees keeps every line.
 //!
-//!   DIGEST_SEEDS=1,7,42 [DIGEST_PRESETS=norway-spruce] [DIGEST_DUMP=leaves.bin] [DIGEST_STILLS=<dir>] cargo test --profile ci -p telperion-render digest -- --ignored --nocapture
+//!   DIGEST_SEEDS=1,7,42 [DIGEST_PRESETS=norway-spruce] [DIGEST_DUMP=leaves.bin] [DIGEST_STILLS=<dir>] [DIGEST_BOUNDS=1] [DIGEST_CPU=cpu.bin] cargo test --profile ci -p telperion-render digest -- --ignored --nocapture
 use super::super::{io, Generator, Prepared};
 use std::fmt::{Debug, Write};
 use telperion_core::pipeline::executor;
@@ -41,6 +41,15 @@ fn debug(v: &impl Debug) -> String {
     format!("{:016x}", h.0)
 }
 
+/// `leaves`' matrices written to `path`, little-endian.
+fn dump(leaves: &telperion_core::foliage::Instances, path: &str) {
+    let bytes: Vec<u8> = (0..leaves.len())
+        .flat_map(|k| leaves.matrix(k))
+        .flat_map(f32::to_le_bytes)
+        .collect();
+    std::fs::write(path, bytes).unwrap();
+}
+
 /// What `prepared` hands the renderer, as one line.
 fn line(gen: &Generator, prepared: &Prepared) -> String {
     let gpu = &gen.gpu;
@@ -48,11 +57,7 @@ fn line(gen: &Generator, prepared: &Prepared) -> String {
     // `DIGEST_DUMP` names a file for the leaves' matrices, so two builds'
     // leaves are compared value by value (fn-293 task 6).
     if let Ok(path) = std::env::var("DIGEST_DUMP") {
-        let bytes: Vec<u8> = (0..leaves.len())
-            .flat_map(|k| leaves.matrix(k))
-            .flat_map(f32::to_le_bytes)
-            .collect();
-        std::fs::write(path, bytes).unwrap();
+        dump(&leaves, &path);
     }
     let wood = prepared.wood.as_ref().expect("a resident build's curve");
     let (points, clusters, p, k, demand) = wood.blocks();
@@ -108,8 +113,19 @@ fn digest() {
                 println!("{id} {seed}: not drawn on the device");
                 continue;
             }
+            // `DIGEST_CPU` names a file for the CPU reference's leaves
+            // (`prepare_whole_resident`), so the device's are compared with
+            // them value by value (fn-293 task 6, for fn-289).
+            if let Ok(path) = std::env::var("DIGEST_CPU") {
+                let whole = pollster::block_on(gen.prepare_whole_resident(&family)).unwrap();
+                dump(&gen.read_instances(&whole).unwrap(), &path);
+            }
             let prepared = gen.prepare(&family).unwrap();
             println!("{id} {seed}: {}", line(&gen, &prepared));
+            // `DIGEST_BOUNDS` prints the tree's box, which no line hashes.
+            if std::env::var("DIGEST_BOUNDS").is_ok() {
+                println!("{id} {seed} bounds: {:?}", prepared.mesh.bounds);
+            }
             if let Ok(dir) = std::env::var("DIGEST_STILLS") {
                 let path = format!("{dir}/{id}-{seed}.png");
                 still(&mut renderer, (&family, prepared), &path);

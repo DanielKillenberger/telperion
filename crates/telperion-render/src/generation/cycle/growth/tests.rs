@@ -2,6 +2,7 @@
 //! word, the tree grown in one call, its tables started from the least so
 //! they move, and its arena compacted after every cycle; and a request the
 //! state cannot meet, or a failure while it grows, is refused by name.
+use super::super::super::resident::fold::record;
 use super::super::build_grow::{grow_now, Compact, Sizes};
 use super::super::grown_tests::{grown_from, YOUNG};
 use super::super::hier_scan::read_words;
@@ -184,7 +185,13 @@ fn a_lit_tree_grows_on_beside_the_tree_drawn() {
     let mut s = block(GrowthState::begin(&gpu, &k, &growth, (7, 12), budget)).expect("begun");
     block(s.grow_to(&gpu, &k, 6.0)).expect("grown");
     let drawn = block(s.settle(&gpu, &k, 6.0)).expect("drawn").0;
-    let before = read_words(&gpu, &drawn.waves[1].buffer, 0, 64).expect("the tree drawn");
+    let before = read_words(
+        &gpu,
+        &drawn.records,
+        u64::from(record(drawn.waves[1].base)),
+        64,
+    )
+    .expect("the tree drawn");
     s.budget = gpu.ledger.live() + (1 << 20);
     let refused = block(s.grow_to(&gpu, &k, 7.0)).expect_err("no room beside the tree drawn");
     assert!(
@@ -193,7 +200,13 @@ fn a_lit_tree_grows_on_beside_the_tree_drawn() {
     );
     assert_eq!(s.committed(), None);
     assert_eq!(
-        read_words(&gpu, &drawn.waves[1].buffer, 0, 64).expect("the tree drawn"),
+        read_words(
+            &gpu,
+            &drawn.records,
+            u64::from(record(drawn.waves[1].base)),
+            64
+        )
+        .expect("the tree drawn"),
         before
     );
     // A draw with no room beside the tree drawn spends the state too.
@@ -211,7 +224,13 @@ fn a_lit_tree_grows_on_beside_the_tree_drawn() {
     spent(block(s.grow_to(&gpu, &k, 6.0)).expect_err("spent"));
     spent(block(s.settle(&gpu, &k, 6.0)).err().expect("spent"));
     assert_eq!(
-        read_words(&gpu, &drawn.waves[1].buffer, 0, 64).expect("the tree drawn"),
+        read_words(
+            &gpu,
+            &drawn.records,
+            u64::from(record(drawn.waves[1].base)),
+            64
+        )
+        .expect("the tree drawn"),
         before
     );
 }

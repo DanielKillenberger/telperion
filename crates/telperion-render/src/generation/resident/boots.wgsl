@@ -34,22 +34,25 @@ struct Cfg {
     weathering: f32,
     width: f32,
     flatness: f32,
-    _a: u32,
-    _b: u32,
-    _c: u32,
+    // Where the boots' records and their axis start in the drawn records
+    // (`fold.rs`'s `Dressed`, in the room past the dress's), and the
+    // axis's slot, which their axis word holds.
+    out_records: u32,
+    out_axis: u32,
+    out_slot: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
-@group(0) @binding(1) var<storage, read> seed: array<f32>;
+// Every drawn record by id, then every axis by slot (`fold.rs`'s
+// `Dressed`): the seed's wave read, the boots' written.
+@group(0) @binding(1) var<storage, read_write> drawn: array<f32>;
 @group(0) @binding(2) var<storage, read_write> carried: array<atomic<u32>>;
 // The clothed apices' count and their bases', then a slot each (`AW`).
 @group(0) @binding(3) var<storage, read_write> stems: array<u32>;
 // A base each (`BW`): from, axis, radial, heading, girth, its bearer's
 // record, its age and its stem's slot.
 @group(0) @binding(4) var<storage, read_write> table: array<f32>;
-// The boots' wave: one axis record, then two records a base.
-@group(0) @binding(5) var<storage, read_write> boots: array<f32>;
-@group(0) @binding(6) var<storage, read_write> cells: array<f32>;
+@group(0) @binding(5) var<storage, read_write> cells: array<f32>;
 
 const NONE: u32 = 0xffffffffu;
 const CA: u32 = 12u;
@@ -82,12 +85,12 @@ fn index(id: vec3<u32>) -> u32 {
 }
 
 fn word(r: u32, f: u32) -> u32 {
-    return bitcast<u32>(seed[cfg.records + r * CV + f]);
+    return bitcast<u32>(drawn[cfg.records + r * CV + f]);
 }
 
 fn pos(r: u32) -> vec3<f32> {
     let b = cfg.records + r * CV;
-    return vec3<f32>(seed[b], seed[b + 1u], seed[b + 2u]);
+    return vec3<f32>(drawn[b], drawn[b + 1u], drawn[b + 2u]);
 }
 
 fn stem(r: u32) -> bool {
@@ -247,8 +250,8 @@ fn along(apex: u32, want: f32) -> Along {
     if dot(a - b, a - b) > 1e-18 {
         axis = normalize(a - b);
     }
-    let radius = seed[cfg.records + upper * CV + 3u];
-    let start = seed[cfg.records + upper * CV + 4u];
+    let radius = drawn[cfg.records + upper * CV + 3u];
+    let start = drawn[cfg.records + upper * CV + 4u];
     return Along(lower, a + (b - a) * t, axis, radius + (start - radius) * t);
 }
 
@@ -441,7 +444,7 @@ fn lattice(@builtin(global_invocation_id) id: vec3<u32>) {
 }
 
 fn put(r: u32, f: u32, v: f32) {
-    boots[CA + r * CV + f] = v;
+    drawn[cfg.out_records + r * CV + f] = v;
 }
 
 fn putu(r: u32, f: u32, v: u32) {
@@ -458,6 +461,7 @@ fn put_node(r: u32, at: vec3<f32>, radii: vec3<f32>, parent_id: u32, held: vec3<
         put(r, 10u + c, held[c]);
     }
     putu(r, 7u, r);
+    putu(r, 9u, cfg.out_slot);
     putu(r, 14u, cfg.out_base + r);
     put(r, 15u, along);
     putu(r, 16u, parent_id);
@@ -482,11 +486,11 @@ fn hang(@builtin(global_invocation_id) id: vec3<u32>) {
         // Runtime words: Tint refuses a constant NaN, which naga folds.
         var ones = NONE;
         for (var f = 0u; f < CA; f++) {
-            boots[f] = 0.0;
+            drawn[cfg.out_axis + f] = 0.0;
         }
-        boots[8] = bitcast<f32>(63u);
-        boots[9] = bitcast<f32>(ones);
-        boots[10] = bitcast<f32>(ones);
+        drawn[cfg.out_axis + 8u] = bitcast<f32>(63u);
+        drawn[cfg.out_axis + 9u] = bitcast<f32>(ones);
+        drawn[cfg.out_axis + 10u] = bitcast<f32>(ones);
     }
     let t = b * BW;
     let point = get3(t);
@@ -539,7 +543,7 @@ fn hang(@builtin(global_invocation_id) id: vec3<u32>) {
     // is a few ulps of the depth walked down the stem to reach it.
     let stands = distance(held, point) <= 1e-9 + STANDS * slotf(s, 2u);
     let opens = select(first, second, stands);
-    let travelled = seed[cfg.records + bearer * CV + 15u] + distance(held, point);
+    let travelled = drawn[cfg.records + bearer * CV + 15u] + distance(held, point);
     put_node(first, point, vec3<f32>(thick), word(bearer, 14u), held, travelled);
     put_node(second, tip, vec3<f32>(thick * wear, thick, thick), cfg.out_base + first, point, travelled + distance(point, tip));
     let flags = TAKEN | MADE | FINE | BOOT;
@@ -551,7 +555,7 @@ fn hang(@builtin(global_invocation_id) id: vec3<u32>) {
             put(second, 10u + c, held[c]);
         }
     }
-    putu(opens, 6u, bitcast<u32>(boots[CA + opens * CV + 6u]) | select(0u, CELL, packed));
+    putu(opens, 6u, bitcast<u32>(drawn[cfg.out_records + opens * CV + 6u]) | select(0u, CELL, packed));
     for (var r = first; r <= second; r++) {
         putu(r, 8u, opens);
         putu(r, 23u, cfg.out_base + first);

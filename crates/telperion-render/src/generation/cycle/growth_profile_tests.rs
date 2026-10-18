@@ -71,7 +71,7 @@ fn growth_profile() {
                 .poll(wgpu::PollType::wait_indefinitely())
                 .expect("idle");
             let t = Clock::now();
-            let drawn = pollster::block_on(tree::drawn(&gpu, &k, &growth)).expect("drawn");
+            let drawn = pollster::block_on(tree::drawn(&gpu, &k, (&growth, 0))).expect("drawn");
             whole = t.elapsed_ms();
             drop(drawn);
         }
@@ -157,6 +157,7 @@ async fn stages(gpu: &crate::Gpu, k: &Kernels, growth: &Growth, stamping: bool) 
         fraction: 1.0,
         leaf: None,
         establishing: Establishing::words(growth.establishing),
+        bases: 0,
     };
     let dressed = dress(gpu, &k.drawn, (s.view(), &planned), &at).expect("dressed");
     mark(&mut st, "dress", &mut clock);
@@ -165,15 +166,13 @@ async fn stages(gpu: &crate::Gpu, k: &Kernels, growth: &Growth, stamping: bool) 
     if stamping {
         super::super::profile::finish(gpu);
     }
-    // The drawn records: the words they use beside their buffers' sizes.
-    let (mut used, mut size, mut axes, mut phyts) = (0u64, 0u64, 0u64, 0u64);
-    for w in &dressed.waves {
-        used += 4 * (u64::from(w.axes) * CA_WORDS as u64 + u64::from(w.phyts) * CV as u64);
-        size += w.buffer.size();
-        (axes, phyts) = (axes + u64::from(w.axes), phyts + u64::from(w.phyts));
-    }
+    // The drawn records: the words they use beside their buffer's size.
+    let size = dressed.records.size();
+    let axes = (size / 4 - u64::from(dressed.axes)) / CA_WORDS as u64;
+    let phyts: u64 = dressed.waves.iter().map(|w| u64::from(w.phyts)).sum();
+    let used = 4 * (axes * CA_WORDS as u64 + phyts * CV as u64);
     st.records = format!(
-        "\n## The drawn records\n\n{} waves; {axes} axis records of {} B and {phyts} phytomer records of {} B: {:.1} MB used in buffers of {:.1} MB ({:.0}% used).\n",
+        "\n## The drawn records\n\n{} waves; {axes} axis records of {} B and {phyts} phytomer records of {} B: {:.1} MB used in a buffer of {:.1} MB ({:.0}% used).\n",
         dressed.waves.len(),
         CA_WORDS * 4,
         CV * 4,
@@ -497,7 +496,8 @@ fn drawn_hashes() {
                 .poll(wgpu::PollType::wait_indefinitely())
                 .expect("idle");
             gpu.ledger.take_peak_census();
-            let (dressed, _) = pollster::block_on(tree::drawn(&gpu, &k, &growth)).expect("drawn");
+            let (dressed, _) =
+                pollster::block_on(tree::drawn(&gpu, &k, (&growth, 0))).expect("drawn");
             let peak = gpu.ledger.take_peak_census().0;
             let nodes = super::super::resident::agree_tests::drawn_nodes(&gpu, &dressed);
             let mut h = std::collections::hash_map::DefaultHasher::new();
@@ -543,7 +543,7 @@ fn drawn_warm() {
                 .poll(wgpu::PollType::wait_indefinitely())
                 .expect("idle");
             let t = Clock::now();
-            let drawn = pollster::block_on(tree::drawn(&gpu, &k, &growth)).expect("drawn");
+            let drawn = pollster::block_on(tree::drawn(&gpu, &k, (&growth, 0))).expect("drawn");
             if r > 0 {
                 ms.push(t.elapsed_ms());
             }

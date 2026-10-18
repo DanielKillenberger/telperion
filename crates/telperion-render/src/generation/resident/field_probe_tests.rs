@@ -41,7 +41,7 @@ fn field_probe() {
                     .poll(wgpu::PollType::wait_indefinitely())
                     .unwrap();
                 let t = Clock::now();
-                match pollster::block_on(tree::drawn(&gpu, &k, &growth)) {
+                match pollster::block_on(tree::drawn(&gpu, &k, (&growth, 0))) {
                     Ok((d, _)) => dressed = Some(d),
                     Err(e) => {
                         println!("| {id} | {seed} | {} | refused: {e} |", family.age);
@@ -51,7 +51,7 @@ fn field_probe() {
                 drawn_ms = t.elapsed_ms();
             }
             let Some(dressed) = dressed else { continue };
-            let bytes: u64 = dressed.waves.iter().map(|w| w.buffer.size()).sum();
+            let bytes = dressed.records.size();
             let t = Clock::now();
             let nodes = drawn_nodes(&gpu, &dressed);
             let read_ms = t.elapsed_ms();

@@ -1,11 +1,11 @@
 //! The tree's leaf stations on the device (fn-212 task 6;
 //! CONTRACT.md's probe, step 6): their bearing runs, station counts and
 //! the station segments placement reads, `prepare_compact_stations`'s
-//! layout (`data.rs`), from the nodes and curve `sweep.wgsl` left. Only
-//! totals are read back: the runs, then the stations and segments.
+//! layout (`data.rs`), from the drawn records and the contacts
+//! `sweep.wgsl` left. Only totals are read back: the runs, then the
+//! stations and segments.
 use super::super::io;
 use super::sort::Sorter;
-use super::sweep::Swept;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 use telperion_core::foliage::{CanopyParams, Crown};
@@ -76,6 +76,15 @@ pub(super) struct Rows {
     pub turn: u32,
     /// Its counts of organs (`organ_rows`, fn-277).
     pub organs: [u32; 12],
+}
+
+/// What the stations read of a drawn tree: its records (`Dressed`), and
+/// the sweep's table with where its nodes' contacts start, none (0) where
+/// no curve was swept.
+pub(super) struct Laid<'a> {
+    pub records: &'a wgpu::Buffer,
+    pub table: &'a wgpu::Buffer,
+    pub contacts: u32,
 }
 
 pub(super) struct Stationed {
@@ -149,7 +158,7 @@ impl Stationer {
         &self,
         (gpu, e): (&Gpu, &mut wgpu::CommandEncoder),
         (entry, n, groups): (usize, u32, Option<u32>),
-        rows: Rows,
+        (rows, contacts): (Rows, u32),
         bufs: [&wgpu::Buffer; 7],
     ) -> Result<()> {
         let groups = groups.unwrap_or(n.div_ceil(64)).max(1);
@@ -163,7 +172,7 @@ impl Stationer {
             rows.slender,
             rows.unit,
             rows.divergence.to_bits(),
-            u32::from(rows.contact),
+            contacts,
             u32::from(rows.leaves) | u32::from(rows.wood) << 1,
             u32::from(rows.retains),
             rows.turn,
@@ -192,15 +201,15 @@ impl Stationer {
         Ok(std::array::from_fn(|k| w[k]))
     }
 
-    /// The stations of the `ids` nodes `swept` laid out.
+    /// The stations of the `ids` nodes `laid` holds.
     pub(super) async fn stations(
         &self,
         gpu: &Gpu,
-        swept: &Swept,
+        laid: Laid<'_>,
         ids: u32,
         rows: Rows,
     ) -> Result<Stationed> {
-        Ok(self.stations_and_runs(gpu, swept, ids, rows).await?.0)
+        Ok(self.stations_and_runs(gpu, laid, ids, rows).await?.0)
     }
 
     /// The stations, and the runs' words (`RW` a run: first node,
@@ -209,7 +218,7 @@ impl Stationer {
     pub(super) async fn stations_and_runs(
         &self,
         gpu: &Gpu,
-        swept: &Swept,
+        laid: Laid<'_>,
         ids: u32,
         rows: Rows,
     ) -> Result<(Stationed, Owned)> {
@@ -224,30 +233,22 @@ impl Stationer {
             };
             return Ok((stationed, storage(gpu, "station runs", 0)?));
         }
+        // Contacts are read where leaves are seated (`Rows::contact`).
+        let at = (rows, if rows.contact { laid.contacts } else { 0 });
         let st = storage(gpu, "station words", u64::from(ids) * SW)?;
         let counts = storage(gpu, "station counts", 8)?;
         let none = storage(gpu, "stations none", 4)?;
         let mut e = gpu.encoder(&Default::default());
         let none_runs = storage(gpu, "station runs none", 4)?;
         let owners = storage(gpu, "station owners", u64::from(ids) * u64::from(OW))?;
-        let early = |runs| {
-            [
-                &*swept.nodes,
-                &swept.table,
-                &st,
-                runs,
-                &counts,
-                &none,
-                &owners,
-            ]
-        };
+        let early = |runs| [laid.records, laid.table, &st, runs, &counts, &none, &owners];
         let flowers = rows.flower.is_some();
         let early_entries: &[usize] = match flowers {
             true => &[KIDS, BEAR, FLORETS],
             false => &[KIDS, BEAR],
         };
         for &entry in early_entries {
-            self.run((gpu, &mut e), (entry, ids, None), rows, early(&none_runs))?;
+            self.run((gpu, &mut e), (entry, ids, None), at, early(&none_runs))?;
         }
         // Each node's first floret and record, scanned in node order; their
         // totals read back with the runs' count (fn-229).
@@ -257,7 +258,7 @@ impl Stationer {
         // Each run's key, a pair a run: room for their count rounded up to
         // a power of two, as the sort takes them.
         let keys = storage(gpu, "station keys", 2 * u64::from(ids.next_power_of_two()))?;
-        self.run((gpu, &mut e), (KEYS, ids, None), rows, early(&keys))?;
+        self.run((gpu, &mut e), (KEYS, ids, None), at, early(&keys))?;
         let [n, _, _, _, florets, blooms, ..] = Self::counts(gpu, &mut e, &counts).await?;
         // The runs numbered by their keys (fn-261): those past the count
         // sort last.
@@ -267,22 +268,22 @@ impl Stationer {
         self.sorter.sort(gpu, &mut e, &keys, n)?;
         let runs = storage(gpu, "station runs", u64::from(ids) * RW)?;
         let sorted = [
-            &*swept.nodes,
-            &swept.table,
+            laid.records,
+            laid.table,
             &st,
             &runs,
             &counts,
             &keys,
             &owners,
         ];
-        self.run((gpu, &mut e), (STARTS, n, None), rows, sorted)?;
+        self.run((gpu, &mut e), (STARTS, n, None), at, sorted)?;
         self.run(
             (gpu, &mut e),
             (MEASURE, n, None),
-            rows,
+            at,
             [
-                &swept.nodes,
-                &swept.table,
+                laid.records,
+                laid.table,
                 &st,
                 &runs,
                 &counts,
@@ -297,10 +298,10 @@ impl Stationer {
             self.run(
                 (gpu, &mut e),
                 (entry, n, Some(groups)),
-                rows,
+                at,
                 [
-                    &swept.nodes,
-                    &swept.table,
+                    laid.records,
+                    laid.table,
                     &st,
                     &runs,
                     &counts,
@@ -314,29 +315,29 @@ impl Stationer {
         let words = u64::from(segments) * (GW as u64 + 1);
         let buffer = storage(gpu, "station segments", words)?;
         let late: [&wgpu::Buffer; 7] = [
-            &swept.nodes,
-            &swept.table,
+            laid.records,
+            laid.table,
             &st,
             &runs,
             &counts,
             &buffer,
             &owners,
         ];
-        self.run((gpu, &mut e), (EMIT, n, None), rows, late)?;
+        self.run((gpu, &mut e), (EMIT, n, None), at, late)?;
         let mut records = None;
         if blooms > 0 {
             let words = u64::from(blooms) * GW as u64;
             let records = &*records.insert(storage(gpu, "bloom records", words)?);
             let late: [&wgpu::Buffer; 7] = [
-                &swept.nodes,
-                &swept.table,
+                laid.records,
+                laid.table,
                 &st,
                 &runs,
                 &counts,
                 records,
                 &owners,
             ];
-            self.run((gpu, &mut e), (BLOOMS, ids, None), rows, late)?;
+            self.run((gpu, &mut e), (BLOOMS, ids, None), at, late)?;
         }
         gpu.submit([e.finish()]);
         io::complete(gpu).await?;

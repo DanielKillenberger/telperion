@@ -114,3 +114,29 @@ into tests), and `Delivery` and `Backend` deleted.
 | --- | ---: | ---: |
 | telperion-core | 22997 | 22825 |
 | telperion-render | 23525 | 23499 |
+
+## Task 6: the device build before and after
+
+`raw/t6-build-time.txt`, from `measure-t6-build-time.sh` (beside this
+file): `build_time` with `BUILD_PRESETS=norway-spruce,oregon-white-oak`.
+Two render test binaries were compared: the base (`2f437cbd4`, before the
+change) and after. They ran alternately, 16 pairs, with the order flipped
+every pair. Each run timed the second (warm) build in its process, at the
+presets' default ages. Another worker's GPU jobs kept the card 43-98 %
+busy in 14 of the 16 pairs, so only the paired differences mean
+anything. RTX 3080.
+
+| preset | base warm median ms | after warm median ms | paired diff median ms | after faster |
+| --- | ---: | ---: | ---: | ---: |
+| norway-spruce (40) | 446 | 427 | -15 | 15 of 16 |
+| oregon-white-oak (40) | 236 | 231 | -5 | 13 of 16 |
+
+**GPU peak bytes** (the ledger's build peak, `build_time`'s census):
+every shipped preset's peak is the same before and after: spruce 1587 MB,
+oak 872, ordinary 180, beech 296, birch 577, date palm 34, Telperion 2690
+and Laurelin 2470. The build's peak is set by the growth cycle, not by the
+drawing stages. The drawing stages no longer hold the 39-word node table
+(156 bytes a drawn id) beside the drawn records. The one drawn-record
+buffer takes the same words as the per-wave buffers it replaces, plus the
+leaf bases' room: two records a base on every axis of the seed's wave,
+which only the date palm holds, and its peak did not move.

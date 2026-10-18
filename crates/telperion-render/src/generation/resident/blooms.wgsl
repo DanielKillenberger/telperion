@@ -6,12 +6,12 @@
 
 // The phytomer key node `i` was drawn by, which its bloom draws by.
 fn key(i: u32) -> vec2<u32> {
-    return vec2<u32>(word(i, 27u), word(i, 28u));
+    return vec2<u32>(word(i, 26u), word(i, 27u));
 }
 
 // How grown node `i`'s bloom is: none off a flowering age.
 fn grown_bloom(i: u32) -> f32 {
-    let share = nodes[i * NW + 29u];
+    let share = rec(i, 28u);
     if !(share > 0.0) {
         return 0.0;
     }
@@ -59,7 +59,7 @@ fn blooms(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let at = record * GW;
     put4(at, vec4<f32>(pos(i), grown_bloom(i)));
-    put4(at + 4u, vec4<f32>(pos(parent(i)), nodes[i * NW + 3u]));
+    put4(at + 4u, vec4<f32>(pos(parent(i)), rec(i, 3u)));
     segs[at + 24u] = first;
     segs[at + 25u] = end - first;
     segs[at + 26u] = key(i).x;

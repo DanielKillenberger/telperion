@@ -1,12 +1,12 @@
 //! A field read out: the tree grown, drawn, folded and stationed as a
-//! harness build makes it (`build::folded`), its nodes laid out but no
-//! curve swept, each node's limb system found, the box grown about its
-//! records, and every record written into the grid, which alone is read
-//! back.
+//! harness build makes it (`build::folded`), its drawn records read as
+//! the dress wrote them and no curve swept, each node's limb system
+//! found, the box grown about its records, and every record written into
+//! the grid, which alone is read back.
 use super::super::super::cycle::tree::{self, Kernels};
 use super::super::super::Generator;
 use super::super::build::{folded, placeable, Folded, Timed, Tools};
-use super::super::stations::{station_rows, Stationed};
+use super::super::stations::{station_rows, Laid, Stationed};
 use super::SPLAT_LIMB;
 use super::{read_words, storage, Cfg, Rec};
 use super::{BOUND_LEAVES, BOX_LEAVES, BOX_WOOD, CARRIER, CLEAR, GRID_CLEAR, INHERIT, OPENS};
@@ -65,19 +65,25 @@ pub(in super::super) async fn grow(
     let _capped = gpu.ledger.capped(gen.device_budget());
     let growth = executor::growth(family)?;
     placeable(family)?;
-    let drawn = tree::drawn(gpu, kernels, &growth).await?;
+    let bases = super::super::boots::most(family)?;
+    let drawn = tree::drawn(gpu, kernels, (&growth, bases)).await?;
     let Folded { x, dressed, .. } =
         folded(gpu, tools, family, drawn, &mut Timed::default()).await?;
     let ids = dressed.ids;
-    // The field reads the nodes laid out, never the curve swept from them.
-    let swept = tools.sweeper.nodes(gpu, &dressed).await?;
-    drop(dressed);
+    // The field reads the drawn records, never a curve swept from them:
+    // no node has a contact.
+    let table = storage(gpu, "field no sweep", 4, &[])?;
+    let laid = Laid {
+        records: &dressed.records,
+        table: &table,
+        contacts: 0,
+    };
     let rows = station_rows(&x, x.section()?.segments, None, growth.year(1.0));
-    let device = tools.stationer.stations(gpu, &swept, ids, rows).await?;
+    let device = tools.stationer.stations(gpu, laid, ids, rows).await?;
     let mut cfg = cfg(&x, (ids, device.segments), limb_order);
     let read = Read {
         gpu,
-        nodes: &swept.nodes,
+        nodes: &dressed.records,
         device: &device,
     };
     read.grid(tools, &mut cfg, ask, (grid_words, answer_words))
@@ -100,7 +106,7 @@ fn within(gpu: &Gpu, buffer: &'static str, words: u64) -> Result<()> {
     }
 }
 
-/// What the read-out reads: the laid nodes and the station segments.
+/// What the read-out reads: the drawn records and the station segments.
 struct Read<'a> {
     gpu: &'a Gpu,
     nodes: &'a wgpu::Buffer,

@@ -19,8 +19,8 @@ struct Cfg {
     phyts_at: u32,
     prev_axes_at: u32,
     prev_phyts_at: u32,
-    // Where this wave's records and the wave before's start in their
-    // buffers (past their axes), and their first ids.
+    // Where this wave's records and the wave before's start in the drawn
+    // records (by their first ids, `fold.rs`'s `record`), and those ids.
     out_records: u32,
     prev_records: u32,
     out_base: u32,
@@ -44,6 +44,11 @@ struct Cfg {
     // whether `leaf` holds each phytomer's leaf share (`present.wgsl`).
     fraction: f32,
     unfolding: u32,
+    // Where the axes start in the drawn records, and this wave's and the
+    // wave before's first axis slot: a record's axis word is its slot.
+    axes: u32,
+    slot: u32,
+    prev_slot: u32,
     // The rows a rosette's stem establishes by (`space/establish.rs`,
     // fn-275 R2a): the crown's establishment years (none: dormant) and
     // early share, and its trunk PA's rise a year.
@@ -55,14 +60,15 @@ struct Cfg {
 @group(0) @binding(0) var<uniform> cfg: Cfg;
 @group(0) @binding(1) var<storage, read> nt: array<u32>;
 @group(0) @binding(2) var<storage, read> plan: array<u32>;
-@group(0) @binding(3) var<storage, read> before: array<f32>;
-@group(0) @binding(4) var<storage, read_write> drawn: array<f32>;
+// Every wave's records, by id, then every axis, by slot (`fold.rs`'s
+// `Dressed`): the wave before's are read, this wave's written.
+@group(0) @binding(3) var<storage, read_write> drawn: array<f32>;
 // Each PA's row (`dress.rs`): its internode and spread, its flowering
 // share, the leaves at its tips and their fan, its leaf retention's first
 // shedding age and share, and whether it carries the trunk.
-@group(0) @binding(5) var<storage, read> rows: array<f32>;
+@group(0) @binding(4) var<storage, read> rows: array<f32>;
 // Each phytomer's leaf's share of its whole size, where `unfolding`.
-@group(0) @binding(6) var<storage, read> leaf: array<f32>;
+@group(0) @binding(5) var<storage, read> leaf: array<f32>;
 
 const NONE: u32 = 0xffffffffu;
 const SEED: u32 = 0u;
@@ -124,7 +130,7 @@ const FORK_FROM: f32 = 0.4;
 const CA: u32 = 12u;
 // A drawn phytomer (`resident/fold.rs`'s `CV`): its node's position (y up),
 // radius, start radius and base radius, its flags, the node it is drawn
-// as, its node's run, its laid axis, its node's parent's position,
+// as, its node's run, its laid axis's slot, its node's parent's position,
 // codominance, id, distance along the wood from the root, its parent's
 // id, its wood's frame as laid (heading, side; y up), its branch (the id
 // of its branch's first node), its key (`tree::node_key`), its wood as
@@ -283,9 +289,6 @@ fn rec(r: u32) -> u32 {
 }
 
 fn at(r: u32, f: u32) -> f32 {
-    if (r & PREV) != 0u {
-        return before[rec(r) + f];
-    }
     return drawn[rec(r) + f];
 }
 
@@ -362,13 +365,18 @@ fn mine(r: u32) -> bool {
     return (r & PREV) == 0u && (getu(r, 6u) & MADE) != 0u;
 }
 
-// A drawn axis's field.
+// Where axis slot `s`'s words start.
+fn slot_at(s: u32) -> u32 {
+    return cfg.axes + s * CA;
+}
+
+// A drawn axis's field, by its place in this wave.
 fn da(l: u32, f: u32) -> u32 {
-    return bitcast<u32>(drawn[l * CA + f]);
+    return bitcast<u32>(drawn[slot_at(cfg.slot + l) + f]);
 }
 
 fn pda(l: u32, f: u32, v: u32) {
-    drawn[l * CA + f] = bitcast<f32>(v);
+    drawn[slot_at(cfg.slot + l) + f] = bitcast<f32>(v);
 }
 
 // Its tip as laid, lowered as its stem establishes.
@@ -840,23 +848,23 @@ fn dress(@builtin(global_invocation_id) id: vec3<u32>) {
         bearer_axis = plan_of(LA, p) - cfg.prev_axes_at;
         bearer = plan_of(LP, p) - cfg.prev_phyts_at + na(NA_NODE, h);
     }
-    let b0 = bearer_axis * CA;
+    let b0 = slot_at(cfg.prev_slot + bearer_axis);
     let held = cfg.prev_records + bearer * CV;
-    let taken = (bitcast<u32>(before[held + 6u]) & TAKEN) != 0u;
-    let same = bitcast<u32>(before[held + 9u]) == bearer_axis;
+    let taken = (bitcast<u32>(drawn[held + 6u]) & TAKEN) != 0u;
+    let same = bitcast<u32>(drawn[held + 9u]) == cfg.prev_slot + bearer_axis;
     // Each relay's join record: none drawn yet.
     for (var i = 0u; i < na_; i++) {
         let a = ax_of(i);
         let rj = join_rec(a);
         putu(rj, 6u, 0u);
         putu(rj, 7u, NONE);
-        putu(rj, 9u, la(a));
+        putu(rj, 9u, cfg.slot + la(a));
     }
     for (var i = 0u; i < na_; i++) {
         let a = ax_of(i);
         let l = la(a);
-        drawn[l * CA + 7u] = before[b0 + 7u];
-        var depth = bitcast<u32>(before[b0 + 8u]) + 1u;
+        drawn[slot_at(cfg.slot + l) + 7u] = drawn[b0 + 7u];
+        var depth = bitcast<u32>(drawn[b0 + 8u]) + 1u;
         if i > 0u {
             depth = da(la(na(NA_PARENT, a)), 8u) + 1u;
         }
@@ -868,7 +876,7 @@ fn dress(@builtin(global_invocation_id) id: vec3<u32>) {
         pda(l, 2u, 0u);
         for (var k = 0u; k < count(a); k++) {
             putu(li(a, k), 6u, 0u);
-            putu(li(a, k), 9u, l);
+            putu(li(a, k), 9u, cfg.slot + l);
         }
         if i == 0u {
             // The seed is drawn from the root, its run its own and parting

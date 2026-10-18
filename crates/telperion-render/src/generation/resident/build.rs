@@ -4,29 +4,30 @@
 //! the whole tree's summaries, from which the pipeline reads its rows
 //! (`executor::resident`); a family that hangs retained leaf bases
 //! hangs them between the dress and the folds (fn-266, `boots.rs`); then
-//! it sweeps, stations, rings and places them, and packs its curve in the renderer's own form. A flowering
-//! tree's florets are placed the same way (fn-229, `florets.rs`). Only
-//! totals and summaries are read back. The submit takes these buffers as
-//! they are.
+//! it sweeps them into the renderer's own curve form, stations, rings and
+//! places them. A flowering tree's florets are placed the same way
+//! (fn-229, `florets.rs`). Only totals and summaries are read back. The
+//! submit takes these buffers as they are.
 use super::super::compute::{self, Placement};
 use super::super::cycle::tree::{self, Kernels};
 use super::super::{data, io, Clock, Generator, Metrics, Prepared, Resident};
 use super::boots::Hanger;
 use super::florets::Organ;
 use super::fold::{Dressed, Dresser};
-use super::handoff::{union, Handoff};
 use super::rings::Ringer;
 #[cfg(test)]
 use super::stations::Stationed;
 use super::stations::{station_rows, Stationer};
 use super::sweep::{rows, Sweeper};
 use crate::buffer::{Held, Owned};
+use crate::curve::CurveGpu;
 use crate::{Gpu, Result};
 use telperion_core::foliage::Instances;
+use telperion_core::math::Vec3;
 use telperion_core::mesh::{Foliage, TreeMesh};
 use telperion_core::pipeline::executor::{self, beyond, Summaries};
 use telperion_core::presets::Family;
-use telperion_core::surface::SurfaceMesh;
+use telperion_core::surface::{Bounds, SurfaceMesh};
 use telperion_core::tree::Year;
 use telperion_core::Error;
 
@@ -37,7 +38,6 @@ pub(super) struct Tools {
     pub sweeper: Sweeper,
     pub stationer: Stationer,
     pub ringer: Ringer,
-    pub handoff: Handoff,
     pub fielder: super::field::Fielder,
 }
 
@@ -45,14 +45,14 @@ impl Tools {
     /// Every tool made side by side (`io::pair`).
     pub(super) fn new(gpu: &Gpu) -> Self {
         use super::super::io::pair;
-        let ((hanger, dresser), ((sweeper, stationer), (ringer, handoff))) = pair(
+        let ((hanger, dresser), ((sweeper, stationer), ringer)) = pair(
             gpu,
             || pair(gpu, || Hanger::new(gpu), || Dresser::new(gpu)),
             || {
                 pair(
                     gpu,
                     || pair(gpu, || Sweeper::new(gpu), || Stationer::new(gpu)),
-                    || pair(gpu, || Ringer::new(gpu), || Handoff::new(gpu)),
+                    || Ringer::new(gpu),
                 )
             },
         );
@@ -62,7 +62,6 @@ impl Tools {
             sweeper,
             stationer,
             ringer,
-            handoff,
             fielder: super::field::Fielder::new(gpu),
         }
     }
@@ -71,8 +70,9 @@ impl Tools {
 /// Each stage's milliseconds, each waited on: the tree grown, settled
 /// and drawn (outside the 3x boundary), its retained leaf bases, the
 /// device's folds and the
-/// pipeline's rows from them, its sweep, stations, rings and ring
-/// positions, the placement and the mass grid, and the curve's handoff.
+/// pipeline's rows from them, its sweep into the renderer's curve, its
+/// stations, rings and ring positions, and the placement and the mass
+/// grid.
 #[derive(Debug, Default, Clone, Copy)]
 pub(super) struct Timed {
     pub settle: f64,
@@ -82,14 +82,13 @@ pub(super) struct Timed {
     pub stations: f64,
     pub rings: f64,
     pub place: f64,
-    pub handoff: f64,
 }
 
 impl Timed {
     /// From the drawn tree to draw-ready: every stage but the growth.
     pub(super) fn inside(&self) -> f64 {
         let t = self;
-        t.bases + t.folds + t.sweep + t.stations + t.rings + t.place + t.handoff
+        t.bases + t.folds + t.sweep + t.stations + t.rings + t.place
     }
 }
 
@@ -149,9 +148,10 @@ pub(super) async fn crowned(
     let _capped = gpu.ledger.capped(gen.device_budget());
     let growth = executor::growth(family)?;
     placeable(family)?;
+    let bases = super::boots::most(family)?;
     let mut t = Timed::default();
     let drawn = stage(gpu, &mut t.settle, async || {
-        tree::drawn(gpu, k, &growth).await
+        tree::drawn(gpu, k, (&growth, bases)).await
     })
     .await?;
     placed(
@@ -191,7 +191,7 @@ pub(super) async fn placed(
         x,
         swept,
         hung,
-        ids,
+        dressed,
     } = readied(gpu, tools, family, drawn, &mut t).await?;
     let seats = x.seats();
     let mut m = Metrics::default();
@@ -208,15 +208,16 @@ pub(super) async fn placed(
     let station = station_rows(&x, segments, organ.as_ref().map(Organ::rows), year);
     let stationer = &tools.stationer;
     let device = stage(gpu, &mut t.stations, async || {
-        stationer.stations(gpu, &swept, ids, station).await
+        let laid = swept.laid(&dressed);
+        stationer.stations(gpu, laid, dressed.ids, station).await
     })
     .await?;
     let count = Some(device.stations)
         .filter(|&n| n as usize <= x.leaves().canopy.max_instances)
         .ok_or(Error::ResourceLimit("foliage instance budget"))?;
-    swept.nodes.destroy();
-    // The device frees the nodes, and the ledger their bytes, before the
-    // rings are made beside the stations.
+    drop(dressed);
+    // The device frees the drawn records, and the ledger their bytes,
+    // before the rings are made beside the stations.
     io::complete(gpu).await?;
     let positions = match seats {
         true => Some(
@@ -286,18 +287,28 @@ pub(super) async fn placed(
         Ok((resident, florets))
     })
     .await?;
-    // The ring positions served the placements alone.
+    // The ring positions served the placements alone, and the sweep's
+    // table the stations and rings.
     drop(positions);
     let curve = x.curve_rows()?;
-    let handoff = &tools.handoff;
-    let handed = stage(gpu, &mut t.handoff, async || {
-        handoff.hand(gpu, &curve, &swept, hung.cells).await
-    })
-    .await?;
-    for b in [&swept.point_buffer, &swept.cluster_buffer, &swept.table] {
-        b.destroy();
-    }
-    let bounds = union(handed.fine, resident.full);
+    let super::sweep::Swept {
+        point_buffer,
+        cluster_buffer,
+        points,
+        clusters,
+        demand,
+        bounds: fine,
+        ..
+    } = swept;
+    // The sections the renderer draws shaped runs by: the retained leaf
+    // bases' cells where they pack, else the curve's own (none).
+    let sections = match hung.cells {
+        Some(cells) => cells,
+        None => crate::curve::sections(gpu, &curve),
+    };
+    let blocks = (point_buffer, cluster_buffer, sections);
+    let wood = CurveGpu::on_device(gpu, &curve, blocks, (u64::from(points), clusters), demand);
+    let bounds = union(fine, resident.full);
     let bounds = union(bounds, florets.as_ref().and_then(|f| f.full));
     let bounds = bounds.ok_or_else(|| refused("mesh has no geometry"))?;
     let organ = match (&organ, &florets) {
@@ -322,7 +333,7 @@ pub(super) async fn placed(
         mesh,
         resident: Some(resident),
         organ: florets,
-        wood: Some(handed.curve),
+        wood: Some(wood),
         metrics: m,
         colouring: 1.0,
     };
@@ -343,7 +354,7 @@ pub(super) struct Readied {
     pub x: executor::Expansion,
     pub swept: super::sweep::Swept,
     pub hung: super::boots::Hung,
-    pub ids: u32,
+    pub dressed: Dressed,
 }
 
 pub(super) async fn readied(
@@ -366,7 +377,7 @@ pub(super) async fn readied(
         x,
         swept,
         hung,
-        ids: dressed.ids,
+        dressed,
     })
 }
 
@@ -433,4 +444,17 @@ async fn read<'a>(
     gpu.submit([encoder.finish()]);
     let raw = io::read_async(gpu, &all, bytes).await?;
     Ok(bytemuck::pod_collect_to_vec(&raw))
+}
+
+/// The union of two boxes, either absent.
+pub(super) fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
+    let lo = |a: Vec3, b: Vec3| Vec3::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z));
+    let hi = |a: Vec3, b: Vec3| Vec3::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z));
+    match (a, b) {
+        (Some(a), Some(b)) => Some(Bounds {
+            min: lo(a.min, b.min),
+            max: hi(a.max, b.max),
+        }),
+        (a, b) => a.or(b),
+    }
 }
