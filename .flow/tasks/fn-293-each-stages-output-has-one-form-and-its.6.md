@@ -36,13 +36,25 @@ AGENTS.md budget: no full-forest capture; GPU tests and examples run natively. `
 - [ ] Spruce stills at seeds 1, 7, 42 compared before and after; device build time (spruce, oak, paired warm x16) and GPU peak bytes before and after in MEASURE.md; any CPU/device leaf difference noted for fn-289.
 - [ ] Gate and `npm test` green; codex review SHIP.
 ## Done summary
-Blocked:
-NEEDS_HUMAN (2026-10-18, probe in BASELINE.md "Task 6 probe", commit a3b69dece):
+The dress now writes every wave into one drawn-record buffer. Records sit by id; after them comes room for the retained leaf bases, then the axes by slot, and a record's axis word holds its slot. The sweep, stations, field, boots, folds and stems read that buffer. The 39-word node table, `gather` and the sweep-only field path are deleted. The sweep writes the renderer's packed points and clusters (`pack.wgsl`) and folds the demand and box while each frame is whole. `handoff.rs`/`handoff.wgsl` and their registration are deleted, and the rings decode their frames from the packed points (host decision (a)).
 
-Q3 (finding 3, sweep writes the renderer's packed curve form): the rings read the sweep's frames at full precision. Decoding them from the packed form moves spruce leaves only (1, 6, 10 of ~4M at seeds 1, 7, 42; largest 0.194-0.197 mm, one quantisation step; no rotation or scale change; curve lines unchanged). (a) accept the move; (b) keep bytes by having the sweep write the ring words itself while it holds full frames (ring buffer, ~76 MB on spruce, coexists with the node table, so the build peak rises); (c) another route.
+- Sizing: the buffer is sized from the chains' wave counts, which the plan already reads back, so no readback was added. The host named `given.rs`, but that file sizes the cycle's dispatches, not the dress. The bases' room is two records a base on every axis of the seed's wave (`boots::most`: the count's floor, plus one where it has a share). A hang that needs more room than that is refused by name (`leaf base nodes`).
+- Digests (BASELINE.md, "After task 6"): core 24 of 24 equal. The render pipeline is byte-identical (`fb4ce911...`). Resident: 21 of 24 lines are equal. The three spruce lines are re-pinned. In them only the leaves hash moved: 1, 6 and 10 leaves move by at most 0.194, 0.197 and 0.195 mm, with no rotation or scale change, which is the probe's measurement. Points, clusters, sections and demand are unchanged, and every tree's box is equal to the base's (24 of 24, `DIGEST_BOUNDS`).
+- Stills: the spruce at seeds 1, 7 and 42 is pixel-identical before and after.
+- For fn-289: the CPU reference (`prepare_whole_resident`) did not match the device leaf for leaf before this change either. At seeds 1 and 7 its counts differ by 2 and every leaf index differs. The move is device-side, and no second path was built.
+- MEASURE.md, 16 paired warm builds on a busy card: spruce 446 to 427 ms (paired median -15 ms, faster in 15 of 16), oak 236 to 231 ms (-5 ms, faster in 13 of 16). GPU peak bytes are equal on every preset before and after, because the growth cycle sets the peak.
+- Tests: `the_device_packs_a_frame_as_the_cpu_does` moved to `pack_tests.rs` and now exercises `pack.wgsl`. The digest test gained the `DIGEST_STILLS`, `DIGEST_BOUNDS` and `DIGEST_CPU` switches.
+- Gate (`telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`): 1400 passed, 1 failed, 111 ignored. The failure was `boots_tests::every_leaf_base_is_hung_as_the_cpu_hangs_it`: the test read a stem apex's key by its wave-local index. The fix is commit 4b9175efb, and the focused rerun passed. `npm test`: 170 passed. Baseline: green (render lib tests built at the base). The wasm32 lib check is clean.
+- Follow-ups:
+  - `src/generation.rs:11` still says "handoff" (outside Touches).
+  - The browser budget's `PEAKS` table (`budget.rs`) was measured before this change. It is not re-measured here, and the peaks did not move.
 
-Q2 (finding 2, the 39-word node table goes): the drawn records are not one array; the dress writes one buffer per lateral order plus the root's and the leaf bases', and stations already bind seven storage buffers. (a) the dress writes every wave into one buffer at aligned offsets (in cycle/, outside this task's Touches; room needed for leaf bases hung after the dress); (b) the sweep copies the waves into one buffer in their own layout plus a narrow offsets/derived table (still a copy, about the same memory as today).
+Tier: not reported (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex, three draws: correctness, contracts, integration, all SHIP with no findings)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2f437cbd4b1dfab3f428289af23bc7ac12171b55, 534a2fb649ae7b9c32bdfdd2da8f1d3bf770b691, 4b9175efb905011e024b07f9d61ed352c706e9c6
+- Tests: telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast, cargo test --profile ci -p telperion-render --lib boots_tests, npm test, resident digest_tests::digest (DIGEST_SEEDS=1,7,42 DIGEST_BOUNDS=1)
 - PRs:
