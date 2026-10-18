@@ -1104,12 +1104,6 @@
     "reason": "MAX_GENERATIONS is the named validated twig generation domain."
   },
   {
-    "path": "crates/telperion-wasm/src/generate.rs",
-    "site": "while r > t . twig . diameter / 2 . 0 & & generation < t . generations as usize {",
-    "classification": "parameter",
-    "reason": "Wasm twig sizing follows the authored diameter and generation count; it does not impose a separate binding-side cap."
-  },
-  {
     "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
     "site": "const MAX_FRONDS : u32 = 128 ;",
     "classification": "parameter",
