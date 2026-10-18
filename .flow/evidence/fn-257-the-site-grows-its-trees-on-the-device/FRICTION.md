@@ -51,3 +51,7 @@ The review's one gap (P1, R3'): the oak at seed 1234 over 0.1.4. Re-measured war
 - **What hindered:** another worktree's workspace gate held 12 GB, so the core run waited in the queue (room 10-11 GB for 14) for over 10 minutes with nothing else to verify on the CPU side.
 - **Cost:** 10+ minutes of waiting so far.
 - **What would remove it:** a measured per-crate cap (the core's test binary at two threads) stated in the host rules, so a worker can ask for the smallest cap that fits instead of a guessed one.
+- **Doing (03:30):** the core crate's tests at `telperion-heavy 10 --threads 1` (the 14 GB run never got room behind another worktree's 12 GB gate; 10 GB at one thread fit, about 25 minutes).
+- **What hindered:** `generation_limit_guard::generation_limits_are_classified` fails because the field's limit sites moved (`field.rs` to `field/splat.rs`, `cuboid.rs` deleted, three new clamp/refusal sites), and the inventory it reads, `docs/generation-limits-inventory.json`, is outside the task's Touches. The task stops for the host before `done`; a drafted inventory that passes the guard is in the worker's scratchpad.
+- **Cost:** about 40 minutes of queueing for the core run, then a stop on one file.
+- **What would remove it:** the same plan step as 2026-10-16's (grep every deleted public name), extended to the repository's inventories and guards that list source sites (`docs/generation-limits-inventory.json`), so they enter the Touches of the task that moves the code.
