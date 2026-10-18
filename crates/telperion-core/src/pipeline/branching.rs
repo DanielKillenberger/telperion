@@ -5,12 +5,13 @@ mod leaf_bases;
 mod traits;
 // The scaffold's grower, which no production path reaches since the engine
 // is stage 2 (fn-198): the suite grows its tests' trees with it until fn-288
-// removes it. Of `scaffold` and `specimen`, only the checks `validate` makes
-// compile into production.
+// removes it. Of `specimen`, only the checks `validate` makes compile into
+// production.
 #[cfg(test)]
 mod limbs;
 #[cfg(test)]
 mod local;
+#[cfg(test)]
 mod scaffold;
 mod specimen;
 use crate::catalogue::{input, tuned, value, Blend, Bounds, Dial, Growth, Site};
@@ -19,16 +20,17 @@ use crate::ranges::DEFAULT_MAX_NODES;
 use crate::{
     envelope::distance_to_profile,
     envelope::queries::{self, Purpose},
+    math::Vec3,
     pipeline::bias::GrowthBias,
     pipeline::colonization,
     pipeline::radius,
     pipeline::twigs::{branch_length, child_radius},
+    rng::Rng,
     tree::{Node, NodeKind, Tree},
 };
 use crate::{
-    envelope::Envelope, math::Vec3, pipeline::bias::BiasParams,
-    pipeline::colonization::GrowthConfig, pipeline::radius::RadiusParams,
-    pipeline::twigs::TwigParams, rng::Rng, Error, Result,
+    envelope::Envelope, pipeline::bias::BiasParams, pipeline::colonization::GrowthConfig,
+    pipeline::radius::RadiusParams, pipeline::twigs::TwigParams, Error, Result,
 };
 #[cfg(test)]
 pub use leaf_bases::leaf_bases;
@@ -248,6 +250,7 @@ pub struct GrowthReport {
     pub tree: Tree,
     pub shed: usize,
 }
+#[cfg(test)]
 pub fn inner_envelope(e: Envelope, reach: f64) -> Envelope {
     let share = 1.0 - reach;
     let base = e.height * e.crown_base;

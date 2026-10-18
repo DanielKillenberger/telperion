@@ -30,15 +30,12 @@ const ROOT_STREAM: u32 = 0x742b_e831;
 /// the retired stems rows.
 const BEARING_STREAM: u32 = 0x3f6a_88c5;
 /// The stream an axis decides its fork from.
-#[cfg(test)]
 const FORK_STREAM: u32 = 0x6c07_8965;
 /// The station a fork's parts are keyed at, past any an axis bears laterals at.
-#[cfg(test)]
 const FORK_STATION: usize = 0x00fa_b1e5;
 
 /// The bole's height: the crown's base, or the growth's own trunk height if
 /// that stands higher.
-#[cfg(test)]
 fn bole(params: &SkeletonParams, config: &GrowthConfig) -> f64 {
     config
         .trunk_height
@@ -47,7 +44,6 @@ fn bole(params: &SkeletonParams, config: &GrowthConfig) -> f64 {
 
 /// How far an order-zero axis runs: the leader's own rule, the bole plus the
 /// share of the crown the apical dominance keeps for the leader.
-#[cfg(test)]
 fn top(params: &SkeletonParams, config: &GrowthConfig) -> f64 {
     let base = bole(params, config);
     base + (params.envelope.height - base) * params.habit.apical_dominance
@@ -55,7 +51,6 @@ fn top(params: &SkeletonParams, config: &GrowthConfig) -> f64 {
 
 /// The frontier as it starts: the root's one upright axis, which may fork at
 /// the root itself.
-#[cfg(test)]
 pub(in crate::pipeline::branching) fn axes(
     params: &SkeletonParams,
     config: &GrowthConfig,
@@ -71,14 +66,12 @@ pub(in crate::pipeline::branching) fn axes(
 
 /// The width of the rate over which a fork grows in from nothing: an axis
 /// whose point on the rate the rate passes by this much forks whole.
-#[cfg(test)]
 const GROW_IN: f64 = 0.05;
 
 /// An axis's fork: the height it forks at, how far its siblings have grown
 /// in, 0 to 1, and the key it was drawn from, which its parts' keys and next
 /// decisions derive from.
 #[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg(test)]
 pub(super) struct Fork {
     pub at: f64,
     pub weight: f64,
@@ -90,7 +83,6 @@ pub(super) struct Fork {
 /// and never takes one away, and a height that moves as the rows do. `least`
 /// is how far above its base an axis must climb before it forks, and none
 /// admits a fork at the base itself, which only the root's axis may take.
-#[cfg(test)]
 pub(super) fn decide(
     habit: &HabitParams,
     key: u32,
@@ -138,7 +130,6 @@ pub(super) fn siblings(habit: &HabitParams) -> impl Iterator<Item = (usize, f64)
 }
 
 /// `local`, a heading about +Y, turned to stand about `axis` instead.
-#[cfg(test)]
 pub(super) fn about(local: Vec3, axis: Vec3) -> Vec3 {
     let turn = Vec3::Y.cross(axis);
     let (s, c) = (turn.length(), Vec3::Y.dot(axis));
@@ -153,7 +144,6 @@ pub(super) fn about(local: Vec3, axis: Vec3) -> Vec3 {
 }
 
 /// `v` turned by the least rotation that carries `from` onto `to`.
-#[cfg(test)]
 pub(super) fn turn(from: Vec3, to: Vec3, v: Vec3) -> Vec3 {
     let axis = from.cross(to);
     let (s, c) = (axis.length(), from.dot(to));
@@ -164,7 +154,6 @@ pub(super) fn turn(from: Vec3, to: Vec3, v: Vec3) -> Vec3 {
 }
 
 /// The key of part `k` of a fork on the axis keyed `key`.
-#[cfg(test)]
 pub(super) fn part_key(key: u32, k: usize) -> u32 {
     axis_key(key, FORK_STATION, k)
 }
@@ -213,6 +202,5 @@ pub(in crate::pipeline::branching) fn placed(params: &SkeletonParams) -> Result<
     Ok(())
 }
 
-#[cfg(test)]
 #[path = "fork_tests.rs"]
 mod tests;

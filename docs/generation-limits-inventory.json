@@ -37,27 +37,9 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/branching.rs",
-    "site": "if height < = 0 . 0 {",
-    "classification": "parameter",
-    "reason": "A zero-height family has no positive-volume tree to generate."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching.rs",
     "site": "if o . trunk_height . is_some_and ( | v | v < = 0 . 0 ) {",
     "classification": "parameter",
     "reason": "The trunkHeight override is refused by name at zero or below: a crown with no bole below it leaves the build nothing to sweep (fn-123, host design)."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
-    "site": "if habit . codominance < = 0 . 0 {",
-    "classification": "parameter",
-    "reason": "At a codominance of zero no axis forks: the row's own dormant value, not a limit on the tree."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
-    "site": ". clamp ( 0 . 0 , 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "Unit progress or blend weight saturates at its endpoint; the authored length and population remain independent."
   },
   {
     "path": "crates/telperion-core/src/pipeline/branching/specimen.rs",
