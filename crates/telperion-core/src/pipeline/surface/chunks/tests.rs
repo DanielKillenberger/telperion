@@ -89,7 +89,7 @@ fn a_run_longer_than_a_chunk_splits_with_no_value_changed() {
         distances: false,
     };
     let rings =
-        |limit| super::super::rings::rings_mode(&tree, height, &params, sweep, false, limit);
+        |limit| super::super::rings::rings_mode(&tree, height, &params, sweep, None, false, limit);
     let (kept, chunked) = (
         rings(CHUNK_VERTICES).unwrap(),
         rings(CHUNK_VERTICES).unwrap(),

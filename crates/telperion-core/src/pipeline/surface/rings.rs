@@ -106,7 +106,7 @@ pub(crate) fn rings(
     } else {
         usize::MAX
     };
-    swept(tree, height, params, sweep, None, true, limit)
+    rings_mode(tree, height, params, sweep, None, true, limit)
 }
 
 /// A drawn wood's rings read from `traced`, the curve of the same tree:
@@ -124,23 +124,20 @@ pub(crate) fn drawn_from(
         edges,
         distances: false,
     };
-    swept(tree, height, params, sweep, Some(traced), true, CHUNK_VERTICES)
-}
-
-pub(super) fn rings_mode(
-    tree: &Tree,
-    height: f64,
-    params: &SurfaceParams,
-    sweep: Sweep,
-    parallel_allowed: bool,
-    limit: usize,
-) -> Result<Rings> {
-    swept(tree, height, params, sweep, None, parallel_allowed, limit)
+    rings_mode(
+        tree,
+        height,
+        params,
+        sweep,
+        Some(traced),
+        true,
+        CHUNK_VERTICES,
+    )
 }
 
 /// The rings, each run swept here or, for a drawn wood, read from the
 /// curve `traced` where one is given.
-fn swept(
+pub(super) fn rings_mode(
     tree: &Tree,
     height: f64,
     params: &SurfaceParams,
@@ -227,14 +224,22 @@ fn swept(
             drop(scratch);
             return match parallel::rings(at, curve, &ordered, &mut out, longest, workers) {
                 Ok(()) => table(ordered, out),
-                Err(_) => swept(tree, height, params, sweep, traced, false, limit),
+                Err(_) => rings_mode(tree, height, params, sweep, traced, false, limit),
             };
         }
     }
     #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
     let _ = parallel_allowed;
     let pieces = &out.layout.pieces;
-    out.chunks = written(at, curve, &ordered, &out.layout, pieces, coords, &mut scratch)?;
+    out.chunks = written(
+        at,
+        curve,
+        &ordered,
+        &out.layout,
+        pieces,
+        coords,
+        &mut scratch,
+    )?;
     if !sweep.drawn {
         return Ok(out);
     }

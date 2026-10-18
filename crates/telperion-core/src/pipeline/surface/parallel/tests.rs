@@ -47,7 +47,7 @@ fn candidate(tree: &Tree, params: &SurfaceParams, limit: usize) -> Result<Surfac
 }
 /// Both steps in turn, in chunks of at most `limit` vertices.
 fn serial(tree: &Tree, height: f64, params: &SurfaceParams, limit: usize) -> Result<SurfaceMesh> {
-    let rings = super::super::rings::rings_mode(tree, height, params, DRAWN, false, limit)?;
+    let rings = super::super::rings::rings_mode(tree, height, params, DRAWN, None, false, limit)?;
     let faces = super::super::faces(&rings, tree, height, params)?;
     Ok(rings.into_mesh(faces))
 }

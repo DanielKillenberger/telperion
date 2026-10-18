@@ -154,13 +154,9 @@ pub fn bases(family: &Family) -> Result<Option<CanopyParams>> {
 /// of the tree is held here.
 pub fn resident(family: &Family, s: Summaries) -> Result<Expansion> {
     let envelope = envelope(s.folds, s.crown.iter().copied());
-    let wood = Wood {
-        tree: Tree::default(),
-        inputs: Inputs::of(family, envelope),
-        retains: retains(family),
-        radii: [s.root, s.stem],
-    };
-    prepared(wood, |_, reach| {
+    let inputs = Inputs::of(family, envelope);
+    let wood = (Tree::default(), inputs, retains(family));
+    prepared(wood, [s.root, s.stem], |_, reach| {
         // The root's own box, as `Reach::wood_box` takes the root's node.
         let out = reach.out(s.root);
         let (a, b) = s.corners;
@@ -170,26 +166,16 @@ pub fn resident(family: &Family, s: Summaries) -> Result<Expansion> {
     })
 }
 
-/// What an expansion is prepared around: the tree (none where the
-/// executor holds it), its inputs, whether its wood sheds leaves by age,
-/// and its root's and stem's radii.
-struct Wood {
-    tree: Tree,
-    inputs: Inputs,
-    retains: bool,
-    radii: [f64; 2],
-}
-
-/// Stage 3's descriptors, in the order their errors answer: the element
+/// Stage 3's descriptors around the tree (none where the executor holds
+/// it), its inputs and whether its wood sheds leaves by age, with its
+/// root's and stem's radii, in the order their errors answer: the element
 /// and its own check, the twig placement, the shell depth and the reach
 /// the box leaves are quantised against (`reference`) is grown by.
-fn prepared(wood: Wood, reference: impl FnOnce(&Tree, Reach) -> Reference) -> Result<Expansion> {
-    let Wood {
-        tree,
-        inputs,
-        retains,
-        radii: [root, stem],
-    } = wood;
+fn prepared(
+    (tree, inputs, retains): (Tree, Inputs, bool),
+    [root, stem]: [f64; 2],
+    reference: impl FnOnce(&Tree, Reach) -> Reference,
+) -> Result<Expansion> {
     let plan = &inputs.plan;
     let element = foliage::build_element(plan.element)?;
     element.validate()?;
@@ -246,13 +232,8 @@ impl Grown {
         super::clothe(&mut tree, &self.inputs)?;
         let root = tree.nodes.first().map_or(0.0, |n| n.radius);
         let stem = tree.stem_radius(|i| tree.nodes[i].radius);
-        let wood = Wood {
-            tree,
-            inputs: self.inputs,
-            retains: self.retains,
-            radii: [root, stem],
-        };
-        prepared(wood, Reference::grown)
+        let wood = (tree, self.inputs, self.retains);
+        prepared(wood, [root, stem], Reference::grown)
     }
 }
 

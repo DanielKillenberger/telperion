@@ -14,11 +14,11 @@ use crate::{
     tree::{NodeKind, Tree},
     Error, Result,
 };
-use telperion_space::organ;
+use stations::addressable;
 #[cfg(feature = "geometry")]
 pub(crate) use stations::spacing;
 pub(crate) use stations::{station_at, station_count};
-use stations::addressable;
+use telperion_space::organ;
 
 /// Capability check only; `runs` still validates every parameter. Limb
 /// clumping and a canopy without a twig layer have no plan, so such a

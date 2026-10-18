@@ -27,7 +27,7 @@ fn contacts_read_from_the_wood_are_the_swept_ones() {
             };
             // Drawn rings as the parallel step sweeps them, bare ones in turn.
             let limit = if drawn { CHUNK_VERTICES } else { usize::MAX };
-            let rings = super::rings::rings_mode(&tree, height, params, sweep, drawn, limit);
+            let rings = super::rings::rings_mode(&tree, height, params, sweep, None, drawn, limit);
             let rings = rings.unwrap();
             let read = AttachmentSurface::on_wood(&rings).unwrap();
             for (node, n) in tree.nodes.iter().enumerate().skip(1) {
