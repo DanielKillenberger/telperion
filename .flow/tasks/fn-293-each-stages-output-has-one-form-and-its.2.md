@@ -34,9 +34,17 @@ The hooks are on the production grower's hot path; their removal must keep the c
 - [ ] Non-test line count of the space crate before and after in `MEASURE.md`.
 - [ ] Gate and `npm test` green.
 ## Done summary
-TBD
+The space crate's experimental growth passes (oracle, coupling, partition, subtree, realized, stepped, the coarse tree and its expansion, the bounded build) and their examples are deleted; the Grower's oracle/couple/fine/handed hooks, the chain-grown-alone hooks, run_beside, the bounded records and the unread leaf-mean pass are gone, each branch keeping its live arm. The kept recursion, the boundary rows, the closed form's event positions (Stand, Along, step start/length), the unquantised light field (Field::new/on), sketch/run/whole and agree compile only into tests; bud_light, field_reads and the unread capture entries (units, layout, settled, settle_sag_turn) are deleted. Cross-crate test readers kept public and named: invariants (core repeat_tests.rs), grow_capture_light_at (core light_rows.rs now reads the cycle's lattice reads instead of bud_light), and the render tests' capture entries.
 
+Digests: core artifact_digest (24 lines), generation_digest (byte-identical, sha256 fb4ce911...) and the resident digest (telperion-heavy 10 --gpu 6) all equal the baseline; core digests re-checked equal after each review fix. Non-test lines of the space crate 27197 -> 21643 (MEASURE.md; about 20080 less the whole modules gated by cfg(test)). Gate (before review fixes): 1404 passed, 0 failed; npm test 170/0. Review fixes got focused tests: space crate 204/0, core grown_total + units_bound, light tests.
+
+Follow-ups (not in this task): the whole-tree grower's non-`one` step path (rows/balance/allot) still compiles into production, reached only by the test-only `run`; the fine-root parameters left in girth/geometry/sag/shed (thicken_given's given, place_from's fixed, disused_below's stub, sag::gather's given, Structure's stub, Error::Executor) are always neutral in production; capture_units' Before is now always `nothing()`.
+
+stage: impl-review - ran (codex: round 1 NEEDS_WORK 2 findings, round 2 NEEDS_WORK 1, both fixed in 08f23f9e0 and 067d5ea6a; cap 2/2 reached while converging, host reset the task counter with recorded reason (FRICTION.md), re-review SHIP)
+Tier: not reported (model: claude-opus-5-5)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8b19fbb968d801a6b77655099682727edc352c10, 08f23f9e075a631d48ff539996a47fa59fc70afd, 067d5ea6a5c7b10dddb2e940ef79ddec782ac583
+- Tests: telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast (1404 passed, 0 failed; before review fixes), npm test (170/0), cargo test --profile ci -p telperion-space --no-fail-fast (204/0, after fixes), cargo test --profile ci -p telperion-core --test light_rows --test grown_total --test units_bound, artifact_digest x 24, generation_digest, resident digest_tests::digest: equal to BASELINE.md
 - PRs:

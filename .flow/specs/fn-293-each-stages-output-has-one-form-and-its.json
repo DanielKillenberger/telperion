@@ -11,7 +11,8 @@
   ],
   "id": "fn-293-each-stages-output-has-one-form-and-its",
   "impl_review_rounds": {
-    "fn-293-each-stages-output-has-one-form-and-its.1": 0
+    "fn-293-each-stages-output-has-one-form-and-its.1": 0,
+    "fn-293-each-stages-output-has-one-form-and-its.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -317,11 +318,71 @@
       "task": "fn-293-each-stages-output-has-one-form-and-its.2",
       "timestamp": "2026-10-18T15:13:01.552489Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d488cf882b23c5140284cf4459e2894210793c7e0c7f5b6848625976e26a1866",
+      "backend": "codex",
+      "base_sha": "9a2487909b34c2526c334f31728eb6ddad032b33",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e916e07e40deb2eceb67117a9e2f67cd",
+            "classification": "introduced",
+            "findingId": "finding-e916e07e40deb2eceb67117a9e2f67cd",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-89565a4d6635873d3717eb4fdeaa0cf7",
+            "classification": "introduced",
+            "findingId": "finding-89565a4d6635873d3717eb4fdeaa0cf7",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f023d8a0172a307792db77eb335e0974",
+            "classification": "introduced",
+            "findingId": "finding-f023d8a0172a307792db77eb335e0974",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "0872c2c486136fda741cd86db89c221926b178d9",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 940,
+      "output_sha256": "40a7c38b83526e292bd2532cd83bcf83c033ae7f9d5a12e70886604a26393aa5",
+      "reservation_id": "f9ebb021235c4be193b87dad78b17d7b",
+      "round_consumed": true,
+      "scope": "impl:fn-293-each-stages-output-has-one-form-and-its.2",
+      "superseded_by": null,
+      "task": "fn-293-each-stages-output-has-one-form-and-its.2",
+      "timestamp": "2026-10-18T15:31:57.850537Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-293-each-stages-output-has-one-form-and-its.1": 1,
-    "impl:fn-293-each-stages-output-has-one-form-and-its.2": 1,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.2": 2,
     "plan": 1,
     "plan#completion": 0
   },
@@ -346,5 +407,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-18T15:31:00.762587Z"
+  "updated_at": "2026-10-18T15:31:57.853137Z"
 }
