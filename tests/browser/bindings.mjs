@@ -4,8 +4,8 @@ import { writeFile, mkdir } from 'node:fs/promises';
 /* ------------------------------------------------------------------ *
  * THE BINDING, IN A BROWSER
  *
- * The Wasm core as a page reaches it: loading, owned copies, field
- * handles and snapshots, independent outputs, the errors it must
+ * The Wasm core as a page reaches it: loading, owned copies, the field's
+ * grid, independent outputs, the errors it must
  * refuse, and the raw C ABI underneath. None of it draws anything, so
  * none of it needs a GPU - this runs in a plain headless Chromium and
  * has nothing to say about the renderer. The picture is the render
@@ -49,68 +49,47 @@ try {
     const engine = await TreeEngine.create();
     const family = structuredClone(ORDINARY);
     family.skeleton.seed = 42; family.skeleton.attractors = 500; family.skeleton.step = 0.02;
-    const meshFree = engine.build(family, { structure: true, field: true });
+    const meshFree = engine.build(family, { structure: true, field: { n: 24 } });
     check(!meshFree.surface && !meshFree.foliage && !meshFree.diagnostics.stages.surface && meshFree.diagnostics.timings.surfaceMs === 0, 'mesh-free must not invoke surface');
     // FN-9 natural defaults and retained clipped laterals intentionally changed
     // historical 13616/59810 counts. Assert topology/cardinality and exact replay below.
     check(meshFree.diagnostics.nodes > meshFree.diagnostics.crossover && meshFree.diagnostics.leavesPlanned > 0 && meshFree.diagnostics.instances === 0, 'ordinary has local branches and a leaf plan');
-    check(meshFree.diagnostics.stages.plan && !meshFree.diagnostics.stages.placement && !meshFree.diagnostics.stages.cull && meshFree.diagnostics.stages.fieldSource === 'plan' && meshFree.diagnostics.timings.foliageMs === 0, 'field-only reads the plan and places no leaf');
+    check(meshFree.diagnostics.stages.plan && !meshFree.diagnostics.stages.placement && !meshFree.diagnostics.stages.cull && meshFree.diagnostics.timings.foliageMs === 0, 'field-only reads the plan and places no leaf');
     check(meshFree.structure.values.length === meshFree.diagnostics.nodes * 6 && meshFree.structure.topology.length === meshFree.diagnostics.nodes * 3, 'packed node cardinality');
     check(meshFree.diagnostics.complete, 'complete diagnostics');
-    const cells = new Float64Array([0,0,0,0, 1e5,1e5,1e5,0.5]);
-    const root = meshFree.field.query(cells), hits = root.flags;
-    check(hits[0] === 1 && hits[1] === 0, 'root wood / empty region');
-    check(root.woodRadius[0] > 0 && root.woodRadius[1] === 0, 'the trunk cell carries its radius, the empty cell none');
-    const whole = meshFree.field.query(new Float64Array([0,12,0,20]));
-    check(whole.flags[0] === 3 && whole.leaves[0] > 0 && whole.limbs[0] !== 0xffffffff, 'field-only includes both materials, a count and a limb without render output');
-    check(whole.woodRadius[0] >= root.woodRadius[0], 'a cell over the whole tree carries its thickest wood');
-    check(Math.abs(whole.leaves[0] - meshFree.diagnostics.leavesPlanned) <= meshFree.diagnostics.leavesPlanned * 0.01, 'a cell over the whole tree counts the plan');
-    const outside = meshFree.field.query(new Float64Array([1e5,1e5,1e5,0.5]));
-    check(outside.leaves[0] === 0 && outside.limbs[0] === 0xffffffff, 'an empty cell has no count and no limb');
-    check(meshFree.field.query(new Float64Array()).flags.length === 0, 'empty query');
-    for (const bad of [new Float64Array(3), new Float64Array([NaN,0,0,1]), new Float64Array([0,0,0,-1]), new Float32Array(4)])
-      await rejects(() => meshFree.field.query(bad), 'invalid query must reject');
-    check(meshFree.field.query(cells).flags[0] === 1, 'queries recover after errors');
-    const { querySnapshot, boundaryCells, gridCells, snapshotArrays } = await import('/scripts/benchmarks/generation-inputs.mjs');
-    const snapshot = meshFree.field.snapshot();
-    check(snapshot.wood.length === meshFree.diagnostics.nodes * 8, 'snapshot wood count');
-    check(snapshot.schema === 2 && snapshot.leaves.nodeCount === 0 && snapshot.leaves.bounds.length === 0, 'planned snapshot carries no leaf boxes');
-    const sweeps = snapshot.plan.segments.length / 7;
-    check(sweeps > 0 && snapshot.plan.stations.length === sweeps * 2 && snapshot.plan.index.bounds.length / 6 - snapshot.plan.index.nodeCount === sweeps, 'snapshot plan count');
-    check(Array.from({ length: sweeps }, (_, i) => snapshot.plan.stations[i * 2]).reduce((a, b) => a + b, 0) === meshFree.diagnostics.leavesPlanned, 'snapshot plan stations sum to the plan');
-    for (const packed of [cells, new Float64Array(), boundaryCells(snapshot), gridCells(snapshot.bounds, 8)]) {
-      const reference = meshFree.field.query(packed).flags, copied = querySnapshot(snapshot, packed);
-      check(copied.length === reference.length && copied.every((v,i) => v === reference[i]), 'snapshot exact indexed flags');
-    }
-    for (const bad of [new Float64Array(3), new Float64Array([NaN,0,0,1]), new Float64Array([0,0,0,-1]), new Float64Array([0,0,0,Infinity]), new Float64Array([Number.MAX_VALUE,0,0,0]), new Float32Array(4)])
-      await rejects(() => querySnapshot(snapshot, bad), 'snapshot invalid query');
-    const snapshotSaved = snapshot.wood.slice();
-    snapshot.wood[6] = 0;
-    check(meshFree.field.query(cells).flags[0] === 1, 'snapshot mutation isolated');
-    snapshot.wood.set(snapshotSaved);
-    const saved = meshFree.structure.values.slice();
+    // The field is the grid the request named, one answer a cell in its order.
+    const grid = meshFree.field, cells = grid.n ** 3;
+    check(grid.n === 24 && grid.cell > 0 && grid.origin.every(Number.isFinite), 'the field is the requested grid');
+    const named = meshFree.diagnostics.field;
+    check(named.n === grid.n && named.cell === grid.cell && named.origin.every((v, a) => v === grid.origin[a]), 'the diagnostics name the grid');
+    check(Object.values(grid.answer).every(a => a.length === cells), 'one answer a cell');
+    const at = p => { const [i, j, k] = [0, 1, 2].map(a => Math.floor((p[a] - grid.origin[a]) / grid.cell)); return i + grid.n * (j + grid.n * k); };
+    const root = at([0, 0, 0]), { flags, woodRadius, leaves, limbs } = grid.answer;
+    check(flags[root] & 1 && woodRadius[root] > 0, 'the trunk cell holds wood and carries its radius');
+    check(flags.some(f => f === 3) && limbs.some(l => l !== 0xffffffff), 'field-only includes both materials and a limb without render output');
+    check(flags.every((f, i) => (f & 1) === 1 || woodRadius[i] === 0) && flags.every((f, i) => (f & 2) === 2 || (leaves[i] === 0 && limbs[i] === 0xffffffff)), 'an empty cell has no radius, no count and no limb');
+    const counted = leaves.reduce((a, b) => a + b, 0);
+    check(Math.abs(counted - meshFree.diagnostics.leavesPlanned) <= meshFree.diagnostics.leavesPlanned * 0.01, 'the grid counts the plan');
+    // A malformed or out-of-range request is refused by name, before any work.
+    for (const [bad, named] of [[true, 'field request'], [{}, 'field request'], [{ n: 24, x: 1 }, 'field request'], [{ n: 24.5 }, 'field request'], [{ n: 24, limbOrder: -1 }, 'field request'], [{ n: 24, limbOrder: 1.5 }, 'field request'], [{ n: 2 }, 'field grid side'], [{ n: 257 }, 'field grid side']])
+      await rejects(() => engine.build(family, { field: bad }), 'a malformed field request is refused', named);
+    const saved = meshFree.structure.values.slice(), savedFlags = flags.slice();
     engine.release(); engine.release();
     check(saved.every((v,i) => v === meshFree.structure.values[i]), 'owned copies survive release');
-    await rejects(() => meshFree.field.query(cells), 'released field handle');
-    await rejects(() => meshFree.field.snapshot(), 'released snapshot handle');
-    check(querySnapshot(snapshot, cells).every((v,i) => v === hits[i]), 'snapshot survives release');
+    check(savedFlags.every((v,i) => v === meshFree.field.answer.flags[i]), 'the field is an owned copy');
     const structureOnly = engine.build(family, { structure: true });
     check(!structureOnly.surface && !structureOnly.foliage && !structureOnly.field && structureOnly.diagnostics.leavesPlaced === 0, 'optional outputs skipped');
     check(saved.every((v,i) => v === structureOnly.structure.values[i]), 'repeat deterministic');
-    // The limb order: `true` and the family's own order answer alike, byte for
-    // byte, and a deeper order never parts the crown into fewer systems.
-    const grid = gridCells(snapshot.bounds, 8);
-    const answers = field => { const q = engine.build(family, { field }).field.query(grid); return [q.flags, q.woodRadius, q.leaves, q.limbs]; };
-    const byDefault = answers(true), byOrder = answers({ limbOrder: family.canopy.clumpSystemOrder });
-    check(byDefault.every((a, n) => a.length === byOrder[n].length && a.every((v, i) => v === byOrder[n][i])), 'the boolean field request is the family order');
+    // The limb order: left out and the family's own order answer alike, byte
+    // for byte, and a deeper order never parts the crown into fewer systems.
+    const answers = field => { const q = engine.build(family, { field }).field.answer; return [q.flags, q.woodRadius, q.leaves, q.limbs]; };
+    const byDefault = answers({ n: 8 }), byOrder = answers({ n: 8, limbOrder: family.canopy.clumpSystemOrder });
+    check(byDefault.every((a, n) => a.length === byOrder[n].length && a.every((v, i) => v === byOrder[n][i])), 'the request without a limb order is the family order');
     const systems = limbs => new Set(limbs.filter(l => l !== 0xffffffff)).size;
-    check(systems(answers({ limbOrder: family.canopy.clumpSystemOrder + 3 })[3]) >= systems(byDefault[3]), 'a deeper limb order parts no coarser');
-    for (const bad of [{}, { limbOrder: -1 }, { limbOrder: 1.5 }, { limbOrder: 1, x: 1 }, 1])
-      await rejects(() => engine.build(family, { field: bad }), 'a malformed limb order is refused', 'limb order');
-    const field = engine.build(family, { field: true }).field;
+    check(systems(answers({ n: 8, limbOrder: family.canopy.clumpSystemOrder + 3 })[3]) >= systems(byDefault[3]), 'a deeper limb order parts no coarser');
+    const field = engine.build(family, { field: { n: 8 } }).field, before = field.answer.flags.slice();
     engine.build(family, {});
-    await rejects(() => field.query(cells), 'rebuild stales field handle');
-    await rejects(() => field.snapshot(), 'rebuild stales snapshot handle');
+    check(before.every((v, i) => v === field.answer.flags[i]), 'a rebuild leaves an earlier field as it was');
     for (const bad of [NaN, Infinity, -1]) {
       const p = structuredClone(family); p.skeleton.envelope.height = bad;
       await rejects(() => engine.build(p, { surface: true }), 'bad height');
@@ -142,7 +121,7 @@ try {
       // every 2.5 cm of its limbs, about 30,000 on this fixture's wood.
       specimen.canopy.maxInstances = 40000;
       specimen.skeleton.twigs.twig.internodeLength = 0.04;
-      const output = engine.build(specimen, { foliage: true, structure: true, field: true });
+      const output = engine.build(specimen, { foliage: true, structure: true, field: { n: 24 } });
       const foliage = output.foliage, d = output.diagnostics;
       check(d.complete, id + ' small binding fixture completes without truncation');
       check(!output.surface && !d.stages.surface && d.timings.surfaceMs === 0, id + ' independent foliage');
@@ -175,7 +154,7 @@ try {
       const savedAnatomy = JSON.stringify(a);
       engine.release();
       check(foliage.leaves.every((v, i) => v === savedLeaves[i]) && JSON.stringify(a) === savedAnatomy, id + ' released owned foliage');
-      await rejects(() => output.field.query(cells), id + ' released field');
+      check(output.field.answer.flags.length === 24 ** 3, id + ' released field kept');
       const repeat = engine.build(specimen, { foliage: true, structure: true });
       check(repeat.structure.values.length === original.length && repeat.structure.values.every((v, i) => v === original[i]) && repeat.foliage.leaves.every((v, i) => v === savedLeaves[i]), id + ' deterministic');
       specimen.skeleton.bias.supernatural = { enabled: false, writheAmplitude: 0.1, writheWavelength: 0.3, spiralRate: 2 };
@@ -198,23 +177,20 @@ try {
       }
       const woodOnly = engine.build(specimen, { surface: true });
       check(woodOnly.surface.positions.length > 0 && !woodOnly.foliage && !woodOnly.structure && !woodOnly.field && !woodOnly.diagnostics.stages.foliage && woodOnly.diagnostics.biologicalUnits === null, id + ' independent wood surface');
-      const fieldOnly = engine.build(specimen, { field: true });
+      const fieldOnly = engine.build(specimen, { field: { n: 24 } });
       check(!fieldOnly.foliage && fieldOnly.diagnostics.foliageAnatomy === null && fieldOnly.diagnostics.biologicalUnits === null && fieldOnly.diagnostics.leavesPlaced === 0, id + ' field-only places no leaf and reports no units');
       check(fieldOnly.diagnostics.stages.plan && !fieldOnly.diagnostics.stages.placement && fieldOnly.diagnostics.leavesPlanned >= d.instances, id + ' field-only plan counts at least the retained leaves');
-      const both = engine.build(specimen, { foliage: true, field: true });
-      check(both.diagnostics.stages.plan && both.diagnostics.stages.placement && both.diagnostics.stages.fieldSource === 'plan' && both.diagnostics.biologicalUnits === d.biologicalUnits, id + ' foliage with field places for the render and plans for the field');
+      const both = engine.build(specimen, { foliage: true, field: { n: 24 } });
+      check(both.diagnostics.stages.plan && both.diagnostics.stages.placement && both.diagnostics.biologicalUnits === d.biologicalUnits, id + ' foliage with field places for the render and plans for the field');
       const zero = structuredClone(specimen); zero.canopy.size = 0;
       const emptyFoliage = engine.build(zero, { foliage: true });
       check(emptyFoliage.foliage.leaves.length === 0 && emptyFoliage.foliage.bounds === null && emptyFoliage.diagnostics.biologicalUnits === 0, id + ' empty biological geometry');
       const limited = structuredClone(specimen); limited.canopy.maxInstances = 1;
       await rejects(() => engine.build(limited, { foliage: true }), id + ' foliage budget rejects instead of truncating');
     }
-    const emptySnapshot = engine.build(empty, {field:true}).field.snapshot();
-    check(Object.values(snapshotArrays(emptySnapshot)).every(a => a.length === 0), 'empty snapshot');
-    check(querySnapshot(emptySnapshot,cells).every(v => v === 0), 'empty snapshot occupancy');
+    await rejects(() => engine.build(empty, { field: { n: 8 } }), 'an empty tree has no field', 'field of an empty tree');
     engine.dispose(); engine.dispose();
-    await rejects(() => meshFree.field.snapshot(), 'disposed snapshot handle');
-    check(querySnapshot(snapshot,cells).every((v,i) => v === hits[i]), 'owned snapshot survives disposal');
+    check(savedFlags.every((v,i) => v === meshFree.field.answer.flags[i]), 'the field survives disposal');
     await rejects(() => engine.build(family, {}), 'disposed engine');
     // Exercise the native boundary directly, including malformed JSON and allocated byte validation.
     const bytes = await (await fetch('/src/browser/telperion.wasm')).arrayBuffer();
@@ -236,19 +212,13 @@ try {
     check(e.preset(999) === 1, 'unknown ABI identity');
     check(e.request_alloc(65537) === 1 && e.build() === 1, 'oversized request leaves no prior request');
     check(raw('{"family":{"skeleton":{"growth":{"maxNodes":0}}},"outputs":{"surface":true}}') === 0 && e.buffer_len(0) === 0, 'native empty recovery');
-    check(raw(JSON.stringify({ family, outputs: { field: true } })) === 0, 'native field-only build');
-    check([9,10,11,12,13,21,22,23,24].every(slot => e.buffer_len(slot) === 0), 'ordinary field has no snapshot copies');
+    check(raw(JSON.stringify({ family, outputs: { field: { n: 8 } } })) === 0, 'native field-only build');
+    check([8,19,20,25].every(slot => e.buffer_len(slot) === 8 ** 3), 'the native field is one answer a cell');
     check([0,1,2,3,4,5].every(slot => e.buffer_len(slot) === 0), 'field-only allocates no render buffers');
-    const revision = JSON.parse(new TextDecoder().decode(new Uint8Array(e.memory.buffer,e.metadata_ptr(),e.metadata_len()))).revision;
-    check(e.field_snapshot(revision) === 0 && e.buffer_len(9) > 0 && e.buffer_len(21) > 0 && e.buffer_len(12) === 0, 'native explicit snapshot');
-    e.field_snapshot_release(); e.field_snapshot_release();
-    check([9,10,11,12,13,21,22,23,24].every(slot => e.buffer_len(slot) === 0), 'native snapshot staging freed');
-    check(e.field_snapshot(revision - 1) === 1 && [9,10,11,12,13,21,22,23,24].every(slot => e.buffer_len(slot) === 0), 'stale snapshot returns no partial buffers');
-    check(e.query_alloc(1) === 0 && [8,19,20,25].every(slot => e.buffer_len(slot) === 0), 'query staging starts empty');
+    check(['field_snapshot', 'query_alloc', 'query'].every(name => !(name in e)), 'no cube query and no snapshot at the native boundary');
     check(e.buffer_len(999) === 0 && e.buffer_ptr(999) === 0, 'unknown buffer slot');
-    check(e.query_alloc(0) === 0 && e.query(0) === 1, 'no stale query accepted');
     e.release(); e.release();
-    return { fieldSnapshots: true, snapshotOwnership: true, snapshotExactFlags: true, speciesAnatomy: true, identityCatalogue: true, independentOutputs: true, meshFree: true, ownership: true, malformed: true, empty: true, staleFields: true, deterministic: true, partialDiagnostics: true };
+    return { fieldGrid: true, speciesAnatomy: true, identityCatalogue: true, independentOutputs: true, meshFree: true, ownership: true, malformed: true, empty: true, staleFields: true, deterministic: true, partialDiagnostics: true };
   });
   await writeFile(out + '/bindings.json', JSON.stringify(bindings, null, 2));
   console.log(bindings);

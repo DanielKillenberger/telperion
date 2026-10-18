@@ -20,6 +20,8 @@ if (!(nodes > 0) || !(tree.surface.positions.length > 0)) throw Error('the main 
 engine.dispose();
 // The field grows on the device alone (fn-257): Node has no WebGPU, so it
 // rejects by name, never growing on the CPU.
-const refused = await growField('silver-birch', 7).then(() => 'grown', e => String(e.message));
+const refused = await growField('silver-birch', 7, 36).then(() => 'grown', e => String(e.message));
 if (!refused.includes('WebGPU is not available')) throw Error(`field.js in Node: ${refused}`);
-console.log(`dist in Node ${process.version}: telperion.js built Telperion to ${nodes} nodes from the Wasm beside it; field.js refused without WebGPU.`);
+const side2 = await growField('silver-birch', 7, 2).then(() => 'grown', e => String(e.message));
+if (!side2.includes('field grid side')) throw Error(`field.js in Node, a side of two: ${side2}`);
+console.log(`dist in Node ${process.version}: telperion.js built Telperion to ${nodes} nodes from the Wasm beside it; field.js refused without WebGPU and a side of two by name.`);

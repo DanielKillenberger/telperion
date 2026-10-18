@@ -55,3 +55,18 @@ The review's one gap (P1, R3'): the oak at seed 1234 over 0.1.4. Re-measured war
 - **What hindered:** `generation_limit_guard::generation_limits_are_classified` fails because the field's limit sites moved (`field.rs` to `field/splat.rs`, `cuboid.rs` deleted, three new clamp/refusal sites), and the inventory it reads, `docs/generation-limits-inventory.json`, is outside the task's Touches. The task stops for the host before `done`; a drafted inventory that passes the guard is in the worker's scratchpad.
 - **Cost:** about 40 minutes of queueing for the core run, then a stop on one file.
 - **What would remove it:** the same plan step as 2026-10-16's (grep every deleted public name), extended to the repository's inventories and guards that list source sites (`docs/generation-limits-inventory.json`), so they enter the Touches of the task that moves the code.
+
+## 2026-10-18, task 14 (worker)
+
+- **Doing (04:00):** the field Vitest files alone, as the host asked.
+- **What hindered:** `vitest.config.ts`'s global setup builds two native release binaries before any test file runs, and a config outside the checkout cannot resolve `vitest`, so a focused run needed a second config under `.flow/tmp/`.
+- **Cost:** about 3 minutes, and the release builds that would have run before every focused run.
+- **What would remove it:** a `vitest --project` or an env switch that skips the release binaries for files that do not call them.
+- **Doing (04:05):** `tests/browser/bindings.mjs` against the rebuilt Wasm, run alone because `scripts/test-wasm.mjs` also runs `tests/browser/field.mjs`, which needs WebGPU in a browser.
+- **What hindered:** the binding suite is in no CI job and has rotted since 2026-10-02 beyond the field: the "compact" fixture (height 4, 40 attractors) grows 152,178 to 1,005,581 nodes, `growth.maxNodes` of 0 or 20 leaves the tree whole and complete, a height of -1 builds, the beech is in the catalogue, the crookedness range is not refused, the species foliage ceiling of 40,000 is refused, and every node is below the crossover. Eleven checks fail that read no field output; they had to be collected one run at a time behind a throwing `check`.
+- **Cost:** about 20 minutes and four browser runs, and the acceptance criterion "bindings green" cannot be met inside this task.
+- **What would remove it:** the binding suite in a CI job (it needs no GPU), or deleted where the native tests already hold the same contract.
+- **Doing (04:15):** `node scripts/test-dist.mjs` on a fresh `npm run build`.
+- **What hindered:** its first step, the main entry building Telperion with `{ surface: true, foliage: true }`, is refused by the core Wasm itself (`surface allocation`, code 2, the raw C ABI with no TypeScript in between), so the script stops before it reaches `field.js`. The field half, run on its own against `dist/field.js`, refuses without WebGPU and refuses a side of two by name. The refusal is the 32-bit Wasm limit fn-291 works on.
+- **Cost:** about 5 minutes; "test-dist green" cannot be met inside this task.
+- **What would remove it:** fn-291 landing on this branch, or test-dist's main-entry tree swapped for one the 32-bit module holds (a host call, since the script's tree is the README's first example).
