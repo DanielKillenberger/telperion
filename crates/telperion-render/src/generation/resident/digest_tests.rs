@@ -4,7 +4,7 @@
 //! its demand), each hashed. Two builds of the same generator print the
 //! same lines; a change that keeps the device's trees keeps every line.
 //!
-//!   DIGEST_SEEDS=1,7,42 cargo test --profile ci -p telperion-render digest -- --ignored --nocapture
+//!   DIGEST_SEEDS=1,7,42 [DIGEST_PRESETS=norway-spruce] [DIGEST_DUMP=leaves.bin] cargo test --profile ci -p telperion-render digest -- --ignored --nocapture
 use super::super::{io, Delivery, Generator, Prepared};
 use std::fmt::{Debug, Write};
 use telperion_core::pipeline::executor;
@@ -45,6 +45,15 @@ fn debug(v: &impl Debug) -> String {
 fn line(gen: &Generator, prepared: &Prepared) -> String {
     let gpu = &gen.gpu;
     let leaves = gen.read_instances(prepared).unwrap();
+    // `DIGEST_DUMP` names a file for the leaves' matrices, so two builds'
+    // leaves are compared value by value (fn-293 task 6).
+    if let Ok(path) = std::env::var("DIGEST_DUMP") {
+        let bytes: Vec<u8> = (0..leaves.len())
+            .flat_map(|k| leaves.matrix(k))
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        std::fs::write(path, bytes).unwrap();
+    }
     let wood = prepared.wood.as_ref().expect("a resident build's curve");
     let (points, clusters, p, k, demand) = wood.blocks();
     let read = |b: &wgpu::Buffer, bytes: u64| match bytes {
@@ -83,7 +92,14 @@ fn digest() {
         .split(',')
         .map(|s| s.parse().unwrap())
         .collect();
-    for &(_, id, _, _) in CATALOGUE {
+    // `DIGEST_PRESETS` names the presets to digest (every one by default).
+    let named = std::env::var("DIGEST_PRESETS").ok();
+    let wanted = |id: &str| {
+        named
+            .as_deref()
+            .is_none_or(|n| n.split(',').any(|p| p == id))
+    };
+    for &(_, id, _, _) in CATALOGUE.iter().filter(|c| wanted(c.1)) {
         for &seed in &seeds {
             let mut family = Preset::from_id(id).unwrap().parameters();
             family.skeleton.seed = seed;

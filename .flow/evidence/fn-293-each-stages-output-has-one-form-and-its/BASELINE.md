@@ -139,3 +139,30 @@ baseline: core `raw/core-digest-t5.txt` (all 24 lines), render pipeline
 `raw/generation-digest-t5.txt` (byte-identical, sha256 `fb4ce911...`),
 resident `raw/resident-digest-t5.txt` (identical lines, under
 `telperion-heavy 10 --gpu 6`).
+
+## Task 6 probe: the rings read the renderer's packed frames
+
+Finding 3's stop condition, measured before any sweep change. The rings
+(`resident/rings.wgsl`) are the one reader of the sweep's points that reads
+their frames; the stations read no point. The probe left the sweep as it is
+and passed each point's normal and binormal through the renderer's packing
+and decoding (`handoff.wgsl`'s `octahedral`, `curve_walk.wgsl`'s
+`unoctahedral`) before the rings wrote them (`raw/rings-probe.wgsl`). The
+norway spruce is the one shipped preset that seats leaves on the rings
+(`surfaceContact` 1.0), so it is the only preset whose leaves read ring
+frames.
+
+`DIGEST_PRESETS=norway-spruce DIGEST_SEEDS=<seed> DIGEST_DUMP=<file>` on
+`resident::digest_tests::digest`, base and probe, matrices compared by
+`raw/compare.py`; logs `raw/t6-probe-rings-{base,packed}*.log`. The base
+lines equal the baseline. The points, clusters, sections and demand are
+unchanged; the leaves differ:
+
+| seed | leaves | leaves moved | largest move | rotation or scale changed |
+| ---: | ---: | ---: | ---: | --- |
+| 1 | 4,024,570 | 1 | 0.194 mm | none |
+| 7 | 3,925,478 | 6 | 0.197 mm | none |
+| 42 | 4,084,402 | 10 | 0.195 mm | none |
+
+Each moved leaf moved by about 0.19 mm, which looks like one step of the
+leaf's quantised position: a rounding boundary crossed, not a drift.

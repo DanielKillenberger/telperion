@@ -80,3 +80,10 @@
 - **Slowed by:** about 21:22, while the gate linked, `target/ci` lost every rlib (17 object files left, `examples/` and `deps/` recreated empty); the link of `grow_in` and `conformance` failed on missing rlibs and the gate stopped in under a minute. Nothing in this task deletes build output; the cause is outside the worker (a cleanup elsewhere on the machine).
 - **Cost:** one gate run lost, and the rerun builds the workspace from nothing.
 - **Would have removed it:** no cleanup of a worktree's `target/` while a worker holds the checkout, or a lock file a cleanup honours.
+
+## 2026-10-18 - task 6: two spec claims about the sweep did not hold against the code
+
+- **Doing:** reading the sweep, the handoff and their readers before changing them.
+- **Slowed by:** two claims in the task that were never checked against the code. First, "the readers read the drawn records": the cycle's dress writes one buffer per lateral order (`cycle/drawn.rs`, `Dressed.waves`, plus the root's and the bases' waves). The readers look nodes up by id across waves, through parents and leaders, and the stations already bind seven storage buffers, so no reader can bind the waves themselves. Reading the records needs either one buffer for every record, which is a change to the dress in `cycle/`, outside the task's Touches, or a copy of the waves in their own layout, which is still a copy. Second, the stop condition on the packed form was a real case, not a hypothetical one. The rings read each point's full float32 frame, and the packed form changes seated spruce leaves (BASELINE.md, "Task 6 probe").
+- **Cost:** about 40 minutes, three probe builds and six digest runs. The task stops with NEEDS_HUMAN before any change to the sweep.
+- **Would have removed it:** the plan checking where the drawn records live and what the rings read from the points before writing the approach (AGENTS.md, "Gates and checked claims").
