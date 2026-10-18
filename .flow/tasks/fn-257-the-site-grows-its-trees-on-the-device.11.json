@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-257-the-site-grows-its-trees-on-the-device",
   "spec_path": ".flow/tasks/fn-257-the-site-grows-its-trees-on-the-device.11.md",
-  "status": "todo",
+  "status": "done",
   "title": "The site field asks only for what it reads, and its query's time is accounted",
   "updated_at": "2026-10-16T13:50:14.625628Z"
 }

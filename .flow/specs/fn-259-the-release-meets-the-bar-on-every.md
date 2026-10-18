@@ -19,3 +19,4 @@ Qualification only; fixes go to their own specs. Depends on stages 4 and 5. Rele
 ## Found on the way (host, 2026-10-15, fn-286 RELAYS.md)
 
 - The Oregon white oak's device and CPU trees disagree at age 40: F4's own oak already fails the device/CPU sweep test at 40 (every preset agrees at the gate's age 12); with fn-236's sourced sapling segment, three agreement tests fail with 219 parents differing (232 with fn-286's take-over on, one node apart). Untraced; fn-281 saw a few nodes in 2.3 million at 80. Traced and fixed, or bounded with the owner, before the release PR, and an agreement test added at each preset's shipped age.
+- `tests/browser/bindings.mjs` has 12 checks red on the release branch and no CI job runs it (host, 2026-10-18, fn-257 landing); fn-259 fixes it and runs it in CI.

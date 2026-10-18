@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-257-the-site-grows-its-trees-on-the-device",
   "spec_path": ".flow/tasks/fn-257-the-site-grows-its-trees-on-the-device.15.md",
-  "status": "todo",
+  "status": "done",
   "title": "The spruce's site field and held memory, paired against today; gate and npm test",
   "updated_at": "2026-10-16T13:45:35.548677Z"
 }

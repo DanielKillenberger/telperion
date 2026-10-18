@@ -2030,7 +2030,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-257-the-site-grows-its-trees-on-the-device.md",
-  "status": "open",
+  "status": "done",
   "title": "The site grows its trees on the device",
   "tracker": {
     "baseHashFlow": null,
@@ -2043,5 +2043,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-18T10:39:50.528348Z"
+  "updated_at": "2026-10-18T11:07:20.878628Z"
 }

@@ -17,3 +17,5 @@ Every change keeps every shipped tree byte-identical (presets at their ages, see
 ## Boundaries
 
 Release item (fn-237), after fn-257's R8. Findings 9, 14 and 18 (test-only species constructors, capability thresholds, the harness's own checks) are fn-288's and after the release.
+
+`scripts/benchmarks/field.mjs`, `scripts/benchmarks/generation.mjs`, `generation-inputs.mjs` and `experiments/voxel-field/voxels.mjs` still call the field query fn-257 removed, and `tests/migration/README.md` still mentions `{ field: true }` (host, 2026-10-18, fn-257 landing); fn-293 removes or migrates them.

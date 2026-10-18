@@ -10,7 +10,7 @@
   "review": null,
   "spec": "fn-257-the-site-grows-its-trees-on-the-device",
   "spec_path": ".flow/tasks/fn-257-the-site-grows-its-trees-on-the-device.1.md",
-  "status": "todo",
+  "status": "done",
   "sync": null,
   "title": "Spike: aggregate against expanded subtree, and the oak at a 0.32 m cut in Wasm (COUNCIL early test 4)",
   "updated_at": "2026-10-11T11:01:31.785147Z"
