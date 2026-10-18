@@ -1,6 +1,10 @@
 # Generation baseline and snapshot input (schema 1)
 
-Run `npm run wasm:build`, serve this checkout with Vite, then:
+The runner and its inputs (`generation.mjs`, `generation-inputs.mjs`) and
+`field.mjs` were removed in fn-293 with the field query they measured
+(removed in fn-257); replay them from git history before fn-293. As
+recorded, the runner was run so: `npm run wasm:build`, serve the checkout
+with Vite, then:
 
 ```sh
 BROWSER_URL=http://127.0.0.1:5188 GENERATION_OUTPUT=/tmp/fn12-generation \

@@ -1,7 +1,7 @@
 //! The binding's tests: the diagnostics, the stages a field request runs,
 //! and the field request's grid and limb order.
 use super::*;
-use telperion_core::tree::{Diagnostics, Node, Tree};
+use telperion_core::tree::Diagnostics;
 
 #[test]
 fn a_reduced_tree_reports_the_detail_it_kept() {
@@ -18,57 +18,6 @@ fn a_reduced_tree_reports_the_detail_it_kept() {
     assert_eq!(twig_detail(incomplete), None);
     assert_eq!(twig_detail(Diagnostics::default()), None);
 }
-#[test]
-fn surviving_diagnostics_match_radius_law_and_empty_state() {
-    let mut tree = Tree {
-        crossover: 2,
-        ..Default::default()
-    };
-    for (i, parent) in [None, Some(0), Some(1), Some(1), Some(1), Some(1), Some(2)]
-        .into_iter()
-        .enumerate()
-    {
-        let mut node = Node::root();
-        node.parent = parent;
-        node.branch = i as u32;
-        if i >= 2 {
-            node.base_radius = [0.0025, 0.005, 0.02, 0.08, 0.0025][i - 2];
-        }
-        if i == 2 || i == 6 {
-            node.kind = NodeKind::Twig;
-        }
-        tree.nodes.push(node);
-    }
-    let params = twigs::TwigParams {
-        length_ratio: 0.5,
-        ratio_power: 1.0,
-        ..Default::default()
-    };
-    let (counts, handoffs, capped, twigs) = branch_diagnostics(&tree, params).unwrap();
-    assert_eq!(handoffs, 4);
-    assert_eq!(twigs, 2);
-    assert_eq!(capped, 0);
-    assert_eq!(counts.len(), params.generations as usize + 1);
-    assert_eq!(counts, [1, 1, 0, 1, 0, 1, 0]);
-    assert_eq!(
-        branch_diagnostics(
-            &tree,
-            twigs::TwigParams {
-                ratio_power: 0.0,
-                ..params
-            }
-        )
-        .unwrap()
-        .2,
-        3
-    );
-    tree.nodes.truncate(2);
-    assert_eq!(
-        branch_diagnostics(&tree, params).unwrap(),
-        (vec![0; params.generations as usize + 1], 0, 0, 0)
-    );
-}
-
 /// A field request reads the plan and places no leaf, and the metadata
 /// says which stages ran and names the grid, for every shipped preset the
 /// pipeline grows (R1); the date palm's fronds are planned frond by frond

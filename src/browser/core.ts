@@ -48,8 +48,7 @@ export interface Diagnostics {
   attractionCapped: boolean; complete: boolean;
   /** Twig detail kept, in sixteenths of a generation, where the node budget reduced the tree. */
   twigDetail: number | null;
-  handoffs: number; generationCounts: number[];
-  levelCappedHandoffs: number; twigs: number; leavesPlaced: number; instances: number;
+  leavesPlaced: number; instances: number;
   /** Stations the leaf plan counts before any cull; zero without a plan. */
   leavesPlanned: number;
   surfaceBounds: Bounds | null; foliageBounds: Bounds | null;
