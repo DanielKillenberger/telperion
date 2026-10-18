@@ -375,6 +375,12 @@ impl Foliage {
         self.select.region()
     }
 
+    /// Each level's list in its drawn order, as the last frame left it.
+    #[cfg(test)]
+    pub(crate) fn level_lists(&self, gpu: &Gpu) -> Vec<Vec<u32>> {
+        self.select.level_lists(gpu)
+    }
+
     /// What the last frame's selection counted per level, the unseen bucket
     /// last. A stall on the device: a check and a record, not a frame's work.
     #[cfg(not(target_arch = "wasm32"))]

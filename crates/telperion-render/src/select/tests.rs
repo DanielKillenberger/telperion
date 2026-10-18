@@ -1,23 +1,67 @@
 use super::*;
 
 #[test]
-fn every_level_is_given_a_list_the_whole_crown_could_fill() {
+fn the_levels_share_one_list_the_crown_fills_once() {
     let four = sizes(1_000, 4, 256);
-    assert_eq!(four.stride % 256, 0, "a list cannot be bound at an offset");
-    assert!(
-        four.stride >= 4_000,
-        "a list too small for the crown: {}",
-        four.stride
+    // Each leaf is in at most one level, so every level end to end holds
+    // the crown once.
+    assert_eq!(
+        four.lists, 4_096,
+        "the lists are not the crown once, aligned"
     );
-    assert_eq!(four.lists, four.stride * 4);
+    // One start word per level, each at a bindable offset.
+    assert_eq!((four.slot, four.starts), (256, 4 * 256));
     // One counter per level and one for the leaves no level drew.
     assert_eq!(four.counts, 5 * 4);
     assert_eq!(four.arguments, 4 * 5 * 4);
     assert_eq!(four.scratch, (1_000 + 5 * 4) * 4);
 
-    // A crown of nothing asks for nothing, at any number of levels.
+    // A crown of nothing asks for no list, and no levels for no starts.
     assert_eq!(sizes(0, 4, 256).lists, 0);
-    assert_eq!(sizes(1_000, 0, 256).lists, 0);
+    assert_eq!(sizes(1_000, 0, 256).starts, 0);
+
+    // A start word is written as storage and read as a uniform, so its slot
+    // takes the wider of the two alignments, whichever that is.
+    for (uniform, storage) in [(256, 32), (64, 256)] {
+        let limits = wgpu::Limits {
+            min_uniform_buffer_offset_alignment: uniform,
+            min_storage_buffer_offset_alignment: storage,
+            ..Default::default()
+        };
+        assert_eq!(slot_alignment(&limits), 256);
+    }
+}
+
+/// R1: a level no leaf falls in this frame starts where the next level does
+/// and leaves every other level's list as it was; a forced level starts at
+/// zero.
+#[test]
+fn an_empty_level_starts_where_the_next_does_and_a_forced_one_at_zero() {
+    let Some(gpu) = device() else { return };
+    let levels = 4;
+    let full = interleaved(1_000, levels);
+    // Level 1's leaves moved behind the eye, to the unseen bucket.
+    let emptied = classed(1_000, levels, |id| match id % (levels + 1) {
+        1 => levels,
+        class => class,
+    });
+    let run = |foliage: &mesh::Foliage, forced| {
+        let mut selection = Select::new(&gpu);
+        selection.submit(&gpu, foliage, &foliage.element, forced);
+        run_frame(&gpu, &selection);
+        let starts = selection.starts(&gpu).expect("starts read back");
+        (selection.level_lists(&gpu), starts)
+    };
+    let (lists, _) = run(&full, Level::Chosen);
+    let (without, starts) = run(&emptied, Level::Chosen);
+    assert!(without[1].is_empty(), "level 1 drew {:?}", without[1]);
+    assert_eq!(starts[1], starts[2], "{starts:?}");
+    for level in [0, 2, 3] {
+        assert_eq!(without[level], lists[level], "level {level}");
+    }
+    let (forced, starts) = run(&full, Level::Forced(2));
+    assert_eq!(starts[2], 0, "{starts:?}");
+    assert_eq!(forced[2].len(), 800, "every seen leaf at the forced level");
 }
 
 /// Interleave every level and the culled bucket across words, workgroups and
@@ -91,6 +135,12 @@ fn device() -> Option<Gpu> {
 
 /// Every class of leaf in turn: one per level and the culled bucket last.
 fn interleaved(instances: usize, levels: usize) -> mesh::Foliage {
+    classed(instances, levels, |id| id % (levels + 1))
+}
+
+/// Each leaf in the class `class` gives it: a level, or `levels` for the
+/// culled bucket.
+fn classed(instances: usize, levels: usize, class: impl Fn(usize) -> usize) -> mesh::Foliage {
     use telperion_core::foliage::{Element, Instances, Level as Section};
     mesh::Foliage {
         // A unit sphere at the origin makes classification exact: every
@@ -123,7 +173,7 @@ fn interleaved(instances: usize, levels: usize) -> mesh::Foliage {
                 telperion_core::math::Vec3::new(0.0, 0.0, 1.0),
             ));
             for id in 0..instances {
-                let class = id % (levels + 1);
+                let class = class(id);
                 // The culled class behind the eye keeps a unit scale, so its
                 // sphere stays clear of the near plane.
                 let scale = if class == levels {
@@ -144,7 +194,9 @@ fn interleaved(instances: usize, levels: usize) -> mesh::Foliage {
     }
 }
 
-fn check_compaction(gpu: &Gpu, selection: &Select, instances: usize, levels: usize, forced: Level) {
+/// One frame from the eye at the origin looking down -z, which the fixtures
+/// class their leaves against.
+fn run_frame(gpu: &Gpu, selection: &Select) {
     use telperion_core::math::Vec3;
     let camera = Camera {
         position: Vec3::ZERO,
@@ -156,14 +208,12 @@ fn check_compaction(gpu: &Gpu, selection: &Select, instances: usize, levels: usi
     let mut encoder = gpu.encoder(&Default::default());
     selection.dispatch(gpu, &mut encoder, &camera, (2, 2), true, None);
     gpu.submit([encoder.finish()]);
+}
+
+fn check_compaction(gpu: &Gpu, selection: &Select, instances: usize, levels: usize, forced: Level) {
+    run_frame(gpu, selection);
     let counts = selection.counted(gpu).expect("counts read back");
-    let bytes = buffer::read(gpu, selection.lists.as_ref().unwrap()).expect("lists read back");
-    let words: Vec<u32> = bytes
-        .as_chunks::<4>()
-        .0
-        .iter()
-        .map(|word| u32::from_ne_bytes(*word))
-        .collect();
+    let lists = selection.level_lists(gpu);
     for (level, count) in counts.into_iter().enumerate() {
         let expected: Vec<u32> = (0..instances as u32)
             .filter(|id| {
@@ -177,12 +227,7 @@ fn check_compaction(gpu: &Gpu, selection: &Select, instances: usize, levels: usi
             .collect();
         assert_eq!(count as usize, expected.len(), "level {level}, {forced:?}");
         if level < levels {
-            let start = level * selection.stride as usize / size_of::<u32>();
-            assert_eq!(
-                &words[start..start + expected.len()],
-                expected,
-                "level {level}, {forced:?}"
-            );
+            assert_eq!(lists[level], expected, "level {level}, {forced:?}");
         }
     }
 }
@@ -221,18 +266,9 @@ fn an_inflorescence_is_kept_or_dropped_whole() {
     let mut encoder = gpu.encoder(&Default::default());
     selection.dispatch(&gpu, &mut encoder, &camera, (2, 2), true, None);
     gpu.submit([encoder.finish()]);
-    let counts = selection.counted(&gpu).expect("counts read back");
-    let bytes = buffer::read(&gpu, selection.lists.as_ref().unwrap()).expect("lists read back");
-    let words: Vec<u32> = (bytes.as_chunks::<4>().0.iter())
-        .map(|w| u32::from_ne_bytes(*w))
+    let chosen: Vec<u32> = (selection.chosen(&gpu).into_iter())
+        .map(|level| level.unwrap_or(4))
         .collect();
-    let mut chosen = vec![4u32; 4_000];
-    for (level, &count) in counts.iter().enumerate().take(4) {
-        let start = level * selection.stride as usize / size_of::<u32>();
-        for &id in &words[start..start + count as usize] {
-            chosen[id as usize] = level as u32;
-        }
-    }
     let mut kept = 0;
     for unit in chosen.chunks(4) {
         let drawn: Vec<bool> = unit.iter().map(|&c| c < 4).collect();

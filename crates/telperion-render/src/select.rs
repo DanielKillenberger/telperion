@@ -4,7 +4,8 @@
 //! leaf's depth and takes the coarsest level that stays under half a pixel; a
 //! leaf whose sphere is outside the frustum takes the unseen bucket instead.
 //! Each level's list is compacted in placement-index order, so ties in depth
-//! resolve identically on every draw. Its count drives one indexed indirect draw.
+//! resolve identically on every draw, and the levels lie end to end in one
+//! list, each from its own start. Its count drives one indexed indirect draw.
 //!
 //! Nothing survives the frame. There is no hysteresis and no previous-frame
 //! state: the switch is below a pixel by construction, so there is nothing to
@@ -50,23 +51,37 @@ pub enum Level {
 /// fit check, so what is judged before the upload is what the upload takes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Sizes {
-    /// Bytes one level's index list is given, aligned so the list can be bound
-    /// at a dynamic offset.
-    pub stride: u64,
+    /// Bytes between two levels' start words, so each can be bound at a
+    /// dynamic offset (`slot_alignment`).
+    pub slot: u64,
+    /// Every level's list end to end: each leaf is in at most one level, so
+    /// the crown fills it once.
     pub lists: u64,
+    pub starts: u64,
     pub counts: u64,
     pub arguments: u64,
     pub scratch: u64,
+}
+
+/// The spacing every start word can be bound at: the selection writes the
+/// starts as storage and the draw reads its level's as a uniform, a broadcast
+/// load where a storage word cost the vertex-bound spruce 17% of its draw.
+pub fn slot_alignment(limits: &wgpu::Limits) -> u64 {
+    u64::from(
+        (limits.min_uniform_buffer_offset_alignment)
+            .max(limits.min_storage_buffer_offset_alignment),
+    )
 }
 
 /// The bytes each selection buffer needs for this many placements at this many
 /// levels. The unseen bucket is a counter like any other, so there is one more
 /// counter than there are levels.
 pub fn sizes(instances: usize, levels: usize, alignment: u64) -> Sizes {
-    let stride = ((instances * size_of::<u32>()) as u64).div_ceil(alignment.max(1)) * alignment;
+    let slot = alignment.max(1);
     Sizes {
-        stride,
-        lists: stride * levels as u64,
+        slot,
+        lists: ((instances * size_of::<u32>()) as u64).div_ceil(slot) * slot,
+        starts: slot * levels as u64,
         counts: ((levels + 1) * size_of::<u32>()) as u64,
         arguments: (levels * ARGUMENT_WORDS * size_of::<u32>()) as u64,
         scratch: ((instances + (levels + 1) * instances.div_ceil(WORKGROUP as usize))
@@ -88,6 +103,7 @@ pub struct Select {
     masses: Option<Held>,
     deviations: Option<Held>,
     lists: Option<Held>,
+    starts: Option<Held>,
     counts: Option<Held>,
     arguments: Option<Held>,
     scratch: Option<Held>,
@@ -99,7 +115,8 @@ pub struct Select {
     /// Each level's range in the element's shared index buffer, coarsest first.
     levels: Vec<Range<u32>>,
     instances: u32,
-    stride: u32,
+    /// Bytes between two levels' start words (`Sizes::slot`).
+    slot: u32,
     forced: Level,
     /// The element's bounding sphere at the origin: centre, then radius.
     sphere: [f32; 4],
@@ -119,6 +136,7 @@ impl Select {
             &self.masses,
             &self.deviations,
             &self.lists,
+            &self.starts,
             &self.counts,
             &self.arguments,
             &self.scratch,
@@ -150,6 +168,7 @@ impl Select {
             masses: None,
             deviations: None,
             lists: None,
+            starts: None,
             counts: None,
             arguments: None,
             scratch: None,
@@ -158,7 +177,7 @@ impl Select {
             reset: Vec::new(),
             levels: Vec::new(),
             instances: 0,
-            stride: 0,
+            slot: 0,
             forced: Level::default(),
             sphere: [0.0; 4],
             stalk: [0.0; 3],
@@ -181,6 +200,7 @@ impl Select {
             &mut self.masses,
             &mut self.deviations,
             &mut self.lists,
+            &mut self.starts,
             &mut self.counts,
             &mut self.arguments,
             &mut self.scratch,
@@ -268,9 +288,9 @@ impl Select {
         let sizes = sizes(
             self.instances as usize,
             self.levels.len(),
-            u64::from(gpu.device.limits().min_storage_buffer_offset_alignment),
+            slot_alignment(&gpu.device.limits()),
         );
-        self.stride = sizes.stride as u32;
+        self.slot = sizes.slot as u32;
         if self.instances == 0 || self.levels.is_empty() {
             (self.compute, self.draw) = (None, None);
             return;
@@ -298,6 +318,13 @@ impl Select {
         );
         buffer::reserve(
             gpu,
+            &mut self.starts,
+            "foliage level starts",
+            storage | wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_SRC,
+            sizes.starts,
+        );
+        buffer::reserve(
+            gpu,
             &mut self.counts,
             "foliage level counters",
             storage | wgpu::BufferUsages::COPY_SRC,
@@ -317,18 +344,19 @@ impl Select {
             storage,
             sizes.scratch,
         );
-        self.rebind(gpu, sizes.stride);
+        self.rebind(gpu);
     }
 
     /// The bind groups the buffers were just allocated for. Every submit
     /// builds them again: a buffer that outgrew its headroom is a new buffer,
     /// and a group holding the old one would bind what is no longer there.
-    fn rebind(&mut self, gpu: &Gpu, stride: u64) {
+    fn rebind(&mut self, gpu: &Gpu) {
         let (
             Some(placements),
             Some(masses),
             Some(deviations),
             Some(lists),
+            Some(starts),
             Some(counts),
             Some(arguments),
             Some(scratch),
@@ -337,6 +365,7 @@ impl Select {
             &self.masses,
             &self.deviations,
             &self.lists,
+            &self.starts,
             &self.counts,
             &self.arguments,
             &self.scratch,
@@ -349,15 +378,15 @@ impl Select {
             gpu,
             &self.compute_layout,
             &self.uniforms,
-            [placements, deviations, lists, counts, arguments, scratch],
+            [
+                placements, deviations, lists, counts, arguments, scratch, starts,
+            ],
         ));
         self.draw = Some(bind::draw_group(
             gpu,
             &self.draw_layout,
-            placements,
-            lists,
-            masses,
-            stride,
+            [placements, lists, masses],
+            starts,
         ));
     }
 
@@ -425,7 +454,7 @@ impl Select {
             box_extent: frame::point(self.reference.extent, 0.0),
             instances: self.instances,
             levels: self.levels.len() as u32,
-            stride: self.stride / size_of::<u32>() as u32,
+            slot: self.slot / size_of::<u32>() as u32,
             forced: match self.forced {
                 Level::Chosen => -1,
                 Level::Forced(level) => level as i32,
@@ -439,13 +468,13 @@ impl Select {
         }
     }
 
-    /// Binds the crown's placements with one level's list, for the indirect
-    /// draw of that level.
+    /// Binds the crown's placements and the lists with one level's start,
+    /// for the indirect draw of that level.
     pub fn bind_level(&self, pass: &mut wgpu::RenderPass<'_>, level: usize) -> bool {
         let Some(draw) = &self.draw else {
             return false;
         };
-        pass.set_bind_group(1, draw, &[self.stride * level as u32]);
+        pass.set_bind_group(1, draw, &[self.slot * level as u32]);
         true
     }
 
@@ -482,19 +511,40 @@ impl Select {
     /// one it gave to the unseen bucket: the lists read back (fn-253).
     #[cfg(test)]
     pub(crate) fn chosen(&self, gpu: &Gpu) -> Vec<Option<u32>> {
-        let counts = self.counted(gpu).expect("counts read back");
-        let bytes = buffer::read(gpu, self.lists.as_ref().unwrap()).expect("lists read back");
-        let words: Vec<u32> = (bytes.as_chunks::<4>().0.iter())
-            .map(|w| u32::from_ne_bytes(*w))
-            .collect();
         let mut out = vec![None; self.instances as usize];
-        for (level, &count) in counts.iter().enumerate().take(self.levels.len()) {
-            let start = level * self.stride as usize / size_of::<u32>();
-            for &id in &words[start..start + count as usize] {
+        for (level, ids) in self.level_lists(gpu).iter().enumerate() {
+            for &id in ids {
                 out[id as usize] = Some(level as u32);
             }
         }
         out
+    }
+
+    /// Each level's list as the last dispatch left it, in the order its draw
+    /// reads it: level *k* is `counts[k]` words from the level's start word.
+    #[cfg(test)]
+    pub(crate) fn level_lists(&self, gpu: &Gpu) -> Vec<Vec<u32>> {
+        let (Some(lists), Some(starts), Some(counts)) =
+            (&self.lists, self.starts(gpu), self.counted(gpu))
+        else {
+            return Vec::new();
+        };
+        let words = words(&buffer::read(gpu, lists).expect("lists read back"));
+        (counts.iter().zip(starts))
+            .map(|(&count, start)| words[start as usize..(start + count) as usize].to_vec())
+            .collect()
+    }
+
+    /// Each level's start word as the last dispatch wrote it, coarsest first.
+    #[cfg(test)]
+    pub(crate) fn starts(&self, gpu: &Gpu) -> Option<Vec<u32>> {
+        let words = words(&buffer::read(gpu, self.starts.as_ref()?)?);
+        let slot = self.slot as usize / size_of::<u32>();
+        Some(
+            (0..self.levels.len())
+                .map(|level| words[level * slot])
+                .collect(),
+        )
     }
 
     /// What the last frame's pass counted: one entry per level, coarsest
@@ -502,16 +552,16 @@ impl Select {
     /// so it is a check and a record, never a per-frame call.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn counted(&self, gpu: &Gpu) -> Option<Vec<u32>> {
-        let bytes = buffer::read(gpu, self.counts.as_ref()?)?;
-        Some(
-            bytes
-                .as_chunks::<4>()
-                .0
-                .iter()
-                .map(|word| u32::from_ne_bytes(*word))
-                .collect(),
-        )
+        Some(words(&buffer::read(gpu, self.counts.as_ref()?)?))
     }
+}
+
+/// A buffer read back as the words it holds.
+#[cfg(not(target_arch = "wasm32"))]
+fn words(bytes: &[u8]) -> Vec<u32> {
+    (bytes.as_chunks::<4>().0.iter())
+        .map(|word| u32::from_ne_bytes(*word))
+        .collect()
 }
 
 /// The groups a per-leaf pass dispatches, folded into a second dimension once
