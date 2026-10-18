@@ -7,9 +7,10 @@ use super::super::super::cycle::tree::{self, Kernels};
 use super::super::super::Generator;
 use super::super::build::{folded, placeable, Folded, Timed, Tools};
 use super::super::stations::{station_rows, Stationed};
+use super::SPLAT_LIMB;
 use super::{read_words, storage, Cfg, Rec};
 use super::{BOUND_LEAVES, BOX_LEAVES, BOX_WOOD, CARRIER, CLEAR, GRID_CLEAR, INHERIT, OPENS};
-use super::{ORDER, OWN, SPLAT_BEST, SPLAT_FINISH, SPLAT_LEAFLETS, SPLAT_LEAVES, SPLAT_LIMB};
+use super::{ORDER, OWN, SPLAT_BEST, SPLAT_BEST_LOW, SPLAT_FINISH, SPLAT_LEAFLETS, SPLAT_LEAVES};
 use super::{SPLAT_WOOD, TABLE_CLEAR, WIDEST};
 use crate::{Gpu, RenderError, Result};
 use telperion_core::field::{Frame, Grid, Occupancy};
@@ -33,6 +34,17 @@ pub(in super::super) enum Ask {
     In(Frame),
 }
 
+impl Ask {
+    /// The grid's cells a side.
+    pub(in super::super) fn n(self) -> u32 {
+        match self {
+            Ask::Over(n) => n,
+            #[cfg(test)]
+            Ask::In(f) => f.n,
+        }
+    }
+}
+
 /// `family` grown on the device and its field read out to the grid `ask`
 /// names, its limb systems opened by laterals of `limb_order` or less
 /// (the family's `clumpSystemOrder` where none is given). A side outside
@@ -45,13 +57,8 @@ pub(in super::super) async fn grow(
     limb_order: Option<u32>,
     ask: Ask,
 ) -> Result<Grid> {
-    let n = match ask {
-        Ask::Over(n) => n,
-        #[cfg(test)]
-        Ask::In(f) => f.n,
-    };
-    let cells = u64::from(Frame::side(n)?).pow(3);
-    let grid_words = 1 + 6 * cells;
+    let cells = u64::from(Frame::side(ask.n())?).pow(3);
+    let grid_words = 1 + 7 * cells;
     let answer_words = 4 * (cells + 1);
     within(gpu, "field grid", grid_words)?;
     within(gpu, "field answers", answer_words)?;
@@ -160,24 +167,25 @@ impl Read<'_> {
         let bound = read_words(gpu, &work, WORDS * u64::from(ids) + 6, 2).await?;
         let pairs = u64::from(bound[0]) | (u64::from(bound[1]) << 32);
         let slots = (2 * pairs).max(1).next_power_of_two();
-        within(gpu, "field table", 3 * slots)?;
+        within(gpu, "field table", 4 * slots)?;
         let past = || Error::ResourceLimit("field table");
-        cfg.slots = u32::try_from(3 * slots).map_err(|_| past())? / 3;
-        let table = storage(gpu, "field table", 3 * slots, &[])?;
+        cfg.slots = u32::try_from(4 * slots).map_err(|_| past())? / 4;
+        let table = storage(gpu, "field table", 4 * slots, &[])?;
         let bufs: [&wgpu::Buffer; 6] = [self.nodes, segs, &work, &grid, &table, &answers];
         let mut e = gpu.encoder(&Default::default());
-        r.run(&mut e, (TABLE_CLEAR, 3 * cfg.slots, &*cfg), &bufs)?;
+        r.run(&mut e, (TABLE_CLEAR, 4 * cfg.slots, &*cfg), &bufs)?;
         r.run(&mut e, (SPLAT_WOOD, ids, &*cfg), &bufs)?;
         r.run(&mut e, (SPLAT_LEAVES, cfg.segs, &*cfg), &bufs)?;
         r.run(&mut e, (SPLAT_LEAFLETS, cfg.segs, &*cfg), &bufs)?;
         r.run(&mut e, (SPLAT_BEST, cfg.slots, &*cfg), &bufs)?;
+        r.run(&mut e, (SPLAT_BEST_LOW, cfg.slots, &*cfg), &bufs)?;
         r.run(&mut e, (SPLAT_LIMB, cfg.slots, &*cfg), &bufs)?;
         r.run(&mut e, (SPLAT_FINISH, cells, &*cfg), &bufs)?;
         gpu.submit([e.finish()]);
         let raw = read_words(gpu, &answers, 0, answer_words).await?;
         let (body, tail) = raw.split_at(4 * cells as usize);
         if tail[0] != 0 {
-            return Err(Error::ResourceLimit("field leaves past a cell's sum").into());
+            return Err(Error::ResourceLimit("field table").into());
         }
         let cells = body.chunks(4).map(answer).collect();
         Ok(Grid { frame, cells })

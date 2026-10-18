@@ -17,7 +17,7 @@ pub(super) use make::{grow, Ask};
 
 const FIELD: &str = include_str!("field.wgsl");
 const SPLAT: &str = include_str!("field/splat.wgsl");
-const ENTRIES: [&str; 18] = [
+const ENTRIES: [&str; 19] = [
     "clear",
     "widest",
     "carrier",
@@ -34,6 +34,7 @@ const ENTRIES: [&str; 18] = [
     "splat_leaves",
     "splat_leaflets",
     "splat_best",
+    "splat_best_low",
     "splat_limb",
     "splat_finish",
 ];
@@ -53,8 +54,9 @@ const SPLAT_WOOD: usize = 12;
 const SPLAT_LEAVES: usize = 13;
 const SPLAT_LEAFLETS: usize = 14;
 const SPLAT_BEST: usize = 15;
-const SPLAT_LIMB: usize = 16;
-const SPLAT_FINISH: usize = 17;
+const SPLAT_BEST_LOW: usize = 16;
+const SPLAT_LIMB: usize = 17;
+const SPLAT_FINISH: usize = 18;
 
 /// The field's kernels, compiled with the rest of a generator's.
 pub(super) struct Fielder(io::Pass);

@@ -7,8 +7,9 @@
 // with the most of them, the lower one on a tie.
 //
 // A cell's leaves by system are summed in a table keyed by the cell and
-// the system (two words), sized from a bound on the pairs that can occur:
-// every cell a record's range holds (`bound_leaves`).
+// the system (two words), each sum two words wide, sized from a bound on
+// the pairs that can occur: every cell a record's range holds
+// (`bound_leaves`).
 
 const LOST: u32 = 0u;
 
@@ -25,12 +26,16 @@ fn cell_word(c: u32, f: u32) -> u32 {
     return HEAD + c * 4u + f;
 }
 
-fn best_word(c: u32) -> u32 {
+fn best_high(c: u32) -> u32 {
     return HEAD + 4u * cells() + c;
 }
 
-fn limb_word(c: u32) -> u32 {
+fn best_low(c: u32) -> u32 {
     return HEAD + 5u * cells() + c;
+}
+
+fn limb_word(c: u32) -> u32 {
+    return HEAD + 6u * cells() + c;
 }
 
 fn centre(c: vec3<i32>) -> vec3<f32> {
@@ -114,7 +119,7 @@ fn tally(cell: u32, system: u32, v: u32) {
             let at = 2u * cfg.slots + t;
             let old = atomicAdd(&table[at], v);
             if old + v < old {
-                atomicAdd(&grid[LOST], 1u);
+                atomicAdd(&table[cfg.slots + at], 1u);
             }
             return;
         }
@@ -291,34 +296,55 @@ fn splat_leaflets(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 }
 
-// Each cell's most leaves of one system.
+// Slot `t`'s cell, none where it holds no pair.
+fn slot_cell(t: u32) -> u32 {
+    if t >= cfg.slots || atomicLoad(&table[cfg.slots + t]) == NONE {
+        return NONE;
+    }
+    return atomicLoad(&table[t]);
+}
+
+fn slot_high(t: u32) -> u32 {
+    return atomicLoad(&table[3u * cfg.slots + t]);
+}
+
+fn slot_low(t: u32) -> u32 {
+    return atomicLoad(&table[2u * cfg.slots + t]);
+}
+
+// Each cell's most leaves of one system: the high words' most first.
 @compute @workgroup_size(64)
 fn splat_best(@builtin(global_invocation_id) id: vec3<u32>) {
     let t = index_of(id);
-    if t >= cfg.slots {
+    let cell = slot_cell(t);
+    if cell == NONE {
         return;
     }
-    let cell = atomicLoad(&table[t]);
-    if cell == NONE || atomicLoad(&table[cfg.slots + t]) == NONE {
+    atomicMax(&grid[best_high(cell)], slot_high(t));
+}
+
+// Then the low words' most among the sums with that high word.
+@compute @workgroup_size(64)
+fn splat_best_low(@builtin(global_invocation_id) id: vec3<u32>) {
+    let t = index_of(id);
+    let cell = slot_cell(t);
+    if cell == NONE || slot_high(t) != atomicLoad(&grid[best_high(cell)]) {
         return;
     }
-    atomicMax(&grid[best_word(cell)], atomicLoad(&table[2u * cfg.slots + t]));
+    atomicMax(&grid[best_low(cell)], slot_low(t));
 }
 
 // The least system holding them.
 @compute @workgroup_size(64)
 fn splat_limb(@builtin(global_invocation_id) id: vec3<u32>) {
     let t = index_of(id);
-    if t >= cfg.slots {
+    let cell = slot_cell(t);
+    if cell == NONE {
         return;
     }
-    let cell = atomicLoad(&table[t]);
-    let system = atomicLoad(&table[cfg.slots + t]);
-    if cell == NONE || system == NONE {
-        return;
-    }
-    if atomicLoad(&table[2u * cfg.slots + t]) == atomicLoad(&grid[best_word(cell)]) {
-        atomicMin(&grid[limb_word(cell)], system);
+    let high = slot_high(t) == atomicLoad(&grid[best_high(cell)]);
+    if high && slot_low(t) == atomicLoad(&grid[best_low(cell)]) {
+        atomicMin(&grid[limb_word(cell)], atomicLoad(&table[cfg.slots + t]));
     }
 }
 

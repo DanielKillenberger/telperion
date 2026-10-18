@@ -48,13 +48,13 @@ struct Cfg {
 // After them the box (three least and three most, ordered), then the
 // table's bound, low and high.
 @group(0) @binding(3) var<storage, read_write> work: array<atomic<u32>>;
-// Two counters (the pairs the table holds, and the shares lost to a sum
-// past 32 bits), four words a cell (flags, the thickest radius's bits,
-// its leaves in fixed point, low and high), then each cell's most leaves
-// of one system and the least system holding them.
+// One counter (the shares the table found no slot for), four words a cell
+// (flags, the thickest radius's bits, its leaves in fixed point, low and
+// high), then each cell's most leaves of one system, high and low, and the
+// least system holding them.
 @group(0) @binding(4) var<storage, read_write> grid: array<atomic<u32>>;
 // The table of each cell's leaves by limb system, its slots' cells, then
-// their systems, then their sums.
+// their systems, then their sums in fixed point, low and high.
 @group(0) @binding(5) var<storage, read_write> table: array<atomic<u32>>;
 // Four words a cell, then the counters.
 @group(0) @binding(6) var<storage, read_write> answers: array<vec4<u32>>;

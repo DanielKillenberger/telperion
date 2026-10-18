@@ -86,6 +86,7 @@ impl WebField {
             let mut family =
                 telperion_core::presets::by_identity(&species).map_err(|e| js_error(e.into()))?;
             family.skeleton.seed = seed;
+            telperion_core::field::Frame::side(n).map_err(|e| js_error(e.into()))?;
             let made = fields().await?;
             let grid = made
                 .grow_field(&family, n, limb_order)

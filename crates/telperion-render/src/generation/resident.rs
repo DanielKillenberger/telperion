@@ -98,6 +98,7 @@ impl super::Generator {
         limb_order: Option<u32>,
         ask: field::Ask,
     ) -> Result<telperion_core::field::Grid> {
+        telperion_core::field::Frame::side(ask.n())?;
         let gpu = &self.gpu;
         if let Some(lost) = gpu.lost() {
             return Err(lost);

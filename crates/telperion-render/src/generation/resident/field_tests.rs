@@ -252,6 +252,33 @@ fn a_cell_crowded_with_limbs_names_the_cpu_s_limb() {
     assert!((mine.leaves / crown.leaves - 1.0).abs() < 1e-3);
 }
 
+/// A cell holding more of one limb's leaves than one word sums names the
+/// CPU's limb and its leaves: the spruce's whole crown, some four million
+/// needles, in the middle cell of a grid of three on the trunk's system.
+#[test]
+fn a_cell_past_a_word_of_one_limb_s_leaves_reads_as_the_cpu_s() {
+    let _held = super::super::whole_tree();
+    let Some(gen) = generator() else {
+        return;
+    };
+    let spruce = family("norway-spruce", 1);
+    let [cpu] = <[Grid; 1]>::try_from(references(&spruce, &[3], Some(0)))
+        .ok()
+        .unwrap();
+    let crown = cpu.cells[13];
+    assert!(
+        crown.leaves > f64::from(1u32 << 20),
+        "{} leaves",
+        crown.leaves
+    );
+    let mine = device(&gen, &spruce, &cpu, Some(0)).cells[13];
+    assert!(mine.limb.is_some() && crown.limb.is_some());
+    assert!(
+        (mine.leaves / crown.leaves - 1.0).abs() < 1e-3,
+        "{mine:?} {crown:?}"
+    );
+}
+
 /// The same tree's field reads out the same, to the bit, however the
 /// device fills its table: read out twice.
 #[test]
