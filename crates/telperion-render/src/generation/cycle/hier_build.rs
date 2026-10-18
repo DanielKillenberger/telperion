@@ -89,7 +89,6 @@ impl Kernels {
 
 /// The hierarchy as built so far: its state on the device and what the
 /// host knows of it.
-#[cfg_attr(not(test), allow(dead_code))]
 pub(super) struct Hierarchy {
     pub stride: u32,
     pub cap: u32,
@@ -100,13 +99,19 @@ pub(super) struct Hierarchy {
     pub tally: Owned,
     pub sums: Owned,
     /// Which of `lists` is current.
+    #[cfg(test)]
     pub parity: usize,
+    #[cfg(test)]
     pub built: u32,
+    #[cfg(test)]
     pub blocks: u32,
+    #[cfg(test)]
     pub levels: u32,
     /// Each level's blocks, from the root's.
+    #[cfg(test)]
     pub level_sizes: Vec<u32>,
     /// Each step's placing passes, per generation.
+    #[cfg(test)]
     pub passes: Vec<Vec<u32>>,
 }
 
@@ -125,11 +130,17 @@ impl Hierarchy {
             bucket: zeroed(gpu, "hierarchy buckets", BUCKETS * s)?,
             tally: zeroed(gpu, "hierarchy tally", TALLY)?,
             sums: zeroed(gpu, "hierarchy scan sums", sums_words(stride + 64, 1))?,
+            #[cfg(test)]
             parity: 0,
+            #[cfg(test)]
             built: 0,
+            #[cfg(test)]
             blocks: 0,
+            #[cfg(test)]
             levels: 0,
+            #[cfg(test)]
             level_sizes: Vec::new(),
+            #[cfg(test)]
             passes: Vec::new(),
         })
     }

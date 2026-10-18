@@ -215,7 +215,6 @@ pub(super) mod agree_tests;
 mod boots;
 #[cfg(test)]
 mod boots_tests;
-#[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
 pub(super) mod budget;
 mod build;
 #[cfg(test)]

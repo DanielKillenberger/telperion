@@ -10,9 +10,9 @@ use super::super::io;
 use super::hier_build::{Hierarchy, Kernels};
 #[cfg(test)]
 use super::hier_columns::Hier;
-use super::hier_scan::{sums_words, zeroed, Scan};
+use super::hier_scan::{sums_words, zeroed};
 #[cfg(test)]
-use super::hier_scan::{uniform, widest};
+use super::hier_scan::{uniform, widest, Scan};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
@@ -81,7 +81,6 @@ pub(super) const BUD_BLOCK: u32 = 1024;
 
 /// The balance and allotment's buffers on the device, and the plan of
 /// one cycle's dispatches over them.
-#[cfg_attr(not(test), allow(dead_code))]
 pub(super) struct Sums {
     pub sums: Owned,
     pub live: Owned,
@@ -90,12 +89,18 @@ pub(super) struct Sums {
     pub rows: Owned,
     pub scan_sums: Owned,
     pub live_stride: u32,
+    #[cfg(test)]
     stride: u32,
+    #[cfg(test)]
     live_n: u32,
     /// The bind of each level, the first serving the per-apex passes.
+    #[cfg(test)]
     binds: Vec<wgpu::BindGroup>,
+    #[cfg(test)]
     level_sizes: Vec<u32>,
+    #[cfg(test)]
     flags: Option<Scan>,
+    #[cfg(test)]
     _held: Vec<Owned>,
 }
 
@@ -168,11 +173,17 @@ impl Sums {
             rows,
             scan_sums: zeroed(gpu, "hierarchy sums scan", sums_words(live, 1))?,
             live_stride,
+            #[cfg(test)]
             stride,
+            #[cfg(test)]
             live_n: 0,
+            #[cfg(test)]
             binds: Vec::new(),
+            #[cfg(test)]
             level_sizes: Vec::new(),
+            #[cfg(test)]
             flags: None,
+            #[cfg(test)]
             _held: Vec::new(),
         })
     }

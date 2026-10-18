@@ -55,12 +55,12 @@ pub(super) const LAY_DEEP: usize = 176;
 /// 16), counted where a measurement asks (`Tables::counted`), `REUSED`
 /// words (`Reused`).
 pub(super) const REUSE: usize = 156;
-#[cfg_attr(not(test), allow(dead_code))]
+#[cfg(test)]
 pub(super) const REUSED: usize = 3;
 /// The words of `REUSE`, in order: the laid axes closed, those closed
 /// this cycle (the ones retirement carries up), and the blocks its
 /// living's sweep entered.
-#[cfg_attr(not(test), allow(dead_code))]
+#[cfg(test)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Reused {
     Closed,

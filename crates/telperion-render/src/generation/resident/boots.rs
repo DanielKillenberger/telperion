@@ -49,9 +49,9 @@ impl Hanger {
 /// their apices) and the cells, where the bases pack.
 #[derive(Default)]
 pub(super) struct Hung {
-    #[cfg_attr(not(test), allow(dead_code))]
+    #[cfg(test)]
     pub bases: u32,
-    #[cfg_attr(not(test), allow(dead_code))]
+    #[cfg(test)]
     pub stems: Option<Owned>,
     pub cells: Option<Owned>,
 }
@@ -176,7 +176,9 @@ impl Hanger {
         });
         dressed.ids += 2 * bases;
         Ok(Hung {
+            #[cfg(test)]
             bases,
+            #[cfg(test)]
             stems: Some(stems),
             cells,
         })

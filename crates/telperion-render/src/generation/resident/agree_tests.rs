@@ -1,6 +1,6 @@
 //! fn-256 task 3, the render gate's agreement: the device's whole tree
-//! against the CPU's reference (the CPU's cycle, converted and drawn
-//! through `prepare_whole`), by lineage. Each node the device's dress
+//! against the CPU's reference (the CPU's cycle, `executor::grow`, and
+//! its expansion), by lineage. Each node the device's dress
 //! drew is matched to the CPU conversion's by its phytomer's key (a
 //! relay's join by its node key), and each run's stations by its first
 //! node's key. Integers exact; floats within the lineage tolerance

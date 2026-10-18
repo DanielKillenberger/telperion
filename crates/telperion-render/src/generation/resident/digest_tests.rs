@@ -76,7 +76,7 @@ fn digest() {
     let Some(gpu) = super::super::test_gpu() else {
         return;
     };
-    let gen = Generator::create(gpu, std::sync::Arc::new(()), true);
+    let gen = Generator::create(gpu, std::sync::Arc::new(()));
     let gen = pollster::block_on(gen).unwrap();
     let seeds: Vec<u32> = std::env::var("DIGEST_SEEDS")
         .unwrap_or_else(|_| "1,7,42".into())

@@ -1,6 +1,6 @@
 use super::*;
 use telperion_core::{
-    foliage::{Reference, TwigPlacement},
+    foliage::{self, Instances, Reference, TwigPlacement},
     math::Vec3,
     pipeline::executor::{self, Expansion, LeafInput},
     tree::{Node, NodeKind, Tree},
@@ -257,7 +257,7 @@ fn foreign_prepared_result_preserves_the_live_tree() {
         resident: None,
         organ: None,
         wood: None,
-        backend: Backend::CpuFallback,
+        backend: Backend::Gpu,
         metrics: Metrics::default(),
         colouring: 1.0,
     };
@@ -542,11 +542,15 @@ fn compact_position_candidate_does_not_override_station_capability() {
 }
 
 /// Production makes of the position programme only `emit`, which the
-/// resident build's ring seating runs; the comparison route's entries
-/// follow it, test-only (fn-287 R1).
+/// resident build's ring seating runs, from a module holding no other
+/// entry; the comparison route's entries follow it, test-only (fn-287
+/// R1, fn-293 finding 10).
 #[test]
 fn production_makes_only_the_position_emit_entry() {
     assert_eq!(super::positions::ENTRIES, ["emit"]);
+    let module = naga::front::wgsl::parse_str(include_str!("positions.wgsl")).unwrap();
+    let made: Vec<_> = module.entry_points.iter().map(|e| e.name.as_str()).collect();
+    assert_eq!(made, super::positions::ENTRIES);
     assert_eq!(
         super::positions::entries(),
         ["emit", "admit", "radii", "finish"]

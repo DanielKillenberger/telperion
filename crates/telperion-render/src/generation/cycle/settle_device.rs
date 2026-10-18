@@ -272,9 +272,9 @@ impl Layout {
 /// The node table's layout for `kept` axes, `units` units and `phyts`
 /// phytomers: the axes' columns, then the units', then the phytomers'.
 #[derive(Debug, Clone, Copy)]
-#[cfg_attr(not(test), allow(dead_code))]
 pub(super) struct Table {
     pub kept: u32,
+    #[cfg(test)]
     pub units: u32,
     pub phyts: u32,
     pub sk: u32,
@@ -294,6 +294,7 @@ impl Table {
         let small = |x: u64| u32::try_from(x).expect("the node table's words in a u32");
         Self {
             kept,
+            #[cfg(test)]
             units,
             phyts,
             sk: small(sk),

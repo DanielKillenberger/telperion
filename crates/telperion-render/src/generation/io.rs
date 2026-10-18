@@ -365,6 +365,7 @@ pub(super) async fn read_async(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> 
     begin_read(gpu, source, bytes)?.complete(gpu).await
 }
 
+#[cfg(test)]
 pub(super) async fn read_leaves_async(
     gpu: &Gpu,
     source: &wgpu::Buffer,
@@ -373,6 +374,7 @@ pub(super) async fn read_leaves_async(
     read_leaves_chunked(gpu, source, count as usize, 4 * 1024 * 1024).await
 }
 
+#[cfg(test)]
 pub(super) fn reserve_leaves(count: usize) -> Result<Vec<[u32; 3]>> {
     let mut leaves = Vec::new();
     leaves
@@ -381,6 +383,7 @@ pub(super) fn reserve_leaves(count: usize) -> Result<Vec<[u32; 3]>> {
     Ok(leaves)
 }
 
+#[cfg(test)]
 pub(super) async fn read_leaves_chunked(
     gpu: &Gpu,
     source: &wgpu::Buffer,

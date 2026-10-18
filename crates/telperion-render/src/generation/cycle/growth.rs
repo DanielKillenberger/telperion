@@ -17,7 +17,9 @@
 //! state spent (R2b), and the tree drawn now stays as it is.
 use super::super::resident::fold::Dressed;
 use super::build::Tables;
-use super::build_grow::{Growing, Sizes};
+use super::build_grow::Growing;
+#[cfg(test)]
+use super::build_grow::Sizes;
 use super::chains;
 use super::drawn::{dress, trunk, Rows, Trunk};
 use super::present::present;
@@ -57,7 +59,7 @@ pub(in crate::generation) struct GrowthState {
 /// (`Sizes::margins`), or stated sizes.
 pub(super) enum Start {
     Hint(super::build_arena::Hint),
-    #[cfg_attr(not(test), allow(dead_code))]
+    #[cfg(test)]
     Sizes(Sizes),
 }
 
@@ -124,6 +126,7 @@ impl GrowthState {
         let t = Tables::new(gpu, &tables, &chain)?;
         let growing = match start {
             Start::Hint(hint) => Growing::within(gpu, &k.build, &t, &tables, hint).await?,
+            #[cfg(test)]
             Start::Sizes(sizes) => Growing::begin(gpu, &k.build, &t, &tables, sizes).await?,
         };
         let growing = growing.paused(gpu, (&t, &tables)).await?;

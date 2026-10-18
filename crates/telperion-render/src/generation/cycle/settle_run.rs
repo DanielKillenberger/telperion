@@ -55,7 +55,6 @@ const UP_RANGE: u32 = 1 << 14;
 const JUMPS: u32 = 12;
 
 /// The settle's buffers, and what each submission read back.
-#[cfg_attr(not(test), allow(dead_code))]
 pub(super) struct Settled {
     pub layout: Layout,
     pub table: Table,
@@ -71,6 +70,7 @@ pub(super) struct Settled {
     pub error: [u32; 2],
     /// The growth's bytes freed before the settle, and the settle's own
     /// at its largest.
+    #[cfg(test)]
     pub freed: u64,
     pub flags: u32,
     pub stamped: Vec<&'static str>,
@@ -235,7 +235,7 @@ pub(super) async fn settle(
     (b, t): (&Build, &Tables),
     (pa, to): (&[u32], SettleTo),
 ) -> Result<Settled> {
-    let freed = b.shed_growth();
+    let _freed = b.shed_growth();
     let h = b.held;
     // The grown phytomers the arena holds, and a place for each retired
     // root's frozen terms (fn-270 R4): no more than the axes.
@@ -334,7 +334,8 @@ pub(super) async fn settle(
         kept_starts,
         kept_long,
         error,
-        freed,
+        #[cfg(test)]
+        freed: _freed,
         flags,
         stamped: r.stamped,
     };

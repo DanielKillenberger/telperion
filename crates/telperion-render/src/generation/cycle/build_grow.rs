@@ -101,7 +101,7 @@ impl Sizes {
 pub(super) enum Compact {
     Off,
     Tight,
-    #[cfg_attr(not(test), allow(dead_code))]
+    #[cfg(test)]
     Every,
 }
 
@@ -113,6 +113,16 @@ pub(super) enum Compact {
 const TIGHT: f64 = 0.85;
 
 impl Compact {
+    /// Whether a compaction may follow `cycle`: never on the cycle after
+    /// the last one (`compacted`), but after every cycle where `Every`.
+    fn due(self, compacted: Option<u32>, cycle: u32) -> bool {
+        match self {
+            #[cfg(test)]
+            Compact::Every => true,
+            _ => compacted.is_none_or(|k| k + 1 < cycle),
+        }
+    }
+
     /// Whether to compact now, by the census read: a table's rows two
     /// cycles on, each growing as the census's own cycle did (its end
     /// against its start, which no compaction between cycles hides).
@@ -124,6 +134,7 @@ impl Compact {
         let tight = |w: (usize, usize), cap: u32| ahead(w) > TIGHT * f64::from(cap);
         match self {
             Compact::Off => false,
+            #[cfg(test)]
             Compact::Every => true,
             Compact::Tight => {
                 tight((c::PHYTS0, c::PHYTS), caps.phyts)
@@ -460,7 +471,7 @@ impl Growing {
     ) -> Result<Self> {
         let clock = super::super::Clock::now();
         let sizes = self.sizes;
-        let fresh = self.compacted.is_none_or(|k| k + 1 < cycle) || sizes.compact == Compact::Every;
+        let fresh = sizes.compact.due(self.compacted, cycle);
         let compacting = cycle < end && fresh && sizes.compact.now(&sizes.caps, read);
         let mut run = self.run.take().expect("a recorded cycle");
         if compacting {

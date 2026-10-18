@@ -1,7 +1,7 @@
 //! fn-256 task 3: `Generator::prepare` grows and draws a resident tree on
-//! the device whole, and a CPU delivery through the CPU's cycle, the
-//! reference. One generator builds every tree in turn, a large one
-//! before small ones, as a page's dials do.
+//! the device whole, compared with the CPU's cycle, the reference
+//! (`prepare_whole_resident`). One generator builds every tree in turn, a
+//! large one before small ones, as a page's dials do.
 use super::super::{Delivery, Generator};
 use crate::Renderer;
 
@@ -37,19 +37,6 @@ fn prepare_grows_every_preset_on_the_device_and_draws_it() {
             "{id}"
         );
     }
-}
-
-#[test]
-fn a_cpu_delivery_grows_the_tree_whole() {
-    let Some(gpu) = crate::generation::test_gpu() else {
-        return;
-    };
-    let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
-    let gen = Generator::new(&renderer).unwrap();
-    let prepared = gen
-        .prepare(&family("european-beech", 12), Delivery::Cpu)
-        .unwrap();
-    assert!(prepared.wood.is_none() && prepared.cpu_mesh().is_some());
 }
 
 /// R4 natively: one generator and renderer build the spruce at 80, then
@@ -290,8 +277,8 @@ fn the_device_path_draws_what_the_cpu_path_draws() {
     }
 }
 
-/// fn-229: the device draws a flowering tree's florets: the resident,
-/// whole and CPU deliveries draw the same number of florets.
+/// fn-229: the device draws a flowering tree's florets: the resident
+/// build and the CPU reference draw the same number of florets.
 #[test]
 fn a_flowering_tree_draws_every_floret_on_either_path() {
     let Some(gpu) = crate::generation::test_gpu() else {
@@ -309,12 +296,10 @@ fn a_flowering_tree_draws_every_floret_on_either_path() {
     };
     let resident = gen.prepare(&family, Delivery::Resident).unwrap();
     let whole = pollster::block_on(gen.prepare_whole_resident(&family)).unwrap();
-    let cpu = gen.prepare(&family, Delivery::Cpu).unwrap();
     assert!(florets(&whole) > 0, "the beech flowers");
     assert!(
         resident.organ.is_some(),
         "the device path holds its florets"
     );
     assert_eq!(florets(&resident), florets(&whole));
-    assert_eq!(florets(&cpu), florets(&whole));
 }

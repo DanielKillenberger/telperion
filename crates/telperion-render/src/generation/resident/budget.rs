@@ -8,6 +8,7 @@
 //! first, the screen empty while it builds; one that does not fit even
 //! alone is refused by name, never started, and the drawn tree is kept.
 //! A grow-in's draw is held to the same rule (`room`; host, 2026-10-14).
+#[cfg(any(test, target_arch = "wasm32"))]
 use telperion_core::presets::Family;
 
 /// The page's budget, in bytes of owned buffers (`buffer::Ledger`), 6 GiB
@@ -18,6 +19,7 @@ use telperion_core::presets::Family;
 /// One shipped tree at 80 fits in a fresh page: the spruce's measured
 /// peak is 5.35 GiB (`PEAKS`). The 8.5 GiB before it was what the card
 /// held with nothing else on it (TASK10.md, part 4).
+#[cfg(any(test, target_arch = "wasm32"))]
 pub(crate) const BROWSER: u64 = GIB * (10 - 3 - 1);
 const GIB: u64 = 1 << 30;
 
@@ -55,6 +57,7 @@ pub(crate) fn native(gpu: &crate::Gpu, held: u64) -> u64 {
 /// A build's peak owned bytes, from a fresh generator and renderer, by
 /// the predictor's expected kept phytomers: the spruce's, the costliest
 /// measured (`route_tests::budget_probe`; the beech lies under it).
+#[cfg(any(test, target_arch = "wasm32"))]
 const PEAKS: [(f64, f64); 5] = [
     (30_251.0, 1_761.0),
     (199_595.0, 2_188.0),
@@ -65,6 +68,7 @@ const PEAKS: [(f64, f64); 5] = [
 
 /// The peak a build of `kept` expected phytomers reaches, in bytes: the
 /// measured peaks joined by straight lines, the last one's slope beyond.
+#[cfg(any(test, target_arch = "wasm32"))]
 pub(super) fn peak(kept: f64) -> u64 {
     let at = PEAKS
         .partition_point(|&(k, _)| k < kept)
@@ -86,6 +90,7 @@ pub enum Admitted {
 /// Whether `family` built now fits `budget`: beside the `held` bytes, or
 /// only once the `drawn` tree's share of them is let go; refused by name
 /// where it fits in neither.
+#[cfg(any(test, target_arch = "wasm32"))]
 pub(super) fn admit(
     family: &Family,
     held: u64,
@@ -114,6 +119,7 @@ pub(super) fn admit(
 /// `held` ones, a build or a grow-in's draw (host, 2026-10-14): beside the
 /// `drawn` tree where it fits, the drawn tree let go first where it fits
 /// only alone, else refused by name with the drawn tree kept.
+#[cfg(any(test, target_arch = "wasm32"))]
 pub(super) fn room(held: u64, drawn: u64, peak: u64, budget: u64) -> crate::Result<Admitted> {
     if held.saturating_add(peak) <= budget {
         return Ok(Admitted::Beside);
@@ -129,6 +135,7 @@ pub(super) fn room(held: u64, drawn: u64, peak: u64, budget: u64) -> crate::Resu
 }
 
 /// The refusal where the page already holds its whole budget.
+#[cfg(any(test, target_arch = "wasm32"))]
 fn full() -> telperion_core::Error {
     telperion_core::Error::ResourceLimit(
         "the browser's device budget: the page already holds the 6 GiB it may, with the drawn tree let go",
@@ -137,6 +144,7 @@ fn full() -> telperion_core::Error {
 
 /// Whether `family` built now fits `budget` beside the `held` bytes, the
 /// check a build makes as it starts, after any room was made.
+#[cfg(any(test, target_arch = "wasm32"))]
 pub(super) fn check(family: &Family, held: u64, budget: u64) -> crate::Result<()> {
     // Nothing is drawn to let go: it fits beside `held` or is refused.
     admit(family, held, 0, budget).map(|_| ())

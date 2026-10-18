@@ -16,7 +16,9 @@ use super::florets::Organ;
 use super::fold::{Dressed, Dresser};
 use super::handoff::{union, Handoff};
 use super::rings::Ringer;
-use super::stations::{station_rows, Stationed, Stationer};
+#[cfg(test)]
+use super::stations::Stationed;
+use super::stations::{station_rows, Stationer};
 use super::sweep::{rows, Sweeper};
 use crate::buffer::{Held, Owned};
 use crate::{Gpu, Result};
@@ -95,7 +97,7 @@ impl Timed {
 /// buffers the submit takes.
 pub(super) struct Built {
     pub prepared: Prepared,
-    #[cfg_attr(not(test), allow(dead_code))]
+    #[cfg(test)]
     pub device: Stationed,
 }
 
@@ -329,7 +331,11 @@ pub(super) async fn placed(
     if std::env::var("CYCLE_TRACE").is_ok() {
         eprintln!("TRACE stages {t:?}");
     }
-    Ok(Built { prepared, device })
+    Ok(Built {
+        prepared,
+        #[cfg(test)]
+        device,
+    })
 }
 
 /// A drawn tree (`dressed`, its `trunk`) hung, folded into the
