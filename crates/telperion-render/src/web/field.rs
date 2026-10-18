@@ -42,7 +42,9 @@ async fn fields() -> std::result::Result<Rc<Generator>, JsError> {
     let made = JsFuture::from(making).await;
     MAKING.with(|m| m.borrow_mut().take());
     made.map_err(|e| {
-        let message = e.dyn_ref::<js_sys::Error>().map(|e| String::from(e.message()));
+        let message = e
+            .dyn_ref::<js_sys::Error>()
+            .map(|e| String::from(e.message()));
         JsError::new(&message.unwrap_or_else(|| "the device for fields was not made".into()))
     })?;
     FIELDS
@@ -76,11 +78,14 @@ impl WebField {
     /// with the core's error.
     pub fn grow(species: String, seed: u32, limb_order: Option<u32>) -> js_sys::Promise {
         future_to_promise(async move {
-            let mut family = telperion_core::presets::by_identity(&species)
-                .map_err(|e| js_error(e.into()))?;
+            let mut family =
+                telperion_core::presets::by_identity(&species).map_err(|e| js_error(e.into()))?;
             family.skeleton.seed = seed;
             let made = fields().await?;
-            let field = made.grow_field(&family, limb_order).await.map_err(js_error)?;
+            let field = made
+                .grow_field(&family, limb_order)
+                .await
+                .map_err(js_error)?;
             let bounds = field.bounds;
             let field = Rc::new(RefCell::new(Some(field)));
             Ok(WebField {

@@ -7,9 +7,9 @@
 //! it shares the most cells with. `FIELD_PRESETS` names a comma list,
 //! `FIELD_SEEDS` the seeds, `FIELD_SIDES` the grids.
 use super::super::{Clock, Generator};
+use std::collections::HashMap;
 use telperion_core::math::Vec3;
 use telperion_core::pipeline::{self, Request};
-use std::collections::HashMap;
 
 /// One comparison's measures (`R2`).
 #[derive(Debug, Default, Clone, Copy)]
@@ -35,10 +35,7 @@ fn jaccard(a: impl Iterator<Item = (bool, bool)>) -> f64 {
     }
 }
 
-pub(super) fn compare(
-    cpu: &[telperion_core::field::Occupancy],
-    dev: &[super::Answer],
-) -> Measures {
+pub(super) fn compare(cpu: &[telperion_core::field::Occupancy], dev: &[super::Answer]) -> Measures {
     let pairs = || cpu.iter().zip(dev);
     let wood = jaccard(pairs().map(|(c, d)| (c.wood, d.wood)));
     let foliage = jaccard(pairs().map(|(c, d)| (c.foliage, d.foliage)));
@@ -50,7 +47,11 @@ pub(super) fn compare(
         both += 1;
         off += u64::from(e > 0.01);
     }
-    let radius = if both == 0 { 0.0 } else { off as f64 / both as f64 };
+    let radius = if both == 0 {
+        0.0
+    } else {
+        off as f64 / both as f64
+    };
     let (sum_c, sum_d): (f64, f64) = pairs().fold((0.0, 0.0), |(a, b), (c, d)| {
         (a + c.leaves, b + f64::from(d.leaves))
     });
@@ -70,16 +71,29 @@ pub(super) fn compare(
     }
     let read: HashMap<u32, u32> = shared
         .iter()
-        .map(|(d, m)| (*d, *m.iter().max_by_key(|(c, n)| (**n, std::cmp::Reverse(**c))).unwrap().0))
+        .map(|(d, m)| {
+            (
+                *d,
+                *m.iter()
+                    .max_by_key(|(c, n)| (**n, std::cmp::Reverse(**c)))
+                    .unwrap()
+                    .0,
+            )
+        })
         .collect();
     let (mut agree, mut held) = (0u64, 0u64);
     for (c, d) in pairs() {
         if c.limb.is_some() || d.limb.is_some() {
             held += 1;
-            agree += u64::from(c.limb.is_some() && d.limb.and_then(|d| read.get(&d).copied()) == c.limb);
+            agree +=
+                u64::from(c.limb.is_some() && d.limb.and_then(|d| read.get(&d).copied()) == c.limb);
         }
     }
-    let limbs = if held == 0 { 1.0 } else { agree as f64 / held as f64 };
+    let limbs = if held == 0 {
+        1.0
+    } else {
+        agree as f64 / held as f64
+    };
     Measures {
         wood,
         radius,
@@ -131,9 +145,10 @@ pub(super) fn within(m: &Measures, fronds: bool) -> Result<(), String> {
     held.then_some(()).ok_or_else(|| format!("{m:?}"))
 }
 
-/// R2 on every shipped preset at seed 1, on a grid of 24 cells a side:
-/// the device's field against the CPU's (the gate's; the measurement
-/// below runs seeds, sides and timings).
+/// R2 on every shipped preset at seed 1, on grids of 24, 36 and 48 cells
+/// a side: the device's field, its primitives written compact (R7),
+/// against the CPU's (the gate's; the measurement below runs seeds and
+/// timings).
 #[test]
 fn every_preset_s_device_field_answers_within_its_tolerance() {
     let _held = super::super::whole_tree();
@@ -151,15 +166,17 @@ fn every_preset_s_device_field_answers_within_its_tolerance() {
         let reference = pipeline::build(&family, request).expect("the reference");
         let reference = reference.outputs.field.expect("a field");
         let field = pollster::block_on(gen.grow_field(&family, None)).expect("grown");
-        let cells = grid(&reference.bounds().expect("bounds"), 24);
-        let cpu: Vec<_> = cells.iter().map(|(c, h)| reference.query(*c, *h).expect("answered")).collect();
-        let words: Vec<f32> = cells
-            .iter()
-            .flat_map(|(c, h)| [c.x as f32, c.y as f32, c.z as f32, *h as f32])
-            .collect();
-        let dev = pollster::block_on(gen.query_field(&field, &words)).expect("answered");
         let fronds = family.canopy.rosette_fronds > 0.0;
-        within(&compare(&cpu, &dev), fronds).unwrap_or_else(|m| panic!("{id}: {m}"));
+        for n in [24, 36, 48] {
+            let cells = grid(&reference.bounds().expect("bounds"), n);
+            let cpu: Vec<_> = cells
+                .iter()
+                .map(|(c, h)| reference.query(*c, *h).expect("answered"))
+                .collect();
+            let dev =
+                pollster::block_on(gen.query_field(&field, &words(&cells))).expect("answered");
+            within(&compare(&cpu, &dev), fronds).unwrap_or_else(|m| panic!("{id} at {n}: {m}"));
+        }
     }
 }
 
@@ -174,7 +191,11 @@ fn the_device_field_refuses_what_the_core_refuses() {
     let gen = pollster::block_on(Generator::for_fields_async(gpu.clone())).expect("a generator");
     let family = telperion_core::presets::by_identity("european-beech").expect("a preset");
     let field = pollster::block_on(gen.grow_field(&family, None)).expect("grown");
-    for cells in [&[0.0, 1.0, 0.0, -0.1][..], &[f32::NAN, 1.0, 0.0, 0.1], &[0.0, 1.0, 0.0]] {
+    for cells in [
+        &[0.0, 1.0, 0.0, -0.1][..],
+        &[f32::NAN, 1.0, 0.0, 0.1],
+        &[0.0, 1.0, 0.0],
+    ] {
         let refused = pollster::block_on(gen.query_field(&field, cells)).expect_err("refused");
         assert!(refused.to_string().contains("field query"), "{refused}");
     }
@@ -224,7 +245,15 @@ fn names(cpu: &[telperion_core::field::Occupancy], dev: &[super::Answer]) -> Has
         }
     }
     (shared.iter())
-        .map(|(c, m)| (*c, *m.iter().max_by_key(|(d, n)| (**n, std::cmp::Reverse(**d))).unwrap().0))
+        .map(|(c, m)| {
+            (
+                *c,
+                *m.iter()
+                    .max_by_key(|(d, n)| (**n, std::cmp::Reverse(**d)))
+                    .unwrap()
+                    .0,
+            )
+        })
         .collect()
 }
 
@@ -243,15 +272,27 @@ fn a_cell_crowded_with_limbs_names_the_cpu_s_limb() {
     assert!(field.named() > super::field::TALLY, "{}", field.named());
     let b = reference.bounds().expect("bounds");
     let cells = grid(&b, 24);
-    let cpu: Vec<_> = cells.iter().map(|(c, h)| reference.query(*c, *h).expect("answered")).collect();
+    let cpu: Vec<_> = cells
+        .iter()
+        .map(|(c, h)| reference.query(*c, *h).expect("answered"))
+        .collect();
     let dev = pollster::block_on(gen.query_field(&field, &words(&cells))).expect("answered");
     let named = names(&cpu, &dev);
     let centre = (b.min + b.max) * 0.5;
-    let half = (b.max - b.min).x.max((b.max - b.min).y).max((b.max - b.min).z) * 0.5;
+    let half = (b.max - b.min)
+        .x
+        .max((b.max - b.min).y)
+        .max((b.max - b.min).z)
+        * 0.5;
     let whole = reference.query(centre, half).expect("answered");
-    let mine = pollster::block_on(gen.query_field(&field, &words(&[(centre, half)]))).expect("answered");
+    let mine =
+        pollster::block_on(gen.query_field(&field, &words(&[(centre, half)]))).expect("answered");
     let limb = whole.limb.expect("a limb");
-    assert_eq!(mine[0].limb, named.get(&limb).copied(), "the whole crown's limb");
+    assert_eq!(
+        mine[0].limb,
+        named.get(&limb).copied(),
+        "the whole crown's limb"
+    );
     assert!((f64::from(mine[0].leaves) / whole.leaves - 1.0).abs() < 1e-3);
 }
 
@@ -289,7 +330,9 @@ fn a_field_on_a_lost_device_is_refused_by_name() {
         let refused = pollster::block_on(gen.query_field(&field, cells)).expect_err("refused");
         assert!(refused.to_string().contains("lost"), "{refused}");
     }
-    let refused = pollster::block_on(gen.grow_field(&family, None)).err().expect("refused");
+    let refused = pollster::block_on(gen.grow_field(&family, None))
+        .err()
+        .expect("refused");
     assert!(refused.to_string().contains("lost"), "{refused}");
 }
 
@@ -324,9 +367,13 @@ fn the_device_field_answers_as_the_cpu_field() {
             let fronds = family.canopy.rosette_fronds > 0.0;
             for &n in &sides {
                 let cells = grid(&reference.bounds().expect("bounds"), n);
-                let cpu: Vec<_> = cells.iter().map(|(c, h)| reference.query(*c, *h).expect("answered")).collect();
+                let cpu: Vec<_> = cells
+                    .iter()
+                    .map(|(c, h)| reference.query(*c, *h).expect("answered"))
+                    .collect();
                 let t = Clock::now();
-                let dev = pollster::block_on(gen.query_field(&field, &words(&cells))).expect("answered");
+                let dev =
+                    pollster::block_on(gen.query_field(&field, &words(&cells))).expect("answered");
                 let query_ms = t.elapsed_ms();
                 let m = compare(&cpu, &dev);
                 if let Err(m) = within(&m, fronds) {

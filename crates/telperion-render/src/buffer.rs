@@ -337,15 +337,17 @@ impl Owned {
     /// `buffer` owned, its bytes charged now: a buffer made outside the
     /// budget (`io::buffer` reserves before it makes).
     pub(crate) fn new(gpu: &Gpu, buffer: wgpu::Buffer) -> Self {
+        Self::named(gpu, buffer, "unbudgeted")
+    }
+
+    /// `buffer` owned and charged now under `label`.
+    pub(crate) fn named(gpu: &Gpu, buffer: wgpu::Buffer, label: &'static str) -> Self {
         let size = buffer.size();
-        gpu.ledger
-            .counts
-            .charge(size, "unbudgeted", 0)
-            .expect("no cap");
+        gpu.ledger.counts.charge(size, label, 0).expect("no cap");
         Self {
             buffer,
             ledger: gpu.ledger.clone(),
-            label: "unbudgeted",
+            label,
             gone: Default::default(),
         }
     }
@@ -525,15 +527,13 @@ fn allocate(
     capacity: u64,
     bytes: &[u8],
 ) -> Owned {
-    let buffer = Owned::create(
-        gpu,
-        &wgpu::BufferDescriptor {
-            label: Some(label),
-            size: capacity,
-            usage: usage | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        },
-    );
+    let descriptor = wgpu::BufferDescriptor {
+        label: Some(label),
+        size: capacity,
+        usage: usage | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
+    };
+    let buffer = Owned::named(gpu, gpu.device.create_buffer(&descriptor), label);
     if !bytes.is_empty() {
         gpu.queue.write_buffer(&buffer, 0, bytes);
     }

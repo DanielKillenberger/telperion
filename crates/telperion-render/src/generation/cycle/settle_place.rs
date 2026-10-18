@@ -123,7 +123,10 @@ fn depths(s: &Settled) -> Vec<(u32, u32)> {
 
 /// A fault the place met, by its bits (`settle_state.wgsl`'s `FAULT_`).
 async fn faults(gpu: &Gpu, s: &Settled) -> Result<()> {
-    let fault = read(gpu, &s.atom, d::T_PLACE as u64, 1).await?[0];
+    refuse(read(gpu, &s.atom, d::T_PLACE as u64, 1).await?[0])
+}
+
+fn refuse(fault: u32) -> Result<()> {
     if fault != 0 {
         return Err(super::super::io::error(format!(
             "the settle's place: faults {fault:#x}"
@@ -157,9 +160,8 @@ pub(super) async fn lay(
         .write_buffer(&s.atom, 4 * d::T_ERR as u64, bytemuck::bytes_of(&u32::MAX));
     walk(&mut r, s, "settle place")?;
     r.submit();
-    faults(gpu, s).await?;
     let placed = to == SettleTo::Placed;
-    if first_error(gpu, s).await? || !(sags || placed) {
+    if laid(gpu, s).await? || !(sags || placed) {
         return sized(gpu, &mut r, s).await;
     }
     for &at in depths.iter().rev() {
@@ -172,8 +174,7 @@ pub(super) async fn lay(
     r.cfg[15] = 1;
     walk(&mut r, s, "settle sag place")?;
     r.submit();
-    faults(gpu, s).await?;
-    if first_error(gpu, s).await? {
+    if laid(gpu, s).await? {
         return Ok(());
     }
     sized(gpu, &mut r, s).await
@@ -204,9 +205,12 @@ fn walk(r: &mut Rec, s: &mut Settled, phase: &'static str) -> Result<()> {
     Ok(())
 }
 
-/// The lay's first error into `s.error`, if it met one.
-async fn first_error(gpu: &Gpu, s: &mut Settled) -> Result<bool> {
-    let at = read(gpu, &s.atom, d::T_ERR as u64, 1).await?[0];
+/// A lay's faults refused by name, as `faults` refuses them, then its
+/// first error into `s.error`, if it met one: both from one read.
+async fn laid(gpu: &Gpu, s: &mut Settled) -> Result<bool> {
+    let words = read(gpu, &s.atom, 0, d::T_ERR.max(d::T_PLACE) as u64 + 1).await?;
+    refuse(words[d::T_PLACE])?;
+    let at = words[d::T_ERR];
     if at != u32::MAX {
         s.error = [at & 3, at >> 2];
     }

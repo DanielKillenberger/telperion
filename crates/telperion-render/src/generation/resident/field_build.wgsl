@@ -5,7 +5,8 @@
 @group(0) @binding(1) var<storage, read> nodes: array<f32>;
 @group(0) @binding(2) var<storage, read> segs: array<u32>;
 @group(0) @binding(3) var<storage, read_write> work: array<atomic<u32>>;
-@group(0) @binding(4) var<storage, read_write> prims: array<vec4<f32>>;
+@group(0) @binding(4) var<storage, read_write> prims: array<vec4<u32>>;
+// The leaves' limb systems, the first leaf primitive's first.
 @group(0) @binding(5) var<storage, read_write> owner: array<u32>;
 @group(0) @binding(6) var<storage, read_write> index: array<atomic<u32>>;
 // Each node's dense name of the system it opens: one where it opens one,
@@ -193,19 +194,92 @@ fn grow_box(lo: vec3<f32>, hi: vec3<f32>) {
     }
 }
 
-// Each drawn node's wood: the sweep from its parent's position at its
-// start radius to its own at its radius, the root's a point
-// (`Field::wood`).
+fn unord(w: u32) -> f32 {
+    return bitcast<f32>(select(~w, w & 0x7fffffffu, (w & 0x80000000u) != 0u));
+}
+
+// The primitives' kernels run twice: once to grow the box, once to write
+// each primitive within it (`Cfg::extent`).
+fn writing() -> bool {
+    return cfg.extent.w != 0.0;
+}
+
+// A position in steps of the box grown (`field.wgsl`'s `endpoints`).
+fn steps(p: vec3<f32>) -> vec3<u32> {
+    let b = WORDS * cfg.nodes;
+    var lo: vec3<f32>;
+    var hi: vec3<f32>;
+    for (var c = 0u; c < 3u; c++) {
+        lo[c] = unord(atomicLoad(&work[b + c]));
+        hi[c] = unord(atomicLoad(&work[b + 3u + c]));
+    }
+    let q = quantum(hi - lo);
+    let f = clamp(round((p - lo) / max(q, vec3<f32>(1e-30))), vec3<f32>(0.0), vec3<f32>(STEPS));
+    return vec3<u32>(f);
+}
+
+fn first_words(u: vec3<u32>) -> vec2<u32> {
+    return vec2<u32>(u.x | (u.y << 20u), (u.y >> 12u) | (u.z << 8u));
+}
+
+// A positive half in 15 bits.
+fn to_half15(v: f32) -> u32 {
+    return pack2x16float(vec2<f32>(max(v, 0.0), 0.0)) & 0x7fffu;
+}
+
+// Node `i`'s wood from its parent `p` (`NONE` for a point), its radii
+// and its box: grown, or written. A node drawn in no record stands for
+// nothing, but its position stays for its children's sweeps.
+fn keep_wood(i: u32, p: u32, radii: vec2<f32>, lo: vec3<f32>, hi: vec3<f32>, drawn: bool) {
+    if !writing() {
+        if drawn {
+            grow_box(lo, hi);
+        }
+        return;
+    }
+    let f = first_words(steps(pos(i)));
+    let r = to_half15(radii.x) | (to_half15(radii.y) << 15u);
+    prims[i] = vec4<u32>(f, p, (r << 1u) | select(DEAD, 0u, drawn));
+}
+
+// Leaf primitive `k` from `a` to `b` with its attributes and its box:
+// grown, or written, its second end its difference from the first in the
+// fewest-shifted 11-bit counts that hold it.
+fn keep_leaf(k: u32, a: vec3<f32>, b: vec3<f32>, attributes: u32, lo: vec3<f32>, hi: vec3<f32>) {
+    if !writing() {
+        grow_box(lo, hi);
+        return;
+    }
+    let u = steps(a);
+    let d = vec3<f32>(steps(b)) - vec3<f32>(u);
+    let most = max(max(abs(d.x), abs(d.y)), abs(d.z));
+    var shift = 0u;
+    // cap: a difference of 2^20 steps fits at a shift of 10.
+    while shift < 15u && most > 1023.0 * exp2(f32(shift)) {
+        shift += 1u;
+    }
+    let c = vec3<i32>(round(d / exp2(f32(shift))));
+    let m = vec3<u32>(c) & vec3<u32>(0x7ffu);
+    let f = first_words(u);
+    prims[k] = vec4<u32>(
+        f.x,
+        f.y | (shift << 28u),
+        m.x | (m.y << 11u) | (m.z << 22u),
+        (m.z >> 10u) | (attributes << 1u),
+    );
+}
+
+// Leaf primitive `k` standing for nothing.
+fn nothing(k: u32) {
+    if writing() {
+        prims[k] = vec4<u32>(0u, 0u, 0u, DEAD);
+    }
+}
+
 @compute @workgroup_size(64)
 fn wood(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = index_of(id);
     if i >= cfg.nodes {
-        return;
-    }
-    if !made(i) {
-        prims[2u * i] = vec4<f32>(0.0, 0.0, 0.0, -1.0);
-        prims[2u * i + 1u] = vec4<f32>(0.0, 0.0, 0.0, -1.0);
-        owner[i] = NONE;
         return;
     }
     let p = parent(i);
@@ -213,14 +287,15 @@ fn wood(@builtin(global_invocation_id) id: vec3<u32>) {
     let end = nodes[i * NW + 3u];
     var a = b;
     var start = end;
+    var up = NONE;
     if i != cfg.root && p < cfg.nodes {
         a = pos(p);
         start = nodes[i * NW + 4u];
+        up = p;
     }
-    prims[2u * i] = vec4<f32>(a, start);
-    prims[2u * i + 1u] = vec4<f32>(b, end);
-    owner[i] = NONE;
-    grow_box(min(a - start, b - end), max(a + start, b + end));
+    let lo = min(a - start, b - end);
+    let hi = max(a + start, b + end);
+    keep_wood(i, up, vec2<f32>(start, end), lo, hi, made(i));
 }
 
 // Each station segment's leaves, on the limb system of the node it
@@ -241,18 +316,19 @@ fn leaves(@builtin(global_invocation_id) id: vec3<u32>) {
     if f[5].y < -1.5 {
         // A frond: its leaflets stand as primitives of their own
         // (`leaflets`); the segment stands for none.
-        let k = cfg.nodes + g;
-        prims[2u * k] = vec4<f32>(0.0, 0.0, 0.0, -1.0);
-        prims[2u * k + 1u] = vec4<f32>(0.0, 0.0, 0.0, -1.0);
-        owner[k] = NONE;
+        nothing(cfg.nodes + g);
+        if writing() {
+            owner[g] = NONE;
+        }
         return;
     }
     let on = segs[cfg.segs * GW + g];
-    let k = cfg.nodes + g;
-    prims[2u * k] = vec4<f32>(a, reach);
-    prims[2u * k + 1u] = vec4<f32>(b, f32(segs[s + 25u]));
-    owner[k] = dense[atomicLoad(&work[at(VAL + cfg.flip, on)])];
-    grow_box(min(a, b) - reach, max(a, b) + reach);
+    let borne = segs[s + 25u];
+    let attributes = to_half15(reach) | (min(borne, 0x7fffu) << 15u);
+    keep_leaf(cfg.nodes + g, a, b, attributes, min(a, b) - reach, max(a, b) + reach);
+    if writing() {
+        owner[g] = dense[atomicLoad(&work[at(VAL + cfg.flip, on)])];
+    }
 }
 
 // Each leaflet of each frond as placement draws it (`pack.wgsl`'s
@@ -336,12 +412,16 @@ fn leaflets(@builtin(global_invocation_id) id: vec3<u32>) {
         let run = axis * (h.y + margin);
         let wide = h.x + margin;
         let thick = h.z + margin;
-        let p = cfg.nodes + cfg.segs + first + j;
-        prims[2u * p] = vec4<f32>(centre - run, wide + thick);
-        prims[2u * p + 1u] = vec4<f32>(centre + run, bitcast<f32>(boxed(flank, thick / (wide + thick))));
-        owner[p] = system;
+        let p = cfg.segs + first + j;
         let r = wide + thick;
-        grow_box(min(centre - run, centre + run) - r, max(centre - run, centre + run) + r);
+        let shape = flanked(flank, thick / r);
+        let attributes = to_half15(r) | (shape << 15u);
+        let a = centre - run;
+        let b = centre + run;
+        keep_leaf(cfg.nodes + p, a, b, attributes, min(a, b) - r, max(a, b) + r);
+        if writing() {
+            owner[p] = system;
+        }
     }
 }
 
@@ -356,15 +436,6 @@ fn mix32(v: u32) -> u32 {
 fn random(key: u32, ordinal: u32) -> f32 {
     let stream = mix32(bitcast<u32>(cfg.bound.w) ^ 0x2c9e1a7fu ^ key);
     return f32(mix32(stream + (ordinal + 1u) * 0x9e3779b9u)) * (1.0 / 4294967296.0);
-}
-
-// A leaflet box's flank and its thickness's share of its reach, in a
-// word: the flank's octahedral coordinates in eleven bits each, the
-// share in ten.
-fn boxed(flank: vec3<f32>, share: f32) -> u32 {
-    let o = octahedral(flank);
-    let q = vec2<u32>(round(clamp(o * 0.5 + 0.5, vec2<f32>(0.0), vec2<f32>(1.0)) * 2047.0));
-    return q.x | (q.y << 11u) | (u32(round(clamp(share, 0.0, 1.0) * 1023.0)) << 22u);
 }
 
 struct Leaflet {
@@ -424,7 +495,7 @@ fn segment(s: u32) -> array<vec4<f32>, 6> {
 @compute @workgroup_size(64)
 fn count(@builtin(global_invocation_id) id: vec3<u32>) {
     let k = index_of(id);
-    if k >= cfg.dims.w || prims[2u * k].w < 0.0 {
+    if k >= cfg.dims.w || dead(k) {
         return;
     }
     let s = span(k);
@@ -442,7 +513,7 @@ fn count(@builtin(global_invocation_id) id: vec3<u32>) {
 @compute @workgroup_size(64)
 fn fill(@builtin(global_invocation_id) id: vec3<u32>) {
     let k = index_of(id);
-    if k >= cfg.dims.w || prims[2u * k].w < 0.0 {
+    if k >= cfg.dims.w || dead(k) {
         return;
     }
     let s = span(k);

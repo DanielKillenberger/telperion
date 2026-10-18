@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T13:45:35.548636Z",
+  "depends_on": [
+    "fn-257-the-site-grows-its-trees-on-the-device.13"
+  ],
+  "id": "fn-257-the-site-grows-its-trees-on-the-device.14",
+  "priority": null,
+  "spec": "fn-257-the-site-grows-its-trees-on-the-device",
+  "spec_path": ".flow/tasks/fn-257-the-site-grows-its-trees-on-the-device.14.md",
+  "status": "todo",
+  "title": "The package's field entry takes a grid and returns it",
+  "updated_at": "2026-10-16T14:08:02.996703Z"
+}

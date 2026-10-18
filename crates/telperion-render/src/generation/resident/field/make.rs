@@ -1,10 +1,10 @@
 //! A field made: the tree grown, drawn, swept and stationed as a harness
 //! build makes it (`build::readied`), each node's limb system found and
 //! named densely, the primitives written, and the grid that lists them.
-use super::super::build::{placeable, readied, Readied, Timed, Tools};
-use super::super::stations::{station_rows, Stationed};
 use super::super::super::cycle::tree::{self, Kernels};
 use super::super::super::Generator;
+use super::super::build::{placeable, readied, Readied, Timed, Tools};
+use super::super::stations::{station_rows, Stationed};
 use super::{read_words, storage, unbound, Cfg, DeviceField, Rec};
 use super::{CARRIER, CLEAR, INHERIT, LEAFLETS, LEAVES, MARKS, OPENS, ORDER, OWN, WIDEST, WOOD};
 use crate::buffer::Owned;
@@ -35,7 +35,8 @@ pub(in super::super) async fn grow(
     let mut at = Vec::new();
     let drawn = tree::drawn(gpu, kernels, &growth).await?;
     at.push(clock.elapsed_ms());
-    let Readied { x, swept, ids, .. } = readied(gpu, tools, family, drawn, &mut Timed::default()).await?;
+    let Readied { x, swept, ids, .. } =
+        readied(gpu, tools, family, drawn, &mut Timed::default()).await?;
     at.push(clock.elapsed_ms());
     let rows = station_rows(&x, x.section()?.segments, None, growth.year(1.0));
     let device = tools.stationer.stations(gpu, &swept, ids, rows).await?;
@@ -43,12 +44,18 @@ pub(in super::super) async fn grow(
     // A frond's leaflets stand as primitives of their own.
     let fronds = rows.rosette[0][0] > 0.0;
     let mut cfg = cfg(&x, (ids, device.segments), limb_order);
-    let leaflets = if fronds { u64::from(device.stations) } else { 0 };
+    let leaflets = if fronds {
+        u64::from(device.stations)
+    } else {
+        0
+    };
     let prims = u64::from(ids) + u64::from(device.segments) + leaflets;
     let made = primitives(gpu, tools, (&swept.nodes, &device, fronds), &mut cfg, prims).await?;
     at.push(clock.elapsed_ms());
     drop((swept, device));
-    super::index::grid(&mut cfg, &made.bounds, prims);
+    let b = made.bounds;
+    cfg.extent = [b[3] - b[0], b[4] - b[1], b[5] - b[2], 0.0];
+    super::index::grid(&mut cfg, &b, prims);
     let index = super::index::index(gpu, tools, &cfg, (&made.prims, &made.owner)).await?;
     at.push(clock.elapsed_ms());
     if std::env::var("CYCLE_TRACE").is_ok() {
@@ -100,8 +107,9 @@ struct Made {
 }
 
 /// Each node's limb system (`clumping::systems`, by pointer jumps), the
-/// systems named densely, and each node's wood and each segment's (or
-/// frond leaflet's) leaves written as primitives.
+/// systems named densely, the box grown about each node's wood and each
+/// segment's (or frond leaflet's) leaves, and each written as a
+/// primitive within it.
 async fn primitives(
     gpu: &Gpu,
     tools: &Tools,
@@ -119,11 +127,19 @@ async fn primitives(
     lows.extend([u32::MAX; 3]);
     lows.extend([0u32; 3]);
     let work = storage(gpu, "field work", lows.len() as u64, &lows)?;
-    let prim = storage(gpu, "field primitives", prims * 8, &[])?;
-    let owner = storage(gpu, "field systems", prims, &[])?;
+    let prim = storage(gpu, "field primitives", prims * 4, &[])?;
+    let owner = storage(gpu, "field systems", prims - u64::from(ids), &[])?;
     let dense = storage(gpu, "field system names", u64::from(ids) + 1, &[])?;
     let none = unbound(gpu)?;
-    let bufs = [nodes, &device.buffer, &work, &prim, &owner, &none[0], &dense];
+    let bufs = [
+        nodes,
+        &device.buffer,
+        &work,
+        &prim,
+        &owner,
+        &none[0],
+        &dense,
+    ];
     let mut e = gpu.encoder(&Default::default());
     for entry in [CLEAR, WIDEST, CARRIER, OPENS] {
         r.run(&mut e, (f, entry, ids, cfg), &bufs)?;
@@ -142,11 +158,16 @@ async fn primitives(
     cfg.flip = jumps % 2;
     r.run(&mut e, (f, MARKS, ids, cfg), &bufs)?;
     let total = storage(gpu, "field systems total", 4, &[])?;
-    tools.stationer.scan(gpu, &mut e, (&dense, ids, 1, 1), &total)?;
-    r.run(&mut e, (f, WOOD, ids, cfg), &bufs)?;
-    r.run(&mut e, (f, LEAVES, cfg.segs, cfg), &bufs)?;
-    if fronds {
-        r.run(&mut e, (f, LEAFLETS, cfg.segs, cfg), &bufs)?;
+    tools
+        .stationer
+        .scan(gpu, &mut e, (&dense, ids, 1, 1), &total)?;
+    for write in [0.0, 1.0] {
+        cfg.extent[3] = write;
+        r.run(&mut e, (f, WOOD, ids, cfg), &bufs)?;
+        r.run(&mut e, (f, LEAVES, cfg.segs, cfg), &bufs)?;
+        if fronds {
+            r.run(&mut e, (f, LEAFLETS, cfg.segs, cfg), &bufs)?;
+        }
     }
     gpu.submit([e.finish()]);
     let systems = read_words(gpu, &total, 0, 1).await?[0];
@@ -165,7 +186,11 @@ async fn primitives(
 
 /// A float from its ordered bits (`field_build.wgsl`'s `ord`).
 fn unord(w: u32) -> f32 {
-    f32::from_bits(if w & 0x8000_0000 != 0 { w & 0x7fff_ffff } else { !w })
+    f32::from_bits(if w & 0x8000_0000 != 0 {
+        w & 0x7fff_ffff
+    } else {
+        !w
+    })
 }
 
 /// A frond leaflet's box in its own frame (`fronds.rs`'s `Shape`): its

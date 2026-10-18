@@ -14,9 +14,9 @@ pub(super) struct Kit {
 }
 
 pub use budget::Admitted;
-pub use field::{Answer, DeviceField};
 #[cfg(target_arch = "wasm32")]
 pub(crate) use budget::BROWSER;
+pub use field::{Answer, DeviceField};
 
 impl Kit {
     /// The kernels and the tools made side by side (`io::pair`).
@@ -70,7 +70,11 @@ impl super::Generator {
     /// `family`'s field grown on the device and kept there (fn-257), its
     /// limb systems opened by laterals of `limb_order` or less (the
     /// family's own where none is given).
-    pub async fn grow_field(&self, family: &Family, limb_order: Option<u32>) -> Result<DeviceField> {
+    pub async fn grow_field(
+        &self,
+        family: &Family,
+        limb_order: Option<u32>,
+    ) -> Result<DeviceField> {
         let gpu = &self.gpu;
         self.on_device(async |kit| {
             field::grow(gpu, (self, &kit.kernels, &kit.tools), family, limb_order).await
@@ -196,6 +200,8 @@ mod boots_tests;
 pub(super) mod budget;
 mod build;
 #[cfg(test)]
+mod drawn_memory_tests;
+#[cfg(test)]
 mod field_probe_tests;
 #[cfg(test)]
 mod full_card_tests;
@@ -209,10 +215,12 @@ mod growing_tests;
 #[cfg(test)]
 mod organ_tests;
 pub use growing::GrowingTree;
-mod florets;
 mod field;
 #[cfg(test)]
 mod field_tests;
+#[cfg(test)]
+mod field_time_tests;
+mod florets;
 pub(super) mod fold;
 mod handoff;
 #[cfg(test)]

@@ -35,9 +35,6 @@ const LEAFLETS: usize = 9;
 const COUNT: usize = 10;
 const FILL: usize = 11;
 const MARKS: usize = 12;
-/// A node's work words (`field.wgsl`'s `WORDS`), and the box's six after
-/// every node's.
-const WORDS: u64 = 7;
 /// An answer's flag past `field.wgsl`'s tally of limb systems in one
 /// cell, and the systems a tally holds (`TALLY`).
 const OVER: u32 = 4;
@@ -54,7 +51,12 @@ impl Fielder {
         let build = format!("{FIELD}\n{BUILD}");
         let query = format!("{FIELD}\n{QUERY_SOURCE}");
         Self {
-            build: io::Pass::new(gpu, build, &[true, true, false, false, false, false, false], &ENTRIES),
+            build: io::Pass::new(
+                gpu,
+                build,
+                &[true, true, false, false, false, false, false],
+                &ENTRIES,
+            ),
             query: io::Pass::new(gpu, query, &[true, true, true, true, false], &["query"]),
         }
     }
@@ -85,6 +87,7 @@ struct Cfg {
     bound: [f32; 4],
     leaf_centre: [f32; 4],
     leaf_half: [f32; 4],
+    extent: [f32; 4],
 }
 
 impl Cfg {
@@ -97,6 +100,7 @@ impl Cfg {
         w.extend(c.bound.map(f32::to_bits));
         w.extend(c.leaf_centre.map(f32::to_bits));
         w.extend(c.leaf_half.map(f32::to_bits));
+        w.extend(c.extent.map(f32::to_bits));
         w
     }
 }
@@ -104,7 +108,13 @@ impl Cfg {
 fn storage(gpu: &Gpu, label: &'static str, words: u64, initial: &[u32]) -> Result<Owned> {
     let usage =
         wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
-    io::buffer(gpu, label, words.max(4) * 4, usage, bytemuck::cast_slice(initial))
+    io::buffer(
+        gpu,
+        label,
+        words.max(4) * 4,
+        usage,
+        bytemuck::cast_slice(initial),
+    )
 }
 
 /// Four empty buffers for the bindings a pass does not read, apart, as
@@ -125,8 +135,9 @@ async fn read_words(gpu: &Gpu, b: &wgpu::Buffer, at: u64, n: u64) -> Result<Vec<
 }
 
 /// A field on the device: its primitives (each node's wood, then each
-/// station segment's leaves), their limb systems, named 0 to `systems`,
-/// and the grid of buckets they are listed in.
+/// station segment's leaves), 16 bytes each (`field.wgsl`'s `endpoints`),
+/// the leaves' limb systems, named 0 to `systems`, and the grid of
+/// buckets they are listed in.
 pub struct DeviceField {
     prims: Owned,
     owner: Owned,
@@ -155,15 +166,13 @@ impl DeviceField {
     /// The leaves' limb systems, read back: the tests'.
     #[cfg(test)]
     pub(super) fn systems(&self, gpu: &Gpu) -> Vec<u32> {
-        let at = u64::from(self.wood);
-        pollster::block_on(read_words(gpu, &self.owner, at, u64::from(self.leaves).max(1))).unwrap()
-    }
-
-    /// The primitives from `at`, `n` of them, read back: the tests'.
-    #[cfg(test)]
-    pub(super) fn prims(&self, gpu: &Gpu, at: u64, n: u64) -> Vec<[f32; 8]> {
-        let w = pollster::block_on(read_words(gpu, &self.prims, 8 * at, 8 * n.max(1))).unwrap();
-        w.chunks(8).map(|p| std::array::from_fn(|k| f32::from_bits(p[k]))).collect()
+        pollster::block_on(read_words(
+            gpu,
+            &self.owner,
+            0,
+            u64::from(self.leaves).max(1),
+        ))
+        .unwrap()
     }
 }
 
@@ -195,12 +204,22 @@ impl Rec<'_> {
         bufs: &[&wgpu::Buffer],
     ) -> Result<()> {
         let groups = n.div_ceil(64).max(1);
-        let most = self.gpu.device.limits().max_compute_workgroups_per_dimension;
+        let most = self
+            .gpu
+            .device
+            .limits()
+            .max_compute_workgroups_per_dimension;
         let mut words = cfg.words(n, groups.min(most) * 64);
         words.resize(words.len().next_multiple_of(4), 0);
         let usage = wgpu::BufferUsages::UNIFORM;
         let bytes = words.len() as u64 * 4;
-        let uniform = io::buffer(self.gpu, "field cfg", bytes, usage, bytemuck::cast_slice(&words))?;
+        let uniform = io::buffer(
+            self.gpu,
+            "field cfg",
+            bytes,
+            usage,
+            bytemuck::cast_slice(&words),
+        )?;
         let mut all: Vec<&wgpu::Buffer> = vec![&uniform];
         all.extend(bufs);
         let bind = pass.bind(self.gpu, &all);
@@ -209,4 +228,3 @@ impl Rec<'_> {
         Ok(())
     }
 }
-

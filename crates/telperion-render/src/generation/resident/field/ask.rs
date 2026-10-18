@@ -58,7 +58,10 @@ impl DeviceField {
         cells: &[f32],
         crowded: &[usize],
     ) -> Result<Vec<Option<u32>>> {
-        let some: Vec<f32> = crowded.iter().flat_map(|&i| cells[4 * i..4 * i + 4].to_vec()).collect();
+        let some: Vec<f32> = crowded
+            .iter()
+            .flat_map(|&i| cells[4 * i..4 * i + 4].to_vec())
+            .collect();
         let mut best = vec![(None::<u32>, 0f32); crowded.len()];
         for window in (0..self.systems).step_by(TALLY as usize) {
             let words = self.ask(gpu, tools, &some, window).await?;
