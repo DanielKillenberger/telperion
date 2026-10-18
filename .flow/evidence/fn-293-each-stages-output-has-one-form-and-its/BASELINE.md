@@ -130,3 +130,12 @@ covers `Request::mesh()` and so the curve-drawn wood), resident
 `raw/resident-digest-t4.txt` (identical lines, under `telperion-heavy 10
 --gpu 6`). The two `retains` rules agree on every shipped preset
 (`raw/t4-retains-rules.txt`).
+
+## After task 5
+
+The three digests re-run after task 5's edits (the CPU delivery and the
+renderer's test-only GPU code out of the production build) equal the
+baseline: core `raw/core-digest-t5.txt` (all 24 lines), render pipeline
+`raw/generation-digest-t5.txt` (byte-identical, sha256 `fb4ce911...`),
+resident `raw/resident-digest-t5.txt` (identical lines, under
+`telperion-heavy 10 --gpu 6`).

@@ -66,3 +66,10 @@
 - **Slowed by:** `tests/generation_limit_guard.rs` keys every limit site by file path, so moving a function unchanged fails the 35-minute gate (1402 passed, 1 failed) on three inventory rows, outside the task's Touches. No focused run names the guard as a reader of a file move.
 - **Cost:** one gate run's verdict lost to a bookkeeping failure, about 5 minutes to fix and re-run the guard alone.
 - **Would have removed it:** the guard named in the plan's quick commands for any task that moves code, or the inventory keyed by function rather than file.
+
+## 2026-10-18 - task 5: the resident digest outlasts a foreground call
+
+- **Doing:** comparing task 5's resident digest (`resident::digest_tests::digest`, seeds 1, 7, 42) with the baseline, beside `generation_digest` in the background.
+- **Slowed by:** the resident digest runs past the 600 s foreground limit, so the host moved it to the background mid-run; BASELINE.md names neither run's wall time.
+- **Cost:** one moved call and a second wait handle, a few minutes of attention.
+- **Would have removed it:** BASELINE.md stating each digest's wall time, so a worker launches both in the background from the start (task 2's entry asked the same of `generation_digest`).
