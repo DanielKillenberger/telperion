@@ -140,6 +140,15 @@ baseline: core `raw/core-digest-t5.txt` (all 24 lines), render pipeline
 resident `raw/resident-digest-t5.txt` (identical lines, under
 `telperion-heavy 10 --gpu 6`).
 
+## After task 8
+
+The three digests re-run after task 8's edits (`validate_skeleton` without
+the scaffold-only preconditions, `Delivery` and `Backend` deleted) equal the
+baseline: core `raw/core-digest-t8.txt` (all 24 lines), render pipeline
+`raw/generation-digest-t8.txt` (byte-identical, sha256 `fb4ce911...`),
+resident `raw/resident-digest-t8.txt` (identical lines, under
+`telperion-heavy 10 --gpu 6`).
+
 ## Task 6 probe: the rings read the renderer's packed frames
 
 Finding 3's stop condition, measured before any sweep change. The rings

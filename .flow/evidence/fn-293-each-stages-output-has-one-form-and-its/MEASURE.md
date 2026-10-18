@@ -102,3 +102,15 @@ leaves' side), so the saving there is about 2 %; the oak's is about 10 %.
 Non-test compiled lines of telperion-core (`measure-cfg-lines.py`): 22884
 after task 3, 22997 after task 4 (the curve-drawn ring entry and
 `Scratch::read` add more than the station count and the preparation remove).
+
+## Task 8: validation and the delivery enums
+
+Non-test compiled lines (`measure-cfg-lines.py`), at the task's base
+(`fc12f911a`) and after: `validate_skeleton` without the scaffold-only
+preconditions (the scaffold module and `inner_envelope` now compile only
+into tests), and `Delivery` and `Backend` deleted.
+
+| crate | non-test lines before | after |
+| --- | ---: | ---: |
+| telperion-core | 22997 | 22825 |
+| telperion-render | 23525 | 23499 |
