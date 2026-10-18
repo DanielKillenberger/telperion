@@ -34,9 +34,18 @@ Do not touch the untracked `src/field/telperion-field.wasm` in other checkouts. 
 - [ ] No file in the repo calls the removed field query or loads `telperion-field.wasm`.
 - [ ] Digests after the task equal the baseline; gate and `npm test` green.
 ## Done summary
-TBD
+The digests now project artifacts (`artifact_digest <preset> [seed]` and `generation_digest` read the skeleton's consumer fields, never `Tree.pipe`), and a new ignored render test (`resident/digest_tests.rs`) hashes what the device hands the renderer: placed leaves and the packed curve's point, cluster and section words with its demand. BASELINE.md records every shipped preset at seeds 1, 7, 42 on all three digests, each run twice and identical; MEASURE.md records the before-numbers (lines per crate, package bytes raw and gzip, cold release Wasm build time). `branch_diagnostics` and its four JSON keys are gone from Rust, TS and tests; `scripts/benchmarks/{field,generation,generation-inputs}.mjs` and `experiments/voxel-field` are deleted (the migration was a rewrite, and Node has no WebGPU for `growField`); `tests/migration/README.md` names `{ field: { n: 36 } }`. All three digests equal the baseline after the task.
 
+Outside the declared Touches, two changes were needed: `crates/telperion-render/src/curve.rs` (a `#[cfg(test)]` sections accessor, and `COPY_SRC` on uploaded curve blocks, so the digest can read the section words), and `docs/generation-limits-inventory.json` and `docs/generation-limits.md` (the deleted diagnostics' limit site and note, which the gate's `generation_limit_guard` flagged as stale).
+
+Gate: `telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`, 1416 passed and 1 failed (`generation_limits_are_classified`, the stale inventory site). Fixed in 55c317fde; the focused guard test passes (2/0). `npm test`: 170/0.
+
+Tier: not reported (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex, three draws, SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e927da9f27204e10d709d024c2a2a791fbeb9a0c, 55c317fdec1297eaa7bbd87ca1fe171e1945dcf7
+- Tests: telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast (1416 passed, 1 failed: generation_limits_are_classified, fixed in 55c317fde), cargo test --profile ci -p telperion-core --test generation_limit_guard (2 passed), npm test (170 passed), cargo test --profile ci -p telperion-wasm (6 passed), digests: artifact_digest, generation_digest, resident digest_tests::digest at seeds 1,7,42 equal BASELINE.md
 - PRs:
