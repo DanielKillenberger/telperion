@@ -8,7 +8,8 @@
     "fn-293-each-stages-output-has-one-form-and-its.3",
     "fn-293-each-stages-output-has-one-form-and-its.4",
     "fn-293-each-stages-output-has-one-form-and-its.5",
-    "fn-293-each-stages-output-has-one-form-and-its.6"
+    "fn-293-each-stages-output-has-one-form-and-its.6",
+    "fn-293-each-stages-output-has-one-form-and-its.8"
   ],
   "id": "fn-293-each-stages-output-has-one-form-and-its.7",
   "priority": null,
@@ -16,5 +17,5 @@
   "spec_path": ".flow/tasks/fn-293-each-stages-output-has-one-form-and-its.7.md",
   "status": "todo",
   "title": "Carried-over contracts reconciled, docs and the measured result",
-  "updated_at": "2026-10-18T11:25:12.920664Z"
+  "updated_at": "2026-10-18T20:28:43.510468Z"
 }

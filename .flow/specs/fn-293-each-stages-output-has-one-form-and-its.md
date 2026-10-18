@@ -50,6 +50,16 @@ Host readings of the requirements, from the plan's evidence (2026-10-18):
 - **Finding 3** re-questions fn-212's curve decision (`CONTRACT.md:245`: "The device packs the fine curve into the renderer's own curve format, offset after the CPU's points ... The renderer reads one block and learns nothing new"). Its reason still holds (one block, the renderer's form); the offset after a CPU block does not (no CPU block since fn-256). The sweep writing the renderer's form directly keeps the reason and drops the pass. If a reader of the sweep's points needs precision the renderer's packed form drops, so the device trees cannot stay byte-identical, the task stops and brings the measured difference to the host.
 - **R4.** A public wire contract (the leaf's twelve bytes, the `{structure:true}` layout, the compatibility rows) is kept with its reason named where a consumer reads it; changing one is an owner decision this spec does not take. Spec lines that are `[inferred]`, stale against the tree, or superseded by AGENTS.md "Generator evolution" (owner, 2026-09-20) are removed or marked superseded with that reason.
 
+## Host decisions after task 5 (2026-10-18)
+
+On task 6's probe (`BASELINE.md`, "Task 6 probe") and the open items of tasks 3 and 5:
+
+- **Finding 3: the sweep writes the renderer's packed curve form.** Decoding the rings' frames from the packed form moves 1, 6 and 10 of about 4M spruce leaves (seeds 1, 7, 42) by at most 0.197 mm; that move is accepted under AGENTS.md "Generator evolution" (owner, 2026-09-20). Keeping the bytes by a ring buffer beside the node table (+76 MB at the spruce's peak) would keep a second layout, which this spec deletes. Conditions: the measured gain is reported (device build time, paired warm over 16 runs, spruce and oak; GPU peak bytes); stills of the spruce at seeds 1, 7, 42 before and after are compared and any visible difference reported; the affected digests are re-pinned with the measured difference written beside them. If the CPU executor then differs from the device on those leaves, it is noted for fn-289; no second path is built to match.
+- **Finding 2: the dress writes every wave into one drawn-record buffer**, the stage's single output form, which the sweep's readers read directly. Task 6's files grow to the dress files it needs (`generation/cycle/`). The buffer's size comes from the existing made-count sizing (`given.rs`), with no extra readback or round trip; if one buffer needs a readback the per-wave layout avoids, or costs measurably more peak memory, the task stops and reports the numbers. A sweep-side copy of the waves into one buffer is not taken.
+- **Validation (task 3's open item):** `validate_skeleton` drops its checks on the scaffold-only preconditions (`inner_envelope`, `resolved_growth`, `scaffold::forks_placed`) and keeps checks on rows a production stage reads; a family the engine cannot grow stays refused by name. If a shipped preset's refusal or a test depends on a dropped check, that check stays and its reader is named. Its own task and codex review (task 8).
+- **`Delivery` and `Backend` (task 5's open item):** both are deleted; a one-variant enum is a switch with one way to build. Task 8.
+- **Readiness:** the run continues without the ready flag (host, on the friction entry).
+
 ## Quick commands
 
 ```bash
