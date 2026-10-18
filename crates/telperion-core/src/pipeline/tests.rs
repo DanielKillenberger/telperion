@@ -51,14 +51,18 @@ fn request(wood: bool, leaves: bool, field: bool) -> Request {
 
 /// A family whose leaves sit on the wood sweeps its rings once a request:
 /// the wood's where wood is asked for, which the leaves read in place, else
-/// the leaves' own. Every request builds its element at most once, and the
-/// wood is the wood a plain build makes.
+/// the leaves' own. A mesh request traces its curve and draws the wood's
+/// rings from it, so the curve is that one sweep. Every request builds its
+/// element at most once, and the wood and the curve are those a plain build
+/// makes.
 #[test]
 fn one_sweep_and_one_element_serve_a_request() {
     let mut family = ordinary();
     family.canopy.surface_contact = 1.0;
     let tree = &scaffold(&family).unwrap();
-    let own = surface::build(tree, family.skeleton.envelope.height, &family.surface).unwrap();
+    let height = family.skeleton.envelope.height;
+    let own = surface::build(tree, height, &family.surface).unwrap();
+    let curve = surface::curve(tree, height, &family.surface).unwrap();
     for schedule in [Schedule::Serial, Schedule::Concurrent] {
         let count = |r: Request| {
             let t = tallied(tree, &family, Request { schedule, ..r }).1;
@@ -69,12 +73,19 @@ fn one_sweep_and_one_element_serve_a_request() {
         assert_eq!(count(request(true, false, false)), (1, 0));
         assert_eq!(count(request(false, true, false)), (1, 1));
         assert_eq!(count(request(false, false, true)), (0, 1));
+        let traced = Request {
+            curve: true,
+            ..request(false, false, false)
+        };
+        assert_eq!(count(traced), (1, 0));
+        assert_eq!(count(Request::mesh()), (1, 1));
         let request = Request {
             schedule,
             ..Request::mesh()
         };
         let seated = tallied(tree, &family, request).0;
         assert_eq!(seated.wood.unwrap(), own, "{schedule:?}");
+        assert_eq!(seated.curve.unwrap(), curve, "{schedule:?}");
     }
     family.canopy.surface_contact = 0.0;
     let t = tallied(tree, &family, Request::mesh()).1;

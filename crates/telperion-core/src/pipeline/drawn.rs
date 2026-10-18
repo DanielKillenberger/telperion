@@ -80,7 +80,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     #[cfg(test)]
     super::tests::count(|t| {
         let own = seats && !request.wood && leaves.is_some();
-        t.sweeps += u32::from(rings.is_some()) + u32::from(own);
+        t.sweeps += u32::from(rings.is_some()) + u32::from(own) + u32::from(request.curve);
         t.elements += u32::from(prepared.element.is_some());
     });
     let wood = wood
