@@ -49,3 +49,19 @@ run; no compiler cache), 32 threads, other workers' jobs running beside it
 
 The device build's time on the spruce and oak (paired warm, 16 runs) is
 task 6's, before and after its change.
+
+## Task 2: the space crate
+
+`measure-lines.sh` after task 2 (the experimental growth passes, their
+`Grower` hooks and examples deleted; the kept recursion, the boundary rows
+and `agree` compiled only into tests):
+
+| crate | rs before | rs after |
+| --- | ---: | ---: |
+| telperion-space | 27197 | 21643 |
+
+The script counts files by name, so it still counts the modules now gated
+whole by `#[cfg(test)]` but not named as tests: `closed_form/kept.rs`,
+`closed_form/kept/{bound,ends,mass,path,section}.rs`,
+`closed_form/boundary.rs` and `agree.rs`, 1563 lines. Less those, about
+20080 lines of the space crate compile into its non-test build.

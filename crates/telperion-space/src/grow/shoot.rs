@@ -30,13 +30,6 @@ pub(crate) struct Rules<'a> {
     pub age: u32,
     pub budget: u32,
     pub grown: u64,
-    /// Whether a chain grows alone (fn-209 probe P2): the laterals it
-    /// makes and the sleeping buds that wake on it are buds it bears,
-    /// made but not grown.
-    pub alone: bool,
-    /// The buds the structure above a cut hands to the expansion (fn-209
-    /// F1, `realized.rs`): made where they stand, never grown here.
-    pub hands: Option<Arc<super::realized::Hands>>,
     /// The one cycle's survival (fn-255, fn-256's spike contract): each
     /// PA's viability read as the f32 its table holds, shaded in f32.
     pub one: bool,
@@ -124,14 +117,6 @@ pub(super) struct Spare {
     pub leads: Vec<f32>,
     pub node_buds: Vec<(Draw, u64, f32, [Placed; MAX_BUDS as usize])>,
     pub sleeping: Vec<f64>,
-}
-
-impl Rules<'_> {
-    /// Whether a lateral of `pa` born in `birth` is handed on below the
-    /// cut rather than grown here.
-    pub fn hands(&self, pa: usize, birth: u32) -> bool {
-        self.hands.as_ref().is_some_and(|h| h.fine(pa, birth))
-    }
 }
 
 impl<'g, 'a> Shoot<'g, 'a> {
@@ -349,14 +334,10 @@ impl<'g, 'a> Shoot<'g, 'a> {
             }
             Origin::Seed | Origin::Lateral { .. } => (key.0, key.onto(pa)),
         };
-        let borne = matches!(origin, Origin::Lateral { woken: false, .. })
-            && (self.rules.alone || self.rules.hands(pa, cycle));
-        if !borne {
-            self.next.push(Apex {
-                axis: self.len(),
-                spent,
-            });
-        }
+        self.next.push(Apex {
+            axis: self.len(),
+            spent,
+        });
         let draws = Draws::made(made);
         self.push(lineage, pa, cycle, origin, (spent, root, draws));
     }

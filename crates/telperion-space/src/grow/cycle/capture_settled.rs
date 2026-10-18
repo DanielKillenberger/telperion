@@ -32,12 +32,6 @@ pub enum SettleTo {
     Laid,
 }
 
-/// The tree `grow_cycle` returns from its reference grower, every
-/// intermediate the device's settle compares beside it.
-pub fn grow_capture_settled(species: &Species, request: Request) -> Result<Capture> {
-    grow_capture_settled_at(species, request, SettleTo::Laid)
-}
-
 /// The tree settled as far as `to`. A tree that collapses, or cannot be
 /// laid, is captured as its error (`s_error`: 1 collapsed, 2 below the
 /// ground, 3 beyond the contract's reach; then its grown axis).
@@ -59,7 +53,7 @@ pub fn grow_capture_settled_at(
     // Each grown axis's lineage key, beside its final index (`s_index`):
     // the device's grown axes are known by it, as its arena compacts.
     let grown: Vec<u64> = g.axes.iter().map(|a| a.lineage).collect();
-    let settling = match g.settle_shed((request, Options::default()), keeps, &mut |_| {}) {
+    let settling = match g.settle_shed(request, keeps, &mut |_| {}) {
         Err(Error::Collapsed) => return Ok(failed(c, [1, NONE])),
         other => other?,
     };
@@ -340,13 +334,6 @@ pub(super) fn settle_rows(species: &Species) -> Vec<u32> {
         rows.extend([f.secondary as f32, f.dominance as f32, sag, 0.0].map(f32::to_bits));
     }
     rows
-}
-
-/// Sag's turn (`sag::turn`) of a phytomer `radius` thick and `length`
-/// long under `lever`, its moment capped at `cap`: the device's sag held
-/// to the CPU's input by input.
-pub fn settle_sag_turn(lever: [f32; 3], cap: f32, sag: f64, (radius, length): (f64, f64)) -> f32 {
-    crate::sag::turn(lever, cap, sag, radius, length)
 }
 
 /// How far `grow_cycle`, its working set retiring subtrees as it grows,

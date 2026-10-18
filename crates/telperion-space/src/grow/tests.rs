@@ -203,7 +203,7 @@ fn every_pass_is_reported() {
     let at = |s: Stage| reported.iter().position(|&r| r == s).unwrap();
     assert!(at(Stage::Pass(Pass::Wake)) < at(Stage::Grown));
     assert!(at(Stage::Pass(Pass::ShadeRead)) < at(Stage::Lit));
-    assert!(at(Stage::Pass(Pass::LeafMean)) < at(Stage::Settled));
+    assert!(at(Stage::Pass(Pass::Thicken)) < at(Stage::Settled));
     assert!(at(Stage::Pass(Pass::SagPlace)) < at(Stage::Laid));
 }
 

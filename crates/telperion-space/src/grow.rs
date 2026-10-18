@@ -9,20 +9,16 @@
 mod advance;
 pub(crate) mod alone;
 mod balance;
-pub(crate) mod couple;
 pub(crate) mod cycle;
 mod draw;
-pub(crate) mod oracle;
+#[cfg(test)]
+mod ground_tests;
 mod parallel;
-pub(crate) mod partition;
-pub(crate) mod realized;
 mod settle;
 mod shoot;
 mod sketch;
 mod stage;
-pub(crate) mod stepped;
 mod stop;
-pub(crate) mod subtree;
 #[cfg(test)]
 mod tests;
 mod unit;
@@ -31,7 +27,6 @@ mod wake;
 use crate::contract::presence::{q, real, times, ONE};
 use crate::dormant::{Sleeper, Woken};
 use crate::error::{refuse, Error, Result};
-use crate::fine::lineage_order;
 use crate::light::Light;
 use crate::lineage::Key;
 use crate::presence::{Draws, Windows};
@@ -72,11 +67,12 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
 }
 
 /// The whole-tree engine, every axis grown in one grower: test-only, the
-/// reference the coarse tree's and the partition's probes hold their
+/// reference the one cycle's and the rough layout's tests hold their
 /// trees to.
 #[cfg(test)]
 pub(crate) fn whole(species: &Species, request: Request) -> Result<Structure> {
-    run(species, request, &mut |_| {}, true, Options::default()).map(|g| lineage_order(g.structure))
+    run(species, request, &mut |_| {}, true, Options::default())
+        .map(|g| crate::fine::lineage_order(g.structure))
 }
 
 /// How the engine grows a tree, never what it grows: every choice here
@@ -91,14 +87,11 @@ pub(crate) struct Options {
     /// Whether the light work no bud reads is done as well: the rough
     /// layout where light shades but no bud reads it, and the last
     /// cycle's layout and sweep (fn-210, lever 3).
+    #[cfg(test)]
     pub unread_light: bool,
-    /// Whether the tree stops once settled, before its girth and lay,
-    /// keeping every lateral bud made as a record (`bounded.rs`, fn-209
-    /// option 4): what a bounded build resolves chain by chain.
+    /// Whether the tree stops once scaled and thickened, before its lay:
+    /// what the device's settle is compared with (`capture_settled.rs`).
     pub settle: bool,
-    /// Whether a laid tree keeps its lateral buds' records as a settled
-    /// one does (fn-211.4: a laid tree surveyed at a cut).
-    pub records: bool,
 }
 
 impl Default for Options {
@@ -107,9 +100,9 @@ impl Default for Options {
             certain: Certain::Skip,
             threads: None,
             share: parallel::SHARE,
+            #[cfg(test)]
             unread_light: false,
             settle: false,
-            records: false,
         }
     }
 }
@@ -134,32 +127,14 @@ pub(crate) struct Grown {
     pub structure: Structure,
     pub grown: u64,
     pub marked: Vec<u64>,
-    /// With `Options::settle`, every lateral bud made whose bearer is
-    /// kept, by the kept tree's indices.
-    pub records: Vec<Record>,
-    /// The leaf term's mean over the tree as grown, where any PA sets it.
-    pub leaf_mean: Option<f64>,
-    /// Each grown axis's index in the shed tree (`usize::MAX`: shed).
-    pub index: Vec<usize>,
-}
-
-/// A lateral bud as its bearer made it, before shedding: where it stands,
-/// its PA, birth, lineage and vigour as made, and its kept axis, if any.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Record {
-    pub origin: Origin,
-    pub pa: usize,
-    pub birth: u32,
-    pub lineage: u64,
-    pub vigour: f64,
-    pub axis: Option<usize>,
 }
 
 /// The tree as `grow` grows it, with every phytomer where the rough
 /// layout grown with it put it, before the final lay: what light read as
 /// the tree grew, in the same lineage order. Without shade it has no
-/// layout and is refused.
-pub fn sketch(species: &Species, request: Request) -> Result<Structure> {
+/// layout and is refused. The whole-tree grower's (`run`): test-only.
+#[cfg(test)]
+pub(crate) fn sketch(species: &Species, request: Request) -> Result<Structure> {
     if !request.light.shades() {
         return refuse(
             "light.extinction",
@@ -167,9 +142,12 @@ pub fn sketch(species: &Species, request: Request) -> Result<Structure> {
         );
     }
     run(species, request, &mut |_| {}, false, Options::default())
-        .map(|g| lineage_order(g.structure))
+        .map(|g| crate::fine::lineage_order(g.structure))
 }
 
+/// The whole-tree grower before fn-255's one cycle: test-only, the
+/// reference the speed levers' and the rough layout's tests read.
+#[cfg(test)]
 pub(crate) fn run(
     species: &Species,
     request: Request,
@@ -177,33 +155,7 @@ pub(crate) fn run(
     lay: bool,
     options: Options,
 ) -> Result<Grown> {
-    run_beside(species, request, (stage, lay), options, Beside::default()).map(|g| g.0)
-}
-
-/// What fn-211.4 adds to a run: the light oracle, or the coupling pass.
-#[derive(Default)]
-pub(crate) struct Beside {
-    pub oracle: Option<oracle::Oracle>,
-    pub couple: Option<couple::Pass>,
-}
-
-/// What they hand back.
-pub(crate) struct Besides {
-    pub oracle: Option<Box<oracle::Oracle>>,
-    pub measured: Option<subtree::Measured>,
-}
-
-fn run_beside(
-    species: &Species,
-    request: Request,
-    (stage, lay): (&mut dyn FnMut(Stage), bool),
-    options: Options,
-    beside: Beside,
-) -> Result<(Grown, Besides)> {
-    let started = crate::clock::seconds();
     let (mut grower, keeps) = start(species, request, options)?;
-    grower.oracle = beside.oracle.map(Box::new);
-    grower.couple = beside.couple.map(Box::new);
     stage(Stage::Pass(Pass::Windows));
     let mut advanced = Vec::new();
     for cycle in 1..=request.age {
@@ -213,13 +165,7 @@ fn run_beside(
         let sketching = cycle < request.age || !lay || options.unread_light;
         grower.year(cycle, sketching, &mut advanced, stage)?;
     }
-    let measured = match grower.couple.is_some() {
-        true => Some(grower.grow_fine_all(started)?),
-        false => None,
-    };
-    let oracle = grower.oracle.take();
-    let grown = grower.settle((request, options), (lay, keeps), stage)?;
-    Ok((grown, Besides { oracle, measured }))
+    grower.settle((request, options), (lay, keeps), stage)
 }
 
 /// The grower of `request` before its first cycle, and whether any PA
@@ -258,8 +204,6 @@ fn start<'a>(
         age: request.age,
         budget: request.budget,
         grown: 0,
-        alone: false,
-        hands: None,
         one: false,
     };
     let grower = Grower::seeded(rules, (threads, options.share), sketch, request.seed)?;
@@ -328,17 +272,6 @@ struct Grower<'a> {
     /// The rough layout, where light shades, and the leaves of the cycle.
     sketch: Option<Sketch>,
     leaves: Vec<(Vec3, f64)>,
-    /// Where a chain grows alone, the sleeping buds that woke on it.
-    wakes: Vec<alone::Pending>,
-    /// fn-211.4's light oracle, where the tree is grown under one; the
-    /// coupling pass, where it is one; a fine subtree's records, where
-    /// it is one.
-    oracle: Option<Box<oracle::Oracle>>,
-    couple: Option<Box<couple::Pass>>,
-    fine: Option<Box<subtree::Reads>>,
-    /// Above a cut, each sleeping bud handed on as it woke: its
-    /// stand-in's index and its waking (`realized.rs`).
-    handed: Vec<(usize, alone::Pending)>,
     /// The lists a cycle's share fills, kept for the next.
     spare: shoot::Spare,
     /// fn-255's one cycle: every phase run for every species (`cycle.rs`),
@@ -395,12 +328,7 @@ impl<'a> Grower<'a> {
             woken: Vec::new(),
             sketch,
             leaves: Vec::new(),
-            wakes: Vec::new(),
-            handed: Vec::new(),
             spare: Default::default(),
-            oracle: None,
-            couple: None,
-            fine: None,
             one: false,
             light_seconds: 0.0,
             jobs: [0; 2],
@@ -430,17 +358,13 @@ impl Grower<'_> {
         }
         let rows = self.rows();
         self.balance(cycle, rows.as_ref());
-        self.hash_phase(cycle, 0);
         report(Stage::Pass(Pass::Balance));
-        self.allot(rows.as_ref(), cycle);
+        self.allot(rows.as_ref());
         drop(rows);
-        self.advance_fine(cycle);
-        self.hash_phase(cycle, 1);
         report(Stage::Pass(Pass::Allot));
         let live = std::mem::take(&mut self.live);
         self.grow_live(live, cycle, report)?;
         self.wake(cycle)?;
-        self.hash_phase(cycle, 2);
         report(Stage::Pass(Pass::Wake));
         Ok(())
     }
@@ -464,7 +388,7 @@ impl Grower<'_> {
         self.sketch(cycle, advanced)?;
         stage(Stage::Pass(Pass::Sketch));
         stage(Stage::Sketched);
-        self.shade(cycle, stage)?;
+        self.shade(stage)?;
         stage(Stage::Lit);
         Ok(())
     }

@@ -5,28 +5,17 @@
 //! - `hash`: each tree's hash over every public field, to the bit, without
 //!   light, or under `LIT` (`lit`) or both (`both`): the proof that a
 //!   change left every species as it was.
-//! - `gap`: under `LIT`, the oak's and the beech's rough layout grown with
-//!   the tree against their final lay: crown extent, how far each phytomer
-//!   stands from its final place, and the light at each living bud.
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Instant;
-use telperion_space::{
-    beech, bud_light, grow, oak, palm, sketch, spruce, Light, Request, Species, Structure, Vec3,
-};
+use telperion_space::{beech, grow, oak, palm, spruce, Light, Request, Species, Structure, Vec3};
 
 const BUDGET: u32 = 20_000_000;
 /// The light the measures are taken under: leaves at every angle, under
-/// the standard overcast sky, and from overhead.
-const LIT: [Light; 2] = [
-    Light {
-        extinction: 0.5,
-        sky: 0.5,
-    },
-    Light {
-        extinction: 0.5,
-        sky: 0.0,
-    },
-];
+/// the standard overcast sky.
+const LIT: Light = Light {
+    extinction: 0.5,
+    sky: 0.5,
+};
 const SPECIES: [(&str, fn() -> Species); 4] = [
     ("beech", beech),
     ("spruce", spruce),
@@ -51,8 +40,8 @@ fn main() {
     // `hash` defaults to neutral light.
     let lights: Vec<Light> = match (args.get(4).map(String::as_str), what) {
         (Some("neutral"), _) | (None, "hash") => vec![Light::NEUTRAL],
-        (Some("lit"), _) => vec![LIT[0]],
-        _ => vec![Light::NEUTRAL, LIT[0]],
+        (Some("lit"), _) => vec![LIT],
+        _ => vec![Light::NEUTRAL, LIT],
     };
     for (name, make) in SPECIES {
         if only.is_some_and(|o| o != name) {
@@ -74,82 +63,10 @@ fn main() {
                         );
                     }
                 }
-                "gap" if name == "oak" || name == "beech" => {
-                    // And with every sag at 0: the share of the gap that
-                    // is sag's.
-                    let mut unsagged = species.clone();
-                    unsagged.states.iter_mut().for_each(|s| s.form.sag = 0.0);
-                    for light in LIT {
-                        gap(name, &species, request(seed, light));
-                        if unsagged != species {
-                            gap(
-                                &format!("{name} without sag"),
-                                &unsagged,
-                                request(seed, light),
-                            );
-                        }
-                    }
-                }
-                "gap" => {}
-                _ => panic!("measures hash | gap [age] [seeds]"),
+                _ => panic!("measures hash [age] [seeds]"),
             }
         }
     }
-}
-
-/// The rough layout against the final lay.
-fn gap(name: &str, species: &Species, request: Request) {
-    let laid = grow(species, request).expect("grows");
-    let rough = sketch(species, request).expect("grows");
-    let (l, r) = (extent(&laid), extent(&rough));
-    let mut moved: Vec<f64> = laid
-        .axes
-        .iter()
-        .zip(&rough.axes)
-        .flat_map(|(a, b)| a.phytomers.iter().zip(&b.phytomers))
-        .map(|(p, q)| (p.tip - q.tip).length())
-        .collect();
-    moved.sort_by(f64::total_cmp);
-    let q = |f: f64| moved[((moved.len() - 1) as f64 * f) as usize];
-    let final_light = bud_light(&laid, species, &request.light);
-    let rough_light = bud_light(&rough, species, &request.light);
-    let n = final_light.len() as f64;
-    let mean = |v: &[(usize, f64)]| v.iter().map(|x| x.1).sum::<f64>() / n;
-    let (mf, mr) = (mean(&final_light), mean(&rough_light));
-    let (mut cov, mut vf, mut vr, mut diff, mut far) = (0.0, 0.0, 0.0, 0.0, 0usize);
-    for (a, b) in final_light.iter().zip(&rough_light) {
-        let (x, y) = (a.1 - mf, b.1 - mr);
-        cov += x * y;
-        vf += x * x;
-        vr += y * y;
-        diff += (a.1 - b.1).abs();
-        far += usize::from((a.1 - b.1).abs() > 0.1);
-    }
-    println!(
-        "{name} age {} seed {} sky {}: extent final {:.1} x {:.1} x {:.1} m, rough {:.1} x {:.1} x {:.1} m; \
-         phytomers from their final place: median {:.2} m, 90th {:.2} m, 99th {:.2} m; \
-         {} living buds, light final {mf:.3}, rough {mr:.3}, mean |difference| {:.3}, \
-         correlation {:.3}, {:.1}% differ by more than 0.1",
-        request.age, request.seed, request.light.sky,
-        l.x, l.y, l.z, r.x, r.y, r.z,
-        q(0.5), q(0.9), q(0.99),
-        final_light.len(),
-        diff / n,
-        cov / (vf * vr).sqrt(),
-        100.0 * far as f64 / n
-    );
-}
-
-/// The crown's extent: x and y across, and height.
-fn extent(tree: &Structure) -> Vec3 {
-    let (mut lo, mut hi) = ([f64::MAX; 3], [f64::MIN; 3]);
-    for p in tree.axes.iter().flat_map(|a| &a.phytomers) {
-        for (i, c) in [p.tip.x, p.tip.y, p.tip.z].into_iter().enumerate() {
-            lo[i] = lo[i].min(c);
-            hi[i] = hi[i].max(c);
-        }
-    }
-    Vec3::new(hi[0] - lo[0], hi[1] - lo[1], hi[2])
 }
 
 /// Every public field of the tree, to the bit.

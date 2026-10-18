@@ -74,6 +74,7 @@ impl Count {
     /// The zone's own wood from `start`, its internodes `internode` long,
     /// weighted by length: [E Σ l, E Σ l·x, E Σ l·x²] over its
     /// internodes' middles x.
+    #[cfg(test)]
     pub fn wood(&self, start: Along, internode: f64) -> [f64; 3] {
         let [_, n1, n2, n3] = self.0;
         let l = internode;
@@ -136,6 +137,7 @@ fn placed(count: f64, rank: f64, rank2: f64, start: Along, l: f64) -> Along {
 
 /// E[d^p] of a lateral's dominance share d = 1 - D (1 - u⁴), u uniform, for
 /// any power p: by Simpson's rule over u, the share's moments being smooth.
+#[cfg(test)]
 pub(crate) fn dominance_power(d: f64, p: f64) -> f64 {
     if d <= 0.0 {
         return 1.0;

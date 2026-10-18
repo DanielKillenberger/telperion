@@ -13,8 +13,10 @@ use crate::species::{PaState, Species, Zone};
 /// Where buds of one event stand and what share of a whole place's size
 /// each grows at (σ), averaged over them: E[σ^p] for p = 1 to 3, E[σ x]
 /// and E[σ² x] for x their distance along the axis, E[σ x²]; and their
-/// angle to the axis.
+/// angle to the axis. Read only by the kept recursion (`kept/path.rs`),
+/// the predictor's test reference, so unread outside tests.
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(not(test), allow(dead_code))]
 pub(super) struct Stand {
     pub shares: [f64; 3],
     pub along: [f64; 2],
@@ -76,8 +78,11 @@ impl Sum {
     }
 }
 
-/// One step of a bud's development, as the recursion meets it.
+/// One step of a bud's development, as the recursion meets it. A bud's
+/// `unit` and `stand` are read only by the kept recursion, the
+/// predictor's test reference.
 #[derive(Clone)]
+#[cfg_attr(not(test), allow(dead_code))]
 pub(super) enum Event {
     /// Phytomers of the bud's own PA grown in cycle `at`, each grown at
     /// `size` of a whole unit's length (`schedule.rs`).

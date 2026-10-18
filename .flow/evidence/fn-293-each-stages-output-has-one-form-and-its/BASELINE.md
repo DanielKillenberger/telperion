@@ -100,3 +100,12 @@ Recorded at `bf84ef6ca` (the plan commits over `f8c014681`; no generator source 
 The three digests re-run after task 1's edits equal the baseline: core
 `raw/core-digest-after.txt`, render pipeline `raw/generation-digest-after.txt`
 (byte-identical), resident `raw/resident-digest-after.txt` (identical lines).
+
+## After task 2
+
+The three digests re-run after task 2's edits (the space crate's passes,
+hooks and test-only items) equal the baseline: core
+`raw/core-digest-t2.txt` (all 24 lines), render pipeline
+`raw/generation-digest-t2.txt` (byte-identical, sha256 `fb4ce911...`),
+resident `raw/resident-digest-t2.txt` (identical lines, under
+`telperion-heavy 10 --gpu 6`).

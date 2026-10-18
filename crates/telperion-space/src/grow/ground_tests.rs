@@ -2,8 +2,9 @@
 //! layout grown with the tree rests an apex's tip on the ground, its
 //! yearly survival is its viability times (1 - ground_hazard): at 1 no
 //! such tip lives through its next cycle; at 0 the tree is today's.
+use crate::grow::sketch;
+use crate::{birch, grow, Light, Request, Species, Structure};
 use std::collections::HashMap;
-use telperion_space::{birch, grow, sketch, Light, Request, Species, Structure};
 
 /// The site's light: the rough layout is grown only where light shades.
 const SITE: Light = Light {
@@ -33,7 +34,7 @@ fn with_hazard(h: f64) -> Species {
 /// The living apexes, off the stem, whose tip the rough layout at `age`
 /// rests on the ground, by lineage, age and birth.
 fn resting(rough: &Structure) -> Vec<(u64, usize, u32)> {
-    let rests = |a: &telperion_space::Axis| a.phytomers.last().is_some_and(|p| p.tip.z <= 0.0);
+    let rests = |a: &crate::Axis| a.phytomers.last().is_some_and(|p| p.tip.z <= 0.0);
     (rough.axes.iter())
         .filter(|a| !STEM.contains(&a.pa) && a.apex_end.is_none() && rests(a))
         .map(|a| (a.lineage, a.pa, a.birth))

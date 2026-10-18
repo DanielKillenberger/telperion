@@ -27,7 +27,7 @@ pub fn grow_capture_grown(species: &Species, request: Request) -> Result<Capture
 
 /// `grow_capture_grown` after `cycle` of a tree of `request.age`: where a
 /// build first parts from the CPU's.
-pub fn grow_capture_grown_at(species: &Species, request: Request, cycle: u32) -> Result<Capture> {
+fn grow_capture_grown_at(species: &Species, request: Request, cycle: u32) -> Result<Capture> {
     if cycle == 0 || cycle > request.age {
         return crate::error::refuse("cycle", "a captured cycle is one the tree grows");
     }

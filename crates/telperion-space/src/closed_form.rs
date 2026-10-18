@@ -13,10 +13,11 @@
 //! Shedding is outside the formula.
 use crate::transcendental::Transcendental;
 mod along;
+#[cfg(test)]
 pub(crate) mod boundary;
 mod events;
 mod grown;
-#[cfg_attr(not(test), allow(dead_code))]
+#[cfg(test)]
 pub(crate) mod kept;
 pub(crate) mod predictor;
 mod steps;

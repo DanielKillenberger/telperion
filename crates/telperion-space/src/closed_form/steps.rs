@@ -47,6 +47,7 @@ pub(super) struct Lived {
 /// length its phytomers grow at, its chance, and its zones' sleeping
 /// buds; the unit itself or a failed unit's lived part.
 #[derive(Clone, Copy)]
+#[cfg(test)]
 pub(super) struct Grown<'s> {
     pub i: usize,
     pub size: f64,
@@ -56,6 +57,7 @@ pub(super) struct Grown<'s> {
     pub laid: f64,
 }
 
+#[cfg(test)]
 impl Step {
     /// The unit as it grows whole.
     pub fn whole(&self) -> Grown<'_> {

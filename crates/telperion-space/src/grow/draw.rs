@@ -79,9 +79,7 @@ impl Grower<'_> {
     /// lays the axes made in it: parents before children, so every frame
     /// reads wood already laid.
     pub(super) fn sketch(&mut self, cycle: u32, advanced: &[usize]) -> Result<()> {
-        let Some(mut s) = self.sketch_begin(cycle, advanced) else {
-            return Ok(());
-        };
+        let mut s = self.sketch_begin(cycle, advanced);
         let mut todo = s.grew();
         loop {
             let failures = self.draw_round(&mut s, &todo);
@@ -93,15 +91,9 @@ impl Grower<'_> {
         }
     }
 
-    /// The cycle's rough layout begun, its sketch held aside: none in a
-    /// fine subtree grown alone, whose units are tallied, never laid.
-    pub(super) fn sketch_begin(&mut self, cycle: u32, advanced: &[usize]) -> Option<Sketching> {
-        let mut sketch = self.sketch.take().expect("sketching");
-        if self.fine.is_some() {
-            self.tally_units(&mut sketch, advanced);
-            self.sketch = Some(sketch);
-            return None;
-        }
+    /// The cycle's rough layout begun, its sketch held aside.
+    pub(super) fn sketch_begin(&mut self, cycle: u32, advanced: &[usize]) -> Sketching {
+        let sketch = self.sketch.take().expect("sketching");
         let first_new = sketch.pencils.len();
         let grew: Vec<usize> = advanced
             .iter()
@@ -109,7 +101,7 @@ impl Grower<'_> {
             .filter(|&i| i < first_new)
             .collect();
         let from: Vec<usize> = grew.iter().map(|&i| sketch.pencils[i].laid).collect();
-        Some(Sketching {
+        Sketching {
             sketch,
             cycle,
             first_new,
@@ -119,7 +111,7 @@ impl Grower<'_> {
             fresh: Vec::new(),
             failed: None,
             round: 0,
-        })
+        }
     }
 
     /// The CPU's round: each axis in `todo` drawn from its own walk, on
@@ -200,17 +192,6 @@ impl Grower<'_> {
             (axis.base, axis.heading, axis.side) = framed;
             s.fresh[i - first_new] = Some(pencil);
         }
-        // A lateral the coupling pass takes as a fine root is not laid.
-        let cycle = s.cycle;
-        let todo = todo
-            .into_iter()
-            .filter(|&i| {
-                let scale = s.fresh[i - first_new]
-                    .as_ref()
-                    .map_or(0.0, |p| p.base_scale);
-                !self.classify(i, scale, cycle)
-            })
-            .collect();
         Some(todo)
     }
 
@@ -240,25 +221,12 @@ impl Grower<'_> {
             .iter()
             .enumerate()
             .map(|(k, p)| (first_new + k, 0, p.as_ref().expect("drawn").laid));
-        let mut owners = self
-            .oracle
-            .as_mut()
-            .map(|o| std::mem::take(&mut o.leaf_axes));
-        if let Some(o) = owners.as_mut() {
-            o.clear();
-        }
         for (i, from, to) in laid.chain(made) {
             let axis = &self.axes[i];
             let area = species.states[axis.pa].leaf_area;
             for p in &axis.phytomers[from..to] {
                 leaves.push((p.tip, crate::light::leaf_area(p.scale, p.size, area)));
             }
-            if let Some(o) = owners.as_mut() {
-                o.extend(std::iter::repeat_n(i, to - from));
-            }
-        }
-        if let (Some(oracle), Some(o)) = (self.oracle.as_mut(), owners) {
-            oracle.leaf_axes = o;
         }
         sketch
             .pencils

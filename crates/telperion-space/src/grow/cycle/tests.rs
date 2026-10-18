@@ -192,35 +192,6 @@ fn woken_buds_that_stop_at_once_retire_as_the_reference_has_them() {
     }
 }
 
-/// A captured layout is the sketch's own: each of its laid axes' pencils
-/// as the cycle leaves them, a leaf for each phytomer it laid, and its
-/// columns whole (fn-256 task 2).
-#[test]
-fn a_captured_layout_holds_the_cycle_it_laid() {
-    for (species, age, at) in [
-        (crate::beech(), 10, 8),
-        (crate::spruce(), 14, 12),
-        (crate::oak(), 12, 11),
-    ] {
-        let c = grow_capture_layout_at(&species, request(age, 42, 0.5), at).unwrap();
-        let words = |name: &str| c.array(name).expect(name).1.len() / 4;
-        let counts = c.array("lay_counts").unwrap().1;
-        let n = u32::from_le_bytes(counts[12..16].try_into().unwrap()) as usize;
-        let rows = u32::from_le_bytes(counts[16..20].try_into().unwrap()) as usize;
-        assert_eq!(words("in_axes"), 31 * n);
-        assert_eq!(words("out_pencils"), 63 * n);
-        assert_eq!(words("out_phyts"), 19 * rows);
-        let phyts = c.array("out_phyts").unwrap().1;
-        let laid: usize = (0..rows)
-            .map(|r| {
-                u32::from_le_bytes(phyts[4 * (18 * rows + r)..][..4].try_into().unwrap()) as usize
-            })
-            .sum();
-        assert_eq!(words("out_leaves"), 4 * laid, "a leaf a phytomer laid");
-        assert!(laid > 0, "{age} at {at} lays");
-    }
-}
-
 /// The grown capture holds every phytomer the tree grew, none retired,
 /// each with its layout's words, and a pencil an axis laid (fn-256 task 2).
 #[test]

@@ -5,8 +5,8 @@
 //! spread and its scales by lineage (the f32 cycle's sums part at their
 //! last places where the geometry moves; fn-256), each angle is the one its draw keys, and at none
 //! every tree is the one it was.
-use telperion_space::contract::{insertion_draw, tropism_draw};
-use telperion_space::{beech, grow, oak, Light, Origin, Request, Species, Structure};
+use crate::contract::{insertion_draw, tropism_draw};
+use crate::{beech, grow, oak, Light, Origin, Request, Species, Structure};
 
 fn request(age: u32, seed: u64) -> Request {
     Request {
@@ -42,10 +42,7 @@ fn same_topology(name: &str, a: &Structure, b: &Structure) {
         assert_eq!(x.phytomers.len(), y.phytomers.len(), "{name}");
         for (p, q) in x.phytomers.iter().zip(&y.phytomers) {
             let apart = (p.scale - q.scale).abs() / p.scale.abs().max(1e-12);
-            assert!(
-                apart <= telperion_space::agree::PATHS.scale,
-                "{name}: scale {apart}"
-            );
+            assert!(apart <= crate::agree::PATHS.scale, "{name}: scale {apart}");
             assert_eq!(p.key(), q.key(), "{name}");
         }
     }

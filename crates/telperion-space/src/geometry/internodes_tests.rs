@@ -3,7 +3,7 @@
 //! so its mean is one: the tree's topology and scales are the same to the
 //! bit at any spread, its laid lengths keep their mean, and at none every
 //! tree is the one it was.
-use telperion_space::{beech, grow, oak, Light, Request, Species, Structure, Vec3};
+use crate::{beech, grow, oak, Light, Request, Species, Structure, Vec3};
 
 fn request(age: u32, seed: u64) -> Request {
     Request {
@@ -64,10 +64,7 @@ fn the_spread_moves_no_node_and_keeps_the_mean_length() {
             assert_eq!(a.phytomers.len(), b.phytomers.len(), "{name}");
             for (p, q) in a.phytomers.iter().zip(&b.phytomers) {
                 let apart = (p.scale - q.scale).abs() / p.scale.abs().max(1e-12);
-                assert!(
-                    apart <= telperion_space::agree::PATHS.scale,
-                    "{name}: scale {apart}"
-                );
+                assert!(apart <= crate::agree::PATHS.scale, "{name}: scale {apart}");
                 assert_eq!(p.key(), q.key(), "{name}");
             }
         }

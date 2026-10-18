@@ -80,6 +80,7 @@ fn node_scale(axes: &[Axis], i: usize, node: usize) -> f32 {
 /// Each axis's scale at its base, as `geometry::scale` will give it
 /// (parents first, in its order of products); axis 0's is `top` where
 /// given (a fine root's bearer's stub: its bearer's base).
+#[cfg(test)]
 pub(crate) fn bases(axes: &[Axis], species: &Species, top: Option<f32>) -> Vec<f32> {
     bases_past(axes, species, top)
 }
@@ -132,6 +133,7 @@ impl Stand {
 /// each phytomer's pipe and its pipe by its light term (`terms`), taken
 /// on up to `threads` cores and summed in the order the phytomers stand,
 /// in the one reduction order (`Blocked`).
+#[cfg(test)]
 pub(crate) fn leaf_partials(
     axes: &[Axis],
     species: &Species,
@@ -200,25 +202,6 @@ pub(crate) fn attachments_past(
     });
     let at = (Stand::WHOLE, leaf_mean);
     attachments_with(axes, species, (age, threads), at, (&|_| None, records))
-}
-
-/// `attachments` under a mean taken elsewhere, each axis `given` names
-/// standing for a subtree grown elsewhere whose base radius as grown it
-/// gives (a fine root's stand-in, fn-211 task 12).
-pub(crate) fn attachments_given(
-    axes: &[Axis],
-    species: &Species,
-    (age, threads): (u32, usize),
-    (from, leaf_mean): (Stand, Option<f64>),
-    given: Given<f64>,
-) -> Grown {
-    attachments_with(
-        axes,
-        species,
-        (age, threads),
-        (from, leaf_mean),
-        (given, NONE),
-    )
 }
 
 fn attachments_with(

@@ -305,12 +305,7 @@ impl<'a> Paused<'a> {
                 &g.roots,
             ),
         );
-        write(
-            &mut h,
-            &(
-                &g.axes, &g.draws, &g.live, &g.asleep, &g.woken, &g.wakes, &g.handed,
-            ),
-        );
+        write(&mut h, &(&g.axes, &g.draws, &g.live, &g.asleep, &g.woken));
         write(&mut h, &(pencils, &g.leaves, &g.working));
         h.0.finish()
     }
@@ -340,11 +335,6 @@ impl<'a> Grower<'a> {
             woken: self.woken.clone(),
             sketch: None,
             leaves: Vec::new(),
-            wakes: Vec::new(),
-            oracle: None,
-            couple: None,
-            fine: None,
-            handed: Vec::new(),
             spare: Default::default(),
             one: self.one,
             light_seconds: self.light_seconds,

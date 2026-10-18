@@ -21,3 +21,10 @@
 - **Slowed by:** the wrapper admits a GPU job only when free VRAM covers the declaration plus 1 GB; with the desktop's browsers holding 2 GB of the 10 GB card, 7 + 1 never fitted, and the wrapper printed `waiting (room 15 GB ...)` without saying the GPU was the blocker. The same command had run at once an hour earlier with less on the card.
 - **Cost:** about 35 minutes of wall time waiting; the run itself takes 15 seconds under `--gpu 6`.
 - **Would have removed it:** the wrapper naming which condition holds a job (RAM or VRAM, with the free VRAM it saw), and the resident digest's declared VRAM measured once and written beside its command.
+
+## 2026-10-18 - task 2: the render pipeline digest outlives a foreground call
+
+- **Doing:** re-running `generation_digest` (every preset at seeds 1, 7, 42) after the space crate's deletions, to compare with the baseline.
+- **Slowed by:** the run takes over ten minutes on the CPU, past the 600 s ceiling of one foreground tool call, so the harness moved it to the background mid-run; the digest's runtime is written nowhere beside its command in BASELINE.md.
+- **Cost:** about 12 minutes of wall time, and one extra wait on a background handle.
+- **Would have removed it:** BASELINE.md naming each digest's wall time, so a worker launches the long one in the background from the start; or a `DIGEST_PRESETS` filter to compare the presets a task can move first.

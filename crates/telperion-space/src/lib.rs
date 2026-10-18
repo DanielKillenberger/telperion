@@ -13,18 +13,17 @@
 //! the bud's path from the root, and every element a draw makes grows in
 //! from nothing as a setting passes the draw, so a walk of any setting at a
 //! fixed seed changes the tree by degree.
-pub mod agree;
+#[cfg(test)]
+mod agree;
 mod allocation;
 mod beech;
 mod birch;
 mod blend;
-mod bounded;
 mod chain;
 mod clock;
 mod closed_form;
 pub mod contract;
 mod cores;
-mod couple;
 mod dormant;
 mod error;
 mod fine;
@@ -52,34 +51,20 @@ mod upward;
 pub use beech::beech;
 pub use birch::birch;
 pub use blend::blend;
-pub use bounded::{grow_bounded, Bounded, Expected};
 pub use chain::{passed, AGES};
 pub use closed_form::{
     expected_axes, expected_counts, expected_grown, expected_kept, expected_length,
 };
 pub use error::{Error, Result};
-pub use fine::{
-    canonical, digest, grow_coarse, identities, lineage_order, ChainTables, Coarse, PaRow, Stand,
-    UnitZone, Units,
-};
-pub use grow::couple::{grow_coupled, Split};
+pub use fine::{canonical, digest, identities, lineage_order, ChainTables, PaRow, UnitZone, Units};
 pub use grow::cycle::{
-    admitted, grow_capture, grow_capture_grown, grow_capture_grown_at, grow_capture_hierarchy_at,
-    grow_capture_layout, grow_capture_layout_at, grow_capture_light_at, grow_capture_tables,
-    grow_capture_units, grow_capture_units_at, grow_census, grow_cycle, tree_digest, within_year,
-    Capture, Census, Cycle, Cycled, Paused, Retiring,
+    admitted, grow_capture, grow_capture_grown, grow_capture_hierarchy_at, grow_capture_light_at,
+    grow_capture_retired, grow_capture_settle_tables, grow_capture_settled_at, grow_capture_tables,
+    grow_census, grow_cycle, grow_cycle_is_the_reference, tree_digest, within_year, Capture,
+    Census, Cycle, Cycled, Paused, Retiring, SettleTo,
 };
-pub use grow::cycle::{
-    grow_capture_retired, grow_capture_settle_tables, grow_capture_settled,
-    grow_capture_settled_at, grow_cycle_is_the_reference, settle_sag_turn, SettleTo,
-};
-pub use grow::oracle::{grow_oracle, Oracled, Read};
-pub use grow::partition::{
-    grow_partitioned, Grouping, Order as PartitionOrder, Partitioned, Run as PartitionRun, PHASES,
-};
-pub use grow::subtree::Measured;
-pub use grow::{grow, sketch, Pass, Request, Stage};
-pub use light::{bud_light, field_reads, Light};
+pub use grow::{grow, Pass, Request, Stage};
+pub use light::Light;
 pub use lineage::keys as lineage_keys;
 pub use lineage::{
     cluster, drawn, internode_factor, join_key, lineage_key, mix32, organ, organs, placement_key,

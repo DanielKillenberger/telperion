@@ -13,7 +13,6 @@ mod lay;
 mod place;
 pub(crate) mod q;
 mod sagged;
-mod single;
 mod stand;
 
 use crate::cores::{fill, map};
@@ -21,10 +20,9 @@ use crate::lineage::{insertion, Key, DOMINANCE, ROLL};
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
 pub(crate) use lay::{cone, support, Layer};
-pub(crate) use place::{place, place_bearers};
+pub(crate) use place::place;
 pub(crate) use q::amount;
 use q::{add, atan2, between, cross, dot, q3, rotated, scaled, sincos, sub, unit, v3, Q3, UP};
-pub(crate) use single::{bud_frame, lay_one};
 use stand::stand;
 pub(crate) use stand::{split, Position};
 
@@ -404,5 +402,9 @@ fn turned((along, side): (Q3, Q3), azimuth: f32, angle: f32, plane: f32, epitony
     (heading, spun(heading, side, plane))
 }
 
+#[cfg(test)]
+mod angles_tests;
+#[cfg(test)]
+mod internodes_tests;
 #[cfg(test)]
 mod tests;

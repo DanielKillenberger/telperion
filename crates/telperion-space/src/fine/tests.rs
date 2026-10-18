@@ -1,9 +1,7 @@
-//! The coarse tree (`coarse.rs`) and the decision contract's draws
-//! (`draws.rs`) and ticks (`ticks.rs`).
+//! The decision contract's draws (`draws.rs`) and ticks (`ticks.rs`).
 use crate::grow::Request;
 use crate::light::Light;
 
-mod coarse;
 mod draws;
 mod ticks;
 

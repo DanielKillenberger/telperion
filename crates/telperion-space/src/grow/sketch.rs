@@ -9,8 +9,6 @@
 //! The leaves grown in the cycle then shade the sky for the buds that grow
 //! in the next. What it writes into the phytomers and axes (their tip,
 //! frame, scale and rank) is all written again once the tree has grown.
-use super::couple::Split;
-use super::subtree::tally;
 use super::{Grower, Pass, Stage};
 use crate::allocation::{sizes, vigours_from, Link, TIP};
 use crate::cores::fill;
@@ -79,32 +77,11 @@ impl Sketch {
 
 impl Grower<'_> {
     /// Sweeps the cycle's leaves from the sky and reads the light at every
-    /// living apex's tip; in the coupling pass, every fine root's stand-in
-    /// leaves cast too and each root reads its light at its centroid; in a
-    /// fine subtree, every bud reads its root's record.
-    pub(super) fn shade(
-        &mut self,
-        cycle: u32,
-        report: &mut dyn FnMut(Stage),
-    ) -> crate::error::Result<()> {
+    /// living apex's tip.
+    pub(super) fn shade(&mut self, report: &mut dyn FnMut(Stage)) -> crate::error::Result<()> {
         let mut sketch = self.sketch.take().expect("sketching");
-        if let Some(reads) = self.fine.as_ref() {
-            let light = reads.records.light(cycle + 1);
-            for apex in &self.live {
-                sketch.pencils[apex.axis].light = light;
-            }
-            self.sketch = Some(sketch);
-            return Ok(());
-        }
-        let mut tips: Vec<Vec3> = self.live.iter().map(|a| self.tip(a.axis)).collect();
-        let fine = self.fine_leaves(cycle);
-        let own = self.leaves.len();
-        for (_, at, leaves) in &fine {
-            self.leaves.extend(leaves);
-            tips.push(*at);
-        }
-        self.check_leaves(cycle, &tips);
-        let mut read = if self.one {
+        let tips: Vec<Vec3> = self.live.iter().map(|a| self.tip(a.axis)).collect();
+        let read = if self.one {
             self.sketch = Some(sketch);
             let read = self.read_light(&tips)?;
             sketch = self.sketch.take().expect("sketching");
@@ -116,27 +93,10 @@ impl Grower<'_> {
             read
         };
         report(Stage::Pass(Pass::ShadeField));
-        let n = self.live.len();
-        if let Some(oracle) = self.oracle.as_mut() {
-            oracle.reread(&self.axes, &self.live, &tips, &mut read[..n]);
-        }
         for (apex, &light) in self.live.iter().zip(&read) {
             sketch.pencils[apex.axis].light = light;
         }
         self.sketch = Some(sketch);
-        if self.couple.is_some() {
-            let lit: Vec<(usize, f64)> = fine
-                .iter()
-                .map(|f| f.0)
-                .zip(read[n..].iter().copied())
-                .collect();
-            self.fine_lit(cycle, &lit);
-            if cycle + 1 == self.rules.age {
-                self.keep_field(own, &tips, &read);
-            }
-        }
-        self.leaves.truncate(own);
-        self.hash_phase(cycle, 3);
         report(Stage::Pass(Pass::ShadeRead));
         Ok(())
     }
@@ -175,76 +135,18 @@ impl Grower<'_> {
     /// Gives each living apex its unit's size this cycle from the vigour
     /// the tree's light allots it per presence, against the mean of the
     /// growing buds of its PA (`allocation.rs`): before any apex grows.
-    /// In the coupling pass the fine roots take part as their subtrees
-    /// would; in a fine subtree the root's recorded vigour is split and
-    /// each size read against the pass's recorded means.
-    pub(super) fn allot(&mut self, rows: Option<&Rows>, cycle: u32) {
+    pub(super) fn allot(&mut self, rows: Option<&Rows>) {
         let (Some(rows), true) = (rows, self.allots()) else {
             return;
         };
         let Inputs {
             lambda,
-            mut lit,
-            mut presence,
+            lit,
+            presence,
             psi,
         } = self.inputs(rows);
-        let sketch = self.sketch.as_ref().expect("sketching");
-        let n = sketch.pencils.len();
-        let fine = self.fine_presence(sketch);
-        for &(i, p, l) in &fine {
-            (presence[i], lit[i]) = (p, l);
-        }
-        let base = self.fine.as_ref().map(|r| {
-            let v = r.records.vigour(cycle);
-            match (r.split, r.records.q(cycle)) {
-                (Split::Recorded, _) => v,
-                (Split::PerLight, q) if q > 0.0 => v / q * lit.iter().sum::<f64>(),
-                (Split::PerLight, _) => 0.0,
-            }
-        });
-        let got = vigours_from(&rows.links, &lit, &lambda, base);
-        for &(i, ..) in &fine {
-            presence[i] = 0.0;
-        }
-        let sized = match (&self.couple, &self.fine) {
-            (None, None) => {
-                self.check_sizes(cycle, &got, (&presence, &psi, &rows.pa));
-                sizes(&got, &presence, &psi, &rows.pa)
-            }
-            (_, Some(reads)) => {
-                let means = reads.means.get(cycle as usize);
-                let mean = |g: usize| means.map_or(1.0, |m| m[g]);
-                read_sizes(&got, (&presence, &psi, &rows.pa), &|g| {
-                    Some([1.0, mean(g) as f32])
-                })
-            }
-            (Some(_), None) => {
-                let sums = self.fine_means(cycle, &got, (&presence, &psi, &rows.pa));
-                let factor = |g: usize| (sums[g][1] > 0.0).then_some(sums[g]);
-                read_sizes(&got, (&presence, &psi, &rows.pa), &factor)
-            }
-        };
-        let sketch = self.sketch.as_mut().expect("sketching");
-        let growth = match (self.couple.as_mut(), self.fine.as_mut()) {
-            (Some(pass), _) => Some(&mut pass.growth),
-            (_, Some(reads)) => Some(&mut reads.growth),
-            _ => None,
-        };
-        let mut growth = growth;
-        for apex in self.live.iter().filter(|a| a.axis < n) {
-            let i = apex.axis;
-            sketch.pencils[i].size = sized[i];
-            if let (Some(g), true) = (growth.as_deref_mut(), presence[i] > 0.0) {
-                tally(g, cycle, rows.pa[i], presence[i], sized[i]);
-            }
-        }
-        if let Some(oracle) = self.oracle.as_mut() {
-            let live = self.live.iter().filter(|a| a.axis < n);
-            oracle.tally(
-                cycle,
-                live.map(|a| (rows.pa[a.axis], presence[a.axis], sized[a.axis])),
-            );
-        }
+        let got = vigours_from(&rows.links, &lit, &lambda, None);
+        self.set_sizes(&sizes(&got, &presence, &psi, &rows.pa));
     }
 
     /// Whether the allotment runs this cycle: where a rough layout is grown
@@ -294,24 +196,4 @@ impl Grower<'_> {
         let axis = &self.axes[i];
         axis.phytomers.last().map_or(axis.base, |p| p.tip)
     }
-}
-
-/// Each growing bud's size, (v/p)^ψ against its PA's mean as `[total,
-/// weighted]` (none, and every bud of the PA is whole), in the
-/// arithmetic `allocation::sizes` takes it.
-fn read_sizes(
-    got: &[f64],
-    (presence, psi, pa): (&[f64], &[f64], &[usize]),
-    factor: &dyn Fn(usize) -> Option<[f32; 2]>,
-) -> Vec<f64> {
-    use crate::allocation::size_of;
-    (0..got.len())
-        .map(|i| match (presence[i] > 0.0, factor(pa[i])) {
-            (true, Some(sums)) => {
-                let q = |x: &[f64]| x[i] as f32;
-                f64::from(size_of(q(got), q(presence), q(psi), sums))
-            }
-            _ => 1.0,
-        })
-        .collect()
 }
