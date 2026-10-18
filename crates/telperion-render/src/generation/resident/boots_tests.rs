@@ -175,7 +175,7 @@ fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Bas
                 out
             });
             Base {
-                key: (record(apex)[24], (b - slot(t, 1)) as u32),
+                key: (record(seed.base + apex)[24], (b - slot(t, 1)) as u32),
                 bearer: key_of(first[16]),
                 from: [f(first[0]), f(first[1]), f(first[2])],
                 tip: [f(second[0]), f(second[1]), f(second[2])],
