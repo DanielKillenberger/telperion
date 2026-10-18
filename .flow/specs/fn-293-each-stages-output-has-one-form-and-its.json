@@ -11,8 +11,7 @@
   ],
   "id": "fn-293-each-stages-output-has-one-form-and-its",
   "impl_review_rounds": {
-    "fn-293-each-stages-output-has-one-form-and-its.1": 0,
-    "fn-293-each-stages-output-has-one-form-and-its.2": 2
+    "fn-293-each-stages-output-has-one-form-and-its.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -322,6 +321,7 @@
   ],
   "review_hash_epoch": {
     "impl:fn-293-each-stages-output-has-one-form-and-its.1": 1,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -346,5 +346,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-18T15:13:01.555207Z"
+  "updated_at": "2026-10-18T15:31:00.762587Z"
 }

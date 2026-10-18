@@ -28,3 +28,11 @@
 - **Slowed by:** the run takes over ten minutes on the CPU, past the 600 s ceiling of one foreground tool call, so the harness moved it to the background mid-run; the digest's runtime is written nowhere beside its command in BASELINE.md.
 - **Cost:** about 12 minutes of wall time, and one extra wait on a background handle.
 - **Would have removed it:** BASELINE.md naming each digest's wall time, so a worker launches the long one in the background from the start; or a `DIGEST_PRESETS` filter to compare the presets a task can move first.
+
+## 2026-10-18 - task 2's impl-review hit the two-round cap while converging
+
+- **Doing:** task 2's codex impl-review loop (unattended, until SHIP).
+- **Slowed by:** `review.maxIterations` is 2. Round 1 had two findings, round 2 one (both fixed, `08f23f9e0`, `067d5ea6a`); the re-review of the last fix was refused with `ESCALATE: impl-review round cap reached (2/2)`. The worker returned without `done`.
+- **Host decision (recorded reason):** the review was converging (2, then 1, then 0 pending findings), not looping, so the host reset task 2's counter (`flowctl spec reset-review-rounds --task ...2`) and re-ran the review, as the owner allows the host to judge.
+- **Cost:** one worker return and a conductor-run review, about 10 minutes.
+- **Would have removed it:** a cap of three or more rounds for multi-finding tasks, or a cap that counts rounds without a decreasing finding count.
