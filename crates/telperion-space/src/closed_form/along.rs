@@ -9,13 +9,16 @@
 use crate::species::{NodeLaw, MAX_NODES_PER_ZONE};
 use crate::transcendental::Transcendental;
 
-/// A length along an axis: its mean and its mean square.
+/// A length along an axis: its mean and its mean square. Read only by
+/// the kept recursion, the predictor's test reference.
+#[cfg(test)]
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub(crate) struct Along {
     pub mean: f64,
     pub square: f64,
 }
 
+#[cfg(test)]
 impl Along {
     /// This length and an independent one, end to end.
     pub fn then(self, more: Along) -> Along {
@@ -64,6 +67,7 @@ impl Count {
     }
 
     /// The zone's length in internodes.
+    #[cfg(test)]
     pub fn length(&self, internode: f64) -> Along {
         Along {
             mean: self.0[1] * internode,
@@ -91,6 +95,7 @@ impl Count {
     /// The buds of a place-0 draw in [low, high) on every node of the
     /// zone from `start`: their expected number per node count's node, and
     /// where each stands (at its node's tip).
+    #[cfg(test)]
     pub fn ranked(&self, start: Along, internode: f64, (low, high): (f64, f64)) -> (f64, Along) {
         let [_, n1, n2, n3] = self.0;
         let (a, b) = (low, high);
@@ -111,6 +116,7 @@ impl Count {
     /// The buds of a place whose draw is apart from the node's rank, one a
     /// node: their expected number and where each stands, at its node's
     /// tip, or half an internode below it (`below`, a sleeping bud).
+    #[cfg(test)]
     pub fn spread(&self, start: Along, internode: f64, below: bool) -> (f64, Along) {
         let [_, n1, n2, n3] = self.0;
         let (rank, rank2) = if below {
@@ -124,6 +130,7 @@ impl Count {
 
 /// Where buds stand from their summed ranks: `count` of them, Σ rank and
 /// Σ rank², after `start`.
+#[cfg(test)]
 fn placed(count: f64, rank: f64, rank2: f64, start: Along, l: f64) -> Along {
     if count <= 0.0 {
         return start;
