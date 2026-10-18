@@ -39,6 +39,15 @@ PROBE.md: growth leaves 2.6-2.7 GiB of Wasm memory in fragments, and the wood's 
 - **R2e (growth compact from the start, lossless):** the CPU growth's tables narrowed where they are created (counts, indices, flags and ids in the narrowest width their range allows, padding removed), trees byte-identical, the post-growth Wasm footprint measured per preset; the same rule as fn-257's.
 - The plan changed, so the review rounds restart with this re-plan; task 2's round-2 finding (the floor after R2a) is re-reviewed in the new round.
 
+## Host decision on R2's refusal budget (2026-10-18)
+
+The completion review found R2's error clause unmet. Telperion seed 7 at a valid `surface.radialSegments` of 64 reaches 4 GiB of Wasm memory and throws the bare `Tree core: surface allocation` (PROBE.md, "After merging the release tip"). The host's decision:
+
+- **R2f (the wood's budget, predicted from live bytes):** the Wasm build counts its live heap with a counting wrapper around the global allocator. It counts live bytes, not grown memory, so freed heap counts as available. Before the wood reserves anything, at `Layout::new`, the surface's exact byte need is checked against 4 GiB minus live bytes. The need is the vertex count × per-vertex bytes plus the index bytes, taken from the layout with no guess, plus a fixed headroom of the largest chunk (768 KiB) for fragmentation. A need that does not fit is refused by name before anything is allocated. The refusal gives the cause, the bytes needed against the bytes available, and the remedy (the device entry, or fewer `radialSegments`). Chunks are at most 768 KiB, so live-byte accounting is sound.
+- No shipped preset at its preset settings is refused: `test:dist` proves all 24 cases still build. Telperion seed 7 at `radialSegments` 64 is refused by name, and a test proves it.
+- Native builds do the same arithmetic against the host's limit only where one exists, and skip it otherwise. There is no fallback path either way.
+- Any remaining raw allocation failure in the surface stage surfaces as a named error, never a bare "surface allocation".
+
 ## Strategy Alignment
 
 Active tracks served by this plan:
