@@ -4,7 +4,7 @@
 //! its demand), each hashed. Two builds of the same generator print the
 //! same lines; a change that keeps the device's trees keeps every line.
 //!
-//!   DIGEST_SEEDS=1,7,42 [DIGEST_PRESETS=norway-spruce] [DIGEST_DUMP=leaves.bin] cargo test --profile ci -p telperion-render digest -- --ignored --nocapture
+//!   DIGEST_SEEDS=1,7,42 [DIGEST_PRESETS=norway-spruce] [DIGEST_DUMP=leaves.bin] [DIGEST_STILLS=<dir>] cargo test --profile ci -p telperion-render digest -- --ignored --nocapture
 use super::super::{io, Generator, Prepared};
 use std::fmt::{Debug, Write};
 use telperion_core::pipeline::executor;
@@ -85,8 +85,9 @@ fn digest() {
     let Some(gpu) = super::super::test_gpu() else {
         return;
     };
-    let gen = Generator::create(gpu, std::sync::Arc::new(()));
-    let gen = pollster::block_on(gen).unwrap();
+    // The renderer a still is drawn by, whose generator builds every tree.
+    let mut renderer = crate::Renderer::new(gpu, crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
     let seeds: Vec<u32> = std::env::var("DIGEST_SEEDS")
         .unwrap_or_else(|_| "1,7,42".into())
         .split(',')
@@ -109,6 +110,25 @@ fn digest() {
             }
             let prepared = gen.prepare(&family).unwrap();
             println!("{id} {seed}: {}", line(&gen, &prepared));
+            if let Ok(dir) = std::env::var("DIGEST_STILLS") {
+                let path = format!("{dir}/{id}-{seed}.png");
+                still(&mut renderer, (&family, prepared), &path);
+            }
         }
     }
+}
+
+/// `DIGEST_STILLS` names a directory for each tree's still at the hero
+/// pose, so two builds' trees are compared by eye and pixel (fn-293 task 6).
+fn still(
+    renderer: &mut crate::Renderer,
+    (family, prepared): (&telperion_core::Family, Prepared),
+    path: &str,
+) {
+    renderer.submit_prepared(prepared).unwrap();
+    renderer.set_family(family);
+    let bounds = renderer.bounds().expect("a tree drawn");
+    let camera = crate::hero_pose(bounds, 960.0 / 720.0, crate::GROUND_REACH);
+    let shot = crate::render(renderer, &camera, 960, 720).unwrap();
+    crate::write_png(std::path::Path::new(path), &shot).unwrap();
 }
