@@ -33,8 +33,12 @@ AGENTS.md budget: no full-forest capture; GPU tests and examples run natively. `
 - [ ] Device build time and GPU peak before and after in `MEASURE.md`.
 - [ ] Gate and `npm test` green.
 ## Done summary
-TBD
+Blocked:
+NEEDS_HUMAN (2026-10-18, probe in BASELINE.md "Task 6 probe", commit a3b69dece):
 
+Q3 (finding 3, sweep writes the renderer's packed curve form): the rings read the sweep's frames at full precision. Decoding them from the packed form moves spruce leaves only (1, 6, 10 of ~4M at seeds 1, 7, 42; largest 0.194-0.197 mm, one quantisation step; no rotation or scale change; curve lines unchanged). (a) accept the move; (b) keep bytes by having the sweep write the ring words itself while it holds full frames (ring buffer, ~76 MB on spruce, coexists with the node table, so the build peak rises); (c) another route.
+
+Q2 (finding 2, the 39-word node table goes): the drawn records are not one array; the dress writes one buffer per lateral order plus the root's and the leaf bases', and stations already bind seven storage buffers. (a) the dress writes every wave into one buffer at aligned offsets (in cycle/, outside this task's Touches; room needed for leaf bases hung after the dress); (b) the sweep copies the waves into one buffer in their own layout plus a narrow offsets/derived table (still a copy, about the same memory as today).
 ## Evidence
 - Commits:
 - Tests:
