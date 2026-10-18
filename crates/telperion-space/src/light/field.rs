@@ -114,7 +114,9 @@ impl Field {
     }
 
     /// The unquantised field `new` makes, its directions swept on up to
-    /// `threads` cores: the whole-tree grower's light (`grow::run`).
+    /// `threads` cores: the whole-tree grower's light (`grow::run`),
+    /// test-only.
+    #[cfg(test)]
     pub fn on(
         light: &super::Light,
         leaves: &[(Vec3, f64)],
@@ -219,6 +221,7 @@ impl Field {
     }
 
     /// Every leaf's area deposited at its corners, in the leaves' order.
+    #[cfg(test)]
     pub(super) fn deposit_all(&mut self, leaves: &[(Vec3, f64)]) {
         for &(at, area) in leaves {
             let area = area as f32;

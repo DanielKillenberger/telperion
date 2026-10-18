@@ -13,7 +13,7 @@ use super::{Grower, Pass, Stage};
 use crate::allocation::{sizes, vigours_from, Link, TIP};
 use crate::cores::fill;
 use crate::geometry::Layer;
-use crate::light::{Field, Light};
+use crate::light::Light;
 use crate::structure::{Origin, Vec3};
 
 /// The axes in a piece of the gathering of rows.
@@ -81,16 +81,14 @@ impl Grower<'_> {
     pub(super) fn shade(&mut self, report: &mut dyn FnMut(Stage)) -> crate::error::Result<()> {
         let mut sketch = self.sketch.take().expect("sketching");
         let tips: Vec<Vec3> = self.live.iter().map(|a| self.tip(a.axis)).collect();
-        let read = if self.one {
-            self.sketch = Some(sketch);
-            let read = self.read_light(&tips)?;
-            sketch = self.sketch.take().expect("sketching");
-            read
-        } else {
-            let field = Field::on(&sketch.light, &self.leaves, &tips, self.threads);
-            let mut read = vec![0.0; tips.len()];
-            crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at(tips[k]));
-            read
+        let read = match self.unquantised(&sketch, &tips) {
+            Some(read) => read,
+            None => {
+                self.sketch = Some(sketch);
+                let read = self.read_light(&tips)?;
+                sketch = self.sketch.take().expect("sketching");
+                read
+            }
         };
         report(Stage::Pass(Pass::ShadeField));
         for (apex, &light) in self.live.iter().zip(&read) {
@@ -99,6 +97,25 @@ impl Grower<'_> {
         self.sketch = Some(sketch);
         report(Stage::Pass(Pass::ShadeRead));
         Ok(())
+    }
+
+    /// The whole-tree grower's light at `tips`, unquantised (`grow::run`):
+    /// test-only; none in the one cycle, which reads the lattice.
+    #[cfg(test)]
+    fn unquantised(&self, sketch: &Sketch, tips: &[Vec3]) -> Option<Vec<f64>> {
+        (!self.one).then(|| {
+            let field = crate::light::Field::on(&sketch.light, &self.leaves, tips, self.threads);
+            let mut read = vec![0.0; tips.len()];
+            crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at(tips[k]));
+            read
+        })
+    }
+
+    /// Outside tests every grower is the one cycle's (`Paused`, the
+    /// captures), which reads the lattice.
+    #[cfg(not(test))]
+    fn unquantised(&self, _: &Sketch, _: &[Vec3]) -> Option<Vec<f64>> {
+        None
     }
 
     /// Each laid axis's link and PA, gathered on every core, so the
