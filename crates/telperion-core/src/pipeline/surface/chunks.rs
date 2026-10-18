@@ -161,7 +161,7 @@ impl Layout {
         if self.chunks.last().is_none_or(|&n| n > 0) {
             self.chunks
                 .try_reserve(1)
-                .map_err(|_| Error::ResourceLimit("surface allocation"))?;
+                .map_err(|_| OUT_OF_MEMORY)?;
             self.chunks.push(0);
         }
         Ok(())

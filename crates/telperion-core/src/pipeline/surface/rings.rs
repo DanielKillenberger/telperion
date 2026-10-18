@@ -163,6 +163,14 @@ pub(super) fn rings_mode(
     };
     let rings = ordered.iter().map(|o| at.rings(o.0));
     out.layout = Layout::new(rings, segments, sweep.drawn, limit)?;
+    let coords = match (sweep.drawn, sweep.distances) {
+        (false, _) => Coords::None,
+        (true, false) => Coords::Bark(out.along),
+        (true, true) => Coords::Distances,
+    };
+    if sweep.drawn {
+        super::budget::check(&out.layout, segments, coords)?;
+    }
     if sweep.edges {
         at.record(&mut out.edges, &ordered, &out.layout);
     }
@@ -180,11 +188,6 @@ pub(super) fn rings_mode(
     #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
     let _ = parallel_allowed;
     let pieces = &out.layout.pieces;
-    let coords = match (sweep.drawn, sweep.distances) {
-        (false, _) => Coords::None,
-        (true, false) => Coords::Bark(out.along),
-        (true, true) => Coords::Distances,
-    };
     out.chunks = written(at, &ordered, &out.layout, pieces, coords, &mut scratch)?;
     if !sweep.drawn {
         return Ok(out);

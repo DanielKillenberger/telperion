@@ -9,6 +9,8 @@ mod angular;
 #[cfg(feature = "geometry")]
 mod attachment;
 #[cfg(feature = "geometry")]
+mod budget;
+#[cfg(feature = "geometry")]
 mod build;
 #[cfg(feature = "geometry")]
 mod chunks;
@@ -66,10 +68,15 @@ use {
     paths::paths,
     samples::sample_path,
 };
+/// A wood buffer the allocator refused, named with its remedy.
+const OUT_OF_MEMORY: Error = Error::ResourceLimit(
+    "the wood ran out of memory while its buffers were reserved; build it through the \
+     device entry or with fewer radialSegments",
+);
 fn reserved<T>(n: usize) -> Result<Vec<T>> {
     let mut out = Vec::new();
     out.try_reserve_exact(n)
-        .map_err(|_| Error::ResourceLimit("surface allocation"))?;
+        .map_err(|_| OUT_OF_MEMORY)?;
     Ok(out)
 }
 fn filled<T: Clone>(n: usize, value: T) -> Result<Vec<T>> {
@@ -342,10 +349,10 @@ mod fork_tests;
 #[cfg(test)]
 mod tests {
     #[test]
-    fn allocation_failure_is_explicit() {
-        assert!(matches!(
-            super::reserved::<f32>(usize::MAX),
-            Err(crate::Error::ResourceLimit(_))
-        ));
+    fn allocation_failure_is_named_with_its_remedy() {
+        let refused = super::reserved::<f32>(usize::MAX).unwrap_err();
+        assert_eq!(refused, super::OUT_OF_MEMORY);
+        let said = refused.to_string();
+        assert!(said.contains("the wood ran out of memory") && said.contains("radialSegments"));
     }
 }

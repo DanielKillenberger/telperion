@@ -1,9 +1,15 @@
 //! One owned engine per Wasm instance. No caller pointers enter native code.
 mod generate;
+#[cfg(any(target_arch = "wasm32", test))]
+mod live;
 use generate::{generate, Output};
 use serde_json::{json, Value};
 use std::cell::RefCell;
 use telperion_core::{math::Vec3, params, Error, Result};
+
+#[cfg(target_arch = "wasm32")]
+#[global_allocator]
+static ALLOCATOR: live::Counting = live::Counting;
 
 #[cfg(target_arch = "wasm32")]
 #[link(wasm_import_module = "env")]
@@ -53,6 +59,7 @@ fn status(e: &mut Engine, result: Result<Value>) -> u32 {
                 Error::InvalidInput(m) => (1, m.to_string()),
                 Error::InvalidValue { field, value } => (1, format!("{field} = {value}")),
                 Error::ResourceLimit(m) => (2, m.to_string()),
+                e @ Error::WoodMemory { .. } => (2, e.to_string()),
             };
             e.metadata = json!({"error": message, "code": code})
                 .to_string()
@@ -128,6 +135,8 @@ pub extern "C" fn release() {
 }
 #[no_mangle]
 pub extern "C" fn build() -> u32 {
+    #[cfg(target_arch = "wasm32")]
+    telperion_core::memory::set_left(live::left);
     ENGINE.with(|e| {
         let mut e = e.borrow_mut();
         e.output = Output::default();

@@ -11,7 +11,8 @@ import { fileURLToPath } from 'node:url';
  * with surface and foliage, each case in its own process, because Wasm
  * memory only grows: a case's `memoryBytes` is its own high-water mark, held
  * at or under 3.5 GiB of the 32-bit binding's 4 GiB (fn-291). The 24 cases
- * take about four minutes on the owner's desk (fn-291 PROBE.md). */
+ * take about four minutes on the owner's desk (fn-291 PROBE.md). One more
+ * case must be refused by name before its wood is allocated. */
 const dist = new URL('../dist/', import.meta.url);
 const LIMIT = 3.5 * 2 ** 30;
 const SEEDS = [1, 7, 42];
@@ -40,9 +41,39 @@ async function one(id, seed) {
   return { nodes, chunks: chunks.length, memory, seconds };
 }
 
+/** A wood 32-bit Wasm cannot hold (fn-291 R2f): telperion at seed 7 with
+ * 64 sides a ring must be refused by name, before its wood is allocated,
+ * so the memory stays far below the 4 GiB it would otherwise reach. */
+async function refused() {
+  const { TreeEngine, PRESETS } = await import(new URL('telperion.js', dist));
+  const family = structuredClone(PRESETS.find(p => p.id === 'telperion'));
+  family.skeleton.seed = 7;
+  family.surface.radialSegments = 64;
+  const engine = await TreeEngine.create();
+  let said;
+  try {
+    engine.build(family, { surface: true, foliage: true });
+  } catch (e) {
+    said = e instanceof Error ? e.message : String(e);
+  }
+  if (said === undefined) throw Error('built a wood it should have refused');
+  const named = /^Tree core: the wood needs \d+ bytes and \d+ are left in 32-bit Wasm memory; .*device entry.*radialSegments/;
+  if (!named.test(said)) throw Error(`not refused by name: ${said}`);
+  const memory = engine.memoryBytes;
+  if (memory > LIMIT) throw Error(`refused only after Wasm memory reached ${mib(memory)} MiB`);
+  return { said, memory };
+}
+
 const mib = bytes => Math.round(bytes / 2 ** 20).toLocaleString('en');
 const args = process.argv.slice(2);
-if (args[0] === '--case') {
+if (args[0] === '--refused') {
+  try {
+    console.log(JSON.stringify(await refused()));
+  } catch (e) {
+    console.error(`telperion.js: telperion seed 7 at 64 sides: ${e instanceof Error ? e.message : e}`);
+    process.exitCode = 1;
+  }
+} else if (args[0] === '--case') {
   const [id, seed] = [args[1], Number(args[2])];
   try {
     console.log(JSON.stringify(await one(id, seed)));
@@ -72,7 +103,17 @@ if (args[0] === '--case') {
       }
     }
   }
-  if (failures.length) throw Error(`${failures.length} of ${PRESETS.length * SEEDS.length} cases failed:\n${failures.join('\n')}`);
+  try {
+    const out = execFileSync(process.execPath, [fileURLToPath(import.meta.url), '--refused'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    const row = JSON.parse(out.trim().split('\n').pop());
+    console.log(`telperion.js: telperion seed 7 at 64 sides: refused at ${mib(row.memory)} MiB: ${row.said}`);
+  } catch (e) {
+    const said = String(e.stderr ?? '').trim().split('\n').findLast(l => l.startsWith('telperion.js:'));
+    const failure = said ?? `telperion.js: telperion seed 7 at 64 sides: the case process ${e.signal ? `was killed by ${e.signal}` : `exited ${e.status}`}`;
+    console.error(failure);
+    failures.push(failure);
+  }
+  if (failures.length) throw Error(`${failures.length} of ${PRESETS.length * SEEDS.length + 1} cases failed:\n${failures.join('\n')}`);
   // The field grows on the device alone (fn-257): Node has no WebGPU, so it
   // rejects by name, never growing on the CPU.
   const { growField } = await import(new URL('field.js', dist));
