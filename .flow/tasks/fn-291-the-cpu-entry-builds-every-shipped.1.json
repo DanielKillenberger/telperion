@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-291-the-cpu-entry-builds-every-shipped",
   "spec_path": ".flow/tasks/fn-291-the-cpu-entry-builds-every-shipped.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Probe every shipped preset through the dist CPU entry in Node and trace each failure",
   "updated_at": "2026-10-16T03:06:24.392115Z"
 }

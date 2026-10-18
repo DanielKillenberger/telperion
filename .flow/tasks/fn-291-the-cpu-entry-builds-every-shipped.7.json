@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-291-the-cpu-entry-builds-every-shipped",
   "spec_path": ".flow/tasks/fn-291-the-cpu-entry-builds-every-shipped.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "R2f: the wood refused by name before allocation when it cannot fit 32-bit Wasm (host decision 2026-10-18)",
   "updated_at": "2026-10-18T01:10:25.830606Z"
 }

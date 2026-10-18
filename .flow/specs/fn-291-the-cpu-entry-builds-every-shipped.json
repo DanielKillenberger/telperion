@@ -1025,7 +1025,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-291-the-cpu-entry-builds-every-shipped.md",
-  "status": "open",
+  "status": "done",
   "title": "The CPU entry builds every shipped preset or refuses it by name",
   "tracker": {
     "baseHashFlow": null,
@@ -1038,5 +1038,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-18T02:17:47.780123Z"
+  "updated_at": "2026-10-18T02:18:02.608184Z"
 }
