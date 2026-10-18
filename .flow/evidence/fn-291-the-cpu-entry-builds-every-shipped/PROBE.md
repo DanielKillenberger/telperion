@@ -435,3 +435,11 @@ The Wasm binding wraps its global allocator in a live-byte count (`telperion-was
 
 - All 24 shipped cases build, each high-water mark equal to the table above (highest laurelin seed 7, 2,789 MiB).
 - telperion seed 7 at `radialSegments` 64 is refused at 2,653 MiB of Wasm memory: `Tree core: the wood needs 7411185660 bytes and 3679383462 are left in 32-bit Wasm memory; build it through the device entry or with fewer radialSegments`. Before the task it reached 4,294,705,152 B and threw the bare `Tree core: surface allocation` (the completion review's repro).
+
+Impl-review (codex, three lenses) found that the need left out the scratch `build::split` gathers for a run split across chunks. Its whole points and float normals are about 3.36 MB for a 7,000-ring run at 20 sides, beyond the headroom. ea3b6e0ab counts that scratch at its largest, pinned by `budget::tests::a_split_run_s_whole_points_and_normals_count_as_scratch`. The re-review gave SHIP.
+
+Final checks on ea3b6e0ab:
+
+- Gate (`telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`): 1,417 passed, 0 failed, 109 ignored, 03:35:23 to 04:08:52 (`raw/gate-t7.log`).
+- `npm test`: 170 of 170 passed. `npm run build` passed.
+- `npm run test:dist`: all 24 cases built with high-water marks unchanged, and the 64-sided telperion seed 7 was refused by name at 2,653 MiB (`raw/testdist-t7b.log`).

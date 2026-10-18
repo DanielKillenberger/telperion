@@ -41,9 +41,15 @@ R2f, the host's decision on R2's refusal budget (spec, "Host decision on R2's re
 
 
 ## Done summary
-TBD
+R2f, the host's refusal budget. The Wasm binding counts its live heap at a counting global allocator (`telperion-wasm/src/live.rs`) and installs `4 GiB - __heap_base - live` as the core's bytes-left source (`telperion_core::memory`). Right after `Layout::new`, before any chunk is reserved, `surface::budget` sums the drawn wood's exact need from the layout: chunk buffers, lists, tables and the mesh step's scratch, including a split run's whole points and normals. It adds 768 KiB of headroom. A need over what is left is refused as `Error::WoodMemory` with both numbers and the remedy. Natively no source is installed and the check is skipped; there is no fallback. Raw surface allocation failures are named with the same remedy.
 
+- test:dist: all 24 shipped cases build with high-water marks unchanged (highest 2,789 MiB). Telperion seed 7 at radialSegments 64 is refused by name at 2,653 MiB: "the wood needs 7411185660 bytes and 3679383462 are left".
+- Gate: 1,417 passed, 0 failed, 109 ignored. npm test: 170/170. npm run build: green.
+
+stage: impl-review - ran (codex, 3 lenses NEEDS_WORK on split-run scratch; fixed in ea3b6e0ab; re-review SHIP) (model: gpt-6.1-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9a915b0e4b14b58b8bf4382355a9aab05e25e064, ea3b6e0ab62b4a5c863df18794b23a439880479b
+- Tests: telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast, npm test, npm run build && npm run test:dist
 - PRs:
