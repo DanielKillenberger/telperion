@@ -8,7 +8,7 @@ Findings 2 and 3: the sweep's `gather` copies every drawn record into a 39-word 
 
 **Size:** M (GPU)
 **Files:** `crates/telperion-render/src/generation/resident/{sweep.rs,sweep.wgsl,handoff.rs,handoff.wgsl,build.rs,stations.wgsl,rings.rs,rings.wgsl,field.wgsl,field.rs}`, `generation/resident.rs`, `resident/{agree_tests,drawn_memory_tests}.rs`
-**Touches:** [crates/telperion-render/src/generation/resident/**, crates/telperion-render/src/generation/resident.rs, crates/telperion-render/src/curve/**]
+**Touches:** [crates/telperion-render/src/generation/resident/**, crates/telperion-render/src/generation/resident.rs, crates/telperion-render/src/curve/**, .flow/evidence/fn-293-each-stages-output-has-one-form-and-its/**]
 
 ### Approach
 - Small before large: first a probe on one preset (spruce, seed 1) that the change keeps `generation_digest`'s resident line; then all presets at seeds 1, 7, 42.
@@ -27,16 +27,11 @@ Findings 2 and 3: the sweep's `gather` copies every drawn record into a 39-word 
 
 ### Key context
 AGENTS.md budget: no full-forest capture; GPU tests and examples run natively. `drawn_memory_tests` pins the drawn stage's memory; the node table's removal should lower it, so update its expected numbers with the measurement.
-
-### Acceptance
+## Acceptance
 - [ ] No 39-word node table and no handoff pass; every reader reads the drawn records or one narrow derived table.
 - [ ] Resident digests (every preset, seeds 1, 7, 42) equal the baseline, or the task stopped with the measured difference.
 - [ ] Device build time and GPU peak before and after in `MEASURE.md`.
 - [ ] Gate and `npm test` green.
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 TBD
 

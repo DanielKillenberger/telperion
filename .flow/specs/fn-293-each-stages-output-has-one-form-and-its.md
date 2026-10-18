@@ -18,7 +18,7 @@ Every change keeps every shipped tree byte-identical (presets at their ages, see
 
 How the criteria are proven:
 
-- **Byte identity:** `artifact_digest` (core, every shipped preset, seeds 1, 7, 42) and `generation_digest` (render, every shipped preset, `DIGEST_SEEDS=1,7,42`, both deliveries while both exist, then the resident one) print the same lines after each task as the baseline recorded at `f8c014681`, unless a task's finding says otherwise and the difference is reported with its measurement.
+- **Byte identity:** digests of the artifacts, never of an internal field a task deletes (`Tree.pipe`): `artifact_digest` (core, every shipped preset, seeds 1, 7, 42), `generation_digest`'s pipeline lines, and a resident digest in the render crate's test binary that hashes what the renderer receives (the packed curve's point, cluster and section buffers, its demand, the placed leaves) print the same lines after each task as the baseline recorded at `f8c014681`, unless a task's finding says otherwise and the difference is reported with its measurement.
 - **Measurements (R5):** non-test lines per crate, the shipped Wasm modules' bytes (raw and gzip, through the package build the CI size budget reads), and the release Wasm build's wall time, at the baseline and at the spec's head; the device build's time on the spruce and oak, paired warm over 16 runs, before and after task 6.
 
 ## Early proof point

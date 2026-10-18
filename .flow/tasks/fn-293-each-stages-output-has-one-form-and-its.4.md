@@ -8,7 +8,7 @@ Findings 7, 12 and 13 in the core pipeline: a mesh request sweeps the wood once 
 
 **Size:** M
 **Files:** `crates/telperion-core/src/pipeline/drawn.rs`, `pipeline/surface/curve.rs`, `pipeline/foliage/plan.rs`, `pipeline/foliage/station.rs`, `pipeline/executor.rs`, `pipeline/tests.rs`
-**Touches:** [crates/telperion-core/src/pipeline/drawn.rs, crates/telperion-core/src/pipeline/surface/**, crates/telperion-core/src/pipeline/foliage/plan.rs, crates/telperion-core/src/pipeline/foliage/plan/**, crates/telperion-core/src/pipeline/foliage/station.rs, crates/telperion-core/src/pipeline/foliage/placement.rs, crates/telperion-core/src/pipeline/executor.rs, crates/telperion-core/src/pipeline/tests.rs]
+**Touches:** [crates/telperion-core/src/pipeline/drawn.rs, crates/telperion-core/src/pipeline/surface/**, crates/telperion-core/src/pipeline/foliage/plan.rs, crates/telperion-core/src/pipeline/foliage/plan/**, crates/telperion-core/src/pipeline/foliage/station.rs, crates/telperion-core/src/pipeline/foliage/placement.rs, crates/telperion-core/src/pipeline/executor.rs, crates/telperion-core/src/pipeline/tests.rs, .flow/evidence/fn-293-each-stages-output-has-one-form-and-its/**]
 
 ### Approach
 - Finding 7: `drawn.rs:22-33` sweeps rings, `drawn.rs:83-86` traces the curve again (`surface/curve.rs:116` `traced`). When a request asks for both, trace once and draw the rings (and the `SurfaceMesh`, seated leaves) from `Curve::rings` (`curve.rs:348`), which `curve/tests.rs` holds equal to the sweep's rings to the bit. A request without the curve keeps its single sweep. Update `one_sweep_and_one_element_serve_a_request` (`pipeline/tests.rs:57`) to count one sweep for `Request::mesh()`.
@@ -27,16 +27,11 @@ Findings 7, 12 and 13 in the core pipeline: a mesh request sweeps the wood once 
 
 ### Key context
 The CPU mesh is the stills' and Jev's reference: its bytes must not move. If `Curve::rings` differs from the sweep's rings for any preset at seeds 1, 7, 42, stop and report.
-
-### Acceptance
+## Acceptance
 - [ ] `Request::mesh()` sweeps the wood once (the counting test says so).
 - [ ] The plan and placement call one station count; one `Expansion` preparation helper with one `retains` rule.
 - [ ] Digests equal the baseline; the mesh time before and after is in `MEASURE.md`.
 - [ ] Gate and `npm test` green.
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 TBD
 

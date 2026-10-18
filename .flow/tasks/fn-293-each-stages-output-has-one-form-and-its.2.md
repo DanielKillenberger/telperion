@@ -8,7 +8,7 @@ Findings 5, 11 (space side) and 16: the experimental growth passes with no produ
 
 **Size:** M
 **Files:** `crates/telperion-space/src/lib.rs`, `grow.rs`, `grow/{oracle,couple,partition,subtree,realized,stepped}*`, `grow/sketch.rs`, `grow/cycle/paused.rs`, `couple.rs`, `bounded*`, `fine/coarse.rs`, `closed_form/kept*`, `light.rs`, `light/field.rs`, `agree.rs`, `invariants.rs`, the space crate's `examples/` and `tests/`, `crates/telperion-core/tests/light_rows.rs`
-**Touches:** [crates/telperion-space/**, crates/telperion-core/tests/light_rows.rs, crates/telperion-core/src/pipeline/space/repeat_tests.rs]
+**Touches:** [crates/telperion-space/**, crates/telperion-core/tests/light_rows.rs, crates/telperion-core/src/pipeline/space/repeat_tests.rs, .flow/evidence/fn-293-each-stages-output-has-one-form-and-its/**]
 
 ### Approach
 - For each symbol, grep its readers in `crates/*/src` excluding tests: no reader at all → delete; read only by tests or examples → `cfg(test)` (a test module) or delete with the example. Examples that exist only to drive a deleted pass go with it.
@@ -28,16 +28,11 @@ Findings 5, 11 (space side) and 16: the experimental growth passes with no produ
 
 ### Key context
 The hooks are on the production grower's hot path; their removal must keep the cycle's digests (`grow/cycle/paused/tests.rs:70`, `unfold/tests.rs:123`) and the core baseline identical. Name collisions (`Measured`, `Stand`) make bare greps noisy: grep by path.
-
-### Acceptance
+## Acceptance
 - [ ] No experimental pass, `Grower` hook or unread `kept` column compiles into the space crate's non-test build.
 - [ ] Digests equal the baseline (core, all presets, seeds 1, 7, 42); the cycle digest tests pass.
 - [ ] Non-test line count of the space crate before and after in `MEASURE.md`.
 - [ ] Gate and `npm test` green.
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 TBD
 

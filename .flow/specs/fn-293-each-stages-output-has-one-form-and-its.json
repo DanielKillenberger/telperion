@@ -1,13 +1,105 @@
 {
   "branch_name": "fn-293-each-stages-output-has-one-form-and-its",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-16T14:07:07.404320Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-257-the-site-grows-its-trees-on-the-device"
   ],
   "id": "fn-293-each-stages-output-has-one-form-and-its",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-18T11:24:27.910139Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "b9ec20be2872919a027f8a82bff51fccc15b3490287de67dbc41cec1d28b9e67",
+      "backend": "codex",
+      "base_sha": "f8c0146814056cb55c4da9650f97310a23f968fc",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9cff3a515a9060a68bbdea357134417f",
+            "classification": "introduced",
+            "findingId": "finding-9cff3a515a9060a68bbdea357134417f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5e19ed0f84f56f0d0a552665f3489638",
+            "classification": "introduced",
+            "findingId": "finding-5e19ed0f84f56f0d0a552665f3489638",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-bc80fb8de7c55983b9fea83da7acd5a2",
+            "classification": "introduced",
+            "findingId": "finding-bc80fb8de7c55983b9fea83da7acd5a2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5e0a046212cec114f251893f7e2958cf",
+            "classification": "introduced",
+            "findingId": "finding-5e0a046212cec114f251893f7e2958cf",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-00994ba75d528885e82ac02b85d77a2f",
+            "classification": "introduced",
+            "findingId": "finding-00994ba75d528885e82ac02b85d77a2f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "aaefc6960b889d8b587bbd7dac0cb94ed7269c8a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 440676,
+      "output_sha256": "e253fb32a27e6c569f1f33918d6832d600d013b3e886f2440d2f20cf4daa3c43",
+      "reservation_id": "ae6933901d4e44cdb040dca933cefdb2",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-18T11:24:27.899291Z",
+      "tool_calls": 19,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-293-each-stages-output-has-one-form-and-its.md",
   "status": "open",
   "title": "Each stage's output has one form, and its consumers read it",
@@ -22,5 +114,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-18T11:21:38.055141Z"
+  "updated_at": "2026-10-18T11:25:24.338216Z"
 }

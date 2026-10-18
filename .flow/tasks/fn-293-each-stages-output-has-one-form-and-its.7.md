@@ -25,16 +25,11 @@ R4's reconciliation of each carried-over contract, the docs the earlier tasks ma
 
 ### Key context
 No contract a shipped consumer reads changes here. A row whose fate needs the owner is listed under "Open" in `CONTRACTS.md` with the question, not decided.
-
-### Acceptance
+## Acceptance
 - [ ] Every R4 item has a row in `CONTRACTS.md` with its fate and reason.
 - [ ] No doc names a route, table or pass the spec removed.
 - [ ] `MEASURE.md` holds before and after lines, bytes and build time.
 - [ ] Gate and `npm test` green.
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 TBD
 
