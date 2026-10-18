@@ -78,3 +78,27 @@ item, so it counts what compiles into the non-test build:
 | crate | non-test lines before (`e8f58a85e`) | after |
 | --- | ---: | ---: |
 | telperion-core | 25106 | 22884 |
+
+## Task 4: one sweep a mesh request
+
+`Request::mesh()` on the CPU, `--profile ci`: the `generation_stages`
+example built at the task's base (`a7b254ef7`) and after finding 7
+(`1b25167cc`), run alternately (the order flips each pair), seed 1, 16
+pairs a preset. Each process builds twice and the warm second build is
+kept; the mesh time is the build's total less its growth. Both binaries
+print the same output hash on every run. Rows:
+`raw/t4-mesh-paired.jsonl`; script `paired.sh` in the task's scratch.
+
+| preset | base median ms | after median ms | paired difference, median | after faster |
+| --- | ---: | ---: | ---: | ---: |
+| norway-spruce | 4166.2 | 4087.9 | -81.7 ms (mean -75.3, sd 104.4) | 14 of 16 |
+| oregon-white-oak | 153.4 | 139.1 | -15.3 ms (mean -15.0, sd 4.7) | 16 of 16 |
+
+The trace now runs inside the rings stage, so `rings_ms` rises (spruce
+about 254 to 440 ms) while the separate trace after both threads joined is
+gone. The spruce's mesh is bound by its placement (about 3.4 s on the
+leaves' side), so the saving there is about 2 %; the oak's is about 10 %.
+
+Non-test compiled lines of telperion-core (`measure-cfg-lines.py`): 22884
+after task 3, 22997 after task 4 (the curve-drawn ring entry and
+`Scratch::read` add more than the station count and the preparation remove).

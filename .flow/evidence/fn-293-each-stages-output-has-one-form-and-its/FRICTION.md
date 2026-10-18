@@ -52,3 +52,10 @@
 - **Cost:** one focused core test run (about 7 minutes) and the task stopped before commit; the diff is kept in `raw/t3-wip.patch`.
 - **Would have removed it:** the plan checking fn-123 R1 against "keep only checks production rows need" before the task was written.
 - **Host decision (conductor, 2026-10-18):** `validate_skeleton` and `Family::validate` stay exactly as on the base, every check kept (rows, `inner_envelope`, `resolved_growth`, `forks_placed`), so what they call (`specimen::rows`, `scaffold/fork.rs`'s `placed`, `slot`, `siblings`) stays compiled. Which rows validation bounds once the scaffold leaves production is an open item for the owner. `hold_tests::a_hold_adds_or_loses_no_leaf` is deleted with `Tree.pipe`: it pinned the pipe's effect on the scaffold's held trees, which no production tree has (`girthHold` is read by no stage).
+
+## 2026-10-18 - task 4: the core digest never asks for the curve
+
+- **Doing:** checking finding 7 (a mesh request draws its wood from the curve) against the baseline.
+- **Slowed by:** `artifact_digest` requests wood, leaves, field and structure but not `curve`, so the core digest cannot see a change to the mesh request's curve path; only `generation_digest`'s `mesh` line (`mesh::build`, `Request::mesh()`) covers it, and that run takes over ten minutes. A spot run of two presets at seed 1 was needed first.
+- **Cost:** about 5 minutes and one extra render build.
+- **Would have removed it:** `artifact_digest` requesting `curve: true` (it is the renderer's wood form), or BASELINE.md naming which digest covers which request flag.

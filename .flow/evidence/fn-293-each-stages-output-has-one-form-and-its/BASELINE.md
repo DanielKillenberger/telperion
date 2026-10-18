@@ -118,3 +118,15 @@ The three digests re-run after task 3's edits (the scaffold grower under
 `raw/resident-digest-t3.txt` (identical lines, under
 `telperion-heavy 10 --gpu 6`), render pipeline
 `raw/generation-digest-t3.txt` (byte-identical, sha256 `fb4ce911...`).
+
+## After task 4
+
+The three digests re-run after task 4's edits (a mesh request's wood drawn
+from its traced curve, the one station count, the one `Expansion`
+preparation) equal the baseline: core `raw/core-digest-t4.txt` (all 24
+lines), render pipeline `raw/generation-digest-t4.txt` (byte-identical to
+`raw/generation-digest-base-1.txt`; its `mesh` field is the one digest that
+covers `Request::mesh()` and so the curve-drawn wood), resident
+`raw/resident-digest-t4.txt` (identical lines, under `telperion-heavy 10
+--gpu 6`). The two `retains` rules agree on every shipped preset
+(`raw/t4-retains-rules.txt`).
