@@ -27,3 +27,10 @@
 - Hindered: the dcg hook refused a redirect into a directory the same command had created with mkdir, and a redirect that would overwrite an existing build log. Each needed a second call: mkdir alone first, or a new file name.
 - Cost: about 2 minutes and two refused commands.
 - Would remove it: the hook accepting a redirect whose missing parent the same command creates.
+
+## 2026-10-16, task 2 worker, gate
+
+- Doing: running the workspace gate once, through `telperion-heavy 12 --threads 2`.
+- Hindered: the gate waited for 12 GB of room from 15:56. Free memory sat at 4 to 10 GB while other worktrees' jobs ran, and after 23 minutes it had not started.
+- Cost: 23 minutes or more of waiting before the gate's own 35 minutes.
+- Would remove it: a queue in `telperion-heavy` that holds new admissions for a job already waiting, so the 12 GB gate is not starved by a stream of smaller jobs.
