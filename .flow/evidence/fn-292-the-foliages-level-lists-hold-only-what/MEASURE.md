@@ -69,3 +69,8 @@ The release tip 0e3c8e30d was merged in with no conflicts. No file changed on bo
 
 - Gate (`telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`): 1,406 passed, 0 failed, 110 ignored, 02:36:38 to 03:32:31, admission wait included (`raw/gate-merge.log`).
 - `npm test`: 18 files, 169 of 169 tests passed (`raw/npmtest-merge.log`).
+
+Merged again with the release tip after fn-291 landed (23fb243e3, merge de0358cb8). No file is shared with fn-291.
+
+- Gate: 1,418 passed, 0 failed, 110 ignored, 04:18:22 to 04:52:55 (`raw/gate-merge2.log`).
+- `npm test`: 19 files, 170 of 170 tests passed (`raw/npmtest-merge2.log`).

@@ -34,3 +34,10 @@
 - Hindered: the gate waited for 12 GB of room from 15:56. Free memory sat at 4 to 10 GB while other worktrees' jobs ran, and after 23 minutes it had not started.
 - Cost: 23 minutes or more of waiting before the gate's own 35 minutes.
 - Would remove it: a queue in `telperion-heavy` that holds new admissions for a job already waiting, so the 12 GB gate is not starved by a stream of smaller jobs.
+
+## 2026-10-18, landing, a second full gate for an ordering rule
+
+- Doing: landing fn-292 after fn-291, each merged with the release tip and gated before it lands.
+- Hindered: fn-292's gate was green on the release tip at 03:32. fn-291 then landed first, with no file in common (`comm` over both diffs is empty). The release tip moved, so fn-292 merged it again and ran the whole gate a second time.
+- Cost: about 35 minutes of a 12 GB heavy slot, plus npm test.
+- Would remove it: gate the two specs once together when their diffs are disjoint (one merge of both into a scratch branch, one gate), or let a merge whose files are disjoint from what moved since the last green gate reuse that gate's result.
