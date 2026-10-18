@@ -84,7 +84,7 @@ impl Axis {
     /// blend 0 (fn-199, host 2026-10-07); none for a lateral or the seed.
     /// Where this relay joins its parent, as its girth set it.
     pub fn joined(&self) -> Option<Join> {
-        self.joined
+        self.joined.as_deref().copied()
     }
 
     pub(crate) fn carried_on(&self) -> Option<(usize, f64)> {
@@ -153,8 +153,9 @@ pub struct Axis {
     /// (`geometry::phase`).
     pub(crate) phase: f32,
     /// A relay's join on its parent, where its girth set it; none on any
-    /// other axis.
-    pub(crate) joined: Option<Join>,
+    /// other axis. Boxed, for a join stands on few axes
+    /// (`an_axis_and_its_draws_stay_compact`).
+    pub(crate) joined: Option<Box<Join>>,
 }
 
 /// Where a relay joins its parent and the parent's girth there (fn-244

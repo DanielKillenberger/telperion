@@ -136,10 +136,7 @@ impl Grower<'_> {
                 at: i,
                 bud: Bud {
                     axis: self.axes[i].clone(),
-                    draws: Draws {
-                        birth: self.draws[i].birth,
-                        ..Draws::default()
-                    },
+                    draws: Draws::made(self.draws[i].birth),
                     wake: None,
                 },
             })

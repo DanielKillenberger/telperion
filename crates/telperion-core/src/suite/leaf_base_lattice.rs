@@ -55,13 +55,14 @@ fn bases(
     segments: usize,
     unroll: impl Fn(Vec3) -> (f64, f64, f64),
 ) -> Vec<[Ring; 2]> {
-    let vertex = |i: usize| {
-        let p = &wood.positions[i * 3..i * 3 + 3];
-        Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)
-    };
     let mut out = Vec::new();
     for run in &wood.run_table {
-        let span = &wood.indices[run.first_index as usize..][..run.index_count as usize];
+        let (chunk, run) = (&wood.chunks[run.chunk as usize], run.span);
+        let vertex = |i: usize| {
+            let p = &chunk.positions[i * 3..i * 3 + 3];
+            Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)
+        };
+        let span = &chunk.indices[run.first_index as usize..][..run.index_count as usize];
         let low = *span.iter().min().unwrap() as usize;
         let high = *span.iter().max().unwrap() as usize;
         let rings = (high + 1 - low - 2) / segments;

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T08:06:30.719368Z",
+  "depends_on": [
+    "fn-291-the-cpu-entry-builds-every-shipped.2"
+  ],
+  "id": "fn-291-the-cpu-entry-builds-every-shipped.5",
+  "priority": null,
+  "spec": "fn-291-the-cpu-entry-builds-every-shipped",
+  "spec_path": ".flow/tasks/fn-291-the-cpu-entry-builds-every-shipped.5.md",
+  "status": "done",
+  "title": "R4 core (R2d): the wood written as chunks of at most 65,536 vertices with u16 indices, values unchanged",
+  "updated_at": "2026-10-16T08:06:30.719368Z"
+}

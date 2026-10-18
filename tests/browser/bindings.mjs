@@ -44,6 +44,19 @@ try {
     // The one decoder in the browser source, so this probe reads a leaf the
     // way a consumer does rather than keeping a second copy of the layout.
     const { leafWords, leafTransform } = await import('/src/browser/leaf.ts');
+    const { decodeNormals } = await import('/src/browser/wood.ts');
+    // The wood in chunks: none past 65,536 vertices, every index inside its
+    // own chunk, and two oct components a vertex decoding to unit normals.
+    const chunked = (surface, message) => {
+      check(surface.chunks.length > 0, message + ': chunks');
+      for (const c of surface.chunks) {
+        const vertices = c.positions.length / 3;
+        check(vertices <= 65536 && c.indices instanceof Uint16Array && c.normals instanceof Int16Array, message + ': chunk layout');
+        check(c.normals.length === vertices * 2 && c.indices.every(i => i < vertices), message + ': chunk indices');
+        const n = decodeNormals(c.normals);
+        for (let i = 0; i < n.length; i += 3) check(Math.abs(Math.hypot(n[i], n[i + 1], n[i + 2]) - 1) < 1e-5, message + ': unit normals');
+      }
+    };
     await rejects(() => TreeEngine.create(new Response('', { status: 503 })), 'load failure');
     await rejects(() => TreeEngine.create(new Uint8Array([0, 1, 2])), 'malformed module');
     const engine = await TreeEngine.create();
@@ -123,7 +136,7 @@ try {
        and a positive pull with none to pull toward is refused. */
     const empty = structuredClone(family); empty.skeleton.growth.maxNodes = 0;
     const result = engine.build(empty, { surface: true, foliage: true });
-    check(result.surface.positions.length === 0 && result.surface.bounds === null && result.foliage.leaves.length === 0, 'valid empty outputs');
+    check(result.surface.chunks.length === 0 && result.surface.bounds === null && result.foliage.leaves.length === 0, 'valid empty outputs');
     check(PRESETS.length === 6 && new Set(PRESETS.map(p => p.id)).size === 6, 'complete identity catalogue');
     await rejects(() => presetById('european-beech'), 'the beech in work is not listed');
     await rejects(() => engine.build('european-beech', {}), 'the beech in work is not built by name');
@@ -197,7 +210,8 @@ try {
         await rejects(() => engine.build(bad, { foliage: true }), id + ' refuses ' + named, named);
       }
       const woodOnly = engine.build(specimen, { surface: true });
-      check(woodOnly.surface.positions.length > 0 && !woodOnly.foliage && !woodOnly.structure && !woodOnly.field && !woodOnly.diagnostics.stages.foliage && woodOnly.diagnostics.biologicalUnits === null, id + ' independent wood surface');
+      chunked(woodOnly.surface, id + ' wood');
+      check(!woodOnly.foliage && !woodOnly.structure && !woodOnly.field && !woodOnly.diagnostics.stages.foliage && woodOnly.diagnostics.biologicalUnits === null, id + ' independent wood surface');
       const fieldOnly = engine.build(specimen, { field: true });
       check(!fieldOnly.foliage && fieldOnly.diagnostics.foliageAnatomy === null && fieldOnly.diagnostics.biologicalUnits === null && fieldOnly.diagnostics.leavesPlaced === 0, id + ' field-only places no leaf and reports no units');
       check(fieldOnly.diagnostics.stages.plan && !fieldOnly.diagnostics.stages.placement && fieldOnly.diagnostics.leavesPlanned >= d.instances, id + ' field-only plan counts at least the retained leaves');
@@ -225,7 +239,7 @@ try {
       new Uint8Array(e.memory.buffer, e.request_ptr(), bytes.length).set(bytes); return e.build();
     }
     for (const value of ['{', 'null', '{}', '{"family":{},"outputs":{"surface":1}}', '{"family":{"skeleton":{"seed":-1}},"outputs":{}}', '{"family":{"unknown":1},"outputs":{}}', '{"family":{"skeleton":{"envelope":{"height":1e999}}},"outputs":{}}'])
-      check(raw(value) === 1 && e.buffer_len(0) === 0, 'malformed request clears stale buffers');
+      check(raw(value) === 1 && e.chunk_len(0, 0) === 0, 'malformed request clears stale buffers');
     check(e.catalogue() === 0, 'native catalogue');
     const catalogue = JSON.parse(new TextDecoder().decode(new Uint8Array(e.memory.buffer, e.metadata_ptr(), e.metadata_len())));
     for (const entry of [...catalogue].reverse()) {
@@ -235,10 +249,15 @@ try {
     }
     check(e.preset(999) === 1, 'unknown ABI identity');
     check(e.request_alloc(65537) === 1 && e.build() === 1, 'oversized request leaves no prior request');
-    check(raw('{"family":{"skeleton":{"growth":{"maxNodes":0}}},"outputs":{"surface":true}}') === 0 && e.buffer_len(0) === 0, 'native empty recovery');
+    check(raw('{"family":{"skeleton":{"growth":{"maxNodes":0}}},"outputs":{"surface":true}}') === 0 && e.chunk_len(0, 0) === 0, 'native empty recovery');
+    check(raw(JSON.stringify({ family, outputs: { surface: true } })) === 0, 'native wood build');
+    const chunks = JSON.parse(new TextDecoder().decode(new Uint8Array(e.memory.buffer, e.metadata_ptr(), e.metadata_len()))).surfaceChunks;
+    check(chunks > 0 && [0, 1, 2].every(f => e.chunk_len(chunks - 1, f) > 0), 'native chunks counted in the metadata');
+    check([0, 1, 2].every(f => e.chunk_len(chunks, f) === 0) && e.chunk_len(0, 3) === 0, 'nothing past the last chunk or field');
+    check([0, 1, 2, 14].every(slot => e.buffer_len(slot) === 0), 'the flat wood slots are gone');
     check(raw(JSON.stringify({ family, outputs: { field: true } })) === 0, 'native field-only build');
     check([9,10,11,12,13,21,22,23,24].every(slot => e.buffer_len(slot) === 0), 'ordinary field has no snapshot copies');
-    check([0,1,2,3,4,5].every(slot => e.buffer_len(slot) === 0), 'field-only allocates no render buffers');
+    check([0,1,2].every(f => e.chunk_len(0, f) === 0) && [3,4,5].every(slot => e.buffer_len(slot) === 0), 'field-only allocates no render buffers');
     const revision = JSON.parse(new TextDecoder().decode(new Uint8Array(e.memory.buffer,e.metadata_ptr(),e.metadata_len()))).revision;
     check(e.field_snapshot(revision) === 0 && e.buffer_len(9) > 0 && e.buffer_len(21) > 0 && e.buffer_len(12) === 0, 'native explicit snapshot');
     e.field_snapshot_release(); e.field_snapshot_release();

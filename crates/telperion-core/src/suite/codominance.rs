@@ -77,7 +77,12 @@ fn at_rate_zero_no_table_forks_whatever_the_other_rows_say() {
         let bytes = |f: &Family| {
             let m = specimens::mesh(f);
             (
-                fnv(m.wood.positions.iter().flat_map(|v| v.to_le_bytes())),
+                fnv(m
+                    .wood
+                    .flattened()
+                    .positions
+                    .iter()
+                    .flat_map(|v| v.to_le_bytes())),
                 fnv(m
                     .foliage
                     .instances

@@ -1,0 +1,12 @@
+[package]
+name = "flatdigest"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+telperion-core = { path = "/home/daniel/Projects/telperion/.worktrees/cpuentry/crates/telperion-core", features = ["json"] }
+
+[profile.release]
+codegen-units = 16
+
+[workspace]

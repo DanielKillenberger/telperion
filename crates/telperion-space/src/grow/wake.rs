@@ -105,10 +105,7 @@ impl Shoot<'_, '_> {
             share: 1.0 - sleeper.sleep,
         });
         let (first, _) = self.species().lived(sleeper.pa).expect("aged");
-        let draws = Draws {
-            birth: sleeper.made(carried, reach),
-            ..Draws::default()
-        };
+        let draws = Draws::made(sleeper.made(carried, reach));
         let key = Key(sleeper.key);
         self.push(
             key.onto(first),
@@ -191,10 +188,7 @@ impl Shoot<'_, '_> {
         (cycle, origin): (u32, Origin),
         made: [f64; 2],
     ) {
-        let draws = Draws {
-            birth: made,
-            ..Draws::default()
-        };
+        let draws = Draws::made(made);
         let lifespan = self.species().states[pa].life();
         self.push(key, pa, cycle, origin, (lifespan, root.0, draws));
         self.made.last_mut().unwrap().axis.apex_end = Some(cycle);

@@ -1,7 +1,13 @@
 //! The one engine-neutral mesh call: every preset builds, the reported counts
 //! describe the buffers a renderer uploads, and the bounds enclose both parts.
 use super::specimens;
-use telperion_core::{math::Vec3, mesh, presets::Preset, surface::Bounds, Error};
+use telperion_core::{
+    math::Vec3,
+    mesh,
+    presets::Preset,
+    surface::{Bounds, CHUNK_VERTICES},
+    Error,
+};
 
 const IDENTITIES: [&str; 7] = [
     "ordinary",
@@ -33,53 +39,56 @@ fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
             Some(_) => mesh::build(&family).expect("the preset builds"),
             None => specimens::mesh(&family),
         };
-        let mut end = 0;
+        let mut ends = vec![0; m.wood.chunks.len()];
         let mut radius = f64::INFINITY;
         // Widest first on each side of the fine roots' seam: the structure
         // above the cut, then the fine roots (fn-212 D5), so the order
-        // starts over at most once.
+        // starts over at most once. The spans tile each chunk's indices.
         let mut sides = 1;
         assert_eq!(m.wood.run_table.len(), m.wood.runs);
         for (i, run) in m.wood.run_table.iter().enumerate() {
-            assert_eq!(run.first_index, end, "{id}: run {i}");
+            let (end, span) = (&mut ends[run.chunk as usize], run.span);
+            assert_eq!(span.first_index, *end, "{id}: run {i}");
             assert!(
-                run.index_count > 0 && run.index_count % 3 == 0,
+                span.index_count > 0 && span.index_count % 3 == 0,
                 "{id}: run {i}"
             );
-            if run.largest_radius > radius {
+            if span.largest_radius > radius {
                 sides += 1;
             }
             assert!(
-                run.largest_radius.is_finite() && run.largest_radius >= 0.0 && sides <= 2,
+                span.largest_radius.is_finite() && span.largest_radius >= 0.0 && sides <= 2,
                 "{id}: run {i}"
             );
-            end += run.index_count;
-            radius = run.largest_radius;
+            *end += span.index_count;
+            radius = span.largest_radius;
         }
-        assert_eq!(end as usize, m.wood.indices.len());
-        assert_eq!(m.wood_vertices() * 3, m.wood.positions.len(), "{id}");
-        assert_eq!(m.wood.normals.len(), m.wood.positions.len(), "{id}");
-        assert_eq!(m.wood.coords.len(), m.wood_vertices() * 2, "{id}");
         assert_eq!(
             m.foliage.element.coords.len(),
             m.foliage.element.positions.len() * 2,
             "{id}"
         );
-        assert_eq!(m.wood_triangles() * 3, m.wood.indices.len(), "{id}");
         assert_eq!(m.foliage_instances(), m.foliage.instances.len(), "{id}");
         assert!(m.wood_triangles() > 0 && m.foliage_instances() > 0, "{id}");
-        assert!(
-            m.wood
-                .indices
-                .iter()
-                .all(|&i| (i as usize) < m.wood_vertices()),
-            "{id}: wood index past the vertex buffer"
-        );
-        for p in m.wood.positions.as_chunks::<3>().0 {
+        for (chunk, &end) in m.wood.chunks.iter().zip(&ends) {
+            let vertices = chunk.positions.len() / 3;
             assert!(
-                contains(m.bounds, Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)),
-                "{id}: wood vertex outside the mesh bounds"
+                vertices <= CHUNK_VERTICES,
+                "{id}: a chunk of {vertices} vertices"
             );
+            assert_eq!(end as usize, chunk.indices.len(), "{id}");
+            assert_eq!(chunk.normals.len(), vertices * 2, "{id}");
+            assert_eq!(chunk.coords.len(), vertices * 2, "{id}");
+            assert!(
+                chunk.indices.iter().all(|&i| (i as usize) < vertices),
+                "{id}: wood index past its chunk"
+            );
+            for p in chunk.positions.as_chunks::<3>().0 {
+                assert!(
+                    contains(m.bounds, Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)),
+                    "{id}: wood vertex outside the mesh bounds"
+                );
+            }
         }
         let leaves = m
             .foliage

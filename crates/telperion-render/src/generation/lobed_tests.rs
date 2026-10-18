@@ -28,7 +28,7 @@ fn apart(g: &Generator, x: &Expansion) -> (f64, f64, usize) {
     let wood = wood.unwrap().expect("the device's ring positions");
     let raw = io::read(&g.gpu, &wood.positions, n * 12).unwrap();
     let gpu: &[f32] = bytemuck::cast_slice(&raw);
-    let cpu = x.wood().unwrap().positions;
+    let cpu = x.wood().unwrap().flattened().positions;
     assert_eq!(gpu.len(), cpu.len(), "the vertex layouts");
     let (mut most, mut squared) = (0.0f64, 0.0f64);
     for (a, b) in gpu.chunks(3).zip(cpu.chunks(3)) {

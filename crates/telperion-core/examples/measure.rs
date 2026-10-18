@@ -57,9 +57,9 @@ fn main() {
             "{}",
             serde_json::json!({
                 "subject": name, "sample": sample, "fieldOnly": field_only,
-                "nodes": tree.nodes.len(), "vertices": mesh.map_or(0, |m| m.positions.len()/3),
-                "triangles": mesh.map_or(0, |m| m.indices.len()/3), "leaves": kept,
-                "woodBytes": mesh.map_or(0, |m| (m.positions.len()+m.normals.len()+m.indices.len())*4),
+                "nodes": tree.nodes.len(), "vertices": mesh.map_or(0, |m| m.vertices()),
+                "triangles": mesh.map_or(0, |m| m.triangles()), "leaves": kept,
+                "woodBytes": mesh.map_or(0, |m| m.vertices()*24+m.triangles()*6),
                 "matrixBytes": kept*std::mem::size_of::<foliage::Leaf>(),
                 "planned": o.plan.as_ref().map_or(0, |p| p.total),
                 "growthMs": s.skeleton_ms, "surfaceMs": s.rings_ms + s.wood_ms, "planMs": s.plan_ms,

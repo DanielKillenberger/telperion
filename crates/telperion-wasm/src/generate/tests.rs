@@ -197,12 +197,29 @@ fn every_shipped_preset_builds_through_the_main_entry() {
             );
             continue;
         }
-        let (_, meta) = generate(request)
+        let (out, meta) = generate(request)
             .unwrap_or_else(|e| panic!("entry telperion (main Wasm): preset {id}: {e}"));
         let leaves = meta["instances"].as_u64().unwrap_or(0);
         assert!(
             leaves > 0,
             "entry telperion (main Wasm): preset {id}: no leaves"
         );
+        chunks_read_whole(&out, &meta, id);
     }
+}
+
+/// The metadata counts the wood's chunks and the accessor hands each one's
+/// positions, oct normals and indices whole, and nothing past the last.
+fn chunks_read_whole(out: &Output, meta: &Value, id: &str) {
+    let count = meta["surfaceChunks"].as_u64().unwrap() as u32;
+    assert!(count > 0, "{id}: no wood chunk");
+    for chunk in 0..count {
+        let [positions, normals, indices] = [0, 1, 2].map(|f| crate::chunk_field(out, chunk, f).1);
+        let vertices = positions / 3;
+        assert!(vertices <= telperion_core::surface::CHUNK_VERTICES, "{id}");
+        assert_eq!(normals, vertices * 2, "{id}");
+        assert!(indices > 0 && indices % 3 == 0, "{id}");
+    }
+    assert_eq!(crate::chunk_field(out, count, 0).1, 0, "{id}");
+    assert_eq!(crate::chunk_field(out, 0, 3).1, 0, "{id}");
 }

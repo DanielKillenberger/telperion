@@ -383,10 +383,7 @@ impl<'a> Grower<'a> {
             horizon: vec![f64::NEG_INFINITY],
             marked: Vec::new(),
             axes: vec![bud(root.onto(pa), pa, 0, Origin::Seed)],
-            draws: vec![Draws {
-                birth: [q(reach), ONE].map(real),
-                ..Draws::default()
-            }],
+            draws: vec![Draws::made([q(reach), ONE].map(real))],
             live: vec![Apex {
                 axis: 0,
                 spent: 0.0,

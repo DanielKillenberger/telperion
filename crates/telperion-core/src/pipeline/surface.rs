@@ -9,12 +9,17 @@ mod angular;
 #[cfg(feature = "geometry")]
 mod attachment;
 #[cfg(feature = "geometry")]
+mod budget;
+#[cfg(feature = "geometry")]
 mod build;
+#[cfg(feature = "geometry")]
+mod chunks;
 #[cfg(feature = "geometry")]
 #[doc(hidden)]
 pub mod compact;
 #[cfg(feature = "geometry")]
 mod curve;
+pub mod encode;
 #[cfg(feature = "geometry")]
 mod frames;
 #[cfg(feature = "geometry")]
@@ -42,6 +47,8 @@ use build::*;
 #[cfg(feature = "geometry")]
 pub(crate) use build::{faces, segments, Faces};
 #[cfg(feature = "geometry")]
+use chunks::{Layout, Piece};
+#[cfg(feature = "geometry")]
 pub(crate) use curve::{curve, rows as curve_rows, traced};
 #[cfg(feature = "geometry")]
 pub use curve::{
@@ -61,10 +68,15 @@ use {
     paths::paths,
     samples::sample_path,
 };
+/// A wood buffer the allocator refused, named with its remedy.
+const OUT_OF_MEMORY: Error = Error::ResourceLimit(
+    "the wood ran out of memory while its buffers were reserved; build it through the \
+     device entry or with fewer radialSegments",
+);
 fn reserved<T>(n: usize) -> Result<Vec<T>> {
     let mut out = Vec::new();
     out.try_reserve_exact(n)
-        .map_err(|_| Error::ResourceLimit("surface allocation"))?;
+        .map_err(|_| OUT_OF_MEMORY)?;
     Ok(out)
 }
 fn filled<T: Clone>(n: usize, value: T) -> Result<Vec<T>> {
@@ -72,8 +84,11 @@ fn filled<T: Clone>(n: usize, value: T) -> Result<Vec<T>> {
     out.resize(n, value);
     Ok(out)
 }
+/// The most vertices a wood chunk holds, so every index into it fits a `u16`.
+pub const CHUNK_VERTICES: usize = 1 << 16;
+
 /// One complete surface run, in descending order of its largest sample radius.
-/// The spans tile the wood index buffer; a caster can draw a single prefix.
+/// The spans tile an index buffer; a caster can draw a single prefix.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SurfaceRun {
     pub first_index: u32,
@@ -81,23 +96,34 @@ pub struct SurfaceRun {
     pub largest_radius: f64,
 }
 
+/// A run of the wood, or one piece of a run too long for a chunk: the chunk
+/// it is drawn from and its span of that chunk's indices.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct WoodRun {
+    pub chunk: u32,
+    pub span: SurfaceRun,
+}
+
 /// The elements a tree's wood buffers hold once it is swept. `build` reserves
-/// by it and a prediction sizes the specimen by it, so the ring arithmetic is
-/// written once and read twice.
+/// by the same layout and a prediction sizes the specimen by it, so the ring
+/// arithmetic is written once and read twice.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct WoodExtent {
-    /// Floats in `positions`, and the same count again in `normals`.
+    /// Floats in every chunk's `positions`: three a vertex.
     pub positions: usize,
-    /// Floats in `coords`: two a vertex.
+    /// Components in every chunk's `coords`, two a vertex, and the same
+    /// count again in `normals`.
     pub coords: usize,
-    /// Indices in `indices`.
+    /// Indices in every chunk's `indices`.
     pub indices: usize,
+    /// The chunks the wood is written in.
+    pub chunks: usize,
 }
 impl WoodExtent {
     /// Bytes the four buffers keep, each count times the size of the type
-    /// that holds it. `positions` is counted twice: `normals` is its equal.
+    /// that holds it. `coords` is counted twice: `normals` is its equal.
     pub fn bytes(&self) -> usize {
-        (self.positions * 2 + self.coords) * size_of::<f32>() + self.indices * size_of::<u32>()
+        self.positions * size_of::<f32>() + (self.coords * 2 + self.indices) * size_of::<u16>()
     }
 }
 
@@ -246,21 +272,76 @@ pub struct Bounds {
     pub min: Vec3,
     pub max: Vec3,
 }
+/// One chunk of the wood: at most `CHUNK_VERTICES` vertices, each buffer
+/// reserved on its own at its exact size, and indices local to the chunk.
+#[derive(Debug, Default, PartialEq)]
+pub struct SurfaceChunk {
+    pub positions: Vec<f32>,
+    /// Two snorm16 a vertex: its unit normal folded onto the octahedron
+    /// (`encode::unnormal`).
+    pub normals: Vec<i16>,
+    /// Two unorm16 a vertex: metres along the branch from the root over the
+    /// mesh's `along`, and the angle around it over a turn
+    /// (`encode::uncoord`). Bark is drawn along them; no geometry here reads
+    /// them back.
+    pub coords: Vec<u16>,
+    pub indices: Vec<u16>,
+}
 #[derive(Debug, Default, PartialEq)]
 pub struct SurfaceMesh {
-    pub positions: Vec<f32>,
-    pub indices: Vec<u32>,
-    pub normals: Vec<f32>,
-    /// Two floats per vertex: metres along the branch from the root, and the
-    /// angle around it in radians. Bark is drawn along them; no geometry here
-    /// reads them back.
-    pub coords: Vec<f32>,
+    /// The runs in table order, each chunk filled until the next run does not
+    /// fit; a run longer than a chunk is split across chunks.
+    pub chunks: Vec<SurfaceChunk>,
     pub bounds: Option<Bounds>,
+    /// The longest distance along the wood from the root, in metres: the
+    /// range every chunk's first coord is quantised over.
+    pub along: f64,
     pub runs: usize,
-    pub run_table: Vec<SurfaceRun>,
+    pub run_table: Vec<WoodRun>,
     /// Triangles dropped because their float32 corners span no area; each
-    /// run's span in the index buffer already leaves them out.
+    /// run's span in its chunk already leaves them out.
     pub dropped: usize,
+}
+impl SurfaceMesh {
+    /// Vertices over every chunk.
+    pub fn vertices(&self) -> usize {
+        self.chunks.iter().map(|c| c.positions.len() / 3).sum()
+    }
+    /// Triangles over every chunk.
+    pub fn triangles(&self) -> usize {
+        self.chunks.iter().map(|c| c.indices.len() / 3).sum()
+    }
+    /// The chunks laid end to end, indices made absolute and normals and
+    /// coords decoded to floats: the flat buffers the chunks exist to avoid,
+    /// for tests and evidence tooling only.
+    #[doc(hidden)]
+    pub fn flattened(&self) -> FlatWood {
+        let mut flat = FlatWood::default();
+        for chunk in &self.chunks {
+            let base = (flat.positions.len() / 3) as u32;
+            flat.indices
+                .extend(chunk.indices.iter().map(|&i| base + u32::from(i)));
+            flat.positions.extend(&chunk.positions);
+            for &n in chunk.normals.as_chunks::<2>().0 {
+                let n = encode::unnormal(n);
+                flat.normals.extend([n.x as f32, n.y as f32, n.z as f32]);
+            }
+            for &c in chunk.coords.as_chunks::<2>().0 {
+                flat.coords
+                    .extend(encode::uncoord(c, self.along).map(|v| v as f32));
+            }
+        }
+        flat
+    }
+}
+/// The wood as one buffer a field, indices absolute (`SurfaceMesh::flattened`).
+#[doc(hidden)]
+#[derive(Debug, Default, PartialEq)]
+pub struct FlatWood {
+    pub positions: Vec<f32>,
+    pub normals: Vec<f32>,
+    pub coords: Vec<f32>,
+    pub indices: Vec<u32>,
 }
 #[cfg(all(test, feature = "geometry"))]
 mod fork_tests;
@@ -268,10 +349,10 @@ mod fork_tests;
 #[cfg(test)]
 mod tests {
     #[test]
-    fn allocation_failure_is_explicit() {
-        assert!(matches!(
-            super::reserved::<f32>(usize::MAX),
-            Err(crate::Error::ResourceLimit(_))
-        ));
+    fn allocation_failure_is_named_with_its_remedy() {
+        let refused = super::reserved::<f32>(usize::MAX).unwrap_err();
+        assert_eq!(refused, super::OUT_OF_MEMORY);
+        let said = refused.to_string();
+        assert!(said.contains("the wood ran out of memory") && said.contains("radialSegments"));
     }
 }

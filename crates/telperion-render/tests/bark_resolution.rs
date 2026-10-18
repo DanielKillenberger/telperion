@@ -175,7 +175,11 @@ fn edge_mask(wood: &telperion_core::surface::SurfaceMesh, camera: &Camera) -> Ve
     };
     let mut depth = vec![f64::INFINITY; 800 * 500];
     let mut incidence = vec![1.0; 800 * 500];
-    let run = &wood.run_table[0];
+    // The widest run opens the first chunk, so its span is the flat one.
+    let run = wood.run_table[0];
+    assert_eq!(run.chunk, 0);
+    let run = run.span;
+    let wood = wood.flattened();
     for (triangle_index, triangle) in wood.indices.as_chunks::<3>().0.iter().enumerate() {
         let positions = triangle
             .iter()
