@@ -1,6 +1,6 @@
-use super::rings::Scratch;
+use super::rings::{written, Coords, Scratch};
 use super::*;
-use std::{mem::size_of, thread};
+use std::{mem::size_of, ops::Range, thread};
 const MAX_WORKERS: usize = 8;
 const STACK: usize = 64 * 1024;
 const WORKER_ENVELOPE: usize = STACK + 4096 + 64 * 1024;
@@ -18,10 +18,11 @@ fn envelope(
     runs: usize,
     workers: usize,
 ) -> bool {
-    let output = vertices as u128 * 32 + indices as u128 * 4 + runs as u128 * 16;
+    let table = size_of::<WoodRun>() as u128;
+    let output = vertices as u128 * 20 + indices as u128 * 2 + runs as u128 * table;
     let serial = output + prep as u128 + order as u128 + scratch as u128 + angular as u128;
-    let descriptors = runs as u128 * size_of::<SurfaceRun>() as u128;
-    let a = vertices as u128 * 20
+    let descriptors = runs as u128 * table;
+    let a = vertices as u128 * 16
         + prep as u128
         + angular as u128
         + descriptors
@@ -37,9 +38,10 @@ pub(super) fn admitted(
     at: Swept,
     ordered: &Vec<(usize, f64)>,
     longest: usize,
-    vertices: usize,
-    indices: usize,
+    layout: &Layout,
 ) -> Option<usize> {
+    let extent = layout.extent(at.segments());
+    let vertices = extent.positions / 3;
     let Swept {
         paths,
         distance,
@@ -56,40 +58,50 @@ pub(super) fn admitted(
                 + paths.forks.capacity()
                 + distance.len() * 8,
             ordered.capacity() * size_of::<(usize, f64)>(),
-            // A worker's sweep scratch, and one run's normals in the mesh step.
+            // A worker's sweep scratch, and a split run's points and normals
+            // gathered whole in the mesh step.
             longest * (size_of::<Sample>() + size_of::<(Vec3, Vec3)>() + size_of::<Vec3>())
-                + (longest * angular.len() + 2) * 3 * size_of::<f32>(),
+                + (longest * angular.len() + 2) * 6 * size_of::<f32>(),
             size_of_val(angular),
             vertices,
-            indices,
-            paths.runs.len(),
+            extent.indices,
+            layout.pieces.len(),
             count,
         ))
     .then_some(count)
 }
 
-/// Contiguous run groups of about equal vertices, one a worker: each
-/// group's runs, its first vertex and its vertex count. Contiguous groups
-/// keep the final buffers disjoint and preserve their order.
-fn groups(
-    runs: usize,
-    vertices: impl Fn(usize) -> usize,
-    total: usize,
-    count: usize,
-) -> impl Iterator<Item = (std::ops::Range<usize>, usize, usize)> {
-    let (mut at, mut end) = (0, 0);
+/// Contiguous groups of whole chunks of about equal vertices, one a
+/// worker, each cut where a chunk starts with a run's first piece so no
+/// split run is shared: each group's pieces. Contiguous groups keep the
+/// chunks in order.
+fn groups(layout: &Layout, count: usize) -> impl Iterator<Item = Range<usize>> + '_ {
+    let pieces = &layout.pieces;
+    let total = layout.chunks.iter().sum::<usize>();
+    // The pieces from `at` to the next chunk a run starts, and their vertices.
+    let unit = move |at: usize| {
+        let opens = |p: &Piece| p.base == 0 && p.lead;
+        let next = pieces[at + 1..].iter().position(opens);
+        let end = next.map_or(pieces.len(), |n| at + 1 + n);
+        let chunks = pieces[at].chunk..pieces[end - 1].chunk + 1;
+        (end, layout.chunks[chunks].iter().sum::<usize>())
+    };
+    let (mut at, mut done) = (0, 0);
     (1..=count).map(move |k| {
-        let (start, first) = (at, end);
+        let start = at;
         let target = if k == count {
             usize::MAX
         } else {
             total * k / count
         };
-        while at < runs && end + vertices(at) <= target {
-            end += vertices(at);
-            at += 1;
+        while at < pieces.len() {
+            let (end, vertices) = unit(at);
+            if done + vertices > target {
+                break;
+            }
+            (at, done) = (end, done + vertices);
         }
-        (start..at, first, end - first)
+        start..at
     })
 }
 
@@ -127,142 +139,107 @@ where
 fn failed() -> Error {
     Error::ResourceLimit("surface parallel retry")
 }
+/// Every worker's answer in order, each joined whatever another returned.
 fn join_all<T>(
     handles: &mut [Option<thread::ScopedJoinHandle<'_, Result<T>>>; MAX_WORKERS],
-) -> Result<()> {
+) -> Result<Vec<T>> {
+    let mut out = Vec::new();
     let mut valid = true;
     for handle in handles {
         if let Some(handle) = handle.take() {
-            valid &= matches!(handle.join(), Ok(Ok(_)));
+            match handle.join() {
+                Ok(Ok(value)) if valid => out.push(value),
+                _ => valid = false,
+            }
         }
     }
     if valid {
-        Ok(())
+        Ok(out)
     } else {
         Err(failed())
     }
 }
 
-/// Phase 1, the ring step for a drawn wood: each worker sweeps its runs'
-/// rings, ranked as `ordered`, into its part of the positions and coords.
+/// Each group of `layout` on a worker of its own, their answers in order.
+fn on_workers<'a, T: Send>(
+    layout: &'a Layout,
+    count: usize,
+    work: impl Fn(&'a [Piece]) -> Result<T> + Sync,
+) -> Result<Vec<T>> {
+    thread::scope(|scope| -> Result<Vec<T>> {
+        let mut handles = std::array::from_fn(|_| None);
+        let mut spawn_ok = true;
+        for (k, group) in groups(layout, count).enumerate() {
+            let pieces = &layout.pieces[group];
+            let work = &work;
+            match spawn(scope, move || work(pieces)) {
+                Ok(handle) => handles[k] = Some(handle),
+                Err(_) => {
+                    spawn_ok = false;
+                    break;
+                }
+            }
+        }
+        let joined = join_all(&mut handles);
+        if !spawn_ok {
+            return Err(failed());
+        }
+        joined
+    })
+}
+
+/// Phase 1, the ring step for a drawn wood: each worker sweeps its chunks'
+/// runs, ranked as `ordered`, into chunks of its own.
 pub(super) fn rings(
     at: Swept,
     ordered: &[(usize, f64)],
     out: &mut Rings,
-    sweep: Sweep,
     longest: usize,
     count: usize,
 ) -> Result<()> {
     if count < 2 {
         return Err(failed());
     }
-    let vertices = |i: usize| at.rings(ordered[i].0) * out.segments + 2;
-    let total = (0..ordered.len()).map(vertices).sum::<usize>();
-    if sweep.edges {
-        let mut base = 0;
-        for (i, &(path_id, _)) in ordered.iter().enumerate() {
-            at.record(&mut out.edges, path_id, base);
-            base += vertices(i);
-        }
-    }
-    let mut positions = Unfilled::new(total * 3)?;
-    let mut coords = Unfilled::new(total * 2)?;
-    thread::scope(|scope| -> Result<()> {
-        let mut handles = std::array::from_fn(|_| None);
-        let (mut p, mut c) = (positions.parts(), coords.parts());
-        let mut spawn_ok = true;
-        for (k, (group, _, n)) in groups(ordered.len(), vertices, total, count).enumerate() {
-            let (mut out_p, mut out_c) = (p.take(n * 3)?, c.take(n * 2)?);
-            let group = &ordered[group];
-            let result = spawn(scope, move || -> Result<()> {
-                let mut scratch = Scratch::new(longest)?;
-                for &(path_id, _) in group {
-                    let (samples, frame) = scratch.sweep(at, path_id);
-                    let shape = at.section(path_id);
-                    emit_run(samples, frame, at.ring(), shape, true, |xyz, coord| {
-                        out_p.extend(&xyz);
-                        out_c.extend(&coord);
-                    })?;
-                }
-                Ok(())
-            });
-            match result {
-                Ok(handle) => handles[k] = Some(handle),
-                Err(_) => {
-                    spawn_ok = false;
-                    break;
-                }
-            }
-        }
-        let joined = join_all(&mut handles);
-        if !spawn_ok {
-            return Err(failed());
-        }
-        joined
+    let (layout, along) = (&out.layout, out.along);
+    let parts = on_workers(layout, count, |pieces| {
+        let mut scratch = Scratch::new(longest)?;
+        written(
+            at,
+            ordered,
+            layout,
+            pieces,
+            Coords::Bark(along),
+            &mut scratch,
+        )
     })?;
-    out.positions = positions.filled()?;
-    out.coords = coords.filled()?;
+    let mut chunks = reserved(layout.chunks.len())?;
+    chunks.extend(parts.into_iter().flatten());
+    out.chunks = chunks;
     out.workers = Some(count);
     Ok(())
 }
 
-/// Phase 2, the mesh step: each worker writes its runs' indices and normals
-/// into its part. A dropped triangle moves every later run's indices, so it
-/// fails the phase and the serial step takes the rings over.
+/// Phase 2, the mesh step: each worker writes its chunks' indices and
+/// normals. A dropped triangle moves its piece's span, so it fails the
+/// phase and the serial step takes the rings over.
 pub(super) fn faces(rings: &Rings, resweep: &Resweep, count: usize) -> Result<Faces> {
-    let total = rings.positions.len() / 3;
-    let runs = rings.runs.len();
-    let vertices = |i: usize| rings.vertices(&rings.runs[i]);
-    // The most vertices a run has: the size of a worker's normals scratch.
-    let widest = (0..runs).map(vertices).max().unwrap_or(0);
-    let mut normals = Unfilled::new(total * 3)?;
-    let mut indices = Unfilled::new((total - runs * 2) * 6)?;
-    thread::scope(|scope| -> Result<()> {
-        let mut handles = std::array::from_fn(|_| None);
-        let (mut n, mut i) = (normals.parts(), indices.parts());
-        let mut spawn_ok = true;
-        for (k, (group, first, nv)) in groups(runs, vertices, total, count).enumerate() {
-            let ni = (nv - group.len() * 2) * 6;
-            let (mut out_n, mut out_i) = (n.take(nv * 3)?, i.take(ni)?);
-            let result = spawn(scope, move || -> Result<()> {
-                let mut scratch = reserved(widest * 3)?;
-                let mut base = first;
-                for run in group {
-                    scratch.clear();
-                    scratch.resize(vertices(run) * 3, 0.0);
-                    let keep = |t: [u32; 3]| out_i.extend(&t);
-                    if shade(rings, run, base, resweep, &mut scratch, keep)? != 0 {
-                        return Err(failed());
-                    }
-                    out_n.extend(&scratch);
-                    base += vertices(run);
-                }
-                Ok(())
-            });
-            match result {
-                Ok(handle) => handles[k] = Some(handle),
-                Err(_) => {
-                    spawn_ok = false;
-                    break;
-                }
-            }
-        }
-        let joined = join_all(&mut handles);
-        if !spawn_ok {
+    let parts = on_workers(&rings.layout, count, |pieces| {
+        let mut spans = reserved(pieces.len())?;
+        let (chunks, dropped) = shaded(rings, resweep, pieces, &mut spans)?;
+        if dropped != 0 {
             return Err(failed());
         }
-        joined
+        Ok(chunks)
     })?;
+    let mut chunks = reserved(rings.layout.chunks.len())?;
+    chunks.extend(parts.into_iter().flatten());
     Ok(Faces {
-        normals: normals.filled()?,
-        indices: indices.filled()?,
+        chunks,
         run_table: None,
-        bounds: Some(bounds(&rings.positions)),
+        bounds: Some(rings.bounds()),
         dropped: 0,
     })
 }
 
-mod unfilled;
-use unfilled::Unfilled;
 #[cfg(test)]
 mod tests;

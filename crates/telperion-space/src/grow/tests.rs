@@ -259,3 +259,21 @@ fn deviation(a: &crate::Structure, b: &crate::Structure, above: f64) -> f64 {
     }
     worst
 }
+
+/// An axis and its draws carry no empty slot a joinless axis or a living
+/// apex would pay for: a relay's join is boxed and `outlived`'s presence
+/// is a flag (fn-291 R5, PROBE.md task 3). 64-bit sizes first, wasm32's
+/// second.
+#[test]
+fn an_axis_and_its_draws_stay_compact() {
+    use std::mem::size_of;
+    let wide = cfg!(target_pointer_width = "64");
+    assert_eq!(
+        size_of::<crate::structure::Axis>(),
+        if wide { 232 } else { 192 }
+    );
+    assert_eq!(
+        size_of::<crate::presence::Draws>(),
+        if wide { 144 } else { 104 }
+    );
+}

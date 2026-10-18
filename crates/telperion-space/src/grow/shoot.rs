@@ -357,10 +357,7 @@ impl<'g, 'a> Shoot<'g, 'a> {
                 spent,
             });
         }
-        let draws = Draws {
-            birth: made,
-            ..Draws::default()
-        };
+        let draws = Draws::made(made);
         self.push(lineage, pa, cycle, origin, (spent, root, draws));
     }
 

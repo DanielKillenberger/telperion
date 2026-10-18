@@ -4,6 +4,8 @@ use telperion_core::{material::MaterialParams, math::Vec3, mesh, surface::Surfac
 use telperion_render::{render, Camera, Renderer, View, STILL_FORMAT};
 
 fn hash(mesh: &SurfaceMesh) -> u64 {
+    // The chunks laid end to end: the hash the flat wood had.
+    let mesh = mesh.flattened();
     mesh.positions
         .iter()
         .chain(&mesh.normals)

@@ -66,7 +66,8 @@ pub mod surface {
     #[cfg(all(test, feature = "geometry"))]
     pub use crate::pipeline::surface::*;
     pub use crate::pipeline::surface::{
-        Bounds, SurfaceMesh, SurfaceParams, SurfaceRun, WoodExtent,
+        Bounds, FlatWood, SurfaceChunk, SurfaceMesh, SurfaceParams, SurfaceRun, WoodExtent,
+        WoodRun, CHUNK_VERTICES,
     };
     #[cfg(feature = "geometry")]
     pub use crate::pipeline::surface::{

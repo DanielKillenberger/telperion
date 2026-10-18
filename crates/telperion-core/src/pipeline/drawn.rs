@@ -156,6 +156,7 @@ pub(super) fn rings(
     let sweep = Sweep {
         drawn: request.wood,
         edges: seats,
+        distances: false,
     };
     let rings = surface::rings(tree, height, params, sweep)?;
     Ok((rings, (request.clock)() - start))

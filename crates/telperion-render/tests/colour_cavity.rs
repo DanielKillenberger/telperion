@@ -18,6 +18,8 @@ fn tree() -> TreeMesh {
 }
 
 fn hash(mesh: &SurfaceMesh) -> u64 {
+    // The chunks laid end to end: the hash the flat wood had.
+    let mesh = mesh.flattened();
     mesh.positions
         .iter()
         .chain(&mesh.normals)
@@ -244,10 +246,9 @@ fn crown_occlusion_darkens_wood_and_leaves_but_not_a_single_leaf_or_clay() {
     );
     assert!(
         tree.wood
-            .positions
-            .as_chunks::<3>()
-            .0
+            .chunks
             .iter()
+            .flat_map(|c| c.positions.as_chunks::<3>().0)
             .filter(|p| {
                 depth(Vec3::new(f64::from(p[0]), f64::from(p[1]), f64::from(p[2]))) > 0.2
             })

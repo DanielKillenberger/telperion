@@ -466,7 +466,7 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
     assert_eq!(&*wood.positions, &positions);
     // The contacts against the reference build's surface: the GPU's ring
     // positions read back, under the CPU's triangles.
-    let reference_wood = x.wood().unwrap();
+    let reference_wood = x.wood().unwrap().flattened();
     let xyz: Vec<f32> = io::read(
         &g.gpu,
         &positions,

@@ -119,7 +119,9 @@ The sweep's rings drawn from the curve alone are the sweep's own, to the bit, fo
 
 ### The renderer's one wood path
 
-The curve is the renderer's only wood (host decision 20). `TreeMesh` carries it beside the reference build's `SurfaceMesh`, `Renderer::submit` uploads it, and nothing else of the wood reaches the device; the CPU mesh stays for tests and for consumers without a GPU. Each frame the renderer surfaces it twice, for the camera and for the sun's map, in one compute pass that the timer's fourth pair stands around (`surfacing_p50_ms`):
+The curve is the renderer's only wood (host decision 20). `TreeMesh` carries it beside the reference build's `SurfaceMesh`, `Renderer::submit` uploads it, and nothing else of the wood reaches the device; the CPU mesh stays for tests and for consumers without a GPU.
+
+The CPU mesh is written in chunks of at most 65,536 vertices (`SurfaceChunk`, fn-291), so every index fits 16 bits and no buffer needs one long run of memory. Runs fill a chunk in table order until the next does not fit; a run longer than a chunk splits at ring boundaries into pieces that repeat three rings, and its last piece repeats the first ring and the bottom cap too, so the chunks laid end to end draw the run's triangles in its order. A chunk keeps three f32 a vertex of positions, its unit normal folded onto the octahedron in two snorm16 (`surface::encode`, within 1e-4 radians), its bark coords in two unorm16 (the distance along over `SurfaceMesh::along`, the angle over a turn, each within half a code) and `u16` indices local to it. The CPU entry returns the chunks with positions, normals and indices; the coords stay in the core (`docs/migration-0.2-wood-chunks.md`). Each frame the renderer surfaces it twice, for the camera and for the sun's map, in one compute pass that the timer's fourth pair stands around (`surfacing_p50_ms`):
 
 1. `measure` counts each cluster at the four error scales, and `choose` takes the finest that fits the view's budget.
 2. `count` and a three-pass scan give every cluster its offsets.
