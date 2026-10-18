@@ -8,7 +8,7 @@ use clock::Clock;
 mod cycle;
 mod data;
 // The resident build's stages after the cycle's: the folds, sweep,
-// stations, rings, placement and handoff (fn-212, fn-256 task 3).
+// stations, rings and placement (fn-212, fn-256 task 3).
 mod resident;
 #[cfg(target_arch = "wasm32")]
 pub(crate) use resident::BROWSER;

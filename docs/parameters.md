@@ -320,7 +320,7 @@ Degrees of bearing between neighbouring slots of a fork, slot `k` standing `k` t
 - read by no stage of the direct build; removed growth path: as the direct build
 - checked: Habit site, rank 20, as invalid input `fork divergence`
 - dormant: `codominance` zero
-- note: Defaults to 90 so that `codominance` builds on its own: fn-170's plane candidate stands its parts 120 apart, but at 120 a fourth part returns onto the primary's bearing, and a quarter turn keeps all four apart at every `forkWays`. Refused where two parts of a fork leave on one heading (`forks_placed`). Replaces `stemDivergence`.
+- note: Defaults to 90 so that `codominance` builds on its own: fn-170's plane candidate stands its parts 120 apart, but at 120 a fourth part returns onto the primary's bearing, and a quarter turn keeps all four apart at every `forkWays`. Replaces `stemDivergence`.
 - blend: degrees along the shorter arc; dial: `fork_divergence` (the degrees of bearing between neighbouring parts of a codominant fork), window its bounds (validated bound), steps 5 and 10
 
 ### `/skeleton/habit/forkLean`
