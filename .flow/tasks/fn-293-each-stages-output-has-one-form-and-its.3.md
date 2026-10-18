@@ -34,9 +34,27 @@ The 32 suite and test files that grow on the scaffold are fn-288's; they must st
 - [ ] Digests equal the baseline (core and render, seeds 1, 7, 42).
 - [ ] Non-test lines of `telperion-core` before and after in `MEASURE.md`; gate and `npm test` green; the no-default-features build passes.
 ## Done summary
-TBD
+The scaffold grower (branching's limbs and local, the scaffold and specimen growers, shed/crowned/finish, radius hold/share/solve, limit_turn, internodes, branch_length, child_radius, GrowthReport) compiles only into tests; of `scaffold` and `specimen` only the checks `validate_skeleton` makes stay in production, and every refusal is unchanged. `Tree.pipe`, `pipe()`, its tree check, shrink and the scaffold's hold writer are deleted; the seven production readers read the node radii `pipe()` already returned. Core, render pipeline and resident digests equal the baseline at every shipped preset, seeds 1, 7, 42. Non-test compiled lines of telperion-core: 25106 to 22884 (`measure-cfg-lines.py`; `measure-lines.sh` counts by file name: 27962 to 27994).
 
+`validate_skeleton` checks and their production readers (all kept, host decision):
+- catalogue Sampling/Step checks (`attractors`, `samplingAttemptsPerAttractor`, `step`): no direct-build stage reads these rows; they bound the wire (fn-123 R1).
+- `envelope.validate`: read by `Family::validate`'s `Reference::of` and `height` (validation only); no drawing stage.
+- `bias.validate`, `habit.validate`, the attractor-weight coupling: rows read by no stage (blend and capability read some, outside production).
+- `radii.resolved`: `trunkRadius` read by plan; `twigs.resolved`: twig diameter, internode and stations read by plan and expand.
+- `inner_envelope`, `resolved_growth`, `scaffold::forks_placed`: scaffold-derived preconditions; `resolved_growth` also read by `blend::mixed`.
+
+OPEN_ITEM: which skeleton rows Family::validate still bounds once the scaffold leaves production - (a) keep plain range bounds on every wire row (fn-123 R1, fn-237 "deprecated wire rows not touched") and drop only the scaffold's derived preconditions (inner_envelope, resolved_growth, forks_placed), or (b) drop bounds on rows no stage reads; and whether a family only the scaffold refused (forks_placed) should now be accepted. Measured: dropping every scaffold-only check unbounds 39 wire rows and fails family::tests::every_row_past_its_bound_is_refused_on_every_family, three suite::troll_limbs refusal tests and catalogue_identity every_refusal_is_the_refusal_it_was.
+
+Kept in production by host decision, for readers outside the lib's test build (FRICTION.md): `blend` (families, centroid, size.rs) for 8 core integration tests, 3 core examples, the render examples headless and space_walk and the render lib tests cpu_builds_tests and organ_tests; `GrowthBias` for tests/migration/foundation.rs. `hold_tests::a_hold_adds_or_loses_no_leaf` deleted with the pipe (it pinned pipe-model bearing on the scaffold's held trees). docs/generation-limits-inventory.json: 55 sites now test-only removed, placement's renamed site updated. Outside Touches: crates/telperion-render/examples/space/hash.rs (hashed the always-empty pipe), accepted by the host.
+
+Gate: `telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`, 1403 passed, 0 failed (task 2: 1404; one test deleted). `npm test`: 170/0. `cargo build --profile ci -p telperion-core --no-default-features`: passes (3 warnings, as on the base). Baseline: green (cargo check core all targets, no-default-features, wasm).
+
+Tier: not reported (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex, three draws NEEDS_WORK on GrowthBias, blend and the hold test, both findings declined on the host's decisions, re-review SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 889cfdc01498c986b43610b1e78f84ece8fb0f05, c5a2e82079f5acbf62f4fd4e5e09096ab99ad2c8, 9a1e8a621d381bda9c549b56f483862a815faa5f, 4ca6b1e9382dd05ca654e2054a9a4e27249f4933
+- Tests: telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast, npm test, cargo build --profile ci -p telperion-core --no-default-features, artifact_digest, generation_digest, resident digest_tests::digest (seeds 1,7,42): equal to baseline
 - PRs:
