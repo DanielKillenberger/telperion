@@ -36,3 +36,17 @@
 - **Host decision (recorded reason):** the review was converging (2, then 1, then 0 pending findings), not looping, so the host reset task 2's counter (`flowctl spec reset-review-rounds --task ...2`) and re-ran the review, as the owner allows the host to judge.
 - **Cost:** one worker return and a conductor-run review, about 10 minutes.
 - **Would have removed it:** a cap of three or more rounds for multi-finding tasks, or a cap that counts rounds without a decreasing finding count.
+
+## 2026-10-18 - task 3: `cfg(test)` cannot reach what integration tests and examples read
+
+- **Doing:** moving the scaffold's modules and `blend`'s size match under `cfg(test)`, as the task's approach says.
+- **Slowed by:** an item gated `cfg(test)` is invisible to `tests/*.rs`, `examples/` and other crates' tests, which link the non-test library. The audit's finding 15 ("`blend::` reached only by `catalogue/walk.rs`, examples, suite", inventory only) missed eight core integration tests, two render examples and two render lib tests that call `blend::families` or `blend::centroid`; and `tests/migration/foundation.rs` (an integration test) reads the scaffold's `GrowthBias`. Gating either breaks the build, and gating only `blend/size.rs` would change what `blend::families` returns. Neither has a production reader.
+- **Cost:** about 20 minutes of tracing readers, and both items left compiled pending the host's call.
+- **Would have removed it:** the audit counting integration tests, examples and other crates' tests as readers (a `cargo check --workspace --all-targets` after a trial gate), and the plan naming where code read only by them goes (moved into the suite, behind a feature, or kept).
+
+## 2026-10-18 - task 3 stops: dropping the scaffold's row checks unbounds 39 wire rows
+
+- **Doing:** `validate_skeleton` reduced to the checks whose rows a production reader needs (envelope, radii, twigs), the task's reading of R2.
+- **Slowed by:** the scaffold's checks are also the only bounds on 39 wire rows (`/skeleton/attractors`, `samplingAttemptsPerAttractor`, `step`, every `/skeleton/habit/*` row but none, `/skeleton/bias/*`, `/skeleton/growth/*` but `maxNodes`). fn-123 R1 ("`Family::validate` refuses every value ... for every row") is pinned by `family::tests::every_row_past_its_bound_is_refused_on_every_family`, `suite::troll_limbs` (three wire/build refusal tests), `tests/catalogue_identity.rs::every_refusal_is_the_refusal_it_was`, and fn-113's dial walls in `telperion-jev/tests/dial_bounds.rs` judge dials by the same call. Which contract wins is a host call.
+- **Cost:** one focused core test run (about 7 minutes) and the task stopped before commit; the diff is kept in `raw/t3-wip.patch`.
+- **Would have removed it:** the plan checking fn-123 R1 against "keep only checks production rows need" before the task was written.
