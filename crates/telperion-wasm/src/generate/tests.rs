@@ -1,5 +1,5 @@
 //! The binding's tests: the diagnostics, the stages a field request runs,
-//! and the field request's limb order.
+//! and the field request's grid and limb order.
 use super::*;
 use telperion_core::tree::{Diagnostics, Node, Tree};
 
@@ -69,14 +69,14 @@ fn surviving_diagnostics_match_radius_law_and_empty_state() {
     );
 }
 
-/// A field request places no leaf where the family has a plan, and the
-/// metadata says which stages ran, for every shipped preset the pipeline
-/// grows (R1); the date palm's fronds are planned as ribbons (fn-150). A
-/// preset with no engine species is refused by name (fn-198).
+/// A field request reads the plan and places no leaf, and the metadata
+/// says which stages ran and names the grid, for every shipped preset the
+/// pipeline grows (R1); the date palm's fronds are planned frond by frond
+/// (fn-150). A preset with no engine species is refused by name (fn-198).
 #[test]
 fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
     for &(_, id, _, _) in params::CATALOGUE.iter() {
-        let request = json!({"family": id, "outputs": {"field": true}});
+        let request = json!({"family": id, "outputs": {"field": {"n": 24}}});
         if params::by_identity(id).unwrap().space.species.is_none() {
             let refused = generate(request).err();
             assert!(
@@ -85,101 +85,83 @@ fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
             );
             continue;
         }
-        let (_, meta) = generate(request).unwrap_or_else(|e| panic!("{id}: {e}"));
+        let (out, meta) = generate(request).unwrap_or_else(|e| panic!("{id}: {e}"));
         let stages = &meta["stages"];
-        let planned = true;
-        assert_eq!(stages["plan"], json!(planned), "{id}: {stages}");
-        assert_eq!(stages["placement"], json!(!planned), "{id}: {stages}");
-        assert_eq!(stages["cull"], json!(!planned), "{id}: {stages}");
+        assert_eq!(stages["plan"], json!(true), "{id}: {stages}");
+        assert_eq!(stages["placement"], json!(false), "{id}: {stages}");
         assert_eq!(stages["contacts"], json!(false), "{id}: {stages}");
         assert_eq!(stages["surface"], json!(false), "{id}: {stages}");
-        assert_eq!(
-            stages["fieldSource"],
-            json!(if planned { "plan" } else { "placed" }),
-            "{id}: {stages}"
-        );
-        if planned {
-            assert_eq!(meta["leavesPlaced"], json!(0), "{id}");
-            assert!(meta["leavesPlanned"].as_u64().unwrap() > 0, "{id}");
-            assert_eq!(meta["biologicalUnits"], Value::Null, "{id}");
-        } else {
-            // The placed path grows its field from the leaves it placed.
-            assert!(meta["leavesPlaced"].as_u64().unwrap() > 0, "{id}");
-        }
+        assert_eq!(meta["leavesPlaced"], json!(0), "{id}");
+        assert!(meta["leavesPlanned"].as_u64().unwrap() > 0, "{id}");
+        assert_eq!(meta["field"]["n"], json!(24), "{id}");
+        assert_eq!(out.field.occupancy.len(), 24 * 24 * 24, "{id}");
+        assert_eq!(out.field.wood_radii.len(), 24 * 24 * 24, "{id}");
     }
     let (_, meta) = generate(json!({
-        "family": "oregon-white-oak", "outputs": {"foliage": true, "field": true}
+        "family": "oregon-white-oak", "outputs": {"foliage": true, "field": {"n": 24}}
     }))
     .unwrap();
     assert_eq!(meta["stages"]["plan"], json!(true));
     assert_eq!(meta["stages"]["placement"], json!(true));
-    assert_eq!(meta["stages"]["fieldSource"], json!("plan"));
     assert_eq!(meta["biologicalUnits"], meta["instances"]);
 }
 
-/// R10: `"field": true` and the family's own order answer byte for byte
-/// alike; a shallower order parts the oak's crown into fewer systems; a
-/// malformed order is refused by name.
+/// R10: no limb order and the family's own answer byte for byte alike; a
+/// shallower order parts the oak's crown into fewer systems; a malformed
+/// request is refused by name, and a grid side outside 3 to 256 as the
+/// core refuses it.
 #[test]
 fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
     let family = params::by_identity("oregon-white-oak").unwrap();
-    let answers = |field: Value| {
-        let (out, _) =
-            generate(json!({"family": "oregon-white-oak", "outputs": {"field": field}})).unwrap();
-        let f = out.field.unwrap();
-        let b = f.bounds().unwrap();
-        let mut answers = Vec::new();
-        for i in 0..8 {
-            for j in 0..8 {
-                for k in 0..8 {
-                    let at = |lo: f64, hi: f64, n: usize| lo + (hi - lo) * (n as f64 + 0.5) / 8.0;
-                    let c = Vec3::new(
-                        at(b.min.x, b.max.x, i),
-                        at(b.min.y, b.max.y, j),
-                        at(b.min.z, b.max.z, k),
-                    );
-                    answers.push(f.query(c, (b.max.y - b.min.y) / 16.0).unwrap());
-                }
-            }
-        }
-        answers
+    let field = |field: Value| {
+        generate(json!({"family": "oregon-white-oak", "outputs": {"field": field}}))
+            .unwrap()
+            .0
+            .field
     };
-    let default = answers(json!(true));
+    let default = field(json!({"n": 8}));
     let order = family.canopy.clump_system_order;
-    assert_eq!(default, answers(json!({"limbOrder": order})));
-    let limbs = |a: &[telperion_core::field::Occupancy]| {
-        a.iter()
-            .filter_map(|o| o.limb)
-            .collect::<std::collections::HashSet<_>>()
-            .len()
+    let same = field(json!({"n": 8, "limbOrder": order}));
+    assert_eq!(default.limbs, same.limbs);
+    assert_eq!(default.leaves, same.leaves);
+    let limbs = |f: &FieldCells| {
+        let held = f.limbs.iter().filter(|&&l| l != u32::MAX);
+        held.collect::<std::collections::HashSet<_>>().len()
     };
     // The engine's oak at 40 has no system past its family's order, so a
     // shallower order parts it into fewer (fn-198: 41 at order 0, 144 at 2).
-    let coarser = answers(json!({"limbOrder": 0}));
+    let coarser = field(json!({"n": 8, "limbOrder": 0}));
     assert!(
         limbs(&coarser) < limbs(&default),
         "{} against {}",
         limbs(&coarser),
         limbs(&default)
     );
-    assert!(default.iter().any(|o| o.wood && o.wood_radius > 0.0));
+    assert!(default.wood_radii.iter().any(|&r| r > 0.0));
     for bad in [
+        json!(true),
         json!({}),
-        json!({"limbOrder": -1}),
-        json!({"limbOrder": 1.5}),
-        json!({"limbOrder": 1, "x": 1}),
+        json!({"limbOrder": 1}),
+        json!({"n": 8, "limbOrder": -1}),
+        json!({"n": 8.5}),
+        json!({"n": 8, "x": 1}),
         json!(1),
     ] {
         let error =
             generate(json!({"family": "oregon-white-oak", "outputs": {"field": bad}})).err();
         assert!(
-            matches!(error, Some(Error::InvalidInput("field limb order"))),
+            matches!(error, Some(Error::InvalidInput("field request"))),
             "{bad}: {error:?}"
         );
     }
+    let side = generate(json!({"family": "oregon-white-oak", "outputs": {"field": {"n": 2}}}));
+    assert!(
+        matches!(side.err(), Some(Error::InvalidValue { field: "field grid side", .. })),
+        "the side"
+    );
     let (out, meta) =
         generate(json!({"family": "oregon-white-oak", "outputs": {"field": false}})).unwrap();
-    assert!(out.field.is_none() && meta["stages"]["field"] == json!(false));
+    assert!(out.field.occupancy.is_empty() && meta["stages"]["field"] == json!(false));
 }
 
 /// Entry coverage (fn-151 R2): every shipped preset builds its wood and its

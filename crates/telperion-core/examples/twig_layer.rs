@@ -164,7 +164,11 @@ fn hull_area(mut points: Vec<(f64, f64)>) -> f64 {
 fn measure(family: &Family, label: &str) -> Result<(), String> {
     let request = Request {
         leaves: true,
-        field: Some(None),
+        // The plan is read for the field; its smallest grid asks it.
+        field: Some(pipeline::FieldRequest {
+            n: 3,
+            limb_order: None,
+        }),
         ..Request::default()
     };
     let built = pipeline::build(family, request).map_err(|e| e.to_string())?;

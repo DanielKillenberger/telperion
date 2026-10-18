@@ -15,7 +15,6 @@
 //! `TELPERION_PRESETS=date-palm,ordinary` narrows it to those presets.
 use std::fmt::Write;
 use telperion_core::catalogue::{self, Dial, Entry, Kind};
-use telperion_core::field::IndexSnapshot;
 use telperion_core::{pipeline, presets, Family};
 use telperion_space::{settings, zone_settings, PaState, Scale, Setting, SETTINGS};
 
@@ -45,7 +44,10 @@ fn build(family: &Family) -> Result<Digests, String> {
         curve: true,
         leaves: true,
         structure: true,
-        field: Some(None),
+        field: Some(pipeline::FieldRequest {
+            n: 36,
+            limb_order: None,
+        }),
         ..pipeline::Request::default()
     };
     let built = pipeline::build(family, request).map_err(|e| format!("{e:?}"))?;
@@ -55,10 +57,6 @@ fn build(family: &Family) -> Result<Digests, String> {
         .as_ref()
         .map(|l| (&l.instances, l.placed, l.retained));
     let structure = out.structure.as_ref().map(|s| (&s.nodes, &s.topology));
-    let field = out
-        .field
-        .as_ref()
-        .map(|f| f.snapshot().map(|s| field_digest(&s)));
     let bloom = family.applied().bloom;
     let stalk = (bloom.rachis, bloom.droop, bloom.stamen_width, bloom.pedicel);
     Ok(vec![
@@ -69,20 +67,11 @@ fn build(family: &Family) -> Result<Digests, String> {
         ("leaves", digest(&leaves)),
         ("organ", digest(&out.organ)),
         ("structure", digest(&structure)),
-        ("field", digest(&field.map(|f| f.ok()))),
+        ("field", digest(&out.field)),
         ("material", digest(&family.drawn_material())),
         ("reflection", digest(&family.supernatural.reflection())),
         ("stalk", digest(&stalk)),
     ])
-}
-
-fn field_digest(f: &telperion_core::field::FieldSnapshot) -> u64 {
-    let index = |i: &IndexSnapshot| digest(&(&i.bounds, &i.topology, i.node_count));
-    digest(&f.wood)
-        ^ index(&f.wood_index)
-        ^ index(&f.leaves)
-        ^ digest(&(&f.plan, &f.plan_stations, &f.plan_sides))
-        ^ index(&f.plan_index)
 }
 
 /// The rows the harness shows: those a stage of the build reads, as the

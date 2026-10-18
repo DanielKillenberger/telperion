@@ -1,28 +1,41 @@
-//! fn-257 R1': a tree's field grown on the device and kept there. The one
-//! cycle grows and draws the tree, the resident stages hang, fold, sweep
-//! and station it as a harness build does (`build::readied`), and
-//! `field.wgsl` makes the field's primitives from the swept nodes and the
-//! station segments: each node's wood, each segment's leaves on its limb
-//! system. They stay on the device in a grid of buckets; a query answers
-//! any batch of cubes there and reads back only the answers. The CPU's
-//! field (`pipeline/field.rs`) is the reference it is measured against.
+//! fn-257 R8: a tree's field read out on the device from the drawn
+//! stage's output, a consumer of it as the renderer is. The one cycle
+//! grows and draws the tree; the resident stages hang, fold and station
+//! it as a harness build does (`build::folded`), its nodes laid out but no
+//! curve swept (`Sweeper::nodes`); `field.wgsl` finds each node's limb
+//! system and the box every record stands in, and `field/splat.wgsl`
+//! writes every drawn node and leaf-bearing segment into the cells of the
+//! requested grid it reaches. Only the grid is read back, and nothing is
+//! held on the device after it. The CPU's field (`pipeline/field.rs`) is
+//! the reference it is measured against.
 use super::super::io;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
-mod ask;
-mod index;
 mod make;
-#[cfg(test)]
-mod splat_probe_tests;
-pub(super) use make::grow;
+pub(super) use make::{grow, Ask};
 
-pub(super) const FIELD: &str = include_str!("field.wgsl");
-const BUILD: &str = include_str!("field_build.wgsl");
-const QUERY_SOURCE: &str = include_str!("field_query.wgsl");
-const ENTRIES: [&str; 13] = [
-    "clear", "widest", "carrier", "opens", "order", "own", "inherit", "wood", "leaves", "leaflets",
-    "count", "fill", "marks",
+const FIELD: &str = include_str!("field.wgsl");
+const SPLAT: &str = include_str!("field/splat.wgsl");
+const ENTRIES: [&str; 18] = [
+    "clear",
+    "widest",
+    "carrier",
+    "opens",
+    "order",
+    "own",
+    "inherit",
+    "box_wood",
+    "box_leaves",
+    "grid_clear",
+    "table_clear",
+    "bound_leaves",
+    "splat_wood",
+    "splat_leaves",
+    "splat_leaflets",
+    "splat_best",
+    "splat_limb",
+    "splat_finish",
 ];
 const CLEAR: usize = 0;
 const WIDEST: usize = 1;
@@ -31,47 +44,36 @@ const OPENS: usize = 3;
 const ORDER: usize = 4;
 const OWN: usize = 5;
 const INHERIT: usize = 6;
-const WOOD: usize = 7;
-const LEAVES: usize = 8;
-const LEAFLETS: usize = 9;
-const COUNT: usize = 10;
-const FILL: usize = 11;
-const MARKS: usize = 12;
-/// An answer's flag past `field.wgsl`'s tally of limb systems in one
-/// cell, and the systems a tally holds (`TALLY`).
-const OVER: u32 = 4;
-pub(super) const TALLY: u32 = 128;
+const BOX_WOOD: usize = 7;
+const BOX_LEAVES: usize = 8;
+const GRID_CLEAR: usize = 9;
+const TABLE_CLEAR: usize = 10;
+const BOUND_LEAVES: usize = 11;
+const SPLAT_WOOD: usize = 12;
+const SPLAT_LEAVES: usize = 13;
+const SPLAT_LEAFLETS: usize = 14;
+const SPLAT_BEST: usize = 15;
+const SPLAT_LIMB: usize = 16;
+const SPLAT_FINISH: usize = 17;
 
-/// The field's kernels: its build's, and its query's.
-pub(super) struct Fielder {
-    build: io::Pass,
-    query: io::Pass,
-}
+/// The field's kernels, compiled with the rest of a generator's.
+pub(super) struct Fielder(io::Pass);
 
 impl Fielder {
     pub(super) fn new(gpu: &Gpu) -> Self {
-        let build = format!("{FIELD}\n{BUILD}");
-        let query = format!("{FIELD}\n{QUERY_SOURCE}");
-        Self {
-            build: io::Pass::new(
-                gpu,
-                build,
-                &[true, true, false, false, false, false, false],
-                &ENTRIES,
-            ),
-            query: io::Pass::new(gpu, query, &[true, true, true, true, false], &["query"]),
-        }
+        let read_only = [true, true, false, false, false, false];
+        Self(io::Pass::new(gpu, source(), &read_only, &ENTRIES))
     }
+}
+
+fn source() -> String {
+    format!("{FIELD}\n{SPLAT}")
 }
 
 /// Every source the field compiles, by name: the shader tests'.
 #[cfg(test)]
-pub(super) fn sources() -> [(&'static str, String); 3] {
-    [
-        ("resident field build", format!("{FIELD}\n{BUILD}")),
-        ("resident field query", format!("{FIELD}\n{QUERY_SOURCE}")),
-        ("resident field splat probe", splat_probe_tests::source()),
-    ]
+pub(super) fn sources() -> [(&'static str, String); 1] {
+    [("resident field", source())]
 }
 
 /// `field.wgsl`'s `Cfg` past its first two words (what a dispatch covers
@@ -83,27 +85,23 @@ struct Cfg {
     most: u32,
     segs: u32,
     flip: u32,
-    buckets: u32,
+    slots: u32,
     dims: [u32; 4],
     lo: [f32; 4],
     reach: [f32; 4],
     bound: [f32; 4],
     leaf_centre: [f32; 4],
     leaf_half: [f32; 4],
-    extent: [f32; 4],
 }
 
 impl Cfg {
     fn words(&self, n: u32, row: u32) -> Vec<u32> {
         let c = self;
-        let mut w = vec![n, row, c.nodes, c.root, c.most, c.segs, c.flip, c.buckets];
+        let mut w = vec![n, row, c.nodes, c.root, c.most, c.segs, c.flip, c.slots];
         w.extend(c.dims);
-        w.extend(c.lo.map(f32::to_bits));
-        w.extend(c.reach.map(f32::to_bits));
-        w.extend(c.bound.map(f32::to_bits));
-        w.extend(c.leaf_centre.map(f32::to_bits));
-        w.extend(c.leaf_half.map(f32::to_bits));
-        w.extend(c.extent.map(f32::to_bits));
+        for v in [c.lo, c.reach, c.bound, c.leaf_centre, c.leaf_half] {
+            w.extend(v.map(f32::to_bits));
+        }
         w
     }
 }
@@ -120,13 +118,6 @@ fn storage(gpu: &Gpu, label: &'static str, words: u64, initial: &[u32]) -> Resul
     )
 }
 
-/// Four empty buffers for the bindings a pass does not read, apart, as
-/// WebGPU binds a written buffer once.
-fn unbound(gpu: &Gpu) -> Result<[Owned; 4]> {
-    let one = || storage(gpu, "field unbound", 4, &[]);
-    Ok([one()?, one()?, one()?, one()?])
-}
-
 /// `n` words of `b` from word `at`, read back.
 async fn read_words(gpu: &Gpu, b: &wgpu::Buffer, at: u64, n: u64) -> Result<Vec<u32>> {
     let to = storage(gpu, "field read", n, &[])?;
@@ -137,96 +128,35 @@ async fn read_words(gpu: &Gpu, b: &wgpu::Buffer, at: u64, n: u64) -> Result<Vec<
     Ok(bytemuck::cast_slice(&raw).to_vec())
 }
 
-/// A field on the device: its primitives (each node's wood, then each
-/// station segment's leaves), 16 bytes each (`field.wgsl`'s `endpoints`),
-/// the leaves' limb systems, named 0 to `systems`, and the grid of
-/// buckets they are listed in.
-pub struct DeviceField {
-    prims: Owned,
-    owner: Owned,
-    index: Owned,
-    cfg: Cfg,
-    systems: u32,
-    /// The field's box: its least and its most corner, in metres.
-    pub bounds: [f32; 6],
-    /// The wood's primitives (the drawn nodes) and the leaves'.
-    pub wood: u32,
-    pub leaves: u32,
-}
-
-impl DeviceField {
-    /// The device bytes the field holds.
-    pub fn bytes(&self) -> u64 {
-        self.prims.size() + self.owner.size() + self.index.size()
-    }
-
-    /// The limb systems the field names: the tests'.
-    #[cfg(test)]
-    pub(super) fn named(&self) -> u32 {
-        self.systems
-    }
-
-    /// The leaves' limb systems, read back: the tests'.
-    #[cfg(test)]
-    pub(super) fn systems(&self, gpu: &Gpu) -> Vec<u32> {
-        pollster::block_on(read_words(
-            gpu,
-            &self.owner,
-            0,
-            u64::from(self.leaves).max(1),
-        ))
-        .unwrap()
-    }
-}
-
-/// One cell's answer (`pipeline::field::Occupancy`, in single
-/// precision): wood, its thickest radius, foliage, its leaves and the
-/// limb system that holds the most of them.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Answer {
-    pub wood: bool,
-    pub wood_radius: f32,
-    pub foliage: bool,
-    pub leaves: f32,
-    pub limb: Option<u32>,
-}
-
-/// One recording of the field's kernels.
+/// One recording of the field's kernels, holding each dispatch's uniform
+/// until it is submitted.
 struct Rec<'a> {
     gpu: &'a Gpu,
+    pass: &'a io::Pass,
     held: Vec<Owned>,
 }
 
 impl Rec<'_> {
-    /// `pass`'s `entry` over `n` items under `cfg`, on `bufs` (its storage
+    /// `entry` over `n` items under `cfg`, on `bufs` (its storage
     /// bindings).
     fn run(
         &mut self,
         e: &mut wgpu::CommandEncoder,
-        (pass, entry, n, cfg): (&io::Pass, usize, u32, &Cfg),
+        (entry, n, cfg): (usize, u32, &Cfg),
         bufs: &[&wgpu::Buffer],
     ) -> Result<()> {
         let groups = n.div_ceil(64).max(1);
-        let most = self
-            .gpu
-            .device
-            .limits()
-            .max_compute_workgroups_per_dimension;
+        let limits = self.gpu.device.limits();
+        let most = limits.max_compute_workgroups_per_dimension;
         let mut words = cfg.words(n, groups.min(most) * 64);
         words.resize(words.len().next_multiple_of(4), 0);
-        let usage = wgpu::BufferUsages::UNIFORM;
         let bytes = words.len() as u64 * 4;
-        let uniform = io::buffer(
-            self.gpu,
-            "field cfg",
-            bytes,
-            usage,
-            bytemuck::cast_slice(&words),
-        )?;
+        let usage = wgpu::BufferUsages::UNIFORM;
+        let uniform = io::buffer(self.gpu, "field cfg", bytes, usage, bytemuck::cast_slice(&words))?;
         let mut all: Vec<&wgpu::Buffer> = vec![&uniform];
         all.extend(bufs);
-        let bind = pass.bind(self.gpu, &all);
-        pass.run(e, &bind, entry, groups);
+        let bind = self.pass.bind(self.gpu, &all);
+        self.pass.run(e, &bind, entry, groups);
         self.held.push(uniform);
         Ok(())
     }

@@ -1,6 +1,5 @@
 //! Stages 3 and 4 with the geometry compiled in: the rings, the wood, the
-//! leaves placed and culled, and the field read from placed leaves where the
-//! leaf plan cannot describe a family.
+//! leaves placed and culled, and the field read out from the drawn tree.
 use super::{
     input::{LeafInput, SurfaceInput},
     stage,
@@ -8,8 +7,8 @@ use super::{
     Inputs, Leaves, Outputs, Request, Schedule, Stages,
 };
 use crate::{
-    pipeline::field::Field,
-    pipeline::foliage::{self, plan, Element, Instances, TwigPlacement},
+    pipeline::field::Grid,
+    pipeline::foliage::{self, Instances, TwigPlacement},
     pipeline::surface::{self, AttachmentSurface, Faces, Rings, Sweep},
     tree::Tree,
     Result,
@@ -20,9 +19,9 @@ use std::sync::OnceLock;
 pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<Outputs> {
     let (surface, leaf) = (&inputs.surface, &inputs.leaves);
     let twig = inputs.plan.twig.as_ref().ok().copied();
-    // Leaves are placed for their own sake, or for a field the plan cannot
-    // describe; placed with surface contact, they sit on the rings.
-    let places = request.leaves || (request.field.is_some() && !plan::supports(leaf.canopy, twig));
+    // Leaves are placed for their own sake alone; placed with surface
+    // contact, they sit on the rings.
+    let places = request.leaves;
     let seats = places && leaf.canopy.surface_contact > 0.0;
     let rings = OnceLock::new();
     let sweep = || self::rings(tree, surface, request, seats);
@@ -50,7 +49,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     // The wood's error answers first, as it did run in turn.
     let wood = wood?;
     let (prepared, (leaves, field)) = planned?;
-    let (mut leaves, mut field) = (leaves?, field?);
+    let (mut leaves, field) = (leaves?, field?);
     let rings = rings.into_inner().transpose()?;
     let mut stages = Stages {
         plan_ms: prepared.ms,
@@ -65,11 +64,6 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     if let Some((_, [own, placement, cull])) = leaves {
         stages.rings_ms += own;
         [stages.placement_ms, stages.cull_ms] = [placement, cull];
-    }
-    if request.field.is_some() && field.is_none() {
-        let placed = leaves.as_ref().map(|(l, _)| &l.instances);
-        let placed = placed.zip(prepared.element.as_ref());
-        field = Some(placed_field(tree, request, placed)?);
     }
     if let Some((_, ms)) = field {
         stages.field_ms = ms;
@@ -192,8 +186,8 @@ pub(super) enum Seat<'r> {
 /// The leaves with the time of their own rings, placement and the cull.
 pub(super) type TimedLeaves = Option<(Leaves, [f64; 3])>;
 
-/// The leaves and the field read from the plan, side by side where the
-/// schedule allows; neither reads the other.
+/// The leaves and the field, side by side where the schedule allows;
+/// neither reads the other.
 pub(super) fn leaves_and_field(
     tree: &Tree,
     inputs: &Inputs,
@@ -201,12 +195,12 @@ pub(super) fn leaves_and_field(
     prepared: &Prepared,
     twig: Option<TwigPlacement>,
     seat: Seat,
-) -> (Result<TimedLeaves>, Result<Option<(Field, f64)>>) {
+) -> (Result<TimedLeaves>, Result<Option<(Grid, f64)>>) {
     let both_run = prepared.reference.is_some() && prepared.leaf_plan.is_some();
     both(
         request.schedule == Schedule::Concurrent && both_run,
         || leaves(tree, inputs, request, prepared, twig, seat),
-        || stage::planned_field(tree, request, prepared),
+        || stage::field(tree, request, prepared),
     )
 }
 
@@ -294,14 +288,4 @@ fn organ(
         None => foliage::place_blooms(tree, p, request.season)?,
     };
     Ok(Some(crate::mesh::Foliage { element, instances }))
-}
-
-/// The field read from placed leaves, where the plan cannot describe them.
-pub(super) fn placed_field(
-    tree: &Tree,
-    request: Request,
-    placed: Option<(&Instances, &Element)>,
-) -> Result<(Field, f64)> {
-    let start = (request.clock)();
-    Ok((Field::new(tree, placed)?, (request.clock)() - start))
 }

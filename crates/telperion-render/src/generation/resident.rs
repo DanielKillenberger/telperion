@@ -16,7 +16,6 @@ pub(super) struct Kit {
 pub use budget::Admitted;
 #[cfg(target_arch = "wasm32")]
 pub(crate) use budget::BROWSER;
-pub use field::{Answer, DeviceField};
 
 impl Kit {
     /// The kernels and the tools made side by side (`io::pair`).
@@ -67,30 +66,49 @@ impl super::Generator {
         budget::native(&self.gpu, self.gpu.ledger.live())
     }
 
-    /// `family`'s field grown on the device and kept there (fn-257), its
-    /// limb systems opened by laterals of `limb_order` or less (the
-    /// family's own where none is given).
+    /// `family`'s field read out on the device to `n` cells a side over its
+    /// own box (fn-257 R8, `telperion_core::field::Frame`), its limb systems
+    /// opened by laterals of `limb_order` or less (the family's own where
+    /// none is given). Only the grid is read back; nothing stays on the
+    /// device. On a lost device it is refused by name.
     pub async fn grow_field(
         &self,
         family: &Family,
+        n: u32,
         limb_order: Option<u32>,
-    ) -> Result<DeviceField> {
-        let gpu = &self.gpu;
-        self.on_device(async |kit| {
-            field::grow(gpu, (self, &kit.kernels, &kit.tools), family, limb_order).await
-        })
-        .await
+    ) -> Result<telperion_core::field::Grid> {
+        self.field(family, limb_order, field::Ask::Over(n)).await
     }
 
-    /// `field`'s answers for `cells`, four words a cell: a closed cube's
-    /// centre and half extent (fn-257). On a lost device it is refused by
-    /// name, the loss reported before any failure it caused.
-    pub async fn query_field(&self, field: &DeviceField, cells: &[f32]) -> Result<Vec<Answer>> {
-        if let Some(lost) = self.gpu.lost() {
+    /// `family`'s field read out to a grid named outright: the CPU's, so a
+    /// test compares the executors cell by cell.
+    #[cfg(test)]
+    pub(super) async fn grow_field_in(
+        &self,
+        family: &Family,
+        frame: telperion_core::field::Frame,
+        limb_order: Option<u32>,
+    ) -> Result<telperion_core::field::Grid> {
+        self.field(family, limb_order, field::Ask::In(frame)).await
+    }
+
+    async fn field(
+        &self,
+        family: &Family,
+        limb_order: Option<u32>,
+        ask: field::Ask,
+    ) -> Result<telperion_core::field::Grid> {
+        let gpu = &self.gpu;
+        if let Some(lost) = gpu.lost() {
             return Err(lost);
         }
-        let answered = field.query(&self.gpu, &self.kit().tools, cells).await;
-        answered.map_err(|e| self.gpu.lost().unwrap_or(e))
+        let read = self
+            .on_device(async |kit| {
+                let tools = (self, &kit.kernels, &kit.tools);
+                field::grow(gpu, tools, family, limb_order, ask).await
+            })
+            .await;
+        read.map_err(|e| gpu.lost().unwrap_or(e))
     }
 
     /// The device's loss, where it is lost: the reason no field grows or

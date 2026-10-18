@@ -146,6 +146,65 @@ impl Sweeper {
         Ok([w[0], w[1], w[2], w[3]])
     }
 
+    /// Every node `dressed` drew laid out by id (`gather`), recorded in
+    /// `e` on the buffers every pass binds, `cells` in the records' place.
+    fn laid<'a>(
+        &self,
+        (gpu, e): (&Gpu, &mut wgpu::CommandEncoder),
+        dressed: &Dressed,
+        rows: [[f32; 4]; 3],
+        cells: &'a wgpu::Buffer,
+    ) -> Result<Bound<'a>> {
+        let ids = u64::from(dressed.ids);
+        let b = Bound {
+            nodes: storage(gpu, "sweep nodes", ids * NW)?,
+            links: storage(gpu, "sweep links", ids * LW)?,
+            counts: storage(gpu, "sweep counts", 4)?,
+            keys: storage(gpu, "sweep keys", 2 * ids.next_power_of_two())?,
+            table: storage(gpu, "sweep table", 4)?,
+            points: storage(gpu, "sweep points", 4)?,
+            clusters: storage(gpu, "sweep clusters", 4)?,
+            cells,
+        };
+        for w in &dressed.waves {
+            let records = w.axes * CA_WORDS as u32;
+            let cfg = [0, 0, 0, 0, records, w.base, u32::from(w.root), 0];
+            self.run(
+                (gpu, &mut *e),
+                &b,
+                (GATHER, w.phyts, None),
+                cfg,
+                rows,
+                Some(&w.buffer),
+            )?;
+        }
+        Ok(b)
+    }
+
+    /// The nodes `dressed` drew laid out by id and nothing swept: all the
+    /// stations and the field read (fn-257 task 11). No node is placed on
+    /// a run, so the stations read no contact.
+    pub(super) async fn nodes(&self, gpu: &Gpu, dressed: &Dressed) -> Result<Swept> {
+        let none = storage(gpu, "sweep no cells", 4)?;
+        let mut e = gpu.encoder(&Default::default());
+        // `gather` reads neither the surface's rows nor the cells.
+        let b = self.laid((gpu, &mut e), dressed, [[0.0; 4]; 3], &none)?;
+        gpu.submit([e.finish()]);
+        io::complete(gpu).await?;
+        for done in [&b.links, &b.counts, &b.keys] {
+            done.destroy();
+        }
+        Ok(Swept {
+            runs: 0,
+            points: 0,
+            clusters: 0,
+            table: b.table,
+            point_buffer: b.points,
+            cluster_buffer: b.clusters,
+            nodes: b.nodes,
+        })
+    }
+
     /// Sweeps the curve of the nodes `dressed` drew, under the surface's
     /// `rows`, its retained leaf bases on their `cells` where they pack.
     pub(super) async fn sweep(
@@ -155,32 +214,11 @@ impl Sweeper {
         rows: [[f32; 4]; 3],
         cells: Option<&Owned>,
     ) -> Result<Swept> {
-        let ids = u64::from(dressed.ids);
         let no_cells = storage(gpu, "sweep no cells", 4)?;
-        let mut b = Bound {
-            nodes: storage(gpu, "sweep nodes", ids * NW)?,
-            links: storage(gpu, "sweep links", ids * LW)?,
-            counts: storage(gpu, "sweep counts", 4)?,
-            keys: storage(gpu, "sweep keys", 2 * ids.next_power_of_two())?,
-            table: storage(gpu, "sweep table", 4)?,
-            points: storage(gpu, "sweep points", 4)?,
-            clusters: storage(gpu, "sweep clusters", 4)?,
-            cells: cells.map_or(&*no_cells, |c| &**c),
-        };
+        let cells = cells.map_or(&*no_cells, |c| &**c);
         let z = [0u32; 8];
         let mut e = gpu.encoder(&Default::default());
-        for w in &dressed.waves {
-            let records = w.axes * CA_WORDS as u32;
-            let cfg = [0, 0, 0, 0, records, w.base, u32::from(w.root), 0];
-            self.run(
-                (gpu, &mut e),
-                &b,
-                (GATHER, w.phyts, None),
-                cfg,
-                rows,
-                Some(&w.buffer),
-            )?;
-        }
+        let mut b = self.laid((gpu, &mut e), dressed, rows, cells)?;
         self.run((gpu, &mut e), &b, (LEAD, dressed.ids, None), z, rows, None)?;
         for stage in 0..4 {
             let cfg = [0, 0, stage, 0, 0, 0, 0, 0];

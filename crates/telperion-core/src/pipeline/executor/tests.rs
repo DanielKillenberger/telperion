@@ -4,7 +4,7 @@
 //! the engine never reads) stated and left unset.
 use super::*;
 use crate::{
-    pipeline::{build, Outputs, Request},
+    pipeline::{build, FieldRequest, Outputs, Request},
     presets::Preset,
 };
 
@@ -27,10 +27,11 @@ fn cases() -> Vec<(&'static str, Family)> {
     ]
 }
 
-fn field(o: &Outputs) -> Option<(Vec<f64>, Vec<f64>, Vec<u32>)> {
-    let s = o.field.as_ref()?.snapshot().unwrap();
-    Some((s.wood, s.plan, s.plan_stations))
-}
+/// A field at 24 cells a side, at the family's limb order.
+const FIELD: Option<FieldRequest> = Some(FieldRequest {
+    n: 24,
+    limb_order: None,
+});
 
 /// The expansion of a grown tree, and of the same tree handed back, is the
 /// build's own: its tree, its wood and its mesh.
@@ -63,7 +64,7 @@ fn a_request_subset_builds_what_the_whole_request_builds() {
     let whole = Request {
         wood: true,
         leaves: true,
-        field: Some(None),
+        field: FIELD,
         structure: true,
         ..Request::default()
     };
@@ -81,11 +82,11 @@ fn a_request_subset_builds_what_the_whole_request_builds() {
         });
         let instances = |o: &Outputs| o.leaves.as_ref().map(|l| l.instances.clone());
         assert_eq!(instances(&leaves), instances(&all), "{name}: leaves");
-        let planned = alone(Request {
-            field: Some(None),
+        let field = alone(Request {
+            field: FIELD,
             ..Request::default()
         });
-        assert_eq!(field(&planned), field(&all), "{name}: field");
+        assert_eq!(field.field, all.field, "{name}: field");
         let structure = alone(Request {
             structure: true,
             ..Request::default()

@@ -145,9 +145,9 @@ jobs:
           packages: telperion-core
           partition: count:${{ matrix.partition }}/4
 
-  # The leaf plan and the field build with the wood surface and the leaf
-  # placement compiled out (the core crate without its geometry feature), and
-  # the crate's unit tests run in that configuration.
+  # The skeleton and its structure build with the wood surface, the leaf
+  # placement and the field compiled out (the core crate without its
+  # geometry feature), and the crate's unit tests run in that configuration.
   core-plan:
     name: core without geometry
     needs: receipts

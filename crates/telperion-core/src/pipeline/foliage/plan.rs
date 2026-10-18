@@ -17,7 +17,7 @@ use telperion_space::organ;
 
 /// Capability check only; `runs` still validates every parameter. Limb
 /// clumping and a canopy without a twig layer have no plan, so such a
-/// family takes the placed path. A rosette is planned frond by frond (`fronds`),
+/// family has no field. A rosette is planned frond by frond (`fronds`),
 /// not by runs.
 pub fn supports(p: CanopyParams, twig: Option<TwigPlacement>) -> bool {
     twig.is_some() && p.limb_clumping == 0.0

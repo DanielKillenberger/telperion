@@ -334,8 +334,7 @@ pub(super) async fn placed(
 
 /// A drawn tree (`dressed`, its `trunk`) hung, folded into the
 /// pipeline's expansion and swept as `family`'s: what a resident tree is
-/// placed from and a field is made of (fn-257). `t` holds each stage's
-/// milliseconds.
+/// placed from. `t` holds each stage's milliseconds.
 pub(super) struct Readied {
     pub x: executor::Expansion,
     pub swept: super::sweep::Swept,
@@ -347,9 +346,41 @@ pub(super) async fn readied(
     gpu: &Gpu,
     tools: &Tools,
     family: &Family,
-    (mut dressed, trunk): (Dressed, tree::Trunk),
+    drawn: (Dressed, tree::Trunk),
     t: &mut Timed,
 ) -> Result<Readied> {
+    let Folded { x, dressed, hung } = folded(gpu, tools, family, drawn, t).await?;
+    let rows = rows(&family.surface, x.leaves().envelope.height);
+    let sweeper = &tools.sweeper;
+    let swept = stage(gpu, &mut t.sweep, async || {
+        sweeper
+            .sweep(gpu, &dressed, rows, hung.cells.as_ref())
+            .await
+    })
+    .await?;
+    Ok(Readied {
+        x,
+        swept,
+        hung,
+        ids: dressed.ids,
+    })
+}
+
+/// A drawn tree hung and folded into the pipeline's expansion: what it
+/// is swept from, and what a field lays its nodes from (fn-257).
+pub(super) struct Folded {
+    pub x: executor::Expansion,
+    pub dressed: Dressed,
+    pub hung: super::boots::Hung,
+}
+
+pub(super) async fn folded(
+    gpu: &Gpu,
+    tools: &Tools,
+    family: &Family,
+    (mut dressed, trunk): (Dressed, tree::Trunk),
+    t: &mut Timed,
+) -> Result<Folded> {
     let bases = executor::bases(family)?;
     let hung = stage(gpu, &mut t.bases, async || {
         tools.hanger.hang(gpu, &mut dressed, bases.as_ref()).await
@@ -378,20 +409,7 @@ pub(super) async fn readied(
         )?)
     })
     .await?;
-    let rows = rows(&family.surface, x.leaves().envelope.height);
-    let sweeper = &tools.sweeper;
-    let swept = stage(gpu, &mut t.sweep, async || {
-        sweeper
-            .sweep(gpu, &dressed, rows, hung.cells.as_ref())
-            .await
-    })
-    .await?;
-    Ok(Readied {
-        x,
-        swept,
-        hung,
-        ids: dressed.ids,
-    })
+    Ok(Folded { x, dressed, hung })
 }
 
 /// The 16-word placement `summaries`, copied into one buffer in `encoder`

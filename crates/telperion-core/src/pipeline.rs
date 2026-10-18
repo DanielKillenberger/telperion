@@ -13,7 +13,7 @@
 //! 5. Tree mesh: wood and leaves with their union bounds (`mesh::build`).
 //!
 //! Wood and leaves read only the skeleton and the plan, so where the target
-//! has threads they run concurrently, and a planned field beside the leaves.
+//! has threads they run concurrently, and the field beside the leaves.
 //! The rings are swept once, by whichever of the wood and seated leaves
 //! reaches them first; the other waits and reads them in place. Where no
 //! wood is drawn, seated leaves sweep bare rings of their own. Every stage
@@ -23,7 +23,8 @@
 //! the Plan's, the leaves', the field's.
 //! The rings' error is the wood's where the wood is drawn, else the leaves'.
 use crate::{presets::Family, tree::Tree, Result};
-use field::Field;
+#[cfg(feature = "geometry")]
+use field::Grid;
 use foliage::{plan, Element, Instances};
 pub(crate) use input::{grown_envelope, GrowInput, Inputs, PlanInput};
 use surface::SurfaceMesh;
@@ -45,8 +46,8 @@ pub struct Request {
     /// The wood as curves, which the renderer surfaces (fn-208).
     pub curve: bool,
     pub leaves: bool,
-    /// A field at the family's limb order (`Some(None)`) or at a stated one.
-    pub field: Option<Option<u32>>,
+    /// The field read out to a grid (fn-257 R8).
+    pub field: Option<FieldRequest>,
     pub structure: bool,
     pub schedule: Schedule,
     /// The time of year flowers are drawn at, as a share of the year; none
@@ -81,6 +82,15 @@ impl Request {
     }
 }
 
+/// A field request names its grid: `n` cells a side over the tree's box
+/// (`field::Frame`), its limb systems opened by laterals of `limb_order` or
+/// less (the family's `clumpSystemOrder` where none is given).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FieldRequest {
+    pub n: u32,
+    pub limb_order: Option<u32>,
+}
+
 /// The monotonic clock native stages are timed by; zero where the target
 /// has none, and a caller there passes its own.
 pub fn clock() -> f64 {
@@ -105,8 +115,7 @@ pub struct Skeleton {
     pub tree: Tree,
 }
 
-/// The placed leaves after the cull. A field that read them for a request
-/// that did not ask for leaves keeps only the counts and the box.
+/// The placed leaves after the cull.
 #[derive(Debug)]
 pub struct Leaves {
     pub instances: Instances,
@@ -161,7 +170,9 @@ pub struct Outputs {
     /// that flowers nowhere.
     #[cfg(feature = "geometry")]
     pub organ: Option<crate::mesh::Foliage>,
-    pub field: Option<Field>,
+    /// The field read out to the request's grid (fn-257 R8).
+    #[cfg(feature = "geometry")]
+    pub field: Option<Grid>,
     pub structure: Option<Structure>,
     pub stages: Stages,
 }
@@ -198,8 +209,12 @@ pub(crate) fn clothe(tree: &mut Tree, inputs: &Inputs) -> Result<()> {
 }
 
 /// Runs every stage the request needs, from the family on. The family is
-/// read once, into each stage's own input.
+/// read once, into each stage's own input. A field's grid is checked
+/// before any stage runs.
 pub fn build(family: &Family, request: Request) -> Result<Built> {
+    if let Some(f) = request.field {
+        field::Frame::side(f.n)?;
+    }
     let started = (request.clock)();
     let mut skeleton = skeleton(GrowInput::of(family))?;
     let inputs = Inputs::of(family, grown_envelope(&skeleton.tree));
@@ -213,9 +228,8 @@ pub fn build(family: &Family, request: Request) -> Result<Built> {
 }
 
 /// Runs stages 3 and 4 on a skeleton already grown. Without the `geometry`
-/// feature only the plan's outputs are built: the field from the leaf plan
-/// and the structure. Wood, leaves and a field a family's plan cannot
-/// describe are refused there, since they need placement.
+/// feature only the structure is built: wood, leaves and the field, which
+/// reads the drawn tree, are refused there by name.
 pub(crate) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<Outputs> {
     #[cfg(feature = "geometry")]
     return drawn::outputs(tree, inputs, request);
