@@ -33,7 +33,7 @@ The work is profile first, then fix in ranked order. [inferred]
 ## Acceptance Criteria
 
 - **R1:** A committed profile of the reference executor, split by stage, for the oak, spruce, birch and beech at seeds 1 and 7, taken on fn-125's merged code before any change. [inferred]
-- **R2:** Each change keeps the reference executor's output byte-identical to fn-125's for every catalogue and in-work preset at seeds 1 and 7. A change shared with the GPU keeps the two executors within fn-125's tolerance. [inferred]
+- **R2:** Each change keeps the reference executor's output byte-identical to fn-125's for every catalogue and in-work preset at seeds 1 and 7. A change shared with the GPU keeps the two executors within fn-125's tolerance. [inferred] *(superseded by AGENTS.md "Generator evolution" (owner, 2026-09-20): it pins the pre-engine direct build's bytes, which the tree-space engine (fn-198) replaced; an intended change carries its measured evidence instead, and byte equality stays a check only where unchanged output is intended (fn-293 task 7).)*
 - **R3:** Stage medians of five runs are recorded on base and candidate for each change. A change that does not speed its stage by at least 5% on the preset it targets is reverted and reported. [inferred]
 - **R4:** Native peak RSS and the wall time of `cargo test --profile ci --workspace --no-fail-fast` are recorded on base and candidate. [inferred]
 - **R5:** The profiler is a committed native example that prints one JSON line per run (preset, seed, revision, and each stage's time) for any catalogue or in-work preset, and R1's profile and every R3 measurement come from it. Errors: an unknown preset id is refused by name. [inferred]
@@ -41,7 +41,7 @@ The work is profile first, then fix in ranked order. [inferred]
 
 ## Boundaries
 
-- No change to the algorithm's output. Speed only. [inferred]
+- No change to the algorithm's output. Speed only. [inferred] *(superseded by AGENTS.md "Generator evolution" (owner, 2026-09-20): a measured speed-up may change output when its visual and correctness checks pass; byte equality is the verification aid where it holds (fn-293 task 7).)*
 - Growth speed is fn-124; the GPU expansion's own speed is fn-125's R4. [inferred]
 - No full-forest capture. [CLAUDE.md]
 

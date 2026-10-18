@@ -7,7 +7,7 @@ fn-238 (2026-10-09) measured the ordinary tree's single kept prediction at 80 at
 ## Requirements
 
 - **R1 (measure):** where a kept prediction's time goes on fractional rows against whole ones.
-- **R2 (fix):** the kept predictor made cheap on fractional rows by the cause R1 names, stated before code, its value equal to today's (bit for bit where the pin holds, or within a stated tolerance with the host's word).
+- **R2 (fix):** the kept predictor made cheap on fractional rows by the cause R1 names, stated before code, its value equal to today's (bit for bit where the pin holds, or within a stated tolerance with the host's word). *(read under AGENTS.md "Generator evolution" (owner, 2026-09-20): a measured gain may move the value without asking, with the evidence that rule names; bit-for-bit is the verification aid where the pin holds (fn-293 task 7).)*
 - **R3:** every walk frame at 80 with the ordinary tree as an end solves in at most 1 s natively on one core; gate and npm test green.
 
 - **R4 (from fn-238's review):** the running totals (`expected_length`, fn-238's grown total) use one stack frame per growth cycle; built on their own stack as the kept predictor is, or bounded by the validated maximum age with a test.

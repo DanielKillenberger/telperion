@@ -140,3 +140,73 @@ drawing stages. The drawing stages no longer hold the 39-word node table
 buffer takes the same words as the per-wave buffers it replaces, plus the
 leaf bases' room: two records a base on every axis of the seed's wave,
 which only the date palm holds, and its peak did not move.
+
+## After: the spec's head (task 7)
+
+Taken at `b36086f05`, the commit after which task 7 changes only docs,
+specs and evidence, so its source is the spec head's. The builds ran in a
+temporary detached worktree of that commit, as task 1's did, under
+`telperion-heavy 12`. Logs: `raw/measure-after.log` and
+`raw/measure-after-2.log` (ignored, on disk).
+
+### Non-test lines per crate
+
+`measure-cfg-lines.py` counts what compiles into each crate's non-test
+build (Rust only). The before column is that script on task 1's base
+(`bf84ef6ca`, the `crates/` tree from `git archive`). `measure-lines.sh`
+counts by file name, so it still counts modules gated whole by
+`#[cfg(test)]`; its before column is the table above.
+
+| crate | non-test rs before | after | change | by file name, rs before | after | wgsl before | after |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| telperion-core | 25106 | 22824 | -2282 | 27962 | 28079 | 0 | 0 |
+| telperion-jev | 25573 | 25573 | 0 | 27779 | 27779 | 0 | 0 |
+| telperion-render | 24167 | 23393 | -774 | 31799 | 31615 | 21711 | 21707 |
+| telperion-space | 26561 | 18825 | -7736 | 27197 | 21761 | 0 | 0 |
+| telperion-wasm | 504 | 473 | -31 | 525 | 494 | 0 | 0 |
+| total | 101911 | 91088 | -10823 | | | | |
+
+The by-file-name WGSL count barely moves. The test-only entries moved into
+`positions_admit.wgsl` (task 5), which the count still includes, and task 6
+replaced the handoff pass's WGSL with the sweep's own packing
+(`pack.wgsl`).
+
+### Shipped artifacts
+
+| artifact | raw before | raw after | change | gzip before | gzip after | change |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| dist/telperion.wasm | 1568583 | 1463135 | -105448 (-6.7 %) | 517048 | 480780 | -36268 (-7.0 %) |
+| dist/telperion-render.wasm | 3571814 | 3399922 | -171892 (-4.8 %) | 1139270 | 1076221 | -63049 (-5.5 %) |
+| dist/telperion.js | 193862 | 193862 | 0 | 17821 | 17821 | 0 |
+| dist/field.js | 1917 | 1917 | 0 | 963 | 963 | 0 |
+| dist/wasm-source.js | 64437 | 64437 | 0 | 15556 | 15556 | 0 |
+| dist/voxelize.js | 4362 | 4362 | 0 | 1837 | 1837 | 0 |
+
+Both runs gave the same bytes. No ceiling in `scripts/artifact-budgets.json`
+moves here (fn-242).
+
+### Release Wasm build time
+
+Wall time of each step from a fresh `target/`, 32 threads. Load average
+was 1.0 to 2.4 here, against 3 to 4 at the base, so the after-runs had a
+quieter machine.
+
+| step | before run 1 ms | before run 2 ms | after run 1 ms | after run 2 ms |
+| --- | ---: | ---: | ---: | ---: |
+| `npm run wasm:build` | 17523 | 17362 | 15362 | 15438 |
+| `npm run render:build` | 30868 | 30971 | 30028 | 29896 |
+| `tsc -p tsconfig.build.json` | 1136 | 1173 | 1247 | 1196 |
+| `vite build` | 518 | 522 | 601 | 524 |
+
+The main module's build is about 2.0 s faster (-12 %), and the
+renderer's about 1.0 s faster (-3 %). Part of that may be the lighter
+load.
+
+### The tasks' timings
+
+- **Task 4 (one sweep a mesh request, CPU):** spruce 4166 to 4088 ms
+  median (paired -82 ms, after faster in 14 of 16). Oak 153 to 139 ms
+  (-15 ms, 16 of 16).
+- **Task 6 (the device sweep reads the drawn records):** spruce 446 to
+  427 ms warm (paired -15 ms, 15 of 16). Oak 236 to 231 ms (-5 ms, 13 of
+  16). GPU peak bytes are equal on every preset.

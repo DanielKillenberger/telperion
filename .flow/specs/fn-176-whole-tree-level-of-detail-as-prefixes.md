@@ -31,7 +31,7 @@ This spec gives the whole tree level of detail: fewer leaves and simpler wood wi
 ## API Contracts
 <!-- scope: technical -->
 
-- **Plan layout.** The prune order and run significance are part of fn-125's versioned layout; a consumer that ignores them draws the full tree unchanged. [inferred]
+- **Plan layout.** The prune order and run significance are part of fn-125's versioned layout; a consumer that ignores them draws the full tree unchanged. [inferred] *(fn-293 task 5 removed `foliage/prepared.rs`'s stations from the renderer's production build with the CPU delivery; only the renderer's tests read them now, as the device's reference (fn-293 task 7).)*
 - **Views and commands unchanged.** [inferred]
 
 ## Edge Cases & Constraints
@@ -39,13 +39,13 @@ This spec gives the whole tree level of detail: fewer leaves and simpler wood wi
 
 - **A hero tree spans near and far in one frame,** so the kept fraction cannot be a single number per tree without starving the near crown or wasting the far one; how it is chosen is settled per cluster (Architecture) and checked by R8. [paraphrase]
 - **Shadows** draw the same prefix as the view unless the decision below says otherwise, so a thinned crown does not cast a full shadow. [inferred]
-- **Full detail is the default.** At the hero pose and any distance where a leaf or run is at least a pixel, the draw is the full tree, byte-identical to what fn-125 and fn-15 draw. [inferred]
+- **Full detail is the default.** At the hero pose and any distance where a leaf or run is at least a pixel, the draw is the full tree, byte-identical to what fn-125 and fn-15 draw. [inferred] *(superseded by AGENTS.md "Generator evolution" (owner, 2026-09-20): it pins the pre-engine direct build's bytes, which the tree-space engine (fn-198) replaced; an intended change carries its measured evidence instead, and byte equality stays a check only where unchanged output is intended (fn-293 task 7).)*
 - **Budget.** Proof is a continuous walk of stills on the 8-tree scale at most; no full-forest capture. [paraphrase]
 
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** The plan layout carries each cluster's pruning order as an index list into the unchanged leaf buffer, the runs in fn-15's significance order, and each run's nested ring index lists. The stored leaf and wood buffers are byte-identical to fn-125's and fn-15's, and a full-detail draw matches today's draw pixel for pixel, colour, mottle and fixed-time wind included. Errors: no error surface beyond fn-125's layout errors. [inferred]
+- **R1:** The plan layout carries each cluster's pruning order as an index list into the unchanged leaf buffer, the runs in fn-15's significance order, and each run's nested ring index lists. The stored leaf and wood buffers are byte-identical to fn-125's and fn-15's, and a full-detail draw matches today's draw pixel for pixel, colour, mottle and fixed-time wind included. Errors: no error surface beyond fn-125's layout errors. [inferred] *(superseded by AGENTS.md "Generator evolution" (owner, 2026-09-20): it pins the pre-engine direct build's bytes, which the tree-space engine (fn-198) replaced; an intended change carries its measured evidence instead, and byte equality stays a check only where unchanged output is intended (fn-293 task 7).)*
 - **R2:** For each cluster at any kept fraction, the drawn leaves are a prefix of its pruning order with at least one leaf, their drawn area (transition weights counted) equals the cluster's full leaf area within 1%, and the contrast correction holds the crown's mean linear colour within 2% of the full crown's at the same view. Tests cover clusters of unequal leaf areas, kept fractions down to one leaf, and fractions at both edges of the transition window. Errors: a kept fraction outside (0, 1] is refused by name. [paraphrase]
 - **R3:** A run below the pixel threshold shrinks to its centreline before dropping; its bone stays evaluated while fn-15's R11 test keeps it, and a test with a thin, long branch whose wood is dropped but whose surviving leaves move more than half a pixel keeps that motion; no leaf is drawn floating off wood that is still drawn. Errors: no error surface beyond R2. [paraphrase]
 - **R7:** Every ring level of every run is closed: a topology test finds no open edge on any level of every catalogue preset's wood at seeds 1 and 7, caps included, and shaped runs draw their full cell at every level. Errors: no error surface beyond R1. [inferred]
