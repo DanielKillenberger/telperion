@@ -1,0 +1,45 @@
+diff --git i/crates/telperion-render/src/generation/resident/field_time_tests.rs w/crates/telperion-render/src/generation/resident/field_time_tests.rs
+index 9f22ade7d..603c7321e 100644
+--- i/crates/telperion-render/src/generation/resident/field_time_tests.rs
++++ w/crates/telperion-render/src/generation/resident/field_time_tests.rs
+@@ -87,3 +87,40 @@ fn field_answers() {
+         }
+     }
+ }
++
++/// fn-257 task 15 (measurement only, never committed to the crate): warm,
++/// per preset and seed (`FIELD_SEEDS`), the second of two growths and a
++/// 36-cell query, with the bytes the field holds on the device while it
++/// is alive (`DeviceField::bytes`) and after it is dropped (the ledger's
++/// live bytes against before the growth). One `SITE_TIME <id> <seed> <ms>
++/// <grow ms> <query ms> <held B> <after B>` line each.
++#[test]
++#[ignore = "a measurement"]
++fn site_time() {
++    let _held = super::super::whole_tree();
++    let Some(gpu) = super::super::test_gpu() else {
++        return;
++    };
++    let gen = pollster::block_on(Generator::for_fields_async(gpu)).expect("a generator");
++    let seeds = std::env::var("FIELD_SEEDS").unwrap_or_else(|_| "1".into());
++    for id in presets("oregon-white-oak,silver-birch,norway-spruce") {
++        for seed in seeds.split(',').map(|s| s.parse::<u32>().expect("a seed")) {
++            let mut family = telperion_core::presets::by_identity(&id).expect("a preset");
++            family.skeleton.seed = seed;
++            let grow = || pollster::block_on(gen.grow_field(&family, None)).expect("grown");
++            drop(grow());
++            let before = gen.gpu.ledger.live();
++            let t = Clock::now();
++            let field = grow();
++            let g = t.elapsed_ms();
++            let asked = cells(&field, 36);
++            let t = Clock::now();
++            pollster::block_on(gen.query_field(&field, &asked)).expect("answered");
++            let q = t.elapsed_ms();
++            let held = field.bytes();
++            drop(field);
++            let after = gen.gpu.ledger.live() - before;
++            println!("SITE_TIME {id} {seed} {:.2} {g:.2} {q:.2} {held} {after}", g + q);
++        }
++    }
++}

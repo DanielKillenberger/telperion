@@ -70,3 +70,10 @@ The review's one gap (P1, R3'): the oak at seed 1234 over 0.1.4. Re-measured war
 - **What hindered:** its first step, the main entry building Telperion with `{ surface: true, foliage: true }`, is refused by the core Wasm itself (`surface allocation`, code 2, the raw C ABI with no TypeScript in between), so the script stops before it reaches `field.js`. The field half, run on its own against `dist/field.js`, refuses without WebGPU and refuses a side of two by name. The refusal is the 32-bit Wasm limit fn-291 works on.
 - **Cost:** about 5 minutes; "test-dist green" cannot be met inside this task.
 - **What would remove it:** fn-291 landing on this branch, or test-dist's main-entry tree swapped for one the 32-bit module holds (a host call, since the script's tree is the README's first example).
+
+## 2026-10-18, task 15 (worker)
+
+- **Doing:** the paired site-field measurement (release tip 23fb243e3 against R8 at d9193b9ce).
+- **What hindered:** the committed `field_time` test reads seed 1 only and neither side reports the bytes held, so seeds 1234 and 5678 and the held memory needed a scratch test in two disposable worktrees, each building its own render test binary (the task's Touches are the evidence directory). The dcg hook refused the first build command because the redirect's parent directory did not exist yet.
+- **Cost:** two render-crate test builds (minutes each) and one retyped command.
+- **What would remove it:** `field_time` taking `FIELD_SEEDS` and printing the ledger's live bytes after the read-out, so a later pairing needs only the base's build.
