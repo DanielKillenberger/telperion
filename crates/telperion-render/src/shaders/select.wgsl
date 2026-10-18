@@ -5,8 +5,9 @@
 // when the camera cuts or the tree is submitted again.
 //
 // Three dispatches compact each level in placement-index order: classify and
-// rank within each workgroup, prefix the group counts, then scatter. Equal
-// depth samples therefore resolve in the same order on every draw.
+// rank within each workgroup, prefix the group counts, then scatter into one
+// list, the levels end to end. Equal depth samples therefore resolve in the
+// same order on every draw.
 
 struct Selection {
     planes: array<vec4<f32>, 6>,
@@ -22,8 +23,9 @@ struct Selection {
     box_extent: vec4<f32>,
     instances: u32,
     levels: u32,
-    // The u32 slots each level's list is given in the shared buffer.
-    stride: u32,
+    // Words between two levels' start words, so each can be bound at a
+    // dynamic offset.
+    slot: u32,
     // The level every leaf in the frame is held at, or -1 to choose one.
     forced: i32,
     // The rachis's and the pedicel's lengths on the organ (fn-253), how
@@ -36,7 +38,7 @@ struct Selection {
 @group(0) @binding(1) var<storage, read> placements: array<u32>;
 /// One deviation in metres per level, coarsest first, the finest exactly zero.
 @group(0) @binding(2) var<storage, read> deviations: array<f32>;
-/// Every level's list end to end, `u.stride` slots each.
+/// Every level's list end to end, each from its level's start.
 @group(0) @binding(3) var<storage, read_write> lists: array<u32>;
 /// One counter per level, and the unseen bucket last.
 @group(0) @binding(4) var<storage, read_write> counts: array<atomic<u32>>;
@@ -44,6 +46,8 @@ struct Selection {
 @group(0) @binding(5) var<storage, read_write> arguments: array<atomic<u32>>;
 /// Packed local ranks, then one count/offset per level (including unseen) and group.
 @group(0) @binding(6) var<storage, read_write> scratch: array<u32>;
+/// Each level's start word in `lists`, `u.slot` words apart.
+@group(0) @binding(7) var<storage, read_write> starts: array<u32>;
 
 const WORKGROUP: u32 = 256u;
 /// The tally lives in workgroup memory, which is sized when the shader is
@@ -263,6 +267,16 @@ fn prefix(
     }
 }
 
+/// Where a level's leaves begin in `lists`: every lower level's count, which
+/// the prefix pass has made final.
+fn level_start(level: u32) -> u32 {
+    var start = 0u;
+    for (var lower = 0u; lower < level; lower += 1u) {
+        start += atomicLoad(&counts[lower]);
+    }
+    return start;
+}
+
 @compute @workgroup_size(256)
 fn scatter(
     @builtin(global_invocation_id) global: vec3<u32>,
@@ -272,10 +286,15 @@ fn scatter(
     if instance >= u.instances {
         return;
     }
+    if instance == 0u {
+        for (var level = 0u; level < u.levels; level += 1u) {
+            starts[level * u.slot] = level_start(level);
+        }
+    }
     let packed = scratch[instance];
     let level = packed >> 8u;
     if level < u.levels {
         let offset = scratch[group_slot(level, instance / WORKGROUP)];
-        lists[level * u.stride + offset + (packed & 255u)] = instance;
+        lists[level_start(level) + offset + (packed & 255u)] = instance;
     }
 }

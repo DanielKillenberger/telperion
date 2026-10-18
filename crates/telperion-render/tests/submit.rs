@@ -171,13 +171,15 @@ fn every_buffer_selection_needs_is_judged_and_named_before_the_upload() {
     // Each case is the smallest limit that leaves the buffer under test the
     // first one that will not fit, so the name in the message is that
     // buffer's and no earlier one's.
-    let cases: [(&str, u64, TreeMesh); 4] = [
+    let cases: [(&str, u64, TreeMesh); 5] = [
         ("foliage level indices", 4_096, crown(3, 2_000, 1)),
-        // A list is aligned up to a bindable offset, so a crown of one leaf
-        // still costs one alignment per level.
-        ("foliage level lists", 800, crown(3, 10, 1)),
+        // The lists are one, aligned up to a bindable offset, so a crown of
+        // one leaf costs one alignment however many levels it has.
+        ("foliage level lists", 300, crown(1, 10, 1)),
         ("foliage level counters", 50, crown(MAX_LEVELS, 4, 0)),
         ("foliage indirect arguments", 100, crown(MAX_LEVELS, 4, 0)),
+        // Each level's start word sits at its own bindable offset.
+        ("foliage level starts", 800, crown(3, 10, 1)),
     ];
     for (buffer, granted, mesh) in cases {
         let message = fits(&limit(granted), &mesh)
