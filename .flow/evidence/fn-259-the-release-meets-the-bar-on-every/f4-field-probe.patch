@@ -1,0 +1,84 @@
+diff --git i/crates/telperion-render/examples/field_time.rs w/crates/telperion-render/examples/field_time.rs
+new file mode 100644
+index 000000000..625befe64
+--- /dev/null
++++ w/crates/telperion-render/examples/field_time.rs
+@@ -0,0 +1,78 @@
++//! fn-259 task 4: F4's per-tree field call, natively, for the scorecard.
++//! Measurement only, never committed; kept as `f4-field-probe.patch` in
++//! fn-259's evidence.
++//!
++//!   cargo run --profile ci -p telperion-render --example field_time -- <preset> <seed,...>
++//!
++//! A generator with no renderer (`Generator::for_fields_async`, a worker's),
++//! then for each seed, twice: `grow_field(family, 36)`, the call the
++//! package's field entry makes, to the return of its grid on the host
++//! (growth, preparation and the 36-cell read-out included). `start_ms` is
++//! the device and the generator's programs, once a process. `AGE` sets an
++//! age in place of the preset's. Prints one JSON line.
++use std::time::Instant;
++use telperion_render::{generation::Generator, Gpu};
++
++fn main() -> Result<(), Box<dyn std::error::Error>> {
++    let args: Vec<String> = std::env::args().skip(1).collect();
++    let [id, seeds] = &args[..] else {
++        return Err("usage: field_time <preset> <seed,...>".into());
++    };
++    let age: Option<f64> = std::env::var("AGE").ok().map(|a| a.parse()).transpose()?;
++    let started = Instant::now();
++    let gpu = pollster::block_on(Gpu::request(None))?;
++    let generator = pollster::block_on(Generator::for_fields_async(gpu))?;
++    let start_ms = ms(started);
++    let mut rows = Vec::new();
++    let mut family_age = 0.0;
++    for seed in seeds.split(',') {
++        let mut family = telperion_core::presets::by_identity(id)?;
++        family.skeleton.seed = seed.parse()?;
++        if let Some(age) = age {
++            family.age = age;
++        }
++        family_age = family.age;
++        let mut call = || -> Result<(f64, (usize, usize)), Box<dyn std::error::Error>> {
++            let t = Instant::now();
++            let grid = pollster::block_on(generator.grow_field(&family, 36, None))?;
++            let ms = ms(t);
++            let wood = grid.cells.iter().filter(|c| c.wood).count();
++            let foliage = grid.cells.iter().filter(|c| c.foliage).count();
++            Ok((ms, (wood, foliage)))
++        };
++        let (first, _) = call()?;
++        let (warm, (wood, foliage)) = call()?;
++        rows.push(format!(
++            "{{\"seed\":{},\"first_ms\":{first:.2},\"warm_ms\":{warm:.2},\"wood_cells\":{wood},\"foliage_cells\":{foliage}}}",
++            family.skeleton.seed
++        ));
++    }
++    println!(
++        "{{\"version\":\"F4\",\"preset\":\"{id}\",\"age\":{family_age},\"n\":36,\"route\":\"native wgpu, Generator::grow_field\",\"start_ms\":{start_ms:.1},\"samples\":[{}],\"peak_rss_mb\":{},\"load\":\"{}\"}}",
++        rows.join(","),
++        peak_mb()?,
++        load()
++    );
++    Ok(())
++}
++
++fn ms(since: Instant) -> f64 {
++    since.elapsed().as_secs_f64() * 1e3
++}
++
++fn peak_mb() -> Result<u64, Box<dyn std::error::Error>> {
++    let status = std::fs::read_to_string("/proc/self/status")?;
++    let line = status
++        .lines()
++        .find(|l| l.starts_with("VmHWM:"))
++        .ok_or("no VmHWM")?;
++    let kb: u64 = line.split_whitespace().nth(1).ok_or("no VmHWM")?.parse()?;
++    Ok(kb / 1024)
++}
++
++fn load() -> String {
++    std::fs::read_to_string("/proc/loadavg")
++        .ok()
++        .and_then(|s| s.split_whitespace().next().map(str::to_owned))
++        .unwrap_or_default()
++}
