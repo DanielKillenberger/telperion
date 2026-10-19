@@ -113,7 +113,7 @@ impl Overlay {
     /// where the projection puts them.
     fn place(&self) -> Vec<Label> {
         let s = f64::from(self.letter);
-        let [px, py, pw, ph] = self.panel;
+        let [px, py, pw, ph] = self.panel();
         let mut order: Vec<(&String, [f64; 2])> =
             self.dots.iter().map(|(n, p)| (n, self.pixel(*p))).collect();
         order.sort_by(|a, b| a.1[1].total_cmp(&b.1[1]).then(a.1[0].total_cmp(&b.1[0])));

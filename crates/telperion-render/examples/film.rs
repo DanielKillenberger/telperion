@@ -2,7 +2,9 @@
 //! through the one pipeline and the shipped renderer, a growth grown once
 //! on the device and settled at whole ages, the next year faded in over
 //! the path's `fade` share of each (fn-270; host, 2026-10-14; owner,
-//! 2026-10-19), a walk built on the device at each frame's share (fn-276),
+//! 2026-10-19), a walk built at each frame's share by the direct build, as
+//! `headless --walk` builds one (the device refuses some walk frames:
+//! FRICTION.md, 2026-10-19),
 //! the corner map drawn flat over each still, and the stills assembled
 //! into an mp4 by ffmpeg.
 //! Each segment's cost is printed as it ends; each frame's tree in
@@ -31,13 +33,13 @@ use overlay::{Canvas, Overlay};
 use path::{ease, faded, Frame, Kind, Path};
 use std::io::Write as _;
 use telperion_core::{
-    blend,
+    blend, mesh,
     presets::{by_identity, CATALOGUE},
     surface::Bounds,
     Family,
 };
 use telperion_render::{
-    generation::Generator, render, write_png, Gpu, Renderer, SceneRow, Still, STILL_FORMAT,
+    generation::Generator, render, write_png, Gpu, Level, Renderer, SceneRow, Still, STILL_FORMAT,
 };
 
 fn main() -> Result<(), String> {
@@ -95,7 +97,7 @@ fn main() -> Result<(), String> {
         peaks.reset();
         let cost = match &segment.kind {
             Kind::Grow { species, from, to } => film.grow(&gen, k, species, (*from, *to))?,
-            Kind::Walk { from, to, age } => film.walk(&gen, k, (from, to), *age)?,
+            Kind::Walk { from, to, age } => film.walk(k, (from, to), *age)?,
         };
         let (rss, device) = peaks.take();
         println!(
@@ -325,16 +327,11 @@ impl Film<'_> {
         Ok(cost)
     }
 
-    /// A walk: each frame's family at its eased share built on the device
-    /// (fn-276: it builds every walk frame the CPU does) and put up; a held
-    /// frame draws the last tree again.
-    fn walk(
-        &mut self,
-        gen: &Generator,
-        k: usize,
-        (from, to): (&str, &str),
-        age: f64,
-    ) -> Result<Cost, String> {
+    /// A walk, as `headless --walk` draws one: each frame's family built at
+    /// its eased share by the direct build (`mesh::build`) and put up; a
+    /// held frame draws the last tree again. Not on the device: it refuses
+    /// beech to spruce at 40, t = 0.216 (FRICTION.md, 2026-10-19).
+    fn walk(&mut self, k: usize, (from, to): (&str, &str), age: f64) -> Result<Cost, String> {
         let (a, b) = (
             ends(from, age, self.path.seed)?,
             ends(to, age, self.path.seed)?,
@@ -349,14 +346,13 @@ impl Film<'_> {
                 let started = std::time::Instant::now();
                 let family = blend::families(&a, &b, t)
                     .map_err(|e| format!("{from} -> {to} at {t}: {e}"))?;
-                let tree = gen
-                    .prepare(&family)
-                    .map_err(|e| format!("{from} -> {to} at {t}: {e}"))?;
+                let tree =
+                    mesh::build(&family).map_err(|e| format!("{from} -> {to} at {t}: {e}"))?;
                 let ms = started.elapsed().as_secs_f64() * 1e3;
                 (cost.build_ms, cost.trees) = (cost.build_ms + ms, cost.trees + 1);
-                let shape = (tree.count(), tree.bounds());
+                let shape = (tree.foliage_instances(), tree.bounds);
                 self.renderer
-                    .submit_prepared(tree)
+                    .submit_at(&tree, Level::Chosen)
                     .map_err(|e| e.to_string())?;
                 self.renderer.set_family(&family);
                 last = Some((t, shape, ms));

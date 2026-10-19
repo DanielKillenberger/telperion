@@ -48,3 +48,10 @@
 - **Hindered:** the desk had 8-9 GB of room for the 12 the gate declares (browsers and other apps hold about 19 GB); it waited from 12:32 without admission, as cut 3's gate did on 2026-10-14.
 - **Cost:** 31 minutes unadmitted (12:32 to 13:03), another worktree's gate queued beside it; stopped by fn-276's precedent (unadmitted in 30 minutes, the host runs it on the merged branch). `npm test` (declared 5 GB) ran: 173 of 173.
 - **Would have removed it:** nothing in this task; a gate that fits beside the owner's desktop is fn-274's.
+
+## 2026-10-19, cut 4: the device still refuses a walk frame
+
+- **Doing:** cut 4, its walks built on the device after two 1-second walk clips (30 frames each) built every frame.
+- **Hindered:** the full cut stopped at its first walk: "european-beech -> norway-spruce at 0.216: the GPU device was refused on experimental generation: the build passed its sizes at cycle 9: LayGenerations (0x1)" (seed 7, age 40, t = 0.2160, eased). fn-276's sweep named the film's walk frames at seeds 1, 7, 42 as built; this share was not among the clip's frames, so the clip did not catch it. The layout-generation limit is the one fn-276 R2 sized from presets (`most_units` floor).
+- **Cost:** a 2-minute run; the walks go back to the CPU build (about 32 minutes a cut).
+- **Would have removed it:** a device sweep at the film's own frame shares (`Path::frames`, eased) rather than chosen t values; the oracle could build each frame on the device too.
