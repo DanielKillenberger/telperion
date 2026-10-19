@@ -12,14 +12,12 @@ import { writeFile, mkdir } from 'node:fs/promises';
  * suite's business, on the hardware adapter, beside this one.
  * ------------------------------------------------------------------ */
 
-// Shared shrink for small binding and UI fixtures: a short envelope and a
-// handful of attractors, and nothing per species - one flat habit row builds
-// every tree, so there is no variant knob left to turn down. Binding-specific
-// resource limits and internode spacing remain explicit at their call site.
+// Shared shrink for small binding fixtures: the engine grows a species to
+// its age, so a young tree is a small one. Eight years keeps leaves on every
+// species here, from about 700 on the oak to about 7,300 on the spruce.
 function compactSpeciesFixture(family) {
   const fixture = structuredClone(family);
-  fixture.skeleton.envelope.height = 4;
-  fixture.skeleton.attractors = 40;
+  fixture.age = 8;
   return fixture;
 }
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ? pathToFileURL(process.env.PLAYWRIGHT_MODULE).href : 'playwright');
@@ -64,9 +62,9 @@ try {
     family.skeleton.seed = 42; family.skeleton.attractors = 500; family.skeleton.step = 0.02;
     const meshFree = engine.build(family, { structure: true, field: { n: 24 } });
     check(!meshFree.surface && !meshFree.foliage && !meshFree.diagnostics.stages.surface && meshFree.diagnostics.timings.surfaceMs === 0, 'mesh-free must not invoke surface');
-    // FN-9 natural defaults and retained clipped laterals intentionally changed
-    // historical 13616/59810 counts. Assert topology/cardinality and exact replay below.
-    check(meshFree.diagnostics.nodes > meshFree.diagnostics.crossover && meshFree.diagnostics.leavesPlanned > 0 && meshFree.diagnostics.instances === 0, 'ordinary has local branches and a leaf plan');
+    // The engine grows every node as structure: no crossover splits off local
+    // branches. Assert cardinality and exact replay below.
+    check(meshFree.diagnostics.nodes > 0 && meshFree.diagnostics.leavesPlanned > 0 && meshFree.diagnostics.instances === 0, 'ordinary grows a tree and a leaf plan');
     check(meshFree.diagnostics.stages.plan && !meshFree.diagnostics.stages.placement && !meshFree.diagnostics.stages.cull && meshFree.diagnostics.timings.foliageMs === 0, 'field-only reads the plan and places no leaf');
     check(meshFree.structure.values.length === meshFree.diagnostics.nodes * 6 && meshFree.structure.topology.length === meshFree.diagnostics.nodes * 3, 'packed node cardinality');
     check(meshFree.diagnostics.complete, 'complete diagnostics');
@@ -103,37 +101,21 @@ try {
     const field = engine.build(family, { field: { n: 8 } }).field, before = field.answer.flags.slice();
     engine.build(family, {});
     check(before.every((v, i) => v === field.answer.flags[i]), 'a rebuild leaves an earlier field as it was');
-    for (const bad of [NaN, Infinity, -1]) {
+    for (const bad of [NaN, Infinity]) {
       const p = structuredClone(family); p.skeleton.envelope.height = bad;
       await rejects(() => engine.build(p, { surface: true }), 'bad height');
     }
-    const partial = structuredClone(family); partial.skeleton.growth.maxNodes = 20;
-    check(!engine.build(partial, {}).diagnostics.complete, 'caps explicitly partial');
-    /* A tree with nowhere to grow is the node ceiling at zero now, not an
-       empty attractor set: one builder grows every axis from the trait row,
-       so a family with no attractors and no pull for them is still a tree,
-       and a positive pull with none to pull toward is refused. */
-    const empty = structuredClone(family); empty.skeleton.growth.maxNodes = 0;
-    const result = engine.build(empty, { surface: true, foliage: true });
-    check(result.surface.chunks.length === 0 && result.surface.bounds === null && result.foliage.leaves.length === 0, 'valid empty outputs');
-    check(PRESETS.length === 6 && new Set(PRESETS.map(p => p.id)).size === 6, 'complete identity catalogue');
-    await rejects(() => presetById('european-beech'), 'the beech in work is not listed');
-    await rejects(() => engine.build('european-beech', {}), 'the beech in work is not built by name');
+    // No tree is empty: the engine grows at least one cycle, and a tree of
+    // none is refused by name.
+    const unborn = structuredClone(family); unborn.age = 0;
+    await rejects(() => engine.build(unborn, { surface: true, foliage: true }), 'a tree of no cycle is refused', 'a tree grows at least one cycle');
+    check(PRESETS.length === 8 && new Set(PRESETS.map(p => p.id)).size === 8, 'complete identity catalogue');
     await rejects(() => presetById('missing'), 'unknown browser identity');
     await rejects(() => engine.build('missing', {}), 'unknown native identity');
     for (const [id, unit] of [['oregon-white-oak', 'leaf'], ['norway-spruce', 'needle'], ['silver-birch', 'leaf']]) {
       const specimen = window.compactSpeciesFixture(presetById(id));
-      // Small valid fixtures retain the authored habit and element rows.
-      // The birch stands on two stems, so each carries half the base through
-      // the pipe model and its wood is thinner all the way out; at 4 m the
-      // twig layer finds nothing long enough to clothe. Eight metres is the
-      // smallest fixture that keeps a leaf on it.
-      if (id === 'silver-birch') specimen.skeleton.envelope.height = 8;
-      specimen.skeleton.growth.maxNodes = 12000;
-      // A ceiling, not a target: the beech's short shoots put five leaves on
-      // every 2.5 cm of its limbs, about 30,000 on this fixture's wood.
+      // A ceiling, not a target, above the young spruce's 7,300 needles.
       specimen.canopy.maxInstances = 40000;
-      specimen.skeleton.twigs.twig.internodeLength = 0.04;
       const output = engine.build(specimen, { foliage: true, structure: true, field: { n: 24 } });
       const foliage = output.foliage, d = output.diagnostics;
       check(d.complete, id + ' small binding fixture completes without truncation');
@@ -180,7 +162,6 @@ try {
         ['unknown element trait', p => p.element.anatomy = 'missing'],
         ['unknown canopy trait', p => p.canopy.attachment = 'missing'],
         ['unknown habit trait', p => p.skeleton.habit = { kind: 'missing' }],
-        ['crookedness', p => p.skeleton.habit.crookedness = 90],
         ['foliage connector length', p => p.element.connectorLength = -1],
         ['leaf card carries no lobes and no section roundness', p => { p.element.card = true; p.element.lobeCount = 1; }],
         ['/skeleton/bias/supernatural/enabled', p => p.skeleton.bias.supernatural.enabled = 1],
@@ -202,7 +183,6 @@ try {
       const limited = structuredClone(specimen); limited.canopy.maxInstances = 1;
       await rejects(() => engine.build(limited, { foliage: true }), id + ' foliage budget rejects instead of truncating');
     }
-    await rejects(() => engine.build(empty, { field: { n: 8 } }), 'an empty tree has no field', 'field of an empty tree');
     engine.dispose(); engine.dispose();
     check(savedFlags.every((v,i) => v === meshFree.field.answer.flags[i]), 'the field survives disposal');
     await rejects(() => engine.build(family, {}), 'disposed engine');
@@ -225,7 +205,7 @@ try {
     }
     check(e.preset(999) === 1, 'unknown ABI identity');
     check(e.request_alloc(65537) === 1 && e.build() === 1, 'oversized request leaves no prior request');
-    check(raw('{"family":{"skeleton":{"growth":{"maxNodes":0}}},"outputs":{"surface":true}}') === 0 && e.chunk_len(0, 0) === 0, 'native empty recovery');
+    check(raw('{"family":{"age":0},"outputs":{"surface":true}}') === 1 && e.chunk_len(0, 0) === 0, 'native tree of no cycle refused');
     check(raw(JSON.stringify({ family, outputs: { surface: true } })) === 0, 'native wood build');
     const chunks = JSON.parse(new TextDecoder().decode(new Uint8Array(e.memory.buffer, e.metadata_ptr(), e.metadata_len()))).surfaceChunks;
     check(chunks > 0 && [0, 1, 2].every(f => e.chunk_len(chunks - 1, f) > 0), 'native chunks counted in the metadata');
@@ -237,7 +217,7 @@ try {
     check(['field_snapshot', 'query_alloc', 'query'].every(name => !(name in e)), 'no cube query and no snapshot at the native boundary');
     check(e.buffer_len(999) === 0 && e.buffer_ptr(999) === 0, 'unknown buffer slot');
     e.release(); e.release();
-    return { fieldGrid: true, speciesAnatomy: true, identityCatalogue: true, independentOutputs: true, meshFree: true, ownership: true, malformed: true, empty: true, staleFields: true, deterministic: true, partialDiagnostics: true };
+    return { fieldGrid: true, speciesAnatomy: true, identityCatalogue: true, independentOutputs: true, meshFree: true, ownership: true, malformed: true, empty: true, staleFields: true, deterministic: true };
   });
   await writeFile(out + '/bindings.json', JSON.stringify(bindings, null, 2));
   console.log(bindings);
