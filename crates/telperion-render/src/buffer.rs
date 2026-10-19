@@ -257,7 +257,6 @@ impl Ledger {
     }
 
     /// The bytes charged now.
-    #[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
     pub(crate) fn live(&self) -> u64 {
         self.counts.live.load(std::sync::atomic::Ordering::Relaxed)
     }

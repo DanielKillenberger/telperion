@@ -1,5 +1,6 @@
 //! Fixed shoot anatomy and finite authoring rails for the local branch law.
 use crate::catalogue::{bounded, input, tuned, value, Blend, Bounds, Dial, Growth, Site};
+#[cfg(test)]
 use crate::math::Transcendental;
 use crate::Result;
 /// Top of the `generations` rail, and its neutral.
@@ -381,6 +382,7 @@ impl TwigParams {
         crate::catalogue::check(Self::CHECKS, &self, Site::Twig)?;
         Ok(self)
     }
+    #[cfg(test)]
     pub(crate) fn internodes(self, radius: f64, length: f64) -> usize {
         let floor = if radius <= self.twig.bearing_diameter / 2.0 {
             self.twig.length
@@ -395,9 +397,11 @@ impl TwigParams {
         .max(1.0) as usize
     }
 }
+#[cfg(test)]
 pub fn branch_length(radius: f64) -> f64 {
     148.0 / 7.4_f64.powf_fixed(2.0 / 3.0) * radius.max(0.0).powf_fixed(2.0 / 3.0)
 }
+#[cfg(test)]
 pub fn child_radius(radius: f64, ratio: f64, power: f64) -> f64 {
     radius * ratio.powf_fixed(power)
 }

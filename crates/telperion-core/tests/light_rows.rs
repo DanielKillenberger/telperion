@@ -4,7 +4,7 @@
 //! in the open sky's light. Leaf area alone, with no response row, changes
 //! nothing the tree grows: the light is read only through a response.
 use telperion_core::presets::{space::SITE, Preset};
-use telperion_space::{bud_light, grow, Request, Species};
+use telperion_space::{grow, grow_capture_light_at, Request, Species};
 
 /// Young enough to grow in a moment, old enough for a crown to shade.
 const AGE: u32 = 15;
@@ -27,12 +27,16 @@ fn request() -> Request {
     }
 }
 
-/// The darkest light any living apex samples.
+/// The darkest light any living apex samples in the lattice in the last
+/// cycle that reads it, as the one cycle reads it (`cpu_reads`).
 fn darkest(species: &Species) -> f64 {
-    let structure = grow(species, request()).unwrap();
-    let lights = bud_light(&structure, species, &SITE);
+    let capture = grow_capture_light_at(species, request(), AGE - 1).unwrap();
+    let (_, bytes) = capture.array("cpu_reads").expect("the reads");
+    let lights: Vec<f32> = (bytes.chunks_exact(4))
+        .map(|b| f32::from_le_bytes(b.try_into().expect("four bytes")))
+        .collect();
     assert!(!lights.is_empty(), "a tree with living apices");
-    lights.iter().map(|&(_, l)| l).fold(1.0, f64::min)
+    lights.iter().map(|&l| f64::from(l)).fold(1.0, f64::min)
 }
 
 /// Every shipped preset carries leaf area (R2, SOURCES.md).

@@ -10,7 +10,7 @@
 //! the rachis at zero, the seat is the tip itself.
 //! The trees carry non-unit floret sizes (taper, scatter) and, at a
 //! stagger of one, florets the season has grown only part way or dropped.
-use crate::generation::{io, Delivery, Generator};
+use crate::generation::{io, Generator};
 use crate::{
     select::{frame, Level, Select},
     Camera,
@@ -158,7 +158,7 @@ struct Organs {
 fn organs(gpu: &Gpu, family: &Family) -> Organs {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
-    let prepared = gen.prepare(family, Delivery::Resident).unwrap();
+    let prepared = gen.prepare(family).unwrap();
     let organ = prepared.organ.as_ref().expect("the tree flowers");
     let reference = (prepared.mesh.organ.as_ref().unwrap().instances).reference;
     let device = pollster::block_on(io::read_leaves_async(

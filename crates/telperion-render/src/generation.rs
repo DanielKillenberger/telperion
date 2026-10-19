@@ -1,5 +1,5 @@
 //! Optional shared GPU foliage experiment. The existing pure-core build paths
-//! remain available; every request explicitly states its delivery mode.
+//! remain available.
 mod clock;
 mod compute;
 use clock::Clock;
@@ -8,13 +8,14 @@ use clock::Clock;
 mod cycle;
 mod data;
 // The resident build's stages after the cycle's: the folds, sweep,
-// stations, rings, placement and handoff (fn-212, fn-256 task 3).
+// stations, rings and placement (fn-212, fn-256 task 3).
 mod resident;
 #[cfg(target_arch = "wasm32")]
 pub(crate) use resident::BROWSER;
 pub use resident::{Admitted, GrowingTree};
 mod io;
 mod positions;
+#[cfg(test)]
 mod preparation;
 #[cfg(test)]
 mod profile;
@@ -22,36 +23,12 @@ mod profile;
 pub(crate) mod request;
 pub(crate) mod sources;
 mod submit;
+#[cfg(test)]
 mod wood;
 use crate::{buffer::Held, Gpu, Renderer, Result, Submitted};
 use std::sync::Arc;
-use telperion_core::{
-    foliage::{self, Instances},
-    mesh::{self, TreeMesh},
-    pipeline::executor,
-    surface::{self, Bounds},
-    Family,
-};
+use telperion_core::{mesh::TreeMesh, surface::Bounds, Family};
 
-/// Requested geometry ownership, independent of the compute backend.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Delivery {
-    /// Keep supported output on the renderer's device; fallback may use CPU geometry.
-    Resident,
-    /// Return owned CPU geometry, reading GPU-generated foliage back when applicable.
-    Cpu,
-}
-/// Backend for the reported stage: [`Prepared::backend`] describes foliage;
-/// [`Metrics::wood_backend`] reports wood independently.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Backend {
-    /// CPU execution requested by the delivery path.
-    Cpu,
-    /// GPU execution, including output subsequently read back to CPU ownership.
-    Gpu,
-    /// Canonical CPU execution because acceleration was unsupported or rejected.
-    CpuFallback,
-}
 /// Diagnostics for one preparation request. `_ms` fields are host wall-clock
 /// milliseconds, not GPU timestamps; `_bytes` fields count selected allocation
 /// capacities in bytes. Stage timings can nest or overlap and must not be summed.
@@ -87,7 +64,6 @@ pub struct Metrics {
     pub wood_prepared_cpu_bytes: u64,
     pub wood_metadata_cpu_bytes: u64,
     pub wood_gpu_peak_bytes: u64,
-    pub wood_backend: Option<Backend>,
     /// Unstable diagnostic text; absent when no fallback reason was recorded.
     pub wood_fallback: Option<&'static str>,
     /// Preparation only: excludes adoption, drawing and completed-frame fencing.
@@ -123,7 +99,6 @@ pub struct Prepared {
     /// The wood's curve already on the device, which the submit takes in
     /// place of `mesh.curve` (fn-212 task 7).
     wood: Option<crate::curve::CurveGpu>,
-    pub backend: Backend,
     pub metrics: Metrics,
     /// How far the tree's falling leaves have coloured (fn-270 R5c), which
     /// the submit draws them by: whole for a tree built at once.
@@ -142,19 +117,15 @@ impl Prepared {
     pub fn curve(&self) -> &telperion_core::surface::Curve {
         &self.mesh.curve
     }
-    pub fn cpu_mesh(&self) -> Option<&TreeMesh> {
-        self.resident.is_none().then_some(&self.mesh)
-    }
 }
 /// Device/pipeline ownership survives independently of the renderer. Creating
 /// this once warms pipelines, never generated specimens.
 pub struct Generator {
-    resident_allowed: bool,
     gpu: Gpu,
     identity: Arc<()>,
     place: io::Pass,
     mass: io::Pass,
-    positions: Option<io::Pass>,
+    positions: io::Pass,
     /// The device's kernels, made on the first tree built resident.
     resident: std::cell::OnceCell<resident::Kit>,
     /// A test's device error, raised inside the next device build.
@@ -179,22 +150,14 @@ impl Generator {
     ) -> impl std::future::Future<Output = Result<Self>> + 'static {
         let gpu = renderer.gpu.clone();
         let identity = renderer.identity.clone();
-        async move { Self::create(gpu, identity, true).await }
-    }
-    /// Experimental owned CPU output without renderer resources.
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn for_cpu_output(gpu: Gpu) -> Result<Self> {
-        pollster::block_on(Self::for_cpu_output_async(gpu))
-    }
-    pub async fn for_cpu_output_async(gpu: Gpu) -> Result<Self> {
-        Self::create(gpu, Arc::new(()), false).await
+        async move { Self::create(gpu, identity).await }
     }
     /// A generator with no renderer, for fields grown on the device
     /// (fn-257): a worker's or a test's.
     pub async fn for_fields_async(gpu: Gpu) -> Result<Self> {
-        Self::create(gpu, Arc::new(()), true).await
+        Self::create(gpu, Arc::new(())).await
     }
-    async fn create(gpu: Gpu, identity: Arc<()>, resident_allowed: bool) -> Result<Self> {
+    async fn create(gpu: Gpu, identity: Arc<()>) -> Result<Self> {
         let scopes = io::scope(&gpu);
         let place = io::Pass::new(
             &gpu,
@@ -208,19 +171,16 @@ impl Generator {
             &[true, false, false],
             &["occupancy", "depth"],
         );
-        let positions = resident_allowed.then(|| {
-            io::Pass::new(
-                &gpu,
-                sources::positions(),
-                &[true, true, false, false, false, false],
-                &positions::entries(),
-            )
-        });
+        let positions = io::Pass::new(
+            &gpu,
+            sources::positions(),
+            &[true, true, false, false, false, false],
+            &positions::entries(),
+        );
         io::programs_ready(&gpu, scopes).await?;
         Ok(Self {
             gpu,
             identity,
-            resident_allowed,
             place,
             mass,
             positions,
@@ -232,67 +192,17 @@ impl Generator {
         })
     }
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn prepare(&self, family: &Family, delivery: Delivery) -> Result<Prepared> {
-        pollster::block_on(self.prepare_async(family, delivery))
+    pub fn prepare(&self, family: &Family) -> Result<Prepared> {
+        pollster::block_on(self.prepare_async(family))
     }
-    fn empty(&self) -> Result<Resident> {
-        let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-        Ok(Resident {
-            leaves: Held::resident(
-                io::buffer(&self.gpu, "empty generated foliage", 16, usage, &[])?,
-                0,
-                "empty generated foliage",
-            ),
-            masses: Held::resident(
-                io::buffer(&self.gpu, "empty generated mass", 32, usage, &[0; 32])?,
-                32,
-                "empty generated mass",
-            ),
-            count: 0,
-            crown: None,
-            full: None,
-        })
-    }
-    /// Explicit verification readback; callers keep it outside resident delivery timing.
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_instances(&self, prepared: &Prepared) -> Result<Instances> {
-        pollster::block_on(self.read_instances_async(prepared))
-    }
-    pub async fn read_instances_async(&self, prepared: &Prepared) -> Result<Instances> {
-        if !Arc::ptr_eq(&self.identity, &prepared.identity) {
-            return Err(telperion_core::Error::InvalidInput("generation renderer mismatch").into());
-        }
-        if let Some(r) = &prepared.resident {
-            let mut out = Instances::new(prepared.mesh.foliage.instances.reference);
-            out.leaves = io::read_leaves_async(&self.gpu, r.leaves.buffer(), r.count).await?;
-            Ok(out)
-        } else {
-            Ok(prepared.mesh.foliage.instances.clone())
-        }
+    /// `family` grown, drawn and placed on the device whole (fn-256 R1).
+    pub async fn prepare_async(&self, family: &Family) -> Result<Prepared> {
+        self.prepare_resident(family).await
     }
 }
 
-fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
-    match (a, b) {
-        (Some(a), Some(b)) => Some(Bounds {
-            min: telperion_core::math::Vec3::new(
-                a.min.x.min(b.min.x),
-                a.min.y.min(b.min.y),
-                a.min.z.min(b.min.z),
-            ),
-            max: telperion_core::math::Vec3::new(
-                a.max.x.max(b.max.x),
-                a.max.y.max(b.max.y),
-                a.max.z.max(b.max.z),
-            ),
-        }),
-        (a, b) => a.or(b),
-    }
-}
 #[cfg(test)]
 mod build_time_tests;
-#[cfg(test)]
-mod standalone_tests;
 #[cfg(test)]
 mod tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]

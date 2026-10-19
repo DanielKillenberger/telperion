@@ -1,10 +1,14 @@
 //! The direct build's grower: the scaffold and twig frontiers drained in
 //! botanical order, every node given a stable birth identity.
 use super::*;
+#[cfg(test)]
 use crate::tree::{NodeIdentity, NodeKey};
+#[cfg(test)]
 use slotmap::{DenseSlotMap, Key};
+#[cfg(test)]
 mod budget;
 
+#[cfg(test)]
 pub(crate) struct Specimen {
     pub(super) tree: Tree,
     pub(super) shed: usize,
@@ -33,22 +37,23 @@ fn rows(params: &SkeletonParams, radii: RadiusParams) -> Result<TwigParams> {
     Ok(twigs)
 }
 
-/// Every refusal `Specimen::new` can make of the rows, with no attractor
-/// scattered and no node grown. The scatter's count stands in for the points:
-/// a scatter that succeeds places exactly that many, or none in a crown with
-/// no volume, and either way the growth configuration it resolves is the same.
+/// The refusals of the rows production reads (fn-293 task 8): the rows'
+/// own checks, and the resolved growth configuration, whose refusals the
+/// catalogue's refusal tests pin (`family::tests`, `catalogue_identity`). The
+/// scatter's count stands in for the points: a scatter that succeeds places
+/// exactly that many, or none in a crown with no volume, and either way the
+/// growth configuration it resolves is the same.
 pub(crate) fn validate(params: &SkeletonParams, radii: RadiusParams) -> Result<()> {
-    let twigs = rows(params, radii)?;
-    inner_envelope(params.envelope, twigs.reach).validate()?;
+    rows(params, radii)?;
     let scattered = if params.habit.attractor_weight > 0.0 {
         params.attractors
     } else {
         0
     };
-    params.resolved_growth(scattered)?;
-    scaffold::forks_placed(params)
+    params.resolved_growth(scattered).map(drop)
 }
 
+#[cfg(test)]
 impl Specimen {
     pub(crate) fn new(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
         let twigs = rows(params, radii)?;

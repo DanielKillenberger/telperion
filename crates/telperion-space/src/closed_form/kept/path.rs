@@ -17,6 +17,7 @@ use super::{
 };
 use crate::closed_form::along::{dominance_power, Along, Count};
 use crate::closed_form::events::{angled, lived_extent, Event};
+use crate::closed_form::predictor::tilts;
 use crate::closed_form::steps::{Grown, Step};
 use crate::girth::ripe;
 use crate::schedule::Carried;
@@ -379,28 +380,4 @@ impl Kept<'_> {
         y[SECTION2] = share * share * (x2 + lambda * x1 * x1);
         (factor, y.map(|v| lambda * factor * v), [0.0; 2])
     }
-}
-
-/// A zone's node count under its subtrees' factor `f` a node: E[f^N], the
-/// count's moments tilted by f^N (normalized), and its moments with one
-/// node replaced, E[N^p f^(N-1)].
-pub(in crate::closed_form) fn tilts(pmf: &[f64], f: f64, zone: &Zone) -> (f64, Count, Count) {
-    let (mut g, mut mu, mut nu) = (0.0, [0.0; 3], [0.0; 3]);
-    for (n, &pn) in pmf.iter().enumerate() {
-        let tilt = pn * f.powi(n as i32);
-        g += tilt;
-        if n > 0 {
-            let (nf, one) = (n as f64, pn * f.powi(n as i32 - 1));
-            for p in 0..3 {
-                mu[p] += tilt * nf.powi(p as i32 + 1);
-                nu[p] += one * nf.powi(p as i32 + 1);
-            }
-        }
-    }
-    let tilted = if g > 0.0 {
-        Count::from_moments(mu[0] / g, mu[1] / g, mu[2] / g)
-    } else {
-        Count::of(zone.nodes)
-    };
-    (g, tilted, Count::from_moments(nu[0], nu[1], nu[2]))
 }

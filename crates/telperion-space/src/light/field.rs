@@ -107,12 +107,16 @@ impl Grid {
 impl Field {
     /// The field of `leaves` (each a point and its leaf area in square
     /// metres) under `light`, over a box that holds every leaf and every
-    /// point in `reads`.
+    /// point in `reads`: test-only, the unquantised lattice.
+    #[cfg(test)]
     pub fn new(light: &super::Light, leaves: &[(Vec3, f64)], reads: &[Vec3]) -> Self {
         Self::on(light, leaves, reads, 1)
     }
 
-    /// `new`, its directions swept on up to `threads` cores.
+    /// The unquantised field `new` makes, its directions swept on up to
+    /// `threads` cores: the whole-tree grower's light (`grow::run`),
+    /// test-only.
+    #[cfg(test)]
     pub fn on(
         light: &super::Light,
         leaves: &[(Vec3, f64)],
@@ -123,15 +127,6 @@ impl Field {
         field.deposit_all(leaves);
         field.sweep(light.extinction, &light.directions(), threads);
         field
-    }
-
-    /// The lattice `leaves` deposit in the box spanning them and `reads`,
-    /// before any sweep.
-    pub(crate) fn deposited(leaves: &[(Vec3, f64)], reads: &[Vec3]) -> Vec<f32> {
-        let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
-        let mut field = Self::spanning(points);
-        field.deposit_all(leaves);
-        field.density
     }
 
     /// `on`, its leaves deposited as integer quanta of `QUANTUM` m² of
@@ -226,6 +221,7 @@ impl Field {
     }
 
     /// Every leaf's area deposited at its corners, in the leaves' order.
+    #[cfg(test)]
     pub(super) fn deposit_all(&mut self, leaves: &[(Vec3, f64)]) {
         for &(at, area) in leaves {
             let area = area as f32;

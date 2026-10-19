@@ -134,7 +134,7 @@ fn prepared(
         edges,
         distances: true,
     };
-    let rings = super::rings::rings_mode(tree, height, params, sweep, false, usize::MAX)?;
+    let rings = super::rings::rings_mode(tree, height, params, sweep, None, false, usize::MAX)?;
     let mut p = PreparedSurface::default();
     let [chunk] = &rings.chunks[..] else {
         return Ok((p, rings.edges));

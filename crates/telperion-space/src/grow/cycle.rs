@@ -21,15 +21,13 @@ mod retire;
 mod working;
 
 pub use capture::{grow_capture, Capture};
-pub use capture_grown::{grow_capture_grown, grow_capture_grown_at, grow_capture_tables};
+pub use capture_grown::{grow_capture_grown, grow_capture_tables};
 pub use capture_hierarchy::grow_capture_hierarchy_at;
-pub use capture_layout::{grow_capture_layout, grow_capture_layout_at};
 pub use capture_light::grow_capture_light_at;
 pub use capture_settled::{
-    grow_capture_retired, grow_capture_settle_tables, grow_capture_settled,
-    grow_capture_settled_at, grow_cycle_is_the_reference, settle_sag_turn, SettleTo,
+    grow_capture_retired, grow_capture_settle_tables, grow_capture_settled_at,
+    grow_cycle_is_the_reference, SettleTo,
 };
-pub use capture_units::{grow_capture_units, grow_capture_units_at};
 pub use census::{Census, Cycle};
 pub use paused::{admitted, tree_digest, within_year, Paused, Retiring};
 pub(super) use working::Working;

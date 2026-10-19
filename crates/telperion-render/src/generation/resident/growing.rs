@@ -110,11 +110,13 @@ impl Generator {
     pub async fn begin_growth(&self, family: &Family) -> Result<GrowingTree> {
         placeable(family)?;
         let growth = executor::growth(family)?;
+        let bases = super::boots::most(family)?;
         let at = (growth.request.seed, growth.request.age);
         let budget = self.device_budget();
         let state = self
             .on_device(async |kit| {
-                GrowthState::begin(&self.gpu, &kit.kernels, &growth, at, budget).await
+                let begun = GrowthState::begin(&self.gpu, &kit.kernels, &growth, at, budget);
+                Ok(begun.await?.hanging(bases))
             })
             .await?;
         Ok(GrowingTree {

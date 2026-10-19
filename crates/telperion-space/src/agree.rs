@@ -19,16 +19,6 @@ pub struct Agreement {
     pub radius: f64,
 }
 
-impl Agreement {
-    /// Whether every measure is within `bound`'s.
-    pub fn within(&self, bound: &Agreement) -> bool {
-        self.unmatched <= bound.unmatched
-            && self.tip <= bound.tip
-            && self.scale <= bound.scale
-            && self.radius <= bound.radius
-    }
-}
-
 /// Two growth paths that group the tree-wide sums differently (the whole
 /// tree, a coupled pass, a partition, the stepped executor): measured
 /// over the oak, beech and spruce at 24, seeds 1 to 6 (fn-254), no node

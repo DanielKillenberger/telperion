@@ -4,7 +4,7 @@
 //! own; `ten_builds_on_a_full_card` builds the Two Trees, the oak at 80
 //! and the birch at 40 in turn, ten in all, each under a wall-clock bound
 //! (`full-card.sh` in the evidence runs both).
-use super::super::{Delivery, Generator};
+use super::super::Generator;
 use crate::Renderer;
 
 /// The host's rulings of 2026-10-12 and fn-270 R5c: a build whose least
@@ -26,17 +26,14 @@ fn a_build_past_the_budget_is_refused_by_name_and_leaves_the_drawn_tree() {
         f
     };
     let drawn = gen
-        .prepare(&family("silver-birch", 8.0), Delivery::Resident)
+        .prepare(&family("silver-birch", 8.0))
         .expect("a small tree draws");
     let words = gen.read_instances(&drawn).unwrap().leaves;
     let beech = family("european-beech", 40.0);
     // Below the least tables: refused before any submit.
     gen.budget.set(Some(gpu.ledger.live() + (1 << 20)));
     let before = gpu.ledger.submits();
-    let refused = gen
-        .prepare(&beech, Delivery::Resident)
-        .err()
-        .expect("refused");
+    let refused = gen.prepare(&beech).err().expect("refused");
     assert!(refused.to_string().contains("device budget"), "{refused}");
     assert_eq!(
         gpu.ledger.submits(),
@@ -46,10 +43,7 @@ fn a_build_past_the_budget_is_refused_by_name_and_leaves_the_drawn_tree() {
     // The least tables fit, the growth does not: refused by name mid-build.
     gen.budget.set(Some(gpu.ledger.live() + (64 << 20)));
     let before = gpu.ledger.submits();
-    let refused = gen
-        .prepare(&beech, Delivery::Resident)
-        .err()
-        .expect("refused");
+    let refused = gen.prepare(&beech).err().expect("refused");
     assert!(refused.to_string().contains("device budget"), "{refused}");
     assert!(
         gpu.ledger.submits() > before,
@@ -110,7 +104,7 @@ fn ten_builds_on_a_full_card() {
         family.age = age;
         let free = gpu.free_device_memory().map_or(0, |f| f >> 20);
         let t = std::time::Instant::now();
-        let end = match gen.prepare(&family, Delivery::Resident) {
+        let end = match gen.prepare(&family) {
             Ok(p) => format!("built, {} instances", p.count()),
             Err(e) => format!("refused: {e}"),
         };

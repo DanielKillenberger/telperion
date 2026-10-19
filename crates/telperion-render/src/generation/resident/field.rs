@@ -1,8 +1,8 @@
 //! fn-257 R8: a tree's field read out on the device from the drawn
 //! stage's output, a consumer of it as the renderer is. The one cycle
 //! grows and draws the tree; the resident stages hang, fold and station
-//! it as a harness build does (`build::folded`), its nodes laid out but no
-//! curve swept (`Sweeper::nodes`); `field.wgsl` finds each node's limb
+//! it as a harness build does (`build::folded`), its drawn records read
+//! as the dress wrote them and no curve swept; `field.wgsl` finds each node's limb
 //! system and the box every record stands in, and `field/splat.wgsl`
 //! writes every drawn node and leaf-bearing segment into the cells of the
 //! requested grid it reaches. Only the grid is read back, and nothing is

@@ -201,7 +201,6 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("resident stations", stations::source()),
         ("resident scan", stations::SCAN.to_string()),
         ("resident rings", rings::source()),
-        ("resident handoff", handoff::source()),
     ]
     .into_iter()
     .chain(field::sources())
@@ -215,9 +214,10 @@ pub(super) mod agree_tests;
 mod boots;
 #[cfg(test)]
 mod boots_tests;
-#[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
 pub(super) mod budget;
 mod build;
+#[cfg(test)]
+mod digest_tests;
 #[cfg(test)]
 mod drawn_memory_tests;
 #[cfg(test)]
@@ -241,9 +241,10 @@ mod field_tests;
 mod field_time_tests;
 mod florets;
 pub(super) mod fold;
-mod handoff;
 #[cfg(test)]
 mod hang_tests;
+#[cfg(test)]
+mod pack_tests;
 #[cfg(test)]
 mod repeat_tests;
 mod rings;

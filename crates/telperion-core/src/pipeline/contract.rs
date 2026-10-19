@@ -11,8 +11,7 @@ pub mod branching {
     #[cfg(test)]
     pub use crate::pipeline::branching::*;
     pub use crate::pipeline::branching::{
-        GrowthOverrides, GrowthReport, HabitParams, LeafBase, SkeletonParams, DEFAULT_STEP,
-        MAX_LEAF_BASES,
+        GrowthOverrides, HabitParams, LeafBase, SkeletonParams, DEFAULT_STEP, MAX_LEAF_BASES,
     };
 }
 
@@ -91,7 +90,7 @@ pub mod surface {
 }
 
 pub mod twigs {
-    pub use crate::pipeline::twigs::{
-        branch_length, child_radius, TwigAnatomy, TwigParams, MAX_GENERATIONS,
-    };
+    #[cfg(test)]
+    pub use crate::pipeline::twigs::*;
+    pub use crate::pipeline::twigs::{TwigAnatomy, TwigParams};
 }

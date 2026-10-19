@@ -2,7 +2,7 @@
 //! film, FILM.md defect 1), each built by the CPU and on the device in
 //! one test: walk frames near the beech on the way to the Norway spruce
 //! at 40 ("UnitRounds"), and the Laurelin at 20 ("Given").
-use super::{Backend, Delivery, Generator};
+use super::Generator;
 use crate::Renderer;
 use telperion_core::presets::{by_identity, Family};
 
@@ -30,9 +30,8 @@ fn refused(families: &[(String, Family)]) -> Vec<String> {
             cpu.foliage_instances() > 0 || family.age < 2.0,
             "{name}: the CPU built a bare tree"
         );
-        match gen.prepare(family, Delivery::Resident) {
+        match gen.prepare(family) {
             Ok(p) => {
-                assert_eq!(p.backend, Backend::Gpu, "{name}: built off the device");
                 println!(
                     "{name}: device {} instances, CPU {}",
                     p.count(),
@@ -146,7 +145,7 @@ fn every_tree_builds_on_the_device() {
         // The cap this build is held to: the stated budget, or less where
         // other processes fill the card.
         let cap = super::resident::budget::native(&gpu, gpu.ledger.live()) >> 20;
-        match gen.prepare(&family, Delivery::Resident) {
+        match gen.prepare(&family) {
             Ok(p) => println!(
                 "{name}: {} instances, {:.0} ms, cap {cap} MiB",
                 p.count(),
@@ -192,7 +191,7 @@ fn refused_on_device(families: &[(String, Family)]) -> Vec<String> {
     let mut out = Vec::new();
     for (name, family) in families {
         let cap = super::resident::budget::native(&gpu, gpu.ledger.live()) >> 20;
-        match gen.prepare(family, Delivery::Resident) {
+        match gen.prepare(family) {
             Ok(p) => println!("{name}: {} instances, cap {cap} MiB", p.count()),
             Err(e) => out.push(format!("{name} (cap {cap} MiB): {e}")),
         }

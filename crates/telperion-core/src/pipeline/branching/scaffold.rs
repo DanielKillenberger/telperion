@@ -484,11 +484,8 @@ impl Builder<'_> {
 
 mod fork;
 mod frontier;
-#[cfg(test)]
 mod limit_tests;
-#[cfg(test)]
 mod troll_tests;
 pub(super) use fork::placed as forks_placed;
-#[cfg(test)]
 pub(super) use frontier::generate;
 pub(super) use frontier::Frontier;

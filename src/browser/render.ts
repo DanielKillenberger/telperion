@@ -58,7 +58,6 @@ export interface GenerationStages {
   woodPreparedCpuBytes: number;
   woodMetadataCpuBytes: number;
   woodGpuPeakBytes: number;
-  woodBackend: "Cpu" | "Gpu" | "CpuFallback" | null;
   /** Unstable diagnostic text; do not branch on its wording. */
   woodFallback: string | null;
   /** Preparation only; excludes adoption, drawing and completed-frame fencing. */
@@ -77,7 +76,6 @@ export interface GenerationStages {
 export type Admission = "beside" | "makeRoom";
 
 export interface GpuSubmitted extends Submitted {
-  backend: "Gpu" | "CpuFallback";
   stages: GenerationStages;
   /** Allocated live-tree GPU buffer bytes before adoption; excludes textures/pipelines. */
   previousTreeGpuBytes: number;
@@ -206,8 +204,8 @@ export interface Renderer {
    *  the background from the moment the renderer exists. Rejects with the
    *  program the browser refused, or the device lost meanwhile, by name. */
   programs: Promise<void>;
-  /** Experimental GPU foliage; unsupported inputs report CpuFallback. Waits
-   *  on `programs`, and rejects with its error without building. */
+  /** The tree built on the device. Waits on `programs`, and rejects with
+   *  its error without building. */
   setTreeGpu(family: string): Promise<GpuSubmitted>;
   /** The family's tree before its first year, on the device (`Growth`).
    *  Waits on `programs`, and rejects with its error without beginning. */

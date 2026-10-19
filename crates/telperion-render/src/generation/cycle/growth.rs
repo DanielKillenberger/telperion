@@ -17,7 +17,9 @@
 //! state spent (R2b), and the tree drawn now stays as it is.
 use super::super::resident::fold::Dressed;
 use super::build::Tables;
-use super::build_grow::{Growing, Sizes};
+use super::build_grow::Growing;
+#[cfg(test)]
+use super::build_grow::Sizes;
 use super::chains;
 use super::drawn::{dress, trunk, Rows, Trunk};
 use super::present::present;
@@ -41,6 +43,9 @@ pub(in crate::generation) struct GrowthState {
     scale: f32,
     /// The rows its rosette's stem establishes by (fn-275 R2a).
     establishing: [f32; 3],
+    /// The most retained leaf bases a stem hangs (`boots::most`), which
+    /// each draw holds room for.
+    bases: u32,
     /// The tree drawn a year before the age grown: none before the
     /// second year.
     previous: Option<Previous>,
@@ -57,7 +62,7 @@ pub(in crate::generation) struct GrowthState {
 /// (`Sizes::margins`), or stated sizes.
 pub(super) enum Start {
     Hint(super::build_arena::Hint),
-    #[cfg_attr(not(test), allow(dead_code))]
+    #[cfg(test)]
     Sizes(Sizes),
 }
 
@@ -124,6 +129,7 @@ impl GrowthState {
         let t = Tables::new(gpu, &tables, &chain)?;
         let growing = match start {
             Start::Hint(hint) => Growing::within(gpu, &k.build, &t, &tables, hint).await?,
+            #[cfg(test)]
             Start::Sizes(sizes) => Growing::begin(gpu, &k.build, &t, &tables, sizes).await?,
         };
         let growing = growing.paused(gpu, (&t, &tables)).await?;
@@ -139,11 +145,18 @@ impl GrowthState {
             unfold,
             scale,
             establishing,
+            bases: 0,
             previous: None,
             budget,
             growing,
             failed: Default::default(),
         })
+    }
+
+    /// This state, each draw holding room for `bases` retained leaf bases
+    /// a stem (`boots::most`; none where begun).
+    pub(in crate::generation) fn hanging(self, bases: u32) -> Self {
+        Self { bases, ..self }
     }
 
     /// The whole years grown; none once spent.
@@ -289,6 +302,7 @@ impl GrowthState {
                 fraction,
                 leaf,
                 establishing: self.establishing,
+                bases: self.bases,
             };
             let dressed = dress(gpu, &k.drawn, (view, &planned), &at)?;
             let measured = trunk(gpu, &k.drawn, &dressed).await?;

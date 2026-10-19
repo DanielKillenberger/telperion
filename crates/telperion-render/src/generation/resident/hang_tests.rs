@@ -7,7 +7,7 @@
 //! never completed: `TREE=silver-birch:20 TELPERION_TRACE=1
 //! timeout 120
 //! cargo test --profile ci -p telperion-render browser_route -- --ignored`.
-use super::super::{Delivery, Generator};
+use super::super::Generator;
 use crate::{Gpu, Renderer};
 
 /// The page's device: its two raised limits, WebGPU's defaults beside.
@@ -53,7 +53,7 @@ fn browser_route() {
     let mut renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let t = std::time::Instant::now();
     let gen = pollster::block_on(Generator::new_async(&renderer)).unwrap();
-    let prepared = gen.prepare(&family, Delivery::Resident).unwrap();
+    let prepared = gen.prepare(&family).unwrap();
     let built = t.elapsed().as_secs_f64();
     renderer.submit_prepared(prepared).unwrap();
     let camera = crate::hero_pose(renderer.bounds().unwrap(), 4.0 / 3.0, crate::GROUND_REACH);
@@ -77,7 +77,7 @@ fn a_build_makes_no_program_the_preparation_did_not() {
     assert!(prepared > before, "the preparation made no program");
     let mut family = telperion_core::presets::by_identity("european-beech").unwrap();
     family.age = 5.0;
-    gen.prepare(&family, Delivery::Resident).unwrap();
+    gen.prepare(&family).unwrap();
     pollster::block_on(gen.prepare_programs()).unwrap();
     assert_eq!(crate::programs::made(), prepared);
 }

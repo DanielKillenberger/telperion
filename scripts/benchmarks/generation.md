@@ -1,6 +1,10 @@
 # Generation baseline and snapshot input (schema 1)
 
-Run `npm run wasm:build`, serve this checkout with Vite, then:
+The runner and its inputs (`generation.mjs`, `generation-inputs.mjs`) and
+`field.mjs` were removed in fn-293 with the field query they measured
+(removed in fn-257); replay them from git history before fn-293. As
+recorded, the runner was run so: `npm run wasm:build`, serve the checkout
+with Vite, then:
 
 ```sh
 BROWSER_URL=http://127.0.0.1:5188 GENERATION_OUTPUT=/tmp/fn12-generation \
@@ -316,13 +320,11 @@ separate processes so its extra verification clone is excluded from timing/RSS.
 
 ### Resident wood expansion
 
-The experimental `setTreeGpu` and native `Delivery::Resident` paths also retain
-wood on the device. Core preparation emits canonical float32 positions and
-compact run/ring metadata. CPU float64 triangle checks select the ordinary CPU
-wood builder for collapse or unsupported numeric cases. Compute-only storage
-limits and unusable GPU normals select explicit CPU wood fallback. Device errors
-remain errors. The default CPU APIs and owned CPU delivery use the CPU builder;
-standalone CPU-output generators do not create wood compute pipelines.
+The resident build (`Generator::prepare`, the browser's `setTreeGpu` through the
+renderer's module) grows, draws and keeps the wood on the device; there is no
+CPU delivery and no CPU wood fallback (fn-293). A device or capacity failure is
+a named error. The CPU mesh (`mesh::build`) stays the reference for tests and
+for consumers without a GPU.
 
 Resident expansion copies pre-rounded coordinates/radii, emits ordered indices,
 and gathers incident triangles per vertex into finite unit normals. Verification
@@ -330,7 +332,7 @@ readback stays outside delivery timing. Resident metadata supplies actual counts
 and run spans; a replacement keeps the old tree alive until validation and adoption.
 Final buffers retain their vertex/index/storage/copy usages for later CPU uploads.
 
-Reports distinguish `woodBackend`, `woodFallback`, compact preparation, upload/
+Reports distinguish `woodFallback`, compact preparation, upload/
 dispatch and status wait, prepared CPU capacity, packed metadata CPU capacity,
 wood GPU buffers including status staging, retained buffers and each previous live
 tree's buffers. At wood expansion, add the previous live tree, new foliage buffers

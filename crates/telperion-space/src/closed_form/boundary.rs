@@ -1,12 +1,9 @@
 //! A bud's committed boundary per unit base scale (fn-209, option 4): the
 //! kept tables read once for every PA and every age a bud can have at the
 //! tree's age, so a bud's boundary is a row times powers of its base
-//! scale, the same at any zoom and in any order of refinement.
-use super::kept::{
-    Kept, Table, ALONG, COUNT, LEAVES, LEAVES_ALONG, MASS, MASS_ALONG, SECTION, SECTION2, SQUARE,
-    WOOD,
-};
-use super::predictor::Predictor;
+//! scale, the same at any zoom and in any order of refinement. Test-only:
+//! the rows the predictor's counts are held to (`predictor/tests.rs`).
+use super::kept::{Kept, Table, COUNT, LEAVES, LEAVES_ALONG, MASS, MASS_ALONG, SECTION, SECTION2};
 use crate::presence::Windows;
 use crate::schedule::Carried;
 use crate::species::Species;
@@ -34,11 +31,6 @@ pub(crate) struct Row {
     pub count: f64,
     pub reach: f64,
     pub e: f64,
-    /// Its expected grown wood's root mean square distance from its base,
-    /// and that wood's mean distance along its heading, per unit base
-    /// scale (fn-211.4: where a fine root's stand-in leaves stand).
-    pub spread: f64,
-    pub along: f64,
 }
 
 /// One core's rows, by PA and age.
@@ -63,15 +55,10 @@ impl Rows {
         Self::read(species, age, threads, true)
     }
 
-    /// The laterals' rows alone, the seed's left at its default: what a
-    /// coarse tree reads (fn-214), a third less work at the spruce's 40.
+    /// The laterals' rows alone, the seed's left at its default: a third
+    /// less work at the spruce's 40.
     pub fn laterals(species: &Species, age: u32, threads: usize) -> Self {
         Self::read(species, age, threads, false)
-    }
-
-    /// `laterals`, read once per species and age in a process (`SHELF`).
-    pub fn shared_laterals(species: &Species, age: u32, threads: usize) -> Arc<Self> {
-        SHELF.rows(species, age, threads, false)
     }
 
     fn read(species: &Species, age: u32, threads: usize, whole: bool) -> Self {
@@ -109,45 +96,17 @@ impl Rows {
         }
     }
 
-    /// A lateral of `pa` made in cycle `birth`: a PA no zone draws has
-    /// no row.
-    pub fn lateral(&self, pa: usize, birth: u32) -> &Row {
-        let m = self.age.saturating_sub(birth as usize);
-        let row = &self.rows[pa * (self.age + 1) + m];
-        debug_assert!(row.e > 0.0, "a row for PA {pa}");
-        row
-    }
-
     /// The row of a lateral of `pa` `m` cycles from the tree's age, none
     /// where no bud of the PA is borne (the predictor's proof).
-    #[cfg(test)]
     pub(crate) fn row_at(&self, pa: usize, m: usize) -> Option<&Row> {
         self.rows.get(pa * (self.age + 1) + m).filter(|r| r.e > 0.0)
-    }
-
-    /// The cut's predictor read off the rows: each count is the row's,
-    /// which the predictor's equals to the bit (`predictor/tests.rs`).
-    pub(crate) fn predictor(&self) -> Predictor {
-        let counts = self.rows.iter().map(|r| (r.e > 0.0).then_some(r.count));
-        Predictor::of(self.age, counts.collect())
     }
 
     /// The seed: the whole tree.
     pub fn seed(&self) -> &Row {
         &self.seed
     }
-
-    /// The rows held, for the memory they take.
-    pub fn len(&self) -> usize {
-        self.rows.iter().filter(|r| r.e > 0.0).count() + 1
-    }
 }
-
-/// Rows read once and kept across trees (fn-249 R1): a row is a value of
-/// the species, its age and whether the seed's is read, so a second tree
-/// of the same species and age, at any seed, takes the rows the first
-/// read. A Wasm instance is one process, so its session keeps them.
-static SHELF: Shelf = Shelf::new(4);
 
 /// What keys a shelf's rows: the species as its `Debug` text, which prints
 /// every parameter and each f64 to the bit, its age, and the seed's mode.
@@ -243,15 +202,5 @@ fn row(faded: &Table, grown: &Table, m: usize, reach: f64) -> Row {
         count: b[COUNT],
         reach,
         e: faded.e,
-        spread: if g[WOOD] > 0.0 {
-            (g[SQUARE] / g[WOOD]).sqrt()
-        } else {
-            0.0
-        },
-        along: if g[WOOD] > 0.0 {
-            g[ALONG] / g[WOOD]
-        } else {
-            0.0
-        },
     }
 }

@@ -1,6 +1,7 @@
-//! The cycle's one resident state (DESIGN.md section 1), test-only:
-//! every phase reads and writes these buffers, each a set of columns of
-//! one word a row, `cap` rows apart, an index the CPU's.
+//! The cycle's one resident state (DESIGN.md section 1), which the
+//! resident build grows in: every phase reads and writes these buffers,
+//! each a set of columns of one word a row, `cap` rows apart, an index
+//! the CPU's.
 //!
 //! - **axes:** the units' columns (`arena.wgsl`'s `A_`, then its head),
 //!   then the layout's (`lay_state.wgsl`): whorl, blend and birth draws as

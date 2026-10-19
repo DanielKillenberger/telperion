@@ -17,10 +17,9 @@ use crate::contract::{exp2, log2};
 use crate::species::{Form, Species};
 use crate::structure::{Axis, Join, Origin, Phytomer, Structure};
 use crate::upward::Tree;
-pub(crate) use disused::{
-    above, attachments, attachments_given, attachments_past, bases, disused, grown_mean,
-    leaf_partials, Frozen, Stand,
-};
+pub(crate) use disused::{attachments, attachments_past, disused, Frozen};
+#[cfg(test)]
+use disused::{bases, leaf_partials, Stand};
 
 /// A branch's pipe that stays in its bearer as it is shed: the bearer's
 /// index, the node it stood at (none: the bearer's tip), its base radius
@@ -317,6 +316,7 @@ pub(crate) fn attached(axes: &[Axis], species: &Species, i: usize) -> Option<(us
 
 /// How far a phytomer `years` old has laid down its own wood, ripening
 /// over `ripening` years: whole at once where `ripening` is none or less.
+#[cfg(test)]
 pub(crate) fn ripe(years: f64, ripening: f64) -> f64 {
     f64::from(ripened(years as f32, ripening as f32))
 }

@@ -95,7 +95,7 @@ pub fn grow_capture(species: &Species, request: Request) -> Result<Capture> {
     g.step(last - 1, &mut |_| {})?;
     g.sketch(last - 1, &advanced)?;
     g.capture_light(&mut c)?;
-    g.shade(last - 1, &mut |_| {})?;
+    g.shade(&mut |_| {})?;
     axes.push(g.axes.len() as u32);
     live.push(g.live.len() as u32);
     c.u32s("per_cycle_axes", &axes);
@@ -138,7 +138,6 @@ impl Grower<'_> {
     /// allotment (split and sizes), then each surviving apex's survival
     /// and the axes it bears, as `step` takes them.
     fn capture_cycle(&mut self, cycle: u32, c: &mut Capture) -> Result<()> {
-        assert!(self.fine.is_none() && self.couple.is_none() && self.oracle.is_none());
         self.open(cycle);
         self.retire(cycle);
         let w = self.working.as_ref().expect("a working set");

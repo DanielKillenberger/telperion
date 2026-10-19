@@ -2,9 +2,9 @@
 use super::{
     canopy::validate,
     clumping, cluster, organs,
-    plan::{bearing_runs, cauline, kept, micrometres, walk},
+    plan::{bearing_runs, cauline, kept, station_at, station_count, walk},
     rosette,
-    station::{self, place_run, reserve_all, station_count, Run},
+    station::{self, place_run, reserve_all, Run},
     CanopyParams, Instances, Reference, TwigPlacement,
 };
 use crate::{
@@ -99,7 +99,7 @@ fn runs(tree: &Tree, p: CanopyParams, twig: Option<TwigPlacement>) -> Vec<Vec<us
     match twig {
         Some(_) => bearing_runs(tree, p),
         None => {
-            let slender = tree.stem_radius(|i| tree.pipe(i)[1]) * p.shoot_radius;
+            let slender = tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius;
             let shoots = shoots(tree, slender);
             shoots
                 .into_iter()
@@ -130,8 +130,7 @@ fn leaves_on(
         for k in 0..count as u32 {
             let kept = match twig {
                 Some(t) if !tree.leafing.is_empty() => {
-                    let (unit, per) = (micrometres(t.internode_length), t.stations_per_internode);
-                    kept(tree, (nodes, &along), f64::from(k / per) * unit, k).is_some()
+                    kept(tree, (nodes, &along), station_at(k as usize, t), k).is_some()
                 }
                 _ => true,
             };
@@ -235,7 +234,7 @@ fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {
     let leader = |at: usize| {
         let mut best = children[at][0];
         for &c in &children[at][1..] {
-            if tree.pipe(c)[0] > tree.pipe(best)[0] {
+            if tree.nodes[c].start_radius > tree.nodes[best].start_radius {
                 best = c;
             }
         }
@@ -268,12 +267,12 @@ fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {
             run.push(next);
             at = next;
         }
-        if tree.pipe(at)[1] > max_radius {
+        if tree.nodes[at].radius > max_radius {
             continue;
         }
         let last = run.len() - 1;
         let mut first = last;
-        while first > 0 && tree.pipe(run[first - 1])[1] <= max_radius {
+        while first > 0 && tree.nodes[run[first - 1]].radius <= max_radius {
             first -= 1;
         }
         if first == last {

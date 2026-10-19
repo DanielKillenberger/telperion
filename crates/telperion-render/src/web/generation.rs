@@ -1,7 +1,7 @@
 use super::*;
 use crate::generation::{
     request::{Request, State},
-    Admitted, Delivery, Generator, BROWSER,
+    Admitted, Generator, BROWSER,
 };
 
 pub(super) type Generation = Rc<RefCell<State>>;
@@ -87,17 +87,13 @@ impl WebRenderer {
                 canvas.renderer.release_tree();
                 canvas.redraw.ask();
             }
-            let prepared = generator
-                .prepare_async(&family, Delivery::Resident)
-                .await
-                .map_err(js_error)?;
+            let prepared = generator.prepare_async(&family).await.map_err(js_error)?;
             request.check().map_err(JsError::new)?;
-            let backend = format!("{:?}", prepared.backend);
             let metrics = &prepared.metrics;
             let stages = json!({"positionPrepareMs":metrics.position_prepare_ms,"positionUploadMs":metrics.position_upload_ms,"positionWaitMs":metrics.position_wait_ms,"positionCpuBytes":metrics.position_cpu_bytes,"positionGpuPeakBytes":metrics.position_gpu_peak_bytes,"positionRetainedMetadataBytes":metrics.position_retained_metadata_bytes,"positionFallback":metrics.position_fallback,"gpuPositions":metrics.gpu_positions,"skeletonMs":metrics.skeleton_ms,"descriptorsMs":metrics.descriptors_ms,
                 "uploadDispatchMs":metrics.upload_dispatch_ms,"placementWaitMs":metrics.placement_wait_ms,
                 "massMs":metrics.mass_ms,"readbackMs":metrics.readback_ms,
-                "woodMs":metrics.wood_ms,"woodPrepareMs":metrics.wood_prepare_ms,"woodUploadDispatchMs":metrics.wood_upload_dispatch_ms,"woodWaitMs":metrics.wood_wait_ms,"woodPreparedCpuBytes":metrics.wood_prepared_cpu_bytes,"woodMetadataCpuBytes":metrics.wood_metadata_cpu_bytes,"woodGpuPeakBytes":metrics.wood_gpu_peak_bytes,"woodBackend":metrics.wood_backend.map(|b| format!("{b:?}")),"woodFallback":metrics.wood_fallback,"totalMs":metrics.total_ms,
+                "woodMs":metrics.wood_ms,"woodPrepareMs":metrics.wood_prepare_ms,"woodUploadDispatchMs":metrics.wood_upload_dispatch_ms,"woodWaitMs":metrics.wood_wait_ms,"woodPreparedCpuBytes":metrics.wood_prepared_cpu_bytes,"woodMetadataCpuBytes":metrics.wood_metadata_cpu_bytes,"woodGpuPeakBytes":metrics.wood_gpu_peak_bytes,"woodFallback":metrics.wood_fallback,"totalMs":metrics.total_ms,
                 "baseCpuBytes":metrics.base_cpu_bytes,"woodCpuBytes":metrics.wood_cpu_bytes,
                 "descriptorCpuBytes":metrics.descriptor_cpu_bytes,"sharedContactCpuBytes":metrics.shared_contact_cpu_bytes,"sharedPrepareCpuBytes":metrics.shared_prepare_cpu_bytes,"sharedMetadataCpuBytes":metrics.shared_metadata_cpu_bytes,"gpuComputePeakBytes":metrics.gpu_compute_peak_bytes,
                 "retainedGpuBytes":metrics.retained_gpu_bytes});
@@ -108,7 +104,6 @@ impl WebRenderer {
             live.redraw.ask();
             let mut value: serde_json::Value =
                 serde_json::from_str(&submitted_json(&submitted)).expect("submitted JSON");
-            value["backend"] = json!(backend);
             value["stages"] = stages;
             value["previousTreeGpuBytes"] = json!(previous_tree_gpu_bytes);
             value["madeRoom"] = json!(made_room);

@@ -1,15 +1,15 @@
 //! The harness's own build of every shipped preset (`Generator::prepare`,
-//! resident delivery, or the CPU's with `STILLS_CPU=1`; a refused tree is
-//! named and skipped), at its default age and seed, at the whole-tree, mid
-//! and close views: `<preset>-<view>.png` into the out directory, with each
-//! build's milliseconds and leaves printed (fn-256 task 3's stills).
+//! resident delivery; a refused tree is named and skipped), at its default
+//! age and seed, at the whole-tree, mid and close views:
+//! `<preset>-<view>.png` into the out directory, with each build's
+//! milliseconds and leaves printed (fn-256 task 3's stills).
 //!
 //!   cargo run --profile ci -p telperion-render --example resident_stills -- <out dir> [preset,...]
 use std::time::Instant;
 use telperion_core::{math::Vec3, presets::by_identity, presets::CATALOGUE, surface::Bounds};
 use telperion_render::{
-    generation::{Delivery, Generator},
-    hero_pose, render, write_png, Camera, Gpu, Renderer, GROUND_REACH, STILL_FORMAT,
+    generation::Generator, hero_pose, render, write_png, Camera, Gpu, Renderer, GROUND_REACH,
+    STILL_FORMAT,
 };
 
 const SIZE: (u32, u32) = (960, 720);
@@ -56,15 +56,9 @@ fn main() -> Result<(), String> {
         // The drawn tree let go first, as a page short of room does.
         renderer.release_tree();
         let t = Instant::now();
-        // `STILLS_CPU=1` draws the CPU reference route instead.
-        let first = if std::env::var_os("STILLS_CPU").is_some() {
-            Delivery::Cpu
-        } else {
-            Delivery::Resident
-        };
         // A refusal is reported and the preset skipped, never rebuilt on
         // the CPU (fn-256 R1).
-        let prepared = match gen.prepare(&family, first) {
+        let prepared = match gen.prepare(&family) {
             Ok(p) => p,
             Err(e) => {
                 println!("{id}: refused ({e})");

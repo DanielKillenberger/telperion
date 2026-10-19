@@ -1,7 +1,7 @@
 //! fn-235 host decision, third: the budget counts the drawn tree, so a
 //! build that fits only alone lets the drawn tree go first, and one that
 //! does not fit even alone is refused by name with the drawn tree kept.
-use super::super::{Admitted, Delivery, Generator};
+use super::super::{Admitted, Generator};
 use crate::Renderer;
 
 fn family(id: &str, age: u32) -> telperion_core::presets::Family {
@@ -33,7 +33,7 @@ fn drawn(id: &str) -> Option<(Renderer, Generator, u64, u64)> {
     let gpu = crate::generation::test_gpu()?;
     let mut renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
-    let prepared = gen.prepare(&family(id, 12), Delivery::Resident);
+    let prepared = gen.prepare(&family(id, 12));
     renderer.submit_prepared(prepared.unwrap()).unwrap();
     let held = gen.gpu.ledger.live();
     let tree = Generator::tree_buffer_bytes(&renderer);
@@ -77,7 +77,7 @@ fn a_tree_that_fits_only_alone_lets_the_drawn_tree_go_first() {
     assert!(drawn > 0 && renderer.bounds().is_none());
     assert_eq!(still(&mut renderer).stats.instances, 0);
     gen.budget.set(Some(budget));
-    let built = gen.prepare(&next, Delivery::Resident).unwrap();
+    let built = gen.prepare(&next).unwrap();
     renderer.submit_prepared(built).unwrap();
     assert!(still(&mut renderer).stats.instances > 0);
 }
@@ -129,7 +129,7 @@ fn a_build_keeps_nothing_on_the_device_once_it_is_done() {
     let gen = Generator::new(&renderer).unwrap();
     pollster::block_on(gen.prepare_programs()).unwrap();
     let before = gen.gpu.ledger.live();
-    let prepared = gen.prepare(&family("norway-spruce", 12), Delivery::Resident);
+    let prepared = gen.prepare(&family("norway-spruce", 12));
     renderer.submit_prepared(prepared.unwrap()).unwrap();
     renderer.release_tree();
     // A buffer let go is charged until the device is done with it.

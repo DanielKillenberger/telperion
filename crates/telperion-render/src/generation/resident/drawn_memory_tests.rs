@@ -1,10 +1,10 @@
 //! fn-257 task 10's measurement (`#[ignore = "a measurement"]`): where a
 //! harness build's drawing sits in memory. For each shipped preset at its
 //! default age (`DRAWN_SEEDS`, seed 1 by default): the build's peak and
-//! its largest buffers, the drawn records and swept nodes at that peak,
+//! its largest buffers, the drawn records and the sweep's table at that peak,
 //! the buffers the drawn tree keeps once submitted, and the buffers a
 //! still at the hero pose adds.
-use super::super::{Delivery, Generator};
+use super::super::Generator;
 use crate::Renderer;
 
 fn megabytes(at: &[(&'static str, u64)], top: usize) -> String {
@@ -70,7 +70,7 @@ fn the_drawing_s_memory() {
             let gen = Generator::new(&renderer).expect("a generator");
             pollster::block_on(crate::generation::io::complete(&gen.gpu)).expect("idle");
             gen.gpu.ledger.take_peak_census();
-            let prepared = gen.prepare(&family, Delivery::Resident).expect("prepared");
+            let prepared = gen.prepare(&family).expect("prepared");
             let (peak, at) = gen.gpu.ledger.take_peak_census();
             renderer.submit_prepared(prepared).expect("submitted");
             pollster::block_on(crate::generation::io::complete(&gen.gpu)).expect("idle");
@@ -97,10 +97,10 @@ fn the_drawing_s_memory() {
                 .filter(|e| e.1 > 0)
                 .collect();
             println!(
-                "DRAWN {id} {seed}: build peak {:.1} MB (drawn {:.1}, sweep nodes {:.1}; {}); kept {:.1} MB, the tree's {:.1} ({}); a still adds {}, the curve then {:.1} MB",
+                "DRAWN {id} {seed}: build peak {:.1} MB (drawn {:.1}, sweep table {:.1}; {}); kept {:.1} MB, the tree's {:.1} ({}); a still adds {}, the curve then {:.1} MB",
                 peak as f64 / 1e6,
                 named(&at, "drawn"),
-                named(&at, "sweep nodes"),
+                named(&at, "sweep table"),
                 megabytes(&at, 6),
                 kept.iter().map(|e| e.1).sum::<u64>() as f64 / 1e6,
                 tree as f64 / 1e6,
@@ -160,7 +160,7 @@ fn the_drawn_levels() {
         let family = telperion_core::presets::by_identity(id).expect("a preset");
         let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
         let gen = Generator::new(&renderer).expect("a generator");
-        let prepared = gen.prepare(&family, Delivery::Resident).expect("prepared");
+        let prepared = gen.prepare(&family).expect("prepared");
         renderer.submit_prepared(prepared).expect("submitted");
         renderer.set_family(&family);
         let bounds = renderer.bounds().expect("a tree drawn");

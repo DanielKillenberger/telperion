@@ -1,10 +1,9 @@
 //! A bud's own axis at one cycle t, its count alone (`kept/path.rs` and
 //! `kept/ends.rs`, the same operations in the same order on the two
 //! columns the count reads).
-use super::{both, maybe, times, whole, Bud, Ended, Parts, Table, Walk, ZoneParts, NONE};
+use super::{both, maybe, tilts, times, whole, Bud, Ended, Parts, Table, Walk, ZoneParts, NONE};
 use crate::closed_form::along::Count;
 use crate::closed_form::events::Event;
-use crate::closed_form::kept::tilts;
 use crate::closed_form::steps::{End, Relay, Step};
 use crate::transcendental::Transcendental;
 

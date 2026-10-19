@@ -9,7 +9,7 @@
 use super::super::cycle::tree::{self, Kernels};
 use super::super::{io, Generator};
 use super::boots::{Hanger, AW};
-use super::fold::{CA_WORDS, CV};
+use super::fold::CV;
 use crate::Renderer;
 use std::collections::HashMap;
 use telperion_core::pipeline::executor;
@@ -136,16 +136,13 @@ fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Bas
     let rows = executor::bases(f)
         .unwrap()
         .expect("a family that hangs bases");
-    let (mut dressed, _) = pollster::block_on(tree::drawn(gpu, k, &growth)).unwrap();
+    let bases = super::boots::most(f).unwrap();
+    let (mut dressed, _) = pollster::block_on(tree::drawn(gpu, k, (&growth, bases))).unwrap();
     let hung = pollster::block_on(hanger.hang(gpu, &mut dressed, Some(&rows))).unwrap();
     let seed = &dressed.waves[1];
-    let all = words(
-        gpu,
-        &seed.buffer,
-        seed.axes as usize * CA_WORDS + seed.phyts as usize * CV,
-    );
-    let record = |r: u32| &all[seed.axes as usize * CA_WORDS + r as usize * CV..][..CV];
-    let key_of = |id: u32| record(id - seed.base)[24];
+    let all = words(gpu, &dressed.records, dressed.ids as usize * CV);
+    let record = |id: u32| &all[id as usize * CV..][..CV];
+    let key_of = |id: u32| record(id)[24];
     let stems = words(
         gpu,
         hung.stems.as_ref().unwrap(),
@@ -154,9 +151,8 @@ fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Bas
     // Each stem's slot: its apex, its first base and its bases (fn-277).
     let slot = |t: usize, f: usize| stems[2 + t * AW as usize + f] as usize;
     let stem_of = |b: usize| (0..stems[0] as usize).rfind(|&t| slot(t, 1) <= b).unwrap();
-    let boots = dressed.waves.last().unwrap();
+    let boots = dressed.waves.last().unwrap().base;
     let n = hung.bases as usize;
-    let recs = words(gpu, &boots.buffer, CA_WORDS + 2 * n * CV);
     let cells = hung
         .cells
         .as_ref()
@@ -166,8 +162,8 @@ fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Bas
         .map(|b| {
             let t = stem_of(b);
             let apex = slot(t, 0) as u32;
-            let first = &recs[CA_WORDS + 2 * b * CV..][..CV];
-            let second = &recs[CA_WORDS + (2 * b + 1) * CV..][..CV];
+            let first = record(boots + 2 * b as u32);
+            let second = record(boots + 2 * b as u32 + 1);
             let cell = cells.as_ref().map(|c| {
                 let mut out = [0.0; SECTION_FLOATS];
                 for (o, &w) in out
@@ -179,7 +175,7 @@ fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Bas
                 out
             });
             Base {
-                key: (record(apex)[24], (b - slot(t, 1)) as u32),
+                key: (record(seed.base + apex)[24], (b - slot(t, 1)) as u32),
                 bearer: key_of(first[16]),
                 from: [f(first[0]), f(first[1]), f(first[2])],
                 tip: [f(second[0]), f(second[1]), f(second[2])],

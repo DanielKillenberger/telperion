@@ -32,7 +32,7 @@ This spec moves ring preparation onto the GPU, experiment first. A probe measure
 ## API Contracts
 <!-- scope: technical -->
 
-- **Plan layout.** Any field the ring pass reads is added to fn-125's layout under its versioning rule; no second upload format. [inferred]
+- **Plan layout.** Any field the ring pass reads is added to fn-125's layout under its versioning rule; no second upload format. [inferred] *(fn-293 task 5 removed `foliage/prepared.rs`'s stations from the renderer's production build with the CPU delivery; only the renderer's tests read them now, as the device's reference (fn-293 task 7).)*
 - **Metrics.** The renderer's stage metrics report the GPU ring pass on its own line beside position preparation, so R2 and R4 read one field each. [inferred]
 - **Views and commands unchanged.** [inferred]
 
@@ -57,7 +57,7 @@ This spec moves ring preparation onto the GPU, experiment first. A probe measure
 <!-- scope: business -->
 
 - The CPU reference executor's own speed is fn-126's, not this spec's. [paraphrase]
-- No change to what any tree looks like; the wood is the reference's within tolerance. [inferred]
+- No change to what any tree looks like; the wood is the reference's within tolerance. [inferred] *(read under AGENTS.md "Generator evolution" (owner, 2026-09-20): the reference is the engine's CPU cycle, which the device agrees with by lineage (`docs/pipeline.md`), not the pre-engine build (fn-293 task 7).)*
 - The float32 precision domain is not widened here. [inferred]
 
 ## Decision Context

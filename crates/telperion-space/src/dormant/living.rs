@@ -51,6 +51,7 @@ impl<'a> Living<'a> {
         }
     }
 
+    #[cfg(test)]
     pub fn species(&self) -> &'a Species {
         self.species
     }

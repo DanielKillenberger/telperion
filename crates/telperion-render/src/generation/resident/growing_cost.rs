@@ -10,7 +10,7 @@
 //!
 //!   GROW_STEPS=4 GROW_PRESETS=telperion,oregon-white-oak cargo test --profile ci \
 //!     -p telperion-render --lib grows_in_and_draws_while_growing -- --ignored --nocapture
-use super::super::{Delivery, Generator};
+use super::super::Generator;
 use crate::headless::Frame;
 use crate::{hero_pose, Gpu, Renderer, GROUND_REACH};
 use pollster::block_on;
@@ -51,7 +51,7 @@ fn frame(renderer: &mut Renderer, target: &Frame) -> f64 {
 fn frames(gpu: Gpu, family: Family, phase: Arc<AtomicU8>) -> (Vec<f64>, Vec<f64>) {
     let mut renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
-    let whole = gen.prepare(&family, Delivery::Resident).unwrap();
+    let whole = gen.prepare(&family).unwrap();
     renderer.submit_prepared(whole).unwrap();
     renderer.set_family(&family);
     let target = Frame::new(&renderer, "growing frame", SIZE);

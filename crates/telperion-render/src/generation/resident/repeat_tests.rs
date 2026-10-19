@@ -20,7 +20,7 @@ struct Snapshot {
 /// `family` built once in a context of its own.
 fn snapshot(family: &Family) -> Option<Snapshot> {
     let gpu = crate::generation::test_gpu()?;
-    let make = Generator::create(gpu.clone(), std::sync::Arc::new(()), true);
+    let make = Generator::create(gpu.clone(), std::sync::Arc::new(()));
     let gen = pollster::block_on(make).unwrap();
     let (k, tools) = (Kernels::new(&gpu), Tools::new(&gpu));
     let built = pollster::block_on(build(&gpu, &gen, &k, &tools, family)).unwrap();

@@ -41,12 +41,14 @@ pub(crate) fn spread(count: usize, threads: usize, work: &(dyn Fn(usize) + Sync)
 /// The stack each `deep` piece runs on: its recursion goes as deep as the
 /// tree's age, about a kilobyte a cycle (an age of 1,500 overflows the 2
 /// MB a test thread has). Reserved, not committed, until used.
+#[cfg(test)]
 const DEEP_STACK: usize = 256 << 20;
 
 /// `work(k)` for every `k` below `count`, each on a thread of its own
 /// with `DEEP_STACK` of stack: for work that recurses as deep as the
 /// tree's age (the closed form's rows, `closed_form/boundary.rs`). In
 /// turn on this thread where threads cannot be made (wasm).
+#[cfg(test)]
 pub(crate) fn deep(count: usize, work: &(dyn Fn(usize) + Sync)) {
     if cfg!(target_family = "wasm") {
         (0..count).for_each(work);

@@ -4,10 +4,7 @@
 //! places no leaf, and a family the plan cannot describe is refused by name.
 use crate::clock;
 use serde_json::{json, Value};
-use telperion_core::{
-    field::Grid, foliage, math::Vec3, params, pipeline, surface, tree::NodeKind, twigs, Error,
-    Result,
-};
+use telperion_core::{field::Grid, foliage, math::Vec3, params, pipeline, surface, Error, Result};
 
 #[derive(Default)]
 pub(crate) struct Output {
@@ -54,31 +51,6 @@ impl FieldCells {
 }
 fn bounds(min: Vec3, max: Vec3) -> Value {
     json!({"min":[min.x,min.y,min.z],"max":[max.x,max.y,max.z]})
-}
-fn branch_diagnostics(
-    tree: &telperion_core::tree::Tree,
-    params: twigs::TwigParams,
-) -> Result<(Vec<usize>, usize, usize, usize)> {
-    let t = params.resolved()?;
-    let mut counts = vec![0usize; t.generations as usize + 1];
-    let mut handoffs = 0;
-    let mut capped_handoffs = 0;
-    let mut twig_count = 0;
-    for (i, n) in tree.nodes.iter().enumerate().skip(tree.crossover) {
-        twig_count += usize::from(n.kind == NodeKind::Twig && n.branch as usize == i);
-        if n.parent.is_some_and(|p| (p as usize) < tree.crossover) {
-            handoffs += 1;
-            let mut r = n.base_radius;
-            let mut generation = 0;
-            while r > t.twig.diameter / 2.0 && generation < t.generations as usize {
-                r = twigs::child_radius(r, t.length_ratio, t.ratio_power);
-                generation += 1;
-            }
-            counts[generation] += 1;
-            capped_handoffs += usize::from(r > t.twig.diameter / 2.0);
-        }
-    }
-    Ok((counts, handoffs, capped_handoffs, twig_count))
 }
 /// The twig detail a build at its node budget kept, in sixteenths of a
 /// generation; null where the budget took none, so a reduced tree reads apart
@@ -151,8 +123,6 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         },
     )?;
     let (tree, o) = (&built.skeleton.tree, built.outputs);
-    let (counts, handoffs, capped_handoffs, twig_count) =
-        branch_diagnostics(tree, f.skeleton.twigs)?;
     let mut out = Output {
         surface: o.wood,
         field: o
@@ -208,7 +178,6 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         "capped":tree.diagnostics.node_capped,"levelCapped":tree.diagnostics.level_capped,
         "attractionCapped":tree.diagnostics.attraction_capped,"complete":tree.diagnostics.complete(),
         "twigDetail":twig_detail(tree.diagnostics),
-        "handoffs":handoffs,"generationCounts":counts,"levelCappedHandoffs":capped_handoffs,"twigs":twig_count,
         "leavesPlaced":placed_count,"instances":retained_count,
         // Stations the plan counts before any cull; zero without a plan.
         "leavesPlanned":leaf_plan.map_or(0,|p|p.total),

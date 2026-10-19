@@ -26,12 +26,17 @@ pub(super) fn mass() -> String {
     format!("{LEAF}\n{}", include_str!("mass.wgsl"))
 }
 
+/// The position programme: production's `emit`, and under test the
+/// comparison route's admission entries and the wood geometry they read.
 pub(super) fn positions() -> String {
-    format!(
-        "{}\n{}",
-        include_str!("positions.wgsl"),
+    let emit = include_str!("positions.wgsl");
+    #[cfg(test)]
+    let emit = format!(
+        "{emit}\n{}\n{}",
+        include_str!("positions_admit.wgsl"),
         include_str!("wood_geometry.wgsl")
-    )
+    );
+    emit.to_string()
 }
 
 /// Every pass's source by name, the resident build's and the cycle's included.
@@ -41,6 +46,8 @@ pub(crate) fn all() -> Vec<(&'static str, String)> {
         ("place", place()),
         ("mass", mass()),
         ("positions", positions()),
+        // The module production makes, `emit` alone.
+        ("positions emit", include_str!("positions.wgsl").to_string()),
     ];
     out.extend(super::resident::sources());
     out.extend(super::cycle::sources());

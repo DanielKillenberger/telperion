@@ -60,7 +60,8 @@ caller that keeps the module elsewhere passes `source` (the bytes, a
 makes once). One page or worker holds one device and one module instance;
 a tree holds nothing on it once its grid is read out.
 
-Migrating from 0.1.4: the `cut` option is gone and nothing replaces it; the
+Migrating from 0.1.4 (for a page on the published 0.1.4 package, such as
+the site; fn-257 R1b, R8b): the `cut` option is gone and nothing replaces it; the
 source is the renderer's module, and `telperion-field.wasm` no longer ships.
 Beside it, the cube query is gone: `growField` takes the grid's side and
 resolves to the grid with its answers, and `query(cells)`, `bounds` and

@@ -60,7 +60,7 @@ use rings::Resweep;
 #[cfg(all(feature = "geometry", target_os = "linux", target_arch = "x86_64"))]
 use rings::Swept;
 #[cfg(feature = "geometry")]
-pub(crate) use rings::{rings, Rings, Sweep};
+pub(crate) use rings::{drawn_from, rings, Rings, Sweep};
 #[cfg(feature = "geometry")]
 use {
     crate::{math::Transcendental, tree::Tree},

@@ -40,22 +40,12 @@ impl Grower<'_> {
         let Some(rows) = rows.filter(|_| self.balances()) else {
             return;
         };
-        let sketch = self.sketch.as_ref().expect("sketching");
-        // A fine root's subtree as its aggregate holds it (fn-211.4).
-        let fine = self.fine_balance(sketch);
-        let totals = self.totals(rows, &fine);
-        // A fine subtree's root: its own shedding is the pass's record.
-        let root = self
-            .fine
-            .as_ref()
-            .map(|r| (r.records.shed == Some(cycle), r.records.kept(cycle)));
-        let (shed, kept) = self.shed_by(cycle, rows, &totals, root);
-        self.fine_kept(cycle, &shed, &kept);
+        let totals = self.totals(rows);
+        self.shed_by(cycle, rows, &totals);
     }
 
-    /// Each subtree's totals, `given` (axis, light, upkeep, living) taking
-    /// the place of what axis holds before they are summed.
-    pub(super) fn totals(&self, rows: &Rows, given: &[(usize, f32, f32, bool)]) -> Totals {
+    /// Each subtree's totals.
+    pub(super) fn totals(&self, rows: &Rows) -> Totals {
         let (species, pa) = (self.species, &rows.pa);
         let sketch = self.sketch.as_ref().expect("sketching");
         let n = sketch.pencils.len();
@@ -68,9 +58,6 @@ impl Grower<'_> {
             let p = &sketch.pencils[apex.axis];
             light[apex.axis] = p.base_scale as f32 * p.running as f32 * p.light as f32;
             living[apex.axis] = true;
-        }
-        for &(i, q, c, alive) in given {
-            (light[i], cost[i], living[i]) = (q, c, alive);
         }
         for i in (1..n).rev() {
             if let Some(parent) = rows.links[i].parent {
@@ -87,19 +74,16 @@ impl Grower<'_> {
     }
 
     /// Parents first, what each subtree's shedding makes of every axis in
-    /// it this cycle (axis 1's given as `root`, where it is a subtree's
-    /// root whose bearer decides it); every apex shed leaves the living.
-    /// Each axis's shedding and kept share.
+    /// it this cycle; every apex shed leaves the living. Each axis's
+    /// shedding and kept share.
     pub(super) fn shed_by(
         &mut self,
         cycle: u32,
         rows: &Rows,
         totals: &Totals,
-        root: Option<(bool, f64)>,
     ) -> (Vec<bool>, Vec<f64>) {
         let laterals = self.laterals(cycle, rows, totals);
-        let root = root.map(|(shed, kept)| (shed, kept as f32));
-        let walked = walk(&laterals, root);
+        let walked = walk(&laterals, None);
         self.shed_walked(cycle, &walked)
     }
 

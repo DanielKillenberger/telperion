@@ -10,7 +10,8 @@
     "fn-257-the-site-grows-its-trees-on-the-device",
     "fn-258-a-prepared-tree-meets-masters-memory",
     "fn-291-the-cpu-entry-builds-every-shipped",
-    "fn-287-020-clean-up-from-the-release-review"
+    "fn-287-020-clean-up-from-the-release-review",
+    "fn-293-each-stages-output-has-one-form-and-its"
   ],
   "id": "fn-259-the-release-meets-the-bar-on-every",
   "impl_review_rounds": {},
@@ -240,5 +241,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-18T11:07:29.073221Z"
+  "updated_at": "2026-10-18T11:21:41.496397Z"
 }

@@ -4,11 +4,15 @@
 //! counts and lengths read (`events.rs`) and the kept quantities, which
 //! need the path a bud's axis took (`kept.rs`), both read these steps, so
 //! the schedule and its chances are worked out in one place.
-use super::along::{Along, Count};
+#[cfg(test)]
+use super::along::Along;
+use super::along::Count;
 use super::events::Event;
 use crate::dormant::{First, Living};
 use crate::schedule::{lived, Carried, LIVED, LIVED_FLOOR};
-use crate::species::{Species, ALONG};
+use crate::species::Species;
+#[cfg(test)]
+use crate::species::ALONG;
 use crate::transcendental::Transcendental;
 
 /// A relay a stop leaves: the cycle offset it is made in (its first unit
@@ -19,6 +23,7 @@ pub(super) struct Relay {
     pub at: usize,
     pub carried: Carried,
     pub weight: f64,
+    #[cfg(test)]
     pub on: usize,
 }
 
@@ -47,6 +52,7 @@ pub(super) struct Lived {
 /// length its phytomers grow at, its chance, and its zones' sleeping
 /// buds; the unit itself or a failed unit's lived part.
 #[derive(Clone, Copy)]
+#[cfg(test)]
 pub(super) struct Grown<'s> {
     pub i: usize,
     pub size: f64,
@@ -56,6 +62,7 @@ pub(super) struct Grown<'s> {
     pub laid: f64,
 }
 
+#[cfg(test)]
 impl Step {
     /// The unit as it grows whole.
     pub fn whole(&self) -> Grown<'_> {
@@ -98,7 +105,9 @@ pub(super) struct Step {
     /// cycle and the one before (fn-231).
     pub ends_at: f64,
     /// Where it starts along the axis and how long it is.
+    #[cfg(test)]
     pub start: Along,
+    #[cfg(test)]
     pub length: Along,
     /// Its failure: the chance it fails with no relay, which ends the
     /// axis at the unit before, and its lived parts where a relay takes
@@ -113,6 +122,7 @@ pub(super) struct Step {
 
 /// Each zone's node count, and where it starts along a unit one internode
 /// a node long, after the zones before it (`ALONG`); and the whole unit.
+#[cfg(test)]
 pub(super) fn zones(counts: &[Count]) -> (Vec<Along>, Along) {
     let mut starts = vec![Along::default(); counts.len()];
     let mut whole = Along::default();
@@ -124,6 +134,7 @@ pub(super) fn zones(counts: &[Count]) -> (Vec<Along>, Along) {
 }
 
 /// A length along a unit one internode a node long, at `l` a node.
+#[cfg(test)]
 pub(super) fn scaled(a: Along, l: f64) -> Along {
     Along {
         mean: a.mean * l,
@@ -176,29 +187,33 @@ fn steps_to(
     units: usize,
 ) -> Vec<Step> {
     let state = &species.states[k];
+    #[cfg(test)]
     let counts: Vec<Count> = state.zones.iter().map(|z| Count::of(z.nodes)).collect();
+    #[cfg(test)]
     let (starts, whole) = zones(&counts);
-    // A relay carries on the time its axis has grown, which its abortion
-    // hazard counts (host decision 11). The relay of an age that `ended`
-    // grows a whole first unit.
-    let relay = |(at, spent, gone, ended): (usize, f64, f64, bool), weight: f64, on: usize| {
-        (weight > 0.0).then_some(Relay {
-            at,
-            carried: Carried {
-                spent,
-                aged: carried.aged + spent - carried.spent,
-                gone,
-                relay: ended,
-                rest: false,
-            },
-            weight,
-            on,
-        })
-    };
     let mut out = Vec::new();
+    #[cfg(test)]
     let mut path = Along::default();
     let mut survival = 1.0;
     for i in 1..=m.min(units) {
+        // A relay carries on the time its axis has grown, which its
+        // abortion hazard counts (host decision 11), standing on this unit.
+        // The relay of an age that `ended` grows a whole first unit.
+        let relay = |(at, spent, gone, ended): (usize, f64, f64, bool), weight: f64| {
+            (weight > 0.0).then_some(Relay {
+                at,
+                carried: Carried {
+                    spent,
+                    aged: carried.aged + spent - carried.spent,
+                    gone,
+                    relay: ended,
+                    rest: false,
+                },
+                weight,
+                #[cfg(test)]
+                on: i,
+            })
+        };
         let unit = carried.unit(state.life(), i);
         let spent = unit.before + unit.share;
         // A woken bud's partial first unit runs its share of the year's
@@ -256,6 +271,7 @@ fn steps_to(
             laws.map(|p| Count::of_pmf(&Count::laid_pmf(&p, c.laid())))
                 .collect()
         });
+        #[cfg(test)]
         let (lays, lay_starts, lay_whole) = match &cut {
             Some(c) => {
                 let (starts, whole) = zones(c);
@@ -263,18 +279,24 @@ fn steps_to(
             }
             None => (counts.as_slice(), starts.clone(), whole),
         };
+        #[cfg(test)]
         let internode = state.internode * size;
         let mut sleeping = Vec::with_capacity(state.zones.len());
         for (z, zone) in state.zones.iter().enumerate() {
-            let mean = if cut.is_some() {
-                lays[z].mean()
-            } else {
-                zone.nodes.mean()
+            let mean = match &cut {
+                Some(c) => c[z].mean(),
+                None => zone.nodes.mean(),
             };
             let nodes = survival * mean;
-            let start = path.then(scaled(lay_starts[z], internode));
             let bearer = ((k, carried, m), i, abortion);
-            let placed = (lays[z], start, internode);
+            #[cfg(test)]
+            let placed = (
+                lays[z],
+                path.then(scaled(lay_starts[z], internode)),
+                internode,
+            );
+            #[cfg(not(test))]
+            let placed = ();
             let mut woken = Vec::new();
             super::events::sleeping(
                 living,
@@ -295,12 +317,19 @@ fn steps_to(
             let same = lived_at[j..].iter().filter(|&&u| u == t).count() as f64;
             let weight = relayed * same;
             let size = if partial.is_some() { t / unit.share } else { t };
+            #[cfg(test)]
             let internode = state.internode * size;
             let mut sleeping = Vec::with_capacity(state.zones.len());
             for (z, zone) in state.zones.iter().enumerate() {
-                let start = path.then(scaled(starts[z], internode));
                 let bearer = ((k, carried, m), i, 0.0);
-                let placed = (counts[z], start, internode);
+                #[cfg(test)]
+                let placed = (
+                    counts[z],
+                    path.then(scaled(starts[z], internode)),
+                    internode,
+                );
+                #[cfg(not(test))]
+                let placed = ();
                 let mut woken = Vec::new();
                 let nodes = (weight * zone.nodes.mean(), size);
                 super::events::sleeping(living, (zone, z), nodes, bearer, (m, placed), &mut woken);
@@ -312,6 +341,7 @@ fn steps_to(
                 at,
                 carried: onward,
                 weight: weight * carried.lived_on(state, (i, unit), t),
+                #[cfg(test)]
                 on: i,
             };
             lived_parts.push(Lived {
@@ -321,6 +351,7 @@ fn steps_to(
                 relay,
             });
         }
+        #[cfg(test)]
         let length = scaled(lay_whole, internode);
         let mut step = Step {
             i,
@@ -332,7 +363,9 @@ fn steps_to(
                 true => unit.used.min(1.0),
                 false => 1.0,
             },
+            #[cfg(test)]
             start: path,
+            #[cfg(test)]
             length,
             failed,
             lived: lived_parts,
@@ -340,17 +373,20 @@ fn steps_to(
             aborted: None,
             end: None,
         };
-        path = path.then(length);
+        #[cfg(test)]
+        {
+            path = path.then(length);
+        }
         if !unit.ends {
             match partial {
                 None => {
                     let weight = survival * abortion * state.relay;
-                    step.aborted = relay((i, spent, 0.0, false), weight, i);
+                    step.aborted = relay((i, spent, 0.0, false), weight);
                     survival *= 1.0 - abortion;
                 }
                 Some(f) => {
                     let stopped = before * (f.survive - f.persist);
-                    step.aborted = relay((i, spent, 0.0, false), stopped * state.relay, i);
+                    step.aborted = relay((i, spent, 0.0, false), stopped * state.relay);
                     survival = before * f.persist;
                 }
             }
@@ -372,7 +408,7 @@ fn steps_to(
             // And where it all but stopped, it grows its relay as well.
             let both = living.borderline(k, m.saturating_sub(i), unit.used);
             let ended = survival * ((1.0 - go) * state.relay_ended + both);
-            end.relay = relay((at, spent, onward.gone, true), ended, i);
+            end.relay = relay((at, spent, onward.gone, true), ended);
             end.both = both;
         }
         step.end = Some(end);

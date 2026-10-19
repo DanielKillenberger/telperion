@@ -2,18 +2,27 @@
 //! its growth units, laterals, relays, continuation and sleeping buds,
 //! each weighted by its expectation, and where each stands along the
 //! bud's axis (`along.rs`), which the kept tables read (`kept/path.rs`)
-//! and the counts and lengths do not.
-use super::along::{Along, Count};
-use super::steps::{first_step, scaled, steps, zones, Relay, Step};
+//! and the counts and lengths do not: where each stands is built only
+//! into tests, the kept recursion being the predictor's test reference.
+#[cfg(test)]
+use super::along::Along;
+use super::along::Count;
+use super::steps::{first_step, steps, Relay, Step};
+#[cfg(test)]
+use super::steps::{scaled, zones};
 use crate::dormant::{First, Living, Piece};
+#[cfg(test)]
 use crate::lineage::turn;
 use crate::schedule::Carried;
-use crate::species::{PaState, Species, Zone};
+#[cfg(test)]
+use crate::species::PaState;
+use crate::species::{Species, Zone};
 
 /// Where buds of one event stand and what share of a whole place's size
 /// each grows at (σ), averaged over them: E[σ^p] for p = 1 to 3, E[σ x]
 /// and E[σ² x] for x their distance along the axis, E[σ x²]; and their
 /// angle to the axis.
+#[cfg(test)]
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Stand {
     pub shares: [f64; 3],
@@ -24,6 +33,7 @@ pub(super) struct Stand {
     pub turn: [f64; 2],
 }
 
+#[cfg(test)]
 impl Stand {
     /// A whole bud at `at`, turned `turn`, its base its bearer's.
     fn whole(at: Along, turn: [f64; 2]) -> Self {
@@ -39,6 +49,7 @@ impl Stand {
 /// How a bud of the age `lived` stands off its bearer: its insertion's
 /// cosine and square in expectation (`lineage::turn`); straight on without
 /// one.
+#[cfg(test)]
 pub(super) fn angled(lived: Option<&PaState>) -> [f64; 2] {
     lived.map_or(turn(0.0, 0.0), |s| {
         turn(s.insertion, s.form.insertion_spread)
@@ -46,6 +57,7 @@ pub(super) fn angled(lived: Option<&PaState>) -> [f64; 2] {
 }
 
 /// Places summed: (count, share) at a place along, in `Stand`'s moments.
+#[cfg(test)]
 #[derive(Default)]
 struct Sum {
     count: f64,
@@ -54,6 +66,7 @@ struct Sum {
     square: f64,
 }
 
+#[cfg(test)]
 impl Sum {
     fn add(&mut self, count: f64, share: f64, at: Along) {
         self.count += count;
@@ -93,7 +106,9 @@ pub(super) enum Event {
         weight: f64,
         size: f64,
         first: Option<First>,
+        #[cfg(test)]
         unit: f64,
+        #[cfg(test)]
         stand: Stand,
     },
 }
@@ -135,12 +150,16 @@ pub(super) fn first_events(
 }
 
 fn events_of(species: &Species, laterals: &[Vec<f64>], k: usize, steps: &[Step]) -> Vec<Event> {
+    #[cfg(test)]
     let state = &species.states[k];
+    #[cfg(test)]
     let counts: Vec<Count> = state.zones.iter().map(|z| Count::of(z.nodes)).collect();
+    #[cfg(test)]
     let (_, whole) = zones(&counts);
     let mut out = Vec::new();
     // Where a relay stands: its PA's share of the way along the unit it
     // stands on (`geometry::relay_point`), or the axis's base.
+    #[cfg(test)]
     let on = |unit: usize| {
         unit.checked_sub(1).map_or(Along::default(), |u| {
             steps[u].start.into(steps[u].length, state.relay_at)
@@ -155,29 +174,36 @@ fn events_of(species: &Species, laterals: &[Vec<f64>], k: usize, steps: &[Step])
                 weight: r.weight,
                 size: 1.0,
                 first: None,
+                #[cfg(test)]
                 unit: 1.0,
+                #[cfg(test)]
                 stand: Stand::whole(on(r.on), angled(Some(state))),
             });
         }
     };
-    for (n, step) in steps.iter().enumerate() {
+    #[cfg(test)]
+    let mut before: Option<&Step> = None;
+    for step in steps {
         // A failed unit's lived parts, each with its relay standing on it,
         // blended back towards the unit before by its extent (fn-199 R1,
         // rule 2'), its nodes taken at their mean.
         for l in &step.lived {
-            let grown = (step.i, l.weight, l.size, step.start);
+            let grown = (step, l.weight, l.size);
             unit_events(&mut out, species, (k, laterals), (grown, 1.0), &l.sleeping);
-            let length = scaled(whole, state.internode * l.size);
-            let extent = lived_extent(state, l.size);
-            let (r, back) = (
-                state.relay_at,
-                state.relay_at + extent * (1.0 - state.relay_at),
-            );
-            let at = match n.checked_sub(1).map(|u| &steps[u]) {
-                Some(before) => before.start.into(before.length, back),
-                None => step.start,
-            }
-            .into(length, extent * r);
+            #[cfg(test)]
+            let at = {
+                let length = scaled(whole, state.internode * l.size);
+                let extent = lived_extent(state, l.size);
+                let (r, back) = (
+                    state.relay_at,
+                    state.relay_at + extent * (1.0 - state.relay_at),
+                );
+                match before {
+                    Some(before) => before.start.into(before.length, back),
+                    None => step.start,
+                }
+                .into(length, extent * r)
+            };
             out.push(Event::Bud {
                 at: l.relay.at,
                 pa: k,
@@ -185,11 +211,13 @@ fn events_of(species: &Species, laterals: &[Vec<f64>], k: usize, steps: &[Step])
                 weight: l.relay.weight,
                 size: 1.0,
                 first: None,
+                #[cfg(test)]
                 unit: 1.0,
+                #[cfg(test)]
                 stand: Stand::whole(at, angled(Some(state))),
             });
         }
-        let grown = (step.i, step.grown, step.size, step.start);
+        let grown = (step, step.grown, step.size);
         unit_events(
             &mut out,
             species,
@@ -207,11 +235,17 @@ fn events_of(species: &Species, laterals: &[Vec<f64>], k: usize, steps: &[Step])
                     weight,
                     size: 1.0,
                     first: None,
+                    #[cfg(test)]
                     unit: 1.0,
+                    #[cfg(test)]
                     stand: Stand::whole(step.start.then(step.length), turn(0.0, 0.0)),
                 });
             }
             relay(&mut out, end.relay);
+        }
+        #[cfg(test)]
+        {
+            before = Some(step);
         }
     }
     out
@@ -220,6 +254,7 @@ fn events_of(species: &Species, laterals: &[Vec<f64>], k: usize, steps: &[Step])
 /// A failed unit's lived part's extent, `size` of its cycle grown: its
 /// nodes at their mean times that share, at most one (rule 2',
 /// `geometry::stand`).
+#[cfg(test)]
 pub(super) fn lived_extent(state: &crate::species::PaState, size: f64) -> f64 {
     let nodes: f64 = state.zones.iter().map(|z| z.nodes.mean()).sum();
     (nodes * size).min(1.0)
@@ -233,17 +268,17 @@ fn unit_events(
     out: &mut Vec<Event>,
     species: &Species,
     (k, laterals): (usize, &[Vec<f64>]),
-    ((i, weight, size, start), laid): ((usize, f64, f64, Along), f64),
+    ((step, weight, size), laid): ((&Step, f64, f64), f64),
     sleeping: &[Vec<Event>],
 ) {
-    let state = &species.states[k];
+    let (i, state) = (step.i, &species.states[k]);
     let law = |z: &Zone| match laid < 1.0 {
         true => Count::of_pmf(&Count::laid_pmf(&Count::pmf(z.nodes), laid)),
         false => Count::of(z.nodes),
     };
     let counts: Vec<Count> = state.zones.iter().map(law).collect();
-    let (starts, _) = zones(&counts);
-    let internode = state.internode * size;
+    #[cfg(test)]
+    let (starts, internode) = (zones(&counts).0, state.internode * size);
     for (z, (zone, lateral)) in state.zones.iter().zip(laterals).enumerate() {
         let mean = if laid < 1.0 {
             counts[z].mean()
@@ -251,7 +286,8 @@ fn unit_events(
             zone.nodes.mean()
         };
         let nodes = weight * mean;
-        let start = start.then(scaled(starts[z], internode));
+        #[cfg(test)]
+        let start = step.start.then(scaled(starts[z], internode));
         out.push(Event::Nodes {
             at: i,
             count: nodes,
@@ -260,14 +296,20 @@ fn unit_events(
         // Every bud place stands, the last a fraction makes with that
         // chance, a making draw (fn-231): `buds` places a node in
         // expectation, each counted whole.
+        #[cfg(test)]
         let mut low = 0.0;
         for (j, &p) in lateral.iter().enumerate() {
+            #[cfg(test)]
             let band = (low, low + p);
-            low += p;
+            #[cfg(test)]
+            {
+                low += p;
+            }
             let buds = nodes * zone.buds * p;
             if buds > 0.0 {
-                let placed = (start, internode);
-                let stand = lateral_stand(species, (zone, counts[z]), placed, (j, p, band));
+                #[cfg(test)]
+                let stand =
+                    lateral_stand(species, (zone, counts[z]), (start, internode), (j, p, band));
                 out.push(Event::Bud {
                     at: i,
                     pa: j,
@@ -275,7 +317,9 @@ fn unit_events(
                     weight: buds,
                     size,
                     first: None,
+                    #[cfg(test)]
                     unit: size,
+                    #[cfg(test)]
                     stand,
                 });
             }
@@ -287,6 +331,7 @@ fn unit_events(
 /// Where the laterals of PA `j`, drawn at `p` within `band` of place 0's
 /// draw, stand on a zone's nodes from `start`, each place counted at the
 /// chance it stands, at a whole place's size.
+#[cfg(test)]
 pub(super) fn lateral_stand(
     species: &Species,
     (zone, count): (&Zone, Count),
@@ -305,6 +350,14 @@ pub(super) fn lateral_stand(
     sum.stand(angled(lived))
 }
 
+/// Where a zone's sleeping buds stand: its node count, its start along
+/// the axis and its internode. Read only by the kept recursion, so none
+/// outside tests.
+#[cfg(test)]
+pub(super) type Placed = (Count, Along, f64);
+#[cfg(not(test))]
+pub(super) type Placed = ();
+
 /// The sleeping buds of one zone's `nodes` on a growth unit of the bearer
 /// (its PA, units carried, unit, and the chance it aborts after the
 /// unit): each wakes `s` years on and grows from cycle i + 1 + s in the
@@ -316,23 +369,28 @@ pub(super) fn sleeping(
     (zone, z): (&Zone, usize),
     (nodes, size): (f64, f64),
     (bearer, i, abortion): ((usize, Carried, usize), usize, f64),
-    (m, placed): (usize, (Count, Along, f64)),
+    (m, placed): (usize, Placed),
     out: &mut Vec<Event>,
 ) {
-    let (count, start, internode) = placed;
+    #[cfg(not(test))]
+    let () = placed;
     for (j, &p) in zone.dormant.iter().enumerate() {
         let buds = nodes * zone.buds * p;
         if buds <= 0.0 {
             continue;
         }
-        let mut sum = Sum::default();
-        for slot in 0..zone.places() {
-            let (n, at) = count.spread(start, internode, true);
-            sum.add(n * p * zone.share(slot), 1.0, at);
-        }
-        let species = living.species();
-        let lived = species.lived(j).map(|(q, _)| &species.states[q]);
-        let stand = sum.stand(angled(lived));
+        #[cfg(test)]
+        let stand = {
+            let (count, start, internode) = placed;
+            let mut sum = Sum::default();
+            for slot in 0..zone.places() {
+                let (n, at) = count.spread(start, internode, true);
+                sum.add(n * p * zone.share(slot), 1.0, at);
+            }
+            let species = living.species();
+            let lived = species.lived(j).map(|(q, _)| &species.states[q]);
+            sum.stand(angled(lived))
+        };
         for s in 0..(m - i) as u32 {
             let pieces = living.woken((bearer.0, z), j, s);
             if pieces.is_empty() {
@@ -369,7 +427,9 @@ pub(super) fn sleeping(
                     weight: buds * wakes * carried,
                     size: size * reach,
                     first: Some(first),
+                    #[cfg(test)]
                     unit: size * reach,
+                    #[cfg(test)]
                     stand,
                 });
             }

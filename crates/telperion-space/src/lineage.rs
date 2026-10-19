@@ -208,6 +208,7 @@ pub(crate) fn insertion(lineage: u64, angle: f64, spread: f64) -> f32 {
 /// (1 + cos 2a · sin 2s / 2s) / 2 for d uniform on [−s, s] (fn-224). The
 /// closed form reads both, exact in expectation; without spread, cos a and
 /// its square, as it always read them.
+#[cfg(test)]
 pub(crate) fn turn(angle: f64, spread: f64) -> [f64; 2] {
     let cos = angle.cos_fixed();
     if spread <= 0.0 {

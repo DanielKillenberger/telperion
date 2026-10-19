@@ -266,7 +266,6 @@ crate::catalogue::rows! {
             note: "Defaults to 90 so that `codominance` builds on its own: fn-170's plane \
                 candidate stands its parts 120 apart, but at 120 a fourth part returns onto the \
                 primary's bearing, and a quarter turn keeps all four apart at every `forkWays`. \
-                Refused where two parts of a fork leave on one heading (`forks_placed`). \
                 Replaces `stemDivergence`.",
             blend: Blend::Degrees,
             dial: bounded("fork_divergence", "the degrees of bearing between neighbouring parts \

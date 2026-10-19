@@ -11,8 +11,8 @@ family.skeleton.seed = 7;
 const tree = engine.build(family, { surface: true, foliage: true });
 // tree.surface: the wood in chunks of at most 65,536 vertices, and bounds.
 // A chunk is Float32 positions, Int16 oct-encoded normals and Uint16 indices
-// local to it; draw each on its own. The decode is in
-// docs/migration-0.2-wood-chunks.md.
+// local to it; draw each on its own. The decode, for a consumer of 0.1.4's
+// arrays (fn-291 R4), is in docs/migration-0.2-wood-chunks.md.
 // tree.foliage: one leaf mesh, twelve bytes a leaf - three Uint32 words with
 // the reference box they decode against - and bounds. `leafTransform` rebuilds
 // the sixteen column-major floats for a caller that wants them.
@@ -36,7 +36,7 @@ engine.dispose();
 
 The grid is `telperion/field/voxelize`'s `grid` over the tree's own box, the one definition the device field reads too; `n` is a whole number from 3 to 256, and `{ n, limbOrder }` names limbs at that lateral order instead of the family's own. Each answer carries the cell's flags, its thickest wood radius, its leaf estimate and its owning limb, as owned copies that outlive the next build, release and disposal. The field reads the leaf plan and places no leaf; a family the plan cannot describe is refused by name. `{ structure: true }` returns six f64 values per node (xyz, distal/proximal/base radius) and three u32 values (parent, branch, kind). The root parent is `0xffffffff`; kinds are structural 0, branch 1 and twig 2. An empty output selection still generates structure for diagnostics. Invalid inputs throw, and cap diagnostics distinguish incomplete growth from a finished tree.
 
-Migrating from 0.1.4: `{ field: true }` is `{ field: { n } }`, and the field is the grid with its answers. The cube query (`tree.field.query(cells)`), the field's `bounds` and `snapshot()` are gone, and nothing replaces them: a page that queried a regular grid asks for its side, and one that queried its own cubes reads the cells of a grid fine enough for them.
+Migrating from 0.1.4 (for a consumer of the published 0.1.4 package, fn-257 R8b): `{ field: true }` is `{ field: { n } }`, and the field is the grid with its answers. The cube query (`tree.field.query(cells)`), the field's `bounds` and `snapshot()` are gone, and nothing replaces them: a page that queried a regular grid asks for its side, and one that queried its own cubes reads the cells of a grid fine enough for them.
 
 ## The field package
 
@@ -275,8 +275,9 @@ record and no longer run against the package.
 
 The separate [fn-91 generation path](scripts/benchmarks/generation.md#qualified-gpu-positions)
 expands compact foliage and qualified wood inputs into GPU-resident buffers shared
-by native `Delivery::Resident` and browser `setTreeGpu`. CPU-owned output remains
-available, and the default browser path remains synchronous CPU generation.
+by the native device build (`Generator::prepare`) and browser `setTreeGpu`; the
+renderer's CPU delivery was removed in fn-293. CPU output remains available through
+the core (`mesh::build`, the main entry).
 The [retained desktop measurements](.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/stations/REPORT.md)
 record completed-frame delivery of 158.1–180.8 ms for mature oak and spruce seeds
 1/7 with an initialized renderer. These results do not qualify cold page startup,

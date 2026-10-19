@@ -1,65 +1,15 @@
-//! fn-256 task 2 (DESIGN.md section 7): one cycle's units and wake
-//! captured for the device. The tree grows through the one cycle to the
-//! captured cycle, opens, retires, balances and allots it as `step` does,
-//! then every input `grow_live` and `wake` read is taken, they run, and
-//! the state they leave is taken by the same columns. Times on the tick
-//! grid are held as ticks, reals as their bits. An experiment entry point,
-//! wired into nothing.
-use super::super::sketch::Sketch;
-use super::super::{start, Grower, Options, Request};
+//! fn-256 task 2 (DESIGN.md section 7): the columns a grown state is
+//! captured by for the device (`capture_grown.rs`), and the unit tables
+//! it reads. Times on the tick grid are held as ticks, reals as their
+//! bits.
+use super::super::Grower;
 use super::capture::Capture;
 use crate::contract::{grid, CYCLE};
-use crate::error::{refuse, Result};
-use crate::species::{Species, ALONG};
+use crate::species::ALONG;
 use crate::structure::Origin;
 
 const NONE: u32 = u32::MAX;
 
-/// Grows `species` through the one cycle and captures its last cycle's
-/// units and wake.
-pub fn grow_capture_units(species: &Species, request: Request) -> Result<Capture> {
-    grow_capture_units_at(species, request, request.age)
-}
-
-/// `grow_capture_units` at `cycle` of a tree of `request.age`: a cycle
-/// before the age makes sleeping buds that wake within it, which the
-/// age's own never does (`dormant::draw`).
-pub fn grow_capture_units_at(species: &Species, request: Request, cycle: u32) -> Result<Capture> {
-    if cycle == 0 || cycle > request.age {
-        return refuse("cycle", "a captured cycle is one the tree grows");
-    }
-    let (mut g, _) = start(species, request, Options::default())?;
-    (g.one, g.rules.one) = (true, true);
-    g.working = Some(Box::default());
-    g.sketch.get_or_insert_with(|| Sketch::new(request.light));
-    g.rules.lasting = vec![None; species.states.len()].into();
-    let mut advanced = Vec::new();
-    for c in 1..cycle {
-        g.year(c, c < request.age, &mut advanced, &mut |_| {})?;
-    }
-    g.open(cycle);
-    g.retire(cycle);
-    g.balance_one(cycle);
-    g.allot_one();
-    let mut c = Capture { arrays: Vec::new() };
-    c.u32s("cycle", &[cycle, request.age, request.budget]);
-    g.capture_tables(&mut c);
-    let before = Before::of(&g, cycle);
-    g.capture_state(&mut c, "in", &before.whole());
-    g.capture_inputs(&mut c);
-    let live = std::mem::take(&mut g.live);
-    g.grow_live(live, cycle, &mut |_| {})?;
-    g.wake(cycle)?;
-    assert!(
-        g.asleep[cycle as usize].is_empty(),
-        "the wake takes its cycle's buds"
-    );
-    g.capture_state(&mut c, "out", &before);
-    Ok(c)
-}
-
-/// What the tree held before the cycle grew: each axis's phytomers and
-/// units, each cycle's sleeping buds from the captured one, the woken.
 pub(super) struct Before {
     phyts: Vec<usize>,
     units: Vec<usize>,
@@ -78,28 +28,6 @@ impl Before {
             asleep: Vec::new(),
             woken: 0,
             cycle: 0,
-        }
-    }
-
-    fn of(g: &Grower, cycle: u32) -> Self {
-        Self {
-            phyts: g.axes.iter().map(|a| a.phytomers.len()).collect(),
-            units: g.draws.iter().map(|d| d.units.len()).collect(),
-            asleep: g.asleep.iter().map(Vec::len).collect(),
-            woken: g.woken.len(),
-            cycle,
-        }
-    }
-
-    /// The state as the cycle starts it: every unit and sleeping bud, no
-    /// phytomer (none is read) and no woken bud.
-    fn whole(&self) -> Self {
-        Self {
-            phyts: self.phyts.clone(),
-            units: Vec::new(),
-            asleep: Vec::new(),
-            woken: self.woken,
-            cycle: self.cycle,
         }
     }
 }
@@ -190,18 +118,6 @@ impl Grower<'_> {
         c.u64s("zone_buds", &buds);
         let lights = self.reads().lights;
         c.u32s("lights", &[u32::from(lights)]);
-    }
-
-    /// What only the cycle reads: the living apexes, each laid axis's
-    /// light, size and subtrees' survival.
-    fn capture_inputs(&self, c: &mut Capture) {
-        let pencils = &self.sketch.as_ref().expect("sketching").pencils;
-        let bits = |g: &dyn Fn(&super::super::sketch::Pencil) -> f64| -> Vec<u64> {
-            pencils.iter().map(|p| g(p).to_bits()).collect()
-        };
-        c.u64s("pen_light", &bits(&|p| p.light));
-        c.u64s("pen_size", &bits(&|p| p.size));
-        c.u64s("pen_kept", &bits(&|p| p.kept));
     }
 
     /// The state the cycle reads and writes, under `prefix`: every axis's

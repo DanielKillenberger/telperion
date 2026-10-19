@@ -1,6 +1,8 @@
 use bytemuck::{Pod, Zeroable};
+#[cfg(test)]
+use telperion_core::foliage::prepared::PreparedStations;
 use telperion_core::{
-    foliage::{prepared::PreparedStations, BloomParams, Element, Reference, TwigPlacement},
+    foliage::{BloomParams, Element, Reference, TwigPlacement},
     math::Vec3,
     pipeline::executor::LeafInput,
 };
@@ -127,6 +129,7 @@ pub(super) fn florets(
         organs: [0x10000, 0, 0, 0],
     }
 }
+#[cfg(test)]
 pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
     p.segments
         .iter()
@@ -172,23 +175,27 @@ pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
 }
 
 /// A direction with a word in its fourth lane, its bits as they are.
+#[cfg(test)]
 fn worded(v: Vec3, word: u32) -> [f32; 4] {
     [v.x as f32, v.y as f32, v.z as f32, f32::from_bits(word)]
 }
 
 /// The stream a run's lifespan draws take (`tree::Unfolded::leaf`): its
 /// key salted apart from its retention's.
+#[cfg(test)]
 fn lived(key: u32) -> u32 {
     retain(key ^ telperion_core::tree::LIFE)
 }
 
 /// The stream a run's abscission draws take (`tree::Unfolded::leaf`).
+#[cfg(test)]
 fn abscised(key: u32) -> u32 {
     retain(key ^ telperion_core::tree::FALL)
 }
 
 /// The stream a run's retention draws take (`tree::keeps`): its first
 /// node's key under the registry's `RETAIN`.
+#[cfg(test)]
 fn retain(key: u32) -> u32 {
     telperion_core::tree::mix32(key ^ telperion_space::lineage_keys::RETAIN as u32)
 }
