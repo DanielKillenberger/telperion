@@ -30,7 +30,7 @@ const chunk = (/** @type {string} */ type, /** @type {Buffer} */ body) => {
 };
 
 /** An RGBA PNG whose row y is written with filter y % 5. */
-function encode(/** @type {Uint8Array} */ rgba, width = W, height = H) {
+function encode(/** @type {Uint8Array} */ rgba, width = W, height = H, declared = width) {
   const stride = width * 4;
   const raw = Buffer.alloc((stride + 1) * height);
   const at = (/** @type {number} */ y, /** @type {number} */ i) =>
@@ -48,7 +48,7 @@ function encode(/** @type {Uint8Array} */ rgba, width = W, height = H) {
     }
   }
   const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(declared, 0);
   ihdr.writeUInt32BE(height, 4);
   ihdr.set([8, 6, 0, 0, 0], 8);
   const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
@@ -84,6 +84,12 @@ describe('pixel-diff', () => {
     const wide = decodePng(encode(new Uint8Array(65 * H * 4), 65, H));
     expect(() => pixelDiff(decodePng(encode(base)), wide, ['old.png', 'new.png'])).toThrow(
       'images differ in size: old.png 64x32, new.png 65x32',
+    );
+  });
+
+  it('refuses image data shorter than its header declares, naming the file', () => {
+    expect(() => decodePng(encode(new Uint8Array(4), 1, 1, 2), 'short.png')).toThrow(
+      'short.png: 5 bytes of image data, 9 for 2x1',
     );
   });
 });

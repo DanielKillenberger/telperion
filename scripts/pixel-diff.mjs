@@ -47,6 +47,11 @@ export function decodePng(/** @type {Uint8Array} */ bytes, name = 'image') {
   }
   const raw = inflateSync(Buffer.concat(data));
   const stride = width * channels;
+  if (raw.length !== (stride + 1) * height) {
+    throw new Error(
+      `${name}: ${raw.length} bytes of image data, ${(stride + 1) * height} for ${width}x${height}`,
+    );
+  }
   const rows = new Uint8Array(stride * height);
   for (let y = 0; y < height; y++) unfilter(raw, rows, y, stride, channels);
   const rgba = new Uint8Array(width * height * 4);

@@ -10,12 +10,13 @@ import { promisify } from 'node:util';
  *
  * The row holds ${XDG_RUNTIME_DIR}/telperion-heavy.lock from before its
  * first sample to after its last, so no `telperion-heavy` job is admitted
- * meanwhile. It starts only when no other `telperion-heavy-*` unit runs and
- * no process whose command line names telperion is on the card. While the
+ * meanwhile; it lets it go while it waits. It starts only when no other
+ * `telperion-heavy-*` unit runs and no process whose command line names
+ * telperion is on the card. While the
  * probe runs it samples `nvidia-smi --query-compute-apps` every 250 ms; a
  * process that appears on the card, was not there at the start and is not
  * in the probe's process tree is foreign, and makes the row `valid: false`,
- * as a probe that exits non-zero does.
+ * as a probe that exits non-zero or prints no JSON does.
  * The processes on the card at the start (the desktop's clients) are
  * written into the row with their memory and do not invalidate it: a
  * compute job outside Telperion already running at the start is the
@@ -94,21 +95,36 @@ async function lock() {
   return () => holder.stdin.end();
 }
 
-/** Waits, holding the lock, until no other heavy unit runs and no telperion process is on the card. */
-async function quiet() {
+/** What keeps a row from starting: other heavy units and telperion processes on the card. */
+async function busy() {
+  const ours = (await apps()).filter(a => a.command.includes('telperion'));
+  return [...(await otherHeavyUnits()), ...ours.map(a => `pid ${a.pid}`)];
+}
+
+/**
+ * Takes the lock once the card is quiet. While it is not, the lock is let
+ * go, so two admitted rows never wait on each other, and taken again to
+ * check once more.
+ */
+async function quietLock() {
   for (let waited = 0; ; waited += WAIT_MS) {
-    const units = await otherHeavyUnits();
-    const ours = (await apps()).filter(a => a.command.includes('telperion'));
-    if (!units.length && !ours.length) return;
+    const release = await lock();
+    const blocking = await busy();
+    if (!blocking.length) return release;
+    release();
     if (waited % 30_000 === 0) {
-      const busy = [...units, ...ours.map(a => `pid ${a.pid}`)].join(', ');
-      console.error(`gpu-row: waiting for ${busy} ${new Date().toTimeString().slice(0, 8)}`);
+      const at = new Date().toTimeString().slice(0, 8);
+      console.error(`gpu-row: waiting for ${blocking.join(', ')} ${at}`);
     }
     await new Promise(r => setTimeout(r, WAIT_MS));
   }
 }
 
-/** Runs the probe, sampling the card; resolves with its output, exit code and foreign processes. */
+/**
+ * Runs the probe, sampling the card while it runs and once more at the
+ * end; resolves with its output, exit code, foreign processes and the
+ * card's state at the end.
+ */
 async function probe(/** @type {string[]} */ command, /** @type {Set<number>} */ present) {
   const child = spawn(command[0], command.slice(1), { stdio: ['ignore', 'pipe', 'inherit'] });
   let out = '';
@@ -117,22 +133,27 @@ async function probe(/** @type {string[]} */ command, /** @type {Set<number>} */
   const foreign = new Map();
   /** @type {Set<number>} */
   const own = new Set();
-  let sampling = false;
-  const sample = async () => {
-    if (sampling) return;
-    sampling = true;
-    for (const app of await apps().catch(() => [])) {
+  const classify = async (/** @type {App[]} */ seen) => {
+    for (const app of seen) {
       if (present.has(app.pid) || own.has(app.pid)) continue;
       if (child.pid && (await descends(app.pid, child.pid))) own.add(app.pid);
       else foreign.set(app.pid, { ...app, mib: Math.max(app.mib, foreign.get(app.pid)?.mib ?? 0) });
     }
+  };
+  let sampling = false;
+  const sample = async () => {
+    if (sampling) return;
+    sampling = true;
+    await classify(await apps().catch(() => []));
     sampling = false;
   };
   const timer = setInterval(sample, SAMPLE_MS);
   const exit = await new Promise(resolve => child.once('close', code => resolve(code ?? 1)));
   clearInterval(timer);
   while (sampling) await new Promise(r => setTimeout(r, 10));
-  return { out, exit, foreign: [...foreign.values()] };
+  const end = await gpuState();
+  await classify(end.apps);
+  return { out, exit, foreign: [...foreign.values()], end };
 }
 
 function parse(/** @type {string} */ out) {
@@ -150,20 +171,19 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error('usage: node scripts/gpu-row.mjs <rows.jsonl> -- <probe command...>');
     process.exit(2);
   }
-  const release = await lock();
+  const release = await quietLock();
   try {
-    await quiet();
     const start = await gpuState();
     const result = await probe(command, new Set(start.apps.map(a => a.pid)));
-    const end = await gpuState();
+    const measured = parse(result.out);
     const row = {
       command: command.join(' '),
       exit: result.exit,
-      valid: result.exit === 0 && result.foreign.length === 0,
+      valid: result.exit === 0 && measured !== null && result.foreign.length === 0,
       foreign: result.foreign,
       gpu_start: start,
-      gpu_end: end,
-      probe: parse(result.out),
+      gpu_end: result.end,
+      probe: measured,
     };
     await appendFile(rows, `${JSON.stringify(row)}\n`);
     console.error(`gpu-row: valid ${row.valid}, exit ${row.exit}, ${row.foreign.length} foreign`);
