@@ -183,6 +183,8 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
 /// trunk and draws no axis leaves the tree exactly as it found it, and so
 /// does a tree that already carries these bases and axes: expansion clothes
 /// whatever it is handed, and a tree handed back keeps the one set it has.
+/// The tree records where the tail begins (`Tree::clothing`), so no leaf is
+/// borne on it.
 pub fn clothe(tree: &mut Tree, p: &CanopyParams, blade: f64) -> Result<()> {
     if !bearing(p) && !foliage::draws_rachis(p) {
         return Ok(());
@@ -193,11 +195,15 @@ pub fn clothe(tree: &mut Tree, p: &CanopyParams, blade: f64) -> Result<()> {
     let axes = foliage::rachises(tree, p, blade);
     let tail = 2 * table.len() + axes.iter().map(|a| a.points.len()).sum::<usize>();
     if clothed(tree, (&table, &axes), p, tail) {
+        tree.clothing = Some(tree.nodes.len() - tail);
         return Ok(());
     }
     let bases = room(tree.nodes.len(), 2 * table.len(), "leaf base nodes")?;
     let room = room(bases, tail - 2 * table.len(), "rachis nodes")?;
     let (nodes, sections) = hung((&table, &axes), p, tree.nodes.len());
+    if tail > 0 {
+        tree.clothing = Some(tree.nodes.len());
+    }
     tree.nodes.reserve(room - tree.nodes.len());
     tree.nodes.extend(nodes);
     tree.sections.extend(sections);

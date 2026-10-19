@@ -103,7 +103,7 @@ fn runs(tree: &Tree, p: CanopyParams, twig: Option<TwigPlacement>) -> Vec<Vec<us
             let shoots = shoots(tree, slender);
             shoots
                 .into_iter()
-                .filter(|run| cauline(tree, p, run))
+                .filter(|run| !tree.in_clothing(run[1]) && cauline(tree, p, run))
                 .collect()
         }
     }

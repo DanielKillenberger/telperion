@@ -243,3 +243,23 @@ fn a_stem_of_one_node_bears_its_axes() {
     let axes = axes(x.tree(), &f);
     assert!(!axes.is_empty() && axes.iter().all(|a| a.at == 1));
 }
+
+/// R1: no leaf is borne on the clothing. A palm that clothes its slender
+/// wood (cauline above zero) bears no leaf on its frond axes nor on its
+/// retained bases: drawing the axes moves no leaf at either slender bound.
+#[test]
+fn no_leaf_is_borne_on_the_clothing() {
+    let _turn = crate::one_tree::turn();
+    for shoot in [0.1, 1.0] {
+        let count = |width: f64| {
+            let mut f = palm(40.0);
+            (f.canopy.cauline, f.canopy.shoot_radius) = (1.0, shoot);
+            f.canopy.rachis_width = width;
+            let x = executor::grow(&f).unwrap().expansion().unwrap();
+            x.mesh().unwrap().foliage.instances.len()
+        };
+        let (bare, drawn) = (count(0.), count(0.25));
+        println!("shoot radius {shoot}: {bare} leaves at width 0, {drawn} at 0.25");
+        assert_eq!(drawn, bare, "the axes bear leaves at shoot radius {shoot}");
+    }
+}
