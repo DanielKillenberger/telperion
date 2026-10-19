@@ -68,3 +68,10 @@
 - **Slowed:** `contact-sheet.py` is the isolated Claude reviewer over a sheet (an envelope, hashes, a model call), not a compositor; no repository script tiles stills into a labelled sheet. The sheets were made with ImageMagick `montage` from a scratch script (`raw/t7/t7-sheets.sh`), and the 0.1.4 stills needed their own adapter (`raw/t7/v014-resident_stills.rs`), because task 4's `v014-probe.patch` carries only the frame and field probes.
 - **Cost:** about 5 minutes; the scratch scripts are ignored, so the next old-versus-new sheet rebuilds them.
 - **Would have removed it:** a committed sheet compositor (stills in, one labelled JPEG out), and the 0.1.4 stills adapter kept beside `v014-probe.patch`.
+
+## 2026-10-19 10:20, CPU-peak probe, the 0.1.4 scratch tree was gone
+
+- **Doing:** instrumenting the 0.1.4 `frames` route at matching stages.
+- **Slowed:** the scratch export of `v0.1.4` that task 4 built from no longer existed (only its target directory did), so it was re-exported with `git archive v0.1.4` and `v014-probe.patch` reapplied. `gpu-row.mjs` also takes only a probe that prints a JSON row on stdout, so the stage probe ran under `telperion-heavy` alone, without the foreign-process check.
+- **Cost:** about 3 minutes.
+- **Would have removed it:** a script beside `v014-probe.patch` that recreates the 0.1.4 probe tree in one step.
