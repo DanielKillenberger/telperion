@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-19T00:46:09.158743Z",
+  "depends_on": [
+    "fn-259-the-release-meets-the-bar-on-every.3"
+  ],
+  "id": "fn-259-the-release-meets-the-bar-on-every.4",
+  "priority": null,
+  "spec": "fn-259-the-release-meets-the-bar-on-every",
+  "spec_path": ".flow/tasks/fn-259-the-release-meets-the-bar-on-every.4.md",
+  "status": "todo",
+  "title": "The scorecard's protocol and 0.1.4 beside F4 on one preset",
+  "updated_at": "2026-10-19T00:46:09.158743Z"
+}
