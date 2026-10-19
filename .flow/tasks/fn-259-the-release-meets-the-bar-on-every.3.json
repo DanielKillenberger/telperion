@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-259-the-release-meets-the-bar-on-every",
   "spec_path": ".flow/tasks/fn-259-the-release-meets-the-bar-on-every.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Scorecard tooling: F4 probes that fill every protocol column, a one-build memory mode, a pixel-difference helper",
   "updated_at": "2026-10-19T00:51:32.279541Z"
 }

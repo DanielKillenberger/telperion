@@ -1241,7 +1241,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-259-the-release-meets-the-bar-on-every.md",
-  "status": "open",
+  "status": "done",
   "title": "The release meets the bar on every consumer",
   "tracker": {
     "baseHashFlow": null,
@@ -1254,5 +1254,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T08:53:32.601223Z"
+  "updated_at": "2026-10-19T08:53:45.482534Z"
 }
