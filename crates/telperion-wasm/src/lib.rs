@@ -166,6 +166,17 @@ fn slot(o: &Output, slot: u32) -> (*const u8, usize) {
         // Beside slots 19 and 20: one f32 wood radius per cell, the
         // thickest wood sweep reaching it in metres, zero without wood.
         25 => of(&o.field.wood_radii),
+        // The flowers, as slots 3 to 5 are the leaves: their element's
+        // positions and indices, and three u32 words a floret against the
+        // metadata's `organReference`. Empty where nothing flowers.
+        27 => of(&o.organ_positions),
+        28 => of(&o.organ_indices),
+        29 => o.organ.as_ref().map_or((std::ptr::null(), 0), |i| {
+            (
+                i.leaves.as_ptr().cast(),
+                i.leaves.len() * telperion_core::foliage::WORDS,
+            )
+        }),
         _ => (std::ptr::null(), 0),
     }
 }
