@@ -152,10 +152,10 @@ for s in 1 2 3 4 5; do
 done
 # Matched-age diagnostics: F4 at the age 0.1.4's oak row carries (100).
 for seed in 1 7 42; do
-  job "dt-f4-100-$seed" 14 5 AGE=100 SEED=$seed $B/f4-frames $OAK $VIEWS
-  job "dm-f4-100-$seed" 14 5 ONE_BUILD=1 AGE=100 SEED=$seed $B/f4-frames $OAK
+  job "dt-f4-100-$seed" 12 5 AGE=100 SEED=$seed $B/f4-frames $OAK $VIEWS
+  job "dm-f4-100-$seed" 12 5 ONE_BUILD=1 AGE=100 SEED=$seed $B/f4-frames $OAK
 done
-job "df-f4-100" 14 5 AGE=100 $B/f4-field $OAK 1,7,42
+job "df-f4-100" 12 5 AGE=100 $B/f4-field $OAK 1,7,42
 echo "run-oak: done" >&2
 ```
 
@@ -170,3 +170,7 @@ Before the first row, one protocol check (`raw/t4-checks.jsonl`, not a sample): 
   - The artifact ceilings raised to the sizes measured after fn-257, 2026-10-16 (`scripts/artifact-budgets.json`). An artifact larger than 0.1.4's but under its ceiling is covered. One without a ceiling is not.
 - Every other worse row, by any amount, is a **regression** and goes to R3's ledger (task 7) for the owner with its measured size.
 - Matched-age rows carry no verdict.
+
+## Amendments
+
+- **2026-10-19 05:16 (task 4), before any matched-age row:** the matched-age jobs' memory cap is 12 GB, not 14. The desk never had 14 GB of room (FRICTION.md); fn-258's oak at 100 peaked at 9.1 GB. The cap only kills a job over it; no measured row changes.

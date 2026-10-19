@@ -30,3 +30,10 @@
 - **Slowed:** the third round was refused by `review.maxIterations` 2 while findings were shrinking (5, then 2, one of the two the host's rule (a) that the reviewer re-raises). Reset with `flowctl spec reset-review-rounds --task`, as the host's brief allows when findings shrink.
 - **Cost:** about 1 minute and one refused call. The first round also lost its correctness draw to "model at capacity".
 - **Would have removed it:** a cap of 3-4, or a host decision the reviewer reads, so an owner-decided exemption is not re-raised every round.
+
+## 2026-10-19 05:16, task 4, the matched-age rows waited on a memory cap the desk never had
+
+- **Doing:** the oak's matched-age diagnostics (F4 at 100), asked of `telperion-heavy` at 14 GB because fn-258 measured the oak at 100 peaking at 9.1 GB.
+- **Slowed:** the desk offered 13 GB of room (31 GB, the owner's desktop holding about 15), so the job waited from 05:13 without ever being admitted. The runner was stopped and the cap lowered to 12 GB, which still covers the 9.1 GB peak; the cap kills a job over it and changes nothing measured.
+- **Cost:** about 4 minutes of waiting and one restart of the resumable runner.
+- **Would have removed it:** a runner that prints the room it needs against the room the desk has and refuses at once when the cap cannot fit, rather than waiting on a number that will not come.
