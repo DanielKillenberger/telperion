@@ -101,3 +101,21 @@
 - **Slowed by:** the hook refused the heredoc ("embedded shell launcher cannot be statically verified"; the WGSL's backticks in a quoted heredoc) and a redirect to a path in a variable. Both were rewritten with the file-writing tool and literal paths.
 - **Cost:** about 5 minutes and two refused calls.
 - **Would have removed it:** the hook allowing a quoted (`<<'EOF'`) heredoc into `python3 -`, whose body the shell never expands.
+
+## Dispositions (host, 2026-10-19, end of spec)
+
+| entry | disposition |
+| --- | --- |
+| `flow --auto` cannot select the spec | Proposed: the owner marks a spec ready when handing it to an unattended run; and drop the two dead keys (`artifacts.html.enabled`, `pipeline.chainStages`) from `.flow/config.json`, which flowctl flags on every call (a config edit, so left to the owner). |
+| task 1: digest could not read the curve's sections in its Touches | Proposed: plan-time check that each buffer a verification reads has a reader and a copy usage, listed in Touches (a planning habit, a line for fn-290). |
+| task 1: GPU declaration queued 35 min | Fixed repo-side: BASELINE.md "Running the digests" records `--gpu 6`. The wrapper not naming VRAM as the blocker is local setup: reported, not specced. |
+| task 2 / task 5: digests outlast a foreground call | Fixed: BASELINE.md "Running the digests" records each digest's wall time and what it covers. |
+| task 2: review cap 2 while converging | Proposed: `review.maxIterations` 3, or a cap that resets while the finding count falls (owner's config). |
+| task 3: `cfg(test)` cannot reach integration tests and examples | Proposed: fn-288 moves those readers into the suite when it deletes the scaffold, after which `blend`, `GrowthBias` and the station preparation's cross-crate test readers can be re-checked. |
+| task 3: dropping row checks unbounds wire rows | Resolved by the host decision (task 8); proposed: plans check older specs' refusal requirements before cutting validation (fn-290). |
+| task 4: core digest never asks for the curve | Fixed by documentation: "Running the digests" names which digest covers the curve; adding `curve: true` to `artifact_digest` is a small follow-up (it would re-pin the core baseline). |
+| task 4: limits inventory keyed by file | Proposed: key `docs/generation-limits-inventory.json` by function, or name the guard in any plan that moves code. |
+| task 5: `target/ci` emptied under the gate | Local setup (another session's cleanup): reported, not specced. |
+| task 6: two spec claims about the sweep did not hold | Proposed: the plan step checks each architecture claim against code before the task is written, as AGENTS.md "Gates and checked claims" says (fn-290). |
+| task 8: fmt rewrites three base files | Proposed: format the base once and add `cargo fmt --check` to CI (a small spec). |
+| task 8 / task 6: the command hook refused restores, redirects and a quoted heredoc | Local setup (the dcg hook): reported, not specced. |

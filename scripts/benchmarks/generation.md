@@ -320,13 +320,11 @@ separate processes so its extra verification clone is excluded from timing/RSS.
 
 ### Resident wood expansion
 
-The experimental `setTreeGpu` and native `Delivery::Resident` paths also retain
-wood on the device. Core preparation emits canonical float32 positions and
-compact run/ring metadata. CPU float64 triangle checks select the ordinary CPU
-wood builder for collapse or unsupported numeric cases. Compute-only storage
-limits and unusable GPU normals select explicit CPU wood fallback. Device errors
-remain errors. The default CPU APIs and owned CPU delivery use the CPU builder;
-standalone CPU-output generators do not create wood compute pipelines.
+The resident build (`Generator::prepare`, the browser's `setTreeGpu` through the
+renderer's module) grows, draws and keeps the wood on the device; there is no
+CPU delivery and no CPU wood fallback (fn-293). A device or capacity failure is
+a named error. The CPU mesh (`mesh::build`) stays the reference for tests and
+for consumers without a GPU.
 
 Resident expansion copies pre-rounded coordinates/radii, emits ordered indices,
 and gathers incident triangles per vertex into finite unit normals. Verification

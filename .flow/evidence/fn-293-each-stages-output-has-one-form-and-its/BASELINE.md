@@ -2,6 +2,16 @@
 
 Recorded at `bf84ef6ca` (the plan commits over `f8c014681`; no generator source differs), with the task-1 digest tools (artifact projections; `Tree.pipe` is not digested). Profile `ci`, never `--release`. Each digest was run twice and both runs agree line for line; every later task compares against these lines.
 
+## Running the digests (friction fix, 2026-10-19)
+
+Wall times on this desk, warm `target/ci`, from the run logs' timestamps; launch the long ones in the background from the start.
+
+| digest | covers | wall time | declare |
+| --- | --- | --- | --- |
+| `artifact_digest`, 8 presets x 3 seeds | core: skeleton, element, wood, leaves, field (n = 36), structure; not the curve | about 8 min for the 24 runs | none |
+| `generation_digest` | pipeline full request, field alone, and the mesh (`Request::mesh()`, the only CPU digest of the curve) | about 10 min | none |
+| `resident::digest_tests::digest` | the device build: placed leaves, packed curve points, clusters, sections, demand | about 15 s of test after its build | `telperion-heavy 10 --gpu 6` (`--gpu 7` waited 35 min behind 2 GB of desktop VRAM) |
+
 ## Core: `artifact_digest <preset> <seed> | sha256sum`
 
 `cargo run --profile ci -p telperion-core --example artifact_digest -- <preset> <seed> | sha256sum`, every shipped preset (`presets::CATALOGUE`) at seeds 1, 7 and 42. Runs: `raw/core-digest-base-1.txt`, `raw/core-digest-base-2.txt` (identical).
