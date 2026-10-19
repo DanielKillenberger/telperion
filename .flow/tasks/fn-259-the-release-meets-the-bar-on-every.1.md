@@ -24,16 +24,11 @@ The housekeeping that every later task rebases on: one `cargo fmt --all` commit 
 
 ### Key context
 The gate is not needed for a pure fmt commit plus YAML; `cargo build --profile ci --workspace` (or `cargo check`) proves the formatted tree still compiles. The full gate runs at the end of task 2, the first task with code changes.
-
-### Acceptance
+## Acceptance
 - [ ] One commit holds only `cargo fmt --all` output; `cargo fmt --all --check` exits 0 after it.
 - [ ] CI runs `cargo fmt --all --check` on every PR and push the tests workflow triggers on, not skipped by a receipt.
 - [ ] `.flow/config.json` has neither key; `flowctl preflight` prints no removed-key note; no other key changed.
 - [ ] The workspace still compiles (`cargo check --workspace --all-targets`).
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 TBD
 

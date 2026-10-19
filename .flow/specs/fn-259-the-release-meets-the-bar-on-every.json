@@ -16,9 +16,9 @@
   "id": "fn-259-the-release-meets-the-bar-on-every",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 0,
-  "plan_review_status": "stale",
-  "plan_reviewed_at": "2026-10-09T20:06:21.134731Z",
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-19T00:49:42.393142Z",
   "review_attempts": [
     {
       "artifact_sha256": "e417708685c881dd98252db862db9878a1db1dac36da9433179244974c9b66a2",
@@ -216,6 +216,91 @@
       "task": null,
       "timestamp": "2026-10-09T20:06:21.130662Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "1132de0467436815cd8377a2291b08b14e137629a91dbe6821f6c476db570cdd",
+      "backend": "codex",
+      "base_sha": "cce95a6a2c0395bbfa149381500e258ec75f1bda",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-473c9b0fb083a0f8e19467eed28bd27d",
+            "classification": "introduced",
+            "findingId": "finding-473c9b0fb083a0f8e19467eed28bd27d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6e051297e88257c033a3aca527231c7e",
+            "classification": "introduced",
+            "findingId": "finding-6e051297e88257c033a3aca527231c7e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-73b906396a93e5cb42df04fed9acc4bc",
+            "classification": "introduced",
+            "findingId": "finding-73b906396a93e5cb42df04fed9acc4bc",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a6d0a65d887cc8fdbc8d2b3b12afd59f",
+            "classification": "introduced",
+            "findingId": "finding-a6d0a65d887cc8fdbc8d2b3b12afd59f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9e3ffba7cda8a1580a5223212a20cd7c",
+            "classification": "introduced",
+            "findingId": "finding-9e3ffba7cda8a1580a5223212a20cd7c",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b3dccf4884a89e7452b5398ca7de194e",
+            "classification": "introduced",
+            "findingId": "finding-b3dccf4884a89e7452b5398ca7de194e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "4a799d710bc812908c9adf3debd45783a5bb94b9",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 523066,
+      "output_sha256": "c137678bb818fa3c055be8aa817739118913a0d468e36c3497fb3807b8284983",
+      "reservation_id": "abdd46bb6e6c4a8989f77ea1c32a2836",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-19T00:49:42.380294Z",
+      "tool_calls": 22,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -241,5 +326,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T00:46:31.997510Z"
+  "updated_at": "2026-10-19T00:49:42.400986Z"
 }

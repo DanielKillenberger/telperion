@@ -8,7 +8,7 @@ Task 4's protocol over every shipped preset and seed, at the product default age
 
 **Size:** M
 **Files:** `.flow/evidence/fn-259-the-release-meets-the-bar-on-every/SCORECARD.md`, `raw/`
-**Touches:** [.flow/evidence/fn-259-the-release-meets-the-bar-on-every/**]
+**Touches:** [.flow/evidence/fn-259-the-release-meets-the-bar-on-every/SCORECARD.md, .flow/evidence/fn-259-the-release-meets-the-bar-on-every/FRICTION.md]
 
 ### Approach
 - Run per species in the order small to large (palm, ordinary, beech, oak, birch, spruce, Laurelin, Telperion), each under `telperion-heavy <mem> --gpu <vram>` with free device memory recorded; resume from the progress file.
@@ -23,15 +23,10 @@ Task 4's protocol over every shipped preset and seed, at the product default age
 
 ### Key context
 This is the capture budget's large run: one sweep, not repeated; a defect found mid-sweep is reported, not fixed (qualification only). Stop with FRICTION.md and NEEDS_HUMAN if a row exceeds 10 minutes or the GPU is held by another session.
-
-### Acceptance
-- [ ] Every shipped preset at seeds 1, 7, 42 at its default age on F4 and 0.1.4 (where shipped), plus matched-age rows, every R1 column filled or marked failed with the reason.
-- [ ] Free device memory per row; one-build rows used for memory-only cells.
-- [ ] The regression list names each worse row, its gap and the owner tolerance that covers it or "none".
-
 ## Acceptance
-- [ ] TBD
-
+- [ ] Every shipped preset at seeds 1, 7, 42 at its default age on F4 and 0.1.4 (where shipped), plus matched-age rows, every R1 column filled or marked failed with the reason.
+- [ ] Free device memory and other compute processes per row, contaminated rows rerun or marked invalid; one-build rows used for memory-only cells.
+- [ ] The regression list names each worse row, its gap and the owner tolerance that covers it or "none".
 ## Done summary
 TBD
 
