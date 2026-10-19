@@ -3,7 +3,7 @@
   "size": [1280, 720],
   "seed": 7,
   "sun": [115, 60],
-  "fade": 1,
+  "fade": 0.25,
   "camera": {
     "azimuth": 20, "orbit": 4, "elevation": 8, "fov": 38,
     "keys": [
