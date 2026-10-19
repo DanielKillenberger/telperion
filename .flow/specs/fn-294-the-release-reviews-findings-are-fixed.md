@@ -1,0 +1,25 @@
+# The release review's findings are fixed before 0.2.0 merges
+
+## Goal & Context
+
+The owner asked for one review of the whole 0.2.0 release (2026-10-19), because each spec had been reviewed only on its own diff. Ultrareview refused the release as too large (836 code files, 128k lines, against a limit of 500 files and 8,000 lines), so the owner ran Codex over the code diff `428009eb8..848f3a72b` (`.flow/`, `vendor/` and the lock files left out) with the host's prompt, going area by area. It found four confirmed and two plausible defects. The host checked the four confirmed ones against the code at `848f3a72b` (`generate.rs:114-135`, `generation.rs:140-142`, `ci-key.mjs:37-39`, `test-wasm.mjs:13-17`). The two plausible ones are unchecked and are written as unknown until a repro runs.
+
+Release item (fn-237), after fn-259.
+
+## Requirements
+
+- **R1 (7.1, P1, confirmed): flowers reach the package.** `crates/telperion-wasm/src/generate.rs` builds with `leaves: wants("foliage")`, so the pipeline produces flowers (`Outputs::organ`) for a flowering preset. The binding then copies only `o.wood`, `o.leaves`, `o.element` and the field, and nothing in `src/browser` names an organ. `TreeEngine.build(LAURELIN, { foliage: true })` returns a flowerless tree after paying to grow its flowers. Fix: the organ element, its instances and its reference cross the binding and appear in the public output beside the leaves, in the form the renderer already reads; the package's types, docs and migration note say so. A non-flowering preset returns no organ data rather than an empty placeholder. Test: a flowering preset's package output carries organs whose count matches the pipeline's; a non-flowering one carries none.
+- **R2 (3.1, P1, confirmed): tree memory counts flowers.** `Generator::tree_buffer_bytes` (`crates/telperion-render/src/generation.rs:141`) sums wood and foliage but not `renderer.organ`, while `release_tree` frees all three. With a flowering tree shown, admission can refuse a replacement that would fit once the old tree is released, and reported tree memory is too low. Fix: include the organ buffers. Test: with a flowering tree resident, the bytes reported equal the allocator ledger's tree buffers, and a replacement that fits after release is admitted.
+- **R3 (7.2, P2, confirmed): CI keys see the space crate.** In `scripts/ci-key.mjs`, `SPACE` is an input of `rust-wasm` only. A commit that touches only `crates/telperion-space` leaves the `rust-core`, `rust-render`, `rust-jev` and `node` keys unchanged, so their green receipts are reused for changed code. Fix: add `SPACE` to every suite whose crates depend on it; check the dependency with `cargo metadata`, don't guess. Test: the key script's test (or a new one) shows that a change under `crates/telperion-space` moves each dependent suite's key.
+- **R4 (7.3, P2, confirmed): the field browser test builds what it loads.** `scripts/test-wasm.mjs` runs only `scripts/build-wasm.mjs` and then loads `tests/browser/field.mjs`, which now imports the renderer's glue and Wasm. On a fresh checkout they are missing; on a warm one they can be stale. Fix: build the renderer too (`scripts/build-render.mjs`, or whatever builds the module the field entry imports). The test still runs only where a browser has WebGPU; no agent runs WebGPU in a browser. Check the fix by reading the imports and running the build step alone.
+- **R5 (5.1, P2, plausible, unknown until reproduced): metadata does not panic.** `params::overlay` calls `metadata` (`crates/telperion-core/src/params.rs:31`), whose `expect` may panic when a family's `space.light` is a valid setting other than `SITE`, because `space::rows` rejects it. First a standalone test reproduces it. If it panics, the refusal propagates by name through `overlay` (no panic, no fallback). If it does not, record why, and the requirement closes with no change.
+- **R6 (6.1, P2, plausible, unknown until reproduced): an oversized light lattice refuses by name.** `crates/telperion-space/src/light/field.rs:66` asserts when a box exceeds `2^28` lattice nodes. The candidate input is a species with very long internodes whose box exceeds that while every coordinate stays under 4096 m. First a test tries to reach the assert through the public build with a value the parameter bounds allow. If it can be reached, spanning becomes fallible and returns a named domain error before allocating. If the bounds already rule it out, record which bound does, and the requirement closes with no change.
+- **R7:** the gate and `npm test` are green; each task gets a codex review.
+
+## Boundaries
+
+Only these six findings. Not in scope: anything Codex listed as unchecked (layout equivalence across WGSL, Rust and TS, shader maths, large-tree limits, visual parity); those stay with fn-289 and fn-285. Accepted items (speed against 0.1.4, the CPU/GPU leaf difference, refusals at age 100) are not reopened. The public API grows only by the organ output of R1.
+
+## Evidence
+
+The Codex review's text is copied into `.flow/evidence/<this spec>/CODEX-RELEASE-REVIEW.md`. The prompt that produced it is beside it.
