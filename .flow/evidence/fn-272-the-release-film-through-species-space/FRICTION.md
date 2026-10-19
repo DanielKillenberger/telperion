@@ -34,3 +34,10 @@
 - **Hindered:** the desk had 5-9 GB of room and the job waited 10 minutes for 10 GB it does not need (cut 3's peak resident was 6.4 GB, in the CPU walk at 80 that the device build now replaces).
 - **Cost:** about 10 minutes of wall time.
 - **Would have removed it:** a measured peak per run kind (fn-270 and fn-277 proposed the same); here, declaring the clip's size, which is what this rework now does.
+
+## 2026-10-19, task 1 rework: the review receipt lived in /tmp and was lost
+
+- **Doing:** the codex impl-review of the rework.
+- **Hindered:** `review-route` stopped with `lost_receipt`: the 2026-10-14 NEEDS_WORK cycle's receipt (`/tmp/impl-review-receipt-*`) was gone, so flowctl could not tell which findings were open. The findings were recovered from codex's own session logs (`~/.codex/sessions/2026/10/14/rollout-2026-10-14T11-12-10-*`): oak to palm's six oracle frames (made fn-273's tenth named exception by the host, 2026-10-14), stale trailing stills (fixed at 781d4ea03), colliding labels (fixed at 8478aa16e). None was left open, so the cycle was reset (`flowctl spec reset-review-rounds --task .1`, under the owner's allowance to reset with a recorded reason) and a fresh fan-out reviews the whole task.
+- **Cost:** about 5 minutes.
+- **Would have removed it:** a receipt kept under the repository's ignored state (or `$XDG_STATE_HOME`), not `/tmp`, which does not survive a reboot.

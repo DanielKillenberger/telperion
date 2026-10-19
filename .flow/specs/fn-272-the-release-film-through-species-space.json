@@ -11,9 +11,7 @@
     "fn-251-a-walk-never-grows-a-tree-larger-than"
   ],
   "id": "fn-272-the-release-film-through-species-space",
-  "impl_review_rounds": {
-    "fn-272-the-release-film-through-species-space.1": 2
-  },
+  "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
@@ -172,7 +170,9 @@
       "verdict": "NEEDS_WORK"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-272-the-release-film-through-species-space.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -192,5 +192,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T09:19:24.994796Z"
+  "updated_at": "2026-10-19T10:00:50.534441Z"
 }
