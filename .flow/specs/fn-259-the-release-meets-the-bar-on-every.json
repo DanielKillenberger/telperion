@@ -16,7 +16,7 @@
   "id": "fn-259-the-release-meets-the-bar-on-every",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 2,
+  "plan_review_rounds": 0,
   "plan_review_status": "needs_work",
   "plan_reviewed_at": "2026-10-19T00:52:13.097413Z",
   "review_attempts": [
@@ -396,8 +396,8 @@
     }
   ],
   "review_hash_epoch": {
-    "plan": 2,
-    "plan#completion": 1
+    "plan": 3,
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -418,5 +418,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T00:52:13.098007Z"
+  "updated_at": "2026-10-19T00:53:17.660689Z"
 }
