@@ -51,3 +51,8 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+## Decision (conductor, 2026-10-20, after the red gate at 1676ca65b)
+
+The shipped date palm keeps `rachisWidth` 0 in this task; the 0.25 m value and its FAO citation land in .3, with the device that draws it, so no CPU=device test is red between tasks. The row, the CPU axes and the clothing rule ship here, proven by tests that set the width on their own table. Every core and jev failure the gate named is fixed for its cause (checked against the base) so that it holds at width 0 and at 0.25.

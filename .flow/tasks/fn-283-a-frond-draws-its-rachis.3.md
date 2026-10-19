@@ -31,6 +31,7 @@ The axis records on the device: written from the frond table in the boots stage,
 - [ ] The device hangs every frond axis the CPU hangs: same count, nodes within lineage tolerance (palm at 40 and young).
 - [ ] The device's drawn curve, mesh and field agree with the CPU's for every shipped preset (existing agreement tests green, palm included).
 - [ ] A capacity overflow is a named error.
+- [ ] The date palm's `/canopy/rachisWidth = 0.25` (FAO 156 ch. I citation in the values comment) lands here, with the generated presets, HASHES.md's palm line and every core, render and jev test green at the palm's real width (moved from .1, conductor decision 2026-10-20).
 
 ## Done summary
 TBD
