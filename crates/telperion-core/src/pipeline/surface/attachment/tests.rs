@@ -10,6 +10,7 @@ use crate::presets::{by_identity, Preset, CATALOGUE, IN_WORK};
 /// the drawn rings make the wood a plain build does.
 #[test]
 fn contacts_read_from_the_wood_are_the_swept_ones() {
+    let _turn = crate::one_tree::turn();
     for &(_, id, _, _) in CATALOGUE.iter().chain(IN_WORK) {
         let mut family =
             by_identity(id).unwrap_or_else(|_| Preset::from_id(id).unwrap().parameters());
@@ -19,9 +20,15 @@ fn contacts_read_from_the_wood_are_the_swept_ones() {
         let swept = AttachmentSurface::new(&tree, height, params).unwrap();
         let plain = build(&tree, height, params).unwrap();
         for drawn in [true, false] {
-            let sweep = Sweep { drawn, edges: true };
+            let sweep = Sweep {
+                drawn,
+                edges: true,
+                distances: false,
+            };
             // Drawn rings as the parallel step sweeps them, bare ones in turn.
-            let rings = super::rings::rings_mode(&tree, height, params, sweep, drawn).unwrap();
+            let limit = if drawn { CHUNK_VERTICES } else { usize::MAX };
+            let rings = super::rings::rings_mode(&tree, height, params, sweep, None, drawn, limit);
+            let rings = rings.unwrap();
             let read = AttachmentSurface::on_wood(&rings).unwrap();
             for (node, n) in tree.nodes.iter().enumerate().skip(1) {
                 let parent = tree.nodes[n.parent.unwrap() as usize].position;

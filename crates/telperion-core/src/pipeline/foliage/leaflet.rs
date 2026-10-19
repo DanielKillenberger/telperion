@@ -3,7 +3,7 @@
 //! size it is drawn at, with the frame a leaf is turned in about its axis.
 //! Placement draws each leaflet from these, and the leaf plan bounds them, so
 //! the planned and the placed frond stand in the same place.
-use super::{rosette::frame, CanopyParams};
+use super::{crown::Split, rosette::frame, CanopyParams};
 use crate::{
     math::{Transcendental, Vec3},
     rng::Rng,
@@ -12,13 +12,13 @@ use std::f64::consts::{PI, TAU};
 
 /// One leaflet on its rachis, before its draws turn and scale it.
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Leaflet {
-    pub(super) at: Vec3,
-    pub(super) axis: Vec3,
+pub(crate) struct Leaflet {
+    pub(crate) at: Vec3,
+    pub(crate) axis: Vec3,
     /// The rachis's direction where the leaflet leaves it.
     pub(super) run: Vec3,
     /// The share of its size a basal leaflet borne as a spine is drawn at.
-    pub(super) share: Option<f64>,
+    pub(crate) share: Option<f64>,
 }
 
 /// The point `t` of the way along the rachis that leaves `point` on
@@ -34,18 +34,24 @@ pub(super) fn rachis(point: Vec3, heading: Vec3, lift: Vec3, p: &CanopyParams, t
 /// straight line by its arch as it goes, and each leaflet leaves it by
 /// `leaflet_pitch` to alternating sides. The last of them closes the rachis's
 /// end as `terminal_leaflet` blends its pitch back toward the rachis itself.
-pub(super) fn leaflets(
+/// A young frond's (`split`) are strips of one blade (`Split::segment`):
+/// each stands where its strip begins and runs toward the blade's tip.
+pub(crate) fn leaflets(
     point: Vec3,
     heading: Vec3,
     p: CanopyParams,
     count: usize,
+    split: Option<Split>,
 ) -> impl Iterator<Item = Leaflet> {
     // The frond's own plane: the rachis runs along `heading`, the leaflets
     // leave it to either side, and the arch lifts it out of the line between.
     let (lift, _) = frame(heading);
     let pitch = p.leaflet_pitch.to_radians();
     (0..count).map(move |leaf| {
-        let t = (leaf + 1) as f64 / count as f64;
+        let (t, length) = match split {
+            Some(s) => s.segment(leaf, count, p.rachis_length, p.size * s.unit),
+            None => ((leaf + 1) as f64 / count as f64, 1.0),
+        };
         let at = rachis(point, heading, lift, &p, t);
         let run = (heading + lift * (2. * p.rachis_arch * t)).normalized();
         let closing = if leaf + 1 == count {
@@ -63,7 +69,10 @@ pub(super) fn leaflets(
             at,
             axis: run.rotate(lift, hand * pitch * closing),
             run,
-            share: borne.map(|(share, _)| share),
+            share: match (borne, split) {
+                (_, None) => borne.map(|(share, _)| share),
+                (b, Some(_)) => Some(b.map_or(1.0, |(share, _)| share) * length),
+            },
         }
     })
 }
@@ -72,7 +81,7 @@ pub(super) fn leaflets(
 /// leaves the rachis on, where the rows bear it as a spine. None everywhere
 /// else, so a frond that bears none is scaled by nothing at all.
 fn spine(index: usize, p: &CanopyParams) -> Option<(f64, f64)> {
-    let borne = (index as u64) < u64::from(p.acanthophylls) && p.acanthophyll_length > 0.;
+    let borne = (index as f64) < p.acanthophylls && p.acanthophyll_length > 0.;
     borne.then(|| (p.acanthophyll_length, p.acanthophyll_pitch.to_radians()))
 }
 

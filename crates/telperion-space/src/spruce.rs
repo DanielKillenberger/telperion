@@ -72,11 +72,28 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        leaf_years: f64::INFINITY,
+        // fn-270 R5: the days its shoot elongates and its leaf expands
+        // within the year, sourced in its preset's value file.
+        elongation: 35.0,
+        expansion: 35.0,
+        // fn-270 R5c: its leaves' lifespan and season, sourced in its
+        // preset's value file.
+        leaf_life: f64::INFINITY,
+        budburst: 132.0,
+        senescence: 264.0,
+        colouring: 16.0,
+        leaf_fall: 45.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -117,6 +134,9 @@ pub fn spruce() -> Species {
         sag: 0.0,
         secondary: 1.0,
         bend_length: 0.0,
+        internode_spread: 0.0,
+        insertion_spread: 0.0,
+        tropism_spread: 0.0,
     };
     // The seedling (M4): two short, unbranched years.
     let seedling = PaState {
@@ -175,6 +195,9 @@ pub fn spruce() -> Species {
             sag: 9e-4,
             secondary: 1.0,
             bend_length: 0.0,
+            internode_spread: 0.0,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
         },
         // For as long as the tree lives, then they stop.
         ..state(
@@ -229,6 +252,9 @@ pub fn spruce() -> Species {
             sag: 5e-4,
             secondary: 1.0,
             bend_length: 0.0,
+            internode_spread: 0.0,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
         },
         ..state(
             10,
@@ -282,7 +308,7 @@ pub fn spruce() -> Species {
         },
         ..state(2, 0.0, vec![zone(2, 2, 1, &[])])
     };
-    on_chain(vec![
+    let mut ages = vec![
         (SEEDLING, seedling),
         (SAPLING, sapling),
         (TRUNK, trunk),
@@ -292,5 +318,26 @@ pub fn spruce() -> Species {
         (BRANCHLET, branchlet),
         (SPUR, spur),
         (SHOOT, shoot),
-    ])
+    ];
+    // Every node bears its year's needles along its internode (fn-264 R2,
+    // host decision 2, derived).
+    for (_, s) in &mut ages {
+        s.leaf_area = NEEDLE_AREA * s.internode;
+    }
+    crate::tolerance::respond(&mut ages, SHADE_TOLERANCE);
+    on_chain(ages)
 }
+
+/// Its shade tolerance T (Niinemets and Valladares 2006, Appendix A;
+/// Jev fn264-pick:18dddb33049974a2-3e8332-0), which sets how it answers
+/// light (`tolerance.rs`, fn-264 R2).
+const SHADE_TOLERANCE: f64 = 4.45;
+
+/// Projected needle area a metre of current-year shoot bears, in m²/m:
+/// the mid-point of 18 to 31 needles per cm of shoot (Bellan et al. 2019,
+/// Austrian J. For. Sci., a closed stand of about 36 years, the whole crown
+/// profile) times 13.7 mm², the mean projected area of a sun needle of
+/// 20-year-old trees (Gebauer et al. 2019, iForest 12: 27, Table 2, control).
+/// Only the year a node is laid deposits (`light.rs`), so this lends the
+/// lattice that year's needles alone (fn-264 SOURCES.md).
+const NEEDLE_AREA: f64 = (18.0 + 31.0) / 2.0 * 100.0 * 13.7e-6;

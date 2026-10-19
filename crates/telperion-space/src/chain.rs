@@ -30,7 +30,8 @@ pub const SHORT: usize = 14;
 pub const AGES: usize = 15;
 
 /// An age a species passes through: no lifespan, moving on to the next.
-fn passed() -> PaState {
+/// What a preset's `/space` rows are laid over (fn-198).
+pub fn passed() -> PaState {
     PaState {
         lifespan: 0.0,
         continuation: 1.0,
@@ -54,12 +55,25 @@ fn passed() -> PaState {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        leaf_years: f64::INFINITY,
+        elongation: 0.0,
+        expansion: 0.0,
+        leaf_life: f64::INFINITY,
+        budburst: 0.0,
+        senescence: 0.0,
+        colouring: 0.0,
+        leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,

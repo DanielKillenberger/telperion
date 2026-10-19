@@ -35,6 +35,16 @@ fn normals(element: &Element) -> Vec<f32> {
             summed[*index as usize] += face;
         }
     }
+    // A vertex no finest triangle uses belongs to a coarser level alone, the
+    // flowers' card (fn-246), and takes that level's own faces.
+    let finest: std::collections::HashSet<u32> = element.indices.iter().copied().collect();
+    for triangle in element.level_indices.as_chunks::<3>().0 {
+        let [a, b, c] = triangle.map(|i| element.positions[i as usize]);
+        let face = (b - a).cross(c - a);
+        for index in triangle.iter().filter(|i| !finest.contains(i)) {
+            summed[*index as usize] += face;
+        }
+    }
     summed
         .iter()
         .flat_map(|n| {
@@ -80,6 +90,9 @@ pub struct Foliage {
     indices: Option<Held>,
     bounds: Option<Bounds>,
     pub(crate) caster_shape: [f32; 4],
+    /// Whether the element is drawn with a far card in front of its levels:
+    /// the flowers' foliage, never the leaves' (fn-246).
+    card: bool,
 }
 
 impl Foliage {
@@ -97,16 +110,9 @@ impl Foliage {
         layout: &wgpu::BindGroupLayout,
         shadow: &crate::shadow::Shadow,
         surface: crate::pass::Surface,
+        card: bool,
     ) -> Self {
-        let shader = crate::pass::lit_shader(
-            gpu,
-            "foliage",
-            &format!(
-                "{}\n{}",
-                include_str!("shaders/leaf.wgsl"),
-                include_str!("shaders/foliage.wgsl")
-            ),
-        );
+        let shader = crate::shaders::module(gpu, "foliage", crate::shaders::foliage());
         let vertex = |attributes, floats: u64| {
             Some(wgpu::VertexBufferLayout {
                 array_stride: floats * size_of::<f32>() as u64,
@@ -147,15 +153,46 @@ impl Foliage {
             indices: None,
             bounds: None,
             caster_shape: [0.0; 4],
+            card,
         }
+    }
+
+    /// Lets the crown's buffers go: nothing is drawn until the next submit.
+    pub(crate) fn release(&mut self) {
+        self.select.release();
+        for held in [
+            &mut self.positions,
+            &mut self.normals,
+            &mut self.coords,
+            &mut self.indices,
+        ] {
+            *held = None;
+        }
+        self.bounds = None;
     }
 
     /// Uploads the element once with every level's triangles, and the
     /// placements selection reads. The level asked for changes what each
     /// instance draws and nothing about how many there are.
+    /// The rachis and pedicel lengths its inflorescences are sized by, and
+    /// the rachis's droop (fn-253): the organ's, zero on the leaves.
+    pub(crate) fn set_stalk(&mut self, rachis: f32, pedicel: f32, droop: f32) {
+        self.select.set_stalk(rachis, pedicel, droop);
+    }
+
     pub fn submit(&mut self, gpu: &Gpu, foliage: &mesh::Foliage, level: Level) {
-        self.select.submit(gpu, foliage, level);
-        self.submit_element(gpu, &foliage.element);
+        let element = self.drawn(&foliage.element);
+        self.select.submit(gpu, foliage, &element, level);
+        self.submit_element(gpu, &element);
+    }
+
+    /// The element as this foliage draws it: the flowers' with their card.
+    fn drawn<'e>(&self, element: &'e Element) -> std::borrow::Cow<'e, Element> {
+        if self.card {
+            crate::card::carded(element)
+        } else {
+            std::borrow::Cow::Borrowed(element)
+        }
     }
 
     pub(crate) fn submit_resident(
@@ -167,16 +204,17 @@ impl Foliage {
         placements: crate::buffer::Held,
         masses: crate::buffer::Held,
     ) {
+        let element = self.drawn(element);
         self.select.submit_resident(
             gpu,
-            element,
+            &element,
             reference,
             count,
             placements,
             masses,
             Level::default(),
         );
-        self.submit_element(gpu, element);
+        self.submit_element(gpu, &element);
     }
 
     fn submit_element(&mut self, gpu: &Gpu, element: &telperion_core::foliage::Element) {
@@ -335,6 +373,12 @@ impl Foliage {
     /// The live placement range, for a caller that wants to see what went up.
     pub fn region(&self) -> Option<Region> {
         self.select.region()
+    }
+
+    /// Each level's list in its drawn order, as the last frame left it.
+    #[cfg(test)]
+    pub(crate) fn level_lists(&self, gpu: &Gpu) -> Vec<Vec<u32>> {
+        self.select.level_lists(gpu)
     }
 
     /// What the last frame's selection counted per level, the unseen bucket

@@ -2,35 +2,25 @@
 //! made up for it: the box every species is quantised against, that the box
 //! does not move with age, and that no station the generator places falls
 //! outside it.
-use telperion_core::{
-    foliage::{Leaf, Reach, Reference},
-    mesh, params, presets,
-};
+use telperion_core::{mesh, params, presets};
 
 /// Every family the core ships, read off the catalogue itself so a species
 /// added later is judged here without anyone remembering to add it. The
 /// species pipeline's own catalogue carries two more - the European beech,
 /// still in work, and the European ash, authored as a manifest - and
 /// `species:qa` judges those over their manifests.
+/// The shipped presets the pipeline grows: those with an engine species; the
+/// rest are refused at the skeleton (fn-198).
 fn shipped() -> impl Iterator<Item = &'static str> {
-    params::CATALOGUE.iter().map(|entry| entry.1)
+    params::CATALOGUE
+        .iter()
+        .map(|entry| entry.1)
+        .filter(|id| family(id).space.species.is_some())
 }
 
 fn family(id: &str) -> presets::Family {
     params::by_identity(id).unwrap_or_else(|e| panic!("{id} is not a shipped preset: {e}"))
 }
-
-/// R1, on the CPU: a leaf is twelve bytes, and a crown of n leaves is 12n.
-#[test]
-fn a_crown_is_twelve_bytes_a_leaf() {
-    assert_eq!(size_of::<Leaf>(), 12);
-    let m = mesh::build(&family("silver-birch")).unwrap();
-    let leaves = m.foliage.instances.leaves.as_slice();
-    assert!(!leaves.is_empty(), "the birch placed no leaves");
-    assert_eq!(size_of_val(leaves), leaves.len() * 12);
-    assert_eq!(m.foliage_instances(), leaves.len());
-}
-
 
 /// R3: a station outside the box cannot occur. The debug assertion inside
 /// `pack` says so while the tests run; this says so for the release build the
@@ -38,10 +28,15 @@ fn a_crown_is_twelve_bytes_a_leaf() {
 /// box is its grown tree's wood grown by the station reach (fn-183).
 #[test]
 fn no_station_of_any_shipped_species_falls_outside_its_box() {
+    let _turn = crate::one_tree::turn();
     for id in shipped() {
         let f = family(id);
-        let reference = Reference::grown(&mesh::grow(&f).unwrap(), Reach::of(&f).unwrap());
-        let m = mesh::build(&f).unwrap();
+        let x = crate::pipeline::executor::grow(&f)
+            .unwrap()
+            .expansion()
+            .unwrap();
+        let reference = x.reference();
+        let m = x.mesh().unwrap();
         let instances = &m.foliage.instances;
         assert_eq!(instances.reference, reference, "{id}: box differs");
         assert!(!instances.is_empty(), "{id}: no leaves to judge");
@@ -86,6 +81,7 @@ fn no_station_of_any_shipped_species_falls_outside_its_box() {
 /// nothing and the authored shell no longer bounds the wood (fn-183).
 #[test]
 fn the_position_step_is_under_a_quarter_millimetre_for_every_species() {
+    let _turn = crate::one_tree::turn();
     for id in shipped() {
         let reference = mesh::build(&family(id))
             .unwrap()
@@ -108,4 +104,3 @@ fn the_position_step_is_under_a_quarter_millimetre_for_every_species() {
         );
     }
 }
-

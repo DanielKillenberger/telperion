@@ -9,6 +9,7 @@ use crate::{
     math::Vec3,
     pipeline::foliage::{
         leaflet::{self, Leaflet},
+        organs,
         rosette::{self, frame},
         CanopyParams, Element,
     },
@@ -23,8 +24,10 @@ use crate::{
 const MARGIN: (f64, f64) = (0.001, 0.005);
 
 /// Appends a box for every leaflet of every rosette and returns how many,
-/// before any cull. `system` names each node's limb system, a leaflet taking
-/// its apex's. Over the instance budget is an error, as placement's count is.
+/// before any cull: each apex its own whole fronds and each frond its own
+/// leaflets (fn-277), as placement draws them. `system` names each node's
+/// limb system, a leaflet taking its apex's. Over the instance budget is an
+/// error, as placement's count is.
 pub(super) fn describe(
     tree: &Tree,
     p: CanopyParams,
@@ -33,38 +36,47 @@ pub(super) fn describe(
     system: &[u32],
     out: &mut Vec<Descriptor>,
 ) -> Result<u32> {
-    if tree.nodes.len() < 2 || p.size == 0.0 {
+    if tree.nodes.len() < 2 || p.size == 0.0 || !rosette::bearing(&p) {
         return Ok(0);
     }
-    let apices = rosette::rosettes(tree);
-    let per = rosette::leaflets(&p);
-    let fronds = (p.rosette_fronds + rosette::skirt(&p)) as usize;
-    let total = apices.len() * fronds * per;
-    if total > p.max_instances || total > u32::MAX as usize {
-        return Err(Error::ResourceLimit("foliage instance budget"));
-    }
-    out.try_reserve(total)
-        .map_err(|_| Error::ResourceLimit("foliage plan allocation"))?;
+    let budget = || Error::ResourceLimit("foliage instance budget");
     let shape = Shape::of(element);
-    for apex in &apices {
+    let mut total = 0usize;
+    for apex in &rosette::rosettes(tree) {
         let system = system[apex.apex];
-        let birth = tree.nodes[apex.apex].identity.birth_order();
-        for frond in rosette::fronds(apex, &p) {
-            let c = frond.canopy;
-            let mut rng = rosette::stream(seed, birth, &frond);
+        let (stem, node) = (
+            rosette::stem_key(tree, apex),
+            rosette::stem_node(tree, apex),
+        );
+        let at = organs::apex(&p, node);
+        if !rosette::bearing(&at) {
+            continue;
+        }
+        let crown = super::super::Crown::of(tree, &at);
+        for frond in rosette::fronds(apex, &at, crown, super::super::blade(element)) {
+            let key = organs::frond_key(node, frond.serial);
+            let per = organs::frond_leaflets(&at, frond.canopy.leaflet_count, key);
+            let c = organs::placement(&frond.canopy, key);
+            total = total
+                .checked_add(per)
+                .filter(|t| *t <= p.max_instances && *t <= u32::MAX as usize)
+                .ok_or_else(budget)?;
+            out.try_reserve(per)
+                .map_err(|_| Error::ResourceLimit("foliage plan allocation"))?;
+            let mut rng = rosette::stream(seed, stem, &frond);
             if per == 1 {
                 // One blade at the station, turned as `fan` turns it.
                 let blade = Leaflet {
                     at: frond.at,
                     axis: frond.heading,
                     run: frond.radial,
-                    share: None,
+                    share: frond.split.map(|s| rosette::lone(&s, &c)),
                 };
                 out.push(shape.boxed(&blade, apex.axis, &c, &mut rng, system));
                 continue;
             }
             let (_, side) = frame(frond.heading);
-            for leaf in leaflet::leaflets(frond.at, frond.heading, c, per) {
+            for leaf in leaflet::leaflets(frond.at, frond.heading, c, per, frond.split) {
                 out.push(shape.boxed(&leaf, side, &c, &mut rng, system));
             }
         }

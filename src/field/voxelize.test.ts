@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { FieldAnswer } from "./index";
+import { ORDINARY, TreeEngine } from "../browser/core";
+import type { FieldAnswer, FieldGrid } from "./index";
 import { NO_LIMB } from "./index";
 import { centre, coin, grid, voxelize, type ThinRule } from "./voxelize";
 
@@ -21,38 +22,67 @@ function fixture(): FieldAnswer {
   return a;
 }
 const G = grid(BOUNDS, N);
+const field = (answer: FieldAnswer = fixture()): FieldGrid => ({ ...G, answer });
 
 describe("the grid", () => {
   it("spans the longest axis with n - 2 cells, centred, one cell below the lowest point", () => {
     expect(G.cell).toBe(2);
     expect(G.origin).toEqual([-4, -2, -4]);
-    expect(G.cells.length).toBe(N ** 3 * 4);
-    expect([...G.cells.subarray(0, 4)]).toEqual([-3, -1, -3, 1]);
-    const last = N ** 3 - 1;
-    expect(centre(G, last)).toEqual([...G.cells.subarray(last * 4, last * 4 + 3)]);
+    expect(centre(G, 0)).toEqual([-3, -1, -3]);
+    expect(centre(G, N ** 3 - 1)).toEqual([3, 5, 3]);
     expect(centre(G, 1 + 4 * (2 + 4 * 3))).toEqual([-1, 3, 3]);
-    expect(() => grid(BOUNDS, 2)).toThrow("three cells");
+    for (const n of [2, 257, 4.5]) expect(() => grid(BOUNDS, n)).toThrow("field grid side");
+  });
+});
+
+describe("the grid a field is read to", () => {
+  it("is the core's grid for the same box: its side, cell, origin and cell order", async () => {
+    const engine = await TreeEngine.create();
+    const family = structuredClone(ORDINARY);
+    family.skeleton.seed = 42; family.skeleton.attractors = 500;
+    const read = (n: number) => engine.build(family, { structure: true, field: { n } });
+    const coarse = read(8).field!;
+    // The box the core read over, as much of it as its grid depends on: the
+    // longest axis, the centre in x and z and the lowest point.
+    const span = coarse.cell * (coarse.n - 2), low = coarse.origin[1] + coarse.cell;
+    const [x, z] = [0, 2].map(a => coarse.origin[a] + (coarse.n * coarse.cell) / 2);
+    const box = { min: [x - span / 2, low, z - span / 2] as [number, number, number], max: [x + span / 2, low + span, z + span / 2] as [number, number, number] };
+    const fine = read(24), field = fine.field!, g = grid(box, 24);
+    expect(g.n).toBe(field.n);
+    expect(g.cell).toBeCloseTo(field.cell, 12);
+    for (const a of [0, 1, 2]) expect(g.origin[a]).toBeCloseTo(field.origin[a], 12);
+    // Every node stands in its own wood, so the cell the grid's order names
+    // for it holds wood; the order with x and z exchanged misses some.
+    const values = fine.structure!.values, wood = (index: number) => field.answer.flags[index] & 1;
+    let exchanged = 0;
+    for (let node = 0; node < values.length / 6; node++) {
+      const [i, j, k] = [0, 1, 2].map(a => Math.floor((values[node * 6 + a] - g.origin[a]) / g.cell));
+      expect(wood(i + g.n * (j + g.n * k)), `node ${node}`).toBe(1);
+      exchanged += 1 - wood(k + g.n * (j + g.n * i));
+    }
+    expect(exchanged).toBeGreaterThan(0);
+    engine.dispose();
   });
 });
 
 describe("the wood cutoff", () => {
   it("draws wood at or above the cutoff in metres, whatever foliage covers it", () => {
-    expect([...voxelize(G, fixture(), { woodCutoff: 0.02 }).wood]).toEqual([0, 4]);
-    expect([...voxelize(G, fixture(), { woodCutoff: 0.04 }).wood]).toEqual([0]);
-    expect([...voxelize(G, fixture(), { woodCutoff: 0 }).wood]).toEqual([0, 1, 4]);
-    const wood = voxelize(G, fixture(), { woodCutoff: 0.02 });
+    expect([...voxelize(field(), { woodCutoff: 0.02 }).wood]).toEqual([0, 4]);
+    expect([...voxelize(field(), { woodCutoff: 0.04 }).wood]).toEqual([0]);
+    expect([...voxelize(field(), { woodCutoff: 0 }).wood]).toEqual([0, 1, 4]);
+    const wood = voxelize(field(), { woodCutoff: 0.02 });
     expect(wood.foliage.length).toBe(0);
     expect(wood.clumps).toBe(0);
   });
   it("refuses a mismatched answer and a bad dial", () => {
-    expect(() => voxelize(G, { ...fixture(), flags: new Uint8Array(3) }, { woodCutoff: 0.02 })).toThrow("cells");
-    expect(() => voxelize(G, fixture(), { woodCutoff: -1 })).toThrow("metres");
-    expect(() => voxelize(G, fixture(), { woodCutoff: 0.02, thin: { rule: "coin", keep: 2 } })).toThrow("fraction");
+    expect(() => voxelize(field({ ...fixture(), flags: new Uint8Array(3) }), { woodCutoff: 0.02 })).toThrow("cells");
+    expect(() => voxelize(field(), { woodCutoff: -1 })).toThrow("metres");
+    expect(() => voxelize(field(), { woodCutoff: 0.02, thin: { rule: "coin", keep: 2 } })).toThrow("fraction");
   });
 });
 
 describe("the thinning rules", () => {
-  const thin = (rule: ThinRule, keep: number) => voxelize(G, fixture(), { woodCutoff: 0.02, thin: { rule, keep } });
+  const thin = (rule: ThinRule, keep: number) => voxelize(field(), { woodCutoff: 0.02, thin: { rule, keep } });
   it("counts the limb systems the foliage was thinned over and never draws foliage over drawn wood", () => {
     for (const rule of ["coin", "density", "mass", "tuft", "gap"] as const) {
       const cubes = thin(rule, 1);

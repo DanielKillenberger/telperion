@@ -12,12 +12,14 @@ use telperion_render::{
 };
 
 fn tree() -> TreeMesh {
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(400);
     mesh::build(&family).unwrap()
 }
 
 fn hash(mesh: &SurfaceMesh) -> u64 {
+    // The chunks laid end to end: the hash the flat wood had.
+    let mesh = mesh.flattened();
     mesh.positions
         .iter()
         .chain(&mesh.normals)
@@ -60,7 +62,7 @@ fn draw(renderer: &mut Renderer, camera: &Camera, row: MaterialParams) -> Still 
 #[test]
 fn fissures_crests_and_mottle_change_colour_without_changing_wood() {
     let Some(gpu) = common::gpu() else { return };
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(400);
     let off = MaterialParams {
         ridge_scale: 0.08,
@@ -214,7 +216,7 @@ fn crown_sums(plain: &Still, dark: &Still, marker: &Still) -> (usize, f64, f64) 
 fn crown_occlusion_darkens_wood_and_leaves_but_not_a_single_leaf_or_clay() {
     // The 400-node fixture stops before leaf-bearing shoots exist: no leaves
     // means no crown ellipsoid and exactly zero depth in Whole AND Bare.
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = None;
     let tree = mesh::build(&family).unwrap();
     let placements = &tree.foliage.instances;
@@ -244,10 +246,9 @@ fn crown_occlusion_darkens_wood_and_leaves_but_not_a_single_leaf_or_clay() {
     );
     assert!(
         tree.wood
-            .positions
-            .as_chunks::<3>()
-            .0
+            .chunks
             .iter()
+            .flat_map(|c| c.positions.as_chunks::<3>().0)
             .filter(|p| {
                 depth(Vec3::new(f64::from(p[0]), f64::from(p[1]), f64::from(p[2]))) > 0.2
             })

@@ -323,7 +323,13 @@ impl Builder<'_> {
             }
             let mut child = Axis::new(at, direction, length, axis.order + 1, key);
             child.bound = bound;
-            child.fork = fork::decide(&self.habit, key, self.envelope.height, position.y, Some(spacing));
+            child.fork = fork::decide(
+                &self.habit,
+                key,
+                self.envelope.height,
+                position.y,
+                Some(spacing),
+            );
             out.push(child);
         }
         out
@@ -478,11 +484,8 @@ impl Builder<'_> {
 
 mod fork;
 mod frontier;
-#[cfg(test)]
 mod limit_tests;
-#[cfg(test)]
 mod troll_tests;
 pub(super) use fork::placed as forks_placed;
-#[cfg(test)]
 pub(super) use frontier::generate;
 pub(super) use frontier::Frontier;

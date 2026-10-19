@@ -32,8 +32,11 @@ fn unit(fronds: u32) -> Vec<Zone> {
 /// The palm, one growth cycle a year: a single PA that never moves on.
 pub fn palm() -> Species {
     // A year's height of 0.3 to 0.45 m (A1) over a dozen fronds a year
-    // (estimated): an internode of 0.03 m. Erect (C3), straightened hard
-    // towards the vertical, a little wander for the stem's sway, no sag.
+    // (estimated): an internode of 0.03 m, raised to 0.0339 m because the
+    // stem waits on its crown's establishment (fn-275 R2a): 0.407 m a year,
+    // inside A1's range, keeps the palm at 40 at 21.59 m. Erect (C3),
+    // straightened hard towards the vertical, a little wander for the
+    // stem's sway, no sag.
     // No secondary growth (C8): the stem keeps the width its apex laid it
     // down at, today's palm's trunk radius, 0.297 m; a mature trunk is
     // 0.52 to 1.08 m across its retained bases (P7, Table 1).
@@ -45,7 +48,7 @@ pub fn palm() -> Species {
         viability: 1.0,
         zones: unit(12),
         shedding: f64::INFINITY,
-        internode: 0.031,
+        internode: 0.0339,
         insertion: 0.0,
         divergence: GOLDEN,
         abortion: 0.0,
@@ -55,12 +58,33 @@ pub fn palm() -> Species {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 0.0,
         rhythm: 0.0,
-        // Light and the carbon balance (fn-197), neutral.
-        leaf_area: 0.0,
+        // One frond a node of 2.81 m², the mean of four fully grown leaves
+        // on each of nine 15-year-old palms, drip-irrigated 8 m apart
+        // near Riyadh (Abdel-Sattar et al. 2024, Folia Hortic., Table 2;
+        // length x width x 0.8, derived; fn-264 R2, host 2026-10-12; Jev
+        // fn264-pick:18dddb39ffe7316b-3e89b7-0). Its responses stay
+        // neutral: it has no laterals to shed and no published shade
+        // tolerance, and its one axis makes them dormant.
+        leaf_area: 2.81,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        leaf_years: f64::INFINITY,
+        // fn-270 R5: the days its shoot elongates and its leaf expands
+        // within the year, sourced in its preset's value file.
+        elongation: 226.0,
+        expansion: 139.0,
+        leaf_life: f64::INFINITY,
+        budburst: 0.0,
+        senescence: 0.0,
+        colouring: 0.0,
+        leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -103,8 +127,11 @@ mod tests {
             let p = &s.axes[0].phytomers;
             let (base, top) = (p[0].radius, p[p.len() - 1].radius);
             assert!((base - top).abs() < 1e-12, "{base} against {top}");
+            // Inside A1's 0.30 to 0.45 m a year over 50 years: the engine's
+            // stem rises 0.407 m a year (20.3 m), since fn-275 R2a lowers
+            // what it draws by the rise it waited on its crown.
             let height = p[p.len() - 1].tip.z;
-            assert!((17.0..20.0).contains(&height), "{height} m");
+            assert!((15.0..22.5).contains(&height), "{height} m");
         }
     }
 }

@@ -59,7 +59,7 @@ fn needle_origins_touch_rendered_facets_across_bends_and_sockets() {
             flare_depth: 0.0,
             ..SurfaceParams::default()
         };
-        let mesh = build(&tree, env.height, &params).unwrap();
+        let mesh = build(&tree, env.height, &params).unwrap().flattened();
         let placed = place_on_surface(&tree, env, 1, canopy, twig, &params, box_of).unwrap();
         let circular = place(&tree, env, 1, canopy, twig, box_of).unwrap();
         assert_eq!(placed.len(), circular.len());

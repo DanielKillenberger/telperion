@@ -26,14 +26,18 @@ pub struct TreeMesh {
     #[cfg(feature = "geometry")]
     pub curve: crate::surface::Curve,
     pub foliage: Foliage,
+    /// The flowers, drawn as a second foliage with colours of their own;
+    /// none where the tree flowers nowhere (fn-216).
+    #[cfg(feature = "geometry")]
+    pub organ: Option<Foliage>,
     pub bounds: Bounds,
 }
 impl TreeMesh {
     pub fn wood_vertices(&self) -> usize {
-        self.wood.positions.len() / 3
+        self.wood.vertices()
     }
     pub fn wood_triangles(&self) -> usize {
-        self.wood.indices.len() / 3
+        self.wood.triangles()
     }
     pub fn foliage_instances(&self) -> usize {
         self.foliage.instances.len()
@@ -66,12 +70,16 @@ pub(crate) fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
     }
 }
 
-/// Grows this family's skeleton, ready to draw: the pipeline's skeleton
-/// stage, for the crate's own tests.
+/// Grows this family's skeleton with the scaffold's grower, clothed as the
+/// pipeline clothes a tree: for the crate's own tests of today's stages
+/// until it is removed (fn-198 R0), under the family's own envelope.
 #[cfg(test)]
 pub(crate) fn grow(family: &Family) -> Result<crate::tree::Tree> {
-    let mut tree = pipeline::skeleton(pipeline::GrowInput::of(family))?.tree;
-    pipeline::clothe(&mut tree, &pipeline::Inputs::of(family))?;
+    let mut tree = pipeline::scaffold(family)?;
+    pipeline::clothe(
+        &mut tree,
+        &pipeline::Inputs::of(family, family.skeleton.envelope),
+    )?;
     Ok(tree)
 }
 
@@ -84,7 +92,7 @@ pub fn build(family: &Family) -> Result<TreeMesh> {
 /// skeleton, for the crate's own tests.
 #[cfg(test)]
 pub(crate) fn assemble(tree: &crate::tree::Tree, family: &Family) -> Result<TreeMesh> {
-    let inputs = pipeline::Inputs::of(family);
+    let inputs = pipeline::Inputs::of(family, family.skeleton.envelope);
     assembled(pipeline::outputs(tree, &inputs, pipeline::Request::mesh())?)
 }
 
@@ -99,8 +107,13 @@ pub(crate) fn assembled(outputs: pipeline::Outputs) -> Result<TreeMesh> {
     let curve = outputs
         .curve
         .ok_or(Error::InvalidInput("mesh needs the wood's curve"))?;
-    let bounds = union(wood.bounds, leaves.bounds.map(Bounds::from))
-        .ok_or(Error::InvalidInput("mesh has no geometry"))?;
+    let bounds = union(wood.bounds, leaves.bounds.map(Bounds::from));
+    #[cfg(feature = "geometry")]
+    let bounds = match &outputs.organ {
+        Some(o) => union(bounds, o.instances.bounds(&o.element)?.map(Bounds::from)),
+        None => bounds,
+    };
+    let bounds = bounds.ok_or(Error::InvalidInput("mesh has no geometry"))?;
     Ok(TreeMesh {
         wood,
         #[cfg(feature = "geometry")]
@@ -109,6 +122,8 @@ pub(crate) fn assembled(outputs: pipeline::Outputs) -> Result<TreeMesh> {
             element,
             instances: leaves.instances,
         },
+        #[cfg(feature = "geometry")]
+        organ: outputs.organ,
         bounds,
     })
 }

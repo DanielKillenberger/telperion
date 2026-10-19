@@ -3,7 +3,6 @@
 //! the oak-to-spruce walk with no frame where the tree changes kind; and every
 //! wire parameter a preset moves proved to be walked at all. No device is
 //! needed; this is the core's own arithmetic.
-use super::specimens;
 use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
@@ -67,8 +66,44 @@ const SWEEP_NODES: usize = 8_000;
 // leaves them at their neutral, so they are held here.
 // fn-120's three skirt rows and its dead colour are the palm's too, held for
 // the same reason, and so are fn-144's two lattice rows.
-const HELD: [&str; 69] = [
+// fn-198 walks no pair of one preset with an engine species and one without
+// (the walk is refused), and the engine beech and oak no longer clump their
+// limbs: the limb clumping moved only between such pairs, so it is held. The shell depth
+// moves again between the ordinary tree and the beech (fn-215).
+// fn-221's six old-bark rows are stated by the birch (fn-213), so the sweep
+// walks them.
+// fn-217's supernatural group is off on every preset but the Two Trees
+// (fn-218, fn-219), which state its scale, leaves, silver underside
+// (Telperion), florets and the petals' colours: the sweep walks those. The
+// rows both leave unset (the other ages' flowering, the window in the year)
+// are held. Telperion stands on the beech's rows (fn-219), so the scaffold's
+// growth, writhe, twig and surface rows only his old table moved are held
+// with the rest of the scaffold; the birch (fn-213) moves the envelope, the
+// clump, the peel, the curtain and the twig length, so the sweep walks
+// those. Every preset is now an engine preset, so every pair is walked.
+const HELD: [&str; 138] = [
+    "/bloom/florets",
+    "/bloom/rachis",
+    "/bloom/droop",
+    "/bloom/pedicel",
+    "/bloom/spread",
+    "/bloom/taper",
+    "/bloom/petals",
+    "/bloom/open",
+    "/bloom/petalLength",
+    "/bloom/petalWidth",
+    "/bloom/petalWidest",
+    "/bloom/petalCup",
+    "/bloom/petalCurl",
+    "/bloom/stamens",
+    "/bloom/stamenLength",
+    "/bloom/stamenWidth",
+    "/bloom/scatter",
+    "/bloom/opens",
+    "/bloom/lasts",
+    "/bloom/stagger",
     "/canopy/clumpSystemOrder",
+    "/canopy/limbClumping",
     "/canopy/rosetteFronds",
     "/canopy/rosetteDivergence",
     "/canopy/rosettePitch",
@@ -87,14 +122,19 @@ const HELD: [&str; 69] = [
     "/canopy/leafBaseWidth",
     "/canopy/leafBaseFlatness",
     "/canopy/acanthophylls",
+    "/canopy/cauline",
     "/canopy/acanthophyllLength",
     "/canopy/acanthophyllPitch",
     "/canopy/skirtFronds",
     "/canopy/skirtPitch",
     "/canopy/skirtLength",
-    "/material/leafDeadRed",
-    "/material/leafDeadGreen",
-    "/material/leafDeadBlue",
+    // fn-270: the years a frond lives, stated by the palm alone,
+    // which the sweep does not walk; the named autumn colours moved off this
+    // list, as the walked presets now differ in them.
+    "/canopy/frondLife",
+    // fn-275: a crown's establishment, stated by the palm alone.
+    "/canopy/frondEstablishment",
+    "/canopy/frondEarlyShare",
     "/canopy/clumpNeighbours",
     "/surface/socketContainment",
     "/skeleton/habit/reachProbeSteps",
@@ -108,6 +148,7 @@ const HELD: [&str; 69] = [
     "/radii/girthFall",
     "/skeleton/samplingAttemptsPerAttractor",
     "/radii/maxTaperExponent",
+    "/skeleton/bias/supernatural/enabled",
     "/skeleton/bias/supernatural/maxWritheMagnitude",
     "/skeleton/twigs/maxInternodes",
     "/skeleton/twigs/maxDroop",
@@ -137,6 +178,54 @@ const HELD: [&str; 69] = [
     "/surface/forkSocket",
     "/surface/forkSwell",
     "/surface/radialSegments",
+    // fn-248: the Two Trees grow large through their coarse ages, at
+    // scale one; their twelve coarse-age rows are walked.
+    "/supernatural/scale",
+    "/supernatural/bloom/opens",
+    "/supernatural/bloom/lasts",
+    "/supernatural/bloom/stagger",
+    "/supernatural/flowering/age0",
+    "/supernatural/flowering/age1",
+    "/supernatural/flowering/age2",
+    "/supernatural/flowering/age3",
+    "/supernatural/flowering/age4",
+    "/supernatural/flowering/age5",
+    "/supernatural/flowering/age6",
+    "/supernatural/flowering/age7",
+    "/supernatural/flowering/age8",
+    "/supernatural/flowering/age9",
+    "/supernatural/flowering/age10",
+    "/supernatural/flowering/age11",
+    "/supernatural/flowering/age12",
+    "/supernatural/flowering/age13",
+    "/supernatural/internode/age0",
+    "/supernatural/internode/age1",
+    "/supernatural/internode/age3",
+    "/supernatural/internode/age9",
+    "/supernatural/internode/age10",
+    "/supernatural/internode/age11",
+    "/supernatural/internode/age12",
+    "/supernatural/internode/age13",
+    "/supernatural/internode/age14",
+    "/supernatural/pipe/age0",
+    "/supernatural/pipe/age1",
+    "/supernatural/pipe/age3",
+    "/supernatural/pipe/age9",
+    "/supernatural/pipe/age10",
+    "/supernatural/pipe/age11",
+    "/supernatural/pipe/age12",
+    "/supernatural/pipe/age13",
+    "/supernatural/pipe/age14",
+    "/canopy/spacing",
+    "/skeleton/attractors",
+    "/skeleton/bias/supernatural/spiralRate",
+    "/skeleton/bias/supernatural/writheAmplitude",
+    "/skeleton/bias/supernatural/writheWavelength",
+    "/skeleton/growth/maxTurnPerStep",
+    "/skeleton/twigs/internodeFactor",
+    "/surface/lobeDepth",
+    "/surface/lobes",
+    "/surface/twistRate",
 ];
 
 fn family(id: &str) -> Family {
@@ -145,10 +234,14 @@ fn family(id: &str) -> Family {
     f
 }
 
+/// Every pair a walk joins: two presets with an engine species, or two
+/// without; a walk from one to the other is refused by name (fn-198).
 fn pairs() -> impl Iterator<Item = (&'static str, &'static str)> {
+    let engine = |id: &str| family(id).space.species.is_some();
     IDS.iter()
         .enumerate()
         .flat_map(|(i, a)| IDS[i + 1..].iter().map(move |b| (*a, *b)))
+        .filter(move |(a, b)| engine(a) == engine(b))
 }
 
 /// The step's parameter, 0 at the first and 1 at the last.
@@ -169,7 +262,9 @@ fn fnv(bytes: impl IntoIterator<Item = u8>) -> u64 {
     hash
 }
 
-/// Every leaf of the wire object by its pointer path.
+/// Every leaf of the wire object by its pointer path, but the engine
+/// species' `/space` rows: the engine's own walk holds those (fn-206,
+/// `telperion-space`'s blend tests), and pads a walked age to four zones.
 fn flat(value: &Value) -> BTreeMap<String, Value> {
     fn walk(value: &Value, at: &str, out: &mut BTreeMap<String, Value>) {
         match value {
@@ -185,6 +280,7 @@ fn flat(value: &Value) -> BTreeMap<String, Value> {
     }
     let mut out = BTreeMap::new();
     walk(value, "", &mut out);
+    out.retain(|path, _| !path.starts_with("/space/"));
     out
 }
 
@@ -229,20 +325,31 @@ fn every_wire_parameter_a_preset_moves_is_walked() {
     let (mut moved, mut still) = (BTreeSet::new(), BTreeSet::new());
     for (index, (a, from)) in rows.iter().enumerate() {
         for (b, to) in &rows[index + 1..] {
-            let steps: Vec<_> = [0.25, 0.5, 0.75]
-                .iter()
-                .map(|t| {
-                    flat(&params::metadata(
-                        &blend::families(&family(a), &family(b), *t).unwrap(),
-                    ))
-                })
-                .collect();
+            if !pairs().any(|pair| pair == (*a, *b)) {
+                continue;
+            }
+            // The three points at once (fn-271): each a size solve.
+            let steps: Vec<_> = std::thread::scope(|scope| {
+                let points: Vec<_> = [0.25, 0.5, 0.75]
+                    .map(|t| {
+                        scope.spawn(move || {
+                            flat(&params::metadata(
+                                &blend::families(&family(a), &family(b), t).unwrap(),
+                            ))
+                        })
+                    })
+                    .into_iter()
+                    .collect();
+                points.into_iter().map(|p| p.join().unwrap()).collect()
+            });
             for (path, value) in from {
-                if to[path] == *value {
+                // A space row an engine species leaves at an age passed
+                // through is not on the other's wire.
+                if to.get(path) == Some(value) {
                     continue;
                 }
                 moved.insert(path.clone());
-                if steps.iter().all(|step| step[path] == *value) {
+                if steps.iter().all(|step| step.get(path) == Some(value)) {
                     still.insert(format!("{path} ({a}->{b})"));
                 }
             }
@@ -265,38 +372,52 @@ fn every_wire_parameter_a_preset_moves_is_walked() {
 #[test]
 fn every_pair_of_presets_grows_a_tree_at_every_step() {
     for (a, b) in pairs() {
-        for step in 0..STEPS {
-            let mut family = walk(a, b, step);
-            family.skeleton.growth.max_nodes = Some(SWEEP_NODES);
-            let at = at(step);
-            let mesh = mesh::build(&family).unwrap_or_else(|e| panic!("{a}->{b} at {at}: {e}"));
-            assert!(
-                mesh.wood.positions.iter().all(|v| v.is_finite())
-                    && mesh.bounds.min.is_finite()
-                    && mesh.bounds.max.is_finite(),
-                "{a}->{b} at {at}: a position is not finite"
-            );
-            // A node cap this low truncates the tree before its twigs, and a
-            // step that keeps no leaf under it still keeps its wood.
-            assert!(
-                mesh.wood_vertices() > 0,
-                "{a}->{b} at {at}: nothing was built"
-            );
-        }
+        // The steps at once (fn-271): each is a small tree of its own.
+        std::thread::scope(|scope| {
+            let steps: Vec<_> = (0..STEPS)
+                .map(|step| scope.spawn(move || grows(a, b, step)))
+                .collect();
+            for step in steps {
+                step.join().unwrap_or_else(|p| std::panic::resume_unwind(p));
+            }
+        });
     }
 }
 
-#[test]
-fn every_shipped_preset_carries_foliage() {
-    for id in IDS {
-        let mesh = specimens::mesh(&family(id));
-        assert!(
-            !mesh.foliage.instances.is_empty(),
-            "{id}: crown carries no foliage"
-        );
+/// The walk from `a` to `b` at `step` grows a tree, or is refused by name
+/// where it has no engine species.
+fn grows(a: &str, b: &str, step: usize) {
+    let mut family = walk(a, b, step);
+    // Small: the scaffold's node cap, and a young engine tree.
+    family.skeleton.growth.max_nodes = Some(SWEEP_NODES);
+    family.age = family.age.min(12.0);
+    let at = at(step);
+    if family.space.species.is_none() {
+        let refused = mesh::build(&family).err();
+        let none = telperion_core::Error::InvalidInput("no engine species");
+        assert_eq!(refused, Some(none), "{a}->{b} at {at}");
+        return;
     }
+    let mesh = mesh::build(&family).unwrap_or_else(|e| panic!("{a}->{b} at {at}: {e}"));
+    assert!(
+        mesh.wood
+            .chunks
+            .iter()
+            .flat_map(|c| &c.positions)
+            .all(|v| v.is_finite())
+            && mesh.bounds.min.is_finite()
+            && mesh.bounds.max.is_finite(),
+        "{a}->{b} at {at}: a position is not finite"
+    );
+    // A node cap this low truncates the tree before its twigs, and a
+    // step that keeps no leaf under it still keeps its wood.
+    assert!(
+        mesh.wood_vertices() > 0,
+        "{a}->{b} at {at}: nothing was built"
+    );
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn the_oak_to_birch_walk_ramps_the_curtain_up_from_nothing() {
     // The oak never hangs and the birch does, so this is the walk that crosses

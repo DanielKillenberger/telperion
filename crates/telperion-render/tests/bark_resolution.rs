@@ -6,6 +6,14 @@ use resolution::masked_agreement;
 use telperion_core::{math::Vec3, mesh, presets::Preset};
 use telperion_render::{render, Camera, Renderer, Still, View, STILL_FORMAT};
 
+/// A still of a view whose wood budget has settled: a view that asks more
+/// than the budget holds draws coarser for one frame while it grows
+/// (fn-258), so the still is the second frame.
+fn settled(renderer: &mut Renderer, camera: &Camera, width: u32, height: u32) -> Still {
+    render(renderer, camera, width, height).unwrap();
+    render(renderer, camera, width, height).unwrap()
+}
+
 #[test]
 fn trunk_agrees_with_a_box_reduction_at_half_resolution() {
     let Some(gpu) = common::gpu() else { return };
@@ -23,9 +31,9 @@ fn trunk_agrees_with_a_box_reduction_at_half_resolution() {
         near: 0.01,
         far: 1000.0,
     };
-    let high = render(&mut renderer, &camera, 1600, 1000).unwrap();
-    let low = render(&mut renderer, &camera, 800, 500).unwrap();
-    let again = render(&mut renderer, &camera, 800, 500).unwrap();
+    let high = settled(&mut renderer, &camera, 1600, 1000);
+    let low = settled(&mut renderer, &camera, 800, 500);
+    let again = settled(&mut renderer, &camera, 800, 500);
     let worst = low
         .rgba
         .iter()
@@ -39,8 +47,8 @@ fn trunk_agrees_with_a_box_reduction_at_half_resolution() {
     eprintln!("trunk resolution agreement: mean {mean:.6}/255, p95 {p95:.2}/255");
     family.material.ridge_scale = 0.0;
     renderer.set_material(family.material);
-    let plain_high = render(&mut renderer, &camera, 1600, 1000).unwrap();
-    let plain_low = render(&mut renderer, &camera, 800, 500).unwrap();
+    let plain_high = settled(&mut renderer, &camera, 1600, 1000);
+    let plain_low = settled(&mut renderer, &camera, 800, 500);
     eprintln!(
         "plain trunk diagnostic (mean, p95): {:?}",
         agreement(&plain_high, &plain_low)
@@ -48,12 +56,18 @@ fn trunk_agrees_with_a_box_reduction_at_half_resolution() {
     // RGB in the delivered sRGB still, averaged by an exact 2x2 box (no
     // sharpening or registration). Three code values mean, twelve at p95:
     // enough for quantization/lighting, not the rejected sparkling edges.
+    // Re-pinned for the prefiltered bark (owner, fn-246 FPS.md "Owner
+    // decision", 2026-10-09): one shading cell a pixel, bands faded to their
+    // means. Bounds are the prefilter's measured value here plus 0.5 mean
+    // (p95 plus 2 where it passed the old 12). Distance to the present
+    // shader's 4x truth (examples/bark_truth), present / prefilter:
+    // oak trunk 1.77 / 3.38. Here the prefilter reads 3.35 (present 1.91).
     resolution::record(
         "bark_resolution_trunk",
-        &[("OregonWhiteOak 1x".into(), mean, p95, 3.0)],
+        &[("OregonWhiteOak 1x".into(), mean, p95, 3.85)],
     );
     assert!(
-        mean <= 3.0 && p95 <= 12.0,
+        mean <= 3.85 && p95 <= 12.0,
         "bark aliases across resolution: mean {mean:.6}, p95 {p95:.2}"
     );
 }
@@ -73,7 +87,18 @@ fn grazing_trunks_agree_with_a_box_reduction_at_half_resolution() {
     let Some(gpu) = common::gpu() else { return };
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let mut measurements = Vec::new();
-    for (preset, height) in [(Preset::OregonWhiteOak, 2.0), (Preset::NorwaySpruce, 0.9)] {
+    // Re-pinned for the prefiltered bark (owner, fn-246 FPS.md "Owner
+    // decision", 2026-10-09): one shading cell a pixel, bands faded to their
+    // means. Bounds are the prefilter's measured value here plus 0.5 mean
+    // (p95 plus 2 where it passed the old 12). Distance to the present
+    // shader's 4x truth (examples/bark_truth), present / prefilter:
+    // oak grazing 1.28 / 2.20, spruce grazing 1.97 / 3.33. Here the
+    // prefilter reads 4.15 and 2.27 (present 2.40 and 0.89); the spruce
+    // keeps the old 3.0.
+    for (preset, height, bound) in [
+        (Preset::OregonWhiteOak, 2.0, 4.65),
+        (Preset::NorwaySpruce, 0.9, 3.0),
+    ] {
         let mut family = preset.parameters();
         family.skeleton.seed = 7;
         let tree = mesh::build(&family).unwrap();
@@ -103,9 +128,9 @@ fn grazing_trunks_agree_with_a_box_reduction_at_half_resolution() {
         // so the shading is compared over the same triangles (host decision
         // 22): this is a test of the bark under a box reduction.
         renderer.pin_curve_viewport(Some((1600, 1000)));
-        let high = render(&mut renderer, &camera, 1600, 1000).unwrap();
-        let low = render(&mut renderer, &camera, 800, 500).unwrap();
-        let again = render(&mut renderer, &camera, 800, 500).unwrap();
+        let high = settled(&mut renderer, &camera, 1600, 1000);
+        let low = settled(&mut renderer, &camera, 800, 500);
+        let again = settled(&mut renderer, &camera, 800, 500);
         let worst = low
             .rgba
             .iter()
@@ -118,14 +143,14 @@ fn grazing_trunks_agree_with_a_box_reduction_at_half_resolution() {
         eprintln!("{preset:?} grazing: {} pixels, mean {mean:.6}/255, p95 {p95:.2}/255, redraw worst {worst}/255", mask.len());
         family.material.ridge_scale = 0.0;
         renderer.set_material(family.material);
-        let plain_high = render(&mut renderer, &camera, 1600, 1000).unwrap();
-        let plain_low = render(&mut renderer, &camera, 800, 500).unwrap();
+        let plain_high = settled(&mut renderer, &camera, 1600, 1000);
+        let plain_low = settled(&mut renderer, &camera, 800, 500);
         eprintln!(
             "{preset:?} plain grazing: {:?}",
             masked_agreement(&plain_high, &plain_low, &mask)
         );
         renderer.pin_curve_viewport(None);
-        measurements.push((format!("{preset:?} grazing"), mean, p95, 3.0));
+        measurements.push((format!("{preset:?} grazing"), mean, p95, bound));
     }
     resolution::record("bark_resolution_grazing", &measurements);
     assert!(
@@ -150,7 +175,11 @@ fn edge_mask(wood: &telperion_core::surface::SurfaceMesh, camera: &Camera) -> Ve
     };
     let mut depth = vec![f64::INFINITY; 800 * 500];
     let mut incidence = vec![1.0; 800 * 500];
-    let run = &wood.run_table[0];
+    // The widest run opens the first chunk, so its span is the flat one.
+    let run = wood.run_table[0];
+    assert_eq!(run.chunk, 0);
+    let run = run.span;
+    let wood = wood.flattened();
     for (triangle_index, triangle) in wood.indices.as_chunks::<3>().0.iter().enumerate() {
         let positions = triangle
             .iter()
@@ -238,4 +267,32 @@ fn edge_mask(wood: &telperion_core::surface::SurfaceMesh, camera: &Camera) -> Ve
                 })
         })
         .collect()
+}
+
+/// Both settings, without a device (one copy, here, though the shared
+/// module is compiled into three test binaries): the run nobody asked for the evidence from
+/// writes beside the test binary, and only the asked-for run names the tracked
+/// file, in the same place and under the same name as before.
+#[test]
+fn only_an_asked_for_run_names_the_tracked_evidence() {
+    let asked = resolution::receipt_path("smooth_bark", true);
+    assert!(
+        asked.ends_with(".flow/evidence/fn71/resolution/smooth_bark.json"),
+        "asked-for receipt moved: {}",
+        asked.display()
+    );
+
+    let plain = resolution::receipt_path("smooth_bark", false);
+    assert_eq!(
+        plain,
+        std::path::PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("resolution/smooth_bark.json"),
+        "a plain run must keep its receipt in the target temp directory"
+    );
+    assert!(
+        !plain
+            .components()
+            .any(|part| part.as_os_str() == "evidence"),
+        "a plain run reached the tracked evidence: {}",
+        plain.display()
+    );
 }

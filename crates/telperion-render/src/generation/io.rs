@@ -1,3 +1,5 @@
+use crate::buffer::Owned;
+use crate::programs::Program;
 use crate::{Gpu, RenderError, Result};
 
 pub(super) fn buffer(
@@ -6,7 +8,7 @@ pub(super) fn buffer(
     bytes: u64,
     usage: wgpu::BufferUsages,
     initial: &[u8],
-) -> Result<wgpu::Buffer> {
+) -> Result<Owned> {
     let size = bytes.max(16).next_multiple_of(4);
     let limits = gpu.device.limits();
     let limit = if usage.contains(wgpu::BufferUsages::STORAGE) {
@@ -23,22 +25,99 @@ pub(super) fn buffer(
             limit,
         });
     }
-    let buffer = gpu.device.create_buffer(&wgpu::BufferDescriptor {
+    reserve(gpu, size, label)?;
+    let descriptor = wgpu::BufferDescriptor {
         label: Some(label),
         size,
         usage: usage | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
-    });
+    };
+    let buffer = match made(gpu, &descriptor) {
+        Ok(buffer) => Owned::reserved(gpu, buffer, label),
+        Err(refused) => {
+            gpu.ledger.unreserve(size, label);
+            return Err(error(format!(
+                "the device refused the build's {label} of {} MiB: {refused}",
+                size >> 20
+            )));
+        }
+    };
     if !initial.is_empty() {
         gpu.queue.write_buffer(&buffer, 0, initial);
     }
+    #[cfg(test)]
+    crate::trace::made(size, initial.len() as u64);
     Ok(buffer)
+}
+
+/// A buffer made natively under scopes of its own, so a device that
+/// cannot hold it (the heap past its share, `device::HEAP_SHARE`) refuses
+/// it here, before any pass binds it; a browser reports it at the build's
+/// scopes.
+fn made(
+    gpu: &Gpu,
+    descriptor: &wgpu::BufferDescriptor<'_>,
+) -> std::result::Result<wgpu::Buffer, String> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let [validation, memory] = scope(gpu);
+        let buffer = gpu.device.create_buffer(descriptor);
+        let memory = pollster::block_on(memory.pop());
+        match memory.or(pollster::block_on(validation.pop())) {
+            Some(refused) => Err(refused.to_string()),
+            None => Ok(buffer),
+        }
+    }
+    #[cfg(target_arch = "wasm32")]
+    Ok(gpu.device.create_buffer(descriptor))
+}
+
+/// `a` and `b` made side by side: natively `b` on a thread of its own, so
+/// a set of modules compiles cold in its slowest's time, not their sum
+/// (fn-256 task 4: 3.3 s in turn, 1.45 s side by side); in a browser in
+/// turn, where every pipeline compiles async already. Error scopes are a
+/// thread's own, so `b` runs under scopes of its own, and what they catch
+/// is kept for `programs::ready` to report, as a refused program is.
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) fn pair<A: Send, B: Send>(
+    gpu: &Gpu,
+    a: impl FnOnce() -> A + Send,
+    b: impl FnOnce() -> B + Send,
+) -> (A, B) {
+    let scoped = || {
+        let [validation, memory] = scope(gpu);
+        let made = b();
+        let memory = pollster::block_on(memory.pop());
+        if let Some(error) = memory.or(pollster::block_on(validation.pop())) {
+            let mut refused = gpu.refused.lock().expect("the refusals");
+            refused.push(("a module made beside another".into(), error.to_string()));
+        }
+        made
+    };
+    std::thread::scope(|s| {
+        let b = s.spawn(scoped);
+        let a = a();
+        (a, b.join().expect("a module made beside another"))
+    })
+}
+
+#[cfg(target_arch = "wasm32")]
+pub(crate) fn pair<A, B>(_: &Gpu, a: impl FnOnce() -> A, b: impl FnOnce() -> B) -> (A, B) {
+    (a(), b())
 }
 
 pub(super) struct Pass {
     pub layout: wgpu::BindGroupLayout,
-    pub pipelines: Vec<wgpu::ComputePipeline>,
+    /// In a browser, compiling until `programs::ready` (fn-243).
+    pipelines: Vec<Program>,
     maximum: u32,
+    #[cfg(test)]
+    entries: Vec<String>,
+    /// Which bindings the shader writes, the uniform first: WebGPU
+    /// refuses a dispatch whose writable binding shares its buffer with
+    /// any other binding, which native Vulkan lets pass (fn-212 task 10).
+    #[cfg(test)]
+    writable: Vec<bool>,
 }
 impl Pass {
     pub fn new(gpu: &Gpu, shader: String, read_only: &[bool], entries: &[&str]) -> Self {
@@ -70,12 +149,16 @@ impl Pass {
                 label: Some("experimental generation"),
                 entries: &bindings,
             });
+        #[cfg(test)]
+        let started = std::time::Instant::now();
         let module = gpu
             .device
             .create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("experimental generation"),
                 source: wgpu::ShaderSource::Wgsl(shader.into()),
             });
+        #[cfg(test)]
+        crate::trace::compiled(&format!("module of {}", entries[0]), started.elapsed());
         let pipeline_layout = gpu
             .device
             .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -83,27 +166,47 @@ impl Pass {
                 bind_group_layouts: &[Some(&layout)],
                 immediate_size: 0,
             });
-        let pipelines = entries
-            .iter()
-            .map(|&entry| {
-                gpu.device
-                    .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                        label: Some(entry),
-                        layout: Some(&pipeline_layout),
-                        module: &module,
-                        entry_point: Some(entry),
-                        compilation_options: Default::default(),
-                        cache: None,
-                    })
+        let descs: Vec<_> = (entries.iter())
+            .map(|&entry| wgpu::ComputePipelineDescriptor {
+                label: Some(entry),
+                layout: Some(&pipeline_layout),
+                module: &module,
+                entry_point: Some(entry),
+                compilation_options: Default::default(),
+                cache: None,
             })
             .collect();
+        let made = Program::make_many(gpu, &descs);
+        #[cfg(test)]
+        for (entry, (_, took)) in entries.iter().zip(&made) {
+            crate::trace::compiled(entry, *took);
+        }
+        let pipelines = made.into_iter().map(|(p, _)| p).collect();
         Self {
             layout,
             pipelines,
             maximum: gpu.device.limits().max_compute_workgroups_per_dimension,
+            #[cfg(test)]
+            entries: entries.iter().map(|e| e.to_string()).collect(),
+            #[cfg(test)]
+            writable: std::iter::once(false)
+                .chain(read_only.iter().map(|&r| !r))
+                .collect(),
         }
     }
     pub fn bind(&self, gpu: &Gpu, buffers: &[&wgpu::Buffer]) -> wgpu::BindGroup {
+        #[cfg(test)]
+        for (i, a) in buffers.iter().enumerate() {
+            for (j, b) in buffers.iter().enumerate().skip(i + 1) {
+                let written = self.writable[i] || self.writable[j];
+                assert!(
+                    !(written && a == b),
+                    "{:?}: bindings {i} and {j} share a buffer one of them writes, \
+                     which WebGPU refuses",
+                    self.entries
+                );
+            }
+        }
         gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("experimental generation"),
             layout: &self.layout,
@@ -124,18 +227,85 @@ impl Pass {
         entry: usize,
         groups: u32,
     ) {
+        #[cfg(test)]
+        crate::trace::dispatch(&self.entries[entry], groups);
+        #[cfg(test)]
+        crate::trace::own_pass();
+        let mut pass = self.begin(encoder, bind, entry);
+        pass.dispatch_workgroups(groups.min(self.maximum), groups.div_ceil(self.maximum), 1);
+    }
+
+    /// `entry` dispatched inside `pass`, a compute pass it shares with
+    /// the dispatches beside it (unstamped): `groups` workgroups.
+    pub fn encode(
+        &self,
+        pass: &mut wgpu::ComputePass<'_>,
+        (bind, entry): (&wgpu::BindGroup, usize),
+        groups: u32,
+    ) {
+        #[cfg(test)]
+        crate::trace::dispatch(&self.entries[entry], groups);
+        pass.set_pipeline(self.pipelines[entry].get());
+        pass.set_bind_group(0, bind, &[]);
+        pass.dispatch_workgroups(groups.min(self.maximum), groups.div_ceil(self.maximum), 1);
+    }
+
+    /// Each of `dispatches` (a bind group, an entry, its workgroups) in
+    /// order, in one compute pass; each in a stamped pass of its own while
+    /// a profile is on.
+    pub fn run_all(
+        &self,
+        encoder: &mut wgpu::CommandEncoder,
+        dispatches: &[(wgpu::BindGroup, usize, u32)],
+    ) {
+        #[cfg(test)]
+        if super::profile::on() {
+            for (bind, entry, groups) in dispatches {
+                self.run(encoder, bind, *entry, *groups);
+            }
+            return;
+        }
+        if dispatches.is_empty() {
+            return;
+        }
         let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
             label: Some("experimental generation"),
             timestamp_writes: None,
         });
-        pass.set_pipeline(&self.pipelines[entry]);
+        for (bind, entry, groups) in dispatches {
+            self.encode(&mut pass, (bind, *entry), *groups);
+        }
+    }
+
+    /// A stamped compute pass with `entry`'s pipeline and `bind` set.
+    fn begin<'e>(
+        &self,
+        encoder: &'e mut wgpu::CommandEncoder,
+        bind: &wgpu::BindGroup,
+        entry: usize,
+    ) -> wgpu::ComputePass<'e> {
+        #[cfg(test)]
+        let stamp = super::profile::slot(&self.entries[entry]);
+        #[cfg(not(test))]
+        let stamp: Option<(wgpu::QuerySet, u32)> = None;
+        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+            label: Some("experimental generation"),
+            timestamp_writes: stamp
+                .as_ref()
+                .map(|(set, at)| wgpu::ComputePassTimestampWrites {
+                    query_set: set,
+                    beginning_of_pass_write_index: Some(*at),
+                    end_of_pass_write_index: Some(at + 1),
+                }),
+        });
+        pass.set_pipeline(self.pipelines[entry].get());
         pass.set_bind_group(0, bind, &[]);
-        pass.dispatch_workgroups(groups.min(self.maximum), groups.div_ceil(self.maximum), 1);
+        pass
     }
 }
 
 pub(super) struct PendingRead {
-    target: wgpu::Buffer,
+    target: crate::buffer::Owned,
     receive: futures_channel::oneshot::Receiver<std::result::Result<(), wgpu::BufferAsyncError>>,
     bytes: u64,
 }
@@ -148,9 +318,9 @@ pub(super) fn begin_read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result
         wgpu::BufferUsages::MAP_READ,
         &[],
     )?;
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     encoder.copy_buffer_to_buffer(source, 0, &target, 0, bytes);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, receive) = futures_channel::oneshot::channel();
     target
         .slice(..bytes)
@@ -170,6 +340,8 @@ impl PendingRead {
         _gpu.device
             .poll(wgpu::PollType::wait_indefinitely())
             .map_err(|e| error(e.to_string()))?;
+        #[cfg(test)]
+        crate::trace::waited("readback");
         self.receive
             .await
             .map_err(|e| error(e.to_string()))?
@@ -193,6 +365,7 @@ pub(super) async fn read_async(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> 
     begin_read(gpu, source, bytes)?.complete(gpu).await
 }
 
+#[cfg(test)]
 pub(super) async fn read_leaves_async(
     gpu: &Gpu,
     source: &wgpu::Buffer,
@@ -201,6 +374,7 @@ pub(super) async fn read_leaves_async(
     read_leaves_chunked(gpu, source, count as usize, 4 * 1024 * 1024).await
 }
 
+#[cfg(test)]
 pub(super) fn reserve_leaves(count: usize) -> Result<Vec<[u32; 3]>> {
     let mut leaves = Vec::new();
     leaves
@@ -209,6 +383,7 @@ pub(super) fn reserve_leaves(count: usize) -> Result<Vec<[u32; 3]>> {
     Ok(leaves)
 }
 
+#[cfg(test)]
 pub(super) async fn read_leaves_chunked(
     gpu: &Gpu,
     source: &wgpu::Buffer,
@@ -242,18 +417,21 @@ pub(super) async fn read_leaves_chunked(
     let mut leaves = reserve_leaves(count)?;
     let scopes = scope(gpu);
     let result = async {
-        let target = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("bounded leaf readback"),
-            size: chunk_bytes,
-            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
+        let target = Owned::create(
+            gpu,
+            &wgpu::BufferDescriptor {
+                label: Some("bounded leaf readback"),
+                size: chunk_bytes,
+                usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            },
+        );
         let mut offset = 0;
         while offset < bytes {
             let length = chunk_bytes.min(bytes - offset);
-            let mut encoder = gpu.device.create_command_encoder(&Default::default());
+            let mut encoder = gpu.encoder(&Default::default());
             encoder.copy_buffer_to_buffer(source, offset, &target, 0, length);
-            gpu.queue.submit([encoder.finish()]);
+            gpu.submit([encoder.finish()]);
             let (send, receive) = futures_channel::oneshot::channel();
             target
                 .slice(..length)
@@ -272,7 +450,7 @@ pub(super) async fn read_leaves_chunked(
                 .slice(..length)
                 .get_mapped_range()
                 .map_err(|e| error(e.to_string()))?;
-            leaves.extend(view.chunks_exact(12).map(|b| {
+            leaves.extend(view.as_chunks::<12>().0.iter().map(|b| {
                 [
                     u32::from_ne_bytes(b[0..4].try_into().unwrap()),
                     u32::from_ne_bytes(b[4..8].try_into().unwrap()),
@@ -295,13 +473,21 @@ pub(super) async fn errors(gpu: &Gpu, scopes: [wgpu::ErrorScopeGuard; 2]) -> Res
     let [validation, memory] = scopes;
     let memory = memory.pop().await;
     let validation = validation.pop().await;
-    if let Some(error) = memory.or(validation) {
-        return Err(self::error(error.to_string()));
-    }
+    // A lost device is the cause of every error it raised (fn-235).
     if let Some(error) = gpu.lost() {
         return Err(error);
     }
+    if let Some(error) = memory.or(validation) {
+        return Err(self::error(error.to_string()));
+    }
     Ok(())
+}
+/// Every program asked of `gpu` settled and `scopes` popped, the cause
+/// reported as `programs::first_cause` orders it (fn-243).
+pub(super) async fn programs_ready(gpu: &Gpu, scopes: [wgpu::ErrorScopeGuard; 2]) -> Result<()> {
+    let ready = crate::programs::ready(gpu).await;
+    let scoped = errors(gpu, scopes).await;
+    crate::programs::first_cause(gpu.lost(), ready, scoped)
 }
 pub(super) fn scope(gpu: &Gpu) -> [wgpu::ErrorScopeGuard; 2] {
     [
@@ -309,6 +495,34 @@ pub(super) fn scope(gpu: &Gpu) -> [wgpu::ErrorScopeGuard; 2] {
         gpu.device.push_error_scope(wgpu::ErrorFilter::OutOfMemory),
     ]
 }
+/// The refusal of a buffer past the device budget a build is held to.
+const OVER_BUDGET: &str = "the device budget: ";
+
+/// `bytes` for `label` charged against the device budget, refused by
+/// name where they would pass it.
+fn reserve(gpu: &Gpu, bytes: u64, label: &'static str) -> Result<()> {
+    gpu.ledger.reserve(bytes, label).map_err(|e| over(label, e))
+}
+
+/// Whether `bytes` more for `label` fit the device budget, charging
+/// nothing; refused by name where they would not.
+pub(super) fn fits(gpu: &Gpu, bytes: u64, label: &'static str) -> Result<()> {
+    gpu.ledger.fits(bytes).map_err(|e| over(label, e))
+}
+
+fn over(label: &str, (after, cap): (u64, u64)) -> RenderError {
+    error(format!(
+        "{OVER_BUDGET}the build's {label} would hold {} MiB, past the {} MiB it may hold; grow it younger",
+        after >> 20,
+        cap >> 20
+    ))
+}
+
+/// Whether `e` is a buffer's refusal past the device budget (`buffer`).
+pub(super) fn over_budget(e: &RenderError) -> bool {
+    matches!(e, RenderError::DeviceRefused { detail, .. } if detail.starts_with(OVER_BUDGET))
+}
+
 pub(super) fn error(detail: String) -> RenderError {
     RenderError::DeviceRefused {
         requirement: "experimental generation".into(),
@@ -316,8 +530,7 @@ pub(super) fn error(detail: String) -> RenderError {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(test)]
+#[cfg(all(test, not(target_arch = "wasm32")))]
 pub(super) fn read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<Vec<u8>> {
     pollster::block_on(read_async(gpu, source, bytes))
 }
@@ -330,6 +543,8 @@ pub(super) async fn complete(gpu: &Gpu) -> Result<()> {
     gpu.device
         .poll(wgpu::PollType::wait_indefinitely())
         .map_err(|e| error(e.to_string()))?;
+    #[cfg(test)]
+    crate::trace::waited("stage");
     receive.await.map_err(|e| error(e.to_string()))?;
     if let Some(error) = gpu.lost() {
         return Err(error);

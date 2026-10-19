@@ -21,16 +21,19 @@ import { PRESETS, presetById, type TreePreset } from "../src/browser/core";
 import type { FrameStats, SceneRow, Submitted, TimingReport, View } from "../src/browser/render";
 
 import { LookControls, useLook } from "./LookControls";
-import { Dials, Traits } from "./dials";
+import { AgeDial, Dials, Traits } from "./dials";
 import { familyJson, presetToParams } from "./family";
 import {
-  DEFAULT_PARAMS,
+  OPENING_PARAMS,
   type GrowerParams,
+  normalizeAge,
   normalizeSeed,
   randomSeed,
 } from "./params";
 import { createStage, type Stage } from "./rust-stage";
+import { type Held, type Job, type Kind, release, stageRun } from "./grow-in";
 import { latestBuild } from "./latest-build";
+import { describeTiming } from "./timing";
 import "./grower-dev.css";
 
 /** A build this cheap, in milliseconds, runs on every notch of a dial;
@@ -40,26 +43,24 @@ import "./grower-dev.css";
 const BUILD_LIVE_MS = 80;
 const BUILD_SETTLE_MS = 250;
 
-/** The timing session as the panel says it, and the old sweep's honesty
- *  rule kept word for word: WITHOUT A VALID VERDICT THERE IS NO
- *  MILLISECOND FIGURE IN THIS STRING. An invalid session carries no
- *  number that could be read as a pass, so there is none to print. */
-function describeTiming(report: TimingReport): string {
-  const who = `${report.adapter} (${report.backend})`;
-  if (report.verdict !== "valid" || report.p50_ms === undefined || report.p95_ms === undefined) {
-    return `${report.verdict}: ${report.reason ?? "no reason given"} - no frame time reported, on ${who}`;
-  }
-  return `vegetation p50 ${report.p50_ms.toFixed(3)} ms, p95 ${report.p95_ms.toFixed(3)} ms over ${report.samples} frames on ${who} - valid`;
-}
-
 export function GrowerDev() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<Stage | null>(null);
-  const buildsRef = useRef<ReturnType<typeof latestBuild<GrowerParams, Submitted & { buildMs: number }>> | null>(null);
+  const buildsRef = useRef<ReturnType<typeof latestBuild<Job<GrowerParams>, Submitted & { buildMs: number }>> | null>(null);
+  /* The year a grow-in or a played year has drawn, while it runs. */
+  const [growing, setGrowing] = useState<string | null>(null);
 
   const [ready, setReady] = useState(false);
   const [buildError, setBuildError] = useState<string | null>(null);
+  /* A build that failed - a preset with no engine species, a tree over
+     the browser's memory - shows its error instead of a tree: the tree
+     still on the canvas is not the one asked for. */
+  const [refused, setRefused] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
+  const [makingRoom, setMakingRoom] = useState(false);
+  /* The browser compiles the GPU programs from the moment the stage
+     exists (fn-243); the first build waits on them. */
+  const [preparing, setPreparing] = useState(true);
 
   /* One device per canvas, for the canvas's whole life. React's
      development double-mount builds a stage and disposes it before the
@@ -73,11 +74,18 @@ export function GrowerDev() {
       (stage) => {
         if (cancelled) { stage.dispose(); return; }
         stageRef.current = stage;
-        buildsRef.current = latestBuild(async (params: GrowerParams) => {
-          const started = performance.now();
-          const submitted = await stage.setTreeGpu(familyJson(params));
-          return { ...submitted, buildMs: performance.now() - started };
-        });
+        setPreparing(true);
+        stage.programs.then(
+          () => { if (!cancelled) setPreparing(false); },
+          (error: unknown) => { if (!cancelled) setBuildError(String(error)); },
+        );
+        const held: Held = { growth: null, family: null };
+        heldRef.current = held;
+        buildsRef.current = latestBuild(stageRun(stage, held, familyJson, {
+          growing: setGrowing,
+          makingRoom: setMakingRoom,
+          built: (ms) => { lastBuildMs.current = ms; },
+        }));
         setReady(true);
         setBuildError(null);
       },
@@ -87,6 +95,7 @@ export function GrowerDev() {
       cancelled = true;
       buildsRef.current?.dispose();
       buildsRef.current = null;
+      if (heldRef.current !== null) release(heldRef.current);
       stageRef.current?.dispose();
       stageRef.current = null;
       setReady(false);
@@ -97,11 +106,14 @@ export function GrowerDev() {
     try {
       const query = new URLSearchParams(window.location.search);
       const id = query.get("species");
-      const initial = id ? presetToParams(presetById(id)) : DEFAULT_PARAMS;
+      const initial = id ? presetToParams(presetById(id)) : OPENING_PARAMS;
       const seed = query.has("seed") ? normalizeSeed(query.get("seed")!) : null;
-      return { params: seed === null ? initial : { ...initial, seed }, error: null };
+      const age = query.has("age") ? normalizeAge(query.get("age")!) : null;
+      const seeded = seed === null ? initial : { ...initial, seed };
+      const params = age === null ? seeded : { ...seeded, family: { ...seeded.family, age } };
+      return { params, error: null };
     } catch (error) {
-      return { params: DEFAULT_PARAMS, error: String(error) };
+      return { params: OPENING_PARAMS, error: String(error) };
     }
   });
   const [params, setParams] = useState<GrowerParams>(initialLink.params);
@@ -134,29 +146,32 @@ export function GrowerDev() {
      seconds. A ref lets the measured cost steer the next effect
      without triggering another build itself. */
   const lastBuildMs = useRef(0);
+  const heldRef = useRef<Held | null>(null);
   // What the renderer did on the last frame, polled - it changes when
   // the camera moves, which no React state does.
   const [frameStats, setFrameStats] = useState<FrameStats | null>(null);
   const [timing, setTiming] = useState<TimingReport | null>(null);
   const [measuring, setMeasuring] = useState(false);
 
+  /* One request to the stage: the tree built, grown in, or its year
+     played. A newer one abandons it between its draws. */
+  const submit = useCallback((next: GrowerParams, kind: Kind) => buildsRef.current?.submit({ params: next, kind }, (submitted) => {
+    setBuildError(null);
+    setRefused(false);
+    setStats(submitted);
+    stageRef.current?.frameIfWaiting();
+  }, (error) => { setBuildError(String(error)); setRefused(true); }), []);
+
   useEffect(() => {
     if (!ready) return;
-    const stage = stageRef.current;
-    const builds = buildsRef.current;
     let cancelBuild: (() => void) | undefined;
     const build = (): void => {
       try {
-        cancelBuild = builds?.submit(params, (submitted) => {
-          setBuildError(null);
-          setStats(submitted);
-          lastBuildMs.current = submitted.buildMs;
-          stage?.frameIfWaiting();
-        }, (error) => setBuildError(String(error)));
+        cancelBuild = submit(params, "build");
       } catch (error) {
-        /* The generator's or the renderer's own words. Nothing was
-           replaced, so the tree already on the canvas stays where it is
-           beside the message. */
+        /* The panel's own words, before any build: nothing was asked of
+           the generator, so the tree already on the canvas stays where it
+           is beside the message. */
         setBuildError(String(error));
       }
     };
@@ -179,7 +194,7 @@ export function GrowerDev() {
        it is being dragged, which reads as the room moving rather than
        the tree growing. "Once" belongs to the stage and is latched
        there: this component outlives its own stage. */
-  }, [params, ready]);
+  }, [params, ready, submit]);
 
   useEffect(() => {
     if (!ready) return;
@@ -219,6 +234,11 @@ export function GrowerDev() {
     if (seed !== null) { setParams((prev) => ({ ...prev, seed })); stageRef.current?.frameNext(); }
   }, []);
 
+  /* The age rebuilds through the same engine path as any dial. */
+  const setAge = useCallback((age: number) => {
+    setParams((prev) => ({ ...prev, family: { ...prev.family, age } }));
+  }, []);
+
   const reroll = useCallback(() => {
     const seed = randomSeed();
     setSeedText(String(seed));
@@ -236,11 +256,11 @@ export function GrowerDev() {
   }, []);
 
   const reset = useCallback(() => {
-    setSeedText(String(DEFAULT_PARAMS.seed));
-    // A fresh object rather than DEFAULT_PARAMS itself: reset from an
+    setSeedText(String(OPENING_PARAMS.seed));
+    // A fresh object rather than OPENING_PARAMS itself: reset from an
     // already-default state still has to rebuild and re-frame, and
     // React elides a state write that is the same reference.
-    setParams({ ...DEFAULT_PARAMS });
+    setParams({ ...OPENING_PARAMS });
     /* Not `frame()`. `setParams` is asynchronous and the tree on the
        canvas right now is the one being replaced; `frameNext` frames
        the tree this click actually builds. */
@@ -265,7 +285,7 @@ export function GrowerDev() {
 
   return (
     <div className="gd">
-      <canvas className="gd-canvas" ref={canvasRef} />
+      <canvas className={refused ? "gd-canvas gd-refused" : "gd-canvas"} ref={canvasRef} />
 
       <aside className="gd-panel">
         <h1 className="gd-title">grower</h1>
@@ -279,6 +299,7 @@ export function GrowerDev() {
           <button className="gd-button" onClick={() => setLoadAttempt(n => n + 1)}>retry build</button>
         </div>}
         {!ready && !buildError && <p role="status" className="gd-note">Starting the renderer…</p>}
+        {ready && preparing && !buildError && <p role="status" className="gd-note">preparing GPU programs…</p>}
         <p className="gd-note">
           clay. flat grey, neutral sky, no bloom. this is the judging mode.
           drag to walk round the tree, wheel to come in.
@@ -300,6 +321,17 @@ export function GrowerDev() {
           <button className="gd-button" type="button" onClick={reroll}>
             reroll
           </button>
+        </div>
+
+        <AgeDial age={params.family.age} onChange={setAge} />
+        <div className="gd-row">
+          <button className="gd-button" type="button" disabled={!ready} onClick={() => submit(params, "grow")}>
+            grow in
+          </button>
+          <button className="gd-button" type="button" disabled={!ready} onClick={() => submit(params, "year")}>
+            play the year
+          </button>
+          {growing !== null && <span role="status" className="gd-value">{growing}</span>}
         </div>
 
         <div className="gd-row">
@@ -349,6 +381,9 @@ export function GrowerDev() {
           </button>
         </div>
 
+        {makingRoom && <p role="status" className="gd-note">
+          the drawn tree was let go to make room under the device budget; the screen is empty while this tree builds
+        </p>}
         <p className="gd-note">
           {stats === null
             ? "building..."

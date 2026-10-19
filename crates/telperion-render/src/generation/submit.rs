@@ -8,12 +8,19 @@ impl Renderer {
             return Err(error);
         }
         let count = prepared.count();
+        let colouring = prepared.colouring;
         crate::submit::fits_count(&self.gpu.device.limits(), &prepared.mesh, count)?;
         let Some(resident) = prepared.resident else {
-            return self.submit(&prepared.mesh);
+            return self
+                .submit(&prepared.mesh)
+                .inspect(|_| self.set_colouring(colouring));
         };
         let mesh = prepared.mesh;
-        self.wood.submit(&self.gpu, &mesh.curve);
+        self.sun.forget();
+        match prepared.wood {
+            Some(curve) => self.wood.submit_on_device(curve),
+            None => self.wood.submit(&self.gpu, &mesh.curve),
+        }
         self.foliage.submit_resident(
             &self.gpu,
             &mesh.foliage.element,
@@ -22,13 +29,31 @@ impl Renderer {
             resident.leaves,
             resident.masses,
         );
+        match (prepared.organ, mesh.organ.as_ref()) {
+            // The florets on the device (fn-229), as the leaves are.
+            (Some(organ), Some(o)) => {
+                let reference = o.instances.reference;
+                let (count, placements) = (organ.count, organ.leaves);
+                self.organ.submit_resident(
+                    &self.gpu,
+                    &o.element,
+                    reference,
+                    count,
+                    placements,
+                    organ.masses,
+                );
+                self.scene.set_organ(Some((reference, &o.element)));
+            }
+            (_, organ) => self.submit_organ(organ, crate::Level::default()),
+        }
         self.scene
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
         self.scene.set_crown(resident.crown);
         self.scene
             .set_leaf_reference(mesh.foliage.instances.reference);
-        self.scene.section_roundness = mesh.foliage.element.section_roundness;
+        self.scene.set_leaf(&mesh.foliage.element);
         self.bounds = Some(mesh.bounds);
+        self.set_colouring(colouring);
         self.level_deviations = mesh
             .foliage
             .element
@@ -42,5 +67,17 @@ impl Renderer {
             foliage_instances: count,
             bounds: mesh.bounds,
         })
+    }
+
+    /// Lets the drawn tree's buffers go, so a build that fits the budget
+    /// only alone has the room (fn-235): nothing is drawn until the next
+    /// submit.
+    pub fn release_tree(&mut self) {
+        self.sun.forget();
+        self.wood.release();
+        self.foliage.release();
+        self.organ.release();
+        self.scene.set_crown(None);
+        self.bounds = None;
     }
 }

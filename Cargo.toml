@@ -3,11 +3,18 @@ members = [
     "crates/telperion-core",
     "crates/telperion-render",
     "crates/telperion-wasm",
-    "crates/telperion-field",
     "crates/telperion-jev",
     "crates/telperion-space",
 ]
+# The vendored crates are dependencies, never members: their tests are not
+# the workspace's.
+exclude = ["vendor"]
 resolver = "2"
+
+# Async compute-pipeline creation on the WebGPU backend (fn-243):
+# vendor/README.md states the patch, its diff and its upstream issue.
+[patch.crates-io]
+wgpu = { path = "vendor/wgpu-30.0.1-async" }
 
 [profile.release]
 lto = true

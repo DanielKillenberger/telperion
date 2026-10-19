@@ -70,13 +70,19 @@ fn siblings(tree: &Tree) -> Vec<usize> {
         .collect()
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn at_rate_zero_no_table_forks_whatever_the_other_rows_say() {
     for preset in PRESETS {
         let bytes = |f: &Family| {
             let m = specimens::mesh(f);
             (
-                fnv(m.wood.positions.iter().flat_map(|v| v.to_le_bytes())),
+                fnv(m
+                    .wood
+                    .flattened()
+                    .positions
+                    .iter()
+                    .flat_map(|v| v.to_le_bytes())),
                 fnv(m
                     .foliage
                     .instances
@@ -443,6 +449,7 @@ fn a_primary_forks_again_and_again_up_its_line() {
     );
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn a_fork_growing_in_moves_no_wood_already_there() {
     // An axis the bias has bent, and an upright one that rises: just past the

@@ -88,6 +88,7 @@ fn zipper(at: u32, a: u32, na: u32, b: u32, nb: u32) -> u32 {
     var i = 0u;
     var j = 0u;
     var n = 0u;
+    // cap: i or j moves on each step, na + nb steps in all.
     loop {
         if (i >= na && j >= nb) { break; }
         if (j >= nb || (i < na && (i + 1u) * nb <= (j + 1u) * na)) {

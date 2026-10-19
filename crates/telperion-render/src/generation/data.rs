@@ -1,9 +1,12 @@
 use bytemuck::{Pod, Zeroable};
+#[cfg(test)]
+use telperion_core::foliage::prepared::PreparedStations;
 use telperion_core::{
-    foliage::{prepared::PreparedStations, Element, Reference, TwigPlacement},
+    foliage::{BloomParams, Element, Reference, TwigPlacement},
     math::Vec3,
     pipeline::executor::LeafInput,
 };
+use telperion_space::Transcendental;
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
 pub(super) struct Config {
@@ -14,8 +17,12 @@ pub(super) struct Config {
     shape: [f32; 4],
     lean: [f32; 4],
     size: [f32; 4],
-    envelope: [f32; 4],
-    curve: [f32; 4],
+    /// The rachis a station's leaflets are strung along (fn-277): its
+    /// length, arch, the leaflet pitch (radians) and the terminal share.
+    rachis: [f32; 4],
+    /// The leaflets and spines a placement draws as counts' words, the
+    /// spine's share and pitch (radians, bits).
+    organs: [u32; 4],
 }
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
@@ -28,27 +35,27 @@ pub(super) struct Segment {
     distance: [f32; 4],
     range: [u32; 4],
     edge: [u32; 4],
+    /// Its leaves within the year (fn-270 R5, R5c; `place.wgsl`).
+    unfolded: [f32; 4],
+    season: [f32; 4],
 }
 pub(super) fn vector(p: Vec3, w: f64) -> [f32; 4] {
     [p.x as f32, p.y as f32, p.z as f32, w as f32]
 }
-pub(super) fn config<R>(
+/// The placement's rows for `count` stations on `segments` segments, their
+/// contacts on rings of `ring_size` vertices; the leaves written from the
+/// leaf buffer's start (`at` places them further on).
+pub(super) fn config(
     l: &LeafInput,
     t: TwigPlacement,
-    p: &PreparedStations<R>,
+    (count, segments, ring_size): (u32, u32, u32),
     e: &Element,
     r: Reference,
 ) -> Config {
     let c = l.canopy;
-    let env = l.envelope;
     Config {
-        counts: [
-            p.count,
-            p.segments.len() as u32,
-            e.positions.len() as u32,
-            p.ring_size,
-        ],
-        random: [l.seed, t.stations_per_internode, p.count.div_ceil(256), 129],
+        counts: [count, segments, e.positions.len() as u32, ring_size],
+        random: [l.seed, t.stations_per_internode, count.div_ceil(256), 0],
         box_min: vector(r.min, 0.0),
         box_extent: vector(r.extent, 0.0),
         shape: [
@@ -63,40 +70,134 @@ pub(super) fn config<R>(
             c.outward as f32,
             c.upward as f32,
         ],
+        // The internode in whole micrometres as the CPU rounds it
+        // (`plan::micrometres`), which a segment's retention reads (fn-248).
         size: [
             c.size as f32,
             c.size_variation as f32,
-            (l.shell_depth * env.max_radius()) as f32,
+            f32::from_bits((t.internode_length * 1e6 + 0.5).floor() as u32),
             0.0,
         ],
-        envelope: [
-            env.height as f32,
-            env.crown_base as f32,
-            env.max_radius() as f32,
-            env.fullness as f32,
+        rachis: [
+            c.rachis_length as f32,
+            c.rachis_arch as f32,
+            c.leaflet_pitch.to_radians() as f32,
+            c.terminal_leaflet as f32,
         ],
-        curve: [env.shoulder as f32, 0.0, 0.0, 0.0],
+        organs: [
+            telperion_space::word(c.leaflet_count),
+            telperion_space::word(c.acanthophylls),
+            (c.acanthophyll_length as f32).to_bits(),
+            (c.acanthophyll_pitch.to_radians() as f32).to_bits(),
+        ],
     }
 }
+/// A bloom's rows as `bloom.wgsl`'s `Flower` reads them (fn-229), drawn at
+/// `now`: the florets, taper, scatter and the time since the window opened
+/// (wrapped to a year in f64, so a window of any length survives the
+/// narrowing); the window's length and stagger, and the droop; the rachis,
+/// the pedicel and the stalk's spread as its sine and cosine, taken as
+/// `bloom.rs` takes them.
+pub(super) fn flower(p: &BloomParams, now: f64) -> [[f32; 4]; 3] {
+    let (sin, cos) = p.spread.to_radians().sin_cos_fixed();
+    let since = (now - p.opens).rem_euclid(1.0);
+    [
+        [p.florets, p.taper, p.scatter, since],
+        [p.lasts, p.stagger, p.droop, 0.0],
+        [p.rachis, p.pedicel, sin, cos],
+    ]
+    .map(|row| row.map(|v| v as f32))
+}
+/// The florets' rows: `count` instances of `records` blooms, each bloom's
+/// florets then its rachis (fn-253), the organ element `e`, packed against
+/// `r` (fn-229).
+pub(super) fn florets(
+    rows: [[f32; 4]; 3],
+    (count, records): (u32, u32),
+    e: &Element,
+    r: Reference,
+) -> Config {
+    Config {
+        counts: [count, records, e.positions.len() as u32, 0],
+        random: [0, 0, count.div_ceil(256), 0],
+        box_min: vector(r.min, 0.0),
+        box_extent: vector(r.extent, 0.0),
+        shape: rows[0],
+        lean: rows[1],
+        size: rows[2],
+        rachis: [0.0; 4],
+        organs: [0x10000, 0, 0, 0],
+    }
+}
+#[cfg(test)]
 pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
     p.segments
         .iter()
-        .map(|s| Segment {
-            a: vector(s.endpoints[0], s.radii[0]),
-            b: vector(s.endpoints[1], s.radii[1]),
-            tangent: vector(s.frame[0], 0.0),
-            normal: vector(s.frame[1], 0.0),
-            binormal: vector(s.frame[2], 0.0),
-            distance: [
-                s.along as f32,
-                s.span as f32,
-                s.phase[0] as f32,
-                s.phase[1] as f32,
-            ],
-            range: [s.first, s.count, s.run_station, 0],
-            edge: s.contact.unwrap_or([0; 4]),
+        .map(|s| {
+            let retention = s.retention.unwrap_or((0, u32::MAX, u32::MAX));
+            let u = s.unfolding;
+            Segment {
+                a: vector(s.endpoints[0], s.radii[0]),
+                b: vector(s.endpoints[1], s.radii[1]),
+                // Where some of its stations shed their leaves (fn-248): the
+                // boundary in whole micrometres, the retentions before and from
+                // it a year before (fn-270 R5a), and the stream their draws
+                // take; every station keeps its leaf where they are all ones.
+                tangent: worded(s.frame[0], retention.0),
+                normal: worded(s.frame[1], retention.1),
+                binormal: worded(s.frame[2], retain(s.key)),
+                // A cluster (fn-223) is marked by a negative span, its spread
+                // and its leaves where a run's phase stands.
+                distance: match s.cluster {
+                    Some((spread, leaves)) => [0.0, -1.0, spread as f32, leaves as f32],
+                    None => [
+                        s.along as f32,
+                        s.span as f32,
+                        s.phase[0] as f32,
+                        s.phase[1] as f32,
+                    ],
+                },
+                range: [s.first, s.count, s.run_station, s.key],
+                edge: s.contact.unwrap_or([0; 4]),
+                // Its leaves' share of their whole size (fn-270 R5), the
+                // retentions now and the share a leaf kept only a year
+                // before is drawn at (R5a).
+                unfolded: [u.grow, f32::from_bits(retention.2), u.fall, u.regrow],
+                season: [
+                    u.colour,
+                    f32::from_bits(u32::from(u.life)),
+                    f32::from_bits(lived(s.key)),
+                    f32::from_bits(abscised(s.key)),
+                ],
+            }
         })
         .collect()
+}
+
+/// A direction with a word in its fourth lane, its bits as they are.
+#[cfg(test)]
+fn worded(v: Vec3, word: u32) -> [f32; 4] {
+    [v.x as f32, v.y as f32, v.z as f32, f32::from_bits(word)]
+}
+
+/// The stream a run's lifespan draws take (`tree::Unfolded::leaf`): its
+/// key salted apart from its retention's.
+#[cfg(test)]
+fn lived(key: u32) -> u32 {
+    retain(key ^ telperion_core::tree::LIFE)
+}
+
+/// The stream a run's abscission draws take (`tree::Unfolded::leaf`).
+#[cfg(test)]
+fn abscised(key: u32) -> u32 {
+    retain(key ^ telperion_core::tree::FALL)
+}
+
+/// The stream a run's retention draws take (`tree::keeps`): its first
+/// node's key under the registry's `RETAIN`.
+#[cfg(test)]
+fn retain(key: u32) -> u32 {
+    telperion_core::tree::mix32(key ^ telperion_space::lineage_keys::RETAIN as u32)
 }
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]

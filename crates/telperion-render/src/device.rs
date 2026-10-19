@@ -2,6 +2,8 @@
 //! can stop a frame before it is drawn is named here, never inferred by the caller.
 use std::sync::{Arc, Mutex};
 
+use crate::encoder::{Encoder, Recorded};
+
 /// Why the renderer could not do what was asked. Each variant names the
 /// condition and carries what a reader needs to act on it.
 #[derive(Debug)]
@@ -14,6 +16,8 @@ pub enum RenderError {
     DeviceRefused { requirement: String, detail: String },
     /// The device went away mid-render.
     DeviceLost { reason: String },
+    /// The browser refused to compile a GPU program, in its own words.
+    ProgramRefused { program: String, reason: String },
     /// The canvas surface could not give the frame that was asked for.
     Surface(String),
     /// A buffer this tree needs is larger than the device granted.
@@ -47,6 +51,9 @@ impl std::fmt::Display for RenderError {
                 detail,
             } => write!(f, "the GPU device was refused on {requirement}: {detail}"),
             Self::DeviceLost { reason } => write!(f, "the GPU device was lost: {reason}"),
+            Self::ProgramRefused { program, reason } => {
+                write!(f, "the browser refused the GPU program `{program}`: {reason}")
+            }
             Self::Surface(detail) => write!(f, "the canvas gave no frame: {detail}"),
             Self::Oversize {
                 buffer,
@@ -115,12 +122,129 @@ pub struct Gpu {
     source: wgpu::Adapter,
     instance: wgpu::Instance,
     lost: Arc<Mutex<Option<String>>>,
+    /// The owned buffers, each let go destroyed once the encoders open
+    /// when it was let go have closed (`buffer::Owned`, `Encoder`).
+    pub(crate) ledger: Arc<crate::buffer::Ledger>,
+    /// The wood surfacing passes' programs, made once (`curve::passes`).
+    pub(crate) curve: Arc<std::sync::OnceLock<Vec<crate::programs::Program>>>,
+    /// The programs the browser is compiling, until `programs::ready`.
+    #[cfg(target_arch = "wasm32")]
+    pub(crate) programs: std::rc::Rc<crate::programs::Pending>,
+    /// Natively, the programs the device refused, by name, each caught by
+    /// the error scopes of the thread that made it (scopes are a
+    /// thread's own), until `programs::ready` reports the first.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) refused: Arc<Mutex<Vec<(String, String)>>>,
 }
 
 impl Gpu {
+    /// A frame's two error scopes, out of memory and validation.
+    pub(crate) fn scopes(&self) -> [wgpu::ErrorScopeGuard; 2] {
+        [
+            self.device.push_error_scope(wgpu::ErrorFilter::Validation),
+            self.device.push_error_scope(wgpu::ErrorFilter::OutOfMemory),
+        ]
+    }
+
+    /// Pops a frame's `scopes`, the error either caught kept in `failed`:
+    /// natively at once, in a browser when the device answers.
+    pub(crate) fn watch(
+        &self,
+        scopes: [wgpu::ErrorScopeGuard; 2],
+        failed: Arc<Mutex<Option<String>>>,
+    ) {
+        let [validation, memory] = scopes;
+        let (memory, validation) = (memory.pop(), validation.pop());
+        let seen = async move {
+            if let Some(error) = memory.await.or(validation.await) {
+                *failed.lock().unwrap_or_else(|e| e.into_inner()) = Some(error.to_string());
+            }
+        };
+        #[cfg(not(target_arch = "wasm32"))]
+        pollster::block_on(seen);
+        #[cfg(target_arch = "wasm32")]
+        wasm_bindgen_futures::spawn_local(seen);
+    }
+
+    /// An encoder open on this device: a buffer let go while it is open
+    /// lives until it is submitted or dropped.
+    pub fn encoder(&self, descriptor: &wgpu::CommandEncoderDescriptor<'_>) -> Encoder {
+        Encoder::new(self.device.create_command_encoder(descriptor), &self.ledger)
+    }
+
+    /// Submits `recorded`, then closes their encoders. A buffer a recorded
+    /// pass binds may be let go before its encoder is submitted; its
+    /// destroy waits for that encoder, and a destroy after the submit is
+    /// deferred by the device until the work is done.
+    pub fn submit<I: IntoIterator<Item = Recorded>>(&self, recorded: I) {
+        let (commands, open): (Vec<_>, Vec<_>) = recorded.into_iter().map(Recorded::split).unzip();
+        #[cfg(test)]
+        crate::trace::submit();
+        self.queue.submit(commands);
+        self.ledger.submitted();
+        #[cfg(test)]
+        crate::trace::ran(&self.device);
+        drop(open);
+    }
+
+    /// The device-local bytes the driver grants this process and it does
+    /// not hold (VK_EXT_memory_budget): what other processes leave of the
+    /// card, falling as they fill it. None off Vulkan, or where the driver
+    /// does not say (fn-256 task 5).
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn free_device_memory(&self) -> Option<u64> {
+        use ash::vk;
+        // SAFETY: the raw instance and physical device are only read while
+        // `self.device`, which owns them, is alive.
+        unsafe {
+            let hal = self.device.as_hal::<wgpu::hal::api::Vulkan>()?;
+            if !hal
+                .enabled_device_extensions()
+                .contains(&ash::ext::memory_budget::NAME)
+            {
+                return None;
+            }
+            let mut budget = vk::PhysicalDeviceMemoryBudgetPropertiesEXT::default();
+            let heaps = {
+                let mut props =
+                    vk::PhysicalDeviceMemoryProperties2::default().push_next(&mut budget);
+                let instance = hal.shared_instance().raw_instance();
+                instance
+                    .get_physical_device_memory_properties2(hal.raw_physical_device(), &mut props);
+                props.memory_properties
+            };
+            let local = |h: &&vk::MemoryHeap| h.flags.contains(vk::MemoryHeapFlags::DEVICE_LOCAL);
+            (heaps
+                .memory_heaps
+                .iter()
+                .take(heaps.memory_heap_count as usize)
+                .enumerate())
+            .filter(|(_, h)| local(h))
+            .map(|(i, _)| budget.heap_budget[i].saturating_sub(budget.heap_usage[i]))
+            .max()
+        }
+    }
+
     /// Asks the platform for a hardware device, with the adapter's own maximum
     /// buffer size so a full-detail tree fits, and timestamps when offered.
     pub async fn request(compatible_surface: Option<&wgpu::Surface<'_>>) -> Result<Self> {
+        // The adapter's own maximum buffer size, so a full-detail tree fits,
+        // and its storage binding size with it: the crown's placements are
+        // read by the selection pass and the vertex shader out of one storage
+        // buffer, and a spruce's needles are half a gigabyte of them.
+        Self::request_within(compatible_surface, |available| wgpu::Limits {
+            max_buffer_size: available.max_buffer_size,
+            max_storage_buffer_binding_size: available.max_storage_buffer_binding_size,
+            ..wgpu::Limits::default()
+        })
+        .await
+    }
+
+    /// A device held to `limits`, given what the adapter offers.
+    pub(crate) async fn request_within(
+        compatible_surface: Option<&wgpu::Surface<'_>>,
+        limits: impl FnOnce(&wgpu::Limits) -> wgpu::Limits,
+    ) -> Result<Self> {
         let instance = instance();
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -138,15 +262,7 @@ impl Gpu {
         }
 
         let available = adapter.limits();
-        // The adapter's own maximum buffer size, so a full-detail tree fits,
-        // and its storage binding size with it: the crown's placements are
-        // read by the selection pass and the vertex shader out of one storage
-        // buffer, and a spruce's needles are half a gigabyte of them.
-        let limits = wgpu::Limits {
-            max_buffer_size: available.max_buffer_size,
-            max_storage_buffer_binding_size: available.max_storage_buffer_binding_size,
-            ..wgpu::Limits::default()
-        };
+        let limits = limits(&available);
         // Ask before requesting, so a refusal names the limit rather than
         // arriving as a panic out of the validation layer.
         let mut short: Option<String> = None;
@@ -186,6 +302,7 @@ impl Gpu {
             }
         });
 
+        let ledger = Arc::new(crate::buffer::Ledger::of(&queue));
         Ok(Self {
             device,
             queue,
@@ -194,6 +311,12 @@ impl Gpu {
             source: adapter,
             instance,
             lost,
+            ledger,
+            curve: Arc::default(),
+            #[cfg(target_arch = "wasm32")]
+            programs: Default::default(),
+            #[cfg(not(target_arch = "wasm32"))]
+            refused: Arc::default(),
         })
     }
 
@@ -260,8 +383,12 @@ impl Gpu {
         }
     }
 
-    /// The device-lost error if the device has gone away, checked after a poll.
+    /// The device-lost error if the device has gone away. Natively the loss
+    /// is delivered on a poll, so one that does not wait is taken first; a
+    /// browser delivers it on its own event loop.
     pub fn lost(&self) -> Option<RenderError> {
+        #[cfg(not(target_arch = "wasm32"))]
+        let _ = self.device.poll(wgpu::PollType::Poll);
         let reason = self.lost.lock().ok()?.clone()?;
         Some(RenderError::DeviceLost { reason })
     }

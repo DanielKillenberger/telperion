@@ -17,7 +17,7 @@ fn covered(depths: &[f32]) -> f64 {
 #[test]
 fn the_sun_sees_the_wood_and_the_whole_crown_and_the_leaf_view_is_not_in_its_way() {
     let Some(gpu) = common::gpu() else { return };
-    let tree = mesh::build(&Preset::Ordinary.parameters()).expect("the tree grew");
+    let tree = mesh::build(&common::ordinary()).expect("the tree grew");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).expect("the tree fits the device");
 
@@ -50,12 +50,12 @@ fn the_sun_sees_the_wood_and_the_whole_crown_and_the_leaf_view_is_not_in_its_way
 fn every_preset_has_default_casters_fixed_under_orbit_and_row_changes() {
     let Some(gpu) = common::gpu() else { return };
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    // The presets the engine grows (fn-198).
     for preset in [
-        Preset::Ordinary,
         Preset::OregonWhiteOak,
         Preset::NorwaySpruce,
-        Preset::Telperion,
-        Preset::Laurelin,
+        Preset::EuropeanBeech,
+        Preset::DatePalm,
     ] {
         let tree = mesh::build(&preset.parameters()).unwrap();
         renderer.set_scene(SceneRow::default());
@@ -100,7 +100,7 @@ fn every_preset_has_default_casters_fixed_under_orbit_and_row_changes() {
 fn full_casters_cover_at_least_the_default_on_separated_surfaces() {
     use telperion_core::foliage::ElementParams;
     let Some(gpu) = common::gpu() else { return };
-    let mut tree = mesh::build(&Preset::Ordinary.parameters()).unwrap();
+    let mut tree = mesh::build(&common::ordinary()).unwrap();
     tree.foliage.element = executor::element(ElementParams {
         card: true,
         width: 1.0,

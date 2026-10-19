@@ -2,32 +2,45 @@
 use crate::math::Transcendental;
 mod lattice;
 mod leaf_bases;
+mod traits;
+// The scaffold's grower, which no production path reaches since the engine
+// is stage 2 (fn-198): the suite grows its tests' trees with it until fn-288
+// removes it. Of `specimen`, only the checks `validate` makes compile into
+// production.
+#[cfg(test)]
 mod limbs;
+#[cfg(test)]
 mod local;
+#[cfg(test)]
 mod scaffold;
 mod specimen;
-mod traits;
 use crate::catalogue::{input, tuned, value, Blend, Bounds, Dial, Growth, Site};
 use crate::ranges::DEFAULT_MAX_NODES;
+#[cfg(test)]
 use crate::{
+    envelope::distance_to_profile,
     envelope::queries::{self, Purpose},
-    envelope::{distance_to_profile, Envelope},
     math::Vec3,
-    pipeline::bias::{BiasParams, GrowthBias},
-    pipeline::colonization::{self, GrowthConfig},
-    pipeline::radius::{self, RadiusParams},
-    pipeline::twigs::{branch_length, child_radius, TwigParams},
+    pipeline::bias::GrowthBias,
+    pipeline::colonization,
+    pipeline::radius,
+    pipeline::twigs::{branch_length, child_radius},
     rng::Rng,
     tree::{Node, NodeKind, Tree},
-    Error, Result,
+};
+use crate::{
+    envelope::Envelope, pipeline::bias::BiasParams, pipeline::colonization::GrowthConfig,
+    pipeline::radius::RadiusParams, pipeline::twigs::TwigParams, Error, Result,
 };
 #[cfg(test)]
 pub use leaf_bases::leaf_bases;
-pub use leaf_bases::{clothe_leaf_bases, LeafBase, MAX_LEAF_BASES};
+pub use leaf_bases::{clothe_leaf_bases, hangs as hangs_leaf_bases, LeafBase, MAX_LEAF_BASES};
 #[cfg(test)]
 pub use local::{append, in_band as in_curtain_band};
-pub(crate) use specimen::validate as validate_skeleton;
+#[cfg(test)]
 use specimen::Specimen;
+
+pub(crate) use specimen::validate as validate_skeleton;
 pub use traits::HabitParams;
 pub const DEFAULT_STEP: f64 = 0.022;
 crate::catalogue::rows! {
@@ -51,7 +64,7 @@ crate::catalogue::rows! {
         /// finer branching; at an `attractor_weight` of zero none are
         /// scattered and the row does nothing.
         pub attractors: usize = "attractors" "points"
-            Bounds::closed(0.0, crate::ranges::MAX_ATTRACTORS as f64) => [Grow] {
+            Bounds::closed(0.0, crate::ranges::MAX_ATTRACTORS as f64) => [] {
             wire: 24,
             check: input(Site::Sampling, 1, "attractors"),
             applies: "`attractorWeight` zero",
@@ -70,7 +83,7 @@ crate::catalogue::rows! {
             serde(default = "crate::ranges::default_sampling_attempts_per_attractor")
         )]
         pub sampling_attempts_per_attractor: u32 = "samplingAttemptsPerAttractor" "tries"
-            crate::ranges::POSITIVE_COUNT.bounds() => [Grow] {
+            crate::ranges::POSITIVE_COUNT.bounds() => [] {
             wire: 25,
             check: value(Site::Sampling, 0, "samplingAttemptsPerAttractor"),
             applies: "`attractorWeight` zero",
@@ -83,7 +96,7 @@ crate::catalogue::rows! {
         /// How far the crown grows in one step, as a share of the tree's
         /// height; the distance at which a pull point is used up is twice it.
         /// Raising it grows the crown in longer, coarser strides.
-        pub step: f64 = "step" "share of height" Bounds::above(0.0) => [Grow] {
+        pub step: f64 = "step" "share of height" Bounds::above(0.0) => [] {
             wire: 26,
             check: input(Site::Step, 0, "growth step"),
             note: "Sets the default step, kill and influence distances (`default_growth`); an \
@@ -123,7 +136,7 @@ crate::catalogue::rows! {
         /// Metres a pull point may reach to steer the wood nearest it; unset,
         /// the crown's own volume and the point count decide it. Raising it
         /// lets distant points draw a branch across the crown.
-        pub influence_radius: Option<f64> = "influenceRadius" "m" Bounds::at_least(0.0) => [Grow] {
+        pub influence_radius: Option<f64> = "influenceRadius" "m" Bounds::at_least(0.0) => [] {
             wire: 68,
             applies: "`attractorWeight` zero",
             note: "Unset: `max(9·height·step, 2·cbrt(crown volume / points))`. Judged in the \
@@ -136,7 +149,7 @@ crate::catalogue::rows! {
         /// Metres within which a pull point counts as reached and stops
         /// pulling; unset, twice the step distance. Raising it uses the points
         /// up sooner, so branches stop shorter and the crown fills coarsely.
-        pub kill_distance: Option<f64> = "killDistance" "m" Bounds::at_least(0.0) => [Grow] {
+        pub kill_distance: Option<f64> = "killDistance" "m" Bounds::at_least(0.0) => [] {
             wire: 69,
             applies: "`attractorWeight` zero",
             note: "Acts as `min(kill, growth unit)`, so above one unit it does nothing; unset, \
@@ -147,7 +160,7 @@ crate::catalogue::rows! {
         },
         /// Metres of wood laid down in one growth step; unset, the tree's
         /// height times `step`. Raising it lays down longer, coarser segments.
-        pub step_distance: Option<f64> = "stepDistance" "m" Bounds::above(0.0) => [Grow] {
+        pub step_distance: Option<f64> = "stepDistance" "m" Bounds::above(0.0) => [] {
             wire: 70,
             note: "Unset: `height·step`; it does not move the default kill or influence \
                 distance. Judged in the resolved configuration (`colonization configuration`).",
@@ -157,7 +170,7 @@ crate::catalogue::rows! {
         /// Metres of bare trunk before the crown may start; unset, the
         /// envelope's own crown base. Raising it lifts the whole crown and
         /// leaves a longer clear bole.
-        pub trunk_height: Option<f64> = "trunkHeight" "m" Bounds::above(0.0) => [Grow] {
+        pub trunk_height: Option<f64> = "trunkHeight" "m" Bounds::above(0.0) => [] {
             wire: 71,
             note: "Refused at or below zero (`trunkHeight`) by `resolved_growth`, then judged in \
                 the resolved configuration. Unset: `height·crownBase`; below that the stems' \
@@ -170,7 +183,7 @@ crate::catalogue::rows! {
         /// branch, so raising it restores fine detail only to a tree that
         /// reached it.
         pub max_nodes: Option<usize> = "maxNodes" "nodes"
-            crate::ranges::POSITIVE_COUNT.bounds() => [Grow] {
+            crate::ranges::POSITIVE_COUNT.bounds() => [] {
             wire: 72,
             growth: Growth::Differs("zero builds an empty capped seedling"),
             note: "Unset: 250 000. Zero is refused by `Family::validate` (`maxNodes`) and above \
@@ -188,7 +201,7 @@ crate::catalogue::rows! {
         /// The most a growing shoot may turn in one step, in degrees; unset, 35.
         /// At 180 or more nothing is limited.
         pub max_turn_per_step: Option<f64> = "maxTurnPerStep" "degrees"
-            Bounds::at_least(0.0) => [Grow] {
+            Bounds::at_least(0.0) => [] {
             wire: 73,
             note: "`presets::by_identity` sets 35 where a table leaves it unset, so a table and \
                 its identity differ here. Judged in the resolved configuration (`colonization \
@@ -231,11 +244,13 @@ impl SkeletonParams {
         Ok(c)
     }
 }
+#[cfg(test)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct GrowthReport {
     pub tree: Tree,
     pub shed: usize,
 }
+#[cfg(test)]
 pub fn inner_envelope(e: Envelope, reach: f64) -> Envelope {
     let share = 1.0 - reach;
     let base = e.height * e.crown_base;
@@ -277,6 +292,7 @@ pub fn default_growth(e: Envelope, attractors: usize, step: f64) -> GrowthConfig
     }
 }
 /// Retain illuminated subtrees and complete leader runs; remap every parent and run ID.
+#[cfg(test)]
 pub fn shed(tree: &mut Tree, envelope: Envelope, shell_depth: f64) -> Result<usize> {
     tree.validate()?;
     envelope.validate()?;
@@ -357,6 +373,7 @@ pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthRe
 /// Generate solved structure only. Where `crowned`, every stem apex bears a
 /// rosette: it grows no twig layer and keeps its girth, since it is no tip.
 /// Representations are independent borrowed-tree requests.
+#[cfg(test)]
 pub(crate) fn crowned(
     params: &SkeletonParams,
     radii: RadiusParams,
@@ -368,6 +385,7 @@ pub(crate) fn crowned(
         shed: specimen.shed,
     })
 }
+#[cfg(test)]
 fn finish(
     tree: &mut Tree,
     params: &SkeletonParams,

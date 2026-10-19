@@ -4,14 +4,19 @@
 //! synchronous, so the executor keeps its own schedule and overlap around
 //! them. `docs/pipeline.md` has the rationale.
 pub use super::input::LeafInput;
-use super::{GrowInput, Inputs, Request};
+// The whole-tree folds an executor holding part of a tree's nodes folds
+// its part of and the pipeline combines (fn-212 task 4).
+pub use super::input::{beyond, bins, crown_point, envelope, reach, Folds, BINS};
+pub use super::space::{ConvertRow, Establishing};
+use super::{grown_envelope, GrowInput, Inputs, Request};
 use crate::{
     envelope::Envelope,
+    math::Vec3,
     mesh::{self, TreeMesh},
     pipeline::foliage::{
         self,
         prepared::{self, PreparedStations},
-        CanopyParams, Element, ElementParams, Reference, TwigPlacement,
+        BloomParams, CanopyParams, Element, ElementParams, Reach, Reference, TwigPlacement,
     },
     pipeline::surface::{
         self,
@@ -28,21 +33,190 @@ use crate::{
 pub struct Grown {
     tree: Tree,
     inputs: Inputs,
+    retains: bool,
 }
 
 /// Stage 2: the family read once into its stage inputs, and its skeleton.
 pub fn grow(family: &Family) -> Result<Grown> {
     let tree = super::skeleton(GrowInput::of(family))?.tree;
-    let inputs = Inputs::of(family);
-    Ok(Grown { tree, inputs })
+    let inputs = Inputs::of(family, grown_envelope(&tree));
+    let retains = retains(family);
+    Ok(Grown {
+        tree,
+        inputs,
+        retains,
+    })
 }
 
-/// A solved tree the caller already holds, read with this family's inputs:
-/// the same expansion `grow` leads to, for a tree the executor was handed
-/// (its tests' hand-built trees). Building a tree stays inside the pipeline.
+/// Whether some of the family's wood sheds its leaves by age (fn-248):
+/// some age of its species keeps less than all its stations, which is
+/// where the conversion records each node's retention.
+fn retains(family: &Family) -> bool {
+    let input = GrowInput::of(family);
+    let species = input.space.species.as_ref();
+    let states = species.map(|s| &s.states[..]).unwrap_or_default();
+    states
+        .iter()
+        .any(|s| crate::tree::retention(s.leaf_years).0 != u32::MAX)
+}
+
+/// What another executor grows and draws a family's tree by (fn-256
+/// task 3): the engine's species, the request, the scale the tree is
+/// drawn at, and each PA's conversion row (`ConvertRow`). The executor
+/// grows the tree through the one cycle and draws it as the conversion
+/// draws it; nothing of it comes back to the CPU.
+pub struct Growth {
+    pub species: telperion_space::Species,
+    pub request: telperion_space::Request,
+    pub scale: f64,
+    pub rows: Vec<ConvertRow>,
+    /// The rows its rosette's stem establishes by (fn-275 R2a); none
+    /// where it stands no rosette or states no establishment.
+    pub establishing: Option<Establishing>,
+}
+
+impl Growth {
+    /// The year the tree is drawn in, `fraction` into its last, by its
+    /// seed's PA, the first (`Tree::year`; fn-270 R5b).
+    pub fn year(&self, fraction: f64) -> Option<crate::tree::Year> {
+        let s = telperion_space::unfold::Season::of(self.species.states.first()?);
+        let age = f64::from(self.request.age) - 1.0 + fraction.min(1.0);
+        Some(crate::tree::Year {
+            age,
+            budburst: s.budburst,
+            elongation: s.elongation,
+            expansion: s.expansion,
+        })
+    }
+}
+
+/// The family read for another executor (`Growth`). A family with no
+/// engine species is refused by name.
+pub fn growth(family: &Family) -> Result<Growth> {
+    let (species, request, scale, rows, establishing) =
+        super::space::growth(GrowInput::of(family))?;
+    Ok(Growth {
+        species,
+        request,
+        scale,
+        rows,
+        establishing,
+    })
+}
+
+/// The whole-tree summaries an executor holding the whole tree folds
+/// (DESIGN.md 12.3 of fn-256): its folds, its crown nodes no other passes
+/// (read under its own bins), its nodes' leaf box, the root's radius and
+/// the stem radius a canopy measures its slender wood against
+/// (`Tree::stem_radius`).
+pub struct Summaries {
+    pub folds: Folds,
+    pub crown: Vec<Vec3>,
+    pub corners: (Vec3, Vec3),
+    pub root: f64,
+    pub stem: f64,
+}
+
+/// The terms of a station's reach from its wood (`Reach::terms`) under a
+/// tree `height` tall, which is all of the envelope they read: what an
+/// executor folds its nodes' leaf box by.
+pub fn reach_terms(family: &Family, height: f64) -> Result<[f64; 4]> {
+    let envelope = Envelope {
+        height,
+        ..Envelope::default()
+    };
+    Ok(Inputs::of(family, envelope).plan.reach?.terms())
+}
+
+/// Whether an executor drawing the tree itself places `family`'s leaves:
+/// on its twig stations, or in a rosette at each stem apex (fn-212 task
+/// 10, fn-256), with a twig layer and no limb clumping.
+pub fn stations(family: &Family) -> bool {
+    let inputs = Inputs::of(family, Envelope::default());
+    foliage::plan::supports(inputs.leaves.canopy, inputs.plan.twig.ok())
+}
+
+/// The canopy rows `family` hangs retained leaf bases on its stems by,
+/// checked as `clothe_leaf_bases` checks them; none where it hangs none
+/// (fn-266, DESIGN.md 12.8 of fn-256).
+pub fn bases(family: &Family) -> Result<Option<CanopyParams>> {
+    if !super::branching::hangs_leaf_bases(&family.canopy) {
+        return Ok(None);
+    }
+    foliage::validate_canopy(&family.canopy)?;
+    Ok(Some(family.canopy))
+}
+
+/// Stage 3's descriptors for a tree another executor holds whole and
+/// draws itself, from its summaries: the rows its leaves are placed by,
+/// its element and twig placement, the box they are quantised against
+/// (its nodes' leaf box and the root), and its bearing bounds. No node
+/// of the tree is held here.
+pub fn resident(family: &Family, s: Summaries) -> Result<Expansion> {
+    let envelope = envelope(s.folds, s.crown.iter().copied());
+    let inputs = Inputs::of(family, envelope);
+    let wood = (Tree::default(), inputs, retains(family));
+    prepared(wood, [s.root, s.stem], |_, reach| {
+        // The root's own box, as `Reach::wood_box` takes the root's node.
+        let out = reach.out(s.root);
+        let (a, b) = s.corners;
+        let lo = Vec3::new(a.x.min(-out), a.y.min(-out), a.z.min(-out));
+        let hi = Vec3::new(b.x.max(out), b.y.max(out), b.z.max(out));
+        Reference::spanning(lo, hi)
+    })
+}
+
+/// Stage 3's descriptors around the tree (none where the executor holds
+/// it), its inputs and whether its wood sheds leaves by age, with its
+/// root's and stem's radii, in the order their errors answer: the element
+/// and its own check, the twig placement, the shell depth and the reach
+/// the box leaves are quantised against (`reference`) is grown by.
+fn prepared(
+    (tree, inputs, retains): (Tree, Inputs, bool),
+    [root, stem]: [f64; 2],
+    reference: impl FnOnce(&Tree, Reach) -> Reference,
+) -> Result<Expansion> {
+    let plan = &inputs.plan;
+    let element = foliage::build_element(plan.element)?;
+    element.validate()?;
+    let twig = plan.twig.clone()?;
+    check_shell(&inputs)?;
+    let reference = reference(&tree, plan.reach.clone()?);
+    let shoot = inputs.leaves.canopy.shoot_radius;
+    Ok(Expansion {
+        bearing: [super::space::STRUCTURAL * root, stem * shoot],
+        retains,
+        tree,
+        inputs,
+        element,
+        twig,
+        reference,
+    })
+}
+
+/// The shell depth, refused unless a share.
+fn check_shell(inputs: &Inputs) -> Result<()> {
+    let shell = inputs.leaves.shell_depth;
+    if !shell.is_finite() || !(0.0..=1.0).contains(&shell) {
+        return Err(Error::InvalidInput("shell depth"));
+    }
+    Ok(())
+}
+
+/// A solved tree the caller already holds, read with this family's inputs
+/// and the envelope it grew to: the same expansion `grow` leads to, for a
+/// tree the executor was handed (its tests' hand-built trees). Growing a
+/// tree stays inside the pipeline: nothing outside it converts the engine's
+/// structure (fn-198).
 pub fn expand(tree: Tree, family: &Family) -> Result<Expansion> {
-    let inputs = Inputs::of(family);
-    Grown { tree, inputs }.expansion()
+    let inputs = Inputs::of(family, grown_envelope(&tree));
+    let retains = retains(family);
+    Grown {
+        tree,
+        inputs,
+        retains,
+    }
+    .expansion()
 }
 
 /// The leaf element built from its rows, as the plan stage builds it.
@@ -52,32 +226,32 @@ pub fn element(params: ElementParams) -> Result<Element> {
 
 impl Grown {
     /// Stage 3's descriptors, in the order their errors answer: the leaf
-    /// bases hung on the stems, the element and its own check, the twig
-    /// placement, the shell depth and the box leaves are quantised against.
+    /// bases hung on the stems, then `prepared`'s.
     pub fn expansion(self) -> Result<Expansion> {
         let mut tree = self.tree;
         super::clothe(&mut tree, &self.inputs)?;
-        let plan = &self.inputs.plan;
-        let element = foliage::build_element(plan.element)?;
-        element.validate()?;
-        let twig = plan.twig.clone()?;
-        let shell = self.inputs.leaves.shell_depth;
-        if !shell.is_finite() || !(0.0..=1.0).contains(&shell) {
-            return Err(Error::InvalidInput("shell depth"));
-        }
-        let reference = Reference::grown(&tree, plan.reach.clone()?);
-        Ok(Expansion {
-            tree,
-            inputs: self.inputs,
-            element,
-            twig,
-            reference,
-        })
+        let root = tree.nodes.first().map_or(0.0, |n| n.radius);
+        let stem = tree.stem_radius(|i| tree.nodes[i].radius);
+        let wood = (tree, self.inputs, self.retains);
+        prepared(wood, [root, stem], Reference::grown)
     }
+}
+
+/// The wood's section (`Expansion::section`).
+pub struct Section {
+    pub segments: u32,
+    pub lobes: u32,
+    pub depth: f32,
+    pub angular: Vec<[f32; 4]>,
 }
 
 /// A grown tree prepared for expansion by another executor.
 pub struct Expansion {
+    /// The bounds its stations decide kinds and leaf-bearing by
+    /// (`bearing_bounds`).
+    bearing: [f64; 2],
+    /// Whether some wood sheds its leaves by age (fn-248).
+    retains: bool,
     tree: Tree,
     inputs: Inputs,
     element: Element,
@@ -112,6 +286,51 @@ impl Expansion {
         self.inputs.leaves.canopy
     }
 
+    /// The terms of a station's reach from its wood, for an executor
+    /// folding its own nodes' leaf box: `[scale, beyond, rachis,
+    /// authored]` (`Reach::terms`).
+    pub fn wood_reach(&self) -> Result<[f64; 4]> {
+        Ok(self.inputs.plan.reach.clone()?.terms())
+    }
+    /// The terms of a planned leaf's reach from its wood (`Plan::reach`):
+    /// `[seat, rachis, blade]`, which the device's field reaches by
+    /// (fn-257).
+    pub fn leaf_reach(&self) -> [f64; 3] {
+        let s = &self.inputs.surface.params;
+        foliage::plan::leaf_reach(s, self.canopy(), &self.element)
+    }
+    /// The bounds an executor drawing its own nodes decides their kinds and
+    /// leaf-bearing by (fn-212 task 6): wood under the first is fine wood,
+    /// a twig where nothing grows from it; wood within the second bears
+    /// leaves (`plan::bearing_runs`).
+    pub fn bearing_bounds(&self) -> [f64; 2] {
+        self.bearing
+    }
+    /// Whether some of the tree's wood sheds its leaves by age (fn-248):
+    /// the conversion records each node's retention where it does.
+    pub fn retains(&self) -> bool {
+        self.retains
+    }
+    /// The wood's section, which an executor drawing its own rings lays
+    /// them by: its segments, lobes and lobe depth, and each segment's
+    /// angle, cosine and sine (`CompactSurface`'s).
+    pub fn section(&self) -> Result<Section> {
+        let p = &self.inputs.surface.params;
+        let segments = surface::segments(p) as u32;
+        Ok(Section {
+            segments,
+            lobes: p.lobes,
+            depth: p.lobe_depth as f32,
+            angular: surface::compact::angular_words(segments, p)?,
+        })
+    }
+    /// The corners of the leaf box of the nodes `keep` keeps, and the
+    /// root's position: combined by their corners with an executor's own,
+    /// exactly the box of the whole (`reference`).
+    pub fn wood_box(&self, keep: impl Fn(usize) -> bool) -> Result<(Vec3, Vec3)> {
+        Ok(self.inputs.plan.reach.clone()?.wood_box(&self.tree, keep))
+    }
+
     /// Whether the family's leaves stand on regular twig stations.
     pub fn supports_stations(&self) -> bool {
         prepared::supports_stations(self.canopy(), Some(self.twig))
@@ -136,6 +355,14 @@ impl Expansion {
     pub fn compact_with_contacts(&self) -> Result<CompactWithContacts<'_>> {
         let s = &self.inputs.surface;
         surface::compact::prepare_with_contacts(&self.tree, s.height, &s.params)
+    }
+    /// The wood as curves and its compact rings with contacts, read from
+    /// the one sweep (fn-212 R2).
+    pub fn curve_with_contacts(&self) -> Result<(Curve, CompactWithContacts<'_>)> {
+        let s = &self.inputs.surface;
+        let traced = surface::traced(&self.tree, s.height, &s.params)?;
+        let compact = surface::compact::with_contacts(&traced, &self.tree, s.height, &s.params)?;
+        Ok((traced.curve, compact))
     }
     /// Stations tied to the compact rings' emitted vertices.
     pub fn compact_stations(
@@ -178,10 +405,40 @@ impl Expansion {
         let s = &self.inputs.surface;
         surface::curve(&self.tree, s.height, &s.params)
     }
+    /// The curve's rows with no run in it, for an executor that sweeps its
+    /// own runs (fn-256): the lobes, their depth, the twist and the height.
+    pub fn curve_rows(&self) -> Result<Curve> {
+        let s = &self.inputs.surface;
+        surface::curve_rows(s.height, &s.params)
+    }
     /// The wood the CPU builder sweeps.
     pub fn wood(&self) -> Result<SurfaceMesh> {
         let s = &self.inputs.surface;
         surface::build(&self.tree, s.height, &s.params)
+    }
+    /// The flowers at the window's middle (fn-216), a CPU step over the
+    /// converted tree: their element and florets, keyed by each node's
+    /// lineage; none where the tree flowers nowhere.
+    pub fn organ(&self) -> Result<Option<mesh::Foliage>> {
+        if self.tree.blooms.is_empty() {
+            return Ok(None);
+        }
+        let bloom = &self.inputs.bloom;
+        let element = foliage::bloom_element(bloom)?;
+        let within = foliage::bloom_box(self.reference, bloom);
+        let instances = foliage::place_blooms_in(&self.tree, bloom, None, within)?;
+        Ok(Some(mesh::Foliage { element, instances }))
+    }
+    /// The organ element an executor drawing its own florets places
+    /// (fn-229, fn-256).
+    pub fn organ_element(&self) -> Result<Element> {
+        foliage::bloom_element(&self.inputs.bloom)
+    }
+    /// The flowers' rows, the time of year a request draws them at, and
+    /// the farthest a floret stands from its node (fn-229).
+    pub fn bloom(&self) -> (BloomParams, f64, f64) {
+        let p = self.inputs.bloom;
+        (p, foliage::bloom_now(&p, None), foliage::bloom_reach(&p))
     }
     /// The pipeline's own CPU build of this tree: the reference a GPU
     /// expansion falls back to.

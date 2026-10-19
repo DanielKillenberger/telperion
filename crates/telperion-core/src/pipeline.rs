@@ -13,7 +13,7 @@
 //! 5. Tree mesh: wood and leaves with their union bounds (`mesh::build`).
 //!
 //! Wood and leaves read only the skeleton and the plan, so where the target
-//! has threads they run concurrently, and a planned field beside the leaves.
+//! has threads they run concurrently, and the field beside the leaves.
 //! The rings are swept once, by whichever of the wood and seated leaves
 //! reaches them first; the other waits and reads them in place. Where no
 //! wood is drawn, seated leaves sweep bare rings of their own. Every stage
@@ -23,9 +23,10 @@
 //! the Plan's, the leaves', the field's.
 //! The rings' error is the wood's where the wood is drawn, else the leaves'.
 use crate::{presets::Family, tree::Tree, Result};
-use field::Field;
+#[cfg(feature = "geometry")]
+use field::Grid;
 use foliage::{plan, Element, Instances};
-pub(crate) use input::{GrowInput, Inputs, PlanInput};
+pub(crate) use input::{grown_envelope, GrowInput, Inputs, PlanInput};
 use surface::SurfaceMesh;
 
 /// How stages independent of each other are run. `Concurrent` falls back to
@@ -45,10 +46,13 @@ pub struct Request {
     /// The wood as curves, which the renderer surfaces (fn-208).
     pub curve: bool,
     pub leaves: bool,
-    /// A field at the family's limb order (`Some(None)`) or at a stated one.
-    pub field: Option<Option<u32>>,
+    /// The field read out to a grid (fn-257 R8).
+    pub field: Option<FieldRequest>,
     pub structure: bool,
     pub schedule: Schedule,
+    /// The time of year flowers are drawn at, as a share of the year; none
+    /// is the flowering window's middle (fn-216).
+    pub season: Option<f64>,
     /// Milliseconds from any fixed origin; stage timings are its differences.
     pub clock: fn() -> f64,
 }
@@ -61,6 +65,7 @@ impl Default for Request {
             field: None,
             structure: false,
             schedule: Schedule::default(),
+            season: None,
             clock,
         }
     }
@@ -75,6 +80,15 @@ impl Request {
             ..Self::default()
         }
     }
+}
+
+/// A field request names its grid: `n` cells a side over the tree's box
+/// (`field::Frame`), its limb systems opened by laterals of `limb_order` or
+/// less (the family's `clumpSystemOrder` where none is given).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FieldRequest {
+    pub n: u32,
+    pub limb_order: Option<u32>,
 }
 
 /// The monotonic clock native stages are timed by; zero where the target
@@ -95,15 +109,13 @@ pub fn clock() -> f64 {
     }
 }
 
-/// Stage 2's artifact: the solved tree and how many nodes the shell shed.
+/// Stage 2's artifact: the grown tree.
 #[derive(Debug)]
 pub struct Skeleton {
     pub tree: Tree,
-    pub shed: usize,
 }
 
-/// The placed leaves after the cull. A field that read them for a request
-/// that did not ask for leaves keeps only the counts and the box.
+/// The placed leaves after the cull.
 #[derive(Debug)]
 pub struct Leaves {
     pub instances: Instances,
@@ -153,7 +165,14 @@ pub struct Outputs {
     #[cfg(feature = "geometry")]
     pub curve: Option<surface::Curve>,
     pub leaves: Option<Leaves>,
-    pub field: Option<Field>,
+    /// The flowers, where the tree's ages flower and leaves were asked
+    /// for: their element and their florets (fn-216). None on every tree
+    /// that flowers nowhere.
+    #[cfg(feature = "geometry")]
+    pub organ: Option<crate::mesh::Foliage>,
+    /// The field read out to the request's grid (fn-257 R8).
+    #[cfg(feature = "geometry")]
+    pub field: Option<Grid>,
     pub structure: Option<Structure>,
     pub stages: Stages,
 }
@@ -163,16 +182,22 @@ pub struct Built {
     pub outputs: Outputs,
 }
 
-/// Stage 2: grows the family's skeleton, ready to draw. An apex that bears a
-/// rosette bears no twig: where the canopy stands a frond crown, no twig
-/// layer grows above any stem apex, so the fronds stand on bare wood.
+/// Stage 2: the tree-space engine grows the family's species, ready to draw
+/// (`space.rs`). A family with no engine species is refused by name.
 pub(crate) fn skeleton(input: GrowInput) -> Result<Skeleton> {
-    let crowned = input.canopy.rosette_fronds > 0;
-    let report = branching::crowned(input.skeleton, input.radii, crowned)?;
     Ok(Skeleton {
-        tree: report.tree,
-        shed: report.shed,
+        tree: space::grow(input)?,
     })
+}
+
+/// The scaffold's grower, today's stage 2 before the engine, which no
+/// production path reaches: the suite's tests of its stages grow their
+/// trees with it until it is removed (fn-198 R0). An apex that bears a
+/// rosette bears no twig under a frond crown.
+#[cfg(test)]
+pub(crate) fn scaffold(family: &Family) -> Result<Tree> {
+    let crowned = family.canopy.rosette_fronds > 0.0;
+    Ok(branching::crowned(&family.skeleton, family.radii, crowned)?.tree)
 }
 
 /// The first step of expansion, which every solved tree passes, grown here
@@ -184,12 +209,17 @@ pub(crate) fn clothe(tree: &mut Tree, inputs: &Inputs) -> Result<()> {
 }
 
 /// Runs every stage the request needs, from the family on. The family is
-/// read once, into each stage's own input.
+/// read once, into each stage's own input. A field's grid is checked
+/// before any stage runs.
 pub fn build(family: &Family, request: Request) -> Result<Built> {
+    if let Some(f) = request.field {
+        field::Frame::side(f.n)?;
+    }
     let started = (request.clock)();
     let mut skeleton = skeleton(GrowInput::of(family))?;
-    let inputs = Inputs::of(family);
+    let inputs = Inputs::of(family, grown_envelope(&skeleton.tree));
     clothe(&mut skeleton.tree, &inputs)?;
+    fitted(&mut skeleton.tree);
     // The skeleton's time keeps the clothing it always held.
     let grown = (request.clock)();
     let mut outputs = outputs(&skeleton.tree, &inputs, request)?;
@@ -198,10 +228,26 @@ pub fn build(family: &Family, request: Request) -> Result<Built> {
     Ok(Built { skeleton, outputs })
 }
 
+/// Gives back what growth reserved past the tree's own length before the
+/// wood reserves its buffers (fn-291 R2a): a node buffer doubled while it
+/// grew keeps up to twice its nodes, and 32-bit Wasm holds the spare through
+/// the build.
+fn fitted(tree: &mut Tree) {
+    tree.nodes.shrink_to_fit();
+    tree.sections.shrink_to_fit();
+    tree.frames.shrink_to_fit();
+    tree.keys.shrink_to_fit();
+    tree.grown.shrink_to_fit();
+    tree.blooms.shrink_to_fit();
+    tree.clusters.shrink_to_fit();
+    tree.clustered.shrink_to_fit();
+    tree.leafing.shrink_to_fit();
+    tree.unfolding.shrink_to_fit();
+}
+
 /// Runs stages 3 and 4 on a skeleton already grown. Without the `geometry`
-/// feature only the plan's outputs are built: the field from the leaf plan
-/// and the structure. Wood, leaves and a field a family's plan cannot
-/// describe are refused there, since they need placement.
+/// feature only the structure is built: wood, leaves and the field, which
+/// reads the drawn tree, are refused there by name.
 pub(crate) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<Outputs> {
     #[cfg(feature = "geometry")]
     return drawn::outputs(tree, inputs, request);
@@ -209,6 +255,11 @@ pub(crate) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     planned::outputs(tree, inputs, request)
 }
 
+// The scaffold's parameter groups, its leaf bases and the skeleton's
+// validation. Its grower (the scaffold, its twig layer and radius solve)
+// compiles only into tests: no production path reaches it since the engine
+// is stage 2 (fn-198), and the suite grows its tests' trees with it until
+// fn-288 removes it.
 mod bias;
 mod branching;
 mod colonization;
@@ -219,6 +270,9 @@ mod foliage;
 #[cfg(all(test, feature = "geometry"))]
 mod footprint;
 mod radius;
+mod space;
+/// Growth that continues from any age (fn-270 R2).
+pub use space::growth;
 mod surface;
 mod twigs;
 /// What the rest of the crate reads of the stages: the family's own checks.
@@ -236,5 +290,5 @@ mod input;
 #[cfg(not(feature = "geometry"))]
 mod planned;
 mod stage;
-#[cfg(test)]
+#[cfg(all(test, feature = "geometry"))]
 mod tests;

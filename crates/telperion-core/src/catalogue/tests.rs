@@ -1,4 +1,4 @@
-use super::{check::GROUP_LIMIT, entries, Dial, Growth, Kind};
+use super::{check::GROUP_LIMIT, entries, entry, Dial, Growth, Kind, Stage};
 use crate::{presets::Preset, Family};
 use std::collections::BTreeMap;
 
@@ -16,7 +16,7 @@ const PRESETS: [Preset; 8] = [
 #[test]
 fn every_wire_row_has_one_entry() {
     let paths: Vec<_> = entries().map(|e| e.path()).collect();
-    assert_eq!(paths.len(), 250);
+    assert_eq!(paths.len(), 368);
     let mut seen = std::collections::BTreeSet::new();
     for path in &paths {
         assert!(seen.insert(*path), "{path} is declared twice");
@@ -182,16 +182,32 @@ fn the_deprecated_rows_parse_overlay_and_serialise_as_before() {
 fn every_row_has_its_own_rank_on_the_wire() {
     let mut ranks: Vec<u16> = entries().map(|e| e.info().wire).collect();
     ranks.sort_unstable();
-    assert_eq!(ranks, (0..250).collect::<Vec<u16>>());
+    assert_eq!(ranks, (0..368).collect::<Vec<u16>>());
 }
 
 /// A row no direct-build stage reads says so: the removed growth path's own
-/// rows and the deprecated ones name no stage, and every other row names one.
+/// rows and the deprecated ones name no stage, and neither do the scaffold's
+/// rows the engine replaced (fn-284): only the grown tree's envelope is
+/// read, and the engine reads none of the skeleton's rows but the seed.
 #[test]
 fn every_row_names_the_stages_that_read_it() {
     for e in entries() {
         let info = e.info();
-        let unread = info.deprecated || info.growth == Growth::Only;
-        assert_eq!(info.reads.is_empty(), unread, "{}", e.path());
+        if info.deprecated || info.growth == Growth::Only {
+            assert!(info.reads.is_empty(), "{}", e.path());
+        }
+        let scaffold = ["/skeleton/", "/radii/"]
+            .iter()
+            .any(|g| e.path().starts_with(g));
+        if scaffold && info.reads.contains(&Stage::Grow) {
+            assert_eq!(e.path(), "/skeleton/seed", "the engine reads no such row");
+        }
+    }
+    for path in [
+        "/shellDepth",
+        "/skeleton/envelope/height",
+        "/skeleton/habit/codominance",
+    ] {
+        assert!(entry(path).unwrap().info().reads.is_empty(), "{path}");
     }
 }

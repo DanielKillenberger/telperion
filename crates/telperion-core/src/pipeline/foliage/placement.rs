@@ -1,10 +1,10 @@
 //! Leaf placement: every station on every bearing run, as a transform.
 use super::{
     canopy::validate,
-    clumping,
-    plan::bearing_runs,
-    rosette, short_shoots,
-    station::{place_run, reserve_all, station_count, walk, Run},
+    clumping, cluster, organs,
+    plan::{bearing_runs, cauline, kept, station_at, station_count, walk},
+    rosette,
+    station::{self, place_run, reserve_all, Run},
     CanopyParams, Instances, Reference, TwigPlacement,
 };
 use crate::{
@@ -22,8 +22,15 @@ pub fn place(
     twig: Option<TwigPlacement>,
     reference: Reference,
 ) -> Result<Instances> {
-    place_on(tree, envelope, seed, p, twig, None, reference)
+    place_on(tree, envelope, seed, p, twig, None, reference, SUITE_BLADE)
 }
+
+#[cfg(test)]
+/// The blade the suite's placement measures a young frond's segments
+/// against: the default leaf's (`ElementParams`), its connector and its
+/// length. A family's own is its element's (`crown::blade`), which the
+/// pipeline passes.
+const SUITE_BLADE: f64 = 0.13;
 
 #[cfg(test)]
 /// Seat the foliage on the actual swept polygon, including fork sockets, as far
@@ -41,7 +48,16 @@ pub fn place_on_surface(
         return place(tree, envelope, seed, p, twig, reference);
     }
     let contacts = AttachmentSurface::new(tree, envelope.height, surface)?;
-    place_on(tree, envelope, seed, p, twig, Some(&contacts), reference)
+    place_on(
+        tree,
+        envelope,
+        seed,
+        p,
+        twig,
+        Some(&contacts),
+        reference,
+        SUITE_BLADE,
+    )
 }
 /// Everything both the builder and the count check before a leaf is placed,
 /// and whether this tree and this family bear any at all.
@@ -52,6 +68,10 @@ fn bearing(
     twig: Option<TwigPlacement>,
 ) -> Result<bool> {
     validate(tree, envelope, p, twig)?;
+    // Retention reads stations on the twig layer's grid (fn-248).
+    if twig.is_none() && !tree.leafing.is_empty() {
+        return Err(Error::InvalidInput("leaf retention without a twig layer"));
+    }
     if tree.nodes.len() < 2 || p.size == 0. {
         return Ok(false);
     }
@@ -76,39 +96,49 @@ fn bearing(
 /// twig layer marked, or the terminal shoots slender enough for `shoot_radius`
 /// where there is no twig layer.
 fn runs(tree: &Tree, p: CanopyParams, twig: Option<TwigPlacement>) -> Vec<Vec<usize>> {
-    // A stem that bears a frond crown bears nothing along its length.
-    if rosette::bearing(&p) {
-        return Vec::new();
-    }
     match twig {
         Some(_) => bearing_runs(tree, p),
-        None => shoots(tree, tree.stem_radius(|i| tree.pipe(i)[1]) * p.shoot_radius),
+        None => {
+            let slender = tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius;
+            let shoots = shoots(tree, slender);
+            shoots
+                .into_iter()
+                .filter(|run| cauline(tree, p, run))
+                .collect()
+        }
     }
 }
 
-/// Leaves these runs and this family's short shoots place, before any cull.
+/// Leaves these runs and this family's clusters place, before the
+/// clumping's cull: the stations that keep their leaves (fn-248).
 fn leaves_on(
     tree: &Tree,
     envelope: Envelope,
-    seed: u32,
     p: CanopyParams,
     twig: Option<TwigPlacement>,
     runs: &[Vec<usize>],
 ) -> Result<usize> {
     let overflow = || Error::ResourceLimit("foliage count overflow");
-    let (mut points, mut along) = (Vec::new(), Vec::new());
-    let leaflets = rosette::leaflets(&p);
-    let mut total = if rosette::bearing(&p) {
-        rosette::count(tree, &p)?
-    } else {
-        short_shoots::count(tree, envelope, seed, &p)?
-    };
+    let (mut points, mut chord, mut along) = (Vec::new(), Vec::new(), Vec::new());
+    let mut total = rosette::count(tree, &p)?
+        .checked_add(cluster::count(tree, &p)?)
+        .ok_or_else(overflow)?;
     for nodes in runs {
-        let length = walk(tree, nodes, &mut points, &mut along);
-        total = station_count(length, envelope, p, twig)?
-            .checked_mul(leaflets)
-            .and_then(|leaves| total.checked_add(leaves))
-            .ok_or_else(overflow)?;
+        let length = walk(tree, nodes, twig, &mut points, (&mut chord, &mut along));
+        let count = station_count(length, envelope, p, twig)?;
+        let key = tree.key(nodes[1]);
+        for k in 0..count as u32 {
+            let kept = match twig {
+                Some(t) if !tree.leafing.is_empty() => {
+                    kept(tree, (nodes, &along), station_at(k as usize, t), k).is_some()
+                }
+                _ => true,
+            };
+            if kept {
+                let leaves = organs::leaflets(&station::placement(&p, key, k));
+                total = total.checked_add(leaves).ok_or_else(overflow)?;
+            }
+        }
     }
     Ok(total)
 }
@@ -120,18 +150,19 @@ fn leaves_on(
 pub(crate) fn leaf_count(
     tree: &Tree,
     envelope: Envelope,
-    seed: u32,
     p: CanopyParams,
     twig: Option<TwigPlacement>,
 ) -> Result<usize> {
     if !bearing(tree, envelope, p, twig)? {
         return Ok(0);
     }
-    leaves_on(tree, envelope, seed, p, twig, &runs(tree, p, twig))
+    leaves_on(tree, envelope, p, twig, &runs(tree, p, twig))
 }
 
 /// Places on the contact surface given, swept or read from a built wood;
-/// `None` where the family seats no leaf on the wood.
+/// `None` where the family seats no leaf on the wood. `blade` is the leaf
+/// element's reach a young frond's segments are measured against.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn place_on(
     tree: &Tree,
     envelope: Envelope,
@@ -140,6 +171,7 @@ pub(crate) fn place_on(
     twig: Option<TwigPlacement>,
     contacts: Option<&AttachmentSurface<'_>>,
     reference: Reference,
+    blade: f64,
 ) -> Result<Instances> {
     if !bearing(tree, envelope, p, twig)? {
         return Ok(Instances::new(reference));
@@ -150,18 +182,18 @@ pub(crate) fn place_on(
     // every later reserve finds the room already there, so the vector's
     // capacity is that count and nothing the cull or the clumping retains
     // holds a block larger than the specimen was said to cost.
-    reserve_all(
-        &mut out,
-        leaves_on(tree, envelope, seed, p, twig, &runs)?,
-        p,
-    )?;
-    let mut rng = Rng::new(seed ^ 0x2c9e1a7f);
+    reserve_all(&mut out, leaves_on(tree, envelope, p, twig, &runs)?, p)?;
     // Which wood bears each leaf, kept only where limb systems clump.
     let mut owners = (p.limb_clumping > 0.).then(Vec::new);
     for nodes in runs {
+        // Each run draws from its own stream, keyed by its first node, so a
+        // leaf's draws never depend on the order the runs are walked in
+        // (fn-212, host decision 2026-10-07).
+        let mut rng = Rng::new(crate::tree::leaf_stream(seed, tree.key(nodes[1])));
         place_run(
             &Run {
                 tree,
+                seed,
                 nodes: &nodes,
                 envelope,
                 params: p,
@@ -175,14 +207,12 @@ pub(crate) fn place_on(
             owners.resize(out.leaves.len(), nodes[1] as u32);
         }
     }
-    // The second source: a rosette at every stem apex where the rows state
-    // one, else short shoots over the limbs and branches. Either draws from
-    // its own wood's stream, so the leaves above keep every byte.
-    if rosette::bearing(&p) {
-        rosette::clothe(tree, seed, &p, &mut out, owners.as_mut())?;
-    } else {
-        short_shoots::clothe(tree, envelope, seed, &p, &mut out, owners.as_mut())?;
-    }
+    // The short shoots' clusters at their tips (fn-223), on their own
+    // streams.
+    cluster::clothe(tree, seed, p, &mut out, owners.as_mut())?;
+    // A rosette at every stem apex where the rows state one, on its own
+    // wood's stream, so the leaves above keep every byte.
+    rosette::clothe(tree, seed, &p, blade, &mut out, owners.as_mut())?;
     if let Some(owners) = owners {
         clumping::thin(tree, &owners, seed, p, &mut out);
     }
@@ -204,7 +234,7 @@ fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {
     let leader = |at: usize| {
         let mut best = children[at][0];
         for &c in &children[at][1..] {
-            if tree.pipe(c)[0] > tree.pipe(best)[0] {
+            if tree.nodes[c].start_radius > tree.nodes[best].start_radius {
                 best = c;
             }
         }
@@ -237,12 +267,12 @@ fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {
             run.push(next);
             at = next;
         }
-        if tree.pipe(at)[1] > max_radius {
+        if tree.nodes[at].radius > max_radius {
             continue;
         }
         let last = run.len() - 1;
         let mut first = last;
-        while first > 0 && tree.pipe(run[first - 1])[1] <= max_radius {
+        while first > 0 && tree.nodes[run[first - 1]].radius <= max_radius {
             first -= 1;
         }
         if first == last {

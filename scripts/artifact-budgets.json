@@ -1,5 +1,5 @@
 {
-  "recipe": "npm run build on the pinned toolchain: scripts/build-wasm.mjs (release, the slim module stripped), scripts/build-render.mjs, then vite build",
+  "recipe": "npm run build on the pinned toolchain: scripts/build-wasm.mjs, scripts/build-render.mjs, then vite build",
   "note": "Two limits (docs/principles.md). A ceiling is set by the owner from what the product's consumers need; crossing one is an owner decision, never a routine raise. The growth share limits how much one PR may grow an artifact over its base; a PR whose Decisions section names the artifact passes above it. baselineBytes is a recorded measurement, not a limit.",
   "growthPercent": 5,
   "growthReason": "An ordinary feature grows an artifact by a percent or two (fn-170's fork rule: +1.1 percent on the main module; fn-152, fn-61 and fn-170 together used 5 percent in one day), while the change the check exists to stop, fn-150's first slim build, grew the field module 48 percent in one PR. 5 percent per PR lets a feature through and stops a change of that kind unless the PR names it.",
@@ -13,22 +13,15 @@
     },
     {
       "path": "dist/telperion-render.wasm",
-      "ceilingBytes": 2200000,
-      "reason": "owner, 2026-09-27: headroom for the render module",
+      "ceilingBytes": 3700000,
+      "reason": "owner, 2026-10-16 (fn-237, \"fix the rest as proposed\"): raised to the size measured on fn-257's branch (3601258 bytes) and a small margin for this release; fn-242 brings the modules down after it",
       "baselineBytes": 1985291,
       "baselineOn": "master ed23f773 CI package (PR #131)"
     },
     {
-      "path": "dist/telperion-field.wasm",
-      "ceilingBytes": 400000,
-      "reason": "owner, 2026-09-27: kept small, the homepage loads only the slim field module",
-      "baselineBytes": 363305,
-      "baselineOn": "master ed23f773 CI package (PR #131)"
-    },
-    {
       "path": "dist/telperion.js",
-      "ceilingBytes": 150000,
-      "reason": "owner, 2026-09-27: headroom for the main entry script",
+      "ceilingBytes": 200000,
+      "reason": "owner, 2026-10-16 (fn-237, \"fix the rest as proposed\"): raised to the size measured on fn-257's branch (194685 bytes) and a small margin for this release; fn-242 brings the modules down after it",
       "baselineBytes": 119550,
       "baselineOn": "master ed23f773 CI package (PR #131)"
     },
@@ -38,6 +31,13 @@
       "reason": "owner, 2026-09-27: headroom for the field entry script",
       "baselineBytes": 2720,
       "baselineOn": "master ed23f773 CI package (PR #131)"
+    },
+    {
+      "path": "dist/wasm-source.js",
+      "ceilingBytes": 70000,
+      "reason": "fn-257, 2026-10-16: the chunk the main and the field entries share since the field grows through the renderer's glue (64,564 bytes on fn-257's branch); owner's 2026-10-16 decision on raised ceilings, fn-242 after the release",
+      "baselineBytes": 64564,
+      "baselineOn": "fn-257-device-field bdf5c51b3, npm run build"
     },
     {
       "path": "dist/voxelize.js",
