@@ -1326,6 +1326,12 @@
     "reason": "A frond drawn at no size has no blade to split; its strips scale nothing (fn-275 R2b)."
   },
   {
+    "path": "crates/telperion-core/src/pipeline/foliage/rachis.rs",
+    "site": ". max ( FINEST )",
+    "classification": "numeric",
+    "reason": "A frond's axis tapers to its tip but is never drawn finer than the finest wood the engine draws (fn-283 R3); a drawing tolerance, not a population limit."
+  },
+  {
     "path": "crates/telperion-core/src/pipeline/space/establish.rs",
     "site": ". max ( r . min ( FINEST ) )",
     "classification": "numeric",

@@ -19,17 +19,20 @@ fn family(id: &str, seed: u32) -> Family {
 }
 
 /// Every retained base the tree carries as wood, newest first: the node its
-/// run leaves the axis at, and the node that stands out of the bark.
+/// run leaves the axis at, and the node that stands out of the bark. A
+/// frond's axis (fn-283) is a run of the same wood that carries on past
+/// its second node; a base ends there.
 fn hung(tree: &Tree) -> Vec<(usize, usize)> {
     let branch = |i: usize| tree.nodes[i].kind == NodeKind::Branch;
+    let child =
+        |of: usize| (of + 1..tree.nodes.len()).find(|&i| tree.nodes[i].parent == Some(of as u32));
     (1..tree.nodes.len())
         .filter(|&i| branch(i) && !branch(tree.nodes[i].parent.unwrap() as usize))
         .map(|attach| {
-            let tip = (attach + 1..tree.nodes.len())
-                .find(|&i| tree.nodes[i].parent == Some(attach as u32))
-                .expect("a base that leaves the axis stands out of the bark");
+            let tip = child(attach).expect("a base that leaves the axis stands out of the bark");
             (attach, tip)
         })
+        .filter(|&(_, tip)| child(tip).is_none())
         .collect()
 }
 
@@ -187,7 +190,8 @@ fn weathering_wears_the_lowest_bases_back() {
 #[test]
 fn the_bases_absent_leave_the_skeleton_where_it_was() {
     let mut f = family("date-palm", 1);
-    f.canopy.leaf_bases = 0.0;
+    // The clothing absent: no base, and no frond axis (fn-283).
+    (f.canopy.leaf_bases, f.canopy.rachis_width) = (0.0, 0.0);
     let grown = mesh::grow(&f).expect("the skeleton grows");
     let bare = branching::crowned(&f.skeleton, f.radii, true)
         .expect("the skeleton grows")
@@ -229,7 +233,9 @@ fn raising_the_bases_moves_the_palms_own_wood() {
 fn a_base_never_thickens_the_trunk_it_hangs_on() {
     let f = family("date-palm", 1);
     let mut bare = f.clone();
-    bare.canopy.leaf_bases = 0.0;
+    // Nothing clothes the bare stem: no base, and no frond axis (fn-283),
+    // which is hung after the solve beside them.
+    (bare.canopy.leaf_bases, bare.canopy.rachis_width) = (0.0, 0.0);
     let (with, without) = (
         mesh::grow(&f).expect("the skeleton grows"),
         mesh::grow(&bare).expect("the skeleton grows"),

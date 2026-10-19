@@ -23,9 +23,16 @@ const ON: f64 = 1e-3;
 /// The thinnest wood the engine draws (`space.rs`).
 const FINEST: f64 = 2e-4;
 
+/// The rachis width these tests draw the palm at: the shipped palm keeps
+/// zero until the device draws its axes (fn-283 .3, conductor), which sets
+/// this value (FAO 156 ch. I).
+const WIDTH: f64 = 0.25;
+
+/// The date palm with its fronds' axes drawn, on a table of its own.
 fn palm(age: f64) -> Family {
     let mut f = Preset::DatePalm.parameters();
     (f.skeleton.seed, f.age) = (1, age);
+    f.canopy.rachis_width = WIDTH;
     f
 }
 
@@ -177,7 +184,7 @@ fn an_axis_is_dormant_without_width_or_leaflets_and_tapers() {
     assert_eq!(bare.tree().nodes.len() + hung, tree.nodes.len());
     for axis in &drawn {
         let r = &axis.radii;
-        assert!(r[0] <= f.canopy.rachis_width / 2.);
+        assert!(r[0] <= WIDTH / 2.);
         assert!(r.iter().all(|&r| r >= FINEST));
         assert!(r.windows(2).all(|w| w[1] <= w[0]), "an axis thickens");
     }
@@ -258,7 +265,7 @@ fn no_leaf_is_borne_on_the_clothing() {
             let x = executor::grow(&f).unwrap().expansion().unwrap();
             x.mesh().unwrap().foliage.instances.len()
         };
-        let (bare, drawn) = (count(0.), count(0.25));
+        let (bare, drawn) = (count(0.), count(WIDTH));
         println!("shoot radius {shoot}: {bare} leaves at width 0, {drawn} at 0.25");
         assert_eq!(drawn, bare, "the axes bear leaves at shoot radius {shoot}");
     }
