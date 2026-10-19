@@ -141,3 +141,33 @@ fn a_build_keeps_nothing_on_the_device_once_it_is_done() {
         (after - before) >> 10
     );
 }
+
+/// fn-294 R2: a flowering tree's memory counts its flowers. The bytes
+/// reported are the bytes releasing the tree hands back, flowers among
+/// them, and a replacement that fits once they are let go is admitted.
+#[test]
+fn a_flowering_tree_s_memory_counts_its_flowers() {
+    let Some((mut renderer, gen, _, tree)) = drawn("laurelin") else {
+        return;
+    };
+    let organ = renderer.organ.allocated_bytes();
+    assert!(organ > 0, "the laurelin at 12 flowers");
+    let next = family("laurelin", 12);
+    pollster::block_on(crate::generation::io::complete(&gen.gpu)).unwrap();
+    let held = gen.gpu.ledger.live();
+    // Room for the next tree once all three layers are let go, no more.
+    let layers = renderer.wood.allocated_bytes() + renderer.foliage.allocated_bytes() + organ;
+    let budget = held - layers + peak(&next);
+    let admitted = Generator::admit(&next, &renderer, budget).unwrap();
+    assert_eq!(admitted, Admitted::MakeRoom);
+    renderer.release_tree();
+    pollster::block_on(crate::generation::io::complete(&gen.gpu)).unwrap();
+    // Releasing hands back the three layers and a few bytes besides (the
+    // existing room tests hold the same `<=`): never less than reported, and
+    // never a whole layer of flowers more.
+    let freed = held - gen.gpu.ledger.live();
+    assert!(
+        freed >= tree && freed - tree < organ,
+        "{freed} freed, {tree} reported"
+    );
+}
