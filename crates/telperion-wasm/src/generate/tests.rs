@@ -160,3 +160,48 @@ fn chunks_read_whole(out: &Output, meta: &Value, id: &str) {
     assert_eq!(crate::chunk_field(out, count, 0).1, 0, "{id}");
     assert_eq!(crate::chunk_field(out, 0, 3).1, 0, "{id}");
 }
+
+/// The flowers cross the binding (fn-294 R1): where the pipeline grows an
+/// organ for a shipped preset, its element, its florets and their reference
+/// reach the output slots and the metadata whole; where it grows none, or no
+/// foliage is asked for, the slots are empty and the reference is null.
+#[test]
+fn flowers_cross_the_binding_where_the_pipeline_grows_them() {
+    let words = telperion_core::foliage::WORDS;
+    let mut flowering = Vec::new();
+    for &(_, id, _, _) in params::CATALOGUE.iter() {
+        let f = params::by_identity(id).unwrap();
+        if f.space.species.is_none() {
+            continue;
+        }
+        let request = pipeline::Request {
+            leaves: true,
+            ..Default::default()
+        };
+        let organ = pipeline::build(&f, request).unwrap().outputs.organ;
+        let (out, meta) = generate(json!({"family": id, "outputs": {"foliage": true}})).unwrap();
+        let len = |n| crate::slot(&out, n).1;
+        let Some(organ) = organ else {
+            assert!([27, 28, 29].iter().all(|&n| len(n) == 0), "{id}");
+            assert_eq!(meta["organReference"], Value::Null, "{id}");
+            continue;
+        };
+        flowering.push(id);
+        let florets = organ.instances.leaves.len();
+        assert!(florets > 0, "{id}: an organ with no floret");
+        assert_eq!(len(27), organ.element.positions.len() * 3, "{id}");
+        assert_eq!(len(28), organ.element.indices.len(), "{id}");
+        assert_eq!(len(29), florets * words, "{id}");
+        let r = organ.instances.reference;
+        let expected = json!({"min": [r.min.x, r.min.y, r.min.z],
+            "extent": [r.extent.x, r.extent.y, r.extent.z]});
+        assert_eq!(meta["organReference"], expected, "{id}");
+        let (bare, meta) = generate(json!({"family": id, "outputs": {"surface": true}})).unwrap();
+        assert!(
+            [27, 28, 29].iter().all(|&n| crate::slot(&bare, n).1 == 0),
+            "{id}"
+        );
+        assert_eq!(meta["organReference"], Value::Null, "{id}");
+    }
+    assert_eq!(flowering, ["telperion", "laurelin"]);
+}
