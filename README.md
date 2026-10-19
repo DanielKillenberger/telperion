@@ -105,7 +105,7 @@ npm run catalogue:check
 npm run typecheck
 npm run build
 npx playwright install chromium
-npm run rust:test:wasm
+npm run test:bindings
 npm run test:render
 npm run dev
 ```
@@ -252,7 +252,7 @@ node scripts/scenic-cut.mjs --out .flow/evidence/fn25/scenic.mp4
 
 `scripts/scenic-cut.mjs` cuts a whole-tree sequence and a leaf sequence, both already on disk, into the one clip: a half-second crossfade from the first into the second, a light grade of contrast, warmth and a soft vignette, and one ffmpeg encode to 1920 by 1080 H.264 at 24 frames a second. It writes `scenic.json` beside the clip naming every input, the grade and the exact invocation, and it re-reads the finished file rather than assuming it. It renders nothing itself, refuses a sequence it cannot find by naming the path, and on a machine with no `ffmpeg` says so in one line and leaves the sequences standing.
 
-`npm run rust:test:wasm` holds the Wasm binding to its contract in a plain headless browser, which needs no adapter at all. `npm run test:render` drives the page on hardware WebGPU: it needs a display, and skips with the renderer's own words when the machine offers no hardware adapter. `npm run species:qa` renders the species stills through the headless target.
+`npm run test:bindings` holds the Wasm binding to its contract (`tests/browser/bindings.mjs`) in a plain headless Chromium, which needs no adapter at all; CI's `bindings` job runs it on every run. `npm run rust:test:wasm` runs the field package's browser suite (`tests/browser/field.mjs`), which grows its trees on WebGPU in a worker: it needs a browser with WebGPU and no CI job runs it. `npm run test:render` drives the page on hardware WebGPU: it needs a display, and skips with the renderer's own words when the machine offers no hardware adapter. `npm run species:qa` renders the species stills through the headless target.
 
 ## Measurements and limits
 

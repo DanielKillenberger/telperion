@@ -42,3 +42,16 @@ GPU process can take WebGPU away until a reboot (fn-235).
     every_shader_passes_tint -- --ignored`. It needs no device. The
     default suite holds Tint's NaN, uniformity and operator-mixing rules
     with checks of its own (`tint_rules`, `tint_mix`).
+
+## The browser suites
+
+- **The binding suite needs no GPU.** `tests/browser/bindings.mjs` holds
+  the Wasm core to its contract in a plain headless Chromium with no
+  WebGPU flag: `npm run test:bindings` (`scripts/test-bindings.mjs`)
+  builds the core, serves the source on a free port and runs it alone.
+  CI's `bindings` job runs it on every run, with no receipt skip. A check
+  that needs an adapter does not belong in it.
+- **The field suite needs WebGPU.** `tests/browser/field.mjs` grows its
+  trees on a WebGPU device in a worker. `npm run rust:test:wasm`
+  (`scripts/test-wasm.mjs`) runs it, only in a browser that has WebGPU,
+  and no CI job runs it: CI has no GPU runner.
