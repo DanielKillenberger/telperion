@@ -44,7 +44,8 @@
     "fn-291-the-cpu-entry-builds-every-shipped",
     "fn-292-the-foliages-level-lists-hold-only-what",
     "fn-293-each-stages-output-has-one-form-and-its",
-    "fn-294-the-release-reviews-findings-are-fixed"
+    "fn-294-the-release-reviews-findings-are-fixed",
+    "fn-283-a-frond-draws-its-rachis"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -64,5 +65,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T09:31:50.001942Z"
+  "updated_at": "2026-10-19T13:25:45.012099Z"
 }

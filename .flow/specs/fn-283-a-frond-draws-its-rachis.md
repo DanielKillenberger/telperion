@@ -1,6 +1,8 @@
 # A frond draws its rachis
 
-After the release (host, 2026-10-15, from fn-275 R2c). The owner, viewing the young date palm: "it looks nice other than having the leaves not being connected in a sensible way". For the release fn-275 crowds a young frond's segments toward its base; this spec draws the rachis itself.
+Release item (owner, 2026-10-19: "option 3", pulling it into 0.2.0 ahead of the film; it was first scheduled after the release by the host on 2026-10-15, from fn-275 R2c). The owner, viewing the young date palm: "it looks nice other than having the leaves not being connected in a sensible way". For the release fn-275 crowds a young frond's segments toward its base; this spec draws the rachis itself.
+
+The film made it visible again (fn-272 cut 4, 2026-10-19). The owner: "As we transition to the palm tree there's some flying leaves that don't make sense." The film agent measured why (fn-272 FILM.md; probe `crates/telperion-render/examples/frond_probe.rs` on the film branch): a frond is placement only, with no node and no wood (`pipeline/foliage/rosette.rs`, `fronds`/`clothe`; `pipeline/foliage/leaflet.rs`, `rachis`/`leaflets`). On the palm at 40 the 111 leaflets along a 6.98 m rachis sit 0.05 of a leaf length from their neighbours, so the frond reads although its median leaflet stands 1.29 m from any drawn wood. On the oak-to-palm walk the rachis length and frond count walk linearly while the leaflet count walks on fn-277's log scale, so at t = 0.5125 a 3.59 m rachis carries 11.3 leaflets, one per 0.32 m, and 203 of 351 leaves stand more than 0.5 m from any drawn wood: the halo runs from walk t = 0.067 to 0.562.
 
 ## Requirements
 
@@ -10,3 +12,4 @@ After the release (host, 2026-10-15, from fn-275 R2c). The owner, viewing the yo
 - **R4:** on the device the frond clock and segment draw move to the earliest stage that needs them (the leaf-base stage), computed once; the worker's estimate was about 1,200 lines (fn-275's friction, now summarized in its spec; 904a17ba7).
 - **R5:** CPU = device; the palm at 40 under 0.5 s warm; stills viewed; the owner's verdict. A leaf-coloured axis material is a later item.
 - **R6 (host, 2026-10-15, from fn-275 R2c):** the spines leave gaps without a drawn rachis: a leaflet next to a basal spine sits 1.0 to 1.88 widths from any other segment on young fronds, the spines 1.9 to 3.2 from f 0.57, and the mature frond 1.39 (fn-275 SEEDLING.md). With the rachis drawn, every leaflet and spine base lies on it.
+- **R7 (owner, 2026-10-19, from fn-272 cut 4):** the walk shows it too. On the film's oak-to-palm walk at age 40 (seed 7), every leaflet base lies on drawn wood at every walk share, measured by the probe's distance from each leaflet base to the nearest drawn wood, across t = 0 to 1; the stills at t = 0.5 and 1 are viewed. The fix is the drawn rachis, not a change to how the walk blends the frond's rows (fn-277's log scale stays).
