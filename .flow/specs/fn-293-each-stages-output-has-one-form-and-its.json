@@ -766,7 +766,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-293-each-stages-output-has-one-form-and-its.md",
-  "status": "open",
+  "status": "done",
   "title": "Each stage's output has one form, and its consumers read it",
   "tracker": {
     "baseHashFlow": null,
@@ -779,5 +779,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T00:37:48.373660Z"
+  "updated_at": "2026-10-19T00:38:22.636159Z"
 }
