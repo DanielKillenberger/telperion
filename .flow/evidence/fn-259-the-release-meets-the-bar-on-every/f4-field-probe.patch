@@ -1,9 +1,9 @@
 diff --git i/crates/telperion-render/examples/field_time.rs w/crates/telperion-render/examples/field_time.rs
 new file mode 100644
-index 000000000..625befe64
+index 000000000..624ec5f5b
 --- /dev/null
 +++ w/crates/telperion-render/examples/field_time.rs
-@@ -0,0 +1,78 @@
+@@ -0,0 +1,80 @@
 +//! fn-259 task 4: F4's per-tree field call, natively, for the scorecard.
 +//! Measurement only, never committed; kept as `f4-field-probe.patch` in
 +//! fn-259's evidence.
@@ -14,7 +14,8 @@ index 000000000..625befe64
 +//! then for each seed, twice: `grow_field(family, 36)`, the call the
 +//! package's field entry makes, to the return of its grid on the host
 +//! (growth, preparation and the 36-cell read-out included). `start_ms` is
-+//! the device and the generator's programs, once a process. `AGE` sets an
++//! the device, the generator and `prepare_programs`, once a process, as the
++//! package's field entry starts (`web/field.rs`). `AGE` sets an
 +//! age in place of the preset's. Prints one JSON line.
 +use std::time::Instant;
 +use telperion_render::{generation::Generator, Gpu};
@@ -28,6 +29,7 @@ index 000000000..625befe64
 +    let started = Instant::now();
 +    let gpu = pollster::block_on(Gpu::request(None))?;
 +    let generator = pollster::block_on(Generator::for_fields_async(gpu))?;
++    pollster::block_on(generator.prepare_programs())?;
 +    let start_ms = ms(started);
 +    let mut rows = Vec::new();
 +    let mut family_age = 0.0;

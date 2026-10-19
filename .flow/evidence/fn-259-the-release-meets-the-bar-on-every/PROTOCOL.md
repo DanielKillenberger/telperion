@@ -16,9 +16,9 @@ Probe binaries, sha256 (copied out of their target directories so a rebuild cann
 | Binary | sha256 |
 |---|---|
 | F4 `frames` | `5cbc010710abd96854ec8ab4316a140b81444b80616635b23afff36e20d17e6b` |
-| F4 `field_time` | `ac6ad81e1923a3cdc2fa9f265a88893d4afd69ddd167a240670e597a424ad17e` |
+| F4 `field_time` | `4d25fdd7569f2e782a1c92406063e97328b3e3268c076324f3666f539e70c6dc` (`f4-field2`; amendment 2) |
 | 0.1.4 `frames` | `74597b0db16253637bca51f368705163c405f80466a92b5c0473c920953e0169` |
-| 0.1.4 `field_time` | `e8d74c0d7ab4f7ed9cad29f921f6a66bcaba37efa543be51e455371c759f9aa2` |
+| 0.1.4 `field_time` | `c3dc7b740ceb42f42a3a66a3f799994be1a5523c659f3b5c4898ca6cc8c2a22d` (`v014-field2`, built with `-p telperion-field` alone; amendment 2) |
 
 Shipped artifacts, sha256. F4's are `npm run build` at `d59dac4e7`. 0.1.4's are the published `telperion-0.1.4.tgz` (npm integrity `sha512-i1aj7U65lg6Qrk4WLi+8/ZpjJ3VRoKLHCTyIlLd+xpptKQyZXB31Lv3+OcIoLwYWH63/0zCLcrbhFxgpU+DDdA==`, file sha256 `d817d3a4a3fa5a07cc89f8e07ddda9973e7fe6246ddb707d6474f4be7d9619af`); its `telperion-field.wasm` is the module TEST5.md measured (`8b894e75…0baba3` there).
 
@@ -38,7 +38,7 @@ The owner's desk: NVIDIA GeForce RTX 3080 (10,240 MiB, driver 610.57.04, VBIOS 9
 
 ## What is measured, per preset
 
-- **Presets:** every preset both versions ship is a scorecard row. 0.1.4 ships `ordinary`, `oregon-white-oak`, `norway-spruce`, `european-beech`, `silver-birch`, `date-palm`, `telperion` and `laurelin` (`Preset::from_id` at `v0.1.4`); F4 ships the same eight. Task 4 measures the oak.
+- **Presets:** a scorecard row is a preset in both versions' package catalogue (`presets::CATALOGUE`, the identities `by_identity` serves). 0.1.4's catalogue holds seven: `ordinary`, `oregon-white-oak`, `norway-spruce`, `silver-birch`, `date-palm`, `telperion` and `laurelin`. The European beech is in 0.1.4's `IN_WORK`, not its catalogue: `by_identity("european-beech")` refuses it, though `Preset::from_id` still draws it. F4's catalogue holds the same seven and the beech. So the beech has no shipped 0.1.4 baseline; whether F4's beech is set beside 0.1.4's unshipped research preset or reported alone is a call for the host before task 5 measures it. Task 4 measures the oak.
 - **Seeds:** 1, 7 and 42, each reported on its own.
 - **Ages.** The product default is each version's own: F4 reads the preset's `/age` (oak 40). 0.1.4's direct build reads no age: `Family::age` is the growth path's alone (`crates/telperion-core/src/family.rs:14` at `v0.1.4`), so its tree is the mature specimen whatever the row says. The matched-age diagnostic draws F4 at the age 0.1.4's row carries (`Family::default`, 100, for the oak: no preset overrides it). This is fn-258's precedent, which drew F4 at master's row ages. Diagnostic rows are F4-only (0.1.4 draws one tree at any age) and are reported apart, never as the scorecard's verdict.
 - **Route:** the harness's GPU build, `setTreeGpu` on both versions: `Generator::prepare` (0.1.4 with `Delivery::Resident`), `submit_prepared`, the material, a draw. 0.1.4's synchronous `setTree` (CPU mesh) is not measured.
@@ -76,7 +76,7 @@ Every job runs as one row of `scripts/gpu-row.mjs` inside `telperion-heavy … -
 - **Residual:** under the host's rule (a), 2026-10-19, the processes on the card at the start (the desktop's clients) are recorded with their memory and do not invalidate the row, so a non-Telperion compute job already running at the start is recorded, not caught. A GPU user that lives under 250 ms is not caught either.
 - **Load:** each row records the card's free memory, used memory and utilisation at its start and end (`gpu_start`, `gpu_end`) and the one-minute load average when the probe read its memory (`probe.load`). Free device memory at the start is a column of the row.
 - **Invalid rows:** an invalid row is run once more. A second invalid run is recorded invalid. A failed, refused or invalid run is a row marked so: it is never a sample, never a pass, and its job is named in `SCORECARD.md`.
-- **Stops:** a probe is killed at 10 minutes (`timeout 600`), and the run stops with a FRICTION.md entry and NEEDS_HUMAN. So does a card that stays shared for 30 minutes.
+- **Stops:** a probe is killed at 10 minutes (`timeout 600`), and the run stops with a FRICTION.md entry and NEEDS_HUMAN. So does a job not admitted within 30 minutes: the whole job (`telperion-heavy`'s admission, gpu-row's wait for a quiet card and the probe) is bounded at 40 minutes (`timeout 2400`), and a job that ends at that bound with no row stops the run.
 
 ### Raw results and progress
 
@@ -103,11 +103,14 @@ job() {  # <id> <mem GB> <vram GB> <env and command...>
   local try before line valid rc
   for try in 1 2; do
     before=$(wc -l < "$ROWS")
-    telperion-heavy "$mem" --gpu "$vram" --threads 4 -- \
+    timeout 2400 telperion-heavy "$mem" --gpu "$vram" --threads 4 -- \
       node scripts/gpu-row.mjs "$ROWS" -- \
       timeout 600 env __GL_SHADER_DISK_CACHE=0 RAYON_NUM_THREADS=4 "$@"
     rc=$?
     line=$((before + 1))
+    if [ "$rc" -eq 124 ] && [ "$(wc -l < "$ROWS")" -eq "$before" ]; then
+      echo "$id unadmitted" >> "$PROG"; echo "run-oak: $id not started within 40 minutes" >&2; exit 3
+    fi
     if [ "$(wc -l < "$ROWS")" -ne "$line" ]; then
       echo "$id norow rc $rc" >> "$PROG"; echo "run-oak: $id wrote no row" >&2; exit 3
     fi
@@ -148,14 +151,14 @@ for s in 1 2 3; do
   done
 done
 for s in 1 2 3 4 5; do
-  pair "f-f4-$s" 4 3 $B/f4-field $OAK 1,7,42 -- "f-v014-$s" 4 0 $B/v014-field $OAK 1,7,42
+  pair "f2-f4-$s" 4 3 $B/f4-field2 $OAK 1,7,42 -- "f2-v014-$s" 4 0 $B/v014-field2 $OAK 1,7,42
 done
 # Matched-age diagnostics: F4 at the age 0.1.4's oak row carries (100).
 for seed in 1 7 42; do
   job "dt-f4-100-$seed" 12 5 AGE=100 SEED=$seed $B/f4-frames $OAK $VIEWS
   job "dm-f4-100-$seed" 12 5 ONE_BUILD=1 AGE=100 SEED=$seed $B/f4-frames $OAK
 done
-job "df-f4-100" 12 5 AGE=100 $B/f4-field $OAK 1,7,42
+job "df-f4-100" 12 5 AGE=100 $B/f4-field2 $OAK 1,7,42
 echo "run-oak: done" >&2
 ```
 
@@ -167,10 +170,15 @@ Before the first row, one protocol check (`raw/t4-checks.jsonl`, not a sample): 
 - **Owner tolerances** (spec, "Owner decisions"), the only ones counted:
   - fn-237 R0a's build budget: every shipped tree ready in under 0.5 s warm in the harness on this card. Telperion and Laurelin about 1.25 s, and Telperion's 1.33 s at seed 42 accepted, 2026-10-16. A warm build worse than 0.1.4 but under its budget at every seed is covered. The budget names warm builds only, so a worse fresh build is not covered.
   - The spruce's per-tree field at about 0.35 s against 0.1.4's 0.24 s, "acceptable", 2026-10-16. It covers the spruce's field call only.
-  - The artifact ceilings raised to the sizes measured after fn-257, 2026-10-16 (`scripts/artifact-budgets.json`). An artifact larger than 0.1.4's but under its ceiling is covered. One without a ceiling is not.
+  - The artifact ceilings raised to the sizes measured after fn-257, 2026-10-16 (`scripts/artifact-budgets.json`). A ceiling is in raw bytes: an artifact whose raw size is larger than 0.1.4's but under its ceiling is covered in raw bytes; its gzip and brotli growth, and any artifact or total without a ceiling, is not (amendment 4).
 - Every other worse row, by any amount, is a **regression** and goes to R3's ledger (task 7) for the owner with its measured size.
 - Matched-age rows carry no verdict.
 
 ## Amendments
 
 - **2026-10-19 05:16 (task 4), before any matched-age row:** the matched-age jobs' memory cap is 12 GB, not 14. The desk never had 14 GB of room (FRICTION.md); fn-258's oak at 100 peaked at 9.1 GB. The cap only kills a job over it; no measured row changes.
+- **2026-10-19 05:40 (task 4, after review), before any `f2-` row:**
+  1. **Catalogue:** a scorecard row is a preset in both package catalogues. 0.1.4's holds seven; the beech has no shipped 0.1.4 baseline (Presets, above).
+  2. **The field probes are rebuilt and their rows rerun** (`f2-` jobs). The first 0.1.4 `field_time` was built in one cargo command with `telperion-render`, so feature unification gave `telperion-core` its `geometry` feature and the field came from the drawn pipeline (`pipeline::drawn`), not the slim package's plan. It is now built with `-p telperion-field` alone (`--profile ci`, the same target directory). F4's `start_ms` now includes `prepare_programs`, as the package's field entry starts (`crates/telperion-render/src/web/field.rs`). The first field rows (`f-` jobs) are superseded and not counted.
+  3. **The wait bound:** each job is bounded at 40 minutes (Stops, above), so a card that stays shared stops the run instead of waiting.
+  4. **Download verdicts:** an artifact ceiling is in raw bytes and covers raw growth only. Gzip and brotli growth is a regression unless the owner says the ceiling covers it.
