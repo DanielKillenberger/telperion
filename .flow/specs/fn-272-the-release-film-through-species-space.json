@@ -11,7 +11,9 @@
     "fn-251-a-walk-never-grows-a-tree-larger-than"
   ],
   "id": "fn-272-the-release-film-through-species-space",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-272-the-release-film-through-species-space.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
@@ -168,10 +170,62 @@
       "task": "fn-272-the-release-film-through-species-space.1",
       "timestamp": "2026-10-14T09:19:24.991800Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2da07f2ec27c3865c19b48a325b1619eb549ecb68832afbffc8e24f2ab3f8d63",
+      "backend": "codex",
+      "base_sha": "d7309355e10fb409eebc850cec55cd0ba6173dda",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-aa9cee540da8d3fc207c154ddab86523",
+            "classification": "introduced",
+            "findingId": "finding-aa9cee540da8d3fc207c154ddab86523",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-be7224fe12a16bf8f3a3b2f440f8a846",
+            "classification": "introduced",
+            "findingId": "finding-be7224fe12a16bf8f3a3b2f440f8a846",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "1f740a644e675b0269176fd0325a89d03b14b2b2",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1293,
+      "output_sha256": "7920d3aab1dbe5bd593dda249d26119f23206124bee35972ad1de52fa6b7f81f",
+      "reservation_id": "60b2b142614e408d9b677f4e242e144a",
+      "round_consumed": true,
+      "scope": "impl:fn-272-the-release-film-through-species-space.1",
+      "superseded_by": null,
+      "task": "fn-272-the-release-film-through-species-space.1",
+      "timestamp": "2026-10-19T10:04:40.426246Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-272-the-release-film-through-species-space.1": 1
+    "impl:fn-272-the-release-film-through-species-space.1": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -192,5 +246,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T10:00:50.534441Z"
+  "updated_at": "2026-10-19T10:04:40.429694Z"
 }

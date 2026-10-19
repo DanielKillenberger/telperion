@@ -1,5 +1,19 @@
 # fn-272 task 1: the path, the map, the film tool and the first cut (worker, 2026-10-14)
 
+## Rework on the owner's verdict on cut 3 (2026-10-19)
+
+The owner: "the idea i think is right just some execution flaws". The film branch merged the release branch (fn-198, 467 commits; one conflict, the `telperion-space` exports, resolved as their union; the map drops `Scale::Whole`, retired by fn-277). Clips are in `raw/clips/` (ignored), cut from `release.json` by `clips.py`.
+
+1. **Year blending: the owner's look (NEEDS_HUMAN).** The release engine settles within a year only through fn-270's seasonal year (`telperion_space::unfold::Season`: leaves colour and fall after the whole age, every leaf of the year grows from nothing at budburst, full leaf again at the next whole age), so continuous growth without the leaves going and coming back does not exist on it; that is the grow-in the owner rejected. The treatment between whole years is now a path value, `fade`, the share of each year over which the next whole year fades in, eased (`path::faded`): 0 a hard step at the year, 1 a fade across it (cut 3's look, now eased). Candidates rendered: `raw/clips/beech-fades.mp4` and `raw/clips/laurelin-fades.mp4` (fade 0, 0.25 and 1 side by side; the beech 1 to 40 and the Laurelin 1 to 80, 7 s each), the single clips beside them. Frame 101 (beech 19.85) viewed for each: fade 0 one crown; fade 0.25 the next year's crown faint over the last quarter only; fade 1 faint across the year. At 7 s the beech steps 5.6 times a second and the Laurelin 11. `release.json` holds 1 until the owner picks.
+2. **Map labels.** A label that would overlap another, a dot or the axis names, or leave the panel, steps a line down, then up, set off right with a leader line to its dot (`overlay.rs`, `place`); the dots stay where the projection puts them and the straight-walk test passes unchanged. `tests/film_overlay.rs`: no two labels overlap, none covers an axis name or leaves the panel, at most one of the beech, Laurelin and Telperion stays at its dot; red with the placement removed. Viewed on `raw/clips/labels-crop.png`. The last walk still barely moves the dot: the Two Trees share the beech's engine species, which the projection shows truly.
+3. **Walks on the device.** fn-276 builds every walk frame the CPU does; the film's walks now use `Generator::prepare`. Every frame of the two clips built: beech to spruce at 40, 30 frames, 0.81 s a frame (CPU 2.9 s); Laurelin to Telperion at 80, 30 frames, 1.39 s a frame (CPU 13 s), device peak 4,248 MB.
+4. **Oracle (`raw/oracle-2026-10-19.log`, 22 min):** 479 of 510 walk frames meet it (cut 3: 478). Every frame of beech to spruce, spruce to birch, palm to Laurelin and Laurelin to Telperion. Birch to oak 65/90: kept 536,347 to 667,281 against a ceiling of 535,701 from t = 0.15 to 0.99 (up to 24.6 % over), grown above it at some; fn-251's named exception (birch to oak at 40, measured there up to 21 % over at seeds 7 and 42; here 24.6 % at seed 7, the film's frames). Oak to palm 114/120: kept 421 to 430 against a floor of 432 at t = 0.636 to 0.718, unchanged; fn-273's tenth named exception (host, 2026-10-14). No other frame is out of band; no preset was tuned.
+
+Gate: not admitted in 31 minutes (8-9 GB of room for 12), stopped; for the host on the merged branch (FRICTION.md). The film's own tests (`film_map`, `film_path`, `film_overlay`) pass; `npm test` 173 of 173.
+
+Codex impl review (fresh cycle; the lost 2026-10-14 receipt in FRICTION.md): three draws SHIP; two P2s fixed (held walk frames logged, ages whole years).
+
+
 Raw output is in `raw/` (ignored): `raw/cut3/` (1,050 stills, `frames.tsv`, `film.mp4`), `raw/cut3.log`, `raw/oracle.log`.
 
 ## The tool

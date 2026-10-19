@@ -41,3 +41,10 @@
 - **Hindered:** `review-route` stopped with `lost_receipt`: the 2026-10-14 NEEDS_WORK cycle's receipt (`/tmp/impl-review-receipt-*`) was gone, so flowctl could not tell which findings were open. The findings were recovered from codex's own session logs (`~/.codex/sessions/2026/10/14/rollout-2026-10-14T11-12-10-*`): oak to palm's six oracle frames (made fn-273's tenth named exception by the host, 2026-10-14), stale trailing stills (fixed at 781d4ea03), colliding labels (fixed at 8478aa16e). None was left open, so the cycle was reset (`flowctl spec reset-review-rounds --task .1`, under the owner's allowance to reset with a recorded reason) and a fresh fan-out reviews the whole task.
 - **Cost:** about 5 minutes.
 - **Would have removed it:** a receipt kept under the repository's ignored state (or `$XDG_STATE_HOME`), not `/tmp`, which does not survive a reboot.
+
+## 2026-10-19, task 1 rework: the gate waits for room on the desk
+
+- **Doing:** the task's gate, `telperion-heavy 12 --threads 2`, as AGENTS.md declares it.
+- **Hindered:** the desk had 8-9 GB of room for the 12 the gate declares (browsers and other apps hold about 19 GB); it waited from 12:32 without admission, as cut 3's gate did on 2026-10-14.
+- **Cost:** 31 minutes unadmitted (12:32 to 13:03), another worktree's gate queued beside it; stopped by fn-276's precedent (unadmitted in 30 minutes, the host runs it on the merged branch). `npm test` (declared 5 GB) ran: 173 of 173.
+- **Would have removed it:** nothing in this task; a gate that fits beside the owner's desktop is fn-274's.
