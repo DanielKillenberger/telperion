@@ -167,7 +167,9 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         out.element_indices = blade.indices.clone();
         out.element_coords = blade.coords.clone();
     }
-    if let Some(organ) = o.organ {
+    // A window of no length flowers never: its organ has no floret and
+    // crosses as none, not as an empty one.
+    if let Some(organ) = o.organ.filter(|o| !o.instances.leaves.is_empty()) {
         out.organ_positions = organ
             .element
             .positions

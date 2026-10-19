@@ -205,3 +205,15 @@ fn flowers_cross_the_binding_where_the_pipeline_grows_them() {
     }
     assert_eq!(flowering, ["telperion", "laurelin"]);
 }
+
+/// A flowering window of no length flowers never (`/bloom/lasts` zero,
+/// natural and supernatural): the binding hands no organ, not an empty one.
+#[test]
+fn a_window_of_no_length_crosses_no_organ() {
+    let mut family = params::metadata(&params::by_identity("laurelin").unwrap());
+    family["bloom"]["lasts"] = json!(0.0);
+    family["supernatural"]["bloom"]["lasts"] = json!(0.0);
+    let (out, meta) = generate(json!({"family": family, "outputs": {"foliage": true}})).unwrap();
+    assert!([27, 28, 29].iter().all(|&n| crate::slot(&out, n).1 == 0));
+    assert_eq!(meta["organReference"], Value::Null);
+}
