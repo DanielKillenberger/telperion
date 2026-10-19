@@ -8,7 +8,7 @@ The two plausible findings. Each starts with a standalone repro test; the fix fo
 
 **Size:** M
 **Files:** `crates/telperion-core/src/params.rs`, `crates/telperion-core/src/params/tests.rs`, `crates/telperion-space/src/light/field.rs`, `crates/telperion-space/src/light/tests.rs`, callers of `overlay` and `Field::on`
-**Touches:** [crates/telperion-core/src/params.rs, crates/telperion-core/src/params/**, crates/telperion-core/examples/**, crates/telperion-core/src/catalogue/**, crates/telperion-space/src/light/**, crates/telperion-space/src/grow/**, .flow/evidence/fn-294-the-release-reviews-findings-are-fixed/**]
+**Touches:** [crates/telperion-wasm/src/lib.rs, crates/telperion-core/src/params.rs, crates/telperion-core/src/params/**, crates/telperion-core/examples/**, crates/telperion-core/src/catalogue/**, crates/telperion-space/src/light/**, crates/telperion-space/src/grow/**, .flow/evidence/fn-294-the-release-reviews-findings-are-fixed/**]
 
 ### Approach
 - R5: test in `params/tests.rs` builds a shipped family, sets `space.light` to a valid non-`SITE` `Light`, calls `params::overlay`. If it panics: `metadata` returns `Result<Value>` (or `overlay` checks `space::rows` before calling it) so `overlay` returns the refusal by name; update callers (`examples/*.rs`, `catalogue/tests.rs`, `crates/telperion-wasm/src/lib.rs` preset/catalogue). No fallback.

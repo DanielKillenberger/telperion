@@ -29,15 +29,15 @@ Carry `Outputs::organ` through the C-ABI binding and `TreeEngine.build` as `Tree
 - `crates/telperion-core/src/suite/flowers.rs:39-60` — reading organ counts from `built.outputs.organ`
 
 ### Key context
-- Laurelin (catalogue id 2) is the shipped flowering preset; confirm it flowers at its default age and season before relying on it. Every other shipped preset flowers nowhere.
+- Laurelin (catalogue id 2) and Telperion (`/supernatural/flowering/age14 = 0.3`) both flower; confirm each yields florets at its default age and season. The natural presets (oak, birch, spruce, beech, palm, ordinary) carry no flowering row; read the flowering set from the pipeline rather than hard-coding it, so a preset that flowers is compared against its own pipeline output and one that does not is checked for absence.
 - The organ's instances carry their own reference (packed against the leaves' box via `bloom_box`); hand that one, not the leaves'.
 - Existing outputs stay byte-identical.
 
 ### Acceptance
-- [ ] A Rust test through the binding: Laurelin with `foliage: true` returns organ instance words equal to `pipeline::build`'s `organ.instances.leaves.len() * WORDS`, a non-empty element and a non-null `organReference`; every non-flowering shipped preset returns empty organ buffers and a null `organReference`; `foliage: false` returns none.
-- [ ] `tests/browser/bindings.mjs` (run by `npm test`) checks `tree.organ` on Laurelin (count matches `diagnostics`/the binding, owned copy survives `release`) and its absence on a non-flowering preset.
+- [ ] A Rust test through the binding over every shipped preset: where `pipeline::build` produces an organ (Laurelin, Telperion), the binding returns organ instance words equal to `organ.instances.leaves.len() * WORDS`, a non-empty element and a non-null `organReference` equal to the pipeline's; where it produces none, empty organ buffers and a null `organReference`; `foliage: false` returns none.
+- [ ] `tests/browser/bindings.mjs` (run by `npm run test:bindings`, which `npm test` does not run; vitest excludes it) checks `tree.organ` on Laurelin (count matches `diagnostics`/the binding, owned copy survives `release`) and its absence on a non-flowering preset.
 - [ ] Types, README and migration note name the organ output.
-- [ ] Gate and `npm test` green; codex impl-review SHIP.
+- [ ] Gate, `npm test` and `npm run test:bindings` green; codex impl-review SHIP.
 
 ## Acceptance
 - [ ] TBD
