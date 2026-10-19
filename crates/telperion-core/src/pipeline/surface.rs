@@ -75,8 +75,7 @@ const OUT_OF_MEMORY: Error = Error::ResourceLimit(
 );
 fn reserved<T>(n: usize) -> Result<Vec<T>> {
     let mut out = Vec::new();
-    out.try_reserve_exact(n)
-        .map_err(|_| OUT_OF_MEMORY)?;
+    out.try_reserve_exact(n).map_err(|_| OUT_OF_MEMORY)?;
     Ok(out)
 }
 fn filled<T: Clone>(n: usize, value: T) -> Result<Vec<T>> {
