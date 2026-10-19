@@ -30,9 +30,14 @@ The gate is not needed for a pure fmt commit plus YAML; `cargo build --profile c
 - [ ] `.flow/config.json` has neither key; `flowctl preflight` prints no removed-key note; no other key changed.
 - [ ] The workspace still compiles (`cargo check --workspace --all-targets`).
 ## Done summary
-TBD
+The tree is formatted once with `cargo fmt --all` in its own commit (`f703bc825`, three files in telperion-core). A new `fmt` job in `.github/workflows/tests.yml` (`851f0cdff`) runs `cargo fmt --all --check` on every run with no receipt dependency. `artifacts` and `pipeline.chainStages` are removed from `.flow/config.json` (`97f7ef507`), with `pipeline.qa` and every other key unchanged. `flowctl preflight` no longer prints the removed-key note.
 
+Baseline: red (`cargo fmt --all --check` failed before the edit on the four diffs the task names); it exits 0 after commit 1. `cargo check --workspace --all-targets` exits 0. `docs/principles.md` is unchanged because its "How they are held" list does not name CI's other checks (nextest, typecheck), so a fmt line has no list to join. Actionlint is not installed, so the YAML was only checked by parsing it.
+
+stage: impl-review - ran (codex, one correctness reviewer, SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f703bc8252da66464318811399c59d1cec3edb06, 851f0cdff166ffa86903335becd0e3aca9d8fa03, 97f7ef50795a20ec14710266d5e15eec55727039
+- Tests: cargo fmt --all --check, cargo check --workspace --all-targets, flowctl preflight --json (no removed-key note)
 - PRs:

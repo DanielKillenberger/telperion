@@ -14,7 +14,9 @@
     "fn-293-each-stages-output-has-one-form-and-its"
   ],
   "id": "fn-259-the-release-meets-the-bar-on-every",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-259-the-release-meets-the-bar-on-every.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -485,15 +487,52 @@
       "task": null,
       "timestamp": "2026-10-19T00:53:44.850150Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "70ab08dbc9c5fbdc6b95e97dc9d6e7dba11a618ec12553b384389a4f67ef830e",
+      "backend": "codex",
+      "base_sha": "32e74aef0bd0c22cca2c6b9128902b580461d4ba",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "97f7ef50795a20ec14710266d5e15eec55727039",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "298ac8df367f47c7a326f8e1cefb0c56",
+      "round_consumed": true,
+      "scope": "impl:fn-259-the-release-meets-the-bar-on-every.1",
+      "superseded_by": null,
+      "task": "fn-259-the-release-meets-the-bar-on-every.1",
+      "timestamp": "2026-10-19T00:56:53.803264Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-259-the-release-meets-the-bar-on-every.1": 1,
     "plan": 4,
     "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-259-the-release-meets-the-bar-on-every.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-259-the-release-meets-the-bar-on-every.md",
@@ -510,5 +549,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T00:53:44.853561Z"
+  "updated_at": "2026-10-19T00:56:53.805907Z"
 }
