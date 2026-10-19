@@ -18,3 +18,8 @@
 - **Slowed by:** the heavy queue admits a 12 GB job only with 14 GB available; the desk shows 8 GB available (22 GB used, 6.5 GB of it the RAM-backed /tmp, 5.8 GB of that under /tmp/claude-1000). Another worktree's identical gate (f4-294) has waited 4 h 31 min unadmitted beside it, so two 12 GB gates now queue for room that has not appeared.
 - **Cost:** the whole build stalls behind admission; open-ended.
 - **Would remove it:** a gate declared at the memory it measures (its peak on this machine), or freed /tmp; the /tmp usage is a local setup matter for the owner, not a spec.
+
+- **Doing:** the codex review's second finding on task .1 (all three lenses agreed on the first).
+- **Slowed by:** the spec's architecture says the axis's node kind (wood, `stem: false`) keeps foliage off it; that claim was not checked. `plan::bearing_of` bears cauline leaves on any slender wood, and the axes taper to FINEST. Measured on the palm at 40 (`raw/cauline-probe.log`): cauline 1 and shootRadius 0.1 place 6,554 leaves at width 0 and 77,518 at width 0.25; cauline 0.5, 37,629; shootRadius 1, 802,300 (9,944 at width 0, the retained bases already bearing). The walk to the palm blends cauline above zero with a width above zero, so R7's walk meets it.
+- **Cost:** one review round and a stop for the host; how the clothing's wood is marked unbearing in both executors is a design call.
+- **Would remove it:** checking an architecture claim against `bearing_of` before the spec is marked ready (AGENTS.md, "Gates and checked claims").

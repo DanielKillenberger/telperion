@@ -11,7 +11,7 @@ use telperion_core::{
     pipeline::executor,
     presets::{Family, Preset},
     surface::Curve,
-    tree::Tree,
+    tree::{Node, Tree},
     Error,
 };
 
@@ -219,4 +219,27 @@ fn the_width_and_the_axes_rail_are_refused_by_name() {
         branching::room(most - 2, 3, "rachis nodes"),
         Err(Error::ResourceLimit("rachis nodes"))
     );
+}
+
+/// R1: a handed-in stem of one node above the root hangs each axis on
+/// that node, as there is no depth along it to search.
+#[test]
+fn a_stem_of_one_node_bears_its_axes() {
+    let f = palm(40.0);
+    let node = |position, parent, branch, stem| Node {
+        position,
+        parent,
+        radius: 0.3,
+        start_radius: 0.3,
+        base_radius: 0.3,
+        branch,
+        stem,
+        ..Node::root()
+    };
+    let mut tree = Tree::default();
+    tree.nodes.push(node(Vec3::ZERO, None, 0, false));
+    tree.nodes.push(node(Vec3::Y, Some(0), 1, true));
+    let x = executor::expand(tree, &f).unwrap();
+    let axes = axes(x.tree(), &f);
+    assert!(!axes.is_empty() && axes.iter().all(|a| a.at == 1));
 }

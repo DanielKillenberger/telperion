@@ -56,7 +56,11 @@ pub(crate) fn rachises(tree: &Tree, p: &CanopyParams, blade: f64) -> Vec<Rachis>
         }
         let (_, nodes, depth) = stem.as_ref().unwrap();
         let below = frond.at.distance(placed.rosette.at);
-        let (at, ..) = branching::along(tree, nodes, depth, below);
+        // A stem of one node has no depth along it to search.
+        let at = match nodes.len() {
+            1 => nodes[0],
+            _ => branching::along(tree, nodes, depth, below).0,
+        };
         // Its width scaled by the frond's size, tapering by its station alone,
         // so a station has one girth at every age.
         let r0 = p.rachis_width / 2. * c.rachis_length / placed.apex.rachis_length;
