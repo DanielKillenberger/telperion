@@ -2,7 +2,7 @@
 
 Task 6 audited the package `npm run build` makes at `54fa05fcd` (2026-10-19) for what fn-245's stages replaced. This is qualification only. A replaced thing that still ships is reported here with its size, and the host mints the fix as its own spec. Nothing in the product was changed.
 
-**In brief.** Contract A, the stepped light executor and the fine-root executor are absent from both Wasm modules, from the embedded shaders and from the JS. So are the growers the stages replaced and the field module. Two things the decisions keep ship and are reachable from the entries: the light lattice and the cut's predictor. Three small leftovers ship:
+**In brief.** Contract A, the stepped light executor and the fine-root executor are absent from both Wasm modules, from the embedded shaders and from the JS. So are the growers the stages replaced and the field module. Two things the decisions keep ship and are reachable from the entries: the light lattice and the cut's predictor. Two small leftovers ship:
 
 - a never-constructed `Error::Executor` whose message names "the fine roots' executor";
 - a stale "chain grower" comment inside a shipped shader.
