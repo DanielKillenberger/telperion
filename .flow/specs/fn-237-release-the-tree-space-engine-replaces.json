@@ -45,7 +45,8 @@
     "fn-292-the-foliages-level-lists-hold-only-what",
     "fn-293-each-stages-output-has-one-form-and-its",
     "fn-294-the-release-reviews-findings-are-fixed",
-    "fn-283-a-frond-draws-its-rachis"
+    "fn-283-a-frond-draws-its-rachis",
+    "fn-297-the-deep-reviews-findings-are-fixed"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -65,5 +66,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T13:25:45.012099Z"
+  "updated_at": "2026-10-19T21:43:58.941793Z"
 }
