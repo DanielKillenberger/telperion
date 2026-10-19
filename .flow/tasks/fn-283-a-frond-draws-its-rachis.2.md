@@ -15,6 +15,7 @@ Behaviour-preserving move: the frond clock and the segment draw leave `stations.
 - A frond table, one record per frond slot per clothed apex: what `rosette()` writes per segment today (insertion, radial, heading, axis, share, split, leaflets, spines, key, withered), sized from the crown's slots (`organ_rows`/`rosette_rows` in `stations.rs:391-500`).
 - `boots.wgsl`'s `apices` already computes per-apex frond counts (`boots.wgsl:164-188`); a family with fronds but no leaf bases must still run the frond pass (today the boots wave is skipped when no base hangs: check `build.rs:395-402`).
 - `stations.wgsl`'s `rosette()` copies segment words from the table.
+- Inputs that reach only the stations stage today move earlier: the requested `Year` (`build::placed` passes it to `station_rows`; thread it through `readied -> folded -> Hanger::hang` for the mature, growing, field and fractional-year builds) and the blade (`crown::blade` of the element; build the element from the family's element rows before the folds, `executor::element`, rather than from the `Expansion` that `folded` creates after the boots). Never rebuild the year from the family's terminal age.
 
 ### Investigation targets
 **Required:**
@@ -35,6 +36,7 @@ Behaviour-preserving move: the frond clock and the segment draw leave `stations.
 - [ ] Device leaf instances of every shipped preset (the palm at 40 and young included) are byte-identical to the base before the move.
 - [ ] `every_rosette_is_placed_as_the_cpu_places_it` passes unchanged.
 - [ ] A family with fronds and no leaf bases still builds on the device.
+- [ ] The equivalence covers a growing build (`settle`) and a fractional-year build of the palm, and the device field of the palm, all unchanged against the base.
 
 ## Done summary
 TBD
