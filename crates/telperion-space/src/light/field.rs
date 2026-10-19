@@ -47,7 +47,9 @@ fn node(x: f32) -> (i32, f32) {
 impl Grid {
     /// The box holding every point's eight corners: from the least node to
     /// the greatest plus one on each axis; one node at the origin for none.
-    pub(super) fn spanning(points: impl Iterator<Item = Vec3>) -> Self {
+    /// A box past 2^28 nodes is refused by name, before anything the size
+    /// of it is allocated.
+    pub(super) fn spanning(points: impl Iterator<Item = Vec3>) -> Result<Self> {
         let (mut low, mut high) = ([i32::MAX; 3], [i32::MIN; 3]);
         for p in points {
             let p = [p.x as f32, p.y as f32, p.z as f32];
@@ -63,8 +65,10 @@ impl Grid {
         }
         let size = [0, 1, 2].map(|a| (high[a] - low[a] + 1) as u32);
         let nodes: u64 = size.iter().map(|&s| u64::from(s)).product();
-        assert!(nodes <= NODES, "a lattice inside the contract's domain");
-        Self { low, size }
+        if nodes > NODES {
+            return refuse("light.lattice", "a lattice spans at most 2^28 nodes");
+        }
+        Ok(Self { low, size })
     }
 
     fn nodes(&self) -> usize {
@@ -123,7 +127,8 @@ impl Field {
         reads: &[Vec3],
         threads: usize,
     ) -> Self {
-        let mut field = Self::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()));
+        let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
+        let mut field = Self::spanning(points).expect("a test lattice inside its nodes");
         field.deposit_all(leaves);
         field.sweep(light.extinction, &light.directions(), threads);
         field
@@ -149,7 +154,7 @@ impl Field {
         reads: &[Vec3],
         threads: usize,
     ) -> Result<(Self, Vec<u32>)> {
-        let mut field = Self::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()));
+        let mut field = Self::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()))?;
         let mut quanta = vec![0u32; field.grid.nodes()];
         for &(at, area) in leaves {
             let area = area as f32;
@@ -211,13 +216,13 @@ impl Field {
         f64::from(sum.clamp(0.0, 1.0))
     }
 
-    pub(super) fn spanning(points: impl Iterator<Item = Vec3>) -> Self {
-        let grid = Grid::spanning(points);
-        Self {
+    pub(super) fn spanning(points: impl Iterator<Item = Vec3>) -> Result<Self> {
+        let grid = Grid::spanning(points)?;
+        Ok(Self {
             grid,
             density: vec![0.0; grid.nodes()],
             light: vec![1.0; grid.nodes()],
-        }
+        })
     }
 
     /// Every leaf's area deposited at its corners, in the leaves' order.

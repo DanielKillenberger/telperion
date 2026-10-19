@@ -18,8 +18,15 @@ pub fn preset(id: u32) -> Result<Family> {
         .1;
     by_identity(identity)
 }
-/// The family as its wire object: every catalogue row at its path.
+/// The family as its wire object: every catalogue row at its path. Every
+/// preset and every parsed wire is written as rows; a family built in Rust
+/// that is not (`wire`'s refusal) panics here.
 pub fn metadata(f: &Family) -> Value {
+    wire(f).expect("a family's space is written as rows")
+}
+/// `metadata`, or the refusal by name of a space no row states, such as a
+/// light other than the site's.
+fn wire(f: &Family) -> Result<Value> {
     let mut v = json!({});
     for entry in catalogue::entries() {
         let mut slot = &mut v;
@@ -28,7 +35,10 @@ pub fn metadata(f: &Family) -> Value {
         }
         *slot = entry.get(f).encode();
     }
-    let rows = space::rows(&f.space).expect("a family's space is written as rows");
+    let rows = space::rows(&f.space).map_err(|value| Error::InvalidValue {
+        field: "space",
+        value,
+    })?;
     for (path, cell) in rows {
         let mut slot = &mut v;
         for key in path[1..].split('/') {
@@ -40,7 +50,7 @@ pub fn metadata(f: &Family) -> Value {
             space::Cell::Never => json!("never"),
         };
     }
-    v
+    Ok(v)
 }
 
 /// The engine species' rows of a wire object's `space`, flattened to their
@@ -133,7 +143,7 @@ pub(crate) fn decode(v: &Value) -> Result<Family> {
 /// an unknown key or a value off its range is refused by name. A value trial
 /// states only the rows it moves.
 pub fn overlay(f: &Family, overrides: &Value) -> Result<Family> {
-    let mut wire = metadata(f);
+    let mut wire = wire(f)?;
     lay(&mut wire, overrides, "")?;
     parse(&wire)
 }
