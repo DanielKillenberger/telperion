@@ -45,6 +45,16 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  # Formatting is checked on every run; no receipt skips it.
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+      - name: Check the Rust is formatted
+        run: cargo fmt --all --check
+
   # Each suite's key is a hash of its inputs (scripts/ci-key.mjs); a green run
   # saved a receipt under the key, and a receipt found here skips the suite.
   # GitHub restores a cache from the same branch or from master, so a pull
