@@ -21,3 +21,7 @@ After the release (fn-237). A chart: no production change in this spec. Not cove
 ## The kernel programme (host, 2026-10-16)
 
 Astra's release review (2026-10-16, `.flow/evidence/fn-237-release-the-tree-space-engine-replaces/ASTRA-RELEASE-REVIEW.md`), "After 0.2.0" 2, and the owner (2026-10-16): the kernels' own speed is after the release. After fn-257 lands, growth is reprofiled before any work is chosen; GROWTH-PROFILE.md ranks the spruce's units and wake (82-86 ms stamped) and balance and allotment (62 ms) first, as ranking evidence, not additive savings. Redundant work and kernel dependency depth are investigated with yearly growth and the measured look kept. fn-245's still-live performance obligations, and fn-209's and fn-211's, are carried here. The rejected aggregate, hierarchy-light and grown-at-birth designs are not restarted without a new bounded oracle (fn-245 COUNCIL.md).
+
+## Carried from fn-259 (owner, 2026-10-19)
+
+- Cap `Program::make_many`'s native compile threads to a small pool in place of one thread per entry (about −300 MB native peak, per fn-259 `CPU-PEAK.md`); measure cold start (`fresh_ms`) before and after. The field-call cost (fn-259 VERDICT.md L13-L19, accepted for 0.2.0 on 2026-10-19) is growth speed and is carried here too.

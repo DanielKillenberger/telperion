@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-19T00:46:09.158779Z",
+  "depends_on": [
+    "fn-259-the-release-meets-the-bar-on-every.4"
+  ],
+  "id": "fn-259-the-release-meets-the-bar-on-every.5",
+  "priority": null,
+  "spec": "fn-259-the-release-meets-the-bar-on-every",
+  "spec_path": ".flow/tasks/fn-259-the-release-meets-the-bar-on-every.5.md",
+  "status": "todo",
+  "title": "The scorecard swept over every shipped species",
+  "updated_at": "2026-10-19T00:51:16.878796Z"
+}

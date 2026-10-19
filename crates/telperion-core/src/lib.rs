@@ -36,11 +36,17 @@ pub mod tree;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     InvalidInput(&'static str),
-    InvalidValue { field: &'static str, value: String },
+    InvalidValue {
+        field: &'static str,
+        value: String,
+    },
     ResourceLimit(&'static str),
     /// A wood the memory left cannot hold, refused before any of it is
     /// allocated: the bytes it needs and the bytes left (fn-291 R2f).
-    WoodMemory { needed: u64, available: u64 },
+    WoodMemory {
+        needed: u64,
+        available: u64,
+    },
 }
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
