@@ -52,6 +52,19 @@ GPU process can take WebGPU away until a reboot (fn-235).
   timing loop's pipelined frames, not with the tree. `ONE_BUILD=1` builds
   once and draws four hero frames for rows that only need memory; its
   timing keys are null.
+- **A scorecard row runs under `node scripts/gpu-row.mjs <rows.jsonl> --
+  <probe command...>`**, inside `telperion-heavy` (fn-259 R4). It holds
+  `${XDG_RUNTIME_DIR}/telperion-heavy.lock` for the whole row, so no
+  heavy job is admitted meanwhile, and starts only when no other
+  `telperion-heavy-*` unit runs and no process naming telperion is on the
+  card. It samples `nvidia-smi --query-compute-apps` every 250 ms and
+  appends the probe's JSON with the card's state at the start and the
+  end. A process that appears during the row and is not the probe's
+  makes the row `valid: false`, as a non-zero exit does. The processes on
+  the card at the start, the desktop's clients among them, are written
+  into the row and do not invalidate it, so a compute job outside
+  Telperion already running at the start is recorded, not caught (host,
+  2026-10-19). A GPU user that lives under 250 ms is not caught either.
 - **Two stills are compared by `node scripts/pixel-diff.mjs <a.png>
   <b.png>`**, which counts the pixels where any channel differs and where
   any differs by more than 8/255, over the whole frame. ImageMagick 7's

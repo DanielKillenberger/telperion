@@ -34,3 +34,12 @@ What the gap is (measured with a temporary per-label dump, not committed, at the
 `npx vitest run scripts/pixel-diff.test.mjs`: green, 2 tests. With the count replaced by an intensity-weighted sum (`differing += most / 255`, reverted), the exact-count test is red: `expected [ 2048, 5.556862745098039, 12 ] to deeply equal [ 2048, 37, 12 ]`.
 
 On two ImageMagick PNGs of 64×32 differing in 21 pixels (20 by 1/255, one by 155/255), the helper prints 21 differing and 1 over 8/255, and `compare -metric AE` prints 0.475. The helper reads 8-bit RGB and RGBA only. ImageMagick's default grey or palette PNGs are refused by name, so write `PNG32:` or `PNG24:`.
+
+## Row runner
+
+`scripts/gpu-row.mjs`, under the host's rule of 2026-10-19 ("no other session holding the GPU" means other sessions' jobs, not the owner's desktop clients). A process that appears on the card during the row, was not there at the start and is not in the probe's process tree is foreign. The row starts only when no other `telperion-heavy-*` unit runs and no process naming telperion is on the card. The processes present at the start are written into the row with their memory. The residual gap: a compute job outside Telperion already running at the start is recorded, not invalidating. The rows below had one, a GNO embedding worker (`bun ... gno/src/llm/native-worker`) holding 1,150 MiB, recorded in `gpu_start.apps`.
+
+Each row below wraps `AGE=40 SEED=1 frames ordinary full whole mid close` under `telperion-heavy 6 --gpu 3 --threads 4 -- node scripts/gpu-row.mjs raw/t3-rows.jsonl -- ...`:
+
+- **The lock holds for the whole row.** Row admitted 04:00:59. A second `telperion-heavy 1 -- date` was started at 04:01:03 and admitted at 04:01:07, the moment the row ended (`gpu-row: valid true, exit 0, 0 foreign`).
+- **A foreign GPU job invalidates the row.** Row admitted 04:01:44. A short foreign job, `ONE_BUILD=1 AGE=40 nice -n 10 frames date-palm` outside `telperion-heavy`, ran 04:01:47-04:01:50. The row was written `valid: false` with one foreign process: that pid, 428 MiB, its command line. The card read 7,289 MiB free at the start and 7,305 at the end.
