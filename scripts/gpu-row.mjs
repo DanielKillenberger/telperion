@@ -1,5 +1,5 @@
 import { execFile, spawn } from 'node:child_process';
-import { appendFile, readFile } from 'node:fs/promises';
+import { access, appendFile, readFile, rm, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
@@ -27,6 +27,9 @@ import { promisify } from 'node:util';
 const run = promisify(execFile);
 const SAMPLE_MS = 250;
 const WAIT_MS = 5_000;
+const RUNTIME = process.env.XDG_RUNTIME_DIR ?? '/tmp';
+/** Marks a heavy unit whose row is still waiting to start: it holds no GPU work. */
+const waiting = (/** @type {string} */ unit) => `${RUNTIME}/${unit}.row-waiting`;
 
 /** @typedef {{ pid: number, mib: number, command: string }} App */
 
@@ -73,18 +76,27 @@ async function descends(/** @type {number} */ pid, /** @type {number} */ root) {
   return false;
 }
 
-/** Other `telperion-heavy-*` units than the one this row runs in. */
-async function otherHeavyUnits() {
-  const own = (await readFile('/proc/self/cgroup', 'latin1')).match(/telperion-heavy-\d+\.scope/)?.[0];
+/** The `telperion-heavy-*` unit this row runs in, if any. */
+async function ownUnit() {
+  return (await readFile('/proc/self/cgroup', 'latin1')).match(/telperion-heavy-\d+\.scope/)?.[0];
+}
+
+/**
+ * Other `telperion-heavy-*` units than the one this row runs in, less rows
+ * still waiting to start, so two admitted rows never wait on each other.
+ */
+async function otherHeavyUnits(/** @type {string | undefined} */ own) {
   const { stdout } = await run('systemctl', [
     '--user', 'list-units', '--plain', '--no-legend', 'telperion-heavy-*',
   ]);
-  return stdout.split('\n').map(l => l.split(' ')[0]).filter(u => u && u !== own);
+  const units = stdout.split('\n').map(l => l.split(' ')[0]).filter(u => u && u !== own);
+  const idle = await Promise.all(units.map(u => access(waiting(u)).then(() => true, () => false)));
+  return units.filter((_, i) => !idle[i]);
 }
 
 /** Takes the heavy lock; resolves once it is held, with the call that lets it go. */
 async function lock() {
-  const path = `${process.env.XDG_RUNTIME_DIR ?? '/tmp'}/telperion-heavy.lock`;
+  const path = `${RUNTIME}/telperion-heavy.lock`;
   const holder = spawn('flock', [path, 'sh', '-c', 'echo held; exec cat >/dev/null'], {
     stdio: ['pipe', 'pipe', 'inherit'],
   });
@@ -96,21 +108,26 @@ async function lock() {
 }
 
 /** What keeps a row from starting: other heavy units and telperion processes on the card. */
-async function busy() {
+async function busy(/** @type {string | undefined} */ own) {
   const ours = (await apps()).filter(a => a.command.includes('telperion'));
-  return [...(await otherHeavyUnits()), ...ours.map(a => `pid ${a.pid}`)];
+  return [...(await otherHeavyUnits(own)), ...ours.map(a => `pid ${a.pid}`)];
 }
 
 /**
  * Takes the lock once the card is quiet. While it is not, the lock is let
- * go, so two admitted rows never wait on each other, and taken again to
- * check once more.
+ * go and the row's unit marked waiting, and the lock is taken again to
+ * check once more; the mark is cleared under the lock before the row
+ * starts.
  */
-async function quietLock() {
+async function quietLock(/** @type {string | undefined} */ own) {
+  if (own) await writeFile(waiting(own), '');
   for (let waited = 0; ; waited += WAIT_MS) {
     const release = await lock();
-    const blocking = await busy();
-    if (!blocking.length) return release;
+    const blocking = await busy(own);
+    if (!blocking.length) {
+      if (own) await rm(waiting(own), { force: true });
+      return release;
+    }
     release();
     if (waited % 30_000 === 0) {
       const at = new Date().toTimeString().slice(0, 8);
@@ -171,7 +188,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error('usage: node scripts/gpu-row.mjs <rows.jsonl> -- <probe command...>');
     process.exit(2);
   }
-  const release = await quietLock();
+  const own = await ownUnit();
+  const release = await quietLock(own).finally(() => own && rm(waiting(own), { force: true }));
   try {
     const start = await gpuState();
     const result = await probe(command, new Set(start.apps.map(a => a.pid)));
