@@ -116,82 +116,82 @@ Each question has a place for the answer. The answers are the owner's words, rec
 ### Tolerances (raised by tasks 4 and 5)
 
 1. **T1.** Does R0a's "about 1.25 s" for Laurelin cover Laurelin's 1,272 ms warm build at seed 7? And does anything cover Laurelin's 1,346 ms at seed 42, and Telperion's 1,356 ms and 1,413 ms at seeds 7 and 42 (the owner accepted 1.33 s at seed 42 on 2026-10-16)?
-   Answer:
+   Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 2. **T2.** Does the spruce field tolerance ("about 0.35 s against 0.24 s", 2026-10-16) reach F4's 0.42 s against 0.1.4's 0.15 s measured natively (426 / 416 / 421 ms against 152 / 143 / 147 ms)?
-   Answer:
+   Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 3. **T3.** Do the raw-byte artifact ceilings raised on 2026-10-16 also cover the gzip and brotli growth: `telperion.wasm` +57,753 / +44,333 B, `telperion-render.wasm` +472,729 / +353,793 B, `wasm-source.js` +15,356 / +13,040 B, total +409,828 / +296,158 B?
-   Answer:
+   Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 
 ### Old versus new, per species
 
 Each species question asks whether F4 at its product default age is at least as good as 0.1.4 on the sheet, and whether that holds whatever its performance rows say. The matched-age sheet is a diagnostic beside the default-age one.
 
 4. **S1, ordinary** (`sheets/ordinary.jpg`, `sheets/ordinary-matched-age-100.jpg`). Is F4 at 40 at least as good as 0.1.4?
-   Answer:
+   Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 5. **S2, date palm** (`sheets/date-palm.jpg`, `sheets/date-palm-matched-age-100.jpg`; 0.1.4's palm is a CPU mesh). Is F4 at 40 at least as good as 0.1.4?
-   Answer:
+   Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 6. **S3, Oregon white oak** (`sheets/oregon-white-oak.jpg`; F4 at 100 refused). Is F4 at 40 at least as good as 0.1.4? Seed 7 is the release item of 2026-10-15.
-   Answer:
+   Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 7. **S4, silver birch** (`sheets/silver-birch.jpg`, `sheets/silver-birch-matched-age-70.jpg`). Is F4 at 40 at least as good as 0.1.4?
-   Answer:
+   Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 8. **S5, Norway spruce** (`sheets/norway-spruce.jpg`; F4 at 100 refused). Is F4 at 40 at least as good as 0.1.4?
-   Answer:
+   Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 9. **S6, Laurelin** (`sheets/laurelin.jpg`; F4 at 100 refused). Is F4 at 80 at least as good as 0.1.4?
-   Answer:
+   Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 10. **S7, Telperion** (`sheets/telperion.jpg`; F4 at 100 refused; 0.1.4's Telperion at seeds 7 and 42 is small). Is F4 at 82 at least as good as 0.1.4?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 11. **S8, European beech** (`sheets/european-beech.jpg`, F4 only). Does F4's beech at 40 ship in 0.2.0 with no 0.1.4 to compare against (2026-10-15: "needs work, after the release")?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 
 ### The ledger, per item
 
 Each ledger question asks whether the item ships in 0.2.0 at its measured size for the fidelity gain named, or holds the species or the artifact back.
 
 12. **L1.** Fresh build +1.7-2.8 s on every preset: accepted?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 13. **L2.** Laurelin warm build 1,272 ms at seed 7 (see T1): accepted?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 14. **L3.** Laurelin warm build 1,346 ms at seed 42: accepted?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 15. **L4.** Telperion warm build 1,356 ms and 1,413 ms at seeds 7 and 42: accepted?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 16. **L5.** Ordinary frames +0.05-0.48 ms (×1.10-1.77): accepted?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, in chat after discussing: "4 ok").
 17. **L6.** Laurelin frames +4.3-26.6 ms (×2.50-13.96): accepted?
-    Answer:
+    Answer: accepted for now (owner, 2026-10-19, in chat after discussing: "ok we can accept for now").
 18. **L7.** Telperion frames +2.7-21.7 ms (×2.00-45.38): accepted?
-    Answer:
+    Answer: accepted for now (owner, 2026-10-19, in chat after discussing: "ok we can accept for now").
 19. **L8.** CPU peak +428-543 MB on every preset: accepted?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, "ok"), after `CPU-PEAK.md` found the excess is the NVIDIA driver compiling 206 pipelines on one thread each, not tree-sized and not paid by a page in a browser; capping `Program::make_many` to a small pool (about −300 MB natively, start time to be measured) goes after the release.
 20. **L9.** Palm device memory +2 MiB: accepted?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 21. **L10.** Ordinary device memory +2.4 / +11.8 MiB at seeds 7 / 42: accepted?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 22. **L11.** Laurelin device memory +162-289 MiB: accepted?
-    Answer:
+    Answer: accepted for now (owner, 2026-10-19, in chat after discussing: "ok we can accept for now").
 23. **L12.** Telperion device memory +66-369 MiB: accepted?
-    Answer:
+    Answer: accepted for now (owner, 2026-10-19, in chat after discussing: "ok we can accept for now").
 24. **L13.** Palm field call +72-79 ms (×7.5-8.0): accepted?
-    Answer:
+    Answer: open (owner, 2026-10-19: "discuss"). A field call now grows the tree first (fn-257 R8), so its cost is growth speed; the owner asked whether fn-285 should come into 0.2.0. Pending.
 25. **L14.** Ordinary field call +314-343 ms (×6.5-7.4): accepted?
-    Answer:
+    Answer: open (owner, 2026-10-19: "discuss"). A field call now grows the tree first (fn-257 R8), so its cost is growth speed; the owner asked whether fn-285 should come into 0.2.0. Pending.
 26. **L15.** Oak field call +57-82 ms (×1.32-1.55): accepted?
-    Answer:
+    Answer: open (owner, 2026-10-19: "discuss"). A field call now grows the tree first (fn-257 R8), so its cost is growth speed; the owner asked whether fn-285 should come into 0.2.0. Pending.
 27. **L16.** Birch field call +15 ms at seed 42: accepted?
-    Answer:
+    Answer: open (owner, 2026-10-19: "discuss"). A field call now grows the tree first (fn-257 R8), so its cost is growth speed; the owner asked whether fn-285 should come into 0.2.0. Pending.
 28. **L17.** Spruce field call +273-274 ms (see T2): accepted?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, "ok accept it"), as T2. The 2026-10-18 acceptance was the spruce at about 0.44 s on the site-field measurement, with the site keeping the spruce on 0.1.4 until fn-285.
 29. **L18.** Laurelin field call +683-839 ms: accepted?
-    Answer:
+    Answer: open (owner, 2026-10-19: "discuss"). A field call now grows the tree first (fn-257 R8), so its cost is growth speed; the owner asked whether fn-285 should come into 0.2.0. Pending.
 30. **L19.** Telperion field call +427-1,204 ms: accepted?
-    Answer:
+    Answer: open (owner, 2026-10-19: "discuss"). A field call now grows the tree first (fn-257 R8), so its cost is growth speed; the owner asked whether fn-285 should come into 0.2.0. Pending.
 31. **L20.** `telperion.wasm` gzip +57,753 / brotli +44,333 B (see T3): accepted?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 32. **L21.** `telperion-render.wasm` gzip +472,729 / brotli +353,793 B: accepted?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 33. **L22.** `wasm-source.js` gzip +15,356 / brotli +13,040 B: accepted?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 34. **L23.** Package total +409,828 B gzip / +296,158 B brotli, tarball +422,936 B: accepted?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 35. **L24.** F4 refuses the oak, spruce, Laurelin and Telperion at age 100, where 0.1.4 draws a mature tree: accepted for 0.2.0, with fn-285 after it?
-    Answer:
+    Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
