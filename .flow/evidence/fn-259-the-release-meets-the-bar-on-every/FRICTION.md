@@ -37,3 +37,14 @@
 - **Slowed:** the desk offered 13 GB of room (31 GB, the owner's desktop holding about 15), so the job waited from 05:13 without ever being admitted. The runner was stopped and the cap lowered to 12 GB, which still covers the 9.1 GB peak; the cap kills a job over it and changes nothing measured.
 - **Cost:** about 4 minutes of waiting and one restart of the resumable runner.
 - **Would have removed it:** a runner that prints the room it needs against the room the desk has and refuses at once when the cap cannot fit, rather than waiting on a number that will not come.
+
+## 2026-10-19 06:58, task 5, a refused row keeps no error
+
+- **Doing:** reading the matched-age refusals (42 rows) into the scorecard.
+- **Slowed:**
+  - `gpu-row.mjs` writes `probe: null` and `exit: 1` for a probe that fails, and the error itself goes only to stderr. Which preset refused with which error had to be read from the runner's log in job order.
+  - The runner also needed a hand-written 30-minute admission watchdog, because `gpu-row.mjs` has no deadline (task 4's follow-up).
+- **Cost:** about 5 minutes for the log mapping and about 5 for the watchdog. The sweep itself ran 85 minutes with no stop.
+- **Would have removed it:**
+  - `gpu-row.mjs` keeping the probe's last stderr line in the row when it prints no JSON;
+  - an admission deadline in `gpu-row.mjs` itself.
