@@ -37,7 +37,9 @@ fn monotone(keys: &[Key], at: f64, of: impl Fn(&Key) -> f64) -> f64 {
     if at >= x[n - 1] {
         return y[n - 1];
     }
-    let slope: Vec<f64> = (0..n - 1).map(|i| (y[i + 1] - y[i]) / (x[i + 1] - x[i])).collect();
+    let slope: Vec<f64> = (0..n - 1)
+        .map(|i| (y[i + 1] - y[i]) / (x[i + 1] - x[i]))
+        .collect();
     let tangent = |i: usize| -> f64 {
         if i == 0 || i == n - 1 {
             return 0.0;

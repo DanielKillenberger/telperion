@@ -38,8 +38,15 @@ fn a_walks_frames_project_onto_the_segment_between_its_ends() {
                     let off = (at[0] - on[0]).hypot(at[1] - on[1]);
                     // Whole-count rows round at every frame, by half a count at
                     // most: 0.45 % of a segment at worst on today's species.
-                    let tolerance = if k == 0 || k == 4 { 1e-12 } else { 0.01 * length };
-                    assert!(off <= tolerance, "{ia} -> {ib} at {age}, t {t}: {off} off the segment of {length}");
+                    let tolerance = if k == 0 || k == 4 {
+                        1e-12
+                    } else {
+                        0.01 * length
+                    };
+                    assert!(
+                        off <= tolerance,
+                        "{ia} -> {ib} at {age}, t {t}: {off} off the segment of {length}"
+                    );
                 }
             }
         }

@@ -16,14 +16,27 @@ const SLACK: f64 = 2.0;
 const SEEDS: [u64; 3] = [1, 7, 42];
 
 fn species(f: &Family) -> Result<&Species, String> {
-    f.space.species.as_ref().ok_or("a walk frame carries an engine species".into())
+    f.space
+        .species
+        .as_ref()
+        .ok_or("a walk frame carries an engine species".into())
 }
 
 /// Kept and grown phytomers at `age` and `seed` under the family's light.
 fn counts(f: &Family, seed: u64) -> Result<[f64; 2], String> {
-    let request = Request { age: f.age as u32, seed, budget: BUDGET, light: f.space.light };
+    let request = Request {
+        age: f.age as u32,
+        seed,
+        budget: BUDGET,
+        light: f.space.light,
+    };
     let cycled = grow_cycle(species(f)?, request).map_err(|e| e.to_string())?;
-    let kept: usize = cycled.structure.axes.iter().map(|a| a.phytomers.len()).sum();
+    let kept: usize = cycled
+        .structure
+        .axes
+        .iter()
+        .map(|a| a.phytomers.len())
+        .sum();
     Ok([kept as f64, cycled.grown as f64])
 }
 
@@ -37,7 +50,9 @@ fn within(n: f64, lo: f64, hi: f64) -> bool {
 pub fn check(path: &Path, frames: &[Frame]) -> Result<usize, String> {
     let mut missed = 0;
     for (k, segment) in path.segments.iter().enumerate() {
-        let Kind::Walk { from, to, age } = &segment.kind else { continue };
+        let Kind::Walk { from, to, age } = &segment.kind else {
+            continue;
+        };
         let end = |id: &str| -> Result<Family, String> {
             let mut f = by_identity(id).map_err(|e| format!("{id}: {e}"))?;
             (f.age, f.skeleton.seed) = (*age, path.seed);
@@ -68,7 +83,9 @@ pub fn check(path: &Path, frames: &[Frame]) -> Result<usize, String> {
             last = Some(t);
             let walked = blend::families(&a, &b, t).map_err(|e| format!("t {t}: {e}"))?;
             let started = std::time::Instant::now();
-            let same = at_seed.iter().find(|(s, _)| Some(s) == walked.space.species.as_ref());
+            let same = at_seed
+                .iter()
+                .find(|(s, _)| Some(s) == walked.space.species.as_ref());
             let (n, how) = match same {
                 Some((_, n)) => (*n, "an end's species"),
                 None => (counts(&walked, u64::from(path.seed))?, "grown"),

@@ -14,6 +14,10 @@ The owner (2026-10-13): "i'd want to do the video we conceptualized at some poin
 - **R4 (the README):** the film is embedded in the repository README, the form that renders inline on GitHub found and checked (unknown today: a committed file against an uploaded asset), within the repository's size budget, with a still as fallback; the README's text around it says what the viewer is seeing in a sentence or two.
 - **R5:** the owner's verdict on the film.
 
+## Decisions
+
+- Owner (2026-10-19), verdict on cut 3: "the idea i think is right just some execution flaws". The path, pacing, map overlay and closing line stay. Flaws to fix: (1) year blending: mid-year frames crossfade two crowns, the later faint; neither the crossfade nor fn-270's in-year grow-in ("leaves flickering in and out") is acceptable, so the treatment between whole years is the owner's look; (2) the map: the beech, Laurelin and Telperion sit almost on one point, their labels collide and the last walk barely moves the dot; the labels are made readable without distorting the projection (the straight-walk test holds); (3) walks were built on the CPU because the device refused walk frames: rechecked on the release engine after fn-276 and fn-277; (4) fn-251's oracle re-run on the new cut, out-of-band frames reported against fn-251's named exceptions, never hidden by tuning presets.
+
 ## Boundaries
 
 Release item (fn-237). After fn-270 task 4 (unfolding and blending) and fn-251 (walk size). No prebaked trees: every frame is generated.

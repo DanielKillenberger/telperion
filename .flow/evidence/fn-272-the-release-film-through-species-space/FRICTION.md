@@ -27,3 +27,10 @@
 - **Hindered:** `telperion-heavy` held each for want of RAM while another worker's gate ran: the oracle 10 minutes, the gate 63 minutes without starting (room 6-7 GB for 9, the desk busy with other projects), so the worker stopped it and returned to the host.
 - **Cost:** about 75 minutes of wall time; the gate is not run.
 - **Would have removed it:** nothing in this task; a queue position or an estimate in the wrapper's waiting line would let a worker plan around it.
+
+## 2026-10-19, task 1 rework: a clip declared at the whole film's size
+
+- **Doing:** the first short clips after the merge (two 1-second device walks), under `telperion-heavy 10 --gpu 5`, the declaration cut 3 used.
+- **Hindered:** the desk had 5-9 GB of room and the job waited 10 minutes for 10 GB it does not need (cut 3's peak resident was 6.4 GB, in the CPU walk at 80 that the device build now replaces).
+- **Cost:** about 10 minutes of wall time.
+- **Would have removed it:** a measured peak per run kind (fn-270 and fn-277 proposed the same); here, declaring the clip's size, which is what this rework now does.

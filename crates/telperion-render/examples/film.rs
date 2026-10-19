@@ -1,9 +1,10 @@
 //! The release film (fn-272 R2): the declared path rendered frame by frame
 //! through the one pipeline and the shipped renderer, a growth grown once
-//! on the device and settled at whole ages, crossfaded between (fn-270;
-//! host, 2026-10-14), a walk built at each frame's share as `headless
-//! --walk` builds one, the corner map drawn flat over each still, and the
-//! stills assembled into an mp4 by ffmpeg.
+//! on the device and settled at whole ages, the next year faded in over
+//! the path's `fade` share of each (fn-270; host, 2026-10-14; owner,
+//! 2026-10-19), a walk built on the device at each frame's share (fn-276),
+//! the corner map drawn flat over each still, and the stills assembled
+//! into an mp4 by ffmpeg.
 //! Each segment's cost is printed as it ends; each frame's tree in
 //! `frames.tsv` beside the stills.
 //!
@@ -27,15 +28,17 @@ mod path;
 
 use cost::{Cost, Peaks};
 use overlay::{Canvas, Overlay};
-use path::{ease, Frame, Kind, Path};
+use path::{ease, faded, Frame, Kind, Path};
 use std::io::Write as _;
 use telperion_core::{
-    blend, mesh,
+    blend,
     presets::{by_identity, CATALOGUE},
     surface::Bounds,
     Family,
 };
-use telperion_render::{generation::Generator, render, write_png, Gpu, Level, Renderer, SceneRow, Still, STILL_FORMAT};
+use telperion_render::{
+    generation::Generator, render, write_png, Gpu, Renderer, SceneRow, Still, STILL_FORMAT,
+};
 
 fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -50,9 +53,18 @@ fn main() -> Result<(), String> {
         return Ok(());
     }
     std::fs::create_dir_all(out).map_err(|e| e.to_string())?;
-    let shipped: Vec<(&str, Family)> = CATALOGUE.iter().map(|e| Ok((e.1, by_identity(e.1)?))).collect::<Result<_, telperion_core::Error>>().map_err(|e| e.to_string())?;
+    let shipped: Vec<(&str, Family)> = CATALOGUE
+        .iter()
+        .map(|e| Ok((e.1, by_identity(e.1)?)))
+        .collect::<Result<_, telperion_core::Error>>()
+        .map_err(|e| e.to_string())?;
     let map = map::Map::of(&shipped)?;
-    println!("map: {:.1} % of the variance; x {:?}, y {:?}", 100.0 * map.share, map.labels[0], map.labels[1]);
+    println!(
+        "map: {:.1} % of the variance; x {:?}, y {:?}",
+        100.0 * map.share,
+        map.labels[0],
+        map.labels[1]
+    );
     for (id, p) in &map.dots {
         println!("map: {id} at {:.3}, {:.3}", p[0], p[1]);
     }
@@ -60,8 +72,20 @@ fn main() -> Result<(), String> {
     let overlay = Overlay::new(&map, &names, path.size.0, path.size.1);
     let shown = shown(&path, &frames, &map)?;
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
-    let mut film = Film { path: &path, frames: &frames, shown: &shown, overlay, out, renderer: Renderer::new(gpu, STILL_FORMAT), log: None };
-    film.renderer.set_scene(SceneRow { sun_azimuth: path.sun.0, sun_elevation: path.sun.1, ..SceneRow::default() });
+    let mut film = Film {
+        path: &path,
+        frames: &frames,
+        shown: &shown,
+        overlay,
+        out,
+        renderer: Renderer::new(gpu, STILL_FORMAT),
+        log: None,
+    };
+    film.renderer.set_scene(SceneRow {
+        sun_azimuth: path.sun.0,
+        sun_elevation: path.sun.1,
+        ..SceneRow::default()
+    });
     let gen = Generator::new(&film.renderer).map_err(|e| e.to_string())?;
     let log = std::fs::File::create(format!("{out}/frames.tsv")).map_err(|e| e.to_string())?;
     film.log = Some(std::io::BufWriter::new(log));
@@ -71,7 +95,7 @@ fn main() -> Result<(), String> {
         peaks.reset();
         let cost = match &segment.kind {
             Kind::Grow { species, from, to } => film.grow(&gen, k, species, (*from, *to))?,
-            Kind::Walk { from, to, age } => film.walk(k, (from, to), *age)?,
+            Kind::Walk { from, to, age } => film.walk(&gen, k, (from, to), *age)?,
         };
         let (rss, device) = peaks.take();
         println!(
@@ -100,7 +124,11 @@ fn shown(path: &Path, frames: &[Frame], map: &map::Map) -> Result<Vec<Shown>, St
     for f in frames {
         let segment = &path.segments[f.segment];
         held = if f.held { held + 1 } else { 0 };
-        let line = segment.line.as_ref().filter(|_| f.held).map(|l| (l.clone(), held as f64 / (0.3 * f64::from(path.fps))));
+        let line = segment
+            .line
+            .as_ref()
+            .filter(|_| f.held)
+            .map(|l| (l.clone(), held as f64 / (0.3 * f64::from(path.fps))));
         let (point, age) = match &segment.kind {
             Kind::Grow { species, from, to } => (map.dot(species)?, age_at(*from, *to, f.along)),
             Kind::Walk { from, to, age } => {
@@ -120,7 +148,10 @@ fn age_at(from: f64, to: f64, along: f64) -> f64 {
 
 /// `a` faded into `b` by `share` (0 to 1), pixel by pixel.
 fn crossfade(a: &[u8], b: &[u8], share: f64) -> Vec<u8> {
-    a.iter().zip(b).map(|(&x, &y)| (f64::from(x) + (f64::from(y) - f64::from(x)) * share).round() as u8).collect()
+    a.iter()
+        .zip(b)
+        .map(|(&x, &y)| (f64::from(x) + (f64::from(y) - f64::from(x)) * share).round() as u8)
+        .collect()
 }
 
 /// A shipped species at `age` and the path's seed.
@@ -148,14 +179,30 @@ impl Film<'_> {
 
     /// The frames of segment `k`, by their index in the film.
     fn of(&self, k: usize) -> Vec<(usize, Frame)> {
-        self.frames.iter().copied().enumerate().filter(|(_, f)| f.segment == k).collect()
+        self.frames
+            .iter()
+            .copied()
+            .enumerate()
+            .filter(|(_, f)| f.segment == k)
+            .collect()
     }
 
     /// The tree just put up, logged against every frame in `indices`.
-    fn log(&mut self, (leaves, b): (usize, Bounds), at: f64, indices: &[usize], ms: f64) -> Result<(), String> {
+    fn log(
+        &mut self,
+        (leaves, b): (usize, Bounds),
+        at: f64,
+        indices: &[usize],
+        ms: f64,
+    ) -> Result<(), String> {
         let size = b.max - b.min;
         for &i in indices {
-            let row = format!("{i}\t{}\t{at:.4}\t{leaves}\t{:.3}\t{:.3}\t{ms:.0}", self.frames[i].segment, size.y, size.x.max(size.z));
+            let row = format!(
+                "{i}\t{}\t{at:.4}\t{leaves}\t{:.3}\t{:.3}\t{ms:.0}",
+                self.frames[i].segment,
+                size.y,
+                size.x.max(size.z)
+            );
             self.line(&row)?;
         }
         Ok(())
@@ -165,7 +212,9 @@ impl Film<'_> {
     fn still(&mut self, i: usize) -> Result<Vec<u8>, String> {
         let (w, h) = self.path.size;
         let pose = camera::pose(&self.path.camera, i as f64 / f64::from(self.path.fps));
-        Ok(render(&mut self.renderer, &pose, w, h).map_err(|e| e.to_string())?.rgba)
+        Ok(render(&mut self.renderer, &pose, w, h)
+            .map_err(|e| e.to_string())?
+            .rgba)
     }
 
     /// Frame `i`'s picture with the overlay laid over it, written.
@@ -173,10 +222,28 @@ impl Film<'_> {
         let (w, h) = self.path.size;
         let trail: Vec<[f64; 2]> = self.shown[..=i].iter().map(|s| s.point).collect();
         let now = &self.shown[i];
-        let mut canvas = Canvas { rgba: &mut rgba, width: w, height: h };
-        self.overlay.draw(&mut canvas, &trail, now.age, now.line.as_ref().map(|(l, f)| (l.as_str(), *f)));
-        let still = Still { width: w, height: h, rgba, stats: Default::default() };
-        write_png(std::path::Path::new(&format!("{}/frame-{i:05}.png", self.out)), &still).map_err(|e| e.to_string())
+        let mut canvas = Canvas {
+            rgba: &mut rgba,
+            width: w,
+            height: h,
+        };
+        self.overlay.draw(
+            &mut canvas,
+            &trail,
+            now.age,
+            now.line.as_ref().map(|(l, f)| (l.as_str(), *f)),
+        );
+        let still = Still {
+            width: w,
+            height: h,
+            rgba,
+            stats: Default::default(),
+        };
+        write_png(
+            std::path::Path::new(&format!("{}/frame-{i:05}.png", self.out)),
+            &still,
+        )
+        .map_err(|e| e.to_string())
     }
 
     /// Frame `i` drawn and written.
@@ -189,37 +256,63 @@ impl Film<'_> {
 
     /// A growth: one tree grown once and settled at whole ages only, where
     /// it stands at full leaf (host, 2026-10-14). A frame between two whole
-    /// ages is both years drawn from its pose and crossfaded by the share
-    /// of the year it stands at; ages rise, so a shrink is drawn last frame
-    /// first.
-    fn grow(&mut self, gen: &Generator, k: usize, species: &str, (from, to): (f64, f64)) -> Result<Cost, String> {
+    /// ages shows the earlier year, the later faded over it by `faded`
+    /// where the path's fade has begun; ages rise, so a shrink is drawn
+    /// last frame first.
+    fn grow(
+        &mut self,
+        gen: &Generator,
+        k: usize,
+        species: &str,
+        (from, to): (f64, f64),
+    ) -> Result<Cost, String> {
         let family = ends(species, from.max(to), self.path.seed)?;
         let mut cost = Cost::default();
         let started = std::time::Instant::now();
         let mut tree = pollster::block_on(gen.begin_growth(&family)).map_err(|e| e.to_string())?;
         cost.build_ms += started.elapsed().as_secs_f64() * 1e3;
-        let frames: Vec<(usize, f64)> = self.of(k).into_iter().map(|(i, f)| (i, age_at(from, to, f.along))).collect();
-        let mut years: Vec<f64> = frames.iter().flat_map(|(_, a)| [a.floor(), a.ceil()]).collect();
+        let fade = self.path.fade;
+        // Each frame's index, earlier year, later year and the later's share.
+        let frames: Vec<(usize, f64, f64, f64)> = self
+            .of(k)
+            .into_iter()
+            .map(|(i, f)| {
+                let a = age_at(from, to, f.along);
+                (i, a.floor(), a.ceil(), faded(a - a.floor(), fade))
+            })
+            .collect();
+        let mut years: Vec<f64> = frames
+            .iter()
+            .flat_map(|&(_, lo, hi, share)| if share > 0.0 { vec![lo, hi] } else { vec![lo] })
+            .collect();
         years.sort_by(f64::total_cmp);
         years.dedup();
         // The earlier year's picture of a frame that waits for the later.
-        let mut earlier: std::collections::HashMap<usize, Vec<u8>> = std::collections::HashMap::new();
+        let mut earlier: std::collections::HashMap<usize, Vec<u8>> =
+            std::collections::HashMap::new();
         for at in years {
             let started = std::time::Instant::now();
-            pollster::block_on(gen.grow_to(&mut tree, at)).map_err(|e| format!("{species} to {at}: {e}"))?;
-            let settled = pollster::block_on(gen.settle(&tree, at)).map_err(|e| format!("{species} at {at}: {e}"))?;
+            pollster::block_on(gen.grow_to(&mut tree, at))
+                .map_err(|e| format!("{species} to {at}: {e}"))?;
+            let settled = pollster::block_on(gen.settle(&tree, at))
+                .map_err(|e| format!("{species} at {at}: {e}"))?;
             let ms = started.elapsed().as_secs_f64() * 1e3;
             (cost.build_ms, cost.trees) = (cost.build_ms + ms, cost.trees + 1);
             let shape = (settled.count(), settled.bounds());
-            self.renderer.submit_prepared(settled).map_err(|e| e.to_string())?;
+            self.renderer
+                .submit_prepared(settled)
+                .map_err(|e| e.to_string())?;
             self.renderer.set_family(&family);
-            let showing: Vec<(usize, f64)> = frames.iter().copied().filter(|(_, a)| a.floor() == at || a.ceil() == at).collect();
+            let showing: Vec<(usize, f64)> = frames
+                .iter()
+                .filter(|&&(_, lo, hi, share)| lo == at || (share > 0.0 && hi == at))
+                .map(|&(i, _, _, share)| (i, share))
+                .collect();
             let indices: Vec<usize> = showing.iter().map(|(i, _)| *i).collect();
             self.log(shape, at, &indices, ms)?;
-            for (i, a) in showing {
+            for (i, share) in showing {
                 let started = std::time::Instant::now();
                 let rgba = self.still(i)?;
-                let share = a - a.floor();
                 match (share == 0.0, earlier.remove(&i)) {
                     (true, _) => self.finish(i, rgba)?,
                     (false, None) => drop(earlier.insert(i, rgba)),
@@ -232,24 +325,39 @@ impl Film<'_> {
         Ok(cost)
     }
 
-    /// A walk, as `headless --walk` draws one: each frame's family built
-    /// at its eased share by the direct build (`mesh::build`) and put up;
-    /// a held frame draws the last tree again.
-    fn walk(&mut self, k: usize, (from, to): (&str, &str), age: f64) -> Result<Cost, String> {
-        let (a, b) = (ends(from, age, self.path.seed)?, ends(to, age, self.path.seed)?);
+    /// A walk: each frame's family at its eased share built on the device
+    /// (fn-276: it builds every walk frame the CPU does) and put up; a held
+    /// frame draws the last tree again.
+    fn walk(
+        &mut self,
+        gen: &Generator,
+        k: usize,
+        (from, to): (&str, &str),
+        age: f64,
+    ) -> Result<Cost, String> {
+        let (a, b) = (
+            ends(from, age, self.path.seed)?,
+            ends(to, age, self.path.seed)?,
+        );
         let mut cost = Cost::default();
         let mut last = None;
         for (i, f) in self.of(k) {
             let t = ease(f.along);
             if last != Some(t) {
                 let started = std::time::Instant::now();
-                let family = blend::families(&a, &b, t).map_err(|e| format!("{from} -> {to} at {t}: {e}"))?;
-                let tree = mesh::build(&family).map_err(|e| format!("{from} -> {to} at {t}: {e}"))?;
+                let family = blend::families(&a, &b, t)
+                    .map_err(|e| format!("{from} -> {to} at {t}: {e}"))?;
+                let tree = gen
+                    .prepare(&family)
+                    .map_err(|e| format!("{from} -> {to} at {t}: {e}"))?;
                 let ms = started.elapsed().as_secs_f64() * 1e3;
                 (cost.build_ms, cost.trees) = (cost.build_ms + ms, cost.trees + 1);
-                self.renderer.submit_at(&tree, Level::Chosen).map_err(|e| e.to_string())?;
+                let shape = (tree.count(), tree.bounds());
+                self.renderer
+                    .submit_prepared(tree)
+                    .map_err(|e| e.to_string())?;
                 self.renderer.set_family(&family);
-                self.log((tree.foliage_instances(), tree.bounds), t, &[i], ms)?;
+                self.log(shape, t, &[i], ms)?;
                 last = Some(t);
             }
             cost.draw_ms += self.draw(i)?;
@@ -263,11 +371,32 @@ impl Film<'_> {
 /// cut left in the directory past them are not read.
 fn assemble(out: &str, fps: u32, frames: usize) -> Result<(), String> {
     let status = std::process::Command::new("ffmpeg")
-        .args(["-y", "-loglevel", "error", "-framerate", &fps.to_string(), "-i", &format!("{out}/frame-%05d.png")])
-        .args(["-frames:v", &frames.to_string(), "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", &format!("{out}/film.mp4")])
+        .args([
+            "-y",
+            "-loglevel",
+            "error",
+            "-framerate",
+            &fps.to_string(),
+            "-i",
+            &format!("{out}/frame-%05d.png"),
+        ])
+        .args([
+            "-frames:v",
+            &frames.to_string(),
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-crf",
+            "18",
+            &format!("{out}/film.mp4"),
+        ])
         .status()
         .map_err(|e| format!("ffmpeg: {e}"))?;
-    status.success().then_some(()).ok_or(format!("ffmpeg: {status}"))?;
+    status
+        .success()
+        .then_some(())
+        .ok_or(format!("ffmpeg: {status}"))?;
     println!("{out}/film.mp4");
     Ok(())
 }

@@ -22,13 +22,24 @@ pub struct Peaks {
 
 impl Peaks {
     pub fn start() -> Peaks {
-        let (stop, device) = (Arc::new(AtomicBool::new(false)), Arc::new(AtomicU64::new(0)));
+        let (stop, device) = (
+            Arc::new(AtomicBool::new(false)),
+            Arc::new(AtomicU64::new(0)),
+        );
         let (s, d) = (stop.clone(), device.clone());
         let pid = std::process::id().to_string();
         let sampler = std::thread::spawn(move || {
             while !s.load(Ordering::Relaxed) {
-                let query = ["--query-compute-apps=pid,used_memory", "--format=csv,noheader,nounits"];
-                let Ok(out) = std::process::Command::new("nvidia-smi").args(query).output() else { return };
+                let query = [
+                    "--query-compute-apps=pid,used_memory",
+                    "--format=csv,noheader,nounits",
+                ];
+                let Ok(out) = std::process::Command::new("nvidia-smi")
+                    .args(query)
+                    .output()
+                else {
+                    return;
+                };
                 for line in String::from_utf8_lossy(&out.stdout).lines() {
                     if let Some((p, mb)) = line.split_once(',') {
                         if p.trim() == pid {
@@ -39,7 +50,11 @@ impl Peaks {
                 std::thread::sleep(std::time::Duration::from_millis(250));
             }
         });
-        Peaks { stop, device, sampler: Some(sampler) }
+        Peaks {
+            stop,
+            device,
+            sampler: Some(sampler),
+        }
     }
 
     /// Both peaks from here on.
@@ -52,7 +67,10 @@ impl Peaks {
     /// The resident and device peaks since the reset, MB.
     pub fn take(&self) -> (u64, u64) {
         let status = std::fs::read_to_string("/proc/self/status").unwrap_or_default();
-        let kb = status.lines().find_map(|l| l.strip_prefix("VmHWM:")).and_then(|v| v.trim().trim_end_matches(" kB").trim().parse::<u64>().ok());
+        let kb = status
+            .lines()
+            .find_map(|l| l.strip_prefix("VmHWM:"))
+            .and_then(|v| v.trim().trim_end_matches(" kB").trim().parse::<u64>().ok());
         (kb.unwrap_or(0) / 1024, self.device.load(Ordering::Relaxed))
     }
 }
