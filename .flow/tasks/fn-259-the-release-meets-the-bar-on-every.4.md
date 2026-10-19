@@ -35,9 +35,33 @@ Native wgpu only; never WebGPU in a browser. AGENTS.md budget: read summaries, a
 - [ ] The 0.1.4 adapter kept as a patch in evidence; raw rows in `raw/`; progress file present.
 - [ ] If 0.1.4 cannot be measured on the same protocol, the gap is named and the task stops with NEEDS_HUMAN.
 ## Done summary
-TBD
+`PROTOCOL.md` was committed (`dd09b47b9`) before the first measured row. `SCORECARD.md` holds the Oregon white oak on F4 beside 0.1.4, at seeds 1, 7 and 42, with every R1 column filled. The 0.1.4 adapter is kept as `v014-probe.patch`, and F4's per-tree field probe as `f4-field-probe.patch` (never committed to crates). Raw rows and the progress file are in `raw/` (ignored).
 
+- **0.1.4 measured on the same protocol (measured).** Its adapter is a detached scratch worktree of `v0.1.4` with its own target directory. Both sides use `--profile ci`, Rust 1.98.1 and wgpu 30.0.1, on the harness route (`setTreeGpu`). The scratch worktree has been removed.
+- **Regressions at the default age, every seed (measured).**
+  - Fresh build is +1.83-1.95 s: 4.45-4.57 s against 2.60-2.62 s, cold shader compile included.
+  - CPU peak is +462-484 MB: 773-783 MB against 299-313 MB.
+  - The per-tree field call is +57-82 ms: 230-253 ms against 151-189 ms.
+  - Downloads: the gzip and brotli growth of both Wasm modules and `wasm-source.js`, the package total (+296,158 brotli) and the tarball (+422,936).
+- **Covered by owner tolerances (measured).** The warm build is +79-114 ms but under the 0.5 s budget, and every artifact's raw size is under its ceiling.
+- **No worse (measured).** Frames at whole, mid and close are 2.4-10.4 ms against 15.6-33.7 ms. Device memory, allocated less wgpu-internal, is 137-163 MiB against 319-356 MiB.
+- **Matched-age diagnostic (measured).** F4 refuses the oak at age 100 at every seed: `Oversize { buffer: "cycle state axes", 2558845952 > 2147483644 }`. fn-258 drew it on 2026-10-10.
+- **Open questions:**
+  - For the owner: do the raw ceilings also cover compressed growth?
+  - For the host, before task 5: the European beech is not in 0.1.4's package catalogue (`IN_WORK`). Should F4's beech be set beside 0.1.4's unshipped research preset, or reported alone?
+- **Follow-up, from review P2, not fixed:** the runner bounds a whole job at 40 minutes, not admission at 30. `gpu-row.mjs` has no deadline for its wait for a quiet card.
+- **Review fixes:**
+  - The first 0.1.4 field probe had been built together with `telperion-render`, so cargo feature unification gave the core its `geometry` feature. It was rebuilt alone and the field rows were rerun; the superseded rows are not counted.
+  - F4's field start now includes `prepare_programs`.
+- **Friction:** one FRICTION.md entry, for a memory cap the desk could not admit.
+
+baseline: none (evidence-only task; no Quick command covers `.flow/evidence`)
+Tier: (none given) (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex, three lenses NEEDS_WORK with 4 kept findings, fixes in e27b07876 and f4d36d787, re-review SHIP; 1 P2 left as follow-up)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: dd09b47b9321868dc33065945d5fb5c306d6f577, 1960622035322d4d5a0ed3b79f29752d35ed435f, 5c76b516a7aba1c0cfb03d761a5c1001284bd616, e27b07876ebf6c7afa302dab3a637d6bc9f8b12d, f4d36d7875e5d424ddfb24835866a06d816ef1c8, 0ac851b5c2cb71d6bb4c9178b447ccfa51efab05
+- Tests: GATE_SKIPPED:fmt:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:bindings:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:npm-test:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:workspace-test:docs-only - cumulative diff classified tier-B (no executable paths touched)
 - PRs:
