@@ -81,6 +81,14 @@ fn positive(v: &Value, at: &str, name: &str) -> Result<f64, String> {
         .ok_or(format!("{at}: \"{name}\" wants a number above zero"))
 }
 
+/// A tree's age: whole years, one or more, as the pipeline builds it.
+fn years(v: &Value, at: &str, name: &str) -> Result<f64, String> {
+    let x = positive(v, at, name)?;
+    (x >= 1.0 && x.fract() == 0.0)
+        .then_some(x)
+        .ok_or(format!("{at}: \"{name}\" wants whole years, one or more"))
+}
+
 fn text(v: &Value, at: &str, name: &str) -> Result<String, String> {
     let s = field(v, at, name)?.as_str();
     s.map(str::to_string)
@@ -202,7 +210,7 @@ impl Path {
 fn segment(v: &Value, at: &str) -> Result<Segment, String> {
     let kind = match (v.get("grow"), v.get("walk")) {
         (Some(_), None) => {
-            let (from, to) = (positive(v, at, "from")?, positive(v, at, "to")?);
+            let (from, to) = (years(v, at, "from")?, years(v, at, "to")?);
             Kind::Grow {
                 species: text(v, at, "grow")?,
                 from,
@@ -212,7 +220,7 @@ fn segment(v: &Value, at: &str) -> Result<Segment, String> {
         (None, Some(_)) => Kind::Walk {
             from: text(v, at, "walk")?,
             to: text(v, at, "to")?,
-            age: positive(v, at, "age")?,
+            age: years(v, at, "age")?,
         },
         _ => return Err(format!("{at}: one of \"grow\" or \"walk\"")),
     };

@@ -41,3 +41,15 @@ fn the_next_year_fades_in_over_the_paths_share_of_the_year() {
         .collect();
     assert!(shares.windows(2).all(|w| w[1] > w[0]), "{shares:?}");
 }
+
+/// An age the pipeline cannot build is refused by the path, never
+/// truncated by the oracle (impl review, 2026-10-19).
+#[test]
+fn a_fractional_age_is_refused_by_name() {
+    let file = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/film/release.json");
+    let mut v: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(file).unwrap()).unwrap();
+    v["segments"][6]["age"] = serde_json::json!(1.5);
+    let refused = path::Path::parse(&v).unwrap_err();
+    assert!(refused.contains("whole years"), "{refused}");
+}

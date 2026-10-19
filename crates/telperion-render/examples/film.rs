@@ -340,10 +340,12 @@ impl Film<'_> {
             ends(to, age, self.path.seed)?,
         );
         let mut cost = Cost::default();
-        let mut last = None;
+        // The tree put up last, its share, shape and build time: a held
+        // frame draws it again and is logged against it.
+        let mut last: Option<(f64, (usize, Bounds), f64)> = None;
         for (i, f) in self.of(k) {
             let t = ease(f.along);
-            if last != Some(t) {
+            if last.map(|l| l.0) != Some(t) {
                 let started = std::time::Instant::now();
                 let family = blend::families(&a, &b, t)
                     .map_err(|e| format!("{from} -> {to} at {t}: {e}"))?;
@@ -357,8 +359,10 @@ impl Film<'_> {
                     .submit_prepared(tree)
                     .map_err(|e| e.to_string())?;
                 self.renderer.set_family(&family);
+                last = Some((t, shape, ms));
+            }
+            if let Some((t, shape, ms)) = last {
                 self.log(shape, t, &[i], ms)?;
-                last = Some(t);
             }
             cost.draw_ms += self.draw(i)?;
             cost.frames += 1;
