@@ -20,6 +20,8 @@ The owner (2026-10-13): "i'd want to do the video we conceptualized at some poin
 
 - Owner (2026-10-19), on the fade candidates (`raw/clips/beech-fades.mp4`, `laurelin-fades.mp4`): fade 0.25, "yea i think .25 is fine". Each year's next crown fades in, eased, over the last quarter of the year; `release.json` holds 0.25.
 
+- Owner (2026-10-19), verdict on cut 4 (`raw/cut4/film.mp4`): "mostly good. As we transition to the palm tree there's some flying leaves that don't make sense." Host: frame 540 (oak to palm, about halfway) shows leaflets in a halo around the crown with no visible stem; by 575 the fronds read properly. Diagnosis first; the host decides the fix.
+
 ## Boundaries
 
 Release item (fn-237). After fn-270 task 4 (unfolding and blending) and fn-251 (walk size). No prebaked trees: every frame is generated.
