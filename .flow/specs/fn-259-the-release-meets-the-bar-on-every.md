@@ -68,6 +68,17 @@ npm test
 telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast
 ```
 
+## The owner's verdicts (2026-10-19)
+
+R3 is answered. The owner answered all 35 questions of `.flow/evidence/fn-259-the-release-meets-the-bar-on-every/VERDICT.md` on 2026-10-19 (review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s, and in chat); every answer is "accepted", some "for now" or "for 0.2.0". The answers, with their words and dates, are recorded in VERDICT.md; this section only summarises them.
+
+- **Tolerances (T1-T3):** accepted. Laurelin's and Telperion's warm builds at seeds 7 and 42 (1,272-1,413 ms), the spruce's field call at 0.42 s against 0.15 s, and the gzip and brotli growth of every artifact.
+- **Old versus new (S1-S8):** accepted for every species at its product default age: the ordinary, the date palm, the Oregon white oak, the silver birch, the Norway spruce, Laurelin, Telperion, and the beech, which ships with no 0.1.4 to compare against. The 2026-10-15 "needs work" notes stand as post-release work.
+- **Ledger, accepted outright:** L1-L5 (fresh build, Laurelin and Telperion warm builds, ordinary frames), L8 (CPU peak, after `CPU-PEAK.md` traced it to the driver compiling 206 pipelines on one thread each, not tree-sized), L9-L10 (palm and ordinary device memory), L17 (spruce field call, as T2), L20-L23 (download bytes) and L24 (F4 refuses the oak, spruce, Laurelin and Telperion at age 100, with fn-285 after the release).
+- **Ledger, accepted for now:** L6-L7 (Laurelin and Telperion frames) and L11-L12 (Laurelin and Telperion device memory).
+- **Ledger, accepted for 0.2.0:** L13-L16, L18-L19 (field calls). A field call grows the tree first (fn-257 R8), so its cost is growth speed, carried by fn-285.
+- **Carried after the release (fn-285):** capping `Program::make_many`'s native compile threads to a small pool (about −300 MB native peak, `CPU-PEAK.md`), and the field-call cost (L13-L19).
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |
@@ -80,3 +91,4 @@ telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-
 | R6 | (= H2, host 2026-10-19): the tree is formatted once with `cargo fmt --all` in a commit containing nothing else, and CI fails a pull request whose Rust is not `cargo fmt --all --check` clean. Errors: none beyond a non-zero exit of the check. | fn-259-the-release-meets-the-bar-on-every.1 | — |
 | R7 | (= H3, host 2026-10-19): `.flow/config.json` no longer carries `artifacts.html.enabled` or `pipeline.chainStages`, and `flowctl preflight` prints no removed-key note. Errors: no other key changes. | fn-259-the-release-meets-the-bar-on-every.1 | — |
 | R8 | (= H4, host 2026-10-19): fn-290's spec carries the two lines (`artifact_digest` also hashes the curve; the limits inventory is keyed by function, not file). Done in `5c1d0f45a` before planning. | — | Done at plan time in `5c1d0f45a` (fn-290's spec edited); no task needed. |
+
