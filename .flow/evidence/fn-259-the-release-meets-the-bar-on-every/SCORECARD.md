@@ -14,13 +14,21 @@ Each cell is the median of the valid samples, [min, max] (n), F4 against 0.1.4. 
 | Build, warm ms | 1 | **243** [242, 247] (5) | 129 [128, 142] (5) | covered: under the 0.5 s budget |
 | | 7 | **259** [259, 269] (5) | 158 [148, 191] (5) | covered |
 | | 42 | **243** [241, 245] (5) | 164 [151, 170] (5) | covered |
-| Frame ms, whole | 1 / 7 / 42 | 2.39 / 3.30 / 2.79 | 16.4 / 15.6 / 16.3 | no worse |
-| Frame ms, mid | 1 / 7 / 42 | 5.68 / 8.03 / 6.66 | 29.0 / 33.7 / 33.0 | no worse |
-| Frame ms, close | 1 / 7 / 42 | 8.01 / 10.4 / 10.1 | 25.3 / 28.2 / 32.0 | no worse |
+| Frame ms, whole | 1 | 2.39 [2.38, 2.39] (5) | 16.36 [16.12, 16.50] (5) | no worse |
+|  | 7 | 3.30 [3.29, 3.35] (5) | 15.62 [15.59, 15.73] (5) | no worse |
+|  | 42 | 2.79 [2.78, 2.80] (5) | 16.31 [16.19, 16.48] (5) | no worse |
+| Frame ms, mid | 1 | 5.68 [5.66, 5.83] (5) | 28.95 [28.60, 29.16] (5) | no worse |
+|  | 7 | 8.03 [8.01, 8.04] (5) | 33.71 [33.63, 33.92] (5) | no worse |
+|  | 42 | 6.66 [6.60, 6.90] (5) | 33.02 [32.90, 33.07] (5) | no worse |
+| Frame ms, close | 1 | 8.01 [7.88, 8.06] (5) | 25.27 [24.96, 25.40] (5) | no worse |
+|  | 7 | 10.45 [10.36, 10.60] (5) | 28.17 [27.92, 28.31] (5) | no worse |
+|  | 42 | 10.11 [10.08, 10.24] (5) | 32.04 [31.74, 32.11] (5) | no worse |
 | CPU peak MB (one build) | 1 | **783** [746, 794] (3) | 299 [298, 300] (3) | regression, +484 |
 | | 7 | **775** [760, 798] (3) | 313 [313, 314] (3) | regression, +462 |
 | | 42 | **773** [750, 802] (3) | 305 [305, 307] (3) | regression, +468 |
-| Device MiB, allocated less wgpu-internal (one build) | 1 / 7 / 42 | 137 / 163 / 141 (3 each, no spread) | 319 / 356 / 347 | no worse |
+| Device MiB, allocated less wgpu-internal (one build) | 1 | 136.5 [136.5, 136.5] (3) | 319.2 [319.2, 319.2] (3) | no worse |
+|  | 7 | 162.8 [162.8, 162.8] (3) | 356.4 [356.4, 356.4] (3) | no worse |
+|  | 42 | 141.3 [141.3, 141.3] (3) | 347.3 [347.3, 347.3] (3) | no worse |
 | Field call, warm ms | 1 | **233** [229, 246] (5) | 151 [148, 164] (5) | regression, +82 |
 | | 7 | **253** [251, 265] (5) | 189 [187, 214] (5) | regression, +64 |
 | | 42 | **230** [229, 236] (5) | 173 [167, 180] (5) | regression, +57 |
@@ -48,9 +56,15 @@ The two oaks are different trees. 0.1.4's is the mature specimen, and its 36-cel
 | Build, warm ms | 1 | **90 [88, 105] (5)** | 6 [6, 6] (5) | covered: under the 0.5 s budget, +84 (×15.43) |
 |  | 7 | **94 [89, 137] (5)** | 6 [6, 6] (5) | covered: under the 0.5 s budget, +89 (×17.11) |
 |  | 42 | **93 [89, 122] (5)** | 6 [6, 6] (5) | covered: under the 0.5 s budget, +87 (×15.98) |
-| Frame ms, whole | 1 / 7 / 42 | 0.61 / 0.58 / 0.57 | 0.85 / 0.82 / 0.85 | no worse |
-| Frame ms, mid | 1 / 7 / 42 | 0.59 / 0.60 / 0.61 | 1.62 / 1.55 / 1.61 | no worse |
-| Frame ms, close | 1 / 7 / 42 | 0.79 / 0.78 / 0.78 | 2.19 / 2.11 / 2.12 | no worse |
+| Frame ms, whole | 1 | 0.61 [0.60, 0.62] (5) | 0.85 [0.85, 0.88] (5) | no worse |
+|  | 7 | 0.58 [0.55, 0.59] (5) | 0.82 [0.81, 0.82] (5) | no worse |
+|  | 42 | 0.57 [0.56, 0.57] (5) | 0.85 [0.85, 0.89] (5) | no worse |
+| Frame ms, mid | 1 | 0.59 [0.59, 0.59] (5) | 1.62 [1.60, 1.67] (5) | no worse |
+|  | 7 | 0.60 [0.60, 0.60] (5) | 1.55 [1.55, 1.55] (5) | no worse |
+|  | 42 | 0.61 [0.61, 0.63] (5) | 1.61 [1.61, 1.62] (5) | no worse |
+| Frame ms, close | 1 | 0.79 [0.79, 0.79] (5) | 2.19 [2.17, 2.19] (5) | no worse |
+|  | 7 | 0.78 [0.78, 0.79] (5) | 2.11 [2.11, 2.12] (5) | no worse |
+|  | 42 | 0.78 [0.77, 0.82] (5) | 2.12 [2.11, 2.13] (5) | no worse |
 | CPU peak MB (one build) | 1 | **780 [777, 791] (3)** | 248 [248, 250] (3) | regression, +532 (×3.15) |
 |  | 7 | **776 [773, 778] (3)** | 249 [247, 249] (3) | regression, +527 (×3.12) |
 |  | 42 | **780 [766, 784] (3)** | 247 [247, 249] (3) | regression, +533 (×3.16) |
@@ -135,13 +149,21 @@ Beside the counted columns (medians, seeds 1 / 7 / 42): multi-build peak RSS F4 
 | Build, warm ms | 1 | **210 [209, 217] (5)** | 170 [165, 174] (5) | covered: under the 0.5 s budget, +40 (×1.24) |
 |  | 7 | 243 [241, 253] (5) | 337 [316, 359] (5) | no worse |
 |  | 42 | **228 [226, 231] (5)** | 167 [157, 172] (5) | covered: under the 0.5 s budget, +62 (×1.37) |
-| Frame ms, whole | 1 / 7 / 42 | 1.45 / 1.93 / 1.60 | 7.11 / 8.83 / 6.88 | no worse |
-| Frame ms, mid | 1 / 7 / 42 | 2.60 / 3.34 / 3.04 | 21.63 / 30.17 / 20.85 | no worse |
-| Frame ms, close | 1 / 7 / 42 | 3.85 / 5.19 / 4.24 | 36.06 / 37.87 / 36.24 | no worse |
+| Frame ms, whole | 1 | 1.45 [1.44, 1.50] (5) | 7.11 [7.04, 7.15] (5) | no worse |
+|  | 7 | 1.93 [1.93, 1.96] (5) | 8.83 [8.76, 8.97] (5) | no worse |
+|  | 42 | 1.60 [1.60, 1.61] (5) | 6.88 [6.87, 7.07] (5) | no worse |
+| Frame ms, mid | 1 | 2.60 [2.60, 2.61] (5) | 21.63 [21.58, 21.74] (5) | no worse |
+|  | 7 | 3.34 [3.33, 3.35] (5) | 30.17 [30.06, 30.27] (5) | no worse |
+|  | 42 | 3.04 [3.03, 3.05] (5) | 20.85 [20.80, 20.96] (5) | no worse |
+| Frame ms, close | 1 | 3.85 [3.83, 4.02] (5) | 36.06 [35.89, 36.28] (5) | no worse |
+|  | 7 | 5.19 [5.17, 5.36] (5) | 37.87 [37.62, 38.05] (5) | no worse |
+|  | 42 | 4.24 [4.23, 4.41] (5) | 36.24 [36.21, 36.49] (5) | no worse |
 | CPU peak MB (one build) | 1 | **783 [781, 802] (3)** | 267 [266, 267] (3) | regression, +516 (×2.93) |
 |  | 7 | **812 [766, 819] (3)** | 282 [281, 282] (3) | regression, +530 (×2.88) |
 |  | 42 | **772 [733, 793] (3)** | 278 [278, 280] (3) | regression, +494 (×2.78) |
-| Device MiB, allocated less wgpu-internal (one build) | 1 / 7 / 42 | 123.9 / 144.0 / 133.9 | 204.5 / 230.4 / 212.8 | no worse |
+| Device MiB, allocated less wgpu-internal (one build) | 1 | 123.9 [123.9, 123.9] (3) | 204.5 [204.5, 204.5] (3) | no worse |
+|  | 7 | 144.0 [144.0, 144.0] (3) | 230.4 [230.4, 230.4] (3) | no worse |
+|  | 42 | 133.9 [133.9, 133.9] (3) | 212.8 [212.8, 212.8] (3) | no worse |
 | Field call, warm ms | 1 | 200 [197, 203] (5) | 208 [207, 210] (5) | no worse |
 |  | 7 | 244 [243, 248] (5) | 365 [361, 370] (5) | no worse |
 |  | 42 | **215 [213, 222] (5)** | 200 [198, 205] (5) | regression, +15 (×1.08) |
@@ -158,13 +180,21 @@ Beside the counted columns (medians, seeds 1 / 7 / 42): multi-build peak RSS F4 
 | Build, warm ms | 1 | **461 [460, 478] (5)** | 161 [141, 169] (5) | covered: under the 0.5 s budget, +300 (×2.86) |
 |  | 7 | **454 [451, 468] (5)** | 146 [134, 151] (5) | covered: under the 0.5 s budget, +308 (×3.11) |
 |  | 42 | **459 [455, 469] (5)** | 140 [132, 160] (5) | covered: under the 0.5 s budget, +318 (×3.27) |
-| Frame ms, whole | 1 / 7 / 42 | 7.08 / 6.78 / 6.50 | 23.29 / 21.88 / 18.42 | no worse |
-| Frame ms, mid | 1 / 7 / 42 | 9.79 / 8.94 / 8.75 | 22.98 / 22.16 / 18.51 | no worse |
-| Frame ms, close | 1 / 7 / 42 | 7.65 / 7.74 / 7.42 | 13.31 / 13.37 / 12.04 | no worse |
+| Frame ms, whole | 1 | 7.08 [7.05, 7.36] (5) | 23.29 [23.27, 23.47] (5) | no worse |
+|  | 7 | 6.78 [6.76, 6.81] (5) | 21.88 [21.87, 22.05] (5) | no worse |
+|  | 42 | 6.50 [6.48, 6.54] (5) | 18.42 [18.39, 18.63] (5) | no worse |
+| Frame ms, mid | 1 | 9.79 [9.79, 9.84] (5) | 22.98 [22.92, 23.13] (5) | no worse |
+|  | 7 | 8.94 [8.93, 8.99] (5) | 22.16 [22.15, 22.18] (5) | no worse |
+|  | 42 | 8.75 [8.71, 8.99] (5) | 18.51 [18.47, 18.75] (5) | no worse |
+| Frame ms, close | 1 | 7.65 [7.64, 7.73] (5) | 13.31 [13.20, 13.44] (5) | no worse |
+|  | 7 | 7.74 [7.72, 7.96] (5) | 13.37 [13.29, 13.48] (5) | no worse |
+|  | 42 | 7.42 [7.39, 7.62] (5) | 12.04 [12.01, 12.16] (5) | no worse |
 | CPU peak MB (one build) | 1 | **797 [792, 801] (3)** | 306 [303, 307] (3) | regression, +491 (×2.60) |
 |  | 7 | **772 [748, 805] (3)** | 303 [302, 308] (3) | regression, +469 (×2.55) |
 |  | 42 | **770 [763, 799] (3)** | 303 [302, 305] (3) | regression, +467 (×2.54) |
-| Device MiB, allocated less wgpu-internal (one build) | 1 / 7 / 42 | 424.6 / 413.2 / 427.7 | 473.7 / 454.1 / 458.4 | no worse |
+| Device MiB, allocated less wgpu-internal (one build) | 1 | 424.6 [424.6, 424.6] (3) | 473.7 [473.7, 473.7] (3) | no worse |
+|  | 7 | 413.2 [413.2, 413.2] (3) | 454.1 [454.1, 454.1] (3) | no worse |
+|  | 42 | 427.7 [427.7, 427.7] (3) | 458.4 [458.4, 458.4] (3) | no worse |
 | Field call, warm ms | 1 | **426 [423, 435] (5)** | 152 [150, 154] (5) | regression, +274 (×2.81): the spruce tolerance accepted about 0.35 s; F4 is over it |
 |  | 7 | **416 [413, 421] (5)** | 143 [139, 147] (5) | regression, +273 (×2.91): the spruce tolerance accepted about 0.35 s; F4 is over it |
 |  | 42 | **421 [420, 423] (5)** | 147 [142, 151] (5) | regression, +274 (×2.86): the spruce tolerance accepted about 0.35 s; F4 is over it |
@@ -337,9 +367,11 @@ These are every default-age row where F4's median is worse than 0.1.4's, by any 
 | spruce | Field call | +274 / +273 / +274 ms (426 / 416 / 421 against 152 / 143 / 147) | ×2.81-2.91 | none as measured. The spruce tolerance (2026-10-16) accepted about 0.35 s against 0.24 s, and F4 measures 0.42 s. |
 | Laurelin | Field call | +683 / +839 / +736 ms | ×2.85-5.81 | none |
 | Telperion | Field call | +427 / +1,119 / +1,204 ms | ×1.95-28.02 | none |
-| package | Download, gzip and brotli | `telperion.wasm` +57,753 / +44,333; `telperion-render.wasm` +472,729 / +353,793; `wasm-source.js` +15,356 / +13,040 B | see Download bytes | none. The raw ceilings cover raw bytes only (amendment 4). |
-| package | Download, total and tarball | total +1,425,947 raw / +409,828 gzip / +296,158 brotli; tarball +422,936 B | ×1.39 / ×1.35 / ×1.33; ×1.35 | none |
-| package | Download, raw per artifact | `telperion.wasm`, `telperion-render.wasm`, `telperion.js`, `wasm-source.js` over 0.1.4 raw | see Download bytes | covered: the artifact ceilings (2026-10-16) |
+| package | Download, `telperion.wasm` | raw +132,512 / gzip +57,753 / brotli +44,333 B | ×1.10 / ×1.14 / ×1.14 | raw covered: the artifact ceiling (2026-10-16); gzip and brotli none. Amendment 4: the raw ceilings cover raw bytes only. |
+| package | Download, `telperion-render.wasm` | raw +1,499,523 / gzip +472,729 / brotli +353,793 B | ×1.79 / ×1.78 / ×1.79 | raw covered: the artifact ceiling; gzip and brotli none |
+| package | Download, `telperion.js` | raw +75,475 B (gzip −4,632, brotli −7,095: smaller) | ×1.64 (gzip ×0.79, brotli ×0.61) | raw covered: the artifact ceiling |
+| package | Download, `wasm-source.js` | raw +64,202 / gzip +15,356 / brotli +13,040 B | ×274.20 / ×77.78 / ×85.13 | raw covered: the artifact ceiling; gzip and brotli none |
+| package | Download, total and tarball | total raw +1,425,947 / gzip +409,828 / brotli +296,158 B; tarball +422,936 B | ×1.39 / ×1.35 / ×1.33; ×1.35 | none |
 
 What is no worse at every seed (no list entry):
 - frames on the palm, oak, birch and spruce;

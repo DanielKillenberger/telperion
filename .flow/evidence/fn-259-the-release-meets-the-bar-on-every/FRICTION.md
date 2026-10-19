@@ -61,3 +61,10 @@
 - **Would have removed it:**
   - the plan naming each replaced thing by its symbol and the commit that deleted it;
   - a non-test list of the shipped WGSL sources.
+
+## 2026-10-19 07:21, task 7, the sheet tool the task names is not a sheet tool
+
+- **Doing:** composing the old-versus-new sheets, which the task says to make "with `scripts/contact-sheet.py`".
+- **Slowed:** `contact-sheet.py` is the isolated Claude reviewer over a sheet (an envelope, hashes, a model call), not a compositor; no repository script tiles stills into a labelled sheet. The sheets were made with ImageMagick `montage` from a scratch script (`raw/t7/t7-sheets.sh`), and the 0.1.4 stills needed their own adapter (`raw/t7/v014-resident_stills.rs`), because task 4's `v014-probe.patch` carries only the frame and field probes.
+- **Cost:** about 5 minutes; the scratch scripts are ignored, so the next old-versus-new sheet rebuilds them.
+- **Would have removed it:** a committed sheet compositor (stills in, one labelled JPEG out), and the 0.1.4 stills adapter kept beside `v014-probe.patch`.

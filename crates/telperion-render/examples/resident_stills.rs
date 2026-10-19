@@ -2,7 +2,9 @@
 //! resident delivery; a refused tree is named and skipped), at its default
 //! age and seed, at the whole-tree, mid and close views:
 //! `<preset>-<view>.png` into the out directory, with each build's
-//! milliseconds and leaves printed (fn-256 task 3's stills).
+//! milliseconds and leaves printed (fn-256 task 3's stills). `SEED` a
+//! seed and `AGE` an age in place of the preset's (fn-259's old-versus-new
+//! sheets).
 //!
 //!   cargo run --profile ci -p telperion-render --example resident_stills -- <out dir> [preset,...]
 use std::time::Instant;
@@ -38,6 +40,8 @@ fn nearer(bounds: &Bounds, hero: &Camera, share: f64) -> Camera {
 }
 
 fn main() -> Result<(), String> {
+    let seed = env_override::<u32>("SEED")?;
+    let age = env_override("AGE")?;
     let args: Vec<String> = std::env::args().skip(1).collect();
     let out = args
         .first()
@@ -52,7 +56,13 @@ fn main() -> Result<(), String> {
         .map(|c| c.1)
         .filter(|id| only.as_ref().is_none_or(|o| o.contains(id)))
     {
-        let family = by_identity(id).map_err(|e| e.to_string())?;
+        let mut family = by_identity(id).map_err(|e| e.to_string())?;
+        if let Some(seed) = seed {
+            family.skeleton.seed = seed;
+        }
+        if let Some(age) = age {
+            family.age = age;
+        }
         // The drawn tree let go first, as a page short of room does.
         renderer.release_tree();
         let t = Instant::now();
@@ -83,7 +93,18 @@ fn main() -> Result<(), String> {
             let path = std::path::Path::new(out).join(format!("{id}-{view}.png"));
             write_png(&path, &still).map_err(|e| e.to_string())?;
         }
-        println!("{id} {}: built in {ms:.0} ms, {leaves} leaves", family.age);
+        println!(
+            "{id} {} seed {}: built in {ms:.0} ms, {leaves} leaves",
+            family.age, family.skeleton.seed
+        );
     }
     Ok(())
+}
+
+/// The value of `name` when set, its parse error named.
+fn env_override<T: std::str::FromStr>(name: &str) -> Result<Option<T>, String> {
+    std::env::var(name)
+        .ok()
+        .map(|v| v.parse().map_err(|_| format!("{name}={v} does not parse")))
+        .transpose()
 }
