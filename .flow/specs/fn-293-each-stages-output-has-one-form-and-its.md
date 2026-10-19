@@ -60,6 +60,16 @@ On task 6's probe (`BASELINE.md`, "Task 6 probe") and the open items of tasks 3 
 - **`Delivery` and `Backend` (task 5's open item):** both are deleted; a one-variant enum is a switch with one way to build. Task 8.
 - **Readiness:** the run continues without the ready flag (host, on the friction entry).
 
+## Host decisions on the open items (2026-10-19)
+
+After the completion review, on `CONTRACTS.md`'s Open list and task 7's follow-ups (task 9):
+
+- **K7:** `catalogue_identity.rs`'s header is trimmed to the four digests and why they exist (a family, a walk, an override or a refusal of `Family::validate` that moves is caught); the re-pin history lives in git (`git log -- crates/telperion-core/tests/catalogue_identity.rs`). Test bodies and digests are unchanged.
+- **The memory entry** `a-new-habitparams-row-changes-the-2026-09-26` is rewritten around what holds now: a new row moves the catalogue's wire tests and the generated tables; there is no specimen snapshot.
+- **Stale mentions:** `scripts/benchmarks/generation.md`'s resident wood section (`Delivery::Resident`, the CPU wood fallback) and `docs/growth-path.md`'s `branching::Specimen` are corrected.
+- **fn-28** stays open and untouched: the owner's call.
+- Docs and comments only: focused checks, the full gate only if the gate classifier does not read docs-only.
+
 ## Quick commands
 
 ```bash
