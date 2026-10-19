@@ -36,9 +36,16 @@ Three small confirmed fixes, grouped so the gate runs once.
 - [ ] TBD
 
 ## Done summary
-TBD
+- R2: `Generator::tree_buffer_bytes` adds `renderer.organ.allocated_bytes()`. `a_flowering_tree_s_memory_counts_its_flowers` (GPU) draws the Laurelin at 12 (65,108 organ bytes): on the base, admission refused a replacement that fits once the wood, leaves and flowers are let go; fixed, it is `MakeRoom`, and releasing hands back at least the reported bytes and less than a further layer of flowers (32 bytes besides, the same slack the room tests hold with `<=`).
+- R3: `SPACE` is an input of rust-core, rust-render, rust-jev and node (rust-wasm had it); `ci-key.mjs` exports `SUITES` and `key`, CLI unchanged. `ci-key.test.mjs` (vitest, under npm test) checks every suite against the workspace graph from `cargo metadata` and that a space-only change moves each dependent key; red on the old lists.
+- R4: `test-wasm.mjs` builds `scripts/build-render.mjs`, the only module `src/field/index.ts` loads, in place of the core's. Proof: with `src/field/telperion-render.wasm` and `src/browser/render/telperion_render.js` deleted, `node scripts/build-render.mjs` alone produced both. The WebGPU browser test itself was not run (no agent runs WebGPU in a browser).
 
+Gate: 1404 passed, 0 failed, 111 ignored. npm test: 175 passed.
+
+stage: impl-review - ran (codex, 3-lens panel: correctness SHIP, contracts SHIP, integration SHIP) (model: gpt-6.1-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7aedf83108b7b29212615216f458b669979173b7
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast, npm test
 - PRs:
