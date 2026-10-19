@@ -5,10 +5,11 @@ Task 6 audited the package `npm run build` makes at `54fa05fcd` (2026-10-19) for
 **In brief.** Contract A, the stepped light executor and the fine-root executor are absent from both Wasm modules, from the embedded shaders and from the JS. So are the growers the stages replaced and the field module. Two things the decisions keep ship and are reachable from the entries: the light lattice and the cut's predictor. Three small leftovers ship:
 
 - a never-constructed `Error::Executor` whose message names "the fine roots' executor";
-- a stale "chain grower" comment inside a shipped shader;
-- the leaf-base lattice, which is not the lattice the decision names.
+- a stale "chain grower" comment inside a shipped shader.
 
-The software f64 and the held arithmetic also ship. They are not contract A as fn-254 defines it, and whether R2 counts them is left to the host (Open). Every artifact is under its ceiling.
+The leaf-base lattice also ships; it is live botany no stage replaced, not a leftover (host answer 2).
+
+The software f64 and the held arithmetic also ship. They are not contract A as fn-254 defines it, and R2 does not count them (host answer 1). Every artifact is under its ceiling.
 
 ## What was audited
 
@@ -132,3 +133,9 @@ Run from the repository root after `npm run build`, with twiggy 0.8.0:
 - `npm pack --dry-run --json` gives the file list.
 
 No script was kept. The checks rest on twiggy and git history, and whether CI should hold any of them is a separate decision.
+
+## Host answers (2026-10-19)
+
+1. **Contract A in R2 is fn-254's contract A** (exact Q32/Q62 fixed point with emulated 64-bit products), which this audit finds absent. The software binary64, the held arithmetic and the pinned transcendentals are fn-256's executor design (DESIGN §8), kept so the device and the CPU agree; no stage replaced them, so R2 does not ask for their absence. Whether they should go is a design question for after the release (fn-285's kernel programme and fn-289 own the executors' agreement), not a finding here.
+2. **The decision means the light lattice.** fn-245 COUNCIL.md:12 ("fn-259 keeps the lattice off its deletion list") names the light lattice, the one light model. The task's pointer at `branching/lattice.rs` was the host's error at plan time: the leaf-base lattice is the phyllotaxis cell of a retained leaf base, live botany that no stage replaced. It is neither a leftover nor a finding.
+3. The two fine-root leftovers (the never-constructed `Error::Executor` and the stale `zones.wgsl` comment) are reported for a clean-up spec after the release; they change no drawn tree and no artifact size beyond a few bytes.
