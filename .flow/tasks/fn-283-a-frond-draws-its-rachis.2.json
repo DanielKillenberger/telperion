@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-19T13:34:24.344571Z",
+  "depends_on": [
+    "fn-283-a-frond-draws-its-rachis.1"
+  ],
+  "id": "fn-283-a-frond-draws-its-rachis.2",
+  "priority": null,
+  "spec": "fn-283-a-frond-draws-its-rachis",
+  "spec_path": ".flow/tasks/fn-283-a-frond-draws-its-rachis.2.md",
+  "status": "todo",
+  "title": "The device draws its fronds once, in the leaf-base stage",
+  "updated_at": "2026-10-19T13:34:24.344571Z"
+}
