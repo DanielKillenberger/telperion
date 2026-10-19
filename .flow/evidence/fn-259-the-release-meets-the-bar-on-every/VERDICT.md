@@ -172,19 +172,19 @@ Each ledger question asks whether the item ships in 0.2.0 at its measured size f
 23. **L12.** Telperion device memory +66-369 MiB: accepted?
     Answer: accepted for now (owner, 2026-10-19, in chat after discussing: "ok we can accept for now").
 24. **L13.** Palm field call +72-79 ms (×7.5-8.0): accepted?
-    Answer: open (owner, 2026-10-19: "discuss"). A field call now grows the tree first (fn-257 R8), so its cost is growth speed; the owner asked whether fn-285 should come into 0.2.0. Pending.
+    Answer: accepted for 0.2.0 (owner, 2026-10-19, "ok ship"), after discussing: a field call grows the tree first (fn-257 R8), so its cost is growth speed, which is fn-285 after the release.
 25. **L14.** Ordinary field call +314-343 ms (×6.5-7.4): accepted?
-    Answer: open (owner, 2026-10-19: "discuss"). A field call now grows the tree first (fn-257 R8), so its cost is growth speed; the owner asked whether fn-285 should come into 0.2.0. Pending.
+    Answer: accepted for 0.2.0 (owner, 2026-10-19, "ok ship"), after discussing: a field call grows the tree first (fn-257 R8), so its cost is growth speed, which is fn-285 after the release.
 26. **L15.** Oak field call +57-82 ms (×1.32-1.55): accepted?
-    Answer: open (owner, 2026-10-19: "discuss"). A field call now grows the tree first (fn-257 R8), so its cost is growth speed; the owner asked whether fn-285 should come into 0.2.0. Pending.
+    Answer: accepted for 0.2.0 (owner, 2026-10-19, "ok ship"), after discussing: a field call grows the tree first (fn-257 R8), so its cost is growth speed, which is fn-285 after the release.
 27. **L16.** Birch field call +15 ms at seed 42: accepted?
-    Answer: open (owner, 2026-10-19: "discuss"). A field call now grows the tree first (fn-257 R8), so its cost is growth speed; the owner asked whether fn-285 should come into 0.2.0. Pending.
+    Answer: accepted for 0.2.0 (owner, 2026-10-19, "ok ship"), after discussing: a field call grows the tree first (fn-257 R8), so its cost is growth speed, which is fn-285 after the release.
 28. **L17.** Spruce field call +273-274 ms (see T2): accepted?
     Answer: accepted (owner, 2026-10-19, "ok accept it"), as T2. The 2026-10-18 acceptance was the spruce at about 0.44 s on the site-field measurement, with the site keeping the spruce on 0.1.4 until fn-285.
 29. **L18.** Laurelin field call +683-839 ms: accepted?
-    Answer: open (owner, 2026-10-19: "discuss"). A field call now grows the tree first (fn-257 R8), so its cost is growth speed; the owner asked whether fn-285 should come into 0.2.0. Pending.
+    Answer: accepted for 0.2.0 (owner, 2026-10-19, "ok ship"), after discussing: a field call grows the tree first (fn-257 R8), so its cost is growth speed, which is fn-285 after the release.
 30. **L19.** Telperion field call +427-1,204 ms: accepted?
-    Answer: open (owner, 2026-10-19: "discuss"). A field call now grows the tree first (fn-257 R8), so its cost is growth speed; the owner asked whether fn-285 should come into 0.2.0. Pending.
+    Answer: accepted for 0.2.0 (owner, 2026-10-19, "ok ship"), after discussing: a field call grows the tree first (fn-257 R8), so its cost is growth speed, which is fn-285 after the release.
 31. **L20.** `telperion.wasm` gzip +57,753 / brotli +44,333 B (see T3): accepted?
     Answer: accepted (owner, 2026-10-19, review page https://claude.ai/artifact/APHF4DkshoeREwbGMKbe6s).
 32. **L21.** `telperion-render.wasm` gzip +472,729 / brotli +353,793 B: accepted?
