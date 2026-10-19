@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-259-the-release-meets-the-bar-on-every",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-10-19T06:00:02.112446Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-19T08:53:32.600526Z",
   "created_at": "2026-10-09T19:56:29.991755Z",
   "default_impl": null,
   "default_review": null,
@@ -24,7 +24,7 @@
     "fn-259-the-release-meets-the-bar-on-every.7": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "stale",
   "plan_reviewed_at": "2026-10-19T00:53:44.852972Z",
   "review_attempts": [
@@ -1170,6 +1170,50 @@
       "timestamp": "2026-10-19T06:00:02.100601Z",
       "tool_calls": 18,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "5377b405a14a087593b1aa6dd3419412685f43774e39b5119b13d4a9e35f1a4d",
+      "backend": "codex",
+      "base_sha": "cce95a6a2c0395bbfa149381500e258ec75f1bda",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-69285b5e366aee2c3331fe76d2c7540a",
+            "classification": "introduced",
+            "findingId": "finding-69285b5e366aee2c3331fe76d2c7540a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "ebb152642c5ec7cc3c67f276d086dd7bb1259857",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 3711,
+      "output_sha256": "491154ef3f812df4e9bcf8cf8fcf639ec73062e819c9e696a3de728f817d13bd",
+      "reservation_id": "9f777cdaa15d43e795a3b8a82afec8c3",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-19T08:53:32.596865Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1181,7 +1225,7 @@
     "impl:fn-259-the-release-meets-the-bar-on-every.6": 1,
     "impl:fn-259-the-release-meets-the-bar-on-every.7": 1,
     "plan": 4,
-    "plan#completion": 2
+    "plan#completion": 3
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -1210,5 +1254,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T08:52:24.115421Z"
+  "updated_at": "2026-10-19T08:53:32.601223Z"
 }
