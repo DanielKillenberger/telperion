@@ -20,3 +20,10 @@ Qualification only; fixes go to their own specs. Depends on stages 4 and 5. Rele
 
 - The Oregon white oak's device and CPU trees disagree at age 40: F4's own oak already fails the device/CPU sweep test at 40 (every preset agrees at the gate's age 12); with fn-236's sourced sapling segment, three agreement tests fail with 219 parents differing (232 with fn-286's take-over on, one node apart). Untraced; fn-281 saw a few nodes in 2.3 million at 80. Traced and fixed, or bounded with the owner, before the release PR, and an agreement test added at each preset's shipped age.
 - `tests/browser/bindings.mjs` has 12 checks red on the release branch and no CI job runs it (host, 2026-10-18, fn-257 landing); fn-259 fixes it and runs it in CI.
+
+## Host additions (2026-10-19)
+
+- **H1 (browser bindings suite):** `tests/browser/bindings.mjs` has 12 checks red on the release branch and no CI job runs it. Each red check is fixed, or deleted where its subject no longer exists with the reason named, and a CI job runs the suite. No agent runs WebGPU in a browser: a check that needs WebGPU runs in CI only, and locally the suite runs through whatever headless path it already supports, or the gap is reported.
+- **H2 (formatting):** the tree is formatted once with `cargo fmt --all` in a commit of its own, and CI runs `cargo fmt --all --check`.
+- **H3 (dead config keys):** the two keys fn-293's FRICTION.md names as removed, `artifacts.html.enabled` and `pipeline.chainStages`, are deleted from `.flow/config.json`.
+- **H4 (fn-290 follow-ups):** fn-290's spec (post-release) gains two lines: `artifact_digest` also hashes the curve; the limits inventory is keyed by function, not file.

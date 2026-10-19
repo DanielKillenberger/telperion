@@ -12,3 +12,8 @@ Astra's release review (ASTRA-RELEASE-REVIEW.md, "After 0.2.0" 5): SPECIES-AUDIT
 ## Boundaries
 
 After the release (fn-237). Accepted species are not reopened.
+
+## Host additions (2026-10-19, from fn-293)
+
+- `artifact_digest` also hashes the curve.
+- The limits inventory is keyed by function, not file.
