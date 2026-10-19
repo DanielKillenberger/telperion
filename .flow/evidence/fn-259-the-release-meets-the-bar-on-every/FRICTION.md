@@ -48,3 +48,16 @@
 - **Would have removed it:**
   - `gpu-row.mjs` keeping the probe's last stderr line in the row when it prints no JSON;
   - an admission deadline in `gpu-row.mjs` itself.
+
+## 2026-10-19 07:40, task 6, the audit's names had to be pinned by hand
+
+- **Doing:** writing the name list for R2's audit (contract A, the stepped light executor, the fine-root cut, the lattice, the replaced growers) before searching the shipped modules.
+- **Slowed:**
+  - The task's investigation target for "the lattice that stays" is `pipeline/branching/lattice.rs`, the leaf bases' spiral cells. The decision it cites (fn-237, "Astra's release review, incorporated") means the light lattice (`telperion_space::light`, `cycle/light*.wgsl`). Both had to be traced to be sure which one the decision meant.
+  - The shipped shader inventories (`shaders::all()` and `generation::sources::all()`) are `#[cfg(test)]`, so the WGSL a module embeds had to be read by matching every `.wgsl` file's text against the Wasm's bytes.
+  - The main module's name section is v0-mangled (the renderer's is demangled by wasm-bindgen), so the names were read through `twiggy` rather than a plain name-section dump.
+  - A redirect to a shell-variable path was refused by the dcg hook; the commands were re-run with literal paths.
+- **Cost:** about 15 minutes in all.
+- **Would have removed it:**
+  - the plan naming each replaced thing by its symbol and the commit that deleted it;
+  - a non-test list of the shipped WGSL sources.
