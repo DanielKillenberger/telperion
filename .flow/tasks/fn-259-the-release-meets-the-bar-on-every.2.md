@@ -35,9 +35,37 @@ Never run WebGPU in a browser. This suite needs none (`bindings.mjs:7-12`); if a
 - [ ] `field.mjs`'s WebGPU need is stated where the suite is documented; it is not in the CI job.
 - [ ] Gate and `npm test` green, counts recorded.
 ## Done summary
-TBD
+`tests/browser/bindings.mjs` now passes in headless Chromium with no WebGPU. It runs alone through `npm run test:bindings` (`scripts/test-bindings.mjs`), and a new `bindings` job in `tests.yml` runs it on every run with no receipt skip. `scripts/test-wasm.mjs` now runs only `tests/browser/field.mjs`, which needs WebGPU and is in no CI job. README and `docs/gpu-tests.md` say which suite needs WebGPU.
 
+Twelve checks were red at the start. Every cause is in `.flow/evidence/fn-259-the-release-meets-the-bar-on-every/BINDINGS.md`.
+
+- **Fixed (7):**
+  - The leaf-plan check no longer expects nodes past a crossover; the engine sets crossover equal to nodes.
+  - `bad height` keeps its NaN and Infinity cases. The -1 case is dropped because the envelope is a scaffold row that no build reads.
+  - `valid empty outputs` and `native empty recovery` become the age-0 refusal ("a tree grows at least one cycle"), checked in TS and natively with the whole family.
+  - The catalogue check now counts 8 presets.
+  - The spruce and birch threw on the 40,000-leaf ceiling. The fixture now shrinks the trees by age 8, because its envelope, attractor and maxNodes rows are read by no build.
+- **Deleted (5), because no build reaches the subject:**
+  - `caps explicitly partial`: only the scaffold sets a cap.
+  - `the beech in work is not listed` and `the beech in work is not built by name`: the beech ships, and `IN_WORK` is empty.
+  - `refuses crookedness`: a scaffold habit row the build never judges. fn-198 `#[ignore]`d the Rust build/validate agreement test for the same reason.
+  - `an empty tree has no field`: no family grows an empty tree.
+
+Decision for the host to see: the scaffold skeleton rows (`envelope`, `attractors`, `step`, `growth.maxNodes`, `habit`) are still accepted on the wire and ignored. I read that as the recorded fn-198/fn-288 state, not a new defect, and deleted the checks whose subject only those rows held.
+
+The CI job has no wasm-bindgen step, because the entry builds only the core Wasm (`build-wasm.mjs`), never the render glue. The integration reviewer agreed.
+
+Tests (measured):
+- `npm run test:bindings`: exit 0, reaching its final `console.log`.
+- Gate `telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`: exit 0, with 1,401 passed, 0 failed and 111 ignored across 146 binaries.
+- `npm test`: 19 files, 170 tests passed.
+- The workflow YAML passes `npx --yes yaml-lint`, and a Python parse lists the `bindings` job with no `needs` and no `if`.
+
+stage: impl-review - ran (codex, three lenses SHIP; two P2 findings fixed after the verdict in ed1cfa7bd: the native age-0 check now sends a whole family, and the evidence no longer calls `skeleton.twigs` dormant)
+Tier: (none given) (model: claude-opus-5-5)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7dccbda22751f22578d98626ea1b9b9c9ab63717, 21d050d9aefbeffa8cf1c93bcc725301ad25f2db, ed1cfa7bd4b55f563d0db9c5167f96d12c741aeb
+- Tests: npm run test:bindings, telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast (1401 passed, 0 failed, 111 ignored), npm test (170 passed)
 - PRs:
