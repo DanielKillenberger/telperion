@@ -8,12 +8,12 @@ R4's tools and F4's side of R1's protocol, built and validated before the proof 
 
 **Size:** M
 **Files:** `crates/telperion-render/examples/frames.rs`, `crates/telperion-render/examples/prepare_timing.rs`, a pixel helper (`scripts/pixel-diff.mjs` with `scripts/pixel-diff.test.mjs`, or a render example if PNG decoding lives only in Rust), `docs/gpu-tests.md`
-**Touches:** [crates/telperion-render/examples/frames.rs, crates/telperion-render/examples/prepare_timing.rs, scripts/pixel-diff.mjs, scripts/pixel-diff.test.mjs, docs/gpu-tests.md]
+**Touches:** [crates/telperion-render/examples/frames.rs, crates/telperion-render/examples/prepare_timing.rs, scripts/pixel-diff.mjs, scripts/pixel-diff.test.mjs, scripts/gpu-row.mjs, docs/gpu-tests.md]
 
 ### Approach
 - Columns: `AGE` and `SEED` overrides (env, matching `SEED`/`FLOWERING`); fresh timing from `Renderer::new` through `prepare` to the first frame drawn and `device.poll(wait)` returned; warm timing as a second `prepare` plus fenced frame in the same process; device memory from wgpu's allocator report if the native backend exposes one (fn-258 BYTES.md read GPU process MB and allocated MiB), else `nvidia-smi --query-compute-apps` for this pid, the source named.
 - One-build mode: a flag or env var (match each example's existing style, e.g. `SEED`, `FLOWERING`) that builds once, draws the frames memory needs (fn-258 BYTES.md: four frames at the hero pose before reading memory) and prints the same JSON keys with timing fields absent or null, never zero.
-- GPU state per row: free device memory (`nvidia-smi --query-gpu=memory.free`) and the list of other compute processes (`--query-compute-apps`) at the row's start and end, in the JSON; a row with another compute process at either reading is marked `contaminated`.
+- GPU state per row: free device memory (`nvidia-smi --query-gpu=memory.free`) at the row's start, in the JSON. A row runner (`scripts/gpu-row.mjs`) wraps any probe command, either version's, with task 4's isolation: it holds `${XDG_RUNTIME_DIR}/telperion-heavy.lock` for the whole row, starts only with no other `telperion-heavy-*` unit and no other compute process on the card, samples `nvidia-smi --query-compute-apps` every 250 ms while the probe runs, and appends the probe's JSON with the foreign processes seen and `valid: false` when there were any.
 - Pixel helper: counts pixels where any channel differs and where any channel differs by more than 8/255, over the whole frame, and prints both with the metric named; refuses images of different sizes by name. A test with a fixture of known count (e.g. two generated PNGs differing in exactly N pixels, some by 1/255) proves it counts pixels, not intensity.
 - `docs/gpu-tests.md` gets the two probe flags and the helper in its release-check section.
 
@@ -31,7 +31,7 @@ GPU runs go through `telperion-heavy <mem> --gpu <vram> --threads N --`; at most
 ## Acceptance
 - [ ] One-build mode measured once on one small preset: one build in the log, memory keys filled, timing keys null; its memory within the spread of the same preset's multi-build run, both numbers recorded.
 - [ ] On one small preset (palm or ordinary at 40), the probe prints every protocol column: fresh-to-fenced-frame, warm-rebuild-to-fenced-frame, whole/mid/close frame ms, peak RSS, device memory with its source, age and seed as asked.
-- [ ] Every probe row carries free device memory and other compute processes at start and end, and marks itself contaminated when another appears.
+- [ ] The row runner holds the lock for the whole row (a second `telperion-heavy` job started meanwhile waits, shown once), and a row during which a foreign compute process ran is written `valid: false` (shown once with a short foreign GPU job).
 - [ ] The pixel helper's test is red against an intensity-weighted metric (asserts the exact count) and green on the helper.
 - [ ] Gate and `npm test` green.
 ## Done summary
