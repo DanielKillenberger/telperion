@@ -20,9 +20,16 @@ The host decisions on the open items (spec, 2026-10-19): K7's header, the stale 
 - [ ] TBD
 
 ## Done summary
-TBD
+The host's decisions on the open items (spec, 2026-10-19): `catalogue_identity.rs`'s header names the four digests and why they exist and points at `git log` for the re-pin history (test bodies and digests unchanged); the catalogue-row memory entry describes what a new row moves today (wire tests, generated tables, catalogue digests; no specimen snapshot); `scripts/benchmarks/generation.md`'s resident section and `docs/growth-path.md` lose their stale routes. End-of-spec friction: BASELINE.md "Running the digests" records each digest's wall time, coverage and VRAM declaration; FRICTION.md carries a disposition per entry (fixed, proposed, or local setup reported). fn-28 untouched.
 
+Gate classify read FULL (an `.rs` comment), so the gate ran once: 1401 passed, 0 failed, 111 ignored. `npm test`: 170 passed.
+
+Follow-ups: `Metrics::wood_fallback` and the "Resident expansion" paragraphs after the fixed one in `generation.md` describe the old wood expansion; `artifact_digest` could request the curve.
+
+stage: impl-review - ran (codex, one reviewer: correctness, SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 604fe4612
+- Tests: telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast (1401/0), npm test (170/0)
 - PRs:
