@@ -35,9 +35,21 @@ GPU runs go through `telperion-heavy <mem> --gpu <vram> --threads N --`; at most
 - [ ] The pixel helper's test is red against an intensity-weighted metric (asserts the exact count) and green on the helper.
 - [ ] Gate and `npm test` green.
 ## Done summary
-TBD
+The F4 probe (`frames.rs`) now fills every protocol column. That is `AGE`/`SEED` as asked, `fresh_ms` from `Renderer::new` to a fenced first frame, `warm_ms` for a rebuild to a fenced frame, whole/mid/close frame ms, `peak_rss_mb`, and `device_memory` with its source and wgpu's own share (`wgpu_internal_mib`). `ONE_BUILD=1` gives memory-only rows with the timing keys null. `scripts/gpu-row.mjs` runs a row: it holds the heavy lock for the whole row, samples the card every 250 ms and writes `valid: false` on a foreign process. `scripts/pixel-diff.mjs` counts differing pixels and names its metric. `docs/gpu-tests.md` documents all three, and the measurements are in `.flow/evidence/fn-259-the-release-meets-the-bar-on-every/TOOLING.md`.
 
+- Host decision (2026-10-19): foreign means rule (a). A foreign process appears on the card during the row, was not there at the start and is not in the probe's tree. A row starts only with no other heavy unit and no telperion process on the card. Processes present at the start are recorded, and a non-Telperion compute job already running at the start is the stated residual gap.
+- Ordinary at 40, seed 1 (measured): fresh 2,585.5 ms, warm 366.0 ms, frame 0.555/0.733/0.881 ms, peak RSS 797 MB, 291.8 MiB allocated (196.5 of it wgpu-internal), 1,024 MiB reserved.
+- One-build against multi-build (measured): allocated less wgpu-internal is 90.6 against 95.3 MiB. Raw allocated is 97.1 against 291.8, because wgpu's indirect-validation buffers grow with the timing loop. Reserved is 768 against 1,024 MiB, and peak RSS 691 against 797 MB. Both `allocated_mib` and `wgpu_internal_mib` are reported, and task 4's protocol chooses the column (host).
+- Row runner (measured): a `telperion-heavy` job started mid-row was admitted the moment the row ended. A row with a short foreign `frames date-palm` run under plain nice was written `valid: false`, naming that pid. Two rows admitted at once both finished, one after the other.
+- Pixel helper: its test is green; it is red (5.56 against 37) with an intensity-weighted count.
+
+baseline: green via handoff (1a0844c60)
+gate: telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast exit 0, 1,401 passed, 0 failed, 111 ignored, 146 binaries; npm test exit 0, 173 passed
+stage: impl-review - ran (codex, three lenses, then two re-reviews to SHIP; correctness draw lost to model capacity in round 1; round cap reset once, as the host's brief allows, recorded in FRICTION.md; finding "existing compute workers exempt" declined by the host decision above)
+Tier: (none given) (model: claude-opus-5-5)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0f4b66f78812e85e61183298370d20ed96826238, 7acc5e81752be72fcd2724ddc1d3495d552f0129, 5a142e0012f3ea9a8a621ff63c3c678e7033d928, ce41b2b6fcedd09b93c9a8189612e8e7b09dd8cf, 35bfa33df4fd583c831c0fece85472a4044d3a8a
+- Tests: telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast, npm test, npx vitest run scripts/pixel-diff.test.mjs
 - PRs:
