@@ -43,9 +43,15 @@ Carry `Outputs::organ` through the C-ABI binding and `TreeEngine.build` as `Tree
 - [ ] TBD
 
 ## Done summary
-TBD
+The flowers cross the Wasm binding: `Output` carries the organ element's positions and indices and its florets (slots 27, 28, 29), the metadata carries `organReference`, and `TreeEngine.build` returns `TreeOutput.organ` beside `foliage` where foliage was asked for and the tree flowers (Telperion, Laurelin). Absent, never empty, otherwise, including a flowering window of no length. One slot lookup serves both accessors. README, docs/pipeline.md and a new docs/migration-0.2-flowers.md say so; test-dist checks the organ is well formed.
 
+Tests: `flowers_cross_the_binding_where_the_pipeline_grows_them` (red, then green; counts equal the pipeline's for every shipped preset), `a_window_of_no_length_crosses_no_organ` (red, then green), bindings.mjs organ checks.
+Gate: 1402 passed, 0 failed, 111 ignored. npm test: 173 passed. npm run test:bindings: green.
+
+stage: impl-review - ran (codex, 3-lens panel: correctness NEEDS_WORK, contracts SHIP, integration SHIP; one fix; re-review SHIP) (model: gpt-6.1-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 03b1f990336889381e82000e937cc6614d634062, 750e221ded99bfe84c61680797aa8bc94ba00b94, e84616a785ea095a7bf15b1431c5347ebb338cd3
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast, npm test, npm run test:bindings
 - PRs:
