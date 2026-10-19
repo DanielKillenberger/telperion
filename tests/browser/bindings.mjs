@@ -205,7 +205,8 @@ try {
     }
     check(e.preset(999) === 1, 'unknown ABI identity');
     check(e.request_alloc(65537) === 1 && e.build() === 1, 'oversized request leaves no prior request');
-    check(raw('{"family":{"age":0},"outputs":{"surface":true}}') === 1 && e.chunk_len(0, 0) === 0, 'native tree of no cycle refused');
+    check(raw(JSON.stringify({ family: { ...family, age: 0 }, outputs: { surface: true } })) === 1 && e.chunk_len(0, 0) === 0, 'native tree of no cycle refused');
+    check(new TextDecoder().decode(new Uint8Array(e.memory.buffer, e.metadata_ptr(), e.metadata_len())).includes('a tree grows at least one cycle'), 'native refusal names the cycle');
     check(raw(JSON.stringify({ family, outputs: { surface: true } })) === 0, 'native wood build');
     const chunks = JSON.parse(new TextDecoder().decode(new Uint8Array(e.memory.buffer, e.metadata_ptr(), e.metadata_len()))).surfaceChunks;
     check(chunks > 0 && [0, 1, 2].every(f => e.chunk_len(chunks - 1, f) > 0), 'native chunks counted in the metadata');
