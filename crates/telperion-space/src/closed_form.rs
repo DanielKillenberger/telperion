@@ -12,15 +12,12 @@
 //! it wakes then and that its bearer is still carried on (`Living`).
 //! Shedding is outside the formula.
 use crate::transcendental::Transcendental;
-// The stand-in tables are read from fn-209's step 2 on.
-#[cfg_attr(not(test), allow(dead_code))]
 mod along;
+#[cfg(test)]
 pub(crate) mod boundary;
-#[cfg_attr(not(test), allow(dead_code))]
-mod envelope;
 mod events;
 mod grown;
-#[cfg_attr(not(test), allow(dead_code))]
+#[cfg(test)]
 pub(crate) mod kept;
 pub(crate) mod predictor;
 mod steps;

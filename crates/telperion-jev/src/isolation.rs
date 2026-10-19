@@ -9,15 +9,10 @@ const FORBIDDEN_CRATES: &[&str] = &[
     "crates/telperion-core",
     "crates/telperion-render",
     "crates/telperion-wasm",
-    "crates/telperion-field",
     "src",
 ];
 
-const FORBIDDEN_MARKERS: &[&str] = &[
-    ENDPOINT,
-    "telperion-jev",
-    "telperion_jev",
-];
+const FORBIDDEN_MARKERS: &[&str] = &[ENDPOINT, "telperion-jev", "telperion_jev"];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IsolationHit {

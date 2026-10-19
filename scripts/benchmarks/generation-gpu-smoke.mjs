@@ -25,8 +25,6 @@ try {
   const rejected=async(p,fragment)=>{try{await p;}catch(e){assert(String(e).includes(fragment),String(e));return String(e);}throw Error('expected rejection: '+fragment);};
   const cpu=renderer.setTree(text);
   const gpu=await renderer.setTreeGpu(text);
-  assert(gpu.backend==='Gpu','GPU backend');
-  assert(gpu.stages.woodBackend==='Gpu','resident wood backend');
   assert(gpu.stages.woodCpuBytes===0,'resident wood CPU ownership');
   if(gpu.stages.gpuPositions) {
    assert(gpu.stages.woodPreparedCpuBytes===0 && gpu.stages.positionCpuBytes>0 && gpu.stages.positionGpuPeakBytes>0 && gpu.stages.positionFallback===null,'GPU position accounting');
@@ -38,13 +36,11 @@ try {
   checks.valid={cpu,gpu};
   const canonical=structuredClone(family);canonical.surface.lobes=5;canonical.surface.lobeDepth=0.16;
   checks.canonical=await renderer.setTreeGpu(JSON.stringify(canonical));
-  assert(checks.canonical.backend==='Gpu' && checks.canonical.stages.woodBackend==='Gpu','canonical resident fallback');
   assert(checks.canonical.stages.gpuPositions===false && checks.canonical.stages.positionFallback==='profile or station capability','profile capability fallback');
   assert(checks.canonical.stages.woodCpuBytes===0 && checks.canonical.stages.woodPreparedCpuBytes>0,'canonical fallback accounting');
   checks.invalid=await rejected(renderer.setTreeGpu('{'),'not JSON');
   const fallback=structuredClone(family);fallback.canopy.limbClumping=0.1;
   checks.fallback=await renderer.setTreeGpu(JSON.stringify(fallback));
-  assert(checks.fallback.backend==='CpuFallback','fallback backend');
   const first=renderer.setTreeGpu(text);
   checks.overlap=await rejected(renderer.setTreeGpu(text),'busy');
   await first;

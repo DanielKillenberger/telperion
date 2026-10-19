@@ -61,14 +61,41 @@ impl E {
         match self {
             E::C(k) => *k,
             E::At(w) => census[*w],
-            E::Add(a, b) => { let (a, b) = bin(a, b); a.wrapping_add(b) }
-            E::Sub(a, b) => { let (a, b) = bin(a, b); a.saturating_sub(b) }
-            E::Mul(a, b) => { let (a, b) = bin(a, b); a.wrapping_mul(b) }
-            E::Div(a, b) => { let (a, b) = bin(a, b); a.checked_div(b).map_or(0, |_| a.div_ceil(b)) }
-            E::Min(a, b) => { let (a, b) = bin(a, b); a.min(b) }
-            E::Max(a, b) => { let (a, b) = bin(a, b); a.max(b) }
-            E::Gt(a, b) => { let (a, b) = bin(a, b); u32::from(a > b) }
-            E::Sel(c, a, b) => if c.eval(census) != 0 { a.eval(census) } else { b.eval(census) },
+            E::Add(a, b) => {
+                let (a, b) = bin(a, b);
+                a.wrapping_add(b)
+            }
+            E::Sub(a, b) => {
+                let (a, b) = bin(a, b);
+                a.saturating_sub(b)
+            }
+            E::Mul(a, b) => {
+                let (a, b) = bin(a, b);
+                a.wrapping_mul(b)
+            }
+            E::Div(a, b) => {
+                let (a, b) = bin(a, b);
+                a.checked_div(b).map_or(0, |_| a.div_ceil(b))
+            }
+            E::Min(a, b) => {
+                let (a, b) = bin(a, b);
+                a.min(b)
+            }
+            E::Max(a, b) => {
+                let (a, b) = bin(a, b);
+                a.max(b)
+            }
+            E::Gt(a, b) => {
+                let (a, b) = bin(a, b);
+                u32::from(a > b)
+            }
+            E::Sel(c, a, b) => {
+                if c.eval(census) != 0 {
+                    a.eval(census)
+                } else {
+                    b.eval(census)
+                }
+            }
             E::Given(_) => u32::MAX,
         }
     }
@@ -81,14 +108,35 @@ impl E {
         match self {
             E::C(k) => (*k, *k),
             E::At(w) => (lo[*w], hi[*w]),
-            E::Add(a, b) => { let (a, b) = bin(a, b); (a.0.saturating_add(b.0), a.1.saturating_add(b.1)) }
-            E::Sub(a, b) => { let (a, b) = bin(a, b); (a.0.saturating_sub(b.1), a.1.saturating_sub(b.0)) }
-            E::Mul(a, b) => { let (a, b) = bin(a, b); (a.0.saturating_mul(b.0), a.1.saturating_mul(b.1)) }
+            E::Add(a, b) => {
+                let (a, b) = bin(a, b);
+                (a.0.saturating_add(b.0), a.1.saturating_add(b.1))
+            }
+            E::Sub(a, b) => {
+                let (a, b) = bin(a, b);
+                (a.0.saturating_sub(b.1), a.1.saturating_sub(b.0))
+            }
+            E::Mul(a, b) => {
+                let (a, b) = bin(a, b);
+                (a.0.saturating_mul(b.0), a.1.saturating_mul(b.1))
+            }
             // None over none: a divisor that can be none bounds nothing.
-            E::Div(a, b) => { let (a, b) = bin(a, b); (ceil(a.0, b.1), if b.0 == 0 { a.1 } else { ceil(a.1, b.0) }) }
-            E::Min(a, b) => { let (a, b) = bin(a, b); (a.0.min(b.0), a.1.min(b.1)) }
-            E::Max(a, b) => { let (a, b) = bin(a, b); (a.0.max(b.0), a.1.max(b.1)) }
-            E::Gt(a, b) => { let (a, b) = bin(a, b); (u32::from(a.0 > b.1), u32::from(a.1 > b.0)) }
+            E::Div(a, b) => {
+                let (a, b) = bin(a, b);
+                (ceil(a.0, b.1), if b.0 == 0 { a.1 } else { ceil(a.1, b.0) })
+            }
+            E::Min(a, b) => {
+                let (a, b) = bin(a, b);
+                (a.0.min(b.0), a.1.min(b.1))
+            }
+            E::Max(a, b) => {
+                let (a, b) = bin(a, b);
+                (a.0.max(b.0), a.1.max(b.1))
+            }
+            E::Gt(a, b) => {
+                let (a, b) = bin(a, b);
+                (u32::from(a.0 > b.1), u32::from(a.1 > b.0))
+            }
             E::Sel(c, a, b) => {
                 let (c, a, b) = (c.span(lo, hi), a.span(lo, hi), b.span(lo, hi));
                 match c {
@@ -148,7 +196,13 @@ pub(super) fn program(dst: Dst, e: &E) -> Vec<u32> {
         Dst::Cfg(w) => 21 | w << 8,
         Dst::Raise(w) => 23 | (w as u32) << 8,
     };
-    assert!(match dst { Dst::Cfg(w) => w < 1 << 24, Dst::Census(w) | Dst::Raise(w) => w < 1 << 24 }, "a word the program can name");
+    assert!(
+        match dst {
+            Dst::Cfg(w) => w < 1 << 24,
+            Dst::Census(w) | Dst::Raise(w) => w < 1 << 24,
+        },
+        "a word the program can name"
+    );
     out.extend([store, 0]);
     out
 }
@@ -160,7 +214,12 @@ pub(super) struct Kernels {
 impl Kernels {
     pub(super) fn new(gpu: &Gpu) -> Self {
         Self {
-            pass: io::Pass::new(gpu, VM.to_string(), &[true, false, false, false], &["vm_main"]),
+            pass: io::Pass::new(
+                gpu,
+                VM.to_string(),
+                &[true, false, false, false],
+                &["vm_main"],
+            ),
         }
     }
 }

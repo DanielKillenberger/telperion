@@ -7,9 +7,11 @@ mod bloom_params;
 mod canopy;
 mod clumping;
 mod cluster;
+mod crown;
 mod element;
 mod leaflet;
 mod levels;
+mod organs;
 mod outline;
 pub(crate) mod packed;
 #[cfg(feature = "geometry")]
@@ -35,8 +37,13 @@ pub use bloom_params::BloomParams;
 /// Every canopy rail `place` judges, with no tree to place against.
 pub(crate) use canopy::rows as canopy_rows;
 pub use canopy::{CanopyParams, TwigPlacement};
+pub use crown::{blade, establishment, waited, Crown};
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
+/// A frond's leaflets before any draw, for the suite's gap check (fn-275 R2c).
+#[cfg(all(test, feature = "geometry"))]
+pub(crate) use leaflet::leaflets;
 pub use levels::Level;
+pub(crate) use organs::apex;
 pub use packed::{withered, Leaf, Reference, WITHERED, WORDS};
 #[cfg(all(test, feature = "geometry"))]
 pub(crate) use placement::leaf_count;
@@ -47,10 +54,11 @@ pub(crate) use placement::place_on;
 pub use placement::{place, place_on_surface};
 #[cfg(feature = "geometry")]
 pub(crate) use reference::Reach;
+pub(crate) use rosette::stem_node;
 /// The canopy's own rails, for a pass that reads the canopy rows without
 /// placing a leaf: a bad row is refused by the name `place` refuses it by.
 pub(crate) use rosette::validate as validate_canopy;
-pub use rosette::{frame, rosettes, Crown, Rosette, MAX_FRONDS, MAX_LEAFLETS};
+pub use rosette::{frame, rosettes, Rosette, MAX_FRONDS, MAX_LEAFLETS};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds {

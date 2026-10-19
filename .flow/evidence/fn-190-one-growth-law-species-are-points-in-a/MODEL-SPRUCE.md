@@ -48,7 +48,7 @@ Not built from this spec: the polycyclism of M4's fourth year (one growth unit a
 
 ## Proposed settings and values
 
-The starting point is R1a round 3's spruce (`R1A-ROUND3.md` l.59), which was borderline: leader and cone, upper tiers, lower crown a haze, w/h 0.97 against 0.62 authored. Changes from it are marked **Δ** with the rule behind them. These are proposals for task 9, not measured values. Engine behaviour is from reading the code [code], not from running it.
+The starting point is R1a round 3's spruce (round report archived), which was borderline: leader and cone, upper tiers, lower crown a haze, w/h 0.97 against 0.62 authored. Changes from it are marked **Δ** with the rule behind them. These are proposals for task 9, not measured values. Engine behaviour is from reading the code [code], not from running it.
 
 | Setting | Value | Δ from R1a r3 | Rule | Note |
 |---|---|---|---|---|
@@ -81,14 +81,14 @@ All are proposals; whether each is a new setting, an extension of an existing on
   - **Lean flattens the tip instead of raising it.** On one axis, lean grows with phi, and phi grows with the axis's years. The tip is therefore the most horizontal part, the opposite of M6.
 - **F4. Delayed release of dormant buds** (M10, draperies). Every lateral is born in the year its unit grows [code, `organ.rs:223–226`]. There are no sleeping buds that wake years later at branchlet bases, and `reiteration` acts only when a terminal aborts. Without F4 the lower branches either keep every branchlet (`life1` high) or go bare at the base (M11).
 - **F5. Rhythm that establishes with age** (M4). `rhythm` is one constant, so the 5-year still shows tiers from year 1. The source says the seedling grows continuously at first. Low priority: this is visible only in the youngest still.
-- **F6. A skirt resting on the ground** (S2: "a full skirt to the ground"). Wood below y = 0 is a driver error (R1A-ROUND2 l.29), and with F2 or F3 the lowest branches will reach the ground. Whether wood may rest at y = 0, or the `ground` pull must hold it up, is a design question for the host, not a value.
+- **F6. A skirt resting on the ground** (S2: "a full skirt to the ground"). Wood below y = 0 is a driver error (R1a round 2), and with F2 or F3 the lowest branches will reach the ground. Whether wood may rest at y = 0, or the `ground` pull must hold it up, is a design question for the host, not a value.
 
 ## Traits the owner judges
 
 Seen in `.flow/references/norway-spruce/`; I viewed all five photographs. The spruce is evergreen, so wood structure and tiers are judged through the needles.
 
 1. **One straight leader to the tip, never forked** (S1, S2). The stem shows through the crown in S1.
-2. **A narrow cone, widest at the base, with the live crown to the ground in open growth** (S1, S2). The authored w/h is 0.62 (R1A-ROUND3 l.18). There is no clear bole in either photograph.
+2. **A narrow cone, widest at the base, with the live crown to the ground in open growth** (S1, S2). The authored w/h is 0.62 (R1a round 3). There is no clear bole in either photograph.
 3. **Readable whorled tiers along the stem**: main branches in stories with gaps between them (S1, S3; less readable in the dense S2).
 4. **Main branches near-horizontal or drooping, with upturned tips**: drooping lower in the crown, ascending near the top (S1, S3, S5; M6).
 5. **Comb habit: second-order branchlets hang as curtains below each main branch** (S1, S3, S5).

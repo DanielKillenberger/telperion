@@ -158,7 +158,8 @@ pub fn run(name: &str, preset: &str) -> Result<(), String> {
                 family.age = f64::from(age);
                 family.skeleton.seed = seed;
                 let started = Instant::now();
-                let grown = executor::grow(&family).map_err(|e| format!("age {age} seed {seed}: {e}"))?;
+                let grown =
+                    executor::grow(&family).map_err(|e| format!("age {age} seed {seed}: {e}"))?;
                 let x = grown.expansion().map_err(|e| e.to_string())?;
                 let ms = started.elapsed().as_secs_f64() * 1e3;
                 let nodes = x.tree().nodes.len();
@@ -209,6 +210,8 @@ fn stills(
         (View::Bare, "bare", &camera),
         (View::Whole, "whole", &camera),
         (View::Bare, "base", &base),
+        // The base close-up in leaf: the low branches as they hang (fn-252).
+        (View::Whole, "low", &base),
         (View::Bare, "limb", &limb),
         // The limb close-up in leaf: how the needles dress a spray.
         (View::Whole, "spray", &limb),

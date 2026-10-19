@@ -4,15 +4,14 @@ satisfies: [R1]
 # fn-188-one-branching-law-from-trunk-to-twig.1 The judging lens: fixed camera, supersampled, coverage shown or ruled out
 
 ## Description
-TBD
+Build a fixed-camera judging lens and show or rule out coverage loss.
 
 ## Acceptance
-- [ ] TBD
+- R1 of the spec.
 
 ## Done summary
-Lens (R1): the stills keep twig tone; pinned pose in raw/pose.json. Ablations (R2): deleting the tip continuation is a clean win (fn-189); whole-tree girth barely moves ratios; axis-relative forks give the mesh but run away (4 to 71 leaders). A topology defect remains; the owner approved the step 3 probe.
+Headless captures run at 4x MSAA; stills keep twig tone; a pinned beech seed-1 pose for every candidate.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: da88cb3d, 40361290
 - Tests: cargo test --profile ci -p telperion-core --lib --no-fail-fast

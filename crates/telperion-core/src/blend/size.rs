@@ -175,14 +175,7 @@ fn refused(_: telperion_space::Error) -> Error {
 
 /// `species` with its light rows at 0.
 fn neutral(species: &Species) -> Species {
-    let mut neutral = species.clone();
-    for state in &mut neutral.states {
-        state.shade_hazard = 0.0;
-        state.shade_size = 0.0;
-        state.balance_hazard = 0.0;
-        state.leaf_girth = 0.0;
-    }
-    neutral
+    species.unlit()
 }
 
 /// `species` with every age's lateral probabilities multiplied by `factor`.

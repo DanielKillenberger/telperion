@@ -16,8 +16,5 @@ pub fn tree(tree: &Tree) -> u64 {
     }
     tree.crossover.hash(&mut h);
     format!("{:?}{:?}", tree.diagnostics, tree.sections).hash(&mut h);
-    for p in &tree.pipe {
-        (p[0].to_bits(), p[1].to_bits()).hash(&mut h);
-    }
     h.finish()
 }

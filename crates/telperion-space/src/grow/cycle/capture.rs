@@ -95,7 +95,7 @@ pub fn grow_capture(species: &Species, request: Request) -> Result<Capture> {
     g.step(last - 1, &mut |_| {})?;
     g.sketch(last - 1, &advanced)?;
     g.capture_light(&mut c)?;
-    g.shade(last - 1, &mut |_| {})?;
+    g.shade(&mut |_| {})?;
     axes.push(g.axes.len() as u32);
     live.push(g.live.len() as u32);
     c.u32s("per_cycle_axes", &axes);
@@ -138,13 +138,16 @@ impl Grower<'_> {
     /// allotment (split and sizes), then each surviving apex's survival
     /// and the axes it bears, as `step` takes them.
     fn capture_cycle(&mut self, cycle: u32, c: &mut Capture) -> Result<()> {
-        assert!(self.fine.is_none() && self.couple.is_none() && self.oracle.is_none());
         self.open(cycle);
         self.retire(cycle);
         let w = self.working.as_ref().expect("a working set");
         let n = w.links.len();
         let none = u32::MAX;
-        let parent: Vec<u32> = w.links.iter().map(|l| l.parent.map_or(none, |p| p as u32)).collect();
+        let parent: Vec<u32> = w
+            .links
+            .iter()
+            .map(|l| l.parent.map_or(none, |p| p as u32))
+            .collect();
         let node: Vec<u32> = (w.links.iter())
             .map(|l| if l.node == TIP { none } else { l.node as u32 })
             .collect();
@@ -182,7 +185,10 @@ impl Grower<'_> {
             .collect();
         c.f32s("pa_window", &windows);
         c.u32s("cycle", &[cycle]);
-        let live: Vec<u32> = (self.live.iter()).filter(|a| a.axis < n).map(|a| a.axis as u32).collect();
+        let live: Vec<u32> = (self.live.iter())
+            .filter(|a| a.axis < n)
+            .map(|a| a.axis as u32)
+            .collect();
         c.u32s("live", &live);
         // The balance over the working set: totals, the walk, memory and
         // each surviving apex's kept share.
@@ -195,11 +201,21 @@ impl Grower<'_> {
         c.u32s("cpu_living", &living);
         let sketch = self.sketch.as_ref().expect("sketching");
         let survived: std::collections::HashSet<usize> = self.live.iter().map(|a| a.axis).collect();
-        let shed: Vec<u32> = live.iter().map(|&i| !survived.contains(&(i as usize)) as u32).collect();
+        let shed: Vec<u32> = live
+            .iter()
+            .map(|&i| !survived.contains(&(i as usize)) as u32)
+            .collect();
         c.u32s("cpu_shed", &shed);
-        let kept: Vec<f32> = live.iter().map(|&i| sketch.pencils[i as usize].kept as f32).collect();
+        let kept: Vec<f32> = live
+            .iter()
+            .map(|&i| sketch.pencils[i as usize].kept as f32)
+            .collect();
         c.f32s("cpu_kept", &kept);
-        let memory: Vec<f32> = w.list.iter().map(|&i| sketch.pencils[i].memory as f32).collect();
+        let memory: Vec<f32> = w
+            .list
+            .iter()
+            .map(|&i| sketch.pencils[i].memory as f32)
+            .collect();
         c.f32s("cpu_memory", &memory);
         // The allotment: the split over the open axes, then the sizes.
         self.allot_one();
@@ -246,13 +262,17 @@ impl Grower<'_> {
             };
             let s = carried.unit(state.life(), 1).share;
             let below = if first { d.below } else { 0 };
-            let l = self
-                .sketch
-                .as_ref()
-                .and_then(|k| k.pencils.get(i))
-                .map_or(1.0, |p| p.light);
-            // The table's f32, shaded as the device shades it (`advance`).
-            let viability = decide::shaded(state.viability as f32, state.shade_hazard as f32, l as f32);
+            let pencil = self.sketch.as_ref().and_then(|k| k.pencils.get(i));
+            let l = pencil.map_or(1.0, |p| p.light);
+            // The table's f32, shaded as the device shades it (`advance`),
+            // and ended by the ground where its tip rests (fn-252 R2).
+            let viability =
+                decide::shaded(state.viability as f32, state.shade_hazard as f32, l as f32);
+            let rests = pencil.is_some_and(|p| !p.trunk && p.laid > 0 && p.layer.rests());
+            let viability = match state.ground_hazard > 0.0 && rests {
+                true => viability * (1.0 - state.ground_hazard as f32),
+                false => viability,
+            };
             axis.push(i as u32);
             pas.push(self.axes[i].pa as u32);
             key.push(decide_key.0);

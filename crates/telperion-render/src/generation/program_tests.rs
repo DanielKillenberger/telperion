@@ -9,10 +9,12 @@ fn a_program_refused_on_a_worker_is_reported_by_name() {
     let Some(gpu) = super::test_gpu() else {
         return;
     };
-    let module = gpu.device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("one entry"),
-        source: wgpu::ShaderSource::Wgsl("@compute @workgroup_size(1) fn real() {}".into()),
-    });
+    let module = gpu
+        .device
+        .create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("one entry"),
+            source: wgpu::ShaderSource::Wgsl("@compute @workgroup_size(1) fn real() {}".into()),
+        });
     let desc = |label, entry| wgpu::ComputePipelineDescriptor {
         label: Some(label),
         layout: None,
@@ -36,8 +38,16 @@ fn a_shader_refused_on_a_side_by_side_worker_is_reported() {
         return;
     };
     let bad = || {
-        let source = wgpu::ShaderSource::Wgsl("@compute @workgroup_size(1) fn broken() { let x: u32 = 1.5; }".into());
-        drop(gpu.device.create_shader_module(wgpu::ShaderModuleDescriptor { label: Some("broken"), source }))
+        let source = wgpu::ShaderSource::Wgsl(
+            "@compute @workgroup_size(1) fn broken() { let x: u32 = 1.5; }".into(),
+        );
+        drop(
+            gpu.device
+                .create_shader_module(wgpu::ShaderModuleDescriptor {
+                    label: Some("broken"),
+                    source,
+                }),
+        )
     };
     super::io::pair(&gpu, || (), bad);
     let said = pollster::block_on(ready(&gpu)).expect_err("the broken shader is refused");

@@ -4,8 +4,7 @@
  * The harness's half of the generator contract. The panel hands the
  * generator a GrowerParams and knows nothing else about it: the family
  * under the catalogue's own names, every row of it a control
- * (`rows.ts`), the seed on its own box, and the two named transforms
- * `family.ts` applies, density and torsion. A row the catalogue adds is
+ * (`rows.ts`) and the seed on its own box. A row the catalogue adds is
  * a control without a line here.
  * ------------------------------------------------------------------ */
 
@@ -20,15 +19,14 @@ export interface GrowerParams {
   family: Family;
   /** uint32. Varies the detail; it does not gamble on the outcome. */
   seed: number;
-  /** The attractor count as a share of the density dial's span. */
-  density: number;
-  /** Master over the supernatural bending: 1 is the rows as dialled. */
-  torsion: number;
+  /** The family as the preset or look states it: what a control is
+   *  changed from, and what a reset returns it to. Never sent. */
+  preset: Family;
 }
 
 export const DEFAULT_PARAMS: GrowerParams = {
   ...presetToParams({ ...ORDINARY, id: "ordinary", name: "Ordinary", note: "" }),
-  seed: 1, density: 0.5,
+  seed: 1,
 };
 
 /** The tree the harness opens on and resets to: the engine's beech at its

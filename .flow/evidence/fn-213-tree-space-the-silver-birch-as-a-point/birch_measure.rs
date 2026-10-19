@@ -1,4 +1,4 @@
-//! fn-213 COMPARE.md's measures, by code (round 12 adds the clusters): one preset's tree through the
+//! fn-213's old-against-engine measures, by code (round 12 adds the clusters): one preset's tree through the
 //! pipeline at an age and seed, and the hanging strands, the twigs along
 //! the limbs, the fine wood and where the leaves sit. Compiles against
 //! master (the old generator) and the fn-213 branch (the engine) alike;

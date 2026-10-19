@@ -6,8 +6,8 @@
 use super::super::resident::fold::Dressed;
 use super::build::{Kit, Tables};
 use super::build_grow::grow_hinted;
-use super::drawn::{dress, trunk, Rows};
 pub(in crate::generation) use super::drawn::Trunk;
+use super::drawn::{dress, trunk, Rows};
 pub(in crate::generation) use super::growth::GrowthState;
 use super::settle_device::Kernels as Settle;
 use super::settle_run::settle;
@@ -29,9 +29,31 @@ impl Kernels {
     /// Every module made side by side (`io::pair`).
     pub(in crate::generation) fn new(gpu: &Gpu) -> Self {
         use super::super::io::pair;
-        let drawing = || pair(gpu, || chains::Kernels::new(gpu), || pair(gpu, || drawn::Kernels::new(gpu), || present::Kernels::new(gpu)));
-        let (build, (settle, (chains, (drawn, present)))) = pair(gpu, || Kit::new(gpu), || pair(gpu, || Settle::new(gpu), drawing));
-        Self { build, settle, chains, drawn, present }
+        let drawing = || {
+            pair(
+                gpu,
+                || chains::Kernels::new(gpu),
+                || {
+                    pair(
+                        gpu,
+                        || drawn::Kernels::new(gpu),
+                        || present::Kernels::new(gpu),
+                    )
+                },
+            )
+        };
+        let (build, (settle, (chains, (drawn, present)))) = pair(
+            gpu,
+            || Kit::new(gpu),
+            || pair(gpu, || Settle::new(gpu), drawing),
+        );
+        Self {
+            build,
+            settle,
+            chains,
+            drawn,
+            present,
+        }
     }
 }
 
@@ -40,8 +62,25 @@ pub(super) fn rows(rows: &[ConvertRow]) -> Vec<f32> {
     let bits = f32::from_bits;
     let row = |r: &ConvertRow| {
         let s = &r.season;
-        let season = [s.budburst, s.senescence, s.colouring, s.fall, s.expansion, s.life].map(|v| v as f32);
-        let convert = [r.internode as f32, r.spread as f32, r.flowering as f32, r.leaves as f32, r.fan as f32, bits(r.sheds), bits(u32::from(r.share)), bits(u32::from(r.trunk))];
+        let season = [
+            s.budburst,
+            s.senescence,
+            s.colouring,
+            s.fall,
+            s.expansion,
+            s.life,
+        ]
+        .map(|v| v as f32);
+        let convert = [
+            r.internode as f32,
+            r.spread as f32,
+            r.flowering as f32,
+            bits(r.leaves),
+            r.fan as f32,
+            bits(r.sheds),
+            bits(u32::from(r.share)),
+            bits(u32::from(r.trunk)),
+        ];
         convert.into_iter().chain(season)
     };
     rows.iter().flat_map(row).collect()
@@ -49,25 +88,43 @@ pub(super) fn rows(rows: &[ConvertRow]) -> Vec<f32> {
 
 /// The refusal of a tree its settle could not lay, by the settle's words.
 pub(super) fn unlaid(error: [u32; 2]) -> crate::RenderError {
-    super::super::io::error(format!("the settled tree could not be laid (fault {}, axis {})", error[0], error[1]))
+    super::super::io::error(format!(
+        "the settled tree could not be laid (fault {}, axis {})",
+        error[0], error[1]
+    ))
 }
 
-/// The family's tree (`growth`) grown, settled and drawn on the device:
-/// its drawn records and its trunk's measures.
-pub(in crate::generation) async fn drawn(gpu: &Gpu, k: &Kernels, growth: &Growth) -> Result<(Dressed, Trunk)> {
+/// The family's tree (`growth`) grown, settled and drawn on the device,
+/// with room for `bases` retained leaf bases a stem (`boots::most`): its
+/// drawn records and its trunk's measures.
+pub(in crate::generation) async fn drawn(
+    gpu: &Gpu,
+    k: &Kernels,
+    (growth, bases): (&Growth, u32),
+) -> Result<(Dressed, Trunk)> {
     let (species, request) = (&growth.species, growth.request);
     let refused = |what: &str| super::super::io::error(format!("the species' {what}"));
     let trace = std::env::var("CYCLE_TRACE").is_ok();
     let clock = super::super::Clock::now();
-    let tables = telperion_space::grow_capture_tables(species, request).map_err(|e| refused(&e.to_string()))?;
-    let chain = ChainTables::cycle(species, request.age).map_err(|e| refused(&e.to_string()))?;
+    let (tables, chain) = side_by_side(
+        || telperion_space::grow_capture_tables(species, request),
+        || ChainTables::cycle(species, request.age),
+    );
+    let tables = tables.map_err(|e| refused(&e.to_string()))?;
+    let chain = chain.map_err(|e| refused(&e.to_string()))?;
     let t = Tables::new(gpu, &tables, &chain)?;
     let at_tables = clock.elapsed_ms();
     let hint = super::build_arena::hint(species, request.age)?;
     let (b, ..) = grow_hinted(gpu, &k.build, &t, &tables, (hint, request.age)).await?;
     let b = b.settling(gpu, (&t, &tables)).await?;
     let at_grown = clock.elapsed_ms();
-    let s = settle(gpu, (&k.build, &k.settle), (&b, &t), (&t.settle_pa, SettleTo::Laid)).await?;
+    let s = settle(
+        gpu,
+        (&k.build, &k.settle),
+        (&b, &t),
+        (&t.settle_pa, SettleTo::Laid),
+    )
+    .await?;
     let at_settled = clock.elapsed_ms();
     drop(b);
     if s.error[0] != 0 {
@@ -75,11 +132,39 @@ pub(in crate::generation) async fn drawn(gpu: &Gpu, k: &Kernels, growth: &Growth
     }
     let planned = chains::plan(gpu, (&k.chains, &k.build.hier.scan), s.view()).await?;
     let rows = rows(&growth.rows);
-    let at = Rows { rows: &rows, age: request.age, scale: growth.scale as f32, fraction: 1.0, leaf: None };
+    let establishing = telperion_core::pipeline::executor::Establishing::words(growth.establishing);
+    let at = Rows {
+        rows: &rows,
+        age: request.age,
+        scale: growth.scale as f32,
+        fraction: 1.0,
+        leaf: None,
+        establishing,
+        bases,
+    };
     let dressed = dress(gpu, &k.drawn, (s.view(), &planned), &at)?;
     let measured = trunk(gpu, &k.drawn, &dressed).await?;
     if trace {
         eprintln!("TRACE tree: tables {at_tables:.0} ms, grown {at_grown:.0}, settled {at_settled:.0}, drawn {:.0}", clock.elapsed_ms());
     }
     Ok((dressed, measured))
+}
+
+/// `a` and `b`, two independent CPU tables, made natively on two threads
+/// (fn-257 task 8: the spruce's 10 ms each, side by side), in turn in a
+/// browser's one thread.
+fn side_by_side<A: Send, B: Send>(
+    a: impl FnOnce() -> A + Send,
+    b: impl FnOnce() -> B + Send,
+) -> (A, B) {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::thread::scope(|s| {
+            let b = s.spawn(b);
+            let a = a();
+            (a, b.join().expect("a table made beside another"))
+        })
+    }
+    #[cfg(target_arch = "wasm32")]
+    (a(), b())
 }

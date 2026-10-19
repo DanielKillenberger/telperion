@@ -10,6 +10,7 @@ fn frame(i: u32, fr: Framed) {
     var vigour = made;
     var trunk = true;
     var share = 1.0;
+    var reach = 0.0;
     if kind == LATERAL {
         inherited = phf(prow(ax(i, A_PARENT), ax(i, A_NODE)), PH_SCALE);
         trunk = false;
@@ -24,13 +25,15 @@ fn frame(i: u32, fr: Framed) {
         let made_at = i32(ax(i, A_BIRTH)) * i32(TICKS) + i32(ax(i, A_SLEEP));
         let born_at = i32(ax(p, A_BIRTH)) * i32(TICKS) + i32(ax(p, A_SLEEP));
         let bent = bend_of(p, years_of(max(made_at - born_at, 0)));
-        hand_lifts(i, p, blend_of(i), vec2<f32>(bent, pnf(p, P_RUN)));
+        reach = pnf(p, P_RUN);
+        hand_lifts(i, p, blend_of(i), vec2<f32>(bent, reach));
     }
     set_ax3(i, A_BASE, fr.base);
     set_ax3(i, A_HEADING, fr.heading);
     set_ax3(i, A_SIDE, fr.side);
     let wk = Walk(fr.heading, fr.side, fr.base, 0.0, (1.0 + fr.heading.z) * 0.5, fr.curve, tropism_of(i));
     keep_walk(i, wk);
+    take_over(i, reach);
     set_pnf(i, P_BASE_SCALE, apart(inherited * vigour) * share);
     set_pnf(i, P_GOING, 1.0);
     set_pnf(i, P_RANKED, 0.0);

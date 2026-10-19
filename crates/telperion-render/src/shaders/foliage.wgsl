@@ -6,14 +6,16 @@
 // looks its own placement - and its own identity - up through the list.
 
 /// The crown's placements, as the core packed them - three words a leaf,
-/// decoded by `leaf.wgsl` against the box in the frame block - and the list of
-/// the ones this draw's level was given, bound at the level's own offset.
+/// decoded by `leaf.wgsl` against the box in the frame block - and every
+/// level's list end to end, this draw's level from its start word, which is
+/// bound at the level's own offset.
 @group(1) @binding(0) var<storage, read> placements: array<u32>;
 @group(1) @binding(1) var<storage, read> list: array<u32>;
 /// How deep each cell of the crown stands in its own leaf mass, after a
 /// header of the grid's corner, its cell's edge and its three counts
 /// (mass.rs).
 @group(1) @binding(2) var<storage, read> masses: array<f32>;
+@group(1) @binding(3) var<uniform> start: u32;
 
 struct Varying {
     @builtin(position) clip: vec4<f32>,
@@ -51,7 +53,7 @@ fn vertex(
     @location(1) normal: vec3<f32>,
     @location(2) coord: vec2<f32>,
 ) -> Varying {
-    let id = list[instance];
+    let id = list[start + instance];
     let base = id * LEAF_WORDS;
     let words = vec3<u32>(placements[base], placements[base + 1u], placements[base + 2u]);
     let placement = leaf_transform(words, u.leaf_box_min.xyz, u.leaf_box_extent.xyz);

@@ -13,7 +13,6 @@ mod lay;
 mod place;
 pub(crate) mod q;
 mod sagged;
-mod single;
 mod stand;
 
 use crate::cores::{fill, map};
@@ -21,12 +20,11 @@ use crate::lineage::{insertion, Key, DOMINANCE, ROLL};
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
 pub(crate) use lay::{cone, support, Layer};
-pub(crate) use place::{place, place_bearers};
+pub(crate) use place::place;
 pub(crate) use q::amount;
 use q::{add, atan2, between, cross, dot, q3, rotated, scaled, sincos, sub, unit, v3, Q3, UP};
-pub(crate) use single::{bud_frame, lay_one};
-pub(crate) use stand::{split, Position};
 use stand::stand;
+pub(crate) use stand::{split, Position};
 
 /// The sine of the lean below which a parent has too little of an upper
 /// side for epitony to turn its buds by all of it: about 11.5 degrees.
@@ -222,8 +220,7 @@ fn framed(
             // The axis's running direction and side at its tip, before its
             // pull towards the vertical, which the axis carried on runs on
             // with; its phyllotaxis runs on as a phase (`phase`).
-            let heading =
-                unit(add(scaled(along, 1.0 - b), scaled(heading, b))).unwrap_or(heading);
+            let heading = unit(add(scaled(along, 1.0 - b), scaled(heading, b))).unwrap_or(heading);
             let side = add(scaled(across, 1.0 - b), scaled(side, b));
             let side = unit(sub(side, scaled(heading, dot(side, heading)))).unwrap_or(across);
             // Its base where it joins the parent, on the parent's wood.
@@ -231,6 +228,50 @@ fn framed(
             let base = stand::at(&axes[parent], x);
             (base, heading, side)
         }
+    }
+}
+
+/// How far relay `i` runs back onto the line it carries on (fn-286): its
+/// PA's take-over as far as it has left that line (its blend), towards
+/// its parent's running direction where the parent's walk ended (`ends`).
+/// None on any other axis, or a line of no direction.
+pub(crate) fn taken(
+    axes: &[Axis],
+    species: &Species,
+    i: usize,
+    ends: &dyn Fn(usize) -> (Vec3, Vec3),
+) -> Take {
+    let axis = &axes[i];
+    let Origin::Relay { parent, .. } = axis.origin else {
+        return NO_TAKE;
+    };
+    let take = species.states[axis.pa].takeover as f32 * axis.blend as f32;
+    match unit(q3(ends(parent).0)) {
+        Some(line) if take > 0.0 => (line, take),
+        _ => NO_TAKE,
+    }
+}
+
+/// A take-over: the line a relay runs back onto and how far (`taken`).
+pub(crate) type Take = ([f32; 3], f32);
+/// No take-over.
+pub(crate) const NO_TAKE: Take = ([0.0; 3], 0.0);
+
+/// The take-over an axis carried on runs with: its own as a relay
+/// (`taken`) and what it carries on of its parent's (`Layer::handed_take`),
+/// their lines weighted by how far each pulls. Both fade over the axis's
+/// own reach, so a continuation goes on running back onto the line its
+/// relay took over until that relay's reach is spent (fn-286 review).
+pub(crate) fn joined((mine, own): Take, (line, carried): Take) -> Take {
+    match (own > 0.0, carried > 0.0) {
+        (true, true) => {
+            let s = own + carried;
+            let at = |c: usize| (mine[c] * own + line[c] * carried) / s;
+            ([at(0), at(1), at(2)], s)
+        }
+        (true, false) => (mine, own),
+        (false, true) => (line, carried),
+        (false, false) => NO_TAKE,
     }
 }
 
@@ -361,5 +402,9 @@ fn turned((along, side): (Q3, Q3), azimuth: f32, angle: f32, plane: f32, epitony
     (heading, spun(heading, side, plane))
 }
 
+#[cfg(test)]
+mod angles_tests;
+#[cfg(test)]
+mod internodes_tests;
 #[cfg(test)]
 mod tests;

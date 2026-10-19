@@ -105,7 +105,7 @@ pub(super) const NA_COLS: u32 = 41;
 pub(super) const NP_COLS: u32 = 22;
 /// The place's columns per kept axis (`settle_state.wgsl`'s `Y_`), and
 /// its fault word in `atom`.
-pub(super) const Y_COLS: u32 = 63;
+pub(super) const Y_COLS: u32 = 67;
 /// The place's columns per kept phytomer (`settle_state.wgsl`'s `Q_`).
 pub(super) const Q_COLS: u32 = 11;
 /// The lay's first error and whether any phytomer has size.
@@ -114,7 +114,15 @@ pub(super) const T_SCALED: usize = 7;
 pub(super) const T_PLACE: usize = 5;
 
 /// The place module's entries.
-pub(super) const PLACE_ENTRIES: [&str; 7] = ["scale_main", "attach_main", "thick_main", "frame_main", "lever_main", "sized_main", "walk_main"];
+pub(super) const PLACE_ENTRIES: [&str; 7] = [
+    "scale_main",
+    "attach_main",
+    "thick_main",
+    "frame_main",
+    "lever_main",
+    "sized_main",
+    "walk_main",
+];
 pub(super) const SCALE: usize = 0;
 pub(super) const ATTACH: usize = 1;
 pub(super) const THICK_E: usize = 2;
@@ -264,9 +272,9 @@ impl Layout {
 /// The node table's layout for `kept` axes, `units` units and `phyts`
 /// phytomers: the axes' columns, then the units', then the phytomers'.
 #[derive(Debug, Clone, Copy)]
-#[cfg_attr(not(test), allow(dead_code))]
 pub(super) struct Table {
     pub kept: u32,
+    #[cfg(test)]
     pub units: u32,
     pub phyts: u32,
     pub sk: u32,
@@ -284,6 +292,16 @@ impl Table {
         let at_np = round64(at_nu + u64::from(units) + 1);
         let words = at_np + u64::from(NP_COLS) * skp;
         let small = |x: u64| u32::try_from(x).expect("the node table's words in a u32");
-        Self { kept, units, phyts, sk: small(sk), skp: small(skp), at_nu: small(at_nu), at_np: small(at_np), words }
+        Self {
+            kept,
+            #[cfg(test)]
+            units,
+            phyts,
+            sk: small(sk),
+            skp: small(skp),
+            at_nu: small(at_nu),
+            at_np: small(at_np),
+            words,
+        }
     }
 }

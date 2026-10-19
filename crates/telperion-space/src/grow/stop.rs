@@ -4,8 +4,8 @@
 //! stop near its bound fades what the axis carries on (host decision 11).
 use super::shoot::Shoot;
 use super::{stop_stake, Apex};
-use crate::error::Result;
 use crate::contract::{self, presence};
+use crate::error::Result;
 use crate::lineage::{threshold, Key, ABORTION, MOVE, RELAY};
 use crate::presence::Unit;
 use crate::presence::SPAN;
@@ -258,7 +258,7 @@ impl Shoot<'_, '_> {
     ) -> Result<()> {
         *self.units_mut(apex.axis) = spent;
         if why == Stop::Ended {
-            self.draws_mut(apex.axis).outlived = Some(used);
+            self.draws_mut(apex.axis).outlive(used);
         }
         let windows = self.windows();
         let axis = self.axis(apex.axis);

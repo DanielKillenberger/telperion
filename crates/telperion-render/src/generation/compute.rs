@@ -1,12 +1,19 @@
-use super::clock::Clock;
-use super::{data, io, Generator, Metrics, Resident};
-use crate::buffer::{Lent, Owned};
-use crate::{buffer::Held, Gpu, Result};
+use super::{data, io, Generator, Metrics};
+use crate::buffer::Owned;
+use crate::{Gpu, Result};
 use telperion_core::{
-    foliage::{prepared::PreparedStations, Element, Reference, TwigPlacement},
+    foliage::{Element, Reference},
     math::Vec3,
-    pipeline::executor::LeafInput,
     surface::Bounds,
+};
+#[cfg(test)]
+use {
+    super::{clock::Clock, Resident},
+    crate::buffer::Held,
+    telperion_core::{
+        foliage::{prepared::PreparedStations, TwigPlacement},
+        pipeline::executor::LeafInput,
+    },
 };
 const STORAGE: wgpu::BufferUsages = wgpu::BufferUsages::STORAGE.union(wgpu::BufferUsages::COPY_SRC);
 fn upload<T: bytemuck::Pod>(
@@ -44,131 +51,7 @@ pub(super) fn bounds(summary: &[u32], offset: usize) -> Bounds {
         ),
     }
 }
-/// Leaves placed on the device and their placement summary.
-pub(super) struct Placed {
-    pub leaves: Owned,
-    pub summary: Owned,
-    pub live: u64,
-}
-
 impl Generator {
-    pub(super) async fn compute_async(
-        &self,
-        p: PreparedStations,
-        l: &LeafInput,
-        t: TwigPlacement,
-        e: &Element,
-        r: Reference,
-        m: &mut Metrics,
-    ) -> Result<Resident> {
-        let started = Clock::now();
-        let rings: Vec<_> = p
-            .rings
-            .iter()
-            .map(|v| [v.x as f32, v.y as f32, v.z as f32])
-            .collect();
-        m.descriptor_cpu_bytes = (p.segments.capacity()
-            * size_of::<telperion_core::foliage::prepared::StationSegment>()
-            + p.rings.capacity() * size_of::<Vec3>()
-            + rings.capacity() * 12) as u64;
-        let ring_buffer = upload(&self.gpu, "generation contacts", &rings, STORAGE)?;
-        drop((p.rings, rings));
-        let stations = PreparedStations {
-            segments: p.segments,
-            count: p.count,
-            ring_size: p.ring_size,
-            rings: Lent::Own(ring_buffer),
-        };
-        let upload_ms = started.elapsed_ms();
-        let result = self.compute_buffer_async(stations, l, t, e, r, m).await;
-        m.upload_dispatch_ms += upload_ms;
-        result
-    }
-
-    pub(super) async fn compute_buffer_async(
-        &self,
-        p: PreparedStations<Lent<'_>>,
-        l: &LeafInput,
-        t: TwigPlacement,
-        e: &Element,
-        r: Reference,
-        m: &mut Metrics,
-    ) -> Result<Resident> {
-        let started = Clock::now();
-        let gpu = &self.gpu;
-        let count = p.count;
-        let groups = count.div_ceil(256);
-        if u64::from(groups)
-            > u64::from(gpu.device.limits().max_compute_workgroups_per_dimension).pow(2)
-        {
-            return Err(telperion_core::Error::ResourceLimit("GPU foliage dispatch").into());
-        }
-        let config = data::config(l, t, (count, p.segments.len() as u32, p.ring_size), e, r);
-        let segments = data::segments(&p);
-        m.descriptor_cpu_bytes = m.descriptor_cpu_bytes.max(
-            (p.segments.capacity() * size_of::<telperion_core::foliage::prepared::StationSegment>()
-                + segments.capacity() * size_of::<data::Segment>()) as u64,
-        );
-        let segment_buffer = upload(gpu, "generation segments", &segments, STORAGE)?;
-        let ring_buffer = p.rings;
-        let retained_contacts = if matches!(ring_buffer, Lent::Borrowed(_)) {
-            ring_buffer.size()
-        } else {
-            0
-        };
-        drop((p.segments, segments));
-        let placed = self.place_leaves(config, (&segment_buffer, &ring_buffer), e, count)?;
-        let (leaves, summary, live) = (placed.leaves, placed.summary, placed.live);
-        m.upload_dispatch_ms = started.elapsed_ms();
-        let wait = Clock::now();
-        let bytes = io::read_async(gpu, &summary, 64).await?;
-        m.placement_wait_ms = wait.elapsed_ms();
-        let values: Vec<u32> = bytes
-            .chunks_exact(4)
-            .map(|b| u32::from_ne_bytes(b.try_into().unwrap()))
-            .collect();
-        if values[1] != 0 {
-            return Err(telperion_core::Error::InvalidInput(
-                "GPU foliage transform/contact/reference",
-            )
-            .into());
-        }
-        m.instances = count;
-        let crown = Some(bounds(&values, 2));
-        let full = Some(bounds(&values, 8));
-        m.gpu_compute_peak_bytes = live;
-        drop((segment_buffer, ring_buffer, summary));
-        let start = Clock::now();
-        let masses = self
-            .mass(&leaves, count, crown, r, retained_contacts, m)
-            .await?;
-        m.mass_ms = start.elapsed_ms();
-        Ok(Resident {
-            leaves: Held::resident(leaves, u64::from(count) * 12, "generated foliage"),
-            masses: Held::resident(masses.0, masses.1, "generated foliage masses"),
-            count,
-            crown,
-            full,
-        })
-    }
-    /// The leaves `count` stations place from `segments` (`data::Segment`s
-    /// on the device), seated on `rings`, under `config`: submitted, with
-    /// the placement summary and the bytes the pass held.
-    pub(super) fn place_leaves(
-        &self,
-        config: data::Config,
-        (segments, rings): (&wgpu::Buffer, &wgpu::Buffer),
-        e: &Element,
-        count: u32,
-    ) -> Result<Placed> {
-        let leaves = self.leaf_buffer(count)?;
-        let (summary, live) = self.place_into(config, (segments, rings), e, (count, &leaves))?;
-        Ok(Placed {
-            leaves,
-            summary,
-            live,
-        })
-    }
     /// A buffer of `count` leaves.
     pub(super) fn leaf_buffer(&self, count: u32) -> Result<Owned> {
         // Every placed leaf is drawn, written where it was placed (fn-212 R2).
@@ -179,27 +62,6 @@ impl Generator {
             STORAGE,
             &[],
         )
-    }
-    /// `place_leaves` into `leaves`, from the leaf `config` starts at: the
-    /// placement summary and the bytes the pass held.
-    pub(super) fn place_into(
-        &self,
-        config: data::Config,
-        (segments, rings): (&wgpu::Buffer, &wgpu::Buffer),
-        e: &Element,
-        (count, leaves): (u32, &wgpu::Buffer),
-    ) -> Result<(Owned, u64)> {
-        let mut encoder = self.gpu.encoder(&Default::default());
-        let placed = self.record_place(
-            &mut encoder,
-            Placement::Leaves,
-            config,
-            (segments, rings),
-            e,
-            (count, leaves),
-        )?;
-        self.gpu.submit([encoder.finish()]);
-        Ok(placed)
     }
     /// `place_into`'s pass recorded into `encoder` and not submitted, so a
     /// block's leaves and its florets go in one submission (fn-229): the
@@ -235,22 +97,6 @@ impl Generator {
         let bind = self.place.bind(gpu, &buffers);
         self.place.run(encoder, &bind, placement as usize, groups);
         Ok((summary, live))
-    }
-    pub(super) async fn mass(
-        &self,
-        leaves: &wgpu::Buffer,
-        count: u32,
-        crown: Option<Bounds>,
-        reference: Reference,
-        retained_contacts: u64,
-        m: &mut Metrics,
-    ) -> Result<(Owned, u64)> {
-        let mut encoder = self.gpu.encoder(&Default::default());
-        let at = (leaves, count, crown, reference);
-        let masses = self.record_mass(&mut encoder, at, retained_contacts, m)?;
-        self.gpu.submit([encoder.finish()]);
-        io::complete(&self.gpu).await?;
-        Ok(masses)
     }
     /// `mass`'s grid recorded into `encoder` and not submitted, so the
     /// leaves' grid and the florets' go in one submission (fn-229).
@@ -315,6 +161,171 @@ impl Generator {
             .gpu_compute_peak_bytes
             .max(retained_contacts + leaves.size() + config.size() + counts.size() + masses.size());
         Ok((masses, u64::from(total + 8) * 4))
+    }
+}
+
+#[cfg(test)]
+/// Leaves placed on the device and their placement summary.
+pub(super) struct Placed {
+    pub leaves: Owned,
+    pub summary: Owned,
+    pub live: u64,
+}
+
+/// The comparison route's placement: from the CPU's stations, each
+/// pass submitted and awaited on its own.
+#[cfg(test)]
+impl Generator {
+    pub(super) async fn compute_async(
+        &self,
+        p: PreparedStations,
+        l: &LeafInput,
+        t: TwigPlacement,
+        e: &Element,
+        r: Reference,
+        m: &mut Metrics,
+    ) -> Result<Resident> {
+        let started = Clock::now();
+        let rings: Vec<_> = p
+            .rings
+            .iter()
+            .map(|v| [v.x as f32, v.y as f32, v.z as f32])
+            .collect();
+        m.descriptor_cpu_bytes = (p.segments.capacity()
+            * size_of::<telperion_core::foliage::prepared::StationSegment>()
+            + p.rings.capacity() * size_of::<Vec3>()
+            + rings.capacity() * 12) as u64;
+        let ring_buffer = upload(&self.gpu, "generation contacts", &rings, STORAGE)?;
+        drop((p.rings, rings));
+        let stations = PreparedStations {
+            segments: p.segments,
+            count: p.count,
+            ring_size: p.ring_size,
+            rings: ring_buffer,
+        };
+        let upload_ms = started.elapsed_ms();
+        let result = self.compute_buffer_async(stations, 0, l, t, e, r, m).await;
+        m.upload_dispatch_ms += upload_ms;
+        result
+    }
+
+    /// The leaves `p`'s stations place, seated on its rings, and their
+    /// mass. `lent` is the bytes of rings another owner keeps live through
+    /// the mass pass; rings this call owns are freed before it.
+    pub(super) async fn compute_buffer_async<R: std::ops::Deref<Target = wgpu::Buffer>>(
+        &self,
+        p: PreparedStations<R>,
+        lent: u64,
+        l: &LeafInput,
+        t: TwigPlacement,
+        e: &Element,
+        r: Reference,
+        m: &mut Metrics,
+    ) -> Result<Resident> {
+        let started = Clock::now();
+        let gpu = &self.gpu;
+        let count = p.count;
+        let groups = count.div_ceil(256);
+        if u64::from(groups)
+            > u64::from(gpu.device.limits().max_compute_workgroups_per_dimension).pow(2)
+        {
+            return Err(telperion_core::Error::ResourceLimit("GPU foliage dispatch").into());
+        }
+        let config = data::config(l, t, (count, p.segments.len() as u32, p.ring_size), e, r);
+        let segments = data::segments(&p);
+        m.descriptor_cpu_bytes = m.descriptor_cpu_bytes.max(
+            (p.segments.capacity() * size_of::<telperion_core::foliage::prepared::StationSegment>()
+                + segments.capacity() * size_of::<data::Segment>()) as u64,
+        );
+        let segment_buffer = upload(gpu, "generation segments", &segments, STORAGE)?;
+        let ring_buffer = p.rings;
+        drop((p.segments, segments));
+        let placed = self.place_leaves(config, (&segment_buffer, &ring_buffer), e, count)?;
+        let (leaves, summary, live) = (placed.leaves, placed.summary, placed.live);
+        m.upload_dispatch_ms = started.elapsed_ms();
+        let wait = Clock::now();
+        let bytes = io::read_async(gpu, &summary, 64).await?;
+        m.placement_wait_ms = wait.elapsed_ms();
+        let values: Vec<u32> = bytes
+            .chunks_exact(4)
+            .map(|b| u32::from_ne_bytes(b.try_into().unwrap()))
+            .collect();
+        if values[1] != 0 {
+            return Err(telperion_core::Error::InvalidInput(
+                "GPU foliage transform/contact/reference",
+            )
+            .into());
+        }
+        m.instances = count;
+        let crown = Some(bounds(&values, 2));
+        let full = Some(bounds(&values, 8));
+        m.gpu_compute_peak_bytes = live;
+        drop((segment_buffer, ring_buffer, summary));
+        let start = Clock::now();
+        let masses = self.mass(&leaves, count, crown, r, lent, m).await?;
+        m.mass_ms = start.elapsed_ms();
+        Ok(Resident {
+            leaves: Held::resident(leaves, u64::from(count) * 12, "generated foliage"),
+            masses: Held::resident(masses.0, masses.1, "generated foliage masses"),
+            count,
+            crown,
+            full,
+        })
+    }
+    /// The leaves `count` stations place from `segments` (`data::Segment`s
+    /// on the device), seated on `rings`, under `config`: submitted, with
+    /// the placement summary and the bytes the pass held.
+    pub(super) fn place_leaves(
+        &self,
+        config: data::Config,
+        (segments, rings): (&wgpu::Buffer, &wgpu::Buffer),
+        e: &Element,
+        count: u32,
+    ) -> Result<Placed> {
+        let leaves = self.leaf_buffer(count)?;
+        let (summary, live) = self.place_into(config, (segments, rings), e, (count, &leaves))?;
+        Ok(Placed {
+            leaves,
+            summary,
+            live,
+        })
+    }
+    /// `place_leaves` into `leaves`, from the leaf `config` starts at: the
+    /// placement summary and the bytes the pass held.
+    pub(super) fn place_into(
+        &self,
+        config: data::Config,
+        (segments, rings): (&wgpu::Buffer, &wgpu::Buffer),
+        e: &Element,
+        (count, leaves): (u32, &wgpu::Buffer),
+    ) -> Result<(Owned, u64)> {
+        let mut encoder = self.gpu.encoder(&Default::default());
+        let placed = self.record_place(
+            &mut encoder,
+            Placement::Leaves,
+            config,
+            (segments, rings),
+            e,
+            (count, leaves),
+        )?;
+        self.gpu.submit([encoder.finish()]);
+        Ok(placed)
+    }
+    pub(super) async fn mass(
+        &self,
+        leaves: &wgpu::Buffer,
+        count: u32,
+        crown: Option<Bounds>,
+        reference: Reference,
+        retained_contacts: u64,
+        m: &mut Metrics,
+    ) -> Result<(Owned, u64)> {
+        let mut encoder = self.gpu.encoder(&Default::default());
+        let at = (leaves, count, crown, reference);
+        let masses = self.record_mass(&mut encoder, at, retained_contacts, m)?;
+        self.gpu.submit([encoder.finish()]);
+        io::complete(&self.gpu).await?;
+        Ok(masses)
     }
 }
 

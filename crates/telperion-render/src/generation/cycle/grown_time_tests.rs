@@ -5,9 +5,9 @@
 //! dispatches, the longest with its kernel, the bytes resident and as
 //! scratch, and each module's compile.
 use super::build::{Kit, Tables};
+use super::build_arena::hint;
 use super::build_grow::{grow_now as grow, Sizes};
 use super::census as c;
-use super::build_arena::hint;
 use super::grown_tests::grown_from;
 use super::{device, glue, hier_build, lay_device, light_device, vm};
 use crate::Gpu;
@@ -28,7 +28,9 @@ const PRESETS: [(Preset, &str); 8] = [
 /// Each module's compile, the device waited for after each.
 fn compiled(gpu: &Gpu) -> Kit {
     let timed = |name: &str, started: Instant| {
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("compiled");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("compiled");
         println!("compile {name}: {:.2} s", started.elapsed().as_secs_f64());
     };
     let s = Instant::now();
@@ -49,13 +51,22 @@ fn compiled(gpu: &Gpu) -> Kit {
     let s = Instant::now();
     let retire = super::retire_device::Kernels::new(gpu);
     timed("retirement", s);
-    Kit { units, layout, hier, light, glue, vm, retire }
+    Kit {
+        units,
+        layout,
+        hier,
+        light,
+        glue,
+        vm,
+        retire,
+    }
 }
 
 /// One preset's build, grown as a build grows it (`executor::growth`) in
 /// the arena its hint sizes, then again with every dispatch stamped.
 fn measured(gpu: &Gpu, kit: &Kit, (preset, name, age, seed): (Preset, &str, u32, u64)) {
-    let growth = telperion_core::pipeline::executor::growth(&preset.parameters()).expect("a growth");
+    let growth =
+        telperion_core::pipeline::executor::growth(&preset.parameters()).expect("a growth");
     let g = grown_from(growth.species, growth.request.light, (age, seed));
     let t = Tables::new(gpu, &g.tables, &g.chain).expect("tables");
     let label = format!("{name} {age} seed {seed}");
@@ -67,7 +78,12 @@ fn measured(gpu: &Gpu, kit: &Kit, (preset, name, age, seed): (Preset, &str, u32,
     drop(b);
     println!(
         "{label}: sized in {cold:.2} s, moved {}; {} axes, {} phytomers, {} units, {} living; {:?}",
-        grew.moves, census[c::AXES], census[c::GROWN], census[c::UNITS], census[c::NEXT], sizes
+        grew.moves,
+        census[c::AXES],
+        census[c::GROWN],
+        census[c::UNITS],
+        census[c::NEXT],
+        sizes
     );
     assert!(super::super::profile::start(gpu), "timestamps");
     let started = Instant::now();
@@ -95,7 +111,12 @@ fn measured(gpu: &Gpu, kit: &Kit, (preset, name, age, seed): (Preset, &str, u32,
         "{label}: {} dispatches, {total:.1} ms stamped, {span:.1} ms first to last, wall {wall:.2} s; longest {:.3} ms ({}); resident {:.1} MB, scratch {:.1} MB",
         stamps.len(), longest.0, longest.1, resident as f64 / 1e6, scratch as f64 / 1e6
     );
-    println!("{label}: {:.0} dispatches a cycle; workgroups given {} for {} needed", stamps.len() as f64 / f64::from(age), grew.over.given, grew.over.needed);
+    println!(
+        "{label}: {:.0} dispatches a cycle; workgroups given {} for {} needed",
+        stamps.len() as f64 / f64::from(age),
+        grew.over.given,
+        grew.over.needed
+    );
     for (phase, ms, n) in phases {
         println!("{label}: {phase:>24} {ms:9.2} ms in {n} dispatches");
     }
@@ -104,7 +125,12 @@ fn measured(gpu: &Gpu, kit: &Kit, (preset, name, age, seed): (Preset, &str, u32,
     for _ in 0..3 {
         let started = Instant::now();
         let (_, _, g) = grow(gpu, kit, &t, &g.tables, (sizes, age)).expect("a build");
-        walls.push((started.elapsed().as_secs_f64(), g.recording, g.waiting, g.moving));
+        walls.push((
+            started.elapsed().as_secs_f64(),
+            g.recording,
+            g.waiting,
+            g.moving,
+        ));
     }
     walls.sort_by(|a, b| a.0.total_cmp(&b.0));
     let (w, r, q, m) = walls[1];
@@ -147,7 +173,16 @@ fn telperion_is_timed() {
         panic!("CYCLE_TIMED is preset:age:seed")
     };
     let preset = Preset::from_id(id).expect("a shipped preset");
-    measured(&gpu, &kit, (preset, id, age.parse().expect("an age"), seed.parse().expect("a seed")));
+    measured(
+        &gpu,
+        &kit,
+        (
+            preset,
+            id,
+            age.parse().expect("an age"),
+            seed.parse().expect("a seed"),
+        ),
+    );
 }
 
 /// The three builds DESIGN.md section 7a budgets, plain.
@@ -159,7 +194,11 @@ fn budgeted_builds_are_timed() {
         return;
     };
     let kit = compiled(&gpu);
-    let cases = [(Preset::Telperion, "telperion", 82, 42), (Preset::OregonWhiteOak, "oregon-white-oak", 80, 1), (Preset::EuropeanBeech, "european-beech", 40, 42)];
+    let cases = [
+        (Preset::Telperion, "telperion", 82, 42),
+        (Preset::OregonWhiteOak, "oregon-white-oak", 80, 1),
+        (Preset::EuropeanBeech, "european-beech", 40, 42),
+    ];
     for case in cases {
         measured(&gpu, &kit, case);
     }
@@ -173,9 +212,15 @@ fn whole_builds_are_timed() {
         return;
     };
     let l = gpu.device.limits();
-    println!("limits: buffer {} B, storage binding {} B", l.max_buffer_size, l.max_storage_buffer_binding_size);
+    println!(
+        "limits: buffer {} B, storage binding {} B",
+        l.max_buffer_size, l.max_storage_buffer_binding_size
+    );
     let kit = compiled(&gpu);
-    let mut cases: Vec<_> = PRESETS.iter().map(|&(p, n)| (p, n, p.parameters().age as u32, 42)).collect();
+    let mut cases: Vec<_> = PRESETS
+        .iter()
+        .map(|&(p, n)| (p, n, p.parameters().age as u32, 42))
+        .collect();
     cases.push((Preset::OregonWhiteOak, "oregon-white-oak", 80, 1));
     for case in &cases {
         measured(&gpu, &kit, *case);

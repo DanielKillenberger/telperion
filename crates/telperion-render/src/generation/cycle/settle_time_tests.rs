@@ -27,7 +27,11 @@ const PRESETS: [(Preset, &str); 8] = [
 ];
 
 /// One preset grown, then its settle stamped dispatch by dispatch.
-fn measured(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (preset, name, age, seed): (Preset, &str, u32, u64)) {
+fn measured(
+    gpu: &Gpu,
+    (kit, k): (&Kit, &Kernels),
+    (preset, name, age, seed): (Preset, &str, u32, u64),
+) {
     let g = grown(preset, age, seed);
     let t = Tables::new(gpu, &g.tables, &g.chain).expect("tables");
     let (b, ..) = grow(gpu, kit, &t, &g.tables, (Sizes::least(), age)).expect("a build");
@@ -36,7 +40,9 @@ fn measured(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (preset, name, age, seed): (P
     assert!(super::super::profile::start(gpu), "timestamps");
     let started = Instant::now();
     let s = settle(gpu, (kit, k), (&b, &t), (&constants(&g), SettleTo::Laid)).expect("a settle");
-    gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("settled");
+    gpu.device
+        .poll(wgpu::PollType::wait_indefinitely())
+        .expect("settled");
     let wall = started.elapsed().as_secs_f64();
     let stamps = super::super::profile::finish(gpu);
     assert_eq!(stamps.len(), s.stamped.len(), "a pass a stamp");
@@ -68,7 +74,9 @@ fn measured(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (preset, name, age, seed): (P
         println!("{label}: past 1 ms: {ms:.3} ms {what}");
     }
     drop((s, b));
-    gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("let go");
+    gpu.device
+        .poll(wgpu::PollType::wait_indefinitely())
+        .expect("let go");
 }
 
 #[test]
@@ -79,7 +87,10 @@ fn settles_are_timed() {
         return;
     };
     let k = Kernels::new(&gpu);
-    let mut cases: Vec<_> = PRESETS.iter().map(|&(p, n)| (p, n, p.parameters().age as u32, 42)).collect();
+    let mut cases: Vec<_> = PRESETS
+        .iter()
+        .map(|&(p, n)| (p, n, p.parameters().age as u32, 42))
+        .collect();
     cases.push((Preset::OregonWhiteOak, "oregon-white-oak", 80, 1));
     for case in &cases {
         measured(&gpu, (&kit, &k), *case);
@@ -99,15 +110,21 @@ fn the_settle_compiles() {
     let timed = |name: &str, make: &dyn Fn() -> super::super::io::Pass| {
         let started = Instant::now();
         let pass = make();
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("compiled");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("compiled");
         println!("compile {name}: {:.2} s", started.elapsed().as_secs_f64());
         drop(pass);
     };
     let place = [true, true, false, false, false];
     let shed = [true, true, true, false, false, false, true, true];
-    timed("shed and order", &|| super::super::io::Pass::new(&gpu, d::source(), &shed, &d::ENTRIES));
+    timed("shed and order", &|| {
+        super::super::io::Pass::new(&gpu, d::source(), &shed, &d::ENTRIES)
+    });
     for entry in d::PLACE_ENTRIES {
-        timed(&format!("place {entry}"), &|| super::super::io::Pass::new(&gpu, d::place_source(), &place, &[entry]));
+        timed(&format!("place {entry}"), &|| {
+            super::super::io::Pass::new(&gpu, d::place_source(), &place, &[entry])
+        });
     }
 }
 
@@ -127,10 +144,16 @@ fn retirement_is_measured() {
     let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
     for compact in [false, true] {
         let mut sizes = Sizes::least();
-        sizes.compact = if compact { super::build_grow::Compact::Tight } else { super::build_grow::Compact::Off };
+        sizes.compact = if compact {
+            super::build_grow::Compact::Tight
+        } else {
+            super::build_grow::Compact::Off
+        };
         let (b, sized, _) = grow(&gpu, &kit, &t, &g.tables, (sizes, 82)).expect("a build");
         drop(b);
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("let go");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("let go");
         assert!(super::super::profile::start(&gpu), "timestamps");
         let started = Instant::now();
         let (b, last, grew) = grow(&gpu, &kit, &t, &g.tables, (sized, 82)).expect("a build");
@@ -148,8 +171,12 @@ fn retirement_is_measured() {
             "telperion 82 compact {compact}: arena rows {} of tables {}; resident {:.0} MB, scratch {:.0} MB; retirement {ms:.1} ms in {n} dispatches, longest {longest:.3} ms; {} moves; build wall {wall:.2} s",
             b.held.phyts, last.caps.phyts, resident as f64 / 1e6, scratch as f64 / 1e6, grew.moves
         );
-        let s = settle(&gpu, (&kit, &k), (&b, &t), (&constants(&g), SettleTo::Laid)).expect("a settle");
+        let s =
+            settle(&gpu, (&kit, &k), (&b, &t), (&constants(&g), SettleTo::Laid)).expect("a settle");
         drop(b);
-        println!("telperion 82 compact {compact}: settled, {} kept axes, {} kept phytomers, error {:?}", s.table.kept, s.table.phyts, s.error);
+        println!(
+            "telperion 82 compact {compact}: settled, {} kept axes, {} kept phytomers, error {:?}",
+            s.table.kept, s.table.phyts, s.error
+        );
     }
 }

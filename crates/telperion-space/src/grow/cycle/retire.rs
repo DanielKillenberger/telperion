@@ -83,7 +83,10 @@ impl Retirement {
 
     /// The subtrees retired.
     pub fn roots(&self) -> usize {
-        self.fate.iter().filter(|f| matches!(f, Fate::Root(_))).count()
+        self.fate
+            .iter()
+            .filter(|f| matches!(f, Fate::Root(_)))
+            .count()
     }
 
     /// A retired root's frozen girth, which stands for its subtree's.
@@ -147,7 +150,9 @@ impl Grower<'_> {
             cycle,
         };
         let wr = &w;
-        let verdicts = crate::cores::map(todo.clone(), 16, self.threads, &|_, c| evaluate(&tree, wr, c));
+        let verdicts = crate::cores::map(todo.clone(), 16, self.threads, &|_, c| {
+            evaluate(&tree, wr, c)
+        });
         for (c, verdict) in todo.into_iter().zip(verdicts) {
             // Let go already with a fading ancestor that faded out with it.
             if w.retire.fate[c] == Fate::Inside {
@@ -229,7 +234,11 @@ impl Grower<'_> {
         let mut section = 0.0f32;
         for p in &axis.phytomers {
             let scale = f64::from(p.scale as f32 * 1.0 * p.size as f32);
-            let (pipe, term) = crate::girth::terms(crate::girth::own_at(form, p.cycle, age, scale, 1.0), p.light, chi);
+            let (pipe, term) = crate::girth::terms(
+                crate::girth::own_at(form, p.cycle, age, scale, 1.0),
+                p.light,
+                chi,
+            );
             f.sums[0] += pipe;
             f.sums[1] += term;
             section += crate::girth::section(f64::from(term), form.exponent);
@@ -262,7 +271,8 @@ impl Grower<'_> {
         match a.origin {
             Origin::Lateral { node, .. } => {
                 let scale = bearer.phytomers.get(node).map_or(0.0, |p| p.scale as f32);
-                let share = crate::geometry::dominance(self.species.states[a.pa].form.dominance, a.lineage);
+                let share =
+                    crate::geometry::dominance(self.species.states[a.pa].form.dominance, a.lineage);
                 scale * 1.0 * real(made) as f32 * share as f32
             }
             _ => real(times(q(end), made)) as f32 * 1.0,
@@ -292,7 +302,11 @@ fn evaluate(t: &Tree, w: &Working, c: usize) -> Verdict {
     let stub = |i: usize| i != c && w.retire.fate[i] != Fate::Open;
     let part = subtree(w, c, &stub);
     let woke = |i: usize| w.retire.woken.get(i).copied().filter(|&k| k != u32::MAX);
-    if part.iter().filter_map(|&i| woke(i)).any(|k| t.woken[k as usize].cycle + 3 > t.cycle) {
+    if part
+        .iter()
+        .filter_map(|&i| woke(i))
+        .any(|k| t.woken[k as usize].cycle + 3 > t.cycle)
+    {
         return Verdict::Wait;
     }
     let local = copied(t, w, &part, &stub);
@@ -326,13 +340,32 @@ fn copied(t: &Tree, w: &Working, part: &[usize], stub: &dyn Fn(usize) -> bool) -
             let origin = match a.origin {
                 _ if i == part[0] => Origin::Seed,
                 Origin::Seed => Origin::Seed,
-                Origin::Lateral { parent, node, slot, whorl, woken } => {
-                    Origin::Lateral { parent: place(parent), node, slot, whorl, woken }
-                }
-                Origin::Continuation { parent } => Origin::Continuation { parent: place(parent) },
-                Origin::Relay { parent, node } => Origin::Relay { parent: place(parent), node },
+                Origin::Lateral {
+                    parent,
+                    node,
+                    slot,
+                    whorl,
+                    woken,
+                } => Origin::Lateral {
+                    parent: place(parent),
+                    node,
+                    slot,
+                    whorl,
+                    woken,
+                },
+                Origin::Continuation { parent } => Origin::Continuation {
+                    parent: place(parent),
+                },
+                Origin::Relay { parent, node } => Origin::Relay {
+                    parent: place(parent),
+                    node,
+                },
             };
-            let phytomers = if stub(i) { Vec::new() } else { a.phytomers.clone() };
+            let phytomers = if stub(i) {
+                Vec::new()
+            } else {
+                a.phytomers.clone()
+            };
             Axis {
                 lineage: a.lineage,
                 pa: a.pa,
@@ -350,20 +383,22 @@ fn copied(t: &Tree, w: &Working, part: &[usize], stub: &dyn Fn(usize) -> bool) -
                 rank: a.rank,
                 sleep: a.sleep,
                 phase: a.phase,
-                joined: a.joined,
+                joined: a.joined.clone(),
             }
         })
         .collect();
     let draws: Vec<Cow<Draws>> = (part.iter())
-        .map(|&i| match w.retire.woken.get(i).copied().filter(|&k| k != u32::MAX) {
-            Some(k) => {
-                let kept = t.woken[k as usize].kept(t.axes, t.draws, t.successor, t.age);
-                let mut d = t.draws[i].clone();
-                d.birth[1] = real(times(q(d.birth[1]), q(kept)));
-                Cow::Owned(d)
-            }
-            None => Cow::Borrowed(&t.draws[i]),
-        })
+        .map(
+            |&i| match w.retire.woken.get(i).copied().filter(|&k| k != u32::MAX) {
+                Some(k) => {
+                    let kept = t.woken[k as usize].kept(t.axes, t.draws, t.successor, t.age);
+                    let mut d = t.draws[i].clone();
+                    d.birth[1] = real(times(q(d.birth[1]), q(kept)));
+                    Cow::Owned(d)
+                }
+                None => Cow::Borrowed(&t.draws[i]),
+            },
+        )
         .collect();
     assign_living(&mut local, &draws, t.species, &|_, _| None, 1);
     local

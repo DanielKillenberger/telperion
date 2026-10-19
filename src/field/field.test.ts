@@ -1,126 +1,22 @@
-import { readFileSync } from "node:fs";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { growField, compileField, NO_LIMB } from "./index";
-import { grid } from "./voxelize";
-import { TreeEngine, presetById, PRESETS } from "../browser/core";
+import { describe, expect, it } from "vitest";
+import { growField, prepareField } from "./index";
 
-/* The slim entry point in Node (R5): the module's bytes passed in, one
- * query answered. Beside it, the answers held to the full binding's on the
- * same species, seed and limb order, so the slim chain is the field the
- * harness shows and not a second one. */
-const source = readFileSync("src/field/telperion-field.wasm");
-
-describe("the slim field entry point", () => {
-  it("grows a species at a seed and answers a grid, byte for byte the full binding's", async () => {
-    const module = await compileField(source);
-    const tree = await growField("european-beech", 5, { limbOrder: 1, source: module });
-    expect(tree.species).toBe("european-beech");
-    expect(tree.seed).toBe(5);
-    expect(tree.bounds.max[1]).toBeGreaterThan(tree.bounds.min[1]);
-    const g = grid(tree.bounds, 12);
-    const slim = tree.query(g.cells);
-    expect(slim.flags.length).toBe(12 ** 3);
-    expect(slim.flags.some(f => f & 1)).toBe(true);
-    expect(slim.flags.some(f => f & 2)).toBe(true);
-    expect(slim.limbs.some(l => l !== NO_LIMB)).toBe(true);
-
-    const engine = await TreeEngine.create(readFileSync("src/browser/telperion.wasm"));
-    const family = presetById("european-beech");
-    family.skeleton.seed = 5;
-    const full = engine.build(family, { field: { limbOrder: 1 } }).field!.query(g.cells);
-    expect(full.flags).toEqual(slim.flags);
-    expect(full.woodRadius).toEqual(slim.woodRadius);
-    expect(full.leaves).toEqual(slim.leaves);
-    expect(full.limbs).toEqual(slim.limbs);
-    engine.dispose();
-
-    const again = await growField("european-beech", 5, { limbOrder: 1, source: module });
-    expect(again.query(g.cells)).toEqual(slim);
-    tree.release();
-    again.release();
-    expect(() => tree.query(g.cells)).toThrow("released");
+/* The field entry point in Node (fn-257 R3a): Node has no WebGPU, so every
+ * growth rejects by name, and nothing falls back to a CPU growth. Its input
+ * contract is checked before any device is asked for. The answers
+ * themselves are tested natively, on the device, against the CPU's
+ * reference field (`resident/field_tests.rs`). */
+describe("the field entry point without WebGPU", () => {
+  it("rejects a growth by name, never growing on the CPU", async () => {
+    await expect(growField("european-beech", 5, 24)).rejects.toThrow("WebGPU is not available");
+    await expect(growField("european-beech", 5, 24, { limbOrder: 1 })).rejects.toThrow("WebGPU is not available");
+    await expect(prepareField()).rejects.toThrow("WebGPU is not available");
   });
 
-  it("loads its Wasm from beside itself in Node when no source is given, as the main entry does", async () => {
-    const tree = await growField("european-beech", 5, { limbOrder: 1 });
-    expect(tree.bounds.max[1]).toBeGreaterThan(tree.bounds.min[1]);
-    tree.release();
-    const engine = await TreeEngine.create();
-    expect(engine.build(presetById("european-beech"), { structure: true }).diagnostics.nodes).toBeGreaterThan(0);
-    engine.dispose();
-  });
-
-  /* Every shipped preset, byte for byte the main entry's field, bounds
-   * included (fn-150 R2, R3, R5): one test a preset, so each tree's two
-   * growths stand inside the timeout on their own. Eight in one test took
-   * about 65 s and timed out at 60 under load (fn-241 R2). One seed a
-   * preset: the slim chain's agreement is the chain's, not the seed's; the
-   * first test holds it at the beech's seed 5 as well. */
-  describe("grows every shipped preset, byte for byte the main entry's field", () => {
-    let module: WebAssembly.Module;
-    let engine: TreeEngine;
-    beforeAll(async () => {
-      module = await compileField(source);
-      engine = await TreeEngine.create(readFileSync("src/browser/telperion.wasm"));
-    });
-    afterAll(() => engine.dispose());
-
-    it.each(PRESETS.map(p => p.id))("%s", async id => {
-      const tree = await growField(id, 1, { source: module });
-      const family = presetById(id);
-      family.skeleton.seed = 1;
-      const field = engine.build(family, { field: true }).field!;
-      expect(field.bounds, id).toEqual(tree.bounds);
-      const g = grid(tree.bounds, 10);
-      const slim = tree.query(g.cells), full = field.query(g.cells);
-      expect(slim.flags.some(f => f & 2), `${id} foliage`).toBe(true);
-      expect(full.flags, id).toEqual(slim.flags);
-      expect(full.woodRadius).toEqual(slim.woodRadius);
-      expect(full.leaves).toEqual(slim.leaves);
-      expect(full.limbs).toEqual(slim.limbs);
-      tree.release();
-    });
-  });
-
-  it("grows the date palm at every seed the owner tried (fn-150 R1)", async () => {
-    const module = await compileField(source);
-    for (const seed of [1, 7, 1407, 4242]) {
-      const tree = await growField("date-palm", seed, { source: module });
-      const answer = tree.query(grid(tree.bounds, 8).cells);
-      expect(answer.flags.some(f => f & 1), `seed ${seed} wood`).toBe(true);
-      expect(answer.flags.some(f => f & 2), `seed ${seed} fronds`).toBe(true);
-      tree.release();
-    }
-  });
-
-  it("grows a coarse field at a cut, dormant where no root is fine (fn-214)", async () => {
-    const module = await compileField(source);
-    const spruce = await growField("norway-spruce", 3, { cut: 1024, source: module });
-    expect(spruce.query(grid(spruce.bounds, 10).cells).flags.some(f => f & 2)).toBe(true);
-    spruce.release();
-    const full = await growField("date-palm", 7, { source: module });
-    const coarse = await growField("date-palm", 7, { cut: 1024, source: module });
-    expect(coarse.bounds).toEqual(full.bounds);
-    const cells = grid(full.bounds, 10).cells;
-    expect(coarse.query(cells)).toEqual(full.query(cells));
-    full.release();
-    coarse.release();
-    const oak = await growField("oregon-white-oak", 1, { cut: 1024, source: module });
-    expect(oak.query(grid(oak.bounds, 10).cells).flags.some(f => f & 2)).toBe(true);
-    oak.release();
-    await expect(growField("norway-spruce", 1, { cut: -1, source: module })).rejects.toThrow("cut");
-  });
-
-  it("refuses what the core refuses, whole", async () => {
-    await expect(growField("no-such-tree", 1, { source })).rejects.toThrow("preset identity");
-    await expect(growField("european-beech", 1.5, { source })).rejects.toThrow("seed");
-    await expect(growField("european-beech", 2 ** 32, { source })).rejects.toThrow("seed");
-    await expect(growField("european-beech", 1, { limbOrder: -1, source })).rejects.toThrow("limbOrder");
-    const tree = await growField("european-beech", 1, { source });
-    expect(() => tree.query(new Float64Array(5))).toThrow("packed");
-    expect(() => tree.query(new Float64Array([0, 1, 0, 0.5, 0, 2, 0, -0.1]))).toThrow("field query");
-    expect(() => tree.query(new Float64Array([0, 1, 0, 0.5, Number.NaN, 2, 0, 0.1]))).toThrow("field query");
-    expect(tree.query(new Float64Array([0, 1, 0, 0.5])).flags.length).toBe(1);
-    tree.release();
+  it("refuses a malformed request before it asks for a device", async () => {
+    await expect(growField("european-beech", 1.5, 24)).rejects.toThrow("seed");
+    await expect(growField("european-beech", 2 ** 32, 24)).rejects.toThrow("seed");
+    await expect(growField("european-beech", 1, 24, { limbOrder: -1 })).rejects.toThrow("limbOrder");
+    for (const n of [2, 257, 24.5, Number.NaN]) await expect(growField("european-beech", 1, n)).rejects.toThrow("field grid side");
   });
 });

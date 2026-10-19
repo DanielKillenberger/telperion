@@ -201,7 +201,12 @@ fn decide(apex: Apex, cycle: u32) -> u32 {
     let st = step(apex.spent, gone, whole, life(pa), 1u);
     let successor = (flags & F_CARRIED) != 0u && (flags & F_REST) == 0u;
     let cut = cut_of(st, gone, first && successor, first && (flags & F_WOKE) != 0u);
-    let v = shaded(prow_f(pa, R_VIABILITY), prow_f(pa, R_SHADE), light32(apex.axis));
+    var v = shaded(prow_f(pa, R_VIABILITY), prow_f(pa, R_SHADE), light32(apex.axis));
+    // The ground ends a tip that rests on it, by degree (fn-252 R2).
+    let ground = prow_f(pa, R_GROUND);
+    if ground > 0.0 && rests(apex.axis) {
+        v = v * (1.0 - ground);
+    }
     let below = select(0u, fr(s, A_BELOW), first);
     let survives = survival32(v, st.share, below);
     let d = draw(child(decide, KEY_VIABILITY));

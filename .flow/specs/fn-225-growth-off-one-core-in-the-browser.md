@@ -14,3 +14,7 @@ fn-212 task 10 put fine geometry on the device in production, natively and in th
 ## Boundaries
 
 Wasm threads (SharedArrayBuffer, cross-origin isolation) are out unless R1 shows the device cannot carry the cost; then it is a host decision. Depends on fn-212 and fn-211 landing on F4.
+
+## Closed as superseded (host, 2026-10-16)
+
+Astra's release review (2026-10-16, `.flow/evidence/fn-237-release-the-tree-space-engine-replaces/ASTRA-RELEASE-REVIEW.md`): it routed selected species through the old fine-root GPU executor and kept the oak and palm on the CPU; `prepare_async` now selects by delivery and fn-256 grows the whole tree on the device. Its requirements are not implemented and are not to be executed.

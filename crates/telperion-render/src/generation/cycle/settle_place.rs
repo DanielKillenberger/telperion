@@ -27,11 +27,18 @@ struct Rec<'a> {
 }
 
 impl Rec<'_> {
-    fn run(&mut self, s: &mut Settled, (entry, phase): (usize, &'static str), (base, count): (u32, u32)) -> Result<()> {
+    fn run(
+        &mut self,
+        s: &mut Settled,
+        (entry, phase): (usize, &'static str),
+        (base, count): (u32, u32),
+    ) -> Result<()> {
         let mut cfg = self.cfg;
         (cfg[1], cfg[2]) = (base, count);
         let buf = uniform(self.gpu, &cfg)?;
-        let bind = self.pass.bind(self.gpu, &[&buf, self.form, &s.work, &s.atom, &s.nt, &s.pw]);
+        let bind = self
+            .pass
+            .bind(self.gpu, &[&buf, self.form, &s.work, &s.atom, &s.nt, &s.pw]);
         self.pending.push((bind, entry, count.div_ceil(64).max(1)));
         self.held.push(buf);
         s.stamped.push(phase);
@@ -41,22 +48,58 @@ impl Rec<'_> {
     /// The dispatches recorded since the last, submitted.
     fn submit(&mut self) {
         let mut e = self.gpu.encoder(&Default::default());
-        self.pass.run_all(&mut e, &std::mem::take(&mut self.pending));
+        self.pass
+            .run_all(&mut e, &std::mem::take(&mut self.pending));
         self.gpu.submit([e.finish()]);
     }
 }
 
 /// The settled tree scaled and thickened (S1 and S2): the place's
 /// uniform words for the lay.
-pub(super) async fn thicken(gpu: &Gpu, k: &Kernels, b: &Build, s: &mut Settled) -> Result<[u32; 20]> {
+pub(super) async fn thicken(
+    gpu: &Gpu,
+    k: &Kernels,
+    b: &Build,
+    s: &mut Settled,
+) -> Result<[u32; 20]> {
     let (tb, l) = (s.table, s.layout);
     let at_q = d::Y_COLS * tb.sk;
-    s.pw = super::settle_run::zeroed(gpu, "settle place", u64::from(at_q) + u64::from(d::Q_COLS * tb.skp))?;
+    s.pw = super::settle_run::zeroed(
+        gpu,
+        "settle place",
+        u64::from(at_q) + u64::from(d::Q_COLS * tb.skp),
+    )?;
     let words = [
-        widest(gpu).0, 0, 0, b.age(), tb.sk, tb.skp, tb.at_np, tb.at_nu, l.sa, l.at_a, l.at_f, at_q, s.flags, 0,
-        tb.kept, 0, 0, 0, 0, 0,
+        widest(gpu).0,
+        0,
+        0,
+        b.age(),
+        tb.sk,
+        tb.skp,
+        tb.at_np,
+        tb.at_nu,
+        l.sa,
+        l.at_a,
+        l.at_f,
+        at_q,
+        s.flags,
+        0,
+        tb.kept,
+        0,
+        0,
+        0,
+        0,
+        0,
     ];
-    let mut r = Rec { gpu, steps: (k.steps, k.walk), pass: &k.place, form: &b.layout.form, cfg: words, held: Vec::new(), pending: Vec::new() };
+    let mut r = Rec {
+        gpu,
+        steps: (k.steps, k.walk),
+        pass: &k.place,
+        form: &b.layout.form,
+        cfg: words,
+        held: Vec::new(),
+        pending: Vec::new(),
+    };
     let depths = depths(s);
     for &at in &depths {
         r.run(s, (d::SCALE, "settle scale"), at)?;
@@ -80,9 +123,14 @@ fn depths(s: &Settled) -> Vec<(u32, u32)> {
 
 /// A fault the place met, by its bits (`settle_state.wgsl`'s `FAULT_`).
 async fn faults(gpu: &Gpu, s: &Settled) -> Result<()> {
-    let fault = read(gpu, &s.atom, d::T_PLACE as u64, 1).await?[0];
+    refuse(read(gpu, &s.atom, d::T_PLACE as u64, 1).await?[0])
+}
+
+fn refuse(fault: u32) -> Result<()> {
     if fault != 0 {
-        return Err(super::super::io::error(format!("the settle's place: faults {fault:#x}")));
+        return Err(super::super::io::error(format!(
+            "the settle's place: faults {fault:#x}"
+        )));
     }
     Ok(())
 }
@@ -91,15 +139,29 @@ async fn faults(gpu: &Gpu, s: &Settled) -> Result<()> {
 /// levers; then its first error, or a collapse where no phytomer has
 /// size (`s.error`). Laid only once, its levers gathered, where `to` is
 /// `Placed`.
-pub(super) async fn lay(gpu: &Gpu, k: &Kernels, b: &Build, (cfg, sags, to): ([u32; 20], bool, SettleTo), s: &mut Settled) -> Result<()> {
-    let mut r = Rec { gpu, steps: (k.steps, k.walk), pass: &k.place, form: &b.layout.form, cfg, held: Vec::new(), pending: Vec::new() };
+pub(super) async fn lay(
+    gpu: &Gpu,
+    k: &Kernels,
+    b: &Build,
+    (cfg, sags, to): ([u32; 20], bool, SettleTo),
+    s: &mut Settled,
+) -> Result<()> {
+    let mut r = Rec {
+        gpu,
+        steps: (k.steps, k.walk),
+        pass: &k.place,
+        form: &b.layout.form,
+        cfg,
+        held: Vec::new(),
+        pending: Vec::new(),
+    };
     let depths = depths(s);
-    gpu.queue.write_buffer(&s.atom, 4 * d::T_ERR as u64, bytemuck::bytes_of(&u32::MAX));
+    gpu.queue
+        .write_buffer(&s.atom, 4 * d::T_ERR as u64, bytemuck::bytes_of(&u32::MAX));
     walk(&mut r, s, "settle place")?;
     r.submit();
-    faults(gpu, s).await?;
     let placed = to == SettleTo::Placed;
-    if first_error(gpu, s).await? || !(sags || placed) {
+    if laid(gpu, s).await? || !(sags || placed) {
         return sized(gpu, &mut r, s).await;
     }
     for &at in depths.iter().rev() {
@@ -112,8 +174,7 @@ pub(super) async fn lay(gpu: &Gpu, k: &Kernels, b: &Build, (cfg, sags, to): ([u3
     r.cfg[15] = 1;
     walk(&mut r, s, "settle sag place")?;
     r.submit();
-    faults(gpu, s).await?;
-    if first_error(gpu, s).await? {
+    if laid(gpu, s).await? {
         return Ok(());
     }
     sized(gpu, &mut r, s).await
@@ -144,9 +205,12 @@ fn walk(r: &mut Rec, s: &mut Settled, phase: &'static str) -> Result<()> {
     Ok(())
 }
 
-/// The lay's first error into `s.error`, if it met one.
-async fn first_error(gpu: &Gpu, s: &mut Settled) -> Result<bool> {
-    let at = read(gpu, &s.atom, d::T_ERR as u64, 1).await?[0];
+/// A lay's faults refused by name, as `faults` refuses them, then its
+/// first error into `s.error`, if it met one: both from one read.
+async fn laid(gpu: &Gpu, s: &mut Settled) -> Result<bool> {
+    let words = read(gpu, &s.atom, 0, d::T_ERR.max(d::T_PLACE) as u64 + 1).await?;
+    refuse(words[d::T_PLACE])?;
+    let at = words[d::T_ERR];
     if at != u32::MAX {
         s.error = [at & 3, at >> 2];
     }

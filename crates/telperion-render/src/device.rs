@@ -198,21 +198,30 @@ impl Gpu {
         // `self.device`, which owns them, is alive.
         unsafe {
             let hal = self.device.as_hal::<wgpu::hal::api::Vulkan>()?;
-            if !hal.enabled_device_extensions().contains(&ash::ext::memory_budget::NAME) {
+            if !hal
+                .enabled_device_extensions()
+                .contains(&ash::ext::memory_budget::NAME)
+            {
                 return None;
             }
             let mut budget = vk::PhysicalDeviceMemoryBudgetPropertiesEXT::default();
             let heaps = {
-                let mut props = vk::PhysicalDeviceMemoryProperties2::default().push_next(&mut budget);
+                let mut props =
+                    vk::PhysicalDeviceMemoryProperties2::default().push_next(&mut budget);
                 let instance = hal.shared_instance().raw_instance();
-                instance.get_physical_device_memory_properties2(hal.raw_physical_device(), &mut props);
+                instance
+                    .get_physical_device_memory_properties2(hal.raw_physical_device(), &mut props);
                 props.memory_properties
             };
             let local = |h: &&vk::MemoryHeap| h.flags.contains(vk::MemoryHeapFlags::DEVICE_LOCAL);
-            (heaps.memory_heaps.iter().take(heaps.memory_heap_count as usize).enumerate())
-                .filter(|(_, h)| local(h))
-                .map(|(i, _)| budget.heap_budget[i].saturating_sub(budget.heap_usage[i]))
-                .max()
+            (heaps
+                .memory_heaps
+                .iter()
+                .take(heaps.memory_heap_count as usize)
+                .enumerate())
+            .filter(|(_, h)| local(h))
+            .map(|(i, _)| budget.heap_budget[i].saturating_sub(budget.heap_usage[i]))
+            .max()
         }
     }
 

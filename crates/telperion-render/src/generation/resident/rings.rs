@@ -1,6 +1,7 @@
 //! The tree's compact rings on the device (fn-212 task 6): the ring
-//! words `compact::read` writes, from the curve `sweep.wgsl` swept, so the
-//! positions pass lays the vertices a seated leaf's contact reads.
+//! words `compact::read` writes, from the packed curve `sweep.wgsl`
+//! swept, so the positions pass lays the vertices a seated leaf's
+//! contact reads.
 use super::super::io;
 use super::sweep::Swept;
 use crate::buffer::Owned;
@@ -11,7 +12,7 @@ const RINGS: &str = include_str!("rings.wgsl");
 const RINGW: u64 = 16;
 
 pub(super) fn source() -> String {
-    RINGS.to_string()
+    format!("{}\n{RINGS}", super::sweep::PACK)
 }
 
 pub(super) struct Ringer {

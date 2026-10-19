@@ -31,7 +31,10 @@ pub fn invariants(tree: &Structure) -> Vec<String> {
         }
         for (k, p) in axis.phytomers.iter().enumerate() {
             let v = [p.tip, p.heading, p.side];
-            if !v.iter().all(|v| v.x.is_finite() && v.y.is_finite() && v.z.is_finite()) {
+            if !v
+                .iter()
+                .all(|v| v.x.is_finite() && v.y.is_finite() && v.z.is_finite())
+            {
                 fail("geometry not finite", i, k);
             }
             if (p.heading.length() - 1.0).abs() > 1e-5 {

@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-245-a-breakthrough-in-generation-time.md",
-  "status": "open",
+  "status": "done",
   "title": "A breakthrough in generation time",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T19:57:16.347663Z"
+  "updated_at": "2026-10-18T11:07:21.394504Z"
 }

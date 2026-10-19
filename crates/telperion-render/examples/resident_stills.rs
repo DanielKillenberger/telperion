@@ -1,15 +1,17 @@
 //! The harness's own build of every shipped preset (`Generator::prepare`,
-//! resident delivery, or the CPU's with `STILLS_CPU=1`; a refused tree is
-//! named and skipped), at its default age and seed, at the whole-tree, mid
-//! and close views: `<preset>-<view>.png` into the out directory, with each
-//! build's milliseconds and leaves printed (fn-256 task 3's stills).
+//! resident delivery; a refused tree is named and skipped), at its default
+//! age and seed, at the whole-tree, mid and close views:
+//! `<preset>-<view>.png` into the out directory, with each build's
+//! milliseconds and leaves printed (fn-256 task 3's stills). `SEED` a
+//! seed and `AGE` an age in place of the preset's (fn-259's old-versus-new
+//! sheets).
 //!
 //!   cargo run --profile ci -p telperion-render --example resident_stills -- <out dir> [preset,...]
 use std::time::Instant;
-use telperion_core::{math::Vec3, presets::CATALOGUE, presets::by_identity, surface::Bounds};
+use telperion_core::{math::Vec3, presets::by_identity, presets::CATALOGUE, surface::Bounds};
 use telperion_render::{
-    generation::{Delivery, Generator},
-    hero_pose, render, write_png, Camera, Gpu, Renderer, GROUND_REACH, STILL_FORMAT,
+    generation::Generator, hero_pose, render, write_png, Camera, Gpu, Renderer, GROUND_REACH,
+    STILL_FORMAT,
 };
 
 const SIZE: (u32, u32) = (960, 720);
@@ -38,23 +40,35 @@ fn nearer(bounds: &Bounds, hero: &Camera, share: f64) -> Camera {
 }
 
 fn main() -> Result<(), String> {
+    let seed = env_override::<u32>("SEED")?;
+    let age = env_override("AGE")?;
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let out = args.first().ok_or("usage: resident_stills <out dir> [preset,...]")?;
+    let out = args
+        .first()
+        .ok_or("usage: resident_stills <out dir> [preset,...]")?;
     std::fs::create_dir_all(out).map_err(|e| e.to_string())?;
     let only: Option<Vec<&str>> = args.get(1).map(|a| a.split(',').collect());
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let gen = Generator::new(&renderer).map_err(|e| e.to_string())?;
-    for id in CATALOGUE.iter().map(|c| c.1).filter(|id| only.as_ref().is_none_or(|o| o.contains(id))) {
-        let family = by_identity(id).map_err(|e| e.to_string())?;
+    for id in CATALOGUE
+        .iter()
+        .map(|c| c.1)
+        .filter(|id| only.as_ref().is_none_or(|o| o.contains(id)))
+    {
+        let mut family = by_identity(id).map_err(|e| e.to_string())?;
+        if let Some(seed) = seed {
+            family.skeleton.seed = seed;
+        }
+        if let Some(age) = age {
+            family.age = age;
+        }
         // The drawn tree let go first, as a page short of room does.
         renderer.release_tree();
         let t = Instant::now();
-        // `STILLS_CPU=1` draws the CPU reference route instead.
-        let first = if std::env::var_os("STILLS_CPU").is_some() { Delivery::Cpu } else { Delivery::Resident };
         // A refusal is reported and the preset skipped, never rebuilt on
         // the CPU (fn-256 R1).
-        let prepared = match gen.prepare(&family, first) {
+        let prepared = match gen.prepare(&family) {
             Ok(p) => p,
             Err(e) => {
                 println!("{id}: refused ({e})");
@@ -63,16 +77,34 @@ fn main() -> Result<(), String> {
         };
         let ms = t.elapsed().as_secs_f64() * 1e3;
         let leaves = prepared.count();
-        renderer.submit_prepared(prepared).map_err(|e| e.to_string())?;
+        renderer
+            .submit_prepared(prepared)
+            .map_err(|e| e.to_string())?;
         renderer.set_family(&family);
         let bounds = renderer.bounds().ok_or("nothing to frame")?;
         let hero = hero_pose(bounds, f64::from(SIZE.0) / f64::from(SIZE.1), GROUND_REACH);
-        for (view, camera) in [("whole", hero), ("mid", nearer(&bounds, &hero, 0.4)), ("close", nearer(&bounds, &hero, 0.12))] {
-            let still = render(&mut renderer, &camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
+        for (view, camera) in [
+            ("whole", hero),
+            ("mid", nearer(&bounds, &hero, 0.4)),
+            ("close", nearer(&bounds, &hero, 0.12)),
+        ] {
+            let still =
+                render(&mut renderer, &camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
             let path = std::path::Path::new(out).join(format!("{id}-{view}.png"));
             write_png(&path, &still).map_err(|e| e.to_string())?;
         }
-        println!("{id} {}: built in {ms:.0} ms, {leaves} leaves", family.age);
+        println!(
+            "{id} {} seed {}: built in {ms:.0} ms, {leaves} leaves",
+            family.age, family.skeleton.seed
+        );
     }
     Ok(())
+}
+
+/// The value of `name` when set, its parse error named.
+fn env_override<T: std::str::FromStr>(name: &str) -> Result<Option<T>, String> {
+    std::env::var(name)
+        .ok()
+        .map(|v| v.parse().map_err(|_| format!("{name}={v} does not parse")))
+        .transpose()
 }

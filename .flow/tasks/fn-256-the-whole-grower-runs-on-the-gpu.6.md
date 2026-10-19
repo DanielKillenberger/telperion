@@ -16,11 +16,6 @@ Gates missed, for the host (NEEDS_HUMAN; PROOF.md task 6):
 
 The Codex review returned NEEDS_WORK. Its only findings are these two gates.
 
-Tier: as dispatched by the host.
-
-stage: impl-review - ran (codex, three reviewers) - NEEDS_WORK on the unmet acceptance gates only, escalated as design calls
-
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 3c240b2b07097f477a0a70f864b045df79625013, 9c7fb569f443af0ac7fb47d2fc1499f1e45b3c2b, cb655dcdb28b1ca2e8da6314e494fcdcb88572f7
 - Tests: cargo test --profile ci --workspace --no-fail-fast, cargo test --profile ci -p telperion-render --lib (GPU lock), npm test

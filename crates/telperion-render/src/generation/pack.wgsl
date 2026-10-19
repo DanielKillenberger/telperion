@@ -68,6 +68,17 @@ fn kept_by(seg:Segment, keep:u32, k:u32) -> bool {
     let stream=bitcast<u32>(seg.binormal.w);
     return (mix32(stream+(k+1u)*0x9e3779b9u)>>16u)<q;
 }
+// Whether any placement may carry more than one leaflet (fn-277).
+fn grouped() -> bool {
+    return config.organs.x>0x10000u && config.rachis.x>0.0;
+}
+// The leaves placement `k` of the bearer keyed `key` carries: its
+// leaflets (`organs::leaflets`, `stations.wgsl`'s `leaves_at`).
+fn leaves_at(key:u32, k:u32) -> u32 {
+    if !grouped() { return 1u; }
+    let n=organs(config.organs.x,placement_key(key,k),ORGAN_LEAFLETS);
+    return select(1u,n,n>1u);
+}
 fn station(index:u32) -> vec3<u32> {
     var lo=0u; var hi=config.counts.y;
     // cap: each step halves hi - lo, a u32, so 32 steps at most.
@@ -76,17 +87,24 @@ fn station(index:u32) -> vec3<u32> {
     var k=seg.range.z+index-seg.range.x;
     // A rosette's frond: its stations are its leaflets (fn-256).
     if seg.distance.y < -1.5 { return leaflet(seg,k); }
-    // A segment some of whose stations shed their leaves (fn-248): the
-    // leaf's station is the kept one its place among them names.
-    if bitcast<u32>(seg.normal.w)!=0xffffffffu {
-        var left=index-seg.range.x; k=seg.range.z;
-        // cap: a tile holds 256 stations, so 256 steps at most.
-        loop { if retained(seg,k) { if left==0u { break; } left-=1u; } k+=1u; }
+    // A segment some of whose stations shed their leaves (fn-248), or
+    // whose stations carry leaflets (fn-277): the leaf's station is the
+    // kept one its place among them names, and its leaflet the rest.
+    let sheds=bitcast<u32>(seg.normal.w)!=0xffffffffu;
+    var left=0u;
+    if sheds || grouped() {
+        left=index-seg.range.x; k=seg.range.z;
+        // cap: a tile holds 256 stations, each its leaflets.
+        loop {
+            if !sheds || retained(seg,k) { let n=leaves_at(seg.range.w,k); if left<n { break; } left-=n; }
+            k+=1u;
+        }
     }
     var radial:vec3<f32>; var point:vec3<f32>; let tangent=seg.tangent.xyz; var normal=seg.normal.xyz;
     if seg.distance.y<0.0 {
-        // A cluster at its tip, on the tip's own stream.
-        radial=fanned(tangent,seg.range.y,seg.distance.z,k);
+        // A cluster at its tip, on the tip's own stream, its leaves
+        // where a run's phase stands.
+        radial=fanned(tangent,u32(seg.distance.w),seg.distance.z,k);
         point=seg.a.xyz; normal=radial;
     } else {
         let internode=k/config.random.y;
@@ -107,7 +125,21 @@ fn station(index:u32) -> vec3<u32> {
     axis.y+=config.lean.w;
     if dot(axis,axis)<=1e-12 { axis=radial; }
     axis=normalize(axis);
-    var words=packed(point,axis,tangent,normal,seg.range.w,k,leaf_share(seg,k));
+    var words:vec3<u32>;
+    let n=leaves_at(seg.range.w,k);
+    if n>1u {
+        // Leaflet `left` of the station's own (`rosette::fan`): the first
+        // on the run's draws, the rest on the station's.
+        let own=placement_key(seg.range.w,k);
+        let spines=organs(config.organs.y,own,ORGAN_SPINES);
+        let borne=vec3<f32>(f32(spines),bitcast<f32>(config.organs.z),bitcast<f32>(config.organs.w));
+        let l=on_rachis(point,axis,n,left,f32(left+1u)/f32(n),config.rachis,borne);
+        let key=select(own,seg.range.w,left==0u);
+        let ordinal=select(left,k,left==0u);
+        words=packed(l.point,l.axis,l.tangent,l.normal,key,ordinal,leaf_share(seg,k)*l.share);
+    } else {
+        words=packed(point,axis,tangent,normal,seg.range.w,k,leaf_share(seg,k));
+    }
     // A colouring leaf is drawn as one withering (fn-270 R5c).
     if falls(seg,k) && seg.season.x>0.0 { words.z|=LEAF_WITHERED; }
     return words;
@@ -141,26 +173,49 @@ fn leaf_share(seg:Segment, k:u32) -> f32 {
 // spine at its own pitch and share; a lone placement on the frond's
 // heading itself. A skirt frond's leaflets wither.
 fn leaflet(seg:Segment, j:u32) -> vec3<u32> {
-    let count=seg.range.y; let heading=seg.tangent.xyz; let length=seg.a.w;
+    let count=seg.range.y; let heading=seg.tangent.xyz;
     var point=seg.a.xyz; var axis=heading; var tangent=seg.b.xyz; var normal=seg.normal.xyz;
-    var share=seg.b.w;
+    // A young frond's strips of one blade (`Split::segment`, fn-275 R2b,
+    // R2c): each stands at its station times `f`, its rachis short and
+    // lengthening as it matures, and runs toward the blade's tip, its
+    // length moving to the mature leaflet's on a log scale; the rachis
+    // over a mature leaflet in `edge.x`.
+    let f=seg.distance.w;
+    var t=f32(j+1u)/f32(count); var length=1.0;
+    if f<1.0 {
+        var station=t; if count==1u { station=0.0; }
+        t=station*f;
+        length=pow((1.0-t)*bitcast<f32>(seg.edge.x),1.0-f);
+    }
+    var share=seg.b.w*length;
     if count>1u {
-        var lift=vec3<f32>(0.0,1.0,0.0)-heading*heading.y;
-        if dot(lift,lift)>1e-12 { lift=normalize(lift); } else { lift=square_to(heading); }
-        let arch=seg.binormal.x;
-        let t=f32(j+1u)/f32(count);
-        point=seg.a.xyz+heading*(length*t)+lift*(arch*length*t*t);
-        let run=normalize(heading+lift*(2.0*arch*t));
-        var closing=1.0; if j+1u==count { closing=1.0-seg.binormal.z; }
-        let hand=select(-1.0,1.0,j%2u==0u);
-        var pitch=seg.binormal.y;
-        if j<u32(seg.distance.z) && seg.tangent.w>0.0 { pitch=seg.binormal.w; share*=seg.tangent.w; }
-        axis=rotate(run,lift,hand*pitch*closing);
-        tangent=run; normal=cross(heading,lift);
+        let rows=vec4<f32>(seg.a.w,seg.binormal.x,seg.binormal.y,seg.binormal.z);
+        let l=on_rachis(seg.a.xyz,heading,count,j,t,rows,vec3<f32>(seg.distance.z,seg.tangent.w,seg.binormal.w));
+        point=l.point; axis=l.axis; tangent=l.tangent; normal=l.normal; share*=l.share;
     }
     var words=packed(point,axis,tangent,normal,seg.range.w,j,share);
     if seg.distance.x>0.5 { words.z|=LEAF_WITHERED; }
     return words;
+}
+// One leaflet on its rachis before its draws (`leaflet::leaflets`).
+struct Leaflet { point:vec3<f32>, axis:vec3<f32>, tangent:vec3<f32>, normal:vec3<f32>, share:f32 }
+// Leaflet `j` of `count`, `t` of the way along the rachis that leaves
+// `point` on `heading`:
+// `rows` its length, arch, leaflet pitch and terminal share, `borne` the
+// spines it bears, their share and pitch. Bent by its arch toward the
+// frame's lift, at the leaflet pitch to alternate sides, the last closed
+// by the terminal share, a spine at its own pitch and share.
+fn on_rachis(point:vec3<f32>, heading:vec3<f32>, count:u32, j:u32, t:f32, rows:vec4<f32>, borne:vec3<f32>) -> Leaflet {
+    var lift=vec3<f32>(0.0,1.0,0.0)-heading*heading.y;
+    if dot(lift,lift)>1e-12 { lift=normalize(lift); } else { lift=square_to(heading); }
+    let length=rows.x; let arch=rows.y;
+    let at=point+heading*(length*t)+lift*(arch*length*t*t);
+    let run=normalize(heading+lift*(2.0*arch*t));
+    var closing=1.0; if j+1u==count { closing=1.0-rows.w; }
+    let hand=select(-1.0,1.0,j%2u==0u);
+    var pitch=rows.z; var share=1.0;
+    if j<u32(borne.x) && borne.y>0.0 { pitch=borne.z; share=borne.y; }
+    return Leaflet(at,rotate(run,lift,hand*pitch*closing),run,cross(heading,lift),share);
 }
 // A unit vector square to `v` (`Vec3::perpendicular`).
 fn square_to(v:vec3<f32>) -> vec3<f32> {

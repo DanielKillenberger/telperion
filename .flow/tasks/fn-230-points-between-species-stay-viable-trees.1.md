@@ -14,11 +14,9 @@ Every blend between engine species is now sized. `blend::centroid` (N points, wi
 
 R2's visible-pop clause moves to fn-231 (host, 2026-10-08). The solve's cost is open for the harness, and the order-dependent rounding of count rows in an N-way centroid is a follow-up (declined Codex P2). Both are in SHEET.md.
 
-Tier: as dispatched by the conductor.
 
 stage: impl-review - ran (codex: fan-out NEEDS_WORK, one fix pass, re-review SHIP)
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 4636e459e7d85143a8a6ec7ec7ba782f7fe069f9, a63ab490ca9eac4bb0896cb9e6765de5966c2a52, 9fae300de73a3a0489969390017eef902656a4bd, 51d92b1733aec405ef4f971280bfdb37cd7116e7, 088bb1377f5e08e0d175519ee982b51ad4964fc9, 5c8ed3ff504f60318cc74aca147fe39e8398515f, 0289de2d29af56a65fc77152958fa8c493657eb4, f52b2c0695e779292b5116615241c8b4fdb143c6
 - Tests: cargo test --profile ci -p telperion-render --no-fail-fast (render half, GPU lock), cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast (1 failure: generation_limit_guard, fixed in 088bb137; rechecked focused), cargo test --profile ci -p telperion-core --test space_walks --test space_presets --test catalogue_identity --test generation_limit_guard (after review fixes), npm test

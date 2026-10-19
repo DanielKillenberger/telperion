@@ -2,8 +2,8 @@
 //! longest path from its base to any wood its subtree can grow, with every
 //! bud made, every unit grown that the schedule allows, every relay and
 //! continuation taken, and each zone's node count at its 1 − 1e−9
-//! quantile. The envelope's reach is a root mean square, never a bound;
-//! this is one, with its tail named.
+//! quantile. A root-mean-square reach is never a bound; this is one,
+//! with its tail named.
 //!
 //! **Tail:** the bound holds unless some zone's node count passes its
 //! quantile. Each zone's draw does so with chance at most `TAIL` (1e−9),

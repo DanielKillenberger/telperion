@@ -6,7 +6,7 @@
 //! printed by label (fn-256 task 5's census).
 //! `cargo test --profile ci -p telperion-render build_time -- --ignored
 //! --nocapture`.
-use super::{Delivery, Generator};
+use super::Generator;
 use crate::Renderer;
 
 #[test]
@@ -27,7 +27,10 @@ fn build_time() {
         if let Some(age) = std::env::var("BUILD_AGE").ok().and_then(|a| a.parse().ok()) {
             family.age = age;
         }
-        if let Some(seed) = std::env::var("BUILD_SEED").ok().and_then(|a| a.parse().ok()) {
+        if let Some(seed) = std::env::var("BUILD_SEED")
+            .ok()
+            .and_then(|a| a.parse().ok())
+        {
             family.skeleton.seed = seed;
         }
         let mut ms = Vec::new();
@@ -36,7 +39,7 @@ fn build_time() {
         for _ in 0..2 {
             gpu.ledger.take_peak_census();
             let t = super::Clock::now();
-            let prepared = match gen.prepare(&family, Delivery::Resident) {
+            let prepared = match gen.prepare(&family) {
                 Ok(p) => p,
                 Err(e) => {
                     println!("| {id} | {} | refused: {e} | | |", family.age);
@@ -50,18 +53,30 @@ fn build_time() {
             peak = labelled.0;
             census(id, labelled);
             drop(prepared);
-            gpu.device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
+            gpu.device
+                .poll(wgpu::PollType::wait_indefinitely())
+                .unwrap();
         }
         if ms.len() < 2 {
             continue;
         }
-        println!("| {id} | {} | {:.0} | {:.0} | {count} | {:.0} |", family.age, ms[0], ms[1], peak as f64 / 1e6);
+        println!(
+            "| {id} | {} | {:.0} | {:.0} | {count} | {:.0} |",
+            family.age,
+            ms[0],
+            ms[1],
+            peak as f64 / 1e6
+        );
     }
 }
 
 /// A build's peak owned bytes by label, the largest first.
 fn census(id: &str, (peak, by): (u64, Vec<(&'static str, u64)>)) {
     let mb = |b: u64| b as f64 / 1e6;
-    let rows: Vec<String> = by.iter().take(16).map(|(l, b)| format!("{l} {:.0}", mb(*b))).collect();
+    let rows: Vec<String> = by
+        .iter()
+        .take(16)
+        .map(|(l, b)| format!("{l} {:.0}", mb(*b)))
+        .collect();
     println!("census {id}: peak {:.0} MB: {}", mb(peak), rows.join(", "));
 }

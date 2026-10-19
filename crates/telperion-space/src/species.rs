@@ -126,6 +126,12 @@ pub struct PaState {
     /// How far a relay bud turns from its phyllotactic side to the upper
     /// side of its parent (epitony). Neutral 0; dormant without relays.
     pub epitony: f64,
+    /// Troll's take-over (fn-286): how far a relay's course runs back onto
+    /// the line of the axis it carries on, the parent's running direction
+    /// at its tip, at its base, fading over the scaled length its
+    /// straightening fades over; as far as the relay has left that line
+    /// (its blend). Neutral 0; dormant without relays.
+    pub takeover: f64,
     /// Troll's secondary erection: how fast, per cycle of the axis's age,
     /// its base straightens further towards the vertical, on top of its
     /// straightening (and on the seed, which has none). Neutral 0.
@@ -146,10 +152,13 @@ pub struct PaState {
     /// 1). The engine grows nothing of it; the pipeline's expansion draws
     /// the flowers. Neutral 0, flowerless.
     pub flowering: f64,
-    /// Whole leaves at the tip of each axis of this PA, which then bears
-    /// no leaf along its length: a short shoot's cluster (fn-223). The
-    /// engine grows nothing of it; the pipeline's expansion seats the
-    /// leaves. Neutral 0, leaves along the shoot as before.
+    /// Leaves at the tip of each axis of this PA, which then bears no leaf
+    /// along its length: a short shoot's cluster (fn-223). A fraction is
+    /// split by a keyed draw at each axis, which bears the whole count
+    /// either side of it, a short shoot of none bearing along its length
+    /// (`telperion_space::cluster`, fn-277). The engine grows nothing of it; the
+    /// pipeline's expansion seats the leaves. Neutral 0, leaves along the
+    /// shoot as before.
     pub cluster_leaves: f64,
     /// Radians either side of its tip's level bearing a cluster's leaves
     /// fan across: pi / 2 is a half circle, 0 stacks them. Dormant without
@@ -197,6 +206,13 @@ pub struct PaState {
     /// ln viability times light^-φ (host, 2026-10-05). Neutral 0; dormant
     /// where the apex never dies (viability 1) or no leaf shades it.
     pub shade_hazard: f64,
+    /// How the ground ends an apex that reaches it (fn-252 R2): while
+    /// its tip, as the rough layout grown with the tree lays it, rests on
+    /// the ground, its yearly survival is its viability times
+    /// (1 - ground_hazard). Neutral 0, today's resting and running along
+    /// the ground (fn-200); at 1 a shoot that reaches the ground stops
+    /// there. Read through the rough layout, so only where light shades.
+    pub ground_hazard: f64,
     /// How a bud's growth unit follows the vigour the tree's light gives
     /// it (`allocation.rs`; host decisions 11 and 14): its own internodes
     /// and girth scale by its vigour per presence against the mean of the
@@ -456,16 +472,32 @@ impl Species {
         self.lived(pa + 1).map(|(next, reach)| (next, go * reach))
     }
 
-    /// Whether any bud reads the light: its survival, its unit's size,
+    /// Whether any bud reads the light or the rough layout: its survival
+    /// (by its light or the ground its tip reaches), its unit's size,
     /// its subtree's carbon balance or its pipe. Without one the light
     /// changes nothing and the tree grows no rough layout.
     pub(crate) fn reads_light(&self) -> bool {
         self.states.iter().any(|s| {
             s.shade_hazard != 0.0
+                || s.ground_hazard != 0.0
                 || s.shade_size != 0.0
                 || s.balance_hazard != 0.0
                 || s.leaf_girth != 0.0
         })
+    }
+
+    /// The species with every row `reads_light` reads at 0: the tree the
+    /// closed form predicts, whose expectations size a build and a blend
+    /// (fn-257: the birch's ground hazard, left out of one copy of this
+    /// list, sized its device build from nothing).
+    pub fn unlit(&self) -> Species {
+        let mut unlit = self.clone();
+        for s in &mut unlit.states {
+            (s.shade_hazard, s.ground_hazard, s.shade_size) = (0.0, 0.0, 0.0);
+            (s.balance_hazard, s.leaf_girth) = (0.0, 0.0);
+        }
+        debug_assert!(!unlit.reads_light());
+        unlit
     }
 
     /// Refuses, by name, every input the engine cannot draw.

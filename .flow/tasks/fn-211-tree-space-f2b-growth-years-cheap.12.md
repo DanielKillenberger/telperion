@@ -18,7 +18,6 @@ The 20 trees, the build alone, best of six warm runs at load under 6: identical 
 
 Gate green: render 168 passed, the rest 1,013 passed.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 253e06f2, c0b6c727, 7a55150b, 2c569792, 160f495b, a092b447, 25f8456c, 5ab1d1ef, f07a1930
 - Tests: cargo test --profile ci -p telperion-render --no-fail-fast, cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render

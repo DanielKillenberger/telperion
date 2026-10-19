@@ -237,11 +237,18 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .remove(row)
                 .expect("the canopy publishes its lattice rows");
         }
-        // fn-120 adds the skirt as three more canopy rows, and fn-270 the
-        // years a frond lives. The frozen file predates them, and
-        // the counts are zero there, which keep no dead frond and leave the
-        // crown dormant.
-        for row in ["skirtFronds", "skirtPitch", "skirtLength", "frondLife"] {
+        // fn-120 adds the skirt as three more canopy rows, fn-270 the years
+        // a frond lives and fn-275 its crown's establishment. The frozen
+        // file predates them, and the counts are zero there, which keep no
+        // dead frond and leave the crown dormant.
+        for row in [
+            "skirtFronds",
+            "skirtPitch",
+            "skirtLength",
+            "frondLife",
+            "frondEstablishment",
+            "frondEarlyShare",
+        ] {
             emitted["canopy"]
                 .as_object_mut()
                 .unwrap()
@@ -329,6 +336,14 @@ fn frozen_parameters_resolve_without_default_substitution() {
             let radii = emitted["radii"].as_object_mut().unwrap();
             assert_eq!(radii.remove(key).unwrap().as_f64(), Some(value), "{key}");
         }
+        // fn-277 added the cauline share; at one, every frozen tree's, all
+        // leaf-bearing wood bears as it did.
+        let canopy = emitted["canopy"].as_object_mut().unwrap();
+        assert_eq!(
+            canopy.remove("cauline").unwrap().as_f64(),
+            Some(1.0),
+            "cauline"
+        );
         // fn-216 added the flowers' rows. The frozen file predates them;
         // where no age flowers, which is every frozen tree, they act on
         // nothing.

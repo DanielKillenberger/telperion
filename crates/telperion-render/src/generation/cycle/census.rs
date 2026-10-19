@@ -55,12 +55,12 @@ pub(super) const LAY_DEEP: usize = 176;
 /// 16), counted where a measurement asks (`Tables::counted`), `REUSED`
 /// words (`Reused`).
 pub(super) const REUSE: usize = 156;
-#[cfg_attr(not(test), allow(dead_code))]
+#[cfg(test)]
 pub(super) const REUSED: usize = 3;
 /// The words of `REUSE`, in order: the laid axes closed, those closed
 /// this cycle (the ones retirement carries up), and the blocks its
 /// living's sweep entered.
-#[cfg_attr(not(test), allow(dead_code))]
+#[cfg(test)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Reused {
     Closed,
@@ -146,5 +146,9 @@ impl Flag {
 
 /// The flags set in `census`, each with its word's value.
 pub(super) fn raised(census: &[u32]) -> Vec<(Flag, u32)> {
-    FLAG_NAMES.iter().map(|&f| (f, census[f.word()])).filter(|f| f.1 != 0).collect()
+    FLAG_NAMES
+        .iter()
+        .map(|&f| (f, census[f.word()]))
+        .filter(|f| f.1 != 0)
+        .collect()
 }

@@ -31,6 +31,7 @@ use crate::{
     tree::{Node, NodeKind, Section, SectionRing, Tree},
     Error, Result,
 };
+use telperion_space::{organ, organs};
 
 /// The most retained bases one stem may keep: a rail wide enough for any
 /// trunk a table has asked to clothe.
@@ -72,7 +73,7 @@ pub struct LeafBase {
 /// Whether this table clothes a trunk at all. At no count or no length the
 /// trunk is bare and the bark is what it always was.
 fn bearing(p: &CanopyParams) -> bool {
-    p.leaf_bases > 0 && p.leaf_base_length > 0.
+    p.leaf_bases > 0. && p.leaf_base_length > 0.
 }
 
 /// Whether this table hangs any base at all.
@@ -95,6 +96,14 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
     }
     let mut out = Vec::new();
     for rosette in foliage::rosettes(tree) {
+        // Each stem keeps the whole bases its draw gives it, and continues
+        // its own crown's spiral (fn-277).
+        let key = foliage::stem_node(tree, &rosette);
+        let crown = foliage::apex(p, key);
+        let bases = organs(p.leaf_bases, key, organ::BASES);
+        if bases == 0 {
+            continue;
+        }
         let stem = polyline(tree, rosette.apex);
         let mut depth = Vec::with_capacity(stem.len());
         let mut run = 0.;
@@ -114,7 +123,7 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
         // One reference a stem, taken on the apex's own axis: the crown's
         // own, so the two sequences are one spiral.
         let (reference, _) = foliage::frame(rosette.axis);
-        let oldest = f64::from(p.leaf_bases.saturating_sub(1));
+        let oldest = f64::from(bases.saturating_sub(1));
         let spacing = clothed / oldest.max(1.);
         let pitch = if packed(p) {
             p.leaf_base_pitch.clamp(UPRIGHT, 180. - UPRIGHT)
@@ -122,7 +131,7 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
             p.leaf_base_pitch
         };
         let first = out.len();
-        for k in 0..p.leaf_bases {
+        for k in 0..bases {
             let age = if oldest > 0. {
                 f64::from(k) / oldest
             } else {
@@ -133,8 +142,9 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
             if packed(p) {
                 (from, axis) = centreline(tree, &stem, &depth, p.rosette_depth, want, girth);
             }
-            let (sin, cos) = (f64::from(p.rosette_fronds + k) * p.rosette_divergence.to_radians())
-                .sin_cos_fixed();
+            let (sin, cos) = ((crown.rosette_fronds + f64::from(k))
+                * p.rosette_divergence.to_radians())
+            .sin_cos_fixed();
             let (normal, binormal) = carried(rosette.axis, axis, reference);
             let radial = (normal * cos + binormal * sin).normalized();
             let (lean, upright) = pitch.to_radians().sin_cos_fixed();

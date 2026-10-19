@@ -294,7 +294,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-236-tree-space-the-oregon-white-oaks-crown.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space: the Oregon white oak's crown reads as an open-grown oak",
   "tracker": {
     "baseHashFlow": null,
@@ -307,5 +307,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T01:24:03.643746Z"
+  "updated_at": "2026-10-15T20:15:50.325389Z"
 }

@@ -1,11 +1,11 @@
-//! fn-229: the florets of a tree built resident, as the handoff takes its
+//! fn-229: the florets of a tree built resident, as the build takes its
 //! leaves. They are packed against the tree's leaf box padded by the
 //! farthest a floret stands from its node, and the device places them in
 //! the submission that places its leaves, from the blooms its stations
 //! counted and recorded.
 use super::super::compute::{self, Placement};
 use super::super::{data, io, Generator, Metrics, Resident};
-use super::handoff::union;
+use super::build::union;
 use super::stations::Stationed;
 use crate::buffer::{Held, Owned};
 use crate::Result;

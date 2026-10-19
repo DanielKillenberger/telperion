@@ -1,20 +1,17 @@
 //! The real leaflet shapes a planned palm is held to (fn-150): each placed
-//! leaf's own oriented box, read from its stored transform, as a field. The
-//! placed field answers from each leaf's world-aligned box instead, which
-//! stands well past a diagonal leaflet.
+//! leaf's own oriented box, read from its stored transform, as a plan a
+//! field reads.
 #![allow(dead_code)]
 use telperion_core::{
-    field::Field,
     foliage::{
         plan::{Descriptor, Plan},
         Element, Instances,
     },
     math::Vec3,
-    tree::Tree,
 };
 
-/// The field of `leaves` as one oriented box each, no margin.
-pub fn leaflets(tree: &Tree, leaves: &Instances, element: &Element) -> Field {
+/// `leaves` as one oriented box each, no margin.
+pub fn leaflets(leaves: &Instances, element: &Element) -> Plan {
     let first = element.positions[0];
     let (lo, hi) = element
         .positions
@@ -42,16 +39,14 @@ pub fn leaflets(tree: &Tree, leaves: &Instances, element: &Element) -> Field {
                 count: 1,
                 system: 0,
                 side: x * half.x,
-                stand: None,
             }
         })
         .collect();
-    let plan = Plan {
+    Plan {
         descriptors,
         total: leaves.len() as u32,
         blade: 0.0,
         seat: 1.0,
         rachis: 0.0,
-    };
-    Field::planned(tree, &plan).unwrap()
+    }
 }

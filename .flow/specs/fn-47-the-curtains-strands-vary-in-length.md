@@ -1,55 +1,25 @@
-## Conversation Evidence
+## Goal
 
-> user (2026-09-15): "If you can see it's clearly not there and you have a way to fix it you should do that."
-> worker read, fn-44 (2026-09-15): "85% of hanging shoots run exactly 2.50 m ... No twig row varies a pendulous run per shoot."
-> worker read, round 7 (2026-09-15): "A round ball on a V. The curtain stops at one height all the way round, where the photograph's curtain hangs lower on the leaning side ... it comes from the uniform strand length and the single floor height."
+After fn-44 every strand of the birch's curtain ran the same 2.5 m to one level hem, a ball on a stick, where the photograph's strands run from a hand's width to three metres with a ragged hem. This spec varies the pendulous run per shoot by a seeded row, neutral at today's uniform curtain, judged on the birch's pairs.
 
-## Goal & Context
-<!-- scope: business -->
-<!-- Goal & Context: 25% [user], 50% [paraphrase], 25% [inferred] -->
+## Decisions
 
-Since fn-44 a weeping shoot runs its whole pendulous length and hangs to the crown's base, so every strand in the birch's curtain is the same 2.5 m and the curtain ends in one level hem all the way round: a ball on a stick. The photograph's strands run everything from a hand's width to three metres, and the hem is ragged, lower where the heavier limbs lean out. [paraphrase]
-
-This spec varies the pendulous run per shoot, as a row a table can state, seeded so one seed is one curtain, with zero reproducing today's uniform curtain. The birch is judged on the matched pairs. [inferred]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-- **A variation row.** `skeleton.twigs.pendulous_variation`, 0 to 1, neutral 0: a hanging shoot's run is the pendulous length times one minus the variation times a per-shoot draw in 0 to 1, keyed by the shoot's own identity and the family seed, so a shoot's length never depends on the order the tree grows in. `Curtain::length` in `pendant.rs` applies it where the sag makes the pendulous length the run. [inferred]
-- **The hem follows the wood.** A shoot hangs from its limb; a shorter one ends higher. With the variation set, the curtain's lower edge is as ragged as the draws and as low as the lowest limbs, so a leaning stem's heavier, lower limbs carry a lower hem by construction; no per-side term. [paraphrase]
-- **Sag spends over the run it has.** The sag's arc is over the shoot's own run, so a short strand still ends near vertical. [inferred]
-
-## API Contracts
-<!-- scope: technical -->
-
-- **Family row** validated by name, on the wire, blended linearly, in the regenerated browser metadata, on the harness dial, in the sweep's moved or held lists. [inferred]
-- **Views and commands unchanged.** [paraphrase]
-
-## Edge Cases & Constraints
-<!-- scope: technical -->
-
-- **Neutral is inert.** Every shipped preset at 0 is byte-identical, asserted by the pins. [paraphrase]
-- **Determinism.** A shoot's draw is a function of its identity and the seed, not of growth order; the monthly and the one-shot build agree. [inferred]
-- **Cost.** Shorter strands carry fewer nodes; the birch's node count is recorded. [inferred]
-- **File sizes.** `pendant.rs` and `twigs.rs` have room; `advance.rs` may not grow past about 400 lines. [paraphrase]
+- user (2026-09-15): "If you can see it's clearly not there and you have a way to fix it you should do that."
+- worker read, fn-44 (2026-09-15): "85% of hanging shoots run exactly 2.50 m ... No twig row varies a pendulous run per shoot."
+- worker read, round 7 (2026-09-15): "A round ball on a V. The curtain stops at one height all the way round, where the photograph's curtain hangs lower on the leaning side ... it comes from the uniform strand length and the single floor height."
+- The draw is keyed on shoot identity and seed, never growth order; the hem follows the wood (no per-side term); sag spends over each shoot's own run. No change to sag, floor or separation.
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** `skeleton.twigs.pendulous_variation` is a twig row with a rail of 0 to 1, neutral 0, refused by name outside it, on the wire, blended, in the regenerated browser metadata and on the harness; every shipped preset byte-identical at neutral. Errors: a value outside the rail is refused naming the field. [inferred]
-- **R2:** With a positive variation, hanging shoots' runs spread between the pendulous length and that length times one minus the variation, seeded per shoot identity, with the sag's arc spent over each shoot's own run. Errors: a shoot longer than the pendulous length or a run that depends on growth order fails the test naming the seed. [paraphrase]
-- **R3:** The silver birch's table states a variation against S-WHOLE and S-BARE, its matched pairs are rendered again with the numbers beside the previous round's in `.flow/evidence/fn34/REPORT.md`, the implementer does visual QA before returning, and the owner judges the pairs in fn-34. Errors: a rejecting verdict stops the spec with the owner's words and a one-paragraph blocker. [user]
-- **R4:** The tests cover: neutral byte identity, the rail, the spread of runs on a synthetic curtain, determinism per identity across build orders, the end angle of a short strand under sag 1, and a blend walk. Errors: a missing case is a review finding, not implementer discretion. [inferred]
+- **R1:** `skeleton.twigs.pendulousVariation` rail 0 to 1, neutral 0, refused by name, wire, blend, metadata, harness; presets byte-identical at neutral — met (birch re-pinned with the reason).
+- **R2:** runs spread between the pendulous length and length times (1 - variation), keyed per identity, sag over each run — met (direct, monthly and uneven builds agree).
+- **R3:** birch states a variation; pairs re-rendered; implementer visual QA; owner judges in fn-34 — met (0.95 over 3 m, round 8b, `round8b-fn47` rows in `.flow/evidence/fn34/rounds.tsv`, 48/48, heaviest birch seed 107,569 nodes).
+- **R4:** tests for neutral identity, rail, spread, determinism across build orders, short-strand end angle, blend walk — met (`tests/strands.rs`).
 
-## Boundaries
-<!-- scope: business -->
+## Result
 
-- No change to the sag law, the floor or the separation; fn-44's and fn-37's. [paraphrase]
-- No shoot colour; its own spec. No per-stem lean; its own spec. [paraphrase]
+Host direction added a lumpier shell (irregularity 0.35, lobe scale 0.25). Worker read: strands of different lengths show and the lower edge is uneven (18% of columns end clear of the round bottom, against 7%), but the tree still read as a round crown with a lumpy edge, because the curtain stays inside the shell; letting it hang past the shell or bunch per limb was left to the owner. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the beech's verdict moved to fn-62.
 
-## Resolved via Codebase
+## Open
 
-- The run: `crates/telperion-core/src/branching/local/pendant.rs:84-90` (`Curtain::length`: at sag above 0 the run walks to `pendulous_length`).
-- The twig rows and rails: `crates/telperion-core/src/twigs.rs` (`vigour_variation` at `:37`, default 0.15; the curtain rows beside it).
-- The birch's curtain: `crates/telperion-core/src/presets/species.rs` (hang 2.4, sag 1, pendulous length 2.5).
-- The round-7 read and numbers: `.flow/evidence/fn34/REPORT.md`, "Round 7".
+None.

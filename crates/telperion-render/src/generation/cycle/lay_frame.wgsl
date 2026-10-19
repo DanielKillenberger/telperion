@@ -186,6 +186,60 @@ fn framed_on(i: u32, at: Point) -> Framed {
     return Framed(base, heading, side, curve - mv(heading, qdot(curve, heading)));
 }
 
+// How far axis `i` runs back onto a line, and the line, into its
+// pencil: its own take-over as a relay (`geometry::taken`), and what it
+// carries on of its parent's, left where the parent's walk ended over its
+// reach `total`, as far as `i` is still its continuation
+// (`Layer::handed_take`), their lines weighted by how far each pulls
+// (`geometry::joined`); none on a seed or lateral.
+fn take_over(i: u32, total: f32) {
+    var own = 0.0;
+    var mine = vec3<f32>(0.0);
+    var carried = 0.0;
+    var line = vec3<f32>(0.0);
+    let kind = kind_of(i);
+    if kind == CONTINUED || kind == RELAYED {
+        let p = ax(i, A_PARENT);
+        let b = blend_of(i);
+        if kind == RELAYED {
+            let t = m(fm(ax(i, A_PA), F_TAKEOVER), b);
+            let u = qunit(pn3(p, P_RUNNING));
+            if u.w > 0.0 && t > 0.0 {
+                own = t;
+                mine = u.xyz;
+            }
+        }
+        let keep = 1.0 - b;
+        let had = pnf(p, P_TAKE);
+        if keep > 0.0 && had > 0.0 && total > 0.0 {
+            let left = max(1.0 - qdiv(pnf(p, P_RUN), total), 0.0);
+            let c = m(m(had, left), keep);
+            if c > 0.0 {
+                carried = c;
+                line = pn3(p, P_LINE);
+            }
+        }
+    }
+    var take = 0.0;
+    var at = vec3<f32>(0.0);
+    if own > 0.0 && carried > 0.0 {
+        take = own + carried;
+        for (var c = 0u; c < 3u; c++) {
+            at[c] = qdiv(m(mine[c], own) + m(line[c], carried), take);
+        }
+    } else if own > 0.0 {
+        take = own;
+        at = mine;
+    } else if carried > 0.0 {
+        take = carried;
+        at = line;
+    }
+    set_pnf(i, P_TAKE, take);
+    for (var c = 0u; c < 3u; c++) {
+        set_pnf(i, P_LINE + c, at[c]);
+    }
+}
+
 // The pulls axis `i`, carried on at blend `b`, takes from its parent
 // `p`'s walk (`Layer::handed`): `own`, the parent's own pull's bend and
 // the length it fades over, then those the parent carries, each as far

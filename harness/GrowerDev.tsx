@@ -47,9 +47,6 @@ export function GrowerDev() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<Stage | null>(null);
   const buildsRef = useRef<ReturnType<typeof latestBuild<Job<GrowerParams>, Submitted & { buildMs: number }>> | null>(null);
-  /* What the next change of the params asks for: opening, a preset, the
-     seed and the age grow the tree in; a trait dial builds it at once. */
-  const intent = useRef<Kind>("grow");
   /* The year a grow-in or a played year has drawn, while it runs. */
   const [growing, setGrowing] = useState<string | null>(null);
 
@@ -126,7 +123,6 @@ export function GrowerDev() {
   const [seedText, setSeedText] = useState(String(params.seed));
   /* A look's tree onto the dials, its seed into the seed box. */
   const applyLook = useCallback((next: GrowerParams) => {
-    intent.current = "grow";
     setParams(next);
     setSeedText(String(next.seed));
     stageRef.current?.frameNext();
@@ -169,11 +165,9 @@ export function GrowerDev() {
   useEffect(() => {
     if (!ready) return;
     let cancelBuild: (() => void) | undefined;
-    const kind = intent.current;
-    intent.current = "build";
     const build = (): void => {
       try {
-        cancelBuild = submit(params, kind);
+        cancelBuild = submit(params, "build");
       } catch (error) {
         /* The panel's own words, before any build: nothing was asked of
            the generator, so the tree already on the canvas stays where it
@@ -187,7 +181,7 @@ export function GrowerDev() {
        is the one number that says whether rebuilding per notch would
        hold the slider still. A tree at depth is still built at depth -
        this defers, it does not coarsen. */
-    if (kind !== "build" || lastBuildMs.current <= BUILD_LIVE_MS) {
+    if (lastBuildMs.current <= BUILD_LIVE_MS) {
       build();
       return () => { cancelBuild?.(); };
     }
@@ -237,18 +231,16 @@ export function GrowerDev() {
   const commitSeed = useCallback((raw: string) => {
     setSeedText(raw);
     const seed = normalizeSeed(raw);
-    if (seed !== null) { intent.current = "grow"; setParams((prev) => ({ ...prev, seed })); stageRef.current?.frameNext(); }
+    if (seed !== null) { setParams((prev) => ({ ...prev, seed })); stageRef.current?.frameNext(); }
   }, []);
 
   /* The age rebuilds through the same engine path as any dial. */
   const setAge = useCallback((age: number) => {
-    intent.current = "grow";
     setParams((prev) => ({ ...prev, family: { ...prev.family, age } }));
   }, []);
 
   const reroll = useCallback(() => {
     const seed = randomSeed();
-    intent.current = "grow";
     setSeedText(String(seed));
     setParams((prev) => ({ ...prev, seed }));
     stageRef.current?.frameNext();
@@ -259,13 +251,11 @@ export function GrowerDev() {
      authored tree rather than near it, with the whole parameter set
      under their hands to argue with. */
   const loadPreset = useCallback((preset: TreePreset) => {
-    intent.current = "grow";
     setParams((prev) => ({ ...presetToParams(preset), seed: prev.seed }));
     stageRef.current?.frameNext();
   }, []);
 
   const reset = useCallback(() => {
-    intent.current = "grow";
     setSeedText(String(OPENING_PARAMS.seed));
     // A fresh object rather than OPENING_PARAMS itself: reset from an
     // already-default state still has to rebuild and re-frame, and
@@ -336,7 +326,7 @@ export function GrowerDev() {
         <AgeDial age={params.family.age} onChange={setAge} />
         <div className="gd-row">
           <button className="gd-button" type="button" disabled={!ready} onClick={() => submit(params, "grow")}>
-            grow again
+            grow in
           </button>
           <button className="gd-button" type="button" disabled={!ready} onClick={() => submit(params, "year")}>
             play the year

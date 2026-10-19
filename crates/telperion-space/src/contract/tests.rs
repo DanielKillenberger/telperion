@@ -28,17 +28,30 @@ fn a_draw_falls_under_an_f32_chance_exactly_as_its_uniform_does() {
     for (p, t) in [(0.0, 0), (-1.0, 0), (f32::NAN, 0), (1.0, ONE), (2.0, ONE)] {
         assert_eq!(threshold(p), t, "{p}");
     }
-    assert_eq!(threshold(f32::from_bits(1)), 1, "the least chance passes draw 0");
+    assert_eq!(
+        threshold(f32::from_bits(1)),
+        1,
+        "the least chance passes draw 0"
+    );
 }
 
 #[test]
 fn the_endpoints_are_taken_by_name() {
-    assert_eq!((neg_log2(0.0), neg_log2(1.0), neg_log2(f32::NAN)), (INF, 0.0, INF));
+    assert_eq!(
+        (neg_log2(0.0), neg_log2(1.0), neg_log2(f32::NAN)),
+        (INF, 0.0, INF)
+    );
     assert_eq!((prob(INF), prob(0.0), prob(-1.0)), (0.0, 1.0, 1.0));
     assert_eq!((fails(0.0), fails(INF)), (0.0, 1.0));
     assert_eq!(scaled(INF, 0), INF, "unbounded at any share");
-    assert_eq!((presence(INF, 0.1), presence(1.0, 0.0), presence(-1.0, 0.1)), (1.0, 1.0, 0.0));
-    assert_eq!((logit(0.0), logit(1.0), logit53(0), logit53(ONE)), (-INF, INF, -INF, INF));
+    assert_eq!(
+        (presence(INF, 0.1), presence(1.0, 0.0), presence(-1.0, 0.1)),
+        (1.0, 1.0, 0.0)
+    );
+    assert_eq!(
+        (logit(0.0), logit(1.0), logit53(0), logit53(ONE)),
+        (-INF, INF, -INF, INF)
+    );
     assert_eq!(decide::and(INF, 3.0), INF);
     // A unit with no presence stands its relay by count, rounded up.
     assert_eq!(relay_node_f(&[0.0; 4], 2, 6, 0.5), 3);
@@ -60,7 +73,10 @@ fn the_contracts_log_and_power_are_their_reals() {
         fail = fail.max((f64::from(fails(l)) - want).abs() / want.max(f64::MIN_POSITIVE));
     }
     // Relative, a few units in f32's last place (2^-24 is 6e-8).
-    assert!(log < 4e-7 && power < 4e-7 && fail < 4e-7, "{log:e} {power:e} {fail:e}");
+    assert!(
+        log < 4e-7 && power < 4e-7 && fail < 4e-7,
+        "{log:e} {power:e} {fail:e}"
+    );
 }
 
 /// A small chance of surviving keeps its bits: 2^-52 a cycle over half a
@@ -96,10 +112,19 @@ fn near_certain_chances_keep_their_distance() {
     let cycle = 1u64 << 20;
     let l = neg_log2_of(0.999_999_99);
     let lived = lived_ticks(l, cycle, 9_007_199_209_704_996);
-    assert!((cycle * 2 / 5..=cycle * 3 / 5).contains(&lived), "{lived} of {cycle}");
+    assert!(
+        (cycle * 2 / 5..=cycle * 3 / 5).contains(&lived),
+        "{lived} of {cycle}"
+    );
     let (dead, context) = (neg_log2_of(1.0 - 1e-8), Some(neg_log2_of(1.0 - 1e-8)));
-    assert!(!kept(dead, context, ONE / 4), "half shed: under a quarter is shed");
-    assert!(kept(dead, context, ONE * 3 / 4), "half shed: over three quarters is kept");
+    assert!(
+        !kept(dead, context, ONE / 4),
+        "half shed: under a quarter is shed"
+    );
+    assert!(
+        kept(dead, context, ONE * 3 / 4),
+        "half shed: over three quarters is kept"
+    );
     let wait = wake_ticks(0, 5e8, 45_035_996).unwrap() as f64 / cycle as f64;
     assert!((wait - 2.5).abs() < 0.01, "{wait} years");
     // The other end: a draw a place under one waits its finite 36.74 nats.
@@ -107,6 +132,9 @@ fn near_certain_chances_keep_their_distance() {
     assert!((wait - 36.7368).abs() < 0.01, "{wait} years");
     // Unconditioned, a near-certain death keeps its chance of living.
     let dead = neg_log2_of(1.0 - 1e-8);
-    assert!(kept(dead, None, ONE - 45_035_996), "a draw past the death's chance keeps");
+    assert!(
+        kept(dead, None, ONE - 45_035_996),
+        "a draw past the death's chance keeps"
+    );
     assert!(!kept(dead, None, ONE - 135_107_988), "one under it sheds");
 }

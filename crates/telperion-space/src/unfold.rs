@@ -58,6 +58,15 @@ pub fn reached(y: f64) -> f64 {
     (0.5 + (z / (1.0 - z)).ln_fixed() / STEEP).clamp(0.0, 1.0)
 }
 
+/// `course`'s integral from 0 to `x`, its share run: a half at the end
+/// of the span (fn-275 R2a, a stem's rise waited).
+pub fn integral(x: f64) -> f64 {
+    let x = x.clamp(0.0, 1.0);
+    let (lo, hi) = ends();
+    let soft = |t: f64| (1.0 + (STEEP * (t - 0.5)).exp_fixed()).ln_fixed() / STEEP;
+    (soft(x) - soft(0.0) - lo * x) / (hi - lo)
+}
+
 fn sigmoid(t: f64) -> f64 {
     1.0 / (1.0 + (-t).exp_fixed())
 }
@@ -73,6 +82,13 @@ pub fn run(t: f64, days: f64) -> f64 {
         true => course(t / days),
         false => f64::from(u8::from(t > 0.0)),
     }
+}
+
+/// What a subtree gone this year keeps `f` into the year: every organ's
+/// share, its wood's radius among them, and the thinnest wood it draws
+/// as a share of the thinnest drawn (fn-286; host, 2026-10-15).
+pub fn kept(f: f64) -> f64 {
+    1.0 - f.clamp(0.0, 1.0)
 }
 
 /// `a` moved a share `f` of the way to `b`: `a` at 0 and `b` at 1, to the
@@ -119,7 +135,9 @@ impl Season {
     pub fn of(state: &crate::species::PaState) -> Self {
         let grow = state.elongation + state.expansion;
         let budburst = YEAR - grow;
-        let senescence = (state.senescence - state.budburst - grow).rem_euclid(YEAR).min(budburst);
+        let senescence = (state.senescence - state.budburst - grow)
+            .rem_euclid(YEAR)
+            .min(budburst);
         let (span, room) = (state.colouring + state.leaf_fall, budburst - senescence);
         let k = if span > room { room / span } else { 1.0 };
         Self {
@@ -163,7 +181,8 @@ impl Season {
     /// a lifespan under a year drops every leaf and a longer one its
     /// oldest cohort; none where leaves live on.
     pub fn passing(&self, age: f64) -> f64 {
-        let fallen = age + (YEAR - self.budburst + self.senescence + self.colouring + self.fall) / YEAR;
+        let fallen =
+            age + (YEAR - self.budburst + self.senescence + self.colouring + self.fall) / YEAR;
         (fallen + 1.0 - self.life).clamp(0.0, 1.0)
     }
 }
@@ -175,10 +194,16 @@ impl Season {
 /// the whole year.
 pub fn colouring(species: &Species, f: f64) -> f64 {
     let tau = f * YEAR;
-    let falling = species.states.iter().map(Season::of).filter(|s| s.life.is_finite());
+    let falling = species
+        .states
+        .iter()
+        .map(Season::of)
+        .filter(|s| s.life.is_finite());
     let coloured = falling.map(|s| if tau < s.budburst { s.colour(tau) } else { 0.0 });
     match f < 1.0 {
-        true => coloured.fold(None, |m: Option<f64>, c| Some(m.map_or(c, |m| m.max(c)))).unwrap_or(1.0),
+        true => coloured
+            .fold(None, |m: Option<f64>, c| Some(m.map_or(c, |m| m.max(c))))
+            .unwrap_or(1.0),
         false => 1.0,
     }
 }
@@ -202,33 +227,53 @@ impl Presented {
     pub fn whole(structure: Structure) -> Self {
         let leaves = vec![Vec::new(); structure.axes.len()];
         let gone = structure.axes.len();
-        Self { structure, leaves, fraction: 1.0, gone }
+        Self {
+            structure,
+            leaves,
+            fraction: 1.0,
+            gone,
+        }
     }
 }
 
 /// `now`, the tree grown to its age, drawn `f` into its last year, from
 /// `before`, its drawing a year earlier (empty before the first year), by
 /// `species`' courses (module doc).
-/// `finest` is the thinnest wood the drawing draws: a gone subtree's
-/// leaves reach nothing as its fading wood reaches it.
-pub fn present(now: Structure, before: &Structure, species: &Species, (f, finest): (f64, f64)) -> Presented {
+pub fn present(now: Structure, before: &Structure, species: &Species, f: f64) -> Presented {
     if f >= 1.0 {
         return Presented::whole(now);
     }
     let ids = identities(&now);
     let was = index(before);
-    let grown: Vec<Vec<Vec3>> = now.axes.iter().map(|a| a.phytomers.iter().map(|p| p.tip).collect()).collect();
+    let grown: Vec<Vec<Vec3>> = now
+        .axes
+        .iter()
+        .map(|a| a.phytomers.iter().map(|p| p.tip).collect())
+        .collect();
     let bases = now.axes.iter().map(|a| a.base).collect();
     let gone = now.axes.len();
     let moving = Vec::with_capacity(gone);
-    let mut p = Presenting { before, bases, grown, structure: now, leaves: Vec::new(), moving, f, finest };
+    let mut p = Presenting {
+        before,
+        bases,
+        grown,
+        structure: now,
+        leaves: Vec::new(),
+        moving,
+        f,
+    };
     for i in 0..p.structure.axes.len() {
         let old = was.get(&ids[i]).map(|&j| &before.axes[j]);
         let leaves = p.axis(i, old, species);
         p.leaves.push(leaves);
     }
     p.fade();
-    Presented { structure: p.structure, leaves: p.leaves, fraction: f, gone }
+    Presented {
+        structure: p.structure,
+        leaves: p.leaves,
+        fraction: f,
+        gone,
+    }
 }
 
 /// The tree as it is drawn, axis by axis, parents first.
@@ -243,7 +288,6 @@ struct Presenting<'a> {
     /// before (`Presenting::moving`).
     moving: Vec<f64>,
     f: f64,
-    finest: f64,
 }
 
 impl Presenting<'_> {
@@ -262,7 +306,9 @@ impl Presenting<'_> {
     fn stand(&self, a: &Axis) -> Vec3 {
         match a.origin {
             Origin::Seed => Vec3::default(),
-            Origin::Lateral { parent, node, .. } | Origin::Relay { parent, node } => self.shift(parent, node),
+            Origin::Lateral { parent, node, .. } | Origin::Relay { parent, node } => {
+                self.shift(parent, node)
+            }
             Origin::Continuation { parent } => self.shift(parent, usize::MAX),
         }
     }
@@ -279,12 +325,17 @@ impl Presenting<'_> {
     fn axis(&mut self, i: usize, old: Option<&Axis>, species: &Species) -> Vec<f32> {
         let f = self.moving(&species.states[self.structure.axes[i].pa]);
         // Its base moves with the wood it stands on.
-        let carried = self.structure.axes[i].origin.parent().map_or(f, |p| self.moving[p]);
+        let carried = self.structure.axes[i]
+            .origin
+            .parent()
+            .map_or(f, |p| self.moving[p]);
         self.moving.push(f);
         let moved = self.stand(&self.structure.axes[i]);
         let bearer = self.bearer_radius(&self.structure.axes[i]);
         let a = &mut self.structure.axes[i];
         let state = &species.states[a.pa];
+        // A short shoot by its draw (fn-277).
+        let clustered = crate::lineage::cluster(state.cluster_leaves, a.lineage) > 0;
         let olds = old.map_or(0, |b| b.phytomers.len().min(a.phytomers.len()));
         match old {
             Some(b) => {
@@ -293,7 +344,7 @@ impl Presenting<'_> {
                 a.side = mix3(b.side, a.side, f);
                 a.vigour = mix(b.vigour, a.vigour, f);
                 a.blend = mix(b.blend, a.blend, f);
-                if let (Some(j), Some(was)) = (a.joined.as_mut(), b.joined) {
+                if let (Some(j), Some(was)) = (a.joined.as_mut(), b.joined()) {
                     if j.node == was.node {
                         j.t = mix(f64::from(was.t), f64::from(j.t), f) as f32;
                         j.below = mix(was.below, j.below, f);
@@ -339,8 +390,12 @@ impl Presenting<'_> {
             let unfolds = state.elongation * reached(if total > 0.0 { along / total } else { 0.0 });
             // A short shoot's cluster stays as it was where the shoot
             // stood a year before, at whichever tip it stands now.
-            let cluster = state.cluster_leaves > 0.0 && olds > 0;
-            leaves.push(if cluster { 1.0 } else { run(tau - unfolds, state.expansion) as f32 });
+            let cluster = clustered && olds > 0;
+            leaves.push(if cluster {
+                1.0
+            } else {
+                run(tau - unfolds, state.expansion) as f32
+            });
             (from, drawn) = (grown[k], p.tip);
         }
         if leaves.iter().all(|&l| l == 1.0) {
@@ -353,16 +408,15 @@ impl Presenting<'_> {
     /// faded by the fraction, carried with what it stood on. An axis that
     /// stays holds every phytomer it held (`unfold::tests`).
     fn fade(&mut self) {
-        let (before, f, finest) = (self.before, self.f, self.finest);
-        // Its wood thins to nothing and its leaves with it, each reaching
-        // nothing as its wood reaches the thinnest drawn.
+        let (before, f) = (self.before, self.f);
+        // Every organ fades uniformly to nothing across the fraction, its
+        // wood's radius and its leaves by `1 - f` (fn-270 R5a; host,
+        // 2026-10-15). Whether its wood is drawn was judged on its radius a
+        // year before and is not judged again as it thins (`kept`).
+        let keep = kept(f);
         let fade = |p: &mut Phytomer, shift: Vec3| -> f32 {
-            let r = p.radius;
-            (p.tip, p.radius) = (p.tip + shift, mix(r, 0.0, f));
-            match r > finest {
-                true => ((p.radius - finest) / (r - finest)).clamp(0.0, 1.0) as f32,
-                false => mix(1.0, 0.0, f) as f32,
-            }
+            (p.tip, p.radius) = (p.tip + shift, p.radius * keep);
+            keep as f32
         };
         let (ids, now) = (identities(before), index(&self.structure));
         // Each axis of the year before: where it is drawn now, and how far
@@ -390,10 +444,17 @@ impl Presenting<'_> {
             }
             axis.base = axis.base + shift;
             let leaves = axis.phytomers.iter_mut().map(|p| fade(p, shift)).collect();
-            // A gone relay's join fades into its bearer's own wood.
+            // A gone relay's join fades into its bearer's own wood where
+            // the bearer stays; on a bearer gone with it, it fades with
+            // everything else, so wood above it judged too thin a year
+            // before stays undrawn as it thins (fn-286 review).
+            let stays = b.origin.parent().is_some_and(|p| now.contains_key(&ids[p]));
             let bearer = self.bearer_radius(&axis);
             if let (Some(j), Some(r)) = (axis.joined.as_mut(), bearer) {
-                (j.below, j.above) = (mix(j.below, r, f), mix(j.above, r, f));
+                (j.below, j.above) = match stays {
+                    true => (mix(j.below, r, f), mix(j.above, r, f)),
+                    false => (j.below * keep, j.above * keep),
+                };
             }
             at.push((self.structure.axes.len(), shift));
             self.structure.axes.push(axis);
@@ -404,10 +465,13 @@ impl Presenting<'_> {
     /// The radius of the phytomer a relay `a` joins on its bearer, as
     /// drawn; none for any other axis.
     fn bearer_radius(&self, a: &Axis) -> Option<f64> {
-        let (Origin::Relay { parent, .. }, Some(j)) = (a.origin, a.joined) else {
+        let (Origin::Relay { parent, .. }, Some(j)) = (a.origin, a.joined()) else {
             return None;
         };
-        self.structure.axes[parent].phytomers.get(j.node).map(|p| p.radius)
+        self.structure.axes[parent]
+            .phytomers
+            .get(j.node)
+            .map(|p| p.radius)
     }
 
     /// How far the place a gone axis of `origin` stood on its bearer,
@@ -439,14 +503,30 @@ fn blend(p: &mut Phytomer, q: &Phytomer, f: f64) {
 
 /// Each axis of `tree` by its identity.
 fn index(tree: &Structure) -> HashMap<u64, usize> {
-    identities(tree).into_iter().enumerate().map(|(i, id)| (id, i)).collect()
+    identities(tree)
+        .into_iter()
+        .enumerate()
+        .map(|(i, id)| (id, i))
+        .collect()
 }
 
 /// `origin` with its bearer at `parent`.
 fn reparented(origin: Origin, parent: usize) -> Origin {
     match origin {
         Origin::Seed => Origin::Seed,
-        Origin::Lateral { node, slot, whorl, woken, .. } => Origin::Lateral { parent, node, slot, whorl, woken },
+        Origin::Lateral {
+            node,
+            slot,
+            whorl,
+            woken,
+            ..
+        } => Origin::Lateral {
+            parent,
+            node,
+            slot,
+            whorl,
+            woken,
+        },
         Origin::Continuation { .. } => Origin::Continuation { parent },
         Origin::Relay { node, .. } => Origin::Relay { parent, node },
     }

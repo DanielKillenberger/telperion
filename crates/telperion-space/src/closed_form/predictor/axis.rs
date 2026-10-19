@@ -1,10 +1,9 @@
 //! A bud's own axis at one cycle t, its count alone (`kept/path.rs` and
 //! `kept/ends.rs`, the same operations in the same order on the two
 //! columns the count reads).
-use super::{both, maybe, times, whole, Bud, Ended, Parts, Table, Walk, ZoneParts, NONE};
+use super::{both, maybe, tilts, times, whole, Bud, Ended, Parts, Table, Walk, ZoneParts, NONE};
 use crate::closed_form::along::Count;
 use crate::closed_form::events::Event;
-use crate::closed_form::kept::tilts;
 use crate::closed_form::steps::{End, Relay, Step};
 use crate::transcendental::Transcendental;
 
@@ -42,7 +41,10 @@ impl Walk<'_> {
         end(step.failed, step.i - 1, NONE_RUN, NONE);
         for (l, table) in step.lived.iter().zip(&parts.lived) {
             let grown = (l.weight, &l.sleeping[..]);
-            let run = times(NONE_RUN, self.unit(k, (step.i, grown), (&parts.zones, 1.0), t));
+            let run = times(
+                NONE_RUN,
+                self.unit(k, (step.i, grown), (&parts.zones, 1.0), t),
+            );
             let child = whole(table.as_deref().expect("built"), t - l.relay.at as i64);
             end(
                 l.weight,
@@ -104,7 +106,11 @@ impl Walk<'_> {
             // stands at, 1 + s (phi - 1) (fn-231).
             let (whole, s) = zone.whole_places();
             let psi = 1.0 + s * (phi - 1.0);
-            let f = if s > 0.0 { phi.powi(whole) * psi } else { phi.powi(whole) };
+            let f = if s > 0.0 {
+                phi.powi(whole) * psi
+            } else {
+                phi.powi(whole)
+            };
             let pmf = &self.pmfs[k][zp.z];
             let (g, tilted, replaced) = match laid < 1.0 {
                 true => tilts(&Count::laid_pmf(pmf, laid), f, zone),

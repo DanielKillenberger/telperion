@@ -14,8 +14,7 @@
 use super::GrowInput;
 use crate::math::Vec3;
 use crate::tree::{
-    Bloom, BudFate, Cluster, Leafing, Node, NodeIdentity, NodeKind,
-    ShootState, Tree,
+    Bloom, BudFate, Cluster, Leafing, Node, NodeIdentity, NodeKind, ShootState, Tree,
 };
 use crate::{Error, Result};
 use telperion_space::{Origin, Request, Structure};
@@ -59,18 +58,8 @@ const FORK_AT: f64 = 0.7;
 pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     let (species, request) = asked(&input)?;
     let rows = pa_rows(species);
+    let establishing = Establishing::of(&input.canopy, species, &input.space.trunk);
     let rows = (&input.space.trunk[..], &rows[..]);
-    // A coarse tree keeps a structure above its cut, never the tree's
-    // expected count: `fits` holds it once grown.
-    if input.cut > 0 {
-        let cut = f64::from(input.cut);
-        let coarse = telperion_space::grow_coarse(species, request, cut).map_err(engine)?;
-        fits(&coarse.structure, KEPT)?;
-        let (mut tree, drawn) = converted(&coarse.structure, rows);
-        tree.stands = stands::convert(&coarse, &drawn);
-        scaled(&mut tree, input.supernatural.scale());
-        return Ok(tree);
-    }
     foreseen(species, request.age, KEPT)?;
     // The engine returns its tree in its canonical lineage order, parents
     // first and siblings by lineage, whichever path built it (FINE-CONTRACT
@@ -78,6 +67,7 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     // and a relay's girth never depend on how the tree was assembled.
     let structure = telperion_space::grow(species, request).map_err(engine)?;
     fits(&structure, KEPT)?;
+    let structure = Establishing::apply(establishing, &structure, rows.0);
     let mut tree = convert(&structure, rows);
     scaled(&mut tree, input.supernatural.scale());
     Ok(tree)
@@ -85,8 +75,9 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
 
 /// A PA's row as the conversion reads it, for an executor that draws
 /// the engine's tree itself (fn-256 task 3): its internode and its
-/// spread, its flowering share, the leaves at each of its axes' tips and
-/// their fan, its leaf retention's first shedding age and that age's
+/// spread, its flowering share, the leaves at each of its axes' tips (as
+/// a count's word, `telperion_space::word`, each axis drawing its whole
+/// count by `telperion_space::cluster`) and their fan, its leaf retention's first shedding age and that age's
 /// share, and whether it carries the trunk on.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ConvertRow {
@@ -103,18 +94,26 @@ pub struct ConvertRow {
 }
 
 /// What another executor grows and draws the family's tree by: the
-/// engine's species, the request, the scale it is drawn at, and each
-/// PA's conversion row.
-pub(super) fn growth(
-    input: GrowInput,
-) -> Result<(telperion_space::Species, Request, f64, Vec<ConvertRow>)> {
+/// engine's species, the request, the scale it is drawn at, each PA's
+/// conversion row, and the rows its stem establishes by.
+pub(super) type Grows = (
+    telperion_space::Species,
+    Request,
+    f64,
+    Vec<ConvertRow>,
+    Option<Establishing>,
+);
+
+pub(super) fn growth(input: GrowInput) -> Result<Grows> {
     let (species, request) = asked(&input)?;
     let rows = pa_rows(species);
+    let establishing = Establishing::of(&input.canopy, species, &input.space.trunk);
     let rows = rows.iter().enumerate().map(|(pa, r)| ConvertRow {
         internode: r.internode,
         spread: r.spread,
         flowering: r.flowering,
-        leaves: r.cluster.0,
+        // As a word: its floor and share (`telperion_space::word`).
+        leaves: telperion_space::word(r.cluster.0),
         fan: r.cluster.1,
         sheds: r.retention.0,
         share: r.retention.1,
@@ -122,7 +121,13 @@ pub(super) fn growth(
         season: r.season,
     });
     let rows = rows.collect();
-    Ok((species.clone(), request, input.supernatural.scale(), rows))
+    Ok((
+        species.clone(),
+        request,
+        input.supernatural.scale(),
+        rows,
+        establishing,
+    ))
 }
 
 /// The converted tree drawn at `scale` times its natural size (fn-217
@@ -144,10 +149,6 @@ fn scaled(tree: &mut Tree, scale: f64) {
     }
     for leafing in &mut tree.leafing {
         leafing.older *= scale;
-    }
-    for s in &mut tree.stands {
-        (s.base, s.tip) = (s.base * scale, s.tip * scale);
-        (s.radius, s.reach) = (s.radius * scale, s.reach * scale);
     }
 }
 
@@ -184,7 +185,7 @@ pub(super) struct PaRow {
     internode: f64,
     spread: f64,
     flowering: f64,
-    cluster: (u32, f64),
+    cluster: (f64, f64),
     retention: (u32, u16),
     /// Its year on the presentation's clock (fn-270 R5c).
     season: telperion_space::unfold::Season,
@@ -197,8 +198,8 @@ fn pa_rows(species: &telperion_space::Species) -> Vec<PaRow> {
             internode: s.internode,
             spread: s.form.internode_spread,
             flowering: s.flowering,
-            // Whole, 0 to 8, by the species' own check.
-            cluster: (s.cluster_leaves as u32, s.cluster_spread),
+            // 0 to 8 by the species' own check, split at each axis.
+            cluster: (s.cluster_leaves, s.cluster_spread),
             retention: crate::tree::retention(s.leaf_years),
             season: telperion_space::unfold::Season::of(s),
         })
@@ -317,16 +318,11 @@ fn codominance(radius: f64, parent: f64) -> Option<f64> {
 /// short shoot: each node it draws is marked, and its last drawn node, its
 /// own tip, keeps the cluster; an axis that draws no node bears none.
 fn convert(structure: &Structure, rows: (&[usize], &[PaRow])) -> Tree {
-    converted(structure, rows).0
+    unfolded(structure, rows, Unfolding::WHOLE).0
 }
 
-/// `convert`'s tree and each axis's drawn nodes, base first: where a coarse
-/// tree's stands are borne (fn-214).
-fn converted(structure: &Structure, rows: (&[usize], &[PaRow])) -> (Tree, Vec<Vec<u32>>) {
-    unfolded(structure, rows, Unfolding::WHOLE)
-}
-
-/// `converted`, its leaves drawn by `unfolding`.
+/// `convert`'s tree, its leaves drawn by `unfolding`, and each axis's
+/// drawn nodes, base first.
 fn unfolded(
     structure: &Structure,
     (trunk, rows): (&[usize], &[PaRow]),
@@ -336,7 +332,7 @@ fn unfolded(
     let mut blooms = Vec::new();
     let mut clusters = Vec::new();
     // Each node's mark, kept only where some age states a cluster.
-    let clustering = rows.iter().any(|r| r.cluster.0 > 0);
+    let clustering = rows.iter().any(|r| r.cluster.0 > 0.0);
     let mut clustered = vec![false; usize::from(clustering)];
     // Each node's leaf retention, kept only where some age's wood sheds
     // its leaves (fn-248).
@@ -360,7 +356,9 @@ fn unfolded(
     for (i, axis) in structure.axes.iter().enumerate() {
         let start = match axis.origin {
             Origin::Seed => Some((0, false, true)),
-            Origin::Lateral { parent, node, .. } => drawn[parent].get(node).map(|&n| (n, true, false)),
+            Origin::Lateral { parent, node, .. } => {
+                drawn[parent].get(node).map(|&n| (n, true, false))
+            }
             // A relay takes its parent's run on from its join, the node drawn
             // where it joins (`telperion_space::Join`, fn-244), and the
             // stopped module's head beyond turns aside as a lateral of its
@@ -399,6 +397,7 @@ fn unfolded(
         };
         let mut made = false;
         let mut own_tip = false;
+        let least = unfolding.least(i);
         // The wood grown since the axis's last node: the internodes merged
         // into a node are carried on to the next one drawn.
         let PaRow {
@@ -408,6 +407,9 @@ fn unfolded(
             retention,
             ..
         } = rows[axis.pa];
+        // The whole leaves this axis's cluster holds: none, it is no short
+        // shoot (fn-277).
+        let cluster = (telperion_space::cluster(cluster.0, axis.lineage), cluster.1);
         let mut pending = 0.0;
         // The retentions of the wood merged into the next node: where the
         // last change falls, the retention before it and the latest.
@@ -419,7 +421,7 @@ fn unfolded(
             .phytomers
             .iter()
             .enumerate()
-            .take_while(|(_, p)| p.radius >= FINEST)
+            .take_while(|(_, p)| p.radius >= least)
         {
             // Each internode as it was laid: its scale and its spread's
             // factor (fn-222).
@@ -433,15 +435,17 @@ fn unfolded(
             }
             let inside: Vec<_> = here.filter(|(_, j)| j.t > 0.0 && j.t < join::ONE).collect();
             // A span a relay joins inside is drawn above its join at the
-            // stopped module's own wood (`Join::above`).
+            // stopped module's own wood (`Join::above`); wood there thinner
+            // than `FINEST` ends the axis at the join, as it does anywhere.
             let mut own = join::Draw::of(axis, place, piece);
             for (_, j) in &inside {
                 own.radius = own.radius.min(j.above);
             }
+            let thin = own.radius < least;
             let draws = inside
                 .iter()
                 .map(|&&(c, j)| join::draw(axis, (c, &structure.axes[c]), j, piece))
-                .chain(std::iter::once(own));
+                .chain((!thin).then_some(own));
             let mut rest = piece;
             for d in draws {
                 let piece = if d.relay.is_some() { d.piece } else { rest };
@@ -503,7 +507,11 @@ fn unfolded(
                 keys.push(d.key);
                 lengths.push(std::mem::take(&mut pending));
                 if unfolding_on {
-                    unfolded.push(unfolding.node((i, place), &rows[axis.pa], (structure.age, p.cycle)));
+                    unfolded.push(unfolding.node(
+                        (i, place),
+                        &rows[axis.pa],
+                        (structure.age, p.cycle),
+                    ));
                 }
                 if leafing_on {
                     let (older, before, last) = wood.take().unwrap();
@@ -527,8 +535,14 @@ fn unfolded(
                     clustered.push(cluster.0 > 0);
                 }
             }
-            for &(c, _) in joins[i].iter().filter(|(_, j)| j.node == place && j.t >= join::ONE) {
+            for &(c, _) in joins[i]
+                .iter()
+                .filter(|(_, j)| j.node == place && j.t >= join::ONE)
+            {
                 joined[c] = Some((parent, place + 1));
+            }
+            if thin {
+                break;
             }
         }
         // A flowering age's inflorescence stands at its axis's tip, as its
@@ -594,18 +608,19 @@ mod bloom_tests;
 mod ceiling_tests;
 #[cfg(test)]
 mod cluster_tests;
-#[cfg(test)]
-mod coarse_tests;
+mod establish;
 pub mod growth;
 #[cfg(test)]
 mod leafing_tests;
+pub use establish::Establishing;
 mod join;
 mod unfolding;
 use unfolding::Unfolding;
+#[cfg(all(test, feature = "geometry"))]
+mod radii_tests;
 #[cfg(test)]
 mod relay_tests;
 #[cfg(test)]
 mod repeat_tests;
-mod stands;
 #[cfg(test)]
 mod tests;

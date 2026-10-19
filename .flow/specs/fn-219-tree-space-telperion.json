@@ -108,7 +108,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-219-tree-space-telperion.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space: Telperion",
   "tracker": {
     "baseHashFlow": null,
@@ -121,5 +121,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T03:57:52.221519Z"
+  "updated_at": "2026-10-15T20:15:49.866694Z"
 }

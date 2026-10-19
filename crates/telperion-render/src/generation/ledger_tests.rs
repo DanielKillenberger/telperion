@@ -16,10 +16,12 @@ fn a_buffer_let_go_counts_against_the_cap_until_it_is_destroyed() {
     let old = io::buffer(&gpu, "old table", 2 * mib, usage, &[]).expect("under the cap");
     let encoder = gpu.encoder(&Default::default());
     drop(old);
-    let refused = io::buffer(&gpu, "new table", 2 * mib, usage, &[]).expect_err("the old one still counts");
+    let refused =
+        io::buffer(&gpu, "new table", 2 * mib, usage, &[]).expect_err("the old one still counts");
     assert!(refused.to_string().contains("device budget"), "{refused}");
     drop(encoder);
-    let held = io::buffer(&gpu, "new table", 2 * mib, usage, &[]).expect_err("destroyed, not yet freed");
+    let held =
+        io::buffer(&gpu, "new table", 2 * mib, usage, &[]).expect_err("destroyed, not yet freed");
     assert!(held.to_string().contains("device budget"), "{held}");
     pollster::block_on(io::complete(&gpu)).expect("the device's work done");
     io::buffer(&gpu, "new table", 2 * mib, usage, &[]).expect("the old one freed");
@@ -58,7 +60,8 @@ fn a_build_ending_leaves_another_builds_cap() {
     let long = gpu.ledger.capped(gpu.ledger.live() + 3 * mib);
     let short = gpu.ledger.capped(gpu.ledger.live() + mib);
     drop(short);
-    let refused = io::buffer(&gpu, "past the long build's cap", 4 * mib, usage, &[]).expect_err("the long build's cap holds");
+    let refused = io::buffer(&gpu, "past the long build's cap", 4 * mib, usage, &[])
+        .expect_err("the long build's cap holds");
     assert!(refused.to_string().contains("device budget"), "{refused}");
     drop(long);
     io::buffer(&gpu, "uncapped", 4 * mib, usage, &[]).expect("no cap");

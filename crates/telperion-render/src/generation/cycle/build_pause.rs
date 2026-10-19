@@ -30,7 +30,11 @@ impl Growing {
     /// cycle and readying left it, its scratch and recorded cycle let go
     /// and the device waited on, so a settle's buffers are made in the
     /// room they held. A paused build is paused already.
-    pub(super) async fn paused(mut self, gpu: &Gpu, (t, tables): (&Tables, &Capture)) -> Result<Self> {
+    pub(super) async fn paused(
+        mut self,
+        gpu: &Gpu,
+        (t, tables): (&Tables, &Capture),
+    ) -> Result<Self> {
         let Some(run) = self.run.take() else {
             return Ok(self);
         };
@@ -49,7 +53,13 @@ impl Growing {
     /// in the room a draw's scratch let go held (fn-270 R4: the device
     /// waited on first, as a pause waits). The seconds this took are the
     /// build's `rebuilt`.
-    pub(super) async fn resumed(mut self, gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture) -> Result<Self> {
+    pub(super) async fn resumed(
+        mut self,
+        gpu: &Gpu,
+        kit: &Kit,
+        t: &Tables,
+        tables: &Capture,
+    ) -> Result<Self> {
         if self.run.is_some() {
             return Ok(self);
         }
@@ -57,7 +67,8 @@ impl Growing {
         let clock = super::super::Clock::now();
         self.b = self.b.scratch(gpu, (t, tables), Some(self.sizes))?;
         let run = self.b.plan(gpu, kit, t, self.sizes.bounds)?;
-        gpu.queue.write_buffer(&run.0.census, 0, bytemuck::cast_slice(&self.b.census));
+        gpu.queue
+            .write_buffer(&run.0.census, 0, bytemuck::cast_slice(&self.b.census));
         self.run = Some(run);
         self.grew.rebuilt += clock.elapsed_ms() / 1e3;
         Ok(self)
@@ -67,7 +78,12 @@ impl Growing {
 impl Build {
     /// Every buffer a cycle writes before it reads made for `sizes`, or
     /// the least where none: the tables it keeps between calls kept.
-    fn scratch(mut self, gpu: &Gpu, (t, tables): (&Tables, &Capture), sizes: Option<Sizes>) -> Result<Build> {
+    fn scratch(
+        mut self,
+        gpu: &Gpu,
+        (t, tables): (&Tables, &Capture),
+        sizes: Option<Sizes>,
+    ) -> Result<Build> {
         let caps = sizes.map_or(Sizes::least().caps, |s| s.caps);
         let (s, next) = match sizes {
             Some(z) => (z.caps.axes, z.caps.next),
@@ -90,8 +106,12 @@ impl Build {
         self.tree = zeroed(gpu, "cycle tree", u64::from(hier_columns::TREE as u32 * s))?;
         self.layout = Layout::new(gpu, &t.form, s)?;
         self.compactor = super::compact::Compactor::new(gpu, caps, s)?;
-        self.inputs = zeroed(gpu, "cycle inputs", 2 * u64::from(next) + 6 * w)?;
-        self.counts = zeroed(gpu, "cycle counts", sizes.map_or(4, |_| device::counts(caps, t.zones).words))?;
+        self.inputs = zeroed(gpu, "cycle inputs", 2 * u64::from(next) + 7 * w)?;
+        self.counts = zeroed(
+            gpu,
+            "cycle counts",
+            sizes.map_or(4, |_| device::counts(caps, t.zones).words),
+        )?;
         self.flags = zeroed(gpu, "cycle flags", 2 * w)?;
         self.spare = zeroed(gpu, "cycle spare", 4)?;
         self.scan_tally = zeroed(gpu, "cycle scan tally", 64)?;

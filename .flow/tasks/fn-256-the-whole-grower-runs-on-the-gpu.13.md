@@ -13,9 +13,6 @@ Merged fn-264 (clean) at 7a16fc809 first. The occupied box saved no layer on the
 
 Follow-ups: `the_roofline_is_measured` and `the_executor_is_measured` no longer run on lit presets; `build-wasm.mjs` ignores `CARGO_TARGET_DIR` (FRICTION.md).
 
-stage: impl-review - ran (codex, 3 reviewers, SHIP; two P2 fixed in 77e3880d0)
-
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 78cb1605dd262ab3a3cb3ecdb00ca518dbb57cb1, d2b2182d166122b7f7095f7c8324f1694b869b73, 77e3880d02ef9a4434bb592fa1b264c7ac9ee402, a05da09a8572f2fca013f34129657d1e5ae3c5d8
 - Tests: cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast, cargo test --profile ci -p telperion-render --no-fail-fast, npm test, cargo test --profile ci -p telperion-render the_light_phase_is_timed -- --ignored

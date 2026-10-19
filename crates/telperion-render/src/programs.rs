@@ -7,6 +7,7 @@
 //! `create_compute_pipeline_async` (vendor/README.md), and `ready`
 //! settles them all before anything dispatches one.
 use crate::{Gpu, RenderError, Result};
+#[cfg(any(test, target_arch = "wasm32"))]
 use std::future::Future;
 
 /// One compute pipeline. Natively it is made at once; in a browser it is
@@ -46,7 +47,10 @@ impl Program {
                 (made, started.elapsed())
             };
             let asked: Vec<_> = descs.iter().map(|d| s.spawn(move || timed(d))).collect();
-            asked.into_iter().map(|h| h.join().expect("a pipeline made")).collect()
+            asked
+                .into_iter()
+                .map(|h| h.join().expect("a pipeline made"))
+                .collect()
         });
         #[cfg(target_arch = "wasm32")]
         descs
@@ -160,7 +164,7 @@ pub(crate) fn first_cause(
 /// Each compile awaited in turn. A device lost meanwhile is the error
 /// reported, by name, whatever the compile said; otherwise the first
 /// program the browser refused is, and nothing after it is awaited.
-#[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
+#[cfg(any(test, target_arch = "wasm32"))]
 async fn settle<F>(pending: Vec<(String, F)>, lost: impl Fn() -> Option<RenderError>) -> Result<()>
 where
     F: Future<Output = std::result::Result<(), String>>,

@@ -31,11 +31,6 @@ The probe needs no code change: the Wasm is built at this tip and the probe type
 
 Follow-ups, not built: the split's per-node group loop is still serial dependent loads (58 ms on Telperion), and `gather_main` takes 57 ms.
 
-stage: impl-review - ran (codex, three reviewers, base b69a3f86d: SHIP; one P2 kept and fixed in 9e5faf343, the roofline's named cases overwrote each other)
-
-Tier: worker on the session model (Opus 5.5).
-
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: d56174069716936c79c15fb16d94c66be281a77c, 3f3295f39828271beafabf9ae60ff41138094ecf, dce760404e2fe7f806f5ae085e6d4fdce829bfdc, 2724e07f532584da7aa78068c56f114ba8ec6f96, 2692687525f1346d227693962f54fcd4cd3535af, 1b17faa93dcdb4161ceeab640207b663a9dcc4b3, 27db4ae5e00995ce209e0bab29f39ba412be670f, 0ebea5c0604fc209f1f9cc4060c47c02176ff985, 48558c46e4274cc46220aeb3f1b80dfeb8c74b02, 9e5faf3438375cd82a48959cd5e2d303bb081898
 - Tests: cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast, cargo test --profile ci -p telperion-render --no-fail-fast (GPU lock), npm test, node_tables_are_hashed NODES_CAPS=64,128,1024 NODES_CONTEXTS=3

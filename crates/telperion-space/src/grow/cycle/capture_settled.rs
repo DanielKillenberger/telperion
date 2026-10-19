@@ -32,16 +32,14 @@ pub enum SettleTo {
     Laid,
 }
 
-/// The tree `grow_cycle` returns from its reference grower, every
-/// intermediate the device's settle compares beside it.
-pub fn grow_capture_settled(species: &Species, request: Request) -> Result<Capture> {
-    grow_capture_settled_at(species, request, SettleTo::Laid)
-}
-
 /// The tree settled as far as `to`. A tree that collapses, or cannot be
 /// laid, is captured as its error (`s_error`: 1 collapsed, 2 below the
 /// ground, 3 beyond the contract's reach; then its grown axis).
-pub fn grow_capture_settled_at(species: &Species, request: Request, to: SettleTo) -> Result<Capture> {
+pub fn grow_capture_settled_at(
+    species: &Species,
+    request: Request,
+    to: SettleTo,
+) -> Result<Capture> {
     let (mut g, keeps) = start(species, request, Options::default())?;
     (g.one, g.rules.one) = (true, true);
     g.working = Some(Box::new(Working::reference()));
@@ -55,7 +53,7 @@ pub fn grow_capture_settled_at(species: &Species, request: Request, to: SettleTo
     // Each grown axis's lineage key, beside its final index (`s_index`):
     // the device's grown axes are known by it, as its arena compacts.
     let grown: Vec<u64> = g.axes.iter().map(|a| a.lineage).collect();
-    let settling = match g.settle_shed((request, Options::default()), keeps, &mut |_| {}) {
+    let settling = match g.settle_shed(request, keeps, &mut |_| {}) {
         Err(Error::Collapsed) => return Ok(failed(c, [1, NONE])),
         other => other?,
     };
@@ -65,7 +63,10 @@ pub fn grow_capture_settled_at(species: &Species, request: Request, to: SettleTo
     let structure = match to {
         SettleTo::Shed => settling.structure,
         SettleTo::Placed => {
-            let options = Options { settle: true, ..Options::default() };
+            let options = Options {
+                settle: true,
+                ..Options::default()
+            };
             let mut s = settling.settle_lay(options, true, &mut |_| {})?.structure;
             if let Err(e) = crate::geometry::place(&mut s, species, None, 1) {
                 return Ok(failed(c, error_of(&e, &index)));
@@ -74,7 +75,10 @@ pub fn grow_capture_settled_at(species: &Species, request: Request, to: SettleTo
             s
         }
         SettleTo::Thick => {
-            let options = Options { settle: true, ..Options::default() };
+            let options = Options {
+                settle: true,
+                ..Options::default()
+            };
             settling.settle_lay(options, true, &mut |_| {})?.structure
         }
         SettleTo::Laid => match settling.settle_lay(Options::default(), true, &mut |_| {}) {
@@ -87,16 +91,29 @@ pub fn grow_capture_settled_at(species: &Species, request: Request, to: SettleTo
     for (k, &i) in order.iter().enumerate() {
         at[i] = k as u32;
     }
-    let grown_at: Vec<u32> = index.iter().map(|&i| if i == usize::MAX { NONE } else { at[i] }).collect();
+    let grown_at: Vec<u32> = index
+        .iter()
+        .map(|&i| if i == usize::MAX { NONE } else { at[i] })
+        .collect();
     c.u32s("s_error", &[0, NONE]);
     c.u32s("s_index", &grown_at);
     c.u64s("s_grown", &grown);
-    let mean = girth.leaf_mean.or_else(|| crate::girth::leaf_mean(&structure, species));
-    c.u64s("s_leaf_mean", &[u64::from(mean.is_some()), mean.unwrap_or(0.0).to_bits()]);
+    let mean = girth
+        .leaf_mean
+        .or_else(|| crate::girth::leaf_mean(&structure, species));
+    c.u64s(
+        "s_leaf_mean",
+        &[u64::from(mean.is_some()), mean.unwrap_or(0.0).to_bits()],
+    );
     let disused: Vec<u64> = (girth.disused.iter())
         .flat_map(|d| {
             let node = d.node.map_or(u64::from(NONE), |n| n as u64);
-            [u64::from(at[d.axis]), node, d.radius.to_bits(), d.share.to_bits()]
+            [
+                u64::from(at[d.axis]),
+                node,
+                d.radius.to_bits(),
+                d.share.to_bits(),
+            ]
         })
         .collect();
     c.u64s("s_disused", &disused);
@@ -105,7 +122,11 @@ pub fn grow_capture_settled_at(species: &Species, request: Request, to: SettleTo
     phytomers(&mut c, &ordered);
     if let Some(l) = levers {
         let words: Vec<u32> = (order.iter())
-            .flat_map(|&i| l[i].iter().flat_map(|v| v.moment.into_iter().chain(v.chord)).map(f32::to_bits))
+            .flat_map(|&i| {
+                l[i].iter()
+                    .flat_map(|v| v.moment.into_iter().chain(v.chord))
+                    .map(f32::to_bits)
+            })
             .collect();
         c.u32s("s_levers", &words);
     }
@@ -120,12 +141,21 @@ fn failed(mut c: Capture, error: [u32; 2]) -> Capture {
 
 /// The code and grown axis of an error the lay met (`s_error`).
 fn error_of(e: &Error, index: &[usize]) -> [u32; 2] {
-    let grown = |shed: usize| index.iter().position(|&i| i == shed).map_or(NONE, |g| g as u32);
+    let grown = |shed: usize| {
+        index
+            .iter()
+            .position(|&i| i == shed)
+            .map_or(NONE, |g| g as u32)
+    };
     match e {
         Error::Collapsed => [1, NONE],
         Error::BelowGround { axis, .. } => [2, grown(*axis)],
         Error::Refused { input, .. } => {
-            let axis = input.trim_start_matches("axes[").trim_end_matches(']').parse().ok();
+            let axis = input
+                .trim_start_matches("axes[")
+                .trim_end_matches(']')
+                .parse()
+                .ok();
             [3, axis.map_or(NONE, grown)]
         }
         _ => [4, NONE],
@@ -147,15 +177,24 @@ fn axes(c: &mut Capture, ordered: &[&Axis], at: &[u32]) {
     let col = |g: &dyn Fn(&Axis) -> u32| -> Vec<u32> { ordered.iter().map(|a| g(a)).collect() };
     let wide = |g: &dyn Fn(&Axis) -> u64| -> Vec<u64> { ordered.iter().map(|a| g(a)).collect() };
     c.u32s("s_kind", &col(&|a| kind(a.origin)));
-    c.u32s("s_parent", &col(&|a| a.origin.parent().map_or(NONE, |p| at[p])));
-    c.u32s("s_node", &col(&|a| match a.origin {
-        Origin::Lateral { node, .. } | Origin::Relay { node, .. } => node as u32,
-        _ => 0,
-    }));
-    c.u64s("s_whorl", &wide(&|a| match a.origin {
-        Origin::Lateral { whorl, .. } => whorl.to_bits(),
-        _ => 0,
-    }));
+    c.u32s(
+        "s_parent",
+        &col(&|a| a.origin.parent().map_or(NONE, |p| at[p])),
+    );
+    c.u32s(
+        "s_node",
+        &col(&|a| match a.origin {
+            Origin::Lateral { node, .. } | Origin::Relay { node, .. } => node as u32,
+            _ => 0,
+        }),
+    );
+    c.u64s(
+        "s_whorl",
+        &wide(&|a| match a.origin {
+            Origin::Lateral { whorl, .. } => whorl.to_bits(),
+            _ => 0,
+        }),
+    );
     c.u64s("s_lineage", &wide(&|a| a.lineage));
     c.u32s("s_pa", &col(&|a| a.pa as u32));
     c.u32s("s_birth", &col(&|a| a.birth));
@@ -172,16 +211,28 @@ fn axes(c: &mut Capture, ordered: &[&Axis], at: &[u32]) {
     c.u32s("s_phase", &col(&|a| a.phase.to_bits()));
     c.u32s("s_units_n", &col(&|a| a.units.len() as u32));
     c.u32s("s_phyt_n", &col(&|a| a.phytomers.len() as u32));
-    let frame: Vec<u32> = ordered.iter().flat_map(|a| [v(a.base), v(a.heading), v(a.side)].concat()).collect();
+    let frame: Vec<u32> = ordered
+        .iter()
+        .flat_map(|a| [v(a.base), v(a.heading), v(a.side)].concat())
+        .collect();
     c.u32s("s_frame", &frame);
     let joined: Vec<u64> = (ordered.iter())
         .flat_map(|a| match a.joined() {
-            Some(j) => [1, j.node as u64, u64::from(j.t.to_bits()), j.below.to_bits(), j.above.to_bits()],
+            Some(j) => [
+                1,
+                j.node as u64,
+                u64::from(j.t.to_bits()),
+                j.below.to_bits(),
+                j.above.to_bits(),
+            ],
             None => [0; 5],
         })
         .collect();
     c.u64s("s_joined", &joined);
-    let units: Vec<u64> = ordered.iter().flat_map(|a| a.units.iter().map(|u| u.to_bits())).collect();
+    let units: Vec<u64> = ordered
+        .iter()
+        .flat_map(|a| a.units.iter().map(|u| u.to_bits()))
+        .collect();
     c.u64s("s_unit", &units);
 }
 
@@ -191,7 +242,11 @@ fn phytomers(c: &mut Capture, ordered: &[&Axis]) {
     c.u32s("s_ph_cycle", &all().map(|p| p.cycle).collect::<Vec<_>>());
     c.u64s("s_ph_key", &all().map(|p| p.key).collect::<Vec<_>>());
     let reals = [
-        ("s_ph_rank", &(|p: &crate::structure::Phytomer| p.rank) as &dyn Fn(&crate::structure::Phytomer) -> f64),
+        (
+            "s_ph_rank",
+            &(|p: &crate::structure::Phytomer| p.rank)
+                as &dyn Fn(&crate::structure::Phytomer) -> f64,
+        ),
         ("s_ph_size", &|p| p.size),
         ("s_ph_light", &|p| p.light),
         ("s_ph_grown", &|p| p.grown),
@@ -201,7 +256,9 @@ fn phytomers(c: &mut Capture, ordered: &[&Axis]) {
     for (name, g) in reals {
         c.u64s(name, &all().map(|p| g(p).to_bits()).collect::<Vec<_>>());
     }
-    let places: Vec<u32> = all().flat_map(|p| [v(p.tip), v(p.heading), v(p.side)].concat()).collect();
+    let places: Vec<u32> = all()
+        .flat_map(|p| [v(p.tip), v(p.heading), v(p.side)].concat())
+        .collect();
     c.u32s("s_ph_frame", &places);
 }
 
@@ -247,25 +304,36 @@ pub(super) fn settle_rows(species: &Species) -> Vec<u32> {
             | u32::from(s.form.sag > 0.0) << 3
             | u32::from(s.form.dominance > 0.0) << 4;
         let relay = s.relay_at.clamp(0.0, 1.0) as f32;
-        let delay = if s.shedding.is_finite() { q(s.shedding + 1.0) } else { 0.0 };
-        let words = [life, go.to_bits(), q(s.relay_ended).to_bits(), delay.to_bits()];
+        let delay = if s.shedding.is_finite() {
+            q(s.shedding + 1.0)
+        } else {
+            0.0
+        };
+        let words = [
+            life,
+            go.to_bits(),
+            q(s.relay_ended).to_bits(),
+            delay.to_bits(),
+        ];
         rows.extend(words);
         rows.extend([s.retained as f32, s.leaf_girth as f32, relay].map(f32::to_bits));
         rows.push(flags);
         let f = &s.form;
-        let form = [f.pipe as f32, f.ripening as f32, f.exponent as f32, (1.0 / f.exponent) as f32];
+        let form = [
+            f.pipe as f32,
+            f.ripening as f32,
+            f.exponent as f32,
+            (1.0 / f.exponent) as f32,
+        ];
         rows.extend(form.map(f32::to_bits));
-        let sag = if f.sag > 0.0 { f.sag.log2_fixed() as f32 } else { 0.0 };
+        let sag = if f.sag > 0.0 {
+            f.sag.log2_fixed() as f32
+        } else {
+            0.0
+        };
         rows.extend([f.secondary as f32, f.dominance as f32, sag, 0.0].map(f32::to_bits));
     }
     rows
-}
-
-/// Sag's turn (`sag::turn`) of a phytomer `radius` thick and `length`
-/// long under `lever`, its moment capped at `cap`: the device's sag held
-/// to the CPU's input by input.
-pub fn settle_sag_turn(lever: [f32; 3], cap: f32, sag: f64, (radius, length): (f64, f64)) -> f32 {
-    crate::sag::turn(lever, cap, sag, radius, length)
 }
 
 /// How far `grow_cycle`, its working set retiring subtrees as it grows,
@@ -274,11 +342,17 @@ pub fn settle_sag_turn(lever: [f32; 3], cap: f32, sag: f64, (radius, length): (f
 /// risk 5) but for the girth retirement freezes as a subtree closes
 /// (fn-270 R4): its radii's median and most relative shift, none where
 /// the shapes differ; and the subtrees retired.
-pub fn grow_cycle_is_the_reference(species: &Species, request: Request) -> Result<(Option<(f64, f64)>, usize)> {
+pub fn grow_cycle_is_the_reference(
+    species: &Species,
+    request: Request,
+) -> Result<(Option<(f64, f64)>, usize)> {
     let cycled = super::run(species, request, true, Working::default())?;
     let retired = cycled.census.map_or(0, |c| c.retired);
     let reference = super::run(species, request, false, Working::reference())?;
-    Ok((super::girth_apart(&cycled.structure, &reference.structure), retired))
+    Ok((
+        super::girth_apart(&cycled.structure, &reference.structure),
+        retired,
+    ))
 }
 
 /// Every retirement verdict `grow_cycle` takes, in its order
@@ -299,10 +373,22 @@ pub fn grow_capture_retired(species: &Species, request: Request) -> Result<Captu
     let mut c = Capture { arrays: Vec::new() };
     let log = &g.working.as_ref().expect("a working set").retirement().log;
     let words: Vec<u32> = (log.iter())
-        .flat_map(|&(root, cycle, kind, l)| [root as u32, cycle, u32::from(kind), l.lived.to_bits(), l.alive.to_bits()])
+        .flat_map(|&(root, cycle, kind, l)| {
+            [
+                root as u32,
+                cycle,
+                u32::from(kind),
+                l.lived.to_bits(),
+                l.alive.to_bits(),
+            ]
+        })
         .collect();
     c.u32s("r_log", &words);
-    let keys: Vec<u32> = g.axes.iter().flat_map(|a| [a.lineage as u32, (a.lineage >> 32) as u32]).collect();
+    let keys: Vec<u32> = g
+        .axes
+        .iter()
+        .flat_map(|a| [a.lineage as u32, (a.lineage >> 32) as u32])
+        .collect();
     c.u32s("r_lineage", &keys);
     c.u32s("r_held", &held);
     Ok(c)

@@ -25,7 +25,7 @@ Each lever is its own commit on `fn-211-tree-space-f2b-growth-years-cheap`, from
 
 ## 2. The hash proof
 
-`measures hash 80 1,7 all both` (seeds 1 and 7, neutral and lit, four species). The table is taken at the base `899c7186`. The beech and oak hashes differ from fn-210's RESULT.md because fn-206 and fn-210 landed after that table was made.
+`measures hash 80 1,7 all both` (seeds 1 and 7, neutral and lit, four species). The table is taken at the base `899c7186`. The beech and oak hashes differ from fn-210's table because fn-206 and fn-210 landed after that table was made.
 
 | Tree | Neutral | Lit |
 |---|---|---|

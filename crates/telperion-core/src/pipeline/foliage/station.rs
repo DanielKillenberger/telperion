@@ -1,6 +1,6 @@
 //! One shoot's stations: where each leaf sits along the run, how far it leans
 //! off the wood, and the frame the renderer receives.
-use super::plan::{kept, micrometres, walk};
+use super::plan::{kept, spacing, station_at, station_count, walk};
 use super::{CanopyParams, Instances, TwigPlacement};
 use crate::math::Transcendental;
 use crate::{
@@ -13,6 +13,8 @@ use std::f64::consts::{PI, TAU};
 #[derive(Clone, Copy)]
 pub(super) struct Run<'a> {
     pub tree: &'a Tree,
+    /// The family's seed, which keys a station's own leaflets' stream.
+    pub seed: u32,
     /// Node indices, attachment first, along one unbranched shoot.
     pub nodes: &'a [usize],
     pub envelope: Envelope,
@@ -26,6 +28,7 @@ pub(super) struct Run<'a> {
 pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result<()> {
     let Run {
         tree,
+        seed,
         nodes,
         envelope,
         params: p,
@@ -39,7 +42,7 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
         return Ok(());
     }
     let frames = station_frames(&points, &chord, tree.seed_side(nodes[0]));
-    let leaflets = super::rosette::leaflets(&p);
+    let key = tree.key(nodes[1]);
     // Which stations keep their leaves (fn-248), now or a year before;
     // one that does not still takes its draws, into a sink, so every
     // other leaf keeps its own.
@@ -50,15 +53,13 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
         })
         .collect();
     let mut sink = Instances::new(out.reference);
-    reserve(
-        out,
-        kept.iter()
-            .filter(|k| k.is_some())
-            .count()
-            .checked_mul(leaflets)
-            .ok_or(Error::ResourceLimit("foliage count overflow"))?,
-        p,
-    )?;
+    let leaves = (kept.iter().enumerate())
+        .filter(|(_, k)| k.is_some())
+        .try_fold(0usize, |n, (k, _)| {
+            n.checked_add(super::organs::leaflets(&placement(&p, key, k as u32)))
+        })
+        .ok_or(Error::ResourceLimit("foliage count overflow"))?;
+    reserve(out, leaves, p)?;
     for (k, distance) in stations.into_iter().enumerate() {
         let mut segment = points.len() - 2;
         while segment > 0 && along[segment] > distance {
@@ -99,20 +100,35 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
                 ))?;
             point = point * (1. - p.surface_contact) + seat * p.surface_contact;
         }
-        let into = if kept[k].is_some() { &mut *out } else { &mut sink };
+        let into = if kept[k].is_some() {
+            &mut *out
+        } else {
+            &mut sink
+        };
         // A leaf still expanding is drawn at its share, a falling one
         // whole until its abscission day (fn-270 R5, R5c).
         let unfolded = tree.unfolding(nodes[segment + 1]);
         let (share, colour) = unfolded.leaf(kept[k].unwrap_or(true), tree.key(nodes[1]), k as u32);
-        let size = p.size * share;
+        let table = placement(
+            &CanopyParams {
+                size: p.size * share,
+                ..p
+            },
+            key,
+            k as u32,
+        );
+        let count = super::organs::leaflets(&table);
         let from = into.leaves.len();
+        // Leaflets past a station's first draw on its own stream, so its
+        // count moves no other station's leaves (fn-277).
+        let mut more = (count > 1).then(|| Rng::new(leaflet_stream(seed, key, k as u32)));
         super::rosette::fan(
             point,
             axis(point, radial, tangent, p),
             tangent,
             normal,
-            (CanopyParams { size, ..p }, super::rosette::leaflets(&p)),
-            rng,
+            (table, count, None),
+            (rng, more.as_mut()),
             into,
         )?;
         // A colouring leaf is drawn as one withering (fn-270 R5c).
@@ -124,57 +140,19 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
     Ok(())
 }
 
-/// Metres between leaves on a run no twig layer marks: the row's share of the
-/// tree's own height, never finer than a tenth of a millimetre.
-fn spacing(envelope: Envelope, p: CanopyParams) -> Result<f64> {
-    let spacing = p.spacing * envelope.height;
-    if !spacing.is_finite() || spacing <= 0.0 {
-        return Err(Error::InvalidInput("foliage spacing"));
-    }
-    Ok(spacing)
+/// The table station `k` of the run keyed `key` is drawn by: its whole
+/// leaflets and spines (fn-277).
+pub(super) fn placement(p: &CanopyParams, key: u32, k: u32) -> CanopyParams {
+    super::organs::placed(p, key, k)
 }
 
-/// The most stations a run may hold before the vector that carries them would
-/// outgrow what an index can address.
-fn addressable() -> f64 {
-    (isize::MAX as usize / std::mem::size_of::<f64>()) as f64
-}
-
-/// How many leaves a run of this grown length (`walk`'s units) carries: one
-/// set per internode under a twig layer, height-relative spacing plus a
-/// terminal clump without one. The builder places exactly this many and the
-/// prediction counts them, from here.
-pub(super) fn station_count(
-    length: f64,
-    envelope: Envelope,
-    p: CanopyParams,
-    twig: Option<TwigPlacement>,
-) -> Result<usize> {
-    if length == 0. {
-        return Ok(0);
-    }
-    if !length.is_finite() {
-        return Err(Error::ResourceLimit("shoot length overflow"));
-    }
-    if let Some(t) = twig {
-        let per = t.stations_per_internode as f64;
-        let internodes = (length / micrometres(t.internode_length)).ceil().max(1.);
-        if !internodes.is_finite()
-            || internodes * per > p.max_instances as f64
-            || internodes * per >= addressable()
-        {
-            return Err(Error::ResourceLimit("foliage instance budget"));
-        }
-        return Ok(internodes as usize * t.stations_per_internode as usize);
-    }
-    let count = (length / spacing(envelope, p)?).ceil();
-    if !count.is_finite()
-        || count + p.clump as f64 > p.max_instances as f64
-        || count + p.clump as f64 >= addressable()
-    {
-        return Err(Error::ResourceLimit("foliage instance budget"));
-    }
-    Ok(count as usize + p.clump as usize)
+/// The stream the leaflets past the first of station `k` of the run keyed
+/// `key` draw on.
+fn leaflet_stream(seed: u32, key: u32, k: u32) -> u32 {
+    crate::tree::leaf_stream(
+        seed,
+        crate::tree::mix32(key ^ k.wrapping_add(1).wrapping_mul(0x9e37_79b9)),
+    )
 }
 
 /// Distances along the run at which those leaves sit, in `walk`'s units.
@@ -196,12 +174,7 @@ fn stations(
         .try_reserve_exact(total)
         .map_err(|_| Error::ResourceLimit("foliage allocation"))?;
     if let Some(t) = twig {
-        let per = t.stations_per_internode as usize;
-        for i in 0..total / per {
-            for _ in 0..per {
-                stations.push(i as f64 * micrometres(t.internode_length));
-            }
-        }
+        stations.extend((0..total).map(|k| station_at(k, t)));
         return Ok(stations);
     }
     let spacing = spacing(envelope, p)?;

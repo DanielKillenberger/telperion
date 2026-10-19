@@ -8,7 +8,9 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-252-a-shoot-that-reaches-the-ground-stops",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-252-a-shoot-that-reaches-the-ground-stops.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 2,
   "plan_review_status": "needs_work",
@@ -126,16 +128,107 @@
       "task": null,
       "timestamp": "2026-10-09T19:41:38.011608Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "33bdff47b4d94948840d7979b5027429d5ffe6ec327abe9ec5455f1bc8650254",
+      "backend": "codex",
+      "base_sha": "ea2812326fae0a8d8ec63b58aae5a5bdf0998f1b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c6e29e199a1693a061d2286ad0614b96",
+            "classification": "introduced",
+            "findingId": "finding-c6e29e199a1693a061d2286ad0614b96",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9a9a734a4be0e922ada172711154235f415c4f91",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 957,
+      "output_sha256": "7b90ec502810ef6c073dabb099f7ae9e571a1b76c41839d73951f6c4c3d15ea9",
+      "reservation_id": "f18db7ab69ec4029844f3d7edaed0fdf",
+      "round_consumed": true,
+      "scope": "impl:fn-252-a-shoot-that-reaches-the-ground-stops.1",
+      "superseded_by": null,
+      "task": "fn-252-a-shoot-that-reaches-the-ground-stops.1",
+      "timestamp": "2026-10-14T15:51:13.955117Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "1cea01e0c715cb921d711d1ceb20074996a500577fcb0a92645533f3fd554f7e",
+      "backend": "codex",
+      "base_sha": "ea2812326fae0a8d8ec63b58aae5a5bdf0998f1b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c6e29e199a1693a061d2286ad0614b96",
+            "classification": "introduced",
+            "findingId": "finding-c6e29e199a1693a061d2286ad0614b96",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e78477bb268a5a80b87e8a04c906be66cbb427fc",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 838,
+      "output_sha256": "2bd9bc02f287376ef67c3e56d1663f6b3b2eccecb7eae7001a4f567f42503c0a",
+      "reservation_id": "97608e03697047cf8f103d75c3fc254c",
+      "round_consumed": true,
+      "scope": "impl:fn-252-a-shoot-that-reaches-the-ground-stops.1",
+      "superseded_by": null,
+      "task": "fn-252-a-shoot-that-reaches-the-ground-stops.1",
+      "timestamp": "2026-10-14T16:20:58.827570Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-252-a-shoot-that-reaches-the-ground-stops.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-252-a-shoot-that-reaches-the-ground-stops.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-252-a-shoot-that-reaches-the-ground-stops.md",
-  "status": "open",
+  "status": "done",
   "title": "A shoot that reaches the ground stops there",
   "tracker": {
     "baseHashFlow": null,
@@ -148,5 +241,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T19:42:09.674164Z"
+  "updated_at": "2026-10-15T20:17:24.219698Z"
 }

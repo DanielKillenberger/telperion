@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-245-a-breakthrough-in-generation-time",
   "spec_path": ".flow/tasks/fn-245-a-breakthrough-in-generation-time.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "E1/E2: scale-split oracle and the scaffold's floor (CPU)",
   "updated_at": "2026-10-12T20:23:40.574661Z"
 }

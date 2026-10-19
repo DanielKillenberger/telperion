@@ -23,7 +23,6 @@
     "fn-251-a-walk-never-grows-a-tree-larger-than",
     "fn-253-flowers-hang-from-the-tree",
     "fn-256-the-whole-grower-runs-on-the-gpu",
-    "fn-257-the-site-grows-its-trees-on-the-device",
     "fn-259-the-release-meets-the-bar-on-every",
     "fn-261-the-same-binary-draws-the-same-leaves",
     "fn-263-the-birch-grows-the-same-wood-on-the",
@@ -33,7 +32,19 @@
     "fn-270-growth-continues-from-any-age-in-less",
     "fn-272-the-release-film-through-species-space",
     "fn-271-the-local-gate-runs-in-minutes",
-    "fn-274-the-gate-fits-beside-the-owners-desktop"
+    "fn-274-the-gate-fits-beside-the-owners-desktop",
+    "fn-276-the-device-builds-every-tree-the-cpu",
+    "fn-277-a-walk-between-leaf-forms-changes-the",
+    "fn-252-a-shoot-that-reaches-the-ground-stops",
+    "fn-281-the-oak-at-80-builds-at-every-seed",
+    "fn-275-a-young-palms-fronds-grow-to-their-size",
+    "fn-284-the-harnesss-controls-change-the-tree",
+    "fn-286-a-relay-runs-back-onto-the-line-it",
+    "fn-287-020-clean-up-from-the-release-review",
+    "fn-291-the-cpu-entry-builds-every-shipped",
+    "fn-292-the-foliages-level-lists-hold-only-what",
+    "fn-293-each-stages-output-has-one-form-and-its",
+    "fn-294-the-release-reviews-findings-are-fixed"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -53,5 +64,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T01:33:19.365485Z"
+  "updated_at": "2026-10-19T09:31:50.001942Z"
 }

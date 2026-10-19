@@ -14,7 +14,20 @@ const REAL: &str = include_str!("real.wgsl");
 const COMPACT: &str = include_str!("compact.wgsl");
 const UNITS: &str = include_str!("retire_units.wgsl");
 
-pub(super) const ENTRIES: [&str; 12] = ["open_main", "close_main", "woken_main", "living_main", "verdict_main", "end_main", "inside_main", "living_fold_main", "inside_fold_main", "reused_main", "terms_main", "fading_main"];
+pub(super) const ENTRIES: [&str; 12] = [
+    "open_main",
+    "close_main",
+    "woken_main",
+    "living_main",
+    "verdict_main",
+    "end_main",
+    "inside_main",
+    "living_fold_main",
+    "inside_fold_main",
+    "reused_main",
+    "terms_main",
+    "fading_main",
+];
 pub(super) const OPEN: usize = 0;
 pub(super) const CLOSE: usize = 1;
 pub(super) const WOKEN: usize = 2;
@@ -59,8 +72,18 @@ impl Kernels {
         let reads = [true, true, true, true, true, true, false, false];
         Self {
             pass: io::Pass::new(gpu, source(), &reads, &ENTRIES),
-            compact: io::Pass::new(gpu, COMPACT.into(), &[false, false, true, false], &super::compact::ENTRIES),
-            units: io::Pass::new(gpu, UNITS.into(), &[true, true, true, false, false], &["units_main"]),
+            compact: io::Pass::new(
+                gpu,
+                COMPACT.into(),
+                &[false, false, true, false],
+                &super::compact::ENTRIES,
+            ),
+            units: io::Pass::new(
+                gpu,
+                UNITS.into(),
+                &[true, true, true, false, false],
+                &["units_main"],
+            ),
         }
     }
 }
@@ -74,7 +97,11 @@ pub(super) fn compaction_sources() -> [&'static str; 2] {
 /// The module's WGSL: the contract, the reals, then retirement's columns,
 /// per-axis passes and sweep.
 pub(super) fn source() -> String {
-    format!("{}\n{REAL}\n{COLS}\n{AXIS}\n{SWEEP}\n{}", super::contract_with(super::ARITH), super::FOLD)
+    format!(
+        "{}\n{REAL}\n{COLS}\n{AXIS}\n{SWEEP}\n{}",
+        super::contract_with(super::ARITH),
+        super::FOLD
+    )
 }
 
 /// Retirement's buffers for `s` laid axes at most and `pas` PAs: its
@@ -100,7 +127,8 @@ impl Retire {
             pa: pa.to_vec(),
             log_cap,
         };
-        gpu.queue.write_buffer(&r.ret, 4 * (r.head() + HEAD), bytemuck::cast_slice(pa));
+        gpu.queue
+            .write_buffer(&r.ret, 4 * (r.head() + HEAD), bytemuck::cast_slice(pa));
         Ok(r)
     }
 
@@ -132,7 +160,13 @@ impl Retire {
             e.copy_buffer_to_buffer(&self.ret, k * a, &new.ret, k * b, a);
         }
         e.copy_buffer_to_buffer(&self.ret, head, &new.ret, 4 * new.head(), 4 * HEAD);
-        e.copy_buffer_to_buffer(&self.verdicts, 0, &new.verdicts, 0, self.verdicts.size().min(new.verdicts.size()));
+        e.copy_buffer_to_buffer(
+            &self.verdicts,
+            0,
+            &new.verdicts,
+            0,
+            self.verdicts.size().min(new.verdicts.size()),
+        );
         Ok(new)
     }
 
@@ -144,6 +178,7 @@ impl Retire {
 
 /// A buffer the build copies into as well as reads back.
 pub(super) fn zeroed_dst(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
-    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
+    let usage =
+        wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
     io::buffer(gpu, label, words.max(4) * 4, usage, &[])
 }

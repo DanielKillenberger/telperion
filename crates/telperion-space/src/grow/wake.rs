@@ -1,6 +1,5 @@
 //! Sleeping buds in the grower (`dormant.rs`): each node's sleeping buds
 //! put to sleep, and woken in their cycle.
-use super::alone::Pending;
 use super::shoot::Shoot;
 use super::{Apex, Grower};
 use crate::dormant::{self, Sleeper, Woken};
@@ -24,15 +23,11 @@ impl Grower<'_> {
         if asleep.is_empty() {
             return Ok(());
         }
-        if self.rules.alone {
-            return self.borne_wakes(asleep, cycle);
-        }
         // The buds that wake make axes of their own and touch none the
         // tree has: one share, numbered from the tree's count.
         let spare = std::mem::take(&mut self.spare);
         let mut shoot =
             Shoot::new(&self.rules, self.reads(), (&self.roots, &self.horizon)).spared(spare);
-        let mut handed = Vec::new();
         for sleeper in asleep {
             // It ages through the whole of the time it slept, the share of
             // its waking cycle included, so it never wakes in a stage it
@@ -44,78 +39,19 @@ impl Grower<'_> {
             };
             // It wakes on every axis that carries its bearer on, each at
             // the presence that carries it there.
-            let (first, _) = self.rules.species.lived(sleeper.pa).expect("aged");
-            let hands = self.rules.hands(first, cycle - 1);
+            shoot.job = 0;
             for (carried, bearer) in
                 dormant::carried(&self.axes, &self.draws, &self.successor, &sleeper, cycle)
             {
                 let next = self.draws[bearer].units.len();
                 let aged = (pa, spent, reach);
-                if hands {
-                    let at = shoot.stand_in(&sleeper, aged, carried, (bearer, next), cycle);
-                    let pending = Pending {
-                        sleeper,
-                        aged,
-                        carried,
-                        cycle,
-                        bearer,
-                        next,
-                    };
-                    handed.push((at, pending));
-                } else {
-                    shoot.woke(&sleeper, aged, carried, (bearer, next), cycle)?;
-                }
+                shoot.woke(&sleeper, aged, carried, (bearer, next), cycle)?;
             }
+            shoot.jobs[1] = shoot.jobs[1].max(shoot.job);
         }
         let share = shoot.finish(Vec::new());
         self.absorb(share);
-        self.handed.extend(handed);
         Ok(())
-    }
-}
-
-impl Shoot<'_, '_> {
-    /// The axis a sleeping bud handed on below a cut stands in for as it
-    /// wakes (`realized.rs`): its first axis as `woke` makes it, which
-    /// never grows here, and its waking recorded for its bearer to keep.
-    /// Its index.
-    fn stand_in(
-        &mut self,
-        sleeper: &Sleeper,
-        (_, _, reach): (usize, f64, f64),
-        carried: f64,
-        (bearer, next): (usize, usize),
-        cycle: u32,
-    ) -> usize {
-        let origin = Origin::Lateral {
-            parent: sleeper.parent,
-            node: sleeper.node,
-            slot: sleeper.slot,
-            whorl: sleeper.whorl,
-            woken: true,
-        };
-        let at = self.len();
-        self.woken.push(Woken {
-            axis: at,
-            bearer,
-            next,
-            cycle,
-            share: 1.0 - sleeper.sleep,
-        });
-        let (first, _) = self.species().lived(sleeper.pa).expect("aged");
-        let draws = Draws {
-            birth: sleeper.made(carried, reach),
-            ..Draws::default()
-        };
-        let key = Key(sleeper.key);
-        self.push(
-            key.onto(first),
-            first,
-            cycle - 1,
-            origin,
-            (0.0, key.0, draws),
-        );
-        at
     }
 }
 
@@ -189,10 +125,7 @@ impl Shoot<'_, '_> {
         (cycle, origin): (u32, Origin),
         made: [f64; 2],
     ) {
-        let draws = Draws {
-            birth: made,
-            ..Draws::default()
-        };
+        let draws = Draws::made(made);
         let lifespan = self.species().states[pa].life();
         self.push(key, pa, cycle, origin, (lifespan, root.0, draws));
         self.made.last_mut().unwrap().axis.apex_end = Some(cycle);

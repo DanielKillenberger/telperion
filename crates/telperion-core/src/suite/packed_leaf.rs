@@ -31,7 +31,10 @@ fn no_station_of_any_shipped_species_falls_outside_its_box() {
     let _turn = crate::one_tree::turn();
     for id in shipped() {
         let f = family(id);
-        let x = crate::pipeline::executor::grow(&f).unwrap().expansion().unwrap();
+        let x = crate::pipeline::executor::grow(&f)
+            .unwrap()
+            .expansion()
+            .unwrap();
         let reference = x.reference();
         let m = x.mesh().unwrap();
         let instances = &m.foliage.instances;
@@ -101,4 +104,3 @@ fn the_position_step_is_under_a_quarter_millimetre_for_every_species() {
         );
     }
 }
-

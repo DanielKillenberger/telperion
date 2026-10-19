@@ -18,7 +18,21 @@ pub(in crate::pipeline) struct Unfolding<'a> {
 }
 
 impl Unfolding<'_> {
-    pub(super) const WHOLE: Self = Self { leaves: &[], fraction: 1.0, gone: usize::MAX };
+    pub(super) const WHOLE: Self = Self {
+        leaves: &[],
+        fraction: 1.0,
+        gone: usize::MAX,
+    };
+
+    /// The thinnest wood axis `axis` draws: `FINEST`, and on a subtree gone
+    /// this year the thinnest it drew a year before as it fades, so its
+    /// wood is judged once, on its radius then (fn-286; host, 2026-10-15).
+    pub(super) fn least(&self, axis: usize) -> f64 {
+        match self.within() && axis >= self.gone {
+            true => super::FINEST * telperion_space::unfold::kept(self.fraction),
+            false => super::FINEST,
+        }
+    }
 
     /// Whether the tree is drawn within its year.
     pub(super) fn within(&self) -> bool {
@@ -26,10 +40,19 @@ impl Unfolding<'_> {
     }
 
     /// The year `structure` is drawn in, by its seed's PA (fn-270 R5b).
-    pub(super) fn year(&self, structure: &telperion_space::Structure, rows: &[PaRow]) -> Option<crate::tree::Year> {
+    pub(super) fn year(
+        &self,
+        structure: &telperion_space::Structure,
+        rows: &[PaRow],
+    ) -> Option<crate::tree::Year> {
         let s = rows.get(structure.axes.first()?.pa)?.season;
         let age = f64::from(structure.age) - 1.0 + self.fraction.min(1.0);
-        Some(crate::tree::Year { age, budburst: s.budburst, elongation: s.elongation, expansion: s.expansion })
+        Some(crate::tree::Year {
+            age,
+            budburst: s.budburst,
+            elongation: s.elongation,
+            expansion: s.expansion,
+        })
     }
 
     /// The leaves wood of `cycle` keeps in a tree of `age` years under
@@ -50,10 +73,20 @@ impl Unfolding<'_> {
     /// and grow again at budburst; a gone subtree's all pass and fall,
     /// over the season's fall or as its wood thins, whichever is ahead,
     /// and grow none again.
-    pub(super) fn node(&self, (axis, place): (usize, usize), row: &PaRow, (age, cycle): (u32, u32)) -> Unfolded {
+    pub(super) fn node(
+        &self,
+        (axis, place): (usize, usize),
+        row: &PaRow,
+        (age, cycle): (u32, u32),
+    ) -> Unfolded {
         let s = &row.season;
         let tau = self.fraction * YEAR;
-        let grow = self.leaves.get(axis).and_then(|l| l.get(place)).copied().unwrap_or(1.0);
+        let grow = self
+            .leaves
+            .get(axis)
+            .and_then(|l| l.get(place))
+            .copied()
+            .unwrap_or(1.0);
         let passing = match cycle < age {
             true => s.passing(f64::from(age - 1 - cycle)),
             false => 0.0,
@@ -63,9 +96,17 @@ impl Unfolding<'_> {
         Unfolded {
             grow,
             fall: if gone { fall.max(1.0 - grow) } else { fall },
-            colour: if tau < s.budburst { s.colour(tau) as f32 } else { 0.0 },
+            colour: if tau < s.budburst {
+                s.colour(tau) as f32
+            } else {
+                0.0
+            },
             regrow: if gone { 0.0 } else { s.regrow(tau) as f32 },
-            life: if gone { u16::MAX } else { (passing * f64::from(u16::MAX)).round() as u16 },
+            life: if gone {
+                u16::MAX
+            } else {
+                (passing * f64::from(u16::MAX)).round() as u16
+            },
         }
     }
 }

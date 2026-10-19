@@ -11,6 +11,7 @@ pub mod capability;
 pub mod envelope;
 pub mod material;
 pub mod math;
+pub mod memory;
 #[cfg(feature = "geometry")]
 pub mod mesh;
 pub mod noise;
@@ -35,8 +36,17 @@ pub mod tree;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     InvalidInput(&'static str),
-    InvalidValue { field: &'static str, value: String },
+    InvalidValue {
+        field: &'static str,
+        value: String,
+    },
     ResourceLimit(&'static str),
+    /// A wood the memory left cannot hold, refused before any of it is
+    /// allocated: the bytes it needs and the bytes left (fn-291 R2f).
+    WoodMemory {
+        needed: u64,
+        available: u64,
+    },
 }
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -44,13 +54,18 @@ impl std::fmt::Display for Error {
             Self::InvalidValue { field, value } => write!(f, "invalid input: {field} = {value}"),
             Self::InvalidInput(message) => write!(f, "invalid input: {message}"),
             Self::ResourceLimit(message) => write!(f, "resource limit: {message}"),
+            Self::WoodMemory { needed, available } => write!(
+                f,
+                "the wood needs {needed} bytes and {available} are left in 32-bit Wasm \
+                 memory; build it through the device entry or with fewer radialSegments"
+            ),
         }
     }
 }
 impl std::error::Error for Error {}
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[cfg(all(test, feature = "geometry", feature = "json"))]
-mod suite;
 #[cfg(test)]
 mod one_tree;
+#[cfg(all(test, feature = "geometry", feature = "json"))]
+mod suite;

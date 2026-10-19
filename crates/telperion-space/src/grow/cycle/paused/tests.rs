@@ -1,23 +1,32 @@
 //! fn-270's premises and contract on the CPU cycle (spec R1, R2, R2a,
 //! R2a', R2b, R3), on the engine's own species at small ages; every preset
 //! at its default age is `telperion-core`'s `premises` example.
-use super::*;
 use super::super::grow_cycle;
+use super::*;
 use crate::error::Error;
 use crate::light::Light;
 use crate::structure::Origin;
 
-/// The thinnest wood the pipeline draws (`space.rs`'s `FINEST`).
-const FINEST: f64 = 2e-4;
-
 fn request(age: u32, seed: u64, extinction: f64) -> Request {
-    let light = Light { extinction, sky: 0.5 };
-    Request { age, seed, budget: 20_000_000, light }
+    let light = Light {
+        extinction,
+        sky: 0.5,
+    };
+    Request {
+        age,
+        seed,
+        budget: 20_000_000,
+        light,
+    }
 }
 
 /// The oak (lit, its retired records kept), the spruce and the beech.
 fn species() -> [(Species, f64); 3] {
-    [(crate::oak(), 0.5), (crate::spruce(), 0.0), (crate::beech(), 0.0)]
+    [
+        (crate::oak(), 0.5),
+        (crate::spruce(), 0.0),
+        (crate::beech(), 0.0),
+    ]
 }
 
 /// The years around each waking, shedding and change of age a run to
@@ -29,7 +38,13 @@ fn eventful(species: &Species, r: Request) -> Vec<u32> {
     let woke = g.woken.iter().map(|w| w.cycle).collect::<Vec<_>>();
     let shed = g.axes.iter().filter_map(|a| a.apex_end).collect::<Vec<_>>();
     let w = g.working.as_ref().unwrap();
-    let retired = w.retire.log.iter().filter(|l| l.2 == 2).map(|l| l.1).collect::<Vec<_>>();
+    let retired = w
+        .retire
+        .log
+        .iter()
+        .filter(|l| l.2 == 2)
+        .map(|l| l.1)
+        .collect::<Vec<_>>();
     let changed = (g.axes.iter())
         .filter(|a| matches!(a.origin, Origin::Continuation { .. }))
         .map(|a| a.birth)
@@ -62,8 +77,16 @@ fn a_tree_paused_and_grown_on_is_the_tree_grown_at_once() {
             let before = p.digest();
             let first = tree_digest(&p.settle().unwrap());
             p.grow_to(a).unwrap();
-            assert_eq!(tree_digest(&p.settle().unwrap()), first, "a settle at {a} repeats");
-            assert_eq!(p.digest(), before, "a settle or none grown at {a} moves the grower");
+            assert_eq!(
+                tree_digest(&p.settle().unwrap()),
+                first,
+                "a settle at {a} repeats"
+            );
+            assert_eq!(
+                p.digest(),
+                before,
+                "a settle or none grown at {a} moves the grower"
+            );
             p.grow_to(h).unwrap();
             assert_eq!(tree_digest(&p.settle().unwrap()), today, "split at {a}");
         }
@@ -87,11 +110,19 @@ fn the_tree_at_a_year_is_the_horizons_prefix() {
         for y in [12, h - 1] {
             // Retired at the age grown, the girth of what closed is frozen
             // (fn-270 R4); the tree is the one retiring nothing but for it.
-            let apart = crate::grow::cycle::girth_apart(&at(Retiring::AtAge, y), &at(Retiring::Never, y));
-            assert!(apart.is_some_and(|(_, most)| most <= 1e-4), "year {y}: girth apart {apart:?}");
+            let apart =
+                crate::grow::cycle::girth_apart(&at(Retiring::AtAge, y), &at(Retiring::Never, y));
+            assert!(
+                apart.is_some_and(|(_, most)| most <= 1e-4),
+                "year {y}: girth apart {apart:?}"
+            );
         }
         let today = tree_digest(&grow_cycle(&species, r).unwrap().structure);
-        assert_eq!(today, tree_digest(&at(Retiring::AtAge, h)), "the tree at the horizon");
+        assert_eq!(
+            today,
+            tree_digest(&at(Retiring::AtAge, h)),
+            "the tree at the horizon"
+        );
     }
 }
 
@@ -133,7 +164,13 @@ fn a_request_the_grower_cannot_meet_is_refused() {
     };
     assert_eq!(refused(p.grow_to(13)), "age.horizon");
     assert_eq!(refused(p.grow_to(7)), "age.backward");
-    let ages = [(f64::NAN, "age"), (f64::INFINITY, "age"), (-0.5, "age"), (12.01, "age.horizon"), (7.0, "age.backward")];
+    let ages = [
+        (f64::NAN, "age"),
+        (f64::INFINITY, "age"),
+        (-0.5, "age"),
+        (12.01, "age.horizon"),
+        (7.0, "age.backward"),
+    ];
     for (age, name) in ages {
         assert_eq!(refused(admitted(8, 12, age).map(drop)), name, "{age}");
     }
@@ -141,7 +178,11 @@ fn a_request_the_grower_cannot_meet_is_refused() {
         assert_eq!(refused(p.settle_at(at).map(drop)), "at", "{at}");
     }
     let unborn = Paused::begin(&species, request(12, 3, 0.0), Retiring::AtAge, false).unwrap();
-    assert_eq!(refused(unborn.settle_at(0.0).map(drop)), "at", "nothing grown yet");
+    assert_eq!(
+        refused(unborn.settle_at(0.0).map(drop)),
+        "at",
+        "nothing grown yet"
+    );
     assert_eq!(p.digest(), before);
     assert_eq!(admitted(8, 12, 7.25).unwrap(), 8);
     assert_eq!(admitted(8, 12, 8.0).unwrap(), 8);
@@ -154,7 +195,10 @@ fn a_request_the_grower_cannot_meet_is_refused() {
 #[test]
 fn a_growth_that_failed_is_spent() {
     let species = crate::beech();
-    let r = Request { budget: 2_000, ..request(24, 3, 0.0) };
+    let r = Request {
+        budget: 2_000,
+        ..request(24, 3, 0.0)
+    };
     let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap();
     let mut last = None;
     let failed = (1..=r.age).find_map(|y| match p.grow_to(y) {
@@ -167,11 +211,15 @@ fn a_growth_that_failed_is_spent() {
     assert_eq!(failed, Some(Error::Budget { limit: 2_000 }));
     let drawn = last.expect("a tree drawn before the failure");
     assert!(!drawn.axes.is_empty());
-    let spent = |r: Result<()>| matches!(r, Err(Error::Refused { input, .. }) if input == "state.failed");
+    let spent =
+        |r: Result<()>| matches!(r, Err(Error::Refused { input, .. }) if input == "state.failed");
     assert!(spent(p.grow_to(r.age)));
     assert!(spent(p.settle().map(drop)));
     assert!(spent(p.settle_at(f64::from(p.committed())).map(drop)));
-    assert!(spent(p.settle_at(f64::NAN).map(drop)), "spent before the age is judged");
+    assert!(
+        spent(p.settle_at(f64::NAN).map(drop)),
+        "spent before the age is judged"
+    );
 }
 
 /// R2a and R2a': 40, 40.25, 40.5, 41 commits cycle 41 once, at 40.25, and
@@ -183,7 +231,9 @@ fn a_growth_that_failed_is_spent() {
 fn a_tree_drawn_within_its_year_unfolds_from_the_last() {
     let species = crate::oak();
     let r = request(41, 7, 0.5);
-    let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap().presenting(FINEST);
+    let mut p = Paused::begin(&species, r, Retiring::AtAge, false)
+        .unwrap()
+        .presenting();
     let grow = |p: &mut Paused, a: f64| {
         let to = admitted(p.committed(), p.horizon(), a)?;
         p.grow_to(to)
@@ -208,7 +258,10 @@ fn a_tree_drawn_within_its_year_unfolds_from_the_last() {
         other => panic!("{other:?}"),
     }
     let today = grow_cycle(&species, r).unwrap().structure;
-    assert_eq!(tree_digest(&p.settle_at(41.0).unwrap().structure), tree_digest(&today));
+    assert_eq!(
+        tree_digest(&p.settle_at(41.0).unwrap().structure),
+        tree_digest(&today)
+    );
     let mut plain = Paused::begin(&species, request(3, 7, 0.5), Retiring::AtAge, false).unwrap();
     plain.grow_to(3).unwrap();
     match plain.settle_at(2.5) {

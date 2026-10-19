@@ -113,13 +113,17 @@ const Y_FAIL: u32 = 7u;
 const Y_LAYER: u32 = 8u;
 const Y_FAR: u32 = 56u;
 const Y_LOAD: u32 = 59u;
+// A relay's take-over (fn-286), after the load: how far, then its line,
+// read through the walk's columns as the layout's pencil holds them.
+const P_TAKE: u32 = 55u;
+const P_LINE: u32 = 56u;
 // `pw`'s phytomers' columns: each one's section from what joins it, the
 // load its node bears, and its lever (moment, then chord).
 const Q_AT: u32 = 0u;
 const Q_LOAD: u32 = 1u;
 const Q_LEVER: u32 = 5u;
 // A PA's form row, after the two globals (`layout.wgsl`).
-const FORM: u32 = 19u;
+const FORM: u32 = 20u;
 const F_INTERNODE: u32 = 0u;
 const F_TROPISM: u32 = 1u;
 const F_ELEVATION: u32 = 2u;
@@ -139,6 +143,7 @@ const F_RELAY_AT: u32 = 15u;
 const F_RELAY_NODE: u32 = 16u;
 const F_DOMINANCE: u32 = 17u;
 const F_LEAF_AREA: u32 = 18u;
+const F_TAKEOVER: u32 = 19u;
 // Faults, each a bit of `atom`'s fault word.
 const FAULT_UNREAD: u32 = 1u;
 const FAULT_BEYOND: u32 = 2u;

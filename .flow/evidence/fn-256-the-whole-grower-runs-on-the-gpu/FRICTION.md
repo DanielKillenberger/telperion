@@ -348,7 +348,7 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Would remove it:** nothing; caught by holding the measurement to task 5's known refusal.
 
 ## 2026-10-13, task 13: the roofline harness refuses lit Telperion
-- **Doing:** the light phase before the change, every preset, through `the_roofline_is_measured` with `ROOFLINE_VISITS=0`, as fn-264's MEASURE.md took Telperion's 755 ms.
+- **Doing:** the light phase before the change, every preset, through `the_roofline_is_measured` with `ROOFLINE_VISITS=0`, as fn-264's MEASURE.md (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-264-every-species-shades-and-answers-light/MEASURE.md`) took Telperion's 755 ms.
 - **Hindered:** after fn-264's merge, Telperion 82 seed 42 moves once in the arena the light-neutral hint sizes, and the harness asserts no move ("grown in its arena"). The run stopped at the first case.
 - **Cost:** about 3 minutes and one GPU run of 7 s.
 - **Would remove it:** a hint that reads light, which PROOF.md already names as a design call; until then `the_executor_is_measured` (sizes from a least-sizes build) times the phases.

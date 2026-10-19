@@ -12,8 +12,7 @@
 //! along any ray, and GreenLab's production Sp (1 - exp(-k S / Sp)) on an
 //! even crown under light from overhead (Letort et al., eq. 1).
 use crate::error::{refuse, Result};
-use crate::species::Species;
-use crate::structure::{Structure, Vec3};
+use crate::structure::Vec3;
 use crate::transcendental::Transcendental;
 
 /// The lattice's spacing in metres.
@@ -97,39 +96,6 @@ impl Light {
         }
         out
     }
-}
-
-/// The light at each living apex's tip of `structure`, by its axis's
-/// index, from the leaves its last cycle grew, each node's PA's leaf area
-/// sized by its phytomer's scale: what a bud there would read before the
-/// next cycle. The measure of a rough layout against the final one.
-/// The field of `leaves`, read at `reads` (fn-211.4's light tool).
-pub fn field_reads(light: &Light, leaves: &[(Vec3, f64)], reads: &[Vec3]) -> Vec<f64> {
-    let field = Field::new(light, leaves, reads);
-    reads.iter().map(|&r| field.at(r)).collect()
-}
-
-pub fn bud_light(structure: &Structure, species: &Species, light: &Light) -> Vec<(usize, f64)> {
-    let leaves: Vec<(Vec3, f64)> = structure
-        .axes
-        .iter()
-        .flat_map(|a| {
-            let area = species.states[a.pa].leaf_area;
-            a.phytomers.iter().map(move |p| (p, area))
-        })
-        .filter(|(p, _)| p.cycle == structure.age)
-        .map(|(p, area)| (p.tip, leaf_area(p.scale, 1.0, area)))
-        .collect();
-    let tips: Vec<(usize, Vec3)> = structure
-        .axes
-        .iter()
-        .enumerate()
-        .filter(|(_, a)| a.apex_end.is_none())
-        .map(|(i, a)| (i, a.phytomers.last().map_or(a.base, |p| p.tip)))
-        .collect();
-    let reads: Vec<Vec3> = tips.iter().map(|t| t.1).collect();
-    let field = Field::new(light, &leaves, &reads);
-    tips.iter().map(|&(i, at)| (i, field.at(at))).collect()
 }
 
 /// A leaf's area, `scale size leaf_area`, in f32 (CONTRACT-A.md 2.6).

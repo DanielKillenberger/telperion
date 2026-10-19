@@ -101,7 +101,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-218-tree-space-laurelin.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space: Laurelin",
   "tracker": {
     "baseHashFlow": null,
@@ -114,5 +114,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T01:45:56.839738Z"
+  "updated_at": "2026-10-15T20:15:49.413193Z"
 }

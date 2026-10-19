@@ -1,20 +1,24 @@
 //! Where a growth unit's wood and buds stand along its axis, in
-//! expectation (fn-209, the stand-in's envelope). A zone's nodes follow the
-//! zones before it in the order `ALONG` gives, each an internode long; its
-//! nodes stand in order of their first place's draw (`grow/unit.rs`), the
-//! largest draw at the base, so the PA that draw gives a place-0 bud
-//! decides how far up the zone it stands. Every other place and every
-//! sleeping bud stands at a node of no preferred rank.
+//! expectation (fn-209), as the kept tables read it (`kept/path.rs`). A
+//! zone's nodes follow the zones before it in the order `ALONG` gives,
+//! each an internode long; its nodes stand in order of their first place's
+//! draw (`grow/unit.rs`), the largest draw at the base, so the PA that
+//! draw gives a place-0 bud decides how far up the zone it stands. Every
+//! other place and every sleeping bud stands at a node of no preferred
+//! rank.
 use crate::species::{NodeLaw, MAX_NODES_PER_ZONE};
 use crate::transcendental::Transcendental;
 
-/// A length along an axis: its mean and its mean square.
+/// A length along an axis: its mean and its mean square. Read only by
+/// the kept recursion, the predictor's test reference.
+#[cfg(test)]
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub(crate) struct Along {
     pub mean: f64,
     pub square: f64,
 }
 
+#[cfg(test)]
 impl Along {
     /// This length and an independent one, end to end.
     pub fn then(self, more: Along) -> Along {
@@ -63,6 +67,7 @@ impl Count {
     }
 
     /// The zone's length in internodes.
+    #[cfg(test)]
     pub fn length(&self, internode: f64) -> Along {
         Along {
             mean: self.0[1] * internode,
@@ -73,6 +78,7 @@ impl Count {
     /// The zone's own wood from `start`, its internodes `internode` long,
     /// weighted by length: [E Σ l, E Σ l·x, E Σ l·x²] over its
     /// internodes' middles x.
+    #[cfg(test)]
     pub fn wood(&self, start: Along, internode: f64) -> [f64; 3] {
         let [_, n1, n2, n3] = self.0;
         let l = internode;
@@ -89,6 +95,7 @@ impl Count {
     /// The buds of a place-0 draw in [low, high) on every node of the
     /// zone from `start`: their expected number per node count's node, and
     /// where each stands (at its node's tip).
+    #[cfg(test)]
     pub fn ranked(&self, start: Along, internode: f64, (low, high): (f64, f64)) -> (f64, Along) {
         let [_, n1, n2, n3] = self.0;
         let (a, b) = (low, high);
@@ -109,6 +116,7 @@ impl Count {
     /// The buds of a place whose draw is apart from the node's rank, one a
     /// node: their expected number and where each stands, at its node's
     /// tip, or half an internode below it (`below`, a sleeping bud).
+    #[cfg(test)]
     pub fn spread(&self, start: Along, internode: f64, below: bool) -> (f64, Along) {
         let [_, n1, n2, n3] = self.0;
         let (rank, rank2) = if below {
@@ -122,6 +130,7 @@ impl Count {
 
 /// Where buds stand from their summed ranks: `count` of them, Σ rank and
 /// Σ rank², after `start`.
+#[cfg(test)]
 fn placed(count: f64, rank: f64, rank2: f64, start: Along, l: f64) -> Along {
     if count <= 0.0 {
         return start;
@@ -133,24 +142,9 @@ fn placed(count: f64, rank: f64, rank2: f64, start: Along, l: f64) -> Along {
     }
 }
 
-/// E[d^p], p = 1 to 3, of a lateral's dominance share d = 1 - D (1 - u⁴),
-/// u uniform (`geometry::dominance`).
-pub(crate) fn dominance(d: f64) -> [f64; 3] {
-    if d <= 0.0 {
-        return [1.0; 3];
-    }
-    let c = 1.0 - d;
-    // E[u^4i] = 1 / (4i + 1).
-    let e = |i: i32| 1.0 / f64::from(4 * i + 1);
-    [
-        c + d * e(1),
-        c * c + 2.0 * c * d * e(1) + d * d * e(2),
-        c.powi(3) + 3.0 * c * c * d * e(1) + 3.0 * c * d * d * e(2) + d.powi(3) * e(3),
-    ]
-}
-
 /// E[d^p] of a lateral's dominance share d = 1 - D (1 - u⁴), u uniform, for
 /// any power p: by Simpson's rule over u, the share's moments being smooth.
+#[cfg(test)]
 pub(crate) fn dominance_power(d: f64, p: f64) -> f64 {
     if d <= 0.0 {
         return 1.0;

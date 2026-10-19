@@ -1,34 +1,147 @@
+//! The comparison route, the resident build's oracle in tests: `family`
+//! grown on the CPU through the one cycle (`executor::grow`), its leaves
+//! placed on the device from the CPU's stations, and the readback the
+//! tests compare by.
 use super::*;
+use telperion_core::{
+    foliage::{self, Instances},
+    mesh,
+    pipeline::executor::{self, Expansion},
+    surface,
+};
 
 impl Generator {
-    pub async fn prepare_async(&self, family: &Family, delivery: Delivery) -> Result<Prepared> {
-        if delivery == Delivery::Resident && !self.resident_allowed {
-            return Err(telperion_core::Error::InvalidInput(
-                "standalone generation requires CPU delivery",
-            )
-            .into());
-        }
-        // The executor is the delivery's (fn-256 R1): a resident tree
-        // grows and is drawn on the device whole, a CPU one through the
-        // CPU's cycle, the reference.
-        if delivery == Delivery::Resident {
-            return self.prepare_resident(family).await;
-        }
-        self.prepare_whole(family, delivery).await
+    /// A tree with no leaves: the buffers a placement of none holds.
+    pub(super) fn empty(&self) -> Result<Resident> {
+        let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+        Ok(Resident {
+            leaves: Held::resident(
+                io::buffer(&self.gpu, "empty generated foliage", 16, usage, &[])?,
+                0,
+                "empty generated foliage",
+            ),
+            masses: Held::resident(
+                io::buffer(&self.gpu, "empty generated mass", 32, usage, &[0; 32])?,
+                32,
+                "empty generated mass",
+            ),
+            count: 0,
+            crown: None,
+            full: None,
+        })
     }
 
-    /// `family` grown on the CPU through the one cycle (`executor::grow`)
-    /// and prepared from it: every family a CPU delivery asks for.
-    pub(super) async fn prepare_whole(
+    /// The placed leaves `prepared` holds, read back from the device.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(super) fn read_instances(&self, prepared: &Prepared) -> Result<Instances> {
+        pollster::block_on(self.read_instances_async(prepared))
+    }
+
+    async fn read_instances_async(&self, prepared: &Prepared) -> Result<Instances> {
+        if !Arc::ptr_eq(&self.identity, &prepared.identity) {
+            return Err(telperion_core::Error::InvalidInput("generation renderer mismatch").into());
+        }
+        if let Some(r) = &prepared.resident {
+            let mut out = Instances::new(prepared.mesh.foliage.instances.reference);
+            out.leaves = io::read_leaves_async(&self.gpu, r.leaves.buffer(), r.count).await?;
+            Ok(out)
+        } else {
+            Ok(prepared.mesh.foliage.instances.clone())
+        }
+    }
+
+    /// The reference mesh whole, where no stations were prepared.
+    fn on_cpu(&self, x: Expansion, mut metrics: Metrics, total: Clock) -> Result<Prepared> {
+        let mesh = x.mesh()?;
+        metrics.wood_cpu_bytes = wood::cpu_bytes(&mesh.wood);
+        metrics.instances = mesh.foliage_instances() as u32;
+        metrics.total_ms = total.elapsed_ms();
+        Ok(Prepared {
+            identity: self.identity.clone(),
+            mesh,
+            resident: None,
+            organ: None,
+            wood: None,
+            metrics,
+            colouring: 1.0,
+        })
+    }
+
+    /// The prepared tree: `x`'s element and flowers beside its wood and
+    /// placed leaves, bounded by all of them.
+    fn assemble(
         &self,
-        family: &Family,
-        delivery: Delivery,
+        x: Expansion,
+        (curve, wood, full): (surface::Curve, surface::SurfaceMesh, Option<Bounds>),
+        instances: Instances,
+        resident: Option<Resident>,
+        mut metrics: Metrics,
+        total: Clock,
     ) -> Result<Prepared> {
+        metrics.wood_cpu_bytes = wood::cpu_bytes(&wood);
+        // The flowers are the CPU step's on both executors (fn-216).
+        let organ = x.organ()?;
+        let flowers = match &organ {
+            Some(o) => o.instances.bounds(&o.element)?.map(Bounds::from),
+            None => None,
+        };
+        let bounds = union(union(curve.bounds(), full), flowers)
+            .ok_or(telperion_core::Error::InvalidInput("mesh has no geometry"))?;
+        let mesh = TreeMesh {
+            wood,
+            curve,
+            foliage: mesh::Foliage {
+                element: x.into_element(),
+                instances,
+            },
+            organ,
+            bounds,
+        };
+        crate::submit::fits_count(&self.gpu.device.limits(), &mesh, metrics.instances as usize)?;
+        metrics.total_ms = total.elapsed_ms();
+        Ok(Prepared {
+            identity: self.identity.clone(),
+            mesh,
+            resident,
+            organ: None,
+            wood: None,
+            metrics,
+            colouring: 1.0,
+        })
+    }
+}
+
+/// `family` grown through the one cycle.
+fn grow(family: &Family, metrics: &mut Metrics) -> Result<executor::Grown> {
+    let started = Clock::now();
+    let grown = executor::grow(family)?;
+    metrics.skeleton_ms = started.elapsed_ms();
+    Ok(grown)
+}
+
+fn base_cpu_bytes(x: &Expansion) -> u64 {
+    let element = x.element();
+    (x.tree().nodes.capacity() * size_of::<telperion_core::tree::Node>()
+        + element.positions.capacity() * size_of::<telperion_core::math::Vec3>()
+        + (element.indices.capacity()
+            + element.level_indices.capacity()
+            + element.coords.capacity())
+            * 4
+        + element.levels.capacity() * size_of::<foliage::Level>()) as u64
+}
+
+fn retained_bytes(r: &Resident) -> u64 {
+    r.leaves.region().capacity() + r.masses.region().capacity()
+}
+
+/// The comparison route: `family` grown on the CPU, its ring positions
+/// made by the position programme's every entry (or uploaded from the
+/// CPU's), the leaves seated on them and left on the device.
+impl Generator {
+    pub(super) async fn prepare_whole_resident(&self, family: &Family) -> Result<Prepared> {
         let total = Clock::now();
         let mut metrics = Metrics::default();
-        let started = Clock::now();
-        let grown = executor::grow(family)?;
-        metrics.skeleton_ms = started.elapsed_ms();
+        let grown = grow(family, &mut metrics)?;
         let started = Clock::now();
         let x = grown.expansion()?;
         let mut uploaded_wood = None;
@@ -38,8 +151,7 @@ impl Generator {
         let mut swept = None;
         // Ring positions have one reader, the seated leaves' contacts
         // (`pack.wgsl`): a family that seats nothing builds none (fn-212 R2).
-        if delivery == Delivery::Resident && x.seats() && x.supports_stations() && x.round_section()
-        {
+        if x.seats() && x.supports_stations() && x.round_section() {
             let begin = Clock::now();
             let mut candidate_stations = None;
             let mut station_ms = 0.0;
@@ -57,7 +169,7 @@ impl Generator {
                         (s.capacity() * size_of::<foliage::prepared::StationSegment>()) as u64
                     });
                 }
-                metrics.shared_prepare_cpu_bytes = positions::cpu_bytes(shared.surface())
+                metrics.shared_prepare_cpu_bytes = wood::compact_cpu_bytes(shared.surface())
                     + metrics.shared_contact_cpu_bytes
                     + station_bytes;
                 Ok(shared.into_surface())
@@ -74,7 +186,7 @@ impl Generator {
             if let Some(p) = compact {
                 metrics.shared_prepare_cpu_bytes = metrics
                     .shared_prepare_cpu_bytes
-                    .max(positions::cpu_bytes(&p) + station_bytes);
+                    .max(wood::compact_cpu_bytes(&p) + station_bytes);
                 if candidate_stations.is_some() || !p.qualified() {
                     let scopes = io::scope(&self.gpu);
                     let result = self.emit_positions(p, &mut metrics).await;
@@ -93,14 +205,10 @@ impl Generator {
                 }
             }
             early_wood_ms = begin.elapsed_ms() - station_ms;
-        } else if delivery == Delivery::Resident && x.seats() {
+        } else if x.seats() {
             metrics.position_fallback = Some("profile or station capability");
         }
-        if uploaded_wood.is_none()
-            && delivery == Delivery::Resident
-            && x.seats()
-            && x.supports_stations()
-        {
+        if uploaded_wood.is_none() && x.seats() && x.supports_stations() {
             let prepare_start = Clock::now();
             let shared = x.prepared_with_contacts()?;
             metrics.wood_prepare_ms = prepare_start.elapsed_ms();
@@ -147,33 +255,11 @@ impl Generator {
             drop(uploaded_wood);
             metrics.gpu_positions = false;
             metrics.position_retained_metadata_bytes = 0;
-            let mesh = x.mesh()?;
-            metrics.wood_backend = Some(Backend::CpuFallback);
-            metrics.wood_fallback = Some("CPU foliage preparation fallback");
-            metrics.wood_cpu_bytes = wood::cpu_bytes(&mesh.wood);
-            metrics.instances = mesh.foliage_instances() as u32;
-            metrics.total_ms = total.elapsed_ms();
-            return Ok(Prepared {
-                identity: self.identity.clone(),
-                mesh,
-                resident: None,
-                organ: None,
-                wood: None,
-                backend: Backend::CpuFallback,
-                metrics,
-                colouring: 1.0,
-            });
+            return self.on_cpu(x, metrics, total);
         };
-        let element = x.element();
-        metrics.base_cpu_bytes =
-            (x.tree().nodes.capacity() * size_of::<telperion_core::tree::Node>()
-                + element.positions.capacity() * size_of::<telperion_core::math::Vec3>()
-                + (element.indices.capacity()
-                    + element.level_indices.capacity()
-                    + element.coords.capacity())
-                    * 4
-                + element.levels.capacity() * size_of::<foliage::Level>()) as u64;
+        metrics.base_cpu_bytes = base_cpu_bytes(&x);
         metrics.descriptors_ms = started.elapsed_ms() - early_wood_ms;
+        let element = x.element();
         let scopes = io::scope(&self.gpu);
         let shared_positions = shared_stations
             .as_ref()
@@ -182,16 +268,16 @@ impl Generator {
             if count == 0 {
                 self.empty()
             } else {
+                let rings = &*uploaded_wood.as_ref().unwrap().positions;
                 let p = foliage::prepared::PreparedStations {
                     segments,
                     count,
                     ring_size,
-                    rings: crate::buffer::Lent::Borrowed(
-                        &uploaded_wood.as_ref().unwrap().positions,
-                    ),
+                    rings,
                 };
                 let (leaves, twig) = (x.leaves(), x.twig());
-                self.compute_buffer_async(p, &leaves, twig, element, x.reference(), &mut metrics)
+                let (lent, reference) = (rings.size(), x.reference());
+                self.compute_buffer_async(p, lent, &leaves, twig, element, reference, &mut metrics)
                     .await
             }
         } else {
@@ -212,7 +298,7 @@ impl Generator {
             }
         };
         let errors = io::errors(&self.gpu, scopes).await;
-        let mut resident = Some(computed?);
+        let resident = computed?;
         errors?;
         if let Some(wood) = &uploaded_wood {
             metrics.gpu_compute_peak_bytes += wood.gpu_metadata_bytes()
@@ -222,70 +308,39 @@ impl Generator {
                     wood.positions.size()
                 };
         }
-        let full = resident.as_ref().unwrap().full;
-        metrics.retained_gpu_bytes = resident.as_ref().map_or(0, |r| {
-            r.leaves.region().capacity() + r.masses.region().capacity()
-        });
-        let mut instances = Instances::new(x.reference());
-        if delivery == Delivery::Cpu {
-            let start = Clock::now();
-            let output = resident.take().unwrap();
-            instances.leaves =
-                io::read_leaves_async(&self.gpu, output.leaves.buffer(), output.count).await?;
-            drop(output);
-            instances.validate()?;
-            metrics.readback_ms = start.elapsed_ms();
-        }
+        let full = resident.full;
+        metrics.retained_gpu_bytes = retained_bytes(&resident);
+        let instances = Instances::new(x.reference());
         // The ring positions served the stations; the wood itself is drawn
-        // from its curve (fn-208, host decision 20), and a CPU delivery keeps
-        // the reference mesh's wood beside it for consumers without a GPU.
+        // from its curve (fn-208, host decision 20).
         drop(uploaded_wood);
         let started = Clock::now();
         let curve = match swept {
             Some(curve) => curve,
             None => x.curve()?,
         };
-        let wood = if delivery == Delivery::Cpu {
-            x.wood()?
-        } else {
-            surface::SurfaceMesh::default()
-        };
-        metrics.wood_backend = Some(if delivery == Delivery::Cpu {
-            Backend::Cpu
-        } else {
-            Backend::Gpu
-        });
         metrics.wood_ms = started.elapsed_ms() + early_wood_ms;
-        metrics.wood_cpu_bytes = wood::cpu_bytes(&wood);
-        // The flowers are the CPU step's on both executors (fn-216).
-        let organ = x.organ()?;
-        let flowers = match &organ {
-            Some(o) => o.instances.bounds(&o.element)?.map(Bounds::from),
-            None => None,
-        };
-        let bounds = union(union(curve.bounds(), full), flowers)
-            .ok_or(telperion_core::Error::InvalidInput("mesh has no geometry"))?;
-        let mesh = TreeMesh {
-            wood,
-            curve,
-            foliage: mesh::Foliage {
-                element: x.into_element(),
-                instances,
-            },
-            organ,
-            bounds,
-        };
-        crate::submit::fits_count(&self.gpu.device.limits(), &mesh, metrics.instances as usize)?;
-        metrics.total_ms = total.elapsed_ms();
-        Ok(Prepared {
-            identity: self.identity.clone(),
-            mesh,
-            resident,
-            organ: None,
-            wood: None,
-            backend: Backend::Gpu,
-            metrics,
-            colouring: 1.0,
-        })
+        let wood = surface::SurfaceMesh::default();
+        let parts = (curve, wood, full);
+        self.assemble(x, parts, instances, Some(resident), metrics, total)
+    }
+}
+
+/// The box over both bounds, or the one there is.
+fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
+    match (a, b) {
+        (Some(a), Some(b)) => Some(Bounds {
+            min: telperion_core::math::Vec3::new(
+                a.min.x.min(b.min.x),
+                a.min.y.min(b.min.y),
+                a.min.z.min(b.min.z),
+            ),
+            max: telperion_core::math::Vec3::new(
+                a.max.x.max(b.max.x),
+                a.max.y.max(b.max.y),
+                a.max.z.max(b.max.z),
+            ),
+        }),
+        (a, b) => a.or(b),
     }
 }

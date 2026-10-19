@@ -14,9 +14,11 @@
 // drawing on the tip's cluster stream, and its wood bears no station.
 // Each fine node's florets are counted beside its runs and scanned with
 // them, and each bloom that keeps one is written as a record placement
-// reads (fn-229, `blooms`). Where the canopy stands a rosette, no wood
-// bears and no tip clusters: each stem apex is a run of its own, a
-// segment a frond, its stations the frond's leaflets (`rosette.rs`;
+// reads (fn-229, `blooms`). Each run of wood and each tip bears by its
+// draw at the cauline share, and each station and cluster leaf carries
+// its own leaflets (fn-277). Where the canopy stands a rosette, each stem
+// apex that draws a living frond is a run of its own, after every other,
+// a segment a frond, its stations the frond's leaflets (`rosette.rs`;
 // fn-256, DESIGN.md 12.7.1).
 
 struct Cfg {
@@ -26,13 +28,15 @@ struct Cfg {
     segments: u32,
     // A fine node's kind and bearing: `STRUCTURAL` of the root's radius
     // and the slender bound in whole micrometres; the twig layer's internode, in whole micrometres as the CPU rounds it; the divergence in
-    // radians; whether leaves are seated.
+    // radians; where the nodes' contacts start in the table, where leaves
+    // are seated (`sweep.wgsl`), else none (0).
     structural: f32,
     slender: u32,
     unit: u32,
     divergence: f32,
-    contact: u32,
-    // Whether the canopy bears leaves: a tree may flower where it does not.
+    contacts: u32,
+    // Whether the canopy bears leaves (bit 0): a tree may flower where it
+    // does not; and whether its wood does (`WOOD`, its cauline share).
     leaves: u32,
     // Whether some wood sheds its leaves by age (fn-248): every station
     // keeps its leaf where none does.
@@ -48,12 +52,21 @@ struct Cfg {
     // spines, their share and pitch; the crown's year (`Crown::rows`):
     // fronds made, a frond's years, whole years before the last (negative where
     // no engine grew it), days into the last; budburst, elongation,
-    // expansion, and the fronds it draws (`Crown::slots`).
-    rosette: array<vec4<f32>, 6>,
+    // expansion, and the fronds it draws (`Crown::slots`); the years the
+    // crown takes to make a mature frond, its first frond's share, and the
+    // rachis's length over a mature leaflet's (none where it groups none).
+    rosette: array<vec4<f32>, 7>,
+    // The counts of organs (`stations.rs`'s `organ_rows`, fn-277): the
+    // cauline share, the fronds, the dead fronds, the leaflets and the
+    // spines as counts' words; the rachis's length; the newest frond's
+    // serial at the lesser and the greater whole living count; the fronds
+    // drawn at each pair of whole living and dead counts.
+    organs: array<vec4<u32>, 3>,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
-@group(0) @binding(1) var<storage, read> nodes: array<f32>;
+// The drawn records by id (`fold.rs`'s `Dressed`).
+@group(0) @binding(1) var<storage, read> drawn: array<f32>;
 @group(0) @binding(2) var<storage, read> table: array<u32>;
 @group(0) @binding(3) var<storage, read_write> st: array<atomic<u32>>;
 @group(0) @binding(4) var<storage, read_write> runs: array<u32>;
@@ -64,9 +77,11 @@ struct Cfg {
 // record; fn-229).
 @group(0) @binding(7) var<storage, read_write> owners: array<atomic<u32>>;
 const OW: u32 = 2u;
+// `cfg.leaves`: the leaf-bearing wood and short shoots bear (fn-277).
+const WOOD: u32 = 2u;
 
 const NONE: u32 = 0xffffffffu;
-const NW: u32 = 39u;
+const CV: u32 = 38u;
 const TW: u32 = 4u;
 const MADE: u32 = 2u;
 const FINE: u32 = 8u;
@@ -97,16 +112,27 @@ fn index(id: vec3<u32>) -> u32 {
     return id.x + id.y * cfg.row;
 }
 
+// Word `f` of node `i`'s drawn record (`dress.wgsl`'s `CV`).
+fn rec(i: u32, f: u32) -> f32 {
+    return drawn[i * CV + f];
+}
+
 fn word(i: u32, f: u32) -> u32 {
-    return bitcast<u32>(nodes[i * NW + f]);
+    return bitcast<u32>(rec(i, f));
+}
+
+// Its flags where the dress made it a node; none where it did not.
+fn flags(i: u32) -> u32 {
+    let f = word(i, 6u);
+    return select(0u, f, (f & MADE) != 0u);
 }
 
 fn pos(i: u32) -> vec3<f32> {
-    return vec3<f32>(nodes[i * NW], nodes[i * NW + 1u], nodes[i * NW + 2u]);
+    return vec3<f32>(rec(i, 0u), rec(i, 1u), rec(i, 2u));
 }
 
 fn parent(i: u32) -> u32 {
-    return word(i, 8u);
+    return word(i, 16u);
 }
 
 // A length in whole micrometres (`plan::micrometres`): grown wood is
@@ -117,7 +143,7 @@ fn micrometres(metres: f32) -> u32 {
 
 // The wood grown into node `i` (`plan::walk`).
 fn grown(i: u32) -> u32 {
-    return micrometres(nodes[i * NW + 26u]);
+    return micrometres(rec(i, 25u));
 }
 
 // The twig layer's internode.
@@ -132,7 +158,7 @@ fn metres(micrometres: u32) -> f32 {
 // A node the device draws stations on: one the dress drew, not the root
 // and no retained leaf base.
 fn fine(i: u32) -> bool {
-    let f = word(i, 9u);
+    let f = flags(i);
     return (f & MADE) != 0u && (f & FINE) != 0u && (f & BOOT) == 0u;
 }
 
@@ -143,8 +169,52 @@ fn bearing() -> bool {
     return cfg.rosette[0].x > 0.0;
 }
 
-fn fronds() -> u32 {
-    return u32(cfg.rosette[5].w);
+// Word `i` of the counts of organs.
+fn organ_word(i: u32) -> u32 {
+    return cfg.organs[i / 4u][i % 4u];
+}
+
+// Whether the bearer keyed `key` keeps its leaves at the cauline share
+// (`plan::cauline`).
+fn cauline(key: u32) -> bool {
+    return organs(organ_word(0u), key, ORGAN_CAULINE) == 1u;
+}
+
+// The leaves placement `k` of the bearer keyed `key` carries: its
+// leaflets, one where it draws one or there is no rachis to string them
+// on (`organs::leaflets`).
+fn leaves_at(key: u32, k: u32) -> u32 {
+    if !grouped() {
+        return 1u;
+    }
+    let n = organs(organ_word(3u), placement_key(key, k), ORGAN_LEAFLETS);
+    return select(1u, n, n > 1u);
+}
+
+// Whether any placement may carry more than one leaflet.
+fn grouped() -> bool {
+    return organ_word(3u) > 0x10000u && bitcast<f32>(organ_word(5u)) > 0.0;
+}
+
+// The crown an apex draws (`organs::apex`, `Crown`): its stem's key, its
+// whole living and dead fronds, its newest frond's serial and the fronds
+// it draws.
+struct Drawn {
+    key: u32,
+    living: u32,
+    dead: u32,
+    newest: i32,
+    slots: u32,
+}
+
+fn crown_of(apex: u32) -> Drawn {
+    let key = word(stem_first(apex), 24u);
+    let living = organs(organ_word(1u), key, ORGAN_FRONDS);
+    let dead = organs(organ_word(2u), key, ORGAN_SKIRT);
+    let more = select(0u, 1u, living > (organ_word(1u) >> 16u));
+    let skirt = select(0u, 1u, dead > (organ_word(2u) >> 16u));
+    let newest = bitcast<i32>(organ_word(6u + more));
+    return Drawn(key, living, dead, newest, organ_word(8u + 2u * more + skirt));
 }
 
 // The logistic course over a span (`unfold::course`, `unfold::run`).
@@ -170,10 +240,9 @@ fn run(t: f32, days: f32) -> f32 {
 // The share of its whole size frond `serial` stands at: whole once made
 // in a year before this one, one of this year's expanding from its
 // emergence (`Crown::unfolded`).
-fn unfolded_frond(serial: i32) -> f32 {
+fn unfolded_frond(serial: i32, fronds: f32) -> f32 {
     let y = cfg.rosette[4];
     let s = cfg.rosette[5];
-    let fronds = cfg.rosette[0].x;
     if y.z < 0.0 || y.y <= 0.0 || fronds <= 0.0 {
         return 1.0;
     }
@@ -188,6 +257,74 @@ fn unfolded_frond(serial: i32) -> f32 {
     return run(y.w - emerges, s.z);
 }
 
+// The crown's age when frond `serial` emerged, evenly over its year's
+// elongation from budburst; negative with no establishment and on a crown
+// no engine grew (`Crown::born`).
+fn born_frond(serial: i32, fronds: f32) -> f32 {
+    let e = cfg.rosette[6];
+    let y = cfg.rosette[4];
+    let s = cfg.rosette[5];
+    if e.x <= 0.0 || y.z < 0.0 || y.y <= 0.0 || fronds <= 0.0 {
+        return -1.0;
+    }
+    let made = (f32(serial) + 1.0) * y.y / fronds;
+    let year = ceil(made) - 1.0;
+    return year + (s.x + s.y * (made - year)) / 365.0;
+}
+
+// The share of a mature frond's size frond `serial` was made at: the
+// crown's age when it emerged along the course from the early share to
+// whole over the establishment years (`Crown::established`, fn-275 R2).
+fn established_frond(serial: i32, fronds: f32) -> f32 {
+    let born = born_frond(serial, fronds);
+    if born < 0.0 {
+        return 1.0;
+    }
+    let e = cfg.rosette[6];
+    return 1.0 - (1.0 - e.y) * (1.0 - course(born / e.x));
+}
+
+// How far frond `serial` was made along the course from one leaflet to
+// the mature count, on a log scale (`Crown::pinnate`, fn-275 R2b): whole
+// with no establishment.
+fn pinnate_frond(serial: i32, fronds: f32) -> f32 {
+    let born = born_frond(serial, fronds);
+    return select(1.0, course(born / cfg.rosette[6].x), born >= 0.0);
+}
+
+// The leaves frond `serial` of the crown keyed `key` carries: the
+// leaflets it was made with, by the same course on a log scale from one
+// to the mature count, drawn as a count between two whole numbers
+// (`Crown::leaflets`, `organs::frond_leaflets`, fn-275 R2b).
+fn frond_leaves(key: u32, serial: i32, fronds: f32) -> u32 {
+    let f = pinnate_frond(serial, fronds);
+    if f >= 1.0 || !grouped() {
+        return leaves_at(key, u32(serial));
+    }
+    let count = pow(max(cfg.rosette[2].x, 1.0), f);
+    let n = organs(count_word(count), placement_key(key, u32(serial)), ORGAN_LEAFLETS);
+    return select(1u, n, n > 1u);
+}
+
+// A young frond as strips of one blade that splits (`Crown::segments`,
+// fn-275 R2b): at `f` its leaflet pitch and its spines' count word; where
+// each strip stands and how long it is `pack.wgsl`'s `leaflet` reads from
+// `f` and the rosette's strap row. The mature rows where it is made
+// mature or groups no leaflets.
+struct Blade {
+    pitch: f32,
+    spines: u32,
+}
+
+fn segments(f: f32) -> Blade {
+    let r = cfg.rosette;
+    if f >= 1.0 || r[6].z <= 0.0 {
+        return Blade(r[2].w, organ_word(4u));
+    }
+    let n = pow(r[2].x, f);
+    return Blade(r[2].w * f, count_word(r[3].y * n / r[2].x));
+}
+
 // `a` a share `t` of the way to `b` (`rosette::fronds`' mix).
 fn toward(a: f32, b: f32, t: f32) -> f32 {
     return a + (b - a) * t;
@@ -198,12 +335,12 @@ fn toward(a: f32, b: f32, t: f32) -> f32 {
 fn stem_first(apex: u32) -> u32 {
     var first = apex;
     // cap: the nodes; no stem is longer.
-    let cap = arrayLength(&nodes) / NW;
+    let cap = arrayLength(&drawn) / CV;
     for (var n = 0u; n < cap; n++) {
         let p = parent(first);
         // The root bears every stem: never stepped onto.
         let root = parent(p) == NONE || parent(p) == p;
-        if p == NONE || p == first || root || (word(p, 9u) & STEM) == 0u {
+        if p == NONE || p == first || root || (flags(p) & STEM) == 0u {
             break;
         }
         first = p;
@@ -214,8 +351,8 @@ fn stem_first(apex: u32) -> u32 {
 // A stem's apex, which a rosette crowns (`Tree::stem_apices`): a drawn
 // stem node no stem continues.
 fn apex(i: u32) -> bool {
-    let stem = (word(i, 9u) & STEM) != 0u;
-    return bearing() && fine(i) && stem && (atomicLoad(&st[i * SW]) & STEM_KID) == 0u;
+    let stem = (flags(i) & STEM) != 0u;
+    return bearing() && fine(i) && stem && (atomicLoad(&st[i * SW]) & STEM_KID) == 0u && crown_of(i).living > 0u;
 }
 
 fn bears(i: u32) -> bool {
@@ -225,7 +362,8 @@ fn bears(i: u32) -> bool {
 // A short shoot's tip the device seats a cluster at.
 // None where the canopy bears no leaves, though the tree may flower.
 fn tip(i: u32) -> bool {
-    return cfg.leaves != 0u && !bearing() && fine(i) && (word(i, 9u) & TIP) != 0u;
+    let cluster = mix32(word(i, 24u) ^ KEY_CLUSTER.x);
+    return (cfg.leaves & WOOD) != 0u && fine(i) && (flags(i) & TIP) != 0u && cauline(cluster);
 }
 
 // The 32-bit finaliser (`tree::mix32`).
@@ -243,7 +381,7 @@ fn kids(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     atomicAdd(&st[parent(i) * SW], 1u);
-    if (word(i, 9u) & STEM) != 0u {
+    if (flags(i) & STEM) != 0u {
         atomicOr(&st[parent(i) * SW], STEM_KID);
     }
 }
@@ -251,15 +389,15 @@ fn kids(@builtin(global_invocation_id) id: vec3<u32>) {
 @compute @workgroup_size(64)
 fn bear(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = index(id);
-    // A stem that bears a frond crown bears nothing along its length
-    // (`plan::bearing_runs`).
-    if i >= cfg.n || !fine(i) || cfg.leaves == 0u || bearing() {
+    // Wood none of which is cauline bears nothing along its length
+    // (`plan::bearing_runs`, fn-277).
+    if i >= cfg.n || !fine(i) || (cfg.leaves & WOOD) == 0u {
         return;
     }
-    let radius = nodes[i * NW + 3u];
-    let start = nodes[i * NW + 4u];
+    let radius = rec(i, 3u);
+    let start = rec(i, 4u);
     // A short shoot bears its leaves at its tip alone.
-    if (word(i, 9u) & CLUSTERED) != 0u {
+    if (flags(i) & CLUSTERED) != 0u {
         return;
     }
     let twig = radius < cfg.structural && (atomicLoad(&st[i * SW]) & ~STEM_KID) == 0u;
@@ -275,7 +413,7 @@ fn bear(@builtin(global_invocation_id) id: vec3<u32>) {
 
 // Whether a bearing run carries on from `p` into its bearing child `c`.
 fn continues(p: u32, c: u32) -> bool {
-    return bears(p) && word(p, 24u) == word(c, 24u) && atomicLoad(&st[p * SW + 1u]) == 1u;
+    return bears(p) && word(p, 23u) == word(c, 23u) && atomicLoad(&st[p * SW + 1u]) == 1u;
 }
 
 // The run's next node after `at`, or none.
@@ -292,7 +430,7 @@ fn next(at: u32) -> u32 {
 
 // Whether node `i` starts a bearing run, or is a tip's.
 fn starts_run(i: u32) -> bool {
-    return (bears(i) && !continues(parent(i), i)) || tip(i) || apex(i);
+    return (bears(i) && !continues(parent(i), i) && cauline(word(i, 24u))) || tip(i) || apex(i);
 }
 
 // The node a drawn node's tree is drawn from: up its parents to the
@@ -300,8 +438,8 @@ fn starts_run(i: u32) -> bool {
 fn stub(i: u32) -> u32 {
     var at = i;
     // cap: the nodes; no path up is longer.
-    var cap = arrayLength(&nodes) / NW;
-    while (word(at, 9u) & FINE) != 0u && cap > 0u {
+    var cap = arrayLength(&drawn) / CV;
+    while (flags(at) & FINE) != 0u && cap > 0u {
         cap -= 1u;
         at = parent(at);
     }
@@ -318,7 +456,8 @@ fn keys(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let k = atomicAdd(&counts[0], 1u);
-    runs[2u * k] = stub(i);
+    // A crown's leaves follow every other's, as the CPU places them.
+    runs[2u * k] = select(stub(i), NONE, apex(i));
     runs[2u * k + 1u] = i;
 }
 
@@ -367,20 +506,20 @@ fn range(j: u32, nodes_n: u32, along: vec2<u32>, internodes: u32, count: u32) ->
 // The stream a run's retention draws take (`tree::keeps`): its first
 // node's key under the registry's `RETAIN`.
 fn retain(first: u32) -> u32 {
-    return mix32(word(first, 25u) ^ KEY_RETAIN.x);
+    return mix32(word(first, 24u) ^ KEY_RETAIN.x);
 }
 
 // Where node `b`'s retention changes, in whole micrometres along its run
 // from `along`, where its wood starts (`plan::keeps`).
 fn boundary(b: u32, along: u32) -> u32 {
-    return along + micrometres(nodes[b * NW + 31u]);
+    return along + micrometres(rec(b, 30u));
 }
 
 // Whether station `k` on node `b`'s wood, which starts `along` its run,
 // keeps its leaf (`plan::kept`): by its retention a year before, which
 // holds every station it keeps now (fn-270 R5a).
 fn keeps(b: u32, along: u32, k: u32, stream: u32) -> bool {
-    let keep = word(b, 34u);
+    let keep = word(b, 33u);
     var q = keep >> 16u;
     if (k / cfg.spi) * unit() >= boundary(b, along) {
         q = keep & 0xffffu;
@@ -393,14 +532,18 @@ fn keeps(b: u32, along: u32, k: u32, stream: u32) -> bool {
 
 // The stations from `from` up to `to` on node `b`'s wood that keep their
 // leaves (`plan::Run::kept_between`).
-fn kept(b: u32, along: u32, span: vec2<u32>, stream: u32) -> u32 {
-    if cfg.retains == 0u {
+// The leaves they carry, each station its leaflets on the run keyed `key`
+// (`plan::Run::leaves_between`, fn-277).
+fn kept(b: u32, along: u32, span: vec2<u32>, stream: u32, key: u32) -> u32 {
+    if cfg.retains == 0u && !grouped() {
         return span.y - span.x;
     }
     var count = 0u;
     // cap: the span's stations, a tile's at most where it is called.
     for (var k = span.x; k < span.y; k++) {
-        count += u32(keeps(b, along, k, stream));
+        if cfg.retains == 0u || keeps(b, along, k, stream) {
+            count += leaves_at(key, k);
+        }
     }
     return count;
 }
@@ -422,15 +565,29 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let first = runs[r * RW];
     if tip(first) {
-        runs[r * RW + 1u] = word(first, 9u) >> LEAVES;
+        // Each of its leaves its leaflets, on the tip's cluster key.
+        let cluster = mix32(word(first, 24u) ^ KEY_CLUSTER.x);
+        var leaves = 0u;
+        let held = flags(first) >> LEAVES;
+        // cap: a cluster's leaves, at most `MAX_CLUSTER_LEAVES`.
+        for (var j = 0u; j < held; j++) {
+            leaves += leaves_at(cluster, j);
+        }
+        runs[r * RW + 1u] = leaves;
         runs[r * RW + 2u] = 1u;
         runs[r * RW + 3u] = 2u;
         return;
     }
     // A rosette: a segment a frond, a station a leaflet.
     if apex(first) {
-        runs[r * RW + 1u] = fronds() * u32(cfg.rosette[2].x);
-        runs[r * RW + 2u] = fronds();
+        let c = crown_of(first);
+        var leaves = 0u;
+        // cap: the fronds the crown draws.
+        for (var i = 0u; i < c.slots; i++) {
+            leaves += frond_leaves(c.key, c.newest - i32(i), f32(c.living));
+        }
+        runs[r * RW + 1u] = leaves;
+        runs[r * RW + 2u] = c.slots;
         runs[r * RW + 3u] = 2u;
         return;
     }
@@ -438,7 +595,7 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
     var n = 2u;
     var at = first;
     // cap: the nodes; no run is longer (`cfg.n` counts runs here).
-    let cap = arrayLength(&nodes) / NW + 1u;
+    let cap = arrayLength(&drawn) / CV + 1u;
     loop {
         if n > cap {
             break;
@@ -474,7 +631,7 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
         // cap: tile moves on by at least one each step, to span.y.
         while tile < span.y {
             let end = min(tile + TILE, span.y);
-            let k = kept(b, along, vec2<u32>(tile, end), stream);
+            let k = kept(b, along, vec2<u32>(tile, end), stream, word(first, 24u));
             tiles += u32(k > 0u);
             leaves += k;
             tile = end;
@@ -619,12 +776,12 @@ fn put4(at: u32, v: vec4<f32>) {
 // The contact rings of `node` as vertices of the fine block's compact
 // rings: its lower and upper ring, then its run's first and last.
 fn contact(node: u32) -> vec4<u32> {
-    let at = word(node, 21u);
-    if cfg.contact == 0u || at == NONE {
+    if cfg.contacts == 0u || table[cfg.contacts + 2u * node] == 0u {
         return vec4<u32>(0u);
     }
-    let i = word(node, 22u);
-    let s = word(node, 23u);
+    let i = table[cfg.contacts + 2u * node];
+    let s = table[cfg.contacts + 2u * node + 1u];
+    let at = table[s * TW];
     let count = table[s * TW + 2u];
     let base = at * cfg.segments + 2u * s;
     return vec4<u32>(base + (i - 1u) * cfg.segments, base + i * cfg.segments, base, base + (count - 1u) * cfg.segments);
@@ -654,21 +811,24 @@ fn rosette(apex: u32, station0: u32, g: u32) {
     }
     let binormal = cross(axis, normal);
     let r = cfg.rosette;
-    let living = u32(r[0].x);
+    // The apex's own whole counts (fn-277).
+    let c = crown_of(apex);
+    let fronds = f32(c.living);
+    let living = c.living;
     let oldest = f32(max(living, 1u) - 1u);
     let steps = max(oldest, 1.0);
-    let total = r[0].x + r[0].y;
-    let leaflets = u32(r[2].x);
-    let made = r[4].x;
-    let newest = i32(ceil(made)) - 1;
-    let stream = mix32(word(stem_first(apex), 25u) ^ KEY_ROSETTE.x);
+    let total = fronds + f32(c.dead);
+    let newest = c.newest;
+    let stream = mix32(c.key ^ KEY_ROSETTE.x);
+    var first = station0;
     // Each frond at its place on the spiral, newest first, by its serial
     // among the fronds made, a place further down for every frond grown
     // above it (`rosette::fronds`).
     var above = 0.0;
-    for (var i = 0u; i < fronds(); i++) {
+    for (var i = 0u; i < c.slots; i++) {
         let serial = newest - i32(i);
-        let grown = unfolded_frond(serial);
+        let grown = unfolded_frond(serial, fronds);
+        let made_at = established_frond(serial, fronds);
         let k = above;
         above += grown;
         let turn = f32(u32(serial) * cfg.turn) * (6.283185307179586 / 4294967296.0);
@@ -680,32 +840,50 @@ fn rosette(apex: u32, station0: u32, g: u32) {
         // From living to dead over its last living place, and faded over
         // the skirt's last.
         var turned = 0.0;
-        if r[0].y > 0.0 {
+        if c.dead > 0u {
             turned = clamp(k - oldest, 0.0, 1.0);
         }
         let pitch = toward(r[1].x + r[1].y * age, r[1].z, turned);
-        let depth = toward(r[0].w * age, r[0].w * (max(k, r[0].x) / steps), turned);
+        let depth = toward(r[0].w * age, r[0].w * (max(k, fronds) / steps), turned);
         let length = toward(1.0, r[1].w, turned);
-        let share = length * grown * clamp(total - k, 0.0, 1.0);
+        let share = length * grown * made_at * clamp(total - k, 0.0, 1.0);
+        var split = pinnate_frond(serial, fronds);
+        if cfg.rosette[6].z <= 0.0 {
+            split = 1.0;
+        }
+        let blade = segments(split);
         let heading = normalize(axis * cos(pitch) + radial * sin(pitch));
         let s = (g + i) * GW;
         put4(s, vec4<f32>(at - axis * depth, r[2].y * share));
         put4(s + 4u, vec4<f32>(radial, share));
         put4(s + 8u, vec4<f32>(heading, r[3].z));
         put4(s + 12u, vec4<f32>(axis, 0.0));
-        put4(s + 16u, vec4<f32>(r[2].z, r[2].w, r[3].x, r[3].w));
-        put4(s + 20u, vec4<f32>(f32(turned >= 0.5), -2.0, r[3].y, 0.0));
+        put4(s + 16u, vec4<f32>(r[2].z, blade.pitch, r[3].x, r[3].w));
+        // Its own leaflets and spines (`organs::placement`, fn-277).
+        let leaflets = frond_leaves(c.key, serial, fronds);
+        let spines = organs(blade.spines, placement_key(c.key, u32(serial)), ORGAN_SPINES);
+        put4(s + 20u, vec4<f32>(f32(turned >= 0.5), -2.0, f32(spines), split));
         segs[s + 15u] = NONE;
-        segs[s + 24u] = station0 + i * leaflets;
+        segs[s + 24u] = first;
         segs[s + 25u] = leaflets;
+        owns(g + i, apex);
+        first += leaflets;
         segs[s + 26u] = 0u;
         segs[s + 27u] = mix32(stream + (u32(serial) + 1u) * 0x9e3779b9u);
         for (var c = 0u; c < 4u; c++) {
             segs[s + 28u + c] = 0u;
         }
+        // Its strips' blade over a mature leaflet (`pack.wgsl`'s `leaflet`).
+        segs[s + 28u] = bitcast<u32>(cfg.rosette[6].z);
         // A frond is drawn whole (fn-270 R5).
         unfolded(s, NONE, NONE, 0u);
     }
+}
+
+// The node segment `g` stands on, after every segment's words: the
+// field reads its limb system (fn-257).
+fn owns(g: u32, node: u32) {
+    segs[atomicLoad(&counts[2u]) * GW + g] = node;
 }
 
 // A segment's leaves within the year (`place.wgsl`'s `Segment`, fn-270
@@ -718,18 +896,17 @@ fn rosette(apex: u32, station0: u32, g: u32) {
 fn unfolded(at: u32, n: u32, b: u32, key: u32) {
     var now = 0xffffffffu;
     if b != NONE {
-        now = word(b, 32u);
+        now = word(b, 31u);
     }
     if n == NONE {
         put4(at + 32u, vec4<f32>(1.0, bitcast<f32>(now), 0.0, 0.0));
         put4(at + 36u, vec4<f32>(0.0));
         return;
     }
-    let u = n * NW;
-    put4(at + 32u, vec4<f32>(nodes[u + 33u], bitcast<f32>(now), nodes[u + 35u], nodes[u + 37u]));
+    put4(at + 32u, vec4<f32>(rec(n, 32u), bitcast<f32>(now), rec(n, 34u), rec(n, 36u)));
     let stream = mix32(key ^ LIFE ^ KEY_RETAIN.x);
     let fall = mix32(key ^ FALL ^ KEY_RETAIN.x);
-    put4(at + 36u, vec4<f32>(nodes[u + 36u], nodes[u + 38u], bitcast<f32>(stream), bitcast<f32>(fall)));
+    put4(at + 36u, vec4<f32>(rec(n, 35u), rec(n, 37u), bitcast<f32>(stream), bitcast<f32>(fall)));
 }
 
 // What the lifespan's and the abscission's draws salt a run's stream
@@ -756,8 +933,8 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         // `prepared::prepare_inner`'s cluster segment.
         let at = g * GW;
         let p = pos(first);
-        let radius = nodes[first * NW + 3u];
-        let h = vec3<f32>(nodes[first * NW + 15u], nodes[first * NW + 16u], nodes[first * NW + 17u]);
+        let radius = rec(first, 3u);
+        let h = vec3<f32>(rec(first, 17u), rec(first, 18u), rec(first, 19u));
         var heading = vec3<f32>(0.0, 1.0, 0.0);
         if dot(h, h) > 1e-24 {
             heading = normalize(h);
@@ -767,17 +944,19 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         put4(at + 8u, vec4<f32>(heading, 0.0));
         put4(at + 12u, vec4<f32>(0.0));
         put4(at + 16u, vec4<f32>(0.0));
-        put4(at + 20u, vec4<f32>(0.0, -1.0, nodes[first * NW + 30u], 0.0));
+        // Its spread and its leaves; `count` is their leaflets (fn-277).
+        put4(at + 20u, vec4<f32>(0.0, -1.0, rec(first, 29u), f32(flags(first) >> LEAVES)));
         segs[at + 24u] = station0;
         segs[at + 25u] = count;
+        owns(g, first);
         segs[at + 26u] = 0u;
-        segs[at + 27u] = mix32(word(first, 25u) ^ KEY_CLUSTER.x);
+        segs[at + 27u] = mix32(word(first, 24u) ^ KEY_CLUSTER.x);
         for (var c = 0u; c < 4u; c++) {
             segs[at + 28u + c] = 0u;
         }
         // Every leaf of a cluster stays.
         segs[at + 15u] = 0xffffffffu;
-        unfolded(at, first, NONE, mix32(word(first, 25u) ^ KEY_CLUSTER.x));
+        unfolded(at, first, NONE, mix32(word(first, 24u) ^ KEY_CLUSTER.x));
         return;
     }
     // The run's stations before any sheds its leaf: its wood walked.
@@ -791,9 +970,9 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
     let raw = internodes * cfg.spi;
     let stream = retain(first);
     var seen = 0u;
-    let key = word(first, 25u);
+    let key = word(first, 24u);
     let attach = parent(first);
-    let seed = vec3<f32>(nodes[attach * NW + 18u], nodes[attach * NW + 19u], nodes[attach * NW + 20u]);
+    let seed = vec3<f32>(rec(attach, 20u), rec(attach, 21u), rec(attach, 22u));
     var a = attach;
     var b = first;
     var along = 0u;
@@ -842,27 +1021,28 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         let edge = contact(b);
         var keep = 0xffffffffu;
         if cfg.retains != 0u {
-            keep = word(b, 34u);
+            keep = word(b, 33u);
         }
         var tile = span.x;
         // cap: tile moves on by at least one each step, to span.y.
         while tile < span.y {
             let tiles = min(span.y - tile, TILE);
-            let leaves = kept(b, along, vec2<u32>(tile, tile + tiles), stream);
+            let leaves = kept(b, along, vec2<u32>(tile, tile + tiles), stream, key);
             if leaves == 0u {
                 tile += tiles;
                 continue;
             }
             let turn = f32(tile / cfg.spi) * cfg.divergence;
             let at = g * GW;
-            put4(at, vec4<f32>(pos(a), nodes[b * NW + 4u]));
-            put4(at + 4u, vec4<f32>(pos(b), nodes[b * NW + 3u]));
+            put4(at, vec4<f32>(pos(a), rec(b, 4u)));
+            put4(at + 4u, vec4<f32>(pos(b), rec(b, 3u)));
             put4(at + 8u, vec4<f32>(t, 0.0));
             put4(at + 12u, vec4<f32>(nm, 0.0));
             put4(at + 16u, vec4<f32>(bn, 0.0));
             put4(at + 20u, vec4<f32>(metres(along), metres(wood), sin(turn), cos(turn)));
             segs[at + 24u] = station0 + seen;
             segs[at + 25u] = leaves;
+            owns(g, b);
             segs[at + 26u] = tile;
             segs[at + 27u] = key;
             for (var c = 0u; c < 4u; c++) {

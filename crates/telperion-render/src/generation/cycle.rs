@@ -4,6 +4,8 @@
 //! drawn as the pipeline's nodes (`tree.rs`), which the resident build
 //! draws from. The decision contract every cycle shader begins with is
 //! here: `telperion_space::contract` by the same f32 operations.
+#[cfg(test)]
+mod arena_tests;
 mod build;
 mod build_arena;
 mod build_grow;
@@ -15,105 +17,103 @@ mod build_size;
 mod census;
 mod chains;
 mod columns;
+mod compact;
 #[cfg(test)]
 mod compare;
+#[cfg(test)]
+mod compile_tests;
+#[cfg(test)]
+mod contract_tests;
 mod device;
+#[cfg(test)]
+mod dormant_tests;
 mod drawn;
+#[cfg(test)]
+mod executor_time_tests;
 mod gate;
-mod held;
 mod given;
 mod glue;
-mod growth;
 #[cfg(test)]
 mod grown;
 #[cfg(test)]
 mod grown_compare;
+#[cfg(test)]
+mod grown_det_tests;
+#[cfg(test)]
+mod grown_life_tests;
+#[cfg(test)]
+mod grown_tests;
+#[cfg(test)]
+mod grown_time_tests;
+mod growth;
+#[cfg(test)]
+mod growth_profile_tests;
+#[cfg(test)]
+mod halt_tests;
+mod held;
 mod hier_build;
 mod hier_columns;
 #[cfg(test)]
 mod hier_compare;
 mod hier_device;
-mod hier_plan;
-mod hier_scan;
-mod lay_device;
-mod light_device;
-mod plan;
-mod plan_hier;
-mod plan_retire;
-mod plan_lay;
-mod plan_scan;
-mod plan_units;
-mod present;
-mod compact;
-mod retire_device;
-#[cfg(test)]
-mod ruled;
-mod settle_device;
-mod settle_place;
-#[cfg(test)]
-mod settle_read;
-mod settle_run;
-mod settle_scratch;
-mod state;
-pub(super) mod tree;
-mod units;
-mod vm;
-#[cfg(test)]
-mod compile_tests;
-#[cfg(test)]
-mod contract_tests;
-#[cfg(test)]
-mod mirror_tests;
-#[cfg(test)]
-mod selectors;
-#[cfg(test)]
-mod grown_det_tests;
-#[cfg(test)]
-mod arena_tests;
-#[cfg(test)]
-mod grown_life_tests;
-#[cfg(test)]
-mod halt_tests;
-#[cfg(test)]
-mod grown_tests;
-#[cfg(test)]
-mod grown_time_tests;
 #[cfg(test)]
 mod hier_grid_tests;
 #[cfg(test)]
 mod hier_math_tests;
+mod hier_plan;
+mod hier_scan;
 #[cfg(test)]
 mod hier_tests;
+mod lay_device;
+mod light_device;
 #[cfg(test)]
 mod light_tests;
 #[cfg(test)]
 mod light_time_tests;
 #[cfg(test)]
+mod mirror_tests;
+mod plan;
+mod plan_hier;
+mod plan_lay;
+mod plan_retire;
+mod plan_scan;
+mod plan_units;
+mod present;
+#[cfg(test)]
+mod race_tests;
+mod retire_device;
+#[cfg(test)]
 mod retire_tests;
 #[cfg(test)]
-mod settle_det_tests;
-#[cfg(test)]
-mod settle_tests;
-#[cfg(test)]
-mod settle_time_tests;
-#[cfg(test)]
-mod executor_time_tests;
+mod reuse_tests;
 #[cfg(test)]
 mod roofline_life;
 #[cfg(test)]
 mod roofline_tests;
 #[cfg(test)]
-mod dormant_tests;
+mod ruled;
 #[cfg(test)]
-mod race_tests;
+mod selectors;
 #[cfg(test)]
-mod reuse_tests;
+mod settle_det_tests;
+mod settle_device;
 #[cfg(test)]
 mod settle_float_tests;
+mod settle_place;
+#[cfg(test)]
+mod settle_read;
+mod settle_run;
+mod settle_scratch;
+#[cfg(test)]
+mod settle_tests;
+#[cfg(test)]
+mod settle_time_tests;
 #[cfg(test)]
 mod soft64_tests;
-#[cfg(test)]
-mod tint_rules;
+mod state;
+pub(super) mod tree;
+mod units;
+mod vm;
 #[cfg(test)]
 mod vm_tests;
 
@@ -152,8 +152,11 @@ const LIGHT_SWEEP: &str = include_str!("cycle/light_sweep.wgsl");
 /// The decision contract (`decide.wgsl`), after its 64-bit words and
 /// its lineage keys; and a growth unit's zones.
 const U64: &str = include_str!("cycle/u64.wgsl");
-const KEYS: &str = include_str!("cycle/keys.wgsl");
+pub(super) const KEYS: &str = include_str!("cycle/keys.wgsl");
 const DECIDE: &str = include_str!("cycle/decide.wgsl");
+/// Counts of organs between two whole numbers, as `telperion_space::drawn`
+/// draws them (fn-277).
+pub(super) const ORGANS: &str = include_str!("cycle/organs.wgsl");
 const ZONES: &str = include_str!("cycle/zones.wgsl");
 /// The contract's marked arithmetic, plain (DESIGN.md section 9): its
 /// floor sites held to the CPU's order (`held.rs`), every other float
@@ -168,7 +171,7 @@ pub(super) fn contract() -> String {
 
 /// The contract with its marked arithmetic `arith`.
 pub(super) fn contract_with(arith: &str) -> String {
-    format!("{U64}\n{KEYS}\n{DECIDE}\n{arith}")
+    format!("{U64}\n{KEYS}\n{DECIDE}\n{ORGANS}\n{arith}")
 }
 
 /// The contract and a growth unit's zones, for a shader that binds the
@@ -230,7 +233,10 @@ pub(super) fn hier_cycle_source() -> String {
 
 /// `hier_cycle_source` with the sweeps' workgroups `width` lanes wide.
 pub(super) fn hier_cycle_source_at(width: u32) -> String {
-    let cols = HIER_COLS.replace("const WG: u32 = 64u;", &format!("const WG: u32 = {width}u;"));
+    let cols = HIER_COLS.replace(
+        "const WG: u32 = 64u;",
+        &format!("const WG: u32 = {width}u;"),
+    );
     format!(
         "{}\n{REAL}\n{HIER_REAL}\n{cols}\n{HIER_CYCLE}\n{HIER_SWEEP}\n{HIER_SPLIT}\n{FOLD}",
         contract_with(ARITH)
@@ -242,9 +248,23 @@ pub(super) fn hier_cycle_source_at(width: u32) -> String {
 pub(super) fn sources() -> Vec<(&'static str, String)> {
     let mut out = vec![
         ("cycle contract probe", contract_tests::source()),
-        ("cycle chains", include_str!("cycle/chains.wgsl").to_string()),
-        ("cycle dress", format!("{}\n{}", contract(), include_str!("cycle/dress.wgsl"))),
-        ("cycle present", format!("{}\n{}", contract(), include_str!("cycle/present.wgsl"))),
+        (
+            "cycle chains",
+            include_str!("cycle/chains.wgsl").to_string(),
+        ),
+        (
+            "cycle dress",
+            format!(
+                "{}\n{}\n{}",
+                contract(),
+                include_str!("cycle/dress.wgsl"),
+                include_str!("cycle/establish.wgsl")
+            ),
+        ),
+        (
+            "cycle present",
+            format!("{}\n{}", contract(), include_str!("cycle/present.wgsl")),
+        ),
         ("cycle stems", include_str!("cycle/stems.wgsl").to_string()),
         ("cycle hierarchy build", hier_build_source()),
         ("cycle hierarchy scan", hier_scan_source()),

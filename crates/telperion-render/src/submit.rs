@@ -61,7 +61,7 @@ pub(crate) fn fits_count(limits: &wgpu::Limits, mesh: &TreeMesh, instances: usiz
     let selection = select::sizes(
         instances,
         element.levels.len(),
-        u64::from(limits.min_storage_buffer_offset_alignment),
+        select::slot_alignment(limits),
     );
     // The curve's points are bound in two slices of at most WebGPU's default
     // binding, its clusters and cells in one (fn-208, host decision 21).
@@ -97,6 +97,7 @@ pub(crate) fn fits_count(limits: &wgpu::Limits, mesh: &TreeMesh, instances: usiz
         ("foliage level counters", selection.counts, stored),
         ("foliage indirect arguments", selection.arguments, stored),
         ("foliage selection scratch", selection.scratch, stored),
+        ("foliage level starts", selection.starts, stored),
     ];
     for (buffer, payload, limit) in payloads {
         // The allocation is judged, not the payload: buffers are taken with

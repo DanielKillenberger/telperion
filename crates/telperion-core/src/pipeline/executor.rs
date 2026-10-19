@@ -7,7 +7,7 @@ pub use super::input::LeafInput;
 // The whole-tree folds an executor holding part of a tree's nodes folds
 // its part of and the pipeline combines (fn-212 task 4).
 pub use super::input::{beyond, bins, crown_point, envelope, reach, Folds, BINS};
-pub use super::space::ConvertRow;
+pub use super::space::{ConvertRow, Establishing};
 use super::{grown_envelope, GrowInput, Inputs, Request};
 use crate::{
     envelope::Envelope,
@@ -16,7 +16,7 @@ use crate::{
     pipeline::foliage::{
         self,
         prepared::{self, PreparedStations},
-        BloomParams, CanopyParams, Element, ElementParams, Reference, TwigPlacement,
+        BloomParams, CanopyParams, Element, ElementParams, Reach, Reference, TwigPlacement,
     },
     pipeline::surface::{
         self,
@@ -33,13 +33,31 @@ use crate::{
 pub struct Grown {
     tree: Tree,
     inputs: Inputs,
+    retains: bool,
 }
 
 /// Stage 2: the family read once into its stage inputs, and its skeleton.
 pub fn grow(family: &Family) -> Result<Grown> {
     let tree = super::skeleton(GrowInput::of(family))?.tree;
     let inputs = Inputs::of(family, grown_envelope(&tree));
-    Ok(Grown { tree, inputs })
+    let retains = retains(family);
+    Ok(Grown {
+        tree,
+        inputs,
+        retains,
+    })
+}
+
+/// Whether some of the family's wood sheds its leaves by age (fn-248):
+/// some age of its species keeps less than all its stations, which is
+/// where the conversion records each node's retention.
+fn retains(family: &Family) -> bool {
+    let input = GrowInput::of(family);
+    let species = input.space.species.as_ref();
+    let states = species.map(|s| &s.states[..]).unwrap_or_default();
+    states
+        .iter()
+        .any(|s| crate::tree::retention(s.leaf_years).0 != u32::MAX)
 }
 
 /// What another executor grows and draws a family's tree by (fn-256
@@ -52,6 +70,9 @@ pub struct Growth {
     pub request: telperion_space::Request,
     pub scale: f64,
     pub rows: Vec<ConvertRow>,
+    /// The rows its rosette's stem establishes by (fn-275 R2a); none
+    /// where it stands no rosette or states no establishment.
+    pub establishing: Option<Establishing>,
 }
 
 impl Growth {
@@ -60,19 +81,26 @@ impl Growth {
     pub fn year(&self, fraction: f64) -> Option<crate::tree::Year> {
         let s = telperion_space::unfold::Season::of(self.species.states.first()?);
         let age = f64::from(self.request.age) - 1.0 + fraction.min(1.0);
-        Some(crate::tree::Year { age, budburst: s.budburst, elongation: s.elongation, expansion: s.expansion })
+        Some(crate::tree::Year {
+            age,
+            budburst: s.budburst,
+            elongation: s.elongation,
+            expansion: s.expansion,
+        })
     }
 }
 
 /// The family read for another executor (`Growth`). A family with no
 /// engine species is refused by name.
 pub fn growth(family: &Family) -> Result<Growth> {
-    let (species, request, scale, rows) = super::space::growth(GrowInput::of(family))?;
+    let (species, request, scale, rows, establishing) =
+        super::space::growth(GrowInput::of(family))?;
     Ok(Growth {
         species,
         request,
         scale,
         rows,
+        establishing,
     })
 }
 
@@ -127,28 +155,42 @@ pub fn bases(family: &Family) -> Result<Option<CanopyParams>> {
 pub fn resident(family: &Family, s: Summaries) -> Result<Expansion> {
     let envelope = envelope(s.folds, s.crown.iter().copied());
     let inputs = Inputs::of(family, envelope);
+    let wood = (Tree::default(), inputs, retains(family));
+    prepared(wood, [s.root, s.stem], |_, reach| {
+        // The root's own box, as `Reach::wood_box` takes the root's node.
+        let out = reach.out(s.root);
+        let (a, b) = s.corners;
+        let lo = Vec3::new(a.x.min(-out), a.y.min(-out), a.z.min(-out));
+        let hi = Vec3::new(b.x.max(out), b.y.max(out), b.z.max(out));
+        Reference::spanning(lo, hi)
+    })
+}
+
+/// Stage 3's descriptors around the tree (none where the executor holds
+/// it), its inputs and whether its wood sheds leaves by age, with its
+/// root's and stem's radii, in the order their errors answer: the element
+/// and its own check, the twig placement, the shell depth and the reach
+/// the box leaves are quantised against (`reference`) is grown by.
+fn prepared(
+    (tree, inputs, retains): (Tree, Inputs, bool),
+    [root, stem]: [f64; 2],
+    reference: impl FnOnce(&Tree, Reach) -> Reference,
+) -> Result<Expansion> {
     let plan = &inputs.plan;
     let element = foliage::build_element(plan.element)?;
     element.validate()?;
     let twig = plan.twig.clone()?;
     check_shell(&inputs)?;
-    // The root's own box, as `Reach::wood_box` takes the root's node.
-    let out = plan.reach.clone()?.out(s.root);
-    let (a, b) = s.corners;
-    let lo = Vec3::new(a.x.min(-out), a.y.min(-out), a.z.min(-out));
-    let hi = Vec3::new(b.x.max(out), b.y.max(out), b.z.max(out));
+    let reference = reference(&tree, plan.reach.clone()?);
     let shoot = inputs.leaves.canopy.shoot_radius;
-    let input = GrowInput::of(family);
-    let species = input.space.species.as_ref();
-    let states = species.map(|s| &s.states[..]).unwrap_or_default();
     Ok(Expansion {
-        bearing: [super::space::STRUCTURAL * s.root, s.stem * shoot],
-        retains: states.iter().any(|s| crate::tree::retention(s.leaf_years).0 != u32::MAX),
-        tree: Tree::default(),
+        bearing: [super::space::STRUCTURAL * root, stem * shoot],
+        retains,
+        tree,
         inputs,
         element,
         twig,
-        reference: Reference::spanning(lo, hi),
+        reference,
     })
 }
 
@@ -168,7 +210,13 @@ fn check_shell(inputs: &Inputs) -> Result<()> {
 /// structure (fn-198).
 pub fn expand(tree: Tree, family: &Family) -> Result<Expansion> {
     let inputs = Inputs::of(family, grown_envelope(&tree));
-    Grown { tree, inputs }.expansion()
+    let retains = retains(family);
+    Grown {
+        tree,
+        inputs,
+        retains,
+    }
+    .expansion()
 }
 
 /// The leaf element built from its rows, as the plan stage builds it.
@@ -178,28 +226,14 @@ pub fn element(params: ElementParams) -> Result<Element> {
 
 impl Grown {
     /// Stage 3's descriptors, in the order their errors answer: the leaf
-    /// bases hung on the stems, the element and its own check, the twig
-    /// placement, the shell depth and the box leaves are quantised against.
+    /// bases hung on the stems, then `prepared`'s.
     pub fn expansion(self) -> Result<Expansion> {
         let mut tree = self.tree;
         super::clothe(&mut tree, &self.inputs)?;
-        let plan = &self.inputs.plan;
-        let element = foliage::build_element(plan.element)?;
-        element.validate()?;
-        let twig = plan.twig.clone()?;
-        check_shell(&self.inputs)?;
-        let reference = Reference::grown(&tree, plan.reach.clone()?);
         let root = tree.nodes.first().map_or(0.0, |n| n.radius);
-        let slender = tree.stem_radius(|i| tree.pipe(i)[1]) * self.inputs.leaves.canopy.shoot_radius;
-        Ok(Expansion {
-            bearing: [super::space::STRUCTURAL * root, slender],
-            retains: !tree.leafing.is_empty(),
-            tree,
-            inputs: self.inputs,
-            element,
-            twig,
-            reference,
-        })
+        let stem = tree.stem_radius(|i| tree.nodes[i].radius);
+        let wood = (tree, self.inputs, self.retains);
+        prepared(wood, [root, stem], Reference::grown)
     }
 }
 
@@ -257,6 +291,13 @@ impl Expansion {
     /// authored]` (`Reach::terms`).
     pub fn wood_reach(&self) -> Result<[f64; 4]> {
         Ok(self.inputs.plan.reach.clone()?.terms())
+    }
+    /// The terms of a planned leaf's reach from its wood (`Plan::reach`):
+    /// `[seat, rachis, blade]`, which the device's field reaches by
+    /// (fn-257).
+    pub fn leaf_reach(&self) -> [f64; 3] {
+        let s = &self.inputs.surface.params;
+        foliage::plan::leaf_reach(s, self.canopy(), &self.element)
     }
     /// The bounds an executor drawing its own nodes decides their kinds and
     /// leaf-bearing by (fn-212 task 6): wood under the first is fine wood,

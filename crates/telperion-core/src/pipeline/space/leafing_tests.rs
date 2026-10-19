@@ -89,28 +89,53 @@ fn each_node_keeps_the_retention_of_the_wood_it_draws() {
 fn within_its_year_old_wood_drops_its_leaves_and_grows_them_again() {
     let (structure, whole, mut species) = grown(1.5);
     for s in &mut species.states {
-        (s.leaf_life, s.budburst, s.senescence, s.colouring, s.leaf_fall) = (0.5, 115.0, 264.0, 16.0, 45.0);
+        (
+            s.leaf_life,
+            s.budburst,
+            s.senescence,
+            s.colouring,
+            s.leaf_fall,
+        ) = (0.5, 115.0, 264.0, 16.0, 45.0);
     }
     let rows = pa_rows(&species);
     let season = rows[2].season;
     let age = structure.age;
     let r = retention(1.5);
-    let node: HashMap<u64, usize> =
-        (1..whole.nodes.len()).map(|i| (whole.nodes[i].identity.birth_order(), i)).collect();
+    let node: HashMap<u64, usize> = (1..whole.nodes.len())
+        .map(|i| (whole.nodes[i].identity.birth_order(), i))
+        .collect();
     for f in [0.25, 0.6, 0.95] {
-        let at = unfolded(&structure, (&[][..], &rows), Unfolding { leaves: &[], fraction: f, gone: usize::MAX }).0;
+        let at = unfolded(
+            &structure,
+            (&[][..], &rows),
+            Unfolding {
+                leaves: &[],
+                fraction: f,
+                gone: usize::MAX,
+            },
+        )
+        .0;
         let tau = f * telperion_space::unfold::YEAR;
         let mut seen = [0usize; 2];
         for axis in &structure.axes {
             for p in &axis.phytomers {
-                let Some(&i) = node.get(&p.key()) else { continue };
+                let Some(&i) = node.get(&p.key()) else {
+                    continue;
+                };
                 let now = kept_share(r, age - p.cycle);
-                let was = if p.cycle < age { kept_share(r, age - 1 - p.cycle) } else { now };
+                let was = if p.cycle < age {
+                    kept_share(r, age - 1 - p.cycle)
+                } else {
+                    now
+                };
                 let (l, u) = (at.leafing[i], at.unfolding[i]);
                 assert_eq!((l.keep as u16, l.was as u16), (now, was), "node {i}");
                 let old = p.cycle < age;
                 assert_eq!(u.life, if old { u16::MAX } else { 0 }, "node {i}");
-                assert_eq!((u.fall, u.regrow), (season.fallen(tau) as f32, season.regrow(tau) as f32));
+                assert_eq!(
+                    (u.fall, u.regrow),
+                    (season.fallen(tau) as f32, season.regrow(tau) as f32)
+                );
                 seen[usize::from(old)] += 1;
             }
         }
@@ -120,7 +145,13 @@ fn within_its_year_old_wood_drops_its_leaves_and_grows_them_again() {
     // A station that passes stays whole until its abscission day and is
     // gone from then, kept growing again; one that does not stands at
     // this year's share; one kept no longer only falls.
-    let u = Unfolded { grow: 0.5, fall: 0.0, colour: 0.75, regrow: 0.125, life: u16::MAX };
+    let u = Unfolded {
+        grow: 0.5,
+        fall: 0.0,
+        colour: 0.75,
+        regrow: 0.125,
+        life: u16::MAX,
+    };
     assert_eq!(u.leaf(true, 7, 3), (1.125, 0.75));
     assert_eq!(u.leaf(false, 7, 3), (1.0, 0.75));
     assert_eq!(Unfolded { fall: 1.0, ..u }.leaf(true, 7, 3), (0.125, 0.75));
@@ -133,8 +164,15 @@ fn within_its_year_old_wood_drops_its_leaves_and_grows_them_again() {
     let shares: Vec<f64> = (0..400).map(|k| falling.leaf(false, 7, k).0).collect();
     assert!(shares.iter().all(|&s| s == 0.0 || s == 1.0));
     let gone = shares.iter().filter(|&&s| s == 0.0).count();
-    assert!((70..=130).contains(&gone), "{gone} of 400 gone at a quarter of the fall");
-    let l = Leafing { older: 0.0, keep: 0, was: u32::from(KEEP) };
+    assert!(
+        (70..=130).contains(&gone),
+        "{gone} of 400 gone at a quarter of the fall"
+    );
+    let l = Leafing {
+        older: 0.0,
+        keep: 0,
+        was: u32::from(KEEP),
+    };
     assert_eq!(l.kept((0.0, 0.0), 7, 3), Some(false));
     assert_eq!(Leafing { was: 0, ..l }.kept((0.0, 0.0), 7, 3), None);
 }

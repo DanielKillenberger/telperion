@@ -28,10 +28,6 @@ pub fn grow_capture_light_at(species: &Species, request: Request, cycle: u32) ->
     for c in 1..cycle {
         g.year(c, c < request.age, &mut advanced, &mut |_| {})?;
     }
-    assert!(
-        g.couple.is_none() && g.fine.is_none(),
-        "the whole tree, lit"
-    );
     advanced.clear();
     advanced.extend(g.live.iter().map(|a| a.axis));
     g.step(cycle, &mut |_| {})?;

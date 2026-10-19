@@ -18,6 +18,8 @@ use crate::{
     GROUND_REACH,
 };
 
+/// A tree's field grown on a device of its own (fn-257).
+mod field;
 mod generation;
 /// A tree growing on the page's device (fn-270 R6, R7).
 mod growing;

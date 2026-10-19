@@ -58,7 +58,9 @@ pub fn parse(text: &str) -> Result<Vec<Line<'_>>, String> {
             return Err(format!("{at}: `{path}` is not a wire path"));
         }
         let form = form(text).ok_or(format!("{at}: `{text}` is not a value"))?;
-        if matches!(form, Form::Whole | Form::Real) && !text.parse::<f64>().is_ok_and(f64::is_finite) {
+        if matches!(form, Form::Whole | Form::Real)
+            && !text.parse::<f64>().is_ok_and(f64::is_finite)
+        {
             return Err(format!("{at}: `{text}` is past the largest double"));
         }
         if let Some(first) = rows.iter().find(|r| r.path == path) {

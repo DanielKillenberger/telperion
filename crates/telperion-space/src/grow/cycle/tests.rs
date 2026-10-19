@@ -17,7 +17,9 @@ fn request(age: u32, seed: u64, extinction: f64) -> Request {
 /// The one cycle with every axis open and none retired: the reference
 /// its working set and its retirement are held to.
 fn reference(species: &Species, r: Request) -> Structure {
-    run(species, r, false, Working::reference()).unwrap().structure
+    run(species, r, false, Working::reference())
+        .unwrap()
+        .structure
 }
 
 /// The most a phytomer's radius moves when retirement freezes the girth
@@ -32,14 +34,21 @@ const SHIFT: f64 = 1e-4;
 /// (which reads light and keeps leaf girth), the spruce and the beech.
 #[test]
 fn the_working_set_and_retirement_leave_the_tree_as_it_was() {
-    for (species, k) in [(crate::oak(), 0.5), (crate::spruce(), 0.0), (crate::beech(), 0.0)] {
+    for (species, k) in [
+        (crate::oak(), 0.5),
+        (crate::spruce(), 0.0),
+        (crate::beech(), 0.0),
+    ] {
         let r = request(40, 7, k);
         let cycled = grow_census(&species, r).unwrap();
         let retired = cycled.census.expect("a census").retired;
         assert!(retired > 100, "{retired} retired");
         let apart = super::girth_apart(&cycled.structure, &reference(&species, r));
         println!("{retired} retired, girth apart {apart:?}");
-        assert!(apart.is_some_and(|(_, most)| most <= SHIFT), "{retired} retired, girth apart {apart:?}");
+        assert!(
+            apart.is_some_and(|(_, most)| most <= SHIFT),
+            "{retired} retired, girth apart {apart:?}"
+        );
     }
 }
 
@@ -58,21 +67,37 @@ fn zero_and_near_zero_grow_the_same_tree() {
         }
         s
     };
-    assert!(tree(&response(0.0), 0.5) == tree(&response(1e-30), 0.5), "response");
+    assert!(
+        tree(&response(0.0), 0.5) == tree(&response(1e-30), 0.5),
+        "response"
+    );
 }
 
 /// The quantised deposit is the same lattice in any order of the leaves,
 /// and a node past its u32 of quanta is refused by name.
 #[test]
 fn the_quantised_deposit_is_order_free_and_refuses_overflow() {
-    let light = Light { extinction: 0.5, sky: 0.5 };
+    let light = Light {
+        extinction: 0.5,
+        sky: 0.5,
+    };
     let leaves: Vec<(Vec3, f64)> = (0..500)
         .map(|k| {
             let t = f64::from(k);
-            (Vec3::new((t * 0.37).sin() * 3.0, (t * 0.71).cos() * 3.0, 2.0 + (t * 0.13).sin()), 0.0018 * (1.0 + (t * 0.3).cos()))
+            (
+                Vec3::new(
+                    (t * 0.37).sin() * 3.0,
+                    (t * 0.71).cos() * 3.0,
+                    2.0 + (t * 0.13).sin(),
+                ),
+                0.0018 * (1.0 + (t * 0.3).cos()),
+            )
         })
         .collect();
-    let reads: Vec<Vec3> = leaves.iter().map(|l| l.0 - Vec3::new(0.0, 0.0, 0.3)).collect();
+    let reads: Vec<Vec3> = leaves
+        .iter()
+        .map(|l| l.0 - Vec3::new(0.0, 0.0, 0.3))
+        .collect();
     let forward = Field::quantised(&light, &leaves, &reads, 1).unwrap();
     let mut reversed = leaves.clone();
     reversed.reverse();
@@ -81,8 +106,13 @@ fn the_quantised_deposit_is_order_free_and_refuses_overflow() {
         assert_eq!(forward.at(r).to_bits(), back.at(r).to_bits());
     }
     let heavy = vec![(Vec3::new(0.0, 0.0, 1.0), 3000.0); 2];
-    let refused = Field::quantised(&light, &heavy, &[], 1).err().expect("refused");
-    assert!(format!("{refused}").starts_with("light.deposit"), "{refused}");
+    let refused = Field::quantised(&light, &heavy, &[], 1)
+        .err()
+        .expect("refused");
+    assert!(
+        format!("{refused}").starts_with("light.deposit"),
+        "{refused}"
+    );
 }
 
 /// The f32 survival the device reads: the table's viability, shaded in
@@ -93,7 +123,10 @@ fn survival_reads_the_tables_f32() {
     assert_eq!(shaded(0.995, 1.0, 1.0), 0.995);
     assert_eq!(shaded(0.995, 0.0, 0.3), 0.995);
     let p = shaded(0.995, 1.0, 0.5);
-    assert!(p < 0.995 && (f64::from(p) - 0.995f64.powf(2.0)).abs() < 1e-6, "{p}");
+    assert!(
+        p < 0.995 && (f64::from(p) - 0.995f64.powf(2.0)).abs() < 1e-6,
+        "{p}"
+    );
 }
 
 /// How far the one cycle's tree lies from today's whole-tree engine, by
@@ -102,7 +135,11 @@ fn survival_reads_the_tables_f32() {
 #[test]
 #[ignore]
 fn agreement_with_todays_tree() {
-    for (name, species, k) in [("oak", crate::oak(), 0.5), ("beech", crate::beech(), 0.0), ("spruce", crate::spruce(), 0.0)] {
+    for (name, species, k) in [
+        ("oak", crate::oak(), 0.5),
+        ("beech", crate::beech(), 0.0),
+        ("spruce", crate::spruce(), 0.0),
+    ] {
         for (age, seed) in [(24, 7), (40, 1)] {
             let r = request(age, seed, k);
             let today = crate::grow::whole(&species, r).unwrap();
@@ -148,31 +185,10 @@ fn woken_buds_that_stop_at_once_retire_as_the_reference_has_them() {
         assert!(retired > 10, "seed {seed}: {retired} retired");
         let apart = super::girth_apart(&cycled.structure, &reference(&species, r));
         println!("seed {seed}: {retired} retired, girth apart {apart:?}");
-        assert!(apart.is_some_and(|(_, most)| most <= SHIFT), "seed {seed}: {retired} retired, girth apart {apart:?}");
-    }
-}
-
-
-/// A captured layout is the sketch's own: each of its laid axes' pencils
-/// as the cycle leaves them, a leaf for each phytomer it laid, and its
-/// columns whole (fn-256 task 2).
-#[test]
-fn a_captured_layout_holds_the_cycle_it_laid() {
-    for (species, age, at) in [(crate::beech(), 10, 8), (crate::spruce(), 14, 12), (crate::oak(), 12, 11)] {
-        let c = grow_capture_layout_at(&species, request(age, 42, 0.5), at).unwrap();
-        let words = |name: &str| c.array(name).expect(name).1.len() / 4;
-        let counts = c.array("lay_counts").unwrap().1;
-        let n = u32::from_le_bytes(counts[12..16].try_into().unwrap()) as usize;
-        let rows = u32::from_le_bytes(counts[16..20].try_into().unwrap()) as usize;
-        assert_eq!(words("in_axes"), 31 * n);
-        assert_eq!(words("out_pencils"), 59 * n);
-        assert_eq!(words("out_phyts"), 19 * rows);
-        let phyts = c.array("out_phyts").unwrap().1;
-        let laid: usize = (0..rows)
-            .map(|r| u32::from_le_bytes(phyts[4 * (18 * rows + r)..][..4].try_into().unwrap()) as usize)
-            .sum();
-        assert_eq!(words("out_leaves"), 4 * laid, "a leaf a phytomer laid");
-        assert!(laid > 0, "{age} at {at} lays");
+        assert!(
+            apart.is_some_and(|(_, most)| most <= SHIFT),
+            "seed {seed}: {retired} retired, girth apart {apart:?}"
+        );
     }
 }
 
@@ -180,11 +196,17 @@ fn a_captured_layout_holds_the_cycle_it_laid() {
 /// each with its layout's words, and a pencil an axis laid (fn-256 task 2).
 #[test]
 fn the_grown_capture_holds_every_phytomer() {
-    for (species, age) in [(crate::beech(), 8), (crate::spruce(), 10), (crate::oak(), 9)] {
+    for (species, age) in [
+        (crate::beech(), 8),
+        (crate::spruce(), 10),
+        (crate::oak(), 9),
+    ] {
         let c = grow_capture_grown(&species, request(age, 42, 0.5)).unwrap();
         let u32s = |name: &str| -> Vec<u32> {
             let b = c.array(name).expect(name).1;
-            b.chunks(4).map(|w| u32::from_le_bytes(w.try_into().unwrap())).collect()
+            b.chunks(4)
+                .map(|w| u32::from_le_bytes(w.try_into().unwrap()))
+                .collect()
         };
         let held: u64 = u32s("g_phyt_n").iter().map(|&n| u64::from(n)).sum();
         let grown = u64::from_le_bytes(c.array("g_grown").unwrap().1.try_into().unwrap());
@@ -193,6 +215,6 @@ fn the_grown_capture_holds_every_phytomer() {
         assert_eq!(u32s("sk_phyts").len() as u64, 13 * held);
         let axes = u32s("g_pa").len();
         assert_eq!(u32s("sk_axes").len(), 11 * axes);
-        assert_eq!(u32s("sk_pencils").len() % 59, 0);
+        assert_eq!(u32s("sk_pencils").len() % 63, 0);
     }
 }

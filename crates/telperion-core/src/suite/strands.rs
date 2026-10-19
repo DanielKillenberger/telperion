@@ -9,9 +9,7 @@ use std::collections::BTreeMap;
 use std::f64::consts::FRAC_PI_2;
 
 use telperion_core::{
-    blend,
-    branching,
-    params,
+    blend, branching, params,
     presets::{Family, Preset},
     tree::{NodeKind, Tree},
     Error,
@@ -313,7 +311,6 @@ fn a_short_strand_under_a_full_sag_ends_hanging_straight_down() {
         );
     }
 }
-
 
 #[test]
 fn a_walk_of_the_variation_row_shortens_the_curtain_continuously() {

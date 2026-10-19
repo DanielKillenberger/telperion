@@ -1,62 +1,73 @@
-# The slim growth-and-field package
+# The field package
 
 A page that draws its own tree needs three things from Telperion: grow a
-tree, prepare its leaf plan, and answer occupancy queries over it. The slim
-package is that and nothing else: the direct build's skeleton, the leaf plan
-and the field, compiled without the wood surface, the leaf placement, the
-materials and the JSON request path. It is
-`crates/telperion-field` (the Wasm) and `src/field/index.ts` (the typed entry
-point), published as the package's `./field` export beside the main entry.
+tree, prepare its leaf plan, and read its occupancy out to a grid. The
+field package is that: `src/field/index.ts`, published as the package's
+`./field` export beside the main entry. Since 0.2.0 (fn-257) the tree grows
+on the device (WebGPU), through the renderer's module, exactly as the
+harness grows it, and its field is read out there from the drawn tree to
+the grid the call names: only the grid is read back, and nothing stays on
+the device. There is no CPU fallback.
 
 ## The entry point
 
 ```ts
-import { growField } from "telperion/field";
+import { growField, prepareField } from "telperion/field";
 
-const tree = await growField("silver-birch", 7, { limbOrder: 3 });
-tree.bounds;                 // { min: [x, y, z], max: [x, y, z] } in metres, Y up
-const answer = tree.query(cells);  // cells: Float64Array of x, y, z, halfExtent per cell
+await prepareField();        // optional: the device and its programs, once per page or worker
+const tree = await growField("silver-birch", 7, 36, { limbOrder: 3 });
+tree.n;                      // 36 cells a side
+tree.cell;                   // a cell's side in metres
+tree.origin;                 // the grid's least corner [x, y, z] in metres, Y up
+const { answer } = tree;     // one entry per cell i = x + n * (y + n * z)
 answer.flags[i] & 1;         // wood reaches cell i
 answer.flags[i] & 2;         // foliage reaches cell i
 answer.woodRadius[i];        // the thickest wood radius reaching it, metres, 0 without wood
 answer.leaves[i];            // the leaf stations estimated in it, before the crown cull
 answer.limbs[i];             // the owning limb system, NO_LIMB where no foliage reaches
-tree.release();              // drops the tree; every later query is refused
 ```
 
-The request is a species id and a seed. The species id selects one of the
-value tables the core compiles in (`oregon-white-oak`, `silver-birch`,
-`norway-spruce`, `ordinary`, `telperion`, `laurelin`); an id the catalogue
+The request is a species id, a seed and the grid's side. The species id
+selects one of the value tables the core compiles in; an id the catalogue
 does not serve is refused with the core's `preset identity` error. The seed
 is an unsigned 32-bit integer. `limbOrder` names limbs at that lateral order
 and defaults to the family's own; a higher order parts the crown into more
-and smaller systems. The same species, seed and order answer the same bytes
-on every call and every build.
+and smaller systems.
 
-`cut` (fn-214) answers a coarser tree sooner. A fine root the closed form
-expects to keep at most `cut` phytomers is never grown: the structure above
-the cut grows and settles on each root's expected living, section and load,
-and the field answers each root as a capsule from its bud along its heading,
-spread by its expected wood's reach and carrying the leaves its expected
-phytomers bear. Left out or 0, every root is grown and the field is the full
-one, byte for byte. At the spruce's 40, a cut of 1,024 grows no root of the
-tree's 1.2 million phytomers below it and answers in about the time 0.1.4
-did, in half its memory. A species whose structure above a cut reads its
-fine roots as grown (the oak, which reads light and keeps its shed pipes) is
-refused a cut by name.
+The grid is the one `telperion/field/voxelize`'s `grid` defines, over the
+tree's own box: `n` cells a side, cubes of side `cell = longest box axis /
+(n - 2)`, centred on the box in x and z with one empty cell below its lowest
+point; cell `i + n * (j + n * k)` is centred at `origin + (i + 0.5, j + 0.5,
+k + 0.5) * cell`. The CPU field, the device field and the voxelizer read
+this one definition. `n` is a whole number from 3 to 256: a side outside
+that is refused by name (`field grid side`) before any work, and a grid past
+the device's buffer limits by name before anything is allocated.
 
-A query describes closed cubes: touching counts, a zero half extent is a
-point. A batch whose length is not a multiple of four, or that holds a
-non-finite centre or a negative half extent, is refused whole and answers
-nothing.
+The answers are the CPU reference field's (`pipeline/field.rs`), read from
+the CPU's drawn tree to the same grid, within the tolerances
+`resident/field_tests.rs` measures: every cell's wood and foliage, the
+leaves within a few thousandths, the limbs as the same partition. A cell
+holds wood where its circumsphere meets a wood sweep, so a grid overstates
+the wood by at most half a cell's diagonal; a finer grid shrinks it. A
+frond's leaflets are drawn on the device's own draws, as the harness draws
+them, so a palm's cells differ from the CPU's where its draws do.
 
-The same file runs in a browser worker and in Node. Left to itself it loads
-`telperion-field.wasm` from beside itself, fetched in a browser and read from
-disk in Node, where the module's URL is a `file:` one; a caller that keeps
-the module elsewhere passes `source` (the bytes, a `Response` or a compiled
-`WebAssembly.Module`). `compileField(source)` compiles once for a
-caller that grows many trees. Each `growField` call owns its own Wasm
-instance, so releasing one tree touches no other.
+Without WebGPU (Node, or a browser without it) every call rejects with
+`WebGPU is not available`; what a page shows then is the page's decision.
+Left to itself the entry loads `telperion-render.wasm` from beside itself; a
+caller that keeps the module elsewhere passes `source` (the bytes, a
+`Response` or a compiled `WebAssembly.Module`, which `compileField(source)`
+makes once). One page or worker holds one device and one module instance;
+a tree holds nothing on it once its grid is read out.
+
+Migrating from 0.1.4 (for a page on the published 0.1.4 package, such as
+the site; fn-257 R1b, R8b): the `cut` option is gone and nothing replaces it; the
+source is the renderer's module, and `telperion-field.wasm` no longer ships.
+Beside it, the cube query is gone: `growField` takes the grid's side and
+resolves to the grid with its answers, and `query(cells)`, `bounds` and
+`release()` go with nothing in their place. A page that queried
+`grid(tree.bounds, n).cells` asks for `n` instead; one that queried its own
+cubes reads the cells of a grid fine enough for them.
 
 ## The example voxelizer
 
@@ -65,13 +76,12 @@ one reading of the field's answers that a consumer may import, copy or
 replace. The entry point does not need it and it draws nothing.
 
 ```ts
-import { grid, voxelize, centre } from "telperion/field/voxelize";
+import { voxelize, centre } from "telperion/field/voxelize";
 
-const g = grid(tree.bounds, 64);          // 64 cells a side, 62 across the longest axis
-const answer = tree.query(g.cells);
-const cubes = voxelize(g, answer, { woodCutoff: 0.02, thin: { rule: "gap", keep: 0.3 } });
-for (const i of cubes.wood) centre(g, i);      // a wood cube's centre in metres
-for (const i of cubes.foliage) centre(g, i);   // a foliage cube's centre
+const tree = await growField("silver-birch", 7, 64);  // 64 cells a side, 62 across the longest axis
+const cubes = voxelize(tree, { woodCutoff: 0.02, thin: { rule: "gap", keep: 0.3 } });
+for (const i of cubes.wood) centre(tree, i);      // a wood cube's centre in metres
+for (const i of cubes.foliage) centre(tree, i);   // a foliage cube's centre
 ```
 
 Its dials are the ones `experiments/voxel-field` settled under fn-100:
@@ -93,9 +103,12 @@ ones tried so far, tested on a fixture grid in `src/field/voxelize.test.ts`.
 
 ## Building and measuring
 
-`npm run wasm:build` builds the full and the slim Wasm; `npm run build`
-emits `dist/telperion.js` and `dist/field.js`. The slim crate's own tests
-run with `cargo test -p telperion-field`; the Node and browser-worker smokes
-are `src/field/field.test.ts` and `tests/browser/field.mjs`. The sizes and
-timings of the first build are in
-`.flow/evidence/fn-101-a-slim-growth-and-field-package-for-the/RESULTS.md`.
+`npm run build` emits `dist/field.js` beside `dist/telperion-render.wasm`.
+The device field's tests are native (`cargo test --profile ci -p
+telperion-render field`, against the CPU reference on every shipped preset
+at 24, 36 and 48 cells); the Node test (`src/field/field.test.ts`) holds the
+input contract and the named refusal without WebGPU,
+`src/field/voxelize.test.ts` holds the voxelizer's grid to the core's, and
+`tests/browser/field.mjs` is a smoke for a browser with WebGPU in workers.
+The measurements are in
+`.flow/evidence/fn-257-the-site-grows-its-trees-on-the-device/`.

@@ -30,13 +30,6 @@ pub(crate) struct Rules<'a> {
     pub age: u32,
     pub budget: u32,
     pub grown: u64,
-    /// Whether a chain grows alone (fn-209 probe P2): the laterals it
-    /// makes and the sleeping buds that wake on it are buds it bears,
-    /// made but not grown.
-    pub alone: bool,
-    /// The buds the structure above a cut hands to the expansion (fn-209
-    /// F1, `realized.rs`): made where they stand, never grown here.
-    pub hands: Option<Arc<super::realized::Hands>>,
     /// The one cycle's survival (fn-255, fn-256's spike contract): each
     /// PA's viability read as the f32 its table holds, shaded in f32.
     pub one: bool,
@@ -102,6 +95,11 @@ pub(super) struct Shoot<'g, 'a> {
     pub marked: Vec<u64>,
     /// The phytomers this share grew.
     pub grown: u64,
+    /// The units the job growing now grew in the cycle, and the most a
+    /// living apex's job and a waking bud's grew (fn-276: what the
+    /// device's units rounds hold, against `schedule::most_units`).
+    pub job: u32,
+    pub jobs: [u32; 2],
     /// One zone's node presences and its nodes (order draw, draw index,
     /// presence, buds), reused.
     pub leads: Vec<f32>,
@@ -121,14 +119,6 @@ pub(super) struct Spare {
     pub sleeping: Vec<f64>,
 }
 
-impl Rules<'_> {
-    /// Whether a lateral of `pa` born in `birth` is handed on below the
-    /// cut rather than grown here.
-    pub fn hands(&self, pa: usize, birth: u32) -> bool {
-        self.hands.as_ref().is_some_and(|h| h.fine(pa, birth))
-    }
-}
-
 impl<'g, 'a> Shoot<'g, 'a> {
     pub fn new(rules: &'g Rules<'a>, reads: Reads<'g>, tree: (&'g [u64], &'g [f64])) -> Self {
         let (roots, horizons) = tree;
@@ -146,6 +136,8 @@ impl<'g, 'a> Shoot<'g, 'a> {
             woken: Vec::new(),
             marked: Vec::new(),
             grown: 0,
+            job: 0,
+            jobs: [0; 2],
             leads: Vec::new(),
             node_buds: Vec::new(),
             sleeping: Vec::new(),
@@ -249,6 +241,14 @@ impl<'g, 'a> Shoot<'g, 'a> {
         self.reads.pencils.get(i).map_or(1.0, |p| p.light)
     }
 
+    /// Whether axis `i`'s tip, as the rough layout laid it last cycle,
+    /// rests on the ground (fn-252 R2): a laid walk off the stem whose tip
+    /// stands at the ground, where only the resting clamp, or the run
+    /// along the ground it began, puts it.
+    pub fn rests(&self, i: usize) -> bool {
+        (self.reads.pencils.get(i)).is_some_and(|p| !p.trunk && p.laid > 0 && p.layer.rests())
+    }
+
     /// Axis `i`'s growth unit's size this cycle (`allocation.rs`); whole
     /// where nothing shades.
     pub fn size(&self, i: usize) -> f64 {
@@ -334,18 +334,11 @@ impl<'g, 'a> Shoot<'g, 'a> {
             }
             Origin::Seed | Origin::Lateral { .. } => (key.0, key.onto(pa)),
         };
-        let borne = matches!(origin, Origin::Lateral { woken: false, .. })
-            && (self.rules.alone || self.rules.hands(pa, cycle));
-        if !borne {
-            self.next.push(Apex {
-                axis: self.len(),
-                spent,
-            });
-        }
-        let draws = Draws {
-            birth: made,
-            ..Draws::default()
-        };
+        self.next.push(Apex {
+            axis: self.len(),
+            spent,
+        });
+        let draws = Draws::made(made);
         self.push(lineage, pa, cycle, origin, (spent, root, draws));
     }
 

@@ -38,7 +38,7 @@ pub enum Pass {
     ShadeRead,
     /// Once settled: the living apexes marked, presences assigned, the
     /// tree as grown sized for its shed pipes, shedding, the pipes
-    /// kept, scale, girth and the leaf term's mean.
+    /// kept, scale and girth.
     Mark,
     Assign,
     Attachments,
@@ -46,7 +46,6 @@ pub enum Pass {
     Disused,
     Scale,
     Thicken,
-    LeafMean,
     /// The final lay, its sag's levers, and the lay under sag.
     Place,
     Levers,

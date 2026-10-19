@@ -114,8 +114,11 @@ const P_LAID: u32 = 52u;
 const P_TRUNK: u32 = 53u;
 const P_WOOD: u32 = 54u;
 const P_FRESH: u32 = 55u;
+// A relay's take-over (fn-286): how far, then its line.
+const P_TAKE: u32 = 59u;
+const P_LINE: u32 = 60u;
 // A PA's form row, after the two globals (the cone and the ground).
-const FORM: u32 = 19u;
+const FORM: u32 = 20u;
 const F_INTERNODE: u32 = 0u;
 const F_TROPISM: u32 = 1u;
 const F_ELEVATION: u32 = 2u;
@@ -135,6 +138,7 @@ const F_RELAY_AT: u32 = 15u;
 const F_RELAY_NODE: u32 = 16u;
 const F_DOMINANCE: u32 = 17u;
 const F_LEAF_AREA: u32 = 18u;
+const F_TAKEOVER: u32 = 19u;
 // Faults, each a bit of the axis's fault word.
 const FAULT_UNREAD: u32 = 1u;
 const FAULT_BEYOND: u32 = 2u;

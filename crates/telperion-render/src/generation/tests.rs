@@ -1,6 +1,6 @@
 use super::*;
 use telperion_core::{
-    foliage::{Reference, TwigPlacement},
+    foliage::{self, Instances, Reference, TwigPlacement},
     math::Vec3,
     pipeline::executor::{self, Expansion, LeafInput},
     tree::{Node, NodeKind, Tree},
@@ -120,10 +120,11 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
             segments,
             count,
             ring_size,
-            rings: crate::buffer::Lent::Borrowed(&uploaded.positions),
+            rings: &*uploaded.positions,
         };
         let shared_leaves = pollster::block_on(generator.compute_buffer_async(
             p,
+            uploaded.positions.size(),
             &leaves(&tree, &f),
             twig,
             &element,
@@ -256,7 +257,6 @@ fn foreign_prepared_result_preserves_the_live_tree() {
         resident: None,
         organ: None,
         wood: None,
-        backend: Backend::CpuFallback,
         metrics: Metrics::default(),
         colouring: 1.0,
     };
@@ -441,10 +441,11 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
         segments: p.segments,
         count: p.count,
         ring_size: p.ring_size,
-        rings: crate::buffer::Lent::Borrowed(&positions),
+        rings: &positions,
     };
     let leaves = pollster::block_on(g.compute_buffer_async(
         p,
+        positions.size(),
         &leaves(&tree, &f),
         twig,
         &element,
@@ -464,7 +465,7 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
     assert_eq!(&*wood.positions, &positions);
     // The contacts against the reference build's surface: the GPU's ring
     // positions read back, under the CPU's triangles.
-    let reference_wood = x.wood().unwrap();
+    let reference_wood = x.wood().unwrap().flattened();
     let xyz: Vec<f32> = io::read(
         &g.gpu,
         &positions,
@@ -537,4 +538,24 @@ fn compact_position_candidate_does_not_override_station_capability() {
     .stations()
     .unwrap()
     .is_none());
+}
+
+/// Production makes of the position programme only `emit`, which the
+/// resident build's ring seating runs, from a module holding no other
+/// entry; the comparison route's entries follow it, test-only (fn-287
+/// R1, fn-293 finding 10).
+#[test]
+fn production_makes_only_the_position_emit_entry() {
+    assert_eq!(super::positions::ENTRIES, ["emit"]);
+    let module = naga::front::wgsl::parse_str(include_str!("positions.wgsl")).unwrap();
+    let made: Vec<_> = module
+        .entry_points
+        .iter()
+        .map(|e| e.name.as_str())
+        .collect();
+    assert_eq!(made, super::positions::ENTRIES);
+    assert_eq!(
+        super::positions::entries(),
+        ["emit", "admit", "radii", "finish"]
+    );
 }

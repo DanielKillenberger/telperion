@@ -7,7 +7,7 @@
 //! never completed: `TREE=silver-birch:20 TELPERION_TRACE=1
 //! timeout 120
 //! cargo test --profile ci -p telperion-render browser_route -- --ignored`.
-use super::super::{Delivery, Generator};
+use super::super::Generator;
 use crate::{Gpu, Renderer};
 
 /// The page's device: its two raised limits, WebGPU's defaults beside.
@@ -53,7 +53,7 @@ fn browser_route() {
     let mut renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let t = std::time::Instant::now();
     let gen = pollster::block_on(Generator::new_async(&renderer)).unwrap();
-    let prepared = gen.prepare(&family, Delivery::Resident).unwrap();
+    let prepared = gen.prepare(&family).unwrap();
     let built = t.elapsed().as_secs_f64();
     renderer.submit_prepared(prepared).unwrap();
     let camera = crate::hero_pose(renderer.bounds().unwrap(), 4.0 / 3.0, crate::GROUND_REACH);
@@ -77,7 +77,7 @@ fn a_build_makes_no_program_the_preparation_did_not() {
     assert!(prepared > before, "the preparation made no program");
     let mut family = telperion_core::presets::by_identity("european-beech").unwrap();
     family.age = 5.0;
-    gen.prepare(&family, Delivery::Resident).unwrap();
+    gen.prepare(&family).unwrap();
     pollster::block_on(gen.prepare_programs()).unwrap();
     assert_eq!(crate::programs::made(), prepared);
 }
@@ -93,7 +93,13 @@ const COLD_PIPELINE_MS: f64 = 2_500.0;
 /// fn-235 R1: a page's first tree, the beech at 20 on the device, built
 /// in a process of its own on a cold driver cache: no pipeline made past
 /// the watchdog's margin (fn-256 task 2 made every cycle kernel small).
+/// A compile time measures the machine's load as much as the shader
+/// (fn-246 FRICTION.md: 20.6-26.0 s under load against a 20 s bound), so
+/// this runs in the release checks on a quiet machine, and the default
+/// suite holds each entry's inlined size instead (fn-237 R9,
+/// `compile_size`).
 #[test]
+#[ignore = "release check: a cold compile timed, on a quiet machine"]
 fn every_pipeline_within_2_5_s_cold() {
     // The NVIDIA driver's own disk cache, off: a cold page's compile.
     let env = [("TELPERION_TRACE", "1"), ("__GL_SHADER_DISK_CACHE", "0")];
@@ -117,9 +123,15 @@ fn every_pipeline_within_2_5_s_cold() {
         "a pipeline was still being made at 120 s, after {last:?}"
     );
     assert!(status.success(), "the build failed: {status}");
-    let slow: Vec<_> = made.iter().filter(|(_, ms)| *ms > COLD_PIPELINE_MS).collect();
+    let slow: Vec<_> = made
+        .iter()
+        .filter(|(_, ms)| *ms > COLD_PIPELINE_MS)
+        .collect();
     assert!(!made.is_empty(), "no pipeline was made");
-    assert!(slow.is_empty(), "made cold over {COLD_PIPELINE_MS} ms: {slow:?}");
+    assert!(
+        slow.is_empty(),
+        "made cold over {COLD_PIPELINE_MS} ms: {slow:?}"
+    );
     let built: f64 = (stdout.iter())
         .find_map(|l| {
             l.split_once("built in ")?
@@ -186,7 +198,9 @@ fn built(tree: &str, env: &[(&str, &str)]) -> Built {
 /// 80 built on it, out-of-memory probes) are marked `#[ignore = "device
 /// limits: ..."]`, so a default run beside an open harness never takes
 /// the driver's address space; they run only when asked (`-- --ignored`).
-/// Every marked test in the crate's source is one libtest leaves out.
+/// So are the release checks a quiet machine or a fetched tool needs,
+/// whose ignore reason begins "release check" (fn-237 R9, R14). Every
+/// marked test in the crate's source is one libtest leaves out.
 #[test]
 fn device_limit_probes_run_only_when_asked() {
     let src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
@@ -202,9 +216,11 @@ fn device_limit_probes_run_only_when_asked() {
             let module = path.strip_prefix(&src).unwrap().with_extension("");
             let module = module.to_str().unwrap().replace('/', "::");
             let text = std::fs::read_to_string(&path).unwrap();
-            for part in text.split("#[ignore = \"device limits").skip(1) {
-                let name = part.split_once("fn ").unwrap().1.split_once('(').unwrap().0;
-                marked.push(format!("{module}::{name}: test"));
+            for mark in ["#[ignore = \"device limits", "#[ignore = \"release check"] {
+                for part in text.split(mark).skip(1) {
+                    let name = part.split_once("fn ").unwrap().1.split_once('(').unwrap().0;
+                    marked.push(format!("{module}::{name}: test"));
+                }
             }
         }
     }

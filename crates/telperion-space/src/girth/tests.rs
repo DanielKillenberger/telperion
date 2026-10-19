@@ -30,6 +30,7 @@ fn state(leaf_girth: f64) -> PaState {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
@@ -46,6 +47,7 @@ fn state(leaf_girth: f64) -> PaState {
         colouring: 0.0,
         leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -231,7 +233,11 @@ fn a_relays_wood_enters_where_it_joins_and_its_stub_carries_its_own() {
             child.blend = 0.4;
             axes.push(child);
         }
-        let mut t = Structure { age: 1, pas: 1, axes };
+        let mut t = Structure {
+            age: 1,
+            pas: 1,
+            axes,
+        };
         thicken(&mut t, &species, &Girth::default(), 1);
         t
     };
@@ -247,11 +253,20 @@ fn a_relays_wood_enters_where_it_joins_and_its_stub_carries_its_own() {
         woken: false,
     }));
     let alone = grown(None);
-    let radii = |t: &Structure| t.axes[0].phytomers.iter().map(|p| p.radius).collect::<Vec<_>>();
+    let radii = |t: &Structure| {
+        t.axes[0]
+            .phytomers
+            .iter()
+            .map(|p| p.radius)
+            .collect::<Vec<_>>()
+    };
     let (relay, lateral, alone) = (radii(&relay), radii(&lateral), radii(&alone));
     assert_eq!(relay[..k], lateral[..k], "the parent below the join");
     assert_eq!(relay[k + 1..], alone[k + 1..], "the stub");
-    assert!(alone[k] < relay[k] && relay[k] < lateral[k], "the span by degree");
+    assert!(
+        alone[k] < relay[k] && relay[k] < lateral[k],
+        "the span by degree"
+    );
     assert_eq!(join.below, lateral[k], "the bole below the join");
     assert_eq!(join.above, alone[k], "the stub's first span");
 }
@@ -291,7 +306,9 @@ fn a_node_growing_in_moves_no_relays_attachment() {
 /// 1,024 folded from zero, the blocks folded from zero.
 fn folded(terms: &[(f32, f32)]) -> [f32; 2] {
     let fold = |pick: &dyn Fn(&(f32, f32)) -> f32| -> f32 {
-        let blocks = terms.chunks(LEAF_BLOCK).map(|c| c.iter().map(pick).fold(0.0f32, |a, x| a + x));
+        let blocks = terms
+            .chunks(LEAF_BLOCK)
+            .map(|c| c.iter().map(pick).fold(0.0f32, |a, x| a + x));
         blocks.fold(0.0f32, |a, x| a + x)
     };
     [fold(&|t| t.0), fold(&|t| t.1)]
@@ -302,7 +319,9 @@ fn folded(terms: &[(f32, f32)]) -> [f32; 2] {
 /// the blocks keep the block of them that stands alone.
 #[test]
 fn the_leaf_mean_sums_in_blocks_of_1024_in_order() {
-    let terms: Vec<(f32, f32)> = std::iter::once((1e8, 1e8)).chain(std::iter::repeat_n((1.0, 0.5), 2047)).collect();
+    let terms: Vec<(f32, f32)> = std::iter::once((1e8, 1e8))
+        .chain(std::iter::repeat_n((1.0, 0.5), 2047))
+        .collect();
     let mut blocked = Blocked::default();
     let mut sequential = [0.0f32; 2];
     for &t in &terms {
@@ -335,21 +354,42 @@ fn the_trees_leaf_mean_is_its_terms_blocked_in_order() {
     t.axes[1].phytomers = phytomers;
     let state = &species.states[0];
     let terms: Vec<(f32, f32)> = (t.axes.iter().flat_map(|a| &a.phytomers))
-        .map(|p| super::terms(own(&state.form, p, t.age, p.scale, 1.0), p.light, state.leaf_girth))
+        .map(|p| {
+            super::terms(
+                own(&state.form, p, t.age, p.scale, 1.0),
+                p.light,
+                state.leaf_girth,
+            )
+        })
         .collect();
     let [total, weighted] = folded(&terms);
     assert_eq!(leaf_terms(&t, &species), mean_of(total, weighted));
-    let sequential = terms.iter().fold([0.0f32; 2], |a, x| [a[0] + x.0, a[1] + x.1]);
+    let sequential = terms
+        .iter()
+        .fold([0.0f32; 2], |a, x| [a[0] + x.0, a[1] + x.1]);
     println!("blocked {:?}, sequential {sequential:?}", [total, weighted]);
-    assert_eq!(leaf_partials(&t.axes, &species, (t.age, 4), Stand::WHOLE), {
-        let bases = bases(&t.axes, &species, None);
-        let grown: Vec<(f32, f32)> = (t.axes.iter().zip(&bases).flat_map(|(a, &b)| a.phytomers.iter().map(move |p| (p, b))))
+    assert_eq!(
+        leaf_partials(&t.axes, &species, (t.age, 4), Stand::WHOLE),
+        {
+            let bases = bases(&t.axes, &species, None);
+            let grown: Vec<(f32, f32)> = (t
+                .axes
+                .iter()
+                .zip(&bases)
+                .flat_map(|(a, &b)| a.phytomers.iter().map(move |p| (p, b))))
             .map(|(p, b)| {
                 let g = super::disused::Grew::of(p);
-                let pipe = own_at(&state.form, g.cycle, t.age, f64::from(g.scale * b * g.size), 1.0);
+                let pipe = own_at(
+                    &state.form,
+                    g.cycle,
+                    t.age,
+                    f64::from(g.scale * b * g.size),
+                    1.0,
+                );
                 super::terms(pipe, f64::from(g.light), state.leaf_girth)
             })
             .collect();
-        folded(&grown)
-    });
+            folded(&grown)
+        }
+    );
 }

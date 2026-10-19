@@ -15,22 +15,54 @@ use telperion_core::Family;
 fn scales(generator: &Generator, retention: Option<(u32, u32)>, fall: f32) -> (Vec<f64>, Vec<f64>) {
     let tree = fixture(0.0);
     let f = Family::default();
-    let twig = TwigPlacement { internode_length: 0.07, stations_per_internode: 3 };
+    let twig = TwigPlacement {
+        internode_length: 0.07,
+        stations_per_internode: 3,
+    };
     let mut p = expansion(&tree, &f, twig).stations().unwrap().unwrap();
     p.segments.truncate(1);
     p.count = 64;
     let segment = &mut p.segments[0];
     (segment.count, segment.first) = (64, 0);
     segment.retention = retention.map(|(was, now)| (0, was, now));
-    segment.unfolding = telperion_core::tree::Unfolded { fall, ..telperion_core::tree::Unfolded::WHOLE };
-    let (unfolded, key, kept) = (segment.unfolding, segment.key, retention.is_none_or(|(_, now)| now != 0));
-    let cpu = (0..64).map(|k| unfolded.leaf(kept, key, segment.run_station + k).0).collect();
+    segment.unfolding = telperion_core::tree::Unfolded {
+        fall,
+        ..telperion_core::tree::Unfolded::WHOLE
+    };
+    let (unfolded, key, kept) = (
+        segment.unfolding,
+        segment.key,
+        retention.is_none_or(|(_, now)| now != 0),
+    );
+    let cpu = (0..64)
+        .map(|k| unfolded.leaf(kept, key, segment.run_station + k).0)
+        .collect();
     let reference = Reference::spanning(Vec3::new(-2.0, -1.0, -2.0), Vec3::new(2.0, 3.0, 2.0));
     let element = executor::element(f.element).unwrap();
-    let out = generator.compute(p, &leaves(&tree, &f), twig, &element, reference, &mut Default::default()).unwrap();
-    let bytes = io::read(&generator.gpu, out.leaves.buffer(), u64::from(out.count) * 12).unwrap();
+    let out = generator
+        .compute(
+            p,
+            &leaves(&tree, &f),
+            twig,
+            &element,
+            reference,
+            &mut Default::default(),
+        )
+        .unwrap();
+    let bytes = io::read(
+        &generator.gpu,
+        out.leaves.buffer(),
+        u64::from(out.count) * 12,
+    )
+    .unwrap();
     let words: &[u32] = bytemuck::cast_slice(&bytes);
-    (words.chunks_exact(3).map(|l| reference.scale([l[0], l[1], l[2]])).collect(), cpu)
+    (
+        words
+            .chunks_exact(3)
+            .map(|l| reference.scale([l[0], l[1], l[2]]))
+            .collect(),
+        cpu,
+    )
 }
 
 #[test]
@@ -47,11 +79,17 @@ fn a_leaf_its_wood_keeps_no_longer_falls_by_the_year_on_the_device() {
         let (drawn, cpu) = scales(&generator, Some(retention), 0.5);
         assert_eq!(drawn.len(), whole.len());
         for ((d, w), share) in drawn.iter().zip(&whole).zip(&cpu) {
-            assert!((d - w * share).abs() <= 2e-3 * w, "{retention:?}: {d} against {w} at {share}");
+            assert!(
+                (d - w * share).abs() <= 2e-3 * w,
+                "{retention:?}: {d} against {w} at {share}"
+            );
         }
         let gone = cpu.iter().filter(|&&c| c == 0.0).count();
         match retention.1 {
-            0 => assert!((16..=48).contains(&gone), "{gone} of 64 fallen at half the fall"),
+            0 => assert!(
+                (16..=48).contains(&gone),
+                "{gone} of 64 fallen at half the fall"
+            ),
             _ => assert_eq!(gone, 0),
         }
     }

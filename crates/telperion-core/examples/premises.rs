@@ -16,7 +16,10 @@ use std::collections::HashMap;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::time::Instant;
 use telperion_core::presets::Preset;
-use telperion_space::{grow_census, grow_cycle, identities, tree_digest, Census, Light, Paused, Request, Retiring, Species, Structure};
+use telperion_space::{
+    grow_census, grow_cycle, identities, tree_digest, Census, Light, Paused, Request, Retiring,
+    Species, Structure,
+};
 
 const PRESETS: [(Preset, &str); 8] = [
     (Preset::EuropeanBeech, "european-beech"),
@@ -31,7 +34,10 @@ const PRESETS: [(Preset, &str); 8] = [
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let (p, _) = PRESETS.iter().find(|p| p.1 == args[1]).expect("a shipped preset");
+    let (p, _) = PRESETS
+        .iter()
+        .find(|p| p.1 == args[1])
+        .expect("a shipped preset");
     let family = p.parameters();
     let species = family.space.species.expect("an engine species");
     let seed = args[2].parse().expect("a seed");
@@ -45,12 +51,20 @@ fn main() {
         _ => panic!("kept, split or walk"),
     }
     let status = std::fs::read_to_string("/proc/self/status").unwrap_or_default();
-    let peak = status.lines().find(|l| l.starts_with("VmHWM")).unwrap_or("VmHWM: unknown");
+    let peak = status
+        .lines()
+        .find(|l| l.starts_with("VmHWM"))
+        .unwrap_or("VmHWM: unknown");
     println!("  {:.1} s, {peak}", started.elapsed().as_secs_f64());
 }
 
 fn request(age: u32, seed: u64, light: Light) -> Request {
-    Request { age, seed, budget: 20_000_000, light }
+    Request {
+        age,
+        seed,
+        budget: 20_000_000,
+        light,
+    }
 }
 
 /// R1 (c): the kept tree and the live set, today's against the age grown.
@@ -63,8 +77,13 @@ fn kept(species: &Species, r: Request) {
     p.grow_to(r.age).expect("grown");
     let held_age = held(p.census().expect("a census"));
     let tree = p.settle().expect("settled");
-    let rises: Vec<f64> = (held_age.iter().zip(&held_today)).map(|(&a, &t)| a as f64 / t.max(1) as f64).collect();
-    let (worst, at) = rises.iter().enumerate().fold((0.0, 0), |m, (k, &x)| if x > m.0 { (x, k + 1) } else { m });
+    let rises: Vec<f64> = (held_age.iter().zip(&held_today))
+        .map(|(&a, &t)| a as f64 / t.max(1) as f64)
+        .collect();
+    let (worst, at) = rises
+        .iter()
+        .enumerate()
+        .fold((0.0, 0), |m, (k, &x)| if x > m.0 { (x, k + 1) } else { m });
     let peak = |h: &[usize]| h.iter().copied().max().unwrap_or(0);
     println!(
         "  KEPT same {}; live peak today {} at age {}; rise at peak {:.4}; worst cycle {at} {worst:.4}",
@@ -75,7 +94,10 @@ fn kept(species: &Species, r: Request) {
     );
     println!("  LIVE today {held_today:?}");
     println!("  LIVE atage {held_age:?}");
-    assert!(tree_digest(&tree) == digest, "STOP: the kept tree is not today's");
+    assert!(
+        tree_digest(&tree) == digest,
+        "STOP: the kept tree is not today's"
+    );
     // The stop's two readings (PREMISES.md): the peak, and each cycle.
     let peak_rise = peak(&held_age) as f64 / peak(&held_today) as f64;
     if peak_rise > 1.25 || worst > 1.25 {
@@ -92,7 +114,10 @@ fn held(c: &Census) -> Vec<usize> {
 /// R1 (d): paused, settled twice, advanced by none, grown on.
 fn split(species: &Species, r: Request) {
     let today = tree_digest(&grow_cycle(species, r).expect("grown").structure);
-    let mut years: Vec<u32> = [10, 40, r.age - 1].into_iter().filter(|&a| a > 0 && a < r.age).collect();
+    let mut years: Vec<u32> = [10, 40, r.age - 1]
+        .into_iter()
+        .filter(|&a| a > 0 && a < r.age)
+        .collect();
     years.dedup();
     for a in years {
         let mut p = Paused::begin(species, r, Retiring::AtAge, false).expect("begun");
@@ -104,8 +129,15 @@ fn split(species: &Species, r: Request) {
         let moved = p.digest() != before;
         p.grow_to(r.age).expect("grown on");
         let on = tree_digest(&p.settle().expect("settled"));
-        println!("  SPLIT {a}: settles repeat {}, grower moved {moved}, grown on is today's {}", first == again, on == today);
-        assert!(first == again && !moved && on == today, "STOP: split at {a}");
+        println!(
+            "  SPLIT {a}: settles repeat {}, grower moved {moved}, grown on is today's {}",
+            first == again,
+            on == today
+        );
+        assert!(
+            first == again && !moved && on == today,
+            "STOP: split at {a}"
+        );
     }
 }
 
@@ -123,7 +155,11 @@ fn walk(species: &Species, r: Request) {
         // them to it at three years.
         let before = small.then(|| p.digest());
         let tree = p.settle().expect("settled");
-        assert_eq!(small.then(|| p.digest()), before, "a settle at {y} moved the grower");
+        assert_eq!(
+            small.then(|| p.digest()),
+            before,
+            "a settle at {y} moved the grower"
+        );
         digests.push(tree_digest(&tree));
         if let Some(prev) = &last {
             moved.push(movement(prev, &tree));
@@ -133,14 +169,22 @@ fn walk(species: &Species, r: Request) {
     drop((p, last));
     let never = walk_digests(species, r, Retiring::Never);
     let same = never.iter().zip(&digests).filter(|(a, b)| a == b).count();
-    println!("  WALK at-age against none retired: {same} of {} years the same", r.age);
-    assert_eq!(same, r.age as usize, "STOP: a year's tree is not the horizon's prefix");
+    println!(
+        "  WALK at-age against none retired: {same} of {} years the same",
+        r.age
+    );
+    assert_eq!(
+        same, r.age as usize,
+        "STOP: a year's tree is not the horizon's prefix"
+    );
     print_moves("horizon", &moved);
     if small {
         let mut moved = Vec::new();
         let mut last: Option<Structure> = None;
         for y in 1..=r.age {
-            let tree = grow_cycle(species, Request { age: y, ..r }).expect("grown").structure;
+            let tree = grow_cycle(species, Request { age: y, ..r })
+                .expect("grown")
+                .structure;
             if let Some(prev) = &last {
                 moved.push(movement(prev, &tree));
             }
@@ -157,7 +201,10 @@ fn walk_digests(species: &Species, r: Request, retiring: Retiring) -> Vec<u64> {
         .map(|y| {
             p.grow_to(y).expect("grown");
             let settled = catch_unwind(AssertUnwindSafe(|| p.settle()));
-            settled.ok().and_then(Result::ok).map_or(0, |t| tree_digest(&t))
+            settled
+                .ok()
+                .and_then(Result::ok)
+                .map_or(0, |t| tree_digest(&t))
         })
         .collect()
 }
@@ -177,8 +224,10 @@ struct Moved {
 
 fn movement(prev: &Structure, now: &Structure) -> Moved {
     let mut m = Moved::default();
-    let at: HashMap<u64, &[telperion_space::Phytomer]> =
-        identities(now).into_iter().zip(now.axes.iter().map(|a| &a.phytomers[..])).collect();
+    let at: HashMap<u64, &[telperion_space::Phytomer]> = identities(now)
+        .into_iter()
+        .zip(now.axes.iter().map(|a| &a.phytomers[..]))
+        .collect();
     assert_eq!(at.len(), now.axes.len(), "an identity a tree's axes share");
     for (a, id) in prev.axes.iter().zip(identities(prev)) {
         let now = at.get(&id);
@@ -206,6 +255,10 @@ fn print_moves(label: &str, moved: &[Moved]) {
     let gone: usize = moved.iter().map(|m| m.gone).sum();
     let shed: usize = moved.iter().map(|m| m.shed).sum();
     println!("  MOVES {label}: most {most:.4}, over a quarter {jumped}, gone over a quarter {gone} ({shed} shed)");
-    let years: Vec<String> = moved.iter().enumerate().map(|(k, m)| format!("{}:{:.3}/{}/{}", k + 2, m.most, m.jumped, m.gone)).collect();
+    let years: Vec<String> = moved
+        .iter()
+        .enumerate()
+        .map(|(k, m)| format!("{}:{:.3}/{}/{}", k + 2, m.most, m.jumped, m.gone))
+        .collect();
     println!("  MOVES {label} by year {}", years.join(" "));
 }

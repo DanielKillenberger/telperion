@@ -11,8 +11,7 @@ pub mod branching {
     #[cfg(test)]
     pub use crate::pipeline::branching::*;
     pub use crate::pipeline::branching::{
-        GrowthOverrides, GrowthReport, HabitParams, LeafBase, SkeletonParams, DEFAULT_STEP,
-        MAX_LEAF_BASES,
+        GrowthOverrides, HabitParams, LeafBase, SkeletonParams, DEFAULT_STEP, MAX_LEAF_BASES,
     };
 }
 
@@ -23,19 +22,21 @@ pub mod colonization {
 }
 
 pub mod field {
-    pub use crate::pipeline::field::{Field, FieldSnapshot, IndexSnapshot, Occupancy};
+    #[cfg(all(test, feature = "geometry"))]
+    pub use crate::pipeline::field::{bounds, read};
+    pub use crate::pipeline::field::{Frame, Grid, Occupancy};
 }
 
 pub mod foliage {
+    #[cfg(feature = "geometry")]
+    pub use crate::pipeline::foliage::bloom_box;
     #[cfg(test)]
     pub use crate::pipeline::foliage::*;
     pub use crate::pipeline::foliage::{
-        transform_point, withered, AnatomyGeometry, BloomParams, Bounds, CanopyParams, Crown, Element,
-        ElementParams, FoliageUnit, Instances, Leaf, Level, Reference, Rosette, TwigPlacement,
-        MAX_FRONDS, MAX_LEAFLETS, WITHERED, WORDS,
+        blade, transform_point, withered, AnatomyGeometry, BloomParams, Bounds, CanopyParams,
+        Crown, Element, ElementParams, FoliageUnit, Instances, Leaf, Level, Reference, Rosette,
+        TwigPlacement, MAX_FRONDS, MAX_LEAFLETS, WITHERED, WORDS,
     };
-    #[cfg(feature = "geometry")]
-    pub use crate::pipeline::foliage::bloom_box;
     pub mod plan {
         #[cfg(test)]
         pub use crate::pipeline::foliage::plan::*;
@@ -61,10 +62,11 @@ pub mod radius {
 }
 
 pub mod surface {
-    #[cfg(test)]
+    #[cfg(all(test, feature = "geometry"))]
     pub use crate::pipeline::surface::*;
     pub use crate::pipeline::surface::{
-        Bounds, SurfaceMesh, SurfaceParams, SurfaceRun, WoodExtent,
+        Bounds, FlatWood, SurfaceChunk, SurfaceMesh, SurfaceParams, SurfaceRun, WoodExtent,
+        WoodRun, CHUNK_VERTICES,
     };
     #[cfg(feature = "geometry")]
     pub use crate::pipeline::surface::{
@@ -88,7 +90,7 @@ pub mod surface {
 }
 
 pub mod twigs {
-    pub use crate::pipeline::twigs::{
-        branch_length, child_radius, TwigAnatomy, TwigParams, MAX_GENERATIONS,
-    };
+    #[cfg(test)]
+    pub use crate::pipeline::twigs::*;
+    pub use crate::pipeline::twigs::{TwigAnatomy, TwigParams};
 }

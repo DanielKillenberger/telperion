@@ -9,11 +9,18 @@ use super::build_light::{cfg, sky, sweeps_of, LAYERS, START, TILE};
 use super::columns::Cap;
 #[cfg(test)]
 use crate::buffer::Owned;
+use crate::Gpu;
 #[cfg(test)]
 use crate::Result;
-use crate::Gpu;
 
-const ENTRIES: [&str; 6] = ["span_main", "grid_main", "deposit_main", "densities_main", "sweep_main", "read_main"];
+const ENTRIES: [&str; 6] = [
+    "span_main",
+    "grid_main",
+    "deposit_main",
+    "densities_main",
+    "sweep_main",
+    "read_main",
+];
 #[cfg(test)]
 /// The sweep's entry, dispatched once a range of layers.
 pub(super) const SWEEP: usize = 4;
@@ -78,7 +85,12 @@ impl Lit {
         let directions = cap.u64s("light_directions");
         let (dirs, reach) = sky(k, &directions);
         let tips = cap.f32s("light_tips");
-        let tips = tips.as_chunks::<3>().0.iter().flat_map(|t| [t[0], t[1], t[2], 0.0]).collect();
+        let tips = tips
+            .as_chunks::<3>()
+            .0
+            .iter()
+            .flat_map(|t| [t[0], t[1], t[2], 0.0])
+            .collect();
         Self {
             leaves: cap.f32s("light_leaves"),
             tips,
@@ -93,7 +105,11 @@ impl Lit {
     }
 
     pub(super) fn counts(&self) -> [u32; 3] {
-        [self.leaves.len() as u32 / 4, self.tips.len() as u32 / 4, self.dirs.len() as u32 / 8]
+        [
+            self.leaves.len() as u32 / 4,
+            self.tips.len() as u32 / 4,
+            self.dirs.len() as u32 / 8,
+        ]
     }
 
     /// A direction's real at word `w` of its eight.
@@ -110,7 +126,11 @@ impl Lit {
         (0..nodes)
             .map(|i| match i / layer >= swept {
                 true => self.open,
-                false => (0..dirs).fold(0.0f32, |s, d| s + self.real(d, 7) * (-depths[d * cap + i]).exp()).clamp(0.0, 1.0),
+                false => (0..dirs)
+                    .fold(0.0f32, |s, d| {
+                        s + self.real(d, 7) * (-depths[d * cap + i]).exp()
+                    })
+                    .clamp(0.0, 1.0),
             })
             .map(f32::to_bits)
             .collect()
@@ -120,7 +140,13 @@ impl Lit {
 #[cfg(test)]
 fn storage(gpu: &Gpu, label: &'static str, bytes: u64, words: &[u32]) -> Result<Owned> {
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-    io::buffer(gpu, label, bytes.max(16), usage, bytemuck::cast_slice(words))
+    io::buffer(
+        gpu,
+        label,
+        bytes.max(16),
+        usage,
+        bytemuck::cast_slice(words),
+    )
 }
 
 /// The directions the uniform holds: the sky's nine at most.
@@ -161,11 +187,29 @@ impl Run {
         let uniform = wgpu::BufferUsages::UNIFORM;
         let mut cfgs = Vec::new();
         for chunk in 0..sweeps_of(lit.size[2]).max(1) {
-            let words = cfg([leaves, tips], (dirs, lit.capacity), (lit.lit, lit.dormant), (chunk, 0), (lit.reach, lit.open), &lit.dirs);
-            cfgs.push(io::buffer(gpu, "light cfg", 4 * words.len() as u64, uniform, bytemuck::cast_slice(&words))?);
+            let words = cfg(
+                [leaves, tips],
+                (dirs, lit.capacity),
+                (lit.lit, lit.dormant),
+                (chunk, 0),
+                (lit.reach, lit.open),
+                &lit.dirs,
+            );
+            cfgs.push(io::buffer(
+                gpu,
+                "light cfg",
+                4 * words.len() as u64,
+                uniform,
+                bytemuck::cast_slice(&words),
+            )?);
         }
         let points = [&lit.leaves[..], &lit.tips[..]].concat();
-        let points = storage(gpu, "light points", 4 * points.len() as u64, bytemuck::cast_slice(&points))?;
+        let points = storage(
+            gpu,
+            "light points",
+            4 * points.len() as u64,
+            bytemuck::cast_slice(&points),
+        )?;
         let start = storage(gpu, "light state start", 32, &START)?;
         let state = storage(gpu, "light state", 32, &[])?;
         let grid = storage(gpu, "light grid", 48, &[])?;
@@ -173,12 +217,26 @@ impl Run {
         let field = storage(gpu, "light field", 4 * cap, &[])?;
         let depths = storage(gpu, "light depths", 4 * u64::from(dirs) * cap, &[])?;
         let reads = storage(gpu, "light reads", 4 * u64::from(tips), &[])?;
-        let bind_at = |cfg: &Owned| k.pass.bind(gpu, &[&**cfg, &points, &state, &grid, &quanta, &field, &depths, &reads]);
+        let bind_at = |cfg: &Owned| {
+            k.pass.bind(
+                gpu,
+                &[
+                    &**cfg, &points, &state, &grid, &quanta, &field, &depths, &reads,
+                ],
+            )
+        };
         let sweeps: Vec<_> = cfgs.iter().map(bind_at).collect();
         let bind = bind_at(&cfgs[0]);
         let over = |n: u32| n.div_ceil(64).max(1);
         let side = |n: u32| (n + lit.reach * (LAYERS - 1)).div_ceil(TILE);
-        let groups = [over(leaves + tips), 1, over(leaves), over(lit.capacity), dirs * side(lit.size[0]) * side(lit.size[1]), over(tips)];
+        let groups = [
+            over(leaves + tips),
+            1,
+            over(leaves),
+            over(lit.capacity),
+            dirs * side(lit.size[0]) * side(lit.size[1]),
+            over(tips),
+        ];
         let size = |b: &[&Owned]| b.iter().map(|b| b.size()).sum::<u64>();
         let resident = size(&[&cfgs[0], &points, &state, &grid, &quanta, &field, &reads]);
         let scratch = depths.size();
@@ -212,7 +270,11 @@ impl Run {
             if self.dormant && LATTICE.contains(&entry) {
                 continue;
             }
-            let binds = if entry == SWEEP { &self.sweeps[..] } else { std::slice::from_ref(&self.bind) };
+            let binds = if entry == SWEEP {
+                &self.sweeps[..]
+            } else {
+                std::slice::from_ref(&self.bind)
+            };
             for bind in binds {
                 k.pass.run(e, bind, entry, *groups);
                 phases.push(PHASES[entry]);
@@ -224,14 +286,19 @@ impl Run {
     /// The light as the device left it, every value by its word, each
     /// node's light taken from its depths as the read takes it.
     pub(super) fn read(&self, gpu: &Gpu, lit: &Lit) -> Result<Out> {
-        let words = |b: &Owned| -> Result<Vec<u32>> { Ok(bytemuck::cast_slice(&io::read(gpu, b, b.size())?).to_vec()) };
+        let words = |b: &Owned| -> Result<Vec<u32>> {
+            Ok(bytemuck::cast_slice(&io::read(gpu, b, b.size())?).to_vec())
+        };
         let grid = words(&self.grid)?;
         let n = (grid[6] as usize).min(self.capacity);
         let cut = |mut v: Vec<u32>, len: usize| {
             v.truncate(len);
             v
         };
-        let depths: Vec<f32> = words(&self.depths)?.into_iter().map(f32::from_bits).collect();
+        let depths: Vec<f32> = words(&self.depths)?
+            .into_iter()
+            .map(f32::from_bits)
+            .collect();
         Ok(Out {
             errors: words(&self.state)?[6],
             low: [0, 1, 2].map(|a| grid[a]),
@@ -263,6 +330,9 @@ pub(super) struct Out {
 impl Out {
     /// The refusals the device made, by name.
     pub(super) fn refusals(&self) -> Vec<&'static str> {
-        (0..REFUSALS.len()).filter(|b| self.errors >> b & 1 == 1).map(|b| REFUSALS[b]).collect()
+        (0..REFUSALS.len())
+            .filter(|b| self.errors >> b & 1 == 1)
+            .map(|b| REFUSALS[b])
+            .collect()
     }
 }

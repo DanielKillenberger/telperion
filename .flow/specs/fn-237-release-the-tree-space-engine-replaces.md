@@ -33,9 +33,34 @@ The owner's goal (2026-10-08/09): "replace the old generator with the new one th
 
 - **R15 (friction, obvious fix; fn-256 task 13 FRICTION.md):** `scripts/build-wasm.mjs` ignores `CARGO_TARGET_DIR` and reads a stale Wasm from the default target, so `npm test` in a worktree with its own target dir can test old code; before the release PR it honours `CARGO_TARGET_DIR` (or fails by name when the Wasm it reads is older than the sources).
 
+## The owner's species verdicts (R3, 2026-10-15, review page `Kfsy2fgr5B2tJ4uiE1qxae`)
+
+| Species | Verdict | The owner's note |
+|---|---|---|
+| Ordinary | approve | |
+| Date palm | approve | |
+| Oregon white oak | needs work | "seed 7 specifically doesn't look like a real tree. Lower branches that grow to long and zigzag weirdly." |
+| European beech | needs work, after the release | "they really aren't full enough.. We need to be able to have big crowns with leader branches and full foliage. But i think we can move that work to after release." |
+| Silver birch | needs work | "We still need to fix the ground branches and here also we need to be able to make larger species with big leading branches. But it's the best species." |
+| Norway spruce | needs work | "Looks really good but still needs fuller curtains and larger species." |
+| Telperion | needs work, accepted for now | "Doesn't look magical enough and flowers look too much like copy pasted. Not natural. But can accept for now" |
+| Laurelin | needs work | "Looks better than telperion but still flowers are too samey all over. and doesn't look magical enough." |
+
+The owner on the four that ask for size: "i think all have a similar problem is that we're not efficient enough with the generator to make large species at full fidelity. We need to have a plan on how to figure this out post release." That plan is fn-285. The birch's ground branches and the oak's long low branches are fn-282's ground. The owner (2026-10-15): the flowers of Telperion and Laurelin are accepted for the release; the birch's ground branches are accepted, fn-282 after the release; "Oak seed 7 does look like it needs fixing": a release item.
+
+## Scope: the site is the site's repository (owner, 2026-10-15)
+
+"257 defines killenberger.com integration? that really shouldn't be here but on killenberger.com". This repository ships the engine, the harness and the npm package; moving killenberger.com off 0.1.4, its speed in Chrome, what a visitor without WebGPU sees and the grove's verdict are the killenberger.com repository's work, which pins 0.1.4 until it moves. R0a's site bar, R2's "the site's field against 0.1.4" and R3's grove verdict leave this release; fn-257 keeps only the engine's side (the field query grown on the device, its contract and its per-tree cost) and stays a release dependency (owner, 2026-10-15: "no let's do a proper 0.2.0 release with this shipped"): its per-tree bar, 0.1.4's, is measured through the package entry.
+
+## The owner's release decisions (2026-10-16)
+
+- The spruce's per-tree field at about 0.35 s against 0.1.4's 0.24 s: "acceptable". The real kernel work behind it is after the release (fn-285).
+- Compact node records ship in this release (fn-257): "compression should go into this release yes".
+- "fix the rest as proposed": the artifact size ceilings (R8) are raised to the sizes measured after fn-257 lands, with fn-242 to bring them down after the release; Telperion's 1.33 s at seed 42 is accepted as "about 1.25 s"; the oak's device/CPU difference at 40 (one node at `FINEST` by f32/f64 rounding, 185 relabelled keys, nothing drawn differs) is accepted, and the agreement test comparing drawn geometry rather than keys is after the release; the catalogue's unread scaffold pins (R11) are deleted.
+
 ## Boundaries
 
-Map only. Post-release: fn-232, fn-233.
+Map only. Post-release: fn-232, fn-233, fn-285.
 
 ## Housekeeping decisions (host, 2026-10-13, branch fn-237-housekeeping)
 
@@ -43,3 +68,7 @@ Map only. Post-release: fn-232, fn-233.
 - R5 superseded by fn-241 R2 (one field test per preset), closed once a full `npm test` confirms every preset under its timeout. R6 superseded by `691620d04` (2.5 s per pipeline; the first tree's total reported only).
 - R9 and R14's Tint half wait for fn-270's merge (both live in `generation/`): R9's load-dependent compile timing is replaced by a load-free guard then; the Tint checker extends to every shipped module, and its two findings (barriers in `select`, whose bound is a constant, and `positions`) are checked against Tint itself before either is fixed or exempted.
 - Species audit: SPECIES-AUDIT.md; what is left is mostly the owner's verdicts and re-sheets on the current engine, gathered into the release's stills session.
+
+## Astra's release review, incorporated (host, 2026-10-16)
+
+The owner: "astra review is in, incorporate into the release plan" (`ASTRA-RELEASE-REVIEW.md` beside this spec). In 0.2.0: fn-287, the review's cuts and cheap simplifications (the production position pipelines, the dead envelope experiment, true metadata, one gate resource declaration, fn-186's no-geometry job), after fn-257. After the release: fn-288 (the scaffold test generator retires), fn-289 (executors agree on the drawn tree), fn-290 (evidence names its generator; measurements state their scope), fn-285's kernel programme, fn-242 rewritten against the shipped artifacts. Closed as superseded: fn-209, fn-211, fn-214, fn-225, fn-227; fn-245 closes once fn-257 qualifies. Not touched, as the review advises: the cycle, the lattice and the CPU reference; the predictors that still size and blend; per-entry coverage and fine walk sampling; the deprecated wire rows; the owner's verdicts and deferrals.

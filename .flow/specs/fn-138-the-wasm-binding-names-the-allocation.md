@@ -7,9 +7,8 @@
 
 ## Goal & Context
 
-<!-- Goal & Context: 20% [user], 80% [inferred] from two friction reports -->
 
-fn-102 and fn-134 both required Wasm peak linear memory to stay at or below base, and both met a rise with byte-identical output that came from allocation layout, not extra data. fn-102's worker spent about 60 minutes and four hand-built probe binaries (its FRICTION.md, third entry); fn-134's spent about 25 minutes and four rebuild-and-measure rounds of the 240-build binding pass (its FRICTION.md). In both cases nothing said which allocation set the high-water mark. [inferred]
+fn-102 and fn-134 both required Wasm peak linear memory to stay at or below base, and both met a rise with byte-identical output that came from allocation layout, not extra data. fn-102's worker spent about 60 minutes and four hand-built probe binaries (its FRICTION.md (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-102-one-build-pipeline-in-place-of-the/FRICTION.md`), third entry); fn-134's spent about 25 minutes and four rebuild-and-measure rounds of the 240-build binding pass (its FRICTION.md). In both cases nothing said which allocation set the high-water mark. [inferred]
 
 ## Architecture & Data Models
 

@@ -35,31 +35,58 @@ impl Dresser {
     }
 }
 
-/// A drawn wave, or the root: its buffer, its axes and records (`phyts`:
-/// its laid phytomers' and, past the root, one join record per laid axis,
-/// fn-244), and its records' first id.
+/// A drawn wave, or the root: its records (`phyts`: its laid phytomers'
+/// and, past the root, one join record per laid axis, fn-244), its
+/// records' first id and its axes' first slot.
 pub(in crate::generation) struct Drawn {
-    pub buffer: Owned,
-    pub axes: u32,
     pub phyts: u32,
     pub base: u32,
+    pub slot: u32,
     pub root: bool,
 }
 
-/// The root and the drawn waves, the ids they take, and the folds' sums.
+/// The drawn stage's one output (fn-293): every record in `records` by
+/// id, `CV` words each, the room for the retained leaf bases hung after
+/// the dress, then every axis by slot, `CA` words each, from word `axes`
+/// (the root's slot first, the bases' last); the waves, the ids they
+/// take, and the folds' sums.
 pub(in crate::generation) struct Dressed {
+    pub records: Owned,
     pub waves: Vec<Drawn>,
     pub ids: u32,
+    /// The records past the dress's the bases may take, and their slot.
+    pub room: u32,
+    pub room_slot: u32,
+    pub axes: u32,
     sums: Owned,
 }
 
 impl Dressed {
-    /// Drawn `waves` (the root's first) and the ids they take, nothing
+    /// Drawn `waves` (the root's first) in `records`, the ids they take,
+    /// and the bases' `room` and slot, its axes from word `axes`; nothing
     /// folded yet.
-    pub(in crate::generation) fn new(gpu: &Gpu, waves: Vec<Drawn>, ids: u32) -> Result<Self> {
+    pub(in crate::generation) fn new(
+        gpu: &Gpu,
+        (records, axes): (Owned, u32),
+        (waves, ids): (Vec<Drawn>, u32),
+        (room, room_slot): (u32, u32),
+    ) -> Result<Self> {
         let sums = storage(gpu, "fold sums", SUMS, bytemuck::cast_slice(&empty_sums()))?;
-        Ok(Self { waves, ids, sums })
+        Ok(Self {
+            records,
+            waves,
+            ids,
+            room,
+            room_slot,
+            axes,
+            sums,
+        })
     }
+}
+
+/// Where record `id` starts in the drawn records, in words.
+pub(in crate::generation) fn record(id: u32) -> u32 {
+    id * CV as u32
 }
 
 fn storage(gpu: &Gpu, label: &'static str, words: usize, data: &[u8]) -> Result<Owned> {
@@ -115,15 +142,14 @@ impl Dressed {
     ) -> Result<()> {
         let mut encoder = gpu.encoder(&Default::default());
         for w in self.waves.iter().filter(|w| !w.root && w.phyts > 0) {
-            let (buffer, axes, phyts) = (&w.buffer, &w.axes, &w.phyts);
-            let groups = phyts.div_ceil(64);
+            let groups = w.phyts.div_ceil(64);
             let most = gpu.device.limits().max_compute_workgroups_per_dimension;
-            let mut cfg = vec![*phyts, axes * CA, CAP, groups.min(most) * 64];
+            let mut cfg = vec![w.phyts, record(w.base), CAP, groups.min(most) * 64];
             cfg.extend(rows.iter().flatten().map(|f| f.to_bits()));
             let cfg = uniform(gpu, &cfg)?;
             let bind = d
                 .fold
-                .bind(gpu, &[&cfg, buffer, &self.sums, bound.0, bound.1]);
+                .bind(gpu, &[&cfg, &self.records, &self.sums, bound.0, bound.1]);
             d.fold.run(&mut encoder, &bind, entry, groups);
         }
         gpu.submit([encoder.finish()]);
@@ -208,4 +234,3 @@ impl Dressed {
         Ok((points.collect(), n > CAP))
     }
 }
-

@@ -18,7 +18,6 @@ GPU executor (crates/telperion-render/src/generation/fine/): the contract in WGS
 
 Not built: scale, girth and lay on the GPU (so no geometry check against fn-125's screen yet), and the device-resident handoff to rings, stations and curves. That handoff is a design question for the host (GPU-FINE.md section 5): those stages exist only on the CPU today, and options (a), (b) and (c) are listed there. Workspace gate green under the GPU lock.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: d924da9723e3af922501694e4326400b216341cb, cbdd0a5fec57355419ee64578634d9787c540045, a1cc788ae97ebcd9178abb72f0c4060bf379571a, e861b02f740cfe068e886e3cf1583f72391c6d66, 2c90033049bf20abb955f8926aeacc1f7ca3b6bd, bf99fae6c756b1c05eb963527a99aafa63677e72, 6a36b02b1590b58f4a15208e927d5459caa0b05e, 834bbe38dab70df5100a275c562a7412ae98a6a4, 550528b7d8f6c3e01d3157329a90ce1dd6c4f3f3, 1c8b311b18ce93992269a8aa8025fc6543e63812, 15ca59de78e78876ba23b210eae8b733a1be1752
 - Tests: cargo test --profile ci --workspace --no-fail-fast, cargo test --profile ci -p telperion-render fine_roots_at_40_and_80 -- --ignored --nocapture, cargo test --profile ci -p telperion-render chains_at_40_and_80 -- --ignored --nocapture, cargo test --profile ci -p telperion-render contract_cost -- --ignored --nocapture, cargo run --profile ci -p telperion-space --example contract -- dump/compare

@@ -11,7 +11,9 @@ impl Renderer {
         let colouring = prepared.colouring;
         crate::submit::fits_count(&self.gpu.device.limits(), &prepared.mesh, count)?;
         let Some(resident) = prepared.resident else {
-            return self.submit(&prepared.mesh).inspect(|_| self.set_colouring(colouring));
+            return self
+                .submit(&prepared.mesh)
+                .inspect(|_| self.set_colouring(colouring));
         };
         let mesh = prepared.mesh;
         self.sun.forget();

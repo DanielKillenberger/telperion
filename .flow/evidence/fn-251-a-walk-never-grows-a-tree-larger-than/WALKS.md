@@ -80,7 +80,7 @@ The frame at t = 0.07504803866484144 (oak to birch, 80, seed 7) grows 20,021,484
 - The age walk (one species across ages) is the species grown at each frame's age in every variant, factor 1: `size::sized` already predicts the ends at the frame's age (`count.of_end(end, age)` with the frame's age). fn-250's claim did not reproduce on this base.
 - The ordinary preset's rows were written by `blend::centroid` with the factor (`examples/centroid.rs`); deleting the factor changes what that example writes, not the shipped values file.
 
-Not decided here (host): whether the floor and the row set of the natural scale are the design, whether the light walks with the rows or the ends are compared at their own light, and whether the factor stays. The sweep R3 asks (15 pairs, 2 ages, 3 seeds, fine t) costs hours of CPU a variant at this measurement's 4 grows a frame (FRICTION.md).
+Not decided here (host): whether the floor and the row set of the natural scale are the design, whether the light walks with the rows or the ends are compared at their own light, and whether the factor stays. The sweep R3 asks (15 pairs, 2 ages, 3 seeds, fine t) costs hours of CPU a variant at this measurement's 4 grows a frame (the spec's Friction section).
 
 # Re-measured on F4 after fn-255 (2026-10-14)
 

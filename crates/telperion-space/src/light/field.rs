@@ -107,12 +107,16 @@ impl Grid {
 impl Field {
     /// The field of `leaves` (each a point and its leaf area in square
     /// metres) under `light`, over a box that holds every leaf and every
-    /// point in `reads`.
+    /// point in `reads`: test-only, the unquantised lattice.
+    #[cfg(test)]
     pub fn new(light: &super::Light, leaves: &[(Vec3, f64)], reads: &[Vec3]) -> Self {
         Self::on(light, leaves, reads, 1)
     }
 
-    /// `new`, its directions swept on up to `threads` cores.
+    /// The unquantised field `new` makes, its directions swept on up to
+    /// `threads` cores: the whole-tree grower's light (`grow::run`),
+    /// test-only.
+    #[cfg(test)]
     pub fn on(
         light: &super::Light,
         leaves: &[(Vec3, f64)],
@@ -123,15 +127,6 @@ impl Field {
         field.deposit_all(leaves);
         field.sweep(light.extinction, &light.directions(), threads);
         field
-    }
-
-    /// The lattice `leaves` deposit in the box spanning them and `reads`,
-    /// before any sweep.
-    pub(crate) fn deposited(leaves: &[(Vec3, f64)], reads: &[Vec3]) -> Vec<f32> {
-        let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
-        let mut field = Self::spanning(points);
-        field.deposit_all(leaves);
-        field.density
     }
 
     /// `on`, its leaves deposited as integer quanta of `QUANTUM` m² of
@@ -162,9 +157,14 @@ impl Field {
             for (i, w) in field.grid.corners(at) {
                 let i = i.expect("a leaf inside its box");
                 let q = (f64::from(area) * f64::from(w) / QUANTUM).round();
-                let sum = (q <= f64::from(u32::MAX)).then(|| quanta[i].checked_add(q as u32)).flatten();
+                let sum = (q <= f64::from(u32::MAX))
+                    .then(|| quanta[i].checked_add(q as u32))
+                    .flatten();
                 let Some(sum) = sum else {
-                    return refuse("light.deposit", "a lattice node holds at most 2^32 quanta of 2^-20 m² of leaf area");
+                    return refuse(
+                        "light.deposit",
+                        "a lattice node holds at most 2^32 quanta of 2^-20 m² of leaf area",
+                    );
                 };
                 quanta[i] = sum;
             }
@@ -221,6 +221,7 @@ impl Field {
     }
 
     /// Every leaf's area deposited at its corners, in the leaves' order.
+    #[cfg(test)]
     pub(super) fn deposit_all(&mut self, leaves: &[(Vec3, f64)]) {
         for &(at, area) in leaves {
             let area = area as f32;
@@ -240,6 +241,9 @@ impl Field {
         let size = self.grid.size.map(|s| s as usize);
         let density: Vec<f64> = self.density.iter().map(|&d| f64::from(d)).collect();
         let light = super::swept_all(extinction, directions, size, &density, threads);
-        self.light = light.into_iter().map(|l| l.clamp(0.0, 1.0) as f32).collect();
+        self.light = light
+            .into_iter()
+            .map(|l| l.clamp(0.0, 1.0) as f32)
+            .collect();
     }
 }

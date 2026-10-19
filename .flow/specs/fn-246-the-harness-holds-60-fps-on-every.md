@@ -1,24 +1,47 @@
 # The harness holds 60 fps on every shipped tree
 
-## Goal & Context
+## Goal
 
-The owner (2026-10-09), after the release branch's harness: build time is acceptable for now, "It's the framerate after." Measured natively on the RTX 3080 at 1920×1080, 4x MSAA, warm cache (`.flow/evidence/fn-198-tree-space-f-the-engine-in-production/PERF.md`): Telperion 8 fps at the whole-tree view and 13 close, Laurelin 11 and 16, the oak 28 close, the spruce 48-52; beech, birch, palm and ordinary 105-850. Every slow case is GPU-bound (CPU encode 0.13-0.35 ms). The three costs: (1) the leaf and flower draw of dense crowns: Telperion draws 9.05M leaves and 10.4M flowers, about 9 instances a pixel, every leaf already at the coarsest level (4 triangles), nothing culled; (2) the wood's shaded pass at close views, about 30 ms on the oak and the Two Trees, following screen coverage (bark relief and `bark_parallax` suspected, untested); (3) sun-side work (the curve's sun surfacing and the shadow map, 6-8 ms) recomputed every frame although it depends only on the light and the tree. The harness also redraws every animation frame when nothing changes (`harness/rust-stage.ts:102-106`). Host (2026-10-09): release blocker.
+The owner (2026-10-09), after the release branch's harness: build time is acceptable for now, "It's the framerate after." Measured natively on the RTX 3080 at 1920×1080, 4x MSAA (fn-198's performance record): Telperion 8 fps whole and 13 close, Laurelin 11 and 16, the oak 28 close, the spruce 48-52; every slow case GPU-bound. Three costs: the leaf and flower draw of dense crowns (Telperion 9.05M leaves and 10.4M flowers, ~9 instances a pixel), the wood's shaded pass at close views (~30 ms), and sun-side work recomputed every frame; the harness also redrew every frame when nothing changed. Host (2026-10-09): release blocker for fn-237. Drawing only; generation unchanged.
 
-## Design (host, 2026-10-09)
+## Decisions
 
-- **Leaves and flowers thinned by their size on screen, area kept.** Where an organ's projected size falls below a stated fraction of a pixel, a deterministic share of the organs is dropped, keyed by a hash of each organ's own stored position words (present in both the CPU `Instances` and the device's resident placements, so no lineage needs carrying and generation is unchanged; the same organs stay drawn as the camera moves) and the kept ones are scaled up so the expected covered area is unchanged (stochastic simplification with area preservation). The share and the scale vary continuously with projected size, so nothing pops; at sizes above the threshold nothing changes. One rule for leaves and flowers, inside the existing selection pass, no new pass.
-- **Sun-side work only when it changes.** The curve's sun surfacing is recomputed only when the tree or the light changes; the shadow map only when the tree, the light, the view's caster membership (Whole draws foliage casters, Bare only wood) or the caster stride changes; never per camera frame. Verified across Whole → Bare → Whole without rebuilding the tree, and on a caster-stride change.
-- **No redraw when nothing changed.** The harness draws a frame only when something in the picture changed: the camera, the tree, the view, the viewport (canvas resize) or any scene setting (sun, sky, ground, shadow). A pending change survives frame attempts that `WebRenderer::frame()` skips while GPU work is in flight, and is cleared only when a frame is submitted. Verified on a resize, a ground-only scene edit, and a camera update received during an in-flight frame.
-- **Timing of cached passes.** A pass skipped because its result is cached is recorded as cached (zero cost, flagged), distinct from an unavailable measurement; `Session::resolve`, `Report::with_passes` and the renderer's timing tests are updated to that contract, and performance is verified with the cache behaving as it does in use.
-- **The wood's shaded pass measured, then made cheaper by its cause** (bark relief off against on first); the cause and the fix stated before code.
+- Host design (2026-10-09): leaves and flowers thinned by screen size with area kept (deterministic share keyed by each organ's stored position words, continuous, inside the existing selection pass); sun-side work only when the tree, light, caster membership or stride changes; no redraw when nothing changed (a pending change survives skipped frames); cached passes timed as cached (zero, flagged); the wood's shaded pass measured, then fixed by its cause.
+- Host decision (2026-10-09): prefilter the bark relief to the pixel footprint (fade sub-2 px octaves, slope variance into roughness, one cell per pixel) instead of supersampling 9-25×; judge against a 4× ground truth (mean ≤ 3.0). The prefilter missed it: its error is per-pixel noise, not bias, which no expected-value term can remove.
+- Owner decision (2026-10-09): on the wood, "b and c sound sgood": (b) the prefiltered bark ships, its measured distance to the truth the accepted picture, bark tests re-pinned to it plus 0.5 mean; (c) texture bark computed at build, mipmapped, after the release (fn-247). On the Two Trees' leaves, "2a is gud": larger leaves in their own specs.
+- Leaf thinning threshold 2 px, fitted on `examples/crown_truth`.
+- Owner decision (2026-10-09) on the floret card below 4 px, after the labelled comparison (https://claude.ai/artifact/8WwaynDsif2JekPvHDDtDi): "I see almost no difference from reference even vs the card implementation." Ships past the crown bound (+4.43 against 3.0); `tests/thinning.rs` pins it.
+- The Two Trees stay below 60 fps for now (owner).
 
-## Requirements
+## Acceptance Criteria
 
-- **R1 (measure):** per pass, per species, whole and close, before; the wood's shaded-pass cost with bark relief off and on.
-- **R2 (build):** the four design points; every change keeps one pipeline and changes the picture by degree.
-- **R3 (proved):** every shipped species at 60 fps or more at the harness's whole-tree and close views, natively at 1920×1080 4x MSAA (best of 3, load stated), with each pass's cost before and after; stills before and after at whole, mid and close views, viewed, showing no visible loss (crown density and colour at distance unchanged within a stated tolerance of covered pixels); idle frames cost nothing; the CPU and device paths unchanged in what they build.
-- **R4:** gate and npm test green.
+- **R1:** per pass, per species, whole and close, before; the wood's shaded pass with bark relief off and on — met.
+- **R2:** the four design points built; one pipeline; the picture changes by degree — met.
+- **R3:** every shipped species at 60 fps or more whole and close natively (best of 3), stills before and after viewed, idle frames free, CPU and device builds unchanged — met except the Two Trees (owner accepted).
+- **R4:** gate and npm test green — met (the load-sensitive cold-compile test passed alone).
 
-## Boundaries
+## Result
 
-Drawing only; generation unchanged. Release blocker for fn-237.
+Final, 1920×1080 4x MSAA, best of 3, fps whole → close (R1 before in brackets): ordinary 1437 / 1001 (842 / 656); oak 234 / 72 (71 / 28); spruce 122 / 130 (47 / 52); beech 589 / 330 (218 / 106); birch 486 / 230 (302 / 188); date palm 1529 / 1260 (713 / 361); Telperion 50 / 34 (8 / 12); Laurelin 56 / 52 (11 / 16). Telperion close: vegetation 25.0 ms (wood ~9, leaves and florets ~16). At 2× the prefiltered oak trunk loses most of its furrows (accepted; restored by texture bark). Tests: `tests/sun_cache.rs`, `tests/timing.rs`, `redraw.rs`, `src/browser/render.test.ts`, `tests/thinning.rs`, `card.rs`, re-pinned `bark_resolution.rs` and `bark_distance.rs`; probes `examples/frames.rs`, `bark_truth.rs`, `crown_truth.rs`. npm test 154. Impl-review SHIP after four fixes.
+
+## Open
+
+- Cluster cards for the Two Trees' remaining floret cost (host).
+- Texture bark (owner's (c)): fn-247.
+
+## Friction
+
+- The Two Trees' baseline took ten minutes -> view filter added to `examples/frames.rs`.
+- Command guard refuses redirects into a variable path -> local setup, reported only.
+- The wood's same-picture claim could only be checked after building -> a host-stated picture tolerance before dispatch (proposed).
+- The bark truth had to be built before judging the prefilter -> a shared bark-view fixture list (proposed).
+- Other sessions loaded the machine during timing -> fn-185's "machine busy" marker; local, reported only.
+- The crown truth's absolute bound could not be met -> measure the unthinned baseline first; the fit now has a T=0 column.
+- No numpy; ~5 GB raw stills only removable by hand -> local setup, reported only.
+- The crown bound was spent when the card arrived -> fit mechanisms against one shared budget (proposed).
+- Cold-compile timing test fails under load -> run serially or measure CPU time (proposed).
+
+## Evidence
+
+- `.flow/evidence/fn-246-the-harness-holds-60-fps-on-every/FPS.md` (measurements, decisions and final tables; cited by the bark and thinning tests and `card.rs`)
+- `.flow/evidence/fn-246-the-harness-holds-60-fps-on-every/FRICTION.md` (cited by `hang_tests.rs` and `docs/gpu-tests.md`)

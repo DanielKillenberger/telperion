@@ -9,18 +9,20 @@
 //! already geometric (host decision 19). `settings` lists every
 //! setting of an age by name, its fields named one by one, so a setting
 //! added to `PaState`, `Form` or `Zone` does not compile until it is listed
-//! there, and one listed with no scale here is refused.
+//! there, and one listed with no row in the table (`table.rs`) is refused.
 use super::{NodeLaw, PaState, Zone};
 use crate::transcendental::Transcendental;
+
+mod table;
+pub use table::{Setting, SETTINGS};
+#[cfg(test)]
+mod edges;
 
 /// How a setting mixes between two species.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Scale {
     /// By its value: an angle, a probability, a share or a count.
     Linear,
-    /// By its value, rounded to the nearest whole: a count that only
-    /// whole values state (fn-223's cluster leaves).
-    Whole,
     /// By the log of its value above `floor`: a positive magnitude.
     Log { floor: f64 },
     /// By the share 1 / (1 + value) it keeps: a delay that may be infinite.
@@ -30,7 +32,7 @@ pub enum Scale {
     Outcome,
 }
 
-use Scale::{Kept, Linear, Log, Outcome, Whole};
+use Scale::{Kept, Linear, Log, Outcome};
 
 /// A stop's outcomes, by the settings that give them: the chance it
 /// stops (abortion) or carries on (the others), and the relay's share of
@@ -42,81 +44,14 @@ pub const OUTCOMES: &[(&str, &str)] = &[
     ("viability", "relay_failed"),
 ];
 
-/// Every setting's scale, by the name `settings` gives it.
-pub const SCALES: &[(&str, Scale)] = &[
-    ("lifespan", Log { floor: 1.0 }),
-    ("continuation", Outcome),
-    ("viability", Outcome),
-    ("shedding", Kept),
-    ("internode", Log { floor: 1e-3 }),
-    ("insertion", Linear),
-    ("divergence", Linear),
-    ("abortion", Outcome),
-    ("abortion_rise", Linear),
-    ("relay", Outcome),
-    ("relay_ended", Outcome),
-    ("relay_failed", Outcome),
-    ("relay_at", Linear),
-    ("epitony", Linear),
-    ("erection", Log { floor: 0.01 }),
-    ("readiness", Linear),
-    ("rhythm", Linear),
-    ("straightening", Linear),
-    // Phase E (fn-197): an area, a cost and a rate are magnitudes; a
-    // response's exponent, a share and a balance mix by value.
-    ("leaf_area", Log { floor: 1e-4 }),
-    // fn-216: a share of nodes, by value.
-    ("flowering", Linear),
-    // fn-223: a whole count of leaves, and an angle, by value.
-    ("cluster_leaves", Whole),
-    ("cluster_spread", Linear),
-    // fn-248: a span of years that may be infinite, by the share it keeps.
-    ("leaf_years", Kept),
-    // fn-270 R5: spans of days, magnitudes.
-    ("elongation", Log { floor: 1.0 }),
-    ("expansion", Log { floor: 1.0 }),
-    // fn-270 R5c: a lifespan that may be infinite, by the share it keeps;
-    // days of the calendar by value, spans of days as magnitudes.
-    ("leaf_life", Kept),
-    ("budburst", Linear),
-    ("senescence", Linear),
-    ("colouring", Log { floor: 1.0 }),
-    ("leaf_fall", Log { floor: 1.0 }),
-    ("shade_hazard", Linear),
-    ("shade_size", Linear),
-    ("apical_control", Linear),
-    ("upkeep", Log { floor: 1e-3 }),
-    ("balance_hazard", Log { floor: 0.01 }),
-    ("tolerance", Linear),
-    ("retained", Linear),
-    ("leaf_girth", Linear),
-    ("form.tropism", Log { floor: 0.1 }),
-    ("form.elevation", Linear),
-    ("form.wander", Log { floor: 0.05 }),
-    ("form.plane", Linear),
-    ("form.pipe", Log { floor: 1e-5 }),
-    ("form.exponent", Linear),
-    ("form.ripening", Log { floor: 1.0 }),
-    ("form.dominance", Linear),
-    ("form.roll", Linear),
-    ("form.sag", Log { floor: 1e-5 }),
-    ("form.secondary", Linear),
-    ("form.bend_length", Log { floor: 0.1 }),
-    ("form.internode_spread", Linear),
-    ("form.insertion_spread", Linear),
-    ("form.tropism_spread", Linear),
-    ("zone.nodes.min", Linear),
-    ("zone.nodes.max", Linear),
-    ("zone.buds", Linear),
-    ("zone.lateral", Linear),
-    ("zone.dormant", Linear),
-    ("zone.delay", Log { floor: 0.1 }),
-    ("zone.rate", Log { floor: 0.01 }),
-];
+/// The setting named `name`, as the table states it.
+pub fn setting(name: &str) -> Option<&'static Setting> {
+    SETTINGS.iter().find(|s| s.name == name)
+}
 
 /// The scale of the setting named `name`, if the table holds one.
 pub fn scale(name: &str) -> Option<Scale> {
-    SCALES.iter().find(|(n, _)| *n == name).map(|&(_, s)| s)
+    setting(name).map(|s| s.scale)
 }
 
 impl Scale {
@@ -132,7 +67,6 @@ impl Scale {
         let lerp = |x: f64, y: f64| x + (y - x) * t;
         match self {
             Linear | Outcome => lerp(a, b),
-            Whole => lerp(a, b).round(),
             // Never below the lesser end, which rounding could leave.
             Log { floor } => {
                 let mixed =
@@ -171,6 +105,7 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         relay_failed,
         relay_at,
         epitony,
+        takeover,
         erection,
         readiness,
         rhythm,
@@ -188,6 +123,7 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         colouring,
         leaf_fall,
         shade_hazard,
+        ground_hazard,
         shade_size,
         apical_control,
         upkeep,
@@ -229,6 +165,7 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         ("relay_failed", relay_failed),
         ("relay_at", relay_at),
         ("epitony", epitony),
+        ("takeover", takeover),
         ("erection", erection),
         ("readiness", readiness),
         ("rhythm", rhythm),
@@ -246,6 +183,7 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         ("colouring", colouring),
         ("leaf_fall", leaf_fall),
         ("shade_hazard", shade_hazard),
+        ("ground_hazard", ground_hazard),
         ("shade_size", shade_size),
         ("apical_control", apical_control),
         ("upkeep", upkeep),
@@ -317,8 +255,12 @@ mod tests {
         for name in &names {
             assert!(scale(name).is_some(), "{name} has no scale");
         }
-        for (name, _) in SCALES {
-            assert!(names.contains(name), "{name} is no setting");
+        for setting in SETTINGS {
+            assert!(
+                names.contains(&setting.name),
+                "{} is no setting",
+                setting.name
+            );
         }
     }
 
@@ -332,21 +274,21 @@ mod tests {
         assert!(mid < (a + b) / 2.0 / 5.0, "{mid}");
     }
 
-    /// A walk between whole cluster counts stays whole (fn-223): from none
-    /// to three leaves every step is a valid species, its count rising.
+    /// A walk between cluster counts moves by degree (fn-277): from none
+    /// to three leaves every step is a valid species, its count the walk's.
     #[test]
-    fn a_walk_between_cluster_counts_stays_whole() {
+    fn a_walk_between_cluster_counts_moves_by_degree() {
         let mut a = beech();
         a.states[14].cluster_leaves = 0.0;
         let mut b = beech();
         b.states[14].cluster_leaves = 3.0;
-        let mut last = 0.0;
         for k in 0..=20 {
-            let walked = crate::blend(&a, &b, f64::from(k) / 20.0).unwrap();
-            let n = walked.states[14].cluster_leaves;
-            assert!(n.fract() == 0.0 && n >= last, "{n} after {last}");
-            last = n;
+            let t = f64::from(k) / 20.0;
+            let walked = crate::blend(&a, &b, t).unwrap();
+            assert!(
+                (walked.states[14].cluster_leaves - 3.0 * t).abs() < 1e-12,
+                "{t}"
+            );
         }
-        assert_eq!(last, 3.0);
     }
 }

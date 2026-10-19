@@ -9,16 +9,15 @@ mod identity;
 mod leafing;
 mod section;
 mod shoot;
-mod stand;
 use crate::{math::Vec3, Error, Result};
 pub use bloom::Bloom;
 pub use cluster::{cluster_key, Cluster};
 pub use identity::NodeIdentity;
+#[cfg(test)]
 pub(crate) use identity::NodeKey;
 pub use leafing::{keeps, kept_share, retention, Leafing, Unfolded, FALL, KEEP, LIFE};
 pub use section::{Section, SectionRing};
 pub use shoot::{BudFate, ShootState};
-pub use stand::{stand_key, Stand};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
@@ -130,13 +129,6 @@ pub struct Tree {
     /// always were.
     #[cfg_attr(feature = "json", serde(skip))]
     pub sections: Vec<Section>,
-    /// The pipe model's `[start, distal]` radii of each structural node,
-    /// kept where `girthHold` drew the wood thicker: what decides which wood
-    /// bears leaves, so a hold adds or loses none. Empty where nothing is held.
-    /// Drawn by the direct build's last radius pass and never stored, as
-    /// `sections` is: a specimen's bytes are the ones they always were.
-    #[cfg_attr(feature = "json", serde(skip))]
-    pub pipe: Vec<[f64; 2]>,
     /// Each node's wood's frame as the engine laid it, its heading and the
     /// side its first bud faces (y up), where the engine grew the tree:
     /// what a run seeds its frame from at its socket (fn-212, host
@@ -185,10 +177,6 @@ pub struct Tree {
     /// stored, as `leafing` is.
     #[cfg_attr(feature = "json", serde(skip))]
     pub year: Option<Year>,
-    /// The fine roots a coarse tree holds as their expected occupancy, never
-    /// grown (fn-214): empty on every tree grown whole. Never stored.
-    #[cfg_attr(feature = "json", serde(skip))]
-    pub stands: Vec<Stand>,
 }
 
 /// The year a tree is drawn in (fn-270 R5b): its age in years, whole or a
@@ -205,9 +193,7 @@ pub struct Year {
 
 /// A 32-bit finaliser: the one the leaves' draws already use.
 pub fn mix32(z: u32) -> u32 {
-    let z = (z ^ (z >> 16)).wrapping_mul(0x21f0_aaad);
-    let z = (z ^ (z >> 15)).wrapping_mul(0x735a_2d97);
-    z ^ (z >> 15)
+    telperion_space::mix32(z)
 }
 
 /// A node's key: its axis's lineage and its phytomer's place along the
@@ -258,15 +244,6 @@ impl Tree {
     pub(crate) fn seed_side(&self, attach: usize) -> Option<crate::math::Vec3> {
         let f = self.frames.get(attach)?.map(f64::from);
         Some(crate::math::Vec3::new(f[3], f[4], f[5]))
-    }
-    /// Node `i`'s radii as the pipe model solved them, `[start, distal]`,
-    /// whatever `girthHold` drew: the radii leaf-bearing decisions read.
-    pub(crate) fn pipe(&self, i: usize) -> [f64; 2] {
-        let n = &self.nodes[i];
-        self.pipe
-            .get(i)
-            .copied()
-            .unwrap_or([n.start_radius, n.radius])
     }
     /// The wood a canopy or a twig layer measures itself against: the thickest
     /// stem leaving the root, read through whatever radius the caller trusts.
@@ -341,9 +318,6 @@ impl Tree {
     pub fn validate(&self) -> Result<()> {
         if self.nodes.len() > u32::MAX as usize || self.crossover > self.nodes.len() {
             return Err(Error::InvalidInput("tree length"));
-        }
-        if !self.pipe.is_empty() && self.pipe.len() != self.crossover {
-            return Err(Error::InvalidInput("held pipe radii"));
         }
         self.validate_range(0..self.nodes.len(), false)
     }

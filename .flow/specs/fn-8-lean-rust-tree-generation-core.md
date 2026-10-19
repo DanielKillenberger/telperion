@@ -1,77 +1,48 @@
 # fn-8-lean-rust-tree-generation-core Lean Rust tree generation core
 
-## Conversation Evidence
+## Goal
 
-> user (E1): "i'd just like to see if i can push the envelope with tree generation in realtime environments with proc gen. I feel that games have had underwhelming trees in most settings. If we can have high performant trees that can even have a lifecycle with growth etc. That'd be insane step for gaming no?"
-> user (E2): "well the parameters establish the trees "family" of trees and the seed will make an instance/specimen of that right?"
-> user (E3): "we should probably also have presets for certain species"
-> user (E4): "is it worth rewriting the fundamental engine in rust to be much faster/more efficient and we create bindings?"
-> user (E5): "it would also be good if we could ouptut things in ways that are useful to different engines. For example if we made a minecraft mod we wouldn't need an actual surface mesh but only a field that we'd approach with blocks right? allowing for this kind of flexibility in integration should also be a core functionality. Does this make sense?"
-> user (E6): "ok so we wait on this worktree and integrate fn-6 when it's done and test again"
-> user (E7): "i mean the repo is 1 day old. We can just migrate the whole thing. I don't need backwards compatibility"
-> user (E8): "i think it's fine for now we'll do another spec where we try and build all kinds of real trees as templates with visual QA which will definitely find structural issues."
-> user (E9): "have to say the tapered branches look very very pokey now. should we fix it now or do the rust rewrite first"
-> user (E10): "we don't need completion review let's call this done and move on to fn-7 (if we even still need to finish that with new version) and do the rust rewrite in fn-8?"
-> user (E11): "alright sounds good. One requirement for the rust rewrite i want the code to be lean and elegant. It should be easy to change and grow. that should be the mantra overall for this project."
-> user (E12): "Minimalist af. Efficient af and beautiful. In the end we want to get to realistic simulations of trees that are procedurally generated."
+Replace the TypeScript tree engine with a lean Rust core that is faster and easy to change, serving browser and native consumers through bindings and offering mesh-free representations (a spatial field for block-based consumers) as well as meshes. It is the base for realistic real-time procedural simulation including growth and lifecycle (owner, 2026-09-05).
 
-## Goal & Context
+## Decisions
 
-<!-- Source: [paraphrase], E1, E4, E7, E11, E12 -->
-Replace the procedural tree engine with a lean Rust core that improves runtime efficiency and stays easy to change. The destination is realistic procedural tree simulation for real-time environments, including growth and lifecycle behaviour. FN-8 establishes the core on which that work can grow.
+Owner (verbatim, 2026-09-05):
+> (E1) "i'd just like to see if i can push the envelope with tree generation in realtime environments with proc gen. I feel that games have had underwhelming trees in most settings. If we can have high performant trees that can even have a lifecycle with growth etc. That'd be insane step for gaming no?"
+> (E2) "well the parameters establish the trees "family" of trees and the seed will make an instance/specimen of that right?"
+> (E3) "we should probably also have presets for certain species"
+> (E4) "is it worth rewriting the fundamental engine in rust to be much faster/more efficient and we create bindings?"
+> (E5) "it would also be good if we could ouptut things in ways that are useful to different engines. For example if we made a minecraft mod we wouldn't need an actual surface mesh but only a field that we'd approach with blocks right? allowing for this kind of flexibility in integration should also be a core functionality. Does this make sense?"
+> (E6) "ok so we wait on this worktree and integrate fn-6 when it's done and test again"
+> (E7) "i mean the repo is 1 day old. We can just migrate the whole thing. I don't need backwards compatibility"
+> (E8) "i think it's fine for now we'll do another spec where we try and build all kinds of real trees as templates with visual QA which will definitely find structural issues."
+> (E9) "have to say the tapered branches look very very pokey now. should we fix it now or do the rust rewrite first"
+> (E10) "we don't need completion review let's call this done and move on to fn-7 (if we even still need to finish that with new version) and do the rust rewrite in fn-8?"
+> (E11) "alright sounds good. One requirement for the rust rewrite i want the code to be lean and elegant. It should be easy to change and grow. that should be the mantra overall for this project."
+> (E12) "Minimalist af. Efficient af and beautiful. In the end we want to get to realistic simulations of trees that are procedurally generated."
 
-## Architecture & Data Models
-
-- Parameters define a tree family, a seed selects a specimen, and species presets supply named parameter sets. [paraphrase] (E2, E3)
-- One Rust core serves different engines through bindings, separating the tree's structure from the representation a consumer requests. [paraphrase] (E4, E5, E7)
-- Small interfaces and explicit data flow keep botanical rules and output representations independently changeable. [strategy:The core and integration]
-
-## API Contracts
-
-- Consumers can request useful tree representations without being forced through surface-mesh generation; spatial fields must support a block-based consumer. [paraphrase] (E5)
-- Bindings expose the same core to browser and native consumers. [strategy:The core and integration]
-
-## Edge Cases & Constraints
-
-- Existing APIs and formats impose no backwards-compatibility requirement. [paraphrase] (E7)
-- Proposed common error contract for R2-R5: invalid inputs fail clearly; valid empty outputs remain usable; resource limits and binding failures cannot masquerade as a complete successful tree. Exact error and ownership mechanisms belong to the implementation plan. [inferred]
+- Parameters define a family, a seed selects a specimen, species presets name parameter sets.
+- One Rust core, structure separate from the representation a consumer requests; no backwards compatibility.
+- Real-species templates with visual QA belong to a later spec (became fn-9); lifecycle algorithms and a Minecraft mod are out of scope, the mesh-free field is in.
 
 ## Acceptance Criteria
 
-- **R1:** Compare the rewrite with finished FN-6 using reproducible inputs and visual checks at ordinary and Telperion scales; diagnose differences without requiring byte-identical old outputs or preserving known structural defects. An unavailable or mismatched reference must be reported. [inferred]
-- **R2:** The complete procedural generation engine runs in Rust, including family parameters, specimen seeds and species presets; repeated identical inputs reproduce a specimen. Boundary handling follows the proposed common error contract. [paraphrase] (E2, E3, E4, E7)
-- **R3:** Mesh-based and mesh-free consumers can obtain suitable representations of the same generated tree, including a spatial field usable by a block-based consumer without constructing a surface mesh. Empty field regions remain valid results; invalid requests follow the common error contract. [paraphrase] (E5)
-- **R4:** Browser and native bindings use the same generation core. Binding failures follow the proposed common error contract. [strategy:The core and integration]
-- **R5:** The current interactive viewer continues to generate and display the Two Trees and parameter-driven specimens through the Rust core; existing useful controls and visual inspection remain available. Build failures are visible and leave the viewer usable. [inferred]
-- **R6:** Measure complete generation latency and memory against finished FN-6 under comparable workloads, including binding costs; demonstrate a generation-speed improvement and report memory or rendering regressions explicitly. Missing or inconclusive measurements are reported as such. [inferred]
-- **R7:** Deliver lean, elegant code whose botanical rules and outputs are easy to change: one production generator, small understandable interfaces and no unnecessary compatibility machinery. Assess this through the resulting module boundaries and representative changes to a botanical rule and an output, without imposing a line-count target; no runtime error surface beyond R2-R5. [inferred]
+- **R1:** Compare with finished fn-6 on reproducible inputs and visual checks without requiring byte-identical outputs — met (pinned fn-6 `fdafb099`; crown drift 7.04e-11 m).
+- **R2:** The whole generation engine runs in Rust with families, seeds and presets, reproducibly — met.
+- **R3:** Mesh and mesh-free consumers get representations of the same tree, including a block-usable field without a surface mesh — met (wood and foliage fields with BVH queries).
+- **R4:** Browser and native bindings share one core — met.
+- **R5:** The viewer generates and displays the Two Trees and parameter specimens through Rust, errors visible and recoverable — met.
+- **R6:** Complete generation latency and memory measured against fn-6 including binding costs, with a speed improvement — met (see Result).
+- **R7:** Lean, elegant, easy-to-change code with one production generator — met; superseded TS core removed.
 
-## Boundaries
+## Result
 
-- Backwards compatibility is unnecessary. [paraphrase] (E7)
-- Broad real-species templates and their structural visual QA belong to a subsequent spec. [paraphrase] (E8)
-- Full lifecycle simulation is the long-term destination; new lifecycle algorithms and a shipped Minecraft mod are outside this migration, while mesh-free field output is included. [inferred]
+Paired headless Chromium runs on the RTX 3080 / Ryzen 9 5950X: the Rust builder is 2.91x faster for Telperion (4,720 -> 1,621 ms), 2.71x for Laurelin (2,190 -> 809 ms) and 2.81x for the comparison, with identical node, vertex, triangle, leaf and twig counts. An initial run was flat because software `hypot` dominated; `distance_to_profile` now minimises squared distances. GPU frame cost is unchanged or slightly worse (Telperion 6.28 ms at DPR 1) and still misses 2 ms; giant-tree Wasm high-water is 526 MiB. Full report: `.flow/evidence/fn8/REPORT.md`. Merged through PR #1 at 2fcac3540993afcd13927a30e9e5238f7bad0df3; closed 2026-09-07.
 
-## Decision Context
+## Open
 
-### Motivation
+- The "very very pokey" taper (E9) and real-species structural QA went to fn-9.
+- GPU rendering budget and total browser memory unresolved here.
 
-- "Minimalist af. Efficient af and beautiful." [user] (E12)
-- The young repository can undergo a full migration without carrying compatibility obligations. [paraphrase] (E7)
-- Realistic procedural simulation gives the architecture its direction; lean, changeable code is a project-wide requirement. [paraphrase] (E11, E12)
+## Evidence
 
-## Requirement coverage
-
-| Requirement | Tasks |
-|-------------|-------|
-| R1 | FN-8.1, FN-8.2, FN-8.3, FN-8.4, FN-8.5, FN-8.6 |
-| R2 | FN-8.1, FN-8.2, FN-8.3 |
-| R3 | FN-8.4, FN-8.5, FN-8.8 |
-| R4 | FN-8.1, FN-8.6 |
-| R5 | FN-8.6 |
-| R6 | FN-8.7 |
-| R7 | FN-8.1, FN-8.6, FN-8.7, FN-8.8 |
-
-## Merged implementation closure (2026-09-07)
-
-All eight tasks are done and their evidence commits are ancestors of master. The implementation landed through PR #1 (Lean Rust tree generation core), merged at 2fcac3540993afcd13927a30e9e5238f7bad0df3. This administrative closure reconciles the stale open spec with that merged history. It makes no new performance or review claim and preserves the original report's limits.
+- `.flow/evidence/fn8/REPORT.md`

@@ -77,6 +77,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
@@ -88,7 +89,9 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
-        leaf_years: f64::INFINITY,
+        // Leaves on the current year's wood alone (fn-236 host ruling,
+        // 2026-10-14): Q. garryana is "deciduous" (Flora of North America).
+        leaf_years: 1.0,
         // fn-270 R5: the days its shoot elongates and its leaf expands
         // within the year, sourced in its preset's value file.
         elongation: 14.0,
@@ -107,6 +110,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         // limbs thicken. A shed branch leaves none of its pipe (fn-236
         // round 1): at 0.5 the stem stood two to four times Silvics' DBH.
         shade_hazard: 1.0,
+        ground_hazard: 0.0,
         shade_size: 1.5,
         apical_control: 0.45,
         upkeep: 0.35,
@@ -213,6 +217,7 @@ pub fn oak() -> Species {
         relay_ended: 1.0,
         relay_failed: 1.0,
         epitony: 0.2,
+        takeover: 0.0,
         form: Form {
             tropism: 0.5,
             elevation: 1.05,
@@ -263,6 +268,8 @@ pub fn oak() -> Species {
         relay_ended: 1.0,
         relay_failed: 1.0,
         epitony: 0.2,
+        // fn-286 (2026-10-15): a relay runs three quarters back onto the line it takes over, so the owner's zigzag (seed 7) goes; the limb keeps its relays' kinks, its tortuous course (RELAYS.md).
+        takeover: 0.75,
         form: Form {
             tropism: 0.48,
             // Ascending (fn-236 round 1): at 0.5 rad the boughs spread
@@ -286,12 +293,16 @@ pub fn oak() -> Species {
             ),
         )
     };
-    // The young stem's laterals: long shoots of about 0.35 m a year for
-    // ten years, ascending as Rauh's laterals repeat the trunk, and
-    // branching, then branch systems, so a sapling is a bushy young tree.
+    // The young stem's laterals: long shoots for ten years, ascending as
+    // Rauh's laterals repeat the trunk, and branching, then branch
+    // systems, so a sapling is a bushy young tree. A lateral grows no
+    // faster than its sapling's stem: Hibbs and Yoder (1993, via FEIS)
+    // measured Oregon white oak saplings at 15.7 cm a year, so about 5
+    // nodes of 0.031 m. fn-236 (2026-10-15): at 0.07 m, an unsourced
+    // 0.35 m a year, these shoots outran the crown as long low wands.
     let sprig = PaState {
         insertion: 0.7,
-        internode: 0.07,
+        internode: 0.031,
         viability: 0.95,
         shedding: 3.0,
         form: Form {
@@ -337,6 +348,8 @@ pub fn oak() -> Species {
         relay_ended: 1.0,
         relay_failed: 1.0,
         epitony: 0.2,
+        // fn-286 (2026-10-15): a relay runs three quarters back onto the line it takes over, so the owner's zigzag (seed 7) goes; the limb keeps its relays' kinks, its tortuous course (RELAYS.md).
+        takeover: 0.75,
         form: Form {
             tropism: 0.33,
             elevation: 0.2,

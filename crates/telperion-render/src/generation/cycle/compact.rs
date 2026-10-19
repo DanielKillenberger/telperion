@@ -23,7 +23,13 @@ use super::state::{AXES, GROWN, LAID, PENCILS, UNITS};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
-pub(super) const ENTRIES: [&str; 5] = ["flag_main", "remap_main", "move_main", "count_main", "freeze_main"];
+pub(super) const ENTRIES: [&str; 5] = [
+    "flag_main",
+    "remap_main",
+    "move_main",
+    "count_main",
+    "freeze_main",
+];
 const FLAG: usize = 0;
 const REMAP: usize = 1;
 const MOVE: usize = 2;
@@ -98,12 +104,21 @@ struct Cfg {
 impl Cfg {
     fn words(&self, row: u32) -> [u32; 16] {
         let c = self;
-        [c.n, c.stride, c.col, c.at, c.row_at, c.val_at, c.val_n, c.mode, c.dst_at, c.fate_at, c.below, c.by, row, c.flag, 0, 0]
+        [
+            c.n, c.stride, c.col, c.at, c.row_at, c.val_at, c.val_n, c.mode, c.dst_at, c.fate_at,
+            c.below, c.by, row, c.flag, 0, 0,
+        ]
     }
 
     /// Column `col` of a table `stride` rows a column from word `at`.
     fn column(n: u32, stride: u32, (at, col): (u32, u32)) -> Self {
-        Self { n, stride, col, at, ..Self::default() }
+        Self {
+            n,
+            stride,
+            col,
+            at,
+            ..Self::default()
+        }
     }
 }
 
@@ -122,10 +137,12 @@ impl Compactor {
             members: scan("compaction members", lists)?,
             sums: zeroed_dst(gpu, "compaction sums", sums_words(most + 1, 1))?,
             tally: zeroed_dst(gpu, "compaction tally", 64)?,
-            spare: [zeroed_dst(gpu, "compaction spare", 4)?, zeroed_dst(gpu, "compaction spare", 4)?],
+            spare: [
+                zeroed_dst(gpu, "compaction spare", 4)?,
+                zeroed_dst(gpu, "compaction spare", 4)?,
+            ],
         })
     }
-
 }
 
 /// A compaction's commands, recorded into one encoder as it goes.
@@ -140,7 +157,13 @@ struct Rec<'a> {
 }
 
 impl Rec<'_> {
-    fn run(&mut self, entry: usize, cfg: Cfg, [src, rows, vals, dst]: [&wgpu::Buffer; 4], groups: u32) -> Result<()> {
+    fn run(
+        &mut self,
+        entry: usize,
+        cfg: Cfg,
+        [src, rows, vals, dst]: [&wgpu::Buffer; 4],
+        groups: u32,
+    ) -> Result<()> {
         self.made += 1;
         let u = uniform(self.gpu, &cfg.words(self.row))?;
         let pass = &self.kit.retire.compact;
@@ -151,43 +174,101 @@ impl Rec<'_> {
     }
 
     fn scan(&mut self, k: &Compactor, (data, at, rows): (&Owned, u64, u32)) -> Result<()> {
-        let s = Scan::new(self.gpu, &self.kit.hier.scan, (data, at, rows + 1), &k.sums, (&k.tally, 0))?;
+        let s = Scan::new(
+            self.gpu,
+            &self.kit.hier.scan,
+            (data, at, rows + 1),
+            &k.sums,
+            (&k.tally, 0),
+        )?;
         s.record(&self.kit.hier.scan, &mut self.e);
         self.made += s.dispatches();
         Ok(())
     }
 
     /// Rows of `table` (`cfg` its column) flagged into `scan` from `at`.
-    fn flag(&mut self, k: &Compactor, cfg: Cfg, (table, vals): (&wgpu::Buffer, &wgpu::Buffer), (scan, at): (&Owned, u32)) -> Result<()> {
+    fn flag(
+        &mut self,
+        k: &Compactor,
+        cfg: Cfg,
+        (table, vals): (&wgpu::Buffer, &wgpu::Buffer),
+        (scan, at): (&Owned, u32),
+    ) -> Result<()> {
         let cfg = Cfg { row_at: at, ..cfg };
-        self.run(FLAG, cfg, [table, scan, vals, &k.spare[0]], (cfg.n + 1).div_ceil(64))?;
+        self.run(
+            FLAG,
+            cfg,
+            [table, scan, vals, &k.spare[0]],
+            (cfg.n + 1).div_ceil(64),
+        )?;
         self.scan(k, (scan, u64::from(at), cfg.n))
     }
 
     /// A column of indices into a table `scan` compacts, remapped.
-    fn remap(&mut self, k: &Compactor, (table, cfg): (&wgpu::Buffer, Cfg), (scan, n, mode): (&Owned, u32, u32)) -> Result<()> {
-        let cfg = Cfg { val_n: n, mode, ..cfg };
-        self.run(REMAP, cfg, [table, &k.spare[0], scan, &k.spare[1]], cfg.n.div_ceil(64))
+    fn remap(
+        &mut self,
+        k: &Compactor,
+        (table, cfg): (&wgpu::Buffer, Cfg),
+        (scan, n, mode): (&Owned, u32, u32),
+    ) -> Result<()> {
+        let cfg = Cfg {
+            val_n: n,
+            mode,
+            ..cfg
+        };
+        self.run(
+            REMAP,
+            cfg,
+            [table, &k.spare[0], scan, &k.spare[1]],
+            cfg.n.div_ceil(64),
+        )
     }
 
     /// A column's kept rows (by `scan` from `at`) at the column's head,
     /// through the scratch, the rest of it none.
-    fn compact(&mut self, k: &Compactor, (table, cfg): (&wgpu::Buffer, Cfg), (scan, at): (&Owned, u32)) -> Result<()> {
+    fn compact(
+        &mut self,
+        k: &Compactor,
+        (table, cfg): (&wgpu::Buffer, Cfg),
+        (scan, at): (&Owned, u32),
+    ) -> Result<()> {
         let cfg = Cfg { row_at: at, ..cfg };
         let bytes = 4 * u64::from(cfg.n);
         self.e.clear_buffer(&k.scratch, 0, Some(bytes));
-        self.run(MOVE, cfg, [table, scan, &k.spare[0], &k.scratch], cfg.n.div_ceil(64))?;
+        self.run(
+            MOVE,
+            cfg,
+            [table, scan, &k.spare[0], &k.scratch],
+            cfg.n.div_ceil(64),
+        )?;
         let to = 4 * (u64::from(cfg.at) + u64::from(cfg.col) * u64::from(cfg.stride));
-        self.e.copy_buffer_to_buffer(&k.scratch, 0, table, to, bytes);
+        self.e
+            .copy_buffer_to_buffer(&k.scratch, 0, table, to, bytes);
         Ok(())
     }
 
     /// The word `at` of `table`, a count of rows, as the rows before it
     /// that `scan` keeps; where `table` is the census, its count past `n`
     /// raises `Flag::Compaction`.
-    fn count(&mut self, k: &Compactor, (table, at): (&wgpu::Buffer, u32), (scan, from, n): (&Owned, u32, u32), census: bool) -> Result<()> {
-        let flag = if census { c::Flag::Compaction.word() as u32 } else { 0 };
-        let cfg = Cfg { n, at, row_at: from, flag, ..Cfg::default() };
+    fn count(
+        &mut self,
+        k: &Compactor,
+        (table, at): (&wgpu::Buffer, u32),
+        (scan, from, n): (&Owned, u32, u32),
+        census: bool,
+    ) -> Result<()> {
+        let flag = if census {
+            c::Flag::Compaction.word() as u32
+        } else {
+            0
+        };
+        let cfg = Cfg {
+            n,
+            at,
+            row_at: from,
+            flag,
+            ..Cfg::default()
+        };
         self.run(COUNT, cfg, [table, scan, &k.spare[0], &k.spare[1]], 1)
     }
 }
@@ -198,30 +279,75 @@ impl Build {
     /// (`rows`: axes, units, phytomers; one that holds more is flagged):
     /// the hierarchy's current lists are those the next cycle's step reads
     /// (`Phases::cycle`). The dispatches it recorded.
-    pub(super) async fn compact_in_place(&mut self, gpu: &Gpu, kit: &Kit, (census, cycle): (&Owned, u32), rows: [u32; 3]) -> Result<usize> {
+    pub(super) async fn compact_in_place(
+        &mut self,
+        gpu: &Gpu,
+        kit: &Kit,
+        (census, cycle): (&Owned, u32),
+        rows: [u32; 3],
+    ) -> Result<usize> {
         let k = &self.compactor;
         let (held, rs) = (self.state.caps, self.retire.stride);
-        let caps = super::state::Caps { axes: rows[0].min(held.axes), units: rows[1].min(held.units), phyts: rows[2].min(held.phyts), ..held };
+        let caps = super::state::Caps {
+            axes: rows[0].min(held.axes),
+            units: rows[1].min(held.units),
+            phyts: rows[2].min(held.phyts),
+            ..held
+        };
         let fate_at = R_FATE * rs;
-        let mut r = Rec { gpu, kit, e: gpu.encoder(&Default::default()), held: Vec::new(), row: widest(gpu).0, made: 0 };
+        let mut r = Rec {
+            gpu,
+            kit,
+            e: gpu.encoder(&Default::default()),
+            held: Vec::new(),
+            row: widest(gpu).0,
+            made: 0,
+        };
         let (st, ret) = (&self.state, &*self.retire.ret);
         // The phytomers: kept where their axis is not retired.
-        let by_axis = Cfg { fate_at, val_n: rs, below: RETIRED, ..Cfg::column(caps.phyts, held.phyts, (0, P_AXIS)) };
-        r.flag(k, Cfg { by: BY_VALUE, ..by_axis }, (&st.grown, ret), (&k.phyts, 0))?;
+        let by_axis = Cfg {
+            fate_at,
+            val_n: rs,
+            below: RETIRED,
+            ..Cfg::column(caps.phyts, held.phyts, (0, P_AXIS))
+        };
+        r.flag(
+            k,
+            Cfg {
+                by: BY_VALUE,
+                ..by_axis
+            },
+            (&st.grown, ret),
+            (&k.phyts, 0),
+        )?;
         let units_words = [held.units, held.axes, rs, c::UNITS as u32, r.row, 0, 0, 0];
         let cfg = uniform(gpu, &units_words)?;
-        let bind = kit.retire.units.bind(gpu, &[&cfg, census, ret, &k.phyts, &st.units, &st.axes]);
-        kit.retire.units.run(&mut r.e, &bind, 0, held.units.div_ceil(64).max(1));
+        let bind = kit
+            .retire
+            .units
+            .bind(gpu, &[&cfg, census, ret, &k.phyts, &st.units, &st.axes]);
+        kit.retire
+            .units
+            .run(&mut r.e, &bind, 0, held.units.div_ceil(64).max(1));
         r.made += 1;
         r.held.push(cfg);
         self.compact_axes(&mut r, (census, cycle), caps)?;
         let (k, st) = (&self.compactor, &self.state);
         for (table, cols) in [(&st.grown, GROWN), (&st.laid, LAID)] {
             for col in 0..cols as u32 {
-                r.compact(k, (table, Cfg::column(caps.phyts, held.phyts, (0, col))), (&k.phyts, 0))?;
+                r.compact(
+                    k,
+                    (table, Cfg::column(caps.phyts, held.phyts, (0, col))),
+                    (&k.phyts, 0),
+                )?;
             }
         }
-        r.count(k, (census, c::PHYTS as u32), (&k.phyts, 0, caps.phyts), true)?;
+        r.count(
+            k,
+            (census, c::PHYTS as u32),
+            (&k.phyts, 0, caps.phyts),
+            true,
+        )?;
         gpu.submit([r.e.finish()]);
         Ok(r.made)
     }
@@ -229,7 +355,12 @@ impl Build {
     /// The axes inside retired subtrees, and their units, compacted out:
     /// each index into them remapped first, each retired root's upkeep
     /// frozen before its subtree goes.
-    fn compact_axes(&self, r: &mut Rec, (census, cycle): (&Owned, u32), caps: super::state::Caps) -> Result<()> {
+    fn compact_axes(
+        &self,
+        r: &mut Rec,
+        (census, cycle): (&Owned, u32),
+        caps: super::state::Caps,
+    ) -> Result<()> {
         let (k, st, h) = (&self.compactor, &self.state, &self.hier);
         let (held, s) = (st.caps, h.stride);
         let (ret, fate_at) = (&*self.retire.ret, R_FATE * self.retire.stride);
@@ -238,14 +369,52 @@ impl Build {
         let rows = (s + 64).min(caps.axes + 64);
         let axes = |col| Cfg::column(caps.axes, held.axes, (0, col));
         // Each retired root's upkeep, from the sums the cycle left.
-        let freeze = Cfg { fate_at, row_at: S_COST * s, ..axes(A_FROZEN) };
-        r.run(FREEZE, freeze, [&st.axes, &self.sums.sums, ret, &k.spare[0]], caps.axes.div_ceil(64))?;
+        let freeze = Cfg {
+            fate_at,
+            row_at: S_COST * s,
+            ..axes(A_FROZEN)
+        };
+        r.run(
+            FREEZE,
+            freeze,
+            [&st.axes, &self.sums.sums, ret, &k.spare[0]],
+            caps.axes.div_ceil(64),
+        )?;
         // The flags: an axis kept unless inside a retired subtree, a unit
         // where its axis is.
-        let inside = Cfg { fate_at, val_n: self.retire.stride, below: INSIDE, ..Cfg::default() };
-        r.flag(k, Cfg { by: BY_INDEX, ..Cfg { n: caps.axes, ..inside } }, (&st.axes, ret), (&k.axes, 0))?;
+        let inside = Cfg {
+            fate_at,
+            val_n: self.retire.stride,
+            below: INSIDE,
+            ..Cfg::default()
+        };
+        r.flag(
+            k,
+            Cfg {
+                by: BY_INDEX,
+                ..Cfg {
+                    n: caps.axes,
+                    ..inside
+                }
+            },
+            (&st.axes, ret),
+            (&k.axes, 0),
+        )?;
         let units = |col| Cfg::column(caps.units, held.units, (0, col));
-        r.flag(k, Cfg { by: BY_VALUE, ..Cfg { n: caps.units, stride: held.units, col: U_AXIS, ..inside } }, (&st.units, ret), (&k.units, 0))?;
+        r.flag(
+            k,
+            Cfg {
+                by: BY_VALUE,
+                ..Cfg {
+                    n: caps.units,
+                    stride: held.units,
+                    col: U_AXIS,
+                    ..inside
+                }
+            },
+            (&st.units, ret),
+            (&k.units, 0),
+        )?;
         // Every index into the axes and the units, remapped in place.
         let (by_a, by_u) = ((&k.axes, caps.axes, ID), (&k.units, caps.units, ID));
         for col in [A_PARENT, A_SUCC[0], A_SUCC[1]] {
@@ -258,13 +427,31 @@ impl Build {
         for col in U_LINKS {
             r.remap(k, (&st.units, units(col)), by_u)?;
         }
-        r.remap(k, (&st.grown, Cfg::column(caps.phyts, held.phyts, (0, P_AXIS))), by_a)?;
+        r.remap(
+            k,
+            (&st.grown, Cfg::column(caps.phyts, held.phyts, (0, P_AXIS))),
+            by_a,
+        )?;
         let sleepers = |col| Cfg::column(held.sleepers, held.sleepers, (held.sleep_at(), col));
         r.remap(k, (&st.lists, sleepers(S_PARENT)), by_a)?;
         r.remap(k, (&st.lists, sleepers(S_REC)), by_u)?;
-        r.remap(k, (&st.lists, Cfg::column(held.next, held.next, (held.next_at(), 0))), by_a)?;
+        r.remap(
+            k,
+            (
+                &st.lists,
+                Cfg::column(held.next, held.next, (held.next_at(), 0)),
+            ),
+            by_a,
+        )?;
         for col in W_AXES {
-            r.remap(k, (&st.lists, Cfg::column(held.woken, held.woken, (held.woken_at(), col))), by_a)?;
+            r.remap(
+                k,
+                (
+                    &st.lists,
+                    Cfg::column(held.woken, held.woken, (held.woken_at(), col)),
+                ),
+                by_a,
+            )?;
         }
         let list = |col| Cfg::column(rows, s + 64, (0, col));
         for col in [R_KIDS, R_MEMBERS] {
@@ -272,8 +459,24 @@ impl Build {
         }
         // The hierarchy's lists: entries kept where they still name an
         // axis, each run's start through them.
-        r.flag(k, Cfg { by: BY_SET, ..list(R_KIDS) }, (lists, &k.spare[1]), (&k.kids, 0))?;
-        r.flag(k, Cfg { by: BY_SET, ..list(R_MEMBERS) }, (lists, &k.spare[1]), (&k.members, 0))?;
+        r.flag(
+            k,
+            Cfg {
+                by: BY_SET,
+                ..list(R_KIDS)
+            },
+            (lists, &k.spare[1]),
+            (&k.kids, 0),
+        )?;
+        r.flag(
+            k,
+            Cfg {
+                by: BY_SET,
+                ..list(R_MEMBERS)
+            },
+            (lists, &k.spare[1]),
+            (&k.members, 0),
+        )?;
         r.remap(k, (lists, list(R_KID_START)), (&k.kids, rows, POS))?;
         r.remap(k, (lists, list(R_MEM_START)), (&k.members, rows, POS))?;
         // The rows themselves.
@@ -283,12 +486,30 @@ impl Build {
             }
         }
         for col in 0..super::retire_device::R_COLS as u32 {
-            r.compact(k, (ret, Cfg::column(caps.axes, self.retire.stride, (0, col))), (&k.axes, 0))?;
+            r.compact(
+                k,
+                (ret, Cfg::column(caps.axes, self.retire.stride, (0, col))),
+                (&k.axes, 0),
+            )?;
         }
         for col in H_PER_AXIS {
-            r.compact(k, (&h.shape, Cfg::column(caps.axes, s, (0, col))), (&k.axes, 0))?;
+            r.compact(
+                k,
+                (&h.shape, Cfg::column(caps.axes, s, (0, col))),
+                (&k.axes, 0),
+            )?;
         }
-        r.compact(k, (lists, Cfg { n: caps.axes, ..list(R_KID_START) }), (&k.axes, 0))?;
+        r.compact(
+            k,
+            (
+                lists,
+                Cfg {
+                    n: caps.axes,
+                    ..list(R_KID_START)
+                },
+            ),
+            (&k.axes, 0),
+        )?;
         r.compact(k, (lists, list(R_KIDS)), (&k.kids, 0))?;
         r.compact(k, (lists, list(R_MEMBERS)), (&k.members, 0))?;
         for col in 0..UNITS as u32 {
@@ -299,8 +520,18 @@ impl Build {
         for w in [c::AXES, c::LAID, c::BUILT] {
             r.count(k, (census, w as u32), (&k.axes, 0, caps.axes), true)?;
         }
-        r.count(k, (census, c::UNITS as u32), (&k.units, 0, caps.units), true)?;
-        r.count(k, (ret, self.retire.head() as u32), (&k.axes, 0, caps.axes), false)?;
+        r.count(
+            k,
+            (census, c::UNITS as u32),
+            (&k.units, 0, caps.units),
+            true,
+        )?;
+        r.count(
+            k,
+            (ret, self.retire.head() as u32),
+            (&k.axes, 0, caps.axes),
+            false,
+        )?;
         Ok(())
     }
 }

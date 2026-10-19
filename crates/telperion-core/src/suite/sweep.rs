@@ -81,7 +81,7 @@ const SWEEP_NODES: usize = 8_000;
 // with the rest of the scaffold; the birch (fn-213) moves the envelope, the
 // clump, the peel, the curtain and the twig length, so the sweep walks
 // those. Every preset is now an engine preset, so every pair is walked.
-const HELD: [&str; 135] = [
+const HELD: [&str; 138] = [
     "/bloom/florets",
     "/bloom/rachis",
     "/bloom/droop",
@@ -122,6 +122,7 @@ const HELD: [&str; 135] = [
     "/canopy/leafBaseWidth",
     "/canopy/leafBaseFlatness",
     "/canopy/acanthophylls",
+    "/canopy/cauline",
     "/canopy/acanthophyllLength",
     "/canopy/acanthophyllPitch",
     "/canopy/skirtFronds",
@@ -131,6 +132,9 @@ const HELD: [&str; 135] = [
     // which the sweep does not walk; the named autumn colours moved off this
     // list, as the walked presets now differ in them.
     "/canopy/frondLife",
+    // fn-275: a crown's establishment, stated by the palm alone.
+    "/canopy/frondEstablishment",
+    "/canopy/frondEarlyShare",
     "/canopy/clumpNeighbours",
     "/surface/socketContainment",
     "/skeleton/habit/reachProbeSteps",
@@ -396,7 +400,11 @@ fn grows(a: &str, b: &str, step: usize) {
     }
     let mesh = mesh::build(&family).unwrap_or_else(|e| panic!("{a}->{b} at {at}: {e}"));
     assert!(
-        mesh.wood.positions.iter().all(|v| v.is_finite())
+        mesh.wood
+            .chunks
+            .iter()
+            .flat_map(|c| &c.positions)
+            .all(|v| v.is_finite())
             && mesh.bounds.min.is_finite()
             && mesh.bounds.max.is_finite(),
         "{a}->{b} at {at}: a position is not finite"

@@ -12,12 +12,7 @@ fn a_direction_swept_through_straight_down_turns_by_degree() {
     let side = Vec3::new(1.0, 0.0, 0.0);
     let turned = |angle: f64| {
         let direction = Vec3::new(0.0, angle.sin_fixed(), -angle.cos_fixed());
-        v3(toward_elevation(
-            q3(direction),
-            q3(side),
-            amount(0.4),
-            0.3,
-        ))
+        v3(toward_elevation(q3(direction), q3(side), amount(0.4), 0.3))
     };
     let steps = 2_000;
     let span = 0.2;

@@ -89,7 +89,7 @@ fn cases(s: Selector, rng: &mut Cases, presences: &mut Vec<f32>) -> Vec<[u64; 8]
                 }
                 S::Survival | S::Abortion | S::Lived => {
                     a[0] = w(rng.log(8.0));
-                    a[1] = rng.within(0, 1) ;
+                    a[1] = rng.within(0, 1);
                     a[2] = w(rng.real(-4.0, 4.0));
                     a[3] = rng.within(0, 120 << 20);
                     a[4] = rng.within(0, 1 << 32);
@@ -102,10 +102,22 @@ fn cases(s: Selector, rng: &mut Cases, presences: &mut Vec<f32>) -> Vec<[u64; 8]
                 }
                 S::Moved => {
                     // The move's log-odds, certain one time in eight.
-                    a[0] = w(if rng.next() % 8 == 0 { c::INF } else { rng.real(-20.0, 20.0) });
+                    a[0] = w(if rng.next() % 8 == 0 {
+                        c::INF
+                    } else {
+                        rng.real(-20.0, 20.0)
+                    });
                     a[1] = rng.draw();
-                    a[2] = w(if rng.next() % 8 == 0 { -c::INF } else { rng.real(-30.0, 0.0) });
-                    a[3] = w(if rng.next() % 8 == 0 { -c::INF } else { rng.real(-30.0, 0.0) });
+                    a[2] = w(if rng.next() % 8 == 0 {
+                        -c::INF
+                    } else {
+                        rng.real(-30.0, 0.0)
+                    });
+                    a[3] = w(if rng.next() % 8 == 0 {
+                        -c::INF
+                    } else {
+                        rng.real(-30.0, 0.0)
+                    });
                     a[4] = rng.within(0, 1 << 20);
                     a[5] = w(rng.real(0.0, 6.0));
                     a[6] = w(rng.real(0.0, 0.05));
@@ -115,7 +127,11 @@ fn cases(s: Selector, rng: &mut Cases, presences: &mut Vec<f32>) -> Vec<[u64; 8]
                     // The bound's own side: a log or log-odds, none one time
                     // in eight.
                     a[0] = rng.draw();
-                    a[1] = w(if rng.next() % 8 == 0 { -c::INF } else { rng.real(-30.0, 10.0) });
+                    a[1] = w(if rng.next() % 8 == 0 {
+                        -c::INF
+                    } else {
+                        rng.real(-30.0, 10.0)
+                    });
                 }
                 S::Wake => {
                     a[0] = rng.within(0, 40 << 20);
@@ -125,14 +141,30 @@ fn cases(s: Selector, rng: &mut Cases, presences: &mut Vec<f32>) -> Vec<[u64; 8]
                 S::Lead => {
                     let (x, y) = (rng.draw(), rng.draw());
                     a[0] = if rng.next() % 4 == 0 { 0 } else { x.min(y) };
-                    a[1] = if rng.next() % 4 == 0 { c::ONE } else { x.max(y) };
+                    a[1] = if rng.next() % 4 == 0 {
+                        c::ONE
+                    } else {
+                        x.max(y)
+                    };
                     a[2] = rng.draw();
                 }
                 S::Window => {
-                    a[0] = w(if rng.next() % 8 == 0 { c::INF } else { rng.real(-4.0, 4.0) });
+                    a[0] = w(if rng.next() % 8 == 0 {
+                        c::INF
+                    } else {
+                        rng.real(-4.0, 4.0)
+                    });
                     a[1] = w(rng.real(0.0, 2.0));
-                    a[2] = w(if rng.next() % 8 == 0 { -c::INF } else { rng.real(-30.0, 0.0) });
-                    a[3] = w(if rng.next() % 8 == 0 { -c::INF } else { rng.real(-30.0, 0.0) });
+                    a[2] = w(if rng.next() % 8 == 0 {
+                        -c::INF
+                    } else {
+                        rng.real(-30.0, 0.0)
+                    });
+                    a[3] = w(if rng.next() % 8 == 0 {
+                        -c::INF
+                    } else {
+                        rng.real(-30.0, 0.0)
+                    });
                     a[4] = rng.within(0, 1 << 20);
                     a[5] = w(rng.real(0.0, 6.0));
                     a[6] = w(rng.real(0.0, 0.05));
@@ -184,9 +216,18 @@ fn expected(s: Selector, a: &[u64; 8], presences: &[f32]) -> [u64; 2] {
             decide::abortion_fine(f(0), (a[1] != 0).then(|| f(2)), a[3], a[4]),
             decide::lived_ticks(f(5), a[6], a[7]),
         ],
-        S::Lived => [decide::lived_fine(f(5), a[6], a[7]), w(decide::draw_log2(a[7]))],
+        S::Lived => [
+            decide::lived_fine(f(5), a[6], a[7]),
+            w(decide::draw_log2(a[7])),
+        ],
         S::Moved => [
-            w(decide::moved_f(f(0), a[1], (f(2), f(3)), a[4], (f(5), f(6), f(7)))),
+            w(decide::moved_f(
+                f(0),
+                a[1],
+                (f(2), f(3)),
+                a[4],
+                (f(5), f(6), f(7)),
+            )),
             0,
         ],
         S::Past => [w(decide::past(a[0], f(1))), w(decide::above(a[0], f(1)))],
@@ -194,7 +235,10 @@ fn expected(s: Selector, a: &[u64; 8], presences: &[f32]) -> [u64; 2] {
         S::Lead => [w(pr::over(a[0], a[2]).min(pr::under(a[1], a[2]))), 0],
         S::Window => {
             let wood = pr::wood_at((f(2), f(3)), a[4]);
-            [w(pr::window(wood, (f(5), f(6), f(7)))), w(c::presence(f(0), f(1)))]
+            [
+                w(pr::window(wood, (f(5), f(6), f(7)))),
+                w(c::presence(f(0), f(1))),
+            ]
         }
         S::Carry => {
             let (gap, age) = ((a[2] & 0xffff_ffff) as u32, (a[2] >> 32) as u32);
@@ -255,7 +299,8 @@ const WAKE: u64 = 1 << 8;
 /// How far apart two results are, as a share of what `t` allows, and
 /// whether that is within it.
 fn apart(t: Tolerance, cpu: u64, gpu: u64) -> (f64, bool) {
-    let near = |e: i32, a: f64, b: f64| (a - b).abs() / (2f64.powi(-e) + REL * a.abs().max(b.abs()));
+    let near =
+        |e: i32, a: f64, b: f64| (a - b).abs() / (2f64.powi(-e) + REL * a.abs().max(b.abs()));
     let real = |x: u64| f64::from(f32::from_bits(x as u32));
     let chance = |t: u64| t as f64 / c::ONE as f64;
     let d = match t {
@@ -357,7 +402,12 @@ fn the_gpu_takes_every_decision_the_cpu_does() {
                 most[k] = most[k].max(d);
                 if !ok {
                     if wrong[k] < 3 {
-                        eprintln!("{}[{k}]: {a:x?}: cpu {:x} gpu {:x}", s.name(), want[k], g[k]);
+                        eprintln!(
+                            "{}[{k}]: {a:x?}: cpu {:x} gpu {:x}",
+                            s.name(),
+                            want[k],
+                            g[k]
+                        );
                     }
                     wrong[k] += 1;
                 }
@@ -366,7 +416,12 @@ fn the_gpu_takes_every_decision_the_cpu_does() {
         println!("{}: most apart, of its bound {most:.3?}", s.name());
         for k in 0..2 {
             if wrong[k] > 0 {
-                failed.push(format!("{}[{k}]: {} of {} cases", s.name(), wrong[k], cases.len()));
+                failed.push(format!(
+                    "{}[{k}]: {} of {} cases",
+                    s.name(),
+                    wrong[k],
+                    cases.len()
+                ));
             }
         }
     }

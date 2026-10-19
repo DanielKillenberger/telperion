@@ -28,8 +28,12 @@
 /surface/flareRadius = 2.0
 
 # The crown (fn-109): a rosette of pinnate fronds at the apex and
-# nothing borne below it.
+# nothing borne below it. fn-277 (host, 2026-10-14): a palm bears its
+# leaves only in its crown at the stem's apex, none along its wood
+# (Zaid and de Wet 2002, FAO Plant Production and Protection Paper 156,
+# ch. I), so none of its wood is cauline.
 /canopy/rosetteFronds = 42
+/canopy/cauline = 0.0
 /canopy/rosettePitch = 12.5
 /canopy/rosettePitchSpread = 105.0
 /canopy/rosetteDepth = 0.35
@@ -82,6 +86,24 @@
 # annual formation of 10 to 26 new leaves" (ibid.); this crown, a third of
 # a real one's count, makes 8.4, a sixth under the range's low end.
 /canopy/frondLife = 5.0
+# fn-275 R1: a palm establishes, "the stem progressively widens as the
+# crown grows to its mature size" before the stem rises (Tomlinson and
+# Huggett 2012, Am. J. Bot. 99: 1891). Each frond is made at a share of a
+# mature one set by the crown's age when it was made, along the logistic
+# course (Pallardy 2008, as unfold's) from the early share to whole.
+# Years: tissue-culture palms "5 years old" bear leaves of 121.71, 140.43
+# and 133.43 in. against 130.29, 155 and 140 in. on their 20 to 40 year
+# old offshoot-grown mothers (Frontiers in Plant Science 16: 1516983,
+# 2025, Table 1): 0.934, 0.906 and 0.953, mean 0.931, which the course
+# reaches at year 5 over 6.75 years (code fit 6.746). Cross-check: "In 4
+# or 5 years, the crown clears the ground and the 1st flowering can be
+# expected" (Orwa et al. 2009, Agroforestree Database).
+/canopy/frondEstablishment = 6.75
+# Declared stand-in: tissue-culture plantlets leave the laboratory "about
+# 35 to 45 cm long with 4 to 5 leaves" (Zaid and de Wet 2002, FAO 156
+# ch. V), 0.40 m against the 4 m average frond (ibid. ch. I); the
+# plantlet's age is not stated and its length is the plant's, not a leaf's.
+/canopy/frondEarlyShare = 0.1
 
 # The skirt hangs against the trunk, the deepest place inside the
 # crown's envelope, where the default shell cull drops most of it.
@@ -143,7 +165,13 @@
 # own" (ibid.); none falls.
 /space/ages/2/lifespan = 150.0
 /space/ages/2/continuation = 0.0
-/space/ages/2/internode = 0.031
+# fn-275 R2a (host, 2026-10-14): the stem waits on its crown's
+# establishment, losing half of its 6.75 years' rise, so the internode
+# rises from 0.031 m to keep the palm at 40 at today's 21.59 m: the stem's
+# top stood at 14.885 m, laid at 12 nodes a year over 40 years less 3.375
+# waited, 14.885 / (12 x 36.625) = 0.0339 m (code measured, raw/). That is
+# 0.407 m a year, inside "30-45 cm" a year (A1).
+/space/ages/2/internode = 0.0339
 /space/ages/2/divergence = 2.399963
 /space/ages/2/readiness = 0.0
 /space/ages/2/rhythm = 0.0

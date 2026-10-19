@@ -58,7 +58,6 @@ export interface GenerationStages {
   woodPreparedCpuBytes: number;
   woodMetadataCpuBytes: number;
   woodGpuPeakBytes: number;
-  woodBackend: "Cpu" | "Gpu" | "CpuFallback" | null;
   /** Unstable diagnostic text; do not branch on its wording. */
   woodFallback: string | null;
   /** Preparation only; excludes adoption, drawing and completed-frame fencing. */
@@ -77,7 +76,6 @@ export interface GenerationStages {
 export type Admission = "beside" | "makeRoom";
 
 export interface GpuSubmitted extends Submitted {
-  backend: "Gpu" | "CpuFallback";
   stages: GenerationStages;
   /** Allocated live-tree GPU buffer bytes before adoption; excludes textures/pipelines. */
   previousTreeGpuBytes: number;
@@ -181,7 +179,13 @@ export interface Growth {
    *  past the horizon, a year or more back, or not finite rejects by name
    *  before anything moves; a failure spends the tree. */
   growTo(age: number): Promise<number | null>;
-  /** Puts the tree drawn at `at`, within its last year, on the canvas. */
+  /** What the next draw does under the page's budget, as a build's
+   *  `admission` says: beside the tree on the canvas, or that tree let go
+   *  first ("makeRoom"). Throws the budget's own words for a draw that
+   *  does not fit even alone; the tree on the canvas stays. */
+  admission(): Admission;
+  /** Puts the tree drawn at `at`, within its last year, on the canvas,
+   *  letting the tree there go first where `admission` says so. */
   draw(at: number): Promise<Submitted>;
   /** Lets the growth state go. */
   dispose(): void;
@@ -200,8 +204,8 @@ export interface Renderer {
    *  the background from the moment the renderer exists. Rejects with the
    *  program the browser refused, or the device lost meanwhile, by name. */
   programs: Promise<void>;
-  /** Experimental GPU foliage; unsupported inputs report CpuFallback. Waits
-   *  on `programs`, and rejects with its error without building. */
+  /** The tree built on the device. Waits on `programs`, and rejects with
+   *  its error without building. */
   setTreeGpu(family: string): Promise<GpuSubmitted>;
   /** The family's tree before its first year, on the device (`Growth`).
    *  Waits on `programs`, and rejects with its error without beginning. */
@@ -281,6 +285,7 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
         committed: () => handle.committed() ?? null,
         horizon: () => handle.horizon() ?? null,
         growTo: async (age) => ((await renderer.growTo(handle, age)) as number | null),
+        admission: () => renderer.growthAdmission(handle) as Admission,
         draw: async (at) => JSON.parse((await renderer.drawGrowth(handle, at)) as string) as Submitted,
         dispose: () => handle.free(),
       };

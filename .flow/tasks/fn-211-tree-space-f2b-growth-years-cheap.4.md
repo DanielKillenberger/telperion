@@ -14,7 +14,6 @@ The stepped executor (grow/stepped.rs, stepped/handover.rs, stepped/assemble.rs)
 
 Acceptance amended by the host (2026-10-07): the aggregate-against-histories bullet is void (DESIGN-INTERLEAVE.md deletes the aggregate); lifting the oak's refusal in fn-209's executors moves to task 5 (GPU stepping).
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: a9952e91, 7f251380, 0070348f, 38ced830, 8a28b918, e29fa6bf, 07df63a0, 23abc73e, 13938bc9, 075ae7e3, a312d450, 5324211b, 34b6afa1
 - Tests: cargo test --profile ci --workspace --no-fail-fast

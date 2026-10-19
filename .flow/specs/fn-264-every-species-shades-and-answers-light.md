@@ -1,17 +1,49 @@
 # Every species shades and answers light by its sources
 
-## Goal & Context
+## Goal
 
-COUNCIL.md (fn-245 evidence, 2026-10-11) makes the lattice the one light model for every species, species differing only by their rows. fn-255's EARLY.md measured that today only the oak and the ordinary tree carry any leaf area in the lattice: spruce, birch, beech, palm, Laurelin and Telperion deposit nothing, so under the one cycle they neither shade nor are shaded. The owner (2026-10-09): "i'm still not comfortable with only the oak growing with light". fn-251's oak → birch walk fails partly because the birch has no light rows (fn-251 Decisions). Non-zero rows are not by themselves a pass for that walk (COUNCIL.md).
+COUNCIL.md (fn-245, 2026-10-11) makes the lattice the one light model for every species, species differing only by their rows; fn-255 measured that only the oak and the ordinary tree carried any leaf area in it, so spruce, birch, beech, palm, Laurelin and Telperion neither shaded nor were shaded. The owner (2026-10-09): "i'm still not comfortable with only the oak growing with light". Give every shipped species sourced light rows, one shared site light, and prove each response at its consumer. Species rows only; no engine change. Release item (fn-237).
 
-## Requirements
+## Decisions
 
-- **R1 (inventory, checked against code):** every row the lattice and the light response read (leaf area deposited, shade hazard, shade size, balance hazard, leaf girth, and any other), per shipped preset, with its current value and which consumer reads it; the site's environment rows (extinction) named as environment, not species.
-- **R1a (one environment, host 2026-10-11):** the site's light (`/space/light/extinction` and any other environment row R1 names) is one shared setting every shipped preset grows under, not a per-preset row: today the six presets omit it and `Space::default()` gives zero, so the lattice skips its sweep (`light/field.rs:177`). Its value is a sourced canopy extinction coefficient (Monsi and Saeki's Beer-Lambert k; the oak's 0.5 checked against its source), set in one place the preset entry points all read, verified by a test that every shipped preset's build reads it non-zero.
-- **R2 (sourced, one task per species):** for spruce, birch, beech, palm, Laurelin and Telperion, each row from a literature value at a stated age and growing condition (leaf area index or leaf area per shoot, shade tolerance), screened by Jev and copied by code, each checked against its source text (AGENTS.md "TypeSafe"); the Two Trees take their nearest real analogues' values, named as a decision; a row a source sets to zero stays zero; a row with no source is a stated host decision, never an invented number.
-- **R2a (each response proved where it lives):** per shipped preset under controlled site light, a focused test that its foliage lowers sampled light in the lattice, and that each populated response row changes growth through its actual consumer (shade hazard on survival, shade size through normalisation, balance hazard, leaf girth); where a sourced zero or the preset's structure makes a response neutral (for example the palm's single-bud groups under normalisation, or viability at 1), the neutral expectation is stated and tested instead.
-- **R3 (proved):** every preset grows through fn-255's cycle with its rows; whole/mid/close stills of each beside F4's, viewed; build time and peak memory per preset; fn-251's exact frame re-measured and reported (pass or not); the owner's verdict on the stills.
+- Owner (2026-10-09): "i'm still not comfortable with only the oak growing with light".
+- Host (2026-10-11, R1a): the site's light is one shared environment setting, not a per-preset row: extinction k = 0.5 (Bréda 2003, spherical leaf-angle distribution), confirming the oak's previously unchecked 0.5.
+- Host (2026-10-12): birch leaf area derived (Flora of China leaf dimensions × 0.67 ovate shape factor, Schrader et al. 2021) = 13.19 cm² a node; spruce derived (Bellan et al. 2019 needles/cm × Gebauer et al. 2019 sun needle area) = 0.033565 m² per metre of current-year shoot; palm the whole frond, 2.81 m² a node (Abdel-Sattar et al. 2024), with `MAX_LEAF_AREA` raised to 5 m².
+- Host (2026-10-12): the Two Trees take the beech's rows (their engine species is the beech); beech leaf area 15.723 cm² (Hladká and Čaňová 2005, sunlit).
+- Host (2026-10-12): hazard rows from one monotone mapping of Niinemets and Valladares's shade tolerance T, anchored on the oak (T = 2.4); upkeep 0.35, tolerance 0, leaf girth 1.0 shared physiology; apical control stays per species (architecture, not light).
+- Host (2026-10-12, birch ruling): the size response ψ is not mapped from tolerance; it stays each species' pre-fn-264 value (dormant) until a source or owner verdict sets it — mapped ψ ran the birch's long shoots bare. Leaf girth stays 1.0 (disused pipes persist as heartwood). Lying wood belongs to fn-252.
+- Host: retained (evergreen) foliage is a stated approximation; the deposit counts the year's foliage alone; retention is its own spec.
 
-## Boundaries
+## Acceptance Criteria
 
-Species rows only; no engine change. Depends on fn-255. Release item (fn-237): the one light model ships with every species reading it.
+- **R1:** inventory of every row the lattice and light response read, per preset, with consumer; environment rows named as environment — met.
+- **R1a:** one shared site light every preset reads non-zero, sourced, tested — met (k 0.5).
+- **R2:** each species' rows from literature screened by Jev, copied by code, checked against source; Two Trees by named analogue; no invented numbers — met, with derived values ruled by the host (SOURCES.md).
+- **R2a:** per preset, foliage lowers sampled light and each populated response changes growth through its consumer, or the neutral expectation is tested — met.
+- **R3:** every preset grows through fn-255's cycle; stills beside F4's viewed; build time and peak memory; fn-251's frame re-measured; owner's verdict — met.
+
+## Result
+
+Final R3 (tip `c116854f3`, ψ dormant), CPU reference at seed 42: kept phytomers birch −33 %, Laurelin and Telperion −33/−34 %, spruce −9 %, beech −6 %; oak and palm unchanged. Device warm build: Telperion 1,201 → 1,980 ms (+65 %), Laurelin 1,108 → 1,808 ms (+63 %), about +0.6 GB peak each, all in the light phase; other presets 0-13 %. Stills: oak and palm pixel-identical; birch's ground limb back to a thin line and the white whips gone; other crowns slightly more open. fn-251's frame (oak → birch, t 0.0750, age 80, seed 7) grows 15,989,657 and builds in 18.4 s. Gate: workspace 1,073 passed, renderer 273 passed, `npm test` 162; codex SHIP.
+
+Owner verdict (2026-10-13), on the sheets: "yea looks good the artifact".
+
+## Open
+
+- Retained evergreen foliage in the deposit (host: its own spec).
+- The birch's ground-running wood (fn-252; finding filed there).
+- Better birch leaf-area sources are paywalled (Kull and Niinemets 1993, Niinemets 1994, Atkinson 1992).
+
+## Friction
+
+- flowctl not on the worker's PATH -> dispatch names the path.
+- `jev select` recalls lengths and ages only, not coefficients or areas -> `select --units area,ratio` proposed for `telperion-jev`.
+- fn-251's repro lived only on its branch; no `/usr/bin/time` -> merge the repro as an ignored measurement; shared timing script proposed.
+- jev replay tests need examples only the renderer run builds -> fn-237 R10.
+- CPU timings voided by another session's memory -> machine-wide memory gate proposed (fn-259 R4).
+- A game took 6 GB of the card mid-gate: 22 spurious OOM failures -> per-test free-memory check proposed.
+
+## Evidence
+
+- `.flow/evidence/fn-264-every-species-shades-and-answers-light/SOURCES.md` (sources, Jev picks, host decisions)
+- `.flow/evidence/fn-264-every-species-shades-and-answers-light/BIRCH.md` (birch ground limb and whips isolated; host rulings)

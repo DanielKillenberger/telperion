@@ -11,7 +11,7 @@ The stills come from this command, run from the worktree root. It is `space_laur
 target/ci/examples/space_two_trees telperion <out> 92 <seed>
 ```
 
-I viewed every still of every round: 14 rounds and one diagnostic. The final sheets are seeds 1, 7 and 42, where 42 is the preset's default seed. Astra's readings are in `astra/`.
+I viewed every still of every round: 14 rounds and one diagnostic. The final sheets are seeds 1, 7 and 42, where 42 is the preset's default seed.
 
 ## The values (R1)
 
@@ -29,7 +29,7 @@ I viewed every still of every round: 14 rounds and one diagnostic. The final she
 | 140 | the on tree is refused at draw: the wood points buffer needs 330 MB, above the device's 256 MB |
 | 160 | refused at grow: `engine phytomer budget` |
 
-Rounds 1 to 11 were judged at 120, and rounds 12 and 13 at 110. Round 13 (age 110, scale 2.2, these colours and blossom) passed with the host and with two Astra draws (`raw/r13`, `astra/r13*.md`), and the device route prepares it at seeds 1, 7 and 42. `npm test` then showed the Wasm bound, and round 14 moved him to 92. The code says fn-209's fine path lifts that bound; the age is the first open item below.
+Rounds 1 to 11 were judged at 120, and rounds 12 and 13 at 110. Round 13 (age 110, scale 2.2, these colours and blossom) passed with the host and with two Astra draws (`raw/r13`), and the device route prepares it at seeds 1, 7 and 42. `npm test` then showed the Wasm bound, and round 14 moved him to 92. The code says fn-209's fine path lifts that bound; the age is the first open item below.
 
 | Group row | Value | Why |
 |---|---|---|

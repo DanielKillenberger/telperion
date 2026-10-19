@@ -25,14 +25,7 @@ pub(super) fn buffer(
             limit,
         });
     }
-    if let Err((after, cap)) = gpu.ledger.reserve(size, label) {
-        let mib = |b: u64| b >> 20;
-        return Err(error(format!(
-            "{OVER_BUDGET}the build's {label} would hold {} MiB, past the {} MiB it may hold; grow it younger",
-            mib(after),
-            mib(cap)
-        )));
-    }
+    reserve(gpu, size, label)?;
     let descriptor = wgpu::BufferDescriptor {
         label: Some(label),
         size,
@@ -43,12 +36,17 @@ pub(super) fn buffer(
         Ok(buffer) => Owned::reserved(gpu, buffer, label),
         Err(refused) => {
             gpu.ledger.unreserve(size, label);
-            return Err(error(format!("the device refused the build's {label} of {} MiB: {refused}", size >> 20)));
+            return Err(error(format!(
+                "the device refused the build's {label} of {} MiB: {refused}",
+                size >> 20
+            )));
         }
     };
     if !initial.is_empty() {
         gpu.queue.write_buffer(&buffer, 0, initial);
     }
+    #[cfg(test)]
+    crate::trace::made(size, initial.len() as u64);
     Ok(buffer)
 }
 
@@ -56,7 +54,10 @@ pub(super) fn buffer(
 /// cannot hold it (the heap past its share, `device::HEAP_SHARE`) refuses
 /// it here, before any pass binds it; a browser reports it at the build's
 /// scopes.
-fn made(gpu: &Gpu, descriptor: &wgpu::BufferDescriptor<'_>) -> std::result::Result<wgpu::Buffer, String> {
+fn made(
+    gpu: &Gpu,
+    descriptor: &wgpu::BufferDescriptor<'_>,
+) -> std::result::Result<wgpu::Buffer, String> {
     #[cfg(not(target_arch = "wasm32"))]
     {
         let [validation, memory] = scope(gpu);
@@ -78,7 +79,11 @@ fn made(gpu: &Gpu, descriptor: &wgpu::BufferDescriptor<'_>) -> std::result::Resu
 /// thread's own, so `b` runs under scopes of its own, and what they catch
 /// is kept for `programs::ready` to report, as a refused program is.
 #[cfg(not(target_arch = "wasm32"))]
-pub(crate) fn pair<A: Send, B: Send>(gpu: &Gpu, a: impl FnOnce() -> A + Send, b: impl FnOnce() -> B + Send) -> (A, B) {
+pub(crate) fn pair<A: Send, B: Send>(
+    gpu: &Gpu,
+    a: impl FnOnce() -> A + Send,
+    b: impl FnOnce() -> B + Send,
+) -> (A, B) {
     let scoped = || {
         let [validation, memory] = scope(gpu);
         let made = b();
@@ -224,13 +229,20 @@ impl Pass {
     ) {
         #[cfg(test)]
         crate::trace::dispatch(&self.entries[entry], groups);
+        #[cfg(test)]
+        crate::trace::own_pass();
         let mut pass = self.begin(encoder, bind, entry);
         pass.dispatch_workgroups(groups.min(self.maximum), groups.div_ceil(self.maximum), 1);
     }
 
     /// `entry` dispatched inside `pass`, a compute pass it shares with
     /// the dispatches beside it (unstamped): `groups` workgroups.
-    pub fn encode(&self, pass: &mut wgpu::ComputePass<'_>, (bind, entry): (&wgpu::BindGroup, usize), groups: u32) {
+    pub fn encode(
+        &self,
+        pass: &mut wgpu::ComputePass<'_>,
+        (bind, entry): (&wgpu::BindGroup, usize),
+        groups: u32,
+    ) {
         #[cfg(test)]
         crate::trace::dispatch(&self.entries[entry], groups);
         pass.set_pipeline(self.pipelines[entry].get());
@@ -241,7 +253,11 @@ impl Pass {
     /// Each of `dispatches` (a bind group, an entry, its workgroups) in
     /// order, in one compute pass; each in a stamped pass of its own while
     /// a profile is on.
-    pub fn run_all(&self, encoder: &mut wgpu::CommandEncoder, dispatches: &[(wgpu::BindGroup, usize, u32)]) {
+    pub fn run_all(
+        &self,
+        encoder: &mut wgpu::CommandEncoder,
+        dispatches: &[(wgpu::BindGroup, usize, u32)],
+    ) {
         #[cfg(test)]
         if super::profile::on() {
             for (bind, entry, groups) in dispatches {
@@ -252,7 +268,10 @@ impl Pass {
         if dispatches.is_empty() {
             return;
         }
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor { label: Some("experimental generation"), timestamp_writes: None });
+        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+            label: Some("experimental generation"),
+            timestamp_writes: None,
+        });
         for (bind, entry, groups) in dispatches {
             self.encode(&mut pass, (bind, *entry), *groups);
         }
@@ -346,6 +365,7 @@ pub(super) async fn read_async(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> 
     begin_read(gpu, source, bytes)?.complete(gpu).await
 }
 
+#[cfg(test)]
 pub(super) async fn read_leaves_async(
     gpu: &Gpu,
     source: &wgpu::Buffer,
@@ -354,6 +374,7 @@ pub(super) async fn read_leaves_async(
     read_leaves_chunked(gpu, source, count as usize, 4 * 1024 * 1024).await
 }
 
+#[cfg(test)]
 pub(super) fn reserve_leaves(count: usize) -> Result<Vec<[u32; 3]>> {
     let mut leaves = Vec::new();
     leaves
@@ -362,6 +383,7 @@ pub(super) fn reserve_leaves(count: usize) -> Result<Vec<[u32; 3]>> {
     Ok(leaves)
 }
 
+#[cfg(test)]
 pub(super) async fn read_leaves_chunked(
     gpu: &Gpu,
     source: &wgpu::Buffer,
@@ -475,6 +497,26 @@ pub(super) fn scope(gpu: &Gpu) -> [wgpu::ErrorScopeGuard; 2] {
 }
 /// The refusal of a buffer past the device budget a build is held to.
 const OVER_BUDGET: &str = "the device budget: ";
+
+/// `bytes` for `label` charged against the device budget, refused by
+/// name where they would pass it.
+fn reserve(gpu: &Gpu, bytes: u64, label: &'static str) -> Result<()> {
+    gpu.ledger.reserve(bytes, label).map_err(|e| over(label, e))
+}
+
+/// Whether `bytes` more for `label` fit the device budget, charging
+/// nothing; refused by name where they would not.
+pub(super) fn fits(gpu: &Gpu, bytes: u64, label: &'static str) -> Result<()> {
+    gpu.ledger.fits(bytes).map_err(|e| over(label, e))
+}
+
+fn over(label: &str, (after, cap): (u64, u64)) -> RenderError {
+    error(format!(
+        "{OVER_BUDGET}the build's {label} would hold {} MiB, past the {} MiB it may hold; grow it younger",
+        after >> 20,
+        cap >> 20
+    ))
+}
 
 /// Whether `e` is a buffer's refusal past the device budget (`buffer`).
 pub(super) fn over_budget(e: &RenderError) -> bool {

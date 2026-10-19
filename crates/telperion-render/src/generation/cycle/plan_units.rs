@@ -6,15 +6,18 @@
 //! census and the new axes' and phytomers' columns set (`glue.wgsl`).
 use super::build::{Build, Kit, Tables};
 use super::census::{self as c, Flag};
-use super::device::{self, AFTER, CLOSE, DECIDE, FLAG, GATHER, INIT, RANGE, WOKE, T_LIST, T_ROUNDS, T_UNITS, T_UNITS_B, T_USED, T_WAKE, T_WAKE_B, WRITTEN, ZONES};
-use super::glue;
-use super::plan::{Builder, PassId, Step, MAXX};
-use super::hier_scan::sums_words;
-use super::plan_scan::{scanned, Shape};
+use super::device::{
+    self, AFTER, CLOSE, DECIDE, FLAG, GATHER, INIT, RANGE, T_LIST, T_ROUNDS, T_UNITS, T_UNITS_B,
+    T_USED, T_WAKE, T_WAKE_B, WOKE, WRITTEN, ZONES,
+};
 use super::gate::{rec, Cond};
+use super::glue;
+use super::hier_scan::sums_words;
 use super::hier_scan::zeroed;
-use crate::buffer::Owned;
+use super::plan::{Builder, PassId, Step, MAXX};
+use super::plan_scan::{scanned, Shape};
 use super::vm::E;
+use crate::buffer::Owned;
 use crate::Result;
 
 /// The units' uniform's word holding its round (`arena.wgsl`'s `round`).
@@ -38,15 +41,56 @@ impl Build {
         let s = self.state.caps;
         let at = device::counts(s, t.zones);
         vec![
-            0, MAXX * 64, 0, t.age, emit, wake, t.lights, 0, s.axes, s.units, s.phyts, s.sleepers, s.next, s.woken,
-            s.sleepers, 0, self.b_at(), s.sleep_at(), s.next_at(), s.woken_at(), s.list_at(), 0, 0, 0, 0, 0, t.rows,
-            t.whorls, 0, base, t.seed as u32, (t.seed >> 32) as u32, at.job_at, at.jobs, at.zone_at, t.zones.max(1), 0,
+            0,
+            MAXX * 64,
+            0,
+            t.age,
+            emit,
+            wake,
+            t.lights,
+            0,
+            s.axes,
+            s.units,
+            s.phyts,
+            s.sleepers,
+            s.next,
+            s.woken,
+            s.sleepers,
+            0,
+            self.b_at(),
+            s.sleep_at(),
+            s.next_at(),
+            s.woken_at(),
+            s.list_at(),
+            0,
+            0,
+            0,
+            0,
+            0,
+            t.rows,
+            t.whorls,
+            0,
+            base,
+            t.seed as u32,
+            (t.seed >> 32) as u32,
+            at.job_at,
+            at.jobs,
+            at.zone_at,
+            t.zones.max(1),
+            0,
         ]
     }
 
     /// A units slot's words the device writes: its count `n`, the cycle,
     /// the laid axes, the counts before the cycle and the living read.
-    fn units_slot(&self, b: &mut Builder, t: &Tables, n: E, (emit, wake, base): (u32, u32, u32), round: u32) -> u32 {
+    fn units_slot(
+        &self,
+        b: &mut Builder,
+        t: &Tables,
+        n: E,
+        (emit, wake, base): (u32, u32, u32),
+        round: u32,
+    ) -> u32 {
         let mut words = self.units_static(t, (emit, wake, base));
         words[ROUND_WORD] = round;
         let slot = b.slot(&words);
@@ -69,25 +113,62 @@ impl Build {
 
     fn units_bind(&self, b: &Builder, kit: &Kit, t: &Tables, slot: u32) -> wgpu::BindGroup {
         let s = &self.state;
-        let rest = [&*t.table, &t.words, &self.inputs, &s.axes, &s.units, &s.grown, &s.lists, &self.counts];
+        let rest = [
+            &*t.table,
+            &t.words,
+            &self.inputs,
+            &s.axes,
+            &s.units,
+            &s.grown,
+            &s.lists,
+            &self.counts,
+        ];
         b.bind(&kit.units.cycle, slot, &rest)
     }
 
     /// The cycle's units and wake, recorded.
-    pub(super) fn plan_units(&self, b: &mut Builder, kit: &Kit, t: &Tables, (ranges, range, rounds): (u32, u32, u32)) -> Result<Vec<Owned>> {
+    pub(super) fn plan_units(
+        &self,
+        b: &mut Builder,
+        kit: &Kit,
+        t: &Tables,
+        (ranges, range, rounds): (u32, u32, u32),
+    ) -> Result<Vec<Owned>> {
         let (n_live, n_sleep) = (self.state.caps.next, self.state.caps.sleepers);
         b.point();
         let live = E::At(c::LIVE);
         let sleepers = E::At(c::SLEEPERS0);
-        b.flag(Flag::UnitRanges, live.clone().gt(E::At(rec::UNITS).mul(E::C(range))));
+        b.flag(
+            Flag::UnitRanges,
+            live.clone().gt(E::At(rec::UNITS).mul(E::C(range))),
+        );
         b.point();
         let laid = E::At(c::LAID0);
-        let w = glue::Words { n: 0, live_stride: self.sums.live_stride, ..glue::Words::default() };
-        let inputs = [(0, live.clone().max(laid.clone())), (3, laid.clone()), (13, laid.gt(E::C(0)).sel(E::C(0), E::C(1))), (14, live.clone())];
-        self.glue_step(b, kit, (glue::INPUTS, &self.inputs, &self.spare), w, &inputs);
+        let w = glue::Words {
+            n: 0,
+            live_stride: self.sums.live_stride,
+            ..glue::Words::default()
+        };
+        let inputs = [
+            (0, live.clone().max(laid.clone())),
+            (3, laid.clone()),
+            (13, laid.gt(E::C(0)).sel(E::C(0), E::C(1))),
+            (14, live.clone()),
+        ];
+        self.glue_step(
+            b,
+            kit,
+            (glue::INPUTS, &self.inputs, &self.spare),
+            w,
+            &inputs,
+        );
         let lists = &self.state.lists;
         // The rounds flag and the rounds used, none as the units begin.
-        b.step(Step::Clear { buffer: (**lists).clone(), at: 4 * T_ROUNDS as u64, bytes: Some(4 * (T_USED + 2 - T_ROUNDS) as u64) });
+        b.step(Step::Clear {
+            buffer: (**lists).clone(),
+            at: 4 * T_ROUNDS as u64,
+            bytes: Some(4 * (T_USED + 2 - T_ROUNDS) as u64),
+        });
         let zones = t.zones.max(1);
         let words = sums_words(n_live, 4).max(sums_words(n_sleep, 4));
         let sums = zeroed(b.gpu, "units scan sums", words)?;
@@ -96,13 +177,23 @@ impl Build {
         // them at most, totalled to the lists' word `to`.
         let scan = |b: &mut Builder, (at, fields, to): (u64, u32, usize), (rows, n): (&E, u32)| {
             let shape = Shape { stride: 4, fields };
-            scanned(b, &kit.hier.scan, (&self.counts, at, n, shape), &sums, (lists, to as u64), rows.clone());
+            scanned(
+                b,
+                &kit.hier.scan,
+                (&self.counts, at, n, shape),
+                &sums,
+                (lists, to as u64),
+                rows.clone(),
+            );
         };
         // A pass of a range's jobs: begun, `rounds` rounds of phases, closed.
         let pass = |b: &mut Builder, (n, emit, wake, base): (&E, u32, u32, u32), left: &E| {
             let slot = self.units_slot(b, t, n.clone(), (emit, wake, base), 0);
             let counted = self.units_bind(b, kit, t, slot);
-            let (jobs, items) = (b.groups(left.clone().div(E::C(64))), b.groups(left.clone().mul(E::C(zones)).div(E::C(64))));
+            let (jobs, items) = (
+                b.groups(left.clone().div(E::C(64))),
+                b.groups(left.clone().mul(E::C(zones)).div(E::C(64))),
+            );
             let unit = |k| (PassId::Units, k);
             b.dispatch(unit(INIT), counted.clone(), jobs);
             for round in 0..rounds {
@@ -164,11 +255,36 @@ impl Build {
         let s = self.state.caps;
         let held = [
             (c::AXES, E::At(c::AXES0).add(both(0)), s.axes, Flag::Axes),
-            (c::PHYTS, E::At(c::PHYTS0).add(both(1)), s.phyts, Flag::Phyts),
-            (c::UNITS, E::At(c::UNITS0).add(both(2)), s.units, Flag::Units),
-            (c::SLEEPERS, E::At(c::SLEEPERS0).add(both(3)), s.sleepers, Flag::Sleepers),
-            (c::NEXT, made(T_UNITS_B).add(made(T_WAKE_B)), s.next, Flag::Next),
-            (c::WOKEN, E::At(c::WOKEN0).add(made(T_WAKE_B + 1)), s.woken, Flag::Woken),
+            (
+                c::PHYTS,
+                E::At(c::PHYTS0).add(both(1)),
+                s.phyts,
+                Flag::Phyts,
+            ),
+            (
+                c::UNITS,
+                E::At(c::UNITS0).add(both(2)),
+                s.units,
+                Flag::Units,
+            ),
+            (
+                c::SLEEPERS,
+                E::At(c::SLEEPERS0).add(both(3)),
+                s.sleepers,
+                Flag::Sleepers,
+            ),
+            (
+                c::NEXT,
+                made(T_UNITS_B).add(made(T_WAKE_B)),
+                s.next,
+                Flag::Next,
+            ),
+            (
+                c::WOKEN,
+                E::At(c::WOKEN0).add(made(T_WAKE_B + 1)),
+                s.woken,
+                Flag::Woken,
+            ),
         ];
         for (w, e, cap, flag) in held {
             b.count(w, e.clone());
@@ -177,9 +293,15 @@ impl Build {
         let grown = E::At(c::GROWN).add(both(1));
         b.count(c::GROWN, grown.clone());
         b.flag(Flag::Budget, grown.gt(E::C(t.budget)));
-        b.flag(Flag::UnitFaults, made(T_UNITS_B + 2).max(made(T_WAKE_B + 2)));
+        b.flag(
+            Flag::UnitFaults,
+            made(T_UNITS_B + 2).max(made(T_WAKE_B + 2)),
+        );
         b.flag(Flag::UnitRounds, made(T_ROUNDS));
-        let w = glue::Words { live_stride: self.sums.live_stride, ..glue::Words::default() };
+        let w = glue::Words {
+            live_stride: self.sums.live_stride,
+            ..glue::Words::default()
+        };
         let born = [(0, both(0)), (11, E::At(c::AXES0))];
         self.glue_step(b, kit, (glue::BORN, &self.spare, &self.flags), w, &born);
         let fresh = [(0, both(1)), (11, E::At(c::PHYTS0))];

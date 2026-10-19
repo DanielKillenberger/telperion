@@ -27,7 +27,7 @@ pub fn grow_capture_grown(species: &Species, request: Request) -> Result<Capture
 
 /// `grow_capture_grown` after `cycle` of a tree of `request.age`: where a
 /// build first parts from the CPU's.
-pub fn grow_capture_grown_at(species: &Species, request: Request, cycle: u32) -> Result<Capture> {
+fn grow_capture_grown_at(species: &Species, request: Request, cycle: u32) -> Result<Capture> {
     if cycle == 0 || cycle > request.age {
         return crate::error::refuse("cycle", "a captured cycle is one the tree grows");
     }
@@ -64,7 +64,15 @@ pub fn grow_capture_tables(species: &Species, request: Request) -> Result<Captur
     c.f32s("lay_form", &form(species));
     c.f32s("lay_globals", &[cone(), ground()]);
     let pa: Vec<f32> = (species.states.iter())
-        .flat_map(|s| [s.upkeep, s.balance_hazard, s.tolerance, s.apical_control, s.shade_size])
+        .flat_map(|s| {
+            [
+                s.upkeep,
+                s.balance_hazard,
+                s.tolerance,
+                s.apical_control,
+                s.shade_size,
+            ]
+        })
         .map(|x| x as f32)
         .collect();
     c.f32s("hier_pa", &pa);

@@ -7,8 +7,8 @@
 //! the expectation is a smooth function of the settings, never of the wood
 //! that grew, a branch made anywhere moves no other draw's window.
 use crate::closed_form::expected_log_lengths;
-use crate::dormant::wakes_in;
 use crate::contract::presence::{q, real, times, ONE};
+use crate::dormant::wakes_in;
 use crate::species::{Species, Zone};
 use crate::structure::{Axis, Origin};
 use crate::transcendental::Transcendental;
@@ -51,7 +51,11 @@ impl Windows {
         // A wood of none stays none: its log less a finite one is -inf.
         let woods = expected
             .iter()
-            .map(|row| row.iter().map(|&log| crate::contract::exp(contract_log(log - whole))).collect())
+            .map(|row| {
+                row.iter()
+                    .map(|&log| crate::contract::exp(contract_log(log - whole)))
+                    .collect()
+            })
             .collect();
         Self {
             expected: Arc::new(expected),
@@ -189,8 +193,11 @@ pub(crate) struct Draws {
     /// (fn-199 B2).
     pub below: u64,
     /// The share of the cycle its age ended at, where it ended there and
-    /// stopped: a sleeping bud waking in that cycle wakes on it.
-    pub outlived: Option<f64>,
+    /// stopped (`outlives`): a sleeping bud waking in that cycle wakes on
+    /// it. Read through `outlived`; the flag sits beside the others, not
+    /// in an `Option`'s tag (`an_axis_and_its_draws_stay_compact`).
+    ended_at: f64,
+    outlives: bool,
     /// How many relays of an age that ended carry this axis on, each
     /// drawing its stop decisions apart.
     pub ended_relays: u32,
@@ -217,6 +224,14 @@ pub(crate) struct Unit {
 }
 
 impl Draws {
+    /// The draws of an axis just made, by the draws that made it.
+    pub fn made(birth: [f64; 2]) -> Self {
+        Self {
+            birth,
+            ..Self::default()
+        }
+    }
+
     /// The share of their cycles its units grew, summed in turn.
     pub fn grown(&self) -> f64 {
         self.units.iter().map(|u| u.share).sum::<f64>()
@@ -225,6 +240,17 @@ impl Draws {
     /// Growth unit `k`'s size and light, whole where nothing shades.
     pub fn shade(&self, k: usize) -> [f64; 2] {
         self.shade.get(k).copied().unwrap_or([1.0; 2])
+    }
+
+    /// The share of the cycle its age ended at, where it ended there and
+    /// stopped.
+    pub fn outlived(&self) -> Option<f64> {
+        self.outlives.then_some(self.ended_at)
+    }
+
+    /// Its age ended `used` of the way through the cycle it stopped in.
+    pub fn outlive(&mut self, used: f64) {
+        (self.ended_at, self.outlives) = (used, true);
     }
 }
 

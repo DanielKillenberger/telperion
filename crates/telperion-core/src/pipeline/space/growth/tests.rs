@@ -19,7 +19,11 @@ fn beech() -> (Family, Params) {
 #[test]
 fn a_tree_grown_on_is_the_pipelines_tree_grown_at_once() {
     let (family, params) = beech();
-    let input = super::super::GrowInput { age: f64::from(H), seed: 7, ..super::super::GrowInput::of(&family) };
+    let input = super::super::GrowInput {
+        age: f64::from(H),
+        seed: 7,
+        ..super::super::GrowInput::of(&family)
+    };
     let whole = super::super::grow(input).unwrap();
     for a in [5, H - 1] {
         let mut s = begin(&params, 7, f64::from(H)).unwrap();
@@ -27,7 +31,10 @@ fn a_tree_grown_on_is_the_pipelines_tree_grown_at_once() {
         let first = settle(&s, f64::from(a)).unwrap();
         grow_to(&mut s, f64::from(a) - 0.5).unwrap();
         assert_eq!(s.committed(), a);
-        assert!(settle(&s, f64::from(a)).unwrap() == first, "a draw at {a} repeats");
+        assert!(
+            settle(&s, f64::from(a)).unwrap() == first,
+            "a draw at {a} repeats"
+        );
         grow_to(&mut s, f64::from(H)).unwrap();
         assert!(settle(&s, f64::from(H)).unwrap() == whole, "split at {a}");
     }
@@ -70,6 +77,7 @@ fn a_request_the_state_cannot_meet_is_refused_by_name() {
 /// degree: in full leaf just past the whole age, falling and colouring
 /// through autumn, bare through winter, every leaf growing again from
 /// budburst, and in full leaf again just before the next whole age.
+#[cfg(feature = "geometry")]
 #[test]
 fn the_oaks_year_runs_from_full_leaf_to_full_leaf_by_degree() {
     let family = Preset::OregonWhiteOak.parameters();
@@ -77,27 +85,67 @@ fn the_oaks_year_runs_from_full_leaf_to_full_leaf_by_degree() {
     let mut s = begin(&params, 7, 10.0).unwrap();
     grow_to(&mut s, 10.0).unwrap();
     let at = |f: f64| settle(&s, 9.0 + f).unwrap();
-    let state = |t: &Tree| t.unfolding.iter().map(|u| (u.fall, u.colour, u.regrow)).fold((2.0f32, 0.0f32, 2.0f32), |m, u| (m.0.min(u.0), m.1.max(u.1), m.2.min(u.2)));
+    let state = |t: &Tree| {
+        t.unfolding
+            .iter()
+            .map(|u| (u.fall, u.colour, u.regrow))
+            .fold((2.0f32, 0.0f32, 2.0f32), |m, u| {
+                (m.0.min(u.0), m.1.max(u.1), m.2.min(u.2))
+            })
+    };
     let (start, end) = (at(1e-6), at(1.0 - 1e-6));
-    assert!(start.unfolding.iter().all(|u| u.fall < 1e-3 && u.colour == 0.0), "full leaf at the start: {:?}", state(&start));
+    assert!(
+        start
+            .unfolding
+            .iter()
+            .all(|u| u.fall < 1e-3 && u.colour == 0.0),
+        "full leaf at the start: {:?}",
+        state(&start)
+    );
     // Every leaf whole, but a gone subtree's, faded with its wood.
-    let whole = |u: &crate::tree::Unfolded| u.grow < 1e-3 || u.grow > 0.999 && (u.life == 0 || u.regrow > 0.999);
+    let whole = |u: &crate::tree::Unfolded| {
+        u.grow < 1e-3 || u.grow > 0.999 && (u.life == 0 || u.regrow > 0.999)
+    };
     assert!(end.unfolding.iter().all(whole), "full leaf at the end");
     let winter = at(0.6);
     // Bare in winter: every old leaf fallen, none grown again, none of
     // this year's grown yet (the root bears none).
-    let bare = |u: &crate::tree::Unfolded| if u.life > 0 { u.fall == 1.0 && u.regrow == 0.0 } else { u.grow == 0.0 };
+    let bare = |u: &crate::tree::Unfolded| {
+        if u.life > 0 {
+            u.fall == 1.0 && u.regrow == 0.0
+        } else {
+            u.grow == 0.0
+        }
+    };
     assert!(winter.unfolding.iter().skip(1).all(bare), "bare in winter");
     let drawn = mesh(&s, 9.6, &family).unwrap().foliage.instances;
-    assert!(drawn.leaves.iter().all(|l| drawn.reference.scale(*l) == 0.0), "no leaf drawn in winter");
-    assert!(winter.unfolding.iter().any(|u| u.life == u16::MAX), "the oak's leaves pass");
+    assert!(
+        drawn
+            .leaves
+            .iter()
+            .all(|l| drawn.reference.scale(*l) == 0.0),
+        "no leaf drawn in winter"
+    );
+    assert!(
+        winter.unfolding.iter().any(|u| u.life == u16::MAX),
+        "the oak's leaves pass"
+    );
     // Every node's state moves by degree: half the step, about half the move.
     for f in [0.25, 0.3, 0.35, 0.9] {
         let a = state(&at(f));
-        let steps: Vec<f32> = [2e-3, 1e-3, 5e-4].iter().map(|d| {
-            let b = state(&at(f + d));
-            (a.0 - b.0).abs().max((a.1 - b.1).abs()).max((a.2 - b.2).abs())
-        }).collect();
-        assert!(steps[1] <= 0.6 * steps[0] + 1e-6 && steps[2] <= 0.6 * steps[1] + 1e-6, "at {f}: {steps:?}");
+        let steps: Vec<f32> = [2e-3, 1e-3, 5e-4]
+            .iter()
+            .map(|d| {
+                let b = state(&at(f + d));
+                (a.0 - b.0)
+                    .abs()
+                    .max((a.1 - b.1).abs())
+                    .max((a.2 - b.2).abs())
+            })
+            .collect();
+        assert!(
+            steps[1] <= 0.6 * steps[0] + 1e-6 && steps[2] <= 0.6 * steps[1] + 1e-6,
+            "at {f}: {steps:?}"
+        );
     }
 }

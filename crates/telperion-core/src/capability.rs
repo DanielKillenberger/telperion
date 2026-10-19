@@ -231,8 +231,8 @@ fn produced(f: &crate::Family) -> Vec<&'static str> {
     }
     // A placement that carries leaflets along a rachis is the compound leaf; a
     // crown of them borne only at an apex is the palm's frond.
-    let pinnate = f.canopy.leaflet_count > 1 && f.canopy.rachis_length > 0.0;
-    let rosette = f.canopy.rosette_fronds > 0;
+    let pinnate = f.canopy.leaflet_count > 1.0 && f.canopy.rachis_length > 0.0;
+    let rosette = f.canopy.rosette_fronds > 0.0;
     if pinnate {
         produced.push("pinnate-compound");
     }
@@ -246,7 +246,7 @@ fn produced(f: &crate::Family) -> Vec<&'static str> {
     // rosette's rows describe whether or not fronds stand above it
     // (`branching::clothe_leaf_bases`), so a crown is not required. A spine is
     // a leaflet hardened, and needs the compound leaf it hardens.
-    let bases = f.canopy.leaf_bases > 0 && f.canopy.leaf_base_length > 0.0;
+    let bases = f.canopy.leaf_bases > 0.0 && f.canopy.leaf_base_length > 0.0;
     if bases {
         produced.push("persistent-leaf-base");
     }
@@ -255,12 +255,12 @@ fn produced(f: &crate::Family) -> Vec<&'static str> {
     if bases && f.canopy.leaf_base_width > 0.0 {
         produced.push("leaf-base-lattice");
     }
-    if f.canopy.acanthophylls > 0 && f.canopy.acanthophyll_length > 0.0 && pinnate {
+    if f.canopy.acanthophylls > 0.0 && f.canopy.acanthophyll_length > 0.0 && pinnate {
         produced.push("acanthophyll");
     }
     // The skirt is the crown's history above the bases: its dead fronds hang
     // on the rosette's own spiral, so it is never produced without the crown.
-    if f.canopy.skirt_fronds > 0 && f.canopy.skirt_length > 0.0 && rosette {
+    if f.canopy.skirt_fronds > 0.0 && f.canopy.skirt_length > 0.0 && rosette {
         produced.push("dead-frond-skirt");
     }
     produced
@@ -273,9 +273,9 @@ mod tests {
     #[test]
     fn leaf_bases_are_produced_without_a_crown_as_they_are_drawn() {
         let mut f = crate::Family::default();
-        (f.canopy.leaf_bases, f.canopy.leaf_base_length) = (12, 0.4);
+        (f.canopy.leaf_bases, f.canopy.leaf_base_length) = (12.0, 0.4);
         f.canopy.leaf_base_width = 1.0;
-        assert_eq!(f.canopy.rosette_fronds, 0);
+        assert_eq!(f.canopy.rosette_fronds, 0.0);
         let names = produced(&f);
         assert!(names.contains(&"persistent-leaf-base"), "{names:?}");
         assert!(names.contains(&"leaf-base-lattice"), "{names:?}");

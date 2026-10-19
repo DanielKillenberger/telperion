@@ -43,7 +43,11 @@ pub(super) struct Table {
 
 impl Table {
     fn push(&mut self, name: &str, kind: Kind, words: Vec<u32>) {
-        self.fields.push(Field { name: name.to_string(), kind, words });
+        self.fields.push(Field {
+            name: name.to_string(),
+            kind,
+            words,
+        });
     }
 }
 
@@ -152,16 +156,47 @@ pub(super) const WOKEN_NAMES: [&str; 5] = ["axis", "bearer", "next", "cycle", "s
 /// A pencil column's name: its walk's, a pull's field, or a scalar's.
 pub(super) fn pencil_name(k: usize) -> String {
     const WALK: [&str; 16] = [
-        "running x", "running y", "running z", "across x", "across y", "across z", "tip x", "tip y",
-        "tip z", "run", "pull", "curve x", "curve y", "curve z", "turning", "pulls",
+        "running x",
+        "running y",
+        "running z",
+        "across x",
+        "across y",
+        "across z",
+        "tip x",
+        "tip y",
+        "tip z",
+        "run",
+        "pull",
+        "curve x",
+        "curve y",
+        "curve z",
+        "turning",
+        "pulls",
     ];
-    const TAIL: [&str; 11] = [
-        "base scale", "running", "rank", "units", "laid", "trunk", "wood", "light", "size", "memory",
+    const TAIL: [&str; 15] = [
+        "base scale",
+        "running",
+        "rank",
+        "units",
+        "laid",
+        "trunk",
+        "wood",
+        "light",
+        "size",
+        "memory",
         "kept",
+        "take",
+        "line x",
+        "line y",
+        "line z",
     ];
     match k {
         0..16 => format!("pencil {}", WALK[k]),
-        16..48 => format!("pencil pull {} {}", (k - 16) / 4, ["bend", "pull", "total", "offset"][(k - 16) % 4]),
+        16..48 => format!(
+            "pencil pull {} {}",
+            (k - 16) / 4,
+            ["bend", "pull", "total", "offset"][(k - 16) % 4]
+        ),
         _ => format!("pencil {}", TAIL[k - 48]),
     }
 }
@@ -181,11 +216,19 @@ fn words(gpu: &Gpu, b: &wgpu::Buffer) -> Result<Vec<u32>> {
 
 /// Column `k` of a table `cap` rows apart from word `at`, its rows taken
 /// in `order`, each `kind`'s words.
-fn gather(from: &[u32], (at, cap, k): (usize, usize, usize), kind: Kind, order: &[usize]) -> Vec<u32> {
+fn gather(
+    from: &[u32],
+    (at, cap, k): (usize, usize, usize),
+    kind: Kind,
+    order: &[usize],
+) -> Vec<u32> {
     let col = |c: usize, r: usize| from[at + c * cap + r];
     match kind.words() {
         1 => order.iter().map(|&r| col(k, r)).collect(),
-        _ => order.iter().flat_map(|&r| [col(k, r), col(k + 1, r)]).collect(),
+        _ => order
+            .iter()
+            .flat_map(|&r| [col(k, r), col(k + 1, r)])
+            .collect(),
     }
 }
 
@@ -194,19 +237,37 @@ impl Build {
     pub(super) fn snapshot(&self, gpu: &Gpu, cycle: u32) -> Result<Snapshot> {
         let s: &State = &self.state;
         let (c, h) = (s.caps, self.held);
-        let (axes, units_words, pencils, lists) = (words(gpu, &s.axes)?, words(gpu, &s.units)?, words(gpu, &s.pencils)?, words(gpu, &s.lists)?);
-        let mut out = Snapshot { grown: self.grown, ..Snapshot::default() };
+        let (axes, units_words, pencils, lists) = (
+            words(gpu, &s.axes)?,
+            words(gpu, &s.units)?,
+            words(gpu, &s.pencils)?,
+            words(gpu, &s.lists)?,
+        );
+        let mut out = Snapshot {
+            grown: self.grown,
+            ..Snapshot::default()
+        };
         let n = h.axes as usize;
         let ax = |k: u64, i: usize| axes[k as usize * c.axes as usize + i];
         let every: Vec<usize> = (0..n).collect();
         for (name, k, kind) in AXIS_COLUMNS {
-            out.axes.push(name, kind, gather(&axes, (0, c.axes as usize, k), kind, &every));
+            out.axes.push(
+                name,
+                kind,
+                gather(&axes, (0, c.axes as usize, k), kind, &every),
+            );
         }
         for (name, k) in SKETCH_AXES {
-            out.axes.push(name, Kind::F32, every.iter().map(|&i| ax(A_LAYOUT + k, i)).collect());
+            out.axes.push(
+                name,
+                Kind::F32,
+                every.iter().map(|&i| ax(A_LAYOUT + k, i)).collect(),
+            );
         }
         out.axes.axis = (0..n as u32).collect();
-        out.lineage = (0..n).map(|i| u64::from(ax(6, i)) | u64::from(ax(7, i)) << 32).collect();
+        out.lineage = (0..n)
+            .map(|i| u64::from(ax(6, i)) | u64::from(ax(7, i)) << 32)
+            .collect();
         // Each axis's units in order, and their phytomers.
         let unit = |k: u64, r: usize| units_words[k as usize * c.units as usize + r];
         let (mut rows, mut phyts) = (Vec::new(), Vec::new());
@@ -222,13 +283,22 @@ impl Build {
             }
         }
         for (name, k, kind) in UNIT_COLUMNS {
-            out.units.push(name, kind, gather(&units_words, (0, c.units as usize, k), kind, &rows));
+            out.units.push(
+                name,
+                kind,
+                gather(&units_words, (0, c.units as usize, k), kind, &rows),
+            );
         }
         out.units.axis = out.units.fields[0].words.clone();
         let (grown, laid) = (words(gpu, &s.grown)?, words(gpu, &s.laid)?);
         let phyt = |k: usize, kind| match k < GROWN as usize {
             true => gather(&grown, (0, c.phyts as usize, k), kind, &phyts),
-            false => gather(&laid, (0, c.phyts as usize, k - GROWN as usize), kind, &phyts),
+            false => gather(
+                &laid,
+                (0, c.phyts as usize, k - GROWN as usize),
+                kind,
+                &phyts,
+            ),
         };
         for (name, k, kind) in PHYT_COLUMNS {
             out.phyts.push(name, kind, phyt(k, kind));
@@ -241,7 +311,11 @@ impl Build {
         let laid: Vec<usize> = (0..self.laid as usize).collect();
         for k in 0..PENCILS as usize {
             let kind = pencil_kind(k);
-            out.pencils.push(&pencil_name(k), kind, gather(&pencils, (0, c.axes as usize, k), kind, &laid));
+            out.pencils.push(
+                &pencil_name(k),
+                kind,
+                gather(&pencils, (0, c.axes as usize, k), kind, &laid),
+            );
         }
         out.pencils.axis = (0..self.laid).collect();
         Ok(out)
@@ -253,28 +327,58 @@ impl Build {
         let (c, h) = (self.state.caps, self.held);
         let at = c.sleep_at() as usize;
         let cap = c.sleepers as usize;
-        let mut left: Vec<usize> = (0..h.sleepers as usize).filter(|&r| lists[at + r] > cycle).collect();
+        let mut left: Vec<usize> = (0..h.sleepers as usize)
+            .filter(|&r| lists[at + r] > cycle)
+            .collect();
         left.sort_by_key(|&r| lists[at + r]);
         for (name, k, kind) in SLEEPER_COLUMNS {
-            out.sleepers.push(&format!("sleeper {name}"), kind, gather(lists, (at, cap, k), kind, &left));
+            out.sleepers.push(
+                &format!("sleeper {name}"),
+                kind,
+                gather(lists, (at, cap, k), kind, &left),
+            );
         }
         out.sleepers.axis = gather(lists, (at, cap, 1), Kind::U32, &left);
         let woken: Vec<usize> = (0..h.woken as usize).collect();
         for (k, name) in WOKEN_NAMES.iter().enumerate() {
-            out.woken.push(&format!("woken {name}"), Kind::U32, gather(lists, (c.woken_at() as usize, c.woken as usize, k), Kind::U32, &woken));
+            out.woken.push(
+                &format!("woken {name}"),
+                Kind::U32,
+                gather(
+                    lists,
+                    (c.woken_at() as usize, c.woken as usize, k),
+                    Kind::U32,
+                    &woken,
+                ),
+            );
         }
         let next: Vec<usize> = (0..h.next as usize).collect();
         let next_at = (c.next_at() as usize, c.next as usize);
-        out.live.push("live axis", Kind::U32, gather(lists, (next_at.0, next_at.1, 0), Kind::U32, &next));
-        out.live.push("live spent", Kind::U32, gather(lists, (next_at.0, next_at.1, 1), Kind::U32, &next));
+        out.live.push(
+            "live axis",
+            Kind::U32,
+            gather(lists, (next_at.0, next_at.1, 0), Kind::U32, &next),
+        );
+        out.live.push(
+            "live spent",
+            Kind::U32,
+            gather(lists, (next_at.0, next_at.1, 1), Kind::U32, &next),
+        );
         out.live.axis = out.live.fields[0].words.clone();
     }
 }
 
 /// The CPU's grown state from its capture, in the same columns.
 pub(super) fn cpu_snapshot(c: &Cap) -> Snapshot {
-    let mut out = Snapshot { grown: c.u64s("g_grown")[0], ..Snapshot::default() };
-    let two = |v: Vec<u64>| -> Vec<u32> { v.iter().flat_map(|&x| [x as u32, (x >> 32) as u32]).collect() };
+    let mut out = Snapshot {
+        grown: c.u64s("g_grown")[0],
+        ..Snapshot::default()
+    };
+    let two = |v: Vec<u64>| -> Vec<u32> {
+        v.iter()
+            .flat_map(|&x| [x as u32, (x >> 32) as u32])
+            .collect()
+    };
     let get = |name: &str, kind: Kind| match kind.words() {
         1 => c.u32s(&format!("g_{name}")),
         _ => two(c.u64s(&format!("g_{name}"))),
@@ -286,16 +390,22 @@ pub(super) fn cpu_snapshot(c: &Cap) -> Snapshot {
     out.lineage = c.u64s("g_lineage");
     let sk = c.u32s("sk_axes");
     for (j, (name, _)) in SKETCH_AXES.iter().enumerate() {
-        out.axes.push(name, Kind::F32, (0..n).map(|i| sk[11 * i + j]).collect());
+        out.axes
+            .push(name, Kind::F32, (0..n).map(|i| sk[11 * i + j]).collect());
     }
     out.axes.axis = (0..n as u32).collect();
     let unit_names = ["axis", "survive", "persist", "share", "size"];
     for ((name, _, kind), cpu) in UNIT_COLUMNS.iter().zip(unit_names) {
-        out.units.push(name, *kind, c.u32s(&format!("g_unit_{cpu}")));
+        out.units
+            .push(name, *kind, c.u32s(&format!("g_unit_{cpu}")));
     }
     let shade = c.u64s("g_unit_shade");
     for (k, (name, _, kind)) in UNIT_COLUMNS[5..].iter().enumerate() {
-        out.units.push(name, *kind, two(shade.iter().skip(k).step_by(2).copied().collect()));
+        out.units.push(
+            name,
+            *kind,
+            two(shade.iter().skip(k).step_by(2).copied().collect()),
+        );
     }
     out.units.axis = c.u32s("g_unit_axis");
     let phyt_names = ["axis", "key", "cycle", "node"];
@@ -308,9 +418,14 @@ pub(super) fn cpu_snapshot(c: &Cap) -> Snapshot {
     }
     let sp = c.u32s("sk_phyts");
     let rows = sp.len() / 13;
-    let sketch_names: Vec<&str> = PHYT_COLUMNS[4..].iter().map(|f| f.0).chain(PHYT_TAIL.iter().map(|f| f.0)).collect();
+    let sketch_names: Vec<&str> = PHYT_COLUMNS[4..]
+        .iter()
+        .map(|f| f.0)
+        .chain(PHYT_TAIL.iter().map(|f| f.0))
+        .collect();
     for (j, name) in sketch_names.iter().enumerate() {
-        out.phyts.push(name, Kind::F32, (0..rows).map(|r| sp[13 * r + j]).collect());
+        out.phyts
+            .push(name, Kind::F32, (0..rows).map(|r| sp[13 * r + j]).collect());
     }
     out.phyts.axis = c.u32s("g_phyt_axis");
     for (name, _, kind) in SLEEPER_COLUMNS {
@@ -322,10 +437,15 @@ pub(super) fn cpu_snapshot(c: &Cap) -> Snapshot {
     }
     out.sleepers.axis = c.u32s("g_sleep_parent");
     for name in WOKEN_NAMES {
-        out.woken.push(&format!("woken {name}"), Kind::U32, c.u32s(&format!("g_woken_{name}")));
+        out.woken.push(
+            &format!("woken {name}"),
+            Kind::U32,
+            c.u32s(&format!("g_woken_{name}")),
+        );
     }
     out.live.push("live axis", Kind::U32, c.u32s("g_live_axis"));
-    out.live.push("live spent", Kind::U32, c.u32s("g_live_spent"));
+    out.live
+        .push("live spent", Kind::U32, c.u32s("g_live_spent"));
     out.live.axis = c.u32s("g_live_axis");
     let pens = c.u32s("sk_pencils");
     let laid = pens.len() / PENCILS as usize;

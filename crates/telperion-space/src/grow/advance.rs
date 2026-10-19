@@ -3,8 +3,8 @@
 use super::shoot::Shoot;
 use super::stop::Stop;
 use super::{stop_stake, Apex};
-use crate::error::Result;
 use crate::contract::{self, presence};
+use crate::error::Result;
 use crate::lineage::{Key, END, ENDED, FAILED, RELAY, VIABILITY};
 use crate::presence::Unit;
 use crate::schedule::Carried;
@@ -15,6 +15,7 @@ impl Shoot<'_, '_> {
     /// then its abortion or its move to its next PA. A unit that ends its
     /// age within the cycle hands the rest of it on (`schedule.rs`).
     pub fn advance(&mut self, mut apex: Apex, cycle: u32) -> Result<()> {
+        self.job += 1;
         let pa = self.axis(apex.axis).pa;
         let state = &self.species().states[pa];
         // A unit's draws are keyed by the cycle it grows in, so a unit that
@@ -69,13 +70,24 @@ impl Shoot<'_, '_> {
         let light = self.light(apex.axis);
         let viability = match self.rules.one {
             // The table's f32, shaded as the device shades it.
-            true => f64::from(contract::decide::shaded(state.viability as f32, state.shade_hazard as f32, light as f32)),
+            true => f64::from(contract::decide::shaded(
+                state.viability as f32,
+                state.shade_hazard as f32,
+                light as f32,
+            )),
             false if state.shade_hazard > 0.0 && light < 1.0 => state
                 .viability
                 .powf_fixed(light.powf_fixed(-state.shade_hazard)),
             false => state.viability,
         };
         let one = self.rules.one;
+        // The ground ends a tip the rough layout rests on it, by degree
+        // (fn-252 R2): one more factor beside light's, (1 - h).
+        let viability = match (state.ground_hazard > 0.0 && self.rests(apex.axis), one) {
+            (false, _) => viability,
+            (true, true) => f64::from(viability as f32 * (1.0 - state.ground_hazard as f32)),
+            (true, false) => viability * (1.0 - state.ground_hazard),
+        };
         // Decided on the contract's threshold (FINE-CONTRACT.md D5); the
         // real survival sizes the unit's presence.
         // A failed unit's relay's first unit holds a part of a tick more

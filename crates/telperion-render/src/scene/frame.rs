@@ -71,7 +71,12 @@ impl Scene {
             ],
             sun: colour(self.row.sun_red, self.row.sun_green, self.row.sun_blue, 1.0),
             sun_direction: light.direction,
-            eye: colour(camera.position.x, camera.position.y, camera.position.z, pixels),
+            eye: colour(
+                camera.position.x,
+                camera.position.y,
+                camera.position.z,
+                pixels,
+            ),
             ray_right: colour(right.x, right.y, right.z, 0.0),
             ray_up: colour(up.x, up.y, up.z, 0.0),
             ray_forward: colour(forward.x, forward.y, forward.z, 0.0),
@@ -213,7 +218,12 @@ impl Scene {
                 m.blade_grain_strength,
             ),
             plate_profile: colour(m.plate_edge_shape, 0.0, 0.0, 0.0),
-            leaf_dead: colour(m.leaf_dead_red, m.leaf_dead_green, m.leaf_dead_blue, self.colouring),
+            leaf_dead: colour(
+                m.leaf_dead_red,
+                m.leaf_dead_green,
+                m.leaf_dead_blue,
+                self.colouring,
+            ),
             mature: colour(
                 m.mature_red,
                 m.mature_green,
@@ -320,7 +330,12 @@ mod tests {
         leaves.leaf_reflection = [0.9, 0.9, 0.9, 0.8];
         leaves.reflectance = [0.1, 0.2, 0.7, 0.3];
         let m = telperion_core::material::MaterialParams::default();
-        let o = organ(leaves, &m, telperion_core::foliage::Reference::default(), 0.0);
+        let o = organ(
+            leaves,
+            &m,
+            telperion_core::foliage::Reference::default(),
+            0.0,
+        );
         assert_eq!((o.leaf_reflection[3], o.reflectance[2]), (0.0, 0.0));
         assert_eq!((o.reflectance[0], o.reflectance[1]), (0.1, 0.2));
     }
@@ -333,7 +348,12 @@ mod tests {
         let mut leaves = Uniforms::zeroed();
         leaves.canopy = [0.6, 0.3, 0.4, 0.2];
         let m = telperion_core::material::MaterialParams::default();
-        let o = organ(leaves, &m, telperion_core::foliage::Reference::default(), 0.0);
+        let o = organ(
+            leaves,
+            &m,
+            telperion_core::foliage::Reference::default(),
+            0.0,
+        );
         assert_eq!(o.canopy, [0.0, 0.3, 0.4, 0.2]);
     }
 
@@ -349,7 +369,12 @@ mod tests {
             ..Default::default()
         };
         let leaves = Uniforms::zeroed();
-        let o = organ(leaves, &m, telperion_core::foliage::Reference::default(), 0.0);
+        let o = organ(
+            leaves,
+            &m,
+            telperion_core::foliage::Reference::default(),
+            0.0,
+        );
         assert_eq!(o.bloom_eye, [0.2, 0.15, 0.05, 0.3]);
         assert_eq!(leaves.bloom_eye, [0.0; 4]);
     }

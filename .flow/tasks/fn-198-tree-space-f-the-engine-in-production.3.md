@@ -27,7 +27,6 @@ The engine adds 309 to 357 KB to each Wasm module against fn-198's base. The fie
 
 Open: a second spruce build in one page took 66 s against 9.6 s fresh, and was not rerun because the GPU lock was held.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: cfe65d4d, 95eaf7e7, e1b0423c, 47e2df19, 2b32a3b5
 - Tests: npm test (143 passed), cargo test --profile ci --workspace --no-fail-fast (exit 0)

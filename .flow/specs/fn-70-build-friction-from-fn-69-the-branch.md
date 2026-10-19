@@ -3,7 +3,7 @@
 ## Goal & Context
 <!-- scope: business -->
 
-The fn-69 build (the CI workflow, 2026-09-18) recorded four friction entries in its FRICTION.md. Three of them are repository work and are proposed here; the fourth, the tool shell's git credentials, is a local setup matter on the owner's machine and stays out of the repository. Together the three cost about fifteen minutes, one owner question, and a commit that landed on master by accident. None of them is about the tree generator; every one is about the shop floor an agent works on.
+The fn-69 build (the CI workflow, 2026-09-18) recorded four friction entries (now the Friction lines of the fn-69 spec). Three of them are repository work and are proposed here; the fourth, the tool shell's git credentials, is a local setup matter on the owner's machine and stays out of the repository. Together the three cost about fifteen minutes, one owner question, and a commit that landed on master by accident. None of them is about the tree generator; every one is about the shop floor an agent works on.
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -21,4 +21,4 @@ The fn-69 build (the CI workflow, 2026-09-18) recorded four friction entries in 
 ## Decision Context
 <!-- scope: both -->
 
-Three small fixes in one spec because they share one cause: the build's shop floor, the branch base, the shared checkout and the implementer bridge, was never set up for unattended work, and each build rediscovers that at the moment it needs it. Splitting them would give three specs of one line each. The fn-69 FRICTION.md entries of 2026-09-18 are the evidence for every criterion.
+Three small fixes in one spec because they share one cause: the build's shop floor, the branch base, the shared checkout and the implementer bridge, was never set up for unattended work, and each build rediscovers that at the moment it needs it. Splitting them would give three specs of one line each. The fn-69 friction entries of 2026-09-18 are the evidence for every criterion.

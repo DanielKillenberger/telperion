@@ -8,8 +8,8 @@ use super::compare::Agreement;
 use super::hier_build::{Hierarchy, LISTS, SHAPE};
 use super::hier_columns::{Cpu, Hier};
 use super::hier_device::{
-    LIVE, S_BUD, S_COST, S_GONE, S_INCOMING, S_KEPT, S_LIGHT, S_LIVING, S_MEMORY, S_SIZE, S_SUB,
-    SUMS, Sums, V_OUT,
+    Sums, LIVE, SUMS, S_BUD, S_COST, S_GONE, S_INCOMING, S_KEPT, S_LIGHT, S_LIVING, S_MEMORY,
+    S_SIZE, S_SUB, V_OUT,
 };
 use super::hier_scan::read_words;
 use super::ruled::FLOAT_TOLERANCE;

@@ -48,8 +48,16 @@ pub(super) const T_USED: usize = 22;
 
 /// A job's words (`job.wgsl`'s `JW`), and a unit zone's (`grow.wgsl`'s
 /// `Z_` columns).
-pub(super) const JW: u32 = 178 + 6 * 35;
-pub(super) const ZW: u32 = 6 + 64;
+pub(super) const JW: u32 = 130 + FRAMES * 35 + (FRAMES - 1) * 6;
+/// The axes a units job holds at once (`job.wgsl`'s `FRAMES`): the most
+/// units it grows in a cycle where none fails. 11, the most floor
+/// (`telperion_space::most_units`) of every preset at every age to 80 and
+/// the film's walk frames (fn-276, host 2026-10-14: palm to Laurelin at
+/// t = 0.01 chains eleven sliver ages); a species past it is refused by
+/// name before its build.
+pub(super) const FRAMES: u32 = 11;
+/// A zone: six words, then its order along the unit, a byte a node.
+pub(super) const ZW: u32 = 6 + 64 / 4;
 
 pub(super) struct Kernels {
     pub(super) cycle: io::Pass,
@@ -59,7 +67,9 @@ impl Kernels {
     pub(super) fn new(gpu: &Gpu) -> Self {
         let mut reads = vec![true; 3];
         reads.extend([false; 5]);
-        Self { cycle: io::Pass::new(gpu, super::source(), &reads, &ENTRIES) }
+        Self {
+            cycle: io::Pass::new(gpu, super::source(), &reads, &ENTRIES),
+        }
     }
 }
 
@@ -94,5 +104,10 @@ pub(super) fn counts(caps: super::state::Caps, zones: u32) -> Counts {
     let job_at = 2 * b_at;
     let zone_at = (u64::from(job_at) + u64::from(JW) * u64::from(jobs)).next_multiple_of(64) as u32;
     let words = u64::from(zone_at) + u64::from(ZW * jobs * zones.max(1));
-    Counts { job_at, jobs, zone_at, words }
+    Counts {
+        job_at,
+        jobs,
+        zone_at,
+        words,
+    }
 }

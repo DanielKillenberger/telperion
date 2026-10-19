@@ -63,3 +63,11 @@ fn every_selector_is_listed_once_in_order() {
         assert_eq!(*s as usize, i, "{s:?}");
     }
 }
+
+/// fn-276: the frames a units job holds, which a species' floor is
+/// refused past before its build, are the WGSL's.
+#[test]
+fn the_job_frames_are_the_wgsls() {
+    let wgsl = consts(include_str!("job.wgsl"), "FRAMES", decimal);
+    assert_eq!(wgsl, [(String::new(), u64::from(super::device::FRAMES))]);
+}

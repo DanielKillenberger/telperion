@@ -7,6 +7,8 @@
 mod buffer;
 mod camera;
 mod card;
+#[cfg(test)]
+mod compile_size;
 mod curve;
 mod device;
 mod encoder;
@@ -21,9 +23,9 @@ mod programs;
 mod redraw;
 mod scene;
 mod select;
-mod shaders;
 #[cfg(test)]
 mod shader_tests;
+mod shaders;
 mod shadow;
 mod shot;
 #[cfg(not(target_arch = "wasm32"))]
@@ -31,6 +33,14 @@ mod structure;
 mod submit;
 mod sun;
 mod timing;
+#[cfg(test)]
+mod tint_mix;
+#[cfg(test)]
+mod tint_mix_tests;
+#[cfg(test)]
+mod tint_rule_tests;
+#[cfg(test)]
+mod tint_rules;
 #[cfg(test)]
 mod trace;
 mod view;

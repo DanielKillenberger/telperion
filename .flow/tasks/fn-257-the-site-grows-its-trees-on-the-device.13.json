@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T13:45:35.548578Z",
+  "depends_on": [
+    "fn-257-the-site-grows-its-trees-on-the-device.12"
+  ],
+  "id": "fn-257-the-site-grows-its-trees-on-the-device.13",
+  "priority": null,
+  "spec": "fn-257-the-site-grows-its-trees-on-the-device",
+  "spec_path": ".flow/tasks/fn-257-the-site-grows-its-trees-on-the-device.13.md",
+  "status": "done",
+  "title": "The field reads the drawn stage's output: one splat to the requested grid, the primitive format deleted",
+  "updated_at": "2026-10-16T14:13:33.154773Z"
+}

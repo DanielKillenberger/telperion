@@ -7,6 +7,8 @@
 //! builds; one that fits only once the drawn tree is let go lets it go
 //! first, the screen empty while it builds; one that does not fit even
 //! alone is refused by name, never started, and the drawn tree is kept.
+//! A grow-in's draw is held to the same rule (`room`; host, 2026-10-14).
+#[cfg(any(test, target_arch = "wasm32"))]
 use telperion_core::presets::Family;
 
 /// The page's budget, in bytes of owned buffers (`buffer::Ledger`), 6 GiB
@@ -17,6 +19,7 @@ use telperion_core::presets::Family;
 /// One shipped tree at 80 fits in a fresh page: the spruce's measured
 /// peak is 5.35 GiB (`PEAKS`). The 8.5 GiB before it was what the card
 /// held with nothing else on it (TASK10.md, part 4).
+#[cfg(any(test, target_arch = "wasm32"))]
 pub(crate) const BROWSER: u64 = GIB * (10 - 3 - 1);
 const GIB: u64 = 1 << 30;
 
@@ -42,14 +45,19 @@ const FREE_SHARE: f64 = 0.85;
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn native(gpu: &crate::Gpu, held: u64) -> u64 {
     let stated = std::env::var("TELPERION_DEVICE_BUDGET_MIB").ok();
-    let stated = stated.and_then(|m| m.trim().parse::<u64>().ok()).map_or(NATIVE, |m| m << 20);
-    let free = gpu.free_device_memory().map_or(u64::MAX, |f| held + (f as f64 * FREE_SHARE) as u64);
+    let stated = stated
+        .and_then(|m| m.trim().parse::<u64>().ok())
+        .map_or(NATIVE, |m| m << 20);
+    let free = gpu
+        .free_device_memory()
+        .map_or(u64::MAX, |f| held + (f as f64 * FREE_SHARE) as u64);
     stated.min(free)
 }
 
 /// A build's peak owned bytes, from a fresh generator and renderer, by
 /// the predictor's expected kept phytomers: the spruce's, the costliest
 /// measured (`route_tests::budget_probe`; the beech lies under it).
+#[cfg(any(test, target_arch = "wasm32"))]
 const PEAKS: [(f64, f64); 5] = [
     (30_251.0, 1_761.0),
     (199_595.0, 2_188.0),
@@ -60,6 +68,7 @@ const PEAKS: [(f64, f64); 5] = [
 
 /// The peak a build of `kept` expected phytomers reaches, in bytes: the
 /// measured peaks joined by straight lines, the last one's slope beyond.
+#[cfg(any(test, target_arch = "wasm32"))]
 pub(super) fn peak(kept: f64) -> u64 {
     let at = PEAKS
         .partition_point(|&(k, _)| k < kept)
@@ -81,6 +90,7 @@ pub enum Admitted {
 /// Whether `family` built now fits `budget`: beside the `held` bytes, or
 /// only once the `drawn` tree's share of them is let go; refused by name
 /// where it fits in neither.
+#[cfg(any(test, target_arch = "wasm32"))]
 pub(super) fn admit(
     family: &Family,
     held: u64,
@@ -102,7 +112,15 @@ pub(super) fn admit(
             (true, false) => Ok(Admitted::Beside),
         };
     };
-    let peak = peak(kept);
+    room(held, drawn, peak(kept), budget)
+}
+
+/// The budget's one rule for work expected to add `peak` bytes to the
+/// `held` ones, a build or a grow-in's draw (host, 2026-10-14): beside the
+/// `drawn` tree where it fits, the drawn tree let go first where it fits
+/// only alone, else refused by name with the drawn tree kept.
+#[cfg(any(test, target_arch = "wasm32"))]
+pub(super) fn room(held: u64, drawn: u64, peak: u64, budget: u64) -> crate::Result<Admitted> {
     if held.saturating_add(peak) <= budget {
         return Ok(Admitted::Beside);
     }
@@ -117,6 +135,7 @@ pub(super) fn admit(
 }
 
 /// The refusal where the page already holds its whole budget.
+#[cfg(any(test, target_arch = "wasm32"))]
 fn full() -> telperion_core::Error {
     telperion_core::Error::ResourceLimit(
         "the browser's device budget: the page already holds the 6 GiB it may, with the drawn tree let go",
@@ -125,6 +144,7 @@ fn full() -> telperion_core::Error {
 
 /// Whether `family` built now fits `budget` beside the `held` bytes, the
 /// check a build makes as it starts, after any room was made.
+#[cfg(any(test, target_arch = "wasm32"))]
 pub(super) fn check(family: &Family, held: u64, budget: u64) -> crate::Result<()> {
     // Nothing is drawn to let go: it fits beside `held` or is refused.
     admit(family, held, 0, budget).map(|_| ())
@@ -187,7 +207,9 @@ mod tests {
     fn a_tree_with_no_expectation_makes_room_first() {
         let ordinary = telperion_core::presets::by_identity("ordinary").unwrap();
         let species = ordinary.space.species.as_ref().unwrap();
-        assert!(telperion_space::expected_kept(species, 40).unwrap().is_none());
+        assert!(telperion_space::expected_kept(species, 40)
+            .unwrap()
+            .is_none());
         let admitted = |held: u64, drawn: u64| admit(&ordinary, held << 20, drawn << 20, BROWSER);
         assert_eq!(admitted(0, 0).unwrap(), Admitted::Beside);
         assert_eq!(admitted(1_757, 1_700).unwrap(), Admitted::MakeRoom);

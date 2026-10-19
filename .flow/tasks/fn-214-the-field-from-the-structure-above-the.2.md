@@ -11,8 +11,9 @@ Host option 1 (2026-10-07): once fn-211's stepped executor serves the lit oak, t
 - Gates green.
 
 ## Done summary
-TBD
+Not implemented: superseded (host, 2026-10-16, Astra's release review); see the spec's 'Closed as superseded'.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

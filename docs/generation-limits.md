@@ -23,8 +23,6 @@ Touched Twig/Radius inputs that were silently clamped now fail with their field 
 
 New fields default individually when reading legacy JSON.
 
-Wasm generation-count diagnostics now contain `twigs.generations + 1` entries instead of thirteen slots from the removed depth constant. No reachable order is discarded; consumers should use the returned array length.
-
 The harness sliders use practical working windows, not the full core integer domains: internodes/reach/sampling/neighbours1–512 and clump order0–32. Hydrating a family outside these windows preserves its authored values unchanged.
 
 ## Audit boundary

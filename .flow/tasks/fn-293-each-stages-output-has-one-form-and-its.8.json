@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T20:28:42.585931Z",
+  "depends_on": [
+    "fn-293-each-stages-output-has-one-form-and-its.5"
+  ],
+  "id": "fn-293-each-stages-output-has-one-form-and-its.8",
+  "priority": null,
+  "spec": "fn-293-each-stages-output-has-one-form-and-its",
+  "spec_path": ".flow/tasks/fn-293-each-stages-output-has-one-form-and-its.8.md",
+  "status": "done",
+  "title": "Validation drops the scaffold's preconditions; Delivery and Backend go",
+  "updated_at": "2026-10-18T20:28:42.585931Z"
+}

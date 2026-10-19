@@ -8,7 +8,6 @@ use super::super::io;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
-
 pub(super) const DRAW: usize = 0;
 pub(super) const FRAME: usize = 1;
 pub(super) const RELAY: usize = 2;
@@ -59,13 +58,24 @@ pub(super) struct Layout {
 
 fn storage(gpu: &Gpu, label: &'static str, words: u64, init: &[u32]) -> Result<Owned> {
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-    io::buffer(gpu, label, words.max(4) * 4, usage, bytemuck::cast_slice(init))
+    io::buffer(
+        gpu,
+        label,
+        words.max(4) * 4,
+        usage,
+        bytemuck::cast_slice(init),
+    )
 }
 
 impl Layout {
     pub(super) fn new(gpu: &Gpu, form: &[f32], axes: u32) -> Result<Self> {
         Ok(Self {
-            form: storage(gpu, "layout form", form.len() as u64, bytemuck::cast_slice(form))?,
+            form: storage(
+                gpu,
+                "layout form",
+                form.len() as u64,
+                bytemuck::cast_slice(form),
+            )?,
             lists: storage(gpu, "layout lists", u64::from(TALLY + 3 * axes), &[])?,
             counts: storage(gpu, "layout flags", u64::from(axes), &[])?,
         })

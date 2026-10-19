@@ -21,6 +21,8 @@ pub(crate) struct Owned {
     buffer: wgpu::Buffer,
     ledger: std::sync::Arc<Ledger>,
     label: &'static str,
+    /// Whether it was let go ahead of its owner (`destroy`).
+    gone: std::sync::atomic::AtomicBool,
 }
 
 /// The device's owned buffers: those let go and not yet destroyed, and the
@@ -51,6 +53,8 @@ pub(crate) struct Ledger {
 struct Counts {
     live: std::sync::atomic::AtomicU64,
     peak: std::sync::atomic::AtomicU64,
+    /// The most charged since a watch began (`Ledger::watch`).
+    watched: std::sync::atomic::AtomicU64,
     #[cfg(test)]
     labels: std::sync::Mutex<Labels>,
 }
@@ -66,7 +70,12 @@ struct Labels {
 impl Counts {
     /// `bytes` charged to `label`, refused where they would pass `cap`
     /// (none at zero): the bytes charged after, and the cap.
-    fn charge(&self, bytes: u64, label: &'static str, cap: u64) -> std::result::Result<(), (u64, u64)> {
+    fn charge(
+        &self,
+        bytes: u64,
+        label: &'static str,
+        cap: u64,
+    ) -> std::result::Result<(), (u64, u64)> {
         use std::sync::atomic::Ordering::Relaxed;
         let mut now = self.live.load(Relaxed);
         loop {
@@ -74,9 +83,13 @@ impl Counts {
             if cap != 0 && after > cap {
                 return Err((after, cap));
             }
-            match self.live.compare_exchange_weak(now, after, Relaxed, Relaxed) {
+            match self
+                .live
+                .compare_exchange_weak(now, after, Relaxed, Relaxed)
+            {
                 Ok(_) => {
                     let peaked = self.peak.fetch_max(after, Relaxed) < after;
+                    self.watched.fetch_max(after, Relaxed);
                     self.label(label, bytes as i64, peaked);
                     return Ok(());
                 }
@@ -86,7 +99,8 @@ impl Counts {
     }
 
     fn release(&self, bytes: u64, label: &'static str) {
-        self.live.fetch_sub(bytes, std::sync::atomic::Ordering::Relaxed);
+        self.live
+            .fetch_sub(bytes, std::sync::atomic::Ordering::Relaxed);
         self.label(label, -(bytes as i64), false);
     }
 
@@ -125,7 +139,10 @@ struct Waiting {
 impl Ledger {
     /// The ledger of the device `queue` submits to.
     pub(crate) fn of(queue: &wgpu::Queue) -> Self {
-        Self { queue: Some(queue.clone()), ..Self::default() }
+        Self {
+            queue: Some(queue.clone()),
+            ..Self::default()
+        }
     }
 
     fn waiting(&self) -> std::sync::MutexGuard<'_, Waiting> {
@@ -209,9 +226,29 @@ impl Ledger {
     /// where they would pass the cap: the bytes charged after, and the
     /// cap. Taken in one step, so two makers never both fit in the room
     /// one of them had.
-    pub(crate) fn reserve(&self, bytes: u64, label: &'static str) -> std::result::Result<(), (u64, u64)> {
+    pub(crate) fn reserve(
+        &self,
+        bytes: u64,
+        label: &'static str,
+    ) -> std::result::Result<(), (u64, u64)> {
         let cap = self.caps().1.iter().map(|c| c.1).min().unwrap_or(0);
         self.counts.charge(bytes, label, cap)
+    }
+
+    /// Whether `bytes` more would fit the cap, charging nothing (a build's
+    /// room for its first move, fn-276 task 2): the bytes they would make,
+    /// and the cap, where they would not.
+    pub(crate) fn fits(&self, bytes: u64) -> std::result::Result<(), (u64, u64)> {
+        let cap = self.caps().1.iter().map(|c| c.1).min().unwrap_or(0);
+        let after = self
+            .counts
+            .live
+            .load(std::sync::atomic::Ordering::Relaxed)
+            .saturating_add(bytes);
+        if cap != 0 && after > cap {
+            return Err((after, cap));
+        }
+        Ok(())
     }
 
     /// A reservation given back: its buffer was never made.
@@ -220,15 +257,30 @@ impl Ledger {
     }
 
     /// The bytes charged now.
-    #[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
     pub(crate) fn live(&self) -> u64 {
         self.counts.live.load(std::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// Starts a watch of the most charged from now on; one at a time, as
+    /// a tree's draws are made one after another.
+    pub(crate) fn watch(&self) {
+        self.counts
+            .watched
+            .store(self.live(), std::sync::atomic::Ordering::Relaxed);
+    }
+
+    /// The most charged since the watch began.
+    pub(crate) fn watched(&self) -> u64 {
+        self.counts
+            .watched
+            .load(std::sync::atomic::Ordering::Relaxed)
     }
 
     /// A submission made.
     pub(crate) fn submitted(&self) {
         #[cfg(test)]
-        self.submits.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        self.submits
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     }
 
     /// The submissions made on the device.
@@ -253,7 +305,12 @@ impl Ledger {
     #[cfg(test)]
     pub(crate) fn take_peak_census(&self) -> (u64, Vec<(&'static str, u64)>) {
         let mut l = self.counts.labels.lock().unwrap_or_else(|e| e.into_inner());
-        let mut at: Vec<_> = l.at_peak.iter().map(|(k, v)| (*k, *v)).filter(|e| e.1 > 0).collect();
+        let mut at: Vec<_> = l
+            .at_peak
+            .iter()
+            .map(|(k, v)| (*k, *v))
+            .filter(|e| e.1 > 0)
+            .collect();
         at.sort_by_key(|e| std::cmp::Reverse(e.1));
         l.at_peak = l.now.clone();
         drop(l);
@@ -264,7 +321,12 @@ impl Ledger {
     #[cfg(test)]
     pub(crate) fn census_now(&self) -> Vec<(&'static str, u64)> {
         let l = self.counts.labels.lock().unwrap_or_else(|e| e.into_inner());
-        let mut now: Vec<_> = l.now.iter().map(|(k, v)| (*k, *v)).filter(|e| e.1 > 0).collect();
+        let mut now: Vec<_> = l
+            .now
+            .iter()
+            .map(|(k, v)| (*k, *v))
+            .filter(|e| e.1 > 0)
+            .collect();
         now.sort_by_key(|e| std::cmp::Reverse(e.1));
         now
     }
@@ -274,9 +336,19 @@ impl Owned {
     /// `buffer` owned, its bytes charged now: a buffer made outside the
     /// budget (`io::buffer` reserves before it makes).
     pub(crate) fn new(gpu: &Gpu, buffer: wgpu::Buffer) -> Self {
+        Self::named(gpu, buffer, "unbudgeted")
+    }
+
+    /// `buffer` owned and charged now under `label`.
+    pub(crate) fn named(gpu: &Gpu, buffer: wgpu::Buffer, label: &'static str) -> Self {
         let size = buffer.size();
-        gpu.ledger.counts.charge(size, "unbudgeted", 0).expect("no cap");
-        Self { buffer, ledger: gpu.ledger.clone(), label: "unbudgeted" }
+        gpu.ledger.counts.charge(size, label, 0).expect("no cap");
+        Self {
+            buffer,
+            ledger: gpu.ledger.clone(),
+            label,
+            gone: Default::default(),
+        }
     }
 
     pub(crate) fn create(gpu: &Gpu, descriptor: &wgpu::BufferDescriptor<'_>) -> Self {
@@ -285,22 +357,11 @@ impl Owned {
 
     /// `buffer` owned under `label`, its bytes reserved before it was made.
     pub(crate) fn reserved(gpu: &Gpu, buffer: wgpu::Buffer, label: &'static str) -> Self {
-        Self { buffer, ledger: gpu.ledger.clone(), label }
-    }
-}
-
-/// A buffer a pass binds, its own or one another owner lends it.
-pub(crate) enum Lent<'a> {
-    Own(Owned),
-    Borrowed(&'a wgpu::Buffer),
-}
-
-impl std::ops::Deref for Lent<'_> {
-    type Target = wgpu::Buffer;
-    fn deref(&self) -> &wgpu::Buffer {
-        match self {
-            Lent::Own(b) => b,
-            Lent::Borrowed(b) => b,
+        Self {
+            buffer,
+            ledger: gpu.ledger.clone(),
+            label,
+            gone: Default::default(),
         }
     }
 }
@@ -312,9 +373,22 @@ impl std::ops::Deref for Owned {
     }
 }
 
+impl Owned {
+    /// The buffer let go ahead of its owner, once, as a drop lets it go:
+    /// destroyed once no open encoder may bind it, its bytes charged until
+    /// the device is done with it. It shadows `wgpu::Buffer::destroy`,
+    /// which freed the memory and left the ledger charging it until the
+    /// owner dropped (fn-270 task 6, `grow_in_peak`).
+    pub(crate) fn destroy(&self) {
+        if !self.gone.swap(true, std::sync::atomic::Ordering::Relaxed) {
+            self.ledger.let_go(&self.buffer, self.label);
+        }
+    }
+}
+
 impl Drop for Owned {
     fn drop(&mut self) {
-        self.ledger.let_go(&self.buffer, self.label);
+        self.destroy();
     }
 }
 
@@ -452,15 +526,13 @@ fn allocate(
     capacity: u64,
     bytes: &[u8],
 ) -> Owned {
-    let buffer = Owned::create(
-        gpu,
-        &wgpu::BufferDescriptor {
-            label: Some(label),
-            size: capacity,
-            usage: usage | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        },
-    );
+    let descriptor = wgpu::BufferDescriptor {
+        label: Some(label),
+        size: capacity,
+        usage: usage | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
+    };
+    let buffer = Owned::named(gpu, gpu.device.create_buffer(&descriptor), label);
     if !bytes.is_empty() {
         gpu.queue.write_buffer(&buffer, 0, bytes);
     }

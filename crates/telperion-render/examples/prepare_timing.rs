@@ -6,10 +6,7 @@
 //!   cargo run --profile ci -p telperion-render --example prepare_timing -- <preset> <age> [seed]
 use std::time::Instant;
 use telperion_core::presets::Preset;
-use telperion_render::{
-    generation::{Delivery, Generator},
-    Gpu, Renderer, STILL_FORMAT,
-};
+use telperion_render::{generation::Generator, Gpu, Renderer, STILL_FORMAT};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -22,7 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let renderer = Renderer::new(pollster::block_on(Gpu::request(None))?, STILL_FORMAT);
     let generator = Generator::new(&renderer)?;
     let started = Instant::now();
-    let prepared = generator.prepare(&family, Delivery::Resident)?;
+    let prepared = generator.prepare(&family)?;
     let total = started.elapsed().as_secs_f64() * 1e3;
     let m = &prepared.metrics;
     println!(

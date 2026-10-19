@@ -10,9 +10,9 @@ use super::super::io;
 use super::hier_build::{Hierarchy, Kernels};
 #[cfg(test)]
 use super::hier_columns::Hier;
+use super::hier_scan::{sums_words, zeroed};
 #[cfg(test)]
-use super::hier_scan::{uniform, widest};
-use super::hier_scan::{Scan, sums_words, zeroed};
+use super::hier_scan::{uniform, widest, Scan};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
@@ -81,7 +81,6 @@ pub(super) const BUD_BLOCK: u32 = 1024;
 
 /// The balance and allotment's buffers on the device, and the plan of
 /// one cycle's dispatches over them.
-#[cfg_attr(not(test), allow(dead_code))]
 pub(super) struct Sums {
     pub sums: Owned,
     pub live: Owned,
@@ -90,12 +89,18 @@ pub(super) struct Sums {
     pub rows: Owned,
     pub scan_sums: Owned,
     pub live_stride: u32,
+    #[cfg(test)]
     stride: u32,
+    #[cfg(test)]
     live_n: u32,
     /// The bind of each level, the first serving the per-apex passes.
+    #[cfg(test)]
     binds: Vec<wgpu::BindGroup>,
+    #[cfg(test)]
     level_sizes: Vec<u32>,
+    #[cfg(test)]
     flags: Option<Scan>,
+    #[cfg(test)]
     _held: Vec<Owned>,
 }
 
@@ -129,9 +134,16 @@ impl Sums {
             cols[live_stride as usize + k] = *t as u32;
             cols[2 * live_stride as usize + k] = (*t >> 32) as u32;
         }
-        gpu.queue.write_buffer(&sums.live, 0, bytemuck::cast_slice(&cols));
-        gpu.queue.write_buffer(&sums.rows, 0, bytemuck::cast_slice(&hier.rows));
-        let counts = Counts { n: hier.n, cycle: hier.cycle, pas: hier.pas, live: live_n };
+        gpu.queue
+            .write_buffer(&sums.live, 0, bytemuck::cast_slice(&cols));
+        gpu.queue
+            .write_buffer(&sums.rows, 0, bytemuck::cast_slice(&hier.rows));
+        let counts = Counts {
+            n: hier.n,
+            cycle: hier.cycle,
+            pas: hier.pas,
+            live: live_n,
+        };
         sums.plan(gpu, k, h, tree, counts)?;
         Ok(sums)
     }
@@ -142,20 +154,36 @@ impl Sums {
         let (s, live_stride) = (u64::from(stride), super::hier_columns::stride(live));
         let blocks = u64::from(live.div_ceil(BUD_BLOCK).max(1));
         let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-        let rows = io::buffer(gpu, "hierarchy rows", 4 * 8 * u64::from(pas.max(1)), usage, &[])?;
+        let rows = io::buffer(
+            gpu,
+            "hierarchy rows",
+            4 * 8 * u64::from(pas.max(1)),
+            usage,
+            &[],
+        )?;
         Ok(Self {
             sums: zeroed(gpu, "hierarchy sums", SUMS * s)?,
             live: zeroed(gpu, "hierarchy living", LIVE * u64::from(live_stride))?,
-            norm: zeroed(gpu, "hierarchy normaliser", N_ORDER + s + 2 * blocks * u64::from(pas))?,
+            norm: zeroed(
+                gpu,
+                "hierarchy normaliser",
+                N_ORDER + s + 2 * blocks * u64::from(pas),
+            )?,
             tally: zeroed(gpu, "hierarchy sums tally", TALLY)?,
             rows,
             scan_sums: zeroed(gpu, "hierarchy sums scan", sums_words(live, 1))?,
             live_stride,
+            #[cfg(test)]
             stride,
+            #[cfg(test)]
             live_n: 0,
+            #[cfg(test)]
             binds: Vec::new(),
+            #[cfg(test)]
             level_sizes: Vec::new(),
+            #[cfg(test)]
             flags: None,
+            #[cfg(test)]
             _held: Vec::new(),
         })
     }
@@ -163,7 +191,14 @@ impl Sums {
     #[cfg(test)]
 
     /// One cycle's dispatches planned over the hierarchy as `h` holds it.
-    pub(super) fn plan(&mut self, gpu: &Gpu, k: &Kernels, h: &Hierarchy, tree: &Owned, c: Counts) -> Result<()> {
+    pub(super) fn plan(
+        &mut self,
+        gpu: &Gpu,
+        k: &Kernels,
+        h: &Hierarchy,
+        tree: &Owned,
+        c: Counts,
+    ) -> Result<()> {
         let live_stride = self.live_stride;
         self.flags = Some(Scan::new(
             gpu,
@@ -195,7 +230,15 @@ impl Sums {
             ];
             let cfg = uniform(gpu, &words)?;
             let all = [
-                &*cfg, tree, &self.rows, cur, &h.shape, &self.sums, &self.live, &self.norm, &self.tally,
+                &*cfg,
+                tree,
+                &self.rows,
+                cur,
+                &h.shape,
+                &self.sums,
+                &self.live,
+                &self.norm,
+                &self.tally,
             ];
             binds.push(k.sums.bind(gpu, &all));
             held.push(cfg);
@@ -243,7 +286,8 @@ impl Sums {
         for l in 0..levels {
             k.sums.run(e, &self.binds[l], SPLIT, self.level_sizes[l]);
         }
-        k.sums.run(e, base, PARTIALS, self.live_n.div_ceil(BUD_BLOCK).max(1));
+        k.sums
+            .run(e, base, PARTIALS, self.live_n.div_ceil(BUD_BLOCK).max(1));
         k.sums.run(e, base, COMBINE, 1);
         k.sums.run(e, base, SIZES, apexes);
     }
@@ -260,7 +304,13 @@ impl Sums {
     /// The bytes the sums hold beyond the tree: their columns, the living,
     /// the normaliser and the tally.
     pub(super) fn scratch(&self) -> u64 {
-        let held = [&self.sums, &self.live, &self.norm, &self.tally, &self.scan_sums];
+        let held = [
+            &self.sums,
+            &self.live,
+            &self.norm,
+            &self.tally,
+            &self.scan_sums,
+        ];
         held.iter().map(|b| b.size()).sum()
     }
 }

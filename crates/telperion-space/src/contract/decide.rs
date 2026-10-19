@@ -6,7 +6,9 @@
 //! decides alone (a whole unit's survival, a hazard that neither rises nor
 //! runs over part of a cycle), the threshold is the setting's own, as D1
 //! gives it.
-use super::{exp2, fails, floor53, ln, ln_of, log2, logit53, logit_of, neg_ln1m, neg_log2, neg_log2_of};
+use super::{
+    exp2, fails, floor53, ln, ln_of, log2, logit53, logit_of, neg_ln1m, neg_log2, neg_log2_of,
+};
 use super::{presence, prob, scaled};
 use super::{threshold, ticks, CYCLE, INF, ONE};
 use crate::lineage::{self, Draw};
@@ -65,7 +67,9 @@ pub fn shaded(v: f32, phi: f32, light: f32) -> f32 {
         return if v >= 1.0 { v } else { 0.0 };
     }
     if phi > 0.0 && light < 1.0 {
-        crate::contract::exp2(crate::contract::log2(v) * crate::contract::exp2(-phi * crate::contract::log2(light)))
+        crate::contract::exp2(
+            crate::contract::log2(v) * crate::contract::exp2(-phi * crate::contract::log2(light)),
+        )
     } else {
         v
     }
@@ -175,7 +179,13 @@ pub(crate) fn moved(
 ) -> f32 {
     let log = |c: u32| super::log32(windows.log_wood(pa, c));
     let window = ((RATE * stake) as f32, (FLOOR * stake) as f32, SPAN as f32);
-    moved_f(logit_of(go), d.0, (log(cycle), log(cycle + 1)), ticks(used), window)
+    moved_f(
+        logit_of(go),
+        d.0,
+        (log(cycle), log(cycle + 1)),
+        ticks(used),
+        window,
+    )
 }
 
 /// D10 on the executors' values: the log-odds of `go` (`logit_of`); the

@@ -1,11 +1,11 @@
 //! The tree's leaf stations on the device (fn-212 task 6;
 //! CONTRACT.md's probe, step 6): their bearing runs, station counts and
 //! the station segments placement reads, `prepare_compact_stations`'s
-//! layout (`data.rs`), from the nodes and curve `sweep.wgsl` left. Only
-//! totals are read back: the runs, then the stations and segments.
+//! layout (`data.rs`), from the drawn records and the contacts
+//! `sweep.wgsl` left. Only totals are read back: the runs, then the
+//! stations and segments.
 use super::super::io;
 use super::sort::Sorter;
-use super::sweep::Swept;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 use telperion_core::foliage::{CanopyParams, Crown};
@@ -63,14 +63,28 @@ pub(super) struct Rows {
     /// Whether the canopy bears leaves at all: none of zero size, as the
     /// pipeline prepares none (`prepared.rs`; fn-212 task 11).
     pub leaves: bool,
+    /// Whether any of its leaf-bearing wood and short shoots bear them:
+    /// its cauline share above none (fn-277).
+    pub wood: bool,
     /// The blooms' rows where an age flowers (`data::flower`; fn-229).
     pub flower: Option<[[f32; 4]; 3]>,
     /// Whether some wood sheds its leaves by age (fn-248).
     pub retains: bool,
     /// The rosette's rows (`rosette_rows`; fn-256, fn-270 R5b): zero
     /// fronds where the canopy stands none.
-    pub rosette: [[f32; 4]; 6],
+    pub rosette: [[f32; 4]; 7],
     pub turn: u32,
+    /// Its counts of organs (`organ_rows`, fn-277).
+    pub organs: [u32; 12],
+}
+
+/// What the stations read of a drawn tree: its records (`Dressed`), and
+/// the sweep's table with where its nodes' contacts start, none (0) where
+/// no curve was swept.
+pub(super) struct Laid<'a> {
+    pub records: &'a wgpu::Buffer,
+    pub table: &'a wgpu::Buffer,
+    pub contacts: u32,
 }
 
 pub(super) struct Stationed {
@@ -106,14 +120,25 @@ impl Stationer {
         Self {
             pass: io::Pass::new(gpu, source(), &read, &entries),
             sorter: Sorter::new(gpu),
-            scan: io::Pass::new(gpu, SCAN.into(), &[false; 3], &["blocks", "spine", "spread"]),
+            scan: io::Pass::new(
+                gpu,
+                SCAN.into(),
+                &[false; 3],
+                &["blocks", "spine", "spread"],
+            ),
         }
     }
 
     /// An exclusive scan of the first `fields` words of `n` records
     /// `stride` words apart in `data`, its totals into `totals`
     /// (`scan.wgsl`).
-    fn scan(&self, gpu: &Gpu, e: &mut wgpu::CommandEncoder, (data, n, stride, fields): (&wgpu::Buffer, u32, u32, u32), totals: &wgpu::Buffer) -> Result<()> {
+    pub(super) fn scan(
+        &self,
+        gpu: &Gpu,
+        e: &mut wgpu::CommandEncoder,
+        (data, n, stride, fields): (&wgpu::Buffer, u32, u32, u32),
+        totals: &wgpu::Buffer,
+    ) -> Result<()> {
         let blocks = n.div_ceil(256);
         let groups = n.div_ceil(64);
         let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
@@ -133,7 +158,7 @@ impl Stationer {
         &self,
         (gpu, e): (&Gpu, &mut wgpu::CommandEncoder),
         (entry, n, groups): (usize, u32, Option<u32>),
-        rows: Rows,
+        (rows, contacts): (Rows, u32),
         bufs: [&wgpu::Buffer; 7],
     ) -> Result<()> {
         let groups = groups.unwrap_or(n.div_ceil(64)).max(1);
@@ -147,14 +172,15 @@ impl Stationer {
             rows.slender,
             rows.unit,
             rows.divergence.to_bits(),
-            u32::from(rows.contact),
-            u32::from(rows.leaves),
+            contacts,
+            u32::from(rows.leaves) | u32::from(rows.wood) << 1,
             u32::from(rows.retains),
             rows.turn,
         ];
         let flower = rows.flower.unwrap_or_default();
         words.extend(flower.as_flattened().iter().map(|v| v.to_bits()));
         words.extend(rows.rosette.as_flattened().iter().map(|v| v.to_bits()));
+        words.extend(rows.organs);
         let usage = wgpu::BufferUsages::UNIFORM;
         let bytes = bytemuck::cast_slice(&words);
         let cfg = io::buffer(gpu, "stations cfg", bytes.len() as u64, usage, bytes)?;
@@ -175,15 +201,15 @@ impl Stationer {
         Ok(std::array::from_fn(|k| w[k]))
     }
 
-    /// The stations of the `ids` nodes `swept` laid out.
+    /// The stations of the `ids` nodes `laid` holds.
     pub(super) async fn stations(
         &self,
         gpu: &Gpu,
-        swept: &Swept,
+        laid: Laid<'_>,
         ids: u32,
         rows: Rows,
     ) -> Result<Stationed> {
-        Ok(self.stations_and_runs(gpu, swept, ids, rows).await?.0)
+        Ok(self.stations_and_runs(gpu, laid, ids, rows).await?.0)
     }
 
     /// The stations, and the runs' words (`RW` a run: first node,
@@ -192,7 +218,7 @@ impl Stationer {
     pub(super) async fn stations_and_runs(
         &self,
         gpu: &Gpu,
-        swept: &Swept,
+        laid: Laid<'_>,
         ids: u32,
         rows: Rows,
     ) -> Result<(Stationed, Owned)> {
@@ -207,30 +233,22 @@ impl Stationer {
             };
             return Ok((stationed, storage(gpu, "station runs", 0)?));
         }
+        // Contacts are read where leaves are seated (`Rows::contact`).
+        let at = (rows, if rows.contact { laid.contacts } else { 0 });
         let st = storage(gpu, "station words", u64::from(ids) * SW)?;
         let counts = storage(gpu, "station counts", 8)?;
         let none = storage(gpu, "stations none", 4)?;
         let mut e = gpu.encoder(&Default::default());
         let none_runs = storage(gpu, "station runs none", 4)?;
         let owners = storage(gpu, "station owners", u64::from(ids) * u64::from(OW))?;
-        let early = |runs| {
-            [
-                &*swept.nodes,
-                &swept.table,
-                &st,
-                runs,
-                &counts,
-                &none,
-                &owners,
-            ]
-        };
+        let early = |runs| [laid.records, laid.table, &st, runs, &counts, &none, &owners];
         let flowers = rows.flower.is_some();
         let early_entries: &[usize] = match flowers {
             true => &[KIDS, BEAR, FLORETS],
             false => &[KIDS, BEAR],
         };
         for &entry in early_entries {
-            self.run((gpu, &mut e), (entry, ids, None), rows, early(&none_runs))?;
+            self.run((gpu, &mut e), (entry, ids, None), at, early(&none_runs))?;
         }
         // Each node's first floret and record, scanned in node order; their
         // totals read back with the runs' count (fn-229).
@@ -240,7 +258,7 @@ impl Stationer {
         // Each run's key, a pair a run: room for their count rounded up to
         // a power of two, as the sort takes them.
         let keys = storage(gpu, "station keys", 2 * u64::from(ids.next_power_of_two()))?;
-        self.run((gpu, &mut e), (KEYS, ids, None), rows, early(&keys))?;
+        self.run((gpu, &mut e), (KEYS, ids, None), at, early(&keys))?;
         let [n, _, _, _, florets, blooms, ..] = Self::counts(gpu, &mut e, &counts).await?;
         // The runs numbered by their keys (fn-261): those past the count
         // sort last.
@@ -250,22 +268,22 @@ impl Stationer {
         self.sorter.sort(gpu, &mut e, &keys, n)?;
         let runs = storage(gpu, "station runs", u64::from(ids) * RW)?;
         let sorted = [
-            &*swept.nodes,
-            &swept.table,
+            laid.records,
+            laid.table,
             &st,
             &runs,
             &counts,
             &keys,
             &owners,
         ];
-        self.run((gpu, &mut e), (STARTS, n, None), rows, sorted)?;
+        self.run((gpu, &mut e), (STARTS, n, None), at, sorted)?;
         self.run(
             (gpu, &mut e),
             (MEASURE, n, None),
-            rows,
+            at,
             [
-                &swept.nodes,
-                &swept.table,
+                laid.records,
+                laid.table,
                 &st,
                 &runs,
                 &counts,
@@ -280,10 +298,10 @@ impl Stationer {
             self.run(
                 (gpu, &mut e),
                 (entry, n, Some(groups)),
-                rows,
+                at,
                 [
-                    &swept.nodes,
-                    &swept.table,
+                    laid.records,
+                    laid.table,
                     &st,
                     &runs,
                     &counts,
@@ -293,31 +311,33 @@ impl Stationer {
             )?;
         }
         let [_, stations, segments, ..] = Self::counts(gpu, &mut e, &counts).await?;
-        let buffer = storage(gpu, "station segments", u64::from(segments) * GW as u64)?;
+        // Each segment's words, then the node each stands on (`owns`).
+        let words = u64::from(segments) * (GW as u64 + 1);
+        let buffer = storage(gpu, "station segments", words)?;
         let late: [&wgpu::Buffer; 7] = [
-            &swept.nodes,
-            &swept.table,
+            laid.records,
+            laid.table,
             &st,
             &runs,
             &counts,
             &buffer,
             &owners,
         ];
-        self.run((gpu, &mut e), (EMIT, n, None), rows, late)?;
+        self.run((gpu, &mut e), (EMIT, n, None), at, late)?;
         let mut records = None;
         if blooms > 0 {
             let words = u64::from(blooms) * GW as u64;
             let records = &*records.insert(storage(gpu, "bloom records", words)?);
             let late: [&wgpu::Buffer; 7] = [
-                &swept.nodes,
-                &swept.table,
+                laid.records,
+                laid.table,
                 &st,
                 &runs,
                 &counts,
                 records,
                 &owners,
             ];
-            self.run((gpu, &mut e), (BLOOMS, ids, None), rows, late)?;
+            self.run((gpu, &mut e), (BLOOMS, ids, None), at, late)?;
         }
         gpu.submit([e.finish()]);
         io::complete(gpu).await?;
@@ -358,11 +378,56 @@ pub(super) fn station_rows(
             .rem_euclid(std::f64::consts::TAU) as f32,
         contact: x.seats(),
         leaves: canopy.size != 0.0,
+        wood: canopy.size != 0.0 && canopy.cauline > 0.0,
         flower,
         retains: x.retains(),
-        rosette: rosette_rows(&canopy, year),
+        rosette: rosette_rows(&canopy, year, telperion_core::foliage::blade(x.element())),
         turn: rosette_turn(&canopy),
+        organs: organ_rows(&canopy, year),
     }
+}
+
+/// The counts of organs `stations.wgsl` draws (fn-277): the cauline
+/// share, the living fronds, the dead fronds (none where they are drawn
+/// at no length), the leaflets and the spines as counts' words
+/// (`telperion_space::word`); the rachis's length; the newest frond's
+/// serial at the lesser and the greater whole living count an apex draws;
+/// and the fronds a crown draws (`Crown::slots`) at each pair of whole
+/// living and dead counts, lesser first.
+fn organ_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>) -> [u32; 12] {
+    let word = telperion_space::word;
+    let skirt = if p.skirt_length > 0.0 {
+        p.skirt_fronds
+    } else {
+        0.0
+    };
+    let crown = |fronds: f64, skirt_fronds: f64| {
+        Crown::new(
+            year,
+            &CanopyParams {
+                rosette_fronds: fronds,
+                skirt_fronds,
+                ..*p
+            },
+        )
+    };
+    let (f, k) = (p.rosette_fronds.floor(), skirt.floor());
+    let newest = |fronds: f64| (crown(fronds, k).made().ceil() as i64 - 1) as i32 as u32;
+    let slots = |fronds: f64, skirt: f64| crown(fronds, skirt).slots() as u32;
+    [
+        word(p.cauline),
+        word(p.rosette_fronds),
+        word(skirt),
+        word(p.leaflet_count),
+        word(p.acanthophylls),
+        (p.rachis_length as f32).to_bits(),
+        newest(f),
+        newest(f + 1.0),
+        slots(f, k),
+        slots(f, k + 1.0),
+        slots(f + 1.0, k),
+        slots(f + 1.0, k + 1.0),
+    ]
 }
 
 /// The rosette's rows as `stations.wgsl` and `pack.wgsl` read them
@@ -370,26 +435,64 @@ pub(super) fn station_rows(
 /// depth; the living pitch and its spread, the skirt's pitch and length;
 /// the leaflets a frond, its rachis length and arch, the leaflet pitch;
 /// the terminal share, and the spines' count, share and pitch; the crown
-/// drawn in `year` (`Crown::rows`). Every row zero where the canopy
-/// stands no rosette or bears no leaves.
-fn rosette_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>) -> [[f32; 4]; 6] {
-    if p.rosette_fronds == 0 || p.size == 0.0 {
-        return [[0.0; 4]; 6];
+/// drawn in `year` (`Crown::rows`), with the blade a young frond's
+/// segments are measured against as a share of a mature leaflet's length
+/// (`Crown::segments`'s strap; the element reaching `blade` metres), none
+/// where it groups no leaflets. Every row zero where the canopy stands no
+/// rosette or bears no leaves.
+fn rosette_rows(
+    p: &CanopyParams,
+    year: Option<telperion_core::tree::Year>,
+    blade: f64,
+) -> [[f32; 4]; 7] {
+    if p.rosette_fronds == 0.0 || p.size == 0.0 {
+        return [[0.0; 4]; 7];
     }
     let crown = Crown::new(year, p).rows().map(|r| r.map(|v| v as f32));
-    let skirt = if p.skirt_length > 0.0 { p.skirt_fronds } else { 0 };
-    let leaflets = if p.leaflet_count > 1 && p.rachis_length > 0.0 { p.leaflet_count } else { 1 };
+    let skirt = if p.skirt_length > 0.0 {
+        p.skirt_fronds
+    } else {
+        0.0
+    };
+    let leaflets = if p.leaflet_count > 1.0 && p.rachis_length > 0.0 {
+        p.leaflet_count
+    } else {
+        1.0
+    };
     let radians = f64::to_radians;
     let rows = [
-        [f64::from(p.rosette_fronds), f64::from(skirt), radians(p.rosette_divergence), p.rosette_depth],
-        [radians(p.rosette_pitch), radians(p.rosette_pitch_spread), radians(p.skirt_pitch), p.skirt_length],
-        [f64::from(leaflets), p.rachis_length, p.rachis_arch, radians(p.leaflet_pitch)],
-        [p.terminal_leaflet, f64::from(p.acanthophylls), p.acanthophyll_length, radians(p.acanthophyll_pitch)],
+        [
+            p.rosette_fronds,
+            skirt,
+            radians(p.rosette_divergence),
+            p.rosette_depth,
+        ],
+        [
+            radians(p.rosette_pitch),
+            radians(p.rosette_pitch_spread),
+            radians(p.skirt_pitch),
+            p.skirt_length,
+        ],
+        [
+            leaflets,
+            p.rachis_length,
+            p.rachis_arch,
+            radians(p.leaflet_pitch),
+        ],
+        [
+            p.terminal_leaflet,
+            p.acanthophylls,
+            p.acanthophyll_length,
+            radians(p.acanthophyll_pitch),
+        ],
     ]
     .map(|r| r.map(|v| v as f32));
     let [a, b, c, d] = rows;
-    let [made, clock] = crown;
-    [a, b, c, d, made, clock]
+    let [made, clock, mut establishment] = crown;
+    if leaflets > 1.0 && blade > 0.0 {
+        establishment[2] = (p.rachis_length / (blade * p.size)) as f32;
+    }
+    [a, b, c, d, made, clock, establishment]
 }
 
 /// The rosette's divergence as a fixed-point share of a turn, which a

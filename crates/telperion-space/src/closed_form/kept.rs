@@ -30,6 +30,7 @@
 //! section entering at its axis's tip, a failed unit's relay at the
 //! rest's base; sleeping buds independent of the axis that bears them.
 use super::along::Along;
+use super::predictor::window;
 use super::steps::{first_step, rest};
 use super::{sub, Sub};
 use crate::dormant::{First, Living};
@@ -45,7 +46,6 @@ mod ends;
 mod mass;
 mod path;
 pub(crate) mod section;
-pub(in crate::closed_form) use path::tilts;
 #[cfg(test)]
 mod tests;
 
@@ -192,16 +192,6 @@ enum Tape {
     Replay(Vec<Rc<Table>>, usize),
 }
 
-/// The cycles before its last that every table needs: a row reads a bud
-/// at its last cycle, a bearer reads what it bears as many cycles before
-/// their last as it is before its own, and a fade of delay d reads the
-/// cycles while it is under way and the one before them.
-pub(in crate::closed_form) fn window(species: &Species) -> usize {
-    let delays = species.states.iter().map(|s| s.shedding);
-    let finite = delays.filter(|d| d.is_finite());
-    finite.map(|d| (d + 1.0).ceil() as usize).max().unwrap_or(0)
-}
-
 impl<'a> Kept<'a> {
     pub fn new(species: &'a Species, windows: &'a Windows) -> Self {
         Self {
@@ -309,7 +299,11 @@ impl<'a> Kept<'a> {
                 // Its count in expectation over the fade, as the executors
                 // fade it by degree (fn-231); its quantities at their powers.
                 for q in 0..WIDTH {
-                    let f = if q == COUNT { fade } else { fade.powf_fixed(p[q]) };
+                    let f = if q == COUNT {
+                        fade
+                    } else {
+                        fade.powf_fixed(p[q])
+                    };
                     sum[q] += f * (table.b[i][q] - b0[q]);
                 }
                 k_sum += table.a[i] - a0;

@@ -82,11 +82,13 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: LEAF_AREA,
         shade_hazard: 0.0,
+        ground_hazard: GROUND_HAZARD,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -137,6 +139,17 @@ fn unit(
         zone(top.0 .0, top.0 .1, top.1),
     ]
 }
+
+/// How the ground ends a shoot whose tip reaches it (fn-252 R2): a
+/// declared stand-in of 1, a hanging shoot stops at the ground, resting
+/// on the owner's verdict (2026-10-14: "we might also want to fix the
+/// birch's branches drooping all the way to the ground"). No source read
+/// says whether a wild silver birch's hanging shoots end there; the one
+/// text found says the opposite of the grafted cultivar 'Youngii' (a
+/// nursery page, no evidence cited: its branches "will eventually root in
+/// the soil or create an untidy mat on the ground if not lifted"), fn-252
+/// R2-PLAN.md.
+const GROUND_HAZARD: f64 = 1.0;
 
 /// Its shade tolerance T (Niinemets and Valladares 2006, Appendix A;
 /// Jev fn264-pick:18dddb15cf3d5bc7-3e6351-0), which sets how it answers
@@ -224,6 +237,8 @@ pub fn birch() -> Species {
         relay_failed: 1.0,
         relay_at: 0.6,
         epitony: 0.2,
+        // fn-286 (2026-10-15): a relay runs half back onto the line it takes over (RELAYS.md).
+        takeover: 0.5,
         form: Form {
             tropism: 0.4,
             elevation: 1.0,
@@ -255,6 +270,8 @@ pub fn birch() -> Species {
         relay_ended: 1.0,
         relay_failed: 1.0,
         epitony: 0.4,
+        // fn-286 (2026-10-15): a relay runs half back onto the line it takes over (RELAYS.md).
+        takeover: 0.5,
         form: Form {
             tropism: 0.9,
             elevation: 1.3,
@@ -292,6 +309,8 @@ pub fn birch() -> Species {
         relay_ended: 1.0,
         relay_failed: 1.0,
         epitony: 0.4,
+        // fn-286 (2026-10-15): a relay runs half back onto the line it takes over (RELAYS.md).
+        takeover: 0.5,
         form: Form {
             tropism: 0.3,
             elevation: 0.5,

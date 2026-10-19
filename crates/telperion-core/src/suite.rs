@@ -18,6 +18,8 @@ mod crown_reference;
 mod crown_retention;
 #[path = "suite/drop.rs"]
 mod drop;
+#[path = "suite/establish.rs"]
+mod establish;
 #[path = "suite/field.rs"]
 mod field;
 #[path = "suite/field_fronds.rs"]
@@ -40,8 +42,6 @@ mod geometry_benchmark;
 mod growth;
 #[path = "suite/growth_reference.rs"]
 mod growth_reference;
-#[path = "suite/identity.rs"]
-mod identity;
 #[path = "suite/leaf_base_lattice.rs"]
 mod leaf_base_lattice;
 #[path = "suite/leaf_bases.rs"]
@@ -52,6 +52,8 @@ mod limb_clumping;
 mod mesh;
 #[path = "suite/node_budget.rs"]
 mod node_budget;
+#[path = "suite/organs.rs"]
+mod organs;
 #[path = "suite/outline.rs"]
 mod outline;
 #[path = "suite/packed_leaf.rs"]

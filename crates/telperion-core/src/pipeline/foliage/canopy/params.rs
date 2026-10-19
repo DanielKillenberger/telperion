@@ -12,6 +12,7 @@ crate::catalogue::rows! {
             Bounds::closed(0.0, 1.0) => [Plan, Expand] {
             wire: 88,
             check: input(Site::Canopy, 0, "shoot radius"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             growth: Growth::Differs("measured against the root node, and capped by \
                 `twig.bearingDiameter`"),
             note: "Above zero the leaf box uses the trunk radius.",
@@ -36,6 +37,7 @@ crate::catalogue::rows! {
         pub divergence: f64 = "divergence" "degrees" Bounds::closed(-1e9, 1e9) => [Expand] {
             wire: 90,
             check: input(Site::Canopy, 2, "divergence"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             note: "Past a phase-error bound, station preparation leaves the GPU for the CPU.",
             blend: Blend::Degrees,
             dial: bounded("foliage_divergence", "the degrees each successive leaf is turned \
@@ -66,6 +68,7 @@ crate::catalogue::rows! {
         pub outward: f64 = "outward" "-" Bounds::closed(-1.0, 1.0) => [Expand] {
             wire: 93,
             check: input(Site::Canopy, 4, "outward"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             note: "Rosette fronds ignore it.",
             dial: bounded("leaf_outward", "how far a leaf turns away from the trunk", [0.25, 0.5]),
         },
@@ -73,6 +76,7 @@ crate::catalogue::rows! {
         pub upward: f64 = "upward" "-" Bounds::closed(-1.0, 1.0) => [Expand] {
             wire: 94,
             check: input(Site::Canopy, 5, "upward"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             note: "Rosette fronds ignore it.",
             dial: bounded("leaf_upward", "how far a leaf turns toward the sky", [0.25, 0.5]),
         },
@@ -81,6 +85,7 @@ crate::catalogue::rows! {
             Bounds::closed(-1.0, 1.0) => [Expand] {
             wire: 95,
             check: input(Site::Canopy, 6, "forward lean"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             dial: bounded("leaf_forward_lean", "how far a leaf leans along its shoot", [0.25, 0.5]),
         },
         /// Further lean along the shoot on radials that face upward.
@@ -88,6 +93,7 @@ crate::catalogue::rows! {
             Bounds::closed(-2.0, 2.0) => [Expand] {
             wire: 96,
             check: input(Site::Canopy, 7, "lean rise"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             dial: bounded("leaf_lean_rise", "further lean along the shoot for leaves whose \
                 radial faces up", [0.5, 1.0]),
         },
@@ -150,6 +156,7 @@ crate::catalogue::rows! {
         pub clump_system_order: u32 = "clumpSystemOrder" "order"
             Bounds::at_least(0.0) => [Plan, Expand] {
             wire: 102,
+            applies: "`limbClumping` zero, but for the limb tally of a requested leaf field",
             note: "No upper bound is checked. The planned field assigns limb systems by it even \
                 at `limbClumping` zero.",
             blend: Blend::Count,
@@ -172,18 +179,31 @@ crate::catalogue::rows! {
                 clumping search may spend (crates/telperion-core/src/foliage/placement.rs:85)."),
         },
         /// Fronds the rosette bears at the apex of each stem. At zero no rosette
-        /// stands and the canopy clothes wood as it always did; any rise makes the
-        /// rosette the tree's only foliage.
+        /// stands. A fraction is split by a keyed draw at each apex, which
+        /// bears the whole count either side of it (fn-277).
         #[cfg_attr(feature = "json", serde(default))]
-        pub rosette_fronds: u32 = "rosetteFronds" "fronds"
+        pub rosette_fronds: f64 = "rosetteFronds" "fronds"
             Bounds::closed(0.0, crate::pipeline::foliage::MAX_FRONDS as f64) => [Grow, Plan, Expand] {
             wire: 104,
             check: input(Site::Rosette, 18, "rosette fronds"),
-            note: "Above zero the apical twigs are cleared, fronds are planned instead of runs \
-                and the rosette is placed instead; the GPU executor falls back.",
-            blend: Blend::Count,
+            note: "Above zero the apical twigs are cleared and fronds are planned and placed \
+                beside whatever wood `cauline` clothes.",
             dial: bounded("rosette_fronds", "fronds in the crown at each stem apex; at zero no \
                 rosette stands", [1.0, 4.0]),
+        },
+        /// The share of leaf-bearing wood that bears its leaves along it, cauline
+        /// foliage as against a crown's alone: each run of leaf-bearing wood and
+        /// each short shoot keeps its leaves by a keyed draw at this share. One,
+        /// every one bears; at zero none does, as a palm bears its leaves only in
+        /// its crown (fn-277).
+        #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_cauline"))]
+        pub cauline: f64 = "cauline" "share of leaf-bearing wood"
+            Bounds::closed(0.0, 1.0) => [Plan, Expand] {
+            wire: 367,
+            check: input(Site::Canopy, 15, "cauline share"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
+            dial: bounded("cauline", "the share of leaf-bearing wood that bears its leaves \
+                along it; at zero only a crown bears leaves", [0.05, 0.2]),
         },
         /// The degrees each successive frond is turned about the apex.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_rosette_divergence"))]
@@ -191,6 +211,7 @@ crate::catalogue::rows! {
             Bounds::closed(-1e9, 1e9) => [Grow, Plan, Expand] {
             wire: 105,
             check: input(Site::Rosette, 0, "rosette divergence"),
+            applies: "no rosette and no leaf bases (`rosetteFronds` and `leafBases` zero)",
             note: "Also the leaf bases' spiral, rosette or none.",
             blend: Blend::Degrees,
             dial: tuned("rosette_divergence", "the degrees each successive frond is turned",
@@ -228,21 +249,23 @@ crate::catalogue::rows! {
             Bounds::closed(0.0, 100.0) => [Grow, Plan, Expand] {
             wire: 108,
             check: input(Site::Rosette, 3, "rosette depth"),
+            applies: "no rosette and no leaf bases (`rosetteFronds` and `leafBases` zero)",
             note: "Leaf bases start below it, rosette or none; the deepest frond sets the leaf \
                 box's reach.",
             dial: tuned("rosette_depth", "metres the frond insertions spread down the axis",
                 [0.0, 4.0], [0.05, 0.2], "authored"),
         },
         /// Leaflets one placement carries along its rachis. One is the single
-        /// blade every family drew.
+        /// blade every family drew. A fraction is split by a keyed draw at each
+        /// placement (fn-277).
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_leaflet_count"))]
-        pub leaflet_count: u32 = "leafletCount" "leaflets"
+        pub leaflet_count: f64 = "leafletCount" "leaflets"
             Bounds::closed(1.0, crate::pipeline::foliage::MAX_LEAFLETS as f64) => [Plan, Expand] {
             wire: 109,
             check: input(Site::Rosette, 20, "leaflet count"),
-            note: "Leaflets group only above one and with `rachisLength` above zero; the GPU \
-                executor draws one blade a station regardless (fn-163).",
-            blend: Blend::Count,
+            applies: "`rachisLength` zero",
+            note: "Leaflets group only above one and with `rachisLength` above zero.",
+            blend: Blend::Log,
             dial: bounded("leaflet_count", "leaflets along one frond's rachis", [2.0, 8.0]),
         },
         /// Metres of rachis the leaflets are strung along. At zero the placement
@@ -290,15 +313,14 @@ crate::catalogue::rows! {
         /// trunk. At zero the trunk is bare and the bark is what it always was;
         /// any rise carries the crown's own spiral down it.
         #[cfg_attr(feature = "json", serde(default))]
-        pub leaf_bases: u32 = "leafBases" "bases"
+        pub leaf_bases: f64 = "leafBases" "bases"
             Bounds::closed(0.0, crate::pipeline::branching::MAX_LEAF_BASES as f64) => [Grow] {
             wire: 114,
             check: input(Site::Rosette, 21, "leaf bases"),
             growth: Growth::Ignored,
             applies: "`leafBaseLength` zero",
             note: "Does not need a rosette: bases follow the rosette's spiral rows whether \
-                fronds stand or not.",
-            blend: Blend::Count,
+                fronds stand or not. A fraction is split by a keyed draw at each stem (fn-277).",
             dial: bounded("leaf_bases", "bases of shed fronds the stem keeps below its crown, \
                 clothing the trunk; at zero the trunk is bare", [4.0, 16.0]),
         },
@@ -389,13 +411,13 @@ crate::catalogue::rows! {
         /// the frond carries blades all the way down; any rise hardens that many
         /// of them.
         #[cfg_attr(feature = "json", serde(default))]
-        pub acanthophylls: u32 = "acanthophylls" "leaflets"
+        pub acanthophylls: f64 = "acanthophylls" "leaflets"
             Bounds::closed(0.0, crate::pipeline::foliage::MAX_LEAFLETS as f64) => [Plan, Expand] {
             wire: 121,
             check: input(Site::Rosette, 22, "acanthophylls"),
             applies: "`acanthophyllLength` zero, or no leaflet grouping (`leafletCount` one or \
                 `rachisLength` zero)",
-            blend: Blend::Count,
+            note: "A fraction is split by a keyed draw at each placement (fn-277).",
             dial: bounded("acanthophylls", "leaflets at a frond's base borne as spines rather \
                 than blades; at zero the frond carries blades", [1.0, 4.0]),
         },
@@ -427,12 +449,12 @@ crate::catalogue::rows! {
         /// crown's own spiral down the stem. At zero no frond is kept and the
         /// crown ends at its oldest living frond; any rise hangs that many.
         #[cfg_attr(feature = "json", serde(default))]
-        pub skirt_fronds: u32 = "skirtFronds" "fronds"
+        pub skirt_fronds: f64 = "skirtFronds" "fronds"
             Bounds::closed(0.0, crate::pipeline::foliage::MAX_FRONDS as f64) => [Plan, Expand] {
             wire: 124,
             check: input(Site::Rosette, 19, "skirt fronds"),
             applies: "`skirtLength` zero, or `rosetteFronds` zero",
-            blend: Blend::Count,
+            note: "A fraction is split by a keyed draw at each apex (fn-277).",
             dial: bounded("skirt_fronds", "dead fronds a rosette keeps below its living crown; \
                 at zero none is kept", [2.0, 6.0]),
         },
@@ -472,6 +494,35 @@ crate::catalogue::rows! {
             dial: bounded("frond_life", "the years a living frond lives; at zero the crown stands \
                 as it is all year", [3.0, 7.0]),
         },
+        /// The years a rosette's crown takes to make a mature frond (fn-275
+        /// R2, R2a): a frond is made at a share of its size set by the
+        /// crown's age when it was made, along the logistic course from
+        /// `frondEarlyShare` to whole over these years, and keeps it for its
+        /// life; the stem the rosette crowns widens by the same course and
+        /// waits at the ground until the crown is established. At zero every
+        /// frond is made whole and the stem rises from its first year.
+        #[cfg_attr(feature = "json", serde(default))]
+        pub frond_establishment: f64 = "frondEstablishment" "years"
+            Bounds::closed(0.0, 100.0) => [Grow, Plan, Expand] {
+            wire: 365,
+            check: input(Site::Rosette, 24, "frond establishment"),
+            applies: "`rosetteFronds` zero",
+            dial: bounded("frond_establishment", "the years a crown takes to make a mature \
+                frond and its stem to widen before it rises; at zero every frond is made whole \
+                and the stem rises from its first year", [1.0, 3.0]),
+        },
+        /// The share of a mature frond's size a crown's first frond is made
+        /// at while it establishes, and of its stem's girth where the stem
+        /// was first laid (fn-275 R2, R2a).
+        #[cfg_attr(feature = "json", serde(default))]
+        pub frond_early_share: f64 = "frondEarlyShare" "share of a mature frond"
+            Bounds::closed(0.0, 1.0) => [Grow, Plan, Expand] {
+            wire: 366,
+            check: input(Site::Rosette, 25, "frond early share"),
+            applies: "`frondEstablishment` zero",
+            dial: bounded("frond_early_share", "the share of a mature frond's size a crown's \
+                first frond is made at, and of its stem's girth where first laid", [0.05, 0.15]),
+        },
         /// Hard total budget. Exceeding it returns an error, never partial foliage.
         #[cfg_attr(feature = "json", serde(with = "crate::ranges::portable_index"))]
         pub max_instances: usize = "maxInstances" "leaves"
@@ -508,7 +559,8 @@ impl Default for CanopyParams {
             clump_neighbours: crate::ranges::default_clump_neighbours(),
             // Neutral: no rosette stands and no placement groups until a
             // table states a frond count and a rachis to string leaflets on.
-            rosette_fronds: 0,
+            rosette_fronds: 0.0,
+            cauline: 1.0,
             rosette_divergence: crate::ranges::default_rosette_divergence(),
             rosette_pitch: crate::ranges::default_rosette_pitch(),
             rosette_pitch_spread: crate::ranges::default_rosette_pitch_spread(),
@@ -520,21 +572,23 @@ impl Default for CanopyParams {
             terminal_leaflet: 0.,
             // Neutral: the trunk carries no retained base and no frond bears a
             // spine until a table states a count and the reach to draw it at.
-            leaf_bases: 0,
+            leaf_bases: 0.0,
             leaf_base_length: 0.,
             leaf_base_radius: crate::ranges::default_leaf_base_radius(),
             leaf_base_pitch: crate::ranges::default_leaf_base_pitch(),
             leaf_base_weathering: 0.,
             leaf_base_width: 0.,
             leaf_base_flatness: 0.,
-            acanthophylls: 0,
+            acanthophylls: 0.0,
             acanthophyll_length: crate::ranges::default_acanthophyll_length(),
             acanthophyll_pitch: crate::ranges::default_acanthophyll_pitch(),
             // Neutral: no dead frond is kept below the living crown.
-            skirt_fronds: 0,
+            skirt_fronds: 0.0,
             skirt_pitch: crate::ranges::default_skirt_pitch(),
             skirt_length: crate::ranges::default_skirt_length(),
             frond_life: 0.0,
+            frond_establishment: 0.0,
+            frond_early_share: 0.0,
             max_instances: usize::MAX,
         }
     }

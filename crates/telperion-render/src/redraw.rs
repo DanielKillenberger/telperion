@@ -52,9 +52,15 @@ mod tests {
     #[test]
     fn an_idle_canvas_draws_once_and_then_nothing() {
         let mut redraw = Redraw::default();
-        assert!(attempt(&mut redraw, false, true), "the first frame was not drawn");
+        assert!(
+            attempt(&mut redraw, false, true),
+            "the first frame was not drawn"
+        );
         for _ in 0..3 {
-            assert!(!attempt(&mut redraw, false, true), "an unchanged picture was redrawn");
+            assert!(
+                !attempt(&mut redraw, false, true),
+                "an unchanged picture was redrawn"
+            );
         }
     }
 
@@ -74,7 +80,10 @@ mod tests {
         let mut redraw = Redraw::default();
         attempt(&mut redraw, false, true);
         redraw.ask();
-        assert!(!attempt(&mut redraw, true, true), "drew over a frame in flight");
+        assert!(
+            !attempt(&mut redraw, true, true),
+            "drew over a frame in flight"
+        );
         assert!(!attempt(&mut redraw, true, true));
         assert!(attempt(&mut redraw, false, true), "the move was lost");
         assert!(!attempt(&mut redraw, false, true));
@@ -84,9 +93,15 @@ mod tests {
     fn a_partial_or_failed_frame_is_drawn_again() {
         let mut redraw = Redraw::default();
         assert!(attempt(&mut redraw, false, false));
-        assert!(attempt(&mut redraw, false, true), "a frame without its wood settled");
+        assert!(
+            attempt(&mut redraw, false, true),
+            "a frame without its wood settled"
+        );
         assert!(!redraw.due(false, false));
-        assert!(redraw.due(false, true), "a failed frame was not drawn again");
+        assert!(
+            redraw.due(false, true),
+            "a failed frame was not drawn again"
+        );
         assert!(!redraw.due(true, true));
     }
 }

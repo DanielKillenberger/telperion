@@ -36,10 +36,11 @@ pub struct StationSegment {
     /// The key of its run's first node (`Tree::key`): with the family's
     /// seed, the stream its leaves draw from (`tree::leaf_stream`).
     pub key: u32,
-    /// A short shoot's cluster (fn-223), its spread: `count` leaves at
-    /// the tip `endpoints` names, fanned about the heading `frame[0]`,
-    /// drawing on the tip's cluster stream (`key`).
-    pub cluster: Option<f64>,
+    /// A short shoot's cluster (fn-223), its spread and its leaves: `count`
+    /// instances, each leaf its leaflets (fn-277), at the tip `endpoints`
+    /// names, fanned about the heading `frame[0]`, drawing on the tip's
+    /// cluster stream (`key`).
+    pub cluster: Option<(f64, u32)>,
     /// Its leaves where the tree is drawn within its year (fn-270 R5, R5c,
     /// `Tree::unfolding`): its distal node's.
     pub unfolding: crate::tree::Unfolded,
@@ -206,15 +207,11 @@ fn prepare_inner<C>(
         if phase_error > 0.00025 {
             return Ok(None);
         }
-        for (segment, (tangent, normal, binormal)) in station::station_frame_iter(
-            &points,
-            &chord,
-            tree.seed_side(run.nodes[0]),
-        )
-        .enumerate()
+        for (segment, (tangent, normal, binormal)) in
+            station::station_frame_iter(&points, &chord, tree.seed_side(run.nodes[0])).enumerate()
         {
             let (first, last) = run.segment_stations(segment, twig);
-            if run.kept_between(tree, twig, (first, last)) == 0 {
+            if run.leaves_between(tree, (twig, &p), (first, last)) == 0 {
                 continue;
             }
             let nodes = &run.nodes;
@@ -241,7 +238,8 @@ fn prepare_inner<C>(
             let mut tile_first = first;
             while tile_first < last {
                 let tile_count = (last - tile_first).min(256);
-                let kept = run.kept_between(tree, twig, (tile_first, tile_first + tile_count));
+                let kept =
+                    run.leaves_between(tree, (twig, &p), (tile_first, tile_first + tile_count));
                 let before = seen;
                 seen += kept;
                 if kept == 0 {
@@ -272,7 +270,7 @@ fn prepare_inner<C>(
                 tile_first += tile_count;
             }
         }
-        total_count += run.kept;
+        total_count += run.leaves;
     }
     // Each short shoot's cluster after every run (fn-223): one segment at
     // its tip.
@@ -280,9 +278,10 @@ fn prepare_inner<C>(
         let tip = c.node as usize;
         let at = tree.nodes[tip].position;
         let radius = tree.nodes[tip].radius;
+        let leaves = cluster::leaves(tree, &p, c);
         segments.push(StationSegment {
             first: total_count,
-            count: c.leaves,
+            count: leaves,
             run_station: 0,
             retention: None,
             phase: [0.0, 1.0],
@@ -293,10 +292,10 @@ fn prepare_inner<C>(
             frame: [cluster::heading(tree, tip), Vec3::ZERO, Vec3::ZERO],
             contact: None,
             key: crate::tree::cluster_key(tree.key(tip)),
-            cluster: Some(c.spread),
+            cluster: Some((c.spread, c.leaves)),
             unfolding: tree.unfolding(tip),
         });
-        total_count += c.leaves;
+        total_count += leaves;
     }
     Ok(Some((segments, total_count, contacts)))
 }

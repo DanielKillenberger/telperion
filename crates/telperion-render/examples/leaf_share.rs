@@ -16,7 +16,9 @@ use telperion_render::{
 const SIZE: (u32, u32) = (960, 720);
 
 fn main() -> Result<(), String> {
-    let id = std::env::args().nth(1).ok_or("usage: leaf_share <preset>")?;
+    let id = std::env::args()
+        .nth(1)
+        .ok_or("usage: leaf_share <preset>")?;
     let preset = Preset::from_id(&id).ok_or("no preset")?;
     let mut family = preset.parameters();
     let var = |k: &str| std::env::var(k).ok();
@@ -27,7 +29,8 @@ fn main() -> Result<(), String> {
         family.skeleton.seed = s.parse().map_err(|e| format!("SEED: {e}"))?;
     }
     if let Some(s) = var("FLOWERING") {
-        family.supernatural.flowering.age14 = Some(s.parse().map_err(|e| format!("FLOWERING: {e}"))?);
+        family.supernatural.flowering.age14 =
+            Some(s.parse().map_err(|e| format!("FLOWERING: {e}"))?);
     }
     let x = executor::grow(&family).map_err(|e| e.to_string())?;
     let x = x.expansion().map_err(|e| e.to_string())?;
@@ -42,14 +45,20 @@ fn main() -> Result<(), String> {
     );
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    renderer.submit_at(&mesh, Level::Chosen).map_err(|e| e.to_string())?;
+    renderer
+        .submit_at(&mesh, Level::Chosen)
+        .map_err(|e| e.to_string())?;
     renderer.set_family(&family);
     renderer.set_scene(SceneRow {
         sun_azimuth: 115.0,
         sun_elevation: 60.0,
         ..SceneRow::default()
     });
-    let hero = hero_pose(mesh.bounds, f64::from(SIZE.0) / f64::from(SIZE.1), GROUND_REACH);
+    let hero = hero_pose(
+        mesh.bounds,
+        f64::from(SIZE.0) / f64::from(SIZE.1),
+        GROUND_REACH,
+    );
     let views = [
         ("whole", hero.clone()),
         ("mid", mid(&mesh, &hero)),

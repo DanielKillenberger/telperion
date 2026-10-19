@@ -12,14 +12,8 @@ The spec's R1 and R3: a mature-bark colour and fissure depth blended by a stated
 - npm test and the gate green.
 
 ## Done summary
-Six /material rows blend old bark into thick wood by radius in the wood shader:
-- matureRed, matureGreen and matureBlue give its colour;
-- matureFurrowStrength gives its furrow strength;
-- matureRadius and matureSpan give where it starts and the span it turns over.
+Six /material rows (matureRed/Green/Blue, matureFurrowStrength, matureRadius, matureSpan) blend old bark into thick wood by radius in the wood shader. Inert at matureRadius 0 (test; 12 neutral stills byte-identical to the base). Blend shown on the oak with test rows, stills viewed.
 
-With matureRadius at zero the rows do nothing. A test holds this, and 12 neutral stills are byte-identical to the base. The blend is shown on the oak with test rows. Evidence: .flow/evidence/fn-221-bark-that-matures-with-girth/TASK-1.md
-
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 44665344, 75a7656a
 - Tests: cargo test --profile ci -p telperion-render --no-fail-fast, cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render, npm test

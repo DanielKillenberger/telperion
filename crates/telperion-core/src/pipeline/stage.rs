@@ -1,7 +1,8 @@
 //! The stages past the skeleton, each run only where the request asks.
 use super::{PlanInput, Request, Structure};
+#[cfg(feature = "geometry")]
+use crate::pipeline::field::{self, Grid};
 use crate::{
-    pipeline::field::Field,
     pipeline::foliage::{self, plan, Element, Reference},
     tree::{NodeKind, Tree},
     Error, Result,
@@ -33,7 +34,7 @@ pub(super) fn prepare(
     };
     let twig = input.twig.clone()?;
     let (mut leaf_plan, mut ms) = (None, 0.0);
-    if let (Some(limb_order), Some(element)) = (request.field, element.as_ref()) {
+    if let (Some(f), Some(element)) = (request.field, element.as_ref()) {
         let start = (request.clock)();
         leaf_plan = plan::plan(
             tree,
@@ -42,7 +43,7 @@ pub(super) fn prepare(
             Some(twig),
             &input.surface,
             element,
-            limb_order,
+            f.limb_order,
             input.seed,
         )?;
         ms = (request.clock)() - start;
@@ -67,19 +68,24 @@ pub(super) fn prepare(
     })
 }
 
-/// The field read from the leaf plan, where the plan describes the family.
-pub(super) fn planned_field(
+/// The field read out from the drawn tree (fn-257 R8): its wood and its
+/// leaf plan's records, to the request's grid. A family the plan cannot
+/// describe is refused by name; no leaf is placed for a field.
+#[cfg(feature = "geometry")]
+pub(super) fn field(
     tree: &Tree,
     request: Request,
     prepared: &Prepared,
-) -> Result<Option<(Field, f64)>> {
-    match (request.field, prepared.leaf_plan.as_ref()) {
-        (Some(_), Some(p)) => {
-            let start = (request.clock)();
-            Ok(Some((Field::planned(tree, p)?, (request.clock)() - start)))
-        }
-        _ => Ok(None),
-    }
+) -> Result<Option<(Grid, f64)>> {
+    let Some(f) = request.field else {
+        return Ok(None);
+    };
+    let plan = prepared.leaf_plan.as_ref().ok_or(Error::InvalidInput(
+        "a field reads the leaf plan, which does not describe this family",
+    ))?;
+    let start = (request.clock)();
+    let grid = field::field(tree, plan, f.n)?;
+    Ok(Some((grid, (request.clock)() - start)))
 }
 
 /// The structure export: every node's record, in node order.

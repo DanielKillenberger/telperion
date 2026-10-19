@@ -25,7 +25,20 @@ pub(super) const TABLES: usize = 8;
 /// spruce at 42 the units and the woken, the ordinary the sleeping buds,
 /// Laurelin the lattice. The axes run 0.39 (the oak and Telperion at seed
 /// 1) to 1.43 (the beech at 42) of their hint.
-pub(super) const ARENA: [f64; TABLES] = [1.4303, 1.0235, 2.2452, 0.0115, 0.1397, 0.0064, 0.4604, 0.2743];
+pub(super) const ARENA: [f64; TABLES] = [
+    1.4303, 1.0235, 2.2452, 0.0115, 0.1397, 0.0064, 0.4604, 0.2743,
+];
+
+/// Each table's room past its measured most (`TABLES`' order): a table
+/// grows when its rows two cycles on, projected from the census a cycle
+/// late, would pass seven eighths of it (`build_size::grown`), so a table
+/// sized to its most alone moved near the end of the build: the units and
+/// the woken buds, which the spruce sets, by one move (`GROWTH`) after
+/// cycle 38 of 40, and the lattice's nodes, which grow by its box
+/// (`given::boxed`), by two at Telperion's 66 and 77 of 82 and once more at
+/// 79 at seed 7, near three and a half times its most (fn-257 task 3
+/// review: no shipped preset moves).
+const HEADROOM: [f64; TABLES] = [1.0, 1.5, 1.0, 1.0, 1.0, 1.5, 1.0, 3.5];
 
 /// The most rows a table holds: its words index it in 32 bits, its
 /// widest table (the pencils) 59 words a row.
@@ -47,7 +60,16 @@ pub(super) fn tables(census: &[u32]) -> [u32; TABLES] {
     // The living table holds the most of the living the cycle left, after
     // its balance, and the axes that grew.
     let living = w(c::NEXT).max(w(c::LIVE)).max(w(c::GREW));
-    [w(c::AXES), w(c::UNITS), w(c::PHYTS), w(c::SLEEPERS), living, w(c::WOKEN), leaves, w(c::GRID + 6)]
+    [
+        w(c::AXES),
+        w(c::UNITS),
+        w(c::PHYTS),
+        w(c::SLEEPERS),
+        living,
+        w(c::WOKEN),
+        leaves,
+        w(c::GRID + 6),
+    ]
 }
 
 /// What the closed form expects of a build: its kept phytomers, and its
@@ -58,19 +80,23 @@ pub(super) fn tables(census: &[u32]) -> [u32; TABLES] {
 pub(super) struct Hint {
     pub kept: f64,
     pub axes: f64,
+    /// The most units one job grows in a cycle (`most_units`, fn-276):
+    /// its units rounds and the generations it adds a cycle.
+    pub units: u32,
 }
 
 /// The closed form's expectations of `species` at `age`, its light's
 /// terms let go where it reads light (the form is light-neutral).
 pub(super) fn hint(species: &telperion_space::Species, age: u32) -> Result<Hint> {
-    let mut unshaded = species.clone();
-    for s in &mut unshaded.states {
-        (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
-    }
+    let unshaded = species.unlit();
     let refused = |e: telperion_space::Error| super::super::io::error(e.to_string());
     let kept = telperion_space::expected_kept(&unshaded, age.max(1)).map_err(refused)?;
     let axes = telperion_space::expected_axes(&unshaded, age.max(1)).map_err(refused)?;
-    Ok(Hint { kept: kept.unwrap_or(0.0), axes })
+    Ok(Hint {
+        kept: kept.unwrap_or(0.0),
+        axes,
+        units: telperion_space::most_units(species),
+    })
 }
 
 /// The most hierarchy levels a cycle's sums sweep (`hier_build`'s
@@ -94,6 +120,14 @@ const ROUNDS: u32 = 8;
 /// held (fn-256 task 15).
 const SWEEPS: u32 = 1024 / super::build_light::LAYERS;
 
+/// The units rounds and generations a cycle records at least where a
+/// job grows `units` units in it (fn-276, host 2026-10-14): each unit
+/// after the first takes a round to move or relay and one to grow, and
+/// is an axis a generation deeper.
+pub(super) fn floors(units: u32) -> [u32; 2] {
+    [2 * units.max(1) - 1, units.max(1)]
+}
+
 impl Sizes {
     /// A build's tables sized once from `hint`, the least a build takes
     /// below that, and its bounds stated from them; refused by name where
@@ -105,13 +139,26 @@ impl Sizes {
 
     /// `hinted` at `margin` past each table's measured most.
     fn at_margin(h: Hint, margin: f64) -> Result<Self> {
-        let most = ARENA[1..].iter().fold(0.0, |m: f64, r| m.max(*r));
-        if !(h.kept * most * margin <= f64::from(MOST_ROWS) && h.axes * ARENA[0] * margin <= f64::from(MOST_ROWS)) {
+        let most = (ARENA.iter().zip(HEADROOM).skip(1)).fold(0.0, |m: f64, (r, h)| m.max(r * h));
+        if !(h.kept * most * margin <= f64::from(MOST_ROWS)
+            && h.axes * ARENA[0] * margin <= f64::from(MOST_ROWS))
+        {
             let what = format!("the tree's expected {:.0} kept phytomers and {:.0} axes size its tables past the {MOST_ROWS} rows the device indexes; grow it younger", h.kept, h.axes);
             return Err(super::super::io::error(what));
         }
+        if h.units > super::device::FRAMES {
+            let what = format!(
+                "the species grows {} units a cycle on one apex, past the {} a units job holds",
+                h.units,
+                super::device::FRAMES
+            );
+            return Err(super::super::io::error(what));
+        }
         let least = Sizes::least();
-        let rows = |k: usize, floor: u32| ((if k == 0 { h.axes } else { h.kept } * ARENA[k] * margin).ceil() as u32).max(floor);
+        let rows = |k: usize, floor: u32| {
+            let most = if k == 0 { h.axes } else { h.kept } * ARENA[k] * HEADROOM[k];
+            ((most * margin).ceil() as u32).max(floor)
+        };
         let l = least.caps;
         let caps = Caps {
             axes: rows(0, l.axes).next_multiple_of(64),
@@ -123,8 +170,19 @@ impl Sizes {
         };
         let tips = caps.next.max(least.tips);
         let points = (rows(6, 0) + tips).max(least.points);
-        let sizes = Sizes { caps, points, tips, nodes: rows(7, least.nodes), compact: Compact::Tight, ..least };
-        Ok(Sizes { bounds: sizes.stated(), ..sizes })
+        let sizes = Sizes {
+            caps,
+            points,
+            tips,
+            nodes: rows(7, least.nodes),
+            compact: Compact::Tight,
+            units: h.units,
+            ..least
+        };
+        Ok(Sizes {
+            bounds: sizes.stated(),
+            ..sizes
+        })
     }
 
     /// The tables a build starts from, from `hint`, capped to what the
@@ -138,7 +196,9 @@ impl Sizes {
         std::iter::from_fn(move || {
             let at = margin?;
             let sizes = Self::at_margin(h, at);
-            let floor = sizes.as_ref().map_or(true, |s| s.caps == least || at < 1e-6);
+            let floor = sizes
+                .as_ref()
+                .map_or(true, |s| s.caps == least || at < 1e-6);
             margin = (!floor).then_some(at / 2.0);
             Some(sizes)
         })
@@ -149,15 +209,22 @@ impl Sizes {
     /// its nodes takes stood as a cube twice over or `SWEEPS`, the rest
     /// stated.
     pub(super) fn stated(&self) -> Bounds {
-        let mut b = Bounds { ranges: self.bounds.ranges, ..Bounds::default() };
+        let mut b = Bounds {
+            ranges: self.bounds.ranges,
+            ..Bounds::default()
+        };
         let r = b.ranges;
         let (next, nodes) = (self.caps.next, self.nodes);
         b.units = next.div_ceil(r.units) + 1;
         b.lay.draws = next.div_ceil(r.draw) + 1;
         b.lay.deposits = self.points.div_ceil(r.deposit) + 1;
         b.lay.sweeps = (2 * (f64::from(nodes).cbrt().ceil() as u32) + 8).max(SWEEPS);
-        b.lay.generations = LAY_GENERATIONS;
-        (b.hier.levels, b.hier.gens, b.hier.passes, b.rounds) = (LEVELS, GENS, PASSES, ROUNDS);
+        // A job's units chained in a cycle take two rounds each after the
+        // first, and add a generation each (`floors`).
+        let [rounds, gens] = floors(self.units);
+        b.lay.generations = LAY_GENERATIONS.max(gens);
+        (b.hier.levels, b.hier.gens, b.hier.passes, b.rounds) =
+            (LEVELS, GENS.max(gens), PASSES, ROUNDS.max(rounds));
         b
     }
 
@@ -167,7 +234,10 @@ impl Sizes {
         let mut out = vec![u32::MAX; c::WORDS];
         let caps = self.caps;
         for (words, cap) in [
-            (&[c::AXES, c::AXES0, c::LAID, c::LAID0, c::BUILT][..], caps.axes),
+            (
+                &[c::AXES, c::AXES0, c::LAID, c::LAID0, c::BUILT][..],
+                caps.axes,
+            ),
             (&[c::UNITS, c::UNITS0], caps.units),
             (&[c::PHYTS, c::PHYTS0], caps.phyts),
             (&[c::SLEEPERS, c::SLEEPERS0], caps.sleepers),
@@ -185,15 +255,52 @@ impl Sizes {
 mod tests {
     use super::*;
 
+    /// fn-257: every shipped preset's build is sized from its expectations,
+    /// never from the least tables a missing prediction leaves (the
+    /// birch's ground hazard did, and it moved 23 times a build).
+    #[test]
+    fn every_preset_is_sized_from_its_expectations() {
+        for &(_, id, ..) in telperion_core::presets::CATALOGUE {
+            let family = telperion_core::presets::by_identity(id).expect("a preset");
+            let growth = telperion_core::pipeline::executor::growth(&family).expect("a growth");
+            let h = hint(&growth.species, growth.request.age).expect("a hint");
+            Sizes::at_margin(h, MARGIN).expect("sized");
+            assert!(h.kept > 0.0, "{id}: {h:?}");
+        }
+    }
+
     /// The integration review's oak at 500: a hint whose tables pass the
     /// rows the device indexes is refused by name, never wrapped.
     #[test]
     fn a_hint_past_the_tables_is_refused_by_name() {
-        let refused = Sizes::hinted(Hint { kept: 86.6e9, axes: 1e6 }).expect_err("refused");
+        let refused = Sizes::hinted(Hint {
+            kept: 86.6e9,
+            axes: 1e6,
+            units: 1,
+        })
+        .expect_err("refused");
         assert!(refused.to_string().contains("grow it younger"), "{refused}");
-        let refused = Sizes::hinted(Hint { kept: 1e6, axes: 1e12 }).expect_err("refused");
+        let refused = Sizes::hinted(Hint {
+            kept: 1e6,
+            axes: 1e12,
+            units: 1,
+        })
+        .expect_err("refused");
         assert!(refused.to_string().contains("grow it younger"), "{refused}");
-        let telperion = Sizes::hinted(Hint { kept: 2_970_013.0, axes: 1e6 }).expect("sized");
+        let past = super::super::device::FRAMES + 1;
+        let refused = Sizes::hinted(Hint {
+            kept: 1e6,
+            axes: 1e4,
+            units: past,
+        })
+        .expect_err("refused");
+        assert!(refused.to_string().contains("units job holds"), "{refused}");
+        let telperion = Sizes::hinted(Hint {
+            kept: 2_970_013.0,
+            axes: 1e6,
+            units: 1,
+        })
+        .expect("sized");
         assert!(telperion.caps.axes % 64 == 0 && telperion.caps.phyts > 2_970_013);
     }
 }

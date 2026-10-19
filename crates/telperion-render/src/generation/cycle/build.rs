@@ -10,10 +10,10 @@
 //! section 6).
 use super::build_light::{Light, Lit};
 use super::build_plan::{record, Phases};
-use super::gate::{Limits, REC};
-use super::given::{given, Pending, Span};
 use super::census as c;
 use super::columns::{packed, Cap};
+use super::gate::{Limits, REC};
+use super::given::{given, Pending, Span};
 use super::hier_build::Hierarchy;
 use super::hier_device::Sums;
 use super::hier_scan::zeroed;
@@ -42,16 +42,48 @@ impl Kit {
         use super::super::io::pair;
         let ((units, layout), ((hier, light), (glue, (vm, retire)))) = pair(
             gpu,
-            || pair(gpu, || device::Kernels::new(gpu), || lay_device::Kernels::new(gpu)),
             || {
                 pair(
                     gpu,
-                    || pair(gpu, || hier_build::Kernels::new(gpu), || light_device::Kernels::new(gpu)),
-                    || pair(gpu, || glue::Kernels::new(gpu), || pair(gpu, || vm::Kernels::new(gpu), || super::retire_device::Kernels::new(gpu))),
+                    || device::Kernels::new(gpu),
+                    || lay_device::Kernels::new(gpu),
+                )
+            },
+            || {
+                pair(
+                    gpu,
+                    || {
+                        pair(
+                            gpu,
+                            || hier_build::Kernels::new(gpu),
+                            || light_device::Kernels::new(gpu),
+                        )
+                    },
+                    || {
+                        pair(
+                            gpu,
+                            || glue::Kernels::new(gpu),
+                            || {
+                                pair(
+                                    gpu,
+                                    || vm::Kernels::new(gpu),
+                                    || super::retire_device::Kernels::new(gpu),
+                                )
+                            },
+                        )
+                    },
                 )
             },
         );
-        Self { units, layout, hier, light, glue, vm, retire }
+        Self {
+            units,
+            layout,
+            hier,
+            light,
+            glue,
+            vm,
+            retire,
+        }
     }
 
     pub(super) fn pass(&self, id: PassId) -> &super::super::io::Pass {
@@ -102,13 +134,18 @@ impl Tables {
             panic!("cycle, age, budget")
         };
         let (table, words, rows, whorls) = packed(&cap, chain, age);
-        let zones = (0..table[0] as usize / 2).map(|p| table[2 * p + 1]).max().unwrap_or(0);
+        let zones = (0..table[0] as usize / 2)
+            .map(|p| table[2 * p + 1])
+            .max()
+            .unwrap_or(0);
         let mut form = cap.f32s("lay_globals");
         form.extend(cap.f32s("lay_form"));
         let pa = cap.f32s("hier_pa");
         let pas = (pa.len() / 5) as u32;
         let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-        let upload = |label, bytes: &[u8]| super::super::io::buffer(gpu, label, bytes.len() as u64, usage, bytes);
+        let upload = |label, bytes: &[u8]| {
+            super::super::io::buffer(gpu, label, bytes.len() as u64, usage, bytes)
+        };
         Ok(Self {
             age,
             budget,
@@ -138,7 +175,16 @@ impl Tables {
         (0..self.pas as usize)
             .flat_map(|p| {
                 let r = &self.pa[5 * p..5 * p + 5];
-                [r[0], r[1], r[2], self.windows[p * span + cycle as usize], r[3], r[4], 0.0, 0.0]
+                [
+                    r[0],
+                    r[1],
+                    r[2],
+                    self.windows[p * span + cycle as usize],
+                    r[3],
+                    r[4],
+                    0.0,
+                    0.0,
+                ]
             })
             .collect()
     }
@@ -176,7 +222,12 @@ pub(super) struct Build {
 
 impl Build {
     /// The buffers for a tree of `caps`, the rows of every cycle uploaded.
-    pub(super) fn new(gpu: &Gpu, t: &Tables, (c, caps, block_cap): (&Capture, Caps, u32), (lit, nodes): (Lit, u32)) -> Result<Self> {
+    pub(super) fn new(
+        gpu: &Gpu,
+        t: &Tables,
+        (c, caps, block_cap): (&Capture, Caps, u32),
+        (lit, nodes): (Lit, u32),
+    ) -> Result<Self> {
         let state = State::new(gpu, caps)?;
         let mut light = Light::new(gpu, &Cap(c))?;
         light.ensure(gpu, lit, nodes)?;
@@ -185,12 +236,20 @@ impl Build {
         let build = Self {
             hier: Hierarchy::new(gpu, s, block_cap)?,
             sums: Sums::alloc(gpu, s, caps.next, t.pas)?,
-            tree: zeroed(gpu, "cycle tree", u64::from(super::hier_columns::TREE as u32 * s))?,
+            tree: zeroed(
+                gpu,
+                "cycle tree",
+                u64::from(super::hier_columns::TREE as u32 * s),
+            )?,
             light,
             layout: Layout::new(gpu, &t.form, s)?,
             retire: super::retire_device::Retire::new(gpu, s, &t.settle_pa, t.log)?,
             compactor: super::compact::Compactor::new(gpu, caps, s)?,
-            inputs: zeroed(gpu, "cycle inputs", 2 * u64::from(caps.next) + 6 * u64::from(s))?,
+            inputs: zeroed(
+                gpu,
+                "cycle inputs",
+                2 * u64::from(caps.next) + 7 * u64::from(s),
+            )?,
             counts: zeroed(gpu, "cycle counts", device::counts(caps, t.zones).words)?,
             flags: zeroed(gpu, "cycle flags", 2 * u64::from(s))?,
             spare: zeroed(gpu, "cycle spare", 4)?,
@@ -214,13 +273,25 @@ impl Build {
         census
     }
 
-    pub(super) fn seeded(&self, gpu: &Gpu, kit: &Kit, (plan, phases): (&Plan, &Phases)) -> Vec<&'static str> {
-        gpu.queue.write_buffer(&plan.census, 0, bytemuck::cast_slice(&Self::seed_census()));
+    pub(super) fn seeded(
+        &self,
+        gpu: &Gpu,
+        kit: &Kit,
+        (plan, phases): (&Plan, &Phases),
+    ) -> Vec<&'static str> {
+        gpu.queue
+            .write_buffer(&plan.census, 0, bytemuck::cast_slice(&Self::seed_census()));
         let mut e = gpu.encoder(&Default::default());
         let mut stamped = Vec::new();
         let all = Limits::full(&super::build_plan::Bounds::default());
         let given = vec![u32::MAX; plan.sized.len()];
-        record(kit, (plan, &all, &given), &mut e, &phases.seed, &mut stamped);
+        record(
+            kit,
+            (plan, &all, &given),
+            &mut e,
+            &phases.seed,
+            &mut stamped,
+        );
         gpu.submit([e.finish()]);
         stamped
     }
@@ -229,13 +300,29 @@ impl Build {
     /// dispatch given the most `span` allows, and submitted, its census
     /// sent back late; its dispatches' phases, its bounded ones, and the
     /// workgroups each was given.
-    pub(super) fn submit(&self, gpu: &Gpu, (kit, t): (&Kit, &Tables), (plan, phases, limits, span): (&Plan, &Phases, &Limits, &Span), (late, cycle): (&mut Late, u32)) -> (Vec<&'static str>, Pending, Vec<u32>) {
+    pub(super) fn submit(
+        &self,
+        gpu: &Gpu,
+        (kit, t): (&Kit, &Tables),
+        (plan, phases, limits, span): (&Plan, &Phases, &Limits, &Span),
+        (late, cycle): (&mut Late, u32),
+    ) -> (Vec<&'static str>, Pending, Vec<u32>) {
         let steps = phases.cycle(cycle, t.age);
         let given = given(plan, span, (&steps, limits));
-        gpu.queue.write_buffer(&plan.census, 4 * c::CYCLE as u64, bytemuck::bytes_of(&cycle));
-        gpu.queue.write_buffer(&plan.census, 4 * REC as u64, bytemuck::cast_slice(&limits.words()));
-        gpu.queue.write_buffer(&plan.given, 0, bytemuck::cast_slice(&given));
-        gpu.queue.write_buffer(&self.sums.rows, 0, bytemuck::cast_slice(&t.rows_at(cycle)));
+        gpu.queue.write_buffer(
+            &plan.census,
+            4 * c::CYCLE as u64,
+            bytemuck::bytes_of(&cycle),
+        );
+        gpu.queue.write_buffer(
+            &plan.census,
+            4 * REC as u64,
+            bytemuck::cast_slice(&limits.words()),
+        );
+        gpu.queue
+            .write_buffer(&plan.given, 0, bytemuck::cast_slice(&given));
+        gpu.queue
+            .write_buffer(&self.sums.rows, 0, bytemuck::cast_slice(&t.rows_at(cycle)));
         let mut e = gpu.encoder(&Default::default());
         let mut stamped = Vec::new();
         for s in &steps {
@@ -253,13 +340,25 @@ impl Build {
     /// `given` (DESIGN.md section 6): before a compaction, which drops
     /// the axes they mark, and before the settle, which reads its roots by
     /// them. Its dispatches' phases; none before any retirement ran.
-    pub(super) fn inside(&self, gpu: &Gpu, kit: &Kit, (plan, phases): (&Plan, &Phases), (cycle, limits, given): (u32, &Limits, &[u32])) -> Vec<&'static str> {
+    pub(super) fn inside(
+        &self,
+        gpu: &Gpu,
+        kit: &Kit,
+        (plan, phases): (&Plan, &Phases),
+        (cycle, limits, given): (u32, &Limits, &[u32]),
+    ) -> Vec<&'static str> {
         let mut stamped = Vec::new();
         if cycle < 2 {
             return stamped;
         }
         let mut e = gpu.encoder(&Default::default());
-        record(kit, (plan, limits, given), &mut e, &phases.inside[cycle as usize % 2], &mut stamped);
+        record(
+            kit,
+            (plan, limits, given),
+            &mut e,
+            &phases.inside[cycle as usize % 2],
+            &mut stamped,
+        );
         gpu.submit([e.finish()]);
         stamped
     }
@@ -271,10 +370,37 @@ impl Build {
     pub(super) fn bytes(&self, t: &Tables) -> (u64, u64) {
         let size = |b: &[&Owned]| b.iter().map(|b| b.size()).sum::<u64>();
         let h = &self.hier;
-        let resident = self.state.bytes() + self.retire.bytes() + size(&[&h.shape, &h.counts, &h.lists[0], &h.lists[1], &h.tally, &t.table, &t.words]);
+        let resident = self.state.bytes()
+            + self.retire.bytes()
+            + size(&[
+                &h.shape,
+                &h.counts,
+                &h.lists[0],
+                &h.lists[1],
+                &h.tally,
+                &t.table,
+                &t.words,
+            ]);
         let m = &self.sums;
-        let mut scratch = size(&[&h.bucket, &h.sums, &m.sums, &m.live, &m.norm, &m.tally, &m.rows, &m.scan_sums, &self.tree]);
-        scratch += size(&[&self.inputs, &self.counts, &self.flags, &self.spare, &self.scan_tally, &self.scan_sums]);
+        let mut scratch = size(&[
+            &h.bucket,
+            &h.sums,
+            &m.sums,
+            &m.live,
+            &m.norm,
+            &m.tally,
+            &m.rows,
+            &m.scan_sums,
+            &self.tree,
+        ]);
+        scratch += size(&[
+            &self.inputs,
+            &self.counts,
+            &self.flags,
+            &self.spare,
+            &self.scan_tally,
+            &self.scan_sums,
+        ]);
         let (lit, swept) = self.light.bytes();
         (resident, scratch + lit + swept + self.layout.bytes())
     }
@@ -300,7 +426,8 @@ impl Build {
             next: read[c::NEXT],
             woken: read[c::WOKEN],
         };
-        (self.laid, self.grown, self.census) = (read[c::LAID], u64::from(read[c::GROWN]), read.to_vec());
+        (self.laid, self.grown, self.census) =
+            (read[c::LAID], u64::from(read[c::GROWN]), read.to_vec());
     }
 }
 
@@ -319,7 +446,10 @@ impl Late {
         let usage = wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST;
         let bytes = 4 * c::WORDS as u64;
         let one = || super::super::io::buffer(gpu, "census read", bytes, usage, &[]);
-        Ok(Self { staging: [one()?, one()?], pending: [None, None] })
+        Ok(Self {
+            staging: [one()?, one()?],
+            pending: [None, None],
+        })
     }
 
     fn copy(&self, e: &mut wgpu::CommandEncoder, plan: &Plan, cycle: u32) {
@@ -331,9 +461,11 @@ impl Late {
         let at = cycle as usize % 2;
         let index = gpu.queue.submit([]);
         let (send, receive) = futures_channel::oneshot::channel();
-        self.staging[at].slice(..).map_async(wgpu::MapMode::Read, move |r| {
-            let _ = send.send(r);
-        });
+        self.staging[at]
+            .slice(..)
+            .map_async(wgpu::MapMode::Read, move |r| {
+                let _ = send.send(r);
+            });
         self.pending[at] = Some((index, receive));
     }
 
@@ -342,7 +474,10 @@ impl Late {
         let (index, receive) = self.pending[at].take().expect("a cycle's census sent");
         mapped(gpu, (index, receive)).await?;
         let words = {
-            let view = self.staging[at].slice(..).get_mapped_range().map_err(|e| super::super::io::error(e.to_string()))?;
+            let view = self.staging[at]
+                .slice(..)
+                .get_mapped_range()
+                .map_err(|e| super::super::io::error(e.to_string()))?;
             bytemuck::cast_slice(&view).to_vec()
         };
         self.staging[at].unmap();
@@ -355,17 +490,28 @@ impl Late {
 /// browser delivers it on its own.
 async fn mapped(gpu: &Gpu, (index, mut r): (wgpu::SubmissionIndex, Mapped)) -> Result<()> {
     let error = |e: String| super::super::io::error(e);
+    #[cfg(test)]
+    crate::trace::waited("census");
     #[cfg(not(target_arch = "wasm32"))]
     {
-        let wait = wgpu::PollType::Wait { submission_index: Some(index), timeout: None };
+        let wait = wgpu::PollType::Wait {
+            submission_index: Some(index),
+            timeout: None,
+        };
         gpu.device.poll(wait).map_err(|e| error(e.to_string()))?;
         match r.try_recv() {
             Ok(Some(done)) => return done.map_err(|e| error(e.to_string())),
-            Ok(None) => gpu.device.poll(wgpu::PollType::wait_indefinitely()).map_err(|e| error(e.to_string())).map(drop)?,
+            Ok(None) => gpu
+                .device
+                .poll(wgpu::PollType::wait_indefinitely())
+                .map_err(|e| error(e.to_string()))
+                .map(drop)?,
             Err(e) => return Err(error(e.to_string())),
         }
     }
     #[cfg(target_arch = "wasm32")]
     let _ = (gpu, index);
-    r.await.map_err(|e| error(e.to_string()))?.map_err(|e| error(e.to_string()))
+    r.await
+        .map_err(|e| error(e.to_string()))?
+        .map_err(|e| error(e.to_string()))
 }

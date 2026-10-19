@@ -60,6 +60,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
@@ -87,6 +88,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         colouring: 16.0,
         leaf_fall: 45.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -129,6 +131,8 @@ pub fn beech() -> Species {
         relay_failed: 1.0,
         relay_at: 0.15,
         epitony: 0.6,
+        // fn-286 (2026-10-15): a relay runs half back onto the line it takes over, so the module stack reads as one limb, not a zigzag; at 1 it fights the relay's erection (RELAYS.md).
+        takeover: 0.5,
         erection: 0.1,
         straightening: 1.0,
         form: Form {
@@ -222,6 +226,8 @@ pub fn beech() -> Species {
         relay_failed: 1.0,
         relay_at: 0.15,
         epitony: 0.6,
+        // fn-286 (2026-10-15): a relay runs half back onto the line it takes over, so the module stack reads as one limb, not a zigzag; at 1 it fights the relay's erection (RELAYS.md).
+        takeover: 0.5,
         straightening: 0.6,
         form: Form {
             tropism: 0.6,

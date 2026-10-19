@@ -75,3 +75,9 @@ Every preset up to the spruce holds a 60 Hz frame at p95 while it grows; the Two
 - The review's fixes (e9b187578) came after the gate: `growing_tests` (2 of 2, a failed placement spending the tree among them) and `harness/grow-in.test.ts` (4 of 4) cover them.
 - `npm test` (`telperion-heavy 10 --threads 4`), after the fixes: 168 of 168.
 - Codex review: NEEDS_WORK on a placement failure leaving the tree usable, the floor timed from before the growth, and a one-year tree's played year; all three fixed; the field-query finding declined under the host's dispatch (fn-257 has no consumer here); re-review SHIP.
+
+## Owner (2026-10-14)
+
+- The first recordings (four draws a year): "the video isn't very appealing with leaves flickering in and out". Host ruling: recordings and the film's growth segments draw whole years at full leaf, crossfaded (`raw/t5/whole/*-whole-years.mp4`); the seasons stay in the harness's "play the year".
+- Chrome refused the cycle hierarchy module (`|` mixed with `<<` unparenthesised, which Tint refuses and naga accepts); fixed by 6945bf72b's cherry-pick, caught from now on by fn-237 R14's Tint probe.
+- After the fix, the harness grow-in: "yea it grows now. nice".

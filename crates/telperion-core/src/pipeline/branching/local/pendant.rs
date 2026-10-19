@@ -105,8 +105,6 @@ impl Curtain {
         self.hang > 0.0
     }
 
-
-
     /// Whether a candidate has passed below the floor the curtain may not
     /// cross.
     pub fn below(self, y: f64) -> bool {
@@ -329,4 +327,3 @@ fn walk(a: f64, b: f64, t: f64) -> f64 {
 fn walk3(a: Vec3, b: Vec3, t: f64) -> Vec3 {
     Vec3::new(walk(a.x, b.x, t), walk(a.y, b.y, t), walk(a.z, b.z, t))
 }
-

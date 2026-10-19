@@ -1,15 +1,15 @@
 //! The tree once grown: its living apexes marked, its presences assigned,
 //! shed, sized, thickened and laid.
-use super::{Grower, Grown, Options, Pass, Record, Request, Stage};
-use crate::error::{Error, Result};
+use super::{Grower, Grown, Options, Pass, Request, Stage};
 use crate::contract::presence::{q, real, times};
+use crate::error::{Error, Result};
 use crate::geometry::{place, scale};
 use crate::girth::{attachments, attachments_past, disused, thicken, Girth};
 use crate::presence::assign;
 use crate::sag;
-use crate::species::Species;
 use crate::shed::{shed, shed_past};
-use crate::structure::{Origin, Structure};
+use crate::species::Species;
+use crate::structure::Structure;
 
 impl<'a> Grower<'a> {
     /// Marks every apex living at the tree's age with how much it lives
@@ -41,7 +41,7 @@ impl<'a> Grower<'a> {
         (lay, keeps): (bool, bool),
         stage: &mut dyn FnMut(Stage),
     ) -> Result<Grown> {
-        let shed = self.settle_shed((request, options), keeps, stage)?;
+        let shed = self.settle_shed(request, keeps, stage)?;
         shed.settle_lay(options, lay, stage)
     }
 
@@ -50,7 +50,7 @@ impl<'a> Grower<'a> {
     /// thickened where any PA keeps it, shed, and its disused pipes kept.
     pub(super) fn settle_shed(
         mut self,
-        (request, options): (Request, Options),
+        request: Request,
         keeps: bool,
         stage: &mut dyn FnMut(Stage),
     ) -> Result<Settling<'a>> {
@@ -59,11 +59,6 @@ impl<'a> Grower<'a> {
         stage(Stage::Pass(Pass::Mark));
         assign(&mut self.axes, &self.draws, species, threads);
         stage(Stage::Pass(Pass::Assign));
-        let made = if options.settle || options.records {
-            made(&self.axes)
-        } else {
-            Vec::new()
-        };
         let (count, marked) = (self.rules.grown, self.marked);
         // The tree as grown, where any PA keeps shed pipes or thickens by
         // its leaves: what each shed branch had laid down, and the one
@@ -72,7 +67,9 @@ impl<'a> Grower<'a> {
         let grown = keeps.then(|| match self.working.as_ref() {
             Some(w) => {
                 let r = w.retirement();
-                attachments_past(&self.axes, species, (request.age, threads), &|i| r.frozen_root(i))
+                attachments_past(&self.axes, species, (request.age, threads), &|i| {
+                    r.frozen_root(i)
+                })
             }
             None => attachments(&self.axes, species, request.age, threads),
         });
@@ -86,7 +83,6 @@ impl<'a> Grower<'a> {
             None => shed(self.axes, species, request.age),
         };
         stage(Stage::Pass(Pass::Shed));
-        let records = kept_records(made, &shed.index);
         let girth = grown.map_or_else(Girth::default, |g| disused(&g, &shed, species));
         stage(Stage::Pass(Pass::Disused));
         let structure = Structure {
@@ -101,7 +97,6 @@ impl<'a> Grower<'a> {
             structure,
             girth,
             index: shed.index,
-            records,
             grown: count,
             marked,
             species,
@@ -116,7 +111,6 @@ pub(super) struct Settling<'a> {
     pub structure: Structure,
     pub girth: Girth,
     pub index: Vec<usize>,
-    pub records: Vec<Record>,
     pub grown: u64,
     pub marked: Vec<u64>,
     pub species: &'a Species,
@@ -126,26 +120,32 @@ pub(super) struct Settling<'a> {
 impl Settling<'_> {
     /// The rest of the settle: the shed tree scaled, thickened and, with
     /// `lay`, laid and sagged.
-    pub(super) fn settle_lay(self, options: Options, lay: bool, stage: &mut dyn FnMut(Stage)) -> Result<Grown> {
-        let Self { mut structure, girth, index, records, grown: count, marked, species, threads } = self;
+    pub(super) fn settle_lay(
+        self,
+        options: Options,
+        lay: bool,
+        stage: &mut dyn FnMut(Stage),
+    ) -> Result<Grown> {
+        let Self {
+            mut structure,
+            girth,
+            grown: count,
+            marked,
+            species,
+            threads,
+            ..
+        } = self;
         scale(&mut structure, species, threads);
         stage(Stage::Pass(Pass::Scale));
         // Girth needs no geometry; placing reads it where wood meets the
         // ground.
         thicken(&mut structure, species, &girth, threads);
         stage(Stage::Pass(Pass::Thicken));
-        let leaf_mean = girth
-            .leaf_mean
-            .or_else(|| crate::girth::leaf_mean(&structure, species));
-        stage(Stage::Pass(Pass::LeafMean));
         stage(Stage::Settled);
         let done = move |structure| Grown {
             structure,
             grown: count,
             marked,
-            records,
-            leaf_mean,
-            index,
         };
         if !lay || options.settle {
             return Ok(done(structure));
@@ -172,38 +172,4 @@ impl Settling<'_> {
         stage(Stage::Laid);
         Ok(done(structure))
     }
-}
-
-/// Every lateral bud made, as its bearer made it.
-fn made(axes: &[crate::structure::Axis]) -> Vec<Record> {
-    axes.iter()
-        .enumerate()
-        .filter_map(|(i, a)| {
-            matches!(a.origin, Origin::Lateral { .. }).then_some(Record {
-                origin: a.origin,
-                pa: a.pa,
-                birth: a.birth,
-                lineage: a.lineage,
-                vigour: a.vigour,
-                axis: Some(i),
-            })
-        })
-        .collect()
-}
-
-/// The records whose bearer is kept, renamed to the kept tree's indices.
-fn kept_records(made: Vec<Record>, index: &[usize]) -> Vec<Record> {
-    made.into_iter()
-        .filter_map(|mut r| {
-            let Origin::Lateral { parent, .. } = &mut r.origin else {
-                return None;
-            };
-            *parent = index[*parent];
-            if *parent == usize::MAX {
-                return None;
-            }
-            r.axis = r.axis.map(|i| index[i]).filter(|&i| i != usize::MAX);
-            Some(r)
-        })
-        .collect()
 }

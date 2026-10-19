@@ -203,13 +203,14 @@ fn every_pass_is_reported() {
     let at = |s: Stage| reported.iter().position(|&r| r == s).unwrap();
     assert!(at(Stage::Pass(Pass::Wake)) < at(Stage::Grown));
     assert!(at(Stage::Pass(Pass::ShadeRead)) < at(Stage::Lit));
-    assert!(at(Stage::Pass(Pass::LeafMean)) < at(Stage::Settled));
+    assert!(at(Stage::Pass(Pass::Thicken)) < at(Stage::Settled));
     assert!(at(Stage::Pass(Pass::SagPlace)) < at(Stage::Laid));
 }
 
 /// fn-197 step 2, moved from `tests/light.rs` when `grow` became the
-/// cycle (fn-256): the oak without sag, erection, straightening or
-/// shedding, its rough layout (`sketch`) against the final lay of the
+/// cycle (fn-256): the oak without sag, erection, straightening, take-over
+/// (fn-286: like straightening, it fades over the reach later years
+/// extend) or shedding, its rough layout (`sketch`) against the final lay of the
 /// engine that sketches it (`whole`): every phytomer where the final lay
 /// puts it, but for wood near the ground, which the final lay eases by
 /// its girth.
@@ -220,6 +221,7 @@ fn without_what_later_years_add_the_rough_layout_is_the_final_one() {
         state.form.sag = 0.0;
         state.erection = 0.0;
         state.straightening = 0.0;
+        state.takeover = 0.0;
         state.shedding = f64::INFINITY;
     }
     let lit = Request {
@@ -256,4 +258,22 @@ fn deviation(a: &crate::Structure, b: &crate::Structure, above: f64) -> f64 {
         }
     }
     worst
+}
+
+/// An axis and its draws carry no empty slot a joinless axis or a living
+/// apex would pay for: a relay's join is boxed and `outlived`'s presence
+/// is a flag (fn-291 R5, PROBE.md task 3). 64-bit sizes first, wasm32's
+/// second.
+#[test]
+fn an_axis_and_its_draws_stay_compact() {
+    use std::mem::size_of;
+    let wide = cfg!(target_pointer_width = "64");
+    assert_eq!(
+        size_of::<crate::structure::Axis>(),
+        if wide { 232 } else { 192 }
+    );
+    assert_eq!(
+        size_of::<crate::presence::Draws>(),
+        if wide { 144 } else { 104 }
+    );
 }

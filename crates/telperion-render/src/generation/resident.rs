@@ -20,7 +20,11 @@ pub(crate) use budget::BROWSER;
 impl Kit {
     /// The kernels and the tools made side by side (`io::pair`).
     fn new(gpu: &crate::Gpu) -> Self {
-        let (kernels, tools) = super::io::pair(gpu, || super::cycle::tree::Kernels::new(gpu), || build::Tools::new(gpu));
+        let (kernels, tools) = super::io::pair(
+            gpu,
+            || super::cycle::tree::Kernels::new(gpu),
+            || build::Tools::new(gpu),
+        );
         Self { kernels, tools }
     }
 }
@@ -43,7 +47,9 @@ impl super::Generator {
         let scopes = super::io::scope(&self.gpu);
         let gpu = &self.gpu;
         // The wood's passes made beside the kit.
-        self.resident.get_or_init(|| super::io::pair(gpu, || Kit::new(gpu), || drop(crate::curve::passes(gpu))).0);
+        self.resident.get_or_init(|| {
+            super::io::pair(gpu, || Kit::new(gpu), || drop(crate::curve::passes(gpu))).0
+        });
         super::io::programs_ready(&self.gpu, scopes).await
     }
 
@@ -58,6 +64,58 @@ impl super::Generator {
         return budget::BROWSER;
         #[cfg(not(target_arch = "wasm32"))]
         budget::native(&self.gpu, self.gpu.ledger.live())
+    }
+
+    /// `family`'s field read out on the device to `n` cells a side over its
+    /// own box (fn-257 R8, `telperion_core::field::Frame`), its limb systems
+    /// opened by laterals of `limb_order` or less (the family's own where
+    /// none is given). Only the grid is read back; nothing stays on the
+    /// device. On a lost device it is refused by name.
+    pub async fn grow_field(
+        &self,
+        family: &Family,
+        n: u32,
+        limb_order: Option<u32>,
+    ) -> Result<telperion_core::field::Grid> {
+        self.field(family, limb_order, field::Ask::Over(n)).await
+    }
+
+    /// `family`'s field read out to a grid named outright: the CPU's, so a
+    /// test compares the executors cell by cell.
+    #[cfg(test)]
+    pub(super) async fn grow_field_in(
+        &self,
+        family: &Family,
+        frame: telperion_core::field::Frame,
+        limb_order: Option<u32>,
+    ) -> Result<telperion_core::field::Grid> {
+        self.field(family, limb_order, field::Ask::In(frame)).await
+    }
+
+    async fn field(
+        &self,
+        family: &Family,
+        limb_order: Option<u32>,
+        ask: field::Ask,
+    ) -> Result<telperion_core::field::Grid> {
+        telperion_core::field::Frame::side(ask.n())?;
+        let gpu = &self.gpu;
+        if let Some(lost) = gpu.lost() {
+            return Err(lost);
+        }
+        let read = self
+            .on_device(async |kit| {
+                let tools = (self, &kit.kernels, &kit.tools);
+                field::grow(gpu, tools, family, limb_order, ask).await
+            })
+            .await;
+        read.map_err(|e| gpu.lost().unwrap_or(e))
+    }
+
+    /// The device's loss, where it is lost: the reason no field grows or
+    /// answers on it (fn-257).
+    pub fn lost(&self) -> Option<crate::RenderError> {
+        self.gpu.lost()
     }
 
     /// The device's kernels and tools, made on first use.
@@ -143,42 +201,61 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("resident stations", stations::source()),
         ("resident scan", stations::SCAN.to_string()),
         ("resident rings", rings::source()),
-        ("resident handoff", handoff::source()),
     ]
+    .into_iter()
+    .chain(field::sources())
+    .collect()
 }
 
 // The browser's expected peak is checked in a browser alone; natively it
 // is tested, and the native budget caps every build.
-#[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
-mod budget;
 #[cfg(test)]
 pub(super) mod agree_tests;
 mod boots;
 #[cfg(test)]
 mod boots_tests;
+pub(super) mod budget;
 mod build;
 #[cfg(test)]
+mod digest_tests;
+#[cfg(test)]
+mod drawn_memory_tests;
+#[cfg(test)]
+mod field_probe_tests;
+#[cfg(test)]
 mod full_card_tests;
+#[cfg(test)]
+mod grow_in_peak;
 mod growing;
 #[cfg(test)]
 mod growing_cost;
 #[cfg(test)]
 mod growing_tests;
+#[cfg(test)]
+mod organ_tests;
 pub use growing::GrowingTree;
+mod field;
+#[cfg(test)]
+mod field_tests;
+#[cfg(test)]
+mod field_time_tests;
+mod florets;
+pub(super) mod fold;
 #[cfg(test)]
 mod hang_tests;
 #[cfg(test)]
+mod pack_tests;
+#[cfg(test)]
 mod repeat_tests;
+mod rings;
 #[cfg(test)]
 mod room_tests;
 #[cfg(test)]
 mod route_tests;
+mod sort;
 #[cfg(test)]
 mod stalk_tests;
-pub(super) mod fold;
-mod florets;
-mod handoff;
-mod rings;
-mod sort;
 mod stations;
 mod sweep;
+#[cfg(test)]
+mod thin_tests;

@@ -1,5 +1,8 @@
 # fn-212 R1: the contract between settled fine geometry and its readers (task 1, worker, 2026-10-07)
 
+> Archived 2026-10-16: the files this contract cites beside it (`AUDIT.md`, `TASK4.md` to `TASK11.md`, `FRICTION.md`, `share-probe.patch`, `baseline-marks.patch`, `build-fix.patch`) are not kept; see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-212-tree-space-fine-geometry-dressed-on-the/<file>`. The host decisions are in the fn-212 spec.
+
+
 What the device-side readers (rings, stations, curve points) take in and hand on, checked against the code at `1419a832` (fn-198's tip with F1 through task 9 merged). Every claim cites file:line at that commit. A claim not checked is marked **unknown**. Design questions are listed for the host at the end; none is decided here. AUDIT.md, beside this file, holds the deletion audit, the fresh baseline and the proposed R3 probe.
 
 ## Answer in brief

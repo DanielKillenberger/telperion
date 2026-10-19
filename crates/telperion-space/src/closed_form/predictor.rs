@@ -14,14 +14,13 @@
 //! the tree's age on the heap and never on the call stack.
 use super::along::Count;
 use super::events::Event;
-use super::kept::window;
 use super::steps::{first_step, rest, Relay, Step};
 use super::{sub, Sub};
 use crate::dormant::{First, Living};
 use crate::memo::Memo;
 use crate::presence::Windows;
 use crate::schedule::Carried;
-use crate::species::{Species, ALONG};
+use crate::species::{Species, Zone, ALONG};
 use std::rc::Rc;
 
 #[cfg(test)]
@@ -29,18 +28,19 @@ mod tests;
 
 /// Every bud's expected kept phytomers at one age, by PA and the cycles
 /// from its birth to the tree's age: what the cut reads. A PA no zone
-/// draws has no bud, and so no count.
+/// draws has no bud, and so no count. The boundary rows' reference
+/// (`boundary.rs`): test-only.
+#[cfg(test)]
 pub(crate) struct Predictor {
     age: usize,
     counts: Vec<Option<f64>>,
 }
 
+#[cfg(test)]
 impl Predictor {
-
     /// The counts of `species` grown to `age` under `windows`, the tree's,
     /// for every PA a bud can grow in and every age 0 to the tree's: the
     /// walk the rows' counts are held to (`tests.rs`).
-    #[cfg(test)]
     pub(crate) fn new(species: &Species, windows: &Windows, age: u32) -> Self {
         let m_max = age as usize;
         let borne = super::boundary::borne(species);
@@ -56,17 +56,46 @@ impl Predictor {
         Self { age: m_max, counts }
     }
 
-    /// The counts already read, by PA and the cycles from birth to `age`.
-    pub(crate) fn of(age: usize, counts: Vec<Option<f64>>) -> Self {
-        Self { age, counts }
-    }
-
     /// A lateral of `pa` made in cycle `birth`: its expected kept
     /// phytomers, none for a PA no zone draws.
     pub(crate) fn count(&self, pa: usize, birth: u32) -> Option<f64> {
         let m = self.age.saturating_sub(birth as usize);
         self.counts[pa * (self.age + 1) + m]
     }
+}
+
+/// The cycles before its last that every table needs: a row reads a bud
+/// at its last cycle, a bearer reads what it bears as many cycles before
+/// their last as it is before its own, and a fade of delay d reads the
+/// cycles while it is under way and the one before them.
+pub(in crate::closed_form) fn window(species: &Species) -> usize {
+    let delays = species.states.iter().map(|s| s.shedding);
+    let finite = delays.filter(|d| d.is_finite());
+    finite.map(|d| (d + 1.0).ceil() as usize).max().unwrap_or(0)
+}
+
+/// A zone's node count under its subtrees' factor `f` a node: E[f^N], the
+/// count's moments tilted by f^N (normalized), and its moments with one
+/// node replaced, E[N^p f^(N-1)].
+pub(in crate::closed_form) fn tilts(pmf: &[f64], f: f64, zone: &Zone) -> (f64, Count, Count) {
+    let (mut g, mut mu, mut nu) = (0.0, [0.0; 3], [0.0; 3]);
+    for (n, &pn) in pmf.iter().enumerate() {
+        let tilt = pn * f.powi(n as i32);
+        g += tilt;
+        if n > 0 {
+            let (nf, one) = (n as f64, pn * f.powi(n as i32 - 1));
+            for p in 0..3 {
+                mu[p] += tilt * nf.powi(p as i32 + 1);
+                nu[p] += one * nf.powi(p as i32 + 1);
+            }
+        }
+    }
+    let tilted = if g > 0.0 {
+        Count::from_moments(mu[0] / g, mu[1] / g, mu[2] / g)
+    } else {
+        Count::of(zone.nodes)
+    };
+    (g, tilted, Count::from_moments(nu[0], nu[1], nu[2]))
 }
 
 /// The whole tree's expected kept phytomers at `age`: the seed's table

@@ -31,8 +31,10 @@ fn frame_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let ticks = i32(max(cfg.age, birth) - birth) * i32(TICKS) - i32(ax(i, A_SLEEP));
     let bent = bend_of(i, years_of(ticks));
     var trunk = kind == SEED;
+    var reach = 0.0;
     if kind == CONTINUED || kind == RELAYED {
         trunk = py(p, Y_TRUNK) != 0u;
+        reach = pyf(p, Y_REACH);
         hand_lifts(i, p, blend_of(i), vec2<f32>(pyf(p, Y_BEND), pyf(p, Y_REACH)));
     } else {
         set_pn(i, P_LIFTS_N, 0u);
@@ -43,6 +45,7 @@ fn frame_main(@builtin(global_invocation_id) id: vec3<u32>) {
     set_ax3(i, A_HEADING, fr.heading);
     set_ax3(i, A_SIDE, fr.side);
     keep_walk(i, Walk(fr.heading, fr.side, fr.base, 0.0, (1.0 + fr.heading.z) * 0.5, fr.curve, tropism_of(i)));
+    take_over(i, reach);
     let below = fr.base.z <= form[1];
     set_py(i, Y_FAIL, u32(below));
     if below {

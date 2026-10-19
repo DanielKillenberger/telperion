@@ -27,7 +27,10 @@ pub fn spread<T: Send>(count: usize, work: impl Fn(usize) -> T + Sync) -> Vec<T>
         let workers: Vec<_> = (0..cores.min(count))
             .map(|_| {
                 scope.spawn(|| {
-                    let one = rayon::ThreadPoolBuilder::new().num_threads(1).build().unwrap();
+                    let one = rayon::ThreadPoolBuilder::new()
+                        .num_threads(1)
+                        .build()
+                        .unwrap();
                     one.install(|| {
                         let mut done = Vec::new();
                         loop {
@@ -89,6 +92,7 @@ pub fn species() -> Species {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
@@ -105,6 +109,7 @@ pub fn species() -> Species {
         colouring: 0.0,
         leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -131,6 +136,7 @@ pub fn species() -> Species {
         relay_failed: 0.3,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
@@ -147,6 +153,7 @@ pub fn species() -> Species {
         colouring: 0.0,
         leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -177,6 +184,7 @@ pub fn species() -> Species {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
@@ -193,6 +201,7 @@ pub fn species() -> Species {
         colouring: 0.0,
         leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,

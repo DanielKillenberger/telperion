@@ -1,41 +1,24 @@
-## Conversation Evidence
+## Goal
 
-> owner (2026-09-25): "We should have in agents.md and claude.md (or can we just remove claude.md at this point, claude reads agents.md?) that the design of specs and implementation will be evaluated with jev to align with design principles."
-> host: AGENTS.md becomes the single instruction file, and CLAUDE.md shrinks to an `@AGENTS.md` import, so every agent (Claude, Codex, others) reads one set of rules. Moved out of fn-151 after Astra's review.
-> owner: "ok capture the agents.md consolidation and work it first"
+Codex read AGENTS.md and Claude Code read CLAUDE.md, and the two had drifted (AGENTS.md was an older partial copy missing five sections). The owner asked for one instruction file so every agent reads one set of rules; moved out of fn-151 after Astra's review.
 
-## Goal & Context
-<!-- scope: business -->
+## Decisions
 
-The repository keeps two instruction files that have drifted apart. Codex agents read AGENTS.md and Claude Code reads CLAUDE.md, so the same repo gives different agents different rules. One instruction file removes the drift: AGENTS.md holds every rule, and CLAUDE.md only imports it. [paraphrase]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-**What exists, checked 2026-09-25 on master.** [checked]
-- CLAUDE.md is 109 lines. AGENTS.md is 66 lines, an older partial copy.
-- AGENTS.md lacks "Dispatch and escalation", "Token and evidence budget", "Code rules", "Mature trees are the product" and "Gates and checked claims".
-- AGENTS.md carries an older friction rule, without the owner's 2026-09-23 amendment, and a shorter TypeSafe summary that points to CLAUDE.md.
-- Both carry a flow-next snippet between its markers. CLAUDE.md also carries the model-routing block.
-
-**The change.** [paraphrase]
-- AGENTS.md takes CLAUDE.md's full current content: every owner rule, the flow-next snippet and the model-routing block. No rule is reworded.
-- CLAUDE.md is removed. Claude Code reads AGENTS.md natively: verified 2026-09-25 in a directory holding only AGENTS.md, outside the repository, with every tool disabled. A fresh `claude -p` session stated the gate command and the mantra (owner: "we can remove claude.md now ... claude.md is not needed anymore").
-
-**Unknown.** Whether flow-next's setup, run again later, writes its snippet back into CLAUDE.md; the implementer checks its behaviour and records it. [unknown]
+- owner (2026-09-25): "We should have in agents.md and claude.md (or can we just remove claude.md at this point, claude reads agents.md?) that the design of specs and implementation will be evaluated with jev to align with design principles."
+- owner: "we can remove claude.md now ... claude.md is not needed anymore"
+- owner: "ok capture the agents.md consolidation and work it first"
+- AGENTS.md takes CLAUDE.md's content word for word; no rule is changed, added or reworded (principles guidance belongs to fn-151).
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** Every section and rule in CLAUDE.md on master appears in AGENTS.md word for word, and AGENTS.md holds nothing that contradicts it. Errors: a rule present only in the old AGENTS.md is carried over only if CLAUDE.md lacks it, and the PR names it. [paraphrase]
-- **R2:** There is no CLAUDE.md. A fresh Claude Code session, run with tools disabled in a directory holding only AGENTS.md, states the rules. [paraphrase]
-- **R3:** Nothing else in the repository refers to a CLAUDE.md section as the home of a rule; such references point to AGENTS.md. Errors: no error surface beyond stale references, which are updated. [paraphrase]
+- **R1:** Every CLAUDE.md rule appears in AGENTS.md word for word, nothing contradicts it — met (diff identical).
+- **R2:** No CLAUDE.md of its own; a fresh tools-off Claude session states the rules from AGENTS.md — met (CLAUDE.md is an `@AGENTS.md` import plus one pointer line; `claude -p` quoted the gate command and the mantra).
+- **R3:** References naming CLAUDE.md as a rule's home point to AGENTS.md — met (six updated).
 
-## Boundaries
-<!-- scope: business -->
+## Result
 
-- No rule changes, additions or rewording. The principles guidance comes with fn-151.
+AGENTS.md holds the full instructions; CLAUDE.md only imports it; `.flow/meta.json` no longer tracks a CLAUDE.md flow-next block. Commit 9c8d1336.
 
-## Strategy Alignment
+## Open
 
-- Serves "Our approach": lean, one source for each thing. [strategy:Our approach]
+Whether a later flow-next setup writes its snippet back into CLAUDE.md was left to be checked when it next runs.

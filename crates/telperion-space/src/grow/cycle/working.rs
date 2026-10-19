@@ -56,12 +56,20 @@ pub(in crate::grow) struct Working {
 impl Working {
     /// The tests' reference: every laid axis open and none retired.
     pub(super) fn reference() -> Self {
-        Self { all_open: true, keep_all: true, ..Self::default() }
+        Self {
+            all_open: true,
+            keep_all: true,
+            ..Self::default()
+        }
     }
 
     /// What the settle reads of the working set: its retirement.
     pub(in crate::grow) fn settled_copy(&self) -> Self {
-        Self { retire: self.retire.clone(), keep_all: self.keep_all, ..Self::default() }
+        Self {
+            retire: self.retire.clone(),
+            keep_all: self.keep_all,
+            ..Self::default()
+        }
     }
 
     /// Axis `i`'s children, in the order they stand on it.
@@ -79,8 +87,14 @@ impl Working {
     pub(super) fn extend(&mut self, axes: &[Axis], n: usize) {
         for i in self.links.len()..n {
             let link = match axes[i].origin {
-                Origin::Seed => Link { parent: None, node: 0 },
-                Origin::Lateral { parent, node, .. } => Link { parent: Some(parent), node },
+                Origin::Seed => Link {
+                    parent: None,
+                    node: 0,
+                },
+                Origin::Lateral { parent, node, .. } => Link {
+                    parent: Some(parent),
+                    node,
+                },
                 Origin::Continuation { parent } | Origin::Relay { parent, .. } => Link {
                     parent: Some(parent),
                     node: TIP,
@@ -131,20 +145,26 @@ impl Working {
         // In index order: a scan of the marks, cheaper than a sort.
         let low = self.list.iter().copied().min().unwrap_or(0);
         self.list.clear();
-        self.list.extend((low..self.open.len()).filter(|&i| self.open[i]));
+        self.list
+            .extend((low..self.open.len()).filter(|&i| self.open[i]));
         for (k, &i) in self.list.iter().enumerate() {
             self.at[i] = k as u32;
         }
         self.closed.clear();
         let fresh = laid..self.open.len();
         let open = &self.open;
-        self.closed.extend(was.into_iter().chain(fresh).filter(|&i| !open[i]));
+        self.closed
+            .extend(was.into_iter().chain(fresh).filter(|&i| !open[i]));
     }
 
     /// Each open axis's subtree's light, upkeep and living, its own given
     /// by `own`, then its children's in order: a closed child's frozen
     /// upkeep, no light and nothing living.
-    pub(super) fn totals(&mut self, own: &dyn Fn(usize) -> (f32, f32, bool), upkeep: &dyn Fn(usize) -> f32) {
+    pub(super) fn totals(
+        &mut self,
+        own: &dyn Fn(usize) -> (f32, f32, bool),
+        upkeep: &dyn Fn(usize) -> f32,
+    ) {
         for k in (0..self.list.len()).rev() {
             let i = self.list[k];
             let (mut light, mut cost, mut living) = own(i);
@@ -192,7 +212,11 @@ impl Working {
                 }
             }
             self.sub[i] = sub;
-            self.incoming[i] = if self.links[i].parent.is_none() { sub } else { 0.0 };
+            self.incoming[i] = if self.links[i].parent.is_none() {
+                sub
+            } else {
+                0.0
+            };
             self.bud[i] = 0.0;
         }
         for k in 0..self.list.len() {
@@ -267,9 +291,19 @@ impl Working {
 /// PA's sums, `[Σp, Σp(v/p)^ψ]`, taken in the one reduction order: the
 /// growing buds (presence above none) in `order`, a block of `BLOCK` at a
 /// time, so the blocks are the same whatever else is open.
-pub(super) fn sizes(vigour: &[f64], presence: &[f64], psi: &[f64], pa: &[usize], order: &[u32]) -> Vec<f64> {
+pub(super) fn sizes(
+    vigour: &[f64],
+    presence: &[f64],
+    psi: &[f64],
+    pa: &[usize],
+    order: &[u32],
+) -> Vec<f64> {
     let groups = pa.iter().copied().max().map_or(0, |g| g + 1);
-    let order: Vec<u32> = order.iter().copied().filter(|&k| presence[k as usize] > 0.0).collect();
+    let order: Vec<u32> = order
+        .iter()
+        .copied()
+        .filter(|&k| presence[k as usize] > 0.0)
+        .collect();
     let mut sums = vec![[0.0f32; 2]; groups];
     let mut part = vec![[0.0f32; 2]; groups];
     for block in order.chunks(BLOCK) {

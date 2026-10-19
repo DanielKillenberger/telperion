@@ -12,11 +12,34 @@ impl Build {
     pub(super) fn shed_growth(&self) -> u64 {
         let (h, m, l) = (&self.hier, &self.sums, &self.light);
         let dead: [&Owned; 20] = [
-            &h.bucket, &h.sums, &m.sums, &m.live, &m.norm, &m.tally, &m.rows, &m.scan_sums, &self.tree,
-            &l.points, &l.reads, &l.state, &l.grid, &l.quanta, &l.field, &l.depths, &l.start,
-            &self.layout.lists, &self.layout.counts, &self.inputs,
+            &h.bucket,
+            &h.sums,
+            &m.sums,
+            &m.live,
+            &m.norm,
+            &m.tally,
+            &m.rows,
+            &m.scan_sums,
+            &self.tree,
+            &l.points,
+            &l.reads,
+            &l.state,
+            &l.grid,
+            &l.quanta,
+            &l.field,
+            &l.depths,
+            &l.start,
+            &self.layout.lists,
+            &self.layout.counts,
+            &self.inputs,
         ];
-        let rest = [&self.counts, &self.flags, &self.spare, &self.scan_tally, &self.scan_sums];
+        let rest = [
+            &self.counts,
+            &self.flags,
+            &self.spare,
+            &self.scan_tally,
+            &self.scan_sums,
+        ];
         // The hierarchy a build that grows on reads in its next cycle.
         let hier = [&h.shape, &h.counts, &h.lists[0], &h.lists[1], &h.tally];
         let hier = hier.into_iter().filter(|_| !self.goes_on);

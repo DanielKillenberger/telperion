@@ -14,7 +14,6 @@ The structure above the cut grows on its own thread and sows each cycle's buds t
 
 Host amendments (2026-10-07): the 3x bar is met at 2.7-2.8x with its reason measured (about 160 ms of serial work before the last bud exists, F2b's scope; a 41-55 ms phase-1 tail); the likely-landing rule stays a guess (a miss only costs time; the landing decides by decision 3's bound); the gate's one failure (fixed_beeches memory ceiling read from free memory while other worktrees held 17 GB; passed alone) is accepted, the test's ceiling rule listed as a friction fix for the owner.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: f1895b0c, 4b1d2a4a, 34ce4512, 2e73a320, b29c6cc8
 - Tests: cargo test --profile ci --workspace --no-fail-fast

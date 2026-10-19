@@ -192,7 +192,11 @@ pub(super) fn at(p: &Axis, x: Position) -> Q3 {
         return q3(p.base);
     };
     let (k, t) = split(x, n);
-    let start = q3(if k == 0 { p.base } else { p.phytomers[k - 1].tip });
+    let start = q3(if k == 0 {
+        p.base
+    } else {
+        p.phytomers[k - 1].tip
+    });
     add(start, scaled(sub(q3(p.phytomers[k].tip), start), t))
 }
 

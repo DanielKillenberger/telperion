@@ -6,7 +6,9 @@ use telperion_core::presets::space::{self, Space};
 
 fn main() -> Result<(), String> {
     let mut args = std::env::args().skip(1);
-    let name = args.next().ok_or("usage: space_rows <species> [trunk ages]")?;
+    let name = args
+        .next()
+        .ok_or("usage: space_rows <species> [trunk ages]")?;
     let species = match name.as_str() {
         "beech" => telperion_space::beech(),
         "birch" => telperion_space::birch(),

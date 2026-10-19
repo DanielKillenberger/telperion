@@ -18,3 +18,31 @@
 - **Hindered:** no heavy job was running, but the desk had 12 to 13 GB available against a 6 GB reserve, so room sat at 6 to 7 GB from 19:52 to 20:23 and neither check could be admitted. The gate's 20 GB needs 26 GB available, which the desk has not had all evening. The wrapper also admits one job at a time, so a 5 GB job queued behind the 10 GB one until that one was stopped.
 - **Cost:** about 35 minutes of waiting on `npm test`; the gate was never started.
 - **Would remove it:** the host running the gate and `npm test` once memory frees up, or the owner freeing memory on the desk. Admission skipping past a job that does not fit to one that does would also help. Local setup, reported only.
+
+## 2026-10-14, release-checks worker (R9, R14)
+
+- **Doing:** finding whether Tint can run without a browser.
+- **Hindered:** nothing in the repository says where a Tint binary comes from. Dawn's GitHub releases ship one (`Dawn-<hash>-ubuntu-latest-Release.tar.gz`, `bin/tint`, 36 MB tarball), found by listing release assets. `tint` also refuses a multi-entry module unless `--ep` names one entry, which looked at first like 31 of 37 modules failing.
+- **Cost:** about 10 minutes.
+- **Would remove it:** docs/gpu-tests.md naming the release asset and the per-entry invocation (done in this branch).
+- **Doing:** a cold, warm and cold-again measurement of every entry, three runs in one command.
+- **Hindered:** the dcg hook refuses a redirect to a path held in a shell variable (`> $S/cold2.log`), so the command had to be rewritten with every path spelled out.
+- **Cost:** about 2 minutes.
+- **Would remove it:** a scratch-directory allowance in the hook for the session's own scratchpad. Local setup, reported only.
+- **Doing:** a 0.1 s CPU-only test run (`tint_rule`) after the review's two findings, under `telperion-heavy 8`.
+- **Hindered:** the wrapper held it behind another worker's film render (fn-272) with about 10 GB available; the test needs a rebuild of the render test binary, not the GPU, and still waited.
+- **Cost:** over 20 minutes of waiting for a test that runs in a fraction of a second once built.
+- **Would remove it:** the per-command memory table named above, so an incremental test build declares a few GB and is admitted beside a running job. Local setup, reported only.
+  Resubmitted declaring 5 GB, the same run was admitted at once beside the film job and passed: the 8 GB declaration was the guess that cost the 40 minutes.
+- **Doing:** the end gate as dispatched, `telperion-heavy 9 --gpu 4 --threads 4 -- cargo test --profile ci --workspace --no-fail-fast`.
+- **Hindered:** the scope was OOM-killed at its 9 GB cap after 9 minutes, during telperion-core's tests (9 GB peak); no result came out of it.
+- **Cost:** 9 minutes and a second gate run.
+- **Would remove it:** the gate's measured peak written beside `telperion-heavy` (the per-command memory table again); housekeeping declared 20 GB for the same gate.
+- **Doing:** the gate again, `telperion-heavy 10 --gpu 4 --threads 2`, after the OOM kill at 9 GB.
+- **Hindered:** from 09:58 to 10:40 the wrapper never found room ("room -1 to 1 GB for 10"); another worker's film renders (fn-272, `examples/film`, 6 GB peak, about 36 minutes each) were admitted one after another while the gate waited.
+- **Cost:** 42 minutes of waiting; the gate was stopped unrun, and this worker returns NEEDS_HUMAN for it.
+- **Would remove it:** the host running the gate once the film renders finish, or a queue that admits in arrival order. Local setup, reported only.
+- **Doing:** the operator-mix rule's focused tests, `telperion-heavy 5`.
+- **Hindered:** queued 20 minutes behind the next film render with 8 GB available; the same run declared at 4 GB was admitted at once and passed.
+- **Cost:** 20 minutes.
+- **Would remove it:** as above, a measured declaration per command (the render crate's focused lib tests fit in 4 GB). Local setup, reported only.

@@ -103,7 +103,9 @@ pub(crate) enum Side {
 }
 
 fn filled(gpu: &Gpu, label: &str, data: &[u8]) -> Owned {
-    let b = target::buffer(gpu, label, data.len() as u64, wgpu::BufferUsages::STORAGE);
+    // Copied out as the device's own blocks are (the resident digest).
+    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+    let b = target::buffer(gpu, label, data.len() as u64, usage);
     gpu.queue.write_buffer(&b, 0, data);
     b
 }
@@ -188,6 +190,12 @@ impl CurveGpu {
             self.count,
             self.demand,
         )
+    }
+
+    /// The packed sections (the resident digest reads them back).
+    #[cfg(test)]
+    pub(crate) fn sections(&self) -> &wgpu::Buffer {
+        &self.sections
     }
 
     /// Bytes on the device: the curve, the views' shared buffers and

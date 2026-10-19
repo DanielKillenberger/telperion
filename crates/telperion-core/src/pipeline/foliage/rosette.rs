@@ -6,9 +6,14 @@
 //! axis. It is a placement source over wood the skeleton
 //! already has: no node, no run, every draw keyed by the bearing apex's own
 //! identity and the seed, and the apices visited in identity order, so no
-//! storage or build order moves a frond. Where a rosette stands it is the
-//! tree's only source: a stem that bears a frond crown bears nothing along its
-//! length.
+//! storage or build order moves a frond. A rosette stands beside whatever
+//! wood the canopy's cauline share clothes (fn-277): a palm's share is none.
+//!
+//! A count of organs walks between two whole numbers by degree: each apex
+//! bears the whole fronds and dead fronds either side of the row by its
+//! own draw, and each placement the whole leaflets and spines either side
+//! of theirs (`telperion_space::organs`), so the expected count is the
+//! row's.
 //!
 //! The frond itself is a grouping at the placement, never a compound element:
 //! one placement becomes `leaflet_count` leaflets strung along a rachis,
@@ -25,7 +30,12 @@
 //! The rows, their rails and the apices are read with the placement compiled
 //! out, so the leaf plan can tell a frond crown from a clothed one; only the
 //! placing itself needs the `geometry` feature.
-use super::CanopyParams;
+#[cfg(feature = "geometry")]
+use super::organs::{apex, frond_key, frond_leaflets, placement};
+use super::{
+    crown::{Crown, Split},
+    CanopyParams,
+};
 #[cfg(feature = "geometry")]
 use super::{
     station::{matrix, reserve},
@@ -55,47 +65,50 @@ pub struct Rosette {
     pub axis: Vec3,
 }
 
-/// Whether this table stands a rosette at all. At zero fronds the canopy
-/// clothes wood as it always did.
+/// Whether this table stands a rosette at all: any fronds.
 pub(super) fn bearing(p: &CanopyParams) -> bool {
-    p.rosette_fronds > 0
+    p.rosette_fronds > 0.
 }
 
 /// Dead fronds each rosette keeps: none unless a table states a count and a
 /// length to draw them at.
-pub(super) fn skirt(p: &CanopyParams) -> u32 {
+pub(super) fn skirt(p: &CanopyParams) -> f64 {
     if p.skirt_length > 0. {
         p.skirt_fronds
     } else {
-        0
+        0.
     }
 }
 
-/// Metres below the apex the deepest frond, living or dead, leaves the axis:
-/// the living crown's own depth unless a skirt continues its spacing further.
+/// Metres below the apex the deepest frond, living or dead, of any apex
+/// leaves the axis: the living crown's own depth unless a skirt continues
+/// its spacing further, over every living count an apex may draw (either
+/// whole beside the row's) and the most dead fronds it keeps.
 pub(super) fn deepest(p: &CanopyParams) -> f64 {
-    let kept = skirt(p);
-    if kept == 0 {
-        return p.rosette_depth;
-    }
+    let kept = skirt(p).ceil();
+    let living = [p.rosette_fronds.floor(), p.rosette_fronds.ceil()];
     // The skirt's last frond fades a place further down (fn-270 R5b).
-    p.rosette_depth * (f64::from(p.rosette_fronds + kept) / spacing(p))
+    let depth = |fronds: f64| {
+        let p = CanopyParams {
+            rosette_fronds: fronds,
+            ..*p
+        };
+        p.rosette_depth * ((fronds + kept) / spacing(&p))
+    };
+    match kept == 0. {
+        true => p.rosette_depth,
+        false => living
+            .into_iter()
+            .filter(|&f| f > 0.)
+            .map(depth)
+            .fold(p.rosette_depth, f64::max),
+    }
 }
 
 /// The steps of the living crown's spacing its depth is cut into: one short
 /// of its fronds, and one where a lone frond has no spacing of its own.
 fn spacing(p: &CanopyParams) -> f64 {
-    f64::from(p.rosette_fronds.saturating_sub(1)).max(1.)
-}
-
-/// Leaflets one placement carries: the grouping is off until a table states
-/// both a count above one and a rachis to string them along.
-pub(super) fn leaflets(p: &CanopyParams) -> usize {
-    if p.leaflet_count > 1 && p.rachis_length > 0. {
-        p.leaflet_count as usize
-    } else {
-        1
-    }
+    (p.rosette_fronds - 1.).max(1.)
 }
 
 /// Every row on its rail, each refused by its own name.
@@ -127,135 +140,38 @@ pub fn rosettes(tree: &Tree) -> Vec<Rosette> {
 }
 
 #[cfg(feature = "geometry")]
-/// Leaves the rosettes place before any cull: apices by fronds by leaflets.
+/// Leaves the rosettes place before any cull: every apex's fronds by each
+/// one's leaflets.
 pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
     if !bearing(p) {
         return Ok(0);
     }
     let budget = || Error::ResourceLimit("foliage instance budget");
-    Crown::of(tree, p).slots()
-        .checked_mul(leaflets(p))
-        .and_then(|per| rosettes(tree).len().checked_mul(per))
-        .filter(|total| *total <= p.max_instances)
-        .ok_or_else(budget)
-}
-
-/// How many fronds a crown has made by the year `year` it is drawn in, its
-/// living count over a frond's life a year (fn-270 R5b, host): its whole
-/// years', and this year's as they emerge,
-/// evenly over its stem's elongation from budburst; and the share of its
-/// whole size frond `serial` stands at, a frond of this year's expanding
-/// from its emergence. A tree no engine grew makes none.
-#[derive(Debug, Clone, Copy)]
-pub struct Crown {
-    year: Option<crate::tree::Year>,
-    /// The living crown's fronds and the years one lives: the crown makes
-    /// its count over that life (host, fn-270 R5b), none at no life.
-    fronds: f64,
-    life: f64,
-    /// The fronds a crown draws, living and dead, before any is emerging.
-    kept: f64,
-}
-
-impl Crown {
-    pub(crate) fn of(tree: &Tree, p: &CanopyParams) -> Self {
-        Self::new(tree.year, p)
-    }
-
-    /// The crown of a tree drawn in `year` (`executor::year`), for an
-    /// executor that holds no tree.
-    pub fn new(year: Option<crate::tree::Year>, p: &CanopyParams) -> Self {
-        let kept = f64::from(p.rosette_fronds + skirt(p));
-        Self { year, fronds: f64::from(p.rosette_fronds), life: p.frond_life, kept }
-    }
-
-    /// The rows the device draws the crown by (`stations.wgsl`'s
-    /// `rosette`): the fronds made, the years a frond lives, the whole
-    /// years before the last (negative where no engine grew the tree) and
-    /// the days into it; its stem's budburst, elongation and expansion,
-    /// and the fronds it draws (`slots`).
-    pub fn rows(&self) -> [[f64; 4]; 2] {
-        let slots = self.slots() as f64;
-        match (self.clock(), self.year) {
-            (Some((whole, tau)), Some(y)) => {
-                [[self.made(), self.life, whole, tau], [y.budburst, y.elongation, y.expansion, slots]]
-            }
-            _ => [[0.0, self.life, -1.0, 0.0], [0.0, 0.0, 0.0, slots]],
+    let mut total = 0usize;
+    for rosette in rosettes(tree) {
+        let stem = stem_node(tree, &rosette);
+        let p = apex(p, stem);
+        // An apex that draws no living frond stands no rosette.
+        if !bearing(&p) {
+            continue;
+        }
+        let crown = Crown::of(tree, &p);
+        for serial in crown.serials() {
+            let leaves = frond_leaflets(&p, crown.leaflets(serial as f64), frond_key(stem, serial));
+            total = total
+                .checked_add(leaves)
+                .filter(|t| *t <= p.max_instances)
+                .ok_or_else(budget)?;
         }
     }
-
-    /// The fronds the crown draws, newest first: every one until those
-    /// grown above it fill the living crown and the skirt (`fronds`), the
-    /// last fading over its last place. A crown its tree grows draws only
-    /// the fronds it has made, none before its first.
-    pub fn slots(&self) -> usize {
-        let newest = self.made().ceil() as i64 - 1;
-        let born = match self.year.is_some() && self.life > 0.0 {
-            true => (newest + 1).max(0) as usize,
-            false => usize::MAX,
-        };
-        let (mut above, mut n) = (0.0, 0);
-        // cap: the kept fronds and every one a crown can make in a year
-        // past them; each one drawn adds its share.
-        while above < self.kept && n < born && n < self.kept as usize + MAX_FRONDS as usize {
-            above += self.unfolded((newest - n as i64) as f64);
-            n += 1;
-        }
-        n
-    }
-
-    /// The years grown before the last, and how far into it.
-    fn clock(&self) -> Option<(f64, f64)> {
-        let y = self.year?;
-        let whole = y.age.ceil().max(1.0) - 1.0;
-        Some((whole, (y.age - whole) * telperion_space::unfold::YEAR))
-    }
-
-    /// Fronds made: whole years' and this year's emerged, the crown's
-    /// count a frond's life.
-    pub fn made(&self) -> f64 {
-        let (Some((whole, tau)), Some(y)) = (self.clock(), self.year) else {
-            return 0.0;
-        };
-        if self.life <= 0.0 {
-            return 0.0;
-        }
-        let emerged = match y.elongation > 0.0 {
-            true => ((tau - y.budburst) / y.elongation).clamp(0.0, 1.0),
-            false => f64::from(u8::from(tau > y.budburst)),
-        };
-        self.fronds * (whole + emerged) / self.life
-    }
-
-    /// The share of its whole size frond `serial` stands at: whole once
-    /// made in a year before this one, and one this year's from its
-    /// emergence by the expansion course. When a frond is made is a
-    /// ratio of whole numbers (its count over the crown's a life), so
-    /// every executor places it in the same year.
-    pub fn unfolded(&self, serial: f64) -> f64 {
-        let (Some((whole, tau)), Some(y)) = (self.clock(), self.year) else {
-            return 1.0;
-        };
-        if self.life <= 0.0 || self.fronds <= 0.0 {
-            return 1.0;
-        }
-        let made = (serial + 1.0) * self.life / self.fronds;
-        if made <= whole {
-            return 1.0;
-        }
-        // Still emerging at the year's end: made next year.
-        if made > whole + 1.0 {
-            return 0.0;
-        }
-        let emerges = y.budburst + y.elongation * (made - whole).min(1.0);
-        telperion_space::unfold::run(tau - emerges, y.expansion)
-    }
+    Ok(total)
 }
 
 /// One frond on a rosette's spiral: where it leaves the axis, the way its
 /// rachis heads, the radial it leans out along, the canopy it is drawn at (a
 /// dead frond at its share of a living one, an emerging one at its share of
-/// its whole size) and its serial among the fronds its crown has made,
+/// its whole size, one made while the crown established at the size and
+/// with the leaflets it was made at) and its serial among the fronds its crown has made,
 /// which keys its draws.
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Frond {
@@ -264,6 +180,8 @@ pub(super) struct Frond {
     pub(super) heading: Vec3,
     pub(super) radial: Vec3,
     pub(super) canopy: CanopyParams,
+    /// Its leaflets as strips of one blade while it was made young.
+    pub(super) split: Option<Split>,
     pub(super) dead: bool,
 }
 
@@ -281,35 +199,61 @@ pub(super) struct Frond {
 /// over the skirt's last. Its turn on the spiral is its serial's, so a
 /// frond holds still as the crown grows above it. The placement and the
 /// leaf plan both read this.
-pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams, crown: Crown) -> impl Iterator<Item = Frond> {
+pub(super) fn fronds(
+    rosette: &Rosette,
+    p: &CanopyParams,
+    crown: Crown,
+    blade: f64,
+) -> impl Iterator<Item = Frond> {
     let (fronds, steps) = (p.rosette_fronds, spacing(p));
-    let oldest = f64::from(fronds.saturating_sub(1));
-    let total = f64::from(fronds + skirt(p));
-    let made = crown.made();
-    let newest = made.ceil() as i64 - 1;
+    let oldest = (fronds - 1.).max(0.);
+    let total = fronds + skirt(p);
     let (normal, binormal) = frame(rosette.axis);
     let (rosette, p) = (*rosette, *p);
     let mut above = 0.0;
-    (0..crown.slots() as i64).map(move |i| {
-        let serial = newest - i;
+    crown.serials().map(move |serial| {
         let unfolded = crown.unfolded(serial as f64);
+        let established = crown.established(serial as f64);
         let k = above;
         above += unfolded;
         let (sin, cos) = (serial as f64 * p.rosette_divergence.to_radians()).sin_cos_fixed();
         let radial = normal * cos + binormal * sin;
         let living = |k: f64| {
-            let age = if oldest > 0. { k.min(oldest) / oldest } else { 0. };
-            ((p.rosette_pitch + p.rosette_pitch_spread * age).to_radians(), p.rosette_depth * age, 1.0)
+            let age = if oldest > 0. {
+                k.min(oldest) / oldest
+            } else {
+                0.
+            };
+            (
+                (p.rosette_pitch + p.rosette_pitch_spread * age).to_radians(),
+                p.rosette_depth * age,
+                1.0,
+            )
         };
-        let dead = |k: f64| (p.skirt_pitch.to_radians(), p.rosette_depth * (k / steps), p.skirt_length);
+        let dead = |k: f64| {
+            (
+                p.skirt_pitch.to_radians(),
+                p.rosette_depth * (k / steps),
+                p.skirt_length,
+            )
+        };
         // How far it has turned from living to dead over its last living
         // place, and how far it has left the skirt.
-        let turned = if skirt(&p) > 0 { (k - oldest).clamp(0.0, 1.0) } else { 0.0 };
-        let (a, b) = (living(k), dead(k.max(f64::from(fronds))));
+        let turned = if skirt(&p) > 0. {
+            (k - oldest).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
+        let (a, b) = (living(k), dead(k.max(fronds)));
         let mix = |x: f64, y: f64| x + (y - x) * turned;
         let (pitch, depth, length) = (mix(a.0, b.0), mix(a.1, b.1), mix(a.2, b.2));
-        let share = unfolded * (total - k).clamp(0.0, 1.0);
-        let canopy = CanopyParams { size: p.size * length * share, rachis_length: p.rachis_length * length * share, ..p };
+        let share = unfolded * established * (total - k).clamp(0.0, 1.0);
+        let canopy = CanopyParams {
+            size: p.size * length * share,
+            rachis_length: p.rachis_length * length * share,
+            ..p
+        };
+        let (canopy, split) = crown.segments(canopy, &p, serial as f64, blade);
         let (lean, upright) = pitch.sin_cos_fixed();
         Frond {
             serial,
@@ -317,6 +261,7 @@ pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams, crown: Crown) -> impl 
             heading: (rosette.axis * upright + radial * lean).normalized(),
             radial,
             canopy,
+            split,
             dead: turned >= 0.5,
         }
     })
@@ -329,28 +274,35 @@ pub(super) fn clothe(
     tree: &Tree,
     seed: u32,
     p: &CanopyParams,
+    blade: f64,
     out: &mut Instances,
     mut owners: Option<&mut Vec<u32>>,
 ) -> Result<()> {
     if !bearing(p) || p.size == 0. {
         return Ok(());
     }
-    let per = leaflets(p);
-    let crown = Crown::of(tree, p);
     for rosette in rosettes(tree) {
-        reserve(out, crown.slots() * per, *p)?;
-        let stem = stem_key(tree, &rosette);
-        for frond in fronds(&rosette, p, crown) {
+        let (stem, node) = (stem_key(tree, &rosette), stem_node(tree, &rosette));
+        let p = &apex(p, node);
+        if !bearing(p) {
+            continue;
+        }
+        let crown = Crown::of(tree, p);
+        for frond in fronds(&rosette, p, crown, blade) {
             let from = out.leaves.len();
             let mut rng = stream(seed, stem, &frond);
             let (at, heading, radial) = (frond.at, frond.heading, frond.radial);
+            let key = frond_key(node, frond.serial);
+            let count = frond_leaflets(p, frond.canopy.leaflet_count, key);
+            let c = placement(&frond.canopy, key);
+            reserve(out, count, *p)?;
             fan(
                 at,
                 heading,
                 radial,
                 rosette.axis,
-                (frond.canopy, per),
-                &mut rng,
+                (c, count, frond.split),
+                (&mut rng, None),
                 out,
             )?;
             if frond.dead {
@@ -368,23 +320,40 @@ pub(super) fn clothe(
 /// The matrices one placement stands for: one where the grouping is off, else
 /// `count` leaflets along the rachis that leaves `point` on `heading`
 /// (`leaflet::leaflets`), each turned in the frond's plane. The count is
-/// the family's (`leaflets`), so a frond drawn at no size still stands its
-/// leaflets (fn-270 R5b).
+/// the placement's (`leaflets`), so a frond drawn at no size still stands
+/// its leaflets (fn-270 R5b). The first leaflet draws on `rng`; the rest
+/// on `more` where given, so a placement's leaflets move no other
+/// placement's draws on a shared stream (fn-277), else on `rng`.
 pub(super) fn fan(
     point: Vec3,
     heading: Vec3,
     tangent: Vec3,
     normal: Vec3,
-    (p, count): (CanopyParams, usize),
-    rng: &mut Rng,
+    (p, count, split): (CanopyParams, usize, Option<Split>),
+    (rng, mut more): (&mut Rng, Option<&mut Rng>),
     out: &mut Instances,
 ) -> Result<()> {
     if count == 1 {
-        out.push(&matrix(point, heading, tangent, normal, p, rng)?);
+        let length = split.map_or(1.0, |s| lone(&s, &p));
+        out.push(&matrix(
+            point,
+            heading,
+            tangent,
+            normal,
+            CanopyParams {
+                size: p.size * length,
+                ..p
+            },
+            rng,
+        )?);
         return Ok(());
     }
     let (_, side) = frame(heading);
-    for leaflet in super::leaflet::leaflets(point, heading, p, count) {
+    for (k, leaflet) in super::leaflet::leaflets(point, heading, p, count, split).enumerate() {
+        let rng = match more.as_deref_mut() {
+            Some(more) if k > 0 => more,
+            _ => &mut *rng,
+        };
         let mut placed = matrix(leaflet.at, leaflet.axis, leaflet.run, side, p, rng)?;
         if let Some(share) = leaflet.share {
             for column in 0..3 {
@@ -396,6 +365,12 @@ pub(super) fn fan(
         out.push(&placed);
     }
     Ok(())
+}
+
+/// A lone placement's length as a share of a mature leaflet's, where it
+/// is a young frond's entire blade (`Split::segment`).
+pub(super) fn lone(split: &Split, p: &CanopyParams) -> f64 {
+    split.segment(0, 1, p.rachis_length, p.size * split.unit).1
 }
 
 /// Two unit vectors square to `axis` and to each other: the frame a spiral is
@@ -414,8 +389,25 @@ pub fn frame(axis: Vec3) -> (Vec3, Vec3) {
 
 /// What keys a rosette's fronds: its stem's first node's identity, which
 /// stays as the stem grows (fn-270 R5b).
-pub(super) fn stem_key(tree: &Tree, rosette: &Rosette) -> u64 {
-    tree.nodes[tree.nodes[rosette.apex].branch as usize].identity.birth_order()
+/// What keys the counts of a rosette's organs (fn-277): the key of its
+/// stem's first node, up its stem from the apex to the node the root or
+/// wood that is no stem bears, as both executors walk it.
+pub(crate) fn stem_node(tree: &Tree, rosette: &Rosette) -> u32 {
+    let mut first = rosette.apex;
+    while let Some(p) = tree.nodes[first].parent.map(|p| p as usize) {
+        let root = tree.nodes[p].parent.is_none();
+        if root || !tree.nodes[p].stem {
+            break;
+        }
+        first = p;
+    }
+    tree.key(first)
+}
+
+pub(crate) fn stem_key(tree: &Tree, rosette: &Rosette) -> u64 {
+    tree.nodes[tree.nodes[rosette.apex].branch as usize]
+        .identity
+        .birth_order()
 }
 
 /// The stream one frond draws from: its leaflets' scatter and size, in order.

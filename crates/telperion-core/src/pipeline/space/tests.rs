@@ -133,14 +133,11 @@ fn a_tree_assembled_in_another_order_converts_to_the_same_tree() {
     let other = reversed(&structure);
     assert_ne!(other.axes, structure.axes, "the orders differ");
     // Without the order the assembly reaches the tree.
-    let unsorted =
-        convert(&other, (&trunk, &l)) != convert(&structure, (&trunk, &l));
+    let unsorted = convert(&other, (&trunk, &l)) != convert(&structure, (&trunk, &l));
     assert!(unsorted, "the order never reached the conversion");
     let again = telperion_space::lineage_order(other);
     assert_eq!(again.axes, structure.axes, "grow returns the lineage order");
-    assert!(
-        convert(&again, (&trunk, &l)) == convert(&structure, (&trunk, &l))
-    );
+    assert!(convert(&again, (&trunk, &l)) == convert(&structure, (&trunk, &l)));
 }
 
 /// A tree over the Wasm ceiling is refused by name, and the name states
@@ -230,8 +227,13 @@ fn every_engine_node_has_its_own_identity() {
     let distinct: std::collections::HashSet<u64> = ids.iter().copied().collect();
     assert_eq!(distinct.len(), ids.len(), "two nodes share an identity");
     let joins = structure.axes.iter().filter(|a| a.joined().is_some());
-    let joins = joins.filter_map(|a| a.phytomers.first().map(|p| telperion_space::join_key(p.key())));
-    let made: std::collections::HashSet<u64> = keys(&structure).into_values().chain(joins).collect();
+    let joins = joins.filter_map(|a| {
+        a.phytomers
+            .first()
+            .map(|p| telperion_space::join_key(p.key()))
+    });
+    let made: std::collections::HashSet<u64> =
+        keys(&structure).into_values().chain(joins).collect();
     assert!(
         ids.iter().all(|id| made.contains(id)),
         "not a phytomer's key"
@@ -264,10 +266,9 @@ fn a_node_keeps_its_identity_across_ages() {
         }
     }
     let (trunk, rows) = (&family.space.trunk, pa_rows(&species));
-    let last: std::collections::HashSet<u64> =
-        identities(&convert(&young, (trunk, &rows)))
-            .into_iter()
-            .collect();
+    let last: std::collections::HashSet<u64> = identities(&convert(&young, (trunk, &rows)))
+        .into_iter()
+        .collect();
     let kept = identities(&convert(&old, (trunk, &rows)))
         .iter()
         .filter(|id| last.contains(id))

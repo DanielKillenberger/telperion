@@ -26,7 +26,10 @@ fn long_lived_stems_grow_on_the_device_as_on_the_cpu() {
             }
         }
     }
-    assert!(differ.is_empty(), "the device's trees are apart from the CPU's: {differ:?}");
+    assert!(
+        differ.is_empty(),
+        "the device's trees are apart from the CPU's: {differ:?}"
+    );
 }
 
 /// A palm's stem that never dies nor moves on, grown to either side of
@@ -42,7 +45,11 @@ fn a_stem_ends_at_its_lifespan_on_the_device_as_on_the_cpu() {
     for (life, ages) in [(1024, [1023, 1025]), (2047, [2046, 2047])] {
         for age in ages {
             let mut species = family.space.species.clone().expect("an engine species");
-            (species.states[0].lifespan, species.states[0].viability, species.states[0].continuation) = (f64::from(life), 1.0, 0.0);
+            (
+                species.states[0].lifespan,
+                species.states[0].viability,
+                species.states[0].continuation,
+            ) = (f64::from(life), 1.0, 0.0);
             let g = grown_from(species, family.space.light, (age, 42));
             print!("stem of {life} cycles, age {age}: ");
             if !held_to_cpu(&gpu, &kit, &g, age).is_empty() {
@@ -50,7 +57,10 @@ fn a_stem_ends_at_its_lifespan_on_the_device_as_on_the_cpu() {
             }
         }
     }
-    assert!(differ.is_empty(), "the device's trees are apart from the CPU's: {differ:?}");
+    assert!(
+        differ.is_empty(),
+        "the device's trees are apart from the CPU's: {differ:?}"
+    );
 }
 
 #[test]
@@ -61,7 +71,13 @@ fn a_tree_older_than_the_device_holds_is_refused() {
     };
     let g = grown(Preset::EuropeanBeech, 3, 42);
     let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
-    let refused = grow(&gpu, &kit, &t, &g.tables, (Sizes::least(), super::build_grow::MOST_CYCLES));
+    let refused = grow(
+        &gpu,
+        &kit,
+        &t,
+        &g.tables,
+        (Sizes::least(), super::build_grow::MOST_CYCLES),
+    );
     let error = refused.err().expect("refused").to_string();
     assert!(error.contains("2048 cycles"), "{error}");
 }

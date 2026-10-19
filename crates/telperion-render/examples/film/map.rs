@@ -130,7 +130,7 @@ fn species_rows(species: &Species, out: &mut Rows) -> Result<(), String> {
         let of = |name: &str| named.iter().find(|(n, _)| *n == name).map_or(0.0, |(_, v)| *v);
         for &(name, v) in &named {
             let x = match scale(name).ok_or(format!("{name} has no scale"))? {
-                Scale::Linear | Scale::Whole => v,
+                Scale::Linear => v,
                 Scale::Log { floor } => (v + floor).ln_fixed(),
                 Scale::Kept => 1.0 / (1.0 + v),
                 Scale::Outcome => match OUTCOMES.iter().find(|(_, relay)| *relay == name) {

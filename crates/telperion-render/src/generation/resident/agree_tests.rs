@@ -1,13 +1,13 @@
 //! fn-256 task 3, the render gate's agreement: the device's whole tree
-//! against the CPU's reference (the CPU's cycle, converted and drawn
-//! through `prepare_whole`), by lineage. Each node the device's dress
+//! against the CPU's reference (the CPU's cycle, `executor::grow`, and
+//! its expansion), by lineage. Each node the device's dress
 //! drew is matched to the CPU conversion's by its phytomer's key (a
 //! relay's join by its node key), and each run's stations by its first
 //! node's key. Integers exact; floats within the lineage tolerance
 //! (fn-256 DESIGN.md 9.1). `AGREE_PRESETS` and `AGREE_AGE` widen them.
 use super::super::cycle::tree::{self, Kernels};
 use super::super::{io, Generator};
-use super::fold::{CA_WORDS, CV};
+use super::fold::CV;
 use super::stations::GW;
 use crate::Renderer;
 use std::collections::{BTreeSet, HashMap};
@@ -31,7 +31,7 @@ fn family(id: &str, age: u32) -> Family {
 /// DESIGN.md 12.8).
 fn bare(id: &str, age: u32) -> Family {
     let mut family = family(id, age);
-    family.canopy.leaf_bases = 0;
+    family.canopy.leaf_bases = 0.0;
     family
 }
 
@@ -39,12 +39,17 @@ fn bare(id: &str, age: u32) -> Family {
 fn presets() -> Vec<String> {
     match std::env::var("AGREE_PRESETS") {
         Ok(ids) => ids.split(',').map(String::from).collect(),
-        Err(_) => (telperion_core::presets::CATALOGUE.iter()).map(|c| c.1.to_string()).collect(),
+        Err(_) => (telperion_core::presets::CATALOGUE.iter())
+            .map(|c| c.1.to_string())
+            .collect(),
     }
 }
 
 fn age() -> u32 {
-    std::env::var("AGREE_AGE").ok().and_then(|a| a.parse().ok()).unwrap_or(AGE)
+    std::env::var("AGREE_AGE")
+        .ok()
+        .and_then(|a| a.parse().ok())
+        .unwrap_or(AGE)
 }
 
 /// A node as the device's dress drew it.
@@ -69,20 +74,25 @@ pub(in crate::generation) struct Node {
 /// Every node the device drew for `f`.
 fn device_nodes(gpu: &crate::Gpu, k: &Kernels, f: &Family) -> Vec<Node> {
     let growth = executor::growth(f).unwrap();
-    let (dressed, _) = pollster::block_on(tree::drawn(gpu, k, &growth)).unwrap();
+    let (dressed, _) = pollster::block_on(tree::drawn(gpu, k, (&growth, 0))).unwrap();
     drawn_nodes(gpu, &dressed)
 }
 
 /// Every node of `dressed`.
-pub(in crate::generation) fn drawn_nodes(gpu: &crate::Gpu, dressed: &super::fold::Dressed) -> Vec<Node> {
-    let mut waves: Vec<Vec<Vec<u32>>> = Vec::new();
-    for w in &dressed.waves {
-        let words = w.axes as usize * CA_WORDS + w.phyts as usize * CV;
-        let bytes = io::read(gpu, &w.buffer, (words.max(4) * 4) as u64).unwrap();
-        let all: &[u32] = bytemuck::cast_slice(&bytes);
-        let records = all[w.axes as usize * CA_WORDS..].chunks(CV).map(<[u32]>::to_vec);
-        waves.push(records.collect());
-    }
+pub(in crate::generation) fn drawn_nodes(
+    gpu: &crate::Gpu,
+    dressed: &super::fold::Dressed,
+) -> Vec<Node> {
+    let words = dressed.ids as usize * CV;
+    let bytes = io::read(gpu, &dressed.records, (words * 4) as u64).unwrap();
+    let all: &[u32] = bytemuck::cast_slice(&bytes);
+    let waves: Vec<Vec<Vec<u32>>> = (dressed.waves.iter())
+        .map(|w| {
+            let at = w.base as usize * CV;
+            let records = all[at..at + w.phyts as usize * CV].chunks(CV);
+            records.map(<[u32]>::to_vec).collect()
+        })
+        .collect();
     let keys: HashMap<u32, u32> = (waves.iter().flatten())
         .filter(|r| r[6] & 2 != 0)
         .map(|r| (r[14], r[24]))
@@ -132,7 +142,11 @@ fn drawn(gpu: &crate::Gpu, k: &Kernels, f: &Family) -> Drawn {
         by_key.insert(tree.key(i), i);
         by_identity.insert(tree.nodes[i].identity.birth_order(), i);
     }
-    let mut out = Drawn { device: dev.len(), cpu: tree.nodes.len() - 1, ..Drawn::default() };
+    let mut out = Drawn {
+        device: dev.len(),
+        cpu: tree.nodes.len() - 1,
+        ..Drawn::default()
+    };
     for d in &dev {
         let found = match d.identity {
             Some(k) => by_identity.get(&k),
@@ -142,9 +156,13 @@ fn drawn(gpu: &crate::Gpu, k: &Kernels, f: &Family) -> Drawn {
         out.matched += 1;
         let n = &tree.nodes[i];
         let p = [n.position.x, n.position.y, n.position.z];
-        let dp = (0..3).map(|c| (f64::from(d.position[c]) - p[c]).abs()).fold(0.0, f64::max);
+        let dp = (0..3)
+            .map(|c| (f64::from(d.position[c]) - p[c]).abs())
+            .fold(0.0, f64::max);
         let r = [n.radius, n.start_radius, n.base_radius];
-        let dr = (0..3).map(|c| (f64::from(d.radii[c]) - r[c]).abs()).fold(0.0, f64::max);
+        let dr = (0..3)
+            .map(|c| (f64::from(d.radii[c]) - r[c]).abs())
+            .fold(0.0, f64::max);
         (out.position, out.radius) = (out.position.max(dp), out.radius.max(dr));
         out.stems += usize::from(d.stem != n.stem);
         let parent = n.parent.filter(|&q| q != 0).map(|q| tree.key(q as usize));
@@ -179,7 +197,8 @@ fn stations(gpu: &crate::Gpu, f: &Family) -> (u64, u64, usize) {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     let kit = gen.kit();
-    let built = pollster::block_on(super::build::build(gpu, &gen, &kit.kernels, &kit.tools, f)).unwrap();
+    let built =
+        pollster::block_on(super::build::build(gpu, &gen, &kit.kernels, &kit.tools, f)).unwrap();
     let d = &built.device;
     let words = d.segments as usize * GW;
     let raw = io::read(gpu, &d.buffer, (words.max(4) * 4) as u64).unwrap();
@@ -211,7 +230,10 @@ fn every_preset_stations_its_runs_as_the_cpu_does() {
     };
     for id in presets() {
         let (dev, cpu, differ) = stations(&gpu, &family(&id, age()));
-        println!("{id} {}: stations {dev} / {cpu}, runs differing {differ}", age());
+        println!(
+            "{id} {}: stations {dev} / {cpu}, runs differing {differ}",
+            age()
+        );
         assert_eq!(dev, cpu, "{id}: stations");
         assert!(differ * 100 <= cpu as usize, "{id}: {differ} runs differ");
     }
@@ -222,19 +244,23 @@ fn every_preset_stations_its_runs_as_the_cpu_does() {
 /// within the lineage tolerance, and withers the same ones, at the whole
 /// age and with its crown drawn within its year (fn-270 R5b: a frond
 /// emerging, expanding, leaving the living crown and fading off the
-/// skirt). The draws are each executor's own, as a station's are.
+/// skirt), and at 3 and 4 while the crown establishes, its fronds made
+/// small and with fewer leaflets (fn-275 R4, R2b). The draws are each
+/// executor's own, as a station's are.
 #[test]
 fn every_rosette_is_placed_as_the_cpu_places_it() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
     for id in presets() {
-        let f = family(&id, age());
-        if f.canopy.rosette_fronds == 0 {
-            continue;
-        }
-        for fraction in [1.0, 0.3, 0.8] {
-            crown_agrees(&gpu, &id, &f, fraction);
+        for age in [age(), 3, 4] {
+            let f = family(&id, age);
+            if f.canopy.rosette_fronds == 0.0 {
+                break;
+            }
+            for fraction in [1.0, 0.3, 0.8] {
+                crown_agrees(&gpu, &id, &f, fraction);
+            }
         }
     }
 }
@@ -243,29 +269,97 @@ fn crown_agrees(gpu: &crate::Gpu, id: &str, f: &Family, fraction: f64) {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     let kit = gen.kit();
-    let built = pollster::block_on(super::build::crowned(gpu, (&gen, &kit.kernels, &kit.tools), f, fraction)).unwrap();
+    let built = pollster::block_on(super::build::crowned(
+        gpu,
+        (&gen, &kit.kernels, &kit.tools),
+        f,
+        fraction,
+    ))
+    .unwrap();
     let resident = built.prepared.resident.as_ref().unwrap();
-    let leaves = pollster::block_on(io::read_leaves_async(gpu, resident.leaves.buffer(), resident.count)).unwrap();
+    let leaves = pollster::block_on(io::read_leaves_async(
+        gpu,
+        resident.leaves.buffer(),
+        resident.count,
+    ))
+    .unwrap();
     let mine = built.prepared.mesh.foliage.instances.reference;
-    let mut tree = executor::grow(f).unwrap().expansion().unwrap().tree().clone();
+    let mut tree = executor::grow(f)
+        .unwrap()
+        .expansion()
+        .unwrap()
+        .tree()
+        .clone();
     tree.year = executor::growth(f).unwrap().year(fraction);
-    let theirs = executor::expand(tree, f).unwrap().mesh().unwrap().foliage.instances;
-    assert_eq!(leaves.len(), theirs.leaves.len(), "{id} at {fraction}: leaves");
+    let theirs = executor::expand(tree, f)
+        .unwrap()
+        .mesh()
+        .unwrap()
+        .foliage
+        .instances;
+    assert_eq!(
+        leaves.len(),
+        theirs.leaves.len(),
+        "{id} at {fraction}: leaves"
+    );
     let height = theirs.reference.extent.y.max(1e-9);
     let (mut apart, mut withered) = (0.0f64, 0usize);
     for (a, b) in leaves.iter().zip(&theirs.leaves) {
         apart = apart.max(mine.position(*a).distance(theirs.reference.position(*b)) / height);
-        withered += usize::from(telperion_core::foliage::withered(*a) != telperion_core::foliage::withered(*b));
+        withered += usize::from(
+            telperion_core::foliage::withered(*a) != telperion_core::foliage::withered(*b),
+        );
     }
     // The sizes are drawn on each executor's stream: alike in the mean.
     let mean = |s: &mut dyn Iterator<Item = f64>| s.sum::<f64>() / leaves.len() as f64;
     let size = mean(&mut leaves.iter().map(|l| mine.scale(*l)));
     let theirs_size = mean(&mut theirs.leaves.iter().map(|l| theirs.reference.scale(*l)));
     let sized = (size / theirs_size - 1.0).abs();
-    println!("{id} {} at {fraction}: {} leaves, apart {apart:e} of the height, withering differs on {withered}, mean size apart {sized:e}", age(), leaves.len());
+    // A leaf's axis on each executor: its own scatter turns it, a frond's
+    // segments (fn-275 R2b) turn it by their pitch.
+    let axis = |r: &telperion_core::foliage::Reference, l| {
+        let m = r.unpack(l);
+        telperion_core::math::Vec3::new(m[4].into(), m[5].into(), m[6].into()).normalized()
+    };
+    let drawn = leaves
+        .iter()
+        .zip(&theirs.leaves)
+        .filter(|(a, _)| mine.scale(**a) > 0.0);
+    let turns: Vec<f64> = drawn
+        .map(|(a, b)| {
+            axis(&mine, *a)
+                .dot(axis(&theirs.reference, *b))
+                .clamp(-1.0, 1.0)
+                .acos()
+                .to_degrees()
+        })
+        .collect();
+    let turned = turns.iter().sum::<f64>() / turns.len().max(1) as f64;
+    println!("{id} {} at {fraction}: {} leaves, apart {apart:e} of the height, withering differs on {withered}, mean size apart {sized:e}, turned {turned:.1} degrees", f.age, leaves.len());
     assert_eq!(withered, 0, "{id} at {fraction}: withered");
     assert!(apart <= ROSETTE_APART, "{id} at {fraction}: {apart}");
-    assert!(sized <= 0.02, "{id} at {fraction}: mean size {size} against {theirs_size}");
+    // The 4 sigma bound: four standard errors of two means of uniform draws
+    // within the size variation, over the leaves' effective count, and
+    // never under 2 %; a seedling's few fronds (fn-275 R2b) sample it
+    // thinly (6 to 11 % measured at 3 and 4; with no size variation and no
+    // scatter the sizes and axes agree exactly, so the gap is the draws).
+    let scales: Vec<f64> = theirs
+        .leaves
+        .iter()
+        .map(|l| theirs.reference.scale(*l))
+        .collect();
+    let effective = scales.iter().sum::<f64>().powi(2) / scales.iter().map(|s| s * s).sum::<f64>();
+    let bound = (4.0 * f.canopy.size_variation * (2.0 / (3.0 * effective)).sqrt()).max(0.02);
+    assert!(
+        sized <= bound,
+        "{id} at {fraction}: mean size {size} against {theirs_size}, bound {bound}"
+    );
+    // Each executor scatters its own: drawn leaves turn apart 8.4 to 10.8
+    // degrees in the mean under the palm's 18 (none without scatter).
+    assert!(
+        turned <= 0.8 * f.canopy.scatter + 1.0,
+        "{id} at {fraction}: turned {turned} degrees"
+    );
 }
 
 /// The farthest a device leaflet may stand from the CPU's, a share of the
@@ -301,35 +395,59 @@ fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     let kit = gen.kit();
-    let built = pollster::block_on(super::build::build(gpu, &gen, &kit.kernels, &kit.tools, f)).unwrap();
+    let built =
+        pollster::block_on(super::build::build(gpu, &gen, &kit.kernels, &kit.tools, f)).unwrap();
     let s = executor::growth(f).unwrap().scale;
     let wood = built.prepared.wood.as_ref().unwrap();
     let (points, clusters, p, k, _) = wood.blocks();
     let read = |b: &wgpu::Buffer, n: u64| -> Vec<u32> {
-        bytemuck::cast_slice(&io::read(gpu, b, (n.max(1) * 4).next_multiple_of(4)).unwrap()).to_vec()
+        bytemuck::cast_slice(&io::read(gpu, b, (n.max(1) * 4).next_multiple_of(4)).unwrap())
+            .to_vec()
     };
     let points = read(points, p * POINT_WORDS as u64);
     let clusters = read(clusters, u64::from(k) * CLUSTER_WORDS as u64);
-    let point = |i: u32| CurvePoint::unpack(points[i as usize * POINT_WORDS..][..POINT_WORDS].try_into().unwrap());
+    let point = |i: u32| {
+        CurvePoint::unpack(
+            points[i as usize * POINT_WORDS..][..POINT_WORDS]
+                .try_into()
+                .unwrap(),
+        )
+    };
     let mut runs: Vec<(u32, u32)> = Vec::new();
     for c in clusters.chunks(CLUSTER_WORDS) {
         if runs.last() != Some(&(c[2], c[3])) {
             runs.push((c[2], c[3]));
         }
     }
-    let theirs = executor::grow(f).unwrap().expansion().unwrap().curve().unwrap();
+    let theirs = executor::grow(f)
+        .unwrap()
+        .expansion()
+        .unwrap()
+        .curve()
+        .unwrap();
     let mut by: HashMap<(i64, i64, i64), Vec<usize>> = HashMap::new();
     for (j, r) in theirs.runs.iter().enumerate().filter(|(_, r)| r.count > 1) {
-        by.entry(cell(theirs.points[r.first as usize + 1].centre, s)).or_default().push(j);
+        by.entry(cell(theirs.points[r.first as usize + 1].centre, s))
+            .or_default()
+            .push(j);
     }
     let trunks = theirs.runs.iter().filter(|r| r.trunk).count();
-    let mut out = Runs { runs: (runs.len(), theirs.runs.len()), trunks: (0, trunks), ..Runs::default() };
+    let mut out = Runs {
+        runs: (runs.len(), theirs.runs.len()),
+        trunks: (0, trunks),
+        ..Runs::default()
+    };
     let mut used = vec![false; theirs.runs.len()];
     for &(first, count) in runs.iter().filter(|r| r.1 > 1) {
         let at = point(first + 1).centre;
         let (x, y, z) = cell(at, s);
-        let near = (-1..=1).flat_map(|a| (-1..=1).flat_map(move |b| (-1..=1).map(move |c| (x + a, y + b, z + c))));
-        let off = |j: usize| theirs.points[theirs.runs[j].first as usize + 1].centre.distance(at);
+        let near = (-1..=1)
+            .flat_map(|a| (-1..=1).flat_map(move |b| (-1..=1).map(move |c| (x + a, y + b, z + c))));
+        let off = |j: usize| {
+            theirs.points[theirs.runs[j].first as usize + 1]
+                .centre
+                .distance(at)
+        };
         let found = (near.flat_map(|c| by.get(&c).into_iter().flatten().copied()))
             .filter(|&j| !used[j] && off(j) <= 1e-3 * s)
             .min_by(|&a, &b| off(a).total_cmp(&off(b)));
@@ -348,7 +466,9 @@ fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
         for (i, c) in want.iter().enumerate() {
             let m = point(first + i as u32);
             out.centre = out.centre.max(m.centre.distance(c.centre));
-            out.radius = out.radius.max((m.radius - c.radius).abs() / c.radius.max(1e-9));
+            out.radius = out
+                .radius
+                .max((m.radius - c.radius).abs() / c.radius.max(1e-9));
         }
     }
     out
@@ -366,14 +486,38 @@ fn every_preset_draws_its_wood_by_the_cpu_rows() {
         let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
         let gen = Generator::new(&renderer).unwrap();
         let kit = gen.kit();
-        let built = pollster::block_on(super::build::build(&gpu, &gen, &kit.kernels, &kit.tools, &f)).unwrap();
-        let theirs = executor::grow(&f).unwrap().expansion().unwrap().curve().unwrap();
-        let want = [theirs.lobe_depth as f32, theirs.twist_rate as f32, theirs.height as f32, 0.0];
+        let built = pollster::block_on(super::build::build(
+            &gpu,
+            &gen,
+            &kit.kernels,
+            &kit.tools,
+            &f,
+        ))
+        .unwrap();
+        let theirs = executor::grow(&f)
+            .unwrap()
+            .expansion()
+            .unwrap()
+            .curve()
+            .unwrap();
+        let want = [
+            theirs.lobe_depth as f32,
+            theirs.twist_rate as f32,
+            theirs.height as f32,
+            0.0,
+        ];
         let (shape, lobes) = built.prepared.wood.as_ref().unwrap().rows();
-        assert_eq!((shape[0], shape[1], lobes), (want[0], want[1], theirs.lobes), "{id}");
+        assert_eq!(
+            (shape[0], shape[1], lobes),
+            (want[0], want[1], theirs.lobes),
+            "{id}"
+        );
         // The height is the tree's: the device's tree and the CPU's agree
         // by lineage.
-        assert!((shape[2] - want[2]).abs() <= 1e-3 * want[2], "{id}: {shape:?} {want:?}");
+        assert!(
+            (shape[2] - want[2]).abs() <= 1e-3 * want[2],
+            "{id}: {shape:?} {want:?}"
+        );
     }
 }
 

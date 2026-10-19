@@ -65,9 +65,6 @@ struct Cfg {
     // year's; and the depth.
     which: u32,
     depth: u32,
-    // The thinnest wood the drawing draws: a gone subtree's leaves reach
-    // nothing as its fading wood reaches it.
-    finest: f32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -192,6 +189,11 @@ fn set_na3(c: u32, a: u32, v: vec3<f32>) {
     set_na(c, a, b(v.x));
     set_na(c + 1u, a, b(v.y));
     set_na(c + 2u, a, b(v.z));
+}
+
+// What a subtree gone this year keeps `t` into the year (`unfold::kept`).
+fn kept(t: f32) -> f32 {
+    return 1.0 - clamp(t, 0.0, 1.0);
 }
 
 // `a` moved a share `t` of the way to `z`: `a` at 0 and `z` at 1.
@@ -554,6 +556,9 @@ fn present_now(a: u32) {
     let elongation = row(pa, 0u);
     let expansion = row(pa, 1u);
     let spread = row(pa, 2u);
+    // A short shoot by its draw (`telperion_space::cluster`, fn-277).
+    let lineage = na_now(NA_LINEAGE, a) ^ na_now(NA_LINEAGE + 1u, a);
+    let clustered = organs(bitcast<u32>(row(pa, 3u)), lineage, ORGAN_CLUSTER) > 0u;
     var total = 0.0;
     for (var k = olds; k < n; k++) {
         let p = first + k;
@@ -588,7 +593,7 @@ fn present_now(a: u32) {
         }
         // A short shoot's cluster stays as it was where the shoot stood a
         // year before, at whichever tip it stands now.
-        leaf[p] = select(run(tau - elongation * reached(share), expansion), 1.0, row(pa, 3u) > 0.0 && olds > 0u);
+        leaf[p] = select(run(tau - elongation * reached(share), expansion), 1.0, clustered && olds > 0u);
         origin = tip;
         drawn = placed;
     }
@@ -603,10 +608,12 @@ fn present_gone(g: u32) {
     let to = work[cfg.w_pos_gone + g];
     let kind = na_prev(NA_KIND, g) & 0xffu;
     var moved = vec3<f32>(0.0);
+    var stays = false;
     if kind != SEED {
         let p = na_out(NA_PARENT, to);
         let q = na_prev(NA_PARENT, g);
         let mine = work[cfg.w_now_of + q];
+        stays = mine != 0u;
         if mine == 0u {
             moved = vec3<f32>(f(work[cfg.w_shift + 3u * p]), f(work[cfg.w_shift + 3u * p + 1u]), f(work[cfg.w_shift + 3u * p + 2u]));
         } else {
@@ -626,17 +633,26 @@ fn present_gone(g: u32) {
         for (var c = 0u; c < NP_COLS; c++) {
             set_np(c, p, np_prev(c, q));
         }
-        // Its wood thins to nothing, its leaves reaching nothing as its
-        // wood reaches the thinnest drawn.
-        let r = f(np_prev(NP_RADIUS, q));
-        let thinned = mixed(r, 0.0, cfg.f);
-        set_np(NP_RADIUS, p, b(thinned));
+        // Every organ fades uniformly to nothing across the fraction, its
+        // wood's radius and its leaves by `1 - f` (`unfold::kept`); the
+        // dress judges its wood on its radius a year before.
+        let keep = kept(cfg.f);
+        set_np(NP_RADIUS, p, b(f(np_prev(NP_RADIUS, q)) * keep));
         set3(NP_TIP, p, prev3(NP_TIP, q) + moved);
         // A gone leaf's share, marked 2 past it for the dress.
-        leaf[p] = 2.0 + select(mixed(1.0, 0.0, cfg.f), clamp((thinned - cfg.finest) / (r - cfg.finest), 0.0, 1.0), r > cfg.finest);
+        leaf[p] = 2.0 + keep;
     }
-    // A gone relay's join fades into its bearer's own wood.
-    join_from(to, cfg.f, true);
+    // A gone relay's join fades into its bearer's own wood where the
+    // bearer stays; on a bearer gone with it, it fades with everything
+    // else (`unfold::Presenting::fade`).
+    if stays {
+        join_from(to, cfg.f, true);
+    } else if na_out(NA_JOINED, to) != 0u && (na_out(NA_KIND, to) & 0xffu) == RELAYED {
+        let keep = kept(cfg.f);
+        for (var c = NA_JOINED + 3u; c < NA_JOINED + 5u; c++) {
+            set_na(c, to, b(f(na_out(c, to)) * keep));
+        }
+    }
 }
 
 // How far the place a gone axis stood on has moved: presented axis `p`,
