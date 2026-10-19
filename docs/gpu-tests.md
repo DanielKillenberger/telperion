@@ -42,6 +42,21 @@ GPU process can take WebGPU away until a reboot (fn-235).
     every_shader_passes_tint -- --ignored`. It needs no device. The
     default suite holds Tint's NaN, uniformity and operator-mixing rules
     with checks of its own (`tint_rules`, `tint_mix`).
+- **The release scorecard's probe** is `frames`, natively (fn-259 R1, R4):
+  `AGE=<years> SEED=<seed> cargo run --profile ci -p telperion-render
+  --example frames -- <preset> full whole mid close` prints one JSON line
+  with the age and seed asked, `fresh_ms` (from `Renderer::new`, shader
+  compilation included, to a fenced first frame), `warm_ms` (a second
+  build to a fenced frame), frame time per view, `peak_rss_mb` and
+  `device_memory` with its source. Its `wgpu_internal_mib` grows with the
+  timing loop's pipelined frames, not with the tree. `ONE_BUILD=1` builds
+  once and draws four hero frames for rows that only need memory; its
+  timing keys are null.
+- **Two stills are compared by `node scripts/pixel-diff.mjs <a.png>
+  <b.png>`**, which counts the pixels where any channel differs and where
+  any differs by more than 8/255, over the whole frame. ImageMagick 7's
+  `compare -metric AE` weighs pixels by how much they differ and
+  understated a difference 100× (fn-258 FRICTION.md).
 
 ## The browser suites
 

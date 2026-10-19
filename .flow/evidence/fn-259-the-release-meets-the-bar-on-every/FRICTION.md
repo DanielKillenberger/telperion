@@ -10,3 +10,16 @@
 - **Cost:** about 2 minutes and one refused dispatch.
 - **Would have removed it:** a cap of 3-4 for plan reviews, or a `--reason` on `reset-review-rounds` so the reset carries its reason in flow state.
 - **Also:** `flowctl codex plan-review` without `--base` fails with "cannot resolve review snapshot: main...HEAD" in a repo with no `main`; every call needs `--base`. Cost: one failed call.
+
+## 2026-10-19 04:00, task 3, the row runner's isolation rule cannot hold on this desk
+
+- **Doing:** writing `scripts/gpu-row.mjs`, which per the task starts a row "only with no other compute process on the card".
+- **Slowed:** `nvidia-smi --query-compute-apps` always lists the desktop's GPU clients (Chrome's and Grok's gpu-process, 1Password, Battle.net, voxtype; type C+G, 9-239 MiB each), and nvidia-smi cannot tell them from a compute job (a wgpu probe is C+G too). Task 4 says graphics clients are recorded, not killed, so the rule as written never lets a row start. Which processes count as foreign is a design call; returned to the host with NEEDS_HUMAN.
+- **Cost:** one stop and a round trip to the host; the probe and the pixel helper were finished first.
+- **Would have removed it:** the isolation rule checked against `nvidia-smi`'s listing on this desk before the task was written.
+
+## 2026-10-19 03:55, task 3, the dcg hook and a shell variable in a redirect
+
+- **Doing:** writing the probe's JSON rows to `raw/` with the directory in a shell variable.
+- **Slowed:** dcg blocks any redirect whose target is a variable; the command was rewritten with literal paths.
+- **Cost:** about 1 minute. Local setup, reported and not specced.
