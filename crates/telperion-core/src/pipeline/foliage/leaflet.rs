@@ -28,6 +28,23 @@ pub(super) fn rachis(point: Vec3, heading: Vec3, lift: Vec3, p: &CanopyParams, t
     point + heading * (length * t) + lift * (p.rachis_arch * length * t * t)
 }
 
+/// Where leaflet `leaf` of `count` leaves its rachis, as a share of the
+/// rachis, and its length as a share of a mature leaflet's: evenly to the
+/// rachis's end on a mature frond, and where its strip begins on a young
+/// one (`Split::segment`). The leaflets and the frond's axis both stand on
+/// these stations.
+pub(super) fn station(
+    leaf: usize,
+    count: usize,
+    p: &CanopyParams,
+    split: Option<Split>,
+) -> (f64, f64) {
+    match split {
+        Some(s) => s.segment(leaf, count, p.rachis_length, p.size * s.unit),
+        None => ((leaf + 1) as f64 / count as f64, 1.0),
+    }
+}
+
 /// The `count` leaflets of the rachis that leaves `point` on `heading`.
 ///
 /// The rachis runs a `rachis_length` from the station, bending out of that
@@ -48,10 +65,7 @@ pub(crate) fn leaflets(
     let (lift, _) = frame(heading);
     let pitch = p.leaflet_pitch.to_radians();
     (0..count).map(move |leaf| {
-        let (t, length) = match split {
-            Some(s) => s.segment(leaf, count, p.rachis_length, p.size * s.unit),
-            None => ((leaf + 1) as f64 / count as f64, 1.0),
-        };
+        let (t, length) = station(leaf, count, &p, split);
         let at = rachis(point, heading, lift, &p, t);
         let run = (heading + lift * (2. * p.rachis_arch * t)).normalized();
         let closing = if leaf + 1 == count {

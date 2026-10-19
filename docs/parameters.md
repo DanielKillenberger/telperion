@@ -1291,6 +1291,16 @@ Whether a single leaflet closes the rachis's end, blended 0 to 1: the last leafl
 - dormant: no leaflet grouping (`leafletCount` one or `rachisLength` zero)
 - blend: linear; dial: `terminal_leaflet` (how far a leaflet closes the rachis's end), window its bounds (validated bound), steps 0.05 and 0.2
 
+### `/canopy/rachisWidth`
+
+Metres across a frond's rachis where it leaves the stem (fn-283): each frond whose leaflets string along a rachis hangs it as wood through its leaflet stations, at this width scaled by the frond's size and tapering to its tip. At zero no rachis is drawn.
+
+- real, m, [0, 10], default 0
+- read by grow; removed growth path: not read
+- checked: Rosette site, rank 26, as invalid input `rachis width`
+- dormant: no leaflet grouping (`leafletCount` one or `rachisLength` zero)
+- blend: linear; dial: `rachis_width` (metres across a frond's rachis where it leaves the stem; at zero no rachis is drawn), window its bounds (validated bound), steps 0.05 and 0.2
+
 ### `/canopy/leafBases`
 
 Bases of shed fronds the stem keeps below its crown, clothing the trunk. At zero the trunk is bare and the bark is what it always was; any rise carries the crown's own spiral down it.

@@ -30,7 +30,6 @@
 //! The rows, their rails and the apices are read with the placement compiled
 //! out, so the leaf plan can tell a frond crown from a clothed one; only the
 //! placing itself needs the `geometry` feature.
-#[cfg(feature = "geometry")]
 use super::organs::{apex, frond_key, frond_leaflets, placement};
 use super::{
     crown::{Crown, Split},
@@ -267,6 +266,55 @@ pub(super) fn fronds(
     })
 }
 
+/// One frond as placement draws it: the rosette it stands in and its
+/// stem's key, the apex's own whole rows, the frond, the whole leaflets it
+/// carries and the table they are drawn by.
+#[derive(Debug, Clone, Copy)]
+pub(super) struct Placed {
+    pub(super) rosette: Rosette,
+    pub(super) stem: u64,
+    pub(super) apex: CanopyParams,
+    pub(super) frond: Frond,
+    pub(super) count: usize,
+    pub(super) table: CanopyParams,
+}
+
+/// Every frond of every rosette with what placement draws it by, rosettes
+/// in identity order and fronds newest first: the leaflets and the frond's
+/// axis both read this. None where the table stands no rosette or draws its
+/// leaves at no size.
+pub(super) fn placed<'t>(
+    tree: &'t Tree,
+    p: &CanopyParams,
+    blade: f64,
+) -> impl Iterator<Item = Placed> + 't {
+    let all = match bearing(p) && p.size != 0. {
+        true => rosettes(tree),
+        false => Vec::new(),
+    };
+    let p = *p;
+    all.into_iter().flat_map(move |rosette| {
+        let (stem, node) = (stem_key(tree, &rosette), stem_node(tree, &rosette));
+        let at = apex(&p, node);
+        // An apex that draws no living frond stands no rosette.
+        let crown = bearing(&at).then(|| Crown::of(tree, &at));
+        crown
+            .into_iter()
+            .flat_map(move |crown| fronds(&rosette, &at, crown, blade))
+            .map(move |frond| {
+                let key = frond_key(node, frond.serial);
+                Placed {
+                    rosette,
+                    stem,
+                    apex: at,
+                    frond,
+                    count: frond_leaflets(&at, frond.canopy.leaflet_count, key),
+                    table: placement(&frond.canopy, key),
+                }
+            })
+    })
+}
+
 #[cfg(feature = "geometry")]
 /// Hang every rosette's fronds into an already-sized crown, the skirt's in
 /// the dead colour.
@@ -278,36 +326,30 @@ pub(super) fn clothe(
     out: &mut Instances,
     mut owners: Option<&mut Vec<u32>>,
 ) -> Result<()> {
-    if !bearing(p) || p.size == 0. {
-        return Ok(());
-    }
-    for rosette in rosettes(tree) {
-        let (stem, node) = (stem_key(tree, &rosette), stem_node(tree, &rosette));
-        let p = &apex(p, node);
-        if !bearing(p) {
-            continue;
-        }
-        let crown = Crown::of(tree, p);
-        for frond in fronds(&rosette, p, crown, blade) {
-            let from = out.leaves.len();
-            let mut rng = stream(seed, stem, &frond);
-            let (at, heading, radial) = (frond.at, frond.heading, frond.radial);
-            let key = frond_key(node, frond.serial);
-            let count = frond_leaflets(p, frond.canopy.leaflet_count, key);
-            let c = placement(&frond.canopy, key);
-            reserve(out, count, *p)?;
-            fan(
-                at,
-                heading,
-                radial,
-                rosette.axis,
-                (c, count, frond.split),
-                (&mut rng, None),
-                out,
-            )?;
-            if frond.dead {
-                out.wither(from);
-            }
+    for Placed {
+        rosette,
+        stem,
+        apex,
+        frond,
+        count,
+        table,
+    } in placed(tree, p, blade)
+    {
+        let from = out.leaves.len();
+        let mut rng = stream(seed, stem, &frond);
+        let (at, heading, radial) = (frond.at, frond.heading, frond.radial);
+        reserve(out, count, apex)?;
+        fan(
+            at,
+            heading,
+            radial,
+            rosette.axis,
+            (table, count, frond.split),
+            (&mut rng, None),
+            out,
+        )?;
+        if frond.dead {
+            out.wither(from);
         }
         if let Some(owners) = owners.as_mut() {
             owners.resize(out.leaves.len(), rosette.apex as u32);

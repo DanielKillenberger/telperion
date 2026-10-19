@@ -42,6 +42,11 @@
 /canopy/leafletPitch = 55.0
 /canopy/rachisArch = -0.6
 /canopy/terminalLeaflet = 1.0
+# The rachis drawn as wood (fn-283): "The greatest width of the frond
+# midrib attains 0.5 m, but elsewhere it is only half this size and
+# rapidly narrows from the base upwards" (Zaid and de Wet 2002, FAO Plant
+# Production and Protection Paper 156, ch. I).
+/canopy/rachisWidth = 0.25
 /canopy/size = 2.35
 /canopy/upward = 0.225
 
