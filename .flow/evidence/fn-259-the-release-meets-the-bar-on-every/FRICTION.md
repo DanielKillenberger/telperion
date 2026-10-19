@@ -23,3 +23,10 @@
 - **Doing:** writing the probe's JSON rows to `raw/` with the directory in a shell variable.
 - **Slowed:** dcg blocks any redirect whose target is a variable; the command was rewritten with literal paths.
 - **Cost:** about 1 minute. Local setup, reported and not specced.
+
+## 2026-10-19 04:10, task 3, impl-review cap at two rounds
+
+- **Doing:** codex impl-review of the scorecard tooling.
+- **Slowed:** the third round was refused by `review.maxIterations` 2 while findings were shrinking (5, then 2, one of the two the host's rule (a) that the reviewer re-raises). Reset with `flowctl spec reset-review-rounds --task`, as the host's brief allows when findings shrink.
+- **Cost:** about 1 minute and one refused call. The first round also lost its correctness draw to "model at capacity".
+- **Would have removed it:** a cap of 3-4, or a host decision the reviewer reads, so an owner-decided exemption is not re-raised every round.
