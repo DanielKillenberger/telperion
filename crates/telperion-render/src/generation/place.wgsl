@@ -60,16 +60,23 @@ fn bloom(@builtin(local_invocation_index) lane:u32, @builtin(workgroup_id) group
 }
 // A placed instance written at its place, and the workgroup's bounds
 // folded: the crown's from their origins, the whole tree's from every
-// vertex.
+// vertex and the reach of a flower's stalks (`w`, fn-297) about its origin.
 fn written(index:u32, words:vec3<u32>, live:bool, lane:u32) {
     var crown_min=vec3<f32>(FAR); var crown_max=vec3<f32>(-FAR);
     var full_min=vec3<f32>(FAR); var full_max=vec3<f32>(-FAR);
     if live {
         let matrix=leaf_transform(words,config.box_min.xyz,config.box_extent.xyz);
+        var reach=0.0;
         for(var v=0u;v<config.counts.z;v++) {
             let p=(matrix*vec4<f32>(geometry[v].xyz,1.0)).xyz;
             if !finite(p) { atomicOr(&summary[1],2u); }
             full_min=min(full_min,p);full_max=max(full_max,p);
+            reach=max(reach,geometry[v].w);
+        }
+        if reach>0.0 {
+            let lo=matrix[3].xyz-vec3<f32>(reach);let hi=matrix[3].xyz+vec3<f32>(reach);
+            if !finite(lo) || !finite(hi) { atomicOr(&summary[1],2u); }
+            full_min=min(full_min,lo);full_max=max(full_max,hi);
         }
         crown_min=matrix[3].xyz;crown_max=crown_min;
         leaves[index*3u]=words.x;leaves[index*3u+1u]=words.y;leaves[index*3u+2u]=words.z;
