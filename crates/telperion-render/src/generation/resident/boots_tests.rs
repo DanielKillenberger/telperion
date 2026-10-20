@@ -344,3 +344,20 @@ fn every_leaf_base_is_hung_as_the_cpu_hangs_it() {
         assert!(perturbed.starts_with("cell corner"), "{perturbed}");
     }
 }
+
+/// fn-297 R6: the leaf bases' spiral a degree short of a turn either way,
+/// the widest the bound admits, hangs on the device where the CPU hangs it.
+#[test]
+fn the_spiral_a_degree_short_of_a_turn_is_hung_as_the_cpu_hangs_it() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let (k, hanger) = (Kernels::new(&gpu), Hanger::new(&gpu));
+    for divergence in [359.0, -359.0] {
+        let mut f = family("date-palm", Some(12));
+        f.canopy.rosette_divergence = divergence;
+        let (mine, theirs) = (device(&gpu, &k, &hanger, &f), cpu(&f));
+        let apart = compare(&mine, &theirs).unwrap_or_else(|e| panic!("at {divergence}: {e}"));
+        assert!(apart.bases > 0, "no base hung at {divergence}");
+    }
+}

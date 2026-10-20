@@ -149,3 +149,39 @@ fn transformed_box_encloses_points_with_identical_sum_order() {
         }
     }
 }
+
+/// fn-297 R3: a flower's element carries how far its stalks reach, which
+/// bounds add about each instance's origin; stalks with no length add
+/// nothing.
+#[test]
+fn stalks_reach_from_each_origin_and_none_without_length() {
+    for (rachis, pedicel) in [(0.0, 0.0), (0.0, 0.03), (0.5, 0.0), (0.5, 0.03)] {
+        let p = BloomParams {
+            rachis,
+            pedicel,
+            ..BloomParams::default()
+        };
+        let e = bloom_element(&p).unwrap();
+        let long = rachis + pedicel;
+        let reach = if long > 0.0 {
+            long + 0.5 * p.stamen_width
+        } else {
+            0.0
+        };
+        assert_eq!(e.stalk, reach, "rachis {rachis}, pedicel {pedicel}");
+        let mut instances = Instances::new(Reference::spanning(
+            Vec3::new(-4., -4., -4.),
+            Vec3::new(4., 4., 4.),
+        ));
+        instances.push(&[
+            0.5, 0., 0., 0., 0., 0.5, 0., 0., 0., 0., 0.5, 0., 1., 2., 3., 1.,
+        ]);
+        let mut want = exact(&instances, &e).unwrap().unwrap();
+        if reach > 0.0 {
+            let pad = Vec3::new(reach, reach, reach);
+            want.include(instances.position(0) - pad);
+            want.include(instances.position(0) + pad);
+        }
+        assert_eq!(bits(instances.bounds(&e).unwrap()), bits(Some(want)));
+    }
+}

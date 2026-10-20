@@ -19,7 +19,8 @@
 // its own leaflets (fn-277). Where the canopy stands a rosette, each stem
 // apex that draws a living frond is a run of its own, after every other,
 // a segment a frond, its stations the frond's leaflets (`rosette.rs`;
-// fn-256, DESIGN.md 12.7.1).
+// fn-256, DESIGN.md 12.7.1); an apex that is also a tip or starts a run
+// of wood bears that run too, among the wood's (fn-297 R2).
 
 struct Cfg {
     n: u32,
@@ -101,8 +102,12 @@ const LEAVES: u32 = 8u;
 // seams and the last of them, and whether it bears.
 const SW: u32 = 4u;
 // A run: its first node, its stations, its segments, its nodes, its first
-// station and first segment.
-const RW: u32 = 6u;
+// station and first segment, and whether it is a crown.
+const RW: u32 = 7u;
+// The leaves every run carries, a 64-bit count in two words of `counts`
+// (fn-297 R4 B.3): the low word and the carries past it.
+const LEAVES_LO: u32 = 6u;
+const LEAVES_HI: u32 = 7u;
 // A segment, as `data.rs` packs it for `pack.wgsl`.
 const GW: u32 = 40u;
 const TILE: u32 = 256u;
@@ -428,9 +433,10 @@ fn next(at: u32) -> u32 {
     return NONE;
 }
 
-// Whether node `i` starts a bearing run, or is a tip's.
-fn starts_run(i: u32) -> bool {
-    return (bears(i) && !continues(parent(i), i) && cauline(word(i, 24u))) || tip(i) || apex(i);
+// Whether node `i` starts a bearing run, or is a tip's: a run among the
+// wood's, whether or not it is also an apex.
+fn starts_wood(i: u32) -> bool {
+    return (bears(i) && !continues(parent(i), i) && cauline(word(i, 24u))) || tip(i);
 }
 
 // The node a drawn node's tree is drawn from: up its parents to the
@@ -448,21 +454,36 @@ fn stub(i: u32) -> u32 {
 
 // Each run's key, its root's stub then its first node, in `runs` (bound
 // as the keys), a pair a run in whatever order the threads take; the runs
-// counted. The keys are sorted before `starts` numbers the runs by them.
+// counted. A crown's leaves follow every other's, as the CPU places them,
+// so an apex's crown is keyed after every root, beside the run of wood or
+// the cluster it may also start (fn-297 R2). The keys are sorted before
+// `starts` numbers the runs by them.
 @compute @workgroup_size(64)
 fn keys(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = index(id);
-    if i >= cfg.n || !starts_run(i) {
+    if i >= cfg.n {
         return;
     }
+    if starts_wood(i) {
+        keyed(stub(i), i);
+    }
+    if apex(i) {
+        keyed(NONE, i);
+    }
+}
+
+// A run keyed by `root` then `first`, counted past the keys' room too, so
+// the host sees the room it needs.
+fn keyed(root: u32, first: u32) {
     let k = atomicAdd(&counts[0], 1u);
-    // A crown's leaves follow every other's, as the CPU places them.
-    runs[2u * k] = select(stub(i), NONE, apex(i));
-    runs[2u * k + 1u] = i;
+    if k < arrayLength(&runs) / 2u {
+        runs[2u * k] = root;
+        runs[2u * k + 1u] = first;
+    }
 }
 
 // Each run at its place among the sorted keys, in `segs` (bound as the
-// keys).
+// keys): its first node, and whether it is a crown.
 @compute @workgroup_size(64)
 fn starts(@builtin(global_invocation_id) id: vec3<u32>) {
     let r = index(id);
@@ -470,6 +491,7 @@ fn starts(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     runs[r * RW] = segs[2u * r + 1u];
+    runs[r * RW + 6u] = u32(segs[2u * r] == NONE);
 }
 
 // Stations standing before `distance` micrometres along a run of
@@ -557,6 +579,24 @@ fn internodes_of(length: u32) -> u32 {
     return max((length + unit() - 1u) / unit(), 1u);
 }
 
+// `a + b`, a carry past 32 bits counted in the leaves' high word, so the
+// host's instance budget sees the whole count (fn-297 R4 B.3).
+fn add_leaves(a: u32, b: u32) -> u32 {
+    let sum = a + b;
+    if sum < a {
+        atomicAdd(&counts[LEAVES_HI], 1u);
+    }
+    return sum;
+}
+
+// Run `r`'s leaves, segments and nodes, its leaves added to every run's.
+fn measured(r: u32, leaves: u32, pieces: u32, n: u32) {
+    runs[r * RW + 1u] = leaves;
+    runs[r * RW + 2u] = pieces;
+    runs[r * RW + 3u] = n;
+    add_leaves(atomicAdd(&counts[LEAVES_LO], leaves), leaves);
+}
+
 @compute @workgroup_size(64)
 fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
     let r = index(id);
@@ -564,6 +604,17 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let first = runs[r * RW];
+    // A rosette: a segment a frond, a station a leaflet.
+    if runs[r * RW + 6u] != 0u {
+        let c = crown_of(first);
+        var leaves = 0u;
+        // cap: the fronds the crown draws.
+        for (var i = 0u; i < c.slots; i++) {
+            leaves = add_leaves(leaves, frond_leaves(c.key, c.newest - i32(i), f32(c.living)));
+        }
+        measured(r, leaves, c.slots, 2u);
+        return;
+    }
     if tip(first) {
         // Each of its leaves its leaflets, on the tip's cluster key.
         let cluster = mix32(word(first, 24u) ^ KEY_CLUSTER.x);
@@ -571,24 +622,9 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
         let held = flags(first) >> LEAVES;
         // cap: a cluster's leaves, at most `MAX_CLUSTER_LEAVES`.
         for (var j = 0u; j < held; j++) {
-            leaves += leaves_at(cluster, j);
+            leaves = add_leaves(leaves, leaves_at(cluster, j));
         }
-        runs[r * RW + 1u] = leaves;
-        runs[r * RW + 2u] = 1u;
-        runs[r * RW + 3u] = 2u;
-        return;
-    }
-    // A rosette: a segment a frond, a station a leaflet.
-    if apex(first) {
-        let c = crown_of(first);
-        var leaves = 0u;
-        // cap: the fronds the crown draws.
-        for (var i = 0u; i < c.slots; i++) {
-            leaves += frond_leaves(c.key, c.newest - i32(i), f32(c.living));
-        }
-        runs[r * RW + 1u] = leaves;
-        runs[r * RW + 2u] = c.slots;
-        runs[r * RW + 3u] = 2u;
+        measured(r, leaves, 1u, 2u);
         return;
     }
     var length = grown(first);
@@ -610,9 +646,7 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     // A run with no wood grown carries nothing (`plan::runs`).
     if length == 0u {
-        runs[r * RW + 1u] = 0u;
-        runs[r * RW + 2u] = 0u;
-        runs[r * RW + 3u] = n;
+        measured(r, 0u, 0u, n);
         return;
     }
     let internodes = internodes_of(length);
@@ -633,15 +667,13 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
             let end = min(tile + TILE, span.y);
             let k = kept(b, along, vec2<u32>(tile, end), stream, word(first, 24u));
             tiles += u32(k > 0u);
-            leaves += k;
+            leaves = add_leaves(leaves, k);
             tile = end;
         }
         along += step;
         b = next(b);
     }
-    runs[r * RW + 1u] = leaves;
-    runs[r * RW + 2u] = tiles;
-    runs[r * RW + 3u] = n;
+    measured(r, leaves, tiles, n);
 }
 
 // Each run's first station and segment, in the runs' order: an exclusive
@@ -925,7 +957,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
     let n = runs[r * RW + 3u];
     let station0 = runs[r * RW + 4u];
     var g = runs[r * RW + 5u];
-    if apex(first) {
+    if runs[r * RW + 6u] != 0u {
         rosette(first, station0, g);
         return;
     }

@@ -15,7 +15,7 @@ const STATIONS: &str = include_str!("stations.wgsl");
 pub(super) const SCAN: &str = include_str!("scan.wgsl");
 const BLOOM_KERNELS: &str = include_str!("blooms.wgsl");
 const SW: u64 = 4;
-pub(super) const RW: u64 = 6;
+pub(super) const RW: u64 = 7;
 /// A segment's words (`data.rs`'s `Segment`).
 pub(super) const GW: usize = 40;
 const KIDS: usize = 0;
@@ -88,7 +88,9 @@ pub(super) struct Laid<'a> {
 }
 
 pub(super) struct Stationed {
-    pub stations: u32,
+    /// Every run's leaves, counted past 32 bits so the instance budget
+    /// sees the whole count (fn-297 R4 B.3).
+    pub stations: u64,
     pub segments: u32,
     pub buffer: Owned,
     /// The florets, and the blooms' records placement reads (fn-229):
@@ -213,7 +215,8 @@ impl Stationer {
     }
 
     /// The stations, and the runs' words (`RW` a run: first node,
-    /// stations, segments, nodes, first station and first segment), which
+    /// stations, segments, nodes, first station and first segment, and
+    /// whether it is a crown), which
     /// only a test reads: `stations` lets them go (fn-212 task 11).
     pub(super) async fn stations_and_runs(
         &self,
@@ -256,17 +259,37 @@ impl Stationer {
         self.scan(gpu, &mut e, (&owners, ids, OW, OW), &totals)?;
         e.copy_buffer_to_buffer(&totals, 0, &counts, 16, 8);
         // Each run's key, a pair a run: room for their count rounded up to
-        // a power of two, as the sort takes them.
-        let keys = storage(gpu, "station keys", 2 * u64::from(ids.next_power_of_two()))?;
-        self.run((gpu, &mut e), (KEYS, ids, None), at, early(&keys))?;
-        let [n, _, _, _, florets, blooms, ..] = Self::counts(gpu, &mut e, &counts).await?;
+        // a power of two, as the sort takes them. A node may start two
+        // runs, a crown and one among the wood's (fn-297 R2): where the
+        // nodes' room is short, the keys are made again in the room
+        // counted.
+        let mut room = ids.next_power_of_two();
+        let (keys, n, florets, blooms) = loop {
+            let keys = storage(gpu, "station keys", 2 * u64::from(room))?;
+            let bound = [
+                laid.records,
+                laid.table,
+                &st,
+                &keys,
+                &counts,
+                &none,
+                &owners,
+            ];
+            self.run((gpu, &mut e), (KEYS, ids, None), at, bound)?;
+            let [n, _, _, _, florets, blooms, ..] = Self::counts(gpu, &mut e, &counts).await?;
+            if n <= room {
+                break (keys, n, florets, blooms);
+            }
+            room = n.next_power_of_two();
+            gpu.queue.write_buffer(&counts, 0, &[0; 4]);
+        };
         // The runs numbered by their keys (fn-261): those past the count
         // sort last.
         let pad = vec![u32::MAX; 2 * (n.next_power_of_two() - n) as usize];
         gpu.queue
             .write_buffer(&keys, u64::from(n) * 8, bytemuck::cast_slice(&pad));
         self.sorter.sort(gpu, &mut e, &keys, n)?;
-        let runs = storage(gpu, "station runs", u64::from(ids) * RW)?;
+        let runs = storage(gpu, "station runs", u64::from(n) * RW)?;
         let sorted = [
             laid.records,
             laid.table,
@@ -310,7 +333,8 @@ impl Stationer {
                 ],
             )?;
         }
-        let [_, stations, segments, ..] = Self::counts(gpu, &mut e, &counts).await?;
+        let [_, _, segments, _, _, _, low, high] = Self::counts(gpu, &mut e, &counts).await?;
+        let stations = u64::from(high) << 32 | u64::from(low);
         // Each segment's words, then the node each stands on (`owns`).
         let words = u64::from(segments) * (GW as u64 + 1);
         let buffer = storage(gpu, "station segments", words)?;

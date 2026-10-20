@@ -164,6 +164,12 @@ fn assign_main(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let opened = atomicLoad(&tally[X_BLOCKS]) + count(C_OPEN, k);
+    // A block past the shape's rows is never written: the host refuses
+    // the fault by name.
+    if opened >= cfg.stride {
+        atomicOr(&tally[X_FAULT], 1u);
+        return;
+    }
     let t = count(C_TARGET, k);
     var level = 0u;
     var size = 1u;

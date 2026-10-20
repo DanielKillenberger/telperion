@@ -4,10 +4,12 @@
 use super::super::io;
 use super::columns::Cap;
 use super::compare::Agreement;
-use super::hier_build::{Hierarchy, Kernels, CAP};
+use super::hier_build::{Hierarchy, Kernels, CAP, X_BLOCKS, X_FAULT};
 use super::hier_columns::{Cpu, Hier};
 use super::hier_compare::{blocks, children, compare, words};
 use super::hier_device::Sums;
+use super::hier_plan::Plan;
+use super::hier_scan::read_words;
 use crate::buffer::Owned;
 use crate::Gpu;
 use telperion_core::presets::Preset;
@@ -212,5 +214,66 @@ fn young_sums_agree_with_the_cpu_within_tolerance() {
     assert!(
         differ.is_empty(),
         "the device's sums are not the CPU's: {differ:?}"
+    );
+}
+
+/// The seed placed over a hierarchy whose blocks already reach `blocks`
+/// (as compactions leave them, `X_BLOCKS` only growing), `STRIDE` axes
+/// wide: the tally's fault and the shape, every word first `UNSET`.
+fn opened_past(gpu: &Gpu, k: &Kernels, blocks: u32) -> (u32, Vec<u32>) {
+    const STRIDE: u32 = 64;
+    let mut words = vec![0; super::hier_columns::TREE * STRIDE as usize];
+    words[0] = u32::MAX;
+    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+    let tree = io::buffer(
+        gpu,
+        "seed tree",
+        4 * words.len() as u64,
+        usage,
+        bytemuck::cast_slice(&words),
+    )
+    .expect("a tree");
+    let h = Hierarchy::new(gpu, STRIDE, CAP).expect("buffers");
+    let shape = vec![UNSET; (h.shape.size() / 4) as usize];
+    gpu.queue
+        .write_buffer(&h.shape, 0, bytemuck::cast_slice(&shape));
+    gpu.queue
+        .write_buffer(&h.tally, 4 * X_BLOCKS as u64, bytemuck::bytes_of(&blocks));
+    let plan = Plan::new(gpu, k, &h, &tree, (1, 1)).expect("a plan");
+    let mut e = gpu.encoder(&Default::default());
+    plan.head(&h, k, &mut e);
+    plan.children(k, &mut e);
+    plan.pass(&h, k, &mut e, 0);
+    gpu.submit([e.finish()]);
+    let fault = read_words(gpu, &h.tally, X_FAULT as u64, 1).expect("the tally")[0];
+    let shape = read_words(gpu, &h.shape, 0, h.shape.size() / 4).expect("the shape");
+    (fault, shape)
+}
+
+const UNSET: u32 = 0x5a5a_5a5a;
+
+/// A block opened at the shape's stride is not written past its column
+/// (`assign_main`): the fault is raised and the seed's own words stand.
+/// One below it, the block opens.
+#[test]
+fn a_block_opened_past_the_stride_faults_and_writes_nothing() {
+    let Some((gpu, k, _)) = device() else {
+        return;
+    };
+    let (h_block, h_spill, h_gen, h_from) = (1, 2, 3, 5);
+    let at = |col: usize, i: u32| col * 64 + i as usize;
+    let (fault, shape) = opened_past(&gpu, &k, 63);
+    assert_eq!(fault, 0, "the last block within the stride faulted");
+    assert_eq!(shape[at(h_block, 0)], 63);
+    assert_eq!(shape[at(h_spill, 63)], u32::MAX);
+    assert_eq!(shape[at(h_from, 63)], u32::MAX);
+    let (fault, shape) = opened_past(&gpu, &k, 64);
+    assert_ne!(fault, 0, "a block past the stride raised no fault");
+    assert_eq!(shape[at(h_gen, 0)], 0, "the seed's generation overwritten");
+    assert_eq!(shape[at(h_from, 0)], UNSET, "the seed's origin overwritten");
+    assert_eq!(
+        shape[at(h_block, 0)],
+        u32::MAX,
+        "the seed given a block past the stride"
     );
 }

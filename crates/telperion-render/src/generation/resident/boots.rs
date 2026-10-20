@@ -82,6 +82,14 @@ fn room(dressed: &Dressed) -> [u32; 3] {
     [record(dressed.ids), axis, dressed.room_slot]
 }
 
+/// `degrees` as radians within half a turn either way, reduced in f64 as
+/// `lattice::cell` reduces it, so the f32 the device reads is the step
+/// itself and not a turn and a step that cancel there (fn-297 R6).
+fn half_turn(degrees: f64) -> f64 {
+    use std::f64::consts::{PI, TAU};
+    (degrees.to_radians() + PI).rem_euclid(TAU) - PI
+}
+
 /// The rows `boots.wgsl` reads for `n` invocations: the seed wave's, the
 /// boots' first id, where they go (`room`) and the canopy's.
 fn cfg(
@@ -108,7 +116,7 @@ fn cfg(
         out_base,
         u32::from(packed),
         telperion_space::word(p.rosette_fronds),
-        f(p.rosette_divergence.to_radians()),
+        f(half_turn(p.rosette_divergence)),
         f(p.rosette_depth),
         f(pitch.to_radians()),
         f(p.leaf_base_length),

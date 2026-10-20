@@ -84,7 +84,13 @@ impl Generator {
             &[config],
             wgpu::BufferUsages::UNIFORM,
         )?;
-        let geometry: Vec<_> = e.positions.iter().map(|&v| data::vector(v, 0.0)).collect();
+        // Each vertex carries the reach of the stalks the element lays from
+        // an instance's origin (`Element::stalk`), which the bounds add.
+        let geometry: Vec<_> = e
+            .positions
+            .iter()
+            .map(|&v| data::vector(v, e.stalk))
+            .collect();
         let geometry = upload(gpu, "generation element", &geometry, STORAGE)?;
         let mut initial = [0u32; 16];
         initial[0] = count;

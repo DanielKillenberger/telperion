@@ -7,10 +7,13 @@
 //! station agreement's tolerance), and places as many leaflets in the
 //! crown, last, where the CPU places them.
 use super::super::{io, Generator};
+use super::build::instances;
 use super::stations::GW;
 use crate::Renderer;
 use std::collections::{BTreeSet, HashMap};
-use telperion_core::{blend, pipeline::executor, presets::by_identity, presets::Family};
+use telperion_core::{
+    blend, pipeline::executor, presets::by_identity, presets::Family, tree::cluster_key,
+};
 
 /// Young, as the rest of the gate's agreement is held.
 const AGE: f64 = 12.0;
@@ -60,7 +63,10 @@ fn the_device_draws_counts_of_organs_as_the_cpu_does() {
     }
 }
 
-fn agrees(gpu: &crate::Gpu, name: &str, f: &Family) {
+/// The wood's leaves by their runs' keys, the device's then the CPU's.
+type ByKey = HashMap<u32, u64>;
+
+fn agrees(gpu: &crate::Gpu, name: &str, f: &Family) -> (ByKey, ByKey) {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     let kit = gen.kit();
@@ -136,4 +142,56 @@ fn agrees(gpu: &crate::Gpu, name: &str, f: &Family) {
         "{name}: the CPU's leaves"
     );
     assert!(apart <= APART, "{name}: the crown {apart} apart");
+    (dev, cpu)
+}
+
+/// fn-297 R2: a stem's tip that is both a short shoot's tip and a
+/// rosette's apex bears both, as the CPU places them: its cluster among
+/// the wood's, its rosette in the crown. The date palm at 40 with its
+/// trunk's age clustering one leaf at the cauline share whole reaches it;
+/// codex's case set the chain's first age, which the palm passes through,
+/// and reached no cluster. The plain palm is the control.
+#[test]
+fn a_tip_that_is_both_bears_its_cluster_and_its_rosette() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let mut plain = by_identity("date-palm").unwrap();
+    plain.age = 40.0;
+    let mut both = plain.clone();
+    both.canopy.cauline = 1.0;
+    let species = both.space.species.as_mut().expect("an engine species");
+    // The palm's one age is the chain's trunk (`chain::TRUNK`).
+    species.states[2].cluster_leaves = 1.0;
+    // The state is reached: a cluster's tip is a stem's apex.
+    let grown = executor::grow(&both).unwrap().expansion().unwrap();
+    let tree = grown.tree();
+    let apices = tree.stem_apices();
+    let tips: Vec<u32> = (tree.clusters.iter())
+        .map(|c| c.node as usize)
+        .filter(|n| apices.contains(n))
+        .map(|n| cluster_key(tree.key(n)))
+        .collect();
+    assert!(!tips.is_empty(), "no cluster's tip is a stem's apex");
+    agrees(&gpu, "date palm", &plain);
+    let (dev, cpu) = agrees(&gpu, "date palm, a tip that is both", &both);
+    for key in tips {
+        assert!(cpu.contains_key(&key), "the CPU's cluster at the apex");
+        assert_eq!(dev.get(&key), cpu.get(&key), "the apex's cluster");
+    }
+}
+
+/// fn-297 R4 B.3: a leaf count past 32 bits, which the stations count in
+/// a 64-bit total, is refused by name, whatever the budget; one below
+/// passes. No allowed parameter reaches 2^32 leaves on a device.
+#[test]
+fn a_leaf_count_past_u32_is_refused_by_name() {
+    let below = u64::from(u32::MAX);
+    assert_eq!(instances(below, usize::MAX).unwrap(), u32::MAX);
+    for count in [below + 1, u64::MAX] {
+        let error = instances(count, usize::MAX).unwrap_err().to_string();
+        assert!(error.contains("foliage instance budget"), "{error}");
+    }
+    assert_eq!(instances(7, 7).unwrap(), 7);
+    assert!(instances(8, 7).is_err(), "past the canopy's budget");
 }

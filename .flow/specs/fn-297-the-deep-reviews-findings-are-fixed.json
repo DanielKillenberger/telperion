@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-297-the-deep-reviews-findings-are-fixed",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-20T15:51:45.796834Z",
   "created_at": "2026-10-19T21:43:52.618047Z",
   "default_impl": null,
   "default_review": null,
@@ -10,12 +10,370 @@
     "fn-294-the-release-reviews-findings-are-fixed"
   ],
   "id": "fn-297-the-deep-reviews-findings-are-fixed",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-297-the-deep-reviews-findings-are-fixed.1": 0,
+    "fn-297-the-deep-reviews-findings-are-fixed.2": 0,
+    "fn-297-the-deep-reviews-findings-are-fixed.3": 0,
+    "fn-297-the-deep-reviews-findings-are-fixed.4": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-20T01:09:54.162912Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "da309fc2c91d637f48c2702e04203b11e1a91c9a843f5117a843f6a3b28f7092",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-65861ecbc0a825a0f64f546a630b6ed7",
+            "classification": "introduced",
+            "findingId": "finding-65861ecbc0a825a0f64f546a630b6ed7",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4f3fc61cab856d00a21569da66887f0f",
+            "classification": "introduced",
+            "findingId": "finding-4f3fc61cab856d00a21569da66887f0f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4c69675efd80c2939218332d8dfc89d1",
+            "classification": "introduced",
+            "findingId": "finding-4c69675efd80c2939218332d8dfc89d1",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ee2fe86b57951b9d525abc9f6f8774367e6ae50a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 300621,
+      "output_sha256": "c2496b4526bedd1d94d4c956bdc1f8cb971c4081a5da831791d3953da7b42e89",
+      "reservation_id": "faf23a25a3e043e9a4bd13a6a228f025",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T01:09:20.081702Z",
+      "tool_calls": 15,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "a9d57862c200858b7a98bc13fcebc1d4e17f0091156cf7b0408544a44b685272",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-65861ecbc0a825a0f64f546a630b6ed7",
+            "classification": "introduced",
+            "findingId": "finding-65861ecbc0a825a0f64f546a630b6ed7",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4f3fc61cab856d00a21569da66887f0f",
+            "classification": "introduced",
+            "findingId": "finding-4f3fc61cab856d00a21569da66887f0f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4c69675efd80c2939218332d8dfc89d1",
+            "classification": "introduced",
+            "findingId": "finding-4c69675efd80c2939218332d8dfc89d1",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ee2fe86b57951b9d525abc9f6f8774367e6ae50a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 629,
+      "output_sha256": "e0fb7d265a7aee78d972b7becaa2f1dbb96ebb8b212316793d2f744d634364db",
+      "reservation_id": "9b7c8a9bcc9645e5a652b020cbaea077",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T01:09:54.159343Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4930b6d97f129410b687f87846720fe25b37157f40e796d1c1d519dbc210dc3c",
+      "backend": "codex",
+      "base_sha": "8fbb873d7bfe5a79a21601f0c5461ad160d28468",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "924c9f7be113951cdc6e3023e2dbd3dac5ac4185",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "6381e813f3c9464a9edc97ac2b8e369f",
+      "round_consumed": true,
+      "scope": "impl:fn-297-the-deep-reviews-findings-are-fixed.1",
+      "superseded_by": null,
+      "task": "fn-297-the-deep-reviews-findings-are-fixed.1",
+      "timestamp": "2026-10-20T01:48:38.228258Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3be5c800c63abacf63b091e4c059e12578da9f0a98f67478c298cc7cb47799cc",
+      "backend": "codex",
+      "base_sha": "1de9e043892dca483dda728a62eb1fbd61c399dc",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6a6f74ffbc4447af46c2225904b53eff9b0332aa",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "ad2cdc86d24b4106bb6f666d2d96cfdb",
+      "round_consumed": true,
+      "scope": "impl:fn-297-the-deep-reviews-findings-are-fixed.2",
+      "superseded_by": null,
+      "task": "fn-297-the-deep-reviews-findings-are-fixed.2",
+      "timestamp": "2026-10-20T02:56:33.853333Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b7b69bf81ef3b29eef6e1cc9e08c751be738061a4696c85e8270d9661a27ba8a",
+      "backend": "codex",
+      "base_sha": "59f5ed6a4e1cb24b04b21158085eccb656894337",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b0862780b1678ed8b3c5e36d5e7c8b3f51875f9d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "5246f3751f6a43cdb4eb02a64e9ef889",
+      "round_consumed": true,
+      "scope": "impl:fn-297-the-deep-reviews-findings-are-fixed.3",
+      "superseded_by": null,
+      "task": "fn-297-the-deep-reviews-findings-are-fixed.3",
+      "timestamp": "2026-10-20T04:28:33.113576Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "86c9cc89986b20cd6e4b1eab6d8f68a09fad294b39e976c6c0764245656b7386",
+      "backend": "codex",
+      "base_sha": "59f5ed6a4e1cb24b04b21158085eccb656894337",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "0232a46ad7b6bff7adeb60428af9254d632ad1f7",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 171699,
+      "output_sha256": "8565e486b9fd52147b53b7de7c18401d49f8e548e3e65617c5290fae6e9bfc98",
+      "reservation_id": "33273918f13d459c9737b1847759096c",
+      "round_consumed": true,
+      "scope": "impl:fn-297-the-deep-reviews-findings-are-fixed.3",
+      "superseded_by": null,
+      "task": "fn-297-the-deep-reviews-findings-are-fixed.3",
+      "timestamp": "2026-10-20T13:42:46.691643Z",
+      "tool_calls": 28,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "f0520bdcc2ea7501c017c9245ae23e7c6698798d54f8c16ed5585684b0a26ec0",
+      "backend": "codex",
+      "base_sha": "50c0382bb4ae05a62558192cc3ddeecf12a7f311",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "171e522cce9eba68e6e1a650c2ce28ded09a591c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "285ff1d85009464cb178f264c142481a",
+      "round_consumed": true,
+      "scope": "impl:fn-297-the-deep-reviews-findings-are-fixed.4",
+      "superseded_by": null,
+      "task": "fn-297-the-deep-reviews-findings-are-fixed.4",
+      "timestamp": "2026-10-20T15:09:43.528174Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e5e36acb42a68ba1ea81b4ae922241d5605d9d5c4ea8e015a11ada4016d42560",
+      "backend": "codex",
+      "base_sha": "ee2fe86b57951b9d525abc9f6f8774367e6ae50a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "171e522cce9eba68e6e1a650c2ce28ded09a591c",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 330436,
+      "output_sha256": "4721a4c56fd1a75c4fabd661237b945ac91f21aac52dc55f0b6256aee2cd7732",
+      "reservation_id": "b55813b79a604712871f4f94baee0d53",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T15:51:45.787517Z",
+      "tool_calls": 25,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-297-the-deep-reviews-findings-are-fixed.1": 1,
+    "impl:fn-297-the-deep-reviews-findings-are-fixed.2": 1,
+    "impl:fn-297-the-deep-reviews-findings-are-fixed.3": 2,
+    "impl:fn-297-the-deep-reviews-findings-are-fixed.4": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-297-the-deep-reviews-findings-are-fixed.1": 0,
+    "impl:fn-297-the-deep-reviews-findings-are-fixed.2": 0,
+    "impl:fn-297-the-deep-reviews-findings-are-fixed.3": 0,
+    "impl:fn-297-the-deep-reviews-findings-are-fixed.4": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-297-the-deep-reviews-findings-are-fixed.md",
   "status": "open",
   "title": "The deep review's findings are fixed before 0.2.0 merges",
@@ -30,5 +388,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T01:00:51.561492Z"
+  "updated_at": "2026-10-20T15:51:45.802074Z"
 }
