@@ -8,13 +8,16 @@ One pose function per executor, applied where each leaf and flower matrix is fin
 
 **Size:** M
 **Files:** a new CPU module beside `crates/telperion-core/src/pipeline/foliage/station.rs`; callers `station.rs:244`, `rosette.rs:380,399`, `bloom.rs:384`; device `generation/pack.wgsl:229-248` `packed`, `generation/place.wgsl:109-145`, the config the device uploads
-**Touches:** [crates/telperion-core/src/pipeline/foliage/**, crates/telperion-core/src/suite/**, crates/telperion-render/src/generation/pack.wgsl, crates/telperion-render/src/generation/place.wgsl, crates/telperion-render/src/generation/*.rs, crates/telperion-render/src/generation/resident/**]
+**Touches:** [crates/telperion-core/tests/ground_reach.rs, crates/telperion-render/src/shaders/stalk.wgsl, crates/telperion-core/src/pipeline/foliage/**, crates/telperion-core/src/suite/**, crates/telperion-render/src/generation/pack.wgsl, crates/telperion-render/src/generation/place.wgsl, crates/telperion-render/src/generation/*.rs, crates/telperion-render/src/generation/resident/**]
 
 ### Approach
 - Gate first: the element's local box (`Element::positions` min/max; `plan/fronds.rs:92-120` `Shape` already computes one) under the finished matrix. If its lowest corner is above the ground, the matrix is returned untouched, so R3 holds bit for bit.
 - Otherwise, find the least rotation about the attachment point (the matrix's translation) that lifts the box's lowest corner to the ground. Lying flat always qualifies (spec R2). Apply it to the linear part only. Translation and scale stay.
 - The rotation axis and angle are a closed form of the box's corners and the matrix. Name the axis convention (y up in the core). Write it once on the CPU and mirror it in WGSL in the same order of operations.
 - Device: the element's local box goes into the config `pack.wgsl` reads (its `shape`/`lean`/`size` live there today), and into the bloom config for florets. Flowers use their own element's box.
+- Quantisation: rotations are 10-bit quaternion components (`packed.rs:175-240`). The pose aims at a clearance equal to the encoder's worst-case error for the element's reach. A round-trip test packs and decodes a rested leaf and checks it is clear.
+- Flowers: the renderer draws stalks from the instance (`shaders/stalk.wgsl`). The flower pose and R1's flower measure use the stalk reach (`Element::stalk`, as `Instances::bounds` at `foliage.rs:213` does).
+- Field boxes: the CPU leaf plan (`plan/fronds.rs:120-131`) and the device field (`resident/field.wgsl:375-382`) build leaflet boxes from the drawn frame. Both take the posed frame. Test that a rested leaflet sits inside its box on both executors.
 - The quantisation box is unaffected, because the translation is unchanged (`packed.rs:112-128`).
 - Unit tests: an instance clear of the ground returned bit-identical; one crossing it rested with its lowest vertex at the ground (within `BELOW`); translation and scale unchanged; the angle no larger than lying flat.
 
@@ -29,13 +32,13 @@ One pose function per executor, applied where each leaf and flower matrix is fin
 
 ### Key context
 The device's leaves must agree with the CPU's within `agree_tests`' scatter-turn bound (`agree_tests.rs:290`). A rested leaf's turn is part of that.
-
 ## Acceptance
 - [ ] One pose function per executor rests every leaf and flower whose bounds would cross the ground; none is culled, scaled or translated.
 - [ ] Unit tests: clear instance bit-identical, crossing instance rested, translation and scale kept, angle at most lying flat.
-- [ ] The palm at 12: `agree_tests` pass on leaves.
+- [ ] A packing round-trip test: a rested leaf decodes clear of the ground.
+- [ ] Flowers use the stalk reach; the field's leaflet boxes contain the posed leaflets on both executors.
+- [ ] The palm at 12: `agree_tests` and `field_tests` pass.
 - [ ] `ground_reach`: no leaf or flower below the ground on any row.
-
 ## Done summary
 TBD
 

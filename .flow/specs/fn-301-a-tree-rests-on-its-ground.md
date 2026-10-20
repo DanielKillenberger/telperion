@@ -83,6 +83,7 @@ Contact is a rule of the curve each axis is drawn on, plus one pose rule for ins
   - Stills of the palm at 8, 12, 15 and 20 at seed 1, base against change, viewed by the agent and then judged by the owner.
   - The spruce at 40 and the birch at 40, seed 1, base against change, at the default view.
   - One still from the walk that passes through a young palm, if the film has one.
+  - One far-view still of the palm at 12, seed 1, where thinning is active, to measure the dip of enlarged leaves (host ruling, outside R4).
 - **R6:** the gate and `npm test` are green, with a codex review on each task. `tests/ground_reach.rs` is un-ignored and green. `docs/pipeline.md` line 25, which still says four families have no engine species, is corrected.
 
 ## Boundaries
@@ -99,9 +100,13 @@ Contact is a rule of the curve each axis is drawn on, plus one pose rule for ins
 - **The frond's contact point.** First contact is the least `t` in [0, 1] where the centreline's height equals the rachis radius there, `r0·(1 − t)` floored at the finest wood. On the palm's descending arch it is the one root; with an upward arch, the first root wins and the axis stays down from there. A frond whose base already sits at or below its radius rests from `t = 0`. Past contact the curve runs flat at its radius in the horizontal direction of its tangent at contact (the heading's horizontal direction when that tangent is vertical), and its parameter maps to the parabola's remaining closed-form arc length. A heading with no horizontal part and a vertical tangent has no defined direction. That case is a named error, never a fallback (principles, question 2).
 - **The frond's frame past contact.** The function returns the point and the tangent. The leaflets' run and axis read the returned tangent, so they lie with the rachis.
 - **Stations.** The CPU's rachis and leaflets sample `t` from `station()`. The device's `rachises` samples `k / count · split`. Task 1 checks whether the two are the same values. If they differ, the shared device function takes `station()`'s form, and the difference is recorded.
-- **Engine lay.** A non-trunk step whose bark would pass below the ground ends at height `radius`. It keeps the step's length along the horizontal part of its travel (the heading's horizontal part when the step is vertical). The landing ease and the trunk fault are unchanged. Sag reads tip heights, so trees whose wood rests change through the sag pass too. That is part of R3's "rows that change".
+- **Engine lay.** A non-trunk step whose girth would pass below the ground ends at height `radius`, the phytomer's girth radius (host ruling). It keeps the step's length along the horizontal part of its travel (the heading's horizontal part when the step is vertical). The landing ease and the trunk fault are unchanged. Sag reads tip heights, so trees whose wood rests change through the sag pass too. That is part of R3's "rows that change".
+- **Surface clearance.** Where the sweep emits ring vertices, on each executor (the CPU's sweep and the device's surfacing `emit`), a vertex of non-trunk wood gets `y = max(y, 0)`. That keeps the flare and the lobes off the ground. It is an identity where no ring reaches the ground. The trunk's buried root flare is unchanged. R1's wood measure reads the drawn vertices, so it sees this clearance.
 - **Establishment.** The palm's stem is lowered after the lay (`establish`). Every frond is hung from the lowered stem, so the frond curve's contact sees the final heights. The palm has no engine laterals for the lowering to carry below the ground. R1's rows hold this.
 - **Instance pose.** The pose turns about the attachment point, so the stored translation, and with it the quantisation box's containment, is unchanged. The element's local box comes from its positions. The device needs it in the config it already uploads.
+- **Quantisation.** Rotations are stored as 10-bit quaternion components (`packed.rs`). A 1 m leaflet tip can move by about 1.7 mm (plan review). The pose aims at a clearance equal to the encoder's worst-case error for the element's reach, and a test checks that the decoded transform stays clear.
+- **Flowers.** The renderer draws a flower's stalks from the instance, not from the element's positions. The flower pose and R1's flower measure use the element's stalk reach (`Element::stalk`, as `Instances::bounds` does).
+- **The field's leaflet boxes.** The CPU leaf plan and the device field build leaflet boxes from the drawn frame. Both take the posed frame.
 - **"Below" admits 1e-4 m.** A leaf transform is quantised against the crown's box, so a vertex laid on the ground can read a hair under it. R1's test states this bound (`BELOW`, this spec).
 
 ## Quick commands
@@ -117,7 +122,7 @@ cargo run --profile ci -p telperion-core --example artifact_digest -- european-b
 
 ## Early proof point
 
-Task fn-301-a-tree-rests-on-its-ground.2 validates the core approach: contact inside the one frond curve rests the palm at 12 on both executors, and they still agree. If it fails, re-evaluate contact-in-the-curve, against the post-release (b), before continuing with tasks .3 and later.
+Task fn-301-a-tree-rests-on-its-ground.2 validates the core approach: contact inside the one frond curve rests the palm at 12 on both executors, and they still agree. If it fails, re-evaluate contact-in-the-curve, against the post-release (b), before continuing with tasks .4 and .5, which depend on it. Task .3, the engine's lay and the surface clearance, does not depend on it and runs beside .1.
 
 ## Strategy Alignment
 
