@@ -149,3 +149,7 @@ Active tracks served by this plan:
 | R6 | .5, and a codex review on every task |
 
 Waves: 1 = .1, .3 · 2 = .2 · 3 = .4 (after .2 and .3, which share `ground_reach.rs`) · 4 = .5.
+
+## Decision Context
+
+Maintainability (plan review): duplication - none identified; structure - Task .3 adds horizontal-direction and named-stop branches to geometry::lay::Layer::step.
