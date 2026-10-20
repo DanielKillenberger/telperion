@@ -47,7 +47,8 @@
     "fn-294-the-release-reviews-findings-are-fixed",
     "fn-283-a-frond-draws-its-rachis",
     "fn-297-the-deep-reviews-findings-are-fixed",
-    "fn-298-a-walk-frame-builds-on-the-device"
+    "fn-298-a-walk-frame-builds-on-the-device",
+    "fn-299-a-walk-frame-grows-within-its-ends"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -67,5 +68,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T11:24:10.972786Z"
+  "updated_at": "2026-10-20T16:48:31.837523Z"
 }
