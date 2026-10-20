@@ -1,13 +1,21 @@
 {
   "branch_name": "fn-297-the-deep-reviews-findings-are-fixed",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-19T21:43:52.618047Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-294-the-release-reviews-findings-are-fixed"
   ],
   "id": "fn-297-the-deep-reviews-findings-are-fixed",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-297-the-deep-reviews-findings-are-fixed.md",
   "status": "open",
   "title": "The deep review's findings are fixed before 0.2.0 merges",
@@ -22,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T21:43:59.458944Z"
+  "updated_at": "2026-10-20T01:00:51.561492Z"
 }
