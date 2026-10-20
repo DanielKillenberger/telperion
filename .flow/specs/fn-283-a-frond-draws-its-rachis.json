@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-283-a-frond-draws-its-rachis",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-20T14:21:27.312909Z",
   "created_at": "2026-10-15T07:55:57.803283Z",
   "default_impl": null,
   "default_review": null,
@@ -454,6 +454,42 @@
       "task": "fn-283-a-frond-draws-its-rachis.4",
       "timestamp": "2026-10-20T13:39:48.964803Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "1fa46ec2e988e0a398492645f86b71a170326e760d42afbd87aaa6fed8d3b6d9",
+      "backend": "codex",
+      "base_sha": "147dae260d72a8ac9e987595c0f0d2a2e1645ecb",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f468a28d38359db4490206a8e4a9d7679eaa99ec",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 471807,
+      "output_sha256": "022309740f371423163aadd4c99eb9a82a400b953e0b37c98ea28a56f5ce0566",
+      "reservation_id": "b952685b22574658985d9fad1cac3599",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T14:21:27.295589Z",
+      "tool_calls": 26,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -462,11 +498,12 @@
     "impl:fn-283-a-frond-draws-its-rachis.3": 1,
     "impl:fn-283-a-frond-draws-its-rachis.4": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-283-a-frond-draws-its-rachis.1": 0,
     "impl:fn-283-a-frond-draws-its-rachis.2": 0,
     "impl:fn-283-a-frond-draws-its-rachis.3": 0,
@@ -487,5 +524,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T13:39:48.967795Z"
+  "updated_at": "2026-10-20T14:21:27.322495Z"
 }
