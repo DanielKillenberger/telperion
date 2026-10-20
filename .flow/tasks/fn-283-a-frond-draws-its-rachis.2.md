@@ -39,9 +39,21 @@ Behaviour-preserving move: the frond clock and the segment draw leave `stations.
 - [ ] The equivalence covers a growing build (`settle`) and a fractional-year build of the palm, and the device field of the palm, all unchanged against the base.
 
 ## Done summary
-TBD
+The device draws each crown's fronds once, in the leaf-base stage. The frond clock and the segment draw left `stations.wgsl` for `fronds.wgsl`, composed into the boots stage. Its `crowns` pass lists the crowned apices and `crown_fronds` writes one frond table record per frond, one invocation per crown. The stations' `measure` and `rosette` copy from the table and hold no copy of the draw. `counts.wgsl` holds the organ-count helpers both stages read. The boots stage now runs for a rosette with no leaf bases. The requested year and the element's blade reach it through `readied`/`folded` (mature, growing, field and fractional-year builds). The frond rows read `Family::applied()`, as the stations did.
 
+Equivalence (measured): `palm_digest` and `digest`, base fbee5b3ba against a06639cd5, gave 34 of 34 lines identical. That covers every shipped preset at seeds 1, 7 and 42; the palm at 40, 12 and 4; the palm within its year at 40 and 4 (0.3, 0.8); settled at 5.4 and 6; and its device field (raw/digest-base.lines, raw/digest-after.lines). The applied-canopy fix after it changes only builds with a supernatural size override, which no shipped preset enables. `every_rosette_is_placed_as_the_cpu_places_it` passes unchanged. The new test `every_crown_the_leaf_base_stage_draws_is_placed_as_the_cpu_places_it` covers a palm with no leaf bases and a palm whose override lifts a natural size of 0.
+
+Gate: `telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`, gate_rc=0, 1,409 passed, 0 failed, 112 ignored (raw/gate-2.log). baseline: green via handoff (9839dc3d9, task .1's gate).
+
+Decision: the element is built before the boots stage when a rosette stands, as the spec directs, so an invalid element now answers ahead of a bases/folds ResourceLimit when both fail.
+Follow-ups: boots.wgsl (~590 lines) was over the ~400-line rule before this change; `Hanger::hang` grew (review FYI, Long Method). `executor::bases` reads the raw canopy, not `applied()` (pre-existing, not touched).
+
+Tier: not given by the conductor (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex: round 1 NEEDS_WORK, 1 finding from all three lenses: applied canopy, fixed; round 2 SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a06639cd576a0c782dfd9c7151e33f32e739aa56, 2c75515caef5cdb06c74bfdf1a9f98a923b6d9a9
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast, cargo test --profile ci -p telperion-render resident::digest_tests -- --ignored
 - PRs:
