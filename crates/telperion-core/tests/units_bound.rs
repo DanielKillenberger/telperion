@@ -97,6 +97,43 @@ fn a_walk_frame_grows_within_its_ends() {
     );
 }
 
+/// The film's frames per walk, in `WALKS`' order (fn-272's `release.json`).
+const FILM: [u32; 6] = [90, 90, 90, 120, 30, 90];
+
+/// The units a job holds on the device (`cycle/device.rs`'s `FRAMES`):
+/// a frame whose floor passes it is refused before it builds.
+const FRAMES: u32 = 11;
+
+/// fn-299 R3: every film frame of every shipped walk grows within its
+/// ends, `SLACK` allowed, and within what a device job holds. Frame i of
+/// n stands at the smoothstep of i / n, as the film eases. The floor reads
+/// the species alone, which no seed moves (R1.md), so one seed serves.
+#[test]
+fn every_film_frame_grows_within_its_ends() {
+    let outside = std::sync::Mutex::new(Vec::new());
+    std::thread::scope(|s| {
+        for ((a, b, age), n) in WALKS.into_iter().zip(FILM) {
+            let outside = &outside;
+            s.spawn(move || {
+                let (x, y) = (at(a, age, 1), at(b, age, 1));
+                let frame = |t: f64| floor(&families(&x, &y, t).expect("a walk frame"));
+                let ends = [frame(0.0), frame(1.0)];
+                for i in 1..=n {
+                    let share = f64::from(i) / f64::from(n);
+                    let t = share * share * (3.0 - 2.0 * share);
+                    let units = frame(t);
+                    if !within(units, ends) || units > FRAMES {
+                        let line = format!("{a} to {b} frame {i}, t {t}: {units} by {ends:?}");
+                        outside.lock().unwrap().push(line);
+                    }
+                }
+            });
+        }
+    });
+    let outside = outside.into_inner().unwrap();
+    assert!(outside.is_empty(), "film frames outside: {outside:#?}");
+}
+
 /// Every case the sweep builds: name and family.
 fn cases() -> Vec<(String, Family)> {
     let only = std::env::var("UNITS_PRESETS").ok();
