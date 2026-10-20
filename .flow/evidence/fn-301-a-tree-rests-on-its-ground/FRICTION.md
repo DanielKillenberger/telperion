@@ -34,3 +34,10 @@
 - **Slowed by:** the review found that the drawn bark is wider than the radius the design rests on (`flareRadius` up to 2 at the ground, lobes 1 + `lobeDepth`), that the renderer enlarges thinned leaves after the pose, and that 10-bit quaternions move a 1 m leaflet tip by about 1.7 mm. The first two are design questions, so the run went back to the host.
 - **Cost:** one review round (about 8 minutes) and a stop.
 - **Would remove it:** a design note on "radius" that names the drawn reach, and a renderer note on thinning, written before the plan.
+
+## 2026-10-21 02:00, conductor, plan review round 3
+
+- **Doing:** re-reviewing the plan after the round-2 fixes (a per-vertex quantisation bound, the inflorescence posed as one, .4 after .3).
+- **Slowed by:** `review.maxIterations` is 2, so flowctl refused the third round with `ESCALATE` before the reviewer saw the fixes. Round 1 spent one of the two rounds on questions only the host could answer.
+- **Cost:** one stop and a hand-off. The fixes wait unreviewed.
+- **Would remove it:** not counting a round that ends in a host ruling against the cap, or a cap of 3 for plans.
