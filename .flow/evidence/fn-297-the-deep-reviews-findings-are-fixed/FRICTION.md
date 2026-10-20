@@ -37,3 +37,9 @@
 - Cost: 40+ minutes and counting (05:46 to 06:26) before the compile started, for a run that takes about a minute. No other heavy unit ran; the desktop (browsers) held the memory, so room stayed at 6 to 7 GB. The fix was type-checked meanwhile (`cargo check -p telperion-render --profile ci --tests -j 2`) and sent to review.
 - Remove it: a smaller declared size for a focused lib run (it needs neither 8 GB nor the whole-workspace reservation), measured once and written beside the gate's size.
 - 06:29: stopped the held run (my PIDs 3441966, 3441928) after 43 minutes and returned NEEDS_HUMAN with the fix committed and reviewed: the gate needs the same 8 GB and would wait behind it, and another worktree's gate (fn-283, `telperion-heavy-` wait from 05:50) waits on the same room.
+
+## 2026-10-20 task .3, the gate after the held run
+- Doing: the green run and the one workspace gate for B.1/B.2, resumed once memory was free.
+- Hindered: the gate (14:48 to 15:29) failed one test outside the task's files: fn-256's `a_buffer_over_the_devices_limit_is_refused_by_name` pinned `RenderError::Oversize`, and B.1's new device-limit check in `counts()` now refuses first with `ResourceLimit("the cycle's job counts")`. The task's quick commands filtered to `cycle::`, so only the 41-minute gate could see it. The one-test fix then waited 46 minutes in the heavy queue (15:30 to 16:16) behind fn-283's and fn-298's gates, for a 4-second run.
+- Cost: one red gate (1412 passed, 1 failed, 111 ignored), ~50 minutes waiting, one codex re-review.
+- Remove it: a task that adds a refusal should list in its quick commands the existing tests that pin a refusal variant on the same path (`grep -rn "Oversize\|ResourceLimit" src/**/*_tests.rs`); and a small declared size for a filtered lib run, so a 4-second test does not queue as an 8 GB job.
