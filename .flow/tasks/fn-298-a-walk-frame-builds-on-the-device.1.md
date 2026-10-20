@@ -37,9 +37,15 @@ Run every refusal of the spec's table as a device test on the base, record which
 - [ ] R2.md records three stepped and three at-the-bound warm runs (stepped limits only; list ranges and folding untouched) per shipped preset at its default age, the per-preset and total delta, the noise band, and the choice per stepped limit (delete, or derive from the job) with the line it rests on.
 - [ ] No scratch switch is committed; the gate is green.
 ## Done summary
-TBD
+On the base, the beech to spruce at t 0.216 (seed 7) reproduces the device refusal. It is pinned as an ignored test, `fn298_the_beech_to_spruce_at_0_216_builds_on_the_device`, until task .2 fixes it. R1.md records every row of the spec's table: whether it reproduced, and the cycle, flag, census value and limit. R2.md records the stepped-against-bound warm runs, the deltas, the noise band and the choice per limit. The host has since ruled on that choice; the ruling is task .2's work. No production code or scratch switch is committed.
 
+Gate: `telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast` passed, 1406 passed, 0 failed, 112 ignored across 146 suites. It waited 34 minutes in the heavy queue before running. Full log: raw/gate-task1.log.
+
+stage: impl-review - ran (codex, one correctness reviewer, SHIP first round)
+Tier: session (jev long_running 0.40) at default effort (model: claude-opus-5-5)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a5a1819906586589df3bc953e4a81ffc119f6410, 929cbea019fb604204e16424498abccd8f51b82b, 91b203ae2a2b1b27fa67f970e1717e2a92293e99
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast
 - PRs:
