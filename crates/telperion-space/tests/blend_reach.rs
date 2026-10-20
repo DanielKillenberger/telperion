@@ -1,6 +1,6 @@
-//! fn-299 R2 (host, 2026-10-20): between the ends of a walk, an age one
-//! end never reaches takes the other end's settings, and an age both ends
-//! reach mixes as before. The palm lives age 2 alone and stops there; the
+//! fn-299 R2 (host, 2026-10-20, 2026-10-21): between the ends of a walk,
+//! an age one end never reaches takes the other end's timing rows, its
+//! other rows mix, and an age both ends reach mixes as before. The palm lives age 2 alone and stops there; the
 //! oak goes on through the ages after it.
 use telperion_space::{beech, blend, most_units, oak, palm, settings, spruce, PaState, Species};
 
@@ -13,23 +13,35 @@ fn past_the_palm(oak: &Species) -> Vec<usize> {
         .collect()
 }
 
-/// An age's settings and zones as a blend reads them: a role one side
-/// leaves out stands in as a zone of no nodes.
+/// The rows that decide whether and for how long a bud lives an age.
+const TIMING: [&str; 8] = [
+    "lifespan",
+    "continuation",
+    "abortion",
+    "abortion_rise",
+    "relay",
+    "relay_ended",
+    "viability",
+    "relay_failed",
+];
+
+/// An age's timing rows, by name.
+fn timing(s: &PaState) -> Vec<(&'static str, f64)> {
+    let mut s = s.clone();
+    settings(&mut s)
+        .into_iter()
+        .filter(|(n, _)| TIMING.contains(n))
+        .map(|(n, v)| (n, *v))
+        .collect()
+}
+
+/// Whether two ages share their timing rows.
 fn same(a: &PaState, b: &PaState) -> bool {
-    let (mut x, mut y) = (a.clone(), b.clone());
-    let rows = |s: &mut PaState| -> Vec<f64> { settings(s).into_iter().map(|(_, v)| *v).collect() };
-    let none = |z: &telperion_space::Zone| z.nodes.mean() == 0.0;
-    let zones =
-        (0..x.zones.len().max(y.zones.len())).all(|r| match (x.zones.get(r), y.zones.get(r)) {
-            (Some(p), Some(q)) => p == q,
-            (Some(z), None) | (None, Some(z)) => none(z),
-            (None, None) => true,
-        });
-    zones && rows(&mut x) == rows(&mut y)
+    timing(a) == timing(b)
 }
 
 #[test]
-fn an_age_one_end_never_reaches_keeps_the_others_settings() {
+fn an_age_one_end_never_reaches_keeps_the_others_timing() {
     let (o, p) = (oak(), palm());
     let ages = past_the_palm(&o);
     assert!(!ages.is_empty(), "the oak lives ages past the palm's stem");
@@ -70,6 +82,27 @@ fn a_lateral_the_axis_never_draws_reaches_no_age() {
                 );
             }
         }
+    }
+}
+
+/// The rest of an age one end never reaches mixes: oak to palm, the oak's
+/// internode at its ages past the palm's stem lies between the ends' rows.
+#[test]
+fn the_rest_of_an_unreached_age_still_mixes() {
+    let (o, p) = (oak(), palm());
+    let frame = blend(&o, &p, 0.5).unwrap();
+    let moved: Vec<usize> = past_the_palm(&o)
+        .into_iter()
+        .filter(|&k| o.states[k].internode != p.states[k].internode)
+        .collect();
+    assert!(!moved.is_empty(), "an age whose internode differs");
+    for k in moved {
+        let (x, y, m) = (
+            o.states[k].internode,
+            p.states[k].internode,
+            frame.states[k].internode,
+        );
+        assert!(x.min(y) < m && m < x.max(y), "age {k}: {x} {m} {y}");
     }
 }
 

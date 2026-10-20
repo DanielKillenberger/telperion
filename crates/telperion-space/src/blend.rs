@@ -5,8 +5,8 @@
 //! matched by role, a role one species leaves out standing in as a zone of
 //! no nodes. Both species are canonical (`Species::canonical`), so an age
 //! one of them does not use carries its neighbour's settings; between the
-//! ends, an age one of them never reaches takes the other's (`reaching`,
-//! fn-299).
+//! ends, an age one of them never reaches takes the other's timing
+//! (`reaching`, fn-299).
 use crate::error::{refuse, Result};
 use crate::species::scale::{scale, settings, zone_settings, OUTCOMES};
 use crate::species::{NodeLaw, PaState, Species, Zone, ZONES};
@@ -123,25 +123,51 @@ fn mixed(name: &str, a: f64, b: f64, t: f64) -> Result<f64> {
     }
 }
 
+/// The rows that decide whether and for how long a bud lives an age
+/// (fn-299, host 2026-10-21): its lifespan, the chance it moves on, and a
+/// stop's three outcomes, carrying on, relaying and dying (`OUTCOMES`),
+/// which `outcomes` mixes as one set; `abortion_rise` sets when the
+/// abortion stop bites along the age. Every other row blends as before.
+const TIMING: [&str; 8] = [
+    "lifespan",
+    "continuation",
+    "abortion",
+    "abortion_rise",
+    "relay",
+    "relay_ended",
+    "viability",
+    "relay_failed",
+];
+
 /// Both ends with each age one of them never reaches given the other's
-/// settings, every row (fn-299, host 2026-10-20). A species' rows at an
-/// age no bud of it is ever in are canonical placeholders (`lifespan` 0,
-/// `continuation` 1), not data: mixed, they made slivers of the other
-/// end's ages that one apex chained a dozen at a time in a cycle. Kept
-/// whole, the age is what the end that reaches it makes it, and the walk
-/// fades how often a bud enters it, through the continuations and
-/// laterals that lead there.
+/// timing rows (fn-299, host 2026-10-20, 2026-10-21). A species' timing
+/// at an age no bud of it is ever in is a canonical placeholder (`lifespan`
+/// 0, `continuation` 1), not data: mixed, it made slivers of the other
+/// end's ages that one apex chained a dozen at a time in a cycle. Kept, the
+/// age lives as the end that reaches it lives it, and the walk fades how
+/// often a bud enters it, through the continuations and laterals that lead
+/// there; its leaf, size and shape rows mix as any other's.
 fn reaching(a: &Species, b: &Species) -> (Species, Species) {
     let (ra, rb) = (reached(a), reached(b));
     let (mut x, mut y) = (a.clone(), b.clone());
     for k in 0..a.states.len() {
         match (ra[k], rb[k]) {
-            (false, true) => x.states[k] = b.states[k].clone(),
-            (true, false) => y.states[k] = a.states[k].clone(),
+            (false, true) => timed(&mut x.states[k], &b.states[k]),
+            (true, false) => timed(&mut y.states[k], &a.states[k]),
             _ => {}
         }
     }
     (x, y)
+}
+
+/// `state` with `from`'s timing rows (`TIMING`).
+fn timed(state: &mut PaState, from: &PaState) {
+    let mut from = from.clone();
+    for ((name, v), (_, w)) in settings(state).into_iter().zip(settings(&mut from)) {
+        if TIMING.contains(&name) {
+            *v = *w;
+        }
+    }
 }
 
 /// The ages a bud of `s` is ever in, entered or passed through: from the
@@ -202,5 +228,16 @@ fn empty(width: usize) -> Zone {
         dormant: vec![0.0; width],
         delay: 0.0,
         rate: 0.0,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    /// A timing row named wrong would never be swapped.
+    #[test]
+    fn every_timing_row_is_a_setting() {
+        for name in super::TIMING {
+            assert!(super::scale(name).is_some(), "{name}");
+        }
     }
 }

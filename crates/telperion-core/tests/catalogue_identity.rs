@@ -91,7 +91,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_363_652_001_628_328_573,
+        8_990_958_049_088_339_449,
         "{}",
         digest(&text)
     );
