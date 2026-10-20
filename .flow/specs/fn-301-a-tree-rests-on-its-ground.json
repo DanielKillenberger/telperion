@@ -12,7 +12,7 @@
   "id": "fn-301-a-tree-rests-on-its-ground",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 2,
+  "plan_review_rounds": 0,
   "plan_review_status": "needs_work",
   "plan_reviewed_at": "2026-10-20T22:53:38.586068Z",
   "ready": true,
@@ -211,7 +211,10 @@
       "verdict": "NEEDS_WORK"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -231,5 +234,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T22:54:24.739279Z"
+  "updated_at": "2026-10-20T22:55:05.437371Z"
 }
