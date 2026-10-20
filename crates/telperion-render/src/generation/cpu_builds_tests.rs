@@ -80,26 +80,60 @@ fn the_laurelin_at_20_builds_on_the_device() {
 /// fn-298 R1: beech to spruce at 40, seed 7, at the eased share 0.2160 the
 /// film's cut took (`ease(0.3)`, its 27th frame of 90), refused
 /// "LayGenerations (0x1)" while its layout outran the generations a cycle
-/// recorded. It builds, and its tree is the CPU's, node by node, to the
-/// tolerances `agree_tests` holds every preset to.
-#[test]
-#[ignore = "fn-298.2: builds on the device; its tree is not the CPU's (0.342 m apart; 0.080 m at t 0.1 on the base); the host's call"]
-fn fn298_the_beech_to_spruce_at_0_216_builds_on_the_device() {
+/// recorded.
+fn frame_0_216() -> (String, Family) {
     let (a, b) = (at("european-beech", 40.0, 7), at("norway-spruce", 40.0, 7));
     let t = 0.3 * 0.3 * (3.0 - 2.0 * 0.3);
-    let mut family = telperion_core::blend::families(&a, &b, t).expect("a walk frame");
-    let name = format!("beech to spruce at 40, seed 7, t {t}");
-    let refused = refused(&[(name.clone(), family.clone())]);
-    assert!(refused.is_empty(), "{refused:#?}");
+    let family = telperion_core::blend::families(&a, &b, t).expect("a walk frame");
+    (format!("beech to spruce at 40, seed 7, t {t}"), family)
+}
+
+/// fn-298 R4: the 0.2160 frame builds on the device with the CPU's node
+/// count and its leaf instances within 1 of the CPU's.
+#[test]
+fn fn298_the_beech_to_spruce_at_0_216_builds_on_the_device() {
+    let (name, mut family) = frame_0_216();
     let _held = super::whole_tree();
     let Some(gpu) = super::test_gpu() else {
         return;
     };
+    let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).expect("a generator");
+    let cpu = telperion_core::mesh::build(&family)
+        .unwrap_or_else(|e| panic!("{name}: the CPU refused: {e}"))
+        .foliage_instances();
+    let device = gen
+        .prepare(&family)
+        .unwrap_or_else(|e| panic!("{name}: {e}"))
+        .count();
+    println!("{name}: device {device} instances, CPU {cpu}");
+    assert!(
+        device.abs_diff(cpu) <= 1,
+        "{name}: device {device}, CPU {cpu}"
+    );
+    gpu.device
+        .poll(wgpu::PollType::wait_indefinitely())
+        .expect("freed");
     // The dress draws the tree before its leaf bases are hung.
     family.canopy.leaf_bases = 0.0;
     let d = apart(&gpu, &family);
     println!("{name}: {d:?}");
     assert_eq!(d.device, d.cpu, "{name}: nodes");
+}
+
+/// The 0.2160 frame's tree is the CPU's, node by node, to the tolerances
+/// `agree_tests` holds every preset to.
+#[test]
+#[ignore = "fn-300: walk-frame positions agree between CPU and device (0.342 m apart here; 0.080 m at t 0.1 on the base)"]
+fn fn298_the_beech_to_spruce_at_0_216_agrees_with_the_cpu() {
+    let (name, mut family) = frame_0_216();
+    let _held = super::whole_tree();
+    let Some(gpu) = super::test_gpu() else {
+        return;
+    };
+    family.canopy.leaf_bases = 0.0;
+    let d = apart(&gpu, &family);
+    println!("{name}: {d:?}");
     assert!(d.matched * 1000 >= d.device * 999, "{name}: {d:?}");
     assert!(d.position < 1e-3 && d.radius < 1e-5, "{name}: {d:?}");
 }
