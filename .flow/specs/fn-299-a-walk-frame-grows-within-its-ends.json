@@ -10,10 +10,115 @@
   "id": "fn-299-a-walk-frame-grows-within-its-ends",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 2,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-20T16:55:28.253405Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "900c58ffcd33e9fc4359818a63bb38e75845b43d013c9cc8f11d06396dbc7157",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d7d57f6048865e5931752947ede38d2d",
+            "classification": "introduced",
+            "findingId": "finding-d7d57f6048865e5931752947ede38d2d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5ddb94d7412ecd2240ef7b4b76d91438ce14a4e1",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 191316,
+      "output_sha256": "dc246f57098408a703bd7667b14499b863bb1dd1a020a3d3f00400f7ea6fae92",
+      "reservation_id": "6c86ff58b4524304aa22c52b90fc0d69",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T16:54:36.520488Z",
+      "tool_calls": 10,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "5323424afbeabc6994705dde2e806ecfe2c3b182737d21d30ea3a57ad4759360",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-18afec9cec923ba4d7d750a97d7db77f",
+            "classification": "introduced",
+            "findingId": "finding-18afec9cec923ba4d7d750a97d7db77f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d7d57f6048865e5931752947ede38d2d",
+            "classification": "introduced",
+            "findingId": "finding-d7d57f6048865e5931752947ede38d2d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5ddb94d7412ecd2240ef7b4b76d91438ce14a4e1",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1163,
+      "output_sha256": "e5dcb98922dd57b8a087b11b408942f5b654d0d7d259ecacbc82c50636b188fa",
+      "reservation_id": "7e0f7f9c84444602ba7ba0d1ea6a2077",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T16:55:28.250551Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-299-a-walk-frame-grows-within-its-ends.md",
   "status": "open",
   "title": "A walk frame grows within its ends",
@@ -28,5 +133,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T16:48:32.321157Z"
+  "updated_at": "2026-10-20T16:55:28.253970Z"
 }
