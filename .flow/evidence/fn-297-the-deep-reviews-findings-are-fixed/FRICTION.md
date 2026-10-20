@@ -12,3 +12,9 @@
 - Hindered: `spec chain` reports fn-297 ineligible (parent fn-294's branch is not on origin), which would stop the run BLOCKED, although fn-294 is merged into this branch at e507d4874 and the host forbids pushing. The run proceeds on the current branch under the host's dispatch, with the spec base set by hand to ee2fe86b5.
 - Cost: ~3 minutes reading the chained-spec and scheduler references to find no sanctioned path.
 - Remove it: let the chain predicate accept a parent whose tip is already an ancestor of the child branch.
+
+## 2026-10-20 task .1, first build
+- Doing: the baseline build of `telperion-render`'s tests (`telperion-heavy 8 --threads 2 -- cargo test -p telperion-render --profile ci --no-run`) in a fresh worktree with its own `target/`.
+- Hindered: `telperion-heavy` held the build for want of RAM (room 0 to 2 GB of the 8 asked) while another heavy unit ran a whole-workspace gate (`telperion-heavy-2842312`); the build had not started after 15 minutes, and a fresh `target/` then compiles from nothing on two threads.
+- Cost: 15+ minutes waiting before the first compile, with the R2 red run blocked behind it.
+- Remove it: a shared, read-only dependency cache (sccache) for worktrees, so a fresh checkout does not compile every dependency again; or a queue position in the wrapper's wait line, so a worker can tell a short wait from a long one.
