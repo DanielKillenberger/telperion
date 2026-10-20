@@ -64,3 +64,15 @@
 - **Slowed by:** queued since about 05:30 with 4 to 6 GB of room against 8; task .4 cannot start until .3 is done.
 - **Cost:** about 3 h 15 min idle so far, open-ended.
 - **Would remove it:** a gate size the desk can admit (its measured peak), or freed RAM-backed /tmp; a local setup matter, reported, not specced.
+
+## 2026-10-20 15:21, worker on task .4
+
+- **Doing:** the R5 timing at rachisWidth 0 beside 0.25, in one binary.
+- **Slowed by:** `build_time` takes no family override, so the width-0 run needed a temporary three-line env read (`BUILD_RACHIS_WIDTH`) in `build_time_tests.rs`. It was outside this task's Touches, so it was added, run and removed uncommitted. `git checkout --` is blocked by the guard, so the lines were removed by hand.
+- **Cost:** about 5 minutes.
+- **Would remove it:** a `BUILD_FAMILY=<json>` overlay on `build_time`, read through `params::overlay` as the headless example's `--family` is.
+
+- **Doing:** the stills (headless example, 6 GB, 2 GB of GPU).
+- **Slowed by:** the queue showed 3 to 5 GB of room from 15:08, behind another worktree's 8 GB workspace gate (`telperion-heavy-444462`).
+- **Cost:** queued from 15:08; recorded once admitted.
+- **Would remove it:** a smaller declared size for a stills run, which needs well under 6 GB.
