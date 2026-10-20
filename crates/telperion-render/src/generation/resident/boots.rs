@@ -89,10 +89,12 @@ pub(super) struct FrondRows {
     organs: [u32; 12],
 }
 
-/// The rows `family`'s crowns are drawn by in `year`, the blade a young
+/// The rows `family`'s crowns are drawn by in `year`, as the
+/// supernatural group applies them (`Family::applied`), the blade a young
 /// frond's segments are measured against from its element rows; none
 /// where its canopy stands no rosette or bears no leaves.
 pub(super) fn frond_rows(family: &Family, year: Option<Year>) -> Result<Option<FrondRows>> {
+    let family = family.applied();
     let p = &family.canopy;
     if p.rosette_fronds == 0.0 || p.size == 0.0 {
         return Ok(None);

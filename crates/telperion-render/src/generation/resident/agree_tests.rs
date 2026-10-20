@@ -265,17 +265,24 @@ fn every_rosette_is_placed_as_the_cpu_places_it() {
     }
 }
 
-/// fn-283 R4: a crown with no retained leaf bases below it has its fronds
-/// drawn in the leaf-base stage all the same, and placed as the CPU
-/// places them.
+/// fn-283 R4: the leaf-base stage draws a crown's fronds where no
+/// retained base hangs below it, and by the canopy the supernatural group
+/// applies (a natural size of none, its override the palm's), each placed
+/// as the CPU places it.
 #[test]
-fn a_crown_with_no_leaf_bases_is_placed_as_the_cpu_places_it() {
+fn every_crown_the_leaf_base_stage_draws_is_placed_as_the_cpu_places_it() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
-    let f = bare("date-palm", age());
-    assert!(executor::bases(&f).unwrap().is_none());
-    crown_agrees(&gpu, "date-palm", &f, 1.0);
+    let bare = bare("date-palm", age());
+    assert!(executor::bases(&bare).unwrap().is_none());
+    let mut over = family("date-palm", age());
+    over.supernatural.enabled = true;
+    over.supernatural.canopy.size = Some(over.canopy.size);
+    over.canopy.size = 0.0;
+    for f in [bare, over] {
+        crown_agrees(&gpu, "date-palm", &f, 1.0);
+    }
 }
 
 fn crown_agrees(gpu: &crate::Gpu, id: &str, f: &Family, fraction: f64) {

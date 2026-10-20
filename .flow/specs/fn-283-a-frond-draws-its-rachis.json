@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-283-a-frond-draws-its-rachis",
   "impl_review_rounds": {
-    "fn-283-a-frond-draws-its-rachis.1": 0
+    "fn-283-a-frond-draws-its-rachis.1": 0,
+    "fn-283-a-frond-draws-its-rachis.2": 1
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -293,6 +294,50 @@
       "task": "fn-283-a-frond-draws-its-rachis.1",
       "timestamp": "2026-10-19T23:42:41.490579Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d80df709e93c526410395ca7fa73b56bd91612ab07403a798264881080e9e3b9",
+      "backend": "codex",
+      "base_sha": "fbee5b3ba5fd61ef6fcb69b48875b3be9b4a1443",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9b7fa1a9553109fe487b218abc7b599f",
+            "classification": "introduced",
+            "findingId": "finding-9b7fa1a9553109fe487b218abc7b599f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a06639cd576a0c782dfd9c7151e33f32e739aa56",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1057,
+      "output_sha256": "82f08252774dc72bb5736d086d26f2cbf2008726014b2e299294a8aef6e8f1fa",
+      "reservation_id": "42975dc7c9684d92a4632f431c481e8e",
+      "round_consumed": true,
+      "scope": "impl:fn-283-a-frond-draws-its-rachis.2",
+      "superseded_by": null,
+      "task": "fn-283-a-frond-draws-its-rachis.2",
+      "timestamp": "2026-10-20T01:03:43.909827Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -304,6 +349,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-283-a-frond-draws-its-rachis.1": 0,
+    "impl:fn-283-a-frond-draws-its-rachis.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-283-a-frond-draws-its-rachis.md",
@@ -320,5 +366,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T23:42:41.493516Z"
+  "updated_at": "2026-10-20T01:03:43.913648Z"
 }
