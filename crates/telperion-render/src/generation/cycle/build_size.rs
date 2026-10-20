@@ -16,8 +16,10 @@ use crate::RenderError;
 /// cycles on: the hierarchy's generations and placing passes, the
 /// layout's generations and the sweep's layer ranges. None of them ever
 /// passed these on a shipped preset (`arena_tests`, 2026-10-12); one that
-/// does is refused by name. The block levels need none: the deepest are
-/// folded, however many (`fold.wgsl`).
+/// does is refused by name, but for the layout's generations, a cost hint
+/// only: the layout's closing pass lays every axis deeper (fn-298 R2 (d)),
+/// and only a generation past the plan's cap is refused. The block levels
+/// need none: the deepest are folded, however many (`fold.wgsl`).
 const STEP: [u32; 4] = [2, 1, 2, 2];
 
 /// The units rounds a cycle records past those the census read used,
@@ -200,6 +202,33 @@ pub(super) fn passes(read: &[u32]) -> u32 {
 /// one before); each no further than its bound, the bounds where nothing
 /// has been read.
 pub(super) fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> Limits {
+    let l = stepped(s, read, prev);
+    #[cfg(test)]
+    let l = Limits {
+        laygens: LAYGENS.get().unwrap_or(l.laygens),
+        ..l
+    };
+    l
+}
+
+#[cfg(test)]
+thread_local! {
+    /// The layout generations a test forces every cycle on this thread to
+    /// record (`with_laygens`).
+    static LAYGENS: std::cell::Cell<Option<u32>> = const { std::cell::Cell::new(None) };
+}
+
+/// `f` run with every cycle's layout generations forced to `n`: the
+/// closing pass lays the deeper axes (fn-298 R2 (d)).
+#[cfg(test)]
+pub(in crate::generation) fn with_laygens<T>(n: u32, f: impl FnOnce() -> T) -> T {
+    LAYGENS.set(Some(n));
+    let out = f();
+    LAYGENS.set(None);
+    out
+}
+
+fn stepped(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> Limits {
     let b = &s.bounds;
     let full = Limits::full(b);
     // The first two cycles, read nothing yet, record every loop at its
