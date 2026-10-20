@@ -26,12 +26,13 @@ fn family(id: &str, age: u32) -> Family {
     family
 }
 
-/// The preset at `age`, its retained leaf bases set aside: the dress
-/// draws the tree before they are hung (`boots_tests` holds them,
-/// DESIGN.md 12.8).
+/// The preset at `age`, its retained leaf bases and frond axes set
+/// aside: the dress draws the tree before they are hung (`boots_tests`
+/// and `rachis_tests` hold them, DESIGN.md 12.8).
 fn bare(id: &str, age: u32) -> Family {
     let mut family = family(id, age);
     family.canopy.leaf_bases = 0.0;
+    family.canopy.rachis_width = 0.0;
     family
 }
 
@@ -265,16 +266,17 @@ fn every_rosette_is_placed_as_the_cpu_places_it() {
     }
 }
 
-/// fn-283 R4: the leaf-base stage draws a crown's fronds where no
-/// retained base hangs below it, and by the canopy the supernatural group
-/// applies (a natural size of none, its override the palm's), each placed
-/// as the CPU places it.
+/// fn-283 R4: the leaf-base stage draws a crown's fronds, and hangs their
+/// axes, where no retained base hangs below it, and by the canopy the
+/// supernatural group applies (a natural size of none, its override the
+/// palm's), each placed as the CPU places it.
 #[test]
 fn every_crown_the_leaf_base_stage_draws_is_placed_as_the_cpu_places_it() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
-    let bare = bare("date-palm", age());
+    let mut bare = family("date-palm", age());
+    bare.canopy.leaf_bases = 0.0;
     assert!(executor::bases(&bare).unwrap().is_none());
     let mut over = family("date-palm", age());
     over.supernatural.enabled = true;

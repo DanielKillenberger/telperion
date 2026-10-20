@@ -43,9 +43,9 @@ pub(in crate::generation) struct GrowthState {
     scale: f32,
     /// The rows its rosette's stem establishes by (fn-275 R2a).
     establishing: [f32; 3],
-    /// The most retained leaf bases a stem hangs (`boots::most`), which
+    /// The most records a stem's clothing takes (`boots::most`), which
     /// each draw holds room for.
-    bases: u32,
+    clothing: u32,
     /// The tree drawn a year before the age grown: none before the
     /// second year.
     previous: Option<Previous>,
@@ -145,7 +145,7 @@ impl GrowthState {
             unfold,
             scale,
             establishing,
-            bases: 0,
+            clothing: 0,
             previous: None,
             budget,
             growing,
@@ -153,10 +153,10 @@ impl GrowthState {
         })
     }
 
-    /// This state, each draw holding room for `bases` retained leaf bases
-    /// a stem (`boots::most`; none where begun).
-    pub(in crate::generation) fn hanging(self, bases: u32) -> Self {
-        Self { bases, ..self }
+    /// This state, each draw holding room for `clothing` records a stem
+    /// (`boots::most`; none where begun).
+    pub(in crate::generation) fn hanging(self, clothing: u32) -> Self {
+        Self { clothing, ..self }
     }
 
     /// The whole years grown; none once spent.
@@ -302,7 +302,7 @@ impl GrowthState {
                 fraction,
                 leaf,
                 establishing: self.establishing,
-                bases: self.bases,
+                clothing: self.clothing,
             };
             let dressed = dress(gpu, &k.drawn, (view, &planned), &at)?;
             let measured = trunk(gpu, &k.drawn, &dressed).await?;

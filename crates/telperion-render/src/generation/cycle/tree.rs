@@ -95,12 +95,12 @@ pub(super) fn unlaid(error: [u32; 2]) -> crate::RenderError {
 }
 
 /// The family's tree (`growth`) grown, settled and drawn on the device,
-/// with room for `bases` retained leaf bases a stem (`boots::most`): its
-/// drawn records and its trunk's measures.
+/// with room for `clothing` records a stem (`boots::most`): its drawn
+/// records and its trunk's measures.
 pub(in crate::generation) async fn drawn(
     gpu: &Gpu,
     k: &Kernels,
-    (growth, bases): (&Growth, u32),
+    (growth, clothing): (&Growth, u32),
 ) -> Result<(Dressed, Trunk)> {
     let (species, request) = (&growth.species, growth.request);
     let refused = |what: &str| super::super::io::error(format!("the species' {what}"));
@@ -140,7 +140,7 @@ pub(in crate::generation) async fn drawn(
         fraction: 1.0,
         leaf: None,
         establishing,
-        bases,
+        clothing,
     };
     let dressed = dress(gpu, &k.drawn, (s.view(), &planned), &at)?;
     let measured = trunk(gpu, &k.drawn, &dressed).await?;

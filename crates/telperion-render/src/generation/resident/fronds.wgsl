@@ -2,7 +2,8 @@
 // (`rosette::fronds`, `Crown`), into the table the stations read their
 // frond segments from (`stations.wgsl`'s `rosette`). `crowns` lists the
 // stem apices that draw a living frond, in record order; `crown_fronds`
-// writes each crown's fronds, newest first, one invocation a crown.
+// writes each crown's fronds, newest first, one invocation a crown;
+// `rachises` hangs each frond's axis from the table (fn-283 R1).
 //
 // The table: the crowns and their fronds; a crown each (`CW`): its apex's
 // id, its fronds, its first frond and its leaflets; then a frond each
@@ -307,4 +308,96 @@ fn crown_fronds(@builtin(global_invocation_id) id: vec3<u32>) {
         first += leaflets;
     }
     frond_table[e + 3u] = first;
+}
+
+// fn-283 R1: the thinnest wood the engine draws (`space.rs`' `FINEST`).
+const FINEST: f32 = 2e-4;
+
+fn table3(at: u32) -> vec3<f32> {
+    return vec3<f32>(bitcast<f32>(frond_table[at]), bitcast<f32>(frond_table[at + 1u]), bitcast<f32>(frond_table[at + 2u]));
+}
+
+// Each frond's axis as wood (`rachis.rs`' `rachises` and `hang`): a run
+// of its own from where it leaves the stem's axis through every station
+// its leaflets stand at, in the room its frond takes past the bases'
+// records, borne on the stem node that depth falls on as a base is
+// (`along`), tapering from half the width times its size share and never
+// below FINEST; none for a frond of one leaflet or of no rachis length.
+// One invocation a frond; the first opens the wave.
+@compute @workgroup_size(64)
+fn rachises(@builtin(global_invocation_id) id: vec3<u32>) {
+    let g = index(id);
+    if g >= cfg.n {
+        return;
+    }
+    if g == 0u {
+        open_wave();
+    }
+    let crowns = frond_table[0];
+    var crown = 0u;
+    // cap: the crowns.
+    for (var t = 0u; t < crowns; t++) {
+        if frond_table[2u + t * CW + 2u] <= g {
+            crown = t;
+        }
+    }
+    let s = 2u + crowns * CW + g * FW;
+    let count = frond_table[s + 25u];
+    let length = bitcast<f32>(frond_table[s + 3u]);
+    if count < 2u || length <= 0.0 {
+        return;
+    }
+    let insertion = table3(s);
+    let heading = table3(s + 8u);
+    let arch = bitcast<f32>(frond_table[s + 16u]);
+    let split = bitcast<f32>(frond_table[s + 23u]);
+    let r0 = bitcast<f32>(cfg.axes.z) / 2.0 * length / cfg.rosette[2].y;
+    let lift = frame(heading);
+    let across = cross(heading, lift);
+    // The stem node it leaves from: the apex itself on a stem of one node.
+    let apex = frond_table[2u + crown * CW] - cfg.base;
+    var bearer = apex;
+    if down(apex) != NONE {
+        bearer = along(apex, distance(insertion, pos(apex))).at;
+    }
+    let held = pos(bearer);
+    let first = cfg.axes.x + g * cfg.axes.y;
+    // A first node standing on its bearer is drawn from the bearer, as a
+    // base's is (`hang`).
+    let stands = distance(held, insertion) <= 1e-9 + STANDS * polyline(apex);
+    let opens = select(first, first + 1u, stands);
+    let base = max(r0, FINEST);
+    var parent = word(bearer, 14u);
+    var at = held;
+    var travelled = drawn[cfg.records + bearer * CV + 15u];
+    var before = base;
+    // cap: the frond's leaflets, its room past the first.
+    for (var k = 0u; k <= count; k++) {
+        var t = f32(k) / f32(count);
+        if split < 1.0 {
+            t *= split;
+        }
+        let point = insertion + heading * (length * t) + lift * (arch * length * t * t);
+        let radius = max(r0 * (1.0 - t), FINEST);
+        let r = first + k;
+        travelled += distance(at, point);
+        put_node(r, point, vec3<f32>(radius, before, base), parent, at, travelled);
+        putu(r, 6u, TAKEN | MADE | FINE | BOOT);
+        putu(r, 8u, opens);
+        putu(r, 23u, cfg.out_base + first);
+        for (var c = 0u; c < 3u; c++) {
+            put(r, 17u + c, heading[c]);
+            put(r, 20u + c, across[c]);
+        }
+        parent = cfg.out_base + r;
+        at = point;
+        before = radius;
+    }
+    if stands {
+        putu(first, 6u, TAKEN | BOOT);
+        putu(first + 1u, 16u, word(bearer, 14u));
+        for (var c = 0u; c < 3u; c++) {
+            put(first + 1u, 10u + c, held[c]);
+        }
+    }
 }

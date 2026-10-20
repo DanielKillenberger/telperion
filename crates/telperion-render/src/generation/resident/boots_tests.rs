@@ -189,8 +189,9 @@ fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Bas
         .collect()
 }
 
-/// The bases the CPU hangs on `f`'s stems: the last nodes of its expanded
-/// tree, two a base, in its clothed apices' order, and its last sections.
+/// The bases the CPU hangs on `f`'s stems: the first nodes of its expanded
+/// tree's clothing, two a base, in its clothed apices' order, and its last
+/// sections.
 fn cpu(f: &Family) -> Vec<Base> {
     let p = executor::bases(f).unwrap().unwrap();
     let x = executor::grow(f).unwrap().expansion().unwrap();
@@ -212,7 +213,7 @@ fn cpu(f: &Family) -> Vec<Base> {
         .collect();
     let per = p.leaf_bases as usize;
     let n = clothed.len() * per;
-    let start = tree.nodes.len() - 2 * n;
+    let start = tree.clothing.expect("the palm is clothed");
     let packed = tree
         .sections
         .len()

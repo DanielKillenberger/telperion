@@ -6,7 +6,7 @@
 // stem apices; `place` lays each base on its stem; `lattice` gives each
 // stem its bark and cell; `hang` writes each base's two drawn records
 // and its cell in `packed_sections`' layout. A crown's fronds are drawn
-// beside them (`fronds.wgsl`).
+// beside them, and each frond's axis hung after the bases (`fronds.wgsl`).
 
 struct Cfg {
     n: u32,
@@ -56,6 +56,10 @@ struct Cfg {
     rosette: array<vec4<f32>, 7>,
     // The counts of organs (`stations.rs`' `organ_rows`, fn-277).
     organs: array<vec4<u32>, 3>,
+    // The frond axes (fn-283): their first record past the boots' first,
+    // the records a frond's axis takes room for, and the rachis's width
+    // (its bits; `boots.rs`' `axis_nodes`).
+    axes: vec4<u32>,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -494,9 +498,21 @@ fn put_cell(c: u32, at: u32, v: vec3<f32>) {
     }
 }
 
+// The wave's axis, which loses every tie for a bearer's run: written by
+// the first base and the first frond's axis alike.
+fn open_wave() {
+    // Runtime words: Tint refuses a constant NaN, which naga folds.
+    var ones = NONE;
+    for (var f = 0u; f < CA; f++) {
+        drawn[cfg.out_axis + f] = 0.0;
+    }
+    drawn[cfg.out_axis + 8u] = bitcast<f32>(63u);
+    drawn[cfg.out_axis + 9u] = bitcast<f32>(ones);
+    drawn[cfg.out_axis + 10u] = bitcast<f32>(ones);
+}
+
 // Each base's two records and, where the bases pack, its cell (`hung`,
-// `section`). One invocation a base; the first also writes the wave's
-// axis, which loses every tie for a bearer's run.
+// `section`). One invocation a base; the first also opens the wave.
 @compute @workgroup_size(64)
 fn hang(@builtin(global_invocation_id) id: vec3<u32>) {
     let b = index(id);
@@ -504,14 +520,7 @@ fn hang(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     if b == 0u {
-        // Runtime words: Tint refuses a constant NaN, which naga folds.
-        var ones = NONE;
-        for (var f = 0u; f < CA; f++) {
-            drawn[cfg.out_axis + f] = 0.0;
-        }
-        drawn[cfg.out_axis + 8u] = bitcast<f32>(63u);
-        drawn[cfg.out_axis + 9u] = bitcast<f32>(ones);
-        drawn[cfg.out_axis + 10u] = bitcast<f32>(ones);
+        open_wave();
     }
     let t = b * BW;
     let point = get3(t);

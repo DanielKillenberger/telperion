@@ -5012,7 +5012,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "outward": 0.6,
         "rachisArch": -0.6,
         "rachisLength": 7,
-        "rachisWidth": 0,
+        "rachisWidth": 0.25,
         "rosetteDepth": 0.35,
         "rosetteDivergence": 137.508,
         "rosetteFronds": 42,

@@ -4,15 +4,17 @@
 //! room the dress left for them in its records (`most`), and, where the
 //! bases pack, a cell each in the renderer's section layout. Where the
 //! canopy stands a rosette, each crown's fronds are drawn here once, into
-//! the table the stations read them from (`fronds.wgsl`, fn-283 R4). One
-//! readback: the clothed stems and the crowns, which size the rest. A
-//! family that hangs no base adds no wave.
+//! the table the stations read them from (`fronds.wgsl`, fn-283 R4), and
+//! each frond's axis is hung from that table as wood in the same wave, a
+//! record a node past the bases' (fn-283 R1). One readback: the clothed
+//! stems and the crowns, which size the rest. A family that hangs no base
+//! and draws no axis adds no wave.
 use super::super::io;
 use super::fold::{record, Drawn, Dressed, CA_WORDS};
 use super::stations::{organ_rows, COUNTS};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
-use telperion_core::foliage::{blade, CanopyParams, Crown};
+use telperion_core::foliage::{blade, CanopyParams, Crown, MAX_FRONDS};
 use telperion_core::pipeline::executor;
 use telperion_core::presets::Family;
 use telperion_core::surface::SECTION_FLOATS;
@@ -27,6 +29,7 @@ const LATTICE: usize = 3;
 const HANG: usize = 4;
 const CROWNS: usize = 5;
 const CROWN_FRONDS: usize = 6;
+const RACHISES: usize = 7;
 /// A clothed stem's words and a base's (`boots.wgsl`).
 pub(super) const AW: u64 = 12;
 const BW: u64 = 16;
@@ -59,6 +62,7 @@ impl Hanger {
             "hang",
             "crowns",
             "crown_fronds",
+            "rachises",
         ];
         Self {
             pass: io::Pass::new(gpu, source(), &read, &entries),
@@ -81,12 +85,16 @@ pub(super) struct Hung {
 
 /// The rows `fronds.wgsl` draws a crown's fronds by: the rosette's
 /// (`rosette_rows`), its divergence as a share of a turn (`rosette_turn`)
-/// and its counts of organs (`organ_rows`).
+/// and its counts of organs (`organ_rows`); and their axes by: the
+/// rachis's width and the records a frond's axis takes room for
+/// (`axis_nodes`, none where no frond draws one).
 #[derive(Debug, Clone, Copy)]
 pub(super) struct FrondRows {
     rosette: [[f32; 4]; 7],
     turn: u32,
     organs: [u32; 12],
+    width: f32,
+    nodes: u32,
 }
 
 /// The rows `family`'s crowns are drawn by in `year`, as the
@@ -104,7 +112,31 @@ pub(super) fn frond_rows(family: &Family, year: Option<Year>) -> Result<Option<F
         rosette: rosette_rows(p, year, blade),
         turn: rosette_turn(p),
         organs: organ_rows(p, year),
+        width: p.rachis_width as f32,
+        nodes: axis_nodes(p),
     }))
+}
+
+/// A count's most whole organs: its floor, and one more where it has a
+/// share (`telperion_space::drawn`).
+fn whole(count: f64) -> u32 {
+    let word = telperion_space::word(count);
+    (word >> 16) + u32::from(word & 0xffff != 0)
+}
+
+/// The records one frond's axis takes room for (`rachis.rs`): its
+/// insertion and the most leaflets a frond draws, from the rows' whole
+/// counts; none where no frond draws an axis (`rachis::draws`, at a size).
+fn axis_nodes(p: &CanopyParams) -> u32 {
+    let draws = p.rachis_width > 0.0
+        && p.rosette_fronds > 0.0
+        && p.size != 0.0
+        && p.leaflet_count > 1.0
+        && p.rachis_length > 0.0;
+    match draws {
+        true => whole(p.leaflet_count) + 1,
+        false => 0,
+    }
 }
 
 fn storage(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
@@ -113,14 +145,21 @@ fn storage(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
     io::buffer(gpu, label, words.max(4) * 4, usage, &[])
 }
 
-/// The most bases one of `family`'s stems hangs: its count's floor, and
-/// one more where it has a share (`telperion_space::drawn`); none where
-/// it hangs none. The dress holds room for this many on every stem.
+/// The most records one of `family`'s stems' clothing takes: two for
+/// each of the most bases it hangs, and an axis's room (`axis_nodes`) for
+/// each of the most fronds its crown draws (`Crown::slots`' rail past its
+/// whole living and skirt fronds); none where it hangs neither. The dress
+/// holds room for this many on every stem.
 pub(in crate::generation) fn most(family: &Family) -> Result<u32> {
-    Ok(executor::bases(family)?.map_or(0, |p| {
-        let word = telperion_space::word(p.leaf_bases);
-        (word >> 16) + u32::from(word & 0xffff != 0)
-    }))
+    let bases = executor::bases(family)?.map_or(0, |p| whole(p.leaf_bases));
+    let p = family.applied().canopy;
+    let skirt = if p.skirt_length > 0.0 {
+        p.skirt_fronds
+    } else {
+        0.0
+    };
+    let fronds = whole(p.rosette_fronds) + whole(skirt) + MAX_FRONDS;
+    Ok(2 * bases + fronds * axis_nodes(&p))
 }
 
 /// Where the boots go in `dressed`'s records: their records' first word,
@@ -131,12 +170,13 @@ fn room(dressed: &Dressed) -> [u32; 3] {
 }
 
 /// The rows `boots.wgsl` reads for `n` invocations: the seed wave's, the
-/// boots' first id, where they go (`room`), the canopy's where it hangs
-/// bases and the crowns' where it stands a rosette (none where not).
+/// boots' first id and their axes' first record past it, where they go
+/// (`room`), the canopy's where it hangs bases and the crowns' where it
+/// stands a rosette (none where not).
 fn cfg(
     gpu: &Gpu,
     n: u32,
-    (seed, out_base): (&Drawn, u32),
+    (seed, out_base, axes): (&Drawn, u32, u32),
     out: [u32; 3],
     (p, crown): (Option<&CanopyParams>, Option<&FrondRows>),
 ) -> Result<Owned> {
@@ -174,22 +214,26 @@ fn cfg(
         rosette: [[0.0; 4]; 7],
         turn: 0,
         organs: [0; 12],
+        width: 0.0,
+        nodes: 0,
     });
     // The rosette's rows start on the uniform's 16-byte boundary.
     words.extend([c.turn, 0, 0, 0]);
     words.extend(c.rosette.as_flattened().iter().map(|v| v.to_bits()));
     words.extend(c.organs);
+    words.extend([axes, c.nodes, c.width.to_bits(), 0]);
     let bytes = bytemuck::cast_slice(&words);
     let usage = wgpu::BufferUsages::UNIFORM;
     io::buffer(gpu, "boots cfg", bytes.len() as u64, usage, bytes)
 }
 
 impl Hanger {
-    /// The bases `p` hangs on `dressed`'s stems, appended as a wave of
-    /// their own in its room, and the fronds of its crowns drawn by
-    /// `crown`; none where `p` is none or no stem is clothed, and no
-    /// table where no apex draws a living frond. Refused by name where the
-    /// room cannot hold the bases.
+    /// The bases `p` hangs on `dressed`'s stems and the axes of its
+    /// crowns' fronds, appended as a wave of their own in its room, and
+    /// the fronds drawn by `crown`; none where `p` is none or no stem is
+    /// clothed and no frond draws an axis, and no table where no apex
+    /// draws a living frond. Refused by name where the room cannot hold
+    /// the bases, or the axes past them.
     pub(super) async fn hang(
         &self,
         gpu: &Gpu,
@@ -204,14 +248,14 @@ impl Hanger {
         }
         let rows = (p, crown);
         let phyts = u64::from(seed.phyts);
-        let carried = storage(gpu, "boots carried", phyts)?;
-        let stems = storage(gpu, "boots stems", p.map_or(0, |_| 2 + phyts * AW))?;
-        let crowns = storage(gpu, "boots crowns", crown.map_or(0, |_| 2 + phyts * CW))?;
+        let b = Bound {
+            carried: storage(gpu, "boots carried", phyts)?,
+            stems: storage(gpu, "boots stems", p.map_or(0, |_| 2 + phyts * AW))?,
+            table: storage(gpu, "boots none", 4)?,
+            cells: storage(gpu, "boots none", 4)?,
+            crowns: storage(gpu, "boots crowns", crown.map_or(0, |_| 2 + phyts * CW))?,
+        };
         let totals = storage(gpu, "boots totals", 4)?;
-        let none = [
-            storage(gpu, "boots none", 4)?,
-            storage(gpu, "boots none", 4)?,
-        ];
         let mut e = gpu.encoder(&Default::default());
         let out = room(dressed);
         let entries = [
@@ -220,109 +264,104 @@ impl Hanger {
             crown.map(|_| (CROWNS, 1)),
         ];
         for (entry, n) in entries.into_iter().flatten() {
-            let c = cfg(gpu, n, (seed, 0), out, rows)?;
-            let bind = self.pass.bind(
-                gpu,
-                &[
-                    &c,
-                    &dressed.records,
-                    &carried,
-                    &stems,
-                    &none[0],
-                    &none[1],
-                    &crowns,
-                ],
-            );
-            self.pass.run(&mut e, &bind, entry, n.div_ceil(64).max(1));
+            let c = cfg(gpu, n, (seed, 0, 0), out, rows)?;
+            self.dispatch(gpu, &mut e, (entry, n, &c), (&dressed.records, &b));
         }
-        e.copy_buffer_to_buffer(&stems, 0, &totals, 0, 8);
-        e.copy_buffer_to_buffer(&crowns, 0, &totals, 8, 8);
+        e.copy_buffer_to_buffer(&b.stems, 0, &totals, 0, 8);
+        e.copy_buffer_to_buffer(&b.crowns, 0, &totals, 8, 8);
         gpu.submit([e.finish()]);
         let raw = io::read_async(gpu, &totals, 16).await?;
         let [clothed, bases, apices, fronds] =
             std::array::from_fn(|w| bytemuck::cast_slice::<u8, u32>(&raw)[w]);
-        if 2 * u64::from(bases) > u64::from(dressed.room) {
+        let axes = u64::from(fronds) * u64::from(crown.map_or(0, |c| c.nodes));
+        let records = 2 * u64::from(bases);
+        if records > u64::from(dressed.room) {
             return Err(telperion_core::Error::ResourceLimit("leaf base nodes").into());
         }
+        if records + axes > u64::from(dressed.room) {
+            return Err(telperion_core::Error::ResourceLimit("rachis nodes").into());
+        }
+        let (records, axes) = (records as u32, axes as u32);
         let mut e = gpu.encoder(&Default::default());
         // Each crown's fronds after the crowns' words, one invocation a
-        // crown.
-        let table = match apices {
-            0 => None,
+        // crown: the table the axes and the stations read.
+        let b = match apices {
+            0 => b,
             _ => {
                 let listed = 2 + u64::from(apices) * CW;
                 let table = storage(gpu, "frond table", listed + u64::from(fronds) * FW)?;
-                e.copy_buffer_to_buffer(&crowns, 0, &table, 0, listed * 4);
-                let c = cfg(gpu, apices, (seed, 0), out, rows)?;
-                let bind = self.pass.bind(
-                    gpu,
-                    &[
-                        &c,
-                        &dressed.records,
-                        &carried,
-                        &stems,
-                        &none[0],
-                        &none[1],
-                        &table,
-                    ],
-                );
-                self.pass
-                    .run(&mut e, &bind, CROWN_FRONDS, apices.div_ceil(64));
-                Some(table)
+                e.copy_buffer_to_buffer(&b.crowns, 0, &table, 0, listed * 4);
+                let c = cfg(gpu, apices, (seed, 0, 0), out, rows)?;
+                let b = Bound { crowns: table, ..b };
+                self.dispatch(gpu, &mut e, (CROWN_FRONDS, apices, &c), (&dressed.records, &b));
+                b
             }
         };
-        if clothed == 0 {
+        if clothed == 0 && axes == 0 {
             gpu.submit([e.finish()]);
             return Ok(Hung {
-                fronds: table,
+                fronds: (apices > 0).then_some(b.crowns),
                 ..Hung::default()
             });
         }
-        let base_table = storage(gpu, "boots table", u64::from(bases) * BW)?;
-        let packed = p.is_some_and(|p| p.leaf_base_width > 0.0);
-        let cells = match packed {
-            true => Some(storage(
-                gpu,
-                "boot cells",
-                u64::from(bases) * SECTION_FLOATS as u64,
-            )?),
-            false => None,
-        };
         let out_base = dressed.ids;
-        for (entry, n) in [(PLACE, bases), (LATTICE, clothed), (HANG, bases)] {
-            let c = cfg(gpu, n, (seed, out_base), out, rows)?;
-            let at = cells.as_ref().unwrap_or(&none[1]);
-            let bind = self.pass.bind(
-                gpu,
-                &[
-                    &c,
-                    &dressed.records,
-                    &carried,
-                    &stems,
-                    &base_table,
-                    at,
-                    &crowns,
-                ],
-            );
-            self.pass.run(&mut e, &bind, entry, n.div_ceil(64));
+        let packed = p.is_some_and(|p| p.leaf_base_width > 0.0);
+        let b = Bound {
+            table: storage(gpu, "boots table", u64::from(bases) * BW)?,
+            cells: match packed {
+                true => storage(gpu, "boot cells", u64::from(bases) * SECTION_FLOATS as u64)?,
+                false => b.cells,
+            },
+            ..b
+        };
+        let hanging = [(PLACE, bases), (LATTICE, clothed), (HANG, bases)];
+        let hanging = hanging.into_iter().filter(|_| clothed > 0);
+        for (entry, n) in hanging.chain((axes > 0).then_some((RACHISES, fronds))) {
+            let c = cfg(gpu, n, (seed, out_base, records), out, rows)?;
+            self.dispatch(gpu, &mut e, (entry, n, &c), (&dressed.records, &b));
         }
         gpu.submit([e.finish()]);
         dressed.waves.push(Drawn {
-            phyts: 2 * bases,
+            phyts: records + axes,
             base: out_base,
             slot: dressed.room_slot,
             root: false,
         });
-        dressed.ids += 2 * bases;
+        dressed.ids += records + axes;
         Ok(Hung {
             #[cfg(test)]
             bases,
             #[cfg(test)]
-            stems: Some(stems),
-            cells,
-            fronds: table,
+            stems: Some(b.stems),
+            cells: packed.then_some(b.cells),
+            fronds: (apices > 0).then_some(b.crowns),
         })
     }
+
+    /// `entry` run in `e` for `n` invocations under `c`, over the drawn
+    /// `records` and the stage's own buffers (`b`).
+    fn dispatch(
+        &self,
+        gpu: &Gpu,
+        e: &mut crate::Encoder,
+        (entry, n, c): (usize, u32, &Owned),
+        (records, b): (&Owned, &Bound),
+    ) {
+        let bound: [&wgpu::Buffer; 7] = [c, records, &b.carried, &b.stems, &b.table, &b.cells, &b.crowns];
+        let bind = self.pass.bind(gpu, &bound);
+        self.pass.run(e, &bind, entry, n.div_ceil(64).max(1));
+    }
+}
+
+/// The stage's own buffers, as `boots.wgsl` and `fronds.wgsl` bind them:
+/// the stems carried on, the clothed stems, the bases' table, their cells
+/// and the crowns (their list, then their fronds' table).
+struct Bound {
+    carried: Owned,
+    stems: Owned,
+    table: Owned,
+    cells: Owned,
+    crowns: Owned,
 }
 
 /// The rosette's rows as `fronds.wgsl` and `pack.wgsl` read them

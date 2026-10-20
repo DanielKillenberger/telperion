@@ -35,3 +35,18 @@
 - **Slowed by:** the queue shows 3 GB of room for the 6 GB focused run, so the base build waits on admission; no source can be edited until the base has compiled, since the queued run would compile the edits instead.
 - **Cost:** 31 minutes queued (02:25 to 02:56), behind another worktree's 8 GB workspace gate.
 - **Would remove it:** a base digest recorded by the previous task's gate run, or a cheaper way to snapshot the base's test binary before edits begin.
+
+## 2026-10-20 04:00, worker on task .3
+
+- **Doing:** the first type-check of the device axes (`telperion-heavy 6 --threads 4 -- cargo check`).
+- **Slowed by:** the queue shows 2 GB of room for the 6 GB job, behind another worktree's 8 GB workspace gate (`telperion-heavy-3024530`); a `cargo check` cannot run outside the queue under the run rules.
+- **Cost:** queued from 03:50; recorded once admitted.
+- **Would remove it:** a smaller declared size for a type-check (it needs well under 6 GB), or a check lane that does not wait behind gates.
+- **Admitted:** 04:28, after about 38 minutes queued.
+
+## 2026-10-20 05:10, worker on task .3
+
+- **Doing:** the agreement suites at the palm's 0.25 m width.
+- **Slowed by:** two existing gates fail on a tolerance, not a fault. `every_preset_sweeps_its_wood_as_the_cpu_does`: the palm's 315 runs all match point for point, centre 1.01e-3 m against a 1e-3 bound. `every_preset_s_device_field_answers_within_its_tolerance`: the palm at seed 5678 and side 24 gives a wood Jaccard of 0.9976 against 0.999. `rachis_tests` measured the cause. The error grows linearly along each axis and is already 3e-4 m at the insertion. Both executors take the crown's axis from the apex and its parent. Positions that agree by lineage (about 5e-6 m) across a short apex internode leave the two axes about 1e-3 rad apart (inferred from the insertion error over a depth of 0.35 m or less). Every frond heading carries that angle, the leaflets' included, so it reaches about 1 mm at a 7 m rachis's tip.
+- **Cost:** a stop for the host. The choice is between widening these gates for the frond axes and conditioning the crown's axis differently, which is a core change outside this task. That is a gate and design call.
+- **Would remove it:** an agreement bound for long wood stated as a direction tolerance times the reach, as the leaves' bound is already relative to height, set when the spec is written.

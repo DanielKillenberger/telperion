@@ -157,7 +157,7 @@ async fn stages(gpu: &crate::Gpu, k: &Kernels, growth: &Growth, stamping: bool) 
         fraction: 1.0,
         leaf: None,
         establishing: Establishing::words(growth.establishing),
-        bases: 0,
+        clothing: 0,
     };
     let dressed = dress(gpu, &k.drawn, (s.view(), &planned), &at).expect("dressed");
     mark(&mut st, "dress", &mut clock);
