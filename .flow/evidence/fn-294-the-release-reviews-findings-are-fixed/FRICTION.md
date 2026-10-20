@@ -14,3 +14,10 @@
 - Cost: about 11 h 50 min of wall time with no gate, against a few minutes of compile and test.
 - Would remove it: a gate request sized to what the gate needs (8 GB was enough), or a queue that reports who holds the room and for how long, so a waiting run can say so early instead of waiting silently.
 - Also: a fresh worktree needed `npm ci` (the esbuild postinstall is skipped by the install-scripts guard, but vite still ran); a cold `target/` per worktree, as AGENTS requires, means a full compile per worktree.
+
+## 2026-10-20 — `flowctl init` rewrote the project config
+
+- Doing: the plan stage's preflight (`flowctl init --json`, flow-next 9.0.0).
+- Hindered: init added `"fanoutExecution": "concurrent"` to `.flow/config.json`, and the plan commit (`git add .flow`) carried it. The completion review flagged it as an untraced change; the closing commit reverts it.
+- Cost: one reverted line and a few minutes. Had it merged, it would have changed review execution for every later spec.
+- Would remove it: `flowctl init` leaving an existing config untouched, or reporting the keys it adds.

@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-294-the-release-reviews-findings-are-fixed",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-20T01:00:05.088973Z",
   "created_at": "2026-10-19T09:31:44.491966Z",
   "default_impl": null,
   "default_review": null,
@@ -372,6 +372,42 @@
       "task": "fn-294-the-release-reviews-findings-are-fixed.3",
       "timestamp": "2026-10-20T00:56:52.331877Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "dcee054f9c94e489905a2d82401b175fdce921aed5ce7919ff949590f27214d4",
+      "backend": "codex",
+      "base_sha": "639fb9e0b1d8d843b18fee096d5f3003858076cc",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "2099e3ec7353f00a8f2eae4f5202f340bc2db45d",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 299612,
+      "output_sha256": "82781755790799522a4e83de5bdcb44ab9c9db51dd23bc7913ea76ba1ff6c42a",
+      "reservation_id": "7b540fc11c2d49adbe4f68b0b0cecd7b",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T01:00:05.077256Z",
+      "tool_calls": 26,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -379,11 +415,12 @@
     "impl:fn-294-the-release-reviews-findings-are-fixed.2": 1,
     "impl:fn-294-the-release-reviews-findings-are-fixed.3": 1,
     "plan": 2,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-294-the-release-reviews-findings-are-fixed.1": 0,
     "impl:fn-294-the-release-reviews-findings-are-fixed.2": 0,
     "impl:fn-294-the-release-reviews-findings-are-fixed.3": 0,
@@ -403,5 +440,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T00:56:52.334669Z"
+  "updated_at": "2026-10-20T01:00:05.094522Z"
 }
