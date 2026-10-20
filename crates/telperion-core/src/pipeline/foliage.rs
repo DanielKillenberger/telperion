@@ -255,8 +255,10 @@ impl Instances {
                 }
             }
         }
-        if let (Some(b), true) = (&mut bounds, element.stalk > 0.0) {
-            let pad = Vec3::new(element.stalk, element.stalk, element.stalk);
+        // A flower's stalks, laid from each origin; a leaf has none.
+        let stalks = (element.stalk > 0.0).then_some(element.stalk);
+        if let (Some(b), Some(reach)) = (&mut bounds, stalks) {
+            let pad = Vec3::new(reach, reach, reach);
             for i in 0..self.leaves.len() {
                 for p in [self.position(i) - pad, self.position(i) + pad] {
                     if [p.x, p.y, p.z].iter().any(|v| !(*v as f32).is_finite()) {

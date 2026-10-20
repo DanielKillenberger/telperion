@@ -24,3 +24,9 @@
 - Hindered: the task names Laurelin, but at her shipped rows (age 80 and 30, seed 1) her crown already holds every stalk: the old bounds fell 0 m short, so the stated repro is green on the base. Finding a red case took four probe runs over droop, rachis and floret count (one floret on a 1 m rachis at droop 0.5 is 0.364 m short).
 - Cost: ~12 minutes and four GPU test runs.
 - Remove it: run the repro before the spec names its subject (AGENTS.md, "Gates and checked claims"); here the shortfall needs a rachis running past its last floret out of the crown.
+
+## 2026-10-20 task .2, the gate
+- Doing: the one workspace gate at the end of the task.
+- Hindered: `generation_limit_guard` (a lexical check) read the stalk fold's presence test, `if ... element.stalk > 0.0 { ... return Err(..) }`, as an authored limit; only the gate runs that target, so a 37-minute gate was the first to see it. Restated as `then_some` and re-checked with the guard and bounds tests alone.
+- Cost: one red gate (1409 passed, 1 failed, 111 ignored) and ~5 minutes.
+- Remove it: list `generation_limit_guard` in the spec's Quick commands for any task touching `telperion-core/src`, so it runs before the gate.
