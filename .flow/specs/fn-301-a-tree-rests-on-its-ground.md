@@ -85,3 +85,56 @@ Contact is a rule of the curve each axis is drawn on, plus one pose rule for ins
 - Not collision between branches.
 - Not tuning the palm's frond pose. The owner chose contact over that.
 - Not (b), the leaflets reading the hung rachis. That is a post-release Open item, which would delete the frond curve's device copies.
+
+
+## Edge cases and constraints (plan, 2026-10-21)
+
+- **Dormant means untouched floats.** Contact and pose are gated by a predicate evaluated before any new arithmetic. A curve whose bark never reaches the ground, and an instance whose bounds never cross it, take exactly today's operations in today's order. That is what R3's byte-identity rests on, on both executors.
+- **The frond's contact point.** First contact is the least `t` in [0, 1] where the centreline's height equals the rachis radius there, `r0·(1 − t)` floored at the finest wood. On the palm's descending arch it is the one root; with an upward arch, the first root wins and the axis stays down from there. A frond whose base already sits at or below its radius rests from `t = 0`. Past contact the curve runs flat at its radius in the horizontal direction of its tangent at contact (the heading's horizontal direction when that tangent is vertical), and its parameter maps to the parabola's remaining closed-form arc length. A heading with no horizontal part and a vertical tangent has no defined direction. That case is a named error, never a fallback (principles, question 2).
+- **The frond's frame past contact.** The function returns the point and the tangent. The leaflets' run and axis read the returned tangent, so they lie with the rachis.
+- **Stations.** The CPU's rachis and leaflets sample `t` from `station()`. The device's `rachises` samples `k / count · split`. Task 1 checks whether the two are the same values. If they differ, the shared device function takes `station()`'s form, and the difference is recorded.
+- **Engine lay.** A non-trunk step whose bark would pass below the ground ends at height `radius`. It keeps the step's length along the horizontal part of its travel (the heading's horizontal part when the step is vertical). The landing ease and the trunk fault are unchanged. Sag reads tip heights, so trees whose wood rests change through the sag pass too. That is part of R3's "rows that change".
+- **Establishment.** The palm's stem is lowered after the lay (`establish`). Every frond is hung from the lowered stem, so the frond curve's contact sees the final heights. The palm has no engine laterals for the lowering to carry below the ground. R1's rows hold this.
+- **Instance pose.** The pose turns about the attachment point, so the stored translation, and with it the quantisation box's containment, is unchanged. The element's local box comes from its positions. The device needs it in the config it already uploads.
+- **"Below" admits 1e-4 m.** A leaf transform is quantised against the crown's box, so a vertex laid on the ground can read a hair under it. R1's test states this bound (`BELOW`, this spec).
+
+## Quick commands
+
+```bash
+# R1 and R4: nothing drawn below the ground, every preset, ages and seeds
+telperion-heavy 8 --threads 2 -- cargo test --profile ci -p telperion-core --test ground_reach -- --nocapture
+# R4: the CPU and the device agree on the palm at 12
+telperion-heavy 8 --threads 2 -- cargo test --profile ci -p telperion-render agree
+# R3: a preset's every artifact, digested
+cargo run --profile ci -p telperion-core --example artifact_digest -- european-beech 1 | sha256sum
+```
+
+## Early proof point
+
+Task fn-301-a-tree-rests-on-its-ground.2 validates the core approach: contact inside the one frond curve rests the palm at 12 on both executors, and they still agree. If it fails, re-evaluate contact-in-the-curve, against the post-release (b), before continuing with tasks .3 and later.
+
+## Strategy Alignment
+
+Active tracks served by this plan:
+- **The tree space**: contact is a property of the pipeline. It is dormant where nothing reaches the ground and wakes by degree, with no species branch and no switch.
+- **The core and integration**: one rule per executor, applied where positions are already made. The device's frond curve folds into one function.
+
+## Memory findings
+
+| Track | Category | Entry | Why relevant |
+|---|---|---|---|
+| bug | runtime-errors | rows-hoisted-before-the-expansion-read-2026-10-20 | Device frond rows must be read from `Family::applied`, not the raw family. The shared curve takes its rows from the same table. |
+| bug | integration | wood-hung-after-the-solve-bore-cauline-2026-10-19 | Frond axes are hung wood. A resting axis must not change what bears leaves. |
+
+## Requirement coverage
+
+| Req | Task(s) |
+| --- | --- |
+| R1 | .5 (the repro landed at 24704052c) |
+| R2 | .1, .2, .3, .4 |
+| R3 | .3, .5 |
+| R4 | .2, .4, .5 |
+| R5 | .5 |
+| R6 | .5, and a codex review on every task |
+
+Waves: 1 = .1, .3 · 2 = .2 · 3 = .4 · 4 = .5.
