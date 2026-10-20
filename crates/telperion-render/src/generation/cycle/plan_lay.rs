@@ -1,7 +1,8 @@
 //! A recorded cycle's rough layout and light (DESIGN.md sections 2.3 and
 //! 2, step 8): the axes that grew listed by index and drawn in ranges
 //! of grown axes, the new axes framed and drawn a generation at a time
-//! up to the generations' bound; then the cycle's leaves and the living
+//! up to the cycle's limit and the deeper ones by a closing pass (fn-298
+//! R2 (d)), the limit only a cost hint; then the cycle's leaves and the living
 //! apexes' tips gathered, the box, the deposit in ranges of leaves,
 //! the sweep's layer ranges up to their bound, the reads into the
 //! pencils. Each bound passed raises its flag.
@@ -161,6 +162,12 @@ impl Build {
             }
             b.leave();
         }
+        // The closing pass: each new axis the generations recorded left,
+        // laid chain by chain under its head at the cycle's limit.
+        let slot = self.lay_slot(b, (new.clone(), 0, 0, 0));
+        b.set(slot, 9, E::At(rec::LAYGENS));
+        let bind = self.lay_bind(b, kit, slot);
+        b.dispatch(lay(ld::TAIL), bind, over_new);
         b.tally(
             &self.layout.lists,
             4 * T_DEEP,
@@ -169,14 +176,10 @@ impl Build {
         );
         b.tally(&self.layout.lists, 4 * T_FAULT, c::LAY_FAULT, 4);
         b.point();
-        // A generation the cycle's limit did not record, reached.
-        let deeper = (0..DEEP).fold(E::C(0), |a, g| {
-            a.max(
-                E::C(g + 1)
-                    .gt(E::At(rec::LAYGENS))
-                    .sel(E::At(c::LAY_DEEP + g as usize), E::C(0)),
-            )
-        });
+        // A generation past the plan's cap, reached (the last mark holds
+        // every deeper one).
+        let deeper = (bound.generations.min(DEEP)..DEEP)
+            .fold(E::C(0), |a, g| a.max(E::At(c::LAY_DEEP + g as usize)));
         b.flag(Flag::LayGenerations, deeper);
         b.flag(Flag::LayFault, E::At(c::LAY_FAULT));
         b.flag(

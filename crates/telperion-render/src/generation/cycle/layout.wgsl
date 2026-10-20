@@ -2,7 +2,9 @@
 // device, test-only. Round 0 lays the units the grown axes grew
 // (`draw`); then each relay's node is set (`relay`), each new axis's
 // generation found (`generation`), and per generation its axes are listed
-// by a flag, a scan and a gather, framed (`frame`) and laid (`draw`).
+// by a flag, a scan and a gather, framed (`frame`) and laid (`draw`), up
+// to the generations the cycle records; the closing pass (`tail`) lays
+// every new axis deeper.
 // The state is the cycle's one resident state (`state.rs`): the axes'
 // columns the units write and the layout's beside them, the units'
 // records, the phytomers' columns the units write and the layout's, the
@@ -218,6 +220,10 @@ fn draw_main(@builtin(global_invocation_id) id: vec3<u32>) {
     if i == NONE {
         return;
     }
+    draw_one(i);
+}
+
+fn draw_one(i: u32) {
     status = 0u;
     forget();
     draw_axis(i);
@@ -232,6 +238,10 @@ fn frame_main(@builtin(global_invocation_id) id: vec3<u32>) {
     if i == NONE || carried_on(i) {
         return;
     }
+    frame_lateral(i);
+}
+
+fn frame_lateral(i: u32) {
     status = 0u;
     forget();
     frame(i, framed_lateral(i));
@@ -244,9 +254,13 @@ fn frame_on_main(@builtin(global_invocation_id) id: vec3<u32>) {
     if i == NONE || !carried_on(i) {
         return;
     }
+    frame_carried(i);
+}
+
+fn frame_carried(i: u32) {
     status = 0u;
     forget();
-    // Its stand, as `gather_main` kept it in the axis's own frame columns.
+    // Its stand, as `keep_stand` kept it in the axis's own frame columns.
     let at = Point(vec3<f32>(0.0), ax3(i, A_HEADING), ax3(i, A_SIDE), axf(i, A_BASE));
     frame(i, framed_on(i, at));
     fault_out(i);
@@ -314,12 +328,76 @@ fn gather_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = cfg.first_new + k;
     atomicStore(&lists[listed_at() + counts[k]], i);
     if carried_on(i) {
-        status = 0u;
-        forget();
-        let at = stood(i);
-        set_ax3(i, A_HEADING, at.along);
-        set_ax3(i, A_SIDE, at.side);
-        set_ax(i, A_BASE, bitcast<u32>(at.rank));
-        fault_out(i);
+        keep_stand(i);
     }
+}
+
+fn keep_stand(i: u32) {
+    status = 0u;
+    forget();
+    let at = stood(i);
+    set_ax3(i, A_HEADING, at.along);
+    set_ax3(i, A_SIDE, at.side);
+    set_ax(i, A_BASE, bitcast<u32>(at.rank));
+    fault_out(i);
+}
+
+// The closing pass (fn-298 R2 (d)): every new axis at or past generation
+// `cfg.generation`, the generations the cycle recorded, laid, so that
+// count is a cost hint and never a limit. Laying an axis reads only its
+// own state and its ancestors' (R2.md, task .2), so any order that lays
+// each ancestor first lays the same bits. One writer per chain, chosen by
+// its head: the invocation of each axis at generation `cfg.generation`
+// lays it, then its new descendants a generation at a time, each in index
+// order, by the generation pass's own steps in their order. The heads'
+// descendants are disjoint and every ancestor above a head was laid by a
+// recorded pass, so no axis has two writers.
+@compute @workgroup_size(64)
+fn tail_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let k = invocation(id);
+    if cfg.cycle == 0u || k >= cfg.new_axes || generation_of(k) != cfg.generation {
+        return;
+    }
+    let head = cfg.first_new + k;
+    lay(head);
+    // cap: the cycle's new axes, one generation each at most.
+    for (var up = 1u; up <= cfg.new_axes; up++) {
+        var found = false;
+        for (var j = 0u; j < cfg.new_axes; j++) {
+            let i = cfg.first_new + j;
+            if generation_of(j) == cfg.generation + up && ancestor(i, up) == head {
+                lay(i);
+                found = true;
+            }
+        }
+        if !found {
+            return;
+        }
+    }
+}
+
+fn generation_of(k: u32) -> u32 {
+    return atomicLoad(&lists[generations_at() + k]);
+}
+
+// The ancestor `up` generations above axis `i`.
+fn ancestor(i: u32, up: u32) -> u32 {
+    var a = i;
+    for (var n = 0u; n < up; n++) {
+        a = ax(a, A_PARENT);
+    }
+    return a;
+}
+
+// New axis `i` laid as its generation's pass lays it: its stand kept
+// (`gather_main`), framed (`frame_main`, `frame_on_main`), its units laid
+// (`draw_main`).
+fn lay(i: u32) {
+    if carried_on(i) {
+        keep_stand(i);
+        frame_carried(i);
+    } else {
+        frame_lateral(i);
+    }
+    draw_one(i);
 }
