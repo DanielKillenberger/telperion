@@ -106,11 +106,18 @@ pub(super) fn compare(cpu: &[Occupancy], dev: &[Occupancy]) -> Measures {
 /// are (`every_rosette_is_placed_as_the_cpu_places_it`), so a crown of
 /// fronds is held to where its draws allow.
 pub(super) fn within(m: &Measures, fronds: bool) -> Result<(), String> {
-    let (foliage, leaves, total, limbs) = match fronds {
-        false => (0.999, 0.002, 0.001, 0.95),
-        true => (0.70, 0.40, 0.02, 0.70),
+    // A frond crown's wood holds its frond axes, which turn with the
+    // crown's spiral: both executors take its reference from vertical
+    // squared off a crown axis 4e-3 to 7e-3 rad off vertical
+    // (`rosette::frame`), which magnifies the axes' 1.2e-6 rad lineage gap
+    // to 1.2e-4 to 3.0e-4 rad (fn-283 .3, raw/frond-azimuth.log); the
+    // leaflets and bases share it. Measured: wood 0.9976 on the palm at
+    // seed 5678 on 24 cells; held at about twice its miss.
+    let (wood, foliage, leaves, total, limbs) = match fronds {
+        false => (0.999, 0.999, 0.002, 0.001, 0.95),
+        true => (0.995, 0.70, 0.40, 0.02, 0.70),
     };
-    let held = m.wood >= 0.999
+    let held = m.wood >= wood
         && m.radius <= 0.005
         && m.foliage >= foliage
         && m.leaves <= leaves

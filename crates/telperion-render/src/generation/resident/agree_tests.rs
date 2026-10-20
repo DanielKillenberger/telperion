@@ -393,7 +393,10 @@ const ROSETTE_APART: f64 = 1e-4;
 /// The device's curve against the CPU's, run by run (matched at their
 /// first point within a millimetre): runs matched, unmatched, with their
 /// points differing in number, and the most apart a matched point stood
-/// (m) and its radius (relative). Read through its `Debug` print.
+/// (m) and its radius (relative); the most a frond axis's point stood
+/// apart as a share of its bound (`FROND_TURN`), with how many frond-axis
+/// runs matched.
+/// Read through its `Debug` print.
 #[allow(dead_code)]
 #[derive(Debug, Default)]
 struct Runs {
@@ -405,6 +408,36 @@ struct Runs {
     trunks: (usize, usize),
     centre: f64,
     radius: f64,
+    fronds: usize,
+    frond: f64,
+}
+
+/// The angle a frond axis may stand turned from the CPU's (radians),
+/// beside the millimetre every run is held to: twice the largest heading
+/// gap measured, 3.0e-4 rad at 4 (1.24e-4 at 12, 1.41e-4 at 40; fn-283
+/// raw/frond-azimuth.log). Both executors take the crown's spiral
+/// reference from vertical squared off its axis (`rosette::frame`); on the
+/// palm that axis stands 4e-3 to 7e-3 rad off vertical, which magnifies
+/// the crown axes' 1.2e-6 rad lineage gap into the whole spiral's phase.
+/// The leaflets and the bases share it. Decision (conductor), fn-283 .3:
+/// the frond's wood is held to an angular lineage bound.
+const FROND_TURN: f64 = 6e-4;
+
+/// Where each frond axis the CPU hangs ends (`rachis.rs`): the last node
+/// of each of the clothing's runs past its bases' (two nodes each).
+fn frond_tips(tree: &telperion_core::tree::Tree) -> Vec<Vec3> {
+    let first = tree.clothing.unwrap_or(tree.nodes.len());
+    let mut runs: Vec<Vec<Vec3>> = Vec::new();
+    for (i, n) in tree.nodes.iter().enumerate().skip(first) {
+        match n.branch as usize == i {
+            true => runs.push(vec![n.position]),
+            false => runs.last_mut().unwrap().push(n.position),
+        }
+    }
+    runs.into_iter()
+        .filter(|r| r.len() > 2)
+        .map(|r| r[r.len() - 1])
+        .collect()
 }
 
 /// A millimetre's cell at the scale `s` the tree is drawn at.
@@ -441,12 +474,9 @@ fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
             runs.push((c[2], c[3]));
         }
     }
-    let theirs = executor::grow(f)
-        .unwrap()
-        .expansion()
-        .unwrap()
-        .curve()
-        .unwrap();
+    let x = executor::grow(f).unwrap().expansion().unwrap();
+    let theirs = x.curve().unwrap();
+    let tips = frond_tips(x.tree());
     let mut by: HashMap<(i64, i64, i64), Vec<usize>> = HashMap::new();
     for (j, r) in theirs.runs.iter().enumerate().filter(|(_, r)| r.count > 1) {
         by.entry(cell(theirs.points[r.first as usize + 1].centre, s))
@@ -485,9 +515,17 @@ fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
         }
         out.matched += 1;
         out.trunks.0 += usize::from(theirs.runs[j].trunk);
+        let end = want[want.len() - 1].centre;
+        let frond = tips.iter().any(|t| t.distance(end) <= 1e-6);
+        out.fronds += usize::from(frond);
         for (i, c) in want.iter().enumerate() {
             let m = point(first + i as u32);
-            out.centre = out.centre.max(m.centre.distance(c.centre));
+            let apart = m.centre.distance(c.centre);
+            let reach = c.along - want[0].along;
+            match frond {
+                true => out.frond = out.frond.max(apart / (1e-3 + FROND_TURN * reach)),
+                false => out.centre = out.centre.max(apart),
+            }
             out.radius = out
                 .radius
                 .max((m.radius - c.radius).abs() / c.radius.max(1e-9));
@@ -557,5 +595,8 @@ fn every_preset_sweeps_its_wood_as_the_cpu_does() {
         // The tolerance above never covers a trunk: one run, all the flare.
         assert_eq!(r.trunks.0, r.trunks.1, "{id}: {r:?}");
         assert!(r.centre < 1e-3 && r.radius < 1e-3, "{id}: {r:?}");
+        // A frond's axis turns with the crown's spiral: a millimetre and
+        // `FROND_TURN` times its reach along the run.
+        assert!(r.frond < 1.0, "{id}: {r:?}");
     }
 }
