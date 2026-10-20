@@ -76,3 +76,10 @@
 - **Slowed by:** the queue showed 3 to 5 GB of room from 15:08, behind another worktree's 8 GB workspace gate (`telperion-heavy-444462`).
 - **Cost:** queued from 15:08; recorded once admitted.
 - **Would remove it:** a smaller declared size for a stills run, which needs well under 6 GB.
+
+## 2026-10-20 22:10, host of the run (conductor), the release merge
+
+- **Doing:** recomputing the catalogue digests on the merged tree, a focused `catalogue_identity` run through `telperion-heavy 8` as the host asked.
+- **Slowed by:** the queue has held the focused run since 21:06 with 3 to 7 GB of room against 8; a one-binary test waits the gate's admission.
+- **Cost:** over an hour idle before the first compile of the merge.
+- **Would remove it:** a declared size for a focused crate test (well under 8 GB), apart from the workspace gate's.

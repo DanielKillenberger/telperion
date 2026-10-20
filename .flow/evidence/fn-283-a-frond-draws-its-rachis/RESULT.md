@@ -109,3 +109,7 @@ The CPU mesh hashes per preset are in HASHES.md. Only the palm moves.
 ## Observed while measuring, not acted on
 
 `executor::expand` was given the walk's grown, clothed tree at t = 0.4 with `cauline` 0. It drew a different curve from a full build: curve height 15.74 m against 14.69 m, and the trunk's first ring 4 mm lower. The test now grows both builds instead. The cause was not isolated. The likely cause is that a handed-in tree's envelope reaches up to its frond axes (inferred).
+
+## R5: the owner's verdict (2026-10-20)
+
+Passed ("ok", to the host's question: everything except the young palm's clipping into the ground, the palm at 40 and the walk at t = 0.5 included). The young palm's ground clipping is pre-existing: the same probe on the base 147dae260 and on this branch gives the same leaflets below ground at every age (1,547 to 1,560 at 12; none at 40), in `clip-base.tsv` and `clip-head.tsv`, and the stills at 12 side by side in `clip-12-base-vs-head.jpg`. The cause, fronds near 7 m leaving at 117.5 degrees with `rachisArch` -0.6 on a 3.5 m stem and the dead skirt at 165 degrees, goes to fn-301 (ground contact, owner).
