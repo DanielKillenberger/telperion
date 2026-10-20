@@ -49,6 +49,6 @@ Would remove it: run R3's own frame list (this survey's segment table) as the fi
 ## 2026-10-20 18:50, task .2: the ruled `rounds` floor rested on which census a cycle has read
 
 Doing: the host's `rounds` ruling, which floors a cycle's `rounds` by "the latest read census's laid depth (a cycle fresher than `gens`)".
-Slowed by: the claim it was conditioned on holds exactly (k = 0), but a cycle's limits read the census two cycles back, not one (`build_grow.rs:380`, `418`), so the floor covers 1 of the 9 frames. The task stops `NEEDS_HUMAN` a second time with nothing built.
+Slowed by: the claim it was conditioned on holds exactly (k = 0), but a cycle's limits read the census two cycles back, not one (`build_grow.rs:381`, `428`), so the floor covers 1 of the 9 frames. The task stops `NEEDS_HUMAN` a second time with nothing built.
 Cost: about 10 minutes and one 81 s admission; another host round trip.
 Would remove it: a ruling that names a census states its cycle offset, checked against `Growing::cycle` before the acceptance is written around it (AGENTS.md, "Gates and checked claims").
