@@ -49,6 +49,30 @@ fn an_age_one_end_never_reaches_keeps_the_others_settings() {
     }
 }
 
+/// A lateral row the axis never draws reaches nothing: the palm's stem has
+/// no readiness, so a lateral probability into age 3 leaves it unbranched
+/// and the ages past it unreached.
+#[test]
+fn a_lateral_the_axis_never_draws_reaches_no_age() {
+    let o = oak();
+    let mut p = palm();
+    assert_eq!(p.states[2].readiness, 0.0, "the palm's stem is unready");
+    p.states[2].zones[0].lateral[3] = 1.0;
+    for t in T {
+        for (name, frame) in [
+            ("oak to palm", blend(&o, &p, t).unwrap()),
+            ("palm to oak", blend(&p, &o, 1.0 - t).unwrap()),
+        ] {
+            for &k in &past_the_palm(&o) {
+                assert!(
+                    same(&frame.states[k], &o.states[k]),
+                    "{name} at t {t}: age {k}"
+                );
+            }
+        }
+    }
+}
+
 #[test]
 fn an_age_both_ends_reach_still_mixes() {
     // The palm's stem age, lived at both ends, lies strictly between them.

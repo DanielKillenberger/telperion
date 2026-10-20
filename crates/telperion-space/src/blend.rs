@@ -145,8 +145,9 @@ fn reaching(a: &Species, b: &Species) -> (Species, Species) {
 }
 
 /// The ages a bud of `s` is ever in, entered or passed through: from the
-/// seed's bud of the youngest PA, each apex moving on, and each lateral or
-/// sleeping bud of the PA it carries. A relay bud keeps its own PA.
+/// seed's bud of the youngest PA, each apex moving on, and each lateral
+/// bud the axis draws (`PaState::laterals`) or sleeping bud of the PA it
+/// carries. A relay bud keeps its own PA.
 fn reached(s: &Species) -> Vec<bool> {
     let mut seen = vec![false; s.states.len()];
     let mut lived = Vec::new();
@@ -156,8 +157,13 @@ fn reached(s: &Species) -> Vec<bool> {
         if state.continuation > 0.0 {
             enter(s, a + 1, &mut seen, &mut lived);
         }
-        for zone in &state.zones {
-            for (pa, (&p, &d)) in zone.lateral.iter().zip(&zone.dormant).enumerate() {
+        // The lateral probabilities as the axis draws them, readiness and
+        // rhythm applied; a zone of no nodes holds no bud.
+        for (zone, drawn) in state.zones.iter().zip(state.laterals()) {
+            if zone.nodes.mean() <= 0.0 {
+                continue;
+            }
+            for (pa, (&p, &d)) in drawn.iter().zip(&zone.dormant).enumerate() {
                 if p > 0.0 || d > 0.0 {
                     enter(s, pa, &mut seen, &mut lived);
                 }

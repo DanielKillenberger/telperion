@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-299-a-walk-frame-grows-within-its-ends",
   "impl_review_rounds": {
-    "fn-299-a-walk-frame-grows-within-its-ends.1": 0
+    "fn-299-a-walk-frame-grows-within-its-ends.1": 0,
+    "fn-299-a-walk-frame-grows-within-its-ends.2": 1
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -305,6 +306,50 @@
       "task": "fn-299-a-walk-frame-grows-within-its-ends.1",
       "timestamp": "2026-10-20T17:13:11.106785Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "bd4de63ac9bfc694bd19684819fe87ccff87185873c6ee685403f5b306022798",
+      "backend": "codex",
+      "base_sha": "2df1389357f5a44f3a84426c166c101e5d04d1ad",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e547a5022eeb24516dec6aa5bef78811",
+            "classification": "introduced",
+            "findingId": "finding-e547a5022eeb24516dec6aa5bef78811",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "499117b83c380996cca81391111c2b6424e234e4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1320,
+      "output_sha256": "18297fa5e956445577462efd0158a2a5ddfa65fb9fe35af348b22ca1d16cc033",
+      "reservation_id": "1de58f90ec1f49bf8199ca8e28d7b6bd",
+      "round_consumed": true,
+      "scope": "impl:fn-299-a-walk-frame-grows-within-its-ends.2",
+      "superseded_by": null,
+      "task": "fn-299-a-walk-frame-grows-within-its-ends.2",
+      "timestamp": "2026-10-20T18:42:22.615234Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -316,6 +361,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-299-a-walk-frame-grows-within-its-ends.1": 0,
+    "impl:fn-299-a-walk-frame-grows-within-its-ends.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-299-a-walk-frame-grows-within-its-ends.md",
@@ -332,5 +378,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T17:13:11.109438Z"
+  "updated_at": "2026-10-20T18:42:22.618614Z"
 }
