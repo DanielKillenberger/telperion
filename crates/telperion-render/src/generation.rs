@@ -138,7 +138,9 @@ pub struct Generator {
 impl Generator {
     /// Live tree buffers only; excludes textures, pipelines and driver allocations.
     pub fn tree_buffer_bytes(renderer: &Renderer) -> u64 {
-        renderer.wood.allocated_bytes() + renderer.foliage.allocated_bytes()
+        renderer.wood.allocated_bytes()
+            + renderer.foliage.allocated_bytes()
+            + renderer.organ.allocated_bytes()
     }
     #[cfg(not(target_arch = "wasm32"))]
     pub fn new(renderer: &Renderer) -> Result<Self> {

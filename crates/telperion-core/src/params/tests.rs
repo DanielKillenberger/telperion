@@ -316,3 +316,17 @@ fn the_first_malformed_row_on_the_wire_names_the_refusal() {
         );
     }
 }
+
+/// fn-294 R5: a family built in Rust under a light no row states (a valid
+/// `Light`, not the site's) cannot be written as a wire; an overlay of it
+/// is refused by name, never a panic.
+#[test]
+fn an_overlay_of_a_family_under_another_light_is_refused_by_name() {
+    let mut family = preset(3).unwrap();
+    family.space.light = telperion_space::Light::NEUTRAL;
+    let refused = overlay(&family, &json!({})).unwrap_err();
+    assert!(
+        matches!(&refused, Error::InvalidValue { field: "space", value } if value.contains("site's light")),
+        "{refused}"
+    );
+}

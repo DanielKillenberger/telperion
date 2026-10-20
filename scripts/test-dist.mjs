@@ -36,6 +36,11 @@ async function one(id, seed) {
     const whole = vertices > 0 && vertices <= 65536 && c.normals.length === vertices * 2 && c.indices.length > 0;
     if (!whole || !c.indices.every(i => i < vertices)) throw Error(`wood chunk ${k} is malformed`);
   }
+  // The flowers beside the leaves (fn-294): present exactly where the core
+  // names their reference, three words a floret and a whole flower mesh.
+  const organ = tree.organ, reference = tree.diagnostics.organReference;
+  if (Boolean(organ) !== (reference !== null)) throw Error('flowers and their reference disagree');
+  if (organ && (organ.leaves.length === 0 || organ.leaves.length % 3 || !organ.indices.every(i => i < organ.positions.length / 3))) throw Error('flowers are malformed');
   const memory = engine.memoryBytes;
   if (memory > LIMIT) throw Error(`Wasm memory ${mib(memory)} MiB is over the ${mib(LIMIT)} MiB bar`);
   return { nodes, chunks: chunks.length, memory, seconds };

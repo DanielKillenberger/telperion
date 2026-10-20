@@ -136,55 +136,58 @@ pub extern "C" fn build() -> u32 {
         status(&mut e, result)
     })
 }
-#[no_mangle]
-pub extern "C" fn buffer_ptr(slot: u32) -> *const u8 {
-    ENGINE.with(|e| {
-        let e = e.borrow();
-        let o = &e.output;
-        match slot {
-            3 => o.element_positions.as_ptr().cast(),
-            4 => o.element_indices.as_ptr().cast(),
-            5 => o.instances.leaves.as_ptr().cast(),
-            6 => o.structure.as_ptr().cast(),
-            7 => o.topology.as_ptr().cast(),
-            // The field's grid, one byte a cell: wood 1, foliage 2. Slots 9
-            // to 13 held the removed field snapshot.
-            8 => o.field.occupancy.as_ptr(),
-            // Slots 0 to 2 and 14 held the flat wood; `chunk_ptr` reads its
-            // chunks now.
-            15 => o.element_coords.as_ptr().cast(),
-            // Slots 16 to 18 held the removed growth path's buffers.
-            // Beside the occupancy bits in slot 8: one f32 leaf-count
-            // estimate and one u32 limb id (u32::MAX for none) per cell.
-            19 => o.field.leaves.as_ptr().cast(),
-            20 => o.field.limbs.as_ptr().cast(),
-            // Slots 21 to 24 and 26 held the removed field snapshot's plan.
-            // Beside slots 19 and 20: one f32 wood radius per cell, the
-            // thickest wood sweep reaching it in metres, zero without wood.
-            25 => o.field.wood_radii.as_ptr().cast(),
-            _ => std::ptr::null(),
-        }
-    })
+/// One output buffer by slot, as bytes and its length in elements; any
+/// other slot is empty.
+fn slot(o: &Output, slot: u32) -> (*const u8, usize) {
+    fn of<T>(v: &[T]) -> (*const u8, usize) {
+        (v.as_ptr().cast(), v.len())
+    }
+    match slot {
+        3 => of(&o.element_positions),
+        4 => of(&o.element_indices),
+        5 => (
+            o.instances.leaves.as_ptr().cast(),
+            o.instances.leaves.len() * telperion_core::foliage::WORDS,
+        ),
+        6 => of(&o.structure),
+        7 => of(&o.topology),
+        // The field's grid, one byte a cell: wood 1, foliage 2. Slots 9
+        // to 13 held the removed field snapshot.
+        8 => of(&o.field.occupancy),
+        // Slots 0 to 2 and 14 held the flat wood; `chunk_ptr` reads its
+        // chunks now.
+        15 => of(&o.element_coords),
+        // Slots 16 to 18 held the removed growth path's buffers.
+        // Beside the occupancy bits in slot 8: one f32 leaf-count
+        // estimate and one u32 limb id (u32::MAX for none) per cell.
+        19 => of(&o.field.leaves),
+        20 => of(&o.field.limbs),
+        // Slots 21 to 24 and 26 held the removed field snapshot's plan.
+        // Beside slots 19 and 20: one f32 wood radius per cell, the
+        // thickest wood sweep reaching it in metres, zero without wood.
+        25 => of(&o.field.wood_radii),
+        // The flowers, as slots 3 to 5 are the leaves: their element's
+        // positions and indices, and three u32 words a floret against the
+        // metadata's `organReference`. Empty where nothing flowers.
+        27 => of(&o.organ_positions),
+        28 => of(&o.organ_indices),
+        29 => o.organ.as_ref().map_or((std::ptr::null(), 0), |i| {
+            (
+                i.leaves.as_ptr().cast(),
+                i.leaves.len() * telperion_core::foliage::WORDS,
+            )
+        }),
+        _ => (std::ptr::null(), 0),
+    }
 }
 #[no_mangle]
-pub extern "C" fn buffer_len(slot: u32) -> usize {
-    ENGINE.with(|e| {
-        let e = e.borrow();
-        let o = &e.output;
-        match slot {
-            3 => o.element_positions.len(),
-            4 => o.element_indices.len(),
-            5 => o.instances.leaves.len() * telperion_core::foliage::WORDS,
-            6 => o.structure.len(),
-            7 => o.topology.len(),
-            8 => o.field.occupancy.len(),
-            15 => o.element_coords.len(),
-            19 => o.field.leaves.len(),
-            20 => o.field.limbs.len(),
-            25 => o.field.wood_radii.len(),
-            _ => 0,
-        }
-    })
+pub extern "C" fn buffer_ptr(n: u32) -> *const u8 {
+    ENGINE.with(|e| slot(&e.borrow().output, n).0)
+}
+/// Elements, not bytes, in one output buffer (`buffer_ptr`).
+#[no_mangle]
+pub extern "C" fn buffer_len(n: u32) -> usize {
+    ENGINE.with(|e| slot(&e.borrow().output, n).1)
 }
 /// One field of wood chunk `chunk`, as bytes: 0 its positions, three f32 a
 /// vertex; 1 its normals, two i16 a vertex, octahedral; 2 its indices, u16
