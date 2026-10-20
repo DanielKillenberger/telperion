@@ -18,3 +18,9 @@
 - Hindered: `telperion-heavy` held the build for want of RAM (room 0 to 2 GB of the 8 asked) while another heavy unit ran a whole-workspace gate (`telperion-heavy-2842312`); the build had not started after 15 minutes, and a fresh `target/` then compiles from nothing on two threads.
 - Cost: 15+ minutes waiting before the first compile, with the R2 red run blocked behind it.
 - Remove it: a shared, read-only dependency cache (sccache) for worktrees, so a fresh checkout does not compile every dependency again; or a queue position in the wrapper's wait line, so a worker can tell a short wait from a long one.
+
+## 2026-10-20 task .2, the red test
+- Doing: the R3 repro, Laurelin's prepared bounds against every drawn stalk vertex.
+- Hindered: the task names Laurelin, but at her shipped rows (age 80 and 30, seed 1) her crown already holds every stalk: the old bounds fell 0 m short, so the stated repro is green on the base. Finding a red case took four probe runs over droop, rachis and floret count (one floret on a 1 m rachis at droop 0.5 is 0.364 m short).
+- Cost: ~12 minutes and four GPU test runs.
+- Remove it: run the repro before the spec names its subject (AGENTS.md, "Gates and checked claims"); here the shortfall needs a rachis running past its last floret out of the crown.
