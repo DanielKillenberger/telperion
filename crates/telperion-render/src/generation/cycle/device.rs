@@ -111,3 +111,30 @@ pub(super) fn counts(caps: super::state::Caps, zones: u32) -> Counts {
         words,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::super::state::Caps;
+    use super::*;
+
+    fn caps(sleepers: u32) -> Caps {
+        Caps {
+            axes: 64,
+            units: 64,
+            phyts: 64,
+            sleepers,
+            next: 64,
+            woken: 64,
+        }
+    }
+
+    /// At 7.47 million sleepers the jobs' state alone passes 2^32 words:
+    /// the counts hold it, sized in u64, never a wrapped offset.
+    #[test]
+    fn the_jobs_past_u32_words_are_not_sized_wrapped() {
+        let jobs = u64::from(JW) * 7_470_000;
+        assert!(jobs > u64::from(u32::MAX));
+        let c = counts(caps(7_470_000), 4);
+        assert!(c.words > jobs, "{} words sized for {jobs}", c.words);
+    }
+}
