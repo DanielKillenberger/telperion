@@ -59,3 +59,10 @@ Doing: the acceptance's "t = 0.2160 test green, CPU = device", once the frame bu
 Slowed by: the device and the CPU disagree on walk frames at 40, the base included (0.08 m at t = 0.1, 0.34 m at 0.2160), and no test held them to agree (`agree_tests` runs at age 12). The R1 repro stopped at the first refusal, so nobody saw the agreement half of the test before this run.
 Cost: one 7-minute admission for the probe; a third host round trip, with the limit work done.
 Would remove it: when a repro test asserts two things (it builds; it agrees), run the second on the nearest frames that build on the base, before the fix is scoped.
+
+## 2026-10-20 19:55, task .2: the closing pass passed every narrow run and failed the compile ceiling in the gate
+
+Doing: the task's one gate run, after the closing layout pass (`tail_main`) and the rounds floor were built and reviewed.
+Slowed by: `compile_size::every_entry_inlines_under_the_ceiling` failed: `tail_main` inlined 69,121 expressions against the ceiling's 50,000, because it called `lay` (two `frame`s and a `draw`) at two sites. The narrow runs (`fn298`, `cpu_builds_tests`, `digest`, `build_time`) never include that CPU-only test, so the first signal came 37 minutes into the gate.
+Cost: one 37-minute gate run and a second one after the fix (one call site).
+Would remove it: a spec that adds or grows a WGSL entry lists `compile_size` among its Quick commands (it runs in under a second and needs no GPU).

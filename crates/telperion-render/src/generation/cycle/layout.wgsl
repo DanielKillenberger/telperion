@@ -359,9 +359,9 @@ fn tail_main(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let head = cfg.first_new + k;
-    lay(head);
+    // Round 0 lays the head alone, so `lay` has one call site to inline.
     // cap: the cycle's new axes, one generation each at most.
-    for (var up = 1u; up <= cfg.new_axes; up++) {
+    for (var up = 0u; up <= cfg.new_axes; up++) {
         var found = false;
         for (var j = 0u; j < cfg.new_axes; j++) {
             let i = cfg.first_new + j;
