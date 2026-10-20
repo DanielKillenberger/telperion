@@ -21,8 +21,8 @@ struct Cfg {
     out_base: u32,
     packed: u32,
     // The crown's living fronds as a count's word, each apex drawing its
-    // whole count; the spiral's divergence (radians) and the depth below
-    // the apex the oldest living frond leaves at.
+    // whole count; the spiral's divergence (radians, within half a turn)
+    // and the depth below the apex the oldest living frond leaves at.
     fronds: u32,
     divergence: f32,
     depth: f32,
@@ -383,7 +383,8 @@ fn round_away(x: f32) -> f32 {
 // `lattice::cell` at full width: two half-diagonals in (radians round,
 // metres along), the first leading the second counterclockwise.
 fn cell(girth: f32, spacing: f32) -> vec4<f32> {
-    let step = (cfg.divergence + PI) - TAU * floor((cfg.divergence + PI) / TAU) - PI;
+    // Within half a turn already, reduced in f64 (`boots.rs`' `half_turn`).
+    let step = cfg.divergence;
     var a = vec2<f32>(TAU * girth, 0.0);
     var b = vec2<f32>(step * girth, -spacing);
     if dot2(a, a) > dot2(b, b) {

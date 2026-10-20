@@ -1,4 +1,5 @@
-import init, { WebRenderer, type WebGrowth } from "./render/telperion_render.js";
+import { WebRenderer, type WebGrowth } from "./render/telperion_render.js";
+import { loadModule } from "./module";
 
 /* ------------------------------------------------------------------ *
  * THE RENDERER, AS A PAGE HOLDS IT
@@ -163,8 +164,6 @@ function countDevice(step: 1 | -1): void {
   window.telperionLiveDevices = (window.telperionLiveDevices ?? 0) + step;
 }
 
-let loading: Promise<void> | undefined;
-
 /** A tree growing on the page's device (fn-270 R6, R7): begun for its
  *  family's age, grown on to any age within it, and drawn at any age in
  *  its last year. The tree on the canvas stays while the next stretch
@@ -235,10 +234,7 @@ export interface Renderer {
  *  Rejects with the renderer's own words when there is no WebGPU, only a
  *  software adapter, or the device is refused. */
 export async function createRenderer(canvas: HTMLCanvasElement): Promise<Renderer> {
-  // The literal names the module for a consumer's bundler; the library build
-  // leaves it as it is (vite.config.ts) and ships the file beside this one.
-  loading ??= init({ module_or_path: new URL("./telperion-render.wasm", import.meta.url) }).then(() => undefined);
-  await loading;
+  await loadModule();
 
   /* Writing a canvas's size clears its picture even at the same value, and
      the renderer redraws only on a change (fn-246), so an unchanged size is

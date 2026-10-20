@@ -198,8 +198,8 @@ impl CurveGpu {
         &self.sections
     }
 
-    /// Bytes on the device: the curve, the views' shared buffers and
-    /// each view's own.
+    /// Bytes on the device: the curve, the views' shared buffers, each
+    /// view's own and the two views' demand readbacks.
     pub(crate) fn bytes(&self) -> u64 {
         let views = [&self.camera, &self.sun]
             .into_iter()
@@ -207,7 +207,8 @@ impl CurveGpu {
             .map(Target::bytes)
             .sum::<u64>();
         let shared = self.shared.as_ref().map_or(0, Shared::bytes);
-        self.points.size() + self.clusters.size() + self.sections.size() + shared + views
+        let feedback = self.feedback.iter().map(Feedback::bytes).sum::<u64>();
+        self.points.size() + self.clusters.size() + self.sections.size() + shared + views + feedback
     }
 
     /// The views' buffers let go, to be made again at the next frame.

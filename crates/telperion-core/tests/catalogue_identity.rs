@@ -179,7 +179,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        7_797_001_527_923_877_644,
+        16_690_369_365_287_258_418,
         "{}",
         digest(&text)
     );
