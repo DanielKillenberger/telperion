@@ -31,3 +31,10 @@ Doing: the revised ruling's step 1, a single `telperion-heavy 8 --threads 2` run
 Slowed by: from 17:09 to 17:49 the room stood at 2 to 4 GB for the 8 asked, while other agents' jobs held memory.
 Cost: 40 minutes of wall time with no device work possible; the step's real work was under 2 minutes.
 Would remove it: as the 13:45 entry says, a measured smaller ask for a single-crate test build, or a reserved slot for short measurement runs.
+
+## 2026-10-20 18:10, task .2: the fixed frame met the next stepped limit only once the first was lifted
+
+Doing: option (d), the layout's closing pass, against the acceptance "the t = 0.2160 test is green".
+Slowed by: with the layout no longer refusing, the same frame is refused by `HierGens` at cycle 10 (`rounds` 3 projected from `gens` 1; 4 reached). R1 could only see the first refusal a frame meets, so the acceptance assumed `laygens` was the frame's only limit.
+Cost: small in time (two short admissions, about 11 minutes of device time); the task stops `NEEDS_HUMAN` with its acceptance unmet.
+Would remove it: an R1 repro that records every stepped limit a frame passes, by running it with each other limit at its bound (the `R2_FULL` scratch switch), before a fix is scoped to one.
