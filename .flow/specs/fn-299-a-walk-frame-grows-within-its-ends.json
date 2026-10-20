@@ -11,8 +11,8 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "stale",
-  "plan_reviewed_at": "2026-10-20T16:56:54.291593Z",
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-20T17:10:15.822033Z",
   "ready": true,
   "review_attempts": [
     {
@@ -163,10 +163,62 @@
       "task": null,
       "timestamp": "2026-10-20T16:56:54.289158Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "6dcc42d72a4252cc7118f50bc6873cf7d4b021a8bfe90cd2d74b7c6d2fb8584d",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-18afec9cec923ba4d7d750a97d7db77f",
+            "classification": "introduced",
+            "findingId": "finding-18afec9cec923ba4d7d750a97d7db77f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d7d57f6048865e5931752947ede38d2d",
+            "classification": "introduced",
+            "findingId": "finding-d7d57f6048865e5931752947ede38d2d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "33e9ee5118501aedadd00cf1b18264fba80103fe",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 540,
+      "output_sha256": "379a0caa3a104a8b894f609f336594e8c3ac008e88ee9d03d85ba706e5dd625d",
+      "reservation_id": "47e89ba645a34da0bb29465b56679eb3",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T17:10:15.819316Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "plan": 2,
+    "plan": 3,
     "plan#completion": 1
   },
   "review_pending_rounds": {},
@@ -188,5 +240,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T17:09:34.848663Z"
+  "updated_at": "2026-10-20T17:10:15.822589Z"
 }
