@@ -21,6 +21,7 @@ use telperion_core::foliage::{BloomParams, Leaf, Reference, WITHERED};
 use telperion_core::math::Vec3;
 use telperion_core::pipeline::executor;
 use telperion_core::presets::Family;
+use telperion_core::surface::Bounds;
 use telperion_core::tree::Tree;
 
 /// `bloom.rs`'s axis segments.
@@ -423,4 +424,78 @@ fn preset_florets() {
     family.skeleton.seed = parts[2].parse().unwrap();
     let (device, cpu, _) = both(&gpu, &family);
     println!("{only}: device {device:?}, cpu {cpu:?}");
+}
+
+/// How far the stalks `words` draw stand outside `bounds`, in metres (zero:
+/// inside). Each stalk vertex is laid from its instance as the organ's
+/// vertex stage lays it (`stalk.wgsl`), from the values `set_family`
+/// uploads, at full size: a rachis ring on its axis, a ribbon's edge or a
+/// tube's side within the ring's width of it, toward any eye; a pedicel
+/// ring a pedicel back along its floret's axis, the stamen's half width
+/// round.
+fn stalk_shortfall(words: &[Leaf], r: Reference, p: &BloomParams, b: Bounds) -> f64 {
+    let end = 0.5 * p.stamen_width;
+    let past = |at: Vec3, width: f64| {
+        let low = b.min - at + Vec3::new(width, width, width);
+        let high = at - b.max + Vec3::new(width, width, width);
+        [low.x, low.y, low.z, high.x, high.y, high.z]
+            .into_iter()
+            .fold(0.0, f64::max)
+    };
+    let mut short = 0.0f64;
+    for w in words {
+        let m = r.unpack(*w);
+        let (at, along) = (column(&m, 3), column(&m, 1));
+        if w[2] & WITHERED != 0 {
+            let points = axis(at, along.normalized(), p);
+            for (k, q) in points.iter().enumerate() {
+                let share = k as f64 / SEGMENTS as f64;
+                let width = along.length() + (end - along.length()) * share;
+                short = short.max(past(*q, width));
+            }
+        } else {
+            for back in [p.pedicel, 0.0] {
+                short = short.max(past(at - along.normalized() * back, end));
+            }
+        }
+    }
+    short
+}
+
+/// fn-297 R3: Laurelin's bounds hold every stalk her flowers draw, on the
+/// device's prepared tree and the CPU's whole mesh: at her shipped rows,
+/// where her crown already holds them (measured 0 m short before the fix),
+/// and with one floret low on a metre's rachis, which runs past the
+/// floret out of the crown, leaving the shoot and turned toward hanging
+/// and, at a negative droop, toward standing.
+#[test]
+fn prepared_bounds_hold_every_drawn_stalk() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    for long in [None, Some(0.5), Some(-0.5)] {
+        let mut family = telperion_core::presets::Preset::Laurelin.parameters();
+        family.skeleton.seed = 1;
+        if let Some(droop) = long {
+            let o = &mut family.supernatural.bloom;
+            (o.florets, o.rachis, o.droop) = (Some(1.0), Some(1.0), Some(droop));
+        }
+        let p = family.applied().bloom;
+        let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+        let gen = Generator::new(&renderer).unwrap();
+        let prepared = gen.prepare(&family).unwrap();
+        let organ = prepared.organ.as_ref().expect("the tree flowers");
+        let r = (prepared.mesh.organ.as_ref().unwrap().instances).reference;
+        let read = io::read_leaves_async(&gpu, organ.leaves.buffer(), organ.count);
+        let words = pollster::block_on(read).unwrap();
+        let device = stalk_shortfall(&words, r, &p, prepared.bounds());
+        let x = executor::grow(&family).unwrap().expansion().unwrap();
+        let mesh = x.mesh().unwrap();
+        let o = mesh.organ.as_ref().expect("the CPU tree flowers");
+        let (cw, cr) = (&o.instances.leaves, o.instances.reference);
+        let cpu = stalk_shortfall(cw, cr, &p, mesh.bounds);
+        let case = format!("rachis {} m, droop {}", p.rachis, p.droop);
+        println!("{case}: stalks outside the bounds by device {device} m, cpu {cpu} m");
+        assert!(device <= 1e-5 && cpu <= 1e-5, "{case}: {device} m, {cpu} m");
+    }
 }

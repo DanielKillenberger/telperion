@@ -207,7 +207,9 @@ impl Instances {
         }
         Ok(())
     }
-    /// Exact bounds of transformed leaf vertices; None for empty foliage.
+    /// Exact bounds of transformed leaf vertices, and of the stalks an organ
+    /// element lays from each origin (`Element::stalk`); None for empty
+    /// foliage.
     pub fn bounds(&self, element: &Element) -> Result<Option<Bounds>> {
         self.validate()?;
         element.validate()?;
@@ -252,6 +254,19 @@ impl Instances {
                     b.include(p)
                 } else {
                     bounds = Some(Bounds { min: p, max: p })
+                }
+            }
+        }
+        // A flower's stalks, laid from each origin; a leaf has none.
+        let stalks = (element.stalk > 0.0).then_some(element.stalk);
+        if let (Some(b), Some(reach)) = (&mut bounds, stalks) {
+            let pad = Vec3::new(reach, reach, reach);
+            for i in 0..self.leaves.len() {
+                for p in [self.position(i) - pad, self.position(i) + pad] {
+                    if [p.x, p.y, p.z].iter().any(|v| !(*v as f32).is_finite()) {
+                        return Err(Error::ResourceLimit("foliage bounds overflow"));
+                    }
+                    b.include(p);
                 }
             }
         }

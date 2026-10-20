@@ -261,15 +261,13 @@ impl Renderer {
         })
     }
 
-    /// Uploads the flowers, or empties their draw where there are none, so
-    /// no later tree inherits the last one's.
+    /// Uploads the flowers, or lets the last tree's go where there are
+    /// none, so no later tree inherits or is charged for them.
     fn submit_organ(&mut self, organ: Option<&telperion_core::mesh::Foliage>, level: Level) {
-        let empty = telperion_core::mesh::Foliage {
-            element: telperion_core::foliage::Element::default(),
-            instances: telperion_core::foliage::Instances::default(),
-        };
-        let organ_or_none = organ.unwrap_or(&empty);
-        self.organ.submit(&self.gpu, organ_or_none, level);
+        match organ {
+            Some(o) => self.organ.submit(&self.gpu, o, level),
+            None => self.organ.release(),
+        }
         self.scene
             .set_organ(organ.map(|o| (o.instances.reference, &o.element)));
     }

@@ -117,6 +117,7 @@ pub(crate) fn element(p: &BloomParams) -> Result<Element> {
     let (s, c) = p.open.to_radians().sin_cos_fixed();
     let mut e = Element {
         section_roundness: 0.0,
+        stalk: stalk_reach(p),
         ..Element::default()
     };
     let n = petal.positions.len() as u32;
@@ -230,6 +231,17 @@ pub(crate) fn place_in(
 /// stalk.
 pub(crate) fn reach(p: &BloomParams) -> f64 {
     p.rachis + p.pedicel
+}
+
+/// How far a flower's drawn stalks reach from an instance's origin: along
+/// the rachis and the pedicel, and the stamen's half width round them,
+/// the lengths and width the draw lays them by. Zero where the stalks
+/// have no length, so draw nothing.
+pub(crate) fn stalk_reach(p: &BloomParams) -> f64 {
+    match reach(p) {
+        long if long > 0.0 => long + 0.5 * p.stamen_width,
+        _ => 0.0,
+    }
 }
 
 /// The box every executor packs a tree's florets against: its leaves' box

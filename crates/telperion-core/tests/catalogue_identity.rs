@@ -179,8 +179,30 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        4_969_644_440_040_632_547,
+        17_142_609_772_195_174_599,
         "{}",
         digest(&text)
     );
+}
+
+/// fn-297 R6: a rosette's divergence is one turn either way. -360 and 360
+/// are admitted; a thousandth of a degree past either, and a value that is
+/// not finite, are refused by name.
+#[test]
+fn a_rosette_divergence_is_one_turn() {
+    let base = params::metadata(&Family::default());
+    let row = "/canopy/rosetteDivergence";
+    for turn in [-360.0, 360.0] {
+        assert_eq!(answer(&base, &[(row, serde_json::json!(turn))]), "Ok(())");
+    }
+    for past in [-360.001, 360.001] {
+        let refused = answer(&base, &[(row, serde_json::json!(past))]);
+        assert!(refused.contains("rosette divergence"), "{past}: {refused}");
+    }
+    for bad in [f64::NAN, f64::INFINITY] {
+        let mut f = Family::default();
+        f.canopy.rosette_divergence = bad;
+        let refused = format!("{:?}", f.validate());
+        assert!(refused.contains("rosette divergence"), "{bad}: {refused}");
+    }
 }

@@ -166,6 +166,7 @@ impl Build {
         (now, next): (Sizes, Sizes),
     ) -> Result<Build> {
         let (o, n) = (now.caps, next.caps);
+        let places = device::counts(n, t.zones, device::limit(gpu))?;
         let (s, axes) = (n.axes, o.axes != n.axes);
         let live = axes || o.next != n.next;
         let lit = (now.points, now.tips, now.nodes) != (next.points, next.tips, next.nodes);
@@ -208,7 +209,6 @@ impl Build {
                 Ok(keep)
             }
         };
-        let counts = device::counts(n, t.zones).words;
         Ok(Build {
             sums: if live {
                 Sums::alloc(gpu, s, n.next, t.pas)?
@@ -232,7 +232,8 @@ impl Build {
                 "cycle inputs",
                 2 * u64::from(n.next) + 7 * u64::from(s),
             )?,
-            counts: new(self.counts, counted, "cycle counts", counts)?,
+            counts: new(self.counts, counted, "cycle counts", places.words)?,
+            places,
             flags: new(self.flags, axes, "cycle flags", 2 * u64::from(s))?,
             scan_sums: new(self.scan_sums, axes, "cycle scan sums", sums_words(s, 1))?,
             compactor: match o == n {

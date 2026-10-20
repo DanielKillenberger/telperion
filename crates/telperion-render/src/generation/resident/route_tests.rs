@@ -187,9 +187,12 @@ fn a_lost_device_is_named_and_a_fresh_one_builds_the_tree_again() {
 
 /// fn-256 R1: a device held to WebGPU's default limits cannot hold the
 /// grown tree's tables; the build is refused by name, never rebuilt on
-/// the CPU and never a panic.
+/// the CPU and never a panic. Since fn-297 R4 the cycle's job counts are
+/// sized against the device's limit before their buffer is made, and
+/// refuse in their own name first.
 #[test]
 fn a_buffer_over_the_devices_limit_is_refused_by_name() {
+    use telperion_core::Error::ResourceLimit;
     let held = crate::Gpu::request_within(None, |_| wgpu::Limits::default());
     let Some(gpu) = pollster::block_on(held).ok() else {
         return;
@@ -199,6 +202,7 @@ fn a_buffer_over_the_devices_limit_is_refused_by_name() {
     let built = gen.prepare(&family("norway-spruce", 40));
     match built {
         Err(crate::RenderError::Oversize { .. }) => {}
+        Err(crate::RenderError::Generation(ResourceLimit("the cycle's job counts"))) => {}
         other => panic!("not refused by name: {:?}", other.err()),
     }
 }

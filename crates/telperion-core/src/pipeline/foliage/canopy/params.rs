@@ -208,7 +208,7 @@ crate::catalogue::rows! {
         /// The degrees each successive frond is turned about the apex.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_rosette_divergence"))]
         pub rosette_divergence: f64 = "rosetteDivergence" "degrees"
-            Bounds::closed(-1e9, 1e9) => [Grow, Plan, Expand] {
+            Bounds::closed(-360.0, 360.0) => [Grow, Plan, Expand] {
             wire: 105,
             check: input(Site::Rosette, 0, "rosette divergence"),
             applies: "no rosette and no leaf bases (`rosetteFronds` and `leafBases` zero)",

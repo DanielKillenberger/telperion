@@ -84,6 +84,8 @@ impl Build {
         (t, tables): (&Tables, &Capture),
         sizes: Option<Sizes>,
     ) -> Result<Build> {
+        let limit = device::limit(gpu);
+        let places = (sizes.map(|z| device::counts(z.caps, t.zones, limit))).transpose()?;
         let caps = sizes.map_or(Sizes::least().caps, |s| s.caps);
         let (s, next) = match sizes {
             Some(z) => (z.caps.axes, z.caps.next),
@@ -107,11 +109,8 @@ impl Build {
         self.layout = Layout::new(gpu, &t.form, s)?;
         self.compactor = super::compact::Compactor::new(gpu, caps, s)?;
         self.inputs = zeroed(gpu, "cycle inputs", 2 * u64::from(next) + 7 * w)?;
-        self.counts = zeroed(
-            gpu,
-            "cycle counts",
-            sizes.map_or(4, |_| device::counts(caps, t.zones).words),
-        )?;
+        self.counts = zeroed(gpu, "cycle counts", places.map_or(4, |p| p.words))?;
+        self.places = places.unwrap_or(self.places);
         self.flags = zeroed(gpu, "cycle flags", 2 * w)?;
         self.spare = zeroed(gpu, "cycle spare", 4)?;
         self.scan_tally = zeroed(gpu, "cycle scan tally", 64)?;

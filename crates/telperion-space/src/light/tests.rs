@@ -38,7 +38,8 @@ fn one(toward: Vec3) -> Vec<(Vec3, f64)> {
 }
 
 fn field(leaves: &[(Vec3, f64)], reads: &[Vec3], directions: &[(Vec3, f64)]) -> Field {
-    let mut f = Field::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()));
+    let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
+    let mut f = Field::spanning(points).expect("a test lattice inside its nodes");
     f.deposit_all(leaves);
     // The directions on four cores: each node sums them in their order.
     f.sweep(K, directions, 4);
@@ -280,4 +281,31 @@ fn a_shaded_sample_is_never_below_nothing() {
         let light = f.at(at);
         assert!((0.0..=1.0).contains(&light), "{at:?}: {light:e}");
     }
+}
+
+/// fn-294 R6: a tree inside every parameter bound whose leaves and tips
+/// span more than 2^28 lattice nodes, every coordinate under 4096 m (the
+/// oak, every internode 5 m of the 100 allowed, grown 8 years under a
+/// 10,000-phytomer budget), is refused by name before the lattice is
+/// allocated, never an assert.
+#[test]
+fn a_lattice_past_its_nodes_is_refused_by_name() {
+    let mut species = crate::oak();
+    for state in &mut species.states {
+        state.internode = 5.0;
+    }
+    let request = crate::Request {
+        age: 8,
+        seed: 1,
+        budget: 10_000,
+        light: Light {
+            extinction: K,
+            sky: 0.5,
+        },
+    };
+    let refused = crate::grow(&species, request).unwrap_err();
+    assert!(
+        matches!(&refused, crate::Error::Refused { input, .. } if input == "light.lattice"),
+        "{refused}"
+    );
 }

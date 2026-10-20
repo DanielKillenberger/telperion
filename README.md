@@ -16,6 +16,10 @@ const tree = engine.build(family, { surface: true, foliage: true });
 // tree.foliage: one leaf mesh, twelve bytes a leaf - three Uint32 words with
 // the reference box they decode against - and bounds. `leafTransform` rebuilds
 // the sixteen column-major floats for a caller that wants them.
+// tree.organ: the flowers, where the tree flowers (Telperion, Laurelin) -
+// one flower mesh and three Uint32 words a floret, decoded by `leafTransform`
+// against their own reference box; absent where nothing flowers
+// (docs/migration-0.2-flowers.md).
 engine.release(); // returned arrays are owned copies and remain usable
 engine.dispose();
 ```

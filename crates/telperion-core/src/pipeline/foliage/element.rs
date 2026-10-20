@@ -203,6 +203,10 @@ pub struct Element {
     /// Nested simplifications sharing `positions`, coarsest first. Deviations
     /// strictly decrease to zero at the finest, which is `indices` byte for byte.
     pub levels: Vec<Level>,
+    /// Metres a flower's stalks reach from an instance's origin (fn-253,
+    /// fn-297): laid from the instance by the draw, not stored in
+    /// `positions`, so bounds add it about each origin. Zero on a leaf.
+    pub stalk: f64,
 }
 impl Element {
     pub fn validate(&self) -> Result<()> {

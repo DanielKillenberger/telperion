@@ -1202,7 +1202,7 @@ The share of leaf-bearing wood that bears its leaves along it, cauline foliage a
 
 The degrees each successive frond is turned about the apex.
 
-- real, degrees, [-1000000000, 1000000000], default 137.508
+- real, degrees, [-360, 360], default 137.508
 - read by grow, plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 0, as invalid input `rosette divergence`
 - dormant: no rosette and no leaf bases (`rosetteFronds` and `leafBases` zero)

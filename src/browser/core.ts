@@ -56,6 +56,9 @@ export interface Diagnostics {
   surfaceChunks: number;
   /** The box every packed leaf position is quantised against. */
   foliageReference: LeafReference | null;
+  /** The box every packed floret position is quantised against; null where
+   * the tree grew no flowers. */
+  organReference: LeafReference | null;
   /** The grid a field request was read out to; null without one. */
   field: FieldFrame | null;
   revision: number; timings: Timings;
@@ -81,6 +84,10 @@ export interface TreeOutput {
   /** Three u32 words a leaf, decoded against `reference` by `./leaf`. The
    * sixteen-float form is never built here: twelve bytes are the storage. */
   foliage?: { positions: Float32Array; indices: Uint32Array; leaves: Uint32Array; reference: LeafReference | null; anatomy: FoliageAnatomy | null; bounds: Bounds | null };
+  /** The flowers, a second foliage beside the leaves: one flower mesh and
+   * three Uint32 words a floret, decoded against `reference` by `./leaf`.
+   * Present only where foliage was asked for and the tree flowers. */
+  organ?: { positions: Float32Array; indices: Uint32Array; leaves: Uint32Array; reference: LeafReference };
   /** Six f64 values per node: xyz, distal radius, proximal radius, base radius.
    * Three u32 values per node: parent (UINT32_MAX for root), branch, kind (0/1/2). */
   structure?: { values: Float64Array; topology: Uint32Array };
@@ -146,6 +153,7 @@ export class TreeEngine {
     const result: TreeOutput = { diagnostics };
     if (outputs.surface) result.surface = { chunks: this.chunks(diagnostics.surfaceChunks), bounds: diagnostics.surfaceBounds };
     if (outputs.foliage) result.foliage = { positions: f32(3), indices: u32(4), leaves: u32(5), reference: diagnostics.foliageReference, anatomy: diagnostics.foliageAnatomy, bounds: diagnostics.foliageBounds };
+    if (outputs.foliage && diagnostics.organReference) result.organ = { positions: f32(27), indices: u32(28), leaves: u32(29), reference: diagnostics.organReference };
     if (outputs.structure) result.structure = { values: new Float64Array(e.memory.buffer, e.buffer_ptr(6) >>> 0, e.buffer_len(6)).slice(), topology: u32(7) };
     if (diagnostics.field) result.field = {
       ...structuredClone(diagnostics.field),
