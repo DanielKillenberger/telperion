@@ -7,6 +7,7 @@
 //! station agreement's tolerance), and places as many leaflets in the
 //! crown, last, where the CPU places them.
 use super::super::{io, Generator};
+use super::build::instances;
 use super::stations::GW;
 use crate::Renderer;
 use std::collections::{BTreeSet, HashMap};
@@ -178,4 +179,19 @@ fn a_tip_that_is_both_bears_its_cluster_and_its_rosette() {
         assert!(cpu.contains_key(&key), "the CPU's cluster at the apex");
         assert_eq!(dev.get(&key), cpu.get(&key), "the apex's cluster");
     }
+}
+
+/// fn-297 R4 B.3: a leaf count past 32 bits, which the stations count in
+/// a 64-bit total, is refused by name, whatever the budget; one below
+/// passes. No allowed parameter reaches 2^32 leaves on a device.
+#[test]
+fn a_leaf_count_past_u32_is_refused_by_name() {
+    let below = u64::from(u32::MAX);
+    assert_eq!(instances(below, usize::MAX).unwrap(), u32::MAX);
+    for count in [below + 1, u64::MAX] {
+        let error = instances(count, usize::MAX).unwrap_err().to_string();
+        assert!(error.contains("foliage instance budget"), "{error}");
+    }
+    assert_eq!(instances(7, 7).unwrap(), 7);
+    assert!(instances(8, 7).is_err(), "past the canopy's budget");
 }

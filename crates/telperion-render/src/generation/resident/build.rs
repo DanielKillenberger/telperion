@@ -118,6 +118,16 @@ fn refused(what: &'static str) -> crate::RenderError {
     Error::InvalidInput(what).into()
 }
 
+/// The leaves the stations counted as an instance count, refused by name
+/// past the canopy's budget or past 32 bits, which no leaf buffer counts
+/// (fn-297 R4 B.3).
+pub(super) fn instances(stations: u64, budget: usize) -> Result<u32> {
+    u32::try_from(stations)
+        .ok()
+        .filter(|&n| n as usize <= budget)
+        .ok_or(Error::ResourceLimit("foliage instance budget").into())
+}
+
 /// `family` built resident on the device, whole (fn-256 task 3,
 /// DESIGN.md 12): grown through the one cycle, settled, drawn as the
 /// pipeline's nodes, its leaf bases hung (DESIGN.md 12.8), folded,
@@ -212,9 +222,7 @@ pub(super) async fn placed(
         stationer.stations(gpu, laid, dressed.ids, station).await
     })
     .await?;
-    let count = Some(device.stations)
-        .filter(|&n| n as usize <= x.leaves().canopy.max_instances)
-        .ok_or(Error::ResourceLimit("foliage instance budget"))?;
+    let count = instances(device.stations, x.leaves().canopy.max_instances)?;
     drop(dressed);
     // The device frees the drawn records, and the ledger their bytes,
     // before the rings are made beside the stations.
@@ -243,10 +251,10 @@ pub(super) async fn placed(
         let none = io::buffer(gpu, "no ring positions", 16, usage, &[])?;
         let mut encoder = gpu.encoder(&Default::default());
         let mut summaries = Vec::new();
-        if device.stations > 0 {
-            let counts = (device.stations, device.segments, segments);
+        if count > 0 {
+            let counts = (count, device.segments, segments);
             let config = data::config(&l, x.twig(), counts, e, reference);
-            let at = (device.stations, &*leaves);
+            let at = (count, &*leaves);
             let bufs = (&*device.buffer, positions.as_deref().unwrap_or(&none));
             let placed = gen.record_place(&mut encoder, Placement::Leaves, config, bufs, e, at)?;
             summaries.push(placed.0);
