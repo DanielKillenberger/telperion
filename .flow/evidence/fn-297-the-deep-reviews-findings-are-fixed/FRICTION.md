@@ -30,3 +30,9 @@
 - Hindered: `generation_limit_guard` (a lexical check) read the stalk fold's presence test, `if ... element.stalk > 0.0 { ... return Err(..) }`, as an authored limit; only the gate runs that target, so a 37-minute gate was the first to see it. Restated as `then_some` and re-checked with the guard and bounds tests alone.
 - Cost: one red gate (1409 passed, 1 failed, 111 ignored) and ~5 minutes.
 - Remove it: list `generation_limit_guard` in the spec's Quick commands for any task touching `telperion-core/src`, so it runs before the gate.
+
+## 2026-10-20 task .3, the green run
+- Doing: the focused run of the two new tests after the fix (`telperion-heavy 8 --threads 2 -- cargo test -p telperion-render --profile ci --lib -- cycle::device a_block_opened_past_the_stride`).
+- Hindered: `telperion-heavy` held the run with "room 7 GB for 8, gpu 0 GB" from 05:46, a gigabyte short of the 8 the host fixed for every heavy run, although a two-test lib run compiles one crate and holds the device for a few kilobytes; the foreground call hit its 600 s timeout while waiting.
+- Cost: 40+ minutes and counting (05:46 to 06:26) before the compile started, for a run that takes about a minute. No other heavy unit ran; the desktop (browsers) held the memory, so room stayed at 6 to 7 GB. The fix was type-checked meanwhile (`cargo check -p telperion-render --profile ci --tests -j 2`) and sent to review.
+- Remove it: a smaller declared size for a focused lib run (it needs neither 8 GB nor the whole-workspace reservation), measured once and written beside the gate's size.
