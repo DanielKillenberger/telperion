@@ -73,6 +73,19 @@ fn the_laurelin_at_20_builds_on_the_device() {
     assert!(refused.is_empty(), "{refused:#?}");
 }
 
+/// fn-298 R1: beech to spruce at 40, seed 7, at the eased share 0.2160 the
+/// film's cut took (`ease(0.3)`, its 27th frame of 90), refused
+/// "LayGenerations (0x1)".
+#[test]
+#[ignore = "fn-298 R1: red on the base; task .2 fixes it"]
+fn fn298_the_beech_to_spruce_at_0_216_builds_on_the_device() {
+    let (a, b) = (at("european-beech", 40.0, 7), at("norway-spruce", 40.0, 7));
+    let t = 0.3 * 0.3 * (3.0 - 2.0 * 0.3);
+    let family = telperion_core::blend::families(&a, &b, t).expect("a walk frame");
+    let refused = refused(&[(format!("beech to spruce at 40, seed 7, t {t}"), family)]);
+    assert!(refused.is_empty(), "{refused:#?}");
+}
+
 /// The film's walks (fn-272's `release.json`): each adjacent pair at its
 /// age, and the shares R4 builds them at.
 const WALKS: [(&str, &str, f64); 6] = [
