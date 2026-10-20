@@ -46,15 +46,16 @@ pub(in crate::generation) struct Drawn {
 }
 
 /// The drawn stage's one output (fn-293): every record in `records` by
-/// id, `CV` words each, the room for the retained leaf bases hung after
-/// the dress, then every axis by slot, `CA` words each, from word `axes`
-/// (the root's slot first, the bases' last); the waves, the ids they
+/// id, `CV` words each, the room for the retained leaf bases and frond
+/// axes hung after the dress, then every axis by slot, `CA` words each,
+/// from word `axes` (the root's slot first, the clothing's last); the waves, the ids they
 /// take, and the folds' sums.
 pub(in crate::generation) struct Dressed {
     pub records: Owned,
     pub waves: Vec<Drawn>,
     pub ids: u32,
-    /// The records past the dress's the bases may take, and their slot.
+    /// The records past the dress's the bases and frond axes may take,
+    /// and their slot.
     pub room: u32,
     pub room_slot: u32,
     pub axes: u32,
@@ -63,7 +64,7 @@ pub(in crate::generation) struct Dressed {
 
 impl Dressed {
     /// Drawn `waves` (the root's first) in `records`, the ids they take,
-    /// and the bases' `room` and slot, its axes from word `axes`; nothing
+    /// and the clothing's `room` and slot, its axes from word `axes`; nothing
     /// folded yet.
     pub(in crate::generation) fn new(
         gpu: &Gpu,

@@ -34,7 +34,10 @@ use crate::{
 };
 #[cfg(test)]
 pub use leaf_bases::leaf_bases;
-pub use leaf_bases::{clothe_leaf_bases, hangs as hangs_leaf_bases, LeafBase, MAX_LEAF_BASES};
+#[cfg(test)]
+pub(crate) use leaf_bases::room;
+pub(crate) use leaf_bases::{along, polyline};
+pub use leaf_bases::{clothe, hangs as hangs_leaf_bases, LeafBase, MAX_LEAF_BASES};
 #[cfg(test)]
 pub use local::{append, in_band as in_curtain_band};
 #[cfg(test)]

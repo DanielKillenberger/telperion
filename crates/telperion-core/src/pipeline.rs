@@ -202,10 +202,17 @@ pub(crate) fn scaffold(family: &Family) -> Result<Tree> {
 
 /// The first step of expansion, which every solved tree passes, grown here
 /// or handed in: where the canopy keeps the bases of its shed fronds, they
-/// are hung on every stem as wood of their own, after the radius solve so
-/// no base thickens the trunk.
+/// are hung on every stem as wood of their own, and where its fronds draw a
+/// rachis each frond's axis beside them, after the radius solve so neither
+/// thickens the trunk. An axis's young stations read the leaf element's
+/// length, built from its rows only where an axis is drawn.
 pub(crate) fn clothe(tree: &mut Tree, inputs: &Inputs) -> Result<()> {
-    branching::clothe_leaf_bases(tree, &inputs.plan.canopy)
+    let p = &inputs.plan.canopy;
+    let blade = match foliage::draws_rachis(p) {
+        true => foliage::blade(&foliage::build_element(inputs.plan.element)?),
+        false => 0.0,
+    };
+    branching::clothe(tree, p, blade)
 }
 
 /// Runs every stage the request needs, from the family on. The family is

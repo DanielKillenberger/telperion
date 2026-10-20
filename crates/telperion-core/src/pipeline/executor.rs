@@ -137,7 +137,7 @@ pub fn stations(family: &Family) -> bool {
 }
 
 /// The canopy rows `family` hangs retained leaf bases on its stems by,
-/// checked as `clothe_leaf_bases` checks them; none where it hangs none
+/// checked as `branching::clothe` checks them; none where it hangs none
 /// (fn-266, DESIGN.md 12.8 of fn-256).
 pub fn bases(family: &Family) -> Result<Option<CanopyParams>> {
     if !super::branching::hangs_leaf_bases(&family.canopy) {

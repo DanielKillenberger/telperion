@@ -246,6 +246,8 @@ mod hang_tests;
 #[cfg(test)]
 mod pack_tests;
 #[cfg(test)]
+mod rachis_tests;
+#[cfg(test)]
 mod repeat_tests;
 mod rings;
 #[cfg(test)]

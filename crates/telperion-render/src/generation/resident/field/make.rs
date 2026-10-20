@@ -67,8 +67,9 @@ pub(in super::super) async fn grow(
     placeable(family)?;
     let bases = super::super::boots::most(family)?;
     let drawn = tree::drawn(gpu, kernels, (&growth, bases)).await?;
-    let Folded { x, dressed, .. } =
-        folded(gpu, tools, family, drawn, &mut Timed::default()).await?;
+    let year = growth.year(1.0);
+    let Folded { x, dressed, hung } =
+        folded(gpu, tools, (family, year), drawn, &mut Timed::default()).await?;
     let ids = dressed.ids;
     // The field reads the drawn records, never a curve swept from them:
     // no node has a contact.
@@ -77,8 +78,9 @@ pub(in super::super) async fn grow(
         records: &dressed.records,
         table: &table,
         contacts: 0,
+        fronds: hung.fronds.as_deref(),
     };
-    let rows = station_rows(&x, x.section()?.segments, None, growth.year(1.0));
+    let rows = station_rows(&x, x.section()?.segments, None, year);
     let device = tools.stationer.stations(gpu, laid, ids, rows).await?;
     let mut cfg = cfg(&x, (ids, device.segments), limb_order);
     let read = Read {

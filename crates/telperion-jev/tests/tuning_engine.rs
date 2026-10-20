@@ -1710,8 +1710,9 @@ fn the_routing_state_names_the_kinds_of_dial_rather_than_every_row() {
     // fn-170 retired five stems rows and added nine fork and share rows;
     // fn-177 added the two girth rows; fn-180 the node budget; fn-221 the
     // six old-bark rows; fn-223 retired the five short-shoot rows; fn-275
-    // added the two frond establishment rows; fn-277 the cauline share.
-    assert_eq!(state.dials.len(), 238);
+    // added the two frond establishment rows; fn-277 the cauline share;
+    // fn-283 the rachis width.
+    assert_eq!(state.dials.len(), 239);
 
     let dials = telperion_jev::tuning::judgments::summary(&state)["dials"].clone();
     let bytes = serde_json::to_vec(&dials).unwrap().len();
@@ -1754,8 +1755,8 @@ fn twelve_rounds_of_attempts_fold_into_a_digest_that_still_fits() {
     // 138 score-visible rows, less the three deprecated canopy rows (fn-152),
     // fn-177's two girth rows and fn-180's node budget; fn-223 retired the
     // five short-shoot rows; fn-275 added the two frond establishment rows;
-    // fn-277 the cauline share.
-    assert_eq!(state.dials.len(), 137);
+    // fn-277 the cauline share; fn-283 the rachis width.
+    assert_eq!(state.dials.len(), 138);
     let base = state.trials[state.current.unwrap()].key.clone();
     let mut history = vec![];
     for round in 1..=12u64 {

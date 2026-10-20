@@ -237,6 +237,13 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .remove(row)
                 .expect("the canopy publishes its lattice rows");
         }
+        // fn-283 draws a frond's rachis as wood at a width of its own. The
+        // frozen file predates it, and at no width no rachis is drawn.
+        emitted["canopy"]
+            .as_object_mut()
+            .unwrap()
+            .remove("rachisWidth")
+            .expect("the canopy publishes its rachis width");
         // fn-120 adds the skirt as three more canopy rows, fn-270 the years
         // a frond lives and fn-275 its crown's establishment. The frozen
         // file predates them, and the counts are zero there, which keep no

@@ -202,7 +202,7 @@ pub(super) async fn placed(
         swept,
         hung,
         dressed,
-    } = readied(gpu, tools, family, drawn, &mut t).await?;
+    } = readied(gpu, tools, (family, year), drawn, &mut t).await?;
     let seats = x.seats();
     let mut m = Metrics::default();
     let section = x.section()?;
@@ -218,7 +218,7 @@ pub(super) async fn placed(
     let station = station_rows(&x, segments, organ.as_ref().map(Organ::rows), year);
     let stationer = &tools.stationer;
     let device = stage(gpu, &mut t.stations, async || {
-        let laid = swept.laid(&dressed);
+        let laid = swept.laid(&dressed, hung.fronds.as_deref());
         stationer.stations(gpu, laid, dressed.ids, station).await
     })
     .await?;
@@ -356,8 +356,9 @@ pub(super) async fn placed(
 }
 
 /// A drawn tree (`dressed`, its `trunk`) hung, folded into the
-/// pipeline's expansion and swept as `family`'s: what a resident tree is
-/// placed from. `t` holds each stage's milliseconds.
+/// pipeline's expansion and swept as `family`'s, its fronds drawn in
+/// `year`: what a resident tree is placed from. `t` holds each stage's
+/// milliseconds.
 pub(super) struct Readied {
     pub x: executor::Expansion,
     pub swept: super::sweep::Swept,
@@ -368,11 +369,11 @@ pub(super) struct Readied {
 pub(super) async fn readied(
     gpu: &Gpu,
     tools: &Tools,
-    family: &Family,
+    (family, year): (&Family, Option<Year>),
     drawn: (Dressed, tree::Trunk),
     t: &mut Timed,
 ) -> Result<Readied> {
-    let Folded { x, dressed, hung } = folded(gpu, tools, family, drawn, t).await?;
+    let Folded { x, dressed, hung } = folded(gpu, tools, (family, year), drawn, t).await?;
     let rows = rows(&family.surface, x.leaves().envelope.height);
     let sweeper = &tools.sweeper;
     let swept = stage(gpu, &mut t.sweep, async || {
@@ -389,8 +390,9 @@ pub(super) async fn readied(
     })
 }
 
-/// A drawn tree hung and folded into the pipeline's expansion: what it
-/// is swept from, and what a field lays its nodes from (fn-257).
+/// A drawn tree hung, its fronds drawn in `year`, and folded into the
+/// pipeline's expansion: what it is swept from, and what a field lays its
+/// nodes from (fn-257).
 pub(super) struct Folded {
     pub x: executor::Expansion,
     pub dressed: Dressed,
@@ -400,13 +402,15 @@ pub(super) struct Folded {
 pub(super) async fn folded(
     gpu: &Gpu,
     tools: &Tools,
-    family: &Family,
+    (family, year): (&Family, Option<Year>),
     (mut dressed, trunk): (Dressed, tree::Trunk),
     t: &mut Timed,
 ) -> Result<Folded> {
     let bases = executor::bases(family)?;
+    let crown = super::boots::frond_rows(family, year)?;
     let hung = stage(gpu, &mut t.bases, async || {
-        tools.hanger.hang(gpu, &mut dressed, bases.as_ref()).await
+        let rows = (bases.as_ref(), crown.as_ref());
+        tools.hanger.hang(gpu, &mut dressed, rows).await
     })
     .await?;
     let d = &tools.dresser;

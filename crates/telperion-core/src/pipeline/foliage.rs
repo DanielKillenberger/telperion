@@ -19,6 +19,7 @@ mod placement;
 pub mod plan;
 #[cfg(feature = "geometry")]
 pub mod prepared;
+mod rachis;
 mod reference;
 mod rosette;
 #[cfg(feature = "geometry")]
@@ -52,6 +53,7 @@ pub(crate) use placement::place_on;
 #[cfg(feature = "geometry")]
 #[cfg(test)]
 pub use placement::{place, place_on_surface};
+pub(crate) use rachis::{draws as draws_rachis, hang as hang_rachises, rachises, Rachis};
 #[cfg(feature = "geometry")]
 pub(crate) use reference::Reach;
 pub(crate) use rosette::stem_node;

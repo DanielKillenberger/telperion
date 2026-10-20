@@ -309,6 +309,19 @@ crate::catalogue::rows! {
             dial: bounded("terminal_leaflet", "how far a leaflet closes the rachis's end",
                 [0.05, 0.2]),
         },
+        /// Metres across a frond's rachis where it leaves the stem (fn-283):
+        /// each frond whose leaflets string along a rachis hangs it as wood
+        /// through its leaflet stations, at this width scaled by the frond's
+        /// size and tapering to its tip. At zero no rachis is drawn.
+        #[cfg_attr(feature = "json", serde(default))]
+        pub rachis_width: f64 = "rachisWidth" "m" Bounds::closed(0.0, 10.0) => [Grow] {
+            wire: 368,
+            check: input(Site::Rosette, 26, "rachis width"),
+            growth: Growth::Ignored,
+            applies: "no leaflet grouping (`leafletCount` one or `rachisLength` zero)",
+            dial: bounded("rachis_width", "metres across a frond's rachis where it leaves the \
+                stem; at zero no rachis is drawn", [0.05, 0.2]),
+        },
         /// Bases of shed fronds the stem keeps below its crown, clothing the
         /// trunk. At zero the trunk is bare and the bark is what it always was;
         /// any rise carries the crown's own spiral down it.
@@ -570,6 +583,7 @@ impl Default for CanopyParams {
             leaflet_pitch: crate::ranges::default_leaflet_pitch(),
             rachis_arch: 0.,
             terminal_leaflet: 0.,
+            rachis_width: 0.,
             // Neutral: the trunk carries no retained base and no frond bears a
             // spine until a table states a count and the reach to draw it at.
             leaf_bases: 0.0,

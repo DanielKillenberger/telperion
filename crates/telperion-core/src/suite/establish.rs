@@ -7,7 +7,7 @@ use telperion_core::{
     math::Vec3,
     pipeline::executor,
     presets::{Family, Preset},
-    tree::Tree,
+    tree::{Node, Tree},
 };
 
 fn family(id: &str, seed: u32, age: f64) -> Family {
@@ -42,8 +42,14 @@ fn without(mut f: Family) -> Family {
     f
 }
 
+/// The wood the engine grew: the tree without its clothing's leaf bases
+/// and frond axes (fn-283), which stand out of the stem and down past it.
+fn grew(tree: &Tree) -> &[Node] {
+    &tree.nodes[..tree.clothing.unwrap_or(tree.nodes.len())]
+}
+
 fn top(tree: &Tree) -> f64 {
-    tree.nodes
+    grew(tree)
         .iter()
         .map(|n| n.position.y)
         .fold(f64::MIN, f64::max)
@@ -58,8 +64,7 @@ fn a_young_palms_stem_waits_at_the_ground() {
         let palm = family("date-palm", 1, age);
         let (tree, _) = grown(&palm);
         let (plain, _) = grown(&without(palm.clone()));
-        let low = tree
-            .nodes
+        let low = grew(&tree)
             .iter()
             .map(|n| n.position.y)
             .fold(f64::MAX, f64::min);
@@ -70,7 +75,7 @@ fn a_young_palms_stem_waits_at_the_ground() {
             top(&tree),
             top(&plain)
         );
-        let girth = |t: &Tree| t.nodes.iter().map(|n| n.radius).fold(0.0f64, f64::max);
+        let girth = |t: &Tree| grew(t).iter().map(|n| n.radius).fold(0.0f64, f64::max);
         assert!(
             girth(&tree) < 0.5 * girth(&plain),
             "{age}: {} against {}",
@@ -177,7 +182,7 @@ fn a_thin_first_stem_keeps_the_stem() {
         palm.canopy.frond_establishment,
     ) = (0.0, 10.0);
     let ((tree, _), (plain, _)) = (grown(&palm), grown(&without(palm.clone())));
-    assert_eq!(tree.nodes.len(), plain.nodes.len(), "the stem was cut");
+    assert_eq!(grew(&tree).len(), grew(&plain).len(), "the stem was cut");
 }
 
 /// R2b: a seedling's first fronds are entire. Each frond carries the
