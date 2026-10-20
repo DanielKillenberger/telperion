@@ -83,7 +83,7 @@ fn the_laurelin_at_20_builds_on_the_device() {
 /// recorded. It builds, and its tree is the CPU's, node by node, to the
 /// tolerances `agree_tests` holds every preset to.
 #[test]
-#[ignore = "fn-298.2: past its layout, refused HierGens at cycle 10 (rounds 3, gens 4); the host's call"]
+#[ignore = "fn-298.2: builds on the device; its tree is not the CPU's (0.342 m apart; 0.080 m at t 0.1 on the base); the host's call"]
 fn fn298_the_beech_to_spruce_at_0_216_builds_on_the_device() {
     let (a, b) = (at("european-beech", 40.0, 7), at("norway-spruce", 40.0, 7));
     let t = 0.3 * 0.3 * (3.0 - 2.0 * 0.3);
