@@ -4,7 +4,9 @@
 //! each on its own scale (`species/scale.rs`, host decision 9). Zones are
 //! matched by role, a role one species leaves out standing in as a zone of
 //! no nodes. Both species are canonical (`Species::canonical`), so an age
-//! one of them does not use carries its neighbour's settings.
+//! one of them does not use carries its neighbour's settings; between the
+//! ends, an age one of them never reaches takes the other's (`reaching`,
+//! fn-299).
 use crate::error::{refuse, Result};
 use crate::species::scale::{scale, settings, zone_settings, OUTCOMES};
 use crate::species::{NodeLaw, PaState, Species, Zone, ZONES};
@@ -24,6 +26,11 @@ pub fn blend(a: &Species, b: &Species, t: f64) -> Result<Species> {
     }
     a.validate()?;
     b.validate()?;
+    let (a, b) = if t > 0.0 && t < 1.0 {
+        reaching(a, b)
+    } else {
+        (a.clone(), b.clone())
+    };
     let states = a
         .states
         .iter()
@@ -113,6 +120,70 @@ fn mixed(name: &str, a: f64, b: f64, t: f64) -> Result<f64> {
     match scale(name) {
         Some(scale) => Ok(scale.mix(a, b, t)),
         None => refuse(name, "a setting walked between species declares its scale"),
+    }
+}
+
+/// Both ends with each age one of them never reaches given the other's
+/// settings, every row (fn-299, host 2026-10-20). A species' rows at an
+/// age no bud of it is ever in are canonical placeholders (`lifespan` 0,
+/// `continuation` 1), not data: mixed, they made slivers of the other
+/// end's ages that one apex chained a dozen at a time in a cycle. Kept
+/// whole, the age is what the end that reaches it makes it, and the walk
+/// fades how often a bud enters it, through the continuations and
+/// laterals that lead there.
+fn reaching(a: &Species, b: &Species) -> (Species, Species) {
+    let (ra, rb) = (reached(a), reached(b));
+    let (mut x, mut y) = (a.clone(), b.clone());
+    for k in 0..a.states.len() {
+        match (ra[k], rb[k]) {
+            (false, true) => x.states[k] = b.states[k].clone(),
+            (true, false) => y.states[k] = a.states[k].clone(),
+            _ => {}
+        }
+    }
+    (x, y)
+}
+
+/// The ages a bud of `s` is ever in, entered or passed through: from the
+/// seed's bud of the youngest PA, each apex moving on, and each lateral or
+/// sleeping bud of the PA it carries. A relay bud keeps its own PA.
+fn reached(s: &Species) -> Vec<bool> {
+    let mut seen = vec![false; s.states.len()];
+    let mut lived = Vec::new();
+    enter(s, 0, &mut seen, &mut lived);
+    while let Some(a) = lived.pop() {
+        let state = &s.states[a];
+        if state.continuation > 0.0 {
+            enter(s, a + 1, &mut seen, &mut lived);
+        }
+        for zone in &state.zones {
+            for (pa, (&p, &d)) in zone.lateral.iter().zip(&zone.dormant).enumerate() {
+                if p > 0.0 || d > 0.0 {
+                    enter(s, pa, &mut seen, &mut lived);
+                }
+            }
+        }
+    }
+    seen
+}
+
+/// A bud entering age `pa`, passing through each age of no lifespan by its
+/// continuation (`Species::lived`), marking each age it is in; the age it
+/// lives in, once, joins `lived`.
+fn enter(s: &Species, mut pa: usize, seen: &mut [bool], lived: &mut Vec<usize>) {
+    while let Some(state) = s.states.get(pa) {
+        if seen[pa] {
+            return;
+        }
+        seen[pa] = true;
+        if state.lifespan > 0.0 {
+            lived.push(pa);
+            return;
+        }
+        if state.continuation <= 0.0 {
+            return;
+        }
+        pa += 1;
     }
 }
 

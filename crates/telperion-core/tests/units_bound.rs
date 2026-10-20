@@ -41,6 +41,8 @@ fn floor(family: &Family) -> u32 {
 /// the beech grows its sapling ages in a cycle with the next (2), and a
 /// walk frame a hair from it lasts a sliver in the ages the beech passes
 /// through, chaining four in one cycle as the CPU grew them (CAUSE.md).
+/// Both ends reach those ages, so fn-299's rule leaves them mixed: the
+/// pass-through sliver, one of the two mechanisms `SLACK` allows.
 #[test]
 fn the_floor_counts_the_ages_a_cycle_chains() {
     let (a, b) = (at("european-beech", 40.0, 7), at("norway-spruce", 40.0, 7));
@@ -48,32 +50,51 @@ fn the_floor_counts_the_ages_a_cycle_chains() {
     assert_eq!(floor(&families(&a, &b, 0.00037).expect("a frame")), 4);
 }
 
+/// What a walk frame may grow past its ends' most units a cycle (fn-299,
+/// host 2026-10-20): the measured worst case once an age one end never
+/// reaches takes the other end's settings (R1.md). It allows the two
+/// mechanisms that rule leaves: a pass-through sliver, an age one end
+/// passes through and the other lives, which counts a whole unit a hair
+/// from the passing end; and a mixed outcome, an age that may both stop
+/// with a relay and move on, which neither end does.
+const SLACK: u32 = 2;
+
+/// Whether `units` lies within the ends' range, `SLACK` past it.
+fn within(units: u32, ends: [u32; 2]) -> bool {
+    let (low, high) = (ends[0].min(ends[1]), ends[0].max(ends[1]));
+    (low.saturating_sub(SLACK)..=high + SLACK).contains(&units)
+}
+
 /// A walk frame grows within its ends (fn-299 R1, host 2026-10-20): on oak
 /// to palm at 40 the floor at every t lies between the two ends' floors.
 /// fn-298's device survey refused t = 0.962 to 0.99998 at 12 units a cycle
 /// against the oak's 2 and the palm's 1.
 #[test]
-#[ignore = "fn-299 R2: red until the blend rule lands"]
 fn a_walk_frame_grows_within_its_ends() {
     const T: [f64; 8] = [0.0, 0.5, 0.9, 0.95, 0.962, 0.99, 0.99998, 1.0];
     let mut outside = Vec::new();
     for seed in SEEDS {
-        let (x, y) = (at("oregon-white-oak", 40.0, seed), at("date-palm", 40.0, seed));
+        let (x, y) = (
+            at("oregon-white-oak", 40.0, seed),
+            at("date-palm", 40.0, seed),
+        );
         let frame = |t: f64| {
             let f = families(&x, &y, t);
             floor(&f.unwrap_or_else(|e| panic!("oak to palm t {t} seed {seed}: {e}")))
         };
         let ends = [frame(0.0), frame(1.0)];
-        let (low, high) = (ends[0].min(ends[1]), ends[0].max(ends[1]));
         for t in T {
             let units = frame(t);
             println!("oak to palm at 40, seed {seed}, t {t}: {units} (ends {ends:?})");
-            if !(low..=high).contains(&units) {
-                outside.push(format!("seed {seed} t {t}: {units} outside {low} to {high}"));
+            if !within(units, ends) {
+                outside.push(format!("seed {seed} t {t}: {units} past {ends:?}"));
             }
         }
     }
-    assert!(outside.is_empty(), "frames outside their ends: {outside:#?}");
+    assert!(
+        outside.is_empty(),
+        "frames outside their ends: {outside:#?}"
+    );
 }
 
 /// Every case the sweep builds: name and family.

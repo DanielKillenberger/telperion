@@ -1,0 +1,84 @@
+//! fn-299 R2 (host, 2026-10-20): between the ends of a walk, an age one
+//! end never reaches takes the other end's settings, and an age both ends
+//! reach mixes as before. The palm lives age 2 alone and stops there; the
+//! oak goes on through the ages after it.
+use telperion_space::{beech, blend, most_units, oak, palm, settings, spruce, PaState, Species};
+
+const T: [f64; 4] = [0.0005, 0.5, 0.9, 0.97];
+
+/// The ages after the palm's stem that the oak lives.
+fn past_the_palm(oak: &Species) -> Vec<usize> {
+    (3..oak.states.len())
+        .filter(|&k| oak.states[k].lifespan > 0.0)
+        .collect()
+}
+
+/// An age's settings and zones as a blend reads them: a role one side
+/// leaves out stands in as a zone of no nodes.
+fn same(a: &PaState, b: &PaState) -> bool {
+    let (mut x, mut y) = (a.clone(), b.clone());
+    let rows = |s: &mut PaState| -> Vec<f64> { settings(s).into_iter().map(|(_, v)| *v).collect() };
+    let none = |z: &telperion_space::Zone| z.nodes.mean() == 0.0;
+    let zones =
+        (0..x.zones.len().max(y.zones.len())).all(|r| match (x.zones.get(r), y.zones.get(r)) {
+            (Some(p), Some(q)) => p == q,
+            (Some(z), None) | (None, Some(z)) => none(z),
+            (None, None) => true,
+        });
+    zones && rows(&mut x) == rows(&mut y)
+}
+
+#[test]
+fn an_age_one_end_never_reaches_keeps_the_others_settings() {
+    let (o, p) = (oak(), palm());
+    let ages = past_the_palm(&o);
+    assert!(!ages.is_empty(), "the oak lives ages past the palm's stem");
+    for t in T {
+        // Both directions of the walk, at the same point.
+        for (name, frame) in [
+            ("oak to palm", blend(&o, &p, t).unwrap()),
+            ("palm to oak", blend(&p, &o, 1.0 - t).unwrap()),
+        ] {
+            for &k in &ages {
+                assert!(
+                    same(&frame.states[k], &o.states[k]),
+                    "{name} at t {t}: age {k}"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn an_age_both_ends_reach_still_mixes() {
+    // The palm's stem age, lived at both ends, lies strictly between them.
+    let (o, p) = (oak(), palm());
+    let (x, y) = (o.states[2].lifespan, p.states[2].lifespan);
+    let mid = blend(&o, &p, 0.5).unwrap().states[2].lifespan;
+    assert!(x.min(y) < mid && mid < x.max(y), "{x} {mid} {y}");
+    // Ages the beech passes through and the spruce lives: still a sliver
+    // near the beech, the pass-through case rule B leaves (R1.md).
+    let (b, s) = (beech(), spruce());
+    let near = blend(&b, &s, 0.0005).unwrap();
+    let passed: Vec<usize> = (0..b.states.len())
+        .filter(|&k| b.states[k].lifespan == 0.0 && s.states[k].lifespan > 0.0)
+        .collect();
+    let sliver = |k: &usize| (0.0..0.01).contains(&near.states[*k].lifespan);
+    assert!(
+        passed
+            .iter()
+            .any(|k| sliver(k) && near.states[*k].lifespan > 0.0),
+        "a pass-through age mixes from 0: {passed:?}"
+    );
+}
+
+#[test]
+fn oak_to_palm_grows_within_its_ends() {
+    let (o, p) = (oak(), palm());
+    let ends = [most_units(&o), most_units(&p)];
+    let high = ends[0].max(ends[1]);
+    for t in T {
+        let units = most_units(&blend(&o, &p, t).unwrap());
+        assert!(units <= high, "t {t}: {units} past the ends {ends:?}");
+    }
+}
