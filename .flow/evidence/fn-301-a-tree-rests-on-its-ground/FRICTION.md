@@ -41,3 +41,10 @@
 - **Slowed by:** `review.maxIterations` is 2, so flowctl refused the third round with `ESCALATE` before the reviewer saw the fixes. Round 1 spent one of the two rounds on questions only the host could answer.
 - **Cost:** one stop and a hand-off. The fixes wait unreviewed.
 - **Would remove it:** not counting a round that ends in a host ruling against the cap, or a cap of 3 for plans.
+
+## 2026-10-21 02:30, conductor, plan review round 3 (after the reset)
+
+- **Doing:** the codex re-review of the round-2 fixes.
+- **Slowed by:** the inflorescence pose cannot reach the renderer. `shaders/unit.wgsl:61-75` droops an inflorescence's rachis toward world ±Y from its seat and heading alone, so turning the instance does not turn the drawn rachis. No shipped preset's flowers come within 0.44 m of the ground (R1 on the base). How to represent a rested inflorescence is a design question, so the run went back to the host.
+- **Cost:** one review round and a stop.
+- **Would remove it:** a design note on flowers, written before the plan, saying whether flower contact is in scope for a preset with no low flowers.
