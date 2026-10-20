@@ -10,7 +10,7 @@
   "id": "fn-299-a-walk-frame-grows-within-its-ends",
   "impl_review_rounds": {
     "fn-299-a-walk-frame-grows-within-its-ends.1": 0,
-    "fn-299-a-walk-frame-grows-within-its-ends.2": 1
+    "fn-299-a-walk-frame-grows-within-its-ends.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -350,10 +350,55 @@
       "task": "fn-299-a-walk-frame-grows-within-its-ends.2",
       "timestamp": "2026-10-20T18:42:22.615234Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "a75f5b533b098b4ce0fe8211e0704913fcb02d83c6add1ad8e0636cf26d93aa4",
+      "backend": "codex",
+      "base_sha": "2df1389357f5a44f3a84426c166c101e5d04d1ad",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e547a5022eeb24516dec6aa5bef78811",
+            "classification": "introduced",
+            "findingId": "finding-e547a5022eeb24516dec6aa5bef78811",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0a08e047482f8d6a71eeaa9f9d19b68e158f2b6d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1027,
+      "output_sha256": "fc920b82c2284329d6b3a2599bd93a55f170827ecb9b2b221d12e1814f69f373",
+      "reservation_id": "8777da0e69c94d96aa07f45fa0ba9680",
+      "round_consumed": true,
+      "scope": "impl:fn-299-a-walk-frame-grows-within-its-ends.2",
+      "superseded_by": null,
+      "task": "fn-299-a-walk-frame-grows-within-its-ends.2",
+      "timestamp": "2026-10-20T22:05:04.940389Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-299-a-walk-frame-grows-within-its-ends.1": 1,
+    "impl:fn-299-a-walk-frame-grows-within-its-ends.2": 1,
     "plan": 3,
     "plan#completion": 1
   },
@@ -378,5 +423,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T18:42:22.618614Z"
+  "updated_at": "2026-10-20T22:05:04.943285Z"
 }

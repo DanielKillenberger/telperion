@@ -33,9 +33,11 @@ R2. Build the blend rule the host rules on after task .1, in `blend.rs` or `spec
 - [ ] Focused tests green: `telperion-heavy 8 --threads 2 -- cargo test --profile ci -p telperion-space` and `-p telperion-core --test units_bound`.
 
 ## Done summary
-TBD
+Rule B in `telperion-space/src/blend.rs` (host ruling 2026-10-20). Strictly between the ends, an age one end never reaches takes the other end's settings, every row. Reach is searched from the seed's PA 0 through apexes moving on, through the laterals an axis draws (`PaState::laterals`, zones with nodes) and through sleeping buds. The repro `a_walk_frame_grows_within_its_ends` runs un-ignored at a SLACK of the ends' max + 2 that names the two mechanisms left. `the_floor_counts_the_ages_a_cycle_chains` stays at 4, with the sliver named. New tests in `tests/blend_reach.rs` cover both walk directions, an unread lateral, a mixed age and oak to palm within its ends.
+stage: impl-review - ran (codex, NEEDS_WORK then SHIP) (model: gpt-6.1-sol)
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 499117b83c380996cca81391111c2b6424e234e4, 0a08e047482f8d6a71eeaa9f9d19b68e158f2b6d
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci -p telperion-space (all green at 499117b83); --test blend_reach --test walks and -p telperion-core --test units_bound (green at 0a08e0474)
 - PRs:
