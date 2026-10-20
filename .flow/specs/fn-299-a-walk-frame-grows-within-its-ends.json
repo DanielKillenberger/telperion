@@ -8,7 +8,9 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-299-a-walk-frame-grows-within-its-ends",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-299-a-walk-frame-grows-within-its-ends.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -215,15 +217,105 @@
       "task": null,
       "timestamp": "2026-10-20T17:10:15.819316Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "daf54bafcf026ce6e3ee162e88711636b2a127801226bbd6e3726d1176a526f2",
+      "backend": "codex",
+      "base_sha": "4ddffda2712689d9819763e4c720eb4c1820c6ec",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-10b9fd6f09c454c8cbd5efc31da533d6",
+            "classification": "introduced",
+            "findingId": "finding-10b9fd6f09c454c8cbd5efc31da533d6",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "00790118101eb8d8c6cd204bff5f683cf5ef6f56",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 906,
+      "output_sha256": "e830f6a822afc44e601b2a129733cbe6885f6591e65a837338b16c6a98c0f7b4",
+      "reservation_id": "5f3d35e577b24ce09ca2c44133fe9650",
+      "round_consumed": true,
+      "scope": "impl:fn-299-a-walk-frame-grows-within-its-ends.1",
+      "superseded_by": null,
+      "task": "fn-299-a-walk-frame-grows-within-its-ends.1",
+      "timestamp": "2026-10-20T17:12:07.974949Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "429eb0b4fadab55b30b2f0f8c76afc36c6a1a30503a7fcf555d2fe057da15e98",
+      "backend": "codex",
+      "base_sha": "4ddffda2712689d9819763e4c720eb4c1820c6ec",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-10b9fd6f09c454c8cbd5efc31da533d6",
+            "classification": "introduced",
+            "findingId": "finding-10b9fd6f09c454c8cbd5efc31da533d6",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e3697b13df7e85fee9488d102e410c483ba4bf45",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 736,
+      "output_sha256": "6b76e3fea46e6ab4f62952814c78b942e39ed4277bb27a0a69ec9eb94e53c1fc",
+      "reservation_id": "e760174eb9084efda5a73864710c2f50",
+      "round_consumed": true,
+      "scope": "impl:fn-299-a-walk-frame-grows-within-its-ends.1",
+      "superseded_by": null,
+      "task": "fn-299-a-walk-frame-grows-within-its-ends.1",
+      "timestamp": "2026-10-20T17:13:11.106785Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-299-a-walk-frame-grows-within-its-ends.1": 1,
     "plan": 3,
     "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-299-a-walk-frame-grows-within-its-ends.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-299-a-walk-frame-grows-within-its-ends.md",
@@ -240,5 +332,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T17:10:15.822589Z"
+  "updated_at": "2026-10-20T17:13:11.109438Z"
 }

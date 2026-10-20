@@ -38,9 +38,11 @@ The repro test lands committed red, marked `#[ignore = "fn-299 R2: red until the
 - [ ] `R1.md` proposes the rule with `most_units` at oak to palm t = 0.5, 0.9 and 0.97 under it, measured by a scratch probe, and the task returns to the host before task .2.
 
 ## Done summary
-TBD
+R1 repro `a_walk_frame_grows_within_its_ends` (units_bound.rs) is committed, ignored until R2, and red on the base: oak to palm at 40 reads 2, 3, 7, 9, 12, 12, 12 and 1 at the spec's eight t, at seeds 1, 7 and 42. R1.md traces the 12 to a chain through ten ages opened by two blended placeholder rows of the palm's unreached ages (`lifespan` toward 0, `continuation` toward 1). It also traces the beech's 4 to pass-through slivers (9 -> 10 -> 11 -> 12) and measures rule B on all six walks. Host ruling: rule B with tolerance (a), recorded in R2.
+stage: impl-review - ran (codex, NEEDS_WORK then SHIP) (model: gpt-6.1-sol)
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4064e6ae6b38b5fbb2d661d5530d55186a077311, 33e9ee5118501aedadd00cf1b18264fba80103fe, 00790118101eb8d8c6cd204bff5f683cf5ef6f56, e3697b13df7e85fee9488d102e410c483ba4bf45
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci -p telperion-core --test units_bound -- --ignored a_walk_frame_grows_within_its_ends (red, as intended)
 - PRs:
