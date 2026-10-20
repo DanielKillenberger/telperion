@@ -50,3 +50,17 @@
 - **Slowed by:** two existing gates fail on a tolerance, not a fault. `every_preset_sweeps_its_wood_as_the_cpu_does`: the palm's 315 runs all match point for point, centre 1.01e-3 m against a 1e-3 bound. `every_preset_s_device_field_answers_within_its_tolerance`: the palm at seed 5678 and side 24 gives a wood Jaccard of 0.9976 against 0.999. `rachis_tests` measured the cause. The error grows linearly along each axis and is already 3e-4 m at the insertion. Both executors take the crown's axis from the apex and its parent. Positions that agree by lineage (about 5e-6 m) across a short apex internode leave the two axes about 1e-3 rad apart (inferred from the insertion error over a depth of 0.35 m or less). Every frond heading carries that angle, the leaflets' included, so it reaches about 1 mm at a 7 m rachis's tip.
 - **Cost:** a stop for the host. The choice is between widening these gates for the frond axes and conditioning the crown's axis differently, which is a core change outside this task. That is a gate and design call.
 - **Would remove it:** an agreement bound for long wood stated as a direction tolerance times the reach, as the leaves' bound is already relative to height, set when the spec is written.
+
+## 2026-10-20 07:35, worker on task .3
+
+- **Doing:** the task's one workspace gate (`telperion-heavy 8 --threads 2`), after the codex review returned SHIP.
+- **Slowed by:** the queue has shown 5 to 7 GB of room for the 8 GB gate since 05:59, so a finished and reviewed task waits on memory, not on work.
+- **Cost:** over 1.5 hours queued so far.
+- **Would remove it:** a gate size declared at the peak it measures on this desk, or the conductor batching finished tasks' gates when the desk is idle.
+
+## 2026-10-20 08:45, host of the run (conductor)
+
+- **Doing:** waiting on task .3's workspace gate at the owner's 8 GB cap.
+- **Slowed by:** queued since about 05:30 with 4 to 6 GB of room against 8; task .4 cannot start until .3 is done.
+- **Cost:** about 3 h 15 min idle so far, open-ended.
+- **Would remove it:** a gate size the desk can admit (its measured peak), or freed RAM-backed /tmp; a local setup matter, reported, not specced.
