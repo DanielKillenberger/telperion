@@ -45,14 +45,24 @@ The proof point: the CPU reference hangs one woody run per frond in the expansio
 - [ ] The axes' node rail is refused by name past its limit.
 
 ## Done summary
-TBD
+The CPU hangs each frond's axis as wood behind the new `rachisWidth` row: one run per frond of two or more leaflets and some rachis length, from its insertion through every leaflet station (`leaflet::station`, one frond walk `rosette::placed` shared with placement), tapering from half the width times the frond's size share, never below FINEST. Bases and axes are one clothing tail, recognised once and bearing no leaf. On a table at 0.25 every frond leaflet and spine base lies within 1 mm of the drawn curve at ages 40 and 12, and the palm keeps its 6,554 leaves to the bit before quantisation. Every shipped preset, the palm included, builds the base's CPU mesh (HASHES.md).
 
+Decision (conductor): clothing tail unbearing. `Tree::clothing` marks where the bases and axes begin; `plan::bearing_of` and placement's slender shoots bear nothing at or past it (cauline 1, shootRadius 0.1: 77,518 leaves at width 0.25 before, 6,554 after).
+Decision (conductor): palm value moves to .3. The shipped palm keeps rachisWidth 0; .3 sets 0.25 (FAO 156 ch. I) with the device.
+
+Items for .3: the device mirror of the unbearing tail, and the axis records (the device draws no axis yet; with the palm at 0.25 the device disagrees with the CPU, as boots_tests and agree_tests showed at 1676ca65b).
+
+Gate: `telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast` at 9839dc3d9 green, 1,408 passed, 0 failed, 111 ignored (raw/gate.log). The gate at 1676ca65b was red with the palm at 0.25 (raw/gate-1676ca65b.log): palm tests counted the axes as bases or as stem, and the new row's pins; fixed for each cause, holding at 0 and 0.25.
+
+Follow-ups: leaf_bases.rs and rosette.rs were over the ~400-line rule before this change and grew.
+
+stage: impl-review - ran (codex: round 1 NEEDS_WORK 2 findings fixed; round 2 SHIP; round 3 on the gate fixes SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 167a1d8b4009617e2f6959ef79aecaae20b1fe8a, 25184cd0eeef1639d1276cff4a2225fe36a9849b, 320469a659befbbad1f20a4de3998aa616bf6edd, de9a4818c1693264ca4d40d51fab39283bc59048, dbc233dc6a19b40b94e65d001f929078a4527780, 1676ca65b4119d63f95737842b699aaa92f79965, d5c940ddcce93588bc42df36c568ae5dbe9b59e8, 9839dc3d912f7b4cbfe1d01a1f36adb4ebea627b
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast, cargo test --profile ci -p telperion-core --lib rachis
 - PRs:
-
-
 ## Decision (conductor, 2026-10-20, after the red gate at 1676ca65b)
 
 The shipped date palm keeps `rachisWidth` 0 in this task; the 0.25 m value and its FAO citation land in .3, with the device that draws it, so no CPU=device test is red between tasks. The row, the CPU axes and the clothing rule ship here, proven by tests that set the width on their own table. Every core and jev failure the gate named is fixed for its cause (checked against the base) so that it holds at width 0 and at 0.25.
