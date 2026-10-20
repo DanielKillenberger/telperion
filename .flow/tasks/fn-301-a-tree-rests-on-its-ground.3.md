@@ -4,11 +4,11 @@ satisfies: [R2, R3]
 # fn-301-a-tree-rests-on-its-ground.3 Engine wood rests its girth and keeps its step; the sweep keeps bark off the ground
 
 ## Description
-The lay walk's resting clamp becomes R2's rule on both executors. A non-trunk step whose bark would pass below the ground ends with its centreline at its girth radius and keeps its length, along the horizontal part of its travel. This fixes the birch, the spruce at 40, the ordinary tree and the oak's wood. The radius is the girth (host ruling). The engine never gets surface rows. Second part: where the sweep emits ring vertices, on each executor, a vertex of non-trunk wood gets `y = max(y, 0)`, which keeps the flare and the lobes off the ground (spec, "Surface clearance").
+The lay walk's resting clamp becomes R2's rule on both executors. A non-trunk step whose bark would pass below the ground ends with its centreline at `radius` and keeps its length, along the horizontal part of its travel. This fixes the birch, the spruce at 40, the ordinary tree and the oak's wood. The radius is the girth (host ruling). The engine never gets surface rows. Second part: where the sweep emits ring vertices, on each executor, a vertex of non-trunk wood gets `y = max(y, 0)`, which keeps the flare and the lobes off the ground (spec, "Surface clearance").
 
 **Size:** M
 **Files:** `crates/telperion-space/src/geometry/lay.rs`, `crates/telperion-render/src/generation/cycle/lay_walk.wgsl`, `crates/telperion-space/tests/sag.rs`, and the settle agreement tests that move
-**Touches:** [crates/telperion-core/src/pipeline/surface/**, crates/telperion-render/src/curve/**, crates/telperion-render/src/shaders/**, crates/telperion-core/tests/ground_reach.rs, crates/telperion-space/src/geometry/lay.rs, crates/telperion-space/src/invariants.rs, crates/telperion-space/tests/**, crates/telperion-space/src/grow/**, crates/telperion-render/src/generation/cycle/**]
+**Touches:** [crates/telperion-core/src/pipeline/surface/**, crates/telperion-render/src/curve/**, crates/telperion-render/src/curve/**/*.wgsl, crates/telperion-core/tests/ground_reach.rs, crates/telperion-space/src/geometry/lay.rs, crates/telperion-space/src/invariants.rs, crates/telperion-space/tests/**, crates/telperion-space/src/grow/**, crates/telperion-render/src/generation/cycle/**]
 
 ### Approach
 - The clamp is `lay.rs:373-380` (CPU) and `cycle/lay_walk.wgsl:219-223` (device). The landing ease (`lay.rs:357-364`, `lay_walk.wgsl:206-211`) and the trunk fault (`lay.rs:370`) stay unchanged.

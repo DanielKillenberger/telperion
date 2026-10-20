@@ -4,7 +4,8 @@
   "claimed_at": null,
   "created_at": "2026-10-20T22:45:30.834361Z",
   "depends_on": [
-    "fn-301-a-tree-rests-on-its-ground.2"
+    "fn-301-a-tree-rests-on-its-ground.2",
+    "fn-301-a-tree-rests-on-its-ground.3"
   ],
   "id": "fn-301-a-tree-rests-on-its-ground.4",
   "priority": null,
@@ -12,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-301-a-tree-rests-on-its-ground.4.md",
   "status": "todo",
   "title": "A leaf or flower that would cross the ground lies on it",
-  "updated_at": "2026-10-20T22:51:57.930568Z"
+  "updated_at": "2026-10-20T22:54:24.258599Z"
 }
