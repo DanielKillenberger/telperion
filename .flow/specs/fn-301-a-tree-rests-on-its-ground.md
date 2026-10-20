@@ -52,6 +52,12 @@ Contact is a rule of the curve each axis is drawn on, plus one pose rule for ins
 - **The frond curve is one function per executor.** The CPU already has one. On the device, the three copies fold into one WGSL function that all three call. If the modules cannot share it, the plan says why and names the copies a test holds equal. Contact lives inside that function, so the rachis, its leaflets' stations and run, and the skirt all agree.
 - **Resting keeps length and rests the bark.** On both curves, a resting axis keeps its arc length, and its centreline lies one radius above the ground.
 
+- **Rulings after plan review round 1 (host, 2026-10-21):**
+  - **Bark clearance.** The engine rests the girth. In the lay walk on both executors, the centreline of resting wood lies one girth radius above the ground. The engine is never handed surface rows.
+  - **What the surface draws past the girth.** The flare and the lobes are the surface stage's own shape, so the surface stage keeps them off the ground. Where the sweep emits ring vertices, on each executor, a vertex of non-trunk wood below the ground is set onto it (y = max(y, 0)). That is the underside of wood pressed into the ground. The rule is an identity wherever no ring reaches the ground, so trees R1 finds clear keep their bytes. The trunk's buried root flare is unchanged. This is surface clearance, not a third way of resting: axes still rest only in their curves.
+  - **Thinned leaves.** The renderer's thinning enlargement (`shaders/foliage.wgsl`, kept leaves scaled 1/kept about their seat) is a view-dependent draw. R4 judges the built tree, and the enlargement is outside it, so the renderer gets no pose. R5 adds one far-view still of the palm at 12, where thinning is active, to measure how visible the dip is. If it shows, the owner rules on it as an Open item.
+  - **Quantisation, flower stalks, field boxes, proof-point wording.** These are the conductor's fixes as proposed. The pose clears by the encoder's worst-case error for the element's reach, with a packing round-trip test. Flowers use the stalk reach. The field's leaflet boxes take the posed frame. Task .2 gates .4 and .5.
+
 ## Requirements
 
 - **R1 (repro):** a test reads, for every shipped preset at ages 6, 8, 10, 12, 15, 20 and its default age, at seeds 1, 7 and 42:
