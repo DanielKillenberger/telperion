@@ -287,10 +287,7 @@ fn on_rachis(point: vec3<f32>, heading: vec3<f32>, count: u32, j: u32, t: f32, r
     } else {
         lift = square_to(heading);
     }
-    let length = rows.x;
-    let arch = rows.y;
-    let at = point + heading * (length * t) + lift * (arch * length * t * t);
-    let run = normalize(heading + lift * (2.0 * arch * t));
+    let curve = rachis(point, heading, lift, rows.x, rows.y, t);
     var closing = 1.0;
     if j + 1u == count {
         closing = 1.0 - rows.w;
@@ -302,7 +299,7 @@ fn on_rachis(point: vec3<f32>, heading: vec3<f32>, count: u32, j: u32, t: f32, r
         pitch = borne.z;
         share = borne.y;
     }
-    return Leaflet(at, rotate(run, lift, hand * pitch * closing), run, cross(heading, lift), share);
+    return Leaflet(curve.at, rotate(curve.run, lift, hand * pitch * closing), curve.run, cross(heading, lift), share);
 }
 
 // A frond leaflet's box (`fronds.rs`'s `Shape` with its packing margin):

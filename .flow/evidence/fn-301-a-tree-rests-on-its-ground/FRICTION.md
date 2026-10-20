@@ -48,3 +48,10 @@
 - **Slowed by:** the inflorescence pose cannot reach the renderer. `shaders/unit.wgsl:61-75` droops an inflorescence's rachis toward world ±Y from its seat and heading alone, so turning the instance does not turn the drawn rachis. No shipped preset's flowers come within 0.44 m of the ground (R1 on the base). How to represent a rested inflorescence is a design question, so the run went back to the host.
 - **Cost:** one review round and a stop.
 - **Would remove it:** a design note on flowers, written before the plan, saying whether flower contact is in scope for a preset with no low flowers.
+
+## 2026-10-21 01:29, worker, task .1 baseline
+
+- **Doing:** the pre-edit baseline: a cold build of `telperion-render`'s tests in this worktree's own `target/`, then a scratch digest of the palm on the device.
+- **Slowed by:** `telperion-heavy` admission. The build waited 7 minutes behind another worktree's heavy job (f4-299), then compiled from cold for 10 minutes; the digest run then waited again on the same 8 GB room. The worktree starts with an empty `target/`, so every task in it pays a full cold build first.
+- **Cost:** about 17 minutes before the first test ran, more while the digest waits.
+- **Would remove it:** a worktree seeded with a warm `target/` copy (never shared) at creation, or a smaller admission ask for a test-only run.

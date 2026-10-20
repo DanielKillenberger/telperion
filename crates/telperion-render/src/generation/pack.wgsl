@@ -208,14 +208,12 @@ struct Leaflet { point:vec3<f32>, axis:vec3<f32>, tangent:vec3<f32>, normal:vec3
 fn on_rachis(point:vec3<f32>, heading:vec3<f32>, count:u32, j:u32, t:f32, rows:vec4<f32>, borne:vec3<f32>) -> Leaflet {
     var lift=vec3<f32>(0.0,1.0,0.0)-heading*heading.y;
     if dot(lift,lift)>1e-12 { lift=normalize(lift); } else { lift=square_to(heading); }
-    let length=rows.x; let arch=rows.y;
-    let at=point+heading*(length*t)+lift*(arch*length*t*t);
-    let run=normalize(heading+lift*(2.0*arch*t));
+    let curve=rachis(point,heading,lift,rows.x,rows.y,t);
     var closing=1.0; if j+1u==count { closing=1.0-rows.w; }
     let hand=select(-1.0,1.0,j%2u==0u);
     var pitch=rows.z; var share=1.0;
     if j<u32(borne.x) && borne.y>0.0 { pitch=borne.z; share=borne.y; }
-    return Leaflet(at,rotate(run,lift,hand*pitch*closing),run,cross(heading,lift),share);
+    return Leaflet(curve.at,rotate(curve.run,lift,hand*pitch*closing),curve.run,cross(heading,lift),share);
 }
 // A unit vector square to `v` (`Vec3::perpendicular`).
 fn square_to(v:vec3<f32>) -> vec3<f32> {

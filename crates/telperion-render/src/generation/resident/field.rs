@@ -69,7 +69,7 @@ impl Fielder {
 }
 
 fn source() -> String {
-    format!("{FIELD}\n{SPLAT}")
+    format!("{}\n{FIELD}\n{SPLAT}", super::super::sources::rachis())
 }
 
 /// Every source the field compiles, by name: the shader tests'.

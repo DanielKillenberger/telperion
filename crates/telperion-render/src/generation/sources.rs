@@ -6,12 +6,13 @@ const LEAF: &str = include_str!("../shaders/leaf.wgsl");
 /// the contract's keys.
 pub(super) fn place() -> String {
     format!(
-        "{LEAF}\n{}\n{}\n{}\n{}\n{}\n{}",
+        "{LEAF}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
         super::cycle::contract(),
         bloom(),
         include_str!("order.wgsl"),
         include_str!("place.wgsl"),
         include_str!("contact.wgsl"),
+        rachis(),
         include_str!("pack.wgsl")
     )
 }
@@ -20,6 +21,12 @@ pub(super) fn place() -> String {
 /// them and the resident stations count them by the same source.
 pub(super) fn bloom() -> &'static str {
     include_str!("bloom.wgsl")
+}
+
+/// The frond curve, one function for every module that draws a frond:
+/// the leaves' placement, the fronds' axes and the field's leaflet boxes.
+pub(super) fn rachis() -> &'static str {
+    include_str!("rachis.wgsl")
 }
 
 pub(super) fn mass() -> String {

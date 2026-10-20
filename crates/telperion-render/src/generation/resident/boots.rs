@@ -41,9 +41,10 @@ const UPRIGHT: f64 = 15.0;
 
 pub(super) fn source() -> String {
     format!(
-        "{}\n{}\n{COUNTS}\n{BOOTS}\n{FRONDS}",
+        "{}\n{}\n{COUNTS}\n{BOOTS}\n{}\n{FRONDS}",
         super::super::cycle::KEYS,
-        super::super::cycle::ORGANS
+        super::super::cycle::ORGANS,
+        super::super::sources::rachis()
     )
 }
 

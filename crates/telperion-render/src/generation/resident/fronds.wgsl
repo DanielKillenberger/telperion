@@ -377,7 +377,7 @@ fn rachises(@builtin(global_invocation_id) id: vec3<u32>) {
         if split < 1.0 {
             t *= split;
         }
-        let point = insertion + heading * (length * t) + lift * (arch * length * t * t);
+        let point = rachis(insertion, heading, lift, length, arch, t).at;
         let radius = max(r0 * (1.0 - t), FINEST);
         let r = first + k;
         travelled += distance(at, point);
