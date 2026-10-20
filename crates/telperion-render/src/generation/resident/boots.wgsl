@@ -5,7 +5,8 @@
 // marks each stem node a stem carries on; `apices` lists the clothed
 // stem apices; `place` lays each base on its stem; `lattice` gives each
 // stem its bark and cell; `hang` writes each base's two drawn records
-// and its cell in `packed_sections`' layout.
+// and its cell in `packed_sections`' layout. A crown's fronds are drawn
+// beside them (`fronds.wgsl`).
 
 struct Cfg {
     n: u32,
@@ -40,12 +41,29 @@ struct Cfg {
     out_records: u32,
     out_axis: u32,
     out_slot: u32,
+    // The rosette's divergence, a fixed-point share of a turn
+    // (`boots.rs`' `rosette_turn`).
+    turn: u32,
+    // The rosette's rows (`boots.rs`' `rosette_rows`): fronds, skirt
+    // fronds, divergence, depth; pitch, its spread, the skirt's pitch and
+    // length; leaflets, rachis length, arch, leaflet pitch; terminal share,
+    // spines, their share and pitch; the crown's year (`Crown::rows`):
+    // fronds made, a frond's years, whole years before the last (negative
+    // where no engine grew it), days into the last; budburst, elongation,
+    // expansion, and the fronds it draws (`Crown::slots`); the years the
+    // crown takes to make a mature frond, its first frond's share, and the
+    // rachis's length over a mature leaflet's (none where it groups none).
+    rosette: array<vec4<f32>, 7>,
+    // The counts of organs (`stations.rs`' `organ_rows`, fn-277).
+    organs: array<vec4<u32>, 3>,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
 // Every drawn record by id, then every axis by slot (`fold.rs`'s
 // `Dressed`): the seed's wave read, the boots' written.
 @group(0) @binding(1) var<storage, read_write> drawn: array<f32>;
+// Whether a stem carries on from each seed record, and whether a fine
+// stem does (`STEMMED`), which ends no crown there.
 @group(0) @binding(2) var<storage, read_write> carried: array<atomic<u32>>;
 // The clothed apices' count and their bases', then a slot each (`AW`).
 @group(0) @binding(3) var<storage, read_write> stems: array<u32>;
@@ -61,6 +79,7 @@ const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 const FINE: u32 = 8u;
 const STEM: u32 = 128u;
+const STEMMED: u32 = 2u;
 // A boot's record, and the record a boot's run opens at where it is
 // drawn as its cell: above a tip's leaf count (`dress.wgsl`'s `LEAVES`,
 // at most 8 leaves, `MAX_CLUSTER_LEAVES`).
@@ -123,8 +142,10 @@ fn kids(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let p = parent(r);
+    let f = word(r, 6u);
+    let fine = (f & FINE) != 0u && (f & BOOT) == 0u;
     if p != NONE {
-        atomicOr(&carried[p], 1u);
+        atomicOr(&carried[p], select(1u, 1u | STEMMED, fine));
     }
 }
 

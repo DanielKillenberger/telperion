@@ -138,7 +138,7 @@ fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Bas
         .expect("a family that hangs bases");
     let bases = super::boots::most(f).unwrap();
     let (mut dressed, _) = pollster::block_on(tree::drawn(gpu, k, (&growth, bases))).unwrap();
-    let hung = pollster::block_on(hanger.hang(gpu, &mut dressed, Some(&rows))).unwrap();
+    let hung = pollster::block_on(hanger.hang(gpu, &mut dressed, (Some(&rows), None))).unwrap();
     let seed = &dressed.waves[1];
     let all = words(gpu, &dressed.records, dressed.ids as usize * CV);
     let record = |id: u32| &all[id as usize * CV..][..CV];

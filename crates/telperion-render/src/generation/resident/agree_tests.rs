@@ -265,6 +265,19 @@ fn every_rosette_is_placed_as_the_cpu_places_it() {
     }
 }
 
+/// fn-283 R4: a crown with no retained leaf bases below it has its fronds
+/// drawn in the leaf-base stage all the same, and placed as the CPU
+/// places them.
+#[test]
+fn a_crown_with_no_leaf_bases_is_placed_as_the_cpu_places_it() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let f = bare("date-palm", age());
+    assert!(executor::bases(&f).unwrap().is_none());
+    crown_agrees(&gpu, "date-palm", &f, 1.0);
+}
+
 fn crown_agrees(gpu: &crate::Gpu, id: &str, f: &Family, fraction: f64) {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();

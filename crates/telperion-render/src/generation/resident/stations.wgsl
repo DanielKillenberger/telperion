@@ -19,7 +19,8 @@
 // its own leaflets (fn-277). Where the canopy stands a rosette, each stem
 // apex that draws a living frond is a run of its own, after every other,
 // a segment a frond, its stations the frond's leaflets (`rosette.rs`;
-// fn-256, DESIGN.md 12.7.1).
+// fn-256, DESIGN.md 12.7.1), its fronds read from the table the boots
+// stage drew them in (`fronds.wgsl`, fn-283 R4).
 
 struct Cfg {
     n: u32,
@@ -41,21 +42,8 @@ struct Cfg {
     // Whether some wood sheds its leaves by age (fn-248): every station
     // keeps its leaf where none does.
     retains: u32,
-    // The rosette's divergence, a fixed-point share of a turn
-    // (`stations.rs`'s `rosette_turn`).
-    turn: u32,
     // The blooms' rows (`bloom.wgsl`).
     flower: Flower,
-    // The rosette's rows (`stations.rs`'s `rosette_rows`): fronds, skirt
-    // fronds, divergence, depth; pitch, its spread, the skirt's pitch and
-    // length; leaflets, rachis length, arch, leaflet pitch; terminal share,
-    // spines, their share and pitch; the crown's year (`Crown::rows`):
-    // fronds made, a frond's years, whole years before the last (negative where
-    // no engine grew it), days into the last; budburst, elongation,
-    // expansion, and the fronds it draws (`Crown::slots`); the years the
-    // crown takes to make a mature frond, its first frond's share, and the
-    // rachis's length over a mature leaflet's (none where it groups none).
-    rosette: array<vec4<f32>, 7>,
     // The counts of organs (`stations.rs`'s `organ_rows`, fn-277): the
     // cauline share, the fronds, the dead fronds, the leaflets and the
     // spines as counts' words; the rachis's length; the newest frond's
@@ -77,6 +65,11 @@ struct Cfg {
 // record; fn-229).
 @group(0) @binding(7) var<storage, read_write> owners: array<atomic<u32>>;
 const OW: u32 = 2u;
+// The crowns' fronds the boots stage drew (`fronds.wgsl`): their counts,
+// a crown each (`CW`), then a frond each (`FW`).
+@group(0) @binding(8) var<storage, read> fronds: array<u32>;
+const CW: u32 = 4u;
+const FW: u32 = 32u;
 // `cfg.leaves`: the leaf-bearing wood and short shoots bear (fn-277).
 const WOOD: u32 = 2u;
 
@@ -162,197 +155,36 @@ fn fine(i: u32) -> bool {
     return (f & MADE) != 0u && (f & FINE) != 0u && (f & BOOT) == 0u;
 }
 
-// Whether the canopy stands a rosette, and the fronds each draws, living,
-// dead and emerging (`Crown::slots`): none where it stands none, and none
-// yet where its tree has made none.
-fn bearing() -> bool {
-    return cfg.rosette[0].x > 0.0;
-}
-
-// Word `i` of the counts of organs.
-fn organ_word(i: u32) -> u32 {
-    return cfg.organs[i / 4u][i % 4u];
-}
-
 // Whether the bearer keyed `key` keeps its leaves at the cauline share
 // (`plan::cauline`).
 fn cauline(key: u32) -> bool {
     return organs(organ_word(0u), key, ORGAN_CAULINE) == 1u;
 }
 
-// The leaves placement `k` of the bearer keyed `key` carries: its
-// leaflets, one where it draws one or there is no rachis to string them
-// on (`organs::leaflets`).
-fn leaves_at(key: u32, k: u32) -> u32 {
-    if !grouped() {
-        return 1u;
-    }
-    let n = organs(organ_word(3u), placement_key(key, k), ORGAN_LEAFLETS);
-    return select(1u, n, n > 1u);
-}
-
-// Whether any placement may carry more than one leaflet.
-fn grouped() -> bool {
-    return organ_word(3u) > 0x10000u && bitcast<f32>(organ_word(5u)) > 0.0;
-}
-
-// The crown an apex draws (`organs::apex`, `Crown`): its stem's key, its
-// whole living and dead fronds, its newest frond's serial and the fronds
-// it draws.
-struct Drawn {
-    key: u32,
-    living: u32,
-    dead: u32,
-    newest: i32,
-    slots: u32,
-}
-
-fn crown_of(apex: u32) -> Drawn {
-    let key = word(stem_first(apex), 24u);
-    let living = organs(organ_word(1u), key, ORGAN_FRONDS);
-    let dead = organs(organ_word(2u), key, ORGAN_SKIRT);
-    let more = select(0u, 1u, living > (organ_word(1u) >> 16u));
-    let skirt = select(0u, 1u, dead > (organ_word(2u) >> 16u));
-    let newest = bitcast<i32>(organ_word(6u + more));
-    return Drawn(key, living, dead, newest, organ_word(8u + 2u * more + skirt));
-}
-
-// The logistic course over a span (`unfold::course`, `unfold::run`).
-fn course(x: f32) -> f32 {
-    if x <= 0.0 {
-        return 0.0;
-    }
-    if x >= 1.0 {
-        return 1.0;
-    }
-    let lo = 1.0 / (1.0 + exp(5.0));
-    let hi = 1.0 / (1.0 + exp(-5.0));
-    return (1.0 / (1.0 + exp(-10.0 * (x - 0.5))) - lo) / (hi - lo);
-}
-
-fn run(t: f32, days: f32) -> f32 {
-    if days > 0.0 {
-        return course(t / days);
-    }
-    return select(0.0, 1.0, t > 0.0);
-}
-
-// The share of its whole size frond `serial` stands at: whole once made
-// in a year before this one, one of this year's expanding from its
-// emergence (`Crown::unfolded`).
-fn unfolded_frond(serial: i32, fronds: f32) -> f32 {
-    let y = cfg.rosette[4];
-    let s = cfg.rosette[5];
-    if y.z < 0.0 || y.y <= 0.0 || fronds <= 0.0 {
-        return 1.0;
-    }
-    let made = (f32(serial) + 1.0) * y.y / fronds;
-    if made <= y.z {
-        return 1.0;
-    }
-    if made > y.z + 1.0 {
-        return 0.0;
-    }
-    let emerges = s.x + s.y * min(made - y.z, 1.0);
-    return run(y.w - emerges, s.z);
-}
-
-// The crown's age when frond `serial` emerged, evenly over its year's
-// elongation from budburst; negative with no establishment and on a crown
-// no engine grew (`Crown::born`).
-fn born_frond(serial: i32, fronds: f32) -> f32 {
-    let e = cfg.rosette[6];
-    let y = cfg.rosette[4];
-    let s = cfg.rosette[5];
-    if e.x <= 0.0 || y.z < 0.0 || y.y <= 0.0 || fronds <= 0.0 {
-        return -1.0;
-    }
-    let made = (f32(serial) + 1.0) * y.y / fronds;
-    let year = ceil(made) - 1.0;
-    return year + (s.x + s.y * (made - year)) / 365.0;
-}
-
-// The share of a mature frond's size frond `serial` was made at: the
-// crown's age when it emerged along the course from the early share to
-// whole over the establishment years (`Crown::established`, fn-275 R2).
-fn established_frond(serial: i32, fronds: f32) -> f32 {
-    let born = born_frond(serial, fronds);
-    if born < 0.0 {
-        return 1.0;
-    }
-    let e = cfg.rosette[6];
-    return 1.0 - (1.0 - e.y) * (1.0 - course(born / e.x));
-}
-
-// How far frond `serial` was made along the course from one leaflet to
-// the mature count, on a log scale (`Crown::pinnate`, fn-275 R2b): whole
-// with no establishment.
-fn pinnate_frond(serial: i32, fronds: f32) -> f32 {
-    let born = born_frond(serial, fronds);
-    return select(1.0, course(born / cfg.rosette[6].x), born >= 0.0);
-}
-
-// The leaves frond `serial` of the crown keyed `key` carries: the
-// leaflets it was made with, by the same course on a log scale from one
-// to the mature count, drawn as a count between two whole numbers
-// (`Crown::leaflets`, `organs::frond_leaflets`, fn-275 R2b).
-fn frond_leaves(key: u32, serial: i32, fronds: f32) -> u32 {
-    let f = pinnate_frond(serial, fronds);
-    if f >= 1.0 || !grouped() {
-        return leaves_at(key, u32(serial));
-    }
-    let count = pow(max(cfg.rosette[2].x, 1.0), f);
-    let n = organs(count_word(count), placement_key(key, u32(serial)), ORGAN_LEAFLETS);
-    return select(1u, n, n > 1u);
-}
-
-// A young frond as strips of one blade that splits (`Crown::segments`,
-// fn-275 R2b): at `f` its leaflet pitch and its spines' count word; where
-// each strip stands and how long it is `pack.wgsl`'s `leaflet` reads from
-// `f` and the rosette's strap row. The mature rows where it is made
-// mature or groups no leaflets.
-struct Blade {
-    pitch: f32,
-    spines: u32,
-}
-
-fn segments(f: f32) -> Blade {
-    let r = cfg.rosette;
-    if f >= 1.0 || r[6].z <= 0.0 {
-        return Blade(r[2].w, organ_word(4u));
-    }
-    let n = pow(r[2].x, f);
-    return Blade(r[2].w * f, count_word(r[3].y * n / r[2].x));
-}
-
-// `a` a share `t` of the way to `b` (`rosette::fronds`' mix).
-fn toward(a: f32, b: f32, t: f32) -> f32 {
-    return a + (b - a) * t;
-}
-
-// The first node of the stem an apex ends: what keys its fronds, which
-// stays as the stem grows (`rosette::stem_key`).
-fn stem_first(apex: u32) -> u32 {
-    var first = apex;
-    // cap: the nodes; no stem is longer.
-    let cap = arrayLength(&drawn) / CV;
-    for (var n = 0u; n < cap; n++) {
-        let p = parent(first);
-        // The root bears every stem: never stepped onto.
-        let root = parent(p) == NONE || parent(p) == p;
-        if p == NONE || p == first || root || (flags(p) & STEM) == 0u {
-            break;
+// The place in the fronds' table of the crown stem node `i` heads,
+// found by its id; none where it heads none.
+fn crown(i: u32) -> u32 {
+    var lo = 0u;
+    var hi = fronds[0];
+    // cap: each step halves hi - lo, a u32, so 32 steps at most.
+    while lo < hi {
+        let mid = lo + (hi - lo) / 2u;
+        if fronds[2u + mid * CW] < i {
+            lo = mid + 1u;
+        } else {
+            hi = mid;
         }
-        first = p;
     }
-    return first;
+    if lo < fronds[0] && fronds[2u + lo * CW] == i {
+        return 2u + lo * CW;
+    }
+    return NONE;
 }
 
-// A stem's apex, which a rosette crowns (`Tree::stem_apices`): a drawn
-// stem node no stem continues.
+// A stem's apex, which a rosette crowns (`Tree::stem_apices`): one the
+// boots stage drew a crown's fronds for.
 fn apex(i: u32) -> bool {
-    let stem = (flags(i) & STEM) != 0u;
-    return bearing() && fine(i) && stem && (atomicLoad(&st[i * SW]) & STEM_KID) == 0u && crown_of(i).living > 0u;
+    return (flags(i) & STEM) != 0u && crown(i) != NONE;
 }
 
 fn bears(i: u32) -> bool {
@@ -580,14 +412,9 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     // A rosette: a segment a frond, a station a leaflet.
     if apex(first) {
-        let c = crown_of(first);
-        var leaves = 0u;
-        // cap: the fronds the crown draws.
-        for (var i = 0u; i < c.slots; i++) {
-            leaves += frond_leaves(c.key, c.newest - i32(i), f32(c.living));
-        }
-        runs[r * RW + 1u] = leaves;
-        runs[r * RW + 2u] = c.slots;
+        let c = crown(first);
+        runs[r * RW + 1u] = fronds[c + 3u];
+        runs[r * RW + 2u] = fronds[c + 1u];
         runs[r * RW + 3u] = 2u;
         return;
     }
@@ -788,94 +615,20 @@ fn contact(node: u32) -> vec4<u32> {
 }
 
 // The fronds of the rosette crowning `apex`, a segment each from `g`
-// on, its leaflets from station `station0` on: `rosette::fronds`' spiral.
-// A frond's segment, for `pack.wgsl`: where it leaves the axis and its
-// rachis length; the radial it leans out along and its size share; its
-// heading and its spines' share; the apex's axis (every leaflet kept);
-// the rachis's arch, the leaflet pitch, the terminal share and the
-// spines' pitch; whether it withers, the frond's kind (-2), its spines;
-// its first leaflet, leaflets and key.
+// on, its leaflets from station `station0` on, as the boots stage drew
+// them (`fronds.wgsl`): each drawn whole (fn-270 R5).
 fn rosette(apex: u32, station0: u32, g: u32) {
-    let at = pos(apex);
-    let along = at - pos(parent(apex));
-    var axis = vec3<f32>(0.0, 1.0, 0.0);
-    if dot(along, along) > 1e-18 {
-        axis = normalize(along);
-    }
-    // `rosette::frame`.
-    var normal = vec3<f32>(0.0, 1.0, 0.0) - axis * axis.y;
-    if dot(normal, normal) > 1e-12 {
-        normal = normalize(normal);
-    } else {
-        normal = perpendicular(axis);
-    }
-    let binormal = cross(axis, normal);
-    let r = cfg.rosette;
-    // The apex's own whole counts (fn-277).
-    let c = crown_of(apex);
-    let fronds = f32(c.living);
-    let living = c.living;
-    let oldest = f32(max(living, 1u) - 1u);
-    let steps = max(oldest, 1.0);
-    let total = fronds + f32(c.dead);
-    let newest = c.newest;
-    let stream = mix32(c.key ^ KEY_ROSETTE.x);
-    var first = station0;
-    // Each frond at its place on the spiral, newest first, by its serial
-    // among the fronds made, a place further down for every frond grown
-    // above it (`rosette::fronds`).
-    var above = 0.0;
-    for (var i = 0u; i < c.slots; i++) {
-        let serial = newest - i32(i);
-        let grown = unfolded_frond(serial, fronds);
-        let made_at = established_frond(serial, fronds);
-        let k = above;
-        above += grown;
-        let turn = f32(u32(serial) * cfg.turn) * (6.283185307179586 / 4294967296.0);
-        let radial = normal * cos(turn) + binormal * sin(turn);
-        var age = 0.0;
-        if oldest > 0.0 {
-            age = min(k, oldest) / oldest;
-        }
-        // From living to dead over its last living place, and faded over
-        // the skirt's last.
-        var turned = 0.0;
-        if c.dead > 0u {
-            turned = clamp(k - oldest, 0.0, 1.0);
-        }
-        let pitch = toward(r[1].x + r[1].y * age, r[1].z, turned);
-        let depth = toward(r[0].w * age, r[0].w * (max(k, fronds) / steps), turned);
-        let length = toward(1.0, r[1].w, turned);
-        let share = length * grown * made_at * clamp(total - k, 0.0, 1.0);
-        var split = pinnate_frond(serial, fronds);
-        if cfg.rosette[6].z <= 0.0 {
-            split = 1.0;
-        }
-        let blade = segments(split);
-        let heading = normalize(axis * cos(pitch) + radial * sin(pitch));
+    let c = crown(apex);
+    let records = 2u + fronds[0] * CW;
+    // cap: the fronds the crown draws.
+    for (var i = 0u; i < fronds[c + 1u]; i++) {
+        let t = records + (fronds[c + 2u] + i) * FW;
         let s = (g + i) * GW;
-        put4(s, vec4<f32>(at - axis * depth, r[2].y * share));
-        put4(s + 4u, vec4<f32>(radial, share));
-        put4(s + 8u, vec4<f32>(heading, r[3].z));
-        put4(s + 12u, vec4<f32>(axis, 0.0));
-        put4(s + 16u, vec4<f32>(r[2].z, blade.pitch, r[3].x, r[3].w));
-        // Its own leaflets and spines (`organs::placement`, fn-277).
-        let leaflets = frond_leaves(c.key, serial, fronds);
-        let spines = organs(blade.spines, placement_key(c.key, u32(serial)), ORGAN_SPINES);
-        put4(s + 20u, vec4<f32>(f32(turned >= 0.5), -2.0, f32(spines), split));
-        segs[s + 15u] = NONE;
-        segs[s + 24u] = first;
-        segs[s + 25u] = leaflets;
-        owns(g + i, apex);
-        first += leaflets;
-        segs[s + 26u] = 0u;
-        segs[s + 27u] = mix32(stream + (u32(serial) + 1u) * 0x9e3779b9u);
-        for (var c = 0u; c < 4u; c++) {
-            segs[s + 28u + c] = 0u;
+        for (var w = 0u; w < FW; w++) {
+            segs[s + w] = fronds[t + w];
         }
-        // Its strips' blade over a mature leaflet (`pack.wgsl`'s `leaflet`).
-        segs[s + 28u] = bitcast<u32>(cfg.rosette[6].z);
-        // A frond is drawn whole (fn-270 R5).
+        segs[s + 24u] = station0 + fronds[t + 24u];
+        owns(g + i, apex);
         unfolded(s, NONE, NONE, 0u);
     }
 }

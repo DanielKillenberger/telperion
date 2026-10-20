@@ -100,13 +100,18 @@ pub(super) struct Swept {
 }
 
 impl Swept {
-    /// What the stations read of `dressed` swept: its records, and the
-    /// table with the nodes' contacts.
-    pub(super) fn laid<'a>(&'a self, dressed: &'a Dressed) -> Laid<'a> {
+    /// What the stations read of `dressed` swept: its records, the table
+    /// with the nodes' contacts, and its crowns' `fronds`.
+    pub(super) fn laid<'a>(
+        &'a self,
+        dressed: &'a Dressed,
+        fronds: Option<&'a wgpu::Buffer>,
+    ) -> Laid<'a> {
         Laid {
             records: &dressed.records,
             table: &self.table,
             contacts: self.contacts,
+            fronds,
         }
     }
 }
