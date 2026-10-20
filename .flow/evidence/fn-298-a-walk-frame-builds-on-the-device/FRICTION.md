@@ -24,3 +24,10 @@ Doing: R2's per-limit A/B. The first batch interleaved stepped and all-at-bound 
 Slowed by: the stepped total moved from 4,298 ms (15:30 batch) to 4,002 ms (15:37 batch), a 7% drift between batches, larger than the per-limit effects. The first batch's per-limit numbers (all 4 to 5% faster than its stepped runs) are unusable, and a second batch interleaving a stepped control with each limit was needed.
 Cost: one more heavy admission (30 s wait) and 3 minutes of device time; small, but a wrong decision would have followed from the first table.
 Would remove it: `build_time` A/Bs always interleave their arms within one batch; a scratch switch read per build (not per process) would let one run alternate arms per preset.
+
+## 2026-10-20 17:50, task .2: the one-minute step-1 trace waited 40 minutes for room
+
+Doing: the revised ruling's step 1, a single `telperion-heavy 8 --threads 2` run of a scratch trace that grows four presets twice, stamped. The test itself ran in 10 s.
+Slowed by: from 17:09 to 17:49 the room stood at 2 to 4 GB for the 8 asked, while other agents' jobs held memory.
+Cost: 40 minutes of wall time with no device work possible; the step's real work was under 2 minutes.
+Would remove it: as the 13:45 entry says, a measured smaller ask for a single-crate test build, or a reserved slot for short measurement runs.
