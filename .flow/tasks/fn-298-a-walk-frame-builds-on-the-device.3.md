@@ -30,8 +30,8 @@ The sweep that would have caught it (R3) and the agreement checks (R4): build ev
 - Never share `target/` with another checkout; a base digest run in a second worktree uses its own target.
 - A digest difference not traced to the limits stops `NEEDS_HUMAN` (spec R4 Errors).
 ## Acceptance
-- [ ] A device test builds the film's walk frames at seeds 1, 7 and 42 and the Laurelin at 20, all succeeding; it runs on the workspace command, either whole or as a stated subset holding every R1 frame, with the full sweep's result in RESULT.md.
-- [ ] Each R1-fixed frame agrees between CPU and device to `agree_tests`' tolerances.
+- [ ] A device test builds the film's walk frames at seeds 1, 7 and 42 and the Laurelin at 20, all succeeding except the frames R3 excludes for fn-299 (oak to palm refused on `FRAMES`, and frames 76–77 at seed 42 if shown to share the cause); each excluded frame is an ignored test naming fn-299. It runs on the workspace command, whole or as a stated subset holding every R1 frame and the 9 `rounds` frames, with the full sweep's result in RESULT.md.
+- [ ] Each R1-fixed frame (and the 9 `rounds` frames) agrees between CPU and device to `agree_tests`' tolerances.
 - [ ] The digest at seeds 1, 7 and 42 matches the base byte for byte, recorded in RESULT.md with `space_hash` lines.
 - [ ] The gate and `npm test` are green.
 ## Done summary
