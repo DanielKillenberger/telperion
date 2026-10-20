@@ -38,9 +38,24 @@ Apply the host's option (d) for `laygens` (spec R2 item 2, "Ruled (host, 2026-10
 - [ ] A paired `build_time` run is within noise of the base; the digest at seeds 1, 7 and 42 matches the base; both in R2.md.
 - [ ] The gate is green.
 ## Done summary
-TBD
+`laygens` is now a cost hint. Option (d) adds a closing direct layout pass (`tail_main`, layout.wgsl) after the last recorded generation. It lays every new axis deeper than `laygens - 1` with the generation pass's own steps in their order, one writer per chain, chosen by its head. `LayGenerations` is refused only past the cap of 15, and `STEP[2]` is documented as a hint. The rounds floor (xii) gives the hierarchy's generations the units rounds' floor, `rounds = max(gens(c - 2) + STEP[0], 2 units - 1)`. `passes`, `sweeps` and `unit_rounds` are unchanged.
 
+Tests:
+- `one_layout_generation_lays_the_stepped_tree` (spruce, `laygens` forced to 1) gives the stepped build's bytes.
+- `fn298_the_beech_to_spruce_at_0_216_builds_on_the_device` is un-ignored and green. Node counts are equal (275,557), and instance counts are equal (96,524; the narrowed R4 allows a difference of 1).
+- The position and radius check is a separate test, ignored under fn-300.
+- The refusal-by-name tests are kept.
+- R2.md holds the digest (24/24 identical) and the paired `build_time` (+0.7% for (d), +0.1% for the floor).
+
+The first gate run failed on `compile_size`: `tail_main` inlined 69,121 expressions against the 50,000 ceiling. Fixed in b60657e84, which leaves one call site of `lay`; the lay order is the same and the forced-1 test is still byte-identical. FRICTION.md has the entry. The gate rerun is green: 1,408 passed, 0 failed, 112 ignored.
+
+Follow-up for the host: codex's contracts draw notes, as P2, that task .3's acceptance still asks for position agreement on the fixed frames, which R4 now defers to fn-300. That text is outside this task's Touches.
+
+stage: impl-review - ran (codex, 3 draws, round 1: SHIP; reviewed head f5bf82b7f; b60657e84, the compile-ceiling fix, landed after the review)
+Tier: session (jev long_running 0.40) at default effort (model: claude-opus-5-5)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 22e7a8418c5bb570a4acc0b983153703b46adf03, e8470899ab2b233dcbac00f4b123043c3da052fe, 9c1cbc818ce29f5f2f9aa1ef9a56e6338477db4b, 1867e1a0cd10427e9688492343927494e9e38656, e982004962dfd739c61c2481ae4a26e89800e792, e5d4055f7c831e43f8ad8767ecdd4f8b4abcab87, 808cfe4cb72f281e3bf6dac7f422c7076c855478, 1d9ba85b7f05de91d6ca80c10e64198fa948e068, 95c2fa37216dab9d3164091066fc58e4ac730627, a606f866bc5778b610b5bf32a7b3d15ae1ef4d2f, e69b0183f1d07235f378287683158b860b803276, bc70aaebdb4c736896dd0415ee8ecd45c8a98754, 30de58fc71bcddc4a96f74768bc506020f9b11de, b227997cf3e38cd8ec83e46c1aaac27b9c6400c4, 2cd02c362161946f958548ac9c8c10a0516c07cc, 12b79da7add6a0c756618b826bc636a6b327216d, 433eaddbe394e61d1a0e3609705841147fd253e1, 9eaac8cf424cae0905fa9ecd869acb9f074a498b, f5bf82b7fdc652004ce5488504bd9b97bfd88895, b60657e84cb06b9dbe4121012b6baca25d6c2b7b
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci -p telperion-render --lib -- fn298 --include-ignored --nocapture, telperion-heavy 8 --threads 2 -- cargo test --profile ci -p telperion-render --lib -- compile_size one_layout_generation_lays_the_stepped_tree fn298 --nocapture, telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast
 - PRs:

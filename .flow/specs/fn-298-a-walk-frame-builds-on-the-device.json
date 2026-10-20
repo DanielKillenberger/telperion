@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-298-a-walk-frame-builds-on-the-device",
   "impl_review_rounds": {
-    "fn-298-a-walk-frame-builds-on-the-device.1": 0
+    "fn-298-a-walk-frame-builds-on-the-device.1": 0,
+    "fn-298-a-walk-frame-builds-on-the-device.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -140,10 +141,55 @@
       "task": "fn-298-a-walk-frame-builds-on-the-device.1",
       "timestamp": "2026-10-20T13:45:14.300608Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b201dbfea80531f78ad165305c97f69e595d3b8554fd92c62c50905d6ef26efd",
+      "backend": "codex",
+      "base_sha": "488580cbd9d30dfecd12a8d8d6b7aa5e71ff0b93",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b477474396079a78667c5a7d31a88610",
+            "classification": "introduced",
+            "findingId": "finding-b477474396079a78667c5a7d31a88610",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f5bf82b7fdc652004ce5488504bd9b97bfd88895",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1014,
+      "output_sha256": "33daa19cbfe8efefcb6565a2bb476699ece1f7744373f41b22be1f2c754764b7",
+      "reservation_id": "751ddbb06f7c4598935845573fa25949",
+      "round_consumed": true,
+      "scope": "impl:fn-298-a-walk-frame-builds-on-the-device.2",
+      "superseded_by": null,
+      "task": "fn-298-a-walk-frame-builds-on-the-device.2",
+      "timestamp": "2026-10-20T17:27:36.612414Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-298-a-walk-frame-builds-on-the-device.1": 1,
+    "impl:fn-298-a-walk-frame-builds-on-the-device.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -151,6 +197,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-298-a-walk-frame-builds-on-the-device.1": 0,
+    "impl:fn-298-a-walk-frame-builds-on-the-device.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-298-a-walk-frame-builds-on-the-device.md",
@@ -167,5 +214,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T17:13:09.351284Z"
+  "updated_at": "2026-10-20T17:27:36.615841Z"
 }
