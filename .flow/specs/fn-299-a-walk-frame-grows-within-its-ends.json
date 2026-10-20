@@ -14,8 +14,8 @@
   },
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "stale",
-  "plan_reviewed_at": "2026-10-20T17:10:15.822033Z",
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-20T22:54:44.475610Z",
   "ready": true,
   "review_attempts": [
     {
@@ -394,12 +394,64 @@
       "task": "fn-299-a-walk-frame-grows-within-its-ends.2",
       "timestamp": "2026-10-20T22:05:04.940389Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "371ef067eafa87b9475c2595c27f36a59e6f35c5b1f294ed36b5046d1fb56c6e",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-18afec9cec923ba4d7d750a97d7db77f",
+            "classification": "introduced",
+            "findingId": "finding-18afec9cec923ba4d7d750a97d7db77f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d7d57f6048865e5931752947ede38d2d",
+            "classification": "introduced",
+            "findingId": "finding-d7d57f6048865e5931752947ede38d2d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "e40fde44177b7a9061f851eeb105d0fea5001529",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 561,
+      "output_sha256": "cfbad6b2dad15dd4bd61e64864b45c79a97d90cc8ce25910e1bea5cbd9e1cabc",
+      "reservation_id": "df30c87db5af488ca7239eee7cdb91e7",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T22:54:44.472407Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-299-a-walk-frame-grows-within-its-ends.1": 1,
     "impl:fn-299-a-walk-frame-grows-within-its-ends.2": 1,
-    "plan": 3,
+    "plan": 4,
     "plan#completion": 1
   },
   "review_pending_rounds": {},
@@ -423,5 +475,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T22:54:17.382171Z"
+  "updated_at": "2026-10-20T22:54:44.476247Z"
 }
