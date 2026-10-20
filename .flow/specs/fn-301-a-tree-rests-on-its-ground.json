@@ -12,10 +12,103 @@
   "id": "fn-301-a-tree-rests-on-its-ground",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-20T22:49:17.091890Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "2bb90e2d1b4c72f4c30b59a0ba9def22661f76f9eec259724e1ce8852c2ba92b",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f92fdafa69d30e7cdb1c3eef45e01067",
+            "classification": "introduced",
+            "findingId": "finding-f92fdafa69d30e7cdb1c3eef45e01067",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-db2253e294a042184fa488a55edf4c30",
+            "classification": "introduced",
+            "findingId": "finding-db2253e294a042184fa488a55edf4c30",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b4702b5692a8921f79286ebe3b6dfb0e",
+            "classification": "introduced",
+            "findingId": "finding-b4702b5692a8921f79286ebe3b6dfb0e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-90c7627b9d88dc7254cf269ddd34d9ed",
+            "classification": "introduced",
+            "findingId": "finding-90c7627b9d88dc7254cf269ddd34d9ed",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5fe51db899db703c42a62833cea8bf64",
+            "classification": "introduced",
+            "findingId": "finding-5fe51db899db703c42a62833cea8bf64",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-34735d9b4d1de7c9294090eb7267b674",
+            "classification": "introduced",
+            "findingId": "finding-34735d9b4d1de7c9294090eb7267b674",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c2fb2b6230aaef67f4e81b01bb17721fcf7ae90b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 388825,
+      "output_sha256": "d3e8f8fc0fab1123e49db0e18273d26de35148d9cb9777d87aaa252c371c3bb0",
+      "reservation_id": "35392e513d37416cb0abe3b12fd78c62",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T22:49:17.081221Z",
+      "tool_calls": 20,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-301-a-tree-rests-on-its-ground.md",
   "status": "open",
   "title": "A tree rests on its ground",
@@ -30,5 +123,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T22:45:37.113186Z"
+  "updated_at": "2026-10-20T22:49:17.098100Z"
 }

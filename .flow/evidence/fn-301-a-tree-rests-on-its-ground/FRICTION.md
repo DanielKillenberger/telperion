@@ -20,3 +20,17 @@
 - **Slowed by:** the first run counted the trunk's ring at the root, which leans with the trunk, as wood below the ground on every preset; a second run left it out. Each run waited 1.5 to 3 minutes for admission and took 2.5 minutes.
 - **Cost:** about 12 minutes, one rerun.
 - **Would remove it:** a wood bound per run that names the trunk's foot, so a ground probe need not rebuild that rule.
+
+## 2026-10-21 01:00, conductor, the plan
+
+- **Doing:** the plan skill's preflight.
+- **Slowed by:** `flowctl init` wrote `review.fanoutExecution` into the tracked `.flow/config.json`. The guard blocks `git restore`, so the line was removed by hand.
+- **Cost:** about 2 minutes.
+- **Would remove it:** an `init` that leaves an existing config untouched.
+
+## 2026-10-21 01:15, conductor, plan review round 1 (codex)
+
+- **Doing:** the codex plan review.
+- **Slowed by:** the review found that the drawn bark is wider than the radius the design rests on (`flareRadius` up to 2 at the ground, lobes 1 + `lobeDepth`), that the renderer enlarges thinned leaves after the pose, and that 10-bit quaternions move a 1 m leaflet tip by about 1.7 mm. The first two are design questions, so the run went back to the host.
+- **Cost:** one review round (about 8 minutes) and a stop.
+- **Would remove it:** a design note on "radius" that names the drawn reach, and a renderer note on thinning, written before the plan.
