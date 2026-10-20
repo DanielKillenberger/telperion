@@ -29,9 +29,12 @@ B.1 and B.2 are both in the cycle (`generation/cycle/`). B.1: `counts()` narrows
 - [ ] Gate green once at the end under telperion-heavy; codex impl review SHIP
 
 ## Done summary
-TBD
+B.1: `cycle/device.rs` `counts()` sizes the jobs' state in u64 and refuses with `ResourceLimit("the cycle's job counts")` before any buffer is made when the words pass the device's storage limit (a buffer exactly at the limit is accepted) or what a u32 index reaches. B.2: `hier_blocks.wgsl` `assign_main` skips the write at `opened >= stride` and raises `X_FAULT`.
+Tests: unit tests of the sizing at one below, at and one past the limit, and of the 7.47M-sleeper wrap; a GPU test of a block opened past the stride. fn-256's held-device test (`route_tests::a_buffer_over_the_devices_limit_is_refused_by_name`) now also accepts the earlier named refusal; the gate found it red.
+Gate: 1412 passed, 1 failed (that test), 111 ignored; after the fix the render lib's filtered run is 6/6 green. Codex review SHIP twice (b0862780b, then 0232a46ad).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fc29edf1e, b0862780b, 0232a46ad
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast (1412 passed, 1 failed, 111 ignored; the one fixed in 0232a46ad), telperion-heavy 8 --threads 2 -- cargo test -p telperion-render --profile ci --lib -- route_tests::a_buffer_over cycle::device cycle::hier_tests (6 passed)
 - PRs:
