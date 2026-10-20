@@ -38,3 +38,10 @@ Doing: option (d), the layout's closing pass, against the acceptance "the t = 0.
 Slowed by: with the layout no longer refusing, the same frame is refused by `HierGens` at cycle 10 (`rounds` 3 projected from `gens` 1; 4 reached). R1 could only see the first refusal a frame meets, so the acceptance assumed `laygens` was the frame's only limit.
 Cost: small in time (two short admissions, about 11 minutes of device time); the task stops `NEEDS_HUMAN` with its acceptance unmet.
 Would remove it: an R1 repro that records every stepped limit a frame passes, by running it with each other limit at its bound (the `R2_FULL` scratch switch), before a fix is scoped to one.
+
+## 2026-10-20 18:40, task .2: the survey found a refusal no earlier run could reach
+
+Doing: the host's survey of every R3 frame with the kept limits at their bounds (one admission, no wait; 819 s for 1,533 frames).
+Slowed by: 42 oak-to-palm frames (i 106 to 119, every seed) are refused before their build by `FRAMES` = 11, a table no stepped limit touches. Neither R1 (the six FILM.md rows) nor fn-276's sweep (`T` = 0, 0.01, 0.1, 0.5, 0.9, 1 per walk) builds a frame between t 0.9 and 1, so this surfaced only now, after two fixes were scoped.
+Cost: no time lost to the run itself; the task's acceptance (every frame builds) is further than it looked, and the fix is a host call.
+Would remove it: run R3's own frame list (this survey's segment table) as the first repro of a spec like this one, before any fix is scoped.
