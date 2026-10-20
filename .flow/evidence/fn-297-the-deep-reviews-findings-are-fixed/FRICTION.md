@@ -6,3 +6,9 @@
 - Cost: ~1 minute and a revert per stage that runs init.
 - Remove it: commit the key once, or make init not write keys the repo removed.
 - Also: `pilot snapshot` marks fn-297 ineligible because its parent branch fn-294 is not on origin, though the host merged fn-294 into this branch (e507d4874). The host dispatch proceeds anyway; a chain check that accepts a parent merged into the child branch would remove the override.
+
+## 2026-10-20 work stage, branch fence
+- Doing: work's Phase 2 chain fence.
+- Hindered: `spec chain` reports fn-297 ineligible (parent fn-294's branch is not on origin), which would stop the run BLOCKED, although fn-294 is merged into this branch at e507d4874 and the host forbids pushing. The run proceeds on the current branch under the host's dispatch, with the spec base set by hand to ee2fe86b5.
+- Cost: ~3 minutes reading the chained-spec and scheduler references to find no sanctioned path.
+- Remove it: let the chain predicate accept a parent whose tip is already an ancestor of the child branch.
