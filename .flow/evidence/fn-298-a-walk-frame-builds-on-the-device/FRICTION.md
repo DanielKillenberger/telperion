@@ -52,3 +52,10 @@ Doing: the host's `rounds` ruling, which floors a cycle's `rounds` by "the lates
 Slowed by: the claim it was conditioned on holds exactly (k = 0), but a cycle's limits read the census two cycles back, not one (`build_grow.rs:381`, `428`), so the floor covers 1 of the 9 frames. The task stops `NEEDS_HUMAN` a second time with nothing built.
 Cost: about 10 minutes and one 81 s admission; another host round trip.
 Would remove it: a ruling that names a census states its cycle offset, checked against `Growing::cycle` before the acceptance is written around it (AGENTS.md, "Gates and checked claims").
+
+## 2026-10-20 19:15, task .2: the fixed frame met a CPU-device gap no earlier run had measured
+
+Doing: the acceptance's "t = 0.2160 test green, CPU = device", once the frame built.
+Slowed by: the device and the CPU disagree on walk frames at 40, the base included (0.08 m at t = 0.1, 0.34 m at 0.2160), and no test held them to agree (`agree_tests` runs at age 12). The R1 repro stopped at the first refusal, so nobody saw the agreement half of the test before this run.
+Cost: one 7-minute admission for the probe; a third host round trip, with the limit work done.
+Would remove it: when a repro test asserts two things (it builds; it agrees), run the second on the nearest frames that build on the base, before the fix is scoped.
