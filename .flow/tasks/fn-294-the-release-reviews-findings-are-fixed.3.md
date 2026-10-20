@@ -35,9 +35,16 @@ The two plausible findings. Each starts with a standalone repro test; the fix fo
 - [ ] TBD
 
 ## Done summary
-TBD
+Both plausible findings reproduced as standalone red tests before any fix (REPROS.md), so both were fixed.
+- R5: `params::overlay` panicked at the metadata `expect` for a family under `Light::NEUTRAL`; it now writes the wire through a fallible `wire()` and refuses with `InvalidValue { field: "space", value: <space::rows's reason> }`. `metadata` keeps its signature for presets and parsed wires.
+- R6: the oak with 5 m internodes at 8 years (10,000 budget) asserted at `light/field.rs:66` through the public `grow`; spanning is now fallible and refuses `light.lattice` before any lattice allocation. Codex's own candidate (100 m internodes) is refused earlier by the ground bound.
 
+Gate: 1406 passed, 0 failed, 111 ignored. npm test: 175 passed.
+
+stage: impl-review - ran (codex, 3-lens panel: correctness SHIP, contracts SHIP, integration SHIP) (model: gpt-6.1-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 53545a1f4cfe6e89e1501f2cc89ac44e9e7c8e13, 6b2ba9725b29bb94a390b4940732985385f6a2d4, 4d0525dcb9de8610ae838aff06a7e6b3bee5fe4c
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast, npm test
 - PRs:
