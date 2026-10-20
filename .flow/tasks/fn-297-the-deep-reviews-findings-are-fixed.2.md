@@ -31,9 +31,18 @@ The prepared tree's flower bounds fold only the stored element vertices, which f
 - [ ] Gate green once at the end under telperion-heavy; codex impl review SHIP
 
 ## Done summary
-TBD
+Flower bounds now hold the drawn stalks on every site. The organ element carries its stalks' reach (rachis + pedicel + half the stamen width, from one helper `bloom::stalk_reach`; zero when both lengths are zero). `Instances::bounds` adds that reach around each origin, which covers the prepared tree, the CPU mesh (`mesh.rs`) and the comparison route without touching their call sites. `place.wgsl` adds the same reach on the device's floret placement, reading it from the element vertex's w (`compute.rs`).
 
+Old shortfall on Laurelin (measured): 0 m at her shipped rows (seed 1, at ages 80 and 30), because her crown already holds every stalk. The red case is one floret on a 1 m rachis, 0.364 m short at droop 0.5 and 0.365 m short at droop -0.5, on both executors. After the fix it is 0 m.
+Side effect (measured): the uniform reach widens Laurelin's shipped bounds by up to 0.67 m a side (on a box of about 45 m) even though nothing was outside them. A tighter fold would use the pedicel width around each floret and the axis around each rachis.
+Tests: `stalk_tests::prepared_bounds_hold_every_drawn_stalk` (GPU: shipped rows, droop 0.5, droop -0.5) and `bounds_tests::stalks_reach_from_each_origin_and_none_without_length` (zero-length stalks add nothing; leaf elements keep a zero reach).
+Gate: one run, 1409 passed, 1 failed, 111 ignored. The failure was `generation_limit_guard`, which flagged the fold's presence test as a limit. The test was restated (90619ba65), and the guard and bounds tests were re-run green on their own.
+
+stage: impl-review - ran (codex, three-lens panel, round 1 SHIP)
+Tier: host dispatch (model: claude-opus-5-5)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8ccb516d0e909484ea3d471a0b76a4054551e46b, 6a6f74ffbc4447af46c2225904b53eff9b0332aa, 90619ba6502e5757f853d6de40e5ac0f30326a69
+- Tests: cargo test -p telperion-render --profile ci --lib prepared_bounds_hold_every_drawn_stalk, cargo test -p telperion-core --profile ci --lib bounds_tests, cargo test -p telperion-core --profile ci --test generation_limit_guard, telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast (1409 passed, 1 failed: generation_limit_guard, fixed in 90619ba65 and re-run focused)
 - PRs:
