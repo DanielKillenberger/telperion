@@ -12,7 +12,7 @@
   "id": "fn-301-a-tree-rests-on-its-ground",
   "impl_review_rounds": {
     "fn-301-a-tree-rests-on-its-ground.1": 0,
-    "fn-301-a-tree-rests-on-its-ground.2": 1
+    "fn-301-a-tree-rests-on-its-ground.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -699,11 +699,95 @@
       "task": "fn-301-a-tree-rests-on-its-ground.2",
       "timestamp": "2026-10-21T01:04:29.761698Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "3689ccc8f9e440ebf1bacd399406dea52b6cf24302a600028c362beff47a59a4",
+      "backend": "codex",
+      "base_sha": "053bf947865b2da8a96108ad6d54eeb0a411858b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e5f6198624990165415ebfadbf5c34a5",
+            "classification": "introduced",
+            "findingId": "finding-e5f6198624990165415ebfadbf5c34a5",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-e7d07465c9a9fa1fc616a534cf124262",
+            "classification": "introduced",
+            "findingId": "finding-e7d07465c9a9fa1fc616a534cf124262",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-436ed0eb909102db0e5725ef0198e555",
+            "classification": "introduced",
+            "findingId": "finding-436ed0eb909102db0e5725ef0198e555",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7031c3e0050d10790cab9d0f9753007c",
+            "classification": "introduced",
+            "findingId": "finding-7031c3e0050d10790cab9d0f9753007c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "withdrawn"
+          },
+          {
+            "chainRoot": "finding-c987e64613d93fef41ab5a48060ca204",
+            "classification": "introduced",
+            "findingId": "finding-c987e64613d93fef41ab5a48060ca204",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-780837dbf1c86659e901c8080672096e",
+            "classification": "introduced",
+            "findingId": "finding-780837dbf1c86659e901c8080672096e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "e899e484f9a26dceb8f42330155c32030ca89982",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1315,
+      "output_sha256": "64770ed33f9932f17981cf26e5e3f3ce2aae7db489d244c2c9367859dd932d30",
+      "reservation_id": "80707902c6ed4f85a9f0fdf3a1d215d4",
+      "round_consumed": true,
+      "scope": "impl:fn-301-a-tree-rests-on-its-ground.2",
+      "superseded_by": null,
+      "task": "fn-301-a-tree-rests-on-its-ground.2",
+      "timestamp": "2026-10-21T01:13:46.579466Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-301-a-tree-rests-on-its-ground.1": 1,
-    "impl:fn-301-a-tree-rests-on-its-ground.2": 1,
+    "impl:fn-301-a-tree-rests-on-its-ground.2": 2,
     "plan": 3,
     "plan#completion": 2
   },
@@ -728,5 +812,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T01:06:15.476781Z"
+  "updated_at": "2026-10-21T01:13:46.582740Z"
 }
