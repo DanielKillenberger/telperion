@@ -131,3 +131,69 @@ fn the_layouts_primitives_are_their_reals_to_f32() {
 /// What the f32 primitives may differ from their f64 forms by over unit
 /// vectors and angles of a few radians: a few units in f32's last place.
 const F32: f64 = 1e-5;
+
+/// The scales whose last span's share at their summed tip divides to
+/// 0.9999994 in f32: (0.644714 − 0.6) / 0.044714 (fn-303, oak to palm
+/// frame 36's relay at its parent's tip). The device's `span_share` is
+/// held to the same values (`settle_tests.rs`).
+const SPANS: [f32; 3] = [0.3, 0.3, 0.044714];
+
+/// fn-303: a length at a span's summed end is the span's end, share 1,
+/// by the comparison that chose the span; a length short of it keeps its
+/// share.
+#[test]
+fn a_length_at_a_span_end_is_the_whole_span() {
+    use super::stand::{node_x, span_share, total};
+    let mut axis = crate::structure::Axis {
+        lineage: 0,
+        pa: 0,
+        birth: 0,
+        origin: crate::structure::Origin::Seed,
+        vigour: 1.0,
+        blend: 1.0,
+        apex_end: None,
+        base: Vec3::default(),
+        heading: Vec3::default(),
+        side: Vec3::default(),
+        phytomers: Vec::new(),
+        units: Vec::new(),
+        alive: 1.0,
+        rank: 0.0,
+        sleep: 0.0,
+        phase: 0.0,
+        joined: None,
+    };
+    for &scale in &SPANS {
+        axis.phytomers.push(crate::structure::Phytomer {
+            cycle: 1,
+            tip: Vec3::default(),
+            heading: Vec3::default(),
+            side: Vec3::default(),
+            radius: 0.0,
+            scale: f64::from(scale),
+            key: 0,
+            rank: 0.0,
+            size: 1.0,
+            light: 1.0,
+            grown: 1.0,
+        });
+    }
+    let tip = total(&axis);
+    let before = SPANS[0] + SPANS[1];
+    // The division alone reads the tip short of its span's end.
+    assert!(
+        (tip - before) / SPANS[2] < 1.0,
+        "the spans must round below 1"
+    );
+    assert_eq!(node_x(&axis, tip), (2, 1.0));
+    // An interior node's end is that span's whole.
+    assert_eq!(node_x(&axis, before), (1, 1.0));
+    // One ulp short of the tip keeps the division's share.
+    let short = f32::from_bits(tip.to_bits() - 1);
+    let (k, t) = node_x(&axis, short);
+    assert_eq!(k, 2);
+    assert!(t < 1.0, "a length short of the end keeps its share: {t}");
+    assert_eq!(t, span_share(short, before, SPANS[2]));
+    // Past the tip, no span reaches it.
+    assert_eq!(node_x(&axis, f32::from_bits(tip.to_bits() + 1)), (3, 0.0));
+}
