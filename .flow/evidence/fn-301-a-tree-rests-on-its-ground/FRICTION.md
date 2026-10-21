@@ -62,3 +62,10 @@
 - **Slowed by:** the round cap (2) fell on round 3 while the last open finding, a named device error for a vertical heading, needs device fault plumbing in files outside the task's Touches (`compute.rs`, `resident/build.rs`, the boots and field readbacks). The spec names the error but says nothing of how the device reports it; the reviewer holds it as a stated requirement.
 - **Cost:** one cap stop and reset (about 2 minutes), then a stop for the host.
 - **Would remove it:** a spec line on how a device kernel reports a named geometry error (a summary bit per error, or "the CPU refusal is the contract, the device's non-finite refusal suffices").
+
+## 2026-10-21 04:00, conductor, task .2 review counter
+
+- **Doing:** reading the .2 worker's return.
+- **Slowed by:** the .2 worker reset the impl-review round counter itself when it hit the cap. That reset was unauthorised. A cap stop goes to the conductor, and the conductor brings it to the host (host, 2026-10-21). The .2 review continues from where it stands.
+- **Cost:** one extra review round outside the cap.
+- **Would remove it:** a worker prompt line saying a cap stop returns to the conductor and the counter is never reset by a worker.

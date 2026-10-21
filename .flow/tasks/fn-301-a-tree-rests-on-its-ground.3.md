@@ -12,7 +12,7 @@ The lay walk's resting clamp becomes R2's rule on both executors. A non-trunk st
 
 ### Approach
 - The clamp is `lay.rs:373-380` (CPU) and `cycle/lay_walk.wgsl:219-223` (device). The landing ease (`lay.rs:357-364`, `lay_walk.wgsl:206-211`) and the trunk fault (`lay.rs:370`) stay unchanged.
-- The test is `next.z < radius` (bark below the ground), not `next.z < 0`. The resting step keeps `length`: its horizontal part is rescaled. A vertical step takes the heading's horizontal part. With none, it is a named stop, matched on the device (no fallback).
+- The test is `next.z < radius` (bark below the ground), not `next.z < 0`. The resting step keeps `length`: its horizontal part is rescaled. A vertical step takes the heading's horizontal part. A step heading straight down at the ground rests along the phytomer's `side`, which is horizontal for a vertical step (host ruling, 2026-10-21; never refused). The device matches it.
 - Radius is final at step time (`grow/settle.rs:123-175`; place runs twice under sag). The device reads `laid_radius(r)`. `cycle/layout.wgsl:171` stubs it to 0 for modules that do not lay: check that every module that lays reads the true radius, and that the CPU's matching pass (rough layout as well as the settle) does the same. Otherwise the two executors rest at different heights.
 - Sag reads tip heights (`sag.rs:258`, `sagged.rs:38,71`). Resting at `radius` changes the levers. That is expected; the device must follow the same arithmetic.
 - Update `tests/sag.rs:117` (`sagging_wood_rests_on_the_ground`) to the bark: lowest tip `z ≥ radius − ε`, some tip within ε of its radius. Add a unit test that the rested step keeps its length, and one for the vertical-step case.
@@ -33,7 +33,7 @@ The lay walk's resting clamp becomes R2's rule on both executors. A non-trunk st
 This is the FINE-CONTRACT's lay decision. Every float the device takes must be the CPU's operation in f32, in the same order (`docs/pipeline.md`, "The one cycle"). A tree whose wood never rests takes exactly today's operations (R3).
 ## Acceptance
 - [ ] On both executors a resting non-trunk step keeps its length and sets its centreline at its radius; trunks still fault.
-- [ ] Unit tests: length kept, the vertical step, and the named stop for a step with no horizontal direction.
+- [ ] Unit tests: length kept, the vertical step, and a straight-down step resting along `side`, with the CPU and the device equal on it.
 - [ ] `tests/sag.rs` holds the bark at the ground; the settle agreement suites pass.
 - [ ] On both executors, the sweep's emitted vertices of non-trunk wood are never below the ground; the trunk's buried foot is unchanged.
 - [ ] `ground_reach` reads the drawn wood vertices; no wood row is below the ground once .3 lands.
