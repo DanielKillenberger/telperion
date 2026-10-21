@@ -146,3 +146,10 @@
 - **Slowed by:** they did not. Their lowest non-trunk bark on the base is +9.1 cm, +24.3 cm and +8.1 cm. The base R1 probe at 24704052c already read the bark (centre − radius, with the ring's plane extent), not the centreline as the earlier inference said, so its "clear" list was honest for the bark. The rows most likely move because the landing ease now reads the bark across its whole zone, not only at contact. A second stop.
 - **Cost:** about 10 minutes, and a second stop for the host.
 - **Would remove it:** the plan treating "the landing ease is measured from the bark" as a change to every limb inside the landing zone, and listing R3's changing rows from a probe of that zone rather than of contact.
+
+## 2026-10-21 16:40, worker, task .5 npm test
+
+- **Doing:** `npm test` after the gate (1,455 passed, 0 failed, 112 ignored).
+- **Slowed by:** `npm test` fails before vitest runs. `catalogue:check` reports that `catalogue/date-palm/README.md` differs from its regeneration. The base d600fa12c fails the same way, and this branch touches nothing under `catalogue/` or `scripts/`, so the failure is inherited. vitest alone passes (22 files, 177 tests; raw/t5-vitest.log). The page is outside .5's Touches and was not regenerated.
+- **Cost:** about 5 minutes.
+- **Would remove it:** regenerating the palm's catalogue page (`node scripts/catalogue-pages.mjs`) where it was left stale, and running `catalogue:check` in the merge gate that let it through.
