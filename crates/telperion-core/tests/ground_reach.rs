@@ -1,8 +1,9 @@
 //! fn-301 R1: what each shipped preset draws below its ground, the plane
 //! y = 0 through the root. For every catalogue preset at ages 6, 8, 10, 12,
 //! 15, 20 and its own, at seeds 1, 7 and 42, it reads the lowest drawn point
-//! of the wood, of the leaves and of the flowers, and how many leaf and
-//! flower instances have a vertex below the ground.
+//! of the wood, of the leaves and of the flowers, how many leaf and flower
+//! instances have a vertex below the ground, and how many of those reach
+//! below what they may.
 //!
 //! The wood is read from its drawn vertices, the sweep's own (fn-301 .3):
 //! run by run in the curve's order, each ring's vertices and the run's two
@@ -71,16 +72,16 @@ fn bark_low(m: &TreeMesh) -> f64 {
         .fold(f64::INFINITY, f64::min)
 }
 
-/// The lowest vertex of a foliage, its stalks' largest dip and how many
-/// instances reach below what they may: a leaf its stalk's dip,
-/// `depth·scale − h`, a flower nothing.
-fn foliage_low(f: &Foliage, stalk: bool) -> (f64, f64, usize) {
+/// The lowest vertex of a foliage, its stalks' largest dip, how many
+/// instances have a vertex below the ground and how many reach below what
+/// they may: a leaf its stalk's dip, `depth·scale − h`, a flower nothing.
+fn foliage_low(f: &Foliage, stalk: bool) -> (f64, f64, usize, usize) {
     let depth = if stalk {
         Wedge::of(&f.element).depth
     } else {
         0.0
     };
-    let (mut low, mut dip, mut under) = (f64::INFINITY, 0f64, 0);
+    let (mut low, mut dip, mut below, mut under) = (f64::INFINITY, 0f64, 0, 0);
     for m in f.instances.matrices() {
         let scale = (0..3)
             .map(|c| Vec3::new(m[c * 4].into(), m[c * 4 + 1].into(), m[c * 4 + 2].into()).length())
@@ -93,9 +94,10 @@ fn foliage_low(f: &Foliage, stalk: bool) -> (f64, f64, usize) {
         }
         low = low.min(least);
         dip = dip.max(-least.min(0.0));
+        below += usize::from(least < BELOW);
         under += usize::from(least < BELOW - may);
     }
-    (low, dip, under)
+    (low, dip, below, under)
 }
 
 /// The lowest vertex of an organ's pedicels, each rebuilt from its
@@ -160,7 +162,7 @@ fn show(v: f64) -> String {
 #[test]
 fn nothing_drawn_passes_below_the_ground() {
     println!(
-        "preset\tage\tseed\twood_low\tbark_low\tleaf_low\tstalk_dip\tleaves_under\tflower_low\tflowers_under\trachis_low"
+        "preset\tage\tseed\twood_low\tbark_low\tleaf_low\tstalk_dip\tleaves_below\tleaves_under\tflower_low\tflowers_below\tflowers_under\trachis_low"
     );
     let mut failures = Vec::new();
     for &(_, id, _, _) in CATALOGUE {
@@ -172,15 +174,15 @@ fn nothing_drawn_passes_below_the_ground() {
                 let m = mesh::build(&f).unwrap_or_else(|e| panic!("{id} {age} {seed}: {e}"));
                 let wood = wood_low(&m, &f.surface);
                 let bark = bark_low(&m);
-                let (leaf, dip, leaves) = foliage_low(&m.foliage, true);
+                let (leaf, dip, leaves_below, leaves) = foliage_low(&m.foliage, true);
                 let organ = m.organ.as_ref();
-                let (flower, _, flowers) =
-                    organ.map_or((f64::INFINITY, 0.0, 0), |o| foliage_low(o, false));
+                let (flower, _, flowers_below, flowers) =
+                    organ.map_or((f64::INFINITY, 0.0, 0, 0), |o| foliage_low(o, false));
                 let rachis = organ.map_or(f64::INFINITY, |o| stalk_low(o, &f.bloom));
                 let pedicels = organ.map_or(f64::INFINITY, |o| pedicel_low(o, &f.bloom));
                 let flower = flower.min(pedicels);
                 println!(
-                    "{id}\t{age}\t{seed}\t{}\t{}\t{}\t{dip:.4}\t{leaves}\t{}\t{flowers}\t{}",
+                    "{id}\t{age}\t{seed}\t{}\t{}\t{}\t{dip:.4}\t{leaves_below}\t{leaves}\t{}\t{flowers_below}\t{flowers}\t{}",
                     show(wood),
                     show(bark),
                     show(leaf),
