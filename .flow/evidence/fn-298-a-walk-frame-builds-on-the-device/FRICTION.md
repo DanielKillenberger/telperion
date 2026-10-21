@@ -66,3 +66,17 @@ Doing: the task's one gate run, after the closing layout pass (`tail_main`) and 
 Slowed by: `compile_size::every_entry_inlines_under_the_ceiling` failed: `tail_main` inlined 69,121 expressions against the ceiling's 50,000, because it called `lay` (two `frame`s and a `draw`) at two sites. The narrow runs (`fn298`, `cpu_builds_tests`, `digest`, `build_time`) never include that CPU-only test, so the first signal came 37 minutes into the gate.
 Cost: one 37-minute gate run and a second one after the fix (one call site).
 Would remove it: a spec that adds or grows a WGSL entry lists `compile_size` among its Quick commands (it runs in under a second and needs no GPU).
+
+## 2026-10-21 12:40, task .3: the narrowed R4 asks equal node counts, and one `rounds` frame is a node apart
+
+Doing: R4's narrowed check on the 9 `rounds` frames (`the_rounds_frames_have_the_cpus_counts`, one admission with the full sweep, 12:08 to 12:26, no wait).
+Slowed by: spruce to birch at 40, seed 42, frame 56 has 323,513 device nodes against the CPU's 323,512. R2.md had already recorded the same one-node gap on the spruce alone at 40 on the base (966,171 / 966,172), so "equal node counts" was written around a claim the evidence on file contradicted. The task stops `NEEDS_HUMAN` before its review and gate.
+Cost: about 10 minutes of reading and one host round trip; the sweep itself was not wasted.
+Would remove it: a narrowed acceptance is checked against the rows already recorded for it (here R2.md's agreement table) before it is ruled (AGENTS.md, "Gates and checked claims").
+
+## 2026-10-21 12:40, task .3: no checkout of the spec base had its own target
+
+Doing: R4's digest against the base, which needs the base's binary from a target no other checkout shares.
+Slowed by: fn-293's BASELINE.md was recorded at `bf84ef6ca`, 196 files from this spec's base, so it could not stand in. The one worktree whose `crates/` match the base (`f4-294`) belongs to another run. The base was exported with `git archive` under `target/fn298-base/` and its target seeded by a reflink copy of f4-294's, but cargo still rebuilt the dependencies (the fingerprints carry the path), behind the sweep's memory admission.
+Cost: about 20 minutes of compile and admission wait for a 15-second test.
+Would remove it: a resident-digest baseline recorded at each spec's base when the spec is planned (it is cheap: about 15 s of test), so the comparison needs no second build.

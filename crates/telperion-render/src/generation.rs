@@ -213,6 +213,8 @@ mod unfold_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod cpu_builds_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
+mod film_walk_tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
 mod ledger_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod lobed_tests;

@@ -11,7 +11,7 @@ use telperion_core::presets::{by_identity, Family};
 use telperion_core::surface::{CLUSTER_WORDS, POINT_WORDS};
 
 /// A shipped preset at `age` and `seed`, as the film's walks take them.
-fn at(id: &str, age: f64, seed: u32) -> Family {
+pub(super) fn at(id: &str, age: f64, seed: u32) -> Family {
     let mut f = by_identity(id).expect("a shipped preset");
     (f.age, f.skeleton.seed) = (age, seed);
     f
@@ -142,15 +142,15 @@ fn fn298_the_beech_to_spruce_at_0_216_agrees_with_the_cpu() {
 /// matched by lineage as `agree_tests` matches them: the most apart a
 /// position and a radius stood (m).
 #[derive(Debug)]
-struct Apart {
-    device: usize,
-    cpu: usize,
-    matched: usize,
-    position: f64,
-    radius: f64,
+pub(super) struct Apart {
+    pub(super) device: usize,
+    pub(super) cpu: usize,
+    pub(super) matched: usize,
+    pub(super) position: f64,
+    pub(super) radius: f64,
 }
 
-fn apart(gpu: &crate::Gpu, family: &Family) -> Apart {
+pub(super) fn apart(gpu: &crate::Gpu, family: &Family) -> Apart {
     let k = tree::Kernels::new(gpu);
     let growth = executor::growth(family).expect("its growth");
     let (dressed, _) =
@@ -339,7 +339,7 @@ fn the_spruce_at_62_starts_with_room_to_move() {
 }
 
 /// Each family built on the device alone; the refusals, by family.
-fn refused_on_device(families: &[(String, Family)]) -> Vec<String> {
+pub(super) fn refused_on_device(families: &[(String, Family)]) -> Vec<String> {
     let _held = super::whole_tree();
     let Some(gpu) = super::test_gpu() else {
         return Vec::new();
