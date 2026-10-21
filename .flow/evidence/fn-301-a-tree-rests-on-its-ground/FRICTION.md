@@ -160,3 +160,10 @@
 - **Slowed by:** both rounds returned NEEDS_WORK on R6's green `npm test`. `catalogue:check` fails on `catalogue/date-palm/README.md`, which differs from its regeneration on base d600fa12c too (its pins table predates the palm's current build). The file is outside the spec's Touches, and no spec line defers the check, so the review cannot pass without a host ruling. Round 1's other finding (R1's below-ground count) was fixed at 9ed544eb1.
 - **Cost:** one extra review round, about 10 minutes, and a stop for the host.
 - **Would remove it:** a release head whose `npm test` is green before a spec branches from it, or a spec line naming inherited red checks at plan time.
+
+## 2026-10-21, conductor, completion review round 3
+
+- **Doing:** re-running the codex completion review after the catalogue fix (0e6dc09a0) and a green `npm test`.
+- **Slowed by:** `review-rounds resume-terminal` returns `escalate` (exit 4): `review.maxIterations` is 2 and both rounds are spent. Round 2's only finding was the inherited catalogue check, which no change on this branch could close. The counter is not the conductor's to reset.
+- **Cost:** a stop for the host.
+- **Would remove it:** not counting a round whose only finding is an inherited red check against the cap, or a cap of 3 for completion reviews.
