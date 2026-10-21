@@ -3,7 +3,10 @@
 //! tables state (`build_arena.rs`) and, for the few that step with the
 //! tree, from the census read a cycle late; a table its hint undersized
 //! doubled once before it overflows; and a count past any limit or table
-//! refused by name, never begun again.
+//! refused by name. The limits that step with the tree are a cost hint, a
+//! projection from a census two cycles old and never a bound: a build
+//! that passes only those begins again once with them at their bound
+//! (`Growing::grow_to`, fn-302).
 use super::build_grow::{Compact, Sizes};
 use super::build_light::refusals;
 use super::census::{self as c, Flag, PASSES, PASS_LEFT};
@@ -14,11 +17,12 @@ use crate::RenderError;
 
 /// The limits that step with the tree, each past its projection two
 /// cycles on: the hierarchy's generations and placing passes, the
-/// layout's generations and the sweep's layer ranges. None of them ever
-/// passed these on a shipped preset (`arena_tests`, 2026-10-12); one that
-/// does is refused by name, but for the layout's generations, a cost hint
-/// only: the layout's closing pass lays every axis deeper (fn-298 R2 (d)),
-/// and only a generation past the plan's cap is refused. The block levels
+/// layout's generations and the sweep's layer ranges. A build that passes
+/// one begins again with it at its bound (`Growing::grow_to`): the walk
+/// frames' hierarchy generations rise past theirs by 3 (fn-302, 70,284
+/// censuses). The layout's generations are passed by no refusal: the
+/// layout's closing pass lays every axis deeper (fn-298 R2 (d)), and only
+/// a generation past the plan's cap is refused. The block levels
 /// need none: the deepest are folded, however many (`fold.wgsl`).
 const STEP: [u32; 4] = [2, 1, 2, 2];
 
@@ -26,8 +30,10 @@ const STEP: [u32; 4] = [2, 1, 2, 2];
 /// the living apexes' and the wake's: the most either rose over the two
 /// cycles a limit looks ahead, every shipped preset at its default age
 /// and seeds 1, 7 and 42 (the ordinary and the birch 2, the ordinary's
-/// wake 3; `arena_tests`, fn-256 task 12). A job left past them is
-/// flagged (`Flag::UnitRounds`) and the build refused by name.
+/// wake 3; `arena_tests`, fn-256 task 12). The walk frames rise past them
+/// by up to 6 (fn-302); a job left past them is flagged
+/// (`Flag::UnitRounds`) and the build begins again with them at their
+/// bound.
 const ROUND_SLACK: [u32; 2] = [2, 3];
 
 /// The blocks a folded sweep's workgroup takes at once (`fold.wgsl`'s
@@ -199,34 +205,18 @@ pub(super) fn passes(read: &[u32]) -> u32 {
 /// layout's generations and the sweep's layer ranges past their counts by
 /// their `STEP`; and the units rounds past those used by their
 /// `ROUND_SLACK`; from the census read a cycle late (`read`, `prev` the
-/// one before); each no less than the species' floor (`floors`, the
-/// hierarchy's generations the units rounds'); each no further than its
-/// bound, the bounds where nothing has been read.
+/// one before); the units rounds, the hierarchy's generations and the
+/// layout's generations no less than the species' floors (`floors`);
+/// each no further than its bound, the bounds where nothing has been
+/// read, and the build's pinned limits at their bound.
 pub(super) fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> Limits {
     let l = stepped(s, read, prev);
     #[cfg(test)]
-    let l = Limits {
-        laygens: LAYGENS.get().unwrap_or(l.laygens),
-        ..l
-    };
+    let l = super::forced::under(l);
+    let l = l.pinned(s.pinned, &s.bounds);
+    #[cfg(test)]
+    let l = super::forced::over(l, &s.bounds);
     l
-}
-
-#[cfg(test)]
-thread_local! {
-    /// The layout generations a test forces every cycle on this thread to
-    /// record (`with_laygens`).
-    static LAYGENS: std::cell::Cell<Option<u32>> = const { std::cell::Cell::new(None) };
-}
-
-/// `f` run with every cycle's layout generations forced to `n`: the
-/// closing pass lays the deeper axes (fn-298 R2 (d)).
-#[cfg(test)]
-pub(in crate::generation) fn with_laygens<T>(n: u32, f: impl FnOnce() -> T) -> T {
-    LAYGENS.set(Some(n));
-    let out = f();
-    LAYGENS.set(None);
-    out
 }
 
 fn stepped(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> Limits {
@@ -253,13 +243,14 @@ fn stepped(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> Limits {
     let lit = ahead(c::PHYTS, read[c::PHYTS].saturating_sub(read[c::PHYTS0]));
     let r = b.ranges;
     let (top, tail) = folds(read, b.hier.levels);
-    // The species' own bound beside the projection (fn-276, host
+    // The species' own floor beside the projection (fn-276, host
     // 2026-10-14): a job's units in a cycle step with its ages, not
     // with the counts before them. The hierarchy's generations take the
-    // units rounds' floor (fn-298 R2): a cycle's generations are the
-    // layout's depth the cycle before, which rises past the census read
-    // two cycles back by up to 3 on a walk frame but never past
-    // `2 units - 1` (68,916 census rows, R2.md).
+    // units rounds' floor (fn-298 R2). Neither is a bound: a cycle's
+    // generations are the layout's depth the cycle before, and the walk
+    // frame beech to spruce at 40, seed 1, frame 41 needs 4 where
+    // `2 units - 1` is 3 (fn-302); a build past them begins again with
+    // them at their bound.
     let [floor_rounds, floor_gens] = super::build_arena::floors(s.units);
     Limits {
         units: live.div_ceil(r.units),

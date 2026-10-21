@@ -1,11 +1,248 @@
 {
   "branch_name": "fn-302-the-device-never-refuses-a-tree-for-its",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-21T21:34:12.197550Z",
   "created_at": "2026-10-21T16:24:56.004954Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-302-the-device-never-refuses-a-tree-for-its",
+  "impl_review_rounds": {
+    "fn-302-the-device-never-refuses-a-tree-for-its.1": 0,
+    "fn-302-the-device-never-refuses-a-tree-for-its.2": 0
+  },
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T17:12:34.493756Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "2bc6f5f9df6145a6c6434825fe9631fd9d7fc0acfd4704bd9b071ccc9bb7211a",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3b7557559807e2b3c27429d27c187382",
+            "classification": "introduced",
+            "findingId": "finding-3b7557559807e2b3c27429d27c187382",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-08dc02a3e4cf642509059484a9cad872",
+            "classification": "introduced",
+            "findingId": "finding-08dc02a3e4cf642509059484a9cad872",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "652297d193676875ddeaddce171bc1a492229490",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 235137,
+      "output_sha256": "cbfd2f2b66b3a8ff25af116a99eb8a62b3e35aeca64df6ef65ca73b46e20b856",
+      "reservation_id": "3f5043b0f30d485f9f1494b2c600351e",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:11:45.753005Z",
+      "tool_calls": 19,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "55d4d7dc9ee71f36e72a566f27ad0445707210ae759971c06851b234b73daa4b",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3b7557559807e2b3c27429d27c187382",
+            "classification": "introduced",
+            "findingId": "finding-3b7557559807e2b3c27429d27c187382",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-08dc02a3e4cf642509059484a9cad872",
+            "classification": "introduced",
+            "findingId": "finding-08dc02a3e4cf642509059484a9cad872",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "652297d193676875ddeaddce171bc1a492229490",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 537,
+      "output_sha256": "f7871baed9cbd56c264f11781f18a2c11fd2e3eaf54cd63540f736f761f4d31a",
+      "reservation_id": "f6f399e539454c42806340e92624ada2",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:12:34.490797Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b74346e0816b30e23ad9bc4ac1bffa71577533d8aa113a9f9b685c891a50b5da",
+      "backend": "codex",
+      "base_sha": "68c947f4177944f693de970ea297d429785f943d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e98843a5c9e7fd28f6a8a5b06f179f8e49a19d04",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 235,
+      "output_sha256": "525a3524e6dbb8400787f39942a9bb9c39ce76e2a7b4e4e0d2047ab43e605e3a",
+      "reservation_id": "277e9855967a49f0a64593b1ce5ef8cf",
+      "round_consumed": true,
+      "scope": "impl:fn-302-the-device-never-refuses-a-tree-for-its.1",
+      "superseded_by": null,
+      "task": "fn-302-the-device-never-refuses-a-tree-for-its.1",
+      "timestamp": "2026-10-21T17:38:12.461251Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b9f6b63b81ffe06808d8543d752daa4f9b939f29e88e2377d5cb2b9ec091ec6e",
+      "backend": "codex",
+      "base_sha": "75b52fe6d10913a6b6df97e49635b2b5b2f66eaf",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e8d33b3ce037ba8a131dec7b6ad97d116c5b3b9e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 191,
+      "output_sha256": "773f1b71d9cc07afe15b685348dca5a820105e5b1dea28aaa657183a4571da8d",
+      "reservation_id": "8b809e7dfe6a4bddb1b01278f9f45643",
+      "round_consumed": true,
+      "scope": "impl:fn-302-the-device-never-refuses-a-tree-for-its.2",
+      "superseded_by": null,
+      "task": "fn-302-the-device-never-refuses-a-tree-for-its.2",
+      "timestamp": "2026-10-21T20:12:25.504756Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "16aaab5b5580108363ef44480312bf8b09dc767e2309ecec7c51d3061f3fe918",
+      "backend": "codex",
+      "base_sha": "bb20f38775fb4a9de8e16193d30ae6fd216dae54",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "20fcedce1f9a3c3abdb470e7d7f04e3bc8aeb61f",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 436831,
+      "output_sha256": "541a7a8979d708614da358fe28bd60a7cc7dd1c9214fe888ecd4f9edb4d5d26f",
+      "reservation_id": "6c57d3821e2b426784732466346be1dc",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T21:34:12.184082Z",
+      "tool_calls": 23,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-302-the-device-never-refuses-a-tree-for-its.1": 1,
+    "impl:fn-302-the-device-never-refuses-a-tree-for-its.2": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-302-the-device-never-refuses-a-tree-for-its.1": 0,
+    "impl:fn-302-the-device-never-refuses-a-tree-for-its.2": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-302-the-device-never-refuses-a-tree-for-its.md",
   "status": "open",
   "title": "The device never refuses a tree for its hierarchy rounds",
@@ -20,5 +257,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T16:24:56.012106Z"
+  "updated_at": "2026-10-21T21:34:12.204562Z"
 }

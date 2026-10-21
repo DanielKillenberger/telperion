@@ -4,19 +4,20 @@
 //! the arena in place where it runs tight (`compact.rs`), and doubles a
 //! table its hint undersized before the next two cycles could pass it
 //! (`build_size::grown`, a move on the queue, `build_move.rs`). A count
-//! past any table or limit stops the build by name: no build begins
-//! again.
+//! past any table or limit stops the build by name; one past only the
+//! limits that step with the tree, a cost hint, begins it again once with
+//! those limits at their bound (fn-302).
 use super::build::{Build, Kit, Late, Tables};
 use super::build_arena::{Hint, TABLES};
 use super::build_light::Lit;
 use super::build_plan::{Bounds, Phases};
 use super::build_size::{grown, limits, refusal};
 use super::census as c;
-use super::gate::Limits;
+use super::gate::{Limits, Pinned};
 use super::given::{Over, Pending, Span};
 use super::plan::Plan;
 use super::state::Caps;
-use crate::{Gpu, Result};
+use crate::{Gpu, RenderError, Result};
 use std::collections::VecDeque;
 use telperion_space::Capture;
 
@@ -43,6 +44,9 @@ pub(super) struct Sizes {
     pub compact: Compact,
     /// The most units one job grows in a cycle (`Hint::units`).
     pub units: u32,
+    /// The stepped limits recorded at their bound: those a first attempt
+    /// passed (`Growing::grow_to`).
+    pub pinned: Pinned,
 }
 
 impl Sizes {
@@ -65,6 +69,7 @@ impl Sizes {
             block_cap: super::hier_build::CAP,
             compact: Compact::Off,
             units: 1,
+            pinned: Pinned::default(),
         };
         Self {
             bounds: s.stated(),
@@ -180,15 +185,50 @@ pub(super) struct Grew {
     pub host: Vec<[f64; 3]>,
 }
 
+/// Why a build stopped: refused, or past only the stepped limits it
+/// names, which a build passes once by beginning again with them at their
+/// bound (`Growing::grow_to`).
+pub(super) enum Stop {
+    Refused(RenderError),
+    Stepped(Pinned, RenderError),
+}
+
+impl From<RenderError> for Stop {
+    fn from(e: RenderError) -> Self {
+        Self::Refused(e)
+    }
+}
+
+impl From<Stop> for RenderError {
+    fn from(s: Stop) -> Self {
+        match s {
+            Stop::Refused(e) | Stop::Stepped(_, e) => e,
+        }
+    }
+}
+
+#[cfg(test)]
+thread_local! {
+    /// The builds begun again on this thread (`retries`).
+    static RETRIES: std::cell::Cell<u32> = const { std::cell::Cell::new(0) };
+}
+
+/// The builds begun again on this thread since the last call: the tests'.
+#[cfg(test)]
+pub(in crate::generation) fn retries() -> u32 {
+    RETRIES.take()
+}
+
 impl Grew {
     /// A census read: the most each table held, and the cycle's
-    /// dispatches tallied; a count past a table or limit refused by name.
+    /// dispatches tallied; a count past a table or limit refused by name,
+    /// past only stepped limits, stopped with them named.
     fn read(
         &mut self,
         (read, cycle): (&[u32], u32),
         sent: &super::given::Pending,
         budget: u32,
-    ) -> Result<()> {
+    ) -> std::result::Result<(), Stop> {
         sent.tally(&mut self.over, read);
         let held = super::build_arena::tables(read);
         self.most = std::array::from_fn(|k| self.most[k].max(held[k]));
@@ -207,7 +247,17 @@ impl Grew {
                 .iter()
                 .for_each(|s| eprintln!("TRACE short {s}"));
         }
-        Err(refusal(cycle, &raised, budget))
+        Err(stop(&raised, refusal(cycle, &raised, budget)))
+    }
+}
+
+/// The refusal `said` of the flags `raised`: past only the stepped limits
+/// they name where each names one.
+pub(super) fn stop(raised: &[(c::Flag, u32)], said: RenderError) -> Stop {
+    let stepped = raised.iter().map(|f| Pinned::of(f.0));
+    match stepped.collect::<Option<Vec<_>>>() {
+        Some(p) => Stop::Stepped(p.into_iter().fold(Pinned::NONE, Pinned::with), said),
+        None => Stop::Refused(said),
     }
 }
 
@@ -346,11 +396,14 @@ impl Growing {
     /// after its last cycle is readied; else the build moves and compacts
     /// after it as it would before the next, and reads its census early.
     /// A count past any table or limit stops it by name, and a build that
-    /// stopped is gone.
+    /// stopped is gone. A build that passed only stepped limits, a cost
+    /// hint (`build_size`), begins again from its first cycle with them
+    /// pinned at their bound, once in its life: a build with any limit
+    /// pinned stops by name (fn-302, host 2026-10-21).
     pub(super) async fn grow_to(
         self,
         gpu: &Gpu,
-        (kit, t, tables): (&Kit, &Tables, &Capture),
+        at: (&Kit, &Tables, &Capture),
         (upto, ends): (u32, bool),
     ) -> Result<Self> {
         if upto >= MOST_CYCLES {
@@ -358,6 +411,27 @@ impl Growing {
                 "a tree of {upto} cycles: the device holds its time to {MOST_CYCLES} cycles"
             )));
         }
+        let sizes = self.sizes;
+        match self.grown(gpu, at, (upto, ends)).await {
+            Err(Stop::Stepped(p, _)) if !sizes.pinned.any() => {
+                #[cfg(test)]
+                RETRIES.set(RETRIES.get() + 1);
+                let (kit, t, tables) = at;
+                let pinned = Sizes { pinned: p, ..sizes };
+                let g = Self::begin(gpu, kit, t, tables, pinned).await?;
+                Ok(g.grown(gpu, at, (upto, ends)).await?)
+            }
+            grown => Ok(grown?),
+        }
+    }
+
+    /// `grow_to`'s cycles, one attempt.
+    async fn grown(
+        self,
+        gpu: &Gpu,
+        (kit, t, tables): (&Kit, &Tables, &Capture),
+        (upto, ends): (u32, bool),
+    ) -> std::result::Result<Self, Stop> {
         let mut g = self.resumed(gpu, kit, t, tables).await?;
         // The cycle after which nothing is readied.
         let end = if ends { upto } else { t.age };
@@ -375,7 +449,7 @@ impl Growing {
         gpu: &Gpu,
         (kit, t, tables): (&Kit, &Tables, &Capture),
         (cycle, end): (u32, u32),
-    ) -> Result<Self> {
+    ) -> std::result::Result<Self, Stop> {
         let sizes = self.sizes;
         let (last, prev) = (&self.last, &self.prev);
         let limits = limits(&sizes, last.as_deref(), prev.as_deref());
@@ -442,12 +516,18 @@ impl Growing {
 
     /// The census of `cycle`, read and held to every table and limit; the
     /// cycle in flight read back before its buffers go where it stops.
-    async fn read(&mut self, gpu: &Gpu, (cycle, budget): (u32, u32)) -> Result<Vec<u32>> {
+    async fn read(
+        &mut self,
+        gpu: &Gpu,
+        (cycle, budget): (u32, u32),
+    ) -> std::result::Result<Vec<u32>, Stop> {
         let clock = super::super::Clock::now();
         let read = self.late.take(gpu, cycle).await?;
         self.grew.waiting += clock.elapsed_ms() / 1e3;
         #[cfg(test)]
         self.grew.censuses.push(read.clone());
+        #[cfg(test)]
+        super::stepped_survey::tap(cycle, &read);
         let sent = self.pending.pop_front().expect("a cycle sent");
         if let Err(stopped) = self.grew.read((&read, cycle), &sent, budget) {
             if !self.pending.is_empty() {
@@ -550,7 +630,7 @@ impl Growing {
         kit: &Kit,
         t: &Tables,
         (upto, ends): (u32, bool),
-    ) -> Result<()> {
+    ) -> std::result::Result<(), Stop> {
         self.committed = upto;
         let run = self.run.as_ref().expect("a recorded cycle");
         self.grew.stamped.extend(self.b.inside(

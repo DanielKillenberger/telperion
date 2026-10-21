@@ -30,6 +30,8 @@ mod dormant_tests;
 mod drawn;
 #[cfg(test)]
 mod executor_time_tests;
+#[cfg(test)]
+mod forced;
 mod gate;
 mod given;
 mod glue;
@@ -85,6 +87,8 @@ mod retire_device;
 #[cfg(test)]
 mod retire_tests;
 #[cfg(test)]
+mod retry_tests;
+#[cfg(test)]
 mod reuse_tests;
 #[cfg(test)]
 mod roofline_life;
@@ -111,6 +115,8 @@ mod settle_time_tests;
 #[cfg(test)]
 mod soft64_tests;
 mod state;
+#[cfg(test)]
+mod stepped_survey;
 pub(super) mod tree;
 mod units;
 mod vm;
