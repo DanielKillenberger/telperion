@@ -10,8 +10,10 @@
 //! ring (`flareDepth`, sunk below the root by design) and its rings at the
 //! root, which lean with the trunk (the palm's dip to 5 cm, on the base as
 //! after). Every other run's vertices are kept off the ground by the
-//! surface clearance. Leaves and flowers are read at every element vertex
-//! under each stored transform. A leaf's stalk is its seat on the wood,
+//! surface clearance. Beside them each row reports the bark of the wood
+//! other than a trunk's, its centreline less its radius, which the lay
+//! walk's landing ease reads. Leaves and flowers are read at every
+//! element vertex under each stored transform. A leaf's stalk is its seat on the wood,
 //! so a leaf may let it down below the ground by its base depth times its
 //! scale less its attachment's height (host, 2026-10-21); that dip is
 //! reported per row. A flower's rachis is read from the CPU's mirror of the
@@ -56,6 +58,17 @@ fn wood_low(m: &TreeMesh, params: &SurfaceParams) -> f64 {
     }
     assert_eq!(3 * at, drawn.len(), "the drawn wood is the curve's runs");
     low
+}
+
+/// The lowest bark of wood other than a trunk's, its curve's centreline
+/// less its radius: how near the ground the wood the lay walk lands comes
+/// (host, 2026-10-21), reported beside the drawn vertices.
+fn bark_low(m: &TreeMesh) -> f64 {
+    let c = &m.curve;
+    let runs = c.runs.iter().filter(|r| !r.trunk);
+    runs.flat_map(|r| &c.points[r.first as usize..(r.first + r.count) as usize])
+        .map(|p| p.centre.y - p.radius)
+        .fold(f64::INFINITY, f64::min)
 }
 
 /// The lowest vertex of a foliage, its stalks' largest dip and how many
@@ -147,7 +160,7 @@ fn show(v: f64) -> String {
 #[test]
 fn nothing_drawn_passes_below_the_ground() {
     println!(
-        "preset\tage\tseed\twood_low\tleaf_low\tstalk_dip\tleaves_under\tflower_low\tflowers_under\trachis_low"
+        "preset\tage\tseed\twood_low\tbark_low\tleaf_low\tstalk_dip\tleaves_under\tflower_low\tflowers_under\trachis_low"
     );
     let mut failures = Vec::new();
     for &(_, id, _, _) in CATALOGUE {
@@ -158,6 +171,7 @@ fn nothing_drawn_passes_below_the_ground() {
                 (f.age, f.skeleton.seed) = (age, seed);
                 let m = mesh::build(&f).unwrap_or_else(|e| panic!("{id} {age} {seed}: {e}"));
                 let wood = wood_low(&m, &f.surface);
+                let bark = bark_low(&m);
                 let (leaf, dip, leaves) = foliage_low(&m.foliage, true);
                 let organ = m.organ.as_ref();
                 let (flower, _, flowers) =
@@ -166,8 +180,9 @@ fn nothing_drawn_passes_below_the_ground() {
                 let pedicels = organ.map_or(f64::INFINITY, |o| pedicel_low(o, &f.bloom));
                 let flower = flower.min(pedicels);
                 println!(
-                    "{id}\t{age}\t{seed}\t{}\t{}\t{dip:.4}\t{leaves}\t{}\t{flowers}\t{}",
+                    "{id}\t{age}\t{seed}\t{}\t{}\t{}\t{dip:.4}\t{leaves}\t{}\t{flowers}\t{}",
                     show(wood),
+                    show(bark),
                     show(leaf),
                     show(flower),
                     show(rachis)
