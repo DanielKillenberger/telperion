@@ -70,3 +70,9 @@ laurelin 1: leaves a499a7f5f2e9c3cc points 1996298 7aa3a40a1dc17d48 clusters 148
 laurelin 7: leaves 4caf51918188f241 points 3358374 be77ce4bdfb297c7 clusters 250258 5a0dfbc75f695059 sections cbf29ce484222325 demand dc73fa84925910ce
 laurelin 42: leaves f076ea1addc0e87f points 3375803 cf2d1d6eafc60590 clusters 252436 e485b6c39b94eb30 sections cbf29ce484222325 demand 6fc9dda5f5612d6f
 ```
+
+## R5: gate and `npm test`
+
+- Gate, `telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`, run once at `bc0066e07` (12:35 to 13:11, no wait): **1,410 passed, 0 failed, 115 ignored** across 146 suites (`raw/gate-task3.log`).
+- `telperion-heavy 8 --threads 2 -- npm test` at the same commit: **21 files, 175 tests passed** (`raw/npm-test-task3.log`).
+- Codex impl review (one correctness reviewer, `gpt-6.1-sol`): **SHIP** in round 1, with no findings.
