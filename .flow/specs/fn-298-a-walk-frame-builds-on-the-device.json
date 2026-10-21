@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-298-a-walk-frame-builds-on-the-device",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-21T11:26:29.301151Z",
   "created_at": "2026-10-20T11:24:05.722274Z",
   "default_impl": null,
   "default_review": null,
@@ -221,6 +221,42 @@
       "task": "fn-298-a-walk-frame-builds-on-the-device.3",
       "timestamp": "2026-10-21T10:35:17.071978Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "15493f1f0838a348b5a063ee55e22a9d9988cab20a823f3b742b99bdd35ff5c5",
+      "backend": "codex",
+      "base_sha": "7422b110b7c20136a8dad49020f5d31800e2e962",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a2aa20092cd4f0deea7cfa8e689eb4e2b4d22335",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 358387,
+      "output_sha256": "279ef7e7d93f6f92c4b21ddd839b9c7b571685ce81f06c8b4c108a7af35d3e9c",
+      "reservation_id": "15c8de83ed4747e1a1c51dee328e3a63",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T11:26:29.289920Z",
+      "tool_calls": 22,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -228,11 +264,12 @@
     "impl:fn-298-a-walk-frame-builds-on-the-device.2": 1,
     "impl:fn-298-a-walk-frame-builds-on-the-device.3": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-298-a-walk-frame-builds-on-the-device.1": 0,
     "impl:fn-298-a-walk-frame-builds-on-the-device.2": 0,
     "impl:fn-298-a-walk-frame-builds-on-the-device.3": 0,
@@ -252,5 +289,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T10:35:17.074706Z"
+  "updated_at": "2026-10-21T11:26:29.307179Z"
 }
