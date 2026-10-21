@@ -13,3 +13,11 @@ Doing: the host design's survey of gens(c) = deep(c-1), the rounds rise and the 
 Doing: R3's base, every film-walk frame's digest line on bb20f3877's code. Hindered: a digest line reads back each frame's instances and wood, about 3 s a frame against 0.55 s for a build alone, so the base sweep takes about 75 minutes, and the change's side costs the same again. Would remove it: a device-side hash of what the renderer receives (one small readback a build), or a sweep digest that reads only counts and a hash computed on the device.
 
 Correction (same day): the whole base run (preset digests, palm digests and 1,533 frames) took 1,081 s, about 0.7 s a frame once the presets were done, not the 75 minutes estimated from its first minutes. The cost was 18 minutes, and the entry's remedy matters less than it said.
+
+## 2026-10-21 (conductor, task 1 impl review)
+
+Doing: finalizing task 1's three-draw codex review, all SHIP with no findings. Hindered: `impl-review-fanout-finalize --merge-plan` with an empty keep list fails ("cannot parse draw correctness") when a draw has no numbered findings, and the first call printed a null verdict with exit 0. The fix was a hand-written `--merged-file`. Cost: about 3 minutes. Would remove it: finalize accepting an all-SHIP, no-findings round with an empty plan.
+
+## 2026-10-21 (conductor, task 1 gate)
+
+Doing: task 1's one gate run (`telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`): 1,472 passed, 1 failed, 116 ignored, about 50 minutes. Hindered: `every_device_preset_builds_the_same_leaves_each_time` was refused at the Telperion with "the device refused the build's settle place of 239 MiB: Out of Memory". Desktop applications held about 6 of the GPU's 10 GiB while the gate ran, and the test passes alone in 21 s with every preset alike. Cost: a gate that cannot be read green without a rerun, about 3 minutes. Would remove it: a gate that admits device tests only below a free-VRAM floor, or names device memory pressure apart from a defect. This is a local setup problem, so it is reported, not specced.

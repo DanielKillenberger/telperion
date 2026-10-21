@@ -44,9 +44,14 @@ The retry itself (R5) and its proof (R6). A build refused only by stepped-limit 
 - [ ] The gate (`cargo test --profile ci --workspace --no-fail-fast`) is green once.
 
 ## Done summary
-TBD
+A device build refused only by stepped-limit flags (UnitRanges, DrawRanges, DepositRanges, Sweeps, HierGens, HierPasses, UnitRounds) begins again once from its first cycle with exactly those limits pinned at their bound (`Growing::grow_to`, shared by the direct build and the growth path); the pins live in `Sizes`, so the retry is spent for the build's life. Any other flag, or a second overflow, refuses by name as before. Projections, STEP, ROUND_SLACK and floors unchanged; the `2 units - 1` bound comment corrected. Frame 41 builds by one retry and matches the CPU exactly. Host ruling: four rounds frames whose counts differ (bb20f3877's builds to the byte, no retry) moved to an ignored fn-303 test.
 
+Tests: cycle::retry_tests (4), build_size, growth, cpu_builds, film_walk subset and counts pass. Gate once: 1,472 passed, 1 failed (every_device_preset_builds_the_same_leaves_each_time, device Out of Memory under desktop VRAM pressure; passes alone), 116 ignored.
+
+stage: impl-review - ran (codex, 3 draws: correctness, contracts, integration, all SHIP) (model: gpt-6.1-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b20deba80baa087e375fad16944da2dae8d2a492, e98843a5c9e7fd28f6a8a5b06f179f8e49a19d04
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast
 - PRs:
