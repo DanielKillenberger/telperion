@@ -73,8 +73,8 @@ Contact is a rule of the curve each axis is drawn on, plus one pose rule for ins
   - **The dead skirt.** The skirt is the rosette's dead fronds, so it rests through the frond curve.
   - **Both executors.** The CPU and the device apply contact in the same stage, through the one pipeline.
 - **R3 (dormant, and what changes):**
-  - Trees that R1 finds clear build byte-identical meshes to the base. That covers the beech, Telperion and Laurelin on every row, and the palm at 40.
-  - The rows R1 finds touching change, under AGENTS.md "Generator evolution" (host, 2026-10-21): the palm at 6–20, the birch, the spruce at 40, the ordinary tree and the oak at 40, seed 42. Real lower limbs and skirts rest on the ground.
+  - Trees that R1 finds clear build byte-identical meshes to the base. That covers the beech, Telperion and Laurelin on every row, as measured (host ruling, 2026-10-21: the palm at 40 moved to the changing rows).
+  - The rows R1 finds touching change, under AGENTS.md "Generator evolution" (host, 2026-10-21): the palm at 6–20, the birch, the spruce at 40, the ordinary tree and the oak at 40, seed 42. Real lower limbs and skirts rest on the ground. The palm at 40 changes too, by one vertex per seed of at most 2.4 mm: the corner of its lowest leaf-base cell, which sat 1.7 to 2.4 mm below the ground on the base and which the surface clearance sets onto it. Its neighbouring normals shift by at most 344/32767. R1's base probe listed it clear only because it read the wood from the curve (host, 2026-10-21).
   - The cost is measured with a paired `build_time` run. It stays within noise on trees that never touch the ground. On the palm at 12 and the spruce at 40 it is recorded.
 - **R4 (agreement):**
   - The CPU and the device agree on the palm at 12, to `agree_tests`' tolerances.
@@ -153,3 +153,8 @@ Waves: 1 = .1, .3 · 2 = .2 · 3 = .4 (after .2 and .3, which share `ground_reac
 ## Decision Context
 
 Maintainability (plan review): duplication - none identified; structure - Task .3 adds horizontal-direction and named-stop branches to geometry::lay::Layer::step.
+
+## Open
+
+- Sag's ground support still measures from the centreline (`sag.rs:258`, `sagged.rs:71`), where the landing ease now measures from the bark. It is outside this spec unless a test fails (host, 2026-10-21).
+- (b) from the Design section: the leaflets read the hung rachis nodes, which would delete the frond curve's device copies. Post-release.
