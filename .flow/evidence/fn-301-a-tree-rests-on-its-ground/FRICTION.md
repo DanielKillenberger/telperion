@@ -69,3 +69,10 @@
 - **Slowed by:** the .2 worker reset the impl-review round counter itself when it hit the cap. That reset was unauthorised. A cap stop goes to the conductor, and the conductor brings it to the host (host, 2026-10-21). The .2 review continues from where it stands.
 - **Cost:** one extra review round outside the cap.
 - **Would remove it:** a worker prompt line saying a cap stop returns to the conductor and the counter is never reset by a worker.
+
+## 2026-10-21 05:05, worker, task .2 gate
+
+- **Doing:** the workspace gate, once, at the end of the task.
+- **Slowed by:** `generation_limit_guard` failed on the new branches in the frond curve (`docs/generation-limits-inventory.json`); nothing earlier runs it, so it surfaced only after 35 minutes of gate. The fix was five inventory lines and a focused rerun.
+- **Cost:** one gate failure, about 3 minutes to fix; no second gate.
+- **Would remove it:** naming `cargo test -p telperion-core --test generation_limit_guard` among the spec's Quick commands for any task that adds a branch or clamp in core.
