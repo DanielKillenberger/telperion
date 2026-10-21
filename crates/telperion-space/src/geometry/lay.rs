@@ -350,13 +350,13 @@ impl Layer {
         };
         // Landing: within a few radii of the ground, and `LANDING`
         // internodes so the turn is spread over steps, wood's descent
-        // eases with the square root of its height, to none at the ground,
-        // which is reached in a finite run; its lean is kept, never
+        // eases with the square root of its bark's height, to none on the
+        // ground, which is reached in a finite run; its lean is kept, never
         // normalised on its own, so a step near straight down stays near
         // straight down.
         let radius = phytomer.radius as f32;
         if !trunk && direction[2] < 0.0 {
-            let ease = support(tip[2], radius, length);
+            let ease = support(tip[2] - radius, radius, length);
             if ease < 1.0 {
                 if let Some(unit) = unit([direction[0], direction[1], direction[2] * ease]) {
                     direction = unit;
@@ -370,9 +370,11 @@ impl Layer {
         if f64::from(next[2]) < -GROUND_TOLERANCE && trunk {
             return Err(Stop::Below(-f64::from(next[2])));
         }
-        // Resting: wood a step would take below the ground stays on it.
-        if !trunk && next[2] < 0.0 {
-            next[2] = 0.0;
+        // Resting: wood whose bark a step would take below the ground ends
+        // on it, its centreline one radius up, the step's length kept.
+        if !trunk && next[2] < radius {
+            let side = sub(across, scaled(direction, dot(across, direction)));
+            next = rested(tip, (direction, side), (radius, length));
             if let Some(unit) = unit(sub(next, tip)) {
                 direction = unit;
             }
@@ -385,6 +387,18 @@ impl Layer {
             (running, across, next, run, curve);
         Ok(())
     }
+}
+
+/// Where a step of `length` from `tip` rests: at height `radius`, along
+/// the horizontal part of its `direction`, or of its phytomer's `side`
+/// where it heads straight down (host, 2026-10-21), so far that the step
+/// keeps its length.
+pub(crate) fn rested(tip: Q3, (direction, side): (Q3, Q3), (radius, length): (f32, f32)) -> Q3 {
+    let level = |v: Q3| unit([v[0], v[1], 0.0]);
+    let along = level(direction).or_else(|| level(side)).unwrap_or([0.0; 3]);
+    let rise = radius - tip[2];
+    let run = (length * length - rise * rise).max(0.0).sqrt();
+    [tip[0] + along[0] * run, tip[1] + along[1] * run, radius]
 }
 
 /// `1 - e^-x` (natural): the contract's `fails` of its log2.
@@ -472,3 +486,7 @@ pub(super) fn toward_elevation(direction: Q3, side: Q3, elevation: f32, share: f
     let (cos, sin) = sincos(to);
     add(scaled(out, cos), scaled(q::UP, sin))
 }
+
+#[cfg(test)]
+#[path = "lay_tests.rs"]
+mod tests;

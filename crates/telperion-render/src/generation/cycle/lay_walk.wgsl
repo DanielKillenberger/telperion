@@ -64,6 +64,20 @@ fn support(z: f32, radius: f32, len: f32) -> f32 {
     return qsqrt(qdiv(max(z, 0.0), zone));
 }
 
+// `lay::rested`: a step of `len` from `tip` at height `girth`, along the
+// horizontal part of `d`, or of `side` where `d` heads straight down,
+// keeping its length.
+fn rested(tip: vec3<f32>, d: vec3<f32>, side: vec3<f32>, girth: f32, len: f32) -> vec3<f32> {
+    var along = qunit(vec3<f32>(d.x, d.y, 0.0));
+    if along.w == 0.0 {
+        along = qunit(vec3<f32>(side.x, side.y, 0.0));
+    }
+    let level = select(vec3<f32>(0.0), along.xyz, along.w > 0.0);
+    let rise = girth - tip.z;
+    let run = qsqrt(max(m(len, len) - m(rise, rise), 0.0));
+    return vec3<f32>(apart(tip.x + m(level.x, run)), apart(tip.y + m(level.y, run)), girth);
+}
+
 fn rest(k_in: f32) -> f32 {
     let k = clamp(k_in, 0.0, 1.0);
     return qsqrt(1.0 - m(k, k));
@@ -203,8 +217,9 @@ fn step(wk: ptr<function, Walk>, i: u32, r: u32, scale: f32, bent: f32, total: f
     if ub.w > 0.0 && (lift > 0.0 || over > 0.0) {
         direction = ub.xyz;
     }
+    let girth = laid_radius(r);
     if !trunk && direction.z < 0.0 {
-        let ease = support(tip.z, laid_radius(r), len);
+        let ease = support(tip.z - girth, girth, len);
         if ease < 1.0 {
             direction = qunit_or(vec3<f32>(direction.x, direction.y, direction.z * ease), direction);
         }
@@ -217,8 +232,8 @@ fn step(wk: ptr<function, Walk>, i: u32, r: u32, scale: f32, bent: f32, total: f
     if trunk && next.z <= form[1] {
         status |= FAULT_BELOW;
     }
-    if !trunk && next.z < 0.0 {
-        next.z = 0.0;
+    if !trunk && next.z < girth {
+        next = rested(tip, direction, across - mv(direction, qdot(across, direction)), girth, len);
         direction = qunit_or(next - tip, direction);
     }
     set_ph3(r, PH_TIP, next);
