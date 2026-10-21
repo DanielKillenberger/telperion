@@ -62,9 +62,24 @@ The CPU's span position (`stand::node_x`) and the device's mirror (`attach` in `
 - [ ] The gate `cargo test --profile ci --workspace --no-fail-fast` is green, run once at the end of the task.
 
 ## Done summary
-TBD
+A span's share is 1 where the length reaches its end, on both executors.
 
+- `stand::span_share` (CPU) and `span_share` in `lay_stand.wgsl` (device) decide the whole span by the comparison that chose it. `node_x` and `attach` call them. Both name the left fold of the f32 scales.
+- Unit tests:
+  - CPU: `geometry::tests::a_length_at_a_span_end_is_the_whole_span`.
+  - Device: `cycle::settle_tests::a_length_at_a_span_end_is_the_whole_span_on_the_device`.
+  - They use scales whose division reads the tip as 0.9999994.
+- Measured on the change, with the probes still in the tree:
+  - Oak to palm frame 36 has 157 instances on both executors, and all 20,205 of its device nodes match.
+  - The four frames' growth census is equal at every cycle from 1 to 40.
+  - The relay survey moves 1,281 end joins from 1 − δ to exactly 1; 24 joins short of their span's end stay below 1.
+- Then the R1 probes were removed.
+- The gate's one failure was `walk_sizes`' oak-to-birch exception: +94 kept phytomers from the moved layout. That row is re-measured (host ruling 2026-10-22), and `walk_sizes` passes.
+
+stage: impl-review - ran (codex, three reviewers: correctness, contracts, integration; SHIP, no findings) (model: gpt-6.1-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 89ceb5ebc436c396b9d23d30f46be659fb50553c, b2c433cafa12b61de748b3342a15dfa053351bfc, f85378805bb1736a710df698b4c29184c8960ba0
+- Tests: telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast (1474 passed, 1 failed: walk_sizes exception re-measured), cargo test --profile ci -p telperion-core --test walk_sizes (pass), cargo test --profile ci -p telperion-space --lib a_length_at_a_span_end (pass), cargo test --profile ci -p telperion-render --lib a_length_at_a_span_end (pass)
 - PRs:
