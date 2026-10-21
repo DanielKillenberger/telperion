@@ -30,6 +30,7 @@
   },
   "review": {
     "backend": "codex",
+    "fanoutExecution": "concurrent",
     "maxIterations": 2
   },
   "scouts": {
