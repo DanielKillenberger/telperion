@@ -137,3 +137,39 @@ The CPU's relay joins were surveyed from `telperion_space::grow`'s structure (`A
 - **The gate** (`raw/t1-gate.log`, `telperion-heavy 12 --threads 2`, as AGENTS.md declares it): 1,474 passed, 1 failed, 117 ignored.
   - The failure is `walk_sizes`' named exception oak to birch at 80, seed 7, t 0.01. Its kept phytomers rose from the recorded 3,961,379 to 3,961,473 (+94, 0.002%), because the span share moves relay bases and with them growth. Its grown count stays inside its record.
   - The row is re-measured in `crates/telperion-core/tests/walk_sizes.rs` (host ruling 2026-10-22: outputs change where the CPU landed at 1 − δ, measured), as fn-299 re-measured it. `walk_sizes` passes on the re-measured row (`raw/t1-walk-sizes.log`).
+
+## Task 2: the rounds frames compare like with like, and the change is measured (2026-10-22)
+
+- **Ruling 1.** `apart` counts and matches the CPU tree only up to `Tree::clothing`, which `nodes_off` and both `cpu_builds_tests` callers read.
+- **Ruling 2.** Frame 63 sits in its own ignored test, `fn300_the_spruce_to_birch_frame_63_has_the_cpus_counts`, whose reason names fn-300. No fn-303 ignored test remains.
+- **`the_rounds_frames_have_the_cpus_counts` is green** over the 8 frames but frame 63, with frame 56's node count as before (`raw/t2-counts.log`). Device / CPU:
+
+  | Frame | Instances | Nodes |
+  |---|--:|--:|
+  | beech to spruce s1 f41 | 108,218 / 108,218 | 307,728 / 307,728 |
+  | beech to spruce s7 f27 | 89,623 / 89,623 | 287,370 / 287,370 |
+  | spruce to birch s1 f63 | 162,615 / 162,614 | 339,607 / 339,607 |
+  | spruce to birch s42 f56 | 200,780 / 200,781 | fn-300 |
+  | spruce to birch s42 f59 | 154,960 / 154,960 | 332,464 / 332,464 |
+  | oak to palm s1 f36 | 157 / 157 | 20,205 / 20,205 |
+  | oak to palm s1 f37 | 432 / 432 | 19,985 / 19,985 |
+  | oak to palm s1 f48 | 122 / 122 | 4,785 / 4,785 |
+
+- **Frame 63 on this code** (fn-300's test, failing as recorded): 187,997 / 187,999 instances, 382,987 / 382,999 nodes.
+- **The relay survey** is kept as the ignored `relay_join_tests::relay_joins`. It reads public API only, takes about 2 minutes over the presets, and takes the walk frames with `RELAY_SWEEP=1`. On this code: 17,962 joins, 2,771 at t == 1, 24 in [1 − 1e-4, 1).
+
+### The digest table against 6198fbc9a
+
+Sources: `digest` at seeds 1, 7 and 42, and `palm_digest` (`raw/base-digests.log`, `raw/t2-digests.log`).
+
+| Rows | Changed | Cause |
+|---|---|---|
+| ordinary 1, 7, 42 | leaves, points, clusters and demand hashes; counts equal | Relays at a span's end now join at share 1 on both executors. Relay bases and growth move by last bits. |
+| oregon-white-oak 1, 7, 42 | the same | the same |
+| silver-birch 1, 7, 42 | the same | the same |
+| norway-spruce, european-beech, date-palm, telperion, laurelin; every `palm_digest` row | unchanged | no relay join reaches a span's end |
+
+- **One changed row's numbers: oregon-white-oak at seed 1.** Built again with both executors' share-1 branch disabled, it reproduces the base's line exactly (leaves 590130856fa01a99), so the share rule alone moves it.
+  - Its 45,085 leaves match the base's by position: median 5.3e-7 m, 99th percentile 1.2e-4 m, at most 2.1e-4 m. None moves 1 cm.
+  - Their order in the buffer changed (`raw/oak1-old.bin`, `raw/oak1-new.bin`).
+- **No stills.** No shipped preset's default-age leaves change visibly: the largest move is 0.21 mm on a tree of several metres.
