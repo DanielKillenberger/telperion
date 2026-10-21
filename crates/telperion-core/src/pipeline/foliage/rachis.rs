@@ -17,7 +17,6 @@ use crate::{
     math::Vec3,
     pipeline::branching,
     tree::{Node, NodeKind, Tree},
-    Result,
 };
 
 /// One frond's axis: the stem node it leaves from, and its points and
@@ -50,9 +49,9 @@ pub(super) fn girth(c: &CanopyParams, apex: &CanopyParams) -> f64 {
 /// for a frond of one leaflet (its blade stands on the stem) or of no
 /// rachis length (its leaflets all stand where it leaves the stem). A
 /// frond resting on the ground rests its axis with it (`rachis`).
-pub(crate) fn rachises(tree: &Tree, p: &CanopyParams, blade: f64) -> Result<Vec<Rachis>> {
+pub(crate) fn rachises(tree: &Tree, p: &CanopyParams, blade: f64) -> Vec<Rachis> {
     if !draws(p) {
-        return Ok(Vec::new());
+        return Vec::new();
     }
     let mut out = Vec::new();
     let mut stem = None;
@@ -80,12 +79,12 @@ pub(crate) fn rachises(tree: &Tree, p: &CanopyParams, blade: f64) -> Result<Vec<
             std::iter::once(0.).chain((0..count).map(|k| station(k, count, &c, frond.split).0));
         let (mut points, mut radii) = (Vec::new(), Vec::new());
         for t in shares {
-            points.push(rachis(frond.at, frond.heading, lift, &c, r0, t)?.0);
+            points.push(rachis(frond.at, frond.heading, lift, &c, r0, t).0);
             radii.push(radius(r0, t));
         }
         out.push(Rachis { at, points, radii });
     }
-    Ok(out)
+    out
 }
 
 /// Each axis as a run of its own appended to `nodes`, whose first stands

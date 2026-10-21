@@ -59,7 +59,7 @@ fn built(f: &Family) -> (Tree, TreeMesh) {
 /// Each frond's axis as the clothing reads it.
 fn axes(tree: &Tree, f: &Family) -> Vec<Rachis> {
     let blade = foliage::blade(&executor::element(f.element).unwrap());
-    foliage::rachises(tree, &f.canopy, blade).unwrap()
+    foliage::rachises(tree, &f.canopy, blade)
 }
 
 /// Where every leaf's base stands, as placement made it.

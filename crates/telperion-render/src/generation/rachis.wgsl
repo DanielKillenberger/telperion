@@ -105,13 +105,18 @@ fn rachis_along(length: f32, arch: f32, girth: f32, c: f32, t: f32) -> f32 {
 }
 
 // The run along the ground to share `t` of a rachis whose centreline
-// falls by `fall` a share, in closed form: the parabola's speed less the
-// fall. Not finite where it falls faster than it runs, which the
-// placement refuses as the CPU refuses it.
+// falls by `fall` a share, in closed form: each step keeps its path
+// length, so it advances by the parabola's speed less the fall, and by
+// nothing where the taper falls faster, going straight down onto its own
+// bark (host, 2026-10-21).
 fn rachis_ground(length: f32, arch: f32, fall: f32, t: f32) -> f32 {
     let square = length * length - fall * fall;
     let b = abs(2.0 * arch * length);
-    let speed = sqrt(square + b * b * t * t);
+    let radicand = square + b * b * t * t;
+    if radicand < 0.0 {
+        return 0.0;
+    }
+    let speed = sqrt(radicand);
     if b == 0.0 {
         return speed * t;
     }

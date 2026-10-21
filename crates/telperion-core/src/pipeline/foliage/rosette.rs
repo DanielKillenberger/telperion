@@ -402,7 +402,6 @@ pub(super) fn fan(
     for (k, leaflet) in
         super::leaflet::leaflets(point, heading, (p, girth), count, split).enumerate()
     {
-        let leaflet = leaflet?;
         let rng = match more.as_deref_mut() {
             Some(more) if k > 0 => more,
             _ => &mut *rng,

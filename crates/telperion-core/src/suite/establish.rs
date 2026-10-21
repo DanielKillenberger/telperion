@@ -371,7 +371,6 @@ fn gap(
     let clear = Vec3::Y * 100.0;
     let lines: Vec<_> = telperion_core::foliage::leaflets(clear, Vec3::X, (young, 0.0), n, split)
         .map(|l| {
-            let l = l.unwrap();
             let scale = young.size * l.share.unwrap_or(1.0);
             (l.at, l.at + l.axis * (blade * scale), width * scale)
         })

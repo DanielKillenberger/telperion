@@ -1353,7 +1353,7 @@
     "path": "crates/telperion-core/src/pipeline/foliage/leaflet.rs",
     "site": "if speed < 0 . {",
     "classification": "algorithm",
-    "reason": "fn-301 R2: a frond whose taper falls faster than its parabola runs where it rests cannot keep its length lying down, and is refused by name; a geometric impossibility, not a population limit."
+    "reason": "fn-301 R2 (host, 2026-10-21): where a resting frond's taper falls faster than its parabola runs, the step goes straight down onto its own bark and advances nothing along the ground; the closed form's zero, not a limit or a refusal."
   },
   {
     "path": "crates/telperion-core/src/pipeline/space/establish.rs",

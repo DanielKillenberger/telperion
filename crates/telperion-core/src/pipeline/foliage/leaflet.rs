@@ -8,7 +8,6 @@ use crate::{
     math::{Transcendental, Vec3},
     pipeline::space::FINEST,
     rng::Rng,
-    Error, Result,
 };
 use std::{
     cmp::Ordering,
@@ -47,13 +46,13 @@ pub(crate) fn rachis(
     p: &CanopyParams,
     girth: f64,
     t: f64,
-) -> Result<(Vec3, Vec3)> {
+) -> (Vec3, Vec3) {
     let (length, arch) = (p.rachis_length, p.rachis_arch);
     let at = |t: f64| point + heading * (length * t) + lift * (arch * length * t * t);
     let run = |t: f64| heading + lift * (2. * arch * t);
     let rests = contact(point.y, heading.y * length, lift.y * arch * length, girth);
     let Some(c) = rests.filter(|c| t >= *c) else {
-        return Ok((at(t), run(t).normalized()));
+        return (at(t), run(t).normalized());
     };
     let level = |v: Vec3| Vec3::new(v.x, 0., v.z);
     let met = level(run(c));
@@ -63,47 +62,46 @@ pub(crate) fn rachis(
         false => level(lift) * bends,
     }
     .normalized();
-    let lies = at(c) + toward * along(length, arch, girth, (c, t))?;
-    Ok((Vec3::new(lies.x, radius(girth, t), lies.z), toward))
+    let lies = at(c) + toward * along(length, arch, girth, (c, t));
+    (Vec3::new(lies.x, radius(girth, t), lies.z), toward)
 }
 
 /// How far a resting rachis runs along the ground from share `c` to `t`:
 /// the parabola's arc length between them less what its centreline falls
 /// as its radius tapers, by `girth` a share until the finest wood and not
 /// past it, so the resting axis is as long as the parabola it replaces.
-fn along(length: f64, arch: f64, girth: f64, (c, t): (f64, f64)) -> Result<f64> {
+fn along(length: f64, arch: f64, girth: f64, (c, t): (f64, f64)) -> f64 {
     let thin = thin(girth);
     let tapered = match c < thin {
-        true => ground(length, arch, girth, t.min(thin))? - ground(length, arch, girth, c)?,
+        true => ground(length, arch, girth, t.min(thin)) - ground(length, arch, girth, c),
         false => 0.,
     };
-    Ok(tapered + ground(length, arch, 0., t.max(thin))? - ground(length, arch, 0., c.max(thin))?)
+    tapered + ground(length, arch, 0., t.max(thin)) - ground(length, arch, 0., c.max(thin))
 }
 
 /// The run along the ground to share `t` of a rachis whose centreline
-/// falls by `fall` a share, in closed form: the parabola's speed less the
-/// fall, `√(length² − fall² + (2·arch·length·t)²)` (its heading and lift
-/// square and of unit length). Read only where it lies; one falling faster
-/// than its parabola runs there has no way to lie, and is refused.
-fn ground(length: f64, arch: f64, fall: f64, t: f64) -> Result<f64> {
+/// falls by `fall` a share, in closed form: each step keeps its path
+/// length, so it advances `√max(0, length² − fall² + (2·arch·length·t)²)`
+/// a share (its heading and lift square and of unit length). Where the
+/// taper falls faster than the parabola runs, the step goes straight down
+/// onto its own bark and advances nothing (host, 2026-10-21).
+fn ground(length: f64, arch: f64, fall: f64, t: f64) -> f64 {
     let square = length * length - fall * fall;
     let b = (2. * arch * length).abs();
     let speed = square + b * b * t * t;
     if speed < 0. {
-        return Err(Error::InvalidInput(
-            "a frond falls faster than it runs where it rests",
-        ));
+        return 0.;
     }
     let speed = speed.sqrt();
     if b == 0. {
-        return Ok(speed * t);
+        return speed * t;
     }
     let tail = match square.total_cmp(&0.) {
         Ordering::Greater => asinh(b * t / square.sqrt()),
         Ordering::Less => acosh(b * t / (-square).sqrt()),
         Ordering::Equal => 0.,
     };
-    Ok(t / 2. * speed + square / (2. * b) * tail)
+    t / 2. * speed + square / (2. * b) * tail
 }
 
 fn asinh(x: f64) -> f64 {
@@ -191,14 +189,14 @@ pub(crate) fn leaflets(
     (p, girth): (CanopyParams, f64),
     count: usize,
     split: Option<Split>,
-) -> impl Iterator<Item = Result<Leaflet>> {
+) -> impl Iterator<Item = Leaflet> {
     // The frond's own plane: the rachis runs along `heading`, the leaflets
     // leave it to either side, and the arch lifts it out of the line between.
     let (lift, _) = frame(heading);
     let pitch = p.leaflet_pitch.to_radians();
     (0..count).map(move |leaf| {
         let (t, length) = station(leaf, count, &p, split);
-        let (at, run) = rachis(point, heading, lift, &p, girth, t)?;
+        let (at, run) = rachis(point, heading, lift, &p, girth, t);
         let closing = if leaf + 1 == count {
             1. - p.terminal_leaflet
         } else {
@@ -210,7 +208,7 @@ pub(crate) fn leaflets(
         // had. No draw moves: the spine is the same instance, scaled.
         let borne = spine(leaf, &p);
         let pitch = borne.map_or(pitch, |(_, steeper)| steeper);
-        Ok(Leaflet {
+        Leaflet {
             at,
             axis: run.rotate(lift, hand * pitch * closing),
             run,
@@ -218,7 +216,7 @@ pub(crate) fn leaflets(
                 (_, None) => borne.map(|(share, _)| share),
                 (b, Some(_)) => Some(b.map_or(1.0, |(share, _)| share) * length),
             },
-        })
+        }
     })
 }
 

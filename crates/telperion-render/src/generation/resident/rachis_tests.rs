@@ -79,7 +79,13 @@ fn device(gpu: &crate::Gpu, tools: (&Kernels, &Hanger), f: &Family) -> Vec<Axis>
             Some((run, axis)) if *run == r[23] => axis.nodes.push(node),
             _ => {
                 let bearer = record(r[16])[24];
-                out.push((r[23], Axis { bearer, nodes: vec![node] }));
+                out.push((
+                    r[23],
+                    Axis {
+                        bearer,
+                        nodes: vec![node],
+                    },
+                ));
             }
         }
     }
@@ -109,27 +115,36 @@ fn cpu(f: &Family) -> Vec<Axis> {
 }
 
 /// The device's axes against the CPU's: the most apart a point and a
-/// radius stood, or the first way they disagree.
-fn compare(device: &[Axis], cpu: &[Axis]) -> Result<(f64, f64), String> {
+/// radius stood, or the first way they disagree, or the bounds `most`
+/// they pass.
+fn compare(device: &[Axis], cpu: &[Axis], most: (f64, f64)) -> Result<(f64, f64), String> {
     if device.len() != cpu.len() {
-        return Err(format!("count: {} axes against {}", device.len(), cpu.len()));
+        return Err(format!(
+            "count: {} axes against {}",
+            device.len(),
+            cpu.len()
+        ));
     }
     let (mut position, mut radius) = (0.0f64, 0.0f64);
     for (k, (d, c)) in device.iter().zip(cpu).enumerate() {
         if d.bearer != c.bearer {
-            return Err(format!("axis {k}: borne on {} against {}", d.bearer, c.bearer));
+            return Err(format!(
+                "axis {k}: borne on {} against {}",
+                d.bearer, c.bearer
+            ));
         }
         if d.nodes.len() != c.nodes.len() {
             let (m, n) = (d.nodes.len(), c.nodes.len());
             return Err(format!("axis {k}: {m} nodes against {n}"));
         }
         for (a, b) in d.nodes.iter().zip(&c.nodes) {
-            let apart = |w: std::ops::Range<usize>| w.map(|w| (a[w] - b[w]).abs()).fold(0.0, f64::max);
+            let apart =
+                |w: std::ops::Range<usize>| w.map(|w| (a[w] - b[w]).abs()).fold(0.0, f64::max);
             position = position.max(apart(0..3));
             radius = radius.max(apart(3..6));
         }
     }
-    match position <= POSITION && radius <= RADIUS {
+    match position <= most.0 && radius <= most.1 {
         true => Ok((position, radius)),
         false => Err(format!("apart: point {position:e}, radius {radius:e}")),
     }
@@ -147,13 +162,52 @@ fn every_frond_axis_is_hung_as_the_cpu_hangs_it() {
     for age in [Some(4), Some(12), None] {
         let f = family(age);
         let (mine, theirs) = (device(&gpu, (&k, &hanger), &f), cpu(&f));
-        let apart = compare(&mine, &theirs).unwrap_or_else(|e| panic!("palm at {}: {e}", f.age));
+        let apart = compare(&mine, &theirs, (POSITION, RADIUS))
+            .unwrap_or_else(|e| panic!("palm at {}: {e}", f.age));
         let nodes: usize = mine.iter().map(|a| a.nodes.len()).sum();
-        println!("palm at {}: {} axes, {nodes} nodes, apart {apart:?}", f.age, mine.len());
+        println!(
+            "palm at {}: {} axes, {nodes} nodes, apart {apart:?}",
+            f.age,
+            mine.len()
+        );
         assert!(!mine.is_empty(), "no axis hung");
         // The control: an axis missing.
-        let missing = compare(&mine[1..], &theirs).expect_err("a missing axis passed");
+        let missing =
+            compare(&mine[1..], &theirs, (POSITION, RADIUS)).expect_err("a missing axis passed");
         assert!(missing.starts_with("count"), "{missing}");
+    }
+}
+
+/// fn-301 R2 (host, 2026-10-21): a frond as thick as it is long, and one
+/// thicker, whose taper falls as fast as or faster than its parabola
+/// runs, goes straight down onto its own bark where it does, never
+/// refused: on the palm at 12, the device hangs every axis as the CPU
+/// does, every point finite and no bark below the ground.
+#[test]
+fn a_frond_as_thick_as_it_is_long_rests_on_the_device_as_on_the_cpu() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let (k, hanger) = (Kernels::new(&gpu), Hanger::new(&gpu));
+    for length in [5.0, 4.0] {
+        let mut f = family(Some(12));
+        (f.canopy.rachis_length, f.canopy.rachis_width) = (length, 10.0);
+        let (mine, theirs) = (device(&gpu, (&k, &hanger), &f), cpu(&f));
+        // A 5 m radius held in f32: four units in its last place.
+        let radius = 4.0 * 5.0 * f64::from(f32::EPSILON);
+        let apart = compare(&mine, &theirs, (POSITION, radius))
+            .unwrap_or_else(|e| panic!("{length} m: {e}"));
+        println!(
+            "{length} m long, 5 m thick: {} axes, apart {apart:?}",
+            mine.len()
+        );
+        for (who, axes) in [("device", &mine), ("cpu", &theirs)] {
+            for node in axes.iter().flat_map(|a| &a.nodes) {
+                assert!(node.iter().all(|v| v.is_finite()), "{who}: {node:?}");
+                let bark = node[1] - node[3];
+                assert!(bark >= -1e-4, "{who}: bark {bark} m below the ground");
+            }
+        }
     }
 }
 
@@ -167,7 +221,9 @@ fn axes_past_the_room_are_refused_by_name() {
     let (k, hanger) = (Kernels::new(&gpu), Hanger::new(&gpu));
     let f = family(None);
     let bases = f.canopy.leaf_bases.ceil() as u32;
-    let refused = hung(&gpu, (&k, &hanger), &f, 2 * bases).err().expect("the axes fit");
+    let refused = hung(&gpu, (&k, &hanger), &f, 2 * bases)
+        .err()
+        .expect("the axes fit");
     assert!(refused.to_string().contains("rachis nodes"), "{refused}");
 }
 

@@ -50,7 +50,6 @@ impl Frond {
             self.girth,
             t,
         )
-        .unwrap()
     }
     /// The parabola as it was drawn before contact (fn-283).
     fn parabola(&self, t: f64) -> Vec3 {

@@ -78,7 +78,7 @@ pub(super) fn describe(
             let (_, side) = frame(frond.heading);
             let girth = rachis::girth(&c, &at);
             for leaf in leaflet::leaflets(frond.at, frond.heading, (c, girth), per, frond.split) {
-                out.push(shape.boxed(&leaf?, side, &c, &mut rng, system));
+                out.push(shape.boxed(&leaf, side, &c, &mut rng, system));
             }
         }
     }
