@@ -76,3 +76,17 @@
 - **Slowed by:** `generation_limit_guard` failed on the new branches in the frond curve (`docs/generation-limits-inventory.json`); nothing earlier runs it, so it surfaced only after 35 minutes of gate. The fix was five inventory lines and a focused rerun.
 - **Cost:** one gate failure, about 3 minutes to fix; no second gate.
 - **Would remove it:** naming `cargo test -p telperion-core --test generation_limit_guard` among the spec's Quick commands for any task that adds a branch or clamp in core.
+
+## 2026-10-21 06:10, worker, task .3 investigation
+
+- **Doing:** finding the device's surfacing `emit` for the surface clearance.
+- **Slowed by:** the task names `crates/telperion-render/src/curve/**/*.wgsl` for it, but that directory holds no WGSL. The emit is `src/shaders/curve_emit.wgsl`; the ring records it reads (`src/shaders/curve_walk.wgsl`) and the packed clusters they come from (`generation/resident/pack.wgsl` on the device, `pipeline/surface/curve/pack.rs` on the CPU) carry no trunk bit, so `CurveRun::trunk` cannot be read where vertices are written. Three of those files are outside the task's Touches.
+- **Cost:** about 10 minutes of tracing, then a stop for the host on the device half of the surface clearance.
+- **Would remove it:** an architecture claim in the plan checked against the code (AGENTS.md, "Gates and checked claims"): the emit's path and what its record carries.
+
+## 2026-10-21 06:50, worker, task .3 landing bound
+
+- **Doing:** the engine's resting rule (centreline at the girth, step length kept) on both executors; the CPU and device tests and the settle suites pass with it.
+- **Slowed by:** `sag.rs` `wood_lands_on_the_ground_without_a_corner` goes red: at sag 6e-4 the sharpest landing joint is 0.805 rad against decision 4's bound of 0.8 (base 0.777). The landing ease, which the task keeps unchanged, eases to none at z = 0, while wood now rests one radius up. Easing from the bark (`support(tip.z - radius, ...)`, measured as a throwaway) gives 0.757, but changes the ease the spec freezes and may move trees R3 holds byte-identical. Either way it is a host call, not the worker's.
+- **Cost:** about 15 minutes and a stop for the host.
+- **Would remove it:** the plan running the sag suite against the rule before freezing the ease (AGENTS.md, "Gates and checked claims").
