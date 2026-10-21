@@ -35,9 +35,19 @@ R3, R4, R5. Extend the repro to every shipped walk at the film's frames, prove t
 - [ ] The gate and `npm test` are green, run once.
 
 ## Done summary
-TBD
+R3 and R4 are met.
+- **Film frames:** `every_film_frame_grows_within_its_ends` holds all 510 film frames of the six walks, at seeds 1, 7 and 42, within each seed's ends plus `SLACK` and at or below `FRAMES`.
+- **Device frames:** `oak_to_palm_frames_build_on_the_device` builds fn-298's frames 76 and 77 (seed 42) and 106 and 119 (seed 1) on the device, matching the CPU.
+- **Ends:** all 36 walk ends are byte-identical to the base.
+- **Stills:** oak to palm at 0.9 and 0.97 is byte-identical to the base. At 0.5 it differs by one bare branch (T3.md, sheet `oak-palm-base-vs-change.jpg`).
+- **Host option 1:** rule B now swaps only the eight timing rows.
+- **Re-pins and rulings:** the walk digest is re-pinned, and three walk properties were updated on the host's rulings (palm middle within its ends; grown count binding at t = 0.8; oak-to-birch exception refreshed to 3,961,379).
+- **Gate:** green, 1,425 passed and 111 ignored, in 2,399 s, before the three-seed test change, which passed focused in 46 s. `npm test` passed 177 of 177.
+- **Open:** fn-298's ignored frames stay ignored here; the host un-ignores them on the release branch.
+stage: impl-review - ran (codex panel: NEEDS_WORK on three seeds, then SHIP) (model: gpt-6.1-sol)
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7d0eb0fb7eccf11eda35e670657ec45b4c0f70ab, 2328161940fea7ceceaf240dcfefaa5c5c2497b7, e40fde44177b7a9061f851eeb105d0fea5001529, 060119518bdba88129d52f27faced9c0a01b4c5b, 6f94e76af81bc7011b3dcbfa3bc0692936d2f944, 5fd697b52ea059838a930e4b092cef0ece8d7380, b9685f28eeb5c91a8166d825f0786f752fdaf722, 29da7ecc375a2ddbe35c56cdc03a190585095386, ae5bd74940351e787147269e8a212d39a8a79b7b
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast (1425 passed, 0 failed); npm test (177 passed); cargo test --profile ci -p telperion-core --test units_bound (green after three seeds)
 - PRs:
