@@ -12,10 +12,12 @@ Measured by the host's probe (2026-10-21; uncommitted `zz_hier_probe.rs` in `.wo
   - The check that raises the flag is `GENS > rec::ROUNDS` (`cycle/plan_hier.rs:94`).
 - **fn-299 exposed it; it did not cause it.** fn-299's rule (timing rows take the reaching end's values) drops the frame's `most_units` from 3 to 2. The floor therefore falls from 5 to 3. The ends each have `most_units` 2, yet the frame's step needs 4. So `2·units − 1` is not a bound on the generations one step adds. It covered this frame only while the old blend inflated `units`.
 
-## Unknown, check before the plan
+## Unknown, check before the plan (answered 2026-10-21, `raw/u1-cost.log`, `raw/survey-*.log`)
 
 - What a hierarchy round costs when it has nothing left to do. Does the pass stop once no depth changes, or does it run every round it is sized for?
 - Whether any other stepped limit relies on `most_units` in the same way.
+- **Answer 1:** a round past the step's generations dispatches no workgroups, but the host still records every round within the limit, each with its passes' empty dispatches, scans, clears and tallies: about 20 to 33 µs a round-pass.
+- **Answer 2:** the units rounds take the same `2·units − 1` floor and refuse by `UnitRounds`; over 70,284 censuses their projection alone falls short on 246 and their limit less their need is 0 on 812. The layout's generations take `units` as a floor but refuse only past the plan's cap.
 
 ## Design (host, 2026-10-21, after R2's measurement)
 
@@ -62,8 +64,52 @@ Commit the survey tap as an ignored test that prints each stepped limit's rise a
   - If the bound costs more than noise, the projection must take its step from what can actually happen, never from `most_units`. Then bring the measurement to the host before choosing a rule.
 - **R3 (output unchanged):** rounds only size work. Every artifact digest of the shipped presets at seeds 1, 7 and 42 is byte-identical to bb20f3877, and so is the full film-walk sweep (`every_film_walk_frame_builds_on_the_device`, 1,533 frames). Every frame builds, and none is refused.
 - **R4:** the gate is green once, with `npm test`, and a codex review on each task.
+- **R5 (one retry at the bound):** a device build refused only by flags that name a stepped limit runs once more from its first cycle, through the same pipeline, with exactly those limits pinned at their bound; the stepped limits are the cycle's `Limits` (units, draw and deposit ranges, sweeps, hierarchy rounds and passes, units rounds), named by `UnitRanges`, `DrawRanges`, `DepositRanges`, `Sweeps`, `HierGens`, `HierPasses` and `UnitRounds`. The retry serves every caller of the device's growth (the direct build and the growth path) from the one place a build's flags become a refusal. Projections, `STEP`, `ROUND_SLACK` and the floors are unchanged; the comment calling `2·units − 1` a bound is corrected, and the stepped limits are documented as a cost hint whose overflow is retried. Errors: a refusal that raises any other flag (a table cap, the budget, a fault, `LayGenerations` past the plan's cap, `Given`, `Points`, `Compaction`, light errors) is not retried and reads as today; a retried build refused again is an error naming its flags, as today; no build retries twice, across every call that grows one build (a growth paused and resumed included).
+- **R6 (the retried build is the bound's build):** a test-only override forces a stepped limit short (as `with_laygens` forces the layout's generations); the build retries once and hands the renderer exactly what a build with that limit pinned at its bound from its first cycle hands it. Errors: an override that keeps the limit short through the retry ends in the refusal by name after exactly one retry.
+- **R7 (survey):** an ignored test taps every census a device build reads and prints, for each stepped limit, its largest rise over the census two cycles back and its least headroom (the cycle's limit less its need), each with where it occurs, and the builds that retried, over the film-walk sweep and the shipped presets at their default age and at 12 and 40 where younger, seeds 1, 7 and 42. The probe `zz_hier_probe.rs` is never committed.
+- **R8 (report):** `RESULT.md` records the retry count and the retrying builds over R7's set, frame 41's retry cost from a paired timing (the frame retrying against the frame built at the bound from its first cycle), and R3's comparison.
 
 ## Boundaries
 
 - No change to growth, the blend or fn-299's rule.
 - Other stepped limits change only if the Unknowns find the same `most_units` reliance. A finding there is brought to the host first.
+- No change to a projection, `STEP`, `ROUND_SLACK`, a floor, a table cap or a plan bound (Design revised). No timing pair for builds that do not retry: their recording is unchanged.
+- `Given` (a dispatch given too few workgroups) is not a `Limits` field and is not retried; a `Given` refusal is brought to the host.
+
+## Strategy Alignment
+
+Active tracks served by this plan:
+- **The core and integration** — the device builds every tree the film's walk and the package ask for, with the CPU's tree, so the release (fn-237) is not refused on a frame.
+
+## Decision Context
+
+- Deleting the projection (rounds at the bound always) costs +7.8% beech 40, +12.4% palm 12, +1.7% spruce 40 (`raw/u1-cost.log`); a fresher projection from the layout depth peaks at the same rise of 3 and the units rounds sit at zero headroom on 812 censuses (`raw/survey-units.log`). No projection from a census two cycles old is a bound, so the bound is reached by one retry (Design revised).
+- The device path already retries in one place: `Growing::within` tries smaller margins while the budget refuses. The stepped-limit retry sits beside it, in `Growing::grow_to`, which both the direct build and the growth path call.
+
+## Early proof point
+
+Task fn-302-the-device-never-refuses-a-tree-for-its.1 validates the core approach (frame 41 builds by one retry, and a forced-short build retried equals the bound's build). If it fails, re-evaluate the retry's restart (sizes and seeding) before fn-302-the-device-never-refuses-a-tree-for-its.2.
+
+## Quick commands
+
+```bash
+# R1 repro, green after task 1
+~/.local/bin/telperion-heavy 8 --threads 2 -- cargo test --profile ci -p telperion-render --lib -- generation::film_walk_tests::the_film_walks_build_on_the_device generation::film_walk_tests::the_rounds_frames_have_the_cpus_counts
+# R3 digests (compare with raw/base-digests.log)
+DIGEST_SEEDS=1,7,42 ~/.local/bin/telperion-heavy 8 --threads 2 -- cargo test --profile ci -p telperion-render --lib -- resident::digest_tests::digest --ignored --nocapture
+```
+
+
+
+## Requirement coverage
+
+| Req | Task(s) | Note |
+| --- | --- | --- |
+| R1 | .1 | run red on bb20f3877 before the plan (`raw/r1-repro.log`); green after .1 |
+| R2 | none | answered before the plan: the bound costs more than noise (`raw/u1-cost.log`); the host chose the retry (Design revised) |
+| R3 | .2 | |
+| R4 | .1, .2 | |
+| R5 | .1 | |
+| R6 | .1 | |
+| R7 | .2 | |
+| R8 | .2 | |

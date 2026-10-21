@@ -7,3 +7,7 @@ Doing: R2's paired cost of the hierarchy rounds at their bound on beech 40, palm
 ## 2026-10-21 (conductor, design survey)
 
 Doing: the host design's survey of gens(c) = deep(c-1), the rounds rise and the units rounds' headroom over 1,587 device builds (1,533 walk frames and the presets at their default age and 12 and 40). Hindered: no committed tool reads every census of a device build through `Generator::prepare`; `grew.censuses` is reachable only from `cycle/` tests that grow below the generator, and the film-walk frame list is private to `film_walk_tests`. Each question about the census is a new scratch tap plus a 14-minute sweep, and a statistic missed the first time (the units rounds' effective headroom) cost a second 14-minute sweep. Would remove it: one ignored survey test that taps every census read by cycle and prints the stepped limits' rises and headroom per limit, over the sweep's frames.
+
+## 2026-10-21 (conductor, base digests)
+
+Doing: R3's base, every film-walk frame's digest line on bb20f3877's code. Hindered: a digest line reads back each frame's instances and wood, about 3 s a frame against 0.55 s for a build alone, so the base sweep takes about 75 minutes, and the change's side costs the same again. Would remove it: a device-side hash of what the renderer receives (one small readback a build), or a sweep digest that reads only counts and a hash computed on the device.
