@@ -35,9 +35,16 @@ The sweep that would have caught it (R3) and the agreement checks (R4): build ev
 - [ ] The digest at seeds 1, 7 and 42 matches the base byte for byte, recorded in RESULT.md with `space_hash` lines.
 - [ ] The gate and `npm test` are green.
 ## Done summary
-TBD
+R3: `film_walk_tests.rs` holds the film's segment table at 30 fps, eased. The full sweep is an ignored test: 1,489 frames built, 0 refused. The ordinary test builds a 48-frame subset: each walk's first and last frame at each seed, the 9 `rounds` frames and the Laurelin at 20. fn-299's 44 oak-to-palm frames are one ignored test naming fn-299. Frames 76–77 at seed 42 are excluded on an inferred cause, as the host accepted.
 
+R4: all 9 `rounds` frames hold instances within 1 of the CPU. 8 of them hold exact node counts. Spruce to birch, seed 42, frame 56 is one node more on the device, the same with every limit at its bound. Its node check is an ignored test naming fn-300 (host, 2026-10-21; recorded in the spec). Resident digest at seeds 1, 7 and 42 against the spec base `7422b110b`, built in its own target: 24 of 24 lines identical.
+
+R5: gate 1,410 passed, 0 failed, 115 ignored. `npm test`: 175 passed.
+
+stage: impl-review - ran (codex, one correctness reviewer, round 1: SHIP) (model: gpt-6.1-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 584ea94157a1e300a68b9468c6ef962f0c7d7b29, bc0066e078dd60614b00940f1bf1485f13bcf4fa, 0e9b4f2e121025c80abbf3edbe7f97d138404ad6
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast, telperion-heavy 8 --threads 2 -- npm test, telperion-heavy 8 --threads 2 -- cargo test --profile ci -p telperion-render --lib film_walk -- --include-ignored --nocapture, DIGEST_SEEDS=1,7,42 cargo test --profile ci -p telperion-render --lib generation::resident::digest_tests::digest -- --exact --ignored (branch and base 7422b110b)
 - PRs:
