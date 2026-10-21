@@ -36,7 +36,7 @@ Gate at the end of task .1 (`telperion-heavy 8 --threads 2 -- cargo test --profi
 |---|---|--:|
 | `walk_leaves` `oak_to_palm_keeps_its_leaves_by_degree`, `spruce_to_birch_...`, `birch_to_oak_...` | each walks seed 1 | 20 s, 81 s, 29 s (280 + 93 + 65 s at three seeds, rayon 2) |
 | `walk_leaves` `every_walk_changes_its_leaves_by_degree_at_every_seed` | the three walks at seeds 1, 7 and 42, ignored | 359 s |
-| `ground_reach` `nothing_drawn_passes_below_the_ground` | fn-301 R1's 45 touching rows and every preset at its own age, seed 1 (51 rows) | 54–58 s, peak 4.68 GB (was 159 s, 7.77 GB) |
+| `ground_reach` `nothing_drawn_passes_below_the_ground` | fn-301 R1's 45 touching rows and every preset at its own age, seed 1 (50 rows: three own-age rows are already touching) | 54–58 s, peak 4.68 GB (was 159 s, 7.77 GB) |
 | `ground_reach` `nothing_drawn_passes_below_the_ground_on_every_row` | all 168 rows, ignored | 136 s |
 | `walk_sizes` `the_teaser_frame_fits` | the teaser frame alone | 21 s (was 79.5 s with the exceptions) |
 | `walk_sizes` `the_named_exceptions_grow_no_further_out` | fn-273's eight exceptions, ignored | 46 s |
@@ -53,9 +53,10 @@ Measured with a temporary probe that prints `VmRSS` and `VmHWM` after each row's
 | Telperion at 82, seed 7 | 7,677 MiB | 7,666 MiB, 1,253 MiB |
 | Laurelin at 80, seed 1 | 4,326 MiB | under the Telperion peak |
 | Norway spruce at 40, seed 1 | 2,697 MiB | 2,689 MiB |
-| every other row | under 1,013 MiB | |
+| Telperion at 82, seed 42 | not run alone | 7,692 MiB, 1,195 MiB |
+| the other rows run alone (birch, oak, beech and ordinary tree at 40, palm at 40, Telperion at 20) | 20 to 713 MiB | |
 
-Telperion at 82, seed 7 peaks at 7.68 GB on its own: the sweep's peak is that one tree. The test already drops each tree before the next is built; the RSS left after a drop (up to 1.3 GB) is memory the allocator keeps, not a tree held. The gate's rows include Telperion at its own age only at seed 1, so the gate test peaks at 4.68 GB; seed 7 stays in the ignored sweep.
+Telperion at 82, seed 7 peaks at 7.68 GB on its own, and the sweep's high-water mark rises only at the Telperion rows (seed 42 to 7.69 GB): the sweep's peak is one tree, not trees held together. The test already drops each tree before the next is built; the RSS left after a drop (up to 1.3 GB) is memory the allocator keeps, not a tree held. The gate's rows include Telperion at its own age only at seed 1, so the gate test peaks at 4.68 GB; seed 7 stays in the ignored sweep.
 
 ### Red and green
 
