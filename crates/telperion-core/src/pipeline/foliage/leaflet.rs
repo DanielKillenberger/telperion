@@ -32,10 +32,10 @@ pub(crate) struct Leaflet {
 /// R2). From its first contact it lies along the ground, its centreline
 /// at its radius, in the horizontal direction it met the ground on (its
 /// heading's where it met it straight down), keeping its length: past
-/// contact `t` maps to the parabola's own arc length. A rachis that never
-/// reaches the ground is the parabola, by today's operations. One that
-/// meets it straight down on a vertical heading has no way to lie, and is
-/// refused.
+/// contact `t` maps to the parabola's own arc length (`along`). A base at
+/// or under its radius rests from the base. A rachis that never reaches
+/// the ground is the parabola, by today's operations. One that meets it
+/// straight down on a vertical heading has no way to lie, and is refused.
 pub(crate) fn rachis(
     point: Vec3,
     heading: Vec3,
@@ -48,11 +48,11 @@ pub(crate) fn rachis(
     let at = |t: f64| point + heading * (length * t) + lift * (arch * length * t * t);
     let run = |t: f64| heading + lift * (2. * arch * t);
     let rests = contact(point.y, heading.y * length, lift.y * arch * length, girth);
-    let Some(c) = rests.filter(|c| t > *c) else {
+    let Some(c) = rests.filter(|c| t >= *c) else {
         return Ok((at(t), run(t).normalized()));
     };
     let level = |v: Vec3| Vec3::new(v.x, 0., v.z);
-    let along = [run(c), heading]
+    let toward = [run(c), heading]
         .map(level)
         .into_iter()
         .find(|d| d.length_squared() > 1e-12)
@@ -60,8 +60,51 @@ pub(crate) fn rachis(
             "a frond meets the ground straight down on a vertical heading",
         ))?
         .normalized();
-    let lies = at(c) + along * (arc(length, arch, t) - arc(length, arch, c));
-    Ok((Vec3::new(lies.x, radius(girth, t), lies.z), along))
+    let lies = at(c) + toward * along(length, arch, girth, (c, t))?;
+    Ok((Vec3::new(lies.x, radius(girth, t), lies.z), toward))
+}
+
+/// How far a resting rachis runs along the ground from share `c` to `t`:
+/// the parabola's arc length between them less what its centreline falls
+/// as its radius tapers, by `girth` a share until the finest wood and not
+/// past it, so the resting axis is as long as the parabola it replaces.
+fn along(length: f64, arch: f64, girth: f64, (c, t): (f64, f64)) -> Result<f64> {
+    let thin = thin(girth);
+    let tapered =
+        ground(length, arch, girth, t.min(thin))? - ground(length, arch, girth, c.min(thin))?;
+    Ok(tapered + ground(length, arch, 0., t.max(thin))? - ground(length, arch, 0., c.max(thin))?)
+}
+
+/// The run along the ground to share `t` of a rachis whose centreline
+/// falls by `fall` a share, in closed form: the parabola's speed is
+/// `length·√(1 + (2·arch·t)²)` (its heading and lift square and of unit
+/// length), and the fall takes its share of it. A rachis that falls as
+/// fast as it runs has no length to lie along, and is refused.
+fn ground(length: f64, arch: f64, fall: f64, t: f64) -> Result<f64> {
+    let square = length * length - fall * fall;
+    if square <= 0. {
+        return Err(Error::InvalidInput(
+            "a frond as thick as it is long cannot rest",
+        ));
+    }
+    let speed = square.sqrt();
+    if arch == 0. {
+        return Ok(speed * t);
+    }
+    let x = 2. * arch * length * t / speed;
+    let root = (1. + x * x).sqrt();
+    let asinh = (x.abs() + x * x / (1. + root)).ln_1p_fixed().copysign(x);
+    Ok(square / (4. * arch * length) * (x * root + asinh))
+}
+
+/// The share where a rachis's taper meets the finest wood: over the taper
+/// its radius falls by `girth` a share, past it it stands at `FINEST`.
+fn thin(girth: f64) -> f64 {
+    if girth > FINEST {
+        1. - FINEST / girth
+    } else {
+        0.
+    }
 }
 
 /// The rachis's radius at share `t`: its `girth` tapering to its tip, and
@@ -77,13 +120,7 @@ fn contact(base: f64, rise: f64, bend: f64, girth: f64) -> Option<f64> {
     if base <= radius(girth, 0.) {
         return Some(0.);
     }
-    // The share where the taper meets the finest wood: over the taper the
-    // radius falls by `girth` a share, past it stands at `FINEST`.
-    let thin = if girth > FINEST {
-        1. - FINEST / girth
-    } else {
-        0.
-    };
+    let thin = thin(girth);
     root(bend, rise + girth, base - girth, 0., thin)
         .or_else(|| root(bend, rise, base - FINEST, thin, 1.))
 }
@@ -101,19 +138,6 @@ fn root(a: f64, b: f64, c: f64, lo: f64, hi: f64) -> Option<f64> {
     let q = -0.5 * (b + discriminant.sqrt().copysign(b));
     let (x, y) = (q / a, if q != 0. { c / q } else { q / a });
     within(x.min(y)).or_else(|| within(x.max(y)))
-}
-
-/// The parabola's length from its base to share `t`, in closed form: its
-/// heading and its lift square and of unit length, so its speed is
-/// `length·√(1 + (2·arch·t)²)`.
-fn arc(length: f64, arch: f64, t: f64) -> f64 {
-    if arch == 0. {
-        return length * t;
-    }
-    let x = 2. * arch * t;
-    let root = (1. + x * x).sqrt();
-    let asinh = (x.abs() + x * x / (1. + root)).ln_1p_fixed().copysign(x);
-    length / (4. * arch) * (x * root + asinh)
 }
 
 /// Where leaflet `leaf` of `count` leaves its rachis, as a share of the

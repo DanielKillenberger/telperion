@@ -156,33 +156,46 @@ fn a_base_below_its_radius_rests_from_its_base() {
         0.1,
     );
     assert_eq!(f.first_contact(), Some(0.0));
-    assert_eq!(f.at(0.0).0, f.point, "the base stays on the stem");
-    for t in shares(100).skip(1) {
+    let base = Vec3::new(f.point.x, f.radius(0.0), f.point.z);
+    assert_eq!(f.at(0.0).0, base, "the base rests at its radius");
+    assert!(f.at(1e-9).0.distance(base) < 1e-8, "and runs on from it");
+    for t in shares(100) {
         let (at, run) = f.at(t);
         assert_eq!(at.y, f.radius(t), "at {t}");
         assert_eq!(run, level(f.heading).normalized(), "at {t}");
     }
 }
 
-/// A resting frond is as long as its parabola: drawn at the finest wood,
-/// its centreline's length matches the closed-form arc to 1e-9.
+/// A resting frond is as long as its parabola: its centreline, falling as
+/// its radius tapers and then lying at the finest wood, matches the
+/// closed-form arc to 1e-9, arched or straight.
 #[test]
 fn a_resting_frond_keeps_its_length() {
-    let Frond { point, heading, .. } = descending();
-    let f = Frond::new(point, heading, (7.0, -0.6), 0.0);
-    let c = f.first_contact().unwrap();
-    let mut t: Vec<f64> = shares(200_000).collect();
-    t.push(c);
-    t.sort_by(f64::total_cmp);
-    let drawn: f64 = t
-        .windows(2)
-        .map(|w| f.at(w[0]).0.distance(f.at(w[1]).0))
-        .sum();
-    // The parabola's speed is length·√(1 + (2·arch·t)²).
-    let (l, a) = (7.0, -0.6f64);
-    let x = 2.0 * a;
-    let arc = l / (4.0 * a) * (x * (1.0 + x * x).sqrt() + x.asinh());
-    assert!((drawn - arc).abs() < 1e-9, "drawn {drawn}, arc {arc}");
+    let straight = Frond::new(
+        Vec3::new(0.0, 0.2, 0.0),
+        Vec3::new(0.8, -0.6, 0.0),
+        (1.0, 0.0),
+        0.1,
+    );
+    for f in [descending(), straight] {
+        let c = f.first_contact().unwrap();
+        // The kinks: where it meets the ground and where its taper ends.
+        let mut t: Vec<f64> = shares(200_000).collect();
+        t.extend([c, 1.0 - FINEST / f.girth]);
+        t.sort_by(f64::total_cmp);
+        let drawn: f64 = t
+            .windows(2)
+            .map(|w| f.at(w[0]).0.distance(f.at(w[1]).0))
+            .sum();
+        // The parabola's speed is length·√(1 + (2·arch·t)²).
+        let (l, a) = (f.p.rachis_length, f.p.rachis_arch);
+        let x = 2.0 * a;
+        let arc = match a == 0.0 {
+            true => l,
+            false => l / (4.0 * a) * (x * (1.0 + x * x).sqrt() + x.asinh()),
+        };
+        assert!((drawn - arc).abs() < 1e-9, "drawn {drawn}, arc {arc}");
+    }
 }
 
 #[test]

@@ -6,8 +6,9 @@
 // below the ground meets it at its first contact and lies along it from
 // there (fn-301 R2): its centreline at its radius, in the horizontal
 // direction it met the ground on (its heading's where it met it straight
-// down), its share mapped to the parabola's own arc length. One that never
-// reaches the ground is the parabola. One that meets it straight down on a
+// down), its share mapped to the parabola's own arc length; a base at or
+// under its radius rests from the base. One that never reaches the ground
+// is the parabola. One that meets it straight down on a
 // vertical heading has no way to lie: its point is not finite, which the
 // placement refuses (`pack.wgsl`'s `packed`).
 struct Rachis { at: vec3<f32>, run: vec3<f32> }
@@ -17,7 +18,7 @@ const FINEST: f32 = 2e-4;
 
 fn rachis(point: vec3<f32>, heading: vec3<f32>, lift: vec3<f32>, length: f32, arch: f32, girth: f32, t: f32) -> Rachis {
     let c = rachis_contact(point.y, heading.y * length, lift.y * arch * length, girth);
-    if c < 0.0 || t <= c {
+    if c < 0.0 || t < c {
         let at = point + heading * (length * t) + lift * (arch * length * t * t);
         let run = normalize(heading + lift * (2.0 * arch * t));
         return Rachis(at, run);
@@ -34,7 +35,7 @@ fn rachis(point: vec3<f32>, heading: vec3<f32>, lift: vec3<f32>, length: f32, ar
     }
     along = normalize(along);
     let at = point + heading * (length * c) + lift * (arch * length * c * c);
-    let lies = at + along * (rachis_arc(length, arch, t) - rachis_arc(length, arch, c));
+    let lies = at + along * rachis_along(length, arch, girth, c, t);
     return Rachis(vec3<f32>(lies.x, rachis_radius(girth, t), lies.z), along);
 }
 
@@ -51,10 +52,7 @@ fn rachis_contact(base: f32, rise: f32, bend: f32, girth: f32) -> f32 {
     if base <= rachis_radius(girth, 0.0) {
         return 0.0;
     }
-    var thin = 0.0;
-    if girth > FINEST {
-        thin = 1.0 - FINEST / girth;
-    }
+    let thin = rachis_thin(girth);
     let tapered = rachis_root(bend, rise + girth, base - girth, 0.0, thin);
     if tapered >= 0.0 {
         return tapered;
@@ -95,11 +93,29 @@ fn rachis_within(t: f32, lo: f32, hi: f32) -> f32 {
     return select(-1.0, t, t >= lo && t <= hi);
 }
 
-// The parabola's length from its base to share `t`, in closed form.
-fn rachis_arc(length: f32, arch: f32, t: f32) -> f32 {
+// The share where a rachis's taper meets the finest wood.
+fn rachis_thin(girth: f32) -> f32 {
+    return select(0.0, 1.0 - FINEST / girth, girth > FINEST);
+}
+
+// How far a resting rachis runs along the ground from share `c` to `t`:
+// the parabola's arc length between them less what its centreline falls
+// as its radius tapers, so it keeps the parabola's length.
+fn rachis_along(length: f32, arch: f32, girth: f32, c: f32, t: f32) -> f32 {
+    let thin = rachis_thin(girth);
+    let tapered = rachis_ground(length, arch, girth, min(t, thin)) - rachis_ground(length, arch, girth, min(c, thin));
+    return tapered + rachis_ground(length, arch, 0.0, max(t, thin)) - rachis_ground(length, arch, 0.0, max(c, thin));
+}
+
+// The run along the ground to share `t` of a rachis whose centreline
+// falls by `fall` a share, in closed form; not finite where it falls as
+// fast as it runs, which the placement refuses as the CPU refuses it.
+fn rachis_ground(length: f32, arch: f32, fall: f32, t: f32) -> f32 {
+    let square = length * length - fall * fall;
+    let speed = sqrt(square);
     if arch == 0.0 {
-        return length * t;
+        return speed * t;
     }
-    let x = 2.0 * arch * t;
-    return length / (4.0 * arch) * (x * sqrt(1.0 + x * x) + asinh(x));
+    let x = 2.0 * arch * length * t / speed;
+    return square / (4.0 * arch * length) * (x * sqrt(1.0 + x * x) + asinh(x));
 }
