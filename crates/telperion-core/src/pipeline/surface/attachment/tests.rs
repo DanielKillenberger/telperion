@@ -49,3 +49,47 @@ fn contacts_read_from_the_wood_are_the_swept_ones() {
         }
     }
 }
+
+/// fn-301 surface clearance: on the birch at 40, seed 1, whose wood rests
+/// on the ground, a seat projected straight down from wood near the ground
+/// lands on the drawn bark, at or above the ground, read from the wood or
+/// swept alike. A stem's foot is left below it.
+#[test]
+fn a_seat_on_resting_wood_stands_on_the_drawn_bark() {
+    let _turn = crate::one_tree::turn();
+    let mut family = by_identity("silver-birch").unwrap();
+    family.skeleton.seed = 1;
+    family.canopy.surface_contact = 1.0;
+    let grown = crate::pipeline::executor::grow(&family).unwrap();
+    let x = grown.expansion().unwrap();
+    let tree = x.tree();
+    let (height, params) = (family.skeleton.envelope.height, &family.surface);
+    let swept = AttachmentSurface::new(tree, height, params).unwrap();
+    let sweep = Sweep {
+        drawn: true,
+        edges: true,
+        distances: false,
+    };
+    let rings = super::rings::rings_mode(tree, height, params, sweep, None, true, CHUNK_VERTICES);
+    let rings = rings.unwrap();
+    let read = AttachmentSurface::on_wood(&rings).unwrap();
+    let (down, mut seated) = (Vec3::new(0.0, -1.0, 0.0), 0);
+    for (node, n) in tree.nodes.iter().enumerate().skip(1) {
+        let parent = tree.nodes[n.parent.unwrap() as usize].position;
+        let (origin, axis) = ((parent + n.position) * 0.5, n.position - parent);
+        let radial = down - axis * (down.dot(axis) / axis.length_squared().max(1e-300));
+        if n.stem || origin.y > 2.0 * n.radius || radial.length_squared() <= 1e-12 {
+            continue;
+        }
+        let radial = radial.normalized();
+        let seat = |s: &AttachmentSurface| s.point(node, origin, radial, n.radius);
+        let at = seat(&read);
+        assert_eq!(at, seat(&swept), "{node}");
+        if let Some(p) = at {
+            // The seat is the ray's point on a facet: rounding, no more.
+            assert!(p.y >= -1e-12, "{node}: a seat {} m below the ground", p.y);
+            seated += 1;
+        }
+    }
+    assert!(seated > 0, "no seat on wood at the ground");
+}

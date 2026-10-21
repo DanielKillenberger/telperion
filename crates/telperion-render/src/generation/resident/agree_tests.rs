@@ -601,3 +601,61 @@ fn every_preset_sweeps_its_wood_as_the_cpu_does() {
         assert!(r.frond < 1.0, "{id}: {r:?}");
     }
 }
+
+/// fn-301 surface clearance: the seat vertices the device lays (its rings
+/// and the positions pass) for the silver birch at 40, seed 1, whose wood
+/// rests on the ground. The rings flag the CPU's trunk runs (word 15), no
+/// vertex of any other run stands below the ground, and some are set onto
+/// it.
+#[test]
+fn seats_on_resting_wood_stand_on_the_ground_on_the_device() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    let kit = gen.kit();
+    let mut f = family("silver-birch", 40);
+    f.skeleton.seed = 1;
+    let growth = executor::growth(&f).unwrap();
+    let bases = super::boots::most(&f).unwrap();
+    let drawn = pollster::block_on(tree::drawn(&gpu, &kit.kernels, (&growth, bases))).unwrap();
+    let mut t = super::build::Timed::default();
+    let year = growth.year(1.0);
+    let ready = super::build::readied(&gpu, &kit.tools, (&f, year), drawn, &mut t);
+    let r = pollster::block_on(ready).unwrap();
+    let s = r.x.section().unwrap();
+    let height = r.x.leaves().envelope.height;
+    let twist = std::f64::consts::TAU * f.surface.twist_rate / height;
+    let rung = kit
+        .tools
+        .ringer
+        .rings(&gpu, &r.swept, s.segments, twist as f32);
+    let rung = rung.unwrap();
+    let rings = (&*rung.buffer, rung.rings, rung.vertices);
+    let positions = gen.ring_vertices(rings, (s.segments, s.lobes, s.depth), &s.angular);
+    let read = |b: &wgpu::Buffer, n: u32| -> Vec<u32> {
+        bytemuck::cast_slice(&io::read(&gpu, b, u64::from(n.max(1)) * 4).unwrap()).to_vec()
+    };
+    let words = read(&rung.buffer, rung.rings * 16);
+    let ys: Vec<f32> = read(&positions.unwrap(), rung.vertices * 3)
+        .chunks(3)
+        .map(|p| f32::from_bits(p[1]))
+        .collect();
+    let (mut trunk, mut on) = (0, 0);
+    for ring in words.chunks(16) {
+        if ring[15] == 1 {
+            trunk += 1;
+            continue;
+        }
+        for &y in &ys[ring[12] as usize..][..s.segments as usize] {
+            assert!(y >= 0.0, "a seat vertex {y} m below the ground");
+            on += usize::from(y == 0.0);
+        }
+    }
+    let x = executor::grow(&f).unwrap().expansion().unwrap();
+    let cpu = x.compact().unwrap();
+    let cpu_trunk = cpu.rings.iter().filter(|r| r[15] == 1).count();
+    assert_eq!(trunk, cpu_trunk, "the trunk's rings");
+    assert!(on > 0, "no seat vertex was set onto the ground");
+}
