@@ -302,7 +302,12 @@ impl Hanger {
                 e.copy_buffer_to_buffer(&b.crowns, 0, &table, 0, listed * 4);
                 let c = cfg(gpu, apices, (seed, 0, 0), out, rows)?;
                 let b = Bound { crowns: table, ..b };
-                self.dispatch(gpu, &mut e, (CROWN_FRONDS, apices, &c), (&dressed.records, &b));
+                self.dispatch(
+                    gpu,
+                    &mut e,
+                    (CROWN_FRONDS, apices, &c),
+                    (&dressed.records, &b),
+                );
                 b
             }
         };
@@ -356,7 +361,9 @@ impl Hanger {
         (entry, n, c): (usize, u32, &Owned),
         (records, b): (&Owned, &Bound),
     ) {
-        let bound: [&wgpu::Buffer; 7] = [c, records, &b.carried, &b.stems, &b.table, &b.cells, &b.crowns];
+        let bound: [&wgpu::Buffer; 7] = [
+            c, records, &b.carried, &b.stems, &b.table, &b.cells, &b.crowns,
+        ];
         let bind = self.pass.bind(gpu, &bound);
         self.pass.run(e, &bind, entry, n.div_ceil(64).max(1));
     }
