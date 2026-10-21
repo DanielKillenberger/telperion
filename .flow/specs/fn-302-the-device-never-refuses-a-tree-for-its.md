@@ -59,6 +59,7 @@ Commit the survey tap as an ignored test that prints each stepped limit's rise a
 ## Requirements
 
 - **R1 (repro):** the two failing tests above are red on bb20f3877, and they are the repro. Run them before anything changes.
+  - **Host ruling (2026-10-21):** once frame 41 builds, `the_rounds_frames_have_the_cpus_counts` meets four `rounds` frames whose counts differ from the CPU's: spruce to birch at 40, seed 7, frame 63, and oak to palm at 40, seed 1, frames 36, 37 and 48. Their device builds are bb20f3877's to the byte (digest lines equal) and none retries; frame 41's refusal hid them. They belong to fn-303, which bisects and fixes them. They move out of that test into one ignored test whose reason names fn-303 and lists them with their counts, as frame 56 does for fn-300; every other frame keeps the exact node check, frame 41 included. `Given` is not a stepped limit (only `Limits` fields retry). The gate runs at `telperion-heavy 8 --threads 2`.
 - **R2 (question, delete, then optimise):**
   - First try deleting the projection: size the hierarchy rounds at their bound, `b.hier.gens`. Measure the cost with paired `build_time` runs on beech 40, palm 12, spruce 40 and this frame. If it is within noise, the stepped projection and its floor for HierGens go.
   - If the bound costs more than noise, the projection must take its step from what can actually happen, never from `most_units`. Then bring the measurement to the host before choosing a rule.
