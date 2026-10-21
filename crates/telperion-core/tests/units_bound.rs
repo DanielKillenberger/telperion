@@ -106,28 +106,31 @@ const FRAMES: u32 = 11;
 
 /// fn-299 R3: every film frame of every shipped walk grows within its
 /// ends, `SLACK` allowed, and within what a device job holds. Frame i of
-/// n stands at the smoothstep of i / n, as the film eases. The floor reads
-/// the species alone, which no seed moves (R1.md), so one seed serves.
+/// n stands at the smoothstep of i / n, as the film eases; at seeds 1, 7
+/// and 42, each against its own ends.
 #[test]
 fn every_film_frame_grows_within_its_ends() {
     let outside = std::sync::Mutex::new(Vec::new());
     std::thread::scope(|s| {
         for ((a, b, age), n) in WALKS.into_iter().zip(FILM) {
-            let outside = &outside;
-            s.spawn(move || {
-                let (x, y) = (at(a, age, 1), at(b, age, 1));
-                let frame = |t: f64| floor(&families(&x, &y, t).expect("a walk frame"));
-                let ends = [frame(0.0), frame(1.0)];
-                for i in 1..=n {
-                    let share = f64::from(i) / f64::from(n);
-                    let t = share * share * (3.0 - 2.0 * share);
-                    let units = frame(t);
-                    if !within(units, ends) || units > FRAMES {
-                        let line = format!("{a} to {b} frame {i}, t {t}: {units} by {ends:?}");
-                        outside.lock().unwrap().push(line);
+            for seed in SEEDS {
+                let outside = &outside;
+                s.spawn(move || {
+                    let (x, y) = (at(a, age, seed), at(b, age, seed));
+                    let frame = |t: f64| floor(&families(&x, &y, t).expect("a walk frame"));
+                    let ends = [frame(0.0), frame(1.0)];
+                    for i in 1..=n {
+                        let share = f64::from(i) / f64::from(n);
+                        let t = share * share * (3.0 - 2.0 * share);
+                        let units = frame(t);
+                        if !within(units, ends) || units > FRAMES {
+                            let line =
+                                format!("{a} to {b} seed {seed} frame {i}: {units} by {ends:?}");
+                            outside.lock().unwrap().push(line);
+                        }
                     }
-                }
-            });
+                });
+            }
         }
     });
     let outside = outside.into_inner().unwrap();
