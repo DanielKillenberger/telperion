@@ -119,19 +119,21 @@ fn a_walk_between_branching_species_keeps_its_ends_size_at_40_and_80() {
 }
 
 /// Host decision (2026-10-08, option A): kept phytomers do not bound grown
-/// ones, since a blend can shed a larger share than either end. Three
-/// quarters of the way from the beech to the spruce at 80, the grown count
-/// binds while the kept one is 5 % under the ends' mean. (Before fn-231 the
+/// ones, since a blend can shed a larger share than either end. Four
+/// fifths of the way from the beech to the spruce at 80, the grown count
+/// binds while the kept one is 1.4 % under the ends' mean. (Before fn-231 the
 /// case was the oak to the spruce, predicted to grow 21.7M phytomers sized
-/// on kept alone; the continuous walk puts that point under its ends.)
+/// on kept alone; the continuous walk puts that point under its ends. Until
+/// fn-299's timing rule (host, 2026-10-21) it was t = 0.75, where the grown
+/// share is now 0.998; a scan in steps of 0.05 finds it binding at 0.8.)
 #[test]
 fn the_grown_count_binds_where_a_blend_sheds_more_than_its_ends() {
     let (a, b) = (
         at(Preset::EuropeanBeech, 80.0),
         at(Preset::NorwaySpruce, 80.0),
     );
-    let walked = blend::families(&a, &b, 0.75).unwrap();
-    let [kept_share, grown_share] = sizes(species(&walked), species(&a), species(&b), 0.75, 80);
+    let walked = blend::families(&a, &b, 0.8).unwrap();
+    let [kept_share, grown_share] = sizes(species(&walked), species(&a), species(&b), 0.8, 80);
     assert!(
         (grown_share - 1.0).abs() < 1e-9 && kept_share < 0.99,
         "{kept_share} {grown_share}"
@@ -219,8 +221,10 @@ fn converges(p: Preset, q: Preset, age: u32) -> Vec<String> {
 
 /// Host decision 1 (2026-10-08): the factor only shrinks. A walk to the
 /// date palm, whose size is fronds and not laterals, is predicted below
-/// its ends' mean and keeps the engine's walk as it is; at its middle it is
-/// smaller than either end, a known property and not a defect.
+/// its ends' mean and keeps the engine's walk as it is. Its middle keeps a
+/// count within its ends' (fn-299, host 2026-10-21), which supersedes the
+/// old clause that the middle was smaller than either end: that was the
+/// overshoot below the ends fn-299 removes.
 #[test]
 fn a_walk_to_the_palm_is_never_grown_to_its_ends_size() {
     let age = 40;
@@ -233,7 +237,14 @@ fn a_walk_to_the_palm_is_never_grown_to_its_ends_size() {
     }
     let beech = at(Preset::EuropeanBeech, 40.0);
     let middle = kept(species(&blend::families(&beech, &palm, 0.5).unwrap()), age);
-    assert!(middle < kept(species(&palm), age), "{middle}");
+    let ends = [kept(species(&beech), age), kept(species(&palm), age)];
+    println!("beech {} middle {middle} palm {}", ends[0], ends[1]);
+    assert!(
+        ends[0].min(ends[1]) <= middle && middle <= ends[0].max(ends[1]),
+        "beech {} middle {middle} palm {}",
+        ends[0],
+        ends[1]
+    );
 }
 
 /// Host decision 2: a two-way walk is the N = 2 point, and weights that name

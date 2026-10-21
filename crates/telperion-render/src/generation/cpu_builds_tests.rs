@@ -66,6 +66,28 @@ fn walk_frames_near_the_beech_build_on_the_device() {
     assert!(refused.is_empty(), "{refused:#?}");
 }
 
+/// fn-299 R3: oak to palm at 40 on the film's 120 frames. fn-298's survey
+/// refused frames 106 to 119 (12 units a cycle) and missed `unit_rounds`
+/// on frames 76 and 77 at seed 42.
+#[test]
+fn oak_to_palm_frames_build_on_the_device() {
+    let ease = |i: u32| {
+        let s = f64::from(i) / 120.0;
+        s * s * (3.0 - 2.0 * s)
+    };
+    let mut frames = Vec::new();
+    for (seed, i) in [(42, 76), (42, 77), (1, 106), (1, 119)] {
+        let (a, b) = (
+            at("oregon-white-oak", 40.0, seed),
+            at("date-palm", 40.0, seed),
+        );
+        let family = telperion_core::blend::families(&a, &b, ease(i)).expect("a walk frame");
+        frames.push((format!("oak to palm at 40, seed {seed}, frame {i}"), family));
+    }
+    let refused = refused(&frames);
+    assert!(refused.is_empty(), "{refused:#?}");
+}
+
 /// FILM.md defect 1: the Laurelin at 20, alone, refused "Given (0x1)".
 #[test]
 fn the_laurelin_at_20_builds_on_the_device() {
