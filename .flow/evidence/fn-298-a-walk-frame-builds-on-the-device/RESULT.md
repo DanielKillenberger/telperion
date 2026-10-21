@@ -76,3 +76,5 @@ laurelin 42: leaves f076ea1addc0e87f points 3375803 cf2d1d6eafc60590 clusters 25
 - Gate, `telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`, run once at `bc0066e07` (12:35 to 13:11, no wait): **1,410 passed, 0 failed, 115 ignored** across 146 suites (`raw/gate-task3.log`).
 - `telperion-heavy 8 --threads 2 -- npm test` at the same commit: **21 files, 175 tests passed** (`raw/npm-test-task3.log`).
 - Codex impl review (one correctness reviewer, `gpt-6.1-sol`): **SHIP** in round 1, with no findings.
+
+**On F4 after merging fn-299 (host, 2026-10-21):** all 44 of fn-299's frames build on the device (6.5 s). `the_oak_to_palm_frames_fn299_fixed_build_on_the_device` is an ordinary test, and the full sweep includes them: 1,533 frames.

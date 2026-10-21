@@ -72,20 +72,20 @@ fn laurelin() -> Vec<(String, Family)> {
         .into()
 }
 
-/// fn-299 owns these: oak to palm, where the walk's blended rows let one
-/// apex enter 12 units a cycle, past `FRAMES` = 11 (frames 106 to 119,
-/// t ≥ 0.962, every seed), and the two frames at seed 42 whose living
-/// units rounds passed their projection (76 and 77).
+/// The oak-to-palm frames that refused before fn-299 kept a walk frame
+/// within its ends: one apex entered 12 units a cycle, past `FRAMES` = 11
+/// (frames 106 to 119, t ≥ 0.962, every seed), and two frames at seed 42
+/// passed their living units rounds' projection (76 and 77).
 fn fn299(k: usize, seed: u32, i: u32) -> bool {
     k == 3 && ((106..=119).contains(&i) || (seed == 42 && (76..=77).contains(&i)))
 }
 
-/// Every frame of every walk at every seed, but fn-299's.
+/// Every frame of every walk at every seed.
 fn sweep() -> Vec<(String, Family)> {
     let mut out = laurelin();
     for k in 0..SEGMENTS.len() {
         for seed in SEEDS {
-            for i in (1..=count(k)).filter(|&i| !fn299(k, seed, i)) {
+            for i in 1..=count(k) {
                 out.push(frame(k, seed, i));
             }
         }
@@ -124,10 +124,9 @@ fn every_film_walk_frame_builds_on_the_device() {
     assert!(refused.is_empty(), "{refused:#?}");
 }
 
-/// The frames fn-299 owns, on the device.
+/// The frames fn-299 brought within their ends build on the device.
 #[test]
-#[ignore = "fn-299: oak-to-palm walk frames whose blended rows pass FRAMES or the units rounds"]
-fn fn299_oak_to_palm_frames_build_on_the_device() {
+fn the_oak_to_palm_frames_fn299_fixed_build_on_the_device() {
     let mut frames = Vec::new();
     for seed in SEEDS {
         for i in (1..=count(3)).filter(|&i| fn299(3, seed, i)) {
