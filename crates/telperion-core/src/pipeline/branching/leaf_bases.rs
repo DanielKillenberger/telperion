@@ -192,7 +192,7 @@ pub fn clothe(tree: &mut Tree, p: &CanopyParams, blade: f64) -> Result<()> {
     foliage::validate_canopy(p)?;
     tree.validate_solved()?;
     let table = leaf_bases(tree, p);
-    let axes = foliage::rachises(tree, p, blade);
+    let axes = foliage::rachises(tree, p, blade)?;
     let tail = 2 * table.len() + axes.iter().map(|a| a.points.len()).sum::<usize>();
     if clothed(tree, (&table, &axes), p, tail) {
         tree.clothing = Some(tree.nodes.len() - tail);

@@ -43,6 +43,9 @@ pub use element::{build_element, AnatomyGeometry, Element, ElementParams, Foliag
 /// A frond's leaflets before any draw, for the suite's gap check (fn-275 R2c).
 #[cfg(all(test, feature = "geometry"))]
 pub(crate) use leaflet::leaflets;
+/// The frond curve, for the suite's contact checks (fn-301 R2).
+#[cfg(all(test, feature = "geometry"))]
+pub(crate) use leaflet::rachis;
 pub use levels::Level;
 pub(crate) use organs::apex;
 pub use packed::{withered, Leaf, Reference, WITHERED, WORDS};

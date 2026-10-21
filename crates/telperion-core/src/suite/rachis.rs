@@ -2,6 +2,9 @@
 //! along a rachis hangs one woody axis through its leaflet stations, so
 //! every leaflet and spine base lies on drawn wood (R6), and no leaflet,
 //! stream or draw moves.
+#[path = "frond_contact.rs"]
+mod frond_contact;
+
 use std::hash::{DefaultHasher, Hash, Hasher};
 use telperion_core::{
     branching,
@@ -56,7 +59,7 @@ fn built(f: &Family) -> (Tree, TreeMesh) {
 /// Each frond's axis as the clothing reads it.
 fn axes(tree: &Tree, f: &Family) -> Vec<Rachis> {
     let blade = foliage::blade(&executor::element(f.element).unwrap());
-    foliage::rachises(tree, &f.canopy, blade)
+    foliage::rachises(tree, &f.canopy, blade).unwrap()
 }
 
 /// Where every leaf's base stands, as placement made it.

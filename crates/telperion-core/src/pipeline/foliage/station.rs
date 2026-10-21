@@ -127,7 +127,7 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
             axis(point, radial, tangent, p),
             tangent,
             normal,
-            (table, count, None),
+            (table, count, None, 0.0),
             (rng, more.as_mut()),
             into,
         )?;

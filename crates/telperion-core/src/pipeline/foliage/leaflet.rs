@@ -6,7 +6,9 @@
 use super::{crown::Split, rosette::frame, CanopyParams};
 use crate::{
     math::{Transcendental, Vec3},
+    pipeline::space::FINEST,
     rng::Rng,
+    Error, Result,
 };
 use std::f64::consts::{PI, TAU};
 
@@ -22,10 +24,96 @@ pub(crate) struct Leaflet {
 }
 
 /// The point `t` of the way along the rachis that leaves `point` on
-/// `heading`, bent out of that line by its arch toward `lift`.
-pub(super) fn rachis(point: Vec3, heading: Vec3, lift: Vec3, p: &CanopyParams, t: f64) -> Vec3 {
-    let length = p.rachis_length;
-    point + heading * (length * t) + lift * (p.rachis_arch * length * t * t)
+/// `heading`, bent out of that line by its arch toward `lift`, and the
+/// rachis's direction there.
+///
+/// A rachis whose bark, `girth` where it leaves the stem and tapering by
+/// its station (`radius`), would pass below the ground meets it (fn-301
+/// R2). From its first contact it lies along the ground, its centreline
+/// at its radius, in the horizontal direction it met the ground on (its
+/// heading's where it met it straight down), keeping its length: past
+/// contact `t` maps to the parabola's own arc length. A rachis that never
+/// reaches the ground is the parabola, by today's operations. One that
+/// meets it straight down on a vertical heading has no way to lie, and is
+/// refused.
+pub(crate) fn rachis(
+    point: Vec3,
+    heading: Vec3,
+    lift: Vec3,
+    p: &CanopyParams,
+    girth: f64,
+    t: f64,
+) -> Result<(Vec3, Vec3)> {
+    let (length, arch) = (p.rachis_length, p.rachis_arch);
+    let at = |t: f64| point + heading * (length * t) + lift * (arch * length * t * t);
+    let run = |t: f64| heading + lift * (2. * arch * t);
+    let rests = contact(point.y, heading.y * length, lift.y * arch * length, girth);
+    let Some(c) = rests.filter(|c| t > *c) else {
+        return Ok((at(t), run(t).normalized()));
+    };
+    let level = |v: Vec3| Vec3::new(v.x, 0., v.z);
+    let along = [run(c), heading]
+        .map(level)
+        .into_iter()
+        .find(|d| d.length_squared() > 1e-12)
+        .ok_or(Error::InvalidInput(
+            "a frond meets the ground straight down on a vertical heading",
+        ))?
+        .normalized();
+    let lies = at(c) + along * (arc(length, arch, t) - arc(length, arch, c));
+    Ok((Vec3::new(lies.x, radius(girth, t), lies.z), along))
+}
+
+/// The rachis's radius at share `t`: its `girth` tapering to its tip, and
+/// never below the finest wood.
+pub(super) fn radius(girth: f64, t: f64) -> f64 {
+    (girth * (1. - t)).max(FINEST)
+}
+
+/// The least share at which a centreline standing `base` high, rising by
+/// `rise` a share and bending by `bend` a share squared, comes down to its
+/// radius (`radius`); none where it never does.
+fn contact(base: f64, rise: f64, bend: f64, girth: f64) -> Option<f64> {
+    if base <= radius(girth, 0.) {
+        return Some(0.);
+    }
+    // The share where the taper meets the finest wood: over the taper the
+    // radius falls by `girth` a share, past it stands at `FINEST`.
+    let thin = if girth > FINEST {
+        1. - FINEST / girth
+    } else {
+        0.
+    };
+    root(bend, rise + girth, base - girth, 0., thin)
+        .or_else(|| root(bend, rise, base - FINEST, thin, 1.))
+}
+
+/// The least root of `a t² + b t + c` within `[lo, hi]`.
+fn root(a: f64, b: f64, c: f64, lo: f64, hi: f64) -> Option<f64> {
+    let within = |t: f64| (lo..=hi).contains(&t).then_some(t);
+    if a == 0. {
+        return (b != 0.).then(|| -c / b).and_then(within);
+    }
+    let discriminant = b * b - 4. * a * c;
+    if discriminant < 0. {
+        return None;
+    }
+    let q = -0.5 * (b + discriminant.sqrt().copysign(b));
+    let (x, y) = (q / a, if q != 0. { c / q } else { q / a });
+    within(x.min(y)).or_else(|| within(x.max(y)))
+}
+
+/// The parabola's length from its base to share `t`, in closed form: its
+/// heading and its lift square and of unit length, so its speed is
+/// `length·√(1 + (2·arch·t)²)`.
+fn arc(length: f64, arch: f64, t: f64) -> f64 {
+    if arch == 0. {
+        return length * t;
+    }
+    let x = 2. * arch * t;
+    let root = (1. + x * x).sqrt();
+    let asinh = (x.abs() + x * x / (1. + root)).ln_1p_fixed().copysign(x);
+    length / (4. * arch) * (x * root + asinh)
 }
 
 /// Where leaflet `leaf` of `count` leaves its rachis, as a share of the
@@ -45,7 +133,8 @@ pub(super) fn station(
     }
 }
 
-/// The `count` leaflets of the rachis that leaves `point` on `heading`.
+/// The `count` leaflets of the rachis that leaves `point` on `heading`,
+/// `girth` its radius there (`rachis`).
 ///
 /// The rachis runs a `rachis_length` from the station, bending out of that
 /// straight line by its arch as it goes, and each leaflet leaves it by
@@ -56,18 +145,17 @@ pub(super) fn station(
 pub(crate) fn leaflets(
     point: Vec3,
     heading: Vec3,
-    p: CanopyParams,
+    (p, girth): (CanopyParams, f64),
     count: usize,
     split: Option<Split>,
-) -> impl Iterator<Item = Leaflet> {
+) -> impl Iterator<Item = Result<Leaflet>> {
     // The frond's own plane: the rachis runs along `heading`, the leaflets
     // leave it to either side, and the arch lifts it out of the line between.
     let (lift, _) = frame(heading);
     let pitch = p.leaflet_pitch.to_radians();
     (0..count).map(move |leaf| {
         let (t, length) = station(leaf, count, &p, split);
-        let at = rachis(point, heading, lift, &p, t);
-        let run = (heading + lift * (2. * p.rachis_arch * t)).normalized();
+        let (at, run) = rachis(point, heading, lift, &p, girth, t)?;
         let closing = if leaf + 1 == count {
             1. - p.terminal_leaflet
         } else {
@@ -79,7 +167,7 @@ pub(crate) fn leaflets(
         // had. No draw moves: the spine is the same instance, scaled.
         let borne = spine(leaf, &p);
         let pitch = borne.map_or(pitch, |(_, steeper)| steeper);
-        Leaflet {
+        Ok(Leaflet {
             at,
             axis: run.rotate(lift, hand * pitch * closing),
             run,
@@ -87,7 +175,7 @@ pub(crate) fn leaflets(
                 (_, None) => borne.map(|(share, _)| share),
                 (b, Some(_)) => Some(b.map_or(1.0, |(share, _)| share) * length),
             },
-        }
+        })
     })
 }
 

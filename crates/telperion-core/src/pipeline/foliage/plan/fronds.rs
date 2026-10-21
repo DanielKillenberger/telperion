@@ -9,7 +9,7 @@ use crate::{
     math::Vec3,
     pipeline::foliage::{
         leaflet::{self, Leaflet},
-        organs,
+        organs, rachis,
         rosette::{self, frame},
         CanopyParams, Element,
     },
@@ -76,8 +76,9 @@ pub(super) fn describe(
                 continue;
             }
             let (_, side) = frame(frond.heading);
-            for leaf in leaflet::leaflets(frond.at, frond.heading, c, per, frond.split) {
-                out.push(shape.boxed(&leaf, side, &c, &mut rng, system));
+            let girth = rachis::girth(&c, &at);
+            for leaf in leaflet::leaflets(frond.at, frond.heading, (c, girth), per, frond.split) {
+                out.push(shape.boxed(&leaf?, side, &c, &mut rng, system));
             }
         }
     }

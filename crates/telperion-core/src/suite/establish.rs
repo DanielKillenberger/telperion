@@ -367,8 +367,11 @@ fn gap(
         acanthophylls: spines,
         ..young
     };
-    let lines: Vec<_> = telperion_core::foliage::leaflets(Vec3::ZERO, Vec3::X, young, n, split)
+    // Clear of the ground, so the curve is the parabola (fn-301).
+    let clear = Vec3::Y * 100.0;
+    let lines: Vec<_> = telperion_core::foliage::leaflets(clear, Vec3::X, (young, 0.0), n, split)
         .map(|l| {
+            let l = l.unwrap();
             let scale = young.size * l.share.unwrap_or(1.0);
             (l.at, l.at + l.axis * (blade * scale), width * scale)
         })

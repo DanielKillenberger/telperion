@@ -229,8 +229,8 @@ fn put_frond(at: u32, v: vec4<f32>) {
 // the rachis's arch, the leaflet pitch, the terminal share and the
 // spines' pitch; whether it withers, the frond's kind (-2), its spines
 // and how far it splits; its first leaflet, leaflets and key; its strips'
-// blade over a mature leaflet (`pack.wgsl`'s `leaflet`). One invocation a
-// crown.
+// blade over a mature leaflet (`pack.wgsl`'s `leaflet`) and its rachis's
+// girth (`frond_girth`, fn-301). One invocation a crown.
 @compute @workgroup_size(64)
 fn crown_fronds(@builtin(global_invocation_id) id: vec3<u32>) {
     let crown = index(id);
@@ -302,7 +302,8 @@ fn crown_fronds(@builtin(global_invocation_id) id: vec3<u32>) {
         frond_table[s + 26u] = 0u;
         frond_table[s + 27u] = organ_mix(stream + (u32(serial) + 1u) * 0x9e3779b9u);
         frond_table[s + 28u] = bitcast<u32>(r[6].z);
-        for (var w = 29u; w < FW; w++) {
+        frond_table[s + 29u] = bitcast<u32>(frond_girth(r[2].y * share));
+        for (var w = 30u; w < FW; w++) {
             frond_table[s + w] = 0u;
         }
         first += leaflets;
@@ -310,8 +311,15 @@ fn crown_fronds(@builtin(global_invocation_id) id: vec3<u32>) {
     frond_table[e + 3u] = first;
 }
 
-// fn-283 R1: the thinnest wood the engine draws (`space.rs`' `FINEST`).
-const FINEST: f32 = 2e-4;
+// A frond's radius where it leaves the stem (`rachis.rs`' `girth`), its
+// rachis `length` long: half the width, scaled by the frond's size, so a
+// station has one girth at every age; none where it has no length.
+fn frond_girth(length: f32) -> f32 {
+    if length <= 0.0 {
+        return 0.0;
+    }
+    return bitcast<f32>(cfg.axes.z) / 2.0 * length / cfg.rosette[2].y;
+}
 
 fn table3(at: u32) -> vec3<f32> {
     return vec3<f32>(bitcast<f32>(frond_table[at]), bitcast<f32>(frond_table[at + 1u]), bitcast<f32>(frond_table[at + 2u]));
@@ -351,7 +359,7 @@ fn rachises(@builtin(global_invocation_id) id: vec3<u32>) {
     let heading = table3(s + 8u);
     let arch = bitcast<f32>(frond_table[s + 16u]);
     let split = bitcast<f32>(frond_table[s + 23u]);
-    let r0 = bitcast<f32>(cfg.axes.z) / 2.0 * length / cfg.rosette[2].y;
+    let r0 = bitcast<f32>(frond_table[s + 29u]);
     let lift = frame(heading);
     let across = cross(heading, lift);
     // The stem node it leaves from: the apex itself on a stem of one node.
@@ -377,8 +385,8 @@ fn rachises(@builtin(global_invocation_id) id: vec3<u32>) {
         if split < 1.0 {
             t *= split;
         }
-        let point = rachis(insertion, heading, lift, length, arch, t).at;
-        let radius = max(r0 * (1.0 - t), FINEST);
+        let point = rachis(insertion, heading, lift, length, arch, r0, t).at;
+        let radius = rachis_radius(r0, t);
         let r = first + k;
         travelled += distance(at, point);
         put_node(r, point, vec3<f32>(radius, before, base), parent, at, travelled);
