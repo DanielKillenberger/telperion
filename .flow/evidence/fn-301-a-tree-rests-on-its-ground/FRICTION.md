@@ -153,3 +153,10 @@
 - **Slowed by:** `npm test` fails before vitest runs. `catalogue:check` reports that `catalogue/date-palm/README.md` differs from its regeneration. The base d600fa12c fails the same way, and this branch touches nothing under `catalogue/` or `scripts/`, so the failure is inherited. vitest alone passes (22 files, 177 tests; raw/t5-vitest.log). The page is outside .5's Touches and was not regenerated.
 - **Cost:** about 5 minutes.
 - **Would remove it:** regenerating the palm's catalogue page (`node scripts/catalogue-pages.mjs`) where it was left stale, and running `catalogue:check` in the merge gate that let it through.
+
+## 2026-10-21, conductor, completion review
+
+- **Doing:** the codex completion review of fn-301 (two rounds).
+- **Slowed by:** both rounds returned NEEDS_WORK on R6's green `npm test`. `catalogue:check` fails on `catalogue/date-palm/README.md`, which differs from its regeneration on base d600fa12c too (its pins table predates the palm's current build). The file is outside the spec's Touches, and no spec line defers the check, so the review cannot pass without a host ruling. Round 1's other finding (R1's below-ground count) was fixed at 9ed544eb1.
+- **Cost:** one extra review round, about 10 minutes, and a stop for the host.
+- **Would remove it:** a release head whose `npm test` is green before a spec branches from it, or a spec line naming inherited red checks at plan time.
