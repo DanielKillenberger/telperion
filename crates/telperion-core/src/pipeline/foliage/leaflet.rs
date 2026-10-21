@@ -10,7 +10,10 @@ use crate::{
     rng::Rng,
     Error, Result,
 };
-use std::f64::consts::{PI, TAU};
+use std::{
+    cmp::Ordering,
+    f64::consts::{PI, TAU},
+};
 
 /// One leaflet on its rachis, before its draws turn and scale it.
 #[derive(Debug, Clone, Copy)]
@@ -70,31 +73,47 @@ pub(crate) fn rachis(
 /// past it, so the resting axis is as long as the parabola it replaces.
 fn along(length: f64, arch: f64, girth: f64, (c, t): (f64, f64)) -> Result<f64> {
     let thin = thin(girth);
-    let tapered =
-        ground(length, arch, girth, t.min(thin))? - ground(length, arch, girth, c.min(thin))?;
+    let tapered = match c < thin {
+        true => ground(length, arch, girth, t.min(thin))? - ground(length, arch, girth, c)?,
+        false => 0.,
+    };
     Ok(tapered + ground(length, arch, 0., t.max(thin))? - ground(length, arch, 0., c.max(thin))?)
 }
 
 /// The run along the ground to share `t` of a rachis whose centreline
-/// falls by `fall` a share, in closed form: the parabola's speed is
-/// `length·√(1 + (2·arch·t)²)` (its heading and lift square and of unit
-/// length), and the fall takes its share of it. A rachis that falls as
-/// fast as it runs has no length to lie along, and is refused.
+/// falls by `fall` a share, in closed form: the parabola's speed less the
+/// fall, `√(length² − fall² + (2·arch·length·t)²)` (its heading and lift
+/// square and of unit length). Read only where it lies; one falling faster
+/// than its parabola runs there has no way to lie, and is refused.
 fn ground(length: f64, arch: f64, fall: f64, t: f64) -> Result<f64> {
     let square = length * length - fall * fall;
-    if square <= 0. {
+    let b = (2. * arch * length).abs();
+    let speed = square + b * b * t * t;
+    if speed < 0. {
         return Err(Error::InvalidInput(
-            "a frond as thick as it is long cannot rest",
+            "a frond falls faster than it runs where it rests",
         ));
     }
-    let speed = square.sqrt();
-    if arch == 0. {
+    let speed = speed.sqrt();
+    if b == 0. {
         return Ok(speed * t);
     }
-    let x = 2. * arch * length * t / speed;
-    let root = (1. + x * x).sqrt();
-    let asinh = (x.abs() + x * x / (1. + root)).ln_1p_fixed().copysign(x);
-    Ok(square / (4. * arch * length) * (x * root + asinh))
+    let tail = match square.total_cmp(&0.) {
+        Ordering::Greater => asinh(b * t / square.sqrt()),
+        Ordering::Less => acosh(b * t / (-square).sqrt()),
+        Ordering::Equal => 0.,
+    };
+    Ok(t / 2. * speed + square / (2. * b) * tail)
+}
+
+fn asinh(x: f64) -> f64 {
+    (x + x * x / (1. + (1. + x * x).sqrt())).ln_1p_fixed()
+}
+
+/// `acosh` at or past one, where the rachis lies.
+fn acosh(x: f64) -> f64 {
+    let over = x - 1.;
+    (over + (over * (x + 1.)).max(0.).sqrt()).ln_1p_fixed()
 }
 
 /// The share where a rachis's taper meets the finest wood: over the taper

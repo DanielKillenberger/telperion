@@ -177,7 +177,15 @@ fn a_resting_frond_keeps_its_length() {
         (1.0, 0.0),
         0.1,
     );
-    for f in [descending(), straight] {
+    // A frond falling faster than it runs at its base, not once it lies.
+    let (sin, cos) = 45f64.to_radians().sin_cos();
+    let steep = Frond::new(
+        Vec3::new(0.0, 1.15, 0.0),
+        Vec3::new(cos, -sin, 0.0),
+        (1.0, -1.0),
+        1.1,
+    );
+    for f in [descending(), straight, steep] {
         let c = f.first_contact().unwrap();
         // The kinks: where it meets the ground and where its taper ends.
         let mut t: Vec<f64> = shares(200_000).collect();

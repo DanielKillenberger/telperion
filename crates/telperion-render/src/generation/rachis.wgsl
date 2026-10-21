@@ -103,19 +103,29 @@ fn rachis_thin(girth: f32) -> f32 {
 // as its radius tapers, so it keeps the parabola's length.
 fn rachis_along(length: f32, arch: f32, girth: f32, c: f32, t: f32) -> f32 {
     let thin = rachis_thin(girth);
-    let tapered = rachis_ground(length, arch, girth, min(t, thin)) - rachis_ground(length, arch, girth, min(c, thin));
+    var tapered = 0.0;
+    if c < thin {
+        tapered = rachis_ground(length, arch, girth, min(t, thin)) - rachis_ground(length, arch, girth, c);
+    }
     return tapered + rachis_ground(length, arch, 0.0, max(t, thin)) - rachis_ground(length, arch, 0.0, max(c, thin));
 }
 
 // The run along the ground to share `t` of a rachis whose centreline
-// falls by `fall` a share, in closed form; not finite where it falls as
-// fast as it runs, which the placement refuses as the CPU refuses it.
+// falls by `fall` a share, in closed form: the parabola's speed less the
+// fall. Not finite where it falls faster than it runs, which the
+// placement refuses as the CPU refuses it.
 fn rachis_ground(length: f32, arch: f32, fall: f32, t: f32) -> f32 {
     let square = length * length - fall * fall;
-    let speed = sqrt(square);
-    if arch == 0.0 {
+    let b = abs(2.0 * arch * length);
+    let speed = sqrt(square + b * b * t * t);
+    if b == 0.0 {
         return speed * t;
     }
-    let x = 2.0 * arch * length * t / speed;
-    return square / (4.0 * arch * length) * (x * sqrt(1.0 + x * x) + asinh(x));
+    var tail = 0.0;
+    if square > 0.0 {
+        tail = asinh(b * t / sqrt(square));
+    } else if square < 0.0 {
+        tail = acosh(max(b * t / sqrt(-square), 1.0));
+    }
+    return t / 2.0 * speed + square / (2.0 * b) * tail;
 }
