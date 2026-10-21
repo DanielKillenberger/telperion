@@ -134,3 +134,6 @@ The CPU's relay joins were surveyed from `telperion_space::grow`'s structure (`A
 
   - 1,281 joins whose length reached their span's end now read exactly 1.
   - The 24 left in [1 − 1e-4, 1) stand short of their span's end, since `span_share` returns 1 whenever the length reaches it.
+- **The gate** (`raw/t1-gate.log`, `telperion-heavy 12 --threads 2`, as AGENTS.md declares it): 1,474 passed, 1 failed, 117 ignored.
+  - The failure is `walk_sizes`' named exception oak to birch at 80, seed 7, t 0.01. Its kept phytomers rose from the recorded 3,961,379 to 3,961,473 (+94, 0.002%), because the span share moves relay bases and with them growth. Its grown count stays inside its record.
+  - The row is re-measured in `crates/telperion-core/tests/walk_sizes.rs` (host ruling 2026-10-22: outputs change where the CPU landed at 1 − δ, measured), as fn-299 re-measured it. `walk_sizes` passes on the re-measured row (`raw/t1-walk-sizes.log`).
