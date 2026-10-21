@@ -23,7 +23,10 @@ fn a_resting_step_keeps_its_length_and_rests_its_girth() {
         let run = [next[0] - tip[0], next[1] - tip[1]];
         let cross = run[0] * direction[1] - run[1] * direction[0];
         let along = run[0] * direction[0] + run[1] * direction[1];
-        assert!(cross.abs() < 1e-6 && along > 0.0, "{run:?} off {direction:?}");
+        assert!(
+            cross.abs() < 1e-6 && along > 0.0,
+            "{run:?} off {direction:?}"
+        );
     }
 }
 
@@ -32,6 +35,10 @@ fn a_resting_step_keeps_its_length_and_rests_its_girth() {
 /// is pinned to the same words (`settle_tests.rs`).
 #[test]
 fn a_step_straight_down_rests_along_its_side() {
-    let next = rested([0.25, 0.5, 1.0], ([0.0, 0.0, -1.0], [0.0, -1.0, 0.0]), (0.25, 1.25));
+    let next = rested(
+        [0.25, 0.5, 1.0],
+        ([0.0, 0.0, -1.0], [0.0, -1.0, 0.0]),
+        (0.25, 1.25),
+    );
     assert_eq!(next, [0.25, -0.5, 0.25]);
 }

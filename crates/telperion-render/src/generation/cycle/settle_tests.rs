@@ -140,7 +140,9 @@ fn a_step_straight_down_rests_along_its_side_on_the_device() {
     let Some(gpu) = super::super::test_gpu() else {
         return;
     };
-    let from = super::LAY_WALK.find("fn rested(").expect("the walk's rested");
+    let from = super::LAY_WALK
+        .find("fn rested(")
+        .expect("the walk's rested");
     let to = from + super::LAY_WALK[from..].find("\n}\n").expect("its end") + 3;
     let probe = "
 @group(0) @binding(0) var<uniform> unused: vec4<u32>;
@@ -163,7 +165,14 @@ fn probe_main() {
     let pass = io::Pass::new(&gpu, shader, &[false], &["probe_main"]);
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
     let out = io::buffer(&gpu, "rested out", 12, usage, &[]).unwrap();
-    let unused = io::buffer(&gpu, "rested cfg", 16, wgpu::BufferUsages::UNIFORM, &[0; 16]).unwrap();
+    let unused = io::buffer(
+        &gpu,
+        "rested cfg",
+        16,
+        wgpu::BufferUsages::UNIFORM,
+        &[0; 16],
+    )
+    .unwrap();
     let bind = pass.bind(&gpu, &[&unused, &out]);
     let mut e = gpu.encoder(&Default::default());
     pass.run(&mut e, &bind, 0, 1);
