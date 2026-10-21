@@ -17,6 +17,21 @@ Measured by the host's probe (2026-10-21; uncommitted `zz_hier_probe.rs` in `.wo
 - What a hierarchy round costs when it has nothing left to do. Does the pass stop once no depth changes, or does it run every round it is sized for?
 - Whether any other stepped limit relies on `most_units` in the same way.
 
+## Design (host, 2026-10-21, after R2's measurement)
+
+The bound is not free. Sizing the rounds at `b.hier.gens` costs +7.8% on beech 40, +12.4% on palm 12 and +1.7% on spruce 40, about 20 to 33 µs per idle round-pass of host recording. Deletion is therefore out.
+
+The projection reads the wrong quantity. A cycle's generations are the layout's depth the cycle before (gens(c) = deep(c−1)). The census the host reads already carries that layout depth (`c::LAY_DEEP`, which `stepped` counts as `deepest` for `laygens`), and it is one cycle fresher than `c::GENS`. On frame 41 it reads 2 where `GENS` reads 1, and the cycle needs 4.
+
+- **The rule.** `rounds` steps from the census's layout depth, not its `GENS`: `deepest + STEP[0]`.
+  - `STEP[0]` is the largest rise from that read to the generations the cycle actually needs.
+  - That rise is measured over every census of the full film-walk sweep (1,533 frames) and every shipped preset at its R1 ages, at seeds 1, 7 and 42. The measurement is recorded in `RESULT.md` with its maximum and where it occurs.
+  - First verify gens(c) = deep(c−1) against the census on those builds. If it does not hold, stop and report.
+- **The floor.** `2·units − 1` is no longer called a bound. The comment in `stepped` that claims "never past `2 units - 1`" is corrected, because frame 41 disproved it. The floor stays only if the sweep needs it with the new projection; otherwise it goes from `rounds`. `unit_rounds` keeps its floor.
+- **`unit_rounds`.** No change. Report its measured headroom on the same sweep, the largest of `rounds_used(c) − rounds_used(read)` against `ROUND_SLACK`. If the headroom is 0 anywhere, stop and report.
+- **Cost.** A paired timing of beech 40, palm 12 and spruce 40, base bb20f3877 against the change, must come out within noise.
+
+
 ## Requirements
 
 - **R1 (repro):** the two failing tests above are red on bb20f3877, and they are the repro. Run them before anything changes.
