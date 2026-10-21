@@ -66,6 +66,12 @@ Contact is a rule of the curve each axis is drawn on, plus one pose rule for ins
   - **Quantisation.** The pose clears by a margin derived from the encoder's formats. The margin is position rounding at the stored box's scale, plus the half-float scale's relative error times the reach, plus the 10-bit angle error times the reach. The packing round-trip test proves it. The test's own allowance stays `BELOW`, and the margin is never folded into it.
   - **Touches.** `pipeline/drawn.rs` passes the element's bounds instead of its blade length. `pipeline/foliage.rs` gets the module line. The shared device pose function sits next to `generation/rachis.wgsl`. All three are approved.
 
+- **Ruling on the stalk's depth (host, 2026-10-21):** the wedge equals the box, because every shipped leaf's base row is its stalk's round cross-section around the attachment. That stalk is the leaf's seat on the wood, the counterpart of the bark the wood rests on. A leaf is never stood upright to lift its own stalk.
+  - The pose solves against the ground lowered to the seat's depth: `v·d ≥ −max(h, b·scale)`, where `b` is the element's base depth. Lying flat then always qualifies, and the least turn is taken from there.
+  - A leaf's dip below the ground is bounded by `b·scale − h`. That covers only its stalk, at most 3 mm at size 1.
+  - R4 changes accordingly. Nothing lies below the ground except a leaf stalk's dip within that bound. `ground_reach` asserts the bound per vertex and reports the largest dip per row.
+  - The best-effort branch stays as ruled for flowers.
+
 ## Requirements
 
 - **R1 (repro):** a test reads, for every shipped preset at ages 6, 8, 10, 12, 15, 20 and its default age, at seeds 1, 7 and 42:
