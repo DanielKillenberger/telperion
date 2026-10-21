@@ -65,3 +65,5 @@ The agent viewed all three sheets:
 The workspace gate: see task .5's done summary (1,455 passed, 0 failed, 112 ignored).
 
 `npm test` (through `telperion-heavy`, after the completion review): green. `catalogue:check` passes (6 species), and vitest runs 22 files and 177 tests (`raw/cr-npm-test.log`). The earlier red `catalogue:check` was inherited from the release branch, where fn-283 updated `catalogue/date-palm/pins.json` without regenerating the page. The host regenerated it on F4 (9ba1a3846), cherry-picked here as 0e6dc09a0.
+
+**R5 verdict (owner, 2026-10-21):** "that lgtm", on the stills at base against change (palm 8, 12, 15, 20 and far; spruce, birch, oak s7 and ordinary s7 at 40).
