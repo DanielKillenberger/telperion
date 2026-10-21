@@ -5,7 +5,6 @@
 use telperion_core::{
     foliage::{self, CanopyParams},
     math::Vec3,
-    Error,
 };
 
 /// The thinnest wood the engine draws (`space.rs`).
@@ -195,33 +194,49 @@ fn a_resting_frond_keeps_its_length() {
             .windows(2)
             .map(|w| f.at(w[0]).0.distance(f.at(w[1]).0))
             .sum();
-        // The parabola's speed is length·√(1 + (2·arch·t)²).
-        let (l, a) = (f.p.rachis_length, f.p.rachis_arch);
-        let x = 2.0 * a;
-        let arc = match a == 0.0 {
-            true => l,
-            false => l / (4.0 * a) * (x * (1.0 + x * x).sqrt() + x.asinh()),
-        };
+        let arc = arc(f.p.rachis_length, f.p.rachis_arch, 1.0);
         assert!((drawn - arc).abs() < 1e-9, "drawn {drawn}, arc {arc}");
     }
 }
 
+/// A frond meeting the ground straight down rests along its frame's
+/// lift (host, 2026-10-21): +lift with no arch, the arch's way with one
+/// (here a base under its radius, met on its vertical heading), as far
+/// along the ground as its parabola is long past contact. The device is
+/// held to the same cases (`rachis_tests`).
 #[test]
-fn a_frond_straight_down_on_a_vertical_heading_is_refused() {
-    let f = Frond::new(
-        Vec3::new(0.0, 2.0, 0.0),
-        Vec3::new(0.0, -1.0, 0.0),
-        (5.0, 0.0),
-        0.1,
-    );
-    let refused = foliage::rachis(f.point, f.heading, f.lift(), &f.p, f.girth, 1.0);
-    match refused {
-        Err(Error::InvalidInput(m)) => assert!(m.contains("straight down"), "{m}"),
-        other => panic!("not refused: {other:?}"),
+fn a_frond_straight_down_rests_along_its_lift() {
+    let down = Vec3::new(0.0, -1.0, 0.0);
+    // Its base height, its arch, the way it lies along the lift, and
+    // where it meets the ground.
+    let cases = [
+        (2.0, 0.0, 1.0, (2.0 - FINEST) / 5.0),
+        (1e-4, -0.5, -1.0, 0.0),
+        (1e-4, 0.5, 1.0, 0.0),
+    ];
+    for (base, arch, way, c) in cases {
+        let f = Frond::new(Vec3::new(0.0, base, 0.0), down, (5.0, arch), 0.0);
+        let toward = level(f.lift()).normalized() * way;
+        let (at, run) = f.at(1.0);
+        assert_eq!(run, toward, "arch {arch}");
+        assert_eq!(at.y, FINEST, "arch {arch}: on the ground");
+        let lies = (at - f.point).dot(toward);
+        let expected = arc(5.0, arch, 1.0) - arc(5.0, arch, c);
+        assert!(
+            (lies - expected).abs() < 1e-12,
+            "arch {arch}: {lies} against {expected}"
+        );
     }
-    // The control: leaning, it lies the way it leans.
-    let leaning = Frond::new(f.point, Vec3::new(0.1, -1.0, 0.0), (5.0, 0.0), 0.1);
-    assert!(leaning.at(1.0).1.x > 0.0);
+}
+
+/// The parabola's length to share `t`: its speed is
+/// length·√(1 + (2·arch·t)²).
+fn arc(l: f64, a: f64, t: f64) -> f64 {
+    let x = 2.0 * a * t;
+    match a == 0.0 {
+        true => l * t,
+        false => l / (4.0 * a) * (x * (1.0 + x * x).sqrt() + x.asinh()),
+    }
 }
 
 /// A frond whose bark never reaches the ground takes today's operations in

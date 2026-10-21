@@ -33,12 +33,13 @@ pub(crate) struct Leaflet {
 /// A rachis whose bark, `girth` where it leaves the stem and tapering by
 /// its station (`radius`), would pass below the ground meets it (fn-301
 /// R2). From its first contact it lies along the ground, its centreline
-/// at its radius, in the horizontal direction it met the ground on (its
-/// heading's where it met it straight down), keeping its length: past
-/// contact `t` maps to the parabola's own arc length (`along`). A base at
-/// or under its radius rests from the base. A rachis that never reaches
-/// the ground is the parabola, by today's operations. One that meets it
-/// straight down on a vertical heading has no way to lie, and is refused.
+/// at its radius, in the horizontal direction it met the ground on,
+/// keeping its length: past contact `t` maps to the parabola's own arc
+/// length (`along`). One that meets it straight down lies along its
+/// frame's `lift`, the way its arch bends it (+`lift` with no arch; host,
+/// 2026-10-21). A base at or under its radius rests from the base. A
+/// rachis that never reaches the ground is the parabola, by today's
+/// operations.
 pub(crate) fn rachis(
     point: Vec3,
     heading: Vec3,
@@ -55,14 +56,13 @@ pub(crate) fn rachis(
         return Ok((at(t), run(t).normalized()));
     };
     let level = |v: Vec3| Vec3::new(v.x, 0., v.z);
-    let toward = [run(c), heading]
-        .map(level)
-        .into_iter()
-        .find(|d| d.length_squared() > 1e-12)
-        .ok_or(Error::InvalidInput(
-            "a frond meets the ground straight down on a vertical heading",
-        ))?
-        .normalized();
+    let met = level(run(c));
+    let bends = if arch < 0. { -1. } else { 1. };
+    let toward = match met.length_squared() > 1e-12 {
+        true => met,
+        false => level(lift) * bends,
+    }
+    .normalized();
     let lies = at(c) + toward * along(length, arch, girth, (c, t))?;
     Ok((Vec3::new(lies.x, radius(girth, t), lies.z), toward))
 }

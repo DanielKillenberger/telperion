@@ -170,3 +170,96 @@ fn axes_past_the_room_are_refused_by_name() {
     let refused = hung(&gpu, (&k, &hanger), &f, 2 * bases).err().expect("the axes fit");
     assert!(refused.to_string().contains("rachis nodes"), "{refused}");
 }
+
+/// The frond curve evaluated case by case: a case's point and length, its
+/// heading and arch, its lift and girth, and its share.
+const CURVE: &str = "
+@group(0) @binding(0) var<uniform> cfg: vec4<u32>;
+@group(0) @binding(1) var<storage, read> cases: array<vec4<f32>>;
+@group(0) @binding(2) var<storage, read_write> out: array<vec4<f32>>;
+@compute @workgroup_size(1)
+fn curve(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = id.x;
+    let a = cases[i * 4u];
+    let b = cases[i * 4u + 1u];
+    let c = cases[i * 4u + 2u];
+    let r = rachis(a.xyz, b.xyz, c.xyz, a.w, b.w, c.w, cases[i * 4u + 3u].x);
+    out[i * 2u] = vec4<f32>(r.at, 0.0);
+    out[i * 2u + 1u] = vec4<f32>(r.run, 0.0);
+}
+";
+
+/// fn-301 R2 (host, 2026-10-21): a frond meeting the ground straight down
+/// rests along its frame's lift, +lift with no arch and the arch's way
+/// with one, as far along the ground as its parabola runs past contact:
+/// the cases and expectations the CPU's `frond_contact` suite holds its
+/// curve to, here within f32.
+#[test]
+fn a_frond_straight_down_rests_on_the_device_as_on_the_cpu() {
+    use telperion_core::math::Vec3;
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    const FINEST: f64 = 2e-4;
+    let (down, lift) = (Vec3::new(0.0, -1.0, 0.0), Vec3::new(0.0, 0.0, 1.0));
+    // Base height, arch, the way it lies along the lift, contact, and the
+    // parabola's length from contact to its tip.
+    let arc = |a: f64, t: f64| {
+        let x = 2.0 * a * t;
+        match a == 0.0 {
+            true => 5.0 * t,
+            false => 5.0 / (4.0 * a) * (x * (1.0 + x * x).sqrt() + x.asinh()),
+        }
+    };
+    let cases = [
+        (2.0, 0.0, 1.0, (2.0 - FINEST) / 5.0),
+        (1e-4, -0.5, -1.0, 0.0),
+        (1e-4, 0.5, 1.0, 0.0),
+    ];
+    let words: Vec<f32> = (cases.iter())
+        .flat_map(|&(base, arch, _, _)| {
+            [
+                [0.0, base, 0.0, 5.0],
+                [down.x, down.y, down.z, arch],
+                [lift.x, lift.y, lift.z, 0.0],
+                [1.0, 0.0, 0.0, 0.0],
+            ]
+        })
+        .flatten()
+        .map(|v| v as f32)
+        .collect();
+    let n = cases.len() as u32;
+    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+    let cfg = io::buffer(&gpu, "cfg", 16, wgpu::BufferUsages::UNIFORM, &[0; 16]).unwrap();
+    let input = io::buffer(
+        &gpu,
+        "cases",
+        4 * words.len() as u64,
+        usage,
+        bytemuck::cast_slice(&words),
+    );
+    let output = io::buffer(&gpu, "curve", 32 * u64::from(n), usage, &[]).unwrap();
+    let input = input.unwrap();
+    let source = format!("{}\n{CURVE}", super::super::sources::rachis());
+    let pass = io::Pass::new(&gpu, source, &[true, false], &["curve"]);
+    let bind = pass.bind(&gpu, &[&cfg, &input, &output]);
+    let mut e = gpu.encoder(&Default::default());
+    pass.run(&mut e, &bind, 0, n);
+    gpu.submit([e.finish()]);
+    let read = io::read(&gpu, &output, 32 * u64::from(n)).unwrap();
+    let read: &[f32] = bytemuck::cast_slice(&read);
+    for (k, &(base, arch, way, c)) in cases.iter().enumerate() {
+        let v = |i: usize| Vec3::new(read[i].into(), read[i + 1].into(), read[i + 2].into());
+        let (at, run) = (v(k * 8), v(k * 8 + 4));
+        let toward = lift * way;
+        let lies = (at - Vec3::new(0.0, base, 0.0)).dot(toward);
+        let expected = arc(arch, 1.0) - arc(arch, c);
+        let case = format!("base {base}, arch {arch}");
+        assert!(run.distance(toward) < 1e-6, "{case}: runs {run:?}");
+        assert!((at.y - FINEST).abs() < 1e-9, "{case}: at {}", at.y);
+        assert!(
+            (lies - expected).abs() < 1e-5,
+            "{case}: lies {lies} against {expected}"
+        );
+    }
+}

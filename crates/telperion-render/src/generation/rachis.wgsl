@@ -5,12 +5,11 @@
 // `girth` where it leaves the stem and tapering by its station, would pass
 // below the ground meets it at its first contact and lies along it from
 // there (fn-301 R2): its centreline at its radius, in the horizontal
-// direction it met the ground on (its heading's where it met it straight
-// down), its share mapped to the parabola's own arc length; a base at or
-// under its radius rests from the base. One that never reaches the ground
-// is the parabola. One that meets it straight down on a
-// vertical heading has no way to lie: its point is not finite, which the
-// placement refuses (`pack.wgsl`'s `packed`).
+// direction it met the ground on (along its frame's `lift`, the way its
+// arch bends it, where it met it straight down; host, 2026-10-21), its
+// share mapped to the parabola's own arc length; a base at or under its
+// radius rests from the base. One that never reaches the ground is the
+// parabola.
 struct Rachis { at: vec3<f32>, run: vec3<f32> }
 
 // fn-283 R1: the thinnest wood the engine draws (`space.rs`' `FINEST`).
@@ -26,12 +25,7 @@ fn rachis(point: vec3<f32>, heading: vec3<f32>, lift: vec3<f32>, length: f32, ar
     let met = heading + lift * (2.0 * arch * c);
     var along = vec3<f32>(met.x, 0.0, met.z);
     if dot(along, along) <= 1e-12 {
-        along = vec3<f32>(heading.x, 0.0, heading.z);
-    }
-    if dot(along, along) <= 1e-12 {
-        var bits = 0x7fc00000u;
-        let none = vec3<f32>(bitcast<f32>(bits));
-        return Rachis(none, none);
+        along = vec3<f32>(lift.x, 0.0, lift.z) * select(1.0, -1.0, arch < 0.0);
     }
     along = normalize(along);
     let at = point + heading * (length * c) + lift * (arch * length * c * c);
