@@ -90,3 +90,10 @@
 - **Slowed by:** `sag.rs` `wood_lands_on_the_ground_without_a_corner` goes red: at sag 6e-4 the sharpest landing joint is 0.805 rad against decision 4's bound of 0.8 (base 0.777). The landing ease, which the task keeps unchanged, eases to none at z = 0, while wood now rests one radius up. Easing from the bark (`support(tip.z - radius, ...)`, measured as a throwaway) gives 0.757, but changes the ease the spec freezes and may move trees R3 holds byte-identical. Either way it is a host call, not the worker's.
 - **Cost:** about 15 minutes and a stop for the host.
 - **Would remove it:** the plan running the sag suite against the rule before freezing the ease (AGENTS.md, "Gates and checked claims").
+
+## 2026-10-21 07:55, worker, task .3 clear palm moves
+
+- **Doing:** the R3 digests, base d600fa12c against the change, after the surface clearance.
+- **Slowed by:** the palm at 40, which the spec counts as clear, has one leaf-base cell vertex (a shaped, non-trunk run at the stem's foot) 1.7 to 2.4 mm below the ground on the base. The clearance sets it onto the ground, so the palm's wood digest moves at seeds 1, 7 and 42 (one position each; 9 to 10 encoded normals around it). The beech, Telperion and Laurelin are unchanged. R1's curve-based wood measure could not see the cell, so the palm was listed clear. The host's instruction is to stop on this.
+- **Cost:** about 10 minutes of measuring and a stop for the host.
+- **Would remove it:** an R1 that read the drawn vertices from the start.
