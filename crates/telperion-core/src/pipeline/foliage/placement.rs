@@ -3,6 +3,7 @@ use super::{
     canopy::validate,
     clumping, cluster, organs,
     plan::{bearing_runs, cauline, kept, station_at, station_count, walk},
+    rest::Wedge,
     rosette,
     station::{self, place_run, reserve_all, Run},
     CanopyParams, Instances, Reference, TwigPlacement,
@@ -22,15 +23,24 @@ pub fn place(
     twig: Option<TwigPlacement>,
     reference: Reference,
 ) -> Result<Instances> {
-    place_on(tree, envelope, seed, p, twig, None, reference, SUITE_BLADE)
+    place_on(
+        tree,
+        envelope,
+        seed,
+        p,
+        twig,
+        None,
+        reference,
+        &suite_element()?,
+    )
 }
 
 #[cfg(test)]
-/// The blade the suite's placement measures a young frond's segments
-/// against: the default leaf's (`ElementParams`), its connector and its
-/// length. A family's own is its element's (`crown::blade`), which the
-/// pipeline passes.
-const SUITE_BLADE: f64 = 0.13;
+/// The leaf the suite's placement draws: the default (`ElementParams`). A
+/// family's own is its element, which the pipeline passes.
+fn suite_element() -> Result<super::Element> {
+    super::build_element(Default::default())
+}
 
 #[cfg(test)]
 /// Seat the foliage on the actual swept polygon, including fork sockets, as far
@@ -56,7 +66,7 @@ pub fn place_on_surface(
         twig,
         Some(&contacts),
         reference,
-        SUITE_BLADE,
+        &suite_element()?,
     )
 }
 /// Everything both the builder and the count check before a leaf is placed,
@@ -160,8 +170,10 @@ pub(crate) fn leaf_count(
 }
 
 /// Places on the contact surface given, swept or read from a built wood;
-/// `None` where the family seats no leaf on the wood. `blade` is the leaf
-/// element's reach a young frond's segments are measured against.
+/// `None` where the family seats no leaf on the wood. The leaf `element`
+/// gives the reach a young frond's segments are measured against
+/// (`crown::blade`) and the wedge a leaf rests on the ground by
+/// (`rest::Wedge`).
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn place_on(
     tree: &Tree,
@@ -171,13 +183,14 @@ pub(crate) fn place_on(
     twig: Option<TwigPlacement>,
     contacts: Option<&AttachmentSurface<'_>>,
     reference: Reference,
-    blade: f64,
+    element: &super::Element,
 ) -> Result<Instances> {
     if !bearing(tree, envelope, p, twig)? {
         return Ok(Instances::new(reference));
     }
     let mut out = Instances::new(reference);
     let runs = runs(tree, p, twig);
+    let (blade, wedge) = (super::blade(element), Wedge::of(element));
     // One reservation for the whole crown, to the count the prediction reads:
     // every later reserve finds the room already there, so the vector's
     // capacity is that count and nothing the cull or the clumping retains
@@ -199,6 +212,7 @@ pub(crate) fn place_on(
                 params: p,
                 twig,
                 contacts,
+                wedge: &wedge,
             },
             &mut rng,
             &mut out,
@@ -209,10 +223,10 @@ pub(crate) fn place_on(
     }
     // The short shoots' clusters at their tips (fn-223), on their own
     // streams.
-    cluster::clothe(tree, seed, p, &mut out, owners.as_mut())?;
+    cluster::clothe(tree, seed, p, &wedge, &mut out, owners.as_mut())?;
     // A rosette at every stem apex where the rows state one, on its own
     // wood's stream, so the leaves above keep every byte.
-    rosette::clothe(tree, seed, &p, blade, &mut out, owners.as_mut())?;
+    rosette::clothe(tree, seed, &p, (blade, &wedge), &mut out, owners.as_mut())?;
     if let Some(owners) = owners {
         clumping::thin(tree, &owners, seed, p, &mut out);
     }

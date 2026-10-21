@@ -2,14 +2,16 @@
 //! wood, so no run describes them: every leaflet of every frond, living or
 //! dead, is described by its own oriented box. Each is drawn on the frond's
 //! stream exactly as placement draws it (`rosette::fronds`,
-//! `leaflet::leaflets`, `leaflet::drawn`), so the planned leaflet stands
-//! where the placed one does, and no instance or matrix is built.
+//! `leaflet::leaflets`, `leaflet::drawn`) and rested on the ground as
+//! placement rests it (`rest::leaf`), so the planned leaflet stands where
+//! the placed one does.
 use super::Descriptor;
 use crate::{
     math::Vec3,
     pipeline::foliage::{
         leaflet::{self, Leaflet},
         organs, rachis,
+        rest::{self, Wedge},
         rosette::{self, frame},
         CanopyParams, Element,
     },
@@ -85,10 +87,12 @@ pub(super) fn describe(
     Ok(total as u32)
 }
 
-/// The leaf element's box in its own frame: its centre and half extents.
+/// The leaf element's box in its own frame: its centre and half extents,
+/// and the wedge it rests on the ground by.
 struct Shape {
     centre: Vec3,
     half: Vec3,
+    wedge: Wedge,
 }
 impl Shape {
     fn of(element: &Element) -> Self {
@@ -105,11 +109,14 @@ impl Shape {
         Self {
             centre: (lo + hi) * 0.5,
             half: (hi - lo) * 0.5,
+            wedge: Wedge::of(element),
         }
     }
     /// The oriented box one drawn leaflet stands in, with the packing margin:
     /// its run along the leaf's axis, its side along its flank and its
-    /// radius across its face.
+    /// radius across its face, in the frame it rests in. The plan has no
+    /// stored box, so the rest clears by the rotation and the scale alone;
+    /// the packing margin holds the half code that leaves out.
     fn boxed(
         &self,
         leaf: &Leaflet,
@@ -118,8 +125,9 @@ impl Shape {
         rng: &mut Rng,
         system: u32,
     ) -> Descriptor {
-        let ([flank, axis, face], scale) = leaflet::drawn(leaf.axis, leaf.run, normal, c, rng);
+        let (frame, scale) = leaflet::drawn(leaf.axis, leaf.run, normal, c, rng);
         let k = scale * leaf.share.unwrap_or(1.0);
+        let [flank, axis, face] = rested(frame, k, leaf.at, &self.wedge);
         let (centre, half) = (self.centre * k, self.half * k);
         let reach = (centre.length() + half.length()) * MARGIN.1 + MARGIN.0;
         let at = leaf.at + flank * centre.x + axis * centre.y + face * centre.z;
@@ -132,4 +140,23 @@ impl Shape {
             side: flank * (half.x + reach),
         }
     }
+}
+
+/// The unit frame a leaflet drawn on `frame` at scale `k` from `at` rests
+/// in (`rest::leaf`).
+fn rested(frame: [Vec3; 3], k: f64, at: Vec3, wedge: &Wedge) -> [Vec3; 3] {
+    let mut m = [0f32; 16];
+    for (c, v) in frame.iter().enumerate() {
+        m[c * 4] = (v.x * k) as f32;
+        m[c * 4 + 1] = (v.y * k) as f32;
+        m[c * 4 + 2] = (v.z * k) as f32;
+    }
+    (m[12], m[13], m[14], m[15]) = (at.x as f32, at.y as f32, at.z as f32, 1.0);
+    let r = rest::leaf(m, wedge, 0.0);
+    if r == m {
+        return frame;
+    }
+    std::array::from_fn(|c| {
+        Vec3::new(r[c * 4].into(), r[c * 4 + 1].into(), r[c * 4 + 2].into()).normalized()
+    })
 }

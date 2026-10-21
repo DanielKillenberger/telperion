@@ -1420,5 +1420,83 @@
     "site": "if repeats = = 1 & & v < segments {",
     "classification": "algorithm",
     "reason": "Addresses the first ring a split run's last piece repeats; it selects a vertex's place in its chunk and limits nothing generated."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom/ground.rs",
+    "site": ". max ( 0 . 0 )",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: an inflorescence rests from its seat's height, a seat on wood the sweep keeps off the ground; the floor holds rounding at the ground, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom/ground.rs",
+    "site": ". take ( Vec3 : : new ( m [ 12 ] . into ( ) , m [ 13 ] . into ( ) , m [ 14 ] . into ( ) ) - seat )",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a floret's origin, its pedicel's end, taken into the box of the inflorescence's points (`Span::take`); the indices are a transform's translation, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom/ground.rs",
+    "site": "for c in 0 . . 3 {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a transform's three columns, each turned by the rest; not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": ". max ( 0 . 0 )",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a leaf rests from its attachment's height, on bark the sweep keeps off the ground; the floor holds rounding at the ground, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "for i in 0 . . 8 {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: the rest's candidates over a wedge's eight corners, pairs of them; a closed form over a fixed shape, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "for j in i + 1 . . 8 {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: the rest's candidates over a wedge's eight corners, pairs of them; a closed form over a fixed shape, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "if ! ( l > 0 . 0 & & c . abs ( ) < = 1 . 0 ) {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a corner at the attachment, or one whose bound no unit direction meets, offers no candidate; geometry, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "if ! ( la > 0 . 0 & & lb > 0 . 0 ) {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a pair with a corner at the attachment offers no candidate; geometry, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "if c < = - 1 . 0 + 1e - 12 {",
+    "classification": "numeric",
+    "reason": "fn-301 R2: the rotation carrying straight down onto up is half a turn about +X, where the axis `d x up` has no length; a rounding tolerance, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "if det < = 1e - 12 {",
+    "classification": "numeric",
+    "reason": "fn-301 R2: two corners on one line from the attachment meet no unit direction at two points; a rounding tolerance for parallel bounds, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "if f64 : : from ( m [ 13 ] ) > = reach + margin ( step , reach ) {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a leaf higher than its reach and margin is screened clear before its corners are read; it decides nothing the gate would not. The index is the transform's height, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "if near . length_squared ( ) > 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: the best effort where no turn clears: toward the corners' box's nearest point when the attachment is outside it; geometry, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "if rest < 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: two corners' bounds that do not meet on the unit sphere offer no candidate; geometry, not a limit."
   }
 ]

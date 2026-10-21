@@ -37,6 +37,10 @@ struct Cfg {
     // `Shape`): its centre and the leaf's size, its half extents.
     leaf_centre: vec4<f32>,
     leaf_half: vec4<f32>,
+    // The leaf's wedge (`rest.wgsl`'s `rest_corner`), its leaflets rested
+    // on the ground by as placement rests them.
+    wedge_a: vec4<f32>,
+    wedge_b: vec4<f32>,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -372,6 +376,12 @@ fn blade(g: u32, f: array<vec4<f32>, 6>, j: u32) -> Blade {
     }
     let size = cfg.leaf_centre.w * (1.0 + cfg.bound.y * (random(key, draw) * 2.0 - 1.0));
     let k = size * share;
+    // Rested as placement rests it; with no stored box, by the rotation and
+    // the scale alone (`fronds.rs`'s `rested`).
+    let rested = rest_leaf(mat3x3<f32>(flank, axis, face), k, point, cfg.wedge_a, cfg.wedge_b, 0.0);
+    flank = rested[0];
+    axis = rested[1];
+    face = rested[2];
     let c = cfg.leaf_centre.xyz * k;
     let h = cfg.leaf_half.xyz * k;
     let margin = (length(c) + length(h)) * 0.005 + 0.001;

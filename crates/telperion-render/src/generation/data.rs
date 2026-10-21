@@ -2,7 +2,7 @@ use bytemuck::{Pod, Zeroable};
 #[cfg(test)]
 use telperion_core::foliage::prepared::PreparedStations;
 use telperion_core::{
-    foliage::{BloomParams, Element, Reference, TwigPlacement},
+    foliage::{BloomParams, Element, Reference, TwigPlacement, Wedge},
     math::Vec3,
     pipeline::executor::LeafInput,
 };
@@ -23,6 +23,10 @@ pub(super) struct Config {
     /// The leaflets and spines a placement draws as counts' words, the
     /// spine's share and pitch (radians, bits).
     organs: [u32; 4],
+    /// What rests an instance on the ground (`rest.wgsl`): a leaf's wedge,
+    /// or an inflorescence's organ box and reach (`wedge`, `organ`).
+    wedge_a: [f32; 4],
+    wedge_b: [f32; 4],
 }
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
@@ -90,7 +94,47 @@ pub(super) fn config(
             (c.acanthophyll_length as f32).to_bits(),
             (c.acanthophyll_pitch.to_radians() as f32).to_bits(),
         ],
+        wedge_a: wedge(e)[0],
+        wedge_b: wedge(e)[1],
     }
+}
+/// A leaf element's wedge as `rest.wgsl`'s `rest_corner` reads it: its
+/// sides and ends, then its top, the bottom at its base and at its tip,
+/// and its base depth (`foliage::Wedge`).
+pub(super) fn wedge(e: &Element) -> [[f32; 4]; 2] {
+    let w = Wedge::of(e);
+    let [base, side, tip, _, top, ..] = w.corners;
+    [
+        [base.x, side.x, base.y, tip.y],
+        [top.z, base.z, tip.z, w.depth],
+    ]
+    .map(|row| row.map(|v| v as f32))
+}
+/// An organ element's box as `place.wgsl`'s `inflorescence_rest` reads
+/// it: its least corner and the farthest an inflorescence's points reach
+/// from its seat (`bloom.rs`'s `Ground`), then its most corner.
+fn organ(e: &Element, scatter: f64) -> [[f32; 4]; 2] {
+    let first = e.positions.first().copied().unwrap_or(Vec3::ZERO);
+    let (mut lo, mut hi) = (first, first);
+    for v in &e.positions {
+        lo = Vec3::new(lo.x.min(v.x), lo.y.min(v.y), lo.z.min(v.z));
+        hi = Vec3::new(hi.x.max(v.x), hi.y.max(v.y), hi.z.max(v.z));
+    }
+    let radius = (0..8)
+        .map(|k: u32| {
+            let pick = |bit: u32, a: f64, b: f64| if k >> bit & 1 == 0 { a } else { b };
+            Vec3::new(
+                pick(0, lo.x, hi.x),
+                pick(1, lo.y, hi.y),
+                pick(2, lo.z, hi.z),
+            )
+            .length()
+        })
+        .fold(0.0, f64::max);
+    [
+        vector(lo, e.stalk + radius * (1.0 + scatter)),
+        vector(hi, 0.0),
+    ]
 }
 /// A bloom's rows as `bloom.wgsl`'s `Flower` reads them (fn-229), drawn at
 /// `now`: the florets, taper, scatter and the time since the window opened
@@ -127,6 +171,8 @@ pub(super) fn florets(
         size: rows[2],
         rachis: [0.0; 4],
         organs: [0x10000, 0, 0, 0],
+        wedge_a: organ(e, f64::from(rows[0][2]))[0],
+        wedge_b: organ(e, f64::from(rows[0][2]))[1],
     }
 }
 #[cfg(test)]

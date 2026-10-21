@@ -322,7 +322,7 @@ pub(super) fn clothe(
     tree: &Tree,
     seed: u32,
     p: &CanopyParams,
-    blade: f64,
+    (blade, wedge): (f64, &super::rest::Wedge),
     out: &mut Instances,
     mut owners: Option<&mut Vec<u32>>,
 ) -> Result<()> {
@@ -351,7 +351,7 @@ pub(super) fn clothe(
                 super::rachis::girth(&table, &apex),
             ),
             (&mut rng, None),
-            out,
+            (wedge, out),
         )?;
         if frond.dead {
             out.wither(from);
@@ -373,7 +373,8 @@ pub(super) fn clothe(
 /// placement's draws on a shared stream (fn-277), else on `rng`. The
 /// rachis is `girth` thick where it leaves `point` (`leaflet::rachis`):
 /// a frond's own, none for a placement's on wood, whose rachis draws no
-/// bark.
+/// bark. Each matrix is rested on the ground by `wedge` as it is stored
+/// (`rest::leaf`).
 pub(super) fn fan(
     point: Vec3,
     heading: Vec3,
@@ -381,11 +382,13 @@ pub(super) fn fan(
     normal: Vec3,
     (p, count, split, girth): (CanopyParams, usize, Option<Split>, f64),
     (rng, mut more): (&mut Rng, Option<&mut Rng>),
-    out: &mut Instances,
+    (wedge, out): (&super::rest::Wedge, &mut Instances),
 ) -> Result<()> {
+    let step = out.reference.step().y;
+    let rest = |m: [f32; 16]| super::rest::leaf(m, wedge, step);
     if count == 1 {
         let length = split.map_or(1.0, |s| lone(&s, &p));
-        out.push(&matrix(
+        out.push(&rest(matrix(
             point,
             heading,
             tangent,
@@ -395,7 +398,7 @@ pub(super) fn fan(
                 ..p
             },
             rng,
-        )?);
+        )?));
         return Ok(());
     }
     let (_, side) = frame(heading);
@@ -414,7 +417,7 @@ pub(super) fn fan(
                 }
             }
         }
-        out.push(&placed);
+        out.push(&rest(placed));
     }
     Ok(())
 }

@@ -28,15 +28,15 @@ pub mod field {
 }
 
 pub mod foliage {
-    #[cfg(feature = "geometry")]
-    pub use crate::pipeline::foliage::bloom_box;
     #[cfg(test)]
     pub use crate::pipeline::foliage::*;
     pub use crate::pipeline::foliage::{
         blade, transform_point, withered, AnatomyGeometry, BloomParams, Bounds, CanopyParams,
         Crown, Element, ElementParams, FoliageUnit, Instances, Leaf, Level, Reference, Rosette,
-        TwigPlacement, MAX_FRONDS, MAX_LEAFLETS, WITHERED, WORDS,
+        TwigPlacement, Wedge, MAX_FRONDS, MAX_LEAFLETS, WITHERED, WORDS,
     };
+    #[cfg(feature = "geometry")]
+    pub use crate::pipeline::foliage::{bloom_box, rachis_low};
     pub mod plan {
         #[cfg(test)]
         pub use crate::pipeline::foliage::plan::*;

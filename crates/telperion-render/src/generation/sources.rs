@@ -6,13 +6,14 @@ const LEAF: &str = include_str!("../shaders/leaf.wgsl");
 /// the contract's keys.
 pub(super) fn place() -> String {
     format!(
-        "{LEAF}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
+        "{LEAF}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
         super::cycle::contract(),
         bloom(),
         include_str!("order.wgsl"),
         include_str!("place.wgsl"),
         include_str!("contact.wgsl"),
         rachis(),
+        rest(),
         include_str!("pack.wgsl")
     )
 }
@@ -27,6 +28,12 @@ pub(super) fn bloom() -> &'static str {
 /// the leaves' placement, the fronds' axes and the field's leaflet boxes.
 pub(super) fn rachis() -> &'static str {
     include_str!("rachis.wgsl")
+}
+
+/// The instance rest (fn-301 R2), one function for every module that
+/// finishes a leaf's frame: the placement and the field's leaflet boxes.
+pub(super) fn rest() -> &'static str {
+    include_str!("rest.wgsl")
 }
 
 pub(super) fn mass() -> String {

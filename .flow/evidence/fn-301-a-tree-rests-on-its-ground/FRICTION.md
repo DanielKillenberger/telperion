@@ -125,3 +125,10 @@
 - **Slowed by:** the base row is the stalk's round section (five vertices at y = 0), so the base depth is the box's whole depth: 0.67 to 3.0 mm at size 1, the same as `|lo.z|` (raw/t4-wedges.log). The slope is 0 on every preset except the spruce (0.087). The wedge is therefore the box, and the confirmed solve still has a clearing rotation for every leaf: the upright one. With the attachment on the wedge's base face, `d` along the leaf's axis keeps every corner at or above the attachment. So the "no clearing rotation" branch never runs for a leaf. Every leaf attached lower than its base depth times its scale stands upright, rather than lying flat with the residual the ruling bounds.
 - **Cost:** about 15 minutes, then a second stop for the host.
 - **Would remove it:** running the ruled wedge against the element data before the ruling (AGENTS.md, "Gates and checked claims").
+
+## 2026-10-21 12:55, worker, task .4 heavy-run room
+
+- **Doing:** the first `cargo check` of the CPU rest, through `telperion-heavy 8`.
+- **Slowed by:** the wrapper waited for 8 GB of room while 2 to 4 GB was free, because other checkouts' runs held memory. This is the third wait this task: the element probe twice, and now the check.
+- **Cost:** about 10 to 15 minutes of wall clock so far across the three, with the device work written blind meanwhile.
+- **Would remove it:** a lighter room tier for `cargo check` and single-test probes (they peak well under 8 GB), or a queue that says who holds the room.

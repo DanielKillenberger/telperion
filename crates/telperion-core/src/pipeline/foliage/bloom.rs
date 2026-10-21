@@ -211,8 +211,11 @@ fn stamens(p: &BloomParams, e: &mut Element) -> Vec<u32> {
 type Matrix = ([f32; 16], bool);
 
 /// Every flowering node's inflorescence, packed against a box of its own.
+/// The florets rest on the ground against the box their unrested
+/// positions span, whose code step their margin is cleared by.
 pub(crate) fn place(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Result<Instances> {
-    let matrices = matrices(tree, p, season)?;
+    let step = reference(&matrices(tree, p, season, None)?, p).step().y;
+    let matrices = matrices(tree, p, season, Some(step))?;
     Ok(packed(&matrices, reference(&matrices, p)))
 }
 
@@ -224,7 +227,8 @@ pub(crate) fn place_in(
     season: Option<f64>,
     within: Reference,
 ) -> Result<Instances> {
-    Ok(packed(&matrices(tree, p, season)?, within))
+    let matrices = matrices(tree, p, season, Some(within.step().y))?;
+    Ok(packed(&matrices, within))
 }
 
 /// The farthest a floret stands from its node: along the axis, then its
@@ -253,13 +257,63 @@ pub fn packing_box(leaf: Reference, p: &BloomParams) -> Reference {
     Reference::spanning(leaf.min - pad, leaf.min + leaf.extent + pad)
 }
 
-fn matrices(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Result<Vec<Matrix>> {
+/// Every inflorescence's transforms, rested on the ground against a box
+/// whose position code steps `step` in y, or as drawn where none is given.
+fn matrices(
+    tree: &Tree,
+    p: &BloomParams,
+    season: Option<f64>,
+    step: Option<f64>,
+) -> Result<Vec<Matrix>> {
     let now = now(p, season);
+    let ground = match step {
+        Some(step) => Some(Ground::of(&element(p)?, p, step)),
+        None => None,
+    };
     let mut matrices = Vec::new();
     for bloom in &tree.blooms {
-        inflorescence(tree, bloom, p, now, &mut matrices)?;
+        inflorescence(tree, bloom, p, now, ground.as_ref(), &mut matrices)?;
     }
     Ok(matrices)
+}
+
+/// What resting an inflorescence reads: the organ element's box corners,
+/// the farthest any of its points stands from its seat, and the stored
+/// box's position code in y.
+struct Ground {
+    corners: [Vec3; 8],
+    reach: f64,
+    step: f64,
+}
+
+impl Ground {
+    fn of(e: &Element, p: &BloomParams, step: f64) -> Self {
+        let first = e.positions.first().copied().unwrap_or(Vec3::ZERO);
+        let (lo, hi) = e.positions.iter().fold((first, first), |(lo, hi), v| {
+            (
+                Vec3::new(lo.x.min(v.x), lo.y.min(v.y), lo.z.min(v.z)),
+                Vec3::new(hi.x.max(v.x), hi.y.max(v.y), hi.z.max(v.z)),
+            )
+        });
+        let corners = std::array::from_fn(|k| {
+            Vec3::new(
+                if k & 1 == 0 { lo.x } else { hi.x },
+                if k & 2 == 0 { lo.y } else { hi.y },
+                if k & 4 == 0 { lo.z } else { hi.z },
+            )
+        });
+        let radius = corners.iter().map(|c| c.length()).fold(0.0, f64::max);
+        Self {
+            corners,
+            reach: stalk_reach(p) + radius * (1.0 + p.scatter),
+            step,
+        }
+    }
+
+    /// Whether a seat this high is screened clear by the reach alone.
+    fn clears(&self, seat: Vec3) -> bool {
+        seat.y >= self.reach + super::rest::margin(self.step, self.reach)
+    }
 }
 
 fn packed(matrices: &[Matrix], reference: Reference) -> Instances {
@@ -293,6 +347,7 @@ fn inflorescence(
     bloom: &Bloom,
     p: &BloomParams,
     now: f64,
+    ground: Option<&Ground>,
     out: &mut Vec<Matrix>,
 ) -> Result<()> {
     let node = &tree.nodes[bloom.node as usize];
@@ -306,6 +361,8 @@ fn inflorescence(
         .map_or(node.position, |q| tree.nodes[q as usize].position);
     let heading = or(node.position - from, Vec3::Y);
     let axis = Axis::laid(node.position, heading, p);
+    let low = ground.filter(|g| !g.clears(node.position));
+    let mut span = low.map(|_| ground::Span::of(node.position, &axis.points));
     let first = out.len();
     let roll = TAU * unit(key, ROLL);
     let count = p.florets.ceil() as usize;
@@ -332,6 +389,12 @@ fn inflorescence(
         let point = at + stalk * p.pedicel;
         let face = or(radial.cross(stalk), stalk.perpendicular());
         out.push((matrix(point, stalk, face, size)?, false));
+        if let (Some(span), Some(g)) = (span.as_mut(), low) {
+            span.floret(node.position, at, &out[out.len() - 1].0, &g.corners);
+        }
+    }
+    if let (Some(span), Some(g)) = (span, low) {
+        ground::rest(node.position, &span, &mut out[first..], g.step);
     }
     // The rachis the florets stand on, where any does: at the tip along the
     // shoot, its scale the seat's radius the rachis tapers from.
@@ -340,6 +403,19 @@ fn inflorescence(
         out.push((matrix(node.position, heading, face, node.radius)?, true));
     }
     Ok(())
+}
+
+/// The lowest point of the rachis the renderer rebuilds for the seat at
+/// `seat` along `heading`, `radius` thick there (`stalk.wgsl`'s
+/// `rachis_vertex`): the axis's points, each its radius below it, the
+/// radius tapering to the stamen's half width at the tip. The CPU's mirror
+/// of what the device draws, for the ground's measure (fn-301 R4).
+pub fn rachis_low(p: &BloomParams, seat: Vec3, heading: Vec3, radius: f64) -> f64 {
+    let axis = Axis::laid(seat, heading, p);
+    let end = 0.5 * p.stamen_width;
+    (axis.points.iter().enumerate())
+        .map(|(k, a)| a.y - (radius + (end - radius) * k as f64 / SEGMENTS as f64))
+        .fold(f64::INFINITY, f64::min)
 }
 
 /// The inflorescence's axis: a polyline from the tip that leaves along the
@@ -408,6 +484,7 @@ fn matrix(point: Vec3, axis: Vec3, face: Vec3, size: f64) -> Result<[f32; 16]> {
     Ok(m)
 }
 
+mod ground;
 mod stalk;
 #[cfg(test)]
 use stalk::{PEDICEL, RACHIS as RACHIS_VERTEX, RACHIS_LEVEL, RACHIS_LEVELS, RIBBON, RINGS, SIDES};

@@ -11,12 +11,19 @@
 //! root, which lean with the trunk (the palm's dip to 5 cm, on the base as
 //! after). Every other run's vertices are kept off the ground by the
 //! surface clearance. Leaves and flowers are read at every element vertex
-//! under each stored transform.
+//! under each stored transform. A leaf's stalk is its seat on the wood,
+//! so a leaf may let it down below the ground by its base depth times its
+//! scale less its attachment's height (host, 2026-10-21); that dip is
+//! reported per row. A flower's rachis is read from the CPU's mirror of the
+//! one the renderer rebuilds (`foliage::rachis_low`), kept off the ground
+//! as `stalk.wgsl` draws it.
 //!
 //! Red on the base for the date palm (fn-283 measured it); ignored until
 //! contact lands, and run by name: `cargo test -p telperion-core --test
 //! ground_reach -- --ignored --nocapture`.
 use telperion_core::{
+    foliage::{rachis_low, transform_point, withered, BloomParams, Wedge},
+    math::Vec3,
     mesh::{self, Foliage, TreeMesh},
     presets::{self, CATALOGUE},
     surface::SurfaceParams,
@@ -49,18 +56,56 @@ fn wood_low(m: &TreeMesh, params: &SurfaceParams) -> f64 {
     low
 }
 
-/// The lowest vertex of a foliage and how many instances reach below.
-fn foliage_low(f: &Foliage) -> (f64, usize) {
-    let (mut low, mut under) = (f64::INFINITY, 0);
+/// The lowest vertex of a foliage, its stalks' largest dip and how many
+/// instances reach below what they may: a leaf its stalk's dip,
+/// `depth·scale − h`, a flower nothing.
+fn foliage_low(f: &Foliage, stalk: bool) -> (f64, f64, usize) {
+    let depth = if stalk {
+        Wedge::of(&f.element).depth
+    } else {
+        0.0
+    };
+    let (mut low, mut dip, mut under) = (f64::INFINITY, 0f64, 0);
     for m in f.instances.matrices() {
+        let scale = (0..3)
+            .map(|c| Vec3::new(m[c * 4].into(), m[c * 4 + 1].into(), m[c * 4 + 2].into()).length())
+            .sum::<f64>()
+            / 3.0;
+        let may = (depth * scale - f64::from(m[13])).max(0.0);
         let mut least = f64::INFINITY;
         for &p in &f.element.positions {
-            least = least.min(telperion_core::foliage::transform_point(&m, p).y);
+            least = least.min(transform_point(&m, p).y);
         }
         low = low.min(least);
-        under += usize::from(least < BELOW);
+        dip = dip.max(-least.min(0.0));
+        under += usize::from(least < BELOW - may);
     }
-    (low, under)
+    (low, dip, under)
+}
+
+/// The lowest drawn vertex of an organ's rachises: each rebuilt from its
+/// instance's seat, heading and radius, kept off the ground as drawn.
+fn stalk_low(f: &Foliage, p: &BloomParams) -> f64 {
+    let rachises = f
+        .instances
+        .leaves
+        .iter()
+        .enumerate()
+        .filter(|(_, l)| withered(**l));
+    rachises
+        .map(|(i, _)| {
+            let m = f.instances.matrix(i);
+            let heading = Vec3::new(m[4].into(), m[5].into(), m[6].into()).normalized();
+            let seat = f.instances.position(i);
+            rachis_low(
+                p,
+                seat,
+                heading,
+                f.instances.reference.scale(f.instances.leaves[i]),
+            )
+            .max(0.0)
+        })
+        .fold(f64::INFINITY, f64::min)
 }
 
 fn show(v: f64) -> String {
@@ -74,7 +119,9 @@ fn show(v: f64) -> String {
 #[test]
 #[ignore = "fn-301 R1: red on the base until ground contact lands"]
 fn nothing_drawn_passes_below_the_ground() {
-    println!("preset\tage\tseed\twood_low\tleaf_low\tleaves_under\tflower_low\tflowers_under");
+    println!(
+        "preset\tage\tseed\twood_low\tleaf_low\tstalk_dip\tleaves_under\tflower_low\tflowers_under\trachis_low"
+    );
     let mut failures = Vec::new();
     for &(_, id, _, _) in CATALOGUE {
         let default = presets::by_identity(id).expect("a shipped preset").age;
@@ -84,15 +131,19 @@ fn nothing_drawn_passes_below_the_ground() {
                 (f.age, f.skeleton.seed) = (age, seed);
                 let m = mesh::build(&f).unwrap_or_else(|e| panic!("{id} {age} {seed}: {e}"));
                 let wood = wood_low(&m, &f.surface);
-                let (leaf, leaves) = foliage_low(&m.foliage);
-                let (flower, flowers) = m.organ.as_ref().map_or((f64::INFINITY, 0), foliage_low);
+                let (leaf, dip, leaves) = foliage_low(&m.foliage, true);
+                let organ = m.organ.as_ref();
+                let (flower, _, flowers) =
+                    organ.map_or((f64::INFINITY, 0.0, 0), |o| foliage_low(o, false));
+                let rachis = organ.map_or(f64::INFINITY, |o| stalk_low(o, &f.bloom));
                 println!(
-                    "{id}\t{age}\t{seed}\t{}\t{}\t{leaves}\t{}\t{flowers}",
+                    "{id}\t{age}\t{seed}\t{}\t{}\t{dip:.4}\t{leaves}\t{}\t{flowers}\t{}",
                     show(wood),
                     show(leaf),
-                    show(flower)
+                    show(flower),
+                    show(rachis)
                 );
-                if wood < BELOW || leaves > 0 || flowers > 0 {
+                if wood < BELOW || leaves > 0 || flowers > 0 || rachis < BELOW {
                     failures.push(format!("{id} at {age}, seed {seed}"));
                 }
             }

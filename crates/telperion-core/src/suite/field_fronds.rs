@@ -120,3 +120,47 @@ fn the_planned_palm_agrees_with_its_leaflets() {
         assert!(ratio <= 1.05, "seed {seed}: {ratio}");
     }
 }
+
+/// fn-301 R2: the plan's leaflet boxes take the frame a leaflet rests in.
+/// On the young palm, whose fronds lie on the ground, every placed
+/// leaflet's every vertex lies in its own planned box, the boxes in the
+/// order placement hangs the leaflets.
+#[test]
+fn a_rested_leaflet_lies_in_its_planned_box() {
+    let mut family = palm(1);
+    family.age = 12.0;
+    let request = Request {
+        leaves: true,
+        field: Some(FieldRequest {
+            n: 24,
+            limb_order: None,
+        }),
+        ..Request::default()
+    };
+    let built = pipeline::build(&family, request).unwrap();
+    let o = &built.outputs;
+    let (plan, element) = (o.plan.as_ref().unwrap(), o.element.as_ref().unwrap());
+    let leaves = &o.leaves.as_ref().unwrap().instances;
+    assert_eq!(plan.descriptors.len(), leaves.len(), "one box a leaflet");
+    let (mut low, mut outside) = (f64::INFINITY, 0);
+    for (m, d) in leaves.matrices().zip(&plan.descriptors) {
+        let [a, b] = d.endpoints;
+        let (centre, run) = ((a + b) * 0.5, (b - a) * 0.5);
+        let along = run.normalized();
+        let across = along.cross(d.side).normalized();
+        for v in &element.positions {
+            let p = transform_point(&m, *v);
+            low = low.min(p.y);
+            let r = p - centre;
+            let inside = r.dot(along).abs() <= run.length() + 1e-6
+                && r.dot(d.side.normalized()).abs() <= d.side.length() + 1e-6
+                && r.dot(across).abs() <= d.radii[0] + 1e-6;
+            outside += usize::from(!inside);
+        }
+    }
+    assert!(
+        low < 0.01,
+        "the palm at 12 rests leaflets on the ground ({low})"
+    );
+    assert_eq!(outside, 0, "{outside} vertices outside their boxes");
+}

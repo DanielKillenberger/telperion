@@ -224,8 +224,8 @@ fn square_to(v:vec3<f32>) -> vec3<f32> {
     return normalize(cross(reference,v));
 }
 // A leaf at `point` along `axis`, framed by `tangent` and `normal`, its
-// draws on `key` from its ordinal `k`, its size times `share`, as the
-// leaf words placement writes.
+// draws on `key` from its ordinal `k`, its size times `share`, rested on
+// the ground, as the leaf words placement writes.
 fn packed(point:vec3<f32>, axis_in:vec3<f32>, tangent:vec3<f32>, normal:vec3<f32>, key:u32, k:u32, share:f32) -> vec3<u32> {
     var axis=axis_in;
     var face=vec3<f32>(0.0,1.0,0.0)-axis*axis.y;
@@ -240,6 +240,9 @@ fn packed(point:vec3<f32>, axis_in:vec3<f32>, tangent:vec3<f32>, normal:vec3<f32
         axis=rotate(axis,jitter,angle);face=rotate(face,jitter,angle);side=rotate(side,jitter,angle); draw+=3u;
     }
     let scale=config.size.x*(1.0+config.size.y*(random(key,draw)*2.0-1.0))*share;
+    // Rested on the ground where its wedge would cross it (`rest.wgsl`).
+    let rested=rest_leaf(mat3x3<f32>(side,axis,face),scale,point,config.wedge_a,config.wedge_b,config.box_extent.y/65535.0);
+    side=rested[0]; axis=rested[1]; face=rested[2];
     if !finite(point) || !finite(axis) || !finite(face) || !finite(side) || !(scale>=0.0 && scale<=65504.0) {
         atomicOr(&summary[1],2u);
     }
