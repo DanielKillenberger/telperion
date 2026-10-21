@@ -371,18 +371,27 @@ impl Layer {
             return Err(Stop::Below(-f64::from(next[2])));
         }
         // Resting: wood whose bark a step would take below the ground ends
-        // on it, its centreline one radius up, the step's length kept.
+        // on it, its centreline one radius up, the step's length kept; its
+        // side turns with it, by the least rotation, so it stays square to
+        // the heading the phytomer rests on.
+        let mut beside = across;
         if !trunk && next[2] < radius {
             let side = sub(across, scaled(direction, dot(across, direction)));
             next = rested(tip, (direction, side), (radius, length));
+            if next.iter().any(|c| c.abs() >= REACH) {
+                return Err(Stop::Beyond);
+            }
             if let Some(unit) = unit(sub(next, tip)) {
+                if let Some(t) = carry(direction, unit) {
+                    beside = turned_by(across, &t);
+                }
                 direction = unit;
             }
         }
         phytomer.tip = v3(next);
         phytomer.heading = v3(direction);
-        let side = sub(across, scaled(direction, dot(across, direction)));
-        phytomer.side = v3(unit(side).unwrap_or(across));
+        let side = sub(beside, scaled(direction, dot(beside, direction)));
+        phytomer.side = v3(unit(side).unwrap_or(beside));
         (self.running, self.across, self.tip, self.run, self.curve) =
             (running, across, next, run, curve);
         Ok(())

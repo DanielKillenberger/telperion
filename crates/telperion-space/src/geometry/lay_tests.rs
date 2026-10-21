@@ -2,8 +2,10 @@
 //! below the ground ends with its centreline one radius up and keeps its
 //! length, along its travel's horizontal part, or its side's where it
 //! heads straight down.
-use super::rested;
+use super::{rested, Layer};
 use crate::geometry::q::{length, sub};
+use crate::species::Form;
+use crate::structure::{Phytomer, Vec3};
 
 /// A descending step, a vertical one leaning by a hair and one whose
 /// tip starts below its radius: each ends at its radius, along its
@@ -41,4 +43,37 @@ fn a_step_straight_down_rests_along_its_side() {
         (0.25, 1.25),
     );
     assert_eq!(next, [0.25, -0.5, 0.25]);
+}
+
+/// A phytomer stepping straight down onto the ground rests along its side,
+/// and the frame it stores stays whole: its side a unit square to its
+/// heading, as every lateral it bears is framed on (review, 2026-10-21).
+#[test]
+fn a_step_straight_down_keeps_a_square_frame() {
+    let mut state = crate::beech::beech().states[0].clone();
+    (state.internode, state.form) = (1.0, Form::default());
+    let (x, down) = (Vec3::new(1.0, 0.0, 0.0), Vec3::new(0.0, 0.0, -1.0));
+    let mut layer = Layer::bent((Vec3::new(0.0, 0.0, 0.25), down, x), Vec3::default(), 1.0);
+    let mut p = Phytomer {
+        cycle: 1,
+        tip: Vec3::default(),
+        heading: Vec3::default(),
+        side: Vec3::default(),
+        radius: 0.25,
+        scale: 1.0,
+        key: 7,
+        rank: 0.0,
+        size: 1.0,
+        light: 1.0,
+        grown: 1.0,
+    };
+    layer.step(&mut p, &state, (0.0, 0.0), None, false).unwrap();
+    assert_eq!(p.tip, Vec3::new(1.0, 0.0, 0.25));
+    assert_eq!(p.heading, x);
+    let square = p.heading.dot(p.side).abs();
+    assert!(
+        square < 1e-6 && (p.side.length() - 1.0).abs() < 1e-6,
+        "side {:?}",
+        p.side
+    );
 }

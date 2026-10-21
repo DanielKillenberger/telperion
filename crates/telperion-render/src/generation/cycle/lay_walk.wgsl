@@ -232,13 +232,25 @@ fn step(wk: ptr<function, Walk>, i: u32, r: u32, scale: f32, bent: f32, total: f
     if trunk && next.z <= form[1] {
         status |= FAULT_BELOW;
     }
+    var beside = across;
     if !trunk && next.z < girth {
         next = rested(tip, direction, across - mv(direction, qdot(across, direction)), girth, len);
-        direction = qunit_or(next - tip, direction);
+        if any(abs(next) >= vec3<f32>(REACH)) {
+            status |= FAULT_BEYOND;
+        }
+        let lies = qunit(next - tip);
+        if lies.w > 0.0 {
+            var turned = false;
+            let t4 = qcarry(direction, lies.xyz, &turned);
+            if turned {
+                beside = qturned_by(across, t4);
+            }
+            direction = lies.xyz;
+        }
     }
     set_ph3(r, PH_TIP, next);
     set_ph3(r, PH_HEADING, direction);
-    set_ph3(r, PH_SIDE, qunit_or(across - mv(direction, qdot(across, direction)), across));
+    set_ph3(r, PH_SIDE, qunit_or(beside - mv(direction, qdot(beside, direction)), beside));
     (*wk).running = running;
     (*wk).across = across;
     (*wk).tip = next;
