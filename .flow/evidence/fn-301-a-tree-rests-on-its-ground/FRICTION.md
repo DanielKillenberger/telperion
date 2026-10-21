@@ -104,3 +104,10 @@
 - **Slowed by:** the integration lens found that leaf seats still read unclamped ring vertices. The CPU's `AttachmentSurface::selected` (used by `foliage/placement.rs` and `prepared.rs`) rebuilds the rings itself, while `drawn.rs`'s `on_wood` reads the clamped mesh. The device's `resident/rings.wgsl` and `positions.wgsl` emit the seat vertices without a trunk bit (ring word 15 is spare). The spec's surface clearance names the sweep's emit only, and the two device files are outside .3's Touches, so this is a stop for the host.
 - **Cost:** about 15 minutes, and a stop before the re-review.
 - **Would remove it:** a plan that listed every producer of ring vertices (the mesh, the tessellation, the seats on both executors) when it ruled the clearance.
+
+## 2026-10-21, conductor, task .3 seat vertices
+
+- **Doing:** ruling on the .3 review's finding #3. The leaf seats rebuild the ring vertices without the clearance.
+- **Decision:** the conductor extended the host's surface-clearance ruling to every producer of the same ring vertices: the CPU `AttachmentSurface::selected`, and the device `rings.wgsl`/`positions.wgsl` with a trunk flag in spare ring word 15. This applies an existing ruling to a sibling producer, not a new design. .3's Touches were widened.
+- **Cost:** one stop, about 5 minutes.
+- **Would remove it:** one function that produces ring vertices for both the sweep and the seats on each executor.
