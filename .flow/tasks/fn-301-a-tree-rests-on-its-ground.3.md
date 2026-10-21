@@ -8,7 +8,7 @@ The lay walk's resting clamp becomes R2's rule on both executors. A non-trunk st
 
 **Size:** M
 **Files:** `crates/telperion-space/src/geometry/lay.rs`, `crates/telperion-render/src/generation/cycle/lay_walk.wgsl`, `crates/telperion-space/tests/sag.rs`, and the settle agreement tests that move
-**Touches:** [crates/telperion-core/src/pipeline/surface/**, crates/telperion-render/src/curve/**, crates/telperion-render/src/curve/**/*.wgsl, crates/telperion-core/tests/ground_reach.rs, crates/telperion-space/src/geometry/lay.rs, crates/telperion-space/src/invariants.rs, crates/telperion-space/tests/**, crates/telperion-space/src/grow/**, crates/telperion-render/src/generation/cycle/**]
+**Touches:** [crates/telperion-render/src/shaders/curve_emit.wgsl, crates/telperion-render/src/shaders/curve_walk.wgsl, crates/telperion-render/src/generation/resident/sweep.wgsl, crates/telperion-core/src/pipeline/foliage/leaflet.rs, crates/telperion-render/src/generation/rachis.wgsl, crates/telperion-render/src/generation/resident/rachis_tests.rs, docs/generation-limits-inventory.json, crates/telperion-core/src/pipeline/surface/**, crates/telperion-render/src/curve/**, crates/telperion-render/src/curve/**/*.wgsl, crates/telperion-core/tests/ground_reach.rs, crates/telperion-space/src/geometry/lay.rs, crates/telperion-space/src/invariants.rs, crates/telperion-space/tests/**, crates/telperion-space/src/grow/**, crates/telperion-render/src/generation/cycle/**]
 
 ### Approach
 - The clamp is `lay.rs:373-380` (CPU) and `cycle/lay_walk.wgsl:219-223` (device). The landing ease (`lay.rs:357-364`, `lay_walk.wgsl:206-211`) and the trunk fault (`lay.rs:370`) stay unchanged.
