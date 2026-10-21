@@ -36,9 +36,16 @@ The equivalence harness: the device's drawn records, packed leaves and field for
 - [ ] The `station()` versus `k/count·split` comparison is recorded.
 
 ## Done summary
-TBD
+The device's frond curve is now one WGSL function, `rachis` in `generation/rachis.wgsl`. It returns the point and the rachis's direction, and takes length, arch, heading and lift as parameters. The placement's `on_rachis` (`pack.wgsl`), the field's `on_rachis` (`resident/field.wgsl`) and the fronds' `rachises` (`resident/fronds.wgsl`) all call it. It is composed ahead of each consumer, in `sources::place`, `field::source` and `boots::source`. Output is unchanged: a scratch digest of the palm at 12 and 40, seed 1, matched the base exactly for the drawn records, the prepared leaves and wood, and the field (`.flow/evidence/fn-301-a-tree-rests-on-its-ground/t1-equivalence.md`). The device's `k/count·split` stations already have `station()`'s form, with the same values and the same order of operations, so `t` was left as it is. That comparison is in the same file.
 
+Not done: `sweep.rs` and `rings.rs` were not touched. The `PACK` they compose is `resident/pack.wgsl`, the renderer's packed point, not the frond curve. The field's `on_rachis` twin of the leaflet logic (pitch, closing, spines) stays a copy. Only the curve is shared, as the task asked. Follow-up: `cargo fmt --check -p telperion-render` already fails on the base, in `boots.rs:302,356`, `rachis_tests.rs` and `room_tests.rs`. None of those lines are this task's.
+
+Tier: not given by the conductor (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex, one correctness reviewer, SHIP, no findings)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3072df01587660a481d2c220495acb1ec191d1fd
+- Tests: telperion-heavy 8 --gpu 2 --threads 2 -- cargo test --profile ci -p telperion-render --lib fn301_scratch_digest -- --ignored --nocapture (scratch, base and change identical), telperion-heavy 8 --gpu 2 --threads 2 -- cargo test --profile ci -p telperion-render --lib -- rachis_tests agree_tests field_tests shader_tests (18 passed), telperion-heavy 8 --gpu 2 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast (rc 0, 148 suites, 0 failed)
 - PRs:
