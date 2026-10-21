@@ -16,8 +16,10 @@ use crate::RenderError;
 /// cycles on: the hierarchy's generations and placing passes, the
 /// layout's generations and the sweep's layer ranges. None of them ever
 /// passed these on a shipped preset (`arena_tests`, 2026-10-12); one that
-/// does is refused by name. The block levels need none: the deepest are
-/// folded, however many (`fold.wgsl`).
+/// does is refused by name, but for the layout's generations, a cost hint
+/// only: the layout's closing pass lays every axis deeper (fn-298 R2 (d)),
+/// and only a generation past the plan's cap is refused. The block levels
+/// need none: the deepest are folded, however many (`fold.wgsl`).
 const STEP: [u32; 4] = [2, 1, 2, 2];
 
 /// The units rounds a cycle records past those the census read used,
@@ -197,9 +199,37 @@ pub(super) fn passes(read: &[u32]) -> u32 {
 /// layout's generations and the sweep's layer ranges past their counts by
 /// their `STEP`; and the units rounds past those used by their
 /// `ROUND_SLACK`; from the census read a cycle late (`read`, `prev` the
-/// one before); each no further than its bound, the bounds where nothing
-/// has been read.
+/// one before); each no less than the species' floor (`floors`, the
+/// hierarchy's generations the units rounds'); each no further than its
+/// bound, the bounds where nothing has been read.
 pub(super) fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> Limits {
+    let l = stepped(s, read, prev);
+    #[cfg(test)]
+    let l = Limits {
+        laygens: LAYGENS.get().unwrap_or(l.laygens),
+        ..l
+    };
+    l
+}
+
+#[cfg(test)]
+thread_local! {
+    /// The layout generations a test forces every cycle on this thread to
+    /// record (`with_laygens`).
+    static LAYGENS: std::cell::Cell<Option<u32>> = const { std::cell::Cell::new(None) };
+}
+
+/// `f` run with every cycle's layout generations forced to `n`: the
+/// closing pass lays the deeper axes (fn-298 R2 (d)).
+#[cfg(test)]
+pub(in crate::generation) fn with_laygens<T>(n: u32, f: impl FnOnce() -> T) -> T {
+    LAYGENS.set(Some(n));
+    let out = f();
+    LAYGENS.set(None);
+    out
+}
+
+fn stepped(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> Limits {
     let b = &s.bounds;
     let full = Limits::full(b);
     // The first two cycles, read nothing yet, record every loop at its
@@ -225,14 +255,18 @@ pub(super) fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> L
     let (top, tail) = folds(read, b.hier.levels);
     // The species' own bound beside the projection (fn-276, host
     // 2026-10-14): a job's units in a cycle step with its ages, not
-    // with the counts before them.
+    // with the counts before them. The hierarchy's generations take the
+    // units rounds' floor (fn-298 R2): a cycle's generations are the
+    // layout's depth the cycle before, which rises past the census read
+    // two cycles back by up to 3 on a walk frame but never past
+    // `2 units - 1` (68,916 census rows, R2.md).
     let [floor_rounds, floor_gens] = super::build_arena::floors(s.units);
     Limits {
         units: live.div_ceil(r.units),
         draws: live.div_ceil(r.draw),
         deposits: lit.div_ceil(r.deposit),
         sweeps: sweeps_ahead(read, prev) + STEP[3],
-        rounds: (read[c::GENS] + STEP[0]).max(floor_gens),
+        rounds: (read[c::GENS] + STEP[0]).max(floor_rounds),
         passes: passes(read) + STEP[1],
         top,
         tail,
@@ -291,8 +325,10 @@ mod tests {
     }
 
     /// fn-276: a species whose job chains `units` units in a cycle
-    /// records 2 units - 1 rounds and `units` generations at least, past
-    /// what the census read used and its slack.
+    /// records 2 units - 1 units rounds and `units` layout generations at
+    /// least, past what the census read used and its slack; fn-298 R2:
+    /// the hierarchy's generations take the units rounds' floor,
+    /// `2 units - 1`, past the census's generations and `STEP[0]`.
     #[test]
     fn a_species_floor_holds_the_limits_up() {
         let mut s = Sizes::least();
@@ -301,7 +337,9 @@ mod tests {
         let mut read = vec![0; c::WORDS];
         read[c::MADE + T_USED] = 1;
         let l = limits(&s, Some(&read), None);
-        assert_eq!((l.unit_rounds, l.rounds, l.laygens), ([7, 7], 4, 4));
+        assert_eq!((l.unit_rounds, l.rounds, l.laygens), ([7, 7], 7, 4));
+        read[c::GENS] = 6;
+        assert_eq!(limits(&s, Some(&read), None).rounds, 6 + STEP[0]);
         read[c::MADE + T_USED] = 6;
         assert_eq!(
             limits(&s, Some(&read), None).unit_rounds[0],

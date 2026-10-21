@@ -2,12 +2,16 @@
 //! film, FILM.md defect 1), each built by the CPU and on the device in
 //! one test: walk frames near the beech on the way to the Norway spruce
 //! at 40 ("UnitRounds"), and the Laurelin at 20 ("Given").
-use super::Generator;
+use super::cycle::tree;
+use super::{io, Generator};
 use crate::Renderer;
+use std::collections::HashMap;
+use telperion_core::pipeline::executor;
 use telperion_core::presets::{by_identity, Family};
+use telperion_core::surface::{CLUSTER_WORDS, POINT_WORDS};
 
 /// A shipped preset at `age` and `seed`, as the film's walks take them.
-fn at(id: &str, age: f64, seed: u32) -> Family {
+pub(super) fn at(id: &str, age: f64, seed: u32) -> Family {
     let mut f = by_identity(id).expect("a shipped preset");
     (f.age, f.skeleton.seed) = (age, seed);
     f
@@ -93,6 +97,160 @@ fn oak_to_palm_frames_build_on_the_device() {
 fn the_laurelin_at_20_builds_on_the_device() {
     let refused = refused(&[("laurelin at 20, seed 7".into(), at("laurelin", 20.0, 7))]);
     assert!(refused.is_empty(), "{refused:#?}");
+}
+
+/// fn-298 R1: beech to spruce at 40, seed 7, at the eased share 0.2160 the
+/// film's cut took (`ease(0.3)`, its 27th frame of 90), refused
+/// "LayGenerations (0x1)" while its layout outran the generations a cycle
+/// recorded.
+fn frame_0_216() -> (String, Family) {
+    let (a, b) = (at("european-beech", 40.0, 7), at("norway-spruce", 40.0, 7));
+    let t = 0.3 * 0.3 * (3.0 - 2.0 * 0.3);
+    let family = telperion_core::blend::families(&a, &b, t).expect("a walk frame");
+    (format!("beech to spruce at 40, seed 7, t {t}"), family)
+}
+
+/// fn-298 R4: the 0.2160 frame builds on the device with the CPU's node
+/// count and its leaf instances within 1 of the CPU's.
+#[test]
+fn fn298_the_beech_to_spruce_at_0_216_builds_on_the_device() {
+    let (name, mut family) = frame_0_216();
+    let _held = super::whole_tree();
+    let Some(gpu) = super::test_gpu() else {
+        return;
+    };
+    let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).expect("a generator");
+    let cpu = telperion_core::mesh::build(&family)
+        .unwrap_or_else(|e| panic!("{name}: the CPU refused: {e}"))
+        .foliage_instances();
+    let device = gen
+        .prepare(&family)
+        .unwrap_or_else(|e| panic!("{name}: {e}"))
+        .count();
+    println!("{name}: device {device} instances, CPU {cpu}");
+    assert!(
+        device.abs_diff(cpu) <= 1,
+        "{name}: device {device}, CPU {cpu}"
+    );
+    gpu.device
+        .poll(wgpu::PollType::wait_indefinitely())
+        .expect("freed");
+    // The dress draws the tree before its leaf bases are hung.
+    family.canopy.leaf_bases = 0.0;
+    let d = apart(&gpu, &family);
+    println!("{name}: {d:?}");
+    assert_eq!(d.device, d.cpu, "{name}: nodes");
+}
+
+/// The 0.2160 frame's tree is the CPU's, node by node, to the tolerances
+/// `agree_tests` holds every preset to.
+#[test]
+#[ignore = "fn-300: walk-frame positions agree between CPU and device (0.342 m apart here; 0.080 m at t 0.1 on the base)"]
+fn fn298_the_beech_to_spruce_at_0_216_agrees_with_the_cpu() {
+    let (name, mut family) = frame_0_216();
+    let _held = super::whole_tree();
+    let Some(gpu) = super::test_gpu() else {
+        return;
+    };
+    family.canopy.leaf_bases = 0.0;
+    let d = apart(&gpu, &family);
+    println!("{name}: {d:?}");
+    assert!(d.matched * 1000 >= d.device * 999, "{name}: {d:?}");
+    assert!(d.position < 1e-3 && d.radius < 1e-5, "{name}: {d:?}");
+}
+
+/// How the device's drawn nodes stood against the CPU conversion's,
+/// matched by lineage as `agree_tests` matches them: the most apart a
+/// position and a radius stood (m).
+#[derive(Debug)]
+pub(super) struct Apart {
+    pub(super) device: usize,
+    pub(super) cpu: usize,
+    pub(super) matched: usize,
+    pub(super) position: f64,
+    pub(super) radius: f64,
+}
+
+pub(super) fn apart(gpu: &crate::Gpu, family: &Family) -> Apart {
+    let k = tree::Kernels::new(gpu);
+    let growth = executor::growth(family).expect("its growth");
+    let (dressed, _) =
+        pollster::block_on(tree::drawn(gpu, &k, (&growth, 0))).expect("the device's tree");
+    let dev = super::resident::agree_tests::drawn_nodes(gpu, &dressed);
+    let x = executor::grow(family).expect("the CPU's tree");
+    let x = x.expansion().expect("its expansion");
+    let cpu = x.tree();
+    let n = cpu.nodes.len();
+    let by_key: HashMap<u32, usize> = (1..n).map(|i| (cpu.key(i), i)).collect();
+    let by_identity: HashMap<u64, usize> = (1..n)
+        .map(|i| (cpu.nodes[i].identity.birth_order(), i))
+        .collect();
+    let mut out = Apart {
+        device: dev.len(),
+        cpu: n - 1,
+        matched: 0,
+        position: 0.0,
+        radius: 0.0,
+    };
+    for d in &dev {
+        let found = match d.identity {
+            Some(k) => by_identity.get(&k),
+            None => by_key.get(&d.key),
+        };
+        let Some(&i) = found else { continue };
+        out.matched += 1;
+        let c = &cpu.nodes[i];
+        let p = [c.position.x, c.position.y, c.position.z];
+        let r = [c.radius, c.start_radius, c.base_radius];
+        for a in 0..3 {
+            out.position = out.position.max((f64::from(d.position[a]) - p[a]).abs());
+            out.radius = out.radius.max((f64::from(d.radii[a]) - r[a]).abs());
+        }
+    }
+    out
+}
+
+/// fn-298 R2 (d): the layout's closing pass is exact. The Norway spruce
+/// at its default age, every cycle recording one layout generation and
+/// the closing pass laying the rest, hands the renderer the same bytes as
+/// its stepped build.
+#[test]
+fn one_layout_generation_lays_the_stepped_tree() {
+    let _held = super::whole_tree();
+    let Some(gpu) = super::test_gpu() else {
+        return;
+    };
+    let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).expect("a generator");
+    let family = by_identity("norway-spruce").expect("a shipped preset");
+    let stepped = handed(&gen, &family);
+    let one = tree::with_laygens(1, || handed(&gen, &family));
+    assert!(stepped.len() > 1000, "a tree handed over");
+    assert!(stepped == one, "one generation a cycle laid another tree");
+}
+
+/// What the device hands the renderer for `family`, as bytes: its leaves
+/// (their `Debug` prints every float exactly), then the wood's packed
+/// points, clusters and sections.
+fn handed(gen: &Generator, family: &Family) -> Vec<u8> {
+    let prepared = gen.prepare(family).expect("a device build");
+    let leaves = gen.read_instances(&prepared).expect("its leaves");
+    let mut out = format!("{leaves:?}").into_bytes();
+    let wood = prepared.wood.as_ref().expect("a resident build's curve");
+    let (points, clusters, p, k, demand) = wood.blocks();
+    out.extend(format!("{demand:?}").into_bytes());
+    let sections = (wood.sections(), wood.sections().size());
+    for (buffer, bytes) in [
+        (points, p * POINT_WORDS as u64 * 4),
+        (clusters, u64::from(k) * CLUSTER_WORDS as u64 * 4),
+        sections,
+    ] {
+        if bytes > 0 {
+            out.extend(io::read(&gen.gpu, buffer, bytes).expect("read back"));
+        }
+    }
+    out
 }
 
 /// The film's walks (fn-272's `release.json`): each adjacent pair at its
@@ -203,7 +361,7 @@ fn the_spruce_at_62_starts_with_room_to_move() {
 }
 
 /// Each family built on the device alone; the refusals, by family.
-fn refused_on_device(families: &[(String, Family)]) -> Vec<String> {
+pub(super) fn refused_on_device(families: &[(String, Family)]) -> Vec<String> {
     let _held = super::whole_tree();
     let Some(gpu) = super::test_gpu() else {
         return Vec::new();
