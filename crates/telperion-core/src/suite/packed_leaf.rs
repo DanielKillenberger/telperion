@@ -2,7 +2,7 @@
 //! made up for it: the box every species is quantised against, that the box
 //! does not move with age, and that no station the generator places falls
 //! outside it.
-use telperion_core::{mesh, params, presets};
+use telperion_core::{params, presets};
 
 /// Every family the core ships, read off the catalogue itself so a species
 /// added later is judged here without anyone remembering to add it. The
@@ -22,12 +22,34 @@ fn family(id: &str) -> presets::Family {
     params::by_identity(id).unwrap_or_else(|e| panic!("{id} is not a shipped preset: {e}"))
 }
 
+/// R3 and R2's position half, on one mesh per shipped species (fn-304: the
+/// two were separate tests that built identical meshes).
+///
 /// R3: a station outside the box cannot occur. The debug assertion inside
 /// `pack` says so while the tests run; this says so for the release build the
 /// gate uses, over every leaf of every shipped species. The direct build's
 /// box is its grown tree's wood grown by the station reach (fn-183).
+///
+/// R2's position half: the round trip reproduces where a leaf stands to
+/// within half a code step, and that step is under the quarter millimetre the
+/// spec holds the encoding to, for every botanical species.
+///
+/// The two legendary families are held to nothing on the step and measured
+/// anyway. Telperion is 148 m tall, so its box is four and a half times the
+/// tallest real tree's and its step is four and a half times as coarse - a
+/// millimetre on a silver tree taller than any that grows, which is the
+/// encoding behaving exactly as stated rather than a defect.
+///
+/// The date palm is exempt for a different reason: its rachises carry their
+/// leaflets metres past the wood, and the reach that holds them grows its box
+/// to 42.8 m tall, so half its step measures 0.327 mm against the 0.25 mm
+/// held here. It is measured and printed like the legendary two.
+///
+/// The box is the one the direct build quantises against: the grown tree's
+/// wood grown by the station reach, since the twig layer asks the crown
+/// nothing and the authored shell no longer bounds the wood (fn-183).
 #[test]
-fn no_station_of_any_shipped_species_falls_outside_its_box() {
+fn every_station_stands_inside_its_box_at_a_quarter_millimetre_step() {
     let _turn = crate::one_tree::turn();
     for id in shipped() {
         let f = family(id);
@@ -58,36 +80,6 @@ fn no_station_of_any_shipped_species_falls_outside_its_box() {
                 "{id}: leaf {index} stands on the wall at {p:?}, so the box is too small"
             );
         }
-    }
-}
-
-/// R2's position half: the round trip reproduces where a leaf stands to
-/// within half a code step, and that step is under the quarter millimetre the
-/// spec holds the encoding to, for every botanical species.
-///
-/// The two legendary families are held to nothing here and measured anyway.
-/// Telperion is 148 m tall, so its box is four and a half times the tallest
-/// real tree's and its step is four and a half times as coarse - a millimetre
-/// on a silver tree taller than any that grows, which is the encoding
-/// behaving exactly as stated rather than a defect.
-///
-/// The date palm is exempt for a different reason: its rachises carry their
-/// leaflets metres past the wood, and the reach that holds them grows its box
-/// to 42.8 m tall, so half its step measures 0.327 mm against the 0.25 mm
-/// held here. It is measured and printed like the legendary two.
-///
-/// The box is the one the direct build quantises against: the grown tree's
-/// wood grown by the station reach, since the twig layer asks the crown
-/// nothing and the authored shell no longer bounds the wood (fn-183).
-#[test]
-fn the_position_step_is_under_a_quarter_millimetre_for_every_species() {
-    let _turn = crate::one_tree::turn();
-    for id in shipped() {
-        let reference = mesh::build(&family(id))
-            .unwrap()
-            .foliage
-            .instances
-            .reference;
         let step = reference.step();
         let worst = step.x.max(step.y).max(step.z) / 2.0;
         println!(

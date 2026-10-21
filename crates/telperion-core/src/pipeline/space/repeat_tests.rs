@@ -47,21 +47,40 @@ fn print(tree: &telperion_space::Structure) -> u64 {
     fold.0.finish()
 }
 
+/// One preset grown three times: twice on four cores, once on one.
+fn grows_the_same_tree_again_and_on_any_cores(id: &str) {
+    let family = by_identity(id).unwrap();
+    let first = {
+        let tree = on(4, &family);
+        let broken = telperion_space::invariants::invariants(&tree);
+        assert!(broken.is_empty(), "{id}: {broken:#?}");
+        println!("{id}: {} axes", tree.axes.len());
+        print(&tree)
+    };
+    assert_eq!(first, print(&on(4, &family)), "{id}: built again");
+    assert_eq!(first, print(&on(1, &family)), "{id}: on one core");
+}
+
+/// The pipeline's determinism on the two presets that exercise the most
+/// stages: Telperion, the largest tree, and the date palm, the one stem
+/// with fronds (host, fn-304 ruling 7). Every preset is the ignored test
+/// below.
 #[test]
-fn every_preset_grows_the_same_tree_again_and_on_any_cores() {
+fn the_largest_tree_and_the_palm_grow_the_same_tree_again_and_on_any_cores() {
     let _turn = crate::one_tree::turn();
     the_print_tells_a_bit_and_a_build_order_apart();
+    for id in ["telperion", "date-palm"] {
+        grows_the_same_tree_again_and_on_any_cores(id);
+    }
+}
+
+/// `cargo test --profile ci -p telperion-core --lib repeat_tests -- --ignored`
+#[test]
+#[ignore = "fn-304: the full catalogue sweep, outside the gate; about 3 minutes"]
+fn every_preset_grows_the_same_tree_again_and_on_any_cores() {
+    let _turn = crate::one_tree::turn();
     for &(_, id, _, _) in CATALOGUE {
-        let family = by_identity(id).unwrap();
-        let first = {
-            let tree = on(4, &family);
-            let broken = telperion_space::invariants::invariants(&tree);
-            assert!(broken.is_empty(), "{id}: {broken:#?}");
-            println!("{id}: {} axes", tree.axes.len());
-            print(&tree)
-        };
-        assert_eq!(first, print(&on(4, &family)), "{id}: built again");
-        assert_eq!(first, print(&on(1, &family)), "{id}: on one core");
+        grows_the_same_tree_again_and_on_any_cores(id);
     }
 }
 
