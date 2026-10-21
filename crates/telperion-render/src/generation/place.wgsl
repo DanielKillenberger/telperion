@@ -13,7 +13,8 @@ struct Config {
     organs:vec4<u32>,
     // What rests an instance on the ground (`rest.wgsl`): a leaf's wedge
     // (`rest_corner`); an inflorescence's organ box, least corner and the
-    // farthest its points reach from its seat, then most corner.
+    // farthest its points reach from its seat, then most corner and its
+    // pedicels' tube radius.
     wedge_a:vec4<f32>,
     wedge_b:vec4<f32>,
 }
@@ -185,7 +186,9 @@ fn inflorescence_rest(f:Flower, r:Segment, key:vec2<u32>, step:f32) -> vec3<f32>
         if !floret_kept(size) { continue; }
         let fl=floret(f,seat,r.b.xyz,key,i);
         let at=fl.point-fl.stalk*f.c.y;
-        lo=min(lo,min(at,fl.point)-seat); hi=max(hi,max(at,fl.point)-seat);
+        // The pedicel's tube about both its ends (`pedicel_vertex`).
+        let tube=vec3<f32>(config.wedge_b.w);
+        lo=min(lo,min(at,fl.point)-seat-tube); hi=max(hi,max(at,fl.point)-seat+tube);
         let side=cross(fl.stalk,fl.face);
         for(var k=0u;k<8u;k++) {
             let c=select(config.wedge_a.xyz,config.wedge_b.xyz,(vec3<u32>(k,k>>1u,k>>2u)&vec3<u32>(1u))!=vec3<u32>(0u));

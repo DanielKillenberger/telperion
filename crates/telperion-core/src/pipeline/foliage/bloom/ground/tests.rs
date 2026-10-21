@@ -7,6 +7,26 @@ use crate::tree::{Node, NodeIdentity};
 /// What "on the ground" admits after a float32 store (`ground_reach`).
 const BELOW: f64 = 1e-4;
 
+/// The vertices of a floret's pedicel as the renderer rebuilds them
+/// (`stalk.wgsl`'s `pedicel_vertex`): from its seat a pedicel back along
+/// the floret's axis to its base, a tube the stamen's half width round.
+fn pedicel(m: &[f32; 16], p: &BloomParams) -> Vec<Vec3> {
+    let column = |c: usize| {
+        Vec3::new(m[c * 4].into(), m[c * 4 + 1].into(), m[c * 4 + 2].into()).normalized()
+    };
+    let base = Vec3::new(m[12].into(), m[13].into(), m[14].into());
+    let mut out = Vec::new();
+    for along in [0.0, 1.0] {
+        for side in 0..3 {
+            let turn = std::f64::consts::TAU * f64::from(side) / 3.0;
+            let round = column(0) * turn.cos() + column(2) * turn.sin();
+            let at = base - column(1) * (p.pedicel * (1.0 - along));
+            out.push(at + round * (0.5 * p.stamen_width));
+        }
+    }
+    out
+}
+
 /// A hanging raceme on a shoot tip seated `height` up.
 fn seated(height: f64) -> (Tree, BloomParams) {
     let mut tip = Node::root();
@@ -58,6 +78,9 @@ fn a_raceme_seated_low_rests_its_florets_and_pedicels_as_one() {
     );
     for m in florets(&rested) {
         assert!(low(&m) >= -BELOW, "a floret stands {} below", low(&m));
+        for v in pedicel(&m, &p) {
+            assert!(v.y >= -BELOW, "a pedicel stands {} below", v.y);
+        }
     }
     // One turn about the seat: each floret keeps its distance from it and
     // its size, and every pair keeps its distance.
@@ -86,4 +109,37 @@ fn a_raceme_seated_clear_of_the_ground_keeps_every_bit() {
             .collect::<Vec<_>>()
     };
     assert_eq!(bits(&drawn), bits(&rested));
+}
+
+/// A floret on a long, thick pedicel held just off the ground, its
+/// centreline clear and its tube, which no element vertex stands for,
+/// below: the tube rests on the ground with it.
+#[test]
+fn a_thick_pedicel_rests_with_its_floret() {
+    let (mut tree, mut p) = seated(10e-3);
+    tree.nodes[0].position = Vec3::new(0.3, -1.0, 0.0);
+    p = BloomParams {
+        florets: 1.0,
+        rachis: 1e-4,
+        droop: 0.0,
+        spread: 94.5,
+        pedicel: 0.1,
+        petal_length: 1e-4,
+        petal_width: 1e-4,
+        stamens: 0.0,
+        stamen_width: 0.01,
+        ..p
+    };
+    let drawn = matrices(&tree, &p, None, None).unwrap();
+    let rested = matrices(&tree, &p, None, Some(within().step().y)).unwrap();
+    let at = |m: &[f32; 16]| Vec3::new(m[12].into(), m[13].into(), m[14].into());
+    let (floret, _) = drawn[0];
+    assert!(at(&floret).y > 0.0, "the pedicel's centreline is clear");
+    assert!(
+        pedicel(&floret, &p).iter().any(|v| v.y < -BELOW),
+        "the tube reaches below"
+    );
+    for v in pedicel(&rested[0].0, &p) {
+        assert!(v.y >= -BELOW, "a pedicel stands {} below", v.y);
+    }
 }

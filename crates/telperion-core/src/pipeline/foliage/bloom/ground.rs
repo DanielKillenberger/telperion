@@ -34,10 +34,21 @@ impl Span {
     }
 
     /// One floret: its pedicel from `at` on the axis to its matrix's origin,
-    /// and its element's corners `element` under its matrix.
-    pub(super) fn floret(&mut self, seat: Vec3, at: Vec3, m: &[f32; 16], element: &[Vec3; 8]) {
-        self.take(at - seat);
-        self.take(Vec3::new(m[12].into(), m[13].into(), m[14].into()) - seat);
+    /// a tube `tube` thick about both ends (`stalk.wgsl`'s
+    /// `pedicel_vertex`), and its element's corners `element` under its
+    /// matrix.
+    pub(super) fn floret(
+        &mut self,
+        seat: Vec3,
+        (at, tube): (Vec3, f64),
+        m: &[f32; 16],
+        element: &[Vec3; 8],
+    ) {
+        let round = Vec3::new(tube, tube, tube);
+        for end in [at, Vec3::new(m[12].into(), m[13].into(), m[14].into())] {
+            self.take(end - seat - round);
+            self.take(end - seat + round);
+        }
         for c in element {
             self.take(super::super::transform_point(m, *c) - seat);
         }

@@ -1429,12 +1429,6 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/foliage/bloom/ground.rs",
-    "site": ". take ( Vec3 : : new ( m [ 12 ] . into ( ) , m [ 13 ] . into ( ) , m [ 14 ] . into ( ) ) - seat )",
-    "classification": "algorithm",
-    "reason": "fn-301 R2: a floret's origin, its pedicel's end, taken into the box of the inflorescence's points (`Span::take`); the indices are a transform's translation, not a limit."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/foliage/bloom/ground.rs",
     "site": "for c in 0 . . 3 {",
     "classification": "algorithm",
     "reason": "fn-301 R2: a transform's three columns, each turned by the rest; not a limit."

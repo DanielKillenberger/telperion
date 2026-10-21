@@ -16,7 +16,8 @@
 //! scale less its attachment's height (host, 2026-10-21); that dip is
 //! reported per row. A flower's rachis is read from the CPU's mirror of the
 //! one the renderer rebuilds (`foliage::rachis_low`), kept off the ground
-//! as `stalk.wgsl` draws it.
+//! as `stalk.wgsl` draws it, and each floret's pedicel as `stalk.wgsl`'s
+//! `pedicel_vertex` rebuilds it.
 //!
 //! Red on the base for the date palm (fn-283 measured it); ignored until
 //! contact lands, and run by name: `cargo test -p telperion-core --test
@@ -83,6 +84,32 @@ fn foliage_low(f: &Foliage, stalk: bool) -> (f64, f64, usize) {
     (low, dip, under)
 }
 
+/// The lowest vertex of an organ's pedicels, each rebuilt from its
+/// floret's transform as the renderer rebuilds it (`pedicel_vertex`): from
+/// its seat a pedicel back along the floret's axis to its base, a tube the
+/// stamen's half width round.
+fn pedicel_low(f: &Foliage, p: &BloomParams) -> f64 {
+    let mut low = f64::INFINITY;
+    for (i, m) in f.instances.matrices().enumerate() {
+        if withered(f.instances.leaves[i]) {
+            continue;
+        }
+        let column = |c: usize| {
+            Vec3::new(m[c * 4].into(), m[c * 4 + 1].into(), m[c * 4 + 2].into()).normalized()
+        };
+        let base = Vec3::new(m[12].into(), m[13].into(), m[14].into());
+        for along in [0.0, 1.0] {
+            for side in 0..3 {
+                let turn = std::f64::consts::TAU * f64::from(side) / 3.0;
+                let round = column(0) * turn.cos() + column(2) * turn.sin();
+                let at = base - column(1) * (p.pedicel * (1.0 - along));
+                low = low.min((at + round * (0.5 * p.stamen_width)).y);
+            }
+        }
+    }
+    low
+}
+
 /// The lowest drawn vertex of an organ's rachises: each rebuilt from its
 /// instance's seat, heading and radius, kept off the ground as drawn.
 fn stalk_low(f: &Foliage, p: &BloomParams) -> f64 {
@@ -136,6 +163,8 @@ fn nothing_drawn_passes_below_the_ground() {
                 let (flower, _, flowers) =
                     organ.map_or((f64::INFINITY, 0.0, 0), |o| foliage_low(o, false));
                 let rachis = organ.map_or(f64::INFINITY, |o| stalk_low(o, &f.bloom));
+                let pedicels = organ.map_or(f64::INFINITY, |o| pedicel_low(o, &f.bloom));
+                let flower = flower.min(pedicels);
                 println!(
                     "{id}\t{age}\t{seed}\t{}\t{}\t{dip:.4}\t{leaves}\t{}\t{flowers}\t{}",
                     show(wood),
@@ -143,7 +172,7 @@ fn nothing_drawn_passes_below_the_ground() {
                     show(flower),
                     show(rachis)
                 );
-                if wood < BELOW || leaves > 0 || flowers > 0 || rachis < BELOW {
+                if wood < BELOW || leaves > 0 || flowers > 0 || flower < BELOW || rachis < BELOW {
                     failures.push(format!("{id} at {age}, seed {seed}"));
                 }
             }

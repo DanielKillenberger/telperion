@@ -112,8 +112,9 @@ pub(super) fn wedge(e: &Element) -> [[f32; 4]; 2] {
 }
 /// An organ element's box as `place.wgsl`'s `inflorescence_rest` reads
 /// it: its least corner and the farthest an inflorescence's points reach
-/// from its seat (`bloom.rs`'s `Ground`), then its most corner.
-fn organ(e: &Element, scatter: f64) -> [[f32; 4]; 2] {
+/// from its seat (`bloom.rs`'s `Ground`), then its most corner and the
+/// pedicels' tube radius `tube`.
+fn organ(e: &Element, scatter: f64, tube: f64) -> [[f32; 4]; 2] {
     let first = e.positions.first().copied().unwrap_or(Vec3::ZERO);
     let (mut lo, mut hi) = (first, first);
     for v in &e.positions {
@@ -133,7 +134,7 @@ fn organ(e: &Element, scatter: f64) -> [[f32; 4]; 2] {
         .fold(0.0, f64::max);
     [
         vector(lo, e.stalk + radius * (1.0 + scatter)),
-        vector(hi, 0.0),
+        vector(hi, tube),
     ]
 }
 /// A bloom's rows as `bloom.wgsl`'s `Flower` reads them (fn-229), drawn at
@@ -154,9 +155,9 @@ pub(super) fn flower(p: &BloomParams, now: f64) -> [[f32; 4]; 3] {
 }
 /// The florets' rows: `count` instances of `records` blooms, each bloom's
 /// florets then its rachis (fn-253), the organ element `e`, packed against
-/// `r` (fn-229).
+/// `r` (fn-229), its pedicels `tube` thick.
 pub(super) fn florets(
-    rows: [[f32; 4]; 3],
+    (rows, tube): ([[f32; 4]; 3], f64),
     (count, records): (u32, u32),
     e: &Element,
     r: Reference,
@@ -171,8 +172,8 @@ pub(super) fn florets(
         size: rows[2],
         rachis: [0.0; 4],
         organs: [0x10000, 0, 0, 0],
-        wedge_a: organ(e, f64::from(rows[0][2]))[0],
-        wedge_b: organ(e, f64::from(rows[0][2]))[1],
+        wedge_a: organ(e, f64::from(rows[0][2]), tube)[0],
+        wedge_b: organ(e, f64::from(rows[0][2]), tube)[1],
     }
 }
 #[cfg(test)]

@@ -278,10 +278,11 @@ fn matrices(
 }
 
 /// What resting an inflorescence reads: the organ element's box corners,
-/// the farthest any of its points stands from its seat, and the stored
-/// box's position code in y.
+/// its pedicels' tube radius, the farthest any of its points stands from
+/// its seat, and the stored box's position code in y.
 struct Ground {
     corners: [Vec3; 8],
+    tube: f64,
     reach: f64,
     step: f64,
 }
@@ -305,6 +306,7 @@ impl Ground {
         let radius = corners.iter().map(|c| c.length()).fold(0.0, f64::max);
         Self {
             corners,
+            tube: 0.5 * p.stamen_width,
             reach: stalk_reach(p) + radius * (1.0 + p.scatter),
             step,
         }
@@ -390,7 +392,12 @@ fn inflorescence(
         let face = or(radial.cross(stalk), stalk.perpendicular());
         out.push((matrix(point, stalk, face, size)?, false));
         if let (Some(span), Some(g)) = (span.as_mut(), low) {
-            span.floret(node.position, at, &out[out.len() - 1].0, &g.corners);
+            span.floret(
+                node.position,
+                (at, g.tube),
+                &out[out.len() - 1].0,
+                &g.corners,
+            );
         }
     }
     if let (Some(span), Some(g)) = (span, low) {
