@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-303-the-device-and-the-cpu-grow-the-same",
+  "created_at": "2026-10-21T17:33:26.930006Z",
+  "depends_on_epics": [],
+  "id": "fn-303-the-device-and-the-cpu-grow-the-same",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-303-the-device-and-the-cpu-grow-the-same.md",
+  "status": "open",
+  "title": "The device and the CPU grow the same rounds frames on the release branch",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-21T17:33:26.939359Z"
+}
