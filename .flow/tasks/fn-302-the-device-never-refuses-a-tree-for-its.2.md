@@ -35,9 +35,14 @@ The committed survey (R7), R3's byte comparison against bb20f3877, the retry rep
 - [ ] `npm test` passes; the gate is green once.
 
 ## Done summary
-TBD
+An ignored survey test (`stepped_survey`) taps every census a device build reads and prints each stepped limit's most rise and least headroom, with where, and the builds that began again, over the walk frames and the presets at their default age and at 12 and 40 where younger; SURVEY_DIGEST prints digest lines, SURVEY_ONLY filters. RESULT.md records: one build of 1,605 began again (frame 41, seed 1); all 1,532 frames bb20f3877 built have equal digest lines and frame 41 builds; the 34 preset and palm digest lines are equal; frame 41's retry costs 43.8 ms (317.7 against 273.9 ms). 145 Laurelin to Telperion frames refused by the VRAM-following device budget in the first run built on a rerun with a free GPU.
 
+Tests: stepped_survey (full set and rerun), digest and palm_digest, npm test (177 passed). Gate once: 1,473 passed, 0 failed, 117 ignored.
+
+stage: impl-review - ran (codex, 1 draw: correctness, SHIP) (model: gpt-6.1-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e8d33b3ce037ba8a131dec7b6ad97d116c5b3b9e, 642d03478ed5de50df21606c2f1aec871513cbb4
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast, npm test
 - PRs:
