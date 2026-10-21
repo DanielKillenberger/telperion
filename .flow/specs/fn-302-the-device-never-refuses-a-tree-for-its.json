@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-302-the-device-never-refuses-a-tree-for-its",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-21T21:34:12.197550Z",
   "created_at": "2026-10-21T16:24:56.004954Z",
   "default_impl": null,
   "default_review": null,
@@ -191,17 +191,54 @@
       "task": "fn-302-the-device-never-refuses-a-tree-for-its.2",
       "timestamp": "2026-10-21T20:12:25.504756Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "16aaab5b5580108363ef44480312bf8b09dc767e2309ecec7c51d3061f3fe918",
+      "backend": "codex",
+      "base_sha": "bb20f38775fb4a9de8e16193d30ae6fd216dae54",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "20fcedce1f9a3c3abdb470e7d7f04e3bc8aeb61f",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 436831,
+      "output_sha256": "541a7a8979d708614da358fe28bd60a7cc7dd1c9214fe888ecd4f9edb4d5d26f",
+      "reservation_id": "6c57d3821e2b426784732466346be1dc",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T21:34:12.184082Z",
+      "tool_calls": 23,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-302-the-device-never-refuses-a-tree-for-its.1": 1,
     "impl:fn-302-the-device-never-refuses-a-tree-for-its.2": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-302-the-device-never-refuses-a-tree-for-its.1": 0,
     "impl:fn-302-the-device-never-refuses-a-tree-for-its.2": 0,
     "plan": 0
@@ -220,5 +257,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T20:12:25.507679Z"
+  "updated_at": "2026-10-21T21:34:12.204562Z"
 }
