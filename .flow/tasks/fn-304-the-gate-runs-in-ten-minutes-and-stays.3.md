@@ -22,16 +22,11 @@ Rulings 6, 3 and 4: the walks binary (369 test-seconds, its two big tests each b
 - `crates/telperion-wasm/src/generate/tests.rs:120-210`
 - `crates/telperion-render/src/generation/resident/field_tests.rs:130-210`
 - `docs/gpu-tests.md:1-40`
-
-### Acceptance
+## Acceptance
 - [ ] walks: one merged test growing the walks once, both halves red on their patches.
-- [ ] wasm: no preset built twice across the two tests; folded assertion red on its patch.
+- [ ] wasm: no non-flowering preset is built twice across the two tests; the flowering presets keep their own extra builds (pipeline reference, foliage and surface-only requests); folded assertion red on its patch.
 - [ ] Device field: one grid at both seeds in the gate, all grids ignored, red proof recorded.
 - [ ] Gate run once at the end; codex impl review.
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 TBD
 

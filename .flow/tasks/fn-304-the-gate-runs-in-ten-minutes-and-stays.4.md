@@ -16,6 +16,7 @@ R7 on the shrunk suite: `cargo test` and nextest with groups at `--threads 2`, `
 - `.config/nextest.toml` feeds `scripts/ci-key.mjs`; editing it re-keys every CI receipt, which is expected.
 - Nextest runs no doc-tests; the workspace has none today. If nextest is declared, the gate command adds `cargo test --doc --workspace` or states that there are none and a check holds it.
 - Rewrite `AGENTS.md:39` with the invocation, the counts and the wall time, and settle 8 GB against 12 GB.
+- The budgets of task .5 need a process per test (nextest's slow-timeout and a per-process RSS). If `cargo test` is the faster runner inside 8 GB, report both figures to the host and stop before .5: libtest has no per-test timeout or memory measure without `RUSTC_BOOTSTRAP`, which breaks the trybuild tests (fn-271).
 - Heavy-chain probes at threads 4 and 8 were started in R1's session (`raw/heavy-t4*`, `raw/heavy-t8*`); reuse them as the pre-shrink comparison.
 
 ### Investigation targets
@@ -23,16 +24,11 @@ R7 on the shrunk suite: `cargo test` and nextest with groups at `--threads 2`, `
 - `.config/nextest.toml`, `.github/actions/nextest/action.yml`, `scripts/ci-key.mjs:15-20`
 - `AGENTS.md:37-41`
 - `.flow/evidence/fn-304-the-gate-runs-in-ten-minutes-and-stays/R1.md`
-
-### Acceptance
+## Acceptance
 - [ ] Six measurements (two runners, three widths) with wall, peak and pass/kill in RESULT.md.
 - [ ] The fastest passing inside 8 GB declared; groups and width checked in.
 - [ ] AGENTS.md's gate line rewritten with its measurement.
 - [ ] Codex impl review.
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 TBD
 

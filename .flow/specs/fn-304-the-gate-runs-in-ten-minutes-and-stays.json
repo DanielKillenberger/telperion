@@ -1,11 +1,166 @@
 {
   "branch_name": "fn-304-the-gate-runs-in-ten-minutes-and-stays",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-21T17:42:49.770270Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-304-the-gate-runs-in-ten-minutes-and-stays",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T21:11:04.103110Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "08906989c5eaa1912862b06b6168780cca99b82b8131e8e342dced827451b931",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6e05b8446209a00269d055c5a65235c0",
+            "classification": "introduced",
+            "findingId": "finding-6e05b8446209a00269d055c5a65235c0",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1074bba607b5e6fda10e9233192e0852",
+            "classification": "introduced",
+            "findingId": "finding-1074bba607b5e6fda10e9233192e0852",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-34ae50de6f6fd81dadf723a334b704c9",
+            "classification": "introduced",
+            "findingId": "finding-34ae50de6f6fd81dadf723a334b704c9",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2f670fc19f2c7c25929ac3eb9f5d36a0",
+            "classification": "introduced",
+            "findingId": "finding-2f670fc19f2c7c25929ac3eb9f5d36a0",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e7116552a3c8804137be3cb06f45239e5e7369aa",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 327589,
+      "output_sha256": "47d8f63bcae5217862855b3004d25abd91913432b2a391c2ca9b80210bb8adad",
+      "reservation_id": "582d0ef27471435c81a76c07b19ab1ed",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T21:09:49.036822Z",
+      "tool_calls": 15,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "0536f33f9648c950e64d91230f3df3fb3b7006d34aceddf7949d56d8d39bcc15",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6e05b8446209a00269d055c5a65235c0",
+            "classification": "introduced",
+            "findingId": "finding-6e05b8446209a00269d055c5a65235c0",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1074bba607b5e6fda10e9233192e0852",
+            "classification": "introduced",
+            "findingId": "finding-1074bba607b5e6fda10e9233192e0852",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-34ae50de6f6fd81dadf723a334b704c9",
+            "classification": "introduced",
+            "findingId": "finding-34ae50de6f6fd81dadf723a334b704c9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2f670fc19f2c7c25929ac3eb9f5d36a0",
+            "classification": "introduced",
+            "findingId": "finding-2f670fc19f2c7c25929ac3eb9f5d36a0",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e7116552a3c8804137be3cb06f45239e5e7369aa",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 670,
+      "output_sha256": "c6193b9d6ebf03274bb24edbd87a1767b61b5a33e06a737d63a8eee96510e53e",
+      "reservation_id": "3e8e5dbe67754e71afd696f606efd104",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T21:11:04.100205Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-304-the-gate-runs-in-ten-minutes-and-stays.md",
   "status": "open",
   "title": "The gate runs in ten minutes and stays there",
@@ -20,5 +175,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T21:06:50.368877Z"
+  "updated_at": "2026-10-21T21:11:04.103677Z"
 }
