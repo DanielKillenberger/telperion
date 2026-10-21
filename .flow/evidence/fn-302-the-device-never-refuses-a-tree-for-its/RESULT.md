@@ -77,3 +77,10 @@ So no projection is a bound, and the host chose one retry at the bound (Design r
 
 - The retry costs 43.8 ms, the refused first attempt's 12 cycles. Both sides build 108,218 instances.
 - Builds that do not retry record exactly what they recorded before, so their cost is unchanged (Design revised: no timing pair).
+
+## R4: the gate and npm test
+
+- **Task 1 gate** (`telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`): 1,472 passed, 1 failed, 116 ignored (`raw/t1-gate.log`). The failure was `every_device_preset_builds_the_same_leaves_each_time`, refused for device memory ("Out of Memory") while desktop applications held about 6 of the 10 GiB. It passes alone, with every preset alike (FRICTION.md).
+- **Task 2 gate:** 1,473 passed, 0 failed, 117 ignored (`raw/t2-gate.log`).
+- **`npm test`:** 22 files, 177 tests passed (`raw/t2-npm-test.log`).
+- **Codex review:** SHIP on task 1 (three draws: correctness, contracts, integration) and on task 2 (one draw: correctness).
