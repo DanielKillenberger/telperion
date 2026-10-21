@@ -10,10 +10,9 @@
 //! up direction `d` nearest world up with `v·d ≥ -t` for every corner. A
 //! leaf's base corners, its stalk, which is its seat on the wood, may reach
 //! as far down as its base depth; the rest clear the ground by the encoder's
-//! margin (host, 2026-10-21). The
-//! instance is then turned about a horizontal axis by the rotation that
-//! carries `d` onto up. `shaders`' `rest.wgsl` is the device's copy, in the
-//! same order.
+//! margin (host, 2026-10-21). The instance is then turned about a
+//! horizontal axis by the rotation that carries `d` onto up.
+//! `generation/rest.wgsl` is the device's copy, in the same order.
 use super::Element;
 use crate::math::Vec3;
 
