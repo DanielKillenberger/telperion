@@ -97,3 +97,10 @@
 - **Slowed by:** the palm at 40, which the spec counts as clear, has one leaf-base cell vertex (a shaped, non-trunk run at the stem's foot) 1.7 to 2.4 mm below the ground on the base. The clearance sets it onto the ground, so the palm's wood digest moves at seeds 1, 7 and 42 (one position each; 9 to 10 encoded normals around it). The beech, Telperion and Laurelin are unchanged. R1's curve-based wood measure could not see the cell, so the palm was listed clear. The host's instruction is to stop on this.
 - **Cost:** about 10 minutes of measuring and a stop for the host.
 - **Would remove it:** an R1 that read the drawn vertices from the start.
+
+## 2026-10-21 08:40, worker, task .3 review round 1
+
+- **Doing:** acting on codex round 1 (NEEDS_WORK, three lenses).
+- **Slowed by:** the integration lens found that leaf seats still read unclamped ring vertices. The CPU's `AttachmentSurface::selected` (used by `foliage/placement.rs` and `prepared.rs`) rebuilds the rings itself, while `drawn.rs`'s `on_wood` reads the clamped mesh. The device's `resident/rings.wgsl` and `positions.wgsl` emit the seat vertices without a trunk bit (ring word 15 is spare). The spec's surface clearance names the sweep's emit only, and the two device files are outside .3's Touches, so this is a stop for the host.
+- **Cost:** about 15 minutes, and a stop before the re-review.
+- **Would remove it:** a plan that listed every producer of ring vertices (the mesh, the tessellation, the seats on both executors) when it ruled the clearance.
