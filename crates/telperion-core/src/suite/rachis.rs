@@ -2,6 +2,9 @@
 //! along a rachis hangs one woody axis through its leaflet stations, so
 //! every leaflet and spine base lies on drawn wood (R6), and no leaflet,
 //! stream or draw moves.
+#[path = "frond_contact.rs"]
+mod frond_contact;
+
 use std::hash::{DefaultHasher, Hash, Hasher};
 use telperion_core::{
     branching,

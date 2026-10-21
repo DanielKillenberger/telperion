@@ -12,8 +12,8 @@ struct Stalk {
 
 // A rachis vertex at `ring`, `side` of the rachis that stands at `seat`
 // along `heading`, `radius` thick there and the stamen's half width at its
-// end: the axis's points in the plane its heading turns in. A ribbon's two
-// sides are its edges, turned to face the eye.
+// end: the axis's points in the plane its heading turns in, none below the
+// ground. A ribbon's two sides are its edges, turned to face the eye.
 fn rachis_vertex(seat: vec3<f32>, heading: vec3<f32>, radius: f32, ring: u32, side: u32, ribbon: bool) -> Stalk {
     let toward = rachis_toward(u.stalk.y);
     let at = rachis_point(seat, heading, u.stalk.x, u.stalk.y, ring);
@@ -33,7 +33,11 @@ fn rachis_vertex(seat: vec3<f32>, heading: vec3<f32>, radius: f32, ring: u32, si
         normal = stalk_or(eye, out);
     }
     let along = f32(ring) / STALK_SEGMENTS;
-    return Stalk(at + out * mix(radius, u.stalk.z, along), normal);
+    // Kept off the ground in tree space, as the sweep keeps wood (fn-301):
+    // an identity wherever the stalk is clear.
+    var vertex = at + out * mix(radius, u.stalk.z, along);
+    vertex.y = max(vertex.y, 0.0);
+    return Stalk(vertex, normal);
 }
 
 // A pedicel vertex at `ring`, `side` under the floret whose base and frame

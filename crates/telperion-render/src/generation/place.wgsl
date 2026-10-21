@@ -11,6 +11,12 @@ struct Config {
     // draws as counts' words, the spine's share and pitch (bits).
     rachis:vec4<f32>,
     organs:vec4<u32>,
+    // What rests an instance on the ground (`rest.wgsl`): a leaf's wedge
+    // (`rest_corner`); an inflorescence's organ box, least corner and the
+    // farthest its points reach from its seat, then most corner and its
+    // pedicels' tube radius.
+    wedge_a:vec4<f32>,
+    wedge_b:vec4<f32>,
 }
 struct Segment {
     a:vec4<f32>, b:vec4<f32>, tangent:vec4<f32>, normal:vec4<f32>, binormal:vec4<f32>,
@@ -124,7 +130,15 @@ fn floret_words(index:u32) -> vec3<u32> {
         if floret_kept(size) { if seen==ordinal { break; } seen++; }
         i++;
     }
-    let fl=floret(f,r.a.xyz,r.b.xyz,key,i);
+    var fl=floret(f,r.a.xyz,r.b.xyz,key,i);
+    // The inflorescence rested as one about its seat (`bloom/ground.rs`).
+    let seat=r.a.xyz;
+    let step=config.box_extent.y/65535.0;
+    let reach=config.wedge_a.w;
+    if seat.y<reach+rest_margin(step,reach) {
+        let d=inflorescence_rest(f,r,key,step);
+        if d.y<1.0 { fl=Floret(seat+rest_turned(fl.point-seat,d),rest_turned(fl.stalk,d),rest_turned(fl.face,d)); }
+    }
     let side=cross(fl.stalk,fl.face);
     if !finite(fl.point) || !finite(fl.stalk) || !finite(fl.face) || !(size>=0.0 && size<=65504.0) {
         atomicOr(&summary[1],2u);
@@ -149,4 +163,40 @@ fn rachis_words(j:u32) -> vec3<u32> {
     let codes=vec3<u32>(floor(norm*65535.0+vec3<f32>(0.5)));
     let scale=(pack2x16float(vec2<f32>(0.0,radius))&0xffff0000u)|0x80000000u;
     return vec3<u32>(rotation_word(side,heading,face),codes.x|(codes.y<<16u),codes.z|scale);
+}
+// The direction bloom `r`'s inflorescence rests by (`ground::rest`): up
+// where the box of its axis's samples, its florets' organ corners and its
+// pedicels' ends stands clear of the ground.
+fn inflorescence_rest(f:Flower, r:Segment, key:vec2<u32>, step:f32) -> vec3<f32> {
+    let seat=r.a.xyz;
+    var lo=vec3<f32>(0.0); var hi=vec3<f32>(0.0);
+    // The axis's samples (`bloom.wgsl`'s `bloom_axis`, `Axis::laid`).
+    var axis=bloom_axis(f,seat,r.b.xyz);
+    for(var k=1u;k<=BLOOM_SEGMENTS;k++) {
+        lo=min(lo,axis.points[k]-seat); hi=max(hi,axis.points[k]-seat);
+    }
+    // cap: the bloom's florets.
+    for(var i=0u;i<u32(ceil(f.a.x));i++) {
+        let size=floret_size(f,r.a.w,key,i);
+        if !floret_kept(size) { continue; }
+        let fl=floret(f,seat,r.b.xyz,key,i);
+        let at=fl.point-fl.stalk*f.c.y;
+        // The pedicel's tube about both its ends (`pedicel_vertex`).
+        let tube=vec3<f32>(config.wedge_b.w);
+        lo=min(lo,min(at,fl.point)-seat-tube); hi=max(hi,max(at,fl.point)-seat+tube);
+        let side=cross(fl.stalk,fl.face);
+        for(var k=0u;k<8u;k++) {
+            let c=select(config.wedge_a.xyz,config.wedge_b.xyz,(vec3<u32>(k,k>>1u,k>>2u)&vec3<u32>(1u))!=vec3<u32>(0u));
+            let p=fl.point+(side*c.x+fl.stalk*c.y+fl.face*c.z)*size-seat;
+            lo=min(lo,p); hi=max(hi,p);
+        }
+    }
+    var v:array<vec3<f32>,8>; var reach=0.0; var low=3.4e38;
+    for(var k=0u;k<8u;k++) {
+        v[k]=select(lo,hi,(vec3<u32>(k,k>>1u,k>>2u)&vec3<u32>(1u))!=vec3<u32>(0u));
+        reach=max(reach,length(v[k])); low=min(low,v[k].y);
+    }
+    let t=max(seat.y,0.0)-rest_margin(step,reach);
+    if low>=-t { return vec3<f32>(0.0,1.0,0.0); }
+    return rest_direction(v,array<f32,8>(t,t,t,t,t,t,t,t));
 }

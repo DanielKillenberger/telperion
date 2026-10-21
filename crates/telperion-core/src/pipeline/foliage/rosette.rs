@@ -322,7 +322,7 @@ pub(super) fn clothe(
     tree: &Tree,
     seed: u32,
     p: &CanopyParams,
-    blade: f64,
+    (blade, wedge): (f64, &super::rest::Wedge),
     out: &mut Instances,
     mut owners: Option<&mut Vec<u32>>,
 ) -> Result<()> {
@@ -344,9 +344,14 @@ pub(super) fn clothe(
             heading,
             radial,
             rosette.axis,
-            (table, count, frond.split),
+            (
+                table,
+                count,
+                frond.split,
+                super::rachis::girth(&table, &apex),
+            ),
             (&mut rng, None),
-            out,
+            (wedge, out),
         )?;
         if frond.dead {
             out.wither(from);
@@ -365,19 +370,25 @@ pub(super) fn clothe(
 /// the placement's (`leaflets`), so a frond drawn at no size still stands
 /// its leaflets (fn-270 R5b). The first leaflet draws on `rng`; the rest
 /// on `more` where given, so a placement's leaflets move no other
-/// placement's draws on a shared stream (fn-277), else on `rng`.
+/// placement's draws on a shared stream (fn-277), else on `rng`. The
+/// rachis is `girth` thick where it leaves `point` (`leaflet::rachis`):
+/// a frond's own, none for a placement's on wood, whose rachis draws no
+/// bark. Each matrix is rested on the ground by `wedge` as it is stored
+/// (`rest::leaf`).
 pub(super) fn fan(
     point: Vec3,
     heading: Vec3,
     tangent: Vec3,
     normal: Vec3,
-    (p, count, split): (CanopyParams, usize, Option<Split>),
+    (p, count, split, girth): (CanopyParams, usize, Option<Split>, f64),
     (rng, mut more): (&mut Rng, Option<&mut Rng>),
-    out: &mut Instances,
+    (wedge, out): (&super::rest::Wedge, &mut Instances),
 ) -> Result<()> {
+    let step = out.reference.step().y;
+    let rest = |m: [f32; 16]| super::rest::leaf(m, wedge, step);
     if count == 1 {
         let length = split.map_or(1.0, |s| lone(&s, &p));
-        out.push(&matrix(
+        out.push(&rest(matrix(
             point,
             heading,
             tangent,
@@ -387,11 +398,13 @@ pub(super) fn fan(
                 ..p
             },
             rng,
-        )?);
+        )?));
         return Ok(());
     }
     let (_, side) = frame(heading);
-    for (k, leaflet) in super::leaflet::leaflets(point, heading, p, count, split).enumerate() {
+    for (k, leaflet) in
+        super::leaflet::leaflets(point, heading, (p, girth), count, split).enumerate()
+    {
         let rng = match more.as_deref_mut() {
             Some(more) if k > 0 => more,
             _ => &mut *rng,
@@ -404,7 +417,7 @@ pub(super) fn fan(
                 }
             }
         }
-        out.push(&placed);
+        out.push(&rest(placed));
     }
     Ok(())
 }

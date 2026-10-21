@@ -129,3 +129,54 @@ fn a_tree_without_phytomers_collapses_on_the_device_as_on_the_cpu() {
         "the device's collapse is the CPU's: {found:?}"
     );
 }
+
+/// fn-301 R2: a step straight down at the ground rests along its
+/// phytomer's side on the device as on the CPU: the walk's own `rested`
+/// (`lay_walk.wgsl`), run alone, gives `lay::rested`'s words for the
+/// CPU's case (`a_step_straight_down_rests_along_its_side`).
+#[test]
+fn a_step_straight_down_rests_along_its_side_on_the_device() {
+    use super::super::io;
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let from = super::LAY_WALK
+        .find("fn rested(")
+        .expect("the walk's rested");
+    let to = from + super::LAY_WALK[from..].find("\n}\n").expect("its end") + 3;
+    let probe = "
+@group(0) @binding(0) var<uniform> unused: vec4<u32>;
+@group(0) @binding(1) var<storage, read_write> out: array<f32>;
+@compute @workgroup_size(1)
+fn probe_main() {
+    let p = rested(vec3<f32>(0.25, 0.5, 1.0), vec3<f32>(0.0, 0.0, -1.0), vec3<f32>(0.0, -1.0, 0.0), 0.25, 1.25);
+    out[0] = p.x;
+    out[1] = p.y;
+    out[2] = p.z;
+}
+";
+    let shader = format!(
+        "{}\n{}\n{}\n{}\n{probe}",
+        super::ARITH,
+        super::ROOT,
+        super::Q,
+        &super::LAY_WALK[from..to]
+    );
+    let pass = io::Pass::new(&gpu, shader, &[false], &["probe_main"]);
+    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+    let out = io::buffer(&gpu, "rested out", 12, usage, &[]).unwrap();
+    let unused = io::buffer(
+        &gpu,
+        "rested cfg",
+        16,
+        wgpu::BufferUsages::UNIFORM,
+        &[0; 16],
+    )
+    .unwrap();
+    let bind = pass.bind(&gpu, &[&unused, &out]);
+    let mut e = gpu.encoder(&Default::default());
+    pass.run(&mut e, &bind, 0, 1);
+    gpu.submit([e.finish()]);
+    let raw = io::read(&gpu, &out, 12).unwrap();
+    assert_eq!(bytemuck::cast_slice::<u8, f32>(&raw), [0.25, -0.5, 0.25]);
+}

@@ -192,3 +192,48 @@ fn a_view_past_its_finest_scale_is_drawn_at_the_coarser_scale_that_fits() {
         compare(&renderer, &curve, &close, size, report.scale)
     );
 }
+
+/// fn-301 surface clearance on the device: the silver birch at 40, seed 1,
+/// lays wood on the ground. The device surfaces it as the reference does,
+/// which sets every vertex of wood but a trunk's onto the ground where it
+/// would stand below it: the device leaves no more vertices below the
+/// ground than the reference, none lower.
+#[test]
+fn wood_resting_on_the_ground_surfaces_off_it_on_the_device() {
+    let Some(gpu) = gpu() else { return };
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    let mut family = Preset::SilverBirch.parameters();
+    family.skeleton.seed = 1;
+    let mesh = executor::grow(&family)
+        .unwrap()
+        .expansion()
+        .unwrap()
+        .mesh()
+        .unwrap();
+    renderer.submit(&mesh).unwrap();
+    let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
+    let hero = hero_pose(mesh.bounds, aspect, GROUND_REACH);
+    render(&mut renderer, &hero, SIZE.0, SIZE.1).unwrap();
+    let report = renderer.curve_report().unwrap();
+    println!(
+        "{}",
+        compare(&renderer, &mesh.curve, &hero, SIZE, report.scale)
+    );
+    let (vertices, _, _) = renderer.curve_mesh().unwrap();
+    let cpu = mesh
+        .curve
+        .tessellate(&curve_viewer(&hero, SIZE), 0.5 * report.scale, None)
+        .unwrap();
+    let below = |ys: &mut dyn Iterator<Item = f32>| {
+        ys.filter(|&y| y < 0.0)
+            .fold((0, 0.0f32), |(n, low), y| (n + 1, low.min(y)))
+    };
+    let device = below(&mut vertices.chunks_exact(9).map(|v| v[1]));
+    let reference = below(&mut cpu.positions.chunks_exact(3).map(|p| p[1]));
+    println!("below the ground: device {device:?}, reference {reference:?}");
+    assert!(device.0 <= reference.0, "{device:?} against {reference:?}");
+    assert!(
+        device.1 >= reference.1 - 1e-6,
+        "{device:?} against {reference:?}"
+    );
+}

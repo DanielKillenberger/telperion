@@ -203,6 +203,25 @@ fn every_preset_s_device_field_answers_within_its_tolerance() {
     }
 }
 
+/// fn-301 R2: the young palm rests its fronds' leaflets on the ground, and
+/// the device's field boxes them in the frame they rest in, as the CPU's
+/// plan does (`field_fronds.rs`'s `a_rested_leaflet_lies_in_its_planned_box`):
+/// the palm at 12 answers within its tolerance on grids of 24, 36 and 48.
+#[test]
+fn the_young_palm_s_rested_leaflets_are_boxed_as_the_cpu_boxes_them() {
+    let _held = super::super::whole_tree();
+    let Some(gen) = generator() else {
+        return;
+    };
+    let mut palm = family("date-palm", 1);
+    palm.age = 12.0;
+    for cpu in references(&palm, &[24, 36, 48], None) {
+        let dev = device(&gen, &palm, &cpu, None);
+        let m = compare(&cpu.cells, &dev.cells);
+        within(&m, true).unwrap_or_else(|m| panic!("the palm at 12 on {}: {m}", cpu.frame.n));
+    }
+}
+
 /// A grid side outside 3 to 256 is refused before any work as the core
 /// refuses it, a family the device cannot draw by name, and an id the
 /// catalogue does not serve by name.

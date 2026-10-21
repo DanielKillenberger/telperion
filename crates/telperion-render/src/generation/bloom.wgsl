@@ -120,6 +120,34 @@ fn bloom_rotate(v: vec3<f32>, axis: vec3<f32>, angle: f32) -> vec3<f32> {
     return v * c + cross(axis, v) * s + axis * (dot(axis, v) * (1.0 - c));
 }
 
+// A bloom's axis, laid in segments as it turns (`Axis::laid`): its
+// points from the seat and each segment's tangent.
+struct BloomAxis {
+    points: array<vec3<f32>, 9>,
+    tangents: array<vec3<f32>, 8>,
+}
+
+// The axis of a bloom on the shoot tip at `node`, its parent at `held`:
+// it continues the shoot (fn-253) and droops toward world down or up.
+fn bloom_axis(f: Flower, node: vec3<f32>, held: vec3<f32>) -> BloomAxis {
+    let heading = bloom_or(node - held, vec3<f32>(0.0, 1.0, 0.0));
+    var toward = vec3<f32>(0.0, 1.0, 0.0);
+    if f.b.z >= 0.0 {
+        toward = vec3<f32>(0.0, -1.0, 0.0);
+    }
+    var axis: BloomAxis;
+    axis.points[0] = node;
+    let step = f.c.x / f32(BLOOM_SEGMENTS);
+    for (var k = 0u; k < BLOOM_SEGMENTS; k++) {
+        let along = (f32(k) + 0.5) / f32(BLOOM_SEGMENTS);
+        let rest = 1.0 - along;
+        let turned = abs(f.b.z) * (1.0 - rest * rest * rest);
+        axis.tangents[k] = bloom_or(bloom_lerp(heading, toward, turned), toward);
+        axis.points[k + 1u] = axis.points[k] + axis.tangents[k] * step;
+    }
+    return axis;
+}
+
 // One floret: where it stands, its stalk and its first petal's face.
 struct Floret {
     point: vec3<f32>,
@@ -130,32 +158,16 @@ struct Floret {
 // Floret `i` of the bloom on the shoot tip at `node`, its parent at
 // `held` (`inflorescence`, `Axis`): the axis continues the shoot (fn-253).
 fn floret(f: Flower, node: vec3<f32>, held: vec3<f32>, key: vec2<u32>, i: u32) -> Floret {
-    let heading = bloom_or(node - held, vec3<f32>(0.0, 1.0, 0.0));
-    // The axis, laid in segments as it turns (`Axis::laid`).
-    var toward = vec3<f32>(0.0, 1.0, 0.0);
-    if f.b.z >= 0.0 {
-        toward = vec3<f32>(0.0, -1.0, 0.0);
-    }
-    var points: array<vec3<f32>, 9>;
-    var tangents: array<vec3<f32>, 8>;
-    points[0] = node;
-    let step = f.c.x / f32(BLOOM_SEGMENTS);
-    for (var k = 0u; k < BLOOM_SEGMENTS; k++) {
-        let along = (f32(k) + 0.5) / f32(BLOOM_SEGMENTS);
-        let rest = 1.0 - along;
-        let turned = abs(f.b.z) * (1.0 - rest * rest * rest);
-        tangents[k] = bloom_or(bloom_lerp(heading, toward, turned), toward);
-        points[k + 1u] = points[k] + tangents[k] * step;
-    }
+    var axis = bloom_axis(f, node, held);
     // Its place along the axis and the axis's tangent there (`Axis::at`).
     let t = min((f32(i) + 0.5) / f.a.x, 1.0);
     let x = clamp(t, 0.0, 1.0) * f32(BLOOM_SEGMENTS);
     let k = min(u32(x), BLOOM_SEGMENTS - 1u);
-    let at = bloom_lerp(points[k], points[k + 1u], x - f32(k));
+    let at = bloom_lerp(axis.points[k], axis.points[k + 1u], x - f32(k));
     let mid = x - 0.5;
     let j = min(u32(max(mid, 0.0)), BLOOM_SEGMENTS - 2u);
     let share = clamp(mid - f32(j), 0.0, 1.0);
-    let tangent = bloom_or(bloom_lerp(tangents[j], tangents[j + 1u], share), tangents[k]);
+    let tangent = bloom_or(bloom_lerp(axis.tangents[j], axis.tangents[j + 1u], share), axis.tangents[k]);
     let normal = bloom_perpendicular(tangent);
     // The golden angle about the axis, from the bloom's own roll, reduced
     // to a turn before its sine is taken.

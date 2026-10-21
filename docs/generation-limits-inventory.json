@@ -1326,10 +1326,34 @@
     "reason": "A frond drawn at no size has no blade to split; its strips scale nothing (fn-275 R2b)."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/foliage/rachis.rs",
+    "path": "crates/telperion-core/src/pipeline/foliage/leaflet.rs",
     "site": ". max ( FINEST )",
     "classification": "numeric",
-    "reason": "A frond's axis tapers to its tip but is never drawn finer than the finest wood the engine draws (fn-283 R3); a drawing tolerance, not a population limit."
+    "reason": "A frond's rachis tapers to its tip but is never drawn finer than the finest wood the engine draws (fn-283 R3; fn-301 moved the radius into the frond curve, `leaflet::radius`); a drawing tolerance, not a population limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/leaflet.rs",
+    "site": ". max ( 0 . )",
+    "classification": "algorithm",
+    "reason": "fn-301 `acosh`: the radicand (x-1)(x+1) is nonnegative where a resting frond lies (x >= 1); the floor holds rounding at x = 1, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/leaflet.rs",
+    "site": "if base < = radius ( girth , 0 . ) {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a frond whose base already sits at or under its radius rests from its base (the spec's contact rule), not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/leaflet.rs",
+    "site": "if discriminant < 0 . {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a quadratic with no real root has no ground contact on that piece of the frond curve; root finding, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/leaflet.rs",
+    "site": "if speed < 0 . {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2 (host, 2026-10-21): where a resting frond's taper falls faster than its parabola runs, the step goes straight down onto its own bark and advances nothing along the ground; the closed form's zero, not a limit or a refusal."
   },
   {
     "path": "crates/telperion-core/src/pipeline/space/establish.rs",
@@ -1396,5 +1420,77 @@
     "site": "if repeats = = 1 & & v < segments {",
     "classification": "algorithm",
     "reason": "Addresses the first ring a split run's last piece repeats; it selects a vertex's place in its chunk and limits nothing generated."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom/ground.rs",
+    "site": ". max ( 0 . 0 )",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: an inflorescence rests from its seat's height, a seat on wood the sweep keeps off the ground; the floor holds rounding at the ground, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom/ground.rs",
+    "site": "for c in 0 . . 3 {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a transform's three columns, each turned by the rest; not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": ". max ( 0 . 0 )",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a leaf rests from its attachment's height, on bark the sweep keeps off the ground; the floor holds rounding at the ground, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "for i in 0 . . 8 {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: the rest's candidates over a wedge's eight corners, pairs of them; a closed form over a fixed shape, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "for j in i + 1 . . 8 {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: the rest's candidates over a wedge's eight corners, pairs of them; a closed form over a fixed shape, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "if ! ( l > 0 . 0 & & c . abs ( ) < = 1 . 0 ) {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a corner at the attachment, or one whose bound no unit direction meets, offers no candidate; geometry, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "if ! ( la > 0 . 0 & & lb > 0 . 0 ) {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a pair with a corner at the attachment offers no candidate; geometry, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "if c < = - 1 . 0 + 1e - 12 {",
+    "classification": "numeric",
+    "reason": "fn-301 R2: the rotation carrying straight down onto up is half a turn about +X, where the axis `d x up` has no length; a rounding tolerance, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "if det < = 1e - 12 {",
+    "classification": "numeric",
+    "reason": "fn-301 R2: two corners on one line from the attachment meet no unit direction at two points; a rounding tolerance for parallel bounds, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "if f64 : : from ( m [ 13 ] ) > = reach + margin ( step , reach ) {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a leaf higher than its reach and margin is screened clear before its corners are read; it decides nothing the gate would not. The index is the transform's height, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "if near . length_squared ( ) > 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: the best effort where no turn clears: toward the corners' box's nearest point when the attachment is outside it; geometry, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rest.rs",
+    "site": "if rest < 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: two corners' bounds that do not meet on the unit sphere offer no candidate; geometry, not a limit."
   }
 ]

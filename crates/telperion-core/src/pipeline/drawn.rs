@@ -256,7 +256,7 @@ fn leaves(
         twig,
         contacts.as_ref(),
         reference,
-        foliage::blade(element),
+        element,
     )?;
     drop(contacts);
     drop(own);

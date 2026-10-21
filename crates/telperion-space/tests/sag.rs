@@ -112,33 +112,39 @@ fn sag_bends_and_grows_no_other_tree() {
     assert_eq!(wood(&plain), wood(&sagged));
 }
 
-/// R3: wood that sags onto the ground rests on it and runs along it.
-#[test]
-fn sagging_wood_rests_on_the_ground() {
-    let tree = walk::tree(&grounded(), 1).unwrap();
-    let tips: Vec<f64> = tree
-        .axes
+/// Each limb phytomer's bark above the ground: its tip's height less its
+/// radius (fn-301 R2: resting wood's centreline lies one radius up).
+fn bark(tree: &Structure) -> Vec<f64> {
+    tree.axes
         .iter()
-        .flat_map(|a| a.phytomers.iter().map(|p| p.tip.z))
-        .collect();
-    let lowest = tips.iter().copied().fold(f64::MAX, f64::min);
-    assert!(lowest >= 0.0, "a vertex {lowest} m below the ground");
-    let resting = tips.iter().filter(|&&z| z < 0.01).count();
+        .filter(|a| a.pa > 0)
+        .flat_map(|a| a.phytomers.iter().map(|p| p.tip.z - p.radius))
+        .collect()
+}
+
+/// The bark never below the ground, and some of it resting on it.
+fn rests(tree: &Structure) {
+    let bark = bark(tree);
+    let lowest = bark.iter().copied().fold(f64::MAX, f64::min);
+    assert!(lowest >= -1e-6, "bark {lowest} m below the ground");
+    let resting = bark.iter().filter(|&&z| z < 1e-6).count();
     assert!(resting > 0, "no wood rests on the ground");
 }
 
-/// R3: a lateral driven straight down rests on the ground too.
+/// R3: wood that sags onto the ground rests its bark on it and runs
+/// along it.
+#[test]
+fn sagging_wood_rests_on_the_ground() {
+    rests(&walk::tree(&grounded(), 1).unwrap());
+}
+
+/// R3: a lateral driven straight down rests its bark on the ground too.
 #[test]
 fn a_lateral_pointing_down_rests_on_the_ground() {
     let mut species = walk::species();
     species.states[1].insertion = PI;
     species.states[1].straightening = 0.0;
-    let tree = walk::tree(&species, 1).unwrap();
-    assert!(tree
-        .axes
-        .iter()
-        .flat_map(|a| &a.phytomers)
-        .all(|p| p.tip.z >= 0.0));
+    rests(&walk::tree(&species, 1).unwrap());
 }
 
 /// R3: the trunk reaching the ground is still refused, and names the
@@ -223,15 +229,19 @@ fn landing(species: &Species) -> (f64, usize) {
         let lowest = axis
             .phytomers
             .iter()
-            .map(|p| p.tip.z)
+            .map(|p| p.tip.z - p.radius)
             .fold(f64::MAX, f64::min);
         if lowest > 0.01 {
             continue;
         }
         landed += 1;
-        // The joint where the wood meets the ground: the step that lands
+        // The joint where the bark meets the ground: the step that lands
         // against the one before it.
-        if let Some(k) = axis.phytomers.iter().position(|p| p.tip.z <= 1e-9) {
+        if let Some(k) = axis
+            .phytomers
+            .iter()
+            .position(|p| p.tip.z - p.radius <= 1e-6)
+        {
             if k > 0 {
                 sharpest = sharpest.max((r[k] - r[k - 1]).abs());
             }

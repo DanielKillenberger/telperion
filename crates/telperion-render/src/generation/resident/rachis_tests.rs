@@ -79,7 +79,13 @@ fn device(gpu: &crate::Gpu, tools: (&Kernels, &Hanger), f: &Family) -> Vec<Axis>
             Some((run, axis)) if *run == r[23] => axis.nodes.push(node),
             _ => {
                 let bearer = record(r[16])[24];
-                out.push((r[23], Axis { bearer, nodes: vec![node] }));
+                out.push((
+                    r[23],
+                    Axis {
+                        bearer,
+                        nodes: vec![node],
+                    },
+                ));
             }
         }
     }
@@ -109,27 +115,36 @@ fn cpu(f: &Family) -> Vec<Axis> {
 }
 
 /// The device's axes against the CPU's: the most apart a point and a
-/// radius stood, or the first way they disagree.
-fn compare(device: &[Axis], cpu: &[Axis]) -> Result<(f64, f64), String> {
+/// radius stood, or the first way they disagree, or the bounds `most`
+/// they pass.
+fn compare(device: &[Axis], cpu: &[Axis], most: (f64, f64)) -> Result<(f64, f64), String> {
     if device.len() != cpu.len() {
-        return Err(format!("count: {} axes against {}", device.len(), cpu.len()));
+        return Err(format!(
+            "count: {} axes against {}",
+            device.len(),
+            cpu.len()
+        ));
     }
     let (mut position, mut radius) = (0.0f64, 0.0f64);
     for (k, (d, c)) in device.iter().zip(cpu).enumerate() {
         if d.bearer != c.bearer {
-            return Err(format!("axis {k}: borne on {} against {}", d.bearer, c.bearer));
+            return Err(format!(
+                "axis {k}: borne on {} against {}",
+                d.bearer, c.bearer
+            ));
         }
         if d.nodes.len() != c.nodes.len() {
             let (m, n) = (d.nodes.len(), c.nodes.len());
             return Err(format!("axis {k}: {m} nodes against {n}"));
         }
         for (a, b) in d.nodes.iter().zip(&c.nodes) {
-            let apart = |w: std::ops::Range<usize>| w.map(|w| (a[w] - b[w]).abs()).fold(0.0, f64::max);
+            let apart =
+                |w: std::ops::Range<usize>| w.map(|w| (a[w] - b[w]).abs()).fold(0.0, f64::max);
             position = position.max(apart(0..3));
             radius = radius.max(apart(3..6));
         }
     }
-    match position <= POSITION && radius <= RADIUS {
+    match position <= most.0 && radius <= most.1 {
         true => Ok((position, radius)),
         false => Err(format!("apart: point {position:e}, radius {radius:e}")),
     }
@@ -147,13 +162,52 @@ fn every_frond_axis_is_hung_as_the_cpu_hangs_it() {
     for age in [Some(4), Some(12), None] {
         let f = family(age);
         let (mine, theirs) = (device(&gpu, (&k, &hanger), &f), cpu(&f));
-        let apart = compare(&mine, &theirs).unwrap_or_else(|e| panic!("palm at {}: {e}", f.age));
+        let apart = compare(&mine, &theirs, (POSITION, RADIUS))
+            .unwrap_or_else(|e| panic!("palm at {}: {e}", f.age));
         let nodes: usize = mine.iter().map(|a| a.nodes.len()).sum();
-        println!("palm at {}: {} axes, {nodes} nodes, apart {apart:?}", f.age, mine.len());
+        println!(
+            "palm at {}: {} axes, {nodes} nodes, apart {apart:?}",
+            f.age,
+            mine.len()
+        );
         assert!(!mine.is_empty(), "no axis hung");
         // The control: an axis missing.
-        let missing = compare(&mine[1..], &theirs).expect_err("a missing axis passed");
+        let missing =
+            compare(&mine[1..], &theirs, (POSITION, RADIUS)).expect_err("a missing axis passed");
         assert!(missing.starts_with("count"), "{missing}");
+    }
+}
+
+/// fn-301 R2 (host, 2026-10-21): a frond as thick as it is long, and one
+/// thicker, whose taper falls as fast as or faster than its parabola
+/// runs, goes straight down onto its own bark where it does, never
+/// refused: on the palm at 12, the device hangs every axis as the CPU
+/// does, every point finite and no bark below the ground.
+#[test]
+fn a_frond_as_thick_as_it_is_long_rests_on_the_device_as_on_the_cpu() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let (k, hanger) = (Kernels::new(&gpu), Hanger::new(&gpu));
+    for length in [5.0, 4.0] {
+        let mut f = family(Some(12));
+        (f.canopy.rachis_length, f.canopy.rachis_width) = (length, 10.0);
+        let (mine, theirs) = (device(&gpu, (&k, &hanger), &f), cpu(&f));
+        // A 5 m radius held in f32: four units in its last place.
+        let radius = 4.0 * 5.0 * f64::from(f32::EPSILON);
+        let apart = compare(&mine, &theirs, (POSITION, radius))
+            .unwrap_or_else(|e| panic!("{length} m: {e}"));
+        println!(
+            "{length} m long, 5 m thick: {} axes, apart {apart:?}",
+            mine.len()
+        );
+        for (who, axes) in [("device", &mine), ("cpu", &theirs)] {
+            for node in axes.iter().flat_map(|a| &a.nodes) {
+                assert!(node.iter().all(|v| v.is_finite()), "{who}: {node:?}");
+                let bark = node[1] - node[3];
+                assert!(bark >= -1e-4, "{who}: bark {bark} m below the ground");
+            }
+        }
     }
 }
 
@@ -167,6 +221,101 @@ fn axes_past_the_room_are_refused_by_name() {
     let (k, hanger) = (Kernels::new(&gpu), Hanger::new(&gpu));
     let f = family(None);
     let bases = f.canopy.leaf_bases.ceil() as u32;
-    let refused = hung(&gpu, (&k, &hanger), &f, 2 * bases).err().expect("the axes fit");
+    let refused = hung(&gpu, (&k, &hanger), &f, 2 * bases)
+        .err()
+        .expect("the axes fit");
     assert!(refused.to_string().contains("rachis nodes"), "{refused}");
+}
+
+/// The frond curve evaluated case by case: a case's point and length, its
+/// heading and arch, its lift and girth, and its share.
+const CURVE: &str = "
+@group(0) @binding(0) var<uniform> cfg: vec4<u32>;
+@group(0) @binding(1) var<storage, read> cases: array<vec4<f32>>;
+@group(0) @binding(2) var<storage, read_write> out: array<vec4<f32>>;
+@compute @workgroup_size(1)
+fn curve(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = id.x;
+    let a = cases[i * 4u];
+    let b = cases[i * 4u + 1u];
+    let c = cases[i * 4u + 2u];
+    let r = rachis(a.xyz, b.xyz, c.xyz, a.w, b.w, c.w, cases[i * 4u + 3u].x);
+    out[i * 2u] = vec4<f32>(r.at, 0.0);
+    out[i * 2u + 1u] = vec4<f32>(r.run, 0.0);
+}
+";
+
+/// fn-301 R2 (host, 2026-10-21): a frond meeting the ground straight down
+/// rests along its frame's lift, +lift with no arch and the arch's way
+/// with one, as far along the ground as its parabola runs past contact:
+/// the cases and expectations the CPU's `frond_contact` suite holds its
+/// curve to, here within f32.
+#[test]
+fn a_frond_straight_down_rests_on_the_device_as_on_the_cpu() {
+    use telperion_core::math::Vec3;
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    const FINEST: f64 = 2e-4;
+    let (down, lift) = (Vec3::new(0.0, -1.0, 0.0), Vec3::new(0.0, 0.0, 1.0));
+    // Base height, arch, the way it lies along the lift, contact, and the
+    // parabola's length from contact to its tip.
+    let arc = |a: f64, t: f64| {
+        let x = 2.0 * a * t;
+        match a == 0.0 {
+            true => 5.0 * t,
+            false => 5.0 / (4.0 * a) * (x * (1.0 + x * x).sqrt() + x.asinh()),
+        }
+    };
+    let cases = [
+        (2.0, 0.0, 1.0, (2.0 - FINEST) / 5.0),
+        (1e-4, -0.5, -1.0, 0.0),
+        (1e-4, 0.5, 1.0, 0.0),
+    ];
+    let words: Vec<f32> = (cases.iter())
+        .flat_map(|&(base, arch, _, _)| {
+            [
+                [0.0, base, 0.0, 5.0],
+                [down.x, down.y, down.z, arch],
+                [lift.x, lift.y, lift.z, 0.0],
+                [1.0, 0.0, 0.0, 0.0],
+            ]
+        })
+        .flatten()
+        .map(|v| v as f32)
+        .collect();
+    let n = cases.len() as u32;
+    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+    let cfg = io::buffer(&gpu, "cfg", 16, wgpu::BufferUsages::UNIFORM, &[0; 16]).unwrap();
+    let input = io::buffer(
+        &gpu,
+        "cases",
+        4 * words.len() as u64,
+        usage,
+        bytemuck::cast_slice(&words),
+    );
+    let output = io::buffer(&gpu, "curve", 32 * u64::from(n), usage, &[]).unwrap();
+    let input = input.unwrap();
+    let source = format!("{}\n{CURVE}", super::super::sources::rachis());
+    let pass = io::Pass::new(&gpu, source, &[true, false], &["curve"]);
+    let bind = pass.bind(&gpu, &[&cfg, &input, &output]);
+    let mut e = gpu.encoder(&Default::default());
+    pass.run(&mut e, &bind, 0, n);
+    gpu.submit([e.finish()]);
+    let read = io::read(&gpu, &output, 32 * u64::from(n)).unwrap();
+    let read: &[f32] = bytemuck::cast_slice(&read);
+    for (k, &(base, arch, way, c)) in cases.iter().enumerate() {
+        let v = |i: usize| Vec3::new(read[i].into(), read[i + 1].into(), read[i + 2].into());
+        let (at, run) = (v(k * 8), v(k * 8 + 4));
+        let toward = lift * way;
+        let lies = (at - Vec3::new(0.0, base, 0.0)).dot(toward);
+        let expected = arc(arch, 1.0) - arc(arch, c);
+        let case = format!("base {base}, arch {arch}");
+        assert!(run.distance(toward) < 1e-6, "{case}: runs {run:?}");
+        assert!((at.y - FINEST).abs() < 1e-9, "{case}: at {}", at.y);
+        assert!(
+            (lies - expected).abs() < 1e-5,
+            "{case}: lies {lies} against {expected}"
+        );
+    }
 }

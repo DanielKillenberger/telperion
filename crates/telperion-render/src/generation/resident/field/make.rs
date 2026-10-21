@@ -258,6 +258,7 @@ fn cfg(x: &Expansion, (nodes, segs): (u32, u32), limb_order: Option<u32>) -> Cfg
         ],
         leaf_centre,
         leaf_half,
+        wedge: super::super::super::data::wedge(x.element()),
         ..Cfg::default()
     }
 }

@@ -19,6 +19,8 @@ pub(super) struct Organ {
     element: Element,
     within: Reference,
     rows: [[f32; 4]; 3],
+    /// The pedicels' tube radius, the stamen's half width.
+    tube: f64,
 }
 
 /// The organ buffer the device places into, and its placement summary.
@@ -38,6 +40,7 @@ impl Organ {
             element: x.organ_element()?,
             within,
             rows: data::flower(&bloom, now),
+            tube: 0.5 * bloom.stamen_width,
         })
     }
 
@@ -59,7 +62,7 @@ impl Organ {
         let mut summary = None;
         if let Some(records) = &stationed.records {
             let counts = (stationed.florets, stationed.blooms);
-            let config = data::florets(self.rows, counts, &self.element, self.within);
+            let config = data::florets((self.rows, self.tube), counts, &self.element, self.within);
             // No ring is read: the bindings take the records again.
             let records = (&**records, &**records);
             let at = (stationed.florets, &*buffer);

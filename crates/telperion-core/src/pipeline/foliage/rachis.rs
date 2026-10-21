@@ -9,13 +9,13 @@
 //! retained leaf bases, after the radius solve, so it never thickens the
 //! stem; a node of wood that is no stem, so no foliage clothes it.
 use super::{
-    leaflet::{rachis, station},
+    leaflet::{rachis, radius, station},
     rosette::{self, frame},
     CanopyParams,
 };
 use crate::{
     math::Vec3,
-    pipeline::{branching, space::FINEST},
+    pipeline::branching,
     tree::{Node, NodeKind, Tree},
 };
 
@@ -34,10 +34,21 @@ pub(crate) fn draws(p: &CanopyParams) -> bool {
     p.rachis_width > 0. && rosette::bearing(p) && p.leaflet_count > 1. && p.rachis_length > 0.
 }
 
+/// A frond's radius where it leaves the stem, `c` its table and `apex`
+/// its apex's: half the width, scaled by the frond's size, so a station
+/// has one girth at every age. None where it has no rachis length.
+pub(super) fn girth(c: &CanopyParams, apex: &CanopyParams) -> f64 {
+    match c.rachis_length > 0. {
+        true => c.rachis_width / 2. * c.rachis_length / apex.rachis_length,
+        false => 0.,
+    }
+}
+
 /// Every frond's axis on this tree, in the order the leaflets are placed,
 /// `blade` the leaf element's length a young frond's stations read. None
 /// for a frond of one leaflet (its blade stands on the stem) or of no
-/// rachis length (its leaflets all stand where it leaves the stem).
+/// rachis length (its leaflets all stand where it leaves the stem). A
+/// frond resting on the ground rests its axis with it (`rachis`).
 pub(crate) fn rachises(tree: &Tree, p: &CanopyParams, blade: f64) -> Vec<Rachis> {
     if !draws(p) {
         return Vec::new();
@@ -61,18 +72,16 @@ pub(crate) fn rachises(tree: &Tree, p: &CanopyParams, blade: f64) -> Vec<Rachis>
             1 => nodes[0],
             _ => branching::along(tree, nodes, depth, below).0,
         };
-        // Its width scaled by the frond's size, tapering by its station alone,
-        // so a station has one girth at every age.
-        let r0 = p.rachis_width / 2. * c.rachis_length / placed.apex.rachis_length;
+        // Tapering by its station alone.
+        let r0 = girth(&c, &placed.apex);
         let (lift, _) = frame(frond.heading);
         let shares =
             std::iter::once(0.).chain((0..count).map(|k| station(k, count, &c, frond.split).0));
-        let (points, radii) = shares
-            .map(|t| {
-                let point = rachis(frond.at, frond.heading, lift, &c, t);
-                (point, (r0 * (1. - t)).max(FINEST))
-            })
-            .unzip();
+        let (mut points, mut radii) = (Vec::new(), Vec::new());
+        for t in shares {
+            points.push(rachis(frond.at, frond.heading, lift, &c, r0, t).0);
+            radii.push(radius(r0, t));
+        }
         out.push(Rachis { at, points, radii });
     }
     out

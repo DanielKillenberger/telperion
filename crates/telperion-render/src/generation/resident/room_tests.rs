@@ -181,10 +181,17 @@ fn a_tree_without_flowers_lets_the_last_one_s_flowers_go() {
     let Some((mut renderer, gen, _, _)) = drawn("laurelin") else {
         return;
     };
-    assert!(renderer.organ.allocated_bytes() > 0, "the laurelin at 12 flowers");
+    assert!(
+        renderer.organ.allocated_bytes() > 0,
+        "the laurelin at 12 flowers"
+    );
     let oak = gen.prepare(&family("oregon-white-oak", 12)).unwrap();
     renderer.submit_prepared(oak).unwrap();
-    assert_eq!(renderer.organ.allocated_bytes(), 0, "the oak holds no flowers");
+    assert_eq!(
+        renderer.organ.allocated_bytes(),
+        0,
+        "the oak holds no flowers"
+    );
     let tree = Generator::tree_buffer_bytes(&renderer);
     pollster::block_on(crate::generation::io::complete(&gen.gpu)).unwrap();
     let held = gen.gpu.ledger.live();

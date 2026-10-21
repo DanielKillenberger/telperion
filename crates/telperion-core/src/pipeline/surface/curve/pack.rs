@@ -67,7 +67,8 @@ impl Curve {
 
 /// Words in one packed cluster, as the GPU passes read it: its first point
 /// and count, its run's first point and count, its flags (1 the run's first
-/// cluster, 2 its last, 4 a shaped run, the section's index from bit 8), its
+/// cluster, 2 its last, 4 a shaped run, 8 a trunk's run, the section's index
+/// from bit 8), its
 /// sphere's centre and reach, its largest radius and its six ring-level
 /// errors (fn-208).
 pub const CLUSTER_WORDS: usize = 16;
@@ -83,8 +84,10 @@ impl Curve {
             let run = &self.runs[c.run as usize];
             let first = i == 0 || self.clusters[i - 1].run != c.run;
             let last = self.clusters.get(i + 1).is_none_or(|n| n.run != c.run);
-            let flags =
-                u32::from(first) | (u32::from(last) << 1) | run.section.map_or(0, |s| 4 | (s << 8));
+            let flags = u32::from(first)
+                | (u32::from(last) << 1)
+                | (u32::from(run.trunk) << 3)
+                | run.section.map_or(0, |s| 4 | (s << 8));
             let f = |v: f64| (v as f32).to_bits();
             let mut words = [
                 c.first,
