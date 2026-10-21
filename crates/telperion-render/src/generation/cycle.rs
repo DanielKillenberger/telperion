@@ -30,6 +30,8 @@ mod dormant_tests;
 mod drawn;
 #[cfg(test)]
 mod executor_time_tests;
+#[cfg(test)]
+mod forced;
 mod gate;
 mod given;
 mod glue;
@@ -84,6 +86,8 @@ mod race_tests;
 mod retire_device;
 #[cfg(test)]
 mod retire_tests;
+#[cfg(test)]
+mod retry_tests;
 #[cfg(test)]
 mod reuse_tests;
 #[cfg(test)]

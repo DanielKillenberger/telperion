@@ -11,3 +11,5 @@ Doing: the host design's survey of gens(c) = deep(c-1), the rounds rise and the 
 ## 2026-10-21 (conductor, base digests)
 
 Doing: R3's base, every film-walk frame's digest line on bb20f3877's code. Hindered: a digest line reads back each frame's instances and wood, about 3 s a frame against 0.55 s for a build alone, so the base sweep takes about 75 minutes, and the change's side costs the same again. Would remove it: a device-side hash of what the renderer receives (one small readback a build), or a sweep digest that reads only counts and a hash computed on the device.
+
+Correction (same day): the whole base run (preset digests, palm digests and 1,533 frames) took 1,081 s, about 0.7 s a frame once the presets were done, not the 75 minutes estimated from its first minutes. The cost was 18 minutes, and the entry's remedy matters less than it said.
