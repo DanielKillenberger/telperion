@@ -132,3 +132,10 @@
 - **Slowed by:** the wrapper waited for 8 GB of room while 2 to 4 GB was free, because other checkouts' runs held memory. This is the third wait this task: the element probe twice, and now the check.
 - **Cost:** about 10 to 15 minutes of wall clock so far across the three, with the device work written blind meanwhile.
 - **Would remove it:** a lighter room tier for `cargo check` and single-test probes (they peak well under 8 GB), or a queue that says who holds the room.
+
+## 2026-10-21 15:00, worker, task .5 R3 digests
+
+- **Doing:** the R3 digests on every R1 row (168 rows, base against change).
+- **Slowed by:** `artifact_digest` takes a preset and a seed but no age, so the R1 rows could not be digested with it. The worker built a scratch program as two crates outside both worktrees, one per side, so neither checkout was written to. The digests then found three rows outside the host's list that change (ordinary 40 s7, oak 40 s7, spruce 20 s42). The R1 base probe had listed these rows clear because it read the wood centreline, not the bark. That is the same blind spot that moved the palm at 40 in .3. The run stopped for the host.
+- **Cost:** about 25 minutes (two 6-minute digest runs), then a stop before the cost runs, the stills and the gate.
+- **Would remove it:** an age argument on `artifact_digest`, and an R3 change list taken from a bark-reading probe (the .3 `ground_reach`) rather than the base's centreline probe.

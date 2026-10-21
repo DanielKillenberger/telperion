@@ -19,9 +19,10 @@
 //! as `stalk.wgsl` draws it, and each floret's pedicel as `stalk.wgsl`'s
 //! `pedicel_vertex` rebuilds it.
 //!
-//! Red on the base for the date palm (fn-283 measured it); ignored until
-//! contact lands, and run by name: `cargo test -p telperion-core --test
-//! ground_reach -- --ignored --nocapture`.
+//! It holds ground contact (fn-301 R4): on every row nothing lies below the
+//! ground but a leaf stalk's dip within its bound. Red on the base for the
+//! date palm, the birch, the spruce, the ordinary tree and the oak (fn-301
+//! R1); `--nocapture` prints the table.
 use telperion_core::{
     foliage::{rachis_low, transform_point, withered, BloomParams, Wedge},
     math::Vec3,
@@ -144,7 +145,6 @@ fn show(v: f64) -> String {
 }
 
 #[test]
-#[ignore = "fn-301 R1: red on the base until ground contact lands"]
 fn nothing_drawn_passes_below_the_ground() {
     println!(
         "preset\tage\tseed\twood_low\tleaf_low\tstalk_dip\tleaves_under\tflower_low\tflowers_under\trachis_low"
