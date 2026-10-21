@@ -28,3 +28,20 @@ norway-spruce 20 42    skeleton 236355bd58c72396 → 982d01ec1ef4a205  wood 2754
 ```
 
 The skeleton changes on all three rows, so the change enters at the lay walk or sag. Inferred, not measured: the base R1 probe read the wood from its curve's centreline, which stood 2 to 4 cm up on these rows. The lay now rests the bark (one girth radius up), and its landing ease and sag read the bark, so a low limb whose bark, not its centreline, reached the ground now moves. The palm at 40 was found the same way in .3. Whether these three rows join R3's changing rows is the host's call.
+
+## Host ruling 1 check: bark on the base (2026-10-21)
+
+`t5-bark-main.rs` ran against base d600fa12c, in its own scratch crate and `target/`, and wrote `t5-bark-base.tsv`. For each row it builds `mesh::build` and reads the drawn curve's points on non-trunk runs, taking min(centre.y − radius).
+
+| Row | Lowest non-trunk bark on the base | Points below 0 |
+|---|--:|--:|
+| ordinary 40, seed 7 | +0.0913 m | 0 |
+| oregon-white-oak 40, seed 7 | +0.2431 m | 0 |
+| norway-spruce 20, seed 42 | +0.0807 m | 0 |
+| ordinary 40, seed 42 (control, on the list) | −0.0212 m | 658 |
+| oregon-white-oak 40, seed 42 (control, on the list) | −0.00005 m | 1 |
+| norway-spruce 40, seed 1 (control, on the list) | −0.0029 m | 1,836 |
+
+The bark is clear on the base on all three rows, so resting did not change them. Under the ruling, the run stops here.
+
+A likely cause, inferred from the code and not measured: in .3 the landing ease now reads the bark, `support(tip.z − radius, …)` (`telperion-space/src/geometry/lay.rs`). `support` eases every descending non-trunk step whose input lies under its zone, `CONTACT·radius + LANDING·length`, which is 4 radii plus 6 step lengths. A limb whose bark is clear but sits within about that height of the ground therefore eases slightly more than it did on the base. Sag also reads the bark now (.3). Neither change needs contact.

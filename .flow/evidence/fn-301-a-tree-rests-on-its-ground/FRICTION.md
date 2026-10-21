@@ -139,3 +139,10 @@
 - **Slowed by:** `artifact_digest` takes a preset and a seed but no age, so the R1 rows could not be digested with it. The worker built a scratch program as two crates outside both worktrees, one per side, so neither checkout was written to. The digests then found three rows outside the host's list that change (ordinary 40 s7, oak 40 s7, spruce 20 s42). The R1 base probe had listed these rows clear because it read the wood centreline, not the bark. That is the same blind spot that moved the palm at 40 in .3. The run stopped for the host.
 - **Cost:** about 25 minutes (two 6-minute digest runs), then a stop before the cost runs, the stills and the gate.
 - **Would remove it:** an age argument on `artifact_digest`, and an R3 change list taken from a bark-reading probe (the .3 `ground_reach`) rather than the base's centreline probe.
+
+## 2026-10-21 15:10, worker, task .5 bark check
+
+- **Doing:** the host's check that the three unexpected R3 rows (ordinary 40 s7, oak 40 s7, spruce 20 s42) reached the ground by their bark on the base.
+- **Slowed by:** they did not. Their lowest non-trunk bark on the base is +9.1 cm, +24.3 cm and +8.1 cm. The base R1 probe at 24704052c already read the bark (centre − radius, with the ring's plane extent), not the centreline as the earlier inference said, so its "clear" list was honest for the bark. The rows most likely move because the landing ease now reads the bark across its whole zone, not only at contact. A second stop.
+- **Cost:** about 10 minutes, and a second stop for the host.
+- **Would remove it:** the plan treating "the landing ease is measured from the bark" as a change to every limb inside the landing zone, and listing R3's changing rows from a probe of that zone rather than of contact.
