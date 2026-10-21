@@ -170,15 +170,10 @@ fn rachis_words(j:u32) -> vec3<u32> {
 fn inflorescence_rest(f:Flower, r:Segment, key:vec2<u32>, step:f32) -> vec3<f32> {
     let seat=r.a.xyz;
     var lo=vec3<f32>(0.0); var hi=vec3<f32>(0.0);
-    // The axis's samples (`Axis::laid`, `bloom.wgsl`'s `floret`).
-    let heading=bloom_or(seat-r.b.xyz,vec3<f32>(0.0,1.0,0.0));
-    let toward=select(vec3<f32>(0.0,1.0,0.0),vec3<f32>(0.0,-1.0,0.0),f.b.z>=0.0);
-    var sample=seat;
-    for(var k=0u;k<BLOOM_SEGMENTS;k++) {
-        let rest=1.0-(f32(k)+0.5)/f32(BLOOM_SEGMENTS);
-        let turned=abs(f.b.z)*(1.0-rest*rest*rest);
-        sample+=bloom_or(bloom_lerp(heading,toward,turned),toward)*(f.c.x/f32(BLOOM_SEGMENTS));
-        lo=min(lo,sample-seat); hi=max(hi,sample-seat);
+    // The axis's samples (`bloom.wgsl`'s `bloom_axis`, `Axis::laid`).
+    var axis=bloom_axis(f,seat,r.b.xyz);
+    for(var k=1u;k<=BLOOM_SEGMENTS;k++) {
+        lo=min(lo,axis.points[k]-seat); hi=max(hi,axis.points[k]-seat);
     }
     // cap: the bloom's florets.
     for(var i=0u;i<u32(ceil(f.a.x));i++) {
