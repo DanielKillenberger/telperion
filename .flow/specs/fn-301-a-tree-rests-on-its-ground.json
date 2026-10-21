@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-301-a-tree-rests-on-its-ground",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-10-21T14:27:44.090114Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-21T14:32:31.563965Z",
   "created_at": "2026-10-20T18:50:37.738543Z",
   "default_impl": null,
   "default_review": null,
@@ -1174,6 +1174,74 @@
       "task": null,
       "timestamp": "2026-10-21T14:27:44.085281Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "67a3df7dc16669f8cc99a90e8503eb62649d641dbaa64ab7a25e25ea528066fe",
+      "backend": "codex",
+      "base_sha": "39f5bdd4fba2d2f6dca7a548030d53ba10f5b10e",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a3466f665e54040948a03bedd259b786",
+            "classification": "introduced",
+            "findingId": "finding-a3466f665e54040948a03bedd259b786",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-04cb1cabf80efd25661510e9d8398e0c",
+            "classification": "introduced",
+            "findingId": "finding-04cb1cabf80efd25661510e9d8398e0c",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-74f2c9657d9f6dce5081b9a8698c6b55",
+            "classification": "introduced",
+            "findingId": "finding-74f2c9657d9f6dce5081b9a8698c6b55",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c73b7be56a5c93bb0f2b22e4d7bce37e",
+            "classification": "introduced",
+            "findingId": "finding-c73b7be56a5c93bb0f2b22e4d7bce37e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "withdrawn"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "3c6da9e20a70ad40778b2f3a9f25b88532706b37",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 3248,
+      "output_sha256": "3da4f5f29ffab5e6932a745fd505bd866531401923e8929a11f97975218d6bef",
+      "reservation_id": "ce7fb351ff2c475bb805e82a719a2367",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T14:32:31.559806Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1183,7 +1251,7 @@
     "impl:fn-301-a-tree-rests-on-its-ground.4": 1,
     "impl:fn-301-a-tree-rests-on-its-ground.5": 1,
     "plan": 4,
-    "plan#completion": 3
+    "plan#completion": 4
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -1210,5 +1278,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T14:31:05.153938Z"
+  "updated_at": "2026-10-21T14:32:31.564831Z"
 }
