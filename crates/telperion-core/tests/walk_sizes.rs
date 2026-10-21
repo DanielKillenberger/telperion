@@ -3,7 +3,9 @@
 //! of the sweep that miss its oracle (`examples/walk_size.rs`; WALKS.md,
 //! "The seed-spread oracle") are named exceptions held at their measured
 //! numbers until fn-273 takes them: none may move further outside its
-//! band, nor reach the budget (host, 2026-10-14).
+//! band, nor reach the budget (host, 2026-10-14). The gate grows the
+//! teaser's frame; the exceptions are the ignored test below until fn-273
+//! takes them (host, fn-304 ruling 5).
 use telperion_core::{blend, presets::Preset, Family};
 use telperion_space::{grow_cycle, Request};
 use Preset::{
@@ -144,16 +146,22 @@ fn grown(frame: &Family) -> telperion_space::Result<[f64; 2]> {
 
 /// fn-251 R1: the teaser's walk from the oak to the birch at 80, seed 7,
 /// the frame at t = 0.07504803866484144 that `headless --walk 6 --hold 0`
-/// refused on the engine's phytomer budget (frame 24), grows within it;
-/// then the named exceptions. One test, so no two trees of 80 years grow
-/// at once (each takes several GB).
+/// refused on the engine's phytomer budget (frame 24), grows within it.
 #[test]
-fn the_teaser_frame_fits_and_the_named_exceptions_grow_no_further_out() {
+fn the_teaser_frame_fits() {
     let (a, b) = (end(Oak, 80.0, 7), end(Birch, 80.0, 7));
     let teaser = blend::families(&a, &b, 0.07504803866484144).unwrap();
     if let Err(err) = grown(&teaser) {
         panic!("the teaser's frame: {err}");
     }
+}
+
+/// The named exceptions grow no further out, one after another, so no two
+/// trees of 80 years grow at once (each takes several GB):
+/// `cargo test --profile ci -p telperion-core --test walk_sizes -- --ignored`
+#[test]
+#[ignore = "fn-304: fn-273's eight named exceptions, outside the gate; about a minute"]
+fn the_named_exceptions_grow_no_further_out() {
     let mut worse = Vec::new();
     for e in &EXCEPTIONS {
         let (a, b) = (end(e.walk.0, e.age, e.seed), end(e.walk.1, e.age, e.seed));

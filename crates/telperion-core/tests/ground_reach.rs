@@ -26,6 +26,11 @@
 //! ground but a leaf stalk's dip within its bound. Red on the base for the
 //! date palm, the birch, the spruce, the ordinary tree and the oak (fn-301
 //! R1); `--nocapture` prints the table.
+//!
+//! The gate reads the rows R1 found below the ground on the base and every
+//! preset at its own age, seed 1; the ignored `every_row_...` reads all
+//! 168 (host, fn-304 ruling 2). Each row's tree is dropped before the next
+//! is built.
 use telperion_core::{
     foliage::{rachis_low, transform_point, withered, BloomParams, Wedge},
     math::Vec3,
@@ -159,41 +164,132 @@ fn show(v: f64) -> String {
     }
 }
 
-#[test]
-fn nothing_drawn_passes_below_the_ground() {
+/// The rows fn-301 R1 found reaching below the ground on the base
+/// (`.flow/evidence/fn-301-a-tree-rests-on-its-ground/r1-base.tsv`).
+const TOUCHING: &[(&str, f64, u32)] = &[
+    ("ordinary", 40., 42),
+    ("oregon-white-oak", 40., 42),
+    ("norway-spruce", 40., 1),
+    ("norway-spruce", 40., 7),
+    ("norway-spruce", 40., 42),
+    ("silver-birch", 6., 1),
+    ("silver-birch", 6., 7),
+    ("silver-birch", 8., 1),
+    ("silver-birch", 8., 7),
+    ("silver-birch", 8., 42),
+    ("silver-birch", 10., 1),
+    ("silver-birch", 10., 7),
+    ("silver-birch", 10., 42),
+    ("silver-birch", 12., 1),
+    ("silver-birch", 12., 7),
+    ("silver-birch", 12., 42),
+    ("silver-birch", 15., 1),
+    ("silver-birch", 15., 7),
+    ("silver-birch", 15., 42),
+    ("silver-birch", 20., 1),
+    ("silver-birch", 20., 7),
+    ("silver-birch", 20., 42),
+    ("silver-birch", 40., 1),
+    ("silver-birch", 40., 7),
+    ("date-palm", 6., 1),
+    ("date-palm", 6., 7),
+    ("date-palm", 6., 42),
+    ("date-palm", 8., 1),
+    ("date-palm", 8., 7),
+    ("date-palm", 8., 42),
+    ("date-palm", 10., 1),
+    ("date-palm", 10., 7),
+    ("date-palm", 10., 42),
+    ("date-palm", 12., 1),
+    ("date-palm", 12., 7),
+    ("date-palm", 12., 42),
+    ("date-palm", 15., 1),
+    ("date-palm", 15., 7),
+    ("date-palm", 15., 42),
+    ("date-palm", 20., 1),
+    ("date-palm", 20., 7),
+    ("date-palm", 20., 42),
+    ("date-palm", 40., 1),
+    ("date-palm", 40., 7),
+    ("date-palm", 40., 42),
+];
+
+/// A shipped preset's own age.
+fn own_age(id: &str) -> f64 {
+    presets::by_identity(id).expect("a shipped preset").age
+}
+
+/// Every row of R1: each preset at each age and its own, at each seed.
+fn every_row() -> Vec<(&'static str, f64, u32)> {
+    let mut rows = Vec::new();
+    for &(_, id, _, _) in CATALOGUE {
+        for age in AGES.iter().copied().chain([own_age(id)]) {
+            rows.extend(SEEDS.map(|seed| (id, age, seed)));
+        }
+    }
+    rows
+}
+
+/// The gate's rows: the touching ones, then each preset at its own age,
+/// seed 1, where not already among them.
+fn gate_rows() -> Vec<(&'static str, f64, u32)> {
+    let mut rows = TOUCHING.to_vec();
+    for &(_, id, _, _) in CATALOGUE {
+        let row = (id, own_age(id), 1);
+        if !rows.contains(&row) {
+            rows.push(row);
+        }
+    }
+    rows
+}
+
+/// The row printed, and named if anything lies below the ground. Its tree
+/// is dropped on return.
+fn below(id: &str, age: f64, seed: u32) -> Option<String> {
+    let mut f = presets::by_identity(id).expect("a shipped preset");
+    (f.age, f.skeleton.seed) = (age, seed);
+    let m = mesh::build(&f).unwrap_or_else(|e| panic!("{id} {age} {seed}: {e}"));
+    let wood = wood_low(&m, &f.surface);
+    let bark = bark_low(&m);
+    let (leaf, dip, leaves_below, leaves) = foliage_low(&m.foliage, true);
+    let organ = m.organ.as_ref();
+    let (flower, _, flowers_below, flowers) =
+        organ.map_or((f64::INFINITY, 0.0, 0, 0), |o| foliage_low(o, false));
+    let rachis = organ.map_or(f64::INFINITY, |o| stalk_low(o, &f.bloom));
+    let pedicels = organ.map_or(f64::INFINITY, |o| pedicel_low(o, &f.bloom));
+    let flower = flower.min(pedicels);
+    println!(
+        "{id}\t{age}\t{seed}\t{}\t{}\t{}\t{dip:.4}\t{leaves_below}\t{leaves}\t{}\t{flowers_below}\t{flowers}\t{}",
+        show(wood),
+        show(bark),
+        show(leaf),
+        show(flower),
+        show(rachis)
+    );
+    let under = wood < BELOW || leaves > 0 || flowers > 0 || flower < BELOW || rachis < BELOW;
+    under.then(|| format!("{id} at {age}, seed {seed}"))
+}
+
+fn nothing_below(rows: &[(&str, f64, u32)]) {
     println!(
         "preset\tage\tseed\twood_low\tbark_low\tleaf_low\tstalk_dip\tleaves_below\tleaves_under\tflower_low\tflowers_below\tflowers_under\trachis_low"
     );
-    let mut failures = Vec::new();
-    for &(_, id, _, _) in CATALOGUE {
-        let default = presets::by_identity(id).expect("a shipped preset").age;
-        for age in AGES.iter().copied().chain([default]) {
-            for seed in SEEDS {
-                let mut f = presets::by_identity(id).expect("a shipped preset");
-                (f.age, f.skeleton.seed) = (age, seed);
-                let m = mesh::build(&f).unwrap_or_else(|e| panic!("{id} {age} {seed}: {e}"));
-                let wood = wood_low(&m, &f.surface);
-                let bark = bark_low(&m);
-                let (leaf, dip, leaves_below, leaves) = foliage_low(&m.foliage, true);
-                let organ = m.organ.as_ref();
-                let (flower, _, flowers_below, flowers) =
-                    organ.map_or((f64::INFINITY, 0.0, 0, 0), |o| foliage_low(o, false));
-                let rachis = organ.map_or(f64::INFINITY, |o| stalk_low(o, &f.bloom));
-                let pedicels = organ.map_or(f64::INFINITY, |o| pedicel_low(o, &f.bloom));
-                let flower = flower.min(pedicels);
-                println!(
-                    "{id}\t{age}\t{seed}\t{}\t{}\t{}\t{dip:.4}\t{leaves_below}\t{leaves}\t{}\t{flowers_below}\t{flowers}\t{}",
-                    show(wood),
-                    show(bark),
-                    show(leaf),
-                    show(flower),
-                    show(rachis)
-                );
-                if wood < BELOW || leaves > 0 || flowers > 0 || flower < BELOW || rachis < BELOW {
-                    failures.push(format!("{id} at {age}, seed {seed}"));
-                }
-            }
-        }
-    }
+    let failures: Vec<String> = rows
+        .iter()
+        .filter_map(|&(id, age, seed)| below(id, age, seed))
+        .collect();
     assert!(failures.is_empty(), "below the ground: {failures:?}");
+}
+
+#[test]
+fn nothing_drawn_passes_below_the_ground() {
+    nothing_below(&gate_rows());
+}
+
+/// All 168 rows of R1:
+/// `cargo test --profile ci -p telperion-core --test ground_reach -- --ignored --nocapture`
+#[test]
+#[ignore = "fn-304: fn-301 R1's full sweep, outside the gate; about 3 minutes"]
+fn nothing_drawn_passes_below_the_ground_on_every_row() {
+    nothing_below(&every_row());
 }

@@ -29,3 +29,42 @@ Green on the engine: all four tests pass (`raw/proofs/t1-green.log`).
 `sum-order` is the one nondeterminism that neither the subset nor the full sweep sees: the shipped presets' light sums over too few directions for their order to move a bit. It is recorded, not acted on; `tail-piece` is the ruling's proof (deterministic, the defect "on any cores" names, caught by the "on one core" assertion on both).
 
 Gate at the end of task .1 (`telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`, 3b880374b..b1feb485a): 1,466 passed, 2 failed, 116 ignored, 2,374 s wall including 215 s of compile, peak 7,637 MiB anon. The two failures are fn-302's (`film_walk_tests::the_film_walks_build_on_the_device`, `the_rounds_frames_have_the_cpus_counts`), red on F4 before this spec.
+
+## Task .2: the core sweeps (rulings 1, 2, 5)
+
+| Test | Change | Own time (nextest, rayon 4) |
+|---|---|--:|
+| `walk_leaves` `oak_to_palm_keeps_its_leaves_by_degree`, `spruce_to_birch_...`, `birch_to_oak_...` | each walks seed 1 | 20 s, 81 s, 29 s (280 + 93 + 65 s at three seeds, rayon 2) |
+| `walk_leaves` `every_walk_changes_its_leaves_by_degree_at_every_seed` | the three walks at seeds 1, 7 and 42, ignored | 359 s |
+| `ground_reach` `nothing_drawn_passes_below_the_ground` | fn-301 R1's 45 touching rows and every preset at its own age, seed 1 (51 rows) | 54–58 s, peak 4.68 GB (was 159 s, 7.77 GB) |
+| `ground_reach` `nothing_drawn_passes_below_the_ground_on_every_row` | all 168 rows, ignored | 136 s |
+| `walk_sizes` `the_teaser_frame_fits` | the teaser frame alone | 21 s (was 79.5 s with the exceptions) |
+| `walk_sizes` `the_named_exceptions_grow_no_further_out` | fn-273's eight exceptions, ignored | 46 s |
+
+Test counts: `walk_leaves` 3 run + 1 ignored → 3 + 2; `ground_reach` 1 → 1 + 1; `walk_sizes` 1 → 1 + 1 (the test is split: the teaser stays, the exceptions move to ignored, renamed `the_teaser_frame_fits` and `the_named_exceptions_grow_no_further_out`).
+
+### ground_reach's 7.8 GB is one tree, not accumulation
+
+Measured with a temporary probe that prints `VmRSS` and `VmHWM` after each row's tree is dropped (`raw/patches/probe-rss.patch`, `raw/proofs/ground-probe2.log`, `ground-probe3.log`):
+
+| Row | Alone, fresh process: peak | In the sweep: peak so far, RSS after the drop |
+|---|--:|--:|
+| Telperion at 82, seed 1 | 4,623 MiB | 4,658 MiB, 828 MiB |
+| Telperion at 82, seed 7 | 7,677 MiB | 7,666 MiB, 1,253 MiB |
+| Laurelin at 80, seed 1 | 4,326 MiB | under the Telperion peak |
+| Norway spruce at 40, seed 1 | 2,697 MiB | 2,689 MiB |
+| every other row | under 1,013 MiB | |
+
+Telperion at 82, seed 7 peaks at 7.68 GB on its own: the sweep's peak is that one tree. The test already drops each tree before the next is built; the RSS left after a drop (up to 1.3 GB) is memory the allocator keeps, not a tree held. The gate's rows include Telperion at its own age only at seed 1, so the gate test peaks at 4.68 GB; seed 7 stays in the ignored sweep.
+
+### Red and green
+
+| Patch (temporary) | What it breaks | Gate subset | Full sweep |
+|---|---|---|---|
+| `cluster-round` (`telperion-space/src/lineage.rs`, `cluster`) | a short shoot's leaves rounded, not drawn (fn-277's defect) | red: `spruce_to_birch` and `birch_to_oak` at seed 1 | red |
+| `leaflets-round` (`foliage/organs.rs`, `placement`) | a placement's leaflets rounded | red: `oak_to_palm` at seed 1 (`leaflets per station ... against ...`) | red |
+| `fronds-round` (`foliage/organs.rs`, `apex`) | the palm's fronds rounded | green | green |
+| `no-rest` (`foliage/rest.rs`, `leaf`) | a leaf that would cross the ground is never rested (fn-301) | red: the touching rows named | red |
+| `budget-eighth-cycle` (`telperion-space/src/grow.rs`) | the cycle's phytomer budget an eighth of the asked | red: `the teaser's frame: the tree outgrew its budget` | red (the exceptions) |
+
+`fronds-round` is caught by neither: the frond count on the oak-to-palm walk stays below the oracle's 30 organs, where a form is dormant. Recorded, not acted on.

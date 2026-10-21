@@ -33,3 +33,10 @@
 - **Hindered:** `ground_reach` (fn-301, one test) reached 7.65 GB anon by itself; beside a light render test it took the 8 GB scope over and systemd stopped the whole run (OOMPolicy stop) after 738 s, 50 tests short. One test that needs nearly the whole cap makes any wider runner fragile.
 - **Cost:** 12 minutes of run plus a rerun with that binary alone (`threads-required`).
 - **Would remove it:** a per-test memory budget beside the time budget in R4; ground_reach's builds dropped as it goes (to check: its peak may be accumulation, not one tree).
+
+## 2026-10-22 01:35, task .2 (subset proofs)
+
+- **Doing:** red proofs for the task .2 subsets, each a full sweep plus its subset per patch inside `telperion-heavy 8`.
+- **Hindered:** two patches missed the defect their test names and had to be redone (the light-sum order and the frond rounding moved nothing the tests read; the budget at an eighth still admitted the teaser frame). Each miss costs one full-sweep run, 1 to 7 minutes, plus the queue: the rerun has waited 35 minutes behind another session's gate.
+- **Cost:** about 50 minutes of queue and 15 of reruns so far.
+- **Would remove it:** a recorded defect per test (the commit that fixed it, as a patch) beside each test's doc comment, so a proof replays the real defect instead of guessing one; and the shorter gate this spec builds, which frees the queue.
