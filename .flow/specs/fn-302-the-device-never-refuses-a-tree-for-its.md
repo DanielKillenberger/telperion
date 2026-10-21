@@ -32,6 +32,28 @@ The projection reads the wrong quantity. A cycle's generations are the layout's 
 - **Cost.** A paired timing of beech 40, palm 12 and spruce 40, base bb20f3877 against the change, must come out within noise.
 
 
+## Design revised (host, 2026-10-21, after the census survey)
+
+The survey covered 70,284 censuses across 1,587 builds (`raw/survey-both.log`, `raw/survey-units.log`). It confirms gens(c) = deep(c−1) everywhere. It also shows that the fresher read gains nothing: gens(c) − deep(c−2) peaks at 3, the same as gens(c) − gens(c−2). The units rounds sit at zero headroom on 812 censuses, held up only by the `2·units − 1` floor.
+
+No projection from a census two cycles old is a bound, and a margin taken from a survey has zero headroom at its own maximum. The film samples a continuous walk at 1,533 points, the package builds any t, and fn-300 may shift these counts. So the stepped limits are a cost hint, not a guarantee, and the guarantee comes from the bound.
+
+- **The rule.** When a device build is refused only because it passed stepped limits (the flags that name a stepped limit, such as `HierGens` and `UnitRounds`, never a table cap or a plan bound), the build runs once more from the start, through the same pipeline, with exactly those limits pinned at their bound.
+  - A second refusal is an error, as today.
+  - The rounds only size work, so the retried build is byte-identical to a build recorded with those limits at their bound.
+  - This is the one pipeline sized larger, not a fallback path.
+  - The retry lives in one place, where the device build turns its flags into a refusal. The plan checks for an existing retry or resize loop on the device path and uses it if there is one.
+- **The projections are unchanged.** `STEP`, `ROUND_SLACK` and the floors stay as they are. The cost of a build that never overflows is therefore exactly today's. The `2·units − 1` comment that claims a bound is corrected, and the stepped limits are documented as a cost hint whose overflow is retried.
+- **Proof.**
+  - Frame 41 builds.
+  - A test forces a stepped limit short (a test-only override, as `LAYGENS` has) and shows that the retried build is byte-identical to one recorded at the bound.
+  - R3's digests and the full sweep are byte-identical to bb20f3877 wherever bb20f3877 built.
+  - The full sweep and the shipped presets at their R1 ages report how many builds retried and which ones. Frame 41's paired timing records what a retry costs.
+- **No timing pair for the non-retrying trees.** Their recording is unchanged, so their cost is unchanged.
+
+Commit the survey tap as an ignored test that prints each stepped limit's rise and headroom, because the friction entry asks for it. The probe itself is not committed.
+
+
 ## Requirements
 
 - **R1 (repro):** the two failing tests above are red on bb20f3877, and they are the repro. Run them before anything changes.
