@@ -404,7 +404,8 @@ struct Runs {
     matched: usize,
     unmatched: usize,
     count: usize,
-    /// The CPU's trunk runs the device drew point for point, of all.
+    /// The runs the device flags a trunk's (its clusters' flag 8) among
+    /// those it drew point for point, and the CPU's trunk runs.
     trunks: (usize, usize),
     centre: f64,
     radius: f64,
@@ -468,10 +469,10 @@ fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
                 .unwrap(),
         )
     };
-    let mut runs: Vec<(u32, u32)> = Vec::new();
+    let mut runs: Vec<(u32, u32, bool)> = Vec::new();
     for c in clusters.chunks(CLUSTER_WORDS) {
-        if runs.last() != Some(&(c[2], c[3])) {
-            runs.push((c[2], c[3]));
+        if runs.last().map(|r| (r.0, r.1)) != Some((c[2], c[3])) {
+            runs.push((c[2], c[3], c[4] & 8 != 0));
         }
     }
     let x = executor::grow(f).unwrap().expansion().unwrap();
@@ -490,7 +491,7 @@ fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
         ..Runs::default()
     };
     let mut used = vec![false; theirs.runs.len()];
-    for &(first, count) in runs.iter().filter(|r| r.1 > 1) {
+    for &(first, count, standing) in runs.iter().filter(|r| r.1 > 1) {
         let at = point(first + 1).centre;
         let (x, y, z) = cell(at, s);
         let near = (-1..=1)
@@ -514,7 +515,7 @@ fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
             continue;
         }
         out.matched += 1;
-        out.trunks.0 += usize::from(theirs.runs[j].trunk);
+        out.trunks.0 += usize::from(standing);
         let end = want[want.len() - 1].centre;
         let frond = tips.iter().any(|t| t.distance(end) <= 1e-6);
         out.fronds += usize::from(frond);

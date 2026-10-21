@@ -4,20 +4,22 @@
 //! of the wood, of the leaves and of the flowers, and how many leaf and
 //! flower instances have a vertex below the ground.
 //!
-//! The wood is read from its curve: each ring's lowest point, its radius
-//! (lobes included) times the vertical reach of the ring's plane, or a
-//! shaped run's extent. The trunk's foot is not counted: its buried ring
-//! (`flareDepth`, sunk below the root by design) and its ring at the root,
-//! which stands on the ground and leans with the trunk. Leaves and flowers are read at
-//! every element vertex under each stored transform.
+//! The wood is read from its drawn vertices, the sweep's own (fn-301 .3):
+//! run by run in the curve's order, each ring's vertices and the run's two
+//! caps. A trunk's run below the root is its foot, not counted: its buried
+//! ring (`flareDepth`, sunk below the root by design) and its rings at the
+//! root, which lean with the trunk (the palm's dip to 5 cm, on the base as
+//! after). Every other run's vertices are kept off the ground by the
+//! surface clearance. Leaves and flowers are read at every element vertex
+//! under each stored transform.
 //!
 //! Red on the base for the date palm (fn-283 measured it); ignored until
 //! contact lands, and run by name: `cargo test -p telperion-core --test
 //! ground_reach -- --ignored --nocapture`.
 use telperion_core::{
-    mesh::{self, Foliage},
+    mesh::{self, Foliage, TreeMesh},
     presets::{self, CATALOGUE},
-    surface::Curve,
+    surface::SurfaceParams,
 };
 
 const AGES: [f64; 6] = [6., 8., 10., 12., 15., 20.];
@@ -26,25 +28,24 @@ const SEEDS: [u32; 3] = [1, 7, 42];
 /// box, so a vertex laid on the ground may read a hair under it.
 const BELOW: f64 = -1e-4;
 
-/// The lowest point of the drawn wood, its buried foot left out.
-fn wood_low(curve: &Curve) -> f64 {
-    let mut low = f64::INFINITY;
-    for run in &curve.runs {
-        let points = &curve.points[run.first as usize..(run.first + run.count) as usize];
-        for p in points {
-            if run.trunk && p.centre.y <= 0. {
-                continue;
+/// The lowest drawn vertex of the wood, its trunk's foot left out: the
+/// mesh's vertices, `segments` a ring and two caps a run, in the curve's
+/// run order, a trunk's below the root not counted.
+fn wood_low(m: &TreeMesh, params: &SurfaceParams) -> f64 {
+    let segments = params.radial_segments.max(params.lobes * 4) as usize;
+    let drawn = m.wood.flattened().positions;
+    let (mut low, mut at) = (f64::INFINITY, 0);
+    for run in &m.curve.runs {
+        let vertices = run.count as usize * segments + 2;
+        for v in at..at + vertices {
+            let y = f64::from(drawn[3 * v + 1]);
+            if !(run.trunk && y < 0.) {
+                low = low.min(y);
             }
-            let reach = match run.section {
-                Some(_) => p.radius,
-                None => {
-                    let plane = (p.normal.y * p.normal.y + p.binormal.y * p.binormal.y).sqrt();
-                    p.radius * (1. + curve.lobe_depth) * plane
-                }
-            };
-            low = low.min(p.centre.y - reach);
         }
+        at += vertices;
     }
+    assert_eq!(3 * at, drawn.len(), "the drawn wood is the curve's runs");
     low
 }
 
@@ -82,7 +83,7 @@ fn nothing_drawn_passes_below_the_ground() {
                 let mut f = presets::by_identity(id).expect("a shipped preset");
                 (f.age, f.skeleton.seed) = (age, seed);
                 let m = mesh::build(&f).unwrap_or_else(|e| panic!("{id} {age} {seed}: {e}"));
-                let wood = wood_low(&m.curve);
+                let wood = wood_low(&m, &f.surface);
                 let (leaf, leaves) = foliage_low(&m.foliage);
                 let (flower, flowers) = m.organ.as_ref().map_or((f64::INFINITY, 0), foliage_low);
                 println!(

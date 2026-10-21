@@ -324,12 +324,14 @@ pub(super) struct Ring<'a> {
     pub(super) angular: &'a [angular::Angular],
 }
 
-/// A run's vertices, ring by ring, then its two caps where `caps` asks.
+/// A run's vertices, ring by ring, then its two caps where `caps` asks. A
+/// vertex of wood other than a `trunk`'s below the ground is set onto it
+/// (fn-301, surface clearance); a trunk's buried foot stays below it.
 pub(super) fn emit_run(
     samples: &[Sample],
     frame: &[(Vec3, Vec3)],
     ring: Ring,
-    shape: Option<&crate::tree::Section>,
+    (shape, trunk): (Option<&crate::tree::Section>, bool),
     caps: bool,
     mut emit: impl FnMut([f32; 3], [f32; 2]),
 ) -> Result<()> {
@@ -339,9 +341,12 @@ pub(super) fn emit_run(
         angular,
     } = ring;
     let mut vertex = |p: Vec3, coord: [f32; 2]| {
-        let xyz = [p.x as f32, p.y as f32, p.z as f32];
+        let mut xyz = [p.x as f32, p.y as f32, p.z as f32];
         if !xyz.iter().all(|v| v.is_finite()) {
             return Err(Error::InvalidInput("surface float32 position overflow"));
+        }
+        if !trunk {
+            clear(&mut xyz);
         }
         emit(xyz, coord);
         Ok(())
@@ -371,6 +376,14 @@ pub(super) fn emit_run(
     vertex(samples[0].p, [samples[0].d as f32, 0.0])?;
     let last = samples.last().unwrap();
     vertex(last.p, [last.d as f32, 0.0])
+}
+
+/// A vertex below the ground set onto it (fn-301, surface clearance): an
+/// identity on one at or above it, `-0.0` included.
+pub(super) fn clear(xyz: &mut [f32]) {
+    if xyz[1] < 0.0 {
+        xyz[1] = 0.0;
+    }
 }
 
 /// The way run vertex `j` faces when no triangle is left to say: out from the
