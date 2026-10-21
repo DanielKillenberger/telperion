@@ -40,9 +40,11 @@ Under `cargo test` these tests' times include the one-tree turn wait; read their
 - [ ] TBD
 
 ## Done summary
-TBD
+Rulings 7, 8 and 9 in the core lib. The repeat test keeps Telperion and the date palm in the gate; the full catalogue sweep is ignored (fn-304). The two packed_leaf tests merge into one build per preset with both assertions. The row-bound test runs its eight families at once (70 s to 12 s). Each subset and merged assertion red on its own temporary patch (tail-piece, box-small, box-coarse, bloom-rails), green on the engine (RESULT.md). Gate: 1,466 passed, 2 failed (fn-302's device tests, red on F4 before), 116 ignored, 2,374 s.
+stage: impl-review - ran (codex, three lenses, SHIP; one P3 count fixed in RESULT.md) (model: gpt-6.1-sol)
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b1feb485a7607ffc2db6cc019b2ed530b3237b5b, 0efa1d62eb94cbfb911d2ffb7344a0a1258091ef
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast (1466 passed, 2 failed fn-302, 116 ignored), proofs.sh t1 (nextest, telperion-heavy 8 --threads 4)
 - PRs:
