@@ -526,6 +526,8 @@ impl Growing {
         self.grew.waiting += clock.elapsed_ms() / 1e3;
         #[cfg(test)]
         self.grew.censuses.push(read.clone());
+        #[cfg(test)]
+        super::stepped_survey::tap(cycle, &read);
         let sent = self.pending.pop_front().expect("a cycle sent");
         if let Err(stopped) = self.grew.read((&read, cycle), &sent, budget) {
             if !self.pending.is_empty() {

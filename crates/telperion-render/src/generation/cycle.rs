@@ -115,6 +115,8 @@ mod settle_time_tests;
 #[cfg(test)]
 mod soft64_tests;
 mod state;
+#[cfg(test)]
+mod stepped_survey;
 pub(super) mod tree;
 mod units;
 mod vm;

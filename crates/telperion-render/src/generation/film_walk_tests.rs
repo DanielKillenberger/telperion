@@ -81,7 +81,7 @@ fn fn299(k: usize, seed: u32, i: u32) -> bool {
 }
 
 /// Every frame of every walk at every seed.
-fn sweep() -> Vec<(String, Family)> {
+pub(super) fn sweep() -> Vec<(String, Family)> {
     let mut out = laurelin();
     for k in 0..SEGMENTS.len() {
         for seed in SEEDS {
