@@ -18,7 +18,7 @@
     "fn-301-a-tree-rests-on-its-ground.5": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 2,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-10-20T22:58:56.579915Z",
   "ready": true,
@@ -1182,8 +1182,8 @@
     "impl:fn-301-a-tree-rests-on-its-ground.3": 1,
     "impl:fn-301-a-tree-rests-on-its-ground.4": 1,
     "impl:fn-301-a-tree-rests-on-its-ground.5": 1,
-    "plan": 3,
-    "plan#completion": 2
+    "plan": 4,
+    "plan#completion": 3
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -1210,5 +1210,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T14:27:44.091073Z"
+  "updated_at": "2026-10-21T14:31:05.153938Z"
 }
