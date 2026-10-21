@@ -1326,10 +1326,34 @@
     "reason": "A frond drawn at no size has no blade to split; its strips scale nothing (fn-275 R2b)."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/foliage/rachis.rs",
+    "path": "crates/telperion-core/src/pipeline/foliage/leaflet.rs",
     "site": ". max ( FINEST )",
     "classification": "numeric",
-    "reason": "A frond's axis tapers to its tip but is never drawn finer than the finest wood the engine draws (fn-283 R3); a drawing tolerance, not a population limit."
+    "reason": "A frond's rachis tapers to its tip but is never drawn finer than the finest wood the engine draws (fn-283 R3; fn-301 moved the radius into the frond curve, `leaflet::radius`); a drawing tolerance, not a population limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/leaflet.rs",
+    "site": ". max ( 0 . )",
+    "classification": "algorithm",
+    "reason": "fn-301 `acosh`: the radicand (x-1)(x+1) is nonnegative where a resting frond lies (x >= 1); the floor holds rounding at x = 1, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/leaflet.rs",
+    "site": "if base < = radius ( girth , 0 . ) {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a frond whose base already sits at or under its radius rests from its base (the spec's contact rule), not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/leaflet.rs",
+    "site": "if discriminant < 0 . {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a quadratic with no real root has no ground contact on that piece of the frond curve; root finding, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/leaflet.rs",
+    "site": "if speed < 0 . {",
+    "classification": "algorithm",
+    "reason": "fn-301 R2: a frond whose taper falls faster than its parabola runs where it rests cannot keep its length lying down, and is refused by name; a geometric impossibility, not a population limit."
   },
   {
     "path": "crates/telperion-core/src/pipeline/space/establish.rs",
