@@ -14,7 +14,7 @@
     "fn-301-a-tree-rests-on-its-ground.1": 0,
     "fn-301-a-tree-rests-on-its-ground.2": 0,
     "fn-301-a-tree-rests-on-its-ground.3": 0,
-    "fn-301-a-tree-rests-on-its-ground.4": 1
+    "fn-301-a-tree-rests-on-its-ground.4": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -965,12 +965,57 @@
       "task": "fn-301-a-tree-rests-on-its-ground.4",
       "timestamp": "2026-10-21T11:49:15.055292Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "564a2767abcb89829f74047a4504c43a3b4c667d47fb1ddcd0ff45739f4e4ad3",
+      "backend": "codex",
+      "base_sha": "5e73645279250553d3db4a12197cda87f0008fae",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-0f6e647e83d9e7a1e4fb295ec90a5b43",
+            "classification": "introduced",
+            "findingId": "finding-0f6e647e83d9e7a1e4fb295ec90a5b43",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a472f0c2db0a19aee8402110a3a9a9dbf3d87694",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 952,
+      "output_sha256": "530829d51b46b711da3d0ed5e27941b9557b4768b16c5c360aa38524155be5ce",
+      "reservation_id": "a77ffeb1b1694583ac327f93f893069f",
+      "round_consumed": true,
+      "scope": "impl:fn-301-a-tree-rests-on-its-ground.4",
+      "superseded_by": null,
+      "task": "fn-301-a-tree-rests-on-its-ground.4",
+      "timestamp": "2026-10-21T12:00:10.953791Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-301-a-tree-rests-on-its-ground.1": 1,
     "impl:fn-301-a-tree-rests-on-its-ground.2": 2,
     "impl:fn-301-a-tree-rests-on-its-ground.3": 1,
+    "impl:fn-301-a-tree-rests-on-its-ground.4": 1,
     "plan": 3,
     "plan#completion": 2
   },
@@ -997,5 +1042,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T11:49:15.060601Z"
+  "updated_at": "2026-10-21T12:00:10.956621Z"
 }

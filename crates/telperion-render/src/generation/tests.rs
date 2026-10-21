@@ -278,7 +278,13 @@ fn huge_phases_fall_back_but_supported_large_ordinals_keep_orientation() {
     };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let generator = Generator::new(&renderer).unwrap();
-    let tree = fixture(0.0);
+    // The fixture's first segment stands on the ground, where its level
+    // leaves would rest (fn-301); a metre up, its stations keep the turn
+    // this measures.
+    let mut tree = fixture(0.0);
+    for n in &mut tree.nodes {
+        n.position.y += 1.0;
+    }
     let mut f = Family::default();
     f.canopy.surface_contact = 0.0;
     f.canopy.limb_clumping = 0.0;
@@ -311,7 +317,7 @@ fn huge_phases_fall_back_but_supported_large_ordinals_keep_orientation() {
         (segment.run_station / 3) as f64 * f.canopy.divergence * std::f64::consts::PI / 180.0;
     segment.phase = [base.sin(), base.cos()];
     let frame = segment.frame;
-    let reference = Reference::spanning(Vec3::new(-2.0, -1.0, -2.0), Vec3::new(2.0, 3.0, 2.0));
+    let reference = Reference::spanning(Vec3::new(-2.0, 0.0, -2.0), Vec3::new(2.0, 4.0, 2.0));
     let element = executor::element(f.element).unwrap();
     let output = generator
         .compute(
