@@ -111,3 +111,10 @@
 - **Decision:** the conductor extended the host's surface-clearance ruling to every producer of the same ring vertices: the CPU `AttachmentSurface::selected`, and the device `rings.wgsl`/`positions.wgsl` with a trunk flag in spare ring word 15. This applies an existing ruling to a sibling producer, not a new design. .3's Touches were widened.
 - **Cost:** one stop, about 5 minutes.
 - **Would remove it:** one function that produces ring vertices for both the sweep and the seats on each executor.
+
+## 2026-10-21 12:40, worker, task .4 investigation
+
+- **Doing:** designing the instance pose (the least rotation about the attachment that brings the element's box onto the ground) before writing code.
+- **Slowed by:** three premises in the plan do not hold against the code. (1) Every shipped leaf element's box has `lo.y = 0` and `lo.z < 0` (-0.67 to -3.0 mm at size 1; raw/t4-element-boxes.log), so the attachment lies on the box's base face with corners on both sides of it. Lying flat leaves the box's lowest corner `|lo.z|·scale` under the attachment, so it does not qualify where the attachment stands lower than that (a leaflet on a resting rachis near its tip, at 0.2 mm). As the attachment height goes to 0, the only rotation that clears the box stands the leaf straight up. (2) `place_on` gets only the blade's reach (`foliage::blade(element)`), not the element; giving it the box changes `pipeline/drawn.rs`, and the new module needs a `mod` line in `pipeline/foliage.rs`. Neither file is in the Touches. (3) The flower point set (up to 9 + 64·10 points) makes an exact least rotation O(N³) on each floret thread on the device.
+- **Cost:** about 40 minutes, including about 10 minutes waiting for heavy-run room (2 to 3 GB free against 8), then a stop for the host.
+- **Would remove it:** checking the plan's geometric claim ("lying flat always qualifies") against the measured element boxes before the ruling, and listing the call chain from the element to the matrix when setting the Touches.
