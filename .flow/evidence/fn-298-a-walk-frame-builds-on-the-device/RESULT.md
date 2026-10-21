@@ -1,6 +1,6 @@
 # fn-298 task .3: the film's walk frames, agreement and bytes
 
-Run at `b634869b9` plus the task's uncommitted test file, 2026-10-21. Status: **`NEEDS_HUMAN`**: one of the 9 `rounds` frames is one node apart between the CPU and the device (R4, below). Review, gate and `npm test` have not run.
+Run at `b634869b9` and the task's commits, 2026-10-21. One of the 9 `rounds` frames is one node apart between the CPU and the device; the host ruled on it (R4, below), and its node check is an ignored test naming fn-300.
 
 ## R3: the sweep
 
@@ -16,11 +16,11 @@ R1's other rows (beech to spruce at t 0.00037, 0.01 and 0.1, seeds 7 and 1; the 
 
 **Why the sweep is ignored** (measured): the full sweep ran inside a 1,052 s test binary run, alongside the subset, the counts test and fn-299's frames. The gate's last run took about 37 minutes (`raw/gate-task2-rerun.log`). From the survey's rate of about 0.55 s a frame, the subset takes about 30 s (inferred).
 
-**Frames 76 and 77 at seed 42** (inferred, not traced): R2.md recorded their living units rounds used at 6. The walk's two ends use 3 (the oak) and 1 (the palm), so the frames fall outside the range their ends span, as fn-299's `FRAMES` frames do. They are excluded as the host directed for this branch. The blended row behind them was not traced to the one fn-299 names.
+**Frames 76 and 77 at seed 42** (inferred, not traced): R2.md recorded their living units rounds used at 6. The walk's two ends use 3 (the oak) and 1 (the palm), so the frames fall outside the range their ends span, as fn-299's `FRAMES` frames do. The blended row behind them was not traced to the one fn-299 names: the shared cause is inferred, not traced. The host accepted the exclusion on that footing (2026-10-21); it un-ignores fn-299's frames on F4 once fn-299 and fn-298 are both there, which settles it.
 
 ## R4: agreement (narrowed: node counts equal, instances within 1)
 
-`the_rounds_frames_have_the_cpus_counts`, ordinary, checks the 9 `rounds` frames. Each frame is built by the CPU (`mesh::build`, `executor::grow`) and on the device (`prepare`, `tree::drawn`), and matched with `cpu_builds_tests::apart`.
+`the_rounds_frames_have_the_cpus_counts`, ordinary, checks the 9 `rounds` frames' instances and 8 of them's node counts; `fn300_the_spruce_to_birch_frame_56_has_the_cpus_nodes`, ignored under fn-300, checks the ninth's nodes. Each frame is built by the CPU (`mesh::build`, `executor::grow`) and on the device (`prepare`, `tree::drawn`), and matched with `cpu_builds_tests::apart`.
 
 | Frame | Instances, device / CPU | Nodes, device / CPU | Matched |
 |---|---|---|--:|
@@ -36,7 +36,9 @@ R1's other rows (beech to spruce at t 0.00037, 0.01 and 0.1, seeds 7 and 1; the 
 
 Every frame's instances are within 1. On 8 of 9 frames the node counts are equal. **Spruce to birch, seed 42, frame 56 has one node more on the device.**
 
-**The limits do not cause it** (measured): with every stepped limit at its bound (`R2_FULL`, scratch `raw/t5-scratch-all.patch`, applied and reverted), all 9 rows come out identical (`raw/t6-counts-full.log`). R2.md records a gap of the same kind on the base, with no limit involved: the spruce alone at 40 is one node off (966,171 / 966,172). The frame itself is refused on the base (`HierGens`), so the base cannot be compared on it. So this is a CPU-device difference on walk frames, the class fn-300 owns, and not a refusal. **Host call:** whether R4's node check takes "within 1" (as its instance check does), or this frame's node check moves to fn-300 as an ignored test. The test stays as the spec words it and is red on this frame.
+**The limits do not cause it** (measured): with every stepped limit at its bound (`R2_FULL`, scratch `raw/t5-scratch-all.patch`, applied and reverted), all 9 rows come out identical (`raw/t6-counts-full.log`). R2.md records a gap of the same kind on the base, with no limit involved: the spruce alone at 40 is one node off (966,171 / 966,172). The frame itself is refused on the base (`HierGens`), so the base cannot be compared on it. So this is a CPU-device difference on walk frames, the class fn-300 owns, and not a refusal.
+
+**Ruled (host, 2026-10-21):** the node check stays exact, since topology agreement is meant to be exact (fn-300's draft contract). This frame's node check moved to its own ignored test naming fn-300. The other 8 frames keep the exact node check, and all 9 keep the instance check within 1. The base precedent is the one-node gap R2.md records on the spruce alone at 40 (966,171 device / 966,172 CPU, base and change alike). The host adds the frame to fn-300's R1 on F4 after the merge. After the split, the focused run is green on the ordinary tests, and the fn-300 test is red as expected (`raw/t7-focused-2.log`).
 
 ## R4: bytes
 

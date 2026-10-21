@@ -138,9 +138,14 @@ fn fn299_oak_to_palm_frames_build_on_the_device() {
     assert!(refused.is_empty(), "{refused:#?}");
 }
 
-/// fn-298 R4 (narrowed): each `rounds` frame has the CPU's node count on
-/// the device and its leaf instances within 1 of the CPU's. Positions are
-/// fn-300's.
+/// The `rounds` frame whose node count fn-300 owns (host, 2026-10-21):
+/// spruce to birch at 40, seed 42, frame 56, one node more on the device,
+/// with every stepped limit at its bound as well.
+const FN300: (usize, u32, u32) = (1, 42, 56);
+
+/// fn-298 R4 (narrowed): each `rounds` frame has its leaf instances within
+/// 1 of the CPU's on the device, and the CPU's node count, but `FN300`'s.
+/// Positions are fn-300's.
 #[test]
 fn the_rounds_frames_have_the_cpus_counts() {
     let _held = super::whole_tree();
@@ -151,7 +156,7 @@ fn the_rounds_frames_have_the_cpus_counts() {
     let gen = Generator::new(&renderer).expect("a generator");
     let mut off = Vec::new();
     for (k, seed, i) in ROUNDS {
-        let (name, mut family) = frame(k, seed, i);
+        let (name, family) = frame(k, seed, i);
         let cpu = telperion_core::mesh::build(&family)
             .unwrap_or_else(|e| panic!("{name}: the CPU refused: {e}"))
             .foliage_instances();
@@ -162,13 +167,39 @@ fn the_rounds_frames_have_the_cpus_counts() {
         gpu.device
             .poll(wgpu::PollType::wait_indefinitely())
             .expect("freed");
-        // The dress draws the tree before its leaf bases are hung.
-        family.canopy.leaf_bases = 0.0;
-        let d = apart(&gpu, &family);
-        println!("{name}: device {device} instances, CPU {cpu}; {d:?}");
-        if d.device != d.cpu || device.abs_diff(cpu) > 1 {
-            off.push(format!("{name}: device {device}, CPU {cpu}; {d:?}"));
+        println!("{name}: device {device} instances, CPU {cpu}");
+        if device.abs_diff(cpu) > 1 {
+            off.push(format!("{name}: device {device} instances, CPU {cpu}"));
+        }
+        if (k, seed, i) != FN300 {
+            if let Some(d) = nodes_off(&gpu, &name, family) {
+                off.push(d);
+            }
         }
     }
     assert!(off.is_empty(), "{off:#?}");
+}
+
+/// `FN300`'s node count on the device is the CPU's.
+#[test]
+#[ignore = "fn-300: spruce to birch at 40, seed 42, frame 56 has 323,513 device nodes against the CPU's 323,512"]
+fn fn300_the_spruce_to_birch_frame_56_has_the_cpus_nodes() {
+    let _held = super::whole_tree();
+    let Some(gpu) = super::test_gpu() else {
+        return;
+    };
+    let (k, seed, i) = FN300;
+    let (name, family) = frame(k, seed, i);
+    let off = nodes_off(&gpu, &name, family);
+    assert!(off.is_none(), "{off:?}");
+}
+
+/// Where the device's drawn node count is not the CPU's, the frame and
+/// how they stood.
+fn nodes_off(gpu: &crate::Gpu, name: &str, mut family: Family) -> Option<String> {
+    // The dress draws the tree before its leaf bases are hung.
+    family.canopy.leaf_bases = 0.0;
+    let d = apart(gpu, &family);
+    println!("{name}: {d:?}");
+    (d.device != d.cpu).then(|| format!("{name}: {d:?}"))
 }
