@@ -55,3 +55,10 @@
 - **Slowed by:** `telperion-heavy` admission. The build waited 7 minutes behind another worktree's heavy job (f4-299), then compiled from cold for 10 minutes; the digest run then waited again on the same 8 GB room. The worktree starts with an empty `target/`, so every task in it pays a full cold build first.
 - **Cost:** about 17 minutes before the first test ran, more while the digest waits.
 - **Would remove it:** a worktree seeded with a warm `target/` copy (never shared) at creation, or a smaller admission ask for a test-only run.
+
+## 2026-10-21 03:40, worker, task .2 impl review
+
+- **Doing:** the codex impl review of the frond contact.
+- **Slowed by:** the round cap (2) fell on round 3 while the last open finding, a named device error for a vertical heading, needs device fault plumbing in files outside the task's Touches (`compute.rs`, `resident/build.rs`, the boots and field readbacks). The spec names the error but says nothing of how the device reports it; the reviewer holds it as a stated requirement.
+- **Cost:** one cap stop and reset (about 2 minutes), then a stop for the host.
+- **Would remove it:** a spec line on how a device kernel reports a named geometry error (a summary bit per error, or "the CPU refusal is the contract, the device's non-finite refusal suffices").
