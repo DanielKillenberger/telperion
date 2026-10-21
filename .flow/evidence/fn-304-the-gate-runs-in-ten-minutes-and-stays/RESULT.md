@@ -11,7 +11,7 @@ Each red run applied one temporary patch to the generator with `git apply`, ran 
 | `suite::packed_leaf::every_station_stands_inside_its_box_at_a_quarter_millimetre_step` | the two `packed_leaf` tests merged: one mesh a preset, both assertions | 49.8 + 49.4 s → 51–56 s |
 | `family::tests::every_row_past_its_bound_is_refused_on_every_family` | the eight families at once (`thread::scope`, `resume_unwind`) | 70.1 s → 11.8–13.2 s |
 
-Test count in the core lib: the two `packed_leaf` tests become one (merge, ruling 8); the repeat test becomes a gate test plus an ignored sweep (move to ignored, ruling 7). Run: 459 → 459 (one merged away, one added); ignored: 37 → 38.
+Test count in the core lib: the two `packed_leaf` tests become one (merge, ruling 8); the repeat test becomes a gate test plus an ignored sweep (move to ignored, ruling 7). Run: 459 → 458; ignored: 37 → 38; total 496 unchanged (gate: 458 passed, 38 ignored in the core lib).
 
 ### Red and green
 
@@ -27,3 +27,5 @@ Test count in the core lib: the two `packed_leaf` tests become one (merge, rulin
 Green on the engine: all four tests pass (`raw/proofs/t1-green.log`).
 
 `sum-order` is the one nondeterminism that neither the subset nor the full sweep sees: the shipped presets' light sums over too few directions for their order to move a bit. It is recorded, not acted on; `tail-piece` is the ruling's proof (deterministic, the defect "on any cores" names, caught by the "on one core" assertion on both).
+
+Gate at the end of task .1 (`telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`, 3b880374b..b1feb485a): 1,466 passed, 2 failed, 116 ignored, 2,374 s wall including 215 s of compile, peak 7,637 MiB anon. The two failures are fn-302's (`film_walk_tests::the_film_walks_build_on_the_device`, `the_rounds_frames_have_the_cpus_counts`), red on F4 before this spec.
