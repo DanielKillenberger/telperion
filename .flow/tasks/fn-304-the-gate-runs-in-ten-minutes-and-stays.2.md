@@ -30,9 +30,11 @@ The full sweeps take 280, 160 and 80 s alone; run each proof inside `telperion-h
 - [ ] walk_sizes: teaser in the gate, exceptions ignored naming fn-273; red proof recorded.
 - [ ] Gate run once at the end; codex impl review.
 ## Done summary
-TBD
+Rulings 1, 2 and 5. walk_leaves walks seed 1 in the gate (20, 81, 29 s); the three walks at three seeds are one ignored test. ground_reach reads fn-301 R1's 45 touching rows and each preset at its own age, seed 1 (50 rows, 54-58 s, 4.68 GB); the 168-row sweep is ignored. Its 7.8 GB is Telperion at 82, seed 7, one tree (7.68 GB alone); the test already held one tree at a time. walk_sizes keeps the teaser frame (21 s); fn-273's eight exceptions are ignored. Each subset red where its sweep is (cluster-round, leaflets-round, no-rest, budget-eighth-cycle); fronds-round caught by neither, recorded. Gate: 1,466 passed, 2 failed (fn-302), 119 ignored, 1,995 s.
+stage: impl-review - ran (codex, one correctness reviewer, SHIP; two P3 evidence fixes) (model: gpt-6.1-sol)
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ffce4e52471d2d2c71e1d9485425e92f75aed55c, 3fd698485af9c79bf78181cef3a23730d334a088, 6d7a6d7f54b36e045c155267ca3749775be0fe11
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast (1466 passed, 2 failed fn-302, 119 ignored), proofs.sh t2-* (nextest, telperion-heavy 8 --threads 4)
 - PRs:
