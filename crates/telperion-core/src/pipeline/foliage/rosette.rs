@@ -30,7 +30,6 @@
 //! The rows, their rails and the apices are read with the placement compiled
 //! out, so the leaf plan can tell a frond crown from a clothed one; only the
 //! placing itself needs the `geometry` feature.
-#[cfg(feature = "geometry")]
 use super::organs::{apex, frond_key, frond_leaflets, placement};
 use super::{
     crown::{Crown, Split},
@@ -267,6 +266,55 @@ pub(super) fn fronds(
     })
 }
 
+/// One frond as placement draws it: the rosette it stands in and its
+/// stem's key, the apex's own whole rows, the frond, the whole leaflets it
+/// carries and the table they are drawn by.
+#[derive(Debug, Clone, Copy)]
+pub(super) struct Placed {
+    pub(super) rosette: Rosette,
+    pub(super) stem: u64,
+    pub(super) apex: CanopyParams,
+    pub(super) frond: Frond,
+    pub(super) count: usize,
+    pub(super) table: CanopyParams,
+}
+
+/// Every frond of every rosette with what placement draws it by, rosettes
+/// in identity order and fronds newest first: the leaflets and the frond's
+/// axis both read this. None where the table stands no rosette or draws its
+/// leaves at no size.
+pub(super) fn placed<'t>(
+    tree: &'t Tree,
+    p: &CanopyParams,
+    blade: f64,
+) -> impl Iterator<Item = Placed> + 't {
+    let all = match bearing(p) && p.size != 0. {
+        true => rosettes(tree),
+        false => Vec::new(),
+    };
+    let p = *p;
+    all.into_iter().flat_map(move |rosette| {
+        let (stem, node) = (stem_key(tree, &rosette), stem_node(tree, &rosette));
+        let at = apex(&p, node);
+        // An apex that draws no living frond stands no rosette.
+        let crown = bearing(&at).then(|| Crown::of(tree, &at));
+        crown
+            .into_iter()
+            .flat_map(move |crown| fronds(&rosette, &at, crown, blade))
+            .map(move |frond| {
+                let key = frond_key(node, frond.serial);
+                Placed {
+                    rosette,
+                    stem,
+                    apex: at,
+                    frond,
+                    count: frond_leaflets(&at, frond.canopy.leaflet_count, key),
+                    table: placement(&frond.canopy, key),
+                }
+            })
+    })
+}
+
 #[cfg(feature = "geometry")]
 /// Hang every rosette's fronds into an already-sized crown, the skirt's in
 /// the dead colour.
@@ -274,40 +322,39 @@ pub(super) fn clothe(
     tree: &Tree,
     seed: u32,
     p: &CanopyParams,
-    blade: f64,
+    (blade, wedge): (f64, &super::rest::Wedge),
     out: &mut Instances,
     mut owners: Option<&mut Vec<u32>>,
 ) -> Result<()> {
-    if !bearing(p) || p.size == 0. {
-        return Ok(());
-    }
-    for rosette in rosettes(tree) {
-        let (stem, node) = (stem_key(tree, &rosette), stem_node(tree, &rosette));
-        let p = &apex(p, node);
-        if !bearing(p) {
-            continue;
-        }
-        let crown = Crown::of(tree, p);
-        for frond in fronds(&rosette, p, crown, blade) {
-            let from = out.leaves.len();
-            let mut rng = stream(seed, stem, &frond);
-            let (at, heading, radial) = (frond.at, frond.heading, frond.radial);
-            let key = frond_key(node, frond.serial);
-            let count = frond_leaflets(p, frond.canopy.leaflet_count, key);
-            let c = placement(&frond.canopy, key);
-            reserve(out, count, *p)?;
-            fan(
-                at,
-                heading,
-                radial,
-                rosette.axis,
-                (c, count, frond.split),
-                (&mut rng, None),
-                out,
-            )?;
-            if frond.dead {
-                out.wither(from);
-            }
+    for Placed {
+        rosette,
+        stem,
+        apex,
+        frond,
+        count,
+        table,
+    } in placed(tree, p, blade)
+    {
+        let from = out.leaves.len();
+        let mut rng = stream(seed, stem, &frond);
+        let (at, heading, radial) = (frond.at, frond.heading, frond.radial);
+        reserve(out, count, apex)?;
+        fan(
+            at,
+            heading,
+            radial,
+            rosette.axis,
+            (
+                table,
+                count,
+                frond.split,
+                super::rachis::girth(&table, &apex),
+            ),
+            (&mut rng, None),
+            (wedge, out),
+        )?;
+        if frond.dead {
+            out.wither(from);
         }
         if let Some(owners) = owners.as_mut() {
             owners.resize(out.leaves.len(), rosette.apex as u32);
@@ -323,19 +370,25 @@ pub(super) fn clothe(
 /// the placement's (`leaflets`), so a frond drawn at no size still stands
 /// its leaflets (fn-270 R5b). The first leaflet draws on `rng`; the rest
 /// on `more` where given, so a placement's leaflets move no other
-/// placement's draws on a shared stream (fn-277), else on `rng`.
+/// placement's draws on a shared stream (fn-277), else on `rng`. The
+/// rachis is `girth` thick where it leaves `point` (`leaflet::rachis`):
+/// a frond's own, none for a placement's on wood, whose rachis draws no
+/// bark. Each matrix is rested on the ground by `wedge` as it is stored
+/// (`rest::leaf`).
 pub(super) fn fan(
     point: Vec3,
     heading: Vec3,
     tangent: Vec3,
     normal: Vec3,
-    (p, count, split): (CanopyParams, usize, Option<Split>),
+    (p, count, split, girth): (CanopyParams, usize, Option<Split>, f64),
     (rng, mut more): (&mut Rng, Option<&mut Rng>),
-    out: &mut Instances,
+    (wedge, out): (&super::rest::Wedge, &mut Instances),
 ) -> Result<()> {
+    let step = out.reference.step().y;
+    let rest = |m: [f32; 16]| super::rest::leaf(m, wedge, step);
     if count == 1 {
         let length = split.map_or(1.0, |s| lone(&s, &p));
-        out.push(&matrix(
+        out.push(&rest(matrix(
             point,
             heading,
             tangent,
@@ -345,11 +398,13 @@ pub(super) fn fan(
                 ..p
             },
             rng,
-        )?);
+        )?));
         return Ok(());
     }
     let (_, side) = frame(heading);
-    for (k, leaflet) in super::leaflet::leaflets(point, heading, p, count, split).enumerate() {
+    for (k, leaflet) in
+        super::leaflet::leaflets(point, heading, (p, girth), count, split).enumerate()
+    {
         let rng = match more.as_deref_mut() {
             Some(more) if k > 0 => more,
             _ => &mut *rng,
@@ -362,7 +417,7 @@ pub(super) fn fan(
                 }
             }
         }
-        out.push(&placed);
+        out.push(&rest(placed));
     }
     Ok(())
 }

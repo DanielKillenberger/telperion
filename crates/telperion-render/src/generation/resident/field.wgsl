@@ -37,6 +37,10 @@ struct Cfg {
     // `Shape`): its centre and the leaf's size, its half extents.
     leaf_centre: vec4<f32>,
     leaf_half: vec4<f32>,
+    // The leaf's wedge (`rest.wgsl`'s `rest_corner`), its leaflets rested
+    // on the ground by as placement rests them.
+    wedge_a: vec4<f32>,
+    wedge_b: vec4<f32>,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -280,17 +284,14 @@ struct Leaflet {
 }
 
 // `pack.wgsl`'s `on_rachis`.
-fn on_rachis(point: vec3<f32>, heading: vec3<f32>, count: u32, j: u32, t: f32, rows: vec4<f32>, borne: vec3<f32>) -> Leaflet {
+fn on_rachis(point: vec3<f32>, heading: vec3<f32>, count: u32, j: u32, t: f32, rows: vec4<f32>, borne: vec3<f32>, girth: f32) -> Leaflet {
     var lift = vec3<f32>(0.0, 1.0, 0.0) - heading * heading.y;
     if dot(lift, lift) > 1e-12 {
         lift = normalize(lift);
     } else {
         lift = square_to(heading);
     }
-    let length = rows.x;
-    let arch = rows.y;
-    let at = point + heading * (length * t) + lift * (arch * length * t * t);
-    let run = normalize(heading + lift * (2.0 * arch * t));
+    let curve = rachis(point, heading, lift, rows.x, rows.y, girth, t);
     var closing = 1.0;
     if j + 1u == count {
         closing = 1.0 - rows.w;
@@ -302,7 +303,7 @@ fn on_rachis(point: vec3<f32>, heading: vec3<f32>, count: u32, j: u32, t: f32, r
         pitch = borne.z;
         share = borne.y;
     }
-    return Leaflet(at, rotate(run, lift, hand * pitch * closing), run, cross(heading, lift), share);
+    return Leaflet(curve.at, rotate(curve.run, lift, hand * pitch * closing), curve.run, cross(heading, lift), share);
 }
 
 // A frond leaflet's box (`fronds.rs`'s `Shape` with its packing margin):
@@ -342,7 +343,8 @@ fn blade(g: u32, f: array<vec4<f32>, 6>, j: u32) -> Blade {
     var share = f[1].w * stretch;
     if count > 1u {
         let rows = vec4<f32>(f[0].w, f[4].x, f[4].y, f[4].z);
-        let l = on_rachis(f[0].xyz, heading, count, j, t, rows, vec3<f32>(f[5].z, f[2].w, f[4].w));
+        let girth = bitcast<f32>(segs[s + 29u]);
+        let l = on_rachis(f[0].xyz, heading, count, j, t, rows, vec3<f32>(f[5].z, f[2].w, f[4].w), girth);
         point = l.point;
         axis = l.axis;
         tangent = l.tangent;
@@ -374,6 +376,12 @@ fn blade(g: u32, f: array<vec4<f32>, 6>, j: u32) -> Blade {
     }
     let size = cfg.leaf_centre.w * (1.0 + cfg.bound.y * (random(key, draw) * 2.0 - 1.0));
     let k = size * share;
+    // Rested as placement rests it; with no stored box, by the rotation and
+    // the scale alone (`fronds.rs`'s `rested`).
+    let rested = rest_leaf(mat3x3<f32>(flank, axis, face), k, point, cfg.wedge_a, cfg.wedge_b, 0.0);
+    flank = rested[0];
+    axis = rested[1];
+    face = rested[2];
     let c = cfg.leaf_centre.xyz * k;
     let h = cfg.leaf_half.xyz * k;
     let margin = (length(c) + length(h)) * 0.005 + 0.001;

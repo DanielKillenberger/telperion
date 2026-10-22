@@ -1,0 +1,588 @@
+{
+  "branch_name": "fn-304-the-gate-runs-in-ten-minutes-and-stays",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-22T06:24:50.093095Z",
+  "created_at": "2026-10-21T17:42:49.770270Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-304-the-gate-runs-in-ten-minutes-and-stays",
+  "impl_review_rounds": {
+    "fn-304-the-gate-runs-in-ten-minutes-and-stays.1": 0,
+    "fn-304-the-gate-runs-in-ten-minutes-and-stays.2": 0,
+    "fn-304-the-gate-runs-in-ten-minutes-and-stays.3": 0,
+    "fn-304-the-gate-runs-in-ten-minutes-and-stays.4": 0,
+    "fn-304-the-gate-runs-in-ten-minutes-and-stays.5": 2
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T21:11:04.103110Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "08906989c5eaa1912862b06b6168780cca99b82b8131e8e342dced827451b931",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6e05b8446209a00269d055c5a65235c0",
+            "classification": "introduced",
+            "findingId": "finding-6e05b8446209a00269d055c5a65235c0",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1074bba607b5e6fda10e9233192e0852",
+            "classification": "introduced",
+            "findingId": "finding-1074bba607b5e6fda10e9233192e0852",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-34ae50de6f6fd81dadf723a334b704c9",
+            "classification": "introduced",
+            "findingId": "finding-34ae50de6f6fd81dadf723a334b704c9",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2f670fc19f2c7c25929ac3eb9f5d36a0",
+            "classification": "introduced",
+            "findingId": "finding-2f670fc19f2c7c25929ac3eb9f5d36a0",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e7116552a3c8804137be3cb06f45239e5e7369aa",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 327589,
+      "output_sha256": "47d8f63bcae5217862855b3004d25abd91913432b2a391c2ca9b80210bb8adad",
+      "reservation_id": "582d0ef27471435c81a76c07b19ab1ed",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T21:09:49.036822Z",
+      "tool_calls": 15,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "0536f33f9648c950e64d91230f3df3fb3b7006d34aceddf7949d56d8d39bcc15",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6e05b8446209a00269d055c5a65235c0",
+            "classification": "introduced",
+            "findingId": "finding-6e05b8446209a00269d055c5a65235c0",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1074bba607b5e6fda10e9233192e0852",
+            "classification": "introduced",
+            "findingId": "finding-1074bba607b5e6fda10e9233192e0852",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-34ae50de6f6fd81dadf723a334b704c9",
+            "classification": "introduced",
+            "findingId": "finding-34ae50de6f6fd81dadf723a334b704c9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2f670fc19f2c7c25929ac3eb9f5d36a0",
+            "classification": "introduced",
+            "findingId": "finding-2f670fc19f2c7c25929ac3eb9f5d36a0",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e7116552a3c8804137be3cb06f45239e5e7369aa",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 670,
+      "output_sha256": "c6193b9d6ebf03274bb24edbd87a1767b61b5a33e06a737d63a8eee96510e53e",
+      "reservation_id": "3e8e5dbe67754e71afd696f606efd104",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T21:11:04.100205Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "782395650d02528c5b3bdb820a05cc67241e2dab5037cb06085012932ce19a53",
+      "backend": "codex",
+      "base_sha": "3b880374b73da1436093d669331b19409825c114",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9da8742f5d918e5357eb2eb0703a7738",
+            "classification": "introduced",
+            "findingId": "finding-9da8742f5d918e5357eb2eb0703a7738",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b1feb485a7607ffc2db6cc019b2ed530b3237b5b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 705,
+      "output_sha256": "133cc3fa31dd627c72ce812f8134640465291f37c9a941863b68058b36b79f3d",
+      "reservation_id": "25d0eafffa674e31871fc247fe800b16",
+      "round_consumed": true,
+      "scope": "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.1",
+      "superseded_by": null,
+      "task": "fn-304-the-gate-runs-in-ten-minutes-and-stays.1",
+      "timestamp": "2026-10-21T22:29:47.580353Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "6b2a0c2ff897feab169a1b28af16061d9fbfb879f215adb1e7953106af3f31e4",
+      "backend": "codex",
+      "base_sha": "1c7d22304c00ff5dfb8e9814724abf5463322ac4",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6a881fcc525259f13bc801b19e29b938",
+            "classification": "introduced",
+            "findingId": "finding-6a881fcc525259f13bc801b19e29b938",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-50793af46d5aa3658fdbbc1fca132408",
+            "classification": "introduced",
+            "findingId": "finding-50793af46d5aa3658fdbbc1fca132408",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ffce4e52471d2d2c71e1d9485425e92f75aed55c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1266,
+      "output_sha256": "8c9921c8a65148d60eeceabeab21f99d8bd8f1f160cc18e9390ee708bbc3ddf1",
+      "reservation_id": "bdf2c6edec8348248031978e0c6b43dd",
+      "round_consumed": true,
+      "scope": "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.2",
+      "superseded_by": null,
+      "task": "fn-304-the-gate-runs-in-ten-minutes-and-stays.2",
+      "timestamp": "2026-10-21T23:53:26.043617Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "cb3ca2e7967b38f1899b550d9075f45b5b52cf5edbb492f51318c0a91898bc52",
+      "backend": "codex",
+      "base_sha": "a2ba0c305777d0d63363e5216af30a3f3505ed47",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c5ca5ce0fcddd0401503a2d6013e03b3",
+            "classification": "introduced",
+            "findingId": "finding-c5ca5ce0fcddd0401503a2d6013e03b3",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "16e592331339f7993376146bce4c8775292c21af",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 897,
+      "output_sha256": "54a0f076ddc36cc14635bb5d820db2b36017aeaef5b39ba7c834de9ac75881af",
+      "reservation_id": "f37b1694e76348418a49ee0470445afd",
+      "round_consumed": true,
+      "scope": "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.3",
+      "superseded_by": null,
+      "task": "fn-304-the-gate-runs-in-ten-minutes-and-stays.3",
+      "timestamp": "2026-10-22T01:25:09.727570Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "f73397a17c57b6c08c96b56647cad28c9a054c0ad40d5b117a7379befb979efd",
+      "backend": "codex",
+      "base_sha": "f9a2adad2b670517e1b24029a2a10a67f3631693",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cb18636cb3b45e38b0d7a588f368acf0",
+            "classification": "introduced",
+            "findingId": "finding-cb18636cb3b45e38b0d7a588f368acf0",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0ee3430fbdbf34717d81291d7022d5d5",
+            "classification": "introduced",
+            "findingId": "finding-0ee3430fbdbf34717d81291d7022d5d5",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fb0c80de2501cbacbd42c9b76ffa7a5b233f7a31",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1785,
+      "output_sha256": "a5a8d8dff1e04029cdc30d902a15f1988ba937e9c51190cae9bc0cd785252403",
+      "reservation_id": "726f87d038114805b6293b58cdfad8f9",
+      "round_consumed": true,
+      "scope": "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.4",
+      "superseded_by": null,
+      "task": "fn-304-the-gate-runs-in-ten-minutes-and-stays.4",
+      "timestamp": "2026-10-22T05:50:09.156199Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "22400967570f8d722bda961e1901d6de2ec1b5bed2980e3861a2929934f28bc8",
+      "backend": "codex",
+      "base_sha": "f9a2adad2b670517e1b24029a2a10a67f3631693",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cb9145534330c20c5bbf143212f9bf22",
+            "classification": "introduced",
+            "findingId": "finding-cb9145534330c20c5bbf143212f9bf22",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-486719fcaea7c32417743a1f6bfb4e44",
+            "classification": "introduced",
+            "findingId": "finding-486719fcaea7c32417743a1f6bfb4e44",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "17c1a3c070c6cf8bfbceddb91046cc4e16d3f12b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1423,
+      "output_sha256": "b9713c9657e8a64adfd3a9cde6c2eeed5d73eb6ee316d4bb4dfefa563e547358",
+      "reservation_id": "4dc3c7584bcd4e1fa7ce09304e7e9e6e",
+      "round_consumed": true,
+      "scope": "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.5",
+      "superseded_by": null,
+      "task": "fn-304-the-gate-runs-in-ten-minutes-and-stays.5",
+      "timestamp": "2026-10-22T05:54:07.225431Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "4a99cb14e3bcdf7765d3777aed30b25ca6fa5fde049a6f06f71863f0fd9f888c",
+      "backend": "codex",
+      "base_sha": "f9a2adad2b670517e1b24029a2a10a67f3631693",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cb9145534330c20c5bbf143212f9bf22",
+            "classification": "introduced",
+            "findingId": "finding-cb9145534330c20c5bbf143212f9bf22",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-29d2812a91cb86199e9aac4e7aaf54b8",
+            "classification": "introduced",
+            "findingId": "finding-29d2812a91cb86199e9aac4e7aaf54b8",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-486719fcaea7c32417743a1f6bfb4e44",
+            "classification": "introduced",
+            "findingId": "finding-486719fcaea7c32417743a1f6bfb4e44",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ef44834128172bf8a7c758f62e53bcd27d8e4bf5",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1413,
+      "output_sha256": "fce875bffe3d23d9418c5996b07659848ba4444af694449c3216e6bfe0e2951b",
+      "reservation_id": "9c724c6ffc1c4684ac4c740e9091cd67",
+      "round_consumed": true,
+      "scope": "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.5",
+      "superseded_by": null,
+      "task": "fn-304-the-gate-runs-in-ten-minutes-and-stays.5",
+      "timestamp": "2026-10-22T05:54:47.320916Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "f835e37e247fb2e8a22f14296087335d697d4e7e1e96054c93ccdccddb5211ec",
+      "backend": "codex",
+      "base_sha": "26a3b19ab4fac4099946fe8b80afd05f28c98c65",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-531bd8901e2b2fc023483e27523486fc",
+            "classification": "introduced",
+            "findingId": "finding-531bd8901e2b2fc023483e27523486fc",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8a071f201b395e8646afacb4333e7faa10ecb03b",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 369463,
+      "output_sha256": "7ed017919b19e135f7a50e7419d8b9ea46c4261357b09b594e71d357ac3d1ca2",
+      "reservation_id": "017827dc830e466aa1e3d372241e31b9",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T06:23:04.678911Z",
+      "tool_calls": 19,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "be0f11eacd1ed4ebe55daf2f60e16f8fc5d09c43cac4eea0fd077fed6ecde210",
+      "backend": "codex",
+      "base_sha": "26a3b19ab4fac4099946fe8b80afd05f28c98c65",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-531bd8901e2b2fc023483e27523486fc",
+            "classification": "introduced",
+            "findingId": "finding-531bd8901e2b2fc023483e27523486fc",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "67e7413ddf64426655b714f5c3a90b99c5b14c7d",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 3698,
+      "output_sha256": "a1cd40a24f63dc14f5b1898c9b6f51c728ec5a1491a3715ab04909ff99b2e78d",
+      "reservation_id": "5446b8a85a7e45d69e52681fa9eea09e",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T06:24:50.088111Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.1": 1,
+    "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.2": 1,
+    "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.3": 1,
+    "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.4": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.1": 0,
+    "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.2": 0,
+    "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.3": 0,
+    "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.4": 0,
+    "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.5": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-304-the-gate-runs-in-ten-minutes-and-stays.md",
+  "status": "open",
+  "title": "The gate runs in ten minutes and stays there",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-22T06:24:50.093619Z"
+}

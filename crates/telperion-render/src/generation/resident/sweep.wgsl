@@ -699,7 +699,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         }
     }
     contacts(run, first);
-    clusters_of(run, 0u);
+    clusters_of(run, standing(first));
     close(f, run);
 }
 
@@ -730,14 +730,20 @@ fn shaped(f: ptr<function, Fold>, run: Run, first: u32, cell: u32) {
         put(f, run, i, Sample(origin + axis * r.y + radial * r.x, extent(cell, r), d), across, axis);
     }
     contacts(run, first);
-    clusters_of(run, 4u | (cell << 8u));
+    clusters_of(run, standing(first) | 4u | (cell << 8u));
     close(*f, run);
+}
+
+// A trunk's run's cluster flag (8): the surfacing keeps every other run's
+// vertices off the ground and leaves a trunk's buried foot where it is.
+fn standing(first: u32) -> u32 {
+    return select(0u, 8u, begin(first).trunk);
 }
 
 // The run's clusters in the renderer's packed form (`packed_clusters`):
 // each its first point and points, its run's first point and points, its
-// flags (the run's first, its last, and the run's shape: 4 and the cell's
-// index from bit 8 for a shaped run, `form`), its sphere's centre and
+// flags (the run's first, its last, and the run's `form`: 8 a trunk's run,
+// 4 and the cell's index from bit 8 for a shaped run), its sphere's centre and
 // reach, its largest radius and its ring levels' errors.
 fn clusters_of(run: Run, form: u32) {
     let r = cfg.rows;

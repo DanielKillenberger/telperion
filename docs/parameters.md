@@ -1202,7 +1202,7 @@ The share of leaf-bearing wood that bears its leaves along it, cauline foliage a
 
 The degrees each successive frond is turned about the apex.
 
-- real, degrees, [-1000000000, 1000000000], default 137.508
+- real, degrees, [-360, 360], default 137.508
 - read by grow, plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 0, as invalid input `rosette divergence`
 - dormant: no rosette and no leaf bases (`rosetteFronds` and `leafBases` zero)
@@ -1290,6 +1290,16 @@ Whether a single leaflet closes the rachis's end, blended 0 to 1: the last leafl
 - checked: Rosette site, rank 7, as invalid input `terminal leaflet`
 - dormant: no leaflet grouping (`leafletCount` one or `rachisLength` zero)
 - blend: linear; dial: `terminal_leaflet` (how far a leaflet closes the rachis's end), window its bounds (validated bound), steps 0.05 and 0.2
+
+### `/canopy/rachisWidth`
+
+Metres across a frond's rachis where it leaves the stem (fn-283): each frond whose leaflets string along a rachis hangs it as wood through its leaflet stations, at this width scaled by the frond's size and tapering to its tip. At zero no rachis is drawn.
+
+- real, m, [0, 10], default 0
+- read by grow; removed growth path: not read
+- checked: Rosette site, rank 26, as invalid input `rachis width`
+- dormant: no leaflet grouping (`leafletCount` one or `rachisLength` zero)
+- blend: linear; dial: `rachis_width` (metres across a frond's rachis where it leaves the stem; at zero no rachis is drawn), window its bounds (validated bound), steps 0.05 and 0.2
 
 ### `/canopy/leafBases`
 

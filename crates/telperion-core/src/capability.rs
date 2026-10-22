@@ -244,7 +244,7 @@ fn produced(f: &crate::Family) -> Vec<&'static str> {
     }
     // A base is drawn on every stem that asks for one, on the spiral the
     // rosette's rows describe whether or not fronds stand above it
-    // (`branching::clothe_leaf_bases`), so a crown is not required. A spine is
+    // (`branching::clothe`), so a crown is not required. A spine is
     // a leaflet hardened, and needs the compound leaf it hardens.
     let bases = f.canopy.leaf_bases > 0.0 && f.canopy.leaf_base_length > 0.0;
     if bases {

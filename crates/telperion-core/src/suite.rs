@@ -60,6 +60,8 @@ mod outline;
 mod packed_leaf;
 #[path = "suite/pendulous.rs"]
 mod pendulous;
+#[path = "suite/rachis.rs"]
+mod rachis;
 #[path = "suite/retention.rs"]
 mod retention;
 #[path = "suite/rosette.rs"]

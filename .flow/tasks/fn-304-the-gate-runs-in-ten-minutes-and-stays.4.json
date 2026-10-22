@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-21T21:06:42.572438Z",
+  "depends_on": [
+    "fn-304-the-gate-runs-in-ten-minutes-and-stays.3"
+  ],
+  "id": "fn-304-the-gate-runs-in-ten-minutes-and-stays.4",
+  "priority": null,
+  "spec": "fn-304-the-gate-runs-in-ten-minutes-and-stays",
+  "spec_path": ".flow/tasks/fn-304-the-gate-runs-in-ten-minutes-and-stays.4.md",
+  "status": "todo",
+  "title": "The runner and the width: measure, declare, rewrite the gate line",
+  "updated_at": "2026-10-21T21:10:24.353778Z"
+}

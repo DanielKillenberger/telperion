@@ -216,6 +216,8 @@ fn every_new_row_is_refused_by_its_own_name() {
     refuse(|f| f.canopy.leaflet_pitch = 91.);
     refuse(|f| f.canopy.rachis_arch = 1.5);
     refuse(|f| f.canopy.terminal_leaflet = 1.5);
+    refuse(|f| f.canopy.rachis_width = 11.);
+    refuse(|f| f.canopy.rachis_width = f64::NAN);
     refuse(|f| f.canopy.leaf_bases = 257.0);
     refuse(|f| f.canopy.leaf_base_length = 11.);
     refuse(|f| f.canopy.leaf_base_radius = 1.5);

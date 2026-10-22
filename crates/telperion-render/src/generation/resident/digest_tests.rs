@@ -51,7 +51,7 @@ fn dump(leaves: &telperion_core::foliage::Instances, path: &str) {
 }
 
 /// What `prepared` hands the renderer, as one line.
-fn line(gen: &Generator, prepared: &Prepared) -> String {
+pub(in crate::generation) fn line(gen: &Generator, prepared: &Prepared) -> String {
     let gpu = &gen.gpu;
     let leaves = gen.read_instances(prepared).unwrap();
     // `DIGEST_DUMP` names a file for the leaves' matrices, so two builds'
@@ -147,4 +147,48 @@ fn still(
     let camera = crate::hero_pose(bounds, 960.0 / 720.0, crate::GROUND_REACH);
     let shot = crate::render(renderer, &camera, 960, 720).unwrap();
     crate::write_png(std::path::Path::new(path), &shot).unwrap();
+}
+
+/// The date palm's lines beside `digest`'s (fn-283 R4): built at 40, 12
+/// and 4, its crown drawn within its last year at 40 and 4, settled
+/// within a year it was grown to, and its device field. A change that
+/// keeps the device's fronds keeps every line.
+///
+///   cargo test --profile ci -p telperion-render palm_digest -- --ignored --nocapture
+#[test]
+#[ignore = "a digest"]
+fn palm_digest() {
+    use pollster::block_on;
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let renderer = crate::Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    let palm = |age: f64| {
+        let mut family = telperion_core::presets::by_identity("date-palm").unwrap();
+        family.age = age;
+        family
+    };
+    for age in [40.0, 12.0, 4.0] {
+        let prepared = gen.prepare(&palm(age)).unwrap();
+        println!("palm {age}: {}", line(&gen, &prepared));
+    }
+    let kit = gen.kit();
+    for (age, fraction) in [(40.0, 0.3), (40.0, 0.8), (4.0, 0.3), (4.0, 0.8)] {
+        let tools = (&gen, &kit.kernels, &kit.tools);
+        let built = block_on(super::build::crowned(&gpu, tools, &palm(age), fraction)).unwrap();
+        let resident = built.prepared.resident.as_ref().unwrap();
+        let read = io::read_leaves_async(&gpu, resident.leaves.buffer(), resident.count);
+        let leaves = block_on(read).unwrap();
+        println!("palm {age} at {fraction}: leaves {}", debug(&leaves));
+    }
+    let mut tree = block_on(gen.begin_growth(&palm(6.0))).unwrap();
+    block_on(gen.grow_to(&mut tree, 6.0)).unwrap();
+    for at in [5.4, 6.0] {
+        let settled = block_on(gen.settle(&tree, at)).unwrap();
+        println!("palm 6 settled at {at}: {}", line(&gen, &settled));
+    }
+    let field = block_on(gen.grow_field(&palm(40.0), 24, None)).unwrap();
+    println!("palm 40 field: {}", debug(&field));
 }

@@ -19,7 +19,9 @@ mod placement;
 pub mod plan;
 #[cfg(feature = "geometry")]
 pub mod prepared;
+mod rachis;
 mod reference;
+mod rest;
 mod rosette;
 #[cfg(feature = "geometry")]
 mod station;
@@ -27,12 +29,12 @@ mod station;
 use crate::envelope::{distance_to_profile, Envelope};
 use crate::{math::Vec3, Error, Result};
 #[cfg(feature = "geometry")]
-pub use bloom::packing_box as bloom_box;
-#[cfg(feature = "geometry")]
 pub(crate) use bloom::{
     element as bloom_element, now as bloom_now, place as place_blooms, place_in as place_blooms_in,
     reach as bloom_reach,
 };
+#[cfg(feature = "geometry")]
+pub use bloom::{packing_box as bloom_box, rachis_low};
 pub use bloom_params::BloomParams;
 /// Every canopy rail `place` judges, with no tree to place against.
 pub(crate) use canopy::rows as canopy_rows;
@@ -42,6 +44,9 @@ pub use element::{build_element, AnatomyGeometry, Element, ElementParams, Foliag
 /// A frond's leaflets before any draw, for the suite's gap check (fn-275 R2c).
 #[cfg(all(test, feature = "geometry"))]
 pub(crate) use leaflet::leaflets;
+/// The frond curve, for the suite's contact checks (fn-301 R2).
+#[cfg(all(test, feature = "geometry"))]
+pub(crate) use leaflet::rachis;
 pub use levels::Level;
 pub(crate) use organs::apex;
 pub use packed::{withered, Leaf, Reference, WITHERED, WORDS};
@@ -52,8 +57,10 @@ pub(crate) use placement::place_on;
 #[cfg(feature = "geometry")]
 #[cfg(test)]
 pub use placement::{place, place_on_surface};
+pub(crate) use rachis::{draws as draws_rachis, hang as hang_rachises, rachises, Rachis};
 #[cfg(feature = "geometry")]
 pub(crate) use reference::Reach;
+pub use rest::Wedge;
 pub(crate) use rosette::stem_node;
 /// The canopy's own rails, for a pass that reads the canopy rows without
 /// placing a leaf: a bad row is refused by the name `place` refuses it by.
@@ -205,7 +212,9 @@ impl Instances {
         }
         Ok(())
     }
-    /// Exact bounds of transformed leaf vertices; None for empty foliage.
+    /// Exact bounds of transformed leaf vertices, and of the stalks an organ
+    /// element lays from each origin (`Element::stalk`); None for empty
+    /// foliage.
     pub fn bounds(&self, element: &Element) -> Result<Option<Bounds>> {
         self.validate()?;
         element.validate()?;
@@ -250,6 +259,19 @@ impl Instances {
                     b.include(p)
                 } else {
                     bounds = Some(Bounds { min: p, max: p })
+                }
+            }
+        }
+        // A flower's stalks, laid from each origin; a leaf has none.
+        let stalks = (element.stalk > 0.0).then_some(element.stalk);
+        if let (Some(b), Some(reach)) = (&mut bounds, stalks) {
+            let pad = Vec3::new(reach, reach, reach);
+            for i in 0..self.leaves.len() {
+                for p in [self.position(i) - pad, self.position(i) + pad] {
+                    if [p.x, p.y, p.z].iter().any(|v| !(*v as f32).is_finite()) {
+                        return Err(Error::ResourceLimit("foliage bounds overflow"));
+                    }
+                    b.include(p);
                 }
             }
         }

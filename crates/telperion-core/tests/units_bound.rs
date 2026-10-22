@@ -41,11 +41,100 @@ fn floor(family: &Family) -> u32 {
 /// the beech grows its sapling ages in a cycle with the next (2), and a
 /// walk frame a hair from it lasts a sliver in the ages the beech passes
 /// through, chaining four in one cycle as the CPU grew them (CAUSE.md).
+/// Both ends reach those ages, so fn-299's rule leaves them mixed: the
+/// pass-through sliver, one of the two mechanisms `SLACK` allows.
 #[test]
 fn the_floor_counts_the_ages_a_cycle_chains() {
     let (a, b) = (at("european-beech", 40.0, 7), at("norway-spruce", 40.0, 7));
     assert_eq!(floor(&a), 2);
     assert_eq!(floor(&families(&a, &b, 0.00037).expect("a frame")), 4);
+}
+
+/// What a walk frame may grow past its ends' most units a cycle (fn-299,
+/// host 2026-10-20): the measured worst case once an age one end never
+/// reaches takes the other end's settings (R1.md). It allows the two
+/// mechanisms that rule leaves: a pass-through sliver, an age one end
+/// passes through and the other lives, which counts a whole unit a hair
+/// from the passing end; and a mixed outcome, an age that may both stop
+/// with a relay and move on, which neither end does.
+const SLACK: u32 = 2;
+
+/// Whether `units` lies within the ends' range, `SLACK` past it.
+fn within(units: u32, ends: [u32; 2]) -> bool {
+    let (low, high) = (ends[0].min(ends[1]), ends[0].max(ends[1]));
+    (low.saturating_sub(SLACK)..=high + SLACK).contains(&units)
+}
+
+/// A walk frame grows within its ends (fn-299 R1, host 2026-10-20): on oak
+/// to palm at 40 the floor at every t lies between the two ends' floors.
+/// fn-298's device survey refused t = 0.962 to 0.99998 at 12 units a cycle
+/// against the oak's 2 and the palm's 1.
+#[test]
+fn a_walk_frame_grows_within_its_ends() {
+    const T: [f64; 8] = [0.0, 0.5, 0.9, 0.95, 0.962, 0.99, 0.99998, 1.0];
+    let mut outside = Vec::new();
+    for seed in SEEDS {
+        let (x, y) = (
+            at("oregon-white-oak", 40.0, seed),
+            at("date-palm", 40.0, seed),
+        );
+        let frame = |t: f64| {
+            let f = families(&x, &y, t);
+            floor(&f.unwrap_or_else(|e| panic!("oak to palm t {t} seed {seed}: {e}")))
+        };
+        let ends = [frame(0.0), frame(1.0)];
+        for t in T {
+            let units = frame(t);
+            println!("oak to palm at 40, seed {seed}, t {t}: {units} (ends {ends:?})");
+            if !within(units, ends) {
+                outside.push(format!("seed {seed} t {t}: {units} past {ends:?}"));
+            }
+        }
+    }
+    assert!(
+        outside.is_empty(),
+        "frames outside their ends: {outside:#?}"
+    );
+}
+
+/// The film's frames per walk, in `WALKS`' order (fn-272's `release.json`).
+const FILM: [u32; 6] = [90, 90, 90, 120, 30, 90];
+
+/// The units a job holds on the device (`cycle/device.rs`'s `FRAMES`):
+/// a frame whose floor passes it is refused before it builds.
+const FRAMES: u32 = 11;
+
+/// fn-299 R3: every film frame of every shipped walk grows within its
+/// ends, `SLACK` allowed, and within what a device job holds. Frame i of
+/// n stands at the smoothstep of i / n, as the film eases; at seeds 1, 7
+/// and 42, each against its own ends.
+#[test]
+fn every_film_frame_grows_within_its_ends() {
+    let outside = std::sync::Mutex::new(Vec::new());
+    std::thread::scope(|s| {
+        for ((a, b, age), n) in WALKS.into_iter().zip(FILM) {
+            for seed in SEEDS {
+                let outside = &outside;
+                s.spawn(move || {
+                    let (x, y) = (at(a, age, seed), at(b, age, seed));
+                    let frame = |t: f64| floor(&families(&x, &y, t).expect("a walk frame"));
+                    let ends = [frame(0.0), frame(1.0)];
+                    for i in 1..=n {
+                        let share = f64::from(i) / f64::from(n);
+                        let t = share * share * (3.0 - 2.0 * share);
+                        let units = frame(t);
+                        if !within(units, ends) || units > FRAMES {
+                            let line =
+                                format!("{a} to {b} seed {seed} frame {i}: {units} by {ends:?}");
+                            outside.lock().unwrap().push(line);
+                        }
+                    }
+                });
+            }
+        }
+    });
+    let outside = outside.into_inner().unwrap();
+    assert!(outside.is_empty(), "film frames outside: {outside:#?}");
 }
 
 /// Every case the sweep builds: name and family.

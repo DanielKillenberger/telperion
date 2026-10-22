@@ -51,6 +51,11 @@ impl Feedback {
         }
     }
 
+    /// The bytes its readback holds on the device.
+    pub(super) fn bytes(&self) -> u64 {
+        self.staging.size()
+    }
+
     /// The most of each kind the budget is held to: the whole budget for
     /// a kind no reading has seen.
     pub(super) fn capacity(&self) -> [u64; 4] {

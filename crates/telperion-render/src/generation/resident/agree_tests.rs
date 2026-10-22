@@ -26,12 +26,13 @@ fn family(id: &str, age: u32) -> Family {
     family
 }
 
-/// The preset at `age`, its retained leaf bases set aside: the dress
-/// draws the tree before they are hung (`boots_tests` holds them,
-/// DESIGN.md 12.8).
+/// The preset at `age`, its retained leaf bases and frond axes set
+/// aside: the dress draws the tree before they are hung (`boots_tests`
+/// and `rachis_tests` hold them, DESIGN.md 12.8).
 fn bare(id: &str, age: u32) -> Family {
     let mut family = family(id, age);
     family.canopy.leaf_bases = 0.0;
+    family.canopy.rachis_width = 0.0;
     family
 }
 
@@ -265,6 +266,27 @@ fn every_rosette_is_placed_as_the_cpu_places_it() {
     }
 }
 
+/// fn-283 R4: the leaf-base stage draws a crown's fronds, and hangs their
+/// axes, where no retained base hangs below it, and by the canopy the
+/// supernatural group applies (a natural size of none, its override the
+/// palm's), each placed as the CPU places it.
+#[test]
+fn every_crown_the_leaf_base_stage_draws_is_placed_as_the_cpu_places_it() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let mut bare = family("date-palm", age());
+    bare.canopy.leaf_bases = 0.0;
+    assert!(executor::bases(&bare).unwrap().is_none());
+    let mut over = family("date-palm", age());
+    over.supernatural.enabled = true;
+    over.supernatural.canopy.size = Some(over.canopy.size);
+    over.canopy.size = 0.0;
+    for f in [bare, over] {
+        crown_agrees(&gpu, "date-palm", &f, 1.0);
+    }
+}
+
 fn crown_agrees(gpu: &crate::Gpu, id: &str, f: &Family, fraction: f64) {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
@@ -371,7 +393,10 @@ const ROSETTE_APART: f64 = 1e-4;
 /// The device's curve against the CPU's, run by run (matched at their
 /// first point within a millimetre): runs matched, unmatched, with their
 /// points differing in number, and the most apart a matched point stood
-/// (m) and its radius (relative). Read through its `Debug` print.
+/// (m) and its radius (relative); the most a frond axis's point stood
+/// apart as a share of its bound (`FROND_TURN`), with how many frond-axis
+/// runs matched.
+/// Read through its `Debug` print.
 #[allow(dead_code)]
 #[derive(Debug, Default)]
 struct Runs {
@@ -379,10 +404,41 @@ struct Runs {
     matched: usize,
     unmatched: usize,
     count: usize,
-    /// The CPU's trunk runs the device drew point for point, of all.
+    /// The runs the device flags a trunk's (its clusters' flag 8) among
+    /// those it drew point for point, and the CPU's trunk runs.
     trunks: (usize, usize),
     centre: f64,
     radius: f64,
+    fronds: usize,
+    frond: f64,
+}
+
+/// The angle a frond axis may stand turned from the CPU's (radians),
+/// beside the millimetre every run is held to: twice the largest heading
+/// gap measured, 3.0e-4 rad at 4 (1.24e-4 at 12, 1.41e-4 at 40; fn-283
+/// raw/frond-azimuth.log). Both executors take the crown's spiral
+/// reference from vertical squared off its axis (`rosette::frame`); on the
+/// palm that axis stands 4e-3 to 7e-3 rad off vertical, which magnifies
+/// the crown axes' 1.2e-6 rad lineage gap into the whole spiral's phase.
+/// The leaflets and the bases share it. Decision (conductor), fn-283 .3:
+/// the frond's wood is held to an angular lineage bound.
+const FROND_TURN: f64 = 6e-4;
+
+/// Where each frond axis the CPU hangs ends (`rachis.rs`): the last node
+/// of each of the clothing's runs past its bases' (two nodes each).
+fn frond_tips(tree: &telperion_core::tree::Tree) -> Vec<Vec3> {
+    let first = tree.clothing.unwrap_or(tree.nodes.len());
+    let mut runs: Vec<Vec<Vec3>> = Vec::new();
+    for (i, n) in tree.nodes.iter().enumerate().skip(first) {
+        match n.branch as usize == i {
+            true => runs.push(vec![n.position]),
+            false => runs.last_mut().unwrap().push(n.position),
+        }
+    }
+    runs.into_iter()
+        .filter(|r| r.len() > 2)
+        .map(|r| r[r.len() - 1])
+        .collect()
 }
 
 /// A millimetre's cell at the scale `s` the tree is drawn at.
@@ -413,18 +469,15 @@ fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
                 .unwrap(),
         )
     };
-    let mut runs: Vec<(u32, u32)> = Vec::new();
+    let mut runs: Vec<(u32, u32, bool)> = Vec::new();
     for c in clusters.chunks(CLUSTER_WORDS) {
-        if runs.last() != Some(&(c[2], c[3])) {
-            runs.push((c[2], c[3]));
+        if runs.last().map(|r| (r.0, r.1)) != Some((c[2], c[3])) {
+            runs.push((c[2], c[3], c[4] & 8 != 0));
         }
     }
-    let theirs = executor::grow(f)
-        .unwrap()
-        .expansion()
-        .unwrap()
-        .curve()
-        .unwrap();
+    let x = executor::grow(f).unwrap().expansion().unwrap();
+    let theirs = x.curve().unwrap();
+    let tips = frond_tips(x.tree());
     let mut by: HashMap<(i64, i64, i64), Vec<usize>> = HashMap::new();
     for (j, r) in theirs.runs.iter().enumerate().filter(|(_, r)| r.count > 1) {
         by.entry(cell(theirs.points[r.first as usize + 1].centre, s))
@@ -438,7 +491,7 @@ fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
         ..Runs::default()
     };
     let mut used = vec![false; theirs.runs.len()];
-    for &(first, count) in runs.iter().filter(|r| r.1 > 1) {
+    for &(first, count, standing) in runs.iter().filter(|r| r.1 > 1) {
         let at = point(first + 1).centre;
         let (x, y, z) = cell(at, s);
         let near = (-1..=1)
@@ -462,10 +515,18 @@ fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
             continue;
         }
         out.matched += 1;
-        out.trunks.0 += usize::from(theirs.runs[j].trunk);
+        out.trunks.0 += usize::from(standing);
+        let end = want[want.len() - 1].centre;
+        let frond = tips.iter().any(|t| t.distance(end) <= 1e-6);
+        out.fronds += usize::from(frond);
         for (i, c) in want.iter().enumerate() {
             let m = point(first + i as u32);
-            out.centre = out.centre.max(m.centre.distance(c.centre));
+            let apart = m.centre.distance(c.centre);
+            let reach = c.along - want[0].along;
+            match frond {
+                true => out.frond = out.frond.max(apart / (1e-3 + FROND_TURN * reach)),
+                false => out.centre = out.centre.max(apart),
+            }
             out.radius = out
                 .radius
                 .max((m.radius - c.radius).abs() / c.radius.max(1e-9));
@@ -535,5 +596,66 @@ fn every_preset_sweeps_its_wood_as_the_cpu_does() {
         // The tolerance above never covers a trunk: one run, all the flare.
         assert_eq!(r.trunks.0, r.trunks.1, "{id}: {r:?}");
         assert!(r.centre < 1e-3 && r.radius < 1e-3, "{id}: {r:?}");
+        // A frond's axis turns with the crown's spiral: a millimetre and
+        // `FROND_TURN` times its reach along the run.
+        assert!(r.frond < 1.0, "{id}: {r:?}");
     }
+}
+
+/// fn-301 surface clearance: the seat vertices the device lays (its rings
+/// and the positions pass) for the silver birch at 40, seed 1, whose wood
+/// rests on the ground. The rings flag the CPU's trunk runs (word 15), no
+/// vertex of any other run stands below the ground, and some are set onto
+/// it.
+#[test]
+fn seats_on_resting_wood_stand_on_the_ground_on_the_device() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    let kit = gen.kit();
+    let mut f = family("silver-birch", 40);
+    f.skeleton.seed = 1;
+    let growth = executor::growth(&f).unwrap();
+    let bases = super::boots::most(&f).unwrap();
+    let drawn = pollster::block_on(tree::drawn(&gpu, &kit.kernels, (&growth, bases))).unwrap();
+    let mut t = super::build::Timed::default();
+    let year = growth.year(1.0);
+    let ready = super::build::readied(&gpu, &kit.tools, (&f, year), drawn, &mut t);
+    let r = pollster::block_on(ready).unwrap();
+    let s = r.x.section().unwrap();
+    let height = r.x.leaves().envelope.height;
+    let twist = std::f64::consts::TAU * f.surface.twist_rate / height;
+    let rung = kit
+        .tools
+        .ringer
+        .rings(&gpu, &r.swept, s.segments, twist as f32);
+    let rung = rung.unwrap();
+    let rings = (&*rung.buffer, rung.rings, rung.vertices);
+    let positions = gen.ring_vertices(rings, (s.segments, s.lobes, s.depth), &s.angular);
+    let read = |b: &wgpu::Buffer, n: u32| -> Vec<u32> {
+        bytemuck::cast_slice(&io::read(&gpu, b, u64::from(n.max(1)) * 4).unwrap()).to_vec()
+    };
+    let words = read(&rung.buffer, rung.rings * 16);
+    let ys: Vec<f32> = read(&positions.unwrap(), rung.vertices * 3)
+        .chunks(3)
+        .map(|p| f32::from_bits(p[1]))
+        .collect();
+    let (mut trunk, mut on) = (0, 0);
+    for ring in words.chunks(16) {
+        if ring[15] == 1 {
+            trunk += 1;
+            continue;
+        }
+        for &y in &ys[ring[12] as usize..][..s.segments as usize] {
+            assert!(y >= 0.0, "a seat vertex {y} m below the ground");
+            on += usize::from(y == 0.0);
+        }
+    }
+    let x = executor::grow(&f).unwrap().expansion().unwrap();
+    let cpu = x.compact().unwrap();
+    let cpu_trunk = cpu.rings.iter().filter(|r| r[15] == 1).count();
+    assert_eq!(trunk, cpu_trunk, "the trunk's rings");
+    assert!(on > 0, "no seat vertex was set onto the ground");
 }

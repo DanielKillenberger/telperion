@@ -23,6 +23,8 @@ pub(super) struct Run<'a> {
     pub twig: Option<TwigPlacement>,
     /// The wood's contact surface, built whenever surface contact is positive.
     pub contacts: Option<&'a AttachmentSurface<'a>>,
+    /// The leaf element's bounds, which rest a leaf on the ground.
+    pub wedge: &'a super::rest::Wedge,
 }
 
 pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result<()> {
@@ -34,6 +36,7 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
         params: p,
         twig,
         contacts,
+        wedge,
     } = *run;
     let (mut points, mut chord, mut along) = (Vec::new(), Vec::new(), Vec::new());
     let length = walk(tree, nodes, twig, &mut points, (&mut chord, &mut along));
@@ -127,9 +130,9 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
             axis(point, radial, tangent, p),
             tangent,
             normal,
-            (table, count, None),
+            (table, count, None, 0.0),
             (rng, more.as_mut()),
-            into,
+            (wedge, into),
         )?;
         // A colouring leaf is drawn as one withering (fn-270 R5c).
         if colour > 0.0 {

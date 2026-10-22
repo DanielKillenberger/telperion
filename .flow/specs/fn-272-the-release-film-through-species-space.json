@@ -8,7 +8,10 @@
   "default_sync": null,
   "depends_on_epics": [
     "fn-270-growth-continues-from-any-age-in-less",
-    "fn-251-a-walk-never-grows-a-tree-larger-than"
+    "fn-251-a-walk-never-grows-a-tree-larger-than",
+    "fn-283-a-frond-draws-its-rachis",
+    "fn-299-a-walk-frame-grows-within-its-ends",
+    "fn-308-a-walks-midpoint-draws-a-tree-halfway"
   ],
   "id": "fn-272-the-release-film-through-species-space",
   "impl_review_rounds": {
@@ -246,5 +249,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T10:04:40.429694Z"
+  "updated_at": "2026-10-20T16:53:03.407386Z"
 }

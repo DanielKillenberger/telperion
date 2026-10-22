@@ -1,11 +1,515 @@
 {
   "branch_name": "fn-283-a-frond-draws-its-rachis",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-20T14:21:27.312909Z",
   "created_at": "2026-10-15T07:55:57.803283Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-283-a-frond-draws-its-rachis",
+  "impl_review_rounds": {
+    "fn-283-a-frond-draws-its-rachis.1": 0,
+    "fn-283-a-frond-draws-its-rachis.2": 0,
+    "fn-283-a-frond-draws-its-rachis.3": 0,
+    "fn-283-a-frond-draws-its-rachis.4": 0
+  },
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-19T13:39:24.741122Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "437f623c97d513f644c095457ef80715afb27c69c99b70f1fa1fce8e286c4d42",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7de3a9014917c8391493f1b00654b3c0",
+            "classification": "introduced",
+            "findingId": "finding-7de3a9014917c8391493f1b00654b3c0",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6430c7d7f605dc53e1f51f8037da37bf",
+            "classification": "introduced",
+            "findingId": "finding-6430c7d7f605dc53e1f51f8037da37bf",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-656cc86fe87aa60130928a11eb4055eb",
+            "classification": "introduced",
+            "findingId": "finding-656cc86fe87aa60130928a11eb4055eb",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f4a10f795a83861881f7045d9466e61c30c0c08f",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 367277,
+      "output_sha256": "855b970fa69555388721326b1740a4c742486f8ac3ea46a2c5f43ae1d8fe78b5",
+      "reservation_id": "812701de8ac6489fa447d9d74ae8ce81",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-19T13:37:41.187030Z",
+      "tool_calls": 13,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b88380ad5ce4cea1c5eab7fca10870eeb0349a13120c02ee20d458bcd43ee9c7",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7de3a9014917c8391493f1b00654b3c0",
+            "classification": "introduced",
+            "findingId": "finding-7de3a9014917c8391493f1b00654b3c0",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6430c7d7f605dc53e1f51f8037da37bf",
+            "classification": "introduced",
+            "findingId": "finding-6430c7d7f605dc53e1f51f8037da37bf",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-656cc86fe87aa60130928a11eb4055eb",
+            "classification": "introduced",
+            "findingId": "finding-656cc86fe87aa60130928a11eb4055eb",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f4a10f795a83861881f7045d9466e61c30c0c08f",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 809,
+      "output_sha256": "cae1b3e0c61c54ff261262a19dec623ea456e714148f7f7c2b9bd09412e86ed3",
+      "reservation_id": "db74de350e3c4dd4ae7af1a0b0371d2e",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-19T13:39:24.738164Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "0968331cc2f8b49dd7f9a75638df212563876d655a97b6d2b66ee82e07c36f2c",
+      "backend": "codex",
+      "base_sha": "99111868b14e4ee22ce60fe2157b5bc7a2bf857a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-44263fba7943397058e7e42d0c6dfabe",
+            "classification": "introduced",
+            "findingId": "finding-44263fba7943397058e7e42d0c6dfabe",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c9778b41defcffb105497fa1fd01da04",
+            "classification": "introduced",
+            "findingId": "finding-c9778b41defcffb105497fa1fd01da04",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "167a1d8b4009617e2f6959ef79aecaae20b1fe8a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1810,
+      "output_sha256": "fca4827b95e20f41aa756d1b80e50566c2171a5034ac911aac3d04efbc35193c",
+      "reservation_id": "d886fa11e878468c8de22bbccabf2821",
+      "round_consumed": true,
+      "scope": "impl:fn-283-a-frond-draws-its-rachis.1",
+      "superseded_by": null,
+      "task": "fn-283-a-frond-draws-its-rachis.1",
+      "timestamp": "2026-10-19T14:41:42.112564Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d2faa8db43beb6b7c4d0feebdb9c85e28970daedb9f34a2ea8a7989109248203",
+      "backend": "codex",
+      "base_sha": "99111868b14e4ee22ce60fe2157b5bc7a2bf857a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-44263fba7943397058e7e42d0c6dfabe",
+            "classification": "introduced",
+            "findingId": "finding-44263fba7943397058e7e42d0c6dfabe",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c9778b41defcffb105497fa1fd01da04",
+            "classification": "introduced",
+            "findingId": "finding-c9778b41defcffb105497fa1fd01da04",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "320469a659befbbad1f20a4de3998aa616bf6edd",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1094,
+      "output_sha256": "4b62859c9ed06622ef38b2f7c5a5302277ac8260bcf43c2d9f28a7e942cd16db",
+      "reservation_id": "d7509cfb1891448abf0bb8a4cccdf8ff",
+      "round_consumed": true,
+      "scope": "impl:fn-283-a-frond-draws-its-rachis.1",
+      "superseded_by": null,
+      "task": "fn-283-a-frond-draws-its-rachis.1",
+      "timestamp": "2026-10-19T15:22:41.065943Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "aad61a4bb8826b999e7333f14387ed6529df239e9df67d027f8fe9c7702772a6",
+      "backend": "codex",
+      "base_sha": "99111868b14e4ee22ce60fe2157b5bc7a2bf857a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-44263fba7943397058e7e42d0c6dfabe",
+            "classification": "introduced",
+            "findingId": "finding-44263fba7943397058e7e42d0c6dfabe",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c9778b41defcffb105497fa1fd01da04",
+            "classification": "introduced",
+            "findingId": "finding-c9778b41defcffb105497fa1fd01da04",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "9839dc3d912f7b4cbfe1d01a1f36adb4ebea627b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1172,
+      "output_sha256": "e8e7592687cb24b012fdc5a8d2051ab07f9fc4028f498845a4d5595b7522f94e",
+      "reservation_id": "ec99847e293046bb8fa40d0db872683e",
+      "round_consumed": true,
+      "scope": "impl:fn-283-a-frond-draws-its-rachis.1",
+      "superseded_by": null,
+      "task": "fn-283-a-frond-draws-its-rachis.1",
+      "timestamp": "2026-10-19T23:42:41.490579Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d80df709e93c526410395ca7fa73b56bd91612ab07403a798264881080e9e3b9",
+      "backend": "codex",
+      "base_sha": "fbee5b3ba5fd61ef6fcb69b48875b3be9b4a1443",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9b7fa1a9553109fe487b218abc7b599f",
+            "classification": "introduced",
+            "findingId": "finding-9b7fa1a9553109fe487b218abc7b599f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a06639cd576a0c782dfd9c7151e33f32e739aa56",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1057,
+      "output_sha256": "82f08252774dc72bb5736d086d26f2cbf2008726014b2e299294a8aef6e8f1fa",
+      "reservation_id": "42975dc7c9684d92a4632f431c481e8e",
+      "round_consumed": true,
+      "scope": "impl:fn-283-a-frond-draws-its-rachis.2",
+      "superseded_by": null,
+      "task": "fn-283-a-frond-draws-its-rachis.2",
+      "timestamp": "2026-10-20T01:03:43.909827Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "7690ecf7b1abdd320a9bb3533315e77bd2a25a6417476219ace586f46e3f1f24",
+      "backend": "codex",
+      "base_sha": "fbee5b3ba5fd61ef6fcb69b48875b3be9b4a1443",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9b7fa1a9553109fe487b218abc7b599f",
+            "classification": "introduced",
+            "findingId": "finding-9b7fa1a9553109fe487b218abc7b599f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2c75515caef5cdb06c74bfdf1a9f98a923b6d9a9",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 891,
+      "output_sha256": "2f1b3048390d6b21a805d5e07fcffba92ef6b81de978d0a0a28fc4eb9eb86e42",
+      "reservation_id": "7466569934ad4095849943e0d24e5b7c",
+      "round_consumed": true,
+      "scope": "impl:fn-283-a-frond-draws-its-rachis.2",
+      "superseded_by": null,
+      "task": "fn-283-a-frond-draws-its-rachis.2",
+      "timestamp": "2026-10-20T01:05:08.151915Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "6f4332bc91638bdde750668de0cf21b5d345117fa92c0b30f8249beeb0f4e9d7",
+      "backend": "codex",
+      "base_sha": "5535c60f483fbea09a1f23b62de20bf1f50386fd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7dc6a4119a46347f94612208776233c7b1c17797",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "9de8da9a419b4a98822614844f9aea94",
+      "round_consumed": true,
+      "scope": "impl:fn-283-a-frond-draws-its-rachis.3",
+      "superseded_by": null,
+      "task": "fn-283-a-frond-draws-its-rachis.3",
+      "timestamp": "2026-10-20T03:52:17.073028Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d1bd44ef1001048a47ac10c272718eb186629c0ed5e7caa40bbe5cfb724de95b",
+      "backend": "codex",
+      "base_sha": "c10e03983bee62b47d454f153e80190fe66557fe",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f992e406c0a81a820e92c4207b7902e5d6c1e03f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "7cbd2c74d33941ee9a2c8d9eb71d4ef9",
+      "round_consumed": true,
+      "scope": "impl:fn-283-a-frond-draws-its-rachis.4",
+      "superseded_by": null,
+      "task": "fn-283-a-frond-draws-its-rachis.4",
+      "timestamp": "2026-10-20T13:39:48.964803Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "1fa46ec2e988e0a398492645f86b71a170326e760d42afbd87aaa6fed8d3b6d9",
+      "backend": "codex",
+      "base_sha": "147dae260d72a8ac9e987595c0f0d2a2e1645ecb",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f468a28d38359db4490206a8e4a9d7679eaa99ec",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 471807,
+      "output_sha256": "022309740f371423163aadd4c99eb9a82a400b953e0b37c98ea28a56f5ce0566",
+      "reservation_id": "b952685b22574658985d9fad1cac3599",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T14:21:27.295589Z",
+      "tool_calls": 26,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-283-a-frond-draws-its-rachis.1": 2,
+    "impl:fn-283-a-frond-draws-its-rachis.2": 1,
+    "impl:fn-283-a-frond-draws-its-rachis.3": 1,
+    "impl:fn-283-a-frond-draws-its-rachis.4": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-283-a-frond-draws-its-rachis.1": 0,
+    "impl:fn-283-a-frond-draws-its-rachis.2": 0,
+    "impl:fn-283-a-frond-draws-its-rachis.3": 0,
+    "impl:fn-283-a-frond-draws-its-rachis.4": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-283-a-frond-draws-its-rachis.md",
   "status": "open",
   "title": "A frond draws its rachis",
@@ -20,5 +524,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T08:27:06.862574Z"
+  "updated_at": "2026-10-20T14:21:27.322495Z"
 }

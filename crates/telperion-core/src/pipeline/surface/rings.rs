@@ -289,7 +289,7 @@ pub(super) fn written(
             None => scratch.sweep(at, path_id),
         };
         let ring = samples.len() * at.segments();
-        let shape = at.section(path_id);
+        let shape = (at.section(path_id), at.paths.runs[path_id].trunk);
         let mut v = 0;
         emit_run(samples, frame, at.ring(), shape, drawn, |xyz, coord| {
             for piece in run {

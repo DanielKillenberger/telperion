@@ -106,11 +106,18 @@ pub(super) fn compare(cpu: &[Occupancy], dev: &[Occupancy]) -> Measures {
 /// are (`every_rosette_is_placed_as_the_cpu_places_it`), so a crown of
 /// fronds is held to where its draws allow.
 pub(super) fn within(m: &Measures, fronds: bool) -> Result<(), String> {
-    let (foliage, leaves, total, limbs) = match fronds {
-        false => (0.999, 0.002, 0.001, 0.95),
-        true => (0.70, 0.40, 0.02, 0.70),
+    // A frond crown's wood holds its frond axes, which turn with the
+    // crown's spiral: both executors take its reference from vertical
+    // squared off a crown axis 4e-3 to 7e-3 rad off vertical
+    // (`rosette::frame`), which magnifies the axes' 1.2e-6 rad lineage gap
+    // to 1.2e-4 to 3.0e-4 rad (fn-283 .3, raw/frond-azimuth.log); the
+    // leaflets and bases share it. Measured: wood 0.9976 on the palm at
+    // seed 5678 on 24 cells; held at about twice its miss.
+    let (wood, foliage, leaves, total, limbs) = match fronds {
+        false => (0.999, 0.999, 0.002, 0.001, 0.95),
+        true => (0.995, 0.70, 0.40, 0.02, 0.70),
     };
-    let held = m.wood >= 0.999
+    let held = m.wood >= wood
         && m.radius <= 0.005
         && m.foliage >= foliage
         && m.leaves <= leaves
@@ -179,20 +186,52 @@ fn fronds(id: &str) -> bool {
     family(id, 1).canopy.rosette_fronds > 0.0
 }
 
-/// R8a on every shipped preset at seeds 1 and 5678, on grids of 24, 36
-/// and 48 cells a side: the device's read-out against the CPU's.
+/// R8a on every shipped preset at seeds 1 and 5678, on a grid of 36 cells
+/// a side: the device's read-out against the CPU's. The grids of 24 and 48
+/// are the ignored test below (host, fn-304 ruling 4).
 #[test]
 fn every_preset_s_device_field_answers_within_its_tolerance() {
+    every_preset_answers_within_its_tolerance(&[36]);
+}
+
+/// R8a on grids of 24, 36 and 48 cells a side:
+/// `cargo test --profile ci -p telperion-render --lib -- --ignored every_preset_s_device_field_on_every_grid`
+#[test]
+#[ignore = "fn-304: every grid size, outside the gate; about 90 s"]
+fn every_preset_s_device_field_on_every_grid_answers_within_its_tolerance() {
+    every_preset_answers_within_its_tolerance(&[24, 36, 48]);
+}
+
+fn every_preset_answers_within_its_tolerance(sides: &[u32]) {
     let _held = super::super::whole_tree();
     let Some(gen) = generator() else {
         return;
     };
     for &(_, id, ..) in telperion_core::presets::CATALOGUE {
         for seed in [1, 5678] {
-            for (n, m, _) in agreement(&gen, id, seed, &[24, 36, 48]) {
+            for (n, m, _) in agreement(&gen, id, seed, sides) {
                 within(&m, fronds(id)).unwrap_or_else(|m| panic!("{id} {seed} at {n}: {m}"));
             }
         }
+    }
+}
+
+/// fn-301 R2: the young palm rests its fronds' leaflets on the ground, and
+/// the device's field boxes them in the frame they rest in, as the CPU's
+/// plan does (`field_fronds.rs`'s `a_rested_leaflet_lies_in_its_planned_box`):
+/// the palm at 12 answers within its tolerance on grids of 24, 36 and 48.
+#[test]
+fn the_young_palm_s_rested_leaflets_are_boxed_as_the_cpu_boxes_them() {
+    let _held = super::super::whole_tree();
+    let Some(gen) = generator() else {
+        return;
+    };
+    let mut palm = family("date-palm", 1);
+    palm.age = 12.0;
+    for cpu in references(&palm, &[24, 36, 48], None) {
+        let dev = device(&gen, &palm, &cpu, None);
+        let m = compare(&cpu.cells, &dev.cells);
+        within(&m, true).unwrap_or_else(|m| panic!("the palm at 12 on {}: {m}", cpu.frame.n));
     }
 }
 

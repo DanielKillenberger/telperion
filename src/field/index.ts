@@ -15,7 +15,8 @@
  * coarser or finer reading is another side). The `cut` option is gone, and
  * nothing replaces it (every tree grows whole, on the device); the source is
  * the renderer's module, not `telperion-field.wasm`. */
-import init, { WebField } from "../browser/render/telperion_render.js";
+import { WebField } from "../browser/render/telperion_render.js";
+import { loadModule, type ModuleSource } from "../browser/module";
 import { wasmSource } from "../wasm-source";
 import { side, type Grid } from "./voxelize";
 
@@ -33,27 +34,20 @@ export interface FieldGrid extends Grid { answer: FieldAnswer }
 /** A grown tree's field, read out to the grid its call named over the tree's
  * own box. */
 export interface FieldTree extends FieldGrid { readonly species: string; readonly seed: number }
-export type FieldSource = BufferSource | Response | WebAssembly.Module;
+export type FieldSource = ModuleSource;
 export interface GrowOptions {
   /** The lateral order whose systems name limbs; the family's own when left
    * out. A higher order parts the crown into more and smaller systems. */
   limbOrder?: number;
   /** Where the renderer's module comes from. Left out, it is fetched from
-   * `telperion-render.wasm` beside this module. */
+   * `telperion-render.wasm` beside this module. A page holds one module,
+   * shared with `createRenderer`: the first call to load it names the
+   * source, and a later call joins that module whatever it names. */
   source?: FieldSource;
 }
 
 const U32 = 2 ** 32;
 
-let loading: Promise<void> | undefined;
-/** Loads the renderer's module once per page or worker. */
-function load(source?: FieldSource): Promise<void> {
-  // The literal names the file for a consumer's bundler; the library build
-  // leaves it as it is (vite.config.ts) and ships the file beside this one.
-  loading ??= init({ module_or_path: source ?? wasmSource(new URL("./telperion-render.wasm", import.meta.url)) })
-    .then(() => undefined, error => { loading = undefined; throw error; });
-  return loading;
-}
 
 /** Whether this page or worker has WebGPU: the field grows nowhere else. */
 function device(): void {
@@ -77,7 +71,7 @@ export async function compileField(source?: FieldSource): Promise<WebAssembly.Mo
  * first `growField` does not wait on them: a page calls it as it loads. */
 export async function prepareField(source?: FieldSource): Promise<void> {
   device();
-  await load(source);
+  await loadModule(source);
   await WebField.prepare();
 }
 
@@ -97,7 +91,7 @@ export async function growField(species: string, seed: number, n: number, option
   side(n);
   const order = options.limbOrder === undefined ? undefined : unsigned(options.limbOrder, "limbOrder", U32 - 1);
   device();
-  await load(options.source);
+  await loadModule(options.source);
   const field = (await WebField.grow(species, seed, n, order)) as WebField;
   try {
     const o = field.origin();

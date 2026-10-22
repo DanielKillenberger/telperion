@@ -138,7 +138,7 @@ fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Bas
         .expect("a family that hangs bases");
     let bases = super::boots::most(f).unwrap();
     let (mut dressed, _) = pollster::block_on(tree::drawn(gpu, k, (&growth, bases))).unwrap();
-    let hung = pollster::block_on(hanger.hang(gpu, &mut dressed, Some(&rows))).unwrap();
+    let hung = pollster::block_on(hanger.hang(gpu, &mut dressed, (Some(&rows), None))).unwrap();
     let seed = &dressed.waves[1];
     let all = words(gpu, &dressed.records, dressed.ids as usize * CV);
     let record = |id: u32| &all[id as usize * CV..][..CV];
@@ -189,8 +189,9 @@ fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Bas
         .collect()
 }
 
-/// The bases the CPU hangs on `f`'s stems: the last nodes of its expanded
-/// tree, two a base, in its clothed apices' order, and its last sections.
+/// The bases the CPU hangs on `f`'s stems: the first nodes of its expanded
+/// tree's clothing, two a base, in its clothed apices' order, and its last
+/// sections.
 fn cpu(f: &Family) -> Vec<Base> {
     let p = executor::bases(f).unwrap().unwrap();
     let x = executor::grow(f).unwrap().expansion().unwrap();
@@ -212,7 +213,7 @@ fn cpu(f: &Family) -> Vec<Base> {
         .collect();
     let per = p.leaf_bases as usize;
     let n = clothed.len() * per;
-    let start = tree.nodes.len() - 2 * n;
+    let start = tree.clothing.expect("the palm is clothed");
     let packed = tree
         .sections
         .len()
@@ -342,5 +343,22 @@ fn every_leaf_base_is_hung_as_the_cpu_hangs_it() {
         moved[0].cell.as_mut().expect("the palm's bases pack")[12] += 1e-2;
         let perturbed = compare(&moved, &theirs).expect_err("a moved cell passed");
         assert!(perturbed.starts_with("cell corner"), "{perturbed}");
+    }
+}
+
+/// fn-297 R6: the leaf bases' spiral a degree short of a turn either way,
+/// the widest the bound admits, hangs on the device where the CPU hangs it.
+#[test]
+fn the_spiral_a_degree_short_of_a_turn_is_hung_as_the_cpu_hangs_it() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let (k, hanger) = (Kernels::new(&gpu), Hanger::new(&gpu));
+    for divergence in [359.0, -359.0] {
+        let mut f = family("date-palm", Some(12));
+        f.canopy.rosette_divergence = divergence;
+        let (mine, theirs) = (device(&gpu, &k, &hanger, &f), cpu(&f));
+        let apart = compare(&mine, &theirs).unwrap_or_else(|e| panic!("at {divergence}: {e}"));
+        assert!(apart.bases > 0, "no base hung at {divergence}");
     }
 }

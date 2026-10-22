@@ -13,6 +13,12 @@ pub(crate) struct Output {
     pub(crate) element_indices: Vec<u32>,
     pub(crate) element_coords: Vec<f32>,
     pub(crate) instances: foliage::Instances,
+    /// The flowers, a second foliage: their element's positions and
+    /// indices and their florets, packed against their own reference; none
+    /// where the tree flowers nowhere or no foliage was asked for.
+    pub(crate) organ_positions: Vec<f32>,
+    pub(crate) organ_indices: Vec<u32>,
+    pub(crate) organ: Option<foliage::Instances>,
     pub(crate) structure: Vec<f64>,
     pub(crate) topology: Vec<u32>,
     pub(crate) field: FieldCells,
@@ -161,7 +167,23 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         out.element_indices = blade.indices.clone();
         out.element_coords = blade.coords.clone();
     }
+    // A window of no length flowers never: its organ has no floret and
+    // crosses as none, not as an empty one.
+    if let Some(organ) = o.organ.filter(|o| !o.instances.leaves.is_empty()) {
+        out.organ_positions = organ
+            .element
+            .positions
+            .iter()
+            .flat_map(|p| [p.x as f32, p.y as f32, p.z as f32])
+            .collect();
+        out.organ_indices = organ.element.indices;
+        out.organ = Some(organ.instances);
+    }
     let reference = out.instances.reference;
+    let organ_reference = out.organ.as_ref().map(|o| {
+        let r = o.reference;
+        json!({"min": [r.min.x, r.min.y, r.min.z], "extent": [r.extent.x, r.extent.y, r.extent.z]})
+    });
     if let Some(s) = o.structure {
         (out.structure, out.topology) = (s.nodes, s.topology);
     }
@@ -192,6 +214,9 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
             "extent":[reference.extent.x, reference.extent.y, reference.extent.z]
         },
         "foliageAnatomy":anatomy,
+        // The box the flowers' florets are quantised against; null where
+        // the tree grew none.
+        "organReference":organ_reference,
         "biologicalUnits": if places && o.element.as_ref().is_some_and(|e| e.anatomy.is_some()) { Some(retained_count) } else { None },
         // The field's grid: its side, its cell and its least corner.
         "field":grid,

@@ -7,8 +7,8 @@
 use super::build::{Build, Kit, Tables};
 use super::census::{self as c, Flag};
 use super::device::{
-    self, AFTER, CLOSE, DECIDE, FLAG, GATHER, INIT, RANGE, T_LIST, T_ROUNDS, T_UNITS, T_UNITS_B,
-    T_USED, T_WAKE, T_WAKE_B, WOKE, WRITTEN, ZONES,
+    AFTER, CLOSE, DECIDE, FLAG, GATHER, INIT, RANGE, T_LIST, T_ROUNDS, T_UNITS, T_UNITS_B, T_USED,
+    T_WAKE, T_WAKE_B, WOKE, WRITTEN, ZONES,
 };
 use super::gate::{rec, Cond};
 use super::glue;
@@ -39,7 +39,7 @@ impl Build {
     /// writes are none here (`units_dynamic`).
     pub(super) fn units_static(&self, t: &Tables, (emit, wake, base): (u32, u32, u32)) -> Vec<u32> {
         let s = self.state.caps;
-        let at = device::counts(s, t.zones);
+        let at = self.places;
         vec![
             0,
             MAXX * 64,

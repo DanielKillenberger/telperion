@@ -207,6 +207,8 @@ pub(super) struct Build {
     /// and the grown axes' scan's total and sums.
     pub inputs: Owned,
     pub counts: Owned,
+    /// Where `counts` holds what, sized for the state's caps.
+    pub places: device::Counts,
     pub flags: Owned,
     pub spare: Owned,
     pub scan_tally: Owned,
@@ -228,6 +230,7 @@ impl Build {
         (c, caps, block_cap): (&Capture, Caps, u32),
         (lit, nodes): (Lit, u32),
     ) -> Result<Self> {
+        let places = device::counts(caps, t.zones, device::limit(gpu))?;
         let state = State::new(gpu, caps)?;
         let mut light = Light::new(gpu, &Cap(c))?;
         light.ensure(gpu, lit, nodes)?;
@@ -250,7 +253,8 @@ impl Build {
                 "cycle inputs",
                 2 * u64::from(caps.next) + 7 * u64::from(s),
             )?,
-            counts: zeroed(gpu, "cycle counts", device::counts(caps, t.zones).words)?,
+            counts: zeroed(gpu, "cycle counts", places.words)?,
+            places,
             flags: zeroed(gpu, "cycle flags", 2 * u64::from(s))?,
             spare: zeroed(gpu, "cycle spare", 4)?,
             scan_tally: zeroed(gpu, "cycle scan tally", 64)?,
@@ -407,7 +411,7 @@ impl Build {
 
     /// Where the units' second count records start in `counts`.
     pub(super) fn b_at(&self) -> u32 {
-        device::b_at(self.state.caps.next.max(self.state.caps.sleepers))
+        self.places.b_at
     }
 
     /// The cycles grown, as the census last read counts them: the age the

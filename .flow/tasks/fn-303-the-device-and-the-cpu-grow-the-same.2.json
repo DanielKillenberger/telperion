@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-21T22:35:38.117444Z",
+  "depends_on": [
+    "fn-303-the-device-and-the-cpu-grow-the-same.1"
+  ],
+  "id": "fn-303-the-device-and-the-cpu-grow-the-same.2",
+  "priority": null,
+  "spec": "fn-303-the-device-and-the-cpu-grow-the-same",
+  "spec_path": ".flow/tasks/fn-303-the-device-and-the-cpu-grow-the-same.2.md",
+  "status": "todo",
+  "title": "The rounds frames compare like with like, and the change is measured",
+  "updated_at": "2026-10-21T22:35:38.117444Z"
+}

@@ -35,19 +35,20 @@ fn the_running_total_is_the_count_tables_sum() {
         Preset::NorwaySpruce,
         Preset::Ordinary,
     ];
-    let mut cases: Vec<(String, Species)> = presets
-        .iter()
-        .map(|&p| (format!("{p:?}"), species(p)))
-        .collect();
     let (spruce, ordinary) = (species(Preset::NorwaySpruce), species(Preset::Ordinary));
-    for t in [0.25, 0.5] {
-        cases.push((
-            format!("spruce to ordinary at {t}"),
-            blend(&spruce, &ordinary, t).unwrap(),
-        ));
-    }
-    for (name, s) in &cases {
-        for age in [1, 2, 7, 40] {
+    for age in [1, 2, 7, 40] {
+        // The walk's species is the one a tree of that age reads (fn-308).
+        let mut cases: Vec<(String, Species)> = presets
+            .iter()
+            .map(|&p| (format!("{p:?}"), species(p)))
+            .collect();
+        for t in [0.25, 0.5] {
+            cases.push((
+                format!("spruce to ordinary at {t}"),
+                blend(&spruce, &ordinary, t, age).unwrap(),
+            ));
+        }
+        for (name, s) in &cases {
             let (total, sum) = (expected_grown(s, age).unwrap(), summed(s, age));
             let off = (total.ln() - sum.ln()).abs();
             assert!(

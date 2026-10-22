@@ -3,9 +3,11 @@
 //! drop from 871,168 leaves to 4 in one frame, and the spruce to birch and
 //! birch to oak walks step 25 to 61 % between frames, each where a count
 //! of organs rounded across a whole number (CAUSE.md). Each test walks
-//! those places at fine steps of `t`, at seeds 1, 7 and 42, built as the
-//! film builds a frame (`blend::families`, then the pipeline), and holds
-//! every pair of consecutive frames to the oracle (R3).
+//! those places at fine steps of `t`, built as the film builds a frame
+//! (`blend::families`, then the pipeline), and holds every pair of
+//! consecutive frames to the oracle (R3). The gate walks seed 1; the
+//! ignored `every_walk_changes_its_leaves_by_degree_at_every_seed` walks
+//! seeds 1, 7 and 42 (host, fn-304 ruling 1).
 //!
 //! The oracle tests the draw (host ruling 5b, 2026-10-14; the law is
 //! `walk_law.rs`): in each frame, each form's drawn count lies within
@@ -151,21 +153,37 @@ fn draws(f: &Family) -> Vec<Draw> {
         },
     ];
     // A short shoot holds its cluster's whole leaves (one where its age
-    // states less than one), every short-shooting age the same count.
-    let counts: Vec<f64> = f
+    // states less than one). Where short-shooting ages carry unlike
+    // counts, each counts by how much the frame grows in it (fn-308 host
+    // ruling 2), and an age it does not grow in is dormant.
+    let counts: Vec<(usize, f64)> = f
         .space
         .species
         .iter()
-        .flat_map(|s| &s.states)
-        .map(|s| s.cluster_leaves)
-        .filter(|&n| n > 0.0)
+        .flat_map(|s| s.states.iter().enumerate())
+        .map(|(k, s)| (k, s.cluster_leaves))
+        .filter(|&(_, n)| n > 0.0)
         .collect();
-    if let Some(&n) = counts.first() {
-        assert!(
-            counts.iter().all(|&m| m == n),
-            "short shoots of unlike counts: {counts:?}"
-        );
-        let (mean, var) = if n >= 1.0 { split(n) } else { (1.0, 0.0) };
+    let held_by = |n: f64| if n >= 1.0 { split(n) } else { (1.0, 0.0) };
+    let weighed = match counts.first() {
+        Some(&(_, n)) if counts.iter().all(|&(_, m)| m == n) => Some(held_by(n)),
+        Some(_) => {
+            let s = f.space.species.as_ref().unwrap();
+            let grown = telperion_space::expected_counts(s, f.age as u32).unwrap();
+            let reached: Vec<_> = (counts.iter())
+                .map(|&(k, n)| (grown.total(k), held_by(n)))
+                .filter(|&(w, _)| w > 0.0)
+                .collect();
+            let all: f64 = reached.iter().map(|(w, _)| w).sum();
+            (all > 0.0).then(|| {
+                reached.iter().fold((0.0, 0.0), |(m, v), (w, (mean, var))| {
+                    (m + w / all * mean, v + w / all * var)
+                })
+            })
+        }
+        None => None,
+    };
+    if let Some((mean, var)) = weighed {
         out.push(Draw {
             form: "leaves per short shoot",
             organs: tips,
@@ -203,10 +221,10 @@ fn refused(name: &str, ts: &[f64], frames: &[Vec<Draw>]) -> Vec<String> {
 }
 
 /// Every frame from `t0` to `t1` in `n` steps whose draws the oracle
-/// refuses, at each seed.
-fn jumps(walk: (Preset, Preset), (t0, t1): (f64, f64), n: usize) -> Vec<String> {
+/// refuses, at each of `seeds`.
+fn jumps(walk: (Preset, Preset), (t0, t1): (f64, f64), n: usize, seeds: &[u32]) -> Vec<String> {
     let mut out = Vec::new();
-    for seed in SEEDS {
+    for &seed in seeds {
         let (a, b) = (end(walk.0, seed), end(walk.1, seed));
         let ts: Vec<f64> = (0..=n)
             .map(|i| t0 + (t1 - t0) * i as f64 / n as f64)
@@ -222,30 +240,56 @@ fn jumps(walk: (Preset, Preset), (t0, t1): (f64, f64), n: usize) -> Vec<String> 
 
 /// The crown rises and the wood's leaves go by degree: fronds and
 /// leaflets from none, the cauline share from all.
-#[test]
-fn oak_to_palm_keeps_its_leaves_by_degree() {
+fn oak_to_palm(seeds: &[u32]) -> Vec<String> {
     let walk = (OregonWhiteOak, DatePalm);
-    let mut found = jumps(walk, (0.0, 0.006), 6);
-    found.extend(jumps(walk, (0.009, 0.013), 4));
-    assert!(found.is_empty(), "{found:#?}");
+    let mut found = jumps(walk, (0.0, 0.006), 6, seeds);
+    found.extend(jumps(walk, (0.009, 0.013), 4, seeds));
+    found
 }
 
 /// The birch's short shoots come in by degree where its cluster count
 /// once rounded: 0 to 1 at a sixth, 1 to 2 at a half.
-#[test]
-fn spruce_to_birch_changes_its_leaves_by_degree() {
+fn spruce_to_birch(seeds: &[u32]) -> Vec<String> {
     let walk = (NorwaySpruce, SilverBirch);
-    let mut found = jumps(walk, (0.162, 0.172), 5);
-    found.extend(jumps(walk, (0.495, 0.505), 5));
-    assert!(found.is_empty(), "{found:#?}");
+    let mut found = jumps(walk, (0.162, 0.172), 5, seeds);
+    found.extend(jumps(walk, (0.495, 0.505), 5, seeds));
+    found
 }
 
 /// And go by degree: 3 to 2 at a sixth, 1 to 0 at five sixths.
+fn birch_to_oak(seeds: &[u32]) -> Vec<String> {
+    let walk = (SilverBirch, OregonWhiteOak);
+    let mut found = jumps(walk, (0.162, 0.172), 5, seeds);
+    found.extend(jumps(walk, (0.828, 0.838), 5, seeds));
+    found
+}
+
+#[test]
+fn oak_to_palm_keeps_its_leaves_by_degree() {
+    let found = oak_to_palm(&[1]);
+    assert!(found.is_empty(), "{found:#?}");
+}
+
+#[test]
+fn spruce_to_birch_changes_its_leaves_by_degree() {
+    let found = spruce_to_birch(&[1]);
+    assert!(found.is_empty(), "{found:#?}");
+}
+
 #[test]
 fn birch_to_oak_changes_its_leaves_by_degree() {
-    let walk = (SilverBirch, OregonWhiteOak);
-    let mut found = jumps(walk, (0.162, 0.172), 5);
-    found.extend(jumps(walk, (0.828, 0.838), 5));
+    let found = birch_to_oak(&[1]);
+    assert!(found.is_empty(), "{found:#?}");
+}
+
+/// The three walks at every seed:
+/// `cargo test --profile ci -p telperion-core --test walk_leaves -- --ignored every_walk`
+#[test]
+#[ignore = "fn-304: the three walks at seeds 1, 7 and 42, outside the gate; about 7 minutes"]
+fn every_walk_changes_its_leaves_by_degree_at_every_seed() {
+    let mut found = oak_to_palm(&SEEDS);
+    found.extend(spruce_to_birch(&SEEDS));
+    found.extend(birch_to_oak(&SEEDS));
     assert!(found.is_empty(), "{found:#?}");
 }
 

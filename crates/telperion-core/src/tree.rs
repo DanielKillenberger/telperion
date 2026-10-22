@@ -177,6 +177,12 @@ pub struct Tree {
     /// stored, as `leafing` is.
     #[cfg_attr(feature = "json", serde(skip))]
     pub year: Option<Year>,
+    /// The first node of the clothing's tail: the retained leaf bases and
+    /// the frond axes appended after the radius solve (fn-283). Wood past it
+    /// bears no leaf; none on a tree that carries no clothing. Never stored,
+    /// as `leafing` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub clothing: Option<usize>,
 }
 
 /// The year a tree is drawn in (fn-270 R5b): its age in years, whole or a
@@ -212,6 +218,11 @@ pub fn leaf_stream(seed: u32, key: u32) -> u32 {
 
 impl Tree {
     /// Whether node `i` is a short shoot's wood (`clustered`).
+    /// Whether node `i` is the clothing's wood (`clothing`), which bears
+    /// no leaf.
+    pub fn in_clothing(&self, i: usize) -> bool {
+        self.clothing.is_some_and(|first| i >= first)
+    }
     pub fn is_clustered(&self, i: usize) -> bool {
         self.clustered.get(i).copied().unwrap_or(false)
     }

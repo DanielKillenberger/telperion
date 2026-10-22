@@ -47,7 +47,7 @@ fn instances(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Vec<Vec<([f32
         .iter()
         .map(|b| {
             let mut out = Vec::new();
-            inflorescence(tree, b, p, now, &mut out).unwrap();
+            inflorescence(tree, b, p, now, None, &mut out).unwrap();
             out
         })
         .collect()

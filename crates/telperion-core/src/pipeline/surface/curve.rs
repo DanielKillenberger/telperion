@@ -368,10 +368,17 @@ impl Curve {
                 frame.push((p.normal, p.binormal));
             }
             let shape = run.section.map(|s| &self.sections[s as usize]);
-            emit_run(&samples, &frame, ring, shape, true, |xyz, coord| {
-                positions.extend(xyz);
-                coords.extend(coord);
-            })?;
+            emit_run(
+                &samples,
+                &frame,
+                ring,
+                (shape, run.trunk),
+                true,
+                |xyz, coord| {
+                    positions.extend(xyz);
+                    coords.extend(coord);
+                },
+            )?;
         }
         Ok((positions, coords))
     }

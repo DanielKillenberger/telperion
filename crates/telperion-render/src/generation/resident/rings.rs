@@ -29,7 +29,7 @@ pub(super) struct Rung {
 impl Ringer {
     pub(super) fn new(gpu: &Gpu) -> Self {
         Self {
-            pass: io::Pass::new(gpu, source(), &[true, true, false], &["rings_of"]),
+            pass: io::Pass::new(gpu, source(), &[true, true, false, true], &["rings_of"]),
         }
     }
 
@@ -51,7 +51,13 @@ impl Ringer {
         let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
         let bytes = u64::from(swept.points).max(1) * RINGW * 4;
         let buffer = io::buffer(gpu, "fine rings", bytes, usage, &[])?;
-        let all: [&wgpu::Buffer; 4] = [&cfg, &swept.table, &swept.point_buffer, &buffer];
+        let all: [&wgpu::Buffer; 5] = [
+            &cfg,
+            &swept.table,
+            &swept.point_buffer,
+            &buffer,
+            &swept.cluster_buffer,
+        ];
         let bind = self.pass.bind(gpu, &all);
         let mut e = gpu.encoder(&Default::default());
         self.pass.run(&mut e, &bind, 0, groups);

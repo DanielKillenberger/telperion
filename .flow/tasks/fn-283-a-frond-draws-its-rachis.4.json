@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-19T13:34:24.344682Z",
+  "depends_on": [
+    "fn-283-a-frond-draws-its-rachis.3"
+  ],
+  "id": "fn-283-a-frond-draws-its-rachis.4",
+  "priority": null,
+  "spec": "fn-283-a-frond-draws-its-rachis",
+  "spec_path": ".flow/tasks/fn-283-a-frond-draws-its-rachis.4.md",
+  "status": "todo",
+  "title": "The walk, the timing and the stills",
+  "updated_at": "2026-10-19T13:34:24.344682Z"
+}

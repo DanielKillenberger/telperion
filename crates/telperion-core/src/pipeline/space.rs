@@ -45,7 +45,7 @@ pub(super) const STRUCTURAL: f64 = 0.05;
 /// is the recorded grown wood (`Tree::grown`) counted as the stations count
 /// it (`plan::micrometres`), so both executors take the merge alike (host,
 /// fn-212 task 8).
-const FINEST: f64 = 2e-4;
+pub(crate) const FINEST: f64 = 2e-4;
 const SHORTEST: f64 = 1000.0;
 /// A lateral of `FORK_FROM` to `FORK_AT` of its parent's radius grows in as
 /// a codominant fork, so a fork has no collar (host, fn-193 RESULT.md).

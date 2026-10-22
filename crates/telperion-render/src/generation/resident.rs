@@ -217,7 +217,7 @@ mod boots_tests;
 pub(super) mod budget;
 mod build;
 #[cfg(test)]
-mod digest_tests;
+pub(super) mod digest_tests;
 #[cfg(test)]
 mod drawn_memory_tests;
 #[cfg(test)]
@@ -245,6 +245,8 @@ pub(super) mod fold;
 mod hang_tests;
 #[cfg(test)]
 mod pack_tests;
+#[cfg(test)]
+mod rachis_tests;
 #[cfg(test)]
 mod repeat_tests;
 mod rings;

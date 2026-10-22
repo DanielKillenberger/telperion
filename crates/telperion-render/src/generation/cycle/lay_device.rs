@@ -2,8 +2,9 @@
 //! 2.3) over the one resident state: the grown axes laid, each relay set
 //! at its node, the new axes' generations found, then per generation its
 //! axes listed by a flag, a scan (`hier_scan.wgsl`) and a gather, framed
-//! and laid. A generation's count is the scan's total, written into the
-//! layout's tally, never read by the host.
+//! and laid, and every axis deeper than the generations recorded laid by
+//! the closing pass (`TAIL`). A generation's count is the scan's total,
+//! written into the layout's tally, never read by the host.
 use super::super::io;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
@@ -16,6 +17,9 @@ pub(super) const FLAG: usize = 4;
 pub(super) const GATHER: usize = 5;
 /// The axes carried on framed, apart from the laterals (`frame_on_main`).
 pub(super) const FRAME_ON: usize = 6;
+/// Each new axis past the generations the cycle recorded, laid chain by
+/// chain (`tail_main`).
+pub(super) const TAIL: usize = 7;
 /// The layout's tally (`layout.wgsl`'s `T_`): the generation listed and
 /// the cycle's faults.
 pub(super) const T_FAULT: u64 = 8;
@@ -40,6 +44,7 @@ impl Kernels {
             "flag_main",
             "gather_main",
             "frame_on_main",
+            "tail_main",
         ];
         Self {
             layout: io::Pass::new(gpu, super::layout_source(), &reads, &entries),

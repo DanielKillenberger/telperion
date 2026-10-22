@@ -17,10 +17,12 @@ struct Cfg {
 @group(0) @binding(1) var<storage, read> table: array<u32>;
 @group(0) @binding(2) var<storage, read> points: array<u32>;
 @group(0) @binding(3) var<storage, read_write> rings: array<u32>;
+@group(0) @binding(4) var<storage, read> clusters: array<u32>;
 
 const NONE: u32 = 0xffffffffu;
 const TW: u32 = 4u;
 const RINGW: u32 = 16u;
+const CLUSTER_WORDS: u32 = 16u;
 
 // One run's rings, base first: the run's vertices start after its
 // forebears' rings and two caps each.
@@ -34,6 +36,8 @@ fn rings_of(@builtin(global_invocation_id) id: vec3<u32>) {
     let count = table[s * TW + 2u];
     let base = first * cfg.segments + 2u * s;
     let cap = base + count * cfg.segments;
+    // A trunk's run (its first cluster's flag 8, `sweep.wgsl`'s `standing`).
+    let trunk = clusters[table[s * TW + 1u] * CLUSTER_WORDS + 4u] & 8u;
     for (var i = 0u; i < count; i++) {
         let p = (first + i) * POINT_WORDS;
         let r = (first + i) * RINGW;
@@ -52,6 +56,6 @@ fn rings_of(@builtin(global_invocation_id) id: vec3<u32>) {
         rings[r + 12u] = base + i * cfg.segments;
         rings[r + 13u] = select(NONE, cap, i == 0u);
         rings[r + 14u] = select(NONE, cap + 1u, i + 1u == count);
-        rings[r + 15u] = 0u;
+        rings[r + 15u] = trunk >> 3u;
     }
 }

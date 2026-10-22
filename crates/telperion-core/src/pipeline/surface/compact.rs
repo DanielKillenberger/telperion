@@ -9,7 +9,9 @@ use super::*;
 
 #[derive(Debug, Default)]
 pub struct CompactSurface {
-    /// centre/radius, normal/along, binormal/phase, then vertex/cap offsets.
+    /// centre/radius, normal/along, binormal/phase, then vertex/cap offsets
+    /// and 1 for a trunk's run, whose foot the positions pass leaves below
+    /// the ground (fn-301, surface clearance).
     pub rings: Vec<[u32; 16]>,
     /// angle, cosine, sine, unused.
     pub angular: Vec<[f32; 4]>,
@@ -195,6 +197,7 @@ fn read(
             } else {
                 u32::MAX
             };
+            ring[15] = u32::from(run.trunk);
             out.rings.push(ring);
         }
         out.runs.push(ring_run);

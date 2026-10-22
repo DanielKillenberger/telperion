@@ -3,7 +3,9 @@
 //! recorded cycle (`plan_units.rs`), and the places its tally and its
 //! jobs' state take.
 use super::super::io;
-use crate::Gpu;
+use super::state::Caps;
+use crate::{Gpu, RenderError, Result};
+use telperion_core::Error;
 
 pub(super) const INIT: usize = 0;
 /// A round's phases (DESIGN.md section 10, re-fused in fn-256 task 6), each
@@ -73,12 +75,6 @@ impl Kernels {
     }
 }
 
-/// Where the counts' second records start for `n` invocations: a multiple
-/// of 64 words, so a scan binds them at 256 bytes.
-pub(super) fn b_at(n: u32) -> u32 {
-    (4 * n.max(1)).next_multiple_of(64)
-}
-
 /// The living apexes a range of the units' dispatches takes
 /// (`Ranges::units`), its jobs at once: every range a units round
 /// dispatches again, and the work a dispatch takes (fn-256 task 6: at
@@ -87,27 +83,97 @@ pub(super) fn b_at(n: u32) -> u32 {
 pub(super) const RANGE: u32 = 65_536;
 
 /// Where `counts` holds what, for the state's `caps` and units of `zones`
-/// zones at most: the jobs' state, the jobs a range takes (a range of
-/// living apexes, or every sleeping bud), the zones', and its words.
+/// zones at most: the units' second count records (a multiple of 64
+/// words, so a scan binds them at 256 bytes), the jobs' state, the jobs a
+/// range takes (a range of living apexes, or every sleeping bud), the
+/// zones', and its words.
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Counts {
+    pub b_at: u32,
     pub job_at: u32,
     pub jobs: u32,
     pub zone_at: u32,
     pub words: u64,
 }
 
-pub(super) fn counts(caps: super::state::Caps, zones: u32) -> Counts {
-    let b_at = b_at(caps.next.max(caps.sleepers));
+/// The most bytes a storage buffer of the device holds.
+pub(super) fn limit(gpu: &Gpu) -> u64 {
+    let l = gpu.device.limits();
+    l.max_buffer_size.min(l.max_storage_buffer_binding_size)
+}
+
+/// `counts` sized in u64 and refused by name, before any buffer is made,
+/// where it would pass `limit` bytes or the words a u32 index reaches.
+pub(super) fn counts(caps: Caps, zones: u32, limit: u64) -> Result<Counts> {
+    let refused = || RenderError::from(Error::ResourceLimit("the cycle's job counts"));
+    let b_at = (4 * u64::from(caps.next.max(caps.sleepers).max(1))).next_multiple_of(64);
     // A tree of fewer living than a range holds its jobs alone.
     let jobs = RANGE.min(caps.next).max(caps.sleepers);
     let job_at = 2 * b_at;
-    let zone_at = (u64::from(job_at) + u64::from(JW) * u64::from(jobs)).next_multiple_of(64) as u32;
-    let words = u64::from(zone_at) + u64::from(ZW * jobs * zones.max(1));
-    Counts {
-        job_at,
+    let zone_at = (job_at + u64::from(JW) * u64::from(jobs)).next_multiple_of(64);
+    let words = (u64::from(ZW) * u64::from(jobs))
+        .checked_mul(u64::from(zones.max(1)))
+        .and_then(|zoned| zoned.checked_add(zone_at))
+        .filter(|&words| words <= (limit / 4).min(1 << 32))
+        .ok_or_else(refused)?;
+    let word = |at: u64| u32::try_from(at).map_err(|_| refused());
+    Ok(Counts {
+        b_at: word(b_at)?,
+        job_at: word(job_at)?,
         jobs,
-        zone_at,
+        zone_at: word(zone_at)?,
         words,
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn caps(sleepers: u32) -> Caps {
+        Caps {
+            axes: 64,
+            units: 64,
+            phyts: 64,
+            sleepers,
+            next: 64,
+            woken: 64,
+        }
+    }
+
+    fn refused(c: &Result<Counts>) -> bool {
+        matches!(
+            c,
+            Err(RenderError::Generation(Error::ResourceLimit(
+                "the cycle's job counts"
+            )))
+        )
+    }
+
+    /// At 7.47 million sleepers the jobs' state alone passes 2^32 words:
+    /// sized in u64, it is refused by name whatever the device holds,
+    /// never sized wrapped. A million sleepers are sized whole.
+    #[test]
+    fn the_jobs_past_u32_words_are_refused_not_sized_wrapped() {
+        assert!(u64::from(JW) * 7_470_000 > u64::from(u32::MAX));
+        assert!(refused(&counts(caps(7_470_000), 4, u64::MAX)));
+        let s: u64 = 1_000_000;
+        let jobs = (2 * (4 * s).next_multiple_of(64) + u64::from(JW) * s).next_multiple_of(64);
+        let c = counts(caps(s as u32), 4, u64::MAX).expect("sized");
+        assert_eq!(c.words, jobs + u64::from(ZW) * s * 4);
+        assert_eq!(u64::from(c.zone_at), jobs);
+    }
+
+    /// The counts' bytes against the device's limit: one below it and at
+    /// it they are sized (a buffer of the limit is one the device makes),
+    /// one byte past it they are refused by name.
+    #[test]
+    fn job_counts_past_the_device_limit_are_refused_by_name() {
+        let bytes = 4 * counts(caps(1_000_000), 4, u64::MAX).expect("sized").words;
+        for (limit, fits) in [(bytes + 1, true), (bytes, true), (bytes - 1, false)] {
+            let c = counts(caps(1_000_000), 4, limit);
+            assert_eq!(!refused(&c), fits, "{bytes} bytes under a limit of {limit}");
+            assert!(fits == c.is_ok());
+        }
     }
 }

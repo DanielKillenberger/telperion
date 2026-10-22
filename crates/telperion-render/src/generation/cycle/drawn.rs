@@ -56,9 +56,10 @@ pub(super) struct Rows<'a> {
     pub leaf: Option<&'a Owned>,
     /// The rows its rosette's stem establishes by (`Establishing::words`).
     pub establishing: [f32; 3],
-    /// The most retained leaf bases a stem hangs (fn-266; `boots::most`):
-    /// the records hold two a base for every axis of the seed's wave.
-    pub bases: u32,
+    /// The most records a stem's clothing takes (fn-266, fn-283;
+    /// `boots::most`): its retained leaf bases' and its frond axes'. The
+    /// records hold this many for every axis of the seed's wave.
+    pub clothing: u32,
 }
 
 /// The trunk's measures: the root's radius and the stem radius a canopy
@@ -94,10 +95,10 @@ fn storage(gpu: &Gpu, label: &'static str, words: u64, data: &[u8]) -> Result<Ow
 
 /// The waves' places in the one buffer of records (fn-293): the root's
 /// and each of `chains`' waves', each its first id and first axis slot;
-/// the ids they take, the room for `bases` a stem of the seed's wave, and
-/// the slot the bases' axis takes. Every count is the chains' own, read
+/// the ids they take, the room for `clothing` records a stem of the seed's
+/// wave, and the slot the clothing's axis takes. Every count is the chains' own, read
 /// with the plan: no readback is added.
-fn laid(chains: &Chains, bases: u32) -> Result<(Vec<Drawn>, [u32; 3])> {
+fn laid(chains: &Chains, clothing: u32) -> Result<(Vec<Drawn>, [u32; 3])> {
     let root = Drawn {
         phyts: 1,
         base: 0,
@@ -116,7 +117,7 @@ fn laid(chains: &Chains, bases: u32) -> Result<(Vec<Drawn>, [u32; 3])> {
         slots += u64::from(w.axes);
     }
     let seed = chains.waves.first().map_or(0, |w| w.axes);
-    let room = 2 * u64::from(seed) * u64::from(bases);
+    let room = u64::from(seed) * u64::from(clothing);
     // Every word of the buffer is addressed by a u32.
     word((ids + room) * CV as u64 + (slots + 1) * CA_WORDS as u64)?;
     Ok((waves, [word(ids)?, word(room)?, word(slots)?]))
@@ -143,7 +144,7 @@ pub(super) fn dress(
     )?;
     let whole = storage(gpu, "dress whole leaves", 1, &[])?;
     let leaf = r.leaf.unwrap_or(&whole);
-    let (waves, [ids, room, room_slot]) = laid(chains, r.bases)?;
+    let (waves, [ids, room, room_slot]) = laid(chains, r.clothing)?;
     let slots = room_slot + u32::from(room > 0);
     let axes = record(ids + room);
     let words = u64::from(axes) + u64::from(slots) * CA_WORDS as u64;

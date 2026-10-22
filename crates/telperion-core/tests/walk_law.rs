@@ -5,8 +5,10 @@
 //! The draw is held to this law apart (`walk_leaves.rs`). A switch in the
 //! law, such as the rosette's old takeover of the wood (the wood's leaves
 //! per station from one to none at the first frond, all of its range in
-//! one step), is refused; a steep but continuous slope is not.
-use telperion_core::{catalogue, presets::by_identity, Family};
+//! one step), is refused; a steep but continuous slope is not. A per-age
+//! form counts where the frame grows in its age, weighed by that reach
+//! (fn-308 host ruling 2).
+use telperion_core::{blend::families, catalogue, presets::by_identity, Family};
 
 /// The film's walks (fn-272 cut 3): from, to and age.
 const WALKS: [(&str, &str, f64); 6] = [
@@ -39,7 +41,8 @@ fn leaflets(f: &Family) -> f64 {
 
 /// The rows the law reads at `t` between `a` and `b`, walked as
 /// `blend::families` walks them before it sizes the species: the
-/// catalogue's rows by their own walks, the engine's by its. The size
+/// catalogue's rows by their own walks, the engine's by its at the walked
+/// whole age (fn-308). The size
 /// solve moves only the lateral probabilities, which no form reads.
 fn walked(a: &Family, b: &Family, t: f64) -> Family {
     let mut f = a.clone();
@@ -48,12 +51,13 @@ fn walked(a: &Family, b: &Family, t: f64) -> Family {
         a.space.species.as_ref().unwrap(),
         b.space.species.as_ref().unwrap(),
     );
-    f.space.species = Some(telperion_space::blend(x, y, t).unwrap());
+    f.space.species = Some(telperion_space::blend(x, y, t, f.age as u32).unwrap());
     f
 }
 
-/// Each form's expected count per bearer at one point of a walk, by name.
-fn law(f: &Family) -> Vec<(String, f64)> {
+/// Each form's expected count per bearer at one point of a walk, by name,
+/// with the age a per-age form reads.
+fn law(f: &Family) -> Vec<(String, Option<usize>, f64)> {
     let c = &f.canopy;
     let each = leaflets(f);
     let skirt = if c.skirt_length > 0.0 {
@@ -63,13 +67,19 @@ fn law(f: &Family) -> Vec<(String, f64)> {
     };
     let grouped = c.rachis_length > 0.0 && c.leaflet_count > 1.0;
     let mut out = vec![
-        ("wood leaves per station".to_string(), c.cauline * each),
+        (
+            "wood leaves per station".to_string(),
+            None,
+            c.cauline * each,
+        ),
         (
             "crown leaves per apex".to_string(),
+            None,
             (c.rosette_fronds + skirt) * each,
         ),
         (
             "spines per frond".to_string(),
+            None,
             if grouped && c.acanthophyll_length > 0.0 {
                 c.acanthophylls
             } else {
@@ -78,6 +88,7 @@ fn law(f: &Family) -> Vec<(String, f64)> {
         ),
         (
             "bases per stem".to_string(),
+            None,
             if c.leaf_base_length > 0.0 {
                 c.leaf_bases
             } else {
@@ -93,14 +104,41 @@ fn law(f: &Family) -> Vec<(String, f64)> {
     {
         out.push((
             format!("cluster leaves per short shoot, age {k}"),
+            Some(k),
             s.cluster_leaves * each * c.cauline,
         ));
     }
     out
 }
 
+/// How much a frame grows in each age: the closed form's expected
+/// phytomers there over the frame's (fn-308 host ruling 2). It reads the
+/// frame as `families` builds it, sized: the size solve's factor on the
+/// lateral probabilities moves how much grows in each age, though no form
+/// reads those rows (fn-308 completion review).
+fn reach(f: &Family) -> Vec<f64> {
+    let s = f.space.species.as_ref().unwrap();
+    let counts = telperion_space::expected_counts(s, f.age as u32).unwrap();
+    let all: f64 = (0..counts.pas).map(|k| counts.total(k)).sum();
+    (0..counts.pas).map(|k| counts.total(k) / all).collect()
+}
+
+/// One step of a form from `v.0` to `v.1`, as a share of its largest
+/// value `most`. A step the rows pass is passed as read; one they would
+/// refuse is read again with each value weighed by its frame's reach in
+/// the form's age (`weigh`, both frames), computed only then for its cost.
+fn step(v: (f64, f64), most: f64, weigh: impl FnOnce() -> (f64, f64)) -> f64 {
+    let read = (v.1 - v.0).abs() / most;
+    if read <= BOUND {
+        return read;
+    }
+    let (w0, w1) = weigh();
+    (v.1 * w1 - v.0 * w0).abs() / most
+}
+
 /// The steepest step of every form along one walk, as a share of the
 /// form's largest value there; a form that is none all along is dormant.
+/// A canopy-wide form weighs one in every frame.
 fn steepest(from: &str, to: &str, age: f64, seed: u32) -> Vec<(String, f64, f64)> {
     let end = |id: &str| {
         let mut f = by_identity(id).unwrap();
@@ -108,27 +146,43 @@ fn steepest(from: &str, to: &str, age: f64, seed: u32) -> Vec<(String, f64, f64)
         f
     };
     let (a, b) = (end(from), end(to));
-    let points: Vec<Vec<(String, f64)>> = (0..=STEPS)
-        .map(|i| law(&walked(&a, &b, i as f64 / STEPS as f64)))
-        .collect();
+    let at = |i: usize| i as f64 / STEPS as f64;
+    let points: Vec<_> = (0..=STEPS).map(|i| law(&walked(&a, &b, at(i)))).collect();
+    let mut reached = std::collections::HashMap::new();
+    let mut reach_at = |i: usize, k: usize| -> f64 {
+        reached
+            .entry(i)
+            .or_insert_with(|| reach(&families(&a, &b, at(i)).unwrap()))[k]
+    };
     let mut out = Vec::new();
-    for (k, (name, _)) in points[0].iter().enumerate() {
-        let series: Vec<f64> = points.iter().map(|p| p[k].1).collect();
+    for (j, (name, pa, _)) in points[0].iter().enumerate() {
+        let series: Vec<f64> = points.iter().map(|p| p[j].2).collect();
         let most = series.iter().fold(0.0f64, |m, v| m.max(v.abs()));
         if most == 0.0 {
             continue;
         }
-        let (step, at) = (1..series.len())
-            .map(|i| {
-                (
-                    (series[i] - series[i - 1]).abs() / most,
-                    i as f64 / STEPS as f64,
-                )
-            })
-            .fold((0.0, 0.0), |m, s| if s.0 > m.0 { s } else { m });
-        out.push((name.clone(), step, at));
+        let mut found = (0.0, 0.0);
+        for i in 1..series.len() {
+            let s = step((series[i - 1], series[i]), most, || match pa {
+                Some(k) => (reach_at(i - 1, *k), reach_at(i, *k)),
+                None => (1.0, 1.0),
+            });
+            if s > found.0 {
+                found = (s, at(i));
+            }
+        }
+        out.push((name.clone(), found.0, found.1));
     }
     out
+}
+
+/// fn-308 host ruling 2, and fn-277's ruling 5a with it: a whole count's
+/// jump in a per-age row passes at an age the frame barely grows in, and
+/// the same jump at an age holding most of the frame is refused.
+#[test]
+fn a_per_age_step_weighs_by_the_frame_reach_in_its_age() {
+    assert!(step((0.0, 1.0), 1.0, || (0.001, 0.001)) <= BOUND);
+    assert!(step((0.0, 1.0), 1.0, || (0.9, 0.9)) > BOUND);
 }
 
 #[test]

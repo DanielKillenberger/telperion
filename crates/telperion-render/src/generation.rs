@@ -138,7 +138,9 @@ pub struct Generator {
 impl Generator {
     /// Live tree buffers only; excludes textures, pipelines and driver allocations.
     pub fn tree_buffer_bytes(renderer: &Renderer) -> u64 {
-        renderer.wood.allocated_bytes() + renderer.foliage.allocated_bytes()
+        renderer.wood.allocated_bytes()
+            + renderer.foliage.allocated_bytes()
+            + renderer.organ.allocated_bytes()
     }
     #[cfg(not(target_arch = "wasm32"))]
     pub fn new(renderer: &Renderer) -> Result<Self> {
@@ -211,6 +213,8 @@ mod unfold_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod cpu_builds_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
+mod film_walk_tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
 mod ledger_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod lobed_tests;
@@ -219,7 +223,11 @@ mod program_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod readback_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
+mod relay_join_tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
 mod release_tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod stepped_survey_tests;
 
 #[cfg(test)]
 use crate::whole_tree::whole_tree;

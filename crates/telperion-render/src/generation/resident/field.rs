@@ -69,7 +69,11 @@ impl Fielder {
 }
 
 fn source() -> String {
-    format!("{FIELD}\n{SPLAT}")
+    let sources = (
+        super::super::sources::rachis(),
+        super::super::sources::rest(),
+    );
+    format!("{}\n{}\n{FIELD}\n{SPLAT}", sources.0, sources.1)
 }
 
 /// Every source the field compiles, by name: the shader tests'.
@@ -94,6 +98,8 @@ struct Cfg {
     bound: [f32; 4],
     leaf_centre: [f32; 4],
     leaf_half: [f32; 4],
+    /// The leaf's wedge it rests on the ground by (`rest.wgsl`).
+    wedge: [[f32; 4]; 2],
 }
 
 impl Cfg {
@@ -101,7 +107,15 @@ impl Cfg {
         let c = self;
         let mut w = vec![n, row, c.nodes, c.root, c.most, c.segs, c.flip, c.slots];
         w.extend(c.dims);
-        for v in [c.lo, c.reach, c.bound, c.leaf_centre, c.leaf_half] {
+        for v in [
+            c.lo,
+            c.reach,
+            c.bound,
+            c.leaf_centre,
+            c.leaf_half,
+            c.wedge[0],
+            c.wedge[1],
+        ] {
             w.extend(v.map(f32::to_bits));
         }
         w

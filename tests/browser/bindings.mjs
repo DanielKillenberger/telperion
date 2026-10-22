@@ -112,6 +112,19 @@ try {
     check(PRESETS.length === 8 && new Set(PRESETS.map(p => p.id)).size === 8, 'complete identity catalogue');
     await rejects(() => presetById('missing'), 'unknown browser identity');
     await rejects(() => engine.build('missing', {}), 'unknown native identity');
+    // The flowers cross beside the leaves (fn-294 R1): one flower mesh and
+    // three words a floret against their own reference, decoded as a leaf
+    // is, owned copies like every output, and none without foliage.
+    const laurelin = presetById('laurelin'), bloom = engine.build(laurelin, { foliage: true }), organ = bloom.organ;
+    check(organ && organ.leaves.length > 0 && organ.leaves.length % 3 === 0 && organ.positions.length > 0 && organ.positions.length % 3 === 0, 'laurelin flowers cross the binding');
+    check(organ.indices.length % 3 === 0 && organ.indices.every(i => i < organ.positions.length / 3), 'flower indices in bounds');
+    check(organ.reference === bloom.diagnostics.organReference && organ.reference.min.every(Number.isFinite) && organ.reference.extent.every(e => Number.isFinite(e) && e >= 0), 'flower reference box');
+    check(leafTransform(leafWords(organ.leaves, organ.leaves.length / 3 - 1), organ.reference).every(Number.isFinite), 'a floret decodes');
+    const savedFlowers = organ.leaves.slice();
+    engine.release();
+    check(organ.leaves.every((v, i) => v === savedFlowers[i]), 'released owned flowers');
+    const leafless = engine.build(laurelin, { structure: true });
+    check(!('organ' in leafless) && leafless.diagnostics.organReference === null, 'no foliage, no flowers');
     for (const [id, unit] of [['oregon-white-oak', 'leaf'], ['norway-spruce', 'needle'], ['silver-birch', 'leaf']]) {
       const specimen = window.compactSpeciesFixture(presetById(id));
       // A ceiling, not a target, above the young spruce's 7,300 needles.
@@ -119,6 +132,7 @@ try {
       const output = engine.build(specimen, { foliage: true, structure: true, field: { n: 24 } });
       const foliage = output.foliage, d = output.diagnostics;
       check(d.complete, id + ' small binding fixture completes without truncation');
+      check(!('organ' in output) && d.organReference === null, id + ' flowers nowhere and carries no flower output');
       check(!output.surface && !d.stages.surface && d.timings.surfaceMs === 0, id + ' independent foliage');
       // Twelve bytes a leaf: three u32 words, and one reference box the whole
       // crown decodes against.

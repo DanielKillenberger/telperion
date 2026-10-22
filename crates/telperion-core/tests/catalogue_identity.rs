@@ -47,7 +47,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        1_285_962_000_534_186_616,
+        5_297_028_612_543_002_410,
         "{}",
         digest(&text)
     );
@@ -89,9 +89,14 @@ fn every_walk_is_the_walk_it_was() {
     for line in lines {
         text.push_str(&line);
     }
+    // Re-pinned by fn-308 (host ruling 4, 2026-10-22): between the ends
+    // each engine species is read at the frame's age, so every row of an
+    // age one end never reaches is the other's, each lifespan is clamped
+    // at the age and an unreached end takes the leaving end's exits. Was
+    // 18_002_361_237_904_030_670; measured 14_357_345_262_323_445_191.
     assert_eq!(
         digest(&text),
-        16_363_652_001_628_328_573,
+        14_357_345_262_323_445_191,
         "{}",
         digest(&text)
     );
@@ -116,7 +121,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        7_278_137_488_332_083_919,
+        10_922_909_758_982_052_223,
         "{}",
         digest(&text)
     );
@@ -179,8 +184,30 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        7_797_001_527_923_877_644,
+        17_142_609_772_195_174_599,
         "{}",
         digest(&text)
     );
+}
+
+/// fn-297 R6: a rosette's divergence is one turn either way. -360 and 360
+/// are admitted; a thousandth of a degree past either, and a value that is
+/// not finite, are refused by name.
+#[test]
+fn a_rosette_divergence_is_one_turn() {
+    let base = params::metadata(&Family::default());
+    let row = "/canopy/rosetteDivergence";
+    for turn in [-360.0, 360.0] {
+        assert_eq!(answer(&base, &[(row, serde_json::json!(turn))]), "Ok(())");
+    }
+    for past in [-360.001, 360.001] {
+        let refused = answer(&base, &[(row, serde_json::json!(past))]);
+        assert!(refused.contains("rosette divergence"), "{past}: {refused}");
+    }
+    for bad in [f64::NAN, f64::INFINITY] {
+        let mut f = Family::default();
+        f.canopy.rosette_divergence = bad;
+        let refused = format!("{:?}", f.validate());
+        assert!(refused.contains("rosette divergence"), "{bad}: {refused}");
+    }
 }

@@ -5,7 +5,8 @@
 // marks each stem node a stem carries on; `apices` lists the clothed
 // stem apices; `place` lays each base on its stem; `lattice` gives each
 // stem its bark and cell; `hang` writes each base's two drawn records
-// and its cell in `packed_sections`' layout.
+// and its cell in `packed_sections`' layout. A crown's fronds are drawn
+// beside them, and each frond's axis hung after the bases (`fronds.wgsl`).
 
 struct Cfg {
     n: u32,
@@ -21,8 +22,8 @@ struct Cfg {
     out_base: u32,
     packed: u32,
     // The crown's living fronds as a count's word, each apex drawing its
-    // whole count; the spiral's divergence (radians) and the depth below
-    // the apex the oldest living frond leaves at.
+    // whole count; the spiral's divergence (radians, within half a turn)
+    // and the depth below the apex the oldest living frond leaves at.
     fronds: u32,
     divergence: f32,
     depth: f32,
@@ -40,12 +41,33 @@ struct Cfg {
     out_records: u32,
     out_axis: u32,
     out_slot: u32,
+    // The rosette's divergence, a fixed-point share of a turn
+    // (`boots.rs`' `rosette_turn`).
+    turn: u32,
+    // The rosette's rows (`boots.rs`' `rosette_rows`): fronds, skirt
+    // fronds, divergence, depth; pitch, its spread, the skirt's pitch and
+    // length; leaflets, rachis length, arch, leaflet pitch; terminal share,
+    // spines, their share and pitch; the crown's year (`Crown::rows`):
+    // fronds made, a frond's years, whole years before the last (negative
+    // where no engine grew it), days into the last; budburst, elongation,
+    // expansion, and the fronds it draws (`Crown::slots`); the years the
+    // crown takes to make a mature frond, its first frond's share, and the
+    // rachis's length over a mature leaflet's (none where it groups none).
+    rosette: array<vec4<f32>, 7>,
+    // The counts of organs (`stations.rs`' `organ_rows`, fn-277).
+    organs: array<vec4<u32>, 3>,
+    // The frond axes (fn-283): their first record past the boots' first,
+    // the records a frond's axis takes room for, and the rachis's width
+    // (its bits; `boots.rs`' `axis_nodes`).
+    axes: vec4<u32>,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
 // Every drawn record by id, then every axis by slot (`fold.rs`'s
 // `Dressed`): the seed's wave read, the boots' written.
 @group(0) @binding(1) var<storage, read_write> drawn: array<f32>;
+// Whether a stem carries on from each seed record, and whether a fine
+// stem does (`STEMMED`), which ends no crown there.
 @group(0) @binding(2) var<storage, read_write> carried: array<atomic<u32>>;
 // The clothed apices' count and their bases', then a slot each (`AW`).
 @group(0) @binding(3) var<storage, read_write> stems: array<u32>;
@@ -61,6 +83,7 @@ const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 const FINE: u32 = 8u;
 const STEM: u32 = 128u;
+const STEMMED: u32 = 2u;
 // A boot's record, and the record a boot's run opens at where it is
 // drawn as its cell: above a tip's leaf count (`dress.wgsl`'s `LEAVES`,
 // at most 8 leaves, `MAX_CLUSTER_LEAVES`).
@@ -123,8 +146,10 @@ fn kids(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let p = parent(r);
+    let f = word(r, 6u);
+    let fine = (f & FINE) != 0u && (f & BOOT) == 0u;
     if p != NONE {
-        atomicOr(&carried[p], 1u);
+        atomicOr(&carried[p], select(1u, 1u | STEMMED, fine));
     }
 }
 
@@ -383,7 +408,8 @@ fn round_away(x: f32) -> f32 {
 // `lattice::cell` at full width: two half-diagonals in (radians round,
 // metres along), the first leading the second counterclockwise.
 fn cell(girth: f32, spacing: f32) -> vec4<f32> {
-    let step = (cfg.divergence + PI) - TAU * floor((cfg.divergence + PI) / TAU) - PI;
+    // Within half a turn already, reduced in f64 (`boots.rs`' `half_turn`).
+    let step = cfg.divergence;
     var a = vec2<f32>(TAU * girth, 0.0);
     var b = vec2<f32>(step * girth, -spacing);
     if dot2(a, a) > dot2(b, b) {
@@ -473,9 +499,21 @@ fn put_cell(c: u32, at: u32, v: vec3<f32>) {
     }
 }
 
+// The wave's axis, which loses every tie for a bearer's run: written by
+// the first base and the first frond's axis alike.
+fn open_wave() {
+    // Runtime words: Tint refuses a constant NaN, which naga folds.
+    var ones = NONE;
+    for (var f = 0u; f < CA; f++) {
+        drawn[cfg.out_axis + f] = 0.0;
+    }
+    drawn[cfg.out_axis + 8u] = bitcast<f32>(63u);
+    drawn[cfg.out_axis + 9u] = bitcast<f32>(ones);
+    drawn[cfg.out_axis + 10u] = bitcast<f32>(ones);
+}
+
 // Each base's two records and, where the bases pack, its cell (`hung`,
-// `section`). One invocation a base; the first also writes the wave's
-// axis, which loses every tie for a bearer's run.
+// `section`). One invocation a base; the first also opens the wave.
 @compute @workgroup_size(64)
 fn hang(@builtin(global_invocation_id) id: vec3<u32>) {
     let b = index(id);
@@ -483,14 +521,7 @@ fn hang(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     if b == 0u {
-        // Runtime words: Tint refuses a constant NaN, which naga folds.
-        var ones = NONE;
-        for (var f = 0u; f < CA; f++) {
-            drawn[cfg.out_axis + f] = 0.0;
-        }
-        drawn[cfg.out_axis + 8u] = bitcast<f32>(63u);
-        drawn[cfg.out_axis + 9u] = bitcast<f32>(ones);
-        drawn[cfg.out_axis + 10u] = bitcast<f32>(ones);
+        open_wave();
     }
     let t = b * BW;
     let point = get3(t);

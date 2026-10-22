@@ -143,12 +143,20 @@ impl AttachmentSurface<'static> {
             frames(&samples, &mut scratch, &mut frame, seed(tree, &paths, path));
             let base = rings.len() / 3;
             let shape = section::of(tree, &paths, path);
+            // Query exactly the float32 vertices submitted by build(), kept
+            // off the ground as it keeps them (fn-301, surface clearance).
+            let mut put = |p: Vec3| {
+                let mut xyz = [p.x as f32, p.y as f32, p.z as f32];
+                if !path.trunk {
+                    super::build::clear(&mut xyz);
+                }
+                rings.extend(xyz);
+            };
             for (i, s) in samples.iter().enumerate() {
                 if let Some(shape) = shape {
                     let ring = shape.ring(i, samples.len());
                     for sample in &angular {
-                        let p = shape.vertex(ring, sample.cos, sample.sin);
-                        rings.extend([p.x as f32, p.y as f32, p.z as f32]);
+                        put(shape.vertex(ring, sample.cos, sample.sin));
                     }
                     continue;
                 }
@@ -156,9 +164,7 @@ impl AttachmentSurface<'static> {
                 let phase = std::f64::consts::TAU * params.twist_rate * (s.d / height);
                 for sample in &angular {
                     let profile = sample.profile(params, phase);
-                    let p = s.p + (normal * sample.cos + binormal * sample.sin) * (s.r * profile);
-                    // Query exactly the float32 vertices submitted by build().
-                    rings.extend([p.x as f32, p.y as f32, p.z as f32]);
+                    put(s.p + (normal * sample.cos + binormal * sample.sin) * (s.r * profile));
                 }
             }
             let offset = usize::from(path.trunk && params.flare_depth > 0.0);

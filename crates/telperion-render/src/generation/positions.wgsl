@@ -11,8 +11,11 @@ struct Config {
 @group(0) @binding(4) var<storage,read_write> positions:array<f32>;
 @group(0) @binding(5) var<storage,read_write> partial:array<u32>;
 @group(0) @binding(6) var<storage,read_write> result:array<u32>;
+// Surface clearance (fn-301): a vertex of wood other than a trunk's
+// (`offsets.w`, the ring's word 15) below the ground is set onto it.
+var<private> clear:bool;
 fn put(at:u32,p:vec3f) {
-    positions[at*3]=p.x; positions[at*3+1]=p.y; positions[at*3+2]=p.z;
+    positions[at*3]=p.x; positions[at*3+1]=select(p.y,0.0,clear&&p.y<0.0); positions[at*3+2]=p.z;
 }
 @compute @workgroup_size(64)
 fn emit(@builtin(workgroup_id) group:vec3u,@builtin(local_invocation_index) lane:u32) {
@@ -22,6 +25,7 @@ fn emit(@builtin(workgroup_id) group:vec3u,@builtin(local_invocation_index) lane
     let normal=bitcast<vec4f>(descriptors[id*4+1]);
     let binormal=bitcast<vec4f>(descriptors[id*4+2]);
     let offsets=descriptors[id*4+3];
+    clear=offsets.w==0u;
     for(var k=lane;k<cfg.segments;k+=64u) {
         let angle=angular[k];
         // The lobed outline at the ring's twist phase (`binormal.w`).

@@ -101,6 +101,7 @@ pub(super) fn clothe(
     tree: &Tree,
     seed: u32,
     p: CanopyParams,
+    wedge: &super::rest::Wedge,
     out: &mut Instances,
     mut owners: Option<&mut Vec<u32>>,
 ) -> Result<()> {
@@ -132,9 +133,9 @@ pub(super) fn clothe(
                 axis,
                 heading,
                 radial,
-                (table, organs::leaflets(&table), None),
+                (table, organs::leaflets(&table), None, 0.0),
                 (&mut rng, None),
-                out,
+                (wedge, out),
             )?;
             // A colouring leaf is drawn as one withering (fn-270 R5c).
             if colour > 0.0 {

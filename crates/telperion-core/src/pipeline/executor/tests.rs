@@ -110,13 +110,16 @@ fn a_handed_tree_is_clothed_in_its_leaf_bases() {
     let built = build(&f, Request::mesh()).unwrap();
     let clothed = &built.skeleton.tree;
     assert_eq!(clothed.stem_apices().len(), 1, "one stem");
-    // The bases are appended last, two nodes each, and every lattice cell
-    // the tree draws is a base's.
+    // The bases and any frond axes are appended last, as one tail, and
+    // every lattice cell the tree draws is a base's.
     let mut bare = clothed.clone();
     let bases = f.canopy.leaf_bases as usize;
     assert_eq!(clothed.sections.len(), bases, "a cell a base");
-    bare.nodes.truncate(clothed.nodes.len() - 2 * bases);
+    let tail = clothed.clothing.expect("the build clothes the palm");
+    assert!(clothed.nodes.len() - tail >= 2 * bases, "two nodes a base");
+    bare.nodes.truncate(tail);
     bare.sections.clear();
+    bare.clothing = None;
     let x = expand(bare, &f).unwrap();
     let nodes = x.tree().nodes.len();
     assert_eq!(nodes, clothed.nodes.len(), "the handed tree is clothed");
