@@ -152,7 +152,8 @@ impl Wood {
 }
 
 /// How far `p` stands off one tapered capsule and its radius there: the
-/// nearest point of its axis and the radius interpolated there.
+/// nearest point of its axis with the radius interpolated there, or
+/// either end's sphere where it is nearer.
 fn off_piece([(a, ra), (b, rb)]: [(Vec3, f64); 2], p: Vec3) -> (f64, f64) {
     let run = b - a;
     let t = match run.length_squared() {
@@ -160,7 +161,14 @@ fn off_piece([(a, ra), (b, rb)]: [(Vec3, f64); 2], p: Vec3) -> (f64, f64) {
         _ => 0.,
     };
     let r = ra + (rb - ra) * t;
-    (p.distance(a + run * t) - r, r)
+    [
+        (p.distance(a + run * t) - r, r),
+        (p.distance(a) - ra, ra),
+        (p.distance(b) - rb, rb),
+    ]
+    .into_iter()
+    .min_by(|x, y| x.0.total_cmp(&y.0))
+    .expect("three candidates")
 }
 
 /// One frame's counts: (a), (b), (c) at least and under a pixel, (d), (e),
@@ -225,8 +233,8 @@ fn classes((from, to, age, seed, t): &Walk, pixel: f64) -> Classes {
                 out.e += 1;
                 out.farthest = out.farthest.max(w.0.min(r.0));
             }
-            (false, true) => out.c[usize::from(r.1 < pixel)] += 1,
-            (false, false) if w.1 >= pixel => out.a += 1,
+            (false, true) => out.c[usize::from(2. * r.1 < pixel)] += 1,
+            (false, false) if 2. * w.1 >= pixel => out.a += 1,
             (false, false) => out.b += 1,
         }
     }

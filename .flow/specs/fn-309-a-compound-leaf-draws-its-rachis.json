@@ -8,7 +8,9 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-309-a-compound-leaf-draws-its-rachis",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-309-a-compound-leaf-draws-its-rachis.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -58,15 +60,69 @@
       "timestamp": "2026-10-22T16:13:29.340491Z",
       "tool_calls": 20,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "f6227caa4c6829a866f52924409cf56366272f800f25bef5711bf94b5b24fce4",
+      "backend": "codex",
+      "base_sha": "975a70eeaa56a3dd5be7b04ee0e35c2f2b55d412",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7d2530a9e2e8e11218281f1e4b28d368",
+            "classification": "introduced",
+            "findingId": "finding-7d2530a9e2e8e11218281f1e4b28d368",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3e4d302d1a4a64c5ea2312dd38430cf0",
+            "classification": "introduced",
+            "findingId": "finding-3e4d302d1a4a64c5ea2312dd38430cf0",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4ee18181423539ac47ab86d92a94ef599cc66fc5",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1420,
+      "output_sha256": "19f5149a8d7be198df73e5b179302f187df9776e0900f8f44ab9358689852b90",
+      "reservation_id": "1b27382ddfc4448990c47c1c19e3ca7d",
+      "round_consumed": true,
+      "scope": "impl:fn-309-a-compound-leaf-draws-its-rachis.1",
+      "superseded_by": null,
+      "task": "fn-309-a-compound-leaf-draws-its-rachis.1",
+      "timestamp": "2026-10-22T16:23:20.047902Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-309-a-compound-leaf-draws-its-rachis.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-309-a-compound-leaf-draws-its-rachis.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-309-a-compound-leaf-draws-its-rachis.md",
@@ -83,5 +139,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T16:13:29.351255Z"
+  "updated_at": "2026-10-22T16:23:20.050901Z"
 }
