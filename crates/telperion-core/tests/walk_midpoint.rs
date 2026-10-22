@@ -174,14 +174,19 @@ fn by_degree(seed: u32) -> (f64, usize, f64) {
     };
     let coarse: Vec<(f64, f64)> = (0..=40).map(|i| frame(10 * i)).collect();
     let largest = |values: &[f64]| {
-        values.windows(2).map(|w| (w[1] - w[0]).abs()).fold(0.0, f64::max)
+        values
+            .windows(2)
+            .map(|w| (w[1] - w[0]).abs())
+            .fold(0.0, f64::max)
     };
     let logs: Vec<f64> = coarse.iter().map(|c| c.1.ln()).collect();
     let floor = coarse[0].1.min(coarse[40].1);
     let below = coarse.iter().filter(|c| c.1 < floor).count();
     let shares: Vec<f64> = coarse.iter().map(|c| c.0).collect();
     let step = |i: usize| (shares[i + 1] - shares[i]).abs();
-    let steepest = (0..40).max_by(|&i, &j| step(i).total_cmp(&step(j))).expect("40 steps");
+    let steepest = (0..40)
+        .max_by(|&i, &j| step(i).total_cmp(&step(j)))
+        .expect("40 steps");
     let k = 10 * steepest as u32;
     let fine: Vec<f64> = (k.saturating_sub(20)..=(k + 30).min(400))
         .map(|k| frame(k).0)
@@ -380,7 +385,9 @@ fn the_reach_cost() {
         let (a, b, age) = WALKS[w];
         let (x, y) = (at(a, age, 1), at(b, age, 1));
         let clock = std::time::Instant::now();
-        let frames: Vec<Family> = (1..20).map(|i| families(&x, &y, f64::from(i) / 20.0).unwrap()).collect();
+        let frames: Vec<Family> = (1..20)
+            .map(|i| families(&x, &y, f64::from(i) / 20.0).unwrap())
+            .collect();
         let built = clock.elapsed().as_secs_f64() / 19.0;
         let clock = std::time::Instant::now();
         for f in &frames {
@@ -392,8 +399,9 @@ fn the_reach_cost() {
 }
 
 fn digest(text: &str) -> u64 {
-    text.bytes()
-        .fold(0xcbf2_9ce4_8422_2325, |h, b| (h ^ u64::from(b)).wrapping_mul(0x0100_0000_01b3))
+    text.bytes().fold(0xcbf2_9ce4_8422_2325, |h, b| {
+        (h ^ u64::from(b)).wrapping_mul(0x0100_0000_01b3)
+    })
 }
 
 /// The built tree's fingerprint, or its refusal.
@@ -419,14 +427,25 @@ fn a_lifespan_past_the_age_is_dormant() {
     let beech = at("european-beech", 40.0, 1);
     let mut f = beech.clone();
     let mut touched = Vec::new();
-    for (k, s) in f.space.species.as_mut().unwrap().states.iter_mut().enumerate() {
+    for (k, s) in f
+        .space
+        .species
+        .as_mut()
+        .unwrap()
+        .states
+        .iter_mut()
+        .enumerate()
+    {
         if s.lifespan >= 40.0 {
             touched.push((k, s.lifespan));
             s.lifespan = 40.0;
         }
     }
     println!("beech at 40: {}", built(&beech));
-    println!("beech at 40, lifespans >= 40 set to 40 {touched:?}: {}", built(&f));
+    println!(
+        "beech at 40, lifespans >= 40 set to 40 {touched:?}: {}",
+        built(&f)
+    );
 }
 
 /// The reader: beech to spruce at age 0.5, t = 0.5, clamp on (as the walk
@@ -440,8 +459,16 @@ fn what_reads_a_dormant_lifespan() {
     let on_species = species(&on).clone();
     let off_species = telperion_space::blend(species(&a), species(&b), 0.5, 2_000_000).unwrap();
     let bare = telperion_space::blend(species(&a), species(&b), 0.5, 0).unwrap();
-    println!("families' species is the blend at age 0 unsized: {}", on_species == bare);
-    for (k, (x, y)) in on_species.states.iter().zip(&off_species.states).enumerate() {
+    println!(
+        "families' species is the blend at age 0 unsized: {}",
+        on_species == bare
+    );
+    for (k, (x, y)) in on_species
+        .states
+        .iter()
+        .zip(&off_species.states)
+        .enumerate()
+    {
         if format!("{x:?}") != format!("{y:?}") {
             println!("  age {k}: lifespan on {} off {}", x.lifespan, y.lifespan);
         }
@@ -464,7 +491,11 @@ fn what_reads_a_dormant_lifespan() {
         .collect();
     println!("families' species differs from the bare clamped blend at ages {diff:?}");
     let g_bare = telperion_space::grow(&bare, request).unwrap();
-    println!("grown at 1, bare clamped blend: {} axes {}", g_bare.axes.len(), digest(&format!("{g_bare:?}")));
+    println!(
+        "grown at 1, bare clamped blend: {} axes {}",
+        g_bare.axes.len(),
+        digest(&format!("{g_bare:?}"))
+    );
     for (name, s) in [("on", &on_species), ("off", &off_species)] {
         let c = telperion_space::expected_counts(s, 1).unwrap();
         let totals: Vec<String> = (0..s.states.len())
@@ -487,11 +518,34 @@ fn what_reads_a_dormant_lifespan() {
     for (i, (x, y)) in g_on.axes.iter().zip(&g_off.axes).enumerate() {
         if format!("{x:?}") != format!("{y:?}") {
             println!("  first axis that differs: {i}");
-            println!("    on:  pa {} birth {} apex_end {:?} origin {:?} vigour {} phytomers {}", x.pa, x.birth, x.apex_end, x.origin, x.vigour, x.phytomers.len());
-            println!("    off: pa {} birth {} apex_end {:?} origin {:?} vigour {} phytomers {}", y.pa, y.birth, y.apex_end, y.origin, y.vigour, y.phytomers.len());
-            let p = x.phytomers.iter().zip(&y.phytomers).position(|(p, q)| p != q);
+            println!(
+                "    on:  pa {} birth {} apex_end {:?} origin {:?} vigour {} phytomers {}",
+                x.pa,
+                x.birth,
+                x.apex_end,
+                x.origin,
+                x.vigour,
+                x.phytomers.len()
+            );
+            println!(
+                "    off: pa {} birth {} apex_end {:?} origin {:?} vigour {} phytomers {}",
+                y.pa,
+                y.birth,
+                y.apex_end,
+                y.origin,
+                y.vigour,
+                y.phytomers.len()
+            );
+            let p = x
+                .phytomers
+                .iter()
+                .zip(&y.phytomers)
+                .position(|(p, q)| p != q);
             if let Some(j) = p {
-                println!("    first phytomer that differs: {j}: on {:?}", x.phytomers[j]);
+                println!(
+                    "    first phytomer that differs: {j}: on {:?}",
+                    x.phytomers[j]
+                );
                 println!("                                 off {:?}", y.phytomers[j]);
             }
             break;

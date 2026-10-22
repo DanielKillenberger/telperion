@@ -1253,7 +1253,7 @@ Leaflets one placement carries along its rachis. One is the single blade every f
 
 ### `/canopy/rachisLength`
 
-Metres of rachis the leaflets are strung along. At zero the placement is one blade whatever the count says.
+Metres of rachis the leaflets are strung along. At zero the placement is one blade whatever the count says. A placement on wood draws no rachis, so there its leaflets stand at its point as one tuft (fn-309).
 
 - real, m, [0, 1000], default 0
 - read by plan, expand; removed growth path: as the direct build

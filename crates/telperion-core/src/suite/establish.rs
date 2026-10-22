@@ -369,12 +369,13 @@ fn gap(
     };
     // Clear of the ground, so the curve is the parabola (fn-301).
     let clear = Vec3::Y * 100.0;
-    let lines: Vec<_> = telperion_core::foliage::leaflets(clear, Vec3::X, (young, 0.0), n, split)
-        .map(|l| {
-            let scale = young.size * l.share.unwrap_or(1.0);
-            (l.at, l.at + l.axis * (blade * scale), width * scale)
-        })
-        .collect();
+    let lines: Vec<_> =
+        telperion_core::foliage::leaflets(clear, Vec3::X, (young, Some(0.0)), n, split)
+            .map(|l| {
+                let scale = young.size * l.share.unwrap_or(1.0);
+                (l.at, l.at + l.axis * (blade * scale), width * scale)
+            })
+            .collect();
     let near = |q: Vec3, (a, b, _): (Vec3, Vec3, f64)| {
         let ab = b - a;
         let t = ((q - a).dot(ab) / ab.length_squared().max(1e-30)).clamp(0.0, 1.0);

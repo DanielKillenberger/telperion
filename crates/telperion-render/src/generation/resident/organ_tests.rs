@@ -5,12 +5,15 @@
 //! frames of the walk from the oak to the date palm: the device stations
 //! each run of wood and each short shoot as the CPU does (within the
 //! station agreement's tolerance), and places as many leaflets in the
-//! crown, last, where the CPU places them.
+//! crown, last, where the CPU places them, and its wood's leaves where the
+//! CPU's stand: a compound leaf on wood as one tuft at its point (fn-309).
 use super::super::{io, Generator};
 use super::build::instances;
 use super::stations::GW;
 use crate::Renderer;
 use std::collections::{BTreeSet, HashMap};
+use telperion_core::foliage::{Leaf, Reference};
+use telperion_core::math::Vec3;
 use telperion_core::{
     blend, pipeline::executor, presets::by_identity, presets::Family, tree::cluster_key,
 };
@@ -43,6 +46,14 @@ fn families() -> Vec<(String, Family)> {
             blend::families(&oak, &palm, t).unwrap(),
         ));
     }
+    // The film's frame 526 (fn-309): the oak's wood bearing compound
+    // leaves of about five leaflets on a 2.4 m rachis nobody draws.
+    let film = |mut f: Family| {
+        (f.age, f.skeleton.seed) = (40.0, 7);
+        f
+    };
+    let frame = blend::families(&film(oak), &film(palm), 0.34).unwrap();
+    out.push(("oak to palm at 0.34, 40, seed 7".to_string(), frame));
     out
 }
 
@@ -142,8 +153,75 @@ fn agrees(gpu: &crate::Gpu, name: &str, f: &Family) -> (ByKey, ByKey) {
         "{name}: the CPU's leaves"
     );
     assert!(apart <= APART, "{name}: the crown {apart} apart");
+    let wood = |n: usize, l: &[Leaf]| l[..tail(n)].to_vec();
+    let (mine_wood, theirs_wood) = (
+        wood(leaves.len(), &leaves),
+        wood(theirs.leaves.len(), &theirs.leaves),
+    );
+    stand(
+        name,
+        f,
+        (&mine, &mine_wood),
+        (&theirs.reference, &theirs_wood),
+    );
     (dev, cpu)
 }
+
+/// fn-309 R2: each leaf on the device's wood stands where one of the
+/// CPU's does, within `APART` of the height, and turns from the nearest
+/// in heading as little as the crown's do (each executor scatters its
+/// own). A compound leaf on wood stands its leaflets at its point on
+/// both, as one tuft; a device stringing them along the undrawn rachis
+/// leaves them off every CPU leaf. Leaves are matched by place, not by
+/// order: wood is stationed alike run by run within one run in a
+/// hundred, so as many leaves may stand unmatched. Measured: none off
+/// on every family but the film's frame, whose one placement at the
+/// stem's top (y 9.52 m) stands 0.44 m from the CPU's with its five
+/// leaflets, and as far with one leaflet a placement: older than fn-309.
+fn stand(name: &str, f: &Family, (mine, dev): Shelf, (theirs, cpu): Shelf) {
+    let tol = APART * theirs.extent.y.max(1e-9);
+    let cell = |v: Vec3| [v.x, v.y, v.z].map(|c| (c / tol).floor() as i64);
+    let mut grid: HashMap<[i64; 3], Vec<Leaf>> = HashMap::new();
+    for l in cpu {
+        grid.entry(cell(theirs.position(*l))).or_default().push(*l);
+    }
+    let axis = |r: &Reference, l: Leaf| {
+        let m = r.unpack(l);
+        Vec3::new(m[4].into(), m[5].into(), m[6].into()).normalized()
+    };
+    let (mut unmatched, mut turns) = (0usize, Vec::new());
+    for l in dev {
+        let (at, [x, y, z]) = (mine.position(*l), cell(mine.position(*l)));
+        let near: Vec<Leaf> = (0..27)
+            .filter_map(|n| grid.get(&[x + n % 3 - 1, y + n / 3 % 3 - 1, z + n / 9 - 1]))
+            .flatten()
+            .filter(|c| theirs.position(**c).distance(at) <= tol)
+            .copied()
+            .collect();
+        let turn = near
+            .iter()
+            .map(|c| axis(mine, *l).dot(axis(theirs, *c)).clamp(-1.0, 1.0).acos())
+            .fold(f64::INFINITY, f64::min);
+        match turn.is_finite() {
+            true => turns.push(turn.to_degrees()),
+            false => unmatched += 1,
+        }
+    }
+    let turned = turns.iter().sum::<f64>() / turns.len().max(1) as f64;
+    println!(
+        "{name}: wood leaves {} / {}, {unmatched} off every CPU leaf, turned {turned:.1} degrees",
+        dev.len(),
+        cpu.len()
+    );
+    assert!(unmatched * 100 <= dev.len(), "{name}: {unmatched} off");
+    assert!(
+        turned <= 0.8 * f.canopy.scatter + 1.0,
+        "{name}: turned {turned} degrees"
+    );
+}
+
+/// One executor's leaves and the box they are stored in.
+type Shelf<'a> = (&'a Reference, &'a [Leaf]);
 
 /// fn-297 R2: a stem's tip that is both a short shoot's tip and a
 /// rosette's apex bears both, as the CPU places them: its cluster among
