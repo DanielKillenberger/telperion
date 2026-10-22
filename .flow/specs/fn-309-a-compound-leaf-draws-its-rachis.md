@@ -17,6 +17,10 @@ Drawing that rachis was weighed and declined (host ruling, 2026-10-22, below): i
 
 Who it affects: the owner's verdict on the film's oak-to-palm walk, and every consumer of placed leaves on both executors. No shipped preset changes: only the date palm sets compound leaves, and its `cauline` is 0, so it has no twig or cluster placements (`presets/date-palm.values`); every other preset has `leafletCount` 1 and `rachisLength` 0. Joins the release (fn-237): the film shows it.
 
+## Owner verdicts
+
+- 2026-10-23, on frame 526 base beside change (`raw/stills/f526-before-after.png`: oak to palm at 40, seed 7, t = 0.34, hero pose; left e2c035e51, right 129e363df), as relayed by the host: "better".
+
 ## Acceptance Criteria
 
 - **R1 (the rule; host ruling 2026-10-22, replacing the first draft's "draw every rachis"):** a compound leaf is never placed along a rachis that no axis draws. A placement that draws no rachis (a twig or cluster station, which `rosette::fan` places with girth 0) has no rachis structure, so `rachisLength` is dormant there (principle 3): its leaflets stand at the placement point, one tuft of `leafletCount` blades, each with its own heading as the fan already gives it (its pitch, side, arch-turned run, terminal closing and spine share unchanged), never spread along the undrawn line.
@@ -74,3 +78,4 @@ Active tracks served by this plan:
 | R2 | (device and CPU): the device places the same tufts as the CPU, held by the existing placement agreement tests (station leaves, cluster leaves, frond leaflets, the field executor) on a walk frame that bears station compound leaves, within their existing tolerances. Errors: a disagreement fails the agreement test, never a fallback to the CPU. | fn-309-a-compound-leaf-draws-its-rachis.2 | — |
 | R3 | (proof): | fn-309-a-compound-leaf-draws-its-rachis.1, fn-309-a-compound-leaf-draws-its-rachis.3 | — |
 | R4 | the diagnosis probe is committed as an ignored test that reports the classes per frame; the gate (`scripts/gate.py` as declared) and `npm test` are green, with a codex review per task, every review dispatched inside `telperion-heavy` per AGENTS.md. | fn-309-a-compound-leaf-draws-its-rachis.1, fn-309-a-compound-leaf-draws-its-rachis.3 | — |
+

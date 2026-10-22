@@ -117,3 +117,7 @@ laurelin 1: leaves f9c0b856a247fd0d points 1996298 0868c11df070a12c clusters 148
 laurelin 7: leaves 9760e8df26d9e5dd points 3358374 1dc9f42411a0b566 clusters 250258 2149897a4ffe4b90 sections cbf29ce484222325 demand d11700368b5348b8
 laurelin 42: leaves b7c5b48b097e6c4b points 3375803 68bac691226cb55d clusters 252436 835b2bff0e47e9b4 sections cbf29ce484222325 demand 6ae9b815ff94e983
 ```
+
+## Owner verdict on frame 526 (2026-10-23)
+
+Frame 526 (oak to palm at 40, seed 7, t = 0.34), hero pose over one fixed box, base e2c035e51 beside change 129e363df: `raw/stills/f526-before-after.png` (gitignored; built by the scratch example kept as `raw/stills/f526_still.rs.txt`). The still builds its tree on the CPU. On the base, leaves fly above and around the crown and the bounds reach 13.38 m; on the change none fly, the bounds top is 11.98 m, and the oak's twig leaves gather as tufts at the twig ends. Owner, as relayed by the host: "better".
