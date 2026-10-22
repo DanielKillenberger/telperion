@@ -80,15 +80,26 @@ fn every_row(f: &Family) -> Vec<String> {
 
 #[test]
 fn every_row_past_its_bound_is_refused_on_every_family() {
-    for (id, f) in families() {
-        f.validate()
-            .unwrap_or_else(|e| panic!("{id} is refused: {e}"));
-        let unbounded: Vec<String> = every_row(&f)
+    // The families at once (fn-304): each walks its own rows, growing nothing.
+    std::thread::scope(|scope| {
+        let walks: Vec<_> = families()
             .into_iter()
-            .filter(|row| walked(&f, row).iter().all(|(_, g)| g.validate().is_ok()))
+            .map(|(id, f)| scope.spawn(move || every_row_is_refused(id, &f)))
             .collect();
-        assert_eq!(unbounded, UNBOUNDED, "{id}: rows validate never refuses");
-    }
+        for walk in walks {
+            walk.join().unwrap_or_else(|p| std::panic::resume_unwind(p));
+        }
+    });
+}
+
+fn every_row_is_refused(id: &str, f: &Family) {
+    f.validate()
+        .unwrap_or_else(|e| panic!("{id} is refused: {e}"));
+    let unbounded: Vec<String> = every_row(f)
+        .into_iter()
+        .filter(|row| walked(f, row).iter().all(|(_, g)| g.validate().is_ok()))
+        .collect();
+    assert_eq!(unbounded, UNBOUNDED, "{id}: rows validate never refuses");
 }
 
 /// A family at a size that grows in moments: few attractors and a small node

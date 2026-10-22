@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-21T21:06:42.572325Z",
+  "depends_on": [
+    "fn-304-the-gate-runs-in-ten-minutes-and-stays.1"
+  ],
+  "id": "fn-304-the-gate-runs-in-ten-minutes-and-stays.2",
+  "priority": null,
+  "spec": "fn-304-the-gate-runs-in-ten-minutes-and-stays",
+  "spec_path": ".flow/tasks/fn-304-the-gate-runs-in-ten-minutes-and-stays.2.md",
+  "status": "todo",
+  "title": "Core sweeps: walk_leaves at seed 1, ground_reach subset, walk_sizes teaser",
+  "updated_at": "2026-10-21T21:10:23.208543Z"
+}

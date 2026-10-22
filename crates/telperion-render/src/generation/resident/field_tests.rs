@@ -186,17 +186,30 @@ fn fronds(id: &str) -> bool {
     family(id, 1).canopy.rosette_fronds > 0.0
 }
 
-/// R8a on every shipped preset at seeds 1 and 5678, on grids of 24, 36
-/// and 48 cells a side: the device's read-out against the CPU's.
+/// R8a on every shipped preset at seeds 1 and 5678, on a grid of 36 cells
+/// a side: the device's read-out against the CPU's. The grids of 24 and 48
+/// are the ignored test below (host, fn-304 ruling 4).
 #[test]
 fn every_preset_s_device_field_answers_within_its_tolerance() {
+    every_preset_answers_within_its_tolerance(&[36]);
+}
+
+/// R8a on grids of 24, 36 and 48 cells a side:
+/// `cargo test --profile ci -p telperion-render --lib -- --ignored every_preset_s_device_field_on_every_grid`
+#[test]
+#[ignore = "fn-304: every grid size, outside the gate; about 90 s"]
+fn every_preset_s_device_field_on_every_grid_answers_within_its_tolerance() {
+    every_preset_answers_within_its_tolerance(&[24, 36, 48]);
+}
+
+fn every_preset_answers_within_its_tolerance(sides: &[u32]) {
     let _held = super::super::whole_tree();
     let Some(gen) = generator() else {
         return;
     };
     for &(_, id, ..) in telperion_core::presets::CATALOGUE {
         for seed in [1, 5678] {
-            for (n, m, _) in agreement(&gen, id, seed, &[24, 36, 48]) {
+            for (n, m, _) in agreement(&gen, id, seed, sides) {
                 within(&m, fronds(id)).unwrap_or_else(|m| panic!("{id} {seed} at {n}: {m}"));
             }
         }
