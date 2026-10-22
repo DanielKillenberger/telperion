@@ -173,3 +173,8 @@ Sources: `digest` at seeds 1, 7 and 42, and `palm_digest` (`raw/base-digests.log
   - Its 45,085 leaves match the base's by position: median 5.3e-7 m, 99th percentile 1.2e-4 m, at most 2.1e-4 m. None moves 1 cm.
   - Their order in the buffer changed (`raw/oak1-old.bin`, `raw/oak1-new.bin`).
 - **No stills.** No shipped preset's default-age leaves change visibly: the largest move is 0.21 mm on a tree of several metres.
+
+### The gate and npm test (R4)
+
+- The gate, `telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast`, at 96a67939f: 1,475 passed, 0 failed, 118 ignored (`raw/t2-gate.log`).
+- `npm test` (its `pretest` builds the Wasm and the render package): 22 test files, 177 tests passed (`raw/t2-npm-test.log`).

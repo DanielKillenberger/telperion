@@ -29,3 +29,17 @@
   - Each step needed a probe in a different crate's private scope (telperion-core `foliage`, telperion-render `resident` and `cycle`). Each probe cost a compile through the shared queue.
 - **Cost:** about 60 minutes and 14 heavy runs.
 - **Would remove it:** a test-only "explain a count gap" helper for any `Family`. It would list unmatched leaves with their run key, and unmatched nodes with their engine axis and phytomer or join, on both sides.
+
+## 2026-10-22: the task 2 gate queued 25 minutes
+
+- **Doing:** task 2's workspace gate, `telperion-heavy 12 --threads 2`.
+- **Slowed by:** the shared queue held it from 01:59 to 02:24 ("room 10 GB for 12") behind another worktree's heavy job.
+- **Cost:** 25 minutes idle, on top of the gate's own run of about 35 minutes.
+- **Would remove it:** nothing in the repository. The gate's 12 GB declaration and the shared desk are by design. A queue position or ETA in the wrapper's waiting line would let an agent plan around it.
+
+## 2026-10-22: the worktree has no node_modules for npm test
+
+- **Doing:** preparing `npm test`, whose `pretest` builds the Wasm and the render package.
+- **Slowed by:** a fresh worktree has no `node_modules`, so `npm ci` runs first.
+- **Cost:** `npm ci` took about a second from the cache. It skipped esbuild's install script under the local install-scripts policy, and `npm test` passed regardless.
+- **Would remove it:** a local setup step for new worktrees, for example the worktree kit copying or linking `node_modules`. This is local setup, not a repository change.
