@@ -118,3 +118,53 @@ Nothing passes in ten minutes inside 8 GB. Rayon past 4 buys nothing: the merged
 ### The candidate gate, run once (`telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`)
 
 `.config/nextest.toml`'s `gate` profile (four tests at once; the 30 tests measured at 1.5 GiB or more take one turn; device tests one at a time; 60 s slow-timeout), `scripts/gate_test.py` as the runner (4 GiB per test, or the allowlisted figure), `.config/gate-budgets.toml` drafted from the threads-4 run. Result (`raw/measure/gate2.log`): 1,124 s, peak 5,095 MiB anon, 1,469 passed and 4 ended at 60 s: the artifact test, `suite::mesh` and the merged `packed_leaf` (41–45 s on the threads-4 run, now past 60 s) and the device retire test (35 s before). No test passed its memory budget. The same tests' own times moved by up to 2× between two runs of the same suite on the shared desk (`light_no_bud_reads_leaves...` 26 → 54 s, `a_walk_between_species...` 26 → 51 s), so a 60 s wall budget fails tests that measured well under it. Held for the host: the gate's best figure (about 1,124–1,241 s) misses ten minutes, and the time budget needs a rule for that noise before the allowlist's figures can be set.
+
+### Declared (host ruling, 2026-10-22)
+
+`telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`: nextest's `gate` profile, four tests at once, rayon at 4, inside the desk's 8 GB (this settles 8 GB against 12 GB: 8). Its passing runs: 1,241 s (the threads-4 measurement, `raw/measure/n4.log`) and 1,348 s (`gate.py` with the ruled budgets, `raw/measure/gate3.log`: 1,473 passed, 0 failed, 123 ignored, peak 5,304 MiB anon). Median 1,295 s, range 1,241–1,348 s. AGENTS.md's gate line carries these figures.
+
+## Task .5: the budgets (R4, host ruling 2026-10-22)
+
+- **Per test, time.** The `gate` profile cuts a test off at 120 s of wall time (`slow-timeout`, `terminate-after = 1`), twice the 60 s budget for the desk's 2× swing. A test whose worst completed time across the recorded runs (`raw/measure/n2`, `n4`, `n8`, `t4tok*`, `gate2`) passed 60 s is held to twice that time by its own override, which `scripts/gate.py` writes from the allowlist as a nextest tool config.
+- **Per test, memory.** `scripts/gate_test.py`, the gate's target runner, reads each test process's peak resident memory (`getrusage` of the child; nextest runs one test a process) and fails a test past 4 GiB, or past its allowlisted figure (the worst measured peak and a tenth more, rounded up to 64 MiB).
+- **The allowlist** (`.config/gate-budgets.toml`, nine tests):
+
+| Test | Time budget (worst) | Memory budget (worst) |
+|---|--:|--:|
+| `walks` every_setting_..._at_vanishing_size | 636 s (318 s) | 5,952 MiB (5,396) |
+| `telperion_wasm` flowers_cross_the_binding_... | 239 s (119 s) | 4,096 MiB (3,977) |
+| `walk_leaves` spruce_to_birch_... | 186 s (93 s) | 4,096 MiB (1,649) |
+| `telperion_core` repeat_tests::the_largest_tree_and_the_palm_... | 181 s (90 s) | 4,096 MiB (3,276) |
+| `telperion_render` retire_tests::the_node_table_with_retirement_... | 164 s (82 s) | 4,096 MiB (491) |
+| `telperion_core` suite::packed_leaf::every_station_... | 139 s (69 s) | 4,800 MiB (4,344) |
+| `ground_reach` nothing_drawn_passes_below_the_ground | 124 s (62 s) | 5,184 MiB (4,702) |
+| `telperion_core` suite::mesh::every_preset_builds_a_mesh_... | 120 s (54 s) | 4,864 MiB (4,374) |
+| `conformance` every_shipped_family_renders_through_the_one_path | 120 s (50 s) | 4,992 MiB (4,529) |
+
+- **Shrink only.** `gate.py --base <ref>` (default `master`) compares the allowlist with the base's copy: a new entry or a raised figure fails, a missing base ref fails with its error, and a base without the file is reported as this branch setting the baseline. An entry for a test the gate does not run (gone or ignored) fails as stale.
+- **Total.** The run fails past 1,620 s: 1.25 × the 1,295 s median, rounded up to the minute.
+
+### Demos
+
+| Demo | Result |
+|---|---|
+| a temporary test sleeping 125 s, run as the gate runs it | `TIMEOUT [120.002s]` (`raw/proofs/demo-budgets.log`) |
+| the same with an allowlist override of 130 s | `PASS [125.042s]` (`demo-raised.log`) |
+| a temporary test holding 4.5 GiB | `fn-304 memory budget: tmp_budget_demo holds_past_its_memory_budget peaked at 4609 MiB, over its 4096 MiB` |
+| the allowlist with a new entry, against HEAD | `walks light_changes_the_tree_by_degree: new on the allowlist` (`allowlist-demo.log`) |
+| a raised figure | `walks every_setting_...: seconds raised from 636 to 700` |
+| an entry for a test that does not exist | `walks no_such_test: stale, the gate runs no such test` |
+| the allowlist as committed | no finding |
+
+The demo test file was removed and never committed.
+
+## R5: not met
+
+The spec's target, the whole gate under ten minutes on the declared invocation, is not met: the median is 1,295 s. At 4 threads the tests at 1.5 GiB or more take one turn between them inside 8 GB, and their own times sum to about 661 s (the ten over 3 GiB) + 421 s (the twenty between 1.5 and 3 GiB) ≈ 1,080 s before any other test runs. More threads do not shorten them (rayon 8: 1,271 s). The rest of the gap, the heavy tests' memory and the memory-token scheduling that left device tests unscheduled, goes to a follow-up spec the host mints (host, 2026-10-22). `npm test`: green (22 files, 177 tests).
+
+## Open
+
+- The case lost to ruling 3: a non-flowering preset whose pipeline grows an organ that the binding drops along with its reference is no longer caught (task .3).
+- nextest runs no doc-tests; the workspace has none today (the `cargo test` gates ran five doc-test targets, none with a test). A doc-test added later would not run in the gate.
+- Two patches were caught by neither a subset nor its sweep: the light-sum order (`sum-order`) and the frond rounding on the oak-to-palm walk (`fronds-round`), each below what the tests read.
+- The gate needs `cargo-nextest` 0.9.145 on the desk (the runs here used a pinned copy in the session's scratchpad); installing it is local setup, not a repository change.

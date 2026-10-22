@@ -25,7 +25,7 @@ import tomllib
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUDGETS = ".config/gate-budgets.toml"
 # 1.25 x the declared median (AGENTS.md), rounded up to the minute.
-TOTAL = 1560
+TOTAL = 1620
 
 
 def nextest(*args: str) -> list[str]:
