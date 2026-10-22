@@ -28,7 +28,7 @@ import tomllib
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUDGETS = ".config/gate-budgets.toml"
 # 1.25 x the declared median (AGENTS.md), rounded up to the minute.
-TOTAL = 1620
+TOTAL = 1560
 
 
 NEXTEST = "0.9.145"

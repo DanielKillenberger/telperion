@@ -121,7 +121,7 @@ Nothing passes in ten minutes inside 8 GB. Rayon past 4 buys nothing: the merged
 
 ### Declared (host ruling, 2026-10-22)
 
-`telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`: nextest's `gate` profile, four tests at once, rayon at 4, inside the desk's 8 GB (this settles 8 GB against 12 GB: 8). Its passing runs: 1,241 s (the threads-4 measurement, `raw/measure/n4.log`) and 1,348 s (`gate.py` with the ruled budgets, `raw/measure/gate3.log`: 1,473 passed, 0 failed, 123 ignored, peak 5,304 MiB anon). Median 1,295 s, range 1,241–1,348 s. AGENTS.md's gate line carries these figures.
+`telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`: nextest's `gate` profile, four tests at once, rayon at 4, inside the desk's 8 GB (this settles 8 GB against 12 GB: 8). Its passing runs: 1,241 s (the threads-4 measurement, `raw/measure/n4.log`) and 1,348 s (`gate.py` with the ruled budgets, `raw/measure/gate3.log`: 1,473 passed, 0 failed, 123 ignored, peak 5,304 MiB anon). A third, the final `gate.py` run (`raw/measure/gate4.log`): 1,137 s, 1,473 passed, 0 failed, peak 5,191 MiB. Median 1,241 s, range 1,137–1,348 s. AGENTS.md's gate line carries these figures.
 
 ## Task .5: the budgets (R4, host ruling 2026-10-22)
 
@@ -142,7 +142,7 @@ Nothing passes in ten minutes inside 8 GB. Rayon past 4 buys nothing: the merged
 | `conformance` every_shipped_family_renders_through_the_one_path | 120 s (50 s) | 4,992 MiB (4,529) |
 
 - **Shrink only.** `gate.py --base <ref>` (default `master`) compares the allowlist with the base's copy: a new entry or a raised figure fails, a missing base ref fails with its error, and a base without the file is reported as this branch setting the baseline. An entry for a test the gate does not run (gone or ignored) fails as stale.
-- **Total.** The run fails past 1,620 s: 1.25 × the 1,295 s median, rounded up to the minute.
+- **Total.** The test run fails past 1,560 s: 1.25 × the 1,241 s median, rounded up to the minute (1,620 s while the median stood at 1,295 s over two runs).
 
 ### Demos
 
@@ -160,7 +160,7 @@ The demo test file was removed and never committed.
 
 ## R5: not met
 
-The spec's target, the whole gate under ten minutes on the declared invocation, is not met: the median is 1,295 s. At 4 threads the tests at 1.5 GiB or more take one turn between them inside 8 GB, and their own times sum to about 661 s (the ten over 3 GiB) + 421 s (the twenty between 1.5 and 3 GiB) ≈ 1,080 s before any other test runs. More threads do not shorten them (rayon 8: 1,271 s). The rest of the gap, the heavy tests' memory and the memory-token scheduling that left device tests unscheduled, goes to a follow-up spec the host mints (host, 2026-10-22). `npm test`: green (22 files, 177 tests).
+The spec's target, the whole gate under ten minutes on the declared invocation, is not met: the median is 1,241 s. At 4 threads the tests at 1.5 GiB or more take one turn between them inside 8 GB, and their own times sum to about 661 s (the ten over 3 GiB) + 421 s (the twenty between 1.5 and 3 GiB) ≈ 1,080 s before any other test runs. More threads do not shorten them (rayon 8: 1,271 s). The rest of the gap, the heavy tests' memory and the memory-token scheduling that left device tests unscheduled, goes to a follow-up spec the host mints (host, 2026-10-22). `npm test`: green (22 files, 177 tests).
 
 ## Open
 
@@ -173,5 +173,5 @@ The spec's target, the whole gate under ten minutes on the declared invocation, 
 ### Host rulings on task .5 (2026-10-22)
 
 - **Total budget on the test run only.** OVERRIDDEN: codex's task .5 finding (the total excludes the build and listing before it). Host: "the budget is there to catch tests growing. Build time depends on cache state, not on the change being made, so counting it would fail a cold build for no defect." `gate.py` prints the build and listing time beside the test run; the spec's R4 and R8 now say "the test run's total".
-- **Build time, measured** (`raw/measure/build-time.log`, `telperion-heavy 8 --threads 4`, nextest's listing build in a separate, empty target directory): 155 s cold at four jobs, 1 s warm. The task gates' `cargo test` rebuilt about 215 s at two jobs after a change to the core crates' tests. AGENTS.md states these beside the 1,295 s median.
+- **Build time, measured** (`raw/measure/build-time.log`, `telperion-heavy 8 --threads 4`, nextest's listing build in a separate, empty target directory): 155 s cold at four jobs, 1 s warm. The task gates' `cargo test` rebuilt about 215 s at two jobs after a change to the core crates' tests. AGENTS.md states these beside the 1,241 s median.
 - **nextest checked first.** `gate.py` stops before anything else when `cargo-nextest` is missing or not 0.9.145, with one line naming `cargo install cargo-nextest --version 0.9.145 --locked` (`raw/proofs/nextest-check-demo.log`: the desk's missing binary, then 0.9.100, both refused with that line; 0.9.145 passes). It is not installed on the desk.
