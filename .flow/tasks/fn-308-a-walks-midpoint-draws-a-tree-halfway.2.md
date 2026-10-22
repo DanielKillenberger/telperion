@@ -8,7 +8,7 @@ Land C5 (spec R2) through one aged path (R5), with host rulings 3 and 4 applied 
 
 **Size:** M
 **Files:** `crates/telperion-space/src/blend.rs`, `crates/telperion-space/src/lib.rs`, `crates/telperion-core/src/blend.rs`, `crates/telperion-space/tests/{blend_reach,walks,chain}.rs`, `crates/telperion-core/tests/{space_walks,catalogue_identity,walk_law,grown_total}.rs`, `crates/telperion-core/examples/{walk_size,walk_ends}.rs`
-**Touches:** [crates/telperion-space/src/blend.rs, crates/telperion-space/src/lib.rs, crates/telperion-space/src/species/scale.rs, crates/telperion-space/tests/**, crates/telperion-core/src/blend.rs, crates/telperion-core/tests/space_walks.rs, crates/telperion-core/tests/catalogue_identity.rs, crates/telperion-core/tests/walk_law.rs, crates/telperion-core/tests/grown_total.rs, crates/telperion-core/examples/**]
+**Touches:** [crates/telperion-render/src/generation/film_walk_tests.rs, .flow/specs/fn-300-*.md, .flow/tasks/fn-308-a-walks-midpoint-draws-a-tree-halfway.2.md, crates/telperion-space/src/blend.rs, crates/telperion-space/src/lib.rs, crates/telperion-space/src/species/scale.rs, crates/telperion-space/tests/**, crates/telperion-core/src/blend.rs, crates/telperion-core/tests/space_walks.rs, crates/telperion-core/tests/catalogue_identity.rs, crates/telperion-core/tests/walk_law.rs, crates/telperion-core/tests/grown_total.rs, crates/telperion-core/examples/**]
 
 ### Approach
 - **The rule.** Start from `.flow/evidence/fn-308-a-walks-midpoint-draws-a-tree-halfway/candidates/c5-exits.patch`. Rewrite it as product code, not a copy:
@@ -50,6 +50,9 @@ Land C5 (spec R2) through one aged path (R5), with host rulings 3 and 4 applied 
 - [ ] The re-pins and the moved example point each carry a comment citing fn-308 and the measured value.
 - [ ] `units_bound`, `walk_law`, `walk_leaves`, `walk_sizes`, `space_walks`, `catalogue_identity`, `blend_reach`, `walks` and `chain` pass.
 
+### Scope widened (host, 2026-10-22)
+- **Ruling 1:** the lifespan clamp is at `max(age, 1)`, the smallest valid lifespan at or past the age, so a walk under one year is never refused. Its proof is open with the host: the beech to spruce tree at age 0.5 is not the base's (probe in `raw/t2-age-under-one-*.log`).
+- **Ruling 2:** the aged blend exposed fn-300's CPU/device node divergence on two more spruce to birch rounds frames at 40: seed 1, frame 63 (387,693 / 387,695) and seed 42, frame 59 (393,600 / 393,601). They join the ignored fn-300 node test in `film_walk_tests.rs`; `the_rounds_frames_have_the_cpus_counts` stays green over the rest; fn-300's R1 records both.
 ## Acceptance
 - [ ] TBD
 

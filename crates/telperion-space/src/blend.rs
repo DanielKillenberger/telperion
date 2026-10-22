@@ -150,7 +150,7 @@ fn reaching(a: &Species, b: &Species) -> (Species, Species) {
 }
 
 /// Both ends as a tree `age` cycles old lives them (fn-308 R2). Each
-/// lifespan past the age is clamped to it, since a lifespan past the
+/// lifespan past the age is clamped to it, since a lifespan at or past the
 /// tree's age is dormant. Then, at an age one end leaves within the tree's
 /// age (`leaves`) and the other does not, the other takes the leaving
 /// end's exit rows: whether a bud moves on, and whether a relay replaces
@@ -158,8 +158,13 @@ fn reaching(a: &Species, b: &Species) -> (Species, Species) {
 /// age, so mixed in they would switch the frame's exit by seed. Where both
 /// ends leave, or neither, the rows mix.
 fn ending((mut a, mut b): (Species, Species), age: f64) -> (Species, Species) {
+    // The smallest valid lifespan at or past the age (host, 2026-10-22):
+    // a lifespan is a whole cycle at least, the floor `Log { floor: 1 }`
+    // mixes it on, so under one cycle no lifespan is clamped to none and
+    // no end leaves an age; the exits mix as before.
+    let dormant = age.max(1.0);
     for s in a.states.iter_mut().chain(&mut b.states) {
-        s.lifespan = s.lifespan.min(age);
+        s.lifespan = s.lifespan.min(dormant);
     }
     for (x, y) in a.states.iter_mut().zip(&mut b.states) {
         match (leaves(x, age), leaves(y, age)) {
