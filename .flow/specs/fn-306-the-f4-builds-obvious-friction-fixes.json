@@ -1,11 +1,19 @@
 {
   "branch_name": "fn-306-the-f4-builds-obvious-friction-fixes",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-22T06:28:29.494418Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-306-the-f4-builds-obvious-friction-fixes",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-306-the-f4-builds-obvious-friction-fixes.md",
   "status": "open",
   "title": "The F4 build's obvious friction fixes",
@@ -20,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T06:28:29.501564Z"
+  "updated_at": "2026-10-22T06:29:24.007925Z"
 }
