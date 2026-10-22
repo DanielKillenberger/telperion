@@ -133,11 +133,12 @@ fn station(index:u32) -> vec3<u32> {
         let own=placement_key(seg.range.w,k);
         let spines=organs(config.organs.y,own,ORGAN_SPINES);
         let borne=vec3<f32>(f32(spines),bitcast<f32>(config.organs.z),bitcast<f32>(config.organs.w));
-        // A placement's rachis on wood draws no bark (`rosette::fan`).
+        // A placement on wood draws no rachis, so its leaflets stand at
+        // its point as one tuft, each on its heading (`leaflet::leaflets`).
         let l=on_rachis(point,axis,n,left,f32(left+1u)/f32(n),config.rachis,borne,0.0);
         let key=select(own,seg.range.w,left==0u);
         let ordinal=select(left,k,left==0u);
-        words=packed(l.point,l.axis,l.tangent,l.normal,key,ordinal,leaf_share(seg,k)*l.share);
+        words=packed(point,l.axis,l.tangent,l.normal,key,ordinal,leaf_share(seg,k)*l.share);
     } else {
         words=packed(point,axis,tangent,normal,seg.range.w,k,leaf_share(seg,k));
     }
