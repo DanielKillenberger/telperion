@@ -155,6 +155,76 @@ fn the_ends_age_two() {
     }
 }
 
+/// R3's base, oak to palm at 40 before the rule (commit 911262a6e,
+/// `R1.md`): per seed, the largest log-wood step on the 0.025 grid, and
+/// the frames of 41 whose wood falls below both ends'.
+const R3_BASE: [(u32, f64, usize); 3] = [(1, 0.756, 11), (7, 0.900, 10), (42, 0.913, 5)];
+
+/// One seed's R3 measures: the largest log-wood step, the frames below
+/// both ends, and the largest share step at 0.0025 over the steepest
+/// stretch (the coarse step of the largest share change, ± 0.05).
+fn by_degree(seed: u32) -> (f64, usize, f64) {
+    let (a, b, age) = WALKS[3];
+    let (x, y) = (at(a, age, seed), at(b, age, seed));
+    // t = k / 400: the coarse grid is every tenth k.
+    let frame = |k: u32| {
+        let f = families(&x, &y, f64::from(k) / 400.0).expect("a frame");
+        let (share, _, wood) = measure(&drawn(&f));
+        (share, wood)
+    };
+    let coarse: Vec<(f64, f64)> = (0..=40).map(|i| frame(10 * i)).collect();
+    let largest = |values: &[f64]| {
+        values.windows(2).map(|w| (w[1] - w[0]).abs()).fold(0.0, f64::max)
+    };
+    let logs: Vec<f64> = coarse.iter().map(|c| c.1.ln()).collect();
+    let floor = coarse[0].1.min(coarse[40].1);
+    let below = coarse.iter().filter(|c| c.1 < floor).count();
+    let shares: Vec<f64> = coarse.iter().map(|c| c.0).collect();
+    let step = |i: usize| (shares[i + 1] - shares[i]).abs();
+    let steepest = (0..40).max_by(|&i, &j| step(i).total_cmp(&step(j))).expect("40 steps");
+    let k = 10 * steepest as u32;
+    let fine: Vec<f64> = (k.saturating_sub(20)..=(k + 30).min(400))
+        .map(|k| frame(k).0)
+        .collect();
+    (largest(&logs), below, largest(&fine))
+}
+
+/// fn-308 R3, "by degree" as the host ruled it (2026-10-22): on oak to
+/// palm at 40, seeds 1, 7 and 42, (a) the largest log-wood step is at
+/// most 1.1 times the base's, (b) no share step over the steepest stretch
+/// exceeds 0.2, and (c) no more frames fall below both ends than on the
+/// base. One thread per seed: R1's unbounded probe hit the 8 GB cap.
+#[test]
+#[ignore = "a measurement: fn-308 R3, about a minute of growth"]
+fn the_walk_to_the_palm_changes_by_degree() {
+    let measured: Vec<(u32, f64, usize, (f64, usize, f64))> = std::thread::scope(|scope| {
+        let runs: Vec<_> = R3_BASE
+            .map(|(seed, step, below)| (seed, step, below, scope.spawn(move || by_degree(seed))))
+            .into_iter()
+            .collect();
+        runs.into_iter()
+            .map(|(seed, step, below, run)| (seed, step, below, run.join().expect("a seed")))
+            .collect()
+    });
+    let mut refused = Vec::new();
+    for (seed, base_step, base_below, (step, below, share)) in measured {
+        println!(
+            "seed {seed}: (a) log-wood step {step:.3} (base {base_step}, bound {:.3}) (b) share step {share:.3} (bound 0.2) (c) below both ends {below} (base {base_below})",
+            1.1 * base_step
+        );
+        if step > 1.1 * base_step {
+            refused.push(format!("seed {seed} (a) {step:.3}"));
+        }
+        if share > 0.2 {
+            refused.push(format!("seed {seed} (b) {share:.3}"));
+        }
+        if below > base_below {
+            refused.push(format!("seed {seed} (c) {below}"));
+        }
+    }
+    assert!(refused.is_empty(), "R3 refuses {refused:?}");
+}
+
 /// R1's trace: one frame's axes by age. The main stem's ages, and the
 /// laterals grouped by bearer's age and own age: drawn, living and wood.
 #[test]
