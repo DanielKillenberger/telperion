@@ -39,3 +39,17 @@
 - **Slowed by:** `telperion-heavy 8` holds the build at admission: the desk has 9 GB available and a 2 GB reserve, so 7 GB of room against the 8 asked, while a game holds memory and the card. A compile of tests needs nothing like 8 GB but asks for it because the prompt fixes `8` for every cargo command.
 - **Cost:** more than ten minutes idle so far, open-ended while the desk is busy.
 - **Would remove it:** a smaller admission figure for compile-only steps (`--no-run`, `cargo check`), or the wrapper reporting its wait on stdout so a filtered pipe shows it.
+
+## 2026-10-23 00:45, conductor (completion review)
+
+- **Doing:** the codex completion review, wrapped in `telperion-heavy 8 --threads 2`.
+- **Slowed by:** `completion-review` takes no focus text either, so the "run no cargo" instruction could not reach it; the reviewer tried to re-run a focused test through `telperion-heavy` and was stopped only because the read-only sandbox could not open the wrapper's lock file. It then read the committed evidence and returned SHIP.
+- **Cost:** none this time; the guard was an accident of the sandbox.
+- **Would remove it:** as the plan-review entry: a focus option on every codex review command, or a cargo shim that refuses unadmitted runs.
+
+## 2026-10-23 00:45, conductor (stills)
+
+- **Doing:** the frame 526 before/after stills the owner asked for mid-run.
+- **Slowed by:** no committed example renders a dressed walk frame at a fixed pose (`space_walk` draws it bare on the beech's dressing; the film's camera lives only on the film branch), so a scratch example was written into a scratch worktree for both builds.
+- **Cost:** about ten minutes and two example builds (1.5 min cold, then incremental).
+- **Would remove it:** a `--dressed` switch on `space_walk`, or the film's still example on the release branch.

@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-309-a-compound-leaf-draws-its-rachis",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-22T22:41:09.163541Z",
   "created_at": "2026-10-22T16:03:41.653126Z",
   "default_impl": null,
   "default_review": null,
@@ -192,17 +192,54 @@
       "task": null,
       "timestamp": "2026-10-22T22:32:04.370687Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "fb60e4077cdf56f66a5d93de5a60f6673b7b35514c41c6aea665c05408f5eeb2",
+      "backend": "codex",
+      "base_sha": "e2c035e518efe8bd078ebb4d10c38e704b141e4e",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4ffe42165151abb186f35c2b55d58879b1950230",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 303777,
+      "output_sha256": "d9ac8f3ad84f26a54b6201b9864617d59483f51159e6c2710f815bfda4101cf1",
+      "reservation_id": "e40a0e2e584f4838b24b5c4084c2c00c",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T22:41:09.155169Z",
+      "tool_calls": 15,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-309-a-compound-leaf-draws-its-rachis.1": 1,
     "impl:fn-309-a-compound-leaf-draws-its-rachis.2": 1,
     "plan": 2,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-309-a-compound-leaf-draws-its-rachis.1": 0,
     "impl:fn-309-a-compound-leaf-draws-its-rachis.2": 0,
     "plan": 0
@@ -221,5 +258,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T22:32:04.373925Z"
+  "updated_at": "2026-10-22T22:41:09.167768Z"
 }
