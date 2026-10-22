@@ -43,9 +43,20 @@ Host ruling 2 (spec R2): `walk_law` and `walk_leaves` read an engine row only wh
 - [ ] TBD
 
 ## Done summary
-TBD
+walk_law now reads a per-age step that the rows would refuse a second time. On that second reading each value is weighted by its frame's closed-form share of phytomers in that age, and the weight is computed only at such steps. walk_leaves mixes unlike short-shoot counts in the same way, by each age's share, and leaves an age the frame does not grow in dormant. BOUND, SIGMAS and ORGANS are unchanged.
 
+- Base, after the change: walk_law 0.73 s (base 0.76 s) and walk_leaves 97.5 to 100.8 s (base 111.4 s), both under telperion-heavy --threads 2. All green.
+- With candidates/c5-exits.patch applied as an uncommitted check: walk_law passed (2/2, 1.27 s) and walk_leaves passed (3/3, 118 s). The patch was then reverted with git apply -R. The 15 refusals are cleared: the steepest weighted per-age step at those ages is at most 0.001.
+- Unit check `a_per_age_step_weighs_by_the_frame_reach_in_its_age`: with the weighting removed (`if true || read <= BOUND`), it fails on the near-unreached assertion, as shown once. It passes with the weighting.
+- Raw logs: .flow/evidence/fn-308-a-walks-midpoint-draws-a-tree-halfway/raw/t1-*.log (gitignored).
+- baseline: green.
+
+Tier: not provided by conductor (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex, one correctness reviewer, SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8810c7f5840ae5032d76265f041170ecf7166214
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci -p telperion-core --test walk_law --test walk_leaves (base: green; C5 patch applied: green), walk_law a_per_age_step_weighs_by_the_frame_reach_in_its_age with weighting removed: FAILED as intended
 - PRs:
