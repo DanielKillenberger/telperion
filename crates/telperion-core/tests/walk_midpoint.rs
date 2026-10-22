@@ -250,3 +250,52 @@ fn the_frames_written() {
         println!("{}", path.display());
     }
 }
+
+/// Every walk's ends at seeds 1, 7 and 42 as `families` returns them, in
+/// Debug text, for a byte comparison across a rule (fn-299 R4's check).
+#[test]
+#[ignore = "writes the walks' ends: fn-308's end check"]
+fn the_ends_written() {
+    let out = std::path::PathBuf::from(std::env::var("MID_OUT").expect("MID_OUT"));
+    std::fs::create_dir_all(&out).unwrap();
+    for (a, b, age) in WALKS {
+        for seed in [1, 7, 42] {
+            let (x, y) = (at(a, age, seed), at(b, age, seed));
+            for t in [0.0, 1.0] {
+                let f = families(&x, &y, t).expect("an end");
+                std::fs::write(
+                    out.join(format!("{a}-{b}-s{seed}-t{t}.txt")),
+                    format!("{f:?}"),
+                )
+                .unwrap();
+            }
+        }
+    }
+}
+
+/// How much a walk frame grows in each age (the closed form's expected
+/// phytomers, `total`), at the ends and a hair inside them: whether a law
+/// that refuses an age's rows reads an age the frame barely enters.
+#[test]
+#[ignore = "a measurement: fn-308 C4's reach at the walk law's refusals"]
+fn the_reach_of_each_age_near_the_ends() {
+    for w in walks() {
+        let (a, b, age) = WALKS[w];
+        let (x, y) = (at(a, age, 1), at(b, age, 1));
+        for t in [0.0, 0.001, 0.5, 0.999, 1.0] {
+            let f = families(&x, &y, t).expect("a frame");
+            let s = species(&f);
+            let counts = telperion_space::expected_counts(s, age as u32).expect("counts");
+            let row: Vec<String> = (0..s.states.len())
+                .map(|k| {
+                    format!(
+                        "{k}:{:.3e}/{:.2}",
+                        counts.total(k),
+                        s.states[k].cluster_leaves
+                    )
+                })
+                .collect();
+            println!("{a}>{b} t {t}: {}", row.join(" "));
+        }
+    }
+}
