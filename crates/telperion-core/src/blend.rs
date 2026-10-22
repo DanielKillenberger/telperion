@@ -44,9 +44,11 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
 /// light-neutral predicted size at the centroid's age is the points'
 /// weighted geometric mean, shrinking only. Every row a two-way walk mixes
 /// on a continuous scale, the engine species and its size included, is the
-/// same in any order, but for a lifespan past a fold's age, which each
-/// fold clamps (fn-308, recorded and not solved); a row of whole counts
-/// rounds at each point, so the order can move it by one.
+/// same in any order, but for the rows fn-308's rule reads by each fold
+/// (recorded, not solved): a lifespan past a fold's age, which each fold
+/// clamps, and every row of an age one fold's end never reaches, which it
+/// takes from the other; a row of whole counts rounds at each point, so
+/// the order can move it by one.
 pub fn centroid(points: &[(&Family, f64)]) -> Result<Family> {
     let total: f64 = points.iter().map(|(_, w)| w).sum();
     let bad = |w: &f64| !w.is_finite() || *w < 0.0;
