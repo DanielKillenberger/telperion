@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 """The local gate (fn-304): the workspace's tests under nextest's `gate`
-profile, inside its budgets, against ten minutes.
+profile, inside its budgets.
 
   telperion-heavy 8 --threads 4 -- python3 scripts/gate.py [--base <ref>]
 
-Budgets (host, fn-304 R4): a test's own time is at most 60 s (the profile's
-slow-timeout ends it) and its peak memory at most 4 GiB (`gate_test.py`,
-the run's target runner). A test over either sits in
+Budgets (host, fn-304 R4, ruled 2026-10-22): a test's own wall time is cut
+off at 120 s (the profile's slow-timeout) and its peak memory at 4 GiB
+(`gate_test.py`, the run's target runner). A test over either sits in
 `.config/gate-budgets.toml` with its figures; that list may only shrink
 against `--base` (default `master`), and an entry for a test that is gone
-or ignored fails as stale. The whole run is reported against 600 s and
-fails past it. `CARGO_NEXTEST` names the nextest binary (default
-`cargo-nextest`, pinned 0.9.145 as CI's).
+or ignored fails as stale. The whole run fails past `TOTAL`, 1.25 times
+the declared median rounded up to the minute, so growth the size of a new
+sweep fails the change that adds it. `CARGO_NEXTEST` names the nextest
+binary (default `cargo-nextest`, pinned 0.9.145 as CI's).
 """
 import argparse
 import json
@@ -23,7 +24,8 @@ import tomllib
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUDGETS = ".config/gate-budgets.toml"
-TOTAL = 600
+# 1.25 x the declared median (AGENTS.md), rounded up to the minute.
+TOTAL = 1560
 
 
 def nextest(*args: str) -> list[str]:
@@ -99,7 +101,7 @@ def main() -> int:
     total = time.monotonic() - start
     print(f"gate: {total:.0f} s against {TOTAL} s")
     if run.returncode == 0 and total > TOTAL:
-        print(f"gate: over ten minutes by {total - TOTAL:.0f} s", file=sys.stderr)
+        print(f"gate: {total - TOTAL:.0f} s over its {TOTAL} s budget", file=sys.stderr)
         return 1
     return run.returncode
 

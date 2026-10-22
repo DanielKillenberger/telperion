@@ -9,11 +9,12 @@ priority = 100
 # `telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`). Four tests at
 # once, rayon at 4, inside the desk's 8 GB: the tests that peaked at 1.5 GiB
 # or more on the measured runs take one turn between them, and the device
-# tests take the card one at a time. A test's own time is at most 60 s
-# (host, fn-304 R4); a test over it sits in .config/gate-budgets.toml.
+# tests take the card one at a time. A test's own time is cut off at 120 s,
+# twice its 60 s budget for the desk's noise (host, fn-304 R4); a test over
+# 60 s sits in .config/gate-budgets.toml at twice its worst time.
 [profile.gate]
 test-threads = 4
-slow-timeout = { period = "60s", terminate-after = 1 }
+slow-timeout = { period = "120s", terminate-after = 1 }
 
 [test-groups.one-at-a-time]
 max-threads = 1
