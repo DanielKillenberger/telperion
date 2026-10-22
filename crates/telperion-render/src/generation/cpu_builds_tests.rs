@@ -181,7 +181,10 @@ pub(super) fn apart(gpu: &crate::Gpu, family: &Family) -> Apart {
     let x = executor::grow(family).expect("the CPU's tree");
     let x = x.expansion().expect("its expansion");
     let cpu = x.tree();
-    let n = cpu.nodes.len();
+    // The dressed tree ends where the CPU's clothing begins: its retained
+    // leaf bases and fn-283's frond axes, which the device draws in a pass
+    // of their own (host, 2026-10-21).
+    let n = cpu.clothing.unwrap_or(cpu.nodes.len());
     let by_key: HashMap<u32, usize> = (1..n).map(|i| (cpu.key(i), i)).collect();
     let by_identity: HashMap<u64, usize> = (1..n)
         .map(|i| (cpu.nodes[i].identity.birth_order(), i))
