@@ -51,9 +51,23 @@ Applies host rulings 1 and 2 to the count tests, puts all 9 `rounds` frames back
 - [ ] The gate and `npm test` are green, each run once (R4).
 
 ## Done summary
-TBD
+The rounds frames compare like with like, and the change is measured.
 
+- `apart` counts and matches the CPU tree only up to `Tree::clothing`, the leaf bases and fn-283's frond axes the device draws in a pass of its own (ruling 1). Oak to palm 36, 37 and 48 have exact node counts.
+- `FN303` is dissolved (ruling 2):
+  - Spruce to birch, seed 7, frame 63 sits in the ignored `fn300_the_spruce_to_birch_frame_63_has_the_cpus_counts`, with its counts on this code: 187,997 / 187,999 instances, 382,987 / 382,999 nodes.
+  - `the_rounds_frames_have_the_cpus_counts` is green over the other 8 frames.
+- The relay survey is kept as the ignored `relay_join_tests::relay_joins`.
+- Digests against 6198fbc9a:
+  - The ordinary tree, the oak and the birch change hashes at every seed, with equal counts.
+  - The oak at seed 1 rebuilds the base's line exactly on the old rule, and its leaves move at most 0.21 mm. No stills are needed.
+  - Every other row is unchanged.
+- The gate: 1,475 passed, 0 failed. `npm test`: 177 tests passed.
+
+stage: impl-review - ran (codex, one reviewer: correctness; SHIP, no findings) (model: gpt-6.1-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 96a67939f37e35177b9ac20bafffab62f901a079, 2416619ebf500c9256298ba3252966ea021cdee6
+- Tests: telperion-heavy 12 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast (1475 passed, 0 failed), npm test (177 passed), cargo test --profile ci -p telperion-render --lib -- --include-ignored --exact generation::film_walk_tests::the_rounds_frames_have_the_cpus_counts (pass)
 - PRs:

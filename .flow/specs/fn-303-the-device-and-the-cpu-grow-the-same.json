@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-303-the-device-and-the-cpu-grow-the-same",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-22T01:19:58.793537Z",
   "created_at": "2026-10-21T17:33:26.930006Z",
   "default_impl": null,
   "default_review": null,
@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-303-the-device-and-the-cpu-grow-the-same",
   "impl_review_rounds": {
-    "fn-303-the-device-and-the-cpu-grow-the-same.1": 0
+    "fn-303-the-device-and-the-cpu-grow-the-same.1": 0,
+    "fn-303-the-device-and-the-cpu-grow-the-same.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -139,17 +140,91 @@
       "task": "fn-303-the-device-and-the-cpu-grow-the-same.1",
       "timestamp": "2026-10-21T23:53:38.544242Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "71484d8f3797d7abda87aaab327e22871ca9b94ff26ad1c93a6bbf906d3389b4",
+      "backend": "codex",
+      "base_sha": "3debe60d3495c4282a4f57aec57e23d5e038964d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2416619ebf500c9256298ba3252966ea021cdee6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "e868aa72f4204495ba58a4baca550848",
+      "round_consumed": true,
+      "scope": "impl:fn-303-the-device-and-the-cpu-grow-the-same.2",
+      "superseded_by": null,
+      "task": "fn-303-the-device-and-the-cpu-grow-the-same.2",
+      "timestamp": "2026-10-22T01:16:56.658184Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "eed04dd455b6531a9b2c07d20ac17c9a8de42f284d2467144fddb28c4c62ad18",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2416619ebf500c9256298ba3252966ea021cdee6",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 267122,
+      "output_sha256": "a459081e22feb7c5df250f01923fc64c5e81537aa581b8aba12982690dffd188",
+      "reservation_id": "e3abd53399f64b3292c0e89ccef969b1",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T01:19:58.783627Z",
+      "tool_calls": 18,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-303-the-device-and-the-cpu-grow-the-same.1": 1,
+    "impl:fn-303-the-device-and-the-cpu-grow-the-same.2": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-303-the-device-and-the-cpu-grow-the-same.1": 0,
+    "impl:fn-303-the-device-and-the-cpu-grow-the-same.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-303-the-device-and-the-cpu-grow-the-same.md",
@@ -166,5 +241,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T23:53:38.547401Z"
+  "updated_at": "2026-10-22T01:19:58.797801Z"
 }
