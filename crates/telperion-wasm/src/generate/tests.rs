@@ -121,9 +121,13 @@ fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
 
 /// Entry coverage (fn-151 R2): every shipped preset builds its wood and its
 /// leaves through the main binding, or is refused by name where it has no
-/// engine species (fn-198); a failure names the entry and the preset.
+/// engine species (fn-198); a failure names the entry and the preset. A
+/// preset that grows no flowers hands empty organ slots and a null organ
+/// reference, and only Telperion and Laurelin flower (fn-294 R1, read here
+/// so no preset is built twice; host, fn-304 ruling 3).
 #[test]
 fn every_shipped_preset_builds_through_the_main_entry() {
+    let mut flowering = Vec::new();
     for &(_, id, _, _) in params::CATALOGUE.iter() {
         let request = json!({"family": id, "outputs": {"surface": true, "foliage": true}});
         if params::by_identity(id).unwrap().space.species.is_none() {
@@ -142,8 +146,20 @@ fn every_shipped_preset_builds_through_the_main_entry() {
             "entry telperion (main Wasm): preset {id}: no leaves"
         );
         chunks_read_whole(&out, &meta, id);
+        if meta["organReference"] == Value::Null {
+            assert!(
+                [27, 28, 29].iter().all(|&n| crate::slot(&out, n).1 == 0),
+                "{id}: organ slots without an organ"
+            );
+        } else {
+            flowering.push(id);
+        }
     }
+    assert_eq!(flowering, FLOWERING);
 }
+
+/// The shipped presets the pipeline grows flowers for.
+const FLOWERING: [&str; 2] = ["telperion", "laurelin"];
 
 /// The metadata counts the wood's chunks and the accessor hands each one's
 /// positions, oct normals and indices whole, and nothing past the last.
@@ -163,17 +179,14 @@ fn chunks_read_whole(out: &Output, meta: &Value, id: &str) {
 
 /// The flowers cross the binding (fn-294 R1): where the pipeline grows an
 /// organ for a shipped preset, its element, its florets and their reference
-/// reach the output slots and the metadata whole; where it grows none, or no
-/// foliage is asked for, the slots are empty and the reference is null.
+/// reach the output slots and the metadata whole; where no foliage is asked
+/// for, the slots are empty and the reference is null. The presets that grow
+/// none are read by `every_shipped_preset_builds_through_the_main_entry`.
 #[test]
 fn flowers_cross_the_binding_where_the_pipeline_grows_them() {
     let words = telperion_core::foliage::WORDS;
-    let mut flowering = Vec::new();
-    for &(_, id, _, _) in params::CATALOGUE.iter() {
+    for id in FLOWERING {
         let f = params::by_identity(id).unwrap();
-        if f.space.species.is_none() {
-            continue;
-        }
         let request = pipeline::Request {
             leaves: true,
             ..Default::default()
@@ -181,12 +194,7 @@ fn flowers_cross_the_binding_where_the_pipeline_grows_them() {
         let organ = pipeline::build(&f, request).unwrap().outputs.organ;
         let (out, meta) = generate(json!({"family": id, "outputs": {"foliage": true}})).unwrap();
         let len = |n| crate::slot(&out, n).1;
-        let Some(organ) = organ else {
-            assert!([27, 28, 29].iter().all(|&n| len(n) == 0), "{id}");
-            assert_eq!(meta["organReference"], Value::Null, "{id}");
-            continue;
-        };
-        flowering.push(id);
+        let organ = organ.unwrap_or_else(|| panic!("{id}: the pipeline grows no organ"));
         let florets = organ.instances.leaves.len();
         assert!(florets > 0, "{id}: an organ with no floret");
         assert_eq!(len(27), organ.element.positions.len() * 3, "{id}");
@@ -203,7 +211,6 @@ fn flowers_cross_the_binding_where_the_pipeline_grows_them() {
         );
         assert_eq!(meta["organReference"], Value::Null, "{id}");
     }
-    assert_eq!(flowering, ["telperion", "laurelin"]);
 }
 
 /// A flowering window of no length flowers never (`/bloom/lasts` zero,

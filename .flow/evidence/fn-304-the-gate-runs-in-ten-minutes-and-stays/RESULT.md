@@ -71,3 +71,28 @@ Telperion at 82, seed 7 peaks at 7.68 GB on its own, and the sweep's high-water 
 `fronds-round` is caught by neither: the frond count on the oak-to-palm walk stays below the oracle's 30 organs, where a form is dormant. Recorded, not acted on.
 
 Gate at the end of task .2 (same invocation, ffce4e524): 1,466 passed, 2 failed (fn-302's two device tests), 119 ignored, 1,995 s wall including about 217 s of compile, peak 6,867 MiB anon.
+
+## Task .3: walks merged, the wasm flower check folded, the device field at one grid (rulings 6, 3, 4)
+
+| Test | Change | Own time (nextest, rayon 4) |
+|---|---|--:|
+| `walks` `every_setting_changes_the_tree_by_degree_and_branches_come_and_go_at_vanishing_size` | `every_setting_changes_the_tree_by_degree` and `branches_are_made_and_unmade_at_vanishing_size` merged: the walks made once in the process, both assertions kept, no walk narrowed | 306 s (183 + 114 s apart at rayon 2, each making the walks) |
+| wasm `every_shipped_preset_builds_through_the_main_entry` | also holds a preset with a null organ reference to empty organ slots, and the flowering presets to Telperion and Laurelin | 46 s (47 s before) |
+| wasm `flowers_cross_the_binding_where_the_pipeline_grows_them` | builds the two flowering presets only, each still through the pipeline, the foliage request and the surface-only request | 90 s at four tests at once (128 s at rayon 2 over every preset) |
+| render `every_preset_s_device_field_answers_within_its_tolerance` | grid 36 at seeds 1 and 5678 | 72 s (92 s at three grids, rayon 2) |
+| render `every_preset_s_device_field_on_every_grid_answers_within_its_tolerance` | grids 24, 36 and 48, ignored, reason `fn-304: ...` (not a `device limits:` or `release check:` probe) | 102 s |
+
+Test counts: `walks` 12 run → 11 (merge, ruling 6); wasm 7 → 7; render lib +1 ignored. The non-flowering presets are no longer built a second time; the folded check reads the binding's own organ reference rather than a separate pipeline build, so a non-flowering preset whose pipeline grew an organ that the binding then dropped would now be caught only by the flowering list, which pins exactly Telperion and Laurelin.
+
+### Red and green
+
+| Patch (temporary) | What it breaks | Result |
+|---|---|---|
+| `insertion-switch` (`telperion-space/src/lineage.rs`), `WALK=insertion` | the insertion angle jumps at 0.55 (fn-271's switch) | merged walks test red on its by-degree assertion: `states[1].insertion seed 1 at 0.5535: a jump` |
+| `vanishing-half` = `window-1e6` (presence window × 1e-6, `contract/presence.rs`) with the by-degree assertion skipped in the test, `WALK=zones[0].lateral` | a branch made at full size | merged test red on its vanishing-size assertion: `states[2].zones[0].lateral[2] seed 1 at -0.3025: 0.00145 of the tree`, fn-271's own message |
+| `window-1e6` alone | the same | red on the by-degree assertion first |
+| `window-narrow`, `window-1e3`, `window-1e4` | the window a hundredth to a ten-thousandth as wide | green: no step and no crossing moves past its bound |
+| `stray-organ` (`telperion-wasm/src/generate.rs`) | organ slots written where nothing flowers | main-entry test red: `ordinary: organ slots without an organ`; the flower test red on its surface-only request |
+| `field-leaves` (`resident/field/make.rs`) | the device's leaf density half as much again | gate test (grid 36) red; every-grid test red |
+
+Green on the engine: every test above passes, and the whole walks binary passes (`raw/proofs/t3-walks-all-green.log`).

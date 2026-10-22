@@ -4,7 +4,6 @@
 //! scale: log-odds for a probability, its unit otherwise. `WALK=<substring>`
 //! walks only the settings whose name holds it (`walk::degree::named`).
 mod walk;
-use std::sync::OnceLock;
 use walk::degree::{
     bound, by_degree, judge, named, vanishing, walks, Walks, MULTIPLE, REFINE, ROUGH_LAYOUT,
     TICK_RESOLUTION,
@@ -14,22 +13,18 @@ use walk::{
     Setting, STEPS,
 };
 
-/// Every setting with its walks, made once: two tests read the same walks,
-/// and a second making of them was a third of this binary's time.
-fn every_walk() -> &'static (Vec<Setting>, Walks) {
-    static ALL: OnceLock<(Vec<Setting>, Walks)> = OnceLock::new();
-    ALL.get_or_init(|| {
-        let all = named(settings());
-        let walked = walks(&all);
-        (all, walked)
-    })
-}
-
+/// Every setting with its walks, made once and read twice: R4, every
+/// setting changes the tree by degree, then R2, a branch is made and
+/// unmade at vanishing size (`made_and_unmade_at_vanishing_size`). One
+/// test, so the walks are made once in a process (host, fn-304 ruling 6:
+/// under nextest each test is a process, and two tests made them twice).
 #[test]
-fn every_setting_changes_the_tree_by_degree() {
-    let (all, walked) = every_walk();
-    let failed = judge(all, walked);
+fn every_setting_changes_the_tree_by_degree_and_branches_come_and_go_at_vanishing_size() {
+    let all = named(settings());
+    let walked = walks(&all);
+    let failed = judge(&all, &walked);
     assert!(failed.is_empty(), "{failed:#?}");
+    made_and_unmade_at_vanishing_size(&all, &walked);
 }
 
 /// fn-206 R3: a walk from one species to the next, every setting between
@@ -140,9 +135,7 @@ fn every_setting_in_leaf_changes_the_tree_by_degree() {
 /// unmakes (death, abortion, a lost bud, shedding) has faded to nothing
 /// when it goes: bisected to the crossing, its wood is none, a lifespan's
 /// at one tick's resolution (`TICK_RESOLUTION`).
-#[test]
-fn branches_are_made_and_unmade_at_vanishing_size() {
-    let (all, walked) = every_walk();
+fn made_and_unmade_at_vanishing_size(all: &[Setting], walked: &Walks) {
     // Each walk's step that made the most wood, bisected to its crossing,
     // every crossing at once.
     let mut made_at = Vec::new();
