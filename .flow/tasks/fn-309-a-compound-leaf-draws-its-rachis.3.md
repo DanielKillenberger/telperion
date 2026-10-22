@@ -30,9 +30,13 @@ The measurements the owner and the host read: `build_time` base vs change, frame
 - [ ] `npm test` green after `npm ci`, inside `telperion-heavy`.
 
 ## Done summary
-TBD
+Evidence only, no code. `build_time` base vs change (three warm runs each): oak to palm at t = 0.34 138 vs 139 ms, date palm at 40 79 vs 78 ms, within noise. Frame 526 before/after at the hero pose committed as `stills-526.jpg`; the owner's verdict "better" (2026-10-23) recorded in the spec and RESULT.md. `npm ci && npm test` green (177 tests) inside telperion-heavy after task 2's gate.
 
+stage: impl-review - skipped(policy: risk - evidence-only commit, no code or test changed)
+stage: gate - skipped(policy: no code changed since task 2's green gate at 77a2727dd)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 30a6b852ba606e6fedcd354f3d3e45bc09dc66f7
+- Tests: BUILD_PRESETS=date-palm BUILD_FRAME=oregon-white-oak,date-palm,0.34 BUILD_AGE=40 BUILD_SEED=7 telperion-heavy 8 --gpu 3 --threads 2 -- cargo test --profile ci -p telperion-render --lib build_time -- --ignored --nocapture (base and change, 3 runs each), telperion-heavy 8 --threads 2 -- npm ci && npm test (177 passed)
 - PRs:
