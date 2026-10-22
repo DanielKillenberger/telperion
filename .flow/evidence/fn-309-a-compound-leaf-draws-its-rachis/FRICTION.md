@@ -18,3 +18,10 @@
 - **Slowed by:** `flowctl codex plan-review` has no `--focus` option, so the host's "run no cargo" instruction could not reach the reviewer's prompt (fn-308 found the same for `completion-review`). The read-only sandbox and the heavy wrapper were the only guard; the reviewer ran no cargo command (checked in its log).
 - **Cost:** none this time; a risk on every plan and completion review.
 - **Would remove it:** a focus option on every codex review command, or a cargo shim on reviewers' PATH refusing unadmitted test runs (host's to spec, as fn-308 noted).
+
+## 2026-10-22 18:40, worker (task 1)
+
+- **Doing:** re-measuring the base's class counts after the review changed the measure, and running the gate.
+- **Slowed by:** (1) the dcg hook refuses a truncating redirect onto an existing evidence file in the worktree, so a re-measured raw log is written to scratch and copied over; (2) the gate (`telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`) outlived the 600 s foreground limit of the Bash tool and moved to the background, so the worker waits on a handle.
+- **Cost:** about two minutes and one blocked command; the gate's wait itself.
+- **Would remove it:** a gate that fits in the tool's foreground limit on a fresh worktree target (the first gate build is cold here), or the gate documented as a background run with a known handle.
