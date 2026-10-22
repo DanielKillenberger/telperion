@@ -25,6 +25,22 @@ max-threads = 1
 [test-groups.device]
 max-threads = 1
 
+# Two sub-second guards that no narrow run includes start before every other
+# test, so a change that trips one fails in the gate's first seconds, not 35
+# minutes in (fn-306 R1; fn-298 19:55, fn-301 05:05). Priority stops at 100,
+# which the species suite holds from the default profile, so in the gate the
+# species suite starts one step below them.
+[[profile.gate.overrides]]
+filter = '''
+    (binary(telperion_render) & test(=compile_size::tests::every_entry_inlines_under_the_ceiling)) |
+    binary(generation_limit_guard)
+'''
+priority = 100
+
+[[profile.gate.overrides]]
+filter = 'test(/^suite::species::/)'
+priority = 99
+
 [[profile.gate.overrides]]
 filter = '''
     (binary(bark_occlusion) & test(=the_darkened_side_of_a_furrow_follows_the_sun)) |
