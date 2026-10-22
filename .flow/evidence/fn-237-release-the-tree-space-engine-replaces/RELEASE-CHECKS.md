@@ -71,3 +71,9 @@ Branch `fn-237-release-checks`, from `d2a8bd258`. Measured 2026-10-14 on the RTX
 - **Rerun: green.** 1,476 passed, 0 failed, 133 skipped. The test run took 1,274 s against 1,560 s. `suite::mesh` took 100.4 s. Its margin inside the gate goes to fn-305.
 - **npm test:** green, 22 files and 177 tests, run alone after the gate.
 - **Raw logs:** `raw/f4-gate-after-308.log`, `raw/f4-gate-after-308-rerun.log` and `raw/f4-npm-after-308.log`.
+
+## Release branch gate after fn-309 (host, 2026-10-23)
+
+- **Gate:** green on `4dfc8dcfa` under the declared invocation. 1,477 passed, 0 failed, 134 skipped; the test run took 1,220 s against 1,560 s, and the build and listing took 109 s.
+- **npm test:** green, 22 files and 177 tests, run alone after the gate.
+- **Raw logs:** `raw/f4-gate-after-309.log` and `raw/f4-npm-after-309.log`.
