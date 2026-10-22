@@ -301,3 +301,22 @@ fn the_reach_of_each_age_near_the_ends() {
         }
     }
 }
+
+/// What a frame's reach costs: `families` against the closed form, per walk.
+#[test]
+#[ignore = "a measurement: fn-308's reach cost"]
+fn the_reach_cost() {
+    for w in walks() {
+        let (a, b, age) = WALKS[w];
+        let (x, y) = (at(a, age, 1), at(b, age, 1));
+        let clock = std::time::Instant::now();
+        let frames: Vec<Family> = (1..20).map(|i| families(&x, &y, f64::from(i) / 20.0).unwrap()).collect();
+        let built = clock.elapsed().as_secs_f64() / 19.0;
+        let clock = std::time::Instant::now();
+        for f in &frames {
+            telperion_space::expected_counts(species(f), age as u32).unwrap();
+        }
+        let counted = clock.elapsed().as_secs_f64() / 19.0;
+        println!("{a}>{b}: families {built:.4} s, closed form {counted:.4} s a frame");
+    }
+}
