@@ -11,6 +11,7 @@ What is inferred, not traced: the tree is 40 years old, so its main axis never l
 ## Owner verdicts
 
 - 2026-10-22, on the C4 stills (rule B over every row, the lifespan clamped at the tree's age; oak to palm at 40, seed 1, t = 0.25, 0.5 and 0.75), as relayed by the host: "much better nice". The owner approved C4's direction. Evidence: `.flow/evidence/fn-308-a-walks-midpoint-draws-a-tree-halfway/R1.md`.
+- 2026-10-22, on the final C5 stills beside C4's (`raw/stills/final-vs-c4.jpg`: oak to palm at 40, seed 1, t = 0.25, 0.5 and 0.75), as relayed by the host: "nice!". The owner approved the final stills.
 
 ## Resolved by R1 (measured, `R1.md`)
 
