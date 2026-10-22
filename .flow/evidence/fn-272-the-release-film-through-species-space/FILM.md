@@ -81,3 +81,44 @@ Draw is render (twice for a crossfaded frame), overlay and PNG. Device memory is
 - Camera keys: the palm at 40 is cut off at the top (frame 540); the palm seedling's 16 m rosette overfills the frame (689) and the walk to the Laurelin seedling closes in on the scale figure (705). The scale figure stands in every frame (the renderer's default).
 - Overlay look: the bitmap font, panel place and size, the colliding beech, Laurelin and Telperion names, the axis names as raw row names.
 - Timings: R1a's as written.
+
+## Cut 5 (2026-10-22, the release branch merged, fn-308's midpoint)
+
+At 7c1278c04: 96837aef4 merged fn-283, fn-298, fn-299, fn-301, fn-302, fn-303, fn-304, fn-306 and fn-308; the host's fix after it puts a walk frame's map dot a share t along its ends' segment (`Map::along`), since `telperion_space::blend` now takes the tree's age (fn-308) and the film map no longer re-projects walk frames.
+
+`telperion-heavy 8 --gpu 4 --threads 4 -- cargo run --profile ci -p telperion-render --example film -- crates/telperion-render/examples/film/release.json .flow/evidence/fn-272-the-release-film-through-species-space/raw/cut5` (FILM.md did not record cut 4's settings; the host's default). The video is kept at `/home/daniel/Videos/telperion/cut5.mp4` (31,978,377 bytes, the same bytes as `raw/cut5/film.mp4`).
+
+`raw/cut5/film.mp4`: 35.0 s, 1,050 frames, 1280x720 at 30 fps, 32 MB; 39.7 min wall, the build already cached (`raw/cut5-render.log`, 16:33 to 17:13). No frame refused. Walks on the direct build, as cut 4.
+
+| segment | frames | trees | build | draw | peak resident | device |
+|---|--:|--:|--:|--:|--:|--:|
+| 0 beech grown 1-40 | 210 | 40 | 8.4 s | 7.4 s | 818 MB | 1,519 MB |
+| 1 beech to spruce | 90 | 90 | 272.3 s | 10.5 s | 2,232 MB | 1,583 MB |
+| 2 spruce to birch | 90 | 90 | 381.6 s | 12.5 s | 2,248 MB | 1,583 MB |
+| 3 birch to oak | 90 | 90 | 156.5 s | 8.8 s | 1,808 MB | 1,327 MB |
+| 4 oak to palm | 120 | 120 | 46.2 s | 8.5 s | 1,799 MB | 1,327 MB |
+| 5 palm 40 to 1 | 90 | 39 | 1.8 s | 4.8 s | 1,705 MB | 1,329 MB |
+| 6 palm to Laurelin at 1 | 30 | 30 | 0.1 s | 0.5 s | 1,705 MB | 1,073 MB |
+| 7 Laurelin grown 1-80 | 210 | 80 | 10.7 s | 7.9 s | 1,711 MB | 4,628 MB |
+| 8 Laurelin to Telperion | 120 | 90 | 1,353.2 s | 21.5 s | 4,643 MB | 2,615 MB |
+
+**Oracle** (`telperion-heavy 8 --threads 4 -- cargo run --profile ci -p telperion-render --example film -- crates/telperion-render/examples/film/release.json --oracle`, `raw/oracle-cut5.log`, 24 min): 481 of 510 walk frames meet it; "29 walk frames miss the oracle". Every frame of beech to spruce, spruce to birch, oak to palm (120/120; cut 4 missed 6, fn-273's tenth exception; the band's floor is now 480 kept), palm to Laurelin and Laurelin to Telperion. Birch to oak 61/90 (cut 4: 65/90): kept 537,078 to 685,562 against a ceiling of 487,001 from t = 0.20 to 0.9985, up to 40.8 % over (cut 4: up to 24.6 % over a ceiling of 535,701), grown above its ceiling of 1,278,945 at ten of them. fn-251's named exception covers this walk; it measured up to 21 % over. For the host: the band is narrower and the overshoot larger than at cut 4.
+
+**Oak to palm, `frames.tsv`:** the oak's leaves fall away over the first fifth: 71,438 at t = 0, 63,598 at 0.024, 10,105 at 0.081, 2,346 at 0.27, 1,964 at 0.39, then up to 3,639 at 0.51, 3,250 at 0.75 and 6,554 at the palm. At cut 4, measured by the probe, frame 540 held 351 leaves and frames 515 to 520 held 41 to 59.
+
+**Frames viewed:**
+
+- **520** (t = 0.27, 2,346 leaves): an oak-like bare branch skeleton on a straight stem, small leaves spread thinly through it. A few leaves sit above and beside the crown's outer twigs with no wood visible under them. A sparse scatter, not the halo of single leaves that cut 4 had at this point.
+- **540** (t = 0.51, 3,639 leaves): a dense mop of narrow leaves around fronds that radiate from the stem's apex, on a palm-barked stem. The crown reads as one mass. At its top edge a few narrow leaves stand apart from the rest. No cloud of isolated leaves round the crown.
+- **560** (t = 0.75): a palm. Fronds with brown rachis lines drawn from the apex, leaflets along them, and a palm-barked stem.
+- **575** (t = 0.90): a full palm crown, rachises visible, leaflets dense along them.
+- Cut 4's flying leaves are not there in 540 or 560. In 520 a thin scatter of leaves stands off the oak's twigs.
+- **105** (beech, age label 21): a young slender beech with layered laterals and leaves clustered at the top and on the lower limbs. The scale figure stands large in the foreground.
+- **255** (beech to spruce, t = 0.52): a conical conifer with dense needles to the ground and drooping lower limbs.
+- **345** (spruce to birch, t = 0.52): a tall narrow tree with weeping fine branches and a pale stem. The top touches the frame's top edge.
+- **435** (birch to oak, t = 0.52): a leaning brown stem dividing into white-barked limbs, a spreading fine-twigged crown and bare low branches.
+- **645** (palm shrinking, age 20): a broad rosette of fronds with brown rachises fills the frame's middle. The stem and the scale figure are mostly hidden behind the lower fronds.
+- **705** (palm to Laurelin at 1, t = 0.55): the scale figure fills the left of the foreground and a small seedling of a few narrow leaves stands beside it.
+- **825** (Laurelin, age label 41): a round crown of green leaves and hanging orange-gold flower clusters on a dark stem. A small tuft of leaves and flowers hangs off the stem below the crown.
+- **975** (Laurelin to Telperion, t = 0.52, age 80): a broad spreading crown of pale silver-white blossom over dark limbs, the scale figure small at the foot.
+- The map dot moves along the segment between its ends' dots in every walk frame viewed.
