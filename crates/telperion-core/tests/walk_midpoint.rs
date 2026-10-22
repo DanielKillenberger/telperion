@@ -320,3 +320,111 @@ fn the_reach_cost() {
         println!("{a}>{b}: families {built:.4} s, closed form {counted:.4} s a frame");
     }
 }
+
+fn digest(text: &str) -> u64 {
+    text.bytes()
+        .fold(0xcbf2_9ce4_8422_2325, |h, b| (h ^ u64::from(b)).wrapping_mul(0x0100_0000_01b3))
+}
+
+/// The built tree's fingerprint, or its refusal.
+fn built(f: &Family) -> String {
+    match telperion_core::mesh::build(f) {
+        Ok(m) => format!("{}", digest(&format!("{m:?}"))),
+        Err(e) => format!("ERR {e}"),
+    }
+}
+
+/// The host's premise (2026-10-22): a lifespan at or past the tree's age
+/// is dormant, so clamping it changes no single species' tree. Date palm
+/// and beech at 40, seed 1.
+#[test]
+#[ignore = "a measurement: fn-308 the clamp's premise"]
+fn a_lifespan_past_the_age_is_dormant() {
+    let palm = at("date-palm", 40.0, 1);
+    for l in [150.0, 41.0, 40.0, 39.0] {
+        let mut f = palm.clone();
+        f.space.species.as_mut().unwrap().states[2].lifespan = l;
+        println!("date palm at 40, age-2 lifespan {l}: {}", built(&f));
+    }
+    let beech = at("european-beech", 40.0, 1);
+    let mut f = beech.clone();
+    let mut touched = Vec::new();
+    for (k, s) in f.space.species.as_mut().unwrap().states.iter_mut().enumerate() {
+        if s.lifespan >= 40.0 {
+            touched.push((k, s.lifespan));
+            s.lifespan = 40.0;
+        }
+    }
+    println!("beech at 40: {}", built(&beech));
+    println!("beech at 40, lifespans >= 40 set to 40 {touched:?}: {}", built(&f));
+}
+
+/// The reader: beech to spruce at age 0.5, t = 0.5, clamp on (as the walk
+/// blends) and off (rule B alone), grown one cycle: the first quantity
+/// that differs.
+#[test]
+#[ignore = "a measurement: fn-308 what reads a dormant lifespan"]
+fn what_reads_a_dormant_lifespan() {
+    let (mut a, mut b) = (at("european-beech", 0.5, 1), at("norway-spruce", 0.5, 1));
+    let on = families(&a, &b, 0.5).unwrap();
+    let on_species = species(&on).clone();
+    let off_species = telperion_space::blend(species(&a), species(&b), 0.5, 2_000_000).unwrap();
+    let bare = telperion_space::blend(species(&a), species(&b), 0.5, 0).unwrap();
+    println!("families' species is the blend at age 0 unsized: {}", on_species == bare);
+    for (k, (x, y)) in on_species.states.iter().zip(&off_species.states).enumerate() {
+        if format!("{x:?}") != format!("{y:?}") {
+            println!("  age {k}: lifespan on {} off {}", x.lifespan, y.lifespan);
+        }
+    }
+    let mut off = on.clone();
+    off.space.species = Some(off_species.clone());
+    println!("built at 0.5: on {} off {}", built(&on), built(&off));
+    // Grown one whole cycle by the engine itself.
+    (a.age, b.age) = (1.0, 1.0);
+    let request = growth(&{
+        let mut f = on.clone();
+        f.age = 1.0;
+        f
+    })
+    .unwrap()
+    .request;
+    println!("request {request:?}");
+    let diff: Vec<usize> = (0..on_species.states.len())
+        .filter(|&k| format!("{:?}", on_species.states[k]) != format!("{:?}", bare.states[k]))
+        .collect();
+    println!("families' species differs from the bare clamped blend at ages {diff:?}");
+    let g_bare = telperion_space::grow(&bare, request).unwrap();
+    println!("grown at 1, bare clamped blend: {} axes {}", g_bare.axes.len(), digest(&format!("{g_bare:?}")));
+    for (name, s) in [("on", &on_species), ("off", &off_species)] {
+        let c = telperion_space::expected_counts(s, 1).unwrap();
+        let totals: Vec<String> = (0..s.states.len())
+            .filter(|&k| c.total(k) > 0.0)
+            .map(|k| format!("{k}:{:.4}", c.total(k)))
+            .collect();
+        println!("closed form at 1, {name}: {}", totals.join(" "));
+    }
+    let (g_on, g_off) = (
+        telperion_space::grow(&on_species, request).unwrap(),
+        telperion_space::grow(&off_species, request).unwrap(),
+    );
+    println!(
+        "grown at 1: on {} axes {}, off {} axes {}",
+        g_on.axes.len(),
+        digest(&format!("{g_on:?}")),
+        g_off.axes.len(),
+        digest(&format!("{g_off:?}"))
+    );
+    for (i, (x, y)) in g_on.axes.iter().zip(&g_off.axes).enumerate() {
+        if format!("{x:?}") != format!("{y:?}") {
+            println!("  first axis that differs: {i}");
+            println!("    on:  pa {} birth {} apex_end {:?} origin {:?} vigour {} phytomers {}", x.pa, x.birth, x.apex_end, x.origin, x.vigour, x.phytomers.len());
+            println!("    off: pa {} birth {} apex_end {:?} origin {:?} vigour {} phytomers {}", y.pa, y.birth, y.apex_end, y.origin, y.vigour, y.phytomers.len());
+            let p = x.phytomers.iter().zip(&y.phytomers).position(|(p, q)| p != q);
+            if let Some(j) = p {
+                println!("    first phytomer that differs: {j}: on {:?}", x.phytomers[j]);
+                println!("                                 off {:?}", y.phytomers[j]);
+            }
+            break;
+        }
+    }
+}
