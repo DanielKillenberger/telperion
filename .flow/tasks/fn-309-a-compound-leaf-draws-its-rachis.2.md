@@ -34,9 +34,16 @@ The device mirror of task 1. The station placement in `pack.wgsl` calls `on_rach
 - [ ] The gate is green, once.
 
 ## Done summary
-TBD
+The device now places every leaflet of a station or cluster compound leaf at the station point, as the CPU has since task 1. It keeps the axis, tangent, normal and share that `on_rachis` gives each leaflet. The only site was `pack.wgsl`'s station path. The frond sites (`pack.wgsl` `leaflet`, `resident/field.wgsl` `blade`) are unchanged.
 
+Tests: `organ_tests::the_device_draws_counts_of_organs_as_the_cpu_does` now matches each of the wood's leaves to a CPU leaf by place, within `APART` of the height, and holds their headings to the crown's turn bound. The film's frame 526 (oak to palm at 0.34, age 40, seed 7) joins its families. On the base it was red: for the oak with 1.3 leaflets, 2,006 of 4,280 leaves stood off every CPU leaf. After the change it is green, with 0 off on every family except the film frame (5 of 740 off). The device digests of every shipped preset at seeds 1, 7 and 42 are byte-identical, base against change (24 lines, one sha256; `.flow/evidence/fn-309-a-compound-leaf-draws-its-rachis/RESULT.md`, "Task 2").
+
+Follow-up, not this task: on the film frame, one placement at the stem's top (y 9.52 m) stands 0.44 m from every CPU leaf. It is the same with `leafletCount` 1 and `rachisLength` 0, so the disagreement predates fn-309. It falls inside the test's one-in-a-hundred allowance.
+
+stage: impl-review - ran (codex, one correctness reviewer, SHIP, no findings; the reviewer read the committed evidence and ran no build)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d9f30002d7695d9aa417502bc5b27a1e91dd6d79, f3c93ac6a96de576f18ae87dadf7c0591f6e81f2, 6114a53ce3bbda615fc5ddb27484115d73997ba1
+- Tests: telperion-heavy 8 --gpu 3 --threads 2 -- cargo test --profile ci -p telperion-render --lib generation::resident::organ_tests::the_device_draws_counts_of_organs_as_the_cpu_does (red on base, green after), telperion-heavy 8 --gpu 3 --threads 2 -- cargo test --profile ci -p telperion-render --lib generation::resident::digest_tests::digest -- --ignored (base vs change identical, 24 lines), telperion-heavy 8 --threads 4 -- python3 scripts/gate.py (1477 passed, 1291 s)
 - PRs:
