@@ -217,7 +217,7 @@ mod boots_tests;
 pub(super) mod budget;
 mod build;
 #[cfg(test)]
-mod digest_tests;
+pub(super) mod digest_tests;
 #[cfg(test)]
 mod drawn_memory_tests;
 #[cfg(test)]

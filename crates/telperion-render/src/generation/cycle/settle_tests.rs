@@ -180,3 +180,77 @@ fn probe_main() {
     let raw = io::read(&gpu, &out, 12).unwrap();
     assert_eq!(bytemuck::cast_slice::<u8, f32>(&raw), [0.25, -0.5, 0.25]);
 }
+
+/// fn-303: the device's `span_share` reads a length at a span's summed end
+/// as the whole span, as `stand::span_share` does, on the CPU test's
+/// scales (`geometry/tests.rs`' `SPANS`), whose division alone reads the
+/// tip 1 − δ short; the tip summed on the device by `summed`'s fold.
+#[test]
+fn a_length_at_a_span_end_is_the_whole_span_on_the_device() {
+    use super::super::io;
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let from = super::LAY_STAND
+        .find("fn span_share(")
+        .expect("the stand's span_share");
+    let to = from + super::LAY_STAND[from..].find("\n}\n").expect("its end") + 3;
+    let spans: [f32; 3] = [0.3, 0.3, 0.044714];
+    let word = |v: f32| format!("bitcast<f32>({}u)", v.to_bits());
+    let (a, b, c) = (word(spans[0]), word(spans[1]), word(spans[2]));
+    let probe = format!(
+        "
+@group(0) @binding(0) var<uniform> unused: vec4<u32>;
+@group(0) @binding(1) var<storage, read_write> out: array<f32>;
+@compute @workgroup_size(1)
+fn probe_main() {{
+    // Zero read at run time, so the sums are the device's, not the compiler's.
+    let zero = bitcast<f32>(unused.x);
+    let before = zero + {a} + {b};
+    let tip = -zero + {a} + {b} + {c};
+    let short = bitcast<f32>(bitcast<u32>(tip) - 1u);
+    out[0] = tip;
+    out[1] = span_share(tip, before, {c});
+    out[2] = span_share(before, {a}, {b});
+    out[3] = span_share(short, before, {c});
+}}
+"
+    );
+    let shader = format!(
+        "{}\n{}\n{}\n{}\n{probe}",
+        super::ARITH,
+        super::ROOT,
+        super::Q,
+        &super::LAY_STAND[from..to]
+    );
+    let pass = io::Pass::new(&gpu, shader, &[false], &["probe_main"]);
+    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+    let out = io::buffer(&gpu, "span share out", 16, usage, &[]).unwrap();
+    let unused = io::buffer(
+        &gpu,
+        "span share cfg",
+        16,
+        wgpu::BufferUsages::UNIFORM,
+        &[0; 16],
+    )
+    .unwrap();
+    let bind = pass.bind(&gpu, &[&unused, &out]);
+    let mut e = gpu.encoder(&Default::default());
+    pass.run(&mut e, &bind, 0, 1);
+    gpu.submit([e.finish()]);
+    let raw = io::read(&gpu, &out, 16).unwrap();
+    let got = bytemuck::cast_slice::<u8, f32>(&raw);
+    // The CPU's own sums and share, as `stand` takes them.
+    let before = 0.0f32 + spans[0] + spans[1];
+    let tip: f32 = spans.iter().sum();
+    let short = f32::from_bits(tip.to_bits() - 1);
+    assert!(
+        (tip - before) / spans[2] < 1.0,
+        "the spans must round below 1"
+    );
+    assert_eq!(got[0].to_bits(), tip.to_bits(), "the device's fold");
+    assert_eq!((got[1], got[2]), (1.0, 1.0), "a span's end is its whole");
+    let cpu = ((short - before) / spans[2]).clamp(0.0, 1.0);
+    assert!(cpu < 1.0);
+    assert_eq!(got[3].to_bits(), cpu.to_bits(), "a length short of the end");
+}

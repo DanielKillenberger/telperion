@@ -47,6 +47,53 @@ pub(super) struct Limits {
 /// Where the limits stand in the census, in `Limits::words`' order.
 pub(super) const REC: usize = c::REC;
 
+/// The stepped limits a build records at their bound in every cycle
+/// (fn-302, host 2026-10-21): those a refusal named when the build passed
+/// them. A stepped limit is projected from a census two cycles old, so it
+/// is a cost hint, never a bound; a build that passes only such limits
+/// begins again once with them pinned (`build_grow`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub(super) struct Pinned(u8);
+
+impl Pinned {
+    pub(super) const NONE: Self = Self(0);
+    pub(super) const UNITS: Self = Self(1);
+    pub(super) const DRAWS: Self = Self(1 << 1);
+    pub(super) const DEPOSITS: Self = Self(1 << 2);
+    pub(super) const SWEEPS: Self = Self(1 << 3);
+    pub(super) const ROUNDS: Self = Self(1 << 4);
+    pub(super) const PASSES: Self = Self(1 << 5);
+    pub(super) const UNIT_ROUNDS: Self = Self(1 << 6);
+
+    /// The stepped limit `flag` names, none for a table, the budget, a
+    /// fault, the plan's caps or the workgroups given.
+    pub(super) fn of(flag: c::Flag) -> Option<Self> {
+        use c::Flag as F;
+        Some(match flag {
+            F::UnitRanges => Self::UNITS,
+            F::DrawRanges => Self::DRAWS,
+            F::DepositRanges => Self::DEPOSITS,
+            F::Sweeps => Self::SWEEPS,
+            F::HierGens => Self::ROUNDS,
+            F::HierPasses => Self::PASSES,
+            F::UnitRounds => Self::UNIT_ROUNDS,
+            _ => return None,
+        })
+    }
+
+    pub(super) fn any(self) -> bool {
+        self.0 != 0
+    }
+
+    pub(super) fn with(self, other: Self) -> Self {
+        Self(self.0 | other.0)
+    }
+
+    fn has(self, other: Self) -> bool {
+        self.0 & other.0 == other.0
+    }
+}
+
 impl Limits {
     /// Every dispatch the plan holds.
     pub(super) fn full(b: &Bounds) -> Self {
@@ -78,6 +125,29 @@ impl Limits {
             top: self.top.min(self.tail.min(f.tail)),
             laygens: self.laygens.clamp(1, f.laygens),
             unit_rounds: self.unit_rounds.map(|r| r.clamp(1, b.rounds)),
+        }
+    }
+
+    /// These limits with those `p` names at their bound.
+    pub(super) fn pinned(self, p: Pinned, b: &Bounds) -> Self {
+        self.taking(p, Self::full(b))
+    }
+
+    /// These limits with those `p` names taken from `from`.
+    pub(super) fn taking(self, p: Pinned, from: Self) -> Self {
+        let at = |pin: Pinned, own: u32, other: u32| if p.has(pin) { other } else { own };
+        Self {
+            units: at(Pinned::UNITS, self.units, from.units),
+            draws: at(Pinned::DRAWS, self.draws, from.draws),
+            deposits: at(Pinned::DEPOSITS, self.deposits, from.deposits),
+            sweeps: at(Pinned::SWEEPS, self.sweeps, from.sweeps),
+            rounds: at(Pinned::ROUNDS, self.rounds, from.rounds),
+            passes: at(Pinned::PASSES, self.passes, from.passes),
+            unit_rounds: match p.has(Pinned::UNIT_ROUNDS) {
+                true => from.unit_rounds,
+                false => self.unit_rounds,
+            },
+            ..self
         }
     }
 

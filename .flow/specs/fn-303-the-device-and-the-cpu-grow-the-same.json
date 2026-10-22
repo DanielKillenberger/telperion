@@ -1,11 +1,232 @@
 {
   "branch_name": "fn-303-the-device-and-the-cpu-grow-the-same",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-22T01:19:58.793537Z",
   "created_at": "2026-10-21T17:33:26.930006Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-303-the-device-and-the-cpu-grow-the-same",
+  "impl_review_rounds": {
+    "fn-303-the-device-and-the-cpu-grow-the-same.1": 0,
+    "fn-303-the-device-and-the-cpu-grow-the-same.2": 0
+  },
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T22:38:26.247100Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "a6c8d6108bda2e15f550ffdb88f974bdbb9b4dd4a759c90ae585afca6bb0b9f8",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6eb6ba48713acd8a54a4fbd40275a8fb",
+            "classification": "introduced",
+            "findingId": "finding-6eb6ba48713acd8a54a4fbd40275a8fb",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6198fbc9a189494b0f40e7f88e956efe88aec814",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 247771,
+      "output_sha256": "241c22ef984dbc07aaf698a32c301f1699ad9a6df4b4314f8a928cfc45abd731",
+      "reservation_id": "3f0dc8f5707041d2b4be8656ecb66564",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T22:37:23.473739Z",
+      "tool_calls": 13,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "f8093b18f7ca45ab027a0253dd2354800481591da3ffc2d6f705faa36d61814b",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6eb6ba48713acd8a54a4fbd40275a8fb",
+            "classification": "introduced",
+            "findingId": "finding-6eb6ba48713acd8a54a4fbd40275a8fb",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6198fbc9a189494b0f40e7f88e956efe88aec814",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 644,
+      "output_sha256": "6cad99b993fe2f94633be592c1d5317d869469e83ce0a6b5129d9e92d26288d3",
+      "reservation_id": "6073225b17de475b9380d78b1a731c1b",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T22:38:26.244344Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b186ed0c61089b04fcb76fee25fcf8c2a69068b779f8af934369bc60745e63ae",
+      "backend": "codex",
+      "base_sha": "6198fbc9a189494b0f40e7f88e956efe88aec814",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f85378805bb1736a710df698b4c29184c8960ba0",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "3853b66e77354d8dba864e134b284d17",
+      "round_consumed": true,
+      "scope": "impl:fn-303-the-device-and-the-cpu-grow-the-same.1",
+      "superseded_by": null,
+      "task": "fn-303-the-device-and-the-cpu-grow-the-same.1",
+      "timestamp": "2026-10-21T23:53:38.544242Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "71484d8f3797d7abda87aaab327e22871ca9b94ff26ad1c93a6bbf906d3389b4",
+      "backend": "codex",
+      "base_sha": "3debe60d3495c4282a4f57aec57e23d5e038964d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2416619ebf500c9256298ba3252966ea021cdee6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "e868aa72f4204495ba58a4baca550848",
+      "round_consumed": true,
+      "scope": "impl:fn-303-the-device-and-the-cpu-grow-the-same.2",
+      "superseded_by": null,
+      "task": "fn-303-the-device-and-the-cpu-grow-the-same.2",
+      "timestamp": "2026-10-22T01:16:56.658184Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "eed04dd455b6531a9b2c07d20ac17c9a8de42f284d2467144fddb28c4c62ad18",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2416619ebf500c9256298ba3252966ea021cdee6",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 267122,
+      "output_sha256": "a459081e22feb7c5df250f01923fc64c5e81537aa581b8aba12982690dffd188",
+      "reservation_id": "e3abd53399f64b3292c0e89ccef969b1",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T01:19:58.783627Z",
+      "tool_calls": 18,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-303-the-device-and-the-cpu-grow-the-same.1": 1,
+    "impl:fn-303-the-device-and-the-cpu-grow-the-same.2": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-303-the-device-and-the-cpu-grow-the-same.1": 0,
+    "impl:fn-303-the-device-and-the-cpu-grow-the-same.2": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-303-the-device-and-the-cpu-grow-the-same.md",
   "status": "open",
   "title": "The device and the CPU grow the same rounds frames on the release branch",
@@ -20,5 +241,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:33:26.939359Z"
+  "updated_at": "2026-10-22T01:19:58.797801Z"
 }

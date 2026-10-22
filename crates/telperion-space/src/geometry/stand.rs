@@ -162,17 +162,31 @@ fn length_to(p: &Axis, k: usize, t: f32) -> f32 {
 }
 
 /// The scaled length along axis `p` as a position in its nodes (`split`):
-/// in the first span that reaches it, the tip past them all.
+/// in the first span that reaches it, the tip past them all. `before` is
+/// the left fold of the phytomers' f32 scales from the base, the fold
+/// `total` runs, so a length at the tip lands on the last span's end.
 pub(super) fn node_x(p: &Axis, length: f32) -> Position {
     let mut before = 0.0;
     for (k, q) in p.phytomers.iter().enumerate() {
         let scale = q.scale as f32;
         if scale > 0.0 && before + scale >= length {
-            return (k, ((length - before) / scale).clamp(0.0, 1.0));
+            return (k, span_share(length, before, scale));
         }
         before += scale;
     }
     (p.phytomers.len(), 0.0)
+}
+
+/// The share of a span from `before` that is `scale` long that `length`
+/// reaches: whole where it reaches the span's summed end, by the one
+/// comparison that chose the span, so a length at that end is never read
+/// back as 1 − δ by the division (fn-303; the device's `span_share` in
+/// `lay_stand.wgsl` is the same rule).
+pub(super) fn span_share(length: f32, before: f32, scale: f32) -> f32 {
+    if length >= before + scale {
+        return 1.0;
+    }
+    ((length - before) / scale).clamp(0.0, 1.0)
 }
 
 /// The scaled length of axis `p`.

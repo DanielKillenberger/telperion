@@ -21,6 +21,7 @@ After the release (host, 2026-10-20). The film and the package each build one wa
 
 - **R1:** measure the gap against age, at 12, 20, 30 and 40, for every shipped preset and for the fn-298 walk frames, seeds 1, 7 and 42. Find the first cycle and the first node where the two diverge past tolerance, and the quantity behind it.
   - Topology diverges too. On spruce to birch at 40, seed 42, frame 56, the device builds 323,513 nodes against the CPU's 323,512 (fn-298, host, 2026-10-21; the ignored test `fn300_the_spruce_to_birch_frame_56_has_the_cpus_nodes`). The base spruce alone at 40 is a node apart too (966,171 / 966,172). Find that node.
+  - Spruce to birch at 40, seed 7, frame 63 is 12 nodes and 2 instances apart: 382,987 / 382,999 nodes and 187,997 / 187,999 instances, device / CPU (fn-303, host, 2026-10-22; the ignored test `fn300_the_spruce_to_birch_frame_63_has_the_cpus_counts`). fn-303's trace reached a lineage (0xe7a34cf416e9d0b0) through the finest link, where frame 48's `below` word leads, and two untraced leaves, 62549 and 145787. Start there.
 - **R2:** if a defect is found, fix it. Agreement then holds at age 40 to `agree_tests`' tolerances.
 - **R3:** if the divergence is amplification of a last-bit difference, state the contract instead.
   - At any age, topology (node counts) agrees exactly.

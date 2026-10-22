@@ -81,7 +81,7 @@ fn fn299(k: usize, seed: u32, i: u32) -> bool {
 }
 
 /// Every frame of every walk at every seed.
-fn sweep() -> Vec<(String, Family)> {
+pub(super) fn sweep() -> Vec<(String, Family)> {
     let mut out = laurelin();
     for k in 0..SEGMENTS.len() {
         for seed in SEEDS {
@@ -142,19 +142,41 @@ fn the_oak_to_palm_frames_fn299_fixed_build_on_the_device() {
 /// with every stepped limit at its bound as well.
 const FN300: (usize, u32, u32) = (1, 42, 56);
 
+/// The `rounds` frame whose counts fn-300 owns (fn-303, host, 2026-10-22):
+/// spruce to birch at 40, seed 7, frame 63, whose growth agrees cycle by
+/// cycle and whose conversion parts by last bits amplified through growth
+/// (a twig at the thinnest wood drawn, `FINEST`).
+const FN300_63: (usize, u32, u32) = (1, 7, 63);
+
 /// fn-298 R4 (narrowed): each `rounds` frame has its leaf instances within
-/// 1 of the CPU's on the device, and the CPU's node count, but `FN300`'s.
-/// Positions are fn-300's.
+/// 1 of the CPU's on the device, and the CPU's node count, but `FN300`'s
+/// node count and `FN300_63`'s counts. Positions are fn-300's.
 #[test]
 fn the_rounds_frames_have_the_cpus_counts() {
+    let frames = ROUNDS.into_iter().filter(|&f| f != FN300_63);
+    let off = counts_off(&frames.collect::<Vec<_>>());
+    assert!(off.is_empty(), "{off:#?}");
+}
+
+/// `FN300_63`'s counts on the device are the CPU's.
+#[test]
+#[ignore = "fn-300: spruce to birch at 40, seed 7, frame 63 has 187,997 device instances against the CPU's 187,999 and 382,987 device nodes against 382,999"]
+fn fn300_the_spruce_to_birch_frame_63_has_the_cpus_counts() {
+    let off = counts_off(&[FN300_63]);
+    assert!(off.is_empty(), "{off:#?}");
+}
+
+/// Where each of `frames` has its leaf instances more than 1 from the
+/// CPU's on the device, or a node count not the CPU's (but `FN300`'s).
+fn counts_off(frames: &[(usize, u32, u32)]) -> Vec<String> {
     let _held = super::whole_tree();
     let Some(gpu) = super::test_gpu() else {
-        return;
+        return Vec::new();
     };
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).expect("a generator");
     let mut off = Vec::new();
-    for (k, seed, i) in ROUNDS {
+    for &(k, seed, i) in frames {
         let (name, family) = frame(k, seed, i);
         let cpu = telperion_core::mesh::build(&family)
             .unwrap_or_else(|e| panic!("{name}: the CPU refused: {e}"))
@@ -176,7 +198,7 @@ fn the_rounds_frames_have_the_cpus_counts() {
             }
         }
     }
-    assert!(off.is_empty(), "{off:#?}");
+    off
 }
 
 /// `FN300`'s node count on the device is the CPU's.

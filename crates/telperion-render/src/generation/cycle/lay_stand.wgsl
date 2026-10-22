@@ -262,8 +262,20 @@ fn position(p: u32, node: u32) -> f32 {
     return x;
 }
 
+// The share of a span from `before` that is `scale` long that `length`
+// reaches (`stand::span_share`): whole where it reaches the span's summed
+// end, by the one comparison that chose the span (fn-303).
+fn span_share(length: f32, before: f32, scale: f32) -> f32 {
+    if length >= before + scale {
+        return 1.0;
+    }
+    return clamp(qdiv(length - before, scale), 0.0, 1.0);
+}
+
 // Where relay `i`, of blend `b`, joins its parent `p` (`attach`): its
-// node and the share of its span.
+// node and the share of its span (`stand::node_x`). `before` is the left
+// fold of the phytomers' f32 scales from the base, the fold `tip` runs, so
+// a length at the tip lands on the last span's end.
 fn attach(i: u32, p: u32, b: f32) -> vec2<f32> {
     let n = nphyt(p);
     let tip = summed(p, 0u, n, PH_SCALE);
@@ -273,7 +285,7 @@ fn attach(i: u32, p: u32, b: f32) -> vec2<f32> {
     for (var k = 0u; k < n; k++) {
         let scale = phf(prow(p, k), PH_SCALE);
         if scale > 0.0 && before + scale >= length {
-            return vec2<f32>(bitcast<f32>(k), clamp(qdiv(length - before, scale), 0.0, 1.0));
+            return vec2<f32>(bitcast<f32>(k), span_share(length, before, scale));
         }
         before = before + scale;
     }

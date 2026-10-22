@@ -51,7 +51,7 @@ fn dump(leaves: &telperion_core::foliage::Instances, path: &str) {
 }
 
 /// What `prepared` hands the renderer, as one line.
-fn line(gen: &Generator, prepared: &Prepared) -> String {
+pub(in crate::generation) fn line(gen: &Generator, prepared: &Prepared) -> String {
     let gpu = &gen.gpu;
     let leaves = gen.read_instances(prepared).unwrap();
     // `DIGEST_DUMP` names a file for the leaves' matrices, so two builds'

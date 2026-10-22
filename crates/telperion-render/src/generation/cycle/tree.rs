@@ -7,12 +7,14 @@ use super::super::resident::fold::Dressed;
 use super::build::{Kit, Tables};
 use super::build_grow::grow_hinted;
 pub(in crate::generation) use super::drawn::Trunk;
-#[cfg(test)]
-pub(in crate::generation) use super::build_size::with_laygens;
 use super::drawn::{dress, trunk, Rows};
+#[cfg(test)]
+pub(in crate::generation) use super::forced::with_laygens;
 pub(in crate::generation) use super::growth::GrowthState;
 use super::settle_device::Kernels as Settle;
 use super::settle_run::settle;
+#[cfg(test)]
+pub(in crate::generation) use super::stepped_survey::Survey;
 use super::{chains, drawn, present};
 use crate::{Gpu, Result};
 use telperion_core::pipeline::executor::{ConvertRow, Growth};

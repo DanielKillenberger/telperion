@@ -223,7 +223,11 @@ mod program_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod readback_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
+mod relay_join_tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
 mod release_tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod stepped_survey_tests;
 
 #[cfg(test)]
 use crate::whole_tree::whole_tree;

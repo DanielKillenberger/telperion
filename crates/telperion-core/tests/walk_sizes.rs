@@ -54,8 +54,10 @@ const EXCEPTIONS: [Exception; 8] = [
         t: 0.01,
         band: [(1_423_308.0, 3_280_249.0), (7_998_959.0, 16_488_620.0)],
         // Kept re-measured after fn-299's timing rule moved it from
-        // 3,944,536 (host, 2026-10-21).
-        measured: [3_961_379.0, 18_138_622.0],
+        // 3,944,536 (host, 2026-10-21), and after fn-303's span share
+        // (a relay at its parent's tip joins at its end) from 3,961,379
+        // (host, 2026-10-22).
+        measured: [3_961_473.0, 18_138_622.0],
     },
     Exception {
         walk: (Oak, Ordinary),
