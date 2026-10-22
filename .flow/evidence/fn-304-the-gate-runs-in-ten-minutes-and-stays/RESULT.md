@@ -82,7 +82,7 @@ Gate at the end of task .2 (same invocation, ffce4e524): 1,466 passed, 2 failed 
 | render `every_preset_s_device_field_answers_within_its_tolerance` | grid 36 at seeds 1 and 5678 | 72 s (92 s at three grids, rayon 2) |
 | render `every_preset_s_device_field_on_every_grid_answers_within_its_tolerance` | grids 24, 36 and 48, ignored, reason `fn-304: ...` (not a `device limits:` or `release check:` probe) | 102 s |
 
-Test counts: `walks` 12 run → 11 (merge, ruling 6); wasm 7 → 7; render lib +1 ignored. The non-flowering presets are no longer built a second time; the folded check reads the binding's own organ reference rather than a separate pipeline build, so a non-flowering preset whose pipeline grew an organ that the binding then dropped would now be caught only by the flowering list, which pins exactly Telperion and Laurelin.
+Test counts: `walks` 12 run → 11 (merge, ruling 6); wasm 7 → 7; render lib +1 ignored. The non-flowering presets are no longer built a second time. The folded check reads the binding's own organ reference rather than a separate pipeline build, and the flowering list now comes from that reference too. One case the old test caught is no longer caught: a non-flowering preset whose pipeline grows an organ that the binding drops with its reference (codex review, task .3). Named for the host as the cost of ruling 3.
 
 ### Red and green
 
