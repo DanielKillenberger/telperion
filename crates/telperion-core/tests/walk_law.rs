@@ -41,7 +41,8 @@ fn leaflets(f: &Family) -> f64 {
 
 /// The rows the law reads at `t` between `a` and `b`, walked as
 /// `blend::families` walks them before it sizes the species: the
-/// catalogue's rows by their own walks, the engine's by its. The size
+/// catalogue's rows by their own walks, the engine's by its at the walked
+/// whole age (fn-308). The size
 /// solve moves only the lateral probabilities, which no form reads.
 fn walked(a: &Family, b: &Family, t: f64) -> Family {
     let mut f = a.clone();
@@ -50,7 +51,7 @@ fn walked(a: &Family, b: &Family, t: f64) -> Family {
         a.space.species.as_ref().unwrap(),
         b.space.species.as_ref().unwrap(),
     );
-    f.space.species = Some(telperion_space::blend(x, y, t).unwrap());
+    f.space.species = Some(telperion_space::blend(x, y, t, f.age as u32).unwrap());
     f
 }
 

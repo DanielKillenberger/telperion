@@ -136,7 +136,7 @@ fn main() {
             for (b, bn) in &species[i + 1..] {
                 println!("{an} to {bn} at {age}");
                 for t in TS {
-                    match blend(a, b, t) {
+                    match blend(a, b, t, age) {
                         Ok(walked) => {
                             let [kept, grown, length, secs] = measure(&walked, age);
                             println!("  t {t}: kept {kept:.0} grown {grown:.0} wood {length:.1} m ({secs:.2} s)");
@@ -145,7 +145,7 @@ fn main() {
                     }
                 }
                 for (end, near, far) in [(a, 1e-6, 1e-3), (b, 1.0 - 1e-6, 1.0 - 1e-3)] {
-                    match (blend(a, b, near), blend(a, b, far)) {
+                    match (blend(a, b, near, age), blend(a, b, far, age)) {
                         (Ok(n), Ok(f)) => jumps(end, &n, &f, age),
                         _ => println!("    off the end at {near}: refused"),
                     }

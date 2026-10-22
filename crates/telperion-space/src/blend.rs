@@ -4,17 +4,22 @@
 //! each on its own scale (`species/scale.rs`, host decision 9). Zones are
 //! matched by role, a role one species leaves out standing in as a zone of
 //! no nodes. Both species are canonical (`Species::canonical`), so an age
-//! one of them does not use carries its neighbour's settings; between the
-//! ends, an age one of them never reaches takes the other's timing
-//! (`reaching`, fn-299).
+//! one of them does not use carries its neighbour's settings. Between the
+//! ends, for a tree of a given age, each end is read as it lives (fn-308
+//! R2): an age one of them never reaches takes the other's every row
+//! (`reaching`), each lifespan past the tree's age is clamped to it, and an
+//! age one end leaves within the tree's age and the other does not takes
+//! the leaving end's exit rows (`ending`).
 use crate::error::{refuse, Result};
 use crate::species::scale::{scale, settings, zone_settings, OUTCOMES};
 use crate::species::{NodeLaw, PaState, Species, Zone, ZONES};
 
-/// The species a share `t` (0 to 1) of the way from `a` to `b`. Both are
+/// The species a share `t` (0 to 1) of the way from `a` to `b`, for a tree
+/// `age` cycles old: the whole age the grower grows it to. Both are
 /// written on one reference axis, with uniform node counts throughout, as
-/// the four species are; anything else is refused.
-pub fn blend(a: &Species, b: &Species, t: f64) -> Result<Species> {
+/// the four species are; anything else is refused. At either end the
+/// species is that end, whatever the age.
+pub fn blend(a: &Species, b: &Species, t: f64, age: u32) -> Result<Species> {
     if a.states.len() != b.states.len() {
         return refuse(
             "states",
@@ -27,7 +32,7 @@ pub fn blend(a: &Species, b: &Species, t: f64) -> Result<Species> {
     a.validate()?;
     b.validate()?;
     let (a, b) = if t > 0.0 && t < 1.0 {
-        reaching(a, b)
+        ending(reaching(a, b), f64::from(age))
     } else {
         (a.clone(), b.clone())
     };
@@ -123,51 +128,53 @@ fn mixed(name: &str, a: f64, b: f64, t: f64) -> Result<f64> {
     }
 }
 
-/// The rows that decide whether and for how long a bud lives an age
-/// (fn-299, host 2026-10-21): its lifespan, the chance it moves on, and a
-/// stop's three outcomes, carrying on, relaying and dying (`OUTCOMES`),
-/// which `outcomes` mixes as one set; `abortion_rise` sets when the
-/// abortion stop bites along the age. Every other row blends as before.
-const TIMING: [&str; 8] = [
-    "lifespan",
-    "continuation",
-    "abortion",
-    "abortion_rise",
-    "relay",
-    "relay_ended",
-    "viability",
-    "relay_failed",
-];
-
 /// Both ends with each age one of them never reaches given the other's
-/// timing rows (fn-299, host 2026-10-20, 2026-10-21). A species' timing
-/// at an age no bud of it is ever in is a canonical placeholder (`lifespan`
-/// 0, `continuation` 1), not data: mixed, it made slivers of the other
-/// end's ages that one apex chained a dozen at a time in a cycle. Kept, the
+/// every row (fn-299, fn-308 rule B, host 2026-10-22). A species' rows at
+/// an age no bud of it is ever in are canonical placeholders (`lifespan`
+/// 0, `continuation` 1, no laterals), absence and not settings: mixed,
+/// they damped every branching order the other end grows there. Kept, the
 /// age lives as the end that reaches it lives it, and the walk fades how
 /// often a bud enters it, through the continuations and laterals that lead
-/// there; its leaf, size and shape rows mix as any other's.
+/// there. Reached here is entered at all, at any age of the tree.
 fn reaching(a: &Species, b: &Species) -> (Species, Species) {
     let (ra, rb) = (reached(a), reached(b));
     let (mut x, mut y) = (a.clone(), b.clone());
     for k in 0..a.states.len() {
         match (ra[k], rb[k]) {
-            (false, true) => timed(&mut x.states[k], &b.states[k]),
-            (true, false) => timed(&mut y.states[k], &a.states[k]),
+            (false, true) => x.states[k] = b.states[k].clone(),
+            (true, false) => y.states[k] = a.states[k].clone(),
             _ => {}
         }
     }
     (x, y)
 }
 
-/// `state` with `from`'s timing rows (`TIMING`).
-fn timed(state: &mut PaState, from: &PaState) {
-    let mut from = from.clone();
-    for ((name, v), (_, w)) in settings(state).into_iter().zip(settings(&mut from)) {
-        if TIMING.contains(&name) {
-            *v = *w;
+/// Both ends as a tree `age` cycles old lives them (fn-308 R2). Each
+/// lifespan past the age is clamped to it, since a lifespan past the
+/// tree's age is dormant. Then, at an age one end leaves within the tree's
+/// age (`leaves`) and the other does not, the other takes the leaving
+/// end's exit rows: whether a bud moves on, and whether a relay replaces
+/// it when it does not. The staying end never draws its own within the
+/// age, so mixed in they would switch the frame's exit by seed. Where both
+/// ends leave, or neither, the rows mix.
+fn ending((mut a, mut b): (Species, Species), age: f64) -> (Species, Species) {
+    for s in a.states.iter_mut().chain(&mut b.states) {
+        s.lifespan = s.lifespan.min(age);
+    }
+    for (x, y) in a.states.iter_mut().zip(&mut b.states) {
+        match (leaves(x, age), leaves(y, age)) {
+            (false, true) => (x.continuation, x.relay_ended) = (y.continuation, y.relay_ended),
+            (true, false) => (y.continuation, y.relay_ended) = (x.continuation, x.relay_ended),
+            _ => {}
         }
     }
+    (a, b)
+}
+
+/// Whether a bud living `state` comes to its age's end within a tree `age`
+/// cycles old: its lifespan is under the age.
+fn leaves(state: &PaState, age: f64) -> bool {
+    state.lifespan < age
 }
 
 /// The ages a bud of `s` is ever in, entered or passed through: from the
@@ -228,16 +235,5 @@ fn empty(width: usize) -> Zone {
         dormant: vec![0.0; width],
         delay: 0.0,
         rate: 0.0,
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    /// A timing row named wrong would never be swapped.
-    #[test]
-    fn every_timing_row_is_a_setting() {
-        for name in super::TIMING {
-            assert!(super::scale(name).is_some(), "{name}");
-        }
     }
 }

@@ -284,7 +284,7 @@ mod tests {
         b.states[14].cluster_leaves = 3.0;
         for k in 0..=20 {
             let t = f64::from(k) / 20.0;
-            let walked = crate::blend(&a, &b, t).unwrap();
+            let walked = crate::blend(&a, &b, t, 40).unwrap();
             assert!(
                 (walked.states[14].cluster_leaves - 3.0 * t).abs() < 1e-12,
                 "{t}"

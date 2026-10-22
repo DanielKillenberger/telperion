@@ -89,9 +89,14 @@ fn every_walk_is_the_walk_it_was() {
     for line in lines {
         text.push_str(&line);
     }
+    // Re-pinned by fn-308 (host ruling 4, 2026-10-22): between the ends
+    // each engine species is read at the frame's age, so every row of an
+    // age one end never reaches is the other's, each lifespan is clamped
+    // at the age and an unreached end takes the leaving end's exits. Was
+    // 18_002_361_237_904_030_670; measured 14_357_345_262_323_445_191.
     assert_eq!(
         digest(&text),
-        18_002_361_237_904_030_670,
+        14_357_345_262_323_445_191,
         "{}",
         digest(&text)
     );
