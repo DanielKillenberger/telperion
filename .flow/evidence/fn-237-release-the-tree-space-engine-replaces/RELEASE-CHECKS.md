@@ -64,3 +64,10 @@ Branch `fn-237-release-checks`, from `d2a8bd258`. Measured 2026-10-14 on the RTX
 - **Gate:** green on `1418ffebb` under the declared invocation `telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`, with cargo-nextest 0.9.145. 1,473 passed, 0 failed, 123 skipped. The build and listing took 112 s; the test run took 1,166 s against its 1,560 s budget. No test passed its time or memory budget.
 - **npm test:** green, 22 files, 177 tests.
 - The raw logs are `raw/f4-gate-after-304.log` and `raw/f4-npm-after-304.log`.
+
+## Release branch gate after fn-306 and fn-308 (host, 2026-10-22)
+
+- **First run, at `8175cd91a`: red on one test.** 1,475 passed and one timed out: `suite::mesh` at 120.3 s, against the 120 s cut-off. The desk was also running other projects' suites (Playwright, bun, postgres). Run alone in the queue, the test passed in 47 s.
+- **Rerun: green.** 1,476 passed, 0 failed, 133 skipped. The test run took 1,274 s against 1,560 s. `suite::mesh` took 100.4 s. Its margin inside the gate goes to fn-305.
+- **npm test:** green, 22 files and 177 tests, run alone after the gate.
+- **Raw logs:** `raw/f4-gate-after-308.log`, `raw/f4-gate-after-308-rerun.log` and `raw/f4-npm-after-308.log`.

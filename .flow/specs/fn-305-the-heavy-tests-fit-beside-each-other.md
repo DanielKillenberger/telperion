@@ -13,6 +13,7 @@ Owner (2026-10-21) asked for the gate to be fixed now: "test suite takes 35 min?
 
 - Why a whole-preset test holds 1.5 to 7.7 GiB. Is it the tree itself, kept artifacts, the device's arenas, or intermediate buffers kept alive past their use?
 - Why nextest skipped tests under the token scheme. Is it a configuration error, a `threads-required` above the run's width, or a nextest defect? Reproduce it on a two-test fixture.
+- `suite::mesh` sits near its 120 s cut-off inside the gate (host, 2026-10-22, release branch after fn-308). Alone it took 47 s. In the gate it timed out at 120.3 s on one run, while the desk also ran other projects' suites, and took 100.4 s on the rerun. fn-304 recorded a worst of 54 s. Find what it waits on inside the gate: its group, the turn it shares, or the device. Fix that rather than raise its allowance.
 
 ## Requirements
 
