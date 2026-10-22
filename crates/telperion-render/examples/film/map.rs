@@ -3,7 +3,7 @@
 //! (so a walk is a straight segment here), each row less its mean and over
 //! its spread across the species, the age left out. The map is the
 //! projection onto the first two principal components of those points.
-use telperion_core::{blend, catalogue, presets::Family};
+use telperion_core::{catalogue, presets::Family};
 use telperion_space::{
     scale, settings, zone_settings, Scale, Species, Transcendental, OUTCOMES, ZONES,
 };
@@ -112,19 +112,17 @@ impl Map {
             .map(|(_, p)| *p)
             .ok_or(format!("{id} is no species on the map"))
     }
-}
 
-/// The family `t` of the way along the walk from `a` to `b` as the walk
-/// mixes its rows: `blend::families`, with the species before the size
-/// match, which shrinks a frame's laterals to its ends' size and is not a
-/// place in species space.
-pub fn walked(a: &Family, b: &Family, t: f64) -> Result<Family, String> {
-    let mut f = blend::families(a, b, t).map_err(|e| format!("walk at {t}: {e}"))?;
-    if let (Some(x), Some(y)) = (&a.space.species, &b.space.species) {
-        f.space.species =
-            Some(telperion_space::blend(x, y, t).map_err(|e| format!("walk at {t}: {e}"))?);
+    /// The point a share `t` of the way from `from`'s dot to `to`'s. A walk's
+    /// frames are drawn there, not at their own rows' projection. The walk mixes
+    /// some rows off the straight line in species space: an age one end never
+    /// reaches takes the other end's rows, and a lifespan is held at the tree's
+    /// age (fn-308). The corner map shows how far along the walk is, which is
+    /// what the viewer reads (host, 2026-10-22).
+    pub fn along(&self, from: &str, to: &str, t: f64) -> Result<[f64; 2], String> {
+        let (p, q) = (self.dot(from)?, self.dot(to)?);
+        Ok([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t])
     }
-    Ok(f)
 }
 
 fn value(rows: &Rows, path: &str) -> Option<f64> {
@@ -179,7 +177,7 @@ fn rows(family: &Family) -> Result<Rows, String> {
 }
 
 /// The species' settings, age by age and zone by zone, each on the scale
-/// `telperion_space::blend` mixes it on, so the walk is straight in them:
+/// `telperion_space::blend` mixes it on, so a walk's ends are mixed in them:
 /// a magnitude by its shifted log, a delay by the share it keeps, a relay
 /// by the share of its stops that relay.
 fn species_rows(species: &Species, out: &mut Rows) -> Result<(), String> {

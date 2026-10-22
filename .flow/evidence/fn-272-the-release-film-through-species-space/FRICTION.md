@@ -55,3 +55,10 @@
 - **Hindered:** the full cut stopped at its first walk: "european-beech -> norway-spruce at 0.216: the GPU device was refused on experimental generation: the build passed its sizes at cycle 9: LayGenerations (0x1)" (seed 7, age 40, t = 0.2160, eased). fn-276's sweep named the film's walk frames at seeds 1, 7, 42 as built; this share was not among the clip's frames, so the clip did not catch it. The layout-generation limit is the one fn-276 R2 sized from presets (`most_units` floor).
 - **Cost:** a 2-minute run; the walks go back to the CPU build (about 32 minutes a cut).
 - **Would have removed it:** a device sweep at the film's own frame shares (`Path::frames`, eased) rather than chosen t values; the oracle could build each frame on the device too.
+
+## 2026-10-22, cut 5: the film example does not compile after the release merge
+
+- **Doing:** cut 5, `telperion-heavy 8 --gpu 4 --threads 4 -- cargo run --profile ci -p telperion-render --example film -- crates/telperion-render/examples/film/release.json <evidence>/raw/cut5` at 96837aef4 (FILM.md does not record cut 4's heavy settings; the host's default was used).
+- **Hindered:** the build stopped at `examples/film/map.rs:125`, `error[E0061]`: `telperion_space::blend` takes a fourth argument, the tree's age, since fn-308 (cf563e960, "the species blend reads the tree's age between the ends"), and the film map's `walked` still calls it with three. The merge 96837aef4 carried fn-308 in without the film's call site; `tests/film_map.rs` calls `walked` too, so it cannot build either. The dispatched render changes no code, so no frame was rendered; the fix (which age the map's projection blends at) is the host's.
+- **Cost:** about 3 minutes (a cold `--profile ci` compile of the workspace, 50 s inside the queue, plus one relaunch after `/usr/bin/time` was missing on this machine).
+- **Would have removed it:** building the film example and its tests when the release branch is merged in (`cargo build --profile ci -p telperion-render --examples --tests`), before a render is dispatched.

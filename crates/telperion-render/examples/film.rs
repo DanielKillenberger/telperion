@@ -133,10 +133,7 @@ fn shown(path: &Path, frames: &[Frame], map: &map::Map) -> Result<Vec<Shown>, St
             .map(|l| (l.clone(), held as f64 / (0.3 * f64::from(path.fps))));
         let (point, age) = match &segment.kind {
             Kind::Grow { species, from, to } => (map.dot(species)?, age_at(*from, *to, f.along)),
-            Kind::Walk { from, to, age } => {
-                let (a, b) = (ends(from, *age, path.seed)?, ends(to, *age, path.seed)?);
-                (map.project(&map::walked(&a, &b, ease(f.along))?)?, *age)
-            }
+            Kind::Walk { from, to, age } => (map.along(from, to, ease(f.along))?, *age),
         };
         out.push(Shown { point, age, line });
     }
