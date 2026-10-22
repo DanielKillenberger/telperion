@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-22T06:34:13.059977Z",
+  "depends_on": [],
+  "id": "fn-306-the-f4-builds-obvious-friction-fixes.1",
+  "priority": null,
+  "spec": "fn-306-the-f4-builds-obvious-friction-fixes",
+  "spec_path": ".flow/tasks/fn-306-the-f4-builds-obvious-friction-fixes.1.md",
+  "status": "todo",
+  "title": "The guards run first, the digest takes an age, build_time times a walk frame, and the review-cap line",
+  "updated_at": "2026-10-22T06:34:13.059977Z"
+}
