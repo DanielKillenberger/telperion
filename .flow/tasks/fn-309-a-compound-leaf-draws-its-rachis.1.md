@@ -43,9 +43,16 @@ The rule on the CPU and the measurement that proves it. `rosette::fan` learns wh
 - [ ] The gate (`telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`) is green, once.
 
 ## Done summary
-TBD
+A twig or cluster placement on wood draws no rachis, so its compound leaf now stands every leaflet at its placement point with its old heading. `fan` and `leaflets` take a frond's girth or none (`Option<f64>`). Fronds pass `Some` at any width and are byte-identical: every species digest and rachis pin is unchanged. The host's probe is now the ignored test `crates/telperion-core/tests/walk_flying.rs`. Across the 13 R3 oak-to-palm frames it counts 665 to 4,082 leaves a frame in class (e) on the base, and 0 in (d) and 0 in (e) after the change (`.flow/evidence/fn-309-a-compound-leaf-draws-its-rachis/RESULT.md`). The `rachisLength` doc now names the tuft, and the parameter reference was regenerated.
 
+Tests: the organs suite's `a_compound_leaf_on_wood_stands_its_leaflets_at_its_point` failed on the base (a leaflet 2 m off its point) and passes after the change. The focused suites passed (63 tests), `walk_rachis` passed, and the gate `telperion-heavy 8 --threads 4 -- python3 scripts/gate.py` passed once (1,477 passed, test run 1,330 s against 1,560 s). The untracked example probe was removed; a copy stays in the scratchpad.
+
+Follow-up, not this task: `tests/walk_midpoint.rs` (fn-308) already fails `cargo fmt --check` on the base.
+
+stage: impl-review - ran (codex, one correctness reviewer, SHIP; two P2 findings on the measurement fixed: end spheres, and the pixel split by width; base and change re-measured)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4ee18181423539ac47ab86d92a94ef599cc66fc5, c4336331949d0d9b70c17a30f8af25fc602a2253, a9c74b5257615af524186bb2f5f12895ef1cc1ba
+- Tests: telperion-heavy 8 --threads 4 -- python3 scripts/gate.py, cargo test --profile ci -p telperion-core --lib -- leaflet suite::rachis suite::species suite::organs suite::establish suite::rosette suite::clusters, cargo test --profile ci -p telperion-core --test walk_rachis, cargo test --profile ci -p telperion-core --test walk_flying -- --ignored --nocapture --test-threads 1
 - PRs:
