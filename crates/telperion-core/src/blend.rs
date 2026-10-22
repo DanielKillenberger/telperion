@@ -22,9 +22,10 @@ mod size;
 /// which is how the bias itself reads it, so a family that switches the terms
 /// on ramps up from nothing.
 ///
-/// Between two engine species the rows are then shrunk to the ends' size
-/// (`size`): a two-way walk is `centroid` of the two at shares `1 - t` and
-/// `t`.
+/// Between two engine species the species is the ends' at the frame's
+/// whole age, the age it is grown to (`telperion_space::blend`, fn-308),
+/// and its rows are then shrunk to the ends' size (`size`): a two-way walk
+/// is `centroid` of the two at shares `1 - t` and `t`.
 pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
     if !t.is_finite() || !(0.0..=1.0).contains(&t) {
         return Err(Error::InvalidInput("blend parameter"));
@@ -37,13 +38,17 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
 
 /// The point at `shares` of `points` (fn-230, host 2026-10-08): the weighted
 /// centroid of every row, each point a share `w / W` of the way from the
-/// centroid of those before it, where `W` is their weights so far; then,
+/// centroid of those before it, where `W` is their weights so far, the
+/// engine species read at each fold's own whole age (fn-308); then,
 /// between engine species, one factor on the lateral probabilities so the
 /// light-neutral predicted size at the centroid's age is the points'
 /// weighted geometric mean, shrinking only. Every row a two-way walk mixes
 /// on a continuous scale, the engine species and its size included, is the
-/// same in any order; a row of whole counts rounds at each point, so the
-/// order can move it by one.
+/// same in any order, but for the rows fn-308's rule reads by each fold
+/// (recorded, not solved): a lifespan past a fold's age, which each fold
+/// clamps, and every row of an age one fold's end never reaches, which it
+/// takes from the other; a row of whole counts rounds at each point, so
+/// the order can move it by one.
 pub fn centroid(points: &[(&Family, f64)]) -> Result<Family> {
     let total: f64 = points.iter().map(|(_, w)| w).sum();
     let bad = |w: &f64| !w.is_finite() || *w < 0.0;
@@ -136,20 +141,22 @@ fn mixed(a: &Family, b: &Family, t: f64) -> Result<Family> {
     );
     g.max_nodes = (oa.max_nodes.is_some() || ob.max_nodes.is_some())
         .then(|| linear(ga.max_nodes as f64, gb.max_nodes as f64, t).round() as usize);
-    f.space = space(&a.space, &b.space, t)?;
+    f.space = space(&a.space, &b.space, t, f.age as u32)?;
     f.supernatural = crate::supernatural::blend(a, b, t);
     Ok(f)
 }
 
-/// The engine species between two families' (fn-206's walk on the shared
-/// reference axis), the stem ages of either end, and the site's light both
-/// grow under, which a walk does not interpolate (fn-264 R1a). A walk from
-/// a family with no species to one with one is refused by name: there is
-/// no species to start from; so is one between two sites' light.
-fn space(a: &Space, b: &Space, t: f64) -> Result<Space> {
+/// The engine species between two families' for a tree `age` years old,
+/// the frame's whole age that `sized` and the grower read (fn-206's walk on
+/// the shared reference axis, fn-308), the stem ages of either end, and the
+/// site's light both grow under, which a walk does not interpolate (fn-264
+/// R1a). A walk from a family with no species to one with one is refused
+/// by name: there is no species to start from; so is one between two
+/// sites' light.
+fn space(a: &Space, b: &Space, t: f64, age: u32) -> Result<Space> {
     let species = match (&a.species, &b.species) {
         (Some(x), Some(y)) => Some(
-            telperion_space::blend(x, y, t)
+            telperion_space::blend(x, y, t, age)
                 .map_err(|_| Error::InvalidInput("blend of two engine species"))?,
         ),
         (None, None) => None,

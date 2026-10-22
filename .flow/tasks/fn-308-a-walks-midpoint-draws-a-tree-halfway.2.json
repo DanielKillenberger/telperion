@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-22T09:22:45.225204Z",
+  "depends_on": [
+    "fn-308-a-walks-midpoint-draws-a-tree-halfway.1"
+  ],
+  "id": "fn-308-a-walks-midpoint-draws-a-tree-halfway.2",
+  "priority": null,
+  "spec": "fn-308-a-walks-midpoint-draws-a-tree-halfway",
+  "spec_path": ".flow/tasks/fn-308-a-walks-midpoint-draws-a-tree-halfway.2.md",
+  "status": "todo",
+  "title": "The rule: every row of an unreached age, the lifespan clamped at the age, an unreached end's exits",
+  "updated_at": "2026-10-22T10:13:21.614367Z"
+}

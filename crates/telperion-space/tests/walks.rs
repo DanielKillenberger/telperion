@@ -47,7 +47,7 @@ fn a_walk_between_species_changes_the_tree_by_degree() {
         .into_iter()
         .map(|(name, a, b)| {
             setting(name.into(), 0.0, 1.0, false, move |s, t| {
-                *s = blend(&a(), &b(), t).unwrap()
+                *s = blend(&a(), &b(), t, walk::AGE).unwrap()
             })
         })
         .collect();
@@ -235,7 +235,7 @@ fn a_stop_near_its_bound_fades_nothing_its_relay_carries() {
 #[test]
 fn a_midpoint_between_two_undying_leaders_keeps_its_leader() {
     use telperion_space::{beech, blend, grow, spruce, Origin, Request};
-    let species = blend(&beech(), &spruce(), 0.5).unwrap();
+    let species = blend(&beech(), &spruce(), 0.5, 60).unwrap();
     let request = Request {
         age: 60,
         seed: 1,

@@ -1,11 +1,369 @@
 {
   "branch_name": "fn-308-a-walks-midpoint-draws-a-tree-halfway",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-22T11:42:49.564252Z",
   "created_at": "2026-10-22T07:44:47.539493Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-308-a-walks-midpoint-draws-a-tree-halfway",
+  "impl_review_rounds": {
+    "fn-308-a-walks-midpoint-draws-a-tree-halfway.1": 0,
+    "fn-308-a-walks-midpoint-draws-a-tree-halfway.2": 0,
+    "fn-308-a-walks-midpoint-draws-a-tree-halfway.3": 0
+  },
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "stale",
+  "plan_reviewed_at": "2026-10-22T09:26:11.546863Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "47235c35bf7ceb4ba17b246f790b381db0e916a64f078b10dafaeafc8b084ff4",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7e958f679ed78e8674d2075ffc05ddea",
+            "classification": "introduced",
+            "findingId": "finding-7e958f679ed78e8674d2075ffc05ddea",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9c5c2e6a27609029332f02faa1f5c98387f79ad8",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 287604,
+      "output_sha256": "1c1de48d95648442e2bd6bd15ef8e6f1a17130762b3b7fa42f55172de56d45e1",
+      "reservation_id": "0f8b6d5210e04ab19aa1c8b81001c9a3",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T09:25:21.346362Z",
+      "tool_calls": 15,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "6a1c61abf9a46a2e2e2c39c56bd13addc19a957b6275803f287639a908f863d1",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7e958f679ed78e8674d2075ffc05ddea",
+            "classification": "introduced",
+            "findingId": "finding-7e958f679ed78e8674d2075ffc05ddea",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9c5c2e6a27609029332f02faa1f5c98387f79ad8",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 602,
+      "output_sha256": "d54e40768290f59526cdd6ecbfd5adaf1a584b6be226b6a6d864b4957950b65e",
+      "reservation_id": "10be5b295c3048c1b083aa14d407c0dc",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T09:26:11.544569Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ec4a6b770876550cb3889b09d46d54e2e11ced3a99c5dcd46ebb16b724df60e2",
+      "backend": "codex",
+      "base_sha": "4857153c79cc79cf5597717715b49f0462b5775a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8810c7f5840ae5032d76265f041170ecf7166214",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "537c8f80948a4738b63807e65b78cc59",
+      "round_consumed": true,
+      "scope": "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.1",
+      "superseded_by": null,
+      "task": "fn-308-a-walks-midpoint-draws-a-tree-halfway.1",
+      "timestamp": "2026-10-22T09:39:18.275236Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4ca7a3cc1517c42c8a8376e99bc9e2f6f1fe8cef602bb7a95964781cedab6340",
+      "backend": "codex",
+      "base_sha": "636e6bb6158b33b1cb380912ea8490c52a4bfe32",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c32a2af1099e7709fa42808954e88cd1",
+            "classification": "introduced",
+            "findingId": "finding-c32a2af1099e7709fa42808954e88cd1",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b7c4d6d0183b0d826568280a7a3afcccb7c84ec7",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 949,
+      "output_sha256": "e63aa058e24db91063d539666fa07b1f7961b6648588d9c5c7746a492c879e50",
+      "reservation_id": "222a36e0f5d74a52aa24a9e5742285e7",
+      "round_consumed": true,
+      "scope": "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.2",
+      "superseded_by": null,
+      "task": "fn-308-a-walks-midpoint-draws-a-tree-halfway.2",
+      "timestamp": "2026-10-22T10:56:17.112383Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "cf09984eebe9c2a6dd5643033fbb5b0f326d52d00eff5d46a42705c6ff01bc1a",
+      "backend": "codex",
+      "base_sha": "636e6bb6158b33b1cb380912ea8490c52a4bfe32",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "60439c71b77887aaa2861da853230d359ec4d236",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 232550,
+      "output_sha256": "fb46b463a57342cf55cd06dbd98b72bd1b37a65c0c6ff8ad6c4a90b8406e3774",
+      "reservation_id": "48eced9a1dd747db9d9a7506dc1e7a9e",
+      "round_consumed": true,
+      "scope": "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.2",
+      "superseded_by": null,
+      "task": "fn-308-a-walks-midpoint-draws-a-tree-halfway.2",
+      "timestamp": "2026-10-22T10:58:47.432677Z",
+      "tool_calls": 20,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "86507bb2da68d6b8bda48f6b5050324a91bd8c4ea1d6d1f786ab9bbaa1e1d4f9",
+      "backend": "codex",
+      "base_sha": "5ee964f401a32b9f704183474d90051f5f2c498d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "eb11ed4c42e61a56b1b4159cf3d0af12fef5c48b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 487280,
+      "output_sha256": "1659a7dcf75601b4b0f618f8a26037ef22bdc322fdfed314fa0d18f55a45c1af",
+      "reservation_id": "7b5f94061d474fbd947ffc7283893321",
+      "round_consumed": true,
+      "scope": "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.3",
+      "superseded_by": null,
+      "task": "fn-308-a-walks-midpoint-draws-a-tree-halfway.3",
+      "timestamp": "2026-10-22T11:36:21.530075Z",
+      "tool_calls": 13,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "1f5d70c9fe1ae7d9438e71510eaf1cd4b1be2aa324f284e4fb9d166a918caeef",
+      "backend": "codex",
+      "base_sha": "911262a6e95d74618874b1807cb24d6a77e99b04",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7e17ebb144f8844a349cab851b708d8f",
+            "classification": "introduced",
+            "findingId": "finding-7e17ebb144f8844a349cab851b708d8f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "06780e069bc190e78bc7ed723b70bd0381a69b3f",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 374484,
+      "output_sha256": "7f754a2f18559b9a878232dae5594c3c7f15adac1ab98af5de1b17a102ee9635",
+      "reservation_id": "de0696ac24cf4b3c8797fc2406c7d0be",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T11:40:54.522268Z",
+      "tool_calls": 18,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "93b03bd7182bf913fb2bef21b99ffdaf70116266f23a8742ce023f7dfacd3a48",
+      "backend": "codex",
+      "base_sha": "911262a6e95d74618874b1807cb24d6a77e99b04",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7e17ebb144f8844a349cab851b708d8f",
+            "classification": "introduced",
+            "findingId": "finding-7e17ebb144f8844a349cab851b708d8f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f2590daddfa5f67dc4da2dcf39f863a129d1b4ad",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 4969,
+      "output_sha256": "19a8f81083b37702469fc33c130ca50b7d7ae8ccb647801ee915f20017d3bb62",
+      "reservation_id": "c7c82e4455bf45b98e2cb61697e7aa8e",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T11:42:49.560693Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.1": 1,
+    "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.2": 2,
+    "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.3": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.1": 0,
+    "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.2": 0,
+    "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.3": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-308-a-walks-midpoint-draws-a-tree-halfway.md",
   "status": "open",
   "title": "A walk's midpoint draws a tree halfway between its ends",
@@ -20,5 +378,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T07:44:47.555705Z"
+  "updated_at": "2026-10-22T11:42:49.564962Z"
 }

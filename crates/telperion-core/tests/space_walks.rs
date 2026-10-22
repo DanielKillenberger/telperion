@@ -4,7 +4,7 @@
 //! expected kept nor grown phytomers at the blend's age pass the ends'
 //! weighted geometric mean of them (host, 2026-10-08). Built frames and their strips are the evidence sheet's; these
 //! tests read the prediction, which costs no growth.
-use telperion_core::{blend, presets::Preset, Family};
+use telperion_core::{blend, mesh, presets::by_identity, presets::Preset, Family};
 use telperion_space::{expected_grown, expected_kept, Species};
 
 /// The passed branching species and the ordinary tree (fn-230 R2).
@@ -57,7 +57,8 @@ fn sizes(point: &Species, a: &Species, b: &Species, t: f64, age: u32) -> [f64; 2
 }
 
 /// Every lateral probability of `sized` over the bare mix's, which must be
-/// one factor.
+/// one factor; in a first year it may be none
+/// (`a_first_year_blend_is_a_tree_though_no_factor_reaches_its_size`).
 fn factor(sized: &Species, mixed: &Species) -> f64 {
     let pairs = sized.states.iter().zip(&mixed.states).flat_map(|(s, m)| {
         s.zones
@@ -70,9 +71,21 @@ fn factor(sized: &Species, mixed: &Species) -> f64 {
         .map(|(p, q)| p / q)
         .collect();
     for r in &ratios {
-        assert!((r / ratios[0] - 1.0).abs() < 1e-12, "{ratios:?}");
+        assert!((r - ratios[0]).abs() <= 1e-12 * ratios[0], "{ratios:?}");
     }
     ratios[0]
+}
+
+/// The walked species with the bare mix's lateral probabilities: what the
+/// size solve leaves as it found it.
+fn unscaled(walked: &Species, mixed: &Species) -> Species {
+    let mut bare = walked.clone();
+    for (s, m) in bare.states.iter_mut().zip(&mixed.states) {
+        for (z, y) in s.zones.iter_mut().zip(&m.zones) {
+            z.lateral.clone_from(&y.lateral);
+        }
+    }
+    bare
 }
 
 /// R1, R2: points between two branching species at 40 and 80 are predicted
@@ -98,14 +111,9 @@ fn a_walk_between_branching_species_keeps_its_ends_size_at_40_and_80() {
                 };
                 for &t in ts {
                     let walked = blend::families(&a, &b, t).unwrap();
-                    let mixed = telperion_space::blend(species(&a), species(&b), t).unwrap();
+                    let mixed = telperion_space::blend(species(&a), species(&b), t, age).unwrap();
                     let f = factor(species(&walked), &mixed);
-                    let mut bare = species(&walked).clone();
-                    for (s, m) in bare.states.iter_mut().zip(&mixed.states) {
-                        for (z, y) in s.zones.iter_mut().zip(&m.zones) {
-                            z.lateral.clone_from(&y.lateral);
-                        }
-                    }
+                    let bare = unscaled(species(&walked), &mixed);
                     assert_eq!(bare, mixed, "{p:?} to {q:?} at {t}, {age}");
                     let [kept, grown] = sizes(species(&walked), species(&a), species(&b), t, age);
                     let name = format!("{p:?} to {q:?} at {t}, {age}: factor {f}, {kept} {grown}");
@@ -118,20 +126,110 @@ fn a_walk_between_branching_species_keeps_its_ends_size_at_40_and_80() {
     }
 }
 
+/// The film's walks (fn-272 cut 3): from, to and age.
+const FILM: [(&str, &str, f64); 6] = [
+    ("european-beech", "norway-spruce", 40.0),
+    ("norway-spruce", "silver-birch", 40.0),
+    ("silver-birch", "oregon-white-oak", 40.0),
+    ("oregon-white-oak", "date-palm", 40.0),
+    ("date-palm", "laurelin", 1.0),
+    ("laurelin", "telperion", 80.0),
+];
+
+/// fn-308 R5, one path: every film walk's species is the engine's blend
+/// at the walk's whole age, in every row but the lateral probabilities,
+/// which the size solve scales by one factor of at most 1.
+#[test]
+fn every_film_walk_is_the_engines_blend_at_its_age() {
+    std::thread::scope(|scope| {
+        let jobs: Vec<_> = (FILM.iter())
+            .flat_map(|&w| [0.25, 0.5, 0.75].map(|t| (w, t)))
+            .map(|((from, to, age), t)| {
+                scope.spawn(move || {
+                    let end = |id: &str| {
+                        let mut f = by_identity(id).unwrap();
+                        f.age = age;
+                        f
+                    };
+                    let (a, b) = (end(from), end(to));
+                    let walked = blend::families(&a, &b, t).unwrap();
+                    let (x, y) = (species(&a), species(&b));
+                    let mixed = telperion_space::blend(x, y, t, age as u32).unwrap();
+                    let f = factor(species(&walked), &mixed);
+                    let name = format!("{from} to {to} at {t}, {age}: factor {f}");
+                    assert_eq!(unscaled(species(&walked), &mixed), mixed, "{name}");
+                    assert!(f <= 1.0, "{name}");
+                })
+            })
+            .collect();
+        for job in jobs {
+            job.join().unwrap();
+        }
+    });
+}
+
+/// fn-308's clamp rests on this (host, 2026-10-22): a lifespan at or past
+/// the cycles a tree grows is dormant. The date palm at 40, seed 1, builds
+/// the same tree with an age-2 lifespan of 150, 41 or 40, and another with
+/// 39.
+#[test]
+fn a_lifespan_at_or_past_the_age_is_dormant() {
+    let mut palm = at(Preset::DatePalm, 40.0);
+    palm.skeleton.seed = 1;
+    let built = |lifespan: f64| {
+        let mut f = palm.clone();
+        f.space.species.as_mut().unwrap().states[2].lifespan = lifespan;
+        format!("{:?}", mesh::build(&f).unwrap())
+    };
+    let dormant = built(150.0);
+    assert!(built(41.0) == dormant && built(40.0) == dormant);
+    assert!(built(39.0) != dormant);
+}
+
+/// fn-308 (host, 2026-10-22): a walk between ends of a fractional age is
+/// drawn at the cycles its build grows, the age rounded up, at least 1:
+/// beech to spruce and oak to palm build at 0.5 and 40.5, and at 40.5 the
+/// clamp reads 41. Between two palms at 40.5 an age-2 lifespan of 41 is
+/// untouched, and one above 41 becomes 41.
+#[test]
+fn a_walk_at_a_fractional_age_clamps_at_the_cycles_it_grows() {
+    for age in [0.5, 40.5] {
+        for (p, q) in [
+            (Preset::EuropeanBeech, Preset::NorwaySpruce),
+            (Preset::OregonWhiteOak, Preset::DatePalm),
+        ] {
+            let walked = blend::families(&at(p, age), &at(q, age), 0.5).unwrap();
+            assert_eq!(walked.age, age.ceil(), "{p:?} to {q:?} at {age}");
+            mesh::build(&walked).unwrap();
+        }
+    }
+    let palm = |lifespan: f64| {
+        let mut f = at(Preset::DatePalm, 40.5);
+        f.space.species.as_mut().unwrap().states[2].lifespan = lifespan;
+        f
+    };
+    for (x, y) in [(41.0, 41.0), (150.0, 200.0)] {
+        let walked = blend::families(&palm(x), &palm(y), 0.5).unwrap();
+        assert_eq!(species(&walked).states[2].lifespan, 41.0, "{x} {y}");
+    }
+}
+
 /// Host decision (2026-10-08, option A): kept phytomers do not bound grown
 /// ones, since a blend can shed a larger share than either end. Four
-/// fifths of the way from the beech to the spruce at 80, the grown count
-/// binds while the kept one is 1.4 % under the ends' mean. (Before fn-231 the
-/// case was the oak to the spruce, predicted to grow 21.7M phytomers sized
-/// on kept alone; the continuous walk puts that point under its ends. Until
-/// fn-299's timing rule (host, 2026-10-21) it was t = 0.75, where the grown
-/// share is now 0.998; a scan in steps of 0.05 finds it binding at 0.8.)
+/// fifths of the way from the spruce to the ordinary tree at 80, the grown
+/// count binds while the kept one is 14.4 % under the ends' mean. (Before
+/// fn-231 the case was the oak to the spruce, predicted to grow 21.7M
+/// phytomers sized on kept alone; the continuous walk puts that point under
+/// its ends. Until fn-299's timing rule it was the beech to the spruce at
+/// 0.75, then at 0.8. Under fn-308's aged rule the beech to the spruce at
+/// 80 binds on kept at every point a scan in steps of 0.05 visits, its
+/// grown share 0.868 to 0.979; the same scan over every pair of the
+/// branching species at 40 and 80 finds the spruce to the ordinary tree at
+/// 80 binding on grown from 0.05 to 0.95, at 0.8 with a kept share of
+/// 0.856 and 5.54M grown phytomers predicted.)
 #[test]
 fn the_grown_count_binds_where_a_blend_sheds_more_than_its_ends() {
-    let (a, b) = (
-        at(Preset::EuropeanBeech, 80.0),
-        at(Preset::NorwaySpruce, 80.0),
-    );
+    let (a, b) = (at(Preset::NorwaySpruce, 80.0), at(Preset::Ordinary, 80.0));
     let walked = blend::families(&a, &b, 0.8).unwrap();
     let [kept_share, grown_share] = sizes(species(&walked), species(&a), species(&b), 0.8, 80);
     assert!(
@@ -202,7 +300,7 @@ fn converges(p: Preset, q: Preset, age: u32) -> Vec<String> {
         let off: Vec<[f64; 3]> = [1e-2, 1e-4, 1e-6]
             .iter()
             .map(|d| {
-                let walked = telperion_space::blend(a, b, end + toward * d).unwrap();
+                let walked = telperion_space::blend(a, b, end + toward * d, age).unwrap();
                 let m = measures(&walked, age);
                 std::array::from_fn(|k| (m[k] / exact[k] - 1.0).abs())
             })
@@ -220,21 +318,16 @@ fn converges(p: Preset, q: Preset, age: u32) -> Vec<String> {
 }
 
 /// Host decision 1 (2026-10-08): the factor only shrinks. A walk to the
-/// date palm, whose size is fronds and not laterals, is predicted below
-/// its ends' mean and keeps the engine's walk as it is. Its middle keeps a
+/// date palm, whose size is fronds and not laterals, keeps its middle's
 /// count within its ends' (fn-299, host 2026-10-21), which supersedes the
 /// old clause that the middle was smaller than either end: that was the
-/// overshoot below the ends fn-299 removes.
+/// overshoot below the ends fn-299 removes. (Until fn-308, host ruling 3,
+/// the walked species was also the raw mix; under the aged rule the palm
+/// midpoint branches, and the factor shrinks it.)
 #[test]
 fn a_walk_to_the_palm_is_never_grown_to_its_ends_size() {
     let age = 40;
     let palm = at(Preset::DatePalm, 40.0);
-    for p in BRANCHING {
-        let a = at(p, 40.0);
-        let walked = blend::families(&a, &palm, 0.5).unwrap();
-        let mixed = telperion_space::blend(species(&a), species(&palm), 0.5).unwrap();
-        assert_eq!(species(&walked), &mixed, "{p:?}");
-    }
     let beech = at(Preset::EuropeanBeech, 40.0);
     let middle = kept(species(&blend::families(&beech, &palm, 0.5).unwrap()), age);
     let ends = [kept(species(&beech), age), kept(species(&palm), age)];

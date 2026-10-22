@@ -54,9 +54,9 @@ fn main() -> Result<(), String> {
     for t in ts.split(',') {
         let t: f64 = t.parse().map_err(|_| "a share")?;
         let walked = blend::families(&a, &b, t).map_err(|e| e.to_string())?;
-        let bare =
-            telperion_space::blend(species(&a), species(&b), t).map_err(|e| e.to_string())?;
         let (age, light) = (walked.age as u32, walked.space.light);
+        let bare =
+            telperion_space::blend(species(&a), species(&b), t, age).map_err(|e| e.to_string())?;
         let band = match bands.iter().find(|(key, _)| *key == (age, light)) {
             Some((_, band)) => *band,
             None => {
