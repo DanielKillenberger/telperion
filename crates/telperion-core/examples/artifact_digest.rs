@@ -2,9 +2,10 @@
 //! text to stdout, so two builds compare byte for byte by a digest of it.
 //! The skeleton is written as what a consumer reads of it, never as the
 //! `Tree` it is held in, so a change to a field no consumer reads keeps
-//! the digest.
+//! the digest. An age replaces the preset's own, checked as the family's
+//! rows are (fn-306).
 //!
-//!   cargo run --profile ci -p telperion-core --example artifact_digest -- <preset> [seed] | sha256sum
+//!   cargo run --profile ci -p telperion-core --example artifact_digest -- <preset> [seed] [age] | sha256sum
 use std::fmt::Debug;
 use telperion_core::{
     pipeline::{build, FieldRequest, Request},
@@ -22,16 +23,23 @@ fn skeleton(t: &Tree) -> impl Debug + '_ {
     )
 }
 
+const USAGE: &str = "usage: artifact_digest <preset> [seed] [age]";
+
 fn main() -> Result<(), String> {
     let mut args = std::env::args().skip(1);
-    let id = args
-        .next()
-        .ok_or("usage: artifact_digest <preset> [seed]")?;
+    let id = args.next().ok_or(USAGE)?;
     let mut family = Preset::from_id(&id)
         .ok_or(format!("no preset {id}"))?
         .parameters();
     if let Some(seed) = args.next() {
         family.skeleton.seed = seed.parse().map_err(|_| format!("no seed {seed}"))?;
+    }
+    if let Some(age) = args.next() {
+        family.age = age.parse().map_err(|_| format!("no age {age}"))?;
+        family.validate().map_err(|e| format!("age {age}: {e}"))?;
+    }
+    if args.next().is_some() {
+        return Err(USAGE.into());
     }
     let request = Request {
         wood: true,

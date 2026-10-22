@@ -1,11 +1,195 @@
 {
   "branch_name": "fn-306-the-f4-builds-obvious-friction-fixes",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-22T07:19:18.338787Z",
   "created_at": "2026-10-22T06:28:29.494418Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-306-the-f4-builds-obvious-friction-fixes",
+  "impl_review_rounds": {
+    "fn-306-the-f4-builds-obvious-friction-fixes.1": 0
+  },
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-22T06:38:14.075261Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "9a759dd4ca95968ba0e7d4c07cc1b3231a638066ff910538ef170b04372bf685",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8279d4b972786c754fe0e6d51e2559cf",
+            "classification": "introduced",
+            "findingId": "finding-8279d4b972786c754fe0e6d51e2559cf",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "84c518e7377fe9041cc36929afecf2afd87a0b03",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 224412,
+      "output_sha256": "9f9b0be55389c2b96b57660dc9acc8fc1476fe7cc2f049d4c577391577ef01b6",
+      "reservation_id": "895e8a356d9b46ba9be7732d0fe98678",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T06:37:08.566551Z",
+      "tool_calls": 17,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "983b9997702ff2754b294dbfc38cd6fad83695e03d35ffcc86ddf352b89813dc",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8279d4b972786c754fe0e6d51e2559cf",
+            "classification": "introduced",
+            "findingId": "finding-8279d4b972786c754fe0e6d51e2559cf",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "84c518e7377fe9041cc36929afecf2afd87a0b03",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 794,
+      "output_sha256": "4feb194430a66296e7565d8c673ca0f49ba783e870344ff6a4a4df3008d9a6c6",
+      "reservation_id": "3908ffa530ad4b1a8c5ebfb35999fe0f",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T06:37:57.694608Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "40c0af0b30ee5231873e85761f8c6ea288707eea1456ca2e5a1d96824a7dd176",
+      "backend": "codex",
+      "base_sha": "5091193db0decbebc2bc33cfec515ceb6d3c605e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f2d8b9a3240b403d7ad920d864ee39be8313ba35",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "192d7ea4a9714ca4a03197a856c452bc",
+      "round_consumed": true,
+      "scope": "impl:fn-306-the-f4-builds-obvious-friction-fixes.1",
+      "superseded_by": null,
+      "task": "fn-306-the-f4-builds-obvious-friction-fixes.1",
+      "timestamp": "2026-10-22T06:49:28.649379Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a16929cd983c6d69a598f329fbbafac84e957bbbeb83c923faa24c87d9c55e82",
+      "backend": "codex",
+      "base_sha": "1418ffebbbfd01ee80c5a32b20edaf1ba1ffa960",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e59fb0d3e861f488b92944b7f5f68ab9a52542a3",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 221073,
+      "output_sha256": "99254f3c06d19e83daecf79bf81db5cdb3cfb90f1373459cbfc1fc396c377660",
+      "reservation_id": "6c286d5a1fe642be845c9150ee026ec3",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T07:19:18.331632Z",
+      "tool_calls": 17,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-306-the-f4-builds-obvious-friction-fixes.1": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-306-the-f4-builds-obvious-friction-fixes.1": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-306-the-f4-builds-obvious-friction-fixes.md",
   "status": "open",
   "title": "The F4 build's obvious friction fixes",
@@ -20,5 +204,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T06:28:29.501564Z"
+  "updated_at": "2026-10-22T07:19:18.342099Z"
 }
