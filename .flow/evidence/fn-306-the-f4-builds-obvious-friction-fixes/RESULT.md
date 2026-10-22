@@ -35,3 +35,9 @@ Narrow runs: `cargo test --profile ci -p telperion-core --test generation_limit_
 | european-beech | 12 | 44 | 40 | 1037 | 35 |
 
 The frame alone ran too. Two fields, an unknown preset, `t` = `x`, `t` = 1.5, no `BUILD_AGE` and `BUILD_SEED=x` each fail naming the value.
+
+## R5, the gate and npm
+
+- Gate, `CARGO_NEXTEST=<0.9.145> telperion-heavy 8 --threads 4 -- python3 scripts/gate.py --base fn-198-tree-space-f-the-engine-in-production` (`raw/gate.log`): 1,473 passed, 0 failed, 123 skipped; build and listing 148 s, the test run 1,179 s against 1,560 s. Its first results were `generation_limit_guard`'s two tests (1/1473 and 3/1473); the compile-size ceiling was the first device test to finish (10/1473, 0.2 s).
+- `npm test` (`raw/npm-test.log`): 22 files, 177 tests passed.
+- Codex impl-review: SHIP from all three draws (correctness, contracts, integration).

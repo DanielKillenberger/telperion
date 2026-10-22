@@ -48,9 +48,15 @@ One task for the whole spec: four small edits in four files (test config, docs, 
 
 
 ## Done summary
-TBD
+R1: the gate profile gives the compile-size ceiling and generation_limit_guard priority 100 and the species suite 99, so the guards start first (filtered one-thread run and the gate's first results); AGENTS.md names both as the narrow run before a gate.
+R2: artifact_digest <preset> [seed] [age]; the age is checked by Family::validate (range) and the build (whole years); the digest at the preset's own age equals the one without it.
+R3: build_time takes BUILD_FRAME=<from>,<to>,<t>, built with at() and blend::families as the film walks build frames, beside BUILD_PRESETS arms, interleaved by round; bad input fails naming the value, before the device is sought.
+R4: AGENTS.md's Flow-Next section: a dispatched agent at a review cap returns; only the host session resets a counter (host, 2026-10-21).
+R5: gate green (1,473 passed, test run 1,179 s of 1,560 s), npm test green (177 passed).
+stage: impl-review - ran (model: gpt-6.1-sol) SHIP, 3 draws
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f2d8b9a3240b403d7ad920d864ee39be8313ba35
+- Tests: telperion-heavy 8 --threads 4 -- python3 scripts/gate.py, npm test, cargo test --profile ci -p telperion-core --test generation_limit_guard
 - PRs:
