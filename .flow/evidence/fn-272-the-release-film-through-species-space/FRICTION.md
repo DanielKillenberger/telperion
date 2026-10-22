@@ -62,3 +62,8 @@
 - **Hindered:** the build stopped at `examples/film/map.rs:125`, `error[E0061]`: `telperion_space::blend` takes a fourth argument, the tree's age, since fn-308 (cf563e960, "the species blend reads the tree's age between the ends"), and the film map's `walked` still calls it with three. The merge 96837aef4 carried fn-308 in without the film's call site; `tests/film_map.rs` calls `walked` too, so it cannot build either. The dispatched render changes no code, so no frame was rendered; the fix (which age the map's projection blends at) is the host's.
 - **Cost:** about 3 minutes (a cold `--profile ci` compile of the workspace, 50 s inside the queue, plus one relaunch after `/usr/bin/time` was missing on this machine).
 - **Would have removed it:** building the film example and its tests when the release branch is merged in (`cargo build --profile ci -p telperion-render --examples --tests`), before a render is dispatched.
+
+## 2026-10-22, cut 5 flying-leaves diagnosis (worker)
+
+- **No leaf says where it came from.** Classing each leaf as on wood, on a rosette frond, or on a placement's leaflet line needed three counterfactual rebuilds per frame (`rachisWidth` 0 to tell rachis points from wood, `leafletCount` 1 and `cauline` 0 to tell placements from rosette fronds), because `Instances` carries no source and the rachis points no kind. About 15 minutes and three probe rebuilds. A per-leaf source tag or a per-run kind on `Curve` readable from an example would have removed it.
+- **fn-308's raw table is not on this checkout.** The host pointed at `fn-308.../raw/c5-oak-palm-41.md`; `raw/` is ignored and only the other worktree has it. Its rows are quoted in the committed `R1.md`, which served. A few minutes.
