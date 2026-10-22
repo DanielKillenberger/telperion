@@ -17,7 +17,7 @@ Who it affects: the agents and conductors who build in this repository. Nothing 
   - The usage becomes `artifact_digest <preset> [seed] [age]`, in the module doc and the usage error.
   - The age sets `Family::age`, the field `build_time_tests`' `BUILD_AGE` sets.
   - Proof: a digest at the preset's own age equals the digest without the argument, and a digest at another age differs.
-  - Errors: an age that does not parse as a number exits non-zero with a message naming the value, never a default. An age the family refuses (off `Family::age`'s range, or not a whole number of years) is refused by the pipeline's own check, and the example exits non-zero with that error; the example adds no second range rule. An argument after the age is a usage error. A bad seed keeps its existing error.
+  - Errors: an age that does not parse as a number exits non-zero with a message naming the value, never a default. An age off `Family::age`'s declared range is refused by `Family::validate`, which the example calls on the family before it builds (the build itself checks only whole years up to `u32::MAX`, so `1000001` would reach growth otherwise); an age that is not a whole number of years is refused by the build's own check. Either way the example exits non-zero with that error and adds no range rule of its own. An argument after the age is a usage error. A bad seed keeps its existing error.
 - **R3 (`build_time` measures a walk frame):** fn-302's design survey and fn-298 15:37 timed frames by hand. `build_time_tests` takes a `BUILD_FRAME` option naming one walk frame as `<from>,<to>,<t>`:
   - The frame's family is built as the film-walk tests build theirs: each end preset at the run's age and seed (`cpu_builds_tests::at`), blended by `telperion_core::blend::families` at `t`, then prepared by the same `Generator::prepare` call every other row of `build_time` uses. No new build path.
   - A frame needs an age and a seed, which come from `BUILD_AGE` and `BUILD_SEED`; with `BUILD_FRAME` set, both are required and apply to every arm.
@@ -49,7 +49,8 @@ _No active strategy track served — review for drift._ This is build-loop frict
 - **fn-305 overlap.** fn-305 reworks the same `gate` profile. Whichever merges second keeps the other's entries; fn-306 merging first lets fn-305's re-measurement include the guards' priority.
 - **No walk-frame parse exists.** The film-walk tests address a frame by segment, seed and frame number and build it from `at` and `blend::families`. R3 reuses that build and adds only the `<from>,<to>,<t>` parse for the option.
 - **Priority above the species suite.** The default profile's species override already uses `priority = 100`, which may be nextest's ceiling; if it is, the `gate` profile ranks the species suite just below the guards rather than lifting the guards past a ceiling. A tie would leave the order to the listing.
-- **One age rule.** `Family::age` already refuses an age off its range or not whole, by name; the digest's age reaches that check instead of adding its own.
+- **One age rule.** `Family::validate` refuses an age off its declared range and the build refuses one that is not whole; the digest's age reaches those checks instead of adding its own. That `build` does not itself call `Family::validate` predates this spec and is not changed here (no generator change).
+- Maintainability (plan review): duplication - none identified; structure - `build_time()` gains frame selection, interleaved rounds and per-arm refusal branching; split it into helpers so each does one thing.
 - **One task.** Four small edits in four files make one M task, so the spec pays for one gate, and that gate is also R1's proof.
 
 ## Quick commands
