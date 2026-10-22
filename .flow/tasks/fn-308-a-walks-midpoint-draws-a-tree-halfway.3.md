@@ -36,9 +36,21 @@ Turn R3's ruled measure into an ignored test with the base's numbers fixed in it
 - [ ] TBD
 
 ## Done summary
-TBD
+R3 and R6 are held as tests.
 
+- **`walk_midpoint::the_walk_to_the_palm_changes_by_degree` (ignored)** asserts R3's (a), (b) and (c) on oak to palm at 40, seeds 1, 7 and 42. The base numbers are constants from commit 911262a6e. On its one run:
+  - (a) the largest log-wood steps are 0.680, 0.915 and 0.767, against bounds of 0.832, 0.990 and 1.004.
+  - (b) the largest fine share steps are 0.183, 0.163 and 0.189, against a bound of 0.2.
+  - (c) one frame per seed falls below both ends, against the base's 11, 10 and 5.
+- **`walk_ends::every_film_walk_returns_its_ends_unchanged`** covers R6. It went red once with a scratch edit that made `families` blend at t = 0.
+- **The workspace gate** (`telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`) passed 1,476 tests, with 133 skipped, in a test run of 1,324 s against the 1,560 s limit.
+- **`npm test`** passed 22 files and 177 tests.
+- **C5's final stills** sit beside C4's in `raw/stills/final-vs-c4.jpg`. The owner's verdict, relayed by the host, was "nice!".
+
+stage: impl-review - ran (codex). A single reviewer was told to run no build or test command. It returned SHIP, and its command log shows no cargo command.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ed16cb8e6db4159139960e58818e72f761457293, eb11ed4c42e61a56b1b4159cf3d0af12fef5c48b
+- Tests: telperion-heavy 8 --threads 4 -- python3 scripts/gate.py, telperion-heavy 8 --threads 2 -- npm test, telperion-heavy 8 --threads 2 -- cargo test --profile ci -p telperion-core --test walk_midpoint -- --ignored the_walk_to_the_palm_changes_by_degree
 - PRs:
