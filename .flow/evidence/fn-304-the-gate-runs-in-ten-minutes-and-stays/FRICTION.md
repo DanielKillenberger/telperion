@@ -47,3 +47,10 @@
 - **Hindered:** nextest skipped 239 tests without a failure line ("239/1473 tests were not run", exit 100) twice in a row, 15 minutes each, because the device tests sat in a one-thread group while some required up to 5 tokens: a test whose `threads-required` exceeds its group's `max-threads` is never scheduled, and nextest says only that tests were not run.
 - **Cost:** about 35 minutes (two full runs) before the cause was found.
 - **Would remove it:** a checked-in config test that fails when any override's `threads-required` exceeds its group's width; R4's budget check may carry it.
+
+## 2026-10-22 08:15, task .5 (budgets)
+
+- **Doing:** wiring the budgets and running `gate.py`.
+- **Hindered:** the scripts lacked their executable bit at the first `gate.py` run (nextest refuses a runner it cannot exec; one queue cycle lost), and a shell one-liner with backticks in a double-quoted Python string ran them as commands and dropped a docstring edit.
+- **Cost:** about 25 minutes.
+- **Would remove it:** writing every edit script to a file (the host's rule, which this broke once), and a `chmod +x` beside any new runner in the same command that creates it.
