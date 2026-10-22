@@ -1,11 +1,74 @@
 {
   "branch_name": "fn-309-a-compound-leaf-draws-its-rachis",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-22T16:03:41.653126Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-309-a-compound-leaf-draws-its-rachis",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-22T16:13:29.347408Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "c03cd57e578f9c26a7b3deb63b769a7fb4105ae20dcfeb1bb709225b11958cb3",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-fbfaeeb9d056d9419a65c8bde035b253",
+            "classification": "introduced",
+            "findingId": "finding-fbfaeeb9d056d9419a65c8bde035b253",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "580b2ef2566e9f29dd032031ec346846ecb1ce0d",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 242602,
+      "output_sha256": "7e8f9532bd847a10c8078daf9b5499fa202d1c7a26f79e1ee03d7991ad8546d3",
+      "reservation_id": "56f2b58504694e1984c13c1edc3c1241",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T16:13:29.340491Z",
+      "tool_calls": 20,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-309-a-compound-leaf-draws-its-rachis.md",
   "status": "open",
   "title": "A compound leaf draws its rachis wherever it is placed",
@@ -20,5 +83,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T16:11:14.543777Z"
+  "updated_at": "2026-10-22T16:13:29.351255Z"
 }

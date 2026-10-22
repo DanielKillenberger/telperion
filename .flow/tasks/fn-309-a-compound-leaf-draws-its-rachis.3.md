@@ -8,7 +8,7 @@ The measurements the owner and the host read: `build_time` base vs change, frame
 
 **Size:** S
 **Files:** `.flow/evidence/fn-309-a-compound-leaf-draws-its-rachis/{RESULT.md,stills-526.jpg}` (raw output under `raw/`, gitignored)
-**Touches:** [.flow/evidence/fn-309-a-compound-leaf-draws-its-rachis/**]
+**Touches:** [.flow/evidence/fn-309-a-compound-leaf-draws-its-rachis/**, crates/telperion-render/examples/**, crates/telperion-render/src/**/*_tests.rs]
 
 ### Approach
 - Cost: `BUILD_FRAME=oregon-white-oak,date-palm,0.34 BUILD_AGE=40 BUILD_SEED=7 cargo test --profile ci -p telperion-render build_time -- --ignored --nocapture` and `BUILD_PRESETS=date-palm BUILD_AGE=40` on the base (a separate checkout of `e2c035e51` with its own `target/`, per AGENTS.md, or the base binary built before task 1's edits) and on the change, each through `telperion-heavy 8 --threads 2 --gpu <n>`; report warm medians. A rise over 5 % is reported to the host.
