@@ -153,21 +153,37 @@ fn draws(f: &Family) -> Vec<Draw> {
         },
     ];
     // A short shoot holds its cluster's whole leaves (one where its age
-    // states less than one), every short-shooting age the same count.
-    let counts: Vec<f64> = f
+    // states less than one). Where short-shooting ages carry unlike
+    // counts, each counts by how much the frame grows in it (fn-308 host
+    // ruling 2), and an age it does not grow in is dormant.
+    let counts: Vec<(usize, f64)> = f
         .space
         .species
         .iter()
-        .flat_map(|s| &s.states)
-        .map(|s| s.cluster_leaves)
-        .filter(|&n| n > 0.0)
+        .flat_map(|s| s.states.iter().enumerate())
+        .map(|(k, s)| (k, s.cluster_leaves))
+        .filter(|&(_, n)| n > 0.0)
         .collect();
-    if let Some(&n) = counts.first() {
-        assert!(
-            counts.iter().all(|&m| m == n),
-            "short shoots of unlike counts: {counts:?}"
-        );
-        let (mean, var) = if n >= 1.0 { split(n) } else { (1.0, 0.0) };
+    let held_by = |n: f64| if n >= 1.0 { split(n) } else { (1.0, 0.0) };
+    let weighed = match counts.first() {
+        Some(&(_, n)) if counts.iter().all(|&(_, m)| m == n) => Some(held_by(n)),
+        Some(_) => {
+            let s = f.space.species.as_ref().unwrap();
+            let grown = telperion_space::expected_counts(s, f.age as u32).unwrap();
+            let reached: Vec<_> = (counts.iter())
+                .map(|&(k, n)| (grown.total(k), held_by(n)))
+                .filter(|&(w, _)| w > 0.0)
+                .collect();
+            let all: f64 = reached.iter().map(|(w, _)| w).sum();
+            (all > 0.0).then(|| {
+                reached.iter().fold((0.0, 0.0), |(m, v), (w, (mean, var))| {
+                    (m + w / all * mean, v + w / all * var)
+                })
+            })
+        }
+        None => None,
+    };
+    if let Some((mean, var)) = weighed {
         out.push(Draw {
             form: "leaves per short shoot",
             organs: tips,
