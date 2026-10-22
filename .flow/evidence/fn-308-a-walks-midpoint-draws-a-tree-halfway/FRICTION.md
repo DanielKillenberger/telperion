@@ -29,3 +29,11 @@ What would have removed it: unknown cause, not investigated. A still script that
 What: task .2's codex impl-review, a three-axis fan-out, and a python harness ran the workspace's walk suites themselves in f4-308, outside telperion-heavy. `walks` ran three times at once, `space_walks` twice and `units_bound` twice. rayon ignores `--test-threads`, so each run took 3 to 12 cores. The owner's PC reached load 156 with 15 GB in swap. The host killed the runs and the three reviewer processes, so the round ended with no verdict, a transport failure.
 Cost: the owner's machine was unusable for minutes, and one review round was lost. The conductor had no sight of it: the reviewers' commands never went through the desk's admission.
 What would have removed it: review dispatches that forbid build and test commands and read the committed logs instead. That rule is in force from now on (host, 2026-10-22): the instruction goes into the review's `--focus` text, which flowctl writes verbatim into the reviewer's prompt under "Focus Areas". A structural fix would be telperion-heavy, or a cargo shim on the reviewers' PATH, refusing an unadmitted `cargo test`. That is the host's to spec.
+
+## 2026-10-22, the completion review: a review wrapped in the queue is contained
+
+What: codex's `completion-review` has no focus option, so the no-build instruction the task reviews carried could not reach its prompt.
+The host ruled to dispatch it inside the queue instead: `telperion-heavy 8 --threads 2 -- flowctl codex completion-review …`. telperion-heavy runs its command in a systemd scope capped at 8 GB, with no swap and CPUWeight 20. It also sets RAYON_NUM_THREADS, CARGO_BUILD_JOBS and RUST_TEST_THREADS to 2. Everything codex launches inherits all of that, so even a reviewer that starts a suite cannot take the machine down.
+Measured: it was admitted at once (room 11 GB) and returned in 3.5 minutes. The reviewer ran no cargo command.
+Cost: a round-trip to the host, about 10 minutes.
+What would have removed it: dispatch every review that might run cargo inside the queue, whatever its prompt says. That belongs in the review skills' dispatch, or in flowctl's codex runner, as a default.
