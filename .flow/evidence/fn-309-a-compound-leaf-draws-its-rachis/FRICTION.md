@@ -11,3 +11,10 @@
 - **Slowed by:** the pilot snapshot refuses the run twice: the host's uncommitted probe (`crates/telperion-render/examples/walk_leaf_probe.rs`) trips the dirty-tree guard, and the spec is not marked ready. The conductor drove the stages directly instead.
 - **Cost:** a few minutes.
 - **Would remove it:** the probe committed (or kept in scratch) before dispatch, and the spec marked ready by the person who consents to the run.
+
+## 2026-10-22 18:15, conductor (plan review)
+
+- **Doing:** the codex plan review, wrapped in `telperion-heavy 8 --threads 2`.
+- **Slowed by:** `flowctl codex plan-review` has no `--focus` option, so the host's "run no cargo" instruction could not reach the reviewer's prompt (fn-308 found the same for `completion-review`). The read-only sandbox and the heavy wrapper were the only guard; the reviewer ran no cargo command (checked in its log).
+- **Cost:** none this time; a risk on every plan and completion review.
+- **Would remove it:** a focus option on every codex review command, or a cargo shim on reviewers' PATH refusing unadmitted test runs (host's to spec, as fn-308 noted).
