@@ -71,6 +71,30 @@ def stale(listed: dict[str, dict]) -> list[str]:
     return [f"{name}: stale, the gate runs no such test" for name in listed if name not in runs]
 
 
+RUSTDOC_RUNS = {"", "rust", "should_panic", "no_run", "compile_fail"}
+
+
+def doc_tests() -> list[str]:
+    """Doc comments that open a code fence rustdoc would test. nextest runs no
+    doc-tests and the workspace has none (fn-304), so one added fails here."""
+    found = []
+    for top, _, files in os.walk(os.path.join(ROOT, "crates")):
+        for name in (f for f in files if f.endswith(".rs")):
+            path = os.path.join(top, name)
+            inside = False
+            for number, line in enumerate(open(path, encoding="utf-8"), 1):
+                text = line.strip()
+                if not text.startswith(("///", "//!")) or "```" not in text:
+                    continue
+                if not inside:
+                    langs = {t.strip() for t in text.split("```", 1)[1].split(",")}
+                    if langs & RUSTDOC_RUNS or any(t.startswith("edition") for t in langs):
+                        found.append(f"{os.path.relpath(path, ROOT)}:{number}: a doc-test "
+                                     "the gate would not run; mark its fence `text`")
+                inside = not inside
+    return found
+
+
 def timeouts(listed: dict[str, dict]) -> str:
     """The allowlisted tests' own slow-timeouts, as a nextest tool config."""
     path = os.path.join(ROOT, "target", "gate", "budgets.toml")
@@ -89,9 +113,9 @@ def main() -> int:
     parser.add_argument("--base", default="master")
     base = parser.parse_args().base
     listed = entries(open(os.path.join(ROOT, BUDGETS)).read())
-    errors = shrinks_only(base) + stale(listed)
+    errors = shrinks_only(base) + stale(listed) + doc_tests()
     if errors:
-        print("gate: the budget allowlist\n  " + "\n  ".join(errors), file=sys.stderr)
+        print("gate: before the run\n  " + "\n  ".join(errors), file=sys.stderr)
         return 1
     env = dict(os.environ)
     env["CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER"] = os.path.join(ROOT, "scripts", "gate_test.py")

@@ -8,8 +8,11 @@ priority = 100
 # The local gate (fn-304; scripts/gate.py runs it as
 # `telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`). Four tests at
 # once, rayon at 4, inside the desk's 8 GB: the tests that peaked at 1.5 GiB
-# or more on the measured runs take one turn between them, and the device
-# tests take the card one at a time. A test's own time is cut off at 120 s,
+# or more on the measured runs take one turn between them, and the other
+# device tests take the card one at a time beside it. A test is in one group:
+# a heavy device test takes the heavy turn, so it may share the card with
+# one light device test, never with another heavy test (as measured: the
+# 8 GB holds one heavy test, not two). A test's own time is cut off at 120 s,
 # twice its 60 s budget for the desk's noise (host, fn-304 R4); a test over
 # 60 s sits in .config/gate-budgets.toml at twice its worst time.
 [profile.gate]

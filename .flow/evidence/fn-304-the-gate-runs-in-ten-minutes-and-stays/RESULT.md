@@ -165,6 +165,7 @@ The spec's target, the whole gate under ten minutes on the declared invocation, 
 ## Open
 
 - The case lost to ruling 3: a non-flowering preset whose pipeline grows an organ that the binding drops along with its reference is no longer caught (task .3).
-- nextest runs no doc-tests; the workspace has none today (the `cargo test` gates ran five doc-test targets, none with a test). A doc-test added later would not run in the gate.
+- nextest runs no doc-tests; the workspace has none today (the `cargo test` gates ran five doc-test targets, none with a test). `gate.py` fails before the run on a doc comment that opens a fence rustdoc would test (demo: `raw/proofs/doctest-demo.log`), so one added must be marked `text` or the gate taught to run it (codex review, task .4).
+- The device tests share the card two at a time at most: a heavy device test takes the one-at-a-time turn with the heavy CPU tests, so it can run beside one light device test (codex review, task .4). This is the arrangement measured.
 - Two patches were caught by neither a subset nor its sweep: the light-sum order (`sum-order`) and the frond rounding on the oak-to-palm walk (`fronds-round`), each below what the tests read.
 - The gate needs `cargo-nextest` 0.9.145 on the desk (the runs here used a pinned copy in the session's scratchpad); installing it is local setup, not a repository change.
