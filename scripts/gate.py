@@ -97,6 +97,22 @@ def stale(listed: dict[str, dict]) -> list[str]:
 RUSTDOC_RUNS = {"", "rust", "should_panic", "no_run", "compile_fail"}
 
 
+def doc_lines(path: str):
+    """Each line of `path`'s doc comments, `///` and `//!` lines and the
+    lines of `/** */` and `/*! */` blocks, with its number."""
+    block = False
+    for number, line in enumerate(open(path, encoding="utf-8"), 1):
+        text = line.strip()
+        if block:
+            yield number, text
+            block = "*/" not in text
+        elif text.startswith(("///", "//!")):
+            yield number, text
+        elif text.startswith(("/**", "/*!")) and not text.startswith("/**/"):
+            yield number, text
+            block = "*/" not in text[3:]
+
+
 def doc_tests() -> list[str]:
     """Doc comments that open a code fence rustdoc would test. nextest runs no
     doc-tests and the workspace has none (fn-304), so one added fails here."""
@@ -105,9 +121,8 @@ def doc_tests() -> list[str]:
         for name in (f for f in files if f.endswith(".rs")):
             path = os.path.join(top, name)
             inside = False
-            for number, line in enumerate(open(path, encoding="utf-8"), 1):
-                text = line.strip()
-                if not text.startswith(("///", "//!")) or "```" not in text:
+            for number, text in doc_lines(path):
+                if "```" not in text:
                     continue
                 if not inside:
                     langs = {t.strip() for t in text.split("```", 1)[1].split(",")}
