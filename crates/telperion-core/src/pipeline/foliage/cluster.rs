@@ -133,7 +133,7 @@ pub(super) fn clothe(
                 axis,
                 heading,
                 radial,
-                (table, organs::leaflets(&table), None, 0.0),
+                (table, organs::leaflets(&table), None, None),
                 (&mut rng, None),
                 (wedge, out),
             )?;

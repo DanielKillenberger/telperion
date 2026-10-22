@@ -118,3 +118,36 @@ fn a_fractional_crown_stands_within_its_box() {
         "{lowest} on the floor {floor}"
     );
 }
+
+/// Where every leaf one family places stands, as placement made it,
+/// before the box quantised it.
+fn bases(f: &Family) -> Vec<telperion_core::math::Vec3> {
+    foliage::RECORD_UNQUANTISED.with(|r| r.set(true));
+    let leaves = placed(f);
+    foliage::RECORD_UNQUANTISED.with(|r| r.set(false));
+    assert_eq!(leaves.thinned, 0, "nothing thinned");
+    let at =
+        |m: &[f32; 16]| telperion_core::math::Vec3::new(m[12].into(), m[13].into(), m[14].into());
+    leaves.unquantised.iter().map(at).collect()
+}
+
+/// A compound leaf placed on wood draws no rachis, so its leaflets stand
+/// at its placement point as one tuft (fn-309 R1): each of a birch's
+/// placements of five leaflets stands where its lone blade would.
+#[test]
+fn a_compound_leaf_on_wood_stands_its_leaflets_at_its_point() {
+    let mut f = birch();
+    (f.canopy.cauline, f.canopy.rosette_fronds) = (1.0, 0.0);
+    let points = bases(&f);
+    (f.canopy.leaflet_count, f.canopy.rachis_length) = (5.0, 2.0);
+    let tufts = bases(&f);
+    assert!(!points.is_empty());
+    assert_eq!(tufts.len(), 5 * points.len(), "five leaflets a placement");
+    for (k, tuft) in tufts.chunks(5).enumerate() {
+        let off = tuft
+            .iter()
+            .map(|p| p.distance(points[k]))
+            .fold(0.0, f64::max);
+        assert!(off < 1e-3, "placement {k}: a leaflet {off} m off its point");
+    }
+}

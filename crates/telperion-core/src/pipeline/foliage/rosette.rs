@@ -348,7 +348,7 @@ pub(super) fn clothe(
                 table,
                 count,
                 frond.split,
-                super::rachis::girth(&table, &apex),
+                Some(super::rachis::girth(&table, &apex)),
             ),
             (&mut rng, None),
             (wedge, out),
@@ -372,15 +372,15 @@ pub(super) fn clothe(
 /// on `more` where given, so a placement's leaflets move no other
 /// placement's draws on a shared stream (fn-277), else on `rng`. The
 /// rachis is `girth` thick where it leaves `point` (`leaflet::rachis`):
-/// a frond's own, none for a placement's on wood, whose rachis draws no
-/// bark. Each matrix is rested on the ground by `wedge` as it is stored
-/// (`rest::leaf`).
+/// a frond's own, or none for a placement on wood, which draws no rachis
+/// and stands its leaflets at `point`. Each matrix is rested on the ground
+/// by `wedge` as it is stored (`rest::leaf`).
 pub(super) fn fan(
     point: Vec3,
     heading: Vec3,
     tangent: Vec3,
     normal: Vec3,
-    (p, count, split, girth): (CanopyParams, usize, Option<Split>, f64),
+    (p, count, split, girth): (CanopyParams, usize, Option<Split>, Option<f64>),
     (rng, mut more): (&mut Rng, Option<&mut Rng>),
     (wedge, out): (&super::rest::Wedge, &mut Instances),
 ) -> Result<()> {

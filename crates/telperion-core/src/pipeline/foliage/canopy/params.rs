@@ -269,7 +269,8 @@ crate::catalogue::rows! {
             dial: bounded("leaflet_count", "leaflets along one frond's rachis", [2.0, 8.0]),
         },
         /// Metres of rachis the leaflets are strung along. At zero the placement
-        /// is one blade whatever the count says.
+        /// is one blade whatever the count says. A placement on wood draws no
+        /// rachis, so there its leaflets stand at its point as one tuft (fn-309).
         #[cfg_attr(feature = "json", serde(default))]
         pub rachis_length: f64 = "rachisLength" "m" Bounds::closed(0.0, 1e3) => [Plan, Expand] {
             wire: 110,

@@ -175,7 +175,10 @@ pub(super) fn station(
 }
 
 /// The `count` leaflets of the rachis that leaves `point` on `heading`,
-/// `girth` its radius there (`rachis`).
+/// `girth` its radius there (`rachis`): a frond's own, or none for a
+/// placement on wood, which draws no rachis, so its leaflets stand at
+/// `point` as one tuft, each on the heading it would leave the rachis by
+/// (fn-309 R1).
 ///
 /// The rachis runs a `rachis_length` from the station, bending out of that
 /// straight line by its arch as it goes, and each leaflet leaves it by
@@ -186,7 +189,7 @@ pub(super) fn station(
 pub(crate) fn leaflets(
     point: Vec3,
     heading: Vec3,
-    (p, girth): (CanopyParams, f64),
+    (p, girth): (CanopyParams, Option<f64>),
     count: usize,
     split: Option<Split>,
 ) -> impl Iterator<Item = Leaflet> {
@@ -196,7 +199,7 @@ pub(crate) fn leaflets(
     let pitch = p.leaflet_pitch.to_radians();
     (0..count).map(move |leaf| {
         let (t, length) = station(leaf, count, &p, split);
-        let (at, run) = rachis(point, heading, lift, &p, girth, t);
+        let (at, run) = rachis(point, heading, lift, &p, girth.unwrap_or(0.), t);
         let closing = if leaf + 1 == count {
             1. - p.terminal_leaflet
         } else {
@@ -209,7 +212,7 @@ pub(crate) fn leaflets(
         let borne = spine(leaf, &p);
         let pitch = borne.map_or(pitch, |(_, steeper)| steeper);
         Leaflet {
-            at,
+            at: girth.map_or(point, |_| at),
             axis: run.rotate(lift, hand * pitch * closing),
             run,
             share: match (borne, split) {
