@@ -23,3 +23,9 @@ What would have removed it: task logs pruned when a task ends, or CLAUDE_CODE_TM
 What: rendering C4's stills. `target/ci/examples/headless`, built at 09:57, was missing at 11:00 (the directory was empty) after the C4 runs' test builds. It needed a rebuild.
 Cost: about 3 minutes.
 What would have removed it: unknown cause, not investigated. A still script that builds the example when it is missing would hide it.
+
+## 2026-10-22, task .2 review: the reviewers overloaded the owner's machine
+
+What: task .2's codex impl-review, a three-axis fan-out, and a python harness ran the workspace's walk suites themselves in f4-308, outside telperion-heavy. `walks` ran three times at once, `space_walks` twice and `units_bound` twice. rayon ignores `--test-threads`, so each run took 3 to 12 cores. The owner's PC reached load 156 with 15 GB in swap. The host killed the runs and the three reviewer processes, so the round ended with no verdict, a transport failure.
+Cost: the owner's machine was unusable for minutes, and one review round was lost. The conductor had no sight of it: the reviewers' commands never went through the desk's admission.
+What would have removed it: review dispatches that forbid build and test commands and read the committed logs instead. That rule is in force from now on (host, 2026-10-22): the instruction goes into the review's `--focus` text, which flowctl writes verbatim into the reviewer's prompt under "Focus Areas". A structural fix would be telperion-heavy, or a cargo shim on the reviewers' PATH, refusing an unadmitted `cargo test`. That is the host's to spec.
