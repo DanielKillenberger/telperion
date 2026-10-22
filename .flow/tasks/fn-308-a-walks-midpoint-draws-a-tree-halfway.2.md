@@ -45,7 +45,7 @@ Land C5 (spec R2) through one aged path (R5), with host rulings 3 and 4 applied 
 - Memory: a whole-number engine row on a linear scale breaks walks (`.flow/memory/bug/runtime-errors/a-whole-number-engine-row-on-a-linear-2026-10-08.md`). Rule B copies such rows whole at an unreached age, and reached ages still mix them as now.
 
 ### Acceptance
-- [ ] `blend` takes the age, and no unaged species blend remains in `crates/`. A test holds `families` equal to the blend at the walk's age for all six film walks at t = 0.25, 0.5 and 0.75 (R5).
+- [ ] `blend` takes the age, and no unaged species blend remains in `crates/`. A test holds `families` equal to the blend at the walk's age, for all six film walks at t = 0.25, 0.5 and 0.75, in every row but the lateral probabilities. The size solve scales those by one factor of at most 1 (R5).
 - [ ] The `blend_reach` rewrite and the exit-rule case pass, and each fails on the base (shown once).
 - [ ] The re-pins and the moved example point each carry a comment citing fn-308 and the measured value.
 - [ ] `units_bound`, `walk_law`, `walk_leaves`, `walk_sizes`, `space_walks`, `catalogue_identity`, `blend_reach`, `walks` and `chain` pass.
@@ -60,3 +60,4 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+

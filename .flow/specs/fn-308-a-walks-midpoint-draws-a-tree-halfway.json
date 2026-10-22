@@ -1,11 +1,118 @@
 {
   "branch_name": "fn-308-a-walks-midpoint-draws-a-tree-halfway",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-22T07:44:47.539493Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-308-a-walks-midpoint-draws-a-tree-halfway",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-22T09:26:11.546863Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "47235c35bf7ceb4ba17b246f790b381db0e916a64f078b10dafaeafc8b084ff4",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7e958f679ed78e8674d2075ffc05ddea",
+            "classification": "introduced",
+            "findingId": "finding-7e958f679ed78e8674d2075ffc05ddea",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9c5c2e6a27609029332f02faa1f5c98387f79ad8",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 287604,
+      "output_sha256": "1c1de48d95648442e2bd6bd15ef8e6f1a17130762b3b7fa42f55172de56d45e1",
+      "reservation_id": "0f8b6d5210e04ab19aa1c8b81001c9a3",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T09:25:21.346362Z",
+      "tool_calls": 15,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "6a1c61abf9a46a2e2e2c39c56bd13addc19a957b6275803f287639a908f863d1",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7e958f679ed78e8674d2075ffc05ddea",
+            "classification": "introduced",
+            "findingId": "finding-7e958f679ed78e8674d2075ffc05ddea",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9c5c2e6a27609029332f02faa1f5c98387f79ad8",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 602,
+      "output_sha256": "d54e40768290f59526cdd6ecbfd5adaf1a584b6be226b6a6d864b4957950b65e",
+      "reservation_id": "10be5b295c3048c1b083aa14d407c0dc",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T09:26:11.544569Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-308-a-walks-midpoint-draws-a-tree-halfway.md",
   "status": "open",
   "title": "A walk's midpoint draws a tree halfway between its ends",
@@ -20,5 +127,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T09:23:08.381987Z"
+  "updated_at": "2026-10-22T09:26:11.547323Z"
 }
