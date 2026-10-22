@@ -58,3 +58,9 @@ Branch `fn-237-release-checks`, from `d2a8bd258`. Measured 2026-10-14 on the RTX
 - **Focused tests**, all green on `159a54064`: `tint_rule_tests` (6), `compile_size` (the guard and the call-site fixture), `shader_tests` (validation, the storage limit, file coverage), and `device_limit_probes_run_only_when_asked`. The release probes passed too: Tint on every entry, and the cold build at 2.05 s.
 - **Gate** (`cargo test --profile ci --workspace --no-fail-fast`): not run to a result. At the dispatched 9 GB it was OOM-killed in telperion-core's tests after 9 minutes. At 10 GB it waited 42 minutes for room behind fn-272's film renders and was stopped (FRICTION.md). The host runs it on the merged branch once the film renders are done.
 - npm test: not run, since no TypeScript was touched.
+
+## Release branch gate after fn-303 and fn-304 (host, 2026-10-22)
+
+- **Gate:** green on `1418ffebb` under the declared invocation `telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`, with cargo-nextest 0.9.145. 1,473 passed, 0 failed, 123 skipped. The build and listing took 112 s; the test run took 1,166 s against its 1,560 s budget. No test passed its time or memory budget.
+- **npm test:** green, 22 files, 177 tests.
+- The raw logs are `raw/f4-gate-after-304.log` and `raw/f4-npm-after-304.log`.
