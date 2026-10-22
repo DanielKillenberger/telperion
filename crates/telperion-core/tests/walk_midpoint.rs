@@ -99,6 +99,8 @@ fn measure(s: &Structure) -> (f64, usize, f64) {
 #[ignore = "a measurement: fn-308 R1's curves"]
 fn the_lateral_wood_against_t() {
     let n: u32 = list("MID_N", "40")[0];
+    // `MID_FROM` and `MID_TO` narrow the grid to a stretch of the walk.
+    let (from, to): (f64, f64) = (list("MID_FROM", "0")[0], list("MID_TO", "1")[0]);
     let seeds: Vec<u32> = list("MID_SEEDS", "1,7,42");
     let rows = std::sync::Mutex::new(Vec::new());
     std::thread::scope(|scope| {
@@ -109,11 +111,11 @@ fn the_lateral_wood_against_t() {
                     let (a, b, age) = WALKS[w];
                     let (x, y) = (at(a, age, seed), at(b, age, seed));
                     for i in 0..=n {
-                        let t = f64::from(i) / f64::from(n);
+                        let t = from + (to - from) * f64::from(i) / f64::from(n);
                         let f = families(&x, &y, t).expect("a frame");
                         let (share, count, all) = measure(&drawn(&f));
                         let line = format!(
-                            "{w} {a}>{b} seed {seed} t {t:.4}: share {share:.4} laterals {count} wood {all:.1} m L2 {:.2}",
+                            "{w} {a}>{b} seed {seed} t {t:.5}: share {share:.4} laterals {count} wood {all:.1} m L2 {:.2}",
                             species(&f).states[2].lifespan
                         );
                         rows.lock().unwrap().push((w, seed, i, line));

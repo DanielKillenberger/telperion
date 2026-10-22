@@ -8,6 +8,10 @@ What is measured (fn-299 `R1.md`, 2026-10-21): age 2's blended `lifespan` (a `Lo
 
 What is inferred, not traced: the tree is 40 years old, so its main axis never leaves age 2 at t = 0.5. The oak's branching ages are therefore never entered, and the drawn tree has almost no laterals. If that holds, the walk's rows change by degree but the drawn tree does not. It keeps the oak's branching only while age 2's blended lifespan is under the tree's age, and then drops it. That would be a cliff in t, which breaks the owner's "change by degree" rule (fn-277, host ruling 5a) for what is drawn.
 
+## Owner verdicts
+
+- 2026-10-22, on the C4 stills (rule B over every row, the lifespan clamped at the tree's age; oak to palm at 40, seed 1, t = 0.25, 0.5 and 0.75), as relayed by the host: "much better nice". The owner approved C4's direction. Evidence: `.flow/evidence/fn-308-a-walks-midpoint-draws-a-tree-halfway/R1.md`.
+
 ## Unknown, check before the plan
 
 - Whether age 2's lifespan is the whole cause. Trace the t = 0.5 frame: which ages its axes enter, and why each lateral that the oak would grow is absent.
