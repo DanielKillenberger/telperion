@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-304-the-gate-runs-in-ten-minutes-and-stays",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-10-22T06:23:04.688898Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-22T06:24:50.093095Z",
   "created_at": "2026-10-21T17:42:49.770270Z",
   "default_impl": null,
   "default_review": null,
@@ -16,7 +16,7 @@
     "fn-304-the-gate-runs-in-ten-minutes-and-stays.5": 2
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-10-21T21:11:04.103110Z",
   "review_attempts": [
@@ -505,6 +505,50 @@
       "timestamp": "2026-10-22T06:23:04.678911Z",
       "tool_calls": 19,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "be0f11eacd1ed4ebe55daf2f60e16f8fc5d09c43cac4eea0fd077fed6ecde210",
+      "backend": "codex",
+      "base_sha": "26a3b19ab4fac4099946fe8b80afd05f28c98c65",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-531bd8901e2b2fc023483e27523486fc",
+            "classification": "introduced",
+            "findingId": "finding-531bd8901e2b2fc023483e27523486fc",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "67e7413ddf64426655b714f5c3a90b99c5b14c7d",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 3698,
+      "output_sha256": "a1cd40a24f63dc14f5b1898c9b6f51c728ec5a1491a3715ab04909ff99b2e78d",
+      "reservation_id": "5446b8a85a7e45d69e52681fa9eea09e",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T06:24:50.088111Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -513,7 +557,7 @@
     "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.3": 1,
     "impl:fn-304-the-gate-runs-in-ten-minutes-and-stays.4": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -540,5 +584,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T06:23:04.694304Z"
+  "updated_at": "2026-10-22T06:24:50.093619Z"
 }
