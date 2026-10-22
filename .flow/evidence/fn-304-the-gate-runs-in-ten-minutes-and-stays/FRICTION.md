@@ -40,3 +40,10 @@
 - **Hindered:** two patches missed the defect their test names and had to be redone (the light-sum order and the frond rounding moved nothing the tests read; the budget at an eighth still admitted the teaser frame). Each miss costs one full-sweep run, 1 to 7 minutes, plus the queue: the rerun has waited 35 minutes behind another session's gate.
 - **Cost:** about 50 minutes of queue and 15 of reruns so far.
 - **Would remove it:** a recorded defect per test (the commit that fixed it, as a patch) beside each test's doc comment, so a proof replays the real defect instead of guessing one; and the shorter gate this spec builds, which frees the queue.
+
+## 2026-10-22 07:05, task .4 (runner and width)
+
+- **Doing:** measuring nextest with memory tokens (`threads-required` per GiB, 7 tokens a run).
+- **Hindered:** nextest skipped 239 tests without a failure line ("239/1473 tests were not run", exit 100) twice in a row, 15 minutes each, because the device tests sat in a one-thread group while some required up to 5 tokens: a test whose `threads-required` exceeds its group's `max-threads` is never scheduled, and nextest says only that tests were not run.
+- **Cost:** about 35 minutes (two full runs) before the cause was found.
+- **Would remove it:** a checked-in config test that fails when any override's `threads-required` exceeds its group's width; R4's budget check may carry it.

@@ -1,0 +1,57 @@
+# The gate's budget allowlist (host, fn-304 R4). A test's own time is at most
+# 60 s and its peak resident memory at most 4 GiB on the declared invocation
+# (AGENTS.md, "Gates and checked claims"). A test over either is listed here
+# with the budget it is held to and the figures it was measured at: a quarter
+# more time than measured, rounded up to 5 s, and a tenth more memory,
+# rounded up to 64 MiB. `scripts/gate.py` refuses a new entry, a raised
+# figure or an entry for a test the gate no longer runs: this list only
+# shrinks. Keys are the test binary's name and the test's name.
+
+[[test]]
+name = "conformance every_shipped_family_renders_through_the_one_path"
+seconds = 60
+mib = 4992
+measured = { seconds = 40, mib = 4529 }
+
+[[test]]
+name = "ground_reach nothing_drawn_passes_below_the_ground"
+seconds = 60
+mib = 5120
+measured = { seconds = 55, mib = 4611 }
+
+[[test]]
+name = "telperion_core pipeline::space::repeat_tests::the_largest_tree_and_the_palm_grow_the_same_tree_again_and_on_any_cores"
+seconds = 110
+mib = 4096
+measured = { seconds = 85, mib = 3271 }
+
+[[test]]
+name = "telperion_core suite::mesh::every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers"
+seconds = 60
+mib = 4800
+measured = { seconds = 42, mib = 4318 }
+
+[[test]]
+name = "telperion_core suite::packed_leaf::every_station_stands_inside_its_box_at_a_quarter_millimetre_step"
+seconds = 60
+mib = 4800
+measured = { seconds = 41, mib = 4316 }
+
+[[test]]
+name = "telperion_wasm generate::tests::flowers_cross_the_binding_where_the_pipeline_grows_them"
+seconds = 100
+mib = 4096
+measured = { seconds = 78, mib = 3884 }
+
+[[test]]
+name = "walk_leaves spruce_to_birch_changes_its_leaves_by_degree"
+seconds = 85
+mib = 4096
+measured = { seconds = 64, mib = 1637 }
+
+[[test]]
+name = "walks every_setting_changes_the_tree_by_degree_and_branches_come_and_go_at_vanishing_size"
+seconds = 280
+mib = 5568
+measured = { seconds = 223, mib = 5060 }
+

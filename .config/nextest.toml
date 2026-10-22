@@ -4,3 +4,58 @@
 [[profile.default.overrides]]
 filter = 'test(/^suite::species::/)'
 priority = 100
+
+# The local gate (fn-304; scripts/gate.py runs it as
+# `telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`). Four tests at
+# once, rayon at 4, inside the desk's 8 GB: the tests that peaked at 1.5 GiB
+# or more on the measured runs take one turn between them, and the device
+# tests take the card one at a time. A test's own time is at most 60 s
+# (host, fn-304 R4); a test over it sits in .config/gate-budgets.toml.
+[profile.gate]
+test-threads = 4
+slow-timeout = { period = "60s", terminate-after = 1 }
+
+[test-groups.one-at-a-time]
+max-threads = 1
+
+[test-groups.device]
+max-threads = 1
+
+[[profile.gate.overrides]]
+filter = '''
+    (binary(bark_occlusion) & test(=the_darkened_side_of_a_furrow_follows_the_sun)) |
+    (binary(bark_occlusion) & test(=the_row_at_zero_leaves_the_frame_exactly_as_it_was)) |
+    (binary(bark_resolution) & test(=grazing_trunks_agree_with_a_box_reduction_at_half_resolution)) |
+    (binary(bark_structure_colour) & test(=each_structure_colour_row_changes_the_picture_and_moves_no_wood)) |
+    (binary(conformance) & test(=every_shipped_family_renders_through_the_one_path)) |
+    (binary(form) & test(=the_beech_grows_at_every_age_of_its_sheet)) |
+    (binary(ground_reach) & test(=nothing_drawn_passes_below_the_ground)) |
+    (binary(light_rows) & test(=each_populated_response_moves_the_tree_through_its_consumer)) |
+    (binary(shadow) & test(=every_preset_has_default_casters_fixed_under_orbit_and_row_changes)) |
+    (binary(smooth_bark) & test(=each_smooth_layer_changes_the_close_up_and_moves_no_wood)) |
+    (binary(smooth_bark) & test(=the_smooth_barks_hold_the_resolution_and_redraw_contracts)) |
+    (binary(space_stems) & test(=a_leader_that_turns_limb_and_relays_leaves_no_fork_of_stems)) |
+    (binary(submit) & test(=a_submitted_tree_is_the_tree_the_core_counted)) |
+    (binary(telperion_core) & test(=pipeline::space::ceiling_tests::every_shipped_preset_keeps_under_the_wasm_ceiling)) |
+    (binary(telperion_core) & test(=pipeline::space::relay_tests::a_stem_never_thickens_on_its_way_up)) |
+    (binary(telperion_core) & test(=pipeline::space::repeat_tests::the_largest_tree_and_the_palm_grow_the_same_tree_again_and_on_any_cores)) |
+    (binary(telperion_core) & test(=pipeline::tests::every_shipped_preset_builds_every_artifact_through_the_pipeline)) |
+    (binary(telperion_core) & test(=suite::mesh::every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers)) |
+    (binary(telperion_core) & test(=suite::packed_leaf::every_station_stands_inside_its_box_at_a_quarter_millimetre_step)) |
+    (binary(telperion_render) & test(=generation::resident::field_tests::every_preset_s_device_field_answers_within_its_tolerance)) |
+    (binary(telperion_render) & test(=generation::resident::stalk_tests::prepared_bounds_hold_every_drawn_stalk)) |
+    (binary(telperion_space) & test(=grow::cycle::tests::the_working_set_and_retirement_leave_the_tree_as_it_was)) |
+    (binary(telperion_wasm) & test(=generate::tests::a_field_request_reads_the_plan_and_names_its_stages_for_every_preset)) |
+    (binary(telperion_wasm) & test(=generate::tests::a_window_of_no_length_crosses_no_organ)) |
+    (binary(telperion_wasm) & test(=generate::tests::every_shipped_preset_builds_through_the_main_entry)) |
+    (binary(telperion_wasm) & test(=generate::tests::flowers_cross_the_binding_where_the_pipeline_grows_them)) |
+    (binary(walk_leaves) & test(=spruce_to_birch_changes_its_leaves_by_degree)) |
+    (binary(walk_sizes) & test(=the_teaser_frame_fits)) |
+    (binary(walks) & test(=a_midpoint_between_two_undying_leaders_keeps_its_leader)) |
+    (binary(walks) & test(=every_setting_changes_the_tree_by_degree_and_branches_come_and_go_at_vanishing_size))
+'''
+test-group = 'one-at-a-time'
+
+[[profile.gate.overrides]]
+filter = 'package(telperion-render)'
+test-group = 'device'

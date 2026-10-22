@@ -98,3 +98,23 @@ Test counts: `walks` 12 run → 11 (merge, ruling 6); wasm 7 → 7; render lib +
 Green on the engine: every test above passes, and the whole walks binary passes (`raw/proofs/t3-walks-all-green.log`).
 
 Gate at the end of task .3, after merging F4 at 26a3b19ab (fn-303), 7f3d88403: 1,473 passed, 0 failed, 123 ignored, 1,971 s wall including compile, peak 6,041 MiB anon. Green.
+
+## Task .4: the runner and the width (R3, threads ruling)
+
+The shrunk suite after tasks .1–.3 and the F4 merge (1,473 run, 123 ignored), each run alone in `telperion-heavy 8 --threads <N>` (rayon and test threads at N, nextest `-j N`), build already done. nextest 0.9.145 (CI's pin) with the one-at-a-time and device groups (`raw/nextest-final.toml`); per-test RSS from `raw/rss_runner.py`.
+
+| Runner | Threads | Wall | Peak anon | Result |
+|---|--:|--:|--:|---|
+| `cargo test` | 2 | 1,971 s with compile (the task .3 gate) | 6,041 MiB | green |
+| `cargo test` | 4 | 1,538 s | 7,489 MiB | green |
+| `cargo test` | 8 | 1,494 s | 7,648 MiB | green |
+| nextest, groups | 2 | 1,448 s | 4,867 MiB | green |
+| nextest, groups | 4 | **1,241 s** | 4,913 MiB | green |
+| nextest, groups | 8 | 1,271 s | 5,164 MiB | green |
+| nextest, memory tokens (`threads-required` a GiB, 7 a run) | 4 | 891–1,072 s | 4,947–5,322 MiB | 57 to 239 device tests never scheduled; not a passing run |
+
+Nothing passes in ten minutes inside 8 GB. Rayon past 4 buys nothing: the merged walks test is 223 s at 4 and 230 s at 8 (it spreads its own walks), and the other heavy tests hold flat. The floor is the tests over 1.5 GiB, which take one turn between them: at rayon 4 the ten over 3 GiB sum to 661 s and the twenty between 1.5 and 3 GiB to 421 s. Memory tokens let a 3 GiB test run beside a 4 GiB one, but nextest left whole device binaries unscheduled under them with no failure named (FRICTION.md), so they are not declared. `cargo test` peaks within 0.4 GB of the cap at 4 and 8 threads, since a binary's whole-preset tests share one process.
+
+### The candidate gate, run once (`telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`)
+
+`.config/nextest.toml`'s `gate` profile (four tests at once; the 30 tests measured at 1.5 GiB or more take one turn; device tests one at a time; 60 s slow-timeout), `scripts/gate_test.py` as the runner (4 GiB per test, or the allowlisted figure), `.config/gate-budgets.toml` drafted from the threads-4 run. Result (`raw/measure/gate2.log`): 1,124 s, peak 5,095 MiB anon, 1,469 passed and 4 ended at 60 s: the artifact test, `suite::mesh` and the merged `packed_leaf` (41–45 s on the threads-4 run, now past 60 s) and the device retire test (35 s before). No test passed its memory budget. The same tests' own times moved by up to 2× between two runs of the same suite on the shared desk (`light_no_bud_reads_leaves...` 26 → 54 s, `a_walk_between_species...` 26 → 51 s), so a 60 s wall budget fails tests that measured well under it. Held for the host: the gate's best figure (about 1,124–1,241 s) misses ten minutes, and the time budget needs a rule for that noise before the allowlist's figures can be set.
