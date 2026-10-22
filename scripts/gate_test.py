@@ -34,13 +34,14 @@ def main() -> int:
     binary = os.path.basename(cmd[0]).rsplit("-", 1)[0]
     test = cmd[cmd.index("--exact") + 1] if "--exact" in cmd else ""
     key = f"{binary} {test}"
-    peak = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss // 1024
+    peak_kib = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss
+    peak = -(-peak_kib // 1024)
     report = os.environ.get("GATE_REPORT")
     if report:
         with open(report, "a") as f:
             f.write(f"{key}\t{peak}\n")
     limit = budget(key)
-    if rc == 0 and peak > limit:
+    if rc == 0 and peak_kib > limit * 1024:
         print(f"fn-304 memory budget: {key} peaked at {peak} MiB, over its "
               f"{limit} MiB (.config/gate-budgets.toml)", file=sys.stderr)
         return 1

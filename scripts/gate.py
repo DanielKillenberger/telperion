@@ -9,9 +9,11 @@ off at 120 s (the profile's slow-timeout) and its peak memory at 4 GiB
 (`gate_test.py`, the run's target runner). A test over either sits in
 `.config/gate-budgets.toml` with its figures; that list may only shrink
 against `--base` (default `master`), and an entry for a test that is gone
-or ignored fails as stale. The whole run fails past `TOTAL`, 1.25 times
+or ignored fails as stale. The test run fails past `TOTAL`, 1.25 times
 the declared median rounded up to the minute, so growth the size of a new
-sweep fails the change that adds it. `CARGO_NEXTEST` names the nextest
+sweep fails the change that adds it. Like the median, it times the test
+run: the build and the listing before it are reported beside it, not held
+to it, so a cold build does not fail the gate. `CARGO_NEXTEST` names the nextest
 binary (default `cargo-nextest`, pinned 0.9.145 as CI's).
 """
 import argparse
@@ -113,7 +115,9 @@ def main() -> int:
     parser.add_argument("--base", default="master")
     base = parser.parse_args().base
     listed = entries(open(os.path.join(ROOT, BUDGETS)).read())
+    before = time.monotonic()
     errors = shrinks_only(base) + stale(listed) + doc_tests()
+    print(f"gate: build and listing {time.monotonic() - before:.0f} s")
     if errors:
         print("gate: before the run\n  " + "\n  ".join(errors), file=sys.stderr)
         return 1
@@ -123,7 +127,7 @@ def main() -> int:
     run = subprocess.run(nextest("run", "--no-fail-fast", "--tool-config-file",
                                  f"gate:{timeouts(listed)}"), cwd=ROOT, env=env)
     total = time.monotonic() - start
-    print(f"gate: {total:.0f} s against {TOTAL} s")
+    print(f"gate: the test run {total:.0f} s against {TOTAL} s")
     if run.returncode == 0 and total > TOTAL:
         print(f"gate: {total - TOTAL:.0f} s over its {TOTAL} s budget", file=sys.stderr)
         return 1
