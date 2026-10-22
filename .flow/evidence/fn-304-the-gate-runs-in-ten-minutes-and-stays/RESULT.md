@@ -69,3 +69,5 @@ Telperion at 82, seed 7 peaks at 7.68 GB on its own, and the sweep's high-water 
 | `budget-eighth-cycle` (`telperion-space/src/grow.rs`) | the cycle's phytomer budget an eighth of the asked | red: `the teaser's frame: the tree outgrew its budget` | red (the exceptions) |
 
 `fronds-round` is caught by neither: the frond count on the oak-to-palm walk stays below the oracle's 30 organs, where a form is dormant. Recorded, not acted on.
+
+Gate at the end of task .2 (same invocation, ffce4e524): 1,466 passed, 2 failed (fn-302's two device tests), 119 ignored, 1,995 s wall including about 217 s of compile, peak 6,867 MiB anon.
