@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-308-a-walks-midpoint-draws-a-tree-halfway",
   "impl_review_rounds": {
-    "fn-308-a-walks-midpoint-draws-a-tree-halfway.1": 0
+    "fn-308-a-walks-midpoint-draws-a-tree-halfway.1": 0,
+    "fn-308-a-walks-midpoint-draws-a-tree-halfway.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -139,10 +140,55 @@
       "task": "fn-308-a-walks-midpoint-draws-a-tree-halfway.1",
       "timestamp": "2026-10-22T09:39:18.275236Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4ca7a3cc1517c42c8a8376e99bc9e2f6f1fe8cef602bb7a95964781cedab6340",
+      "backend": "codex",
+      "base_sha": "636e6bb6158b33b1cb380912ea8490c52a4bfe32",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c32a2af1099e7709fa42808954e88cd1",
+            "classification": "introduced",
+            "findingId": "finding-c32a2af1099e7709fa42808954e88cd1",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b7c4d6d0183b0d826568280a7a3afcccb7c84ec7",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 949,
+      "output_sha256": "e63aa058e24db91063d539666fa07b1f7961b6648588d9c5c7746a492c879e50",
+      "reservation_id": "222a36e0f5d74a52aa24a9e5742285e7",
+      "round_consumed": true,
+      "scope": "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.2",
+      "superseded_by": null,
+      "task": "fn-308-a-walks-midpoint-draws-a-tree-halfway.2",
+      "timestamp": "2026-10-22T10:56:17.112383Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.1": 1,
+    "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -150,6 +196,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.1": 0,
+    "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-308-a-walks-midpoint-draws-a-tree-halfway.md",
@@ -166,5 +213,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T09:39:18.278880Z"
+  "updated_at": "2026-10-22T10:56:17.129651Z"
 }
