@@ -158,10 +158,12 @@ fn reaching(a: &Species, b: &Species) -> (Species, Species) {
 /// age, so mixed in they would switch the frame's exit by seed. Where both
 /// ends leave, or neither, the rows mix.
 fn ending((mut a, mut b): (Species, Species), age: f64) -> (Species, Species) {
-    // The smallest valid lifespan at or past the age (host, 2026-10-22):
-    // a lifespan is a whole cycle at least, the floor `Log { floor: 1 }`
-    // mixes it on, so under one cycle no lifespan is clamped to none and
-    // no end leaves an age; the exits mix as before.
+    // `age` is the number of cycles the build grows: a family's age is a
+    // whole count (`Blend::Count`) and the build grows exactly that age
+    // (host, 2026-10-22). The clamp is the smallest valid lifespan at or
+    // past it: a lifespan is a whole cycle at least, the floor
+    // `Log { floor: 1 }` mixes it on, so under one cycle no lifespan is
+    // clamped to none and no end leaves an age; the exits mix as before.
     let dormant = age.max(1.0);
     for s in a.states.iter_mut().chain(&mut b.states) {
         s.lifespan = s.lifespan.min(dormant);
