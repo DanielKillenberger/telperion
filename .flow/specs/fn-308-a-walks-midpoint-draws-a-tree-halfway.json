@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-308-a-walks-midpoint-draws-a-tree-halfway",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-10-22T11:40:54.533366Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-22T11:42:49.564252Z",
   "created_at": "2026-10-22T07:44:47.539493Z",
   "default_impl": null,
   "default_review": null,
@@ -14,7 +14,7 @@
     "fn-308-a-walks-midpoint-draws-a-tree-halfway.3": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "stale",
   "plan_reviewed_at": "2026-10-22T09:26:11.546863Z",
   "review_attempts": [
@@ -302,6 +302,50 @@
       "timestamp": "2026-10-22T11:40:54.522268Z",
       "tool_calls": 18,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "93b03bd7182bf913fb2bef21b99ffdaf70116266f23a8742ce023f7dfacd3a48",
+      "backend": "codex",
+      "base_sha": "911262a6e95d74618874b1807cb24d6a77e99b04",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7e17ebb144f8844a349cab851b708d8f",
+            "classification": "introduced",
+            "findingId": "finding-7e17ebb144f8844a349cab851b708d8f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f2590daddfa5f67dc4da2dcf39f863a129d1b4ad",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 4969,
+      "output_sha256": "19a8f81083b37702469fc33c130ca50b7d7ae8ccb647801ee915f20017d3bb62",
+      "reservation_id": "c7c82e4455bf45b98e2cb61697e7aa8e",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T11:42:49.560693Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -309,7 +353,7 @@
     "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.2": 2,
     "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.3": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -334,5 +378,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T11:40:54.540030Z"
+  "updated_at": "2026-10-22T11:42:49.564962Z"
 }

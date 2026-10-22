@@ -26,6 +26,8 @@ Between two species' ends (0 < t < 1), the species blend now changes the ends' r
 - **The ends** are byte-identical to the base for all six film walks at three seeds (`raw/ends/`, probe `the_ends_written`).
 - **Reviews:** the plan review returned SHIP (codex, round 2). Task .1 and task .3 returned SHIP. Task .2 returned SHIP on a single reviewer told to run no build or test command; that reviewer ran none. The earlier round, a fan-out, was stopped by the host after its reviewers ran the suites themselves (FRICTION.md).
 
+- **The completion review**, codex, run inside `telperion-heavy 8 --threads 2` (host ruling). Round 1 returned NEEDS_WORK with one P1: `walk_law` weighed a refused step by the unsized rows' reach. Fixed in 89270ac8f, so it now reads the frame `families` builds, and walk_law is green. Round 2 returned SHIP. Neither reviewer ran a cargo command.
+
 ## Look here
 
 - **The digest.** `catalogue_identity`'s walk digest moved from 18002361237904030670 to 14357345262323445191.
@@ -35,6 +37,5 @@ Between two species' ends (0 < t < 1), the species blend now changes the ends' r
 
 ## Open
 
-- **The completion review.** Codex's `completion-review` takes no focus text, so the no-build instruction cannot reach its prompt. It is held for the host.
 - **Unequal-age walks** and **centroids of more than two points** are out of R3 (spec Boundaries).
 - **A structural guard against reviewers running suites**, such as a cargo shim refusing an unadmitted `cargo test`, is the host's to spec (FRICTION.md).
