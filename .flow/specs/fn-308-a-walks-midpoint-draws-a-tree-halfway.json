@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-308-a-walks-midpoint-draws-a-tree-halfway",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "needs_work",
+  "completion_reviewed_at": "2026-10-22T11:40:54.533366Z",
   "created_at": "2026-10-22T07:44:47.539493Z",
   "default_impl": null,
   "default_review": null,
@@ -14,7 +14,7 @@
     "fn-308-a-walks-midpoint-draws-a-tree-halfway.3": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 0,
+  "plan_review_rounds": 1,
   "plan_review_status": "stale",
   "plan_reviewed_at": "2026-10-22T09:26:11.546863Z",
   "review_attempts": [
@@ -257,6 +257,51 @@
       "timestamp": "2026-10-22T11:36:21.530075Z",
       "tool_calls": 13,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "1f5d70c9fe1ae7d9438e71510eaf1cd4b1be2aa324f284e4fb9d166a918caeef",
+      "backend": "codex",
+      "base_sha": "911262a6e95d74618874b1807cb24d6a77e99b04",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7e17ebb144f8844a349cab851b708d8f",
+            "classification": "introduced",
+            "findingId": "finding-7e17ebb144f8844a349cab851b708d8f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "06780e069bc190e78bc7ed723b70bd0381a69b3f",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 374484,
+      "output_sha256": "7f754a2f18559b9a878232dae5594c3c7f15adac1ab98af5de1b17a102ee9635",
+      "reservation_id": "de0696ac24cf4b3c8797fc2406c7d0be",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T11:40:54.522268Z",
+      "tool_calls": 18,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -269,6 +314,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.1": 0,
     "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.2": 0,
     "impl:fn-308-a-walks-midpoint-draws-a-tree-halfway.3": 0,
@@ -288,5 +334,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T11:36:21.542819Z"
+  "updated_at": "2026-10-22T11:40:54.540030Z"
 }

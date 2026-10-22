@@ -8,7 +8,7 @@
 //! one step), is refused; a steep but continuous slope is not. A per-age
 //! form counts where the frame grows in its age, weighed by that reach
 //! (fn-308 host ruling 2).
-use telperion_core::{catalogue, presets::by_identity, Family};
+use telperion_core::{blend::families, catalogue, presets::by_identity, Family};
 
 /// The film's walks (fn-272 cut 3): from, to and age.
 const WALKS: [(&str, &str, f64); 6] = [
@@ -112,7 +112,10 @@ fn law(f: &Family) -> Vec<(String, Option<usize>, f64)> {
 }
 
 /// How much a frame grows in each age: the closed form's expected
-/// phytomers there over the frame's (fn-308 host ruling 2).
+/// phytomers there over the frame's (fn-308 host ruling 2). It reads the
+/// frame as `families` builds it, sized: the size solve's factor on the
+/// lateral probabilities moves how much grows in each age, though no form
+/// reads those rows (fn-308 completion review).
 fn reach(f: &Family) -> Vec<f64> {
     let s = f.space.species.as_ref().unwrap();
     let counts = telperion_space::expected_counts(s, f.age as u32).unwrap();
@@ -149,7 +152,7 @@ fn steepest(from: &str, to: &str, age: f64, seed: u32) -> Vec<(String, f64, f64)
     let mut reach_at = |i: usize, k: usize| -> f64 {
         reached
             .entry(i)
-            .or_insert_with(|| reach(&walked(&a, &b, at(i))))[k]
+            .or_insert_with(|| reach(&families(&a, &b, at(i)).unwrap()))[k]
     };
     let mut out = Vec::new();
     for (j, (name, pa, _)) in points[0].iter().enumerate() {
