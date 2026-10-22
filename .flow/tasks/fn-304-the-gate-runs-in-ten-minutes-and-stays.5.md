@@ -31,9 +31,12 @@ R8 and the close-out R9: the checks that keep the gate where task .4 put it.
 - [ ] The gate script reports total wall against ten minutes; the result recorded.
 - [ ] Gate green (fn-302's two tests named if still red), `npm test` green, codex impl review.
 ## Done summary
-TBD
+R8 and R9 as ruled. scripts/gate.py runs the gate profile with scripts/gate_test.py as runner: 120 s wall cut-off, 4 GiB per test, nine tests allowlisted at twice their worst time and a tenth over their worst peak; the allowlist only shrinks against the base and stale entries fail; a doc-test the gate would not run fails before the run; the test run fails past 1.25 x the median (1,560 s); cargo-nextest 0.9.145 checked first with its install command. Demos: a 125 s sleeper cut at 120 s and passing under a 130 s override; a 4.5 GiB test failed by name; new, raised and stale allowlist entries refused; nextest missing or 0.9.100 refused. Declared gate green: 1,473 passed, 0 failed, 1,137 s test run (median 1,241 s over three runs, 1,137-1,348), peak 5.2 GiB. npm test green (177 tests).
+stage: impl-review - ran (codex, three lenses NEEDS_WORK, two fixes, re-review NEEDS_WORK on one finding) (model: gpt-6.1-sol)
+OVERRIDDEN: codex finding that the total budget excludes the build and listing. Host (2026-10-22): the budget is there to catch tests growing; build time depends on cache state, not on the change, so counting it would fail a cold build for no defect. Reviewer: the declared command's whole wall time should be held to the budget.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: af1a97f99028faf34361e955c64523eb9a8dd08f, 438e30b82d578bd5edd4dc4e1233e8dd992b1cb1, fb0c80de2501cbacbd42c9b76ffa7a5b233f7a31, cbc7fd632510911ef22fb5137ee920328a1a8c5f, 17c1a3c070c6cf8bfbceddb91046cc4e16d3f12b, ef44834128172bf8a7c758f62e53bcd27d8e4bf5, 77888b916d711b537357790985650dbeb51de592, 90a24fcdf8faf2f834c4505e67f3eb286f1c7c06, 1ca40a4d53e781820a45e9c50d36ac36531559cf
+- Tests: telperion-heavy 8 --threads 4 -- python3 scripts/gate.py (1473 passed, 0 failed, 1,137 s), npm test (177 passed), demo.sh, allowlist_demo.py, nextest version demo
 - PRs:
