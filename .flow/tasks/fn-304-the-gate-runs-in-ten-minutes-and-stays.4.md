@@ -30,9 +30,11 @@ R7 on the shrunk suite: `cargo test` and nextest with groups at `--threads 2`, `
 - [ ] AGENTS.md's gate line rewritten with its measurement.
 - [ ] Codex impl review.
 ## Done summary
-TBD
+R7 measured and declared. Both runners at threads 2, 4 and 8 inside telperion-heavy 8: cargo test 1,971 / 1,538 / 1,494 s; nextest with groups 1,448 / 1,241 / 1,271 s; memory tokens left device tests unscheduled and are not declared. Declared (host): telperion-heavy 8 --threads 4 -- python3 scripts/gate.py, nextest gate profile, median 1,295 s (1,241-1,348), peak 5.3 GiB; 8 GB settled. AGENTS.md gate line rewritten. R5 (ten minutes) not met: the heavy tests take one turn, about 661 + 421 = 1,080 s; follow-up spec by the host. gate.py now also fails on a doc-test the gate would not run.
+stage: impl-review - ran (codex, one correctness reviewer, SHIP; two P2s fixed: device-group comment, doc-test check) (model: gpt-6.1-sol)
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: af1a97f99028faf34361e955c64523eb9a8dd08f, 438e30b82d578bd5edd4dc4e1233e8dd992b1cb1, fb0c80de2501cbacbd42c9b76ffa7a5b233f7a31, cbc7fd632510911ef22fb5137ee920328a1a8c5f
+- Tests: telperion-heavy 8 --threads 4 -- python3 scripts/gate.py (1473 passed, 0 failed, 1,348 s), measure.sh: cargo and nextest at threads 2, 4, 8
 - PRs:
