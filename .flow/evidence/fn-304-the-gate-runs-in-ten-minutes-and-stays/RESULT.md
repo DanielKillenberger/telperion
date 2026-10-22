@@ -96,3 +96,5 @@ Test counts: `walks` 12 run → 11 (merge, ruling 6); wasm 7 → 7; render lib +
 | `field-leaves` (`resident/field/make.rs`) | the device's leaf density half as much again | gate test (grid 36) red; every-grid test red |
 
 Green on the engine: every test above passes, and the whole walks binary passes (`raw/proofs/t3-walks-all-green.log`).
+
+Gate at the end of task .3, after merging F4 at 26a3b19ab (fn-303), 7f3d88403: 1,473 passed, 0 failed, 123 ignored, 1,971 s wall including compile, peak 6,041 MiB anon. Green.
