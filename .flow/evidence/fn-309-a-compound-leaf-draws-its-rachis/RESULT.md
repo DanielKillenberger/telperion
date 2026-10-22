@@ -120,4 +120,18 @@ laurelin 42: leaves b7c5b48b097e6c4b points 3375803 68bac691226cb55d clusters 25
 
 ## Owner verdict on frame 526 (2026-10-23)
 
-Frame 526 (oak to palm at 40, seed 7, t = 0.34), hero pose over one fixed box, base e2c035e51 beside change 129e363df: `raw/stills/f526-before-after.png` (gitignored; built by the scratch example kept as `raw/stills/f526_still.rs.txt`). The still builds its tree on the CPU. On the base, leaves fly above and around the crown and the bounds reach 13.38 m; on the change none fly, the bounds top is 11.98 m, and the oak's twig leaves gather as tufts at the twig ends. Owner, as relayed by the host: "better".
+Frame 526 (oak to palm at 40, seed 7, t = 0.34), hero pose over one fixed box, base e2c035e51 beside change 129e363df: `stills-526.jpg` (committed; the PNG is `raw/stills/f526-before-after.png`, gitignored; built by the scratch example kept as `raw/stills/f526_still.rs.txt`). The still builds its tree on the CPU. On the base, leaves fly above and around the crown and the bounds reach 13.38 m; on the change none fly, the bounds top is 11.98 m, and the oak's twig leaves gather as tufts at the twig ends. Owner, as relayed by the host: "better".
+
+## Task 3: cost (2026-10-23)
+
+`build_time` (device, warm), `BUILD_PRESETS=date-palm BUILD_FRAME=oregon-white-oak,date-palm,0.34 BUILD_AGE=40 BUILD_SEED=7`, three runs each, one scratch checkout with its own target (base e2c035e51, change 77a2727dd), through `telperion-heavy 8 --gpu 3 --threads 2`:
+
+| Build | Base warm ms (runs) | Change warm ms (runs) | Instances | Device peak MB |
+|---|--:|--:|--:|--:|
+| oak to palm t 0.34, 40, seed 7 | 138 (140, 138, 138) | 139 (137, 139, 142) | 845 | 87 |
+| date palm, 40, seed 7 | 79 (78, 79, 79) | 78 (76, 78, 78) | 6,554 | 34 |
+
+The medians are within a millisecond of each other, inside the run-to-run spread. The tuft costs nothing measurable: the same leaves are placed, at one point instead of along a line.
+
+`npm ci && npm test` (inside `telperion-heavy 8 --threads 2`, after task 2's gate): 22 files, 177 tests passed.
+
