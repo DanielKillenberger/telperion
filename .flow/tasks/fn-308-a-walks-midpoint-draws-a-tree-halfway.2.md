@@ -57,10 +57,21 @@ Land C5 (spec R2) through one aged path (R5), with host rulings 3 and 4 applied 
 - [ ] TBD
 
 ## Done summary
-TBD
+The species blend takes the frame's age (`telperion_space::blend(a, b, t, age)`). Between the ends it gives an age one end never reaches every row of the other end (rule B), clamps each lifespan at `max(age, 1)`, and gives an end that does not leave an age within the tree's age the leaving end's `continuation` and `relay_ended`. The age is whole by `Blend::Count`, so it is the number of cycles the build grows (host ruling, 2026-10-22). `TIMING` and `timed` are deleted.
 
+The tests:
+- `blend_reach` is rewritten for the new rule, with an exit-rule case.
+- `space_walks` loses its raw-mix equality clause (host ruling 3). It gains the R5 one-path test, the clamp-premise test and the fractional-age test.
+- `catalogue_identity` is re-pinned to 14357345262323445191 (fn-308).
+- The grown-count example moves to spruce to the ordinary tree at 80, t = 0.8.
+- Two spruce-to-birch device frames go to fn-300's ignored test (host ruling).
+
+stage: impl-review - ran (codex).
+- Round 1 was a fan-out, rid 222a36e0. Contracts and integration returned SHIP; the contracts P2 was fixed in d3cef9777. The correctness draw died running cargo itself, and the host stopped the round.
+- Round 2 was a single codex review, with an instruction to run no cargo. It returned SHIP, and its command log shows no cargo command.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: cf563e960e4a926be84dad0a87b4b53bb3311e98, 5a94b71c72b1db5c25323fae779465d08ce7f051, 211f1316d76e148acbc6fd7de299e684d7724b79, 58c5e62bfae699c3c3fb93950aff6ba2c7b898b6, 866dcf6d7bbeb74dc9460050b05118fd54526f37, b7c4d6d0183b0d826568280a7a3afcccb7c84ec7, d3cef9777bea8f82eb17ea07446259cba3ee3b1f, 23694008dd860ba1c1b2ce0d2c05c0ad3b18f5b1, 60439c71b77887aaa2861da853230d359ec4d236
+- Tests: telperion-heavy 8 --threads 2 -- cargo test --profile ci -p telperion-core --test catalogue_identity --test space_walks --test walk_law --test grown_total --test units_bound --test walk_leaves --test walk_sizes, telperion-heavy 8 --threads 2 -- cargo test --profile ci -p telperion-space
 - PRs:
-
