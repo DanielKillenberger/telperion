@@ -4,7 +4,7 @@
 //! expected kept nor grown phytomers at the blend's age pass the ends'
 //! weighted geometric mean of them (host, 2026-10-08). Built frames and their strips are the evidence sheet's; these
 //! tests read the prediction, which costs no growth.
-use telperion_core::{blend, presets::by_identity, presets::Preset, Family};
+use telperion_core::{blend, mesh, presets::by_identity, presets::Preset, Family};
 use telperion_space::{expected_grown, expected_kept, Species};
 
 /// The passed branching species and the ordinary tree (fn-230 R2).
@@ -166,6 +166,52 @@ fn every_film_walk_is_the_engines_blend_at_its_age() {
             job.join().unwrap();
         }
     });
+}
+
+/// fn-308's clamp rests on this (host, 2026-10-22): a lifespan at or past
+/// the cycles a tree grows is dormant. The date palm at 40, seed 1, builds
+/// the same tree with an age-2 lifespan of 150, 41 or 40, and another with
+/// 39.
+#[test]
+fn a_lifespan_at_or_past_the_age_is_dormant() {
+    let mut palm = at(Preset::DatePalm, 40.0);
+    palm.skeleton.seed = 1;
+    let built = |lifespan: f64| {
+        let mut f = palm.clone();
+        f.space.species.as_mut().unwrap().states[2].lifespan = lifespan;
+        format!("{:?}", mesh::build(&f).unwrap())
+    };
+    let dormant = built(150.0);
+    assert!(built(41.0) == dormant && built(40.0) == dormant);
+    assert!(built(39.0) != dormant);
+}
+
+/// fn-308 (host, 2026-10-22): a walk between ends of a fractional age is
+/// drawn at the cycles its build grows, the age rounded up, at least 1:
+/// beech to spruce and oak to palm build at 0.5 and 40.5, and at 40.5 the
+/// clamp reads 41. Between two palms at 40.5 an age-2 lifespan of 41 is
+/// untouched, and one above 41 becomes 41.
+#[test]
+fn a_walk_at_a_fractional_age_clamps_at_the_cycles_it_grows() {
+    for age in [0.5, 40.5] {
+        for (p, q) in [
+            (Preset::EuropeanBeech, Preset::NorwaySpruce),
+            (Preset::OregonWhiteOak, Preset::DatePalm),
+        ] {
+            let walked = blend::families(&at(p, age), &at(q, age), 0.5).unwrap();
+            assert_eq!(walked.age, age.ceil(), "{p:?} to {q:?} at {age}");
+            mesh::build(&walked).unwrap();
+        }
+    }
+    let palm = |lifespan: f64| {
+        let mut f = at(Preset::DatePalm, 40.5);
+        f.space.species.as_mut().unwrap().states[2].lifespan = lifespan;
+        f
+    };
+    for (x, y) in [(41.0, 41.0), (150.0, 200.0)] {
+        let walked = blend::families(&palm(x), &palm(y), 0.5).unwrap();
+        assert_eq!(species(&walked).states[2].lifespan, 41.0, "{x} {y}");
+    }
 }
 
 /// Host decision (2026-10-08, option A): kept phytomers do not bound grown
