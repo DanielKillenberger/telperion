@@ -169,3 +169,9 @@ The spec's target, the whole gate under ten minutes on the declared invocation, 
 - The device tests share the card two at a time at most: a heavy device test takes the one-at-a-time turn with the heavy CPU tests, so it can run beside one light device test (codex review, task .4). This is the arrangement measured.
 - Two patches were caught by neither a subset nor its sweep: the light-sum order (`sum-order`) and the frond rounding on the oak-to-palm walk (`fronds-round`), each below what the tests read.
 - The gate needs `cargo-nextest` 0.9.145 on the desk (the runs here used a pinned copy in the session's scratchpad); installing it is local setup, not a repository change.
+
+### Host rulings on task .5 (2026-10-22)
+
+- **Total budget on the test run only.** OVERRIDDEN: codex's task .5 finding (the total excludes the build and listing before it). Host: "the budget is there to catch tests growing. Build time depends on cache state, not on the change being made, so counting it would fail a cold build for no defect." `gate.py` prints the build and listing time beside the test run; the spec's R4 and R8 now say "the test run's total".
+- **Build time, measured** (`raw/measure/build-time.log`, `telperion-heavy 8 --threads 4`, nextest's listing build in a separate, empty target directory): 155 s cold at four jobs, 1 s warm. The task gates' `cargo test` rebuilt about 215 s at two jobs after a change to the core crates' tests. AGENTS.md states these beside the 1,295 s median.
+- **nextest checked first.** `gate.py` stops before anything else when `cargo-nextest` is missing or not 0.9.145, with one line naming `cargo install cargo-nextest --version 0.9.145 --locked` (`raw/proofs/nextest-check-demo.log`: the desk's missing binary, then 0.9.100, both refused with that line; 0.9.145 passes). It is not installed on the desk.

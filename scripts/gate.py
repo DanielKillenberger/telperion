@@ -14,7 +14,8 @@ the declared median rounded up to the minute, so growth the size of a new
 sweep fails the change that adds it. Like the median, it times the test
 run: the build and the listing before it are reported beside it, not held
 to it, so a cold build does not fail the gate. `CARGO_NEXTEST` names the nextest
-binary (default `cargo-nextest`, pinned 0.9.145 as CI's).
+binary (default `cargo-nextest`); it must be 0.9.145, CI's pin, and the
+gate stops first, naming the install command, when it is missing or another.
 """
 import argparse
 import json
@@ -30,9 +31,29 @@ BUDGETS = ".config/gate-budgets.toml"
 TOTAL = 1620
 
 
+NEXTEST = "0.9.145"
+INSTALL = f"cargo install cargo-nextest --version {NEXTEST} --locked"
+
+
+def binary() -> str:
+    return os.environ.get("CARGO_NEXTEST", "cargo-nextest")
+
+
 def nextest(*args: str) -> list[str]:
-    binary = os.environ.get("CARGO_NEXTEST", "cargo-nextest")
-    return [binary, "nextest", *args, "--cargo-profile", "ci", "--workspace", "--profile", "gate"]
+    return [binary(), "nextest", *args, "--cargo-profile", "ci", "--workspace", "--profile", "gate"]
+
+
+def nextest_at_its_pin() -> str | None:
+    """Why the gate's nextest is not CI's pin, in one line; None when it is."""
+    try:
+        out = subprocess.run([binary(), "nextest", "--version"], capture_output=True, text=True)
+    except OSError:
+        return f"gate: no cargo-nextest at {binary()!r}; install it: {INSTALL}"
+    words = out.stdout.split()
+    if out.returncode != 0 or len(words) < 2 or words[1] != NEXTEST:
+        found = words[1] if len(words) > 1 else "an unreadable version"
+        return f"gate: cargo-nextest {found}, not {NEXTEST}; install it: {INSTALL}"
+    return None
 
 
 def entries(text: str) -> dict[str, dict]:
@@ -114,6 +135,10 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--base", default="master")
     base = parser.parse_args().base
+    missing = nextest_at_its_pin()
+    if missing:
+        print(missing, file=sys.stderr)
+        return 1
     listed = entries(open(os.path.join(ROOT, BUDGETS)).read())
     before = time.monotonic()
     errors = shrinks_only(base) + stale(listed) + doc_tests()
