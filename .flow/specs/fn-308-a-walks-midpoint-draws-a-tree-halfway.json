@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-308-a-walks-midpoint-draws-a-tree-halfway",
+  "created_at": "2026-10-22T07:44:47.539493Z",
+  "depends_on_epics": [],
+  "id": "fn-308-a-walks-midpoint-draws-a-tree-halfway",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-308-a-walks-midpoint-draws-a-tree-halfway.md",
+  "status": "open",
+  "title": "A walk's midpoint draws a tree halfway between its ends",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-22T07:44:47.555705Z"
+}
