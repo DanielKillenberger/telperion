@@ -67,3 +67,10 @@
 
 - **No leaf says where it came from.** Classing each leaf as on wood, on a rosette frond, or on a placement's leaflet line needed three counterfactual rebuilds per frame (`rachisWidth` 0 to tell rachis points from wood, `leafletCount` 1 and `cauline` 0 to tell placements from rosette fronds), because `Instances` carries no source and the rachis points no kind. About 15 minutes and three probe rebuilds. A per-leaf source tag or a per-run kind on `Curve` readable from an example would have removed it.
 - **fn-308's raw table is not on this checkout.** The host pointed at `fn-308.../raw/c5-oak-palm-41.md`; `raw/` is ignored and only the other worktree has it. Its rows are quoted in the committed `R1.md`, which served. A few minutes.
+
+## 2026-10-23, task 2 and the completion review
+
+- **Doing:** task 2 (R4 embed, R5) and the spec's completion review, dispatched by the host.
+- **Hindered:** (1) `flowctl start .2` refused: task 1 is still `in_progress` though its work is done and reviewed, so .2 was started with `--force`, and .1 stays open for the host. (2) The completion review under `telperion-heavy 8 --threads 2 -- flowctl codex completion-review ... --json | tee <log>` left only the queue's "go" line in the log; the verdict was read from the receipt. (3) The completion review's default base would have diffed against master, which is 4,236 files because the release branch is merged into this one; `--base fn-198-tree-space-f-the-engine-in-production` brought it to the film's own 23 files.
+- **Cost:** about 5 minutes.
+- **Would have removed it:** closing task 1 when its last cut was accepted; the spec recording its base branch (`base_branch` is null), so the review finds the release branch itself.
