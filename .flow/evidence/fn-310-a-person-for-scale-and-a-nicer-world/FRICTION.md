@@ -27,3 +27,10 @@
 - Hindered by: the NVIDIA shader disk cache on this machine (`~/.cache/nvidia/GLCache`) is full at its 1 GiB ceiling and takes no new entries, so every `fresh_ms` taken with the default cache depends on which shaders happened to be cached before it filled. Task 3's +1.7 s was that, not the branch; it cost task 3's NEEDS_HUMAN and this task. dcg also refused a heredoc that wrote a script to a variable path, so the script went through the Write tool.
 - Cost: this task, about 25 minutes and five probe rounds (about 3 minutes of GPU time); the code side cost nothing.
 - Would have removed it: the `frames` probe (or `docs/gpu-tests.md`) stating the driver cache state for `fresh_ms`, for example running with `__GL_SHADER_DISK_CACHE=0` for a cold number or a fresh `__GL_SHADER_DISK_CACHE_PATH` per run. The full cache itself is a local setup problem on the owner's machine (clearing or raising `__GL_SHADER_DISK_CACHE_SIZE`), reported, not specced.
+
+## 2026-10-23, conductor, the first gate
+
+- Doing: the declared gate at a1b170043, after tasks .1-.4 (void by the host once task .5 was added, but run to its end).
+- Hindered by: two failures the tasks' focused runs could not see: `tint_rule_tests::every_shipped_shader_keeps_tints_rules` (a lib test; task .1's WGSL mixes `*` and `^` without parentheses) and `conformance::the_renderer_library_never_names_a_family` (task .2's bounds table names presets in `camera.rs`). Task .1's worker ran conformance before task .2 broke it; neither ran the lib's tint rule test.
+- Cost: both fixes and a second gate (about 21 minutes of gate each), plus a worker round.
+- Would have removed it: a short, sub-second "static checks" list beside the two pre-gate guards (`generation_limit_guard`, `compile_size`) that every render task runs before review: the lib's `tint_rule_tests` and `tests/conformance.rs`. Both are fast and catch exactly this class.
