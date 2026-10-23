@@ -11,8 +11,11 @@
 //! `frames.tsv` beside the stills.
 //!
 //!   cargo run --profile ci -p telperion-render --example film -- <path.json> <out dir>
+//!   cargo run --profile ci -p telperion-render --example film -- <path.json> <out dir> --frames 105,255,700-719
 //!   cargo run --profile ci -p telperion-render --example film -- <path.json> --oracle
 //!
+//! `--frames` draws only the frames named, through the same path, builds
+//! only the segments they fall in and assembles no video (fn-310 task 6).
 //! `--oracle` judges every walk frame by fn-251's oracle on the CPU and
 //! draws nothing.
 #[path = "film/camera.rs"]
@@ -30,7 +33,7 @@ mod path;
 
 use cost::{Cost, Peaks};
 use overlay::{Canvas, Overlay};
-use path::{ease, faded, Frame, Kind, Path};
+use path::{ease, faded, selection, Frame, Kind, Path};
 use std::io::Write as _;
 use telperion_core::{
     blend, mesh,
@@ -44,11 +47,18 @@ use telperion_render::{
 
 fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let [file, out] = &args[..] else {
-        return Err("usage: film <path.json> <out dir> | film <path.json> --oracle".into());
+    let usage = "usage: film <path.json> <out dir> [--frames <list>] | film <path.json> --oracle";
+    let (file, out, chosen) = match &args[..] {
+        [file, out] => (file, out, None),
+        [file, out, flag, list] if flag == "--frames" => (file, out, Some(list)),
+        _ => return Err(usage.into()),
     };
     let path = Path::read(std::path::Path::new(file))?;
     let frames = path.frames();
+    let chosen = match chosen {
+        Some(list) => Some(selection(list, frames.len())?),
+        None => None,
+    };
     if out == "--oracle" {
         let missed = oracle::check(&path, &frames)?;
         println!("{missed} walk frames miss the oracle");
@@ -82,6 +92,7 @@ fn main() -> Result<(), String> {
         out,
         renderer: Renderer::new(gpu, STILL_FORMAT),
         log: None,
+        chosen: chosen.as_ref(),
     };
     film.renderer.set_scene(SceneRow {
         sun_azimuth: path.sun.0,
@@ -94,6 +105,9 @@ fn main() -> Result<(), String> {
     film.line("frame\tsegment\tat\tleaves\theight\twidth\tbuild_ms")?;
     let peaks = Peaks::start();
     for (k, segment) in path.segments.iter().enumerate() {
+        if film.of(k).is_empty() {
+            continue;
+        }
         peaks.reset();
         let cost = match &segment.kind {
             Kind::Grow { species, from, to } => film.grow(&gen, k, species, (*from, *to))?,
@@ -101,15 +115,22 @@ fn main() -> Result<(), String> {
         };
         let (rss, device) = peaks.take();
         println!(
-            "cost: segment {k}: {} frames, {} trees, build {:.1} s, draw {:.1} s, peak resident {rss} MB, device {device} MB",
+            "cost: segment {k}: {} frames, {} trees, build {:.1} s, draw {:.1} s (render {:.2} s, {} renders, {} sun maps; write {:.2} s), peak resident {rss} MB, device {device} MB",
             cost.frames,
             cost.trees,
             cost.build_ms / 1e3,
-            cost.draw_ms / 1e3
+            cost.draw_ms / 1e3,
+            cost.render_ms / 1e3,
+            cost.renders,
+            cost.sun_maps,
+            (cost.draw_ms - cost.render_ms) / 1e3
         );
     }
     drop(film.log.take());
-    assemble(out, path.fps, frames.len())
+    match chosen {
+        Some(_) => Ok(()),
+        None => assemble(out, path.fps, frames.len()),
+    }
 }
 
 /// What the overlay shows at each frame: the map point, the age and the
@@ -168,6 +189,8 @@ struct Film<'a> {
     out: &'a str,
     renderer: Renderer,
     log: Option<std::io::BufWriter<std::fs::File>>,
+    /// The frames to draw, where `--frames` names them; all where it does not.
+    chosen: Option<&'a std::collections::BTreeSet<usize>>,
 }
 
 impl Film<'_> {
@@ -176,13 +199,13 @@ impl Film<'_> {
         writeln!(log, "{text}").map_err(|e| e.to_string())
     }
 
-    /// The frames of segment `k`, by their index in the film.
+    /// The frames of segment `k` to draw, by their index in the film.
     fn of(&self, k: usize) -> Vec<(usize, Frame)> {
         self.frames
             .iter()
             .copied()
             .enumerate()
-            .filter(|(_, f)| f.segment == k)
+            .filter(|(i, f)| f.segment == k && self.chosen.is_none_or(|c| c.contains(i)))
             .collect()
     }
 
@@ -207,13 +230,19 @@ impl Film<'_> {
         Ok(())
     }
 
-    /// Frame `i` drawn from its pose with the tree put up now, no overlay.
-    fn still(&mut self, i: usize) -> Result<Vec<u8>, String> {
+    /// Frame `i` drawn from its pose with the tree put up now, no overlay,
+    /// its render and read back counted in `cost`.
+    fn still(&mut self, i: usize, cost: &mut Cost) -> Result<Vec<u8>, String> {
         let (w, h) = self.path.size;
         let pose = camera::pose(&self.path.camera, i as f64 / f64::from(self.path.fps));
-        Ok(render(&mut self.renderer, &pose, w, h)
+        let started = std::time::Instant::now();
+        let rgba = render(&mut self.renderer, &pose, w, h)
             .map_err(|e| e.to_string())?
-            .rgba)
+            .rgba;
+        cost.render_ms += started.elapsed().as_secs_f64() * 1e3;
+        cost.renders += 1;
+        cost.sun_maps += usize::from(!self.renderer.shadow_cached());
+        Ok(rgba)
     }
 
     /// Frame `i`'s picture with the overlay laid over it, written.
@@ -246,11 +275,12 @@ impl Film<'_> {
     }
 
     /// Frame `i` drawn and written.
-    fn draw(&mut self, i: usize) -> Result<f64, String> {
+    fn draw(&mut self, i: usize, cost: &mut Cost) -> Result<(), String> {
         let started = std::time::Instant::now();
-        let rgba = self.still(i)?;
+        let rgba = self.still(i, cost)?;
         self.finish(i, rgba)?;
-        Ok(started.elapsed().as_secs_f64() * 1e3)
+        cost.draw_ms += started.elapsed().as_secs_f64() * 1e3;
+        Ok(())
     }
 
     /// A growth: one tree grown once and settled at whole ages only, where
@@ -311,7 +341,7 @@ impl Film<'_> {
             self.log(shape, at, &indices, ms)?;
             for (i, share) in showing {
                 let started = std::time::Instant::now();
-                let rgba = self.still(i)?;
+                let rgba = self.still(i, &mut cost)?;
                 match (share == 0.0, earlier.remove(&i)) {
                     (true, _) => self.finish(i, rgba)?,
                     (false, None) => drop(earlier.insert(i, rgba)),
@@ -357,7 +387,7 @@ impl Film<'_> {
             if let Some((t, shape, ms)) = last {
                 self.log(shape, t, &[i], ms)?;
             }
-            cost.draw_ms += self.draw(i)?;
+            self.draw(i, &mut cost)?;
             cost.frames += 1;
         }
         Ok(cost)

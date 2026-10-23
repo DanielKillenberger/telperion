@@ -34,3 +34,7 @@
 - Hindered by: two failures the tasks' focused runs could not see: `tint_rule_tests::every_shipped_shader_keeps_tints_rules` (a lib test; task .1's WGSL mixes `*` and `^` without parentheses) and `conformance::the_renderer_library_never_names_a_family` (task .2's bounds table names presets in `camera.rs`). Task .1's worker ran conformance before task .2 broke it; neither ran the lib's tint rule test.
 - Cost: both fixes and a second gate (about 21 minutes of gate each), plus a worker round.
 - Would have removed it: a short, sub-second "static checks" list beside the two pre-gate guards (`generation_limit_guard`, `compile_size`) that every render task runs before review: the lib's `tint_rule_tests` and `tests/conformance.rs`. Both are fast and catch exactly this class.
+
+## 2026-10-23, task 6 (worker): the scratch "base" is not 201288747
+
+Doing: reusing task .3's base export for the film's base-against-HEAD timing, as the dispatch suggested. Hindered: `scratchpad/base` is an older export, not 201288747 (it has no `examples/film*`, and dozens of `telperion-render` and `telperion-core` files differ from `git archive 201288747`). Cost: about 3 minutes to check, and a fresh export and cold build under its own target dir (`scratchpad/t6base`). What would remove it: a base export named by its commit (`scratchpad/base-<sha>`) with a `COMMIT` file written beside it, so a reuse is one `cat` instead of a tree diff.
