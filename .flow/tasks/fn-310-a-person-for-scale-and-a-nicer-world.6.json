@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-23T17:09:04.355917Z",
+  "depends_on": [
+    "fn-310-a-person-for-scale-and-a-nicer-world.5"
+  ],
+  "id": "fn-310-a-person-for-scale-and-a-nicer-world.6",
+  "priority": null,
+  "spec": "fn-310-a-person-for-scale-and-a-nicer-world",
+  "spec_path": ".flow/tasks/fn-310-a-person-for-scale-and-a-nicer-world.6.md",
+  "status": "todo",
+  "title": "Explain the film's +51 ms a frame, and render the before frames 105, 255, 720 and 825",
+  "updated_at": "2026-10-23T17:09:04.355917Z"
+}

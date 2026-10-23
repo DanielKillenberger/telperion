@@ -73,6 +73,25 @@ A concept prototype is being made on branch `scene-concept` (host, 2026-10-23). 
   - New uniforms are whole `vec4` slots appended to `Uniforms`, mirrored in WGSL. The clay room's light and path are untouched.
   - The sky gets a dither of about one 8-bit step from the pixel hash, so a wide gradient does not band. Same frame, same bytes on one device.
 
+## Cut 7 findings (host, 2026-10-23)
+
+Cut 7 (rendered from the release branch at c047afedb; fn-272's FILM.md, cut 7 section, at dd2c3966a) showed three problems with the person.
+
+- **D5, a figure per shot, not per year.**
+  - **The problem:** placement follows each year's crown, so in a growth the person steps outward every year, and the film's crossfade of consecutive years shows two half-transparent people (frame 825).
+  - **The rule:** the scale figure is placed for a shot. Within one film segment the person stands still.
+  - **How:** the renderer's placement takes the bounds it is given. The film passes the bounds the segment reaches at its largest, the envelope its camera already pulls back to (`examples/film/camera.rs`). That is an input choice, not film-only drawing. The harness and `createRenderer` keep placing per submitted tree.
+  - **The test:** the film's placement is constant within each segment.
+- **D6, wholly in the hero frame.**
+  - **The problem:** at the Laurelin seedling (frames 719/720) the person fills half the frame and is cut at the waist. At 105 the feet are cut, and at 255 everything below the chest.
+  - **The rule:** along the D2 azimuth, the distance is the larger of the crown ellipse's reach plus the 0.5 m margin, and the nearest distance at which the whole 1.75 m figure fits inside the hero frame with a small margin. A seedling's person stands farther back, wholly visible.
+  - **The tests:** the in-frame tests become "wholly in frame, head to feet". They cover every shipped preset at its catalogue age, Telperion at 80, every preset at age 1, and the film's segment envelopes. The canopy and shadow tests still hold.
+- **The film's draw time, to be explained before anything changes.**
+  - **The numbers:** draw time rose from 87 s (cut 6) to 141 s (cut 7) over 1,050 frames, about 51 ms more a frame. The harness measured +0.05 ms.
+  - **Candidates:** the shadow map redrawn, the person in both crossfade renders, the noise at 1280x720, or the film's own path.
+  - **If it is a real per-frame cost in the shipped renderer,** the number goes to the host before any fix.
+- **Proof:** before and after stills of frames 105, 255, 720 and 825, built through the film path.
+
 ## Boundaries
 
 - No change to growth, the trees or the camera path.

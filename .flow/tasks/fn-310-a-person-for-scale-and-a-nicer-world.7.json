@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-23T17:09:04.356007Z",
+  "depends_on": [
+    "fn-310-a-person-for-scale-and-a-nicer-world.6"
+  ],
+  "id": "fn-310-a-person-for-scale-and-a-nicer-world.7",
+  "priority": null,
+  "spec": "fn-310-a-person-for-scale-and-a-nicer-world",
+  "spec_path": ".flow/tasks/fn-310-a-person-for-scale-and-a-nicer-world.7.md",
+  "status": "todo",
+  "title": "The person placed per shot and wholly in frame; the after frames",
+  "updated_at": "2026-10-23T17:09:04.356007Z"
+}
