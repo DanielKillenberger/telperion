@@ -125,6 +125,22 @@ Task .7 measured that D6 has no camera-side fit at age 1 (seedlings 0.09-1.34 m 
     - in frame or exempt, as now.
   - **Proof:** a before/after sheet of film frames 105, 255, 720, 825 and 975 via `film --frames`.
 
+### Host rulings on task .8 (2026-10-23): rule for the shot, not the segment
+
+The film is one continuous shot, so a rule held per segment only moves a jump to a segment join. Task .8 measured a D7 side change at frame 713 (the camera crosses the sun's bearing) and walk frames hopping up to 1.2 m a frame.
+
+- **One side for the whole shot.**
+  - **Film:** one side for the entire film, preferably the camera's left, which keeps the person away from the map overlay at bottom right, provided the person is out of the crown's actual shadow on every frame under the film's sun. If the left fails on any frame, the right; if both fail somewhere, the frames are reported.
+  - **Harness and `createRenderer`:** they keep D7's per-tree sun-side choice, including the `set_scene` update when the sun moves. Each is a single still shot.
+  - **Tests:** the film's side is constant; the shadow test runs over every film frame on the chosen side. This test replaces the ignored side-change test.
+- **Distance: a smoothed reach that never falls inside the crown.**
+  - **Definitions:** r(f) is the frame's crown reach plus the margin, with the year-lerped value in growth segments. M(f) is the maximum of r over frames [f-2W, f+2W] across the whole film, not per segment. The reach used is A(f), the mean of M over [f-W, f+W], with W = 15 frames (half a second).
+  - **Why it works:** A(f) >= r(f) by construction, so the person is never under the current crown. A is continuous: each step is at most the largest jump in M divided by 2W+1, so the person eases out and in rather than hopping.
+  - **The direction:** it still follows the frame camera's azimuth.
+  - **Tests:** A >= r on every frame; the largest frame-to-frame move of the foot is under 10 cm, or the measured bound is stated; the strips 240-269 and 690-719 are re-rendered and viewed.
+- **The map overlay:** the left-side preference handles it. Any frame where the person still overlaps the overlay is reported.
+- **Not this spec's:** the spruce walk's crown width jumps from 8.81 to 11.19 m between frames 241 and 242. That is a step in the tree, which fn-308's by-degree rule should have caught. It is recorded in RESULT.md's Open section for the host and is not fixed here.
+
 ## Boundaries
 
 - No change to growth, the trees or the camera path.

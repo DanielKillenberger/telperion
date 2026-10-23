@@ -32,6 +32,9 @@ Owner verdict (2026-10-23): the person should "stand beside, not in front". The 
 - `crates/telperion-render/examples/film/camera.rs` - the frame camera's azimuth
 - `crates/telperion-render/tests/person_frame.rs`
 
+
+### Host rulings on task .8 (2026-10-23)
+See the spec's "Host rulings on task .8". In the film: one side for the whole shot (the camera's left if out of the crown's actual shadow on every frame under the film's sun, else the right; if both fail, report the frames), and the distance from the smoothed reach A(f) = mean over [f-W, f+W] of M, where M(f) = max of r over [f-2W, f+2W] across the whole film and W = 15. The harness and `createRenderer` keep D7's per-tree sun side, with the `set_scene` update.
 ## Acceptance
 - [ ] The foot is at or behind the trunk's depth along the shot's view direction, at the ellipse reach + 0.5 m, at least 90° from the camera's azimuth, on the sunlit side outside the crown's actual shadow; the choice is deterministic
 - [ ] Harness and createRenderer use the hero azimuth and the row's sun; the film passes each frame camera's azimuth with the year-lerped placement
@@ -40,6 +43,9 @@ Owner verdict (2026-10-23): the person should "stand beside, not in front". The 
 - [ ] Before/after sheet of film frames 105, 255, 720, 825 and 975, labelled, at the raw path with a committed compressed copy
 - [ ] Static checks and focused render tests green
 
+- [ ] Film: one side for the whole film (left preferred), tested constant; the shadow test covers every film frame on the chosen side; the ignored side-change test is replaced
+- [ ] Film: reach A(f) per the ruling (W = 15, M over [f-2W, f+2W] across the whole film); tests show A >= r on every frame and the largest frame-to-frame foot move under 10 cm (or the measured bound stated)
+- [ ] Strips 240-269 and 690-719 re-rendered and viewed; any frame where the person overlaps the map overlay is reported
 ## Done summary
 TBD
 
