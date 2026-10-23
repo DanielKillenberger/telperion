@@ -39,9 +39,22 @@ The environment half of the spec (D1, D4): new scene-row fields, their uniforms,
 - [ ] README's `--scene` field list names the new fields and defaults
 - [ ] Focused render tests green through `telperion-heavy 5 --gpu 3 --threads 2`
 ## Done summary
-TBD
+Variant C is now `SceneRow::default()`. Six new row fields carry it: `skyGlow`, `groundDryRed/Green/Blue`, `groundVariation` and `hazeDistance`. Two appended vec4 uniforms (`atmosphere`, `ground_dry`) take them to the sky and floor shaders, which add the sun glow, value-noise ground patches on the `vary` hash, floor-only haze and a one-step sky dither. Each effect is off at an explicit zero.
 
+- Defaults: C's sky, ground and dry ground; variation 0.5, glow 0.6, haze 500 m. The sun keeps 135/30 and is retinted to (3.064, 2.854, 2.374) per D1. `the_default_daylight_is_white_at_the_luminance_it_had` passes unmodified.
+- Tests moved by design: `tests/neutral_light.rs` `ground()` now sets variation and haze to 0, because it measures the light and needs a flat, unhazed floor. No other existing test changed.
+- New tests: `scene::row::tests` (refusal per new field, round trip, omitted field takes the default, explicit zero, the C default pinned). `tests/environment.rs` (GPU): zero glow is the CPU gradient within 1 step; with zero variation and haze the floor is one colour, and each default effect visibly bites; the floor under the eye is not black (no NaN); haze moves no subject pixel (tree and figure mask from a with-tree versus bare-room frame, sun off, one sample); the same frame is the same bytes.
+- Decision: ground variation mixes the ground toward the dry colour by `variation * patch` (D4 as written). The concept also darkened lush patches by a literal 0.82; that is dropped under R3's no-literals rule, so dark-side contrast is slightly lower than the concept's sheet.
+- Measured: the oak still at seed 7 (960x540, RTX 3080) shows the sky gradient, glow, ground patches and horizon haze. Harness panel: the new keys show automatically as number boxes (`Traits` over the default's keys); no range sliders exist for scene fields.
+- Baseline: green (scene lib tests and shot/look/neutral_light/shadow).
+- Follow-up, not in scope: the 4 m noise octave may shimmer at grazing distance in motion; judge on the film stills.
+
+Tier: session (jev long_running 0.21) at default effort (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex, 3 draws, SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 91eddc36bfe59b45b9db970cb367aefffe5592bf
+- Tests: telperion-heavy 5 --gpu 3 --threads 2 -- cargo test --profile ci -p telperion-render --lib scene, telperion-heavy 5 --gpu 3 --threads 2 -- cargo test --profile ci -p telperion-render --test environment --test neutral_light --test look --test shot --test shadow --test conformance --test bark_distance --test bark_occlusion --test colour_cavity --test canopy_light --test bark_resolution --test curve --test lobe_shade --test socket_cavity --test sun_cache
 - PRs:
