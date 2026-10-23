@@ -167,6 +167,15 @@ Task .8's exact bounds pass (whole film, `raw/film-bounds.tsv`) found no angle o
   - The bounds cache records the path it was built from, and a changed fade or segment is refused by name.
 - **Read by eye (the owner's call):** in the walk to the Laurelin seedling (frames 690-719) and at frame 720, no person is in frame. The W = 30 window reaches back into the date palm's segment, so the palm's need keeps the person about 10 m out while the camera is 2-14 m from the seedling. At 825 and 975 the person stands about 24 m and 32 m out (estimates).
 
+### Host ruling on task .9 (2026-10-23): a steadier far measurement, and the shadow cost measured
+
+Task .9 found `rim_at_distance` red since D7 (837853234). The far band share at 8.0 times the hero distance is 0.1374 against a bound of 0.1365. The far picture has only about 110 margin steps and 840 leaf steps, so the share carries about ±0.01 of rounding noise; moving the camera 1 % gives 0.120-0.126. Placing the person refits the sun map.
+
+- **Steady the far measurement:** average the far share over five distances, 7.6 to 8.4 times the hero distance. The claim and the 20 % bound stay. The test's comment states the measured rounding noise and why one distance cannot resolve the bound.
+- **Measure the shadow cost:** measure the sun map's texel size (metres per texel over the ground) with and without the person in the fit. Cover every shipped preset at its catalogue age and Telperion at 80, under the harness sun (135°/30°) and the film's sun (115°/60°), plus the film's worst frame from the cached bounds.
+  - **If no case grows by more than 10 %:** keep the design and add a test that holds that bound.
+  - **If any case grows by more than 10 %:** stop and report the numbers before changing anything. The host would then weigh fitting the map to the tree alone and giving the person's shadow another route.
+
 ## Boundaries
 
 - No change to growth, the trees or the camera path.
