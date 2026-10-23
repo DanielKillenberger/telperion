@@ -141,6 +141,16 @@ The film is one continuous shot, so a rule held per segment only moves a jump to
 - **The map overlay:** the left-side preference handles it. Any frame where the person still overlaps the overlay is reported.
 - **Not this spec's:** the spruce walk's crown width jumps from 8.81 to 11.19 m between frames 241 and 242. That is a step in the tree, which fn-308's by-degree rule should have caught. It is recorded in RESULT.md's Open section for the host and is not fixed here.
 
+### Host ruling on the film's side (2026-10-23): option (a)
+
+Task .8's estimate, from cut 7's per-frame height and width with the crown as a centred ellipse, under the film's sun at 115°/60°: the camera's left at 90° is in the crown's shadow on frames 26-487, and the right on frames 908-1049. No frame fails on both sides.
+
+- **Placement:** the person stays on the camera's left for the whole film. On each frame the angle is the smallest angle of at least 90° to the camera's left that puts the person out of the crown's real shadow. That angle is smoothed over frames exactly as the reach is, so the person eases instead of stepping.
+- **Smoothing window:** W = 30 frames for both the angle and the reach (replacing W = 15). The measured largest move per frame becomes the stated bound, written into the test and into this spec.
+- **Bounds pass:** one exact pass from the whole film's real bounds. Every frame is checked against it: out of the shadow, out from under the canopy, and at or behind the trunk's depth.
+- **Delegated:** the conductor makes the remaining small choices that best keep the person beside the tree, lit and steady, and records them here.
+- **Stop only if:** the exact pass finds a frame no left angle can serve, or the strips look wrong to the eye (the person hidden behind the trunk, overlapping the map, or visibly sliding).
+
 ## Boundaries
 
 - No change to growth, the trees or the camera path.
