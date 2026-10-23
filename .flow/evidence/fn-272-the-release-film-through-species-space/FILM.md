@@ -154,3 +154,38 @@ At c4bc857c2 (1d34ddd3c merged the release branch with fn-309: a compound leaf n
 - In short, some leaves stand off the tree in all four frames. In 506 and 516 they are a few edge leaves on hairline twigs. In 526 and 536 a few leaves have no wood visible under them, and in 536 the leaflets stand singly on otherwise bare fronds.
 
 **Birch to oak at 30, 50 and 70 % (frames 417, 435, 453) against its ends (390 birch, 479 oak):** heights (`frames.tsv`) fall steadily, 16.5 m (birch), 15.9, 14.8, 12.7, 11.2 m (oak). Widths 8.2 m (birch), 8.9, 10.4, 8.2, 7.5 m (oak), so the crown at 50 % is wider than either end, 27 % wider than the birch and 39 % wider than the oak. Leaves 162,736 (birch), 99,073, 64,548, 50,034, 72,112 (oak), so at 70 % there are fewer than at either end. Seen (the camera closes in over the segment, so on-screen sizes are not comparable): 390 a weeping white birch; 417 a narrower upright birch crown, still white-stemmed; 435 a broad open fine-twigged crown on white limbs over a leaning brown stem with bare low branches; 453 a rounder, denser crown on a darker stem, shorter; 479 the oak's dense dark-green crown on a thick stem.
+
+## Cut 7 (2026-10-23, fn-310's scene and person)
+
+Rendered on the release branch at c047afedb (fn-272 and fn-310 merged). fn-310 makes mood C the default scene, with sky glow, ground tone and floor haze, and replaces the capsule with a 1.75 m slate person with a shadow. The command is cut 6's, from the release worktree: `telperion-heavy 8 --gpu 4 --threads 4 -- cargo run --profile ci -p telperion-render --example film -- crates/telperion-render/examples/film/release.json .flow/evidence/fn-272-the-release-film-through-species-space/raw/cut7`. The queue admitted it at once (room 8 GB). The video is kept at `/home/daniel/Videos/telperion/cut7.mp4`, 32,908,133 bytes, the same bytes as `raw/cut7/film.mp4`.
+
+`raw/cut7/film.mp4`: 35.0 s, 1,050 frames, 1280x720 at 30 fps, 33 MB, 38.1 min wall including a 35 s build (`raw/cut7-render.log`, 18:28 to 19:06). No frame refused. Builds match cut 6's within a few per cent. Draw time is up from 87 s to 141 s over the film, about 1.6 times; the largest is Laurelin to Telperion at 29.3 s, against 20.3 s.
+
+| segment | frames | trees | build | draw | peak resident | device |
+|---|--:|--:|--:|--:|--:|--:|
+| 0 beech grown 1-40 | 210 | 40 | 8.3 s | 18.5 s | 828 MB | 1,517 MB |
+| 1 beech to spruce | 90 | 90 | 259.6 s | 14.9 s | 2,287 MB | 1,517 MB |
+| 2 spruce to birch | 90 | 90 | 341.8 s | 16.6 s | 2,329 MB | 1,517 MB |
+| 3 birch to oak | 90 | 90 | 142.7 s | 13.5 s | 1,872 MB | 1,261 MB |
+| 4 oak to palm | 120 | 120 | 43.9 s | 14.4 s | 1,851 MB | 1,261 MB |
+| 5 palm 40 to 1 | 90 | 39 | 2.2 s | 10.3 s | 1,762 MB | 1,261 MB |
+| 6 palm to Laurelin at 1 | 30 | 30 | 0.1 s | 2.2 s | 1,762 MB | 1,005 MB |
+| 7 Laurelin grown 1-80 | 210 | 80 | 11.8 s | 21.6 s | 1,768 MB | 4,667 MB |
+| 8 Laurelin to Telperion | 120 | 90 | 1,237.9 s | 29.3 s | 4,797 MB | 2,035 MB |
+
+**Oracle:** not run (host). fn-310 changes no tree, so the counts would be cut 6's.
+
+**Frames viewed:** 105, 255, 435, 526, 645, 825 and 975, plus each segment join side by side (209/210, 299/300, 389/390, 479/480, 599/600, 689/690, 719/720, 929/930).
+
+- **105** (beech, age 21): the person stands in the foreground right of the stem, about the height of the lowest limbs, and the frame's bottom edge cuts off the feet. The sky runs from blue at the top to a pale glow at the horizon. The ground is a soft mottle of lighter and darker green patches, fading into a pale haze toward the horizon.
+- **255** (beech to spruce): the person stands at the bottom centre under the spruce, cut off at the chest by the frame's bottom edge.
+- **435** (birch to oak): a whole figure with its shadow, at the front left of the stem, about a seventh of the tree's height.
+- **526** (oak to palm, t = 0.34): a whole figure with its shadow, left of the stem's foot. The tree is cut 6's: a star of frond stems with single leaves above the tuft.
+- **645** (palm, age 20): a whole figure at the far left, clear of the rosette.
+- **825** (Laurelin, a crossfade frame between ages 40 and 41): **two half-transparent people stand side by side, about a body-width apart.** Frames 822 and 826 each show one solid person, in slightly different places, so the person is drawn in both years' renders and moves with the tree from year to year. In motion this should read as the person stepping at each year, ghosted over a quarter of a year (the fade). The same should hold in the beech's and the Laurelin's growth and the palm's shrink. Only 825 was viewed enlarged.
+- **975** (Laurelin to Telperion, age 80): the person is a few pixels tall at the far left, by the shadow's edge. In 825 and 975 the horizon bows upward in the middle and falls toward the frame's edges.
+- **Joins:** the person stands in the same place on both sides of every join; nothing pops.
+  - At 299/300 the spruce's colour steps from dark green (the end of beech to spruce) to blue-grey (the start of spruce to birch). That is in the tree, not the scene.
+  - At 719/720, the walk to the Laurelin at 1 and the Laurelin's growth, the camera is close. The person fills the left half of the frame, cut off at the waist by the top edge, and the low-poly figure shows a jagged notch at the hips. The seedling's stem stands beside its legs.
+  - In 689/690 the person stands beside the palm seedling with a dark shadow pooled at its feet.
+- **Ground noise in motion:** this can't be judged from stills. In empty ground at the left foreground, frames 615 and 616 differ by a PSNR of 64 dB, so the ground does not flicker from frame to frame. A contrast-stretched comparison of 615, 630 and 645 shows the mottle in different places as the camera orbits and pulls in, which a pattern fixed to the ground would also do. Whether it slides against the ground needs the video watched.
