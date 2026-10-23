@@ -17,10 +17,11 @@ The gate at b49512928 failed one test that passed in the green gate at f58a01cc8
 - Run the test red first, then green after the fix, plus the person, scene, shadow, sun_cache, film_placing and person_frame tests and the static checks (tint rule, compile_size, conformance).
 
 ## Acceptance
-- [ ] The commit that broke the test is named, with the measured cause
-- [ ] The fix is in the renderer, not a weakened test; rim_at_distance green
-- [ ] The person and placement tests, the film tests and the static checks stay green
-
+- [ ] The commit that turned the test red is named, with the measured cause (D7, 837853234: the sun map refit by the person's placement, and the far share's rounding noise)
+- [ ] rim_at_distance averages the far share over five distances (7.6-8.4 times the hero distance), as the host ruled; its claim and 20 % bound are unchanged; the comment states the measured noise; green
+- [ ] Sun-map metres per texel with and without the person in the fit, measured for every shipped preset at catalogue age, Telperion at 80, under 135/30 and 115/60, and the film's worst frame; the table is in the evidence
+- [ ] No case grows by more than 10 % and a test holds that bound, or the task returned NEEDS_HUMAN with the numbers
+- [ ] Person, placement, film and static checks stay green
 ## Done summary
 TBD
 
