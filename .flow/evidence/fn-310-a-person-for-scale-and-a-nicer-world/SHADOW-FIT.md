@@ -9,7 +9,7 @@ The map is the renderer's own fit (`shadow::light`, 1,024 texels), given either 
 - For a still, at `figure_placement` under that sun.
 - For the film, at `standing::stand` over the cached bounds pass `raw/film-bounds.tsv`, each crown the frame shows being taken in turn.
 
-The code is `shadow-fit.patch` in this folder. It adds the `sun_light` re-export, the helpers in `tests/common` and one test in each of `person_frame.rs` and `film_placing.rs`. It is not applied on the branch.
+The code is `shadow-fit.patch` in this folder. It adds the `sun_light` re-export, the helpers in `tests/common`, the catalogue test in `person_frame.rs` and the film bound in `film_placing.rs`'s `holds`, following the ruling of 2026-10-23. It is not applied on the branch, because the film bound fails (see the correction below).
 
 ## Every shipped preset at its catalogue age, and Telperion at 80
 
@@ -51,6 +51,16 @@ The failures come in two kinds:
 
 - **Segments 1 to 4, age-40 crowns about 12 m tall.** The film stands the person up to 3.7 m out past the reach to get it out of the shadow, and that refits the map's shorter axis by up to 59 %. The coarser axis does not change, so the texel size the shaders read (`Light::texel_size`, the larger axis) does not change either.
 - **Segments 0 and 5 to 7, crowns under 1.3 m.** The person's own box and its shadow are larger than the tree's, so both axes refit by up to 5.7 times. The coarsest texel is still 1.2 cm, finer than the 1.8 to 3.3 cm of any catalogue tree at its age.
+
+## Correction: the film's coarsest texel is 2.18 cm, not 1.22 cm
+
+The table above reports each segment's frame with the largest ratio, not its frame with the coarsest texel. The ruling of 2026-10-23 took 1.22 cm, frame 719's figure, as the film's worst texel. That is wrong.
+
+Measured against the ruling's bound (`Light::texel_size`, the larger axis that the shaders read, with the person at or below 1.5 cm or within 10 % of the tree-only fit), 55 tree renders fail:
+- **Frames 678 to 680, segment 5, a 5.85 m crown with the person 10.4 m out:** 1.56 cm to 1.84 cm, 1.18 times.
+- **Frames 737 to 780, segment 7, crowns of 8.6 to 18.3 m with the person 10.9 to 16.5 m out:** 1.01 cm to 1.52 cm at frame 740, 1.53 times and the largest ratio, rising to 1.97 cm to 2.18 cm at frame 780, 1.11 times and the coarsest texel.
+
+Every other frame, and the fast test over the modelled crowns, holds the bound. The coarsest texel, 2.18 cm, still lies inside the catalogue trees' own range under the film's sun (1.8 to 3.9 cm of ground per texel).
 
 ## What this leaves to the host
 
