@@ -242,6 +242,33 @@ fn segment(v: &Value, at: &str) -> Result<Segment, String> {
     })
 }
 
+/// The frames `list` names, by index: single frames and inclusive ranges,
+/// comma-separated (`105,255,700-719`), each below `count`.
+pub fn selection(list: &str, count: usize) -> Result<std::collections::BTreeSet<usize>, String> {
+    let index = |s: &str| {
+        s.trim()
+            .parse::<usize>()
+            .ok()
+            .filter(|&i| i < count)
+            .ok_or(format!(
+                "--frames: \"{s}\" is not a frame from 0 to {}",
+                count - 1
+            ))
+    };
+    let mut out = std::collections::BTreeSet::new();
+    for part in list.split(',') {
+        let (a, b) = match part.split_once('-') {
+            Some((a, b)) => (index(a)?, index(b)?),
+            None => (index(part)?, index(part)?),
+        };
+        if a > b {
+            return Err(format!("--frames: \"{part}\" runs backwards"));
+        }
+        out.extend(a..=b);
+    }
+    Ok(out)
+}
+
 /// Smoothstep: a walk that leaves at rest and arrives at rest, as
 /// `headless --walk` eases its own.
 pub fn ease(at: f64) -> f64 {

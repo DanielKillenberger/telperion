@@ -62,6 +62,10 @@ fn band_share(renderer: &mut Renderer, m: MaterialParams, camera: &Camera, w: u3
 /// Past every element's finest level: selection holds each at its finest.
 const FINEST: Level = Level::Forced(1_000);
 
+/// The far distances, as multiples of the hero distance, whose band shares
+/// are averaged.
+const FAR: [f64; 5] = [7.6, 7.8, 8.0, 8.2, 8.4];
+
 #[test]
 fn a_leaf_under_a_pixel_takes_the_band_s_area_share_not_the_band() {
     let Some(gpu) = common::gpu() else { return };
@@ -81,18 +85,27 @@ fn a_leaf_under_a_pixel_takes_the_band_s_area_share_not_the_band() {
             far: 2.0,
         };
         let near = band_share(&mut renderer, family.material, &close, 256);
-        // Far: the whole crown, eight times the hero distance, every leaf a
-        // fraction of a pixel.
+        // Far: the whole crown, about eight times the hero distance, every
+        // leaf a fraction of a pixel. One far picture gains only about 110
+        // green steps from the band and 840 from the face, so its share
+        // carries about +-0.01 of rounding noise, and any change to the light
+        // (the sun's map refitted for the person) moves it that much: from
+        // 7.8 to 8.2 times the distance it spans 0.120 to 0.137 (fn-310 task
+        // 9), the width of the bound itself. The mean of five distances
+        // resolves it (host ruling on task 9).
         renderer.set_view(View::Whole);
         renderer.submit_at(&tree, Level::Chosen).unwrap();
         let hero = hero_pose(tree.bounds, 1.0, GROUND_REACH);
-        let far_camera = Camera {
-            position: hero.target + (hero.position - hero.target) * 8.0,
-            far: hero.far * 8.0,
-            ..hero
-        };
-        let far = band_share(&mut renderer, family.material, &far_camera, 512);
-        println!("width {width}: band share near {near:.3}, far {far:.3}");
+        let shares = FAR.map(|k| {
+            let far_camera = Camera {
+                position: hero.target + (hero.position - hero.target) * k,
+                far: hero.far * k,
+                ..hero
+            };
+            band_share(&mut renderer, family.material, &far_camera, 512)
+        });
+        let far = shares.iter().sum::<f64>() / shares.len() as f64;
+        println!("width {width}: band share near {near:.3}, far {far:.3} (mean of {shares:.3?})");
         assert!(near > width, "width {width}, near {near}");
         assert!(
             (far / near - 1.0).abs() < 0.2,

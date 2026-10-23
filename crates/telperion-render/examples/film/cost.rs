@@ -12,6 +12,11 @@ pub struct Cost {
     pub trees: usize,
     pub build_ms: f64,
     pub draw_ms: f64,
+    /// Of `draw_ms`, the renders and their read back; the rest writes.
+    pub render_ms: f64,
+    pub renders: usize,
+    /// Renders that drew the sun's map rather than reusing it.
+    pub sun_maps: usize,
 }
 
 pub struct Peaks {

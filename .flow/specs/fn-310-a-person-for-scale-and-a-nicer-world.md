@@ -20,6 +20,8 @@ A concept prototype is being made on branch `scene-concept` (host, 2026-10-23). 
   - The owner sees a still of the improved person before the film is rendered.
 - Owner (2026-10-23), on the person-v2 sheet (`.flow/evidence/fn-310-a-person-for-scale-and-a-nicer-world/person-v2.jpg`, oak at 40 and Telperion at 80 under the film's sun): "ok good. it should also cast a shadow then i think it's fine." The person is accepted, with one change: it casts a shadow onto the ground through the existing shadow pass, the caster path the tree uses, with no new pass (host, 2026-10-23; task .5).
 
+- Owner (2026-10-23), on the film before/after sheet (`.flow/evidence/fn-310-a-person-for-scale-and-a-nicer-world/film-before-after.jpg`, film frames 105, 255, 720 and 825): the person should "stand beside, not in front". Frame 825's ghost fix stands (host).
+
 ## Requirements
 
 - **R1 (concept, owner's choice first):** the owner picks one environment variant, and passes on the person, from the concept sheet, before any task is planned for real. The pick and the owner's words are recorded here verbatim.
@@ -72,6 +74,128 @@ A concept prototype is being made on branch `scene-concept` (host, 2026-10-23). 
   - Haze is applied only to floor fragments: over the row's distance, beyond the subject, plus a fade of the disc's last stretch into the horizon. The tree and the person are never hazed, whatever the distance.
   - New uniforms are whole `vec4` slots appended to `Uniforms`, mirrored in WGSL. The clay room's light and path are untouched.
   - The sky gets a dither of about one 8-bit step from the pixel hash, so a wide gradient does not band. Same frame, same bytes on one device.
+
+## Cut 7 findings (host, 2026-10-23)
+
+Cut 7 (rendered from the release branch at c047afedb; fn-272's FILM.md, cut 7 section, at dd2c3966a) showed three problems with the person.
+
+- **D5, a figure per shot, not per year.**
+  - **The problem:** placement follows each year's crown, so in a growth the person steps outward every year, and the film's crossfade of consecutive years shows two half-transparent people (frame 825).
+  - **The rule:** the scale figure is placed for a shot. Within one film segment the person stands still.
+  - **How:** the renderer's placement takes the bounds it is given. The film passes the bounds the segment reaches at its largest, the envelope its camera already pulls back to (`examples/film/camera.rs`). That is an input choice, not film-only drawing. The harness and `createRenderer` keep placing per submitted tree.
+  - **The test:** the film's placement is constant within each segment.
+- **D6, wholly in the hero frame.**
+  - **The problem:** at the Laurelin seedling (frames 719/720) the person fills half the frame and is cut at the waist. At 105 the feet are cut, and at 255 everything below the chest.
+  - **The rule:** along the D2 azimuth, the distance is the larger of the crown ellipse's reach plus the 0.5 m margin, and the nearest distance at which the whole 1.75 m figure fits inside the hero frame with a small margin. A seedling's person stands farther back, wholly visible.
+  - **The tests:** the in-frame tests become "wholly in frame, head to feet". They cover every shipped preset at its catalogue age, Telperion at 80, every preset at age 1, and the film's segment envelopes. The canopy and shadow tests still hold.
+- **The film's draw time, to be explained before anything changes.**
+  - **The numbers:** draw time rose from 87 s (cut 6) to 141 s (cut 7) over 1,050 frames, about 51 ms more a frame. The harness measured +0.05 ms.
+  - **Candidates:** the shadow map redrawn, the person in both crossfade renders, the noise at 1280x720, or the film's own path.
+  - **If it is a real per-frame cost in the shipped renderer,** the number goes to the host before any fix.
+- **Proof:** before and after stills of frames 105, 255, 720 and 825, built through the film path.
+
+### Host rulings on task .7 (2026-10-23), replacing D5 and D6 as first written
+
+Task .7 measured that D6 has no camera-side fit at age 1 (seedlings 0.09-1.34 m against the 1.75 m figure), and that D5's segment envelope left film frames 105 and 255 cut and 720 empty (`FRICTION.md`).
+
+- **D6, as ruled: small subjects, option (a).**
+  - **The rule:** "wholly in the hero frame" applies wherever a whole fit exists on the camera's side.
+  - **The exemption:** where none exists, for a subject much shorter than the person, the person keeps the D2 placement. A person beside a seedling then shows as legs and shoes cut by the top of the frame, an honest scale cue the owner judges in the stills.
+  - **The test:** it records each exemption by name.
+  - **What does not change:** no far-side placement and no camera change. D2 stands.
+- **The film is judged by eye, not tested against the hero frame.** The film's frames are the owner's call. The film's camera poses are not passed into placement.
+- **D5, as ruled: interpolate, not the envelope.**
+  - **The rule:** within a growth segment the film crossfades year a into year b. It passes the renderer one placement for both renders of a frame: lerp(place(a), place(b), the frame's fade share). The person walks out continuously as the crown grows, with no ghost and no extra build, since both years are built for the crossfade anyway.
+  - **Walk segments:** the same lerp between the frame's neighbouring builds where the film crossfades there; otherwise the frame's own tree.
+  - **The renderer's part:** it draws the placement it is given. The harness and `createRenderer` are unchanged and still place per tree.
+  - **The tests:** in a crossfaded frame both renders use the same placement, and placement is continuous across a segment's frames.
+
+### Host ruling after the owner's "stand beside, not in front" (2026-10-23), replacing D2's direction
+
+- **D7, the person is never nearer the camera than the subject.**
+  - **Depth:** the person's foot is at the trunk's depth or behind it, measured along the shot's view direction.
+  - **Side and angle:** the person stands to one side, at the crown ellipse's reach plus the 0.5 m margin. The side, and an angle of at least 90° from the camera's azimuth, are chosen so the foot is outside the crown's actual shadow under the shot's sun: the sunlit side.
+  - **The shot's view direction:** in the harness and `createRenderer` it is the hero camera's azimuth, as now. In the film it is the frame camera's azimuth, passed in with the placement the film already passes, keeping the year-lerp (D5 as ruled).
+  - **Motion check:** because the film's orbit is slow and continuous, the person moves continuously with it. A short `film --frames` run over consecutive frames checks that this reads as natural, not as sliding. If it slides visibly, the host is told before anything else is chosen.
+  - **D6 unchanged:** whole-in-frame or exempt stays as ruled. Most shots should now be whole, because a farther person is smaller.
+  - **Tests:**
+    - depth at or behind the trunk, for every shipped preset at its catalogue age and at age 1, and Telperion at 80;
+    - out of the actual crown shadow under the harness sun and the film's sun;
+    - not above any canopy, as now;
+    - in frame or exempt, as now.
+  - **Proof:** a before/after sheet of film frames 105, 255, 720, 825 and 975 via `film --frames`.
+
+### Host rulings on task .8 (2026-10-23): rule for the shot, not the segment
+
+The film is one continuous shot, so a rule held per segment only moves a jump to a segment join. Task .8 measured a D7 side change at frame 713 (the camera crosses the sun's bearing) and walk frames hopping up to 1.2 m a frame.
+
+- **One side for the whole shot.**
+  - **Film:** one side for the entire film, preferably the camera's left, which keeps the person away from the map overlay at bottom right, provided the person is out of the crown's actual shadow on every frame under the film's sun. If the left fails on any frame, the right; if both fail somewhere, the frames are reported.
+  - **Harness and `createRenderer`:** they keep D7's per-tree sun-side choice, including the `set_scene` update when the sun moves. Each is a single still shot.
+  - **Tests:** the film's side is constant; the shadow test runs over every film frame on the chosen side. This test replaces the ignored side-change test.
+- **Distance: a smoothed reach that never falls inside the crown.**
+  - **Definitions:** r(f) is the frame's crown reach plus the margin, with the year-lerped value in growth segments. M(f) is the maximum of r over frames [f-2W, f+2W] across the whole film, not per segment. The reach used is A(f), the mean of M over [f-W, f+W], with W = 15 frames (half a second).
+  - **Why it works:** A(f) >= r(f) by construction, so the person is never under the current crown. A is continuous: each step is at most the largest jump in M divided by 2W+1, so the person eases out and in rather than hopping.
+  - **The direction:** it still follows the frame camera's azimuth.
+  - **Tests:** A >= r on every frame; the largest frame-to-frame move of the foot is under 10 cm, or the measured bound is stated; the strips 240-269 and 690-719 are re-rendered and viewed.
+- **The map overlay:** the left-side preference handles it. Any frame where the person still overlaps the overlay is reported.
+- **Not this spec's:** the spruce walk's crown width jumps from 8.81 to 11.19 m between frames 241 and 242. That is a step in the tree, which fn-308's by-degree rule should have caught. It is recorded in RESULT.md's Open section for the host and is not fixed here.
+
+### Host ruling on the film's side (2026-10-23): option (a)
+
+Task .8's estimate, from cut 7's per-frame height and width with the crown as a centred ellipse, under the film's sun at 115°/60°: the camera's left at 90° is in the crown's shadow on frames 26-487, and the right on frames 908-1049. No frame fails on both sides.
+
+- **Placement:** the person stays on the camera's left for the whole film. On each frame the angle is the smallest angle of at least 90° to the camera's left that puts the person out of the crown's real shadow. That angle is smoothed over frames exactly as the reach is, so the person eases instead of stepping.
+- **Smoothing window:** W = 30 frames for both the angle and the reach (replacing W = 15). The measured largest move per frame becomes the stated bound, written into the test and into this spec.
+- **Bounds pass:** one exact pass from the whole film's real bounds. Every frame is checked against it: out of the shadow, out from under the canopy, and at or behind the trunk's depth.
+- **Delegated:** the conductor makes the remaining small choices that best keep the person beside the tree, lit and steady, and records them here.
+- **Stop only if:** the exact pass finds a frame no left angle can serve, or the strips look wrong to the eye (the person hidden behind the trunk, overlapping the map, or visibly sliding).
+
+### Host ruling on the film's distance (2026-10-23), replacing option (a)'s angle search
+
+Task .8's exact bounds pass (whole film, `raw/film-bounds.tsv`) found no angle on the camera's left, from 90° to 180°, that is out of the crown's real shadow on 309 frames: nearly all of 187-381, scattered frames in 389-589, and 609, 613, 648, 671, 678, 680, 721 and 724. Where an angle did serve in segments 0-3 it put the person nearly behind the trunk. At 90°, moving further out always clears the shadow, because the shadow is convex: at most 3.7 m more (frame 255). That figure is an estimate.
+
+- **Film placement, as ruled:** the person stays at 90° on the camera's left, level with the trunk (at the trunk's depth). Its distance is the larger of the crown's reach plus the 0.5 m margin and the nearest distance, further out, at which the whole figure is out of the crown's real shadow under the film's sun. That distance is smoothed with W = 30 in the max-then-mean form: M(f) is the maximum over [f-2W, f+2W] across the film, and the distance is the mean of M over [f-W, f+W]. So the person never falls under the crown or into the shadow. The left-angle search is removed.
+- **Tests, over every film frame from the cached bounds (with the stale-cache guard):** lit; not under the canopy; at the trunk's depth; on the left side; the largest frame-to-frame foot move within the stated bound, which is written here once measured.
+- **Harness and `createRenderer`:** unchanged (D7's per-tree sun side, with the `set_scene` update).
+- **The measured bound (task .8, from the cached bounds over all 1,050 frames):** the largest frame-to-frame foot move is 0.183 m, at frame 830, while the Laurelin's crown grows. The test holds it to 0.19 m. To leave the shadow the person stands up to 3.52 m beyond the crown's reach.
+- **Small calls (conductor, delegated by the host):**
+  - The search steps out of the shadow in 0.02 m increments.
+  - It stops 100 m past the reach, and the film refuses with the frame named. A sun above the horizon throws a finite shadow, so no answer is an error, not a fallback.
+  - The smoothed distance is never below the frame's own need, which guards against rounding in the mean.
+  - Placements come from the bounds pass, so task .7's one-year lookahead is gone.
+  - The bounds cache records the path it was built from, and a changed fade or segment is refused by name.
+- **Read by eye (the owner's call):** in the walk to the Laurelin seedling (frames 690-719) and at frame 720, no person is in frame. The W = 30 window reaches back into the date palm's segment, so the palm's need keeps the person about 10 m out while the camera is 2-14 m from the seedling. At 825 and 975 the person stands about 24 m and 32 m out (estimates).
+
+### Host ruling on task .9 (2026-10-23): a steadier far measurement, and the shadow cost measured
+
+Task .9 found `rim_at_distance` red since D7 (837853234). The far band share at 8.0 times the hero distance is 0.1374 against a bound of 0.1365. The far picture has only about 110 margin steps and 840 leaf steps, so the share carries about ±0.01 of rounding noise; moving the camera 1 % gives 0.120-0.126. Placing the person refits the sun map.
+
+- **Steady the far measurement:** average the far share over five distances, 7.6 to 8.4 times the hero distance. The claim and the 20 % bound stay. The test's comment states the measured rounding noise and why one distance cannot resolve the bound.
+- **Measure the shadow cost:** measure the sun map's texel size (metres per texel over the ground) with and without the person in the fit. Cover every shipped preset at its catalogue age and Telperion at 80, under the harness sun (135°/30°) and the film's sun (115°/60°), plus the film's worst frame from the cached bounds.
+  - **If no case grows by more than 10 %:** keep the design and add a test that holds that bound.
+  - **If any case grows by more than 10 %:** stop and report the numbers before changing anything. The host would then weigh fitting the map to the tree alone and giving the person's shadow another route.
+
+### Host ruling on the shadow cost (2026-10-23): option (a), accept with a named bound
+
+Measured in task .9 (`SHADOW-FIT.md`):
+- **Catalogue stills:** for every shipped preset at its catalogue age and Telperion at 80, under both suns, the ground per texel with the person in the fit is unchanged (ratio 1.000 on both axes). The texel sizes run 1.8-3.3 cm under the film's sun for the four temperate trees, up to 9.9 cm for Telperion.
+- **The film:** 469 tree renders exceed 10 %.
+  - **Segments 0 and 5-7:** crowns under 1.3 m refit both axes, up to 5.66 times. The worst is frame 719, Laurelin at 1: 0.31 cm to 1.22 cm per texel.
+  - **Segments 1-4:** the 12 m age-40 trees refit only the shorter axis, up to 1.59 times, and the texel size the shaders read (`Light::texel_size`, the larger axis) is unchanged.
+
+**The ruling:** the design stays, because the shaders' texel size never gets coarser than a shipped tree's own, and option (b) would cost the shadow the owner asked for. (The "1.22 cm at worst" first cited here was each segment's largest-ratio frame, not its coarsest texel; see the correction below.) The bound test:
+- **Catalogue stills:** ground per texel grows at most 10 % on both axes, for every shipped preset at its catalogue age and Telperion at 80, under both suns.
+- **The film:** over the cached bounds, on every frame `Light::texel_size` is at or below 1.5 cm, or within 10 % of the tree-only fit, whichever is looser.
+
+### Host ruling on the film's shadow bound (2026-10-23): (a′), replacing 1.5 cm
+
+Measured over the cached real bounds (task .9, `SHADOW-FIT.md`, correction section): 55 tree renders failed the first film bound.
+- **Frames 678-680:** a 5.85 m crown, the person 10.4 m out, 1.56 to 1.84 cm (1.18 times).
+- **Frames 737-780:** the Laurelin growing from 8.6 to 18.3 m. The largest ratio is 1.53 times at frame 740 (1.01 to 1.52 cm).
+- **The film's coarsest texel:** 2.18 cm at frame 780 (1.97 to 2.18 cm, 1.11 times).
+
+**The bound as ruled:** on every film frame, `Light::texel_size` with the person in the fit is at or below 2.3 cm, or within 10 % of the tree-only fit, whichever is looser. 2.3 cm rounds up the silver birch's own texel at its catalogue age under the film's sun (2.27 cm). So no film frame's shadow is coarser than a shipped tree's in its own stills, which the owner has judged. The test's comment says so. The catalogue bound (at most 10 % on both axes, measured 1.000) is unchanged.
 
 ## Boundaries
 

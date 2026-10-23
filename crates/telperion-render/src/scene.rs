@@ -18,6 +18,7 @@ use crate::{
 };
 
 mod band;
+mod beside;
 mod frame;
 mod person;
 pub(crate) use band::BandShares;
@@ -27,7 +28,11 @@ pub(crate) use band::BandShares;
 mod room;
 mod row;
 
-pub use person::{counts as figure_counts, points as figure_points};
+pub use beside::{
+    hero as figure_placement, lit as figure_lit, points as figure_points, reach as figure_reach,
+    stand as figure_placement_from, Placement,
+};
+pub use person::counts as figure_counts;
 pub use room::{FIGURE_HEIGHT, GROUND_REACH};
 pub use row::SceneRow;
 
@@ -175,6 +180,8 @@ pub struct Scene {
     /// The box the person stands in where it is placed, which the sun's map
     /// is fitted to hold, and its depth-only draw into that map.
     figure_bounds: Bounds,
+    /// Where the person stands now.
+    placement: Placement,
     caster: wgpu::RenderPipeline,
 }
 
@@ -330,6 +337,10 @@ impl Scene {
             floor_index_count,
             figure_offset,
             figure_bounds,
+            placement: Placement {
+                foot: Vec3::ZERO,
+                facing: 0.0,
+            },
             caster,
         }
     }
@@ -450,17 +461,22 @@ impl Scene {
         }
     }
 
-    /// Stands the person beside a subject of these bounds, outside its crown
-    /// and its shadow and facing the hero camera (`person::stand`).
-    pub fn place_figure(&mut self, gpu: &Gpu, bounds: Bounds) {
-        let (foot, yaw) = person::stand(bounds);
-        let (vertices, _) = person::person(foot, yaw, fixture(FIGURE), 0);
+    /// Stands the person where `placement` says (`beside::stand` places it
+    /// beside a tree).
+    pub fn place_figure(&mut self, gpu: &Gpu, placement: Placement) {
+        let (vertices, _) = person::person(placement.foot, placement.facing, fixture(FIGURE), 0);
         self.figure_bounds = bounds_of(&vertices);
+        self.placement = placement;
         gpu.queue.write_buffer(
             &self.vertices,
             self.figure_offset,
             bytemuck::cast_slice(&vertices),
         );
+    }
+
+    /// Where the person stands now.
+    pub fn placement(&self) -> Placement {
+        self.placement
     }
 
     /// The box the person stands in where it was last placed.
