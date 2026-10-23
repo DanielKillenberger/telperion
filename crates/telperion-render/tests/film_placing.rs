@@ -140,6 +140,24 @@ fn largest_move(placements: &[Placement]) -> (f64, usize) {
         .fold((0.0, 0), |m, v| if v.0 > m.0 { v } else { m })
 }
 
+/// The bounds file names the path it was built from, and a path with
+/// another fade reads it as another film's.
+#[test]
+fn a_bounds_file_built_from_another_path_is_refused() {
+    let (path, frames) = release();
+    let file = std::env::temp_dir().join(format!("film-bounds-{}.tsv", std::process::id()));
+    let crowns = modelled(&path, &frames);
+    bounds::write(&file, &path, &crowns).unwrap();
+    assert_eq!(bounds::read(&file, &path, frames.len()).unwrap(), crowns);
+    let faded = path::Path {
+        fade: 0.2,
+        ..path.clone()
+    };
+    let refused = bounds::read(&file, &faded, frames.len()).unwrap_err();
+    assert!(refused.contains("built from another path"), "{refused}");
+    std::fs::remove_file(&file).unwrap();
+}
+
 #[test]
 fn smoothing_never_falls_below_a_value_and_eases_a_step() {
     let step: Vec<f64> = (0..300).map(|f| if f < 150 { 1.0 } else { 2.0 }).collect();
@@ -183,7 +201,7 @@ fn the_person_keeps_to_the_cameras_left_beside_the_films_real_crowns() {
     let file = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(
         "../../.flow/evidence/fn-310-a-person-for-scale-and-a-nicer-world/raw/film-bounds.tsv",
     );
-    let crowns = bounds::read(&file, frames.len()).unwrap();
+    let crowns = bounds::read(&file, &path, frames.len()).unwrap();
     let shown = shown(&path, &crowns);
     let standing = standing::stand(&shown, path.sun).unwrap();
     holds(&shown, &standing, path.sun);

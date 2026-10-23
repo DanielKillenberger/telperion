@@ -30,7 +30,7 @@ pub fn of_film(
 ) -> Result<Vec<Crowns>, String> {
     if let Some(file) = cache.filter(|f| f.exists()) {
         println!("bounds: read {}", file.display());
-        return read(file, frames.len());
+        return read(file, path, frames.len());
     }
     let mut crowns = Vec::with_capacity(frames.len());
     let indexed: Vec<(usize, Frame)> = frames.iter().copied().enumerate().collect();
@@ -51,7 +51,7 @@ pub fn of_film(
         println!("bounds: segment {k}, {} frames, {seconds:.1} s", of.len());
     }
     if let Some(file) = cache {
-        write(file, &crowns)?;
+        write(file, path, &crowns)?;
     }
     Ok(crowns)
 }
@@ -121,15 +121,34 @@ fn walked(
     Ok(crowns)
 }
 
-const HEADER: &str = "frame\tshare\tearlier (min xyz, max xyz)\tlater";
+/// The file's first two lines: the path it was built from, as a 64-bit
+/// FNV-1a digest of every field the path declares, and the columns. A
+/// path whose years, fade, seed or segments changed reads as another file.
+fn header(path: &Path) -> String {
+    let digest = format!("{path:?}")
+        .bytes()
+        .fold(0xcbf2_9ce4_8422_2325u64, |h, b| {
+            (h ^ u64::from(b)).wrapping_mul(0x0100_0000_01b3)
+        });
+    format!("path {digest:016x}\nframe\tshare\tearlier (min xyz, max xyz)\tlater\n")
+}
 
-/// The crowns kept in `file`, one line a frame; an error where it holds
-/// another number of frames.
-pub fn read(file: &std::path::Path, frames: usize) -> Result<Vec<Crowns>, String> {
+/// The crowns kept in `file`, one line a frame; an error where it was
+/// built from another path or holds another number of frames.
+pub fn read(file: &std::path::Path, path: &Path, frames: usize) -> Result<Vec<Crowns>, String> {
     let text = std::fs::read_to_string(file).map_err(|e| format!("{}: {e}", file.display()))?;
+    let expected = header(path);
+    if !text.starts_with(&expected) {
+        let found: Vec<&str> = text.lines().take(1).collect();
+        return Err(format!(
+            "{}: built from another path ({found:?}, not {:?}); delete it to build again",
+            file.display(),
+            expected.lines().next().unwrap_or_default()
+        ));
+    }
     let crowns = text
         .lines()
-        .skip(1)
+        .skip(2)
         .map(|line| {
             let v: Vec<f64> = line
                 .split('\t')
@@ -157,13 +176,13 @@ pub fn read(file: &std::path::Path, frames: usize) -> Result<Vec<Crowns>, String
 }
 
 /// The crowns written to `file` whole: to a sibling first, then moved in.
-fn write(file: &std::path::Path, crowns: &[Crowns]) -> Result<(), String> {
+pub fn write(file: &std::path::Path, path: &Path, crowns: &[Crowns]) -> Result<(), String> {
     let corners = |b: &Bounds| {
         [b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z]
             .map(|v| format!("{v:?}"))
             .join("\t")
     };
-    let mut text = format!("{HEADER}\n");
+    let mut text = header(path);
     for (i, (earlier, later, share)) in crowns.iter().enumerate() {
         text += &format!("{i}\t{share:?}\t{}\t{}\n", corners(earlier), corners(later));
     }
