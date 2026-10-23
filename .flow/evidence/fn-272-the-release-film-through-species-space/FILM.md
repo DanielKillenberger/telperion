@@ -189,3 +189,46 @@ Rendered on the release branch at c047afedb (fn-272 and fn-310 merged). fn-310 m
   - At 719/720, the walk to the Laurelin at 1 and the Laurelin's growth, the camera is close. The person fills the left half of the frame, cut off at the waist by the top edge, and the low-poly figure shows a jagged notch at the hips. The seedling's stem stands beside its legs.
   - In 689/690 the person stands beside the palm seedling with a dark shadow pooled at its feet.
 - **Ground noise in motion:** this can't be judged from stills. In empty ground at the left foreground, frames 615 and 616 differ by a PSNR of 64 dB, so the ground does not flicker from frame to frame. A contrast-stretched comparison of 615, 630 and 645 shows the mottle in different places as the camera orbits and pulls in, which a pattern fixed to the ground would also do. Whether it slides against the ground needs the video watched.
+
+## Cut 8 (2026-10-23, fn-310 complete: the person steady and lit)
+
+Rendered on the release branch at 31e45b614. Since cut 7, fn-310 stands the person at the camera's left, level with the trunk and always in sun. Its place eases from frame to frame, and both images of a crossfade share it. The film reads a frame's placement from the bounds pass named by `--bounds`, and builds the pass when no file is given. fn-310's file was copied, unchanged, from the f4-310 worktree to the same ignored path here; the run read it ("bounds: read ...") and refused nothing as stale.
+
+`telperion-heavy 8 --gpu 4 --threads 4 -- cargo run --profile ci -p telperion-render --example film -- crates/telperion-render/examples/film/release.json .flow/evidence/fn-272-the-release-film-through-species-space/raw/cut8 --bounds .flow/evidence/fn-310-a-person-for-scale-and-a-nicer-world/raw/film-bounds.tsv`. The queue admitted it at once (room 9 GB). The video is kept at `/home/daniel/Videos/telperion/cut8.mp4`, 32,807,807 bytes, the same bytes as `raw/cut8/film.mp4`.
+
+`raw/cut8/film.mp4`: 35.0 s, 1,050 frames, 1280x720 at 30 fps, 33 MB, 37.7 min wall including a 10 s build (`raw/cut8-render.log`, 22:44 to 23:22). No frame refused. Builds and draws are cut 7's within a few per cent. Draw is mostly writing the PNGs: in segment 7, 19.6 of 21.6 s.
+
+| segment | frames | trees | build | draw | peak resident | device |
+|---|--:|--:|--:|--:|--:|--:|
+| 0 beech grown 1-40 | 210 | 40 | 8.3 s | 18.6 s | 902 MB | 1,517 MB |
+| 1 beech to spruce | 90 | 90 | 260.8 s | 15.0 s | 2,417 MB | 1,517 MB |
+| 2 spruce to birch | 90 | 90 | 346.4 s | 16.7 s | 2,426 MB | 1,517 MB |
+| 3 birch to oak | 90 | 90 | 143.8 s | 13.8 s | 1,996 MB | 1,261 MB |
+| 4 oak to palm | 120 | 120 | 44.0 s | 14.4 s | 1,992 MB | 1,261 MB |
+| 5 palm 40 to 1 | 90 | 39 | 2.2 s | 10.3 s | 1,858 MB | 1,263 MB |
+| 6 palm to Laurelin at 1 | 30 | 30 | 0.1 s | 2.1 s | 1,858 MB | 1,007 MB |
+| 7 Laurelin grown 1-80 | 210 | 80 | 11.8 s | 21.6 s | 1,867 MB | 4,568 MB |
+| 8 Laurelin to Telperion | 120 | 90 | 1,232.4 s | 28.2 s | 4,781 MB | 2,549 MB |
+
+**Oracle:** not run (host); no tree changed.
+
+**Frames viewed:** 105, 255, 435, 526, 645, 700, 720, 825 and 975. Also:
+- the left side of every join (209/210, 299/300, 389/390, 479/480, 599/600, 929/930);
+- the seedling stretch (660 to 760) as a strip;
+- the person enlarged at 389, 435, 720, 822, 825 and 826.
+
+- **105** (beech, age 21): a tall whole figure in the left foreground, level with the stem's foot, its shadow falling left on lit ground, clear of the crown's shadow.
+- **255** (beech to spruce): a whole figure at the left, level with the trunk, in sun beside the spruce's shadow.
+- **435** (birch to oak): a whole figure at the left, in sun, its shadow falling left.
+- **526** (oak to palm): a whole figure at the left, level with the stem's foot, in sun.
+- **645** (palm, age 20): a small whole figure at the left, clear of the rosette and its shadow.
+- **700** (palm to Laurelin at 1, t = 0.33): **no person in the frame**, only the seedling at centre and the ground.
+- **720** (the Laurelin at 1, close): **no person in the frame**; the seedling's stem fills the centre. A faint grey vertical smudge, a few pixels wide, stands against the stem's left edge low down, and it is not readable as anything when enlarged.
+- **825** (Laurelin, a crossfade frame between 40 and 41): **one solid person, not two**, small at the left, in sun. Frames 822 and 826 show it in the same place.
+- **975** (Laurelin to Telperion, age 80): a person a few pixels tall at the far left, in sun, clear of the crown's shadow. The horizon still bows upward in the middle, as in cut 7.
+
+**The four checks:**
+- **Shows twice:** never in the frames viewed. 825 is a crossfade frame and shows one person.
+- **Jumps:** none. The person is in the same place on both sides of every join viewed. It leaves the frame once, sliding off the left edge over frames 676 to 684 as the palm shrinks and the camera closes in. It is out of frame from about 684 to 741, across the palm seedling, the walk to the Laurelin and the Laurelin's first years: about 2 s, including all of the 1-second walk at age 1. It slides back in from the left edge over 742 to 758. Every step is a few pixels.
+- **Overlaps the map:** never. The person is always in the left third and the map is at the lower right.
+- **In shade:** never in the frames viewed. At 389 it stands right at the left edge of the birch's crown shadow, its feet in sun and its own shadow on lit ground.
