@@ -13,7 +13,7 @@ use crate::{
     device::Gpu,
     pass::{Depth, Surface},
     shaders,
-    shadow::Light,
+    shadow::{Light, Shadow},
     view::View,
 };
 
@@ -172,10 +172,15 @@ pub struct Scene {
     /// The indices that are the floor alone; the figure follows them.
     floor_index_count: u32,
     figure_offset: u64,
+    /// The box the person stands in where it is placed, which the sun's map
+    /// is fitted to hold, and its depth-only draw into that map.
+    figure_bounds: Bounds,
+    caster: wgpu::RenderPipeline,
 }
 
 impl Scene {
-    pub fn new(gpu: &Gpu, surface: Surface, shadow: &wgpu::BindGroupLayout) -> Self {
+    pub fn new(gpu: &Gpu, surface: Surface, sun: &Shadow) -> Self {
+        let shadow = sun.layout();
         let (ground_colour, figure_colour) = (floor(GROUND), fixture(FIGURE));
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
@@ -185,6 +190,7 @@ impl Scene {
         let (body, body_indices) =
             person::person(Vec3::ZERO, 0.0, figure_colour, vertices.len() as u32);
         indices.extend(body_indices);
+        let figure_bounds = bounds_of(&body);
         vertices.extend(body);
 
         let vertex_buffer = crate::buffer::Owned::new(
@@ -283,6 +289,20 @@ impl Scene {
             Depth::Behind,
             "sky",
         );
+        // The person casts as the wood does: its positions stand where they
+        // were placed, so the wood's entry point draws them into the map.
+        let caster = crate::depth_pipeline(
+            gpu,
+            &[Some(sun.light_layout())],
+            sun.module(),
+            "wood",
+            &[Some(wgpu::VertexBufferLayout {
+                array_stride: size_of::<Vertex>() as u64,
+                step_mode: wgpu::VertexStepMode::Vertex,
+                attributes: &ATTRIBUTES[..1],
+            })],
+            "person shadow",
+        );
 
         Self {
             row: SceneRow::default(),
@@ -309,6 +329,8 @@ impl Scene {
             index_count: indices.len() as u32,
             floor_index_count,
             figure_offset,
+            figure_bounds,
+            caster,
         }
     }
 
@@ -430,14 +452,30 @@ impl Scene {
 
     /// Stands the person beside a subject of these bounds, outside its crown
     /// and its shadow and facing the hero camera (`person::stand`).
-    pub fn place_figure(&self, gpu: &Gpu, bounds: Bounds) {
+    pub fn place_figure(&mut self, gpu: &Gpu, bounds: Bounds) {
         let (foot, yaw) = person::stand(bounds);
         let (vertices, _) = person::person(foot, yaw, fixture(FIGURE), 0);
+        self.figure_bounds = bounds_of(&vertices);
         gpu.queue.write_buffer(
             &self.vertices,
             self.figure_offset,
             bytemuck::cast_slice(&vertices),
         );
+    }
+
+    /// The box the person stands in where it was last placed.
+    pub fn figure_bounds(&self) -> Bounds {
+        self.figure_bounds
+    }
+
+    /// Draws the person, and not the floor, into the sun's map: its
+    /// triangles. The floor only takes shadow.
+    pub fn draw_shadow(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+        pass.set_pipeline(&self.caster);
+        pass.set_vertex_buffer(0, self.vertices.slice(..));
+        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint32);
+        pass.draw_indexed(self.floor_index_count..self.index_count, 0, 0..1);
+        (self.index_count - self.floor_index_count) / 3
     }
 
     /// Binds the camera and the light every pipeline in the pass draws under.
@@ -478,6 +516,25 @@ impl Scene {
         }
     }
 }
+/// The box these vertices stand in.
+fn bounds_of(vertices: &[Vertex]) -> Bounds {
+    let (mut low, mut high) = ([f32::MAX; 3], [f32::MIN; 3]);
+    for v in vertices {
+        for axis in 0..3 {
+            low[axis] = low[axis].min(v.position[axis]);
+            high[axis] = high[axis].max(v.position[axis]);
+        }
+    }
+    let point = |p: [f32; 3]| {
+        let [x, y, z] = p.map(f64::from);
+        Vec3::new(x, y, z)
+    };
+    Bounds {
+        min: point(low),
+        max: point(high),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

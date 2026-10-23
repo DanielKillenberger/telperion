@@ -1,6 +1,7 @@
 //! fn-246: the sun's side of a frame, its wood surfaced for the map and the
 //! map itself, is drawn again only when the tree, the light, the view's
-//! casters or the caster stride changed, never because the camera moved.
+//! casters, the caster stride or the person changed, never because the
+//! camera moved.
 //! A frame that reuses them is the frame that would have drawn them.
 mod common;
 
@@ -80,6 +81,19 @@ fn the_sun_is_drawn_again_only_when_what_it_sees_changed() {
     assert!(
         frame(&mut renderer, View::Whole, &hero).0,
         "the ground's colour redrew the sun"
+    );
+    // The person stands in the map while the room draws it (fn-310), and
+    // moves only with a new tree, which forgets the map below.
+    renderer.set_figure(false);
+    assert!(
+        !frame(&mut renderer, View::Whole, &hero).0,
+        "the person left and the map kept it"
+    );
+    assert!(frame(&mut renderer, View::Whole, &hero).0);
+    renderer.set_figure(true);
+    assert!(
+        !frame(&mut renderer, View::Whole, &hero).0,
+        "the person came back and the map left it out"
     );
     renderer.submit(&tree).unwrap();
     assert!(
