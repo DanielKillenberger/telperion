@@ -20,6 +20,8 @@ A concept prototype is being made on branch `scene-concept` (host, 2026-10-23). 
   - The owner sees a still of the improved person before the film is rendered.
 - Owner (2026-10-23), on the person-v2 sheet (`.flow/evidence/fn-310-a-person-for-scale-and-a-nicer-world/person-v2.jpg`, oak at 40 and Telperion at 80 under the film's sun): "ok good. it should also cast a shadow then i think it's fine." The person is accepted, with one change: it casts a shadow onto the ground through the existing shadow pass, the caster path the tree uses, with no new pass (host, 2026-10-23; task .5).
 
+- Owner (2026-10-23), on the film before/after sheet (`.flow/evidence/fn-310-a-person-for-scale-and-a-nicer-world/film-before-after.jpg`, film frames 105, 255, 720 and 825): the person should "stand beside, not in front". Frame 825's ghost fix stands (host).
+
 ## Requirements
 
 - **R1 (concept, owner's choice first):** the owner picks one environment variant, and passes on the person, from the concept sheet, before any task is planned for real. The pick and the owner's words are recorded here verbatim.
@@ -107,6 +109,21 @@ Task .7 measured that D6 has no camera-side fit at age 1 (seedlings 0.09-1.34 m 
   - **Walk segments:** the same lerp between the frame's neighbouring builds where the film crossfades there; otherwise the frame's own tree.
   - **The renderer's part:** it draws the placement it is given. The harness and `createRenderer` are unchanged and still place per tree.
   - **The tests:** in a crossfaded frame both renders use the same placement, and placement is continuous across a segment's frames.
+
+### Host ruling after the owner's "stand beside, not in front" (2026-10-23), replacing D2's direction
+
+- **D7, the person is never nearer the camera than the subject.**
+  - **Depth:** the person's foot is at the trunk's depth or behind it, measured along the shot's view direction.
+  - **Side and angle:** the person stands to one side, at the crown ellipse's reach plus the 0.5 m margin. The side, and an angle of at least 90° from the camera's azimuth, are chosen so the foot is outside the crown's actual shadow under the shot's sun: the sunlit side.
+  - **The shot's view direction:** in the harness and `createRenderer` it is the hero camera's azimuth, as now. In the film it is the frame camera's azimuth, passed in with the placement the film already passes, keeping the year-lerp (D5 as ruled).
+  - **Motion check:** because the film's orbit is slow and continuous, the person moves continuously with it. A short `film --frames` run over consecutive frames checks that this reads as natural, not as sliding. If it slides visibly, the host is told before anything else is chosen.
+  - **D6 unchanged:** whole-in-frame or exempt stays as ruled. Most shots should now be whole, because a farther person is smaller.
+  - **Tests:**
+    - depth at or behind the trunk, for every shipped preset at its catalogue age and at age 1, and Telperion at 80;
+    - out of the actual crown shadow under the harness sun and the film's sun;
+    - not above any canopy, as now;
+    - in frame or exempt, as now.
+  - **Proof:** a before/after sheet of film frames 105, 255, 720, 825 and 975 via `film --frames`.
 
 ## Boundaries
 
