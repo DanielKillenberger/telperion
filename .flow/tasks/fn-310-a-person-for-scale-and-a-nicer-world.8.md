@@ -47,9 +47,43 @@ See the spec's "Host rulings on task .8". In the film: one side for the whole sh
 - [ ] Film: reach A(f) per the ruling (W = 15, M over [f-2W, f+2W] across the whole film); tests show A >= r on every frame and the largest frame-to-frame foot move under 10 cm (or the measured bound stated)
 - [ ] Strips 240-269 and 690-719 re-rendered and viewed; any frame where the person overlaps the map overlay is reported
 ## Done summary
-TBD
+The person now stands beside the subject and never in front of it, by D7 and the host's rulings on task 8.
 
+Stills (harness and createRenderer): `beside::stand` puts the person 90 degrees round from the hero view on the sun's side, at the trunk's depth, at the crown ellipse's reach plus 0.5 m. A sun exactly on the view's axis takes view + 90. `set_scene` moves the person when the sun's azimuth changes. Whole in frame or exempt is unchanged: the seven presets at age 1 are exempt.
+
+Film: the person stays 90 degrees to the camera's left of each frame's camera, at the trunk's depth. Its distance is the larger of the year-faded reach plus 0.5 m and the nearest distance out, in 0.02 m steps, at which the whole figure is out of every shown crown's shadow under 115/60. That distance is smoothed with W = 30 (the maximum over 2W, then the mean over W, floored at the frame's own need). Per-frame bounds come from one whole-film bounds pass, cached in raw/film-bounds.tsv. The film refuses the cache if the path's digest differs or if a drawn tree differs from its line.
+
+Measured over all 1,050 frames from the cache: every frame is lit, out from under the crown, at the trunk's depth and on the left. The person needs to stand up to 3.52 m beyond the reach to leave the shadow. The largest frame-to-frame foot move is 0.183 m at frame 830, as Laurelin's crown grows; the test's bound is 0.19 m.
+
+Choices delegated to the worker:
+- 0.02 m search step: below a visible step at the film's distances, and cheap enough to search 1,050 frames in under a second.
+- Search gives up 100 m past the reach and reports the frame: a sun above the horizon throws a finite shadow, so a frame with no answer is an error, not a fallback.
+- Smoothed distance floored at the frame's own need: the mean of equal values can round below it.
+- No cap short of behind the trunk: the angle is fixed at 90 degrees, so the person is never behind the trunk.
+- Bounds file keyed by a digest of the path (review P2, fixed after SHIP).
+- Growth years drawn as each is settled: the one-year lookahead is no longer needed, since placements come from the bounds pass.
+
+Strips (raw/stills/left-strip-240 and 690, committed film-left-strip-*.jpg):
+- 240-269: the person is steady at the left, not hidden and clear of the map overlay.
+- 690-719: the person is out of frame throughout. The window spans segments, so the shrinking date palm's need holds it about 10 m out beside the seedlings.
+
+Sheet: film-beside.jpg (raw/stills/film-beside.jpg).
+- After: 105 and 255 whole at the left.
+- 720: no person in frame, for the same reason as 690-719.
+- 825 and 975: small and far, about 24 m and 32 m out (estimate).
+- The 975 before frame was built from git archive 83ec74e0d under its own target (raw/base-83ec74e0d, 2.7 GB, safe to delete).
+
+Follow-ups:
+- The cross-segment window leaves the seedling walk and frame 720 without the person, and the growth lookahead keeps it well ahead of Laurelin's crown at 825. This is the owner's call by eye.
+- film.rs is 468 lines.
+- The side branch fn-310-t8-wip is merged and left for the host.
+
+baseline: green via handoff (focused green at 3e63d7e32; only .flow/ changed since)
+stage: impl-review - ran (codex, 3 draws: correctness, contracts, integration; all SHIP; one P2 kept and fixed in 7a375ceaf)
+Tier: session at default effort (model: claude-opus-5-5)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8378532344d6ef65afc70b161ae4ec173c7ff69d, f60c5ef798a2cca9082f6440efbf4ccb13ffd779, a521fd39ef2ed1bf94d8f760f37dc0288ed8e1b0, a9994c191b2c23f5efdadee93eca3373daa71014, 246caf091489af483c6a8046ebf2c4511eb343df, 5ee2ca00d6a099e599864f482769b160ce447cfc, 90e71bcaf64e6574889d9d836ea93ac1b517a3f3, 5fc6c5fc6f8537b0d091b3c7ade0fbd9103fed1a, 6c9906822409171483b607dc1aa459407c5013a3, f82a3ea75c2f9dd25024e7ed2f69e8da1f3daaec, 7a375ceafea412c6eae095e5ba441d46f32780dc, 0d105489e71caa78263f5deb51b7a347e05e2b61
+- Tests: cargo test --profile ci -p telperion-render --test film_placing --test person_frame -- --include-ignored, cargo test --profile ci -p telperion-render --test sun_cache --test shadow --test conformance, cargo test --profile ci -p telperion-render --lib scene::, cargo test --profile ci -p telperion-render --lib tint_rule_tests, cargo test --profile ci -p telperion-render --lib compile_size, cargo fmt -p telperion-render --check; cargo clippy (no new warnings in changed files)
 - PRs:
