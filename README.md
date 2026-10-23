@@ -2,6 +2,10 @@
 
 A procedural tree generator with an authored silhouette, seeded specimens and named species presets. One Rust core grows the structure; consumers choose surface meshes, instanced foliage, structural data or spatial fields.
 
+https://github.com/user-attachments/assets/47c668ef-1174-4dfc-9d89-cf11f4834613
+
+Every frame grown live by the engine, in one 35-second shot: a beech grows from seed to 40, then walks through species space at that age to a Norway spruce, a silver birch, an Oregon white oak and a date palm; the palm shrinks back to a seedling, crosses to the Laurelin, which grows to 80 and walks to Telperion. The corner map is species space on its first two principal components, which hold 62.9 % of the variance, and the dot is where the tree stands in it. Where the player does not show, the still opens the film: [![The oak at 40, a still from the film](https://github.com/user-attachments/assets/3b654cc5-e7c4-44c4-b32f-c46007fd703f)](https://github.com/user-attachments/assets/47c668ef-1174-4dfc-9d89-cf11f4834613)
+
 ```ts
 import { TreeEngine, TELPERION } from "telperion";
 
