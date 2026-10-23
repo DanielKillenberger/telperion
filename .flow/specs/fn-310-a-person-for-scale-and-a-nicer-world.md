@@ -151,6 +151,14 @@ Task .8's estimate, from cut 7's per-frame height and width with the crown as a 
 - **Delegated:** the conductor makes the remaining small choices that best keep the person beside the tree, lit and steady, and records them here.
 - **Stop only if:** the exact pass finds a frame no left angle can serve, or the strips look wrong to the eye (the person hidden behind the trunk, overlapping the map, or visibly sliding).
 
+### Host ruling on the film's distance (2026-10-23), replacing option (a)'s angle search
+
+Task .8's exact bounds pass (whole film, `raw/film-bounds.tsv`) found no angle on the camera's left, from 90° to 180°, that is out of the crown's real shadow on 309 frames: nearly all of 187-381, scattered frames in 389-589, and 609, 613, 648, 671, 678, 680, 721 and 724. Where an angle did serve in segments 0-3 it put the person nearly behind the trunk. At 90°, moving further out always clears the shadow, because the shadow is convex: at most 3.7 m more (frame 255). That figure is an estimate.
+
+- **Film placement, as ruled:** the person stays at 90° on the camera's left, level with the trunk (at the trunk's depth). Its distance is the larger of the crown's reach plus the 0.5 m margin and the nearest distance, further out, at which the whole figure is out of the crown's real shadow under the film's sun. That distance is smoothed with W = 30 in the max-then-mean form: M(f) is the maximum over [f-2W, f+2W] across the film, and the distance is the mean of M over [f-W, f+W]. So the person never falls under the crown or into the shadow. The left-angle search is removed.
+- **Tests, over every film frame from the cached bounds (with the stale-cache guard):** lit; not under the canopy; at the trunk's depth; on the left side; the largest frame-to-frame foot move within the stated bound, which is written here once measured.
+- **Harness and `createRenderer`:** unchanged (D7's per-tree sun side, with the `set_scene` update).
+
 ## Boundaries
 
 - No change to growth, the trees or the camera path.
