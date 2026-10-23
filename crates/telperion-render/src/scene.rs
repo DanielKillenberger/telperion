@@ -1,5 +1,5 @@
 //! Everything the subject stands in: the ground it stands on, the sky behind
-//! it, the sun that lights both, and a 1.8 m figure at the roots for scale.
+//! it, the sun that lights both, and a 1.75 m person beside it for scale.
 //! The scene row controls colours, caster coarsening and the shared shadow
 //! filter. Frame-uniform assembly lives beside this file; the clay room keeps
 //! its neutral light and never reads the shadow.
@@ -19,6 +19,7 @@ use crate::{
 
 mod band;
 mod frame;
+mod person;
 pub(crate) use band::BandShares;
 /// The scene row - the sun, the sky and the ground as numbers - and the room's
 /// own geometry, each beside this file rather than in it so none of the three
@@ -26,12 +27,15 @@ pub(crate) use band::BandShares;
 mod room;
 mod row;
 
+pub use person::counts as figure_counts;
 pub use room::{FIGURE_HEIGHT, GROUND_REACH};
 pub use row::SceneRow;
 
+#[cfg(test)]
+pub(crate) use person::{person, stand};
 use room::{
-    disc, figure, figure_indices, fixture, floor, linear, Vertex, ATTRIBUTES, BACKGROUND, CLAY,
-    FIGURE, GROUND, GROUND_LIGHT, SKY_LIGHT,
+    disc, fixture, floor, linear, Vertex, ATTRIBUTES, BACKGROUND, CLAY, FIGURE, GROUND,
+    GROUND_LIGHT, SKY_LIGHT,
 };
 
 pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
@@ -180,8 +184,10 @@ impl Scene {
         disc(ground_colour, &mut vertices, &mut indices);
         let floor_index_count = indices.len() as u32;
         let figure_offset = (vertices.len() * size_of::<Vertex>()) as u64;
-        indices.extend(figure_indices(vertices.len() as u32));
-        vertices.extend(figure(Vec3::ZERO, figure_colour));
+        let (body, body_indices) =
+            person::person(Vec3::ZERO, 0.0, figure_colour, vertices.len() as u32);
+        indices.extend(body_indices);
+        vertices.extend(body);
 
         let vertex_buffer = crate::buffer::Owned::new(
             gpu,
@@ -424,10 +430,11 @@ impl Scene {
         }
     }
 
-    /// Stands the figure clear of the root flare of a subject this tall.
-    pub fn place_figure(&self, gpu: &Gpu, height: f64) {
-        let foot = Vec3::new(height * 0.16 + 1.2, 0.0, height * 0.2);
-        let vertices = figure(foot, fixture(FIGURE));
+    /// Stands the person beside a subject of these bounds, outside its crown
+    /// and its shadow and facing the hero camera (`person::stand`).
+    pub fn place_figure(&self, gpu: &Gpu, bounds: Bounds) {
+        let (foot, yaw) = person::stand(bounds);
+        let (vertices, _) = person::person(foot, yaw, fixture(FIGURE), 0);
         gpu.queue.write_buffer(
             &self.vertices,
             self.figure_offset,

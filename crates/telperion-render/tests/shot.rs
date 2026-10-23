@@ -4,11 +4,8 @@
 mod common;
 use telperion_core::mesh;
 use telperion_render::{
-    hero_pose, render, shot_pose, Renderer, Shot, View, GROUND_REACH, STILL_FORMAT,
+    figure_counts, hero_pose, render, shot_pose, Renderer, Shot, View, GROUND_REACH, STILL_FORMAT,
 };
-
-/// The figure is a capsule of 2 * 8 + 1 rings of 16 segments, two triangles each.
-const FIGURE_TRIANGLES: u32 = (2 * 8 + 1) * 16 * 2;
 
 #[test]
 fn a_shot_poses_the_frame_and_the_figure_leaves_when_asked() {
@@ -76,7 +73,7 @@ fn a_shot_poses_the_frame_and_the_figure_leaves_when_asked() {
     .unwrap();
     assert_eq!(
         posed.stats.triangles - unfurnished.stats.triangles,
-        FIGURE_TRIANGLES,
+        figure_counts().1,
         "leaving the figure out removes exactly the figure"
     );
     assert_eq!(

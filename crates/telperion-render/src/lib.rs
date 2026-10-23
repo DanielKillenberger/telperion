@@ -57,7 +57,7 @@ pub use camera::{
 pub use curve::{viewer as curve_viewer, CurveReport};
 pub use device::{Gpu, RenderError, Result};
 pub use encoder::{Encoder, Recorded};
-pub use scene::{SceneRow, DEPTH_FORMAT, GROUND_REACH};
+pub use scene::{figure_counts, SceneRow, DEPTH_FORMAT, GROUND_REACH};
 pub use select::{Level, MAX_LEVELS};
 pub use shot::Shot;
 use submit::crown_of;
@@ -239,8 +239,7 @@ impl Renderer {
         self.wood.submit(&self.gpu, &mesh.curve);
         self.foliage.submit(&self.gpu, &mesh.foliage, level);
         self.submit_organ(mesh.organ.as_ref(), level);
-        self.scene
-            .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
+        self.scene.place_figure(&self.gpu, mesh.bounds);
         self.scene.set_crown(crown_of(&mesh.foliage));
         self.scene
             .set_leaf_reference(mesh.foliage.instances.reference);
@@ -329,7 +328,7 @@ impl Renderer {
         self.view
     }
 
-    /// Whether the room keeps its 1.8 m scale figure. A still that imitates a
+    /// Whether the room keeps its 1.75 m person for scale. A still that imitates a
     /// photograph leaves it out; every other frame keeps it, so no pin moves.
     pub fn set_figure(&mut self, figure: bool) {
         self.figure = figure;

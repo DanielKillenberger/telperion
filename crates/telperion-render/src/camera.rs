@@ -75,7 +75,7 @@ pub fn hero_pose(bounds: Bounds, aspect: f64, ground_reach: f64) -> Camera {
     );
     let mut position = centre + back * reach;
     // The eye stands on the floor at least, and at a person's eye height for
-    // anything taller than a person. A leaf is not looked at from 1.8 m, so
+    // anything taller than a person. A leaf is not looked at from 1.75 m, so
     // for a subject shorter than the figure the direction alone places it.
     position.y = position.y.max(if size.y > crate::scene::FIGURE_HEIGHT {
         crate::scene::FIGURE_HEIGHT
@@ -652,5 +652,133 @@ mod tests {
         let framed = shot_pose(oak_bounds(), 1.0, crate::GROUND_REACH, &Shot::default());
         assert!((framed.target.x - (-0.3)).abs() < 1e-9);
         assert!((framed.target.z - 0.8).abs() < 1e-9);
+    }
+
+    /// The trees the person is framed beside: every shipped preset at its
+    /// catalogue age and seed, Telperion at 80, and the owner's two stills at
+    /// seed 7 (oak at 40, Telperion at 80), as the generator bounds them. The
+    /// ordinary preset has no engine species and draws no tree (fn-198).
+    /// Measured on 2026-10-23 and held to the generator by
+    /// `the_bounds_table_is_the_generators`.
+    /// A preset, an age and a seed (each the catalogue's when none), and
+    /// the bounds' low and high corners.
+    type Tree = (&'static str, Option<f64>, Option<u32>, [f64; 6]);
+    const TREES: &[Tree] = &[
+        (
+            "oregon-white-oak",
+            None,
+            None,
+            [-4.59, -0.04, -3.13, 4.01, 10.07, 3.76],
+        ),
+        (
+            "norway-spruce",
+            None,
+            None,
+            [-3.05, -0.05, -3.91, 3.02, 11.64, 3.95],
+        ),
+        (
+            "european-beech",
+            None,
+            None,
+            [-3.86, -0.04, -3.50, 4.40, 9.98, 3.44],
+        ),
+        (
+            "silver-birch",
+            None,
+            None,
+            [-3.36, -0.07, -5.83, 4.85, 16.50, 3.43],
+        ),
+        (
+            "date-palm",
+            None,
+            None,
+            [-9.13, -0.06, -9.36, 9.51, 21.68, 9.58],
+        ),
+        (
+            "telperion",
+            None,
+            None,
+            [-25.79, -0.18, -25.23, 26.55, 45.77, 29.27],
+        ),
+        (
+            "laurelin",
+            None,
+            None,
+            [-24.70, -0.18, -25.23, 25.94, 44.63, 28.12],
+        ),
+        (
+            "telperion",
+            Some(80.0),
+            None,
+            [-24.52, -0.18, -24.82, 25.52, 44.62, 28.12],
+        ),
+        (
+            "oregon-white-oak",
+            Some(40.0),
+            Some(7),
+            [-3.94, -0.04, -3.51, 3.34, 11.15, 4.01],
+        ),
+        (
+            "telperion",
+            Some(80.0),
+            Some(7),
+            [-25.64, -0.18, -23.66, 30.64, 46.28, 27.53],
+        ),
+    ];
+
+    fn family(id: &str, age: Option<f64>, seed: Option<u32>) -> telperion_core::Family {
+        let mut family = telperion_core::presets::Preset::from_id(id)
+            .unwrap()
+            .parameters();
+        family.age = age.unwrap_or(family.age);
+        family.skeleton.seed = seed.unwrap_or(family.skeleton.seed);
+        family
+    }
+
+    fn tree_bounds(row: [f64; 6]) -> Bounds {
+        Bounds {
+            min: Vec3::new(row[0], row[1], row[2]),
+            max: Vec3::new(row[3], row[4], row[5]),
+        }
+    }
+
+    /// Being seen in shot is why the person stands where it does (fn-310
+    /// D2): at the hero pose of every tree in the table, the whole person
+    /// projects inside the frame and the depth range.
+    #[test]
+    fn the_person_stands_inside_the_hero_frame_beside_every_shipped_tree() {
+        let aspect = 16.0 / 9.0;
+        for &(id, age, seed, row) in TREES {
+            let bounds = tree_bounds(row);
+            let view_projection =
+                hero_pose(bounds, aspect, crate::GROUND_REACH).view_projection(aspect);
+            let (foot, yaw) = crate::scene::stand(bounds);
+            let (body, _) = crate::scene::person(foot, yaw, [0.0; 4], 0);
+            for vertex in body {
+                let [x, y, z] = vertex.position.map(f64::from);
+                let (x, y, depth) = project(&view_projection, Vec3::new(x, y, z));
+                assert!(
+                    x.abs() <= 1.0 && y.abs() <= 1.0 && (0.0..=1.0).contains(&depth),
+                    "{id} at {age:?}, seed {seed:?}: the person left the frame: {x}, {y}, {depth}"
+                );
+            }
+        }
+    }
+
+    /// Builds every tree in the table, one at a time, and holds the table to
+    /// what the generator bounds: over a minute, most of it Telperion, so it
+    /// runs by name (`--ignored`) when a preset's crown changes.
+    #[test]
+    #[ignore]
+    fn the_bounds_table_is_the_generators() {
+        for &(id, age, seed, row) in TREES {
+            let tree = telperion_core::mesh::build(&family(id, age, seed)).unwrap();
+            let (low, high) = (tree.bounds.min, tree.bounds.max);
+            let built = [low.x, low.y, low.z, high.x, high.y, high.z];
+            assert!(
+                built.iter().zip(row).all(|(b, r)| (b - r).abs() <= 0.006),
+                "{id} at {age:?}, seed {seed:?}: the generator bounds it at {built:?}"
+            );
+        }
     }
 }
