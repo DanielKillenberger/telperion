@@ -92,6 +92,22 @@ Cut 7 (rendered from the release branch at c047afedb; fn-272's FILM.md, cut 7 se
   - **If it is a real per-frame cost in the shipped renderer,** the number goes to the host before any fix.
 - **Proof:** before and after stills of frames 105, 255, 720 and 825, built through the film path.
 
+### Host rulings on task .7 (2026-10-23), replacing D5 and D6 as first written
+
+Task .7 measured that D6 has no camera-side fit at age 1 (seedlings 0.09-1.34 m against the 1.75 m figure), and that D5's segment envelope left film frames 105 and 255 cut and 720 empty (`FRICTION.md`).
+
+- **D6, as ruled: small subjects, option (a).**
+  - **The rule:** "wholly in the hero frame" applies wherever a whole fit exists on the camera's side.
+  - **The exemption:** where none exists, for a subject much shorter than the person, the person keeps the D2 placement. A person beside a seedling then shows as legs and shoes cut by the top of the frame, an honest scale cue the owner judges in the stills.
+  - **The test:** it records each exemption by name.
+  - **What does not change:** no far-side placement and no camera change. D2 stands.
+- **The film is judged by eye, not tested against the hero frame.** The film's frames are the owner's call. The film's camera poses are not passed into placement.
+- **D5, as ruled: interpolate, not the envelope.**
+  - **The rule:** within a growth segment the film crossfades year a into year b. It passes the renderer one placement for both renders of a frame: lerp(place(a), place(b), the frame's fade share). The person walks out continuously as the crown grows, with no ghost and no extra build, since both years are built for the crossfade anyway.
+  - **Walk segments:** the same lerp between the frame's neighbouring builds where the film crossfades there; otherwise the frame's own tree.
+  - **The renderer's part:** it draws the placement it is given. The harness and `createRenderer` are unchanged and still place per tree.
+  - **The tests:** in a crossfaded frame both renders use the same placement, and placement is continuous across a segment's frames.
+
 ## Boundaries
 
 - No change to growth, the trees or the camera path.
