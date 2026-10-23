@@ -58,7 +58,8 @@ pub use curve::{viewer as curve_viewer, CurveReport};
 pub use device::{Gpu, RenderError, Result};
 pub use encoder::{Encoder, Recorded};
 pub use scene::{
-    figure_counts, figure_placement, figure_points, Placement, SceneRow, DEPTH_FORMAT, GROUND_REACH,
+    figure_counts, figure_placement, figure_placement_from, figure_points, Placement, SceneRow,
+    DEPTH_FORMAT, GROUND_REACH,
 };
 pub use select::{Level, MAX_LEVELS};
 pub use shot::Shot;
@@ -244,8 +245,9 @@ impl Renderer {
         self.wood.submit(&self.gpu, &mesh.curve);
         self.foliage.submit(&self.gpu, &mesh.foliage, level);
         self.submit_organ(mesh.organ.as_ref(), level);
+        let sun = self.scene.row().sun_azimuth;
         self.scene
-            .place_figure(&self.gpu, scene::figure_placement(mesh.bounds).0);
+            .place_figure(&self.gpu, scene::figure_placement(mesh.bounds, sun).0);
         self.scene.set_crown(crown_of(&mesh.foliage));
         self.scene
             .set_leaf_reference(mesh.foliage.instances.reference);
@@ -340,8 +342,9 @@ impl Renderer {
         self.figure = figure;
     }
 
-    /// Stands the person where `placement` says, until the next submit stands
-    /// it beside its own tree again (`figure_placement`). A film states one
+    /// Stands the person where `placement` says, until the next submit, or a
+    /// sun moved round, stands it beside its own tree again
+    /// (`figure_placement`). A film states one
     /// placement for every render of a frame (fn-310 D5); the sun's map is
     /// drawn again when the person moved.
     pub fn place_figure(&mut self, placement: Placement) {
@@ -389,9 +392,14 @@ impl Renderer {
 
     /// Puts the sun somewhere else and paints the sky and the ground with it.
     /// A scene is not a property of a tree, so it outlives every submission
-    /// and no blend between two families touches it.
+    /// and no blend between two families touches it. A sun moved round
+    /// stands the person on its side of the tree that is up (fn-310 D7).
     pub fn set_scene(&mut self, row: SceneRow) {
+        let moved = row.sun_azimuth != self.scene.row().sun_azimuth;
         self.scene.set_row(row);
+        if let (true, Some(bounds)) = (moved, self.bounds) {
+            self.place_figure(scene::figure_placement(bounds, row.sun_azimuth).0);
+        }
     }
 
     /// Wood triangles the last frame drew into the sun's map, outside the

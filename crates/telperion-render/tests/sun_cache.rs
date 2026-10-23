@@ -86,7 +86,8 @@ fn the_sun_is_drawn_again_only_when_what_it_sees_changed() {
         "the ground's colour redrew the sun"
     );
     // The person stands in the map while the room draws it (fn-310), and
-    // moves only with a new tree, which forgets the map below.
+    // moves only with a new tree, which forgets the map below, or a sun
+    // moved to the view's other side (D7, at the end).
     renderer.set_figure(false);
     assert!(
         !frame(&mut renderer, View::Whole, &hero).0,
@@ -110,7 +111,7 @@ fn the_sun_is_drawn_again_only_when_what_it_sees_changed() {
     // A film states the person's placement (fn-310 D5): the same one keeps
     // the map, a moved one draws it again, and a new tree stands the person
     // beside it again.
-    let own = figure_placement(tree.bounds).0;
+    let own = figure_placement(tree.bounds, 200.0).0;
     assert_eq!(
         renderer.placement(),
         own,
@@ -137,6 +138,23 @@ fn the_sun_is_drawn_again_only_when_what_it_sees_changed() {
         renderer.placement(),
         own,
         "a submit kept the stated placement"
+    );
+    // A sun moved to the view's other side stands the person on that side
+    // of the tree that is up, and draws the map again (fn-310 D7).
+    renderer.set_scene(SceneRow {
+        sun_azimuth: 60.0,
+        ..ground
+    });
+    let other = figure_placement(tree.bounds, 60.0).0;
+    assert_ne!(other.foot, own.foot);
+    assert_eq!(
+        renderer.placement(),
+        other,
+        "the person kept the old sun's side"
+    );
+    assert!(
+        !frame(&mut renderer, View::Whole, &hero).0,
+        "the person changed sides and the map kept the old side"
     );
 }
 

@@ -1,6 +1,6 @@
-//! The person beside every shipped tree (fn-310 D2, D6): whole in the hero
-//! frame, head to feet, wherever a whole fit exists, and under no wood or
-//! foliage. The table names the presets, so it lives
+//! The person beside every shipped tree (fn-310 D7, D6): at or behind the
+//! trunk's depth, out of the crown's shadow, whole in the hero frame, head
+//! to feet, wherever a whole fit exists, and under no wood or foliage. The table names the presets, so it lives
 //! here and not in the renderer library, which never names a family.
 use telperion_core::{
     math::Vec3,
@@ -10,6 +10,9 @@ use telperion_core::{
     Family,
 };
 use telperion_render::{figure_placement, figure_points, hero_pose, Shot, GROUND_REACH};
+
+/// The harness's default sun and the film's, azimuth and elevation.
+const SUNS: [(f64, f64); 2] = [(135.0, 30.0), (115.0, 60.0)];
 
 /// Clip-space x, y and depth of a world point through this view-projection.
 fn project(view_projection: &[f32; 16], p: Vec3) -> (f64, f64, f64) {
@@ -165,10 +168,10 @@ fn tree_bounds(row: [f64; 6]) -> Bounds {
     }
 }
 
-/// Being seen in shot is why the person stands where it does (fn-310 D2,
+/// Being seen in shot is why the person stands where it does (fn-310 D7,
 /// D6): at the hero pose of every tree in the table the whole person, head
 /// to feet, projects inside the frame and the depth range, except beside
-/// the trees `EXEMPT` names, where no distance on the camera's side holds
+/// the trees `EXEMPT` names, where no distance out along its side holds
 /// it whole; a new exemption fails here by name.
 #[test]
 fn the_whole_person_stands_inside_the_hero_frame_beside_every_shipped_tree() {
@@ -176,7 +179,7 @@ fn the_whole_person_stands_inside_the_hero_frame_beside_every_shipped_tree() {
     for &(id, age, seed, row) in TREES {
         let bounds = tree_bounds(row);
         let view_projection = hero_pose(bounds, aspect, GROUND_REACH).view_projection(aspect);
-        let (_, whole, body) = figure_points(bounds);
+        let (_, whole, body) = figure_points(bounds, SUNS[0].0);
         let exempt = EXEMPT.contains(&(id, age, seed));
         assert_eq!(
             whole, !exempt,
@@ -193,33 +196,58 @@ fn the_whole_person_stands_inside_the_hero_frame_beside_every_shipped_tree() {
     }
 }
 
-/// The person stands at least the crown's reach and its margin out, and
-/// beside a tree with no whole fit, exactly there (fn-310 D2, D6): the
-/// distance out from the trunk never falls as the tree is framed whole, and
-/// an exemption keeps D2's placement.
+/// Beside every tree in the table, under the harness's sun and the film's
+/// (fn-310 D7): the foot at the trunk's depth along the hero view, square
+/// to it, the crown's reach and the margin out, and no point of the person
+/// in the shadow the crown the bounds inscribe throws.
 #[test]
-fn the_person_stands_no_nearer_than_d2_and_an_exemption_stands_at_d2() {
+fn the_person_stands_beside_the_trunk_and_out_of_the_crowns_shadow() {
+    let (x, z) = Shot::default().azimuth.to_radians().sin_cos();
     for &(id, age, _, row) in TREES {
         let bounds = tree_bounds(row);
-        let (placement, whole) = figure_placement(bounds);
-        let d2 = d2_distance(bounds);
-        let distance = placement.foot.x.hypot(placement.foot.z);
-        assert!(distance >= d2 - 1e-9, "{id} at {age:?}: {distance} < {d2}");
-        if !whole {
-            assert!((distance - d2).abs() < 1e-9, "{id} at {age:?}: {distance}");
+        for (sun, elevation) in SUNS {
+            let (placement, _, body) = figure_points(bounds, sun);
+            let foot = placement.foot;
+            let depth = -(foot.x * x + foot.z * z);
+            assert!(depth > -1e-9, "{id} at {age:?}: {depth} m in front");
+            let reach = reach(bounds, foot.x / foot.length(), foot.z / foot.length());
+            assert!(
+                (foot.length() - reach - 0.5).abs() < 1e-9,
+                "{id} at {age:?}"
+            );
+            assert_eq!(placement, figure_placement(bounds, sun).0);
+            let (a, e) = (sun.to_radians(), elevation.to_radians());
+            let to_sun = Vec3::new(e.cos() * a.sin(), e.sin(), e.cos() * a.cos());
+            let lit = body.iter().all(|&p| !shaded(bounds, p, to_sun));
+            assert!(lit, "{id} at {age:?}: in the crown's shadow under {sun}");
         }
+        let [a, b] = SUNS.map(|(sun, _)| figure_placement(bounds, sun).0);
+        assert_eq!(a, b, "{id} at {age:?}: the two suns stand it apart");
     }
 }
 
-/// D2's distance: the reach of the inscribed crown along the person's
-/// azimuth, 68 degrees left of the default shot's, plus half a metre.
-fn d2_distance(bounds: Bounds) -> f64 {
-    let (x, z) = (Shot::default().azimuth - 68.0).to_radians().sin_cos();
+/// The reach of the crown the bounds inscribe along the unit bearing
+/// (`x`, `z`).
+fn reach(bounds: Bounds, x: f64, z: f64) -> f64 {
     let (centre, half) = (
         (bounds.min + bounds.max) * 0.5,
         (bounds.max - bounds.min) * 0.5,
     );
-    centre.x * x + centre.z * z + (half.x * x).hypot(half.z * z) + 0.5
+    centre.x * x + centre.z * z + (half.x * x).hypot(half.z * z)
+}
+
+/// Whether the ray from `from` towards the sun passes through the crown the
+/// bounds inscribe.
+fn shaded(bounds: Bounds, from: Vec3, to_sun: Vec3) -> bool {
+    let (centre, half) = (
+        (bounds.min + bounds.max) * 0.5,
+        (bounds.max - bounds.min) * 0.5,
+    );
+    let scale = |v: Vec3| Vec3::new(v.x / half.x, v.y / half.y, v.z / half.z);
+    let (o, d) = (scale(from - centre), scale(to_sun));
+    let (a, b, c) = (d.dot(d), 2.0 * o.dot(d), o.dot(o) - 1.0);
+    let root = b * b - 4.0 * a * c;
+    root >= 0.0 && (-b + root.sqrt()) / (2.0 * a) > 0.0
 }
 
 /// The first wood or foliage vertex of `tree` standing over the disc of
@@ -269,7 +297,8 @@ fn over(tree: &TreeMesh, foot: Vec3, radius: f64) -> Option<Vec3> {
 
 /// Builds every tree in the table, one at a time: the table is what the
 /// generator bounds, and no wood or foliage stands over the person's
-/// footprint beside it (fn-310 D2, host ruling). Over a minute, most of
+/// footprint beside it (fn-310 D2, D7, host ruling). Both of `SUNS` stand
+/// the person in one place (`the_person_stands_beside_the_trunk_...`). Over a minute, most of
 /// it Telperion, so it runs by name (`--ignored`) when a crown changes;
 /// the fast tests above read the table.
 #[test]
@@ -283,7 +312,7 @@ fn the_bounds_table_is_the_generators_and_no_canopy_covers_the_person() {
             built.iter().zip(row).all(|(b, r)| (b - r).abs() <= 0.006),
             "{id} at {age:?}, seed {seed:?}: the generator bounds it at {built:?}"
         );
-        let (placement, _, body) = figure_points(tree.bounds);
+        let (placement, _, body) = figure_points(tree.bounds, SUNS[0].0);
         let foot = placement.foot;
         let radius = body
             .iter()

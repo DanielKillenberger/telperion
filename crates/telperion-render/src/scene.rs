@@ -28,7 +28,8 @@ mod room;
 mod row;
 
 pub use person::{
-    counts as figure_counts, points as figure_points, stand as figure_placement, Placement,
+    counts as figure_counts, hero as figure_placement, points as figure_points,
+    stand as figure_placement_from, Placement,
 };
 pub use room::{FIGURE_HEIGHT, GROUND_REACH};
 pub use row::SceneRow;

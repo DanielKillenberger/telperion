@@ -44,7 +44,7 @@ use telperion_core::{
     Family,
 };
 use telperion_render::{
-    figure_placement,
+    figure_placement_from,
     generation::{Generator, Prepared},
     render, write_png, Gpu, Level, Placement, Renderer, SceneRow, Still, STILL_FORMAT,
 };
@@ -53,12 +53,11 @@ use telperion_render::{
 /// bounds, and its build time.
 type Settled = (f64, Prepared, (usize, Bounds), f64);
 
-/// A growth's frames, each year's own placement of the person as it is
-/// settled, and the earlier year's picture of each frame that waits for
-/// its later year.
+/// A growth's frames, each year's bounds as it is settled, and the earlier
+/// year's picture of each frame that waits for its later year.
 struct Year<'a> {
     frames: &'a [placing::Year],
-    stood: Vec<(f64, Placement)>,
+    stood: Vec<(f64, Bounds)>,
     earlier: std::collections::HashMap<usize, Vec<u8>>,
 }
 
@@ -244,6 +243,15 @@ impl Film<'_> {
         Ok(())
     }
 
+    /// Where frame `i` stands the person beside a tree of these bounds:
+    /// square to the frame camera's view, on the film's sun's side (fn-310
+    /// D7).
+    fn beside(&self, i: usize, bounds: Bounds) -> Placement {
+        let seconds = i as f64 / f64::from(self.path.fps);
+        let view = camera::azimuth(&self.path.camera, seconds);
+        figure_placement_from(bounds, view, self.path.sun.0).0
+    }
+
     /// Frame `i` drawn from its pose with the tree put up now, no overlay,
     /// its render and read back counted in `cost`.
     fn still(&mut self, i: usize, cost: &mut Cost) -> Result<Vec<u8>, String> {
@@ -334,7 +342,7 @@ impl Film<'_> {
                     let ms = started.elapsed().as_secs_f64() * 1e3;
                     (cost.build_ms, cost.trees) = (cost.build_ms + ms, cost.trees + 1);
                     let shape = (settled.count(), settled.bounds());
-                    year.stood.push((at, figure_placement(shape.1).0));
+                    year.stood.push((at, shape.1));
                     Some((at, settled, shape, ms))
                 }
                 None => None,
@@ -368,9 +376,14 @@ impl Film<'_> {
         for (i, share) in showing {
             let started = std::time::Instant::now();
             let frame = year.frames.iter().find(|f| f.0 == i).ok_or("no frame")?;
-            let placement =
-                placing::placed(frame, |y| year.stood.iter().find(|s| s.0 == y).map(|s| s.1))
-                    .ok_or(format!("frame {i}: a year it shows is not built"))?;
+            let stood = |y| {
+                year.stood
+                    .iter()
+                    .find(|s| s.0 == y)
+                    .map(|s| self.beside(i, s.1))
+            };
+            let placement = placing::placed(frame, stood)
+                .ok_or(format!("frame {i}: a year it shows is not built"))?;
             self.renderer.place_figure(placement);
             let rgba = self.still(i, cost)?;
             match (share == 0.0, year.earlier.remove(&i)) {
@@ -415,6 +428,7 @@ impl Film<'_> {
             }
             if let Some((t, shape, ms)) = last {
                 self.log(shape, t, &[i], ms)?;
+                self.renderer.place_figure(self.beside(i, shape.1));
             }
             self.draw(i, &mut cost)?;
             cost.frames += 1;

@@ -6,11 +6,16 @@ use super::path::{Camera as Declared, Key};
 use telperion_core::math::Vec3;
 use telperion_render::{Camera, GROUND_REACH};
 
+/// The eye's bearing from the trunk at `seconds` into the film, in degrees.
+pub fn azimuth(c: &Declared, seconds: f64) -> f64 {
+    c.azimuth + c.orbit * seconds
+}
+
 /// The pose at `seconds` into the film.
 pub fn pose(c: &Declared, seconds: f64) -> Camera {
     let distance = monotone(&c.keys, seconds, |k| k.distance.ln()).exp();
     let height = monotone(&c.keys, seconds, |k| k.height);
-    let azimuth = (c.azimuth + c.orbit * seconds).to_radians();
+    let azimuth = azimuth(c, seconds).to_radians();
     let (rise, run) = c.elevation.to_radians().sin_cos();
     let target = Vec3::new(0.0, height, 0.0);
     let back = Vec3::new(run * azimuth.sin(), rise, run * azimuth.cos());
