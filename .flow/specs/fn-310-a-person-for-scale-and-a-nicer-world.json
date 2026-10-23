@@ -1,11 +1,19 @@
 {
   "branch_name": "fn-310-a-person-for-scale-and-a-nicer-world",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-23T12:17:40.936947Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-310-a-person-for-scale-and-a-nicer-world",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-310-a-person-for-scale-and-a-nicer-world.md",
   "status": "open",
   "title": "A person for scale and a nicer world around the tree",
@@ -20,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-23T12:17:40.944262Z"
+  "updated_at": "2026-10-23T13:55:19.460320Z"
 }
