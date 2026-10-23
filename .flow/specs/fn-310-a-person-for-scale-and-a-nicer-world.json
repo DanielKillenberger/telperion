@@ -10,10 +10,79 @@
   "id": "fn-310-a-person-for-scale-and-a-nicer-world",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-23T14:03:37.196922Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "33654f09d53c3431921182e7c098f9eb529396dae4ba4b3a48861f2b263e0aca",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3aba2f7c54a1b8f7489ac41dd8e4e68a",
+            "classification": "introduced",
+            "findingId": "finding-3aba2f7c54a1b8f7489ac41dd8e4e68a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b909db79ee8e7e8838da4d71824fb302",
+            "classification": "introduced",
+            "findingId": "finding-b909db79ee8e7e8838da4d71824fb302",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c95fe6e5e2aaa6f4536cf26a1a480731",
+            "classification": "introduced",
+            "findingId": "finding-c95fe6e5e2aaa6f4536cf26a1a480731",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b103e8776d85214cc29f00b3da299a56d7c89713",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 248282,
+      "output_sha256": "9aeddba1768f23de3e54466f34c28d3836fe748a572af267fb95daca29f62401",
+      "reservation_id": "6f58805b37724c47949d413645835737",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-23T14:03:37.188469Z",
+      "tool_calls": 13,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-310-a-person-for-scale-and-a-nicer-world.md",
   "status": "open",
   "title": "A person for scale and a nicer world around the tree",
@@ -28,5 +97,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-23T14:01:43.312430Z"
+  "updated_at": "2026-10-23T14:04:04.888511Z"
 }

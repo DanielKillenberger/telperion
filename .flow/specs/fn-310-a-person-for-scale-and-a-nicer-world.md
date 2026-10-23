@@ -45,7 +45,7 @@ A concept prototype is being made on branch `scene-concept` (host, 2026-10-23). 
 ### Errors and boundaries per requirement (plan, 2026-10-23)
 
 - **R2:** no error surface of its own. Its boundaries are a shrub a few metres tall, where the person must still stand clear of the trunk, and Telperion's wide crown, where it must still stand outside the canopy. The figure flag, clay and the photograph frames keep their present behaviour: the person draws wherever the capsule drew, and nowhere else.
-- **R3:** each new row field is refused by name outside its range, as the existing fields are. A row JSON that omits a new field takes the default. Zero is a true no-op for each strength (glow, variation, haze), with no divide by zero and no NaN at zero. At zero the frame equals the one the field's absence would draw.
+- **R3:** each new row field is refused by name outside its range, as the existing fields are. A row JSON that omits a new field takes the default. An explicit zero turns its effect off (glow, variation, haze), with no divide by zero and no NaN: at zero the sky is the plain zenith-to-horizon gradient (dither still on, one 8-bit step at most), the floor's albedo is the flat ground colour, and the floor is not hazed. An omitted field takes the default, which is variant C's active value.
 - **R4:** a frame-time difference outside noise is stated with its number, never hidden. Crossing the size ceiling is an owner decision and stops the build.
 
 ## Design (plan, 2026-10-23; D1 and D2 approved by the host, 2026-10-23)

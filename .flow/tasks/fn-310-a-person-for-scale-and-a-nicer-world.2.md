@@ -16,7 +16,7 @@ The person half (D2, D3): a new `scene/person.rs` replaces the capsule in `room.
 - Replace `FIGURE` with a cool dark slate in the room palette (`room.rs:10-16`).
 - `place_figure` (`scene.rs:422-431`) takes the tree's bounds (callers `lib.rs:243`, `generation/submit.rs:50`) and applies D2: azimuth = default shot azimuth less a stated offset, distance = the bounds' horizontal support in that direction plus a stated margin, facing the camera. The index count and buffer offsets (`scene.rs:165-179`) follow the person's mesh.
 - `tests/shot.rs:10-11` derives the figure's triangle count from the person, not a literal.
-- Then render the owner's still, before this task's review: oak at 40 and Telperion at 80, seed 7, 1280x720, through `headless` under the new default row, set beside the concept's `c-oak.png` and `c-telperion.png` (branch `scene-concept`, `.flow/evidence/fn-310-a-person-for-scale-and-a-nicer-world/concept/`) in one sheet at `.flow/evidence/fn-310-a-person-for-scale-and-a-nicer-world/raw/stills/person-v2.jpg`. Age goes through `--family` with a partial wire object; check the route works before relying on it.
+- Then render the owner's still, before this task's review: oak at 40 and Telperion at 80, seed 7, 1280x720, through `headless` under the new default row, set beside the concept's `c-oak.png` and `c-telperion.png` (branch `scene-concept`, `.flow/evidence/fn-310-a-person-for-scale-and-a-nicer-world/concept/`) in one sheet at `.flow/evidence/fn-310-a-person-for-scale-and-a-nicer-world/raw/stills/person-v2.jpg`. The host asked for that path. A compressed copy of the sheet, which carries an owner verdict, is retained outside `raw/` at `.flow/evidence/fn-310-a-person-for-scale-and-a-nicer-world/person-v2.jpg` (docs/evidence-retention.md); the single stills stay under `raw/`. Age goes through `--family` with a partial wire object; check the route works before relying on it.
 
 ### Investigation targets
 **Required:**
@@ -38,7 +38,7 @@ The person half (D2, D3): a new `scene/person.rs` replaces the capsule in `room.
 - [ ] Placement test (host, 2026-10-23): at the hero shot the whole person projects inside the frame for every shipped preset at its catalogue age and for Telperion at 80, using the trees' real bounds; the test stays inside the gate's 120 s and 4 GiB per-test budget (reuse an existing every-preset build or a measured bounds table checked against the generator)
 - [ ] A colour test: the person's lit colour under the default sun and in shade keeps blue at or above red (reads cool, not skin)
 - [ ] `tests/shot.rs` derives the figure's triangles from the person; capsule code and test removed
-- [ ] `person-v2.jpg` exists at the stated path, beside the concept's C row, and was sent to the host
+- [ ] `person-v2.jpg` exists at the stated `raw/stills/` path, beside the concept's C row, and was sent to the host; a compressed copy is committed at the evidence folder's top level
 - [ ] Focused render tests green through `telperion-heavy 5 --gpu 3 --threads 2`
 ## Done summary
 TBD
