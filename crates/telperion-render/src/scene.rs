@@ -111,6 +111,11 @@ struct Uniforms {
     /// stamen's half width the stalks narrow to, and the pedicel's length.
     /// Zero on every leaf, and the organ's rachis instances are none.
     stalk: [f32; 4],
+    /// The scene row's air (fn-310 D4): the glow round the sun as a
+    /// multiple of it, the distance in metres the far floor hazes over, and
+    /// the ground disc's reach, whose last stretch fades into the horizon.
+    atmosphere: [f32; 4], // glow, haze distance, ground reach, reserved
+    ground_dry: [f32; 4], // dry ground RGB, how far the ground turns to it
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform
