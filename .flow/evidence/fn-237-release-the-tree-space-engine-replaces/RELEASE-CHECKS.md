@@ -77,3 +77,10 @@ Branch `fn-237-release-checks`, from `d2a8bd258`. Measured 2026-10-14 on the RTX
 - **Gate:** green on `4dfc8dcfa` under the declared invocation. 1,477 passed, 0 failed, 134 skipped; the test run took 1,220 s against 1,560 s, and the build and listing took 109 s.
 - **npm test:** green, 22 files and 177 tests, run alone after the gate.
 - **Raw logs:** `raw/f4-gate-after-309.log` and `raw/f4-npm-after-309.log`.
+
+## Release branch gate after fn-272, the film (host, 2026-10-23)
+
+- **Gate:** green on `3010ab022` under the declared invocation. 1,482 passed, 0 failed, 134 skipped. The test run took 1,452 s against 1,560 s; the build and listing took 123 s. This run carries fn-272 task .1's gate, which was never admitted on its own.
+- **npm test:** green, 177 tests, run alone after the gate.
+- **Format:** `cargo fmt --check` failed on the host's `film_map.rs` edit. It was formatted in the commit that records this run, which touches formatting only.
+- **Gate time:** the test run sat 108 s under its budget, the closest of this build. fn-305 owns gate time.

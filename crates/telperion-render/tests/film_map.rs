@@ -37,7 +37,10 @@ fn a_walks_frames_stand_a_share_along_the_segment_between_its_ends() {
                 let t = f64::from(k) / 4.0;
                 let at = map.along(a, b, t).unwrap();
                 let on = [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t];
-                assert!((at[0] - on[0]).hypot(at[1] - on[1]) <= 1e-12, "{a} -> {b} at {t}");
+                assert!(
+                    (at[0] - on[0]).hypot(at[1] - on[1]) <= 1e-12,
+                    "{a} -> {b} at {t}"
+                );
             }
         }
     }
