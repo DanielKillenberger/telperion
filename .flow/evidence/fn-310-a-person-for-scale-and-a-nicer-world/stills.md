@@ -21,3 +21,10 @@ What the stills show:
 - Under the film's high sun it pools under the crown.
 - The sky glows toward the sun, and the ground carries soft tonal patches that fade into the horizon haze.
 - At Telperion's framing the person is small beside a 46 m tree. `scale-check.md` measures its projected height.
+
+## The person's shadow (task 5)
+
+`person-shadow.jpg` holds the oak at 40 and Telperion at 80, seed 7, 1280x720, under the film's sun (115 degrees, 60 degrees up), drawn at `a192d41bd` with the same `headless` commands as above and `--scene '{"sunAzimuth":115,"sunElevation":60}'`. The bottom row enlarges the person in each still (3x on the oak, 6x on Telperion, nearest-neighbour). The single PNGs and the full-quality sheet are under `raw/stills/` (`person-shadow-*.png`, `person-shadow.jpg`). I viewed every still.
+
+- Under the high film sun the person's shadow is short and falls away from the camera, to the right of its legs and behind them.
+- At Telperion's framing the person is about 8 px tall, and its shadow is a few pixels beside its feet, visible only in the enlargement.
