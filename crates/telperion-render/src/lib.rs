@@ -62,6 +62,7 @@ pub use scene::{
     figure_reach, Placement, SceneRow, DEPTH_FORMAT, GROUND_REACH,
 };
 pub use select::{Level, MAX_LEVELS};
+pub use shadow::{light as sun_light, Light as SunLight, RESOLUTION as SUN_RESOLUTION};
 pub use shot::Shot;
 use submit::crown_of;
 pub use submit::{fits, Submitted};

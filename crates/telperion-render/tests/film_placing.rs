@@ -10,6 +10,8 @@ mod bounds;
 #[path = "../examples/film/camera.rs"]
 mod camera;
 #[allow(dead_code)]
+mod common;
+#[allow(dead_code)]
 #[path = "../examples/film/path.rs"]
 mod path;
 #[allow(dead_code)]
@@ -71,10 +73,22 @@ fn shown(path: &path::Path, crowns: &[bounds::Crowns]) -> Vec<Shown> {
         .collect()
 }
 
+/// The sun's texel the person may coarsen the map to, in metres, where that
+/// is more than a tenth past the tree's own map (host ruling on the film's
+/// shadow bound, fn-310 task 9). It rounds up the silver birch's own texel
+/// at its catalogue age under the film's sun, 2.27 cm, so no frame's shadow
+/// is coarser than a shipped tree's in its own stills, which the owner has
+/// judged. Measured at most 2.18 cm, at frame 780.
+const TEXEL: f64 = 0.023;
+/// How much coarser the person may make the sun's map, where it is coarser
+/// than `TEXEL`.
+const COARSER: f64 = 1.1;
+
 /// Every frame's placement as the rule asks: square to the view on the
 /// camera's left at the trunk's depth, at or past its own frame's reach and
 /// the distance out of the shadow, out of every crown's shadow it shows,
-/// and out from under every crown it shows.
+/// out from under every crown it shows, and no coarser a sun's map than
+/// `TEXEL` or `COARSER` allows.
 fn holds(shown: &[Shown], standing: &Standing, sun: (f64, f64)) {
     for (f, s) in shown.iter().enumerate() {
         let distance = standing.placements[f].foot.length();
@@ -99,6 +113,7 @@ fn holds(shown: &[Shown], standing: &Standing, sun: (f64, f64)) {
         );
         let (earlier, later, share) = s.crowns;
         let body = placement.body();
+        let person = common::box_of(&body);
         let shows = if share > 0.0 {
             vec![earlier, later]
         } else {
@@ -113,6 +128,14 @@ fn holds(shown: &[Shown], standing: &Standing, sun: (f64, f64)) {
                 x.hypot(z) <= 1.0
             });
             assert!(!under, "frame {f}: under the crown");
+            let (alone, with) = (
+                common::texel_size(sun, &[crown]),
+                common::texel_size(sun, &[crown, person]),
+            );
+            assert!(
+                with <= TEXEL.max(COARSER * alone),
+                "frame {f}: the sun's texel {alone} m to {with} m"
+            );
         }
     }
 }

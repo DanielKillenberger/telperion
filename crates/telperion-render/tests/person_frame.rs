@@ -2,6 +2,8 @@
 //! trunk's depth, out of the crown's shadow, whole in the hero frame, head
 //! to feet, wherever a whole fit exists, and under no wood or foliage. The table names the presets, so it lives
 //! here and not in the renderer library, which never names a family.
+#[allow(dead_code)]
+mod common;
 use telperion_core::{
     math::Vec3,
     mesh::{self, TreeMesh},
@@ -223,6 +225,33 @@ fn the_person_stands_beside_the_trunk_and_out_of_the_crowns_shadow() {
         }
         let [a, b] = SUNS.map(|(sun, _)| figure_placement(bounds, sun).0);
         assert_eq!(a, b, "{id} at {age:?}: the two suns stand it apart");
+    }
+}
+
+/// How much coarser the person may make the sun's map: the ground a texel
+/// covers with the person in the fit over without it, on either axis (host
+/// ruling on the shadow cost, fn-310 task 9). Measured 1.000 in every case
+/// (`SHADOW-FIT.md`).
+const COARSER: f64 = 1.1;
+
+/// The person in the sun's map costs the tree's shadow little: beside every
+/// shipped preset at its catalogue age and Telperion at 80, under the
+/// harness's sun and the film's, the map fitted to the tree and the person
+/// covers at most `COARSER` times the ground per texel that the tree's alone
+/// does. The film's frames are `film_placing`'s.
+#[test]
+fn the_person_coarsens_the_suns_map_by_at_most_a_tenth() {
+    let rows = TREES.iter().filter(|t| matches!(t.1, None | Some(80.0)));
+    for &(id, age, seed, row) in rows {
+        let tree = tree_bounds(row);
+        for sun in SUNS {
+            let (_, _, body) = figure_points(tree, sun.0);
+            let ratio = common::coarsened(sun, &[tree], common::box_of(&body));
+            assert!(
+                ratio <= COARSER,
+                "{id} at {age:?}, seed {seed:?}, sun {sun:?}: {ratio} times coarser"
+            );
+        }
     }
 }
 
