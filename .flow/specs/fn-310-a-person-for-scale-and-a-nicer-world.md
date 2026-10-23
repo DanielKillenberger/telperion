@@ -176,6 +176,18 @@ Task .9 found `rim_at_distance` red since D7 (837853234). The far band share at 
   - **If no case grows by more than 10 %:** keep the design and add a test that holds that bound.
   - **If any case grows by more than 10 %:** stop and report the numbers before changing anything. The host would then weigh fitting the map to the tree alone and giving the person's shadow another route.
 
+### Host ruling on the shadow cost (2026-10-23): option (a), accept with a named bound
+
+Measured in task .9 (`SHADOW-FIT.md`):
+- **Catalogue stills:** for every shipped preset at its catalogue age and Telperion at 80, under both suns, the ground per texel with the person in the fit is unchanged (ratio 1.000 on both axes). The texel sizes run 1.8-3.3 cm under the film's sun for the four temperate trees, up to 9.9 cm for Telperion.
+- **The film:** 469 tree renders exceed 10 %.
+  - **Segments 0 and 5-7:** crowns under 1.3 m refit both axes, up to 5.66 times. The worst is frame 719, Laurelin at 1: 0.31 cm to 1.22 cm per texel.
+  - **Segments 1-4:** the 12 m age-40 trees refit only the shorter axis, up to 1.59 times, and the texel size the shaders read (`Light::texel_size`, the larger axis) is unchanged.
+
+**The ruling:** the design stays, because the shaders' texel size never gets coarser than a shipped tree's own (1.22 cm at worst against 1.8-3.3 cm), and option (b) would cost the shadow the owner asked for. The bound test:
+- **Catalogue stills:** ground per texel grows at most 10 % on both axes, for every shipped preset at its catalogue age and Telperion at 80, under both suns.
+- **The film:** over the cached bounds, on every frame `Light::texel_size` is at or below 1.5 cm, or within 10 % of the tree-only fit, whichever is looser.
+
 ## Boundaries
 
 - No change to growth, the trees or the camera path.
