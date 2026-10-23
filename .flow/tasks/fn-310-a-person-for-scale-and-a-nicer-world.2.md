@@ -42,9 +42,24 @@ The person half (D2, D3): a new `scene/person.rs` replaces the capsule in `room.
 - [ ] `person-v2.jpg` exists at the stated `raw/stills/` path, beside the concept's C row, and was sent to the host; a compressed copy is committed at the evidence folder's top level
 - [ ] Focused render tests green through `telperion-heavy 5 --gpu 3 --threads 2`
 ## Done summary
-TBD
+A procedural 1.75 m person replaces the capsule (`scene/person.rs`): lofted rings, legs rising into the torso with no step at the hips, shoulders, a slight taper, arms at the sides, a faceless head, smooth normals, in a dark cool slate (`FIGURE` 0x353d4a). `FIGURE_HEIGHT` is the person's `HEIGHT`. `place_figure` takes the tree's bounds and stands the person 68 degrees to the camera's left of the default shot, 0.5 m past the inscribed crown ellipse's horizontal reach, facing the camera (spec D2, host ruling 2026-10-23).
 
+- Budget: 627 vertices and 1,020 triangles, against 800 / 1,200 (tested).
+- Tests (person.rs): on y = 0 at 1.750 m, `FIGURE_HEIGHT` its measured height; outside the crown ellipse and its shadow for a shrub and for Telperion at 80 under the 135/30 and 115/60 suns; blue at or above red when lit by the default sun and in shade.
+- Tests (camera.rs): in the 16:9 hero frame for every shipped preset at its catalogue age, Telperion at 80, and the owner's two seed-7 stills (worst y = -0.97). The test reads a measured bounds table. The ignored test `the_bounds_table_is_the_generators_and_no_canopy_covers_the_person` (84 s, run with --ignored) holds that table to `mesh::build` and checks the real geometry: no wood vertex, and no leaf or floret out to its element's reach, stands over the person's footprint. It is red with the foot at the trunk (oak trunk wood at 1.4 m) and green at the placed foot.
+- `tests/shot.rs` takes the figure's triangles from `figure_counts()`; the capsule and its test are gone.
+- Owner's still: `raw/stills/person-v2.jpg` (oak 40 and Telperion 80, seed 7, 1280x720, `--scene '{"sunAzimuth":115,"sunElevation":60}'` to match concept C), sent to the host; compressed copy at `.flow/evidence/fn-310-.../person-v2.jpg`. After viewing the first sheet I removed a hip crease and darkened the slate.
+- Scale check (`scale-check.md`): Telperion at 80 is 46.46 m; the person projects to 20.5 px against the trunk's 548 px, a ratio of 26.7 against the true 26.5. The scale is honest.
+- Feature-map route: unchanged (no `.flow/features` route moves).
+- Baseline: green via handoff (91eddc36; only .flow paths changed since).
+- Focused tests green through telperion-heavy 5 --gpu 3 --threads 2: `--lib scene`, `--lib camera`, the `shot`, `look`, `neutral_light`, `shadow` and `environment` test files, the ignored generator and canopy test, and clippy on the changed files.
+
+Tier: session (jev long_running 0.29) at default effort (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex: round 1, 3 draws, NEEDS_WORK on the ellipse versus bounds-box footprint; answered by the host's D2 ruling plus the canopy test; re-review SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d5dc6ef61b2c5cc721d4efc4f79d9e6fd813fe9d, 6ac1a9072ce4cd7b7d26acfeb1d4dcb9d1fa61d0, e985e397203ee2fd2a30a5aadcebd942f9a72aca, 13328e77c1320c0a17a5572f06654e08a618f4c4
+- Tests: ~/.local/bin/telperion-heavy 5 --gpu 3 --threads 2 -- cargo test --profile ci -p telperion-render --lib scene, ~/.local/bin/telperion-heavy 5 --gpu 3 --threads 2 -- cargo test --profile ci -p telperion-render --lib camera, ~/.local/bin/telperion-heavy 5 --gpu 3 --threads 2 -- cargo test --profile ci -p telperion-render --test shot --test look --test neutral_light --test shadow --test environment, ~/.local/bin/telperion-heavy 5 --gpu 3 --threads 2 -- cargo test --profile ci -p telperion-render --lib -- no_canopy_covers --ignored
 - PRs:
