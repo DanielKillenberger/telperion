@@ -450,8 +450,8 @@ impl Scene {
     }
 
     /// Draws the room: the sky behind everything outdoors, then the ground and
-    /// the figure, which share a buffer and one call. A frame that imitates a
-    /// photograph leaves the figure out and keeps the floor.
+    /// the 1.75 m person, which share a buffer and one call. A frame that
+    /// imitates a photograph leaves the person out and keeps the floor.
     pub fn draw(
         &self,
         pass: &mut wgpu::RenderPass<'_>,

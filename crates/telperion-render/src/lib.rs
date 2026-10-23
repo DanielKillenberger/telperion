@@ -137,8 +137,8 @@ pub struct Renderer {
     /// programs compile and its surfacing waits.
     whole: bool,
     view: View,
-    /// Whether the room draws its scale figure. On unless a still imitates a
-    /// photograph.
+    /// Whether the room draws the 1.75 m person for scale. On unless a still
+    /// imitates a photograph.
     figure: bool,
     bounds: Option<Bounds>,
     /// The tolerance of each level of the crown's element, coarsest first, as
