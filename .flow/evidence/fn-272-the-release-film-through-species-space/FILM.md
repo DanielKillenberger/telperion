@@ -122,3 +122,35 @@ At 7c1278c04: 96837aef4 merged fn-283, fn-298, fn-299, fn-301, fn-302, fn-303, f
 - **825** (Laurelin, age label 41): a round crown of green leaves and hanging orange-gold flower clusters on a dark stem. A small tuft of leaves and flowers hangs off the stem below the crown.
 - **975** (Laurelin to Telperion, t = 0.52, age 80): a broad spreading crown of pale silver-white blossom over dark limbs, the scale figure small at the foot.
 - The map dot moves along the segment between its ends' dots in every walk frame viewed.
+
+## Cut 6 (2026-10-23, fn-309 merged)
+
+At c4bc857c2 (1d34ddd3c merged the release branch with fn-309: a compound leaf never spreads along a rachis nothing draws). Same command as cut 5, into `raw/cut6`: `telperion-heavy 8 --gpu 4 --threads 4 -- cargo run --profile ci -p telperion-render --example film -- crates/telperion-render/examples/film/release.json .flow/evidence/fn-272-the-release-film-through-species-space/raw/cut6`. The video is kept at `/home/daniel/Videos/telperion/cut6.mp4` (31,324,321 bytes, the same bytes as `raw/cut6/film.mp4`).
+
+`raw/cut6/film.mp4`: 35.0 s, 1,050 frames, 1280x720 at 30 fps, 31 MB; 36.2 min wall including an 18 s rebuild (`raw/cut6-render.log`, 01:08 to 01:44). No frame refused.
+
+| segment | frames | trees | build | draw | peak resident | device |
+|---|--:|--:|--:|--:|--:|--:|
+| 0 beech grown 1-40 | 210 | 40 | 8.1 s | 7.3 s | 836 MB | 1,263 MB |
+| 1 beech to spruce | 90 | 90 | 257.3 s | 9.9 s | 2,349 MB | 1,775 MB |
+| 2 spruce to birch | 90 | 90 | 340.6 s | 11.1 s | 2,349 MB | 1,519 MB |
+| 3 birch to oak | 90 | 90 | 141.7 s | 8.1 s | 1,892 MB | 1,263 MB |
+| 4 oak to palm | 120 | 120 | 43.3 s | 7.0 s | 1,887 MB | 1,263 MB |
+| 5 palm 40 to 1 | 90 | 39 | 1.7 s | 4.7 s | 1,710 MB | 1,263 MB |
+| 6 palm to Laurelin at 1 | 30 | 30 | 0.1 s | 0.5 s | 1,710 MB | 1,007 MB |
+| 7 Laurelin grown 1-80 | 210 | 80 | 10.4 s | 7.8 s | 1,718 MB | 4,228 MB |
+| 8 Laurelin to Telperion | 120 | 90 | 1,214.7 s | 20.3 s | 4,918 MB | 2,890 MB |
+
+**Oracle** (`telperion-heavy 8 --threads 4`, `raw/oracle-cut6.log`, 22.5 min): 481 of 510, "29 walk frames miss the oracle". Every walk frame's kept and grown counts are the same as cut 5's. Birch to oak 61/90: kept 537,078 to 685,562 against the ceiling of 487,001 from t = 0.20 to 0.9985, up to 40.8 % over, the same as cut 5; grown above 1,278,945 at ten frames. Every other walk meets it on every frame.
+
+**Oak to palm, `frames.tsv`:** leaf counts are the same as cut 5's at every frame viewed; the bounds are smaller (frame 536: 13.60 m tall and 7.46 m wide, cut 5 15.36 m and 8.26 m; frame 526: 12.00 m and 6.71 m, cut 5 13.46 m and 8.48 m).
+
+**Frames 506, 516, 526 and 536, each viewed whole and its crown enlarged three times:**
+
+- **506** (t = 0.13, 3,936 leaves): a bare oak skeleton; the leaves sit in clumps among the twigs of the two upper limbs. At the crown's left edge a handful of single dark leaves sit at fine twig tips. Enlarged, a twig runs to each, but at full size the twigs are hairlines and those leaves read as dark specks just off the crown. No leaves on the lower limbs.
+- **516** (t = 0.23, 4,292 leaves): the same; the leaves are clumped in the upper crown among twigs. A few single leaves stand at the crown's edge: a pale green one at the top left beside the twig tips with no twig visibly under it, and dark ones at the right edge at twig ends. One dark leaf sits beside the stem below the crown.
+- **526** (t = 0.34, 860 leaves): leaves do stand off the tree. A star of bare frond stems radiates from the apex, with a small tuft of leaves above it. Above the tuft five or six single dark leaves stand apart against the sky; some are at the ends of hairline twigs, and two or three have no wood visible under them even enlarged. Below the apex, beside the stem, two small pale tan leaves and a faint grey-green one hang with nothing under them. Near the ground a thin bent bare stick stands out to the right of the stem.
+- **536** (t = 0.46, 2,396 leaves): a palm-like star of drawn frond stems with two leaf tufts, one above the apex and one hanging below it down the stem. Along the bare fronds sit single dark leaflets, about six, each alone on its frond, spaced far apart. They are on drawn wood but read as lone leaves on bare stalks. Below the apex two small pale tan leaves stand beside the stem with nothing visibly under them.
+- In short, some leaves stand off the tree in all four frames. In 506 and 516 they are a few edge leaves on hairline twigs. In 526 and 536 a few leaves have no wood visible under them, and in 536 the leaflets stand singly on otherwise bare fronds.
+
+**Birch to oak at 30, 50 and 70 % (frames 417, 435, 453) against its ends (390 birch, 479 oak):** heights (`frames.tsv`) fall steadily, 16.5 m (birch), 15.9, 14.8, 12.7, 11.2 m (oak). Widths 8.2 m (birch), 8.9, 10.4, 8.2, 7.5 m (oak), so the crown at 50 % is wider than either end, 27 % wider than the birch and 39 % wider than the oak. Leaves 162,736 (birch), 99,073, 64,548, 50,034, 72,112 (oak), so at 70 % there are fewer than at either end. Seen (the camera closes in over the segment, so on-screen sizes are not comparable): 390 a weeping white birch; 417 a narrower upright birch crown, still white-stemmed; 435 a broad open fine-twigged crown on white limbs over a leaning brown stem with bare low branches; 453 a rounder, denser crown on a darker stem, shorter; 479 the oak's dense dark-green crown on a thick stem.
