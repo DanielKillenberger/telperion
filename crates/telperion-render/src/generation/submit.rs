@@ -46,7 +46,8 @@ impl Renderer {
             }
             (_, organ) => self.submit_organ(organ, crate::Level::default()),
         }
-        self.scene.place_figure(&self.gpu, mesh.bounds);
+        self.scene
+            .place_figure(&self.gpu, crate::scene::figure_placement(mesh.bounds).0);
         self.scene.set_crown(resident.crown);
         self.scene
             .set_leaf_reference(mesh.foliage.instances.reference);

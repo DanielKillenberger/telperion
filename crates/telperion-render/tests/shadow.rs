@@ -8,7 +8,7 @@ use telperion_core::pipeline::executor;
 
 use telperion_core::{math::Vec3, mesh, presets::Preset};
 use telperion_render::{
-    figure_counts, figure_points, hero_pose, render, Camera, Renderer, SceneRow, View,
+    figure_counts, figure_placement, hero_pose, render, Camera, Renderer, SceneRow, View,
     GROUND_REACH, STILL_FORMAT,
 };
 
@@ -231,7 +231,7 @@ fn the_persons_shadow_darkens_the_floor_and_leaves_the_trees_alone() {
     let tree = mesh::build(&common::ordinary()).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).unwrap();
-    let (foot, _) = figure_points(tree.bounds);
+    let foot = figure_placement(tree.bounds).0.foot;
     let row = SceneRow {
         sun_azimuth: foot.x.atan2(foot.z).to_degrees().rem_euclid(360.0),
         sun_elevation: 30.0,

@@ -9,8 +9,8 @@
 //! crown's shadow, which falls away from a sun on that side, never reaches it.
 use telperion_core::{math::Vec3, surface::Bounds};
 
-use super::room::Vertex;
-use crate::shot::Shot;
+use super::room::{Vertex, GROUND_REACH};
+use crate::{camera::hero_pose, shot::Shot};
 
 /// The person's height, from the soles to the crown of the head.
 pub const HEIGHT: f64 = 1.75;
@@ -24,6 +24,14 @@ const SIDES: u32 = 10;
 const OFFSET: f64 = 68.0;
 /// How far outside the crown's reach the foot stands, in metres.
 const MARGIN: f64 = 0.5;
+/// The hero frame the person is stood whole in: the default shot's, 16:9.
+const ASPECT: f64 = 16.0 / 9.0;
+/// How far out from the picture's centre the person may reach, as a share of
+/// the half-frame: a small margin inside every edge.
+const FIT: f64 = 0.98;
+/// The step, in metres, by which the person is moved out to find the
+/// nearest distance at which it is whole in the hero frame.
+const STEP: f64 = 0.01;
 
 /// One ring: its centre (across, up, forward), its half width across the
 /// shoulders and its half depth front to back, in metres.
@@ -180,36 +188,120 @@ fn normals(points: &[Vec3], indices: &[u32]) -> Vec<Vec3> {
     sums.into_iter().map(|n| n.normalized()).collect()
 }
 
-/// Where the person stands beside a tree of these bounds, and the azimuth it
-/// faces: on the default shot's side, `OFFSET` round to the camera's left,
-/// `MARGIN` beyond the crown's horizontal reach in that direction, facing
-/// the camera. The crown is the ellipsoid the bounds inscribe, the one the
-/// hero pose frames (`camera::reach_of`).
-pub fn stand(bounds: Bounds) -> (Vec3, f64) {
+/// Where the person stands and the azimuth it faces (radians, clockwise from
+/// +Z seen from above). The renderer draws the placement it is given; a plain
+/// submit gives it the tree's own (`stand`).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Placement {
+    pub foot: Vec3,
+    pub facing: f64,
+}
+
+impl Placement {
+    /// `self` moved `share` (0 to 1) of the way to `other`.
+    pub fn lerp(self, other: Placement, share: f64) -> Placement {
+        Placement {
+            foot: self.foot + (other.foot - self.foot) * share,
+            facing: self.facing + (other.facing - self.facing) * share,
+        }
+    }
+}
+
+/// Where the person stands beside a tree of these bounds, and whether the
+/// whole person, head to feet, stands inside the hero frame there. It stands
+/// on the default shot's side, `OFFSET` round to the camera's left, facing the
+/// camera, at least `MARGIN` beyond the reach of the crown the bounds inscribe
+/// (the one the hero pose frames, `camera::reach_of`), and out from there to
+/// the nearest distance, in `STEP`s, at which the whole person projects inside
+/// the hero frame at `FIT` (fn-310 D6). Out along that azimuth the person only
+/// nears the camera, so beside a subject much shorter than the person no such
+/// distance exists before it passes the camera: there it keeps the crown's
+/// distance and is not whole (host ruling, 2026-10-23).
+pub fn stand(bounds: Bounds) -> (Placement, bool) {
+    let view_projection = hero_pose(bounds, ASPECT, GROUND_REACH).view_projection(ASPECT);
+    let crown = crown_distance(bounds);
+    let mut distance = crown;
+    loop {
+        match framed(&view_projection, at(distance)) {
+            Framed::Whole => return (at(distance), true),
+            Framed::Passed => return (at(crown), false),
+            Framed::Cut => distance += STEP,
+        }
+    }
+}
+
+/// The person `distance` out from the trunk on its azimuth, facing the camera.
+fn at(distance: f64) -> Placement {
     let facing = Shot::default().azimuth;
     let (x, z) = (facing - OFFSET).to_radians().sin_cos();
+    Placement {
+        foot: Vec3::new(x * distance, 0.0, z * distance),
+        facing: facing.to_radians(),
+    }
+}
+
+/// The reach of the crown the bounds inscribe along the person's azimuth,
+/// and the margin: the nearest the person stands (fn-310 D2).
+fn crown_distance(bounds: Bounds) -> f64 {
+    let (x, z) = (Shot::default().azimuth - OFFSET).to_radians().sin_cos();
     let (centre, half) = (
         (bounds.min + bounds.max) * 0.5,
         (bounds.max - bounds.min) * 0.5,
     );
-    let reach = centre.x * x + centre.z * z + (half.x * x).hypot(half.z * z);
-    let distance = reach + MARGIN;
-    (
-        Vec3::new(x * distance, 0.0, z * distance),
-        facing.to_radians(),
-    )
+    centre.x * x + centre.z * z + (half.x * x).hypot(half.z * z) + MARGIN
 }
 
-/// Where the person stands beside a tree of these bounds, and every point of
-/// its body there: what a test reads to find it in a frame or a shadow.
-pub fn points(bounds: Bounds) -> (Vec3, Vec<Vec3>) {
-    let (foot, yaw) = stand(bounds);
-    let (body, _) = person(foot, yaw, [0.0; 4], 0);
+/// How the person at a placement stands in a frame.
+enum Framed {
+    /// Head to feet inside the frame at `FIT`, in front of the near plane.
+    Whole,
+    /// Some of it outside the frame.
+    Cut,
+    /// Some of it at or behind the near plane: the person has passed the
+    /// camera, and further out it only passes it more.
+    Passed,
+}
+
+fn framed(view_projection: &[f32; 16], placement: Placement) -> Framed {
+    let (body, _) = person(placement.foot, placement.facing, [0.0; 4], 0);
+    let mut whole = true;
+    for vertex in &body {
+        let v = [
+            vertex.position[0],
+            vertex.position[1],
+            vertex.position[2],
+            1.0,
+        ];
+        let clip: [f64; 4] = std::array::from_fn(|row| {
+            (0..4)
+                .map(|k| view_projection[k * 4 + row] * v[k])
+                .sum::<f32>()
+                .into()
+        });
+        let (x, y, depth) = (clip[0] / clip[3], clip[1] / clip[3], clip[2] / clip[3]);
+        if clip[3] <= 0.0 || depth < 0.0 {
+            return Framed::Passed;
+        }
+        whole &= x.abs() <= FIT && y.abs() <= FIT && depth <= 1.0;
+    }
+    if whole {
+        Framed::Whole
+    } else {
+        Framed::Cut
+    }
+}
+
+/// Where the person stands beside a tree of these bounds, whether it is
+/// whole in the hero frame there, and every point of its body: what a test
+/// reads to find it in a frame or a shadow.
+pub fn points(bounds: Bounds) -> (Placement, bool, Vec<Vec3>) {
+    let (placement, whole) = stand(bounds);
+    let (body, _) = person(placement.foot, placement.facing, [0.0; 4], 0);
     let body = body.iter().map(|v| {
         let [x, y, z] = v.position.map(f64::from);
         Vec3::new(x, y, z)
     });
-    (foot, body.collect())
+    (placement, whole, body.collect())
 }
 
 #[cfg(test)]
@@ -300,9 +392,9 @@ mod tests {
     fn the_person_stands_outside_the_crown_and_its_shadow() {
         let suns = [(135.0, 30.0), (115.0, 60.0)];
         for (name, tree) in subjects() {
-            let (foot, yaw) = stand(tree);
-            assert_eq!(foot.y, 0.0, "{name}");
-            let (body, _) = person(foot, yaw, [0.0; 4], 0);
+            let (placement, _) = stand(tree);
+            assert_eq!(placement.foot.y, 0.0, "{name}");
+            let (body, _) = person(placement.foot, placement.facing, [0.0; 4], 0);
             for vertex in &body {
                 let [x, y, z] = vertex.position.map(f64::from);
                 let point = Vec3::new(x, y, z);
@@ -321,6 +413,51 @@ mod tests {
             // The rule can fail: the trunk's foot is in the crown's shadow.
             assert!(shaded(tree, Vec3::new(0.0, 0.0, 0.0), towards(135.0, 30.0)));
         }
+    }
+
+    /// Where the crown's distance holds the whole person in the hero frame
+    /// the person stands there; where it cuts the person, every distance
+    /// further out cuts it too (out along its azimuth it only nears the
+    /// camera), and it keeps the crown's distance. Across subjects 0.25 to
+    /// 20 m tall and 0.1 to 3 times as wide, every subject shorter than the
+    /// person has no whole fit and every one over 4 m has one (fn-310 D6).
+    #[test]
+    fn the_person_is_whole_at_the_crowns_distance_or_nowhere_out_from_it() {
+        let shapes = (1..=80).flat_map(|k| [0.05, 0.15, 0.3, 0.6, 1.0, 1.5].map(|r| (k, r)));
+        for (k, ratio) in shapes {
+            let height = 0.25 * f64::from(k);
+            let w = ratio * height;
+            let tree = bounds([-w, 0.0, -w], [w, height, w]);
+            let view_projection = hero_pose(tree, ASPECT, GROUND_REACH).view_projection(ASPECT);
+            let (placement, whole) = stand(tree);
+            let crown = crown_distance(tree);
+            let at_crown = at(crown);
+            assert!(
+                (placement.foot - at_crown.foot).length() < 1e-9,
+                "{height} m, {ratio}"
+            );
+            assert_eq!(placement.facing, at_crown.facing);
+            let cut = (0..400).all(|step| {
+                let out = at(crown + STEP * f64::from(step));
+                !matches!(framed(&view_projection, out), Framed::Whole)
+            });
+            assert_eq!(whole, !cut, "{height} m, {ratio}");
+            if height < HEIGHT {
+                assert!(!whole, "a {height} m subject holds the whole person");
+            }
+            if height > 4.0 {
+                assert!(whole, "a {height} m subject, {ratio} wide, cuts the person");
+            }
+        }
+    }
+
+    #[test]
+    fn placements_lerp_from_one_to_the_other() {
+        let (a, b) = (at(1.0), at(3.0));
+        assert_eq!(a.lerp(b, 0.0), a);
+        assert_eq!(a.lerp(b, 1.0), b);
+        let (half, two) = (a.lerp(b, 0.5), at(2.0));
+        assert!((half.foot - two.foot).length() < 1e-12 && half.facing == two.facing);
     }
 
     #[test]

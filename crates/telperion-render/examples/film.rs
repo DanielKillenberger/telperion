@@ -30,10 +30,12 @@ mod oracle;
 mod overlay;
 #[path = "film/path.rs"]
 mod path;
+#[path = "film/placing.rs"]
+mod placing;
 
 use cost::{Cost, Peaks};
 use overlay::{Canvas, Overlay};
-use path::{ease, faded, selection, Frame, Kind, Path};
+use path::{ease, selection, Frame, Kind, Path};
 use std::io::Write as _;
 use telperion_core::{
     blend, mesh,
@@ -42,8 +44,23 @@ use telperion_core::{
     Family,
 };
 use telperion_render::{
-    generation::Generator, render, write_png, Gpu, Level, Renderer, SceneRow, Still, STILL_FORMAT,
+    figure_placement,
+    generation::{Generator, Prepared},
+    render, write_png, Gpu, Level, Placement, Renderer, SceneRow, Still, STILL_FORMAT,
 };
+
+/// A settled year waiting to be drawn: its age, the tree, its leaves and
+/// bounds, and its build time.
+type Settled = (f64, Prepared, (usize, Bounds), f64);
+
+/// A growth's frames, each year's own placement of the person as it is
+/// settled, and the earlier year's picture of each frame that waits for
+/// its later year.
+struct Year<'a> {
+    frames: &'a [placing::Year],
+    stood: Vec<(f64, Placement)>,
+    earlier: std::collections::HashMap<usize, Vec<u8>>,
+}
 
 fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -153,17 +170,14 @@ fn shown(path: &Path, frames: &[Frame], map: &map::Map) -> Result<Vec<Shown>, St
             .filter(|_| f.held)
             .map(|l| (l.clone(), held as f64 / (0.3 * f64::from(path.fps))));
         let (point, age) = match &segment.kind {
-            Kind::Grow { species, from, to } => (map.dot(species)?, age_at(*from, *to, f.along)),
+            Kind::Grow { species, from, to } => {
+                (map.dot(species)?, placing::age_at(*from, *to, f.along))
+            }
             Kind::Walk { from, to, age } => (map.along(from, to, ease(f.along))?, *age),
         };
         out.push(Shown { point, age, line });
     }
     Ok(out)
-}
-
-/// A growth's age `along` its segment.
-fn age_at(from: f64, to: f64, along: f64) -> f64 {
-    (from + (to - from) * along).max(1.0)
 }
 
 /// `a` faded into `b` by `share` (0 to 1), pixel by pixel.
@@ -287,7 +301,9 @@ impl Film<'_> {
     /// it stands at full leaf (host, 2026-10-14). A frame between two whole
     /// ages shows the earlier year, the later faded over it by `faded`
     /// where the path's fade has begun; ages rise, so a shrink is drawn
-    /// last frame first.
+    /// last frame first. Each year is drawn once the next is settled, so
+    /// both of a crossfaded frame's years are known and its two renders
+    /// stand the person at one placement (`placing`, fn-310 D5).
     fn grow(
         &mut self,
         gen: &Generator,
@@ -300,58 +316,71 @@ impl Film<'_> {
         let started = std::time::Instant::now();
         let mut tree = pollster::block_on(gen.begin_growth(&family)).map_err(|e| e.to_string())?;
         cost.build_ms += started.elapsed().as_secs_f64() * 1e3;
-        let fade = self.path.fade;
-        // Each frame's index, earlier year, later year and the later's share.
-        let frames: Vec<(usize, f64, f64, f64)> = self
-            .of(k)
-            .into_iter()
-            .map(|(i, f)| {
-                let a = age_at(from, to, f.along);
-                (i, a.floor(), a.ceil(), faded(a - a.floor(), fade))
-            })
-            .collect();
-        let mut years: Vec<f64> = frames
-            .iter()
-            .flat_map(|&(_, lo, hi, share)| if share > 0.0 { vec![lo, hi] } else { vec![lo] })
-            .collect();
-        years.sort_by(f64::total_cmp);
-        years.dedup();
-        // The earlier year's picture of a frame that waits for the later.
-        let mut earlier: std::collections::HashMap<usize, Vec<u8>> =
-            std::collections::HashMap::new();
-        for at in years {
-            let started = std::time::Instant::now();
-            pollster::block_on(gen.grow_to(&mut tree, at))
-                .map_err(|e| format!("{species} to {at}: {e}"))?;
-            let settled = pollster::block_on(gen.settle(&tree, at))
-                .map_err(|e| format!("{species} at {at}: {e}"))?;
-            let ms = started.elapsed().as_secs_f64() * 1e3;
-            (cost.build_ms, cost.trees) = (cost.build_ms + ms, cost.trees + 1);
-            let shape = (settled.count(), settled.bounds());
-            self.renderer
-                .submit_prepared(settled)
-                .map_err(|e| e.to_string())?;
-            self.renderer.set_family(&family);
-            let showing: Vec<(usize, f64)> = frames
-                .iter()
-                .filter(|&&(_, lo, hi, share)| lo == at || (share > 0.0 && hi == at))
-                .map(|&(i, _, _, share)| (i, share))
-                .collect();
-            let indices: Vec<usize> = showing.iter().map(|(i, _)| *i).collect();
-            self.log(shape, at, &indices, ms)?;
-            for (i, share) in showing {
-                let started = std::time::Instant::now();
-                let rgba = self.still(i, &mut cost)?;
-                match (share == 0.0, earlier.remove(&i)) {
-                    (true, _) => self.finish(i, rgba)?,
-                    (false, None) => drop(earlier.insert(i, rgba)),
-                    (false, Some(before)) => self.finish(i, crossfade(&before, &rgba, share))?,
+        let frames = placing::years_of(&self.of(k), (from, to), self.path.fade);
+        let mut year = Year {
+            frames: &frames,
+            stood: Vec::new(),
+            earlier: std::collections::HashMap::new(),
+        };
+        let mut pending: Option<Settled> = None;
+        for at in placing::built(&frames).into_iter().map(Some).chain([None]) {
+            let next = match at {
+                Some(at) => {
+                    let started = std::time::Instant::now();
+                    pollster::block_on(gen.grow_to(&mut tree, at))
+                        .map_err(|e| format!("{species} to {at}: {e}"))?;
+                    let settled = pollster::block_on(gen.settle(&tree, at))
+                        .map_err(|e| format!("{species} at {at}: {e}"))?;
+                    let ms = started.elapsed().as_secs_f64() * 1e3;
+                    (cost.build_ms, cost.trees) = (cost.build_ms + ms, cost.trees + 1);
+                    let shape = (settled.count(), settled.bounds());
+                    year.stood.push((at, figure_placement(shape.1).0));
+                    Some((at, settled, shape, ms))
                 }
-                cost.draw_ms += started.elapsed().as_secs_f64() * 1e3;
+                None => None,
+            };
+            if let Some(settled) = pending.take() {
+                self.show(&family, settled, &mut year, &mut cost)?;
             }
+            pending = next;
         }
         cost.frames = frames.len();
         Ok(cost)
+    }
+
+    /// One settled year put up and every frame that shows it drawn, the
+    /// person at the frame's one placement; a frame that waits for its
+    /// later year keeps this one's picture.
+    fn show(
+        &mut self,
+        family: &Family,
+        (at, settled, shape, ms): Settled,
+        year: &mut Year,
+        cost: &mut Cost,
+    ) -> Result<(), String> {
+        self.renderer
+            .submit_prepared(settled)
+            .map_err(|e| e.to_string())?;
+        self.renderer.set_family(family);
+        let showing = placing::showing(year.frames, at);
+        let indices: Vec<usize> = showing.iter().map(|(i, _)| *i).collect();
+        self.log(shape, at, &indices, ms)?;
+        for (i, share) in showing {
+            let started = std::time::Instant::now();
+            let frame = year.frames.iter().find(|f| f.0 == i).ok_or("no frame")?;
+            let placement =
+                placing::placed(frame, |y| year.stood.iter().find(|s| s.0 == y).map(|s| s.1))
+                    .ok_or(format!("frame {i}: a year it shows is not built"))?;
+            self.renderer.place_figure(placement);
+            let rgba = self.still(i, cost)?;
+            match (share == 0.0, year.earlier.remove(&i)) {
+                (true, _) => self.finish(i, rgba)?,
+                (false, None) => drop(year.earlier.insert(i, rgba)),
+                (false, Some(before)) => self.finish(i, crossfade(&before, &rgba, share))?,
+            }
+            cost.draw_ms += started.elapsed().as_secs_f64() * 1e3;
+        }
+        Ok(())
     }
 
     /// A walk, as `headless --walk` draws one: each frame's family built at

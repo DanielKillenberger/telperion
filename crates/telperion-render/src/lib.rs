@@ -57,7 +57,9 @@ pub use camera::{
 pub use curve::{viewer as curve_viewer, CurveReport};
 pub use device::{Gpu, RenderError, Result};
 pub use encoder::{Encoder, Recorded};
-pub use scene::{figure_counts, figure_points, SceneRow, DEPTH_FORMAT, GROUND_REACH};
+pub use scene::{
+    figure_counts, figure_placement, figure_points, Placement, SceneRow, DEPTH_FORMAT, GROUND_REACH,
+};
 pub use select::{Level, MAX_LEVELS};
 pub use shot::Shot;
 use submit::crown_of;
@@ -242,7 +244,8 @@ impl Renderer {
         self.wood.submit(&self.gpu, &mesh.curve);
         self.foliage.submit(&self.gpu, &mesh.foliage, level);
         self.submit_organ(mesh.organ.as_ref(), level);
-        self.scene.place_figure(&self.gpu, mesh.bounds);
+        self.scene
+            .place_figure(&self.gpu, scene::figure_placement(mesh.bounds).0);
         self.scene.set_crown(crown_of(&mesh.foliage));
         self.scene
             .set_leaf_reference(mesh.foliage.instances.reference);
@@ -335,6 +338,22 @@ impl Renderer {
     /// photograph leaves it out; every other frame keeps it, so no pin moves.
     pub fn set_figure(&mut self, figure: bool) {
         self.figure = figure;
+    }
+
+    /// Stands the person where `placement` says, until the next submit stands
+    /// it beside its own tree again (`figure_placement`). A film states one
+    /// placement for every render of a frame (fn-310 D5); the sun's map is
+    /// drawn again when the person moved.
+    pub fn place_figure(&mut self, placement: Placement) {
+        if self.scene.placement() != placement {
+            self.sun.forget();
+            self.scene.place_figure(&self.gpu, placement);
+        }
+    }
+
+    /// Where the person stands now.
+    pub fn placement(&self) -> Placement {
+        self.scene.placement()
     }
 
     /// What the tree that is up is made of, as the family stated it. It is set

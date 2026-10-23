@@ -1,5 +1,6 @@
-//! The person beside every shipped tree (fn-310 D2): inside the hero frame,
-//! and under no wood or foliage. The table names the presets, so it lives
+//! The person beside every shipped tree (fn-310 D2, D6): whole in the hero
+//! frame, head to feet, wherever a whole fit exists, and under no wood or
+//! foliage. The table names the presets, so it lives
 //! here and not in the renderer library, which never names a family.
 use telperion_core::{
     math::Vec3,
@@ -8,7 +9,7 @@ use telperion_core::{
     surface::Bounds,
     Family,
 };
-use telperion_render::{figure_points, hero_pose, GROUND_REACH};
+use telperion_render::{figure_placement, figure_points, hero_pose, Shot, GROUND_REACH};
 
 /// Clip-space x, y and depth of a world point through this view-projection.
 fn project(view_projection: &[f32; 16], p: Vec3) -> (f64, f64, f64) {
@@ -22,10 +23,11 @@ fn project(view_projection: &[f32; 16], p: Vec3) -> (f64, f64, f64) {
 }
 
 /// The trees the person is framed beside: every shipped preset at its
-/// catalogue age and seed, Telperion at 80, and the owner's two stills at
-/// seed 7 (oak at 40, Telperion at 80), as the generator bounds them. The
+/// catalogue age and seed and at age 1, Telperion at 80, and the owner's two
+/// stills at seed 7 (oak at 40, Telperion at 80), as the generator bounds
+/// them. The
 /// ordinary preset has no engine species and draws no tree (fn-198).
-/// Measured on 2026-10-23 and held to the generator by
+/// Measured on 2026-10-23 (age 1 to three places) and held to the generator by
 /// `the_bounds_table_is_the_generators_and_no_canopy_covers_the_person`.
 /// A preset, an age and a seed (each the catalogue's when none), and
 /// the bounds' low and high corners.
@@ -91,6 +93,62 @@ const TREES: &[Tree] = &[
         Some(7),
         [-25.64, -0.18, -23.66, 30.64, 46.28, 27.53],
     ),
+    (
+        "oregon-white-oak",
+        Some(1.0),
+        None,
+        [-0.042, -0.002, -0.042, 0.042, 0.385, 0.042],
+    ),
+    (
+        "norway-spruce",
+        Some(1.0),
+        None,
+        [-0.010, -0.000, -0.010, 0.010, 0.090, 0.010],
+    ),
+    (
+        "european-beech",
+        Some(1.0),
+        None,
+        [-0.025, -0.002, -0.025, 0.025, 0.515, 0.025],
+    ),
+    (
+        "silver-birch",
+        Some(1.0),
+        None,
+        [-0.025, -0.003, -0.025, 0.025, 0.819, 0.025],
+    ),
+    (
+        "date-palm",
+        Some(1.0),
+        None,
+        [-0.102, -0.056, -0.397, 0.296, 0.805, 0.181],
+    ),
+    (
+        "telperion",
+        Some(1.0),
+        None,
+        [-0.075, -0.005, -0.075, 0.075, 1.338, 0.081],
+    ),
+    (
+        "laurelin",
+        Some(1.0),
+        None,
+        [-0.085, -0.005, -0.085, 0.085, 1.338, 0.085],
+    ),
+];
+
+/// The trees beside which no whole fit exists on the camera's side: every
+/// seedling, 0.09 to 1.34 m against the 1.75 m person, keeps the crown's
+/// distance and shows cut by the frame (host ruling, 2026-10-23). A preset,
+/// an age and a seed, as in `TREES`.
+const EXEMPT: &[(&str, Option<f64>, Option<u32>)] = &[
+    ("oregon-white-oak", Some(1.0), None),
+    ("norway-spruce", Some(1.0), None),
+    ("european-beech", Some(1.0), None),
+    ("silver-birch", Some(1.0), None),
+    ("date-palm", Some(1.0), None),
+    ("telperion", Some(1.0), None),
+    ("laurelin", Some(1.0), None),
 ];
 
 fn family(id: &str, age: Option<f64>, seed: Option<u32>) -> Family {
@@ -107,28 +165,67 @@ fn tree_bounds(row: [f64; 6]) -> Bounds {
     }
 }
 
-/// Being seen in shot is why the person stands where it does (fn-310
-/// D2): at the hero pose of every tree in the table, the whole person
-/// projects inside the frame and the depth range.
+/// Being seen in shot is why the person stands where it does (fn-310 D2,
+/// D6): at the hero pose of every tree in the table the whole person, head
+/// to feet, projects inside the frame and the depth range, except beside
+/// the trees `EXEMPT` names, where no distance on the camera's side holds
+/// it whole; a new exemption fails here by name.
 #[test]
-fn the_person_stands_inside_the_hero_frame_beside_every_shipped_tree() {
+fn the_whole_person_stands_inside_the_hero_frame_beside_every_shipped_tree() {
     let aspect = 16.0 / 9.0;
     for &(id, age, seed, row) in TREES {
         let bounds = tree_bounds(row);
         let view_projection = hero_pose(bounds, aspect, GROUND_REACH).view_projection(aspect);
-        for point in figure_points(bounds).1 {
+        let (_, whole, body) = figure_points(bounds);
+        let exempt = EXEMPT.contains(&(id, age, seed));
+        assert_eq!(
+            whole, !exempt,
+            "{id} at {age:?}, seed {seed:?}: whole in frame is {whole}"
+        );
+        let inside = body.iter().all(|&point| {
             let (x, y, depth) = project(&view_projection, point);
-            assert!(
-                x.abs() <= 1.0 && y.abs() <= 1.0 && (0.0..=1.0).contains(&depth),
-                "{id} at {age:?}, seed {seed:?}: the person left the frame: {x}, {y}, {depth}"
-            );
+            x.abs() <= 1.0 && y.abs() <= 1.0 && (0.0..=1.0).contains(&depth)
+        });
+        assert_eq!(
+            inside, whole,
+            "{id} at {age:?}, seed {seed:?}: the person is whole in frame: {inside}"
+        );
+    }
+}
+
+/// The person stands at least the crown's reach and its margin out, and
+/// beside a tree with no whole fit, exactly there (fn-310 D2, D6): the
+/// distance out from the trunk never falls as the tree is framed whole, and
+/// an exemption keeps D2's placement.
+#[test]
+fn the_person_stands_no_nearer_than_d2_and_an_exemption_stands_at_d2() {
+    for &(id, age, _, row) in TREES {
+        let bounds = tree_bounds(row);
+        let (placement, whole) = figure_placement(bounds);
+        let d2 = d2_distance(bounds);
+        let distance = placement.foot.x.hypot(placement.foot.z);
+        assert!(distance >= d2 - 1e-9, "{id} at {age:?}: {distance} < {d2}");
+        if !whole {
+            assert!((distance - d2).abs() < 1e-9, "{id} at {age:?}: {distance}");
         }
     }
 }
 
+/// D2's distance: the reach of the inscribed crown along the person's
+/// azimuth, 68 degrees left of the default shot's, plus half a metre.
+fn d2_distance(bounds: Bounds) -> f64 {
+    let (x, z) = (Shot::default().azimuth - 68.0).to_radians().sin_cos();
+    let (centre, half) = (
+        (bounds.min + bounds.max) * 0.5,
+        (bounds.max - bounds.min) * 0.5,
+    );
+    centre.x * x + centre.z * z + (half.x * x).hypot(half.z * z) + 0.5
+}
+
 /// The first wood or foliage vertex of `tree` standing over the disc of
-/// `radius` round `foot`, at any height. A leaf counts out to its
-/// element's reach under its own transform.
+/// `radius` round `foot`, at any height. A leaf whose element's reach
+/// under its own transform comes near is placed vertex by vertex, and a
+/// flower's stalks count out to their reach.
 fn over(tree: &TreeMesh, foot: Vec3, radius: f64) -> Option<Vec3> {
     let near = |p: Vec3, reach: f64| (p.x - foot.x).hypot(p.z - foot.z) < radius + reach;
     let wood = tree
@@ -151,9 +248,19 @@ fn over(tree: &TreeMesh, foot: Vec3, radius: f64) -> Option<Vec3> {
         for m in foliage.instances.matrices() {
             let column = |k: usize| Vec3::new(m[k].into(), m[k + 1].into(), m[k + 2].into());
             let scale = [0, 4, 8].map(|k| column(k).length()).into_iter();
-            let origin = column(12);
-            if near(origin, reach * scale.fold(0.0, f64::max)) {
+            let (origin, scale) = (column(12), scale.fold(0.0, f64::max));
+            if !near(origin, reach * scale) {
+                continue;
+            }
+            if near(origin, element.stalk.max(0.0) * scale) {
                 return Some(origin);
+            }
+            let placed = element
+                .positions
+                .iter()
+                .map(|p| origin + column(0) * p.x + column(4) * p.y + column(8) * p.z);
+            if let Some(p) = placed.into_iter().find(|&p| near(p, 0.0)) {
+                return Some(p);
             }
         }
     }
@@ -176,7 +283,8 @@ fn the_bounds_table_is_the_generators_and_no_canopy_covers_the_person() {
             built.iter().zip(row).all(|(b, r)| (b - r).abs() <= 0.006),
             "{id} at {age:?}, seed {seed:?}: the generator bounds it at {built:?}"
         );
-        let (foot, body) = figure_points(tree.bounds);
+        let (placement, _, body) = figure_points(tree.bounds);
+        let foot = placement.foot;
         let radius = body
             .iter()
             .fold(0.0f64, |r, p| r.max((p.x - foot.x).hypot(p.z - foot.z)));
