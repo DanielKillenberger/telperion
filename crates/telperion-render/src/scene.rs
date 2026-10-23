@@ -18,6 +18,7 @@ use crate::{
 };
 
 mod band;
+mod beside;
 mod frame;
 mod person;
 pub(crate) use band::BandShares;
@@ -27,10 +28,11 @@ pub(crate) use band::BandShares;
 mod room;
 mod row;
 
-pub use person::{
-    counts as figure_counts, hero as figure_placement, points as figure_points,
+pub use beside::{
+    hero as figure_placement, lit as figure_lit, points as figure_points, reach as figure_reach,
     stand as figure_placement_from, Placement,
 };
+pub use person::counts as figure_counts;
 pub use room::{FIGURE_HEIGHT, GROUND_REACH};
 pub use row::SceneRow;
 
@@ -459,7 +461,7 @@ impl Scene {
         }
     }
 
-    /// Stands the person where `placement` says (`person::stand` places it
+    /// Stands the person where `placement` says (`beside::stand` places it
     /// beside a tree).
     pub fn place_figure(&mut self, gpu: &Gpu, placement: Placement) {
         let (vertices, _) = person::person(placement.foot, placement.facing, fixture(FIGURE), 0);
