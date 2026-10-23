@@ -765,12 +765,48 @@ mod tests {
         }
     }
 
-    /// Builds every tree in the table, one at a time, and holds the table to
-    /// what the generator bounds: over a minute, most of it Telperion, so it
-    /// runs by name (`--ignored`) when a preset's crown changes.
+    /// The first wood or foliage vertex of `tree` standing over the disc of
+    /// `radius` round `foot`, at any height. A leaf counts out to its
+    /// element's reach under its own transform.
+    fn over(tree: &telperion_core::mesh::TreeMesh, foot: Vec3, radius: f64) -> Option<Vec3> {
+        let near = |p: Vec3, reach: f64| (p.x - foot.x).hypot(p.z - foot.z) < radius + reach;
+        let wood = tree
+            .wood
+            .chunks
+            .iter()
+            .flat_map(|c| c.positions.as_chunks::<3>().0);
+        let wood = wood.map(|p| Vec3::new(p[0].into(), p[1].into(), p[2].into()));
+        if let Some(p) = wood.clone().find(|&p| near(p, 0.0)) {
+            return Some(p);
+        }
+        assert!(wood.count() > 0, "a tree with no wood proves nothing");
+        for foliage in std::iter::once(&tree.foliage).chain(&tree.organ) {
+            let element = &foliage.element;
+            let size = element
+                .positions
+                .iter()
+                .fold(0.0f64, |r, p| r.max(p.length()));
+            let reach = size + element.stalk.max(0.0);
+            for m in foliage.instances.matrices() {
+                let column = |k: usize| Vec3::new(m[k].into(), m[k + 1].into(), m[k + 2].into());
+                let scale = [0, 4, 8].map(|k| column(k).length()).into_iter();
+                let origin = column(12);
+                if near(origin, reach * scale.fold(0.0, f64::max)) {
+                    return Some(origin);
+                }
+            }
+        }
+        None
+    }
+
+    /// Builds every tree in the table, one at a time: the table is what the
+    /// generator bounds, and no wood or foliage stands over the person's
+    /// footprint beside it (fn-310 D2, host ruling). Over a minute, most of
+    /// it Telperion, so it runs by name (`--ignored`) when a crown changes;
+    /// the fast tests above read the table.
     #[test]
     #[ignore]
-    fn the_bounds_table_is_the_generators() {
+    fn the_bounds_table_is_the_generators_and_no_canopy_covers_the_person() {
         for &(id, age, seed, row) in TREES {
             let tree = telperion_core::mesh::build(&family(id, age, seed)).unwrap();
             let (low, high) = (tree.bounds.min, tree.bounds.max);
@@ -779,6 +815,15 @@ mod tests {
                 built.iter().zip(row).all(|(b, r)| (b - r).abs() <= 0.006),
                 "{id} at {age:?}, seed {seed:?}: the generator bounds it at {built:?}"
             );
+            let (foot, yaw) = crate::scene::stand(tree.bounds);
+            let (body, _) = crate::scene::person(foot, yaw, [0.0; 4], 0);
+            let radius = body.iter().fold(0.0f64, |r, v| {
+                let [x, _, z] = v.position.map(f64::from);
+                r.max((x - foot.x).hypot(z - foot.z))
+            });
+            if let Some(p) = over(&tree, foot, radius) {
+                panic!("{id} at {age:?}, seed {seed:?}: {p:?} stands over the person at {foot:?}");
+            }
         }
     }
 }
