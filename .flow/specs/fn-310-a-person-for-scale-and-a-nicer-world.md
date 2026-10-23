@@ -158,6 +158,14 @@ Task .8's exact bounds pass (whole film, `raw/film-bounds.tsv`) found no angle o
 - **Film placement, as ruled:** the person stays at 90° on the camera's left, level with the trunk (at the trunk's depth). Its distance is the larger of the crown's reach plus the 0.5 m margin and the nearest distance, further out, at which the whole figure is out of the crown's real shadow under the film's sun. That distance is smoothed with W = 30 in the max-then-mean form: M(f) is the maximum over [f-2W, f+2W] across the film, and the distance is the mean of M over [f-W, f+W]. So the person never falls under the crown or into the shadow. The left-angle search is removed.
 - **Tests, over every film frame from the cached bounds (with the stale-cache guard):** lit; not under the canopy; at the trunk's depth; on the left side; the largest frame-to-frame foot move within the stated bound, which is written here once measured.
 - **Harness and `createRenderer`:** unchanged (D7's per-tree sun side, with the `set_scene` update).
+- **The measured bound (task .8, from the cached bounds over all 1,050 frames):** the largest frame-to-frame foot move is 0.183 m, at frame 830, while the Laurelin's crown grows. The test holds it to 0.19 m. To leave the shadow the person stands up to 3.52 m beyond the crown's reach.
+- **Small calls (conductor, delegated by the host):**
+  - The search steps out of the shadow in 0.02 m increments.
+  - It stops 100 m past the reach, and the film refuses with the frame named. A sun above the horizon throws a finite shadow, so no answer is an error, not a fallback.
+  - The smoothed distance is never below the frame's own need, which guards against rounding in the mean.
+  - Placements come from the bounds pass, so task .7's one-year lookahead is gone.
+  - The bounds cache records the path it was built from, and a changed fade or segment is refused by name.
+- **Read by eye (the owner's call):** in the walk to the Laurelin seedling (frames 690-719) and at frame 720, no person is in frame. The W = 30 window reaches back into the date palm's segment, so the palm's need keeps the person about 10 m out while the camera is 2-14 m from the seedling. At 825 and 975 the person stands about 24 m and 32 m out (estimates).
 
 ## Boundaries
 
