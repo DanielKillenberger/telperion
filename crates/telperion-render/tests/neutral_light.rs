@@ -71,11 +71,16 @@ fn cast(colour: [f64; 3]) -> f64 {
         .fold(0.0, f64::max)
 }
 
+/// One flat albedo under the row's light: the ground's patches and the far
+/// floor's haze (fn-310) are put out, since they are the ground and the air
+/// and not the light this measures.
 fn ground(row: SceneRow, albedo: f64) -> SceneRow {
     SceneRow {
         ground_red: albedo,
         ground_green: albedo,
         ground_blue: albedo,
+        ground_variation: 0.0,
+        haze_distance: 0.0,
         ..row
     }
 }

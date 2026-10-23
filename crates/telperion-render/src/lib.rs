@@ -57,7 +57,7 @@ pub use camera::{
 pub use curve::{viewer as curve_viewer, CurveReport};
 pub use device::{Gpu, RenderError, Result};
 pub use encoder::{Encoder, Recorded};
-pub use scene::{SceneRow, DEPTH_FORMAT, GROUND_REACH};
+pub use scene::{figure_counts, figure_points, SceneRow, DEPTH_FORMAT, GROUND_REACH};
 pub use select::{Level, MAX_LEVELS};
 pub use shot::Shot;
 use submit::crown_of;
@@ -137,9 +137,11 @@ pub struct Renderer {
     /// programs compile and its surfacing waits.
     whole: bool,
     view: View,
-    /// Whether the room draws its scale figure. On unless a still imitates a
-    /// photograph.
+    /// Whether the room draws the 1.75 m person for scale. On unless a still
+    /// imitates a photograph.
     figure: bool,
+    /// The person's triangles in the sun's map as it was last drawn.
+    figure_casters: u32,
     bounds: Option<Bounds>,
     /// The tolerance of each level of the crown's element, coarsest first, as
     /// the core built them. Kept here because a timing record names each
@@ -184,7 +186,7 @@ impl Renderer {
             ),
         };
         let shadow = shadow::Shadow::new(&gpu);
-        let scene = scene::Scene::new(&gpu, surface, shadow.layout());
+        let scene = scene::Scene::new(&gpu, surface, &shadow);
         let wood = wood::Wood::new(&gpu, scene.layout(), &shadow, surface);
         let foliage = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface, false);
         let organ = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface, true);
@@ -201,6 +203,7 @@ impl Renderer {
             view: View::default(),
             frame_failed: Default::default(),
             figure: true,
+            figure_casters: 0,
             bounds: None,
             level_deviations: Vec::new(),
             surface,
@@ -239,8 +242,7 @@ impl Renderer {
         self.wood.submit(&self.gpu, &mesh.curve);
         self.foliage.submit(&self.gpu, &mesh.foliage, level);
         self.submit_organ(mesh.organ.as_ref(), level);
-        self.scene
-            .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
+        self.scene.place_figure(&self.gpu, mesh.bounds);
         self.scene.set_crown(crown_of(&mesh.foliage));
         self.scene
             .set_leaf_reference(mesh.foliage.instances.reference);
@@ -329,7 +331,7 @@ impl Renderer {
         self.view
     }
 
-    /// Whether the room keeps its 1.8 m scale figure. A still that imitates a
+    /// Whether the room keeps its 1.75 m person for scale. A still that imitates a
     /// photograph leaves it out; every other frame keeps it, so no pin moves.
     pub fn set_figure(&mut self, figure: bool) {
         self.figure = figure;
@@ -428,6 +430,12 @@ impl Renderer {
     /// drawing them: nothing the sun sees had changed since they were drawn.
     pub fn shadow_cached(&self) -> bool {
         self.sun.reused
+    }
+
+    /// The person's triangles in the sun's map as the last frame left it:
+    /// all of them while the room draws the person, none without it.
+    pub fn figure_casters(&self) -> u32 {
+        self.figure_casters
     }
 
     /// Placements submitted to the sun's pass, outside the frame statistics.
@@ -530,7 +538,14 @@ impl Renderer {
             self.sun.forget();
         }
         let scopes = self.gpu.scopes();
-        let light = shadow::light(self.scene.row(), self.bounds());
+        // The person casts wherever the room draws it, so the sun's map
+        // holds it and the shadow it throws beside the tree's (fn-310).
+        let figure = self.figure && self.view != View::Leaf;
+        let mut casters: Vec<Bounds> = self.bounds().into_iter().collect();
+        if figure {
+            casters.push(self.scene.figure_bounds());
+        }
+        let light = shadow::light(self.scene.row(), &casters);
         self.scene
             .set_frame(&self.gpu, camera, viewport, &light, self.view);
         let stride = self.scene.row().caster_stride as u32;
@@ -556,7 +571,7 @@ impl Renderer {
         // The sun's side is drawn again only when what it sees changed
         // (fn-246), its wood surfaced into the buffers the camera's is
         // written over after the map is drawn (fn-258).
-        let key = sun::Key::new(light, self.view, stride);
+        let key = sun::Key::new(light, self.view, stride, figure);
         let fitted = self.wood.fit(&self.gpu, camera, viewport, &light);
         if fitted == Some(true) {
             // The sun's view was made again empty: its map is drawn again.
@@ -605,6 +620,12 @@ impl Renderer {
                     self.wood.draw_shadow(&mut pass);
                     self.foliage.draw_shadow(&mut pass, stride);
                 }
+            }
+            if map {
+                self.figure_casters = match figure {
+                    true => self.scene.draw_shadow(&mut pass),
+                    false => 0,
+                };
             }
         }
         self.wood.surface(

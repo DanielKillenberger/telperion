@@ -234,6 +234,18 @@ impl Scene {
             leaf_reflection: colour(r.back_tint[0], r.back_tint[1], r.back_tint[2], r.back),
             bloom_eye: [0.0; 4],
             stalk: [0.0; 4],
+            atmosphere: colour(
+                self.row.sky_glow,
+                self.row.haze_distance,
+                super::GROUND_REACH,
+                0.0,
+            ),
+            ground_dry: colour(
+                self.row.ground_dry_red,
+                self.row.ground_dry_green,
+                self.row.ground_dry_blue,
+                self.row.ground_variation,
+            ),
         };
         if self.mask {
             // The clay room unlit and black: nothing but the flowers shows.

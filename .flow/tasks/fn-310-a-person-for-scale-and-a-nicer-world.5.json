@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-23T15:28:53.980299Z",
+  "depends_on": [
+    "fn-310-a-person-for-scale-and-a-nicer-world.4"
+  ],
+  "id": "fn-310-a-person-for-scale-and-a-nicer-world.5",
+  "priority": null,
+  "spec": "fn-310-a-person-for-scale-and-a-nicer-world",
+  "spec_path": ".flow/tasks/fn-310-a-person-for-scale-and-a-nicer-world.5.md",
+  "status": "todo",
+  "title": "The person casts a shadow through the existing shadow pass",
+  "updated_at": "2026-10-23T15:28:53.980299Z"
+}

@@ -1,5 +1,5 @@
 //! Everything the subject stands in: the ground it stands on, the sky behind
-//! it, the sun that lights both, and a 1.8 m figure at the roots for scale.
+//! it, the sun that lights both, and a 1.75 m person beside it for scale.
 //! The scene row controls colours, caster coarsening and the shared shadow
 //! filter. Frame-uniform assembly lives beside this file; the clay room keeps
 //! its neutral light and never reads the shadow.
@@ -13,12 +13,13 @@ use crate::{
     device::Gpu,
     pass::{Depth, Surface},
     shaders,
-    shadow::Light,
+    shadow::{Light, Shadow},
     view::View,
 };
 
 mod band;
 mod frame;
+mod person;
 pub(crate) use band::BandShares;
 /// The scene row - the sun, the sky and the ground as numbers - and the room's
 /// own geometry, each beside this file rather than in it so none of the three
@@ -26,12 +27,13 @@ pub(crate) use band::BandShares;
 mod room;
 mod row;
 
+pub use person::{counts as figure_counts, points as figure_points};
 pub use room::{FIGURE_HEIGHT, GROUND_REACH};
 pub use row::SceneRow;
 
 use room::{
-    disc, figure, figure_indices, fixture, floor, linear, Vertex, ATTRIBUTES, BACKGROUND, CLAY,
-    FIGURE, GROUND, GROUND_LIGHT, SKY_LIGHT,
+    disc, fixture, floor, linear, Vertex, ATTRIBUTES, BACKGROUND, CLAY, FIGURE, GROUND,
+    GROUND_LIGHT, SKY_LIGHT,
 };
 
 pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
@@ -111,6 +113,11 @@ struct Uniforms {
     /// stamen's half width the stalks narrow to, and the pedicel's length.
     /// Zero on every leaf, and the organ's rachis instances are none.
     stalk: [f32; 4],
+    /// The scene row's air (fn-310 D4): the glow round the sun as a
+    /// multiple of it, the distance in metres the far floor hazes over, and
+    /// the ground disc's reach, whose last stretch fades into the horizon.
+    atmosphere: [f32; 4], // glow, haze distance, ground reach, reserved
+    ground_dry: [f32; 4], // dry ground RGB, how far the ground turns to it
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform
@@ -165,18 +172,26 @@ pub struct Scene {
     /// The indices that are the floor alone; the figure follows them.
     floor_index_count: u32,
     figure_offset: u64,
+    /// The box the person stands in where it is placed, which the sun's map
+    /// is fitted to hold, and its depth-only draw into that map.
+    figure_bounds: Bounds,
+    caster: wgpu::RenderPipeline,
 }
 
 impl Scene {
-    pub fn new(gpu: &Gpu, surface: Surface, shadow: &wgpu::BindGroupLayout) -> Self {
+    pub fn new(gpu: &Gpu, surface: Surface, sun: &Shadow) -> Self {
+        let shadow = sun.layout();
         let (ground_colour, figure_colour) = (floor(GROUND), fixture(FIGURE));
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
         disc(ground_colour, &mut vertices, &mut indices);
         let floor_index_count = indices.len() as u32;
         let figure_offset = (vertices.len() * size_of::<Vertex>()) as u64;
-        indices.extend(figure_indices(vertices.len() as u32));
-        vertices.extend(figure(Vec3::ZERO, figure_colour));
+        let (body, body_indices) =
+            person::person(Vec3::ZERO, 0.0, figure_colour, vertices.len() as u32);
+        indices.extend(body_indices);
+        let figure_bounds = bounds_of(&body);
+        vertices.extend(body);
 
         let vertex_buffer = crate::buffer::Owned::new(
             gpu,
@@ -274,6 +289,20 @@ impl Scene {
             Depth::Behind,
             "sky",
         );
+        // The person casts as the wood does: its positions stand where they
+        // were placed, so the wood's entry point draws them into the map.
+        let caster = crate::depth_pipeline(
+            gpu,
+            &[Some(sun.light_layout())],
+            sun.module(),
+            "wood",
+            &[Some(wgpu::VertexBufferLayout {
+                array_stride: size_of::<Vertex>() as u64,
+                step_mode: wgpu::VertexStepMode::Vertex,
+                attributes: &ATTRIBUTES[..1],
+            })],
+            "person shadow",
+        );
 
         Self {
             row: SceneRow::default(),
@@ -300,6 +329,8 @@ impl Scene {
             index_count: indices.len() as u32,
             floor_index_count,
             figure_offset,
+            figure_bounds,
+            caster,
         }
     }
 
@@ -419,15 +450,32 @@ impl Scene {
         }
     }
 
-    /// Stands the figure clear of the root flare of a subject this tall.
-    pub fn place_figure(&self, gpu: &Gpu, height: f64) {
-        let foot = Vec3::new(height * 0.16 + 1.2, 0.0, height * 0.2);
-        let vertices = figure(foot, fixture(FIGURE));
+    /// Stands the person beside a subject of these bounds, outside its crown
+    /// and its shadow and facing the hero camera (`person::stand`).
+    pub fn place_figure(&mut self, gpu: &Gpu, bounds: Bounds) {
+        let (foot, yaw) = person::stand(bounds);
+        let (vertices, _) = person::person(foot, yaw, fixture(FIGURE), 0);
+        self.figure_bounds = bounds_of(&vertices);
         gpu.queue.write_buffer(
             &self.vertices,
             self.figure_offset,
             bytemuck::cast_slice(&vertices),
         );
+    }
+
+    /// The box the person stands in where it was last placed.
+    pub fn figure_bounds(&self) -> Bounds {
+        self.figure_bounds
+    }
+
+    /// Draws the person, and not the floor, into the sun's map: its
+    /// triangles. The floor only takes shadow.
+    pub fn draw_shadow(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+        pass.set_pipeline(&self.caster);
+        pass.set_vertex_buffer(0, self.vertices.slice(..));
+        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint32);
+        pass.draw_indexed(self.floor_index_count..self.index_count, 0, 0..1);
+        (self.index_count - self.floor_index_count) / 3
     }
 
     /// Binds the camera and the light every pipeline in the pass draws under.
@@ -438,8 +486,8 @@ impl Scene {
     }
 
     /// Draws the room: the sky behind everything outdoors, then the ground and
-    /// the figure, which share a buffer and one call. A frame that imitates a
-    /// photograph leaves the figure out and keeps the floor.
+    /// the 1.75 m person, which share a buffer and one call. A frame that
+    /// imitates a photograph leaves the person out and keeps the floor.
     pub fn draw(
         &self,
         pass: &mut wgpu::RenderPass<'_>,
@@ -468,6 +516,25 @@ impl Scene {
         }
     }
 }
+/// The box these vertices stand in.
+fn bounds_of(vertices: &[Vertex]) -> Bounds {
+    let (mut low, mut high) = ([f32::MAX; 3], [f32::MIN; 3]);
+    for v in vertices {
+        for axis in 0..3 {
+            low[axis] = low[axis].min(v.position[axis]);
+            high[axis] = high[axis].max(v.position[axis]);
+        }
+    }
+    let point = |p: [f32; 3]| {
+        let [x, y, z] = p.map(f64::from);
+        Vec3::new(x, y, z)
+    };
+    Bounds {
+        min: point(low),
+        max: point(high),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

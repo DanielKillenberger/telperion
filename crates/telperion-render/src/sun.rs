@@ -1,5 +1,6 @@
 //! What the sun's map was last drawn for (fn-246): the light, the view's
-//! casters and the caster stride. None of them depends on the camera, so a
+//! casters, the caster stride and whether the person casts (fn-310). None of
+//! them depends on the camera, so a
 //! frame that changes none of them reuses the map. The sun's wood is
 //! surfaced into the buffers the camera's is written over in the same frame
 //! (fn-258), so a map drawn again surfaces it again.
@@ -32,14 +33,18 @@ pub(crate) struct Key {
     light: Light,
     casters: Casters,
     stride: u32,
+    figure: bool,
 }
 
 impl Key {
-    pub(crate) fn new(light: Light, view: View, stride: u32) -> Self {
+    /// `figure` is whether the person stands in the sun's map. Where it
+    /// stands is the tree's to say, and a new tree forgets the map.
+    pub(crate) fn new(light: Light, view: View, stride: u32, figure: bool) -> Self {
         Self {
             light,
             casters: Casters::of(view),
             stride,
+            figure,
         }
     }
 }
@@ -82,7 +87,7 @@ mod tests {
             sun_azimuth: azimuth,
             ..crate::SceneRow::default()
         };
-        crate::shadow::light(&row, None)
+        crate::shadow::light(&row, &[])
     }
 
     /// Draws a frame under `key` the way the renderer does and returns
@@ -94,16 +99,31 @@ mod tests {
     }
 
     #[test]
-    fn the_map_is_drawn_again_when_the_light_the_casters_or_the_stride_change() {
+    fn the_map_is_drawn_again_when_the_light_the_casters_the_stride_or_the_person_change() {
         let mut sun = Sun::default();
-        let whole = Key::new(light(30.0), View::Whole, 4);
+        let whole = Key::new(light(30.0), View::Whole, 4, true);
         assert!(frame(&mut sun, whole));
         assert!(!frame(&mut sun, whole));
         assert!(sun.reused);
-        assert!(frame(&mut sun, Key::new(light(30.0), View::Bare, 4)));
+        assert!(frame(&mut sun, Key::new(light(30.0), View::Bare, 4, true)));
         assert!(frame(&mut sun, whole));
-        assert!(frame(&mut sun, Key::new(light(30.0), View::Whole, 9)));
-        assert!(frame(&mut sun, Key::new(light(200.0), View::Whole, 9)));
+        assert!(frame(&mut sun, Key::new(light(30.0), View::Whole, 9, true)));
+        assert!(frame(
+            &mut sun,
+            Key::new(light(200.0), View::Whole, 9, true)
+        ));
+        assert!(frame(
+            &mut sun,
+            Key::new(light(200.0), View::Whole, 9, false)
+        ));
+        assert!(!frame(
+            &mut sun,
+            Key::new(light(200.0), View::Whole, 9, false)
+        ));
+        assert!(frame(
+            &mut sun,
+            Key::new(light(200.0), View::Whole, 9, true)
+        ));
         sun.forget();
         assert!(sun.plan(&whole));
     }
@@ -111,7 +131,7 @@ mod tests {
     #[test]
     fn a_frame_without_its_wood_leaves_nothing_current() {
         let mut sun = Sun::default();
-        let key = Key::new(light(30.0), View::Whole, 4);
+        let key = Key::new(light(30.0), View::Whole, 4, true);
         let map = sun.plan(&key);
         sun.drew(key, map, false);
         assert!(sun.plan(&key));

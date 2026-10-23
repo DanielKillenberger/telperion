@@ -11,6 +11,12 @@
 //! the sun and the sky are radiances and may carry intensity above one, the
 //! ground is a surface colour and may not. Caster stride and filter radius
 //! are used as whole counts; the threshold and normal offset are in texels.
+//!
+//! The default is the owner's clear neutral day (fn-310 D1, variant C): a sky
+//! with a glow round the sun in the sun's colour, the glow's strength a
+//! multiple of the sun; a ground turned in broad patches toward its dry
+//! colour by the variation's share; and far ground fading into the horizon
+//! over the haze distance in metres. Each at zero is off.
 use crate::device::{RenderError, Result};
 
 /// The row's fields in one place, each with the name it takes on the wire, the
@@ -21,18 +27,24 @@ macro_rules! fields {
         $op! {
             ("sunAzimuth", sun_azimuth, 0.0, 360.0, 135.0, "sun azimuth"),
             ("sunElevation", sun_elevation, 0.0, 90.0, 30.0, "sun elevation"),
-            ("sunRed", sun_red, 0.0, 10.0, 3.078, "sun red"),
-            ("sunGreen", sun_green, 0.0, 10.0, 2.848, "sun green"),
-            ("sunBlue", sun_blue, 0.0, 10.0, 2.388, "sun blue"),
-            ("skyZenithRed", sky_zenith_red, 0.0, 10.0, 0.18, "sky zenith red"),
-            ("skyZenithGreen", sky_zenith_green, 0.0, 10.0, 0.30, "sky zenith green"),
-            ("skyZenithBlue", sky_zenith_blue, 0.0, 10.0, 0.62, "sky zenith blue"),
-            ("skyHorizonRed", sky_horizon_red, 0.0, 10.0, 0.55, "sky horizon red"),
-            ("skyHorizonGreen", sky_horizon_green, 0.0, 10.0, 0.66, "sky horizon green"),
-            ("skyHorizonBlue", sky_horizon_blue, 0.0, 10.0, 0.80, "sky horizon blue"),
-            ("groundRed", ground_red, 0.0, 1.0, 0.11, "ground red"),
+            ("sunRed", sun_red, 0.0, 10.0, 3.064, "sun red"),
+            ("sunGreen", sun_green, 0.0, 10.0, 2.854, "sun green"),
+            ("sunBlue", sun_blue, 0.0, 10.0, 2.374, "sun blue"),
+            ("skyZenithRed", sky_zenith_red, 0.0, 10.0, 0.11, "sky zenith red"),
+            ("skyZenithGreen", sky_zenith_green, 0.0, 10.0, 0.22, "sky zenith green"),
+            ("skyZenithBlue", sky_zenith_blue, 0.0, 10.0, 0.56, "sky zenith blue"),
+            ("skyHorizonRed", sky_horizon_red, 0.0, 10.0, 0.60, "sky horizon red"),
+            ("skyHorizonGreen", sky_horizon_green, 0.0, 10.0, 0.70, "sky horizon green"),
+            ("skyHorizonBlue", sky_horizon_blue, 0.0, 10.0, 0.84, "sky horizon blue"),
+            ("skyGlow", sky_glow, 0.0, 4.0, 0.6, "sky glow"),
+            ("groundRed", ground_red, 0.0, 1.0, 0.10, "ground red"),
             ("groundGreen", ground_green, 0.0, 1.0, 0.12, "ground green"),
-            ("groundBlue", ground_blue, 0.0, 1.0, 0.07, "ground blue"),
+            ("groundBlue", ground_blue, 0.0, 1.0, 0.065, "ground blue"),
+            ("groundDryRed", ground_dry_red, 0.0, 1.0, 0.145, "ground dry red"),
+            ("groundDryGreen", ground_dry_green, 0.0, 1.0, 0.15, "ground dry green"),
+            ("groundDryBlue", ground_dry_blue, 0.0, 1.0, 0.075, "ground dry blue"),
+            ("groundVariation", ground_variation, 0.0, 1.0, 0.5, "ground variation"),
+            ("hazeDistance", haze_distance, 0.0, 5000.0, 500.0, "haze distance"),
             ("casterStride", caster_stride, 1.0, 64.0, 4.0, "casterStride"),
             ("shadowFilterTexels", shadow_filter_texels, 0.0, 3.0, 1.0, "shadowFilterTexels"),
             ("shadowNormalOffset", shadow_normal_offset, 0.0, 4.0, 1.0, "shadowNormalOffset"),
@@ -166,11 +178,25 @@ mod tests {
         let row = SceneRow {
             sun_azimuth: 12.5,
             ground_green: 0.4,
+            ground_dry_blue: 0.3,
+            ground_variation: 0.25,
+            sky_glow: 1.5,
+            haze_distance: 1200.0,
             ..Default::default()
         };
         assert_eq!(SceneRow::parse(&row.to_json()).unwrap(), row);
         let unknown = SceneRow::parse(r#"{"unknown":0}"#).unwrap_err().to_string();
-        for name in ["casterStride", "shadowFilterTexels", "shadowNormalOffset"] {
+        for name in [
+            "casterStride",
+            "shadowFilterTexels",
+            "shadowNormalOffset",
+            "groundDryRed",
+            "groundDryGreen",
+            "groundDryBlue",
+            "groundVariation",
+            "skyGlow",
+            "hazeDistance",
+        ] {
             assert!(row.to_json().contains(name));
             assert!(unknown.contains(name));
         }
@@ -179,6 +205,61 @@ mod tests {
         assert_eq!(partial.sun_elevation, 20.0);
         assert_eq!(partial.sky_zenith_red, 0.4);
         assert_eq!(partial.sun_azimuth, SceneRow::default().sun_azimuth);
+        // A row written before the glow, the dry ground and the haze takes
+        // the default's, which is the chosen look and not none of it.
+        let d = SceneRow::default();
+        assert_eq!(
+            (
+                partial.sky_glow,
+                partial.ground_variation,
+                partial.haze_distance
+            ),
+            (d.sky_glow, d.ground_variation, d.haze_distance)
+        );
+        assert_eq!(
+            [
+                partial.ground_dry_red,
+                partial.ground_dry_green,
+                partial.ground_dry_blue
+            ],
+            [d.ground_dry_red, d.ground_dry_green, d.ground_dry_blue]
+        );
+        // An explicit zero is taken as stated: it is how an effect is off.
+        let off = SceneRow::parse(r#"{"skyGlow":0,"groundVariation":0,"hazeDistance":0}"#);
+        let off = off.unwrap();
+        assert_eq!(
+            (off.sky_glow, off.ground_variation, off.haze_distance),
+            (0.0, 0.0, 0.0)
+        );
+    }
+
+    /// The owner's pick (fn-310 D1): variant C's sky, ground, dry ground,
+    /// variation, glow and haze, under the sun position the default always
+    /// had.
+    #[test]
+    fn the_default_is_the_clear_neutral_day() {
+        let d = SceneRow::default();
+        assert_eq!((d.sun_azimuth, d.sun_elevation), (135.0, 30.0));
+        assert_eq!(
+            [d.sky_zenith_red, d.sky_zenith_green, d.sky_zenith_blue],
+            [0.11, 0.22, 0.56]
+        );
+        assert_eq!(
+            [d.sky_horizon_red, d.sky_horizon_green, d.sky_horizon_blue],
+            [0.6, 0.7, 0.84]
+        );
+        assert_eq!(
+            [d.ground_red, d.ground_green, d.ground_blue],
+            [0.1, 0.12, 0.065]
+        );
+        assert_eq!(
+            [d.ground_dry_red, d.ground_dry_green, d.ground_dry_blue],
+            [0.145, 0.15, 0.075]
+        );
+        assert_eq!(
+            (d.ground_variation, d.sky_glow, d.haze_distance),
+            (0.5, 0.6, 500.0)
+        );
     }
 
     #[test]
@@ -192,6 +273,14 @@ mod tests {
             (r#"{"sunRed":-1.0}"#, "sun red"),
             (r#"{"skyZenithBlue":"blue"}"#, "sky zenith blue"),
             (r#"{"sunHeight":10.0}"#, "sunHeight"),
+            (r#"{"groundDryRed":1.5}"#, "ground dry red"),
+            (r#"{"groundDryGreen":-0.1}"#, "ground dry green"),
+            (r#"{"groundDryBlue":2.0}"#, "ground dry blue"),
+            (r#"{"groundVariation":1.1}"#, "ground variation"),
+            (r#"{"skyGlow":-0.5}"#, "sky glow"),
+            (r#"{"skyGlow":4.5}"#, "sky glow"),
+            (r#"{"hazeDistance":-1}"#, "haze distance"),
+            (r#"{"hazeDistance":6000}"#, "haze distance"),
             ("not json at all", "not JSON"),
             ("[1,2,3]", "not an object"),
         ] {

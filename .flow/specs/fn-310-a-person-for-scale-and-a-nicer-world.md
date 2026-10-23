@@ -18,6 +18,7 @@ A concept prototype is being made on branch `scene-concept` (host, 2026-10-23). 
   - So, in R2: natural proportions (legs of believable thickness and length, shoulders, a slight taper, arms that hang at the sides), no seam or band at the hips, and a darker, cool, clothing-like matte colour that reads as a person in any of the scene's light.
   - The figure stands where every framing shows it: in front of the trunk and outside the crown's shadow, towards the camera's side. It still never stands inside the canopy.
   - The owner sees a still of the improved person before the film is rendered.
+- Owner (2026-10-23), on the person-v2 sheet (`.flow/evidence/fn-310-a-person-for-scale-and-a-nicer-world/person-v2.jpg`, oak at 40 and Telperion at 80 under the film's sun): "ok good. it should also cast a shadow then i think it's fine." The person is accepted, with one change: it casts a shadow onto the ground through the existing shadow pass, the caster path the tree uses, with no new pass (host, 2026-10-23; task .5).
 
 ## Requirements
 
@@ -42,7 +43,82 @@ A concept prototype is being made on branch `scene-concept` (host, 2026-10-23). 
   - The gate (`scripts/gate.py` as declared) and `npm test` are green, with a codex review per task, each dispatched inside `telperion-heavy` per AGENTS.md.
   - Final stills at the concept's poses go to the owner, then the film's cut 7 is rendered.
 
+### Errors and boundaries per requirement (plan, 2026-10-23)
+
+- **R2:** no error surface of its own. Its boundaries are a shrub a few metres tall, where the person must still stand clear of the trunk, and Telperion's wide crown, where it must still stand outside the canopy. The figure flag, clay and the photograph frames keep their present behaviour: the person draws wherever the capsule drew, and nowhere else.
+- **R3:** each new row field is refused by name outside its range, as the existing fields are. A row JSON that omits a new field takes the default. An explicit zero turns its effect off (glow, variation, haze), with no divide by zero and no NaN: at zero the sky is the plain zenith-to-horizon gradient (dither still on, one 8-bit step at most), the floor's albedo is the flat ground colour, and the floor is not hazed. An omitted field takes the default, which is variant C's active value.
+- **R4:** a frame-time difference outside noise is stated with its number, never hidden. Crossing the size ceiling is an owner decision and stops the build.
+
+## Design (plan, 2026-10-23; D1 and D2 approved by the host, 2026-10-23)
+
+- **D1, the default row:** variant C's sky, ground, glow, variation and haze become `SceneRow::default()`. The film builds its row as `..SceneRow::default()` with only the sun position from its path, the harness starts from the default, and so does the package's `createRenderer`. So the default is the only way the chosen look reaches all three without a film-only path (fn-272 R2).
+  - The default sun position stays 135° / 30°. C's file repeats the film's own 115° / 60°, which the film keeps setting from its path.
+  - The default sun is retinted from (3.078, 2.848, 2.388) to about (3.064, 2.854, 2.374). This keeps fn-228's rule, that sun plus sky at the default elevation is white at the same luminance, under C's new sky. Without it the rule's test fails by 0.35 %.
+  - Host (2026-10-23): approved. This changes the harness's and the package's default scene, on the owner's pick of C. The retint is approved and the white-daylight test stays.
+- **D2, the person's placement:** the foot stands outside the crown's ground footprint, on the hero camera's side of the trunk and turned off its axis to the camera's left, as the capsule was. Facing the camera.
+  - The azimuth is the default shot's azimuth less 68°. The distance from the trunk is the reach, in that direction, of the crown ellipse inscribed in the tree's bounds (the same crown the hero camera frames, `camera.rs` `reach_of`), plus a 0.5 m margin. So the rule reads the tree's bounds, not only its height, and a shrub and Telperion are both handled by the same rule.
+  - Host (2026-10-23), ruling on the task .2 review: the ellipse, not the bounding box. The earlier wording, "the bounds' horizontal support", was an approximation; its purpose is "outside the crown and its shadow, and in frame". The box's empty corners serve none of that, and they are what break the in-frame rule (a box footprint fits only at offset 71° with the oak's feet 2 px from the frame edge). "Never inside the canopy" is proven against the real geometry instead: no wood or foliage of any shipped tree at its catalogue age, nor of Telperion at 80, lies above the person's footprint.
+  - Because the foot sits on the camera's side and within 90° of the sun's azimuth, the crown's shadow, which falls away from the sun, does not reach it. This holds for the harness default sun (135°) and the film's (115°), and is tested for both.
+  - The person is placed in the world once per tree, not per frame. An orbit or a film path that swings the camera far round can hide it, as it could the capsule.
+  - Host (2026-10-23): approved, the person does not follow the sun. Tests: outside the crown's shadow under the harness sun and under the film's sun; and inside the hero camera's frame for every shipped preset at its catalogue age, and for Telperion at 80, because being visible in shot is the point of moving it.
+- **D3, the person's form:** a rewrite of the concept's lofted rings to the host's verdict.
+  - Legs of believable thickness and length that meet the torso without a seam or a band at the hips (one lofted lower body or overlapping volumes, no step in width).
+  - Shoulders, a slight taper to the waist, arms hanging at the sides, a head without a face.
+  - One matte colour: a dark cool slate from the room palette, replacing the warm `FIGURE` grey, so it reads as clothing under the warm sun and the cool shade.
+  - The budget is 800 vertices and 1,200 triangles at most. `FIGURE_HEIGHT` becomes the person's 1.75 m and keeps its role as the camera's floor.
+- **D4, the environment:** the concept's approach, rewritten.
+  - The sky's radiance along a direction is the existing gradient plus a glow lobe round the sun, in the sun's colour, scaled by the row's glow.
+  - The ground is value noise from the existing integer hash, a few octaves, mixing the ground colour toward a dry colour by the row's variation.
+  - Haze is applied only to floor fragments: over the row's distance, beyond the subject, plus a fade of the disc's last stretch into the horizon. The tree and the person are never hazed, whatever the distance.
+  - New uniforms are whole `vec4` slots appended to `Uniforms`, mirrored in WGSL. The clay room's light and path are untouched.
+  - The sky gets a dither of about one 8-bit step from the pixel hash, so a wide gradient does not band. Same frame, same bytes on one device.
+
 ## Boundaries
 
 - No change to growth, the trees or the camera path.
 - No new external asset and no new runtime dependency.
+- The film's cut 7 is fn-272's to render once this spec's stills are approved; this spec renders stills only.
+- The prototype on `scene-concept` is reference, not merged: every part is rewritten here with its tests.
+
+## Strategy Alignment
+
+Active tracks served by this plan:
+- **Surface and rendering at scale**: the shipped renderer's scene, the one the harness, the package and the release film draw through, gets a person for scale and a finished environment at a stated cost.
+
+## Decision Context
+
+- A named second row for variant C (a scene preset) was rejected: the row has no named rows today, the film reads the default, and a second row would need a film-side choice that fn-272 R2 forbids.
+- A sun-aware placement, which moves the person to whichever side the sun lights, was rejected for D2: a person that jumps sides when the panel's sun azimuth moves is worse than one that stays put. The stated condition, sun within 90° of the placement azimuth, holds for every default.
+- Making the new fields dormant at zero by default, as the prototype did, would leave the film and the harness on the old look, and the owner chose C for both.
+
+## Memory findings
+
+| Track | Category | Entry | Why relevant |
+|---|---|---|---|
+| bug | ui | An AC that enumerates the default state is the test | D1 changes the enumerated default; the tests pin it |
+| bug | data | A new catalogue row moves the wire tests and the generated tables together | New row fields: check every consumer of the row's key list (Wasm `scene()`, the panel, README) together |
+
+## Quick commands
+
+```bash
+# focused render tests for the scene, row, person and shot
+~/.local/bin/telperion-heavy 5 --gpu 3 --threads 2 -- cargo test --profile ci -p telperion-render --lib scene
+~/.local/bin/telperion-heavy 5 --gpu 3 --threads 2 -- cargo test --profile ci -p telperion-render --test shot --test look --test neutral_light --test shadow
+# a still at the concept's pose
+~/.local/bin/telperion-heavy 5 --gpu 3 --threads 2 -- cargo run --profile ci -p telperion-render --example headless -- --preset telperion --seed 7 --size 1280x720 --family <age-80.json> --out /tmp/t.png
+```
+
+## Early proof point
+
+Task fn-310-a-person-for-scale-and-a-nicer-world.1 validates the core approach: variant C drawn as the default row through the shipped renderer, with the existing tests green. If it fails, re-evaluate promoting C to the default (D1) before continuing with .2 and later tasks.
+
+
+## Requirement coverage
+
+| Req | Task(s) | Note |
+| --- | --- | --- |
+| R1 | none | Met before planning: the owner's pick and words are in Owner verdicts |
+| R2 | .2 | |
+| R3 | .1 | |
+| R4 | .1, .3 | .1 proves determinism; .3 measures frame time and Wasm bytes |
+| R5 | .2, .3, work's gate | the gate, `npm test` and the per-task reviews run in the work stage |
