@@ -37,9 +37,38 @@ Owner verdict on person-v2 (2026-10-23): "ok good. it should also cast a shadow 
 - [ ] Focused render tests (shadow, sun_cache, shot, look, environment, scene and camera libs) green through `telperion-heavy 5 --gpu 3 --threads 2`
 
 ## Done summary
-TBD
+The person now casts a shadow on the ground. Its indices are drawn depth-only into the sun's map in the existing shadow pass, using the wood's entry point, and no pass was added. The fit is now `light(row, &[Bounds])`, which holds every caster and the shadow it throws. A caster inside the tree's volume leaves the light byte-equal, and a test shows it. The sun-map key carries whether the person casts. A new tree is the only thing that moves the person, and it already forgets the map. `Renderer::figure_casters` reads the person's triangles in the map as last drawn.
 
+First, as its own commit (fc36bb605), the two failures from the first gate were fixed:
+- `lattice_value` in common.wgsl now writes `(a * b) ^ (c * d)`, the precedence naga already took, so drawing is unchanged (inferred from the parse order, not measured).
+- The every-preset bounds table, the in-frame test and the ignored canopy test moved from camera.rs to `tests/person_frame.rs`. The library now names no family. They read the person through a new `figure_points` export, and the conformance test is untouched.
+
+Tests:
+- `shadow::the_person_is_a_caster_only_while_the_room_draws_it`: whole and bare views with the figure on, and not with the figure off or in the leaf view.
+- `shadow::the_persons_shadow_darkens_the_floor_and_leaves_the_trees_alone`: under a sun behind the person, a floor point in its shadow is below 0.85 of its figure-off value. Every map texel is equal or nearer, and fewer than 1% change, so the tree's map is unchanged.
+- `sun_cache`: a figure toggle redraws the map.
+- `fit::a_second_caster_widens_the_map_only_where_it_stands_outside`.
+- `sun`: the cache key with the figure flag.
+- The existing empty-map assertion in `shadow.rs` now turns the figure off, because by design the person now casts.
+
+Stills: `person-shadow.jpg` (committed copy, plus `raw/stills/person-shadow.jpg`) holds the oak at 40 and Telperion at 80, seed 7, under the film's sun, with crops 3x and 6x. I viewed it. The shadow is short and visible beside the feet; at Telperion's framing it is a few pixels and shows only in the crop.
+
+Baseline: none run pre-edit. The conductor's gate log at a1b170043 showed the two static failures, which are now green.
+Focused runs, all green (`telperion-heavy 5 --gpu 3 --threads 2`, `--profile ci`):
+- `--lib`: tint_rule_tests, compile_size, camera, scene, sun, shadow::fit
+- `--test`: shadow, sun_cache, shot, look, environment, neutral_light, conformance, person_frame
+
+Feature map: no route changed.
+Follow-ups (not this task's):
+- scene.rs (550 lines) and lib.rs (677) were already over the 400-line rule and grew slightly.
+- The harness and package use Wasm, which was not built here; the conductor's gate covers it.
+
+Tier: session at default effort (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex, three reviewers, SHIP, 0 findings)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fc36bb605892cc44944cdf469aee7a99ce6ff5ea, a192d41bdc03a5c9f486317f06dea97901e8a61b, 5247e51e0b13ce30d197c80ed19032d8e272eaaf
+- Tests: cargo test --profile ci -p telperion-render --lib -- tint_rule_tests compile_size camera scene sun shadow::fit, cargo test --profile ci -p telperion-render --test shadow --test sun_cache --test shot --test look --test environment --test neutral_light --test conformance --test person_frame
 - PRs:
