@@ -31,17 +31,15 @@ The person half (D2, D3): a new `scene/person.rs` replaces the capsule in `room.
 ### Key context
 - The person is a fixture (colour alpha 0): never repainted or hazed by the row.
 - Heavy commands only through `~/.local/bin/telperion-heavy 5 --gpu 3 --threads 2`.
-
 ## Acceptance
 - [ ] The person stands on y = 0 and is 1.75 m tall; `FIGURE_HEIGHT` equals its measured height
 - [ ] Vertex and triangle counts are within the stated budget (800 / 1,200), tested
 - [ ] Placement test: for a shrub's bounds and for Telperion-wide bounds, the foot lies outside the crown's horizontal support and on the side the default sun (135°) and the film's sun (115°) light, so outside the crown's shadow
-- [ ] Placement test: at the default shot the whole person projects inside the frame for both bounds
+- [ ] Placement test (host, 2026-10-23): at the hero shot the whole person projects inside the frame for every shipped preset at its catalogue age and for Telperion at 80, using the trees' real bounds; the test stays inside the gate's 120 s and 4 GiB per-test budget (reuse an existing every-preset build or a measured bounds table checked against the generator)
 - [ ] A colour test: the person's lit colour under the default sun and in shade keeps blue at or above red (reads cool, not skin)
 - [ ] `tests/shot.rs` derives the figure's triangles from the person; capsule code and test removed
 - [ ] `person-v2.jpg` exists at the stated path, beside the concept's C row, and was sent to the host
 - [ ] Focused render tests green through `telperion-heavy 5 --gpu 3 --threads 2`
-
 ## Done summary
 TBD
 

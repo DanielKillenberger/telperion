@@ -48,15 +48,17 @@ A concept prototype is being made on branch `scene-concept` (host, 2026-10-23). 
 - **R3:** each new row field is refused by name outside its range, as the existing fields are. A row JSON that omits a new field takes the default. Zero is a true no-op for each strength (glow, variation, haze), with no divide by zero and no NaN at zero. At zero the frame equals the one the field's absence would draw.
 - **R4:** a frame-time difference outside noise is stated with its number, never hidden. Crossing the size ceiling is an owner decision and stops the build.
 
-## Design (plan, 2026-10-23; D1 and D2 go to the host before work)
+## Design (plan, 2026-10-23; D1 and D2 approved by the host, 2026-10-23)
 
 - **D1, the default row:** variant C's sky, ground, glow, variation and haze become `SceneRow::default()`. The film builds its row as `..SceneRow::default()` with only the sun position from its path, the harness starts from the default, and so does the package's `createRenderer`. So the default is the only way the chosen look reaches all three without a film-only path (fn-272 R2).
   - The default sun position stays 135° / 30°. C's file repeats the film's own 115° / 60°, which the film keeps setting from its path.
   - The default sun is retinted from (3.078, 2.848, 2.388) to about (3.064, 2.854, 2.374). This keeps fn-228's rule, that sun plus sky at the default elevation is white at the same luminance, under C's new sky. Without it the rule's test fails by 0.35 %.
+  - Host (2026-10-23): approved. This changes the harness's and the package's default scene, on the owner's pick of C. The retint is approved and the white-daylight test stays.
 - **D2, the person's placement:** the foot stands outside the crown's ground footprint, on the hero camera's side of the trunk and turned off its axis to the camera's left, as the capsule was. Facing the camera.
   - The azimuth is the default shot's azimuth less a stated offset. The distance from the trunk is the bounds' horizontal support in that direction plus a stated margin. So the rule reads the tree's bounds, not only its height, and a shrub and Telperion are both handled by the same rule.
   - Because the foot sits on the camera's side and within 90° of the sun's azimuth, the crown's shadow, which falls away from the sun, does not reach it. This holds for the harness default sun (135°) and the film's (115°), and is tested for both.
   - The person is placed in the world once per tree, not per frame. An orbit or a film path that swings the camera far round can hide it, as it could the capsule.
+  - Host (2026-10-23): approved, the person does not follow the sun. Tests: outside the crown's shadow under the harness sun and under the film's sun; and inside the hero camera's frame for every shipped preset at its catalogue age, and for Telperion at 80, because being visible in shot is the point of moving it.
 - **D3, the person's form:** a rewrite of the concept's lofted rings to the host's verdict.
   - Legs of believable thickness and length that meet the torso without a seam or a band at the hips (one lofted lower body or overlapping volumes, no step in width).
   - Shoulders, a slight taper to the waist, arms hanging at the sides, a head without a face.
