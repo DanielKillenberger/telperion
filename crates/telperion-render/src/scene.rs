@@ -27,12 +27,10 @@ pub(crate) use band::BandShares;
 mod room;
 mod row;
 
-pub use person::counts as figure_counts;
+pub use person::{counts as figure_counts, points as figure_points};
 pub use room::{FIGURE_HEIGHT, GROUND_REACH};
 pub use row::SceneRow;
 
-#[cfg(test)]
-pub(crate) use person::{person, stand};
 use room::{
     disc, fixture, floor, linear, Vertex, ATTRIBUTES, BACKGROUND, CLAY, FIGURE, GROUND,
     GROUND_LIGHT, SKY_LIGHT,

@@ -427,5 +427,5 @@ fn value_noise(p: vec2<f32>) -> f32 {
 }
 
 fn lattice_value(c: vec2<i32>) -> f32 {
-    return vary(bitcast<u32>(c.x) * 73856093u ^ bitcast<u32>(c.y) * 19349663u).x;
+    return vary((bitcast<u32>(c.x) * 73856093u) ^ (bitcast<u32>(c.y) * 19349663u)).x;
 }

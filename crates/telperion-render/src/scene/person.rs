@@ -200,6 +200,18 @@ pub fn stand(bounds: Bounds) -> (Vec3, f64) {
     )
 }
 
+/// Where the person stands beside a tree of these bounds, and every point of
+/// its body there: what a test reads to find it in a frame or a shadow.
+pub fn points(bounds: Bounds) -> (Vec3, Vec<Vec3>) {
+    let (foot, yaw) = stand(bounds);
+    let (body, _) = person(foot, yaw, [0.0; 4], 0);
+    let body = body.iter().map(|v| {
+        let [x, y, z] = v.position.map(f64::from);
+        Vec3::new(x, y, z)
+    });
+    (foot, body.collect())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

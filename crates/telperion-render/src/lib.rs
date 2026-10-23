@@ -57,7 +57,7 @@ pub use camera::{
 pub use curve::{viewer as curve_viewer, CurveReport};
 pub use device::{Gpu, RenderError, Result};
 pub use encoder::{Encoder, Recorded};
-pub use scene::{figure_counts, SceneRow, DEPTH_FORMAT, GROUND_REACH};
+pub use scene::{figure_counts, figure_points, SceneRow, DEPTH_FORMAT, GROUND_REACH};
 pub use select::{Level, MAX_LEVELS};
 pub use shot::Shot;
 use submit::crown_of;
