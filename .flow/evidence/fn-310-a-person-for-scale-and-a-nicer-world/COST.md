@@ -51,3 +51,21 @@ Both modules were built with `node scripts/build-render.mjs`, the package's reci
 | Ceiling, `scripts/artifact-budgets.json` | 3,700,000 (201,297 bytes of headroom on the branch) |
 
 The branch is inside the ceiling and inside the 5 percent growth share.
+
+## The start-time cost under equal cache state (task 4)
+
+The +1.7 s above is not the branch's: it is the state of the NVIDIA driver's shader disk cache. The renderer keeps no `wgpu` pipeline cache, so the driver's disk cache is the only one in play. Task 3's runs used the default cache, `~/.cache/nvidia/GLCache`, which stands at 1,073,737,677 bytes, at the driver's 1 GiB ceiling, and takes no new entries: two more default-cache runs of each binary after the measurements below wrote no file to it and did not get faster (base 5,773 and 5,902 ms, branch 7,682 and 7,914 ms). Entries the base's shaders left there before the cache filled still hit; the branch's new modules miss on every run. So the default cache gave the base a partial warm start and the branch a cold one.
+
+Method: the same two binaries as task 3 (the base's carries no `sky_radiance`, the branch's does), `frames oregon-white-oak full whole` with `AGE=40 SEED=7` through `telperion-heavy 5 --gpu 3 --threads 2`, base and branch alternated with the first side swapped every round. Cold: `__GL_SHADER_DISK_CACHE=0`, the driver keeps no disk cache. Warm: a cache directory of each side's own (`__GL_SHADER_DISK_CACHE_PATH`), primed by one unrecorded run. The user's cache was neither moved nor cleared. Script and rows: `raw/frames/ab.sh`, `cold1.jsonl`, `cold2.jsonl`, `warm1.jsonl`.
+
+| Cache state | Runs each | Base fresh_ms, median (range) | Branch fresh_ms, median (range) | Change | Apart |
+|---|---|---|---|---|---|
+| Cold, cache off | 7 | 8,109 (8,015-8,632) | 8,245 (8,071-8,858) | +136 (+1.7%) | no |
+| Warm, own primed cache | 3 | 377 (374-380) | 374 (372-386) | -3 | no |
+| Default user cache (task 3, full) | 3 | 6,083 (5,798-6,096) | 7,762 (7,683-7,771) | +1,679 | yes |
+
+Under equal cache state the difference is within noise, cold and warm. The hero frame's wall `frame_ms` in the cold rows agrees with the table above (base 3.26-3.29 ms, branch 3.31-3.34 ms). So the remaining steps reduce to stating this, as the task's order says: the sky and ground functions stay in `common.wgsl`, no per-module timing was needed, and no code changed, so drawing is unchanged and there is no cause for a guard to catch.
+
+The final start numbers: about 8.1 s cold and about 0.38 s warm for the oak at 40, the same on the base and the branch. The frame numbers are task 3's table above, unchanged.
+
+Two things follow that are not this spec's to fix. Any `fresh_ms` taken on this machine with the default cache measures what the full cache happens to hold, not the code, so a release-bar start number (fn-237 R0a) needs a stated cache state. And a cold start is 8 s on the base too: that is the cost a first visit pays, and it predates this spec.

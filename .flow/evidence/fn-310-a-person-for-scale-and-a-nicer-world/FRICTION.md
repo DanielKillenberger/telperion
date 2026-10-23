@@ -20,3 +20,10 @@
 - Hindered by: the session's scratchpad is shared with earlier runs, so `base/` and `wasm-base.log` already existed from an earlier export. I had to check that the base's `telperion-render` sources matched `201288747` file by file and that its binary carried no branch-only shader text before I trusted a number. dcg also refused a `>` redirect to a variable path, so the runs went through a script with literal paths.
 - Cost: about 5 minutes and two extra tool rounds. The builds were cheap: 13 s for the base `frames` example with the worktree's `ci` deps copied into its own target, and 49 s for each render Wasm.
 - Would have removed it: a fresh, task-named scratch subdirectory per worker (for example `scratchpad/<task-id>/`) chosen by the conductor.
+
+## 2026-10-23, task 4 worker, the start-time diagnosis
+
+- Doing: confirming task 3's +1.7 s `fresh_ms` under equal cache state.
+- Hindered by: the NVIDIA shader disk cache on this machine (`~/.cache/nvidia/GLCache`) is full at its 1 GiB ceiling and takes no new entries, so every `fresh_ms` taken with the default cache depends on which shaders happened to be cached before it filled. Task 3's +1.7 s was that, not the branch; it cost task 3's NEEDS_HUMAN and this task. dcg also refused a heredoc that wrote a script to a variable path, so the script went through the Write tool.
+- Cost: this task, about 25 minutes and five probe rounds (about 3 minutes of GPU time); the code side cost nothing.
+- Would have removed it: the `frames` probe (or `docs/gpu-tests.md`) stating the driver cache state for `fresh_ms`, for example running with `__GL_SHADER_DISK_CACHE=0` for a cold number or a fresh `__GL_SHADER_DISK_CACHE_PATH` per run. The full cache itself is a local setup problem on the owner's machine (clearing or raising `__GL_SHADER_DISK_CACHE_SIZE`), reported, not specced.
