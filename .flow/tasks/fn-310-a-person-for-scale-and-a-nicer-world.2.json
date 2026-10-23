@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-23T14:00:35.191906Z",
+  "depends_on": [
+    "fn-310-a-person-for-scale-and-a-nicer-world.1"
+  ],
+  "id": "fn-310-a-person-for-scale-and-a-nicer-world.2",
+  "priority": null,
+  "spec": "fn-310-a-person-for-scale-and-a-nicer-world",
+  "spec_path": ".flow/tasks/fn-310-a-person-for-scale-and-a-nicer-world.2.md",
+  "status": "todo",
+  "title": "The person: a procedural 1.75 m scale figure placed outside the crown and its shadow",
+  "updated_at": "2026-10-23T14:00:35.191906Z"
+}
