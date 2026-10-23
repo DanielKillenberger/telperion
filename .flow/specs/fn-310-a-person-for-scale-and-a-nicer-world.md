@@ -8,6 +8,17 @@ The scene is the shipped renderer's: `crates/telperion-render/src/scene.rs`, `sc
 
 A concept prototype is being made on branch `scene-concept` (host, 2026-10-23). It holds stills of the current look and two or three environment variants, on the oak at 40 and Telperion at 80, seed 7, at 1280×720.
 
+## Owner verdicts
+
+- Owner (2026-10-23), on the concept sheet (branch `scene-concept`, `concept/sheet.jpg`: the current look and variants A, B and C on the oak at 40 and Telperion at 80): "ok let's go c can we make the human a bit better?". Variant C, the clear neutral day, is chosen.
+- **Host, on what makes the person better.** These are taken from the concept's own read and the host's view of the sheet:
+  - The concept figure reads as a mannequin. Its legs are thin, and a dark band where the torso meets the legs looks like briefs.
+  - Under warm light its grey turns skin-toned.
+  - At Telperion's framing it is about 6 px tall and stands inside the crown's shadow, so it gives no scale cue there.
+  - So, in R2: natural proportions (legs of believable thickness and length, shoulders, a slight taper, arms that hang at the sides), no seam or band at the hips, and a darker, cool, clothing-like matte colour that reads as a person in any of the scene's light.
+  - The figure stands where every framing shows it: in front of the trunk and outside the crown's shadow, towards the camera's side. It still never stands inside the canopy.
+  - The owner sees a still of the improved person before the film is rendered.
+
 ## Requirements
 
 - **R1 (concept, owner's choice first):** the owner picks one environment variant, and passes on the person, from the concept sheet, before any task is planned for real. The pick and the owner's words are recorded here verbatim.
