@@ -58,8 +58,8 @@ pub use curve::{viewer as curve_viewer, CurveReport};
 pub use device::{Gpu, RenderError, Result};
 pub use encoder::{Encoder, Recorded};
 pub use scene::{
-    figure_counts, figure_placement, figure_placement_from, figure_points, Placement, SceneRow,
-    DEPTH_FORMAT, GROUND_REACH,
+    figure_counts, figure_lit, figure_placement, figure_placement_from, figure_points,
+    figure_reach, Placement, SceneRow, DEPTH_FORMAT, GROUND_REACH,
 };
 pub use select::{Level, MAX_LEVELS};
 pub use shot::Shot;

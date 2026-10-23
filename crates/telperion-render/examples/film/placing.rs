@@ -1,10 +1,7 @@
-//! A growth's years and the person's place in each frame (fn-310 D5, host
-//! ruling 2026-10-23): a frame shows its earlier year with the later faded
-//! over it, and both renders stand the person at one placement, the earlier
-//! year's moved toward the later's by the frame's fade share. So the person
-//! walks out as the crown grows, with no second person in a crossfade.
+//! A growth's years: a frame shows its earlier year with the later faded
+//! over it by the frame's share, and both renders stand the person at the
+//! frame's one placement (`standing`, fn-310 D5).
 use super::path::{faded, Frame};
-use telperion_render::Placement;
 
 /// A growth frame: its index in the film, its earlier year, its later year
 /// and the later's share.
@@ -45,15 +42,4 @@ pub fn showing(frames: &[Year], at: f64) -> Vec<(usize, f64)> {
         .filter(|&&(_, lo, hi, share)| lo == at || (share > 0.0 && hi == at))
         .map(|&(i, _, _, share)| (i, share))
         .collect()
-}
-
-/// Where the person stands in `frame`, given each year's own placement
-/// (`stood`); none while a year it shows has not been built.
-pub fn placed(frame: &Year, stood: impl Fn(f64) -> Option<Placement>) -> Option<Placement> {
-    let &(_, lo, hi, share) = frame;
-    let earlier = stood(lo)?;
-    match share > 0.0 {
-        true => Some(earlier.lerp(stood(hi)?, share)),
-        false => Some(earlier),
-    }
 }

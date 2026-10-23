@@ -18,6 +18,8 @@
 //! only the segments they fall in and assembles no video (fn-310 task 6).
 //! `--oracle` judges every walk frame by fn-251's oracle on the CPU and
 //! draws nothing.
+#[path = "film/bounds.rs"]
+mod bounds;
 #[path = "film/camera.rs"]
 mod camera;
 #[path = "film/cost.rs"]
@@ -32,6 +34,8 @@ mod overlay;
 mod path;
 #[path = "film/placing.rs"]
 mod placing;
+#[path = "film/standing.rs"]
+mod standing;
 
 use cost::{Cost, Peaks};
 use overlay::{Canvas, Overlay};
@@ -44,31 +48,37 @@ use telperion_core::{
     Family,
 };
 use telperion_render::{
-    figure_placement_from,
     generation::{Generator, Prepared},
     render, write_png, Gpu, Level, Placement, Renderer, SceneRow, Still, STILL_FORMAT,
 };
 
-/// A settled year waiting to be drawn: its age, the tree, its leaves and
-/// bounds, and its build time.
+/// A settled year to be drawn: its age, the tree, its leaves and bounds,
+/// and its build time.
 type Settled = (f64, Prepared, (usize, Bounds), f64);
 
-/// A growth's frames, each year's bounds as it is settled, and the earlier
-/// year's picture of each frame that waits for its later year.
+/// A growth's frames, and the earlier year's picture of each frame that
+/// waits for its later year.
 struct Year<'a> {
     frames: &'a [placing::Year],
-    stood: Vec<(f64, Bounds)>,
     earlier: std::collections::HashMap<usize, Vec<u8>>,
 }
 
 fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let usage = "usage: film <path.json> <out dir> [--frames <list>] | film <path.json> --oracle";
-    let (file, out, chosen) = match &args[..] {
-        [file, out] => (file, out, None),
-        [file, out, flag, list] if flag == "--frames" => (file, out, Some(list)),
+    let usage = "usage: film <path.json> <out dir> [--frames <list>] [--bounds <file>] \
+                 | film <path.json> --oracle";
+    let (file, out, flags) = match &args[..] {
+        [file, out, flags @ ..] if flags.len() % 2 == 0 => (file, out, flags),
         _ => return Err(usage.into()),
     };
+    let flag = |name: &str| flags.chunks(2).find(|p| p[0] == name).map(|p| &p[1]);
+    if flags
+        .chunks(2)
+        .any(|p| p[0] != "--frames" && p[0] != "--bounds")
+    {
+        return Err(usage.into());
+    }
+    let (chosen, cache) = (flag("--frames"), flag("--bounds"));
     let path = Path::read(std::path::Path::new(file))?;
     let frames = path.frames();
     let chosen = match chosen {
@@ -109,6 +119,8 @@ fn main() -> Result<(), String> {
         renderer: Renderer::new(gpu, STILL_FORMAT),
         log: None,
         chosen: chosen.as_ref(),
+        crowns: &[],
+        placements: &[],
     };
     film.renderer.set_scene(SceneRow {
         sun_azimuth: path.sun.0,
@@ -116,6 +128,10 @@ fn main() -> Result<(), String> {
         ..SceneRow::default()
     });
     let gen = Generator::new(&film.renderer).map_err(|e| e.to_string())?;
+    let crowns = bounds::of_film(&gen, &path, &frames, cache.map(std::path::Path::new))?;
+    let standing = standing::of_film(&path, &crowns)?;
+    film.crowns = &crowns;
+    film.placements = &standing.placements;
     let log = std::fs::File::create(format!("{out}/frames.tsv")).map_err(|e| e.to_string())?;
     film.log = Some(std::io::BufWriter::new(log));
     film.line("frame\tsegment\tat\tleaves\theight\twidth\tbuild_ms")?;
@@ -187,13 +203,6 @@ fn crossfade(a: &[u8], b: &[u8], share: f64) -> Vec<u8> {
         .collect()
 }
 
-/// A shipped species at `age` and the path's seed.
-fn ends(id: &str, age: f64, seed: u32) -> Result<Family, String> {
-    let mut f = by_identity(id).map_err(|e| format!("{id}: {e}"))?;
-    (f.age, f.skeleton.seed) = (age, seed);
-    Ok(f)
-}
-
 struct Film<'a> {
     path: &'a Path,
     frames: &'a [Frame],
@@ -204,6 +213,10 @@ struct Film<'a> {
     log: Option<std::io::BufWriter<std::fs::File>>,
     /// The frames to draw, where `--frames` names them; all where it does not.
     chosen: Option<&'a std::collections::BTreeSet<usize>>,
+    /// Every frame's crowns from the bounds pass, which each drawn tree must
+    /// match, and where the person stands in it.
+    crowns: &'a [bounds::Crowns],
+    placements: &'a [Placement],
 }
 
 impl Film<'_> {
@@ -243,13 +256,16 @@ impl Film<'_> {
         Ok(())
     }
 
-    /// Where frame `i` stands the person beside a tree of these bounds:
-    /// square to the frame camera's view, on the film's sun's side (fn-310
-    /// D7).
-    fn beside(&self, i: usize, bounds: Bounds) -> Placement {
-        let seconds = i as f64 / f64::from(self.path.fps);
-        let view = camera::azimuth(&self.path.camera, seconds);
-        figure_placement_from(bounds, view, self.path.sun.0).0
+    /// Frame `i`'s tree, `which` of its crowns, refused where the bounds
+    /// pass built another: a stale bounds file.
+    fn matches(&self, i: usize, which: usize, bounds: Bounds) -> Result<(), String> {
+        let (earlier, later, _) = self.crowns[i];
+        match [earlier, later][which] == bounds {
+            true => Ok(()),
+            false => Err(format!(
+                "frame {i}: the bounds pass built another tree; stale file?"
+            )),
+        }
     }
 
     /// Frame `i` drawn from its pose with the tree put up now, no overlay,
@@ -309,9 +325,7 @@ impl Film<'_> {
     /// it stands at full leaf (host, 2026-10-14). A frame between two whole
     /// ages shows the earlier year, the later faded over it by `faded`
     /// where the path's fade has begun; ages rise, so a shrink is drawn
-    /// last frame first. Each year is drawn once the next is settled, so
-    /// both of a crossfaded frame's years are known and its two renders
-    /// stand the person at one placement (`placing`, fn-310 D5).
+    /// last frame first.
     fn grow(
         &mut self,
         gen: &Generator,
@@ -319,7 +333,7 @@ impl Film<'_> {
         species: &str,
         (from, to): (f64, f64),
     ) -> Result<Cost, String> {
-        let family = ends(species, from.max(to), self.path.seed)?;
+        let family = bounds::ends(species, from.max(to), self.path.seed)?;
         let mut cost = Cost::default();
         let started = std::time::Instant::now();
         let mut tree = pollster::block_on(gen.begin_growth(&family)).map_err(|e| e.to_string())?;
@@ -327,38 +341,26 @@ impl Film<'_> {
         let frames = placing::years_of(&self.of(k), (from, to), self.path.fade);
         let mut year = Year {
             frames: &frames,
-            stood: Vec::new(),
             earlier: std::collections::HashMap::new(),
         };
-        let mut pending: Option<Settled> = None;
-        for at in placing::built(&frames).into_iter().map(Some).chain([None]) {
-            let next = match at {
-                Some(at) => {
-                    let started = std::time::Instant::now();
-                    pollster::block_on(gen.grow_to(&mut tree, at))
-                        .map_err(|e| format!("{species} to {at}: {e}"))?;
-                    let settled = pollster::block_on(gen.settle(&tree, at))
-                        .map_err(|e| format!("{species} at {at}: {e}"))?;
-                    let ms = started.elapsed().as_secs_f64() * 1e3;
-                    (cost.build_ms, cost.trees) = (cost.build_ms + ms, cost.trees + 1);
-                    let shape = (settled.count(), settled.bounds());
-                    year.stood.push((at, shape.1));
-                    Some((at, settled, shape, ms))
-                }
-                None => None,
-            };
-            if let Some(settled) = pending.take() {
-                self.show(&family, settled, &mut year, &mut cost)?;
-            }
-            pending = next;
+        for at in placing::built(&frames) {
+            let started = std::time::Instant::now();
+            pollster::block_on(gen.grow_to(&mut tree, at))
+                .map_err(|e| format!("{species} to {at}: {e}"))?;
+            let settled = pollster::block_on(gen.settle(&tree, at))
+                .map_err(|e| format!("{species} at {at}: {e}"))?;
+            let ms = started.elapsed().as_secs_f64() * 1e3;
+            (cost.build_ms, cost.trees) = (cost.build_ms + ms, cost.trees + 1);
+            let shape = (settled.count(), settled.bounds());
+            self.show(&family, (at, settled, shape, ms), &mut year, &mut cost)?;
         }
         cost.frames = frames.len();
         Ok(cost)
     }
 
     /// One settled year put up and every frame that shows it drawn, the
-    /// person at the frame's one placement; a frame that waits for its
-    /// later year keeps this one's picture.
+    /// person where the frame stands it; a frame that waits for its later
+    /// year keeps this one's picture.
     fn show(
         &mut self,
         family: &Family,
@@ -376,15 +378,8 @@ impl Film<'_> {
         for (i, share) in showing {
             let started = std::time::Instant::now();
             let frame = year.frames.iter().find(|f| f.0 == i).ok_or("no frame")?;
-            let stood = |y| {
-                year.stood
-                    .iter()
-                    .find(|s| s.0 == y)
-                    .map(|s| self.beside(i, s.1))
-            };
-            let placement = placing::placed(frame, stood)
-                .ok_or(format!("frame {i}: a year it shows is not built"))?;
-            self.renderer.place_figure(placement);
+            self.matches(i, usize::from(frame.1 != at), shape.1)?;
+            self.renderer.place_figure(self.placements[i]);
             let rgba = self.still(i, cost)?;
             match (share == 0.0, year.earlier.remove(&i)) {
                 (true, _) => self.finish(i, rgba)?,
@@ -402,8 +397,8 @@ impl Film<'_> {
     /// beech to spruce at 40, t = 0.216 (FRICTION.md, 2026-10-19).
     fn walk(&mut self, k: usize, (from, to): (&str, &str), age: f64) -> Result<Cost, String> {
         let (a, b) = (
-            ends(from, age, self.path.seed)?,
-            ends(to, age, self.path.seed)?,
+            bounds::ends(from, age, self.path.seed)?,
+            bounds::ends(to, age, self.path.seed)?,
         );
         let mut cost = Cost::default();
         // The tree put up last, its share, shape and build time: a held
@@ -428,7 +423,8 @@ impl Film<'_> {
             }
             if let Some((t, shape, ms)) = last {
                 self.log(shape, t, &[i], ms)?;
-                self.renderer.place_figure(self.beside(i, shape.1));
+                self.matches(i, 0, shape.1)?;
+                self.renderer.place_figure(self.placements[i]);
             }
             self.draw(i, &mut cost)?;
             cost.frames += 1;
