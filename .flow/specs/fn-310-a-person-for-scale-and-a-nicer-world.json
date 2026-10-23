@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-310-a-person-for-scale-and-a-nicer-world",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-23T16:27:09.644253Z",
   "created_at": "2026-10-23T12:17:40.936947Z",
   "default_impl": null,
   "default_review": null,
@@ -297,6 +297,42 @@
       "task": "fn-310-a-person-for-scale-and-a-nicer-world.5",
       "timestamp": "2026-10-23T15:55:35.345606Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "eba963ef2d997dd2780a29ec6112f42d5e0cae61f639e7a28041da1135f39137",
+      "backend": "codex",
+      "base_sha": "201288747c5e6c356461e2a07b55a4276c0a1e94",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f58a01cc8aa8f6097c26fd30fe9dae25cebf7ef1",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 385457,
+      "output_sha256": "2386a3297743e04d1ba8932f566e91c4128174af149ff5753010cbd1520474e3",
+      "reservation_id": "7918ec4099ac438abc175dd64b50409c",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-23T16:27:09.633922Z",
+      "tool_calls": 19,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -304,11 +340,12 @@
     "impl:fn-310-a-person-for-scale-and-a-nicer-world.2": 1,
     "impl:fn-310-a-person-for-scale-and-a-nicer-world.5": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-310-a-person-for-scale-and-a-nicer-world.1": 0,
     "impl:fn-310-a-person-for-scale-and-a-nicer-world.2": 0,
     "impl:fn-310-a-person-for-scale-and-a-nicer-world.5": 0,
@@ -328,5 +365,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-23T15:55:35.348385Z"
+  "updated_at": "2026-10-23T16:27:09.651129Z"
 }
