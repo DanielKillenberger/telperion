@@ -18,6 +18,7 @@ A concept prototype is being made on branch `scene-concept` (host, 2026-10-23). 
   - So, in R2: natural proportions (legs of believable thickness and length, shoulders, a slight taper, arms that hang at the sides), no seam or band at the hips, and a darker, cool, clothing-like matte colour that reads as a person in any of the scene's light.
   - The figure stands where every framing shows it: in front of the trunk and outside the crown's shadow, towards the camera's side. It still never stands inside the canopy.
   - The owner sees a still of the improved person before the film is rendered.
+- Owner (2026-10-23), on the person-v2 sheet (`.flow/evidence/fn-310-a-person-for-scale-and-a-nicer-world/person-v2.jpg`, oak at 40 and Telperion at 80 under the film's sun): "ok good. it should also cast a shadow then i think it's fine." The person is accepted, with one change: it casts a shadow onto the ground through the existing shadow pass, the caster path the tree uses, with no new pass (host, 2026-10-23; task .5).
 
 ## Requirements
 
