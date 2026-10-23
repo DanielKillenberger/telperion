@@ -184,9 +184,18 @@ Measured in task .9 (`SHADOW-FIT.md`):
   - **Segments 0 and 5-7:** crowns under 1.3 m refit both axes, up to 5.66 times. The worst is frame 719, Laurelin at 1: 0.31 cm to 1.22 cm per texel.
   - **Segments 1-4:** the 12 m age-40 trees refit only the shorter axis, up to 1.59 times, and the texel size the shaders read (`Light::texel_size`, the larger axis) is unchanged.
 
-**The ruling:** the design stays, because the shaders' texel size never gets coarser than a shipped tree's own (1.22 cm at worst against 1.8-3.3 cm), and option (b) would cost the shadow the owner asked for. The bound test:
+**The ruling:** the design stays, because the shaders' texel size never gets coarser than a shipped tree's own, and option (b) would cost the shadow the owner asked for. (The "1.22 cm at worst" first cited here was each segment's largest-ratio frame, not its coarsest texel; see the correction below.) The bound test:
 - **Catalogue stills:** ground per texel grows at most 10 % on both axes, for every shipped preset at its catalogue age and Telperion at 80, under both suns.
 - **The film:** over the cached bounds, on every frame `Light::texel_size` is at or below 1.5 cm, or within 10 % of the tree-only fit, whichever is looser.
+
+### Host ruling on the film's shadow bound (2026-10-23): (a′), replacing 1.5 cm
+
+Measured over the cached real bounds (task .9, `SHADOW-FIT.md`, correction section): 55 tree renders failed the first film bound.
+- **Frames 678-680:** a 5.85 m crown, the person 10.4 m out, 1.56 to 1.84 cm (1.18 times).
+- **Frames 737-780:** the Laurelin growing from 8.6 to 18.3 m. The largest ratio is 1.53 times at frame 740 (1.01 to 1.52 cm).
+- **The film's coarsest texel:** 2.18 cm at frame 780 (1.97 to 2.18 cm, 1.11 times).
+
+**The bound as ruled:** on every film frame, `Light::texel_size` with the person in the fit is at or below 2.3 cm, or within 10 % of the tree-only fit, whichever is looser. 2.3 cm rounds up the silver birch's own texel at its catalogue age under the film's sun (2.27 cm). So no film frame's shadow is coarser than a shipped tree's in its own stills, which the owner has judged. The test's comment says so. The catalogue bound (at most 10 % on both axes, measured 1.000) is unchanged.
 
 ## Boundaries
 
