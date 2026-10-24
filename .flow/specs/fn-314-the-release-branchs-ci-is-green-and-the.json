@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-314-the-release-branchs-ci-is-green-and-the",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-24T17:43:18.695480Z",
   "created_at": "2026-10-24T11:41:49.286608Z",
   "default_impl": null,
   "default_review": null,
@@ -177,6 +177,42 @@
       "task": "fn-314-the-release-branchs-ci-is-green-and-the.3",
       "timestamp": "2026-10-24T17:39:53.499059Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3e373338edced27b073bfaf627ace5bf8cd71174ebe8112235e666d70ea7188e",
+      "backend": "codex",
+      "base_sha": "728d5e43cc2239e8a1317453dfa39dae928df69f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "aeafb50e5129779213c1be2a4639a91fef293fb9",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 254217,
+      "output_sha256": "dc23a204724b8cac32dcbd8f8cb4c057ff7eba33d266d97b6beff280d78e8d4c",
+      "reservation_id": "9a41f8b06d2d4cdbbf18bd8b5df30884",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T17:43:18.688400Z",
+      "tool_calls": 16,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -184,11 +220,12 @@
     "impl:fn-314-the-release-branchs-ci-is-green-and-the.2": 1,
     "impl:fn-314-the-release-branchs-ci-is-green-and-the.3": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-314-the-release-branchs-ci-is-green-and-the.1": 0,
     "impl:fn-314-the-release-branchs-ci-is-green-and-the.2": 0,
     "impl:fn-314-the-release-branchs-ci-is-green-and-the.3": 0,
@@ -208,5 +245,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T17:39:53.501926Z"
+  "updated_at": "2026-10-24T17:43:18.699049Z"
 }
