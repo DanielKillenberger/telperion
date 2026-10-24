@@ -35,3 +35,10 @@ Doing: the gate, once, as one blocking foreground call, per the worker brief.
 Hindered: the tool's foreground timeout is 600 s; the gate in a fresh worktree reached 1235 of 1501 tests at 590 s and was cancelled by the wrapper timeout. It has to run in the background with a wait on its exit instead.
 Cost: about 10 minutes of gate run discarded.
 Would remove it: a gate brief that names the background-plus-wait form, or a gate under ten minutes on a cold worktree.
+
+## 2026-10-24, conductor: completion review dispatched while two other worktrees' gates ran
+
+Doing: the codex completion review.
+Hindered: the `ps` check showed f4-312's gate and an f4-314 test binary running, and the review went out in the same command instead of waiting; telperion-heavy admitted it (room 7 GB). The reviewer also could not run `telperion-heavy` itself from its read-only sandbox (it cannot create the lock file), so it could not re-run any proof.
+Cost: no measured slowdown; one rule slip.
+Would remove it: the review command line waiting on the `ps` check itself (a `telperion-heavy --exclusive` or a wrapper that refuses while another worktree's gate runs).

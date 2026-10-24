@@ -36,3 +36,14 @@ Fork rev pinned: `165ebd16f930baefecca51c22e753a48f911a5fa` (DanielKillenberger/
 | `python3 scripts/gate.py` | exit 0: 1501 tests run, 1501 passed, 136 skipped, 1301 s |
 
 Open for the owner: fn-243 R4's cold-profile Chrome run.
+
+## The browser proof (R4, conductor, 2026-10-24)
+
+fn-243's own tests are the ones its done summary names: the Rust settlement tests (`programs::tests`, in the gate), the GPU test `a_build_makes_no_program_the_preparation_did_not` (in the gate), `src/browser/render.test.ts` (in `npm test`), and the owner's cold-profile Chrome run. The first three pass on this branch; the fourth is the owner's. `npm run test:render` is not among them.
+
+What `npm run test:render` did show, in a real Chrome on the desk's hardware adapter:
+- It got past `start()` (`tests/browser/render.mjs:152-158`, checked at `:320-322`). That means the page found a hardware WebGPU adapter (a missing or software adapter is a skip at `:321`), asked every program of the browser through the fork's `create_compute_pipeline_async` (the Wasm build has no other path, `programs.rs:80-97`), settled them without a refusal (a refused program raises the alert `start()` races), and drew the first tree's stats.
+- For the first preset it passed the no-alert check (`:336`) and failed the next one, `tris > 0` (`:337`, "Ordinary generated no wood").
+- The base (`8bb9f9e9b`, which still had the vendored patch) fails at the same line with the same message. So the failure is not this change. It is a defect already on the release branch, listed as a follow-up.
+
+The failure is not this spec's to fix (Boundaries: no behaviour change). The async compile path ran in a real browser and its programs settled.
