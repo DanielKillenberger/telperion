@@ -50,9 +50,18 @@ Switch the workspace from the vendored copy to the fork at the rev task .1 recor
 - [ ] Wasm render module built and its size stated against the budget and the base; fn-243's tests pass; `npm test` and the gate green (R4).
 
 ## Done summary
-TBD
+The workspace takes wgpu, wgpu-core, wgpu-hal, wgpu-types, naga and wgpu-naga-bridge from DanielKillenberger/wgpu at 165ebd16f930baefecca51c22e753a48f911a5fa. All ten family lock entries now come from the fork, and no other lock entry changed. `vendor/` and the workspace exclude are gone, and `docs/wgpu-fork.md` replaces `vendor/README.md`. `programs.rs` awaits the PR's `create_compute_pipeline_async` through a private `rejection` that keeps the `validation: …` / `internal: …` wording; `a_refused_compile_keeps_the_reason_and_message_shape` tests it. The native path is unchanged. `scripts/wgpu-family.test.mjs` checks for one of each family crate from the fork at the pinned rev. It covers the crates.io, other-rev and twice cases, fails on a temp lock with wgpu-hal set back to the registry, and is a node input in `ci-key.mjs`.
 
+Proof (`.flow/evidence/fn-311-wgpu-comes-from-a-fork-carrying/PROOF.md`): `cargo tree -d` lists no family crate natively or for wasm32. The Wasm render module is 3,506,337 bytes against 3,504,023 on the base, +0.066% (ceiling 3,700,000). Against the spec base 0a62c7ec2: 206 files changed, 512 insertions, 42,641 deletions. The gate passed (1501 of 1501, 136 skipped), and `npm test` passed (181 of 181). Two failures predate this task. `npm run test:render` fails "Ordinary generated no wood" here and on an archive of the base. `artifact-budgets.mjs` fails on a missing `dist/wasm-source.js`; that one is inferred, not measured on the base. fn-243 R4's cold-profile Chrome run stays open for the owner.
+
+Baseline: `npm run render:build` on the base was green. FRICTION.md has three new entries: vitest globalSetup, test:render needing a base build, and the gate outlasting the 600 s foreground limit.
+
+Tier: not supplied by the conductor (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex, three draws correctness/contracts/integration, all SHIP, rid c9417caad85545c395310504b4f5e1e2)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: da4b8d9141e30d2639f53d5bee92f3e8ab5459ef, 7f22c3f2bcbac9dc2c5ae4da81c942b7b59b311b
+- Tests: telperion-heavy 8 --threads 4 -- python3 scripts/gate.py, npm test, npx vitest run scripts/wgpu-family.test.mjs, cargo test --profile ci -p telperion-render --lib programs::tests
 - PRs:
