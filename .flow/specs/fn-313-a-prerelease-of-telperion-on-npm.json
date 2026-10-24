@@ -1,19 +1,426 @@
 {
   "branch_name": "fn-313-a-prerelease-of-telperion-on-npm",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-24T16:49:50.015061Z",
   "created_at": "2026-10-24T11:07:55.522190Z",
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-313-a-prerelease-of-telperion-on-npm",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-313-a-prerelease-of-telperion-on-npm.1": 0,
+    "fn-313-a-prerelease-of-telperion-on-npm.2": 0,
+    "fn-313-a-prerelease-of-telperion-on-npm.3": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-24T11:16:14.126921Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "6be3681c8874f95994bc6c4e624945361b46508fd54f3198333f6e9225f72ed5",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-280958ca31ac658f4960cea721e084da",
+            "classification": "introduced",
+            "findingId": "finding-280958ca31ac658f4960cea721e084da",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4debf1980d455c273fc412e8b5cacb64",
+            "classification": "introduced",
+            "findingId": "finding-4debf1980d455c273fc412e8b5cacb64",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-88b6bf82a87110b1d7dad324a1a3c9bf",
+            "classification": "introduced",
+            "findingId": "finding-88b6bf82a87110b1d7dad324a1a3c9bf",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "313e890431b0a0c9d4d68073e12c5d0e2351dd85",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 129340,
+      "output_sha256": "8efebc5cfb57769754b9044edb0a5fcba2d9f2d501ecb6e761018c3ba596f908",
+      "reservation_id": "ea305243ec65433e873126940ef60b92",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T11:15:10.962164Z",
+      "tool_calls": 16,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d3e9100503cba9d9cbaab7c4860500ad312c04c04f5103c5686fe5cdac9786aa",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-280958ca31ac658f4960cea721e084da",
+            "classification": "introduced",
+            "findingId": "finding-280958ca31ac658f4960cea721e084da",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4debf1980d455c273fc412e8b5cacb64",
+            "classification": "introduced",
+            "findingId": "finding-4debf1980d455c273fc412e8b5cacb64",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-88b6bf82a87110b1d7dad324a1a3c9bf",
+            "classification": "introduced",
+            "findingId": "finding-88b6bf82a87110b1d7dad324a1a3c9bf",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "299e4e47d29ee1bbedb61fac58faf74fd7b18253",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 820,
+      "output_sha256": "e8b94b7ffb0fab295c3ce1cfa9c4b11c308d5e671d6c4952bb43e4d722a45da3",
+      "reservation_id": "6c7f6d5fe2d449b8ab6ddb324fc2be9e",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T11:16:14.124384Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "94c833b77d59b321b6c7aa350b34020fe5c0d8f81b0cb4e4142f3df5e44df80b",
+      "backend": "codex",
+      "base_sha": "4fa8e8da62de5d140122add31a22fd27b09a08d1",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "29f19a07b98c71ed60b144f00cd0a8428251b340",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "beec4b493b79417d9cdc4cef9b0c79f9",
+      "round_consumed": true,
+      "scope": "impl:fn-313-a-prerelease-of-telperion-on-npm.1",
+      "superseded_by": null,
+      "task": "fn-313-a-prerelease-of-telperion-on-npm.1",
+      "timestamp": "2026-10-24T11:21:22.349868Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "0be54d8ff3b43a4dbdbd2e81f4385b843a402983f0f3ba7552d9b53a6f03bbbd",
+      "backend": "codex",
+      "base_sha": "dc4261238a3b4c9bf04e37bb77d4d8c80e956259",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6b9cb51c4c5f7377b78e84562ad47473",
+            "classification": "introduced",
+            "findingId": "finding-6b9cb51c4c5f7377b78e84562ad47473",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-57153fac58c9b4decd7d7c24c0ffcaf4",
+            "classification": "introduced",
+            "findingId": "finding-57153fac58c9b4decd7d7c24c0ffcaf4",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4674d7970bc1e8bb6119c5128fb2e3f4b7eb03ac",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2145,
+      "output_sha256": "375e1adc98ff9e6aaf93d066105a3cc6e269ef04b3f424e87dee3db1b7995e5d",
+      "reservation_id": "e2d5af070c99401fac596598a4f5b80e",
+      "round_consumed": true,
+      "scope": "impl:fn-313-a-prerelease-of-telperion-on-npm.2",
+      "superseded_by": null,
+      "task": "fn-313-a-prerelease-of-telperion-on-npm.2",
+      "timestamp": "2026-10-24T11:29:27.181732Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "a8cf2b326b4c77e4dd8d52a39b12c4b3a17350fbb896637ff0e317ca2f30c6c3",
+      "backend": "codex",
+      "base_sha": "dc4261238a3b4c9bf04e37bb77d4d8c80e956259",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "788b4c82685117eb91f80d0e5c6c79049b968dee",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 372768,
+      "output_sha256": "db07865422f337f83d38fb0fe9325f4e841d714f9fae81343e62e52eed5c1bc3",
+      "reservation_id": "74530c4212364dd2b7e662c2fa2bf972",
+      "round_consumed": true,
+      "scope": "impl:fn-313-a-prerelease-of-telperion-on-npm.2",
+      "superseded_by": null,
+      "task": "fn-313-a-prerelease-of-telperion-on-npm.2",
+      "timestamp": "2026-10-24T11:44:35.232418Z",
+      "tool_calls": 14,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "58655bca6c6b5afdbf2a1997d971a320bf8690e1fc13ea7c9e666ba5060214a7",
+      "backend": "codex",
+      "base_sha": "89bb3c6cd40305093d69e8750585d8ad7751d2ac",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-08f4226e3dab008578cf261fb6ad5d45",
+            "classification": "introduced",
+            "findingId": "finding-08f4226e3dab008578cf261fb6ad5d45",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-44a4419dbeefc8822296b3fc767cbb98",
+            "classification": "introduced",
+            "findingId": "finding-44a4419dbeefc8822296b3fc767cbb98",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f4fe0d44fdce7791b712ddeef70eb13c3a9c0b78",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 164688,
+      "output_sha256": "f287e85ea2d148c991ad052865927b3887d4a4c771be645cabc51caa6f56f1de",
+      "reservation_id": "b9d714ee5d4d46be9de82769bc8f6e4d",
+      "round_consumed": true,
+      "scope": "impl:fn-313-a-prerelease-of-telperion-on-npm.3",
+      "superseded_by": null,
+      "task": "fn-313-a-prerelease-of-telperion-on-npm.3",
+      "timestamp": "2026-10-24T12:51:14.424559Z",
+      "tool_calls": 24,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ddc4fc58ff7f690321a1b55b02d65b527527c79019dbcc23b738378f2bd43b71",
+      "backend": "codex",
+      "base_sha": "89bb3c6cd40305093d69e8750585d8ad7751d2ac",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-08f4226e3dab008578cf261fb6ad5d45",
+            "classification": "introduced",
+            "findingId": "finding-08f4226e3dab008578cf261fb6ad5d45",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-44a4419dbeefc8822296b3fc767cbb98",
+            "classification": "introduced",
+            "findingId": "finding-44a4419dbeefc8822296b3fc767cbb98",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d345aa108eacad68d675e06a62afdb359f6b27e4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 947,
+      "output_sha256": "5f3ee7e13dec18e3a2e1e06a4c2d3b18a451f1fda5f0f74f7a09c5e3b48ee6c9",
+      "reservation_id": "c3fd94f55e954565bc4056312390ec9f",
+      "round_consumed": true,
+      "scope": "impl:fn-313-a-prerelease-of-telperion-on-npm.3",
+      "superseded_by": null,
+      "task": "fn-313-a-prerelease-of-telperion-on-npm.3",
+      "timestamp": "2026-10-24T13:11:30.786971Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "14249eebf3bbc72676ed63adc95dd6cc0cb46209ac8e3fe634eea6e49f447141",
+      "backend": "codex",
+      "base_sha": "0a62c7ec2da78a1755736de242bd0afc5c340713",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "41f604841d26e0fb963fffd00a17cb5919453780",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 196571,
+      "output_sha256": "3f3c9d610480a839f11b537d94855a003b673ca68a4e42e9b17659ba83312969",
+      "reservation_id": "c27378fe937e40f0a346e93392d4a2d7",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T16:49:50.008334Z",
+      "tool_calls": 15,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-313-a-prerelease-of-telperion-on-npm.1": 1,
+    "impl:fn-313-a-prerelease-of-telperion-on-npm.2": 1,
+    "impl:fn-313-a-prerelease-of-telperion-on-npm.3": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-313-a-prerelease-of-telperion-on-npm.1": 0,
+    "impl:fn-313-a-prerelease-of-telperion-on-npm.2": 0,
+    "impl:fn-313-a-prerelease-of-telperion-on-npm.3": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-313-a-prerelease-of-telperion-on-npm.md",
   "status": "open",
   "title": "A prerelease of telperion on npm, published when the owner asks",
@@ -28,5 +435,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T11:08:04.259017Z"
+  "updated_at": "2026-10-24T16:49:50.018127Z"
 }

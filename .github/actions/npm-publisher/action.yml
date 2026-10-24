@@ -1,0 +1,19 @@
+name: npm through the trusted publisher
+description: >-
+  Sets up Node 24 against the npm registry and an npm that publishes through
+  npm trusted publishing (11.5.1 or later; the npm a Node release bundles may
+  be older). The job authenticates by its OIDC token (id-token: write) under
+  the trusted publisher configured on npmjs.com for release.yml; no npm token
+  is stored or set.
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 24
+        registry-url: https://registry.npmjs.org
+
+    - name: Install an npm that publishes through a trusted publisher
+      shell: bash
+      run: npm install -g npm@^11.5.1 && npm --version
