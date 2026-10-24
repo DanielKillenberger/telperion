@@ -316,31 +316,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install the pinned Rust toolchain
-        run: rustup toolchain install
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          cache-on-failure: true
-
-      - uses: ./.github/actions/wasm-bindgen
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: package.json
-          cache: npm
-
-      - run: npm ci
-
-      - name: Build the package
-        run: npm run build
-
-      - name: Hold every shipped artifact to its ceiling and a PR's growth (docs/principles.md)
+      # The build, from the toolchain to the size check; its env reaches the
+      # size check, which reads the base artifact and the PR's Decisions.
+      - uses: ./.github/actions/package
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: node scripts/artifact-budgets.mjs
 
       - id: pack
         name: Pack the tarball
