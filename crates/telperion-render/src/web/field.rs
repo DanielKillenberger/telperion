@@ -92,12 +92,14 @@ impl WebField {
                 .grow_field(&family, n, limb_order)
                 .await
                 .map_err(js_error)?;
-            let mut answers = Vec::with_capacity(grid.cells.len() * 4);
+            let mut answers = Vec::with_capacity(grid.cells.len() * 5);
             for a in &grid.cells {
-                let flags = u32::from(a.wood) | u32::from(a.foliage) << 1;
+                let flowered = u32::from(a.flowers > 0.0) << 2;
+                let flags = u32::from(a.wood) | u32::from(a.foliage) << 1 | flowered;
                 let limb = a.limb.unwrap_or(u32::MAX);
                 let (radius, leaves) = (a.wood_radius as f32, a.leaves as f32);
-                answers.extend([flags, radius.to_bits(), leaves.to_bits(), limb]);
+                let flowers = (a.flowers as f32).to_bits();
+                answers.extend([flags, radius.to_bits(), leaves.to_bits(), limb, flowers]);
             }
             let f = grid.frame;
             Ok(WebField {
@@ -125,9 +127,10 @@ impl WebField {
         self.origin.to_vec()
     }
 
-    /// Four words a cell, in cell order: its flags (wood 1, foliage 2), its
-    /// thickest wood radius and its leaves (each a float's bits) and its
-    /// limb system (`u32::MAX` where none).
+    /// Five words a cell, in cell order: its flags (wood 1, foliage 2,
+    /// flowers 4), its thickest wood radius and its leaves (each a float's
+    /// bits), its limb system (`u32::MAX` where none) and its florets (a
+    /// float's bits; fn-316).
     pub fn answers(&self) -> js_sys::Uint32Array {
         js_sys::Uint32Array::from(self.answers.as_slice())
     }

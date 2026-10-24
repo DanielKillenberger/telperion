@@ -69,11 +69,12 @@ export interface Diagnostics {
  * 0.5, k + 0.5) * cell`. */
 export interface FieldFrame { n: number; cell: number; origin: [number, number, number] }
 /** One answer per cell, in the grid's cell order. `flags` bits: wood=1,
- * foliage=2. `woodRadius` is the thickest wood sweep reaching the cell in
- * metres, zero without wood. `leaves` estimates the stations in the cell
- * before the crown cull. `limbs` is the owning limb system, UINT32_MAX where
- * no foliage reaches. */
-export interface FieldQuery { flags: Uint8Array; woodRadius: Float32Array; leaves: Float32Array; limbs: Uint32Array }
+ * foliage=2, flowers=4. `woodRadius` is the thickest wood sweep reaching the
+ * cell in metres, zero without wood. `leaves` estimates the stations in the
+ * cell before the crown cull. `limbs` is the owning limb system, UINT32_MAX
+ * where no foliage reaches. `flowers` counts the florets whose seat lies in
+ * the cell, at the flowering window's middle. */
+export interface FieldQuery { flags: Uint8Array; woodRadius: Float32Array; leaves: Float32Array; limbs: Uint32Array; flowers: Float32Array }
 /** One chunk of the wood: at most 65,536 vertices, its indices local to it.
  * `positions` holds three f32 a vertex; `normals` two snorm16 a vertex, the
  * unit normal folded onto the octahedron (`decodeNormals` in `./wood`). */
@@ -157,7 +158,7 @@ export class TreeEngine {
     if (outputs.structure) result.structure = { values: new Float64Array(e.memory.buffer, e.buffer_ptr(6) >>> 0, e.buffer_len(6)).slice(), topology: u32(7) };
     if (diagnostics.field) result.field = {
       ...structuredClone(diagnostics.field),
-      answer: { flags: new Uint8Array(e.memory.buffer, e.buffer_ptr(8) >>> 0, e.buffer_len(8)).slice(), woodRadius: f32(25), leaves: f32(19), limbs: u32(20) },
+      answer: { flags: new Uint8Array(e.memory.buffer, e.buffer_ptr(8) >>> 0, e.buffer_len(8)).slice(), woodRadius: f32(25), leaves: f32(19), limbs: u32(20), flowers: f32(30) },
     };
     diagnostics.timings.transferMs = performance.now() - transfer;
     diagnostics.timings.buildMs = performance.now() - started;

@@ -38,11 +38,11 @@ const tree = engine.build(family, { field: { n: 36 } });
 const { n, cell, origin, answer } = tree.field!;
 // 36 cells a side over the tree's box, cell i + n * (j + n * k) centred at
 // origin + (i + 0.5, j + 0.5, k + 0.5) * cell, in metres.
-answer.flags[0]; // wood = 1, foliage = 2; zero is a valid empty cell
+answer.flags[0]; // wood = 1, foliage = 2, flowers = 4; zero is a valid empty cell
 engine.dispose();
 ```
 
-The grid is `telperion/field/voxelize`'s `grid` over the tree's own box, the one definition the device field reads too; `n` is a whole number from 3 to 256, and `{ n, limbOrder }` names limbs at that lateral order instead of the family's own. Each answer carries the cell's flags, its thickest wood radius, its leaf estimate and its owning limb, as owned copies that outlive the next build, release and disposal. The field reads the leaf plan and places no leaf; a family the plan cannot describe is refused by name. `{ structure: true }` returns six f64 values per node (xyz, distal/proximal/base radius) and three u32 values (parent, branch, kind). The root parent is `0xffffffff`; kinds are structural 0, branch 1 and twig 2. An empty output selection still generates structure for diagnostics. Invalid inputs throw, and cap diagnostics distinguish incomplete growth from a finished tree.
+The grid is `telperion/field/voxelize`'s `grid` over the tree's own box, the one definition the device field reads too; `n` is a whole number from 3 to 256, and `{ n, limbOrder }` names limbs at that lateral order instead of the family's own. Each answer carries the cell's flags, its thickest wood radius, its leaf estimate, its owning limb and its florets (`flowers`, those whose seat lies in the cell, fn-316), as owned copies that outlive the next build, release and disposal. The field reads the leaf plan and places no leaf; a family the plan cannot describe is refused by name. `{ structure: true }` returns six f64 values per node (xyz, distal/proximal/base radius) and three u32 values (parent, branch, kind). The root parent is `0xffffffff`; kinds are structural 0, branch 1 and twig 2. An empty output selection still generates structure for diagnostics. Invalid inputs throw, and cap diagnostics distinguish incomplete growth from a finished tree.
 
 Migrating from 0.1.4 (for a consumer of the published 0.1.4 package, fn-257 R8b): `{ field: true }` is `{ field: { n } }`, and the field is the grid with its answers. The cube query (`tree.field.query(cells)`), the field's `bounds` and `snapshot()` are gone, and nothing replaces them: a page that queried a regular grid asks for its side, and one that queried its own cubes reads the cells of a grid fine enough for them.
 

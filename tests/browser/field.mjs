@@ -24,8 +24,9 @@ try {
       const tree = await growField('ordinary', 5, 8, { limbOrder: 1 });
       let refused = '';
       try { await growField('ordinary', 5, 2); } catch (error) { refused = String(error); }
-      const { flags, limbs, leaves, woodRadius } = tree.answer;
-      postMessage({ n: tree.n, cell: tree.cell, flags: [...flags], limbs: [...limbs], leaves: [...leaves], woodRadius: [...woodRadius], refused, noLimb: NO_LIMB });`;
+      const { flags, limbs, leaves, woodRadius, flowers } = tree.answer;
+      const blooms = (await growField('laurelin', 5, 8)).answer.flowers.reduce((s, v) => s + v, 0);
+      postMessage({ n: tree.n, cell: tree.cell, flags: [...flags], limbs: [...limbs], leaves: [...leaves], woodRadius: [...woodRadius], flowers: [...flowers], blooms, refused, noLimb: NO_LIMB });`;
     const worker = new Worker(URL.createObjectURL(new Blob([code], { type: 'text/javascript' })), { type: 'module' });
     return await new Promise((resolve, reject) => {
       worker.onmessage = e => resolve(e.data);
@@ -35,6 +36,7 @@ try {
   const check = (ok, message) => { if (!ok) throw Error(message); };
   check(answer.n === 8 && answer.cell > 0 && answer.flags.length === 8 ** 3, 'the field is the requested grid');
   check(answer.flags.some(f => f === 3) && answer.woodRadius.some(r => r > 0) && answer.leaves.some(l => l > 0) && answer.limbs.some(l => l !== answer.noLimb), 'the grid carries wood, foliage, a radius, an estimate and a limb');
+  check(answer.flowers.every(f => f === 0) && answer.blooms > 0, `the ordinary tree flowers nowhere and the Laurelin does, got ${answer.blooms} florets`);
   check(answer.refused.includes('field grid side'), `a side of two is refused by name, got ${answer.refused}`);
   console.log(`field worker: one grid read out in the browser (${answer.flags.filter(f => f & 1).length} wood cells of ${answer.flags.length})`);
 } finally {

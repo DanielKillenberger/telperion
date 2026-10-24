@@ -25,6 +25,8 @@ answer.flags[i] & 2;         // foliage reaches cell i
 answer.woodRadius[i];        // the thickest wood radius reaching it, metres, 0 without wood
 answer.leaves[i];            // the leaf stations estimated in it, before the crown cull
 answer.limbs[i];             // the owning limb system, NO_LIMB where no foliage reaches
+answer.flags[i] & 4;         // flowers in cell i
+answer.flowers[i];           // the florets whose seat lies in it (fn-316)
 ```
 
 The request is a species id, a seed and the grid's side. The species id
@@ -51,6 +53,14 @@ holds wood where its circumsphere meets a wood sweep, so a grid overstates
 the wood by at most half a cell's diagonal; a finer grid shrinks it. A
 frond's leaflets are drawn on the device's own draws, as the harness draws
 them, so a palm's cells differ from the CPU's where its draws do.
+
+The flowers (fn-316) are the florets the drawn tree hangs at its flowering
+window's middle, each counted in the cell its seat (the floret's position)
+lies in; over the grid they sum to the tree's florets, and a tree that
+flowers nowhere answers zero everywhere. The grid's box holds every seat.
+The device counts the CPU's total but where its f32 tree hangs a floret
+more or less (Telperion at seed 5678: 10 of 157,417), and at most 4e-4 of
+the florets in a neighbouring cell, where a seat lies on a cell's face.
 
 Without WebGPU (Node, or a browser without it) every call rejects with
 `WebGPU is not available`; what a page shows then is the page's decision.
@@ -82,7 +92,14 @@ const tree = await growField("silver-birch", 7, 64);  // 64 cells a side, 62 acr
 const cubes = voxelize(tree, { woodCutoff: 0.02, thin: { rule: "gap", keep: 0.3 } });
 for (const i of cubes.wood) centre(tree, i);      // a wood cube's centre in metres
 for (const i of cubes.foliage) centre(tree, i);   // a foliage cube's centre
+for (const i of cubes.flowers) centre(tree, i);   // a flower cube's centre
 ```
+
+Each cell is in one list at most. Flowers draw where the field counts them
+and no wood draws, in place of the foliage there: a cell with leaves keeps
+its flowers where its foliage survives the thinning, and a cell with flowers
+alone, which no limb owns, always keeps them. The wood alone (`thin` left
+out) draws no flowers.
 
 Its dials are the ones `experiments/voxel-field` settled under fn-100:
 

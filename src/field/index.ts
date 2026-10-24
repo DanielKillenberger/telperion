@@ -23,11 +23,13 @@ import { side, type Grid } from "./voxelize";
 export type { Grid } from "./voxelize";
 export interface Bounds { min: [number, number, number]; max: [number, number, number] }
 /** One answer per cell, in the grid's cell order. `flags` bits: wood = 1,
- * foliage = 2. `woodRadius` is the thickest wood sweep reaching the cell, in
- * metres, zero without wood. `leaves` estimates the leaf stations in the cell
- * before the crown cull. `limbs` is the owning limb system, `NO_LIMB` where
- * no foliage reaches. */
-export interface FieldAnswer { flags: Uint8Array; woodRadius: Float32Array; leaves: Float32Array; limbs: Uint32Array }
+ * foliage = 2, flowers = 4. `woodRadius` is the thickest wood sweep reaching
+ * the cell, in metres, zero without wood. `leaves` estimates the leaf
+ * stations in the cell before the crown cull. `limbs` is the owning limb
+ * system, `NO_LIMB` where no foliage reaches. `flowers` counts the florets
+ * whose seat lies in the cell, at the flowering window's middle: over the
+ * grid they sum to the tree's florets, zero on a tree that flowers nowhere. */
+export interface FieldAnswer { flags: Uint8Array; woodRadius: Float32Array; leaves: Float32Array; limbs: Uint32Array; flowers: Float32Array }
 export const NO_LIMB = 0xffffffff;
 /** A field read out: its grid and one answer per cell. */
 export interface FieldGrid extends Grid { answer: FieldAnswer }
@@ -101,16 +103,17 @@ export async function growField(species: string, seed: number, n: number, option
   }
 }
 
-/** The binding's four words a cell, in cell order, as one answer per cell. */
+/** The binding's five words a cell, in cell order, as one answer per cell. */
 function answers(words: Uint32Array): FieldAnswer {
-  const n = words.length / 4;
-  const answer = { flags: new Uint8Array(n), woodRadius: new Float32Array(n), leaves: new Float32Array(n), limbs: new Uint32Array(n) };
+  const n = words.length / 5;
+  const answer = { flags: new Uint8Array(n), woodRadius: new Float32Array(n), leaves: new Float32Array(n), limbs: new Uint32Array(n), flowers: new Float32Array(n) };
   const floats = new Float32Array(words.buffer, words.byteOffset, words.length);
   for (let i = 0; i < n; i++) {
-    answer.flags[i] = words[4 * i];
-    answer.woodRadius[i] = floats[4 * i + 1];
-    answer.leaves[i] = floats[4 * i + 2];
-    answer.limbs[i] = words[4 * i + 3];
+    answer.flags[i] = words[5 * i];
+    answer.woodRadius[i] = floats[5 * i + 1];
+    answer.leaves[i] = floats[5 * i + 2];
+    answer.limbs[i] = words[5 * i + 3];
+    answer.flowers[i] = floats[5 * i + 4];
   }
   return answer;
 }
