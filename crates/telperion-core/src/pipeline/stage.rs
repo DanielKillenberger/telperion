@@ -1,6 +1,8 @@
 //! The stages past the skeleton, each run only where the request asks.
 #[cfg(feature = "geometry")]
 use super::Inputs;
+#[cfg(feature = "geometry")]
+use crate::pipeline::foliage::Instances;
 use super::{PlanInput, Request, Structure};
 #[cfg(feature = "geometry")]
 use crate::pipeline::field::{self, Grid};
@@ -73,15 +75,16 @@ pub(super) fn prepare(
 /// The field read out from the drawn tree (fn-257 R8): its wood and its
 /// leaf plan's records, to the request's grid, and where the tree flowers
 /// its florets at the window's middle, packed as both executors pack them
-/// (fn-316). A family the plan cannot describe is refused by name; no leaf
-/// is placed for a field.
+/// (fn-316), which it hands on so the organ output need not place them
+/// again. A family the plan cannot describe is refused by name; no leaf is
+/// placed for a field.
 #[cfg(feature = "geometry")]
 pub(super) fn field(
     tree: &Tree,
     inputs: &Inputs,
     request: Request,
     prepared: &Prepared,
-) -> Result<Option<(Grid, f64)>> {
+) -> Result<Option<(Grid, f64, Option<Instances>)>> {
     let Some(f) = request.field else {
         return Ok(None);
     };
@@ -98,7 +101,7 @@ pub(super) fn field(
         }
     };
     let grid = field::field(tree, plan, organ.as_ref(), f.n)?;
-    Ok(Some((grid, (request.clock)() - start)))
+    Ok(Some((grid, (request.clock)() - start, organ)))
 }
 
 /// The structure export: every node's record, in node order.

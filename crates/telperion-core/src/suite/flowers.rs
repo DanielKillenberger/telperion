@@ -130,6 +130,17 @@ fn the_field_counts_the_florets_the_tree_hangs() {
         field::florets_into(&mut alone, &organ).unwrap();
         assert_eq!(alone, grid, "the tree's own florets, cell by cell");
     }
+    // Asked beside the leaves, the field's florets are the organ's own.
+    let both = Request {
+        field: Some(pipeline::FieldRequest {
+            n: 24,
+            limb_order: None,
+        }),
+        ..Request::mesh()
+    };
+    let built = pipeline::build(&f, both).unwrap().outputs;
+    assert_eq!(built.organ.unwrap().instances.leaves, organ.leaves);
+    assert_eq!(built.field.unwrap(), field(&f, 24));
     let bare = field(&blossoming(0.0, 5.0), 24);
     assert!(bare.cells.iter().all(|c| c.flowers == 0.0));
 }

@@ -449,10 +449,11 @@ fn flowers_agree(trees: &[(&str, u32)], sides: &[u32]) {
                 "{id} {seed} {n}: {total} florets, device {}, moved {moved} ({share:.2e})",
                 flowers(&dev)
             );
+            // A tree the CPU finds no floret on has none on the device.
             let gap = if total > 0.0 {
                 (flowers(&dev) / total - 1.0).abs()
             } else {
-                0.0
+                flowers(&dev)
             };
             println!("  total off {gap:.2e}");
             past += usize::from(gap > FLOWERS_TOTAL || share > FLOWERS_MOVED);

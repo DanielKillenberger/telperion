@@ -65,9 +65,10 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
         stages.rings_ms += own;
         [stages.placement_ms, stages.cull_ms] = [placement, cull];
     }
-    if let Some((_, ms)) = field {
+    if let Some((_, ms, _)) = field {
         stages.field_ms = ms;
     }
+    let (field, florets) = field.map(|(f, _, o)| (f, o)).unzip();
     if !request.leaves {
         for (l, _) in leaves.iter_mut() {
             l.instances = Instances::new(l.instances.reference);
@@ -91,7 +92,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     let wood = wood
         .zip(rings)
         .map(|((faces, _), rings)| rings.into_mesh(faces));
-    let organ = organ(tree, inputs, request, prepared.reference)?;
+    let organ = organ(tree, inputs, request, prepared.reference, florets.flatten())?;
     let curve = match drawn_from {
         Some(curve) => Some(curve),
         None => traces
@@ -105,7 +106,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
         curve,
         leaves: leaves.map(|(l, _)| l),
         organ,
-        field: field.map(|(f, _)| f),
+        field,
         structure,
         stages,
     })
@@ -211,7 +212,10 @@ pub(super) fn leaves_and_field(
     prepared: &Prepared,
     twig: Option<TwigPlacement>,
     seat: Seat,
-) -> (Result<TimedLeaves>, Result<Option<(Grid, f64)>>) {
+) -> (
+    Result<TimedLeaves>,
+    Result<Option<(Grid, f64, Option<Instances>)>>,
+) {
     let both_run = prepared.reference.is_some() && prepared.leaf_plan.is_some();
     both(
         request.schedule == Schedule::Concurrent && both_run,
@@ -285,23 +289,30 @@ fn leaves(
 /// The flowers (fn-216): where leaves are asked for and the tree's ages
 /// flower, the organ element and its florets, packed against the leaves'
 /// box as the device packs its own (`foliage::bloom_box`), or their own
-/// where the tree has no leaf box; none where nothing flowers.
+/// where the tree has no leaf box; none where nothing flowers. The field's
+/// florets are these where the request draws the window's middle, its
+/// default (fn-316): placed once, they are taken.
 fn organ(
     tree: &Tree,
     inputs: &Inputs,
     request: Request,
     leaf: Option<foliage::Reference>,
+    field: Option<Instances>,
 ) -> Result<Option<crate::mesh::Foliage>> {
     if !request.leaves || tree.blooms.is_empty() {
         return Ok(None);
     }
     let element = foliage::bloom_element(&inputs.bloom)?;
     let p = &inputs.bloom;
-    let instances = match leaf {
-        Some(leaf) => {
+    let instances = match (leaf, field) {
+        (Some(leaf), Some(placed)) if request.season.is_none() => {
+            debug_assert_eq!(placed.reference, foliage::bloom_box(leaf, p));
+            placed
+        }
+        (Some(leaf), _) => {
             foliage::place_blooms_in(tree, p, request.season, foliage::bloom_box(leaf, p))?
         }
-        None => foliage::place_blooms(tree, p, request.season)?,
+        (None, _) => foliage::place_blooms(tree, p, request.season)?,
     };
     Ok(Some(crate::mesh::Foliage { element, instances }))
 }
