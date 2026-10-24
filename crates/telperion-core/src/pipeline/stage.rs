@@ -1,4 +1,6 @@
 //! The stages past the skeleton, each run only where the request asks.
+#[cfg(feature = "geometry")]
+use super::Inputs;
 use super::{PlanInput, Request, Structure};
 #[cfg(feature = "geometry")]
 use crate::pipeline::field::{self, Grid};
@@ -69,11 +71,14 @@ pub(super) fn prepare(
 }
 
 /// The field read out from the drawn tree (fn-257 R8): its wood and its
-/// leaf plan's records, to the request's grid. A family the plan cannot
-/// describe is refused by name; no leaf is placed for a field.
+/// leaf plan's records, to the request's grid, and where the tree flowers
+/// its florets at the window's middle, packed as both executors pack them
+/// (fn-316). A family the plan cannot describe is refused by name; no leaf
+/// is placed for a field.
 #[cfg(feature = "geometry")]
 pub(super) fn field(
     tree: &Tree,
+    inputs: &Inputs,
     request: Request,
     prepared: &Prepared,
 ) -> Result<Option<(Grid, f64)>> {
@@ -84,7 +89,15 @@ pub(super) fn field(
         "a field reads the leaf plan, which does not describe this family",
     ))?;
     let start = (request.clock)();
-    let grid = field::field(tree, plan, f.n)?;
+    let organ = match tree.blooms.is_empty() {
+        true => None,
+        false => {
+            let leaf = Reference::grown(tree, inputs.plan.reach.clone()?);
+            let within = foliage::bloom_box(leaf, &inputs.bloom);
+            Some(foliage::place_blooms_in(tree, &inputs.bloom, None, within)?)
+        }
+    };
+    let grid = field::field(tree, plan, organ.as_ref(), f.n)?;
     Ok(Some((grid, (request.clock)() - start)))
 }
 

@@ -13,9 +13,16 @@
 //! (a box: the cube itself) meets their record, counted as the share of
 //! the record's midline inside the closed cube. The circumsphere
 //! overestimates by at most a cell's half diagonal; finer grids shrink it.
+//!
+//! The flowers (fn-316) are the florets the drawn tree hangs, at the
+//! window's middle: each one counted in the cell its seat lies in.
 #[cfg(feature = "geometry")]
 mod splat;
-use crate::{math::Vec3, pipeline::foliage::Bounds, Error, Result};
+use crate::{
+    math::Vec3,
+    pipeline::foliage::{withered, Bounds, Instances},
+    Error, Result,
+};
 #[cfg(feature = "geometry")]
 use crate::{pipeline::foliage::plan::Plan, tree::Tree};
 
@@ -24,7 +31,8 @@ use crate::{pipeline::foliage::plan::Plan, tree::Tree};
 /// `leaves` estimates the stations in the cell before the crown-shell cull:
 /// over the grid the estimates sum to the plan's total. `limb` is the limb
 /// system with the largest estimate in the cell, the lower id on a tie, and
-/// `None` where no foliage reaches.
+/// `None` where no foliage reaches. `flowers` counts the florets whose
+/// seat lies in the cell: over the grid they sum to the tree's florets.
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Occupancy {
     pub wood: bool,
@@ -32,6 +40,7 @@ pub struct Occupancy {
     pub foliage: bool,
     pub leaves: f64,
     pub limb: Option<u32>,
+    pub flowers: f64,
 }
 
 /// The grid a field is read to (fn-257, "The grid"): `n` cells a side,
@@ -97,10 +106,60 @@ pub struct Grid {
 }
 
 #[cfg(feature = "geometry")]
-/// The drawn tree's field over its own box at `n` cells a side.
-pub(crate) fn field(tree: &Tree, plan: &Plan, n: u32) -> Result<Grid> {
-    let b = bounds(tree, plan)?.ok_or(Error::InvalidInput("field of an empty tree"))?;
-    read(tree, plan, Frame::over(b, n)?)
+/// The drawn tree's field over its own box at `n` cells a side, its
+/// `organ`'s florets counted where it flowers.
+pub(crate) fn field(tree: &Tree, plan: &Plan, organ: Option<&Instances>, n: u32) -> Result<Grid> {
+    let mut b = bounds(tree, plan)?;
+    if let Some(s) = organ.and_then(seat_bounds) {
+        b = Some(union(b, s));
+    }
+    let b = b.ok_or(Error::InvalidInput("field of an empty tree"))?;
+    let mut grid = read(tree, plan, Frame::over(b, n)?)?;
+    if let Some(organ) = organ {
+        florets_into(&mut grid, organ)?;
+    }
+    Ok(grid)
+}
+
+/// Where each of `organ`'s florets hangs from: its instance's stored
+/// position, its rachis instances left out.
+pub fn seats(organ: &Instances) -> impl Iterator<Item = Vec3> + '_ {
+    let r = organ.reference;
+    (organ.leaves.iter())
+        .filter(|l| !withered(**l))
+        .map(move |l| r.position(*l))
+}
+
+/// The box `organ`'s seats stand in, none where it has no floret.
+pub fn seat_bounds(organ: &Instances) -> Option<Bounds> {
+    let point = |p: Vec3| Bounds { min: p, max: p };
+    seats(organ).fold(None, |b, p| {
+        Some(match b {
+            None => point(p),
+            Some(b) => union(Some(b), point(p)),
+        })
+    })
+}
+
+/// `organ`'s florets counted into `grid`, each in the cell its seat lies
+/// in (`floor` of its offset from the origin over the cell). A seat
+/// outside the grid is refused.
+pub fn florets_into(grid: &mut Grid, organ: &Instances) -> Result<()> {
+    let f = grid.frame;
+    let n = i64::from(f.n);
+    for p in seats(organ) {
+        let at = |v: f64, o: f64| ((v - o) / f.cell).floor() as i64;
+        let [i, j, k] = [
+            at(p.x, f.origin.x),
+            at(p.y, f.origin.y),
+            at(p.z, f.origin.z),
+        ];
+        if ![i, j, k].iter().all(|c| (0..n).contains(c)) {
+            return Err(Error::InvalidInput("a floret outside the field"));
+        }
+        grid.cells[(i + n * (j + n * k)) as usize].flowers += 1.0;
+    }
+    Ok(())
 }
 
 #[cfg(feature = "geometry")]
@@ -140,7 +199,6 @@ pub fn read(tree: &Tree, plan: &Plan, frame: Frame) -> Result<Grid> {
     Ok(grid)
 }
 
-#[cfg(feature = "geometry")]
 /// `a` grown to hold `b`.
 fn union(a: Option<Bounds>, b: Bounds) -> Bounds {
     let Some(a) = a else { return b };

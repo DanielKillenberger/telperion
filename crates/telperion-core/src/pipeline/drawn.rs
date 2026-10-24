@@ -216,7 +216,7 @@ pub(super) fn leaves_and_field(
     both(
         request.schedule == Schedule::Concurrent && both_run,
         || leaves(tree, inputs, request, prepared, twig, seat),
-        || stage::field(tree, request, prepared),
+        || stage::field(tree, inputs, request, prepared),
     )
 }
 
