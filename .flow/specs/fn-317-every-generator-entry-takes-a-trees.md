@@ -19,7 +19,7 @@ Two findings from the site's port on 2131d5b (killenberger.com fn-46.3, measured
 
 ## Unknown, check before the plan
 
-- Why a first adapter request fails where a later one succeeds: whether it is Chrome's headless adapter start, our request's options, or a race with `prepareField`. Read the code path, and reproduce it on the owner's machine only through the owner (agents do not drive WebGPU in a browser).
+- Why a first adapter request fails where a later one succeeds: whether it is Chrome's headless adapter start, our request's options, or a race with `prepareField`. Read the code path, and reproduce it on the owner's machine only through the owner (agents do not drive WebGPU in a browser). The site's repro (killenberger fn-46.3, twice on 2131d5b): Chromium headless=new with `--enable-unsafe-webgpu --enable-features=Vulkan,VulkanFromANGLE,DefaultANGLEVulkan --use-angle=vulkan --use-vulkan=native --disable-vulkan-surface --ignore-gpu-blocklist --disable-software-rasterizer`, a fresh `--user-data-dir`, over CDP, on the owner's hardware Vulkan adapter. `prepareField` did not run. The first WebGPU use was `growField(id, seed, n, { source: <compileField Module> })`. Whether it ran in a module worker or on the page is unknown. The site's own client calls `requestAdapter` on the main thread first, which probably masks this in production. The site's fn-46.4 reruns it on the new `next`, worker or page × with or without `prepareField`, and sends the matrix.
 
 ## Requirements
 
