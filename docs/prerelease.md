@@ -12,7 +12,6 @@ it from a green master Tests run, under `latest`.
 ```sh
 gh workflow run prerelease.yml -r <branch>                 # publish the branch's tip
 gh workflow run prerelease.yml -r <branch> -f dry_run=true # pack and list it, publish nothing
-gh workflow run prerelease.yml -r <branch> -f ref=<sha>    # publish another ref with the branch's workflow
 ```
 
 Or, from the Actions tab, open Prerelease, choose Run workflow, pick the
@@ -22,7 +21,8 @@ GitHub dispatches a workflow only when its file is on the default branch,
 so `prerelease.yml` has to be on `master` before the first run; until then
 `gh workflow run` cannot find it.
 
-The job checks out the ref, builds the package through the package job's own
+The job checks out the commit it was dispatched on (the branch's tip), so
+the provenance names the commit that was built. It builds the package through the package job's own
 build (`.github/actions/package`: the pinned toolchain, `npm run build` and
 the artifact-size check), then sets the version, packs the tarball, lists
 its files and runs `npm publish --tag next --provenance` on it. A dry run

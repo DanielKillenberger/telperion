@@ -9,11 +9,11 @@ The released package is published by `release.yml` from a green master Tests run
 ## Acceptance Criteria
 
 - **R1:** a GitHub Actions workflow with `workflow_dispatch` only, never on push or on a schedule.
-  - **Inputs:** a ref, the release branch by default, and `dry_run`.
-  - **Steps:** check out the ref, then build the package exactly as CI's package job does, on the pinned toolchain, with the same artifact-size check. Set the version to `<package.json version>-next.<YYYYMMDD>.<short sha>` in the job only, never committed. Then `npm publish --tag next --provenance`.
+  - **Inputs:** `dry_run` only. The run builds the commit it was dispatched on (`gh workflow run <file> -r <branch>`, the release branch as a rule), so the provenance always names what was built. Amended by the host, 2026-10-24: the original `ref` input was dropped, because a ref other than the dispatched commit would be built while the provenance named the dispatched one (task 2's codex review).
+  - **Steps:** check out the dispatched commit, then build the package exactly as CI's package job does, on the pinned toolchain, with the same artifact-size check. Set the version to `<package.json version>-next.<YYYYMMDD>.<short sha>` in the job only, never committed. Then `npm publish --tag next --provenance`.
   - **Never `latest`:** it never publishes under the `latest` tag. The job fails if the version has no `-next.` suffix.
   - **Dry run:** with `dry_run` the job runs `npm publish --dry-run` and lists the tarball, with no token needed.
-  - Errors: a ref that does not resolve fails the checkout; a build or size-ceiling failure fails the job before any version is set; a version that is not valid semver (an all-digit short sha with a leading zero) fails at `npm version` with npm's message; a version without `-next.` or a tag other than `next` fails before publish; a version already on npm (a rerun at the same commit on the same day) fails with a message naming it.
+  - Errors: a branch that does not exist fails at `gh workflow run`; a build or size-ceiling failure fails the job before any version is set; a version that is not valid semver (an all-digit short sha with a leading zero) fails at the version step, which compares the version npm wrote with the one it asked for (npm 11.19 drops the zero and exits 0, measured in task 2); a version without `-next.` or a tag other than `next` fails before publish; a version already on npm (a rerun at the same commit on the same day) fails with a message naming it.
 - **R2:** the token is a repository secret, `NPM_TOKEN`: an npm token the owner creates and adds. The workflow names the secret and fails with a clear message when it is missing. No token is ever printed.
   - npm removed classic automation tokens in November 2025 (plan review, 2026-10-24), so the token is a granular access token with read and write on `telperion`, with "bypass two-factor authentication" set when the package or account requires 2FA for publishing.
   - The workflow authenticates through `actions/setup-node` with `registry-url`, whose `.npmrc` reads `NODE_AUTH_TOKEN`; the secret reaches only the publish step's `NODE_AUTH_TOKEN`.
@@ -51,7 +51,7 @@ Active tracks served by this plan:
 
 - **Sharing:** the build steps from the toolchain to the size check move into a composite action both workflows call; a reusable workflow was rejected because the prerelease needs the built tree in its own job to set the version and pack, and a reusable workflow hands back only artifacts.
 - **Version set after the build:** the version is changed after the build and the size check, right before `npm pack`, so the built files are byte for byte what the package job builds and only `package.json` in the tarball differs.
-- **Default ref:** the workflow checks out its `ref` input when given, else the ref it was dispatched on (`-r <branch>`); dispatching on the release branch is the default the docs give, so no branch name is written into the workflow.
+- **Default ref:** the workflow checks out the commit it was dispatched on (`-r <branch>`), with no `ref` input (host ruling, 2026-10-24); dispatching on the release branch is what the docs give, so no branch name is written into the workflow.
 - **Dry run:** the dry run packs and runs the same `npm publish` command with `--dry-run` added, against the packed tarball, so it shows the file list that would ship.
 - **Token versus trusted publishing:** npm's trusted publisher names `release.yml`; whether npm accepts a second trusted publisher per package is unverified, so the prerelease uses the token the spec names.
 

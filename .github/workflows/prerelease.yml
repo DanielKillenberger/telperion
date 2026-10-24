@@ -1,7 +1,8 @@
 name: Prerelease
 
 # Publishes a prerelease of the package under the npm dist-tag next, only
-# when the owner dispatches it (docs/prerelease.md). It checks out the ref,
+# when the owner dispatches it (docs/prerelease.md). It checks out the
+# dispatched commit,
 # builds through the package job's own build (./.github/actions/package),
 # then sets the version to <package.json version>-next.<YYYYMMDD>.<short sha>
 # in the job only, packs, and publishes the packed tarball. A version without
@@ -15,10 +16,6 @@ name: Prerelease
 on:
   workflow_dispatch:
     inputs:
-      ref:
-        description: The branch, tag or commit to publish; empty publishes the ref the run was dispatched on
-        type: string
-        default: ''
       dry_run:
         description: Pack and run npm publish --dry-run; nothing is published and no token is read
         type: boolean
@@ -39,9 +36,9 @@ jobs:
     env:
       DIST_TAG: next
     steps:
+      # The dispatched commit (gh workflow run -r <branch>), so the
+      # provenance names the commit that was built.
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ inputs.ref || github.ref }}
 
       # The build, from the toolchain to the size check, as the package job
       # runs it; outside a pull request the size check holds the ceilings only.
