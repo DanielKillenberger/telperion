@@ -11,9 +11,65 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-24T11:17:52.441892Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "e1dd2cf01b378d4ac8d299b57fb2aaaa8c62401332ef5d61933a8e4f86b5ea91",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-487aaaf9956df768d63ad2b69d3cdeff",
+            "classification": "introduced",
+            "findingId": "finding-487aaaf9956df768d63ad2b69d3cdeff",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "62f4f7af4bec45ebeb0227a88e0c965bbd3db6eb",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 272886,
+      "output_sha256": "4777ed40334a59fa748eca2c69863151de3ac5e23fcb0ec3a163428aee007cc4",
+      "reservation_id": "8ec04ee2128f4b1bbd6c8d48c2d7f0dd",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T11:17:52.433540Z",
+      "tool_calls": 12,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-311-wgpu-comes-from-a-fork-carrying.md",
   "status": "open",
   "title": "wgpu comes from a fork carrying upstream's async pipelines",
@@ -28,5 +84,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T11:15:46.993851Z"
+  "updated_at": "2026-10-24T11:17:52.446580Z"
 }

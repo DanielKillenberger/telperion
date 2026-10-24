@@ -7,8 +7,8 @@ satisfies: [R2, R3, R4]
 Switch the workspace from the vendored copy to the fork at the rev task .1 recorded (`.flow/evidence/fn-311-wgpu-comes-from-a-fork-carrying/FORK.md`), move the one call site to the PR's signature, add the one-of-each check, and run the spec's R4 proof. One task because the patch switch, the call site and the lock do not build apart.
 
 **Size:** M
-**Files:** `Cargo.toml`, `Cargo.lock`, `vendor/**` (deleted), `docs/wgpu-fork.md` (new), `crates/telperion-render/src/programs.rs`, `scripts/wgpu-family.test.mjs` (new), `scripts/ci-key.mjs`
-**Touches:** [Cargo.toml, Cargo.lock, vendor/**, docs/wgpu-fork.md, crates/telperion-render/src/programs.rs, scripts/wgpu-family.test.mjs, scripts/ci-key.mjs, .flow/evidence/fn-311-wgpu-comes-from-a-fork-carrying/**]
+**Files:** `Cargo.toml`, `Cargo.lock`, `vendor/**` (deleted), `docs/wgpu-fork.md` (new), `crates/telperion-render/src/programs.rs`, `crates/telperion-render/src/programs/tests.rs`, `scripts/wgpu-family.test.mjs` (new), `scripts/ci-key.mjs`
+**Touches:** [Cargo.toml, Cargo.lock, vendor/**, docs/wgpu-fork.md, crates/telperion-render/src/programs.rs, crates/telperion-render/src/programs/tests.rs, scripts/wgpu-family.test.mjs, scripts/ci-key.mjs, .flow/evidence/fn-311-wgpu-comes-from-a-fork-carrying/**]
 
 ### Approach
 - `Cargo.toml:9-17`: drop `exclude = ["vendor"]` and its comment; `[patch.crates-io]` lists wgpu, wgpu-core, wgpu-hal, wgpu-types, naga, wgpu-naga-bridge as `{ git = "https://github.com/DanielKillenberger/wgpu", rev = "<full sha>" }`, with a one-line comment pointing at `docs/wgpu-fork.md`. Then `cargo update -p wgpu` (or the minimal update that rewrites only the family entries) and read the lock diff: every family entry, including `naga-types` and `wgpu-core-deps-*`, must read `source = "git+https://github.com/DanielKillenberger/wgpu?rev=<sha>#<sha>"`. Add a patch entry for any family crate still from the registry. No other lock entry may change version; report any that does.
