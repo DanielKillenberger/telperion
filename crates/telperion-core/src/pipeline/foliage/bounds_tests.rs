@@ -153,6 +153,7 @@ fn transformed_box_encloses_points_with_identical_sum_order() {
 /// fn-297 R3: a flower's element carries how far its stalks reach, which
 /// bounds add about each instance's origin; stalks with no length add
 /// nothing.
+#[cfg(feature = "geometry")]
 #[test]
 fn stalks_reach_from_each_origin_and_none_without_length() {
     for (rachis, pedicel) in [(0.0, 0.0), (0.0, 0.03), (0.5, 0.0), (0.5, 0.03)] {

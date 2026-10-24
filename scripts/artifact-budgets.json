@@ -33,11 +33,11 @@
       "baselineOn": "master ed23f773 CI package (PR #131)"
     },
     {
-      "path": "dist/wasm-source.js",
+      "path": "dist/module.js",
       "ceilingBytes": 70000,
-      "reason": "fn-257, 2026-10-16: the chunk the main and the field entries share since the field grows through the renderer's glue (64,564 bytes on fn-257's branch); owner's 2026-10-16 decision on raised ceilings, fn-242 after the release",
-      "baselineBytes": 64564,
-      "baselineOn": "fn-257-device-field bdf5c51b3, npm run build"
+      "reason": "fn-257, 2026-10-16: the chunk the main and the field entries share since the field grows through the renderer's glue (64,564 bytes on fn-257's branch); owner's 2026-10-16 decision on raised ceilings, fn-242 after the release; fn-297 (171e522cc) renamed the shared chunk after src/browser/module.ts, from dist/wasm-source.js",
+      "baselineBytes": 64631,
+      "baselineOn": "fn-314-the-release-branchs-ci-is-green-and-the 2df6401e1, npm run build"
     },
     {
       "path": "dist/voxelize.js",
