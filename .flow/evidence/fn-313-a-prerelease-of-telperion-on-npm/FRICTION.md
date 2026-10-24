@@ -41,3 +41,10 @@
 - **Slowed by:** another worktree's gate (f4-311, `cargo test --profile ci`) runs its test binaries under `target/ci/deps`, so the review waits for it; the check also matches that worktree's `rustc` compiles (`--out-dir .../target/ci/deps`), which are not test binaries and need a filter to tell apart.
 - **Cost:** over 10 minutes of waiting, so far.
 - **Would remove it:** a `telperion-heavy` mode that waits for running test binaries itself, so a reviewer dispatch (which builds nothing) is not serialised behind a sibling gate by hand.
+
+## 2026-10-24 14:35, conductor, task 3 review
+
+- **Doing:** dispatching task 3's codex impl-review after the host's trusted-publishing ruling.
+- **Slowed by:** a second sibling gate (f4-312) started its test binaries just before the dispatch, so the review waits again; f4-311's gate had already cost about 25 minutes of waiting before the completion review earlier.
+- **Cost:** about 20 minutes per sibling gate, serialised by hand.
+- **Would remove it:** the same as the 13:50 entry: a queue in `telperion-heavy` that holds a dispatch while a gate's test binaries run, instead of each conductor polling `ps`.
