@@ -11,9 +11,65 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-24T11:49:13.413200Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "7a5f9b78f9c12be551088711881a28bf8bd3481b6a096439111f92e1a7ae6d4e",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ec6dc84dc5be843acb086108d1f2c3be",
+            "classification": "introduced",
+            "findingId": "finding-ec6dc84dc5be843acb086108d1f2c3be",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b6a958881f023b34b692fbaf051a7a468ef0bb2a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 190303,
+      "output_sha256": "9f28e43594a9eb98a89caad6d1a48d11272568e2ea64ee6676813309720c19d0",
+      "reservation_id": "2f0b5003d05f4fe6a21637918f895b9d",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T11:49:13.405927Z",
+      "tool_calls": 15,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-314-the-release-branchs-ci-is-green-and-the.md",
   "status": "open",
   "title": "The release branch's CI is green, and the local gate sees what CI sees",
@@ -28,5 +84,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T11:47:22.788442Z"
+  "updated_at": "2026-10-24T11:49:13.416817Z"
 }
