@@ -58,6 +58,11 @@ describe('release.yml triggers', () => {
     expect(jobs.prerelease).not.toContain('||');
   });
 
+  it('queues a dispatch apart from releases', () => {
+    // In one group a later pending dispatch replaces a pending release.
+    expect(text).toMatch(/^\s+group: \$\{\{ github\.event_name == 'workflow_dispatch' && 'prerelease' \|\| 'release' \}\}$/m);
+  });
+
   it('never names latest as a dist-tag', () => {
     expect(text).not.toMatch(/--tag\s+["']?latest/);
     expect(text).toMatch(/^\s+DIST_TAG: next$/m);

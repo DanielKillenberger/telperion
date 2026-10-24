@@ -37,8 +37,10 @@ on:
 permissions:
   contents: read
 
+# A dispatch queues apart from releases: in one group, a pending release
+# would be replaced by a later pending dispatch and never run.
 concurrency:
-  group: release
+  group: ${{ github.event_name == 'workflow_dispatch' && 'prerelease' || 'release' }}
   cancel-in-progress: false
 
 jobs:
@@ -154,8 +156,17 @@ jobs:
             exit 1
           fi
 
+      # The shared npm setup comes from this workflow's own revision, since the
+      # tested commit may predate it.
       - if: steps.version.outputs.publish == 'true'
-        uses: ./.github/actions/npm-publisher
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          path: .release-workflow
+          sparse-checkout: .github/actions/npm-publisher
+
+      - if: steps.version.outputs.publish == 'true'
+        uses: ./.release-workflow/.github/actions/npm-publisher
 
       - if: steps.version.outputs.publish == 'true' && steps.version.outputs.tagged != 'true'
         name: Tag the tested commit
