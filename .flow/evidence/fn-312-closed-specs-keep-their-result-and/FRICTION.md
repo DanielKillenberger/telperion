@@ -11,3 +11,7 @@
 ## 2026-10-24 - re-review waits on sibling worktrees
 
 What: before the fn-312.1 re-review, the one-at-a-time check (`ps | grep target/ci/deps`) never stayed clear for 40 s: f4-311 runs gate_test.py exact tests back to back and f4-314 compiles. Cost: about 2 minutes polling. What would remove it: a shared lock (or `telperion-heavy` admission alone) as the serialiser, not a ps grep across other worktrees, which a sibling's test loop keeps busy. Proceeded under `telperion-heavy` admission, since a codex review runs no cargo.
+
+## 2026-10-24, task 2: dcg blocks the manifest's own recovery spelling
+
+Doing: checking the recovery command for one removed file, as the task's acceptance asks. Hindered: dcg refuses `git show <rev>:<path> > <path>` (the 2026-10-16 manifest's spelling), `git checkout <rev> -- <path>` and `git restore --source`, even in a scratch worktree where the path is absent. Cost: three tool calls, about 3 minutes. Removed by: writing the recovery as `git archive <rev> -- <paths> | tar -x`, which dcg allows, recreates files and directories from pathspecs, and was checked by blob id. Proposed fix: none in the repository; the 2026-10-16 entry's spelling still works for a person outside dcg.
