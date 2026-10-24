@@ -27,3 +27,7 @@ for (let i = 0; i < organ.leaves.length / 3; i++) {
 ```
 
 The petals' colours are the family's `/material/bloom*` rows, not part of the output.
+
+## In the field
+
+Both fields, the CPU entry's (`{ field: { n } }`) and `telperion/field`'s, count a flowering tree's florets per cell (fn-316): `answer.flowers: Float32Array`, the florets whose seat lies in the cell at the flowering window's middle, and `flags` bit 4 where there are any. Nothing a 0.1.4 reader used changed: the other answers are as they were, on the same grid. `telperion/field/voxelize`'s `Cubes` gains `flowers: Uint32Array`, cells drawn as flowers in place of foliage ([docs/field-package.md](field-package.md)).

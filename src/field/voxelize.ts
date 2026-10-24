@@ -8,7 +8,10 @@
  * draws where the cell's thickest wood is at least the cutoff, through any
  * foliage; foliage draws elsewhere where the field reports it, thinned to a
  * keep fraction by one of five rules. Thinner wood is the twigs, and a
- * dropped clump takes them. */
+ * dropped clump takes them. Flowers (fn-316) draw where the field counts
+ * them and no wood draws, in place of the foliage there: a cell with leaves
+ * keeps its flowers where its foliage survives the thinning, and a cell with
+ * flowers alone, which no limb owns, always keeps them. */
 import type { Bounds, FieldGrid } from "./index";
 
 /** The grid a field is read to (fn-257): `n` cells a side, `cell` metres
@@ -51,10 +54,11 @@ export interface Dials {
   /** Left out, no foliage draws: the wood alone. */
   thin?: Thinning;
 }
-/** Cell indices to draw as wood and as foliage, and the number of distinct
- * limb systems the foliage was thinned over. */
-export interface Cubes { wood: Uint32Array; foliage: Uint32Array; clumps: number }
-const WOOD = 1, LEAF = 2;
+/** Cell indices to draw as wood, as foliage and as flowers, each cell in one
+ * of them at most, and the number of distinct limb systems the foliage was
+ * thinned over. */
+export interface Cubes { wood: Uint32Array; foliage: Uint32Array; flowers: Uint32Array; clumps: number }
+const WOOD = 1, LEAF = 2, FLOWER = 4;
 
 /** The cubes a field draws as: `field` is a grid with its answers, as
  * `growField` returns it. */
@@ -68,20 +72,24 @@ export function voxelize(field: FieldGrid, dials: Dials): Cubes {
   const wood: number[] = [];
   const limb = (i: number) => (flags[i] & 1) !== 0 && woodRadius[i] >= dials.woodCutoff;
   for (let i = 0; i < count; i++) if (limb(i)) { drawn[i] = WOOD; wood.push(i); }
-  if (dials.thin === undefined) return { wood: Uint32Array.from(wood), foliage: new Uint32Array(0), clumps: 0 };
+  if (dials.thin === undefined) return { wood: Uint32Array.from(wood), foliage: new Uint32Array(0), flowers: new Uint32Array(0), clumps: 0 };
   const { rule, keep } = dials.thin;
   if (!(keep >= 0 && keep <= 1)) throw RangeError("keep is a fraction");
   const coins = new Set<number>();
   const foliage: number[] = [];
   for (let i = 0; i < count; i++) if (!limb(i) && flags[i] & 2) { foliage.push(i); coins.add(limbs[i]); }
-  if (rule === "coin") {
-    const kept = foliage.filter(i => coin(limbs[i], keep));
-    return { wood: Uint32Array.from(wood), foliage: Uint32Array.from(kept), clumps: coins.size };
-  }
-  const score = SCORES[rule](field, foliage, drawn, limbs, leaves);
+  const kept = rule === "coin" ? foliage.filter(i => coin(limbs[i], keep)) : thinned(field, foliage, drawn, rule, keep);
+  const survived = new Set(kept);
+  const flowers: number[] = [];
+  for (let i = 0; i < count; i++) if (!limb(i) && flags[i] & FLOWER && (!(flags[i] & LEAF) || survived.has(i))) flowers.push(i);
+  const bloom = new Set(flowers);
+  return { wood: Uint32Array.from(wood), foliage: Uint32Array.from(kept.filter(i => !bloom.has(i))), flowers: Uint32Array.from(flowers), clumps: coins.size };
+}
+/** The foliage cells `rule` ranks highest, `keep` of them. */
+function thinned(field: FieldGrid, foliage: number[], drawn: Uint8Array, rule: Exclude<ThinRule, "coin">, keep: number): number[] {
+  const score = SCORES[rule](field, foliage, drawn, field.answer.limbs, field.answer.leaves);
   const ranked = foliage.map((i, at) => ({ i, at })).sort((a, b) => score[b.at] - score[a.at]);
-  const survivors = Math.round(foliage.length * keep);
-  return { wood: Uint32Array.from(wood), foliage: Uint32Array.from(ranked.slice(0, survivors), r => r.i), clumps: coins.size };
+  return ranked.slice(0, Math.round(foliage.length * keep)).map(r => r.i);
 }
 /** A stable coin per limb id: the same limb always answers the same. */
 export function coin(limb: number, keep: number): boolean {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ORDINARY, TreeEngine } from "../browser/core";
+import { LAURELIN, ORDINARY, TreeEngine } from "../browser/core";
 import type { FieldAnswer, FieldGrid } from "./index";
 import { NO_LIMB } from "./index";
 import { centre, coin, grid, voxelize, type ThinRule } from "./voxelize";
@@ -10,7 +10,7 @@ const N = 4;
 const BOUNDS = { min: [-1, 0, -1] as [number, number, number], max: [1, 4, 1] as [number, number, number] };
 function fixture(): FieldAnswer {
   const count = N ** 3;
-  const a = { flags: new Uint8Array(count), woodRadius: new Float32Array(count), leaves: new Float32Array(count), limbs: new Uint32Array(count).fill(NO_LIMB) };
+  const a = { flags: new Uint8Array(count), woodRadius: new Float32Array(count), leaves: new Float32Array(count), limbs: new Uint32Array(count).fill(NO_LIMB), flowers: new Float32Array(count) };
   const wood = (i: number, radius: number) => { a.flags[i] |= 1; a.woodRadius[i] = radius; };
   const leaf = (i: number, limb: number, leaves: number) => { a.flags[i] |= 2; a.limbs[i] = limb; a.leaves[i] = leaves; };
   wood(0, 0.05); // the trunk
@@ -113,4 +113,44 @@ describe("the thinning rules", () => {
   it("gap erodes a system where it meets another and keeps its interior", () => {
     expect([...thin("gap", 0.5).foliage]).toEqual([17, 2, 6, 5]);
   });
+});
+
+describe("the flowers", () => {
+  // Florets on drawn wood (4), on two foliage cells (5 of limb 7, 10 of
+  // limb 9) and on a cell no leaf reaches (33).
+  const flowering = () => {
+    const a = fixture();
+    for (const [i, florets] of [[4, 2], [5, 3], [10, 1], [33, 4]]) { a.flags[i] |= 4; a.flowers[i] = florets; }
+    return field(a);
+  };
+  const thin = (rule: ThinRule, keep: number) => voxelize(flowering(), { woodCutoff: 0.02, thin: { rule, keep } });
+  it("draw where the field counts them and no wood draws, in place of the foliage there", () => {
+    const cubes = thin("density", 1);
+    expect([...cubes.flowers]).toEqual([5, 10, 33]);
+    expect([...cubes.foliage].sort((a, b) => a - b)).toEqual([1, 2, 6, 9, 17]);
+    expect([...cubes.wood]).toEqual([0, 4]);
+  });
+  it("go with the foliage the thinning drops, and stay where no limb owns them", () => {
+    // Density at a half keeps 2, 6, 5 and 9: limb 9's cell 10 goes.
+    expect([...thin("density", 0.5).flowers]).toEqual([5, 33]);
+    expect([...thin("coin", 0).flowers]).toEqual([33]);
+  });
+  it("draw nothing with the wood alone, and nothing on a tree that flowers nowhere", () => {
+    expect(voxelize(flowering(), { woodCutoff: 0.02 }).flowers.length).toBe(0);
+    expect(voxelize(field(), { woodCutoff: 0.02, thin: { rule: "density", keep: 1 } }).flowers.length).toBe(0);
+  });
+});
+
+describe("the CPU field's flowers", () => {
+  it("count the florets a flowering tree hangs and set their bit, and a tree that flowers nowhere has none", async () => {
+    const engine = await TreeEngine.create();
+    const sum = (a: Float32Array) => a.reduce((s, v) => s + v, 0);
+    const laurelin = engine.build(LAURELIN, { field: { n: 12 } }).field!.answer;
+    expect(sum(laurelin.flowers)).toBeGreaterThan(0);
+    for (let i = 0; i < laurelin.flags.length; i++) expect((laurelin.flags[i] & 4) !== 0, `cell ${i}`).toBe(laurelin.flowers[i] > 0);
+    const ordinary = engine.build(ORDINARY, { field: { n: 12 } }).field!.answer;
+    expect(ordinary.flowers.length).toBe(12 ** 3);
+    expect(sum(ordinary.flowers)).toBe(0);
+    engine.dispose();
+  }, 120_000);
 });

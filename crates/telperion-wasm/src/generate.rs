@@ -24,14 +24,16 @@ pub(crate) struct Output {
     pub(crate) field: FieldCells,
 }
 /// The field's grid as the binding hands it on, one entry a cell in the
-/// grid's order: the flags (wood 1, foliage 2), the leaf estimate, the limb
-/// system (`u32::MAX` for none) and the thickest wood radius.
+/// grid's order: the flags (wood 1, foliage 2, flowers 4), the leaf
+/// estimate, the limb system (`u32::MAX` for none), the thickest wood
+/// radius and the florets (fn-316).
 #[derive(Default)]
 pub(crate) struct FieldCells {
     pub(crate) occupancy: Vec<u8>,
     pub(crate) leaves: Vec<f32>,
     pub(crate) limbs: Vec<u32>,
     pub(crate) wood_radii: Vec<f32>,
+    pub(crate) flowers: Vec<f32>,
 }
 impl FieldCells {
     fn of(grid: &Grid) -> Result<Self> {
@@ -42,15 +44,18 @@ impl FieldCells {
             out.leaves.try_reserve_exact(n),
             out.limbs.try_reserve_exact(n),
             out.wood_radii.try_reserve_exact(n),
+            out.flowers.try_reserve_exact(n),
         ] {
             reserve.map_err(|_| Error::ResourceLimit("field output"))?;
         }
         for c in &grid.cells {
+            let flowers = u8::from(c.flowers > 0.0) << 2;
             out.occupancy
-                .push(u8::from(c.wood) | (u8::from(c.foliage) << 1));
+                .push(u8::from(c.wood) | (u8::from(c.foliage) << 1) | flowers);
             out.leaves.push(c.leaves as f32);
             out.limbs.push(c.limb.unwrap_or(u32::MAX));
             out.wood_radii.push(c.wood_radius as f32);
+            out.flowers.push(c.flowers as f32);
         }
         Ok(out)
     }

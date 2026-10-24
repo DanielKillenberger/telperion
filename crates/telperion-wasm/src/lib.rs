@@ -151,7 +151,7 @@ fn slot(o: &Output, slot: u32) -> (*const u8, usize) {
         ),
         6 => of(&o.structure),
         7 => of(&o.topology),
-        // The field's grid, one byte a cell: wood 1, foliage 2. Slots 9
+        // The field's grid, one byte a cell: wood 1, foliage 2, flowers 4. Slots 9
         // to 13 held the removed field snapshot.
         8 => of(&o.field.occupancy),
         // Slots 0 to 2 and 14 held the flat wood; `chunk_ptr` reads its
@@ -177,6 +177,9 @@ fn slot(o: &Output, slot: u32) -> (*const u8, usize) {
                 i.leaves.len() * telperion_core::foliage::WORDS,
             )
         }),
+        // Beside slot 25: one f32 a cell, the florets whose seat lies in
+        // it (fn-316).
+        30 => of(&o.field.flowers),
         _ => (std::ptr::null(), 0),
     }
 }
