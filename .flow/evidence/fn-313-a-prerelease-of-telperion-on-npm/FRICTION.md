@@ -20,3 +20,17 @@
 - Hindered: the file is a vitest test (`import ... from 'vitest'`), so `node --test` fails on the base before any edit (`TypeError: Cannot read properties of undefined (reading 'config')` in @vitest/runner). `npx vitest run scripts/ci-key.test.mjs` is the working form, but the vitest config's global setup compiles a release cargo build (telperion-jev, 1m 26s) outside telperion-heavy, which the dispatch did not anticipate.
 - Cost: about 4 minutes and one unplanned cargo build.
 - Remedy: write the AC as `npx vitest run scripts/ci-key.test.mjs`, and note that it builds Rust.
+
+## 2026-10-24 13:30, task 2 worker, local dry run
+
+- **Doing:** R4's local dry run: `npm run build`, then `node scripts/artifact-budgets.mjs`.
+- **Slowed by:** the size check fails on the base, before any edit of this task: `FAIL dist/wasm-source.js: not built by the recipe`. Vite now emits the shared chunk as `dist/module.js` (64,631 bytes), and `scripts/artifact-budgets.json` still names `dist/wasm-source.js`. The release branch's own Tests run 40087469094 (2026-10-24) fails its package job on the same line. Until the budgets entry follows the chunk, the package job, and so the prerelease workflow's build, fails before any version is set; the CI dry run of R4 cannot pass.
+- **Cost:** about 6 minutes to confirm it is inherited (budget script, vite config, the branch's CI log).
+- **Would remove it:** renaming the budget entry to `dist/module.js` (or naming the chunk `wasm-source` again) in its own change; outside this task's Touches, so reported to the host.
+
+## 2026-10-24 13:32, task 2 worker, raw output
+
+- **Doing:** writing `npm pack --dry-run --json` into the evidence `raw/` directory through a shell variable for the path.
+- **Slowed by:** dcg blocks a truncating redirect to a variable path (`> $R/x.json`), even inside the worktree; the literal path passes.
+- **Cost:** one blocked call, about a minute.
+- **Would remove it:** nothing in the repository; write literal paths.

@@ -1,0 +1,109 @@
+name: Prerelease
+
+# Publishes a prerelease of the package under the npm dist-tag next, only
+# when the owner dispatches it (docs/prerelease.md). It checks out the ref,
+# builds through the package job's own build (./.github/actions/package),
+# then sets the version to <package.json version>-next.<YYYYMMDD>.<short sha>
+# in the job only, packs, and publishes the packed tarball. A version without
+# -next., a tag other than next, or a version already on npm refuses before
+# anything is published. It never publishes under latest.
+#
+# npm's trusted publisher names release.yml, so this workflow authenticates
+# with a granular access token in the repository secret NPM_TOKEN, which
+# reaches only the publish step and only on a real publish. A dry run packs
+# and runs the same publish with --dry-run and needs no token.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: The branch, tag or commit to publish; empty publishes the ref the run was dispatched on
+        type: string
+        default: ''
+      dry_run:
+        description: Pack and run npm publish --dry-run; nothing is published and no token is read
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: prerelease
+  cancel-in-progress: false
+
+jobs:
+  prerelease:
+    if: github.repository == 'DanielKillenberger/telperion'
+    runs-on: ubuntu-latest
+    env:
+      DIST_TAG: next
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      # The build, from the toolchain to the size check, as the package job
+      # runs it; outside a pull request the size check holds the ceilings only.
+      - uses: ./.github/actions/package
+
+      # Writes an .npmrc that reads NODE_AUTH_TOKEN, which only the publish
+      # step sets.
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json
+          registry-url: https://registry.npmjs.org
+
+      - name: Set the prerelease version
+        run: |
+          base=$(node -p 'require("./package.json").version')
+          version="$base-next.$(date -u +%Y%m%d).$(git rev-parse --short=7 HEAD)"
+          npm version --no-git-tag-version "$version"
+          # npm rewrites an all-digit short sha with a leading zero (not
+          # semver) rather than refusing it, which would name another commit.
+          written=$(node -p 'require("./package.json").version')
+          if [ "$written" != "$version" ]; then
+            echo "::error::npm wrote version $written for $version, which is not valid semver; nothing is published"
+            exit 1
+          fi
+
+      - name: Refuse a version that is not a next prerelease or is already on npm
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          case "$version" in
+            *-next.*) ;;
+            *) echo "::error::version $version has no -next. suffix; a prerelease never publishes it"; exit 1 ;;
+          esac
+          if [ "$DIST_TAG" != next ]; then
+            echo "::error::dist-tag $DIST_TAG is not next; a prerelease publishes under next only"
+            exit 1
+          fi
+          versions=$(npm view telperion versions --json)
+          on_npm=$(node -p '[].concat(JSON.parse(process.argv[1])).includes(process.argv[2])' "$versions" "$version")
+          if [ "$on_npm" = true ]; then
+            echo "::error::telperion@$version is already on npm; a rerun at the same commit on the same day publishes nothing"
+            exit 1
+          fi
+
+      - id: pack
+        name: Pack the tarball and list its files
+        run: |
+          npm pack --json > "$RUNNER_TEMP/pack.json"
+          tarball=$(jq -r '.[0].filename' "$RUNNER_TEMP/pack.json")
+          jq -r '.[0].files[].path' "$RUNNER_TEMP/pack.json"
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the tarball under next with provenance
+        env:
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          NODE_AUTH_TOKEN: ${{ !inputs.dry_run && secrets.NPM_TOKEN || '' }}
+        run: |
+          args=(--tag "$DIST_TAG" --provenance --access public)
+          if [ "$DRY_RUN" = true ]; then
+            args+=(--dry-run)
+          elif [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error::the repository secret NPM_TOKEN is missing or empty; add an npm granular access token with gh secret set NPM_TOKEN"
+            exit 1
+          fi
+          npm publish "${args[@]}" "./$TARBALL"
