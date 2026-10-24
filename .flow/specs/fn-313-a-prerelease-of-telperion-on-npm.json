@@ -10,9 +10,9 @@
   "id": "fn-313-a-prerelease-of-telperion-on-npm",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 1,
-  "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-10-24T11:15:10.967503Z",
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-24T11:16:14.126921Z",
   "ready": true,
   "review_attempts": [
     {
@@ -75,9 +75,72 @@
       "timestamp": "2026-10-24T11:15:10.962164Z",
       "tool_calls": 16,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d3e9100503cba9d9cbaab7c4860500ad312c04c04f5103c5686fe5cdac9786aa",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-280958ca31ac658f4960cea721e084da",
+            "classification": "introduced",
+            "findingId": "finding-280958ca31ac658f4960cea721e084da",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4debf1980d455c273fc412e8b5cacb64",
+            "classification": "introduced",
+            "findingId": "finding-4debf1980d455c273fc412e8b5cacb64",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-88b6bf82a87110b1d7dad324a1a3c9bf",
+            "classification": "introduced",
+            "findingId": "finding-88b6bf82a87110b1d7dad324a1a3c9bf",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "299e4e47d29ee1bbedb61fac58faf74fd7b18253",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 820,
+      "output_sha256": "e8b94b7ffb0fab295c3ce1cfa9c4b11c308d5e671d6c4952bb43e4d722a45da3",
+      "reservation_id": "6c7f6d5fe2d449b8ab6ddb324fc2be9e",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T11:16:14.124384Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -97,5 +160,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T11:15:47.200334Z"
+  "updated_at": "2026-10-24T11:16:14.127390Z"
 }
