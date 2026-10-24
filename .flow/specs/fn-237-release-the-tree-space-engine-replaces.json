@@ -54,7 +54,10 @@
     "fn-303-the-device-and-the-cpu-grow-the-same",
     "fn-308-a-walks-midpoint-draws-a-tree-halfway",
     "fn-309-a-compound-leaf-draws-its-rachis",
-    "fn-310-a-person-for-scale-and-a-nicer-world"
+    "fn-310-a-person-for-scale-and-a-nicer-world",
+    "fn-311-wgpu-comes-from-a-fork-carrying",
+    "fn-312-closed-specs-keep-their-result-and",
+    "fn-313-a-prerelease-of-telperion-on-npm"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -74,5 +77,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-23T12:17:45.627918Z"
+  "updated_at": "2026-10-24T11:08:03.808007Z"
 }
