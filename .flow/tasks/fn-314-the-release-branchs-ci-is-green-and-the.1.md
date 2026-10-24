@@ -39,7 +39,7 @@ Gated `stalks_reach_from_each_origin_and_none_without_length` on the geometry fe
 
 Tier: session (jev moderate 0.57) at default effort (model: claude-opus-5-5)
 baseline: red (CI core-without-geometry commands and the budget check failed pre-edit, as the spec reproduced)
-stage: impl-review - skipped(policy: risk - one test cfg attribute and one budget data row; no shared state, logic or feature)
+stage: impl-review - ran [13:57..13:58] SHIP, one correctness reviewer, conductor-dispatched after the worker skipped it; the owner asked for a review on every task (model: gpt-6.1-sol)
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
