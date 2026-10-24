@@ -15,3 +15,5 @@ What: before the fn-312.1 re-review, the one-at-a-time check (`ps | grep target/
 ## 2026-10-24, task 2: dcg blocks the manifest's own recovery spelling
 
 Doing: checking the recovery command for one removed file, as the task's acceptance asks. Hindered: dcg refuses `git show <rev>:<path> > <path>` (the 2026-10-16 manifest's spelling), `git checkout <rev> -- <path>` and `git restore --source`, even in a scratch worktree where the path is absent. Cost: three tool calls, about 3 minutes. Removed by: writing the recovery as `git archive <rev> -- <paths> | tar -x`, which dcg allows, recreates files and directories from pathspecs, and was checked by blob id. Proposed fix: none in the repository; the 2026-10-16 entry's spelling still works for a person outside dcg.
+
+- 2026-10-24, task 2, before impl review: three `target/ci/deps` processes from sibling worktrees were running at the one-at-a-time check. A codex review runs no cargo, so it proceeded under `telperion-heavy` admission, as task 1 did. Cost: none beyond the check. Same fix as above: one shared serialiser instead of a ps grep.
