@@ -35,9 +35,24 @@ satisfies: [R3]
 - [ ] Both checks green on the fixed branch
 
 ## Done summary
-TBD
+`scripts/gate.py` now runs two of CI's checks with `tests.yml`'s commands. The package check (`npm run build`, then `node scripts/artifact-budgets.mjs`, ceilings only locally) took 37 s after a core change and 2 s warm, so it runs before the test run. The core without geometry (`cargo build` and `cargo test --lib`, `--no-default-features`) took 220 s after a core change and 139 s warm, nearly all of it the lib tests (139-172 s), so it runs after the test run, outside `TOTAL`, and also when the test run failed. A failing or unstartable check fails the gate, naming the check and its command. The module docstring and AGENTS.md's gate line give both costs and placements.
 
+Costs were measured 2026-10-24 through `telperion-heavy 8 --threads 4`, with another checkout's gate (f4-311) running on the desk. Timed logs are in `.flow/evidence/fn-314-the-release-branchs-ci-is-green-and-the/raw/` (`no-geometry-timed.log`, `package-timed.log`). The plan-time 49 s figure covered only the build and `--no-run`; the lib tests are what push this check past a minute.
+
+How the checks were exercised without the nextest run (measured):
+- Red: a scratch commit reverting 57203f92b, then `gate.ci_check(*gate.PACKAGE)` and `gate.ci_check(*gate.NO_GEOMETRY)` called directly (`python3 -c 'import sys; sys.path.insert(0,"scripts"); import gate; ...'` inside `telperion-heavy 5 --threads 2`). Both failed with their own output: `FAIL dist/wasm-source.js: not built by the recipe` and `error[E0425]: cannot find function bloom_element`. The error lines named each check (`raw/checks-red.log`). The scratch commit was dropped with `git reset --hard` back to a8ba24f9a.
+- Green: the same call on a8ba24f9a returned no errors; the lib tests ran 142 passed (`raw/checks-green.log`).
+- Missing npm: `ci_check(*PACKAGE)` with `PATH` emptied returned `package: npm run build cannot start: [Errno 2] ... 'npm'` and exited 1 (`raw/no-npm.log`).
+- Placement and exit logic: `gate.main()` ran with the nextest run and both checks stubbed (a scratchpad script, not committed) through six cases (`raw/gate-flow.log`). The order was always package, then the test run, then no-geometry. No-geometry still runs when the test run fails. Any failure exits 1; all green exits 0.
+
+The full gate was not run here; task .3 runs it.
+
+baseline: green (both Quick commands rc=0 pre-edit, from the cost measurement runs)
+Tier: session (jev moderate 0.57) at default effort (model: claude-opus-5-5)
+stage: impl-review - ran [14:19..14:21] SHIP, codex, one correctness reviewer (model: gpt-6.1-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a8ba24f9af444315042035b330534ac0940248e4
+- Tests: python3 -c 'import gate; gate.ci_check(*gate.PACKAGE)+gate.ci_check(*gate.NO_GEOMETRY)' (red on a revert of 57203f92b, green on a8ba24f9a), gate.main() control flow with nextest and checks stubbed (6 cases)
 - PRs:
