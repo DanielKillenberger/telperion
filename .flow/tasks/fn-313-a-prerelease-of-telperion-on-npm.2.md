@@ -41,9 +41,14 @@ npm tags a prerelease `latest` when no `--tag` is given, so `--tag next` is mand
 - [ ] Local dry run in a scratch copy succeeds; its tarball file list equals the package job's; recorded in the evidence summary
 
 ## Done summary
-TBD
+`.github/workflows/prerelease.yml`: workflow_dispatch only, one input `dry_run`; builds the dispatched commit through `./.github/actions/package`, a second setup-node with `registry-url` for auth, sets `<version>-next.<YYYYMMDD>.<sha7>` in the job (refusing when npm rewrites it), refuses no `-next.`, a tag other than `next`, a version already on npm and a real publish without NPM_TOKEN, packs and publishes the tarball with `--tag next --provenance --access public` (`--dry-run` when asked). `docs/prerelease.md` covers trigger, install, going back and token setup. Local dry run in a scratch copy: rc 0, 20 files equal to the package job's tarball (evidence dry-run.md). RESULT.md records that a real dry run depends on fn-314 (size-check entry dist/wasm-source.js) and on the workflow reaching master.
 
+Round 1 review NEEDS_WORK (rid e2d5af07): the inherited size-check failure (host ruling: fn-314's) and the ref input versus provenance (host ruling: ref input dropped, R1 amended).
+
+stage: impl-review - ran (codex, NEEDS_WORK then SHIP on re-review)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4674d7970bc1e8bb6119c5128fb2e3f4b7eb03ac, 00de90204aa74de6d2faf6f18c3960841f8ecead, 788b4c82685117eb91f80d0e5c6c79049b968dee
+- Tests: actionlint 1.7.12 + shellcheck 0.11.0 (rc 0), local scratch dry run: npm publish --dry-run --tag next (rc 0), tarball list = package job
 - PRs:
