@@ -37,9 +37,20 @@ Build branch `30.0.1-async` of `DanielKillenberger/wgpu` per R1 in the scratch c
 - [ ] `FORK.md` in the spec's evidence dir records the full rev and the checks.
 
 ## Done summary
-TBD
+Branch `30.0.1-async` of DanielKillenberger/wgpu is v30.0.1 plus three commits (the browser half of gfx-rs/wgpu#10438 applied verbatim from 9d3215c1 under its author, the native ready-future `create_*_pipeline_async` on `CoreDevice`, and `README-30.0.1-async.md`), checked natively, for wasm32 and for the custom-backend example, and pushed at `165ebd16f930baefecca51c22e753a48f911a5fa`; FORK.md in the evidence dir records it for task .2's pin.
 
+wgpu-core is untouched (`git diff v30.0.1 30.0.1-async -- wgpu-core` empty). The trait and `Device` doc comments from the PR say failures arrive through the future; on this branch that holds only on WebGPU, and the README says so.
+
+Baseline: none (fork-only task; the spec's Quick commands target task .2's workspace switch). Telperion gate classify: TIER_B docs-only.
+
+Review note: flowctl's triage-skip was not run, because the telperion range holds only evidence notes and would have passed as SHIP without the fork being read; the reviewer was pointed at the fork range through `--focus` (FRICTION.md, second entry).
+
+Tier: not supplied by the conductor (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex, one correctness draw, SHIP, rid 945faa8770f1451880f6e134d24f4e23)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b66dc09e1fee4ef5bbb34d938fc88767f5a4dccf, 54044cfa0664f1be00e60ea9e5006e51df3e7fbd
+- Tests: fork 30.0.1-async: cargo check -p wgpu (rc 0), fork 30.0.1-async: cargo check -p wgpu --target wasm32-unknown-unknown (rc 0), fork 30.0.1-async: cargo check -p wgpu-example-custom-backend (rc 0), GATE_SKIPPED:telperion:docs-only - cumulative telperion diff classified tier-B (evidence notes only)
 - PRs:
