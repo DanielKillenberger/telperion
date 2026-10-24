@@ -13,3 +13,10 @@
 - **Slowed by:** the f4-314 worktree has no `target/`, so the repro is a cold build of the core crate's dependencies at two threads, while another worktree's gate holds the desk.
 - **Cost:** 49 s wall for both CI commands from cold (`--no-run` for the tests), through telperion-heavy at two threads; small, so this entry records it rather than complains.
 - **Would remove it:** nothing in the repository; checkouts must not share `target/` (AGENTS.md), so a new worktree pays one cold build.
+
+## 2026-10-24 14:00, conductor, task .1: the worker skipped the impl-review the owner asked for
+
+- **Doing:** collecting task .1's worker return.
+- **Slowed by:** the owner asked for an impl-review on every task, but the worker prompt carried only `REVIEW_MODE: codex`, and the worker applied working-rules.md's risk rule and skipped the review for a one-attribute, one-row diff. The conductor ran the review itself after `done` and rewrote the task's stage line.
+- **Cost:** one extra dispatch and about 3 minutes; the review itself took 43 s and found nothing.
+- **Would remove it:** a dispatch field that forces review regardless of the risk rule when the person asked for one (a flow-next change, not this repository's); here the next workers get the request in their prompt.
