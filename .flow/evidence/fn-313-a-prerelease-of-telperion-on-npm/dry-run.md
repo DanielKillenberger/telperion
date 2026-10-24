@@ -61,3 +61,24 @@ The last row is a measured correction to the spec: npm 11.19 does not refuse
 for that case in `raw/guards.log`), which would publish a version naming
 another commit. The version step now compares what npm wrote with what it
 asked for and fails on a difference.
+
+## Rerun after the host ruling: the prerelease job of release.yml (task 3)
+
+The run blocks of `release.yml`'s `prerelease` job, extracted with PyYAML
+(which also read the triggers as `workflow_dispatch` and `workflow_run`,
+the only dispatch input as `dry_run`, and each job's `if`), run the same way
+in a fresh scratch copy at `2d254167a` (`raw/dry-run-release-yml.log`):
+
+| Step | Result |
+|---|---|
+| Set the version | `0.2.0-next.20261024.2d25416` |
+| Guards | pass |
+| `npm publish --tag next --provenance --access public --dry-run` | rc 0, "Publishing to https://registry.npmjs.org/ with tag next and public access (dry-run)" |
+| File list | 20 paths, equal to the package job's (`raw/files-release-yml-prerelease.txt`) |
+
+Refusals (`raw/guards-release-yml.log`): `DIST_TAG=latest` and a version
+already on npm each stop at the guard step with their messages; with
+`dry_run=false` the step reaches a real `npm publish` without `--dry-run`,
+which the stub refused. There is no token step any more: the job
+authenticates by OIDC, which only runs in Actions. The `-next.` and
+leading-zero refusals are the same step text as above.

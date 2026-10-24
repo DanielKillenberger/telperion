@@ -15,11 +15,24 @@ name: Release
 # trusted publisher configured on npmjs.com for this repository and this
 # workflow file. No npm token is stored or set. Provenance binds the tarball
 # to this workflow run.
+#
+# A dispatch of this workflow (gh workflow run release.yml -r <branch>) runs
+# only the prerelease job: it builds the dispatched commit and publishes it
+# as <version>-next.<YYYYMMDD>.<short sha> under the dist-tag next, through
+# the same trusted publisher (docs/prerelease.md). The publish job needs a
+# workflow_run event, so a dispatch never starts it, and a prerelease never
+# touches latest.
 on:
   workflow_run:
     workflows: [Tests]
     types: [completed]
     branches: [master]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Pack and run npm publish --dry-run; nothing is published
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -142,16 +155,7 @@ jobs:
           fi
 
       - if: steps.version.outputs.publish == 'true'
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          registry-url: https://registry.npmjs.org
-
-      # Trusted publishing needs npm 11.5.1 or later; the npm a Node release
-      # bundles may be older.
-      - if: steps.version.outputs.publish == 'true'
-        name: Install an npm that publishes through a trusted publisher
-        run: npm install -g npm@^11.5.1 && npm --version
+        uses: ./.github/actions/npm-publisher
 
       - if: steps.version.outputs.publish == 'true' && steps.version.outputs.tagged != 'true'
         name: Tag the tested commit
@@ -169,3 +173,74 @@ jobs:
         env:
           TARBALL: telperion-${{ steps.version.outputs.version }}.tgz
         run: npm publish --provenance --access public "./$TARBALL"
+
+  # The prerelease: the dispatched commit, built as the Tests package job
+  # builds it, published under next. A version without -next., a tag other
+  # than next, or a version already on npm refuses before anything is
+  # published.
+  prerelease:
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'DanielKillenberger/telperion'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      DIST_TAG: next
+    steps:
+      # The dispatched commit, so the provenance names the commit built.
+      - uses: actions/checkout@v7
+
+      # Outside a pull request the size check holds the ceilings only.
+      - uses: ./.github/actions/package
+
+      - uses: ./.github/actions/npm-publisher
+
+      - name: Set the prerelease version
+        run: |
+          base=$(node -p 'require("./package.json").version')
+          version="$base-next.$(date -u +%Y%m%d).$(git rev-parse --short=7 HEAD)"
+          npm version --no-git-tag-version "$version"
+          # npm rewrites an all-digit short sha with a leading zero (not
+          # semver) rather than refusing it, which would name another commit.
+          written=$(node -p 'require("./package.json").version')
+          if [ "$written" != "$version" ]; then
+            echo "::error::npm wrote version $written for $version, which is not valid semver; nothing is published"
+            exit 1
+          fi
+
+      - name: Refuse a version that is not a next prerelease or is already on npm
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          case "$version" in
+            *-next.*) ;;
+            *) echo "::error::version $version has no -next. suffix; a prerelease never publishes it"; exit 1 ;;
+          esac
+          if [ "$DIST_TAG" != next ]; then
+            echo "::error::dist-tag $DIST_TAG is not next; a prerelease publishes under next only"
+            exit 1
+          fi
+          versions=$(npm view telperion versions --json)
+          on_npm=$(node -p '[].concat(JSON.parse(process.argv[1])).includes(process.argv[2])' "$versions" "$version")
+          if [ "$on_npm" = true ]; then
+            echo "::error::telperion@$version is already on npm; a rerun at the same commit on the same day publishes nothing"
+            exit 1
+          fi
+
+      - id: pack
+        name: Pack the tarball and list its files
+        run: |
+          npm pack --json > "$RUNNER_TEMP/pack.json"
+          tarball=$(jq -r '.[0].filename' "$RUNNER_TEMP/pack.json")
+          jq -r '.[0].files[].path' "$RUNNER_TEMP/pack.json"
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the tarball under next with provenance
+        env:
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          args=(--tag "$DIST_TAG" --provenance --access public)
+          if [ "$DRY_RUN" = true ]; then
+            args+=(--dry-run)
+          fi
+          npm publish "${args[@]}" "./$TARBALL"
