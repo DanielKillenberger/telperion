@@ -27,3 +27,31 @@
 - **Slowed by:** the timing used `bc`, which this desk lacks, so both runs finished without a wall time and had to be repeated (the cargo logs alone gave the build and test times). The plan's 49 s figure covered only the build and `--no-run`; the check's lib tests take 139-172 s, which is what puts the check after the test run.
 - **Cost:** about 6 minutes of desk time (two extra runs of the 142 lib tests).
 - **Would remove it:** timing with shell arithmetic on `date +%s%N` from the start; a plan-time measurement that runs the check as CI does, not `--no-run`.
+
+## 2026-10-24 14:26, worker, task .3: the core nextest run was OOM-killed at telperion-heavy's 5 GB cap
+
+- **Doing:** running the `core` job's command (`cargo nextest run --cargo-profile ci -p telperion-core --no-fail-fast`) through `telperion-heavy 5 --threads 2`.
+- **Slowed by:** `--threads 2` sets `RUST_TEST_THREADS`, `RAYON_NUM_THREADS` and `CARGO_BUILD_JOBS`, but nextest reads none of them for its test slots and starts one test per core, so the run held about eight tests at once (10 min 23 s CPU in 73 s wall), reached the scope's 5 GB `MemoryMax`, and the kernel OOM killer took one test; nextest then SIGTERMed the other 35 running. Result: 492 passed, 36 failed, all of them killed, none a test verdict.
+- **Cost:** one 74 s run and its triage, about 5 minutes.
+- **Would remove it:** `telperion-heavy` also exporting `NEXTEST_TEST_THREADS="$threads"` (a desk script outside the repository: reported, not specced). The rerun sets `NEXTEST_TEST_THREADS=2` by hand; it changes only how many tests run at once, not which.
+
+## 2026-10-24 14:29, worker, task .3: two test slots still exceed the 5 GB cap
+
+- **Doing:** rerunning the `core` command with `NEXTEST_TEST_THREADS=2` inside `telperion-heavy 5 --threads 2`.
+- **Slowed by:** `suite::mesh::every_preset_builds_a_mesh...` (4,374 MiB measured) and `suite::packed_leaf::every_station_stands...` (4,344 MiB) are both on the gate's memory allowlist and were scheduled together; the pair passed 5 GB and the OOM killer ended the run at 344/532 (342 passed, the two killed). The machine rule's 5 GB cap fits one of the core's two 4.3 GiB tests at a time, never two.
+- **Cost:** a 199 s run, about 4 minutes.
+- **Would remove it:** a dispatch's cap sized from `.config/gate-budgets.toml`'s largest pair (about 9 GB for two slots), or one slot under 5 GB. The next run uses one slot (`NEXTEST_TEST_THREADS=1`), which keeps the machine rule and costs wall time.
+
+## 2026-10-24 15:14, worker, task .3: the render run was OOM-killed at 5 GB after 23 minutes
+
+- **Doing:** running the `render` job's command (`cargo nextest run --cargo-profile ci -p telperion-render --no-fail-fast`) with two test slots inside `telperion-heavy 5 --threads 2`.
+- **Slowed by:** `conformance::every_shipped_family_renders_through_the_one_path` and `boundary::a_stage_outside_the_executor_interface_does_not_compile` (a compile-fail test that runs rustc) ran together and passed the 5 GB cap 1,285 s in; the OOM killer ended the run at 282/359 (280 passed, the two killed, 77 never started). Neither test is on `.config/gate-budgets.toml`, so nothing on the desk predicted it.
+- **Cost:** about 24 minutes of desk time, most of it repeated by nothing: the 79 tests the run did not pass are rerun alone, one slot, by a filterset built from the run's PASS lines.
+- **Would remove it:** a per-test memory figure for the render crate's heavy tests (the gate's runner measures peaks; the allowlist only names those over 4 GiB), so a dispatch can size its cap; or one slot for every crate under a 5 GB cap.
+
+## 2026-10-24 18:57, worker, task .3: one space test alone needs more than the 5 GB cap
+
+- **Doing:** running the `wasm, field and jev` job's command (`cargo nextest run --cargo-profile ci -p telperion-wasm -p telperion-space -p telperion-jev --no-fail-fast`) with one test slot inside `telperion-heavy 5 --threads 2`.
+- **Slowed by:** `walks every_setting_changes_the_tree_by_degree_and_branches_come_and_go_at_vanishing_size` is on `.config/gate-budgets.toml` at 5,396 MiB measured (5,952 allowed), so it cannot pass under a 5 GB scope even alone; the OOM killer ended the run at 595/609 (594 passed, that one killed, 14 never started). The machine rule's 5 GB cap is below the gate's own allowlisted figure for this test.
+- **Cost:** a 456 s run, about 8 minutes with triage.
+- **Would remove it:** a dispatch cap of at least the largest allowlisted peak plus headroom (6 GB) for any run that includes `telperion-space`. The 15 tests this run did not pass are rerun alone at one slot inside `telperion-heavy 8 --threads 2` (the gate's memory size), a deviation from the dispatch's 5 GB rule the test's own measured peak forces; the result names it.
