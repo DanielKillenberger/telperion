@@ -10,10 +10,79 @@
   "id": "fn-313-a-prerelease-of-telperion-on-npm",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-24T11:15:10.967503Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "6be3681c8874f95994bc6c4e624945361b46508fd54f3198333f6e9225f72ed5",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-280958ca31ac658f4960cea721e084da",
+            "classification": "introduced",
+            "findingId": "finding-280958ca31ac658f4960cea721e084da",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4debf1980d455c273fc412e8b5cacb64",
+            "classification": "introduced",
+            "findingId": "finding-4debf1980d455c273fc412e8b5cacb64",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-88b6bf82a87110b1d7dad324a1a3c9bf",
+            "classification": "introduced",
+            "findingId": "finding-88b6bf82a87110b1d7dad324a1a3c9bf",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "313e890431b0a0c9d4d68073e12c5d0e2351dd85",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 129340,
+      "output_sha256": "8efebc5cfb57769754b9044edb0a5fcba2d9f2d501ecb6e761018c3ba596f908",
+      "reservation_id": "ea305243ec65433e873126940ef60b92",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T11:15:10.962164Z",
+      "tool_calls": 16,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-313-a-prerelease-of-telperion-on-npm.md",
   "status": "open",
   "title": "A prerelease of telperion on npm, published when the owner asks",
@@ -28,5 +97,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T11:13:02.044839Z"
+  "updated_at": "2026-10-24T11:15:47.200334Z"
 }

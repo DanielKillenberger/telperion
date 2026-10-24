@@ -14,7 +14,9 @@ The released package is published by `release.yml` from a green master Tests run
   - **Never `latest`:** it never publishes under the `latest` tag. The job fails if the version has no `-next.` suffix.
   - **Dry run:** with `dry_run` the job runs `npm publish --dry-run` and lists the tarball, with no token needed.
   - Errors: a ref that does not resolve fails the checkout; a build or size-ceiling failure fails the job before any version is set; a version that is not valid semver (an all-digit short sha with a leading zero) fails at `npm version` with npm's message; a version without `-next.` or a tag other than `next` fails before publish; a version already on npm (a rerun at the same commit on the same day) fails with a message naming it.
-- **R2:** the token is a repository secret, `NPM_TOKEN`: an npm automation token the owner creates and adds. The workflow names the secret and fails with a clear message when it is missing. No token is ever printed.
+- **R2:** the token is a repository secret, `NPM_TOKEN`: an npm token the owner creates and adds. The workflow names the secret and fails with a clear message when it is missing. No token is ever printed.
+  - npm removed classic automation tokens in November 2025 (plan review, 2026-10-24), so the token is a granular access token with read and write on `telperion`, with "bypass two-factor authentication" set when the package or account requires 2FA for publishing.
+  - The workflow authenticates through `actions/setup-node` with `registry-url`, whose `.npmrc` reads `NODE_AUTH_TOKEN`; the secret reaches only the publish step's `NODE_AUTH_TOKEN`.
   - Errors: a missing or empty secret on a real publish fails before `npm publish` with a message naming `NPM_TOKEN` and the command that sets it; a dry run never reads it.
 - **R3 (docs):** a short section in `docs/` covers:
   - how the owner triggers a prerelease: `gh workflow run <file> -r <branch>`, or the Actions tab;
@@ -27,6 +29,7 @@ The released package is published by `release.yml` from a green master Tests run
   - The tarball lists the same files as CI's package job.
   - A codex review, dispatched inside telperion-heavy.
   - Errors: the local proof is a dry run of the same steps on the owner's machine; the CI dry run is the host's step after the push and is recorded as pending until it ran.
+  - **Prerequisite:** GitHub triggers `workflow_dispatch` only for a workflow file that exists on the default branch (`master`), whose copy today holds only `tests.yml` and `release.yml`. The CI dry run therefore waits until `prerelease.yml` is on `master`: when the release merges, or earlier if the owner lands the workflow on `master` by itself. Which of the two is the owner's call, put to them by the host; this spec's build pushes nothing.
 
 ## Early proof point
 
@@ -70,7 +73,7 @@ npm run build && node scripts/artifact-budgets.mjs && npm pack --dry-run --json 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
 | R1 | a GitHub Actions workflow with `workflow_dispatch` only, never on push or on a schedule. | fn-313-a-prerelease-of-telperion-on-npm.1, fn-313-a-prerelease-of-telperion-on-npm.2 | — |
-| R2 | the token is a repository secret, `NPM_TOKEN`: an npm automation token the owner creates and adds. The workflow names the secret and fails with a clear message when it is missing. No token is ever printed. | fn-313-a-prerelease-of-telperion-on-npm.2 | — |
+| R2 | the token is a repository secret, `NPM_TOKEN`: an npm token the owner creates and adds. The workflow names the secret and fails with a clear message when it is missing. No token is ever printed. | fn-313-a-prerelease-of-telperion-on-npm.2 | — |
 | R3 | (docs): a short section in `docs/` covers: | fn-313-a-prerelease-of-telperion-on-npm.2 | — |
 | R4 | (proof): | fn-313-a-prerelease-of-telperion-on-npm.2 | — |
 
