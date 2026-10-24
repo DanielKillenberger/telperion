@@ -34,3 +34,10 @@
 - **Slowed by:** dcg blocks a truncating redirect to a variable path (`> $R/x.json`), even inside the worktree; the literal path passes.
 - **Cost:** one blocked call, about a minute.
 - **Would remove it:** nothing in the repository; write literal paths.
+
+## 2026-10-24 13:50, conductor, completion review
+
+- **Doing:** dispatching the codex completion review, after the `ps ... target/ci/deps` check the machine rules require.
+- **Slowed by:** another worktree's gate (f4-311, `cargo test --profile ci`) runs its test binaries under `target/ci/deps`, so the review waits for it; the check also matches that worktree's `rustc` compiles (`--out-dir .../target/ci/deps`), which are not test binaries and need a filter to tell apart.
+- **Cost:** over 10 minutes of waiting, so far.
+- **Would remove it:** a `telperion-heavy` mode that waits for running test binaries itself, so a reviewer dispatch (which builds nothing) is not serialised behind a sibling gate by hand.
