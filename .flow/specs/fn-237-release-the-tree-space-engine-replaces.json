@@ -57,7 +57,8 @@
     "fn-310-a-person-for-scale-and-a-nicer-world",
     "fn-311-wgpu-comes-from-a-fork-carrying",
     "fn-312-closed-specs-keep-their-result-and",
-    "fn-313-a-prerelease-of-telperion-on-npm"
+    "fn-313-a-prerelease-of-telperion-on-npm",
+    "fn-314-the-release-branchs-ci-is-green-and-the"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -77,5 +78,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T11:08:03.808007Z"
+  "updated_at": "2026-10-24T11:41:50.138399Z"
 }
