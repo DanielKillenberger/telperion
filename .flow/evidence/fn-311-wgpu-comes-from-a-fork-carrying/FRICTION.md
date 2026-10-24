@@ -28,3 +28,10 @@ Hindered: it failed at the first preset ("Ordinary generated no wood") with no a
 Cost: one failed browser run plus a cold base build (minutes, recorded below when measured).
 Would remove it: a recorded last-green test:render per master commit, so a worker reads whether the failure predates it.
 Measured: the base (an archive of `8bb9f9e9b`, its own target dir) fails `npm run test:render` with the same "Ordinary generated no wood" at the same line; the base build took about 75 s of cargo plus the browser run. The failure predates fn-311.
+
+## 2026-10-24, task .2: the gate outlasts the worker's 600 s foreground limit
+
+Doing: the gate, once, as one blocking foreground call, per the worker brief.
+Hindered: the tool's foreground timeout is 600 s; the gate in a fresh worktree reached 1235 of 1501 tests at 590 s and was cancelled by the wrapper timeout. It has to run in the background with a wait on its exit instead.
+Cost: about 10 minutes of gate run discarded.
+Would remove it: a gate brief that names the background-plus-wait form, or a gate under ten minutes on a cold worktree.
