@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T11:26:41.998737Z",
+  "depends_on": [
+    "fn-312-closed-specs-keep-their-result-and.1"
+  ],
+  "id": "fn-312-closed-specs-keep-their-result-and.2",
+  "priority": null,
+  "spec": "fn-312-closed-specs-keep-their-result-and",
+  "spec_path": ".flow/tasks/fn-312-closed-specs-keep-their-result-and.2.md",
+  "status": "todo",
+  "title": "Write the closed-spec rule into the retention doc and the manifest",
+  "updated_at": "2026-10-24T11:26:41.998737Z"
+}

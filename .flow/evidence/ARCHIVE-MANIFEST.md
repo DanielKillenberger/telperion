@@ -1,5 +1,15 @@
 # Evidence archive manifest
 
+## 2026-10-24: closed specs (fn-312)
+
+The owner asked on 2026-10-24 to prune closed specs from the release ("it's still 250k loc added which is a bit crazy. can we do another cleanup?"). The rule is in `docs/evidence-retention.md`, "Closed specs". Commits 3f82a0c09 (fn-1 to fn-99) and f4f9a69c2 (fn-100 and above) removed the task files and working evidence of 157 done specs; d3faccf31 restored 27 files that live records cite by file name. Net 677 files and 26,225 lines. Against origin/master the release diff went from 255,825 insertions and 406,703 deletions to 245,060 and 422,110. Open specs and fn-237's 40 direct dependencies were not touched. Git holds each removed file's checksum as its blob id, so there is no file list.
+
+- Source revision: `f6d89317d28d288f4eb0439d237ab575f1cb4514` (branch fn-312-closed-specs-keep-their-result-and, merged into fn-198-tree-space-f-the-engine-in-production). If the release is squash-merged, `git fetch origin pull/159/head` keeps the revision reachable as `refs/pull/159/head`.
+- List what was removed: `git diff --name-only --diff-filter=D f6d89317d HEAD -- .flow/`
+- Recover a file, a directory or a spec's tasks: `git archive f6d89317d -- <path> | tar -x` from the repository root, for example `git archive f6d89317d -- '.flow/tasks/<spec>.*' | tar -x`. Checked on `.flow/evidence/fn-102-one-build-pipeline-in-place-of-the/REVIEW-2026-09-23.md`: the restored file's `git hash-object` equals `git rev-parse f6d89317d:<path>`.
+
+## 2026-10-16: evidence trim
+
 The owner asked on 2026-10-16 to reduce the release's evidence to what is actually needed ("I assume 20% of evidence will get us 80% of what's actually needed"). This cleanup removed 1724 committed evidence files (210,906,983 bytes). Each spec's decision record now lives in its spec markdown; the kept evidence is the protected inputs that code, tests, docs and the catalogue load or cite, small summaries, and one compressed JPEG per still an owner verdict rests on.
 
 - Source revision: `8dab106345660cbd3c4ccb8ea045b92a0aee9eed` (branch fn-198-tree-space-f-the-engine-in-production). History is not rewritten; every file below stays in that revision.
