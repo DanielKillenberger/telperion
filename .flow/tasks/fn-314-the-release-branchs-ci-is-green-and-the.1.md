@@ -35,9 +35,14 @@ Fix both red jobs with the smallest change: gate the one lib test that calls the
 - [ ] No other budget entry changes
 
 ## Done summary
-TBD
+Gated `stalks_reach_from_each_origin_and_none_without_length` on the geometry feature, so CI's `core without geometry` commands pass (base: E0425 on `bloom_element`; fix: 142 passed, same three dead-code warnings). The gated test still passes in the default build. Renamed the budget entry `dist/wasm-source.js` to `dist/module.js` (ceiling 70000 and reason kept, fn-297 rename noted); baseline re-measured 64,564 -> 64,631 bytes, and `npm run build && node scripts/artifact-budgets.mjs` exits 0 (base exited 1 on the missing entry). No other budget entry changed.
 
+Tier: session (jev moderate 0.57) at default effort (model: claude-opus-5-5)
+baseline: red (CI core-without-geometry commands and the budget check failed pre-edit, as the spec reproduced)
+stage: impl-review - skipped(policy: risk - one test cfg attribute and one budget data row; no shared state, logic or feature)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 57203f92b18e70de44e9503821a445eaeb5a06f6
+- Tests: cargo build --profile ci -p telperion-core --no-default-features && cargo test --profile ci -p telperion-core --no-default-features --lib (base rc=101 E0425; fix rc=0, 142 passed), cargo test --profile ci -p telperion-core --lib stalks_reach (1 passed), npm run build && node scripts/artifact-budgets.mjs (base rc=1; fix rc=0)
 - PRs:
