@@ -1,0 +1,341 @@
+//! fn-248 R1: the fine wood a tree's leaves sit on. For one preset at one
+//! age and seed, with the supernatural group off (scale 1) and on, prints
+//! the wood by branch order and age, the leaves by the drawn radius and the
+//! age of the wood they are planned on, and the leaf against its twig.
+//!
+//!   cargo run --profile ci -p telperion-core --example twig_layer -- <preset> <age> [seed]
+use std::collections::HashMap;
+
+use telperion_core::{
+    pipeline::{self, Request},
+    presets::{Family, Preset},
+    tree::Tree,
+};
+
+/// Drawn radius classes, in millimetres: the upper bound of each.
+const RADII: [f64; 8] = [0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0, f64::INFINITY];
+/// Wood age classes, in years: current-year, 1 to 3, older.
+const AGES: [&str; 3] = ["0", "1-3", "4+"];
+
+fn age_class(age: u32) -> usize {
+    match age {
+        0 => 0,
+        1..=3 => 1,
+        _ => 2,
+    }
+}
+
+fn radius_class(mm: f64) -> usize {
+    RADII.iter().position(|&r| mm <= r).unwrap()
+}
+
+/// Each node's branch order: 0 on the trunk's run and every run the root
+/// starts, one more than its bearer's on every other run.
+fn orders(tree: &Tree) -> Vec<u32> {
+    let mut order = vec![0u32; tree.nodes.len()];
+    for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+        let p = n.parent.unwrap() as usize;
+        order[i] = if n.stem || n.branch == tree.nodes[p].branch {
+            order[p]
+        } else if p == 0 {
+            0
+        } else {
+            order[p] + 1
+        };
+    }
+    order
+}
+
+/// Each node's wood age in years, by the engine phytomer that drew it,
+/// regrown at the family's natural size (the scale draws, never grows).
+fn ages(family: &Family, tree: &Tree) -> Result<Vec<u32>, String> {
+    let applied = family.applied();
+    let species = applied.space.species.as_ref().ok_or("no engine species")?;
+    let request = telperion_space::Request {
+        age: family.age as u32,
+        seed: u64::from(family.skeleton.seed),
+        budget: 20_000_000,
+        light: applied.space.light,
+    };
+    let s = telperion_space::grow(species, request).map_err(|e| e.to_string())?;
+    let cycle: HashMap<u64, u32> = (s.axes.iter())
+        .flat_map(|a| a.phytomers.iter().map(|p| (p.key(), p.cycle)))
+        .collect();
+    Ok((tree.nodes.iter())
+        .map(|n| {
+            let c = cycle.get(&n.identity.birth_order()).copied();
+            c.map_or(u32::MAX, |c| s.age.saturating_sub(c))
+        })
+        .collect())
+}
+
+fn median(v: &mut [f64]) -> f64 {
+    if v.is_empty() {
+        return f64::NAN;
+    }
+    v.sort_by(f64::total_cmp);
+    v[v.len() / 2]
+}
+
+fn quantile(v: &mut [f64], q: f64) -> f64 {
+    if v.is_empty() {
+        return f64::NAN;
+    }
+    v.sort_by(f64::total_cmp);
+    v[((v.len() - 1) as f64 * q).round() as usize]
+}
+
+/// The crown's leaf area index (fn-248): the one-sided area of every
+/// leaf over the area of the crown's projection on the ground, the convex
+/// hull of the leaves' seats. A leaf's one-sided area is its element's
+/// blade facing +Z, at its own scale squared.
+fn lai(built: &pipeline::Built) -> Result<(), String> {
+    let element = built.outputs.element.as_ref().ok_or("no element")?;
+    let leaves = &built.outputs.leaves.as_ref().ok_or("no leaves")?.instances;
+    let p = &element.positions;
+    let blade: f64 = (element.indices.chunks(3))
+        .map(|t| {
+            let [a, b, c] = [0, 1, 2].map(|k| p[t[k] as usize]);
+            let (u, v) = (b - a, c - a);
+            (0.5 * (u.x * v.y - u.y * v.x)).max(0.0)
+        })
+        .sum();
+    let r = &leaves.reference;
+    let area: f64 = leaves
+        .leaves
+        .iter()
+        .map(|l| blade * r.scale(*l).powi(2))
+        .sum();
+    let seats: Vec<(f64, f64)> = (0..leaves.len())
+        .map(|k| {
+            let q = leaves.position(k);
+            (q.x, q.z)
+        })
+        .collect();
+    let ground = hull_area(seats);
+    println!(
+        "LAI {:.2}: {} leaves of {:.1} cm2 at scale 1, {area:.0} m2 of leaf over {ground:.0} m2 of crown",
+        area / ground,
+        leaves.len(),
+        blade * 1e4
+    );
+    Ok(())
+}
+
+/// The area of the convex hull of `points` (Andrew's monotone chain).
+fn hull_area(mut points: Vec<(f64, f64)>) -> f64 {
+    points.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.total_cmp(&b.1)));
+    points.dedup();
+    if points.len() < 3 {
+        return 0.0;
+    }
+    let cross = |o: (f64, f64), a: (f64, f64), b: (f64, f64)| {
+        (a.0 - o.0) * (b.1 - o.1) - (a.1 - o.1) * (b.0 - o.0)
+    };
+    let mut hull: Vec<(f64, f64)> = Vec::new();
+    for pass in [false, true] {
+        let start = hull.len();
+        let it: Box<dyn Iterator<Item = &(f64, f64)>> = if pass {
+            Box::new(points.iter().rev())
+        } else {
+            Box::new(points.iter())
+        };
+        for &q in it {
+            while hull.len() >= start + 2
+                && cross(hull[hull.len() - 2], hull[hull.len() - 1], q) <= 0.0
+            {
+                hull.pop();
+            }
+            hull.push(q);
+        }
+        hull.pop();
+    }
+    let n = hull.len();
+    (0..n)
+        .map(|i| {
+            let (a, b) = (hull[i], hull[(i + 1) % n]);
+            a.0 * b.1 - b.0 * a.1
+        })
+        .sum::<f64>()
+        .abs()
+        / 2.0
+}
+
+fn measure(family: &Family, label: &str) -> Result<(), String> {
+    let request = Request {
+        leaves: true,
+        // The plan is read for the field; its smallest grid asks it.
+        field: Some(pipeline::FieldRequest {
+            n: 3,
+            limb_order: None,
+        }),
+        ..Request::default()
+    };
+    let built = pipeline::build(family, request).map_err(|e| e.to_string())?;
+    let tree = &built.skeleton.tree;
+    let plan = built.outputs.plan.as_ref().ok_or("no leaf plan")?;
+    let (order, age) = (orders(tree), ages(family, tree)?);
+    let unknown = age.iter().skip(1).filter(|&&a| a == u32::MAX).count();
+    let scale = if family.supernatural.enabled {
+        family.supernatural.scale
+    } else {
+        1.0
+    };
+    println!(
+        "\n== {label}: scale {scale}, {} nodes ({unknown} without an age), planned leaves {}",
+        tree.nodes.len(),
+        plan.total
+    );
+    lai(&built)?;
+    // The tree's size: its height and spread from its wood, and its stem's
+    // radius at its base and at breast height.
+    let (mut lo, mut hi) = ([f64::MAX; 3], [f64::MIN; 3]);
+    for n in &tree.nodes {
+        let p = [n.position.x, n.position.y, n.position.z];
+        for c in 0..3 {
+            (lo[c], hi[c]) = (lo[c].min(p[c]), hi[c].max(p[c]));
+        }
+    }
+    let breast = (tree.nodes.iter().filter(|n| n.stem))
+        .min_by(|a, b| {
+            (a.position.y - 1.3)
+                .abs()
+                .total_cmp(&(b.position.y - 1.3).abs())
+        })
+        .map_or(0.0, |n| n.radius);
+    println!(
+        "size: {:.1} m tall, {:.1} x {:.1} m; stem radius {:.3} m at the base, {breast:.3} m at 1.3 m",
+        hi[1] - lo[1],
+        hi[0] - lo[0],
+        hi[2] - lo[2],
+        tree.nodes[0].radius
+    );
+
+    // The wood by order and age: nodes, metres grown, median drawn diameter.
+    let top = *order.iter().max().unwrap() as usize;
+    let mut wood: Vec<[(usize, f64, Vec<f64>); 3]> =
+        (0..=top).map(|_| Default::default()).collect();
+    for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+        if age[i] == u32::MAX {
+            continue;
+        }
+        let cell = &mut wood[order[i] as usize][age_class(age[i])];
+        cell.0 += 1;
+        cell.1 += tree.grown_length(i);
+        cell.2.push(2e3 * n.radius);
+    }
+    println!("wood: order | age | nodes | metres | median diameter mm");
+    for (o, row) in wood.iter_mut().enumerate() {
+        for (a, cell) in row.iter_mut().enumerate() {
+            if cell.0 > 0 {
+                let d = median(&mut cell.2);
+                println!("  {o} | {} | {} | {:.0} | {d:.2}", AGES[a], cell.0, cell.1);
+            }
+        }
+    }
+
+    // Current-year shoots: each run's wood of age 0, summed per run.
+    let mut shoots: HashMap<u32, f64> = HashMap::new();
+    for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+        if age[i] == 0 {
+            *shoots.entry(n.branch).or_default() += tree.grown_length(i);
+        }
+    }
+    let mut lengths: Vec<f64> = shoots.values().map(|l| l * 1e3).collect();
+    println!(
+        "current-year shoots: {} runs, length mm p10 {:.0} median {:.0} p90 {:.0}",
+        lengths.len(),
+        quantile(&mut lengths, 0.1),
+        quantile(&mut lengths, 0.5),
+        quantile(&mut lengths, 0.9)
+    );
+
+    // Leaves by the drawn radius and age of the wood they are planned on.
+    let at: HashMap<[u64; 3], usize> = (tree.nodes.iter().enumerate())
+        .map(|(i, n)| {
+            let p = n.position;
+            ([p.x.to_bits(), p.y.to_bits(), p.z.to_bits()], i)
+        })
+        .collect();
+    let mut by = [[0u64; 3]; RADII.len()];
+    let (mut seated, mut missing) = (Vec::new(), 0u64);
+    // The bearing wood's chord and the leaves along it: a cluster's
+    // descriptor stands at its tip, on no length.
+    let (mut bearing, mut along) = (0.0, 0u64);
+    for d in &plan.descriptors {
+        let p = d.endpoints[1];
+        let Some(&i) = at.get(&[p.x.to_bits(), p.y.to_bits(), p.z.to_bits()]) else {
+            missing += u64::from(d.count);
+            continue;
+        };
+        let mm = 1e3 * 0.5 * (d.radii[0] + d.radii[1]);
+        let a = if age[i] == u32::MAX {
+            2
+        } else {
+            age_class(age[i])
+        };
+        by[radius_class(mm)][a] += u64::from(d.count);
+        let chord = d.endpoints[0].distance(d.endpoints[1]);
+        bearing += chord;
+        along += if chord > 0.0 { u64::from(d.count) } else { 0 };
+        seated.extend(std::iter::repeat(2.0 * mm).take(d.count as usize));
+    }
+    println!("leaves: radius mm <= | age 0 | 1-3 | 4+  ({missing} not matched to a node)");
+    for (r, row) in by.iter().enumerate() {
+        if row.iter().sum::<u64>() > 0 {
+            println!("  {} | {} | {} | {}", RADII[r], row[0], row[1], row[2]);
+        }
+    }
+
+    // The leaf against its wood, at the size the group applies.
+    let size = family.applied().canopy.size;
+    let leaf = family.element.length * size;
+    let petiole = family.element.connector_length * size;
+    let total = along as f64;
+    let d50 = median(&mut seated);
+    println!(
+        "leaf blade {:.0} mm, petiole {:.1} mm; seat diameter p10 {:.2} median {d50:.2} p90 {:.2} mm; blade / seat diameter {:.0}; petiole / seat diameter {:.1}",
+        leaf * 1e3,
+        petiole * 1e3,
+        quantile(&mut seated, 0.1),
+        quantile(&mut seated, 0.9),
+        leaf * 1e3 / d50,
+        petiole * 1e3 / d50
+    );
+    println!(
+        "bearing wood {:.0} m (chord), {:.1} leaves per metre along it (clusters apart), one every {:.1} mm",
+        bearing,
+        total / bearing,
+        1e3 * bearing / total
+    );
+    Ok(())
+}
+
+fn main() -> Result<(), String> {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let [id, age, rest @ ..] = &args[..] else {
+        return Err("usage: twig_layer <preset> <age> [seed]".into());
+    };
+    let preset = Preset::from_id(id).ok_or_else(|| format!("unknown tree {id}"))?;
+    let age: f64 = age.parse().map_err(|e| format!("age {age}: {e}"))?;
+    let seed: u32 = rest
+        .first()
+        .map_or(Ok(1), |s| s.parse())
+        .map_err(|e| format!("seed: {e}"))?;
+    for on in [false, true] {
+        let mut family = preset.parameters();
+        (family.age, family.skeleton.seed) = (age, seed);
+        if on && !family.supernatural.enabled {
+            continue;
+        }
+        family.supernatural.enabled = on;
+        measure(
+            &family,
+            &format!(
+                "{id} {age} seed {seed} group {}",
+                if on { "on" } else { "off" }
+            ),
+        )?;
+    }
+    Ok(())
+}

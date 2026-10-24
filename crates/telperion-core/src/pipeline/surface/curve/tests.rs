@@ -1,5 +1,5 @@
 use super::*;
-use crate::pipeline::{clothe, skeleton, GrowInput, Inputs};
+use crate::pipeline::{clothe, scaffold, Inputs};
 use crate::presets::{Preset, CATALOGUE, IN_WORK};
 
 /// Every values preset's clothed skeleton, its surface rows and its name.
@@ -9,8 +9,8 @@ fn trees() -> Vec<(&'static str, Tree, f64, SurfaceParams)> {
         .chain(IN_WORK)
         .map(|&(_, id, _, _)| {
             let family = Preset::from_id(id).unwrap().parameters();
-            let mut tree = skeleton(GrowInput::of(&family)).unwrap().tree;
-            let inputs = Inputs::of(&family);
+            let mut tree = scaffold(&family).unwrap();
+            let inputs = Inputs::of(&family, family.skeleton.envelope);
             clothe(&mut tree, &inputs).unwrap();
             (id, tree, inputs.surface.height, inputs.surface.params)
         })
@@ -22,8 +22,12 @@ fn trees() -> Vec<(&'static str, Tree, f64, SurfaceParams)> {
 /// for all but the lobed legends), its shaped leaf-base cells included.
 #[test]
 fn every_presets_rings_are_drawn_from_its_curve_to_the_bit() {
+    let _turn = crate::one_tree::turn();
     for (id, tree, height, params) in trees() {
         let mesh = build(&tree, height, &params).unwrap();
+        let (runs, along) = (mesh.runs, mesh.along);
+        let kept: Vec<u16> = mesh.chunks.iter().flat_map(|c| c.coords.clone()).collect();
+        let mesh = mesh.flattened();
         let curve = curve(&tree, height, &params).unwrap();
         let (positions, coords) = curve.rings(segments(&params)).unwrap();
         let bits = |v: &[f32]| v.iter().map(|x| x.to_bits()).collect::<Vec<_>>();
@@ -32,8 +36,13 @@ fn every_presets_rings_are_drawn_from_its_curve_to_the_bit() {
             bits(&positions) == bits(&mesh.positions),
             "{id}: positions differ"
         );
-        assert!(bits(&coords) == bits(&mesh.coords), "{id}: coords differ");
-        assert_eq!(curve.runs.len(), mesh.runs, "{id}: runs");
+        // The wood keeps its coords encoded; the curve's encode to them.
+        let encoded = coords.as_chunks::<2>().0.iter().flat_map(|c| {
+            let [d, angle] = c.map(f64::from);
+            encode::coord(d, angle, along)
+        });
+        assert!(encoded.eq(kept), "{id}: coords differ");
+        assert_eq!(curve.runs.len(), runs, "{id}: runs");
         if id == "date-palm" {
             assert!(
                 !curve.sections.is_empty(),
@@ -72,6 +81,7 @@ fn clusters_bound_every_ring_and_their_ladder_rises() {
 /// place, 2.4e-7 of its distance from the origin).
 #[test]
 fn packed_points_stand_within_their_stated_error() {
+    let _turn = crate::one_tree::turn();
     for (id, tree, height, params) in trees() {
         let curve = curve(&tree, height, &params).unwrap();
         let segments = segments(&params);

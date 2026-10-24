@@ -1,11 +1,11 @@
 //! Bark changes shading, never the bytes that locate a silhouette.
 mod common;
-use telperion_core::{
-    material::MaterialParams, math::Vec3, mesh, presets::Preset, surface::SurfaceMesh,
-};
+use telperion_core::{material::MaterialParams, math::Vec3, mesh, surface::SurfaceMesh};
 use telperion_render::{render, Camera, Renderer, View, STILL_FORMAT};
 
 fn hash(mesh: &SurfaceMesh) -> u64 {
+    // The chunks laid end to end: the hash the flat wood had.
+    let mesh = mesh.flattened();
     mesh.positions
         .iter()
         .chain(&mesh.normals)
@@ -20,7 +20,7 @@ fn hash(mesh: &SurfaceMesh) -> u64 {
 #[test]
 fn relief_moves_the_light_while_every_wood_mesh_byte_holds() {
     let Some(gpu) = common::gpu() else { return };
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(400);
     let off = mesh::build(&family).unwrap();
     family.material = MaterialParams {
@@ -60,7 +60,7 @@ fn relief_moves_the_light_while_every_wood_mesh_byte_holds() {
 
 #[test]
 fn curve_points_are_refused_before_upload_when_only_their_binding_limit_is_exceeded() {
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(20);
     let mut tree = mesh::build(&family).unwrap();
     tree.foliage.instances.leaves.clear();

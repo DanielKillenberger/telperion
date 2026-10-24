@@ -44,8 +44,8 @@ For matched numeric primitives/native-Wasm comparisons, use absolute position to
 fixtures through the Three.js stage, and `scripts/benchmarks/measure.mjs` and
 `memory.mjs` measured that stage's frame and heap costs. All three drew with the
 renderer this repository no longer has; they were retired with it in fn22 task 7,
-last runnable at commit `43b5881`. Their evidence is unchanged and their code is
-in Git history. The native half of the comparison remains:
+last runnable at commit `43b5881`. Their evidence was mostly archived on 2026-10-16 (see
+`.flow/evidence/ARCHIVE-MANIFEST.md`) and their code is in Git history. The native half of the comparison remains:
 
 ```sh
 REFERENCE_OUTPUT=/tmp/telperion-surface-reference node crates/telperion-core/tests/surface_reference.mjs ordinary telperion laurelin
@@ -92,7 +92,7 @@ Intentional retirements under the approved no-compatibility capture: tests asser
 These bounded development exercises identify the owner and the observable assertion; they do not introduce speculative production options.
 
 1. **Botanical rule:** change a family's branch length/radius factor in `presets.rs`, or change its evaluation in `branching/local.rs`. Run `cargo test -p telperion-core --test growth local_anatomy_attachment_taper_and_resolution`. This test varies geometric resolution, checks attachment/taper and preserves terminal twig dimensions; extend its fixture with the proposed branch-law value and assert the intended length change. Inspect the ordinary viewer with the same seed before and after; a rule change should alter structure and derived outputs without changes in `surface`, `field`, or the browser adapter. For a shipped change, adjust its focused expectation and record silhouette/topology differences rather than restoring obsolete FN6 bytes.
-2. **Output change:** change a family's surface radial resolution in `presets.rs`, or its ring construction in `surface.rs`. Run `cargo test -p telperion-core --test surface tapered_closed_surface_has_normals_and_bounds`. Check winding, normals and nonzero triangles, then compare `{ structure: true }` and `{ field: true }` before and after: they retain identical structure and occupancy because neither calls the surface builder. The independent request assertions in `tests/browser/bindings.mjs` and mesh-free block consumer in `field.rs` enforce that separation. A representation-only change requires no new botanical generator or compatibility layer.
+2. **Output change:** change a family's surface radial resolution in `presets.rs`, or its ring construction in `surface.rs`. Run `cargo test -p telperion-core --test surface tapered_closed_surface_has_normals_and_bounds`. Check winding, normals and nonzero triangles, then compare `{ structure: true }` and `{ field: { n: 36 } }` before and after: they retain identical structure and occupancy because neither calls the surface builder. The independent request assertions in `tests/browser/bindings.mjs` and mesh-free block consumer in `field.rs` enforce that separation. A representation-only change requires no new botanical generator or compatibility layer.
 
 The existing tests exercise those boundaries with small fixtures. Full-size preset captures and timing evidence supplement them; they do not replace the focused checks.
 
@@ -227,7 +227,7 @@ branching, not mesh or foliage generation, measurement or end-to-end time.
 
 The separate `fn19-visibility-v2.2` diagnostic protocol lives at
 [visibility-v2/protocol.json](../../.flow/evidence/fn19/visibility-v2/protocol.json),
-and its images, admissions and receipts are unchanged. Its runner drew filtered
+and stays; its images, admissions and receipts were archived on 2026-10-16 (recoverable through `.flow/evidence/ARCHIVE-MANIFEST.md` at `8dab10634`). Its runner drew filtered
 local anatomy through the Three.js renderer and retired with the rest of the fn19
 visual rig; what it captured was always declared filtering, never a natural
 full-foliage or density comparison, and every image it produced still requires

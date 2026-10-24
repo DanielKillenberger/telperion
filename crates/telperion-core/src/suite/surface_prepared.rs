@@ -22,9 +22,12 @@ fn prepared_preserves_canonical_surface_without_expanded_arrays() {
     let p = surface::prepared::prepare(&tree, 4.0, &params)
         .unwrap()
         .unwrap();
-    assert_eq!(p.positions, cpu.positions);
+    let spans: Vec<_> = cpu.run_table.iter().map(|r| r.span).collect();
+    assert_eq!(cpu.chunks.len(), 1);
     assert_eq!(p.bounds, cpu.bounds);
-    assert_eq!(p.run_table, cpu.run_table);
+    let cpu = cpu.flattened();
+    assert_eq!(p.positions, cpu.positions);
+    assert_eq!(p.run_table, spans);
     let indices: Vec<_> = p
         .runs
         .iter()
@@ -61,8 +64,9 @@ fn clumps_reserve_every_buried_ring_and_collapsed_surfaces_fall_back() {
         .unwrap()
         .unwrap();
     let cpu = surface::build(&tree, 4.0, &params).unwrap();
-    assert_eq!(p.positions, cpu.positions);
-    assert_eq!(p.run_table, cpu.run_table);
+    let spans: Vec<_> = cpu.run_table.iter().map(|r| r.span).collect();
+    assert_eq!(p.positions, cpu.flattened().positions);
+    assert_eq!(p.run_table, spans);
     assert_eq!(p.rings.capacity(), p.rings.len());
     tree.nodes[1].radius = 1e-300;
     assert!(surface::prepared::prepare(&tree, 4.0, &params)
@@ -96,7 +100,6 @@ fn shared_contacts_preserve_station_stream_and_rounded_rings() {
     let mut family = Family::default();
     family.skeleton.envelope.height = 4.0;
     family.canopy.surface_contact = 1.0;
-    family.canopy.short_shoot_spacing = 0.0;
     family.canopy.limb_clumping = 0.0;
     let twig = Some(TwigPlacement {
         internode_length: 0.07,
@@ -227,7 +230,7 @@ fn shared_empty_and_validation_outcomes_are_explicit() {
     env.height += 1.0;
     assert!(foliage::prepared::prepare_shared_stations(&shared, env, family.canopy, twig).is_err());
     let mut canopy = family.canopy;
-    canopy.short_shoot_spacing = 0.1;
+    canopy.limb_clumping = 0.1;
     assert!(foliage::prepared::prepare_shared_stations(
         &shared,
         family.skeleton.envelope,

@@ -1,0 +1,56 @@
+# fn-304 friction
+
+## 2026-10-21 19:50, task R1 (measure)
+
+- **Doing:** starting the build under `telperion-heavy` with its log redirected into the spec's `raw/`.
+- **Hindered:** the dcg hook refused a redirect to a shell-variable path (`> $R/build.log`), the same refusal fn-274 recorded. Every heavy command has to spell the full evidence path out.
+- **Cost:** about 2 minutes and one retry.
+- **Would remove it:** the peak-measuring wrapper fn-274 proposed in `scripts/`, taking the log path as an argument, so no redirect is written by hand.
+
+- **Doing:** finding fn-271's and fn-274's measurements to avoid redoing them.
+- **Hindered:** both evidence directories went to the 2026-10-16 archive; their per-test tables are only in `git show 8dab10634:<path>`.
+- **Cost:** about 3 minutes.
+- **Would remove it:** nothing needed; the manifest's recovery line worked. Noted because a gate spec's per-test baseline is the evidence the next gate spec needs.
+
+## 2026-10-21 20:06, task R1 (measure)
+
+- **Doing:** waiting for `telperion-heavy 8` to admit the build (`--no-run`) that precedes the timed gate.
+- **Hindered:** another session's workspace gate (`telperion-heavy-2232265`, `cargo test --workspace` at 2 threads) holds the desk; room reads -1 to 2 GB against the 8 asked. The build alone needs far less than 8 GB, but one cap is asked for the whole sequence.
+- **Cost:** 21 minutes of queue so far, before a single binary compiled.
+- **Would remove it:** this spec itself (a ten-minute gate frees the queue four times sooner); meanwhile a smaller cap for compile-only steps.
+
+## 2026-10-21 21:58, task R1 (measure)
+
+- **Doing:** the first nextest-with-groups run at 8 GB, with a per-test RSS runner.
+- **Hindered:** the runner script lacked its executable bit; nextest failed at listing after a 10-minute queue wait. The rerun's log had to take a new name, because dcg refuses a truncating redirect onto an existing file.
+- **Cost:** about 10 minutes of queue, my error.
+- **Would remove it:** a checked-in measuring runner (fn-271 and fn-274 each wrote one by hand and lost it to `raw/`); R4 may supply it.
+- **Also measured:** the timed gate waited 26 minutes in the queue and the build 53 minutes, behind other sessions' 40-minute gates.
+
+## 2026-10-21 22:15, task R1 (measure)
+
+- **Doing:** nextest with fn-271's groups at 8 GB, `-j 4`.
+- **Hindered:** `ground_reach` (fn-301, one test) reached 7.65 GB anon by itself; beside a light render test it took the 8 GB scope over and systemd stopped the whole run (OOMPolicy stop) after 738 s, 50 tests short. One test that needs nearly the whole cap makes any wider runner fragile.
+- **Cost:** 12 minutes of run plus a rerun with that binary alone (`threads-required`).
+- **Would remove it:** a per-test memory budget beside the time budget in R4; ground_reach's builds dropped as it goes (to check: its peak may be accumulation, not one tree).
+
+## 2026-10-22 01:35, task .2 (subset proofs)
+
+- **Doing:** red proofs for the task .2 subsets, each a full sweep plus its subset per patch inside `telperion-heavy 8`.
+- **Hindered:** two patches missed the defect their test names and had to be redone (the light-sum order and the frond rounding moved nothing the tests read; the budget at an eighth still admitted the teaser frame). Each miss costs one full-sweep run, 1 to 7 minutes, plus the queue: the rerun has waited 35 minutes behind another session's gate.
+- **Cost:** about 50 minutes of queue and 15 of reruns so far.
+- **Would remove it:** a recorded defect per test (the commit that fixed it, as a patch) beside each test's doc comment, so a proof replays the real defect instead of guessing one; and the shorter gate this spec builds, which frees the queue.
+
+## 2026-10-22 07:05, task .4 (runner and width)
+
+- **Doing:** measuring nextest with memory tokens (`threads-required` per GiB, 7 tokens a run).
+- **Hindered:** nextest skipped 239 tests without a failure line ("239/1473 tests were not run", exit 100) twice in a row, 15 minutes each, because the device tests sat in a one-thread group while some required up to 5 tokens: a test whose `threads-required` exceeds its group's `max-threads` is never scheduled, and nextest says only that tests were not run.
+- **Cost:** about 35 minutes (two full runs) before the cause was found.
+- **Would remove it:** a checked-in config test that fails when any override's `threads-required` exceeds its group's width; R4's budget check may carry it.
+
+## 2026-10-22 08:15, task .5 (budgets)
+
+- **Doing:** wiring the budgets and running `gate.py`.
+- **Hindered:** the scripts lacked their executable bit at the first `gate.py` run (nextest refuses a runner it cannot exec; one queue cycle lost), and a shell one-liner with backticks in a double-quoted Python string ran them as commands and dropped a docstring edit.
+- **Cost:** about 25 minutes.
+- **Would remove it:** writing every edit script to a file (the host's rule, which this broke once), and a `chmod +x` beside any new runner in the same command that creates it.

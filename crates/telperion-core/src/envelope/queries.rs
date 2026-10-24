@@ -108,6 +108,7 @@ pub(crate) fn radius() {
 }
 
 #[inline(always)]
+#[cfg_attr(not(test), allow(dead_code))]
 pub(crate) fn planned_axis() {
     #[cfg(any(test, feature = "query-count"))]
     TALLY.with_borrow_mut(|t| t.counts.planned_axes += 1);

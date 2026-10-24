@@ -1,0 +1,311 @@
+diff --git i/crates/telperion-field/examples/field_time.rs w/crates/telperion-field/examples/field_time.rs
+new file mode 100644
+index 000000000..fe58f9fd8
+--- /dev/null
++++ w/crates/telperion-field/examples/field_time.rs
+@@ -0,0 +1,107 @@
++//! fn-259 task 4: 0.1.4's per-tree field call, natively, for the
++//! scorecard. Measurement only, never committed to 0.1.4; kept as
++//! `v014-probe.patch` in fn-259's evidence.
++//!
++//!   cargo run --profile ci -p telperion-field --example field_time -- <preset> <seed,...>
++//!
++//! For each seed, twice in one process: the slim package's `grow` (the one
++//! build pipeline asked for the field alone, as `grow::field` asks it), then
++//! `voxelize.ts`'s `grid(bounds, 36)` and one query of every cell, the
++//! answers kept as the Wasm keeps them. `first_ms` and `warm_ms` time the
++//! two calls end to end; the wood and foliage cell counts show the query
++//! saw a tree. Prints one JSON line.
++use std::time::Instant;
++use telperion_core::{
++    math::Vec3,
++    pipeline::{self, Request},
++    presets, Error,
++};
++
++const N: usize = 36;
++
++fn main() -> Result<(), Box<dyn std::error::Error>> {
++    let args: Vec<String> = std::env::args().skip(1).collect();
++    let [id, seeds] = &args[..] else {
++        return Err("usage: field_time <preset> <seed,...>".into());
++    };
++    let mut rows = Vec::new();
++    for seed in seeds.split(',') {
++        let seed: u32 = seed.parse()?;
++        let (first, _) = call(id, seed)?;
++        let (warm, (wood, foliage)) = call(id, seed)?;
++        rows.push(format!(
++            "{{\"seed\":{seed},\"first_ms\":{first:.2},\"warm_ms\":{warm:.2},\"wood_cells\":{wood},\"foliage_cells\":{foliage}}}"
++        ));
++    }
++    println!(
++        "{{\"version\":\"0.1.4\",\"preset\":\"{id}\",\"n\":{N},\"route\":\"native CPU, telperion-field's pipeline request\",\"samples\":[{}],\"peak_rss_mb\":{},\"load\":\"{}\"}}",
++        rows.join(","),
++        peak_mb()?,
++        load()
++    );
++    Ok(())
++}
++
++/// One field call: grow, the 36-cell grid over the field's bounds, one
++/// answer per cell. Returns its milliseconds and the wood and foliage cells.
++fn call(id: &str, seed: u32) -> Result<(f64, (usize, usize)), Box<dyn std::error::Error>> {
++    let started = Instant::now();
++    let mut family = presets::by_identity(id)?;
++    family.skeleton.seed = seed;
++    let request = Request {
++        field: Some(None),
++        ..Request::default()
++    };
++    let field = pipeline::build(&family, request)?
++        .outputs
++        .field
++        .ok_or(Error::InvalidInput("no field built"))?;
++    let b = field.bounds().ok_or("an empty field")?;
++    let cell = (b.max.x - b.min.x)
++        .max(b.max.y - b.min.y)
++        .max(b.max.z - b.min.z)
++        / (N - 2) as f64;
++    let half = N as f64 * cell / 2.0;
++    let origin = Vec3::new(
++        (b.min.x + b.max.x) / 2.0 - half,
++        b.min.y - cell,
++        (b.min.z + b.max.z) / 2.0 - half,
++    );
++    let mut answers = Vec::with_capacity(N * N * N);
++    for k in 0..N {
++        for j in 0..N {
++            for i in 0..N {
++                let at = |n: usize| (n as f64 + 0.5) * cell;
++                let c = Vec3::new(origin.x + at(i), origin.y + at(j), origin.z + at(k));
++                let hit = field.query(c, cell / 2.0)?;
++                answers.push((
++                    u8::from(hit.wood) | (u8::from(hit.foliage) << 1),
++                    hit.wood_radius as f32,
++                    hit.leaves as f32,
++                    hit.limb.unwrap_or(u32::MAX),
++                ));
++            }
++        }
++    }
++    let ms = started.elapsed().as_secs_f64() * 1e3;
++    let wood = answers.iter().filter(|a| a.0 & 1 != 0).count();
++    let foliage = answers.iter().filter(|a| a.0 & 2 != 0).count();
++    Ok((ms, (wood, foliage)))
++}
++
++fn peak_mb() -> Result<u64, Box<dyn std::error::Error>> {
++    let status = std::fs::read_to_string("/proc/self/status")?;
++    let line = status
++        .lines()
++        .find(|l| l.starts_with("VmHWM:"))
++        .ok_or("no VmHWM")?;
++    let kb: u64 = line.split_whitespace().nth(1).ok_or("no VmHWM")?.parse()?;
++    Ok(kb / 1024)
++}
++
++fn load() -> String {
++    std::fs::read_to_string("/proc/loadavg")
++        .ok()
++        .and_then(|s| s.split_whitespace().next().map(str::to_owned))
++        .unwrap_or_default()
++}
+diff --git i/crates/telperion-render/examples/frames.rs w/crates/telperion-render/examples/frames.rs
+new file mode 100644
+index 000000000..f0f5cfb7e
+--- /dev/null
++++ w/crates/telperion-render/examples/frames.rs
+@@ -0,0 +1,192 @@
++//! fn-259 task 4: the scorecard's frame probe on 0.1.4, the adapter of F4's
++//! `frames` (crates/telperion-render/examples/frames.rs at fn-259) to
++//! 0.1.4's renderer API. Measurement only, never committed to 0.1.4; kept
++//! as `v014-probe.patch` in fn-259's evidence. Prints one JSON line in the
++//! F4 probe's keys.
++//!
++//!   cargo run --profile ci -p telperion-render --example frames -- <preset> full [view...]
++//!
++//! The route is `setTreeGpu`'s, the harness's (`Generator::prepare` with
++//! `Delivery::Resident`, then `submit_prepared`), as F4's probe draws it.
++//! - `fresh_ms`: from `Renderer::new` (the adapter and device already
++//!   requested) through the generator, the first build and its first frame
++//!   at the hero pose to the device's fence. 0.1.4 has no separate program
++//!   step: its pipelines are made in `Generator::new` and the first build.
++//! - `warm_ms`: a second build of the same tree in the same process to a
++//!   fenced hero frame.
++//! - `views`: frame time per view, then `peak_rss_mb` and `device_memory`,
++//!   read last with the tree and the generator alive.
++//!
++//! `SEED` and `AGE` as F4's probe; 0.1.4's direct build reads no age (its
++//! `Family::age` is the growth path's alone), so `age` reports the row's
++//! value and changes nothing drawn. `ONE_BUILD=1` builds once and draws
++//! four hero frames before reading memory; the timing keys are null.
++use std::time::Instant;
++use telperion_core::presets::Preset;
++use telperion_render::{
++    generation::{Delivery, Generator},
++    hero_pose, measure, Camera, Frame, Gpu, Renderer, View, GROUND_REACH, STILL_FORMAT,
++};
++
++const SIZE: (u32, u32) = (1920, 1080);
++const PIPELINED: u32 = 120;
++const MEMORY_FRAMES: u32 = 4;
++
++fn main() -> Result<(), Box<dyn std::error::Error>> {
++    let args: Vec<String> = std::env::args().skip(1).collect();
++    let [id, rest @ ..] = &args[..] else {
++        return Err("usage: frames <preset> full [view...]".into());
++    };
++    let variant = rest.first().map_or("full", String::as_str);
++    if variant != "full" {
++        return Err(format!("no variant {variant} on 0.1.4").into());
++    }
++    let mut family = Preset::from_id(id).ok_or("no preset")?.parameters();
++    family.skeleton.seed = 1;
++    if let Ok(seed) = std::env::var("SEED") {
++        family.skeleton.seed = seed.parse()?;
++    }
++    if let Ok(age) = std::env::var("AGE") {
++        family.age = age.parse()?;
++    }
++    let one_build = std::env::var("ONE_BUILD").is_ok_and(|v| v == "1");
++    let gpu = pollster::block_on(Gpu::request(None))?;
++    let started = Instant::now();
++    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
++    let generator = Generator::new(&renderer)?;
++    let frame = Frame::new(&renderer, "frames", SIZE);
++    let prepared = generator.prepare(&family, Delivery::Resident)?;
++    let backend = format!("{:?}/{:?}", prepared.backend, prepared.metrics.wood_backend);
++    renderer.submit_prepared(prepared)?;
++    renderer.set_material(family.material);
++    let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
++    let hero = hero_pose(renderer.bounds().ok_or("no bounds")?, aspect, GROUND_REACH);
++    renderer.draw(&hero, SIZE, frame.target());
++    wait(&renderer);
++    let fresh_ms = ms(started);
++    let (fresh, warm, views) = if one_build {
++        for _ in 1..MEMORY_FRAMES {
++            renderer.draw(&hero, SIZE, frame.target());
++        }
++        wait(&renderer);
++        ("null".to_owned(), "null".to_owned(), "null".to_owned())
++    } else {
++        let rebuilt = Instant::now();
++        renderer.submit_prepared(generator.prepare(&family, Delivery::Resident)?)?;
++        renderer.draw(&hero, SIZE, frame.target());
++        wait(&renderer);
++        let warm_ms = ms(rebuilt);
++        let views = views(&mut renderer, &frame, hero, rest)?;
++        (
++            format!("{fresh_ms:.1}"),
++            format!("{warm_ms:.1}"),
++            format!("[{views}]"),
++        )
++    };
++    let device = device_memory(&renderer)?;
++    println!(
++        "{{\"version\":\"0.1.4\",\"preset\":\"{id}\",\"variant\":\"{variant}\",\"age\":{},\"seed\":{},\"one_build\":{one_build},\"backend\":\"{backend}\",\"fresh_ms\":{fresh},\"warm_ms\":{warm},\"views\":{views},\"peak_rss_mb\":{},\"device_memory\":{device},\"load\":\"{}\"}}",
++        family.age,
++        family.skeleton.seed,
++        peak_mb()?,
++        load(),
++    );
++    Ok(())
++}
++
++/// Frame time at each view asked, as F4's probe measures it: 20 frames to
++/// settle, 120 pipelined frames to a fence, then the timestamp protocol.
++fn views(
++    renderer: &mut Renderer,
++    frame: &Frame,
++    hero: Camera,
++    rest: &[String],
++) -> Result<String, Box<dyn std::error::Error>> {
++    let toward = |share: f64| Camera {
++        position: hero.target + (hero.position - hero.target) * share,
++        ..hero
++    };
++    let (mid, close) = (toward(0.5), toward(0.25));
++    let mut views = Vec::new();
++    for (name, view, camera) in [
++        ("whole", View::Whole, hero),
++        ("mid", View::Whole, mid),
++        ("close", View::Whole, close),
++        ("bare-whole", View::Bare, hero),
++        ("bare-close", View::Bare, close),
++    ] {
++        let asked = |v: &String| v == name;
++        if (rest.len() > 1 && !rest[1..].iter().any(asked)) || (rest.len() <= 1 && name == "mid") {
++            continue;
++        }
++        renderer.set_view(view);
++        for _ in 0..20 {
++            renderer.draw(&camera, SIZE, frame.target());
++        }
++        wait(renderer);
++        let started = Instant::now();
++        for _ in 0..PIPELINED {
++            renderer.draw(&camera, SIZE, frame.target());
++        }
++        wait(renderer);
++        let frame_ms = ms(started) / f64::from(PIPELINED);
++        let timing = measure(renderer, &camera, SIZE, frame.target())?.to_json();
++        views.push(format!(
++            "{{\"view\":\"{name}\",\"frame_ms\":{frame_ms:.3},\"fps\":{:.1},\"timing\":{}}}",
++            1e3 / frame_ms,
++            timing.replace('\n', "")
++        ));
++    }
++    Ok(views.join(","))
++}
++
++fn ms(since: Instant) -> f64 {
++    since.elapsed().as_secs_f64() * 1e3
++}
++
++fn wait(renderer: &Renderer) {
++    let _ = renderer
++        .gpu()
++        .device
++        .poll(wgpu::PollType::wait_indefinitely());
++}
++
++/// The device memory this process holds, in F4's probe's keys: the
++/// allocator's report, `wgpu_internal_mib` the part wgpu holds for itself.
++fn device_memory(renderer: &Renderer) -> Result<String, Box<dyn std::error::Error>> {
++    const MIB: f64 = 1024.0 * 1024.0;
++    let report = renderer
++        .gpu()
++        .device
++        .generate_allocator_report()
++        .ok_or("no allocator report")?;
++    let internal: u64 = report
++        .allocations
++        .iter()
++        .filter(|a| a.name.starts_with("(wgpu internal)"))
++        .map(|a| a.size)
++        .sum();
++    Ok(format!(
++        "{{\"source\":\"wgpu allocator report\",\"allocated_mib\":{:.1},\"wgpu_internal_mib\":{:.1},\"reserved_mib\":{:.1}}}",
++        report.total_allocated_bytes as f64 / MIB,
++        internal as f64 / MIB,
++        report.total_reserved_bytes as f64 / MIB
++    ))
++}
++
++fn peak_mb() -> Result<u64, Box<dyn std::error::Error>> {
++    let status = std::fs::read_to_string("/proc/self/status")?;
++    let line = status
++        .lines()
++        .find(|l| l.starts_with("VmHWM:"))
++        .ok_or("no VmHWM")?;
++    let kb: u64 = line.split_whitespace().nth(1).ok_or("no VmHWM")?.parse()?;
++    Ok(kb / 1024)
++}
++
++fn load() -> String {
++    std::fs::read_to_string("/proc/loadavg")
++        .ok()
++        .and_then(|s| s.split_whitespace().next().map(str::to_owned))
++        .unwrap_or_default()
++}

@@ -1,9 +1,15 @@
 //! One owned engine per Wasm instance. No caller pointers enter native code.
 mod generate;
+#[cfg(any(target_arch = "wasm32", test))]
+mod live;
 use generate::{generate, Output};
 use serde_json::{json, Value};
 use std::cell::RefCell;
-use telperion_core::{math::Vec3, params, Error, Result};
+use telperion_core::{params, Error, Result};
+
+#[cfg(target_arch = "wasm32")]
+#[global_allocator]
+static ALLOCATOR: live::Counting = live::Counting;
 
 #[cfg(target_arch = "wasm32")]
 #[link(wasm_import_module = "env")]
@@ -25,21 +31,7 @@ struct Engine {
     input: Vec<u8>,
     output: Output,
     metadata: Vec<u8>,
-    queries: Vec<f64>,
-    occupancy: Vec<u8>,
-    leaves: Vec<f32>,
-    limbs: Vec<u32>,
-    wood_radii: Vec<f32>,
     revision: u32,
-}
-impl Engine {
-    /// Drops every per-cell answer of the last batch query.
-    fn clear_answers(&mut self) {
-        self.occupancy.clear();
-        self.leaves.clear();
-        self.limbs.clear();
-        self.wood_radii.clear();
-    }
 }
 thread_local! { static ENGINE: RefCell<Engine> = RefCell::new(Engine::default()); }
 fn status(e: &mut Engine, result: Result<Value>) -> u32 {
@@ -53,6 +45,7 @@ fn status(e: &mut Engine, result: Result<Value>) -> u32 {
                 Error::InvalidInput(m) => (1, m.to_string()),
                 Error::InvalidValue { field, value } => (1, format!("{field} = {value}")),
                 Error::ResourceLimit(m) => (2, m.to_string()),
+                e @ Error::WoodMemory { .. } => (2, e.to_string()),
             };
             e.metadata = json!({"error": message, "code": code})
                 .to_string()
@@ -121,13 +114,13 @@ pub extern "C" fn release() {
         let mut e = e.borrow_mut();
         e.output = Output::default();
         e.input.clear();
-        e.queries.clear();
-        e.clear_answers();
         e.revision = e.revision.wrapping_add(1);
     });
 }
 #[no_mangle]
 pub extern "C" fn build() -> u32 {
+    #[cfg(target_arch = "wasm32")]
+    telperion_core::memory::set_left(live::left);
     ENGINE.with(|e| {
         let mut e = e.borrow_mut();
         e.output = Output::default();
@@ -143,216 +136,81 @@ pub extern "C" fn build() -> u32 {
         status(&mut e, result)
     })
 }
-#[no_mangle]
-pub extern "C" fn buffer_ptr(slot: u32) -> *const u8 {
-    ENGINE.with(|e| {
-        let e = e.borrow();
-        let o = &e.output;
-        match slot {
-            0 => o
-                .surface
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.positions.as_ptr().cast()),
-            1 => o
-                .surface
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.normals.as_ptr().cast()),
-            2 => o
-                .surface
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.indices.as_ptr().cast()),
-            3 => o.element_positions.as_ptr().cast(),
-            4 => o.element_indices.as_ptr().cast(),
-            5 => o.instances.leaves.as_ptr().cast(),
-            6 => o.structure.as_ptr().cast(),
-            7 => o.topology.as_ptr().cast(),
-            8 => e.occupancy.as_ptr(),
-            9 => o
-                .snapshot
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.wood.as_ptr().cast()),
-            10 => o
-                .snapshot
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.wood_index.bounds.as_ptr().cast()),
-            11 => o
-                .snapshot
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.wood_index.topology.as_ptr().cast()),
-            12 => o
-                .snapshot
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.leaves.bounds.as_ptr().cast()),
-            13 => o
-                .snapshot
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.leaves.topology.as_ptr().cast()),
-            // Surface coordinates, two floats a vertex, beside the positions
-            // in slots 0 and 3. A consumer that ignores them reads as before.
-            14 => o
-                .surface
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.coords.as_ptr().cast()),
-            15 => o.element_coords.as_ptr().cast(),
-            // Slots 16 to 18 held the removed growth path's buffers.
-            // Beside the occupancy bits in slot 8: one f32 leaf-count
-            // estimate and one u32 limb id (u32::MAX for none) per cell.
-            19 => e.leaves.as_ptr().cast(),
-            20 => e.limbs.as_ptr().cast(),
-            // The plan behind a planned field's snapshot: seven f64 a sweep
-            // (endpoints, reach), two u32 (count, system), and its index.
-            21 => o
-                .snapshot
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.plan.as_ptr().cast()),
-            22 => o
-                .snapshot
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.plan_stations.as_ptr().cast()),
-            23 => o
-                .snapshot
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.plan_index.bounds.as_ptr().cast()),
-            24 => o
-                .snapshot
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.plan_index.topology.as_ptr().cast()),
-            // Beside slots 19 and 20: one f32 wood radius per cell, the
-            // thickest wood sweep reaching it in metres, zero without wood.
-            25 => e.wood_radii.as_ptr().cast(),
-            // Beside the plan in slot 21: three f64 a sweep, a box's
-            // half-width vector (zero for a capsule); empty where the plan
-            // holds no box.
-            26 => o
-                .snapshot
-                .as_ref()
-                .map_or(std::ptr::null(), |s| s.plan_sides.as_ptr().cast()),
-            _ => std::ptr::null(),
-        }
-    })
+/// One output buffer by slot, as bytes and its length in elements; any
+/// other slot is empty.
+fn slot(o: &Output, slot: u32) -> (*const u8, usize) {
+    fn of<T>(v: &[T]) -> (*const u8, usize) {
+        (v.as_ptr().cast(), v.len())
+    }
+    match slot {
+        3 => of(&o.element_positions),
+        4 => of(&o.element_indices),
+        5 => (
+            o.instances.leaves.as_ptr().cast(),
+            o.instances.leaves.len() * telperion_core::foliage::WORDS,
+        ),
+        6 => of(&o.structure),
+        7 => of(&o.topology),
+        // The field's grid, one byte a cell: wood 1, foliage 2. Slots 9
+        // to 13 held the removed field snapshot.
+        8 => of(&o.field.occupancy),
+        // Slots 0 to 2 and 14 held the flat wood; `chunk_ptr` reads its
+        // chunks now.
+        15 => of(&o.element_coords),
+        // Slots 16 to 18 held the removed growth path's buffers.
+        // Beside the occupancy bits in slot 8: one f32 leaf-count
+        // estimate and one u32 limb id (u32::MAX for none) per cell.
+        19 => of(&o.field.leaves),
+        20 => of(&o.field.limbs),
+        // Slots 21 to 24 and 26 held the removed field snapshot's plan.
+        // Beside slots 19 and 20: one f32 wood radius per cell, the
+        // thickest wood sweep reaching it in metres, zero without wood.
+        25 => of(&o.field.wood_radii),
+        // The flowers, as slots 3 to 5 are the leaves: their element's
+        // positions and indices, and three u32 words a floret against the
+        // metadata's `organReference`. Empty where nothing flowers.
+        27 => of(&o.organ_positions),
+        28 => of(&o.organ_indices),
+        29 => o.organ.as_ref().map_or((std::ptr::null(), 0), |i| {
+            (
+                i.leaves.as_ptr().cast(),
+                i.leaves.len() * telperion_core::foliage::WORDS,
+            )
+        }),
+        _ => (std::ptr::null(), 0),
+    }
 }
 #[no_mangle]
-pub extern "C" fn buffer_len(slot: u32) -> usize {
-    ENGINE.with(|e| {
-        let e = e.borrow();
-        let o = &e.output;
-        match slot {
-            0 => o.surface.as_ref().map_or(0, |s| s.positions.len()),
-            1 => o.surface.as_ref().map_or(0, |s| s.normals.len()),
-            2 => o.surface.as_ref().map_or(0, |s| s.indices.len()),
-            3 => o.element_positions.len(),
-            4 => o.element_indices.len(),
-            5 => o.instances.leaves.len() * telperion_core::foliage::WORDS,
-            6 => o.structure.len(),
-            7 => o.topology.len(),
-            8 => e.occupancy.len(),
-            9 => o.snapshot.as_ref().map_or(0, |s| s.wood.len()),
-            10 => o.snapshot.as_ref().map_or(0, |s| s.wood_index.bounds.len()),
-            11 => o
-                .snapshot
-                .as_ref()
-                .map_or(0, |s| s.wood_index.topology.len()),
-            12 => o.snapshot.as_ref().map_or(0, |s| s.leaves.bounds.len()),
-            13 => o.snapshot.as_ref().map_or(0, |s| s.leaves.topology.len()),
-            14 => o.surface.as_ref().map_or(0, |s| s.coords.len()),
-            15 => o.element_coords.len(),
-            19 => e.leaves.len(),
-            20 => e.limbs.len(),
-            21 => o.snapshot.as_ref().map_or(0, |s| s.plan.len()),
-            22 => o.snapshot.as_ref().map_or(0, |s| s.plan_stations.len()),
-            23 => o.snapshot.as_ref().map_or(0, |s| s.plan_index.bounds.len()),
-            24 => o
-                .snapshot
-                .as_ref()
-                .map_or(0, |s| s.plan_index.topology.len()),
-            25 => e.wood_radii.len(),
-            26 => o.snapshot.as_ref().map_or(0, |s| s.plan_sides.len()),
-            _ => 0,
-        }
-    })
+pub extern "C" fn buffer_ptr(n: u32) -> *const u8 {
+    ENGINE.with(|e| slot(&e.borrow().output, n).0)
 }
-/// Explicit experiment export; ordinary builds and queries never allocate snapshots.
+/// Elements, not bytes, in one output buffer (`buffer_ptr`).
 #[no_mangle]
-pub extern "C" fn field_snapshot(revision: u32) -> u32 {
-    ENGINE.with(|e| {
-        let mut e = e.borrow_mut();
-        e.output.snapshot = None;
-        let start = clock();
-        let result = (|| {
-            if e.revision != revision { return Err(Error::InvalidInput("stale field handle")); }
-            let snapshot = e.output.field.as_ref().ok_or(Error::InvalidInput("no field requested"))?.snapshot()?;
-            let meta = json!({"woodNodes":snapshot.wood_index.node_count,"leafNodes":snapshot.leaves.node_count,
-                "planNodes":snapshot.plan_index.node_count,"extractionMs":clock()-start});
-            e.output.snapshot = Some(snapshot);
-            Ok(meta)
-        })();
-        status(&mut e, result)
-    })
+pub extern "C" fn buffer_len(n: u32) -> usize {
+    ENGINE.with(|e| slot(&e.borrow().output, n).1)
+}
+/// One field of wood chunk `chunk`, as bytes: 0 its positions, three f32 a
+/// vertex; 1 its normals, two i16 a vertex, octahedral; 2 its indices, u16
+/// local to the chunk. The metadata's `surfaceChunks` counts the chunks;
+/// any other chunk or field is empty.
+fn chunk_field(o: &Output, chunk: u32, field: u32) -> (*const u8, usize) {
+    let chunk = o
+        .surface
+        .as_ref()
+        .and_then(|s| s.chunks.get(chunk as usize));
+    match (chunk, field) {
+        (Some(c), 0) => (c.positions.as_ptr().cast(), c.positions.len()),
+        (Some(c), 1) => (c.normals.as_ptr().cast(), c.normals.len()),
+        (Some(c), 2) => (c.indices.as_ptr().cast(), c.indices.len()),
+        _ => (std::ptr::null(), 0),
+    }
 }
 #[no_mangle]
-pub extern "C" fn field_snapshot_release() {
-    ENGINE.with(|e| e.borrow_mut().output.snapshot = None);
+pub extern "C" fn chunk_ptr(chunk: u32, field: u32) -> *const u8 {
+    ENGINE.with(|e| chunk_field(&e.borrow().output, chunk, field).0)
 }
+/// Elements, not bytes, in one field of one wood chunk (`chunk_ptr`).
 #[no_mangle]
-pub extern "C" fn query_alloc(count: u32) -> u32 {
-    ENGINE.with(|e| {
-        let mut e = e.borrow_mut();
-        e.clear_answers();
-        e.queries.clear();
-        let result = (count as usize)
-            .checked_mul(4)
-            .ok_or(Error::ResourceLimit("query size"))
-            .and_then(|len| reserve(&mut e.queries, len));
-        status(&mut e, result.map(|_| json!(null)))
-    })
-}
-#[no_mangle]
-pub extern "C" fn query_ptr() -> *const f64 {
-    ENGINE.with(|e| e.borrow().queries.as_ptr())
-}
-#[no_mangle]
-pub extern "C" fn query(revision: u32) -> u32 {
-    ENGINE.with(|e| {
-        let mut e = e.borrow_mut();
-        e.clear_answers();
-        let result = (|| {
-            if e.revision != revision {
-                return Err(Error::InvalidInput("stale field handle"));
-            }
-            let Engine {
-                output,
-                queries,
-                occupancy,
-                leaves,
-                limbs,
-                wood_radii,
-                ..
-            } = &mut *e;
-            let field = output
-                .field
-                .as_ref()
-                .ok_or(Error::InvalidInput("no field requested"))?;
-            let count = queries.len() / 4;
-            for reserve in [
-                occupancy.try_reserve(count),
-                leaves.try_reserve(count),
-                limbs.try_reserve(count),
-                wood_radii.try_reserve(count),
-            ] {
-                reserve.map_err(|_| Error::ResourceLimit("query output"))?;
-            }
-            for q in queries.as_chunks::<4>().0 {
-                let hit = field.query(Vec3::new(q[0], q[1], q[2]), q[3])?;
-                occupancy.push(u8::from(hit.wood) | (u8::from(hit.foliage) << 1));
-                leaves.push(hit.leaves as f32);
-                limbs.push(hit.limb.unwrap_or(u32::MAX));
-                wood_radii.push(hit.wood_radius as f32);
-            }
-            Ok(json!(null))
-        })();
-        if result.is_err() {
-            e.clear_answers();
-        }
-        status(&mut e, result)
-    })
+pub extern "C" fn chunk_len(chunk: u32, field: u32) -> usize {
+    ENGINE.with(|e| chunk_field(&e.borrow().output, chunk, field).1)
 }

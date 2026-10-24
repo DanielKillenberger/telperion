@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-14T12:38:54.127200Z",
+  "depends_on": [
+    "fn-275-a-young-palms-fronds-grow-to-their-size.1"
+  ],
+  "id": "fn-275-a-young-palms-fronds-grow-to-their-size.2",
+  "priority": null,
+  "spec": "fn-275-a-young-palms-fronds-grow-to-their-size",
+  "spec_path": ".flow/tasks/fn-275-a-young-palms-fronds-grow-to-their-size.2.md",
+  "status": "done",
+  "title": "Seedling leaves: entire fronds becoming pinnate",
+  "updated_at": "2026-10-14T12:38:54.127200Z"
+}

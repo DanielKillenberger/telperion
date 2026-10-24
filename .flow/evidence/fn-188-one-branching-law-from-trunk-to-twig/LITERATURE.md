@@ -151,6 +151,8 @@ The catalogue therefore spans Corner, Massart, Rauh and Troll, plus a sympodial 
 
 ### 4.1 What the probe has and lacks (R3-PROBE3 to R3-PROBE8, ASTRA-TEXTURE-REVIEW, ASTRA-BARE-TARGETS)
 
+> R3-PROBE2 to R3-PROBE8 and ASTRA-TEXTURE-REVIEW are archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-188-one-branching-law-from-trunk-to-twig/<file>.md`.
+
 | Ingredient (source) | Probe today | Gap seen on the beech |
 |---|---|---|
 | Competition for space or light, BH allocation, pipe radii [PAL09] | Space markers (binary Q); λ, α; leaf-pipe radii (exponent 2.9); bud retirement | At λ 0.5 every winning bud receives v = 2.0, so vigour is uniform (R3-PROBE8). With binary Q there is nothing to differentiate shoots. |

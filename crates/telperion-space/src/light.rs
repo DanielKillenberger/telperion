@@ -12,8 +12,8 @@
 //! along any ray, and GreenLab's production Sp (1 - exp(-k S / Sp)) on an
 //! even crown under light from overhead (Letort et al., eq. 1).
 use crate::error::{refuse, Result};
-use crate::species::Species;
-use crate::structure::{Structure, Vec3};
+use crate::structure::Vec3;
+use crate::transcendental::Transcendental;
 
 /// The lattice's spacing in metres.
 pub(crate) const CELL: f64 = 0.5;
@@ -86,7 +86,11 @@ impl Light {
             let (e, share) = (elevation.to_radians(), blend(ring + 1) / 4.0);
             for k in 0..4 {
                 let a = (turn + 90.0 * f64::from(k)).to_radians();
-                let toward = Vec3::new(e.cos() * a.cos(), e.cos() * a.sin(), e.sin());
+                let toward = Vec3::new(
+                    e.cos_fixed() * a.cos_fixed(),
+                    e.cos_fixed() * a.sin_fixed(),
+                    e.sin_fixed(),
+                );
                 out.push((toward, share));
             }
         }
@@ -94,31 +98,9 @@ impl Light {
     }
 }
 
-/// The light at each living apex's tip of `structure`, by its axis's
-/// index, from the leaves its last cycle grew, each node's PA's leaf area
-/// sized by its phytomer's scale: what a bud there would read before the
-/// next cycle. The measure of a rough layout against the final one.
-pub fn bud_light(structure: &Structure, species: &Species, light: &Light) -> Vec<(usize, f64)> {
-    let leaves: Vec<(Vec3, f64)> = structure
-        .axes
-        .iter()
-        .flat_map(|a| {
-            let area = species.states[a.pa].leaf_area;
-            a.phytomers.iter().map(move |p| (p, area))
-        })
-        .filter(|(p, _)| p.cycle == structure.age)
-        .map(|(p, area)| (p.tip, p.scale * area))
-        .collect();
-    let tips: Vec<(usize, Vec3)> = structure
-        .axes
-        .iter()
-        .enumerate()
-        .filter(|(_, a)| a.apex_end.is_none())
-        .map(|(i, a)| (i, a.phytomers.last().map_or(a.base, |p| p.tip)))
-        .collect();
-    let reads: Vec<Vec3> = tips.iter().map(|t| t.1).collect();
-    let field = Field::new(light, &leaves, &reads);
-    tips.iter().map(|&(i, at)| (i, field.at(at))).collect()
+/// A leaf's area, `scale size leaf_area`, in f32 (CONTRACT-A.md 2.6).
+pub(crate) fn leaf_area(scale: f64, size: f64, area: f64) -> f64 {
+    f64::from(scale as f32 * size as f32 * area as f32)
 }
 
 /// All the light from overhead.
@@ -140,138 +122,75 @@ fn bands(gathered: fn(f64) -> f64) -> [f64; 3] {
 /// A uniform sky's light on a level surface from below elevation `e`:
 /// the integral of sin e cos e, normalised.
 fn uniform(e: f64) -> f64 {
-    e.sin().powi(2)
+    e.sin_fixed().powi(2)
 }
 
 /// The standard overcast sky's (radiance as 1 + 2 sin e): the integral of
 /// (1 + 2 sin e) sin e cos e, sin^2 e / 2 + 2 sin^3 e / 3, normalised by
 /// its value overhead, 7 / 6.
 fn standard(e: f64) -> f64 {
-    let s = e.sin();
+    let s = e.sin_fixed();
     (s * s / 2.0 + 2.0 * s.powi(3) / 3.0) / (7.0 / 6.0)
 }
 
-/// A lattice of light: leaf area deposited, swept from the sky, read.
-pub(crate) struct Field {
-    /// The node index of the box's least corner, and its extent in nodes.
-    low: [i64; 3],
+/// Each direction's optical depth carried down a lattice of densities
+/// (square metres a cubic metre) a layer at a time, the directions on up
+/// to `threads` cores; a node's light is the sum of theirs in the
+/// directions' order. The one sweep of CONTRACT-A.md 2.6, run on the CPU.
+pub(crate) fn swept_all(
+    extinction: f64,
+    directions: &[(Vec3, f64)],
     size: [usize; 3],
-    /// Leaf area density at each node, then the light there.
-    density: Vec<f64>,
-    light: Vec<f64>,
+    density: &[f64],
+    threads: usize,
+) -> Vec<f64> {
+    let lit: Vec<(Vec3, f64)> = directions.iter().copied().filter(|d| d.1 > 0.0).collect();
+    let each = crate::cores::map(lit, 1, threads, &|_, (toward, share)| {
+        swept(density, size, extinction, toward, share)
+    });
+    let mut light = vec![0.0; density.len()];
+    crate::cores::fill(&mut light, 1 << 14, threads, &|k| {
+        each.iter().fold(0.0, |sum, light| sum + light[k])
+    });
+    light
 }
 
-impl Field {
-    /// The field of `leaves` (each a point and its leaf area in square
-    /// metres) under `light`, over a box that holds every leaf and every
-    /// point in `reads`.
-    pub fn new(light: &Light, leaves: &[(Vec3, f64)], reads: &[Vec3]) -> Self {
-        let mut field = Self::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()));
-        for &(at, area) in leaves {
-            field.deposit(at, area);
-        }
-        field.sweep(light.extinction, &light.directions());
-        field
-    }
-
-    /// The light at `at`, trilinear between the nodes about it; 1 beyond
-    /// the box, where nothing stands between it and the sky.
-    pub fn at(&self, at: Vec3) -> f64 {
-        let mut sum = 0.0;
-        let mut weight = 0.0;
-        for (node, w) in corners(at) {
-            if let Some(i) = self.index(node) {
-                sum += w * self.light[i];
-                weight += w;
+/// One direction's share of the light at every node: its optical depth at
+/// a node is the depth at the point its ray meets the layer above, read
+/// bilinearly, plus the trapezoid of the density between them along a
+/// layer's length of ray.
+fn swept(density: &[f64], size: [usize; 3], extinction: f64, toward: Vec3, share: f64) -> Vec<f64> {
+    let [nx, ny, nz] = size;
+    let layer = nx * ny;
+    let mut light = vec![0.0; density.len()];
+    let mut above_depth = vec![0.0; layer];
+    let mut depth = vec![0.0; layer];
+    let (ox, oy) = (toward.x / toward.z, toward.y / toward.z);
+    let path = CELL / toward.z;
+    for k in (0..nz).rev() {
+        let here = &density[k * layer..(k + 1) * layer];
+        let above = (k + 1 < nz).then(|| &density[(k + 1) * layer..(k + 2) * layer]);
+        for j in 0..ny {
+            for i in 0..nx {
+                let (x, y) = (i as f64 + ox, j as f64 + oy);
+                let (d0, rho0) = match above {
+                    Some(a) => (
+                        bilinear(&above_depth, nx, ny, x, y),
+                        bilinear(a, nx, ny, x, y),
+                    ),
+                    None => (0.0, 0.0),
+                };
+                let rho = here[j * nx + i];
+                depth[j * nx + i] = d0 + extinction * path * (rho + rho0) / 2.0;
             }
         }
-        sum + (1.0 - weight)
+        let lit = &mut light[k * layer..(k + 1) * layer];
+        for (l, &d) in lit.iter_mut().zip(&depth) {
+            *l = share * (-d).exp_fixed();
+        }
+        std::mem::swap(&mut above_depth, &mut depth);
     }
-
-    fn spanning(points: impl Iterator<Item = Vec3>) -> Self {
-        let (mut low, mut high) = ([i64::MAX; 3], [i64::MIN; 3]);
-        for p in points {
-            for (axis, c) in [p.x, p.y, p.z].into_iter().enumerate() {
-                let n = (c / CELL).floor() as i64;
-                low[axis] = low[axis].min(n);
-                high[axis] = high[axis].max(n + 1);
-            }
-        }
-        if low[0] > high[0] {
-            (low, high) = ([0; 3], [0; 3]);
-        }
-        let size = [0, 1, 2].map(|a| (high[a] - low[a] + 1) as usize);
-        let cells = size[0] * size[1] * size[2];
-        Self {
-            low,
-            size,
-            density: vec![0.0; cells],
-            light: vec![1.0; cells],
-        }
-    }
-
-    fn index(&self, node: [i64; 3]) -> Option<usize> {
-        let mut at = [0usize; 3];
-        for a in 0..3 {
-            let n = node[a] - self.low[a];
-            if n < 0 || n as usize >= self.size[a] {
-                return None;
-            }
-            at[a] = n as usize;
-        }
-        Some((at[2] * self.size[1] + at[1]) * self.size[0] + at[0])
-    }
-
-    fn deposit(&mut self, at: Vec3, area: f64) {
-        let density = area / CELL.powi(3);
-        for (node, w) in corners(at) {
-            let i = self.index(node).expect("the box holds every leaf");
-            self.density[i] += w * density;
-        }
-    }
-
-    /// Each direction's optical depth carried down a layer at a time: a
-    /// node's is the depth at the point its ray meets the layer above, read
-    /// bilinearly, plus the trapezoid of the density between them along a
-    /// layer's length of ray.
-    fn sweep(&mut self, extinction: f64, directions: &[(Vec3, f64)]) {
-        if extinction <= 0.0 {
-            return;
-        }
-        let [nx, ny, nz] = self.size;
-        let layer = nx * ny;
-        self.light.iter_mut().for_each(|l| *l = 0.0);
-        let mut above_depth = vec![0.0; layer];
-        let mut depth = vec![0.0; layer];
-        for &(toward, share) in directions.iter().filter(|d| d.1 > 0.0) {
-            let (ox, oy) = (toward.x / toward.z, toward.y / toward.z);
-            let path = CELL / toward.z;
-            above_depth.iter_mut().for_each(|d| *d = 0.0);
-            for k in (0..nz).rev() {
-                let here = &self.density[k * layer..(k + 1) * layer];
-                let above = (k + 1 < nz).then(|| &self.density[(k + 1) * layer..(k + 2) * layer]);
-                for j in 0..ny {
-                    for i in 0..nx {
-                        let (x, y) = (i as f64 + ox, j as f64 + oy);
-                        let (d0, rho0) = match above {
-                            Some(a) => (
-                                bilinear(&above_depth, nx, ny, x, y),
-                                bilinear(a, nx, ny, x, y),
-                            ),
-                            None => (0.0, 0.0),
-                        };
-                        let rho = here[j * nx + i];
-                        depth[j * nx + i] = d0 + extinction * path * (rho + rho0) / 2.0;
-                    }
-                }
-                let lit = &mut self.light[k * layer..(k + 1) * layer];
-                for (l, &d) in lit.iter_mut().zip(&depth) {
-                    *l += share * (-d).exp();
-                }
-                std::mem::swap(&mut above_depth, &mut depth);
-            }
-        }
-    }
+    light
 }
 
 /// The value at fractional node (x, y) of a layer, bilinear; 0 beyond it.
@@ -290,22 +209,8 @@ fn bilinear(layer: &[f64], nx: usize, ny: usize, x: f64, y: f64) -> f64 {
     sum
 }
 
-/// The eight nodes about `at` and their trilinear weights.
-fn corners(at: Vec3) -> impl Iterator<Item = ([i64; 3], f64)> {
-    let f = [at.x / CELL, at.y / CELL, at.z / CELL];
-    let n = f.map(|c| c.floor());
-    let t = [f[0] - n[0], f[1] - n[1], f[2] - n[2]];
-    (0..8).map(move |c: usize| {
-        let mut node = [0i64; 3];
-        let mut w = 1.0;
-        for a in 0..3 {
-            let up = (c >> a) & 1;
-            node[a] = n[a] as i64 + up as i64;
-            w *= if up == 1 { t[a] } else { 1.0 - t[a] };
-        }
-        (node, w)
-    })
-}
+pub(crate) mod field;
+pub(crate) use field::Field;
 
 #[cfg(test)]
 mod tests;

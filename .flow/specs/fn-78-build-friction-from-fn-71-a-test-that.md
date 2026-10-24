@@ -23,7 +23,7 @@ Neither is about the tree. Both are about how an agent learns what its change di
 ## Decision Context
 <!-- scope: both -->
 
-Two fixes in one spec because they share a cause: a change to shading at distance is judged by numbers the build has to work to obtain, so the build pays for the measurement twice, once to learn what broke and once to learn what it cost. fn-71's FRICTION.md entries of 2026-09-18 are the evidence for both criteria. The same shape as fn-70, which took fn-69's shop-floor friction the same way. [paraphrase]
+Two fixes in one spec because they share a cause: a change to shading at distance is judged by numbers the build has to work to obtain, so the build pays for the measurement twice, once to learn what broke and once to learn what it cost. fn-71's friction entries of 2026-09-18 (now the Friction lines of the fn-71 spec) are the evidence for both criteria. The same shape as fn-70, which took fn-69's shop-floor friction the same way. [paraphrase]
 
 ## Strategy Alignment
 

@@ -1,0 +1,565 @@
+{
+  "branch_name": "fn-310-a-person-for-scale-and-a-nicer-world",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-23T20:43:46.139164Z",
+  "created_at": "2026-10-23T12:17:40.936947Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-310-a-person-for-scale-and-a-nicer-world",
+  "impl_review_rounds": {
+    "fn-310-a-person-for-scale-and-a-nicer-world.1": 0,
+    "fn-310-a-person-for-scale-and-a-nicer-world.2": 0,
+    "fn-310-a-person-for-scale-and-a-nicer-world.5": 0,
+    "fn-310-a-person-for-scale-and-a-nicer-world.6": 0,
+    "fn-310-a-person-for-scale-and-a-nicer-world.7": 0,
+    "fn-310-a-person-for-scale-and-a-nicer-world.8": 0,
+    "fn-310-a-person-for-scale-and-a-nicer-world.9": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-23T14:04:26.365046Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "33654f09d53c3431921182e7c098f9eb529396dae4ba4b3a48861f2b263e0aca",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3aba2f7c54a1b8f7489ac41dd8e4e68a",
+            "classification": "introduced",
+            "findingId": "finding-3aba2f7c54a1b8f7489ac41dd8e4e68a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b909db79ee8e7e8838da4d71824fb302",
+            "classification": "introduced",
+            "findingId": "finding-b909db79ee8e7e8838da4d71824fb302",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c95fe6e5e2aaa6f4536cf26a1a480731",
+            "classification": "introduced",
+            "findingId": "finding-c95fe6e5e2aaa6f4536cf26a1a480731",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b103e8776d85214cc29f00b3da299a56d7c89713",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 248282,
+      "output_sha256": "9aeddba1768f23de3e54466f34c28d3836fe748a572af267fb95daca29f62401",
+      "reservation_id": "6f58805b37724c47949d413645835737",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-23T14:03:37.188469Z",
+      "tool_calls": 13,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "03defef505501a24a3096252f79bd32e992b566daab37a5e415da57a45a94adf",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3aba2f7c54a1b8f7489ac41dd8e4e68a",
+            "classification": "introduced",
+            "findingId": "finding-3aba2f7c54a1b8f7489ac41dd8e4e68a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b909db79ee8e7e8838da4d71824fb302",
+            "classification": "introduced",
+            "findingId": "finding-b909db79ee8e7e8838da4d71824fb302",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c95fe6e5e2aaa6f4536cf26a1a480731",
+            "classification": "introduced",
+            "findingId": "finding-c95fe6e5e2aaa6f4536cf26a1a480731",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1bb31abf9f6277973cad7062f86a178fbf50b406",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 582,
+      "output_sha256": "12afe942565a0f791ff65f1e66a61c1dd4aaea9cd525f5453bdd3d9ac48b9e61",
+      "reservation_id": "36d0715c437e47308fd48cbe84ac39f0",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-23T14:04:26.362489Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "96b57f1b7864ba793abc30867731702e45e67c33b30bb88cd18b329058d8053a",
+      "backend": "codex",
+      "base_sha": "0f6188dc744f654067a23342881b0734bffc7c61",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "91eddc36bfe59b45b9db970cb367aefffe5592bf",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "4ed9574ca3ac43c1b9dc560df4668323",
+      "round_consumed": true,
+      "scope": "impl:fn-310-a-person-for-scale-and-a-nicer-world.1",
+      "superseded_by": null,
+      "task": "fn-310-a-person-for-scale-and-a-nicer-world.1",
+      "timestamp": "2026-10-23T14:25:34.794920Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3b1ef2d010471af58876f0f690baba9f109fa4c59b7eb4a0616549686b9ae103",
+      "backend": "codex",
+      "base_sha": "73c1cf4d9cf798730d356d80ae9cfeb0dd02809e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9f58084425e89c5db1a77963fae0d3c2",
+            "classification": "introduced",
+            "findingId": "finding-9f58084425e89c5db1a77963fae0d3c2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d5dc6ef61b2c5cc721d4efc4f79d9e6fd813fe9d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1419,
+      "output_sha256": "d70be89d9acb17b5a5a7c253c2c888e4b56d65e2319fcf1f506e794e67731b25",
+      "reservation_id": "4d3b4adb31f147ddb4c2f9e9f14d03c8",
+      "round_consumed": true,
+      "scope": "impl:fn-310-a-person-for-scale-and-a-nicer-world.2",
+      "superseded_by": null,
+      "task": "fn-310-a-person-for-scale-and-a-nicer-world.2",
+      "timestamp": "2026-10-23T14:47:22.022909Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "73fcedf814a1e60930c63987c7d249c2422bfffd06c4fee6be506d5312c4737d",
+      "backend": "codex",
+      "base_sha": "73c1cf4d9cf798730d356d80ae9cfeb0dd02809e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9f58084425e89c5db1a77963fae0d3c2",
+            "classification": "introduced",
+            "findingId": "finding-9f58084425e89c5db1a77963fae0d3c2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "13328e77c1320c0a17a5572f06654e08a618f4c4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1271,
+      "output_sha256": "9021baf2cfc469220ddc5ccdbb68be6af00e7b00b124505de1d30e95f75513f4",
+      "reservation_id": "54b9dd4d88b14a55aa76c39b4472692b",
+      "round_consumed": true,
+      "scope": "impl:fn-310-a-person-for-scale-and-a-nicer-world.2",
+      "superseded_by": null,
+      "task": "fn-310-a-person-for-scale-and-a-nicer-world.2",
+      "timestamp": "2026-10-23T14:54:20.346477Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "04a005c8e4700bcfd1b628049d7409dc33c3cbc5136eac990d37810943cfa552",
+      "backend": "codex",
+      "base_sha": "85d1f3d6cda78944d7f7b7d92809a9a9c5194437",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5247e51e0b13ce30d197c80ed19032d8e272eaaf",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "2edf9c773a814382a527ab64553e5e00",
+      "round_consumed": true,
+      "scope": "impl:fn-310-a-person-for-scale-and-a-nicer-world.5",
+      "superseded_by": null,
+      "task": "fn-310-a-person-for-scale-and-a-nicer-world.5",
+      "timestamp": "2026-10-23T15:55:35.345606Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "eba963ef2d997dd2780a29ec6112f42d5e0cae61f639e7a28041da1135f39137",
+      "backend": "codex",
+      "base_sha": "201288747c5e6c356461e2a07b55a4276c0a1e94",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f58a01cc8aa8f6097c26fd30fe9dae25cebf7ef1",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 385457,
+      "output_sha256": "2386a3297743e04d1ba8932f566e91c4128174af149ff5753010cbd1520474e3",
+      "reservation_id": "7918ec4099ac438abc175dd64b50409c",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-23T16:27:09.633922Z",
+      "tool_calls": 19,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "42a08208e732cc259f69960212a0ff6926cab1d643173f43022a5f176d8715bd",
+      "backend": "codex",
+      "base_sha": "83eab841a8ba514401192e3cba4fec7b59e66fcb",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "67c8aa5ff1e5623cad9fa59957098e1cae820783",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "4fa947bcdfd7437f8bc47d498be3ea01",
+      "round_consumed": true,
+      "scope": "impl:fn-310-a-person-for-scale-and-a-nicer-world.6",
+      "superseded_by": null,
+      "task": "fn-310-a-person-for-scale-and-a-nicer-world.6",
+      "timestamp": "2026-10-23T17:28:05.047390Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "210295c3903823045ba7219f54ca7d534ffe9d927947c98531b9a33e5956f836",
+      "backend": "codex",
+      "base_sha": "2d773007ee283db7286adbc9bca0c37a15125f94",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4f896951a36dcfdeac2a86f78e81db6da74448e3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "8a5181cf5be549a49465288888a9607a",
+      "round_consumed": true,
+      "scope": "impl:fn-310-a-person-for-scale-and-a-nicer-world.7",
+      "superseded_by": null,
+      "task": "fn-310-a-person-for-scale-and-a-nicer-world.7",
+      "timestamp": "2026-10-23T17:55:11.771184Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "bb804a03a18abc59eb2eafa323a565a33338fdb27e1bd74432f85d2ac18d2b1a",
+      "backend": "codex",
+      "base_sha": "192e6f28c0c865961d899004bbc8b336a4726204",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c420b840170bbfc471f4cab86ced01bc",
+            "classification": "introduced",
+            "findingId": "finding-c420b840170bbfc471f4cab86ced01bc",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f82a3ea75c2f9dd25024e7ed2f69e8da1f3daaec",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 970,
+      "output_sha256": "738341f662f4e76c3a6dc3d3acdd9942eeea90338b17ea2d0aeecd0442ae5076",
+      "reservation_id": "d7495e25a9314be1bffcfe72da3bf7b0",
+      "round_consumed": true,
+      "scope": "impl:fn-310-a-person-for-scale-and-a-nicer-world.8",
+      "superseded_by": null,
+      "task": "fn-310-a-person-for-scale-and-a-nicer-world.8",
+      "timestamp": "2026-10-23T19:28:00.551146Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "69b58dca3735ad7c94a007d9f63b296439bdbe0079ef3c5ecf354d764ff1439e",
+      "backend": "codex",
+      "base_sha": "455f61dc09b2c093089fecc485651943d3c746f6",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "195a91593f85b5aeb93b357898c44080bc812c46",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "34150ccf366c45779c31b016e8215687",
+      "round_consumed": true,
+      "scope": "impl:fn-310-a-person-for-scale-and-a-nicer-world.9",
+      "superseded_by": null,
+      "task": "fn-310-a-person-for-scale-and-a-nicer-world.9",
+      "timestamp": "2026-10-23T20:17:10.678996Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4a24e133405a642e7357473a5adba8ab2701106235496751a6c91f83614d4f20",
+      "backend": "codex",
+      "base_sha": "dd2c3966aec2e73702cdc9b31f16f94a0ae52869",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "14812fe1a66c7a92f4185c2808aa650dbe6b16bc",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 6050,
+      "output_sha256": "6fae33a4aa0221481cf415feb8e851ddb7f1077c0354487e08b503f6e18f4758",
+      "reservation_id": "527fcda290ab498da2fedb5d1fbdf9fd",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-23T20:43:46.136186Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-310-a-person-for-scale-and-a-nicer-world.1": 1,
+    "impl:fn-310-a-person-for-scale-and-a-nicer-world.2": 1,
+    "impl:fn-310-a-person-for-scale-and-a-nicer-world.5": 1,
+    "impl:fn-310-a-person-for-scale-and-a-nicer-world.6": 1,
+    "impl:fn-310-a-person-for-scale-and-a-nicer-world.7": 1,
+    "impl:fn-310-a-person-for-scale-and-a-nicer-world.8": 1,
+    "impl:fn-310-a-person-for-scale-and-a-nicer-world.9": 1,
+    "plan": 1,
+    "plan#completion": 2
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-310-a-person-for-scale-and-a-nicer-world.1": 0,
+    "impl:fn-310-a-person-for-scale-and-a-nicer-world.2": 0,
+    "impl:fn-310-a-person-for-scale-and-a-nicer-world.5": 0,
+    "impl:fn-310-a-person-for-scale-and-a-nicer-world.6": 0,
+    "impl:fn-310-a-person-for-scale-and-a-nicer-world.7": 0,
+    "impl:fn-310-a-person-for-scale-and-a-nicer-world.8": 0,
+    "impl:fn-310-a-person-for-scale-and-a-nicer-world.9": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-310-a-person-for-scale-and-a-nicer-world.md",
+  "status": "open",
+  "title": "A person for scale and a nicer world around the tree",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-23T20:43:46.139737Z"
+}

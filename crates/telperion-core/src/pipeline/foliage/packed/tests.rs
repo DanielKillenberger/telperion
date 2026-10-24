@@ -212,8 +212,10 @@ fn every_subnormal_half_decodes_to_its_ieee_value() {
 /// 0.0026 rad on the rotation and a thousandth relative on the scale. The
 /// constructed cases above measure the codec; this measures the codec against
 /// what the generator actually produces, which is the integration R2 names.
+#[cfg(feature = "geometry")]
 #[test]
 fn every_preset_placement_round_trips_inside_r2() {
+    let _turn = crate::one_tree::turn();
     use crate::pipeline::branching;
     use crate::presets::Preset;
 
@@ -327,4 +329,50 @@ fn every_preset_placement_round_trips_inside_r2() {
         worst_scale <= 1e-3,
         "worst scale error {worst_scale} relative"
     );
+}
+
+/// fn-301: a leaf rested on the ground, attached at the finest wood
+/// (0.2 mm) or higher, packed and read back. Every vertex the pose left on
+/// or above the ground stays there within `BELOW` once decoded, the margin
+/// the pose cleared by covering the half code, the half float's rounding
+/// and the ten-bit angle; and every one moves by no more than that margin.
+#[test]
+fn a_rested_leaf_decodes_within_the_margin_it_was_rested_by() {
+    use super::super::{build_element, rest, transform_point};
+    const BELOW: f64 = 1e-4;
+    let e = build_element(Default::default()).unwrap();
+    let wedge = rest::Wedge::of(&e);
+    // A palm's crown box: tall, so its half code is the coarsest it carries.
+    let reference = Reference::spanning(Vec3::new(-9.0, -1.0, -9.0), Vec3::new(9.0, 14.0, 9.0));
+    let step = reference.step().y;
+    let mut rested = 0;
+    for h in [2e-4, 1e-3, 0.02, 0.1] {
+        for i in 0..64 {
+            let a = f64::from(i) / 64.0 * std::f64::consts::TAU;
+            let axis = Vec3::new(0.4 * a.cos(), -1.0, 0.4 * a.sin());
+            let at = Vec3::new(1.25 * a.sin(), h, 0.5);
+            let m = transform(basis(axis, Vec3::new(a.cos(), 0.3, 0.2)), 2.5, at);
+            let posed = rest::leaf(m, &wedge, step);
+            rested += usize::from(posed != m);
+            let back = reference.unpack(reference.pack(&posed));
+            let scale = 2.5;
+            let floor = (h - wedge.depth * scale).min(0.0);
+            for v in &e.positions {
+                let exact = transform_point(&posed, *v);
+                let decoded = transform_point(&back, *v);
+                let reach = (exact - at).length();
+                let moved = (exact.y - decoded.y).abs();
+                assert!(
+                    moved <= rest::margin(step, reach) + BELOW,
+                    "moved {moved} at {reach}"
+                );
+                assert!(
+                    decoded.y >= floor - BELOW,
+                    "{} under {floor} at h {h}",
+                    decoded.y
+                );
+            }
+        }
+    }
+    assert!(rested > 200, "only {rested} leaves rested");
 }

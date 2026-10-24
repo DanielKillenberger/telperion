@@ -171,6 +171,15 @@ fn bark_colour_range(radius: f32, ridge_scale: f32, plate_scale: f32,
     return ridge_scale * maturity * girth * vec2(mean, amplitude);
 }
 
+// How much of a band whose features are one unit wide a footprint of
+// `pixel` units keeps (fn-246): all of it while a feature spans four pixels
+// or more, none once it spans two, by degree between. A band the pixel
+// cannot hold leaves the picture as its mean, and its slopes go to the
+// roughness the caller adds (`bark_lost_variance`).
+fn bark_resolved(pixel: f32) -> f32 {
+    return bark_pass(2.0 * pixel);
+}
+
 fn bark_field_filtered(circle: vec2<f32>, along: f32, radius: f32,
     ridge_scale: f32, plate_scale: f32, footprint: vec2<f32>, furrow: f32,
     plate: vec4<f32>, structure: vec3<f32>) -> f32 {
@@ -190,23 +199,38 @@ fn bark_field_filtered(circle: vec2<f32>, along: f32, radius: f32,
     let plate_pixel = max(pixel.y, pixel.x * mix(1.5, 0.45, elongated));
     let scale_pixel = max(pixel.x, pixel.y);
     let ridge_mean = bark_ridge_mean(elongated, furrow);
+    let face_bands = 0.05 * 0.7 * 0.89 + 0.012 * 0.89 * 0.75 * 0.5;
+    // Each band is kept by how well the pixel resolves it and is its mean
+    // past that (fn-246): the ridges and their scales by the ridge width,
+    // the plate network by the plate's own.
+    let ridges_kept = bark_resolved(scale_pixel);
+    let size = bark_plate_size(plate.x, girth);
+    let plates_kept = select(0.0, bark_resolved(max(footprint.x, footprint.y) / size),
+        size > 0.0);
+    let cut = bark_plate_depth(plate, ridge_scale, girth);
+    let curl = select(0.0, structure.z, SMOOTH_BARK);
+    let network_mean = bark_plate_mean(plate.z, bark_peel_lift(plate.w, curl), structure.y);
+    var plates = cut * network_mean;
+    var bands = ridge_mean + face_bands;
+    if (ridges_kept <= 0.0 && plates_kept <= 0.0) {
+        return ridge_scale * maturity * girth * (bands + plates);
+    }
     let wander = vec2(
         bark_noise2_filtered(vec2(dot(arc, vec2(0.71, 0.53)), along / run),
             vec2(pixel.x * 0.89, footprint.y / run)),
         bark_noise2_filtered(vec2(dot(arc, vec2(-0.61, 0.43)), along / (run * 0.83)),
             vec2(pixel.x * 0.75, footprint.y / (run * 0.83))));
-    // Plates are the coarsest band the field carries and outlive every other,
-    // so the network is evaluated before the fine-scale shortcut below and
-    // survives it. The same wander drifts both, because it is one bark.
-    let network = bark_plate_field(arc, along, ridge_scale, girth, footprint,
-        wander, plate, structure).relief;
-    let plates = bark_plate_depth(plate, ridge_scale, girth) * network;
-    let face_bands = 0.05 * 0.7 * 0.89 + 0.012 * 0.89 * 0.75 * 0.5;
-    // The ridge band leaves the picture by its edge integral alone, which is
-    // its box filter (fn-71); the caller keeps every footprint it reads the
-    // field at under a ridge width, where a single edge's integral stands
-    // for the columns the box spans, and averages more reads across a
-    // wider pixel instead of fading the band.
+    // The same wander drifts the plates and the ridges, because it is one bark.
+    if (plates_kept > 0.0) {
+        let network = bark_plate_field(arc, along, ridge_scale, girth, footprint,
+            wander, plate, structure).relief;
+        plates = cut * mix(network_mean, network, plates_kept);
+    }
+    if (ridges_kept <= 0.0) {
+        return ridge_scale * maturity * girth * (bands + plates);
+    }
+    // The ridge band leaves the picture by its edge integral while the
+    // pixel resolves it (fn-71), and as its mean once it does not.
     let character = bark_noise_filtered(dot(arc, vec2(0.13, -0.17)) + along / (spacing * 9.0),
         pixel.x * 0.22 + pixel.y / 9.0);
     let ragged = vec2(
@@ -235,7 +259,22 @@ fn bark_field_filtered(circle: vec2<f32>, along: f32, radius: f32,
     let plate_relief = shoulder * scale_plate.x;
     // Finer flakes live only on the flat faces, never across a furrow or lip.
     let flake = bark_flakes(arc, along, spacing, pixel, column.y, scale_plate.y, shoulder);
-    return ridge_scale * maturity * girth * (ridge + 0.05 * plate_relief + flake + plates);
+    bands = mix(bands, ridge + 0.05 * plate_relief + flake, ridges_kept);
+    return ridge_scale * maturity * girth * (bands + plates);
+}
+
+// The slope variance the bands a footprint fades take with them (fn-246),
+// in the units the wood's roughness term reads: the plate network's walls,
+// which rise a plate's depth over a wall's width on both sides of every
+// plate, by how much of the network the pixel lets go.
+fn bark_lost_variance(footprint: vec2<f32>, radius: f32, ridge_scale: f32,
+    plate: vec4<f32>) -> f32 {
+    if (plate.x <= 0.0 || ridge_scale <= 0.0 || radius <= ridge_scale) { return 0.0; }
+    let girth = 0.3 + 0.7 * smoothstep(2.5, 20.0, radius / ridge_scale);
+    let kept = bark_resolved(max(footprint.x, footprint.y) / bark_plate_size(plate.x, girth));
+    let depth = mix(BARK_PLATE_DEPTH, 0.03, u.plate_profile.x);
+    let wall = bark_plate_wall();
+    return 2.0 * depth * depth / wall * (1.0 - kept * kept);
 }
 
 // Camera-independent physical sampling for field contracts, with the plate

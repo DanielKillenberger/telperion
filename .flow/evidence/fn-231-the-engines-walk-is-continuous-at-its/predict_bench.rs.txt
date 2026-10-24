@@ -1,0 +1,22 @@
+use std::time::Instant;
+use telperion_core::presets::Preset;
+use telperion_space::{expected_counts, expected_kept, Species};
+fn neutral(s: &Species) -> Species {
+    let mut n = s.clone();
+    for s in &mut n.states { (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0); }
+    n
+}
+fn main() {
+    let age: u32 = std::env::args().nth(1).unwrap().parse().unwrap();
+    let mut b = Preset::EuropeanBeech.parameters().space.species.unwrap();
+    let o = Preset::OregonWhiteOak.parameters().space.species.unwrap();
+    let sp = Preset::NorwaySpruce.parameters().space.species.unwrap();
+    for (name, s) in [("beech", b.clone()), ("oak", o.clone()), ("spruce", sp.clone()), ("beech-oak 0.5", telperion_space::blend(&b, &o, 0.5).unwrap()), ("beech-spruce 0.5", telperion_space::blend(&b, &sp, 0.5).unwrap())] {
+        let s = neutral(&s);
+        let best = |f: &dyn Fn()| (0..3).map(|_| { let t = Instant::now(); f(); t.elapsed().as_secs_f64() }).fold(f64::INFINITY, f64::min);
+        let k = best(&|| { expected_kept(&s, age).unwrap(); });
+        let g = best(&|| { expected_counts(&s, age).unwrap(); });
+        println!("{name} {age} kept {k:.3} grown {g:.3}");
+    }
+    b.states.clear();
+}

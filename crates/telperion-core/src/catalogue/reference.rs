@@ -34,6 +34,14 @@ how the growth path read it before its removal (fn-181,
 lies dormant; its couplings and conflicting bounds; how a walk between two
 families moves it; and the tuning dial it offers. A deprecated row is read by
 no production stage and is kept on the wire for compatibility.
+
+Colour rows (unit `reflectance`) are linear reflectances per channel, not
+display (sRGB) values, all on one scale under one exposure: a dark broadleaf
+face is a few hundredths (the beech's leaf 0.021/0.016/0.007), a white birch
+bark 0.78/0.76/0.70. A display value typed into a leaf row is ten or more
+times too bright. Petal rows are albedos on the same scale: a white petal is
+about 0.8 and draws near white at the whole-tree view, where fn-216's 0.1 drew
+grey (fn-234).
 ";
 
 fn row(out: &mut String, entry: Entry, defaults: &Family) {
@@ -143,10 +151,10 @@ fn blend(b: Blend) -> &'static str {
         Blend::Linear => "linear",
         Blend::Weighted => "linear, clamped to its ends",
         Blend::Degrees => "degrees along the shorter arc",
+        Blend::Log => "linear on the logarithm",
         Blend::Count | Blend::Many => "rounded to the nearest",
         Blend::Down => "rounded down",
         Blend::Up => "rounded up",
-        Blend::Density => "as the density it spaces",
         Blend::Kept => "the first family's",
         Blend::Coupled => "with the rows it is coupled to",
     }

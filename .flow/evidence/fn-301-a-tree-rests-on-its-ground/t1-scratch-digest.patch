@@ -1,0 +1,45 @@
+diff --git i/crates/telperion-render/src/generation/resident/digest_tests.rs w/crates/telperion-render/src/generation/resident/digest_tests.rs
+index ff63a8142..f82205796 100644
+--- i/crates/telperion-render/src/generation/resident/digest_tests.rs
++++ w/crates/telperion-render/src/generation/resident/digest_tests.rs
+@@ -192,3 +192,40 @@ fn palm_digest() {
+     let field = block_on(gen.grow_field(&palm(40.0), 24, None)).unwrap();
+     println!("palm 40 field: {}", debug(&field));
+ }
++
++/// fn-301 task 1 scratch: the palm at 12 and 40, seed 1: the device's
++/// drawn records once its fronds are hung, its packed leaves and wood, and
++/// its field.
++#[test]
++#[ignore = "a scratch digest"]
++fn fn301_scratch_digest() {
++    use super::super::cycle::tree::{self, Kernels};
++    use super::boots::{frond_rows, most, Hanger};
++    use super::fold::CV;
++    use pollster::block_on;
++    let _held = super::super::whole_tree();
++    let Some(gpu) = super::super::test_gpu() else {
++        return;
++    };
++    let renderer = crate::Renderer::new(gpu.clone(), crate::STILL_FORMAT);
++    let gen = Generator::new(&renderer).unwrap();
++    let (k, hanger) = (Kernels::new(&gpu), Hanger::new(&gpu));
++    for age in [12.0, 40.0] {
++        let mut f = telperion_core::presets::by_identity("date-palm").unwrap();
++        f.age = age;
++        f.skeleton.seed = 1;
++        let growth = executor::growth(&f).unwrap();
++        let bases = executor::bases(&f).unwrap();
++        let crown = frond_rows(&f, growth.year(1.0)).unwrap().expect("a crown");
++        let (mut dressed, _) =
++            block_on(tree::drawn(&gpu, &k, (&growth, most(&f).unwrap()))).unwrap();
++        block_on(hanger.hang(&gpu, &mut dressed, (bases.as_ref(), Some(&crown)))).unwrap();
++        let n = dressed.ids as u64 * CV as u64 * 4;
++        let records = io::read(&gpu, &dressed.records, n).unwrap();
++        println!("palm {age} seed 1 drawn: ids {} {}", dressed.ids, hash(&records));
++        let prepared = gen.prepare(&f).unwrap();
++        println!("palm {age} seed 1 prepared: {}", line(&gen, &prepared));
++        let field = block_on(gen.grow_field(&f, 24, None)).unwrap();
++        println!("palm {age} seed 1 field: {}", debug(&field));
++    }
++}

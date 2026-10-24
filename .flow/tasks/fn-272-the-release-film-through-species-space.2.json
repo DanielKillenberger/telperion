@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-14T06:49:48.272186Z",
+  "depends_on": [
+    "fn-272-the-release-film-through-species-space.1"
+  ],
+  "id": "fn-272-the-release-film-through-species-space.2",
+  "priority": null,
+  "spec": "fn-272-the-release-film-through-species-space",
+  "spec_path": ".flow/tasks/fn-272-the-release-film-through-species-space.2.md",
+  "status": "todo",
+  "title": "The README embed and the owner's verdict",
+  "updated_at": "2026-10-14T06:49:48.272186Z"
+}

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-23T18:06:43.822052Z",
+  "depends_on": [
+    "fn-310-a-person-for-scale-and-a-nicer-world.7"
+  ],
+  "id": "fn-310-a-person-for-scale-and-a-nicer-world.8",
+  "priority": null,
+  "spec": "fn-310-a-person-for-scale-and-a-nicer-world",
+  "spec_path": ".flow/tasks/fn-310-a-person-for-scale-and-a-nicer-world.8.md",
+  "status": "todo",
+  "title": "The person beside the subject, never in front: D7",
+  "updated_at": "2026-10-23T18:21:05.624997Z"
+}

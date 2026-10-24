@@ -1,60 +1,51 @@
-//! A tree-space species through the pipeline's own expansion and the
-//! headless renderer: bare and whole stills per age and seed, the camera
-//! fitted to each tree, and its measures. The structure comes from
-//! `telperion-space`; the wood, leaves and material from a preset's rows.
-use crate::tree;
+//! A tree-space species through the one pipeline and the headless renderer:
+//! bare and whole stills per age and seed, the camera fitted to each tree,
+//! and its measures. The preset carries the engine species, its dressing
+//! and its material (fn-198); the runner sets only the age, the seed and,
+//! for a walk or a probe, the species' own values.
 use std::time::Instant;
 use tuning::Tuning;
 
 #[path = "tuning.rs"]
 mod tuning;
 use telperion_core::{
-    math::Vec3, mesh::TreeMesh, params, pipeline::executor, presets::Preset, surface::Bounds,
-    Family,
+    math::Vec3, mesh::TreeMesh, pipeline::executor, presets::Preset, surface::Bounds, Family,
 };
 use telperion_render::{
     hero_pose, render, write_png, Camera, Gpu, Level, Renderer, SceneRow, View, GROUND_REACH,
     STILL_FORMAT,
 };
-use telperion_space::{grow, Request, Species};
+use telperion_space::Species;
 
-const BUDGET: u32 = 20_000_000;
 const SIZE: (u32, u32) = (960, 720);
 /// The sun behind the camera and high, as the reference photographs are
 /// lit: the hero shot looks from azimuth 115 degrees, so the tree's shadow
 /// falls behind it, away from the camera, instead of across the ground
 /// beside it, where it read as a lower limb (host, 2026-10-04).
 const SUN: (f64, f64) = (115.0, 60.0);
+/// Where fine wood begins, as a share of the root's radius: the baseline's
+/// measure (fn-190, BASELINE.md), as the pipeline's conversion reads it.
+const STRUCTURAL: f64 = 0.05;
 
-/// Grows `species` at every age and seed the arguments name
-/// (`<out dir> <age>... [--seeds 1,7] [--sag <pa>:<value>,...]`), dresses
-/// it in the `preset`'s rows overlaid by `rows`, and writes
-/// `<name>-<age>-<seed>-<view>.png`. With `--sag`, a walk of that PA's
-/// `form.sag`: one tree per value, named `<name>-<age>-<seed>-sag<value>`.
-/// With `--dormant <pas>:<pa>:<delay>:<rate>:<values>`, a walk of the
-/// probability that every zone of those PAs holds a sleeping bud of `pa`,
-/// under that release law (fn-202): `<name>-<age>-<seed>-dormant<value>`.
-/// With `--today`, the preset's own build at each seed instead, the bar the
-/// engine's tree is judged beside: `today-<seed>-<shot>.png`, ages unread.
+/// Grows the `preset`'s engine species at every age and seed the arguments
+/// name (`<out dir> <age>... [--seeds 1,7] [--sag <pa>:<value>,...]`)
+/// through the pipeline, and writes `<name>-<age>-<seed>-<view>.png`. With
+/// `--sag`, a walk of that PA's `form.sag`: one tree per value, named
+/// `<name>-<age>-<seed>-sag<value>`. With `--dormant <pas>:<pa>:<delay>:<rate>:<values>`,
+/// a walk of the probability that every zone of those PAs holds a sleeping
+/// bud of `pa`, under that release law (fn-202): `<name>-<age>-<seed>-dormant<value>`.
 /// The light and carbon flags (`tuning.rs`, fn-197) set the site's light
 /// and values on every PA; `--tag <t>` names the stills
 /// `<name>-<age>-<seed>-<t>-<shot>`, `--shots <shot>,...` renders only those.
-pub fn run(
-    name: &str,
-    species: fn() -> Species,
-    trunk: &[usize],
-    preset: &str,
-    rows: &str,
-) -> Result<(), String> {
+pub fn run(name: &str, preset: &str) -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let (out, rest) = args.split_first().ok_or(format!(
         "usage: space_{name} <out dir> <age>... [--seeds 1,7] [--sag <pa>:<value>,...] {}",
         tuning::USAGE
     ))?;
-    let (mut ages, mut seeds) = (Vec::new(), vec![1u64, 7]);
+    let (mut ages, mut seeds) = (Vec::new(), vec![1u32, 7]);
     let mut sag: Option<(usize, Vec<f64>)> = None;
     let mut dormant: Option<(Vec<usize>, usize, f64, f64, Vec<f64>)> = None;
-    let mut today = false;
     let mut tuning = Tuning::default();
     let mut words = rest.iter();
     while let Some(word) = words.next() {
@@ -66,8 +57,6 @@ pub fn run(
                 .split(',')
                 .map(|s| s.parse().map_err(|e| format!("{e}")))
                 .collect::<Result<_, _>>()?;
-        } else if word == "--today" {
-            today = true;
         } else if word == "--dormant" {
             // <pa>,<pa>:<sleeping pa>:<delay>:<rate>:<values>
             let walk = words.next().ok_or("--dormant needs a walk")?;
@@ -103,36 +92,18 @@ pub fn run(
             );
         }
     }
-    let preset = Preset::from_id(preset)
+    let mut family = Preset::from_id(preset)
         .ok_or(format!("no preset {preset}"))?
         .parameters();
-    let rows: serde_json::Value = serde_json::from_str(rows).map_err(|e| e.to_string())?;
-    let family = params::overlay(&preset, &rows).map_err(|e| format!("{e:?}"))?;
-    let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
-    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    if today {
-        // The preset's own build at each seed, framed and lit as the
-        // engine's trees are: the bar they are judged beside.
-        for &seed in &seeds {
-            let seeded = seeded(&family, seed)?;
-            let mesh = telperion_core::mesh::build(&seeded).map_err(|e| e.to_string())?;
-            stills(
-                &mut renderer,
-                &mesh,
-                &seeded,
-                &format!("{out}/today-{seed}"),
-                &tuning,
-            )?;
-            let b = mesh.bounds.max - mesh.bounds.min;
-            println!(
-                "today seed {seed}: {:.1} m tall, {:.1} x {:.1} m",
-                b.y, b.x, b.z
-            );
-        }
-        return Ok(());
-    }
-    let mut base = species();
+    let mut base = family
+        .space
+        .species
+        .clone()
+        .ok_or(format!("{preset} has no engine species"))?;
     tuning.apply(&mut base)?;
+    if let Some(light) = tuning.light {
+        family.space.light = light;
+    }
     // A walk names PAs by index: refused by name past the species' table.
     let known = |pa: usize, flag: &str| {
         if pa < base.states.len() {
@@ -177,31 +148,24 @@ pub fn run(
             })
             .collect(),
     };
+    let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     for (variant, species) in &variants {
         for &age in &ages {
             for &seed in &seeds {
+                let mut family = family.clone();
+                family.space.species = Some(species.clone());
+                family.age = f64::from(age);
+                family.skeleton.seed = seed;
                 let started = Instant::now();
-                let structure = grow(
-                    species,
-                    Request {
-                        age,
-                        seed,
-                        budget: BUDGET,
-                        light: tuning.light(),
-                    },
-                )
-                .map_err(|e| format!("age {age} seed {seed}: {e:?}"))?;
-                let grown = started.elapsed().as_secs_f64() * 1e3;
-                let pipeline_tree = tree::convert(&structure, trunk);
-                let nodes = pipeline_tree.nodes.len();
-                let (fine, wood) = wood_km(&pipeline_tree);
-                // The dressing's own draws (leaf and frond placement) are
-                // keyed to the engine's seed, so seeds vary in both.
-                let family = seeded(&family, seed)?;
+                let grown =
+                    executor::grow(&family).map_err(|e| format!("age {age} seed {seed}: {e}"))?;
+                let x = grown.expansion().map_err(|e| e.to_string())?;
+                let ms = started.elapsed().as_secs_f64() * 1e3;
+                let nodes = x.tree().nodes.len();
+                let (fine, wood) = wood_km(x.tree());
                 let dressed = Instant::now();
-                let mesh = executor::expand(pipeline_tree, &family)
-                    .and_then(|x| x.mesh())
-                    .map_err(|e| e.to_string())?;
+                let mesh = x.mesh().map_err(|e| e.to_string())?;
                 let dress = dressed.elapsed().as_secs_f64() * 1e3;
                 let tag = tuning
                     .tag
@@ -212,22 +176,13 @@ pub fn run(
                 let bounds = mesh.bounds;
                 let (b, l) = (bounds.max - bounds.min, mesh.foliage.instances.len());
                 println!(
-                "age {age} seed {seed}{variant}: grown in {grown:.1} ms, dressed in {dress:.0} ms; {nodes} nodes, {l} leaves; {:.1} m tall, {:.1} x {:.1} m; wood {wood:.2} km, fine {fine:.2} km",
+                "age {age} seed {seed}{variant}: grown in {ms:.1} ms, dressed in {dress:.0} ms; {nodes} nodes, {l} leaves; {:.1} m tall, {:.1} x {:.1} m; wood {wood:.2} km, fine {fine:.2} km",
                 b.y, b.x, b.z
             );
             }
         }
     }
     Ok(())
-}
-
-/// The family with its seed set to the engine's (host, 2026-10-05): the
-/// engine's seed itself where it fits the family's 32 bits, its two halves
-/// folded together where it does not.
-fn seeded(family: &Family, seed: u64) -> Result<Family, String> {
-    let mut seeded = family.clone();
-    seeded.skeleton.seed = (seed ^ (seed >> 32)) as u32;
-    Ok(seeded)
 }
 
 /// Every shot of one dressed tree, framed on the mesh, its leaves and
@@ -255,6 +210,8 @@ fn stills(
         (View::Bare, "bare", &camera),
         (View::Whole, "whole", &camera),
         (View::Bare, "base", &base),
+        // The base close-up in leaf: the low branches as they hang (fn-252).
+        (View::Whole, "low", &base),
         (View::Bare, "limb", &limb),
         // The limb close-up in leaf: how the needles dress a spray.
         (View::Whole, "spray", &limb),
@@ -264,7 +221,7 @@ fn stills(
         renderer
             .submit_at(mesh, Level::Chosen)
             .map_err(|e| e.to_string())?;
-        renderer.set_material(family.material);
+        renderer.set_family(&family);
         renderer.set_view(view);
         renderer.set_scene(SceneRow {
             sun_azimuth: SUN.0,
@@ -286,7 +243,7 @@ fn wood_km(tree: &telperion_core::tree::Tree) -> (f64, f64) {
     for n in &tree.nodes[1..] {
         let length = (n.position - tree.nodes[n.parent.unwrap() as usize].position).length();
         all += length;
-        if n.radius < tree::STRUCTURAL * root {
+        if n.radius < STRUCTURAL * root {
             fine += length;
         }
     }

@@ -1,0 +1,179 @@
+diff --git i/crates/telperion-render/src/generation/fine/repeat_tests.rs w/crates/telperion-render/src/generation/fine/repeat_tests.rs
+index ffb18aad2..33d9eb15f 100644
+--- i/crates/telperion-render/src/generation/fine/repeat_tests.rs
++++ w/crates/telperion-render/src/generation/fine/repeat_tests.rs
+@@ -1,20 +1,22 @@
+ //! fn-261 R1: the same binary builds the same tree twice. The spruce at
+ //! its default age and seed, built on the real path in two fresh
+ //! contexts (device, generator, kernels and tools each made anew), keeps
+-//! its grown tree and its prepared leaves byte for byte.
++//! its grown tree (the pipeline's part and the device-grown nodes) and
++//! its prepared leaves byte for byte.
+ use super::super::{io, Generator};
+-use super::placed_tests::device_segments;
+ use super::resident::{build, Tools};
+ use super::roots::kernels;
+ use telperion_core::pipeline::executor;
+ use telperion_core::presets::Family;
+ 
+ /// What one build hands the renderer, as bytes: the pipeline's tree, the
+-/// station segments of both blocks, the leaves and their masses.
++/// device-grown nodes, the station segments of both blocks, the leaves and
++/// their masses.
+ #[derive(PartialEq)]
+ struct Snapshot {
+     tree: String,
+-    segments: String,
++    grown: Vec<u8>,
++    segments: (String, Vec<u8>),
+     leaves: Vec<[u32; 3]>,
+     masses: Vec<u8>,
+ }
+@@ -25,22 +27,24 @@ fn snapshot(family: &Family) -> Option<Snapshot> {
+     let make = Generator::create(gpu.clone(), std::sync::Arc::new(()), true);
+     let gen = pollster::block_on(make).unwrap();
+     let (k, tools) = (kernels(&gpu), Tools::new(&gpu));
++    tools.keep_grown.set(true);
+     let built = pollster::block_on(build(&gpu, &gen, &k, &tools, family)).unwrap();
+     let resident = built.prepared.resident.as_ref().unwrap();
+     let leaves = io::read_leaves_async(&gpu, resident.leaves.buffer(), resident.count);
+     let leaves = pollster::block_on(leaves).unwrap();
+-    let first = leaves.len() as u32 - built.device.stations;
+-    let device = device_segments(&gpu, &built.device, first);
++    // The device's segments whole, every word of each.
++    let device = &built.device.buffer;
++    let device = io::read(&gpu, device, device.size()).unwrap();
+     let cpu = built.cpu_segments.iter().map(|s| format!("{s:?}"));
+-    let device = device
+-        .iter()
+-        .map(|s| format!("{:?} {:?} {:?}", s.words, s.start, s.end));
+     let masses = resident.masses.buffer();
++    let masses = io::read(&gpu, masses, masses.size()).unwrap();
++    assert!(!built.grown.is_empty(), "the device grew no nodes");
+     Some(Snapshot {
+         tree: format!("{:?}", built.expansion.tree().nodes),
+-        segments: cpu.chain(device).collect::<Vec<_>>().join("\n"),
++        grown: built.grown,
++        segments: (cpu.collect::<Vec<_>>().join("\n"), device),
+         leaves,
+-        masses: io::read(&gpu, masses, masses.size()).unwrap(),
++        masses,
+     })
+ }
+ 
+@@ -48,6 +52,7 @@ fn snapshot(family: &Family) -> Option<Snapshot> {
+ fn differing(a: &Snapshot, b: &Snapshot) -> Vec<&'static str> {
+     [
+         ("tree", a.tree == b.tree),
++        ("grown", a.grown == b.grown),
+         ("segments", a.segments == b.segments),
+         ("leaves", a.leaves == b.leaves),
+         ("masses", a.masses == b.masses),
+@@ -87,6 +92,29 @@ fn every_device_preset_builds_the_same_leaves_each_time() {
+         };
+         for k in 1..repeats {
+             let again = snapshot(&family).unwrap();
++            if first.grown != again.grown {
++                let (a, b): (&[u32], &[u32]) = (
++                    bytemuck::cast_slice(&first.grown),
++                    bytemuck::cast_slice(&again.grown),
++                );
++                let mut fields = std::collections::BTreeMap::new();
++                let mut nodes = std::collections::BTreeSet::new();
++                for (w, (x, y)) in a.iter().zip(b).enumerate() {
++                    if x != y {
++                        *fields.entry(w % 33).or_insert(0) += 1;
++                        nodes.insert(w / 33);
++                    }
++                }
++                let set = |v: &[u32]| {
++                    let mut r: Vec<Vec<u32>> = v.chunks(33).map(|c| [&c[0..8], &c[15..21]].concat()).collect();
++                    r.sort();
++                    r
++                };
++                let ex = set(a) == set(b);
++                let live = |v: &[u32]| v.chunks(33).filter(|c| c[0] != 0 || c[1] != 0).count();
++                let ex = (ex, live(a), live(b));
++                println!("PROBE {id}: words {} nodes {} of {} fields {fields:?} {ex:?}", a.len(), nodes.len(), a.len() / 33);
++            }
+             assert_eq!(
+                 differing(&first, &again),
+                 Vec::<&str>::new(),
+diff --git i/crates/telperion-render/src/generation/fine/resident.rs w/crates/telperion-render/src/generation/fine/resident.rs
+index e3b2b315b..6407a17be 100644
+--- i/crates/telperion-render/src/generation/fine/resident.rs
++++ w/crates/telperion-render/src/generation/fine/resident.rs
+@@ -41,6 +41,10 @@ pub(super) struct Tools {
+     pub stationer: Stationer,
+     pub ringer: Ringer,
+     pub handoff: Handoff,
++    /// Whether a build reads its device-grown nodes back (fn-261's repeat
++    /// test): off, as every other build leaves them on the device.
++    #[cfg(test)]
++    pub keep_grown: std::cell::Cell<bool>,
+ }
+ 
+ impl Tools {
+@@ -51,6 +55,8 @@ impl Tools {
+             stationer: Stationer::new(gpu),
+             ringer: Ringer::new(gpu),
+             handoff: Handoff::new(gpu),
++            #[cfg(test)]
++            keep_grown: std::cell::Cell::new(false),
+         }
+     }
+ }
+@@ -105,6 +111,10 @@ pub(super) struct Built {
+     pub cpu_segments: Vec<StationSegment>,
+     #[cfg_attr(not(test), allow(dead_code))]
+     pub device: Stationed,
++    /// The device-grown nodes as the sweep and stations read them, where
++    /// `Tools::keep_grown` asked for them; none otherwise.
++    #[cfg(test)]
++    pub grown: Vec<u8>,
+ }
+ 
+ /// `work` awaited and its device work waited for, its milliseconds in
+@@ -229,6 +239,11 @@ pub(super) async fn build(
+     let count = (cpu.count.checked_add(device.stations))
+         .filter(|&n| n as usize <= x.leaves().canopy.max_instances)
+         .ok_or(Error::ResourceLimit("foliage instance budget"))?;
++    #[cfg(test)]
++    let grown = match tools.keep_grown.get() {
++        true => io::read_async(gpu, &swept.nodes, swept.nodes.size()).await?,
++        false => Vec::new(),
++    };
+     swept.nodes.destroy();
+     let positions = match seats {
+         true => Some(
+@@ -367,6 +382,8 @@ pub(super) async fn build(
+         expansion: x,
+         cpu_segments,
+         device,
++        #[cfg(test)]
++        grown,
+     })
+ }
+ 
+diff --git i/crates/telperion-render/src/generation/fine/roots.rs w/crates/telperion-render/src/generation/fine/roots.rs
+index c8be9b878..d5b9768d0 100644
+--- i/crates/telperion-render/src/generation/fine/roots.rs
++++ w/crates/telperion-render/src/generation/fine/roots.rs
+@@ -184,8 +184,16 @@ pub(super) async fn grow_wave(
+         }
+         let mut encoder = gpu.encoder(&Default::default());
+         work = Vec::with_capacity(queues.len());
+-        for (queue, count) in queues {
++        for (mut queue, count) in queues {
+             cost.again += count as usize;
++            // EXPERIMENT fn-261: the queue in wave order.
++            if std::env::var("SORT_QUEUE").is_ok() {
++                let raw = super::super::io::read_async(gpu, &queue, u64::from(count) * 4).await?;
++                let mut q: Vec<u32> = bytemuck::cast_slice(&raw).to_vec();
++                q.sort();
++                queue = super::super::io::buffer(gpu, "sorted queue", (q.len().max(4) * 4) as u64, wgpu::BufferUsages::STORAGE, bytemuck::cast_slice(&q))?;
++            }
++            if std::env::var("SHOW_QUEUE").is_ok() { eprintln!("QUEUED {count} at level {level}"); }
+             let gathered = buffer(gpu, "gathered buds", u64::from(count * BW2))?;
+             k.steps
+                 .gather(gpu, &mut encoder, count, (&queue, buds, &gathered))?;

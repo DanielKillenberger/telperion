@@ -9,23 +9,14 @@
 //! release law that moves its waking moves its growth by degree.
 //! It wakes only while the axis that bears it lives, through that axis's
 //! continuations and relays, and its size carries every draw on the way.
+use crate::contract::decide::node_window;
+use crate::contract::presence::{q, real, times, ONE};
 use crate::lineage::{self, Key, DORMANT};
-use crate::presence::{Draws, Windows};
+use crate::presence::Draws;
 use crate::schedule::Carried;
 use crate::species::{Species, Zone};
 use crate::structure::Axis;
-use std::collections::HashMap;
-use std::rc::Rc;
-
-/// The years after its node grew that a sleeping bud wakes, for the draw
-/// `u`, by the inverse of the release law's distribution; infinite when it
-/// never wakes.
-pub(crate) fn wake(zone: &Zone, u: f64) -> f64 {
-    if zone.rate <= 0.0 {
-        return f64::INFINITY;
-    }
-    zone.delay - (-u).ln_1p() / zone.rate
-}
+use crate::transcendental::Transcendental;
 
 /// The probability that a sleeping bud wakes in the `s`th whole year after
 /// its node grew: its waking time lies in [s, s + 1).
@@ -34,8 +25,17 @@ pub(crate) fn wakes_in(zone: &Zone, s: u32) -> f64 {
         return 0.0;
     }
     // The probability that it still sleeps at `years`.
-    let asleep = |years: f64| (-zone.rate * (years - zone.delay).max(0.0)).exp();
+    let asleep = |years: f64| (-zone.rate * (years - zone.delay).max(0.0)).exp_fixed();
     asleep(f64::from(s)) - asleep(f64::from(s) + 1.0)
+}
+
+impl Sleeper {
+    /// The presences (host decision 8) of the draws that made the
+    /// bud as it wakes, `carried` there and reaching its stage by `reach`:
+    /// its own draw's, by its place's share, and its bearer's carrying.
+    pub fn made(&self, carried: f64, reach: f64) -> [f64; 2] {
+        [self.own, times(q(carried), q(reach))].map(real)
+    }
 }
 
 /// A sleeping bud that will wake: where it stands and what it was drawn.
@@ -48,13 +48,10 @@ pub(crate) struct Sleeper {
     pub slot: u8,
     pub whorl: f64,
     pub pa: usize,
-    /// Its lineage, its draw's lead past its bound, and the share its bud
-    /// place stands at (1 for a whole place).
+    /// Its lineage, and its own draw's and its place's presence, over
+    /// the window of the expected wood it decides.
     pub key: u64,
-    pub lead: f64,
-    pub placed: f64,
-    /// The expected wood it decides, as a share of the tree's.
-    pub wood: f64,
+    pub own: f32,
     /// The share of its first cycle it still slept, and the whole years
     /// before it, which it aged through.
     pub sleep: f64,
@@ -73,12 +70,15 @@ pub(crate) fn draw(
     (cycle, age): (u32, u32),
 ) -> Option<(usize, Sleeper)> {
     let key = place.child(DORMANT);
-    let (pa, lead) = lineage::bud(&zone.dormant, key.unit())?;
-    let years = wake(zone, key.child(DORMANT).unit());
+    let pa = lineage::bud(&zone.dormant, key.draw())?;
+    // By the inverse of the release law's distribution, on the tick grid
+    // (FINE-CONTRACT.md D11).
+    let years = crate::contract::decide::wake(zone, key.child(DORMANT).draw());
     if years >= f64::from(age - cycle) {
         return None;
     }
     let whole = years.floor();
+    let window = node_window(woods[pa]);
     let sleeper = Sleeper {
         parent,
         node,
@@ -87,9 +87,10 @@ pub(crate) fn draw(
         whorl: zone.buds,
         pa,
         key: key.0,
-        lead,
-        placed: 1.0,
-        wood: woods[pa],
+        own: times(
+            lineage::bud_presence(&zone.dormant, pa, key.draw(), window),
+            lineage::place_presence(place, zone.share(usize::from(slot)), window),
+        ),
         sleep: years - whole,
         slept: whole as u32,
     };
@@ -110,28 +111,32 @@ pub(crate) fn carried(
     cycle: u32,
 ) -> Vec<(f64, usize)> {
     let axis = sleeper.parent;
-    let presence = draws[axis].units[sleeper.unit][1];
+    let presence = q(draws[axis].units[sleeper.unit].persist);
     let mut open = vec![(presence, axis, sleeper.unit + 1)];
     let mut out = Vec::new();
+    // Each presence an f32, its products taken in turn (host decision 8).
     while let Some((mut presence, axis, from)) = open.pop() {
-        presence *= draws[axis].units[from..]
-            .iter()
-            .map(|[survive, persist]| survive * persist)
-            .product::<f64>();
+        for u in &draws[axis].units[from..] {
+            presence = times(times(presence, q(u.survive)), q(u.persist));
+        }
+        let presence_real = real(presence);
         if successor[axis].is_empty() {
             // A bearer whose age ended within the waking cycle bears it,
             // as far as it lived past the waking (`Woken::kept`), so a
             // lifespan crossing a whole cycle moves it by degree (Codex
             // round 5 on fn-206).
-            let ended_here = axes[axis].apex_end == Some(cycle) && draws[axis].outlived.is_some();
+            let ended_here = axes[axis].apex_end == Some(cycle) && draws[axis].outlived().is_some();
             if axes[axis].apex_end.is_none() || ended_here {
-                out.push((presence, axis));
+                out.push((presence_real, axis));
             }
             continue;
         }
         for &next in successor[axis].iter().rev() {
             open.push((
-                presence * draws[next].birth[0] * draws[next].birth[1],
+                times(
+                    times(presence, q(draws[next].birth[0])),
+                    q(draws[next].birth[1]),
+                ),
                 next,
                 0,
             ));
@@ -151,10 +156,10 @@ pub(crate) fn aged(species: &Species, pa: usize, slept: f64) -> Option<(usize, f
     let mut slept = slept;
     loop {
         let state = &species.states[pa];
-        if slept < state.lifespan {
+        if slept < state.life() {
             return Some((pa, slept, reach));
         }
-        slept -= state.lifespan;
+        slept -= state.life();
         let (next, go) = species.successor(pa)?;
         (pa, reach) = (next, reach * go);
     }
@@ -191,14 +196,15 @@ impl First {
                 aged: spent + x,
                 gone: x,
                 relay: false,
+                rest: false,
             };
-            let unit = woken.unit(state.lifespan, 1);
+            let unit = woken.unit(state.life(), 1);
             let survive = share(state.viability, unit.share);
             if unit.ends {
                 return (survive, survive);
             }
             let grown = woken.aged + unit.share;
-            let exposure = woken.exposure(state.lifespan, 1);
+            let exposure = woken.exposure(state.life(), 1);
             let abortion = 1.0 - share(1.0 - state.abortion_at(grown), exposure);
             (survive, survive * (1.0 - abortion))
         };
@@ -228,7 +234,7 @@ fn mean(
     let (mut a, mut b, mut weight) = (0.0, 0.0, 0.0);
     for k in 0..STEPS {
         let x = x0 + h * (k as f64 + 0.5);
-        let w = (-r * (x - x0)).exp();
+        let w = (-r * (x - x0)).exp_fixed();
         let (p, q) = f(x);
         a += w * p;
         b += w * q;
@@ -268,7 +274,7 @@ pub(crate) fn stages(species: &Species, zone: &Zone, pa: usize, s: u32) -> Vec<P
     // The time the stage `at` began.
     let mut began = 0.0;
     loop {
-        let ends = began + species.states[at].lifespan;
+        let ends = began + species.states[at].life();
         let (lo, hi) = (start.max(began), (start + 1.0).min(ends));
         if hi > lo {
             let wakes = asleep(zone, lo) - asleep(zone, hi);
@@ -298,7 +304,7 @@ fn asleep(zone: &Zone, years: f64) -> f64 {
     if zone.rate <= 0.0 {
         return 1.0;
     }
-    (-zone.rate * (years - zone.delay).max(0.0)).exp()
+    (-zone.rate * (years - zone.delay).max(0.0)).exp_fixed()
 }
 
 /// A bud that woke in `cycle`, on a bearer carried on by axis `bearer`,
@@ -318,259 +324,63 @@ impl Woken {
     /// its bearer then carries on through the next cycle (`p`), and the
     /// part of its waking cycle it grew otherwise, share + (1 - share) p,
     /// so a bud that woke just before its bearer's end is small (host,
-    /// 2026-10-04).
+    /// 2026-10-04). An f32 presence, its sums and products taken in turn
+    /// (host decision 8).
     pub fn kept(&self, axes: &[Axis], draws: &[Draws], successor: &[Vec<usize>], age: u32) -> f64 {
         let bearer = &draws[self.bearer];
+        let share = q(self.share);
         // A bearer whose age ended within the waking cycle: the part of
-        // the cycle it lived past the waking.
-        if let (Some(used), Some(end)) = (bearer.outlived, axes[self.bearer].apex_end) {
+        // the cycle it lived past the waking (times on the tick grid).
+        if let (Some(used), Some(end)) = (bearer.outlived(), axes[self.bearer].apex_end) {
             if end == self.cycle && successor[self.bearer].is_empty() {
-                return (used + self.share - 1.0).max(0.0);
+                return real((q(used) + share - ONE).max(0.0));
             }
         }
+        let rest = |p: f32| real(share + times(ONE - share, p));
         // In the tree's last cycle, as far as its bearer lives on past the
         // tree's age (`Grower::living`), so a bearer whose age ends just
         // after it keeps the bud as one ending just before it does (Codex
         // round 6 on fn-206).
         if self.cycle >= age {
-            let on = if bearer.alive { bearer.living } else { 1.0 };
-            return self.share + (1.0 - self.share) * on;
+            return rest(if bearer.alive { q(bearer.living) } else { ONE });
         }
         let on = |next: &[usize]| {
             next.iter()
-                .map(|&n| draws[n].birth[0] * draws[n].birth[1])
-                .sum::<f64>()
+                .map(|&n| times(q(draws[n].birth[0]), q(draws[n].birth[1])))
+                .sum::<f32>()
         };
         let p = match bearer.units.get(self.next) {
             // It died before its next unit: as far as a relay took over.
             None => on(&successor[self.bearer]),
             // It grew it, and stopped after it, or carried on.
-            Some([survive, persist]) => {
+            Some(unit) => {
                 let stopped = axes[self.bearer].apex_end == Some(self.cycle + 1) && !bearer.failed;
-                survive
-                    * persist
-                    * if stopped {
-                        on(&successor[self.bearer])
-                    } else {
-                        1.0
+                let carried = times(q(unit.survive), q(unit.persist));
+                match bearer.outlived() {
+                    // Its age ended within that unit's cycle and nothing
+                    // carries it on: it bears the bud as far as it lived
+                    // into the cycle, as it does a bud that wakes in that
+                    // cycle, so the two meet (fn-199).
+                    Some(used) if stopped && successor[self.bearer].is_empty() => {
+                        times(carried, q(used))
                     }
+                    _ if stopped => times(carried, on(&successor[self.bearer])),
+                    _ => carried,
+                }
             }
         };
-        self.share + (1.0 - self.share) * p
-    }
-}
-
-/// The closed form of `carried`: the chance that the axis a bud grows is
-/// still carried on, by its apex or a continuation or relay of it, at the
-/// start of a cycle. Cycles count from the bud's birth, its first growth
-/// unit growing in cycle 1, as the closed form's do.
-pub(crate) struct Living<'a> {
-    species: &'a Species,
-    /// The tree's windows, where its counts are asked: an apex that all
-    /// but stopped moving on is carried on by its relay as well (host
-    /// decision 13). None for the expected lengths that make them.
-    windows: Option<&'a Windows>,
-    memo: HashMap<Asked, f64>,
-    /// The stages a sleeping bud of a zone may wake in over a year, each
-    /// with its first unit's law (`stages`, `First::of`), by the zone's PA
-    /// and place, the bud's PA and the year: the same for every bearer.
-    woken: HashMap<(usize, usize, usize, u32), Wakes>,
-}
-
-/// The stages a sleeping bud may wake in over a year, each with the law
-/// of its first unit.
-pub(crate) type Wakes = Rc<[(Piece, First)]>;
-
-/// A chance `Living` was asked: the bud (PA and what it carries), the
-/// cycles of the tree's age left at its birth where windows are read, the
-/// unit, the cycle, and the abortion after the unit when it is given.
-type Asked = (
-    usize,
-    (u64, u64, u64, bool),
-    usize,
-    usize,
-    usize,
-    Option<u64>,
-);
-
-impl<'a> Living<'a> {
-    pub fn new(species: &'a Species, windows: Option<&'a Windows>) -> Self {
-        Self {
-            species,
-            windows,
-            memo: HashMap::new(),
-            woken: HashMap::new(),
-        }
-    }
-
-    /// The stages a sleeping bud of PA `j` in zone `z` of PA `k` may wake
-    /// in over its `s`th year, each with the law of its first unit.
-    pub fn woken(&mut self, (k, z): (usize, usize), j: usize, s: u32) -> Wakes {
-        let species = self.species;
-        self.woken
-            .entry((k, z, j, s))
-            .or_insert_with(|| {
-                let zone = &species.states[k].zones[z];
-                stages(species, zone, j, s)
-                    .into_iter()
-                    .map(|p| (p, First::of(species, zone, (s, p.within), (p.pa, p.slept))))
-                    .collect()
-            })
-            .clone()
-    }
-
-    /// The chance an apex of PA `k` whose age ended in a unit with `left`
-    /// cycles of the tree's age after it moves on within its window and
-    /// so is relayed as well (`grow/stop.rs`); none without windows.
-    pub fn borderline(&self, k: usize, left: usize, used: f64) -> f64 {
-        let (Some(windows), Some((next, go))) = (self.windows, self.species.successor(k)) else {
-            return 0.0;
-        };
-        let relay = self.species.states[k].relay_ended;
-        // From `used` of the way through the cycle it ended in, as the
-        // grower reads it (`Windows::wood_at`).
-        let (a, b) = (
-            windows.wood_left(next, left + 1),
-            windows.wood_left(next, left),
-        );
-        let wood = if a > 0.0 && b > 0.0 {
-            (a.ln() + (b.ln() - a.ln()) * used).exp()
-        } else {
-            a + (b - a) * used
-        };
-        relay * windows.borderline(go, wood, 1.0 - relay)
-    }
-
-    /// The expected number of axes that carry on the axis a bud of PA `k`
-    /// carrying `carried` grows, `m` cycles of the tree's age left at its
-    /// birth, given its apex grew its unit `i` and then aborts with chance
-    /// `abortion`, at the start of cycle `y` (after `i`): a chance, but
-    /// for an apex that all but stopped moving on, carried on by both its
-    /// continuation and its relay.
-    pub fn after(
-        &mut self,
-        (k, carried, m): (usize, Carried, usize),
-        i: usize,
-        y: usize,
-        abortion: f64,
-    ) -> f64 {
-        let state = &self.species.states[k];
-        let left = if self.windows.is_some() { m } else { 0 };
-        let key = (
-            k,
-            carried.key(state.lifespan),
-            left,
-            i,
-            y,
-            Some(abortion.to_bits()),
-        );
-        if let Some(&p) = self.memo.get(&key) {
-            return p;
-        }
-        let unit = carried.unit(state.lifespan, i);
-        let spent = unit.before + unit.share;
-        let (relay, ended) = (state.relay, state.relay_ended);
-        let p = if !unit.ends {
-            let mut p = (1.0 - abortion) * self.from((k, carried, m), i + 1, y);
-            if abortion * relay > 0.0 {
-                p += abortion
-                    * relay
-                    * self.from(
-                        (
-                            k,
-                            Carried {
-                                spent,
-                                aged: carried.aged + spent - carried.spent,
-                                relay: false,
-                                ..Carried::default()
-                            },
-                            m.saturating_sub(i),
-                        ),
-                        1,
-                        y - i,
-                    );
-            }
-            p
-        } else {
-            // It moves on by its continuation, or stops and may relay, in
-            // this cycle where its age ended within it.
-            let (onward, at) = unit.onward(i);
-            let (go, on) = match self.species.successor(k) {
-                Some((next, go)) => (
-                    go,
-                    self.from((next, onward, m.saturating_sub(at)), 1, y - at),
-                ),
-                None => (0.0, 0.0),
-            };
-            let mut p = go * on;
-            // Where it ends in the cycle before `y`, the cycle a bud wakes
-            // in, it bears the bud even if it stops (`carried`).
-            if i + 1 == y {
-                p += (1.0 - go) * (1.0 - ended);
-            }
-            let both = self.borderline(k, m.saturating_sub(i), unit.used);
-            if (1.0 - go) * ended + both > 0.0 {
-                let relayed = Carried {
-                    spent,
-                    aged: carried.aged + spent - carried.spent,
-                    relay: true,
-                    ..onward
-                };
-                let relays = (1.0 - go) * ended + both;
-                p += relays * self.from((k, relayed, m.saturating_sub(at)), 1, y - at);
-            }
-            p
-        };
-        self.memo.insert(key, p);
-        p
-    }
-
-    /// The same chance given its apex is about to grow its unit `u`. A
-    /// woken bud's abortion hazard counts the time it slept (`aged`); a
-    /// relay's the time its axis grew (host decision 11).
-    fn from(&mut self, (k, carried, m): (usize, Carried, usize), u: usize, y: usize) -> f64 {
-        if y == u {
-            return 1.0;
-        }
-        let state = &self.species.states[k];
-        let left = if self.windows.is_some() { m } else { 0 };
-        let key = (k, carried.key(state.lifespan), left, u, y, None);
-        if let Some(&p) = self.memo.get(&key) {
-            return p;
-        }
-        let unit = carried.unit(state.lifespan, u);
-        let spent = unit.before + unit.share;
-        let viability = share(state.viability, unit.share);
-        let relay = state.relay_failed;
-        let abortion = if unit.ends {
-            0.0
-        } else {
-            let grown = carried.aged + spent - carried.spent;
-            let exposure = carried.exposure(state.lifespan, u);
-            1.0 - share(1.0 - state.abortion_at(grown), exposure)
-        };
-        let mut p = viability * self.after((k, carried, m), u, y, abortion);
-        // A unit that failed is spent; its relay grows from the next cycle.
-        if (1.0 - viability) * relay > 0.0 {
-            let relayed = Carried {
-                spent,
-                aged: carried.aged + spent - carried.spent,
-                relay: true,
-                ..Carried::default()
-            };
-            let born = m.saturating_sub(u);
-            p += (1.0 - viability) * relay * self.from((k, relayed, born), 1, y - u);
-        }
-        self.memo.insert(key, p);
-        p
+        rest(p)
     }
 }
 
 /// A survival over a share of a cycle: to the share, itself whole.
 fn share(p: f64, share: f64) -> f64 {
     if share < 1.0 {
-        p.powf(share)
+        p.powf_fixed(share)
     } else {
         p
     }
 }
+
+mod living;
+pub(crate) use living::Living;

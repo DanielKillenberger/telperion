@@ -1,0 +1,186 @@
+diff --git i/crates/telperion-render/src/lib.rs w/crates/telperion-render/src/lib.rs
+index 7b6f96f3e..620b97276 100644
+--- i/crates/telperion-render/src/lib.rs
++++ w/crates/telperion-render/src/lib.rs
+@@ -62,6 +62,7 @@ pub use scene::{
+     figure_reach, Placement, SceneRow, DEPTH_FORMAT, GROUND_REACH,
+ };
+ pub use select::{Level, MAX_LEVELS};
++pub use shadow::{light as sun_light, Light as SunLight, RESOLUTION as SUN_RESOLUTION};
+ pub use shot::Shot;
+ use submit::crown_of;
+ pub use submit::{fits, Submitted};
+diff --git i/crates/telperion-render/tests/common/mod.rs w/crates/telperion-render/tests/common/mod.rs
+index 1c75d128a..65c7915ea 100644
+--- i/crates/telperion-render/tests/common/mod.rs
++++ w/crates/telperion-render/tests/common/mod.rs
+@@ -26,3 +26,65 @@ pub fn ordinary() -> telperion_core::Family {
+     family.age = 40.0;
+     family
+ }
++
++/// The sun's map fitted to `casters` under a sun at (azimuth, elevation).
++fn sun_map(
++    (sun_azimuth, sun_elevation): (f64, f64),
++    casters: &[telperion_core::surface::Bounds],
++) -> telperion_render::SunLight {
++    let row = telperion_render::SceneRow {
++        sun_azimuth,
++        sun_elevation,
++        ..telperion_render::SceneRow::default()
++    };
++    telperion_render::sun_light(&row, casters)
++}
++
++/// The world size of the larger texel axis of the sun's map fitted to
++/// `casters`, the size its shaders read (`Light::texel_size`), in metres.
++#[allow(dead_code)]
++pub fn texel_size(sun: (f64, f64), casters: &[telperion_core::surface::Bounds]) -> f64 {
++    sun_map(sun, casters).texel_size
++}
++
++/// Metres of ground one texel of the sun's map covers along each of its two
++/// axes, fitted to `casters` under a sun at (azimuth, elevation): the axis
++/// across the sun as it is, the one up the sun's view stretched over the
++/// ground by the sun's elevation.
++#[allow(dead_code)]
++pub fn ground_texels(sun: (f64, f64), casters: &[telperion_core::surface::Bounds]) -> [f64; 2] {
++    let m = sun_map(sun, casters).view_projection.map(f64::from);
++    // Each clip axis's row of the matrix is its world axis over half the
++    // map's extent along it.
++    let texel = |r: usize| {
++        2.0 / m[r].hypot(m[4 + r]).hypot(m[8 + r]) / f64::from(telperion_render::SUN_RESOLUTION)
++    };
++    [texel(0), texel(1) / sun.1.to_radians().sin()]
++}
++
++/// How much coarser the sun's map is fitted to `casters` and the person's
++/// box than to `casters` alone: the larger of its two axes' ratios of ground
++/// per texel.
++#[allow(dead_code)]
++pub fn coarsened(
++    sun: (f64, f64),
++    casters: &[telperion_core::surface::Bounds],
++    person: telperion_core::surface::Bounds,
++) -> f64 {
++    let alone = ground_texels(sun, casters);
++    let mut all = casters.to_vec();
++    all.push(person);
++    let with = ground_texels(sun, &all);
++    (with[0] / alone[0]).max(with[1] / alone[1])
++}
++
++/// The box a person's body points stand in.
++#[allow(dead_code)]
++pub fn box_of(points: &[telperion_core::math::Vec3]) -> telperion_core::surface::Bounds {
++    let (mut min, mut max) = (points[0], points[0]);
++    for p in points {
++        min = telperion_core::math::Vec3::new(min.x.min(p.x), min.y.min(p.y), min.z.min(p.z));
++        max = telperion_core::math::Vec3::new(max.x.max(p.x), max.y.max(p.y), max.z.max(p.z));
++    }
++    telperion_core::surface::Bounds { min, max }
++}
+diff --git i/crates/telperion-render/tests/film_placing.rs w/crates/telperion-render/tests/film_placing.rs
+index c6b95a997..3fc7a93b9 100644
+--- i/crates/telperion-render/tests/film_placing.rs
++++ w/crates/telperion-render/tests/film_placing.rs
+@@ -10,6 +10,8 @@ mod bounds;
+ #[path = "../examples/film/camera.rs"]
+ mod camera;
+ #[allow(dead_code)]
++mod common;
++#[allow(dead_code)]
+ #[path = "../examples/film/path.rs"]
+ mod path;
+ #[allow(dead_code)]
+@@ -71,10 +73,20 @@ fn shown(path: &path::Path, crowns: &[bounds::Crowns]) -> Vec<Shown> {
+         .collect()
+ }
+ 
++/// The sun's texel the person may coarsen the map to, in metres, beyond a
++/// tenth more than the tree's own map (host ruling on the shadow cost,
++/// fn-310 task 9): finer than any shipped tree's own at its catalogue age,
++/// 1.8 cm and up. Measured at most 1.22 cm, at frame 719 (Laurelin at 1).
++const TEXEL: f64 = 0.015;
++/// How much coarser the person may make the sun's map, where it is coarser
++/// than `TEXEL`.
++const COARSER: f64 = 1.1;
++
+ /// Every frame's placement as the rule asks: square to the view on the
+ /// camera's left at the trunk's depth, at or past its own frame's reach and
+ /// the distance out of the shadow, out of every crown's shadow it shows,
+-/// and out from under every crown it shows.
++/// out from under every crown it shows, and no coarser a sun's map than
++/// `TEXEL` or `COARSER` allows.
+ fn holds(shown: &[Shown], standing: &Standing, sun: (f64, f64)) {
+     for (f, s) in shown.iter().enumerate() {
+         let distance = standing.placements[f].foot.length();
+@@ -99,6 +111,7 @@ fn holds(shown: &[Shown], standing: &Standing, sun: (f64, f64)) {
+         );
+         let (earlier, later, share) = s.crowns;
+         let body = placement.body();
++        let person = common::box_of(&body);
+         let shows = if share > 0.0 {
+             vec![earlier, later]
+         } else {
+@@ -113,6 +126,14 @@ fn holds(shown: &[Shown], standing: &Standing, sun: (f64, f64)) {
+                 x.hypot(z) <= 1.0
+             });
+             assert!(!under, "frame {f}: under the crown");
++            let (alone, with) = (
++                common::texel_size(sun, &[crown]),
++                common::texel_size(sun, &[crown, person]),
++            );
++            assert!(
++                with <= TEXEL.max(COARSER * alone),
++                "frame {f}: the sun's texel {alone} m to {with} m"
++            );
+         }
+     }
+ }
+diff --git i/crates/telperion-render/tests/person_frame.rs w/crates/telperion-render/tests/person_frame.rs
+index 1be5d6901..5769f6523 100644
+--- i/crates/telperion-render/tests/person_frame.rs
++++ w/crates/telperion-render/tests/person_frame.rs
+@@ -2,6 +2,7 @@
+ //! trunk's depth, out of the crown's shadow, whole in the hero frame, head
+ //! to feet, wherever a whole fit exists, and under no wood or foliage. The table names the presets, so it lives
+ //! here and not in the renderer library, which never names a family.
++mod common;
+ use telperion_core::{
+     math::Vec3,
+     mesh::{self, TreeMesh},
+@@ -226,6 +227,33 @@ fn the_person_stands_beside_the_trunk_and_out_of_the_crowns_shadow() {
+     }
+ }
+ 
++/// How much coarser the person may make the sun's map: the ground a texel
++/// covers with the person in the fit over without it, on either axis (host
++/// ruling on the shadow cost, fn-310 task 9). Measured 1.000 in every case
++/// (`SHADOW-FIT.md`).
++const COARSER: f64 = 1.1;
++
++/// The person in the sun's map costs the tree's shadow little: beside every
++/// shipped preset at its catalogue age and Telperion at 80, under the
++/// harness's sun and the film's, the map fitted to the tree and the person
++/// covers at most `COARSER` times the ground per texel that the tree's alone
++/// does. The film's frames are `film_placing`'s.
++#[test]
++fn the_person_coarsens_the_suns_map_by_at_most_a_tenth() {
++    let rows = TREES.iter().filter(|t| matches!(t.1, None | Some(80.0)));
++    for &(id, age, seed, row) in rows {
++        let tree = tree_bounds(row);
++        for sun in SUNS {
++            let (_, _, body) = figure_points(tree, sun.0);
++            let ratio = common::coarsened(sun, &[tree], common::box_of(&body));
++            assert!(
++                ratio <= COARSER,
++                "{id} at {age:?}, seed {seed:?}, sun {sun:?}: {ratio} times coarser"
++            );
++        }
++    }
++}
++
+ /// The reach of the crown the bounds inscribe along the unit bearing
+ /// (`x`, `z`).
+ fn reach(bounds: Bounds, x: f64, z: f64) -> f64 {

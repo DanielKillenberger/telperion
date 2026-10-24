@@ -126,7 +126,7 @@
     "impl:fn-210-tree-space-f2-the-exact-speed-levers.1": 0
   },
   "spec_path": ".flow/specs/fn-210-tree-space-f2-the-exact-speed-levers.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space F2: the exact speed levers",
   "tracker": {
     "baseHashFlow": null,
@@ -139,5 +139,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T19:55:16.046818Z"
+  "updated_at": "2026-10-08T22:38:08.126780Z"
 }

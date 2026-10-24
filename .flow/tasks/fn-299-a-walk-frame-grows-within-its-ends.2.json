@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-20T16:53:02.897553Z",
+  "depends_on": [
+    "fn-299-a-walk-frame-grows-within-its-ends.1"
+  ],
+  "id": "fn-299-a-walk-frame-grows-within-its-ends.2",
+  "priority": null,
+  "spec": "fn-299-a-walk-frame-grows-within-its-ends",
+  "spec_path": ".flow/tasks/fn-299-a-walk-frame-grows-within-its-ends.2.md",
+  "status": "todo",
+  "title": "The rule: a walk frame's ages blend within its ends",
+  "updated_at": "2026-10-20T16:53:02.897553Z"
+}

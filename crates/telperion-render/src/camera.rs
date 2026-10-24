@@ -75,7 +75,7 @@ pub fn hero_pose(bounds: Bounds, aspect: f64, ground_reach: f64) -> Camera {
     );
     let mut position = centre + back * reach;
     // The eye stands on the floor at least, and at a person's eye height for
-    // anything taller than a person. A leaf is not looked at from 1.8 m, so
+    // anything taller than a person. A leaf is not looked at from 1.75 m, so
     // for a subject shorter than the figure the direction alone places it.
     position.y = position.y.max(if size.y > crate::scene::FIGURE_HEIGHT {
         crate::scene::FIGURE_HEIGHT

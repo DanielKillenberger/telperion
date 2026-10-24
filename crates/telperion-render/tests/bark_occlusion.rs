@@ -38,8 +38,10 @@ fn strip(frame: &Still, from: u32, to: u32) -> f64 {
 #[test]
 fn the_darkened_side_of_a_furrow_follows_the_sun() {
     let Some(gpu) = common::gpu() else { return };
+    // The engine's oak at 80, whose trunk fills the frame as the mature
+    // scaffold oak's did (fn-198).
     let mut family = Preset::OregonWhiteOak.parameters();
-    family.skeleton.seed = 7;
+    (family.age, family.skeleton.seed) = (80.0, 1);
     let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).unwrap();
@@ -106,8 +108,10 @@ fn the_darkened_side_of_a_furrow_follows_the_sun() {
 #[test]
 fn the_row_at_zero_leaves_the_frame_exactly_as_it_was() {
     let Some(gpu) = common::gpu() else { return };
+    // The engine's oak at 80, whose trunk fills the frame as the mature
+    // scaffold oak's did (fn-198).
     let mut family = Preset::OregonWhiteOak.parameters();
-    family.skeleton.seed = 7;
+    (family.age, family.skeleton.seed) = (80.0, 1);
     let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).unwrap();

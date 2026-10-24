@@ -69,23 +69,37 @@ fn walked(f: &Family, row: &str) -> Vec<(Value, Family)> {
         .collect()
 }
 
+/// Every catalogue row; an engine species' `/space` rows are judged by the
+/// engine (`Species::validate`, telperion-space's refusal tests).
 fn every_row(f: &Family) -> Vec<String> {
     let mut out = Vec::new();
     rows(&params::metadata(f), String::new(), &mut out);
+    out.retain(|row| !row.starts_with("/space/"));
     out
 }
 
 #[test]
 fn every_row_past_its_bound_is_refused_on_every_family() {
-    for (id, f) in families() {
-        f.validate()
-            .unwrap_or_else(|e| panic!("{id} is refused: {e}"));
-        let unbounded: Vec<String> = every_row(&f)
+    // The families at once (fn-304): each walks its own rows, growing nothing.
+    std::thread::scope(|scope| {
+        let walks: Vec<_> = families()
             .into_iter()
-            .filter(|row| walked(&f, row).iter().all(|(_, g)| g.validate().is_ok()))
+            .map(|(id, f)| scope.spawn(move || every_row_is_refused(id, &f)))
             .collect();
-        assert_eq!(unbounded, UNBOUNDED, "{id}: rows validate never refuses");
-    }
+        for walk in walks {
+            walk.join().unwrap_or_else(|p| std::panic::resume_unwind(p));
+        }
+    });
+}
+
+fn every_row_is_refused(id: &str, f: &Family) {
+    f.validate()
+        .unwrap_or_else(|e| panic!("{id} is refused: {e}"));
+    let unbounded: Vec<String> = every_row(f)
+        .into_iter()
+        .filter(|row| walked(f, row).iter().all(|(_, g)| g.validate().is_ok()))
+        .collect();
+    assert_eq!(unbounded, UNBOUNDED, "{id}: rows validate never refuses");
 }
 
 /// A family at a size that grows in moments: few attractors and a small node
@@ -158,6 +172,7 @@ const RENAMED: &[(&str, &str)] = &[("/skeleton/growth/maxNodes", "0")];
 
 /// Every ladder value on every row of every family, made small: the build and
 /// `validate` agree on it, error for error, save the values named above.
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn the_build_and_validate_refuse_the_same_values_by_the_same_name() {
     let mut build_only = Vec::new();

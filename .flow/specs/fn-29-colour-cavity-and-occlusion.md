@@ -1,84 +1,41 @@
 # Colour, cavity and occlusion
 
-## Conversation Evidence
+## Goal
 
-> user (turn 1, on fn-26's eight stills): "hm it looks very cartoony. Will it get more realistic within fn-26?"
-> user (turn 2, on the proposal to capture a colour, cavity and occlusion spec with fn-4 and fn-20 queued for geometry): "ok /flow-next:capture that"
+The owner judged fn-26's stills "very cartoony". Relief did its job; what still read as a drawing was flat bark colour, a flat green blade with no sheen, crevices lit like crests, and an unoccluded sky. This spec was the next appearance step after fn-26: bark colour that varies with the surface, a cavity term where light cannot reach, a textured blade with a cuticle, and sky light occluded inside the crown, all as rows on the family and inside fn-14's frame budget. Geometry (blunt tips, interpenetrating limbs, fork anatomy) stayed with fn-4 and fn-20.
 
-## Goal & Context
-<!-- scope: business -->
-<!-- Goal & Context: 20% [user], 50% [paraphrase], 30% [inferred] -->
+## Decisions
 
-The owner looked at fn-26's stills, the oak and the spruce at trunk, branch and leaf scale with relief, veins and transmission in place, and judged them "very cartoony". [user] The relief did what fn-26 asked of it; what still reads as a drawing is everything relief cannot touch: one flat colour on the bark with no change in the fissures and no weathering on the ridges, one flat green on the blade with a hard outline and no sheen, one sun and a flat sky so a crevice is lit like a crest, and blunt geometry at tips and forks. Real bark and real leaves read as real mostly through colour variation and through light that fails to reach where surfaces meet. [paraphrase]
-
-This spec is the next appearance step after fn-26: colour that varies with the surface, cavity that darkens where light cannot reach, and sky light occluded inside the crown, all as rows on the family and all inside fn-14's frame budget. The geometry half of the same judgment, blunt tips, interpenetrating limbs and the fork anatomy, belongs to fn-4 and fn-20, which are open and queued behind it. [paraphrase]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-- **Bark colour from the relief and along the run.** fn-26 already computes a relief height per fragment from the distance and angle coordinates. This spec reads it: fissures take a darker, cooler tint and ridge crests a paler, drier one, by two colour offsets and a strength on the row, and a low-frequency mottling along the run breaks the base colour so no two metres of trunk are the same. Every term is a numeric row the blend walks; there is no image and no species branch. [inferred]
-- **Cavity.** A cavity term, from the relief height's local minimum and from wood meeting wood at forks and at the trunk base, scales both the sun and the sky contribution down in crevices, so a fissure is dark because light does not reach it, not because it was painted dark. [inferred]
-- **The blade.** Mottling across the blade at a scale and strength from the row, a lighter margin band, and a specular cuticle as a gloss value with the sun's highlight shaped by the blade normal; the back face keeps its own colour. The needle takes the same rows and reads matte and near-uniform because its row says so. [inferred]
-- **Sky occlusion.** The sky's contribution to wood and leaves is reduced by how deep the fragment sits inside the crown, extending the interior darkening fn-14 applies per leaf to the wood under the canopy and to the underside of limbs, from the crown envelope the generator already knows. No new light, no new shadow map, no vertex layout change; a term in the existing lighting. [inferred]
-- **The judgment surface.** fn-26's eight stills, re-rendered with the same seed, sun and camera, so the owner sees exactly what colour, cavity and occlusion changed. [paraphrase]
-
-## API Contracts
-<!-- scope: technical -->
-
-- **Material row additions**, validated by range naming the field: fissure tint (three components) and strength, crest tint and strength, bark mottle scale and strength, cavity strength, blade mottle scale and strength, margin width and tint, cuticle gloss, sky occlusion strength. On the wire, in the generated browser metadata and in the sweep's inventory the way fn-14's and fn-26's rows are. [inferred]
-- **Views and commands** unchanged; the headless target renders the same eight stills through the existing views and camera. [inferred]
-
-## Edge Cases & Constraints
-<!-- scope: technical -->
-
-- **The silhouette is untouched.** Every term shades; none displaces a vertex; the fn-24 pins and the wood mesh bytes are unchanged with the rows on and off. [paraphrase]
-- **Levels.** Blade terms read the same at every leaf level or the crown shimmers when levels switch. [inferred]
-- **Determinism.** The look test's redraw check holds: one tree under one row is one picture, and no new term may widen its tolerance. [paraphrase]
-- **Budget.** The added terms stay inside fn-14's 3.8 ms native bound on the oak and the browser orbit's 60 fps, recorded beside fn-26's numbers. [paraphrase]
-- **References.** The same four catalogued references fn-26 judges against, O-BARE and O-LEAF for the oak, S-BRANCH and S-NEEDLE for the spruce, re-fetched into the ignored references directory and never redistributed. [paraphrase]
+- > user (turn 1, on fn-26's eight stills): "hm it looks very cartoony. Will it get more realistic within fn-26?"
+- > user (turn 2, on the proposal to capture a colour, cavity and occlusion spec with fn-4 and fn-20 queued for geometry): "ok /flow-next:capture that"
+- Rows over image textures: a texture cannot be blended or walked through tree space.
+- Cavity from fn-26's relief height (one multiply per fragment) over screen-space AO, which is the reserve if crevices still read flat.
+- Sky occlusion from crown depth, extending fn-14's interior darkening to the wood; no new light, shadow map or vertex layout change.
+- Round 4 checkpoint: the oak fissure offset was owner-approved (recorded as "round 4 checkpoint; owner-approved oak fissure offset"; source: archived checks.json).
+- Round 5 (recentring the crest/fissure map on the field's face mean after a host QA finding) owner-authorised with an extended budget: "pls go ahead" (2026-09-14). The owner extended the commit budget for round 5 on 2026-09-14 (source: archived REPORT.md).
+- The bark references `owner-white-oak-bark.png`, `owner-black-oak-bark.png` and `owner-norway-spruce-bark.png` were owner-supplied local references (copied from the fn-26 worktree into `.refs/fn29/`, never redistributed; source: archived owner-reference-metadata.json).
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** Bark colour varies with the surface: fissures darker and cooler, crests paler, and a low-frequency mottling along the run, each from a row and none from an image; the wood mesh bytes are identical with the rows on and off. [paraphrase] Errors: no error surface beyond row validation.
-- **R2:** A cavity term darkens crevices, fork sockets and the trunk base under both sun and sky light, derived from the relief height and from wood meeting wood, never painted. [inferred] Errors: no error surface beyond row validation.
-- **R3:** The blade carries mottling, a lighter margin and a specular cuticle from the row, with the back face keeping its own colour; the needle reads matte and near-uniform by the same rows. [inferred] Errors: no error surface beyond row validation.
-- **R4:** Sky light is occluded by crown depth on wood and on leaves, so limbs under the canopy and the underside of branches read darker than the crown's edge, with no new light and no change to the shadow map. [inferred] Errors: no error surface beyond row validation.
-- **R5:** The owner judges the same eight stills fn-26 rendered, re-rendered with these terms, beside the catalogued references and beside fn-26's versions, answering whether the oak and the spruce still read as a drawing, and records the verdicts in this spec; the spec closes only on accepting verdicts. [paraphrase] Errors: a rejecting verdict stops the spec with the owner's words and a one-paragraph blocker.
-- **R6:** The oak's native frame with every term on stays at or under 3.8 ms total p50 and the browser orbit holds 60 fps, recorded beside fn-26's numbers. [paraphrase] Errors: an unavailable, disjoint or contended session does not count; a number over the bound stops the spec with the number.
-- **R7:** Every value is a row the blend walks, validated by range naming the field, with no species or preset branch in the shaders. [strategy:Surface and rendering at scale] Errors: a field outside its range is refused naming it.
+- **R1:** Bark colour varies with the surface (darker cooler fissures, paler crests, low-frequency mottling), all from rows; wood mesh bytes unchanged — met.
+- **R2:** Cavity darkens crevices, fork sockets and trunk base under sun and sky, derived not painted — met.
+- **R3:** Blade mottling, lighter margin and specular cuticle; back face keeps its colour; needle matte by the same rows — met.
+- **R4:** Sky light occluded by crown depth on wood and leaves — met.
+- **R5:** Owner judges fn-26's eight stills re-rendered, beside references and fn-26's versions — met (accepted 2026-09-14).
+- **R6:** Oak native total p50 at or under 3.8 ms; browser orbit 60 fps — partial: 3.9823 ms (0.1823 over), accepted by the owner; orbit holds 60 fps.
+- **R7:** Every value a blendable row validated by range, no species branch in the shaders — met.
 
-## Boundaries
-<!-- scope: business -->
+## Result
 
-- No image textures; every value is a row. [paraphrase]
-- No geometry change: blunt tips and interpenetrating limbs are fn-4's, the root collar and fork anatomy fn-20's, the leaf outline fn-24's. [paraphrase]
-- No new light and no new shadow map; sky occlusion is a term in fn-14's lighting. [inferred]
-- No lichen, moss or damage as things of their own; colour mottling may suggest them, nothing more. [inferred]
-- No seasons and no lifecycle appearance; those stay with their own specs. [paraphrase]
+- Nineteen material rows, default 0: fissure RGB and strength, crest RGB and strength, bark mottle scale and strength, cavity strength, blade mottle scale and strength, margin width and RGB, cuticle gloss, sky occlusion strength. Oak: fissure (-.1,-.05,.005)@.65, crest (.1,.085,.055)@.5, bark mottle .8 m@.2, cavity .6, blade mottle 6@.15, margin .08, gloss .35, sky occlusion .5. Spruce: fissure @.4, crest @.3, cavity .6, matte blade, gloss .05, sky occlusion .6. Ordinary keeps `MaterialParams::default()`.
+- Five rounds via one codex session; round 3 captured the stills for the owner to look first, round 4 softened the oak fissure on approval, round 5 recentred the crest/fissure map.
+- Owner verdict (R5 and R6, 2026-09-14), on the round-five stills at `aa17e5e` beside fn-26's and the references, and the live orbit at `dc109e4`: "oak looks much better, spruce looks better but not much. Both lack significant details to make realistic bark textures. Textured leaf is nice." and "i think we can accept this spec." R6 accepted with the native total p50 of 3.9823 ms recorded.
 
-## Decision Context
-<!-- scope: both -->
+## Open
 
-### Motivation
+The missing bark detail (plates that break and lift, per-plate identity, weathering) is the next surface spec (fn-32).
 
-- The owner's verdict on fn-26's stills was that they look very cartoony, and the question was whether fn-26 would fix that. It cannot: its scope is relief, veins and transmission with no colour and no change to the light, and what reads as a drawing is flat colour, unlit crevices and unoccluded sky. This spec is that answer. [paraphrase]
+## Evidence
 
-### Implementation Tradeoffs
-
-- Rows over image textures: a texture would make the bark real faster, and the strategy forbids it for a reason, since a texture cannot be blended between two families or walked along the tree space; procedural colour driven by the relief height fn-26 already computes costs almost nothing and blends like every other trait. [paraphrase]
-- Cavity from the relief height over screen-space ambient occlusion: the relief already knows where its own fissures are, so cavity is one multiply per fragment and needs no extra pass; a true screen-space term would cost a pass fn-14's budget cannot spare and is the reserve if crevices still read flat. [inferred]
-- Sky occlusion from crown depth over a baked or ray-traced term: crown depth is what the generator already computes for interior darkening, so extending it to the wood is free; a baked per-vertex term would need a vertex layout change and is out of scope by fn-14's boundary. [inferred]
-
-## Parked unknowns
-
-- Whether the relief-derived cavity is enough at fork sockets, where the fissure pattern of two runs meets, or whether a geometric term for wood meeting wood is needed there; the branch-scale still decides it.
-- Which preset values read best: the oak's and spruce's rows are set against the references by the implementer and judged by the owner, and the other three presets take values that read as their kind.
-
-## Strategy Alignment
-
-- Follows "Surface and rendering at scale": continuous surfaces, foliage and bark that make the structure legible from close views, without species-specific paths or hand-modelled assets, judged with measured runtime cost.
-
-## Owner verdict (R5 and R6, 2026-09-14)
-
-Judged on the round-five stills at `aa17e5e`, served beside fn-26's stills and the catalogued references, and on the live orbit at `dc109e4`. In the owner's words: "oak looks much better, spruce looks better but not much. Both lack significant details to make realistic bark textures. Textured leaf is nice." and "i think we can accept this spec." R5 accepting. R6: the owner accepted the spec with the measured native total p50 of 3.9823 ms recorded, 0.1823 ms over the 3.8 ms bound; the browser orbit holds 60 fps. The missing bark detail (plates that break and lift, per-plate identity, weathering) is the next surface spec, not a round here.
+- `.flow/evidence/fn29/stills/` (the eight verdict stills, PNG; referenced by the oak and spruce catalogue entries)
+- `.flow/evidence/fn29/stills.json`, `.flow/evidence/fn29/references.json`

@@ -1,37 +1,31 @@
 # A cheaper crown envelope
 
-## Conversation Evidence
+## Goal
 
-> assistant: "The oak's single biggest cost is two `pow` calls in the crown-envelope test, about 22 of its 65 ms. That test runs constantly during growth, and it's the same function the CPU cull hammers (fn-126). [...] a cheaper crown-envelope formula. It would change output bytes, so it needs visual evidence under the 2026-09-20 policy, but it's the only path to half time."
-> user (choosing "Ship + envelope spec"): accepted.
+fn-124 missed its half-time growth gate; its profile put two `pow` calls in `Envelope::radius_at` (`max_radius * (1 - p^shoulder)^(1/shoulder)`) at about 22 of the oak's 62-65 ms browser skeleton, and the same function runs per vertex in the CPU cull, the field and station code. This spec is the remaining path to half time: a cheaper evaluation of the same profile curve, allowed to change output bytes under the 2026-09-20 policy with measured gain and no perceptible visual regression. Owner, choosing "Ship + envelope spec" when fn-124 stopped: accepted.
 
-## Goal & Context
+## Decisions
 
-<!-- Goal & Context: 20% [user], 80% [inferred] from fn-124's profile -->
-
-`Envelope::radius_at` (`envelope.rs`) evaluates the crown's radius at a height as `max_radius * (1 - p^shoulder)^(1/shoulder)`, two `powf_fixed` calls per test. fn-124's profile (`.flow/evidence/fn-124-growth-in-half-the-time/REPORT.md`) puts `pow` inside `radius_at` at about 22 of the oak's 62 to 65 ms browser skeleton after fn-124's byte-identical fixes; the spruce, at shoulder 1, pays less. The same function runs per vertex in `foliage::cull` and in the field and station code. fn-124's R2 (half the browser skeleton time) was restated to its measured gain because no byte-identical change reaches it; this spec is the remaining path. [inferred]
-
-## Architecture & Data Models
-
-- Replace the per-test `pow` pair with a cheaper evaluation of the same profile curve. Candidates to screen, cheapest first: a per-envelope table of the profile sampled finely enough in `t` with linear or cubic interpolation; a specialised form for common shoulder values (1 is linear and needs no `pow`); a rational or polynomial approximation of `(1 - p^s)^(1/s)` with a stated error bound. [inferred]
-- The change is allowed to alter output bytes under the 2026-09-20 policy, with measured gain, no perceptible visual regression and correctness intact (CLAUDE.md, "Generator evolution"). [user]
-- One implementation serves growth, the cull and every other caller; no species or preset branch. [CLAUDE.md]
-- The GPU leaf cull evaluates its own copy of the formula in `crates/telperion-render/src/generation/place.wgsl` (`radius_at`, f32 `pow`). The chosen evaluation must be as cheap in WGSL, and this spec changes that copy in the same change, as its own commit so a concurrent fn-125 can carry it. Preset shoulders on master: 1.0, 1.5, 1.6, 1.8, 2.2 and 3.2. [inferred, read 2026-09-24]
-- At merge, and again if fn-125 lands after this spec, the host confirms no `.wgsl` file still evaluates the old `pow(1 - pow(p, s), 1/s)` envelope; a one-time check recorded in the PR, not a test (owner, 2026-09-24). [user]
+- One implementation for growth, the cull and every caller; no preset branch. The GPU cull's WGSL copy (`place.wgsl` `radius_at`) changes in the same change, as its own commit.
+- Owner (2026-09-24): at merge, and again if fn-125 lands after, the host confirms no `.wgsl` file still evaluates the old `pow` envelope — a one-time check recorded in the PR, not a test.
+- Supersedes reviving fn-91's rejected prepared envelope bounds.
+- Shipped form: `exp(ln(-expm1(s ln p))/s)` from pinned libm, shoulder 1 kept as the exact line; the pendant lower-surface search and `place.wgsl` use the same form.
 
 ## Acceptance Criteria
 
-- **R1:** The chosen evaluation's maximum radius error against the current formula is stated and tested over every catalogue and IN_WORK preset's envelope, across the full height range. [inferred]
-- **R2:** Browser skeleton medians of five for the oak and spruce at seeds 1 and 7, and native `generation_stages` medians for every preset, are recorded on base and candidate; the oak's browser skeleton reaches half of fn-124's base (34.9 and 38.3 ms) or the report names the next limiting stage. [inferred]
-- **R3:** The owner compares whole-tree stills of every catalogue preset at seeds 1 and 7, base against candidate, and records no perceptible regression; botanical counts and geometry checks the test suite holds still pass, and changed pinned hashes are rebaselined with that evidence. [user]
-- **R4:** The cull's time for the birch and spruce is recorded on base and candidate. [inferred]
+- **R1:** Max radius error stated and tested over every preset envelope — met: 3.68e-7 of the widest radius (bound 1e-6, `tests/envelope_profile.rs`).
+- **R2:** Browser skeleton and native stage medians recorded; oak reaches half of fn-124's base or the next limiting stage is named — oak 59.5 -> 51.9 and 65.8 -> 58.1 ms, short of half (34.9 / 38.3); next limiting stage: the local-advance loop body.
+- **R3:** The owner compares whole-tree stills base vs candidate and records no perceptible regression — met: owner verdict 2026-09-24, "all 16 still pairs identical, no regression"; the re-pin commit `d40d0e4a` is kept.
+- **R4:** Cull time recorded — birch -7 to -9%, spruce -6 to -8%, oak -18 to -20%, beech -20%.
 
-## Boundaries
+## Result
 
-- The envelope's shape parameters and presets are unchanged; only its evaluation changes. [inferred]
-- No full-forest capture; stills are single trees. [CLAUDE.md]
+All 16 hero stills and every wood/leaf hash byte-identical; skeleton positions move by at most 5.5e-10 m with identical topology, so only pinned skeleton digests were re-baselined. Commits `df3dc904`, `a5f31dc9`, `4148f650`, `0f4496d2`, `d40d0e4a`; gate 935 passed; codex review found no defects.
 
-## Decision Context
+## Open
 
-- Captured 2026-09-24 when fn-124 missed its half-time gate. fn-91's prepared envelope bounds (task .12, rejected) are a different, byte-identical approach worth about 12 to 17 ms on the oak and nothing on the spruce; this spec supersedes the need to revive them unless its screen fails. [inferred]
-- Related: fn-126 (CPU cull), whose per-vertex `radius_at` is the same cost. [inferred]
+- Half-time growth still unreached; the local-advance loop body is next.
+
+## Friction
+
+- The native stage comparison over eight fixtures hit the 590 s foreground guard and lost five fixtures' numbers (~10 min) -> a stage selector on `generation_stages`, or the compare script writing each fixture as it finishes.

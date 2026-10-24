@@ -69,8 +69,9 @@ const SIZE = '960x720';
    compare script's Lanczos step down to 720 is the rest of the supersample.
    The measured numbers are fractions of the still and do not change with it. */
 const MATCHED_HEIGHT = 1440;
-const MEASURE = 'target/release/examples/species_measure';
-const HEADLESS = 'target/release/examples/headless';
+const TARGET = process.env.CARGO_TARGET_DIR ?? 'target';
+const MEASURE = join(TARGET, 'release/examples/species_measure');
+const HEADLESS = join(TARGET, 'release/examples/headless');
 /** Whole tree, wood alone, and one placed element at generated scale -
  *  the three the renderer draws. */
 const VIEWS = ['whole', 'bare', 'leaf'];

@@ -10,17 +10,14 @@
 > user (2026-09-14, on the proof set): "Spruce cones, Ash compound leaves, Oak catkins"
 
 ## Goal & Context
-<!-- scope: business -->
-<!-- Goal & Context: 35% [user], 45% [paraphrase], 20% [inferred] -->
 
-Real trees carry more than leaves. An oak hangs catkins in spring, a spruce hangs cones for a year or more, and an ash holds its leaflets in pairs along a stalk. The generator today grows one leaf element per family, places one element per station, and shows it in whole-year cohorts, so none of those organs can exist on a natural tree, and the legendary trees fn-10 wants (a white tree in blossom, a world ash) have nothing to build on. The owner named the gap while refining fn-10 and asked for it to be closed for natural trees first. [user]
+Real trees carry more than leaves: an oak hangs catkins in spring, a spruce hangs cones for a year or more, an ash holds leaflets in pairs along a stalk. The generator grows one leaf element per family, one element per station, shown in whole-year cohorts, so none of those organs can exist, and fn-10's legendary trees (a white tree in blossom, a world ash) have nothing to build on. The owner named the gap while refining fn-10 and asked for it to be closed for natural trees first. [user]
 
 This spec adds two capabilities to the shared foliage layer and proves each on a real species against references. The first is one reproductive organ slot per family, a numeric row set that describes a flower, a cone or a fruit by shape, colour, station rule and season, drawn beside the leaf and inert on every ordinary tree. The second is grouping on the leaf itself, so a placement can carry several leaflets along a rachis and an ash leaf reads as one compound leaf rather than a scatter of blades. The proof set is spruce cones, oak catkins and ash compound leaves. [paraphrase]
 
 Every value is a row the blend walks. No organ kind is an enum, no species branch enters the generator or the renderer, and a family whose organ rows sit at their neutral values produces byte-identical wood, leaves and placements to today. [strategy:The supernatural field]
 
 ## Architecture & Data Models
-<!-- scope: technical -->
 
 - **One organ slot on the family.** `Family` gains an `organ` row set beside `element` and `canopy`. Its rows are the element shape rows the leaf already has (length, width, widest point, fullness, tip, cup, curl, section roundness, segment counts), a station rule (shoot radius, spacing, hang as a signed rise, presence as the fraction of eligible stations that carry an organ, a maturity age in years below which a shoot carries none, and its own instance budget), a colour pair with a gloss value, and a season (an opening point as a fraction of the year and a duration in years, fractional). Presence at zero is the neutral value and means no organ exists. A cone, a catkin and a blossom differ only in those numbers. [paraphrase]
 - **A second foliage draw, not a per-instance kind.** The organ is a second `mesh::Foliage` (its own element, its own placement list, its own level ladder from the existing ladder rule) submitted through a second `Select` and drawn by the same foliage shader with a second colour uniform pair. The crown pass keeps no per-instance attribute beyond the matrix, as `render/src/foliage.rs` states today. The sun's depth pass draws the organ through the same coarsened caster path the leaf uses. [inferred]
@@ -31,7 +28,6 @@ Every value is a row the blend walks. No organ kind is an enum, no species branc
 - **Blend and wire.** Every new row joins the `fields!` list, the `walk!` list, the wasm metadata and the generated browser catalogue the way fn-14's, fn-26's and fn-29's rows did. Presence blends linearly so a walk from an organ-less family to a coned one ramps up from nothing, and leaflet count blends as a count. [paraphrase]
 
 ## API Contracts
-<!-- scope: technical -->
 
 - **Family rows added**, validated by range naming the field: `organ.*` (shape rows as on `element`, `shoot_radius`, `spacing`, `hang`, `presence`, `maturity_years`, `max_instances`, `front_red/green/blue`, `back_red/green/blue`, `gloss`, `open`, `duration_years`) and on the leaf `element.leaflet_count`, `element.rachis_length`, `element.leaflet_pitch`, `element.terminal_leaflet`. On the wire, in the wasm metadata, in the generated browser catalogue and in the sweep's held list or its moved list. [inferred]
 - **Mesh output.** `Tree` and the specimen path expose a second optional foliage (element plus instances) that is absent when presence is zero, so a consumer that asked only for wood and leaves pays nothing. The browser binding exposes it the same way it exposes the leaf. [inferred]
@@ -39,7 +35,6 @@ Every value is a row the blend walks. No organ kind is an enum, no species branc
 - **Views and commands unchanged.** The headless target renders the same views; the leaf view shows the organ where a station carries one. [paraphrase]
 
 ## Edge Cases & Constraints
-<!-- scope: technical -->
 
 - **Neutral is inert.** Presence at zero and leaflet count at one produce wood, leaf element, placement and level bytes identical to today's on every shipped preset, asserted by the identity pins before any proof row is set. When a proof row is set on the oak or the spruce, the pins move and are re-pinned once with the reason stated. [paraphrase]
 - **The season wraps.** An opening point plus duration that crosses the year boundary (a cone opening in autumn and lasting fifteen months) is valid and is tested. A duration of zero means no organ, the same as presence zero. [inferred]
@@ -53,7 +48,6 @@ Every value is a row the blend walks. No organ kind is an enum, no species branc
 - **References.** Catalogued reference photographs for Norway spruce cones, Oregon white oak catkins and European ash leaves, fetched into the ignored references directory under this spec's id and never redistributed, with the fn-19 reference record for each. [paraphrase]
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
 - **R1:** A family carries one reproductive organ slot as numeric rows (shape, station rule, colour pair, season) with presence as its neutral zero, drawn as a second foliage pass beside the leaf; a family at neutral produces byte-identical wood, leaf, placement and level output to today on every shipped preset. Errors: a row outside its range is refused naming the field; presence zero or duration zero yields no organ list and no second draw. [user]
 - **R2:** The organ exists on a shoot only inside its season window, a rule over shoot age, opening point and duration with sub-annual resolution, and never through a chronicle stamp; the window may wrap the year boundary. Errors: a window that would place an organ on a shoot younger than the maturity age yields none; the tree at a whole-year age stays byte-identical to fn-11's tree at that age with organs off. [user]
@@ -64,7 +58,6 @@ Every value is a row the blend walks. No organ kind is an enum, no species branc
 - **R7:** The automated tests cover: neutral byte identity on every preset; season windows that wrap the year; the maturity age; per-list budgets; leaflet expansion count, identity determinism and truncation; ladder validity for the organ element; a blend walk from presence zero to a coned family; and the species metrics' organ and leaflet counts. Errors: a missing case is a review finding, not implementer discretion. [inferred]
 
 ## Boundaries
-<!-- scope: business -->
 
 - One organ slot, not a list; a tree that bears both catkins and acorns is a later widening. [user]
 - No fruit on the oak in this spec; acorns wait for a second slot. [paraphrase]
@@ -74,7 +67,6 @@ Every value is a row the blend walks. No organ kind is an enum, no species branc
 - No emission, materials beyond a colour pair and gloss, or bark change. [paraphrase]
 
 ## Decision Context
-<!-- scope: both -->
 
 ### Motivation
 

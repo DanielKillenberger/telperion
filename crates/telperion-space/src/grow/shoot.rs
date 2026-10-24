@@ -7,26 +7,32 @@
 use super::sketch::Pencil;
 use super::{bud, Apex, Certain, Placed};
 use crate::dormant::{Sleeper, Woken};
-use crate::lineage::Key;
+use crate::lineage::{Draw, Key};
 use crate::presence::{Draws, Windows};
 use crate::species::{Species, MAX_BUDS};
 use crate::structure::{Axis, Origin};
+use std::sync::Arc;
 
 /// What every growth unit reads and none writes: the species, its
 /// laterals as drawn, the bound on each PA's life, the windows, and the
 /// phytomers grown before the cycle, against the budget.
-pub(super) struct Rules<'a> {
+#[derive(Clone)]
+pub(crate) struct Rules<'a> {
     pub species: &'a Species,
     /// Each PA's zones' lateral probabilities as drawn (`PaState::laterals`).
-    pub laterals: Vec<Vec<Vec<f64>>>,
+    /// Shared, as the windows are, by every fine root's grower.
+    pub laterals: Arc<[Vec<Vec<f64>>]>,
     /// Each PA's bound on its subtree's life (`shed::lasting`); none
     /// throughout where shedding is not decided before growth.
-    pub lasting: Vec<Option<f64>>,
+    pub lasting: Arc<[Option<f64>]>,
     pub certain: Certain,
     pub windows: Windows,
     pub age: u32,
     pub budget: u32,
     pub grown: u64,
+    /// The one cycle's survival (fn-255, fn-256's spike contract): each
+    /// PA's viability read as the f32 its table holds, shaded in f32.
+    pub one: bool,
 }
 
 /// What the rough layout gives a growing apex (`sketch.rs`): its light,
@@ -89,11 +95,27 @@ pub(super) struct Shoot<'g, 'a> {
     pub marked: Vec<u64>,
     /// The phytomers this share grew.
     pub grown: u64,
-    /// One zone's node leads and its nodes (order draw, draw index, lead,
-    /// buds), reused.
-    pub leads: Vec<f64>,
-    pub node_buds: Vec<(f64, u64, f64, [Placed; MAX_BUDS as usize])>,
+    /// The units the job growing now grew in the cycle, and the most a
+    /// living apex's job and a waking bud's grew (fn-276: what the
+    /// device's units rounds hold, against `schedule::most_units`).
+    pub job: u32,
+    pub jobs: [u32; 2],
+    /// One zone's node presences and its nodes (order draw, draw index,
+    /// presence, buds), reused.
+    pub leads: Vec<f32>,
+    pub node_buds: Vec<(Draw, u64, f32, [Placed; MAX_BUDS as usize])>,
     /// One zone's sleeping buds' expected wood per PA, reused.
+    pub sleeping: Vec<f64>,
+}
+
+/// The lists a share fills and the grower empties each cycle, kept
+/// between cycles: a fine root grows a few apexes a cycle, and making
+/// them anew each one was most of its allocations.
+#[derive(Default)]
+pub(super) struct Spare {
+    pub next: Vec<Apex>,
+    pub leads: Vec<f32>,
+    pub node_buds: Vec<(Draw, u64, f32, [Placed; MAX_BUDS as usize])>,
     pub sleeping: Vec<f64>,
 }
 
@@ -114,9 +136,22 @@ impl<'g, 'a> Shoot<'g, 'a> {
             woken: Vec::new(),
             marked: Vec::new(),
             grown: 0,
+            job: 0,
+            jobs: [0; 2],
             leads: Vec::new(),
             node_buds: Vec::new(),
             sleeping: Vec::new(),
+        }
+    }
+
+    /// The share, filling `spare`'s lists rather than new ones.
+    pub fn spared(self, spare: Spare) -> Self {
+        Self {
+            next: spare.next,
+            leads: spare.leads,
+            node_buds: spare.node_buds,
+            sleeping: spare.sleeping,
+            ..self
         }
     }
 
@@ -204,6 +239,14 @@ impl<'g, 'a> Shoot<'g, 'a> {
     /// before, or whole where nothing shades.
     pub fn light(&self, i: usize) -> f64 {
         self.reads.pencils.get(i).map_or(1.0, |p| p.light)
+    }
+
+    /// Whether axis `i`'s tip, as the rough layout laid it last cycle,
+    /// rests on the ground (fn-252 R2): a laid walk off the stem whose tip
+    /// stands at the ground, where only the resting clamp, or the run
+    /// along the ground it began, puts it.
+    pub fn rests(&self, i: usize) -> bool {
+        (self.reads.pencils.get(i)).is_some_and(|p| !p.trunk && p.laid > 0 && p.layer.rests())
     }
 
     /// Axis `i`'s growth unit's size this cycle (`allocation.rs`); whole
@@ -295,10 +338,7 @@ impl<'g, 'a> Shoot<'g, 'a> {
             axis: self.len(),
             spent,
         });
-        let draws = Draws {
-            birth: made,
-            ..Draws::default()
-        };
+        let draws = Draws::made(made);
         self.push(lineage, pa, cycle, origin, (spent, root, draws));
     }
 
@@ -310,7 +350,8 @@ impl<'g, 'a> Shoot<'g, 'a> {
         }
         let apex = self.next.pop().expect("sprouted");
         self.axis_mut(apex.axis).birth = cycle - 1;
-        self.draws_mut(apex.axis).sleep = used;
+        let draws = self.draws_mut(apex.axis);
+        (draws.sleep, draws.carried) = (used, true);
         self.advance(apex, cycle)
     }
 }

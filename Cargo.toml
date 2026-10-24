@@ -3,11 +3,19 @@ members = [
     "crates/telperion-core",
     "crates/telperion-render",
     "crates/telperion-wasm",
-    "crates/telperion-field",
     "crates/telperion-jev",
     "crates/telperion-space",
 ]
 resolver = "2"
+
+# The wgpu family from the fork carrying gfx-rs/wgpu#10438 (docs/wgpu-fork.md).
+[patch.crates-io]
+wgpu = { git = "https://github.com/DanielKillenberger/wgpu", rev = "165ebd16f930baefecca51c22e753a48f911a5fa" }
+wgpu-core = { git = "https://github.com/DanielKillenberger/wgpu", rev = "165ebd16f930baefecca51c22e753a48f911a5fa" }
+wgpu-hal = { git = "https://github.com/DanielKillenberger/wgpu", rev = "165ebd16f930baefecca51c22e753a48f911a5fa" }
+wgpu-types = { git = "https://github.com/DanielKillenberger/wgpu", rev = "165ebd16f930baefecca51c22e753a48f911a5fa" }
+naga = { git = "https://github.com/DanielKillenberger/wgpu", rev = "165ebd16f930baefecca51c22e753a48f911a5fa" }
+wgpu-naga-bridge = { git = "https://github.com/DanielKillenberger/wgpu", rev = "165ebd16f930baefecca51c22e753a48f911a5fa" }
 
 [profile.release]
 lto = true

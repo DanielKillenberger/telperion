@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-21T21:06:42.571775Z",
+  "depends_on": [],
+  "id": "fn-304-the-gate-runs-in-ten-minutes-and-stays.1",
+  "priority": null,
+  "spec": "fn-304-the-gate-runs-in-ten-minutes-and-stays",
+  "spec_path": ".flow/tasks/fn-304-the-gate-runs-in-ten-minutes-and-stays.1.md",
+  "status": "todo",
+  "title": "Core lib: repeat test subset, packed_leaf merged, row bounds spread",
+  "updated_at": "2026-10-21T21:06:42.571775Z"
+}

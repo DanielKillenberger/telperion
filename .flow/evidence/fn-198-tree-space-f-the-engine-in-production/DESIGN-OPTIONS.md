@@ -33,7 +33,7 @@ This is a proposal for the host. It changes no code. Every code claim is marked 
 
 **How measured.**
 - Branch `fn-198-…` at `986a16a1` (origin/master), release profile, this worktree's own `target/`.
-- One process per tree, at 80 years, seeds 1 and 7, in each species' production light: the oak at extinction 0.5, sky 0.5 (fn-195 RESULT.md, round 5); the beech, spruce and palm at neutral light, since their light-reading values are all 0 (`beech.rs:58`, `spruce.rs:70`, `palm.rs:57`, checked).
+- One process per tree, at 80 years, seeds 1 and 7, in each species' production light: the oak at extinction 0.5, sky 0.5 (fn-195 RESULT.md, round 5 (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-195-tree-space-d-the-oak-as-a-point/RESULT.md`)); the beech, spruce and palm at neutral light, since their light-reading values are all 0 (`beech.rs:58`, `spruce.rs:70`, `palm.rs:57`, checked).
 - Dressed as the stills runner dresses (`examples/space/still.rs`, each species' `ROWS`).
 - **The probe** is `cost-probe.rs`, a copy of the scratch example `f_cost`. It times `grow_staged`'s stages, the conversion (`examples/space/tree.rs::convert`), `executor::expand`, the CPU wood alone and the CPU mesh (`Expansion::mesh`, wood and leaves concurrently, as the baseline's full build).
 - **The grown count** comes from `cost-probe.patch`, a temporary `eprintln!` of `Grower::grown` (reverted, not committed).
@@ -174,8 +174,8 @@ Gains are estimates from the table above unless marked measured. "Exact" means t
 
 - Memory falls about in proportion to grown axes.
 - **The phytomer budget** (20M, counting every grown phytomer including the shed ones; `grow/unit.rs:47-50`, checked) would then count living wood. That gives about 3.5x headroom.
-  - That budget is what stopped the oak's finer web: twigs bearing twigs refused 20M at seed 1 (fn-195 RESULT.md:587).
-  - It also stopped the spruce's longer-lived spurs (fn-194 RESULT.md:282).
+  - That budget is what stopped the oak's finer web: twigs bearing twigs refused 20M at seed 1 (fn-195 RESULT.md:587 (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-195-tree-space-d-the-oak-as-a-point/RESULT.md`)).
+  - It also stopped the spruce's longer-lived spurs (fn-194 RESULT.md:282 (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-194-tree-space-d-the-norway-spruce-as-a/RESULT.md`)).
 
 **Exactness and the interactions the host asked about:**
 - **Beech, spruce, palm: exact, expected; to be held by hash.**
@@ -200,7 +200,7 @@ Gains are estimates from the table above unless marked measured. "Exact" means t
 
 **Interaction with fn-206.**
 - fn-206 replaces `next` with a continuation share and makes lifespans fractional.
-- It also sheds "once its time-weighted fade reaches nothing, not on whole cycles" (fn-206 RESULT.md, palm worktree, read-only).
+- It also sheds "once its time-weighted fade reaches nothing, not on whole cycles" (fn-206 RESULT.md, palm worktree, read-only (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-206-tree-space-one-reference-axis-every/RESULT.md`)).
 - The bound then runs over the shared chain with fractional lifespans, and certainty means a fade of exactly 0.
 - The probe measured master's model, so its shares must be re-measured on fn-206's.
 
@@ -240,7 +240,7 @@ Light is paid only by the oak in production.
 **(c3) A sparser re-lay schedule late in life. Changes the tree.**
 - The re-lays grow as the tree does: the cycle-70 re-lay alone is 0.8 to 1.1 s.
 - `RELAY_EVERY` (`grow/relay.rs:20`, checked) is an engine constant, not a setting, so no walk crosses a schedule change.
-- fn-197 measured that a re-lay every 5 cycles is no closer than every 10 (STEP3B.md:66).
+- fn-197 measured that a re-lay every 5 cycles is no closer than every 10 (STEP3B.md:66 (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-197-tree-space-e-light-and-the-carbon/STEP3B.md`)).
 - A schedule of 10, 20, 30, 45, 60 and 80, with the 80 dropped by (c1), would save an estimated 30 to 40% of the re-lays.
 - Verified by the oak's sheet beside round 10, and by fn-197's gap measure (`measures gap`).
 
@@ -264,7 +264,7 @@ Light is paid only by the oak in production.
 - Fine wood is 92% (oak) to 98% (spruce) of wood length, and so nearly all triangles.
 - The spruce's 198M to 207M triangles are about 5.6 GB of GPU wood buffers on a 10 GB card.
 - Its 15.5M to 16.5M needles are about 1.1 GB more.
-- More curtain volume or more web adds to both, and fn-194 hit GPU out-of-memory at sleeping probability 0.5 (RESULT.md:471).
+- More curtain volume or more web adds to both, and fn-194 hit GPU out-of-memory at sleeping probability 0.5 (RESULT.md:471 (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-194-tree-space-d-the-norway-spruce-as-a/RESULT.md`)).
 
 **(d1) Sides that fall with the radius.**
 - A ring's side count falls with its radius, from `radialSegments` at the trunk to 3 or 4 on the finest wood.
@@ -381,14 +381,14 @@ Each needs a name or deletion when the conversion moves into core. `FINEST` shou
 **Today:**
 - Leaves bear on `Twig`-kind nodes, and on any wood thinner than `shootRadius` × `stem_radius` (`foliage/plan.rs:270-281`, checked).
 - `stem_radius` is measured where the stem first parts (`tree.rs:151`, checked).
-- **The shootRadius issue** (fn-195 FRICTION.md):
+- **The shootRadius issue** (fn-195 FRICTION.md (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-195-tree-space-d-the-oak-as-a-point/FRICTION.md`)):
   - An engine value that moved the oak's first stem fork up a thin central limb cut its leaves from 2.4M to 0.5M at seed 1, and differently per seed.
   - The rows were patched to `shootRadius` 0.06 (beech 0.018, spruce the preset's 0.025).
 - Kinds come from the conversion's `STRUCTURAL` rule, not from botany.
 
 **Proposed:**
 - **The engine says which nodes bear leaves, how many and for how long.**
-  - A per-PA leaf row: the years a node keeps its leaves. 1 for a deciduous tree's current shoots; about 5 for spruce needles (fn-194 RESULT.md:360-462); a frond's life for the palm.
+  - A per-PA leaf row: the years a node keeps its leaves. 1 for a deciduous tree's current shoots; about 5 for spruce needles (fn-194 RESULT.md:360-462 (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-194-tree-space-d-the-norway-spruce-as-a/RESULT.md`)); a frond's life for the palm.
   - Each node's leaf presence: its phytomers' scale times the fade of its leaf years.
 - **The pipeline `Tree` carries it per node,** beside `pipe` and `sections`: a station weight and the node's cycle.
 - **Placement reads it.** `shootRadius`, the `Twig`-kind rule and `stem_radius` go dormant for the engine's presets.
@@ -423,7 +423,7 @@ This amends an owner principle, so it is an owner decision, through the host.
 **The values.**
 - The engine's species becomes value rows on fn-206's shared chain: one fixed table of N ages (15 in fn-206) that every engine preset carries, with unused ages pass-through.
 - The species' Rust constructors (`beech.rs`, `oak.rs`, ...) become `.values` files, as presets are value tables with no species branch (AGENTS.md).
-- The site's light comes from the scene or request, never the preset (fn-195 RESULT.md:337).
+- The site's light comes from the scene or request, never the preset (fn-195 RESULT.md:337 (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-195-tree-space-d-the-oak-as-a-point/RESULT.md`)).
 - **Open (unknown):**
   - Whether the CI size budget absorbs 15 ages × about 40 settings × zones per preset in the wasm presets table.
   - Whether the engine's float maths may stay on `std`. Core pins libm for its own (`Cargo.toml`, `libm = "=0.2.16"`), and telperion-space calls `.exp()`, `.ln()` and `.powf()` directly.
@@ -439,7 +439,7 @@ This amends an owner principle, so it is an owner decision, through the host.
 
 ### fn-206 (one reference axis; running in `.worktrees/palm`)
 
-Read-only, from its RESULT.md. fn-206:
+Read-only, from its RESULT.md (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-206-tree-space-one-reference-axis-every/RESULT.md`). fn-206:
 - puts all four species on a 15-age chain (`chain.rs`);
 - replaces `next` with a continuation share and keys continuations by age (`Key::onto`);
 - keys growth units by the cycle they grow in, not by their count;
@@ -464,7 +464,7 @@ Read-only, from its RESULT.md. fn-206:
 ### fn-199 (relays change the tree by degree)
 
 - F's spec depends on it (`depends_on_epics`).
-- fn-206 checked fn-199's four findings against its code (RESULT.md, "fn-199's four relay-continuity findings"):
+- fn-206 checked fn-199's four findings against its code (RESULT.md, "fn-199's four relay-continuity findings") (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-206-tree-space-one-reference-axis-every/RESULT.md`):
   - **R2 is resolved** by `b172c2d4` (`a_node_growing_in_moves_no_relay`).
   - **R1** (relay 1 crossing survival), **R3** (a relay barely off a bent lateral) and **R4** (relay girth on a discrete node) **stay open**.
 - fn-206 does not cover fn-199. fn-199 should be built on fn-206's model, since it edits the same files.
@@ -480,7 +480,7 @@ Read-only, from its RESULT.md. fn-206:
 2. **Now, independent of fn-206** (core only):
    - (e1) the free dormant cull;
    - (d1) sides by radius and (d2) fine ring spacing, with the GPU executor's ring kernels;
-   - a `cost` mode on `measures` (FRICTION.md).
+   - a `cost` mode on `measures` (FRICTION.md) (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-194-tree-space-d-the-norway-spruce-as-a/FRICTION.md`).
    - **Verified by:** triangle counts, GPU wood buffer sizes, CPU wood time, and close-up stills beside today's.
    - **First red test:** the spruce at 80 years under 8 GB of wood buffers, failing today at about 5.6 GB with the more-volume values of fn-194 round 9.
 3. **After fn-206 merges:**

@@ -1,4 +1,5 @@
-import init, { WebRenderer } from "./render/telperion_render.js";
+import { WebRenderer, type WebGrowth } from "./render/telperion_render.js";
+import { loadModule } from "./module";
 
 /* ------------------------------------------------------------------ *
  * THE RENDERER, AS A PAGE HOLDS IT
@@ -49,7 +50,6 @@ export interface GenerationStages {
   descriptorsMs: number;
   uploadDispatchMs: number;
   placementWaitMs: number;
-  compactMs: number;
   massMs: number;
   readbackMs: number;
   woodMs: number;
@@ -59,7 +59,6 @@ export interface GenerationStages {
   woodPreparedCpuBytes: number;
   woodMetadataCpuBytes: number;
   woodGpuPeakBytes: number;
-  woodBackend: "Cpu" | "Gpu" | "CpuFallback" | null;
   /** Unstable diagnostic text; do not branch on its wording. */
   woodFallback: string | null;
   /** Preparation only; excludes adoption, drawing and completed-frame fencing. */
@@ -75,13 +74,16 @@ export interface GenerationStages {
 }
 
 /** A tree adopted by the renderer; this promise does not fence a completed frame. */
+export type Admission = "beside" | "makeRoom";
+
 export interface GpuSubmitted extends Submitted {
-  backend: "Gpu" | "CpuFallback";
   stages: GenerationStages;
   /** Allocated live-tree GPU buffer bytes before adoption; excludes textures/pipelines. */
   previousTreeGpuBytes: number;
   /** Allocated live-tree GPU buffer bytes after adoption, with the same exclusions. */
   treeGpuBytes: number;
+  /** Whether the drawn tree was let go first to make room under the budget. */
+  madeRoom: boolean;
 }
 
 export interface FrameStats {
@@ -123,6 +125,9 @@ export interface TimingReport {
   selection_p95_ms?: number;
   shadow_p50_ms?: number;
   shadow_p95_ms?: number;
+  /** Measured frames that reused the sun's map: each costs zero in the
+   *  shadow numbers above rather than going unmeasured (fn-246). */
+  shadow_cached?: number;
   /** Three passes added frame by frame and then ranked: a frame's own cost. */
   total_p50_ms?: number;
   total_p95_ms?: number;
@@ -159,14 +164,51 @@ function countDevice(step: 1 | -1): void {
   window.telperionLiveDevices = (window.telperionLiveDevices ?? 0) + step;
 }
 
-let loading: Promise<void> | undefined;
+/** A tree growing on the page's device (fn-270 R6, R7): begun for its
+ *  family's age, grown on to any age within it, and drawn at any age in
+ *  its last year. The tree on the canvas stays while the next stretch
+ *  grows. One call at a time: a second while one is out rejects by name. */
+export interface Growth {
+  /** The whole years grown; null once a failure spent the tree, or while
+   *  a call is working on it. */
+  committed(): number | null;
+  /** The most years it grows: the family's age. */
+  horizon(): number | null;
+  /** Grows on to `age` years and resolves to the whole years grown. An age
+   *  past the horizon, a year or more back, or not finite rejects by name
+   *  before anything moves; a failure spends the tree. */
+  growTo(age: number): Promise<number | null>;
+  /** What the next draw does under the page's budget, as a build's
+   *  `admission` says: beside the tree on the canvas, or that tree let go
+   *  first ("makeRoom"). Throws the budget's own words for a draw that
+   *  does not fit even alone; the tree on the canvas stays. */
+  admission(): Admission;
+  /** Puts the tree drawn at `at`, within its last year, on the canvas,
+   *  letting the tree there go first where `admission` says so. */
+  draw(at: number): Promise<Submitted>;
+  /** Lets the growth state go. */
+  dispose(): void;
+}
 
 /** One canvas drawn by the Rust renderer, sized to the display and
  *  disposed with the page element it belongs to. */
 export interface Renderer {
   setTree(family: string): Submitted;
-  /** Experimental GPU foliage; unsupported inputs report CpuFallback. */
+  /** What a build of this family does under the page's device budget:
+   *  builds beside the drawn tree, or lets it go first ("makeRoom"), the
+   *  screen empty while it builds. Throws the budget's own words for a tree
+   *  that does not fit even alone; the drawn tree stays. */
+  admission(family: string): Admission;
+  /** The GPU programs every build dispatches, compiled by the browser in
+   *  the background from the moment the renderer exists. Rejects with the
+   *  program the browser refused, or the device lost meanwhile, by name. */
+  programs: Promise<void>;
+  /** The tree built on the device. Waits on `programs`, and rejects with
+   *  its error without building. */
   setTreeGpu(family: string): Promise<GpuSubmitted>;
+  /** The family's tree before its first year, on the device (`Growth`).
+   *  Waits on `programs`, and rejects with its error without beginning. */
+  beginGrowth(family: string): Promise<Growth>;
   setView(view: View): void;
   /** The sun, sky and ground the next frame is drawn under. */
   scene(): SceneRow;
@@ -192,21 +234,28 @@ export interface Renderer {
  *  Rejects with the renderer's own words when there is no WebGPU, only a
  *  software adapter, or the device is refused. */
 export async function createRenderer(canvas: HTMLCanvasElement): Promise<Renderer> {
-  // The literal names the module for a consumer's bundler; the library build
-  // leaves it as it is (vite.config.ts) and ships the file beside this one.
-  loading ??= init({ module_or_path: new URL("./telperion-render.wasm", import.meta.url) }).then(() => undefined);
-  await loading;
+  await loadModule();
 
+  /* Writing a canvas's size clears its picture even at the same value, and
+     the renderer redraws only on a change (fn-246), so an unchanged size is
+     never written. */
   const resize = (): void => {
     const ratio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
-    canvas.width = Math.max(1, Math.round((canvas.clientWidth || 1) * ratio));
-    canvas.height = Math.max(1, Math.round((canvas.clientHeight || 1) * ratio));
+    const width = Math.max(1, Math.round((canvas.clientWidth || 1) * ratio));
+    const height = Math.max(1, Math.round((canvas.clientHeight || 1) * ratio));
+    if (canvas.width !== width) canvas.width = width;
+    if (canvas.height !== height) canvas.height = height;
   };
   resize();
 
   const renderer = (await WebRenderer.create(canvas)) as WebRenderer;
   countDevice(1);
   let disposed = false;
+  /* Compiled now, before any tree is asked for: a synchronous compile on
+     the first build held Chrome's GPU process until its watchdog ended it
+     (fn-243). A build waits here; it never compiles again. */
+  const programs = (renderer.preparePrograms() as Promise<unknown>).then(() => undefined);
+  programs.catch(() => undefined);
 
   const observer = new ResizeObserver(() => {
     if (disposed) return;
@@ -217,9 +266,25 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
 
   return {
     setTree: (family) => JSON.parse(renderer.setTree(family)) as Submitted,
+    admission: (family) => renderer.admission(family) as Admission,
+    programs,
     setTreeGpu: async (family) => {
+      await programs;
       if (disposed) throw new Error("the renderer is disposed");
       return JSON.parse(await renderer.setTreeGpu(family)) as GpuSubmitted;
+    },
+    beginGrowth: async (family) => {
+      await programs;
+      if (disposed) throw new Error("the renderer is disposed");
+      const handle = (await renderer.beginGrowth(family)) as WebGrowth;
+      return {
+        committed: () => handle.committed() ?? null,
+        horizon: () => handle.horizon() ?? null,
+        growTo: async (age) => ((await renderer.growTo(handle, age)) as number | null),
+        admission: () => renderer.growthAdmission(handle) as Admission,
+        draw: async (at) => JSON.parse((await renderer.drawGrowth(handle, at)) as string) as Submitted,
+        dispose: () => handle.free(),
+      };
     },
     setView: (view) => renderer.setView(view),
     scene: () => JSON.parse(renderer.scene()) as SceneRow,

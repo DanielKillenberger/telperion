@@ -1,32 +1,44 @@
 //! Everything the subject stands in: the ground it stands on, the sky behind
-//! it, the sun that lights both, and a 1.8 m figure at the roots for scale.
+//! it, the sun that lights both, and a 1.75 m person beside it for scale.
 //! The scene row controls colours, caster coarsening and the shared shadow
 //! filter. Frame-uniform assembly lives beside this file; the clay room keeps
 //! its neutral light and never reads the shadow.
 use bytemuck::{Pod, Zeroable};
-use telperion_core::{material::MaterialParams, math::Vec3, surface::Bounds};
+use telperion_core::{
+    material::MaterialParams, math::Vec3, supernatural::Reflection, surface::Bounds,
+};
 use wgpu::util::DeviceExt;
 
 use crate::{
     device::Gpu,
-    pass::{lit_shader, Depth, Surface},
-    shadow::Light,
+    pass::{Depth, Surface},
+    shaders,
+    shadow::{Light, Shadow},
     view::View,
 };
 
+mod band;
+mod beside;
 mod frame;
+mod person;
+pub(crate) use band::BandShares;
 /// The scene row - the sun, the sky and the ground as numbers - and the room's
 /// own geometry, each beside this file rather than in it so none of the three
 /// outgrows the project's line rule.
 mod room;
 mod row;
 
+pub use beside::{
+    hero as figure_placement, lit as figure_lit, points as figure_points, reach as figure_reach,
+    stand as figure_placement_from, Placement,
+};
+pub use person::counts as figure_counts;
 pub use room::{FIGURE_HEIGHT, GROUND_REACH};
 pub use row::SceneRow;
 
 use room::{
-    disc, figure, figure_indices, fixture, floor, linear, Vertex, ATTRIBUTES, BACKGROUND, CLAY,
-    FIGURE, GROUND, GROUND_LIGHT, SKY_LIGHT,
+    disc, fixture, floor, linear, Vertex, ATTRIBUTES, BACKGROUND, CLAY, FIGURE, GROUND,
+    GROUND_LIGHT, SKY_LIGHT,
 };
 
 pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
@@ -76,7 +88,7 @@ struct Uniforms {
     fissure: [f32; 4],            // fissure RGB offsets, strength
     crest: [f32; 4],              // crest RGB offsets, strength
     bark_colour_detail: [f32; 4], // mottle scale, mottle strength, cavity strength, sky occlusion strength
-    leaf_colour_detail: [f32; 4], // mottle scale, mottle strength, cuticle gloss, reserved
+    leaf_colour_detail: [f32; 4], // mottle scale, mottle strength, cuticle gloss, the margin band's area share
     margin: [f32; 4],             // RGB offsets, width
     plate: [f32; 4],              // cell scale in metres, elongation, dome, edge lift
     bark_structure: [f32; 4],     // plate identity, directional occlusion, depth strength, reserved
@@ -92,7 +104,25 @@ struct Uniforms {
     reflectance: [f32; 4], // bark and cuticle reflectance at normal incidence, reserved, reserved
     grain: [f32; 4], // bark grain cell size in metres and strength, blade grain cells per blade and strength
     plate_profile: [f32; 4], // edge shape, reserved, reserved, reserved
-    leaf_dead: [f32; 4], // a withered leaf's RGB, reserved
+    leaf_dead: [f32; 4], // a withered leaf's RGB, how far it has turned
+    mature: [f32; 4], // old bark RGB, the furrow strength it takes
+    mature_radius: [f32; 4], // the radius old bark starts at, the span it turns over, reserved, reserved
+    /// The supernatural group's mirror on a leaf's underside: its tint, and
+    /// its reflectance at normal incidence (fn-217 E2); the margin's
+    /// reflectance and both mirrors' roughness sit in `reflectance`.
+    leaf_reflection: [f32; 4], // back tint RGB, back reflectance
+    /// A floret's eye: the colour its petals turn toward at their base and
+    /// the share of their length it reaches (fn-217 F1); none on a leaf.
+    bloom_eye: [f32; 4], // eye RGB, share of the petal
+    /// A floret's stalks (fn-253): the rachis's length, its droop, the
+    /// stamen's half width the stalks narrow to, and the pedicel's length.
+    /// Zero on every leaf, and the organ's rachis instances are none.
+    stalk: [f32; 4],
+    /// The scene row's air (fn-310 D4): the glow round the sun as a
+    /// multiple of it, the distance in metres the far floor hazes over, and
+    /// the ground disc's reach, whose last stretch fades into the horizon.
+    atmosphere: [f32; 4], // glow, haze distance, ground reach, reserved
+    ground_dry: [f32; 4], // dry ground RGB, how far the ground turns to it
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform
@@ -105,7 +135,25 @@ pub struct Scene {
     /// What the subject is made of, as the family stated it. It arrives with
     /// the tree and outlives nothing: a second tree brings its own row.
     material: MaterialParams,
-    pub(crate) section_roundness: f64,
+    /// The supernatural group's leaf mirrors, which arrive with the
+    /// material and are none on every natural family.
+    reflection: Reflection,
+    /// The flowers' stalks, which arrive with the family (`Uniforms::stalk`).
+    stalk: [f32; 4],
+    /// How far a withered leaf has turned to the colour a leaf turns as it
+    /// dies (fn-270 R5c): whole for the dead fronds a rosette keeps, and
+    /// a tree's autumn as it colours, which a tree drawn within its year
+    /// states (`Renderer::set_colouring`).
+    colouring: f64,
+    /// The organ mask (fn-217 M0): in the clay room, the flowers white and
+    /// everything else black, unlit. An instrument, off in every picture.
+    mask: bool,
+    section_roundness: f64,
+    /// The submitted leaf's bounding radius, which thinning measures its
+    /// size on screen by (fn-246).
+    leaf_radius: f32,
+    /// The submitted leaf's margin band as a share of its area, by width.
+    band_shares: BandShares,
     /// The ellipsoid the submitted crown's placements fill, which a leaf's
     /// depth into the crown is measured against. None before a tree is up.
     crown: Option<Bounds>,
@@ -113,48 +161,72 @@ pub struct Scene {
     leaf_reference: telperion_core::foliage::Reference,
     layout: wgpu::BindGroupLayout,
     bind_group: wgpu::BindGroup,
-    uniforms: wgpu::Buffer,
+    uniforms: crate::buffer::Owned,
+    /// The flowers' own block (fn-216): the frame's, with the petals'
+    /// colours and the box their florets were quantised against. None
+    /// while no tree that flowers is up.
+    /// With the box, the floret's bounding radius (fn-246).
+    organ_reference: Option<(telperion_core::foliage::Reference, f32)>,
+    organ_bind_group: wgpu::BindGroup,
+    organ_uniforms: crate::buffer::Owned,
     pipeline: wgpu::RenderPipeline,
     sky: wgpu::RenderPipeline,
-    vertices: wgpu::Buffer,
-    indices: wgpu::Buffer,
+    vertices: crate::buffer::Owned,
+    indices: crate::buffer::Owned,
     index_count: u32,
     /// The indices that are the floor alone; the figure follows them.
     floor_index_count: u32,
     figure_offset: u64,
+    /// The box the person stands in where it is placed, which the sun's map
+    /// is fitted to hold, and its depth-only draw into that map.
+    figure_bounds: Bounds,
+    /// Where the person stands now.
+    placement: Placement,
+    caster: wgpu::RenderPipeline,
 }
 
 impl Scene {
-    pub fn new(gpu: &Gpu, surface: Surface, shadow: &wgpu::BindGroupLayout) -> Self {
+    pub fn new(gpu: &Gpu, surface: Surface, sun: &Shadow) -> Self {
+        let shadow = sun.layout();
         let (ground_colour, figure_colour) = (floor(GROUND), fixture(FIGURE));
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
         disc(ground_colour, &mut vertices, &mut indices);
         let floor_index_count = indices.len() as u32;
         let figure_offset = (vertices.len() * size_of::<Vertex>()) as u64;
-        indices.extend(figure_indices(vertices.len() as u32));
-        vertices.extend(figure(Vec3::ZERO, figure_colour));
+        let (body, body_indices) =
+            person::person(Vec3::ZERO, 0.0, figure_colour, vertices.len() as u32);
+        indices.extend(body_indices);
+        let figure_bounds = bounds_of(&body);
+        vertices.extend(body);
 
-        let vertex_buffer = gpu
-            .device
-            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("scene vertices"),
-                contents: bytemuck::cast_slice(&vertices),
-                usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            });
-        let index_buffer = gpu
-            .device
-            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("scene indices"),
-                contents: bytemuck::cast_slice(&indices),
-                usage: wgpu::BufferUsages::INDEX,
-            });
-        let uniforms = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("scene uniforms"),
-            size: size_of::<Uniforms>() as u64,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
+        let vertex_buffer = crate::buffer::Owned::new(
+            gpu,
+            gpu.device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("scene vertices"),
+                    contents: bytemuck::cast_slice(&vertices),
+                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                }),
+        );
+        let index_buffer = crate::buffer::Owned::new(
+            gpu,
+            gpu.device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("scene indices"),
+                    contents: bytemuck::cast_slice(&indices),
+                    usage: wgpu::BufferUsages::INDEX,
+                }),
+        );
+        let uniforms = crate::buffer::Owned::create(
+            gpu,
+            &wgpu::BufferDescriptor {
+                label: Some("scene uniforms"),
+                size: size_of::<Uniforms>() as u64,
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            },
+        );
         let layout = gpu
             .device
             .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -178,8 +250,25 @@ impl Scene {
                 resource: uniforms.as_entire_binding(),
             }],
         });
+        let organ_uniforms = crate::buffer::Owned::create(
+            gpu,
+            &wgpu::BufferDescriptor {
+                label: Some("organ uniforms"),
+                size: size_of::<Uniforms>() as u64,
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            },
+        );
+        let organ_bind_group = gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("organ"),
+            layout: &layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: organ_uniforms.as_entire_binding(),
+            }],
+        });
 
-        let shader = lit_shader(gpu, "scene", include_str!("shaders/scene.wgsl"));
+        let shader = shaders::module(gpu, "scene", shaders::scene());
         // The room takes no selection, so the group between the light and the
         // shadow map is a hole in its layout rather than a group it binds.
         let groups = [Some(&layout), None, Some(shadow)];
@@ -201,22 +290,45 @@ impl Scene {
         let sky = crate::pipeline(
             gpu,
             &groups,
-            &lit_shader(gpu, "sky", include_str!("shaders/sky.wgsl")),
+            &shaders::module(gpu, "sky", shaders::sky()),
             surface,
             &[],
             Depth::Behind,
             "sky",
         );
+        // The person casts as the wood does: its positions stand where they
+        // were placed, so the wood's entry point draws them into the map.
+        let caster = crate::depth_pipeline(
+            gpu,
+            &[Some(sun.light_layout())],
+            sun.module(),
+            "wood",
+            &[Some(wgpu::VertexBufferLayout {
+                array_stride: size_of::<Vertex>() as u64,
+                step_mode: wgpu::VertexStepMode::Vertex,
+                attributes: &ATTRIBUTES[..1],
+            })],
+            "person shadow",
+        );
 
         Self {
             row: SceneRow::default(),
             material: MaterialParams::default(),
+            reflection: Reflection::NONE,
+            stalk: [0.0; 4],
+            colouring: 1.0,
+            mask: false,
             section_roundness: 0.0,
+            leaf_radius: 0.0,
+            band_shares: BandShares::default(),
             crown: None,
             leaf_reference: telperion_core::foliage::Reference::default(),
             layout,
             bind_group,
             uniforms,
+            organ_reference: None,
+            organ_bind_group,
+            organ_uniforms,
             pipeline,
             sky,
             vertices: vertex_buffer,
@@ -224,6 +336,12 @@ impl Scene {
             index_count: indices.len() as u32,
             floor_index_count,
             figure_offset,
+            figure_bounds,
+            placement: Placement {
+                foot: Vec3::ZERO,
+                facing: 0.0,
+            },
+            caster,
         }
     }
 
@@ -247,9 +365,39 @@ impl Scene {
     /// from rather than in the last tree's colours.
     pub fn set_material(&mut self, material: MaterialParams) {
         self.material = material;
+        self.reflection = Reflection::NONE;
+    }
+
+    /// The flowers' stalks for the subject that is up, set after its
+    /// material (fn-253).
+    pub fn set_stalk(&mut self, stalk: [f32; 4]) {
+        self.stalk = stalk;
+    }
+
+    /// The supernatural group's leaf mirrors for the subject that is up,
+    /// set after its material.
+    /// What the frame reads of the submitted leaf element: its section
+    /// and its margin band's area share. Every submission path sets it.
+    pub(crate) fn set_leaf(&mut self, element: &telperion_core::foliage::Element) {
+        self.section_roundness = element.section_roundness;
+        self.leaf_radius = crate::select::frame::sphere(element)[3];
+        self.band_shares = BandShares::of(element);
+    }
+
+    pub fn set_mask(&mut self, on: bool) {
+        self.mask = on;
+    }
+
+    pub fn set_reflection(&mut self, reflection: Reflection) {
+        self.reflection = reflection;
     }
 
     /// The ellipsoid a leaf's depth into the crown is measured against.
+    /// How far a withered leaf has turned (`colouring`).
+    pub fn set_colouring(&mut self, colouring: f64) {
+        self.colouring = colouring;
+    }
+
     pub fn set_crown(&mut self, crown: Option<Bounds>) {
         self.crown = crown;
     }
@@ -258,6 +406,30 @@ impl Scene {
     /// that reads a placement decodes positions with.
     pub fn set_leaf_reference(&mut self, reference: telperion_core::foliage::Reference) {
         self.leaf_reference = reference;
+    }
+
+    /// The box the flowers that are up were quantised against, and their
+    /// floret; none where the tree flowers nowhere, and then no organ block
+    /// is written.
+    pub fn set_organ(
+        &mut self,
+        organ: Option<(
+            telperion_core::foliage::Reference,
+            &telperion_core::foliage::Element,
+        )>,
+    ) {
+        // The radius selection judges the drawn floret by, card included.
+        self.organ_reference = organ.map(|(reference, element)| {
+            (
+                reference,
+                crate::select::frame::sphere(&crate::card::carded(element))[3],
+            )
+        });
+    }
+
+    /// Binds the flowers' block in place of the frame's, for their draw.
+    pub fn bind_organ(&self, pass: &mut wgpu::RenderPass<'_>) {
+        pass.set_bind_group(0, &self.organ_bind_group, &[]);
     }
 
     /// That same box, for a caller that has to hand it to another pass.
@@ -269,7 +441,9 @@ impl Scene {
     /// sky at the horizon outdoors, where the sky's own triangle covers it
     /// everywhere the frame draws one.
     pub fn background(&self, view: View) -> wgpu::Color {
-        let c = if view == View::Clay {
+        let c = if self.mask {
+            [0.0, 0.0, 0.0, 1.0]
+        } else if view == View::Clay {
             linear(BACKGROUND)
         } else {
             [
@@ -287,15 +461,37 @@ impl Scene {
         }
     }
 
-    /// Stands the figure clear of the root flare of a subject this tall.
-    pub fn place_figure(&self, gpu: &Gpu, height: f64) {
-        let foot = Vec3::new(height * 0.16 + 1.2, 0.0, height * 0.2);
-        let vertices = figure(foot, fixture(FIGURE));
+    /// Stands the person where `placement` says (`beside::stand` places it
+    /// beside a tree).
+    pub fn place_figure(&mut self, gpu: &Gpu, placement: Placement) {
+        let (vertices, _) = person::person(placement.foot, placement.facing, fixture(FIGURE), 0);
+        self.figure_bounds = bounds_of(&vertices);
+        self.placement = placement;
         gpu.queue.write_buffer(
             &self.vertices,
             self.figure_offset,
             bytemuck::cast_slice(&vertices),
         );
+    }
+
+    /// Where the person stands now.
+    pub fn placement(&self) -> Placement {
+        self.placement
+    }
+
+    /// The box the person stands in where it was last placed.
+    pub fn figure_bounds(&self) -> Bounds {
+        self.figure_bounds
+    }
+
+    /// Draws the person, and not the floor, into the sun's map: its
+    /// triangles. The floor only takes shadow.
+    pub fn draw_shadow(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+        pass.set_pipeline(&self.caster);
+        pass.set_vertex_buffer(0, self.vertices.slice(..));
+        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint32);
+        pass.draw_indexed(self.floor_index_count..self.index_count, 0, 0..1);
+        (self.index_count - self.floor_index_count) / 3
     }
 
     /// Binds the camera and the light every pipeline in the pass draws under.
@@ -306,8 +502,8 @@ impl Scene {
     }
 
     /// Draws the room: the sky behind everything outdoors, then the ground and
-    /// the figure, which share a buffer and one call. A frame that imitates a
-    /// photograph leaves the figure out and keeps the floor.
+    /// the 1.75 m person, which share a buffer and one call. A frame that
+    /// imitates a photograph leaves the person out and keeps the floor.
     pub fn draw(
         &self,
         pass: &mut wgpu::RenderPass<'_>,
@@ -336,6 +532,25 @@ impl Scene {
         }
     }
 }
+/// The box these vertices stand in.
+fn bounds_of(vertices: &[Vertex]) -> Bounds {
+    let (mut low, mut high) = ([f32::MAX; 3], [f32::MIN; 3]);
+    for v in vertices {
+        for axis in 0..3 {
+            low[axis] = low[axis].min(v.position[axis]);
+            high[axis] = high[axis].max(v.position[axis]);
+        }
+    }
+    let point = |p: [f32; 3]| {
+        let [x, y, z] = p.map(f64::from);
+        Vec3::new(x, y, z)
+    };
+    Bounds {
+        min: point(low),
+        max: point(high),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

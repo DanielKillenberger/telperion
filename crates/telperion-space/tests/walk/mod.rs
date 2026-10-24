@@ -3,6 +3,7 @@
 //! scale it is walked on. The shape measures are in `measure.rs`.
 #![allow(dead_code)]
 mod bend;
+pub mod degree;
 mod measure;
 pub use bend::sag_bend;
 pub use measure::*;
@@ -10,6 +11,52 @@ use telperion_space::{grow, Form, Light, NodeLaw, PaState, Request, Species, Str
 
 pub const STEPS: u32 = 200;
 pub const AGE: u32 = 12;
+
+/// `work(k)` for every `k` below `count` on every core, in `k`'s order.
+/// The walks' trees are independent, so a test's longest chain is one
+/// piece of work, never one setting's whole walk (fn-271). Each worker
+/// grows its trees on one core: the engine's tree is the same on any
+/// number (`cores.rs`), and a walk tree too small to share out spent
+/// more of the machine waiting on its helpers than growing. A piece's
+/// panic is the test's.
+pub fn spread<T: Send>(count: usize, work: impl Fn(usize) -> T + Sync) -> Vec<T> {
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let cores = std::thread::available_parallelism().map_or(1, |n| n.get());
+    let mut out: Vec<Option<T>> = (0..count).map(|_| None).collect();
+    std::thread::scope(|scope| {
+        let workers: Vec<_> = (0..cores.min(count))
+            .map(|_| {
+                scope.spawn(|| {
+                    let one = rayon::ThreadPoolBuilder::new()
+                        .num_threads(1)
+                        .build()
+                        .unwrap();
+                    one.install(|| {
+                        let mut done = Vec::new();
+                        loop {
+                            let k = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                            if k >= count {
+                                break done;
+                            }
+                            done.push((k, work(k)));
+                        }
+                    })
+                })
+            })
+            .collect();
+        for worker in workers {
+            let done = worker
+                .join()
+                .unwrap_or_else(|p| std::panic::resume_unwind(p));
+            for (k, value) in done {
+                out[k] = Some(value);
+            }
+        }
+    });
+    out.into_iter()
+        .map(|v| v.expect("every piece ran"))
+        .collect()
+}
 
 fn zone(nodes: NodeLaw, buds: u8, lateral: [f64; 3]) -> Zone {
     Zone {
@@ -45,11 +92,24 @@ pub fn species() -> Species {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        leaf_years: f64::INFINITY,
+        elongation: 0.0,
+        expansion: 0.0,
+        leaf_life: f64::INFINITY,
+        budburst: 0.0,
+        senescence: 0.0,
+        colouring: 0.0,
+        leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -76,11 +136,24 @@ pub fn species() -> Species {
         relay_failed: 0.3,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        leaf_years: f64::INFINITY,
+        elongation: 0.0,
+        expansion: 0.0,
+        leaf_life: f64::INFINITY,
+        budburst: 0.0,
+        senescence: 0.0,
+        colouring: 0.0,
+        leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -111,11 +184,24 @@ pub fn species() -> Species {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        leaf_years: f64::INFINITY,
+        elongation: 0.0,
+        expansion: 0.0,
+        leaf_life: f64::INFINITY,
+        budburst: 0.0,
+        senescence: 0.0,
+        colouring: 0.0,
+        leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -192,7 +278,11 @@ impl Setting {
 
     /// The tree's shape at walk coordinate `x`.
     pub fn shape(&self, x: f64, seed: u64) -> Shape {
-        let value = self.value(x);
+        self.shape_at(self.value(x), seed)
+    }
+
+    /// The tree's shape at the setting's `value`.
+    pub fn shape_at(&self, value: f64, seed: u64) -> Shape {
         let tree = lit(&self.at(value), (self.light)(value), seed)
             .unwrap_or_else(|e| panic!("{} at {value}, seed {seed}: {e}", self.name));
         Shape::of(&tree)
@@ -284,7 +374,7 @@ pub fn settings() -> Vec<Setting> {
         // Sag over a range from none to limbs bowed to the ground; the
         // trunk only leans under its crown.
         let sag = [2e-4, 1e-4, 3e-4][pa];
-        let form: [(&str, f64, f64, bool, Set); 14] = [
+        let form: [(&str, f64, f64, bool, Set); 16] = [
             ("abortion_rise", 0.0, 3.0, false, |s, pa, v| {
                 s.states[pa].abortion_rise = v
             }),
@@ -331,6 +421,18 @@ pub fn settings() -> Vec<Setting> {
             ("form.secondary", 0.0, 1.0, false, |s, pa, v| {
                 s.states[pa].form.secondary = v
             }),
+            // fn-222: each internode's length varied node to node.
+            ("form.internode_spread", 0.0, 1.0, false, |s, pa, v| {
+                s.states[pa].form.internode_spread = v
+            }),
+            // fn-224: each axis's insertion angle varied axis to axis.
+            (
+                "form.insertion_spread",
+                0.0,
+                std::f64::consts::FRAC_PI_2,
+                false,
+                |s, pa, v| s.states[pa].form.insertion_spread = v,
+            ),
         ];
         for (field, low, high, odds, set) in table.into_iter().chain(form) {
             let mut walked = setting(at(field), low, high, odds, move |s, v| set(s, pa, v));
@@ -439,6 +541,20 @@ pub fn settings() -> Vec<Setting> {
             move |s, v| s.states[pa].lifespan = v,
         ));
     }
+    // fn-231: a node count walked where a lifespan's fraction cuts a unit,
+    // the limb living six and a half cycles: its last unit lays half its
+    // zone's present nodes, and a node the law starts to make adds a
+    // vanishing share, laying no other node whole (codex on fn-231).
+    all.push(setting(
+        "states[1].zones[0].nodes.mean, lifespan 6.5".into(),
+        0.5,
+        2.5,
+        false,
+        |s, v| {
+            s.states[1].lifespan = 6.5;
+            s.states[1].zones[0].nodes = NodeLaw::Poisson { mean: v };
+        },
+    ));
     // fn-206: the twigs' shedding delay between whole cycles.
     all.push(setting(
         "states[2].shedding".into(),
@@ -449,7 +565,32 @@ pub fn settings() -> Vec<Setting> {
     ));
     all.extend(sleeping_settings());
     all.extend(bend_settings());
+    all.extend(turning_settings());
     all
+}
+
+/// fn-224: each axis's tropism varied axis to axis, walked on a tree that
+/// bends (the walk tree's own tropism is none, where the spread is dormant).
+fn turning_settings() -> Vec<Setting> {
+    (0..3)
+        .map(|pa| {
+            // The tropism walk's highest: the trunk's keeps its crown off
+            // the ground.
+            let bend = [0.03, 1.0, 1.0][pa];
+            let mut walked = setting(
+                format!("states[{pa}].form.tropism_spread, bending"),
+                0.0,
+                1.0,
+                false,
+                move |s, v| {
+                    s.states[pa].form.tropism = bend;
+                    s.states[pa].form.tropism_spread = v;
+                },
+            );
+            walked.stretch = 1.0;
+            walked
+        })
+        .collect()
 }
 
 /// fn-207 R3: the wander's bend length walked on a wandering tree, and the
@@ -650,9 +791,8 @@ fn shaded(name: &str, low: f64, high: f64, edit: fn(&mut Species, f64)) -> Setti
     walked
 }
 
-/// Every setting walked in leaf under the site's light, the full lay
-/// grown with the tree included (host decision 8): `leafy` first, then
-/// the setting.
+/// Every setting walked in leaf under the site's light (host decision
+/// 8): `leafy` first, then the setting.
 pub fn in_leaf(all: Vec<Setting>) -> Vec<Setting> {
     all.into_iter()
         .map(|walked| {

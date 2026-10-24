@@ -4,7 +4,8 @@
 //! leaf's depth and takes the coarsest level that stays under half a pixel; a
 //! leaf whose sphere is outside the frustum takes the unseen bucket instead.
 //! Each level's list is compacted in placement-index order, so ties in depth
-//! resolve identically on every draw. Its count drives one indexed indirect draw.
+//! resolve identically on every draw, and the levels lie end to end in one
+//! list, each from its own start. Its count drives one indexed indirect draw.
 //!
 //! Nothing survives the frame. There is no hysteresis and no previous-frame
 //! state: the switch is below a pixel by construction, so there is nothing to
@@ -50,23 +51,37 @@ pub enum Level {
 /// fit check, so what is judged before the upload is what the upload takes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Sizes {
-    /// Bytes one level's index list is given, aligned so the list can be bound
-    /// at a dynamic offset.
-    pub stride: u64,
+    /// Bytes between two levels' start words, so each can be bound at a
+    /// dynamic offset (`slot_alignment`).
+    pub slot: u64,
+    /// Every level's list end to end: each leaf is in at most one level, so
+    /// the crown fills it once.
     pub lists: u64,
+    pub starts: u64,
     pub counts: u64,
     pub arguments: u64,
     pub scratch: u64,
+}
+
+/// The spacing every start word can be bound at: the selection writes the
+/// starts as storage and the draw reads its level's as a uniform, a broadcast
+/// load where a storage word cost the vertex-bound spruce 17% of its draw.
+pub fn slot_alignment(limits: &wgpu::Limits) -> u64 {
+    u64::from(
+        (limits.min_uniform_buffer_offset_alignment)
+            .max(limits.min_storage_buffer_offset_alignment),
+    )
 }
 
 /// The bytes each selection buffer needs for this many placements at this many
 /// levels. The unseen bucket is a counter like any other, so there is one more
 /// counter than there are levels.
 pub fn sizes(instances: usize, levels: usize, alignment: u64) -> Sizes {
-    let stride = ((instances * size_of::<u32>()) as u64).div_ceil(alignment.max(1)) * alignment;
+    let slot = alignment.max(1);
     Sizes {
-        stride,
-        lists: stride * levels as u64,
+        slot,
+        lists: ((instances * size_of::<u32>()) as u64).div_ceil(slot) * slot,
+        starts: slot * levels as u64,
         counts: ((levels + 1) * size_of::<u32>()) as u64,
         arguments: (levels * ARGUMENT_WORDS * size_of::<u32>()) as u64,
         scratch: ((instances + (levels + 1) * instances.div_ceil(WORKGROUP as usize))
@@ -80,7 +95,7 @@ pub struct Select {
     pipelines: [wgpu::ComputePipeline; 3],
     compute_layout: wgpu::BindGroupLayout,
     draw_layout: wgpu::BindGroupLayout,
-    uniforms: wgpu::Buffer,
+    uniforms: crate::buffer::Owned,
     /// The leaf view: one placement at identity and a list of one, bound
     /// through the same layout as the crown and never rewritten.
     leaf: wgpu::BindGroup,
@@ -88,6 +103,7 @@ pub struct Select {
     masses: Option<Held>,
     deviations: Option<Held>,
     lists: Option<Held>,
+    starts: Option<Held>,
     counts: Option<Held>,
     arguments: Option<Held>,
     scratch: Option<Held>,
@@ -99,12 +115,18 @@ pub struct Select {
     /// Each level's range in the element's shared index buffer, coarsest first.
     levels: Vec<Range<u32>>,
     instances: u32,
-    stride: u32,
+    /// Bytes between two levels' start words (`Sizes::slot`).
+    slot: u32,
     forced: Level,
     /// The element's bounding sphere at the origin: centre, then radius.
     sphere: [f32; 4],
     /// The box the submitted crown's positions were quantised against.
     reference: telperion_core::foliage::Reference,
+    /// The organ's rachis and pedicel lengths and the rachis's droop
+    /// (`frame::Uniforms::stalk`); zero on leaves.
+    stalk: [f32; 3],
+    /// How many of the element's levels, coarsest first, are the rachis's.
+    rachis_levels: u32,
 }
 
 impl Select {
@@ -114,6 +136,7 @@ impl Select {
             &self.masses,
             &self.deviations,
             &self.lists,
+            &self.starts,
             &self.counts,
             &self.arguments,
             &self.scratch,
@@ -129,12 +152,15 @@ impl Select {
         let draw_layout = bind::draw_layout(gpu);
         Self {
             pipelines: bind::pipelines(gpu, &compute_layout),
-            uniforms: gpu.device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some("selection"),
-                size: size_of::<frame::Uniforms>() as u64,
-                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-                mapped_at_creation: false,
-            }),
+            uniforms: crate::buffer::Owned::create(
+                gpu,
+                &wgpu::BufferDescriptor {
+                    label: Some("selection"),
+                    size: size_of::<frame::Uniforms>() as u64,
+                    usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                },
+            ),
             leaf: bind::leaf_group(gpu, &draw_layout),
             compute_layout,
             draw_layout,
@@ -142,6 +168,7 @@ impl Select {
             masses: None,
             deviations: None,
             lists: None,
+            starts: None,
             counts: None,
             arguments: None,
             scratch: None,
@@ -150,11 +177,38 @@ impl Select {
             reset: Vec::new(),
             levels: Vec::new(),
             instances: 0,
-            stride: 0,
+            slot: 0,
             forced: Level::default(),
             sphere: [0.0; 4],
+            stalk: [0.0; 3],
+            rachis_levels: 0,
             reference: telperion_core::foliage::Reference::default(),
         }
+    }
+
+    /// The organ's rachis and pedicel lengths, which size its
+    /// inflorescences, and the rachis's droop, which lays it (fn-253); zero
+    /// on the leaves, where no instance is a rachis.
+    pub(crate) fn set_stalk(&mut self, rachis: f32, pedicel: f32, droop: f32) {
+        self.stalk = [rachis, pedicel, droop];
+    }
+
+    /// Lets the crown's buffers go, back to the state before any crown.
+    pub(crate) fn release(&mut self) {
+        for held in [
+            &mut self.placements,
+            &mut self.masses,
+            &mut self.deviations,
+            &mut self.lists,
+            &mut self.starts,
+            &mut self.counts,
+            &mut self.arguments,
+            &mut self.scratch,
+        ] {
+            *held = None;
+        }
+        (self.compute, self.draw) = (None, None);
+        (self.reset, self.levels, self.instances) = (Vec::new(), Vec::new(), 0);
     }
 
     /// The layout the foliage pipeline reads its placements and its level's
@@ -167,8 +221,16 @@ impl Select {
     /// deviations, and room for the lists, counters and indirect blocks one
     /// frame fills. A crown with no leaves, or an element with no levels,
     /// takes nothing at all and selects nothing.
-    pub fn submit(&mut self, gpu: &Gpu, foliage: &mesh::Foliage, level: Level) {
-        if !foliage.instances.is_empty() && !foliage.element.levels.is_empty() {
+    /// `element` is the one drawn, which is the foliage's own or the floret
+    /// with its card in front (`card.rs`).
+    pub fn submit(
+        &mut self,
+        gpu: &Gpu,
+        foliage: &mesh::Foliage,
+        element: &telperion_core::foliage::Element,
+        level: Level,
+    ) {
+        if !foliage.instances.is_empty() && !element.levels.is_empty() {
             buffer::write(
                 gpu,
                 &mut self.placements,
@@ -187,7 +249,7 @@ impl Select {
         }
         self.setup(
             gpu,
-            &foliage.element,
+            element,
             foliage.instances.reference,
             foliage.instances.len() as u32,
             level,
@@ -222,12 +284,13 @@ impl Select {
         self.reference = reference;
         self.levels = element.levels.iter().map(|l| l.indices.clone()).collect();
         self.sphere = frame::sphere(element);
+        self.rachis_levels = crate::card::rachis_levels(element) as u32;
         let sizes = sizes(
             self.instances as usize,
             self.levels.len(),
-            u64::from(gpu.device.limits().min_storage_buffer_offset_alignment),
+            slot_alignment(&gpu.device.limits()),
         );
-        self.stride = sizes.stride as u32;
+        self.slot = sizes.slot as u32;
         if self.instances == 0 || self.levels.is_empty() {
             (self.compute, self.draw) = (None, None);
             return;
@@ -255,6 +318,13 @@ impl Select {
         );
         buffer::reserve(
             gpu,
+            &mut self.starts,
+            "foliage level starts",
+            storage | wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_SRC,
+            sizes.starts,
+        );
+        buffer::reserve(
+            gpu,
             &mut self.counts,
             "foliage level counters",
             storage | wgpu::BufferUsages::COPY_SRC,
@@ -274,18 +344,19 @@ impl Select {
             storage,
             sizes.scratch,
         );
-        self.rebind(gpu, sizes.stride);
+        self.rebind(gpu);
     }
 
     /// The bind groups the buffers were just allocated for. Every submit
     /// builds them again: a buffer that outgrew its headroom is a new buffer,
     /// and a group holding the old one would bind what is no longer there.
-    fn rebind(&mut self, gpu: &Gpu, stride: u64) {
+    fn rebind(&mut self, gpu: &Gpu) {
         let (
             Some(placements),
             Some(masses),
             Some(deviations),
             Some(lists),
+            Some(starts),
             Some(counts),
             Some(arguments),
             Some(scratch),
@@ -294,6 +365,7 @@ impl Select {
             &self.masses,
             &self.deviations,
             &self.lists,
+            &self.starts,
             &self.counts,
             &self.arguments,
             &self.scratch,
@@ -306,15 +378,15 @@ impl Select {
             gpu,
             &self.compute_layout,
             &self.uniforms,
-            [placements, deviations, lists, counts, arguments, scratch],
+            [
+                placements, deviations, lists, counts, arguments, scratch, starts,
+            ],
         ));
         self.draw = Some(bind::draw_group(
             gpu,
             &self.draw_layout,
-            placements,
-            lists,
-            masses,
-            stride,
+            [placements, lists, masses],
+            starts,
         ));
     }
 
@@ -382,21 +454,27 @@ impl Select {
             box_extent: frame::point(self.reference.extent, 0.0),
             instances: self.instances,
             levels: self.levels.len() as u32,
-            stride: self.stride / size_of::<u32>() as u32,
+            slot: self.slot / size_of::<u32>() as u32,
             forced: match self.forced {
                 Level::Chosen => -1,
                 Level::Forced(level) => level as i32,
             },
+            stalk: [
+                self.stalk[0],
+                self.stalk[1],
+                self.rachis_levels as f32,
+                self.stalk[2],
+            ],
         }
     }
 
-    /// Binds the crown's placements with one level's list, for the indirect
-    /// draw of that level.
+    /// Binds the crown's placements and the lists with one level's start,
+    /// for the indirect draw of that level.
     pub fn bind_level(&self, pass: &mut wgpu::RenderPass<'_>, level: usize) -> bool {
         let Some(draw) = &self.draw else {
             return false;
         };
-        pass.set_bind_group(1, draw, &[self.stride * level as u32]);
+        pass.set_bind_group(1, draw, &[self.slot * level as u32]);
         true
     }
 
@@ -429,21 +507,61 @@ impl Select {
         Some(self.placements.as_ref()?.region())
     }
 
+    /// Each instance's level as the last dispatch chose it, or `None` for
+    /// one it gave to the unseen bucket: the lists read back (fn-253).
+    #[cfg(test)]
+    pub(crate) fn chosen(&self, gpu: &Gpu) -> Vec<Option<u32>> {
+        let mut out = vec![None; self.instances as usize];
+        for (level, ids) in self.level_lists(gpu).iter().enumerate() {
+            for &id in ids {
+                out[id as usize] = Some(level as u32);
+            }
+        }
+        out
+    }
+
+    /// Each level's list as the last dispatch left it, in the order its draw
+    /// reads it: level *k* is `counts[k]` words from the level's start word.
+    #[cfg(test)]
+    pub(crate) fn level_lists(&self, gpu: &Gpu) -> Vec<Vec<u32>> {
+        let (Some(lists), Some(starts), Some(counts)) =
+            (&self.lists, self.starts(gpu), self.counted(gpu))
+        else {
+            return Vec::new();
+        };
+        let words = words(&buffer::read(gpu, lists).expect("lists read back"));
+        (counts.iter().zip(starts))
+            .map(|(&count, start)| words[start as usize..(start + count) as usize].to_vec())
+            .collect()
+    }
+
+    /// Each level's start word as the last dispatch wrote it, coarsest first.
+    #[cfg(test)]
+    pub(crate) fn starts(&self, gpu: &Gpu) -> Option<Vec<u32>> {
+        let words = words(&buffer::read(gpu, self.starts.as_ref()?)?);
+        let slot = self.slot as usize / size_of::<u32>();
+        Some(
+            (0..self.levels.len())
+                .map(|level| words[level * slot])
+                .collect(),
+        )
+    }
+
     /// What the last frame's pass counted: one entry per level, coarsest
     /// first, and the leaves no level drew. Reading it stalls on the device,
     /// so it is a check and a record, never a per-frame call.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn counted(&self, gpu: &Gpu) -> Option<Vec<u32>> {
-        let bytes = buffer::read(gpu, self.counts.as_ref()?)?;
-        Some(
-            bytes
-                .as_chunks::<4>()
-                .0
-                .iter()
-                .map(|word| u32::from_ne_bytes(*word))
-                .collect(),
-        )
+        Some(words(&buffer::read(gpu, self.counts.as_ref()?)?))
     }
+}
+
+/// A buffer read back as the words it holds.
+#[cfg(not(target_arch = "wasm32"))]
+fn words(bytes: &[u8]) -> Vec<u32> {
+    (bytes.as_chunks::<4>().0.iter())
+        .map(|word| u32::from_ne_bytes(*word))
+        .collect()
 }
 
 /// The groups a per-leaf pass dispatches, folded into a second dimension once

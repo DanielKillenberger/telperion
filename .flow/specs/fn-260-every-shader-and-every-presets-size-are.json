@@ -1,0 +1,127 @@
+{
+  "branch_name": "fn-260-every-shader-and-every-presets-size-are",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T20:48:45.754296Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-260-every-shader-and-every-presets-size-are",
+  "impl_review_rounds": {
+    "fn-260-every-shader-and-every-presets-size-are.1": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T20:50:18.458636Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "7078bb61a88be603dd0dfa741f652e3af0a219396018cdcfec9d4809f1fbab1b",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ecc3201b2c9f3ae211b786fe2317f864",
+            "classification": "introduced",
+            "findingId": "finding-ecc3201b2c9f3ae211b786fe2317f864",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "750460d3d8717eb1f35f4edfe1d182c20c3ffdd4",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 311707,
+      "output_sha256": "9ae431904676f39896291519ae1adb6d46a4a939825fa64b6f95cae69d547295",
+      "reservation_id": "fdf06f58b6304060819458a69c02fc10",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T20:50:18.449543Z",
+      "tool_calls": 19,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "dc2e0a12b4bde4f04386a716360e62083882020b890782951061f511c2e762b2",
+      "backend": "codex",
+      "base_sha": "930a2366458504799ccedbd40528395fa3d95e63",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "631ff608c57267f9d0e22e732be875bf57b928fe",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "443435f53c2d43c69a363fa030357555",
+      "round_consumed": true,
+      "scope": "impl:fn-260-every-shader-and-every-presets-size-are.1",
+      "superseded_by": null,
+      "task": "fn-260-every-shader-and-every-presets-size-are.1",
+      "timestamp": "2026-10-10T18:52:54.564942Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-260-every-shader-and-every-presets-size-are.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-260-every-shader-and-every-presets-size-are.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-260-every-shader-and-every-presets-size-are.md",
+  "status": "done",
+  "title": "Every shader and every preset's size are checked without a device",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-10T18:53:55.846746Z"
+}

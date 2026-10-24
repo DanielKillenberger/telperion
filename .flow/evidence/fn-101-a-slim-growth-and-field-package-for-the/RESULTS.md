@@ -62,12 +62,12 @@ its timeline map type. `dist/field.js` imports nothing from
 
 ## R3: from species and seed to a queried grid, in Node
 
-`measure.mjs`, rows in `raw/r3-timings.json`; the grid is the voxelizer's,
+A Node timing script (archived), rows in `raw/r3-timings.json`; the grid is the voxelizer's,
 64 cells a side with 62 across the longest axis. The full binding was
-measured in the same two minutes with fn-100's `measure.mjs` (its grid is
+measured in the same two minutes with fn-100's timing script (its grid is
 64 cells across the longest axis, over the bounds exactly;
 `raw/r3-full-timings.json`). Load average 3.9 to 4.1 (`raw/r3-load.txt`); an
-earlier run at load 15.8 is in FRICTION.md and discarded.
+earlier run at load 15.8 was discarded.
 
 | tree | cold ms (compile + grow + query) | warm median ms (grow + query) | full binding, same minute |
 |---|---|---|---|
@@ -142,8 +142,3 @@ the grid's geometry, the wood cutoff at three values, each of the five
 rules at a keep that separates them, the coin's whole-limb behaviour, the
 clump count, and the refusals. `docs/field-package.md` documents the entry
 point first and names the voxelizer an example beside it.
-
-## Friction
-
-Three entries in FRICTION.md: the accepted sheets' location, the loaded
-machine during the first R3 run, and R3's unchecked ceiling.
