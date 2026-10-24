@@ -3,8 +3,8 @@
 //! background instead: Chrome makes a synchronous pipeline on its GPU
 //! process's main thread, where its watchdog ended the process 19 s into
 //! the first cold build (fn-243 R1). There every program is asked of the
-//! browser at once, through the patched wgpu's
-//! `create_compute_pipeline_async` (vendor/README.md), and `ready`
+//! browser at once, through the forked wgpu's
+//! `create_compute_pipeline_async` (docs/wgpu-fork.md), and `ready`
 //! settles them all before anything dispatches one.
 use crate::{Gpu, RenderError, Result};
 #[cfg(any(test, target_arch = "wasm32"))]
@@ -86,9 +86,7 @@ impl Program {
             gpu.programs.borrow_mut().push((
                 name,
                 Box::pin(async move {
-                    let pipeline = asked
-                        .ok_or_else(|| "the device is not the browser's WebGPU".to_string())?
-                        .await?;
+                    let pipeline = asked.await.map_err(rejection)?;
                     let _ = slot.set(pipeline);
                     Ok(())
                 }),
@@ -123,6 +121,17 @@ pub(crate) type Pending = std::cell::RefCell<
         std::pin::Pin<Box<dyn Future<Output = std::result::Result<(), String>>>>,
     )>,
 >;
+
+/// A refused compile as `ProgramRefused` states it: the browser's reason
+/// and its message, `validation: …` or `internal: …`.
+#[cfg(any(test, target_arch = "wasm32"))]
+fn rejection(error: wgpu::Error) -> String {
+    match error {
+        wgpu::Error::Validation { description, .. } => format!("validation: {description}"),
+        wgpu::Error::Internal { description, .. } => format!("internal: {description}"),
+        wgpu::Error::OutOfMemory { .. } => error.to_string(),
+    }
+}
 
 /// Every program asked of `gpu` so far, settled: natively there is nothing
 /// to wait on; in a browser each compile is awaited, all of them already

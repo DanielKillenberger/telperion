@@ -53,7 +53,7 @@ export const SUITES = {
       'scripts/build-wasm.mjs', 'scripts/build-render.mjs',
       'scripts/catalogue-check.mjs', 'scripts/catalogue-pages.mjs',
       'scripts/artifact-budgets.mjs', 'scripts/artifact-budgets.json', 'scripts/artifact-budgets.test.mjs',
-      'scripts/ci-key.test.mjs',
+      'scripts/ci-key.test.mjs', 'scripts/wgpu-family.test.mjs',
       'package.json', 'package-lock.json',
       'tsconfig.json', 'tsconfig.build.json', 'vite.config.ts', 'vitest.config.ts',
     ],

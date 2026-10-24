@@ -1,6 +1,6 @@
 //! The browser's compiles as promises the test holds (fn-243 R4): one
 //! resolves late, one rejects, the device goes while they are pending.
-use super::{first_cause, settle};
+use super::{first_cause, rejection, settle};
 use crate::RenderError;
 use std::cell::{Cell, RefCell};
 use std::future::Future;
@@ -125,4 +125,32 @@ fn a_lost_device_then_a_refused_program_is_reported_before_a_scoped_error() {
     assert!(said(first_cause(lost(), refused(), scoped())).contains("was lost"));
     assert!(said(first_cause(None, Ok(()), scoped())).contains("experimental generation"));
     assert!(first_cause(None, Ok(()), Ok(())).is_ok());
+}
+
+#[test]
+fn a_refused_compile_keeps_the_reason_and_message_shape() {
+    let source = || "<WebGPU Error>".into();
+    let cases = [
+        (
+            wgpu::Error::Validation {
+                source: source(),
+                description: "entry point `asks` not found".into(),
+            },
+            "validation: entry point `asks` not found",
+        ),
+        (
+            wgpu::Error::Internal {
+                source: source(),
+                description: "the device was destroyed".into(),
+            },
+            "internal: the device was destroyed",
+        ),
+        (
+            wgpu::Error::OutOfMemory { source: source() },
+            "Out of Memory",
+        ),
+    ];
+    for (error, said) in cases {
+        assert_eq!(rejection(error), said);
+    }
 }
