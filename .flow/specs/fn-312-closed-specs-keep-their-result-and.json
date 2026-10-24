@@ -10,10 +10,71 @@
   "id": "fn-312-closed-specs-keep-their-result-and",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-24T11:29:45.341449Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "aa9ab3507ff9d20b4ddf1295b000506c6027a88de743a036b50b95cdd6780918",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e95342b8f39beaec9dc65534e444fb15",
+            "classification": "introduced",
+            "findingId": "finding-e95342b8f39beaec9dc65534e444fb15",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-af314d70096b5e6c53cbad604d13c372",
+            "classification": "introduced",
+            "findingId": "finding-af314d70096b5e6c53cbad604d13c372",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "17dfb5371766cc91a8a3aba130ae190e6949fbde",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 356327,
+      "output_sha256": "0879051543b35b61bbcf34ab97942094487c0eaa030b470d3253e348b0504af0",
+      "reservation_id": "dbaf88d4ecb24c5f94665c38f4686891",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T11:29:45.327289Z",
+      "tool_calls": 15,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-312-closed-specs-keep-their-result-and.md",
   "status": "open",
   "title": "Closed specs keep their result and verdicts, not their working records",
@@ -28,5 +89,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T11:08:03.356213Z"
+  "updated_at": "2026-10-24T11:29:45.346657Z"
 }

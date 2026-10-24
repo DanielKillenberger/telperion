@@ -14,8 +14,9 @@ Apply R1's keep rules to the 157 done specs outside fn-237's direct dependencies
 - The delete list comes from `/home/daniel/.cache/claude-tmp/claude-1000/-home-daniel-Projects-telperion/dd1a391e-8087-41d5-8d26-b3ea78d9cb37/scratchpad/prune_list.py <lo> <hi>`, run from the repo root (prints paths to stdout, a count to stderr, and writes `prune_keep.json` beside itself with each kept file's reason). Recompute it at commit time, never reuse an old list.
 - Record before each batch: `git diff --shortstat origin/master HEAD` and the per-dir numstat for `.flow/evidence`, `.flow/tasks`, `.flow/specs`.
 - Delete with `git rm -q --pathspec-from-file=<list file in scratchpad>`; the dcg hook blocks `rm -rf` and variable-path redirects, so write the list with a Python helper or a literal path.
-- After each batch: `flowctl validate --all --json` must show `total_errors` 1 (the fn-82 error that predates the spec); `flowctl list --json`, `flowctl show fn-237-release-the-tree-space-engine-replaces --json`, and `flowctl spec chain <id> --json` for open specs succeed.
+- After each batch: `flowctl validate --all --json` must show `total_errors` 1 (the fn-82 error that predates the spec); `flowctl list --json`, `flowctl show fn-237-release-the-tree-space-engine-replaces --json`, and `flowctl spec chain <id> --json` for open specs succeed (fn-82 exits 2 on the base too).
 - Then grep every tracked file outside `.flow/` for each removed path's `.flow/evidence/...` suffix; any hit is a keep-rule miss: restore the file with `git checkout HEAD~1 -- <path>` and fix the rule.
+- Kept readers' inputs: the script keeps every file a kept script or JSON names by basename or relative path, and a kept script's whole directory (R1). After the first batch run the documented example, one cargo command at a time: `cargo build --release -p telperion-core --example geometry_benchmark`, then `python3 .flow/evidence/fn19/onboarding-examples/verify.py`; on the base (`0a62c7ec2`) it already fails with `ValueError: unsupported protocol definitions/schema` at `runner.py:115`, after it has read its inputs; after the prune it must fail the same way, never with `FileNotFoundError`.
 
 ### Investigation targets
 **Required:**
@@ -31,7 +32,8 @@ Apply R1's keep rules to the 157 done specs outside fn-237's direct dependencies
 
 ## Acceptance
 - [ ] Two commits remove only files `prune_list.py` lists for their range; nothing of an open or fn-237-dependency spec changes.
-- [ ] `flowctl validate --all` reports exactly the one pre-existing error after each commit; `list`, `show` and `spec chain` on open specs succeed.
+- [ ] `flowctl validate --all` reports exactly the one pre-existing error after each commit; `list` and `show` succeed; `spec chain` succeeds on every open spec except fn-82, whose exit 2 for the missing fn-111 is unchanged from the base.
+- [ ] `python3 .flow/evidence/fn19/onboarding-examples/verify.py` (after the release `geometry_benchmark` build) ends exactly as on the base (the same `ValueError` at `runner.py:115`), not with a missing file.
 - [ ] No tracked file outside `.flow/` names a removed path.
 - [ ] The task's done summary gives `git diff --shortstat origin/master HEAD` before and after, and the files and lines removed per batch.
 
