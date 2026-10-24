@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-312-closed-specs-keep-their-result-and",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-24T12:49:22.613164Z",
   "created_at": "2026-10-24T11:07:54.938650Z",
   "default_impl": null,
   "default_review": null,
@@ -209,16 +209,62 @@
       "task": "fn-312-closed-specs-keep-their-result-and.1",
       "timestamp": "2026-10-24T12:09:17.334950Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "796d94d6b838286ed06c0b3329ce891f2454368bfc38f2456dfea6463ec355a0",
+      "backend": "codex",
+      "base_sha": "0a62c7ec2da78a1755736de242bd0afc5c340713",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a20432af2ac0ed7e3b045ee502e30101",
+            "classification": "introduced",
+            "findingId": "finding-a20432af2ac0ed7e3b045ee502e30101",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1e7b7ca25854aa33739c1a6008b0639646cfd72f",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 296374,
+      "output_sha256": "02e16c3eb6dedd59a081fbbcebd6ff5bdce0bf8db5e7ac4c74711e911b01b433",
+      "reservation_id": "c951377c9f424722807f0d543ab3f5c1",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T12:49:22.605097Z",
+      "tool_calls": 16,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-312-closed-specs-keep-their-result-and.1": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-312-closed-specs-keep-their-result-and.1": 0,
     "plan": 0
   },
@@ -236,5 +282,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T12:09:17.337423Z"
+  "updated_at": "2026-10-24T12:49:22.617664Z"
 }

@@ -45,7 +45,7 @@ Measured against origin/master on 2026-10-24: `.flow/evidence` adds 41,579 lines
 - The friction reviews of closed specs were done at their builds; deleting FRICTION.md does not drop an open friction item. Check each closed spec's FRICTION against its build's host review, and carry any unreviewed entry to the host before deleting it.
 - Joins the release (fn-237).
 - `flowctl validate --all` carries one error that predates this spec (open fn-82 depends on fn-111, which no longer exists). Fixing it edits an open spec's record, so it stays out; R3's "clean" reads as "no error this spec adds".
-- `.flow/review-receipts` and `.flow/memory` stay as they are; memory entries that cite a pruned task id keep the id as history.
+- `.flow/review-receipts` and `.flow/memory` stay as they are; memory entries that cite a pruned task id keep the id as history. The one memory addition is this build's own lesson (a keep rule must match a file name cited beside its spec), captured after the task review's NEEDS_WORK; the completion review noted it as a scope exception (conductor, 2026-10-24).
 
 ## Early proof point
 
