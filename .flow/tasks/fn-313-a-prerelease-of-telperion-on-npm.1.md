@@ -37,9 +37,16 @@ A local action resolves only after checkout, so checkout stays in each caller. `
 - [ ] `node --test scripts/ci-key.test.mjs` passes
 
 ## Done summary
-TBD
+The package job's seven build steps, from `rustup toolchain install` to `node scripts/artifact-budgets.mjs`, now live in `.github/actions/package/action.yml`. The Tests package job checks out, calls it with GH_TOKEN, PR_NUMBER and PR_HEAD_SHA as step env, and keeps pack, test:dist and the `package` upload unchanged. Job id, permissions, step id `pack` and artifact name are as before. ci-key.mjs SHARED is left alone because no receipt suite uses the action; the edit to tests.yml moves every receipt key once, which is expected.
 
+Proof (measured): actionlint 1.7.12 with shellcheck 0.11.0 on .github/workflows/*.yml, rc 0, before and after. The AC's `node --test scripts/ci-key.test.mjs` fails on the base before any edit (the file imports vitest; @vitest/runner throws without a runner), so baseline: red (node --test scripts/ci-key.test.mjs failed pre-edit). The working form `npx vitest run scripts/ci-key.test.mjs` passes, 2/2, before and after. This is logged in FRICTION.md.
+
+Tier: not given by the conductor (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex, one reviewer on correctness, SHIP, rid beec4b493b79417d9cdc4cef9b0c79f9)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 29f19a07b98c71ed60b144f00cd0a8428251b340
+- Tests: actionlint -shellcheck=<shellcheck 0.11.0> .github/workflows/*.yml (rc 0), npx vitest run scripts/ci-key.test.mjs (2/2 pass; node --test form red on base, inherited)
 - PRs:
