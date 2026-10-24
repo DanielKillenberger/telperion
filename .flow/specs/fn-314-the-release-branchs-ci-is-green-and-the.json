@@ -1,19 +1,236 @@
 {
   "branch_name": "fn-314-the-release-branchs-ci-is-green-and-the",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-24T17:43:18.695480Z",
   "created_at": "2026-10-24T11:41:49.286608Z",
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-314-the-release-branchs-ci-is-green-and-the",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-314-the-release-branchs-ci-is-green-and-the.1": 0,
+    "fn-314-the-release-branchs-ci-is-green-and-the.2": 0,
+    "fn-314-the-release-branchs-ci-is-green-and-the.3": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-24T11:49:13.413200Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "7a5f9b78f9c12be551088711881a28bf8bd3481b6a096439111f92e1a7ae6d4e",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ec6dc84dc5be843acb086108d1f2c3be",
+            "classification": "introduced",
+            "findingId": "finding-ec6dc84dc5be843acb086108d1f2c3be",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b6a958881f023b34b692fbaf051a7a468ef0bb2a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 190303,
+      "output_sha256": "9f28e43594a9eb98a89caad6d1a48d11272568e2ea64ee6676813309720c19d0",
+      "reservation_id": "2f0b5003d05f4fe6a21637918f895b9d",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T11:49:13.405927Z",
+      "tool_calls": 15,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "bbd48b6b51909790c5d8309a3babdc40b2d32ddaf533a98f84f0147474185787",
+      "backend": "codex",
+      "base_sha": "2df6401e1940468d40e5f8c981771fd68c0ba0ce",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "dc1f43dbfbbdf7287d911b33413f8f94951bb40f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "648573c99aed4b6b840e8ac0a86ca2c0",
+      "round_consumed": true,
+      "scope": "impl:fn-314-the-release-branchs-ci-is-green-and-the.1",
+      "superseded_by": null,
+      "task": "fn-314-the-release-branchs-ci-is-green-and-the.1",
+      "timestamp": "2026-10-24T11:58:20.637538Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e5e97af0832393d03a74d9d9ef14787f044a14f7c52b32dfd5845ac3eb99de65",
+      "backend": "codex",
+      "base_sha": "44368fc5a510fa6012e7f0f844e5cce5d18571b0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a8ba24f9af444315042035b330534ac0940248e4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "3aebf9a137604e4a832bdc9118c9e66e",
+      "round_consumed": true,
+      "scope": "impl:fn-314-the-release-branchs-ci-is-green-and-the.2",
+      "superseded_by": null,
+      "task": "fn-314-the-release-branchs-ci-is-green-and-the.2",
+      "timestamp": "2026-10-24T12:20:41.671080Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "87c93d677753b270862da032717ee06e204a166f571288549e37030d35b5f919",
+      "backend": "codex",
+      "base_sha": "6d60599d68b4ce81bddcfc10d4c476e6f59390fd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d8a415e21856807246798b35da1780d3",
+            "classification": "introduced",
+            "findingId": "finding-d8a415e21856807246798b35da1780d3",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bc201e4c780945180808aac91ae2b717e015bdbb",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 766,
+      "output_sha256": "9884ad2401eef944c1807502c00c7a83a0cbed867b34c5709e86d017cb2887c3",
+      "reservation_id": "d24fe0750da64715839beab6f076e86f",
+      "round_consumed": true,
+      "scope": "impl:fn-314-the-release-branchs-ci-is-green-and-the.3",
+      "superseded_by": null,
+      "task": "fn-314-the-release-branchs-ci-is-green-and-the.3",
+      "timestamp": "2026-10-24T17:39:53.499059Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3e373338edced27b073bfaf627ace5bf8cd71174ebe8112235e666d70ea7188e",
+      "backend": "codex",
+      "base_sha": "728d5e43cc2239e8a1317453dfa39dae928df69f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "aeafb50e5129779213c1be2a4639a91fef293fb9",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 254217,
+      "output_sha256": "dc23a204724b8cac32dcbd8f8cb4c057ff7eba33d266d97b6beff280d78e8d4c",
+      "reservation_id": "9a41f8b06d2d4cdbbf18bd8b5df30884",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T17:43:18.688400Z",
+      "tool_calls": 16,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-314-the-release-branchs-ci-is-green-and-the.1": 1,
+    "impl:fn-314-the-release-branchs-ci-is-green-and-the.2": 1,
+    "impl:fn-314-the-release-branchs-ci-is-green-and-the.3": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-314-the-release-branchs-ci-is-green-and-the.1": 0,
+    "impl:fn-314-the-release-branchs-ci-is-green-and-the.2": 0,
+    "impl:fn-314-the-release-branchs-ci-is-green-and-the.3": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-314-the-release-branchs-ci-is-green-and-the.md",
   "status": "open",
   "title": "The release branch's CI is green, and the local gate sees what CI sees",
@@ -28,5 +245,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T11:41:51.028025Z"
+  "updated_at": "2026-10-24T17:43:18.699049Z"
 }

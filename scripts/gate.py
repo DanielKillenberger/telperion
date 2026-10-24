@@ -16,6 +16,18 @@ run: the build and the listing before it are reported beside it, not held
 to it, so a cold build does not fail the gate. `CARGO_NEXTEST` names the nextest
 binary (default `cargo-nextest`); it must be 0.9.145, CI's pin, and the
 gate stops first, naming the install command, when it is missing or another.
+
+Two of CI's checks run here too, their commands copied from
+`.github/workflows/tests.yml` (fn-314: both failed on the release branch's
+PR while the gate passed). The package check (`npm run build`, then
+`node scripts/artifact-budgets.mjs`, which holds the ceilings only, with no
+PR to read growth from) costs 37 s after a change to the core crate's source
+and 2 s warm, so it runs before the test run. The core without geometry
+(`cargo build` and `cargo test --lib` with `--no-default-features`) costs
+220 s after that change and 139 s warm, nearly all of it its lib tests, so it
+runs after the test run, outside `TOTAL`, and also when the test run failed.
+Measured 2026-10-24 at four threads, beside another checkout's gate. A check
+that fails, or cannot start, fails the gate with its own output.
 """
 import argparse
 import json
@@ -133,6 +145,31 @@ def doc_tests() -> list[str]:
     return found
 
 
+# CI's checks, as `.github/workflows/tests.yml` runs them: (job name, commands).
+PACKAGE = ("package", [["npm", "run", "build"], ["node", "scripts/artifact-budgets.mjs"]])
+NO_GEOMETRY = ("core without geometry", [
+    ["cargo", "build", "--profile", "ci", "-p", "telperion-core", "--no-default-features"],
+    ["cargo", "test", "--profile", "ci", "-p", "telperion-core", "--no-default-features", "--lib"],
+])
+
+
+def ci_check(name: str, commands: list[list[str]]) -> list[str]:
+    """Run one of CI's checks with its output streamed; its failure, if any."""
+    start = time.monotonic()
+    error = None
+    for argv in commands:
+        try:
+            code = subprocess.run(argv, cwd=ROOT).returncode
+        except OSError as e:
+            error = f"{name}: `{' '.join(argv)}` cannot start: {e}"
+            break
+        if code != 0:
+            error = f"{name}: `{' '.join(argv)}` exited {code}"
+            break
+    print(f"gate: {name} {time.monotonic() - start:.0f} s")
+    return [error] if error else []
+
+
 def timeouts(listed: dict[str, dict]) -> str:
     """The allowlisted tests' own slow-timeouts, as a nextest tool config."""
     path = os.path.join(ROOT, "target", "gate", "budgets.toml")
@@ -158,6 +195,7 @@ def main() -> int:
     before = time.monotonic()
     errors = shrinks_only(base) + stale(listed) + doc_tests()
     print(f"gate: build and listing {time.monotonic() - before:.0f} s")
+    errors += ci_check(*PACKAGE)
     if errors:
         print("gate: before the run\n  " + "\n  ".join(errors), file=sys.stderr)
         return 1
@@ -168,10 +206,14 @@ def main() -> int:
                                  f"gate:{timeouts(listed)}"), cwd=ROOT, env=env)
     total = time.monotonic() - start
     print(f"gate: the test run {total:.0f} s against {TOTAL} s")
-    if run.returncode == 0 and total > TOTAL:
+    after = ci_check(*NO_GEOMETRY)
+    code = run.returncode
+    if code == 0 and total > TOTAL:
         print(f"gate: {total - TOTAL:.0f} s over its {TOTAL} s budget", file=sys.stderr)
-        return 1
-    return run.returncode
+        code = 1
+    if after:
+        print("gate: after the run\n  " + "\n  ".join(after), file=sys.stderr)
+    return code or (1 if after else 0)
 
 
 if __name__ == "__main__":

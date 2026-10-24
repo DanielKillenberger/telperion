@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T11:47:12.542904Z",
+  "depends_on": [
+    "fn-314-the-release-branchs-ci-is-green-and-the.1"
+  ],
+  "id": "fn-314-the-release-branchs-ci-is-green-and-the.2",
+  "priority": null,
+  "spec": "fn-314-the-release-branchs-ci-is-green-and-the",
+  "spec_path": ".flow/tasks/fn-314-the-release-branchs-ci-is-green-and-the.2.md",
+  "status": "todo",
+  "title": "The gate runs both CI checks, at their measured cost",
+  "updated_at": "2026-10-24T11:47:12.542904Z"
+}
