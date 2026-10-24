@@ -1,0 +1,36 @@
+name: The package build
+description: >-
+  Installs the pinned toolchain, wasm-bindgen and Node, builds the package and
+  holds every shipped artifact to its ceiling. The caller checks out first and
+  passes GH_TOKEN, PR_NUMBER and PR_HEAD_SHA as env for the size check.
+
+runs:
+  using: composite
+  steps:
+    # rustup reads the channel, profile, components and targets from
+    # rust-toolchain.toml; the workflow names none of them.
+    - name: Install the pinned Rust toolchain
+      shell: bash
+      run: rustup toolchain install
+
+    - uses: Swatinem/rust-cache@v2
+      with:
+        cache-on-failure: true
+
+    - uses: ./.github/actions/wasm-bindgen
+
+    - uses: actions/setup-node@v7
+      with:
+        node-version-file: package.json
+        cache: npm
+
+    - shell: bash
+      run: npm ci
+
+    - name: Build the package
+      shell: bash
+      run: npm run build
+
+    - name: Hold every shipped artifact to its ceiling and a PR's growth (docs/principles.md)
+      shell: bash
+      run: node scripts/artifact-budgets.mjs
