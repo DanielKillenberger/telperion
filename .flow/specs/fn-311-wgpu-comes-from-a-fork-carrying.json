@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-311-wgpu-comes-from-a-fork-carrying",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-10-24T12:18:12.974124Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-24T12:45:48.468935Z",
   "created_at": "2026-10-24T11:07:54.361181Z",
   "default_impl": null,
   "default_review": null,
@@ -13,7 +13,7 @@
     "fn-311-wgpu-comes-from-a-fork-carrying.2": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-10-24T11:17:52.441892Z",
   "ready": true,
@@ -177,13 +177,57 @@
       "timestamp": "2026-10-24T12:18:12.967125Z",
       "tool_calls": 14,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "513a91f1e495331d15538915bc670781d87428f9e44b2a907b4b324ab12a1a28",
+      "backend": "codex",
+      "base_sha": "0a62c7ec2da78a1755736de242bd0afc5c340713",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-89cb486c14ff95791b7ef75e1168ad0e",
+            "classification": "introduced",
+            "findingId": "finding-89cb486c14ff95791b7ef75e1168ad0e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9bd62c0fcb49eddf19054c2af75450394a7b5734",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 3672,
+      "output_sha256": "85c47b0211bf43bded57a1611ed83e7817b53e25c32a246b6116a7d3fcf2609c",
+      "reservation_id": "795b800c31024b54b6c7eee4c88b93d3",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T12:45:48.465894Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-311-wgpu-comes-from-a-fork-carrying.1": 1,
     "impl:fn-311-wgpu-comes-from-a-fork-carrying.2": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -207,5 +251,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T12:18:12.977157Z"
+  "updated_at": "2026-10-24T12:45:48.469601Z"
 }
