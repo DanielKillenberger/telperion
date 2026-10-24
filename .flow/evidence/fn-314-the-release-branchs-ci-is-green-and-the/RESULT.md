@@ -28,6 +28,9 @@ The Rust jobs ran the nextest action's command (`.github/actions/nextest/action.
 
 ## Notes
 
-- **Unexplained NaN.** The first core attempt ran one test slot per core and was ended by the OOM killer at 5 GB. In that attempt, `pipeline::space::repeat_tests::the_largest_tree_and_the_palm_grow_the_same_tree_again_and_on_any_cores` panicked at `repeat_tests.rs:40` with `a NaN in the tree`, and nextest's SIGTERM reached it afterwards. The same test passed three times after that: in the two-slot attempt, in the one-slot run above and in the gate. The cause is unknown. The rerun overwrote that attempt's log, so the panic text quoted here was read from it before the overwrite and is not retained.
 - **Memory caps.** Four runs were ended by the OOM killer: two core attempts, one render run and one wasm, field and jev run. FRICTION.md explains why a 5 GB cap cannot hold them, in its entries from 14:26, 14:29, 15:14 and 18:57.
 - **Working tree.** After the run the worktree holds no tarball and no unpacked dist. The gate's own package check rebuilt `dist/` with `npm run build`, which `.gitignore` covers, as before this task.
+
+## Open
+
+- **Unreproduced: a NaN in the tree.** The first core attempt ran one test slot per core and was ended by the OOM killer at 5 GB. In that attempt, `pipeline::space::repeat_tests::the_largest_tree_and_the_palm_grow_the_same_tree_again_and_on_any_cores` panicked at `repeat_tests.rs:40` with `a NaN in the tree`, and nextest's SIGTERM reached it afterwards. The same test passed three times after that: in the two-slot attempt, in the one-slot run above and in the gate. The cause is unknown. The rerun overwrote that attempt's log, so the panic text quoted here was read from it before the overwrite and is not retained. Not chased (host, 2026-10-24); it stays open until it reproduces or is ruled out.
