@@ -1,5 +1,13 @@
 # Evidence archive manifest
 
+## 2026-10-25: fn-237's closed dependencies and review logs
+
+The owner asked on 2026-10-25 for the harder cut ("so what about the loc cleanup? it's still +200k?", then "yes"). The 2026-10-24 rule now also covers fn-237's done dependencies, which it had exempted: 327 files and 15,863 lines went, chosen by the same keep rules, except that every FRICTION.md of an fn-237 dependency stays until fn-237's end-of-build review disposes of it. The 87 done specs' `review_attempts` logs (21,624 lines of flowctl's per-dispatch review records) were emptied; their verdicts stay in each spec's review status fields and receipts. `flowctl validate --all` has the same one error as before (fn-82).
+
+- Source revision: `6f305772ae8af3f1f42fdc122652104953ea5c70` (branch fn-198-tree-space-f-the-engine-in-production). If the release is squash-merged, `refs/pull/159/head` keeps it reachable.
+- List what was removed: `git diff --name-only --diff-filter=D 6f305772a HEAD -- .flow/`
+- Recover a file or directory: `git archive 6f305772a -- <path> | tar -x`. A spec's review log: `git show 6f305772a:.flow/specs/<spec>.json`.
+
 ## 2026-10-24: closed specs (fn-312)
 
 The owner asked on 2026-10-24 to prune closed specs from the release ("it's still 250k loc added which is a bit crazy. can we do another cleanup?"). The rule is in `docs/evidence-retention.md`, "Closed specs". Commits 3f82a0c09 (fn-1 to fn-99) and f4f9a69c2 (fn-100 and above) removed the task files and working evidence of 157 done specs; d3faccf31 restored 27 files that live records cite by file name. Net 677 files and 26,225 lines. Against origin/master the release diff went from 255,825 insertions and 406,703 deletions to 245,060 and 422,110. Open specs and fn-237's 40 direct dependencies were not touched. Git holds each removed file's checksum as its blob id, so there is no file list.
