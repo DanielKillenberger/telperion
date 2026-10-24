@@ -30,9 +30,17 @@ R1: the rule lives in `docs/evidence-retention.md`, and the prune is recoverable
 - [ ] AGENTS.md's retention and friction paragraphs point at the rule.
 
 ## Done summary
-TBD
+`docs/evidence-retention.md` gains a "Closed specs" section that states R1 with the owner's words from 2026-10-24, and it drops the sentence saying the policy does not delete other specs' evidence. `.flow/evidence/ARCHIVE-MANIFEST.md` gains a dated 2026-10-24 entry above the 2026-10-16 one. The entry names source revision f6d89317d, `refs/pull/159/head`, the three prune commits and the counts (677 files and 26,225 lines; 255,825/406,703 to 245,060/422,110 against origin/master), with no per-file list. AGENTS.md's Evidence retention and Friction reports paragraphs each gain one sentence pointing at the rule.
 
+The recovery command is `git archive f6d89317d -- <path> | tar -x`. In a scratch worktree it restored `.flow/evidence/fn-102-one-build-pipeline-in-place-of-the/REVIEW-2026-09-23.md`, whose blob id matched, and fn-102's task pair. dcg blocks the `git show > path`, `checkout` and `restore` spellings, which is logged in FRICTION.md. `flowctl validate --all` still reports 1 error, the fn-82 error that predates this spec.
+
+Baseline: none (docs-only; the task-1 handoff changed only .flow/ paths).
+Tier: (model: claude-opus-5-5)
+
+stage: impl-review - ran [triage-skip SHIP, docs-only (4 files), 2026-10-24]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d6657e9366577b272d16038f7670bc34339ba864, 4bb24f11d736162a965ac87f2c4e97cac1c25fdd
+- Tests: flowctl validate --all --json | jq .total_errors (1, pre-existing fn-82), git archive f6d89317d -- <removed path> | tar -x in a scratch worktree; blob id matched
 - PRs:
