@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-313-a-prerelease-of-telperion-on-npm",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-24T16:49:50.015061Z",
   "created_at": "2026-10-24T11:07:55.522190Z",
   "default_impl": null,
   "default_review": null,
@@ -367,6 +367,42 @@
       "task": "fn-313-a-prerelease-of-telperion-on-npm.3",
       "timestamp": "2026-10-24T13:11:30.786971Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "14249eebf3bbc72676ed63adc95dd6cc0cb46209ac8e3fe634eea6e49f447141",
+      "backend": "codex",
+      "base_sha": "0a62c7ec2da78a1755736de242bd0afc5c340713",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "41f604841d26e0fb963fffd00a17cb5919453780",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 196571,
+      "output_sha256": "3f3c9d610480a839f11b537d94855a003b673ca68a4e42e9b17659ba83312969",
+      "reservation_id": "c27378fe937e40f0a346e93392d4a2d7",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T16:49:50.008334Z",
+      "tool_calls": 15,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -374,11 +410,12 @@
     "impl:fn-313-a-prerelease-of-telperion-on-npm.2": 1,
     "impl:fn-313-a-prerelease-of-telperion-on-npm.3": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-313-a-prerelease-of-telperion-on-npm.1": 0,
     "impl:fn-313-a-prerelease-of-telperion-on-npm.2": 0,
     "impl:fn-313-a-prerelease-of-telperion-on-npm.3": 0,
@@ -398,5 +435,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T13:11:30.789777Z"
+  "updated_at": "2026-10-24T16:49:50.018127Z"
 }
