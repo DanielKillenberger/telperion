@@ -29,6 +29,8 @@ Measured against origin/master on 2026-10-24: `.flow/evidence` adds 41,579 lines
   - the compressed sheets the owner's verdicts rest on.
 
   Everything else goes: the remaining evidence files (logs, tables, scripts, patches, raw notes, FRICTION.md), and whatever task files flowctl does not need. An open spec, and every spec fn-237 depends on until fn-237 closes, keeps everything.
+
+  From the Unknowns (Checked, above), a pruned spec also keeps: every file a tracked file outside `.flow/`, or an open or fn-237-dependency spec's record, names (a task pair stays whole when either half is named); the directories code reads whole (`fn71/resolution/`, `fn58/validation/`); its `.gitignore` files; a PNG still its own spec cites; and a FRICTION.md the host has not disposed of. Its task `.md` and `.json` otherwise both go. The summary is the first top-level `RESULT.md`, `RESULTS.md`, `REPORT.md` or `README.md`, else a top-level `*RESULT*.md`; a spec with none keeps its spec as the record, as the 2026-10-16 trim did. Errors: a prune that leaves a named file missing, or a task half, is wrong.
 - **R2:** apply the rule to every closed spec, in one commit per hundred specs or so, so the diff can be read.
 - **R3 (proof):**
   - flowctl `list`, `show` and `deps` on the release work.
@@ -42,3 +44,35 @@ Measured against origin/master on 2026-10-24: `.flow/evidence` adds 41,579 lines
 - No product code, and no open spec's records.
 - The friction reviews of closed specs were done at their builds; deleting FRICTION.md does not drop an open friction item. Check each closed spec's FRICTION against its build's host review, and carry any unreviewed entry to the host before deleting it.
 - Joins the release (fn-237).
+- `flowctl validate --all` carries one error that predates this spec (open fn-82 depends on fn-111, which no longer exists). Fixing it edits an open spec's record, so it stays out; R3's "clean" reads as "no error this spec adds".
+- `.flow/review-receipts` and `.flow/memory` stay as they are; memory entries that cite a pruned task id keep the id as history.
+
+## Early proof point
+
+The scratch-clone run in Checked already proved flowctl survives the prune. Task fn-312-closed-specs-keep-their-result-and.1 proves the delete list on the real tree: if `flowctl validate --all` gains an error or a test reads a removed file, re-evaluate the keep rules before the docs task.
+
+## Strategy Alignment
+
+_No active strategy track served — review for drift._ The prune serves the release (fn-237) by shrinking its diff; it changes no product behaviour.
+
+## Decision Context
+
+- The manifest for this prune is its source revision and the recovery command, recorded beside the 2026-10-16 entry in `.flow/evidence/ARCHIVE-MANIFEST.md`, not a per-file list: git holds each file's checksum as its blob id, and a per-file list would add back a line for every file removed. The release branch may be squash-merged, so the recovery names the release PR's ref (`refs/pull/159/head`) as well as the commit.
+- fn-237's direct dependencies are protected, not its transitive ones, because the owner's rule names the specs fn-237 depends on.
+- Two commits: fn-1 to fn-99 (66 specs), then fn-100 and above (91 specs).
+
+## Quick commands
+
+```bash
+python3 <scratchpad>/prune_list.py 0 99 | wc -l     # dry run, first batch
+flowctl validate --all --json | jq '.total_errors'  # 1, the fn-82 error that predates this spec
+flowctl list --json | jq '.specs | length'
+```
+
+## Requirement coverage
+
+| Req | Task(s) |
+| --- | --- |
+| R1 | fn-312-closed-specs-keep-their-result-and.2 |
+| R2 | fn-312-closed-specs-keep-their-result-and.1 |
+| R3 | fn-312-closed-specs-keep-their-result-and.1 (flowctl, lines); the gate, `npm test` and the codex reviews run at completion |
