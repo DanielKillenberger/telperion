@@ -31,7 +31,7 @@
 ## 2026-10-24 14:26, worker, task .3: the core nextest run was OOM-killed at telperion-heavy's 5 GB cap
 
 - **Doing:** running the `core` job's command (`cargo nextest run --cargo-profile ci -p telperion-core --no-fail-fast`) through `telperion-heavy 5 --threads 2`.
-- **Slowed by:** `--threads 2` sets `RUST_TEST_THREADS`, `RAYON_NUM_THREADS` and `CARGO_BUILD_JOBS`, but nextest reads none of them for its test slots and starts one test per core, so the run held about eight tests at once (10 min 23 s CPU in 73 s wall), reached the scope's 5 GB `MemoryMax`, and the kernel OOM killer took one test; nextest then SIGTERMed the other 35 running. Result: 492 passed, 36 failed, all of them killed, none a test verdict.
+- **Slowed by:** `--threads 2` sets `RUST_TEST_THREADS`, `RAYON_NUM_THREADS` and `CARGO_BUILD_JOBS`, but nextest reads none of them for its test slots and starts one test per core, so the run held about eight tests at once (10 min 23 s CPU in 73 s wall), reached the scope's 5 GB `MemoryMax`, and the kernel OOM killer took one test; nextest then SIGTERMed the other 35 running. Result: 492 passed and 36 failed, every one of them ended by a signal; one of them, `repeat_tests::the_largest_tree_and_the_palm_grow_the_same_tree_again_and_on_any_cores`, had first panicked with `a NaN in the tree`, which is unexplained and did not recur (RESULT.md, Notes).
 - **Cost:** one 74 s run and its triage, about 5 minutes.
 - **Would remove it:** `telperion-heavy` also exporting `NEXTEST_TEST_THREADS="$threads"` (a desk script outside the repository: reported, not specced). The rerun sets `NEXTEST_TEST_THREADS=2` by hand; it changes only how many tests run at once, not which.
 
