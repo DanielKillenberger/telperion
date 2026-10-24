@@ -23,6 +23,7 @@ The owner (2026-10-13): "i'd want to do the video we conceptualized at some poin
 - Owner (2026-10-19), verdict on cut 4 (`raw/cut4/film.mp4`): "mostly good. As we transition to the palm tree there's some flying leaves that don't make sense." Host: frame 540 (oak to palm, about halfway) shows leaflets in a halo around the crown with no visible stem; by 575 the fronds read properly. Diagnosis first; the host decides the fix.
 - Owner (2026-10-22), on cut 5 (`/home/daniel/Videos/telperion/cut5.mp4`): "i thought i still saw bare/flying leaves in the palm". Diagnosed by the host: oak twig leaves were fanned into leaflets along a rachis nothing draws. fn-309 fixes it.
 - Owner (2026-10-23), verdict on cut 6 (`/home/daniel/Videos/telperion/cut6.mp4`, film branch at c4bc857c2): "looked good". This covers the birch-to-oak stretch the host pointed out. There the oracle measures the kept count up to 40.8 % over the walk's ceiling, against fn-251's named exception of 21 %. The width bulges up to 27 % over the birch while the height and the leaf count fall. The owner judged it in motion and accepted it, which settles R5 for the film.
+- Owner (2026-10-24), on cut 8 (`/home/daniel/Videos/telperion/cut8.mp4`, release branch at 31e45b614, with fn-310's scene and person): "ok so i think we're good? release ready finally". Cut 8 replaces cut 6 as the release film, and the README embed moves to it.
 
 ## Boundaries
 
