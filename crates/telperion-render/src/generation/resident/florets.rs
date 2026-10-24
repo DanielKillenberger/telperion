@@ -123,6 +123,32 @@ impl Organ {
     }
 }
 
+impl Organ {
+    /// The florets `stationed` keeps, placed on the device and read back
+    /// as their words against this organ's box: what a field counts
+    /// (fn-316). None where the tree keeps no floret.
+    pub(super) async fn read(&self, gen: &Generator, stationed: &Stationed) -> Result<Instances> {
+        let gpu = &gen.gpu;
+        let mut florets = Instances::new(self.within);
+        let mut encoder = gpu.encoder(&Default::default());
+        let Some(placed) = self.place(gen, &mut encoder, stationed)? else {
+            return Ok(florets);
+        };
+        gpu.submit([encoder.finish()]);
+        if let Some(s) = &placed.summary {
+            let words: Vec<u32> = bytemuck::pod_collect_to_vec(&io::read_async(gpu, s, 64).await?);
+            if words[1] != 0 {
+                let refused = telperion_core::Error::InvalidInput("GPU floret transform/reference");
+                return Err(refused.into());
+            }
+        }
+        let raw = io::read_async(gpu, &placed.buffer, u64::from(placed.count) * 12).await?;
+        let words: Vec<u32> = bytemuck::pod_collect_to_vec(&raw);
+        florets.leaves = words.chunks_exact(3).map(|w| [w[0], w[1], w[2]]).collect();
+        Ok(florets)
+    }
+}
+
 impl Placed {
     /// The device block's placement summary, none where it placed none.
     pub(super) fn summary(&self) -> Option<&Owned> {

@@ -6,6 +6,7 @@
 use super::super::super::cycle::tree::{self, Kernels};
 use super::super::super::Generator;
 use super::super::build::{folded, placeable, Folded, Timed, Tools};
+use super::super::florets::Organ;
 use super::super::stations::{station_rows, Laid, Stationed};
 use super::SPLAT_LIMB;
 use super::{read_words, storage, Cfg, Rec};
@@ -13,8 +14,8 @@ use super::{BOUND_LEAVES, BOX_LEAVES, BOX_WOOD, CARRIER, CLEAR, GRID_CLEAR, INHE
 use super::{ORDER, OWN, SPLAT_BEST, SPLAT_BEST_LOW, SPLAT_FINISH, SPLAT_LEAFLETS, SPLAT_LEAVES};
 use super::{SPLAT_WOOD, TABLE_CLEAR, WIDEST};
 use crate::{Gpu, RenderError, Result};
-use telperion_core::field::{Frame, Grid, Occupancy};
-use telperion_core::foliage::{Bounds, Element};
+use telperion_core::field::{self as core_field, Frame, Grid, Occupancy};
+use telperion_core::foliage::{Bounds, Element, Instances};
 use telperion_core::math::Vec3;
 use telperion_core::pipeline::executor::{self, Expansion};
 use telperion_core::presets::Family;
@@ -80,13 +81,28 @@ pub(in super::super) async fn grow(
         contacts: 0,
         fronds: hung.fronds.as_deref(),
     };
-    let rows = station_rows(&x, x.section()?.segments, None, year);
+    // A flowering tree's stations count its florets as a harness build's
+    // do, and the device places them against the box both executors pack
+    // them in (fn-316).
+    let flowers = growth.species.states.iter().any(|s| s.flowering > 0.0);
+    let organ = flowers.then(|| Organ::of(&x)).transpose()?;
+    let rows = station_rows(
+        &x,
+        x.section()?.segments,
+        organ.as_ref().map(Organ::rows),
+        year,
+    );
     let device = tools.stationer.stations(gpu, laid, ids, rows).await?;
+    let florets = match &organ {
+        Some(o) => Some(o.read(gen, &device).await?),
+        None => None,
+    };
     let mut cfg = cfg(&x, (ids, device.segments), limb_order);
     let read = Read {
         gpu,
         nodes: &dressed.records,
         device: &device,
+        florets: florets.as_ref(),
     };
     read.grid(tools, &mut cfg, ask, (grid_words, answer_words))
         .await
@@ -108,11 +124,13 @@ fn within(gpu: &Gpu, buffer: &'static str, words: u64) -> Result<()> {
     }
 }
 
-/// What the read-out reads: the drawn records and the station segments.
+/// What the read-out reads: the drawn records, the station segments and
+/// the florets, where the tree flowers.
 struct Read<'a> {
     gpu: &'a Gpu,
     nodes: &'a wgpu::Buffer,
     device: &'a Stationed,
+    florets: Option<&'a Instances>,
 }
 
 impl Read<'_> {
@@ -157,6 +175,16 @@ impl Read<'_> {
                 if !(b[0] <= b[3] && b.iter().all(|v| v.is_finite())) {
                     return Err(Error::InvalidInput("the device's field is empty").into());
                 }
+                let bounds = match self.florets.and_then(core_field::seat_bounds) {
+                    Some(s) => {
+                        let (lo, hi) = (bounds.min, bounds.max);
+                        Bounds {
+                            min: Vec3::new(lo.x.min(s.min.x), lo.y.min(s.min.y), lo.z.min(s.min.z)),
+                            max: Vec3::new(hi.x.max(s.max.x), hi.y.max(s.max.y), hi.z.max(s.max.z)),
+                        }
+                    }
+                    None => bounds,
+                };
                 Frame::over(bounds, n)?
             }
             #[cfg(test)]
@@ -196,7 +224,11 @@ impl Read<'_> {
             return Err(Error::ResourceLimit("field table").into());
         }
         let cells = body.chunks(4).map(answer).collect();
-        Ok(Grid { frame, cells })
+        let mut grid = Grid { frame, cells };
+        if let Some(florets) = self.florets {
+            core_field::florets_into(&mut grid, florets)?;
+        }
+        Ok(grid)
     }
 }
 
@@ -235,6 +267,7 @@ fn answer(w: &[u32]) -> Occupancy {
         foliage: w[0] & 2 != 0,
         leaves: f32::from_bits(w[2]).into(),
         limb: (w[3] != u32::MAX).then_some(w[3]),
+        flowers: 0.0,
     }
 }
 

@@ -386,3 +386,78 @@ fn the_device_field_answers_as_the_cpu_field() {
     }
     assert!(past.is_empty(), "past their tolerances: {past:#?}");
 }
+
+/// fn-316: the device's field counts the florets the CPU's counts on the
+/// trees that flower, the same total to the floret and each in the CPU's
+/// cell but those whose seat the f32 tree moves across a cell's face; a
+/// tree that flowers nowhere answers none.
+#[test]
+fn the_device_field_counts_the_flowers_the_cpu_counts() {
+    flowers_agree(
+        &[
+            ("telperion", 1),
+            ("laurelin", 5678),
+            ("oregon-white-oak", 1),
+        ],
+        &[24],
+    );
+}
+
+/// fn-316 measured: both flowering trees at seeds 1 and 5678 on grids of
+/// 24, 36 and 48 cells a side.
+#[test]
+#[ignore = "a measurement: the flowering trees' fields on every grid"]
+fn the_device_field_counts_the_flowers_on_every_grid() {
+    let trees = [
+        ("telperion", 1),
+        ("telperion", 5678),
+        ("laurelin", 1),
+        ("laurelin", 5678),
+    ];
+    flowers_agree(&trees, &[24, 36, 48]);
+}
+
+/// The share of florets the device may count in another cell than the
+/// CPU's, held at about twice its measured most: 4.0e-4, Laurelin at 5678
+/// on 48 cells (`the_device_field_counts_the_flowers_on_every_grid`,
+/// 2026-10-25). A seat the f32 tree moves across a cell's face moves.
+const FLOWERS_MOVED: f64 = 1e-3;
+/// How far the device's total may stand from the CPU's, as a share, held
+/// at about three times its measured most: Telperion at 5678 hangs 10 of
+/// 157,417 florets more on the device (6.4e-5), every other tree the same
+/// total.
+const FLOWERS_TOTAL: f64 = 2e-4;
+
+fn flowers_agree(trees: &[(&str, u32)], sides: &[u32]) {
+    let _held = super::super::whole_tree();
+    let Some(gen) = generator() else {
+        return;
+    };
+    let flowers = |g: &Grid| g.cells.iter().map(|c| c.flowers).sum::<f64>();
+    let mut past = 0;
+    for &(id, seed) in trees {
+        let family = family(id, seed);
+        for cpu in references(&family, sides, None) {
+            let dev = device(&gen, &family, &cpu, None);
+            let moved: f64 = (cpu.cells.iter().zip(&dev.cells))
+                .map(|(c, d)| (c.flowers - d.flowers).abs())
+                .sum::<f64>()
+                / 2.0;
+            let (total, n) = (flowers(&cpu), cpu.frame.n);
+            let share = if total > 0.0 { moved / total } else { 0.0 };
+            println!(
+                "{id} {seed} {n}: {total} florets, device {}, moved {moved} ({share:.2e})",
+                flowers(&dev)
+            );
+            let gap = if total > 0.0 {
+                (flowers(&dev) / total - 1.0).abs()
+            } else {
+                0.0
+            };
+            println!("  total off {gap:.2e}");
+            past += usize::from(gap > FLOWERS_TOTAL || share > FLOWERS_MOVED);
+            assert_eq!(total > 0.0, id != "oregon-white-oak", "{id} flowers");
+        }
+    }
+    assert_eq!(past, 0, "trees past their tolerances");
+}
