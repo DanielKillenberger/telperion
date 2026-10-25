@@ -70,9 +70,14 @@ fn engine(v: &Value, at: &str, out: &mut Vec<(String, space::Cell)>) -> Result<(
     }
     Ok(())
 }
+/// The family a wire object describes, every row judged. A preset's id is
+/// not parameters (fn-317, owner: "We shouldn't hand a species name to the
+/// generator"): the caller resolves it first, as `presetById` does.
 pub fn parse(v: &Value) -> Result<Family> {
-    if let Some(id) = v.as_str() {
-        return by_identity(id);
+    if v.is_string() {
+        return Err(Error::InvalidInput(
+            "family is a parameter object, not a preset id: pass presetById(id)",
+        ));
     }
     let f = decode(v)?;
     // The material row has no builder of its own to judge it: no mesh depends

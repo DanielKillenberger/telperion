@@ -3,9 +3,9 @@
 //! at 24, 36 and 48 cells a side, its wood, its thickest radius, its
 //! foliage, its leaves and its limb. Both are asked over the CPU's box,
 //! since a frond's leaflets fall on each executor's own draws. The limbs
-//! are compared as a partition: each executor names a system by its own
-//! node ids, so each device system is read as the reference system it
-//! shares the most cells with.
+//! are compared as a partition, each device system read as the reference
+//! system it shares the most cells with, and by name: both name a system
+//! by the lowest cell it owns (fn-317 R4c).
 use super::super::{Clock, Generator};
 use std::collections::HashMap;
 use telperion_core::field::{Grid, Occupancy};
@@ -21,6 +21,9 @@ pub(super) struct Measures {
     pub leaves: f64,
     pub total: f64,
     pub limbs: f64,
+    /// The share of the cells the partition pairs whose limb carries the
+    /// same name on both (fn-317 R4c).
+    pub ids: f64,
 }
 
 fn jaccard(a: impl Iterator<Item = (bool, bool)>) -> f64 {
@@ -76,19 +79,17 @@ pub(super) fn compare(cpu: &[Occupancy], dev: &[Occupancy]) -> Measures {
     let leaves = if sum_c > 0.0 { diff / sum_c } else { 0.0 };
     let total = if sum_c > 0.0 { sum_d / sum_c } else { 1.0 };
     let read = names(dev, cpu);
-    let (mut agree, mut held) = (0u64, 0u64);
+    let (mut agree, mut held, mut named) = (0u64, 0u64, 0u64);
     for (c, d) in pairs() {
         if c.limb.is_some() || d.limb.is_some() {
             held += 1;
-            agree +=
-                u64::from(c.limb.is_some() && d.limb.and_then(|d| read.get(&d).copied()) == c.limb);
+            let paired = c.limb.is_some() && d.limb.and_then(|d| read.get(&d).copied()) == c.limb;
+            agree += u64::from(paired);
+            named += u64::from(paired && d.limb == c.limb);
         }
     }
-    let limbs = if held == 0 {
-        1.0
-    } else {
-        agree as f64 / held as f64
-    };
+    let share = |n: u64, of: u64| if of == 0 { 1.0 } else { n as f64 / of as f64 };
+    let (limbs, ids) = (share(agree, held), share(named, agree));
     Measures {
         wood,
         radius,
@@ -96,6 +97,7 @@ pub(super) fn compare(cpu: &[Occupancy], dev: &[Occupancy]) -> Measures {
         leaves,
         total,
         limbs,
+        ids,
     }
 }
 
@@ -126,7 +128,7 @@ pub(super) fn within(m: &Measures, fronds: bool) -> Result<(), String> {
     held.then_some(()).ok_or_else(|| format!("{m:?}"))
 }
 
-fn generator() -> Option<Generator> {
+pub(super) fn generator() -> Option<Generator> {
     let gpu = super::super::test_gpu()?;
     Some(pollster::block_on(Generator::for_fields_async(gpu)).expect("a generator"))
 }
@@ -215,6 +217,32 @@ fn every_preset_answers_within_its_tolerance(sides: &[u32]) {
         }
     }
 }
+
+/// fn-317 R4c: every shipped preset's limb systems carry the CPU's names
+/// on the device wherever the partition pairs them, at seeds 1 and 5678 on
+/// grids of 24 and 36. Prints each preset's remainder.
+#[test]
+fn every_preset_s_limbs_carry_the_cpu_s_names() {
+    let _held = super::super::whole_tree();
+    let Some(gen) = generator() else {
+        return;
+    };
+    for &(_, id, ..) in telperion_core::presets::CATALOGUE {
+        for seed in [1, 5678] {
+            for (n, m, _) in agreement(&gen, id, seed, &[24, 36]) {
+                eprintln!("names {id} {seed} {n}: {:.6} of paired, partition {:.6}", m.ids, m.limbs);
+                let named = if fronds(id) { 0.0 } else { NAMED };
+                assert!(m.ids >= named, "{id} {seed} at {n}: {m:?}");
+            }
+        }
+    }
+}
+/// Measured (fn-317, raw/names.log): 0.912 to 1 of paired cells, the
+/// least the beech at 5678 on 24; a system whose lowest cell the other
+/// executor gives to a neighbour takes another name whole. A frond
+/// crown's leaflets fall on each executor's own draws, so the palm's one
+/// system's lowest cell differs and its name with it: not held.
+const NAMED: f64 = 0.9;
 
 /// fn-301 R2: the young palm rests its fronds' leaflets on the ground, and
 /// the device's field boxes them in the frame they rest in, as the CPU's

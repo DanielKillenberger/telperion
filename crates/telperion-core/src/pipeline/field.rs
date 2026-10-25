@@ -31,7 +31,8 @@ use crate::{pipeline::foliage::plan::Plan, tree::Tree};
 /// `leaves` estimates the stations in the cell before the crown-shell cull:
 /// over the grid the estimates sum to the plan's total. `limb` is the limb
 /// system with the largest estimate in the cell, the lower id on a tie, and
-/// `None` where no foliage reaches. `flowers` counts the florets whose
+/// `None` where no foliage reaches; a field names each system by the lowest
+/// cell it owns (`Grid::name_limbs`). `flowers` counts the florets whose
 /// seat lies in the cell: over the grid they sum to the tree's florets.
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Occupancy {
@@ -105,6 +106,21 @@ pub struct Grid {
     pub cells: Vec<Occupancy>,
 }
 
+impl Grid {
+    /// Each limb system renamed by the lowest cell it owns (fn-317 R4c):
+    /// each executor names a system by its own node, so the same partition
+    /// read on the CPU and on the device carries the same names only once
+    /// both rename it here. Names stay opaque.
+    pub fn name_limbs(&mut self) {
+        let mut names = std::collections::HashMap::new();
+        for (i, cell) in self.cells.iter_mut().enumerate() {
+            if let Some(limb) = &mut cell.limb {
+                *limb = *names.entry(*limb).or_insert(i as u32);
+            }
+        }
+    }
+}
+
 #[cfg(feature = "geometry")]
 /// The drawn tree's field over its own box at `n` cells a side, its
 /// `organ`'s florets counted where it flowers.
@@ -115,6 +131,7 @@ pub(crate) fn field(tree: &Tree, plan: &Plan, organ: Option<&Instances>, n: u32)
     }
     let b = b.ok_or(Error::InvalidInput("field of an empty tree"))?;
     let mut grid = read(tree, plan, Frame::over(b, n)?)?;
+    grid.name_limbs();
     if let Some(organ) = organ {
         florets_into(&mut grid, organ)?;
     }

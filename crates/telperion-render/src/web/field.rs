@@ -2,7 +2,8 @@
 //! worker with no canvas (`telperion/field`). The tree grows on the
 //! device and its field is read out there to the grid the call names;
 //! only the grid crosses the binding, and nothing stays on the device.
-//! Without WebGPU, or on a lost device, every call rejects by name.
+//! Without WebGPU, or on a lost device, every call rejects by name, its
+//! error carrying a `code` the entry reads (fn-317 R4).
 use super::*;
 use crate::generation::Generator;
 use wasm_bindgen_futures::JsFuture;
@@ -15,14 +16,30 @@ thread_local! {
     static MAKING: RefCell<Option<js_sys::Promise>> = const { RefCell::new(None) };
 }
 
+/// `error` as the field rejects with it: its message, and a `code` where
+/// it is one a caller acts on, no WebGPU or a lost device.
+fn refused(error: RenderError) -> JsValue {
+    let code = match &error {
+        RenderError::WebGpuUnavailable(_) => Some("webgpu-unavailable"),
+        RenderError::DeviceLost { .. } => Some("device-lost"),
+        _ => None,
+    };
+    let e = js_sys::Error::new(&error.to_string());
+    if let Some(code) = code {
+        // Setting a property on a fresh Error cannot fail.
+        let _ = js_sys::Reflect::set(&e, &"code".into(), &code.into());
+    }
+    e.into()
+}
+
 /// The instance's generator, its device requested and its programs
 /// compiled once, however many calls ask at once. A lost device is
 /// refused by name and let go, so the next call asks for another.
-async fn fields() -> std::result::Result<Rc<Generator>, JsError> {
+async fn fields() -> std::result::Result<Rc<Generator>, JsValue> {
     if let Some(made) = FIELDS.with(|f| f.borrow().clone()) {
         if let Some(lost) = made.lost() {
             FIELDS.with(|f| f.borrow_mut().take());
-            return Err(js_error(lost));
+            return Err(refused(lost));
         }
         return Ok(made);
     }
@@ -30,9 +47,9 @@ async fn fields() -> std::result::Result<Rc<Generator>, JsError> {
         m.borrow_mut()
             .get_or_insert_with(|| {
                 future_to_promise(async {
-                    let gpu = Gpu::request(None).await.map_err(js_error)?;
-                    let made = Generator::for_fields_async(gpu).await.map_err(js_error)?;
-                    made.prepare_programs().await.map_err(js_error)?;
+                    let gpu = Gpu::request(None).await.map_err(refused)?;
+                    let made = Generator::for_fields_async(gpu).await.map_err(refused)?;
+                    made.prepare_programs().await.map_err(refused)?;
                     FIELDS.with(|f| *f.borrow_mut() = Some(Rc::new(made)));
                     Ok(JsValue::UNDEFINED)
                 })
@@ -41,18 +58,13 @@ async fn fields() -> std::result::Result<Rc<Generator>, JsError> {
     });
     let made = JsFuture::from(making).await;
     MAKING.with(|m| m.borrow_mut().take());
-    made.map_err(|e| {
-        let message = e
-            .dyn_ref::<js_sys::Error>()
-            .map(|e| String::from(e.message()));
-        JsError::new(&message.unwrap_or_else(|| "the device for fields was not made".into()))
-    })?;
+    made?;
     FIELDS
         .with(|f| f.borrow().clone())
-        .ok_or_else(|| JsError::new("the device for fields was not made"))
+        .ok_or_else(|| JsError::new("the device for fields was not made").into())
 }
 
-/// A shipped species' field at a seed, read out to a grid
+/// A tree's field, read out to a grid
 /// (`telperion_core::field::Frame`): `n` cells a side of `cell` metres
 /// from `origin`, cell `i + n * (j + n * k)` centred at `origin + (i +
 /// 0.5, j + 0.5, k + 0.5) * cell`.
@@ -75,23 +87,24 @@ impl WebField {
         })
     }
 
-    /// `species` grown at `seed` on the device and its field read out to
+    /// The tree `family` describes (its parameters as JSON, read as the
+    /// CPU entry reads them) grown on the device and its field read out to
     /// `n` cells a side over its box, its limb systems opened by laterals
     /// of `limb_order` or less (the family's own where none): resolves to
-    /// the grid. An id the catalogue does not serve, a side outside 3 to
-    /// 256 and a grid past the device's limits reject with the core's or
-    /// the device's error.
-    pub fn grow(species: String, seed: u32, n: u32, limb_order: Option<u32>) -> js_sys::Promise {
+    /// the grid. Parameters the core refuses, a side outside 3 to 256 and
+    /// a grid past the device's limits reject with the core's or the
+    /// device's error.
+    pub fn grow(family: String, n: u32, limb_order: Option<u32>) -> js_sys::Promise {
         future_to_promise(async move {
-            let mut family =
-                telperion_core::presets::by_identity(&species).map_err(|e| js_error(e.into()))?;
-            family.skeleton.seed = seed;
+            let value = serde_json::from_str(&family)
+                .map_err(|e| JsError::new(&format!("the parameters are not JSON: {e}")))?;
+            let family = params::parse(&value).map_err(|e| js_error(e.into()))?;
             telperion_core::field::Frame::side(n).map_err(|e| js_error(e.into()))?;
             let made = fields().await?;
             let grid = made
                 .grow_field(&family, n, limb_order)
                 .await
-                .map_err(js_error)?;
+                .map_err(refused)?;
             let mut answers = Vec::with_capacity(grid.cells.len() * 5);
             for a in &grid.cells {
                 let flowered = u32::from(a.flowers > 0.0) << 2;

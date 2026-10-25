@@ -12,10 +12,13 @@ the device. There is no CPU fallback.
 ## The entry point
 
 ```ts
-import { growField, prepareField } from "telperion/field";
+import { growField, prepareField, FieldError } from "telperion/field";
+import { presetById } from "telperion/presets";
 
 await prepareField();        // optional: the device and its programs, once per page or worker
-const tree = await growField("silver-birch", 7, 36, { limbOrder: 3 });
+const birch = presetById("silver-birch");
+birch.skeleton.seed = 7;
+const tree = await growField(birch, 36, { limbOrder: 3 });
 tree.n;                      // 36 cells a side
 tree.cell;                   // a cell's side in metres
 tree.origin;                 // the grid's least corner [x, y, z] in metres, Y up
@@ -29,12 +32,21 @@ answer.flags[i] & 4;         // flowers in cell i
 answer.flowers[i];           // the florets whose seat lies in it (fn-316)
 ```
 
-The request is a species id, a seed and the grid's side. The species id
-selects one of the value tables the core compiles in; an id the catalogue
-does not serve is refused with the core's `preset identity` error. The seed
-is an unsigned 32-bit integer. `limbOrder` names limbs at that lateral order
-and defaults to the family's own; a higher order parts the crown into more
-and smaller systems.
+The request is a tree's parameters (a `Family`) and the grid's side
+(fn-317). A preset is a reusable parameter set: `telperion/presets` holds
+the shipped ones as plain data (`presetById(id)`, `PRESETS`, `TELPERION`,
+`LAURELIN`, ...), with no Wasm, so a page reads a preset's values (its seed,
+its `material.bloom*` colours) without loading an engine, and grows a tuned
+or its own parameter set the same way. The tree grows at its own seed,
+`family.skeleton.seed`, an unsigned 32-bit integer. The parameters are read
+and refused as the CPU entry reads them (`TreeEngine.build`): a preset's id
+in place of the parameters is refused by name, and so is a nonfinite value.
+`limbOrder` names limbs at that lateral order and defaults to the family's
+own; a higher order parts the crown into more and smaller systems.
+
+The same tree's field on the CPU, for Node and tooling, is the main entry's
+`TreeEngine.build(family, { field: { n, limbOrder } })`: the reference
+field, on the same grid, with the same answers.
 
 The grid is the one `telperion/field/voxelize`'s `grid` defines, over the
 tree's own box: `n` cells a side, cubes of side `cell = longest box axis /
@@ -48,7 +60,12 @@ the device's buffer limits by name before anything is allocated.
 The answers are the CPU reference field's (`pipeline/field.rs`), read from
 the CPU's drawn tree to the same grid, within the tolerances
 `resident/field_tests.rs` measures: every cell's wood and foliage, the
-leaves within a few thousandths, the limbs as the same partition. A cell
+leaves within a few thousandths, the limbs as the same partition. Both
+fields name a limb system by the lowest cell it owns, so the same system
+carries the same id on both (fn-317): on 91 to 100 percent of the cells
+the two partitions pair, by preset. A system whose lowest cell the other
+executor gives to a neighbour takes another id whole, and a palm's single
+frond system, its leaflets on each executor's own draws, may too. A cell
 holds wood where its circumsphere meets a wood sweep, so a grid overstates
 the wood by at most half a cell's diagonal; a finer grid shrinks it. A
 frond's leaflets are drawn on the device's own draws, as the harness draws
@@ -62,8 +79,13 @@ The device counts the CPU's total but where its f32 tree hangs a floret
 more or less (Telperion at seed 5678: 10 of 157,417), and at most 4e-4 of
 the florets in a neighbouring cell, where a seat lies on a cell's face.
 
-Without WebGPU (Node, or a browser without it) every call rejects with
-`WebGPU is not available`; what a page shows then is the page's decision.
+Without WebGPU (Node, or a browser without it, or one that finds no
+adapter) every call rejects with a `FieldError` whose `code` is
+`"webgpu-unavailable"`, and a device lost under a call with
+`"device-lost"`; the message names the cause, and what a page shows then is
+the page's decision. Where the module's own adapter request finds none but
+the browser, asked directly, has one (a headless page whose first WebGPU
+use is the field), the call asks once more before it refuses.
 Left to itself the entry loads `telperion-render.wasm` from beside itself; a
 caller that keeps the module elsewhere passes `source` (the bytes, a
 `Response` or a compiled `WebAssembly.Module`, which `compileField(source)`
@@ -77,7 +99,9 @@ Beside it, the cube query is gone: `growField` takes the grid's side and
 resolves to the grid with its answers, and `query(cells)`, `bounds` and
 `release()` go with nothing in their place. A page that queried
 `grid(tree.bounds, n).cells` asks for `n` instead; one that queried its own
-cubes reads the cells of a grid fine enough for them.
+cubes reads the cells of a grid fine enough for them. `growField` takes the
+tree's parameters, not a species id and a seed
+([docs/migration-0.2-parameters.md](migration-0.2-parameters.md)).
 
 ## The example voxelizer
 
@@ -88,7 +112,7 @@ replace. The entry point does not need it and it draws nothing.
 ```ts
 import { voxelize, centre } from "telperion/field/voxelize";
 
-const tree = await growField("silver-birch", 7, 64);  // 64 cells a side, 62 across the longest axis
+const tree = await growField(birch, 64);  // 64 cells a side, 62 across the longest axis
 const cubes = voxelize(tree, { woodCutoff: 0.02, thin: { rule: "gap", keep: 0.3 } });
 for (const i of cubes.wood) centre(tree, i);      // a wood cube's centre in metres
 for (const i of cubes.foliage) centre(tree, i);   // a foliage cube's centre

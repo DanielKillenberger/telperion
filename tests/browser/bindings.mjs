@@ -111,7 +111,7 @@ try {
     await rejects(() => engine.build(unborn, { surface: true, foliage: true }), 'a tree of no cycle is refused', 'a tree grows at least one cycle');
     check(PRESETS.length === 8 && new Set(PRESETS.map(p => p.id)).size === 8, 'complete identity catalogue');
     await rejects(() => presetById('missing'), 'unknown browser identity');
-    await rejects(() => engine.build('missing', {}), 'unknown native identity');
+    await rejects(() => engine.build('telperion', {}), 'a preset id is refused by name (fn-317)', 'not a preset id: pass presetById(id)');
     // The flowers cross beside the leaves (fn-294 R1): one flower mesh and
     // three words a floret against their own reference, decoded as a leaf
     // is, owned copies like every output, and none without foliage.

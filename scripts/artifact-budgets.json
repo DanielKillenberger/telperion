@@ -26,6 +26,13 @@
       "baselineOn": "master ed23f773 CI package (PR #131)"
     },
     {
+      "path": "dist/presets.js",
+      "ceilingBytes": 200000,
+      "reason": "fn-317, 2026-10-25: the presets moved out of telperion.js into their own entry (R3); held at telperion.js's ceiling, the owner's 2026-10-16 decision, which they were measured under. The owner confirms or sets it",
+      "baselineBytes": 186305,
+      "baselineOn": "fn-317-every-generator-entry-takes-a-trees, npm run build"
+    },
+    {
       "path": "dist/field.js",
       "ceilingBytes": 16000,
       "reason": "owner, 2026-09-27: headroom for the field entry script",

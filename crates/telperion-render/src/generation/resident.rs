@@ -238,6 +238,8 @@ mod field;
 #[cfg(test)]
 mod field_tests;
 #[cfg(test)]
+mod field_params_tests;
+#[cfg(test)]
 mod field_time_tests;
 mod florets;
 pub(super) mod fold;

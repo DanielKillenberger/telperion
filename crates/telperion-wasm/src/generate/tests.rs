@@ -3,6 +3,22 @@
 use super::*;
 use telperion_core::tree::Diagnostics;
 
+/// A preset as a caller passes it: its parameters, not its id.
+fn wire(id: &str) -> Value {
+    params::metadata(&params::by_identity(id).unwrap())
+}
+
+/// fn-317 R2: a preset's id is refused by name; its parameters build.
+#[test]
+fn a_preset_id_is_refused_and_its_parameters_build() {
+    let refused = generate(json!({"family": "oregon-white-oak", "outputs": {}})).err();
+    assert!(
+        matches!(refused, Some(Error::InvalidInput(m)) if m.contains("presetById")),
+        "{refused:?}"
+    );
+    assert!(generate(json!({"family": wire("oregon-white-oak"), "outputs": {}})).is_ok());
+}
+
 #[test]
 fn a_reduced_tree_reports_the_detail_it_kept() {
     let reduced = Diagnostics {
@@ -25,7 +41,7 @@ fn a_reduced_tree_reports_the_detail_it_kept() {
 #[test]
 fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
     for &(_, id, _, _) in params::CATALOGUE.iter() {
-        let request = json!({"family": id, "outputs": {"field": {"n": 24}}});
+        let request = json!({"family": wire(id), "outputs": {"field": {"n": 24}}});
         if params::by_identity(id).unwrap().space.species.is_none() {
             let refused = generate(request).err();
             assert!(
@@ -47,7 +63,7 @@ fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
         assert_eq!(out.field.wood_radii.len(), 24 * 24 * 24, "{id}");
     }
     let (_, meta) = generate(json!({
-        "family": "oregon-white-oak", "outputs": {"foliage": true, "field": {"n": 24}}
+        "family": wire("oregon-white-oak"), "outputs": {"foliage": true, "field": {"n": 24}}
     }))
     .unwrap();
     assert_eq!(meta["stages"]["plan"], json!(true));
@@ -63,7 +79,7 @@ fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
 fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
     let family = params::by_identity("oregon-white-oak").unwrap();
     let field = |field: Value| {
-        generate(json!({"family": "oregon-white-oak", "outputs": {"field": field}}))
+        generate(json!({"family": wire("oregon-white-oak"), "outputs": {"field": field}}))
             .unwrap()
             .0
             .field
@@ -97,13 +113,13 @@ fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
         json!(1),
     ] {
         let error =
-            generate(json!({"family": "oregon-white-oak", "outputs": {"field": bad}})).err();
+            generate(json!({"family": wire("oregon-white-oak"), "outputs": {"field": bad}})).err();
         assert!(
             matches!(error, Some(Error::InvalidInput("field request"))),
             "{bad}: {error:?}"
         );
     }
-    let side = generate(json!({"family": "oregon-white-oak", "outputs": {"field": {"n": 2}}}));
+    let side = generate(json!({"family": wire("oregon-white-oak"), "outputs": {"field": {"n": 2}}}));
     assert!(
         matches!(
             side.err(),
@@ -115,7 +131,7 @@ fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
         "the side"
     );
     let (out, meta) =
-        generate(json!({"family": "oregon-white-oak", "outputs": {"field": false}})).unwrap();
+        generate(json!({"family": wire("oregon-white-oak"), "outputs": {"field": false}})).unwrap();
     assert!(out.field.occupancy.is_empty() && meta["stages"]["field"] == json!(false));
 }
 
@@ -129,7 +145,7 @@ fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
 fn every_shipped_preset_builds_through_the_main_entry() {
     let mut flowering = Vec::new();
     for &(_, id, _, _) in params::CATALOGUE.iter() {
-        let request = json!({"family": id, "outputs": {"surface": true, "foliage": true}});
+        let request = json!({"family": wire(id), "outputs": {"surface": true, "foliage": true}});
         if params::by_identity(id).unwrap().space.species.is_none() {
             let refused = generate(request).err();
             assert!(
@@ -192,7 +208,7 @@ fn flowers_cross_the_binding_where_the_pipeline_grows_them() {
             ..Default::default()
         };
         let organ = pipeline::build(&f, request).unwrap().outputs.organ;
-        let (out, meta) = generate(json!({"family": id, "outputs": {"foliage": true}})).unwrap();
+        let (out, meta) = generate(json!({"family": wire(id), "outputs": {"foliage": true}})).unwrap();
         let len = |n| crate::slot(&out, n).1;
         let organ = organ.unwrap_or_else(|| panic!("{id}: the pipeline grows no organ"));
         let florets = organ.instances.leaves.len();
@@ -204,7 +220,7 @@ fn flowers_cross_the_binding_where_the_pipeline_grows_them() {
         let expected = json!({"min": [r.min.x, r.min.y, r.min.z],
             "extent": [r.extent.x, r.extent.y, r.extent.z]});
         assert_eq!(meta["organReference"], expected, "{id}");
-        let (bare, meta) = generate(json!({"family": id, "outputs": {"surface": true}})).unwrap();
+        let (bare, meta) = generate(json!({"family": wire(id), "outputs": {"surface": true}})).unwrap();
         assert!(
             [27, 28, 29].iter().all(|&n| crate::slot(&bare, n).1 == 0),
             "{id}"

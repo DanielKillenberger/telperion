@@ -49,10 +49,16 @@ Migrating from 0.1.4 (for a consumer of the published 0.1.4 package, fn-257 R8b)
 ## The field package
 
 `npm install telperion` also ships the slim growth-and-field package: the
-`telperion/field` export grows a species at a seed and reads its occupancy
-out to the grid the call names, and `telperion/field/voxelize` is an example
-reading of that grid as cubes; the field grows on the device (WebGPU), through
-`telperion-render.wasm`, and rejects by name without it. Both are built by
+`telperion/field` export grows the tree a family's parameters describe and
+reads its occupancy out to the grid the call names, and
+`telperion/field/voxelize` is an example reading of that grid as cubes; the
+field grows on the device (WebGPU), through `telperion-render.wasm`, and
+rejects without it with a `FieldError` coded `"webgpu-unavailable"` (or
+`"device-lost"`). The same field on the CPU, for Node and tooling, is
+`TreeEngine.build(family, { field: { n } })` above. `telperion/presets` holds
+the shipped presets as plain data with no Wasm: `presetById(id)` gives a
+preset's parameters to pass to either entry, which take parameters only, never
+an id ([docs/migration-0.2-parameters.md](docs/migration-0.2-parameters.md)). Both are built by
 `npm run build` into `dist`; `field.js` and the main entry `telperion.js`
 load `telperion.wasm` and `telperion-render.wasm` from beside themselves, so
 a site serves the two Wasm files next to the JavaScript. Each
@@ -318,8 +324,9 @@ placement, not species identity. Whole, bare-branch and single-leaf views
 support inspection; the leaf view isolates one placed unit at generated scale.
 Open `/?species=norway-spruce&seed=1` to load a full-foliage specimen directly.
 
-Browser consumers can use `presetById('oregon-white-oak')`, set
-`family.skeleton.seed`, then pass the family to `TreeEngine.build`. Native
+Browser consumers can use `presetById('oregon-white-oak')` (from the main
+entry or `telperion/presets`), set `family.skeleton.seed`, then pass the
+family to `TreeEngine.build` or `growField`; an id in its place is refused. Native
 consumers use `Preset::OregonWhiteOak.parameters()` or
 `Preset::NorwaySpruce.parameters()`. Unknown identities are rejected. Natural
 presets disable the separate supernatural group; Telperion and Laurelin enable
