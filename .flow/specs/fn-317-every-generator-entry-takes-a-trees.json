@@ -10,6 +10,7 @@
   "id": "fn-317-every-generator-entry-takes-a-trees",
   "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
@@ -28,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T10:19:11.773646Z"
+  "updated_at": "2026-10-25T10:19:19.844585Z"
 }
