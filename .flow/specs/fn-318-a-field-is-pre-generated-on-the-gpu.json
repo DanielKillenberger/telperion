@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-318-a-field-is-pre-generated-on-the-gpu",
+  "created_at": "2026-10-25T12:44:45.502371Z",
+  "depends_on_epics": [],
+  "id": "fn-318-a-field-is-pre-generated-on-the-gpu",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-318-a-field-is-pre-generated-on-the-gpu.md",
+  "status": "open",
+  "title": "A field is pre-generated on the GPU",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-25T12:44:45.509394Z"
+}
