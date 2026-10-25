@@ -62,3 +62,38 @@ fn every_preset_s_named_fields_are_written_for_the_voxelizer() {
         }
     }
 }
+
+/// killenberger's repro of 25 Oct 2026, natively: 80 fields in turn on one
+/// generator at 36 cells, oak, birch, spruce and beech, seeds 1000 on. Each
+/// line is the call's milliseconds, its peak and what the ledger holds
+/// after it, so a cost kept per call shows as a climb.
+#[test]
+#[ignore = "a measurement: the device's cost over a run of fields"]
+fn a_run_of_fields_keeps_nothing_per_call() {
+    let _held = super::super::whole_tree();
+    let Some(gen) = generator() else {
+        return;
+    };
+    let ids = [
+        "oregon-white-oak",
+        "silver-birch",
+        "norway-spruce",
+        "european-beech",
+    ];
+    for i in 0..80 {
+        let id = ids[i % 4];
+        let f = family(id, 1000 + i as u32);
+        gen.gpu.ledger.take_peak();
+        let started = std::time::Instant::now();
+        let grown = pollster::block_on(gen.grow_field(&f, 36, None));
+        let ms = started.elapsed().as_millis();
+        let (peak, live) = (
+            gen.gpu.ledger.take_peak() >> 20,
+            gen.gpu.ledger.live() >> 20,
+        );
+        println!(
+            "{i} {id}: {ms} ms, peak {peak} MiB, held after {live} MiB, {:?}",
+            grown.err()
+        );
+    }
+}
