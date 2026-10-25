@@ -6,9 +6,7 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [
-    "fn-316-the-field-answers-a-trees-flowers"
-  ],
+  "depends_on_epics": [],
   "id": "fn-317-every-generator-entry-takes-a-trees",
   "impl_review_rounds": {},
   "next_task": 1,
@@ -30,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T10:18:53.015247Z"
+  "updated_at": "2026-10-25T10:19:11.773646Z"
 }
