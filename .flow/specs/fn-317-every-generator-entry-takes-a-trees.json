@@ -1,13 +1,21 @@
 {
   "branch_name": "fn-317-every-generator-entry-takes-a-trees",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-24T22:35:48.218128Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-316-the-field-answers-a-trees-flowers"
   ],
   "id": "fn-317-every-generator-entry-takes-a-trees",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-317-every-generator-entry-takes-a-trees.md",
   "status": "open",
   "title": "Every generator entry takes a tree's parameters",
@@ -22,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T23:52:47.664395Z"
+  "updated_at": "2026-10-25T10:18:53.015247Z"
 }
