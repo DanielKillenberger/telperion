@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
+import { presetById } from '../src/browser/presets';
+import { wire } from '../src/browser/wire';
 
 type Core = WebAssembly.Exports & {
   memory: WebAssembly.Memory;
@@ -28,7 +30,7 @@ async function wasmBuild(id: string): Promise<[number, Buffer]> {
   const { instance } = await WebAssembly.instantiate(
     readFileSync('src/browser/telperion.wasm'), { env: { now: () => 0 } });
   const core = instance.exports as Core;
-  const request = new TextEncoder().encode(JSON.stringify({ family: id, outputs: { structure: true } }));
+  const request = new TextEncoder().encode(`{"family":${wire(presetById(id))},"outputs":{"structure":true}}`);
   expect(core.request_alloc(request.length)).toBe(0);
   new Uint8Array(core.memory.buffer, core.request_ptr() >>> 0, request.length).set(request);
   const status = core.build();

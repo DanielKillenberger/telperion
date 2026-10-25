@@ -225,7 +225,6 @@ impl Read<'_> {
         }
         let cells = body.chunks(4).map(answer).collect();
         let mut grid = Grid { frame, cells };
-        grid.name_limbs();
         if let Some(florets) = self.florets {
             core_field::florets_into(&mut grid, florets)?;
         }

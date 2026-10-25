@@ -71,6 +71,23 @@ fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
     assert_eq!(meta["biologicalUnits"], meta["instances"]);
 }
 
+/// fn-317 R4c: the binding names each limb system by the lowest cell it
+/// owns, as the device entry does.
+#[test]
+fn the_field_names_each_limb_by_its_lowest_cell() {
+    let (out, _) =
+        generate(json!({"family": wire("oregon-white-oak"), "outputs": {"field": {"n": 12}}}))
+            .unwrap();
+    let limbs = &out.field.limbs;
+    let mut seen = std::collections::HashSet::new();
+    for (i, &l) in limbs.iter().enumerate().filter(|(_, &l)| l != u32::MAX) {
+        if seen.insert(l) {
+            assert_eq!(l as usize, i, "a system first met at {i} is named {l}");
+        }
+    }
+    assert!(seen.len() > 1, "{} systems", seen.len());
+}
+
 /// R10: no limb order and the family's own answer byte for byte alike; a
 /// shallower order parts the oak's crown into fewer systems; a malformed
 /// request is refused by name, and a grid side outside 3 to 256 as the
@@ -119,7 +136,8 @@ fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
             "{bad}: {error:?}"
         );
     }
-    let side = generate(json!({"family": wire("oregon-white-oak"), "outputs": {"field": {"n": 2}}}));
+    let side =
+        generate(json!({"family": wire("oregon-white-oak"), "outputs": {"field": {"n": 2}}}));
     assert!(
         matches!(
             side.err(),
@@ -208,7 +226,8 @@ fn flowers_cross_the_binding_where_the_pipeline_grows_them() {
             ..Default::default()
         };
         let organ = pipeline::build(&f, request).unwrap().outputs.organ;
-        let (out, meta) = generate(json!({"family": wire(id), "outputs": {"foliage": true}})).unwrap();
+        let (out, meta) =
+            generate(json!({"family": wire(id), "outputs": {"foliage": true}})).unwrap();
         let len = |n| crate::slot(&out, n).1;
         let organ = organ.unwrap_or_else(|| panic!("{id}: the pipeline grows no organ"));
         let florets = organ.instances.leaves.len();
@@ -220,7 +239,8 @@ fn flowers_cross_the_binding_where_the_pipeline_grows_them() {
         let expected = json!({"min": [r.min.x, r.min.y, r.min.z],
             "extent": [r.extent.x, r.extent.y, r.extent.z]});
         assert_eq!(meta["organReference"], expected, "{id}");
-        let (bare, meta) = generate(json!({"family": wire(id), "outputs": {"surface": true}})).unwrap();
+        let (bare, meta) =
+            generate(json!({"family": wire(id), "outputs": {"surface": true}})).unwrap();
         assert!(
             [27, 28, 29].iter().all(|&n| crate::slot(&bare, n).1 == 0),
             "{id}"

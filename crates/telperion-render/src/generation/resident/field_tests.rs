@@ -4,8 +4,8 @@
 //! foliage, its leaves and its limb. Both are asked over the CPU's box,
 //! since a frond's leaflets fall on each executor's own draws. The limbs
 //! are compared as a partition, each device system read as the reference
-//! system it shares the most cells with, and by name: both name a system
-//! by the lowest cell it owns (fn-317 R4c).
+//! system it shares the most cells with, and by the names both package
+//! entries give them, the lowest cell each owns (fn-317 R4c).
 use super::super::{Clock, Generator};
 use std::collections::HashMap;
 use telperion_core::field::{Grid, Occupancy};
@@ -171,12 +171,22 @@ fn device(gen: &Generator, family: &Family, cpu: &Grid, limb_order: Option<u32>)
 
 /// R8a's comparison of `id` at `seed` on each of `sides`: each side's
 /// measures and the device's milliseconds.
-fn agreement(gen: &Generator, id: &str, seed: u32, sides: &[u32]) -> Vec<(u32, Measures, f64)> {
+fn agreement(
+    gen: &Generator,
+    id: &str,
+    seed: u32,
+    sides: &[u32],
+    named: bool,
+) -> Vec<(u32, Measures, f64)> {
     let family = family(id, seed);
     let mut out = Vec::new();
-    for cpu in references(&family, sides, None) {
+    for mut cpu in references(&family, sides, None) {
         let t = Clock::now();
-        let dev = device(gen, &family, &cpu, None);
+        let mut dev = device(gen, &family, &cpu, None);
+        if named {
+            cpu.name_limbs();
+            dev.name_limbs();
+        }
         let ms = t.elapsed_ms();
         assert_eq!(dev.frame, cpu.frame);
         out.push((cpu.frame.n, compare(&cpu.cells, &dev.cells), ms));
@@ -211,7 +221,7 @@ fn every_preset_answers_within_its_tolerance(sides: &[u32]) {
     };
     for &(_, id, ..) in telperion_core::presets::CATALOGUE {
         for seed in [1, 5678] {
-            for (n, m, _) in agreement(&gen, id, seed, sides) {
+            for (n, m, _) in agreement(&gen, id, seed, sides, false) {
                 within(&m, fronds(id)).unwrap_or_else(|m| panic!("{id} {seed} at {n}: {m}"));
             }
         }
@@ -229,8 +239,11 @@ fn every_preset_s_limbs_carry_the_cpu_s_names() {
     };
     for &(_, id, ..) in telperion_core::presets::CATALOGUE {
         for seed in [1, 5678] {
-            for (n, m, _) in agreement(&gen, id, seed, &[24, 36]) {
-                eprintln!("names {id} {seed} {n}: {:.6} of paired, partition {:.6}", m.ids, m.limbs);
+            for (n, m, _) in agreement(&gen, id, seed, &[24, 36], true) {
+                eprintln!(
+                    "names {id} {seed} {n}: {:.6} of paired, partition {:.6}",
+                    m.ids, m.limbs
+                );
                 let named = if fronds(id) { 0.0 } else { NAMED };
                 assert!(m.ids >= named, "{id} {seed} at {n}: {m:?}");
             }
@@ -401,7 +414,7 @@ fn the_device_field_answers_as_the_cpu_field() {
     let ids = telperion_core::presets::CATALOGUE.iter().map(|c| c.1);
     for id in ids.filter(|id| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == *id))) {
         for &seed in &seeds {
-            for (n, m, ms) in agreement(&gen, id, seed, &sides) {
+            for (n, m, ms) in agreement(&gen, id, seed, &sides, false) {
                 if let Err(m) = within(&m, fronds(id)) {
                     past.push(format!("{id} {seed} {n}: {m}"));
                 }

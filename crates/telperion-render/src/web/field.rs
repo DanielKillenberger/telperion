@@ -101,10 +101,12 @@ impl WebField {
             let family = params::parse(&value).map_err(|e| js_error(e.into()))?;
             telperion_core::field::Frame::side(n).map_err(|e| js_error(e.into()))?;
             let made = fields().await?;
-            let grid = made
+            let mut grid = made
                 .grow_field(&family, n, limb_order)
                 .await
                 .map_err(refused)?;
+            // The limbs as both entries name them (fn-317 R4c).
+            grid.name_limbs();
             let mut answers = Vec::with_capacity(grid.cells.len() * 5);
             for a in &grid.cells {
                 let flowered = u32::from(a.flowers > 0.0) << 2;

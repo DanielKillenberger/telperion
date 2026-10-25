@@ -133,7 +133,11 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
             ..Default::default()
         },
     )?;
-    let (tree, o) = (&built.skeleton.tree, built.outputs);
+    let (tree, mut o) = (&built.skeleton.tree, built.outputs);
+    // The limbs as both entries name them (fn-317 R4c).
+    if let Some(grid) = &mut o.field {
+        grid.name_limbs();
+    }
     let mut out = Output {
         surface: o.wood,
         field: o

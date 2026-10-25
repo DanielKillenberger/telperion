@@ -236,9 +236,9 @@ mod organ_tests;
 pub use growing::GrowingTree;
 mod field;
 #[cfg(test)]
-mod field_tests;
-#[cfg(test)]
 mod field_params_tests;
+#[cfg(test)]
+mod field_tests;
 #[cfg(test)]
 mod field_time_tests;
 mod florets;
