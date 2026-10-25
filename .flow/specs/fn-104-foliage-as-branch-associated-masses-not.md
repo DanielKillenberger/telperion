@@ -6,7 +6,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 30% [user], 40% [paraphrase], 30% [inferred] -->
 
 The reviewer's first blocker in every all-view review of the beech (fn-68, 44 rounds): foliage "forms a continuous veil across broad shoulders" where the photographs show overlapping branch-associated masses with dark recesses between them. The canopy dials that place foliage (clump system order, limb clumping, shoot radius, tip clump) moved in the adopted bundles and the veil stayed. [paraphrase]
 

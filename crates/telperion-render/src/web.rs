@@ -18,7 +18,11 @@ use crate::{
     GROUND_REACH,
 };
 
+/// A tree's field grown on a device of its own (fn-257).
+mod field;
 mod generation;
+/// A tree growing on the page's device (fn-270 R6, R7).
+mod growing;
 /// The timing protocol as a page runs it, kept beside this file rather than in
 /// it so neither outgrows the project's line rule.
 mod session;
@@ -45,6 +49,16 @@ struct Live {
     renderer: Renderer,
     camera: Camera,
     stats: FrameStats,
+    /// Whether the last frame's work is still on the device. The page asks
+    /// for a frame every animation frame; a frame is drawn only once the
+    /// last one's work is done, so a tree that takes longer than a frame to
+    /// draw never queues work faster than the device does it, and a build's
+    /// readbacks are not starved behind frames (fn-212 task 10, host
+    /// decision 1).
+    drawing: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    /// Whether the picture changed since the last frame drew it (fn-246):
+    /// an unchanged picture is not drawn again.
+    redraw: crate::redraw::Redraw,
 }
 
 impl Live {
@@ -65,6 +79,8 @@ impl Live {
             renderer,
             camera,
             stats: FrameStats::default(),
+            drawing: Default::default(),
+            redraw: Default::default(),
         })
     }
 
@@ -75,6 +91,7 @@ impl Live {
             return;
         }
         (self.config.width, self.config.height) = (width, height);
+        self.redraw.ask();
         // Between frames by construction: a surface texture is acquired,
         // drawn and presented inside `draw`, and never held across a call.
         self.surface
@@ -212,7 +229,8 @@ impl WebRenderer {
         // The material rides with the tree: these parameters state both, and a
         // tree drawn in the last tree's colours would be nobody's family.
         let submitted = live.renderer.submit(&mesh).map_err(js_error)?;
-        live.renderer.set_material(family.material);
+        live.renderer.set_family(&family);
+        live.redraw.ask();
         self.generation.borrow_mut().invalidate();
         Ok(submitted_json(&submitted))
     }
@@ -226,7 +244,9 @@ impl WebRenderer {
                 View::NAMES.join(", ")
             ))
         })?;
-        self.borrow()?.renderer.set_view(view);
+        let mut live = self.borrow()?;
+        live.renderer.set_view(view);
+        live.redraw.ask();
         Ok(())
     }
 
@@ -245,7 +265,9 @@ impl WebRenderer {
     #[wasm_bindgen(js_name = setScene)]
     pub fn set_scene(&self, scene: &str) -> std::result::Result<(), JsError> {
         let row = SceneRow::parse(scene).map_err(js_error)?;
-        self.borrow()?.renderer.set_scene(row);
+        let mut live = self.borrow()?;
+        live.renderer.set_scene(row);
+        live.redraw.ask();
         Ok(())
     }
 
@@ -260,6 +282,7 @@ impl WebRenderer {
         };
         let camera = hero_pose(bounds, aspect(&live.config), GROUND_REACH);
         live.camera = camera;
+        live.redraw.ask();
         Ok(json!({
             "position": [camera.position.x, camera.position.y, camera.position.z],
             "target": [camera.target.x, camera.target.y, camera.target.z],
@@ -283,6 +306,7 @@ impl WebRenderer {
         let mut live = self.borrow()?;
         live.camera.position = Vec3::new(x, y, z);
         live.camera.target = Vec3::new(target_x, target_y, target_z);
+        live.redraw.ask();
         Ok(())
     }
 
@@ -293,9 +317,28 @@ impl WebRenderer {
         Ok(())
     }
 
-    /// Draws one frame.
+    /// Draws one frame, when the picture changed (or the last frame failed)
+    /// and the last one's work is no longer on the device; otherwise nothing.
+    /// A lost device is named, never drawn on: the page stops its frame loop
+    /// on the error and rebuilds on a fresh device only when asked (fn-235).
     pub fn frame(&self) -> std::result::Result<(), JsError> {
-        self.borrow()?.draw(None).map_err(js_error)
+        let mut live = self.borrow()?;
+        if let Some(lost) = live.renderer.gpu().lost() {
+            return Err(js_error(lost));
+        }
+        let order = std::sync::atomic::Ordering::Relaxed;
+        let failed = live.renderer.frame_error().is_some();
+        if !live.redraw.due(live.drawing.load(order), failed) {
+            return Ok(());
+        }
+        live.draw(None).map_err(js_error)?;
+        let whole = live.renderer.drew_whole();
+        live.redraw.submitted(whole);
+        let drawing = live.drawing.clone();
+        drawing.store(true, order);
+        let queue = &live.renderer.gpu().queue;
+        queue.on_submitted_work_done(move || drawing.store(false, order));
+        Ok(())
     }
 
     /// What the last frame cost, as JSON. `triangles` leaves out the wood,

@@ -10,7 +10,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 70% [paraphrase], 30% [inferred] -->
 
 Today the only level of detail is each leaf's shape: the generator builds nested levels of the leaf mesh and the renderer picks one per leaf, per frame, at half a pixel of error. Every leaf and every run of wood is drawn at any distance. One tree fits the frame (fn-5 measured 8 branch orders at 1.28 ms of a 16.7 ms frame), but a forest, fn-86's and fn-6's target, does not, and nothing makes a distant tree cheaper. [paraphrase]
 
@@ -20,7 +19,6 @@ This spec gives the whole tree level of detail: fewer leaves and simpler wood wi
 
 ## Architecture & Data Models
 <!-- scope: technical -->
-<!-- Architecture: 50% [paraphrase], 50% [inferred] -->
 
 - **One ordering, many prefixes.** The generator orders each kind of data once, and every coarser draw reads a prefix of it; there are no separate reduced models. This is the pattern fn-15's motion levels and the leaf-shape levels already follow. [paraphrase]
 - **Leaves: stochastic pruning per cluster** (Cook & Halstead, Pixar 2007). A cluster is the leaves one run bears. Each cluster stores a stratified random pruning order over its own leaves, fixed per tree and uncorrelated with position, as an index list into the leaf buffer; the leaf buffer itself is never reordered, so every leaf keeps its index, and with it the `vary(id)` colour and mottle and fn-15's flutter phase. Each frame, each cluster picks its own kept fraction from its own projected size, as the renderer already judges each leaf by its own depth (`select.wgsl`), so a hero tree prunes its far clusters and keeps its near ones whole; within a cluster the kept leaves are a prefix of its order. A cluster keeps at least one leaf. Survivors are scaled so the cluster's drawn leaf area equals its full leaf area: the scale is the full area divided by the kept area, with transition weights counted, not `1/u`, because leaves differ in area. Leaves in the transition window shrink out rather than vanish, and colours move toward the cluster mean by the paper's contrast correction. Pruning starts only where a leaf's projected size reaches the pixel, the line leaf-shape selection already draws. (One fraction per tree was rejected: a tree spans near and far in one frame. A prefix over a whole-tree order was rejected: a near leaf late in the order would force every leaf before it to be drawn.) [paraphrase]
@@ -33,7 +31,7 @@ This spec gives the whole tree level of detail: fewer leaves and simpler wood wi
 ## API Contracts
 <!-- scope: technical -->
 
-- **Plan layout.** The prune order and run significance are part of fn-125's versioned layout; a consumer that ignores them draws the full tree unchanged. [inferred]
+- **Plan layout.** The prune order and run significance are part of fn-125's versioned layout; a consumer that ignores them draws the full tree unchanged. [inferred] *(fn-293 task 5 removed `foliage/prepared.rs`'s stations from the renderer's production build with the CPU delivery; only the renderer's tests read them now, as the device's reference (fn-293 task 7).)*
 - **Views and commands unchanged.** [inferred]
 
 ## Edge Cases & Constraints
@@ -41,13 +39,13 @@ This spec gives the whole tree level of detail: fewer leaves and simpler wood wi
 
 - **A hero tree spans near and far in one frame,** so the kept fraction cannot be a single number per tree without starving the near crown or wasting the far one; how it is chosen is settled per cluster (Architecture) and checked by R8. [paraphrase]
 - **Shadows** draw the same prefix as the view unless the decision below says otherwise, so a thinned crown does not cast a full shadow. [inferred]
-- **Full detail is the default.** At the hero pose and any distance where a leaf or run is at least a pixel, the draw is the full tree, byte-identical to what fn-125 and fn-15 draw. [inferred]
+- **Full detail is the default.** At the hero pose and any distance where a leaf or run is at least a pixel, the draw is the full tree, byte-identical to what fn-125 and fn-15 draw. [inferred] *(superseded by AGENTS.md "Generator evolution" (owner, 2026-09-20): it pins the pre-engine direct build's bytes, which the tree-space engine (fn-198) replaced; an intended change carries its measured evidence instead, and byte equality stays a check only where unchanged output is intended (fn-293 task 7).)*
 - **Budget.** Proof is a continuous walk of stills on the 8-tree scale at most; no full-forest capture. [paraphrase]
 
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** The plan layout carries each cluster's pruning order as an index list into the unchanged leaf buffer, the runs in fn-15's significance order, and each run's nested ring index lists. The stored leaf and wood buffers are byte-identical to fn-125's and fn-15's, and a full-detail draw matches today's draw pixel for pixel, colour, mottle and fixed-time wind included. Errors: no error surface beyond fn-125's layout errors. [inferred]
+- **R1:** The plan layout carries each cluster's pruning order as an index list into the unchanged leaf buffer, the runs in fn-15's significance order, and each run's nested ring index lists. The stored leaf and wood buffers are byte-identical to fn-125's and fn-15's, and a full-detail draw matches today's draw pixel for pixel, colour, mottle and fixed-time wind included. Errors: no error surface beyond fn-125's layout errors. [inferred] *(superseded by AGENTS.md "Generator evolution" (owner, 2026-09-20): it pins the pre-engine direct build's bytes, which the tree-space engine (fn-198) replaced; an intended change carries its measured evidence instead, and byte equality stays a check only where unchanged output is intended (fn-293 task 7).)*
 - **R2:** For each cluster at any kept fraction, the drawn leaves are a prefix of its pruning order with at least one leaf, their drawn area (transition weights counted) equals the cluster's full leaf area within 1%, and the contrast correction holds the crown's mean linear colour within 2% of the full crown's at the same view. Tests cover clusters of unequal leaf areas, kept fractions down to one leaf, and fractions at both edges of the transition window. Errors: a kept fraction outside (0, 1] is refused by name. [paraphrase]
 - **R3:** A run below the pixel threshold shrinks to its centreline before dropping; its bone stays evaluated while fn-15's R11 test keeps it, and a test with a thin, long branch whose wood is dropped but whose surviving leaves move more than half a pixel keeps that motion; no leaf is drawn floating off wood that is still drawn. Errors: no error surface beyond R2. [paraphrase]
 - **R7:** Every ring level of every run is closed: a topology test finds no open edge on any level of every catalogue preset's wood at seeds 1 and 7, caps included, and shaped runs draw their full cell at every level. Errors: no error surface beyond R1. [inferred]
@@ -101,16 +99,3 @@ None found.
 - Whether shadows and leaf flutter use the view's kept fraction; resolved by the walk's stills.
 - Whether contrast correction runs on shader inputs or on shaded colour; resolved by the R2 colour test.
 - The ring-segment error metric for wood; resolved in planning against the leaf-shape levels' deviation rule.
-
-## Requirement coverage
-
-| R-ID | Task |
-|------|------|
-| R1 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R2 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R3 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R4 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R5 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R6 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R7 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R8 | fn-N.M (TBD - populate via /flow-next:plan) |

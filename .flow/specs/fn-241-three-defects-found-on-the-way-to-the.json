@@ -1,0 +1,47 @@
+{
+  "branch_name": "fn-241-three-defects-found-on-the-way-to-the",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T03:59:19.656754Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-241-three-defects-found-on-the-way-to-the",
+  "impl_review_rounds": {
+    "fn-241-three-defects-found-on-the-way-to-the.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T04:01:28.297446Z",
+  "ready": true,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-241-three-defects-found-on-the-way-to-the.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-241-three-defects-found-on-the-way-to-the.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-241-three-defects-found-on-the-way-to-the.md",
+  "status": "done",
+  "title": "Three defects found on the way to the release",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T05:36:37.613232Z"
+}

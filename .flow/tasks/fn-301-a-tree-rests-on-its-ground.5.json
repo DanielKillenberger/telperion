@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-20T22:45:30.834411Z",
+  "depends_on": [
+    "fn-301-a-tree-rests-on-its-ground.2",
+    "fn-301-a-tree-rests-on-its-ground.3",
+    "fn-301-a-tree-rests-on-its-ground.4"
+  ],
+  "id": "fn-301-a-tree-rests-on-its-ground.5",
+  "priority": null,
+  "spec": "fn-301-a-tree-rests-on-its-ground",
+  "spec_path": ".flow/tasks/fn-301-a-tree-rests-on-its-ground.5.md",
+  "status": "todo",
+  "title": "Prove it, measure it, show it",
+  "updated_at": "2026-10-20T22:51:58.445385Z"
+}

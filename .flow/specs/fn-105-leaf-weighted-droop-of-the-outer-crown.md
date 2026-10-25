@@ -6,7 +6,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 30% [user], 40% [paraphrase], 30% [inferred] -->
 
 The fn-68 round-42 bundle moved all ten pendulous twig rows together; the reviewer graded hanging "slight" better and the owner said the tree "looks better". What remains, in the reviewer's words: "dominant sprays remain ascending or straight, providing insufficient leaf-weight droop". Droop today is a twig property switched on where wood is thinner than `pendulousRadius` times the root radius (`branching/local/pendant.rs:77`), so with an even fork split it fires as one shell; fn-103 changes where it fires. [paraphrase]
 

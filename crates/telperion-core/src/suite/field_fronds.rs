@@ -1,14 +1,13 @@
 //! The date palm's field from the leaf plan (fn-150): one oriented box a
 //! leaflet, living and dead, drawn as placement draws it. Conservative
-//! against the leaves placement hangs, exact in its counts over a grid, and
-//! held to the real leaflet shapes, each placed leaf's own oriented box.
+//! against the leaves placement hangs, exact in its counts over the grid,
+//! and held to the real leaflet shapes, each placed leaf's own oriented box.
 mod oriented;
-use std::collections::HashSet;
+use super::field_plan::{grid, holding};
 use telperion_core::{
-    field::Field,
+    field::{self, Frame},
     foliage::transform_point,
-    math::Vec3,
-    pipeline::{self, Request},
+    pipeline::{self, FieldRequest, Request},
     presets::{Family, Preset},
 };
 
@@ -20,143 +19,148 @@ fn palm(seed: u32) -> Family {
     family
 }
 
-/// One palm's build with its leaves and its planned field, and the field read
-/// from those placed leaves.
-fn fields(seed: u32) -> (pipeline::Built, Field) {
+/// One palm's build with its leaves, its plan and its field.
+fn built(seed: u32) -> pipeline::Built {
     let request = Request {
         leaves: true,
-        field: Some(None),
+        field: Some(FieldRequest {
+            n: 24,
+            limb_order: None,
+        }),
         ..Request::default()
     };
-    let built = pipeline::build(&palm(seed), request).unwrap();
-    let o = &built.outputs;
-    let leaves = &o.leaves.as_ref().unwrap().instances;
-    let element = o.element.as_ref().unwrap();
-    let placed = Field::new(&built.skeleton.tree, Some((leaves, element))).unwrap();
-    (built, placed)
+    pipeline::build(&palm(seed), request).unwrap()
 }
 
-/// Cell centres of a grid of `cell` metres over `field`'s bounds.
-fn grid(field: &Field, cell: f64) -> Vec<Vec3> {
-    let b = field.bounds().unwrap();
-    let n = |lo: f64, hi: f64| ((hi - lo) / cell).ceil() as usize + 1;
-    let (nx, ny, nz) = (
-        n(b.min.x, b.max.x),
-        n(b.min.y, b.max.y),
-        n(b.min.z, b.max.z),
-    );
-    let mut out = Vec::with_capacity(nx * ny * nz);
-    for i in 0..nx {
-        for j in 0..ny {
-            for k in 0..nz {
-                let at = Vec3::new(i as f64 + 0.5, j as f64 + 0.5, k as f64 + 0.5);
-                out.push(b.min + at * cell);
-            }
-        }
-    }
-    out
-}
-
-/// A field-only build answers from the plan and places no leaf for it.
+/// A field-only build reads the plan and places no leaf for it.
 #[test]
-fn the_palm_field_is_planned_and_places_nothing() {
+fn the_palm_field_places_nothing() {
     let request = Request {
-        field: Some(None),
+        field: Some(FieldRequest {
+            n: 24,
+            limb_order: None,
+        }),
         ..Request::default()
     };
     let built = pipeline::build(&palm(1), request).unwrap();
-    assert!(built.outputs.field.unwrap().is_planned());
+    assert!(built.outputs.field.is_some());
     assert!(built.outputs.leaves.is_none());
 }
 
 /// Every vertex of every retained leaflet, living and withered, lies in a
-/// cell the plan reports as foliage, at a decimetre, a quarter metre and a
-/// metre, at every seed the owner tried.
+/// cell the plan reports as foliage, on grids of 24, 48 and 96 cells a
+/// side, at every seed the owner tried.
 #[test]
 fn every_placed_leaflet_vertex_lies_in_a_planned_foliage_cell() {
     for seed in SEEDS {
-        let (built, _) = fields(seed);
+        let built = built(seed);
         let o = &built.outputs;
-        let planned = o.field.as_ref().unwrap();
+        let (tree, plan) = (&built.skeleton.tree, o.plan.as_ref().unwrap());
         let element = o.element.as_ref().unwrap();
         let leaves = &o.leaves.as_ref().unwrap().instances;
-        let origin = planned.bounds().unwrap().min;
-        for cell in [0.1, 0.25, 1.0] {
-            let mut cells = HashSet::new();
+        for n in [24, 48, 96] {
+            let g = grid(tree, plan, n);
+            let (mut missed, mut all) = (0, 0);
             for m in leaves.matrices() {
                 for v in &element.positions {
-                    let p = (transform_point(&m, *v) - origin) / cell;
-                    cells.insert([p.x.floor() as i64, p.y.floor() as i64, p.z.floor() as i64]);
+                    all += 1;
+                    missed += usize::from(!holding(&g, transform_point(&m, *v)).foliage);
                 }
             }
-            let half = Vec3::new(0.5, 0.5, 0.5);
-            let missed = cells
-                .iter()
-                .filter(|c| {
-                    let centre = Vec3::new(c[0] as f64, c[1] as f64, c[2] as f64) + half;
-                    !planned
-                        .query(origin + centre * cell, cell / 2.)
-                        .unwrap()
-                        .foliage
-                })
-                .count();
-            let of = cells.len();
-            assert_eq!(missed, 0, "seed {seed} at {cell} m: {missed} of {of} cells");
+            assert_eq!(missed, 0, "seed {seed} at {n}: {missed} of {all}");
         }
     }
 }
 
-/// Over a non-overlapping grid the count estimates sum to the plan's total,
-/// which is every leaflet placement hangs before the cull.
+/// Over the grid the count estimates sum to the plan's total, which is
+/// every leaflet placement hangs before the cull.
 #[test]
 fn the_palm_estimates_sum_to_every_leaflet() {
-    let (built, _) = fields(7);
+    let built = built(7);
     let o = &built.outputs;
-    let planned = o.field.as_ref().unwrap();
     let total = f64::from(o.plan.as_ref().unwrap().total);
     assert_eq!(total, o.leaves.as_ref().unwrap().placed as f64);
-    let sum: f64 = grid(planned, 1.0)
-        .into_iter()
-        .map(|c| planned.query(c, 0.5).unwrap().leaves)
+    let sum: f64 = o
+        .field
+        .as_ref()
+        .unwrap()
+        .cells
+        .iter()
+        .map(|c| c.leaves)
         .sum();
     assert!((sum - total).abs() <= total * 0.01, "{sum} against {total}");
 }
 
-/// The planned crown against the real leaflet shapes on the same
-/// quarter-metre grid (host target, 2026-09-25): at least 99 % of cells
+/// The planned crown against the real leaflet shapes on the same grid of
+/// about a quarter metre (host target, 2026-09-25): at least 99 % of cells
 /// agree and the plan reports at most 1.05 times the leaflets' foliage cells.
-/// The same numbers against the placed field, whose world-aligned leaf boxes
-/// overfill a diagonal leaflet, are printed for the record.
 #[test]
 fn the_planned_palm_agrees_with_its_leaflets() {
     for seed in SEEDS {
-        let (built, placed) = fields(seed);
+        let built = built(seed);
         let o = &built.outputs;
-        let planned = o.field.as_ref().unwrap();
+        let (tree, plan) = (&built.skeleton.tree, o.plan.as_ref().unwrap());
         let leaves = &o.leaves.as_ref().unwrap().instances;
-        let exact = oriented::leaflets(&built.skeleton.tree, leaves, o.element.as_ref().unwrap());
-        let [mut cells, mut agree, mut kept, mut ours, mut boxes, mut matched] = [0usize; 6];
-        for c in grid(planned, 0.25) {
-            let p = planned.query(c, 0.125).unwrap().foliage;
-            let e = exact.query(c, 0.125).unwrap().foliage;
-            let q = placed.query(c, 0.125).unwrap().foliage;
-            cells += 1;
-            agree += usize::from(p == e);
-            kept += usize::from(e);
-            ours += usize::from(p);
-            boxes += usize::from(q);
-            matched += usize::from(p == q);
+        let exact = oriented::leaflets(leaves, o.element.as_ref().unwrap());
+        let b = field::bounds(tree, plan).unwrap().unwrap();
+        let size = b.max - b.min;
+        let n = (size.x.max(size.y).max(size.z) / 0.25).ceil() as u32 + 2;
+        let frame = Frame::over(b, n).unwrap();
+        let planned = field::read(tree, plan, frame).unwrap();
+        let exact = field::read(tree, &exact, frame).unwrap();
+        let [mut agree, mut kept, mut ours] = [0usize; 3];
+        for (p, e) in planned.cells.iter().zip(&exact.cells) {
+            agree += usize::from(p.foliage == e.foliage);
+            kept += usize::from(e.foliage);
+            ours += usize::from(p.foliage);
         }
-        let share = agree as f64 / cells as f64;
+        let share = agree as f64 / planned.cells.len() as f64;
         let ratio = ours as f64 / kept as f64;
-        let placed_share = matched as f64 / cells as f64;
-        eprintln!(
-            "palm seed {seed}: against the leaflets {share:.4} of {cells} cells agree, \
-             ratio {ratio:.3} ({ours} / {kept}); against the placed field \
-             {placed_share:.4}, ratio {:.3} ({ours} / {boxes})",
-            ours as f64 / boxes as f64
-        );
         assert!(share >= 0.99, "seed {seed}: {share}");
         assert!(ratio <= 1.05, "seed {seed}: {ratio}");
     }
+}
+
+/// fn-301 R2: the plan's leaflet boxes take the frame a leaflet rests in.
+/// On the young palm, whose fronds lie on the ground, every placed
+/// leaflet's every vertex lies in its own planned box, the boxes in the
+/// order placement hangs the leaflets.
+#[test]
+fn a_rested_leaflet_lies_in_its_planned_box() {
+    let mut family = palm(1);
+    family.age = 12.0;
+    let request = Request {
+        leaves: true,
+        field: Some(FieldRequest {
+            n: 24,
+            limb_order: None,
+        }),
+        ..Request::default()
+    };
+    let built = pipeline::build(&family, request).unwrap();
+    let o = &built.outputs;
+    let (plan, element) = (o.plan.as_ref().unwrap(), o.element.as_ref().unwrap());
+    let leaves = &o.leaves.as_ref().unwrap().instances;
+    assert_eq!(plan.descriptors.len(), leaves.len(), "one box a leaflet");
+    let (mut low, mut outside) = (f64::INFINITY, 0);
+    for (m, d) in leaves.matrices().zip(&plan.descriptors) {
+        let [a, b] = d.endpoints;
+        let (centre, run) = ((a + b) * 0.5, (b - a) * 0.5);
+        let along = run.normalized();
+        let across = along.cross(d.side).normalized();
+        for v in &element.positions {
+            let p = transform_point(&m, *v);
+            low = low.min(p.y);
+            let r = p - centre;
+            let inside = r.dot(along).abs() <= run.length() + 1e-6
+                && r.dot(d.side.normalized()).abs() <= d.side.length() + 1e-6
+                && r.dot(across).abs() <= d.radii[0] + 1e-6;
+            outside += usize::from(!inside);
+        }
+    }
+    assert!(
+        low < 0.01,
+        "the palm at 12 rests leaflets on the ground ({low})"
+    );
+    assert_eq!(outside, 0, "{outside} vertices outside their boxes");
 }

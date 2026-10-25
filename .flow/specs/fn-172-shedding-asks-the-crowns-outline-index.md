@@ -7,7 +7,6 @@
 > user (2026-09-27, on splitting the growth work into focused specs): "yes and make fn-125 depend on B if that's the most efficient way"
 
 ## Goal & Context
-<!-- Goal & Context: 30% [user], 70% [checked] from the 2026-09-27 growth profile -->
 
 Growth (stage 2) is the largest stage left on the CPU: 53 of 126 ms of the oak's preparation on fn-125's master baseline. fn-125, fn-126 and fn-171 all leave growth out of scope, and fn-124 closed with its gate missed. This is one of four focused growth specs taken from the 2026-09-27 profile. [user]
 

@@ -28,11 +28,24 @@ fn species() -> Species {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        leaf_years: f64::INFINITY,
+        elongation: 0.0,
+        expansion: 0.0,
+        leaf_life: f64::INFINITY,
+        budburst: 0.0,
+        senescence: 0.0,
+        colouring: 0.0,
+        leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -58,7 +71,7 @@ const REQUEST: Request = Request {
 #[test]
 fn every_input_the_engine_cannot_draw_is_refused_by_name() {
     type Edit = fn(&mut Species);
-    let cases: [(Edit, &str); 42] = [
+    let cases: [(Edit, &str); 47] = [
         (|s| s.states.clear(), "states"),
         (|s| s.states[0].continuation = 1.5, "states[0].continuation"),
         (
@@ -67,6 +80,21 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
         ),
         (|s| s.states[0].viability = f64::NAN, "states[0].viability"),
         (|s| s.states[0].shedding = -1.0, "states[0].shedding"),
+        // fn-248: a leaf's years lie in 0 to never.
+        (|s| s.states[0].leaf_years = -0.5, "states[0].leaf_years"),
+        (|s| s.states[0].elongation = 366.0, "states[0].elongation"),
+        (|s| s.states[0].expansion = f64::NAN, "states[0].expansion"),
+        (
+            |s| {
+                s.states[0].elongation = 300.0;
+                s.states[0].expansion = 66.0
+            },
+            "states[0].expansion",
+        ),
+        (
+            |s| s.states[1].leaf_years = f64::NAN,
+            "states[1].leaf_years",
+        ),
         (|s| s.states[1].lifespan = -0.5, "states[1].lifespan"),
         (|s| s.states[0].zones.clear(), "states[0].zones"),
         (
@@ -215,14 +243,6 @@ fn a_tree_past_its_budget_is_refused() {
     );
 }
 
-#[test]
-fn a_trunk_below_the_ground_is_an_error() {
-    let mut s = species();
-    s.states[0].form.tropism = 1.0;
-    s.states[0].form.elevation = -std::f64::consts::FRAC_PI_2;
-    assert!(matches!(grow(&s, REQUEST), Err(Error::BelowGround { .. })));
-}
-
 /// A tree whose only wood stands exactly at its draw has no size: it is a
 /// collapsed tree, not a tree of zero length.
 #[test]
@@ -241,4 +261,20 @@ fn a_tree_of_no_size_is_a_collapsed_tree() {
         grow(&s, Request { age: 1, ..REQUEST }),
         Err(Error::Collapsed)
     );
+}
+
+/// fn-264: a node bears up to `MAX_LEAF_AREA` (5 m², above the date palm's
+/// 2.81 m² frond) and no more, refused by name past it.
+#[test]
+fn a_leaf_area_is_drawn_to_its_bound_and_refused_past_it() {
+    let at = |area: f64| {
+        let mut s = species();
+        s.states[0].leaf_area = area;
+        grow(&s, REQUEST)
+    };
+    assert!(at(telperion_space::MAX_LEAF_AREA).is_ok());
+    match at(telperion_space::MAX_LEAF_AREA * (1.0 + 1e-12)) {
+        Err(Error::Refused { input, .. }) => assert_eq!(input, "states[0].leaf_area"),
+        other => panic!("{other:?}"),
+    }
 }

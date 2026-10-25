@@ -20,6 +20,8 @@ fn trunk() -> Camera {
 }
 
 fn hash(mesh: &SurfaceMesh) -> u64 {
+    // The chunks laid end to end: the hash the flat wood had.
+    let mesh = mesh.flattened();
     mesh.positions
         .iter()
         .chain(&mesh.normals)

@@ -11,58 +11,35 @@ pub(super) struct Sample {
     pub(super) d: f64,
 }
 /// Radial segments a ring is cut into: never fewer than four to a lobe.
-pub(super) fn segments(params: &SurfaceParams) -> usize {
+pub(crate) fn segments(params: &SurfaceParams) -> usize {
     params.radial_segments.max(params.lobes * 4) as usize
-}
-
-/// The buffers these paths fill: one ring a path node, one more at the foot of
-/// every trunk run the flare buries, two cap vertices a run, and six indices a
-/// ring segment.
-pub(super) fn extent_of(paths: &paths::Paths, segments: usize, buried: bool) -> Result<WoodExtent> {
-    let feet = if buried {
-        paths.runs.iter().filter(|run| run.trunk).count()
-    } else {
-        0
-    };
-    let rings = paths
-        .nodes
-        .len()
-        .checked_add(feet)
-        .ok_or(Error::ResourceLimit("surface rings"))?;
-    let ring_vertices = rings
-        .checked_mul(segments)
-        .ok_or(Error::ResourceLimit("surface vertices"))?;
-    let vertices = paths
-        .runs
-        .len()
-        .checked_mul(2)
-        .and_then(|caps| ring_vertices.checked_add(caps))
-        .filter(|&n| n <= u32::MAX as usize)
-        .ok_or(Error::ResourceLimit("surface vertices"))?;
-    Ok(WoodExtent {
-        positions: vertices
-            .checked_mul(3)
-            .ok_or(Error::ResourceLimit("surface positions"))?,
-        coords: vertices * 2,
-        indices: ring_vertices
-            .checked_mul(6)
-            .ok_or(Error::ResourceLimit("surface indices"))?,
-    })
 }
 
 #[cfg(test)]
 /// What `build` would fill for this tree, without sweeping it: the same paths
-/// pass and the same ring arithmetic, and no mesh.
+/// pass, the same ranking and the same layout, and no mesh.
 pub fn extent(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<WoodExtent> {
     tree.validate()?;
     params.validate()?;
     crate::pipeline::surface::height(height)?;
-    let paths = paths(&tree.nodes)?;
+    let paths = paths(tree)?;
     if paths.runs.is_empty() {
         return Ok(WoodExtent::default());
     }
-    let burial = params.flare_depth * height.max(1e-6);
-    extent_of(&paths, segments(params), burial > 0.0)
+    let segments = segments(params);
+    let distance = rings::distances(tree)?;
+    let angular = angular::samples(segments, params)?;
+    let at = rings::Swept {
+        tree,
+        height: height.max(1e-6),
+        params,
+        paths: &paths,
+        distance: &distance,
+        angular: &angular,
+    };
+    let ordered = rings::rank(at, &mut rings::Scratch::new(at.longest()?)?)?;
+    let rings = ordered.iter().map(|o| at.rings(o.0));
+    Ok(Layout::new(rings, segments, true, CHUNK_VERTICES)?.extent(segments))
 }
 
 /// Builds only wood geometry. Invalid input or allocation failure returns no partial mesh.
@@ -70,23 +47,30 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     let sweep = Sweep {
         drawn: true,
         edges: false,
+        distances: false,
     };
     let rings = rings(tree, height, params, sweep)?;
     let faces = faces(&rings, tree, height, params)?;
     Ok(rings.into_mesh(faces))
 }
 
-/// What the mesh step adds around the rings: everything the wood holds but
-/// its positions and coords, and the run table the rings hold where the step
-/// dropped no triangle.
+/// What the mesh step adds around the rings: each chunk's normals and
+/// indices, and the run table the rings hold where the step dropped no
+/// triangle.
 #[derive(Debug, Default)]
 pub(crate) struct Faces {
-    pub(super) normals: Vec<f32>,
-    pub(super) indices: Vec<u32>,
-    /// The run table, where dropped triangles moved a run's span.
-    pub(super) run_table: Option<Vec<SurfaceRun>>,
+    pub(super) chunks: Vec<FaceChunk>,
+    /// The run table, where dropped triangles moved a piece's span.
+    pub(super) run_table: Option<Vec<WoodRun>>,
     pub(super) bounds: Option<Bounds>,
     pub(super) dropped: usize,
+}
+
+/// One chunk's normals (`encode::normal`) and indices.
+#[derive(Debug, Default)]
+pub(crate) struct FaceChunk {
+    pub(super) normals: Vec<i16>,
+    pub(super) indices: Vec<u16>,
 }
 
 /// The mesh step: indices, normals and bounds around rings swept for a
@@ -107,73 +91,212 @@ pub(crate) fn faces(
             return Ok(faces);
         }
     }
-    let ring_vertices = rings.positions.len() / 3 - rings.runs.len() * 2;
+    let mut spans = reserved(rings.runs.len())?;
+    let (chunks, dropped) = shaded(rings, &resweep, &rings.layout.pieces, &mut spans)?;
     let mut faces = Faces {
-        normals: reserved(rings.positions.len())?,
-        indices: reserved(ring_vertices * 6)?,
-        ..Faces::default()
+        chunks,
+        run_table: None,
+        bounds: Some(rings.bounds()),
+        dropped,
     };
-    let mut base = 0;
-    for (i, run) in rings.runs.iter().enumerate() {
-        let first_index = u32::try_from(faces.indices.len())
-            .map_err(|_| Error::ResourceLimit("surface indices"))?;
-        faces
-            .normals
-            .resize(faces.normals.len() + rings.vertices(run) * 3, 0.0);
-        let normals = &mut faces.normals[base * 3..];
-        let indices = &mut faces.indices;
-        let keep = |t: [u32; 3]| indices.extend(t);
-        faces.dropped += shade(rings, i, base, &resweep, normals, keep)?;
-        let index_count = u32::try_from(faces.indices.len())
-            .map_err(|_| Error::ResourceLimit("surface indices"))?
-            - first_index;
-        if (first_index, index_count) != (run.first_index, run.index_count) {
-            let table = match &mut faces.run_table {
-                Some(table) => table,
-                None => faces.run_table.insert(copied(&rings.runs)?),
-            };
-            table[i] = SurfaceRun {
-                first_index,
-                index_count,
-                largest_radius: run.largest_radius,
-            };
-        }
-        base += rings.vertices(run);
-    }
     if faces.dropped > DROPPED_RINGS * 2 * rings.segments {
         return Err(Error::InvalidValue {
             field: "surface triangles collapsed in float32",
             value: faces.dropped.to_string(),
         });
     }
-    faces.bounds = Some(bounds(&rings.positions));
+    let swept = |r: &WoodRun| [r.span.first_index, r.span.index_count];
+    let moved = spans.iter().zip(&rings.runs).any(|(s, r)| *s != swept(r));
+    faces.run_table = moved.then(|| {
+        let runs = rings.runs.iter().zip(spans);
+        let span = |r: &WoodRun, [first_index, index_count]: [u32; 2]| SurfaceRun {
+            first_index,
+            index_count,
+            ..r.span
+        };
+        runs.map(|(r, s)| WoodRun {
+            span: span(r, s),
+            ..*r
+        })
+        .collect()
+    });
     Ok(faces)
 }
 
-fn copied<T: Copy>(values: &[T]) -> Result<Vec<T>> {
-    let mut out = reserved(values.len())?;
-    out.extend_from_slice(values);
-    Ok(out)
+/// The faces of the chunks `pieces` fill, whole runs of them in order: each
+/// chunk's buffers reserved at their exact size as its first piece is
+/// shaded, each piece's span of its chunk's indices pushed to `spans`, and
+/// the triangles dropped. A run's normals are summed in floats over the run
+/// and then encoded.
+pub(super) fn shaded(
+    rings: &Rings,
+    resweep: &Resweep,
+    pieces: &[Piece],
+    spans: &mut Vec<[u32; 2]>,
+) -> Result<(Vec<FaceChunk>, usize)> {
+    let Some(first) = pieces.first().map(|p| p.chunk) else {
+        return Ok((Vec::new(), 0));
+    };
+    let segments = rings.segments;
+    let indices = rings.layout.indices(segments, true)?;
+    let count = pieces.last().map_or(0, |p| p.chunk + 1) - first;
+    let mut chunks: Vec<FaceChunk> = reserved(count)?;
+    let whole = pieces.iter().filter(|p| p.lead && p.tail);
+    let longest = whole.map(|p| p.vertices(segments, true)).max();
+    let mut normals = reserved(longest.unwrap_or(0) * 3)?;
+    let mut dropped = 0;
+    for run in pieces.chunk_by(|a, b| a.run == b.run) {
+        for piece in run {
+            if piece.chunk - first == chunks.len() {
+                if rings.layout.chunks[piece.chunk] > CHUNK_VERTICES {
+                    return Err(Error::ResourceLimit("surface chunk"));
+                }
+                chunks.push(FaceChunk {
+                    normals: reserved(rings.layout.chunks[piece.chunk] * 2)?,
+                    indices: reserved(indices[piece.chunk])?,
+                });
+            }
+        }
+        let [piece] = run else {
+            let chunks = &mut chunks[run[0].chunk - first..];
+            dropped += split(rings, resweep, run, chunks, spans)?;
+            continue;
+        };
+        let chunk = &mut chunks[piece.chunk - first];
+        let (base, count) = (piece.base, piece.rings);
+        let vertices = count * segments + 2;
+        let positions = &rings.chunks[piece.chunk].positions[base * 3..(base + vertices) * 3];
+        normals.clear();
+        normals.resize(vertices * 3, 0.0);
+        let start = chunk.indices.len();
+        let indices = &mut chunk.indices;
+        let keep = |t: [u32; 3]| indices.extend(t.map(|i| (base + i as usize) as u16));
+        dropped += shade(
+            positions,
+            count,
+            segments,
+            piece.run,
+            resweep,
+            &mut normals,
+            keep,
+        )?;
+        encoded(&normals, &mut chunk.normals);
+        spans.push(span(start, chunk.indices.len())?);
+    }
+    Ok((chunks, dropped))
 }
 
-/// Run `run` of the table's faces, its vertices starting at `base`: each
-/// triangle with area handed to `keep` in draw order, and the run's unit
-/// normals summed into `normals`, which starts at zero. A vertex no triangle
-/// shades faces the way its ring does. Returns the triangles dropped.
-pub(super) fn shade(
+/// Unit normals, three floats each, encoded onto the end of `out`.
+fn encoded(normals: &[f32], out: &mut Vec<i16>) {
+    for n in normals.as_chunks::<3>().0 {
+        let [x, y, z] = n.map(f64::from);
+        out.extend(encode::normal(Vec3::new(x, y, z)));
+    }
+}
+
+/// A piece's span of its chunk's indices, from where it started to `end`.
+fn span(start: usize, end: usize) -> Result<[u32; 2]> {
+    let too_many = || Error::ResourceLimit("surface indices");
+    let start = u32::try_from(start).map_err(|_| too_many())?;
+    let end = u32::try_from(end).map_err(|_| too_many())?;
+    Ok([start, end - start])
+}
+
+/// A run split across `chunks`, its pieces' chunks from the first: its
+/// points gathered whole and shaded as one run, so the split moves no
+/// normal and drops no other triangle; then each piece's normals copied
+/// and each triangle handed, in draw order, to the piece that draws it: a
+/// strip to the piece its pair belongs to, a cap to the last piece, which
+/// repeats the first ring, so the caps draw after every strip.
+fn split(
     rings: &Rings,
+    resweep: &Resweep,
+    run: &[Piece],
+    chunks: &mut [FaceChunk],
+    spans: &mut Vec<[u32; 2]>,
+) -> Result<usize> {
+    let segments = rings.segments;
+    let (lead, tail) = (run[0], run[run.len() - 1]);
+    let count = tail.first + tail.rings;
+    let ring = count * segments;
+    let point = |p: &Piece, v: usize| {
+        let at = p.local(v, count, segments) * 3;
+        &rings.chunks[p.chunk].positions[at..at + 3]
+    };
+    let mut positions = reserved((ring + 2) * 3)?;
+    let mut next = 0;
+    for piece in run {
+        let end = (piece.first + piece.rings) * segments;
+        positions.extend((next..end).flat_map(|v| point(piece, v)));
+        next = end;
+    }
+    positions.extend(point(&lead, ring).iter().chain(point(&tail, ring + 1)));
+    let mut normals = filled((ring + 2) * 3, 0.0)?;
+    let mut starts = reserved(run.len())?;
+    starts.extend(
+        run.iter()
+            .map(|p| chunks[p.chunk - lead.chunk].indices.len()),
+    );
+    let owner = |t: [u32; 3]| match t.iter().max().map(|&v| v as usize) {
+        Some(v) if v >= ring => tail,
+        _ => {
+            let low = t.iter().min().map_or(0, |&v| v as usize) / segments;
+            let mut pieces = run.iter();
+            *pieces
+                .find(|p| p.pairs().contains(&low))
+                .expect("a pair has a piece")
+        }
+    };
+    let dropped = shade(
+        &positions,
+        count,
+        segments,
+        lead.run,
+        resweep,
+        &mut normals,
+        |t| {
+            let piece = owner(t);
+            let local = t.map(|v| piece.local(v as usize, count, segments) as u16);
+            chunks[piece.chunk - lead.chunk].indices.extend(local);
+        },
+    )?;
+    for (piece, &start) in run.iter().zip(&starts) {
+        let chunk = &mut chunks[piece.chunk - lead.chunk];
+        let held = piece.first * segments * 3..(piece.first + piece.rings) * segments * 3;
+        encoded(&normals[held], &mut chunk.normals);
+        if piece.repeats() {
+            encoded(&normals[..segments * 3], &mut chunk.normals);
+        }
+        let bottom = piece.lead || piece.repeats();
+        for (_, v) in [(bottom, ring), (piece.tail, ring + 1)]
+            .into_iter()
+            .filter(|c| c.0)
+        {
+            encoded(&normals[v * 3..v * 3 + 3], &mut chunk.normals);
+        }
+        spans.push(span(start, chunk.indices.len())?);
+    }
+    Ok(dropped)
+}
+
+/// A run's faces, its `count` rings and two caps from the start of
+/// `positions`: each triangle with area handed to `keep` in draw order, as
+/// run vertices, and the run's unit normals summed into `normals`, which
+/// starts at zero. A vertex no triangle shades faces the way its ring does.
+/// `run` is its place in the table. Returns the triangles dropped.
+pub(super) fn shade(
+    positions: &[f32],
+    count: usize,
+    segments: usize,
     run: usize,
-    base: usize,
     resweep: &Resweep,
     normals: &mut [f32],
     keep: impl FnMut([u32; 3]),
 ) -> Result<usize> {
-    let segments = rings.segments;
-    let count = rings.count(&rings.runs[run]);
     let vertices = count * segments + 2;
-    let positions = &rings.positions[base * 3..(base + vertices) * 3];
+    let positions = &positions[..vertices * 3];
     let at = prepared::Run {
-        base: base as u32,
+        base: 0,
         first_index: 0,
         ring_start: 0,
         rings: count as u32,
@@ -192,26 +315,6 @@ pub(super) fn shade(
     Ok(dropped)
 }
 
-/// Records where each node of one run meets the rings: its lower and upper
-/// ring, then the run's first and last, as vertex offsets from `base`.
-pub(super) fn record_edges(
-    edges: &mut [Option<[usize; 4]>],
-    nodes: &[usize],
-    base: usize,
-    rings: usize,
-    segments: usize,
-    offset: usize,
-) {
-    for (i, &node) in nodes.iter().enumerate().skip(1) {
-        edges[node] = Some([
-            base + (i - 1 + offset) * segments,
-            base + (i + offset) * segments,
-            base,
-            base + (rings - 1) * segments,
-        ]);
-    }
-}
-
 /// What every ring of a sweep is drawn with: the section's rows, the
 /// tree's height (the twist runs over it) and the points round a ring.
 #[derive(Clone, Copy)]
@@ -221,12 +324,14 @@ pub(super) struct Ring<'a> {
     pub(super) angular: &'a [angular::Angular],
 }
 
-/// A run's vertices, ring by ring, then its two caps where `caps` asks.
+/// A run's vertices, ring by ring, then its two caps where `caps` asks. A
+/// vertex of wood other than a `trunk`'s below the ground is set onto it
+/// (fn-301, surface clearance); a trunk's buried foot stays below it.
 pub(super) fn emit_run(
     samples: &[Sample],
     frame: &[(Vec3, Vec3)],
     ring: Ring,
-    shape: Option<&crate::tree::Section>,
+    (shape, trunk): (Option<&crate::tree::Section>, bool),
     caps: bool,
     mut emit: impl FnMut([f32; 3], [f32; 2]),
 ) -> Result<()> {
@@ -236,9 +341,12 @@ pub(super) fn emit_run(
         angular,
     } = ring;
     let mut vertex = |p: Vec3, coord: [f32; 2]| {
-        let xyz = [p.x as f32, p.y as f32, p.z as f32];
+        let mut xyz = [p.x as f32, p.y as f32, p.z as f32];
         if !xyz.iter().all(|v| v.is_finite()) {
             return Err(Error::InvalidInput("surface float32 position overflow"));
+        }
+        if !trunk {
+            clear(&mut xyz);
         }
         emit(xyz, coord);
         Ok(())
@@ -270,6 +378,14 @@ pub(super) fn emit_run(
     vertex(last.p, [last.d as f32, 0.0])
 }
 
+/// A vertex below the ground set onto it (fn-301, surface clearance): an
+/// identity on one at or above it, `-0.0` included.
+pub(super) fn clear(xyz: &mut [f32]) {
+    if xyz[1] < 0.0 {
+        xyz[1] = 0.0;
+    }
+}
+
 /// The way run vertex `j` faces when no triangle is left to say: out from the
 /// axis for a ring vertex, along it for the two caps that sit on it.
 pub(super) fn facing(frame: &[(Vec3, Vec3)], segments: usize, j: usize) -> Vec3 {
@@ -288,11 +404,11 @@ pub(super) fn facing(frame: &[(Vec3, Vec3)], segments: usize, j: usize) -> Vec3 
     normal.cross(binormal) * away
 }
 
-/// The box around every vertex, widened from float32.
-pub(super) fn bounds(positions: &[f32]) -> Bounds {
+/// The box around every vertex of every chunk, widened from float32.
+pub(super) fn bounds<'a>(chunks: impl Iterator<Item = &'a [f32]>) -> Bounds {
     let mut min = Vec3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY);
     let mut max = Vec3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
-    for p in positions.as_chunks::<3>().0 {
+    for p in chunks.flat_map(|c| c.as_chunks::<3>().0) {
         min.x = min.x.min(p[0] as f64);
         min.y = min.y.min(p[1] as f64);
         min.z = min.z.min(p[2] as f64);

@@ -31,6 +31,7 @@ use crate::{
     tree::{Node, NodeKind, Section, SectionRing, Tree},
     Error, Result,
 };
+use telperion_space::{organ, organs};
 
 /// The most retained bases one stem may keep: a rail wide enough for any
 /// trunk a table has asked to clothe.
@@ -72,7 +73,12 @@ pub struct LeafBase {
 /// Whether this table clothes a trunk at all. At no count or no length the
 /// trunk is bare and the bark is what it always was.
 fn bearing(p: &CanopyParams) -> bool {
-    p.leaf_bases > 0 && p.leaf_base_length > 0.
+    p.leaf_bases > 0. && p.leaf_base_length > 0.
+}
+
+/// Whether this table hangs any base at all.
+pub fn hangs(p: &CanopyParams) -> bool {
+    bearing(p)
 }
 
 /// Whether this table packs its bases into the lattice rather than hanging
@@ -90,16 +96,16 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
     }
     let mut out = Vec::new();
     for rosette in foliage::rosettes(tree) {
-        let stem = polyline(tree, rosette.apex);
-        let mut depth = Vec::with_capacity(stem.len());
-        let mut run = 0.;
-        depth.push(0.);
-        for pair in stem.windows(2) {
-            run += tree.nodes[pair[0]]
-                .position
-                .distance(tree.nodes[pair[1]].position);
-            depth.push(run);
+        // Each stem keeps the whole bases its draw gives it, and continues
+        // its own crown's spiral (fn-277).
+        let key = foliage::stem_node(tree, &rosette);
+        let crown = foliage::apex(p, key);
+        let bases = organs(p.leaf_bases, key, organ::BASES);
+        if bases == 0 {
+            continue;
         }
+        let (stem, depth) = polyline(tree, rosette.apex);
+        let run = depth[depth.len() - 1];
         // The bases begin where the oldest living frond leaves the axis and
         // reach the foot of the stem, so the two sequences meet without a gap.
         let clothed = run - p.rosette_depth;
@@ -109,7 +115,7 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
         // One reference a stem, taken on the apex's own axis: the crown's
         // own, so the two sequences are one spiral.
         let (reference, _) = foliage::frame(rosette.axis);
-        let oldest = f64::from(p.leaf_bases.saturating_sub(1));
+        let oldest = f64::from(bases.saturating_sub(1));
         let spacing = clothed / oldest.max(1.);
         let pitch = if packed(p) {
             p.leaf_base_pitch.clamp(UPRIGHT, 180. - UPRIGHT)
@@ -117,7 +123,7 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
             p.leaf_base_pitch
         };
         let first = out.len();
-        for k in 0..p.leaf_bases {
+        for k in 0..bases {
             let age = if oldest > 0. {
                 f64::from(k) / oldest
             } else {
@@ -128,8 +134,9 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
             if packed(p) {
                 (from, axis) = centreline(tree, &stem, &depth, p.rosette_depth, want, girth);
             }
-            let (sin, cos) = (f64::from(p.rosette_fronds + k) * p.rosette_divergence.to_radians())
-                .sin_cos_fixed();
+            let (sin, cos) = ((crown.rosette_fronds + f64::from(k))
+                * p.rosette_divergence.to_radians())
+            .sin_cos_fixed();
             let (normal, binormal) = carried(rosette.axis, axis, reference);
             let radial = (normal * cos + binormal * sin).normalized();
             let (lean, upright) = pitch.to_radians().sin_cos_fixed();
@@ -169,53 +176,82 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
     out
 }
 
-/// Hang this table's retained bases on every stem as wood, appended after the
-/// radius solve so no base enters the pipe model. A table that clothes no
-/// trunk leaves the tree exactly as it found it, and so does a tree that
-/// already carries these bases: expansion clothes whatever it is handed,
-/// and a tree handed back keeps the one set it has.
-pub fn clothe_leaf_bases(tree: &mut Tree, p: &CanopyParams) -> Result<()> {
-    if !bearing(p) {
+/// Hang this table's retained bases on every stem, and each frond's axis
+/// (`foliage::rachises`), as wood, appended after the radius solve so
+/// neither enters the pipe model. `blade` is the leaf element's length, which
+/// a young frond's stations are measured against. A table that clothes no
+/// trunk and draws no axis leaves the tree exactly as it found it, and so
+/// does a tree that already carries these bases and axes: expansion clothes
+/// whatever it is handed, and a tree handed back keeps the one set it has.
+/// The tree records where the tail begins (`Tree::clothing`), so no leaf is
+/// borne on it.
+pub fn clothe(tree: &mut Tree, p: &CanopyParams, blade: f64) -> Result<()> {
+    if !bearing(p) && !foliage::draws_rachis(p) {
         return Ok(());
     }
     foliage::validate_canopy(p)?;
     tree.validate_solved()?;
     let table = leaf_bases(tree, p);
-    if clothed(tree, &table, p) {
+    let axes = foliage::rachises(tree, p, blade);
+    let tail = 2 * table.len() + axes.iter().map(|a| a.points.len()).sum::<usize>();
+    if clothed(tree, (&table, &axes), p, tail) {
+        tree.clothing = Some(tree.nodes.len() - tail);
         return Ok(());
     }
-    let room = table
-        .len()
-        .checked_mul(2)
-        .and_then(|nodes| tree.nodes.len().checked_add(nodes))
-        .filter(|total| *total <= u32::MAX as usize)
-        .ok_or(Error::ResourceLimit("leaf base nodes"))?;
-    let (nodes, sections) = hung(&table, p, tree.nodes.len());
+    let bases = room(tree.nodes.len(), 2 * table.len(), "leaf base nodes")?;
+    let room = room(bases, tail - 2 * table.len(), "rachis nodes")?;
+    let (nodes, sections) = hung((&table, &axes), p, tree.nodes.len());
+    if tail > 0 {
+        tree.clothing = Some(tree.nodes.len());
+    }
     tree.nodes.reserve(room - tree.nodes.len());
     tree.nodes.extend(nodes);
     tree.sections.extend(sections);
     tree.validate_solved()
 }
 
-/// Whether the tree ends in exactly the bases this table hangs, as a tree
-/// the expansion clothed once does.
-fn clothed(tree: &Tree, table: &[LeafBase], p: &CanopyParams) -> bool {
-    let Some(start) = tree.nodes.len().checked_sub(2 * table.len()) else {
+/// The nodes a tree of `nodes` holds once `more` are hung on it, refused by
+/// the rail's own name past what a node index holds.
+pub(crate) fn room(nodes: usize, more: usize, rail: &'static str) -> Result<usize> {
+    nodes
+        .checked_add(more)
+        .filter(|total| *total <= u32::MAX as usize)
+        .ok_or(Error::ResourceLimit(rail))
+}
+
+/// Whether the tree ends in exactly the bases and axes this table hangs,
+/// `tail` nodes of them, as a tree the expansion clothed once does.
+fn clothed(
+    tree: &Tree,
+    table: (&[LeafBase], &[foliage::Rachis]),
+    p: &CanopyParams,
+    tail: usize,
+) -> bool {
+    let Some(start) = tree.nodes.len().checked_sub(tail) else {
         return false;
     };
-    let (Some(first), Some(node)) = (table.first(), tree.nodes.get(start)) else {
-        return false;
-    };
-    if node.stem || node.parent != Some(first.at as u32) {
+    if tail == 0 || tree.nodes[start].stem {
         return false;
     }
     let (nodes, sections) = hung(table, p, start);
     tree.nodes[start..] == nodes[..] && tree.sections.ends_with(&sections)
 }
 
+/// The bases' nodes, then the axes', the first standing at node `start`,
+/// and the cells the packed bases are drawn as.
+fn hung(
+    (table, axes): (&[LeafBase], &[foliage::Rachis]),
+    p: &CanopyParams,
+    start: usize,
+) -> (Vec<Node>, Vec<Section>) {
+    let (mut nodes, sections) = bases(table, p, start);
+    foliage::hang_rachises(axes, start, &mut nodes);
+    (nodes, sections)
+}
+
 /// The two nodes of every base in the table, the first standing at node
 /// `start`, and the cells the packed ones are drawn as.
-fn hung(table: &[LeafBase], p: &CanopyParams, start: usize) -> (Vec<Node>, Vec<Section>) {
+fn bases(table: &[LeafBase], p: &CanopyParams, start: usize) -> (Vec<Node>, Vec<Section>) {
     let mut nodes = Vec::with_capacity(2 * table.len());
     let mut sections = Vec::new();
     for base in table {
@@ -324,9 +360,10 @@ fn carried(apex: Vec3, axis: Vec3, reference: Vec3) -> (Vec3, Vec3) {
 }
 
 /// One stem's own polyline, apex first: the order-zero axis down to the last
-/// stem node above the ground. The root is every stem's base and none, so a
-/// base is never hung on it and no run of a base is ever swept as a trunk.
-fn polyline(tree: &Tree, apex: usize) -> Vec<usize> {
+/// stem node above the ground, and each node's depth along it below the
+/// apex. The root is every stem's base and none, so a base or an axis is
+/// never hung on it and no run of one is ever swept as a trunk.
+pub(crate) fn polyline(tree: &Tree, apex: usize) -> (Vec<usize>, Vec<f64>) {
     let mut stem = vec![apex];
     while let Some(parent) = tree.nodes[*stem.last().unwrap()].parent {
         let parent = parent as usize;
@@ -335,7 +372,16 @@ fn polyline(tree: &Tree, apex: usize) -> Vec<usize> {
         }
         stem.push(parent);
     }
-    stem
+    let mut depth = Vec::with_capacity(stem.len());
+    let mut run = 0.;
+    depth.push(0.);
+    for pair in stem.windows(2) {
+        run += tree.nodes[pair[0]]
+            .position
+            .distance(tree.nodes[pair[1]].position);
+        depth.push(run);
+    }
+    (stem, depth)
 }
 
 /// The stem's centreline about a depth: the mean of its polyline over a
@@ -379,7 +425,12 @@ fn centreline(
 /// Where a depth below the apex falls on the stem: the node the base is borne
 /// on, the point on the polyline, the stem's own direction there and its girth
 /// there. The polyline is split for the base; the stem itself is untouched.
-fn along(tree: &Tree, stem: &[usize], depth: &[f64], want: f64) -> (usize, Vec3, Vec3, f64) {
+pub(crate) fn along(
+    tree: &Tree,
+    stem: &[usize],
+    depth: &[f64],
+    want: f64,
+) -> (usize, Vec3, Vec3, f64) {
     let deepest = stem.len() - 1;
     let lower = depth
         .iter()

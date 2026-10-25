@@ -1,14 +1,16 @@
 //! The executor interface and request subsets against the one build, over a
-//! small table of families: leaves free of the wood and seated on it, and an
-//! optional growth override stated and left unset.
+//! small table of families: a young engine beech with leaves free of the
+//! wood and seated on it, and an optional growth override (a scaffold row
+//! the engine never reads) stated and left unset.
 use super::*;
 use crate::{
-    pipeline::{build, Outputs, Request},
+    pipeline::{build, FieldRequest, Outputs, Request},
     presets::Preset,
 };
 
 fn cases() -> Vec<(&'static str, Family)> {
-    let base = Preset::Ordinary.parameters();
+    let mut base = Preset::EuropeanBeech.parameters();
+    base.age = 15.0;
     let mut free = base.clone();
     free.canopy.surface_contact = 0.0;
     let mut seated = base.clone();
@@ -25,10 +27,11 @@ fn cases() -> Vec<(&'static str, Family)> {
     ]
 }
 
-fn field(o: &Outputs) -> Option<(Vec<f64>, Vec<f64>, Vec<u32>)> {
-    let s = o.field.as_ref()?.snapshot().unwrap();
-    Some((s.wood, s.plan, s.plan_stations))
-}
+/// A field at 24 cells a side, at the family's limb order.
+const FIELD: Option<FieldRequest> = Some(FieldRequest {
+    n: 24,
+    limb_order: None,
+});
 
 /// The expansion of a grown tree, and of the same tree handed back, is the
 /// build's own: its tree, its wood and its mesh.
@@ -61,7 +64,7 @@ fn a_request_subset_builds_what_the_whole_request_builds() {
     let whole = Request {
         wood: true,
         leaves: true,
-        field: Some(None),
+        field: FIELD,
         structure: true,
         ..Request::default()
     };
@@ -79,11 +82,11 @@ fn a_request_subset_builds_what_the_whole_request_builds() {
         });
         let instances = |o: &Outputs| o.leaves.as_ref().map(|l| l.instances.clone());
         assert_eq!(instances(&leaves), instances(&all), "{name}: leaves");
-        let planned = alone(Request {
-            field: Some(None),
+        let field = alone(Request {
+            field: FIELD,
             ..Request::default()
         });
-        assert_eq!(field(&planned), field(&all), "{name}: field");
+        assert_eq!(field.field, all.field, "{name}: field");
         let structure = alone(Request {
             structure: true,
             ..Request::default()
@@ -103,17 +106,20 @@ fn a_request_subset_builds_what_the_whole_request_builds() {
 #[test]
 fn a_handed_tree_is_clothed_in_its_leaf_bases() {
     let f = Preset::from_id("date-palm").unwrap().parameters();
-    assert!(f.canopy.leaf_bases > 0 && f.canopy.leaf_base_length > 0.0);
+    assert!(f.canopy.leaf_bases > 0.0 && f.canopy.leaf_base_length > 0.0);
     let built = build(&f, Request::mesh()).unwrap();
     let clothed = &built.skeleton.tree;
     assert_eq!(clothed.stem_apices().len(), 1, "one stem");
-    // The bases are appended last, two nodes each, and every lattice cell
-    // the tree draws is a base's.
+    // The bases and any frond axes are appended last, as one tail, and
+    // every lattice cell the tree draws is a base's.
     let mut bare = clothed.clone();
     let bases = f.canopy.leaf_bases as usize;
     assert_eq!(clothed.sections.len(), bases, "a cell a base");
-    bare.nodes.truncate(clothed.nodes.len() - 2 * bases);
+    let tail = clothed.clothing.expect("the build clothes the palm");
+    assert!(clothed.nodes.len() - tail >= 2 * bases, "two nodes a base");
+    bare.nodes.truncate(tail);
     bare.sections.clear();
+    bare.clothing = None;
     let x = expand(bare, &f).unwrap();
     let nodes = x.tree().nodes.len();
     assert_eq!(nodes, clothed.nodes.len(), "the handed tree is clothed");

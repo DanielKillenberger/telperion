@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T11:12:43.918576Z",
+  "depends_on": [
+    "fn-313-a-prerelease-of-telperion-on-npm.1"
+  ],
+  "id": "fn-313-a-prerelease-of-telperion-on-npm.2",
+  "priority": null,
+  "spec": "fn-313-a-prerelease-of-telperion-on-npm",
+  "spec_path": ".flow/tasks/fn-313-a-prerelease-of-telperion-on-npm.2.md",
+  "status": "todo",
+  "title": "A workflow_dispatch prerelease under the next tag, its docs and the local dry run",
+  "updated_at": "2026-10-24T11:12:43.918576Z"
+}

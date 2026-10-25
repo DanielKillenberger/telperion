@@ -23,11 +23,24 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        leaf_years: f64::INFINITY,
+        elongation: 0.0,
+        expansion: 0.0,
+        leaf_life: f64::INFINITY,
+        budburst: 0.0,
+        senescence: 0.0,
+        colouring: 0.0,
+        leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -151,18 +164,24 @@ fn the_closed_form_matches_a_count_by_hand() {
     assert_eq!(rows, vec![vec![1.0, 1.0, 1.0], vec![0.0, 2.0, 4.0]]);
 }
 
-/// A fractional bud place grows whole, at its share of the size (fn-206):
-/// the closed form counts every place, as the grower grows it.
+/// A fractional bud place is a making draw (fn-231, host decision 8): it
+/// stands with its fraction's chance, and the closed form counts it at
+/// that share; the engine's mean over 20,000 seeds is its expectation.
 #[test]
-fn a_fractional_bud_place_is_counted_whole() {
-    let mut first = state(1, 1.0, vec![zone(1, 1, &[0.0, 1.0])]);
-    first.zones[0].buds = 1.5;
-    let species = Species {
-        states: vec![first, state(1, 0.0, vec![zone(1, 1, &[0.0, 0.0])])],
+fn a_fractional_bud_place_is_counted_at_its_share() {
+    let with = |buds: f64| {
+        let mut first = state(1, 1.0, vec![zone(1, 1, &[0.0, 1.0])]);
+        first.zones[0].buds = buds;
+        Species {
+            states: vec![first, state(1, 0.0, vec![zone(1, 1, &[0.0, 0.0])])],
+        }
     };
-    let ours = tree(&species, 3, 1).counts();
-    let formula = expected_counts(&species, 3).unwrap();
-    assert_equal("fractional buds", &ours, &formula);
+    // The laterals' phytomers lie three tenths of the way from one place
+    // a node to two, not at two.
+    let laterals = |buds: f64| expected_counts(&with(buds), 3).unwrap().total(1);
+    let (one, two) = (laterals(1.0), laterals(2.0));
+    assert!((laterals(1.3) - (one + 0.3 * (two - one))).abs() < 1e-12);
+    means_agree("fractional buds", &with(1.3), 3, 20_000);
 }
 
 /// Host decision 13: an apex that all but stopped moving on grows its
@@ -474,4 +493,55 @@ fn a_branch_of_ages_within_one_cycle_is_shed_on_time() {
         .map(|p| p.scale)
         .sum();
     assert_eq!(branch, 0.0, "the branch stands at {branch}");
+}
+
+/// A shedding delay a fraction past a whole one fades the subtrees it
+/// keeps on by that fraction, and the kept count takes them at it (fn-231):
+/// a millionth of a cycle more keeps a millionth's worth, not a cycle's.
+#[test]
+fn a_fractional_shedding_delay_keeps_by_its_fade() {
+    let kept = |more: f64| {
+        // The beech as it grew unlit, before fn-264: a lit species has
+        // no closed form.
+        let mut beech = telperion_space::beech();
+        for s in &mut beech.states {
+            (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+        }
+        for s in beech.states.iter_mut().filter(|s| s.shedding.is_finite()) {
+            s.shedding += more;
+        }
+        telperion_space::expected_kept(&beech, 20).unwrap().unwrap()
+    };
+    let (whole, next, near) = (kept(0.0), kept(1.0), kept(1e-6));
+    assert!(
+        next > whole * 1.01,
+        "{whole} {next}: a cycle more keeps more"
+    );
+    assert!((near / whole - 1.0).abs() < 1e-5, "{whole} {near} {next}");
+    let half = kept(0.5);
+    assert!(whole < half && half < next, "{whole} {half} {next}");
+}
+
+/// fn-231 review (codex, 2026-10-08): a unit a lifespan's fraction cuts
+/// lays its share of its zone's present nodes, so a node the node law only
+/// starts to make adds a vanishing share and lays no other node whole. A
+/// half-cycle age of one bare zone, its node count crossing 4.2422 at seed
+/// 1, laid a third whole node (2 m to 3 m of wood) before the share was
+/// taken from presences.
+#[test]
+fn a_node_made_at_vanishing_presence_lays_no_other_node_whole() {
+    let wood = |nodes: f64| {
+        let mut only = state(1, 0.0, vec![zone(1, 1, &[0.0])]);
+        only.lifespan = 0.5;
+        only.zones[0].nodes = NodeLaw::Uniform {
+            min: nodes,
+            max: nodes,
+        };
+        let species = Species { states: vec![only] };
+        let tree = tree(&species, 1, 1);
+        let scales = tree.axes.iter().flat_map(|a| &a.phytomers).map(|p| p.scale);
+        scales.sum::<f64>()
+    };
+    let (before, after) = (wood(4.242236618634503), wood(4.242236638634503));
+    assert!((after - before).abs() < 1e-3, "{before} m to {after} m");
 }

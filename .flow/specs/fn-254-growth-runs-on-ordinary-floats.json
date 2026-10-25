@@ -1,0 +1,46 @@
+{
+  "branch_name": "fn-254-growth-runs-on-ordinary-floats",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T19:56:24.526932Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-254-growth-runs-on-ordinary-floats",
+  "impl_review_rounds": {
+    "fn-254-growth-runs-on-ordinary-floats.1": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T20:00:48.979662Z",
+  "ready": true,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-254-growth-runs-on-ordinary-floats.1": 2,
+    "plan": 2,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-254-growth-runs-on-ordinary-floats.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-254-growth-runs-on-ordinary-floats.md",
+  "status": "done",
+  "title": "Growth runs on ordinary floats",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-11T00:56:30.028328Z"
+}

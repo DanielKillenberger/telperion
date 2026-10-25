@@ -5,6 +5,7 @@
 //! along the reference axis towards older PAs (AmapSim's oriented automaton;
 //! GreenLab's dual-scale automaton, de Reffye et al. 2021).
 use crate::error::{refuse, Result};
+use crate::transcendental::Transcendental;
 
 pub(crate) mod scale;
 mod validate;
@@ -49,10 +50,14 @@ const MAX_LIFESPAN: f64 = 1_000_000.0;
 const MAX_DELAY: f64 = 1_000.0;
 /// The longest a wander's bend is remembered, in metres.
 const MAX_BEND_LENGTH: f64 = 1_000.0;
-/// The largest leaf area one node bears, in square metres.
-const MAX_LEAF_AREA: f64 = 1.0;
+/// The largest leaf area one node bears, in square metres: the date
+/// palm's frond, 2.81 m² a node, is the largest shipped leaf (fn-264, host
+/// 2026-10-12).
+pub const MAX_LEAF_AREA: f64 = 5.0;
 /// The steepest response of a hazard or a size to shade.
 const MAX_SHADE: f64 = 10.0;
+/// The most leaves one short shoot's cluster carries (fn-223).
+pub const MAX_CLUSTER_LEAVES: f64 = 8.0;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Species {
@@ -114,11 +119,19 @@ pub struct PaState {
     /// Where along its stopped axis a relay bud stands, as a share of the
     /// nodes of the axis's last growth unit from their base: Troll's relay
     /// "in the curvature zone" of the module it takes over from. Neutral 1, the last node; dormant
-    /// without relays.
+    /// without relays. Where the relay joins its parent, and so where its
+    /// wood and load enter and the drawing's join stands, follows from it
+    /// (`geometry::attach`, fn-244).
     pub relay_at: f64,
     /// How far a relay bud turns from its phyllotactic side to the upper
     /// side of its parent (epitony). Neutral 0; dormant without relays.
     pub epitony: f64,
+    /// Troll's take-over (fn-286): how far a relay's course runs back onto
+    /// the line of the axis it carries on, the parent's running direction
+    /// at its tip, at its base, fading over the scaled length its
+    /// straightening fades over; as far as the relay has left that line
+    /// (its blend). Neutral 0; dormant without relays.
+    pub takeover: f64,
     /// Troll's secondary erection: how fast, per cycle of the axis's age,
     /// its base straightens further towards the vertical, on top of its
     /// straightening (and on the seed, which has none). Neutral 0.
@@ -134,11 +147,72 @@ pub struct PaState {
     /// metres: what its leaves lend the light's lattice (`light.rs`).
     /// Neutral 0, leafless; dormant without extinction.
     pub leaf_area: f64,
+    /// The share of this PA's kept nodes that bear an inflorescence: where
+    /// a species flowers, by its architectural model (fn-216 host decision
+    /// 1). The engine grows nothing of it; the pipeline's expansion draws
+    /// the flowers. Neutral 0, flowerless.
+    pub flowering: f64,
+    /// Leaves at the tip of each axis of this PA, which then bears no leaf
+    /// along its length: a short shoot's cluster (fn-223). A fraction is
+    /// split by a keyed draw at each axis, which bears the whole count
+    /// either side of it, a short shoot of none bearing along its length
+    /// (`telperion_space::cluster`, fn-277). The engine grows nothing of it; the
+    /// pipeline's expansion seats the leaves. Neutral 0, leaves along the
+    /// shoot as before.
+    pub cluster_leaves: f64,
+    /// Radians either side of its tip's level bearing a cluster's leaves
+    /// fan across: pi / 2 is a half circle, 0 stacks them. Dormant without
+    /// `cluster_leaves`.
+    pub cluster_spread: f64,
+    /// How many years a phytomer of this PA bears its leaf: a station on
+    /// wood `age` years old (0 the current year's) keeps its leaf by its
+    /// retention clamp(leaf_years - age, 0, 1), on top of the slender
+    /// wood the canopy bears on (fn-248). Fractional, the one age it
+    /// splits keeps that share of its stations by a keyed draw. The
+    /// engine grows nothing of it; the pipeline's expansion reads it.
+    /// Neutral infinite, every age bears; a short shoot's cluster bears
+    /// while its shoot lives.
+    pub leaf_years: f64,
+    /// The days a growth unit of this PA takes to elongate from bud burst,
+    /// its shoot extending from its base along the logistic course
+    /// (`unfold::course`) and its nodes unfolding as it reaches them
+    /// (fn-270 R5). The engine grows nothing of it; the presentation
+    /// within the year reads it. Neutral 0, at once.
+    pub elongation: f64,
+    /// The days a leaf of this PA takes to expand from its node's
+    /// unfolding to its whole size, along the same course (fn-270 R5).
+    /// Read as `elongation` is. Neutral 0, at once.
+    pub expansion: f64,
+    /// The years a leaf of this PA lives (fn-270 R5c): a leaf older than
+    /// this at autumn colours and falls, by degree (a fraction falls that
+    /// share of its cohort), and where its wood still bears one it grows
+    /// again from its bud at budburst. Apart from `leaf_years`, how long
+    /// wood bears leaves, so whole ages are unchanged. Read as
+    /// `elongation` is. Neutral infinite: no leaf falls.
+    pub leaf_life: f64,
+    /// The day of the calendar year its buds burst: with `elongation` and
+    /// `expansion` it places a whole age, which stands at full leaf, on the
+    /// calendar, and so `senescence` on the presentation's year (R5c).
+    /// Dormant while no leaf falls.
+    pub budburst: f64,
+    /// The day of the calendar year its falling leaves start to colour,
+    /// the days they take to colour, and then the days they take to fall
+    /// (R5c). Dormant while no leaf falls.
+    pub senescence: f64,
+    pub colouring: f64,
+    pub leaf_fall: f64,
     /// How shade raises an apex's yearly death hazard: its survival is
     /// its viability to the power light^-shade_hazard, so ln survival =
     /// ln viability times light^-φ (host, 2026-10-05). Neutral 0; dormant
     /// where the apex never dies (viability 1) or no leaf shades it.
     pub shade_hazard: f64,
+    /// How the ground ends an apex that reaches it (fn-252 R2): while
+    /// its tip, as the rough layout grown with the tree lays it, rests on
+    /// the ground, its yearly survival is its viability times
+    /// (1 - ground_hazard). Neutral 0, today's resting and running along
+    /// the ground (fn-200); at 1 a shoot that reaches the ground stops
+    /// there. Read through the rough layout, so only where light shades.
+    pub ground_hazard: f64,
     /// How a bud's growth unit follows the vigour the tree's light gives
     /// it (`allocation.rs`; host decisions 11 and 14): its own internodes
     /// and girth scale by its vigour per presence against the mean of the
@@ -240,6 +314,20 @@ pub struct Form {
     /// in a few slow arcs of the same spread per metre. Neutral 0;
     /// dormant without wander.
     pub bend_length: f64,
+    /// How far each internode's length departs from its PA's, node to
+    /// node: scaled by 1 + spread × (2u − 1), u its node's keyed draw, so
+    /// a unit's expected length is unchanged (fn-222). Neutral 0, every
+    /// internode alike; at most 1.
+    pub internode_spread: f64,
+    /// How far each lateral's or relay's insertion angle departs from its
+    /// PA's, axis to axis: offset by spread × (2u − 1) radians, u its
+    /// lineage's keyed draw, so the mean angle is unchanged (fn-224).
+    /// Neutral 0, every axis at its PA's angle; at most pi / 2.
+    pub insertion_spread: f64,
+    /// How far each axis's tropism departs from its PA's, axis to axis:
+    /// scaled by 1 + spread × (2u − 1), u its lineage's keyed draw, so its
+    /// mean is unchanged (fn-224). Neutral 0, every axis alike; at most 1.
+    pub tropism_spread: f64,
 }
 
 impl Default for Form {
@@ -258,6 +346,9 @@ impl Default for Form {
             sag: 0.0,
             secondary: 1.0,
             bend_length: 0.0,
+            internode_spread: 0.0,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
         }
     }
 }
@@ -381,16 +472,32 @@ impl Species {
         self.lived(pa + 1).map(|(next, reach)| (next, go * reach))
     }
 
-    /// Whether any bud reads the light: its survival, its unit's size,
+    /// Whether any bud reads the light or the rough layout: its survival
+    /// (by its light or the ground its tip reaches), its unit's size,
     /// its subtree's carbon balance or its pipe. Without one the light
     /// changes nothing and the tree grows no rough layout.
     pub(crate) fn reads_light(&self) -> bool {
         self.states.iter().any(|s| {
             s.shade_hazard != 0.0
+                || s.ground_hazard != 0.0
                 || s.shade_size != 0.0
                 || s.balance_hazard != 0.0
                 || s.leaf_girth != 0.0
         })
+    }
+
+    /// The species with every row `reads_light` reads at 0: the tree the
+    /// closed form predicts, whose expectations size a build and a blend
+    /// (fn-257: the birch's ground hazard, left out of one copy of this
+    /// list, sized its device build from nothing).
+    pub fn unlit(&self) -> Species {
+        let mut unlit = self.clone();
+        for s in &mut unlit.states {
+            (s.shade_hazard, s.ground_hazard, s.shade_size) = (0.0, 0.0, 0.0);
+            (s.balance_hazard, s.leaf_girth) = (0.0, 0.0);
+        }
+        debug_assert!(!unlit.reads_light());
+        unlit
     }
 
     /// Refuses, by name, every input the engine cannot draw.
@@ -410,6 +517,17 @@ impl Species {
 }
 
 impl PaState {
+    /// Whether an apex's abortion hazard changes with the time it grew.
+    pub(crate) fn rises(&self) -> bool {
+        self.abortion_rise != 0.0 && self.abortion > 0.0
+    }
+
+    /// Its lifespan as the grower and the closed form read it: on the
+    /// tick grid (`contract.rs`, FINE-CONTRACT.md D7).
+    pub(crate) fn life(&self) -> f64 {
+        crate::contract::grid(self.lifespan)
+    }
+
     /// The probability the apex aborts after a growth unit that ends `t`
     /// cycles of its axis's growth: whole cycles for whole units, the real
     /// time where a unit is partial (host decision 7).
@@ -417,7 +535,7 @@ impl PaState {
         if self.abortion_rise == 0.0 || self.abortion <= 0.0 {
             return self.abortion;
         }
-        1.0 - (1.0 - self.abortion).powf(t.powf(self.abortion_rise))
+        1.0 - (1.0 - self.abortion).powf_fixed(t.powf_fixed(self.abortion_rise))
     }
 
     /// Each zone's lateral probabilities as the axis draws them: spread
@@ -467,9 +585,16 @@ impl Zone {
         self.buds.ceil() as usize
     }
 
-    /// The share of bud place `slot`: 1 for a whole one, the fraction of
-    /// `buds` for the last.
+    /// The chance bud place `slot` stands: 1 for a whole one, the fraction
+    /// of `buds` for the last, a making draw (fn-231).
     pub(crate) fn share(&self, slot: usize) -> f64 {
         (self.buds - slot as f64).min(1.0)
+    }
+
+    /// Its whole bud places a node, and the chance the last, a fraction,
+    /// stands: none where every place is whole.
+    pub(crate) fn whole_places(&self) -> (i32, f64) {
+        let whole = self.buds.floor();
+        (whole as i32, self.buds - whole)
     }
 }

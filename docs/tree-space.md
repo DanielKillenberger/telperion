@@ -49,6 +49,7 @@ The host views every still first and fails the obvious ones itself. A species pa
 The phases are captured up front as chained specs (A to F), each depending on the one before; the owner marks them ready, which is the consent for the run. The driver is flow-next's own: `/loop /flow-next:flow --auto`, which drives the next ready spec whose dependency is met to an open PR, branching from its predecessor's pushed branch, and repeats.
 
 - **Gates are evidence, not sign-off:** oracle and walk tests (A, B), the host-and-Astra visual pass (C to E), the workspace gate, speed and the Codex review (F).
+- **A new setting is proven alone first:** `WALK=<substring> cargo test --profile ci -p telperion-space --test walks` walks only the settings whose name holds it; the gate runs unset and walks them all.
 - **The owner's verdict comes in the morning,** on every passed species and on F's PR; nothing merges to master without it.
 - **The run stops** only on a backend outage, `NO_WORK`, or a genuine wrong path: the host can name no next design step the evidence supports, or the engine cannot express the botany. A trait that fails after a change aimed at it is not a stop by itself (owner, 2026-10-04): the host decides the design question the failure raises, records it, and continues. A stop writes what was tried, what failed and the decision needed.
 - **Merging (owner, 2026-10-04):** a phase's PR whose checks pass and whose review passed (a host-reset review counter counts) may be merged by the run.

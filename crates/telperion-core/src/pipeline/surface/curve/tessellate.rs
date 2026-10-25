@@ -132,8 +132,20 @@ impl Curve {
     /// two tube rings is a tube's strip; any other a ribbon's quad. A ring
     /// keeps the forms its stretches need: its polygon where a tube stretch
     /// meets it, closed by a cap where its tube ends, and its two ribbon
-    /// vertices where a ribbon stretch meets it.
+    /// vertices where a ribbon stretch meets it. A vertex of wood other than
+    /// a trunk's below the ground is set onto it, its normal as it was
+    /// (fn-301, surface clearance).
     fn emit(&self, plan: &plan::Plan, viewer: &Viewer, out: &mut Tessellation) {
+        let from = out.positions.len();
+        self.emit_rings(plan, viewer, out);
+        if !plan.trunk {
+            out.positions[from..]
+                .chunks_exact_mut(3)
+                .for_each(super::super::build::clear);
+        }
+    }
+
+    fn emit_rings(&self, plan: &plan::Plan, viewer: &Viewer, out: &mut Tessellation) {
         let rings = &plan.rings;
         out.rings += rings.len();
         let stretch = |i: usize| rings[i].tube && rings[i + 1].tube;

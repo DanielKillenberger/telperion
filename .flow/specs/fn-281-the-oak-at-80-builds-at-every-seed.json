@@ -1,0 +1,42 @@
+{
+  "branch_name": "fn-281-the-oak-at-80-builds-at-every-seed",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-14T15:11:39.427994Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-281-the-oak-at-80-builds-at-every-seed",
+  "impl_review_rounds": {
+    "fn-281-the-oak-at-80-builds-at-every-seed.2": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-281-the-oak-at-80-builds-at-every-seed.2": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-281-the-oak-at-80-builds-at-every-seed.2": 0
+  },
+  "spec_path": ".flow/specs/fn-281-the-oak-at-80-builds-at-every-seed.md",
+  "status": "done",
+  "title": "The oak at 80 builds at every seed",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-15T20:17:26.710604Z"
+}

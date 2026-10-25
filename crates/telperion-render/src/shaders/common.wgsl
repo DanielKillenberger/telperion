@@ -52,7 +52,7 @@ struct Uniforms {
     fissure: vec4<f32>, // fissure RGB offsets, strength
     crest: vec4<f32>, // crest RGB offsets, strength
     bark_colour_detail: vec4<f32>, // mottle scale, mottle strength, cavity strength, sky occlusion strength
-    leaf_colour_detail: vec4<f32>, // mottle scale, mottle strength, cuticle gloss, reserved
+    leaf_colour_detail: vec4<f32>, // mottle scale, mottle strength, cuticle gloss, the margin band's area share
     margin: vec4<f32>, // RGB offsets, width
     /// The plate network: how wide one plate is across the run in metres
     /// before girth stretches it, how far it runs along, how far its face
@@ -84,14 +84,37 @@ struct Uniforms {
     peel: vec4<f32>, // RGB, curl
     /// What the bark and the cuticle mirror of the sun at normal incidence,
     /// the foot of each material's one highlight.
-    reflectance: vec4<f32>, // bark, leaf, reserved, reserved
+    reflectance: vec4<f32>, // bark, leaf, margin, the group's roughness
     /// The grain below the relief: the bark's cell size in metres and its
     /// strength, the leaf's cells per leaf length and its strength.
     grain: vec4<f32>,
     plate_profile: vec4<f32>, // edge shape, reserved, reserved, reserved
-    /// The colour a withered leaf has aged to, both faces alike: the dead
-    /// fronds a rosette keeps below its living crown.
-    leaf_dead: vec4<f32>, // RGB, reserved
+    /// The colour a withered leaf turns to, both faces alike, and how far
+    /// it has turned: the dead fronds a rosette keeps below its living
+    /// crown, wholly, and a falling leaf in autumn (fn-270 R5c).
+    leaf_dead: vec4<f32>, // RGB, how far
+    /// Old bark: its colour and the furrow strength it takes, and the radius
+    /// radius it starts at with the span it turns over; zero leaves none old.
+    mature: vec4<f32>, // RGB, furrow strength
+    mature_radius: vec4<f32>, // start, span, reserved, reserved
+    /// The supernatural group's mirror on a leaf's underside: its tint and
+    /// its reflectance at normal incidence. The margin's reflectance and
+    /// both mirrors' roughness are `reflectance.zw`. Zero on every natural
+    /// leaf and on every flower.
+    leaf_reflection: vec4<f32>, // back tint RGB, back reflectance
+    /// A floret's eye: the colour its petals turn toward at their base, and
+    /// the share of their length it reaches. Zero on every leaf.
+    bloom_eye: vec4<f32>, // eye RGB, share of the petal
+    /// A floret's stalks (fn-253): the rachis's length, its droop, the
+    /// stamen's half width the stalks narrow to, and the pedicel's length.
+    /// Zero on every leaf; the organ's rachis instances are none there.
+    stalk: vec4<f32>,
+    /// The scene row's air: the glow round the sun as a multiple of it, the
+    /// distance in metres the far floor hazes over (zero hazes none), and
+    /// the ground disc's reach; and the ground's dry colour with how far the
+    /// ground turns toward it (zero is the flat ground colour).
+    atmosphere: vec4<f32>, // glow, haze distance, ground reach, reserved
+    ground_dry: vec4<f32>, // RGB, variation
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -359,4 +382,50 @@ fn smooth_share(share: f32) -> f32 {
     if (x < 0.1) { return 5.0 * x * x; }
     let over = max(x - 1.0, 0.0);
     return x - 0.05 - 5.0 * over * over;
+}
+
+/// The sky's radiance along a direction: the horizon's colour rising into the
+/// zenith's, and round the sun a glow in the sun's own colour, a broad halo
+/// under a tight one, as a multiple of the sun the row states. A glow of
+/// nought is the plain gradient. Below the horizon the sky is the horizon,
+/// which is what the far floor fades into, so the skyline draws no seam.
+fn sky_radiance(direction: vec3<f32>) -> vec3<f32> {
+    // The square root pulls the horizon's colour up off the skyline, which is
+    // how a sky reads: most of its change is in the first few degrees.
+    let height = sqrt(clamp(direction.y, 0.0, 1.0));
+    let gradient = mix(u.sky_horizon.rgb, u.sky_zenith.rgb, height);
+    // Powers as products, so a direction facing away from the sun is a
+    // clean nought and never a power of nought.
+    let facing = max(dot(direction, u.sun_direction.xyz), 0.0);
+    let broad = facing * facing * facing;
+    let tight = broad * broad * broad * broad * broad * broad * broad * broad;
+    return gradient + u.sun.rgb * (u.atmosphere.x * (0.03 * broad + 0.08 * tight));
+}
+
+/// The ground's tonal field at a place on it, in 0..1: value noise on the leaf
+/// colour hash over three octaves, about thirty, ten and four metres across,
+/// each turned and slid off the grid of the one before so no lattice lines up.
+fn ground_field(place: vec2<f32>) -> f32 {
+    let turn = mat2x2<f32>(0.8, 0.6, -0.6, 0.8);
+    let broad = value_noise(place / 31.0);
+    let middle = value_noise(turn * place / 11.0 + vec2<f32>(17.3, 5.1));
+    let fine = value_noise(turn * turn * place / 4.0 + vec2<f32>(-3.7, 11.9));
+    return 0.55 * broad + 0.3 * middle + 0.15 * fine;
+}
+
+/// Smooth value noise in 0..1: the hashes of the four lattice corners round a
+/// point, eased between. The corners are whole cells, so the same place is
+/// the same value on every frame and every device that hashes alike.
+fn value_noise(p: vec2<f32>) -> f32 {
+    let cell = floor(p);
+    let f = p - cell;
+    let w = f * f * (3.0 - 2.0 * f);
+    let c = vec2<i32>(cell);
+    let below = mix(lattice_value(c), lattice_value(c + vec2<i32>(1, 0)), w.x);
+    let above = mix(lattice_value(c + vec2<i32>(0, 1)), lattice_value(c + vec2<i32>(1, 1)), w.x);
+    return mix(below, above, w.y);
+}
+
+fn lattice_value(c: vec2<i32>) -> f32 {
+    return vary((bitcast<u32>(c.x) * 73856093u) ^ (bitcast<u32>(c.y) * 19349663u)).x;
 }

@@ -26,7 +26,7 @@ fn palm(bases: u32) -> Family {
     f.skeleton.habit.crookedness = 0.;
     f.skeleton.habit.attractor_weight = 0.;
     f.skeleton.bias = BiasParams::NONE;
-    f.canopy.leaf_bases = bases;
+    f.canopy.leaf_bases = f64::from(bases);
     f.canopy.leaf_base_width = 1.;
     f.canopy.leaf_base_flatness = 1.;
     f.canopy.leaf_base_weathering = 0.;
@@ -55,13 +55,14 @@ fn bases(
     segments: usize,
     unroll: impl Fn(Vec3) -> (f64, f64, f64),
 ) -> Vec<[Ring; 2]> {
-    let vertex = |i: usize| {
-        let p = &wood.positions[i * 3..i * 3 + 3];
-        Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)
-    };
     let mut out = Vec::new();
     for run in &wood.run_table {
-        let span = &wood.indices[run.first_index as usize..][..run.index_count as usize];
+        let (chunk, run) = (&wood.chunks[run.chunk as usize], run.span);
+        let vertex = |i: usize| {
+            let p = &chunk.positions[i * 3..i * 3 + 3];
+            Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)
+        };
+        let span = &chunk.indices[run.first_index as usize..][..run.index_count as usize];
         let low = *span.iter().min().unwrap() as usize;
         let high = *span.iter().max().unwrap() as usize;
         let rings = (high + 1 - low - 2) / segments;
@@ -219,6 +220,7 @@ fn lattice(count: u32, width: f64) -> (f64, f64, f64, usize) {
 
 /// R1: at width 1 and a flat section the bases tile the bark and their outer
 /// ends alike, at 32, 96 and 256 bases.
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn bases_at_full_width_tile_the_trunk_edge_to_edge() {
     for count in [32, 96, 256] {

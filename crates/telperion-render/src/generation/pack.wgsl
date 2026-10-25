@@ -28,49 +28,222 @@ fn rotation_word(x:vec3<f32>, y:vec3<f32>, z:vec3<f32>) -> u32 {
     }
     return word;
 }
-fn random(ordinal:u32) -> f32 {
-    var z=(config.random.x ^ 0x2c9e1a7fu)+(ordinal+1u)*0x9e3779b9u;
-    z=(z^(z>>16u))*0x21f0aaadu; z=(z^(z>>15u))*0x735a2d97u;
-    return f32(z^(z>>15u))*(1.0/4294967296.0);
+fn mix32(v:u32) -> u32 {
+    var z=v; z=(z^(z>>16u))*0x21f0aaadu; z=(z^(z>>15u))*0x735a2d97u;
+    return z^(z>>15u);
+}
+// The `ordinal`th draw of a run's stream: the family's seed and its first
+// node's key (`tree::leaf_stream`, fn-212), whatever order runs are walked.
+fn random(key:u32, ordinal:u32) -> f32 {
+    let stream=mix32(config.random.x ^ 0x2c9e1a7fu ^ key);
+    return f32(mix32(stream+(ordinal+1u)*0x9e3779b9u))*(1.0/4294967296.0);
 }
 fn rotate(v:vec3<f32>, axis:vec3<f32>, angle:f32) -> vec3<f32> {
     let c=cos(angle); let s=sin(angle);
     return v*c+cross(axis,v)*s+axis*(dot(axis,v)*(1.0-c));
 }
+// Leaf `j` of a cluster of `n` (fn-223, `cluster::radial`): the level
+// bearing of the tip's heading, +X where it stands vertical, turned about
+// +Y by the spread either way, evenly.
+fn fanned(heading:vec3<f32>, n:u32, spread:f32, j:u32) -> vec3<f32> {
+    var bearing=vec3<f32>(1.0,0.0,0.0);
+    let flat=vec3<f32>(heading.x,0.0,heading.z);
+    if dot(flat,flat)>1e-12 { bearing=normalize(flat); }
+    var across=0.0;
+    if n>1u { across=spread*(2.0*f32(j)/f32(n-1u)-1.0); }
+    return rotate(bearing,vec3<f32>(0.0,1.0,0.0),across);
+}
+// Whether station `k` of a segment that may shed keeps its leaf
+// (`tree::keeps`): the retention of its wood, before the segment's
+// boundary or from it, against its draw on the segment's stream.
+fn retained(seg:Segment, k:u32) -> bool {
+    return kept_by(seg,bitcast<u32>(seg.normal.w),k);
+}
+// Whether station `k` keeps its leaf under the retention word `keep`.
+fn kept_by(seg:Segment, keep:u32, k:u32) -> bool {
+    let unit=bitcast<u32>(config.size.z);
+    var q=keep>>16u;
+    if (k/config.random.y)*unit>=bitcast<u32>(seg.tangent.w) { q=keep&0xffffu; }
+    if q==0xffffu { return true; }
+    let stream=bitcast<u32>(seg.binormal.w);
+    return (mix32(stream+(k+1u)*0x9e3779b9u)>>16u)<q;
+}
+// Whether any placement may carry more than one leaflet (fn-277).
+fn grouped() -> bool {
+    return config.organs.x>0x10000u && config.rachis.x>0.0;
+}
+// The leaves placement `k` of the bearer keyed `key` carries: its
+// leaflets (`organs::leaflets`, `stations.wgsl`'s `leaves_at`).
+fn leaves_at(key:u32, k:u32) -> u32 {
+    if !grouped() { return 1u; }
+    let n=organs(config.organs.x,placement_key(key,k),ORGAN_LEAFLETS);
+    return select(1u,n,n>1u);
+}
 fn station(index:u32) -> vec3<u32> {
     var lo=0u; var hi=config.counts.y;
+    // cap: each step halves hi - lo, a u32, so 32 steps at most.
     while lo+1u<hi { let mid=lo+(hi-lo)/2u; if segments[mid].range.x<=index { lo=mid; } else { hi=mid; } }
     let seg=segments[lo];
-    let k=seg.range.z+index-seg.range.x;
-    let internode=k/config.random.y;
-    let distance=f32(internode)*config.shape.x;
-    var t=0.0; if seg.distance.y>1e-12 { t=(distance-seg.distance.x)/seg.distance.y; }
-    let centre=seg.a.xyz*(1.0-t)+seg.b.xyz*t;
-    let radius=seg.a.w*(1.0-t)+seg.b.w*t;
-    let turn=f32(internode-seg.range.z/config.random.y)*config.shape.y+f32(k%config.random.y)*6.283185307179586/f32(config.random.y);
-    let sin_turn=seg.distance.z*cos(turn)+seg.distance.w*sin(turn);
-    let cos_turn=seg.distance.w*cos(turn)-seg.distance.z*sin(turn);
-    let radial=seg.normal.xyz*cos_turn+seg.binormal.xyz*sin_turn;
-    var point=centre+radial*radius;
-    if config.shape.z>0.0 { point=point*(1.0-config.shape.z)+contact(seg.edge,centre,radial,radius)*config.shape.z; }
-    var axis=radial+seg.tangent.xyz*(config.lean.x+config.lean.y*max(radial.y,0.0));
+    var k=seg.range.z+index-seg.range.x;
+    // A rosette's frond: its stations are its leaflets (fn-256).
+    if seg.distance.y < -1.5 { return leaflet(seg,k); }
+    // A segment some of whose stations shed their leaves (fn-248), or
+    // whose stations carry leaflets (fn-277): the leaf's station is the
+    // kept one its place among them names, and its leaflet the rest.
+    let sheds=bitcast<u32>(seg.normal.w)!=0xffffffffu;
+    var left=0u;
+    if sheds || grouped() {
+        left=index-seg.range.x; k=seg.range.z;
+        // cap: a tile holds 256 stations, each its leaflets.
+        loop {
+            if !sheds || retained(seg,k) { let n=leaves_at(seg.range.w,k); if left<n { break; } left-=n; }
+            k+=1u;
+        }
+    }
+    var radial:vec3<f32>; var point:vec3<f32>; let tangent=seg.tangent.xyz; var normal=seg.normal.xyz;
+    if seg.distance.y<0.0 {
+        // A cluster at its tip, on the tip's own stream, its leaves
+        // where a run's phase stands.
+        radial=fanned(tangent,u32(seg.distance.w),seg.distance.z,k);
+        point=seg.a.xyz; normal=radial;
+    } else {
+        let internode=k/config.random.y;
+        let distance=f32(internode)*config.shape.x;
+        var t=0.0; if seg.distance.y>1e-12 { t=(distance-seg.distance.x)/seg.distance.y; }
+        let centre=seg.a.xyz*(1.0-t)+seg.b.xyz*t;
+        let radius=seg.a.w*(1.0-t)+seg.b.w*t;
+        let turn=f32(internode-seg.range.z/config.random.y)*config.shape.y+f32(k%config.random.y)*6.283185307179586/f32(config.random.y);
+        let sin_turn=seg.distance.z*cos(turn)+seg.distance.w*sin(turn);
+        let cos_turn=seg.distance.w*cos(turn)-seg.distance.z*sin(turn);
+        radial=seg.normal.xyz*cos_turn+seg.binormal.xyz*sin_turn;
+        point=centre+radial*radius;
+        if config.shape.z>0.0 { point=point*(1.0-config.shape.z)+contact(seg.edge,centre,radial,radius)*config.shape.z; }
+    }
+    var axis=radial+tangent*(config.lean.x+config.lean.y*max(radial.y,0.0));
     let outward=vec3<f32>(point.x,0.0,point.z);
     if dot(outward,outward)>1e-12 { axis+=normalize(outward)*config.lean.z; }
     axis.y+=config.lean.w;
     if dot(axis,axis)<=1e-12 { axis=radial; }
     axis=normalize(axis);
+    var words:vec3<u32>;
+    let n=leaves_at(seg.range.w,k);
+    if n>1u {
+        // Leaflet `left` of the station's own (`rosette::fan`): the first
+        // on the run's draws, the rest on the station's.
+        let own=placement_key(seg.range.w,k);
+        let spines=organs(config.organs.y,own,ORGAN_SPINES);
+        let borne=vec3<f32>(f32(spines),bitcast<f32>(config.organs.z),bitcast<f32>(config.organs.w));
+        // A placement on wood draws no rachis, so its leaflets stand at
+        // its point as one tuft, each on its heading (`leaflet::leaflets`).
+        let l=on_rachis(point,axis,n,left,f32(left+1u)/f32(n),config.rachis,borne,0.0);
+        let key=select(own,seg.range.w,left==0u);
+        let ordinal=select(left,k,left==0u);
+        words=packed(point,l.axis,l.tangent,l.normal,key,ordinal,leaf_share(seg,k)*l.share);
+    } else {
+        words=packed(point,axis,tangent,normal,seg.range.w,k,leaf_share(seg,k));
+    }
+    // A colouring leaf is drawn as one withering (fn-270 R5c).
+    if falls(seg,k) && seg.season.x>0.0 { words.z|=LEAF_WITHERED; }
+    return words;
+}
+// Whether station `k`'s leaf falls this year: past its lifespan, or one
+// its wood keeps no longer.
+fn falls(seg:Segment, k:u32) -> bool {
+    let now=bitcast<u32>(seg.unfolded.y);
+    let kept=now==0xffffffffu || kept_by(seg,now,k);
+    let life=bitcast<u32>(seg.season.y);
+    let passing=life!=0u && (life==0xffffu || (mix32(bitcast<u32>(seg.season.z)+(k+1u)*0x9e3779b9u)>>16u)<life);
+    return !kept || passing;
+}
+// The share of its whole size station `k`'s leaf is drawn at within the
+// year (`tree::Unfolded::leaf`, fn-270 R5, R5c): one past its lifespan,
+// or one its wood keeps no longer, stays whole until its own abscission
+// day and is gone from then, and where kept grows again from its bud;
+// any other stands at its wood's share.
+fn leaf_share(seg:Segment, k:u32) -> f32 {
+    let now=bitcast<u32>(seg.unfolded.y);
+    let kept=now==0xffffffffu || kept_by(seg,now,k);
+    if !falls(seg,k) { return seg.unfolded.x; }
+    let gone=u32(floor(seg.unfolded.z*65535.0+0.5));
+    let fallen=gone!=0u && (gone==0xffffu || (mix32(bitcast<u32>(seg.season.w)+(k+1u)*0x9e3779b9u)>>16u)<gone);
+    return select(1.0,0.0,fallen)+select(0.0,seg.unfolded.w,kept);
+}
+// Leaflet `j` of a frond's segment (`rosette.rs`'s `fan`,
+// `leaflet::leaflets`): on the rachis that leaves the frond's point on
+// its heading, bent by its arch toward the frame's lift, at the leaflet
+// pitch to alternate sides, the last closed by the terminal share and a
+// spine at its own pitch and share; a lone placement on the frond's
+// heading itself. A skirt frond's leaflets wither.
+fn leaflet(seg:Segment, j:u32) -> vec3<u32> {
+    let count=seg.range.y; let heading=seg.tangent.xyz;
+    var point=seg.a.xyz; var axis=heading; var tangent=seg.b.xyz; var normal=seg.normal.xyz;
+    // A young frond's strips of one blade (`Split::segment`, fn-275 R2b,
+    // R2c): each stands at its station times `f`, its rachis short and
+    // lengthening as it matures, and runs toward the blade's tip, its
+    // length moving to the mature leaflet's on a log scale; the rachis
+    // over a mature leaflet in `edge.x`.
+    let f=seg.distance.w;
+    var t=f32(j+1u)/f32(count); var length=1.0;
+    if f<1.0 {
+        var station=t; if count==1u { station=0.0; }
+        t=station*f;
+        length=pow((1.0-t)*bitcast<f32>(seg.edge.x),1.0-f);
+    }
+    var share=seg.b.w*length;
+    if count>1u {
+        let rows=vec4<f32>(seg.a.w,seg.binormal.x,seg.binormal.y,seg.binormal.z);
+        let l=on_rachis(seg.a.xyz,heading,count,j,t,rows,vec3<f32>(seg.distance.z,seg.tangent.w,seg.binormal.w),bitcast<f32>(seg.edge.y));
+        point=l.point; axis=l.axis; tangent=l.tangent; normal=l.normal; share*=l.share;
+    }
+    var words=packed(point,axis,tangent,normal,seg.range.w,j,share);
+    if seg.distance.x>0.5 { words.z|=LEAF_WITHERED; }
+    return words;
+}
+// One leaflet on its rachis before its draws (`leaflet::leaflets`).
+struct Leaflet { point:vec3<f32>, axis:vec3<f32>, tangent:vec3<f32>, normal:vec3<f32>, share:f32 }
+// Leaflet `j` of `count`, `t` of the way along the rachis that leaves
+// `point` on `heading`:
+// `rows` its length, arch, leaflet pitch and terminal share, `borne` the
+// spines it bears, their share and pitch, `girth` its radius at `point`.
+// Bent by its arch toward the frame's lift (resting where it meets the
+// ground, `rachis`), at the leaflet pitch to alternate sides, the last
+// closed by the terminal share, a spine at its own pitch and share.
+fn on_rachis(point:vec3<f32>, heading:vec3<f32>, count:u32, j:u32, t:f32, rows:vec4<f32>, borne:vec3<f32>, girth:f32) -> Leaflet {
+    var lift=vec3<f32>(0.0,1.0,0.0)-heading*heading.y;
+    if dot(lift,lift)>1e-12 { lift=normalize(lift); } else { lift=square_to(heading); }
+    let curve=rachis(point,heading,lift,rows.x,rows.y,girth,t);
+    var closing=1.0; if j+1u==count { closing=1.0-rows.w; }
+    let hand=select(-1.0,1.0,j%2u==0u);
+    var pitch=rows.z; var share=1.0;
+    if j<u32(borne.x) && borne.y>0.0 { pitch=borne.z; share=borne.y; }
+    return Leaflet(curve.at,rotate(curve.run,lift,hand*pitch*closing),curve.run,cross(heading,lift),share);
+}
+// A unit vector square to `v` (`Vec3::perpendicular`).
+fn square_to(v:vec3<f32>) -> vec3<f32> {
+    let a=abs(v); var reference=vec3<f32>(0.0,0.0,1.0);
+    if a.x<=a.y && a.x<=a.z { reference=vec3<f32>(1.0,0.0,0.0); } else if a.y<=a.z { reference=vec3<f32>(0.0,1.0,0.0); }
+    return normalize(cross(reference,v));
+}
+// A leaf at `point` along `axis`, framed by `tangent` and `normal`, its
+// draws on `key` from its ordinal `k`, its size times `share`, rested on
+// the ground, as the leaf words placement writes.
+fn packed(point:vec3<f32>, axis_in:vec3<f32>, tangent:vec3<f32>, normal:vec3<f32>, key:u32, k:u32, share:f32) -> vec3<u32> {
+    var axis=axis_in;
     var face=vec3<f32>(0.0,1.0,0.0)-axis*axis.y;
-    if dot(face,face)<=1e-12 { face=seg.tangent.xyz-axis*dot(seg.tangent.xyz,axis); }
-    if dot(face,face)<=1e-12 { face=seg.normal.xyz-axis*dot(seg.normal.xyz,axis); }
+    if dot(face,face)<=1e-12 { face=tangent-axis*dot(tangent,axis); }
+    if dot(face,face)<=1e-12 { face=normal-axis*dot(normal,axis); }
     face=normalize(face); var side=normalize(cross(axis,face));
-    var draw=index*select(1u,4u,config.shape.w>0.0);
+    var draw=k*select(1u,4u,config.shape.w>0.0);
     if config.shape.w>0.0 {
-        let z=random(draw)*2.0-1.0; let phi=random(draw+1u)*6.283185307179586;
+        let z=random(key,draw)*2.0-1.0; let phi=random(key,draw+1u)*6.283185307179586;
         let ring=sqrt(max(1.0-z*z,0.0)); let jitter=vec3<f32>(ring*cos(phi),z,ring*sin(phi));
-        let angle=config.shape.w*random(draw+2u);
+        let angle=config.shape.w*random(key,draw+2u);
         axis=rotate(axis,jitter,angle);face=rotate(face,jitter,angle);side=rotate(side,jitter,angle); draw+=3u;
     }
-    let scale=config.size.x*(1.0+config.size.y*(random(draw)*2.0-1.0));
+    let scale=config.size.x*(1.0+config.size.y*(random(key,draw)*2.0-1.0))*share;
+    // Rested on the ground where its wedge would cross it (`rest.wgsl`).
+    let rested=rest_leaf(mat3x3<f32>(side,axis,face),scale,point,config.wedge_a,config.wedge_b,config.box_extent.y/65535.0);
+    side=rested[0]; axis=rested[1]; face=rested[2];
     if !finite(point) || !finite(axis) || !finite(face) || !finite(side) || !(scale>=0.0 && scale<=65504.0) {
         atomicOr(&summary[1],2u);
     }

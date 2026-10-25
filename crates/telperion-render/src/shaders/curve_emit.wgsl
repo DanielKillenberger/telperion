@@ -18,9 +18,14 @@ fn put_index(at: u32, value: u32) {
     }
 }
 
+// Surface clearance (fn-301): a vertex of wood other than a trunk's that
+// would stand below the ground is set onto it, its normal as it was.
+var<private> clear: bool;
+
 fn put(at: u32, position: vec3<f32>, normal: vec3<f32>, along: f32, angle: f32, radius: f32) {
     let b = at * VERTEX_FLOATS;
-    let v = array<f32, 9>(position.x, position.y, position.z, normal.x, normal.y, normal.z,
+    let y = select(position.y, 0.0, clear && position.y < 0.0);
+    let v = array<f32, 9>(position.x, y, position.z, normal.x, normal.y, normal.z,
         along, angle, radius);
     for (var k = 0u; k < 9u; k++) { put_float(b + k, v[k]); }
 }
@@ -88,6 +93,7 @@ fn zipper(at: u32, a: u32, na: u32, b: u32, nb: u32) -> u32 {
     var i = 0u;
     var j = 0u;
     var n = 0u;
+    // cap: i or j moves on each step, na + nb steps in all.
     loop {
         if (i >= na && j >= nb) { break; }
         if (j >= nb || (i < na && (i + 1u) * nb <= (j + 1u) * na)) {
@@ -112,6 +118,7 @@ fn cap(at: u32, centre: u32, p: Point, start: u32, n: u32, away: f32) {
 fn emit_ring(r: u32) {
     let flags = record(r, 13u);
     if (flags == 0u) { return; }
+    clear = (flags & TRUNK) == 0u;
     var f: array<f32, 12>;
     for (var k = 0u; k < 12u; k++) { f[k] = bitcast<f32>(record(r, k)); }
     var p: Point;

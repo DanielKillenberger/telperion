@@ -15,7 +15,7 @@ import { writeRow } from "./rows";
    family core builds for `headless --family` over the same overlay. */
 
 const FIXTURE = resolve("crates/telperion-jev/tests/fixtures/look/result.json");
-const SPECIES = resolve("target/release/species");
+const SPECIES = resolve(process.env.CARGO_TARGET_DIR ?? "target", "release/species");
 
 /** `species european-beech --look` over the fixture run: its output and look. */
 function runnerLook(): { printed: string; body: Record<string, unknown> } {

@@ -1,0 +1,46 @@
+{
+  "branch_name": "fn-266-the-device-draws-the-palms-leaf-base",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-12T03:41:26.986154Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-266-the-device-draws-the-palms-leaf-base",
+  "impl_review_rounds": {
+    "fn-266-the-device-draws-the-palms-leaf-base.1": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-12T03:44:25.995035Z",
+  "ready": true,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-266-the-device-draws-the-palms-leaf-base.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-266-the-device-draws-the-palms-leaf-base.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-266-the-device-draws-the-palms-leaf-base.md",
+  "status": "done",
+  "title": "The device draws the palm's leaf-base lattice",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-13T08:11:19.211275Z"
+}

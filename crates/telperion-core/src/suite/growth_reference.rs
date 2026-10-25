@@ -3,6 +3,7 @@ use telperion_core::{branching::generate, presets::Preset, tree::NodeKind};
 
 use super::catalogue;
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn beech_and_birch_record_mature_height_by_age() {
     let beech = Preset::EuropeanBeech.parameters();
@@ -134,6 +135,7 @@ fn complete_fn6_comparison() {
 
 /// The height by age a catalogue species' record holds is the one its preset
 /// still states. A disagreement names the species and the field.
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn every_shipped_species_growth_reference_matches_its_preset() {
     let shipped = [

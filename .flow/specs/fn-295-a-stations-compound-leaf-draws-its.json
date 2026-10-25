@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-295-a-stations-compound-leaf-draws-its",
+  "created_at": "2026-10-19T15:44:32.574124Z",
+  "depends_on_epics": [
+    "fn-309-a-compound-leaf-draws-its-rachis"
+  ],
+  "id": "fn-295-a-stations-compound-leaf-draws-its",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-295-a-stations-compound-leaf-draws-its.md",
+  "status": "open",
+  "title": "A station's compound leaf draws its rachis",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-22T16:11:15.581940Z"
+}

@@ -30,17 +30,21 @@ function wasmBesideEntry(): Plugin {
  * beside it by the build scripts and fetched at run time, never inlined -
  * and src/field/index.ts, the slim growth-and-field
  * entry a consumer imports without the rest, with the example voxelizer
- * beside it as its own entry. The library has no runtime
+ * beside it as its own entry, and src/browser/presets.ts, the presets as
+ * plain data with no Wasm (fn-317). The library has no runtime
  * dependencies, so nothing is left external.
  *
  * `vite` serves the HARNESS: the clay room the trees are judged in.
  * React is a dev dependency and appears nowhere in the library. */
+const SHARED = /\/src\/(browser\/(module|wire)\.ts|wasm-source\.ts|browser\/render\/telperion_render\.js)$/;
+
 export default defineConfig({
   plugins: [react(), wasmBesideEntry()],
   build: {
     lib: {
       entry: {
         telperion: fileURLToPath(new URL("./src/index.ts", import.meta.url)),
+        presets: fileURLToPath(new URL("./src/browser/presets.ts", import.meta.url)),
         field: fileURLToPath(new URL("./src/field/index.ts", import.meta.url)),
         voxelize: fileURLToPath(new URL("./src/field/voxelize.ts", import.meta.url)),
       },
@@ -48,7 +52,8 @@ export default defineConfig({
       fileName: (_format, entry) => `${entry}.js`,
     },
     emptyOutDir: false,
-    // The one module both entries share, the Wasm loader, under its own name.
-    rollupOptions: { output: { chunkFileNames: "[name].js" } },
+    // The one module both entries share, the Wasm loader and the parameters'
+    // serializer, under the loader's name.
+    rollupOptions: { output: { chunkFileNames: "[name].js", manualChunks: id => SHARED.test(id) ? "module" : undefined } },
   },
 });

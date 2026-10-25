@@ -1,0 +1,72 @@
+{
+  "branch_name": "fn-293-each-stages-output-has-one-form-and-its",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-19T00:02:41.432721Z",
+  "created_at": "2026-10-16T14:07:07.404320Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-257-the-site-grows-its-trees-on-the-device"
+  ],
+  "id": "fn-293-each-stages-output-has-one-form-and-its",
+  "impl_review_rounds": {
+    "fn-293-each-stages-output-has-one-form-and-its.1": 0,
+    "fn-293-each-stages-output-has-one-form-and-its.2": 0,
+    "fn-293-each-stages-output-has-one-form-and-its.3": 0,
+    "fn-293-each-stages-output-has-one-form-and-its.4": 0,
+    "fn-293-each-stages-output-has-one-form-and-its.5": 0,
+    "fn-293-each-stages-output-has-one-form-and-its.6": 0,
+    "fn-293-each-stages-output-has-one-form-and-its.7": 0,
+    "fn-293-each-stages-output-has-one-form-and-its.8": 0,
+    "fn-293-each-stages-output-has-one-form-and-its.9": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-18T11:26:10.829305Z",
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-293-each-stages-output-has-one-form-and-its.1": 1,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.2": 2,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.3": 1,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.4": 1,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.5": 1,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.6": 1,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.7": 1,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.8": 1,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.9": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.1": 0,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.2": 0,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.3": 0,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.4": 0,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.5": 0,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.6": 0,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.7": 0,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.8": 0,
+    "impl:fn-293-each-stages-output-has-one-form-and-its.9": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-293-each-stages-output-has-one-form-and-its.md",
+  "status": "done",
+  "title": "Each stage's output has one form, and its consumers read it",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-19T00:38:22.636159Z"
+}

@@ -1,0 +1,46 @@
+{
+  "branch_name": "fn-227-the-field-module-under-its-size-budget",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-08T09:36:28.760947Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-226-light-read-from-the-crowns-outline-per",
+    "fn-214-the-field-from-the-structure-above-the"
+  ],
+  "id": "fn-227-the-field-module-under-its-size-budget",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T06:21:08.504279Z",
+  "ready": true,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-227-the-field-module-under-its-size-budget.md",
+  "status": "done",
+  "title": "The field module under its size budget",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-15T22:48:17.076474Z"
+}

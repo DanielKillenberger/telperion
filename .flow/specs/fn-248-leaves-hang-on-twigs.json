@@ -1,0 +1,47 @@
+{
+  "branch_name": "fn-248-leaves-hang-on-twigs",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T12:09:41.744925Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-248-leaves-hang-on-twigs",
+  "impl_review_rounds": {
+    "fn-248-leaves-hang-on-twigs.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T12:12:54.223543Z",
+  "ready": true,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-248-leaves-hang-on-twigs.1": 2,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-248-leaves-hang-on-twigs.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-248-leaves-hang-on-twigs.md",
+  "status": "done",
+  "title": "Leaves hang on twigs",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T20:48:27.957974Z"
+}

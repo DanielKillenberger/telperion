@@ -6,8 +6,11 @@ mod common;
 
 use telperion_core::pipeline::executor;
 
-use telperion_core::{mesh, presets::Preset};
-use telperion_render::{hero_pose, render, Renderer, SceneRow, View, GROUND_REACH, STILL_FORMAT};
+use telperion_core::{math::Vec3, mesh, presets::Preset};
+use telperion_render::{
+    figure_counts, figure_placement, hero_pose, render, Camera, Renderer, SceneRow, View,
+    GROUND_REACH, STILL_FORMAT,
+};
 
 /// The share of the map carrying a caster's depth rather than the clear.
 fn covered(depths: &[f32]) -> f64 {
@@ -17,7 +20,7 @@ fn covered(depths: &[f32]) -> f64 {
 #[test]
 fn the_sun_sees_the_wood_and_the_whole_crown_and_the_leaf_view_is_not_in_its_way() {
     let Some(gpu) = common::gpu() else { return };
-    let tree = mesh::build(&Preset::Ordinary.parameters()).expect("the tree grew");
+    let tree = mesh::build(&common::ordinary()).expect("the tree grew");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).expect("the tree fits the device");
 
@@ -50,12 +53,12 @@ fn the_sun_sees_the_wood_and_the_whole_crown_and_the_leaf_view_is_not_in_its_way
 fn every_preset_has_default_casters_fixed_under_orbit_and_row_changes() {
     let Some(gpu) = common::gpu() else { return };
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    // The presets the engine grows (fn-198).
     for preset in [
-        Preset::Ordinary,
         Preset::OregonWhiteOak,
         Preset::NorwaySpruce,
-        Preset::Telperion,
-        Preset::Laurelin,
+        Preset::EuropeanBeech,
+        Preset::DatePalm,
     ] {
         let tree = mesh::build(&preset.parameters()).unwrap();
         renderer.set_scene(SceneRow::default());
@@ -100,7 +103,7 @@ fn every_preset_has_default_casters_fixed_under_orbit_and_row_changes() {
 fn full_casters_cover_at_least_the_default_on_separated_surfaces() {
     use telperion_core::foliage::ElementParams;
     let Some(gpu) = common::gpu() else { return };
-    let mut tree = mesh::build(&Preset::Ordinary.parameters()).unwrap();
+    let mut tree = mesh::build(&common::ordinary()).unwrap();
     tree.foliage.element = executor::element(ElementParams {
         card: true,
         width: 1.0,
@@ -176,9 +179,10 @@ fn full_casters_cover_at_least_the_default_on_separated_surfaces() {
     });
     assert_eq!(renderer.caster_instances(), 4);
 
-    // No wood and no leaves the stride keeps: empty draws must leave a
-    // clear map.
+    // No wood, no leaves the stride keeps and no person: empty draws must
+    // leave a clear map.
     tree.curve = Default::default();
+    renderer.set_figure(false);
     renderer.set_scene(SceneRow {
         caster_stride: 64.0,
         ..Default::default()
@@ -188,4 +192,98 @@ fn full_casters_cover_at_least_the_default_on_separated_surfaces() {
     assert_eq!(renderer.caster_triangles(), 0);
     assert_eq!(renderer.caster_instances(), 0);
     assert_eq!(covered(&renderer.shadow_depths().unwrap()), 0.0);
+}
+
+/// The person casts into the sun's map wherever the room draws it, whole,
+/// and nowhere the figure is off or the leaf view stands alone (fn-310).
+#[test]
+fn the_person_is_a_caster_only_while_the_room_draws_it() {
+    let Some(gpu) = common::gpu() else { return };
+    let tree = mesh::build(&common::ordinary()).unwrap();
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    renderer.submit(&tree).unwrap();
+    let camera = hero_pose(renderer.bounds().unwrap(), 1.0, GROUND_REACH);
+    let person = figure_counts().1;
+    for (view, figure, casters) in [
+        (View::Whole, true, person),
+        (View::Bare, true, person),
+        (View::Whole, false, 0),
+        (View::Bare, false, 0),
+        (View::Leaf, true, 0),
+    ] {
+        renderer.set_view(view);
+        renderer.set_figure(figure);
+        render(&mut renderer, &camera, 32, 32).unwrap();
+        assert_eq!(
+            renderer.figure_casters(),
+            casters,
+            "{view:?} with the figure {figure}"
+        );
+    }
+}
+
+/// The person's shadow on the floor, under a sun standing behind it from the
+/// tree (fn-310 task 5): a floor point in it is darker than with the figure
+/// off, and the tree's own casters write the map exactly as they did.
+#[test]
+fn the_persons_shadow_darkens_the_floor_and_leaves_the_trees_alone() {
+    let Some(gpu) = common::gpu() else { return };
+    let tree = mesh::build(&common::ordinary()).unwrap();
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    renderer.submit(&tree).unwrap();
+    let foot = figure_placement(tree.bounds, SceneRow::default().sun_azimuth)
+        .0
+        .foot;
+    let row = SceneRow {
+        sun_azimuth: foot.x.atan2(foot.z).to_degrees().rem_euclid(360.0),
+        sun_elevation: 30.0,
+        ..SceneRow::default()
+    };
+    renderer.set_scene(row);
+    // Where the sun throws the person's chest, seen from above it.
+    let (azimuth, elevation) = (row.sun_azimuth.to_radians(), row.sun_elevation.to_radians());
+    let along = 1.2 / elevation.tan();
+    let point = Vec3::new(
+        foot.x - along * azimuth.sin(),
+        0.0,
+        foot.z - along * azimuth.cos(),
+    );
+    let camera = Camera {
+        position: Vec3::new(point.x + 0.3, 4.0, point.z + 0.3),
+        target: point,
+        field_of_view: 20.0,
+        near: 0.1,
+        far: 100.0,
+    };
+    let mut floor = |figure: bool| {
+        renderer.set_figure(figure);
+        let still = render(&mut renderer, &camera, 32, 32).unwrap();
+        let mut sum = 0.0;
+        for y in 14..18 {
+            for x in 14..18 {
+                let i = (y * 32 + x) * 4;
+                sum += still.rgba[i..i + 3]
+                    .iter()
+                    .map(|c| f64::from(*c))
+                    .sum::<f64>();
+            }
+        }
+        (sum, renderer.shadow_depths().unwrap())
+    };
+    let (open, alone) = floor(false);
+    let (shaded, with) = floor(true);
+    assert!(
+        shaded < 0.85 * open,
+        "the person's shadow left the floor at {shaded} against {open}"
+    );
+    let changed = alone.iter().zip(&with).filter(|(a, w)| a != w).count();
+    assert!(changed > 0, "the person wrote nothing into the map");
+    assert!(
+        alone.iter().zip(&with).all(|(a, w)| w <= a),
+        "the person's map is not the tree's with the person in front"
+    );
+    assert!(
+        (changed as f64) < 0.01 * alone.len() as f64,
+        "{changed} texels moved: the tree's own map was fitted again"
+    );
 }

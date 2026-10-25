@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-278-a-trees-first-leaves-differ-from-its",
+  "created_at": "2026-10-14T12:39:12.187357Z",
+  "depends_on_epics": [],
+  "id": "fn-278-a-trees-first-leaves-differ-from-its",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-278-a-trees-first-leaves-differ-from-its.md",
+  "status": "open",
+  "title": "A tree's first leaves differ from its adult leaves, by degree",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-14T12:39:12.211485Z"
+}

@@ -49,11 +49,24 @@ fn grown(height: f64, sag: f64, seed: u64, bough: Bough, twigs: (f64, f64)) -> S
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        leaf_years: f64::INFINITY,
+        elongation: 0.0,
+        expansion: 0.0,
+        leaf_life: f64::INFINITY,
+        budburst: 0.0,
+        senescence: 0.0,
+        colouring: 0.0,
+        leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -216,19 +229,23 @@ fn a_light_branch_bends_as_the_small_deflection_beam_does() {
         plain
             .iter()
             .zip(&bent)
-            .map(|(u, v)| u.dot(*v).clamp(-1.0, 1.0).acos())
+            // The angle by its sine and cosine: `acos` near one cannot
+            // resolve a bend under a milliradian between f32 directions.
+            .map(|(u, v)| u.cross(*v).length().atan2(u.dot(*v)))
             .collect()
     };
     let (one, two) = (bends(1e-6), bends(2e-6));
     // Every tenth internode's bend under fn-200's small-deflection sag
     // (commit 0706c79c, run on this certain tree for fn-206), the
-    // reference: the corrected bend stays within one percent of it.
+    // reference: the corrected bend stays within one percent of it, and
+    // within the f32 directions' own noise of a bend, 1.5e-5 rad measured
+    // on the first internode's (fn-254).
     let reference = [
         0.000807, 0.008268, 0.014627, 0.019900, 0.024110, 0.027292, 0.029568,
     ];
     for (k, (&ours, small)) in one.iter().step_by(10).zip(reference).enumerate() {
         assert!(
-            (ours - small).abs() <= 0.01 * small + 1e-6,
+            (ours - small).abs() <= 0.01 * small + 2e-5,
             "internode {}: {ours} rad against the small-deflection {small}",
             10 * k
         );

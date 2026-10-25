@@ -10,82 +10,147 @@
 //! so a lateral a setting is about to shed fades before it is shed. The
 //! main line is never tested: the seed and what carries it on are no
 //! laterals.
+use super::sketch::Rows;
 use super::Grower;
-use crate::lineage::{above, Key, SHED};
-use crate::structure::Origin;
+use crate::allocation::TIP;
+use crate::contract::shed::{walk, Bud, Lateral, Walked};
+use crate::lineage::{Key, SHED};
 
-/// The share of last year's remembered balance kept each year: a
-/// half-life of a year. An estimate, unsourced.
-pub(crate) const MEMORY: f64 = 0.5;
+/// Each laid axis's subtree's collected light, its wood's upkeep and
+/// whether anything in it lives, summed child to parent, the last child
+/// first: what a fine root reports its bearer (PHASES.md, phase (i)).
+pub(super) struct Totals {
+    pub light: Vec<f32>,
+    pub cost: Vec<f32>,
+    pub living: Vec<bool>,
+}
 
 impl Grower<'_> {
+    /// Whether the balance runs this cycle: where a rough layout is grown
+    /// and any PA's hazard is set, or always in the one cycle.
+    pub(super) fn balances(&self) -> bool {
+        self.sketch.is_some()
+            && (self.one || self.species.states.iter().any(|s| s.balance_hazard != 0.0))
+    }
+
     /// Updates every living lateral subtree's balance, sheds by it, and
     /// gives each living apex what its subtrees' survival makes of its
     /// unit this cycle.
-    pub(super) fn balance(&mut self, cycle: u32) {
-        let species = self.species;
-        if species.states.iter().all(|s| s.balance_hazard == 0.0) {
-            return;
-        }
-        let Some(sketch) = self.sketch.as_mut() else {
+    pub(super) fn balance(&mut self, cycle: u32, rows: Option<&Rows>) {
+        let Some(rows) = rows.filter(|_| self.balances()) else {
             return;
         };
+        let totals = self.totals(rows);
+        self.shed_by(cycle, rows, &totals);
+    }
+
+    /// Each subtree's totals.
+    pub(super) fn totals(&self, rows: &Rows) -> Totals {
+        let (species, pa) = (self.species, &rows.pa);
+        let sketch = self.sketch.as_ref().expect("sketching");
         let n = sketch.pencils.len();
-        let (mut light, mut cost, mut living) = (vec![0.0; n], vec![0.0; n], vec![false; n]);
-        for i in 0..n {
-            let p = &sketch.pencils[i];
-            cost[i] = species.states[self.axes[i].pa].upkeep * p.wood;
-        }
+        let (mut light, mut cost, mut living) = (vec![0.0f32; n], vec![0.0f32; n], vec![false; n]);
+        let pencils = &sketch.pencils;
+        crate::cores::fill(&mut cost, 1 << 15, self.threads, &|i| {
+            species.states[pa[i]].upkeep as f32 * pencils[i].wood as f32
+        });
         for apex in self.live.iter().filter(|a| a.axis < n) {
             let p = &sketch.pencils[apex.axis];
-            light[apex.axis] = p.base_scale * p.running * p.light;
+            light[apex.axis] = p.base_scale as f32 * p.running as f32 * p.light as f32;
             living[apex.axis] = true;
         }
         for i in (1..n).rev() {
-            if let Some(parent) = self.axes[i].origin.parent() {
+            if let Some(parent) = rows.links[i].parent {
                 light[parent] += light[i];
                 cost[parent] += cost[i];
                 living[parent] |= living[i];
             }
         }
-        // Parents first: what each subtree's shedding makes of every axis
-        // in it this cycle.
-        let (mut shed, mut kept) = (vec![false; n], vec![1.0; n]);
-        for i in 0..n {
-            let (dead, keep) = match self.axes[i].origin.parent() {
-                Some(parent) => (shed[parent], kept[parent]),
-                None => (false, 1.0),
-            };
-            (shed[i], kept[i]) = (dead, keep);
-            if dead || !living[i] || !matches!(self.axes[i].origin, Origin::Lateral { .. }) {
-                continue;
+        Totals {
+            light,
+            cost,
+            living,
+        }
+    }
+
+    /// Parents first, what each subtree's shedding makes of every axis in
+    /// it this cycle; every apex shed leaves the living. Each axis's
+    /// shedding and kept share.
+    pub(super) fn shed_by(
+        &mut self,
+        cycle: u32,
+        rows: &Rows,
+        totals: &Totals,
+    ) -> (Vec<bool>, Vec<f64>) {
+        let laterals = self.laterals(cycle, rows, totals);
+        let walked = walk(&laterals, None);
+        self.shed_walked(cycle, &walked)
+    }
+
+    /// What D16's walk reads of each laid axis (CONTRACT-A.md 2.7): its
+    /// bearer, whether it is a living lateral, and its balance's inputs.
+    pub(super) fn laterals(
+        &self,
+        cycle: u32,
+        Rows { links, pa }: &Rows,
+        Totals {
+            light,
+            cost,
+            living,
+        }: &Totals,
+    ) -> Vec<Lateral> {
+        let species = self.species;
+        let sketch = self.sketch.as_ref().expect("sketching");
+        let n = sketch.pencils.len();
+        let mut out = vec![Lateral::default(); n];
+        crate::cores::fill(&mut out, 1 << 12, self.threads, &|i| {
+            let parent = links[i].parent.map(|p| p as u32);
+            let decides = parent.is_some() && links[i].node != TIP && living[i];
+            if !decides {
+                return Lateral {
+                    parent,
+                    ..Lateral::default()
+                };
             }
-            let state = &species.states[self.axes[i].pa];
-            let total = light[i] + cost[i];
-            let now = if total > 0.0 {
-                (light[i] - cost[i]) / total
-            } else {
-                1.0
-            };
-            let pencil = &mut sketch.pencils[i];
-            pencil.memory = MEMORY * pencil.memory + (1.0 - MEMORY) * now;
-            let hazard = state.balance_hazard * (state.tolerance - pencil.memory).max(0.0);
-            if hazard <= 0.0 {
-                continue;
-            }
-            let p = -(-hazard).exp_m1();
-            let u = Key(self.axes[i].lineage)
+            let state = &species.states[pa[i]];
+            let d = Key(self.axes[i].lineage)
                 .child(SHED)
                 .child(u64::from(cycle))
-                .unit();
-            if u < p {
-                shed[i] = true;
-            } else {
-                let windows = &self.rules.windows;
-                let wood = windows.wood(self.axes[i].pa, cycle);
-                kept[i] = keep * windows.decided(above(u, p), wood, 1.0);
+                .draw();
+            // D16 (CONTRACT-A.md 2.7): the window is the presences' at
+            // the cycle, stake one.
+            let window = self.rules.windows.window((pa[i], cycle, None), 1.0);
+            let bud = Bud {
+                q: light[i],
+                c: cost[i],
+                memory: sketch.pencils[i].memory as f32,
+                hazard: state.balance_hazard as f32,
+                tolerance: state.tolerance as f32,
+                draw: d.0,
+                window,
+                keep: 0.0,
+            };
+            Lateral {
+                parent,
+                decides,
+                bud,
+            }
+        });
+        out
+    }
+
+    /// The walk's decisions taken: each memory kept, every apex shed
+    /// leaving the living, every other given its kept share.
+    pub(super) fn shed_walked(&mut self, cycle: u32, walked: &[Walked]) -> (Vec<bool>, Vec<f64>) {
+        let sketch = self.sketch.as_mut().expect("sketching");
+        let n = sketch.pencils.len();
+        for (pencil, w) in sketch.pencils.iter_mut().zip(walked) {
+            if let Some(memory) = w.memory {
+                pencil.memory = f64::from(memory);
             }
         }
+        let shed: Vec<bool> = walked.iter().map(|w| w.shed).collect();
+        let kept: Vec<f64> = walked.iter().map(|w| f64::from(w.kept)).collect();
         let live = std::mem::take(&mut self.live);
         for apex in live {
             if apex.axis < n && shed[apex.axis] {
@@ -97,5 +162,6 @@ impl Grower<'_> {
             }
             self.live.push(apex);
         }
+        (shed, kept)
     }
 }

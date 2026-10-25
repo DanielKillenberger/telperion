@@ -75,7 +75,9 @@ fn every_numeric_row_of_every_family_is_a_dial_or_an_excluded_row() {
         let mut found = Vec::new();
         rows(&family, "", &mut found);
         for (path, value) in &found {
-            if value.is_number() {
+            // An engine species' `/space` rows are no catalogue dial; tuning
+            // them is the add-species pipeline's recalibration (fn-198).
+            if value.is_number() && !path.starts_with("/space/") {
                 assert!(
                     paths.contains(&path.as_str()) || excluded.contains_key(path),
                     "{id}: {path} is a numeric row the table neither offers nor excludes"
@@ -187,7 +189,12 @@ fn the_six_rows_the_pilot_qualified_still_hash_to_what_it_paid_for() {
         "the dial table's shape changed under the calibrated manifests"
     );
     let authored = table();
-    for dial in &pilot {
+    // A row the catalogue retired leaves the table with its dial: fn-223
+    // retired the short shoots' rows the pilot tuned.
+    let kept = pilot
+        .iter()
+        .filter(|d| telperion_core::catalogue::retired(&d.path).is_none());
+    for dial in kept {
         let now = authored
             .iter()
             .find(|d| d.id == dial.id)

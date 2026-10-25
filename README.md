@@ -2,6 +2,10 @@
 
 A procedural tree generator with an authored silhouette, seeded specimens and named species presets. One Rust core grows the structure; consumers choose surface meshes, instanced foliage, structural data or spatial fields.
 
+https://github.com/user-attachments/assets/47c668ef-1174-4dfc-9d89-cf11f4834613
+
+Every frame grown live by the engine, in one 35-second shot: a beech grows from seed to 40, then walks through species space at that age to a Norway spruce, a silver birch, an Oregon white oak and a date palm; the palm shrinks back to a seedling, crosses to the Laurelin, which grows to 80 and walks to Telperion. The corner map is species space on its first two principal components, which hold 62.9 % of the variance, and the dot is where the tree stands in it. Where the player does not show, the still opens the film: [![The oak at 40, a still from the film](https://github.com/user-attachments/assets/3b654cc5-e7c4-44c4-b32f-c46007fd703f)](https://github.com/user-attachments/assets/47c668ef-1174-4dfc-9d89-cf11f4834613)
+
 ```ts
 import { TreeEngine, TELPERION } from "telperion";
 
@@ -9,55 +13,60 @@ const engine = await TreeEngine.create();
 const family = structuredClone(TELPERION);
 family.skeleton.seed = 7;
 const tree = engine.build(family, { surface: true, foliage: true });
-// tree.surface: Float32 positions/normals, Uint32 indices, bounds.
+// tree.surface: the wood in chunks of at most 65,536 vertices, and bounds.
+// A chunk is Float32 positions, Int16 oct-encoded normals and Uint16 indices
+// local to it; draw each on its own. The decode, for a consumer of 0.1.4's
+// arrays (fn-291 R4), is in docs/migration-0.2-wood-chunks.md.
 // tree.foliage: one leaf mesh, twelve bytes a leaf - three Uint32 words with
 // the reference box they decode against - and bounds. `leafTransform` rebuilds
 // the sixteen column-major floats for a caller that wants them.
+// tree.organ: the flowers, where the tree flowers (Telperion, Laurelin) -
+// one flower mesh and three Uint32 words a floret, decoded by `leafTransform`
+// against their own reference box; absent where nothing flowers
+// (docs/migration-0.2-flowers.md).
 engine.release(); // returned arrays are owned copies and remain usable
 engine.dispose();
 ```
 
 `ORDINARY`, `TELPERION` and `LAURELIN` come from Rust preset metadata. Parameters define the family; the seed selects a specimen. `PRESETS` contains all five named templates; `TWO_TREES` contains Telperion and Laurelin. `createRenderer(canvas)` puts the Rust renderer on a canvas and draws the tree its own module generates; it is the package's only rendering path and it has no runtime dependencies. The native core uses pinned `libm` and `slotmap`; its optional `json` feature supplies the wire schema used by the Wasm binding.
 
-For a block-based consumer, request occupancy without constructing a wood surface or transferring render buffers:
+For a block-based consumer, request occupancy read out to a grid, without constructing a wood surface or transferring render buffers:
 
 ```ts
 const engine = await TreeEngine.create();
-const tree = engine.build(family, { field: true });
-const flags = tree.field!.query(new Float64Array([
-  0, 1, 0, 0.5, // cell centre x/y/z and half extent; zero means a point
-]));
-// Each byte: wood = 1, foliage = 2; zero is a valid empty cell.
+const tree = engine.build(family, { field: { n: 36 } });
+const { n, cell, origin, answer } = tree.field!;
+// 36 cells a side over the tree's box, cell i + n * (j + n * k) centred at
+// origin + (i + 0.5, j + 0.5, k + 0.5) * cell, in metres.
+answer.flags[0]; // wood = 1, foliage = 2, flowers = 4; zero is a valid empty cell
 engine.dispose();
 ```
 
-Field handles expire on the next native build or release; copied query results remain owned. Field construction places retained foliage internally. `{ structure: true }` returns six f64 values per node (xyz, distal/proximal/base radius) and three u32 values (parent, branch, kind). The root parent is `0xffffffff`; kinds are structural 0, branch 1 and twig 2. An empty output selection still generates structure for diagnostics. Invalid inputs throw, and cap diagnostics distinguish incomplete growth from a finished tree.
+The grid is `telperion/field/voxelize`'s `grid` over the tree's own box, the one definition the device field reads too; `n` is a whole number from 3 to 256, and `{ n, limbOrder }` names limbs at that lateral order instead of the family's own. Each answer carries the cell's flags, its thickest wood radius, its leaf estimate, its owning limb and its florets (`flowers`, those whose seat lies in the cell, fn-316), as owned copies that outlive the next build, release and disposal. The field reads the leaf plan and places no leaf; a family the plan cannot describe is refused by name. `{ structure: true }` returns six f64 values per node (xyz, distal/proximal/base radius) and three u32 values (parent, branch, kind). The root parent is `0xffffffff`; kinds are structural 0, branch 1 and twig 2. An empty output selection still generates structure for diagnostics. Invalid inputs throw, and cap diagnostics distinguish incomplete growth from a finished tree.
 
-The optional `tree.field!.snapshot()` exports an owned schema-1 CPU field snapshot
-for experiments and other consumers. It contains f64 wood segments and BVH bounds,
-u32 topology, revision, union bounds and extraction timings; the
-[exact layout](scripts/benchmarks/generation.md#portable-snapshot-contract) defines
-each array. Existing builds and queries make no snapshot copies. Extraction needs
-a live field revision: release, rebuild (including a failed native rebuild) and
-disposal invalidate the handle. Already copied arrays survive these operations,
-and caller mutations cannot change the CPU field. Extraction errors throw without
-a partial snapshot; temporary Wasm staging is released after copying or failure.
-The giant snapshot alone is about 129 MB, so opt in only when needed.
+Migrating from 0.1.4 (for a consumer of the published 0.1.4 package, fn-257 R8b): `{ field: true }` is `{ field: { n } }`, and the field is the grid with its answers. The cube query (`tree.field.query(cells)`), the field's `bounds` and `snapshot()` are gone, and nothing replaces them: a page that queried a regular grid asks for its side, and one that queried its own cubes reads the cells of a grid fine enough for them.
 
 ## The field package
 
 `npm install telperion` also ships the slim growth-and-field package: the
-`telperion/field` export grows a species at a seed and answers occupancy
-queries over it, and `telperion/field/voxelize` is an example reading of
-those answers as cubes. Both are built by `npm run build` into `dist`, with
-the slim Wasm beside `field.js`; the main entry `telperion.js` loads
-`telperion.wasm` and `telperion-render.wasm` from beside itself the same
-way, so a site serves the three Wasm files next to the JavaScript. Each
+`telperion/field` export grows the tree a family's parameters describe and
+reads its occupancy out to the grid the call names, and
+`telperion/field/voxelize` is an example reading of that grid as cubes; the
+field grows on the device (WebGPU), through `telperion-render.wasm`, and
+rejects without it with a `FieldError` coded `"webgpu-unavailable"` (or
+`"device-lost"`). The same field on the CPU, for Node and tooling, is
+`TreeEngine.build(family, { field: { n } })` above. `telperion/presets` holds
+the shipped presets as plain data with no Wasm: `presetById(id)` gives a
+preset's parameters to pass to either entry, which take parameters only, never
+an id ([docs/migration-0.2-parameters.md](docs/migration-0.2-parameters.md)). Both are built by
+`npm run build` into `dist`; `field.js` and the main entry `telperion.js`
+load `telperion.wasm` and `telperion-render.wasm` from beside themselves, so
+a site serves the two Wasm files next to the JavaScript. Each
 `new URL("./name.wasm", import.meta.url)` in `dist` is a literal, which
 Vite, webpack and Rollup read as an asset and emit into a site's own build;
-the files are also exported as `telperion/telperion.wasm`,
-`telperion/telperion-render.wasm` and `telperion/telperion-field.wasm` for a
-bundler's `?url` import, passed as `source`. In Node each entry reads its
+the files are also exported as `telperion/telperion.wasm` and
+`telperion/telperion-render.wasm` for a bundler's `?url` import, passed as
+`source`. In Node each entry reads its
 file from disk. [docs/field-package.md](docs/field-package.md)
 describes the entry point, the voxelizer's dials, and the Node smoke.
 
@@ -71,7 +80,7 @@ path that grew a specimen year by year was removed on 2026-10-02 (fn-181), to
 be rewritten with a different approach; [docs/growth-path.md](docs/growth-path.md)
 keeps its design and why it did not hold.
 
-The native entry is `branching::generate(&family.skeleton, family.radii)`. Its solved `Tree` can feed `surface::build`, foliage placement/culling, or `Field::new` independently. The Wasm binding assembles the requested stages; `src/browser` loads it and copies output arrays. There is no TypeScript generator and no TypeScript renderer.
+The native entry is `branching::generate(&family.skeleton, family.radii)`. Its solved `Tree` can feed `surface::build`, foliage placement/culling, or `Field::new` independently. The Wasm binding assembles the requested stages; `src/browser` loads it and copies output arrays, the wood chunk by chunk. There is no TypeScript generator and no TypeScript renderer.
 
 | Owner in `crates/telperion-core/src` | Responsibility |
 |---|---|
@@ -83,7 +92,7 @@ The native entry is `branching::generate(&family.skeleton, family.radii)`. Its s
 | `field` | Wood and foliage cell occupancy, independently of render meshes |
 | `presets` | Named parameter sets and scale choices |
 
-`crates/telperion-render` draws that output on wgpu, and is the only renderer in the repository. It compiles to two targets from one code path: a wasm module the page loads through `src/browser/render.ts`, which generates and uploads inside its own linear memory, and a native offscreen target whose `headless` example writes a PNG at the hero pose and, on request, a GPU timing record. The renderer owns the whole scene - ground, sky, one sun and the single depth map it casts its shadow through, the 1.8 m scale figure, camera and the whole, bare, single-leaf and clay views - and it never names a species: only the headless entry point resolves a preset id. Appearance is numbers, not textures: a material row on the family carries the bark and leaf colours, the bark's roughness, the hue and brightness ranges each leaf varies inside and how far the crown's interior is darkened, while a separate scene row carries the sun, the sky, the ground and the shadow coarsening and filtering controls; both reach the shaders as uniforms and no shader path branches on a species. Colour and depth are drawn at four samples a pixel where the adapter offers them and resolved into the single-sample target, and one filmic tone map closes every lit frame. The clay view draws the neutral room this renderer started as - no material, no sun, no tone map - so geometry can still be judged with nothing over it. The crown is not one draw: a compute pass reads every placement once per frame, projects the leaf element's extent to a pixel size and gives that leaf the coarsest level whose outline deviation projects under half a pixel, or the unseen bucket if it is outside the frustum; the renderer then issues one indexed indirect draw per level, over the instances that chose it. A level is a subset of the element's own sections, so a coarse leaf's vertices are a fine leaf's and no placement, count or bound changes with the level drawn.
+`crates/telperion-render` draws that output on wgpu, and is the only renderer in the repository. It compiles to two targets from one code path: a wasm module the page loads through `src/browser/render.ts`, which generates and uploads inside its own linear memory, and a native offscreen target whose `headless` example writes a PNG at the hero pose and, on request, a GPU timing record. The renderer owns the whole scene - ground, sky, one sun and the single depth map it casts its shadow through, a 1.75 m person for scale, camera and the whole, bare, single-leaf and clay views - and it never names a species: only the headless entry point resolves a preset id. Appearance is numbers, not textures: a material row on the family carries the bark and leaf colours, the bark's roughness, the hue and brightness ranges each leaf varies inside and how far the crown's interior is darkened, while a separate scene row carries the sun, the sky, the ground and the shadow coarsening and filtering controls; both reach the shaders as uniforms and no shader path branches on a species. Colour and depth are drawn at four samples a pixel where the adapter offers them and resolved into the single-sample target, and one filmic tone map closes every lit frame. The clay view draws the neutral room this renderer started as - no material, no sun, no tone map - so geometry can still be judged with nothing over it. The crown is not one draw: a compute pass reads every placement once per frame, projects the leaf element's extent to a pixel size and gives that leaf the coarsest level whose outline deviation projects under half a pixel, or the unseen bucket if it is outside the frustum; the renderer then issues one indexed indirect draw per level, over the instances that chose it. A level is a subset of the element's own sections, so a coarse leaf's vertices are a fine leaf's and no placement, count or bound changes with the level drawn.
 
 The sun writes one 1,024-square depth map. Wood casters are a prefix of whole runs ordered by largest radius; foliage casters use a fixed placement stride at the coarsest level, scaling each retained surface by the square root of the stride about its centre. The connector stays fixed. The shared read averages a square of comparisons after offsetting the receiver along its normal; taps outside the map are lit. The caster sets do not depend on camera selection. Reordering placements changes the sampled subset, and changing run radii retunes the threshold; future vertex motion must also move the casters.
 
@@ -110,7 +119,7 @@ npm run catalogue:check
 npm run typecheck
 npm run build
 npx playwright install chromium
-npm run rust:test:wasm
+npm run test:bindings
 npm run test:render
 npm run dev
 ```
@@ -125,7 +134,7 @@ cargo run --release -p telperion-render --example headless -- \
   [--timing /tmp/spruce.json] [--orbit] [--level <n>] [--scene <json>]
 ```
 
-`--view` takes `whole`, `bare`, `leaf` or `clay`; the first three are lit and the last is the neutral room, which is how geometry is inspected with no material, sun or tone map over it. `--scene <json>` replaces the default scene row for the frame - the sun's azimuth, elevation and colour, the sky's zenith and horizon and the ground, plus the shadow controls - as the row's own JSON under the field names the panel shows (`{"sunElevation": 24, "skyHorizonBlue": 1.1}`, every field optional); an unknown field is refused with the list of the real ones and a value outside its range with the range it wanted. The shadow defaults are `casterStride: 4` (1–64), `shadowFilterTexels: 1` (0–3) and `shadowNormalOffset: 1` (0–4). Offset uses the fitted world size of a map texel, and the wood is surfaced for the sun at half a texel's error; stride and kernel radius truncate to whole counts. Stride one keeps every placement, and filter radius zero keeps a single hardware comparison. A stride above the placement count legally empties that caster set. The material row is the family's, so it arrives with the preset. `--level <n>` holds every leaf of the frame at one level instead of letting selection choose, which is how a single level's cost is measured on its own. `--orbit` turns the camera one full revolution about the subject at the hero pose's elevation and distance while the timing session runs; the still beside it is always the hero pose, because the orbit is what is measured and not what is judged.
+`--view` takes `whole`, `bare`, `leaf` or `clay`; the first three are lit and the last is the neutral room, which is how geometry is inspected with no material, sun or tone map over it. `--scene <json>` replaces the default scene row for the frame - the sun's azimuth, elevation and colour, the sky's zenith and horizon and the ground, plus the shadow controls - as the row's own JSON under the field names the panel shows (`{"sunElevation": 24, "skyHorizonBlue": 1.1}`, every field optional); an unknown field is refused with the list of the real ones and a value outside its range with the range it wanted. The default is the clear neutral day: the sun at azimuth 135 and elevation 30, `skyGlow: 0.6` (0–4), the glow round the sun as a multiple of the sun's colour; `groundDryRed/Green/Blue: 0.145/0.15/0.075` (each 0–1), the colour the ground turns toward in broad patches, by `groundVariation: 0.5` (0–1); and `hazeDistance: 500` (0–5000 metres), over which the floor beyond the subject fades into the horizon - the tree and the figure are never hazed. Each of glow, variation and haze at zero is off. The shadow defaults are `casterStride: 4` (1–64), `shadowFilterTexels: 1` (0–3) and `shadowNormalOffset: 1` (0–4). Offset uses the fitted world size of a map texel, and the wood is surfaced for the sun at half a texel's error; stride and kernel radius truncate to whole counts. Stride one keeps every placement, and filter radius zero keeps a single hardware comparison. A stride above the placement count legally empties that caster set. The material row is the family's, so it arrives with the preset. `--level <n>` holds every leaf of the frame at one level instead of letting selection choose, which is how a single level's cost is measured on its own. `--orbit` turns the camera one full revolution about the subject at the hero pose's elevation and distance while the timing session runs; the still beside it is always the hero pose, because the orbit is what is measured and not what is judged.
 
 The same target walks between two presets:
 
@@ -257,7 +266,7 @@ node scripts/scenic-cut.mjs --out .flow/evidence/fn25/scenic.mp4
 
 `scripts/scenic-cut.mjs` cuts a whole-tree sequence and a leaf sequence, both already on disk, into the one clip: a half-second crossfade from the first into the second, a light grade of contrast, warmth and a soft vignette, and one ffmpeg encode to 1920 by 1080 H.264 at 24 frames a second. It writes `scenic.json` beside the clip naming every input, the grade and the exact invocation, and it re-reads the finished file rather than assuming it. It renders nothing itself, refuses a sequence it cannot find by naming the path, and on a machine with no `ffmpeg` says so in one line and leaves the sequences standing.
 
-`npm run rust:test:wasm` holds the Wasm binding to its contract in a plain headless browser, which needs no adapter at all. `npm run test:render` drives the page on hardware WebGPU: it needs a display, and skips with the renderer's own words when the machine offers no hardware adapter. `npm run species:qa` renders the species stills through the headless target.
+`npm run test:bindings` holds the Wasm binding to its contract (`tests/browser/bindings.mjs`) in a plain headless Chromium, which needs no adapter at all; CI's `bindings` job runs it on every run. `npm run rust:test:wasm` runs the field package's browser suite (`tests/browser/field.mjs`), which grows its trees on WebGPU in a worker: it needs a browser with WebGPU and no CI job runs it. `npm run test:render` drives the page on hardware WebGPU: it needs a display, and skips with the renderer's own words when the machine offers no hardware adapter. `npm run species:qa` renders the species stills through the headless target.
 
 ## Measurements and limits
 
@@ -273,14 +282,16 @@ Skeleton and field-construction GPU performance remain inconclusive; only their
 CPU stages and code dependencies were examined. That experiment introduced no
 production GPU query entry point. The rejected WebGPU implementation, runner and dedicated tests have
 been removed. The report retains final timing and correctness evidence from Linux
-Chromium 151 and an RTX 3080. The snapshot API and
-[CPU reproduction tools](scripts/benchmarks/generation.md) remain in use by the
-field-generation follow-up's correctness checks and measurements.
+Chromium 151 and an RTX 3080. The field snapshot and cube query its
+[CPU reproduction tools](scripts/benchmarks/generation.md) read were removed in
+0.2.0 (fn-257: the field is read out to a grid), so those tools are the report's
+record and no longer run against the package.
 
 The separate [fn-91 generation path](scripts/benchmarks/generation.md#qualified-gpu-positions)
 expands compact foliage and qualified wood inputs into GPU-resident buffers shared
-by native `Delivery::Resident` and browser `setTreeGpu`. CPU-owned output remains
-available, and the default browser path remains synchronous CPU generation.
+by the native device build (`Generator::prepare`) and browser `setTreeGpu`; the
+renderer's CPU delivery was removed in fn-293. CPU output remains available through
+the core (`mesh::build`, the main entry).
 The [retained desktop measurements](.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/stations/REPORT.md)
 record completed-frame delivery of 158.1–180.8 ms for mature oak and spruce seeds
 1/7 with an initialized renderer. These results do not qualify cold page startup,
@@ -313,8 +324,9 @@ placement, not species identity. Whole, bare-branch and single-leaf views
 support inspection; the leaf view isolates one placed unit at generated scale.
 Open `/?species=norway-spruce&seed=1` to load a full-foliage specimen directly.
 
-Browser consumers can use `presetById('oregon-white-oak')`, set
-`family.skeleton.seed`, then pass the family to `TreeEngine.build`. Native
+Browser consumers can use `presetById('oregon-white-oak')` (from the main
+entry or `telperion/presets`), set `family.skeleton.seed`, then pass the
+family to `TreeEngine.build` or `growField`; an id in its place is refused. Native
 consumers use `Preset::OregonWhiteOak.parameters()` or
 `Preset::NorwaySpruce.parameters()`. Unknown identities are rejected. Natural
 presets disable the separate supernatural group; Telperion and Laurelin enable

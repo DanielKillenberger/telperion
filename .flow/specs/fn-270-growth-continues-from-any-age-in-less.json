@@ -1,0 +1,61 @@
+{
+  "branch_name": "fn-270-growth-continues-from-any-age-in-less",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-13T08:21:35.051586Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-270-growth-continues-from-any-age-in-less",
+  "impl_review_rounds": {
+    "fn-270-growth-continues-from-any-age-in-less.1": 0,
+    "fn-270-growth-continues-from-any-age-in-less.2": 0,
+    "fn-270-growth-continues-from-any-age-in-less.3": 0,
+    "fn-270-growth-continues-from-any-age-in-less.4": 0,
+    "fn-270-growth-continues-from-any-age-in-less.5": 0,
+    "fn-270-growth-continues-from-any-age-in-less.6": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-13T08:27:51.535530Z",
+  "ready": true,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-270-growth-continues-from-any-age-in-less.1": 1,
+    "impl:fn-270-growth-continues-from-any-age-in-less.2": 1,
+    "impl:fn-270-growth-continues-from-any-age-in-less.3": 1,
+    "impl:fn-270-growth-continues-from-any-age-in-less.4": 3,
+    "impl:fn-270-growth-continues-from-any-age-in-less.5": 1,
+    "impl:fn-270-growth-continues-from-any-age-in-less.6": 1,
+    "plan": 3,
+    "plan#completion": 2
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-270-growth-continues-from-any-age-in-less.1": 0,
+    "impl:fn-270-growth-continues-from-any-age-in-less.2": 0,
+    "impl:fn-270-growth-continues-from-any-age-in-less.3": 0,
+    "impl:fn-270-growth-continues-from-any-age-in-less.4": 0,
+    "impl:fn-270-growth-continues-from-any-age-in-less.5": 0,
+    "impl:fn-270-growth-continues-from-any-age-in-less.6": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-270-growth-continues-from-any-age-in-less.md",
+  "status": "done",
+  "title": "Growth continues from any age, in less memory, with leaves that unfold",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-15T20:17:23.690320Z"
+}

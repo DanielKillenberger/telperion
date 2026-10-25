@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-19T09:36:29.465625Z",
+  "depends_on": [
+    "fn-294-the-release-reviews-findings-are-fixed.1"
+  ],
+  "id": "fn-294-the-release-reviews-findings-are-fixed.2",
+  "priority": null,
+  "spec": "fn-294-the-release-reviews-findings-are-fixed",
+  "spec_path": ".flow/tasks/fn-294-the-release-reviews-findings-are-fixed.2.md",
+  "status": "todo",
+  "title": "Tree memory counts flowers; CI keys see the space crate; field test builds the renderer",
+  "updated_at": "2026-10-19T09:39:59.288888Z"
+}

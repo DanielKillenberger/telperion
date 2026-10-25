@@ -1,31 +1,37 @@
-/* An example voxelizer beside the field entry point: a regular grid over a
- * field's bounds, and the cube lists a black-and-white voxel tree draws from
- * the grid's answers. A consumer imports it, copies it, or writes its own;
- * the field query in ./index is the entry point, this is one reading of its
- * answers. It draws nothing.
+/* An example voxelizer beside the field entry point: the grid every field
+ * is read to, and the cube lists a black-and-white voxel tree draws from a
+ * field's answers. A consumer imports it, copies it, or writes its own; the
+ * field in ./index is the entry point, this is one reading of its answers.
+ * It draws nothing.
  *
  * The rules are the ones experiments/voxel-field settled under fn-100: wood
  * draws where the cell's thickest wood is at least the cutoff, through any
  * foliage; foliage draws elsewhere where the field reports it, thinned to a
  * keep fraction by one of five rules. Thinner wood is the twigs, and a
- * dropped clump takes them. */
-import type { Bounds, FieldAnswer } from "./index";
+ * dropped clump takes them. Flowers (fn-316) draw where the field counts
+ * them and no wood draws, in place of the foliage there: a cell with leaves
+ * keeps its flowers where its foliage survives the thinning, and a cell with
+ * flowers alone, which no limb owns, always keeps them. */
+import type { Bounds, FieldGrid } from "./index";
 
-/** A cubic grid of `n` cells a side, `cell` metres each, `n - 2` of them
- * spanning the field's longest axis, centred on the bounds with one empty
- * cell below the lowest point. `cells` is the packed batch the field
- * queries; cell `i + n * (j + n * k)` is at `origin + (i + 0.5, j + 0.5,
- * k + 0.5) * cell`. */
-export interface Grid { n: number; cell: number; origin: [number, number, number]; cells: Float64Array }
+/** The grid a field is read to (fn-257): `n` cells a side, `cell` metres
+ * each, `n - 2` of them spanning the box's longest axis, centred on the box
+ * in x and z with one empty cell below its lowest point. Cell `i + n * (j +
+ * n * k)` is centred at `origin + (i + 0.5, j + 0.5, k + 0.5) * cell`. The
+ * CPU field, the device field and this file read this one definition. */
+export interface Grid { n: number; cell: number; origin: [number, number, number] }
+/** `n` where it is a side a grid may have: a whole number from 3 to 256. */
+export function side(n: number): number {
+  if (!Number.isInteger(n) || n < 3 || n > 256) throw RangeError(`field grid side = ${n}: a whole number from 3 to 256`);
+  return n;
+}
+/** The grid of `n` cells a side over `bounds`. */
 export function grid(bounds: Bounds, n: number): Grid {
-  if (!Number.isInteger(n) || n < 3) throw RangeError("a grid needs at least three cells a side");
+  side(n);
   const { min, max } = bounds;
   const cell = Math.max(max[0] - min[0], max[1] - min[1], max[2] - min[2]) / (n - 2);
   const origin: [number, number, number] = [(min[0] + max[0]) / 2 - (n * cell) / 2, min[1] - cell, (min[2] + max[2]) / 2 - (n * cell) / 2];
-  const cells = new Float64Array(n * n * n * 4);
-  for (let k = 0; k < n; k++) for (let j = 0; j < n; j++) for (let i = 0; i < n; i++)
-    cells.set([origin[0] + (i + 0.5) * cell, origin[1] + (j + 0.5) * cell, origin[2] + (k + 0.5) * cell, cell / 2], ((k * n + j) * n + i) * 4);
-  return { n, cell, origin, cells };
+  return { n, cell, origin };
 }
 /** The centre of cell `index` in metres. */
 export function centre({ n, cell, origin }: Grid, index: number): [number, number, number] {
@@ -48,13 +54,16 @@ export interface Dials {
   /** Left out, no foliage draws: the wood alone. */
   thin?: Thinning;
 }
-/** Cell indices to draw as wood and as foliage, and the number of distinct
- * limb systems the foliage was thinned over. */
-export interface Cubes { wood: Uint32Array; foliage: Uint32Array; clumps: number }
-const WOOD = 1, LEAF = 2;
+/** Cell indices to draw as wood, as foliage and as flowers, each cell in one
+ * of them at most, and the number of distinct limb systems the foliage was
+ * thinned over. */
+export interface Cubes { wood: Uint32Array; foliage: Uint32Array; flowers: Uint32Array; clumps: number }
+const WOOD = 1, LEAF = 2, FLOWER = 4;
 
-export function voxelize(grid: Grid, answer: FieldAnswer, dials: Dials): Cubes {
-  const { n } = grid;
+/** The cubes a field draws as: `field` is a grid with its answers, as
+ * `growField` returns it. */
+export function voxelize(field: FieldGrid, dials: Dials): Cubes {
+  const { n, answer } = field;
   const count = n * n * n;
   if (answer.flags.length !== count) throw RangeError(`the answer has ${answer.flags.length} cells, the grid ${count}`);
   if (!(dials.woodCutoff >= 0)) throw RangeError("woodCutoff is a radius in metres");
@@ -63,20 +72,24 @@ export function voxelize(grid: Grid, answer: FieldAnswer, dials: Dials): Cubes {
   const wood: number[] = [];
   const limb = (i: number) => (flags[i] & 1) !== 0 && woodRadius[i] >= dials.woodCutoff;
   for (let i = 0; i < count; i++) if (limb(i)) { drawn[i] = WOOD; wood.push(i); }
-  if (dials.thin === undefined) return { wood: Uint32Array.from(wood), foliage: new Uint32Array(0), clumps: 0 };
+  if (dials.thin === undefined) return { wood: Uint32Array.from(wood), foliage: new Uint32Array(0), flowers: new Uint32Array(0), clumps: 0 };
   const { rule, keep } = dials.thin;
   if (!(keep >= 0 && keep <= 1)) throw RangeError("keep is a fraction");
   const coins = new Set<number>();
   const foliage: number[] = [];
   for (let i = 0; i < count; i++) if (!limb(i) && flags[i] & 2) { foliage.push(i); coins.add(limbs[i]); }
-  if (rule === "coin") {
-    const kept = foliage.filter(i => coin(limbs[i], keep));
-    return { wood: Uint32Array.from(wood), foliage: Uint32Array.from(kept), clumps: coins.size };
-  }
-  const score = SCORES[rule](grid, foliage, drawn, limbs, leaves);
+  const kept = rule === "coin" ? foliage.filter(i => coin(limbs[i], keep)) : thinned(field, foliage, drawn, rule, keep);
+  const survived = new Set(kept);
+  const flowers: number[] = [];
+  for (let i = 0; i < count; i++) if (!limb(i) && flags[i] & FLOWER && (!(flags[i] & LEAF) || survived.has(i))) flowers.push(i);
+  const bloom = new Set(flowers);
+  return { wood: Uint32Array.from(wood), foliage: Uint32Array.from(kept.filter(i => !bloom.has(i))), flowers: Uint32Array.from(flowers), clumps: coins.size };
+}
+/** The foliage cells `rule` ranks highest, `keep` of them. */
+function thinned(field: FieldGrid, foliage: number[], drawn: Uint8Array, rule: Exclude<ThinRule, "coin">, keep: number): number[] {
+  const score = SCORES[rule](field, foliage, drawn, field.answer.limbs, field.answer.leaves);
   const ranked = foliage.map((i, at) => ({ i, at })).sort((a, b) => score[b.at] - score[a.at]);
-  const survivors = Math.round(foliage.length * keep);
-  return { wood: Uint32Array.from(wood), foliage: Uint32Array.from(ranked.slice(0, survivors), r => r.i), clumps: coins.size };
+  return ranked.slice(0, Math.round(foliage.length * keep)).map(r => r.i);
 }
 /** A stable coin per limb id: the same limb always answers the same. */
 export function coin(limb: number, keep: number): boolean {

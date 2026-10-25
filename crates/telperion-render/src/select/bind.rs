@@ -1,7 +1,7 @@
 //! The layouts selection binds through, and the groups built to them. The
 //! compute pass reads and writes every selection buffer; the foliage pass sees
-//! only the placements and the list of the level it is drawing, read-only, at
-//! that level's own offset.
+//! only the placements, the lists and the start word of the level it is
+//! drawing, read-only, that word at the level's own offset.
 use crate::{buffer::Held, device::Gpu};
 
 /// Column-major, the transform the leaf view's single placement carries. It
@@ -17,13 +17,14 @@ pub fn compute_layout(gpu: &Gpu) -> wgpu::BindGroupLayout {
         .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("select"),
             entries: &[
-                uniform(0),
+                uniform(0, compute, false),
                 storage(1, compute, true, false),
                 storage(2, compute, true, false),
                 storage(3, compute, false, false),
                 storage(4, compute, false, false),
                 storage(5, compute, false, false),
                 storage(6, compute, false, false),
+                storage(7, compute, false, false),
             ],
         })
 }
@@ -35,22 +36,23 @@ pub fn draw_layout(gpu: &Gpu) -> wgpu::BindGroupLayout {
             label: Some("foliage selection"),
             entries: &[
                 storage(0, vertex, true, false),
-                // The level being drawn arrives as a dynamic offset into the
-                // one buffer every level's list lives in.
-                storage(1, vertex, true, true),
+                storage(1, vertex, true, false),
                 // How deep each cell of the crown stands in its own mass.
                 storage(2, vertex, true, false),
+                // The level being drawn arrives as a dynamic offset to its
+                // start word in the lists, read as a uniform.
+                uniform(3, vertex, true),
             ],
         })
 }
 
-/// The group the pass fills the lists, the counters and the indirect blocks
-/// through. Every buffer is bound whole: the pass addresses a level by stride.
+/// The group the pass fills the lists, the counters, the indirect blocks and
+/// the starts through. Every buffer is bound whole.
 pub fn compute_group(
     gpu: &Gpu,
     layout: &wgpu::BindGroupLayout,
     uniforms: &wgpu::Buffer,
-    buffers: [&Held; 6],
+    buffers: [&Held; 7],
 ) -> wgpu::BindGroup {
     let mut entries = vec![wgpu::BindGroupEntry {
         binding: 0,
@@ -73,47 +75,57 @@ pub fn compute_group(
 }
 
 /// The group the foliage pass draws a level through: the whole crown's
-/// placements, and one level's worth of list, offset to the level at bind.
+/// placements, lists and masses, and one start word, offset to the level at
+/// bind.
 pub fn draw_group(
     gpu: &Gpu,
     layout: &wgpu::BindGroupLayout,
-    placements: &Held,
-    lists: &Held,
-    masses: &Held,
-    stride: u64,
+    [placements, lists, masses]: [&Held; 3],
+    starts: &Held,
 ) -> wgpu::BindGroup {
+    let whole = [placements, lists, masses].map(|held| held.buffer().as_entire_binding());
+    group(gpu, layout, "foliage selection", whole, starts.buffer())
+}
+
+/// A draw group: the three whole buffers, then a start word's window at
+/// offset zero, which the dynamic offset moves.
+fn group(
+    gpu: &Gpu,
+    layout: &wgpu::BindGroupLayout,
+    label: &'static str,
+    whole: [wgpu::BindingResource<'_>; 3],
+    starts: &wgpu::Buffer,
+) -> wgpu::BindGroup {
+    let start = wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+        buffer: starts,
+        offset: 0,
+        size: wgpu::BufferSize::new(size_of::<u32>() as u64),
+    });
+    let entries: Vec<wgpu::BindGroupEntry<'_>> = (whole.into_iter().chain([start]))
+        .enumerate()
+        .map(|(binding, resource)| wgpu::BindGroupEntry {
+            binding: binding as u32,
+            resource,
+        })
+        .collect();
     gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("foliage selection"),
+        label: Some(label),
         layout,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: placements.buffer().as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                    buffer: lists.buffer(),
-                    offset: 0,
-                    size: wgpu::BufferSize::new(stride),
-                }),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: masses.buffer().as_entire_binding(),
-            },
-        ],
+        entries: &entries,
     })
 }
 
-/// The leaf view's own placements and list: one matrix at identity, and a list
-/// naming it. It never changes, so it is built once with the device.
+/// The leaf view's own placements and list: one matrix at identity, a list
+/// naming it, and its start at zero. It never changes, so it is built once
+/// with the device.
 pub fn leaf_group(gpu: &Gpu, layout: &wgpu::BindGroupLayout) -> wgpu::BindGroup {
     let held = |label: &'static str, bytes: &[u8]| {
         let buffer = gpu.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some(label),
             size: bytes.len() as u64,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+            usage: wgpu::BufferUsages::STORAGE
+                | wgpu::BufferUsages::UNIFORM
+                | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
         gpu.queue.write_buffer(&buffer, 0, bytes);
@@ -123,33 +135,22 @@ pub fn leaf_group(gpu: &Gpu, layout: &wgpu::BindGroupLayout) -> wgpu::BindGroup 
     let placements = held("leaf placement", bytemuck::cast_slice(&leaf));
     let list = held("leaf list", bytemuck::cast_slice(&[0u32]));
     let masses = held("leaf masses", bytemuck::cast_slice(&crate::mass::empty()));
-    gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("leaf selection"),
-        layout,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: placements.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: list.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: masses.as_entire_binding(),
-            },
-        ],
-    })
+    let start = held("leaf start", bytemuck::cast_slice(&[0u32]));
+    let whole = [&placements, &list, &masses].map(|b| b.as_entire_binding());
+    group(gpu, layout, "leaf selection", whole, &start)
 }
 
-fn uniform(binding: u32) -> wgpu::BindGroupLayoutEntry {
+fn uniform(
+    binding: u32,
+    visibility: wgpu::ShaderStages,
+    has_dynamic_offset: bool,
+) -> wgpu::BindGroupLayoutEntry {
     wgpu::BindGroupLayoutEntry {
         binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
+        visibility,
         ty: wgpu::BindingType::Buffer {
             ty: wgpu::BufferBindingType::Uniform,
-            has_dynamic_offset: false,
+            has_dynamic_offset,
             min_binding_size: None,
         },
         count: None,
@@ -177,19 +178,7 @@ fn storage(
 /// Dispatch boundaries make classification, prefixing and scattering visible
 /// to one another without a device-wide spin barrier.
 pub fn pipelines(gpu: &Gpu, bind: &wgpu::BindGroupLayout) -> [wgpu::ComputePipeline; 3] {
-    let shader = gpu
-        .device
-        .create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("select"),
-            source: wgpu::ShaderSource::Wgsl(
-                format!(
-                    "{}\n{}",
-                    include_str!("../shaders/leaf.wgsl"),
-                    include_str!("../shaders/select.wgsl")
-                )
-                .into(),
-            ),
-        });
+    let shader = crate::shaders::module(gpu, "select", crate::shaders::select());
     let layout = gpu
         .device
         .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {

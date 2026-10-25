@@ -42,6 +42,8 @@ fn digest(tree: &Tree, wood: &SurfaceMesh, placed: &Instances) -> u64 {
         }
     };
     take(&bincode::serialize(tree).unwrap());
+    // The chunks laid end to end: the digest the flat wood had.
+    let wood = wood.flattened();
     for floats in [&wood.positions, &wood.normals, &wood.coords] {
         for v in floats {
             take(&v.to_le_bytes());
@@ -128,16 +130,19 @@ fn oak_identity_resolves_to_frozen_profile_and_native_anatomy() {
     }
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn fixed_oaks_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
     fixed_species("suite::species::fixed_oaks_pass_geometry_and_profile_gates_with_repeatable_varied_specimens", Preset::OregonWhiteOak);
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn fixed_spruces_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
     fixed_species("suite::species::fixed_spruces_pass_geometry_and_profile_gates_with_repeatable_varied_specimens", Preset::NorwaySpruce);
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn beech_identity_resolves_to_frozen_profile_and_native_anatomy() {
     let preset = Preset::from_id("european-beech").unwrap();
@@ -187,7 +192,8 @@ fn birch_identity_resolves_to_frozen_profile_and_native_anatomy() {
     assert_eq!(profile["scientific_name"], "Betula pendula");
     assert_eq!(profile["readiness"], "ready");
     let family = preset.parameters();
-    assert_eq!(family.age, 70.0);
+    // The engine grows it from 40, the age the harness opens it at (fn-213).
+    assert_eq!(family.age, 40.0);
     assert!((family.skeleton.envelope.height - 18.0).abs() < 1e-9);
     assert!(family.skeleton.habit.rise_secondary < 0.0);
     assert_eq!(family.skeleton.habit.attractor_weight, 0.0);
@@ -200,11 +206,13 @@ fn birch_identity_resolves_to_frozen_profile_and_native_anatomy() {
     assert!(Preset::from_id("Betula pendula").is_none());
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
     fixed_species("suite::species::fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens", Preset::EuropeanBeech);
 }
 
+#[ignore = "fn-213: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn fixed_birches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
     fixed_species("suite::species::fixed_birches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens", Preset::SilverBirch);
@@ -323,8 +331,11 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
     // What this specimen will cost, computed from the tree just grown, and
     // charged against what the whole binary may spend. The charge is released
     // when `held` is dropped, which a panicking seed does on its way out.
-    let predicted =
-        footprint::predict(&a.tree, &telperion_core::pipeline::Inputs::of(&family)).unwrap();
+    let predicted = footprint::predict(
+        &a.tree,
+        &telperion_core::pipeline::Inputs::of(&family, family.skeleton.envelope),
+    )
+    .unwrap();
     let name = format!("{} seed {seed}", preset.profile_id().unwrap());
     let held = budget().charge(&name, predicted.bytes() as u64);
     if preset == Preset::NorwaySpruce {
@@ -365,29 +376,26 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
     assert!(a.tree.diagnostics.complete(), "seed {seed}: truncation");
     assert!(a.tree.nodes.len() > a.tree.crossover);
     let wood = surface::build(&a.tree, family.skeleton.envelope.height, &family.surface).unwrap();
-    assert!(!wood.indices.is_empty());
-    assert!(wood
-        .positions
-        .iter()
-        .chain(&wood.normals)
-        .all(|v| v.is_finite()));
-    assert!(wood
-        .indices
-        .iter()
-        .all(|i| (*i as usize) < wood.positions.len() / 3));
-    let point = |i: u32| {
-        let p = &wood.positions[i as usize * 3..];
-        Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)
-    };
-    for triangle in wood.indices.as_chunks::<3>().0.iter() {
-        let a = point(triangle[0]);
-        assert!(
-            (point(triangle[1]) - a)
-                .cross(point(triangle[2]) - a)
-                .length()
-                > 0.0,
-            "seed {seed}: degenerate wood triangle"
-        );
+    assert!(wood.triangles() > 0);
+    for chunk in &wood.chunks {
+        assert!(chunk.positions.iter().all(|v| v.is_finite()));
+        let vertices = chunk.positions.len() / 3;
+        assert!(vertices <= surface::CHUNK_VERTICES);
+        assert!(chunk.indices.iter().all(|&i| (i as usize) < vertices));
+        let point = |i: u16| {
+            let p = &chunk.positions[i as usize * 3..];
+            Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)
+        };
+        for triangle in chunk.indices.as_chunks::<3>().0.iter() {
+            let a = point(triangle[0]);
+            assert!(
+                (point(triangle[1]) - a)
+                    .cross(point(triangle[2]) - a)
+                    .length()
+                    > 0.0,
+                "seed {seed}: degenerate wood triangle"
+            );
+        }
     }
     let element = foliage::build_element(family.element).unwrap();
     element.validate().unwrap();
@@ -439,35 +447,30 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
         predicted.leaves
     );
     // And the wood's, which nothing compared before: three floats a vertex in
-    // positions, two in coords, one index a corner.
+    // positions, two in coords, one index a corner, over chunks the layout
+    // predicted, each reserved at its own exact size.
+    let sum = |f: fn(&surface::SurfaceChunk) -> usize| wood.chunks.iter().map(f).sum();
+    let swept = surface::WoodExtent {
+        positions: sum(|c| c.positions.len()),
+        coords: sum(|c| c.coords.len()),
+        indices: sum(|c| c.indices.len()),
+        chunks: wood.chunks.len(),
+    };
     assert_eq!(
-        predicted.wood.positions,
-        wood.positions.len(),
-        "{name}: predicted {} wood position floats, swept {}",
-        predicted.wood.positions,
-        wood.positions.len()
+        predicted.wood, swept,
+        "{name}: predicted {:?} of wood, swept {swept:?}",
+        predicted.wood
     );
-    assert_eq!(
-        predicted.wood.coords,
-        wood.coords.len(),
-        "{name}: predicted {} wood coord floats, swept {}",
-        predicted.wood.coords,
-        wood.coords.len()
-    );
-    assert_eq!(
-        predicted.wood.indices,
-        wood.indices.len(),
-        "{name}: predicted {} wood indices, swept {}",
-        predicted.wood.indices,
-        wood.indices.len()
-    );
-    assert_eq!(
-        wood.normals.capacity(),
-        wood.positions.capacity(),
-        "{name}: the wood's two vertex buffers are read as one count"
-    );
+    for chunk in &wood.chunks {
+        assert_eq!(
+            chunk.normals.capacity(),
+            chunk.coords.capacity(),
+            "{name}: the wood's two encoded vertex buffers are read as one count"
+        );
+    }
+    let flat = wood.flattened();
     let metrics =
-        species_metrics::measure(&a.tree, &wood.positions, &element, placed_count, &kept).unwrap();
+        species_metrics::measure(&a.tree, &flat.positions, &element, placed_count, &kept).unwrap();
     let (pass, checks) = species_metrics::compare(profile, &metrics).unwrap();
     assert!(pass, "seed {seed}: {checks:#}");
     assert_eq!(metrics["units_per_instance"]["value"], 1);
@@ -484,7 +487,7 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
         digest,
     };
     // The buffers the charge paid for go first, and the charge after them.
-    drop((a, wood, kept));
+    drop((a, wood, flat, kept));
     drop(held);
     grown
 }

@@ -75,7 +75,7 @@ fn socket_containment_changes_the_authored_junction_depth() {
 
 /// The samples of every run: whether it is the trunk, its nodes and rings.
 fn sweep(tree: &Tree, params: &SurfaceParams) -> Vec<(bool, Vec<usize>, Vec<Sample>)> {
-    let paths = paths(&tree.nodes).unwrap();
+    let paths = paths(tree).unwrap();
     let mut distance = vec![0.0; tree.nodes.len()];
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
         let p = n.parent.unwrap() as usize;
@@ -166,7 +166,7 @@ fn grown(fork: f64) -> (Family, Tree) {
 #[test]
 fn a_grown_clump_parts_cleanly_and_one_at_the_ground_is_untouched() {
     let (_, tree) = grown(0.4);
-    let paths = paths(&tree.nodes).unwrap();
+    let paths = paths(&tree).unwrap();
     let forks: Vec<usize> = (0..tree.nodes.len()).filter(|&i| paths.forks[i]).collect();
     assert_eq!(forks.len(), 1, "the clump parts at {forks:?}");
     let fork = forks[0];
@@ -198,10 +198,7 @@ fn a_grown_clump_parts_cleanly_and_one_at_the_ground_is_untouched() {
     assert!((lean(off[0]) - 24.0).abs() < 2.0);
     // At the ground no node is a fork: both stems leave the root.
     let (_, tree) = grown(0.0);
-    assert!(!super::paths::paths(&tree.nodes)
-        .unwrap()
-        .forks
-        .contains(&true));
+    assert!(!super::paths::paths(&tree).unwrap().forks.contains(&true));
 }
 
 #[test]
@@ -224,7 +221,7 @@ fn a_clump_that_parts_at_the_ground_sweeps_as_it_did_without_the_flag() {
 /// own, from a socket unless the fork is the root, and the run through the
 /// fork carries on into wood that is no sibling.
 fn siblings_part_from_their_forks(tree: &Tree) -> usize {
-    let paths = paths(&tree.nodes).unwrap();
+    let paths = paths(tree).unwrap();
     let mut seen = 0;
     for (i, n) in tree.nodes.iter().enumerate() {
         if n.codominant.is_none() {

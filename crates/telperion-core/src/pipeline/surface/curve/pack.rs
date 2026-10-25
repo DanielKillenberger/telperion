@@ -5,7 +5,7 @@
 //! in `tests.rs`) and a metres-wide trunk is exact at 5 cm. The twist's
 //! phase is the curve's own function of the distance along, so it takes no
 //! word.
-use super::{Curve, CurvePoint};
+use super::{encode, Curve, CurvePoint};
 use crate::math::Vec3;
 
 /// Words in one packed point.
@@ -67,7 +67,8 @@ impl Curve {
 
 /// Words in one packed cluster, as the GPU passes read it: its first point
 /// and count, its run's first point and count, its flags (1 the run's first
-/// cluster, 2 its last, 4 a shaped run, the section's index from bit 8), its
+/// cluster, 2 its last, 4 a shaped run, 8 a trunk's run, the section's index
+/// from bit 8), its
 /// sphere's centre and reach, its largest radius and its six ring-level
 /// errors (fn-208).
 pub const CLUSTER_WORDS: usize = 16;
@@ -83,8 +84,10 @@ impl Curve {
             let run = &self.runs[c.run as usize];
             let first = i == 0 || self.clusters[i - 1].run != c.run;
             let last = self.clusters.get(i + 1).is_none_or(|n| n.run != c.run);
-            let flags =
-                u32::from(first) | (u32::from(last) << 1) | run.section.map_or(0, |s| 4 | (s << 8));
+            let flags = u32::from(first)
+                | (u32::from(last) << 1)
+                | (u32::from(run.trunk) << 3)
+                | run.section.map_or(0, |s| 4 | (s << 8));
             let f = |v: f64| (v as f32).to_bits();
             let mut words = [
                 c.first,
@@ -159,28 +162,11 @@ fn frame_vectors(words: [u32; 3]) -> ([u32; 2], [u32; 2]) {
 
 /// A unit vector folded onto the octahedron and quantised to two snorm24.
 fn octahedral(v: Vec3) -> [u32; 2] {
-    let l1 = v.x.abs() + v.y.abs() + v.z.abs();
-    let (mut x, mut y) = (v.x / l1, v.y / l1);
-    if v.z < 0.0 {
-        let (ox, oy) = (x, y);
-        x = (1.0 - oy.abs()) * ox.signum();
-        y = (1.0 - ox.abs()) * oy.signum();
-    }
-    let top = f64::from((1u32 << (BITS - 1)) - 1);
-    let q = |c: f64| ((c.clamp(-1.0, 1.0) * top).round() as i32 as u32) & MASK as u32;
-    [q(x), q(y)]
+    encode::octahedral(v, BITS).map(|c| c as u32 & MASK as u32)
 }
 
 fn unoctahedral(c: [u32; 2]) -> Vec3 {
-    let top = f64::from((1u32 << (BITS - 1)) - 1);
     // Sign-extend the 24-bit two's complement.
-    let d = |w: u32| f64::from(((w << (32 - BITS)) as i32) >> (32 - BITS)) / top;
-    let (x, y) = (d(c[0]), d(c[1]));
-    let z = 1.0 - x.abs() - y.abs();
-    let (x, y) = if z < 0.0 {
-        ((1.0 - y.abs()) * x.signum(), (1.0 - x.abs()) * y.signum())
-    } else {
-        (x, y)
-    };
-    Vec3::new(x, y, z).normalized()
+    let d = |w: u32| ((w << (32 - BITS)) as i32) >> (32 - BITS);
+    encode::unoctahedral(c.map(d), BITS)
 }

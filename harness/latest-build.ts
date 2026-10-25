@@ -1,5 +1,7 @@
-/** One in-flight build and one replaceable pending request per renderer. */
-export function latestBuild<Input, Output>(run: (input: Input) => Promise<Output>) {
+/** One in-flight build and one replaceable pending request per renderer.
+ *  `run` is told whether its request is still the latest, so a long run
+ *  (a grow-in) can stop between its steps once a newer one is asked for. */
+export function latestBuild<Input, Output>(run: (input: Input, current: () => boolean) => Promise<Output>) {
   type Request = { input: Input; success: (output: Output) => void; failure: (error: unknown) => void; cancelled: boolean };
   let latest: Request | undefined;
   let pending: Request | undefined;
@@ -16,7 +18,7 @@ export function latestBuild<Input, Output>(run: (input: Input) => Promise<Output
         if (request.cancelled) continue;
         const current = () => !disposed && !request.cancelled && latest === request;
         try {
-          const output = await run(request.input);
+          const output = await run(request.input, current);
           if (current()) request.success(output);
         } catch (error) {
           if (current()) request.failure(error);

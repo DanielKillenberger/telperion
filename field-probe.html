@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>telperion — field probe</title>
+    <!-- fn-257 R3: the field grown on the device, timed in a worker as the site grows it; the page's source is src/probe/field/. -->
+    <style>
+      :root { color-scheme: light dark; font: 14px/1.4 system-ui, sans-serif; }
+      body { margin: 0 auto; max-width: 960px; padding: 16px; }
+      table { border-collapse: collapse; width: 100%; }
+      td, th { border-bottom: 1px solid #8884; padding: 4px 8px; text-align: right; font-variant-numeric: tabular-nums; }
+      td:first-child, th:first-child { text-align: left; }
+      pre { max-height: 50vh; overflow: auto; padding: 8px; border: 1px solid #8886; }
+    </style>
+  </head>
+  <body>
+    <h1>Field probe (fn-257)</h1>
+    <p id="status">Starting...</p>
+    <table><thead><tr><th>Species</th><th>Seed</th><th>Grow ms</th><th>Query 36³ ms</th><th>Total ms</th><th>0.1.4 ms</th></tr></thead><tbody id="rows"></tbody></table>
+    <pre id="json"></pre>
+    <script type="module" src="/src/probe/field/main.ts"></script>
+  </body>
+</html>

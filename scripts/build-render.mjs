@@ -1,5 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { copyFile, mkdir, readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /* The renderer, as the page loads it: a wasm module and the glue that calls
  * into it. The glue is generated here and gitignored, so nothing in the repo
@@ -13,6 +15,8 @@ import { copyFile, mkdir, readFile } from 'node:fs/promises';
  * command to run. */
 const root = new URL('../', import.meta.url);
 const OUT = 'src/browser/render';
+// Cargo builds into CARGO_TARGET_DIR when set; the module is read from there.
+const TARGET = resolve(fileURLToPath(root), process.env.CARGO_TARGET_DIR ?? 'target');
 
 const lock = await readFile(new URL('Cargo.lock', root), 'utf8');
 const wanted = /\[\[package\]\]\nname = "wasm-bindgen"\nversion = "([^"]+)"/.exec(lock)?.[1];
@@ -37,14 +41,15 @@ execFileSync('cargo', ['build', '--release', '--target', 'wasm32-unknown-unknown
 // import.meta.url)` is a string literal a bundler inlines as base64 text, and
 // the entry names the module's path itself on every init.
 execFileSync('wasm-bindgen', ['--target', 'web', '--omit-default-module-path', '--out-dir', OUT,
-  'target/wasm32-unknown-unknown/release/telperion_render.wasm'],
+  `${TARGET}/wasm32-unknown-unknown/release/telperion_render.wasm`],
   { cwd: root, stdio: 'inherit', timeout: 300_000 });
 // The module itself sits beside src/browser/render.ts for the dev server and
 // beside dist/telperion.js for the package, under the name the entry resolves
 // at run time; the glue is bundled, the module never is.
 const WASM = 'telperion-render.wasm';
 await mkdir(new URL('dist/', root), { recursive: true });
-for (const dir of ['src/browser/', 'dist/']) {
+// The field entry (src/field) loads the same module from beside itself (fn-257).
+for (const dir of ['src/browser/', 'src/field/', 'dist/']) {
   await copyFile(new URL(`${OUT}/telperion_render_bg.wasm`, root), new URL(`${dir}${WASM}`, root));
 }
 console.log(`Built the renderer module and its glue into ${OUT}/, the module beside its entry as ${WASM}.`);

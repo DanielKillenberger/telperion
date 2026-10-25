@@ -1,0 +1,49 @@
+{
+  "branch_name": "fn-217-tree-space-the-supernatural-group-on",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-07T08:35:25.244276Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-198-tree-space-f-the-engine-in-production",
+    "fn-216-tree-space-flowers-on-the-engine-path",
+    "fn-229-flowers-placed-on-the-device"
+  ],
+  "id": "fn-217-tree-space-the-supernatural-group-on",
+  "impl_review_rounds": {
+    "fn-217-tree-space-the-supernatural-group-on.2": 0,
+    "fn-217-tree-space-the-supernatural-group-on.3": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-217-tree-space-the-supernatural-group-on.2": 1,
+    "impl:fn-217-tree-space-the-supernatural-group-on.3": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-217-tree-space-the-supernatural-group-on.2": 0,
+    "impl:fn-217-tree-space-the-supernatural-group-on.3": 0
+  },
+  "spec_path": ".flow/specs/fn-217-tree-space-the-supernatural-group-on.md",
+  "status": "done",
+  "title": "Tree space: the supernatural group on the engine path",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-08T22:38:10.900845Z"
+}

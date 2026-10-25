@@ -1,29 +1,17 @@
 //! The parameter catalogue changes how rows are declared, never what a family
-//! is. These digests were recorded on master before the catalogue (d6a3405c):
-//! every shipped and in-work preset as its table builds it and as its identity
-//! serves it, walks between them at points inside the walk, families whose
-//! growth overrides are stated on one side, both or neither, and what the wire
-//! and the family's own check answer for a value off every row's rail. A
-//! digest that moves means the catalogue changed a value, a walk or a refusal.
-//! fn-61 re-pinned all four for the habit rows `pitchByHeight` and
-//! `raggedReach`: with those two rows left out of the text, each digest was
-//! still the one recorded at d6a3405c. fn-170 re-pinned all four for the fork
-//! rows that retire the five stems rows (`codominance`, `forkHeight`,
-//! `forkHeightSpread`, `forkWays`, `forkDivergence`, `forkLean`,
-//! `forkLeanSpread`) and the radius shares `lateralShare` and `forkBalance`,
-//! and for the silver birch its fork rows restate. fn-177 re-pinned all four
-//! for the radius rows `girthHold` and `girthFall`: with those two rows left
-//! out of the text, the family, walk and override digests were still fn-170's;
-//! the refusal digest pairs each row with another by its index, so a new row
-//! moves the pairs. fn-179 re-pinned all four for the fork rows' defaults,
-//! `forkDivergence` 90 and `forkLean` 26, the birch stating its divergence of
-//! none, and a fork refusal that names its rows: with those defaults at none
-//! and the refusal's old words, each digest was still fn-177's. fn-181
-//! re-pinned all four for the removed growth path's seven rows (`/growth`):
-//! with those rows stripped from fn-179's text, the family, walk and override
-//! texts were each the new one, and every single-row refusal of every row that
-//! remains read as it did, `age`'s included; only the refusal pairs, which pair
-//! rows by index, re-paired.
+//! is. Four digests hold that, each over the text of what it reads:
+//!
+//! - the family: every shipped and in-work preset as its table builds it and
+//!   as its identity serves it;
+//! - the walk: walks between the presets at points inside the walk;
+//! - the overrides: families whose growth overrides are stated on one side,
+//!   both or neither, read and written through the wire;
+//! - the refusals: what the wire and `Family::validate` answer for a value off
+//!   every row's rail, so every refusal the family's own check makes is pinned.
+//!
+//! A digest that moves means a change moved a value, a walk, an override or a
+//! refusal. A re-pin names its spec and what moved in its commit; the history
+//! is `git log -- crates/telperion-core/tests/catalogue_identity.rs`.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -59,7 +47,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        5_648_004_428_133_584_001,
+        5_297_028_612_543_002_410,
         "{}",
         digest(&text)
     );
@@ -82,16 +70,33 @@ fn every_walk_is_the_walk_it_was() {
     let mut text = String::new();
     let mut ends: Vec<Family> = PRESETS.iter().map(|p| p.parameters()).collect();
     ends.extend(overridden());
-    for (i, a) in ends.iter().enumerate() {
-        for b in &ends[i + 1..] {
-            for t in [0.0, 0.13, 0.5, 0.731, 1.0] {
-                text.push_str(&format!("{:?}\n", blend::families(a, b, t)));
-            }
-        }
+    // Every pair's walk at once (fn-271), its lines in the pairs' order.
+    let lines: Vec<String> = std::thread::scope(|scope| {
+        let pairs: Vec<_> = ends
+            .iter()
+            .enumerate()
+            .flat_map(|(i, a)| ends[i + 1..].iter().map(move |b| (a, b)))
+            .map(|(a, b)| {
+                scope.spawn(move || {
+                    [0.0, 0.13, 0.5, 0.731, 1.0]
+                        .map(|t| format!("{:?}\n", blend::families(a, b, t)))
+                        .concat()
+                })
+            })
+            .collect();
+        pairs.into_iter().map(|pair| pair.join().unwrap()).collect()
+    });
+    for line in lines {
+        text.push_str(&line);
     }
+    // Re-pinned by fn-308 (host ruling 4, 2026-10-22): between the ends
+    // each engine species is read at the frame's age, so every row of an
+    // age one end never reaches is the other's, each lifespan is clamped
+    // at the age and an unreached end takes the leaving end's exits. Was
+    // 18_002_361_237_904_030_670; measured 14_357_345_262_323_445_191.
     assert_eq!(
         digest(&text),
-        14_247_106_638_314_447_635,
+        14_357_345_262_323_445_191,
         "{}",
         digest(&text)
     );
@@ -116,7 +121,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        640_139_014_775_524_557,
+        10_922_909_758_982_052_223,
         "{}",
         digest(&text)
     );
@@ -149,7 +154,7 @@ fn answer(base: &serde_json::Value, rows: &[(&str, serde_json::Value)]) -> Strin
 
 #[test]
 fn every_refusal_is_the_refusal_it_was() {
-    let base = params::metadata(&Preset::Ordinary.parameters());
+    let base = params::metadata(&Family::default());
     let mut rows = Vec::new();
     leaves(&base, String::new(), &mut rows);
     let values: [serde_json::Value; 7] = [
@@ -179,8 +184,30 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        13_927_056_433_570_196_194,
+        17_142_609_772_195_174_599,
         "{}",
         digest(&text)
     );
+}
+
+/// fn-297 R6: a rosette's divergence is one turn either way. -360 and 360
+/// are admitted; a thousandth of a degree past either, and a value that is
+/// not finite, are refused by name.
+#[test]
+fn a_rosette_divergence_is_one_turn() {
+    let base = params::metadata(&Family::default());
+    let row = "/canopy/rosetteDivergence";
+    for turn in [-360.0, 360.0] {
+        assert_eq!(answer(&base, &[(row, serde_json::json!(turn))]), "Ok(())");
+    }
+    for past in [-360.001, 360.001] {
+        let refused = answer(&base, &[(row, serde_json::json!(past))]);
+        assert!(refused.contains("rosette divergence"), "{past}: {refused}");
+    }
+    for bad in [f64::NAN, f64::INFINITY] {
+        let mut f = Family::default();
+        f.canopy.rosette_divergence = bad;
+        let refused = format!("{:?}", f.validate());
+        assert!(refused.contains("rosette divergence"), "{bad}: {refused}");
+    }
 }

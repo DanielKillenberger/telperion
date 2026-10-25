@@ -1,0 +1,293 @@
+{
+  "branch_name": "fn-298-a-walk-frame-builds-on-the-device",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-21T11:26:29.301151Z",
+  "created_at": "2026-10-20T11:24:05.722274Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-298-a-walk-frame-builds-on-the-device",
+  "impl_review_rounds": {
+    "fn-298-a-walk-frame-builds-on-the-device.1": 0,
+    "fn-298-a-walk-frame-builds-on-the-device.2": 0,
+    "fn-298-a-walk-frame-builds-on-the-device.3": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-20T11:33:05.936234Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "115a0735d0d9c4524edb23f66e17c6ebb39cde141d04ebdeb99b7ea0b9bb79cc",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f9432e7d8db2ad506a1dd85150a18e11",
+            "classification": "introduced",
+            "findingId": "finding-f9432e7d8db2ad506a1dd85150a18e11",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f765b13d972f043e1fcc797fc236097371a7f9b4",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 227012,
+      "output_sha256": "faf6b651f7ff1160cd5e7eb6f117d720736aa3a00062aced58388c2b724c60ee",
+      "reservation_id": "2266a2cb59a241d79fe01918d097a09b",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T11:32:27.699344Z",
+      "tool_calls": 13,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "951ed95de6ed4510ebe8047c13bc28fe04ba62d037e45083a99d5b64c49d4007",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f9432e7d8db2ad506a1dd85150a18e11",
+            "classification": "introduced",
+            "findingId": "finding-f9432e7d8db2ad506a1dd85150a18e11",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f765b13d972f043e1fcc797fc236097371a7f9b4",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 646,
+      "output_sha256": "2d1d3bbc9abee4c5296ada3a69decc82aa40e9f9392b0213ca9fb33253c0df30",
+      "reservation_id": "d7dd6525606b4309933b4c49e067fd86",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T11:33:05.933880Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "517a29753f060684897a80d44ce85dbeb2db11f09c231ceac6d94da943c3387a",
+      "backend": "codex",
+      "base_sha": "0f6af71e87a04fc33b7e03730ee2f5a4613cf867",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "91b203ae2a2b1b27fa67f970e1717e2a92293e99",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "654552d1649e48d9930e0611db8633b5",
+      "round_consumed": true,
+      "scope": "impl:fn-298-a-walk-frame-builds-on-the-device.1",
+      "superseded_by": null,
+      "task": "fn-298-a-walk-frame-builds-on-the-device.1",
+      "timestamp": "2026-10-20T13:45:14.300608Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b201dbfea80531f78ad165305c97f69e595d3b8554fd92c62c50905d6ef26efd",
+      "backend": "codex",
+      "base_sha": "488580cbd9d30dfecd12a8d8d6b7aa5e71ff0b93",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b477474396079a78667c5a7d31a88610",
+            "classification": "introduced",
+            "findingId": "finding-b477474396079a78667c5a7d31a88610",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f5bf82b7fdc652004ce5488504bd9b97bfd88895",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1014,
+      "output_sha256": "33daa19cbfe8efefcb6565a2bb476699ece1f7744373f41b22be1f2c754764b7",
+      "reservation_id": "751ddbb06f7c4598935845573fa25949",
+      "round_consumed": true,
+      "scope": "impl:fn-298-a-walk-frame-builds-on-the-device.2",
+      "superseded_by": null,
+      "task": "fn-298-a-walk-frame-builds-on-the-device.2",
+      "timestamp": "2026-10-20T17:27:36.612414Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3b51b11dd2dc7a1698df5eb8e57ba0b01f577631acb037dae17768427b323d46",
+      "backend": "codex",
+      "base_sha": "b634869b940d84062842cd5fd303e0892ec498b8",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bc0066e078dd60614b00940f1bf1485f13bcf4fa",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "b7297600d3264bc09bccff1023fc45d6",
+      "round_consumed": true,
+      "scope": "impl:fn-298-a-walk-frame-builds-on-the-device.3",
+      "superseded_by": null,
+      "task": "fn-298-a-walk-frame-builds-on-the-device.3",
+      "timestamp": "2026-10-21T10:35:17.071978Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "15493f1f0838a348b5a063ee55e22a9d9988cab20a823f3b742b99bdd35ff5c5",
+      "backend": "codex",
+      "base_sha": "7422b110b7c20136a8dad49020f5d31800e2e962",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a2aa20092cd4f0deea7cfa8e689eb4e2b4d22335",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 358387,
+      "output_sha256": "279ef7e7d93f6f92c4b21ddd839b9c7b571685ce81f06c8b4c108a7af35d3e9c",
+      "reservation_id": "15c8de83ed4747e1a1c51dee328e3a63",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T11:26:29.289920Z",
+      "tool_calls": 22,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-298-a-walk-frame-builds-on-the-device.1": 1,
+    "impl:fn-298-a-walk-frame-builds-on-the-device.2": 1,
+    "impl:fn-298-a-walk-frame-builds-on-the-device.3": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-298-a-walk-frame-builds-on-the-device.1": 0,
+    "impl:fn-298-a-walk-frame-builds-on-the-device.2": 0,
+    "impl:fn-298-a-walk-frame-builds-on-the-device.3": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-298-a-walk-frame-builds-on-the-device.md",
+  "status": "open",
+  "title": "A walk frame builds on the device",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-21T11:26:29.307179Z"
+}

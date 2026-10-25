@@ -22,6 +22,9 @@ pub enum Error {
         base: f64,
         height: f64,
     },
+    /// The executor holding the fine roots failed on its device: what it
+    /// said (fn-212 task 10). The engine never substitutes a tree.
+    Executor(String),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -52,6 +55,7 @@ impl fmt::Display for Error {
                 "axis {axis} (PA {pa}, born in cycle {birth}, base at {base:.3} m) \
                  reaches {height:.3} m below the ground"
             ),
+            Error::Executor(reason) => write!(f, "the fine roots' executor failed: {reason}"),
         }
     }
 }

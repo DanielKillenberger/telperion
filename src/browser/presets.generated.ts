@@ -5,17 +5,43 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 0,
     "family": {
-      "age": 100,
+      "age": 40,
+      "bloom": {
+        "droop": 0,
+        "florets": 1,
+        "lasts": 0.1,
+        "open": 70,
+        "opens": 0.3,
+        "pedicel": 0.01,
+        "petalCup": 0.2,
+        "petalCurl": 0,
+        "petalLength": 0.012,
+        "petalWidest": 0.6,
+        "petalWidth": 0.009,
+        "petals": 5,
+        "rachis": 0,
+        "scatter": 0.1,
+        "spread": 60,
+        "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
+        "taper": 0
+      },
       "canopy": {
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
         "acanthophylls": 0,
+        "cauline": 1,
         "clump": 5,
         "clumpNeighbours": 12,
         "clumpSpan": 0.3,
         "clumpSystemOrder": 2,
         "divergence": 137.508,
         "forwardLean": 0,
+        "frondEarlyShare": 0,
+        "frondEstablishment": 0,
+        "frondLife": 0,
         "leafBaseFlatness": 0,
         "leafBaseLength": 0,
         "leafBasePitch": 60,
@@ -31,6 +57,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "outward": 0.6,
         "rachisArch": 0,
         "rachisLength": 0,
+        "rachisWidth": 0,
         "rosetteDepth": 0,
         "rosetteDivergence": 137.508,
         "rosetteFronds": 0,
@@ -38,11 +65,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "rosettePitchSpread": 60,
         "scatter": 18,
         "shootRadius": 0,
-        "shortShootLeaves": 3,
-        "shortShootLength": 0.04,
-        "shortShootRadius": 0.15,
-        "shortShootSpacing": 0,
-        "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.35,
         "skirtFronds": 0,
@@ -83,6 +105,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeGrainStrength": 0,
         "bladeMottleScale": 0,
         "bladeMottleStrength": 0,
+        "bloomBackBlue": 0.64,
+        "bloomBackGreen": 0.72,
+        "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
+        "bloomFrontBlue": 0.74,
+        "bloomFrontGreen": 0.8,
+        "bloomFrontRed": 0.82,
         "brightnessRangeHigh": 0.12,
         "brightnessRangeLow": -0.12,
         "canopyNormal": 0,
@@ -107,9 +139,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafBackBlue": 0.07,
         "leafBackGreen": 0.24,
         "leafBackRed": 0.105,
-        "leafDeadBlue": 0.18,
-        "leafDeadGreen": 0.25,
-        "leafDeadRed": 0.3,
+        "leafDeadBlue": 0.0093,
+        "leafDeadGreen": 0.0814,
+        "leafDeadRed": 0.299,
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
         "leafFrontRed": 0.068,
@@ -131,6 +163,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "marginGreen": 0,
         "marginRed": 0,
         "marginWidth": 0,
+        "matureBlue": 0.068,
+        "matureFurrowStrength": 1,
+        "matureGreen": 0.105,
+        "matureRadius": 0,
+        "matureRed": 0.147,
+        "matureSpan": 0,
         "orientationBlue": 0,
         "orientationGreen": 0,
         "orientationRed": 0,
@@ -264,6 +302,1119 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "vigourVariation": 0.15
         }
       },
+      "space": {
+        "ages": {
+          "0": {
+            "abortion": 0.16666666666666669,
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "divergence": 2.437666666666667,
+            "elongation": 19.08298850246509,
+            "epitony": 0.2,
+            "erection": 0.012239800905693142,
+            "expansion": 25.888428479342984,
+            "form": {
+              "elevation": 1.5138642178632644,
+              "exponent": 2.533333333333333,
+              "pipe": 0.005648183260318469,
+              "plane": 1.0471975511965976,
+              "tropism": 0.9095746992151857,
+              "wander": 0.1740702373278582
+            },
+            "insertion": 0.1,
+            "internode": 0.0399334633667196,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 0.4422495703074083,
+            "relay": 1,
+            "relayAt": 0.7166666666666666,
+            "relayEnded": 0.33333333333333337,
+            "relayFailed": 0.33333333333333337,
+            "retained": 0.16666666666666669,
+            "rhythm": 0.7666666666666667,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "straightening": 0.33333333333333337,
+            "takeover": 0.75,
+            "trunk": true,
+            "upkeep": 0.006054004063162271,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                }
+              },
+              "1": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2.6666666666666665,
+                  "min": 1.6666666666666667
+                }
+              },
+              "2": {
+                "buds": 3,
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "3": {
+                "buds": 1
+              }
+            }
+          },
+          "1": {
+            "abortion": 0.16666666666666669,
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "divergence": 2.437666666666667,
+            "elongation": 19.08298850246509,
+            "epitony": 0.2,
+            "erection": 0.012239800905693142,
+            "expansion": 25.888428479342984,
+            "form": {
+              "elevation": 1.5138642178632644,
+              "exponent": 2.533333333333333,
+              "pipe": 0.005648183260318469,
+              "plane": 1.0471975511965976,
+              "tropism": 0.9095746992151857,
+              "wander": 0.1740702373278582
+            },
+            "insertion": 0.1,
+            "internode": 0.04458319119887085,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 1.080083823051904,
+            "relay": 1,
+            "relayAt": 0.7166666666666666,
+            "relayEnded": 0.33333333333333337,
+            "relayFailed": 0.33333333333333337,
+            "retained": 0.16666666666666669,
+            "rhythm": 0.9,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "straightening": 0.33333333333333337,
+            "takeover": 0.75,
+            "trunk": true,
+            "upkeep": 0.006054004063162271,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4.666666666666667,
+                  "min": 3.6666666666666665
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.06182724199410992
+                },
+                "nodes": {
+                  "max": 2.6666666666666665,
+                  "min": 1.6666666666666667
+                }
+              },
+              "2": {
+                "buds": 3,
+                "lateral": {
+                  "8": 0.2102126227799737
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "3": {
+                "buds": 1
+              }
+            }
+          },
+          "2": {
+            "abortion": 0.16666666666666669,
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "divergence": 2.437666666666667,
+            "elongation": 19.08298850246509,
+            "epitony": 0.2,
+            "erection": 0.012239800905693142,
+            "expansion": 25.888428479342984,
+            "form": {
+              "elevation": 1.5138642178632644,
+              "exponent": 2.533333333333333,
+              "pipe": 0.005648183260318469,
+              "plane": 1.0471975511965976,
+              "tropism": 0.9095746992151857,
+              "wander": 0.1740702373278582
+            },
+            "insertion": 0.1,
+            "internode": 0.0509790349410698,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 15.726893214738396,
+            "relay": 1,
+            "relayAt": 0.7166666666666666,
+            "relayEnded": 0.33333333333333337,
+            "relayFailed": 0.33333333333333337,
+            "retained": 0.16666666666666669,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "straightening": 0.33333333333333337,
+            "takeover": 0.75,
+            "trunk": true,
+            "upkeep": 0.006054004063162271,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 5,
+                  "min": 4
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.17311627758350778,
+                  "9": 0.08655813879175389
+                },
+                "nodes": {
+                  "max": 2.6666666666666665,
+                  "min": 1.6666666666666667
+                }
+              },
+              "2": {
+                "buds": 3,
+                "lateral": {
+                  "8": 0.35859800356583754,
+                  "9": 0.1978471743811518
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "3": {
+                "buds": 1
+              }
+            }
+          },
+          "3": {
+            "abortion": 0.16666666666666669,
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "divergence": 2.437666666666667,
+            "elongation": 19.08298850246509,
+            "epitony": 0.2,
+            "erection": 0.012239800905693142,
+            "expansion": 25.888428479342984,
+            "form": {
+              "elevation": 1.5138642178632644,
+              "exponent": 2.533333333333333,
+              "pipe": 0.005648183260318469,
+              "plane": 1.0471975511965976,
+              "tropism": 0.9095746992151857,
+              "wander": 0.1740702373278582
+            },
+            "insertion": 0.1,
+            "internode": 0.0509790349410698,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 0.4422495703074083,
+            "relay": 1,
+            "relayAt": 0.7166666666666666,
+            "relayEnded": 0.33333333333333337,
+            "relayFailed": 0.33333333333333337,
+            "retained": 0.16666666666666669,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "straightening": 0.33333333333333337,
+            "takeover": 0.75,
+            "trunk": true,
+            "upkeep": 0.006054004063162271,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4.666666666666667,
+                  "min": 3.6666666666666665
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.0741926903929319
+                },
+                "nodes": {
+                  "max": 2.6666666666666665,
+                  "min": 1.6666666666666667
+                }
+              },
+              "2": {
+                "buds": 3,
+                "lateral": {
+                  "6": 0.13601993238704183
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "3": {
+                "buds": 1
+              }
+            }
+          },
+          "4": {
+            "abortion": 0.1,
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "continuation": 0.6666666666666667,
+            "divergence": 2.6848642178632645,
+            "elongation": 19.08298850246509,
+            "epitony": 0.2,
+            "expansion": 25.888428479342984,
+            "form": {
+              "bendLength": 0.2141380652391394,
+              "elevation": 1.4971975511965978,
+              "exponent": 2.533333333333333,
+              "pipe": 0.005648183260318469,
+              "plane": 0.5235987755982988,
+              "ripening": 1.5198420997897464,
+              "roll": 0.4,
+              "tropism": 0.9095746992151857,
+              "wander": 0.4189443638417259
+            },
+            "insertion": 0.23333333333333334,
+            "internode": 0.03917031545357339,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 61.72780864270068,
+            "relay": 1,
+            "relayAt": 0.7166666666666666,
+            "relayFailed": 0.33333333333333337,
+            "retained": 0.16666666666666669,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "straightening": 0.33333333333333337,
+            "takeover": 0.75,
+            "trunk": true,
+            "upkeep": 0.006054004063162271,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4.333333333333333,
+                  "min": 3.333333333333333
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.0741926903929319,
+                  "9": 0.1656970085442146,
+                  "14": 0.13601993238704183
+                },
+                "nodes": {
+                  "max": 2.6666666666666665,
+                  "min": 1.6666666666666667
+                }
+              },
+              "2": {
+                "buds": 3,
+                "lateral": {
+                  "6": 0.09397740783104709,
+                  "7": 0.07419269039293191,
+                  "8": 0.2102126227799737
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "3": {
+                "buds": 1
+              }
+            }
+          },
+          "5": {
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "continuation": 0.6666666666666666,
+            "divergence": 2.437666666666667,
+            "elongation": 19.08298850246509,
+            "expansion": 25.888428479342984,
+            "form": {
+              "bendLength": 0.2141380652391394,
+              "elevation": 1.5707963267948966,
+              "exponent": 2.533333333333333,
+              "pipe": 0.005648183260318469,
+              "plane": 1.0471975511965976,
+              "tropism": 0.7377718728240056,
+              "wander": 0.22424032762163093
+            },
+            "internode": 0.03917031545357339,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 0.4422495703074083,
+            "retained": 0.16666666666666669,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "trunk": true,
+            "upkeep": 0.006054004063162271,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4.333333333333333,
+                  "min": 3.333333333333333
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.0741926903929319,
+                  "7": 0.12365448398821985
+                },
+                "nodes": {
+                  "max": 2.3333333333333335,
+                  "min": 1.6666666666666667
+                }
+              },
+              "2": {
+                "buds": 3,
+                "lateral": {
+                  "6": 0.22257807117879574
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "3": {
+                "buds": 1
+              }
+            }
+          },
+          "6": {
+            "abortion": 0.15,
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "continuation": 0.3333333333333333,
+            "divergence": 2.6848642178632645,
+            "elongation": 19.08298850246509,
+            "epitony": 0.2666666666666667,
+            "expansion": 25.888428479342984,
+            "form": {
+              "bendLength": 0.2141380652391394,
+              "elevation": 0.9735987755982989,
+              "exponent": 2.6,
+              "pipe": 0.005648183260318469,
+              "plane": 0.5235987755982988,
+              "ripening": 5.349604207872798,
+              "roll": 0.6666666666666667,
+              "sag": 0.00002141380652391393,
+              "tropism": 0.8590093948322178,
+              "wander": 0.4189443638417259
+            },
+            "insertion": 0.4,
+            "internode": 0.0378121583039837,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 31.88758812795099,
+            "relay": 1,
+            "relayAt": 0.7166666666666666,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "retained": 0.16666666666666669,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "shedding": 17,
+            "straightening": 0.25,
+            "takeover": 0.75,
+            "upkeep": 0.006054004063162271,
+            "viability": 0.9983333333333334,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "delay": 0.29364971831021736,
+                "dormant": {
+                  "9": 0.03333333333333334
+                },
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                },
+                "rate": 0.007099759466766968
+              },
+              "1": {
+                "buds": 1,
+                "delay": 0.29364971831021736,
+                "dormant": {
+                  "9": 0.03333333333333334
+                },
+                "lateral": {
+                  "9": 0.17806245694303657,
+                  "14": 0.13601993238704183
+                },
+                "nodes": {
+                  "max": 2.6666666666666665,
+                  "min": 1.6666666666666667
+                },
+                "rate": 0.007099759466766968
+              },
+              "2": {
+                "buds": 3,
+                "delay": 0.29364971831021736,
+                "dormant": {
+                  "9": 0.03333333333333334
+                },
+                "lateral": {
+                  "6": 0.0017311627758350779,
+                  "7": 0.05935415231434552
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                },
+                "rate": 0.007099759466766968
+              },
+              "3": {
+                "buds": 1
+              }
+            }
+          },
+          "7": {
+            "abortion": 0.15,
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "continuation": 0.3333333333333333,
+            "divergence": 2.932061769059862,
+            "elongation": 19.08298850246509,
+            "epitony": 0.2666666666666667,
+            "expansion": 25.888428479342984,
+            "form": {
+              "bendLength": 0.15198420997897463,
+              "dominance": 0.11666666666666665,
+              "elevation": 0.35,
+              "exponent": 2.466666666666667,
+              "pipe": 0.0029531522678490356,
+              "ripening": 13.121393341304252,
+              "roll": 0.9333333333333333,
+              "sag": 0.000030412400206221867,
+              "tropism": 0.487713065921074,
+              "wander": 0.7567143230122718
+            },
+            "insertion": 0.9333333333333332,
+            "internode": 0.03917031545357339,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 11.36603608919039,
+            "relay": 1,
+            "relayAt": 0.7166666666666666,
+            "relayEnded": 1,
+            "relayFailed": 0.75,
+            "retained": 0.16666666666666669,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "shedding": 13.999999999999996,
+            "straightening": 0.2,
+            "takeover": 0.75,
+            "upkeep": 0.006054004063162271,
+            "viability": 0.9973333333333333,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "delay": 0.12239800905693157,
+                "nodes": {
+                  "max": 2.3333333333333335,
+                  "min": 1.6666666666666667
+                },
+                "rate": 0.021413806523913927
+              },
+              "1": {
+                "buds": 1.3333333333333333,
+                "delay": 0.12239800905693157,
+                "lateral": {
+                  "9": 0.14096611174657064,
+                  "14": 0.1483853807858638
+                },
+                "nodes": {
+                  "max": 2.6666666666666665,
+                  "min": 2
+                },
+                "rate": 0.021413806523913927
+              },
+              "2": {
+                "buds": 2,
+                "delay": 0.12239800905693157,
+                "lateral": {
+                  "8": 0.03462325551670156,
+                  "9": 0.0741926903929319
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                },
+                "rate": 0.021413806523913927
+              },
+              "3": {
+                "buds": 1
+              }
+            }
+          },
+          "8": {
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "continuation": 0.6666666666666666,
+            "divergence": 2.932061769059862,
+            "elongation": 19.08298850246509,
+            "expansion": 25.888428479342984,
+            "form": {
+              "dominance": 0.11666666666666665,
+              "elevation": 0.5499999999999999,
+              "exponent": 2.2666666666666666,
+              "pipe": 0.001977471768911922,
+              "ripening": 4.604078661310774,
+              "roll": 1.0666666666666667,
+              "sag": 0.00001223980090569314,
+              "tropism": 0.3717693980316533,
+              "wander": 0.7890167065610476
+            },
+            "insertion": 0.9666666666666666,
+            "internode": 0.05195058881305778,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 11.603408836646643,
+            "retained": 0.16666666666666669,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "shedding": 10.999999999999998,
+            "straightening": 0.08333333333333334,
+            "upkeep": 0.006054004063162271,
+            "viability": 0.981,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "delay": 0.12239800905693157,
+                "dormant": {
+                  "10": 0.15
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1.3333333333333333
+                },
+                "rate": 0.021413806523913927
+              },
+              "1": {
+                "buds": 1.3333333333333333,
+                "delay": 0.12239800905693157,
+                "dormant": {
+                  "10": 0.15
+                },
+                "lateral": {
+                  "9": 0.06677342135363872,
+                  "10": 0.17311627758350775,
+                  "13": 0.0741926903929319,
+                  "14": 0.1483853807858638
+                },
+                "nodes": {
+                  "max": 2.6666666666666665,
+                  "min": 2
+                },
+                "rate": 0.021413806523913927
+              },
+              "2": {
+                "buds": 2,
+                "delay": 0.12239800905693157,
+                "dormant": {
+                  "10": 0.15
+                },
+                "lateral": {
+                  "9": 0.13601993238704183,
+                  "10": 0.2349435195776177,
+                  "13": 0.0989235871905759
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                },
+                "rate": 0.021413806523913927
+              },
+              "3": {
+                "buds": 1
+              }
+            }
+          },
+          "9": {
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "continuation": 0.6666666666666667,
+            "divergence": 2.932061769059862,
+            "elongation": 19.08298850246509,
+            "epitony": 0.06666666666666668,
+            "expansion": 25.888428479342984,
+            "form": {
+              "dominance": 0.11666666666666665,
+              "elevation": 0.5166666666666666,
+              "exponent": 2.066666666666667,
+              "pipe": 0.0008653651809040252,
+              "ripening": 1.2239800905693157,
+              "roll": 1.0666666666666667,
+              "sag": 0.00003497941445275416,
+              "tropism": 0.7341946649781853,
+              "wander": 0.5881481297672508
+            },
+            "insertion": 1.1,
+            "internode": 0.025929859097224436,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 34.04565470689849,
+            "relay": 0.33333333333333337,
+            "relayFailed": 0.2777777777777778,
+            "retained": 0.16666666666666669,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "shedding": 2,
+            "takeover": 0.75,
+            "upkeep": 0.006054004063162271,
+            "viability": 0.976,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "delay": 0.12239800905693157,
+                "dormant": {
+                  "10": 0.15
+                },
+                "nodes": {
+                  "max": 1.6666666666666667,
+                  "min": 1
+                },
+                "rate": 0.021413806523913927
+              },
+              "1": {
+                "buds": 1.3333333333333333,
+                "delay": 0.12239800905693157,
+                "dormant": {
+                  "10": 0.15
+                },
+                "lateral": {
+                  "10": 0.17311627758350775,
+                  "13": 0.04451561423575914,
+                  "14": 0.2473089679764397
+                },
+                "nodes": {
+                  "max": 2.6666666666666665,
+                  "min": 2
+                },
+                "rate": 0.021413806523913927
+              },
+              "2": {
+                "buds": 2,
+                "delay": 0.12239800905693157,
+                "dormant": {
+                  "10": 0.15
+                },
+                "lateral": {
+                  "9": 0.024730896797643974,
+                  "10": 0.2349435195776177,
+                  "13": 0.061827241994109924
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                },
+                "rate": 0.021413806523913927
+              },
+              "3": {
+                "buds": 1,
+                "lateral": {
+                  "12": 0.1607508291846858
+                },
+                "nodes": {
+                  "max": 0.6666666666666667,
+                  "min": 0.33333333333333337
+                }
+              }
+            }
+          },
+          "10": {
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "divergence": 2.932061769059862,
+            "elongation": 19.08298850246509,
+            "epitony": 0.06666666666666668,
+            "expansion": 25.888428479342984,
+            "form": {
+              "elevation": -0.1499999999999999,
+              "pipe": 0.0007402701249205786,
+              "roll": 0.8666666666666667,
+              "sag": 0.00002708429769266187,
+              "tropism": 0.8332043472543913,
+              "wander": 0.49387135618713135
+            },
+            "insertion": 0.9,
+            "internode": 0.020168709029234323,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 1.2239800905693157,
+            "relay": 0.33333333333333337,
+            "relayEnded": 0.33333333333333337,
+            "relayFailed": 0.25,
+            "retained": 0.16666666666666669,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "shedding": 1.4,
+            "takeover": 0.75,
+            "upkeep": 0.006054004063162271,
+            "viability": 0.9733333333333333,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 1.3333333333333335,
+                  "min": 0.6666666666666667
+                }
+              },
+              "1": {
+                "buds": 1.3333333333333333,
+                "lateral": {
+                  "12": 0.13601993238704183
+                },
+                "nodes": {
+                  "max": 2.6666666666666665,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 2.3333333333333335,
+                "lateral": {
+                  "12": 0.19784717438115174
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "3": {
+                "buds": 1,
+                "nodes": {
+                  "max": 0.6666666666666667,
+                  "min": 0.33333333333333337
+                }
+              }
+            }
+          },
+          "11": {
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "continuation": 0.6666666666666667,
+            "divergence": 2.6848642178632645,
+            "elongation": 19.08298850246509,
+            "expansion": 25.888428479342984,
+            "form": {
+              "elevation": -0.3333333333333333,
+              "pipe": 0.0007402701249205786,
+              "roll": 0.4666666666666667,
+              "sag": 0.00002708429769266187,
+              "tropism": 1.3532231116551476,
+              "wander": 0.6246912167913121
+            },
+            "insertion": 0.9,
+            "internode": 0.013280073963843116,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 2.4482172403827303,
+            "retained": 0.16666666666666669,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "shedding": 1.25,
+            "upkeep": 0.006054004063162271,
+            "viability": 0.9566666666666667,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 0.6666666666666667,
+                  "min": 0.6666666666666667
+                }
+              },
+              "1": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1.3333333333333335
+                }
+              },
+              "2": {
+                "buds": 1.6666666666666667,
+                "lateral": {
+                  "12": 0.1483853807858638
+                },
+                "nodes": {
+                  "max": 0.6666666666666666,
+                  "min": 0.6666666666666666
+                }
+              },
+              "3": {
+                "buds": 1
+              }
+            }
+          },
+          "12": {
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "continuation": 0,
+            "divergence": 2.932061769059862,
+            "elongation": 19.08298850246509,
+            "expansion": 25.888428479342984,
+            "form": {
+              "elevation": -0.05000000000000002,
+              "pipe": 0.0006876252863505538,
+              "roll": 0.7999999999999999,
+              "tropism": 0.9288276478101777,
+              "wander": 0.7416448131856115
+            },
+            "insertion": 0.9666666666666667,
+            "internode": 0.01959543053831074,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 3.481404746557164,
+            "retained": 0.16666666666666669,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "shedding": 1.7692307692307692,
+            "upkeep": 0.006054004063162271,
+            "viability": 0.9266666666666666,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 1.3333333333333333,
+                  "min": 1.3333333333333333
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "14": 0.22257807117879572
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1.3333333333333335
+                }
+              },
+              "2": {
+                "buds": 1.3333333333333333,
+                "lateral": {
+                  "14": 0.08655813879175389
+                },
+                "nodes": {
+                  "max": 0.33333333333333337,
+                  "min": 0.33333333333333337
+                }
+              },
+              "3": {
+                "buds": 1
+              }
+            }
+          },
+          "13": {
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "continuation": 0.6666666666666666,
+            "divergence": 2.932061769059862,
+            "elongation": 19.08298850246509,
+            "expansion": 25.888428479342984,
+            "form": {
+              "elevation": -0.05000000000000002,
+              "pipe": 0.0006610734999884338,
+              "roll": 0.7999999999999999,
+              "tropism": 0.7457690558114921,
+              "wander": 0.7416448131856115
+            },
+            "insertion": 0.9666666666666667,
+            "internode": 0.018218168565924873,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 0.5874010519681996,
+            "retained": 0.16666666666666669,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "shedding": 1.7692307692307692,
+            "upkeep": 0.006054004063162271,
+            "viability": 0.9333333333333333,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 1.3333333333333333,
+                  "min": 1.3333333333333333
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "14": 0.0989235871905759
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1.3333333333333335
+                }
+              },
+              "2": {
+                "buds": 1.6666666666666667,
+                "lateral": {
+                  "14": 0.0741926903929319
+                },
+                "nodes": {
+                  "max": 0.33333333333333337,
+                  "min": 0.33333333333333337
+                }
+              },
+              "3": {
+                "buds": 1
+              }
+            }
+          },
+          "14": {
+            "apicalControl": 0.48333333333333334,
+            "balanceHazard": 0.048577660026506514,
+            "budburst": 125,
+            "colouring": 16,
+            "continuation": 0.3333333333333333,
+            "divergence": 2.932061769059862,
+            "elongation": 19.08298850246509,
+            "expansion": 25.888428479342984,
+            "form": {
+              "elevation": -0.16666666666666666,
+              "pipe": 0.0007129508526476628,
+              "roll": 0.39999999999999997,
+              "tropism": 0.12239800905693157,
+              "wander": 0.08794620881905606
+            },
+            "insertion": 0.9666666666666667,
+            "internode": 0.009095746992151862,
+            "leafArea": 0.00016730748660601915,
+            "leafFall": 45,
+            "leafGirth": 0.33333333333333337,
+            "leafLife": 1.3024755700325734,
+            "lifespan": 1.5198420997897464,
+            "retained": 0.16666666666666669,
+            "senescence": 264,
+            "shadeHazard": 0.33333333333333337,
+            "shadeSize": 0.5,
+            "shedding": 1.7692307692307692,
+            "upkeep": 0.006054004063162271,
+            "viability": 0.9,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4,
+                  "min": 2.6666666666666665
+                }
+              },
+              "1": {
+                "buds": 1
+              },
+              "2": {
+                "buds": 1
+              },
+              "3": {
+                "buds": 1
+              }
+            }
+          }
+        }
+      },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "canopy": {},
+        "enabled": false,
+        "flowering": {},
+        "internode": {},
+        "marginReflectance": 0,
+        "material": {},
+        "pipe": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -284,17 +1435,43 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 3,
     "family": {
-      "age": 100,
+      "age": 40,
+      "bloom": {
+        "droop": 0,
+        "florets": 1,
+        "lasts": 0.1,
+        "open": 70,
+        "opens": 0.3,
+        "pedicel": 0.01,
+        "petalCup": 0.2,
+        "petalCurl": 0,
+        "petalLength": 0.012,
+        "petalWidest": 0.6,
+        "petalWidth": 0.009,
+        "petals": 5,
+        "rachis": 0,
+        "scatter": 0.1,
+        "spread": 60,
+        "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
+        "taper": 0
+      },
       "canopy": {
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
         "acanthophylls": 0,
+        "cauline": 1,
         "clump": 5,
         "clumpNeighbours": 12,
         "clumpSpan": 0.3,
         "clumpSystemOrder": 2,
         "divergence": 180,
         "forwardLean": 0.25,
+        "frondEarlyShare": 0,
+        "frondEstablishment": 0,
+        "frondLife": 0,
         "leafBaseFlatness": 0,
         "leafBaseLength": 0,
         "leafBasePitch": 60,
@@ -307,22 +1484,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leanRise": 0,
         "limbClumping": 0,
         "maxInstances": 4294967295,
-        "outward": 0,
+        "outward": 0.3,
         "rachisArch": 0,
         "rachisLength": 0,
+        "rachisWidth": 0,
         "rosetteDepth": 0,
         "rosetteDivergence": 137.508,
         "rosetteFronds": 0,
         "rosettePitch": 45,
         "rosettePitchSpread": 60,
-        "scatter": 18,
-        "shootRadius": 0,
-        "shortShootLeaves": 3,
-        "shortShootLength": 0.04,
-        "shortShootRadius": 0.15,
-        "shortShootSpacing": 0,
-        "shortShootSpread": 45,
-        "size": 1,
+        "scatter": 30,
+        "shootRadius": 0.007,
+        "size": 0.725,
         "sizeVariation": 0.2,
         "skirtFronds": 0,
         "skirtLength": 0.8,
@@ -349,19 +1522,29 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "width": 0.075
       },
       "material": {
-        "barkBlue": 0.158,
+        "barkBlue": 0.105,
         "barkGrainScale": 0.0025,
         "barkGrainStrength": 0.2,
-        "barkGreen": 0.175,
+        "barkGreen": 0.138,
         "barkMottleScale": 0.8,
         "barkMottleStrength": 0.2,
-        "barkRed": 0.185,
+        "barkRed": 0.17,
         "barkReflectance": 0.04,
         "barkRoughness": 0.85,
         "bladeGrainScale": 0,
         "bladeGrainStrength": 0,
         "bladeMottleScale": 6,
         "bladeMottleStrength": 0.15,
+        "bloomBackBlue": 0.64,
+        "bloomBackGreen": 0.72,
+        "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
+        "bloomFrontBlue": 0.74,
+        "bloomFrontGreen": 0.8,
+        "bloomFrontRed": 0.82,
         "brightnessRangeHigh": 0.15,
         "brightnessRangeLow": -0.15,
         "canopyNormal": 0,
@@ -383,15 +1566,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "hueRangeHigh": 0.03,
         "hueRangeLow": -0.03,
         "interiorDarkening": 0.55,
-        "leafBackBlue": 0.112,
-        "leafBackGreen": 0.254,
-        "leafBackRed": 0.153,
-        "leafDeadBlue": 0.18,
-        "leafDeadGreen": 0.25,
-        "leafDeadRed": 0.3,
-        "leafFrontBlue": 0.016,
-        "leafFrontGreen": 0.102,
-        "leafFrontRed": 0.028,
+        "leafBackBlue": 0.08,
+        "leafBackGreen": 0.13,
+        "leafBackRed": 0.1,
+        "leafDeadBlue": 0,
+        "leafDeadGreen": 0.0382,
+        "leafDeadRed": 0.13,
+        "leafFrontBlue": 0.021,
+        "leafFrontGreen": 0.048,
+        "leafFrontRed": 0.021,
         "leafReflectance": 0.04,
         "leafSheen": 0,
         "lenticelDensity": 0,
@@ -410,6 +1593,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "marginGreen": 0.035,
         "marginRed": 0.025,
         "marginWidth": 0.08,
+        "matureBlue": 0.068,
+        "matureFurrowStrength": 1,
+        "matureGreen": 0.105,
+        "matureRadius": 0,
+        "matureRed": 0.147,
+        "matureSpan": 0,
         "orientationBlue": -0.1535,
         "orientationGreen": 0.009,
         "orientationRed": -0.062,
@@ -428,10 +1617,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateScale": 0.055,
         "ridgeScale": 0.032,
         "roughnessDetail": 0.12,
-        "shootBlue": 0.198,
-        "shootGreen": 0.218,
-        "shootRadius": 0,
-        "shootRed": 0.225,
+        "shootBlue": 0.055,
+        "shootGreen": 0.066,
+        "shootRadius": 0.05,
+        "shootRed": 0.075,
         "skyOcclusionStrength": 0.5,
         "thickness": 0.65,
         "transmissionBlue": 0.07,
@@ -470,13 +1659,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         },
         "envelope": {
-          "crownBase": 0.16,
-          "fullness": 0.55,
+          "crownBase": 0.3,
+          "fullness": 0.45,
           "height": 24,
           "irregularity": 0,
           "lobeScale": 0.5,
           "shoulder": 2.2,
-          "spread": 0.55
+          "spread": 0.3
         },
         "growth": {
           "maxTurnPerStep": 35
@@ -536,12 +1725,646 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "twig": {
             "bearingDiameter": 0.03,
             "diameter": 0.005,
-            "internodeLength": 0.02,
+            "internodeLength": 0.008,
             "length": 0.25,
             "stationsPerInternode": 1
           },
           "vigourVariation": 0.15
         }
+      },
+      "space": {
+        "ages": {
+          "2": {
+            "apicalControl": 0.45,
+            "balanceHazard": 2,
+            "budburst": 128,
+            "colouring": 16,
+            "divergence": 2.513,
+            "elongation": 14,
+            "expansion": 35,
+            "form": {
+              "elevation": 1.5707963267948966,
+              "exponent": 2.6,
+              "pipe": 0.009,
+              "tropism": 0.6,
+              "wander": 0.25
+            },
+            "internode": 0.045,
+            "leafArea": 0.00181,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.53,
+            "leafYears": 1,
+            "lifespan": 12,
+            "senescence": 264,
+            "shadeHazard": 1,
+            "shadeSize": 1.5,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 5,
+                  "min": 4
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.4
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 3,
+                "lateral": {
+                  "8": 0.6
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "3": {
+            "apicalControl": 0.45,
+            "balanceHazard": 2,
+            "budburst": 128,
+            "colouring": 16,
+            "divergence": 2.513,
+            "elongation": 14,
+            "expansion": 35,
+            "form": {
+              "elevation": 1.5707963267948966,
+              "exponent": 2.6,
+              "pipe": 0.009,
+              "tropism": 0.6,
+              "wander": 0.25
+            },
+            "internode": 0.045,
+            "leafArea": 0.00181,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.53,
+            "leafYears": 1,
+            "lifespan": 2,
+            "senescence": 264,
+            "shadeHazard": 1,
+            "shadeSize": 1.5,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 3,
+                "lateral": {
+                  "6": 0.8
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "4": {
+            "apicalControl": 0.45,
+            "balanceHazard": 2,
+            "budburst": 128,
+            "colouring": 16,
+            "divergence": 2.513,
+            "elongation": 14,
+            "expansion": 35,
+            "form": {
+              "bendLength": 3,
+              "elevation": 1.5707963267948966,
+              "exponent": 2.6,
+              "pipe": 0.009,
+              "tropism": 0.6,
+              "wander": 0.5
+            },
+            "internode": 0.05,
+            "leafArea": 0.00181,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.53,
+            "leafYears": 1,
+            "lifespan": 6,
+            "senescence": 264,
+            "shadeHazard": 1,
+            "shadeSize": 1.5,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.4,
+                  "14": 0.25
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 3,
+                "lateral": {
+                  "6": 0.08,
+                  "7": 0.1
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "6": {
+            "abortion": 0.15,
+            "apicalControl": 0.45,
+            "balanceHazard": 2,
+            "budburst": 128,
+            "colouring": 16,
+            "continuation": 0,
+            "divergence": 2.513,
+            "elongation": 14,
+            "epitony": 0.2,
+            "expansion": 35,
+            "form": {
+              "bendLength": 3,
+              "elevation": 1.05,
+              "exponent": 2.8,
+              "pipe": 0.009,
+              "ripening": 15,
+              "roll": 0.8,
+              "sag": 0.0003,
+              "tropism": 0.5,
+              "wander": 0.5
+            },
+            "insertion": 0.5,
+            "internode": 0.035,
+            "leafArea": 0.00181,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.53,
+            "leafYears": 1,
+            "lifespan": 500,
+            "relay": 1,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 1,
+            "shadeSize": 0.5,
+            "shedding": 5,
+            "straightening": 0.15,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "delay": 6,
+                "dormant": {
+                  "9": 0.1
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                },
+                "rate": 0.04
+              },
+              "1": {
+                "buds": 1,
+                "delay": 6,
+                "dormant": {
+                  "9": 0.1
+                },
+                "lateral": {
+                  "9": 0.45,
+                  "14": 0.4
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                },
+                "rate": 0.04
+              },
+              "2": {
+                "buds": 3,
+                "delay": 6,
+                "dormant": {
+                  "9": 0.1
+                },
+                "lateral": {
+                  "6": 0.007,
+                  "7": 0.08
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                },
+                "rate": 0.04
+              }
+            }
+          },
+          "7": {
+            "abortion": 0.1,
+            "apicalControl": 0.45,
+            "balanceHazard": 2,
+            "budburst": 128,
+            "colouring": 16,
+            "continuation": 0,
+            "divergence": 2.513,
+            "elongation": 14,
+            "epitony": 0.2,
+            "expansion": 35,
+            "form": {
+              "bendLength": 1.5,
+              "elevation": 0.9,
+              "exponent": 2.6,
+              "pipe": 0.004,
+              "ripening": 15,
+              "roll": 0.8,
+              "sag": 0.00005,
+              "tropism": 0.48,
+              "wander": 0.35
+            },
+            "insertion": 0.6,
+            "internode": 0.03,
+            "leafArea": 0.00181,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.53,
+            "leafYears": 1,
+            "lifespan": 60,
+            "relay": 1,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 1,
+            "shadeSize": 0.5,
+            "shedding": 4,
+            "takeover": 0.75,
+            "upkeep": 0.35,
+            "viability": 0.999,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.3,
+                  "14": 0.5
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 3,
+                "lateral": {
+                  "9": 0.3
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "8": {
+            "apicalControl": 0.45,
+            "balanceHazard": 2,
+            "budburst": 128,
+            "colouring": 16,
+            "divergence": 2.513,
+            "elongation": 14,
+            "expansion": 35,
+            "form": {
+              "elevation": 0.7,
+              "pipe": 0.0012,
+              "roll": 1.2,
+              "tropism": 0.5,
+              "wander": 0.4
+            },
+            "insertion": 0.7,
+            "internode": 0.031,
+            "leafArea": 0.00181,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.53,
+            "leafYears": 1,
+            "lifespan": 10,
+            "senescence": 264,
+            "shadeHazard": 1,
+            "shadeSize": 1.5,
+            "shedding": 3,
+            "upkeep": 0.35,
+            "viability": 0.95,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "13": 0.3,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 3,
+                "lateral": {
+                  "9": 0.1,
+                  "13": 0.4
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "9": {
+            "apicalControl": 0.45,
+            "balanceHazard": 2,
+            "budburst": 128,
+            "colouring": 16,
+            "divergence": 2.513,
+            "elongation": 14,
+            "epitony": 0.2,
+            "expansion": 35,
+            "form": {
+              "elevation": 0.2,
+              "pipe": 0.0009,
+              "roll": 1.2,
+              "tropism": 0.33,
+              "wander": 0.4
+            },
+            "insertion": 1,
+            "internode": 0.017,
+            "leafArea": 0.00181,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.53,
+            "leafYears": 1,
+            "lifespan": 12,
+            "relay": 1,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 1,
+            "shadeSize": 1,
+            "shedding": 3,
+            "takeover": 0.75,
+            "upkeep": 0.35,
+            "viability": 0.98,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "13": 0.35,
+                  "14": 0.6
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 3,
+                "lateral": {
+                  "9": 0.02,
+                  "13": 0.1
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "12": {
+            "apicalControl": 0.45,
+            "balanceHazard": 2,
+            "budburst": 128,
+            "colouring": 16,
+            "continuation": 0,
+            "divergence": 2.513,
+            "elongation": 14,
+            "expansion": 35,
+            "form": {
+              "elevation": 0.2,
+              "pipe": 0.0009,
+              "roll": 1.2,
+              "tropism": 0.8,
+              "wander": 0.4
+            },
+            "insertion": 0.8,
+            "internode": 0.015,
+            "leafArea": 0.00181,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.53,
+            "leafYears": 1,
+            "lifespan": 4,
+            "senescence": 264,
+            "shadeHazard": 1,
+            "shadeSize": 1,
+            "shedding": 2,
+            "upkeep": 0.35,
+            "viability": 0.93,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 2,
+                "lateral": {
+                  "14": 0.35
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "13": {
+            "apicalControl": 0.45,
+            "balanceHazard": 2,
+            "budburst": 128,
+            "colouring": 16,
+            "continuation": 0,
+            "divergence": 2.513,
+            "elongation": 14,
+            "expansion": 35,
+            "form": {
+              "elevation": 0.2,
+              "pipe": 0.0008,
+              "roll": 1.2,
+              "tropism": 0.4,
+              "wander": 0.4
+            },
+            "insertion": 0.8,
+            "internode": 0.012,
+            "leafArea": 0.00181,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.53,
+            "leafYears": 1,
+            "lifespan": 5,
+            "senescence": 264,
+            "shadeHazard": 1,
+            "shadeSize": 1,
+            "shedding": 2,
+            "upkeep": 0.35,
+            "viability": 0.98,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "14": 0.7
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 3,
+                "lateral": {
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "14": {
+            "apicalControl": 0.45,
+            "balanceHazard": 2,
+            "budburst": 128,
+            "colouring": 16,
+            "continuation": 0,
+            "divergence": 2.513,
+            "elongation": 14,
+            "expansion": 35,
+            "form": {
+              "pipe": 0.0006
+            },
+            "insertion": 0.9,
+            "internode": 0.006,
+            "leafArea": 0.00181,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.53,
+            "leafYears": 1,
+            "lifespan": 3,
+            "senescence": 264,
+            "shadeHazard": 1,
+            "shadeSize": 1,
+            "shedding": 2,
+            "upkeep": 0.35,
+            "viability": 0.9,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 5,
+                  "min": 3
+                }
+              }
+            }
+          }
+        }
+      },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "canopy": {},
+        "enabled": false,
+        "flowering": {},
+        "internode": {},
+        "marginReflectance": 0,
+        "material": {},
+        "pipe": {},
+        "roughness": 0.3,
+        "scale": 1
       },
       "surface": {
         "flareDepth": 0.004,
@@ -563,17 +2386,43 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 4,
     "family": {
-      "age": 100,
+      "age": 40,
+      "bloom": {
+        "droop": 0,
+        "florets": 1,
+        "lasts": 0.1,
+        "open": 70,
+        "opens": 0.3,
+        "pedicel": 0.01,
+        "petalCup": 0.2,
+        "petalCurl": 0,
+        "petalLength": 0.012,
+        "petalWidest": 0.6,
+        "petalWidth": 0.009,
+        "petals": 5,
+        "rachis": 0,
+        "scatter": 0.1,
+        "spread": 60,
+        "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
+        "taper": 0
+      },
       "canopy": {
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
         "acanthophylls": 0,
+        "cauline": 1,
         "clump": 5,
         "clumpNeighbours": 12,
         "clumpSpan": 0.3,
         "clumpSystemOrder": 2,
         "divergence": 137.508,
         "forwardLean": 0.05,
+        "frondEarlyShare": 0,
+        "frondEstablishment": 0,
+        "frondLife": 0,
         "leafBaseFlatness": 0,
         "leafBaseLength": 0,
         "leafBasePitch": 60,
@@ -589,6 +2438,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "outward": 0,
         "rachisArch": 0,
         "rachisLength": 0,
+        "rachisWidth": 0,
         "rosetteDepth": 0,
         "rosetteDivergence": 137.508,
         "rosetteFronds": 0,
@@ -596,11 +2446,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "rosettePitchSpread": 60,
         "scatter": 18,
         "shootRadius": 0.025,
-        "shortShootLeaves": 3,
-        "shortShootLength": 0.04,
-        "shortShootRadius": 0.15,
-        "shortShootSpacing": 0,
-        "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.2,
         "skirtFronds": 0,
@@ -628,19 +2473,29 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "width": 0.0015
       },
       "material": {
-        "barkBlue": 0.148,
+        "barkBlue": 0.028,
         "barkGrainScale": 0.0018,
         "barkGrainStrength": 0.15,
-        "barkGreen": 0.175,
+        "barkGreen": 0.0385,
         "barkMottleScale": 0.4,
         "barkMottleStrength": 0.2,
-        "barkRed": 0.2,
+        "barkRed": 0.0395,
         "barkReflectance": 0.04,
         "barkRoughness": 0.9,
         "bladeGrainScale": 0,
         "bladeGrainStrength": 0,
         "bladeMottleScale": 8,
         "bladeMottleStrength": 0,
+        "bloomBackBlue": 0.64,
+        "bloomBackGreen": 0.72,
+        "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
+        "bloomFrontBlue": 0.74,
+        "bloomFrontGreen": 0.8,
+        "bloomFrontRed": 0.82,
         "brightnessRangeHigh": 0.1,
         "brightnessRangeLow": -0.1,
         "canopyNormal": 0,
@@ -662,15 +2517,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "hueRangeHigh": 0.02,
         "hueRangeLow": -0.02,
         "interiorDarkening": 0.7,
-        "leafBackBlue": 0.138,
-        "leafBackGreen": 0.195,
-        "leafBackRed": 0.109,
+        "leafBackBlue": 0.15,
+        "leafBackGreen": 0.188,
+        "leafBackRed": 0.077,
         "leafDeadBlue": 0.18,
         "leafDeadGreen": 0.25,
         "leafDeadRed": 0.3,
-        "leafFrontBlue": 0.028,
-        "leafFrontGreen": 0.056,
-        "leafFrontRed": 0.018,
+        "leafFrontBlue": 0.04,
+        "leafFrontGreen": 0.054,
+        "leafFrontRed": 0.0128,
         "leafReflectance": 0.04,
         "leafSheen": 0,
         "lenticelDensity": 0,
@@ -689,6 +2544,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "marginGreen": 0.015,
         "marginRed": 0.01,
         "marginWidth": 0,
+        "matureBlue": 0.068,
+        "matureFurrowStrength": 1,
+        "matureGreen": 0.105,
+        "matureRadius": 0,
+        "matureRed": 0.147,
+        "matureSpan": 0,
         "orientationBlue": -0.0155,
         "orientationGreen": 0.026,
         "orientationRed": -0.014,
@@ -749,13 +2610,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         },
         "envelope": {
-          "crownBase": 0.04,
-          "fullness": 0.15,
-          "height": 15,
+          "crownBase": 0.3,
+          "fullness": 0.45,
+          "height": 24,
           "irregularity": 0,
           "lobeScale": 0.5,
-          "shoulder": 1,
-          "spread": 0.31
+          "shoulder": 2.2,
+          "spread": 0.3
         },
         "growth": {
           "maxTurnPerStep": 35
@@ -815,12 +2676,523 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "twig": {
             "bearingDiameter": 0.02,
             "diameter": 0.002,
-            "internodeLength": 0.0025,
+            "internodeLength": 0.0032,
             "length": 0.25,
             "stationsPerInternode": 1
           },
           "vigourVariation": 0.15
         }
+      },
+      "space": {
+        "ages": {
+          "0": {
+            "balanceHazard": 0.4230769230769229,
+            "budburst": 132,
+            "colouring": 16,
+            "divergence": 2.4,
+            "elongation": 35,
+            "expansion": 35,
+            "form": {
+              "elevation": 1.5707963267948966,
+              "exponent": 2.4,
+              "pipe": 0.0025,
+              "plane": 1.5707963267948966,
+              "tropism": 2,
+              "wander": 0.1
+            },
+            "internode": 0.02,
+            "leafArea": 0.0006713,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "lifespan": 2,
+            "rhythm": 0.3,
+            "senescence": 264,
+            "shadeHazard": 0.21153846153846145,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "2": {
+                "buds": 5,
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "1": {
+            "balanceHazard": 0.4230769230769229,
+            "budburst": 132,
+            "colouring": 16,
+            "divergence": 2.4,
+            "elongation": 35,
+            "expansion": 35,
+            "form": {
+              "elevation": 1.5707963267948966,
+              "exponent": 2.4,
+              "pipe": 0.0025,
+              "plane": 1.5707963267948966,
+              "tropism": 2,
+              "wander": 0.1
+            },
+            "internode": 0.028,
+            "leafArea": 0.00093982,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "lifespan": 8,
+            "rhythm": 0.7,
+            "senescence": 264,
+            "shadeHazard": 0.21153846153846145,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 5,
+                  "min": 4
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.25
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "2": {
+                "buds": 5,
+                "lateral": {
+                  "8": 0.85
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "2": {
+            "balanceHazard": 0.4230769230769229,
+            "budburst": 132,
+            "colouring": 16,
+            "divergence": 2.4,
+            "elongation": 35,
+            "expansion": 35,
+            "form": {
+              "elevation": 1.5707963267948966,
+              "exponent": 2.4,
+              "pipe": 0.0025,
+              "plane": 1.5707963267948966,
+              "tropism": 2,
+              "wander": 0.1
+            },
+            "internode": 0.042,
+            "leafArea": 0.0014097299999999999,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "lifespan": 35,
+            "senescence": 264,
+            "shadeHazard": 0.21153846153846145,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 6,
+                  "min": 5
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.3
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "2": {
+                "buds": 5,
+                "lateral": {
+                  "8": 0.85
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "4": {
+            "balanceHazard": 0.4230769230769229,
+            "budburst": 132,
+            "colouring": 16,
+            "continuation": 0,
+            "divergence": 2.4,
+            "elongation": 35,
+            "expansion": 35,
+            "form": {
+              "elevation": 1.5707963267948966,
+              "exponent": 2.4,
+              "pipe": 0.0025,
+              "plane": 1.5707963267948966,
+              "tropism": 2,
+              "wander": 0.1
+            },
+            "internode": 0.03,
+            "leafArea": 0.00100695,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "lifespan": 300,
+            "senescence": 264,
+            "shadeHazard": 0.21153846153846145,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 6,
+                  "min": 5
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.3
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "2": {
+                "buds": 5,
+                "lateral": {
+                  "8": 0.85
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "8": {
+            "balanceHazard": 0.4230769230769229,
+            "budburst": 132,
+            "colouring": 16,
+            "elongation": 35,
+            "expansion": 35,
+            "form": {
+              "dominance": 0.35,
+              "elevation": 0.35,
+              "exponent": 2.2,
+              "pipe": 0.0008,
+              "ripening": 10,
+              "roll": 0.8,
+              "sag": 0.0001,
+              "tropism": 0.4,
+              "wander": 1
+            },
+            "insertion": 1.5,
+            "internode": 0.05,
+            "leafArea": 0.00167825,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "lifespan": 6,
+            "senescence": 264,
+            "shadeHazard": 0.21153846153846145,
+            "upkeep": 0.35,
+            "viability": 0.998,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "delay": 1,
+                "dormant": {
+                  "10": 0.45
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                },
+                "rate": 0.3
+              },
+              "1": {
+                "buds": 2,
+                "delay": 1,
+                "dormant": {
+                  "10": 0.45
+                },
+                "lateral": {
+                  "10": 0.7
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 2
+                },
+                "rate": 0.3
+              },
+              "2": {
+                "buds": 2,
+                "delay": 1,
+                "dormant": {
+                  "10": 0.45
+                },
+                "lateral": {
+                  "10": 0.95
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                },
+                "rate": 0.3
+              }
+            }
+          },
+          "9": {
+            "balanceHazard": 0.4230769230769229,
+            "budburst": 132,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 35,
+            "expansion": 35,
+            "form": {
+              "dominance": 0.35,
+              "elevation": 1,
+              "exponent": 2.2,
+              "pipe": 0.0008,
+              "ripening": 10,
+              "roll": 0.8,
+              "sag": 0.0009,
+              "tropism": 1.4,
+              "wander": 1
+            },
+            "insertion": 1.5,
+            "internode": 0.034,
+            "leafArea": 0.00114121,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "lifespan": 300,
+            "senescence": 264,
+            "shadeHazard": 0.21153846153846145,
+            "shedding": 3,
+            "upkeep": 0.35,
+            "viability": 0.998,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "delay": 1,
+                "dormant": {
+                  "10": 0.45
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                },
+                "rate": 0.3
+              },
+              "1": {
+                "buds": 2,
+                "delay": 1,
+                "dormant": {
+                  "10": 0.45
+                },
+                "lateral": {
+                  "10": 0.7
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 2
+                },
+                "rate": 0.3
+              },
+              "2": {
+                "buds": 2,
+                "delay": 1,
+                "dormant": {
+                  "10": 0.45
+                },
+                "lateral": {
+                  "10": 0.95
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                },
+                "rate": 0.3
+              }
+            }
+          },
+          "10": {
+            "balanceHazard": 0.4230769230769229,
+            "budburst": 132,
+            "colouring": 16,
+            "elongation": 35,
+            "expansion": 35,
+            "form": {
+              "elevation": -1,
+              "pipe": 0.0005,
+              "roll": 0.2,
+              "sag": 0.0005,
+              "tropism": 2,
+              "wander": 0.6
+            },
+            "insertion": 0.9,
+            "internode": 0.016,
+            "leafArea": 0.00053704,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "lifespan": 10,
+            "senescence": 264,
+            "shadeHazard": 0.21153846153846145,
+            "shedding": 1,
+            "upkeep": 0.35,
+            "viability": 0.99,
+            "zones": {
+              "0": {
+                "buds": 1
+              },
+              "1": {
+                "buds": 2,
+                "lateral": {
+                  "12": 0.55
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 3,
+                "lateral": {
+                  "12": 0.8
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "11": {
+            "balanceHazard": 0.4230769230769229,
+            "budburst": 132,
+            "colouring": 16,
+            "continuation": 0,
+            "divergence": 2.4,
+            "elongation": 35,
+            "expansion": 35,
+            "form": {
+              "elevation": -1.35,
+              "pipe": 0.0005,
+              "roll": 0.2,
+              "sag": 0.0005,
+              "tropism": 3,
+              "wander": 0.6
+            },
+            "insertion": 0.9,
+            "internode": 0.006,
+            "leafArea": 0.00020139,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "lifespan": 40,
+            "senescence": 264,
+            "shadeHazard": 0.21153846153846145,
+            "shedding": 1,
+            "upkeep": 0.35,
+            "viability": 0.99,
+            "zones": {
+              "0": {
+                "buds": 1
+              },
+              "1": {
+                "buds": 1
+              },
+              "2": {
+                "buds": 2,
+                "lateral": {
+                  "12": 0.6
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "12": {
+            "balanceHazard": 0.4230769230769229,
+            "budburst": 132,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 35,
+            "expansion": 35,
+            "form": {
+              "elevation": -0.5,
+              "pipe": 0.0004,
+              "roll": 1.2,
+              "tropism": 1,
+              "wander": 1
+            },
+            "insertion": 1.1,
+            "internode": 0.02,
+            "leafArea": 0.0006713,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "lifespan": 2,
+            "senescence": 264,
+            "shadeHazard": 0.21153846153846145,
+            "shedding": 3,
+            "upkeep": 0.35,
+            "viability": 0.9,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 2
+                }
+              }
+            }
+          }
+        }
+      },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "canopy": {},
+        "enabled": false,
+        "flowering": {},
+        "internode": {},
+        "marginReflectance": 0,
+        "material": {},
+        "pipe": {},
+        "roughness": 0.3,
+        "scale": 1
       },
       "surface": {
         "flareDepth": 0.004,
@@ -840,19 +3212,909 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
     "note": "Picea abies"
   },
   {
-    "abiId": 6,
+    "abiId": 5,
     "family": {
-      "age": 70,
+      "age": 40,
+      "bloom": {
+        "droop": 0,
+        "florets": 1,
+        "lasts": 0.1,
+        "open": 70,
+        "opens": 0.3,
+        "pedicel": 0.01,
+        "petalCup": 0.2,
+        "petalCurl": 0,
+        "petalLength": 0.012,
+        "petalWidest": 0.6,
+        "petalWidth": 0.009,
+        "petals": 5,
+        "rachis": 0,
+        "scatter": 0.1,
+        "spread": 60,
+        "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
+        "taper": 0
+      },
       "canopy": {
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
         "acanthophylls": 0,
+        "cauline": 1,
+        "clump": 5,
+        "clumpNeighbours": 12,
+        "clumpSpan": 0.3,
+        "clumpSystemOrder": 2,
+        "divergence": 180,
+        "forwardLean": 0.1,
+        "frondEarlyShare": 0,
+        "frondEstablishment": 0,
+        "frondLife": 0,
+        "leafBaseFlatness": 0,
+        "leafBaseLength": 0,
+        "leafBasePitch": 60,
+        "leafBaseRadius": 0.35,
+        "leafBaseWeathering": 0,
+        "leafBaseWidth": 0,
+        "leafBases": 0,
+        "leafletCount": 1,
+        "leafletPitch": 45,
+        "leanRise": 0,
+        "limbClumping": 0,
+        "maxInstances": 4294967295,
+        "outward": 0,
+        "rachisArch": 0,
+        "rachisLength": 0,
+        "rachisWidth": 0,
+        "rosetteDepth": 0,
+        "rosetteDivergence": 137.508,
+        "rosetteFronds": 0,
+        "rosettePitch": 45,
+        "rosettePitchSpread": 60,
+        "scatter": 80,
+        "shootRadius": 0.018,
+        "size": 1.1,
+        "sizeVariation": 0.12,
+        "skirtFronds": 0,
+        "skirtLength": 0.8,
+        "skirtPitch": 140,
+        "spacing": 0.006,
+        "surfaceContact": 0,
+        "terminalLeaflet": 0,
+        "upward": 0.3
+      },
+      "element": {
+        "axialSegments": 8,
+        "baseFullness": 0.75,
+        "card": false,
+        "connectorLength": 0.008,
+        "crossSegments": 2,
+        "cup": 0.18,
+        "curl": 0.12,
+        "length": 0.08,
+        "lobeCount": 0,
+        "lobeDepth": 0,
+        "sectionRoundness": 0,
+        "tipSharpness": 0.7,
+        "widestAt": 0.45,
+        "width": 0.05
+      },
+      "material": {
+        "barkBlue": 0.0165,
+        "barkGrainScale": 0.002,
+        "barkGrainStrength": 0.3,
+        "barkGreen": 0.04,
+        "barkMottleScale": 0.12,
+        "barkMottleStrength": 0.04,
+        "barkRed": 0.04,
+        "barkReflectance": 0.04,
+        "barkRoughness": 0.95,
+        "bladeGrainScale": 90,
+        "bladeGrainStrength": 0.3,
+        "bladeMottleScale": 5,
+        "bladeMottleStrength": 0.1,
+        "bloomBackBlue": 0.64,
+        "bloomBackGreen": 0.72,
+        "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
+        "bloomFrontBlue": 0.74,
+        "bloomFrontGreen": 0.8,
+        "bloomFrontRed": 0.82,
+        "brightnessRangeHigh": 0.1,
+        "brightnessRangeLow": -0.1,
+        "canopyNormal": 0.8,
+        "cavityStrength": 0.35,
+        "crestBlue": 0.045,
+        "crestGreen": 0.055,
+        "crestRed": 0.06,
+        "crestStrength": 0,
+        "crownShade": 0.1,
+        "cuticleGloss": 0.18,
+        "depthStrength": 0,
+        "diffuseTransmission": 1,
+        "directionalOcclusion": 0,
+        "fissureBlue": -0.02,
+        "fissureGreen": -0.03,
+        "fissureRed": -0.04,
+        "fissureStrength": 0,
+        "furrowStrength": 0,
+        "hueRangeHigh": 0.02,
+        "hueRangeLow": -0.02,
+        "interiorDarkening": 0.35,
+        "leafBackBlue": 0.0114,
+        "leafBackGreen": 0.0307,
+        "leafBackRed": 0.037,
+        "leafDeadBlue": 0.0185,
+        "leafDeadGreen": 0.1246,
+        "leafDeadRed": 0.468,
+        "leafFrontBlue": 0.0067,
+        "leafFrontGreen": 0.0158,
+        "leafFrontRed": 0.021,
+        "leafReflectance": 0.04,
+        "leafSheen": 0.08,
+        "lenticelDensity": 6,
+        "lenticelLength": 0.08,
+        "lenticelStrength": 0.1,
+        "lenticelTint": -0.3,
+        "lichenBlue": 0.76,
+        "lichenCoverage": 0.1,
+        "lichenGreen": 0.82,
+        "lichenRed": 0.8,
+        "lichenScale": 0.04,
+        "lichenStrength": 0.3,
+        "lightWrap": 0.4,
+        "lobeShade": 0.7,
+        "marginBlue": 0.008,
+        "marginGreen": 0.04,
+        "marginRed": 0.02,
+        "marginWidth": 0.04,
+        "matureBlue": 0.068,
+        "matureFurrowStrength": 1,
+        "matureGreen": 0.105,
+        "matureRadius": 0,
+        "matureRed": 0.147,
+        "matureSpan": 0,
+        "orientationBlue": 0,
+        "orientationGreen": 0,
+        "orientationRed": 0,
+        "orientationStrength": 0,
+        "peelBlue": 0,
+        "peelCurl": 0,
+        "peelGreen": 0,
+        "peelRed": 0,
+        "plateCellScale": 0,
+        "plateDome": 0,
+        "plateEdgeLift": 0,
+        "plateEdgeShape": 0,
+        "plateElongation": 0,
+        "plateFurrowWidth": 0,
+        "plateIdentity": 0,
+        "plateScale": 1,
+        "ridgeScale": 0.002,
+        "roughnessDetail": 0.08,
+        "shootBlue": 0.085,
+        "shootGreen": 0.13,
+        "shootRadius": 0.004,
+        "shootRed": 0.14,
+        "skyOcclusionStrength": 0.35,
+        "thickness": 0.6,
+        "transmissionBlue": 0.08,
+        "transmissionGreen": 0.5,
+        "transmissionRed": 0.22,
+        "transmissionStrength": 0.5,
+        "veinContrast": 0.4,
+        "veinScale": 7,
+        "weatheringBlue": 0,
+        "weatheringGreen": 0,
+        "weatheringRed": 0,
+        "weatheringStrength": 0
+      },
+      "radii": {
+        "forkBalance": 1,
+        "forkExponent": 2.9,
+        "girthFall": 2,
+        "girthHold": 0,
+        "lateralShare": 1,
+        "lengthTaper": 0.2,
+        "maxTaperExponent": 12,
+        "trunkRadius": 0.016
+      },
+      "shellDepth": 1,
+      "skeleton": {
+        "attractors": 500,
+        "bias": {
+          "gravitropism": 0,
+          "lean": 0,
+          "supernatural": {
+            "enabled": false,
+            "maxWritheMagnitude": 0.9,
+            "spiralRate": 0,
+            "writheAmplitude": 0,
+            "writheWavelength": 0.45
+          }
+        },
+        "envelope": {
+          "crownBase": 0.3,
+          "fullness": 0.45,
+          "height": 24,
+          "irregularity": 0,
+          "lobeScale": 0.5,
+          "shoulder": 2.2,
+          "spread": 0.3
+        },
+        "growth": {
+          "maxTurnPerStep": 35
+        },
+        "habit": {
+          "apicalDominance": 0.8,
+          "attractorWeight": 0,
+          "codominance": 0,
+          "crookedness": 3,
+          "forkDivergence": 90,
+          "forkHeight": 0,
+          "forkHeightSpread": 0,
+          "forkLean": 26,
+          "forkLeanSpread": 0,
+          "forkWays": 2,
+          "lateralLengthRatio": 0.65,
+          "lateralOrders": 3,
+          "lateralPitch": 28,
+          "lateralSpacing": 2,
+          "lateralsPerStation": 2,
+          "leaderInternode": 2.6,
+          "pitchByHeight": 0,
+          "pitchVariation": 6,
+          "raggedReach": 0,
+          "reachProbeSteps": 96,
+          "risePrimary": 0.1,
+          "riseSecondary": 0,
+          "sheddingThreshold": 0,
+          "twigTipTaper": 0.25,
+          "whorlStrength": 0.15
+        },
+        "samplingAttemptsPerAttractor": 64,
+        "seed": 42,
+        "step": 0.022,
+        "twigs": {
+          "angle": 40,
+          "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
+          "curtainSeparation": 4,
+          "curtainStepClearance": 0.8,
+          "divergence": 137.5,
+          "generations": 2,
+          "hang": 0,
+          "internodeFactor": 2.5,
+          "laterals": 4,
+          "lengthRatio": 0.23,
+          "limbRadius": 0.28,
+          "maxDroop": 0.35,
+          "maxInternodes": 32,
+          "pendulousLength": 0.25,
+          "pendulousRadius": 1,
+          "pendulousVariation": 0,
+          "ratioPower": 1.3,
+          "reach": 0.2,
+          "sag": 0,
+          "twig": {
+            "bearingDiameter": 0.03,
+            "diameter": 0.005,
+            "internodeLength": 0.025,
+            "length": 0.25,
+            "stationsPerInternode": 1
+          },
+          "vigourVariation": 0.15
+        }
+      },
+      "space": {
+        "ages": {
+          "2": {
+            "abortion": 0.5,
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "divergence": 2.4,
+            "elongation": 14,
+            "epitony": 0.6,
+            "erection": 0.1,
+            "expansion": 14,
+            "form": {
+              "elevation": 1.4,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "plane": 1.5707963267948966,
+              "tropism": 0.6,
+              "wander": 0.2
+            },
+            "insertion": 0.3,
+            "internode": 0.07,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 9,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 1,
+            "takeover": 0.5,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.35
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.8
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "4": {
+            "abortion": 0.3,
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "elongation": 14,
+            "epitony": 0.6,
+            "expansion": 14,
+            "form": {
+              "elevation": 1.35,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.6,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 40,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 1,
+            "takeover": 0.5,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.3,
+                  "7": 0.2
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "5": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "divergence": 2.4,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "elevation": 1.5707963267948966,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "plane": 1.5707963267948966,
+              "tropism": 0.3,
+              "wander": 0.2
+            },
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 2,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.3,
+                  "7": 0.5
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.9
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "6": {
+            "abortion": 0.3,
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "epitony": 0.6,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.3,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.6,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 70,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 0.6,
+            "takeover": 0.5,
+            "upkeep": 0.35,
+            "viability": 0.995,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "7": 0.16
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "7": {
+            "abortion": 0.35,
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "epitony": 0.6,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.2,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.6,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 30,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 0.6,
+            "takeover": 0.5,
+            "upkeep": 0.35,
+            "viability": 0.995,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.14
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "8": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.6,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.25,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 25,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 0.25,
+            "upkeep": 0.35,
+            "viability": 0.995,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.45
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "9": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.35,
+              "pipe": 0.0009,
+              "roll": 1.2,
+              "tropism": 0.8,
+              "wander": 0.5
+            },
+            "insertion": 1,
+            "internode": 0.03,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 10,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "shedding": 1,
+            "upkeep": 0.35,
+            "viability": 0.95,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "14": 0.7
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.08
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "3": {
+                "buds": 1,
+                "lateral": {
+                  "12": 0.65
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "12": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.15,
+              "pipe": 0.0009,
+              "tropism": 1,
+              "wander": 1
+            },
+            "insertion": 1,
+            "internode": 0.025,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 5,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "shedding": 1,
+            "upkeep": 0.35,
+            "viability": 0.95,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "14": 0.6
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              }
+            }
+          },
+          "14": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "clusterLeaves": 4,
+            "clusterSpread": 0.6,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "pipe": 0.00095
+            },
+            "insertion": 0.9,
+            "internode": 0.006,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 4,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "shedding": 1,
+            "upkeep": 0.35,
+            "viability": 0.9,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 5,
+                  "min": 3
+                }
+              }
+            }
+          }
+        }
+      },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "canopy": {},
+        "enabled": false,
+        "flowering": {},
+        "internode": {},
+        "marginReflectance": 0,
+        "material": {},
+        "pipe": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
+      "surface": {
+        "flareDepth": 0.004,
+        "flareFalloff": 0.022,
+        "flareRadius": 1.5,
+        "forkSocket": 0.5,
+        "forkSwell": 1.35,
+        "lobeDepth": 0,
+        "lobes": 5,
+        "radialSegments": 12,
+        "socketContainment": 0.9,
+        "twistRate": 0
+      }
+    },
+    "id": "european-beech",
+    "name": "European beech",
+    "note": "Fagus sylvatica"
+  },
+  {
+    "abiId": 6,
+    "family": {
+      "age": 40,
+      "bloom": {
+        "droop": 0,
+        "florets": 1,
+        "lasts": 0.1,
+        "open": 70,
+        "opens": 0.3,
+        "pedicel": 0.01,
+        "petalCup": 0.2,
+        "petalCurl": 0,
+        "petalLength": 0.012,
+        "petalWidest": 0.6,
+        "petalWidth": 0.009,
+        "petals": 5,
+        "rachis": 0,
+        "scatter": 0.1,
+        "spread": 60,
+        "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
+        "taper": 0
+      },
+      "canopy": {
+        "acanthophyllLength": 0.35,
+        "acanthophyllPitch": 80,
+        "acanthophylls": 0,
+        "cauline": 1,
         "clump": 8,
         "clumpNeighbours": 12,
         "clumpSpan": 0.5,
         "clumpSystemOrder": 2,
         "divergence": 180,
         "forwardLean": 0.6,
+        "frondEarlyShare": 0,
+        "frondEstablishment": 0,
+        "frondLife": 0,
         "leafBaseFlatness": 0,
         "leafBaseLength": 0,
         "leafBasePitch": 60,
@@ -868,20 +4130,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "outward": 0,
         "rachisArch": 0,
         "rachisLength": 0,
+        "rachisWidth": 0,
         "rosetteDepth": 0,
         "rosetteDivergence": 137.508,
         "rosetteFronds": 0,
         "rosettePitch": 45,
         "rosettePitchSpread": 60,
         "scatter": 18,
-        "shootRadius": 0,
-        "shortShootLeaves": 3,
-        "shortShootLength": 0.04,
-        "shortShootRadius": 0.15,
-        "shortShootSpacing": 0,
-        "shortShootSpread": 45,
+        "shootRadius": 0.03,
         "size": 1,
-        "sizeVariation": 0.2,
+        "sizeVariation": 0.3,
         "skirtFronds": 0,
         "skirtLength": 0.8,
         "skirtPitch": 140,
@@ -894,17 +4152,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "axialSegments": 32,
         "baseFullness": 0.3,
         "card": false,
-        "connectorLength": 0.022,
+        "connectorLength": 0.025,
         "crossSegments": 2,
         "cup": 0.18,
         "curl": 0.12,
-        "length": 0.055,
+        "length": 0.05,
         "lobeCount": 8,
         "lobeDepth": 0.1,
         "sectionRoundness": 0,
-        "tipSharpness": 1.1,
+        "tipSharpness": 1.5,
         "widestAt": 0.2,
-        "width": 0.045
+        "width": 0.037
       },
       "material": {
         "barkBlue": 0.7,
@@ -920,6 +4178,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeGrainStrength": 0.3,
         "bladeMottleScale": 5.5,
         "bladeMottleStrength": 0.2,
+        "bloomBackBlue": 0.64,
+        "bloomBackGreen": 0.72,
+        "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
+        "bloomFrontBlue": 0.74,
+        "bloomFrontGreen": 0.8,
+        "bloomFrontRed": 0.82,
         "brightnessRangeHigh": 0.12,
         "brightnessRangeLow": -0.12,
         "canopyNormal": 0.8,
@@ -941,15 +4209,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "hueRangeHigh": 0.025,
         "hueRangeLow": -0.025,
         "interiorDarkening": 0.15,
-        "leafBackBlue": 0.14,
-        "leafBackGreen": 0.28,
-        "leafBackRed": 0.2,
-        "leafDeadBlue": 0.18,
-        "leafDeadGreen": 0.25,
-        "leafDeadRed": 0.3,
-        "leafFrontBlue": 0.06,
-        "leafFrontGreen": 0.19,
-        "leafFrontRed": 0.1,
+        "leafBackBlue": 0.111,
+        "leafBackGreen": 0.241,
+        "leafBackRed": 0.227,
+        "leafDeadBlue": 0.007,
+        "leafDeadGreen": 1,
+        "leafDeadRed": 1,
+        "leafFrontBlue": 0.111,
+        "leafFrontGreen": 0.241,
+        "leafFrontRed": 0.227,
         "leafReflectance": 0.04,
         "leafSheen": 0.06,
         "lenticelDensity": 18,
@@ -968,6 +4236,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "marginGreen": 0.05,
         "marginRed": 0.03,
         "marginWidth": 0.05,
+        "matureBlue": 0.045,
+        "matureFurrowStrength": 0.8,
+        "matureGreen": 0.048,
+        "matureRadius": 0.3,
+        "matureRed": 0.05,
+        "matureSpan": 0.07,
         "orientationBlue": 0,
         "orientationGreen": 0,
         "orientationRed": 0,
@@ -984,17 +4258,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateFurrowWidth": 0,
         "plateIdentity": 0.3,
         "plateScale": 0.4,
-        "ridgeScale": 0.08,
+        "ridgeScale": 0.16,
         "roughnessDetail": 0.1,
-        "shootBlue": 0.055,
-        "shootGreen": 0.07,
-        "shootRadius": 0.01,
-        "shootRed": 0.095,
+        "shootBlue": 0.09,
+        "shootGreen": 0.09,
+        "shootRadius": 0.03,
+        "shootRed": 0.12,
         "skyOcclusionStrength": 0.4,
         "thickness": 0.45,
-        "transmissionBlue": 0.1,
-        "transmissionGreen": 0.55,
-        "transmissionRed": 0.28,
+        "transmissionBlue": 0.111,
+        "transmissionGreen": 0.241,
+        "transmissionRed": 0.227,
         "transmissionStrength": 0.6,
         "veinContrast": 0.8,
         "veinScale": 6,
@@ -1013,7 +4287,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "maxTaperExponent": 12,
         "trunkRadius": 0.014
       },
-      "shellDepth": 0.45,
+      "shellDepth": 1,
       "skeleton": {
         "attractors": 500,
         "bias": {
@@ -1101,6 +4375,571 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "vigourVariation": 0.15
         }
       },
+      "space": {
+        "ages": {
+          "2": {
+            "balanceHazard": 2.2846153846153845,
+            "budburst": 101,
+            "colouring": 5,
+            "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "expansion": 24,
+            "form": {
+              "bendLength": 6,
+              "elevation": 1.5707963267948966,
+              "exponent": 2.5,
+              "internodeSpread": 0.2,
+              "pipe": 0.004,
+              "tropism": 0.5,
+              "wander": 0.35
+            },
+            "groundHazard": 1,
+            "internode": 0.055,
+            "leafArea": 0.0013190625000000001,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.61,
+            "lifespan": 5,
+            "senescence": 277,
+            "shadeHazard": 1.1423076923076922,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 6,
+                  "min": 4
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.3,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 8,
+                  "min": 6
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.7
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              }
+            }
+          },
+          "3": {
+            "balanceHazard": 2.2846153846153845,
+            "budburst": 101,
+            "colouring": 5,
+            "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "expansion": 24,
+            "form": {
+              "bendLength": 6,
+              "elevation": 1.5707963267948966,
+              "exponent": 2.5,
+              "internodeSpread": 0.2,
+              "pipe": 0.004,
+              "tropism": 0.5,
+              "wander": 0.35
+            },
+            "groundHazard": 1,
+            "leafArea": 0.0013190625000000001,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.61,
+            "lifespan": 9,
+            "senescence": 277,
+            "shadeHazard": 1.1423076923076922,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.25,
+                  "9": 0.06,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 5,
+                  "min": 3
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.1,
+                  "8": 0.6,
+                  "9": 0.12
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 2
+                }
+              }
+            }
+          },
+          "4": {
+            "balanceHazard": 2.2846153846153845,
+            "budburst": 101,
+            "colouring": 5,
+            "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "expansion": 24,
+            "form": {
+              "bendLength": 6,
+              "elevation": 1.5707963267948966,
+              "exponent": 2.5,
+              "internodeSpread": 0.2,
+              "pipe": 0.004,
+              "tropism": 0.5,
+              "wander": 0.35
+            },
+            "groundHazard": 1,
+            "leafArea": 0.0013190625000000001,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.61,
+            "lifespan": 26,
+            "senescence": 277,
+            "shadeHazard": 1.1423076923076922,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.04,
+                  "8": 0.25,
+                  "9": 0.06,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 5,
+                  "min": 3
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.22,
+                  "8": 0.45,
+                  "9": 0.12
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 2
+                }
+              }
+            }
+          },
+          "5": {
+            "abortion": 0.8,
+            "balanceHazard": 2.2846153846153845,
+            "budburst": 101,
+            "colouring": 5,
+            "continuation": 0,
+            "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "epitony": 0.2,
+            "expansion": 24,
+            "form": {
+              "bendLength": 6,
+              "elevation": 1,
+              "exponent": 2.5,
+              "internodeSpread": 0.2,
+              "pipe": 0.004,
+              "tropism": 0.4,
+              "wander": 0.5
+            },
+            "groundHazard": 1,
+            "internode": 0.015,
+            "leafArea": 0.0013190625000000001,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.61,
+            "lifespan": 100,
+            "relay": 1,
+            "relayAt": 0.6,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 277,
+            "shadeHazard": 1.1423076923076922,
+            "takeover": 0.5,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.3,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "7": 0.5,
+                  "9": 0.4
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "6": {
+            "abortion": 0.08,
+            "balanceHazard": 2.2846153846153845,
+            "budburst": 101,
+            "colouring": 5,
+            "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "epitony": 0.4,
+            "expansion": 24,
+            "form": {
+              "bendLength": 3,
+              "dominance": 0.2,
+              "elevation": 1.3,
+              "exponent": 2.4,
+              "internodeSpread": 0.7,
+              "pipe": 0.002,
+              "ripening": 10,
+              "roll": 1.2,
+              "sag": 0.00006,
+              "tropism": 0.9,
+              "wander": 0.6
+            },
+            "groundHazard": 1,
+            "insertion": 0.6,
+            "internode": 0.055,
+            "leafArea": 0.0013190625000000001,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.61,
+            "lifespan": 25,
+            "relay": 1,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 277,
+            "shadeHazard": 1.1423076923076922,
+            "shedding": 3,
+            "takeover": 0.5,
+            "upkeep": 0.35,
+            "viability": 0.998,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "7": 0.12,
+                  "9": 0.15,
+                  "14": 0.58
+                },
+                "nodes": {
+                  "max": 5,
+                  "min": 3
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "7": 0.45,
+                  "9": 0.4
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "7": {
+            "abortion": 0.08,
+            "balanceHazard": 2.2846153846153845,
+            "budburst": 101,
+            "colouring": 5,
+            "continuation": 0,
+            "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "epitony": 0.4,
+            "expansion": 24,
+            "form": {
+              "bendLength": 3,
+              "dominance": 0.2,
+              "elevation": 0.5,
+              "exponent": 2.4,
+              "internodeSpread": 0.7,
+              "pipe": 0.002,
+              "ripening": 10,
+              "roll": 1.2,
+              "sag": 0.00008,
+              "tropism": 0.3,
+              "wander": 0.6
+            },
+            "groundHazard": 1,
+            "insertion": 0.6,
+            "internode": 0.03,
+            "leafArea": 0.0013190625000000001,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.61,
+            "lifespan": 100,
+            "relay": 1,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 277,
+            "shadeHazard": 1.1423076923076922,
+            "shedding": 2,
+            "takeover": 0.5,
+            "upkeep": 0.35,
+            "viability": 0.995,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "delay": 4,
+                "dormant": {
+                  "9": 0.2
+                },
+                "lateral": {
+                  "9": 0.4,
+                  "14": 0.45
+                },
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                },
+                "rate": 0.15
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.5
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "8": {
+            "balanceHazard": 2.2846153846153845,
+            "budburst": 101,
+            "colouring": 5,
+            "continuation": 0,
+            "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "expansion": 24,
+            "form": {
+              "elevation": 0.8,
+              "exponent": 2.2,
+              "internodeSpread": 0.4,
+              "pipe": 0.0012,
+              "roll": 0.8,
+              "sag": 0.0002,
+              "tropism": 0.5,
+              "wander": 0.4
+            },
+            "groundHazard": 1,
+            "insertion": 0.7,
+            "leafArea": 0.0013190625000000001,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.61,
+            "lifespan": 14,
+            "senescence": 277,
+            "shadeHazard": 1.1423076923076922,
+            "shedding": 2,
+            "upkeep": 0.35,
+            "viability": 0.97,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.4,
+                  "14": 0.45
+                },
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.5
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "9": {
+            "balanceHazard": 2.2846153846153845,
+            "budburst": 101,
+            "colouring": 5,
+            "continuation": 0,
+            "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "expansion": 24,
+            "form": {
+              "bendLength": 1,
+              "elevation": -1.5707963267948966,
+              "insertionSpread": 0.5,
+              "internodeSpread": 0.7,
+              "pipe": 0.0008,
+              "roll": 1.6,
+              "sag": 0.0002,
+              "tropism": 3,
+              "tropismSpread": 0.6,
+              "wander": 0.4
+            },
+            "groundHazard": 1,
+            "insertion": 0.7,
+            "internode": 0.06,
+            "leafArea": 0.0013190625000000001,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.61,
+            "lifespan": 12,
+            "senescence": 277,
+            "shadeHazard": 1.1423076923076922,
+            "shedding": 1,
+            "upkeep": 0.35,
+            "viability": 0.92,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.005,
+                  "14": 0.845
+                },
+                "nodes": {
+                  "max": 5,
+                  "min": 3
+                }
+              }
+            }
+          },
+          "14": {
+            "balanceHazard": 2.2846153846153845,
+            "budburst": 101,
+            "clusterLeaves": 3,
+            "clusterSpread": 0.6,
+            "colouring": 5,
+            "continuation": 0,
+            "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "expansion": 24,
+            "form": {
+              "pipe": 0.0005
+            },
+            "groundHazard": 1,
+            "insertion": 0.8,
+            "internode": 0.003,
+            "leafArea": 0.0013190625000000001,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.61,
+            "lifespan": 6,
+            "senescence": 277,
+            "shadeHazard": 1.1423076923076922,
+            "shedding": 1,
+            "upkeep": 0.35,
+            "viability": 0.92,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              }
+            }
+          }
+        }
+      },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "canopy": {},
+        "enabled": false,
+        "flowering": {},
+        "internode": {},
+        "marginReflectance": 0,
+        "material": {},
+        "pipe": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -1121,17 +4960,43 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 7,
     "family": {
-      "age": 100,
+      "age": 40,
+      "bloom": {
+        "droop": 0,
+        "florets": 1,
+        "lasts": 0.1,
+        "open": 70,
+        "opens": 0.3,
+        "pedicel": 0.01,
+        "petalCup": 0.2,
+        "petalCurl": 0,
+        "petalLength": 0.012,
+        "petalWidest": 0.6,
+        "petalWidth": 0.009,
+        "petals": 5,
+        "rachis": 0,
+        "scatter": 0.1,
+        "spread": 60,
+        "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
+        "taper": 0
+      },
       "canopy": {
         "acanthophyllLength": 0.3,
         "acanthophyllPitch": 75,
         "acanthophylls": 8,
+        "cauline": 0,
         "clump": 5,
         "clumpNeighbours": 12,
         "clumpSpan": 0.3,
         "clumpSystemOrder": 2,
         "divergence": 137.508,
         "forwardLean": 0,
+        "frondEarlyShare": 0.1,
+        "frondEstablishment": 6.75,
+        "frondLife": 5,
         "leafBaseFlatness": 1,
         "leafBaseLength": 0.255,
         "leafBasePitch": 55,
@@ -1147,6 +5012,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "outward": 0.6,
         "rachisArch": -0.6,
         "rachisLength": 7,
+        "rachisWidth": 0.25,
         "rosetteDepth": 0.35,
         "rosetteDivergence": 137.508,
         "rosetteFronds": 42,
@@ -1154,11 +5020,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "rosettePitchSpread": 105,
         "scatter": 18,
         "shootRadius": 0,
-        "shortShootLeaves": 3,
-        "shortShootLength": 0.04,
-        "shortShootRadius": 0.15,
-        "shortShootSpacing": 0,
-        "shortShootSpread": 45,
         "size": 2.35,
         "sizeVariation": 0.35,
         "skirtFronds": 16,
@@ -1199,6 +5060,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeGrainStrength": 0,
         "bladeMottleScale": 0,
         "bladeMottleStrength": 0,
+        "bloomBackBlue": 0.64,
+        "bloomBackGreen": 0.72,
+        "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
+        "bloomFrontBlue": 0.74,
+        "bloomFrontGreen": 0.8,
+        "bloomFrontRed": 0.82,
         "brightnessRangeHigh": 0.03625,
         "brightnessRangeLow": -0.04,
         "canopyNormal": 0,
@@ -1247,6 +5118,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "marginGreen": 0,
         "marginRed": 0,
         "marginWidth": 0,
+        "matureBlue": 0.068,
+        "matureFurrowStrength": 1,
+        "matureGreen": 0.105,
+        "matureRadius": 0,
+        "matureRed": 0.147,
+        "matureSpan": 0,
         "orientationBlue": 0,
         "orientationGreen": 0,
         "orientationRed": 0.03,
@@ -1307,13 +5184,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         },
         "envelope": {
-          "crownBase": 0.45,
+          "crownBase": 0.3,
           "fullness": 0.45,
-          "height": 22.86,
+          "height": 24,
           "irregularity": 0,
           "lobeScale": 0.5,
-          "shoulder": 0.45,
-          "spread": 0.1
+          "shoulder": 2.2,
+          "spread": 0.3
         },
         "growth": {
           "maxTurnPerStep": 35
@@ -1380,6 +5257,54 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "vigourVariation": 0.15
         }
       },
+      "space": {
+        "ages": {
+          "2": {
+            "continuation": 0,
+            "divergence": 2.399963,
+            "elongation": 226,
+            "expansion": 139,
+            "form": {
+              "elevation": 1.5707963267948966,
+              "pipe": 0.297,
+              "secondary": 0,
+              "tropism": 0.5,
+              "wander": 0.05
+            },
+            "internode": 0.0339,
+            "leafArea": 2.81,
+            "lifespan": 150,
+            "readiness": 0,
+            "rhythm": 0,
+            "trunk": true,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 12,
+                  "min": 12
+                }
+              }
+            }
+          }
+        }
+      },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "canopy": {},
+        "enabled": false,
+        "flowering": {},
+        "internode": {},
+        "marginReflectance": 0,
+        "material": {},
+        "pipe": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -1400,17 +5325,43 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 1,
     "family": {
-      "age": 100,
+      "age": 82,
+      "bloom": {
+        "droop": 0,
+        "florets": 1,
+        "lasts": 0.1,
+        "open": 70,
+        "opens": 0.3,
+        "pedicel": 0.01,
+        "petalCup": 0.2,
+        "petalCurl": 0,
+        "petalLength": 0.012,
+        "petalWidest": 0.6,
+        "petalWidth": 0.009,
+        "petals": 5,
+        "rachis": 0,
+        "scatter": 0.1,
+        "spread": 60,
+        "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
+        "taper": 0
+      },
       "canopy": {
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
         "acanthophylls": 0,
-        "clump": 6,
+        "cauline": 1,
+        "clump": 5,
         "clumpNeighbours": 12,
-        "clumpSpan": 0.28,
+        "clumpSpan": 0.3,
         "clumpSystemOrder": 2,
-        "divergence": 137.508,
-        "forwardLean": 0,
+        "divergence": 180,
+        "forwardLean": 0.1,
+        "frondEarlyShare": 0,
+        "frondEstablishment": 0,
+        "frondLife": 0,
         "leafBaseFlatness": 0,
         "leafBaseLength": 0,
         "leafBasePitch": 60,
@@ -1423,109 +5374,121 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leanRise": 0,
         "limbClumping": 0,
         "maxInstances": 4294967295,
-        "outward": 0.42,
+        "outward": 0,
         "rachisArch": 0,
         "rachisLength": 0,
+        "rachisWidth": 0,
         "rosetteDepth": 0,
         "rosetteDivergence": 137.508,
         "rosetteFronds": 0,
         "rosettePitch": 45,
         "rosettePitchSpread": 60,
-        "scatter": 14,
-        "shootRadius": 0,
-        "shortShootLeaves": 3,
-        "shortShootLength": 0.04,
-        "shortShootRadius": 0.15,
-        "shortShootSpacing": 0,
-        "shortShootSpread": 45,
-        "size": 1,
-        "sizeVariation": 0.28,
+        "scatter": 80,
+        "shootRadius": 0.018,
+        "size": 1.1,
+        "sizeVariation": 0.12,
         "skirtFronds": 0,
         "skirtLength": 0.8,
         "skirtPitch": 140,
-        "spacing": 0.0045,
+        "spacing": 0.006,
         "surfaceContact": 0,
         "terminalLeaflet": 0,
-        "upward": 0.55
+        "upward": 0.3
       },
       "element": {
-        "axialSegments": 5,
-        "baseFullness": 0.85,
+        "axialSegments": 8,
+        "baseFullness": 0.75,
         "card": false,
-        "connectorLength": 0.01,
+        "connectorLength": 0.008,
         "crossSegments": 2,
         "cup": 0.18,
         "curl": 0.12,
-        "length": 0.12,
+        "length": 0.08,
         "lobeCount": 0,
         "lobeDepth": 0,
         "sectionRoundness": 0,
-        "tipSharpness": 1.6,
-        "widestAt": 0.42,
-        "width": 0.06
+        "tipSharpness": 0.7,
+        "widestAt": 0.45,
+        "width": 0.05
       },
       "material": {
-        "barkBlue": 0.068,
-        "barkGrainScale": 0,
-        "barkGrainStrength": 0,
-        "barkGreen": 0.105,
-        "barkMottleScale": 0,
-        "barkMottleStrength": 0.05,
-        "barkRed": 0.147,
+        "barkBlue": 0.0165,
+        "barkGrainScale": 0.002,
+        "barkGrainStrength": 0.3,
+        "barkGreen": 0.04,
+        "barkMottleScale": 0.12,
+        "barkMottleStrength": 0.04,
+        "barkRed": 0.04,
         "barkReflectance": 0.04,
-        "barkRoughness": 0.8,
-        "bladeGrainScale": 0,
-        "bladeGrainStrength": 0,
-        "bladeMottleScale": 0,
-        "bladeMottleStrength": 0.04,
-        "brightnessRangeHigh": 0.12,
-        "brightnessRangeLow": -0.12,
-        "canopyNormal": 0,
-        "cavityStrength": 0.2,
-        "crestBlue": 0,
-        "crestGreen": 0,
-        "crestRed": 0,
-        "crestStrength": 0.1,
-        "crownShade": 0,
-        "cuticleGloss": 0.25,
+        "barkRoughness": 0.95,
+        "bladeGrainScale": 90,
+        "bladeGrainStrength": 0.3,
+        "bladeMottleScale": 5,
+        "bladeMottleStrength": 0.1,
+        "bloomBackBlue": 0.73,
+        "bloomBackGreen": 0.68,
+        "bloomBackRed": 0.66,
+        "bloomEyeBlue": 0.58,
+        "bloomEyeGreen": 0.5,
+        "bloomEyeRed": 0.45,
+        "bloomEyeShare": 0.3,
+        "bloomFrontBlue": 0.81,
+        "bloomFrontGreen": 0.77,
+        "bloomFrontRed": 0.75,
+        "brightnessRangeHigh": 0.1,
+        "brightnessRangeLow": -0.1,
+        "canopyNormal": 0.8,
+        "cavityStrength": 0.35,
+        "crestBlue": 0.045,
+        "crestGreen": 0.055,
+        "crestRed": 0.06,
+        "crestStrength": 0,
+        "crownShade": 0.1,
+        "cuticleGloss": 0.18,
         "depthStrength": 0,
-        "diffuseTransmission": 0,
+        "diffuseTransmission": 1,
         "directionalOcclusion": 0,
-        "fissureBlue": 0,
-        "fissureGreen": 0,
-        "fissureRed": 0,
-        "fissureStrength": 0.12,
-        "furrowStrength": 1,
-        "hueRangeHigh": 0.03,
-        "hueRangeLow": -0.03,
-        "interiorDarkening": 0.5,
-        "leafBackBlue": 0.07,
-        "leafBackGreen": 0.24,
-        "leafBackRed": 0.105,
-        "leafDeadBlue": 0.18,
-        "leafDeadGreen": 0.25,
-        "leafDeadRed": 0.3,
-        "leafFrontBlue": 0.036,
-        "leafFrontGreen": 0.195,
-        "leafFrontRed": 0.068,
+        "fissureBlue": -0.02,
+        "fissureGreen": -0.03,
+        "fissureRed": -0.04,
+        "fissureStrength": 0,
+        "furrowStrength": 0,
+        "hueRangeHigh": 0.02,
+        "hueRangeLow": -0.02,
+        "interiorDarkening": 0.35,
+        "leafBackBlue": 0.0114,
+        "leafBackGreen": 0.0307,
+        "leafBackRed": 0.037,
+        "leafDeadBlue": 0.0185,
+        "leafDeadGreen": 0.1246,
+        "leafDeadRed": 0.468,
+        "leafFrontBlue": 0.0067,
+        "leafFrontGreen": 0.0158,
+        "leafFrontRed": 0.021,
         "leafReflectance": 0.04,
-        "leafSheen": 0,
-        "lenticelDensity": 0,
-        "lenticelLength": 0,
-        "lenticelStrength": 0,
-        "lenticelTint": 0,
-        "lichenBlue": 0,
-        "lichenCoverage": 0,
-        "lichenGreen": 0,
-        "lichenRed": 0,
-        "lichenScale": 0,
-        "lichenStrength": 0,
-        "lightWrap": 0,
-        "lobeShade": 0,
-        "marginBlue": 0,
-        "marginGreen": 0,
-        "marginRed": 0,
-        "marginWidth": 0,
+        "leafSheen": 0.08,
+        "lenticelDensity": 6,
+        "lenticelLength": 0.08,
+        "lenticelStrength": 0.1,
+        "lenticelTint": -0.3,
+        "lichenBlue": 0.76,
+        "lichenCoverage": 0.1,
+        "lichenGreen": 0.82,
+        "lichenRed": 0.8,
+        "lichenScale": 0.04,
+        "lichenStrength": 0.3,
+        "lightWrap": 0.4,
+        "lobeShade": 0.7,
+        "marginBlue": 0.008,
+        "marginGreen": 0.04,
+        "marginRed": 0.02,
+        "marginWidth": 0.04,
+        "matureBlue": 0.068,
+        "matureFurrowStrength": 1,
+        "matureGreen": 0.105,
+        "matureRadius": 0,
+        "matureRed": 0.147,
+        "matureSpan": 0,
         "orientationBlue": 0,
         "orientationGreen": 0,
         "orientationRed": 0,
@@ -1541,21 +5504,21 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateElongation": 0,
         "plateFurrowWidth": 0,
         "plateIdentity": 0,
-        "plateScale": 0,
-        "ridgeScale": 0,
-        "roughnessDetail": 0,
-        "shootBlue": 0.068,
-        "shootGreen": 0.105,
-        "shootRadius": 0,
-        "shootRed": 0.147,
-        "skyOcclusionStrength": 0.2,
-        "thickness": 1,
-        "transmissionBlue": 0.1,
-        "transmissionGreen": 0.6,
-        "transmissionRed": 0.3,
-        "transmissionStrength": 0,
-        "veinContrast": 0,
-        "veinScale": 8,
+        "plateScale": 1,
+        "ridgeScale": 0.002,
+        "roughnessDetail": 0.08,
+        "shootBlue": 0.085,
+        "shootGreen": 0.13,
+        "shootRadius": 0.004,
+        "shootRed": 0.14,
+        "skyOcclusionStrength": 0.35,
+        "thickness": 0.6,
+        "transmissionBlue": 0.08,
+        "transmissionGreen": 0.5,
+        "transmissionRed": 0.22,
+        "transmissionStrength": 0.5,
+        "veinContrast": 0.4,
+        "veinScale": 7,
         "weatheringBlue": 0,
         "weatheringGreen": 0,
         "weatheringRed": 0,
@@ -1563,84 +5526,84 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "radii": {
         "forkBalance": 1,
-        "forkExponent": 2.15,
+        "forkExponent": 2.9,
         "girthFall": 2,
         "girthHold": 0,
         "lateralShare": 1,
-        "lengthTaper": 0.75,
+        "lengthTaper": 0.2,
         "maxTaperExponent": 12,
-        "trunkRadius": 0.05
+        "trunkRadius": 0.016
       },
-      "shellDepth": 0.45,
+      "shellDepth": 1,
       "skeleton": {
-        "attractors": 1600,
+        "attractors": 500,
         "bias": {
-          "gravitropism": 0.95,
-          "lean": 0.04,
+          "gravitropism": 0,
+          "lean": 0,
           "supernatural": {
-            "enabled": true,
+            "enabled": false,
             "maxWritheMagnitude": 0.9,
-            "spiralRate": 2.6,
-            "writheAmplitude": 0.11,
-            "writheWavelength": 0.34
+            "spiralRate": 0,
+            "writheAmplitude": 0,
+            "writheWavelength": 0.45
           }
         },
         "envelope": {
-          "crownBase": 0.38,
-          "fullness": 0.58,
-          "height": 148,
+          "crownBase": 0.3,
+          "fullness": 0.45,
+          "height": 24,
           "irregularity": 0,
           "lobeScale": 0.5,
-          "shoulder": 1.5,
-          "spread": 0.24
+          "shoulder": 2.2,
+          "spread": 0.3
         },
         "growth": {
-          "maxTurnPerStep": 26
+          "maxTurnPerStep": 35
         },
         "habit": {
-          "apicalDominance": 0.15,
-          "attractorWeight": 1,
+          "apicalDominance": 0.8,
+          "attractorWeight": 0,
           "codominance": 0,
-          "crookedness": 12,
+          "crookedness": 3,
           "forkDivergence": 90,
           "forkHeight": 0,
           "forkHeightSpread": 0,
           "forkLean": 26,
           "forkLeanSpread": 0,
           "forkWays": 2,
-          "lateralLengthRatio": 0.45,
+          "lateralLengthRatio": 0.65,
           "lateralOrders": 3,
-          "lateralPitch": 60,
-          "lateralSpacing": 10,
-          "lateralsPerStation": 4,
-          "leaderInternode": 10,
+          "lateralPitch": 28,
+          "lateralSpacing": 2,
+          "lateralsPerStation": 2,
+          "leaderInternode": 2.6,
           "pitchByHeight": 0,
-          "pitchVariation": 15,
+          "pitchVariation": 6,
           "raggedReach": 0,
           "reachProbeSteps": 96,
-          "risePrimary": 0.05,
+          "risePrimary": 0.1,
           "riseSecondary": 0,
-          "sheddingThreshold": 0.45,
-          "twigTipTaper": 1,
-          "whorlStrength": 0.2
+          "sheddingThreshold": 0,
+          "twigTipTaper": 0.25,
+          "whorlStrength": 0.15
         },
         "samplingAttemptsPerAttractor": 64,
-        "seed": 1,
+        "seed": 42,
         "step": 0.022,
         "twigs": {
-          "angle": 45,
+          "angle": 40,
           "angleVariation": 10,
           "curtainClearance": 0.5,
           "curtainDrop": 0,
           "curtainSeparation": 4,
           "curtainStepClearance": 0.8,
-          "divergence": 137.508,
-          "generations": 6,
+          "divergence": 137.5,
+          "generations": 2,
           "hang": 0,
-          "internodeFactor": 3.5,
+          "internodeFactor": 2.5,
           "laterals": 4,
-          "lengthRatio": 0.4,
-          "limbRadius": 0.1,
+          "lengthRatio": 0.23,
+          "limbRadius": 0.28,
           "maxDroop": 0.35,
           "maxInternodes": 32,
           "pendulousLength": 0.25,
@@ -1650,26 +5613,616 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "reach": 0.2,
           "sag": 0,
           "twig": {
-            "bearingDiameter": 0.05,
+            "bearingDiameter": 0.03,
             "diameter": 0.005,
-            "internodeLength": 0.02,
-            "length": 0.5,
+            "internodeLength": 0.025,
+            "length": 0.25,
             "stationsPerInternode": 1
           },
           "vigourVariation": 0.15
         }
       },
+      "space": {
+        "ages": {
+          "2": {
+            "abortion": 0.5,
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "divergence": 2.4,
+            "elongation": 14,
+            "epitony": 0.6,
+            "erection": 0.1,
+            "expansion": 14,
+            "form": {
+              "elevation": 1.4,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "plane": 1.5707963267948966,
+              "tropism": 0.6,
+              "wander": 0.2
+            },
+            "insertion": 0.3,
+            "internode": 0.07,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 9,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 1,
+            "takeover": 0.5,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.35
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.8
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "4": {
+            "abortion": 0.3,
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "elongation": 14,
+            "epitony": 0.6,
+            "expansion": 14,
+            "form": {
+              "elevation": 1.35,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.6,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 40,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 1,
+            "takeover": 0.5,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.3,
+                  "7": 0.2
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "5": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "divergence": 2.4,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "elevation": 1.5707963267948966,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "plane": 1.5707963267948966,
+              "tropism": 0.3,
+              "wander": 0.2
+            },
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 2,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.3,
+                  "7": 0.5
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.9
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "6": {
+            "abortion": 0.3,
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "epitony": 0.6,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.3,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.6,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 70,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 0.6,
+            "takeover": 0.5,
+            "upkeep": 0.35,
+            "viability": 0.995,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "7": 0.16
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "7": {
+            "abortion": 0.35,
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "epitony": 0.6,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.2,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.6,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 30,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 0.6,
+            "takeover": 0.5,
+            "upkeep": 0.35,
+            "viability": 0.995,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.14
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "8": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.6,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.25,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 25,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 0.25,
+            "upkeep": 0.35,
+            "viability": 0.995,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.45
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "9": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.35,
+              "pipe": 0.0009,
+              "roll": 1.2,
+              "tropism": 0.8,
+              "wander": 0.5
+            },
+            "insertion": 1,
+            "internode": 0.03,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 10,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "shedding": 1,
+            "upkeep": 0.35,
+            "viability": 0.95,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "14": 0.7
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.08
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "3": {
+                "buds": 1,
+                "lateral": {
+                  "12": 0.65
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "12": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.15,
+              "pipe": 0.0009,
+              "tropism": 1,
+              "wander": 1
+            },
+            "insertion": 1,
+            "internode": 0.025,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 5,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "shedding": 1,
+            "upkeep": 0.35,
+            "viability": 0.95,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "14": 0.6
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              }
+            }
+          },
+          "14": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "clusterLeaves": 4,
+            "clusterSpread": 0.6,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "pipe": 0.00095
+            },
+            "insertion": 0.9,
+            "internode": 0.006,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 4,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "shedding": 1,
+            "upkeep": 0.35,
+            "viability": 0.9,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 5,
+                  "min": 3
+                }
+              }
+            }
+          }
+        }
+      },
+      "supernatural": {
+        "backBlue": 0.86,
+        "backGreen": 0.93,
+        "backRed": 0.95,
+        "backReflectance": 0.7,
+        "bloom": {
+          "droop": -1,
+          "florets": 5,
+          "open": 100,
+          "pedicel": 0.045,
+          "petalCup": 0.4,
+          "petalCurl": 0.25,
+          "petalLength": 0.093,
+          "petalWidest": 0.5,
+          "petalWidth": 0.051,
+          "petals": 5,
+          "rachis": 0.39,
+          "scatter": 0.2,
+          "spread": 70,
+          "stamenLength": 0.021,
+          "stamenWidth": 0.0012,
+          "stamens": 12,
+          "taper": 0.3
+        },
+        "canopy": {
+          "size": 2.3
+        },
+        "enabled": true,
+        "flowering": {
+          "age14": 0.3
+        },
+        "internode": {
+          "age2": 0.182,
+          "age4": 0.104,
+          "age5": 0.104,
+          "age6": 0.104,
+          "age7": 0.104,
+          "age8": 0.104
+        },
+        "marginReflectance": 0,
+        "material": {
+          "leafBackBlue": 0.022,
+          "leafBackGreen": 0.03,
+          "leafBackRed": 0.018,
+          "leafFrontBlue": 0.007,
+          "leafFrontGreen": 0.022,
+          "leafFrontRed": 0.0055
+        },
+        "pipe": {
+          "age2": 0.024,
+          "age4": 0.024,
+          "age5": 0.024,
+          "age6": 0.024,
+          "age7": 0.024,
+          "age8": 0.024
+        },
+        "roughness": 0.12,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
-        "flareRadius": 2,
+        "flareRadius": 1.5,
         "forkSocket": 0.5,
         "forkSwell": 1.35,
-        "lobeDepth": 0.11,
-        "lobes": 7,
+        "lobeDepth": 0,
+        "lobes": 5,
         "radialSegments": 12,
         "socketContainment": 0.9,
-        "twistRate": 2.4
+        "twistRate": 0
       }
     },
     "id": "telperion",
@@ -1679,17 +6232,43 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 2,
     "family": {
-      "age": 100,
+      "age": 80,
+      "bloom": {
+        "droop": 0,
+        "florets": 1,
+        "lasts": 0.1,
+        "open": 70,
+        "opens": 0.3,
+        "pedicel": 0.01,
+        "petalCup": 0.2,
+        "petalCurl": 0,
+        "petalLength": 0.012,
+        "petalWidest": 0.6,
+        "petalWidth": 0.009,
+        "petals": 5,
+        "rachis": 0,
+        "scatter": 0.1,
+        "spread": 60,
+        "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
+        "taper": 0
+      },
       "canopy": {
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
         "acanthophylls": 0,
-        "clump": 9,
+        "cauline": 1,
+        "clump": 5,
         "clumpNeighbours": 12,
-        "clumpSpan": 0.36,
+        "clumpSpan": 0.3,
         "clumpSystemOrder": 2,
-        "divergence": 99.502,
-        "forwardLean": 0,
+        "divergence": 180,
+        "forwardLean": 0.1,
+        "frondEarlyShare": 0,
+        "frondEstablishment": 0,
+        "frondLife": 0,
         "leafBaseFlatness": 0,
         "leafBaseLength": 0,
         "leafBasePitch": 60,
@@ -1702,109 +6281,121 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leanRise": 0,
         "limbClumping": 0,
         "maxInstances": 4294967295,
-        "outward": 0.72,
+        "outward": 0,
         "rachisArch": 0,
         "rachisLength": 0,
+        "rachisWidth": 0,
         "rosetteDepth": 0,
         "rosetteDivergence": 137.508,
         "rosetteFronds": 0,
         "rosettePitch": 45,
         "rosettePitchSpread": 60,
-        "scatter": 22,
-        "shootRadius": 0,
-        "shortShootLeaves": 3,
-        "shortShootLength": 0.04,
-        "shortShootRadius": 0.15,
-        "shortShootSpacing": 0,
-        "shortShootSpread": 45,
-        "size": 1.5,
-        "sizeVariation": 0.4,
+        "scatter": 80,
+        "shootRadius": 0.018,
+        "size": 1.1,
+        "sizeVariation": 0.12,
         "skirtFronds": 0,
         "skirtLength": 0.8,
         "skirtPitch": 140,
-        "spacing": 0.0065,
+        "spacing": 0.006,
         "surfaceContact": 0,
         "terminalLeaflet": 0,
-        "upward": 0.22
+        "upward": 0.3
       },
       "element": {
-        "axialSegments": 5,
-        "baseFullness": 0.85,
+        "axialSegments": 8,
+        "baseFullness": 0.75,
         "card": false,
-        "connectorLength": 0.01,
+        "connectorLength": 0.008,
         "crossSegments": 2,
         "cup": 0.18,
         "curl": 0.12,
-        "length": 0.12,
+        "length": 0.08,
         "lobeCount": 0,
         "lobeDepth": 0,
         "sectionRoundness": 0,
-        "tipSharpness": 1.6,
-        "widestAt": 0.42,
-        "width": 0.06
+        "tipSharpness": 0.7,
+        "widestAt": 0.45,
+        "width": 0.05
       },
       "material": {
-        "barkBlue": 0.068,
-        "barkGrainScale": 0,
-        "barkGrainStrength": 0,
-        "barkGreen": 0.105,
-        "barkMottleScale": 0,
-        "barkMottleStrength": 0.05,
-        "barkRed": 0.147,
+        "barkBlue": 0.0165,
+        "barkGrainScale": 0.002,
+        "barkGrainStrength": 0.3,
+        "barkGreen": 0.04,
+        "barkMottleScale": 0.12,
+        "barkMottleStrength": 0.04,
+        "barkRed": 0.04,
         "barkReflectance": 0.04,
-        "barkRoughness": 0.8,
-        "bladeGrainScale": 0,
-        "bladeGrainStrength": 0,
-        "bladeMottleScale": 0,
-        "bladeMottleStrength": 0.04,
-        "brightnessRangeHigh": 0.12,
-        "brightnessRangeLow": -0.12,
-        "canopyNormal": 0,
-        "cavityStrength": 0.2,
-        "crestBlue": 0,
-        "crestGreen": 0,
-        "crestRed": 0,
-        "crestStrength": 0.1,
-        "crownShade": 0,
-        "cuticleGloss": 0.3,
+        "barkRoughness": 0.95,
+        "bladeGrainScale": 90,
+        "bladeGrainStrength": 0.3,
+        "bladeMottleScale": 5,
+        "bladeMottleStrength": 0.1,
+        "bloomBackBlue": 0.015,
+        "bloomBackGreen": 0.27,
+        "bloomBackRed": 0.65,
+        "bloomEyeBlue": 0.01,
+        "bloomEyeGreen": 0.2,
+        "bloomEyeRed": 0.7,
+        "bloomEyeShare": 0.5,
+        "bloomFrontBlue": 0.015,
+        "bloomFrontGreen": 0.32,
+        "bloomFrontRed": 0.75,
+        "brightnessRangeHigh": 0.1,
+        "brightnessRangeLow": -0.1,
+        "canopyNormal": 0.8,
+        "cavityStrength": 0.35,
+        "crestBlue": 0.045,
+        "crestGreen": 0.055,
+        "crestRed": 0.06,
+        "crestStrength": 0,
+        "crownShade": 0.1,
+        "cuticleGloss": 0.18,
         "depthStrength": 0,
-        "diffuseTransmission": 0,
+        "diffuseTransmission": 1,
         "directionalOcclusion": 0,
-        "fissureBlue": 0,
-        "fissureGreen": 0,
-        "fissureRed": 0,
-        "fissureStrength": 0.12,
-        "furrowStrength": 1,
-        "hueRangeHigh": 0.03,
-        "hueRangeLow": -0.03,
-        "interiorDarkening": 0.5,
-        "leafBackBlue": 0.07,
-        "leafBackGreen": 0.24,
-        "leafBackRed": 0.105,
-        "leafDeadBlue": 0.18,
-        "leafDeadGreen": 0.25,
-        "leafDeadRed": 0.3,
-        "leafFrontBlue": 0.036,
-        "leafFrontGreen": 0.195,
-        "leafFrontRed": 0.068,
+        "fissureBlue": -0.02,
+        "fissureGreen": -0.03,
+        "fissureRed": -0.04,
+        "fissureStrength": 0,
+        "furrowStrength": 0,
+        "hueRangeHigh": 0.02,
+        "hueRangeLow": -0.02,
+        "interiorDarkening": 0.35,
+        "leafBackBlue": 0.0114,
+        "leafBackGreen": 0.0307,
+        "leafBackRed": 0.037,
+        "leafDeadBlue": 0.0185,
+        "leafDeadGreen": 0.1246,
+        "leafDeadRed": 0.468,
+        "leafFrontBlue": 0.0067,
+        "leafFrontGreen": 0.0158,
+        "leafFrontRed": 0.021,
         "leafReflectance": 0.04,
-        "leafSheen": 0,
-        "lenticelDensity": 0,
-        "lenticelLength": 0,
-        "lenticelStrength": 0,
-        "lenticelTint": 0,
-        "lichenBlue": 0,
-        "lichenCoverage": 0,
-        "lichenGreen": 0,
-        "lichenRed": 0,
-        "lichenScale": 0,
-        "lichenStrength": 0,
-        "lightWrap": 0,
-        "lobeShade": 0,
-        "marginBlue": 0,
-        "marginGreen": 0,
-        "marginRed": 0,
-        "marginWidth": 0,
+        "leafSheen": 0.08,
+        "lenticelDensity": 6,
+        "lenticelLength": 0.08,
+        "lenticelStrength": 0.1,
+        "lenticelTint": -0.3,
+        "lichenBlue": 0.76,
+        "lichenCoverage": 0.1,
+        "lichenGreen": 0.82,
+        "lichenRed": 0.8,
+        "lichenScale": 0.04,
+        "lichenStrength": 0.3,
+        "lightWrap": 0.4,
+        "lobeShade": 0.7,
+        "marginBlue": 0.008,
+        "marginGreen": 0.04,
+        "marginRed": 0.02,
+        "marginWidth": 0.04,
+        "matureBlue": 0.068,
+        "matureFurrowStrength": 1,
+        "matureGreen": 0.105,
+        "matureRadius": 0,
+        "matureRed": 0.147,
+        "matureSpan": 0,
         "orientationBlue": 0,
         "orientationGreen": 0,
         "orientationRed": 0,
@@ -1820,21 +6411,21 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateElongation": 0,
         "plateFurrowWidth": 0,
         "plateIdentity": 0,
-        "plateScale": 0,
-        "ridgeScale": 0,
-        "roughnessDetail": 0,
-        "shootBlue": 0.068,
-        "shootGreen": 0.105,
-        "shootRadius": 0,
-        "shootRed": 0.147,
-        "skyOcclusionStrength": 0.2,
-        "thickness": 1,
-        "transmissionBlue": 0.1,
-        "transmissionGreen": 0.6,
-        "transmissionRed": 0.3,
-        "transmissionStrength": 0,
-        "veinContrast": 0,
-        "veinScale": 8,
+        "plateScale": 1,
+        "ridgeScale": 0.002,
+        "roughnessDetail": 0.08,
+        "shootBlue": 0.085,
+        "shootGreen": 0.13,
+        "shootRadius": 0.004,
+        "shootRed": 0.14,
+        "skyOcclusionStrength": 0.35,
+        "thickness": 0.6,
+        "transmissionBlue": 0.08,
+        "transmissionGreen": 0.5,
+        "transmissionRed": 0.22,
+        "transmissionStrength": 0.5,
+        "veinContrast": 0.4,
+        "veinScale": 7,
         "weatheringBlue": 0,
         "weatheringGreen": 0,
         "weatheringRed": 0,
@@ -1842,84 +6433,84 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "radii": {
         "forkBalance": 1,
-        "forkExponent": 2.7,
+        "forkExponent": 2.9,
         "girthFall": 2,
         "girthHold": 0,
         "lateralShare": 1,
-        "lengthTaper": 0.35,
+        "lengthTaper": 0.2,
         "maxTaperExponent": 12,
-        "trunkRadius": 0.055
+        "trunkRadius": 0.016
       },
-      "shellDepth": 0.45,
+      "shellDepth": 1,
       "skeleton": {
-        "attractors": 1060,
+        "attractors": 500,
         "bias": {
-          "gravitropism": 0.55,
-          "lean": 0.06,
+          "gravitropism": 0,
+          "lean": 0,
           "supernatural": {
-            "enabled": true,
+            "enabled": false,
             "maxWritheMagnitude": 0.9,
-            "spiralRate": 0.6,
-            "writheAmplitude": 0.05,
-            "writheWavelength": 0.8
+            "spiralRate": 0,
+            "writheAmplitude": 0,
+            "writheWavelength": 0.45
           }
         },
         "envelope": {
-          "crownBase": 0.24,
-          "fullness": 0.38,
-          "height": 132,
+          "crownBase": 0.3,
+          "fullness": 0.45,
+          "height": 24,
           "irregularity": 0,
           "lobeScale": 0.5,
-          "shoulder": 3.2,
-          "spread": 0.58
+          "shoulder": 2.2,
+          "spread": 0.3
         },
         "growth": {
-          "maxTurnPerStep": 46
+          "maxTurnPerStep": 35
         },
         "habit": {
-          "apicalDominance": 0.15,
-          "attractorWeight": 1,
+          "apicalDominance": 0.8,
+          "attractorWeight": 0,
           "codominance": 0,
-          "crookedness": 12,
+          "crookedness": 3,
           "forkDivergence": 90,
           "forkHeight": 0,
           "forkHeightSpread": 0,
           "forkLean": 26,
           "forkLeanSpread": 0,
           "forkWays": 2,
-          "lateralLengthRatio": 0.45,
+          "lateralLengthRatio": 0.65,
           "lateralOrders": 3,
-          "lateralPitch": 60,
-          "lateralSpacing": 10,
-          "lateralsPerStation": 4,
-          "leaderInternode": 10,
+          "lateralPitch": 28,
+          "lateralSpacing": 2,
+          "lateralsPerStation": 2,
+          "leaderInternode": 2.6,
           "pitchByHeight": 0,
-          "pitchVariation": 15,
+          "pitchVariation": 6,
           "raggedReach": 0,
           "reachProbeSteps": 96,
-          "risePrimary": 0.05,
+          "risePrimary": 0.1,
           "riseSecondary": 0,
-          "sheddingThreshold": 0.45,
-          "twigTipTaper": 1,
-          "whorlStrength": 0.2
+          "sheddingThreshold": 0,
+          "twigTipTaper": 0.25,
+          "whorlStrength": 0.15
         },
         "samplingAttemptsPerAttractor": 64,
-        "seed": 2,
+        "seed": 42,
         "step": 0.022,
         "twigs": {
-          "angle": 45,
+          "angle": 40,
           "angleVariation": 10,
           "curtainClearance": 0.5,
           "curtainDrop": 0,
           "curtainSeparation": 4,
           "curtainStepClearance": 0.8,
-          "divergence": 137.508,
-          "generations": 6,
+          "divergence": 137.5,
+          "generations": 2,
           "hang": 0,
-          "internodeFactor": 6,
-          "laterals": 2,
-          "lengthRatio": 0.4,
-          "limbRadius": 0.1,
+          "internodeFactor": 2.5,
+          "laterals": 4,
+          "lengthRatio": 0.23,
+          "limbRadius": 0.28,
           "maxDroop": 0.35,
           "maxInternodes": 32,
           "pendulousLength": 0.25,
@@ -1929,26 +6520,619 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "reach": 0.2,
           "sag": 0,
           "twig": {
-            "bearingDiameter": 0.05,
+            "bearingDiameter": 0.03,
             "diameter": 0.005,
-            "internodeLength": 0.02,
-            "length": 0.5,
+            "internodeLength": 0.025,
+            "length": 0.25,
             "stationsPerInternode": 1
           },
           "vigourVariation": 0.15
         }
       },
+      "space": {
+        "ages": {
+          "2": {
+            "abortion": 0.5,
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "divergence": 2.4,
+            "elongation": 14,
+            "epitony": 0.6,
+            "erection": 0.1,
+            "expansion": 14,
+            "form": {
+              "elevation": 1.4,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "plane": 1.5707963267948966,
+              "tropism": 0.6,
+              "wander": 0.2
+            },
+            "insertion": 0.3,
+            "internode": 0.07,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 9,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 1,
+            "takeover": 0.5,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.35
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.8
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "4": {
+            "abortion": 0.3,
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "elongation": 14,
+            "epitony": 0.6,
+            "expansion": 14,
+            "form": {
+              "elevation": 1.35,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.6,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 40,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 1,
+            "takeover": 0.5,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.3,
+                  "7": 0.2
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "5": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "divergence": 2.4,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "elevation": 1.5707963267948966,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "plane": 1.5707963267948966,
+              "tropism": 0.3,
+              "wander": 0.2
+            },
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 2,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "trunk": true,
+            "upkeep": 0.35,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.3,
+                  "7": 0.5
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.9
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "6": {
+            "abortion": 0.3,
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "epitony": 0.6,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.3,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.6,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 70,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 0.6,
+            "takeover": 0.5,
+            "upkeep": 0.35,
+            "viability": 0.995,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "7": 0.16
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "7": {
+            "abortion": 0.35,
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "epitony": 0.6,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.2,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.6,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 30,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 0.6,
+            "takeover": 0.5,
+            "upkeep": 0.35,
+            "viability": 0.995,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.14
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "8": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.6,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.25,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 25,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "straightening": 0.25,
+            "upkeep": 0.35,
+            "viability": 0.995,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.45
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "9": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.35,
+              "pipe": 0.0009,
+              "roll": 1.2,
+              "tropism": 0.8,
+              "wander": 0.5
+            },
+            "insertion": 1,
+            "internode": 0.03,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 10,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "shedding": 1,
+            "upkeep": 0.35,
+            "viability": 0.95,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "14": 0.7
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.08
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "3": {
+                "buds": 1,
+                "lateral": {
+                  "12": 0.65
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "12": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "elevation": 0.15,
+              "pipe": 0.0009,
+              "tropism": 1,
+              "wander": 1
+            },
+            "insertion": 1,
+            "internode": 0.025,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 5,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "shedding": 1,
+            "upkeep": 0.35,
+            "viability": 0.95,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "14": 0.6
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              }
+            }
+          },
+          "14": {
+            "balanceHazard": 0.33846153846153876,
+            "budburst": 115,
+            "clusterLeaves": 4,
+            "clusterSpread": 0.6,
+            "colouring": 16,
+            "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
+            "form": {
+              "pipe": 0.00095
+            },
+            "insertion": 0.9,
+            "internode": 0.006,
+            "leafArea": 0.0015723,
+            "leafFall": 45,
+            "leafGirth": 1,
+            "leafLife": 0.54,
+            "leafYears": 1,
+            "lifespan": 4,
+            "senescence": 264,
+            "shadeHazard": 0.16923076923076938,
+            "shedding": 1,
+            "upkeep": 0.35,
+            "viability": 0.9,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 5,
+                  "min": 3
+                }
+              }
+            }
+          }
+        }
+      },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {
+          "droop": 1,
+          "florets": 6,
+          "open": 9,
+          "pedicel": 0.024,
+          "petalCup": 0.6,
+          "petalCurl": 0.45,
+          "petalLength": 0.09,
+          "petalWidest": 0.9,
+          "petalWidth": 0.03,
+          "petals": 5,
+          "rachis": 0.72,
+          "scatter": 0.1,
+          "spread": 30,
+          "stamenLength": 0.048,
+          "stamenWidth": 0.0018,
+          "stamens": 5,
+          "taper": 0.35
+        },
+        "canopy": {
+          "size": 2.4
+        },
+        "enabled": true,
+        "flowering": {
+          "age14": 1
+        },
+        "internode": {
+          "age2": 0.182,
+          "age4": 0.104,
+          "age5": 0.104,
+          "age6": 0.104,
+          "age7": 0.104,
+          "age8": 0.104
+        },
+        "marginReflectance": 0.9,
+        "material": {
+          "leafBackBlue": 0.035,
+          "leafBackGreen": 0.12,
+          "leafBackRed": 0.06,
+          "leafFrontBlue": 0.02,
+          "leafFrontGreen": 0.1,
+          "leafFrontRed": 0.03,
+          "marginBlue": 0.04,
+          "marginGreen": 0.52,
+          "marginRed": 0.75
+        },
+        "pipe": {
+          "age2": 0.0272,
+          "age4": 0.0272,
+          "age5": 0.0272,
+          "age6": 0.0272,
+          "age7": 0.0272,
+          "age8": 0.0272
+        },
+        "roughness": 0.25,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
-        "flareRadius": 3.1,
+        "flareRadius": 1.5,
         "forkSocket": 0.5,
         "forkSwell": 1.35,
-        "lobeDepth": 0.24,
-        "lobes": 4,
+        "lobeDepth": 0,
+        "lobes": 5,
         "radialSegments": 12,
         "socketContainment": 0.9,
-        "twistRate": 0.8
+        "twistRate": 0
       }
     },
     "id": "laurelin",

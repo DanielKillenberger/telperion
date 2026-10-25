@@ -9,6 +9,9 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 telperion-core = { path = "../telperion-core" }
+# The GPU executor settles a tree's fine roots as the engine's `Roots`
+# (fn-212 task 10), on the engine's own tables.
+telperion-space = { path = "../telperion-space" }
 wgpu = "30"
 # The scene row is stated as JSON by the command line and by the page alike,
 # so its parser is the renderer's own dependency rather than the browser's.
@@ -18,6 +21,10 @@ futures-channel = "0.3"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 pollster = "1"
+# The driver's device-memory budget (VK_EXT_memory_budget), read through
+# wgpu's own Vulkan device: what other processes leave of the card bounds
+# a native build (fn-256 task 5). The version wgpu-hal uses.
+ash = "0.38"
 png = "0.18"
 
 # The browser target parses the panel's parameter JSON in Rust, so the schema
@@ -31,12 +38,16 @@ js-sys = "0.3"
 web-sys = { version = "0.3", features = ["HtmlCanvasElement", "Window"] }
 
 [dev-dependencies]
-# The tree space's stills (examples/space_beech.rs) dress its structure in the
-# pipeline's wood and leaves; the renderer library never sees it.
-telperion-space = { path = "../telperion-space" }
 # The conformance sweep reads the shipped families as JSON and walks them; the
 # renderer library itself never sees a parameter name.
 telperion-core = { path = "../telperion-core", features = ["json"] }
 wgpu = "30"
 # The pipeline boundary's compile-fail test (tests/boundary.rs).
 trybuild = "1"
+# Every shipped shader parsed and validated without a GPU, under the
+# capabilities wgpu grants the device (src/shader_tests.rs).
+naga = { version = "30", features = ["wgsl-in"] }
+wgpu-naga-bridge = "30"
+# The release film's overlay letters its map and age (examples/film): a
+# public-domain 8x8 bitmap font, so the overlay draws text with no font file.
+font8x8 = "0.3"

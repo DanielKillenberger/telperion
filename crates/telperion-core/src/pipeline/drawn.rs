@@ -1,6 +1,5 @@
 //! Stages 3 and 4 with the geometry compiled in: the rings, the wood, the
-//! leaves placed and culled, and the field read from placed leaves where the
-//! leaf plan cannot describe a family.
+//! leaves placed and culled, and the field read out from the drawn tree.
 use super::{
     input::{LeafInput, SurfaceInput},
     stage,
@@ -8,9 +7,9 @@ use super::{
     Inputs, Leaves, Outputs, Request, Schedule, Stages,
 };
 use crate::{
-    pipeline::field::Field,
-    pipeline::foliage::{self, plan, Element, Instances, TwigPlacement},
-    pipeline::surface::{self, AttachmentSurface, Faces, Rings, Sweep},
+    pipeline::field::Grid,
+    pipeline::foliage::{self, Instances, TwigPlacement},
+    pipeline::surface::{self, AttachmentSurface, Curve, Faces, Rings, Sweep},
     tree::Tree,
     Result,
 };
@@ -20,9 +19,9 @@ use std::sync::OnceLock;
 pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<Outputs> {
     let (surface, leaf) = (&inputs.surface, &inputs.leaves);
     let twig = inputs.plan.twig.as_ref().ok().copied();
-    // Leaves are placed for their own sake, or for a field the plan cannot
-    // describe; placed with surface contact, they sit on the rings.
-    let places = request.leaves || (request.field.is_some() && !plan::supports(leaf.canopy, twig));
+    // Leaves are placed for their own sake alone; placed with surface
+    // contact, they sit on the rings.
+    let places = request.leaves;
     let seats = places && leaf.canopy.surface_contact > 0.0;
     let rings = OnceLock::new();
     let sweep = || self::rings(tree, surface, request, seats);
@@ -30,7 +29,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     let (wood, planned) = both(
         request.schedule == Schedule::Concurrent && request.wood && places,
         || {
-            let wood = |r: &(_, _)| self::wood(tree, surface, request, &r.0);
+            let wood = |r: &(_, _, _)| self::wood(tree, surface, request, &r.0);
             request.wood.then(|| shared().and_then(wood)).transpose()
         },
         || {
@@ -50,13 +49,13 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     // The wood's error answers first, as it did run in turn.
     let wood = wood?;
     let (prepared, (leaves, field)) = planned?;
-    let (mut leaves, mut field) = (leaves?, field?);
+    let (mut leaves, field) = (leaves?, field?);
     let rings = rings.into_inner().transpose()?;
     let mut stages = Stages {
         plan_ms: prepared.ms,
         ..Stages::default()
     };
-    if let Some((_, ms)) = rings {
+    if let Some((_, _, ms)) = rings {
         stages.rings_ms = ms;
     }
     if let Some((_, ms)) = wood {
@@ -66,14 +65,10 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
         stages.rings_ms += own;
         [stages.placement_ms, stages.cull_ms] = [placement, cull];
     }
-    if request.field.is_some() && field.is_none() {
-        let placed = leaves.as_ref().map(|(l, _)| &l.instances);
-        let placed = placed.zip(prepared.element.as_ref());
-        field = Some(placed_field(tree, request, placed)?);
-    }
-    if let Some((_, ms)) = field {
+    if let Some((_, ms, _)) = field {
         stages.field_ms = ms;
     }
+    let (field, florets) = field.map(|(f, _, o)| (f, o)).unzip();
     if !request.leaves {
         for (l, _) in leaves.iter_mut() {
             l.instances = Instances::new(l.instances.reference);
@@ -83,26 +78,35 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
         .structure
         .then(|| stage::structure(tree))
         .transpose()?;
+    let (rings, drawn_from) = match rings {
+        Some((rings, curve, _)) => (Some(rings), curve),
+        None => (None, None),
+    };
+    let traces = request.curve && drawn_from.is_none();
     #[cfg(test)]
     super::tests::count(|t| {
         let own = seats && !request.wood && leaves.is_some();
-        t.sweeps += u32::from(rings.is_some()) + u32::from(own);
+        t.sweeps += u32::from(rings.is_some()) + u32::from(own) + u32::from(traces);
         t.elements += u32::from(prepared.element.is_some());
     });
     let wood = wood
         .zip(rings)
-        .map(|((faces, _), (rings, _))| rings.into_mesh(faces));
-    let curve = request
-        .curve
-        .then(|| crate::pipeline::surface::curve(tree, surface.height, &surface.params))
-        .transpose()?;
+        .map(|((faces, _), rings)| rings.into_mesh(faces));
+    let organ = organ(tree, inputs, request, prepared.reference, florets.flatten())?;
+    let curve = match drawn_from {
+        Some(curve) => Some(curve),
+        None => traces
+            .then(|| surface::curve(tree, surface.height, &surface.params))
+            .transpose()?,
+    };
     Ok(Outputs {
         element: prepared.element,
         plan: prepared.leaf_plan,
         wood,
         curve,
         leaves: leaves.map(|(l, _)| l),
-        field: field.map(|(f, _)| f),
+        organ,
+        field,
         structure,
         stages,
     })
@@ -148,21 +152,30 @@ pub(super) fn both<A: Send, B>(
 const STACK: usize = 8 << 20;
 
 /// Stage 3's rings and their time: with their coords where the wood is
-/// drawn, and their contacts where leaves are seated on them.
+/// drawn, and their contacts where leaves are seated on them. A wood drawn
+/// beside its curve is traced once and drawn from the curve, which comes
+/// back with the rings.
 pub(super) fn rings(
     tree: &Tree,
     input: &SurfaceInput,
     request: Request,
     seats: bool,
-) -> Result<(Rings, f64)> {
+) -> Result<(Rings, Option<Curve>, f64)> {
     let start = (request.clock)();
     let (height, params) = (input.height, &input.params);
-    let sweep = Sweep {
-        drawn: request.wood,
-        edges: seats,
+    let (rings, curve) = if request.wood && request.curve {
+        let traced = surface::traced(tree, height, params)?;
+        let rings = surface::drawn_from(&traced, tree, height, params, seats)?;
+        (rings, Some(traced.curve))
+    } else {
+        let sweep = Sweep {
+            drawn: request.wood,
+            edges: seats,
+            distances: false,
+        };
+        (surface::rings(tree, height, params, sweep)?, None)
     };
-    let rings = surface::rings(tree, height, params, sweep)?;
-    Ok((rings, (request.clock)() - start))
+    Ok((rings, curve, (request.clock)() - start))
 }
 
 /// The wood's mesh step around its rings, and its time.
@@ -190,8 +203,8 @@ pub(super) enum Seat<'r> {
 /// The leaves with the time of their own rings, placement and the cull.
 pub(super) type TimedLeaves = Option<(Leaves, [f64; 3])>;
 
-/// The leaves and the field read from the plan, side by side where the
-/// schedule allows; neither reads the other.
+/// The leaves and the field, side by side where the schedule allows;
+/// neither reads the other.
 pub(super) fn leaves_and_field(
     tree: &Tree,
     inputs: &Inputs,
@@ -199,12 +212,15 @@ pub(super) fn leaves_and_field(
     prepared: &Prepared,
     twig: Option<TwigPlacement>,
     seat: Seat,
-) -> (Result<TimedLeaves>, Result<Option<(Field, f64)>>) {
+) -> (
+    Result<TimedLeaves>,
+    Result<Option<(Grid, f64, Option<Instances>)>>,
+) {
     let both_run = prepared.reference.is_some() && prepared.leaf_plan.is_some();
     both(
         request.schedule == Schedule::Concurrent && both_run,
         || leaves(tree, inputs, request, prepared, twig, seat),
-        || stage::planned_field(tree, request, prepared),
+        || stage::field(tree, inputs, request, prepared),
     )
 }
 
@@ -244,12 +260,17 @@ fn leaves(
         twig,
         contacts.as_ref(),
         reference,
+        element,
     )?;
     drop(contacts);
     drop(own);
     let placed_at = clock();
     let placed_count = placed.len();
-    let instances = foliage::cull(placed, element, envelope, input.shell_depth)?;
+    // The row is still checked where it was, so a request meets the same
+    // error; nothing past the check reads it (fn-212 R2).
+    foliage::range(input.shell_depth, 0., 1., "shell depth")?;
+    foliage::admit(&placed, element)?;
+    let instances = placed;
     let bounds = if request.leaves {
         instances.bounds(element)?
     } else {
@@ -265,12 +286,33 @@ fn leaves(
     Ok(Some((leaves, ms)))
 }
 
-/// The field read from placed leaves, where the plan cannot describe them.
-pub(super) fn placed_field(
+/// The flowers (fn-216): where leaves are asked for and the tree's ages
+/// flower, the organ element and its florets, packed against the leaves'
+/// box as the device packs its own (`foliage::bloom_box`), or their own
+/// where the tree has no leaf box; none where nothing flowers. The field's
+/// florets are these where the request draws the window's middle, its
+/// default (fn-316): placed once, they are taken.
+fn organ(
     tree: &Tree,
+    inputs: &Inputs,
     request: Request,
-    placed: Option<(&Instances, &Element)>,
-) -> Result<(Field, f64)> {
-    let start = (request.clock)();
-    Ok((Field::new(tree, placed)?, (request.clock)() - start))
+    leaf: Option<foliage::Reference>,
+    field: Option<Instances>,
+) -> Result<Option<crate::mesh::Foliage>> {
+    if !request.leaves || tree.blooms.is_empty() {
+        return Ok(None);
+    }
+    let element = foliage::bloom_element(&inputs.bloom)?;
+    let p = &inputs.bloom;
+    let instances = match (leaf, field) {
+        (Some(leaf), Some(placed)) if request.season.is_none() => {
+            debug_assert_eq!(placed.reference, foliage::bloom_box(leaf, p));
+            placed
+        }
+        (Some(leaf), _) => {
+            foliage::place_blooms_in(tree, p, request.season, foliage::bloom_box(leaf, p))?
+        }
+        (None, _) => foliage::place_blooms(tree, p, request.season)?,
+    };
+    Ok(Some(crate::mesh::Foliage { element, instances }))
 }

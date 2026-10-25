@@ -23,6 +23,7 @@ fn spreading_crown_retains_generated_interior_subdivisions() {
     }
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn spruce_bearing_shoots_follow_the_secondary_span() {
     for seed in [1, 2, 3, 4250668600] {

@@ -46,7 +46,7 @@ a second builder that has to converge on it.
 
 ## The design, as recorded at removal
 
-The retained `branching::Specimen` owns scaffold and local frontiers. Nodes
+The retained `branching::Specimen` owned scaffold and local frontiers (the scaffold's grower now compiles only into the core's test suite, fn-293; nothing below is built). Nodes
 carry a monotone birth order and a generational key. The annual timeline stamps
 shed nodes with their death year and keeps their slots and topology unchanged;
 `Specimen::node(identity)` finds survivors and rejects dead identities. Packed

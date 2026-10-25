@@ -34,7 +34,7 @@ fn specimen(v: &Value) -> Result<Value, String> {
     let (pre_cull_instances, kept) = (leaves.placed, leaves.instances);
     let legacy = species_metrics::measure(
         &report.tree,
-        &wood.positions,
+        &wood.flattened().positions,
         &element,
         pre_cull_instances,
         &kept,

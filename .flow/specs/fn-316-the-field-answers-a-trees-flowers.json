@@ -1,0 +1,165 @@
+{
+  "branch_name": "fn-316-the-field-answers-a-trees-flowers",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-24T23:36:30.265676Z",
+  "created_at": "2026-10-24T22:25:21.440753Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-316-the-field-answers-a-trees-flowers",
+  "impl_review_rounds": {
+    "fn-316-the-field-answers-a-trees-flowers.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "2c82a50caebad98d7cee7041d602267bcdf376c17fc454678af5d2ff0b7170a2",
+      "backend": "codex",
+      "base_sha": "017691f563e50e4b6e1d66dedec1f242056200fa",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-51bd5b004f58535ba5b7706d80186751",
+            "classification": "introduced",
+            "findingId": "finding-51bd5b004f58535ba5b7706d80186751",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-286bfb634ccf06a6c8fe650ae4cb551a",
+            "classification": "introduced",
+            "findingId": "finding-286bfb634ccf06a6c8fe650ae4cb551a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-56642bbb56e0052a80e0bcd7d8c9d848",
+            "classification": "introduced",
+            "findingId": "finding-56642bbb56e0052a80e0bcd7d8c9d848",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0b3ced3faf9f30d93534e080570434aa00e7707a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2466,
+      "output_sha256": "7d73381d0cc2a13e52b0b945f20fa6304855228124dc023c8038ba9b37852378",
+      "reservation_id": "9bc181f55c6949f1bdb1deae61f8760c",
+      "round_consumed": true,
+      "scope": "impl:fn-316-the-field-answers-a-trees-flowers.1",
+      "superseded_by": null,
+      "task": "fn-316-the-field-answers-a-trees-flowers.1",
+      "timestamp": "2026-10-24T23:03:51.510167Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "de1216da73e81d48c7e606770006ced1a3cf278072703bc4778b926a962141fd",
+      "backend": "codex",
+      "base_sha": "017691f563e50e4b6e1d66dedec1f242056200fa",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-51bd5b004f58535ba5b7706d80186751",
+            "classification": "introduced",
+            "findingId": "finding-51bd5b004f58535ba5b7706d80186751",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-286bfb634ccf06a6c8fe650ae4cb551a",
+            "classification": "introduced",
+            "findingId": "finding-286bfb634ccf06a6c8fe650ae4cb551a",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-56642bbb56e0052a80e0bcd7d8c9d848",
+            "classification": "introduced",
+            "findingId": "finding-56642bbb56e0052a80e0bcd7d8c9d848",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "344360beb99731e4625798ac8b9eaf6fb87f9f27",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 920,
+      "output_sha256": "6ffadf10e02f12cf4cfe763aa9c3201fe3696a9e890f2cd7651017f5a8fbda33",
+      "reservation_id": "a37edd0a5a27478694ad4007676c2607",
+      "round_consumed": true,
+      "scope": "impl:fn-316-the-field-answers-a-trees-flowers.1",
+      "superseded_by": null,
+      "task": "fn-316-the-field-answers-a-trees-flowers.1",
+      "timestamp": "2026-10-24T23:08:27.180220Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-316-the-field-answers-a-trees-flowers.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-316-the-field-answers-a-trees-flowers.1": 0
+  },
+  "spec_path": ".flow/specs/fn-316-the-field-answers-a-trees-flowers.md",
+  "status": "open",
+  "title": "The field answers a tree's flowers",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-24T23:36:30.265686Z"
+}

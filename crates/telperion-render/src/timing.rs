@@ -117,8 +117,8 @@ pub fn judge(samples: &[f64]) -> Verdict {
 /// The timestamp pairs and the buffers that bring them back to the host.
 pub struct Session {
     queries: wgpu::QuerySet,
-    resolved: wgpu::Buffer,
-    readback: wgpu::Buffer,
+    resolved: crate::buffer::Owned,
+    readback: crate::buffer::Owned,
     /// Nanoseconds per timestamp tick, as the queue reports it.
     period: f32,
 }
@@ -145,18 +145,24 @@ impl Session {
         let size = wgpu::QUERY_RESOLVE_BUFFER_ALIGNMENT;
         Ok(Self {
             queries,
-            resolved: gpu.device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some("timestamps"),
-                size,
-                usage: wgpu::BufferUsages::QUERY_RESOLVE | wgpu::BufferUsages::COPY_SRC,
-                mapped_at_creation: false,
-            }),
-            readback: gpu.device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some("timestamps readback"),
-                size: PAIRS,
-                usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
-                mapped_at_creation: false,
-            }),
+            resolved: crate::buffer::Owned::create(
+                gpu,
+                &wgpu::BufferDescriptor {
+                    label: Some("timestamps"),
+                    size,
+                    usage: wgpu::BufferUsages::QUERY_RESOLVE | wgpu::BufferUsages::COPY_SRC,
+                    mapped_at_creation: false,
+                },
+            ),
+            readback: crate::buffer::Owned::create(
+                gpu,
+                &wgpu::BufferDescriptor {
+                    label: Some("timestamps readback"),
+                    size: PAIRS,
+                    usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+                    mapped_at_creation: false,
+                },
+            ),
             period: gpu.queue.get_timestamp_period(),
         })
     }
@@ -193,14 +199,12 @@ impl Session {
     /// Queues the copy that brings the last pairs back. Callback-driven from
     /// here on, which is what lets a browser await the same mapping.
     pub fn resolve(&self, gpu: &Gpu) {
-        let mut encoder = gpu
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("timestamps"),
-            });
+        let mut encoder = gpu.encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("timestamps"),
+        });
         encoder.resolve_query_set(&self.queries, 0..2 * PASSES, &self.resolved, 0);
         encoder.copy_buffer_to_buffer(&self.resolved, 0, &self.readback, 0, PAIRS);
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
     }
 
     /// A pair as a duration in milliseconds. A clock that ran backwards

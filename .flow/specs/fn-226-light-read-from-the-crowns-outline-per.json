@@ -1,0 +1,51 @@
+{
+  "branch_name": "fn-226-light-read-from-the-crowns-outline-per",
+  "completion_review_status": "needs_work",
+  "completion_reviewed_at": "2026-10-08T18:40:39.845755Z",
+  "created_at": "2026-10-08T08:14:39.561611Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-226-light-read-from-the-crowns-outline-per",
+  "impl_review_rounds": {
+    "fn-226-light-read-from-the-crowns-outline-per.2": 0,
+    "fn-226-light-read-from-the-crowns-outline-per.3": 2,
+    "fn-226-light-read-from-the-crowns-outline-per.4": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 2,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-08T09:05:03.493347Z",
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-226-light-read-from-the-crowns-outline-per.2": 1,
+    "impl:fn-226-light-read-from-the-crowns-outline-per.4": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-226-light-read-from-the-crowns-outline-per.2": 0,
+    "impl:fn-226-light-read-from-the-crowns-outline-per.3": 0,
+    "impl:fn-226-light-read-from-the-crowns-outline-per.4": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-226-light-read-from-the-crowns-outline-per.md",
+  "status": "done",
+  "title": "Light read from the crown's outline, per bud",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-08T23:04:28.917174Z"
+}

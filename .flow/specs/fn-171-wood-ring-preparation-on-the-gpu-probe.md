@@ -13,7 +13,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 80% [paraphrase], 20% [inferred] -->
 
 Before the GPU draws a tree's wood, the CPU prepares its rings: it orders the runs, samples each run's rings, computes each ring's frame, packs the ring words and works out where branches touch. On master (c71ef3e1, native, the harness's GPU path) that preparation takes 40 to 42 ms on the oak and 32 to 33 ms on the spruce at seeds 1 and 7, and station preparation another 20 to 25 ms; stage-3 CPU preparation totals about 62 ms on the oak and 57 ms on the spruce (`.flow/evidence/fn-125-the-generator-hands-engines-a-tree-they/BASELINE.md`). [paraphrase]
 
@@ -23,7 +22,6 @@ This spec moves ring preparation onto the GPU, experiment first. A probe measure
 
 ## Architecture & Data Models
 <!-- scope: technical -->
-<!-- Architecture: 25% [paraphrase], 75% [inferred] -->
 
 - **Today, checked 2026-09-27.** The CPU compaction walks every run, samples its rings twice (once to rank runs by radius, once to emit), computes parallel-transport frames, and packs one ring word per ring: centre, radius, frame and vertex offsets. The GPU position pass reads those words and emits vertices, admission and bounds. fn-91 measured the second sampling, frames, packing and contact ranges at 26.6 to 33.0 ms on the native oak and the ranking pass at 5.6 to 6.9 ms. [paraphrase]
 - **The probe.** The GPU computes the ring words from the plan's run and node data: one invocation per run samples it, carries its frame from ring to ring, and writes its words where the CPU would. Runs are independent, so the pass is parallel across runs and sequential only along one run; the longest run sets its time. What the probe moves is decided by measurement, stage by stage: sampling and frames first, then packing; run ranking and contact ranges move only if the probe shows they pay. [inferred]
@@ -34,7 +32,7 @@ This spec moves ring preparation onto the GPU, experiment first. A probe measure
 ## API Contracts
 <!-- scope: technical -->
 
-- **Plan layout.** Any field the ring pass reads is added to fn-125's layout under its versioning rule; no second upload format. [inferred]
+- **Plan layout.** Any field the ring pass reads is added to fn-125's layout under its versioning rule; no second upload format. [inferred] *(fn-293 task 5 removed `foliage/prepared.rs`'s stations from the renderer's production build with the CPU delivery; only the renderer's tests read them now, as the device's reference (fn-293 task 7).)*
 - **Metrics.** The renderer's stage metrics report the GPU ring pass on its own line beside position preparation, so R2 and R4 read one field each. [inferred]
 - **Views and commands unchanged.** [inferred]
 
@@ -59,7 +57,7 @@ This spec moves ring preparation onto the GPU, experiment first. A probe measure
 <!-- scope: business -->
 
 - The CPU reference executor's own speed is fn-126's, not this spec's. [paraphrase]
-- No change to what any tree looks like; the wood is the reference's within tolerance. [inferred]
+- No change to what any tree looks like; the wood is the reference's within tolerance. [inferred] *(read under AGENTS.md "Generator evolution" (owner, 2026-09-20): the reference is the engine's CPU cycle, which the device agrees with by lineage (`docs/pipeline.md`), not the pre-engine build (fn-293 task 7).)*
 - The float32 precision domain is not widened here. [inferred]
 
 ## Decision Context
@@ -87,13 +85,3 @@ None found.
 - Whether run ranking can move to the GPU or must stay a CPU sort ahead of the pass; resolved by the probe's stage split.
 - Whether contact ranges move with the rings or stay on the CPU; resolved by the probe's stage split on the fixtures that need contacts.
 - How long the longest run is on the oak and spruce, which bounds the sequential frame step; resolved by R5's report.
-
-## Requirement coverage
-
-| R-ID | Task |
-|------|------|
-| R1 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R2 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R3 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R4 | fn-N.M (TBD - populate via /flow-next:plan) |
-| R5 | fn-N.M (TBD - populate via /flow-next:plan) |

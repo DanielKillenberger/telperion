@@ -4,7 +4,7 @@ use super::shoot::Shoot;
 use super::{Apex, Grower};
 use crate::dormant::{self, Sleeper, Woken};
 use crate::error::Result;
-use crate::lineage::Key;
+use crate::lineage::{self, Key};
 use crate::presence::Draws;
 use crate::species::Zone;
 use crate::structure::Origin;
@@ -25,7 +25,9 @@ impl Grower<'_> {
         }
         // The buds that wake make axes of their own and touch none the
         // tree has: one share, numbered from the tree's count.
-        let mut shoot = Shoot::new(&self.rules, self.reads(), (&self.roots, &self.horizon));
+        let spare = std::mem::take(&mut self.spare);
+        let mut shoot =
+            Shoot::new(&self.rules, self.reads(), (&self.roots, &self.horizon)).spared(spare);
         for sleeper in asleep {
             // It ages through the whole of the time it slept, the share of
             // its waking cycle included, so it never wakes in a stage it
@@ -37,12 +39,15 @@ impl Grower<'_> {
             };
             // It wakes on every axis that carries its bearer on, each at
             // the presence that carries it there.
+            shoot.job = 0;
             for (carried, bearer) in
                 dormant::carried(&self.axes, &self.draws, &self.successor, &sleeper, cycle)
             {
                 let next = self.draws[bearer].units.len();
-                shoot.woke(&sleeper, (pa, spent, reach), carried, (bearer, next), cycle)?;
+                let aged = (pa, spent, reach);
+                shoot.woke(&sleeper, aged, carried, (bearer, next), cycle)?;
             }
+            shoot.jobs[1] = shoot.jobs[1].max(shoot.job);
         }
         let share = shoot.finish(Vec::new());
         self.absorb(share);
@@ -54,7 +59,7 @@ impl Shoot<'_, '_> {
     /// The sleeping bud `sleeper` wakes on `bearer`, aged to `pa` with
     /// `spent` of it and `reach` of it reached, carried there by `carried`;
     /// `next` is the bearer's next growth unit.
-    fn woke(
+    pub(super) fn woke(
         &mut self,
         sleeper: &Sleeper,
         (pa, spent, reach): (usize, f64, f64),
@@ -70,8 +75,8 @@ impl Shoot<'_, '_> {
             woken: true,
         };
         let mut key = Key(sleeper.key);
-        let lead = self.windows().presence(sleeper.lead, sleeper.wood) * sleeper.placed;
-        let mut made = [lead, carried * reach];
+
+        let mut made = sleeper.made(carried, reach);
         self.woken.push(Woken {
             axis: self.len(),
             bearer,
@@ -104,7 +109,7 @@ impl Shoot<'_, '_> {
         // Its time in its stage holds the share of the cycle it slept,
         // which its first unit lacks (`schedule.rs`).
         let line = self.made.last_mut().unwrap();
-        (line.draws.sleep, line.draws.aged) = (sleeper.sleep, spent);
+        (line.draws.sleep, line.draws.aged, line.draws.woke) = (sleeper.sleep, spent, true);
         line.units = spent;
         let apex = self.next.pop().expect("sprouted");
         self.advance(Apex { spent, ..apex }, cycle)?;
@@ -120,11 +125,8 @@ impl Shoot<'_, '_> {
         (cycle, origin): (u32, Origin),
         made: [f64; 2],
     ) {
-        let draws = Draws {
-            birth: made,
-            ..Draws::default()
-        };
-        let lifespan = self.species().states[pa].lifespan;
+        let draws = Draws::made(made);
+        let lifespan = self.species().states[pa].life();
         self.push(key, pa, cycle, origin, (lifespan, root.0, draws));
         self.made.last_mut().unwrap().axis.apex_end = Some(cycle);
     }
@@ -141,10 +143,11 @@ impl Shoot<'_, '_> {
     ) {
         for slot in 0..zone.places() {
             let place = node_key.child(slot as u64);
-            let placed = zone.share(slot);
+            if !lineage::placed(place, zone.share(slot)) {
+                continue;
+            }
             let age = self.rules.age;
             let drawn = dormant::draw(zone, place, (at, slot as u8), woods, (cycle, age));
-            let drawn = drawn.map(|(wakes, sleeper)| (wakes, Sleeper { placed, ..sleeper }));
             if let Some((wakes, sleeper)) = drawn {
                 self.asleep.push((wakes, sleeper));
             }

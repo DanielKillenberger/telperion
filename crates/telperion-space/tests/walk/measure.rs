@@ -149,8 +149,13 @@ pub struct Step {
 
 /// Every step of the walk of `setting` at `seed`.
 pub fn walk(setting: &Setting, seed: u64) -> Vec<Step> {
-    let mut previous = setting.shape(setting.step(0), seed);
-    (1..=super::STEPS)
+    steps(setting, seed, 0, super::STEPS)
+}
+
+/// The walk's steps from step `first` to step `last` of `STEPS`.
+pub fn steps(setting: &Setting, seed: u64, first: u32, last: u32) -> Vec<Step> {
+    let mut previous = setting.shape(setting.step(first), seed);
+    (first + 1..=last)
         .map(|i| {
             let (from, to) = (setting.step(i - 1), setting.step(i));
             let next = setting.shape(to, seed);
@@ -168,9 +173,78 @@ pub fn walk(setting: &Setting, seed: u64) -> Vec<Step> {
         .collect()
 }
 
+/// Under how many f32 places of the setting's value a walk stops
+/// refining, and how far the noise floor nudges it (host, fn-254: the f32
+/// reading of decision 9).
+pub const ULPS: u32 = 16;
+
+/// The setting's values `k` f32 places from `value` away from the
+/// sub-step (`up`: above it), for `k` up to `ULPS`, within the walk's
+/// range: a floor taken outside the sub-step never measures the jump it
+/// is asked about (fn-254 review).
+fn nudged(setting: &Setting, value: f64, up: bool) -> Vec<f64> {
+    let (lo, hi) = (setting.low.min(setting.high), setting.low.max(setting.high));
+    let mut out = Vec::new();
+    let mut at = value as f32;
+    for _ in 0..ULPS {
+        at = if up { at.next_up() } else { at.next_down() };
+        out.push(f64::from(at));
+    }
+    out.retain(|v| (lo..=hi).contains(v));
+    out
+}
+
+/// Whether `from..to` in walk coordinates spans no more than `ULPS` f32
+/// places of the setting's value: as fine as the tree resolves it.
+fn resolved(setting: &Setting, from: f64, to: f64) -> bool {
+    let (a, b) = (setting.value(from), setting.value(to));
+    let place = f64::from((a as f32).next_up()) - f64::from(a as f32);
+    (b - a).abs() <= f64::from(ULPS) * place.abs()
+}
+
+/// A refinement: the largest change at each level, and the sub-step it
+/// ended on.
+pub struct Refined {
+    pub changes: Vec<f64>,
+    pub from: f64,
+    pub to: f64,
+}
+
+impl Refined {
+    /// The noise floor where the refinement ended: the largest change the
+    /// tree makes as its setting is nudged by up to `ULPS` f32 places from
+    /// either end of the last sub-step, away from it.
+    pub fn floor(&self, setting: &Setting, seed: u64) -> f64 {
+        let (a, b) = (setting.value(self.from), setting.value(self.to));
+        let (low, high) = (a.min(b), a.max(b));
+        let mut floor = 0.0f64;
+        for (value, up) in [(low, false), (high, true)] {
+            let at = setting.shape_at(value, seed);
+            for v in nudged(setting, value, up) {
+                floor = floor.max(change(&at, &setting.shape_at(v, seed)).0);
+            }
+        }
+        floor
+    }
+
+    /// Whether the steepest change is a jump: it did not shrink `shrink`
+    /// fold over the refinement, and it stands above four times the noise
+    /// floor (measured only where the shrink alone fails). The floor
+    /// measured, where it was.
+    pub fn jumps(&self, setting: &Setting, seed: u64, shrink: f64) -> (bool, Option<f64>) {
+        let (first, last) = (self.changes[0], *self.changes.last().unwrap());
+        if last <= first / shrink {
+            return (false, None);
+        }
+        let floor = self.floor(setting, seed);
+        (last > 4.0 * floor, Some(floor))
+    }
+}
+
 /// The largest change over `from..to` split into `split` sub-steps, then
-/// the largest over the worst sub-step split again, `levels` times: a
-/// continuous change shrinks with its step, a jump does not.
+/// the largest over the worst sub-step split again, `levels` times or
+/// until a sub-step spans no more than `ULPS` f32 places of the setting:
+/// a continuous change shrinks with its step, a jump does not.
 pub fn refine(
     setting: &Setting,
     seed: u64,
@@ -178,10 +252,13 @@ pub fn refine(
     to: f64,
     levels: u32,
     split: u32,
-) -> Vec<f64> {
+) -> Refined {
     let (mut from, mut to) = (from, to);
     let mut changes = vec![change(&setting.shape(from, seed), &setting.shape(to, seed)).0];
     for _ in 0..levels {
+        if resolved(setting, from, to) {
+            break;
+        }
         let at = |k: u32| from + (to - from) * f64::from(k) / f64::from(split);
         let shapes: Vec<Shape> = (0..=split).map(|k| setting.shape(at(k), seed)).collect();
         let (k, worst) = (0..split)
@@ -191,7 +268,7 @@ pub fn refine(
         changes.push(worst);
         (from, to) = (at(k), at(k + 1));
     }
-    changes
+    Refined { changes, from, to }
 }
 
 /// Bisects `from..to`, over which branch `lineage` is made or unmade,

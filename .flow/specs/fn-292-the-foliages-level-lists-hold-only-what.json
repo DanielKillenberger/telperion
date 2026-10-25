@@ -1,0 +1,50 @@
+{
+  "branch_name": "fn-292-levels",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-18T00:36:20.645613Z",
+  "created_at": "2026-10-16T10:51:46.818336Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-292-the-foliages-level-lists-hold-only-what",
+  "impl_review_rounds": {
+    "fn-292-the-foliages-level-lists-hold-only-what.1": 0,
+    "fn-292-the-foliages-level-lists-hold-only-what.2": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-16T12:43:39.065313Z",
+  "ready": true,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-292-the-foliages-level-lists-hold-only-what.1": 1,
+    "impl:fn-292-the-foliages-level-lists-hold-only-what.2": 1,
+    "plan": 2,
+    "plan#completion": 2
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-292-the-foliages-level-lists-hold-only-what.1": 0,
+    "impl:fn-292-the-foliages-level-lists-hold-only-what.2": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-292-the-foliages-level-lists-hold-only-what.md",
+  "status": "done",
+  "title": "The foliage's level lists hold only what each level draws",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-18T02:57:09.899342Z"
+}

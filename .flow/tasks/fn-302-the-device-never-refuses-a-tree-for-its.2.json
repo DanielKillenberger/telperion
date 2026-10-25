@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-21T17:08:15.554323Z",
+  "depends_on": [
+    "fn-302-the-device-never-refuses-a-tree-for-its.1"
+  ],
+  "id": "fn-302-the-device-never-refuses-a-tree-for-its.2",
+  "priority": null,
+  "spec": "fn-302-the-device-never-refuses-a-tree-for-its",
+  "spec_path": ".flow/tasks/fn-302-the-device-never-refuses-a-tree-for-its.2.md",
+  "status": "todo",
+  "title": "Survey the stepped limits and record the retries",
+  "updated_at": "2026-10-21T17:08:15.554323Z"
+}

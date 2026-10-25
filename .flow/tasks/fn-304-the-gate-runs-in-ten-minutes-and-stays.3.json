@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-21T21:06:42.572394Z",
+  "depends_on": [
+    "fn-304-the-gate-runs-in-ten-minutes-and-stays.2"
+  ],
+  "id": "fn-304-the-gate-runs-in-ten-minutes-and-stays.3",
+  "priority": null,
+  "spec": "fn-304-the-gate-runs-in-ten-minutes-and-stays",
+  "spec_path": ".flow/tasks/fn-304-the-gate-runs-in-ten-minutes-and-stays.3.md",
+  "status": "todo",
+  "title": "Walks merged, wasm flower check folded, device field at one grid",
+  "updated_at": "2026-10-21T21:10:23.783987Z"
+}

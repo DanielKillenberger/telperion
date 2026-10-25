@@ -16,7 +16,7 @@
 //! sizing a run leaves headroom above what this returns.
 use crate::{
     pipeline::foliage::{Instances, Leaf},
-    pipeline::surface::{SurfaceMesh, WoodExtent},
+    pipeline::surface::{SurfaceChunk, SurfaceMesh, WoodExtent},
     pipeline::Inputs,
     tree::{Node, Tree},
     Result,
@@ -60,7 +60,6 @@ pub(crate) fn predict(tree: &Tree, inputs: &Inputs) -> Result<Footprint> {
         leaves: crate::pipeline::foliage::leaf_count(
             tree,
             leaf.envelope,
-            leaf.seed,
             leaf.canopy,
             Some(inputs.plan.twig.clone()?),
         )?,
@@ -70,16 +69,18 @@ pub(crate) fn predict(tree: &Tree, inputs: &Inputs) -> Result<Footprint> {
 /// The same reading taken off the live objects: what the specimen in hand
 /// actually holds, so a prediction can be held to it.
 ///
-/// `normals` is `positions`' equal by construction - the sweep reserves one
-/// block for each and resizes the second to the first - so the wood's two
+/// `normals` is `coords`' equal by construction - the sweep reserves each
+/// chunk's two at two components a vertex - so the wood's two encoded
 /// vertex buffers are read as one count.
 pub(crate) fn measure(tree: &Tree, wood: &SurfaceMesh, crown: &Instances) -> Footprint {
+    let sum = |f: fn(&SurfaceChunk) -> usize| wood.chunks.iter().map(f).sum();
     Footprint {
         nodes: tree.nodes.capacity(),
         wood: WoodExtent {
-            positions: wood.positions.capacity(),
-            coords: wood.coords.capacity(),
-            indices: wood.indices.capacity(),
+            positions: sum(|c| c.positions.capacity()),
+            coords: sum(|c| c.coords.capacity()),
+            indices: sum(|c| c.indices.capacity()),
+            chunks: wood.chunks.len(),
         },
         leaves: crown.leaves.capacity(),
     }
@@ -107,16 +108,17 @@ mod tests {
         };
         assert_eq!(one_more(|f| f.nodes = 1), size_of::<Node>());
         assert_eq!(one_more(|f| f.leaves = 1), size_of::<Leaf>());
-        // One more vertex is three position floats, three normal floats and
-        // two coordinate floats; one more triangle is three indices.
+        // One more vertex is three position floats, two oct normal `i16`
+        // and two coordinate `u16`; one more triangle is three indices, each
+        // a `u16` into its chunk.
         assert_eq!(
             one_more(|f| {
                 f.wood.positions = 3;
                 f.wood.coords = 2;
             }),
-            8 * size_of::<f32>()
+            3 * size_of::<f32>() + 2 * size_of::<i16>() + 2 * size_of::<u16>()
         );
-        assert_eq!(one_more(|f| f.wood.indices = 3), 3 * size_of::<u32>());
+        assert_eq!(one_more(|f| f.wood.indices = 3), 3 * size_of::<u16>());
         // And the stored leaf's own size is its words, not a number beside it.
         assert_eq!(size_of::<Leaf>(), WORDS * size_of::<u32>());
     }
@@ -163,7 +165,14 @@ mod tests {
     #[test]
     fn a_tree_with_no_nodes_predicts_nothing() {
         assert_eq!(zero().bytes(), 0);
-        let empty = predict(&Tree::default(), &Inputs::of(&crate::Family::default())).unwrap();
+        let empty = predict(
+            &Tree::default(),
+            &Inputs::of(
+                &crate::Family::default(),
+                crate::Family::default().skeleton.envelope,
+            ),
+        )
+        .unwrap();
         assert_eq!(empty, zero());
         assert_eq!(empty.bytes(), 0);
     }

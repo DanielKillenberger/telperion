@@ -6,6 +6,8 @@
 mod catalogue;
 #[path = "suite/clump.rs"]
 mod clump;
+#[path = "suite/clusters.rs"]
+mod clusters;
 #[path = "suite/codominance.rs"]
 mod codominance;
 #[path = "suite/colonization.rs"]
@@ -16,6 +18,8 @@ mod crown_reference;
 mod crown_retention;
 #[path = "suite/drop.rs"]
 mod drop;
+#[path = "suite/establish.rs"]
+mod establish;
 #[path = "suite/field.rs"]
 mod field;
 #[path = "suite/field_fronds.rs"]
@@ -24,6 +28,8 @@ mod field_fronds;
 mod field_plan;
 #[path = "suite/field_still.rs"]
 mod field_still;
+#[path = "suite/flowers.rs"]
+mod flowers;
 #[path = "suite/foliage.rs"]
 mod foliage;
 #[path = "suite/foliage_reference.rs"]
@@ -36,8 +42,6 @@ mod geometry_benchmark;
 mod growth;
 #[path = "suite/growth_reference.rs"]
 mod growth_reference;
-#[path = "suite/identity.rs"]
-mod identity;
 #[path = "suite/leaf_base_lattice.rs"]
 mod leaf_base_lattice;
 #[path = "suite/leaf_bases.rs"]
@@ -48,18 +52,22 @@ mod limb_clumping;
 mod mesh;
 #[path = "suite/node_budget.rs"]
 mod node_budget;
+#[path = "suite/organs.rs"]
+mod organs;
 #[path = "suite/outline.rs"]
 mod outline;
 #[path = "suite/packed_leaf.rs"]
 mod packed_leaf;
 #[path = "suite/pendulous.rs"]
 mod pendulous;
+#[path = "suite/rachis.rs"]
+mod rachis;
+#[path = "suite/retention.rs"]
+mod retention;
 #[path = "suite/rosette.rs"]
 mod rosette;
 #[path = "suite/sag.rs"]
 mod sag;
-#[path = "suite/short_shoots.rs"]
-mod short_shoots;
 #[path = "suite/skirt.rs"]
 mod skirt;
 #[path = "suite/species.rs"]

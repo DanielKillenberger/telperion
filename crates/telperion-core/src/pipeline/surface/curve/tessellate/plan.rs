@@ -29,6 +29,9 @@ pub const RIBBON: f64 = 1.0;
 #[derive(Debug, Clone)]
 pub(super) struct Plan {
     pub(super) rings: Vec<Ring>,
+    /// Whether it is a trunk's run, whose buried foot stands below the
+    /// ground (`emit`).
+    pub(super) trunk: bool,
 }
 
 impl Curve {
@@ -65,7 +68,10 @@ impl Curve {
                     )
                 })
                 .collect();
-            return Some(Plan { rings });
+            return Some(Plan {
+                rings,
+                trunk: run.trunk,
+            });
         }
         let kept = kept(c, viewer, 0.5 * error);
         let mut rings = Vec::with_capacity(kept.len());
@@ -88,7 +94,10 @@ impl Curve {
             self.slope(g, run.first, run.count),
             None,
         ));
-        Some(Plan { rings })
+        Some(Plan {
+            rings,
+            trunk: run.trunk,
+        })
     }
 
     /// What the most any view could ask of this curve rests on, computed
@@ -131,7 +140,8 @@ impl Curve {
         twist * (b.along - a.along).abs() * depth.sqrt()
     }
 
-    fn lobe(&self) -> f64 {
+    /// The most a lobed ring stands out past its radius, as a factor of it.
+    pub fn lobe(&self) -> f64 {
         if self.lobes > 0 {
             1.0 + self.lobe_depth.abs()
         } else {

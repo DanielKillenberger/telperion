@@ -45,6 +45,16 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  # Formatting is checked on every run; no receipt skips it.
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+      - name: Check the Rust is formatted
+        run: cargo fmt --all --check
+
   # Each suite's key is a hash of its inputs (scripts/ci-key.mjs); a green run
   # saved a receipt under the key, and a receipt found here skips the suite.
   # GitHub restores a cache from the same branch or from master, so a pull
@@ -145,9 +155,9 @@ jobs:
           packages: telperion-core
           partition: count:${{ matrix.partition }}/4
 
-  # The leaf plan and the field build with the wood surface and the leaf
-  # placement compiled out (the core crate without its geometry feature), and
-  # the crate's unit tests run in that configuration.
+  # The skeleton and its structure build with the wood surface, the leaf
+  # placement and the field compiled out (the core crate without its
+  # geometry feature), and the crate's unit tests run in that configuration.
   core-plan:
     name: core without geometry
     needs: receipts
@@ -185,7 +195,7 @@ jobs:
       - uses: ./.github/actions/nextest
         with:
           packages: >-
-            ${{ needs.receipts.outputs.rust-wasm != 'true' && 'telperion-wasm telperion-field telperion-space' || '' }}
+            ${{ needs.receipts.outputs.rust-wasm != 'true' && 'telperion-wasm telperion-space' || '' }}
             ${{ needs.receipts.outputs.rust-jev != 'true' && 'telperion-jev' || '' }}
 
   # Reached whatever the crate jobs did; a crate's receipt is written only
@@ -266,6 +276,33 @@ jobs:
             npm test
             npm run typecheck
 
+  # The binding in a headless Chromium with no WebGPU, on every run: the node
+  # receipt certifies npm test, not this suite, so no receipt skips it.
+  # tests/browser/field.mjs needs WebGPU and runs in no job (docs/gpu-tests.md).
+  bindings:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - name: The binding suite
+        run: npm run test:bindings
+
   # The package, built once per commit. Its tarball is what the tests below
   # load and what release.yml publishes: test:dist runs on the dist unpacked
   # from the tarball, and the tarball is uploaded beside its sha256.
@@ -279,31 +316,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install the pinned Rust toolchain
-        run: rustup toolchain install
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          cache-on-failure: true
-
-      - uses: ./.github/actions/wasm-bindgen
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: package.json
-          cache: npm
-
-      - run: npm ci
-
-      - name: Build the package
-        run: npm run build
-
-      - name: Hold every shipped artifact to its ceiling and a PR's growth (docs/principles.md)
+      # The build, from the toolchain to the size check; its env reaches the
+      # size check, which reads the base artifact and the PR's Decisions.
+      - uses: ./.github/actions/package
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: node scripts/artifact-budgets.mjs
 
       - id: pack
         name: Pack the tarball

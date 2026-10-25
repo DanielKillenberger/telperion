@@ -1,3 +1,5 @@
+> Archived 2026-10-16: the measurement files, scripts, patches, `FRICTION.md` and `VERDICT.md` files this report names are not kept (the owner verdicts are in the fn-91 spec); see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/<path>`.
+
 > Historical raw-output references: see the [archive and recovery instructions](README.md).
 
 # Bounded leaf readback

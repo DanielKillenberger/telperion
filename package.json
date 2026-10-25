@@ -1,7 +1,7 @@
 {
   "name": "telperion",
-  "version": "0.1.4",
-  "description": "A procedural tree generator. Authored silhouette, one builder growing every axis from continuous botanical traits with attractor pull among them, local rules down to leaf-bearing twigs, conserved thickness, one continuous plaited surface, and foliage culled to a shell and drawn one indirect draw per level of detail, each leaf at the coarsest level a pixel cannot tell from the finest.",
+  "version": "0.2.0",
+  "description": "A procedural tree generator with seeded specimens and named species presets: one Rust core grows every tree botanically through one cycle, on the CPU or on the device, and serves surface meshes, instanced foliage, structural data and a spatial field held on the device.",
   "keywords": [
     "procedural",
     "tree",
@@ -33,6 +33,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/telperion.js"
     },
+    "./presets": {
+      "types": "./dist/browser/presets.d.ts",
+      "import": "./dist/presets.js"
+    },
     "./field": {
       "types": "./dist/field/index.d.ts",
       "import": "./dist/field.js"
@@ -42,8 +46,7 @@
       "import": "./dist/voxelize.js"
     },
     "./telperion.wasm": "./dist/telperion.wasm",
-    "./telperion-render.wasm": "./dist/telperion-render.wasm",
-    "./telperion-field.wasm": "./dist/telperion-field.wasm"
+    "./telperion-render.wasm": "./dist/telperion-render.wasm"
   },
   "engines": {
     "node": ">=20"
@@ -52,6 +55,7 @@
     "dev": "npm run wasm:build && npm run render:build && vite",
     "build": "npm run wasm:build && npm run render:build && tsc -p tsconfig.build.json && vite build",
     "test:dist": "node scripts/test-dist.mjs",
+    "test:bindings": "node scripts/test-bindings.mjs",
     "pretest": "npm run wasm:build && npm run render:build",
     "test": "npm run catalogue:check && vitest run",
     "catalogue:check": "node scripts/catalogue-check.mjs",
