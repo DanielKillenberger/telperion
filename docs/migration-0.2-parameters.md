@@ -15,4 +15,4 @@ engine.build(birch, { field: { n: 36 } });  // was engine.build("silver-birch", 
 - `telperion/presets` exports `presetById`, `PRESETS`, the named presets (`ORDINARY`, `TELPERION`, `LAURELIN`, ...) and the `Family` and `TreePreset` types; the main entry re-exports them unchanged.
 - `growField`'s result carries no `species` or `seed`; the caller holds the parameters it passed.
 - The field's refusals for no WebGPU and a lost device are a `FieldError` with `code` `"webgpu-unavailable"` or `"device-lost"`; the messages are as before.
-- Both fields name a limb system by the lowest cell it owns, so a limb's id in `answer.limbs` differs from 0.1.4's. Ids stay opaque; `NO_LIMB` is unchanged.
+- Both fields name a limb system by the cell where it holds the most leaves, so a limb's id in `answer.limbs` differs from 0.1.4's, and the CPU's and the device's ids agree. Ids stay opaque; `NO_LIMB` is unchanged.

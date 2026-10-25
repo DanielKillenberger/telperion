@@ -5,7 +5,8 @@
 //! since a frond's leaflets fall on each executor's own draws. The limbs
 //! are compared as a partition, each device system read as the reference
 //! system it shares the most cells with, and by the names both package
-//! entries give them, the lowest cell each owns (fn-317 R4c).
+//! entries give them, the cell where each holds the most leaves (fn-317
+//! R4c).
 use super::super::{Clock, Generator};
 use std::collections::HashMap;
 use telperion_core::field::{Grid, Occupancy};
@@ -147,7 +148,7 @@ fn ask(n: u32, limb_order: Option<u32>) -> Request {
 }
 
 /// The CPU's field of `family` at each of `sides`, built side by side.
-fn references(family: &Family, sides: &[u32], limb_order: Option<u32>) -> Vec<Grid> {
+pub(super) fn references(family: &Family, sides: &[u32], limb_order: Option<u32>) -> Vec<Grid> {
     std::thread::scope(|s| {
         let built: Vec<_> = (sides.iter())
             .map(|&n| s.spawn(move || pipeline::build(family, ask(n, limb_order))))
@@ -165,7 +166,12 @@ fn references(family: &Family, sides: &[u32], limb_order: Option<u32>) -> Vec<Gr
 }
 
 /// The device's field of `family` over the CPU's grid `cpu`.
-fn device(gen: &Generator, family: &Family, cpu: &Grid, limb_order: Option<u32>) -> Grid {
+pub(super) fn device(
+    gen: &Generator,
+    family: &Family,
+    cpu: &Grid,
+    limb_order: Option<u32>,
+) -> Grid {
     pollster::block_on(gen.grow_field_in(family, cpu.frame, limb_order)).expect("read out")
 }
 
@@ -244,18 +250,16 @@ fn every_preset_s_limbs_carry_the_cpu_s_names() {
                     "names {id} {seed} {n}: {:.6} of paired, partition {:.6}",
                     m.ids, m.limbs
                 );
-                let named = if fronds(id) { 0.0 } else { NAMED };
-                assert!(m.ids >= named, "{id} {seed} at {n}: {m:?}");
+                assert!(m.ids >= NAMED, "{id} {seed} at {n}: {m:?}");
             }
         }
     }
 }
-/// Measured (fn-317, raw/names.log): 0.912 to 1 of paired cells, the
-/// least the beech at 5678 on 24; a system whose lowest cell the other
-/// executor gives to a neighbour takes another name whole. A frond
-/// crown's leaflets fall on each executor's own draws, so the palm's one
-/// system's lowest cell differs and its name with it: not held.
-const NAMED: f64 = 0.9;
+/// Measured (fn-317, raw/names.log): 0.985 to 1 of paired cells, the
+/// least the beech at 1 on 24; held at about twice its miss. A system
+/// whose densest cell the executors' leaf estimates, within a few
+/// thousandths, put in another cell takes another name whole.
+const NAMED: f64 = 0.97;
 
 /// fn-301 R2: the young palm rests its fronds' leaflets on the ground, and
 /// the device's field boxes them in the frame they rest in, as the CPU's

@@ -8,13 +8,67 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-317-every-generator-entry-takes-a-trees",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-317-every-generator-entry-takes-a-trees.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "95d1d99de9f60decdb16eaa51fd39c20ce0a0e67d8277216025403eece1c1019",
+      "backend": "codex",
+      "base_sha": "e3e1e82f9b2e833dcdbac8fe0fcae83e4284e7b0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a3dca64328bf67bbae3e9faf15eed090",
+            "classification": "introduced",
+            "findingId": "finding-a3dca64328bf67bbae3e9faf15eed090",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "41e6b20f0f73e16f64a23dea43e20ee1fb8fa8b2",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1127,
+      "output_sha256": "67ba7012a7cc5680f804a3b92db897e42f54d123cf58d725f059cc3d7bd41817",
+      "reservation_id": "fd8ae4b7c37442a0a9287340b35ef9da",
+      "round_consumed": true,
+      "scope": "impl:fn-317-every-generator-entry-takes-a-trees.1",
+      "superseded_by": null,
+      "task": "fn-317-every-generator-entry-takes-a-trees.1",
+      "timestamp": "2026-10-25T11:13:07.925289Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-317-every-generator-entry-takes-a-trees.1": 0
+  },
   "spec_path": ".flow/specs/fn-317-every-generator-entry-takes-a-trees.md",
   "status": "open",
   "title": "Every generator entry takes a tree's parameters",
@@ -29,5 +83,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T10:19:19.844585Z"
+  "updated_at": "2026-10-25T11:17:33.916684Z"
 }

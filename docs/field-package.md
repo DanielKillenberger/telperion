@@ -61,11 +61,16 @@ The answers are the CPU reference field's (`pipeline/field.rs`), read from
 the CPU's drawn tree to the same grid, within the tolerances
 `resident/field_tests.rs` measures: every cell's wood and foliage, the
 leaves within a few thousandths, the limbs as the same partition. Both
-fields name a limb system by the lowest cell it owns, so the same system
-carries the same id on both (fn-317): on 91 to 100 percent of the cells
-the two partitions pair, by preset. A system whose lowest cell the other
-executor gives to a neighbour takes another id whole, and a palm's single
-frond system, its leaflets on each executor's own draws, may too. A cell
+fields name a limb system by the cell where it holds the most leaves, so
+the same system carries the same id on both (fn-317): on 98.5 to 100
+percent of the cells the two partitions pair, by preset. A system whose
+densest cell the executors' leaf estimates put in another cell takes
+another id whole. The voxelizer reads these answers, so its cubes differ
+where they do: by the CPU's and the device's answers for every preset at
+24 and 36 cells, `density` and `mass` move at most 0.1 percent of the
+cubes, `coin` and `gap` at most 2, `tuft`, which reads each system's
+centre, at most 5, and a palm's fronds, drawn on each executor's own
+draws, 10 to 24. A cell
 holds wood where its circumsphere meets a wood sweep, so a grid overstates
 the wood by at most half a cell's diagonal; a finer grid shrinks it. A
 frond's leaflets are drawn on the device's own draws, as the harness draws

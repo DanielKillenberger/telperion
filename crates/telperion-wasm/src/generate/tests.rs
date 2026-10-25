@@ -71,21 +71,27 @@ fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
     assert_eq!(meta["biologicalUnits"], meta["instances"]);
 }
 
-/// fn-317 R4c: the binding names each limb system by the lowest cell it
-/// owns, as the device entry does.
+/// fn-317 R4c: the binding names each limb system by the cell where it
+/// holds the most leaves, as the device entry does.
 #[test]
-fn the_field_names_each_limb_by_its_lowest_cell() {
-    let (out, _) =
-        generate(json!({"family": wire("oregon-white-oak"), "outputs": {"field": {"n": 12}}}))
-            .unwrap();
-    let limbs = &out.field.limbs;
-    let mut seen = std::collections::HashSet::new();
-    for (i, &l) in limbs.iter().enumerate().filter(|(_, &l)| l != u32::MAX) {
-        if seen.insert(l) {
-            assert_eq!(l as usize, i, "a system first met at {i} is named {l}");
+fn the_field_names_each_limb_by_its_densest_cell() {
+    let request = json!({"family": wire("oregon-white-oak"), "outputs": {"field": {"n": 12}}});
+    let field = generate(request).unwrap().0.field;
+    let mut densest = std::collections::HashMap::<u32, (f32, usize)>::new();
+    for (i, (&l, &leaves)) in field.limbs.iter().zip(&field.leaves).enumerate() {
+        let best = densest.entry(l).or_insert((leaves, i));
+        if leaves > best.0 {
+            *best = (leaves, i);
         }
     }
-    assert!(seen.len() > 1, "{} systems", seen.len());
+    densest.remove(&u32::MAX);
+    assert!(densest.len() > 1, "{} systems", densest.len());
+    for (name, (_, cell)) in densest {
+        assert_eq!(
+            name as usize, cell,
+            "a system densest at {cell} is named {name}"
+        );
+    }
 }
 
 /// R10: no limb order and the family's own answer byte for byte alike; a
