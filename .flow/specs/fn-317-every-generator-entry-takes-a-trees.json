@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-317-every-generator-entry-takes-a-trees",
   "impl_review_rounds": {
-    "fn-317-every-generator-entry-takes-a-trees.1": 1
+    "fn-317-every-generator-entry-takes-a-trees.1": 0
   },
   "next_task": 1,
   "no_plan": true,
@@ -61,9 +61,55 @@
       "task": "fn-317-every-generator-entry-takes-a-trees.1",
       "timestamp": "2026-10-25T11:13:07.925289Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "13cc27b4e3e38ab7456ebf7ad12a5f0839b4305a0dd6b11839a8cc40493c7c2b",
+      "backend": "codex",
+      "base_sha": "e3e1e82f9b2e833dcdbac8fe0fcae83e4284e7b0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a3dca64328bf67bbae3e9faf15eed090",
+            "classification": "introduced",
+            "findingId": "finding-a3dca64328bf67bbae3e9faf15eed090",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "11292c0f53e7158bef2d909f3c01812385a90bb3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1298,
+      "output_sha256": "1136ddedd311e3f60e86f3b3756257d252c9374dcddbe06b6d51798f92f08a15",
+      "reservation_id": "c46c0f6c739a4993b405c83d7b555565",
+      "round_consumed": true,
+      "scope": "impl:fn-317-every-generator-entry-takes-a-trees.1",
+      "superseded_by": null,
+      "task": "fn-317-every-generator-entry-takes-a-trees.1",
+      "timestamp": "2026-10-25T11:24:13.161858Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-317-every-generator-entry-takes-a-trees.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -83,5 +129,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T11:17:33.916684Z"
+  "updated_at": "2026-10-25T11:24:13.164331Z"
 }
