@@ -33,6 +33,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/telperion.js"
     },
+    "./presets": {
+      "types": "./dist/browser/presets.d.ts",
+      "import": "./dist/presets.js"
+    },
     "./field": {
       "types": "./dist/field/index.d.ts",
       "import": "./dist/field.js"

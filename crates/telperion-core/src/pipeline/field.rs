@@ -31,7 +31,8 @@ use crate::{pipeline::foliage::plan::Plan, tree::Tree};
 /// `leaves` estimates the stations in the cell before the crown-shell cull:
 /// over the grid the estimates sum to the plan's total. `limb` is the limb
 /// system with the largest estimate in the cell, the lower id on a tie, and
-/// `None` where no foliage reaches. `flowers` counts the florets whose
+/// `None` where no foliage reaches; each package entry names a system by
+/// its densest cell (`Grid::name_limbs`). `flowers` counts the florets whose
 /// seat lies in the cell: over the grid they sum to the tree's florets.
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Occupancy {
@@ -103,6 +104,33 @@ impl Frame {
 pub struct Grid {
     pub frame: Frame,
     pub cells: Vec<Occupancy>,
+}
+
+impl Grid {
+    /// Each limb system renamed by the cell where it holds the most leaves,
+    /// the lowest on a tie (fn-317 R4c): each executor names a system by
+    /// its own node, so the same partition read on the CPU and on the
+    /// device carries the same names only once both rename it here. A
+    /// system's densest cell lies inside it, where the executors agree,
+    /// not on the edge it shares with a neighbour. Both package entries
+    /// call it on the grid they hand on; inside, a system keeps its node's
+    /// name, the same on every grid of one executor. Names stay opaque.
+    pub fn name_limbs(&mut self) {
+        let mut densest = std::collections::HashMap::<u32, (f64, u32)>::new();
+        for (i, cell) in self.cells.iter().enumerate() {
+            if let Some(limb) = cell.limb {
+                let best = densest.entry(limb).or_insert((cell.leaves, i as u32));
+                if cell.leaves > best.0 {
+                    *best = (cell.leaves, i as u32);
+                }
+            }
+        }
+        for cell in &mut self.cells {
+            if let Some(limb) = &mut cell.limb {
+                *limb = densest[limb].1;
+            }
+        }
+    }
 }
 
 #[cfg(feature = "geometry")]

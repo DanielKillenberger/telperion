@@ -1,24 +1,10 @@
 import type { LeafReference } from "./leaf";
-import { CATALOGUE, type Family } from "./presets.generated";
+import type { Family } from "./presets";
+import { finite, wire } from "./wire";
 import { wasmSource } from "../wasm-source";
-export type { Family } from "./presets.generated";
+export { presetById, ORDINARY, OREGON_WHITE_OAK, NORWAY_SPRUCE, SILVER_BIRCH, TELPERION, LAURELIN, TWO_TREES, PRESETS } from "./presets";
+export type { Family, TreePreset } from "./presets";
 
-export interface TreePreset extends Family { id: string; name: string; note: string }
-/** Explicit identity lookup; unknown identities never fall back to Ordinary. */
-export function presetById(id: string): TreePreset {
-  const entry = CATALOGUE.find(preset => preset.id === id);
-  if (!entry) throw Error(`Unknown tree preset: ${id}`);
-  return { ...structuredClone(entry.family), id: entry.id, name: entry.name, note: entry.note };
-}
-/** Plain parameter baseline, usable directly at the native request boundary. */
-export const ORDINARY: Family = (({ id: _id, name: _name, note: _note, ...family }) => family)(presetById("ordinary"));
-export const OREGON_WHITE_OAK = presetById("oregon-white-oak");
-export const NORWAY_SPRUCE = presetById("norway-spruce");
-export const SILVER_BIRCH = presetById("silver-birch");
-export const TELPERION = presetById("telperion");
-export const LAURELIN = presetById("laurelin");
-export const TWO_TREES = [TELPERION, LAURELIN];
-export const PRESETS = CATALOGUE.map(entry => presetById(entry.id));
 export interface Outputs {
   surface?: boolean; foliage?: boolean; structure?: boolean;
   /** The drawn tree's field read out to a grid of `n` cells a side over its
@@ -136,13 +122,12 @@ export class TreeEngine {
    * Wasm linear memory retains its high-water capacity for allocator reuse. */
   release(): void { this.e.release(); }
   get memoryBytes(): number { return this.e.memory.buffer.byteLength; }
-  build(family: Family | string, outputs: Outputs): TreeOutput {
+  /** The tree `family` describes, the outputs asked for. A preset is
+   * built by passing its parameters (`presetById(id)` or a constant); a
+   * preset's id is refused by name. */
+  build(family: Family, outputs: Outputs): TreeOutput {
     const started = performance.now();
-    // JSON would otherwise silently replace nonfinite values with null.
-    const request = new TextEncoder().encode(JSON.stringify({ family: typeof family !== "string" && "id" in family ? (({ id: _id, name: _name, note: _note, ...parameters }) => parameters)(family as TreePreset) : family, outputs }, (_key, value) => {
-      if (typeof value === "number" && !Number.isFinite(value)) throw Error("Tree parameters must be finite");
-      return value;
-    }));
+    const request = new TextEncoder().encode(`{"family":${wire(family)},"outputs":${JSON.stringify(outputs, finite)}}`);
     const e = this.e;
     this.check(e.request_alloc(request.length));
     new Uint8Array(e.memory.buffer, e.request_ptr() >>> 0, request.length).set(request);

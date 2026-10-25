@@ -53,7 +53,8 @@ fn the_material_row_travels_the_wire_and_is_refused_by_field_name() {
 fn catalogue_roundtrips_all_controls_and_identities() {
     for &(abi, id, _, _) in CATALOGUE.iter().rev() {
         let mut value = metadata(&preset(abi).unwrap());
-        assert_eq!(value, metadata(&parse(&json!(id)).unwrap()));
+        assert_eq!(value, metadata(&by_identity(id).unwrap()));
+        assert!(parse(&json!(id)).is_err(), "{id}: an id is not parameters");
         assert_eq!(value, metadata(&parse(&value).unwrap()));
         value["skeleton"]["bias"]["supernatural"] = json!({"enabled":false,"writheAmplitude":0.12,"writheWavelength":0.4,"spiralRate":3.0,"maxWritheMagnitude":0.9});
         value["element"]["connectorLength"] = json!(0.002);

@@ -3,9 +3,10 @@
 //! at 24, 36 and 48 cells a side, its wood, its thickest radius, its
 //! foliage, its leaves and its limb. Both are asked over the CPU's box,
 //! since a frond's leaflets fall on each executor's own draws. The limbs
-//! are compared as a partition: each executor names a system by its own
-//! node ids, so each device system is read as the reference system it
-//! shares the most cells with.
+//! are compared as a partition, each device system read as the reference
+//! system it shares the most cells with, and by the names both package
+//! entries give them, the cell where each holds the most leaves (fn-317
+//! R4c).
 use super::super::{Clock, Generator};
 use std::collections::HashMap;
 use telperion_core::field::{Grid, Occupancy};
@@ -21,6 +22,9 @@ pub(super) struct Measures {
     pub leaves: f64,
     pub total: f64,
     pub limbs: f64,
+    /// The share of the cells the partition pairs whose limb carries the
+    /// same name on both (fn-317 R4c).
+    pub ids: f64,
 }
 
 fn jaccard(a: impl Iterator<Item = (bool, bool)>) -> f64 {
@@ -76,19 +80,17 @@ pub(super) fn compare(cpu: &[Occupancy], dev: &[Occupancy]) -> Measures {
     let leaves = if sum_c > 0.0 { diff / sum_c } else { 0.0 };
     let total = if sum_c > 0.0 { sum_d / sum_c } else { 1.0 };
     let read = names(dev, cpu);
-    let (mut agree, mut held) = (0u64, 0u64);
+    let (mut agree, mut held, mut named) = (0u64, 0u64, 0u64);
     for (c, d) in pairs() {
         if c.limb.is_some() || d.limb.is_some() {
             held += 1;
-            agree +=
-                u64::from(c.limb.is_some() && d.limb.and_then(|d| read.get(&d).copied()) == c.limb);
+            let paired = c.limb.is_some() && d.limb.and_then(|d| read.get(&d).copied()) == c.limb;
+            agree += u64::from(paired);
+            named += u64::from(paired && d.limb == c.limb);
         }
     }
-    let limbs = if held == 0 {
-        1.0
-    } else {
-        agree as f64 / held as f64
-    };
+    let share = |n: u64, of: u64| if of == 0 { 1.0 } else { n as f64 / of as f64 };
+    let (limbs, ids) = (share(agree, held), share(named, agree));
     Measures {
         wood,
         radius,
@@ -96,6 +98,7 @@ pub(super) fn compare(cpu: &[Occupancy], dev: &[Occupancy]) -> Measures {
         leaves,
         total,
         limbs,
+        ids,
     }
 }
 
@@ -126,7 +129,7 @@ pub(super) fn within(m: &Measures, fronds: bool) -> Result<(), String> {
     held.then_some(()).ok_or_else(|| format!("{m:?}"))
 }
 
-fn generator() -> Option<Generator> {
+pub(super) fn generator() -> Option<Generator> {
     let gpu = super::super::test_gpu()?;
     Some(pollster::block_on(Generator::for_fields_async(gpu)).expect("a generator"))
 }
@@ -145,7 +148,7 @@ fn ask(n: u32, limb_order: Option<u32>) -> Request {
 }
 
 /// The CPU's field of `family` at each of `sides`, built side by side.
-fn references(family: &Family, sides: &[u32], limb_order: Option<u32>) -> Vec<Grid> {
+pub(super) fn references(family: &Family, sides: &[u32], limb_order: Option<u32>) -> Vec<Grid> {
     std::thread::scope(|s| {
         let built: Vec<_> = (sides.iter())
             .map(|&n| s.spawn(move || pipeline::build(family, ask(n, limb_order))))
@@ -163,18 +166,33 @@ fn references(family: &Family, sides: &[u32], limb_order: Option<u32>) -> Vec<Gr
 }
 
 /// The device's field of `family` over the CPU's grid `cpu`.
-fn device(gen: &Generator, family: &Family, cpu: &Grid, limb_order: Option<u32>) -> Grid {
+pub(super) fn device(
+    gen: &Generator,
+    family: &Family,
+    cpu: &Grid,
+    limb_order: Option<u32>,
+) -> Grid {
     pollster::block_on(gen.grow_field_in(family, cpu.frame, limb_order)).expect("read out")
 }
 
 /// R8a's comparison of `id` at `seed` on each of `sides`: each side's
 /// measures and the device's milliseconds.
-fn agreement(gen: &Generator, id: &str, seed: u32, sides: &[u32]) -> Vec<(u32, Measures, f64)> {
+fn agreement(
+    gen: &Generator,
+    id: &str,
+    seed: u32,
+    sides: &[u32],
+    named: bool,
+) -> Vec<(u32, Measures, f64)> {
     let family = family(id, seed);
     let mut out = Vec::new();
-    for cpu in references(&family, sides, None) {
+    for mut cpu in references(&family, sides, None) {
         let t = Clock::now();
-        let dev = device(gen, &family, &cpu, None);
+        let mut dev = device(gen, &family, &cpu, None);
+        if named {
+            cpu.name_limbs();
+            dev.name_limbs();
+        }
         let ms = t.elapsed_ms();
         assert_eq!(dev.frame, cpu.frame);
         out.push((cpu.frame.n, compare(&cpu.cells, &dev.cells), ms));
@@ -209,12 +227,39 @@ fn every_preset_answers_within_its_tolerance(sides: &[u32]) {
     };
     for &(_, id, ..) in telperion_core::presets::CATALOGUE {
         for seed in [1, 5678] {
-            for (n, m, _) in agreement(&gen, id, seed, sides) {
+            for (n, m, _) in agreement(&gen, id, seed, sides, false) {
                 within(&m, fronds(id)).unwrap_or_else(|m| panic!("{id} {seed} at {n}: {m}"));
             }
         }
     }
 }
+
+/// fn-317 R4c: every shipped preset's limb systems carry the CPU's names
+/// on the device wherever the partition pairs them, at seeds 1 and 5678 on
+/// grids of 24 and 36. Prints each preset's remainder.
+#[test]
+fn every_preset_s_limbs_carry_the_cpu_s_names() {
+    let _held = super::super::whole_tree();
+    let Some(gen) = generator() else {
+        return;
+    };
+    for &(_, id, ..) in telperion_core::presets::CATALOGUE {
+        for seed in [1, 5678] {
+            for (n, m, _) in agreement(&gen, id, seed, &[24, 36], true) {
+                eprintln!(
+                    "names {id} {seed} {n}: {:.6} of paired, partition {:.6}",
+                    m.ids, m.limbs
+                );
+                assert!(m.ids >= NAMED, "{id} {seed} at {n}: {m:?}");
+            }
+        }
+    }
+}
+/// Measured (fn-317, raw/names.log): 0.985 to 1 of paired cells, the
+/// least the beech at 1 on 24; held at about twice its miss. A system
+/// whose densest cell the executors' leaf estimates, within a few
+/// thousandths, put in another cell takes another name whole.
+const NAMED: f64 = 0.97;
 
 /// fn-301 R2: the young palm rests its fronds' leaflets on the ground, and
 /// the device's field boxes them in the frame they rest in, as the CPU's
@@ -373,7 +418,7 @@ fn the_device_field_answers_as_the_cpu_field() {
     let ids = telperion_core::presets::CATALOGUE.iter().map(|c| c.1);
     for id in ids.filter(|id| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == *id))) {
         for &seed in &seeds {
-            for (n, m, ms) in agreement(&gen, id, seed, &sides) {
+            for (n, m, ms) in agreement(&gen, id, seed, &sides, false) {
                 if let Err(m) = within(&m, fronds(id)) {
                     past.push(format!("{id} {seed} {n}: {m}"));
                 }

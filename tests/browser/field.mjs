@@ -21,11 +21,13 @@ try {
   const answer = await page.evaluate(async () => {
     const code = `
       import { growField, NO_LIMB } from '${location.origin}/src/field/index.ts';
-      const tree = await growField('ordinary', 5, 8, { limbOrder: 1 });
+      import { presetById } from '${location.origin}/src/browser/presets.ts';
+      const seeded = (id, seed) => { const p = presetById(id); return { ...p, skeleton: { ...p.skeleton, seed } }; };
+      const tree = await growField(seeded('ordinary', 5), 8, { limbOrder: 1 });
       let refused = '';
-      try { await growField('ordinary', 5, 2); } catch (error) { refused = String(error); }
+      try { await growField(seeded('ordinary', 5), 2); } catch (error) { refused = String(error); }
       const { flags, limbs, leaves, woodRadius, flowers } = tree.answer;
-      const blooms = (await growField('laurelin', 5, 8)).answer.flowers.reduce((s, v) => s + v, 0);
+      const blooms = (await growField(seeded('laurelin', 5), 8)).answer.flowers.reduce((s, v) => s + v, 0);
       postMessage({ n: tree.n, cell: tree.cell, flags: [...flags], limbs: [...limbs], leaves: [...leaves], woodRadius: [...woodRadius], flowers: [...flowers], blooms, refused, noLimb: NO_LIMB });`;
     const worker = new Worker(URL.createObjectURL(new Blob([code], { type: 'text/javascript' })), { type: 'module' });
     return await new Promise((resolve, reject) => {

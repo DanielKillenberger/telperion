@@ -1,11 +1,11 @@
 //! The stages past the skeleton, each run only where the request asks.
 #[cfg(feature = "geometry")]
 use super::Inputs;
-#[cfg(feature = "geometry")]
-use crate::pipeline::foliage::Instances;
 use super::{PlanInput, Request, Structure};
 #[cfg(feature = "geometry")]
 use crate::pipeline::field::{self, Grid};
+#[cfg(feature = "geometry")]
+use crate::pipeline::foliage::Instances;
 use crate::{
     pipeline::foliage::{self, plan, Element, Reference},
     tree::{NodeKind, Tree},

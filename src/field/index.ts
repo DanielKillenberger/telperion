@@ -1,11 +1,16 @@
-/* The field entry point: a species id, a seed and a grid side in, the
- * tree's field read out to that grid (./voxelize `Grid`) out. The tree grows
+/* The field entry point: a tree's parameters and a grid side in, the
+ * tree's field read out to that grid (./voxelize `Grid`) out. A preset is
+ * grown by passing its parameters (`presetById(id)` from
+ * `telperion/presets`); there is no id lookup here (fn-317). The tree grows
  * on the device (WebGPU), through the renderer's module
  * (`telperion-render.wasm`), as the harness grows it, and its field is read
  * out there: only the grid crosses back, and nothing stays on the device
- * (fn-257). Without WebGPU every call rejects by name; there is no CPU
- * fallback. The same file runs in a browser page or worker; in Node, which
- * has no WebGPU, it rejects. A caller passes the module's bytes, a Response
+ * (fn-257). Without WebGPU every call rejects with a `FieldError` whose
+ * `code` is "webgpu-unavailable", and on a lost device "device-lost";
+ * there is no CPU fallback here. The same file runs in a browser page or
+ * worker; in Node, which has no WebGPU, it rejects. The CPU's field of the
+ * same tree, for Node and tooling, is `TreeEngine.build(family, { field:
+ * { n } })` from the main entry. A caller passes the module's bytes, a Response
  * or a compiled Module, or leaves the source to `telperion-render.wasm`
  * beside this file.
  *
@@ -17,10 +22,13 @@
  * the renderer's module, not `telperion-field.wasm`. */
 import { WebField } from "../browser/render/telperion_render.js";
 import { loadModule, type ModuleSource } from "../browser/module";
+import type { Family } from "../browser/presets";
+import { wire } from "../browser/wire";
 import { wasmSource } from "../wasm-source";
 import { side, type Grid } from "./voxelize";
 
 export type { Grid } from "./voxelize";
+export type { Family } from "../browser/presets";
 export interface Bounds { min: [number, number, number]; max: [number, number, number] }
 /** One answer per cell, in the grid's cell order. `flags` bits: wood = 1,
  * foliage = 2, flowers = 4. `woodRadius` is the thickest wood sweep reaching
@@ -35,7 +43,18 @@ export const NO_LIMB = 0xffffffff;
 export interface FieldGrid extends Grid { answer: FieldAnswer }
 /** A grown tree's field, read out to the grid its call named over the tree's
  * own box. */
-export interface FieldTree extends FieldGrid { readonly species: string; readonly seed: number }
+export type FieldTree = FieldGrid;
+/** Why the device refused: no WebGPU in this page or worker, or a device
+ * lost under a call. The message names the cause; the code is for code. */
+export type FieldErrorCode = "webgpu-unavailable" | "device-lost";
+export class FieldError extends Error {
+  readonly code: FieldErrorCode;
+  constructor(code: FieldErrorCode, message: string) {
+    super(message);
+    this.name = "FieldError";
+    this.code = code;
+  }
+}
 export type FieldSource = ModuleSource;
 export interface GrowOptions {
   /** The lateral order whose systems name limbs; the family's own when left
@@ -51,10 +70,37 @@ export interface GrowOptions {
 const U32 = 2 ** 32;
 
 
-/** Whether this page or worker has WebGPU: the field grows nowhere else. */
-function device(): void {
-  const gpu = (globalThis.navigator as { gpu?: unknown } | undefined)?.gpu;
-  if (gpu === undefined) throw Error("WebGPU is not available: telperion/field grows its trees on the device");
+interface Gpu { requestAdapter(): Promise<unknown> }
+/** This page's or worker's WebGPU: the field grows nowhere else. */
+function device(): Gpu {
+  const gpu = (globalThis.navigator as { gpu?: Gpu } | undefined)?.gpu;
+  if (gpu === undefined) throw new FieldError("webgpu-unavailable", "WebGPU is not available: telperion/field grows its trees on the device");
+  return gpu;
+}
+
+/** `run` on the device, its coded refusals as `FieldError`s. Where the
+ * module found no adapter but the browser, asked directly, has one, the
+ * module's request was answered early (killenberger fn-46.3: headless
+ * Chromium, a page whose first WebGPU use is the field, its first tree
+ * refused and the next grown): `run` is tried once more, and only then. */
+async function onDevice<T>(gpu: Gpu, run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (error) {
+    const refused = coded(error);
+    if (refused?.code !== "webgpu-unavailable" || await gpu.requestAdapter() === null) throw refused ?? error;
+  }
+  try {
+    return await run();
+  } catch (error) {
+    throw coded(error) ?? error;
+  }
+}
+/** The module's refusal with a code, as a `FieldError`; none for another. */
+function coded(error: unknown): FieldError | undefined {
+  const code = (error as { code?: unknown } | null)?.code;
+  if (code !== "webgpu-unavailable" && code !== "device-lost") return undefined;
+  return new FieldError(code, (error as Error).message);
 }
 
 /** Compiles the renderer's module once, for a caller that grows trees in
@@ -72,9 +118,9 @@ export async function compileField(source?: FieldSource): Promise<WebAssembly.Mo
 /** The device and its programs made ready before the first tree, so the
  * first `growField` does not wait on them: a page calls it as it loads. */
 export async function prepareField(source?: FieldSource): Promise<void> {
-  device();
+  const gpu = device();
   await loadModule(source);
-  await WebField.prepare();
+  await onDevice(gpu, () => WebField.prepare());
 }
 
 function unsigned(value: number, what: string, limit = U32): number {
@@ -82,22 +128,24 @@ function unsigned(value: number, what: string, limit = U32): number {
   return value;
 }
 
-/** Grows `species` at `seed` on the device and reads its field out to `n`
- * cells a side over the tree's box. A side outside 3 to 256 is refused by
- * name before any work, a grid past the device's limits by name before
- * anything is allocated; an unknown species id, or one the catalogue does
- * not serve, with the core's error; a page or worker without WebGPU, by
- * name. */
-export async function growField(species: string, seed: number, n: number, options: GrowOptions = {}): Promise<FieldTree> {
-  unsigned(seed, "seed");
+/** Grows the tree `family` describes, at its own seed
+ * (`family.skeleton.seed`), on the device and reads its field out to `n`
+ * cells a side over the tree's box. A preset's id, a side outside 3 to 256
+ * and a nonfinite parameter are refused by name before any work; a grid
+ * past the device's limits by name before anything is allocated;
+ * parameters the core refuses with the core's error, as
+ * `TreeEngine.build` refuses them; a page or worker without WebGPU, or a
+ * lost device, with a `FieldError`. */
+export async function growField(family: Family, n: number, options: GrowOptions = {}): Promise<FieldTree> {
+  const parameters = wire(family);
   side(n);
   const order = options.limbOrder === undefined ? undefined : unsigned(options.limbOrder, "limbOrder", U32 - 1);
-  device();
+  const gpu = device();
   await loadModule(options.source);
-  const field = (await WebField.grow(species, seed, n, order)) as WebField;
+  const field = (await onDevice(gpu, () => WebField.grow(parameters, n, order))) as WebField;
   try {
     const o = field.origin();
-    return { species, seed, n: field.n(), cell: field.cell(), origin: [o[0], o[1], o[2]], answer: answers(field.answers()) };
+    return { n: field.n(), cell: field.cell(), origin: [o[0], o[1], o[2]], answer: answers(field.answers()) };
   } finally {
     field.free();
   }
