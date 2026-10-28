@@ -69,3 +69,26 @@ fn field_answers() {
         }
     }
 }
+
+/// Cold, once a process (fn-319 R1): the field's generator made and its
+/// programs prepared as the package's field entry prepares them, then
+/// the first field read out, at seed 1 and 36 cells a side, of the first
+/// preset `FIELD_PRESETS` names: `FIELD_COLD prepare <ms>` and
+/// `FIELD_COLD first <id> <ms>`. The device's request is not counted.
+#[test]
+#[ignore = "a measurement"]
+fn field_cold() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let t = Clock::now();
+    let gen = pollster::block_on(Generator::for_fields_async(gpu)).expect("a generator");
+    pollster::block_on(gen.prepare_programs()).expect("prepared");
+    println!("FIELD_COLD prepare {:.2}", t.elapsed_ms());
+    let id = presets("oregon-white-oak").remove(0);
+    let family = family(&id, 1);
+    let t = Clock::now();
+    pollster::block_on(gen.grow_field(&family, 36, None)).expect("read out");
+    println!("FIELD_COLD first {id} {:.2}", t.elapsed_ms());
+}
