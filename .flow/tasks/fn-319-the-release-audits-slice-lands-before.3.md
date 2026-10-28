@@ -35,9 +35,45 @@ The device field and the device tree build call `Family::validate` and the count
 - [ ] TBD
 
 ## Done summary
-TBD
+The device field and the device tree build now refuse a family the CPU's build refuses, with the CPU's message. They do it through `telperion_core::pipeline::executor::checked`, which is not a copy of the CPU's checks.
 
+`checked` first runs `growth(family)`, the shared growth conversion, which includes the whole-year age check in `space::asked`. It then runs Stage 3's checks that need no tree, now factored into `executor::planned`: the leaf element and its own check, the twig placement, the shell depth, then `canopy_rows`. `prepared` calls the same `planned`, so both executors' Stage 3 now refuses an invalid canopy row at the point the CPU reaches it. The CPU's later `canopy::validate` in station preparation stays.
+
+The calls sit in three places. `Generator::field` and `Generator::prepare_resident` call `checked` before any device work. On the wasm side, `WebField.check`, `WebField.grow` and `setTreeGpu` call it through the `checked` helper in `web/field.rs`. `growField` loads the module and calls `WebField.check` before `device()`. The field also counts its stations against `canopy.maxInstances` with `build::instances`, as the build does.
+
+Fix pass (codex NEEDS_WORK): the first pass used `Family::validate`, which still ran old scaffold checks and missed the age check. All three of its call sites now use `executor::checked`.
+
+- Rust, measured: `field_tests::the_device_refuses_a_family_the_cpu_refuses`. The cases are Ordinary at seed 1, n 12:
+  - `maxInstances=1`, `scatter=-1`, `age=1.5`, and `age=1.5` with `scatter=-1`. Each is refused through `grow_field` and `gen.prepare` with a message containing `pipeline::build`'s, and the combined case gives the age message.
+  - `maxNodes=0` gets the same outcome from `checked` as from the CPU build: the CPU grows it, and `checked` does not refuse it.
+  - Every catalogue preset passes `checked`.
+- Node, measured: in `src/field/field.test.ts`, without WebGPU, `scatter=-1`, `age=1.5` and both together reject with the core's error, not `webgpu-unavailable`. The CPU entry gives `Tree core: <reason>`; the field gives `the generator rejected the tree: invalid input: <reason>`. That prefix difference predates this task, and the test pins both texts.
+- Accepted trade (host, 28 Oct 2026): a family invalid both in a way only growth finds (such as the engine's phytomer budget) and in a canopy row is refused on the device by the canopy row, before it grows. The CPU grows first and names the growth's error. This is recorded in `docs/field-package.md` and `docs/pipeline.md`.
+- `maxInstances=1` is refused only once the tree has grown, because the budget counts the grown stations. The CPU also refuses it only after placing the leaves.
+- Outside the declared Touches:
+  - `crates/telperion-core/src/pipeline/executor.rs`, as the host's design asked.
+  - From the first pass, a one-line `check` stub in the `WebField` mock in `src/field/device.test.ts`. Without it, five existing tests broke.
+- The first `field.test.ts` case now catches its three refusals together. A growth now awaits the module load before it refuses.
+- fn-320 flake, seen: in the final field run, `every_preset_grows_its_field_from_its_parameters_as_from_its_id` failed on silver-birch 5678 ("the parameters grew another field"). It passed in the first pass's run. Per the host rule it was not chased.
+- Friction entry added in the first commit.
+
+baseline: green (`cargo test --profile ci -p telperion-render --lib the_device_field_refuses_what_the_core_refuses`; `npx vitest run src/field`, 21 passed, after building the generated modules)
+Gates:
+- `cargo test --profile ci -p telperion-render --lib refuse`: 27 passed.
+- `cargo test --profile ci -p telperion-core -- executor canopy refuse scatter`: 48 passed.
+- `cargo test --profile ci -p telperion-render field`: 16 passed, 1 failed (the fn-320 flake), 9 ignored.
+- vitest Quick files: 37 passed.
+- `tsc --noEmit`: clean.
+- `cargo fmt --check`: clean.
+- `render:build` (wasm32): built.
+
+stage: impl-review - skipped(policy: parallel-wave - conductor owns the gate)
+
+Tier: session model (model: claude-opus-5-5)
+
+Integrated on the spec branch (94f56ca8e, 40cefe7a9). Review: codex three lenses NEEDS_WORK (Family::validate is not the CPU build's check: fractional age order, maxNodes=0), host-designed fix (executor::checked over the shared Stage 3 checks), one-reviewer re-review SHIP. Known fn-320 flake seen once in the field suite, not this task's.
+stage: plan-sync - skipped(config: planSync.enabled=false)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 94f56ca8e6d1c75add98274778d1ebe78d8f9073, 40cefe7a9c47ae423361f6d07457ae6804a1783a
+- Tests: cargo test --profile ci -p telperion-render --lib -j 2 refuse (via telperion-heavy; 27 passed), cargo test --profile ci -p telperion-core -j 2 -- executor canopy refuse scatter (48 passed), cargo test --profile ci -p telperion-render -j 2 field (16 passed, 1 failed: every_preset_grows_its_field_from_its_parameters_as_from_its_id, silver-birch 5678, the known fn-320 flake; passed on the first-pass run), npx vitest run src/field src/browser/render.test.ts harness/grow-in.test.ts (37 passed), npx tsc --noEmit -p tsconfig.json, cargo fmt -p telperion-render -p telperion-core -- --check
 - PRs:
