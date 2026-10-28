@@ -69,7 +69,9 @@ impl super::Generator {
     /// `family`'s field read out on the device to `n` cells a side over its
     /// own box (fn-257 R8, `telperion_core::field::Frame`), its limb systems
     /// opened by laterals of `limb_order` or less (the family's own where
-    /// none is given). Only the grid is read back; nothing stays on the
+    /// none is given). A flowering tree's florets are boxed and counted
+    /// on the device too, within `flowers_agree`'s bounds of the CPU's
+    /// (fn-319 R5). Only the grid is read back; nothing stays on the
     /// device. On a lost device it is refused by name.
     pub async fn grow_field(
         &self,
@@ -235,6 +237,8 @@ mod growing_tests;
 mod organ_tests;
 pub use growing::GrowingTree;
 mod field;
+#[cfg(test)]
+mod field_flowers_tests;
 #[cfg(test)]
 mod field_params_tests;
 #[cfg(test)]

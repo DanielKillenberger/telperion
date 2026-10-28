@@ -7,7 +7,10 @@ field package is that: `src/field/index.ts`, published as the package's
 on the device (WebGPU), through the renderer's module, exactly as the
 harness grows it, and its field is read out there from the drawn tree to
 the grid the call names: only the grid is read back, and nothing stays on
-the device. There is no CPU fallback.
+the device. A flowering tree's florets are counted into their cells there
+too, never read back; the counts agree with the CPU's within
+`flowers_agree`'s bounds, since an f32 seat on a cell's face may fall one
+cell over (fn-319). There is no CPU fallback.
 
 ## The entry point
 

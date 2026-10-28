@@ -41,6 +41,10 @@ struct Cfg {
     // on the ground by as placement rests them.
     wedge_a: vec4<f32>,
     wedge_b: vec4<f32>,
+    // The box the florets are packed against (`foliage::Reference`): its
+    // least corner and its extent.
+    seat_min: vec4<f32>,
+    seat_extent: vec4<f32>,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -52,16 +56,19 @@ struct Cfg {
 // After them the box (three least and three most, ordered), then the
 // table's bound, low and high.
 @group(0) @binding(3) var<storage, read_write> work: array<atomic<u32>>;
-// One counter (the shares the table found no slot for), four words a cell
-// (flags, the thickest radius's bits, its leaves in fixed point, low and
-// high), then each cell's most leaves of one system, high and low, and the
-// least system holding them.
+// Two counters (the shares the table found no slot for, the seats outside
+// the grid), five words a cell (flags, the thickest radius's bits, its
+// leaves in fixed point, low and high, its florets), then each cell's most
+// leaves of one system, high and low, and the least system holding them.
 @group(0) @binding(4) var<storage, read_write> grid: array<atomic<u32>>;
 // The table of each cell's leaves by limb system, its slots' cells, then
 // their systems, then their sums in fixed point, low and high.
 @group(0) @binding(5) var<storage, read_write> table: array<atomic<u32>>;
-// Four words a cell, then the counters.
-@group(0) @binding(6) var<storage, read_write> answers: array<vec4<u32>>;
+// Five words a cell, then the counters and the florets' placement refusal.
+@group(0) @binding(6) var<storage, read_write> answers: array<u32>;
+// The placed florets, three words each (`foliage::packed`); `cfg.n` of
+// them where a dispatch reads them.
+@group(0) @binding(7) var<storage, read> florets: array<u32>;
 
 const NONE: u32 = 0xffffffffu;
 
@@ -522,6 +529,31 @@ fn box_wood(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let w = sweep_of(i);
     grow_box(min(w.a - w.start, w.b - w.end), max(w.a + w.start, w.b + w.end));
+}
+
+// Whether floret `i` is withered (`packed::WITHERED`): a rachis
+// instance, no seat.
+fn withered(i: u32) -> bool {
+    return (florets[i * 3u + 2u] & 0x80000000u) != 0u;
+}
+
+// Where floret `i` hangs from: its stored position over the florets' box
+// (`Reference::position`).
+fn seat(i: u32) -> vec3<f32> {
+    let xy = unpack2x16unorm(florets[i * 3u + 1u]);
+    let z = unpack2x16unorm(florets[i * 3u + 2u]).x;
+    return cfg.seat_min.xyz + cfg.seat_extent.xyz * vec3<f32>(xy, z);
+}
+
+// The box grown about each floret's seat (`field::seats`).
+@compute @workgroup_size(64)
+fn box_seats(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = index_of(id);
+    if i >= cfg.n || withered(i) {
+        return;
+    }
+    let p = seat(i);
+    grow_box(p, p);
 }
 
 // The box grown about each leaf segment's reach, or each of a frond's

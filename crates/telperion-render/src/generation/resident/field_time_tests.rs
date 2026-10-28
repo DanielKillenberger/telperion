@@ -34,8 +34,9 @@ fn field_time() {
 }
 
 /// Every preset's grid at 24, 36 and 48 cells a side, hashed to the bit
-/// (FNV-1a over its frame and its answers' words): `FIELD_ANSWERS <id> <n>
-/// <hash>`, the same lines from two binaries when their fields agree.
+/// (FNV-1a over its frame and its answers' words, the flowers' too):
+/// `FIELD_ANSWERS <id> <n> <hash>`, the same lines from two binaries when
+/// their fields agree.
 #[test]
 #[ignore = "a measurement"]
 fn field_answers() {
@@ -57,7 +58,8 @@ fn field_answers() {
             for a in &grid.cells {
                 let flags = u64::from(a.wood) | u64::from(a.foliage) << 1;
                 let limb = u64::from(a.limb.unwrap_or(u32::MAX));
-                words.extend([flags, a.wood_radius.to_bits(), a.leaves.to_bits(), limb]);
+                let [radius, leaves] = [a.wood_radius, a.leaves].map(f64::to_bits);
+                words.extend([flags, radius, leaves, limb, a.flowers.to_bits()]);
             }
             let mut hash = 0xcbf2_9ce4_8422_2325u64;
             for byte in words.iter().flat_map(|w| w.to_le_bytes()) {

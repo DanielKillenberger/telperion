@@ -4,7 +4,8 @@
 // meets its tapered sweep, the thickest radius so met; leaves where the
 // circumsphere meets a leaf segment's reach (a leaflet's box: the cube
 // itself), the share of its midline inside the cell, and the limb system
-// with the most of them, the lower one on a tie.
+// with the most of them, the lower one on a tie; and each floret's seat
+// counted in the cell it lies in (`field::florets_into`).
 //
 // A cell's leaves by system are summed in a table keyed by the cell and
 // the system (two words), each sum two words wide, sized from a bound on
@@ -13,7 +14,13 @@
 
 const LOST: u32 = 0u;
 
-const HEAD: u32 = 1u;
+// The seats that lie outside the grid, which the CPU refuses.
+const OUTSIDE: u32 = 1u;
+
+const HEAD: u32 = 2u;
+
+// A cell's words in the grid and in the answers.
+const CELL: u32 = 5u;
 
 // A 4096th of a leaf, as the cells sum them.
 const UNIT: f32 = 4096.0;
@@ -23,19 +30,19 @@ fn cells() -> u32 {
 }
 
 fn cell_word(c: u32, f: u32) -> u32 {
-    return HEAD + c * 4u + f;
+    return HEAD + c * CELL + f;
 }
 
 fn best_high(c: u32) -> u32 {
-    return HEAD + 4u * cells() + c;
+    return HEAD + CELL * cells() + c;
 }
 
 fn best_low(c: u32) -> u32 {
-    return HEAD + 5u * cells() + c;
+    return HEAD + (CELL + 1u) * cells() + c;
 }
 
 fn limb_word(c: u32) -> u32 {
-    return HEAD + 6u * cells() + c;
+    return HEAD + (CELL + 2u) * cells() + c;
 }
 
 fn centre(c: vec3<i32>) -> vec3<f32> {
@@ -296,6 +303,24 @@ fn splat_leaflets(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 }
 
+// Each floret's seat counted in its cell (`field::florets_into`: the
+// floor of its offset from the origin over the cell); a seat outside the
+// grid counted apart, for the read-out to refuse.
+@compute @workgroup_size(64)
+fn splat_flowers(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = index_of(id);
+    if i >= cfg.n || withered(i) {
+        return;
+    }
+    let c = floor((seat(i) - cfg.lo.xyz) / cfg.lo.w);
+    let n = f32(cfg.dims.x);
+    if any(c < vec3<f32>(0.0)) || any(c >= vec3<f32>(n)) {
+        atomicAdd(&grid[OUTSIDE], 1u);
+        return;
+    }
+    atomicAdd(&grid[cell_word(flat(vec3<i32>(c)), 4u)], 1u);
+}
+
 // Slot `t`'s cell, none where it holds no pair.
 fn slot_cell(t: u32) -> u32 {
     if t >= cfg.slots || atomicLoad(&table[cfg.slots + t]) == NONE {
@@ -349,7 +374,8 @@ fn splat_limb(@builtin(global_invocation_id) id: vec3<u32>) {
 }
 
 // Each cell's answer: its flags, its thickest radius's bits, its leaves'
-// bits and its limb system (none without foliage); then the lost count.
+// bits, its limb system (none without foliage) and its florets; then the
+// lost count and the seats outside the grid.
 @compute @workgroup_size(64)
 fn splat_finish(@builtin(global_invocation_id) id: vec3<u32>) {
     let c = index_of(id);
@@ -364,8 +390,15 @@ fn splat_finish(@builtin(global_invocation_id) id: vec3<u32>) {
     if (flags & FOLIAGE) != 0u {
         limb = atomicLoad(&grid[limb_word(c)]);
     }
-    answers[c] = vec4<u32>(flags, atomicLoad(&grid[cell_word(c, 1u)]), bitcast<u32>(leaves), limb);
+    let a = c * CELL;
+    answers[a] = flags;
+    answers[a + 1u] = atomicLoad(&grid[cell_word(c, 1u)]);
+    answers[a + 2u] = bitcast<u32>(leaves);
+    answers[a + 3u] = limb;
+    answers[a + 4u] = atomicLoad(&grid[cell_word(c, 4u)]);
     if c == 0u {
-        answers[cells()] = vec4<u32>(atomicLoad(&grid[LOST]), 0u, 0u, 0u);
+        let tail = CELL * cells();
+        answers[tail] = atomicLoad(&grid[LOST]);
+        answers[tail + 1u] = atomicLoad(&grid[OUTSIDE]);
     }
 }

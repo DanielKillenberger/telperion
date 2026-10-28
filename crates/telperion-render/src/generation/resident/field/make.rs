@@ -1,21 +1,22 @@
 //! A field read out: the tree grown, drawn, folded and stationed as a
 //! harness build makes it (`build::folded`), its drawn records read as
 //! the dress wrote them and no curve swept, each node's limb system
-//! found, the box grown about its records, and every record written into
-//! the grid, which alone is read back.
+//! found, the box grown about its records and its florets' seats, and
+//! every record and seat written into the grid, whose answers alone are
+//! read back.
 use super::super::super::cycle::tree::{self, Kernels};
 use super::super::super::Generator;
 use super::super::build::{folded, placeable, Folded, Timed, Tools};
-use super::super::florets::Organ;
+use super::super::florets::{Organ, Placed};
 use super::super::stations::{station_rows, Laid, Stationed};
 use super::SPLAT_LIMB;
 use super::{read_words, storage, Cfg, Rec};
-use super::{BOUND_LEAVES, BOX_LEAVES, BOX_WOOD, CARRIER, CLEAR, GRID_CLEAR, INHERIT, OPENS};
-use super::{ORDER, OWN, SPLAT_BEST, SPLAT_BEST_LOW, SPLAT_FINISH, SPLAT_LEAFLETS, SPLAT_LEAVES};
-use super::{SPLAT_WOOD, TABLE_CLEAR, WIDEST};
+use super::{BOUND_LEAVES, BOX_LEAVES, BOX_SEATS, BOX_WOOD, CARRIER, CLEAR, GRID_CLEAR};
+use super::{INHERIT, OPENS, ORDER, OWN, SPLAT_BEST, SPLAT_BEST_LOW, SPLAT_FINISH};
+use super::{SPLAT_FLOWERS, SPLAT_LEAFLETS, SPLAT_LEAVES, SPLAT_WOOD, TABLE_CLEAR, WIDEST};
 use crate::{Gpu, RenderError, Result};
-use telperion_core::field::{self as core_field, Frame, Grid, Occupancy};
-use telperion_core::foliage::{Bounds, Element, Instances};
+use telperion_core::field::{Frame, Grid, Occupancy};
+use telperion_core::foliage::{Bounds, Element};
 use telperion_core::math::Vec3;
 use telperion_core::pipeline::executor::{self, Expansion};
 use telperion_core::presets::Family;
@@ -24,6 +25,16 @@ use telperion_core::Error;
 /// A node's work words (`field.wgsl`'s `WORDS`); the box's six and the
 /// table's bound's two follow every node's.
 const WORDS: u64 = 7;
+
+/// A cell's words in the grid and its answers (`splat.wgsl`'s `CELL`).
+const CELL: u64 = 5;
+
+/// The words of the grid and of its answers over `cells`
+/// (`splat.wgsl`): two counters, a cell's words and three more a cell;
+/// a cell's words, then the counters and the placement's refusal.
+pub(in super::super) fn words(cells: u64) -> (u64, u64) {
+    (2 + (CELL + 3) * cells, CELL * cells + 4)
+}
 
 /// The grid a field is asked for: `n` cells a side over the device's own
 /// box, or a frame named outright, the CPU's, so a test compares the two
@@ -58,9 +69,7 @@ pub(in super::super) async fn grow(
     limb_order: Option<u32>,
     ask: Ask,
 ) -> Result<Grid> {
-    let cells = u64::from(Frame::side(ask.n())?).pow(3);
-    let grid_words = 1 + 7 * cells;
-    let answer_words = 4 * (cells + 1);
+    let (grid_words, answer_words) = words(u64::from(Frame::side(ask.n())?).pow(3));
     within(gpu, "field grid", grid_words)?;
     within(gpu, "field answers", answer_words)?;
     let _capped = gpu.ledger.capped(gen.device_budget());
@@ -93,16 +102,22 @@ pub(in super::super) async fn grow(
         year,
     );
     let device = tools.stationer.stations(gpu, laid, ids, rows).await?;
-    let florets = match &organ {
-        Some(o) => Some(o.read(gen, &device).await?),
-        None => None,
-    };
     let mut cfg = cfg(&x, (ids, device.segments), limb_order);
+    // Placed before the box is grown about their seats; never read back.
+    let mut placed = None;
+    if let Some(o) = &organ {
+        let mut e = gpu.encoder(&Default::default());
+        placed = o.place(gen, &mut e, &device)?;
+        gpu.submit([e.finish()]);
+        let r = o.within();
+        cfg.seat_min = [r.min.x, r.min.y, r.min.z, 0.0].map(|v| v as f32);
+        cfg.seat_extent = [r.extent.x, r.extent.y, r.extent.z, 0.0].map(|v| v as f32);
+    }
     let read = Read {
         gpu,
         nodes: &dressed.records,
         device: &device,
-        florets: florets.as_ref(),
+        florets: placed.as_ref(),
     };
     read.grid(tools, &mut cfg, ask, (grid_words, answer_words))
         .await
@@ -125,17 +140,18 @@ fn within(gpu: &Gpu, buffer: &'static str, words: u64) -> Result<()> {
 }
 
 /// What the read-out reads: the drawn records, the station segments and
-/// the florets, where the tree flowers.
+/// the placed florets, where the tree keeps any.
 struct Read<'a> {
     gpu: &'a Gpu,
     nodes: &'a wgpu::Buffer,
     device: &'a Stationed,
-    florets: Option<&'a Instances>,
+    florets: Option<&'a Placed>,
 }
 
 impl Read<'_> {
     /// The limb systems and the box derived, the grid placed, the table
-    /// sized from its bound and every record written into the grid.
+    /// sized from its bound and every record and seat written into the
+    /// grid.
     async fn grid(
         &self,
         tools: &Tools,
@@ -153,17 +169,22 @@ impl Read<'_> {
         lows.extend([u32::MAX; 3]);
         lows.extend([0u32; 5]);
         let work = storage(gpu, "field work", lows.len() as u64, &lows)?;
-        let none = [(); 3].map(|_| storage(gpu, "field unbound", 4, &[]));
-        let [a, b, c] = none;
-        let (a, b, c) = (a?, b?, c?);
+        let none = [(); 4].map(|_| storage(gpu, "field unbound", 4, &[]));
+        let [a, b, c, d] = none;
+        let (a, b, c, d) = (a?, b?, c?, d?);
+        let florets = self.florets.map_or(&*d, Placed::buffer);
+        let seats = self.florets.map(Placed::count);
         let mut e = gpu.encoder(&Default::default());
         let segs: &wgpu::Buffer = &self.device.buffer;
-        let derive: [&wgpu::Buffer; 6] = [self.nodes, segs, &work, &a, &b, &c];
+        let derive: [&wgpu::Buffer; 7] = [self.nodes, segs, &work, &a, &b, &c, florets];
         systems(&mut r, &mut e, cfg, &derive)?;
         let frame = match ask {
             Ask::Over(n) => {
                 r.run(&mut e, (BOX_WOOD, ids, &*cfg), &derive)?;
                 r.run(&mut e, (BOX_LEAVES, cfg.segs, &*cfg), &derive)?;
+                if let Some(seats) = seats {
+                    r.run(&mut e, (BOX_SEATS, seats, &*cfg), &derive)?;
+                }
                 gpu.submit([e.finish()]);
                 e = gpu.encoder(&Default::default());
                 let corners = read_words(gpu, &work, WORDS * u64::from(ids), 6).await?;
@@ -175,16 +196,6 @@ impl Read<'_> {
                 if !(b[0] <= b[3] && b.iter().all(|v| v.is_finite())) {
                     return Err(Error::InvalidInput("the device's field is empty").into());
                 }
-                let bounds = match self.florets.and_then(core_field::seat_bounds) {
-                    Some(s) => {
-                        let (lo, hi) = (bounds.min, bounds.max);
-                        Bounds {
-                            min: Vec3::new(lo.x.min(s.min.x), lo.y.min(s.min.y), lo.z.min(s.min.z)),
-                            max: Vec3::new(hi.x.max(s.max.x), hi.y.max(s.max.y), hi.z.max(s.max.z)),
-                        }
-                    }
-                    None => bounds,
-                };
                 Frame::over(bounds, n)?
             }
             #[cfg(test)]
@@ -196,7 +207,7 @@ impl Read<'_> {
         cfg.lo = [o.x, o.y, o.z, frame.cell].map(|v| v as f32);
         let grid = storage(gpu, "field grid", grid_words, &[])?;
         let answers = storage(gpu, "field answers", answer_words, &[])?;
-        let sized: [&wgpu::Buffer; 6] = [self.nodes, segs, &work, &grid, &b, &answers];
+        let sized: [&wgpu::Buffer; 7] = [self.nodes, segs, &work, &grid, &b, &answers, florets];
         r.run(&mut e, (GRID_CLEAR, grid_words as u32, &*cfg), &sized)?;
         r.run(&mut e, (BOUND_LEAVES, cfg.segs, &*cfg), &sized)?;
         gpu.submit([e.finish()]);
@@ -207,28 +218,38 @@ impl Read<'_> {
         let past = || Error::ResourceLimit("field table");
         cfg.slots = u32::try_from(4 * slots).map_err(|_| past())? / 4;
         let table = storage(gpu, "field table", 4 * slots, &[])?;
-        let bufs: [&wgpu::Buffer; 6] = [self.nodes, segs, &work, &grid, &table, &answers];
+        let bufs: [&wgpu::Buffer; 7] = [self.nodes, segs, &work, &grid, &table, &answers, florets];
         let mut e = gpu.encoder(&Default::default());
         r.run(&mut e, (TABLE_CLEAR, 4 * cfg.slots, &*cfg), &bufs)?;
         r.run(&mut e, (SPLAT_WOOD, ids, &*cfg), &bufs)?;
         r.run(&mut e, (SPLAT_LEAVES, cfg.segs, &*cfg), &bufs)?;
         r.run(&mut e, (SPLAT_LEAFLETS, cfg.segs, &*cfg), &bufs)?;
+        if let Some(seats) = seats {
+            r.run(&mut e, (SPLAT_FLOWERS, seats, &*cfg), &bufs)?;
+        }
         r.run(&mut e, (SPLAT_BEST, cfg.slots, &*cfg), &bufs)?;
         r.run(&mut e, (SPLAT_BEST_LOW, cfg.slots, &*cfg), &bufs)?;
         r.run(&mut e, (SPLAT_LIMB, cfg.slots, &*cfg), &bufs)?;
         r.run(&mut e, (SPLAT_FINISH, cells, &*cfg), &bufs)?;
+        // The placement's refusal word beside the counters, read with them.
+        if let Some(s) = self.florets.and_then(Placed::summary) {
+            e.copy_buffer_to_buffer(s, 4, &answers, (answer_words - 2) * 4, 4);
+        }
         gpu.submit([e.finish()]);
         let raw = read_words(gpu, &answers, 0, answer_words).await?;
-        let (body, tail) = raw.split_at(4 * cells as usize);
+        let (body, tail) = raw.split_at((CELL * u64::from(cells)) as usize);
+        if tail[2] != 0 {
+            let refused = Error::InvalidInput("GPU floret transform/reference");
+            return Err(refused.into());
+        }
         if tail[0] != 0 {
             return Err(Error::ResourceLimit("field table").into());
         }
-        let cells = body.chunks(4).map(answer).collect();
-        let mut grid = Grid { frame, cells };
-        if let Some(florets) = self.florets {
-            core_field::florets_into(&mut grid, florets)?;
+        if tail[1] != 0 {
+            return Err(Error::InvalidInput("a floret outside the field").into());
         }
-        Ok(grid)
+        let cells = body.chunks(CELL as usize).map(answer).collect();
+        Ok(Grid { frame, cells })
     }
 }
 
@@ -259,7 +280,7 @@ fn systems(
     Ok(())
 }
 
-/// One cell's answer from its four words.
+/// One cell's answer from its five words.
 fn answer(w: &[u32]) -> Occupancy {
     Occupancy {
         wood: w[0] & 1 != 0,
@@ -267,7 +288,7 @@ fn answer(w: &[u32]) -> Occupancy {
         foliage: w[0] & 2 != 0,
         leaves: f32::from_bits(w[2]).into(),
         limb: (w[3] != u32::MAX).then_some(w[3]),
-        flowers: 0.0,
+        flowers: w[4].into(),
     }
 }
 

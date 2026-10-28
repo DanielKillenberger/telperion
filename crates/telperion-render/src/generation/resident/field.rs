@@ -5,19 +5,25 @@
 //! as the dress wrote them and no curve swept; `field.wgsl` finds each node's limb
 //! system and the box every record stands in, and `field/splat.wgsl`
 //! writes every drawn node and leaf-bearing segment into the cells of the
-//! requested grid it reaches. Only the grid is read back, and nothing is
-//! held on the device after it. The CPU's field (`pipeline/field.rs`) is
-//! the reference it is measured against.
+//! requested grid it reaches. A flowering tree's placed florets stay on
+//! the device: their seats grow the box and are counted into their cells
+//! there (fn-319 R5). Only the grid's answers are read back, and nothing
+//! is held on the device after them. The CPU's field (`pipeline/field.rs`)
+//! is the reference it is measured against; the flowers by
+//! `flowers_agree`'s bounds, since an f32 seat on a cell's face may fall
+//! in the next cell over from the CPU's f64 one.
 use super::super::io;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
 mod make;
+#[cfg(test)]
+pub(super) use make::words;
 pub(super) use make::{grow, Ask};
 
 const FIELD: &str = include_str!("field.wgsl");
 const SPLAT: &str = include_str!("field/splat.wgsl");
-const ENTRIES: [&str; 19] = [
+const ENTRIES: [&str; 21] = [
     "clear",
     "widest",
     "carrier",
@@ -27,12 +33,14 @@ const ENTRIES: [&str; 19] = [
     "inherit",
     "box_wood",
     "box_leaves",
+    "box_seats",
     "grid_clear",
     "table_clear",
     "bound_leaves",
     "splat_wood",
     "splat_leaves",
     "splat_leaflets",
+    "splat_flowers",
     "splat_best",
     "splat_best_low",
     "splat_limb",
@@ -47,23 +55,25 @@ const OWN: usize = 5;
 const INHERIT: usize = 6;
 const BOX_WOOD: usize = 7;
 const BOX_LEAVES: usize = 8;
-const GRID_CLEAR: usize = 9;
-const TABLE_CLEAR: usize = 10;
-const BOUND_LEAVES: usize = 11;
-const SPLAT_WOOD: usize = 12;
-const SPLAT_LEAVES: usize = 13;
-const SPLAT_LEAFLETS: usize = 14;
-const SPLAT_BEST: usize = 15;
-const SPLAT_BEST_LOW: usize = 16;
-const SPLAT_LIMB: usize = 17;
-const SPLAT_FINISH: usize = 18;
+const BOX_SEATS: usize = 9;
+const GRID_CLEAR: usize = 10;
+const TABLE_CLEAR: usize = 11;
+const BOUND_LEAVES: usize = 12;
+const SPLAT_WOOD: usize = 13;
+const SPLAT_LEAVES: usize = 14;
+const SPLAT_LEAFLETS: usize = 15;
+const SPLAT_FLOWERS: usize = 16;
+const SPLAT_BEST: usize = 17;
+const SPLAT_BEST_LOW: usize = 18;
+const SPLAT_LIMB: usize = 19;
+const SPLAT_FINISH: usize = 20;
 
 /// The field's kernels, compiled with the rest of a generator's.
 pub(super) struct Fielder(io::Pass);
 
 impl Fielder {
     pub(super) fn new(gpu: &Gpu) -> Self {
-        let read_only = [true, true, false, false, false, false];
+        let read_only = [true, true, false, false, false, false, true];
         Self(io::Pass::new(gpu, source(), &read_only, &ENTRIES))
     }
 }
@@ -100,6 +110,10 @@ struct Cfg {
     leaf_half: [f32; 4],
     /// The leaf's wedge it rests on the ground by (`rest.wgsl`).
     wedge: [[f32; 4]; 2],
+    /// The box the florets are packed against: its least corner, its
+    /// extent (`foliage::Reference`).
+    seat_min: [f32; 4],
+    seat_extent: [f32; 4],
 }
 
 impl Cfg {
@@ -115,6 +129,8 @@ impl Cfg {
             c.leaf_half,
             c.wedge[0],
             c.wedge[1],
+            c.seat_min,
+            c.seat_extent,
         ] {
             w.extend(v.map(f32::to_bits));
         }
