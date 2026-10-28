@@ -2,7 +2,8 @@
   "branch_name": "fn-318-a-field-is-pre-generated-on-the-gpu",
   "created_at": "2026-10-25T12:44:45.502371Z",
   "depends_on_epics": [
-    "fn-319-the-release-audits-slice-lands-before"
+    "fn-319-the-release-audits-slice-lands-before",
+    "fn-320-a-tree-grown-twice-on-the-device-grows"
   ],
   "id": "fn-318-a-field-is-pre-generated-on-the-gpu",
   "next_task": 1,
@@ -22,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-28T12:13:00.391837Z"
+  "updated_at": "2026-10-28T12:25:46.653665Z"
 }
