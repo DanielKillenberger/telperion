@@ -73,3 +73,7 @@ seed 1.
 - In a browser every program is compiled by the GPU process. The 23 fewer
   programs are work it no longer does. That gain was not measured here,
   because WebGPU in a browser is out of bounds for workers.
+
+## The birch hash, re-run by the host (28 Oct 2026)
+
+The two differing `silver-birch 36` hashes (`1a62b934cb578ef1`, `274204c16d2a62bd`) both came from the loop that ran `target/ci/deps/telperion_render-e638275db5c659d6` at 12:50, while the worker was still rebuilding that crate. Afterwards, with nothing building: the base binary 15 runs over every preset and the final binary 15 runs, every hash equal to task 1's (`/tmp/fn319/t2-base15.log`, `/tmp/fn319/t2-final15.log`), and the worker's copied final binary 22 more birch rows equal. Not reproduced in 30 clean runs on either binary; the cause of the two is unknown. fn-318's byte equality (R3) is the contract that would catch it again.

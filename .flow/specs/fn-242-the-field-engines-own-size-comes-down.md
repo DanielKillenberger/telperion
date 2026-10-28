@@ -17,3 +17,7 @@ Depends on fn-227. Not a release item.
 ## Re-scope (host, 2026-10-16)
 
 Astra's release review (2026-10-16, `.flow/evidence/fn-237-release-the-tree-space-engine-replaces/ASTRA-RELEASE-REVIEW.md`), "After 0.2.0" 3: this spec's plan profiled a single-thread coarse-field Wasm engine and depended on fn-227, which fn-257 superseded. It is rewritten against the artifacts fn-257 ships: the final package's reachable modules and transfer sizes measured, unreachable dependencies and needless entry coupling removed, and the ceilings fn-237 raised for 0.2.0 brought back down. The 616 KB engine attribution is not a forecast for a device-held field. The three published Wasm entries stay until their consumers and a migration justify a change. The fn-227 dependency is removed. (fn-293 task 7: the package publishes three entries, `telperion`, `telperion/field` and `telperion/field/voxelize`, over two Wasm modules, `telperion.wasm` and `telperion-render.wasm`; there is no slim field module since fn-257.)
+
+## Carried from fn-319 (host, 28 Oct 2026)
+
+The device field still makes the generator's `mass` and `positions` passes and the cycle's `present` kernels, which it never dispatches (fn-319 task 2, `FIELD-PROGRAMS.md`). Removing them restructures `Generator::create` and `cycle::tree::Kernels`; it belongs with making rendering code unreachable from a field.

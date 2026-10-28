@@ -14,3 +14,7 @@ The owner, 25 Oct 2026: "just pregen them with the gpu?". killenberger.com draws
 ## Out of scope
 
 The site's build step (killenberger.com's own repository). Release 0.2.0.
+
+## From fn-319 (host, 28 Oct 2026)
+
+Twice during fn-319 task 2, `silver-birch` at n 36 hashed differently on the device field (`1a62b934cb578ef1`, `274204c16d2a62bd` against `9ddc6db2e5c068f6`) while its crate was being rebuilt alongside; 30 later clean runs on both binaries never repeated it (`fn-319 FIELD-PROGRAMS.md`). R3's byte equality must hold over repeated runs, not one.
