@@ -267,8 +267,14 @@ fn swept(gpu: &crate::Gpu, f: &Family) -> ((usize, usize), f64) {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     let kit = gen.kit();
-    let built =
-        pollster::block_on(super::build::build(gpu, &gen, &kit.kernels, &kit.tools, f)).unwrap();
+    let built = pollster::block_on(super::build::build(
+        gpu,
+        &gen,
+        &kit.kernels,
+        kit.full(gpu),
+        f,
+    ))
+    .unwrap();
     let (points, clusters, p, k, _) = built.prepared.wood.as_ref().unwrap().blocks();
     let points = words(gpu, points, p as usize * POINT_WORDS);
     let clusters = words(gpu, clusters, k as usize * CLUSTER_WORDS);

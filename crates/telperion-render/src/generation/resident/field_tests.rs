@@ -265,6 +265,26 @@ const NAMED: f64 = 0.97;
 /// the device's field boxes them in the frame they rest in, as the CPU's
 /// plan does (`field_fronds.rs`'s `a_rested_leaflet_lies_in_its_planned_box`):
 /// the palm at 12 answers within its tolerance on grids of 24, 36 and 48.
+/// fn-319 R1: a field's generator, prepared as the package's field entry
+/// prepares it and grown on a flowering tree, holds neither the wood's
+/// surfacing passes nor a build's sweeper and ringer.
+#[test]
+fn a_field_generator_holds_no_curve_pass_sweeper_or_ringer() {
+    let _held = super::super::whole_tree();
+    let Some(gen) = generator() else {
+        return;
+    };
+    pollster::block_on(gen.prepare_field_programs()).expect("prepared");
+    let tree = family("telperion", 1);
+    pollster::block_on(gen.grow_field(&tree, 24, None)).expect("read out");
+    assert!(gen.gpu.curve.get().is_none(), "the wood's passes were made");
+    let kit = gen.resident.get().expect("the field's kit");
+    assert!(
+        kit.drawing.get().is_none(),
+        "a sweeper and ringer were made"
+    );
+}
+
 #[test]
 fn the_young_palm_s_rested_leaflets_are_boxed_as_the_cpu_boxes_them() {
     let _held = super::super::whole_tree();

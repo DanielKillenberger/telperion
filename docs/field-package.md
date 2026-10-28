@@ -10,7 +10,10 @@ the grid the call names: only the grid is read back, and nothing stays on
 the device. A flowering tree's florets are counted into their cells there
 too, never read back; the counts agree with the CPU's within
 `flowers_agree`'s bounds, since an f32 seat on a cell's face may fall one
-cell over (fn-319). There is no CPU fallback.
+cell over (fn-319). There is no CPU fallback. `prepareField` makes the
+cycle's kernels, the hanger, dresser, stationer and field passes and the
+generator's placement passes, never the renderer's curve, sweep or rings
+(fn-319 R1).
 
 ## The entry point
 

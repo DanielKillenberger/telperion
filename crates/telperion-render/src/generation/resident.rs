@@ -3,14 +3,17 @@
 //! stages fold, sweep, station, ring and place it (`build.rs`), so a
 //! harness build reads only summaries back and holds no node of the tree
 //! on the CPU.
+use super::cycle::tree::Kernels;
 use super::Prepared;
 use crate::Result;
 use telperion_core::presets::Family;
 
-/// The device's kernels and tools for a generator's trees.
+/// The device's kernels and tools for a generator's trees: a field's
+/// tools, and a build's drawing where a build is made (fn-319 R1).
 pub(super) struct Kit {
-    kernels: super::cycle::tree::Kernels,
+    kernels: Kernels,
     tools: build::Tools,
+    drawing: std::cell::OnceCell<build::Drawing>,
 }
 
 pub use budget::Admitted;
@@ -18,14 +21,45 @@ pub use budget::Admitted;
 pub(crate) use budget::BROWSER;
 
 impl Kit {
-    /// The kernels and the tools made side by side (`io::pair`).
+    /// A field's: the kernels and a field's tools made side by side
+    /// (`io::pair`), no drawing.
     fn new(gpu: &crate::Gpu) -> Self {
-        let (kernels, tools) = super::io::pair(
-            gpu,
-            || super::cycle::tree::Kernels::new(gpu),
-            || build::Tools::new(gpu),
-        );
-        Self { kernels, tools }
+        let (kernels, tools) =
+            super::io::pair(gpu, || Kernels::new(gpu), || build::Tools::new(gpu));
+        let drawing = Default::default();
+        Self {
+            kernels,
+            tools,
+            drawing,
+        }
+    }
+
+    /// A build's: a field's kit and the drawing made side by side.
+    fn whole(gpu: &crate::Gpu) -> Self {
+        let (kit, drawing) = super::io::pair(gpu, || Self::new(gpu), || build::Drawing::new(gpu));
+        let _ = kit.drawing.set(drawing);
+        kit
+    }
+
+    /// A build's tools, the drawing made where it was not.
+    fn full(&self, gpu: &crate::Gpu) -> build::Full<'_> {
+        let drawing = self.drawing.get_or_init(|| build::Drawing::new(gpu));
+        (&self.tools, drawing)
+    }
+
+    /// The kernels alone.
+    fn kernels(&self) -> &Kernels {
+        &self.kernels
+    }
+
+    /// The kernels and a field's tools: never a build's drawing.
+    fn field(&self) -> (&Kernels, &build::Tools) {
+        (&self.kernels, &self.tools)
+    }
+
+    /// The kernels and a build's tools.
+    fn building<'a>(&'a self, gpu: &crate::Gpu) -> (&'a Kernels, build::Full<'a>) {
+        (&self.kernels, self.full(gpu))
     }
 }
 
@@ -47,9 +81,21 @@ impl super::Generator {
         let scopes = super::io::scope(&self.gpu);
         let gpu = &self.gpu;
         // The wood's passes made beside the kit.
-        self.resident.get_or_init(|| {
-            super::io::pair(gpu, || Kit::new(gpu), || drop(crate::curve::passes(gpu))).0
+        let kit = self.resident.get_or_init(|| {
+            super::io::pair(gpu, || Kit::whole(gpu), || drop(crate::curve::passes(gpu))).0
         });
+        // A kit a field's preparation made first gains the drawing.
+        kit.full(gpu);
+        super::io::programs_ready(&self.gpu, scopes).await
+    }
+
+    /// Every program a field dispatches, compiled before one is asked
+    /// for: the kernels and a field's tools, never a build's sweep, rings
+    /// or the wood's passes (fn-319 R1). A refused program, or a device
+    /// lost meanwhile, is refused by name.
+    pub async fn prepare_field_programs(&self) -> Result<()> {
+        let scopes = super::io::scope(&self.gpu);
+        self.kit();
         super::io::programs_ready(&self.gpu, scopes).await
     }
 
@@ -105,10 +151,10 @@ impl super::Generator {
         if let Some(lost) = gpu.lost() {
             return Err(lost);
         }
+        // A field's tools alone: the work never sees a build's drawing.
         let read = self
-            .on_device(async |kit| {
-                let tools = (self, &kit.kernels, &kit.tools);
-                field::grow(gpu, tools, family, limb_order, ask).await
+            .on_device(Kit::field, async |(kernels, tools)| {
+                field::grow(gpu, (self, kernels, tools), family, limb_order, ask).await
             })
             .await;
         read.map_err(|e| gpu.lost().unwrap_or(e))
@@ -138,8 +184,9 @@ impl super::Generator {
         if let Some(stated) = self.budget.get() {
             budget::check(family, self.gpu.ledger.live(), stated)?;
         }
+        let take = |kit| Kit::building(kit, &self.gpu);
         let built = self
-            .on_device(async |kit| {
+            .on_device(take, async |(kernels, tools)| {
                 #[cfg(test)]
                 if self.fail_next.take() {
                     // A storage buffer the device may also map: a validation error.
@@ -155,17 +202,21 @@ impl super::Generator {
                     );
                     drop(refused);
                 }
-                build::build(&self.gpu, self, &kit.kernels, &kit.tools, family).await
+                build::build(&self.gpu, self, kernels, tools, family).await
             })
             .await?;
         Ok(built.prepared)
     }
 
-    /// `work` on the device's kit, inside its error scopes: a device
-    /// error is the cause of any readback it failed, so it is the one
-    /// reported, and a program the device refused is reported before any
-    /// work starts.
-    async fn on_device<T>(&self, work: impl AsyncFnOnce(&Kit) -> Result<T>) -> Result<T> {
+    /// `work` on what `take` takes of the device's kit, inside its error
+    /// scopes: a device error is the cause of any readback it failed, so
+    /// it is the one reported, and a program the device refused is
+    /// reported before any work starts.
+    async fn on_device<'a, K, T>(
+        &'a self,
+        take: impl FnOnce(&'a Kit) -> K,
+        work: impl AsyncFnOnce(K) -> Result<T>,
+    ) -> Result<T> {
         let gpu = &self.gpu;
         // What was let go before (a tree, a still's buffers) is charged
         // until the device is done with it: waited for, so the budget
@@ -175,7 +226,7 @@ impl super::Generator {
         // The kernels are made inside the scopes, so a shader the device
         // refuses is the error reported.
         let scopes = super::io::scope(gpu);
-        let kit = self.kit();
+        let kit = take(self.kit());
         if let Err(refused) = crate::programs::ready(gpu).await {
             // The scopes popped; a lost device, then the refusal, as
             // `programs::first_cause` orders them.

@@ -31,13 +31,14 @@ use telperion_core::surface::{Bounds, SurfaceMesh};
 use telperion_core::tree::Year;
 use telperion_core::Error;
 
-/// The device's tools, made once.
+/// The tools a field is read out with, and a build's folds and stations
+/// with them: the hanger, the dresser, the stationer and the field's own.
+/// A build's sweep and rings are `Drawing`'s, so a field, which holds
+/// these alone, cannot reach a stage that needs them (fn-319 R1).
 pub(super) struct Tools {
     pub hanger: Hanger,
     pub dresser: Dresser,
-    pub sweeper: Sweeper,
     pub stationer: Stationer,
-    pub ringer: Ringer,
     pub fielder: super::field::Fielder,
 }
 
@@ -45,27 +46,38 @@ impl Tools {
     /// Every tool made side by side (`io::pair`).
     pub(super) fn new(gpu: &Gpu) -> Self {
         use super::super::io::pair;
-        let ((hanger, dresser), ((sweeper, stationer), ringer)) = pair(
+        let ((hanger, dresser), stationer) = pair(
             gpu,
             || pair(gpu, || Hanger::new(gpu), || Dresser::new(gpu)),
-            || {
-                pair(
-                    gpu,
-                    || pair(gpu, || Sweeper::new(gpu), || Stationer::new(gpu)),
-                    || Ringer::new(gpu),
-                )
-            },
+            || Stationer::new(gpu),
         );
         Self {
             hanger,
             dresser,
-            sweeper,
             stationer,
-            ringer,
             fielder: super::field::Fielder::new(gpu),
         }
     }
 }
+
+/// What a build draws with beyond a field's tools: the sweep into the
+/// renderer's curve, and the rings.
+pub(super) struct Drawing {
+    pub sweeper: Sweeper,
+    pub ringer: Ringer,
+}
+
+impl Drawing {
+    /// Both made side by side (`io::pair`).
+    pub(super) fn new(gpu: &Gpu) -> Self {
+        let pair = super::super::io::pair;
+        let (sweeper, ringer) = pair(gpu, || Sweeper::new(gpu), || Ringer::new(gpu));
+        Self { sweeper, ringer }
+    }
+}
+
+/// A build's tools: a field's, and the drawing.
+pub(super) type Full<'a> = (&'a Tools, &'a Drawing);
 
 /// Each stage's milliseconds, each waited on: the tree grown, settled
 /// and drawn (outside the 3x boundary), its retained leaf bases, the
@@ -138,7 +150,7 @@ pub(super) async fn build(
     gpu: &Gpu,
     gen: &Generator,
     k: &Kernels,
-    tools: &Tools,
+    tools: Full<'_>,
     family: &Family,
 ) -> Result<Built> {
     crowned(gpu, (gen, k, tools), family, 1.0).await
@@ -149,7 +161,7 @@ pub(super) async fn build(
 /// the crown within its year on the whole tree's wood.
 pub(super) async fn crowned(
     gpu: &Gpu,
-    (gen, k, tools): (&Generator, &Kernels, &Tools),
+    (gen, k, tools): (&Generator, &Kernels, Full<'_>),
     family: &Family,
     fraction: f64,
 ) -> Result<Built> {
@@ -191,12 +203,13 @@ pub(super) fn placeable(family: &Family) -> Result<()> {
 /// grown on (`growing.rs`). `t` holds the draw's milliseconds.
 pub(super) async fn placed(
     gpu: &Gpu,
-    (gen, tools): (&Generator, &Tools),
+    (gen, tools): (&Generator, Full<'_>),
     (family, growth): (&Family, &executor::Growth),
     (drawn, year): ((Dressed, tree::Trunk), Option<Year>),
     mut t: Timed,
 ) -> Result<Built> {
     let flowers = growth.species.states.iter().any(|s| s.flowering > 0.0);
+    let (fielding, drawing) = tools;
     let Readied {
         x,
         swept,
@@ -216,7 +229,7 @@ pub(super) async fn placed(
         false => None,
     };
     let station = station_rows(&x, segments, organ.as_ref().map(Organ::rows), year);
-    let stationer = &tools.stationer;
+    let stationer = &fielding.stationer;
     let device = stage(gpu, &mut t.stations, async || {
         let laid = swept.laid(&dressed, hung.fronds.as_deref());
         stationer.stations(gpu, laid, dressed.ids, station).await
@@ -231,7 +244,7 @@ pub(super) async fn placed(
         true => Some(
             stage(gpu, &mut t.rings, async || {
                 let twist = std::f64::consts::TAU * surface.twist_rate / height;
-                let rung = tools.ringer.rings(gpu, &swept, segments, twist as f32)?;
+                let rung = drawing.ringer.rings(gpu, &swept, segments, twist as f32)?;
                 let rings = (&*rung.buffer, rung.rings, rung.vertices);
                 let at = (section.segments, section.lobes, section.depth);
                 gen.ring_vertices(rings, at, &section.angular)
@@ -368,14 +381,14 @@ pub(super) struct Readied {
 
 pub(super) async fn readied(
     gpu: &Gpu,
-    tools: &Tools,
+    (tools, drawing): Full<'_>,
     (family, year): (&Family, Option<Year>),
     drawn: (Dressed, tree::Trunk),
     t: &mut Timed,
 ) -> Result<Readied> {
     let Folded { x, dressed, hung } = folded(gpu, tools, (family, year), drawn, t).await?;
     let rows = rows(&family.surface, x.leaves().envelope.height);
-    let sweeper = &tools.sweeper;
+    let sweeper = &drawing.sweeper;
     let swept = stage(gpu, &mut t.sweep, async || {
         sweeper
             .sweep(gpu, &dressed, rows, hung.cells.as_ref())

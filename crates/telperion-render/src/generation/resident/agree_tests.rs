@@ -198,8 +198,14 @@ fn stations(gpu: &crate::Gpu, f: &Family) -> (u64, u64, usize) {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     let kit = gen.kit();
-    let built =
-        pollster::block_on(super::build::build(gpu, &gen, &kit.kernels, &kit.tools, f)).unwrap();
+    let built = pollster::block_on(super::build::build(
+        gpu,
+        &gen,
+        &kit.kernels,
+        kit.full(gpu),
+        f,
+    ))
+    .unwrap();
     let d = &built.device;
     let words = d.segments as usize * GW;
     let raw = io::read(gpu, &d.buffer, (words.max(4) * 4) as u64).unwrap();
@@ -293,7 +299,7 @@ fn crown_agrees(gpu: &crate::Gpu, id: &str, f: &Family, fraction: f64) {
     let kit = gen.kit();
     let built = pollster::block_on(super::build::crowned(
         gpu,
-        (&gen, &kit.kernels, &kit.tools),
+        (&gen, &kit.kernels, kit.full(&gpu)),
         f,
         fraction,
     ))
@@ -451,8 +457,14 @@ fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     let kit = gen.kit();
-    let built =
-        pollster::block_on(super::build::build(gpu, &gen, &kit.kernels, &kit.tools, f)).unwrap();
+    let built = pollster::block_on(super::build::build(
+        gpu,
+        &gen,
+        &kit.kernels,
+        kit.full(gpu),
+        f,
+    ))
+    .unwrap();
     let s = executor::growth(f).unwrap().scale;
     let wood = built.prepared.wood.as_ref().unwrap();
     let (points, clusters, p, k, _) = wood.blocks();
@@ -551,7 +563,7 @@ fn every_preset_draws_its_wood_by_the_cpu_rows() {
             &gpu,
             &gen,
             &kit.kernels,
-            &kit.tools,
+            kit.full(&gpu),
             &f,
         ))
         .unwrap();
@@ -622,13 +634,14 @@ fn seats_on_resting_wood_stand_on_the_ground_on_the_device() {
     let drawn = pollster::block_on(tree::drawn(&gpu, &kit.kernels, (&growth, bases))).unwrap();
     let mut t = super::build::Timed::default();
     let year = growth.year(1.0);
-    let ready = super::build::readied(&gpu, &kit.tools, (&f, year), drawn, &mut t);
+    let ready = super::build::readied(&gpu, kit.full(&gpu), (&f, year), drawn, &mut t);
     let r = pollster::block_on(ready).unwrap();
     let s = r.x.section().unwrap();
     let height = r.x.leaves().envelope.height;
     let twist = std::f64::consts::TAU * f.surface.twist_rate / height;
     let rung = kit
-        .tools
+        .full(&gpu)
+        .1
         .ringer
         .rings(&gpu, &r.swept, s.segments, twist as f32);
     let rung = rung.unwrap();

@@ -4,7 +4,7 @@
 //! station segments, leaves and masses byte for byte.
 use super::super::cycle::tree::Kernels;
 use super::super::{io, Generator};
-use super::build::{build, Tools};
+use super::build::{build, Drawing, Tools};
 use super::stations::GW;
 use telperion_core::presets::Family;
 
@@ -22,8 +22,8 @@ fn snapshot(family: &Family) -> Option<Snapshot> {
     let gpu = crate::generation::test_gpu()?;
     let make = Generator::create(gpu.clone(), std::sync::Arc::new(()));
     let gen = pollster::block_on(make).unwrap();
-    let (k, tools) = (Kernels::new(&gpu), Tools::new(&gpu));
-    let built = pollster::block_on(build(&gpu, &gen, &k, &tools, family)).unwrap();
+    let (k, tools, drawing) = (Kernels::new(&gpu), Tools::new(&gpu), Drawing::new(&gpu));
+    let built = pollster::block_on(build(&gpu, &gen, &k, (&tools, &drawing), family)).unwrap();
     let resident = built.prepared.resident.as_ref().unwrap();
     let leaves = io::read_leaves_async(&gpu, resident.leaves.buffer(), resident.count);
     let leaves = pollster::block_on(leaves).unwrap();

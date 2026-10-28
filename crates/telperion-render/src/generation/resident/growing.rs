@@ -11,6 +11,7 @@
 use super::super::cycle::tree::GrowthState;
 use super::super::{Generator, Prepared};
 use super::build::{placeable, placed, stage, Timed};
+use super::Kit;
 use crate::Result;
 use std::cell::Cell;
 use std::sync::Arc;
@@ -114,8 +115,8 @@ impl Generator {
         let at = (growth.request.seed, growth.request.age);
         let budget = self.device_budget();
         let state = self
-            .on_device(async |kit| {
-                let begun = GrowthState::begin(&self.gpu, &kit.kernels, &growth, at, budget);
+            .on_device(Kit::kernels, async |k| {
+                let begun = GrowthState::begin(&self.gpu, k, &growth, at, budget);
                 Ok(begun.await?.hanging(bases))
             })
             .await?;
@@ -137,8 +138,8 @@ impl Generator {
         }
         let (state, mut moved) = (&mut tree.state, false);
         let grown = self
-            .on_device(async |kit| {
-                state.grow_to(&self.gpu, &kit.kernels, age).await?;
+            .on_device(Kit::kernels, async |k| {
+                state.grow_to(&self.gpu, k, age).await?;
                 moved = true;
                 Ok(())
             })
@@ -164,8 +165,9 @@ impl Generator {
             return Err(foreign());
         }
         let (mut drew, mut held) = (false, 0);
+        let take = |kit| Kit::building(kit, &self.gpu);
         let built = self
-            .on_device(async |kit| {
+            .on_device(take, async |(k, tools)| {
                 let gpu = &self.gpu;
                 // Watched once what was let go before is freed: a tree let
                 // go to make room is not the draw's.
@@ -176,7 +178,7 @@ impl Generator {
                 // The draw refuses an `at` outside the last year, or a spent
                 // tree, by name before anything is drawn.
                 let drawn = stage(gpu, &mut t.settle, async || {
-                    tree.state.settle(gpu, &kit.kernels, at).await
+                    tree.state.settle(gpu, k, at).await
                 })
                 .await?;
                 drew = true;
@@ -184,7 +186,7 @@ impl Generator {
                 let year = tree.growth.year(fraction).map(|y| Year { age: at, ..y });
                 let built = placed(
                     gpu,
-                    (self, &kit.tools),
+                    (self, tools),
                     (&tree.family, &tree.growth),
                     (drawn, year),
                     t,

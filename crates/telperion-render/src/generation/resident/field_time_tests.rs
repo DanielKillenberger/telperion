@@ -84,7 +84,7 @@ fn field_cold() {
     };
     let t = Clock::now();
     let gen = pollster::block_on(Generator::for_fields_async(gpu)).expect("a generator");
-    pollster::block_on(gen.prepare_programs()).expect("prepared");
+    pollster::block_on(gen.prepare_field_programs()).expect("prepared");
     println!("FIELD_COLD prepare {:.2}", t.elapsed_ms());
     let id = presets("oregon-white-oak").remove(0);
     let family = family(&id, 1);

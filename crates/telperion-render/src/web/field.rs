@@ -49,7 +49,7 @@ async fn fields() -> std::result::Result<Rc<Generator>, JsValue> {
                 future_to_promise(async {
                     let gpu = Gpu::request(None).await.map_err(refused)?;
                     let made = Generator::for_fields_async(gpu).await.map_err(refused)?;
-                    made.prepare_programs().await.map_err(refused)?;
+                    made.prepare_field_programs().await.map_err(refused)?;
                     FIELDS.with(|f| *f.borrow_mut() = Some(Rc::new(made)));
                     Ok(JsValue::UNDEFINED)
                 })

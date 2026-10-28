@@ -81,8 +81,14 @@ fn agrees(gpu: &crate::Gpu, name: &str, f: &Family) -> (ByKey, ByKey) {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     let kit = gen.kit();
-    let built =
-        pollster::block_on(super::build::build(gpu, &gen, &kit.kernels, &kit.tools, f)).unwrap();
+    let built = pollster::block_on(super::build::build(
+        gpu,
+        &gen,
+        &kit.kernels,
+        kit.full(gpu),
+        f,
+    ))
+    .unwrap();
     // The device's wood by its runs' keys, and its crown.
     let d = &built.device;
     let raw = io::read(

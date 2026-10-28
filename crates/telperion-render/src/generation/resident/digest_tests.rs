@@ -176,7 +176,7 @@ fn palm_digest() {
     }
     let kit = gen.kit();
     for (age, fraction) in [(40.0, 0.3), (40.0, 0.8), (4.0, 0.3), (4.0, 0.8)] {
-        let tools = (&gen, &kit.kernels, &kit.tools);
+        let tools = (&gen, &kit.kernels, kit.full(&gpu));
         let built = block_on(super::build::crowned(&gpu, tools, &palm(age), fraction)).unwrap();
         let resident = built.prepared.resident.as_ref().unwrap();
         let read = io::read_leaves_async(&gpu, resident.leaves.buffer(), resident.count);
