@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * the browser, asked directly, has one. */
 const grow = vi.fn();
 vi.mock("../browser/module", () => ({ loadModule: async () => undefined }));
-vi.mock("../browser/render/telperion_render.js", () => ({ WebField: { grow: (...a: unknown[]) => grow(...a), prepare: async () => undefined } }));
+vi.mock("../browser/render/telperion_render.js", () => ({ WebField: { check: () => undefined, grow: (...a: unknown[]) => grow(...a), prepare: async () => undefined } }));
 const { FieldError, growField } = await import("./index");
 const { presetById } = await import("../browser/presets");
 

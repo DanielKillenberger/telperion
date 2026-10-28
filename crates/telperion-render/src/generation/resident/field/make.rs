@@ -6,7 +6,7 @@
 //! read back.
 use super::super::super::cycle::tree::{self, Kernels};
 use super::super::super::Generator;
-use super::super::build::{folded, placeable, Folded, Timed, Tools};
+use super::super::build::{folded, instances, placeable, Folded, Timed, Tools};
 use super::super::florets::{Organ, Placed};
 use super::super::stations::{station_rows, Laid, Stationed};
 use super::SPLAT_LIMB;
@@ -102,6 +102,8 @@ pub(in super::super) async fn grow(
         year,
     );
     let device = tools.stationer.stations(gpu, laid, ids, rows).await?;
+    // The leaves counted against the canopy's budget, as a build counts them.
+    instances(device.stations, x.leaves().canopy.max_instances)?;
     let mut cfg = cfg(&x, (ids, device.segments), limb_order);
     // Placed before the box is grown about their seats; never read back.
     let mut placed = None;

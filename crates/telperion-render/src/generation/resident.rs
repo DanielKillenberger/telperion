@@ -149,6 +149,8 @@ impl super::Generator {
         ask: field::Ask,
     ) -> Result<telperion_core::field::Grid> {
         telperion_core::field::Frame::side(ask.n())?;
+        // The family refused as the CPU refuses it, before any device work.
+        family.validate()?;
         let gpu = &self.gpu;
         if let Some(lost) = gpu.lost() {
             return Err(lost);
@@ -176,6 +178,8 @@ impl super::Generator {
     /// `family` prepared resident, grown, drawn and placed on the device
     /// whole (fn-256 task 3), nothing read back per node.
     pub(super) async fn prepare_resident(&self, family: &Family) -> Result<Prepared> {
+        // The family refused as the CPU refuses it, before any device work.
+        family.validate()?;
         // What was let go before this build is waited for, so the budget
         // counts what is held (`on_device`).
         super::io::complete(&self.gpu).await?;

@@ -61,9 +61,8 @@ impl WebRenderer {
     /// use the CPU fallback; the existing synchronous entry remains available.
     #[wasm_bindgen(js_name = setTreeGpu)]
     pub fn set_tree_gpu(&self, family: &str) -> js_sys::Promise {
-        let parsed = serde_json::from_str(family)
-            .map_err(|e| JsError::new(&format!("the parameters are not JSON: {e}")))
-            .and_then(|value| params::parse(&value).map_err(|e| js_error(e.into())));
+        // The family refused as the CPU refuses it, before the budget.
+        let parsed = super::field::checked(family);
         let live = self.live.clone();
         let state = self.generation.clone();
         let begun = parsed.and_then(|family| {

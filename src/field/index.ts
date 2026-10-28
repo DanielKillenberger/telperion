@@ -124,14 +124,16 @@ function unsigned(value: number, what: string, limit = U32): number {
  * and a nonfinite parameter are refused by name before any work; a grid
  * past the device's limits by name before anything is allocated;
  * parameters the core refuses with the core's error, as
- * `TreeEngine.build` refuses them; a page or worker without WebGPU, or a
- * lost device, with a `FieldError`. */
+ * `TreeEngine.build` refuses them, before a device is asked for; a page or
+ * worker without WebGPU, or a lost device, with a `FieldError`. */
 export async function growField(family: Family, n: number, options: GrowOptions = {}): Promise<FieldTree> {
   const parameters = wire(family);
   side(n);
   const order = options.limbOrder === undefined ? undefined : unsigned(options.limbOrder, "limbOrder", U32 - 1);
-  const gpu = device();
   await loadModule(options.source);
+  // The family's own error comes before any device is asked for (fn-319 R2).
+  WebField.check(parameters);
+  const gpu = device();
   const field = (await onDevice(gpu, () => WebField.grow(parameters, n, order))) as WebField;
   try {
     const o = field.origin();

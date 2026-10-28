@@ -343,6 +343,38 @@ fn the_device_field_refuses_what_the_core_refuses() {
     assert!(telperion_core::presets::by_identity("no-such-tree").is_err());
 }
 
+/// A family the CPU refuses is refused on the device with the CPU's
+/// message, through the field and the device build alike (fn-319 R2):
+/// Ordinary at seed 1 past its instance budget and with a scatter below
+/// nought. Every shipped preset passes the family's check.
+#[test]
+fn the_device_refuses_a_family_the_cpu_refuses() {
+    for &(_, id, _, _) in telperion_core::presets::CATALOGUE {
+        family(id, 1)
+            .validate()
+            .unwrap_or_else(|e| panic!("{id}: {e}"));
+    }
+    let _held = super::super::whole_tree();
+    let Some(gen) = generator() else {
+        return;
+    };
+    let mut budget = family("ordinary", 1);
+    budget.canopy.max_instances = 1;
+    let mut scatter = family("ordinary", 1);
+    scatter.canopy.scatter = -1.0;
+    for (tree, says) in [(budget, "foliage instance budget"), (scatter, "scatter")] {
+        let core = pipeline::build(&tree, ask(12, None))
+            .err()
+            .expect("refused");
+        let core = core.to_string();
+        assert!(core.contains(says), "{core}");
+        let field = pollster::block_on(gen.grow_field(&tree, 12, None)).expect_err("refused");
+        assert!(field.to_string().contains(&core), "the field: {field}");
+        let built = gen.prepare(&tree).err().expect("refused");
+        assert!(built.to_string().contains(&core), "the build: {built}");
+    }
+}
+
 /// A cell crowded with limbs names the CPU's limb: the birch's whole crown
 /// in the middle cell of a grid of three, its 387 systems at its own order,
 /// each device system read as the CPU's it shares the most cells with on

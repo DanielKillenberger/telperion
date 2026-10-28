@@ -13,3 +13,10 @@
 - Slowed by: an intermittent `silver-birch 36` hash mismatch in all-preset `field_answers` runs (3 of 14 on the final binary, 0 of 12 on the base). Telling a regression from latent nondeterminism took 4 further batches of alternated runs.
 - Cost: about 12 minutes and 29 GPU runs of 18 s.
 - Would remove it: a repeatability test over a whole-catalogue sequence on one generator, not only repeated grows of one preset (`the_device_field_answers_the_same_every_time`), so nondeterminism shows up on the base before a change is blamed.
+
+## 28 Oct 2026, task .3 (parallel worker, worktree fn-319-t3)
+
+- Doing: the baseline (`npx vitest run src/field`) and the first red run of the new Rust test.
+- Slowed by: vitest's global setup (`harness/release-binaries.setup.ts`) builds release binaries with cargo (telperion-jev and others) outside the heavy queue and at full parallelism, so a focused three-file vitest run took 136 s, 23 s of it tests. Then the red cargo run waited in `telperion-heavy` for more than 10 minutes on memory (room 1 to 5 GB for 8) while other workers ran, and the foreground call timed out into the background.
+- Cost: about 2 minutes of uncapped compile per vitest run and over 10 minutes of queue wait.
+- Would remove it: a vitest global setup that builds only what the selected files need (or skips when no selected file uses the binaries), and a smaller memory ask for a single focused test (`telperion-heavy 4`) when the target is warm.

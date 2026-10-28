@@ -64,6 +64,20 @@ async fn fields() -> std::result::Result<Rc<Generator>, JsValue> {
         .ok_or_else(|| JsError::new("the device for fields was not made").into())
 }
 
+/// `family` (its parameters as JSON) read as the CPU entry reads them and
+/// refused with the CPU's message where the CPU would refuse it
+/// (`Family::validate`): what a device path checks before it asks for a
+/// device (fn-319 R2).
+pub(super) fn checked(
+    family: &str,
+) -> std::result::Result<telperion_core::presets::Family, JsError> {
+    let value = serde_json::from_str(family)
+        .map_err(|e| JsError::new(&format!("the parameters are not JSON: {e}")))?;
+    let family = params::parse(&value).map_err(|e| js_error(e.into()))?;
+    family.validate().map_err(|e| js_error(e.into()))?;
+    Ok(family)
+}
+
 /// A tree's field, read out to a grid
 /// (`telperion_core::field::Frame`): `n` cells a side of `cell` metres
 /// from `origin`, cell `i + n * (j + n * k)` centred at `origin + (i +
@@ -87,6 +101,13 @@ impl WebField {
         })
     }
 
+    /// `family`'s parameters checked as `grow` checks them before it asks
+    /// for a device: a page without WebGPU learns its family is invalid,
+    /// with the core's error, before it learns it has no device.
+    pub fn check(family: &str) -> std::result::Result<(), JsError> {
+        checked(family).map(drop)
+    }
+
     /// The tree `family` describes (its parameters as JSON, read as the
     /// CPU entry reads them) grown on the device and its field read out to
     /// `n` cells a side over its box, its limb systems opened by laterals
@@ -96,9 +117,7 @@ impl WebField {
     /// device's error.
     pub fn grow(family: String, n: u32, limb_order: Option<u32>) -> js_sys::Promise {
         future_to_promise(async move {
-            let value = serde_json::from_str(&family)
-                .map_err(|e| JsError::new(&format!("the parameters are not JSON: {e}")))?;
-            let family = params::parse(&value).map_err(|e| js_error(e.into()))?;
+            let family = checked(&family)?;
             telperion_core::field::Frame::side(n).map_err(|e| js_error(e.into()))?;
             let made = fields().await?;
             let mut grid = made

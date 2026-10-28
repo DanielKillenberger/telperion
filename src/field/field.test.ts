@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { FieldError, growField, prepareField } from "./index";
+import { ORDINARY, TreeEngine } from "../browser/core";
 import { presetById } from "../browser/presets";
 import type { Family } from "../browser/presets";
 
@@ -12,8 +13,10 @@ const BEECH = presetById("european-beech");
 
 describe("the field entry point without WebGPU", () => {
   it("rejects a growth with a coded error, never growing on the CPU", async () => {
-    for (const grown of [growField(BEECH, 24), growField(BEECH, 24, { limbOrder: 1 }), prepareField()]) {
-      const refused = await grown.catch((e: unknown) => e);
+    // Each refusal is caught as it is made: a growth loads the module before
+    // it asks for a device, so the three settle at different times.
+    const grown = [growField(BEECH, 24), growField(BEECH, 24, { limbOrder: 1 }), prepareField()];
+    for (const refused of await Promise.all(grown.map(g => g.catch((e: unknown) => e)))) {
       expect(refused).toBeInstanceOf(FieldError);
       expect(refused).toMatchObject({ code: "webgpu-unavailable", name: "FieldError" });
       expect(String((refused as Error).message)).toContain("WebGPU is not available");
@@ -26,4 +29,17 @@ describe("the field entry point without WebGPU", () => {
     await expect(growField({ ...BEECH, age: Number.NaN }, 24)).rejects.toThrow("finite");
     for (const n of [2, 257, 24.5, Number.NaN]) await expect(growField(BEECH, n)).rejects.toThrow("field grid side");
   });
+
+  it("refuses a family the CPU refuses with the CPU's message before it asks for a device (fn-319 R2)", async () => {
+    const family = structuredClone(ORDINARY);
+    family.canopy.scatter = -1;
+    const core = (() => { try { engine.build(family, { field: { n: 12 } }); } catch (e) { return (e as Error).message; } })();
+    expect(core).toBe("Tree core: scatter");
+    const refused = await growField(family, 12).catch((e: unknown) => e);
+    expect(refused).not.toBeInstanceOf(FieldError);
+    expect((refused as Error).message).toBe("the generator rejected the tree: invalid input: scatter");
+  });
 });
+
+let engine: TreeEngine;
+beforeAll(async () => { engine = await TreeEngine.create(); });
