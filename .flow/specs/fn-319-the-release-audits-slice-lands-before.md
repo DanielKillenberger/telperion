@@ -35,7 +35,7 @@ Host, 28 Oct 2026, on the gap analysis: validation runs before the device is req
 ```bash
 cargo test --profile ci -p telperion-render field -- --nocapture
 npx vitest run src/field src/browser/render.test.ts harness/grow-in.test.ts
-node --test scripts/ci-key.test.mjs
+npx vitest run scripts/ci-key.test.mjs
 ```
 
 ## Requirement coverage

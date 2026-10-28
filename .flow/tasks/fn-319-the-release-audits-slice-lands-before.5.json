@@ -3,12 +3,14 @@
   "claim_note": "",
   "claimed_at": null,
   "created_at": "2026-10-28T10:49:13.090336Z",
-  "depends_on": [],
+  "depends_on": [
+    "fn-319-the-release-audits-slice-lands-before.3"
+  ],
   "id": "fn-319-the-release-audits-slice-lands-before.5",
   "priority": null,
   "spec": "fn-319-the-release-audits-slice-lands-before",
   "spec_path": ".flow/tasks/fn-319-the-release-audits-slice-lands-before.5.md",
   "status": "todo",
   "title": "compileField compiles once, and the CI key reads the parameter reference",
-  "updated_at": "2026-10-28T10:49:13.090336Z"
+  "updated_at": "2026-10-28T10:53:26.750959Z"
 }
