@@ -32,6 +32,8 @@ const CORE_TESTS = [
   '.flow/evidence/fn19/protocol.json',
   // The identity, sweep and growth-reference tests read the catalogue's pins.
   'catalogue',
+  // parameter_reference.rs holds both renderings of the catalogue.
+  'docs/parameters.md', 'src/browser/parameters.generated.ts',
 ];
 
 export const SUITES = {
@@ -39,10 +41,14 @@ export const SUITES = {
   'rust-render': { profile: 'ci', inputs: [CORE, RENDER, SPACE] },
   'rust-wasm': { profile: 'ci', inputs: [CORE, WASM, SPACE] },
   // The isolation test walks the generation crates and the browser source,
-  // and the citation parser is tested on the fn-11 research section.
+  // and the citation parser is tested on the fn-11 research section. The
+  // tuning runner reads the parameter reference.
   'rust-jev': {
     profile: 'ci',
-    inputs: ['crates/telperion-jev', CORE, RENDER, WASM, SPACE, 'src', '.flow/specs/fn-11-growth-over-time.md'],
+    inputs: [
+      'crates/telperion-jev', CORE, RENDER, WASM, SPACE, 'src',
+      '.flow/specs/fn-11-growth-over-time.md', 'docs/parameters.md',
+    ],
   },
   // npm test and npm run typecheck: the pretest builds the three wasm crates.
   node: {

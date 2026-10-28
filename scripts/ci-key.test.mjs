@@ -48,4 +48,17 @@ describe('suite keys', () => {
       expect(after, suite).not.toBe(before);
     }
   });
+
+  // A changed file changes its own git object and every tree above it.
+  const changed = file => path => (file === path || file.startsWith(`${path}/`) ? 'b' : 'a');
+  const reference = ['docs/parameters.md', 'src/browser/parameters.generated.ts'];
+  // parameter_reference.rs reads both; the tuning runner reads the reference;
+  // the node suite's tests import the generated module.
+  it.each([
+    ['rust-core', reference],
+    ['rust-jev', reference],
+    ['node', ['src/browser/parameters.generated.ts']],
+  ])('move for %s when a parameter reference file it reads changes', (suite, files) => {
+    for (const file of files) expect(key(suite, changed(file)), file).not.toBe(key(suite, () => 'a'));
+  });
 });

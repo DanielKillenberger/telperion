@@ -109,8 +109,11 @@ the browser, asked directly, has one (a headless page whose first WebGPU
 use is the field), the call asks once more before it refuses.
 Left to itself the entry loads `telperion-render.wasm` from beside itself; a
 caller that keeps the module elsewhere passes `source` (the bytes, a
-`Response` or a compiled `WebAssembly.Module`, which `compileField(source)`
-makes once). One page or worker holds one device and one module instance;
+`Response` or a compiled `WebAssembly.Module`). `compileField()` compiles
+the module beside the entry once, however many calls ask, and the next call
+retries a failed compile; `compileField(source)` compiles the source it is
+given on every call, so a caller that grows in several workers compiles
+once and passes the Module to each. One page or worker holds one device and one module instance;
 a tree holds nothing on it once its grid is read out.
 
 Migrating from 0.1.4 (for a page on the published 0.1.4 package, such as

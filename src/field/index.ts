@@ -93,11 +93,24 @@ function coded(error: unknown): FieldError | undefined {
   return new FieldError(code, (error as Error).message);
 }
 
-/** Compiles the renderer's module once, for a caller that grows trees in
- * several workers and passes the Module to each. */
-export async function compileField(source?: FieldSource): Promise<WebAssembly.Module> {
-  if (source instanceof WebAssembly.Module) return source;
-  const input = await (source ?? wasmSource(new URL("./telperion-render.wasm", import.meta.url)));
+let bundled: Promise<WebAssembly.Module> | undefined;
+/** Compiles the renderer's module, for a caller that grows trees in several
+ * workers and passes the Module to each. The module beside this file is
+ * compiled once, however many calls ask, and a failed compile is retried by
+ * the next call; a Module is returned as given, and any other source is
+ * compiled on every call. */
+export function compileField(source?: FieldSource): Promise<WebAssembly.Module> {
+  if (source instanceof WebAssembly.Module) return Promise.resolve(source);
+  if (source !== undefined) return compile(source);
+  // The literal names the file for a consumer's bundler.
+  bundled ??= compile(wasmSource(new URL("./telperion-render.wasm", import.meta.url))).catch((error: unknown) => {
+    bundled = undefined;
+    throw error;
+  });
+  return bundled;
+}
+async function compile(source: BufferSource | Response | Promise<BufferSource | Response>): Promise<WebAssembly.Module> {
+  const input = await source;
   if (input instanceof Response) {
     if (!input.ok) throw Error(`Field core load failed: HTTP ${input.status}`);
     return WebAssembly.compile(await input.arrayBuffer());

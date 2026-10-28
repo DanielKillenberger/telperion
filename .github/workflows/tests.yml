@@ -3,7 +3,8 @@ name: Tests
 # A push or pull request that touches only flow bookkeeping, documentation or
 # markdown starts no run. The paths listed after the exclusions are test inputs
 # that live under those trees: the species profiles and the benchmark protocol
-# the core tests read, the spec the citation parser is tested on, and the
+# the core tests read, the spec the citation parser is tested on, the
+# parameter reference the core tests hold to the catalogue, and the
 # catalogue, whose generated pages are markdown the structure check gates.
 #
 # Every run also builds the package once, tests that tarball and uploads it.
@@ -21,6 +22,7 @@ on:
       - '.flow/evidence/fn34/profiles.json'
       - '.flow/evidence/fn19/protocol.json'
       - '.flow/specs/fn-11-growth-over-time.md'
+      - 'docs/parameters.md'
       - 'catalogue/**'
   pull_request:
     paths:
@@ -32,6 +34,7 @@ on:
       - '.flow/evidence/fn34/profiles.json'
       - '.flow/evidence/fn19/protocol.json'
       - '.flow/specs/fn-11-growth-over-time.md'
+      - 'docs/parameters.md'
       - 'catalogue/**'
 
 concurrency:
