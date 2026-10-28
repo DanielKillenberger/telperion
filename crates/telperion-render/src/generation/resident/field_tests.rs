@@ -286,6 +286,22 @@ fn a_field_generator_holds_no_curve_pass_sweeper_or_ringer() {
 }
 
 #[test]
+fn a_build_s_preparation_after_a_field_s_makes_the_wood_s_passes() {
+    let _held = super::super::whole_tree();
+    let Some(gen) = generator() else {
+        return;
+    };
+    pollster::block_on(gen.prepare_field_programs()).expect("prepared");
+    pollster::block_on(gen.prepare_programs()).expect("prepared");
+    assert!(
+        gen.gpu.curve.get().is_some(),
+        "the wood's passes were not made"
+    );
+    let kit = gen.resident.get().expect("the kit");
+    assert!(kit.drawing.get().is_some(), "no sweeper or ringer was made");
+}
+
+#[test]
 fn the_young_palm_s_rested_leaflets_are_boxed_as_the_cpu_boxes_them() {
     let _held = super::super::whole_tree();
     let Some(gen) = generator() else {

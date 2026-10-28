@@ -84,8 +84,10 @@ impl super::Generator {
         let kit = self.resident.get_or_init(|| {
             super::io::pair(gpu, || Kit::whole(gpu), || drop(crate::curve::passes(gpu))).0
         });
-        // A kit a field's preparation made first gains the drawing.
+        // A kit a field's preparation made first gains the drawing and the
+        // wood's passes (each made once a device).
         kit.full(gpu);
+        drop(crate::curve::passes(gpu));
         super::io::programs_ready(&self.gpu, scopes).await
     }
 
