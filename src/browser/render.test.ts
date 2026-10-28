@@ -40,6 +40,9 @@ vi.mock("./render/telperion_render.js", () => ({
 }));
 
 const { createRenderer } = await import("./render");
+const { NORWAY_SPRUCE, OREGON_WHITE_OAK, SILVER_BIRCH } = await import("./presets");
+const { wire } = await import("./wire");
+const BIRCH = wire(SILVER_BIRCH), SPRUCE = wire(NORWAY_SPRUCE), OAK = wire(OREGON_WHITE_OAK);
 const canvas = { clientWidth: 4, clientHeight: 4, width: 0, height: 0 } as unknown as HTMLCanvasElement;
 const flush = async () => { await new Promise(resolve => setTimeout(resolve, 0)); };
 
@@ -56,13 +59,13 @@ it("starts compiling at creation and holds a build until the programs resolve", 
   fake.programs = programs.promise;
   const renderer = await createRenderer(canvas);
   expect(fake.prepared).toBe(1);
-  const built = renderer.setTreeGpu("beech");
+  const built = renderer.setTreeGpu(SILVER_BIRCH);
   await flush();
   expect(fake.builds).toEqual([]);
   programs.resolve();
   await built;
-  await renderer.setTreeGpu("spruce");
-  expect(fake.builds).toEqual(["beech", "spruce"]);
+  await renderer.setTreeGpu(NORWAY_SPRUCE);
+  expect(fake.builds).toEqual([BIRCH, SPRUCE]);
   expect(fake.prepared).toBe(1);
 });
 
@@ -73,11 +76,11 @@ it.each([
   const programs = deferred();
   fake.programs = programs.promise;
   const renderer = await createRenderer(canvas);
-  const built = renderer.setTreeGpu("beech");
+  const built = renderer.setTreeGpu(SILVER_BIRCH);
   programs.reject(new Error(message));
   await expect(renderer.programs).rejects.toThrow(message);
   await expect(built).rejects.toThrow(message);
-  await expect(renderer.setTreeGpu("spruce")).rejects.toThrow(message);
+  await expect(renderer.setTreeGpu(NORWAY_SPRUCE)).rejects.toThrow(message);
   expect(fake.builds).toEqual([]);
 });
 
@@ -112,12 +115,12 @@ it("a growth waits on the programs, then grows and draws through its handle (fn-
   const programs = deferred();
   fake.programs = programs.promise;
   const renderer = await createRenderer(canvas);
-  const begun = renderer.beginGrowth("oak");
+  const begun = renderer.beginGrowth(OREGON_WHITE_OAK);
   await flush();
   expect(fake.builds).toEqual([]);
   programs.resolve();
   const growth = await begun;
-  expect(fake.builds).toEqual(["grow oak"]);
+  expect(fake.builds).toEqual([`grow ${OAK}`]);
   expect(await growth.growTo(2.5)).toBe(3);
   expect(growth.committed()).toBe(3);
   expect(growth.admission()).toBe("makeRoom");
@@ -128,6 +131,16 @@ it("a growth on a renderer whose programs failed rejects by name and never begin
   const message = "the GPU device was lost: Unknown: A valid external Instance reference no longer exists.";
   fake.programs = Promise.reject(new Error(message));
   const renderer = await createRenderer(canvas);
-  await expect(renderer.beginGrowth("oak")).rejects.toThrow(message);
+  await expect(renderer.beginGrowth(OREGON_WHITE_OAK)).rejects.toThrow(message);
   expect(fake.builds).toEqual([]);
 });
+
+it.each(["setTree", "admission", "setTreeGpu", "beginGrowth"] as const)(
+  "%s refuses a preset id by wire's message, before the renderer sees it",
+  async method => {
+    fake.programs = Promise.resolve();
+    const renderer = await createRenderer(canvas);
+    await expect(async () => renderer[method]("oregon-white-oak" as never)).rejects.toThrow("not a preset id: pass presetById(id)");
+    expect(fake.builds).toEqual([]);
+  },
+);

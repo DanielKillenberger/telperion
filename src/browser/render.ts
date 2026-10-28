@@ -1,5 +1,7 @@
 import { WebRenderer, type WebGrowth } from "./render/telperion_render.js";
 import { loadModule } from "./module";
+import type { Family } from "./presets";
+import { wire } from "./wire";
 
 /* ------------------------------------------------------------------ *
  * THE RENDERER, AS A PAGE HOLDS IT
@@ -9,8 +11,8 @@ import { loadModule } from "./module";
  * device pixels the canvas is asked for, and when that number
  * changes. Everything else is a call straight through.
  *
- * No geometry crosses this boundary. Parameters go in as text and
- * counts come back as text; the tree itself is generated and uploaded
+ * No geometry crosses this boundary. A family goes in as the one wire
+ * text every entry hands the cores (`wire`), and counts come back as text; the tree itself is generated and uploaded
  * inside the module's own memory, so there is no view over wasm memory
  * here to detach when that memory grows.
  * ------------------------------------------------------------------ */
@@ -193,22 +195,22 @@ export interface Growth {
 /** One canvas drawn by the Rust renderer, sized to the display and
  *  disposed with the page element it belongs to. */
 export interface Renderer {
-  setTree(family: string): Submitted;
+  setTree(family: Family): Submitted;
   /** What a build of this family does under the page's device budget:
    *  builds beside the drawn tree, or lets it go first ("makeRoom"), the
    *  screen empty while it builds. Throws the budget's own words for a tree
    *  that does not fit even alone; the drawn tree stays. */
-  admission(family: string): Admission;
+  admission(family: Family): Admission;
   /** The GPU programs every build dispatches, compiled by the browser in
    *  the background from the moment the renderer exists. Rejects with the
    *  program the browser refused, or the device lost meanwhile, by name. */
   programs: Promise<void>;
   /** The tree built on the device. Waits on `programs`, and rejects with
    *  its error without building. */
-  setTreeGpu(family: string): Promise<GpuSubmitted>;
+  setTreeGpu(family: Family): Promise<GpuSubmitted>;
   /** The family's tree before its first year, on the device (`Growth`).
    *  Waits on `programs`, and rejects with its error without beginning. */
-  beginGrowth(family: string): Promise<Growth>;
+  beginGrowth(family: Family): Promise<Growth>;
   setView(view: View): void;
   /** The sun, sky and ground the next frame is drawn under. */
   scene(): SceneRow;
@@ -265,18 +267,20 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
   observer.observe(canvas);
 
   return {
-    setTree: (family) => JSON.parse(renderer.setTree(family)) as Submitted,
-    admission: (family) => renderer.admission(family) as Admission,
+    setTree: (family) => JSON.parse(renderer.setTree(wire(family))) as Submitted,
+    admission: (family) => renderer.admission(wire(family)) as Admission,
     programs,
     setTreeGpu: async (family) => {
+      const text = wire(family);
       await programs;
       if (disposed) throw new Error("the renderer is disposed");
-      return JSON.parse(await renderer.setTreeGpu(family)) as GpuSubmitted;
+      return JSON.parse(await renderer.setTreeGpu(text)) as GpuSubmitted;
     },
     beginGrowth: async (family) => {
+      const text = wire(family);
       await programs;
       if (disposed) throw new Error("the renderer is disposed");
-      const handle = (await renderer.beginGrowth(family)) as WebGrowth;
+      const handle = (await renderer.beginGrowth(text)) as WebGrowth;
       return {
         committed: () => handle.committed() ?? null,
         horizon: () => handle.horizon() ?? null,

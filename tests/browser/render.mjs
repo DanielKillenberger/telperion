@@ -172,7 +172,7 @@ async function session(browser, preset, flags, turning = false) {
   await page.bringToFront();
   const measured = await page.evaluate(async ({ id, seed, turning }) => {
     const { presetById } = await import('/src/browser/core.ts');
-    const { familyJson, presetToParams } = await import('/harness/family.ts');
+    const { presetToParams, toFamily } = await import('/harness/family.ts');
     const { createRenderer } = await import('/src/browser/render.ts');
     const canvas = document.querySelector('canvas');
     /* Who the browser says is drawing. The Rust report cannot name the
@@ -181,7 +181,7 @@ async function session(browser, preset, flags, turning = false) {
     const { vendor, architecture, device, description } = (await navigator.gpu.requestAdapter()).info;
     const renderer = await createRenderer(canvas);
     try {
-      const submitted = renderer.setTree(familyJson({ ...presetToParams(presetById(id)), seed }));
+      const submitted = renderer.setTree(toFamily({ ...presetToParams(presetById(id)), seed }));
       renderer.setCamera(renderer.hero());
       renderer.frame();
       return { submitted, report: turning ? await renderer.orbit() : await renderer.timing(),

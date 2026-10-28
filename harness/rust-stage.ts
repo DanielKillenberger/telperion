@@ -9,6 +9,7 @@ import {
   type TimingReport,
   type View,
 } from "../src/browser/render";
+import type { Family } from "../src/browser/presets";
 
 import { eyeOf, orbitOf, pan, push, turn, type Orbit } from "./orbit";
 
@@ -38,12 +39,12 @@ export interface Stage {
   /** Replaces the tree with the one these parameters describe. Rejects with
    *  the generator's or the renderer's own message; the tree already on
    *  the canvas stays where it is. */
-  setTreeGpu(family: string): Promise<Submitted>;
+  setTreeGpu(family: Family): Promise<Submitted>;
   /** The family's tree before its first year, growing on the device
    *  (`Renderer.beginGrowth`); the tree on the canvas stays. */
-  beginGrowth(family: string): Promise<Growth>;
+  beginGrowth(family: Family): Promise<Growth>;
   /** What the build does under the page's device budget (`Renderer.admission`). */
-  admission(family: string): Admission;
+  admission(family: Family): Admission;
   setView(view: View): void;
   /** The sun, sky and ground the renderer is drawing under, its own default
    *  until something sets another. */

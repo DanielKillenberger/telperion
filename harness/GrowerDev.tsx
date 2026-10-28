@@ -22,7 +22,7 @@ import type { FrameStats, SceneRow, Submitted, TimingReport, View } from "../src
 
 import { LookControls, useLook } from "./LookControls";
 import { AgeDial, Dials, Traits } from "./dials";
-import { familyJson, presetToParams } from "./family";
+import { presetToParams, toFamily } from "./family";
 import {
   OPENING_PARAMS,
   type GrowerParams,
@@ -81,7 +81,7 @@ export function GrowerDev() {
         );
         const held: Held = { growth: null, family: null };
         heldRef.current = held;
-        buildsRef.current = latestBuild(stageRun(stage, held, familyJson, {
+        buildsRef.current = latestBuild(stageRun(stage, held, toFamily, {
           growing: setGrowing,
           makingRoom: setMakingRoom,
           built: (ms) => { lastBuildMs.current = ms; },

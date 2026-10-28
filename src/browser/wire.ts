@@ -13,8 +13,8 @@ export function wire(family: Family): string {
   const { id: _id, name: _name, note: _note, ...parameters } = family as Partial<TreePreset>;
   return JSON.stringify(parameters, finite);
 }
-/** A JSON replacer that refuses a nonfinite number. */
-export function finite(_key: string, value: unknown): unknown {
-  if (typeof value === "number" && !Number.isFinite(value)) throw Error("Tree parameters must be finite");
+/** A JSON replacer that refuses a nonfinite number, naming its key. */
+export function finite(key: string, value: unknown): unknown {
+  if (typeof value === "number" && !Number.isFinite(value)) throw Error(`Tree parameters must be finite: "${key}" is ${value}`);
   return value;
 }

@@ -33,15 +33,3 @@ export function toFamily(params: GrowerParams): Family {
   family.skeleton.seed = params.seed;
   return family;
 }
-
-/** The same family as the text the renderer is handed. A non-finite
- *  dial would otherwise travel as `null` and come back as the schema's
- *  general type complaint, which says nothing about which dial it was. */
-export function familyJson(params: GrowerParams): string {
-  return JSON.stringify(toFamily(params), (key, value: unknown) => {
-    if (typeof value === "number" && !Number.isFinite(value)) {
-      throw Error(`Tree parameter "${key}" is not a finite number`);
-    }
-    return value;
-  });
-}

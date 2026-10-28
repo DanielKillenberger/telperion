@@ -2,6 +2,7 @@ import type { LeafReference } from "./leaf";
 import type { Family } from "./presets";
 import { finite, wire } from "./wire";
 import { wasmSource } from "../wasm-source";
+import type { Bounds, FieldGrid, Grid } from "../field/types";
 export { presetById, ORDINARY, OREGON_WHITE_OAK, NORWAY_SPRUCE, SILVER_BIRCH, TELPERION, LAURELIN, TWO_TREES, PRESETS } from "./presets";
 export type { Family, TreePreset } from "./presets";
 
@@ -16,7 +17,7 @@ export interface Outputs {
    * one parting the crown into more and smaller systems. */
   field?: { n: number; limbOrder?: number };
 }
-export interface Bounds { min: [number, number, number]; max: [number, number, number] }
+export type { Bounds } from "../field/types";
 export interface Timings { growthMs: number; surfaceMs: number; planMs: number; foliageMs: number; fieldMs: number; coreMs: number; transferMs: number; buildMs: number }
 /** Which stages a build ran. `foliage` is the placement and the cull together;
  * `contacts` the wood's contact surface under placement; `plan` the leaf plan
@@ -46,21 +47,10 @@ export interface Diagnostics {
    * the tree grew no flowers. */
   organReference: LeafReference | null;
   /** The grid a field request was read out to; null without one. */
-  field: FieldFrame | null;
+  field: Grid | null;
   revision: number; timings: Timings;
   stages: Stages;
 }
-/** The grid a field is read to: `n` cells a side of `cell` metres from
- * `origin`, cell `i + n * (j + n * k)` centred at `origin + (i + 0.5, j +
- * 0.5, k + 0.5) * cell`. */
-export interface FieldFrame { n: number; cell: number; origin: [number, number, number] }
-/** One answer per cell, in the grid's cell order. `flags` bits: wood=1,
- * foliage=2, flowers=4. `woodRadius` is the thickest wood sweep reaching the
- * cell in metres, zero without wood. `leaves` estimates the stations in the
- * cell before the crown cull. `limbs` is the owning limb system, UINT32_MAX
- * where no foliage reaches. `flowers` counts the florets whose seat lies in
- * the cell, at the flowering window's middle. */
-export interface FieldQuery { flags: Uint8Array; woodRadius: Float32Array; leaves: Float32Array; limbs: Uint32Array; flowers: Float32Array }
 /** One chunk of the wood: at most 65,536 vertices, its indices local to it.
  * `positions` holds three f32 a vertex; `normals` two snorm16 a vertex, the
  * unit normal folded onto the octahedron (`decodeNormals` in `./wood`). */
@@ -80,7 +70,7 @@ export interface TreeOutput {
   structure?: { values: Float64Array; topology: Uint32Array };
   /** The field read out to the requested grid, as `telperion/field`'s
    * `growField` returns it: owned copies that outlive the build. */
-  field?: FieldFrame & { answer: FieldQuery };
+  field?: FieldGrid;
   diagnostics: Diagnostics;
 }
 // An address the core returns is an i32: one past 2 GiB of its memory

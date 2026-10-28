@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { PRESETS } from "../src/browser/core";
+import { wire } from "../src/browser/wire";
 
-import { familyJson, presetToParams, toFamily } from "./family";
+import { presetToParams, toFamily } from "./family";
 import { DEFAULT_PARAMS } from "./params";
 import { readRow, shownRows, writeRow } from "./rows";
 
@@ -40,13 +41,9 @@ describe("every row the build reads", () => {
   });
 });
 
-describe("familyJson", () => {
-  it("is the same family, as the text the renderer parses", () => {
-    expect(JSON.parse(familyJson(DEFAULT_PARAMS))).toEqual(toFamily(DEFAULT_PARAMS));
-  });
-
+describe("the family as the renderer is handed it", () => {
   it("names the row that is not a number rather than sending null", () => {
     const family = writeRow(DEFAULT_PARAMS.family, "/radii/trunkRadius", Number.NaN);
-    expect(() => familyJson({ ...DEFAULT_PARAMS, family })).toThrow(/trunkRadius/);
+    expect(() => wire(toFamily({ ...DEFAULT_PARAMS, family }))).toThrow(/finite: "trunkRadius"/);
   });
 });

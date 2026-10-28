@@ -1,4 +1,6 @@
+import type { Family } from "../src/browser/presets";
 import type { Growth, Submitted } from "../src/browser/render";
+import { wire } from "../src/browser/wire";
 
 /* ------------------------------------------------------------------ *
  * THE TREE GROWS IN (fn-270 R6; host rulings, 2026-10-14)
@@ -81,7 +83,8 @@ export function ageLabel(at: number, horizon: number): string {
 }
 
 /** The growing tree the stage holds between requests, for "play the
- *  year" to go on from, and the parameters it grows. */
+ *  year" to go on from, and the parameters it grows, as their wire text:
+ *  two families are the same tree when their text is. */
 export interface Held {
   growth: Growth | null;
   family: string | null;
@@ -96,24 +99,25 @@ export function release(held: Held): void {
 
 /** What a request draws, on whatever builds and grows trees. */
 export interface Grower {
-  setTreeGpu(family: string): Promise<Submitted>;
-  beginGrowth(family: string): Promise<Growth>;
+  setTreeGpu(family: Family): Promise<Submitted>;
+  beginGrowth(family: Family): Promise<Growth>;
 }
 
 /** One request: the tree built at once, letting any growth go; or grown
  *  in from year 1; or its last year played, on the held growth when it
  *  is this tree's and grown whole, else on a new one. Any new growth
  *  abandons the one held. */
-export async function draw(grower: Grower, held: Held, kind: Kind, family: string, pace: Pace): Promise<Submitted | null> {
+export async function draw(grower: Grower, held: Held, kind: Kind, family: Family, pace: Pace): Promise<Submitted | null> {
   if (kind === "build") {
     release(held);
     return grower.setTreeGpu(family);
   }
   const whole = held.growth !== null && held.growth.committed() === held.growth.horizon();
-  if (kind === "grow" || held.family !== family || !whole) {
+  const key = wire(family);
+  if (kind === "grow" || held.family !== key || !whole) {
     release(held);
     held.growth = await grower.beginGrowth(family);
-    held.family = family;
+    held.family = key;
   }
   const growth = held.growth!;
   const horizon = growth.horizon();
@@ -138,16 +142,16 @@ export interface Hooks {
 
 /** The stage, as a run asks it. */
 export interface Stage extends Grower {
-  admission(family: string): "beside" | "makeRoom";
+  admission(family: Family): "beside" | "makeRoom";
   waiting(): boolean;
   frame(): void;
 }
 
-/** The stage's run of one request (`latestBuild`'s): `encode` writes the
- *  params as the renderer reads them. A stage still waiting to be framed
+/** The stage's run of one request (`latestBuild`'s): `encode` makes the
+ *  params the family the renderer takes. A stage still waiting to be framed
  *  follows the tree as it grows. A run a newer request abandoned rejects,
  *  and `latestBuild` reports nothing of it. */
-export function stageRun<P>(stage: Stage, held: Held, encode: (params: Job<P>["params"]) => string, hooks: Hooks) {
+export function stageRun<P>(stage: Stage, held: Held, encode: (params: Job<P>["params"]) => Family, hooks: Hooks) {
   return async ({ params, kind }: Job<P>, current: () => boolean): Promise<Submitted & { buildMs: number }> => {
     const family = encode(params);
     /* The budget's one rule (fn-235): a tree that fits only alone lets the

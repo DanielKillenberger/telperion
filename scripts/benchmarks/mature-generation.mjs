@@ -27,8 +27,8 @@ try {
    const begin=performance.now();
    const {createRenderer}=await import('/src/browser/render.ts');
    const {TreeEngine,presetById}=await import('/src/browser/core.ts');
-   const {familyJson,presetToParams}=await import('/harness/family.ts');
-   const family=familyJson({...presetToParams(presetById(preset)),seed});
+   const {presetToParams,toFamily}=await import('/harness/family.ts');
+   const family=toFamily({...presetToParams(presetById(preset)),seed});
    let device, hardware, deviceCount=0;
    const originalRequest=GPUAdapter.prototype.requestDevice;
    if(completed) GPUAdapter.prototype.requestDevice=async function(...args) {

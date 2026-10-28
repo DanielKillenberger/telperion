@@ -12,6 +12,8 @@ engine.build(birch, { field: { n: 36 } });  // was engine.build("silver-birch", 
 ```
 
 - An id string is refused by name at run time ("not a preset id: pass presetById(id)") and by the type.
+- The renderer takes the same parameters: `createRenderer(canvas)`'s `setTree`, `setTreeGpu`, `admission` and `beginGrowth` take a `Family` where they took its JSON text, and serialize it as `TreeEngine.build` and `growField` do (`renderer.setTree(birch)`, was `renderer.setTree(JSON.stringify(birch))`). A nonfinite parameter is refused by its name.
+- The field's types have one definition: `Grid`, `FieldAnswer`, `FieldGrid` and `Bounds` from `telperion/field` (and `Bounds` from the main entry) are the same types `TreeEngine.build` returns, its `diagnostics.field` a `Grid` and its `field` a `FieldGrid`.
 - `telperion/presets` exports `presetById`, `PRESETS`, the named presets (`ORDINARY`, `TELPERION`, `LAURELIN`, ...) and the `Family` and `TreePreset` types; the main entry re-exports them unchanged.
 - `growField`'s result carries no `species` or `seed`; the caller holds the parameters it passed.
 - The field's refusals for no WebGPU and a lost device are a `FieldError` with `code` `"webgpu-unavailable"` or `"device-lost"`; the messages are as before.

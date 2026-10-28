@@ -1,5 +1,5 @@
 /* The field entry point: a tree's parameters and a grid side in, the
- * tree's field read out to that grid (./voxelize `Grid`) out. A preset is
+ * tree's field read out to that grid (./types `Grid`) out. A preset is
  * grown by passing its parameters (`presetById(id)` from
  * `telperion/presets`); there is no id lookup here (fn-317). The tree grows
  * on the device (WebGPU), through the renderer's module
@@ -25,22 +25,12 @@ import { loadModule, type ModuleSource } from "../browser/module";
 import type { Family } from "../browser/presets";
 import { wire } from "../browser/wire";
 import { wasmSource } from "../wasm-source";
-import { side, type Grid } from "./voxelize";
+import { side } from "./voxelize";
+import type { FieldAnswer, FieldGrid } from "./types";
 
-export type { Grid } from "./voxelize";
+export type { Bounds, FieldAnswer, FieldGrid, Grid } from "./types";
 export type { Family } from "../browser/presets";
-export interface Bounds { min: [number, number, number]; max: [number, number, number] }
-/** One answer per cell, in the grid's cell order. `flags` bits: wood = 1,
- * foliage = 2, flowers = 4. `woodRadius` is the thickest wood sweep reaching
- * the cell, in metres, zero without wood. `leaves` estimates the leaf
- * stations in the cell before the crown cull. `limbs` is the owning limb
- * system, `NO_LIMB` where no foliage reaches. `flowers` counts the florets
- * whose seat lies in the cell, at the flowering window's middle: over the
- * grid they sum to the tree's florets, zero on a tree that flowers nowhere. */
-export interface FieldAnswer { flags: Uint8Array; woodRadius: Float32Array; leaves: Float32Array; limbs: Uint32Array; flowers: Float32Array }
 export const NO_LIMB = 0xffffffff;
-/** A field read out: its grid and one answer per cell. */
-export interface FieldGrid extends Grid { answer: FieldAnswer }
 /** A grown tree's field, read out to the grid its call named over the tree's
  * own box. */
 export type FieldTree = FieldGrid;

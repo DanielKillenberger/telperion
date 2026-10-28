@@ -12,14 +12,10 @@
  * them and no wood draws, in place of the foliage there: a cell with leaves
  * keeps its flowers where its foliage survives the thinning, and a cell with
  * flowers alone, which no limb owns, always keeps them. */
-import type { Bounds, FieldGrid } from "./index";
+import type { Bounds, FieldGrid, Grid } from "./types";
 
-/** The grid a field is read to (fn-257): `n` cells a side, `cell` metres
- * each, `n - 2` of them spanning the box's longest axis, centred on the box
- * in x and z with one empty cell below its lowest point. Cell `i + n * (j +
- * n * k)` is centred at `origin + (i + 0.5, j + 0.5, k + 0.5) * cell`. The
- * CPU field, the device field and this file read this one definition. */
-export interface Grid { n: number; cell: number; origin: [number, number, number] }
+export type { Grid } from "./types";
+
 /** `n` where it is a side a grid may have: a whole number from 3 to 256. */
 export function side(n: number): number {
   if (!Number.isInteger(n) || n < 3 || n > 256) throw RangeError(`field grid side = ${n}: a whole number from 3 to 256`);
