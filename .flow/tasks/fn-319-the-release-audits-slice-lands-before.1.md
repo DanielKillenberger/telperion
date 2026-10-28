@@ -44,9 +44,27 @@ The device's frame is f32 and the CPU's binning f64, so a floret on a cell edge 
 - [ ] TBD
 
 ## Done summary
-TBD
+A flowering tree's field now reads back only the grid's answers. The placed florets stay on the device and are bound to the field pass as a seventh buffer. `box_seats` folds the seats that are not withered into the box words, and `splat_flowers` adds 1 per seat into a fifth per-cell word with an integer atomic. A seat outside the grid, and the placement's refusal word, go into the answers tail. `make.rs` refuses them by name: "a floret outside the field" and "GPU floret transform/reference". `Organ::read` is deleted, and the CPU `seat_bounds` and `florets_into` calls are gone from the device path.
 
+- Baseline: green, measured before any edit: `cargo test --profile ci -p telperion-render --lib field` (11 passed). `field_answers`, extended first to hash the flowers word, was run on all eight presets, along with `field_time`.
+- Answers: all 24 `FIELD_ANSWERS` hashes are byte-equal before and after, the flowering trees included (measured).
+- Flowers: the most moved share is 4.01e-4 (Laurelin 5678 at 48), under `FLOWERS_MOVED` 1e-3. Totals match the CPU's except Telperion 5678, which is 6.35e-5 off, under `FLOWERS_TOTAL` 2e-4. Both are the same as fn-316 measured (measured).
+- Time: medians of three alternating runs, base binary against the new one. Telperion went from 919.65 to 905.45 ms, Laurelin from 891.74 to 856.73 ms, and the oak is unchanged (252.08 against 252.13 ms). The gain sits within run-to-run spread.
+- New tests in `resident/field_flowers_tests.rs`:
+  - `a_floret_outside_the_field_is_refused_by_name`
+  - `a_flowering_tree_with_no_seats_answers_as_one_without_flowers`
+  - `the_largest_side_grows_or_refuses_as_the_device_s_limits_say`
+- Limits at side 256: the grid (`2 + 8*cells` words) is always larger than the answers (`5*cells + 4` words), so the grid's limit is the one that binds. The test's device one word short refuses "field grid" by name, and a device at the exact size grows the field. No device limit can refuse the answers while the grid still fits.
+- Evidence: `.flow/evidence/fn-319-the-release-audits-slice-lands-before/FLORETS.md`.
+- Docs: added the flower channel and its agreement bound to `docs/pipeline.md`, `docs/field-package.md`, and the doc comments in `generation/resident.rs` and `resident/field.rs`. `web/field.rs` needed no change.
+
+stage: impl-review - skipped(policy: host-deferred - conductor owns the gate)
+
+Tier: session model (model: claude-opus-5-5)
+
+Integrated as c790849b86bdd8ab1eee28e6c37220c531e1fc48 on the spec branch. Review: codex, three lenses, SHIP, no findings (rid 7d461173).
+stage: plan-sync - skipped(config: planSync.enabled=false)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c790849b86bdd8ab1eee28e6c37220c531e1fc48
+- Tests: cargo test --profile ci -p telperion-render --lib -- field shader_tests, cargo test --profile ci -p telperion-render --lib -- --include-ignored --nocapture field_flowers_tests the_device_field_counts_the_flowers, FIELD_PRESETS=<all 8> cargo test --profile ci -p telperion-render --lib -- --ignored --nocapture resident::field_time_tests (before and after), cargo clippy --profile ci -p telperion-render --tests, cargo fmt -p telperion-render -- --check
 - PRs:
