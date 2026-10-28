@@ -8,7 +8,7 @@ The field's flower channel and the florets' share of the box move onto the devic
 
 **Size:** M
 **Files:** `crates/telperion-render/src/generation/resident/field/make.rs`, `resident/field.rs`, `resident/field/field.wgsl`, `resident/field/splat.wgsl`, `resident/florets.rs`, `resident/field_tests.rs`, `resident/field_time_tests.rs`, `web/field.rs`, `docs/pipeline.md`, `docs/field-package.md`
-**Touches:** [crates/telperion-render/src/generation/resident/**, crates/telperion-render/src/generation/resident.rs, crates/telperion-render/src/web/field.rs, docs/pipeline.md, docs/field-package.md, .flow/evidence/fn-319-the-release-audits-slice-lands-before/**]
+**Touches:** [crates/telperion-render/src/generation/resident/**, crates/telperion-render/src/generation/resident.rs, crates/telperion-render/src/web/field.rs, docs/pipeline.md, docs/field-package.md]
 
 ### Approach
 - Before changing anything, extend `field_answers` (`resident/field_time_tests.rs:42-72`) to hash the flowers word and record the baseline hashes and `field_time` for every shipped preset in `.flow/evidence/fn-319-*/` (also R1's baseline).

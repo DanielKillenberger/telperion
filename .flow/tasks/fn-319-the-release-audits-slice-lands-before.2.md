@@ -8,7 +8,7 @@ The device field (`Generator::for_fields_async`, prepared by `web/field.rs field
 
 **Size:** M
 **Files:** `crates/telperion-render/src/generation.rs`, `generation/resident.rs`, `generation/resident/build.rs`, `generation/resident/field/make.rs`, `web/field.rs`, `generation/resident/field_time_tests.rs`, `generation/resident/field_tests.rs`, `docs/pipeline.md`, `docs/field-package.md`
-**Touches:** [crates/telperion-render/src/generation.rs, crates/telperion-render/src/generation/resident.rs, crates/telperion-render/src/generation/resident/**, crates/telperion-render/src/web/field.rs, docs/pipeline.md, docs/field-package.md, .flow/evidence/fn-319-the-release-audits-slice-lands-before/**]
+**Touches:** [crates/telperion-render/src/generation.rs, crates/telperion-render/src/generation/resident.rs, crates/telperion-render/src/generation/resident/**, crates/telperion-render/src/web/field.rs, docs/pipeline.md, docs/field-package.md]
 
 ### Approach
 - `prepare_programs` (`generation/resident.rs:46-54`) makes `Kit::new` beside `curve::passes`; `kit()` (`resident.rs:122`) builds the whole `Kit` lazily, so dropping the call alone saves nothing: the field needs its own kit shape.
