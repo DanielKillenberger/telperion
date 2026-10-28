@@ -60,7 +60,8 @@
     "fn-313-a-prerelease-of-telperion-on-npm",
     "fn-314-the-release-branchs-ci-is-green-and-the",
     "fn-316-the-field-answers-a-trees-flowers",
-    "fn-317-every-generator-entry-takes-a-trees"
+    "fn-317-every-generator-entry-takes-a-trees",
+    "fn-319-the-release-audits-slice-lands-before"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -80,5 +81,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:35:48.710610Z"
+  "updated_at": "2026-10-28T10:46:42.682891Z"
 }
