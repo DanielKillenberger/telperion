@@ -6,6 +6,7 @@
 use super::cycle::tree::Kernels;
 use super::Prepared;
 use crate::Result;
+use telperion_core::pipeline::executor;
 use telperion_core::presets::Family;
 
 /// The device's kernels and tools for a generator's trees: a field's
@@ -150,7 +151,7 @@ impl super::Generator {
     ) -> Result<telperion_core::field::Grid> {
         telperion_core::field::Frame::side(ask.n())?;
         // The family refused as the CPU refuses it, before any device work.
-        family.validate()?;
+        executor::checked(family)?;
         let gpu = &self.gpu;
         if let Some(lost) = gpu.lost() {
             return Err(lost);
@@ -179,7 +180,7 @@ impl super::Generator {
     /// whole (fn-256 task 3), nothing read back per node.
     pub(super) async fn prepare_resident(&self, family: &Family) -> Result<Prepared> {
         // The family refused as the CPU refuses it, before any device work.
-        family.validate()?;
+        executor::checked(family)?;
         // What was let go before this build is waited for, so the budget
         // counts what is held (`on_device`).
         super::io::complete(&self.gpu).await?;

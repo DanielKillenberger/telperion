@@ -345,24 +345,40 @@ fn the_device_field_refuses_what_the_core_refuses() {
 
 /// A family the CPU refuses is refused on the device with the CPU's
 /// message, through the field and the device build alike (fn-319 R2):
-/// Ordinary at seed 1 past its instance budget and with a scatter below
-/// nought. Every shipped preset passes the family's check.
+/// Ordinary at seed 1 past its instance budget, with a scatter below
+/// nought, at an age within a year, and at that age with that scatter
+/// (the CPU's age first). A family the CPU grows, Ordinary with no node
+/// ceiling, passes the device's check. Every shipped preset passes it.
 #[test]
 fn the_device_refuses_a_family_the_cpu_refuses() {
+    use telperion_core::pipeline::executor::checked;
     for &(_, id, _, _) in telperion_core::presets::CATALOGUE {
-        family(id, 1)
-            .validate()
-            .unwrap_or_else(|e| panic!("{id}: {e}"));
+        checked(&family(id, 1)).unwrap_or_else(|e| panic!("{id}: {e}"));
     }
+    let ordinary = || family("ordinary", 1);
+    let mut unbounded = ordinary();
+    unbounded.skeleton.growth.max_nodes = Some(0);
+    let grown = pipeline::build(&unbounded, ask(12, None)).map(drop);
+    assert_eq!(checked(&unbounded).err(), grown.err());
     let _held = super::super::whole_tree();
     let Some(gen) = generator() else {
         return;
     };
-    let mut budget = family("ordinary", 1);
+    let mut budget = ordinary();
     budget.canopy.max_instances = 1;
-    let mut scatter = family("ordinary", 1);
+    let mut scatter = ordinary();
     scatter.canopy.scatter = -1.0;
-    for (tree, says) in [(budget, "foliage instance budget"), (scatter, "scatter")] {
+    let mut young = ordinary();
+    young.age = 1.5;
+    let mut both = scatter.clone();
+    both.age = 1.5;
+    let refusals = [
+        (budget, "foliage instance budget"),
+        (scatter, "scatter"),
+        (young, "age"),
+        (both, "age"),
+    ];
+    for (tree, says) in refusals {
         let core = pipeline::build(&tree, ask(12, None))
             .err()
             .expect("refused");

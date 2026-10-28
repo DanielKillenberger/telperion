@@ -47,12 +47,16 @@ or its own parameter set the same way. The tree grows at its own seed,
 `family.skeleton.seed`, an unsigned 32-bit integer. The parameters are read
 and refused as the CPU entry reads them (`TreeEngine.build`): a preset's id
 in place of the parameters is refused by name, and so is a nonfinite value.
-Parameters the CPU entry refuses are refused with its message
-(`Family::validate`), before a device is asked for, so a page without
-WebGPU learns that its parameters are invalid rather than
+Parameters the CPU entry refuses before it grows (the asked age, the
+engine species, the leaf element, twig and canopy rows) are refused with
+its message (`executor::checked`), before a device is asked for, so a page
+without WebGPU learns that its parameters are invalid rather than
 `"webgpu-unavailable"`; a tree past its own instance budget
 (`canopy.maxInstances`) is refused as the CPU refuses it, once grown
-(fn-319 R2).
+(fn-319 R2). A family invalid both in a way only growth finds (the
+engine's phytomer budget) and in a canopy row is refused by the row,
+before it grows, where the CPU grows first and names the growth's error
+(host, 28 Oct 2026).
 `limbOrder` names limbs at that lateral order and defaults to the family's
 own; a higher order parts the crown into more and smaller systems.
 

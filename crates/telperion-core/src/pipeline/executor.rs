@@ -166,21 +166,43 @@ pub fn resident(family: &Family, s: Summaries) -> Result<Expansion> {
     })
 }
 
+/// A family refused where the CPU's build refuses it, with the CPU's
+/// error, before any tree is grown: the growth's conversion (the engine
+/// species and the asked age), then Stage 3's tree-free checks (`planned`).
+/// What another executor checks before it asks for a device (fn-319 R2).
+/// A family invalid both in a way only growth finds and in a canopy row is
+/// refused here by the row, where the CPU grows first and names the
+/// growth's error (host, 28 Oct 2026).
+pub fn checked(family: &Family) -> Result<()> {
+    growth(family)?;
+    planned(&Inputs::of(family, Envelope::default())).map(drop)
+}
+
+/// Stage 3's tree-free checks, in the order their errors answer: the
+/// element and its own check, the twig placement, the shell depth and the
+/// canopy's rows.
+fn planned(inputs: &Inputs) -> Result<(Element, TwigPlacement)> {
+    let plan = &inputs.plan;
+    let element = foliage::build_element(plan.element)?;
+    element.validate()?;
+    let twig = plan.twig.clone()?;
+    check_shell(inputs)?;
+    foliage::canopy_rows(plan.canopy, Some(twig))?;
+    Ok((element, twig))
+}
+
 /// Stage 3's descriptors around the tree (none where the executor holds
 /// it), its inputs and whether its wood sheds leaves by age, with its
-/// root's and stem's radii, in the order their errors answer: the element
-/// and its own check, the twig placement, the shell depth and the reach
-/// the box leaves are quantised against (`reference`) is grown by.
+/// root's and stem's radii, in the order their errors answer: `planned`'s,
+/// then the reach the box leaves are quantised against (`reference`) is
+/// grown by.
 fn prepared(
     (tree, inputs, retains): (Tree, Inputs, bool),
     [root, stem]: [f64; 2],
     reference: impl FnOnce(&Tree, Reach) -> Reference,
 ) -> Result<Expansion> {
+    let (element, twig) = planned(&inputs)?;
     let plan = &inputs.plan;
-    let element = foliage::build_element(plan.element)?;
-    element.validate()?;
-    let twig = plan.twig.clone()?;
-    check_shell(&inputs)?;
     let reference = reference(&tree, plan.reach.clone()?);
     let shoot = inputs.leaves.canopy.shoot_radius;
     Ok(Expansion {

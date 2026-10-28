@@ -65,8 +65,8 @@ async fn fields() -> std::result::Result<Rc<Generator>, JsValue> {
 }
 
 /// `family` (its parameters as JSON) read as the CPU entry reads them and
-/// refused with the CPU's message where the CPU would refuse it
-/// (`Family::validate`): what a device path checks before it asks for a
+/// refused with the CPU's message where the CPU would refuse it before it
+/// grows (`executor::checked`): what a device path checks before it asks for a
 /// device (fn-319 R2).
 pub(super) fn checked(
     family: &str,
@@ -74,7 +74,7 @@ pub(super) fn checked(
     let value = serde_json::from_str(family)
         .map_err(|e| JsError::new(&format!("the parameters are not JSON: {e}")))?;
     let family = params::parse(&value).map_err(|e| js_error(e.into()))?;
-    family.validate().map_err(|e| js_error(e.into()))?;
+    telperion_core::pipeline::executor::checked(&family).map_err(|e| js_error(e.into()))?;
     Ok(family)
 }
 

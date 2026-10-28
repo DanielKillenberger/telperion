@@ -31,13 +31,19 @@ describe("the field entry point without WebGPU", () => {
   });
 
   it("refuses a family the CPU refuses with the CPU's message before it asks for a device (fn-319 R2)", async () => {
-    const family = structuredClone(ORDINARY);
-    family.canopy.scatter = -1;
-    const core = (() => { try { engine.build(family, { field: { n: 12 } }); } catch (e) { return (e as Error).message; } })();
-    expect(core).toBe("Tree core: scatter");
-    const refused = await growField(family, 12).catch((e: unknown) => e);
-    expect(refused).not.toBeInstanceOf(FieldError);
-    expect((refused as Error).message).toBe("the generator rejected the tree: invalid input: scatter");
+    const scatter = structuredClone(ORDINARY);
+    scatter.canopy.scatter = -1;
+    const young = structuredClone(ORDINARY);
+    young.age = 1.5;
+    const both = structuredClone(scatter);
+    both.age = 1.5;
+    for (const [family, reason] of [[scatter, "scatter"], [young, "age = 1.5"], [both, "age = 1.5"]] as const) {
+      const core = (() => { try { engine.build(family, { field: { n: 12 } }); } catch (e) { return (e as Error).message; } })();
+      expect(core).toBe(`Tree core: ${reason}`);
+      const refused = await growField(family, 12).catch((e: unknown) => e);
+      expect(refused).not.toBeInstanceOf(FieldError);
+      expect((refused as Error).message).toBe(`the generator rejected the tree: invalid input: ${reason}`);
+    }
   });
 });
 
