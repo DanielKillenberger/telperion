@@ -1,0 +1,122 @@
+# 0.2.0: one grown tree at any scale, in realtime
+
+## Conversation Evidence
+
+> user (turn 1): "It doesn't look improved when integrating in into my website in that style, performance dropped."
+> user (turn 2): "no i want 0.2.0 to be strictly better. It should be efficient to use in a website coarse environment. We should be able to configure the output to be at a fidelity/resolution To fit the rendering needs."
+> user (turn 2): "given that there's very low rendering needs, the website should be able to be high-performable with the many trees. And I think I also want the visuals to look better."
+> user (turn 2): "They look more organic, but some of them, like the oak, they still just don't look good enough."
+> user (turn 3): "The problem with the oak being mostly that we cannot do old enough trees. They need to be taller. We need a higher performance to get there."
+> user (turn 4): "it won't be better because we're not handling lod. The full tree will be generated and sampled as i remember"
+> user (turn 5): "What would generating trees, that are botanically accurate, fast to generate and fast to render look like if we had to rethink it from first principles. Is there another path than what we're currently doing that would give us almost instantenous generation?"
+> user (turn 6): "i want realistic trees in 3d engines like unreal also. We don't just want my website to function again. It needs to work on any scale/resolution."
+> user (turn 7): "if we can get a generator that is fast enough to generate high volumes of trees on my machine then we could train a neural net that would be even more efficient than the original generator algo."
+> user (turn 8): "Ideally we'd be able to settle on a new goal spec that targets the 0.2.0 release branch with goals as we just discussed"
+> user (turn 8): "the goal spec needs to be solid enough for you to be able to autonomously run this over night"
+> user (turn 9, selected): "At most 250 KB"
+> user (turn 9): "i think we have to look up how old mature oaks are i'd imagine there multiple centuries old, so we need to achieve this"
+> user (turn 9): "let's figure it out first when i sign off you can start and run until i return from my hike tomorrow evening"
+> user (turn 10): "a is fine"
+> user (turn 11): "tbf i think the .1.4 looks "better" than the new oak."
+> user (turn 12): "we don't want to integrate anything in unreal. this goal should only work within the harness and being imported into a website. Any imports to game engines are out of scope for this goal. But what we're builing must have a modular path to build a plugin or smth to be imported by game engines to generate trees at scale."
+> user (turn 13, selected): "A" (the coarse path runs on the CPU for everyone)
+> user (turn 14): "no we'd replace the current grower with the new one..? we only want one"
+> user (turn 15): "i thought training a neural net would be a longterm goal not one that we put in .2"
+> user (turn 15): "the plan is to generate things fast and you're telling me it'll be slow"
+
+## Goal & Context
+
+Telperion 0.2.0 serves one grown tree at whatever fidelity the consumer asks for, from a voxel grove on a website to a hero tree in the harness, and is better than 0.1.4 on every axis the owner names. Today it is worse on the website: the whole tree grows before it is sampled, so a coarse request costs the same as a fine one, and the oak cannot grow old enough to be tall.
+
+Measured 31 Oct 2026 (RTX 3080, native, warm, one run with other GPU use; `FIRST-PRINCIPLES-2026-10-31.md` in fn-237's evidence): oak 236-239 ms, spruce 441-468 ms and birch 215-220 ms at grids of 12, 24, 36 and 48. Oak at grid 36, seeds 1, 7 and 42: age 40 takes 247-277 ms, age 80 takes 1,119-2,043 ms, ages 100 and 120 are refused because the cycle's axes buffer passes 2 GiB. 0.1.4 against the current prerelease in a browser (AUDIT-2026-10-26.md): spruce 203-212 ms against 503-539 ms, oak 233-260 ms against 355-642 ms, field download 107,663 against 834,077 Brotli bytes, and CPU everywhere against WebGPU only.
+
+This goal does not depend on a route succeeding. The proposed route is in Decision Context. If it fails, the run stops and reports; the bar stays.
+
+<!-- Source: 60% user / 25% [paraphrase] / 15% [inferred] -->
+
+## Acceptance Criteria
+
+Every numeric threshold below is [inferred] by the host unless quoted; saving this goal with the owner's answers settles them. Measurements run through `telperion-heavy`, on the integration branch's head, and state their commit, seeds and shader-cache state.
+
+- **R1 (a fidelity request):** Every generator entry takes one requested fidelity, named in what the tree resolves rather than in a grid, that changes the tree by degree; the field's grid side stays its own input. The coarser the request, the less the generator grows. Check: an ordinary test on all eight presets counts phytomers actually simulated, retired ones included, at three fidelity values. The count never rises as fidelity coarsens, and falls strictly on the oak, spruce and birch. The finest setting is the full cycle, and its field answers equal the reference's bytes within one process (R4 pins the reference). A value out of range is refused by name. [paraphrase]
+- **R2 (the website is strictly faster):** A browser benchmark extended from AUDIT-2026-10-26's `bench.cjs`, pinning both packaged tarballs and one grove plan in its own files, on one machine in one run, with the shader cache state stated. The coarse path runs on the CPU for every visitor, one path with no fallback, and the benchmark runs it with WebGPU both enabled and disabled and reads the same answers. Without WebGPU, a request for close-up detail is refused by name. Every preset at grid 36 and seeds 1, 1234 and 5678, at least five warm samples each, has a median tree time at or under 50 ms and, for a species 0.1.4 has, at or under 0.1.4's. Page load to the first visible tree, cold, and the whole grove's completion at the planned trees are each at or under 0.1.4's. [paraphrase]
+- **R3 (many trees):** 1,000 distinct oaks at grove fidelity and their preset age generate natively in at most 15 s on this machine, and their frame takes at most 4 ms of GPU time on the RTX 3080. No forest rig exists, so this criterion builds one in the harness [strategy:Surface and rendering at scale]. [paraphrase]
+- **R4 (same tree, by the numbers):** The reference is the full cycle at this goal's base commit with the preset tables as they stood there, on the CPU executor, recorded by commit and table hash, and read as recorded data once measured; a later change to either does not move it. Seeds 1-50 are held out for this check and never train anything. For the oak first and then every preset, each at its preset age and at the fidelity values of the manifest: height, crown spread, trunk diameter, limb count, shed share and leaf area each have a median within 5 % of the reference's, and an interquartile range within the larger of 20 % and the reference's own difference between seeds 1-25 and 26-50. A metric that cannot be read is a failure. The manifest defines limb count and shed share, and child 1 adds them to the measuring code. [inferred]
+- **R5 (any scale, no pop):** At one fidelity, on a walk from the whole tree to a twig at 5 cm, realised detail's wood length and leaf area stay within 2 % of what the coarser level stated for that axis, and every node already drawn keeps its position to the bit. Changing the requested fidelity may grow another specimen, so the walk never crosses to the full cycle (Decision Context). [paraphrase]
+- **R6 (hero in realtime):** In the harness, the hero oak (camera, viewport, age and first image as the manifest defines them) shows its first image within 50 ms warm, resident detail arrives within 16 ms of being requested at the median, it renders within 2 ms of GPU time at native pixel ratio [strategy:Key metrics], and it holds under 1 GiB of device memory. [inferred]
+- **R7 (the oak grows old and tall):** "They need to be taller." The oak reaches age 300 at seeds 1-50 with no refusal at grove or hero fidelity. Past the age where its height growth falls under 1 % a decade, cost per simulated year rises by at most 10 % a decade. At age 300 its median height sits in Silvics' mature 15-27 m, its median trunk is at least 60 cm, and no crown passes the 38.4 m record, each checked against the source text. Whether the finest setting can reach age 300 is unknown; child 1 measures it and a refusal there is logged by name. [paraphrase]
+- **R8 (a modular path to engines):** "what we're builing must have a modular path to build a plugin or smth to be imported by game engines to generate trees at scale." Generation sits behind a native entry with no browser, harness or engine dependency, which takes a family, a seed and a requested fidelity and returns the tree's data. A headless test generates the oak through it at every fidelity, its answers matching the package entry's by R4's limits, and a test holds that the core crates depend on no rendering or engine code. No plugin is built. [paraphrase]
+- **R9 (no regression):** Harness builds meet fn-237 R0a's time budgets, shipped artifacts are within `scripts/artifact-budgets.json`, and the gate and npm test are green, measured after the last child. The website's field path downloads at most 250,000 Brotli bytes, its trained parts included (owner: "At most 250 KB"). [paraphrase]
+- **R11 (one grower, and nothing slower):** "we only want one." One growth algorithm serves every entry, with the fidelity as its dial and the full cycle as its finest setting; no entry takes a separate way of growing. It may run on the CPU or the device, as the one cycle does today. No setting gets slower than this goal's base: the harness's warm build at the finest setting stays within 10 % of the base's on the RTX 3080. A website that asks only for coarse trees downloads no device growth code. [paraphrase]
+- **R10 (the owner's eye):** The owner's written verdict in this spec, per species, on blind sheets beside the full cycle and beside 0.1.4 at grove, whole, mid and close views, plus the R5 walk. "I also want the visuals to look better." Agents prepare the sheets as retained JPEGs. Only a verdict written here counts, and the criterion passes only when the owner accepts every species against both comparisons and accepts the walk; a rejection fails it. [paraphrase]
+
+## Boundaries
+
+- "this goal should only work within the harness and being imported into a website." "Any imports to game engines are out of scope for this goal." No Unreal or other engine plugin, project or integration is built or installed.
+- Nothing merges to master, nothing is tagged, nothing is published to npm. 0.1.4 stays `latest`. [inferred]
+- All work lands on this goal's integration branch, which the host creates and pushes before the run from fn-319's head, the release branch plus fn-319. The run never creates it. `origin/master` holds 0.1.4's engine and is never merged into it. The release branch and PR #159 are not written to. Any final pull request is a draft, and this run lands nothing. [paraphrase]
+- No stored or prebaked 3D tree ships (owner, 2026-10-05 and 2026-10-13). Trained engine parts may ship (decision, 2026-10-13). [paraphrase]
+- One pipeline, no species branch, no fallback path, parameters change by degree (`docs/principles.md`). The full cycle stays reachable as the finest setting. [inferred]
+- killenberger.com's repository is not edited; the benchmark uses its plan as read-only input. [inferred]
+- Heavy work runs through `telperion-heavy`, one GPU job at a time. Reviews run inside the queue. No forest capture past the budget in `AGENTS.md`. [inferred]
+- Generated data stays in ignored `raw/` directories, at most 10 GB in all. [inferred]
+
+## Rigor and stop conditions
+
+Applied by the goal run. All [inferred].
+
+- **Path:** children commit straight onto the integration branch, because CI runs only on pull requests into master. Each child runs the task gate once and a `codex` review inside the queue, then closes. No pull request per child. `npm ci` runs once in a checkout before its first gate.
+- **Child 1, the manifest and the floor (read-only measurement, plus measuring code):** it freezes a measurement manifest in its evidence before anything is built: fidelity values, ages, cameras, viewport, the walk, the first image's completion boundary, limb count and shed share. From existing full trees, and with sub-N axes skipped, it measures across seeds: live axes by order and year; the 36-cell field drawn from orders up to k with the rest as density; the scaffold's CPU cost per year and the light's CPU cost separately, for the oak at 40 and 80 and as far toward 300 as this machine reaches, with the refusal named; and the full cycle's reach.
+- **Child 2, the closure on the oak:** it records subtree data from the full cycle on training seeds 1000 and up, and builds the smallest closure, a table of statistics with a spread and no network. Each attempt has at most 4 hours and 5 GB of data. It reads R4 on the oak, the scaffold, closure and detail cost, and one R5 probe. No other child is minted until all three pass.
+- **Route stop:** the run stops `NEEDS_HUMAN` with the numbers and the next options if child 1 shows the field needs the fine orders' own positions, or if the oak's scaffold and light alone at age 80 pass 50 ms a tree in a single thread with no lever left in the manifest, or if two closure attempts fail R4, the cost measurement or the R5 probe. It does not go on to polish a failed route.
+- **Time and size stops:** stop `NEEDS_HUMAN` at 19:00 Zurich time on 1 Nov 2026, leaving the last 30 minutes for evidence and pushes, and wrap each long job in the time remaining. Stop after 8 children, when free space on `/home` falls under 15 GB (checked before and during data writes), or when the last two children moved no criterion. At most two worktrees are live, and a closed child's `target/` is removed.
+- **Size:** R9's download is measured per child and reported, and it never gates a child.
+- **Owner-only items:** R10's verdicts are logged as questions and park only that criterion. The run prepares what they need and keeps going on the rest.
+- **What to expect:** R10 waits on the owner, so this run cannot reach `GOAL_MET`. Its deliverable is pushed progress, measured criteria, review sheets and the unmet list, ending `NEEDS_HUMAN`. The reviewers expect child 1, child 2 and perhaps one more in this time.
+- **Evidence:** friction goes in each child's `FRICTION.md` as it happens. Summaries and verdict sheets are kept; raw output is not committed.
+
+## Decision Context
+
+The contract (owner, 1 Nov 2026, "a is fine"): a fast tree is held to the full cycle's statistics and the owner's blind verdict, not to the full cycle's exact tree at that seed. R4 and R10 state it. Within fast mode, zooming in never changes wood already drawn (R5), and the full cycle stays as the finest setting (R1). For this goal, this reopens the 11 Oct 2026 closure of the coarse route and the 13 Oct 2026 rule on shortcuts beyond measured tolerance; R4's limits are that tolerance.
+
+One grower (owner, 1 Nov 2026): the current cycle gains a fidelity dial, so there is one algorithm, already with a CPU and a device executor. The dial is where the speed comes from, since a coarse tree grows less. The executor is a constant factor. Measured 1 Nov 2026, native, warm, 36-cell field, seed 1: oak 40 takes about 240 ms on the RTX 3080 and 930-1,280 ms on the CPU, spruce 450 ms and 3,700-6,100 ms, birch 215 ms and 610-960 ms, oak 80 1,300 ms and 9,100-16,800 ms. CPU threads from 1 to 32 gain only about 1.3-1.7 times. So the device stays for fine trees. The device also has a fixed cost: the palm, with almost no work, takes about 76-80 ms (fn-257 RESULTS.md), above R2's 50 ms, so coarse trees run on the CPU. Each executor is deleted only if a later measurement shows it serves nothing.
+
+No neural network (owner, 1 Nov 2026): a network is a long-term goal, fn-268's line, and outside this goal. The closure is a table of statistics fit offline from the full cycle, which no earlier attempt has tried. If it fails the route stop, the run stops and reports; it does not reach for a network.
+
+The website without WebGPU (owner, 1 Nov 2026, chose option A): the coarse path runs on the CPU for everyone, and WebGPU only speeds up close-up detail. For this goal, this replaces the 11 Oct 2026 ruling that a browser without WebGPU gets a named error and that the site grows the full tree on the device. It depends on scaffold cost, which child 1 measures.
+
+Specimens (host, 1 Nov 2026, after review): the requested fidelity sets how much of the tree is grown coupled, so it picks the specimen; a viewer's distance only selects how much of that specimen is realised. Two fidelities at one seed may therefore be different trees within R4's limits, and the finest is the reference's own tree. Realising detail refines one specimen and never moves what is drawn. A consumer holds one fidelity for a tree's life.
+
+Evidence against the closure, from the reviews: the light field and low-limb shedding depend on the twig density a closure replaces, and a table conditioned on local scaffold state may be the failed aggregate with learned coefficients. Child 2 tests this first.
+
+The proposed route, not a requirement (host, 31 Oct 2026; `FIRST-PRINCIPLES-2026-10-31.md`): treat growth as a multi-scale simulation. The scaffold grows year by year and coupled, on the CPU. A closure fit from the full cycle stands in for short-lived wood and carries a spread, since a mean repeats form (a)'s failure. Detail is realised on demand from lineage keys and the scaffold's recorded conditions, on the GPU where there is one. Rendering takes one screen-error cut over regenerable pages (decision, 2026-10-05).
+
+Evidence against the route: `couple::Aggregate` and forms (a) and (c) all failed on the oak (fn-245 COUNCIL.md). They were hand-written and judged against the same seed. A closure fit from data is untested. No light cost on the CPU is known; it may dominate the scaffold.
+
+Jev's image input (`JEV-VISUAL-2026-11-01.md` in this spec's evidence): in a small test it separated photographs from renders, picked the closer form to a reference photo and flagged some named defects, but its realism score among renders ran against the owner's verdicts. So no criterion passes on it. A 78-item eval against Claude and Codex (same file) puts it level on factual checks at about a hundredth of the cost and well behind on taste, where it is most wrong when most sure. So a run routes by question type: Jev for factual checks, trusted at probability 0.9 and over, and Astra (`codex exec -m gpt-6-astra`) for "which looks better", each as a proposal to order sheets. Comparing 0.1.4 with the new engine, it favoured the new spruce at every view and 0.1.4's birch at the whole view, while placing the new birch closer to the reference photos in 4 of 6 comparisons.
+
+The look is a gap in its own right (owner, 1 Nov 2026: "tbf i think the .1.4 looks "better" than the new oak."). R10 compares against 0.1.4, so speed alone cannot meet this goal. Crown fullness is the host's leading suspect (inferred, unmeasured); fn-285 R2 asks whether a look is out of reach by cost or by values, and a run answers that for the oak before tuning it.
+
+`/home` has 44 GB free.
+
+Oak ages (sources read 31 Oct 2026, search excerpts): Oregon white oaks "may live 500 years" (OWIC); mature trees are 15-27 m tall and 60-100 cm in d.b.h., with records of 36.6 m, a 38.4 m crown and 246 cm (Silvics of North America); a heritage tree of about 200-300 years stands about 21 m tall with a 27 m canopy and a 135 cm trunk (Clackamas County). English oaks show veteran traits from about 300 years and count as ancient from 400 (Woodland Trust). So height nearly stops long before such ages, and age shows in girth, spread and structure. Age 300 is the owner's choice (1 Nov 2026), from "multiple centuries".
+
+The full cycle may not reach age 300 on this machine. Its axes buffer asks 2.56 GB at age 100 and 5.07 GB at 120 (measured), which extends to about 155 GB at 300 on the same power law (estimate). If that holds, age 300 has no full reference here, R4 cannot compare at that age, and R7 rests on the sources and R10. The preset's rows were also set for ages 40-80, and old-age traits such as dieback and reiteration are unchecked.
+
+## Strategy Alignment
+
+- **The core and integration:** one core, and consumers request the representation they need. This goal keeps the track's engine proofs possible through R8 and builds none of them.
+- **Surface and rendering at scale:** detail selection on generated geometry and measured error.
+- **Key metrics:** Build, Frame and the owner's eye are R2, R3, R6 and R10.
+
+## Strategy Conflicts
+
+"One persistent botanical structure from trunk to leaf-bearing twig" reads against a closure standing in for twigs until they are realised. The 2026-10-05 decision names closed-form stand-ins as acceptable, and the owner settled the contract in Decision Context.
+
+## Open Questions
+
+None. The owner settled R7's age ("300 sounds good") and the stop date ("nov 1 19:00", Zurich time, 2026) on 1 Nov 2026.
+
+## Goal log
+
+- 2026-11-01: integration branch `goal/fn-321-020-one-grown-tree-at-any-scale-in` created by the host from `dfdb4b79f`, fn-319's head (the release branch plus fn-319), because `origin/master` holds 0.1.4's engine. Rigor applied: this spec's "Rigor and stop conditions".

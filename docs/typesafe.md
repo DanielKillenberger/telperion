@@ -115,5 +115,7 @@ tokens with wall time. No call cap is hardcoded.
 
 The hand-rolled JSON scan in `crates/telperion-core/src/suite/foliage_reference.rs`
 and the stdout regex in `tests/species.mjs` are code fixes, not Jev work.
-Jev judges text and structured state, never a still. The species QA runner
-keeps exiting non-zero while a visual inspection is unassessed.
+Jev may read a still (owner, 2026-11-01): it may order review sheets and flag
+a defect the owner has named, as a proposal. It never passes a visual
+inspection or stands in for an owner verdict. The species QA runner keeps
+exiting non-zero while a visual inspection is unassessed.
