@@ -55,3 +55,7 @@ The listed tests are the same 1,514, by package: core 534, jev 389, render 369, 
 ## R6, R7
 
 R6: `AGENTS.md`'s review section now says a review covers the child's own diff, and a `.flow/`-only task skips it with the reason recorded. R7: this child ran in the goal's one checkout, and no cold build happened.
+
+## Closed, 1 Nov 2026
+
+The two base failures this child stopped on are gone: the stale test by `771ddee6a`, and the flake by fn-320. At `e04c51ae5` every suite holds a real receipt, on one head. The 3 s rows above were timed with a hand-placed render receipt, and a real one now stands in its place. The gate gained two things from fn-320: its own driver cache, and with it a test run of 512 s for the render, Jev and node suites.

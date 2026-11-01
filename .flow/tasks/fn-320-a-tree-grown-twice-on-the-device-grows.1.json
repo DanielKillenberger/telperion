@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-320-a-tree-grown-twice-on-the-device-grows",
   "spec_path": ".flow/tasks/fn-320-a-tree-grown-twice-on-the-device-grows.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement a tree grown twice on the device grows the same field",
   "updated_at": "2026-11-01T08:58:14.708438Z"
 }

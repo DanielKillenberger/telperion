@@ -10,12 +10,12 @@ TBD
 Every R-ID in the parent spec's ## Acceptance Criteria is satisfied; judge this task against the spec's criteria directly.
 
 ## Done summary
-Blocked:
-The gate cannot go green on the base: two render tests fail, both reproducing alone, and fn-322's Decision Context stops the goal on that. The gate work itself is done and has codex SHIP; see `.flow/evidence/fn-322-local-verification-reruns-only-what-a/RESULT.md`. The owner's answer is asked for in fn-321's Goal log.
+The gate reruns only what a commit can affect, by ci-key.mjs's suite keys, with its skip proven by 27 fixture tests. A full run took 1,350 s, a `.flow/` commit verifies in 3 s. It was blocked on two base failures, now fixed (771ddee6a, fn-320), and every suite holds a real receipt at e04c51ae5. R3 deviation: a `src/` commit also runs rust-jev, whose isolation test reads `src`.
 
-Blocked:
-fn-322's gate work is done with codex SHIP. Its closing full run waits on fn-320, the device-field flake (owner's answer, 1 Nov 2026, in fn-321's Goal log); the stale test is fixed.
+stage: impl-review - ran [0e544d803..c7aa840f0] (model: gpt-6.1-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e2f7bceefc03d529eff99b36f4d0251fd1f8ed89, 73865198e6657e3c93f21ab021aeb37dd0fd646f, 7e48bf239be348a0acec054425e400031dd30f06, 665943910879cb866f00b7eec39c8e272a197927, c7aa840f07b7344ed94c425ec7dc442834ccee02
+- Tests: telperion-heavy 8 --threads 4 -- python3 scripts/gate.py
 - PRs:

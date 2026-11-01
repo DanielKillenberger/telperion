@@ -58,3 +58,11 @@ The fix changes every field's bytes, as the kept products round otherwise. `fiel
 - One GPU and driver. Other hardware is unmeasured, and cross-GPU agreement stays fn-318 R4's.
 - Unmarked products remain in `light_sweep.wgsl`, the dress and the stations, and none parted here.
 - The cause's mechanism in the driver is unknown, so a driver update could change this. The ordinary tests are what would show it.
+
+## Verification
+
+`telperion-heavy 8 --threads 4 -- python3 scripts/gate.py` at `e04c51ae5`: green, every suite with a receipt. It reran `rust-jev`, `rust-render`, the node suite and the package check: 760 passed, 76 skipped, test run 512 s against 1,560 s, with a fresh driver cache of 53 MB. `rust-core` and `rust-wasm` held receipts from runs at unchanged keys.
+
+Two gates before it failed on the driver's cache, not on the fix, and `FRICTION.md` has both. `gate-3.log` is also why a run with no cache at all fails its budget at 1,959 s.
+
+Codex: NEEDS_WORK on three findings, fixed, then SHIP at `510d44a24`. `e04c51ae5` came after it, a one-line directory fix with its test, and took no second review.

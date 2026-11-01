@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-320-a-tree-grown-twice-on-the-device-grows",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-01T12:09:43.022090Z",
   "created_at": "2026-10-28T12:25:45.698980Z",
   "default_impl": null,
   "default_review": null,
@@ -148,7 +148,7 @@
     "impl:fn-320-a-tree-grown-twice-on-the-device-grows.1": 0
   },
   "spec_path": ".flow/specs/fn-320-a-tree-grown-twice-on-the-device-grows.md",
-  "status": "open",
+  "status": "done",
   "title": "A tree grown twice on the device grows the same field",
   "tracker": {
     "baseHashFlow": null,
@@ -161,5 +161,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T11:20:49.275394Z"
+  "updated_at": "2026-11-01T12:09:45.894608Z"
 }
