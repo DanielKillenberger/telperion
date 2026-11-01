@@ -151,3 +151,4 @@ None. The owner settled R7's age ("300 sounds good") and the stop date ("nov 1 1
   - **C:** drop the CPU coarse path and speed up the device cycle. This reverses your choice of 1 Nov, and no route to it is measured.
   - **D:** stop the goal here, keeping the gate, the repeatable field and the measurements.
 - 2026-11-01 20:48 Zurich, owner's answer, in chat: "I think we can remove the time limit." The stop at 19:00 on 1 Nov no longer applies to later runs. The stops on 8 children, on free space and on two children moving no criterion still stand. The question above stays open: this does not choose among A, B, C and D.
+- 2026-11-01 20:49 Zurich, owner's answer, in chat: "we don't need to stop on 8 children specs either. Stop at 20". The child limit is now 20, replacing 8. Four children have run so far (fn-322, fn-320, fn-323, fn-324). The stops on free space and on two children moving no criterion still stand, and the question above stays open.
