@@ -10,8 +10,8 @@ TBD
 Every R-ID in the parent spec's ## Acceptance Criteria is satisfied; judge this task against the spec's criteria directly.
 
 ## Done summary
-TBD
-
+Blocked:
+The gate cannot go green on the base: two render tests fail, both reproducing alone, and fn-322's Decision Context stops the goal on that. The gate work itself is done and has codex SHIP; see `.flow/evidence/fn-322-local-verification-reruns-only-what-a/RESULT.md`. The owner's answer is asked for in fn-321's Goal log.
 ## Evidence
 - Commits:
 - Tests:

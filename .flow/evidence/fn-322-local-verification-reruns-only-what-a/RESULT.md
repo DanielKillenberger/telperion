@@ -27,6 +27,7 @@ The first has a proven one-line fix on local branch `scratch/fn-322-probe` (`eeb
 | --- | --- | --- | --- |
 | Before this spec, any change | all | over 20 min | The figure in the spec. |
 | Full run, `--full` at `73865198e` | all | 1,412 s, test run 1,179 s | One failure (the first above). |
+| Every suite, no receipt, at `c7aa840f0`, the final code | all | 1,350 s, test run 1,147 s | 1,513 of 1,514 passed, the same failure; `npm test` 234 passed. Every suite but `rust-render` holds a receipt. |
 | Nothing changed | none | 3 s | Render receipt placed by hand. |
 | `.flow/` only | none | 3 s | Render receipt placed by hand. |
 | `STRATEGY.md` only | none | 3 s | Render receipt placed by hand. |
