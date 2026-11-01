@@ -274,7 +274,11 @@ def recorded_env() -> dict[str, str]:
     env["NEXTEST_EXPERIMENTAL_RECORD"] = "1"
     # A driver cache at its 1 GB default keeps no new shader, so after a shader
     # change each fresh context recompiles: 166 s against 7 s for one test (fn-320).
-    env.setdefault("__GL_SHADER_DISK_CACHE_SIZE", str(4 << 30))
+    # Its own directory, since an application at the default limit wipes a shared
+    # cache grown past it. A cache the caller configured is left as it is.
+    if not {"__GL_SHADER_DISK_CACHE_PATH", "__GL_SHADER_DISK_CACHE_SIZE"} & env.keys():
+        env["__GL_SHADER_DISK_CACHE_PATH"] = os.path.join(ROOT, "target", "gate", "shader-cache")
+        env["__GL_SHADER_DISK_CACHE_SIZE"] = str(4 << 30)
     return env
 
 

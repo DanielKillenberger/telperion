@@ -195,7 +195,9 @@ fn palm_digest() {
 
 /// fn-320 R3, a measurement: what the renderer receives from the device,
 /// every drawn preset at seeds 1 and 5678, 30 builds on one generator,
-/// each line the first's.
+/// each line the first's. Where `DIGEST_REPEAT_PIN` names a file, the lines
+/// are written there the first time and held to it after, so a second
+/// process is held to the first.
 #[test]
 #[ignore = "a measurement: every preset's digest on 30 repeats"]
 fn every_preset_digests_the_same_on_thirty_repeats() {
@@ -206,6 +208,7 @@ fn every_preset_digests_the_same_on_thirty_repeats() {
     let renderer = crate::Renderer::new(gpu, crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     let mut parted = Vec::new();
+    let mut lines = Vec::new();
     for &(_, id, _, _) in CATALOGUE {
         for seed in [1, 5678] {
             let mut family = Preset::from_id(id).unwrap().parameters();
@@ -221,7 +224,15 @@ fn every_preset_digests_the_same_on_thirty_repeats() {
             if off > 0 {
                 parted.push(format!("{id} {seed}: {off}"));
             }
+            lines.push(format!("{id} {seed}: {first}"));
         }
     }
     assert!(parted.is_empty(), "the digest parted: {parted:?}");
+    let Ok(pin) = std::env::var("DIGEST_REPEAT_PIN") else {
+        return;
+    };
+    match std::fs::read_to_string(&pin) {
+        Ok(was) => assert_eq!(was, lines.join("\n"), "another process built another tree"),
+        Err(_) => std::fs::write(&pin, lines.join("\n")).expect("the pin written"),
+    }
 }

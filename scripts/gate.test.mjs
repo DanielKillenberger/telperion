@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { chmodSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -267,19 +267,25 @@ describe('the gate reruns only what a change can affect', () => {
     expect(lines[0]).toMatch(/-p telperion-jev -p telperion-wasm -p telperion-space -p telperion-render -p telperion-core/);
   });
 
-  it('gives the driver room to keep new shaders, unless a size is already set', () => {
+  it('gives the driver a roomy cache of its own, unless the caller configured one', () => {
     const fake = join(repo, 'fake', 'cargo-nextest');
-    const seen = join(repo, 'target', 'cache-size');
+    const seen = join(repo, 'target', 'cache-seen');
     const body = readFileSync(fake, 'utf8').replace(
       'echo "$(basename "$0") $*" >> "$root/calls.log"',
-      `echo "$(basename "$0") $*" >> "$root/calls.log"\nmkdir -p "$root/target"; echo "$__GL_SHADER_DISK_CACHE_SIZE" > "${seen}"`,
+      `echo "$(basename "$0") $*" >> "$root/calls.log"\nmkdir -p "$root/target"; echo "$__GL_SHADER_DISK_CACHE_PATH $__GL_SHADER_DISK_CACHE_SIZE" > "${seen}"`,
     );
     writeFileSync(fake, body);
-    gate({ __GL_SHADER_DISK_CACHE_SIZE: undefined });
-    expect(readFileSync(seen, 'utf8').trim()).toBe(String(4 * 2 ** 30));
+    const unset = { __GL_SHADER_DISK_CACHE_PATH: undefined, __GL_SHADER_DISK_CACHE_SIZE: undefined };
+    gate(unset);
+    expect(readFileSync(seen, 'utf8').trim()).toBe(
+      `${join(realpathSync(repo), 'target', 'gate', 'shader-cache')} ${4 * 2 ** 30}`,
+    );
     commitChange('crates/telperion-core/file');
-    gate({ __GL_SHADER_DISK_CACHE_SIZE: '123' });
+    gate({ ...unset, __GL_SHADER_DISK_CACHE_SIZE: '123' });
     expect(readFileSync(seen, 'utf8').trim()).toBe('123');
+    commitChange('crates/telperion-core/other');
+    gate({ ...unset, __GL_SHADER_DISK_CACHE_PATH: '/elsewhere' });
+    expect(readFileSync(seen, 'utf8').trim()).toBe('/elsewhere');
   });
 
   it('writes no receipt for a suite the report does not mention', () => {

@@ -58,12 +58,9 @@ fn every_preset_grows_the_same_field_on_thirty_repeats() {
     for &(_, id, ..) in telperion_core::presets::CATALOGUE {
         for seed in [1, 5678] {
             let f = family(id, seed);
-            let grow = || pollster::block_on(gen.grow_field(&f, 24, None));
-            let Ok(first) = grow() else {
-                println!("FIELD_REPEAT {id} {seed} refused");
-                continue;
-            };
-            let off = (1..30).filter(|_| grow().expect("read out") != first).count();
+            let grow = || pollster::block_on(gen.grow_field(&f, 24, None)).expect("read out");
+            let first = grow();
+            let off = (1..30).filter(|_| grow() != first).count();
             println!("FIELD_REPEAT {id} {seed} {:016x}, {off} of 29 parted", hash(&first));
             if off > 0 {
                 parted.push(format!("{id} {seed}: {off}"));

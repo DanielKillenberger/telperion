@@ -34,7 +34,7 @@ With the marks plain again:
 
 ## R3: the renderer's device build
 
-The cause reaches it, since the build grows through the same cycle. `every_preset_digests_the_same_on_thirty_repeats`, every preset the device draws at seeds 1 and 5678: 0 of 29 parted on all 16 (`r3-digest.log`, one process).
+The cause reaches it, since the build grows through the same cycle. `every_preset_digests_the_same_on_thirty_repeats`, every preset the device draws at seeds 1 and 5678: 0 of 29 parted on all 16, in each of two processes, with the second process's digests held to the first's (`r3-digest-a.log`, `r3-digest-b.log`).
 
 ## Errors: the answers changed
 
