@@ -32,3 +32,23 @@ Scope fixed at first age 9. Two new values, for the two metrics short: lateral b
 | h | 1, 2, 4 |
 
 432 candidates, on seeds 1001 and 1002.
+
+## Round 2's result
+
+On seeds 1001 and 1002: s 3, leaf 4, pipe 1.5, b 2, h 1 costs 248 ms, worst 0.110: height 1.01, spread 0.98, trunk 0.89, limbs 0.89, shed share 0.90, leaf area 0.95. Trunk moves with pipe alone (pipe 2 gives 1.13, limbs 0.99), so it can be set last. Limbs answer to b. Shed share stays near 0.90, and raising the hazards moved it little. No candidate is under 50 ms, and the fastest fits cost 90 to 100 ms with worst 0.27.
+
+## Round 3
+
+Scope first age 9. Two new values. The shedding delay on the scaled ages, times x, since dead laterals shed sooner lower the kept share. A second factor s2 on shoots and twigs and later (age 12 and up), on top of s, with its internode, nodes, leaf area and pipe scaled as s scales them, since most apex-cycles are at the deepest orders.
+
+| Value | Levels |
+| --- | --- |
+| s | 2, 3, 4 |
+| s2 | 1, 1.5, 2, 3 |
+| Leaf area, times s | 4, 8 |
+| Pipe, times s^(1/exponent) | 1.5, 2.5 |
+| b | 1.3, 2 |
+| h | 1, 2 |
+| x | 1, 0.5, 0.25, 0.1 |
+
+768 candidates, on seeds 1001 and 1002.
