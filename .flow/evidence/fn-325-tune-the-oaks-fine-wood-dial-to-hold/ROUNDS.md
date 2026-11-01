@@ -103,8 +103,16 @@ Held-out seeds, medians, fn-323's protocol. Reference at age 40: 1,722 ms. At ag
 
 A holds all six medians within 5% at the preset age, 6.3 times faster than the full cycle. B to D missed by more on these seeds than on the tuning seeds, so two to five tuning seeds overfit. Values tuned at age 40 do not carry to age 80.
 
-The census shows cost following apex-cycles: on seed 1 at age 40 the reference takes 1.137 s for 339,970 of them, A 0.170 s for 76,634, D 0.068 s for 26,212, or 3.3, 2.2 and 2.6 us each, and light is 6 to 12%. D's apex-cycles sit at orders 1 to 3, under the ages this scope scales. Cycle time past the scaled ages is in the passes that visit every apex.
+The census shows cost following apex-cycles: on seed 1 at age 40 the reference takes 1.137 s for 337,970 of them, A 0.170 s for 76,634, D 0.068 s for 26,212, or 3.4, 2.2 and 2.6 us each, and light is 6 to 12%. D's apex-cycles sit at orders 1 to 3, under the ages this scope scales. Cycle time past the scaled ages is in the passes that visit every apex.
 
 ## Round 6, the climb from a wider scope
 
 probes/climb.py, on seeds 1001 to 1008, 4 generations of 150, sigma 0.15, seed 3260, starting from round 3 and round 5. It may now move the first scaled age among 7, 8 and 9. Weight 30 on the statistics, not 10, so a candidate that holds them outranks one that is only cheap. The held-out seeds and judgement logs are not in its pool.
+
+## Round 6's result
+
+On seeds 1001 to 1008: A holds at worst 0.039, 256 ms. E (s 2.099, leaf 8.082, pipe 2.667, b 1.241, h 1.944, s2 1, x 0.253) has worst 0.045 at 230 ms. F (s 2.773, leaf 19.606, pipe 4.515, b 1.821, h 2.429, s2 1, x 0.203) has worst 0.069 at 128 ms. Scaling from age 7 or 8 is worse (best 0.116 and 0.079). The search has levelled off: three climbs moved the 5% line little.
+
+## Judgement 2 and the reach
+
+E and F on the held-out seeds at age 40, fn-323's protocol. Then the reach of A, F and D on the oak at seed 1: ages 80, 120, 160, 200, 300, one grow each, its seconds, shape, grown phytomers, or the refusal by name.
