@@ -1,0 +1,235 @@
+//! fn-325's search: the oak's fine wood grown from fewer, longer phytomers,
+//! through the one cycle, on a changed species table. Kept in the child's
+//! evidence, never on the workspace's tests.
+use crate::pipeline::{executor, measures, skeleton, GrowInput};
+use crate::presets::{by_identity, Family};
+use crate::tree::Tree;
+use telperion_space::{NodeLaw, Species};
+
+/// The first age scaled, the factor, leaf area over `s`, pipe over `s^(1/e)`.
+#[derive(Clone, Copy, Debug)]
+pub struct Dial {
+    first: usize,
+    s: f64,
+    leaf: f64,
+    pipe: f64,
+    bud: f64,
+    hazard: f64,
+    s2: f64,
+    shed: f64,
+}
+
+fn scaled(species: &Species, d: Dial) -> Species {
+    let mut out = species.clone();
+    for (pa, state) in out.states.iter_mut().enumerate().skip(d.first) {
+        let s = if pa >= 12 { d.s * d.s2 } else { d.s };
+        state.internode *= s;
+        state.leaf_area = (state.leaf_area * s * d.leaf).min(telperion_space::MAX_LEAF_AREA);
+        state.form.pipe = (state.form.pipe * s.powf(1.0 / state.form.exponent) * d.pipe).min(1.0);
+        if state.shedding.is_finite() {
+            state.shedding *= d.shed;
+        }
+        state.shade_hazard *= d.hazard;
+        state.balance_hazard *= d.hazard;
+        for zone in &mut state.zones {
+            let sum: f64 = zone.lateral.iter().sum();
+            let k = if sum > 0.0 { d.bud.min(1.0 / sum) } else { 1.0 };
+            zone.lateral.iter_mut().for_each(|p| *p *= k);
+            zone.nodes = match zone.nodes {
+                NodeLaw::Uniform { min, max } => NodeLaw::Uniform { min: min / s, max: max / s },
+                NodeLaw::Poisson { mean } => NodeLaw::Poisson { mean: mean / s },
+            };
+        }
+    }
+    out
+}
+
+fn shape(tree: &Tree) -> Option<[f64; 3]> {
+    let base = tree.nodes.first()?.position;
+    let (mut top, mut lo, mut hi) = (f64::MIN, [f64::MAX; 2], [f64::MIN; 2]);
+    let mut breast = 0f64;
+    for n in &tree.nodes {
+        let p = n.position;
+        top = top.max(p.y - base.y);
+        lo = [lo[0].min(p.x), lo[1].min(p.z)];
+        hi = [hi[0].max(p.x), hi[1].max(p.z)];
+        if (1.0..=1.6).contains(&(p.y - base.y)) {
+            breast = breast.max(n.radius);
+        }
+    }
+    (breast > 0.0).then_some([top, ((hi[0] - lo[0]) + (hi[1] - lo[1])) / 2.0, 2.0 * breast])
+}
+
+/// Height, spread, trunk, limbs, shed, leaf and seconds at one seed.
+fn read(base: &Family, species: &Species, age: u32, seed: u32, repeats: usize) -> Option<[f64; 7]> {
+    let mut f = base.clone();
+    f.age = f64::from(age);
+    f.skeleton.seed = seed;
+    f.space.species = Some(species.clone());
+    let growth = executor::growth(&f).ok()?;
+    let mut times = Vec::new();
+    let first = telperion_space::grow_census(&growth.species, growth.request).ok()?;
+    times.push(first.seconds);
+    if repeats > 1 && first.seconds <= 0.5 {
+        for _ in 1..repeats {
+            let c = telperion_space::grow_census(&growth.species, growth.request).ok()?;
+            times.push(c.seconds);
+        }
+        times.remove(0);
+    }
+    times.sort_by(f64::total_cmp);
+    let seconds = (times[(times.len() - 1) / 2] + times[times.len() / 2]) / 2.0;
+    let kept: u64 = first.structure.axes.iter().map(|a| a.phytomers.len() as u64).sum();
+    let shed = measures::shed_share(kept, first.grown).ok()?;
+    let leaf = telperion_space::floor::bearing_area(&growth.species, &first.structure.axes, age);
+    let tree = skeleton(GrowInput::of(&f)).ok()?.tree;
+    let limbs = measures::limb_count(&tree, f.canopy.clump_system_order).ok()? as f64;
+    let [height, spread, dbh] = shape(&tree)?;
+    Some([height, spread, dbh, limbs, shed, leaf, seconds])
+}
+
+fn median(mut v: Vec<f64>) -> f64 {
+    v.sort_by(f64::total_cmp);
+    (v[(v.len() - 1) / 2] + v[v.len() / 2]) / 2.0
+}
+
+fn medians(base: &Family, species: &Species, age: u32, seeds: &[u32], repeats: usize) -> Option<[f64; 7]> {
+    let rows: Option<Vec<[f64; 7]>> = seeds.iter().map(|&s| read(base, species, age, s, repeats)).collect();
+    let rows = rows?;
+    Some(std::array::from_fn(|k| median(rows.iter().map(|r| r[k]).collect())))
+}
+
+fn env_list<T: std::str::FromStr>(name: &str) -> Vec<T> {
+    let v = std::env::var(name).unwrap_or_else(|_| panic!("{name}"));
+    v.split(',').map(|x| x.parse().ok().expect("a value")).collect()
+}
+
+fn line(tag: &str, d: Dial, m: &[f64; 7], r: &[f64; 7], age: u32) {
+    let q: [f64; 6] = std::array::from_fn(|k| m[k] / r[k]);
+    let worst = q.iter().map(|x| (x - 1.0).abs()).fold(0.0, f64::max);
+    println!(
+        "{tag} age {age} first {} s {} leaf {} pipe {} bud {} hazard {} s2 {} x {} height {:.3} spread {:.3} trunk {:.3} limbs {:.3} shed {:.3} area {:.3} worst {worst:.3} seconds {:.4}",
+        d.first, d.s, d.leaf, d.pipe, d.bud, d.hazard, d.s2, d.shed, q[0], q[1], q[2], q[3], q[4], q[5], m[6]
+    );
+}
+
+/// A grid on `SEARCH_SEEDS` at `SEARCH_AGE`, one line per candidate.
+#[test]
+#[ignore = "fn-325's search"]
+fn coarse_grid() {
+    let age = env_list::<u32>("SEARCH_AGE")[0];
+    let seeds: Vec<u32> = env_list("SEARCH_SEEDS");
+    let repeats = env_list::<usize>("SEARCH_REPEATS")[0];
+    let base = by_identity("oregon-white-oak").expect("the oak");
+    let species = base.space.species.clone().expect("a species");
+    let r = medians(&base, &species, age, &seeds, 1).expect("the reference");
+    println!("REFERENCE age {age} {r:?}");
+    for &first in &env_list::<usize>("SEARCH_FIRST") {
+        for &s in &env_list::<f64>("SEARCH_S") {
+            for &leaf in &env_list::<f64>("SEARCH_LEAF") {
+                for &pipe in &env_list::<f64>("SEARCH_PIPE") {
+                    for &bud in &env_list::<f64>("SEARCH_BUD") {
+                        for &hazard in &env_list::<f64>("SEARCH_HAZARD") {
+                            for &s2 in &env_list::<f64>("SEARCH_S2") {
+                                for &shed in &env_list::<f64>("SEARCH_SHED") {
+                                    let d = Dial { first, s, leaf, pipe, bud, hazard, s2, shed };
+                                    match medians(&base, &scaled(&species, d), age, &seeds, repeats) {
+                                        Some(m) => line("CAND", d, &m, &r, age),
+                                        None => println!("FAILED {d:?}"),
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Candidates from `SEARCH_FILE`, one a line: first s leaf pipe bud hazard s2 x.
+#[test]
+#[ignore = "fn-325's search"]
+fn coarse_list() {
+    let age = env_list::<u32>("SEARCH_AGE")[0];
+    let seeds: Vec<u32> = env_list("SEARCH_SEEDS");
+    let repeats = env_list::<usize>("SEARCH_REPEATS")[0];
+    let base = by_identity("oregon-white-oak").expect("the oak");
+    let species = base.space.species.clone().expect("a species");
+    let r = medians(&base, &species, age, &seeds, repeats).expect("the reference");
+    println!("REFERENCE age {age} {r:?}");
+    let list = std::fs::read_to_string(std::env::var("SEARCH_FILE").expect("a file")).expect("the list");
+    for row in list.lines().filter(|l| !l.trim().is_empty()) {
+        let v: Vec<f64> = row.split_whitespace().map(|x| x.parse().expect("a value")).collect();
+        let d = Dial { first: v[0] as usize, s: v[1], leaf: v[2], pipe: v[3], bud: v[4], hazard: v[5], s2: v[6], shed: v[7] };
+        match medians(&base, &scaled(&species, d), age, &seeds, repeats) {
+            Some(m) => line("CAND", d, &m, &r, age),
+            None => println!("FAILED {d:?}"),
+        }
+    }
+}
+
+/// One census per candidate in `SEARCH_FILE` at seed 1: where its time goes.
+#[test]
+#[ignore = "fn-325's search"]
+fn coarse_breakdown() {
+    let age = env_list::<u32>("SEARCH_AGE")[0];
+    let mut base = by_identity("oregon-white-oak").expect("the oak");
+    let species = base.space.species.clone().expect("a species");
+    base.age = f64::from(age);
+    base.skeleton.seed = 1;
+    let list = std::fs::read_to_string(std::env::var("SEARCH_FILE").expect("a file")).expect("the list");
+    let mut dials = vec![None];
+    for row in list.lines().filter(|l| !l.trim().is_empty()) {
+        let v: Vec<f64> = row.split_whitespace().map(|x| x.parse().expect("a value")).collect();
+        dials.push(Some(Dial { first: v[0] as usize, s: v[1], leaf: v[2], pipe: v[3], bud: v[4], hazard: v[5], s2: v[6], shed: v[7] }));
+    }
+    for d in dials {
+        let mut f = base.clone();
+        f.space.species = Some(d.map_or(species.clone(), |d| scaled(&species, d)));
+        let g = executor::growth(&f).expect("growth");
+        let mut c = telperion_space::grow_census(&g.species, g.request).expect("a tree");
+        for _ in 0..4 {
+            c = telperion_space::grow_census(&g.species, g.request).expect("a tree");
+        }
+        let census = c.census.as_ref().expect("a census");
+        let mut by_order = [0u64; 8];
+        for y in &census.cycles {
+            y.by_order.iter().enumerate().for_each(|(o, n)| by_order[o] += *n as u64);
+        }
+        let mut by_pa = vec![0u64; g.species.states.len()];
+        for a in &c.structure.axes {
+            by_pa[a.pa] += a.phytomers.len() as u64;
+        }
+        println!("BREAK {d:?} seconds {:.4} light {:.4} grown {} axes {} apex_cycles {by_order:?} kept_by_pa {by_pa:?}", c.seconds, c.light_seconds, c.grown, c.structure.axes.len());
+        println!("PHASES {:?}", census.phases);
+    }
+}
+
+/// Each candidate in `SEARCH_FILE` at each age of `SEARCH_AGES`, seed 1.
+#[test]
+#[ignore = "fn-325's search"]
+fn coarse_reach() {
+    let base = by_identity("oregon-white-oak").expect("the oak");
+    let species = base.space.species.clone().expect("a species");
+    let list = std::fs::read_to_string(std::env::var("SEARCH_FILE").expect("a file")).expect("the list");
+    for row in list.lines().filter(|l| !l.trim().is_empty()) {
+        let v: Vec<f64> = row.split_whitespace().map(|x| x.parse().expect("a value")).collect();
+        let d = Dial { first: v[0] as usize, s: v[1], leaf: v[2], pipe: v[3], bud: v[4], hazard: v[5], s2: v[6], shed: v[7] };
+        for &age in &env_list::<u32>("SEARCH_AGES") {
+            let mut f = base.clone();
+            f.age = f64::from(age);
+            f.skeleton.seed = 1;
+            f.space.species = Some(scaled(&species, d));
+            let g = executor::growth(&f).expect("growth");
+            match telperion_space::grow_census(&g.species, g.request) {
+                Ok(c) => {
+                    let tree = skeleton(GrowInput::of(&f));
+                    let shape = tree.ok().and_then(|s| shape(&s.tree));
+                    println!("REACH {d:?} age {age} seconds {:.3} grown {} axes {} shape {shape:?}", c.seconds, c.grown, c.structure.axes.len());
+                }
+                Err(e) => println!("REFUSED {d:?} age {age}: {e}"),
+            }
+        }
+    }
+}

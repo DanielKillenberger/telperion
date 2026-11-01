@@ -116,3 +116,7 @@ On seeds 1001 to 1008: A holds at worst 0.039, 256 ms. E (s 2.099, leaf 8.082, p
 ## Judgement 2 and the reach
 
 E and F on the held-out seeds at age 40, fn-323's protocol. Then the reach of A, F and D on the oak at seed 1: ages 80, 120, 160, 200, 300, one grow each, its seconds, shape, grown phytomers, or the refusal by name.
+
+## Judgement 2 and the reach: results
+
+In RESULT.md. E and F missed on the held-out seeds, by trunk and limbs.
