@@ -112,11 +112,12 @@ fn weights(frame: Frame, centre: Vec3, rms: f64, kernel: Kernel) -> Vec<(usize, 
         }
     }
     if out.is_empty() {
-        let clamp = |v: i64| v.clamp(0, n - 1);
+        // Cell `i` spans `i` to `i + 1` cells from the origin.
+        let nearest = |v: f64, o: f64| (((v - o) / frame.cell).floor() as i64).clamp(0, n - 1);
         let (x, y, z) = (
-            clamp(index(centre.x, frame.origin.x) + 1),
-            clamp(index(centre.y, frame.origin.y) + 1),
-            clamp(index(centre.z, frame.origin.z) + 1),
+            nearest(centre.x, frame.origin.x),
+            nearest(centre.y, frame.origin.y),
+            nearest(centre.z, frame.origin.z),
         );
         return vec![((x + n * (y + n * z)) as usize, 1.0)];
     }
@@ -249,6 +250,40 @@ fn measure(full: &[Occupancy], cut: &[Occupancy]) -> [f64; 5] {
     ]
 }
 
+#[test]
+fn a_subtree_reaching_no_cell_centre_goes_whole_to_the_cell_it_stands_in() {
+    let frame = Frame {
+        n: 4,
+        cell: 1.0,
+        origin: Vec3::ZERO,
+    };
+    for kernel in [Kernel::Sphere, Kernel::Gaussian] {
+        // In cell (2, 1, 3), a quarter of a cell from its low faces.
+        let at = Vec3::new(2.25, 1.25, 3.25);
+        let got = weights(frame, at, 0.01, kernel);
+        assert_eq!(got, vec![(2 + 4 * (1 + 4 * 3), 1.0)]);
+        // Three quarters across it, so a rounding would take the next one.
+        let at = Vec3::new(2.75, 1.75, 3.75);
+        let got = weights(frame, at, 0.01, kernel);
+        assert_eq!(got, vec![(2 + 4 * (1 + 4 * 3), 1.0)]);
+    }
+}
+
+#[test]
+fn a_wide_subtree_is_spread_over_the_cells_it_reaches_and_sums_to_one() {
+    let frame = Frame {
+        n: 8,
+        cell: 1.0,
+        origin: Vec3::ZERO,
+    };
+    for kernel in [Kernel::Sphere, Kernel::Gaussian] {
+        let got = weights(frame, Vec3::new(4.0, 4.0, 4.0), 2.0, kernel);
+        assert!(got.len() > 8, "{} cells", got.len());
+        let sum: f64 = got.iter().map(|e| e.1).sum();
+        assert!((sum - 1.0).abs() < 1e-12, "{sum}");
+    }
+}
+
 /// R4: each candidate's 36-cell field against the full tree's, at `FLOOR_AGE`
 /// and each of `FLOOR_SEEDS`.
 #[test]
@@ -361,5 +396,42 @@ fn floor_reach() {
             c.structure.axes.len()
         ),
         Err(e) => println!("REACH cpu age {age} refused: {e}"),
+    }
+}
+
+/// After fn-323's verdict, for the owner's options, and no candidate of the
+/// manifest's: a cut by subtree size rather than by order. Nodes whose subtree
+/// holds fewer than N nodes stand as the Gaussian's density.
+#[test]
+#[ignore = "a measurement: fn-323's options"]
+fn floor_subtree_cut() {
+    let age = env("FLOOR_AGE", 40u32);
+    let seeds = std::env::var("FLOOR_SEEDS").unwrap_or("1,42".into());
+    for seed in seeds.split(',').map(|s| s.parse::<u32>().expect("a seed")) {
+        let f = oak(age, seed);
+        let ask = Request {
+            field: Some(FieldRequest { n: 36, limb_order: None }),
+            ..Request::default()
+        };
+        let built = pipeline::build(&f, ask).expect("the full tree");
+        let full = built.outputs.field.as_ref().expect("a field");
+        let tree = &built.skeleton.tree;
+        let plan = built.outputs.plan.as_ref().expect("a plan");
+        let mut held = vec![1u64; tree.nodes.len()];
+        for (i, n) in tree.nodes.iter().enumerate().skip(1).rev() {
+            held[n.parent.map_or(0, |p| p as usize)] += held[i];
+        }
+        for n in [10u64, 30, 100, 300, 1000, 3000] {
+            let order: Vec<u32> = held.iter().map(|&h| u32::from(h < n)).collect();
+            let limb_order = f.canopy.clump_system_order;
+            let grid = cut_field((tree, plan), full.frame, (0, Kernel::Gaussian), (&order, limb_order));
+            let m = measure(&full.cells, &grid.cells);
+            let kept = order.iter().filter(|&&o| o == 0).count();
+            println!(
+                "SUBTREE age {age} seed {seed} under {n} kept {:.4} wood {:.4} foliage {:.4} leaves {:.4} total {:.4} limbs {:.4}",
+                kept as f64 / tree.nodes.len() as f64,
+                m[0], m[1], m[2], m[3], m[4]
+            );
+        }
     }
 }
