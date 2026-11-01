@@ -49,6 +49,9 @@ pub struct Cycle {
     pub occupied: usize,
     /// The living apexes by order, the last row all the deeper (fn-323).
     pub by_order: [usize; 8],
+    /// Of those, the apexes on axes under 3 phytomers, counted apart in a
+    /// report and never in its cost (fn-323's manifest).
+    pub short_by_order: [usize; 8],
 }
 
 impl Census {
@@ -76,7 +79,9 @@ impl Census {
         (c.active, c.axes) = (live.len(), axes.len());
         c.phytomers = axes.iter().map(|a| a.phytomers.len()).sum();
         for a in live {
-            c.by_order[(self.order[a.axis] as usize).min(7)] += 1;
+            let row = (self.order[a.axis] as usize).min(7);
+            c.by_order[row] += 1;
+            c.short_by_order[row] += usize::from(axes[a.axis].phytomers.len() < 3);
         }
         let busiest = self.cycles.iter().map(|c| c.active).max().unwrap_or(0);
         if live.len() > busiest {

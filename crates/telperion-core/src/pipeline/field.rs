@@ -16,9 +16,9 @@
 //!
 //! The flowers (fn-316) are the florets the drawn tree hangs, at the
 //! window's middle: each one counted in the cell its seat lies in.
-#[cfg(feature = "geometry")]
-#[cfg(test)]
+#[cfg(all(test, feature = "geometry"))]
 mod floor_tests;
+#[cfg(feature = "geometry")]
 mod splat;
 use crate::{
     math::Vec3,

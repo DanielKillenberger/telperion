@@ -181,31 +181,27 @@ fn cut_field(
         }
         cut.system = system[root[node]];
     }
-    tally.owners(&mut grid.cells);
     let mut wood = vec![0.0; frame.cells()];
     let mut leaves = vec![0.0; frame.cells()];
-    let mut by_system: HashMap<(usize, u32), f64> = HashMap::new();
     for (&r, cut) in &cuts {
         let (centre, rms) = cut.centre(tree.nodes[r].position);
         for (c, w) in weights(frame, centre, rms, kernel) {
             wood[c] += w * cut.wood;
             leaves[c] += w * cut.leaves;
-            *by_system.entry((c, cut.system)).or_default() += w * cut.leaves;
+            if cut.leaves > 0.0 {
+                tally.add(c, cut.system, w * cut.leaves);
+            }
         }
     }
-    let mut most: HashMap<usize, (u32, f64)> = HashMap::new();
-    for (&(c, s), &sum) in &by_system {
-        let e = most.entry(c).or_insert((s, sum));
-        if sum > e.1 || (sum == e.1 && s < e.0) {
-            *e = (s, sum);
-        }
-    }
+    // Kept and deposited leaves choose a cell's limb together, as the full
+    // field's rule does; a cell with no foliage has none.
+    tally.owners(&mut grid.cells);
     for (c, cell) in grid.cells.iter_mut().enumerate() {
         cell.leaves += leaves[c];
         cell.wood |= wood[c] >= 0.25 * frame.cell;
         cell.foliage |= leaves[c] >= 0.5;
-        if cell.foliage && cell.limb.is_none() {
-            cell.limb = most.get(&c).map(|e| e.0);
+        if !cell.foliage {
+            cell.limb = None;
         }
     }
     grid
@@ -267,6 +263,16 @@ fn a_subtree_reaching_no_cell_centre_goes_whole_to_the_cell_it_stands_in() {
         let got = weights(frame, at, 0.01, kernel);
         assert_eq!(got, vec![(2 + 4 * (1 + 4 * 3), 1.0)]);
     }
+}
+
+#[test]
+fn deposited_leaves_can_take_a_cell_from_the_kept_wood_s_limb() {
+    let mut tally = Tally::default();
+    tally.add(0, 7, 1.0);
+    tally.add(0, 9, 10.0);
+    let mut cells = vec![Occupancy::default()];
+    tally.owners(&mut cells);
+    assert_eq!(cells[0].limb, Some(9));
 }
 
 #[test]
@@ -353,29 +359,39 @@ fn floor_cost() {
     let mut by_order = [0u64; 8];
     for y in &census.cycles {
         let line: Vec<String> = y.by_order.iter().map(usize::to_string).collect();
-        println!("LIVE age {age} seed {seed} year {} {}", y.cycle, line.join(" "));
+        let short: Vec<String> = y.short_by_order.iter().map(usize::to_string).collect();
+        println!("LIVE age {age} seed {seed} year {} {} short {}", y.cycle, line.join(" "), short.join(" "));
         y.by_order.iter().enumerate().for_each(|(o, n)| by_order[o] += *n as u64);
     }
     println!("APEX_CYCLES age {age} seed {seed} {by_order:?}");
     let axes = &c.structure.axes;
     for k in 1..=5 {
-        let mut sum = 0.0;
+        let (mut sum, mut least, mut most) = (0.0, 0.0, 0.0);
         let mut seen = None;
         let years: Vec<u32> = (10..=age).step_by(10).collect();
         for &y in &years {
             let mut runs: Vec<f64> = Vec::new();
-            for _ in 0..repeats {
+            for r in 0..repeats {
                 let rep = telperion_space::floor::light_replay(species, &request.light, axes, (k, y))
                     .expect("a replay");
-                runs.push(rep.seconds);
+                // The protocol throws the first away as its warm-up.
+                if r > 0 {
+                    runs.push(rep.seconds);
+                }
                 seen = Some(rep);
             }
             runs.sort_by(f64::total_cmp);
-            sum += runs[runs.len() / 2];
+            // The even count's middle two, averaged.
+            sum += (runs[(runs.len() - 1) / 2] + runs[runs.len() / 2]) / 2.0;
+            least += runs[0];
+            most += runs[runs.len() - 1];
         }
+        let scale = f64::from(age) / years.len() as f64;
         println!(
-            "LIGHT age {age} seed {seed} k {k} all_years_seconds {:.4} last {seen:?}",
-            sum * f64::from(age) / years.len() as f64
+            "LIGHT age {age} seed {seed} k {k} all_years_seconds {:.4} range {:.4} {:.4} last {seen:?}",
+            sum * scale,
+            least * scale,
+            most * scale
         );
     }
 }

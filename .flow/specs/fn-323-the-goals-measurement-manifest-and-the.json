@@ -8,13 +8,83 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-323-the-goals-measurement-manifest-and-the",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-323-the-goals-measurement-manifest-and-the.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "4a4e300a6aa2da06082b121136ee94534e755285b678e9b69de476bca042b5a6",
+      "backend": "codex",
+      "base_sha": "7e9c0404ea05803024f92f6abcc9d78abc33868a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c54aa8db9664c971ad8472d2a02658d1",
+            "classification": "introduced",
+            "findingId": "finding-c54aa8db9664c971ad8472d2a02658d1",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-63ddc7a684dacd5391103019e100a713",
+            "classification": "introduced",
+            "findingId": "finding-63ddc7a684dacd5391103019e100a713",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-25e2990408e70e19958a5ae2b4b502cb",
+            "classification": "introduced",
+            "findingId": "finding-25e2990408e70e19958a5ae2b4b502cb",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "608f307e01a79b211b81d930b15b2775a13ef275",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2721,
+      "output_sha256": "6ffe288de055ad7a2b629e15510944f7899cd115a42e2333f10ea16b5d90acd3",
+      "reservation_id": "09d33c8ff9384e44a47381e61fe8bec4",
+      "round_consumed": true,
+      "scope": "impl:fn-323-the-goals-measurement-manifest-and-the.1",
+      "superseded_by": null,
+      "task": "fn-323-the-goals-measurement-manifest-and-the.1",
+      "timestamp": "2026-11-01T13:06:56.684613Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-323-the-goals-measurement-manifest-and-the.1": 0
+  },
   "spec_path": ".flow/specs/fn-323-the-goals-measurement-manifest-and-the.md",
   "status": "open",
   "title": "The goal's measurement manifest and the coarse route's floor",
@@ -29,5 +99,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T12:10:53.221202Z"
+  "updated_at": "2026-11-01T13:06:56.687797Z"
 }

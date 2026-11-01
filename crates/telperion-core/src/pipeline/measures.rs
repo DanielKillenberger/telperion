@@ -15,10 +15,11 @@ pub fn limb_count(tree: &Tree, order: u32) -> Result<usize> {
 /// One less the phytomers a finished tree keeps over those grown for it, the
 /// retired and shed ones included.
 pub fn shed_share(kept: u64, grown: u64) -> Result<f64> {
-    if grown == 0 || kept > grown {
+    let held = kept as f64 / grown as f64;
+    if !(0.0..=1.0).contains(&held) {
         return Err(Error::InvalidInput("a shed share of kept phytomers past those grown"));
     }
-    Ok(1.0 - kept as f64 / grown as f64)
+    Ok(1.0 - held)
 }
 
 #[cfg(test)]
