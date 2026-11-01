@@ -272,6 +272,9 @@ def recorded_env() -> dict[str, str]:
     env = dict(os.environ)
     env["CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER"] = os.path.join(ROOT, "scripts", "gate_test.py")
     env["NEXTEST_EXPERIMENTAL_RECORD"] = "1"
+    # A driver cache at its 1 GB default keeps no new shader, so after a shader
+    # change each fresh context recompiles: 166 s against 7 s for one test (fn-320).
+    env.setdefault("__GL_SHADER_DISK_CACHE_SIZE", str(4 << 30))
     return env
 
 

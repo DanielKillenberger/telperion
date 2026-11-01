@@ -21,7 +21,7 @@ The ordinary test is `the_worst_cases_grow_the_same_field_each_time`: birch and 
 
 | Oak 5678, or the old flaky test | Before | After |
 | --- | --- | --- |
-| Oak repeats that differ, 8 runs | 58 of 594; 2 runs had none | 0 of 150, one run |
+| Oak repeats that differ, 8 runs | 58 of 604; 2 runs had none | 0 of 150, one run |
 | The catalogue, 8 rounds | parted on the first 4-round run tried | 0 parted (`kept2.log`) |
 | `every_preset_grows_its_field_from_its_parameters_as_from_its_id`, alone | failed 3 of 6 | passed 8 of 8 |
 
