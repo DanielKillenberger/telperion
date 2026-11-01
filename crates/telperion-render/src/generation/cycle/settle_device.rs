@@ -169,7 +169,7 @@ impl Kernels {
 pub(super) fn place_source() -> String {
     format!(
         "{}\n{}\n{REAL}\n{}\n{SHARED}\n{STATE}\n{}\n{}\n{}\n{}\n{THICK}\n{BEND}\n{SAG}\n{LAY}",
-        super::contract_with(super::ARITH),
+        super::contract_with(super::KEPT),
         super::ROOT,
         soft64(),
         super::Q,
@@ -193,7 +193,7 @@ pub(super) fn soft64() -> String {
 pub(super) fn source() -> String {
     format!(
         "{}\n{REAL}\n{}\n{SHARED}\n{COLS}\n{TREE}\n{ASSIGN}\n{SWEEP}\n{ORDER}\n{COMPACT}",
-        super::contract_with(super::ARITH),
+        super::contract_with(super::KEPT),
         soft64()
     )
 }

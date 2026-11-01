@@ -165,3 +165,21 @@ fn the_cycle_is_made_cold() {
     }
     println!("MADE {way} in all: {:.2} s", done(started));
 }
+
+/// fn-320: every module that does the contract's float work keeps its marks
+/// apart, or the same program on the same input answers two ways. A run
+/// finds that only by chance, so this holds what the fix rests on.
+#[test]
+fn every_float_module_keeps_its_marks_apart() {
+    let kept = include_str!("kept.wgsl");
+    for (name, source) in [
+        ("units", super::source()),
+        ("layout", super::layout_source()),
+        ("sums", super::hier_cycle_source()),
+        ("retire", super::retire_device::source()),
+        ("settle", super::settle_device::source()),
+        ("place", super::settle_device::place_source()),
+    ] {
+        assert!(source.contains(kept), "{name}: its marks are plain");
+    }
+}

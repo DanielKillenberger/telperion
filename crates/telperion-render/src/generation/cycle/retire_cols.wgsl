@@ -326,3 +326,8 @@ fn dominance(i: u32) -> f32 {
     let held = m(exact_kept(exact_kept(u * u) * u), u);
     return 1.0 - m(kpaf(pa, K_DOMINANCE), 1.0 - held);
 }
+
+// The zero the marked arithmetic is kept apart by (`kept.wgsl`).
+fn exact_zero() -> u32 {
+    return cfg.zero;
+}

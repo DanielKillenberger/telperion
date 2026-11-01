@@ -246,3 +246,8 @@ fn qf(x: f32) -> f32 {
 fn tick_q(t: u32) -> f32 {
     return f32(t) * (1.0 / f32(TICKS));
 }
+
+// The zero the marked arithmetic is kept apart by (`kept.wgsl`).
+fn exact_zero() -> u32 {
+    return cfg.zero;
+}

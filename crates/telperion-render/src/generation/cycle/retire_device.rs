@@ -99,7 +99,7 @@ pub(super) fn compaction_sources() -> [&'static str; 2] {
 pub(super) fn source() -> String {
     format!(
         "{}\n{REAL}\n{COLS}\n{AXIS}\n{SWEEP}\n{}",
-        super::contract_with(super::ARITH),
+        super::contract_with(super::KEPT),
         super::FOLD
     )
 }

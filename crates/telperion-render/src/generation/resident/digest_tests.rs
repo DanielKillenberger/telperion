@@ -192,3 +192,36 @@ fn palm_digest() {
     let field = block_on(gen.grow_field(&palm(40.0), 24, None)).unwrap();
     println!("palm 40 field: {}", debug(&field));
 }
+
+/// fn-320 R3, a measurement: what the renderer receives from the device,
+/// every drawn preset at seeds 1 and 5678, 30 builds on one generator,
+/// each line the first's.
+#[test]
+#[ignore = "a measurement: every preset's digest on 30 repeats"]
+fn every_preset_digests_the_same_on_thirty_repeats() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let renderer = crate::Renderer::new(gpu, crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    let mut parted = Vec::new();
+    for &(_, id, _, _) in CATALOGUE {
+        for seed in [1, 5678] {
+            let mut family = Preset::from_id(id).unwrap().parameters();
+            family.skeleton.seed = seed;
+            if !executor::stations(&family) {
+                println!("DIGEST_REPEAT {id} {seed}: not drawn on the device");
+                continue;
+            }
+            let build = || line(&gen, &gen.prepare(&family).unwrap());
+            let first = build();
+            let off = (1..30).filter(|_| build() != first).count();
+            println!("DIGEST_REPEAT {id} {seed}: {off} of 29 parted");
+            if off > 0 {
+                parted.push(format!("{id} {seed}: {off}"));
+            }
+        }
+    }
+    assert!(parted.is_empty(), "the digest parted: {parted:?}");
+}

@@ -401,3 +401,8 @@ fn lay(i: u32) {
     }
     draw_one(i);
 }
+
+// The zero the marked arithmetic is kept apart by (`kept.wgsl`).
+fn exact_zero() -> u32 {
+    return cfg.zero;
+}

@@ -300,6 +300,8 @@ mod field_flowers_tests;
 #[cfg(test)]
 mod field_params_tests;
 #[cfg(test)]
+mod field_repeat_tests;
+#[cfg(test)]
 mod field_tests;
 #[cfg(test)]
 mod field_time_tests;

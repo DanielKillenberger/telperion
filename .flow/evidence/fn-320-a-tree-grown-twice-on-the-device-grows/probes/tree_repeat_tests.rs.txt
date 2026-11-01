@@ -1,0 +1,429 @@
+//! fn-320 probe: which stage of a tree's growth differs between repeats.
+use super::build::Tables;
+use super::build_grow::grow_hinted;
+use super::drawn::{dress, Rows};
+use super::hier_scan::read_words;
+use super::settle_run::settle;
+use super::tree::{rows, Kernels};
+use super::chains;
+use std::hash::{DefaultHasher, Hasher};
+use telperion_core::pipeline::executor;
+use telperion_space::{ChainTables, SettleTo};
+
+fn hash(bytes: &[u8]) -> u64 {
+    let mut h = DefaultHasher::new();
+    h.write(bytes);
+    h.finish()
+}
+
+#[test]
+#[ignore = "a measurement: which stage differs between repeat grows"]
+fn repeat_grow_stages() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else { return };
+    let gpu = &gpu;
+    let k = Kernels::new(gpu);
+    let id = std::env::var("PROBE_ID").unwrap_or("oregon-white-oak".into());
+    let seed: u32 = std::env::var("PROBE_SEED").map_or(5678, |s| s.parse().unwrap());
+    let repeats: usize = std::env::var("PROBE_REPEATS").map_or(10, |s| s.parse().unwrap());
+    let mut f = telperion_core::presets::by_identity(&id).unwrap();
+    f.skeleton.seed = seed;
+    let growth = executor::growth(&f).unwrap();
+    let (species, request) = (&growth.species, growth.request);
+    let tables = telperion_space::grow_capture_tables(species, request).unwrap();
+    let chain = ChainTables::cycle(species, request.age).unwrap();
+    let mut first: Option<[u64; 4]> = None;
+    let mut first_snap = None;
+    let mut first_settled = None;
+    let mut first_pw: Option<Vec<u32>> = None;
+    let mut first_nt: Option<Vec<u32>> = None;
+    for r in 0..repeats {
+        let got = pollster::block_on(async {
+            let t = Tables::new(gpu, &tables, &chain).unwrap();
+            let hint = super::build_arena::hint(species, request.age).unwrap();
+            let (b, sizes, grew) = grow_hinted(gpu, &k.build, &t, &tables, (hint, request.age)).await.unwrap();
+            println!("  sizes block_cap {} grew {:?}", sizes.block_cap, grew);
+            let snap = b.snapshot(gpu, request.age).unwrap();
+            let mut w: Vec<u32> = vec![snap.grown as u32];
+            for table in [&snap.axes, &snap.units, &snap.phyts, &snap.sleepers, &snap.woken, &snap.live, &snap.pencils] {
+                for field in &table.fields {
+                    w.extend(field.words.iter().copied());
+                }
+            }
+            let grown = hash(bytemuck::cast_slice(&w));
+            match &first_snap {
+                None => first_snap = Some(snap),
+                Some(f) => {
+                    let a = super::grown_compare::exact(&snap, f);
+                    if !a.exact() { println!("{}", a.report()); }
+                }
+            }
+            let b = b.settling(gpu, (&t, &tables)).await.unwrap();
+            let s = settle(gpu, (&k.build, &k.settle), (&b, &t), (&t.settle_pa, SettleTo::Laid)).await.unwrap();
+            let pw = read_words(gpu, &s.pw, 0, s.pw.size() / 4).unwrap();
+            match &first_pw {
+                None => first_pw = Some(pw),
+                Some(f) => {
+                    let (sk, skp) = (s.table.sk as usize, s.table.skp as usize);
+                    let ycols = super::settle_device::Y_COLS as usize;
+                    let mut by: std::collections::BTreeMap<String, (usize, usize)> = Default::default();
+                    for (w, (a, b)) in pw.iter().zip(f).enumerate() {
+                        if a != b {
+                            let key = if w < ycols * sk {
+                                format!("Y{}", w / sk)
+                            } else {
+                                format!("Q{}", (w - ycols * sk) / skp)
+                            };
+                            let row = if w < ycols * sk { w % sk } else { (w - ycols * sk) % skp };
+                            let e = by.entry(key).or_insert((0, row));
+                            e.0 += 1;
+                        }
+                    }
+                    if !by.is_empty() {
+                        println!("PW {by:?}");
+                        for c in [59usize, 60, 61, 62, 63, 64, 65, 66, 2, 0, 3, 4] {
+                            let rows: Vec<String> = (0..sk)
+                                .filter(|r| pw[c * sk + r] != f[c * sk + r])
+                                .take(60)
+                                .map(|r| format!("{r}:{:08x}/{:08x}", pw[c * sk + r], f[c * sk + r]))
+                                .collect();
+                            println!("Y{c}: {rows:?}");
+                        }
+                        let q0 = ycols * sk;
+                        for c in [1usize, 2, 3, 4] {
+                            let rows: Vec<String> = (0..skp)
+                                .filter(|r| pw[q0 + c * skp + r] != f[q0 + c * skp + r])
+                                .take(45)
+                                .map(|r| format!("{r}:{:08x}/{:08x}", pw[q0 + c * skp + r], f[q0 + c * skp + r]))
+                                .collect();
+                            println!("Q{c}: {rows:?}");
+                        }
+                    }
+                }
+            }
+            let (ss, _) = s.snapshot(gpu, &b.state, SettleTo::Laid).unwrap();
+            match &first_settled {
+                None => first_settled = Some(ss),
+                Some(f) => {
+                    let a = super::grown_compare::exact(&ss, f);
+                    if !a.exact() { println!("SETTLED\n{}", a.report()); }
+                }
+            }
+            drop(b);
+            let mut nt = s.error.to_vec();
+            nt.extend(read_words(gpu, &s.nt, 0, s.table.words).unwrap());
+            let settled = hash(bytemuck::cast_slice(&nt));
+            match &first_nt {
+                None => first_nt = Some(nt),
+                Some(f) => {
+                    let off = nt.iter().zip(f).filter(|(a, b)| a != b).count();
+                    if off > 0 || nt.len() != f.len() {
+                        let at = nt.iter().zip(f).position(|(a, b)| a != b);
+                        println!("  nt words {} vs {}, {off} differ, first at {at:?}, table {:?}", nt.len(), f.len(), s.table.words);
+                    }
+                }
+            }
+            let planned = chains::plan(gpu, (&k.chains, &k.build.hier.scan), s.view()).await.unwrap();
+            let rs = rows(&growth.rows);
+            let at = Rows {
+                rows: &rs,
+                age: request.age,
+                scale: growth.scale as f32,
+                fraction: 1.0,
+                leaf: None,
+                establishing: executor::Establishing::words(growth.establishing),
+                clothing: 0,
+            };
+            let dressed = dress(gpu, &k.drawn, (s.view(), &planned), &at).unwrap();
+            let bytes = dressed.records.size();
+            let d = hash(&super::super::io::read(gpu, &dressed.records, bytes).unwrap());
+            [grown, settled, 0, d]
+        });
+        let was = *first.get_or_insert(got);
+        let off: Vec<_> = (0..4).filter(|&i| was[i] != got[i]).map(|i| ["grown", "settled", "-", "dressed"][i]).collect();
+        println!("{r} {id} {seed}: {off:?}");
+    }
+}
+
+fn field_hashes(gpu: &crate::Gpu, b: &super::build::Build, cycle: u32) -> Vec<(String, u64)> {
+    let snap = b.snapshot(gpu, cycle).unwrap();
+    let mut out = vec![("grown".to_string(), snap.grown as u64)];
+    for table in [&snap.axes, &snap.units, &snap.phyts, &snap.sleepers, &snap.woken, &snap.live, &snap.pencils] {
+        for field in &table.fields {
+            out.push((field.name.clone(), hash(bytemuck::cast_slice(&field.words))));
+        }
+    }
+    if std::env::var("PROBE_DEEP").is_ok() {
+        let l = &b.light;
+        for (name, buf) in [
+            ("L points", &l.points), ("L reads", &l.reads), ("L state", &l.state), ("L grid", &l.grid),
+            ("L quanta", &l.quanta), ("L field", &l.field), ("L depths", &l.depths),
+            ("tree", &b.tree), ("inputs", &b.inputs), ("counts", &b.counts), ("flags", &b.flags),
+            ("scan sums", &b.scan_sums), ("sums", &b.sums.sums),
+        ] {
+            let bytes = buf.size();
+            out.push((name.to_string(), hash(&super::super::io::read(gpu, buf, bytes).unwrap())));
+        }
+    }
+    out
+}
+
+/// A measurement: each repeat's state every `PROBE_STRIDE` cycles against
+/// the first repeat's, naming the first cycle and fields that differ.
+#[test]
+#[ignore = "a measurement: the first cycle repeat grows differ at"]
+fn repeat_grow_first_cycle() {
+    use super::build_grow::Growing;
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else { return };
+    let gpu = &gpu;
+    let k = Kernels::new(gpu);
+    let id = std::env::var("PROBE_ID").unwrap_or("oregon-white-oak".into());
+    let seed: u32 = std::env::var("PROBE_SEED").map_or(5678, |s| s.parse().unwrap());
+    let repeats: usize = std::env::var("PROBE_REPEATS").map_or(10, |s| s.parse().unwrap());
+    let stride: u32 = std::env::var("PROBE_STRIDE").map_or(5, |s| s.parse().unwrap());
+    let mut f = telperion_core::presets::by_identity(&id).unwrap();
+    f.skeleton.seed = seed;
+    let growth = executor::growth(&f).unwrap();
+    let (species, request) = (&growth.species, growth.request);
+    let tables = telperion_space::grow_capture_tables(species, request).unwrap();
+    let chain = ChainTables::cycle(species, request.age).unwrap();
+    println!("age {}", request.age);
+    let mut first: Vec<Vec<(String, u64)>> = Vec::new();
+    for r in 0..repeats {
+        let clock = std::time::Instant::now();
+        let mut at = 0;
+        pollster::block_on(async {
+            let t = Tables::new(gpu, &tables, &chain).unwrap();
+            let hint = super::build_arena::hint(species, request.age).unwrap();
+            let mut g = Growing::within(gpu, &k.build, &t, &tables, hint).await.unwrap();
+            let mut year = stride.min(request.age);
+            let mut said = false;
+            loop {
+                g = g.grow_to(gpu, (&k.build, &t, &tables), (year, year == request.age)).await.unwrap();
+                let got = field_hashes(gpu, &g.b, year);
+                if r == 0 {
+                    first.push(got);
+                } else if !said {
+                    let off: Vec<_> = got.iter().zip(&first[at]).filter(|(a, b)| a.1 != b.1).map(|(a, _)| a.0.clone()).collect();
+                    if !off.is_empty() {
+                        println!("{r}: cycle {year} first differs: {off:?}");
+                        said = true;
+                    }
+                }
+                at += 1;
+                if year == request.age { break; }
+                year = (year + if year >= 35 { 1 } else { stride }).min(request.age);
+            }
+        });
+        println!("{r} done in {:.1} s", clock.elapsed().as_secs_f64());
+    }
+}
+
+/// A measurement: one grown tree settled over and over: whether the settle
+/// differs on one input, stopped at each stage in turn.
+#[test]
+#[ignore = "a measurement: repeat settles of one grown tree"]
+fn repeat_settle_of_one_grown_tree() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else { return };
+    let gpu = &gpu;
+    let k = Kernels::new(gpu);
+    let id = std::env::var("PROBE_ID").unwrap_or("oregon-white-oak".into());
+    let seed: u32 = std::env::var("PROBE_SEED").map_or(5678, |s| s.parse().unwrap());
+    let repeats: usize = std::env::var("PROBE_REPEATS").map_or(10, |s| s.parse().unwrap());
+    let mut f = telperion_core::presets::by_identity(&id).unwrap();
+    f.skeleton.seed = seed;
+    let growth = executor::growth(&f).unwrap();
+    let (species, request) = (&growth.species, growth.request);
+    let tables = telperion_space::grow_capture_tables(species, request).unwrap();
+    let chain = ChainTables::cycle(species, request.age).unwrap();
+    pollster::block_on(async {
+        let t = Tables::new(gpu, &tables, &chain).unwrap();
+        let hint = super::build_arena::hint(species, request.age).unwrap();
+        let (b, ..) = grow_hinted(gpu, &k.build, &t, &tables, (hint, request.age)).await.unwrap();
+        let b = b.settling(gpu, (&t, &tables)).await.unwrap();
+        for to in [SettleTo::Placed] {
+            let mut first: Option<(Vec<u32>, Vec<u32>)> = None;
+            let mut first_snap = None;
+            let mut off = 0;
+            for r in 0..repeats {
+                let s = settle(gpu, (&k.build, &k.settle), (&b, &t), (&t.settle_pa, to)).await.unwrap();
+                let nt = read_words(gpu, &s.nt, 0, s.table.words).unwrap();
+                let pw = read_words(gpu, &s.pw, 0, s.pw.size() / 4).unwrap();
+                let (sk, skp) = (s.table.sk as usize, s.table.skp as usize);
+                let ycols = super::settle_device::Y_COLS as usize;
+                let (snap, _) = s.snapshot(gpu, &b.state, to).unwrap();
+                let smi = std::process::Command::new("nvidia-smi")
+                    .args(["--query-gpu=clocks.gr,clocks.mem,temperature.gpu,power.draw,pstate,clocks_throttle_reasons.active", "--format=csv,noheader,nounits"])
+                    .output()
+                    .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+                    .unwrap_or_default();
+                println!("SMI {r} {smi}");
+                if let Some(f) = &first_snap {
+                    let f: &super::grown::Snapshot = f;
+                    let mut lines = Vec::new();
+                    let mut least = usize::MAX;
+                    for (a, c) in snap.phyts.fields.iter().zip(&f.phyts.fields) {
+                        let w = a.words.len() / snap.phyts.axis.len().max(1);
+                        let d: Vec<usize> = a.words.iter().zip(&c.words).enumerate().filter(|(_, (x, y))| x != y).map(|(k, _)| k / w.max(1)).collect();
+                        if let Some(&m) = d.first() {
+                            least = least.min(m);
+                            lines.push(format!("{} n{} row{} axis{}", a.name, d.len(), m, snap.phyts.axis[m]));
+                        }
+                    }
+                    if !lines.is_empty() {
+                        println!("DIFF {r}");
+                        println!("PHYTS {lines:?}");
+                        let ax = snap.phyts.axis[least];
+                        let rows: Vec<usize> = (0..snap.phyts.axis.len()).filter(|&r| snap.phyts.axis[r] == ax).collect();
+                        println!("axis {ax}: rows {}..{}", rows[0], rows[rows.len() - 1]);
+                        for (a, c) in snap.phyts.fields.iter().zip(&f.phyts.fields) {
+                            let w = a.words.len() / snap.phyts.axis.len().max(1);
+                            let vals: Vec<String> = rows.iter().filter(|&&r| a.words[r * w..(r + 1) * w] != c.words[r * w..(r + 1) * w]).take(6).map(|&r| format!("{}:{:08x}/{:08x}", r - rows[0], a.words[r * w], c.words[r * w])).collect();
+                            if !vals.is_empty() { println!("  {} {vals:?}", a.name); }
+                        }
+                    }
+                } else {
+                    first_snap = Some(snap);
+                }
+                match &first {
+                    None => first = Some((nt, pw)),
+                    Some((fnt, fpw)) => {
+                        let n = nt.iter().zip(fnt).filter(|(a, b)| a != b).count();
+                        let mut by: std::collections::BTreeMap<String, (usize, usize, u32, u32)> = Default::default();
+                        for (w, (a, b)) in pw.iter().zip(fpw).enumerate() {
+                            if a != b {
+                                let (key, row) = if w < ycols * sk {
+                                    (format!("Y{:02}", w / sk), w % sk)
+                                } else {
+                                    (format!("Q{:02}", (w - ycols * sk) / skp), (w - ycols * sk) % skp)
+                                };
+                                by.entry(key).or_insert((0, row, *a, *b)).0 += 1;
+                            }
+                        }
+                        if n > 0 || !by.is_empty() {
+                            off += 1;
+                            println!("{to:?} repeat {r}: nt {n}; pw {by:?}; starts {:?}", s.kept_starts);
+                        }
+                    }
+                }
+            }
+            println!("{to:?}: {off} of {repeats} differ");
+        }
+    });
+}
+
+/// A measurement: one depth's lay again and again from one saved state.
+#[test]
+#[ignore = "a measurement: one depth's lay on one input"]
+fn one_depth_laid_again() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else { return };
+    let gpu = &gpu;
+    let k = Kernels::new(gpu);
+    let id = std::env::var("PROBE_ID").unwrap_or("oregon-white-oak".into());
+    let seed: u32 = std::env::var("PROBE_SEED").map_or(5678, |s| s.parse().unwrap());
+    let iters: usize = std::env::var("PROBE_REPEATS").map_or(10, |s| s.parse().unwrap());
+    let row: u32 = std::env::var("PROBE_ROW").map_or(656, |s| s.parse().unwrap());
+    let mut f = telperion_core::presets::by_identity(&id).unwrap();
+    f.skeleton.seed = seed;
+    let growth = executor::growth(&f).unwrap();
+    let (species, request) = (&growth.species, growth.request);
+    let tables = telperion_space::grow_capture_tables(species, request).unwrap();
+    let chain = ChainTables::cycle(species, request.age).unwrap();
+    pollster::block_on(async {
+        let t = Tables::new(gpu, &tables, &chain).unwrap();
+        let hint = super::build_arena::hint(species, request.age).unwrap();
+        let (b, ..) = grow_hinted(gpu, &k.build, &t, &tables, (hint, request.age)).await.unwrap();
+        let b = b.settling(gpu, (&t, &tables)).await.unwrap();
+        let mut s = settle(gpu, (&k.build, &k.settle), (&b, &t), (&t.settle_pa, SettleTo::Shed)).await.unwrap();
+        let cfg = super::settle_place::thicken(gpu, &k.settle, &b, &mut s).await.unwrap();
+        super::settle_place::relay_one_depth(gpu, &k.settle, &b, cfg, &mut s, (row, iters)).await.unwrap();
+    });
+}
+
+const OPS: &str = r#"
+struct Cfg { n: u32, seed: u32, a: u32, b: u32 }
+@group(0) @binding(0) var<uniform> cfg: Cfg;
+@group(0) @binding(1) var<storage, read_write> out: array<u32>;
+fn mix32(v: u32) -> u32 {
+    var z = v;
+    z = (z ^ (z >> 16u)) * 0x21f0aaadu;
+    z = (z ^ (z >> 15u)) * 0x735a2d97u;
+    return z ^ (z >> 15u);
+}
+fn unit(i: u32, k: u32) -> f32 {
+    return f32(mix32(i * 7u + k) >> 8u) * (1.0 / 16777216.0);
+}
+fn put(id: vec3<u32>) -> u32 { return id.x; }
+@compute @workgroup_size(64) fn op_sin(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = id.x; if i >= cfg.n { return; }
+    out[i] = bitcast<u32>(sin((unit(i, 1u) - 0.5) * 6.2831855));
+}
+@compute @workgroup_size(64) fn op_cos(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = id.x; if i >= cfg.n { return; }
+    out[i] = bitcast<u32>(cos((unit(i, 1u) - 0.5) * 6.2831855));
+}
+@compute @workgroup_size(64) fn op_sqrt(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = id.x; if i >= cfg.n { return; }
+    out[i] = bitcast<u32>(sqrt(unit(i, 2u)));
+}
+@compute @workgroup_size(64) fn op_div(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = id.x; if i >= cfg.n { return; }
+    out[i] = bitcast<u32>(unit(i, 3u) / (unit(i, 4u) + 0.001));
+}
+@compute @workgroup_size(64) fn op_mul(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = id.x; if i >= cfg.n { return; }
+    out[i] = bitcast<u32>(unit(i, 5u) * unit(i, 6u) - unit(i, 7u) * unit(i, 8u));
+}
+@compute @workgroup_size(64) fn op_atan2(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = id.x; if i >= cfg.n { return; }
+    out[i] = bitcast<u32>(atan2(unit(i, 9u) - 0.5, unit(i, 10u) - 0.5));
+}
+"#;
+
+/// A measurement: each built-in over one fixed list of inputs, again and
+/// again: whether the device ever answers an input two ways.
+#[test]
+#[ignore = "a measurement: built-ins on one input list"]
+fn built_ins_answer_one_way() {
+    use super::super::io::{self, Pass};
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else { return };
+    let gpu = &gpu;
+    let names = ["op_sin", "op_cos", "op_sqrt", "op_div", "op_mul", "op_atan2"];
+    let pass = Pass::new(gpu, OPS.to_string(), &[false], &names);
+    let n: u32 = 1 << 18;
+    let rounds: usize = std::env::var("PROBE_REPEATS").map_or(1000, |s| s.parse().unwrap());
+    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+    let out = io::buffer(gpu, "ops out", u64::from(n) * 4, usage, &[]).unwrap();
+    let words = [n, 0, 0, 0];
+    let cfg = io::buffer(gpu, "ops cfg", 16, wgpu::BufferUsages::UNIFORM, bytemuck::cast_slice(&words)).unwrap();
+    let bind = pass.bind(gpu, &[&cfg, &out]);
+    let mut first: Vec<Option<Vec<u32>>> = vec![None; names.len()];
+    let mut hits = vec![0usize; names.len()];
+    for r in 0..rounds {
+        for (e, name) in names.iter().enumerate() {
+            let mut enc = gpu.encoder(&Default::default());
+            pass.run_all(&mut enc, &[(bind.clone(), e, n.div_ceil(64))]);
+            gpu.submit([enc.finish()]);
+            let raw = io::read(gpu, &out, u64::from(n) * 4).unwrap();
+            let got: Vec<u32> = bytemuck::cast_slice(&raw).to_vec();
+            match &first[e] {
+                None => first[e] = Some(got),
+                Some(f) => {
+                    let off = got.iter().zip(f).filter(|(a, b)| a != b).count();
+                    if off > 0 {
+                        hits[e] += 1;
+                        if hits[e] <= 3 {
+                            let at = got.iter().zip(f).position(|(a, b)| a != b).unwrap();
+                            println!("HIT {name} round {r}: {off} of {n} differ, input {at}: {:08x} usual {:08x}", got[at], f[at]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    println!("OPS {:?}", names.iter().zip(&hits).collect::<Vec<_>>());
+}

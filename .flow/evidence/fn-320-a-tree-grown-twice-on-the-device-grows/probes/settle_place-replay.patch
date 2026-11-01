@@ -1,0 +1,205 @@
+diff --git i/crates/telperion-render/src/generation/cycle/settle_place.rs w/crates/telperion-render/src/generation/cycle/settle_place.rs
+index 3091966ab..345ab17f5 100644
+--- i/crates/telperion-render/src/generation/cycle/settle_place.rs
++++ w/crates/telperion-render/src/generation/cycle/settle_place.rs
+@@ -229,3 +229,200 @@ async fn sized(gpu: &Gpu, r: &mut Rec<'_>, s: &mut Settled) -> Result<()> {
+     }
+     Ok(())
+ }
++
++/// fn-320 probe: one depth's lay run again and again from the same saved
++/// words, every earlier depth laid once: whether the same input ever walks
++/// to another answer. Prints each distinct answer and how often it came.
++#[cfg(test)]
++pub(super) async fn relay_one_depth(
++    gpu: &Gpu,
++    k: &Kernels,
++    b: &Build,
++    cfg: [u32; 20],
++    s: &mut Settled,
++    (row, iters): (u32, usize),
++) -> Result<()> {
++    use std::collections::HashMap;
++    use std::hash::{DefaultHasher, Hasher};
++    let mut r = Rec {
++        gpu,
++        steps: (k.steps, k.walk),
++        pass: &k.place,
++        form: &b.layout.form,
++        cfg,
++        held: Vec::new(),
++        pending: Vec::new(),
++    };
++    gpu.queue
++        .write_buffer(&s.atom, 4 * d::T_ERR as u64, bytemuck::bytes_of(&u32::MAX));
++    let (starts, long) = (s.kept_starts.clone(), s.kept_long.clone());
++    let target = starts.windows(2).position(|w| w[0] <= row && row < w[1]).unwrap();
++    let narrow: Option<(u32, u32)> = std::env::var("PROBE_AXES").ok().map(|a| {
++        let (lo, n) = a.split_once(',').unwrap();
++        (lo.parse().unwrap(), n.parse().unwrap())
++    });
++    let lay = |r: &mut Rec, s: &mut Settled, k: usize, w: &[u32]| -> Result<()> {
++        let mut at = (w[0], w[1] - w[0]);
++        if k == target {
++            if let Some(n) = narrow {
++                at = n;
++            }
++        }
++        if at.1 == 0 {
++            return Ok(());
++        }
++        r.run(s, (d::FRAME_E, "probe"), at)?;
++        let walk = ((r.steps.0 / (w[1] - w[0])).clamp(1, r.steps.1)).min(r.steps.1);
++        let run = r.steps.0 / walk;
++        for off in (0..at.1).step_by(run as usize) {
++            let axes = (at.0 + off, run.min(at.1 - off));
++            for c in 0..long[k].div_ceil(walk) {
++                (r.cfg[16], r.cfg[17]) = (c * walk, walk);
++                r.run(s, (d::WALK_E, "probe"), axes)?;
++            }
++        }
++        Ok(())
++    };
++    let windows: Vec<Vec<u32>> = starts.windows(2).map(|w| w.to_vec()).collect();
++    for (j, w) in windows.iter().enumerate().take(target) {
++        lay(&mut r, s, j, w)?;
++    }
++    r.submit();
++    super::super::io::complete(gpu).await?;
++    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
++    let saved = |label, b: &Owned| super::super::io::buffer(gpu, label, b.size(), usage, &[]);
++    let (sp, sn) = (saved("saved pw", &s.pw)?, saved("saved nt", &s.nt)?);
++    let mut e = gpu.encoder(&Default::default());
++    e.copy_buffer_to_buffer(&s.pw, 0, &sp, 0, s.pw.size());
++    e.copy_buffer_to_buffer(&s.nt, 0, &sn, 0, s.nt.size());
++    gpu.submit([e.finish()]);
++    super::super::io::complete(gpu).await?;
++    if let Ok(at) = std::env::var("PROBE_STEP") {
++        let at: u32 = at.parse().unwrap();
++        r.run(s, (d::FRAME_E, "probe"), (row, 1))?;
++        r.submit();
++        for step in 0..at {
++            (r.cfg[16], r.cfg[17]) = (step, 1);
++            r.run(s, (d::WALK_E, "probe"), (row, 1))?;
++            r.submit();
++        }
++        super::super::io::complete(gpu).await?;
++        let mut e = gpu.encoder(&Default::default());
++        e.copy_buffer_to_buffer(&s.pw, 0, &sp, 0, s.pw.size());
++        e.copy_buffer_to_buffer(&s.nt, 0, &sn, 0, s.nt.size());
++        gpu.submit([e.finish()]);
++        super::super::io::complete(gpu).await?;
++        let sk = u64::from(s.table.sk);
++        let mut seen: HashMap<Vec<u8>, (usize, usize)> = HashMap::new();
++        let clock = std::time::Instant::now();
++        for i in 0..iters {
++            let mut e = gpu.encoder(&Default::default());
++            e.copy_buffer_to_buffer(&sp, 0, &s.pw, 0, s.pw.size());
++            e.copy_buffer_to_buffer(&sn, 0, &s.nt, 0, s.nt.size());
++            gpu.submit([e.finish()]);
++            (r.cfg[16], r.cfg[17]) = (at, 1);
++            r.run(s, (d::WALK_E, "probe"), (row, 1))?;
++            r.submit();
++            let mut e = gpu.encoder(&Default::default());
++            let staging = super::super::io::buffer(gpu, "tail", 96, usage, &[])?;
++            for c in 0..15u64 {
++                e.copy_buffer_to_buffer(&s.pw, 4 * ((8 + c) * sk + u64::from(row)), &staging, 4 * c, 4);
++            }
++            gpu.submit([e.finish()]);
++            let got = super::super::io::read_async(gpu, &staging, 96).await?;
++            let n = seen.entry(got.clone()).or_insert((0, i));
++            if n.0 == 0 {
++                let words: &[u32] = bytemuck::cast_slice(&got);
++                println!("MARKS first at {i} ({:.1} s): {words:08x?}", clock.elapsed().as_secs_f64());
++            }
++            n.0 += 1;
++            r.held.clear();
++        }
++        for (k, v) in &seen {
++            println!("COUNT {} first {} head {:02x?}", v.0, v.1, &k[..4]);
++        }
++        return Ok(());
++    }
++    if std::env::var("PROBE_TRACE").is_ok() {
++        // Axis `row` alone, a phytomer a dispatch, its walk's words copied
++        // out after each: the first step two answers part at, by its words.
++        let sk = u64::from(s.table.sk);
++        let steps = u64::from(long[target]);
++        let cols: Vec<u64> = (8..=22).collect();
++        let words = cols.len() as u64 * (steps + 1);
++        let trace = super::super::io::buffer(gpu, "trace", words * 4, usage, &[])?;
++        let mut first: Option<Vec<u32>> = None;
++        let mut hits = 0;
++        for i in 0..iters {
++            let mut e = gpu.encoder(&Default::default());
++            e.copy_buffer_to_buffer(&sp, 0, &s.pw, 0, s.pw.size());
++            e.copy_buffer_to_buffer(&sn, 0, &s.nt, 0, s.nt.size());
++            gpu.submit([e.finish()]);
++            r.run(s, (d::FRAME_E, "probe"), (row, 1))?;
++            r.submit();
++            for step in 0..=steps {
++                if step > 0 {
++                    (r.cfg[16], r.cfg[17]) = (step as u32 - 1, 1);
++                    r.run(s, (d::WALK_E, "probe"), (row, 1))?;
++                    r.submit();
++                }
++                let mut e = gpu.encoder(&Default::default());
++                for (k, c) in cols.iter().enumerate() {
++                    let from = 4 * (c * sk + u64::from(row));
++                    let to = 4 * (step * cols.len() as u64 + k as u64);
++                    e.copy_buffer_to_buffer(&s.pw, from, &trace, to, 4);
++                }
++                gpu.submit([e.finish()]);
++            }
++            let raw = super::super::io::read_async(gpu, &trace, words * 4).await?;
++            let got: Vec<u32> = bytemuck::cast_slice(&raw).to_vec();
++            match &first {
++                None => first = Some(got),
++                Some(f) => {
++                    if got != *f {
++                        hits += 1;
++                        let w = cols.len();
++                        let at = got.iter().zip(f).position(|(a, b)| a != b).unwrap();
++                        let step = at / w;
++                        println!("HIT iter {i}: first at step {step} col {}", cols[at % w]);
++                        if step > 0 {
++                            println!("  before {:08x?}", &f[(step - 1) * w..step * w]);
++                        }
++                        println!("  usual  {:08x?}", &f[step * w..(step + 1) * w]);
++                        println!("  other  {:08x?}", &got[step * w..(step + 1) * w]);
++                    }
++                }
++            }
++            r.held.clear();
++        }
++        println!("TRACE {hits} of {iters} parted");
++        return Ok(());
++    }
++    let mut seen: HashMap<u64, usize> = HashMap::new();
++    let mut order = Vec::new();
++    for i in 0..iters {
++        let mut e = gpu.encoder(&Default::default());
++        e.copy_buffer_to_buffer(&sp, 0, &s.pw, 0, s.pw.size());
++        e.copy_buffer_to_buffer(&sn, 0, &s.nt, 0, s.nt.size());
++        gpu.submit([e.finish()]);
++        lay(&mut r, s, target, &windows[target])?;
++        r.submit();
++        let pw = super::super::io::read_async(gpu, &s.pw, s.pw.size()).await?;
++        let nt = super::super::io::read_async(gpu, &s.nt, s.nt.size()).await?;
++        let mut h = DefaultHasher::new();
++        h.write(&pw);
++        h.write(&nt);
++        let v = h.finish();
++        let n = seen.entry(v).or_insert(0);
++        if *n == 0 {
++            println!("ANSWER {v:016x} first at {i}");
++            order.push(v);
++        }
++        *n += 1;
++        r.held.clear();
++    }
++    for v in order {
++        println!("ANSWER {v:016x}: {} of {iters}", seen[&v]);
++    }
++    Ok(())
++}

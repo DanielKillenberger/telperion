@@ -325,3 +325,8 @@ fn sizes_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let total = bitcast<f32>(norm[N_SUMS + 2u * pa]);
     put(S_SIZE, a, hdiv(hm(drawn(sf(S_BUD, a), p, row(pa, P_PSI)), total), weighted));
 }
+
+// The zero the marked arithmetic is kept apart by (`kept.wgsl`).
+fn exact_zero() -> u32 {
+    return cfg.zero;
+}

@@ -164,10 +164,14 @@ const DECIDE: &str = include_str!("cycle/decide.wgsl");
 /// draws them (fn-277).
 pub(super) const ORGANS: &str = include_str!("cycle/organs.wgsl");
 const ZONES: &str = include_str!("cycle/zones.wgsl");
-/// The contract's marked arithmetic, plain (DESIGN.md section 9): its
-/// floor sites held to the CPU's order (`held.rs`), every other float
-/// the operation WGSL writes.
+/// The contract's marked arithmetic, plain, for the modules that take only
+/// its keys and no float of it (DESIGN.md section 9): its floor sites held
+/// to the CPU's order (`held.rs`), every other float the operation WGSL
+/// writes.
 const ARITH: &str = include_str!("cycle/arith.wgsl");
+/// The marked arithmetic kept apart (`kept.wgsl`), for the modules whose
+/// uniform holds the zero it takes.
+const KEPT: &str = include_str!("cycle/kept.wgsl");
 
 /// The contract's WGSL: its 64-bit words, its lineage keys, the contract,
 /// then its plain arithmetic.
@@ -195,7 +199,7 @@ const ROOT: &str = "fn exact_sqrt(x: f32) -> f32 {\n    return sqrt(x);\n}\n";
 pub(super) fn source() -> String {
     format!(
         "{}\n{HELD}\n{}\n{ARENA}\n{REAL}\n{JOB}\n{FRAME}\n{ADVANCE}\n{STOP}\n{GROW}\n{UNITS}\n{WAKE}",
-        zones_with(ARITH),
+        zones_with(KEPT),
         held::source()
     )
 }
@@ -206,7 +210,7 @@ pub(super) fn source() -> String {
 pub(super) fn layout_source() -> String {
     format!(
         "{}\n{}\n{LAYOUT}\n{LAY_STATE}\n{Q}\n{LAY_WALK}\n{LAY_DRAW}\n{LAY_STAND}\n{LAY_FRAME}\n{LAY_PENCIL}",
-        contract_with(ARITH),
+        contract_with(KEPT),
         ROOT
     )
 }
@@ -245,7 +249,7 @@ pub(super) fn hier_cycle_source_at(width: u32) -> String {
     );
     format!(
         "{}\n{REAL}\n{HIER_REAL}\n{cols}\n{HIER_CYCLE}\n{HIER_SWEEP}\n{HIER_SPLIT}\n{FOLD}",
-        contract_with(ARITH)
+        contract_with(KEPT)
     )
 }
 

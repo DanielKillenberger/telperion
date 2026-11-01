@@ -314,3 +314,8 @@ fn kpa(pa: u32, k: u32) -> u32 {
 fn kf(pa: u32, k: u32) -> f32 {
     return bitcast<f32>(kpa(pa, k));
 }
+
+// The zero the marked arithmetic is kept apart by (`kept.wgsl`).
+fn exact_zero() -> u32 {
+    return cfg.zero;
+}
