@@ -221,7 +221,7 @@ fn preparation_capabilities_and_failures_are_explicit() {
     f.canopy.limb_clumping = 0.1;
     assert!(expansion(&tree, &f, twig).stations().unwrap().is_none());
     f.canopy.size = f64::NAN;
-    assert!(expansion(&tree, &f, twig).stations().is_err());
+    assert!(executor::expand(tree.clone(), &f).is_err());
     f.canopy.size = 1.0;
     f.canopy.limb_clumping = 0.0;
     f.canopy.max_instances = 1;
