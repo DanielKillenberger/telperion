@@ -19,7 +19,7 @@ The first has a proven one-line fix on local branch `scratch/fn-322-probe` (`eeb
 
 `scripts/gate.py` reads each suite's key, prints skipped suites with their key, and writes a receipt only after the suite passes. A dirty tree outside `.flow/`, or a dirty `.flow/` file a key reads, is refused by name.
 
-`scripts/gate.test.mjs` holds 21 tests that run the real `gate.py` and `ci-key.mjs` in a fixture git repository, with nextest, npm and cargo faked. Each of 23 temporary breaks of a rule turned the file red (`raw/mutations.txt`), including a dropped shared input, a receipt written before or despite a failure, and an unreported package counted as green.
+`scripts/gate.test.mjs` holds 26 tests that run the real `gate.py` and `ci-key.mjs` in a fixture git repository, with nextest, npm and cargo faked. Each of 28 temporary breaks of a rule turned the file red (`raw/mutations.txt`, `raw/mutations-review.txt`), including a dropped shared input, a receipt written before or despite a failure, and an unreported package counted as green.
 
 ## R3: what each change runs
 
@@ -49,7 +49,7 @@ The listed tests are the same 1,514, by package: core 534, jev 389, render 369, 
 
 **Budget:** separate nextest runs per suite, the first build, took 1,649 s against the 1,560 s budget, a regression. They now share one pool, as before, and its JUnit report says which suites are green: 1,179 s. A run over budget writes no Rust receipt, so a rerun cannot hide it.
 
-**Not rerun by a receipt:** `.config/gate-budgets.toml` and `scripts/gate_test.py` are outside the keys, since the spec names the shared inputs and CI's keys stay as they are. A tightened budget is only proven on a run that the key already triggers, or under `--full`. The gate gained `npm test` and `npm run typecheck`, as the node suite (86 s warm), which it did not run before.
+**What a receipt stands for (codex review):** a Rust receipt's key is CI's key plus a hash of `.config/gate-budgets.toml` and `scripts/gate_test.py`, so a tightened budget reruns the Rust suites without moving CI's keys. A receipt requires every listed test in the JUnit report, since nextest also exits 100 on a cancelled run. `--full` removes the receipts first, so a failed forced run leaves none behind. The node key now reads `crates/telperion-jev`, because the harness tests run its `species` binary; CI's node key gains that input too. The gate gained `npm test` and `npm run typecheck`, as the node suite (86 s warm), which it did not run before.
 
 ## R6, R7
 

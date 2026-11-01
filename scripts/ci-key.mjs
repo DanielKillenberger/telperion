@@ -50,11 +50,12 @@ export const SUITES = {
       '.flow/specs/fn-11-growth-over-time.md', 'docs/parameters.md',
     ],
   },
-  // npm test and npm run typecheck: the pretest builds the three wasm crates.
+  // npm test and npm run typecheck: the pretest builds the three wasm crates,
+  // and the harness tests run the jev crate's species binary.
   node: {
     profile: 'release',
     inputs: [
-      CORE, RENDER, WASM, SPACE, 'src', 'harness', 'tests',
+      CORE, RENDER, WASM, SPACE, 'crates/telperion-jev', 'src', 'harness', 'tests',
       'catalogue', '.gitattributes',
       'scripts/build-wasm.mjs', 'scripts/build-render.mjs',
       'scripts/catalogue-check.mjs', 'scripts/catalogue-pages.mjs',

@@ -38,6 +38,7 @@ Measured 2026-10-24 at four threads, beside another checkout's gate. A check
 that fails, or cannot start, fails the gate with its own output.
 """
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -103,23 +104,26 @@ def shrinks_only(base: str) -> list[str]:
     return errors
 
 
-def stale(listed: dict[str, dict]) -> list[str]:
-    """Allowlisted tests the gate no longer runs, and any workspace package no
-    suite would run."""
+def stale(listed: dict[str, dict]) -> tuple[list[str], dict[str, set[str]]]:
+    """Allowlisted tests the gate no longer runs and any workspace package no
+    suite would run, with each package's tests as its JUnit report names them."""
     out = subprocess.run(nextest("list", "--message-format", "json"), cwd=ROOT,
                          capture_output=True, text=True, check=True).stdout
     runs = set()
     errors = []
+    expected: dict[str, set[str]] = {}
     covered = {package for packages in RUST.values() for package in packages}
     for suite in json.loads(out)["rust-suites"].values():
         binary = suite["binary-name"]
-        if suite["package-name"] not in covered:
-            errors.append(f"{suite['package-name']}: in no suite, so the gate would not run it")
+        package = suite["package-name"]
+        if package not in covered:
+            errors.append(f"{package}: in no suite, so the gate would not run it")
         for name, case in suite["testcases"].items():
             if not case["ignored"]:
                 runs.add(f"{binary} {name}")
+                expected.setdefault(package, set()).add(f"{suite['binary-id']} {name}")
     errors = sorted(set(errors))
-    return errors + [f"{name}: stale, the gate runs no such test" for name in listed if name not in runs]
+    return errors + [f"{name}: stale, the gate runs no such test" for name in listed if name not in runs], expected
 
 
 RUSTDOC_RUNS = {"", "rust", "should_panic", "no_run", "compile_fail"}
@@ -175,6 +179,7 @@ RECEIPTS = os.path.join(ROOT, "target", "gate", "receipts")
 FAILED_RUN = os.path.join(ROOT, "target", "gate", "failed-run")
 JUNIT = os.path.join(ROOT, "target", "nextest", "gate", "junit.xml")
 USER_CONFIG = os.path.join(ROOT, ".config", "nextest-user.toml")
+LOCAL_INPUTS = (BUDGETS, "scripts/gate_test.py")
 # nextest's exit code for a run with failing tests. Any other code from a rerun
 # of the failed set (a pruned recording, no such test) falls through to the
 # suites; from the suites themselves it means no report to trust, so no receipt.
@@ -250,6 +255,11 @@ def has_receipt(suite: str, key: str) -> bool:
     return os.path.exists(os.path.join(RECEIPTS, f"{suite}.{key}"))
 
 
+def remove_receipt(suite: str, key: str) -> None:
+    if has_receipt(suite, key):
+        os.remove(os.path.join(RECEIPTS, f"{suite}.{key}"))
+
+
 def write_receipt(suite: str, key: str) -> None:
     os.makedirs(RECEIPTS, exist_ok=True)
     path = os.path.join(RECEIPTS, f"{suite}.{key}")
@@ -275,19 +285,22 @@ def latest_run() -> str | None:
     return None
 
 
-def green_suites(suites: list[str]) -> list[str]:
-    """The suites whose packages all reported, with no test failed."""
-    seen: set[str] = set()
+def green_suites(suites: list[str], expected: dict[str, set[str]]) -> list[str]:
+    """The suites whose every listed test reported, none failed. nextest also
+    exits 100 on a cancelled run, whose report holds only the tests that ended."""
+    reported: set[str] = set()
     red: set[str] = set()
-    for reported in ET.parse(JUNIT).getroot().iter("testsuite"):
-        package = reported.get("name", "").split("::")[0]
-        seen.add(package)
-        if int(reported.get("failures", "1")) or int(reported.get("errors", "1")):
+    for suite in ET.parse(JUNIT).getroot().iter("testsuite"):
+        package = suite.get("name", "").split("::")[0]
+        if int(suite.get("failures", "1")) or int(suite.get("errors", "1")):
             red.add(package)
-    return [s for s in suites if set(RUST[s]) <= seen and not set(RUST[s]) & red]
+        reported |= {f"{case.get('classname')} {case.get('name')}" for case in suite.iter("testcase")}
+    def ran_whole(package: str) -> bool:
+        return bool(expected.get(package)) and expected[package] <= reported and package not in red
+    return [s for s in suites if all(ran_whole(p) for p in RUST[s])]
 
 
-def run_rust(suites: list[str], budgets: str) -> tuple[list[str], float]:
+def run_rust(suites: list[str], budgets: str, expected: dict[str, set[str]]) -> tuple[list[str], float]:
     """The suites in one pool, the last failed set first: the suites that came
     out green, and the seconds of the pool's run."""
     packages = tuple(p for s in suites for p in RUST[s])
@@ -311,7 +324,14 @@ def run_rust(suites: list[str], budgets: str) -> tuple[list[str], float]:
         if run_id:
             with open(FAILED_RUN, "w") as f:
                 f.write(run_id)
-    return (green_suites(suites) if code in (0, TESTS_FAILED) else []), seconds
+    return (green_suites(suites, expected) if code in (0, TESTS_FAILED) else []), seconds
+
+
+def local_key(key: str) -> str:
+    """A Rust suite's key under the limits this gate holds it to: CI's key, and
+    the budgets and runner CI does not read."""
+    objects = git("rev-parse", *[f"HEAD:{path}" for path in LOCAL_INPUTS])
+    return f"{key}-{hashlib.sha256(objects.encode()).hexdigest()[:12]}"
 
 
 def main() -> int:
@@ -323,11 +343,14 @@ def main() -> int:
     if found:
         print("gate: the keys read the commit; commit or remove first:\n  " + "\n  ".join(found), file=sys.stderr)
         return 1
-    keys = {suite: node("scripts/ci-key.mjs", suite) for suite in [*RUST, "node"]}
-    keys["package"] = keys["node"]
+    keys = {suite: local_key(node("scripts/ci-key.mjs", suite)) for suite in RUST}
+    keys["node"] = keys["package"] = node("scripts/ci-key.mjs", "node")
     running = []
     for suite, key in keys.items():
-        if not args.full and has_receipt(suite, key):
+        if args.full:
+            # A run that fails must not leave an earlier green receipt behind it.
+            remove_receipt(suite, key)
+        if has_receipt(suite, key):
             print(f"gate: {suite} skipped, green receipt {key}")
         else:
             print(f"gate: {suite} runs, key {key}")
@@ -341,7 +364,8 @@ def main() -> int:
             print(missing, file=sys.stderr)
             return 1
         before = time.monotonic()
-        errors += stale(listed)
+        problems, expected = stale(listed)
+        errors += problems
         print(f"gate: build and listing {time.monotonic() - before:.0f} s")
     if "package" in running and not errors:
         package = ci_check(*PACKAGE)
@@ -353,7 +377,7 @@ def main() -> int:
         return 1
     failed = []
     if rust:
-        green, total = run_rust(rust, timeouts(listed))
+        green, total = run_rust(rust, timeouts(listed), expected)
         print(f"gate: the test run {total:.0f} s against {TOTAL} s")
         after = ci_check(*NO_GEOMETRY) if "rust-core" in rust else []
         if total > TOTAL:

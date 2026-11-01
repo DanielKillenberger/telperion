@@ -18,7 +18,7 @@ if [ "$1" = nextest ] && [ "$2" = list ]; then
   printf '{"rust-suites":{'
   sep=''
   for p in telperion-core telperion-render telperion-wasm telperion-space telperion-jev $EXTRA_PACKAGE; do
-    printf '%s"%s":{"binary-name":"%s","package-name":"%s","testcases":{}}' "$sep" "$p" "$p" "$p"
+    printf '%s"%s":{"binary-name":"%s","binary-id":"%s","package-name":"%s","testcases":{"one":{"ignored":false},"two":{"ignored":false}}}' "$sep" "$p" "$p" "$p" "$p"
     sep=','
   done
   printf '}}'
@@ -35,7 +35,13 @@ if [ "$1" = nextest ] && [ "$2" = run ]; then
       if [ "$prev" = -p ]; then
         red=0
         case "$FAIL_ON" in *"$arg"*) red=1 ;; esac
-        echo "<testsuite name=\\"$arg::tests\\" failures=\\"$red\\" errors=\\"0\\"/>"
+        echo "<testsuite name=\\"$arg\\" failures=\\"$red\\" errors=\\"0\\">"
+        echo "<testcase name=\\"one\\" classname=\\"$arg\\"/>"
+        case "$CANCEL_IN" in
+          *"$arg"*) ;;
+          *) echo "<testcase name=\\"two\\" classname=\\"$arg\\"/>" ;;
+        esac
+        echo "</testsuite>"
       fi
       prev="$arg"
     done
@@ -81,6 +87,7 @@ function gate(env = {}, ...args) {
       FAIL_ON: '',
       KILL_ON: '',
       STOP_ON: '',
+      CANCEL_IN: '',
       ...env,
     },
   });
@@ -120,6 +127,7 @@ beforeEach(() => {
   for (const script of ['gate.py', 'ci-key.mjs']) cpSync(join(scripts, script), join(repo, 'scripts', script), { recursive: true });
   for (const input of inputs.filter(i => i.startsWith('scripts/') && !/gate\.py|ci-key\.mjs/.test(i))) write(input, `// ${input}\n`);
   write('.config/nextest-user.toml', '');
+  write('scripts/gate_test.py', '# the memory runner\n');
   mkdirSync(join(repo, 'fake'));
   for (const tool of ['cargo-nextest', 'npm', 'cargo']) {
     writeFileSync(join(repo, 'fake', tool), FAKE);
@@ -211,6 +219,40 @@ describe('the gate reruns only what a change can affect', () => {
     const killed = gate({ KILL_ON: '-p telperion-render' });
     expect(killed.status).not.toBe(0);
     expect(gate().ran).toContain('rust-render');
+  });
+
+  it('leaves no green receipt behind a --full run that fails', () => {
+    gate();
+    expect(gate({ FAIL_ON: '-p telperion-render' }, '--full').status).toBe(1);
+    expect(gate().ran).toEqual(['rust-render']);
+  });
+
+  it('removes each receipt before a --full run that is interrupted', () => {
+    gate();
+    gate({ KILL_ON: '-p telperion-render' }, '--full');
+    expect(gate().ran).toEqual(expect.arrayContaining(['rust-jev', 'rust-render', 'rust-core']));
+  });
+
+  it('writes no receipt for a package a cancelled run left part way', () => {
+    const run = gate({ FAIL_ON: '-p telperion-render', CANCEL_IN: 'telperion-core' });
+    expect(run.status).toBe(1);
+    expect(gate().ran).toEqual(['rust-render', 'rust-core']);
+  });
+
+  it('reruns the Rust suites when a budget or the memory runner changes', () => {
+    gate();
+    write('.config/gate-budgets.toml', '# tightened\n');
+    git('add', '-A');
+    git('commit', '-qm', 'budget');
+    expect(gate().ran).toEqual(['rust-jev', 'rust-wasm', 'rust-render', 'rust-core']);
+    commitChange('scripts/gate_test.py');
+    expect(gate().ran).toEqual(['rust-jev', 'rust-wasm', 'rust-render', 'rust-core']);
+  });
+
+  it('reruns the node checks when the jev crate changes', () => {
+    gate();
+    commitChange('crates/telperion-jev/file');
+    expect(gate().ran).toEqual(['package', 'rust-jev', 'node']);
   });
 
   it('writes no Rust receipt when nextest stops without a verdict', () => {
