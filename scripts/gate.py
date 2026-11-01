@@ -277,7 +277,10 @@ def recorded_env() -> dict[str, str]:
     # Its own directory, since an application at the default limit wipes a shared
     # cache grown past it. A cache the caller configured is left as it is.
     if not {"__GL_SHADER_DISK_CACHE_PATH", "__GL_SHADER_DISK_CACHE_SIZE"} & env.keys():
-        env["__GL_SHADER_DISK_CACHE_PATH"] = os.path.join(ROOT, "target", "gate", "shader-cache")
+        # The driver makes no directory it is named, and then caches nothing.
+        cache = os.path.join(ROOT, "target", "gate", "shader-cache")
+        os.makedirs(cache, exist_ok=True)
+        env["__GL_SHADER_DISK_CACHE_PATH"] = cache
         env["__GL_SHADER_DISK_CACHE_SIZE"] = str(4 << 30)
     return env
 

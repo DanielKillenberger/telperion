@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-320-a-tree-grown-twice-on-the-device-grows",
   "impl_review_rounds": {
-    "fn-320-a-tree-grown-twice-on-the-device-grows.1": 1
+    "fn-320-a-tree-grown-twice-on-the-device-grows.1": 0
   },
   "next_task": 1,
   "no_plan": true,
@@ -77,9 +77,71 @@
       "task": "fn-320-a-tree-grown-twice-on-the-device-grows.1",
       "timestamp": "2026-11-01T11:11:01.419571Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "dbc3ff2b907206a3cb284805eb63e7421ebf258b07ddfb913d939e1ea2dd755e",
+      "backend": "codex",
+      "base_sha": "cffdff89065102ca14dd0729ebd08136bc90ad28",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ee949ba4653850eaf3ab0374b8f141dc",
+            "classification": "introduced",
+            "findingId": "finding-ee949ba4653850eaf3ab0374b8f141dc",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-5c6a31db16a1869cfea097311e2b61e2",
+            "classification": "introduced",
+            "findingId": "finding-5c6a31db16a1869cfea097311e2b61e2",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-72eca268f592ba659285fae39f0bbf1a",
+            "classification": "introduced",
+            "findingId": "finding-72eca268f592ba659285fae39f0bbf1a",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "510d44a2421610ee3f2ddb385af1bd344c16b5de",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1047,
+      "output_sha256": "09dcf0a8c33546c033cb63499af423c8e9eefe52e168c50a9f56ca1223955b47",
+      "reservation_id": "7eadf15276c34406842a994fd0e46a7c",
+      "round_consumed": true,
+      "scope": "impl:fn-320-a-tree-grown-twice-on-the-device-grows.1",
+      "superseded_by": null,
+      "task": "fn-320-a-tree-grown-twice-on-the-device-grows.1",
+      "timestamp": "2026-11-01T11:20:49.272749Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-320-a-tree-grown-twice-on-the-device-grows.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -99,5 +161,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T11:11:01.422615Z"
+  "updated_at": "2026-11-01T11:20:49.275394Z"
 }

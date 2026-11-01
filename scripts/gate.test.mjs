@@ -280,6 +280,7 @@ describe('the gate reruns only what a change can affect', () => {
     expect(readFileSync(seen, 'utf8').trim()).toBe(
       `${join(realpathSync(repo), 'target', 'gate', 'shader-cache')} ${4 * 2 ** 30}`,
     );
+    expect(existsSync(join(repo, 'target', 'gate', 'shader-cache'))).toBe(true);
     commitChange('crates/telperion-core/file');
     gate({ ...unset, __GL_SHADER_DISK_CACHE_SIZE: '123' });
     expect(readFileSync(seen, 'utf8').trim()).toBe('123');
