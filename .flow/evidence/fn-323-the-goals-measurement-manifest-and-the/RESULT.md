@@ -49,8 +49,8 @@ One thread, per the protocol. Ages are for the oak.
 | 5 | 1,203 ms | 261 ms | 9,659 ms | 1,143 ms |
 
 - **The scaffold is a model.** It assumes cost per apex holds across orders, which is unmeasured. No scaffold has been grown alone.
-- **The light replay overstates.** At order 5 and age 80 it reads 1,143 ms, above the whole cycle's measured 610-1,230 ms at lower leaf counts. It deposits every phytomer the kept axes ever grew, where the cycle deposits fewer. So treat it as a ceiling. The true cost of light on a coarse tree is **unknown**, and the verdict does not rest on it.
-- **Where cost goes:** order 4 and above hold 88% of the apex-cycles at age 80 on seed 1. No browser or Wasm cost was measured.
+- **The light replay probably overstates.** At order 5 and age 80 it reads 1,143 ms as a median over seeds, about the same as the whole cycle's measured light (0.61 to 1.23 s, median 0.87 s), though it reads a cut tree. It deposits every phytomer the kept axes ever grew, and the cycle appears to deposit fewer (inferred from the code, not measured). So treat it as a ceiling. The true cost of light on a coarse tree is **unknown**, and the verdict does not rest on it.
+- **Where cost goes:** order 4 and above hold 93% of the apex-cycles at age 80 on seed 1. No browser or Wasm cost was measured.
 
 Against the route's 50 ms, only order 1 is near it, at 10 ms of scaffold at age 80 before light, and order 1 has foliage 0.57 and limbs 0.18. Order 2 is already 138 ms.
 
