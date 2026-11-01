@@ -5,7 +5,8 @@
     "fn-322-local-verification-reruns-only-what-a",
     "fn-320-a-tree-grown-twice-on-the-device-grows",
     "fn-323-the-goals-measurement-manifest-and-the",
-    "fn-324-can-a-coarse-oak-grow-fewer-longer"
+    "fn-324-can-a-coarse-oak-grow-fewer-longer",
+    "fn-325-tune-the-oaks-fine-wood-dial-to-hold"
   ],
   "id": "fn-321-020-one-grown-tree-at-any-scale-in",
   "next_task": 1,
@@ -25,5 +26,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T19:53:08.643205Z"
+  "updated_at": "2026-11-01T20:20:10.156631Z"
 }
