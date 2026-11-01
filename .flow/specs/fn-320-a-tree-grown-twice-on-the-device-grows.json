@@ -10,6 +10,7 @@
   "id": "fn-320-a-tree-grown-twice-on-the-device-grows",
   "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
@@ -28,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T08:52:10.158527Z"
+  "updated_at": "2026-11-01T08:58:03.271351Z"
 }
