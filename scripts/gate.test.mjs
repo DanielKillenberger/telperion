@@ -26,8 +26,24 @@ if [ "$1" = nextest ] && [ "$2" = list ]; then
 fi
 if [ "$1" = nextest ] && [ "$2" = store ]; then echo "  abc123  2026-11-01  1s  1 KB  1 failed  *latest"; exit 0; fi
 echo "$(basename "$0") $*" >> "$root/calls.log"
+if [ "$1" = nextest ] && [ "$2" = run ]; then
+  mkdir -p "$root/target/nextest/gate"
+  {
+    echo '<testsuites>'
+    prev=''
+    for arg in "$@"; do
+      if [ "$prev" = -p ]; then
+        red=0
+        case "$FAIL_ON" in *"$arg"*) red=1 ;; esac
+        echo "<testsuite name=\\"$arg::tests\\" failures=\\"$red\\" errors=\\"0\\"/>"
+      fi
+      prev="$arg"
+    done
+    echo '</testsuites>'
+  } > "$root/target/nextest/gate/junit.xml"
+fi
 case "$*" in
-  *" -E "*) [ -n "$FAIL_GUARDS" ] && exit 100; exit 0 ;;
+  *"$STOP_ON"*) [ -n "$STOP_ON" ] && exit 3 ;;
 esac
 case "$*" in
   *"$KILL_ON"*) [ -n "$KILL_ON" ] && kill -TERM "$PPID" && sleep 5 ;;
@@ -64,7 +80,7 @@ function gate(env = {}, ...args) {
       CARGO_NEXTEST: join(repo, 'fake', 'cargo-nextest'),
       FAIL_ON: '',
       KILL_ON: '',
-      FAIL_GUARDS: '',
+      STOP_ON: '',
       ...env,
     },
   });
@@ -76,7 +92,7 @@ function gate(env = {}, ...args) {
 function ran(log) {
   const lines = log.split('\n');
   const found = [];
-  const suite = line => line.includes(' run ') && !line.includes(' -E ') && !line.includes(' -R ');
+  const suite = line => line.includes(' run ') && !line.includes(' -R ');
   if (lines.some(l => l.startsWith('npm run build'))) found.push('package');
   if (lines.some(l => suite(l) && l.includes('-p telperion-jev'))) found.push('rust-jev');
   if (lines.some(l => suite(l) && l.includes('-p telperion-wasm') && l.includes('-p telperion-space'))) found.push('rust-wasm');
@@ -91,7 +107,7 @@ const ALL = ['package', 'rust-jev', 'rust-wasm', 'rust-render', 'rust-core', 'no
 beforeEach(() => {
   repo = mkdtempSync(join(tmpdir(), 'telperion-gate-'));
   git('init', '-q');
-  write('.gitignore', 'target/\ncalls.log\n__pycache__/\n');
+  write('.gitignore', 'target/\ncalls.log\n__pycache__/\nfake/\n');
   write('.config/gate-budgets.toml', '');
   const ciInputs = ['.github/workflows/tests.yml', '.github/actions/suite/action.yml',
     '.github/actions/nextest/action.yml', '.github/actions/wasm-bindgen/action.yml'];
@@ -178,7 +194,7 @@ describe('the gate reruns only what a change can affect', () => {
     const next = gate();
     expect(next.status, next.stderr).toBe(0);
     expect(next.ran).toEqual(['rust-render']);
-    const lines = next.log.trim().split('\n').filter(l => !l.includes(' -E '));
+    const lines = next.log.trim().split('\n');
     expect(lines[0]).toMatch(/run -R abc123 .*-p telperion-render/);
     expect(lines[1]).not.toMatch(/ -R /);
     expect(gate().ran).toEqual([]);
@@ -188,7 +204,7 @@ describe('the gate reruns only what a change can affect', () => {
     gate({ FAIL_ON: '-p telperion-render' });
     const still = gate({ FAIL_ON: '-R abc123' });
     expect(still.status).toBe(1);
-    expect(still.log.split('\n').filter(l => l.includes('-p telperion-render') && !l.includes(' -E ') && !l.includes(' -R '))).toEqual([]);
+    expect(still.log.split('\n').filter(l => l.includes('-p telperion-render') && !l.includes(' -R '))).toEqual([]);
   });
 
   it('leaves no receipt for a suite interrupted mid-run', () => {
@@ -197,11 +213,23 @@ describe('the gate reruns only what a change can affect', () => {
     expect(gate().ran).toContain('rust-render');
   });
 
-  it('stops before any suite when a guard fails', () => {
-    const run = gate({ FAIL_GUARDS: '1' });
+  it('writes no Rust receipt when nextest stops without a verdict', () => {
+    const run = gate({ STOP_ON: 'run --no-fail-fast' });
     expect(run.status).toBe(1);
-    expect(run.stderr).toMatch(/failed: guards/);
-    expect(run.ran.filter(s => s.startsWith('rust-'))).toEqual([]);
+    expect(gate().ran).toEqual(['rust-jev', 'rust-wasm', 'rust-render', 'rust-core']);
+  });
+
+  it('runs the suites in one pool', () => {
+    const lines = gate().log.split('\n').filter(l => l.includes('nextest run'));
+    expect(lines.length).toBe(1);
+    expect(lines[0]).toMatch(/-p telperion-jev -p telperion-wasm -p telperion-space -p telperion-render -p telperion-core/);
+  });
+
+  it('writes no receipt for a suite the report does not mention', () => {
+    const fake = join(repo, 'fake', 'cargo-nextest');
+    writeFileSync(fake, readFileSync(fake, 'utf8').replace('<testsuite name=', '<other name='));
+    const run = gate();
+    expect(run.status).toBe(1);
     expect(gate().ran).toEqual(['rust-jev', 'rust-wasm', 'rust-render', 'rust-core']);
   });
 

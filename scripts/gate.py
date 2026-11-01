@@ -9,9 +9,8 @@ Each of `scripts/ci-key.mjs`'s suites keeps a receipt under its key in
 has a receipt is skipped and printed with the key; every other suite runs. The
 keys read the commit, so a dirty tree is refused, by name, except for `.flow/`
 files no key reads. `--full` ignores the receipts, runs every suite and writes
-them again. A suite that failed reruns its failed tests first, through
-nextest's recording (`.config/nextest-user.toml`), and the whole suite only if
-those pass.
+them again. After a failure the failed tests rerun first, through nextest's
+recording (`.config/nextest-user.toml`), and the suites only if those pass.
 
 Budgets (host, fn-304 R4, ruled 2026-10-22): a test's own wall time is cut
 off at 120 s (the profile's slow-timeout) and its peak memory at 4 GiB
@@ -45,6 +44,7 @@ import subprocess
 import sys
 import time
 import tomllib
+import xml.etree.ElementTree as ET
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUDGETS = ".config/gate-budgets.toml"
@@ -161,24 +161,23 @@ def doc_tests() -> list[str]:
     return found
 
 
-# `scripts/ci-key.mjs`'s Rust suites, in the order they run, with the packages
-# `.github/workflows/tests.yml` runs under each. Smallest first, so a change
-# that breaks a small crate says so before the core's quarter of an hour.
+# `scripts/ci-key.mjs`'s Rust suites, with the packages
+# `.github/workflows/tests.yml` runs under each. They share one nextest pool:
+# run apart they took 1,649 s against the pool's 1,241 s median (measured
+# 2026-11-01), so the pool's JUnit report says which suites came out green.
 RUST = {
     "rust-jev": ("telperion-jev",),
     "rust-wasm": ("telperion-wasm", "telperion-space"),
     "rust-render": ("telperion-render",),
     "rust-core": ("telperion-core",),
 }
-# The sub-second guards (fn-306) no suite order can put first for both crates.
-GUARDS = ("binary(generation_limit_guard) | "
-          "(binary(telperion_render) & test(=compile_size::tests::every_entry_inlines_under_the_ceiling))")
-GUARDED = ("telperion-core", "telperion-render")
 RECEIPTS = os.path.join(ROOT, "target", "gate", "receipts")
-FAILED = os.path.join(ROOT, "target", "gate", "failed")
+FAILED_RUN = os.path.join(ROOT, "target", "gate", "failed-run")
+JUNIT = os.path.join(ROOT, "target", "nextest", "gate", "junit.xml")
 USER_CONFIG = os.path.join(ROOT, ".config", "nextest-user.toml")
-# nextest's exit code for a run with failing tests; any other code from a rerun
-# of the failed set (a pruned recording, no such test) falls through to the suite.
+# nextest's exit code for a run with failing tests. Any other code from a rerun
+# of the failed set (a pruned recording, no such test) falls through to the
+# suites; from the suites themselves it means no report to trust, so no receipt.
 TESTS_FAILED = 100
 
 # CI's checks, as `.github/workflows/tests.yml` runs them: (job name, commands).
@@ -212,6 +211,7 @@ def timeouts(listed: dict[str, dict]) -> str:
     path = os.path.join(ROOT, "target", "gate", "budgets.toml")
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
+        f.write('[profile.gate.junit]\npath = "junit.xml"\n\n')
         for name, t in listed.items():
             binary, test = name.split(" ", 1)
             f.write("[[profile.gate.overrides]]\n")
@@ -275,40 +275,43 @@ def latest_run() -> str | None:
     return None
 
 
-def run_rust_suite(suite: str, budgets: str) -> tuple[int, float]:
-    """One suite under the gate profile, its failed set first when the last
-    run failed: (exit code, seconds of test run)."""
-    packages = RUST[suite]
-    os.makedirs(FAILED, exist_ok=True)
-    marker = os.path.join(FAILED, suite)
+def green_suites(suites: list[str]) -> list[str]:
+    """The suites whose packages all reported, with no test failed."""
+    seen: set[str] = set()
+    red: set[str] = set()
+    for reported in ET.parse(JUNIT).getroot().iter("testsuite"):
+        package = reported.get("name", "").split("::")[0]
+        seen.add(package)
+        if int(reported.get("failures", "1")) or int(reported.get("errors", "1")):
+            red.add(package)
+    return [s for s in suites if set(RUST[s]) <= seen and not set(RUST[s]) & red]
+
+
+def run_rust(suites: list[str], budgets: str) -> tuple[list[str], float]:
+    """The suites in one pool, the last failed set first: the suites that came
+    out green, and the seconds of the pool's run."""
+    packages = tuple(p for s in suites for p in RUST[s])
     common = ["--no-fail-fast", "--user-config-file", USER_CONFIG, "--tool-config-file", f"gate:{budgets}"]
-    start = time.monotonic()
-    if os.path.exists(marker):
-        run_id = open(marker).read().strip()
-        print(f"gate: {suite} reruns the failed set of run {run_id} first")
+    if os.path.exists(FAILED_RUN):
+        run_id = open(FAILED_RUN).read().strip()
+        print(f"gate: rerunning the failed set of run {run_id} first")
         code = subprocess.run(nextest("run", "-R", run_id, *common, packages=packages),
                               cwd=ROOT, env=recorded_env()).returncode
         if code == TESTS_FAILED:
-            return code, time.monotonic() - start
+            return [], 0.0
+    if os.path.exists(JUNIT):
+        os.remove(JUNIT)
+    start = time.monotonic()
     code = subprocess.run(nextest("run", *common, packages=packages), cwd=ROOT, env=recorded_env()).returncode
-    total = time.monotonic() - start
-    if code == 0:
-        if os.path.exists(marker):
-            os.remove(marker)
-    else:
+    seconds = time.monotonic() - start
+    if code == 0 and os.path.exists(FAILED_RUN):
+        os.remove(FAILED_RUN)
+    if code == TESTS_FAILED:
         run_id = latest_run()
         if run_id:
-            with open(marker, "w") as f:
+            with open(FAILED_RUN, "w") as f:
                 f.write(run_id)
-    return code, total
-
-
-def guards(running: list[str], budgets: str) -> int:
-    packages = tuple(p for s in running for p in RUST[s] if p in GUARDED)
-    if not packages:
-        return 0
-    return subprocess.run(nextest("run", "-E", GUARDS, "--no-tests", "pass", "--tool-config-file",
-                                  f"gate:{budgets}", packages=packages), cwd=ROOT, env=recorded_env()).returncode
+    return (green_suites(suites) if code in (0, TESTS_FAILED) else []), seconds
 
 
 def main() -> int:
@@ -349,22 +352,19 @@ def main() -> int:
         print("gate: before the run\n  " + "\n  ".join(errors), file=sys.stderr)
         return 1
     failed = []
-    total = 0.0
-    budgets = timeouts(listed) if rust else ""
-    if guards(rust, budgets) != 0:
-        failed.append("guards")
-    for suite in rust if not failed else []:
-        code, seconds = run_rust_suite(suite, budgets)
-        total += seconds
-        print(f"gate: {suite} {seconds:.0f} s, {total:.0f} s of the test run against {TOTAL} s")
-        after = ci_check(*NO_GEOMETRY) if suite == "rust-core" else []
+    if rust:
+        green, total = run_rust(rust, timeouts(listed))
+        print(f"gate: the test run {total:.0f} s against {TOTAL} s")
+        after = ci_check(*NO_GEOMETRY) if "rust-core" in rust else []
         if total > TOTAL:
             print(f"gate: {total - TOTAL:.0f} s over its {TOTAL} s budget", file=sys.stderr)
             failed.append("the test run's budget")
-        elif code == 0 and not after:
-            write_receipt(suite, keys[suite])
-        if code != 0 or after:
-            failed.append(suite)
+            green = []
+        for suite in rust:
+            if suite in green and not (suite == "rust-core" and after):
+                write_receipt(suite, keys[suite])
+            else:
+                failed.append(suite)
     if "node" in running:
         after = ci_check(*NODE)
         if after:
