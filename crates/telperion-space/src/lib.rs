@@ -31,6 +31,7 @@ mod geometry;
 mod girth;
 mod grow;
 pub mod invariants;
+pub mod floor;
 mod light;
 mod lineage;
 mod memo;

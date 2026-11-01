@@ -26,6 +26,7 @@ pub struct Census {
     /// The subtrees retired as the tree grew.
     pub retired: usize,
     depth: Vec<u32>,
+    order: Vec<u32>,
     lattice: Option<Cycle>,
 }
 
@@ -46,6 +47,8 @@ pub struct Cycle {
     /// the cycle (fn-276).
     pub jobs: [u32; 2],
     pub occupied: usize,
+    /// The living apexes by order, the last row all the deeper (fn-323).
+    pub by_order: [usize; 8],
 }
 
 impl Census {
@@ -72,6 +75,9 @@ impl Census {
         (c.cycle, c.grown) = (cycle, grown);
         (c.active, c.axes) = (live.len(), axes.len());
         c.phytomers = axes.iter().map(|a| a.phytomers.len()).sum();
+        for a in live {
+            c.by_order[(self.order[a.axis] as usize).min(7)] += 1;
+        }
         let busiest = self.cycles.iter().map(|c| c.active).max().unwrap_or(0);
         if live.len() > busiest {
             let mut d: Vec<u32> = live.iter().map(|a| self.depth[a.axis]).collect();
@@ -99,6 +105,9 @@ impl Census {
         for a in &axes[self.depth.len()..] {
             let d = a.origin.parent().map_or(0, |p| self.depth[p] + 1);
             self.depth.push(d);
+            let lateral = matches!(a.origin, crate::structure::Origin::Lateral { .. });
+            let order = a.origin.parent().map_or(0, |p| self.order[p] + u32::from(lateral));
+            self.order.push(order);
         }
     }
 }

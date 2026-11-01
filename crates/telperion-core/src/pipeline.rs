@@ -293,6 +293,7 @@ pub(crate) use {
 mod drawn;
 #[cfg(feature = "geometry")]
 pub mod executor;
+pub mod measures;
 mod input;
 #[cfg(not(feature = "geometry"))]
 mod planned;

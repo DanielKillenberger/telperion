@@ -78,3 +78,22 @@ fn every_preset_grows_the_same_field_on_thirty_repeats() {
         Err(_) => std::fs::write(&pin, lines.join("\n")).expect("the pin written"),
     }
 }
+
+/// fn-323 R6, a measurement: the oak's field on the device at `FIELD_AGE`:
+/// its seconds, or the refusal by name.
+#[test]
+#[ignore = "a measurement: the device's reach"]
+fn the_device_reach_at_an_age() {
+    let _held = super::super::whole_tree();
+    let Some(gen) = generator() else {
+        return;
+    };
+    let age: f64 = std::env::var("FIELD_AGE").map_or(90.0, |a| a.parse().expect("an age"));
+    let mut f = family("oregon-white-oak", 1);
+    f.age = age;
+    let clock = std::time::Instant::now();
+    match pollster::block_on(gen.grow_field(&f, 36, None)) {
+        Ok(_) => println!("REACH device age {age} seconds {:.2}", clock.elapsed().as_secs_f64()),
+        Err(e) => println!("REACH device age {age} refused: {e}"),
+    }
+}

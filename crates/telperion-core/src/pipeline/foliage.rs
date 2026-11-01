@@ -5,7 +5,7 @@ use crate::math::Transcendental;
 mod bloom;
 mod bloom_params;
 mod canopy;
-mod clumping;
+pub(super) mod clumping;
 mod cluster;
 mod crown;
 mod element;
