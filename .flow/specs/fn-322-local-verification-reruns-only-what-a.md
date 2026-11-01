@@ -32,7 +32,7 @@ Source: the owner's CI speed audit, `gno://daniel-os/projects/engineering/ci-spe
 
 ## Decision Context
 
-The base (host, 1 Nov 2026): the gate at `b2645a302` was stopped at 1,269 of 1,514 tests to save about 35 minutes, with 1,266 passed and 3 timed out while it shared the machine. Alone, those 3 passed in 7, 33 and 7 s, so they were load (`cycle::grown_det_tests`, `cycle::retire_tests`, `cycle::settle_det_tests`). The remaining 245 tests have not run on this base. This spec's first full run covers them and is the run's first full proof of the base; a failure there that reproduces alone stops the goal `NEEDS_HUMAN`.
+The base (host, 1 Nov 2026): the gate at `b2645a302` was stopped at 1,269 of 1,514 tests to save about 35 minutes, with 1,266 passed and 3 timed out while it shared the machine. Alone, those 3 passed in 7, 33 and 7 s, so they were load (`cycle::grown_det_tests`, `cycle::retire_tests`, `cycle::settle_det_tests`). The remaining 245 tests have not run on this base. This spec's first full run covers them and is the run's first full proof of the base. A failure there that reproduces alone follows `AGENTS.md`'s rule for base failures (owner, 1 Nov 2026): the host judges and fixes it, and it stops the goal only as that rule says.
 
 ## Parked unknowns
 

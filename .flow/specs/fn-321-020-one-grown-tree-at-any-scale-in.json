@@ -2,7 +2,8 @@
   "branch_name": "fn-321-020-one-grown-tree-at-any-scale-in",
   "created_at": "2026-10-31T22:54:04.805270Z",
   "depends_on_epics": [
-    "fn-322-local-verification-reruns-only-what-a"
+    "fn-322-local-verification-reruns-only-what-a",
+    "fn-320-a-tree-grown-twice-on-the-device-grows"
   ],
   "id": "fn-321-020-one-grown-tree-at-any-scale-in",
   "next_task": 1,
@@ -22,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T02:44:01.698731Z"
+  "updated_at": "2026-11-01T08:52:10.616201Z"
 }
