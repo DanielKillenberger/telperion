@@ -150,3 +150,4 @@ None. The owner settled R7's age ("300 sounds good") and the stop date ("nov 1 1
   - **B:** keep 50 ms and look for another route. None is proposed: two have failed, and no measurement points to a third.
   - **C:** drop the CPU coarse path and speed up the device cycle. This reverses your choice of 1 Nov, and no route to it is measured.
   - **D:** stop the goal here, keeping the gate, the repeatable field and the measurements.
+- 2026-11-01 20:48 Zurich, owner's answer, in chat: "I think we can remove the time limit." The stop at 19:00 on 1 Nov no longer applies to later runs. The stops on 8 children, on free space and on two children moving no criterion still stand. The question above stays open: this does not choose among A, B, C and D.
