@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 """The local gate (fn-304): the workspace's tests under nextest's `gate`
-profile, inside its budgets.
+profile, inside its budgets, running only what a change can affect (fn-322).
 
-  telperion-heavy 8 --threads 4 -- python3 scripts/gate.py [--base <ref>]
+  telperion-heavy 8 --threads 4 -- python3 scripts/gate.py [--base <ref>] [--full]
+
+Each of `scripts/ci-key.mjs`'s suites keeps a receipt under its key in
+`target/gate/receipts/`, written only after the suite passes. A suite whose key
+has a receipt is skipped and printed with the key; every other suite runs. The
+keys read the commit, so a dirty tree is refused, by name, except for `.flow/`
+files no key reads. `--full` ignores the receipts, runs every suite and writes
+them again. A suite that failed reruns its failed tests first, through
+nextest's recording (`.config/nextest-user.toml`), and the whole suite only if
+those pass.
 
 Budgets (host, fn-304 R4, ruled 2026-10-22): a test's own wall time is cut
 off at 120 s (the profile's slow-timeout) and its peak memory at 4 GiB
@@ -51,8 +60,9 @@ def binary() -> str:
     return os.environ.get("CARGO_NEXTEST", "cargo-nextest")
 
 
-def nextest(*args: str) -> list[str]:
-    return [binary(), "nextest", *args, "--cargo-profile", "ci", "--workspace", "--profile", "gate"]
+def nextest(*args: str, packages: tuple[str, ...] = ()) -> list[str]:
+    scope = [w for p in packages for w in ("-p", p)] or ["--workspace"]
+    return [binary(), "nextest", *args, "--cargo-profile", "ci", *scope, "--profile", "gate"]
 
 
 def nextest_at_its_pin() -> str | None:
@@ -94,16 +104,22 @@ def shrinks_only(base: str) -> list[str]:
 
 
 def stale(listed: dict[str, dict]) -> list[str]:
-    """Allowlisted tests the gate no longer runs."""
+    """Allowlisted tests the gate no longer runs, and any workspace package no
+    suite would run."""
     out = subprocess.run(nextest("list", "--message-format", "json"), cwd=ROOT,
                          capture_output=True, text=True, check=True).stdout
     runs = set()
+    errors = []
+    covered = {package for packages in RUST.values() for package in packages}
     for suite in json.loads(out)["rust-suites"].values():
         binary = suite["binary-name"]
+        if suite["package-name"] not in covered:
+            errors.append(f"{suite['package-name']}: in no suite, so the gate would not run it")
         for name, case in suite["testcases"].items():
             if not case["ignored"]:
                 runs.add(f"{binary} {name}")
-    return [f"{name}: stale, the gate runs no such test" for name in listed if name not in runs]
+    errors = sorted(set(errors))
+    return errors + [f"{name}: stale, the gate runs no such test" for name in listed if name not in runs]
 
 
 RUSTDOC_RUNS = {"", "rust", "should_panic", "no_run", "compile_fail"}
@@ -145,7 +161,28 @@ def doc_tests() -> list[str]:
     return found
 
 
+# `scripts/ci-key.mjs`'s Rust suites, in the order they run, with the packages
+# `.github/workflows/tests.yml` runs under each. Smallest first, so a change
+# that breaks a small crate says so before the core's quarter of an hour.
+RUST = {
+    "rust-jev": ("telperion-jev",),
+    "rust-wasm": ("telperion-wasm", "telperion-space"),
+    "rust-render": ("telperion-render",),
+    "rust-core": ("telperion-core",),
+}
+# The sub-second guards (fn-306) no suite order can put first for both crates.
+GUARDS = ("binary(generation_limit_guard) | "
+          "(binary(telperion_render) & test(=compile_size::tests::every_entry_inlines_under_the_ceiling))")
+GUARDED = ("telperion-core", "telperion-render")
+RECEIPTS = os.path.join(ROOT, "target", "gate", "receipts")
+FAILED = os.path.join(ROOT, "target", "gate", "failed")
+USER_CONFIG = os.path.join(ROOT, ".config", "nextest-user.toml")
+# nextest's exit code for a run with failing tests; any other code from a rerun
+# of the failed set (a pruned recording, no such test) falls through to the suite.
+TESTS_FAILED = 100
+
 # CI's checks, as `.github/workflows/tests.yml` runs them: (job name, commands).
+NODE = ("node", [["npm", "test"], ["npm", "run", "typecheck"]])
 PACKAGE = ("package", [["npm", "run", "build"], ["node", "scripts/artifact-budgets.mjs"]])
 NO_GEOMETRY = ("core without geometry", [
     ["cargo", "build", "--profile", "ci", "-p", "telperion-core", "--no-default-features"],
@@ -183,37 +220,162 @@ def timeouts(listed: dict[str, dict]) -> str:
     return path
 
 
+def git(*args: str) -> str:
+    return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, check=True).stdout
+
+
+def node(*args: str) -> str:
+    return subprocess.run(["node", *args], cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
+
+
+def flow_inputs() -> tuple[str, ...]:
+    """The paths under `.flow/` the keys read."""
+    script = ("import('./scripts/ci-key.mjs').then(({ SUITES }) => console.log("
+              "Object.values(SUITES).flatMap(s => s.inputs).join('\\n')))")
+    return tuple(p for p in node("-e", script).splitlines() if p.startswith(".flow/"))
+
+
+def dirty() -> list[str]:
+    """What a key built from the commit would not see."""
+    read = flow_inputs()
+    found = []
+    for line in git("status", "--porcelain", "--untracked-files=all", "--no-renames").splitlines():
+        path = line[3:].strip('"')
+        if not path.startswith(".flow/") or path in read:
+            found.append(path)
+    return found
+
+
+def has_receipt(suite: str, key: str) -> bool:
+    return os.path.exists(os.path.join(RECEIPTS, f"{suite}.{key}"))
+
+
+def write_receipt(suite: str, key: str) -> None:
+    os.makedirs(RECEIPTS, exist_ok=True)
+    path = os.path.join(RECEIPTS, f"{suite}.{key}")
+    with open(f"{path}.tmp", "w") as f:
+        f.write(git("rev-parse", "HEAD"))
+    os.replace(f"{path}.tmp", path)
+
+
+def recorded_env() -> dict[str, str]:
+    env = dict(os.environ)
+    env["CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER"] = os.path.join(ROOT, "scripts", "gate_test.py")
+    env["NEXTEST_EXPERIMENTAL_RECORD"] = "1"
+    return env
+
+
+def latest_run() -> str | None:
+    """The id of the run nextest recorded last."""
+    out = subprocess.run([binary(), "nextest", "store", "list", "--user-config-file", USER_CONFIG],
+                         cwd=ROOT, capture_output=True, text=True, env=recorded_env()).stdout
+    for line in out.splitlines():
+        if "*latest" in line:
+            return line.split()[0]
+    return None
+
+
+def run_rust_suite(suite: str, budgets: str) -> tuple[int, float]:
+    """One suite under the gate profile, its failed set first when the last
+    run failed: (exit code, seconds of test run)."""
+    packages = RUST[suite]
+    os.makedirs(FAILED, exist_ok=True)
+    marker = os.path.join(FAILED, suite)
+    common = ["--no-fail-fast", "--user-config-file", USER_CONFIG, "--tool-config-file", f"gate:{budgets}"]
+    start = time.monotonic()
+    if os.path.exists(marker):
+        run_id = open(marker).read().strip()
+        print(f"gate: {suite} reruns the failed set of run {run_id} first")
+        code = subprocess.run(nextest("run", "-R", run_id, *common, packages=packages),
+                              cwd=ROOT, env=recorded_env()).returncode
+        if code == TESTS_FAILED:
+            return code, time.monotonic() - start
+    code = subprocess.run(nextest("run", *common, packages=packages), cwd=ROOT, env=recorded_env()).returncode
+    total = time.monotonic() - start
+    if code == 0:
+        if os.path.exists(marker):
+            os.remove(marker)
+    else:
+        run_id = latest_run()
+        if run_id:
+            with open(marker, "w") as f:
+                f.write(run_id)
+    return code, total
+
+
+def guards(running: list[str], budgets: str) -> int:
+    packages = tuple(p for s in running for p in RUST[s] if p in GUARDED)
+    if not packages:
+        return 0
+    return subprocess.run(nextest("run", "-E", GUARDS, "--no-tests", "pass", "--tool-config-file",
+                                  f"gate:{budgets}", packages=packages), cwd=ROOT, env=recorded_env()).returncode
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--base", default="master")
-    base = parser.parse_args().base
-    missing = nextest_at_its_pin()
-    if missing:
-        print(missing, file=sys.stderr)
+    parser.add_argument("--full", action="store_true", help="ignore the receipts and run every suite")
+    args = parser.parse_args()
+    found = dirty()
+    if found:
+        print("gate: the keys read the commit; commit or remove first:\n  " + "\n  ".join(found), file=sys.stderr)
         return 1
+    keys = {suite: node("scripts/ci-key.mjs", suite) for suite in [*RUST, "node"]}
+    keys["package"] = keys["node"]
+    running = []
+    for suite, key in keys.items():
+        if not args.full and has_receipt(suite, key):
+            print(f"gate: {suite} skipped, green receipt {key}")
+        else:
+            print(f"gate: {suite} runs, key {key}")
+            running.append(suite)
+    rust = [suite for suite in RUST if suite in running]
     listed = entries(open(os.path.join(ROOT, BUDGETS)).read())
-    before = time.monotonic()
-    errors = shrinks_only(base) + stale(listed) + doc_tests()
-    print(f"gate: build and listing {time.monotonic() - before:.0f} s")
-    errors += ci_check(*PACKAGE)
+    errors = shrinks_only(args.base) + doc_tests()
+    if rust:
+        missing = nextest_at_its_pin()
+        if missing:
+            print(missing, file=sys.stderr)
+            return 1
+        before = time.monotonic()
+        errors += stale(listed)
+        print(f"gate: build and listing {time.monotonic() - before:.0f} s")
+    if "package" in running and not errors:
+        package = ci_check(*PACKAGE)
+        errors += package
+        if not package:
+            write_receipt("package", keys["package"])
     if errors:
         print("gate: before the run\n  " + "\n  ".join(errors), file=sys.stderr)
         return 1
-    env = dict(os.environ)
-    env["CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER"] = os.path.join(ROOT, "scripts", "gate_test.py")
-    start = time.monotonic()
-    run = subprocess.run(nextest("run", "--no-fail-fast", "--tool-config-file",
-                                 f"gate:{timeouts(listed)}"), cwd=ROOT, env=env)
-    total = time.monotonic() - start
-    print(f"gate: the test run {total:.0f} s against {TOTAL} s")
-    after = ci_check(*NO_GEOMETRY)
-    code = run.returncode
-    if code == 0 and total > TOTAL:
-        print(f"gate: {total - TOTAL:.0f} s over its {TOTAL} s budget", file=sys.stderr)
-        code = 1
-    if after:
-        print("gate: after the run\n  " + "\n  ".join(after), file=sys.stderr)
-    return code or (1 if after else 0)
+    failed = []
+    total = 0.0
+    budgets = timeouts(listed) if rust else ""
+    if guards(rust, budgets) != 0:
+        failed.append("guards")
+    for suite in rust if not failed else []:
+        code, seconds = run_rust_suite(suite, budgets)
+        total += seconds
+        print(f"gate: {suite} {seconds:.0f} s, {total:.0f} s of the test run against {TOTAL} s")
+        after = ci_check(*NO_GEOMETRY) if suite == "rust-core" else []
+        if total > TOTAL:
+            print(f"gate: {total - TOTAL:.0f} s over its {TOTAL} s budget", file=sys.stderr)
+            failed.append("the test run's budget")
+        elif code == 0 and not after:
+            write_receipt(suite, keys[suite])
+        if code != 0 or after:
+            failed.append(suite)
+    if "node" in running:
+        after = ci_check(*NODE)
+        if after:
+            failed.append("node")
+        else:
+            write_receipt("node", keys["node"])
+    if failed:
+        print("gate: failed: " + ", ".join(failed), file=sys.stderr)
+        return 1
+    print("gate: green")
+    return 0
 
 
 if __name__ == "__main__":

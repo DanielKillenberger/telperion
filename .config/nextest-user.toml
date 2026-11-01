@@ -1,0 +1,7 @@
+# The gate's nextest user config (scripts/gate.py passes it): record each run,
+# so a suite that failed can rerun its failed set with `-R` (fn-322 R4).
+[experimental]
+record = true
+
+[record]
+enabled = true
