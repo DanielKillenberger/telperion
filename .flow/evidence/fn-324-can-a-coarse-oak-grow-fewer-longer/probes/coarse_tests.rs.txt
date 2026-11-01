@@ -1,0 +1,107 @@
+//! fn-324's probe: the oak grown from fewer, longer phytomers, through the one
+//! cycle, on a changed species table. Kept in the child's evidence, never on
+//! the workspace's tests. Every candidate is frozen in the child's spec.
+use crate::pipeline::{executor, measures, skeleton, GrowInput};
+use crate::presets::{by_identity, Family};
+use crate::tree::Tree;
+use telperion_space::{NodeLaw, Species};
+
+/// `chain::BRANCH`: the first of the branch, twig, shoot and short ages.
+const FINE: usize = 9;
+
+fn scaled(species: &Species, s: f64, first: usize) -> Species {
+    let mut out = species.clone();
+    for state in out.states.iter_mut().skip(first) {
+        state.internode *= s;
+        state.leaf_area *= s;
+        state.form.pipe *= s.powf(1.0 / state.form.exponent);
+        for zone in &mut state.zones {
+            zone.nodes = match zone.nodes {
+                NodeLaw::Uniform { min, max } => NodeLaw::Uniform { min: min / s, max: max / s },
+                NodeLaw::Poisson { mean } => NodeLaw::Poisson { mean: mean / s },
+            };
+        }
+    }
+    out
+}
+
+/// Height, crown spread (the mean of its two extents) and diameter at breast
+/// height, each read from the drawn tree.
+fn shape(tree: &Tree) -> Option<[f64; 3]> {
+    let base = tree.nodes.first()?.position;
+    let (mut top, mut lo, mut hi) = (f64::MIN, [f64::MAX; 2], [f64::MIN; 2]);
+    let mut breast = 0f64;
+    for n in &tree.nodes {
+        let p = n.position;
+        top = top.max(p.y - base.y);
+        lo = [lo[0].min(p.x), lo[1].min(p.z)];
+        hi = [hi[0].max(p.x), hi[1].max(p.z)];
+        if (1.0..=1.6).contains(&(p.y - base.y)) {
+            breast = breast.max(n.radius);
+        }
+    }
+    (breast > 0.0).then_some([top, ((hi[0] - lo[0]) + (hi[1] - lo[1])) / 2.0, 2.0 * breast])
+}
+
+fn one(base: &Family, species: Species, label: &str, age: u32, seed: u32) {
+    let mut f = base.clone();
+    f.age = f64::from(age);
+    f.skeleton.seed = seed;
+    f.space.species = Some(species);
+    let growth = match executor::growth(&f) {
+        Ok(g) => g,
+        Err(e) => return println!("REFUSED {label} age {age} seed {seed}: {e}"),
+    };
+    let census = |n: &mut Vec<f64>| telperion_space::grow_census(&growth.species, growth.request).map(|c| {
+        n.push(c.seconds);
+        c
+    });
+    let mut times = Vec::new();
+    let first = match census(&mut times) {
+        Ok(c) => c,
+        Err(e) => return println!("REFUSED {label} age {age} seed {seed}: {e}"),
+    };
+    // A first grow past 0.5 s cannot come to 50 ms: its repeats buy nothing.
+    if first.seconds <= 0.5 {
+        for _ in 0..4 {
+            census(&mut times).expect("the same tree again");
+        }
+        times.remove(0);
+    }
+    times.sort_by(f64::total_cmp);
+    let seconds = (times[(times.len() - 1) / 2] + times[times.len() / 2]) / 2.0;
+    let kept: u64 = first.structure.axes.iter().map(|a| a.phytomers.len() as u64).sum();
+    let shed = measures::shed_share(kept, first.grown).expect("a shed share");
+    let leaf = telperion_space::floor::bearing_area(&growth.species, &first.structure.axes, age);
+    let tree = match skeleton(GrowInput::of(&f)) {
+        Ok(s) => s.tree,
+        Err(e) => return println!("REFUSED {label} age {age} seed {seed}: {e}"),
+    };
+    let limbs = measures::limb_count(&tree, f.canopy.clump_system_order).expect("a limb count");
+    let Some([height, spread, dbh]) = shape(&tree) else {
+        return println!("UNREAD {label} age {age} seed {seed}: no node at breast height");
+    };
+    println!(
+        "COARSE {label} age {age} seed {seed} height {height:.3} spread {spread:.3} dbh {dbh:.4} limbs {limbs} shed {shed:.4} leaf {leaf:.2} seconds {seconds:.5} light {:.5} grown {} kept {kept} axes {}",
+        first.light_seconds, first.grown, first.structure.axes.len()
+    );
+}
+
+#[test]
+#[ignore = "fn-324's probe"]
+fn coarse_oak() {
+    let age: u32 = std::env::var("COARSE_AGE").expect("an age").parse().expect("an age");
+    let base = by_identity("oregon-white-oak").expect("the oak");
+    let species = base.space.species.clone().expect("a species");
+    for seed in [1, 7, 42, 1234, 5678] {
+        one(&base, species.clone(), "reference", age, seed);
+    }
+    for s in [4.0, 3.0, 2.0, 1.5] {
+        for (scope, first) in [("all", 0), ("fine", FINE)] {
+            let label = format!("{scope}-{s}");
+            for seed in [1, 7, 42, 1234, 5678] {
+                one(&base, scaled(&species, s, first), &label, age, seed);
+            }
+        }
+    }
+}

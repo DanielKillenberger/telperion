@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-324-can-a-coarse-oak-grow-fewer-longer.md",
-  "status": "open",
+  "status": "done",
   "title": "Can a coarse oak grow fewer, longer phytomers and stay the same tree?",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T16:55:27.391622Z"
+  "updated_at": "2026-11-01T17:05:32.046539Z"
 }
