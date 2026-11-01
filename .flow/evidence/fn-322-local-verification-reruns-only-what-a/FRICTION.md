@@ -1,4 +1,6 @@
 # fn-322 friction
 
 - 2026-11-01, narrow vitest: running one `scripts/*.test.mjs` file goes through `vitest.config.ts`'s global setup, which builds two release binaries under fat LTO (`harness/release-binaries.setup.ts`) though a script test reads neither. Cost here: avoided with a scratch config outside the repo, about 2 minutes to find. What would remove it: a `vitest` project or environment switch that keeps the setup for harness tests only.
+- 2026-11-01, first gate build: running each suite as its own nextest run took 1,649 s against the 1,560 s budget, and that full run was the only way to see it. Cost: 34 minutes. Fixed in this child with one pool and its JUnit report.
+- 2026-11-01, flaky render test: `every_preset_grows_its_field_from_its_parameters_as_from_its_id` fails 3 of 6 alone (fn-320), so `rust-render` cannot reliably earn a receipt, and every commit whose key reaches the render suite can fail on it. Cost so far: one 10-minute run, and the R3 timings needed a hand-placed receipt. What would remove it: fn-320.
 - 2026-11-01, shell hook: `dcg` refuses a redirect to a path held in a variable, so scratch files go through a literal path or the Write tool. Cost: one retried call, under a minute. Local setup, reported only.
