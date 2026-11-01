@@ -24,7 +24,7 @@ def rows(path):
 
 
 def score(r):
-    return 10 * max(0.0, r["worst"] - 0.04) + math.log(r["seconds"] / 0.05)
+    return float(os.environ.get("CLIMB_WEIGHT", "10")) * max(0.0, r["worst"] - 0.04) + math.log(r["seconds"] / 0.05)
 
 
 def main():
@@ -40,7 +40,7 @@ def main():
                 f.write(" ".join(str(r[k]) for k in KEYS) + "\n")
             for _ in range(size):
                 r = rng.choice(best)
-                v = [int(r["first"])]
+                v = [rng.choice([7, 8, 9]) if os.environ.get("CLIMB_FIRST") and rng.random() < 0.3 else int(r["first"])]
                 for k in KEYS[1:]:
                     lo, hi = BOUNDS[k]
                     v.append(round(min(hi, max(lo, r[k] * math.exp(rng.gauss(0, sigma)))), 3))

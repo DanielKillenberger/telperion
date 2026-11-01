@@ -85,3 +85,26 @@ Four candidates, chosen before any held-out grow and named here. Seeds 1, 7, 42,
 | D, about 15% | 9 2.729 20.172 4.758 1 2.452 1.773 0.213 |
 
 Alongside it, on seed 1 at age 40, one census of C and D, to read where their time goes.
+
+## Judgement 1's result
+
+Held-out seeds, medians, fn-323's protocol. Reference at age 40: 1,722 ms. At age 80: 17,669 ms.
+
+| Name | Age | Height | Spread | Trunk | Limbs | Shed | Leaf area | Worst | ms |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| A | 40 | 1.019 | 1.010 | 1.038 | 1.017 | 0.983 | 1.028 | 0.038 | 274 |
+| B | 40 | 1.017 | 1.053 | 1.030 | 0.960 | 0.905 | 1.094 | 0.095 | 135 |
+| C | 40 | 1.015 | 0.934 | 1.045 | 0.868 | 0.911 | 0.873 | 0.132 | 109 |
+| D | 40 | 1.020 | 0.958 | 1.080 | 0.845 | 0.864 | 0.839 | 0.161 | 80 |
+| A | 80 | 1.016 | 0.948 | 0.863 | 0.855 | 1.012 | 0.811 | 0.189 | 2,079 |
+| B | 80 | 0.948 | 0.911 | 0.674 | 0.699 | 1.083 | 0.461 | 0.539 | 812 |
+| C | 80 | 0.956 | 0.698 | 0.589 | 0.563 | 1.093 | 0.273 | 0.727 | 520 |
+| D | 80 | 0.967 | 0.578 | 0.600 | 0.532 | 1.107 | 0.244 | 0.756 | 347 |
+
+A holds all six medians within 5% at the preset age, 6.3 times faster than the full cycle. B to D missed by more on these seeds than on the tuning seeds, so two to five tuning seeds overfit. Values tuned at age 40 do not carry to age 80.
+
+The census shows cost following apex-cycles: on seed 1 at age 40 the reference takes 1.137 s for 339,970 of them, A 0.170 s for 76,634, D 0.068 s for 26,212, or 3.3, 2.2 and 2.6 us each, and light is 6 to 12%. D's apex-cycles sit at orders 1 to 3, under the ages this scope scales. Cycle time past the scaled ages is in the passes that visit every apex.
+
+## Round 6, the climb from a wider scope
+
+probes/climb.py, on seeds 1001 to 1008, 4 generations of 150, sigma 0.15, seed 3260, starting from round 3 and round 5. It may now move the first scaled age among 7, 8 and 9. Weight 30 on the statistics, not 10, so a candidate that holds them outranks one that is only cheap. The held-out seeds and judgement logs are not in its pool.
