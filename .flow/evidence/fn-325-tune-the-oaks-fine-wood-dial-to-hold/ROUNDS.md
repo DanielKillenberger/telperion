@@ -68,3 +68,20 @@ On seeds 1001 to 1003: s 3.09, leaf 6.0, pipe 2.05, b 1.49, h 1.21, s2 1.07, x 0
 ## Round 5
 
 The hill-climb in probes/climb.py on seeds 1001 to 1005, starting from round 3's and round 4's readings: 4 generations of 200, sigma 0.15, seed 3250. Its score puts the statistics first and cost second, as the file states. The held-out seeds still choose nothing.
+
+## Round 5's result
+
+On seeds 1001 to 1005, the climb levelled off: worst 0.068 at 154 ms, 0.097 at 107 ms, 0.145 at 87 ms. Generation 3 did not improve on generation 2.
+
+## Judgement 1, on the held-out seeds
+
+Four candidates, chosen before any held-out grow and named here. Seeds 1, 7, 42, 1234 and 5678, ages 40 and 80, fn-323's timing protocol.
+
+| Name | first s leaf pipe b h s2 x |
+| --- | --- |
+| A, round 3's | 9 2 8 2.5 1.3 2 1 0.25 |
+| B, about 7% | 9 2.336 16.648 3.712 1.649 2.447 1.332 0.202 |
+| C, about 10% | 9 2.84 18.583 4.135 1.602 2.343 1.265 0.222 |
+| D, about 15% | 9 2.729 20.172 4.758 1 2.452 1.773 0.213 |
+
+Alongside it, on seed 1 at age 40, one census of C and D, to read where their time goes.
