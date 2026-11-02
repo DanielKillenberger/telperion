@@ -18,7 +18,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-327-the-cycle-costs-less-per-bud-byte-for.md",
-  "status": "open",
+  "status": "done",
   "title": "The cycle costs less per bud, byte for byte",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-02T06:04:26.777644Z"
+  "updated_at": "2026-11-02T07:47:30.356965Z"
 }
