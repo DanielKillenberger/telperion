@@ -28,7 +28,7 @@ use super::{Grower, Working};
 use crate::contract::presence::{q, real, times};
 use crate::dormant::Woken;
 use crate::girth::Frozen;
-use crate::presence::{assign_living, presences, Draws, Laid};
+use crate::presence::{assign_living, Draws};
 use crate::shed::{faded, subtree_living, Living};
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
@@ -218,26 +218,25 @@ impl Grower<'_> {
     fn freeze(&self, w: &mut Working, age: u32) {
         let mut closed = w.closed.clone();
         closed.sort_unstable_by(|a, b| b.cmp(a));
-        let mut laid = Vec::new();
         for i in closed {
-            w.retire.frozen[i] = self.frozen_at(w, i, age, &mut laid);
+            w.retire.frozen[i] = self.frozen_at(w, i, age);
         }
     }
 
     /// Axis `i`'s girth at its own base, closed at `age`: its phytomers'
     /// pipes, lit and not by the tree's mean, and each child's frozen
     /// girth by its base against `i`'s, in order (`girth::Frozen`).
-    fn frozen_at(&self, w: &Working, i: usize, age: u32, laid: &mut Vec<Laid>) -> Frozen {
+    fn frozen_at(&self, w: &Working, i: usize, age: u32) -> Frozen {
         let state = &self.species.states[self.axes[i].pa];
         let (form, chi) = (&state.form, state.leaf_girth);
-        let end = presences(&self.axes[i], &self.draws[i], laid);
+        let (axis, end) = crate::presence::assigned(&self.axes[i], &self.draws[i]);
         let mut f = Frozen::default();
         let mut section = 0.0f32;
-        for (p, l) in self.axes[i].phytomers.iter().zip(laid.iter()) {
-            let scale = f64::from(l.scale as f32 * 1.0 * l.size as f32);
+        for p in &axis.phytomers {
+            let scale = f64::from(p.scale as f32 * 1.0 * p.size as f32);
             let (pipe, term) = crate::girth::terms(
                 crate::girth::own_at(form, p.cycle, age, scale, 1.0),
-                l.light,
+                p.light,
                 chi,
             );
             f.sums[0] += pipe;
@@ -246,7 +245,7 @@ impl Grower<'_> {
         }
         for &c in w.children(i) {
             let c = c as usize;
-            let ratio = self.ratio(w, (c, laid), (end, age));
+            let ratio = self.ratio(w, (c, &axis), (end, age));
             let child = w.retire.frozen[c];
             section += crate::girth::section(f64::from(ratio * child.radius), form.exponent);
             f.sums[0] += ratio * child.sums[0];
@@ -259,7 +258,7 @@ impl Grower<'_> {
     /// Child `c`'s base against its bearer's (`girth::bases`), its bearer
     /// assigned and ending at `end`, at `age`: a lateral's node's scale,
     /// its vigour and its dominance share; a carried axis's vigour.
-    fn ratio(&self, w: &Working, (c, bearer): (usize, &[Laid]), (end, age): (f64, u32)) -> f32 {
+    fn ratio(&self, w: &Working, (c, bearer): (usize, &Axis), (end, age): (f64, u32)) -> f32 {
         use crate::contract::presence::{q, real, times};
         let a = &self.axes[c];
         let d = &self.draws[c];
@@ -271,7 +270,7 @@ impl Grower<'_> {
         let made = times(q(d.birth[0]), q(birth));
         match a.origin {
             Origin::Lateral { node, .. } => {
-                let scale = bearer.get(node).map_or(0.0, |p| p.scale as f32);
+                let scale = bearer.phytomers.get(node).map_or(0.0, |p| p.scale as f32);
                 let share =
                     crate::geometry::dominance(self.species.states[a.pa].form.dominance, a.lineage);
                 scale * 1.0 * real(made) as f32 * share as f32
@@ -310,14 +309,12 @@ fn evaluate(t: &Tree, w: &Working, c: usize) -> Verdict {
     {
         return Verdict::Wait;
     }
-    let local = copied(t, w, &part);
+    let local = copied(t, w, &part, &stub);
     let given = |k: usize| match w.retire.fate[part[k]] {
         Fate::Kept(l) | Fate::Root(l) if part[k] != c => Some(l),
         _ => None,
     };
-    let scales = bearing_scales(t, w, &part, &stub);
-    let scale = |k: usize, node: usize| scales[k][node];
-    let living = subtree_living(&local, t.species, t.age, &given, &scale);
+    let living = subtree_living(&local, t.species, t.age, &given);
     let axis = &t.axes[c];
     let delay = t.species.states[axis.pa].shedding;
     if !(sheds(axis, t.species) && faded(delay, axis.birth, living, t.age) <= 0.0) {
@@ -332,26 +329,10 @@ fn sheds(axis: &Axis, species: &Species) -> bool {
     lateral && species.states[axis.pa].shedding.is_finite()
 }
 
-/// Each axis of `part` that bears a lateral, its nodes' scales as the settle
-/// assigns them: all a fade reads of its phytomers. Empty where it bears none.
-fn bearing_scales(t: &Tree, w: &Working, part: &[usize], stub: &dyn Fn(usize) -> bool) -> Vec<Vec<f64>> {
-    let mut laid = Vec::new();
-    let bears = |&c: &u32| matches!(t.axes[c as usize].origin, Origin::Lateral { .. });
-    (part.iter())
-        .map(|&i| {
-            if stub(i) || !w.children(i).iter().any(bears) {
-                return Vec::new();
-            }
-            presences(&t.axes[i], &t.draws[i], &mut laid);
-            laid.iter().map(|l| l.scale).collect()
-        })
-        .collect()
-}
-
-/// The axes `part` (in order, its first the root) copied without their
-/// phytomers and assigned as the settle assigns them, the root as a seed: each
-/// woken bud by the share its bearer kept of it.
-fn copied(t: &Tree, w: &Working, part: &[usize]) -> Vec<Axis> {
+/// The axes `part` (in order, its first the root) copied and assigned as
+/// the settle assigns them, the root as a seed: each one `stub` names
+/// without its phytomers, each woken bud by the share its bearer kept of it.
+fn copied(t: &Tree, w: &Working, part: &[usize], stub: &dyn Fn(usize) -> bool) -> Vec<Axis> {
     let place = |i: usize| part.binary_search(&i).expect("in the subtree");
     let mut local: Vec<Axis> = (part.iter())
         .map(|&i| {
@@ -380,6 +361,11 @@ fn copied(t: &Tree, w: &Working, part: &[usize]) -> Vec<Axis> {
                     node,
                 },
             };
+            let phytomers = if stub(i) {
+                Vec::new()
+            } else {
+                a.phytomers.clone()
+            };
             Axis {
                 lineage: a.lineage,
                 pa: a.pa,
@@ -391,7 +377,7 @@ fn copied(t: &Tree, w: &Working, part: &[usize]) -> Vec<Axis> {
                 base: a.base,
                 heading: a.heading,
                 side: a.side,
-                phytomers: Vec::new(),
+                phytomers,
                 units: Vec::new(),
                 alive: a.alive,
                 rank: a.rank,
