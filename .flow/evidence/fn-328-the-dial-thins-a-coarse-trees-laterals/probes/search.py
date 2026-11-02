@@ -34,7 +34,7 @@ def score(r):
 def run(preset, cpu, file, log, seeds):
     env = dict(os.environ, RAYON_NUM_THREADS="1", SEARCH_PRESET=preset, SEARCH_SEEDS=seeds, SEARCH_REPEATS="1", SEARCH_FILE=file)
     with open(log, "w") as f:
-        subprocess.run(["telperion-heavy", "8", "--threads", "1", "--", "taskset", "-c", cpu, BIN, "fidelity_rows", "--ignored", "--nocapture", "--test-threads=1"], env=env, stdout=f, stderr=subprocess.STDOUT, check=True)
+        subprocess.run(["telperion-heavy", "2", "--threads", "1", "--", "taskset", "-c", cpu, BIN, "fidelity_rows", "--ignored", "--nocapture", "--test-threads=1"], env=env, stdout=f, stderr=subprocess.STDOUT, check=True)
     return rows(log)
 
 
