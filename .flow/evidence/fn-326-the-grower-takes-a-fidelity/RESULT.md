@@ -32,6 +32,11 @@ Each statistic is the median of the five seeds, read against the same seeds at f
 
 R4 on 50 seeds has not been run, on the oak or any other preset. Holding the middle of the dial needs its own attempt: either a walk that keeps the compensations in step with the factor, or rows stated at more than one fidelity. The cost of a bud is the next lever on seconds.
 
+## Verification
+
+Gate green at `dfbf57129`: 1,542 tests passed, test run 1,194 s against 1,560 s, package and artifact budgets held, core without geometry and node green. Codex reviewed the diff: first round NEEDS_WORK with six findings, all fixed, re-review SHIP. The gate's first two runs failed on the stale presets file, then on four re-pinned catalogue digests and the frozen benchmark file, which predates the row.
+
 ## Friction
 
-See `FRICTION.md`.
+- **Five held-out seeds cannot settle a birch's spread.** Two climbs, about 2 h of background search on one core, passed tuning and failed the held-out seeds, until a 50-seed read showed most of the miss was the sample. Disposition: the next tuning round for any preset tunes on twelve or more seeds and reads a candidate on fifty tuning seeds before a held-out read; applied by the host, no spec.
+- **`dcg` refused a heredoc to a new scratch file.** 1 minute; the Write tool does it. Disposition: none needed, the hook is doing its job.

@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-326-the-grower-takes-a-fidelity.md",
-  "status": "open",
+  "status": "done",
   "title": "The grower takes a fidelity",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T23:34:34.133476Z"
+  "updated_at": "2026-11-02T06:03:53.238836Z"
 }
