@@ -54,10 +54,16 @@ pub(crate) struct GrowInput<'f> {
 
 impl<'f> GrowInput<'f> {
     pub(crate) fn of(family: &'f Family) -> Self {
-        let space = match family.applied() {
+        let mut space = match family.applied() {
             Cow::Borrowed(f) => Cow::Borrowed(&f.space),
             Cow::Owned(f) => Cow::Owned(f.space),
         };
+        // The finest is the species as it stands, not a copy of it.
+        if family.fidelity > 0.0 && space.coarse != telperion_space::Coarsening::NONE {
+            let coarsened = (space.species.as_ref())
+                .map(|s| s.coarsened(&space.coarse, family.fidelity));
+            space.to_mut().species = coarsened;
+        }
         Self {
             space,
             age: family.age,

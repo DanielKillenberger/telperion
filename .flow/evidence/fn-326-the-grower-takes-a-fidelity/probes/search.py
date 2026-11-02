@@ -7,7 +7,8 @@ for each first age in <firsts> (comma-separated); with logs given, it is skipped
 Then the climb: each generation draws <size> around the five best, sigma 0.15 in
 log space. Score, lower is better: 30 * max(0, worst - 0.04) + ln(seconds / 0.05),
 so the statistics come first. Fidelity 1.0, the preset's age, seeds 1001 to 1005,
-first pass on 1001 and 1002. Held-out seeds choose nothing.
+first pass on 1001 and 1002. Held-out seeds choose nothing. Logs given are read
+for the first ages in <firsts> only, so a climb can leave an age it is stuck on.
 """
 import math, os, random, subprocess, sys
 
@@ -42,7 +43,7 @@ def run(preset, cpu, file, log, seeds):
 def main():
     preset, name, cpu, firsts, wide, gens, size = sys.argv[1], sys.argv[2], sys.argv[3], [int(x) for x in sys.argv[4].split(",")], int(sys.argv[5]), int(sys.argv[6]), int(sys.argv[7])
     rng = random.Random(326)
-    pool = [r for p in sys.argv[8:] for r in rows(p)]
+    pool = [r for p in sys.argv[8:] for r in rows(p) if int(r["first"]) in firsts]
     if not pool:
         file = f"{EV}{name}-wide.txt"
         with open(file, "w") as f:
@@ -67,7 +68,8 @@ def main():
                     lo, hi = BOUNDS[k]
                     v.append(round(min(hi, max(lo, r[k] * math.exp(rng.gauss(0, 0.15)))), 3))
                 f.write(" ".join(map(str, v)) + " 1\n")
-        new = run(preset, cpu, file, f"{EV}{name}-{g}.log", "1001,1002,1003,1004,1005")
+        seeds = ",".join(str(1001 + k) for k in range(int(os.environ.get("TUNE_SEEDS", "5"))))
+        new = run(preset, cpu, file, f"{EV}{name}-{g}.log", seeds)
         pool = new if g == 0 else pool + new
         top = sorted(pool, key=score)[0]
         print(f"gen {g}: {len(new)} read, best " + " ".join(f"{k} {top[k]:.3f}" for k in top if k != "age"), flush=True)

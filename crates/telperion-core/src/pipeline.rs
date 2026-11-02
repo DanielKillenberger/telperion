@@ -295,6 +295,8 @@ mod drawn;
 pub mod executor;
 pub mod measures;
 mod input;
+#[cfg(all(test, feature = "geometry"))]
+mod fidelity_tests;
 #[cfg(not(feature = "geometry"))]
 mod planned;
 mod stage;

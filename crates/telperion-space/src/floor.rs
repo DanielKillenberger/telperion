@@ -28,6 +28,17 @@ pub fn orders_by_key(axes: &[Axis]) -> std::collections::HashMap<u64, u32> {
     phytomers.collect()
 }
 
+/// The leaf area standing at `year`, by each age's own leaf years: R4's metric.
+pub fn bearing_area(species: &Species, axes: &[Axis], year: u32) -> f64 {
+    let mut sum = 0.0;
+    for a in axes {
+        let s = &species.states[a.pa];
+        let bearing = a.phytomers.iter().filter(|p| f64::from(p.cycle) + s.leaf_years > f64::from(year));
+        sum += bearing.map(|p| leaf_area(p.scale, p.size, s.leaf_area)).sum::<f64>();
+    }
+    sum
+}
+
 /// What one replay read, and its seconds.
 #[derive(Debug, Clone, Copy)]
 pub struct Replay {

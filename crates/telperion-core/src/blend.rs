@@ -168,10 +168,24 @@ fn space(a: &Space, b: &Space, t: f64, age: u32) -> Result<Space> {
     if a.light != b.light {
         return Err(Error::InvalidInput("a walk between two sites' light"));
     }
+    let (p, q) = (a.coarse, b.coarse);
+    let walk = |x: f64, y: f64| x.powf(1.0 - t) * y.powf(t);
+    let coarse = telperion_space::Coarsening {
+        // The older of the two, so a walk coarsens no age either species keeps;
+        // rows of 1, a species with no dial, change nothing there.
+        first: p.first.max(q.first),
+        factor: walk(p.factor, q.factor),
+        leaf: walk(p.leaf, q.leaf),
+        pipe: walk(p.pipe, q.pipe),
+        bud: walk(p.bud, q.bud),
+        hazard: walk(p.hazard, q.hazard),
+        shedding: walk(p.shedding, q.shedding),
+    };
     Ok(Space {
         species,
         trunk,
         light: a.light,
+        coarse,
     })
 }
 

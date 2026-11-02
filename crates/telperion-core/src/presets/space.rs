@@ -21,7 +21,9 @@
 //! `leafYears` alone.
 //! This file is shared with the build script, which judges every shipped
 //! preset's rows as the crate compiles.
-use telperion_space::{passed, settings, zone_settings, Light, PaState, Species, Zone, AGES};
+use telperion_space::{
+    passed, settings, zone_settings, Coarsening, Light, PaState, Species, Zone, AGES,
+};
 use telperion_space::{NodeLaw, ZONES};
 
 /// Where every row of the group sits.
@@ -76,6 +78,10 @@ pub struct Space {
     /// on from the trunk, is stem.
     pub trunk: Vec<usize>,
     pub light: Light,
+    /// What the fidelity dial does to this species at its coarsest: one
+    /// `/space/coarse/<setting>` row each, and without them the dial is
+    /// dormant.
+    pub coarse: Coarsening,
 }
 
 impl Default for Space {
@@ -84,6 +90,7 @@ impl Default for Space {
             species: None,
             trunk: Vec::new(),
             light: SITE,
+            coarse: Coarsening::NONE,
         }
     }
 }
@@ -118,6 +125,11 @@ pub fn read<'a>(rows: impl IntoIterator<Item = (&'a str, Cell)>) -> Result<Space
                     ));
                 }
             }
+            ["coarse", "first"] => {
+                // A number's own text: `index` refuses a fraction or a negative.
+                space.coarse.first = index(path, &number(path, cell)?.to_string(), AGES)?;
+            }
+            ["coarse", name] => *coarse_row(&mut space.coarse, path, name)? = number(path, cell)?,
             ["ages", k, ref tail @ ..] => {
                 let k = index(path, k, AGES)?;
                 if tail == ["trunk"] {
@@ -143,6 +155,19 @@ pub fn read<'a>(rows: impl IntoIterator<Item = (&'a str, Cell)>) -> Result<Space
         space.species = Some(Species { states }.canonical());
     }
     Ok(space)
+}
+
+/// The dial's setting a `/space/coarse` row names.
+fn coarse_row<'c>(c: &'c mut Coarsening, path: &str, name: &str) -> Result<&'c mut f64, String> {
+    Ok(match name {
+        "factor" => &mut c.factor,
+        "leaf" => &mut c.leaf,
+        "pipe" => &mut c.pipe,
+        "bud" => &mut c.bud,
+        "hazard" => &mut c.hazard,
+        "shedding" => &mut c.shedding,
+        _ => return Err(format!("{path} is not a space row")),
+    })
 }
 
 /// Sets the setting at `tail` of one age.
@@ -231,6 +256,21 @@ pub fn rows(space: &Space) -> Result<Vec<(String, Cell)>, String> {
     }
     if space.light != SITE {
         return Err("a preset grows under the site's light, which no row states".into());
+    }
+    let c = space.coarse;
+    let settings = [
+        ("first", c.first as f64, Coarsening::NONE.first as f64),
+        ("factor", c.factor, Coarsening::NONE.factor),
+        ("leaf", c.leaf, Coarsening::NONE.leaf),
+        ("pipe", c.pipe, Coarsening::NONE.pipe),
+        ("bud", c.bud, Coarsening::NONE.bud),
+        ("hazard", c.hazard, Coarsening::NONE.hazard),
+        ("shedding", c.shedding, Coarsening::NONE.shedding),
+    ];
+    for (name, v, neutral) in settings {
+        if v != neutral {
+            out.push((format!("{PREFIX}coarse/{name}"), Cell::Number(v)));
+        }
     }
     Ok(out)
 }

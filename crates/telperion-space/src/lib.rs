@@ -78,6 +78,7 @@ pub use schedule::most_units;
 pub use species::scale::{
     scale, setting, settings, zone_settings, Scale, Setting, OUTCOMES, SETTINGS,
 };
+pub use species::coarse::{Coarsening, COARSEST};
 pub use species::{
     Form, NodeLaw, PaState, Species, Zone, BARE, MAX_BUDS, MAX_LEAF_AREA, MEDIAL, SPARE, TOP, ZONES,
 };
