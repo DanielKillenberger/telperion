@@ -91,6 +91,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.42,
         "width": 0.06
       },
+      "fidelity": 0,
       "material": {
         "barkBlue": 0.068,
         "barkGrainScale": 0,
@@ -1521,6 +1522,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.55,
         "width": 0.075
       },
+      "fidelity": 0,
       "material": {
         "barkBlue": 0.105,
         "barkGrainScale": 0.0025,
@@ -2348,6 +2350,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               }
             }
           }
+        },
+        "coarse": {
+          "bud": 1.3,
+          "factor": 2,
+          "first": 9,
+          "hazard": 2,
+          "leaf": 16,
+          "pipe": 2.5,
+          "shedding": 0.25
         }
       },
       "supernatural": {
@@ -2472,6 +2483,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.2,
         "width": 0.0015
       },
+      "fidelity": 0,
       "material": {
         "barkBlue": 0.028,
         "barkGrainScale": 0.0018,
@@ -3176,6 +3188,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               }
             }
           }
+        },
+        "coarse": {
+          "bud": 1.022,
+          "factor": 2.417,
+          "first": 8,
+          "hazard": 1.512,
+          "leaf": 13.725,
+          "pipe": 1.834,
+          "shedding": 0.067
         }
       },
       "supernatural": {
@@ -3300,6 +3321,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.45,
         "width": 0.05
       },
+      "fidelity": 0,
       "material": {
         "barkBlue": 0.0165,
         "barkGrainScale": 0.002,
@@ -4164,6 +4186,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.2,
         "width": 0.037
       },
+      "fidelity": 0,
       "material": {
         "barkBlue": 0.7,
         "barkGrainScale": 0.002,
@@ -4922,6 +4945,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               }
             }
           }
+        },
+        "coarse": {
+          "bud": 1.534,
+          "factor": 1.503,
+          "first": 8,
+          "hazard": 2.366,
+          "leaf": 10.045,
+          "pipe": 2.131,
+          "shedding": 0.65
         }
       },
       "supernatural": {
@@ -5046,6 +5078,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.42,
         "width": 0.0725
       },
+      "fidelity": 0,
       "material": {
         "barkBlue": 0.135,
         "barkGrainScale": 0,
@@ -5411,6 +5444,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.45,
         "width": 0.05
       },
+      "fidelity": 0,
       "material": {
         "barkBlue": 0.0165,
         "barkGrainScale": 0.002,
@@ -6318,6 +6352,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.45,
         "width": 0.05
       },
+      "fidelity": 0,
       "material": {
         "barkBlue": 0.0165,
         "barkGrainScale": 0.002,
