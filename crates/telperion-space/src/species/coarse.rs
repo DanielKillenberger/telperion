@@ -4,6 +4,7 @@
 //! moves geometrically with the fidelity, from nothing at the finest to its
 //! row at the coarsest, so the dial changes a tree by degree.
 use super::{NodeLaw, Species};
+use crate::error::{refuse, Result};
 
 /// The fidelity in metres past which a tree grows no coarser: the manifest's
 /// grove, what a website's voxel asks for.
@@ -13,8 +14,10 @@ pub const COARSEST: f64 = 1.0;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Coarsening {
     /// The youngest age that coarsens, and every older one; younger ages,
-    /// the trunk and limbs, grow as at the finest.
-    pub first: usize,
+    /// the trunk and limbs, grow as at the finest. A fraction, which only a
+    /// walk between two species states, coarsens the age it falls in by that
+    /// share, so the walk changes the tree by degree.
+    pub first: f64,
     /// How much longer an internode is, and how many fewer nodes a unit has.
     pub factor: f64,
     /// How much more leaf area a node bears.
@@ -32,7 +35,7 @@ pub struct Coarsening {
 impl Coarsening {
     /// Rows that change nothing, at any fidelity.
     pub const NONE: Self = Self {
-        first: 0,
+        first: 0.0,
         factor: 1.0,
         leaf: 1.0,
         pipe: 1.0,
@@ -40,15 +43,45 @@ impl Coarsening {
         hazard: 1.0,
         shedding: 1.0,
     };
+
+    /// Refuses, by name, rows the dial cannot grow from: no row may make a
+    /// coarser tree finer, leave a setting at nothing or keep a dead lateral
+    /// longer.
+    pub fn validate(&self) -> Result<()> {
+        if !(self.first >= 0.0 && self.first <= super::MAX_STATES as f64) {
+            return refuse("coarse first", "an age of the species' reference axis");
+        }
+        if !(self.factor >= 1.0 && self.factor.is_finite()) {
+            return refuse("coarse factor", "a finite factor of at least 1");
+        }
+        for (name, v) in [("coarse leaf", self.leaf), ("coarse pipe", self.pipe)] {
+            if !(v > 0.0 && v.is_finite()) {
+                return refuse(name, "a finite positive multiplier");
+            }
+        }
+        for (name, v) in [("coarse bud", self.bud), ("coarse hazard", self.hazard)] {
+            if !(v >= 1.0 && v.is_finite()) {
+                return refuse(name, "a finite multiplier of at least 1");
+            }
+        }
+        if !(self.shedding > 0.0 && self.shedding <= 1.0) {
+            return refuse("coarse shedding", "a multiplier above 0 and at most 1");
+        }
+        Ok(())
+    }
 }
 
 impl Species {
     /// The species a tree of `fidelity` metres grows from: itself at 0.
     pub fn coarsened(&self, c: &Coarsening, fidelity: f64) -> Species {
         let t = (fidelity / COARSEST).clamp(0.0, 1.0);
-        let at = |v: f64| v.powf(t);
         let mut out = self.clone();
-        for state in out.states.iter_mut().skip(c.first) {
+        for (pa, state) in out.states.iter_mut().enumerate() {
+            let share = t * (pa as f64 + 1.0 - c.first).clamp(0.0, 1.0);
+            if share == 0.0 {
+                continue;
+            }
+            let at = |v: f64| v.powf(share);
             let s = at(c.factor);
             state.internode *= s;
             state.leaf_area *= at(c.leaf);
@@ -81,7 +114,7 @@ mod tests {
     use crate::{grow_cycle, oak, Light, Request};
 
     const ROWS: Coarsening = Coarsening {
-        first: 9,
+        first: 9.0,
         factor: 2.0,
         leaf: 16.0,
         pipe: 2.5,
@@ -132,6 +165,35 @@ mod tests {
         for zone in c.states.iter().flat_map(|s| &s.zones) {
             assert!(zone.lateral.iter().sum::<f64>() <= 1.0 + 1e-9);
         }
+    }
+
+    #[test]
+    fn a_fractional_first_coarsens_its_age_by_that_share() {
+        let c = oak().coarsened(&Coarsening { first: 8.5, ..ROWS }, 1.0);
+        let (base, half, whole) = (oak(), &c.states[8], &oak().coarsened(&ROWS, 1.0).states[9]);
+        assert_eq!(base.states[..8], c.states[..8]);
+        assert_eq!(half.internode, base.states[8].internode * 2f64.sqrt());
+        assert_eq!(c.states[9].internode, whole.internode);
+    }
+
+    #[test]
+    fn rows_off_their_domain_are_refused_by_name() {
+        let bad = [
+            ("first", Coarsening { first: -1.0, ..ROWS }),
+            ("factor", Coarsening { factor: 0.0, ..ROWS }),
+            ("factor", Coarsening { factor: f64::NAN, ..ROWS }),
+            ("leaf", Coarsening { leaf: 0.0, ..ROWS }),
+            ("pipe", Coarsening { pipe: f64::INFINITY, ..ROWS }),
+            ("bud", Coarsening { bud: 0.5, ..ROWS }),
+            ("hazard", Coarsening { hazard: 0.5, ..ROWS }),
+            ("shedding", Coarsening { shedding: 0.0, ..ROWS }),
+            ("shedding", Coarsening { shedding: 2.0, ..ROWS }),
+        ];
+        for (name, rows) in bad {
+            let refused = rows.validate().expect_err(name).to_string();
+            assert!(refused.contains(name), "{refused}");
+        }
+        assert!(ROWS.validate().is_ok() && Coarsening::NONE.validate().is_ok());
     }
 
     #[test]

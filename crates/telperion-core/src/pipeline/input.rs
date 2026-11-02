@@ -47,6 +47,8 @@ pub(crate) struct GrowInput<'f> {
     pub(crate) space: Cow<'f, Space>,
     pub(crate) age: f64,
     pub(crate) seed: u32,
+    /// The family's request, already in `space`: kept for its refusal.
+    pub(crate) fidelity: f64,
     pub(crate) supernatural: Supernatural,
     /// The crown's rows a rosette's stem establishes by (fn-275 R2a).
     pub(crate) canopy: crate::pipeline::foliage::CanopyParams,
@@ -68,9 +70,21 @@ impl<'f> GrowInput<'f> {
             space,
             age: family.age,
             seed: family.skeleton.seed,
+            fidelity: family.fidelity,
             supernatural: family.supernatural,
             canopy: family.canopy,
         }
+    }
+
+    /// Refuses a fidelity off its range, whichever entry asked for the tree.
+    pub(crate) fn fidelity_admitted(&self) -> crate::Result<()> {
+        if crate::family::FIDELITY.admits(self.fidelity) {
+            return Ok(());
+        }
+        Err(crate::Error::InvalidValue {
+            field: "fidelity",
+            value: format!("{}", self.fidelity),
+        })
     }
 }
 

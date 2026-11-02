@@ -32,6 +32,8 @@ fn the_finest_grows_the_presets_own_species_on_every_preset() {
         without.space.coarse = Coarsening::NONE;
         let species = |f: &Family| executor::growth(f).expect("its growth").species;
         assert_eq!(species(&with_rows), species(&without), "{id}");
+        let tree = |f: &Family| skeleton(GrowInput::of(f)).expect("a tree").tree.nodes;
+        assert_eq!(tree(&with_rows), tree(&without), "{id}");
     }
 }
 
@@ -57,7 +59,36 @@ fn a_fidelity_off_its_range_is_refused_by_name() {
         let f = Family { fidelity: bad, ..family("oregon-white-oak", AGE, 7, 0.0) };
         let refused = f.validate().expect_err("off its range");
         assert!(refused.to_string().contains("fidelity"), "{refused}");
+        let grown = executor::growth(&f).err().expect("the growth entry refuses");
+        assert!(grown.to_string().contains("fidelity"), "{grown}");
+        let built = skeleton(GrowInput::of(&f)).err().expect("the skeleton refuses");
+        assert!(built.to_string().contains("fidelity"), "{built}");
     }
+}
+
+#[test]
+fn a_walk_between_two_fractional_requests_keeps_their_fidelity() {
+    let oak = family("oregon-white-oak", AGE, 7, 0.25);
+    let spruce = family("norway-spruce", AGE, 7, 0.25);
+    let walked = crate::blend::families(&oak, &spruce, 0.5).expect("a walk");
+    assert_eq!(walked.fidelity, 0.25);
+}
+
+#[test]
+fn a_walk_between_two_dials_moves_its_first_age_by_degree() {
+    let oak = family("oregon-white-oak", AGE, 7, 1.0);
+    let spruce = family("norway-spruce", AGE, 7, 1.0);
+    let first = |t| crate::blend::families(&spruce, &oak, t).expect("a walk").space.coarse.first;
+    assert_eq!(first(0.5), 8.5);
+    assert!((first(0.001) - 8.0).abs() < 0.01 && (first(0.999) - 9.0).abs() < 0.01);
+}
+
+#[test]
+fn rows_off_their_domain_are_refused_when_the_family_is_judged() {
+    let mut f = family("oregon-white-oak", AGE, 7, 1.0);
+    f.space.coarse.factor = 0.0;
+    let refused = f.validate().expect_err("off its domain");
+    assert!(refused.to_string().contains("coarse factor"), "{refused}");
 }
 
 #[test]
@@ -147,7 +178,7 @@ fn fidelity_rows() {
     for row in rows.lines().filter(|l| !l.trim().is_empty()) {
         let v: Vec<f64> = row.split_whitespace().map(|x| x.parse().expect("a value")).collect();
         let c = Coarsening {
-            first: v[0] as usize,
+            first: v[0],
             factor: v[1],
             leaf: v[2],
             pipe: v[3],

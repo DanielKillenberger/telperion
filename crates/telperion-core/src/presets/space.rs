@@ -125,10 +125,6 @@ pub fn read<'a>(rows: impl IntoIterator<Item = (&'a str, Cell)>) -> Result<Space
                     ));
                 }
             }
-            ["coarse", "first"] => {
-                // A number's own text: `index` refuses a fraction or a negative.
-                space.coarse.first = index(path, &number(path, cell)?.to_string(), AGES)?;
-            }
             ["coarse", name] => *coarse_row(&mut space.coarse, path, name)? = number(path, cell)?,
             ["ages", k, ref tail @ ..] => {
                 let k = index(path, k, AGES)?;
@@ -147,6 +143,7 @@ pub fn read<'a>(rows: impl IntoIterator<Item = (&'a str, Cell)>) -> Result<Space
             _ => return Err(format!("{path} is not a space row")),
         }
     }
+    space.coarse.validate().map_err(|e| e.to_string())?;
     space.trunk.sort_unstable();
     if let Some(k) = (0..AGES).find(|&k| stated[k] && states[k].lifespan <= 0.0) {
         return Err(format!("/space/ages/{k} states an age with no lifespan"));
@@ -160,6 +157,7 @@ pub fn read<'a>(rows: impl IntoIterator<Item = (&'a str, Cell)>) -> Result<Space
 /// The dial's setting a `/space/coarse` row names.
 fn coarse_row<'c>(c: &'c mut Coarsening, path: &str, name: &str) -> Result<&'c mut f64, String> {
     Ok(match name {
+        "first" => &mut c.first,
         "factor" => &mut c.factor,
         "leaf" => &mut c.leaf,
         "pipe" => &mut c.pipe,
@@ -259,7 +257,7 @@ pub fn rows(space: &Space) -> Result<Vec<(String, Cell)>, String> {
     }
     let c = space.coarse;
     let settings = [
-        ("first", c.first as f64, Coarsening::NONE.first as f64),
+        ("first", c.first, Coarsening::NONE.first),
         ("factor", c.factor, Coarsening::NONE.factor),
         ("leaf", c.leaf, Coarsening::NONE.leaf),
         ("pipe", c.pipe, Coarsening::NONE.pipe),

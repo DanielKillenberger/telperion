@@ -59,18 +59,22 @@ crate::catalogue::rows! {
         /// grows the full cycle, and a coarser request grows less of the same
         /// tree through the same cycle (fn-326). The field's grid side stays
         /// its own input.
-        pub fidelity: f64 = "fidelity" "metres" Bounds::closed(0.0, 1_000_000.0) => [Grow] {
+        pub fidelity: f64 = "fidelity" "metres" FIDELITY => [Grow] {
             wire: 369,
             check: value(Site::Age, 1, "fidelity"),
             growth: Growth::Same,
             note: "Picks the specimen, so a consumer holds one fidelity for a tree's life. Past \
                 the coarsest a tree grows no coarser, and a species with no `/space/coarse` rows \
                 is dormant to it.",
-            blend: Blend::Count,
+            blend: Blend::Linear,
             dial: Dial::Excluded("What the consumer asks for, never a look the tuner steps."),
         },
     }
 }
+/// Where a family's fidelity may sit, for the catalogue and for what a grow
+/// refuses.
+pub(crate) const FIDELITY: Bounds = Bounds::closed(0.0, 1_000_000.0);
+
 impl Default for Family {
     fn default() -> Self {
         Self {
@@ -126,12 +130,17 @@ impl Family {
         use crate::pipeline::{build_element, canopy_rows, height, validate_skeleton};
         self.material.validate()?;
         crate::catalogue::check(Self::CHECKS, self, Site::Age)?;
-        // The engine species, as the engine judges it before it grows.
+        // The engine species, as the engine judges it before it grows, at both
+        // ends of the dial.
+        let engine = |e: telperion_space::Error| Error::InvalidValue {
+            field: "engine",
+            value: e.to_string(),
+        };
+        self.space.coarse.validate().map_err(engine)?;
         if let Some(species) = &self.space.species {
-            species.validate().map_err(|e| Error::InvalidValue {
-                field: "engine",
-                value: e.to_string(),
-            })?;
+            species.validate().map_err(engine)?;
+            let coarsest = species.coarsened(&self.space.coarse, telperion_space::COARSEST);
+            coarsest.validate().map_err(engine)?;
         }
         validate_skeleton(&self.skeleton, self.radii)?;
         // A zero ceiling grows nothing; the build has nothing to sweep, so a
