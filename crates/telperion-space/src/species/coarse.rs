@@ -24,7 +24,8 @@ pub struct Coarsening {
     pub leaf: f64,
     /// How much more pipe a phytomer adds, past what keeps a unit's area.
     pub pipe: f64,
-    /// How much likelier a lateral bud is, up to its zone's certainty.
+    /// How much likelier a lateral bud is, up to its zone's certainty; under
+    /// 1, how much of the laterals the coarse wood keeps.
     pub bud: f64,
     /// How much higher the shade and balance hazards are.
     pub hazard: f64,
@@ -54,15 +55,13 @@ impl Coarsening {
         if !(self.factor >= 1.0 && self.factor.is_finite()) {
             return refuse("coarse factor", "a finite factor of at least 1");
         }
-        for (name, v) in [("coarse leaf", self.leaf), ("coarse pipe", self.pipe)] {
+        for (name, v) in [("coarse leaf", self.leaf), ("coarse pipe", self.pipe), ("coarse bud", self.bud)] {
             if !(v > 0.0 && v.is_finite()) {
                 return refuse(name, "a finite positive multiplier");
             }
         }
-        for (name, v) in [("coarse bud", self.bud), ("coarse hazard", self.hazard)] {
-            if !(v >= 1.0 && v.is_finite()) {
-                return refuse(name, "a finite multiplier of at least 1");
-            }
+        if !(self.hazard >= 1.0 && self.hazard.is_finite()) {
+            return refuse("coarse hazard", "a finite multiplier of at least 1");
         }
         if !(self.shedding > 0.0 && self.shedding <= 1.0) {
             return refuse("coarse shedding", "a multiplier above 0 and at most 1");
@@ -99,7 +98,7 @@ impl Species {
                 };
                 let sum: f64 = zone.lateral.iter().sum();
                 if sum > 0.0 {
-                    let k = at(c.bud).min(1.0 / sum).max(1.0);
+                    let k = at(c.bud).min((1.0 / sum).max(1.0));
                     zone.lateral.iter_mut().for_each(|p| *p *= k);
                 }
             }
@@ -168,6 +167,17 @@ mod tests {
     }
 
     #[test]
+    fn a_row_under_one_thins_the_laterals_by_degree() {
+        let thin = Coarsening { bud: 0.25, ..ROWS };
+        let sums = |s: &Species, pa: usize| -> f64 { s.states[pa].zones.iter().flat_map(|z| &z.lateral).sum() };
+        let pa = (9..oak().states.len()).find(|&pa| sums(&oak(), pa) > 0.0).expect("a bearing age");
+        let (base, half, whole) = (sums(&oak(), pa), oak().coarsened(&thin, 0.5), oak().coarsened(&thin, 1.0));
+        assert!((sums(&whole, pa) / base - 0.25).abs() < 1e-12);
+        assert!((sums(&half, pa) / base - 0.5).abs() < 1e-12);
+        assert_eq!(oak().states[..9], whole.states[..9]);
+    }
+
+    #[test]
     fn a_fractional_first_coarsens_its_age_by_that_share() {
         let c = oak().coarsened(&Coarsening { first: 8.5, ..ROWS }, 1.0);
         let (base, half, whole) = (oak(), &c.states[8], &oak().coarsened(&ROWS, 1.0).states[9]);
@@ -184,7 +194,7 @@ mod tests {
             ("factor", Coarsening { factor: f64::NAN, ..ROWS }),
             ("leaf", Coarsening { leaf: 0.0, ..ROWS }),
             ("pipe", Coarsening { pipe: f64::INFINITY, ..ROWS }),
-            ("bud", Coarsening { bud: 0.5, ..ROWS }),
+            ("bud", Coarsening { bud: 0.0, ..ROWS }),
             ("hazard", Coarsening { hazard: 0.5, ..ROWS }),
             ("shedding", Coarsening { shedding: 0.0, ..ROWS }),
             ("shedding", Coarsening { shedding: 2.0, ..ROWS }),

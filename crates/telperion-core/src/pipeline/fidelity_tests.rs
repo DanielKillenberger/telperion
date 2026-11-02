@@ -117,10 +117,14 @@ fn shape(tree: &Tree) -> Option<[f64; 3]> {
     (breast > 0.0).then_some([top, ((hi[0] - lo[0]) + (hi[1] - lo[1])) / 2.0, 2.0 * breast])
 }
 
-/// Height, spread, trunk, limbs, shed share, leaf area and cycle seconds.
-fn read(f: &Family, repeats: usize) -> Option<[f64; 7]> {
+/// Height, spread, trunk, limbs, shed share, leaf area, cycle seconds, and the
+/// axes and apex-cycles grown.
+fn read(f: &Family, repeats: usize) -> Option<[f64; 9]> {
     let g = executor::growth(f).ok()?;
     let first = telperion_space::grow_census(&g.species, g.request).ok()?;
+    let census = first.census.as_ref()?;
+    let apexes: usize = census.cycles.iter().map(|c| c.active).sum();
+    let work = [census.axes as f64, apexes as f64];
     let mut times = vec![first.seconds];
     if repeats > 1 && first.seconds <= 0.5 {
         for _ in 1..repeats {
@@ -135,7 +139,7 @@ fn read(f: &Family, repeats: usize) -> Option<[f64; 7]> {
     let tree = skeleton(GrowInput::of(f)).ok()?.tree;
     let limbs = measures::limb_count(&tree, f.canopy.clump_system_order).ok()? as f64;
     let [height, spread, trunk] = shape(&tree)?;
-    Some([height, spread, trunk, limbs, shed, leaf, median(times)])
+    Some([height, spread, trunk, limbs, shed, leaf, median(times), work[0], work[1]])
 }
 
 fn median(mut v: Vec<f64>) -> f64 {
@@ -143,7 +147,7 @@ fn median(mut v: Vec<f64>) -> f64 {
     (v[(v.len() - 1) / 2] + v[v.len() / 2]) / 2.0
 }
 
-fn medians(fs: &[Family], repeats: usize) -> Option<[f64; 7]> {
+fn medians(fs: &[Family], repeats: usize) -> Option<[f64; 9]> {
     let rows = fs.iter().map(|f| read(f, repeats)).collect::<Option<Vec<_>>>()?;
     Some(std::array::from_fn(|k| median(rows.iter().map(|r| r[k]).collect())))
 }
@@ -193,8 +197,8 @@ fn fidelity_rows() {
         let q: [f64; 6] = std::array::from_fn(|k| m[k] / reference[k]);
         let worst = q.iter().map(|x| (x - 1.0).abs()).fold(0.0, f64::max);
         println!(
-            "CAND age {age} first {} factor {} leaf {} pipe {} bud {} hazard {} shedding {} fidelity {} height {:.3} spread {:.3} trunk {:.3} limbs {:.3} shed {:.3} area {:.3} worst {worst:.3} seconds {:.4}",
-            c.first, c.factor, c.leaf, c.pipe, c.bud, c.hazard, c.shedding, v[7], q[0], q[1], q[2], q[3], q[4], q[5], m[6]
+            "CAND age {age} first {} factor {} leaf {} pipe {} bud {} hazard {} shedding {} fidelity {} height {:.3} spread {:.3} trunk {:.3} limbs {:.3} shed {:.3} area {:.3} worst {worst:.3} seconds {:.4} axes {:.0} apexes {:.0}",
+            c.first, c.factor, c.leaf, c.pipe, c.bud, c.hazard, c.shedding, v[7], q[0], q[1], q[2], q[3], q[4], q[5], m[6], m[7], m[8]
         );
     }
 }
