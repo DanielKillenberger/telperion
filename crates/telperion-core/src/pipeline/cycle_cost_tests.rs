@@ -1,0 +1,84 @@
+//! fn-327: what the one cycle grows, to the bit, and what each of its passes
+//! costs. A digest here moves only where a change moved a tree.
+use super::executor;
+use crate::presets::{by_identity, Family, CATALOGUE};
+use telperion_space::{grow_census, grow_cycle, tree_digest};
+
+const AGE: f64 = 16.0;
+const SEEDS: [u32; 3] = [1, 1234, 5678];
+/// Young enough for an ordinary test: a table of every preset at both ends of
+/// the dial, in the catalogue's order, finest first.
+const PINNED: [(u64, u64); 8] = [
+    (16272751982230226601, 16272751982230226601),
+    (12999673495698669235, 15918596965021299734),
+    (5368894633571808108, 11778671763230677822),
+    (14897056881827234501, 14897056881827234501),
+    (14406147026974271235, 12712794672242601209),
+    (2986554069661840414, 2986554069661840414),
+    (259041985667409418, 259041985667409418),
+    (5805902079962987722, 5805902079962987722),
+];
+
+fn family(id: &str, age: f64, seed: u32, fidelity: f64) -> Family {
+    let mut f = by_identity(id).expect("a preset");
+    f.age = age;
+    f.skeleton.seed = seed;
+    f.fidelity = fidelity;
+    f
+}
+
+fn digest(f: &Family) -> u64 {
+    let g = executor::growth(f).expect("its growth");
+    tree_digest(&grow_cycle(&g.species, g.request).expect("a tree").structure)
+}
+
+#[test]
+fn every_preset_grows_the_tree_it_grew_at_both_ends_of_the_dial() {
+    let read: Vec<(u64, u64)> = CATALOGUE
+        .iter()
+        .map(|&(_, id, ..)| (digest(&family(id, AGE, 7, 0.0)), digest(&family(id, AGE, 7, 1.0))))
+        .collect();
+    assert_eq!(read, PINNED, "{read:?}");
+}
+
+/// The heavier read of R2: each tree's digest at its preset's age.
+#[test]
+#[ignore = "a measurement: fn-327 R2, read before and after"]
+fn digests_at_preset_age() {
+    for id in ["oregon-white-oak", "norway-spruce", "silver-birch"] {
+        let age = by_identity(id).expect("a preset").age;
+        for seed in SEEDS {
+            for fidelity in [0.0, 1.0] {
+                let d = digest(&family(id, age, seed, fidelity));
+                println!("DIGEST {id} {age} {seed} {fidelity} {d}");
+            }
+        }
+    }
+}
+
+/// Each pass's seconds and the cycle's work: `COST_PRESET`, its age, seed 1.
+#[test]
+#[ignore = "a measurement: fn-327 R1, one thread"]
+fn pass_costs() {
+    for id in ["oregon-white-oak", "norway-spruce", "silver-birch"] {
+        let age = by_identity(id).expect("a preset").age;
+        for fidelity in [0.0, 1.0] {
+            let f = family(id, age, 1, fidelity);
+            let g = executor::growth(&f).expect("its growth");
+            let _warm = grow_census(&g.species, g.request).expect("a tree");
+            let c = grow_census(&g.species, g.request).expect("a tree");
+            let census = c.census.expect("a census");
+            println!("COST {id} {fidelity} seconds {:.4} grown {} axes {}", c.seconds, c.grown, census.axes);
+            let (mut apex, mut axes, mut leaves) = (0u64, 0u64, 0u64);
+            for y in &census.cycles {
+                (apex, axes, leaves) = (apex + y.active as u64, axes + y.axes as u64, leaves + y.leaves as u64);
+            }
+            println!("WORK {id} {fidelity} apex-cycles {apex} axis-cycles {axes} leaf-cycles {leaves}");
+            let mut phases: Vec<_> = census.phases.iter().collect();
+            phases.sort_by(|a, b| b.1.total_cmp(a.1));
+            for (name, s) in phases.into_iter().take(14) {
+                println!("PASS {id} {fidelity} {name} {:.1}", s * 1000.0);
+            }
+        }
+    }
+}
