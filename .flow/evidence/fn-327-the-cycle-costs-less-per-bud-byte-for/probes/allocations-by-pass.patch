@@ -1,0 +1,102 @@
+diff --git i/crates/telperion-core/src/pipeline/cycle_cost_tests.rs w/crates/telperion-core/src/pipeline/cycle_cost_tests.rs
+index 98df39fd8..fb8e141d3 100644
+--- i/crates/telperion-core/src/pipeline/cycle_cost_tests.rs
++++ w/crates/telperion-core/src/pipeline/cycle_cost_tests.rs
+@@ -67,7 +67,17 @@ fn pass_costs() {
+             let g = executor::growth(&f).expect("its growth");
+             let _warm = grow_census(&g.species, g.request).expect("a tree");
+             let c = grow_census(&g.species, g.request).expect("a tree");
++            for round in 0..2 {
++                telperion_space::counting::bump(5 << 30);
++                let b = grow_census(&g.species, g.request).expect("a tree");
++                telperion_space::counting::unbump();
++                println!("BUMP {id} {fidelity} round {round} seconds {:.4}", b.seconds);
++                std::mem::forget(b);
++            }
+             let census = c.census.expect("a census");
++            for (k, v) in census.phases.iter().filter(|(k, _)| k.starts_with("allocs")) {
++                println!("A {id} {fidelity} {k} {v}");
++            }
+             println!("COST {id} {fidelity} seconds {:.4} grown {} axes {}", c.seconds, c.grown, census.axes);
+             let (mut apex, mut axes, mut leaves) = (0u64, 0u64, 0u64);
+             for y in &census.cycles {
+diff --git i/crates/telperion-space/src/grow/cycle.rs w/crates/telperion-space/src/grow/cycle.rs
+index 2311cc5d6..28f449dc0 100644
+--- i/crates/telperion-space/src/grow/cycle.rs
++++ w/crates/telperion-space/src/grow/cycle.rs
+@@ -76,8 +76,14 @@ type Phases = std::collections::BTreeMap<String, f64>;
+ /// A stage's seconds, since the last one ended.
+ fn tick(phases: &mut Phases, clock: &mut f64, stage: Stage) {
+     let now = crate::clock::seconds();
+-    *phases.entry(format!("{stage:?}")).or_default() += now - *clock;
+-    *clock = now;
++    use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
++    static LAST: AtomicU64 = AtomicU64::new(0);
++    let calls = crate::counting::CALLS.load(Relaxed);
++    let before = LAST.swap(calls, Relaxed);
++    let name = format!("{stage:?}");
++    *phases.entry(format!("allocs {name}")).or_default() += calls.saturating_sub(before) as f64;
++    *phases.entry(name).or_default() += now - *clock;
++    *clock = crate::clock::seconds();
+ }
+ 
+ impl Grower<'_> {
+diff --git i/crates/telperion-space/src/lib.rs w/crates/telperion-space/src/lib.rs
+index de9cb15ca..118f7f38d 100644
+--- i/crates/telperion-space/src/lib.rs
++++ w/crates/telperion-space/src/lib.rs
+@@ -85,3 +85,54 @@ pub use species::{
+ pub use spruce::spruce;
+ pub use structure::{Axis, CountTable, Join, Origin, Phytomer, Structure, Vec3};
+ pub use transcendental::Transcendental;
++
++pub mod counting {
++    use std::alloc::{GlobalAlloc, Layout, System};
++    use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering::Relaxed};
++    pub struct Counting;
++    pub static CALLS: AtomicU64 = AtomicU64::new(0);
++    pub static BUMP: AtomicBool = AtomicBool::new(false);
++    static NEXT: AtomicUsize = AtomicUsize::new(0);
++    static END: AtomicUsize = AtomicUsize::new(0);
++    pub fn bump(bytes: usize) {
++        static BASE: AtomicUsize = AtomicUsize::new(0);
++        if BASE.load(Relaxed) == 0 {
++            let p = unsafe { System.alloc_zeroed(Layout::from_size_align(bytes, 4096).unwrap()) } as usize;
++            BASE.store(p, Relaxed);
++            END.store(p + bytes, Relaxed);
++        }
++        NEXT.store(BASE.load(Relaxed), Relaxed);
++        BUMP.store(true, Relaxed);
++    }
++    pub fn unbump() { BUMP.store(false, Relaxed); }
++    fn take(l: Layout) -> *mut u8 {
++        let p = NEXT.load(Relaxed);
++        let start = (p + l.align() - 1) & !(l.align() - 1);
++        assert!(start + l.size() < END.load(Relaxed));
++        NEXT.store(start + l.size(), Relaxed);
++        start as *mut u8
++    }
++    fn mine(p: *mut u8) -> bool { (p as usize) < END.load(Relaxed) && (p as usize) + (1 << 34) > END.load(Relaxed) }
++    unsafe impl GlobalAlloc for Counting {
++        unsafe fn alloc(&self, l: Layout) -> *mut u8 {
++            CALLS.fetch_add(1, Relaxed);
++            if BUMP.load(Relaxed) { return take(l); }
++            System.alloc(l)
++        }
++        unsafe fn dealloc(&self, p: *mut u8, l: Layout) {
++            if mine(p) { return; }
++            System.dealloc(p, l)
++        }
++        unsafe fn realloc(&self, p: *mut u8, l: Layout, n: usize) -> *mut u8 {
++            CALLS.fetch_add(1, Relaxed);
++            if BUMP.load(Relaxed) || mine(p) {
++                let q = if BUMP.load(Relaxed) { take(Layout::from_size_align_unchecked(n, l.align())) } else { System.alloc(Layout::from_size_align_unchecked(n, l.align())) };
++                std::ptr::copy_nonoverlapping(p, q, l.size().min(n));
++                return q;
++            }
++            System.realloc(p, l, n)
++        }
++    }
++    #[global_allocator]
++    static A: Counting = Counting;
++}

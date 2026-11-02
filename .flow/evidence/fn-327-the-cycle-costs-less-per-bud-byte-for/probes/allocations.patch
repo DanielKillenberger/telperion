@@ -1,0 +1,50 @@
+diff --git i/crates/telperion-core/src/lib.rs w/crates/telperion-core/src/lib.rs
+index 9427b0332..108ca06cd 100644
+--- i/crates/telperion-core/src/lib.rs
++++ w/crates/telperion-core/src/lib.rs
+@@ -69,3 +69,29 @@ pub type Result<T> = std::result::Result<T, Error>;
+ mod one_tree;
+ #[cfg(all(test, feature = "geometry", feature = "json"))]
+ mod suite;
++
++#[cfg(test)]
++pub(crate) mod counting {
++    use std::alloc::{GlobalAlloc, Layout, System};
++    use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
++    pub struct Counting;
++    pub static CALLS: AtomicU64 = AtomicU64::new(0);
++    pub static BYTES: AtomicU64 = AtomicU64::new(0);
++    unsafe impl GlobalAlloc for Counting {
++        unsafe fn alloc(&self, l: Layout) -> *mut u8 {
++            CALLS.fetch_add(1, Relaxed);
++            BYTES.fetch_add(l.size() as u64, Relaxed);
++            System.alloc(l)
++        }
++        unsafe fn dealloc(&self, p: *mut u8, l: Layout) {
++            System.dealloc(p, l)
++        }
++        unsafe fn realloc(&self, p: *mut u8, l: Layout, n: usize) -> *mut u8 {
++            CALLS.fetch_add(1, Relaxed);
++            BYTES.fetch_add(n as u64, Relaxed);
++            System.realloc(p, l, n)
++        }
++    }
++    #[global_allocator]
++    static A: Counting = Counting;
++}
+diff --git i/crates/telperion-core/src/pipeline/cycle_cost_tests.rs w/crates/telperion-core/src/pipeline/cycle_cost_tests.rs
+index 98df39fd8..d3bac3b65 100644
+--- i/crates/telperion-core/src/pipeline/cycle_cost_tests.rs
++++ w/crates/telperion-core/src/pipeline/cycle_cost_tests.rs
+@@ -66,7 +66,11 @@ fn pass_costs() {
+             let f = family(id, age, 1, fidelity);
+             let g = executor::growth(&f).expect("its growth");
+             let _warm = grow_census(&g.species, g.request).expect("a tree");
++            use std::sync::atomic::Ordering::Relaxed;
++            let (a0, b0) = (crate::counting::CALLS.load(Relaxed), crate::counting::BYTES.load(Relaxed));
+             let c = grow_census(&g.species, g.request).expect("a tree");
++            let (a1, b1) = (crate::counting::CALLS.load(Relaxed), crate::counting::BYTES.load(Relaxed));
++            println!("ALLOC {id} {fidelity} calls {} megabytes {}", a1 - a0, (b1 - b0) >> 20);
+             let census = c.census.expect("a census");
+             println!("COST {id} {fidelity} seconds {:.4} grown {} axes {}", c.seconds, c.grown, census.axes);
+             let (mut apex, mut axes, mut leaves) = (0u64, 0u64, 0u64);
