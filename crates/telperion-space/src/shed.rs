@@ -104,7 +104,8 @@ pub(crate) fn shed_past(
     (given, gone): (Given<Living>, Gone),
     report: Option<usize>,
 ) -> (Shed, Living) {
-    let (fade, reported) = fades(&axes, species, age, (given, gone), report);
+    let scale = |p: usize, node: usize| axes[p].phytomers[node].scale;
+    let (fade, reported) = fades(&axes, species, age, (given, gone), &scale, report);
     let mut index = vec![usize::MAX; axes.len()];
     let mut kept = Vec::with_capacity(axes.len());
     for (i, mut axis) in axes.drain(..).enumerate() {
@@ -148,6 +149,7 @@ fn fades(
     species: &Species,
     age: u32,
     (given, gone): (Given<Living>, Gone),
+    scale: &dyn Fn(usize, usize) -> f64,
     report: Option<usize>,
 ) -> (Vec<f64>, Living) {
     let delay = |a: &Axis| match a.origin {
@@ -202,7 +204,7 @@ fn fades(
         };
         let mut weight = q(link.vigour);
         if let Origin::Lateral { node, .. } = link.origin {
-            weight = times(weight, q(axes[parent].phytomers[node].scale));
+            weight = times(weight, q(scale(parent, node)));
         }
         let p = &axes[parent];
         let units = (link.birth.saturating_sub(p.birth) as usize).min(p.units.len());
@@ -247,13 +249,15 @@ pub(crate) fn faded(d: f64, birth: u32, living: Living, age: u32) -> f64 {
 }
 
 /// The living of the subtree `axes` stands for, axis 0 its root, each
-/// axis `given` names standing for a subtree whose living it gives: what
+/// axis `given` names standing for a subtree whose living it gives, `scale`
+/// the scale of a lateral's node on its bearer: what
 /// the whole tree's fades read of it (fn-255's retirement).
 pub(crate) fn subtree_living(
     axes: &[Axis],
     species: &Species,
     age: u32,
     given: Given<Living>,
+    scale: &dyn Fn(usize, usize) -> f64,
 ) -> Living {
-    fades(axes, species, age, (given, &|_| false), Some(0)).1
+    fades(axes, species, age, (given, &|_| false), scale, Some(0)).1
 }

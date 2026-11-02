@@ -10,7 +10,7 @@ use crate::closed_form::expected_log_lengths;
 use crate::contract::presence::{q, real, times, ONE};
 use crate::dormant::wakes_in;
 use crate::species::{Species, Zone};
-use crate::structure::{Axis, Origin};
+use crate::structure::{Axis, Origin, Phytomer};
 use crate::transcendental::Transcendental;
 use std::sync::Arc;
 
@@ -336,41 +336,95 @@ pub(crate) fn relay_node(p: &Axis, draws: &Draws, share: f64) -> usize {
     crate::contract::decide::relay_node(&presences, first, n, share)
 }
 
-/// Axis `axis` assigned alone from its draws, as `assign` assigns it:
-/// its phytomers' scales, sizes and lights, and its end's presence.
-pub(crate) fn assigned(axis: &Axis, draws: &Draws) -> (Axis, f64) {
-    let mut a = axis.clone();
-    let end = assign_one(&mut a, draws, None);
-    (a, end)
+/// One phytomer's presences, as an assignment gives them.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Laid {
+    pub scale: f64,
+    pub size: f64,
+    pub light: f64,
+    pub rank: f64,
 }
 
-/// Assigns one axis's presences from its draws: its end's presence.
-/// Every presence a fade reads is an f32, each product taken in turn (host
-/// decision 8); the ranks stay real, which geometry alone reads.
-fn assign_one(axis: &mut Axis, draws: &Draws, living: Option<f64>) -> f64 {
-    let birth = axis.birth;
+/// Where an assignment puts each phytomer's presences.
+trait Nodes {
+    fn count(&self) -> usize;
+    fn cycle(&self, j: usize) -> u32;
+    fn put(&mut self, laid: Laid, j: usize);
+}
+
+impl Nodes for [Phytomer] {
+    fn count(&self) -> usize {
+        self.len()
+    }
+    fn cycle(&self, j: usize) -> u32 {
+        self[j].cycle
+    }
+    fn put(&mut self, laid: Laid, j: usize) {
+        let p = &mut self[j];
+        (p.scale, p.grown, p.size, p.light, p.rank) =
+            (laid.scale, laid.scale, laid.size, laid.light, laid.rank);
+    }
+}
+
+/// An axis's presences read out, the axis left as it stands.
+struct Read<'a>(&'a [Phytomer], &'a mut Vec<Laid>);
+
+impl Nodes for Read<'_> {
+    fn count(&self) -> usize {
+        self.0.len()
+    }
+    fn cycle(&self, j: usize) -> u32 {
+        self.0[j].cycle
+    }
+    fn put(&mut self, laid: Laid, _: usize) {
+        self.1.push(laid);
+    }
+}
+
+/// Axis `axis`'s phytomers' presences, as `assign` assigns them, in `laid`:
+/// its end's presence. The axis itself stays as it stands.
+pub(crate) fn presences(axis: &Axis, draws: &Draws, laid: &mut Vec<Laid>) -> f64 {
+    laid.clear();
+    let mut units = Vec::new();
+    let (running, _) = walked(&mut Read(&axis.phytomers, laid), axis.birth, draws, &mut units);
+    real(running)
+}
+
+/// Each growth unit's presence in `units` and each phytomer's in `nodes`, in
+/// turn: the presence running at the axis's end, and its nodes' rank. Every
+/// presence a fade reads is an f32, each product taken in turn (host decision
+/// 8); the ranks stay real, which geometry alone reads.
+fn walked<N: Nodes + ?Sized>(
+    nodes: &mut N,
+    birth: u32,
+    draws: &Draws,
+    units: &mut Vec<f64>,
+) -> (f32, f64) {
     let mut running = ONE;
-    let mut presences = Vec::with_capacity(draws.units.len());
     let mut j = 0;
     let mut rank = 0.0;
     for (k, unit) in draws.units.iter().enumerate() {
         running = times(running, q(unit.survive));
         let grown = q(unit.share);
-        presences.push(real(times(running, grown)));
+        units.push(real(times(running, grown)));
         let [size, light] = draws.shade(k);
-        while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
+        while j < nodes.count() && (nodes.cycle(j) - birth - 1) as usize == k {
             let laid = q(unit.size);
-            axis.phytomers[j].scale = real(times(times(running, q(draws.nodes[j])), laid));
-            axis.phytomers[j].grown = axis.phytomers[j].scale;
-            axis.phytomers[j].size = size;
-            axis.phytomers[j].light = light;
-            axis.phytomers[j].rank = rank;
+            let scale = real(times(times(running, q(draws.nodes[j])), laid));
+            nodes.put(Laid { scale, size, light, rank }, j);
             rank += draws.nodes[j] * unit.size;
             j += 1;
         }
         running = times(running, q(unit.persist));
     }
-    axis.units = presences;
+    (running, rank)
+}
+
+/// Assigns one axis's presences from its draws: its end's presence.
+fn assign_one(axis: &mut Axis, draws: &Draws, living: Option<f64>) -> f64 {
+    let mut units = Vec::with_capacity(draws.units.len());
+    let (running, rank) = walked(&mut axis.phytomers[..], axis.birth, draws, &mut units);
+    axis.units = units;
     axis.sleep = draws.sleep;
     axis.rank = rank;
     axis.alive = living.map_or(0.0, |l| real(times(running, q(l))));
