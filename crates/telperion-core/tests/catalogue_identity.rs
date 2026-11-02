@@ -47,7 +47,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        5_297_028_612_543_002_410,
+        3_781_901_863_713_300_862,
         "{}",
         digest(&text)
     );
@@ -94,9 +94,11 @@ fn every_walk_is_the_walk_it_was() {
     // age one end never reaches is the other's, each lifespan is clamped
     // at the age and an unreached end takes the leaving end's exits. Was
     // 18_002_361_237_904_030_670; measured 14_357_345_262_323_445_191.
+    // fn-326 adds `fidelity` and the coarse rows: the family's four digests move
+    // by those rows and their refusals, measured 12_053_129_307_611_014_394.
     assert_eq!(
         digest(&text),
-        14_357_345_262_323_445_191,
+        12_053_129_307_611_014_394,
         "{}",
         digest(&text)
     );
@@ -121,7 +123,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        10_922_909_758_982_052_223,
+        8_502_154_703_314_476_826,
         "{}",
         digest(&text)
     );
@@ -184,7 +186,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_142_609_772_195_174_599,
+        4_291_284_850_864_067_711,
         "{}",
         digest(&text)
     );
