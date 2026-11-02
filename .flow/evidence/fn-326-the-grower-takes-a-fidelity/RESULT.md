@@ -25,7 +25,7 @@ Each statistic is the median of the five seeds, read against the same seeds at f
 
 - **The coarsest setting.** Oak runs 6.1 times faster than its full cycle, spruce 6.7 and birch 4.5. No preset reaches 50 ms: the coarsest are 259, 765 and 222 ms.
 - **The birch's rows failed the rule frozen for them.** On these five seeds spread reads 0.882 and limbs 0.904. On tuning seeds 1001 to 1050 the same rows read 0.989 and 0.959, worst 0.041, so five seeds' median accounts for most of the miss. They ship on that read, and `ROUNDS.md` records the decision. R4's own seeds 1 to 50 judge them next.
-- **The middle of the dial does not hold.** The rows were tuned at fidelity 1, and the walk between is geometric. Spruce's leaf area at 0.25 reads 0.853 and birch's 1.146. The oak's trunk at 0.05 reads 1.080, though that is a small change from the full cycle, and five seeds may account for it. A dial that holds at both ends and departs by 15% between them is not yet what R1 asks.
+- **The middle of the dial does not hold.** The rows were tuned at fidelity 1, and the walk between is geometric. Spruce's leaf area at 0.25 reads 0.853 and birch's 1.146. The oak's trunk at 0.05 reads 1.080, though that is a small change from the full cycle, and five seeds may account for it. A dial that holds at both ends and departs by 15% between them is not yet what R4 asks.
 - **The dial saves little in its middle.** At 0.25 the oak saves 33%, spruce 36% and birch 6%, because the factor is small there and the cost follows apex-cycles.
 
 ## Open for the goal
