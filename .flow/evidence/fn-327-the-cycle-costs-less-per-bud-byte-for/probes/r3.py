@@ -12,7 +12,7 @@ base, candidate, cpu, batches = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.a
 
 
 def run(binary, preset, file):
-    env = dict(os.environ, RAYON_NUM_THREADS="1", SEARCH_PRESET=preset, SEARCH_SEEDS="1,7,42,1234,5678", SEARCH_REPEATS="3", SEARCH_FILE=file)
+    env = dict(os.environ, RAYON_NUM_THREADS="1", SEARCH_PRESET=preset, SEARCH_SEEDS="1,7,42,1234,5678", SEARCH_REPEATS="5", SEARCH_FILE=file)
     out = subprocess.run(["telperion-heavy", "8", "--threads", "1", "--", "taskset", "-c", cpu, binary, "fidelity_rows", "--ignored", "--nocapture", "--test-threads=1"], env=env, capture_output=True, text=True, check=True).stdout
     found = {}
     for line in out.splitlines():
