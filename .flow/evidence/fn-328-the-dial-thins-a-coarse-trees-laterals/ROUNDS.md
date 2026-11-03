@@ -81,3 +81,18 @@ Spruce fifty-seed read, frozen now: its five cheapest rows within 5%, in `raw/sp
 ## Birch, round 2
 
 Frozen 3 Nov 2026, before it grows. As the oak's round 2: one climb per first age, 7, 8 and 9, each on its own core, no wide pass, 6 generations of 100 on twelve seeds, starting from every row the birch's round 1 read, moved to the climb's first age. Bounds, score, seeds and judgement are round 1's. Each climb reports as it ends.
+
+Spruce fifty-seed read, 3 Nov 2026, seeds 1001 to 1050, five repeats:
+
+| Row: factor, leaf, pipe, bud, hazard, shedding | Worst | Seconds | Axes | Apex-cycles |
+|---|---|---|---|---|
+| Current rows: 2.417, 13.725, 1.834, 1.022, 1.512, 0.067 | 0.043 | 0.855 | 139,278 | 323,782 |
+| 2.819, 19.955, 2.237, 1.034, 2.632, 0.04 | 0.044 | 0.559 | 104,268 | 247,780 |
+| **2.693, 18.645, 2.2, 0.982, 3.759, 0.051** | **0.049** | **0.558** | 103,022 | 242,590 |
+| 2.721, 18.818, 2.242, 1.001, 2.932, 0.054 | 0.047 | 0.583 | 105,480 | 249,568 |
+| 2.725, 18.807, 2.069, 1.032, 3.489, 0.051 | 0.035 | 0.568 | 108,897 | 254,348 |
+| 2.911, 20.21, 2.112, 1.105, 2.019, 0.035 | 0.041 | 0.584 | 108,318 | 256,750 |
+
+All five hold. The rule takes the cheapest, the bold row, 35% under the control; the next two are within 2% of its time and closer to the reference, so the choice among them is within the timing's noise. Its gain comes from a larger factor with more leaf and pipe, not from thinning: its bud row is 0.982.
+
+Its one held-out read, seeds 1, 7, 42, 1234, 5678: height 1.000, spread 1.049, trunk 1.002, limbs 1.020, shed 0.957, area 0.995, worst 0.049, 0.713 s, against the current rows' 0.035 and 0.765 s there (fn-326). It replaces the rows.
