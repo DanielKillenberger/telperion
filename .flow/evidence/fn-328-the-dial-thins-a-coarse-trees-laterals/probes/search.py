@@ -40,14 +40,18 @@ def run(preset, cpu, file, log, seeds):
 
 def main():
     preset, name, cpu, first, wide, gens, size = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), int(sys.argv[5]), int(sys.argv[6]), int(sys.argv[7])
-    rng = random.Random(328 + first)
-    file = f"{EV}{name}-wide.txt"
-    with open(file, "w") as f:
-        for _ in range(wide):
-            v = [first] + [round(math.exp(rng.uniform(math.log(WIDE[k][0]), math.log(WIDE[k][1]))), 3) for k in KEYS[1:]]
-            f.write(" ".join(map(str, v)) + " 1\n")
-    pool = run(preset, cpu, file, f"{EV}{name}-wide.log", "1001,1002,1003,1004")
-    print(f"wide: {len(pool)} read", flush=True)
+    rng = random.Random(328 + first + 1000 * int(os.environ.get("SEARCH_ROUND", "0")))
+    start = os.environ.get("SEARCH_START")
+    if start:  # An earlier round's logs stand in for the wide pass, moved to this first age.
+        pool = [dict(r, first=float(first)) for p in start.split(",") for r in rows(p)]
+    else:
+        file = f"{EV}{name}-wide.txt"
+        with open(file, "w") as f:
+            for _ in range(wide):
+                v = [first] + [round(math.exp(rng.uniform(math.log(WIDE[k][0]), math.log(WIDE[k][1]))), 3) for k in KEYS[1:]]
+                f.write(" ".join(map(str, v)) + " 1\n")
+        pool = run(preset, cpu, file, f"{EV}{name}-wide.log", "1001,1002,1003,1004")
+    print(f"start: {len(pool)} rows", flush=True)
     seeds = ",".join(str(1001 + k) for k in range(12))
     for g in range(gens):
         best = sorted(pool, key=score)[:5]

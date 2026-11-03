@@ -21,3 +21,9 @@ Result, 2 Nov 2026, on seeds 1001 to 1012 at one repeat per seed. **No row of an
 Against 50 ms and the current rows' 245 ms. These times are not yet the frozen protocol: the machine was in other use, and the same 7% row read 0.141, 0.133 and 0.124 s in three generations, so taking the cheapest reading flatters a row by about 10%. R3's table still needs five-repeat reads.
 
 What it shows: the 7% row is the first with fewer laterals (bud 0.651), and grows about half the current row's time. Its worst medians are trunk and limbs, both 0.941. Cost falls by departure but slowly: even 24% off reads 85 ms. First age 6 never got within 12%, at 1.15 s or more, and first 9 led from its first generation, so a later first age may do better; none was tried.
+
+## Oak, round 2
+
+Frozen 3 Nov 2026, before it grows. One climb per first age, 9, 10, 11 and 12, each on its own core: no wide pass, 6 generations of 100 on twelve seeds, starting from the rows round 1 read at first ages 8 and 9, moved to the climb's first age. Bounds, score and seeds are round 1's.
+
+Judgement, as round 1's: the climbs' cheapest rows within 5% go to tuning seeds 1001 to 1050. The cheapest that holds there, and costs less than the current rows' 245 ms, then gets one read on the held-out seeds, reported with whatever it says, and replaces the rows. Seeds 1 to 50 choose nothing.
