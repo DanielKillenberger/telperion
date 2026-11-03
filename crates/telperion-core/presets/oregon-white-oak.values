@@ -587,12 +587,13 @@
 /space/ages/3/trunk = true
 /space/ages/4/trunk = true
 
-# The fidelity dial at its coarsest (fn-325's candidate A, held on its held-out
-# seeds at the preset age: all six of R4's medians within 5%).
+# The fidelity dial at its coarsest (fn-328: fewer laterals, each with more
+# leaf; all six of R4's medians within 5% on tuning seeds 1001 to 1050 at 42%
+# less time than fn-325's rows; its held-out read is 0.081, on limbs).
 /space/coarse/first = 9
-/space/coarse/factor = 2.0
-/space/coarse/leaf = 16.0
-/space/coarse/pipe = 2.5
-/space/coarse/bud = 1.3
-/space/coarse/hazard = 2.0
-/space/coarse/shedding = 0.25
+/space/coarse/factor = 1.687
+/space/coarse/leaf = 26.289
+/space/coarse/pipe = 3.742
+/space/coarse/bud = 0.82
+/space/coarse/hazard = 2.385
+/space/coarse/shedding = 0.243

@@ -2352,13 +2352,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         },
         "coarse": {
-          "bud": 1.3,
-          "factor": 2,
+          "bud": 0.82,
+          "factor": 1.687,
           "first": 9,
-          "hazard": 2,
-          "leaf": 16,
-          "pipe": 2.5,
-          "shedding": 0.25
+          "hazard": 2.385,
+          "leaf": 26.289,
+          "pipe": 3.742,
+          "shedding": 0.243
         }
       },
       "supernatural": {
@@ -3190,13 +3190,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         },
         "coarse": {
-          "bud": 1.022,
-          "factor": 2.417,
+          "bud": 0.982,
+          "factor": 2.693,
           "first": 8,
-          "hazard": 1.512,
-          "leaf": 13.725,
-          "pipe": 1.834,
-          "shedding": 0.067
+          "hazard": 3.759,
+          "leaf": 18.645,
+          "pipe": 2.2,
+          "shedding": 0.051
         }
       },
       "supernatural": {

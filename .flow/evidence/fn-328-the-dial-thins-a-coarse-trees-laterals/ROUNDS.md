@@ -96,3 +96,5 @@ Spruce fifty-seed read, 3 Nov 2026, seeds 1001 to 1050, five repeats:
 All five hold. The rule takes the cheapest, the bold row, 35% under the control; the next two are within 2% of its time and closer to the reference, so the choice among them is within the timing's noise. Its gain comes from a larger factor with more leaf and pipe, not from thinning: its bud row is 0.982.
 
 Its one held-out read, seeds 1, 7, 42, 1234, 5678: height 1.000, spread 1.049, trunk 1.002, limbs 1.020, shed 0.957, area 0.995, worst 0.049, 0.713 s, against the current rows' 0.035 and 0.765 s there (fn-326). It replaces the rows.
+
+Birch round 2, 3 Nov 2026: no row within 5%. The closest each first age reached on twelve seeds: 7, 0.230 at 0.099 s; 8, 0.068 at 0.101 s; 9, 0.066 at 0.096 s. Across both rounds the closest any birch row came is 0.056, and spread or trunk is the statistic that stays out. So the birch keeps fn-326's B3, and the thinning row ships in the oak's rows only.

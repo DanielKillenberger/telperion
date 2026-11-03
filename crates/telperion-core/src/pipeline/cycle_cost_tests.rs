@@ -7,11 +7,12 @@ use telperion_space::{grow_census, grow_cycle, tree_digest};
 const AGE: f64 = 16.0;
 const SEEDS: [u32; 3] = [1, 1234, 5678];
 /// Young enough for an ordinary test: a table of every preset at both ends of
-/// the dial, in the catalogue's order, finest first.
+/// the dial, in the catalogue's order, finest first. fn-328 moved the oak's
+/// and the spruce's coarsest, with their rows.
 const PINNED: [(u64, u64); 8] = [
     (16272751982230226601, 16272751982230226601),
-    (12999673495698669235, 15918596965021299734),
-    (5368894633571808108, 11778671763230677822),
+    (12999673495698669235, 10917942057397426609),
+    (5368894633571808108, 4441961240579546268),
     (14897056881827234501, 14897056881827234501),
     (14406147026974271235, 12712794672242601209),
     (2986554069661840414, 2986554069661840414),

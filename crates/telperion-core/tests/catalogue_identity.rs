@@ -47,7 +47,8 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        3_781_901_863_713_300_862,
+        // fn-328 moved the oak's and spruce's coarse rows.
+        8_843_512_391_922_370_086,
         "{}",
         digest(&text)
     );
@@ -96,9 +97,11 @@ fn every_walk_is_the_walk_it_was() {
     // 18_002_361_237_904_030_670; measured 14_357_345_262_323_445_191.
     // fn-326 adds `fidelity` and the coarse rows: the family's four digests move
     // by those rows and their refusals, measured 12_053_129_307_611_014_394.
+    // fn-328 moved the oak's and spruce's coarse rows, measured
+    // 3_687_963_222_161_500_942.
     assert_eq!(
         digest(&text),
-        12_053_129_307_611_014_394,
+        3_687_963_222_161_500_942,
         "{}",
         digest(&text)
     );
@@ -123,7 +126,8 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        8_502_154_703_314_476_826,
+        // fn-328 moved the oak's and spruce's coarse rows.
+        11_821_538_192_718_248_754,
         "{}",
         digest(&text)
     );
