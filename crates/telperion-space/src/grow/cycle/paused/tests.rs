@@ -31,7 +31,8 @@ fn species() -> [(Species, f64); 3] {
 /// The years around each waking, shedding and change of age a run to
 /// `r.age` holds: the year before the first one past the third, and its own.
 fn eventful(species: &Species, r: Request) -> Vec<u32> {
-    let mut p = Paused::begin(species, r, Retiring::AtAge, false).unwrap();
+    // Its verdicts are logged where its records are kept (fn-333).
+    let mut p = Paused::with(species, r, false, Working::indexed()).unwrap();
     p.grow_to(r.age).unwrap();
     let g = &p.g;
     let woke = g.woken.iter().map(|w| w.cycle).collect::<Vec<_>>();

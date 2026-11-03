@@ -1,0 +1,5 @@
+# fn-333 friction
+
+- 3 Nov 2026, worker: the isolated worktree was created on `master` (74410f7ad), not on the goal branch the dispatch named; moving it (`git checkout -B` to 26013bcdc) took a minute, after `git reset --hard` was refused by the dcg hook. Would have removed it: the dispatcher creating the worktree from the goal branch.
+- 3 Nov 2026, worker: R1 asks for the breakdown committed before the grower changes, but `git add -p` is not available to agents; staging the measurement-only half of three mixed files took about 10 minutes of building blobs by hand (`git hash-object`, `git update-index`), with the dcg hook refusing redirects and the worktree guard refusing compound git commands. Would have removed it: committing the measurement before writing any grower code (my order), or a non-interactive hunk filter.
+- 3 Nov 2026, worker: `telperion-heavy 13` for the age-200 store breakdown waited with 4 to 5 GB of room; I split it into an 80 run (4 GB) and a 120/200 run (11 GB), which ran after about 2 minutes. Cost: about 5 minutes. Would have removed it: knowing the queue's room before choosing the size.

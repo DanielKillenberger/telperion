@@ -27,6 +27,12 @@ pub struct Census {
     pub retired: usize,
     depth: Vec<u32>,
     order: Vec<u32>,
+    /// The axes born on each held axis; and the axes let go, by their
+    /// depth and by the axes born on them (fn-333).
+    born: Vec<u32>,
+    gone: usize,
+    gone_depth: BTreeMap<u32, u64>,
+    gone_born: BTreeMap<u32, u64>,
     lattice: Option<Cycle>,
 }
 
@@ -76,7 +82,7 @@ impl Census {
         self.extend(axes);
         let mut c = self.lattice.take().unwrap_or_default();
         (c.cycle, c.grown) = (cycle, grown);
-        (c.active, c.axes) = (live.len(), axes.len());
+        (c.active, c.axes) = (live.len(), self.gone + axes.len());
         c.phytomers = axes.iter().map(|a| a.phytomers.len()).sum();
         for a in live {
             let row = (self.order[a.axis] as usize).min(7);
@@ -85,31 +91,54 @@ impl Census {
         }
         let busiest = self.cycles.iter().map(|c| c.active).max().unwrap_or(0);
         if live.len() > busiest {
-            let mut d: Vec<u32> = live.iter().map(|a| self.depth[a.axis]).collect();
-            (self.depth_busy, self.busy) = (quantiles(&mut d), cycle);
+            let d: Vec<u32> = live.iter().map(|a| self.depth[a.axis]).collect();
+            (self.depth_busy, self.busy) = (quantiles(&counted(&d)), cycle);
         }
         self.cycles.push(c);
     }
 
-    /// The grown hierarchy's shape at the end of growth.
+    /// The grown hierarchy's shape at the end of growth: the axes held
+    /// and those let go (`compact.rs`) alike.
     pub(in crate::grow) fn ended(&mut self, axes: &[Axis]) {
         self.extend(axes);
-        self.axes = axes.len();
-        self.depth_all = quantiles(&mut self.depth.clone());
-        let mut born = vec![0u32; axes.len()];
-        for a in axes {
-            if let Some(p) = a.origin.parent() {
-                born[p] += 1;
+        self.axes = self.gone + axes.len();
+        let mut depth = self.gone_depth.clone();
+        for &d in &self.depth {
+            *depth.entry(d).or_default() += 1;
+        }
+        self.depth_all = quantiles(&depth);
+        let mut bearing = self.gone_born.clone();
+        let born = self.born.iter().filter(|&&b| b > 0);
+        for &b in born {
+            *bearing.entry(b).or_default() += 1;
+        }
+        self.attachments = quantiles(&bearing);
+    }
+
+    /// Each held axis's records moved to its new index, `held(i)`; those
+    /// let go counted by their depth and the axes born on them, which
+    /// are final, for nothing is born on a closed subtree.
+    pub(super) fn compact(&mut self, held: &dyn Fn(usize) -> bool) {
+        for (i, (&d, &b)) in self.depth.iter().zip(&self.born).enumerate() {
+            if !held(i) {
+                self.gone += 1;
+                *self.gone_depth.entry(d).or_default() += 1;
+                if b > 0 {
+                    *self.gone_born.entry(b).or_default() += 1;
+                }
             }
         }
-        let mut bearing: Vec<u32> = born.into_iter().filter(|&b| b > 0).collect();
-        self.attachments = quantiles(&mut bearing);
+        for v in [&mut self.depth, &mut self.order, &mut self.born] {
+            let mut i = 0;
+            v.retain(|_| (held(i), i += 1).0);
+        }
     }
 
     /// What it holds (fn-333 R1).
     pub(super) fn footprint(&self, f: &mut super::footprint::Footprint) {
         f.vec("census.depth", &self.depth);
         f.vec("census.order", &self.order);
+        f.vec("census.born", &self.born);
         f.vec("census.cycles", &self.cycles);
     }
 
@@ -120,16 +149,40 @@ impl Census {
             let lateral = matches!(a.origin, crate::structure::Origin::Lateral { .. });
             let order = a.origin.parent().map_or(0, |p| self.order[p] + u32::from(lateral));
             self.order.push(order);
+            self.born.push(0);
+            if let Some(p) = a.origin.parent() {
+                self.born[p] += 1;
+            }
         }
     }
 }
 
-/// p50, p99 and the most of `values`.
-fn quantiles(values: &mut [u32]) -> [u32; 3] {
-    if values.is_empty() {
+/// p50, p99 and the most of the values counted in `counts`, as sorting
+/// them all would read them.
+fn quantiles(counts: &BTreeMap<u32, u64>) -> [u32; 3] {
+    let n: u64 = counts.values().sum();
+    if n == 0 {
         return [0; 3];
     }
-    values.sort_unstable();
-    let at = |q: f64| values[((values.len() - 1) as f64 * q).round() as usize];
-    [at(0.5), at(0.99), values[values.len() - 1]]
+    let at = |k: u64| {
+        let mut seen = 0;
+        for (&v, &c) in counts {
+            seen += c;
+            if seen > k {
+                return v;
+            }
+        }
+        unreachable!("k below the count")
+    };
+    let q = |q: f64| at(((n - 1) as f64 * q).round() as u64);
+    [q(0.5), q(0.99), at(n - 1)]
+}
+
+/// The values of `values`, counted.
+fn counted(values: &[u32]) -> BTreeMap<u32, u64> {
+    let mut counts = BTreeMap::new();
+    for &v in values {
+        *counts.entry(v).or_default() += 1;
+    }
+    counts
 }

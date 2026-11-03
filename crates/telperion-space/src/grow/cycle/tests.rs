@@ -217,3 +217,45 @@ fn the_grown_capture_holds_every_phytomer() {
         assert_eq!(u32s("sk_pencils").len() % 63, 0);
     }
 }
+
+/// fn-333: a retired subtree's records let go every cycle any are loose
+/// leave the tree, settled at any age grown, and the census as they were
+/// with every record kept, to the bit, where many are retired; and the
+/// grower then holds fewer axes than it grew.
+#[test]
+fn letting_go_of_retired_records_leaves_the_tree_as_it_was() {
+    let eager = || {
+        let mut w = Working::default();
+        w.eager = true;
+        w
+    };
+    for (species, k) in [
+        (crate::oak(), 0.5),
+        (crate::spruce(), 0.0),
+        (crate::beech(), 0.0),
+    ] {
+        let r = request(40, 7, k);
+        let mut let_go = Paused::with(&species, r, true, eager()).unwrap();
+        let mut kept = Paused::with(&species, r, true, Working::indexed()).unwrap();
+        for age in [12, 25, 40] {
+            let_go.grow_to(age).unwrap();
+            kept.grow_to(age).unwrap();
+            let settled = |p: &Paused| tree_digest(&p.settle().unwrap());
+            assert_eq!(settled(&let_go), settled(&kept), "settled at {age}");
+        }
+        let [held, grown] = [&let_go, &kept].map(|p| p.footprint().axes.iter().sum::<usize>());
+        println!("{held} held of {grown}");
+        assert!(held < grown, "{held} held of {grown}");
+        let [a, b] = [let_go, kept].map(|p| p.finish(0.0).unwrap());
+        assert_eq!(tree_digest(&a.structure), tree_digest(&b.structure));
+        let [a, b] = [a, b].map(|c| c.census.expect("a census"));
+        let shape = |c: &Census| (c.axes, c.retired, c.depth_all, c.depth_busy, c.attachments);
+        assert_eq!(shape(&a), shape(&b));
+        let rows = |c: &Census| -> Vec<_> {
+            (c.cycles.iter())
+                .map(|y| (y.active, y.axes, y.phytomers, y.grown, y.by_order))
+                .collect()
+        };
+        assert_eq!(rows(&a), rows(&b));
+    }
+}

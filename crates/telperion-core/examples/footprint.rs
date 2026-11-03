@@ -39,7 +39,10 @@ fn main() {
     let family = by_identity(&args[1]).expect("a shipped preset");
     let species = family.space.species.expect("an engine species");
     let seed = args[2].parse().expect("a seed");
-    let ages: Vec<u32> = args[3].split(',').map(|a| a.parse().expect("an age")).collect();
+    let ages: Vec<u32> = args[3]
+        .split(',')
+        .map(|a| a.parse().expect("an age"))
+        .collect();
     let request = |age| Request {
         age,
         seed,
@@ -105,5 +108,8 @@ fn stores(age: u32, p: &Paused) {
 fn peak() -> String {
     let status = std::fs::read_to_string("/proc/self/status").unwrap_or_default();
     let line = status.lines().find(|l| l.starts_with("VmHWM"));
-    line.unwrap_or("VmHWM: unknown").split_whitespace().collect::<Vec<_>>().join(" ")
+    line.unwrap_or("VmHWM: unknown")
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
 }

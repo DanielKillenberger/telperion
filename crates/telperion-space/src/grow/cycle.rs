@@ -15,6 +15,7 @@ mod capture_light;
 mod capture_settled;
 mod capture_units;
 mod census;
+mod compact;
 mod footprint;
 mod passes;
 mod paused;

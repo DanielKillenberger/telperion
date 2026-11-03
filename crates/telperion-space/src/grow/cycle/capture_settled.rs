@@ -362,7 +362,7 @@ pub fn grow_cycle_is_the_reference(
 pub fn grow_capture_retired(species: &Species, request: Request) -> Result<Capture> {
     let (mut g, _) = start(species, request, Options::default())?;
     (g.one, g.rules.one) = (true, true);
-    g.working = Some(Box::default());
+    g.working = Some(Box::new(super::Working::indexed()));
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));
     g.rules.lasting = vec![None; species.states.len()].into();
     let (mut advanced, mut held) = (Vec::new(), Vec::new());

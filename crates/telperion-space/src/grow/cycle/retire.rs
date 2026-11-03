@@ -54,17 +54,22 @@ pub(in crate::grow) enum Fate {
 pub(in crate::grow) struct Retirement {
     pub fate: Vec<Fate>,
     pub frozen: Vec<Frozen>,
-    woken: Vec<u32>,
-    seen: usize,
+    pub(super) woken: Vec<u32>,
+    pub(super) seen: usize,
     /// Closed subtrees waiting on a woken bud's kept share.
-    pending: Vec<usize>,
+    pub(super) pending: Vec<usize>,
     /// Kept laterals that shed, waiting for their fade to reach none at
     /// the age grown.
-    fading: Vec<usize>,
+    pub(super) fading: Vec<usize>,
     /// Every verdict in the order taken: the subtree's root, the cycle,
     /// waited (0), kept (1) or retired (2), and its living (none where it
-    /// waited), for the device's retirement to be held to (fn-256).
+    /// waited), for the device's retirement to be held to (fn-256); kept
+    /// only where the records are (`Working::keep_records`), for its
+    /// roots are indices.
     pub log: Vec<(usize, u32, u8, Living)>,
+    /// The axes let go inside a retired subtree whose records are still
+    /// held (`compact.rs`).
+    pub(super) loose: usize,
 }
 
 impl Retirement {
@@ -92,29 +97,6 @@ impl Retirement {
     /// A retired root's frozen girth, which stands for its subtree's.
     pub fn frozen_root(&self, i: usize) -> Option<Frozen> {
         matches!(self.fate.get(i), Some(Fate::Root(_))).then(|| self.frozen[i])
-    }
-
-    /// The axes open or kept, retired roots, and inside a retired subtree.
-    pub fn tally(&self) -> [usize; 3] {
-        let mut t = [0; 3];
-        for f in &self.fate {
-            t[match f {
-                Fate::Open | Fate::Kept(_) => 0,
-                Fate::Root(_) => 1,
-                Fate::Inside => 2,
-            }] += 1;
-        }
-        t
-    }
-
-    /// What it holds (fn-333 R1).
-    pub(super) fn footprint(&self, f: &mut super::footprint::Footprint) {
-        f.vec("retire.fate", &self.fate);
-        f.vec("retire.frozen", &self.frozen);
-        f.vec("retire.woken", &self.woken);
-        f.vec("retire.pending", &self.pending);
-        f.vec("retire.fading", &self.fading);
-        f.vec("retire.log", &self.log);
     }
 }
 
@@ -186,7 +168,9 @@ impl Grower<'_> {
                 Verdict::Kept(l) => (1, *l),
                 Verdict::Retired(l) => (2, *l),
             };
-            w.retire.log.push((c, cycle, logged.0, logged.1));
+            if w.keep_records {
+                w.retire.log.push((c, cycle, logged.0, logged.1));
+            }
             match verdict {
                 Verdict::Wait => w.retire.pending.push(c),
                 Verdict::Kept(living) => {
@@ -308,8 +292,9 @@ impl Grower<'_> {
         w.retire.fate[c] = Fate::Root(living);
         let mut gone = vec![c];
         while let Some(i) = gone.pop() {
-            if i != c {
+            if i != c && w.retire.fate[i] != Fate::Inside {
                 w.retire.fate[i] = Fate::Inside;
+                w.retire.loose += 1;
             }
             self.axes[i].phytomers = Vec::new();
             let d = &mut self.draws[i];

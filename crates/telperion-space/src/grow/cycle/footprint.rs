@@ -3,6 +3,7 @@
 //! capacity times its record's size, its heap allocations apart, so an
 //! allocator's own overhead per allocation can be read beside it.
 use super::super::Grower;
+use super::retire::{Fate, Retirement};
 use std::mem::size_of;
 
 /// One store: its name, its records, its bytes and its allocations.
@@ -40,7 +41,12 @@ impl Footprint {
 
     /// The vectors inside `outer`'s records, each one allocation where it
     /// holds any capacity.
-    pub(super) fn inner<O, T>(&mut self, name: &'static str, outer: &[O], of: impl Fn(&O) -> &Vec<T>) {
+    pub(super) fn inner<O, T>(
+        &mut self,
+        name: &'static str,
+        outer: &[O],
+        of: impl Fn(&O) -> &Vec<T>,
+    ) {
         let (mut records, mut bytes, mut allocs) = (0, 0, 0);
         for o in outer {
             let v = of(o);
@@ -65,7 +71,12 @@ impl Grower<'_> {
         f.inner("axes.phytomers", &self.axes, |a| &a.phytomers);
         f.inner("axes.units", &self.axes, |a| &a.units);
         let joined = self.axes.iter().filter(|a| a.joined.is_some()).count();
-        f.add("axes.joined", joined, joined * size_of::<crate::structure::Join>(), joined);
+        f.add(
+            "axes.joined",
+            joined,
+            joined * size_of::<crate::structure::Join>(),
+            joined,
+        );
         f.vec("draws", &self.draws);
         f.inner("draws.units", &self.draws, |d| &d.units);
         f.inner("draws.nodes", &self.draws, |d| &d.nodes);
@@ -95,5 +106,30 @@ impl Grower<'_> {
             c.footprint(&mut f);
         }
         f
+    }
+}
+
+impl Retirement {
+    /// The axes open or kept, retired roots, and inside a retired subtree.
+    pub(super) fn tally(&self) -> [usize; 3] {
+        let mut t = [0; 3];
+        for f in &self.fate {
+            t[match f {
+                Fate::Open | Fate::Kept(_) => 0,
+                Fate::Root(_) => 1,
+                Fate::Inside => 2,
+            }] += 1;
+        }
+        t
+    }
+
+    /// What it holds.
+    pub(super) fn footprint(&self, f: &mut Footprint) {
+        f.vec("retire.fate", &self.fate);
+        f.vec("retire.frozen", &self.frozen);
+        f.vec("retire.woken", &self.woken);
+        f.vec("retire.pending", &self.pending);
+        f.vec("retire.fading", &self.fading);
+        f.vec("retire.log", &self.log);
     }
 }

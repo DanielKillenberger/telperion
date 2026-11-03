@@ -375,6 +375,9 @@ impl Grower<'_> {
         advanced: &mut Vec<usize>,
         stage: &mut dyn FnMut(Stage),
     ) -> Result<()> {
+        if self.one {
+            self.compact();
+        }
         advanced.clear();
         advanced.extend(self.live.iter().map(|a| a.axis));
         self.step(cycle, stage)?;

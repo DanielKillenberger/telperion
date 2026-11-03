@@ -27,9 +27,9 @@ pub(in crate::grow) struct Working {
     pub(super) pa: Vec<usize>,
     /// Each axis's children by node then index (the tip's last): the
     /// order every subtree sum and the split take them in.
-    by_node: Vec<Vec<u32>>,
+    pub(super) by_node: Vec<Vec<u32>>,
     /// A closed subtree's upkeep, once taken (NaN until then).
-    frozen: Vec<f32>,
+    pub(super) frozen: Vec<f32>,
     /// Whether each axis is open this cycle, the open ones in order, and
     /// each one's place among them.
     pub(super) open: Vec<bool>,
@@ -51,6 +51,13 @@ pub(in crate::grow) struct Working {
     /// retired.
     pub(super) all_open: bool,
     pub(super) keep_all: bool,
+    /// Whether a retired subtree's records are kept at their indices and
+    /// every verdict logged: the captures, which hand the device every
+    /// axis by its index (fn-333); otherwise they are let go
+    /// (`compact.rs`).
+    pub(super) keep_records: bool,
+    /// The tests': records let go every cycle any are loose.
+    pub(super) eager: bool,
 }
 
 impl Working {
@@ -59,6 +66,15 @@ impl Working {
         Self {
             all_open: true,
             keep_all: true,
+            ..Self::default()
+        }
+    }
+
+    /// Retiring as the tree grows, every record kept at its index: what
+    /// a capture hands the device.
+    pub(super) fn indexed() -> Self {
+        Self {
+            keep_records: true,
             ..Self::default()
         }
     }
