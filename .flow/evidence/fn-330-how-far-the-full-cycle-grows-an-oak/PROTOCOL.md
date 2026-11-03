@@ -11,3 +11,7 @@ Frozen 3 Nov 2026, before the first grow.
 ## Added after the first pass, 3 Nov 2026
 
 The first pass grew ages 80 to 200 and the cap killed age 300 at 10 GB after 2 minutes. Age 300 is grown once more alone, the same command and seed, in `telperion-heavy 18`, which starts only when the desk has 18 GB of room beside its reserve. Nothing else changes.
+
+## The age-200 tree, seen (3 Nov 2026)
+
+`oak-age200-seed1.png`: the full cycle at age 200, seed 1, through the native still with the budget lifted in a local build (not committed). The trunk rises a few metres, then bends near horizontal and carries the crown far to one side; the crown is sparse. Owner: "yea that's bad". The full cycle has never been judged past age 80, so its old trees need fixing before they serve as references or training data.
