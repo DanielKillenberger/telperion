@@ -31,3 +31,11 @@ Doing: the gate at 11f39ee0d (the join fix and the result), run alone from this 
 Slowed by: the desk's load average was 20 to 30 from other work (another repository's node test suites, a local search index); the test run took 1,939 s against 1,560 with every test passing. About 35 minutes lost, and the gate waits for a quiet desk.
 
 Removed by: the gate waits on the desk's load, not only on its memory: `telperion-heavy` queues on room but not on CPU (fn-333's friction names the same gap). Local setup, reported to the owner.
+
+## 3 Nov 2026: the gate on the MacBook, three blockers
+
+Doing: the gate on the owner's MacBook, idle beside the loaded desk.
+
+Slowed by: the render crate did not compile on macOS (`free_device_memory` asked wgpu for Vulkan unconditionally off Wasm); the checkout had no `master` for the gate's base; and two evidence files differing only by case (`fn-294-.../CODEX-RELEASE-REVIEW.md`, `codex-release-review.md`) leave a checkout on a case-insensitive disk always dirty, which the gate refuses. About 40 minutes, with Node and nextest installed.
+
+Removed by: 01869223c (None on Apple platforms, as the function's doc said); pushing `master` with the branch; and, for the case clash, `assume-unchanged` on the Mac. Renaming one of the two files would remove the last for any Mac checkout; that file belongs to closed fn-294.
