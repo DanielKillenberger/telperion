@@ -18,7 +18,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-328-the-dial-thins-a-coarse-trees-laterals.md",
-  "status": "open",
+  "status": "done",
   "title": "The dial thins a coarse tree's laterals",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-02T07:48:16.225665Z"
+  "updated_at": "2026-11-03T10:37:46.911881Z"
 }
