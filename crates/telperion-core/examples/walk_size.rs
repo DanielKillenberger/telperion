@@ -19,8 +19,6 @@ use std::time::Instant;
 use telperion_core::{blend, presets::Preset, Family};
 use telperion_space::{expected_grown, expected_kept, grow_cycle, Light, Request, Species};
 
-/// Twice the engine's budget: a point past it is reported, not grown on.
-const CAP: u32 = 40_000_000;
 /// The oracle's widening of the ends' range (fn-251 R1b).
 const WIDEN: f64 = 0.1;
 /// Its slack in whole phytomers, for seedlings (host, 2026-10-14).
@@ -68,7 +66,6 @@ fn main() -> Result<(), String> {
         let request = Request {
             age,
             seed: u64::from(seed),
-            budget: CAP,
             light,
         };
         let frame = species(&walked);
@@ -84,7 +81,7 @@ fn main() -> Result<(), String> {
             light.extinction,
             factor(frame, &bare),
             predicted(frame, age),
-            realized.map_or("over-cap over-cap".into(), |[k, g]| format!("{k:.0} {g:.0}")),
+            realized.map_or("failed failed".into(), |[k, g]| format!("{k:.0} {g:.0}")),
             band[0][0],
             band[1][0],
             band[0][1],
@@ -101,17 +98,18 @@ fn species(family: &Family) -> &Species {
 }
 
 /// The smallest and largest of `ends`' realized counts over `SEEDS` at
-/// `age` and `light`; an end past the cap counts at the cap.
+/// `age` and `light`; an end that fails to grow counts for neither.
 fn band(ends: &[&Species], age: u32, light: Light) -> [Counts; 2] {
     let (mut lo, mut hi) = ([f64::INFINITY; 2], [0.0f64; 2]);
     for (end, seed) in ends.iter().flat_map(|e| SEEDS.map(|s| (*e, s))) {
         let request = Request {
             age,
             seed,
-            budget: CAP,
             light,
         };
-        let n = grown(end, request).unwrap_or([f64::from(CAP); 2]);
+        let Some(n) = grown(end, request) else {
+            continue;
+        };
         for k in 0..2 {
             (lo[k], hi[k]) = (lo[k].min(n[k]), hi[k].max(n[k]));
         }
@@ -138,7 +136,7 @@ fn predicted(species: &Species, age: u32) -> String {
 }
 
 /// The realized kept and grown phytomers by the build's one cycle, none
-/// past the cap.
+/// where it fails.
 fn grown(species: &Species, request: Request) -> Option<Counts> {
     let cycled = grow_cycle(species, request).ok()?;
     let kept: usize = cycled

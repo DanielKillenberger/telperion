@@ -9,7 +9,6 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Instant;
 use telperion_space::{beech, grow, oak, palm, spruce, Light, Request, Species, Structure, Vec3};
 
-const BUDGET: u32 = 20_000_000;
 /// The light the measures are taken under: leaves at every angle, under
 /// the standard overcast sky.
 const LIT: Light = Light {
@@ -33,7 +32,6 @@ fn main() {
     let request = |seed, light| Request {
         age,
         seed,
-        budget: BUDGET,
         light,
     };
     let only = args.get(3).filter(|o| o.as_str() != "all");

@@ -7,7 +7,7 @@
 //! this year's shoots and leaves and moves the rest from the year before
 //! (`telperion_space::unfold`, R5 and R5a).
 use super::{
-    engine, fits, foreseen, pa_rows, scaled, unfolded, Establishing, PaRow, Unfolding, BUDGET, KEPT,
+    engine, fits, foreseen, pa_rows, scaled, unfolded, Establishing, PaRow, Unfolding, KEPT,
 };
 use crate::presets::Family;
 use crate::tree::Tree;
@@ -86,7 +86,6 @@ pub fn begin(params: &Params, seed: u32, horizon: f64) -> Result<GrowthState<'_>
     let request = Request {
         age,
         seed: u64::from(seed),
-        budget: BUDGET,
         light: params.light,
     };
     let paused = Paused::begin(&params.species, request, Retiring::AtAge, false)

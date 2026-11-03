@@ -36,7 +36,6 @@ fn where_the_oak_at_80_seed_7_draws_wood_thinner_than_finest() {
     let request = Request {
         age: 80,
         seed: 7,
-        budget: BUDGET,
         light: family.space.light,
     };
     let structure = telperion_space::grow(&species, request).unwrap();

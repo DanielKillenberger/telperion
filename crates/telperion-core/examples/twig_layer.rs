@@ -54,7 +54,6 @@ fn ages(family: &Family, tree: &Tree) -> Result<Vec<u32>, String> {
     let request = telperion_space::Request {
         age: family.age as u32,
         seed: u64::from(family.skeleton.seed),
-        budget: 20_000_000,
         light: applied.space.light,
     };
     let s = telperion_space::grow(species, request).map_err(|e| e.to_string())?;

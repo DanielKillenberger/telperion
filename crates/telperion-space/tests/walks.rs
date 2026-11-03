@@ -239,7 +239,6 @@ fn a_midpoint_between_two_undying_leaders_keeps_its_leader() {
     let request = Request {
         age: 60,
         seed: 1,
-        budget: 60_000_000,
         light: telperion_space::Light::NEUTRAL,
     };
     let tree = grow(&species, request).unwrap();

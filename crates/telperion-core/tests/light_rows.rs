@@ -22,7 +22,6 @@ fn request() -> Request {
     Request {
         age: AGE,
         seed: SEED,
-        budget: 20_000_000,
         light: SITE,
     }
 }

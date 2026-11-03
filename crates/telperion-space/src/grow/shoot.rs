@@ -15,7 +15,7 @@ use std::sync::Arc;
 
 /// What every growth unit reads and none writes: the species, its
 /// laterals as drawn, the bound on each PA's life, the windows, and the
-/// phytomers grown before the cycle, against the budget.
+/// phytomers grown before the cycle.
 #[derive(Clone)]
 pub(crate) struct Rules<'a> {
     pub species: &'a Species,
@@ -28,7 +28,6 @@ pub(crate) struct Rules<'a> {
     pub certain: Certain,
     pub windows: Windows,
     pub age: u32,
-    pub budget: u32,
     pub grown: u64,
     /// The one cycle's survival (fn-255, fn-256's spike contract): each
     /// PA's viability read as the f32 its table holds, shaded in f32.

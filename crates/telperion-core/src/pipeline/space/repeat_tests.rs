@@ -14,7 +14,6 @@ fn grown(family: &crate::Family) -> telperion_space::Structure {
     let request = Request {
         age: family.age.round() as u32,
         seed: u64::from(family.skeleton.seed),
-        budget: BUDGET,
         light: family.space.light,
     };
     telperion_space::grow(&species, request).unwrap()

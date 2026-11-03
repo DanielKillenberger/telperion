@@ -76,7 +76,6 @@ fn tree(species: &Species, age: u32, seed: u64) -> crate::Result<Structure> {
     let request = Request {
         age,
         seed,
-        budget: 20_000_000,
         light: Light::NEUTRAL,
     };
     grow(species, request)

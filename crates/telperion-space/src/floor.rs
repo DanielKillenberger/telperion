@@ -134,7 +134,6 @@ mod tests {
         let request = Request {
             age: 12,
             seed: 7,
-            budget: 20_000_000,
             light,
         };
         let axes = grow_cycle(&species, request).expect("a tree").structure.axes;

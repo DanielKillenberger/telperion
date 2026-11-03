@@ -334,7 +334,7 @@ fn every_tree_builds_on_the_device() {
                 p.count(),
                 clock.elapsed_ms()
             ),
-            Err(e) if super::io::over_budget(&e) || e.to_string().contains("engine's budget") => {
+            Err(e) if super::io::over_budget(&e) => {
                 println!("{name}: refused by the budget (cap {cap} MiB): {e}")
             }
             Err(e) => {

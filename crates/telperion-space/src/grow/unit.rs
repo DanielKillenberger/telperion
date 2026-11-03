@@ -4,7 +4,7 @@
 use super::shoot::{Rules, Shoot};
 use super::{Apex, Certain};
 use crate::contract::{decide, presence};
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::lineage::{self, Key, ZONE};
 use crate::schedule::Cut;
 use crate::species::{ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
@@ -64,11 +64,6 @@ impl Shoot<'_, '_> {
             // Counted a zone at a time; the shares of a cycle are summed
             // once they are merged (`Grower::step`).
             self.grown += nodes.len() as u64;
-            if rules.grown + self.grown > u64::from(rules.budget) {
-                return Err(Error::Budget {
-                    limit: rules.budget,
-                });
-            }
             for &(_, drawn, node_presence, buds) in &nodes {
                 let axis = self.axis_mut(apex.axis);
                 let node = axis.phytomers.len();

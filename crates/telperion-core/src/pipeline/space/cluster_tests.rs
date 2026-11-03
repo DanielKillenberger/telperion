@@ -19,7 +19,6 @@ fn a_short_shoots_cluster_stands_at_its_own_tip() {
     let request = Request {
         age: 15,
         seed: 7,
-        budget: BUDGET,
         light: family.space.light,
     };
     let structure = telperion_space::grow(&species, request).unwrap();
@@ -65,7 +64,6 @@ fn a_tree_of_no_cluster_carries_none() {
     let request = Request {
         age: 15,
         seed: 7,
-        budget: BUDGET,
         light: family.space.light,
     };
     let structure = telperion_space::grow(&species, request).unwrap();

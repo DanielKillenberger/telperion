@@ -60,7 +60,7 @@ impl Units {
     /// The tables of `species` grown to `age`, for a tree no bud of which
     /// reads light (the fine path's).
     pub fn new(species: &Species, age: u32) -> Result<Self> {
-        Ok(Self::of(species, &rules(species, age, 0)?))
+        Ok(Self::of(species, &rules(species, age)?))
     }
 
     /// The tables of `species` by `rules`' laterals and windows.

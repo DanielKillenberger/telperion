@@ -125,7 +125,6 @@ mod tests {
         let request = Request {
             age: 8,
             seed: 3,
-            budget: 1 << 24,
             light: family.space.light,
         };
         let before = grow(&species, request).unwrap();

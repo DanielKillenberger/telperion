@@ -285,9 +285,8 @@ fn a_shaded_sample_is_never_below_nothing() {
 
 /// fn-294 R6: a tree inside every parameter bound whose leaves and tips
 /// span more than 2^28 lattice nodes, every coordinate under 4096 m (the
-/// oak, every internode 5 m of the 100 allowed, grown 8 years under a
-/// 10,000-phytomer budget), is refused by name before the lattice is
-/// allocated, never an assert.
+/// oak, every internode 5 m of the 100 allowed, grown 8 years), is refused
+/// by name before the lattice is allocated, never an assert.
 #[test]
 fn a_lattice_past_its_nodes_is_refused_by_name() {
     let mut species = crate::oak();
@@ -297,7 +296,6 @@ fn a_lattice_past_its_nodes_is_refused_by_name() {
     let request = crate::Request {
         age: 8,
         seed: 1,
-        budget: 10_000,
         light: Light {
             extinction: K,
             sky: 0.5,

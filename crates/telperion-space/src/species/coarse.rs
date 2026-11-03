@@ -126,7 +126,6 @@ mod tests {
         let request = Request {
             age: 16,
             seed: 7,
-            budget: 20_000_000,
             light: Light::default(),
         };
         grow_cycle(species, request).expect("a tree").grown

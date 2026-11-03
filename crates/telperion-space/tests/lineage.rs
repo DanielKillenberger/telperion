@@ -96,7 +96,6 @@ fn adding_a_branch_reshuffles_nothing_else() {
     let request = |seed| Request {
         age: 8,
         seed,
-        budget: 1_000_000,
         light: telperion_space::Light::NEUTRAL,
     };
     let mut added = 0;

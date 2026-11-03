@@ -131,7 +131,6 @@ fn the_leaf_order_moves_a_tree() {
     let request = Request {
         age,
         seed,
-        budget: 20_000_000,
         light: family.space.light,
     };
     let t = of(&grow_cycle(&species, request).expect("a tree").structure);

@@ -16,7 +16,6 @@ fn captured(preset: Preset, age: u32, seed: u64, at: u32) -> Capture {
     let request = Request {
         age,
         seed,
-        budget: 20_000_000,
         light: family.space.light,
     };
     telperion_space::grow_capture_light_at(&species, request, at).expect("a capture")

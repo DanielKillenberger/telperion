@@ -273,8 +273,8 @@
 # 4.3M). Past that, 110 drew the
 # heavier crown the brief asks for and passed on its own sheet; the
 # device route runs out of a 10 GB device's memory at 120, the drawn wood
-# outgrows a buffer at 140, and the engine's phytomer budget refuses 160
-# (fn-219 SHEET.md).
+# outgrows a buffer at 140, and the engine's phytomer budget, since
+# removed (fn-331), refused 160 (fn-219 SHEET.md).
 /age = 82.0
 
 # The engine species (fn-198 host decision 1): telperion_space::beech (fn-193; SOURCES.md there).

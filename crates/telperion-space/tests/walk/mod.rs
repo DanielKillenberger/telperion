@@ -752,7 +752,6 @@ pub fn lit(species: &Species, light: Light, seed: u64) -> telperion_space::Resul
         Request {
             age: AGE,
             seed,
-            budget: 2_000_000,
             light,
         },
     )

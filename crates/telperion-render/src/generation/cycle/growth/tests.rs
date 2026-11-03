@@ -118,7 +118,7 @@ fn a_tree_grown_on_on_the_device_is_the_tree_grown_at_once() {
 
 /// R2b on the device: an age not finite, past the horizon or a year back
 /// and a draw outside the last year grown are refused by name, the state
-/// left to grow on; a growth that fails (here past its budget) spends it.
+/// left to grow on.
 #[test]
 fn a_request_the_device_cannot_meet_is_refused_by_name() {
     let _held = super::super::super::whole_tree();
@@ -127,7 +127,7 @@ fn a_request_the_device_cannot_meet_is_refused_by_name() {
     };
     let k = Kernels::new(&gpu);
     let family = telperion_core::presets::Preset::EuropeanBeech.parameters();
-    let mut growth = executor::growth(&family).expect("a growth");
+    let growth = executor::growth(&family).expect("a growth");
     let mut s = GrowthState::sized_now(&gpu, &k, &growth, (7, 8));
     block(s.grow_to(&gpu, &k, 4.0)).expect("grown");
     let named = |r: Result<()>, name: &str| match r {
@@ -140,16 +140,6 @@ fn a_request_the_device_cannot_meet_is_refused_by_name() {
     named(block(s.settle(&gpu, &k, 4.5)).map(drop), "at:");
     assert_eq!(s.committed(), Some(4));
     block(s.grow_to(&gpu, &k, 8.0)).expect("grown on");
-    growth.request.budget = 200;
-    let mut s = GrowthState::sized_now(&gpu, &k, &growth, (7, 8));
-    let failed = (1..=8).find_map(|y| block(s.grow_to(&gpu, &k, f64::from(y))).err());
-    assert!(
-        failed.is_some(),
-        "a budget of 200 phytomers holds the beech to 8"
-    );
-    assert_eq!(s.committed(), None);
-    named(block(s.grow_to(&gpu, &k, 8.0)), "state.failed");
-    named(block(s.settle(&gpu, &k, 8.0)).map(drop), "state.failed");
 }
 
 /// R2c: the lit oak grows on year by year with its last tree drawn

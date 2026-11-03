@@ -83,3 +83,24 @@ fn pass_costs() {
         }
     }
 }
+
+/// fn-331 R3: with the phytomer budget gone, the oak at 200, seed 1, which
+/// the budget refused at 80, builds wood and leaves through the pipeline on
+/// the CPU; its seconds, the skeleton's share and the process's peak memory.
+#[test]
+#[ignore = "a measurement: fn-331 R3, minutes and gigabytes"]
+fn the_oak_at_200_builds_with_no_phytomer_budget() {
+    let mut f = by_identity("oregon-white-oak").expect("a preset");
+    (f.age, f.skeleton.seed) = (200.0, 1);
+    let started = std::time::Instant::now();
+    let built = super::build(&f, super::Request::mesh()).expect("the oak at 200");
+    let seconds = started.elapsed().as_secs_f64();
+    let status = std::fs::read_to_string("/proc/self/status").unwrap_or_default();
+    let peak = status
+        .lines()
+        .find(|l| l.starts_with("VmHWM"))
+        .unwrap_or("VmHWM: unknown");
+    let skeleton = built.outputs.stages.skeleton_ms / 1e3;
+    let nodes = built.skeleton.tree.nodes.len();
+    println!("OAK200 seconds {seconds:.1} skeleton {skeleton:.1} nodes {nodes} {peak}");
+}

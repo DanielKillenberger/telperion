@@ -29,7 +29,7 @@ pub const MAX_BUDS: u8 = 6;
 pub(crate) const MAX_NODES_PER_ZONE: u32 = 1_000;
 const MAX_MEAN_NODES: f64 = 500.0;
 const MAX_STATES: usize = 64;
-/// The longest internode, in metres: a budget of phytomers this long stays finite.
+/// The longest internode, in metres: a tree of phytomers this long stays finite.
 const MAX_INTERNODE: f64 = 100.0;
 /// The fastest bend or wander, in radians (or shares) per metre.
 const MAX_RATE: f64 = 100.0;

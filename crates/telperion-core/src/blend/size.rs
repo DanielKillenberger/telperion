@@ -4,8 +4,8 @@
 //! probability until the tree's light-neutral expected phytomers at its age,
 //! kept and grown alike, are at most the ends' weighted geometric mean: each
 //! count's own factor is solved and the smaller taken. Kept phytomers are the
-//! tree's size; grown ones, the shed included, are what the engine's budget
-//! counts, and a blend can shed a larger share than either end. Only shrunk:
+//! tree's size; grown ones, the shed included, are the work its growth
+//! does, and a blend can shed a larger share than either end. Only shrunk:
 //! a blend predicted at or below both means keeps its rows, so a walk to the
 //! date palm, whose size is in fronds and not laterals, can come out smaller
 //! than either end. Light only removes growth, so the light-neutral counts

@@ -9,7 +9,6 @@ fn request(age: u32, seed: u64) -> Request {
     Request {
         age,
         seed,
-        budget: 5_000_000,
         light: Light::NEUTRAL,
     }
 }

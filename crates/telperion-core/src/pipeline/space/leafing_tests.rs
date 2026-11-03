@@ -15,7 +15,6 @@ fn grown(leaf_years: f64) -> (Structure, Tree, telperion_space::Species) {
     let request = Request {
         age: 15,
         seed: 7,
-        budget: BUDGET,
         light: family.space.light,
     };
     let structure = telperion_space::grow(&species, request).unwrap();

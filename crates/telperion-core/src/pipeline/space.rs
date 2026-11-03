@@ -19,10 +19,6 @@ use crate::tree::{
 use crate::{Error, Result};
 use telperion_space::{Origin, Request, Structure};
 
-/// The most phytomers a tree may grow, the shed ones included: a safety
-/// bound no shipped species reaches at the harness's ages (the tree-space
-/// examples' still runner, fn-193; the spruce at 80 grows 4.8M).
-const BUDGET: u32 = 20_000_000;
 /// The most phytomers a tree may keep where the pipeline runs in 32-bit
 /// Wasm, so its CPU preparation fits the 4 GB Wasm memory and a tree too
 /// large is refused by name, never a trap (fn-198 host decision 5). Measured
@@ -170,7 +166,6 @@ fn asked<'a>(input: &'a GrowInput<'_>) -> Result<(&'a telperion_space::Species, 
     let request = Request {
         age: age as u32,
         seed: u64::from(input.seed),
-        budget: BUDGET,
         light: input.space.light,
     };
     Ok((species, request))
@@ -240,12 +235,9 @@ fn fits(structure: &Structure, ceiling: Option<usize>) -> Result<()> {
 
 /// The engine's refusal as the pipeline's.
 fn engine(e: telperion_space::Error) -> Error {
-    match e {
-        telperion_space::Error::Budget { .. } => Error::ResourceLimit("engine phytomer budget"),
-        e => Error::InvalidValue {
-            field: "engine",
-            value: e.to_string(),
-        },
+    Error::InvalidValue {
+        field: "engine",
+        value: e.to_string(),
     }
 }
 

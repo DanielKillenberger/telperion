@@ -64,7 +64,6 @@ fn species() -> Species {
 const REQUEST: Request = Request {
     age: 6,
     seed: 1,
-    budget: 10_000,
     light: telperion_space::Light::NEUTRAL,
 };
 
@@ -226,21 +225,6 @@ fn a_seed_that_dies_before_it_grows_is_a_collapsed_tree() {
     let mut s = species();
     s.states[0].viability = 0.0;
     assert_eq!(grow(&s, REQUEST), Err(Error::Collapsed));
-}
-
-#[test]
-fn a_tree_past_its_budget_is_refused() {
-    assert_eq!(
-        grow(
-            &species(),
-            Request {
-                budget: 5,
-                light: telperion_space::Light::NEUTRAL,
-                ..REQUEST
-            }
-        ),
-        Err(Error::Budget { limit: 5 })
-    );
 }
 
 /// A tree whose only wood stands exactly at its draw has no size: it is a

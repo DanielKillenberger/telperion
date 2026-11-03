@@ -42,7 +42,7 @@ fn kept(species: &Species, age: u32) -> f64 {
     expected_kept(&neutral(species), age).unwrap().unwrap()
 }
 
-/// Grown phytomers, the shed included: what the engine's budget counts.
+/// Grown phytomers, the shed included: the work the tree's growth does.
 fn grown(species: &Species, age: u32) -> f64 {
     expected_grown(&neutral(species), age).unwrap()
 }
@@ -236,8 +236,6 @@ fn the_grown_count_binds_where_a_blend_sheds_more_than_its_ends() {
         (grown_share - 1.0).abs() < 1e-9 && kept_share < 0.99,
         "{kept_share} {grown_share}"
     );
-    let predicted = grown(species(&walked), 80);
-    assert!(predicted < 20_000_000.0, "{predicted}");
 }
 
 /// fn-230 R1: the factor is exactly 1 at either end, and the size is

@@ -11,7 +11,6 @@ fn converted_at(preset: Preset, age: u32, seed: u32) -> Tree {
     let request = Request {
         age,
         seed: u64::from(seed),
-        budget: BUDGET,
         light: family.space.light,
     };
     let structure = telperion_space::grow(&species, request).unwrap();

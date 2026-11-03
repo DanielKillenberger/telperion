@@ -243,13 +243,13 @@ impl Build {
         scan(b, (b_at, 4, T_WAKE_B), (&sleepers, n_sleep));
         pass(b, (&sleepers, 1, 1, 0), &sleepers);
         b.tally(lists, 0, c::MADE, 4 * (T_USED + 2) as u64);
-        self.plan_made(b, kit, t);
+        self.plan_made(b, kit);
         Ok(vec![sums])
     }
 
     /// What the units made taken into the census, its capacities and
     /// faults flagged, and the new axes' and phytomers' columns set.
-    fn plan_made(&self, b: &mut Builder, kit: &Kit, t: &Tables) {
+    fn plan_made(&self, b: &mut Builder, kit: &Kit) {
         b.point();
         let both = |k: usize| made(T_UNITS + k).add(made(T_WAKE + k));
         let s = self.state.caps;
@@ -291,8 +291,7 @@ impl Build {
             b.flag(flag, e.gt(E::C(cap)));
         }
         let grown = E::At(c::GROWN).add(both(1));
-        b.count(c::GROWN, grown.clone());
-        b.flag(Flag::Budget, grown.gt(E::C(t.budget)));
+        b.count(c::GROWN, grown);
         b.flag(
             Flag::UnitFaults,
             made(T_UNITS_B + 2).max(made(T_WAKE_B + 2)),

@@ -69,7 +69,6 @@ fn axes_take_their_lengths_and_angles_from_their_pa() {
         Request {
             age: 5,
             seed: 3,
-            budget: 1_000,
             light: telperion_space::Light::NEUTRAL,
         },
     )
@@ -173,7 +172,6 @@ fn phyllotaxis_runs_on_across_a_continuation() {
     let request = Request {
         age: 5,
         seed: 1,
-        budget: 100,
         light: telperion_space::Light::NEUTRAL,
     };
     let tree = grow(&species, request).unwrap();
@@ -249,7 +247,6 @@ fn an_overflowing_expectation_draws_finite_wood() {
     let request = Request {
         age: 1500,
         seed: 10,
-        budget: 1,
         light: telperion_space::Light::NEUTRAL,
     };
     let tree = grow(&species, request).unwrap();
@@ -328,7 +325,6 @@ fn an_unreachable_pa_takes_no_part_in_a_window() {
     let request = Request {
         age: 1470,
         seed: 3,
-        budget: 1,
         light: telperion_space::Light::NEUTRAL,
     };
     let tree = grow(&species, request).unwrap();

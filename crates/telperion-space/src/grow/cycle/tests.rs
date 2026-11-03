@@ -6,7 +6,6 @@ fn request(age: u32, seed: u64, extinction: f64) -> Request {
     Request {
         age,
         seed,
-        budget: 20_000_000,
         light: Light {
             extinction,
             sky: 0.5,

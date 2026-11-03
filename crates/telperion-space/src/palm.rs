@@ -119,7 +119,6 @@ mod tests {
             let request = Request {
                 age: 50,
                 seed,
-                budget: 1_000_000,
                 light: Light::NEUTRAL,
             };
             let s = grow(&palm(), request).unwrap();

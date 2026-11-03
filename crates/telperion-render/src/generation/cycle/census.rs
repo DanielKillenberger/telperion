@@ -89,7 +89,6 @@ pub(super) enum Flag {
     Sleepers,
     Next,
     Woken,
-    Budget,
     UnitFaults,
     HierGens,
     HierPasses,
@@ -112,14 +111,13 @@ pub(super) enum Flag {
     Compaction,
 }
 
-pub(super) const FLAG_NAMES: [Flag; 23] = [
+pub(super) const FLAG_NAMES: [Flag; 22] = [
     Flag::Axes,
     Flag::Units,
     Flag::Phyts,
     Flag::Sleepers,
     Flag::Next,
     Flag::Woken,
-    Flag::Budget,
     Flag::UnitFaults,
     Flag::HierGens,
     Flag::HierPasses,

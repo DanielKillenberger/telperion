@@ -9,7 +9,7 @@ use super::sketch::Sketch;
 use super::{Apex, Grower, Pass, Stage};
 use crate::cores::spread;
 use crate::dormant::{Sleeper, Woken};
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::presence::Draws;
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
@@ -107,11 +107,6 @@ impl Grower<'_> {
             self.absorb(share);
         }
         report(Stage::Pass(Pass::Merge));
-        if self.rules.grown > u64::from(self.rules.budget) {
-            return Err(Error::Budget {
-                limit: self.rules.budget,
-            });
-        }
         Ok(())
     }
 

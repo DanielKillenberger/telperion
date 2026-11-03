@@ -57,7 +57,6 @@ fn an_age_passed_through_grows_nothing() {
         let request = Request {
             age: walk::AGE,
             seed,
-            budget: 1_000_000,
             light: telperion_space::Light::NEUTRAL,
         };
         let tree = grow(&spread, request).unwrap();
@@ -77,7 +76,6 @@ fn a_chain_of_passed_ages_collapses() {
     let request = Request {
         age: 3,
         seed: 1,
-        budget: 1_000_000,
         light: telperion_space::Light::NEUTRAL,
     };
     assert!(grow(&species, request).is_err());
@@ -91,7 +89,6 @@ fn a_blend_ends_on_its_species() {
     let request = Request {
         age: 10,
         seed: 1,
-        budget: 1_000_000,
         light: telperion_space::Light::NEUTRAL,
     };
     let tips = |s: &Species| -> Vec<(f64, f64, f64)> {

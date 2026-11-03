@@ -58,7 +58,7 @@ pub fn grow_capture_tables(species: &Species, request: Request) -> Result<Captur
     (g.one, g.rules.one) = (true, true);
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));
     let mut c = Capture { arrays: Vec::new() };
-    c.u32s("cycle", &[0, request.age, request.budget]);
+    c.u32s("cycle", &[0, request.age]);
     c.u64s("seed", &[request.seed]);
     g.capture_tables(&mut c);
     c.f32s("lay_form", &form(species));

@@ -94,7 +94,7 @@ fn a_growth_begins_again_once_in_its_life() {
 }
 
 /// Only flags that each name a stepped limit begin a build again: a
-/// table, the budget, a fault, the plan's cap or the workgroups given
+/// table, a fault, the plan's cap or the workgroups given
 /// refuse it, alone or beside them.
 #[test]
 fn only_stepped_limits_begin_a_build_again() {
@@ -104,7 +104,6 @@ fn only_stepped_limits_begin_a_build_again() {
     assert!(matches!(stop(&both, said()), Stop::Stepped(q, _) if q == p));
     for other in [
         Flag::Phyts,
-        Flag::Budget,
         Flag::HierFault,
         Flag::LayGenerations,
         Flag::Given,

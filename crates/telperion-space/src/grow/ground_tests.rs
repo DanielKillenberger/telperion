@@ -18,7 +18,6 @@ fn request(age: u32, light: Light) -> Request {
     Request {
         age,
         seed: 1,
-        budget: 20_000_000,
         light,
     }
 }

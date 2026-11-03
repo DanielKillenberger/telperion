@@ -305,7 +305,6 @@ fn the_beech_grows_at_every_age_of_its_sheet() {
             let request = Request {
                 age,
                 seed,
-                budget: 20_000_000,
                 light: telperion_space::Light::NEUTRAL,
             };
             let tree = grow(&beech(), request).unwrap_or_else(|e| panic!("{age}, {seed}: {e:?}"));

@@ -38,13 +38,11 @@ use sketch::Sketch;
 pub use stage::{Pass, Stage};
 pub(crate) use unit::node_wood;
 
-/// What to grow: cycles, the seed, the phytomer budget and the site's light.
+/// What to grow: cycles, the seed and the site's light.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Request {
     pub age: u32,
     pub seed: u64,
-    /// The most phytomers the tree may grow, the shed ones included.
-    pub budget: u32,
     pub light: Light,
 }
 
@@ -202,7 +200,6 @@ fn start<'a>(
         certain: options.certain,
         windows: Windows::new(species, request.age),
         age: request.age,
-        budget: request.budget,
         grown: 0,
         one: false,
     };

@@ -227,7 +227,6 @@ impl Grew {
         &mut self,
         (read, cycle): (&[u32], u32),
         sent: &super::given::Pending,
-        budget: u32,
     ) -> std::result::Result<(), Stop> {
         sent.tally(&mut self.over, read);
         let held = super::build_arena::tables(read);
@@ -247,7 +246,7 @@ impl Grew {
                 .iter()
                 .for_each(|s| eprintln!("TRACE short {s}"));
         }
-        Err(stop(&raised, refusal(cycle, &raised, budget)))
+        Err(stop(&raised, refusal(cycle, &raised)))
     }
 }
 
@@ -438,7 +437,7 @@ impl Growing {
         for cycle in g.committed + 1..=upto {
             g = g.cycle(gpu, (kit, t, tables), (cycle, end)).await?;
         }
-        g.finish(gpu, kit, t, (upto, ends)).await?;
+        g.finish(gpu, kit, (upto, ends)).await?;
         Ok(g)
     }
 
@@ -499,7 +498,7 @@ impl Growing {
         let read = match self.tail.take() {
             // The census a pause read early, its stop already checked.
             Some(read) => read,
-            None => self.read(gpu, (cycle - 1, t.budget)).await?,
+            None => self.read(gpu, cycle - 1).await?,
         };
         #[cfg(test)]
         let (waited, readied) = (waited.elapsed_ms(), super::super::Clock::now());
@@ -519,7 +518,7 @@ impl Growing {
     async fn read(
         &mut self,
         gpu: &Gpu,
-        (cycle, budget): (u32, u32),
+        cycle: u32,
     ) -> std::result::Result<Vec<u32>, Stop> {
         let clock = super::super::Clock::now();
         let read = self.late.take(gpu, cycle).await?;
@@ -529,7 +528,7 @@ impl Growing {
         #[cfg(test)]
         super::stepped_survey::tap(cycle, &read);
         let sent = self.pending.pop_front().expect("a cycle sent");
-        if let Err(stopped) = self.grew.read((&read, cycle), &sent, budget) {
+        if let Err(stopped) = self.grew.read((&read, cycle), &sent) {
             if !self.pending.is_empty() {
                 self.late.take(gpu, cycle + 1).await?;
             }
@@ -596,7 +595,7 @@ impl Growing {
         };
         // A move makes room for the next two cycles.
         if let Some(next) = (cycle < end)
-            .then(|| grown(sizes, (read, self.last.as_deref(), fallen), t.budget))
+            .then(|| grown(sizes, (read, self.last.as_deref(), fallen)))
             .flatten()
         {
             if std::env::var("CYCLE_TRACE").is_ok() {
@@ -628,7 +627,6 @@ impl Growing {
         &mut self,
         gpu: &Gpu,
         kit: &Kit,
-        t: &Tables,
         (upto, ends): (u32, bool),
     ) -> std::result::Result<(), Stop> {
         self.committed = upto;
@@ -639,7 +637,7 @@ impl Growing {
             (&run.0, &run.1),
             (upto, &self.submitted.0, &self.submitted.1),
         ));
-        let read = self.read(gpu, (upto, t.budget)).await?;
+        let read = self.read(gpu, upto).await?;
         self.b.goes_on = !ends;
         if !ends {
             self.tail = Some(read);

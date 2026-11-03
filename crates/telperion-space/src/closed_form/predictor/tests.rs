@@ -97,7 +97,6 @@ fn the_trees_count_is_the_seed_row() {
     let request = crate::Request {
         age: 30,
         seed: 3,
-        budget: 1_000_000,
         light: crate::Light::default(),
     };
     let tree = crate::grow(&palm(), request).unwrap();
@@ -132,7 +131,6 @@ fn every_lateral_grown_has_a_count_and_an_undrawn_pa_has_none() {
         let request = crate::Request {
             age,
             seed: 1,
-            budget: 20_000_000,
             light,
         };
         let tree = crate::grow(&species, request).expect("grows");

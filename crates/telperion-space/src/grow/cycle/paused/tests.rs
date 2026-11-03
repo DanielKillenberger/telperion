@@ -15,7 +15,6 @@ fn request(age: u32, seed: u64, extinction: f64) -> Request {
     Request {
         age,
         seed,
-        budget: 20_000_000,
         light,
     }
 }
@@ -189,16 +188,17 @@ fn a_request_the_grower_cannot_meet_is_refused() {
     assert_eq!(admitted(8, 12, 8.25).unwrap(), 9);
 }
 
-/// R2b: a cycle that fails (here the phytomer budget) spends the grower;
-/// every later growth and draw is refused by name, and a tree drawn before
-/// stays whole.
+/// R2b: a cycle that fails (here a lattice past its nodes, as
+/// `a_lattice_past_its_nodes_is_refused_by_name` grows it) spends the
+/// grower; every later growth and draw is refused by name, and a tree
+/// drawn before stays whole.
 #[test]
 fn a_growth_that_failed_is_spent() {
-    let species = crate::beech();
-    let r = Request {
-        budget: 2_000,
-        ..request(24, 3, 0.0)
-    };
+    let mut species = crate::oak();
+    for state in &mut species.states {
+        state.internode = 5.0;
+    }
+    let r = request(8, 1, 0.5);
     let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap();
     let mut last = None;
     let failed = (1..=r.age).find_map(|y| match p.grow_to(y) {
@@ -208,7 +208,10 @@ fn a_growth_that_failed_is_spent() {
         }
         Err(e) => Some(e),
     });
-    assert_eq!(failed, Some(Error::Budget { limit: 2_000 }));
+    assert!(
+        matches!(&failed, Some(Error::Refused { input, .. }) if input == "light.lattice"),
+        "{failed:?}"
+    );
     let drawn = last.expect("a tree drawn before the failure");
     assert!(!drawn.axes.is_empty());
     let spent =

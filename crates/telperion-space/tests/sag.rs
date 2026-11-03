@@ -379,7 +379,6 @@ fn a_lateral_swept_through_straight_down_lands_by_degree() {
             Request {
                 age: 2,
                 seed: 1,
-                budget: 100,
                 light: telperion_space::Light::NEUTRAL,
             },
         )
@@ -438,7 +437,6 @@ fn the_ground_takes_a_carried_load_by_degree() {
         let request = Request {
             age: 3,
             seed: 1,
-            budget: 100,
             light: telperion_space::Light::NEUTRAL,
         };
         let tree = grow(&species, request).unwrap();
@@ -447,7 +445,6 @@ fn the_ground_takes_a_carried_load_by_degree() {
     let _ = Request {
         age: 1,
         seed: 1,
-        budget: 1,
         light: telperion_space::Light::NEUTRAL,
     };
     let (low, high, steps) = (0.6, 0.8, 400);

@@ -118,7 +118,6 @@ fn grown(height: f64, sag: f64, seed: u64, bough: Bough, twigs: (f64, f64)) -> S
     let request = Request {
         age: 70,
         seed,
-        budget: 1_000_000,
         light: telperion_space::Light::NEUTRAL,
     };
     grow(&species, request).unwrap()

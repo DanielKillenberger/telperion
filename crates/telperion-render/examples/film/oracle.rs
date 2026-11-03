@@ -9,8 +9,6 @@ use super::path::{ease, Frame, Kind, Path};
 use telperion_core::{blend, presets::by_identity, Family};
 use telperion_space::{grow_cycle, Request, Species};
 
-/// The engine's phytomer budget, the build's own (`pipeline/space.rs`).
-const BUDGET: u32 = 20_000_000;
 const WIDEN: f64 = 0.1;
 const SLACK: f64 = 2.0;
 const SEEDS: [u64; 3] = [1, 7, 42];
@@ -27,7 +25,6 @@ fn counts(f: &Family, seed: u64) -> Result<[f64; 2], String> {
     let request = Request {
         age: f.age as u32,
         seed,
-        budget: BUDGET,
         light: f.space.light,
     };
     let cycled = grow_cycle(species(f)?, request).map_err(|e| e.to_string())?;

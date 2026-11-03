@@ -65,8 +65,8 @@ impl Pinned {
     pub(super) const PASSES: Self = Self(1 << 5);
     pub(super) const UNIT_ROUNDS: Self = Self(1 << 6);
 
-    /// The stepped limit `flag` names, none for a table, the budget, a
-    /// fault, the plan's caps or the workgroups given.
+    /// The stepped limit `flag` names, none for a table, a fault, the
+    /// plan's caps or the workgroups given.
     pub(super) fn of(flag: c::Flag) -> Option<Self> {
         use c::Flag as F;
         Some(match flag {

@@ -70,7 +70,6 @@ fn capture(name: &str, age: u32, seed: u64, out: &str) {
     let request = telperion_space::Request {
         age,
         seed,
-        budget: 20_000_000,
         light: family.space.light,
     };
     let started = Instant::now();

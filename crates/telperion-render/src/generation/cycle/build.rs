@@ -105,7 +105,6 @@ impl Kit {
 /// balance constants and its whole stake's window per cycle.
 pub(super) struct Tables {
     pub age: u32,
-    pub budget: u32,
     pub seed: u64,
     pub lights: u32,
     pub rows: u32,
@@ -130,8 +129,8 @@ pub(super) struct Tables {
 impl Tables {
     pub(super) fn new(gpu: &Gpu, c: &Capture, chain: &ChainTables) -> Result<Self> {
         let cap = Cap(c);
-        let [_, age, budget] = cap.u32s("cycle")[..] else {
-            panic!("cycle, age, budget")
+        let [_, age] = cap.u32s("cycle")[..] else {
+            panic!("cycle, age")
         };
         let (table, words, rows, whorls) = packed(&cap, chain, age);
         let zones = (0..table[0] as usize / 2)
@@ -148,7 +147,6 @@ impl Tables {
         };
         Ok(Self {
             age,
-            budget,
             seed: cap.u64s("seed")[0],
             lights: cap.u32s("lights")[0],
             rows,

@@ -1,9 +1,9 @@
 //! fn-251: a walk never grows a tree larger than its ends. The teaser's
-//! frame that once passed the engine's budget grows within it, and the eight frames
-//! of the sweep that miss its oracle (`examples/walk_size.rs`; WALKS.md,
-//! "The seed-spread oracle") are named exceptions held at their measured
-//! numbers until fn-273 takes them: none may move further outside its
-//! band, nor reach the budget (host, 2026-10-14). The gate grows the
+//! frame, which the engine's phytomer budget once refused (removed by
+//! fn-331), grows, and the eight frames of the sweep that miss its oracle
+//! (`examples/walk_size.rs`; WALKS.md, "The seed-spread oracle") are named
+//! exceptions held at their measured numbers until fn-273 takes them: none
+//! may move further outside its band (host, 2026-10-14). The gate grows the
 //! teaser's frame; the exceptions are the ignored test below until fn-273
 //! takes them (host, fn-304 ruling 5).
 use telperion_core::{blend, presets::Preset, Family};
@@ -13,8 +13,6 @@ use Preset::{
     OregonWhiteOak as Oak, SilverBirch as Birch,
 };
 
-/// The engine's phytomer budget, the build's own (`pipeline/space.rs`).
-const BUDGET: u32 = 20_000_000;
 /// The oracle's widening of its band (fn-251 R1b) and its slack in whole
 /// phytomers (host, 2026-10-14).
 const WIDEN: f64 = 0.1;
@@ -127,12 +125,11 @@ fn miss(n: f64, (lo, hi): (f64, f64)) -> f64 {
 }
 
 /// The frame's kept and grown phytomers, grown as the build grows it, at
-/// its seed and light within the engine's budget.
+/// its seed and light.
 fn grown(frame: &Family) -> telperion_space::Result<[f64; 2]> {
     let request = Request {
         age: frame.age as u32,
         seed: u64::from(frame.skeleton.seed),
-        budget: BUDGET,
         light: frame.space.light,
     };
     let species = frame.space.species.as_ref().expect("an engine preset");
@@ -148,7 +145,7 @@ fn grown(frame: &Family) -> telperion_space::Result<[f64; 2]> {
 
 /// fn-251 R1: the teaser's walk from the oak to the birch at 80, seed 7,
 /// the frame at t = 0.07504803866484144 that `headless --walk 6 --hold 0`
-/// refused on the engine's phytomer budget (frame 24), grows within it.
+/// refused on the engine's phytomer budget (frame 24), grows.
 #[test]
 fn the_teaser_frame_fits() {
     let (a, b) = (end(Oak, 80.0, 7), end(Birch, 80.0, 7));

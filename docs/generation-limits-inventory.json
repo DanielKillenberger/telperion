@@ -1068,12 +1068,6 @@
     "reason": "Floating-point degeneracy tolerance normalising a relay's stem direction; it does not limit generated populations."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/space.rs",
-    "site": "const BUDGET : u32 = 20_000_000 ;",
-    "classification": "numeric",
-    "reason": "The engine's phytomer safety bound, refused by name when reached (ResourceLimit); no shipped species reaches it at the harness's ages (the spruce at 80 grows 4.8M, fn-198)."
-  },
-  {
     "path": "crates/telperion-core/src/presets/space.rs",
     "site": "if let Some ( k ) = ( 0 . . AGES ) . find ( | & k | stated [ k ] & & states [ k ] . lifespan < = 0 . 0 ) {",
     "classification": "algorithm",

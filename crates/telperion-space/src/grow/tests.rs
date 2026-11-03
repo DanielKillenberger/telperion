@@ -16,7 +16,6 @@ fn grown_in(species: &Species, (age, seed, light): (u32, u64, Light), options: O
     let request = Request {
         age,
         seed,
-        budget: 20_000_000,
         light,
     };
     run(species, request, &mut |_| {}, true, options).unwrap()
@@ -180,7 +179,6 @@ fn every_pass_is_reported() {
     let request = Request {
         age: 11,
         seed: 1,
-        budget: 20_000_000,
         light: LIT,
     };
     let mut reported = Vec::new();
@@ -227,7 +225,6 @@ fn without_what_later_years_add_the_rough_layout_is_the_final_one() {
     let lit = Request {
         age: 25,
         seed: 3,
-        budget: 20_000_000,
         light: Light {
             extinction: 0.5,
             sky: 0.5,

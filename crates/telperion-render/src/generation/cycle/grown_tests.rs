@@ -45,7 +45,6 @@ pub(super) fn grown_from(
     let request = Request {
         age,
         seed,
-        budget: 20_000_000,
         light,
     };
     Grown {

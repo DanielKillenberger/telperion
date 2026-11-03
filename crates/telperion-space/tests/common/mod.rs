@@ -8,8 +8,6 @@ use telperion_space::{
     grow, CountTable, Form, NodeLaw, Origin, PaState, Request, Species, Structure, Zone,
 };
 
-pub const BUDGET: u32 = 1_000_000;
-
 pub fn sets() -> Vec<Value> {
     let path = concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -153,7 +151,6 @@ pub fn tree(species: &Species, age: u32, seed: u64) -> Structure {
         Request {
             age,
             seed,
-            budget: BUDGET,
             light: telperion_space::Light::NEUTRAL,
         },
     )

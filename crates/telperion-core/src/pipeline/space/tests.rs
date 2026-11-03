@@ -12,7 +12,6 @@ fn grown() -> (Structure, Vec<usize>, Vec<PaRow>) {
     let request = Request {
         age: 15,
         seed: 7,
-        budget: BUDGET,
         light: family.space.light,
     };
     let structure = telperion_space::grow(&species, request).unwrap();
@@ -35,7 +34,6 @@ fn grown_wood_is_the_internodes_as_laid_at_a_spread() {
     let request = Request {
         age: 15,
         seed: 7,
-        budget: BUDGET,
         light: family.space.light,
     };
     let structure = telperion_space::grow(&species, request).unwrap();
@@ -251,7 +249,6 @@ fn a_node_keeps_its_identity_across_ages() {
         let request = Request {
             age,
             seed: 7,
-            budget: BUDGET,
             light: family.space.light,
         };
         telperion_space::grow(&species, request).unwrap()

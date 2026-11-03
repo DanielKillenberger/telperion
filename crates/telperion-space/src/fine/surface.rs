@@ -72,7 +72,7 @@ impl ChainTables {
         if age == 0 {
             return crate::error::refuse("age", "a tree grows at least one cycle");
         }
-        let mut rules = crate::grow::alone::drawn(species, age, 0);
+        let mut rules = crate::grow::alone::drawn(species, age);
         rules.lasting = vec![None; species.states.len()].into();
         Ok(Self::of(species, &rules))
     }

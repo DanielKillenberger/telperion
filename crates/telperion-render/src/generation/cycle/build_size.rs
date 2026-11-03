@@ -57,13 +57,8 @@ fn folds(read: &[u32], most: u32) -> (u32, u32) {
 }
 
 /// A count past a table or limit, by name: the build stops there.
-pub(super) fn refusal(cycle: u32, flags: &[(Flag, u32)], budget: u32) -> RenderError {
+pub(super) fn refusal(cycle: u32, flags: &[(Flag, u32)]) -> RenderError {
     let say = |what: String| super::super::io::error(what);
-    if flags.iter().any(|f| f.0 == Flag::Budget) {
-        return say(format!(
-            "the tree grows past the engine's budget of {budget} phytomers"
-        ));
-    }
     if let Some(&(_, value)) = flags.iter().find(|f| f.0 == Flag::LightErrors) {
         return say(format!(
             "the light refused at cycle {cycle}: {:?}",
@@ -112,12 +107,10 @@ fn sweeps_ahead(read: &[u32], prev: Option<&[u32]>) -> u32 {
 /// compacts, those the last compaction kept where it came after the
 /// census (`cut`, with the cycles it stands before the next one's end);
 /// past `ROOM` of it, the table grows by `GROWTH` until they fit (fn-270 R4:
-/// tables grow by observed counts). No phytomer table grows past the
-/// engine's `budget`.
+/// tables grow by observed counts).
 pub(super) fn grown(
     s: Sizes,
     (read, prev, cut): (&[u32], Option<&[u32]>, Option<(&[u32], i32)>),
-    budget: u32,
 ) -> Option<Sizes> {
     let held = super::build_arena::tables(read);
     let kept = cut.map(|(c, _)| super::build_arena::tables(c));
@@ -151,7 +144,7 @@ pub(super) fn grown(
     let caps = &mut n.caps;
     caps.axes = fit(0, caps.axes).next_multiple_of(64);
     caps.units = fit(1, caps.units);
-    caps.phyts = fit(2, caps.phyts).min(budget).max(s.caps.phyts);
+    caps.phyts = fit(2, caps.phyts);
     caps.sleepers = fit(3, caps.sleepers);
     caps.next = fit(4, caps.next).next_multiple_of(64);
     caps.woken = fit(5, caps.woken);
@@ -274,25 +267,6 @@ mod tests {
     use super::super::device::T_USED;
     use super::*;
 
-    /// A census whose phytomers grew from `before` to `now`.
-    fn census(before: u32, now: u32) -> (Vec<u32>, Vec<u32>) {
-        let (mut prev, mut read) = (vec![0; c::WORDS], vec![0; c::WORDS]);
-        (prev[c::PHYTS], read[c::PHYTS]) = (before, now);
-        (prev, read)
-    }
-
-    /// Astra's finding: a phytomer table that doubles grows no further
-    /// than the engine's budget.
-    #[test]
-    fn no_phytomer_table_grows_past_the_budget() {
-        let budget = 20_000_000;
-        let (prev, read) = census(10_000_000, 19_000_000);
-        let mut s = Sizes::least();
-        s.caps.phyts = 16_000_000;
-        let next = grown(s, (&read, Some(&prev), None), budget).expect("a move");
-        assert_eq!(next.caps.phyts, budget);
-    }
-
     /// fn-256 task 12: a cycle records the units rounds the census read
     /// used and their slack, the living apexes' and the wake's apart, no
     /// further than the plan's bound; a job past them is refused by name.
@@ -311,7 +285,7 @@ mod tests {
             s.bounds.rounds
         );
         assert_eq!(limits(&s, None, None).unit_rounds, [s.bounds.rounds; 2]);
-        let said = refusal(9, &[(Flag::UnitRounds, 1)], 20_000_000);
+        let said = refusal(9, &[(Flag::UnitRounds, 1)]);
         assert!(said.to_string().contains("UnitRounds"), "{said}");
     }
 
@@ -340,13 +314,10 @@ mod tests {
 
     /// A count past a table or limit stops the build by name.
     #[test]
-    fn a_build_past_the_budget_is_refused_by_name() {
-        let said = refusal(9, &[(Flag::Budget, 1), (Flag::Phyts, 1)], 20_000_000);
-        assert!(
-            said.to_string().contains("budget of 20000000 phytomers"),
-            "{said}"
-        );
-        let said = refusal(9, &[(Flag::Sweeps, 1)], 20_000_000);
+    fn a_build_past_a_table_or_limit_is_refused_by_name() {
+        let said = refusal(9, &[(Flag::Phyts, 1)]);
+        assert!(said.to_string().contains("Phyts"), "{said}");
+        let said = refusal(9, &[(Flag::Sweeps, 1)]);
         assert!(said.to_string().contains("Sweeps"), "{said}");
     }
 

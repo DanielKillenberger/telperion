@@ -53,8 +53,8 @@ its message (`executor::checked`), before a device is asked for, so a page
 without WebGPU learns that its parameters are invalid rather than
 `"webgpu-unavailable"`; a tree past its own instance budget
 (`canopy.maxInstances`) is refused as the CPU refuses it, once grown
-(fn-319 R2). A family invalid both in a way only growth finds (the
-engine's phytomer budget) and in a canopy row is refused by the row,
+(fn-319 R2). A family invalid both in a way only growth finds (a light
+lattice past its nodes) and in a canopy row is refused by the row,
 before it grows, where the CPU grows first and names the growth's error
 (host, 28 Oct 2026).
 `limbOrder` names limbs at that lateral order and defaults to the family's
