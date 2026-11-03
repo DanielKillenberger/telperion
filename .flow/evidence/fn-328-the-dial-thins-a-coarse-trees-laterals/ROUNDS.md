@@ -27,3 +27,16 @@ What it shows: the 7% row is the first with fewer laterals (bud 0.651), and grow
 Frozen 3 Nov 2026, before it grows. One climb per first age, 9, 10, 11 and 12, each on its own core: no wide pass, 6 generations of 100 on twelve seeds, starting from the rows round 1 read at first ages 8 and 9, moved to the climb's first age. Bounds, score and seeds are round 1's.
 
 Judgement, as round 1's: the climbs' cheapest rows within 5% go to tuning seeds 1001 to 1050. The cheapest that holds there, and costs less than the current rows' 245 ms, then gets one read on the held-out seeds, reported with whatever it says, and replaces the rows. Seeds 1 to 50 choose nothing.
+
+Result, 3 Nov 2026, on seeds 1001 to 1012 at one repeat per seed. Five rows came within 5%, all at first age 9. First ages 10, 11 and 12 did not: their closest read 0.085, 0.138 and 0.133 at 0.41 s or more, because they keep more fine ages. So round 1's guess that a later first age may do better is wrong, and first age 9 is the best tried.
+
+| Within | First | Worst | Seconds | Axes | Apex-cycles | Row: factor, leaf, pipe, bud, hazard, shedding |
+|---|---|---|---|---|---|---|
+| 5% | 9 | 0.049 | 0.213 | 40,075 | 51,322 | 1.37, 25.382, 4.145, 0.695, 2.756, 0.329 |
+| 5% | 9 | 0.041 | 0.213 | 41,134 | not recorded here | 1.687, 26.289, 3.742, 0.82, 2.385, 0.243 |
+| 7% | 9 | 0.059 | 0.156 | 30,326 | 42,660 | 1.667, 30.84, 3.796, 0.651, 2.263, 0.313 |
+| 10% | 9 | 0.082 | 0.141 | 24,976 | 37,638 | 1.833, 33.34, 3.877, 0.589, 2.113, 0.329 |
+| 15% | 9 | 0.128 | 0.130 | 22,650 | 35,083 | 1.806, 31.496, 3.86, 0.513, 2.128, 0.333 |
+| 25% | 9 | 0.154 | 0.123 | 19,518 | 29,346 | 1.597, 33.856, 4.301, 0.431, 2.27, 0.407 |
+
+Fifty-seed read, frozen now, before it grows: all five rows within 5%, in `raw/oak2-fifty.txt`, on seeds 1001 to 1050, with the current rows beside them as a control, at five repeats on one pinned core. A row holds when all six medians are within 5% there. The cheapest that holds and costs less than the control takes the held-out read.
