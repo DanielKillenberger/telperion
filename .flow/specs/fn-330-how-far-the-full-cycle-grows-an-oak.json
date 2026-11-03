@@ -18,7 +18,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-330-how-far-the-full-cycle-grows-an-oak.md",
-  "status": "open",
+  "status": "done",
   "title": "How far the full cycle grows an oak, unlimited",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-03T11:26:36.173630Z"
+  "updated_at": "2026-11-03T16:10:05.843844Z"
 }

@@ -2,6 +2,7 @@
 and the four causes at 200 on seed 1, six at a time, one thread each,
 through the queue. Logs land in raw/v2/."""
 import os
+import sys
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -11,6 +12,9 @@ RAW = HERE / "raw" / "v2"
 RAW.mkdir(parents=True, exist_ok=True)
 RUNS = [("base", s, a) for s in (1, 7, 42) for a in (40, 60, 80, 100, 120, 160, 200)]
 RUNS += [(v, 1, 200) for v in ("TRUNK_SAG=0", "TRUNK_WANDER=0", "TRUNK_TROPISM=3", "TRUNK_SHADE=0")]
+# Named runs only, as `name:seed:age`, e.g. after one was killed at its claim.
+if sys.argv[1:]:
+    RUNS = [(n, int(s), int(a)) for n, s, a in (x.split(":") for x in sys.argv[1:])]
 
 
 def run(job):
@@ -19,7 +23,7 @@ def run(job):
     if name != "base":
         key, value = name.split("=")
         env[key] = value
-    cmd = ["telperion-heavy", "3", "--threads", "1", "--",
+    cmd = ["telperion-heavy", os.environ.get("RERUN_CLAIM", "3"), "--threads", "1", "--",
            "target/ci/examples/trunk", "oregon-white-oak", str(age), str(seed)]
     out = subprocess.run(cmd, env=env, capture_output=True, text=True)
     (RAW / f"{name}-s{seed}-a{age}.log").write_text(out.stdout + out.stderr)

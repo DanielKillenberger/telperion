@@ -31,3 +31,8 @@ The owner approved the route of 3 Nov 2026: the scaffold grown in full, a learne
 ## Open Questions
 
 None.
+
+## Result
+
+Closed 3 Nov 2026. The full cycle grows the oak, seed 1, to 300 on one thread in 210 s at 1.95 GiB peak, after fn-333 let go of shed branches' records; before it, 200 needed 9.12 GiB and 300 was killed at 10 GB. Recommendation: full oaks at 300 grow on this machine as they stand; their form, not memory, now limits the route. Review skipped: no code of this child remains. Evidence: `.flow/evidence/fn-330-how-far-the-full-cycle-grows-an-oak/RESULT.md`. No friction recorded.
+
