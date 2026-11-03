@@ -15,3 +15,8 @@ The first pass grew ages 80 to 200 and the cap killed age 300 at 10 GB after 2 m
 ## The age-200 tree, seen (3 Nov 2026)
 
 `oak-age200-seed1.png`: the full cycle at age 200, seed 1, through the native still with the budget lifted in a local build (not committed). The trunk rises a few metres, then bends near horizontal and carries the crown far to one side; the crown is sparse. Owner: "yea that's bad". The full cycle has never been judged past age 80, so its old trees need fixing before they serve as references or training data.
+
+## Age 300 after fn-333, 3 Nov 2026
+
+fn-331 removed the budget (and `EARLY_BUDGET` with it) and fn-333 let the grower drop shed branches' records, the tree unchanged to the bit. Age 300 is grown once more with the same command and seed, now in `telperion-heavy 10`, the first pass's cap, alone on the desk. The ages 80 to 200 are not grown again: their trees are the same, and fn-333's RESULT.md gives their new peaks.
+
