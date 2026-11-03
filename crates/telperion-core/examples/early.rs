@@ -6,6 +6,8 @@
 //!
 //!   cargo run --profile ci -p telperion-core --example early -- three norway-spruce default 42 cycle
 //!
+//!   `EARLY_BUDGET` replaces the 20,000,000-phytomer budget.
+//!
 //! - `live <preset> <age|default> <seed>`: fn-256 task 5's live set, each
 //!   cycle's phytomers not retired against those grown by then.
 use std::time::Instant;
@@ -31,7 +33,8 @@ fn main() {
     let r = Request {
         age,
         seed,
-        budget: 20_000_000,
+        // fn-330 raises it to measure the full cycle's reach.
+        budget: std::env::var("EARLY_BUDGET").map_or(20_000_000, |b| b.parse().expect("a budget")),
         light,
     };
     println!("{} age {age} seed {seed}", args[1]);
