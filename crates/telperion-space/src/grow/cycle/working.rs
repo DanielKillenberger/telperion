@@ -270,6 +270,32 @@ impl Working {
 }
 
 impl Working {
+    /// What it holds (fn-333 R1).
+    pub(super) fn footprint(&self, f: &mut super::footprint::Footprint) {
+        f.vec("working.links", &self.links);
+        f.vec("working.pa", &self.pa);
+        f.vec("working.by_node", &self.by_node);
+        f.inner("working.by_node.each", &self.by_node, |v| v);
+        f.vec("working.frozen", &self.frozen);
+        f.vec("working.open", &self.open);
+        f.vec("working.list", &self.list);
+        f.vec("working.closed", &self.closed);
+        f.vec("working.at", &self.at);
+        for (name, v) in [
+            ("working.light", &self.light),
+            ("working.cost", &self.cost),
+            ("working.sub", &self.sub),
+            ("working.incoming", &self.incoming),
+            ("working.bud", &self.bud),
+            ("working.rest", &self.rest),
+        ] {
+            f.vec(name, v);
+        }
+        f.vec("working.living", &self.living);
+        f.vec("working.kids", &self.kids);
+        self.retire.footprint(f);
+    }
+
     /// The open axes' places in the subtree order: preorder from the
     /// root, each axis's open children in the order they stand on it.
     pub(super) fn order(&self) -> Vec<u32> {

@@ -93,6 +93,29 @@ impl Retirement {
     pub fn frozen_root(&self, i: usize) -> Option<Frozen> {
         matches!(self.fate.get(i), Some(Fate::Root(_))).then(|| self.frozen[i])
     }
+
+    /// The axes open or kept, retired roots, and inside a retired subtree.
+    pub fn tally(&self) -> [usize; 3] {
+        let mut t = [0; 3];
+        for f in &self.fate {
+            t[match f {
+                Fate::Open | Fate::Kept(_) => 0,
+                Fate::Root(_) => 1,
+                Fate::Inside => 2,
+            }] += 1;
+        }
+        t
+    }
+
+    /// What it holds (fn-333 R1).
+    pub(super) fn footprint(&self, f: &mut super::footprint::Footprint) {
+        f.vec("retire.fate", &self.fate);
+        f.vec("retire.frozen", &self.frozen);
+        f.vec("retire.woken", &self.woken);
+        f.vec("retire.pending", &self.pending);
+        f.vec("retire.fading", &self.fading);
+        f.vec("retire.log", &self.log);
+    }
 }
 
 /// What the evaluation reads of the tree.

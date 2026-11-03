@@ -62,7 +62,7 @@ pub use grow::cycle::{
     admitted, grow_capture, grow_capture_grown, grow_capture_hierarchy_at, grow_capture_light_at,
     grow_capture_retired, grow_capture_settle_tables, grow_capture_settled_at, grow_capture_tables,
     grow_census, grow_cycle, grow_cycle_is_the_reference, tree_digest, within_year, Capture,
-    Census, Cycle, Cycled, Paused, Retiring, SettleTo,
+    Census, Cycle, Cycled, Footprint, Paused, Retiring, SettleTo, Store,
 };
 pub use grow::{grow, Pass, Request, Stage};
 pub use light::Light;

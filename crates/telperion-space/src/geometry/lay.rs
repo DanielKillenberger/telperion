@@ -99,6 +99,11 @@ impl Stop {
 }
 
 impl Layer {
+    /// The bytes it holds on the heap: a relay's inherited pulls (fn-333).
+    pub(crate) fn heap(&self) -> usize {
+        self.inherited.capacity() * std::mem::size_of::<Lift>()
+    }
+
     /// At the base of an axis framed `(base, heading, side)` carrying on
     /// `curve`, its bearer's curvature, made square to its heading: a
     /// continuation or relay keeps bending as its bearer did, and a

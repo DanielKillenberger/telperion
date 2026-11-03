@@ -156,6 +156,11 @@ impl<'a> Paused<'a> {
         }
     }
 
+    /// What the grower holds between cycles, by store (fn-333 R1).
+    pub fn footprint(&self) -> super::Footprint {
+        self.g.footprint()
+    }
+
     /// The census so far, where one is taken.
     pub fn census(&self) -> Option<&Census> {
         self.g.census.as_deref()

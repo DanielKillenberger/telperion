@@ -15,6 +15,7 @@ mod capture_light;
 mod capture_settled;
 mod capture_units;
 mod census;
+mod footprint;
 mod passes;
 mod paused;
 mod retire;
@@ -29,6 +30,7 @@ pub use capture_settled::{
     grow_cycle_is_the_reference, SettleTo,
 };
 pub use census::{Census, Cycle};
+pub use footprint::{Footprint, Store};
 pub use paused::{admitted, tree_digest, within_year, Paused, Retiring};
 pub(super) use working::Working;
 

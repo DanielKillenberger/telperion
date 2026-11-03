@@ -106,6 +106,13 @@ impl Census {
         self.attachments = quantiles(&mut bearing);
     }
 
+    /// What it holds (fn-333 R1).
+    pub(super) fn footprint(&self, f: &mut super::footprint::Footprint) {
+        f.vec("census.depth", &self.depth);
+        f.vec("census.order", &self.order);
+        f.vec("census.cycles", &self.cycles);
+    }
+
     fn extend(&mut self, axes: &[Axis]) {
         for a in &axes[self.depth.len()..] {
             let d = a.origin.parent().map_or(0, |p| self.depth[p] + 1);
