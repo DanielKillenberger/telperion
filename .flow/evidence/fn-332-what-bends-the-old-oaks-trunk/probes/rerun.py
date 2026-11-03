@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent.parent
-RAW = HERE / "raw" / "v2"
+RAW = HERE / "raw" / os.environ.get("RERUN_OUT", "v2")
 RAW.mkdir(parents=True, exist_ok=True)
 RUNS = [("base", s, a) for s in (1, 7, 42) for a in (40, 60, 80, 100, 120, 160, 200)]
 RUNS += [(v, 1, 200) for v in ("TRUNK_SAG=0", "TRUNK_WANDER=0", "TRUNK_TROPISM=3", "TRUNK_SHADE=0")]
@@ -23,8 +23,10 @@ def run(job):
     if name != "base":
         key, value = name.split("=")
         env[key] = value
-    cmd = ["telperion-heavy", os.environ.get("RERUN_CLAIM", "3"), "--threads", "1", "--",
-           "target/ci/examples/trunk", "oregon-white-oak", str(age), str(seed)]
+    cmd = ["target/ci/examples/trunk", "oregon-white-oak", str(age), str(seed)]
+    # Through the desk's queue unless RERUN_CLAIM=0 (a machine with room).
+    if os.environ.get("RERUN_CLAIM", "3") != "0":
+        cmd = ["telperion-heavy", os.environ.get("RERUN_CLAIM", "3"), "--threads", "1", "--", *cmd]
     out = subprocess.run(cmd, env=env, capture_output=True, text=True)
     (RAW / f"{name}-s{seed}-a{age}.log").write_text(out.stdout + out.stderr)
     return name, seed, age, out.returncode

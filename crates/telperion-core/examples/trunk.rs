@@ -8,8 +8,9 @@
 //! metre of its length (length, height, and distance out from the base), how
 //! each step was carried on, the highest live tip, and how far the crown's
 //! mean sits from the base. The seed stands at the origin, growing up (+z).
-//! A relay joins its parent at phytomer `node`'s span, so the path leaves
-//! the parent there; a continuation carries on from its tip. Each metre's
+//! A relay joins its parent where its girth set it (`Axis::joined`, its
+//! stand blended towards the parent's tip), so the path leaves the parent
+//! there; a continuation carries on from its tip. Each metre's
 //! lean is the path's angle from vertical over that metre.
 //! `TRUNK_SAG`, `TRUNK_WANDER` and `TRUNK_TROPISM` scale every PA's form
 //! setting of that name, and `TRUNK_SHADE` the light's extinction, to
@@ -60,12 +61,17 @@ fn report(s: &Structure, args: &[String]) {
     let mut at = Some(0);
     while let Some(i) = at {
         at = next(s, &carriers, i);
-        let phytomers = &s.axes[i].phytomers;
-        let end = match at.map(|j| s.axes[j].origin) {
-            Some(Origin::Relay { node, .. }) => (node + 1).min(phytomers.len()),
-            _ => phytomers.len(),
-        };
-        path.extend(phytomers[..end].iter().map(|p| p.tip));
+        let tips: Vec<Vec3> = s.axes[i].phytomers.iter().map(|p| p.tip).collect();
+        // A relay joins where its girth set it, a share `t` along node k's
+        // span: the parent's wood up to there, then the join itself.
+        match at.and_then(|j| s.axes[j].joined()) {
+            Some(join) if join.node < tips.len() => {
+                path.extend(&tips[..join.node]);
+                let from = path.last().copied().unwrap_or(Vec3 { x: 0.0, y: 0.0, z: 0.0 });
+                path.push(lerp(from, tips[join.node], f64::from(join.t)));
+            }
+            _ => path.extend(&tips),
+        }
         if let Some(j) = at {
             let rise = s.axes[j].heading.z.asin().to_degrees();
             steps.push(format!(
@@ -112,4 +118,8 @@ fn report(s: &Structure, args: &[String]) {
 
 fn distance(a: Vec3, b: Vec3) -> f64 {
     ((a.x - b.x).powi(2) + (a.y - b.y).powi(2) + (a.z - b.z).powi(2)).sqrt()
+}
+
+fn lerp(a: Vec3, b: Vec3, t: f64) -> Vec3 {
+    Vec3 { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t }
 }
