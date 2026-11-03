@@ -26,6 +26,14 @@ because the doubled vectors' unused capacity is never touched.
 | 120 | 4,725,988 |      389,625 |       367,811 |       3,968,552 (84 %) |
 | 200 | 9,886,116 |      239,358 |       222,241 |       9,424,517 (95 %) |
 
+Correction (host, 3 Nov 2026, from the codex review): this tally counted
+only axes already in the retirement table, so it leaves out the last
+cycle's births, which are open. "Axes laid" and "open or kept" are short by
+them: at 200 the grower held 9,929,933 axes (RESULT.md), so 43,817 more are
+open. The shares inside a retired subtree are a little lower than shown
+(95 % becomes 94.9 %); the bytes below were counted separately and are
+unaffected. The tally now counts them.
+
 At 200, 95 % of the axis records are inside a retired subtree: their
 phytomers and draws are gone, but their fixed-size records stay in every
 store indexed by axis.

@@ -79,6 +79,15 @@ Peak resident memory (VmHWM), the same in every run of a binary:
 | 200 | 9.48 GB | 2.22 to 2.24 GB | 0.24 |
 | 300 | not run | 2.22 GB | |
 
+The 300 "before" is not measured, and the host declines to measure it: the
+old grower needs about 18 GB there, the room the owner asked this child to
+stop waiting for ("we should get memory usage down so we don't need to wait
+for 18gb memory", 3 Nov 2026), and the desk had 10 GB free all afternoon.
+What R3 asks the comparison to show holds without it: before, the peak
+grows with every record ever laid (1.97, 5.08, 9.48 GB at 80, 120, 200);
+after, it stops at the busiest years near 120 and is the same at 200 and
+300.
+
 The grower's heap at 200, end of growth: 11.58 GiB before, 1.14 GiB after
 (`stores`); 589,067 axes held of 9,929,933 grown. The peak after is now the
 busiest years near 120 (heap most 2.36 GiB), no longer the end: past 120 the

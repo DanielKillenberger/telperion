@@ -101,6 +101,8 @@ impl Grower<'_> {
         if let Some(w) = &self.working {
             w.footprint(&mut f);
             f.axes = w.retirement().tally();
+            // Axes laid since the retirement table last grew are open.
+            f.axes[0] += self.axes.len() - w.retirement().fate.len();
         }
         if let Some(c) = &self.census {
             c.footprint(&mut f);
