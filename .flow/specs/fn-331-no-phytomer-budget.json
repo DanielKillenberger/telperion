@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-331-no-phytomer-budget.md",
-  "status": "open",
+  "status": "done",
   "title": "No phytomer budget",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-03T11:54:19.146585Z"
+  "updated_at": "2026-11-03T13:03:18.243651Z"
 }
