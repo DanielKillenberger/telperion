@@ -4,28 +4,30 @@ Protocol: `PROTOCOL.md`. Probe: `crates/telperion-core/examples/trunk.rs`. Raw r
 
 ## R1: the trunk year by year
 
-The one cycle on the CPU, the oak as shipped. "Off the base" is the horizontal distance from the trunk's foot.
+The one cycle on the CPU, the oak as shipped. "Off the base" is the horizontal distance from the trunk's foot. Remeasured 3 Nov 2026 after the codex review: the probe now leaves a parent at the phytomer a relay joins (it had followed the parent to its tip, then jumped), and prints the path's lean from vertical over each metre. Logs: ignored `raw/v2/`, run by `probes/rerun.py`.
 
-| Seed | Age | Highest tip | Crown's mean off the base | Trunk path ends: high, off the base | Relays on the path |
-|---|---|---|---|---|---|
-| 1 | 40 | 10.6 m | 0.6 m | 10.6, 0.7 m | 2 |
-| 1 | 60 | 13.3 | 1.0 | 13.0, 3.4 | 4 |
-| 1 | 80 | 16.5 | 1.6 | 14.6, 6.5 | 7 |
-| 1 | 100 | 19.7 | 3.6 | 15.3, 9.2 | 9 |
-| 1 | 120 | 23.2 | 9.0 | 15.1, 10.3 | 16 |
-| 1 | 160 | 33.0 | 9.6 | 11.5, 13.4 | 24 |
-| 1 | 200 | 24.9 | 15.7 | 22.9, 15.7 | 32 |
-| 7 | 40 | 11.1 | 0.4 | 9.9, 1.7 | 4 |
-| 7 | 80 | 20.6 | 1.8 | 10.2, 3.9 | 12 |
-| 7 | 100 | 26.1 | 2.8 | 9.3, 5.8 | 17 |
-| 7 | 120 to 200 | killed at the 10 GB cap (fn-333 frees that memory) | | | |
-| 42 | 40 | 10.0 | 0.4 | 9.9, 2.4 | 3 |
-| 42 | 80 | 17.0 | 2.3 | 13.7, 8.6 | 8 |
-| 42 | 120 | 26.9 | 3.2 | 16.8, 14.6 | 13 |
-| 42 | 160 | 27.3 | 16.9 | 16.3, 22.2 | 19 |
-| 42 | 200 | 23.6 | 11.9 | 18.0, 5.7 | 25 |
+| Seed | Age | Highest tip | Crown's mean off the base | Trunk path ends: high, off the base | Relays on the path | Steepest lean over a metre |
+|---|---|---|---|---|---|---|
+| 1 | 40 | 10.6 m | 0.6 m | 10.6, 0.7 m | 2 | 20 degrees |
+| 1 | 60 | 13.3 | 1.0 | 13.0, 3.4 | 4 | 56 |
+| 1 | 80 | 16.5 | 1.6 | 14.6, 6.5 | 7 | 60 |
+| 1 | 100 | 19.7 | 3.6 | 15.3, 9.2 | 9 | 67 |
+| 1 | 120 | 23.2 | 9.0 | 15.1, 10.3 | 16 | 96 |
+| 1 | 160 | 33.0 | 9.6 | 11.5, 13.4 | 24 | 134 |
+| 1 | 200 | 24.9 | 15.7 | 22.9, 15.7 | 32 | 80 |
+| 7 | 40 | 11.1 | 0.4 | 9.9, 1.7 | 4 | 31 |
+| 7 | 60 | 15.1 | 1.0 | 10.3, 2.8 | 9 | 57 |
+| 7 | 80 | 20.6 | 1.8 | 10.2, 3.9 | 12 | 70 |
+| 7 | 100 to 200 | not measured: killed at a 3 GB claim; the rerun at 8 GB was stopped when the desk ran low on memory | | | | |
+| 42 | 40 | 10.0 | 0.4 | 9.9, 2.4 | 3 | 71 |
+| 42 | 60 | 13.2 | 1.3 | 11.7, 5.8 | 5 | 73 |
+| 42 | 80 | 17.0 | 2.3 | 13.7, 8.6 | 8 | 87 |
+| 42 | 100 | 22.6 | 3.4 | 14.9, 12.6 | 12 | 95 |
+| 42 | 120 | 26.9 | 3.2 | 16.8, 14.6 | 13 | 91 |
+| 42 | 160 | 27.3 | 16.9 | 16.3, 22.2 | 19 | 95 |
+| 42 | 200 | 23.6 | 11.9 | 18.0, 5.7 | 25 | 116 |
 
-The stem is straight to about 9 to 10 m: the seed axis, its PA 3 and PA 4 continuations and a first PA 6 continuation, all within 2 degrees of vertical. Above it, the thickest line through the crown is a chain of PA 6 relays: PA 6's apex stops, a relay of the same PA takes over, and so on, 32 times by 200 on seed 1. Many of those relays are laid well under PA 6's 60-degree elevation. The bend begins between 40 and 60, when the first relays take over, and grows steadily; by 120 the crown's mean sits 3 to 9 m off the base, and by 160 to 200, 10 to 17 m.
+A lean over 90 degrees is a metre that runs downhill. On seed 1 at 200 the path rises within 4 degrees of vertical to 6 m, leans 28 degrees by 9 m high, and over its next three metres runs nearly level (79 degrees), from 8.9 to 10.0 m high while it moves 2.6 m out; it then climbs at 50 to 60 degrees and straightens near the top. The stem is the seed axis, its PA 3 and PA 4 continuations and a first PA 6 continuation. Above it, the thickest line through the crown is a chain of PA 6 relays: PA 6's apex stops, a relay of the same PA takes over, and so on, 32 times by 200 on seed 1, many laid under 30 degrees. The bend begins between 40 and 60, when the first relays take over, and grows with age.
 
 ## R2: the causes, one at a time
 
@@ -37,8 +39,11 @@ Age 200, seed 1, one setting changed on every PA, all else as shipped:
 | No sag | 32.1 | 7.9 | 28.8, 7.7 | 22 to 84, most over 40 |
 | No wander | 31.7 | 10.1 | 29.7, 15.3 | 15 to 84 |
 | Tropism times 3 | 35.0 | 10.7 | 29.1, 11.6 | 24 to 80 |
+| No shading (extinction 0) | not measured: killed at a 3 GB claim; the rerun was stopped when the desk ran low on memory | | | |
 
-- **Sag is the largest single cause.** It halves the crown's lean (15.7 to 7.9 m) and raises the relays: a relay is laid at its angle on a parent that sag has already turned down, so each low relay grows from a drooping limb and droops in turn. The oak's PA 6 sag (0.0003) works as a beam with no reaction wood: it bends every year's added load into wood that never rights itself, so its effect grows with the limbs' length and age.
+Tropism here is `Form::tropism`, the turn toward a set elevation, not the light. Growth toward light is the shade field; `TRUNK_SHADE=0` switches its extinction off and is the run still owed. Until it runs, light's share in the bend is unknown.
+
+- **Sag is the largest single cause of those measured.** It halves the crown's lean (15.7 to 7.9 m) and raises the relays: a relay is laid at its angle on a parent that sag has already turned down, so each low relay grows from a drooping limb and droops in turn. The oak's PA 6 sag (0.0003) works as a beam with no reaction wood: it bends every year's added load into wood that never rights itself, so its effect grows with the limbs' length and age.
 - **No single cause accounts for all of it.** With no sag the crown's mean still sits 7.9 m off the base, and with each of the others it sits 10 m or more. The tree carries its crown on one dominant chain of relays rather than on several limbs around the stem, so the crown is one-sided whatever bends it. The engine does not let this child switch that off, so what makes one chain dominate is unknown here.
 - **Height depends on the bend.** As shipped the oak is 24.9 m at 200, inside Silvics' mature 15 to 27 m only because the crown hangs; with no sag it is 32 m, over the range, and seed 1 reaches 33 m at 160.
 

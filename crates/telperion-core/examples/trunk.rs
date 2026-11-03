@@ -8,8 +8,12 @@
 //! metre of its length (length, height, and distance out from the base), how
 //! each step was carried on, the highest live tip, and how far the crown's
 //! mean sits from the base. The seed stands at the origin, growing up (+z).
+//! A relay joins its parent at phytomer `node`'s span, so the path leaves
+//! the parent there; a continuation carries on from its tip. Each metre's
+//! lean is the path's angle from vertical over that metre.
 //! `TRUNK_SAG`, `TRUNK_WANDER` and `TRUNK_TROPISM` scale every PA's form
-//! setting of that name, to isolate a cause (1 when unset).
+//! setting of that name, and `TRUNK_SHADE` the light's extinction, to
+//! isolate a cause (1 when unset).
 use telperion_core::presets::Preset;
 use telperion_space::{grow_census, Origin, Request, Structure, Vec3};
 
@@ -24,10 +28,12 @@ fn main() {
         state.form.wander *= factor("TRUNK_WANDER");
         state.form.tropism *= factor("TRUNK_TROPISM");
     }
+    let mut light = family.space.light;
+    light.extinction *= factor("TRUNK_SHADE");
     let request = Request {
         age: args[1].parse().expect("an age"),
         seed: args[2].parse().expect("a seed"),
-        light: family.space.light,
+        light,
     };
     let grown = grow_census(&species, request).expect("grown");
     report(&grown.structure, &args);
@@ -53,8 +59,13 @@ fn report(s: &Structure, args: &[String]) {
     let (mut path, mut steps) = (Vec::new(), Vec::new());
     let mut at = Some(0);
     while let Some(i) = at {
-        path.extend(s.axes[i].phytomers.iter().map(|p| p.tip));
         at = next(s, &carriers, i);
+        let phytomers = &s.axes[i].phytomers;
+        let end = match at.map(|j| s.axes[j].origin) {
+            Some(Origin::Relay { node, .. }) => (node + 1).min(phytomers.len()),
+            _ => phytomers.len(),
+        };
+        path.extend(phytomers[..end].iter().map(|p| p.tip));
         if let Some(j) = at {
             let rise = s.axes[j].heading.z.asin().to_degrees();
             steps.push(format!(
@@ -65,13 +76,20 @@ fn report(s: &Structure, args: &[String]) {
         }
     }
     println!("TRUNK {} age {} seed {}", args[0], args[1], args[2]);
-    let (mut length, mut last, mut mark) = (0.0, Vec3 { x: 0.0, y: 0.0, z: 0.0 }, 0.0);
+    let origin = Vec3 { x: 0.0, y: 0.0, z: 0.0 };
+    let (mut length, mut last, mut mark, mut from) = (0.0, origin, 0.0, origin);
     for p in &path {
         length += distance(last, *p);
         last = *p;
         if length >= mark {
-            println!("  at {length:6.1} m: height {:6.2} out {:6.2}", p.z, (p.x * p.x + p.y * p.y).sqrt());
-            mark = length.floor() + 1.0;
+            let (dx, dy, dz) = (p.x - from.x, p.y - from.y, p.z - from.z);
+            let lean = (dx * dx + dy * dy).sqrt().atan2(dz).to_degrees();
+            println!(
+                "  at {length:6.1} m: height {:6.2} out {:6.2} lean {lean:5.1}",
+                p.z,
+                (p.x * p.x + p.y * p.y).sqrt()
+            );
+            (mark, from) = (length.floor() + 1.0, *p);
         }
     }
     let relays = steps.iter().filter(|s| s.starts_with('R')).count();
