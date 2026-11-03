@@ -191,7 +191,7 @@ impl Gpu {
     /// not hold (VK_EXT_memory_budget): what other processes leave of the
     /// card, falling as they fill it. None off Vulkan, or where the driver
     /// does not say (fn-256 task 5).
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(any(target_arch = "wasm32", target_vendor = "apple")))]
     pub(crate) fn free_device_memory(&self) -> Option<u64> {
         use ash::vk;
         // SAFETY: the raw instance and physical device are only read while
@@ -223,6 +223,12 @@ impl Gpu {
             .map(|(i, _)| budget.heap_budget[i].saturating_sub(budget.heap_usage[i]))
             .max()
         }
+    }
+
+    /// None: Apple's platforms have no Vulkan backend to ask.
+    #[cfg(target_vendor = "apple")]
+    pub(crate) fn free_device_memory(&self) -> Option<u64> {
+        None
     }
 
     /// Asks the platform for a hardware device, with the adapter's own maximum
