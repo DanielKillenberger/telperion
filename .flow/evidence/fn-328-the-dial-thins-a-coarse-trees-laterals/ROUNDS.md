@@ -54,7 +54,7 @@ Fifty-seed read, 3 Nov 2026, seeds 1001 to 1050, five repeats, one pinned core, 
 
 The second row is the cheapest that holds, and costs 42% less than the current rows, which themselves read 0.057 here on leaf area. So thinning gives a row closer to the reference and cheaper.
 
-Its one held-out read, seeds 1, 7, 42, 1234, 5678, five repeats: height 1.017, spread 0.991, trunk 1.058, limbs 0.919, shed 0.946, area 0.963, worst 0.081, 0.156 s, 33,476 axes, 48,093 apex-cycles. That is outside 5%, on limbs and trunk; five seeds' medians move this much on these rows (the current rows' fifty-seed read and fn-326's five-seed read differ the same way), and the rule replaces the rows with it whatever this says. Seeds 1 to 50 judge it at the end.
+Its one held-out read, seeds 1, 7, 42, 1234, 5678, five repeats: height 1.017, spread 0.991, trunk 1.058, limbs 0.919, shed 0.946, area 0.963, worst 0.081, 0.156 s, 33,476 axes, 48,093 apex-cycles. That is outside 5%, on limbs and trunk, and the rule replaces the rows with it whatever this says. The two rows disagree here: on these five seeds the current rows read 0.038 (fn-326), better than this row, while on fifty they read 0.057, worse. Fifty seeds are the stronger read, but this row's limbs moved 7 points between the two reads where the current rows' worst statistic moved about 3, so it may be less steady, and that is unsettled. Seeds 1 to 50 judge it at the end.
 
 R3's table on the frozen protocol, the cheapest found within each departure on twelve seeds, read again on fifty:
 
