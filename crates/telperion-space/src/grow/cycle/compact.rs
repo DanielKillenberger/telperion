@@ -41,11 +41,16 @@ impl Remap {
         self.at(i).expect("a held axis")
     }
 
-    /// `v`, by axis, without those let go.
+    /// `v`, by axis, without those let go. Its capacity is kept, for the
+    /// tree grows into it again, unless it is over twice what is held:
+    /// handing pages back each time cost the oak at 200 five seconds of
+    /// faults (RESULT.md).
     fn keep<T>(&self, v: &mut Vec<T>) {
         let mut i = 0;
         v.retain(|_| (self.held(i), i += 1).0);
-        v.shrink_to_fit();
+        if v.capacity() > 2 * v.len() {
+            v.shrink_to_fit();
+        }
     }
 
     /// `v`, a list of axes, without those let go, the rest renamed.
