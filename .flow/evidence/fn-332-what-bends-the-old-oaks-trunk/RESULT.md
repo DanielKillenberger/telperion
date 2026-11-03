@@ -18,7 +18,10 @@ The one cycle on the CPU, the oak as shipped. "Off the base" is the horizontal d
 | 7 | 40 | 11.1 | 0.4 | 9.9, 1.7 | 4 | 31 |
 | 7 | 60 | 15.1 | 1.0 | 10.3, 2.8 | 9 | 57 |
 | 7 | 80 | 20.6 | 1.8 | 10.2, 3.9 | 12 | 70 |
-| 7 | 100 to 200 | not measured: killed at a 3 GB claim; the rerun at 8 GB was stopped when the desk ran low on memory | | | | |
+| 7 | 100 | 26.1 | 2.8 | 9.3, 5.8 | 17 | 89 |
+| 7 | 120 | 29.1 | 3.9 | 7.0, 7.8 | 21 | 121 |
+| 7 | 160 | 23.9 | 6.2 | 12.7, 9.1 | 25 | 95 |
+| 7 | 200 | 33.0 | 8.5 | 9.1, 12.4 | 31 | 119 |
 | 42 | 40 | 10.0 | 0.4 | 9.9, 2.4 | 3 | 71 |
 | 42 | 60 | 13.2 | 1.3 | 11.7, 5.8 | 5 | 73 |
 | 42 | 80 | 17.0 | 2.3 | 13.7, 8.6 | 8 | 87 |
@@ -39,9 +42,9 @@ Age 200, seed 1, one setting changed on every PA, all else as shipped:
 | No sag | 32.1 | 7.9 | 28.8, 7.7 | 22 to 84, most over 40 |
 | No wander | 31.7 | 10.1 | 29.7, 15.3 | 15 to 84 |
 | Tropism times 3 | 35.0 | 10.7 | 29.1, 11.6 | 24 to 80 |
-| No shading (extinction 0) | not measured: killed at a 3 GB claim; the rerun was stopped when the desk ran low on memory | | | |
+| No shading (extinction 0) | not measured: killed past 12 GB (and at 3 and 6 GB before) | | | |
 
-Tropism here is `Form::tropism`, the turn toward a set elevation, not the light. Growth toward light is the shade field; `TRUNK_SHADE=0` switches its extinction off and is the run still owed. Until it runs, light's share in the bend is unknown.
+Tropism here is `Form::tropism`, the turn toward a set elevation, not the light. Growth toward light is the shade field; `TRUNK_SHADE=0` switches its extinction off and is the run still owed. With no shading the oak at 200 grows past 12 GB where the shaded one peaks at 2.2: shade is what sheds the inner wood, so switching it off grows a different, far larger tree rather than isolating one cause. Light's share in the bend is unknown; isolating it needs a switch that keeps the shedding and removes only the turn toward light, which the engine does not have.
 
 - **Sag is the largest single cause of those measured.** It halves the crown's lean (15.7 to 7.9 m) and raises the relays: a relay is laid at its angle on a parent that sag has already turned down, so each low relay grows from a drooping limb and droops in turn. The oak's PA 6 sag (0.0003) works as a beam with no reaction wood: it bends every year's added load into wood that never rights itself, so its effect grows with the limbs' length and age.
 - **No single cause accounts for all of it.** With no sag the crown's mean still sits 7.9 m off the base, and with each of the others it sits 10 m or more. The tree carries its crown on one dominant chain of relays rather than on several limbs around the stem, so the crown is one-sided whatever bends it. The engine does not let this child switch that off, so what makes one chain dominate is unknown here.

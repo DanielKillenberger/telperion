@@ -30,6 +30,6 @@ def run(job):
     return name, seed, age, out.returncode
 
 
-with ThreadPoolExecutor(6) as pool:
+with ThreadPoolExecutor(int(os.environ.get("RERUN_AT_ONCE", "6"))) as pool:
     for r in pool.map(run, RUNS):
         print(*r, flush=True)
