@@ -4,7 +4,7 @@ Protocol: `PROTOCOL.md`. Probe: `crates/telperion-core/examples/trunk.rs`. Raw r
 
 ## R1: the trunk year by year
 
-The one cycle on the CPU, the oak as shipped. "Off the base" is the horizontal distance from the trunk's foot. Remeasured 3 Nov 2026 after the codex review: the probe now leaves a parent at the phytomer a relay joins (it had followed the parent to its tip, then jumped), and prints the path's lean from vertical over each metre. Logs: ignored `raw/v2/`, run by `probes/rerun.py`.
+The one cycle on the CPU, the oak as shipped. "Off the base" is the horizontal distance from the trunk's foot. Remeasured 3 Nov 2026 after the codex review: the probe now leaves a parent at the phytomer a relay joins (it had followed the parent to its tip, then jumped), and prints the path's lean from vertical over each metre. Logs: ignored `raw/v2/`, run by `probes/rerun.py`. The re-review then had the probe leave a parent where the relay's girth joins it (`Axis::joined`, a share of a span) rather than at its stand's node; every row was grown again on the MacBook (`raw/v3/`, `RERUN_CLAIM=0`), and every path, line by line, is the one in `raw/v2/`: on these oaks each relay on the path joins at the end of the node it stands on.
 
 | Seed | Age | Highest tip | Crown's mean off the base | Trunk path ends: high, off the base | Relays on the path | Steepest lean over a metre |
 |---|---|---|---|---|---|---|
@@ -42,12 +42,12 @@ Age 200, seed 1, one setting changed on every PA, all else as shipped:
 | No sag | 32.1 | 7.9 | 28.8, 7.7 | 22 to 84, most over 40 |
 | No wander | 31.7 | 10.1 | 29.7, 15.3 | 15 to 84 |
 | Tropism times 3 | 35.0 | 10.7 | 29.1, 11.6 | 24 to 80 |
-| No shading (extinction 0) | not measured: killed past 12 GB (and at 3 and 6 GB before) | | | |
+| No shading (extinction 0) | 33.6 | 6.9 | 20.8, 17.3 | -18 to 71 |
 
-Tropism here is `Form::tropism`, the turn toward a set elevation, not the light. Growth toward light is the shade field; `TRUNK_SHADE=0` switches its extinction off and is the run still owed. With no shading the oak at 200 grows past 12 GB where the shaded one peaks at 2.2: shade is what sheds the inner wood, so switching it off grows a different, far larger tree rather than isolating one cause. Light's share in the bend is unknown; isolating it needs a switch that keeps the shedding and removes only the turn toward light, which the engine does not have.
+Tropism here is `Form::tropism`, the turn toward a set elevation, not the light. Growth toward light is the shade field; `TRUNK_SHADE=0` switches its extinction off. On the desk it was killed at 3, 6 and 12 GB; on the MacBook it grew in 224 s at 17.2 GiB resident, where the shaded oak peaks at 2.2 GB. Shade is what sheds the inner wood, so with none the tree keeps far more of it, a different and larger tree. Its crown's mean sits nearer the base (6.9 m) only because the kept inner shoots pull the mean in; the trunk's path ends further out than as shipped (17.3 m against 15.7), its relays are laid as low (down to 18 degrees below level) and one metre runs downhill (lean 97). Switching the light off does not straighten the trunk: the bend is not the turn toward light. What the light does to the bend inside a tree that still sheds stays unmeasured, since the engine has no switch that removes only the turn toward light.
 
 - **Sag is the largest single cause of those measured.** It halves the crown's lean (15.7 to 7.9 m) and raises the relays: a relay is laid at its angle on a parent that sag has already turned down, so each low relay grows from a drooping limb and droops in turn. The oak's PA 6 sag (0.0003) works as a beam with no reaction wood: it bends every year's added load into wood that never rights itself, so its effect grows with the limbs' length and age.
-- **No single cause accounts for all of it.** With no sag the crown's mean still sits 7.9 m off the base, and with each of the others it sits 10 m or more. The tree carries its crown on one dominant chain of relays rather than on several limbs around the stem, so the crown is one-sided whatever bends it. The engine does not let this child switch that off, so what makes one chain dominate is unknown here.
+- **No single cause accounts for all of it.** With no sag the crown's mean still sits 7.9 m off the base, and with wander off or tropism tripled 10 m or more; with no shading the trunk's path ends 17.3 m out. The tree carries its crown on one dominant chain of relays rather than on several limbs around the stem, so the crown is one-sided whatever bends it. The engine does not let this child switch that off, so what makes one chain dominate is unknown here.
 - **Height depends on the bend.** As shipped the oak is 24.9 m at 200, inside Silvics' mature 15 to 27 m only because the crown hangs; with no sag it is 32 m, over the range, and seed 1 reaches 33 m at 160.
 
 ## R3: against a real oak
@@ -65,4 +65,4 @@ Both are judged by the owner's eye on stills at 120, 200 and 300 beside the meas
 
 ## R5
 
-The probe adds one example file under `crates/telperion-core/examples`; gate and review are recorded in the spec's close.
+The probe adds one example file under `crates/telperion-core/examples`. Codex's re-review of the fix (1ae030d69) was SHIP; the gate is recorded in the spec's close.
