@@ -73,3 +73,11 @@ The cost levels off near 90 ms however far the statistics are let go, so these r
 Frozen 3 Nov 2026, before it grows. R4 of the spec sends them the same search. One climb per preset per first age, 8 and 9, each on its own core: a wide pass of 300 on four seeds, then 6 generations of 100 on twelve. Bounds and score are `probes/search.py`'s. The spruce's climbs claim 4 GB, since its grows are larger.
 
 Judgement, as the oak's: the climbs' five cheapest rows within 5% go to tuning seeds 1001 to 1050 with the current rows as a control. The cheapest that holds there and costs less than the control gets one read on the held-out seeds, reported with whatever it says, and replaces the rows. Seeds 1 to 50 choose nothing.
+
+Result, 3 Nov 2026, seeds 1001 to 1012 at one repeat. Spruce: 31 distinct rows within 5%, the cheapest at first age 8, 0.625 s against first age 9's 0.973 s; their laterals barely thin (bud 0.98 to 1.1). Birch: none within 5%. First age 8's cheapest within 7% reads 0.101 s and within 10% 0.098 s; first age 9's within 7% 0.226 s. Both birch climbs stopped improving after two generations.
+
+Spruce fifty-seed read, frozen now: its five cheapest rows within 5%, in `raw/spruce-fifty.txt`, on seeds 1001 to 1050 at five repeats on one pinned core, with the current rows as a control. The rule above judges them.
+
+## Birch, round 2
+
+Frozen 3 Nov 2026, before it grows. As the oak's round 2: one climb per first age, 7, 8 and 9, each on its own core, no wide pass, 6 generations of 100 on twelve seeds, starting from every row the birch's round 1 read, moved to the climb's first age. Bounds, score, seeds and judgement are round 1's. Each climb reports as it ends.
