@@ -1,0 +1,4 @@
+# fn-339 friction
+
+- 10 Nov 2026, worker, R1: running the law script with its output redirected to the scratchpad, then to a `raw/` directory created in the same command. The shell safety hook refused both: the first as a truncating redirect onto a home path, the second because the directory did not exist when the command was checked. Cost about 2 minutes and two refused calls. What would have removed it: a line in the dispatch that redirects must target an already existing directory inside the worktree (the dispatch named variable paths and backticks, not missing parents).
+- 10 Nov 2026, worker, R2: the dispatch's lead cited "Harmer, abstract only" for about 37,000 twig fragments shed a year by a mature oak. The figure is Buck-Sorlin and Bell 1998 (Bot. J. Linn. Soc. 127: 371), not Harmer. Cost a few searches in the research subagent. What would have removed it: the survey's citation carried with its source's title.
