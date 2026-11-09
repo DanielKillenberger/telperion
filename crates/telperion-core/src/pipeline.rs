@@ -298,8 +298,6 @@ mod input;
 #[cfg(all(test, feature = "geometry"))]
 mod fidelity_tests;
 #[cfg(all(test, feature = "geometry"))]
-mod derived_tests;
-#[cfg(all(test, feature = "geometry"))]
 mod cycle_cost_tests;
 #[cfg(not(feature = "geometry"))]
 mod planned;

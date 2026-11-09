@@ -1,10 +1,10 @@
 # fn-334 result: the derived dial, read on 9 Nov 2026
 
-Drafted by the Opus build worker; R5's proposal is the host's and is not written here.
+Drafted by the Opus build worker; R5 and the note on the code are the host's.
 
 ## What ran
 
-- Probe: `crates/telperion-core/src/pipeline/derived_tests.rs` (commit `3d0973cb9`). `derive` builds D1 or D0 from a species' tables alone, by PROTOCOL.md; the ignored `derived_rows` reads R3.
+- Probe: `crates/telperion-core/src/pipeline/derived_tests.rs` at commit `3d0973cb9`, since taken out of the crates and kept as `probes/derived.patch` (see the end). `derive` builds D1 or D0 from a species' tables alone, by PROTOCOL.md; the ignored `derived_rows` reads R3.
 - Read: all eight catalogue presets at their preset ages (40; Telperion 82; Laurelin 80). Fidelities 0.25, 0.5 and 1.0, against the full cycle at 0. Seeds 1001 to 1012, five repeats less the first, and a grow over 0.5 s not repeated. Candidates D1 and D0, plus the tuned `/space/coarse` rows where a preset has them (oak, spruce, birch).
 - Cost: one process per preset through `telperion-heavy`, `RAYON_NUM_THREADS=1`, each pinned with `taskset` to its own physical core (CPUs 8 to 15 of a Ryzen 9 5950X), all eight at once, native `--profile ci`. Runner: `probes/r3.py`. Tables: `probes/table.py`. Logs: `raw/r3-<preset>.log`.
 - Wall time: 922 s for the longest preset (Laurelin).
@@ -166,3 +166,23 @@ With the upkeep term (D1), the crowns of the oak, Telperion and Laurelin die bac
 - **Lifespan.** The probe uses `lifespan` as stated, not the engine's tick grid `life()`, which is crate-private. The difference is at most half a tick.
 - **Step 2 adds no pipe factor of its own.** The protocol's step 2 lists only the internode and the node law, and step 3's P equation is written on the uncoarsened `pipe(pa)`. So P carries the whole section, including what `coarsened` writes as s^(1/exponent). The P column above is that total.
 - **Expected laterals.** These are counted over `zone.lateral`, times `buds`, `readiness` and the zone's mean nodes, without `rhythm` and without sleeping buds, following the host's note.
+
+## R5: the next step (host)
+
+**The derivation is refuted as frozen.** What a missing lateral would have carried cannot be read from the species' tables alone. The tables give the wood a bud could grow with nothing shading it, and the tree grows a small share of that: the tables' answer for the oak's age 8 is 1,012 times a node's leaf, where the rows a search found use 16 for the whole dial. Light decides how much of the potential a twig realises, and the expectation holds no light. Both candidates show it from opposite sides: with the potential wood's upkeep charged (D1) the crown starves to nothing, and without it (D0) leaf area overshoots by 1.26 to 3.22 times.
+
+**What held.** The rule for which ages coarsen (an age coarsens only as far as its laterals are smaller than the resolution) needs no row and no `first`, and it is where the speed is: D0 at 1.0 m grows the oak 55 times faster, Telperion 7 times and the beech 11 times, with height within 10% everywhere and spread within 12% except the beech (0.82). It loses limbs (oak 0.33, beech 0.71), so its reach measure counts as small some laterals the limb count reads as limbs. The tuned rows show the target is reachable: 3 to 5% on three species at 5 to 10 times.
+
+**So the missing quantity is the realised wood of a lateral, given its light.** That is the gap a small model would fill, as the owner proposed on 9 Nov ("unless we can generate the twigs and stuff with a NN?"). Before any model, one measurement settles whether it can be learned at all:
+
+- From full cycles of the oak, spruce, birch and beech, record for every lateral of a fine age the light at its birth and what its subtree really carried over its life (leaf by year, section, wood length, years lived), beside the tables' potential.
+- Read how tightly the realised share follows light and age. A narrow band means a curve or a model of a few inputs can supply L, P and U as the tree grows, read at each node from the light the grower already holds. A wide one means the stand-in needs more than local state, which is the council's objection, measured.
+
+The reach rule is kept for that child, with its limb loss to be fixed by measuring reach on the ages the limb count reads.
+
+**Not proposed:** bounding or re-fitting the frozen formulas. A horizon shorter than the tree's age, or a cap on the multipliers, would be a tuned constant standing in for light.
+
+## The code
+
+No product code stays from this child. The probe, its tests and `telperion_space::expected_bud_counts` are in `probes/derived.patch` (505 lines, applies at `10fd9ae00`); the crates are back as that commit has them, so the gate and the review have nothing to read (fn-322's rule). The next child applies what it needs from the patch, rewritten and tested as the code rules ask. The worker's four ordinary tests and the measurement passed on the binary it measured with; its last reformat was not rerun.
+

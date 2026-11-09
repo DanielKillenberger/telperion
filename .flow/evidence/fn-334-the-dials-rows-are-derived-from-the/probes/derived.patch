@@ -1,0 +1,505 @@
+diff --git a/crates/telperion-core/src/pipeline.rs b/crates/telperion-core/src/pipeline.rs
+index 22f97a6cd..c50d085f8 100644
+--- a/crates/telperion-core/src/pipeline.rs
++++ b/crates/telperion-core/src/pipeline.rs
+@@ -298,6 +298,8 @@ mod input;
+ #[cfg(all(test, feature = "geometry"))]
+ mod fidelity_tests;
+ #[cfg(all(test, feature = "geometry"))]
++mod derived_tests;
++#[cfg(all(test, feature = "geometry"))]
+ mod cycle_cost_tests;
+ #[cfg(not(feature = "geometry"))]
+ mod planned;
+diff --git a/crates/telperion-core/src/pipeline/derived_tests.rs b/crates/telperion-core/src/pipeline/derived_tests.rs
+new file mode 100644
+index 000000000..c98768669
+--- /dev/null
++++ b/crates/telperion-core/src/pipeline/derived_tests.rs
+@@ -0,0 +1,389 @@
++//! fn-334: the dial's rows derived from a species' own tables, by the
++//! protocol frozen on 9 Nov 2026 (`PROTOCOL.md` in the spec's evidence). An
++//! age coarsens only as far as the laterals it bears reach less than the
++//! fidelity, and its leaf, pipe and upkeep carry, in expectation, what the
++//! laterals its coarse unit no longer grows would have carried. The ordinary
++//! tests hold the derivation's contract; the ignored one reads R3.
++use super::executor;
++use super::fidelity_tests::{family, list, medians};
++use super::{skeleton, GrowInput};
++use crate::presets::{by_identity, Family, CATALOGUE};
++use telperion_space::{expected_bud_counts, Coarsening, NodeLaw, PaState, Result, Species};
++
++/// Young enough for an ordinary test, and old enough to branch on every preset.
++const AGE: u32 = 24;
++/// Top-down sweeps of the solve: a bud's subtree may hold ages other than
++/// its own, whose multipliers settle over the sweeps (host, 9 Nov 2026).
++const SWEEPS: usize = 3;
++/// R4's six statistics, in `fidelity_tests::read`'s order.
++const STATISTICS: [&str; 6] = ["height", "spread", "trunk", "limbs", "shed", "area"];
++
++/// One age's derivation: the reach of the laterals it bears, its factor, and
++/// its leaf, pipe and upkeep multipliers, each flagged where it took 1.
++#[derive(Debug, Clone, Copy, PartialEq)]
++struct Rows {
++    borne: f64,
++    s: f64,
++    leaf: f64,
++    pipe: f64,
++    upkeep: f64,
++    clamped: [bool; 3],
++}
++
++/// A unit's mean nodes over its zones.
++fn unit_nodes(state: &PaState) -> f64 {
++    state.zones.iter().map(|z| z.nodes.mean()).sum()
++}
++
++/// The expected laterals of each age one unit of `state` bears.
++fn laterals(state: &PaState, ages: usize) -> Vec<f64> {
++    let mut out = vec![0.0; ages];
++    for z in &state.zones {
++        let per_node = z.nodes.mean() * z.buds * state.readiness;
++        for (o, p) in out.iter_mut().zip(&z.lateral) {
++            *o += per_node * p;
++        }
++    }
++    out
++}
++
++/// reach(j), the expected metres of axis a bud of age j grows: each cycle
++/// of its lifespan (a fractional last one at its share) at its survival
++/// so far, viability^(t+1), times its unit's length, plus its
++/// continuation times reach(j + 1). The last age has no next.
++fn reaches(species: &Species) -> Vec<f64> {
++    let n = species.states.len();
++    let mut reach = vec![0.0; n + 1];
++    for j in (0..n).rev() {
++        let state = &species.states[j];
++        let unit = unit_nodes(state) * state.internode;
++        let (mut own, mut t) = (0.0, 0.0);
++        while t < state.lifespan {
++            let share = (state.lifespan - t).min(1.0);
++            own += share * state.viability.powf(t + 1.0) * unit;
++            t += 1.0;
++        }
++        let next = if j + 1 < n {
++            state.continuation * reach[j + 1]
++        } else {
++            0.0
++        };
++        reach[j] = own + next;
++    }
++    reach.truncate(n);
++    reach
++}
++
++/// Step 1: each age's borne(k) and s_k at `fidelity` metres.
++fn factors(species: &Species, fidelity: f64) -> Vec<(f64, f64)> {
++    let (n, reach) = (species.states.len(), reaches(species));
++    let at = |state: &PaState| {
++        let lat = laterals(state, n);
++        let total: f64 = lat.iter().sum();
++        let weighted: f64 = lat.iter().zip(&reach).map(|(l, r)| l * r).sum();
++        let borne = if total > 0.0 { weighted / total } else { 0.0 };
++        let cap = (fidelity / state.internode).min(unit_nodes(state)).max(1.0);
++        let s = if borne > 0.0 {
++            (fidelity / borne).clamp(1.0, cap)
++        } else {
++            cap
++        };
++        (borne, s)
++    };
++    species.states.iter().map(at).collect()
++}
++
++/// Step 2: each age's internode times its s, each zone's node law over it.
++fn coarse(species: &Species, s: &[f64]) -> Species {
++    let mut out = species.clone();
++    for (state, &s) in out.states.iter_mut().zip(s).filter(|(_, &s)| s > 1.0) {
++        state.internode *= s;
++        for zone in &mut state.zones {
++            zone.nodes = match zone.nodes {
++                NodeLaw::Uniform { min, max } => NodeLaw::Uniform {
++                    min: min / s,
++                    max: max / s,
++                },
++                NodeLaw::Poisson { mean } => NodeLaw::Poisson { mean: mean / s },
++            };
++        }
++    }
++    out
++}
++
++/// E[.]: the expected phytomers of each age a bud of age `k` grows over `age` cycles.
++fn totals(species: &Species, k: usize, age: u32) -> Result<Vec<f64>> {
++    let table = expected_bud_counts(species, k, age)?;
++    Ok((0..species.states.len())
++        .map(|pa| table.total(pa))
++        .collect())
++}
++
++/// Step 3 for one quantity: the multipliers m of the coarsened `ages` with
++/// sum E_C(pa) wc(pa) m(pa) = sum E_N(pa) wn(pa) for a bud of each, solved
++/// from the last age down; a solution under 1, or none, takes 1, flagged.
++fn solve(
++    ages: &[usize],
++    full: &[Vec<f64>],
++    thin: &[Vec<f64>],
++    wn: &[f64],
++    wc: &[f64],
++) -> (Vec<f64>, Vec<bool>) {
++    let dot = |e: &[f64], w: &[f64]| -> f64 { e.iter().zip(w).map(|(e, w)| e * w).sum() };
++    let (mut m, mut clamped) = (vec![1.0; wn.len()], vec![false; wn.len()]);
++    for _ in 0..SWEEPS {
++        for &k in ages.iter().rev() {
++            let rhs = dot(&full[k], wn);
++            let weighted: Vec<f64> = wc.iter().zip(&m).map(|(w, m)| w * m).collect();
++            let diag = thin[k][k] * wc[k];
++            let x = (rhs - (dot(&thin[k], &weighted) - diag * m[k])) / diag;
++            (m[k], clamped[k]) = if x >= 1.0 && x.is_finite() {
++                (x, false)
++            } else {
++                (1.0, true)
++            };
++        }
++    }
++    (m, clamped)
++}
++
++/// The derived species at `fidelity` for a tree of `age` cycles, and each
++/// age's rows. Candidate D0 (`d0`) keeps every upkeep.
++fn derive(species: &Species, fidelity: f64, age: u32, d0: bool) -> Result<(Species, Vec<Rows>)> {
++    let n = species.states.len();
++    let step1 = factors(species, fidelity);
++    let s: Vec<f64> = step1.iter().map(|x| x.1).collect();
++    let mut out = coarse(species, &s);
++    let ages: Vec<usize> = (0..n).filter(|&k| s[k] > 1.0).collect();
++    let (mut full, mut thin) = (vec![Vec::new(); n], vec![Vec::new(); n]);
++    for &k in &ages {
++        (full[k], thin[k]) = (totals(species, k, age)?, totals(&out, k, age)?);
++    }
++    let per = |g: &dyn Fn(&PaState) -> f64| -> Vec<f64> { species.states.iter().map(g).collect() };
++    let leaf = per(&|x| x.leaf_area);
++    let section = per(&|x| x.form.pipe.powf(x.form.exponent));
++    let wood = per(&|x| x.internode * x.upkeep);
++    let wood_c: Vec<f64> = wood.iter().zip(&s).map(|(w, s)| w * s).collect();
++    let (l, lc) = solve(&ages, &full, &thin, &leaf, &leaf);
++    let (q, qc) = solve(&ages, &full, &thin, &section, &section);
++    let (u, uc) = if d0 {
++        (vec![1.0; n], vec![false; n])
++    } else {
++        solve(&ages, &full, &thin, &wood, &wood_c)
++    };
++    for &k in &ages {
++        let state = &mut out.states[k];
++        state.leaf_area *= l[k];
++        state.form.pipe *= q[k].powf(1.0 / state.form.exponent);
++        state.upkeep *= u[k];
++    }
++    let row = |k: usize| Rows {
++        borne: step1[k].0,
++        s: s[k],
++        leaf: l[k],
++        pipe: q[k].powf(1.0 / species.states[k].form.exponent),
++        upkeep: u[k],
++        clamped: [lc[k], qc[k], uc[k]],
++    };
++    Ok((out, (0..n).map(row).collect()))
++}
++
++/// Every catalogue preset's engine species, by id.
++fn catalogue() -> Vec<(&'static str, Species)> {
++    let with = |&(_, id, ..): &(u32, &'static str, &str, &str)| {
++        Some((id, by_identity(id).ok()?.space.species?))
++    };
++    CATALOGUE.iter().filter_map(with).collect()
++}
++
++#[test]
++fn at_fidelity_zero_the_derived_species_is_the_species() {
++    for (id, species) in catalogue() {
++        let (derived, rows) = derive(&species, 0.0, AGE, false).expect("a derivation");
++        assert_eq!(derived, species, "{id}");
++        assert!(rows.iter().all(|r| r.s == 1.0), "{id}");
++    }
++}
++
++#[test]
++fn no_factor_falls_as_the_fidelity_rises() {
++    for (id, species) in catalogue() {
++        let s = [0.0, 0.1, 0.25, 0.5, 1.0, 2.0].map(|f| factors(&species, f));
++        for w in s.windows(2) {
++            let rising = w[0].iter().zip(&w[1]).all(|(a, b)| b.1 >= a.1);
++            assert!(rising, "{id}: {:?} then {:?}", w[0], w[1]);
++        }
++    }
++}
++
++#[test]
++fn an_age_whose_laterals_reach_past_the_fidelity_keeps_its_unit() {
++    let mut held = 0;
++    for (id, species) in catalogue() {
++        for f in [0.25, 0.5, 1.0] {
++            for (k, &(borne, s)) in factors(&species, f).iter().enumerate() {
++                if borne >= f {
++                    assert_eq!(s, 1.0, "{id} at {f}: age {k} bears {borne} m");
++                    held += 1;
++                }
++            }
++        }
++    }
++    assert!(held > 0, "no age bears laterals past a metre");
++}
++
++#[test]
++fn no_multiplier_falls_under_one_on_any_preset() {
++    for (id, species) in catalogue() {
++        for f in [0.25, 0.5, 1.0] {
++            for d0 in [false, true] {
++                let (_, rows) = derive(&species, f, AGE, d0).expect("a derivation");
++                let at_least_one = rows
++                    .iter()
++                    .all(|r| r.leaf >= 1.0 && r.pipe >= 1.0 && r.upkeep >= 1.0);
++                assert!(at_least_one, "{id} at {f}: {rows:?}");
++            }
++        }
++    }
++}
++
++#[test]
++#[ignore = "fn-334: red by the frozen protocol, a question for the host: at age 24 the oak and \
++            spruce at 1.0 under D1 carry upkeep past 10, the date palm leaf area past 5 at every fidelity"]
++fn the_derived_species_is_one_the_engine_draws_on_every_preset() {
++    let mut refused = Vec::new();
++    for (id, species) in catalogue() {
++        for f in [0.25, 0.5, 1.0] {
++            for d0 in [false, true] {
++                let (derived, _) = derive(&species, f, AGE, d0).expect("a derivation");
++                if let Err(e) = derived.validate() {
++                    refused.push(format!("{id} at {f}, D0 {d0}: {e}"));
++                }
++            }
++        }
++    }
++    assert!(refused.is_empty(), "{}", refused.join("\n"));
++}
++
++/// Why `fs` gave no read: the first refusal of its growth, its cycle or its
++/// skeleton, or a statistic the tree has none of.
++fn refusal(fs: &[Family]) -> String {
++    for f in fs {
++        let grown = executor::growth(f)
++            .map_err(|e| e.to_string())
++            .and_then(|g| {
++                telperion_space::grow_census(&g.species, g.request).map_err(|e| e.to_string())
++            });
++        let built = grown.and_then(|_| {
++            skeleton(GrowInput::of(f))
++                .map(drop)
++                .map_err(|e| e.to_string())
++        });
++        if let Err(e) = built {
++            return format!("seed {}: {e}", f.skeleton.seed);
++        }
++    }
++    "grown, but a statistic was not read (no wood at breast height, or no limb count)".into()
++}
++
++/// One line of six ratios to `reference`, the worst departure and its
++/// statistic, and the cost; or the refusal.
++fn line(tag: &str, fs: &[Family], reference: &[f64; 9], repeats: usize) {
++    let Some(m) = medians(fs, repeats) else {
++        println!("FAILED {tag}: {}", refusal(fs));
++        return;
++    };
++    let q: [f64; 6] = std::array::from_fn(|k| m[k] / reference[k]);
++    let (worst, at) = (0..6)
++        .map(|k| ((q[k] - 1.0).abs(), k))
++        .fold((0.0, 0), |a, b| if b.0 > a.0 { b } else { a });
++    let ratios: Vec<String> = (0..6)
++        .map(|k| format!("{} {:.3}", STATISTICS[k], q[k]))
++        .collect();
++    println!(
++        "CAND {tag} {} worst {worst:.3} at {} seconds {:.4} axes {:.0} apexes {:.0} speedup {:.2}",
++        ratios.join(" "),
++        STATISTICS[at],
++        m[6],
++        m[7],
++        m[8],
++        reference[6] / m[6]
++    );
++}
++
++/// fn-334 R3: for `DERIVED_PRESET` at its own age on `DERIVED_SEEDS`, each
++/// of `DERIVED_FIDELITIES` under each of `DERIVED_CANDIDATES` (D1, D0), and
++/// the preset's tuned rows where it has them, against the full cycle.
++#[test]
++#[ignore = "a measurement: fn-334 R3"]
++fn derived_rows() {
++    let id = std::env::var("DERIVED_PRESET").expect("a preset");
++    let seeds: Vec<u32> = list("DERIVED_SEEDS");
++    let repeats = list::<usize>("DERIVED_REPEATS")[0];
++    let fidelities: Vec<f64> = list("DERIVED_FIDELITIES");
++    let candidates: Vec<String> = list("DERIVED_CANDIDATES");
++    let preset = by_identity(&id).expect("a preset");
++    let age = preset.age;
++    let at = |fidelity: f64| -> Vec<Family> {
++        seeds
++            .iter()
++            .map(|&s| family(&id, age, s, fidelity))
++            .collect()
++    };
++    let full = at(0.0);
++    let Some(species) = preset.space.species.clone() else {
++        println!("NOSPECIES {id}: {}", refusal(&full));
++        return;
++    };
++    let Some(reference) = medians(&full, repeats) else {
++        println!("NOREFERENCE {id}: {}", refusal(&full));
++        return;
++    };
++    println!("REFERENCE {id} age {age} {reference:?}");
++    for &f in &fidelities {
++        for candidate in &candidates {
++            let tag = format!("{id} {candidate} fidelity {f}");
++            let derived = match derive(&species, f, age as u32, candidate == "D0") {
++                Ok(d) => d,
++                Err(e) => {
++                    println!("FAILED {tag}: the derivation: {e}");
++                    continue;
++                }
++            };
++            for (k, r) in derived.1.iter().enumerate() {
++                let flags: String = (r.clamped.iter().zip("LPU".chars()))
++                    .filter(|(c, _)| **c)
++                    .map(|(_, l)| l)
++                    .collect();
++                println!(
++                    "ROWS {tag} age {k} borne {:.3} s {:.3} L {:.3} P {:.3} U {:.3} clamped {}",
++                    r.borne,
++                    r.s,
++                    r.leaf,
++                    r.pipe,
++                    r.upkeep,
++                    if flags.is_empty() { "-" } else { &flags }
++                );
++            }
++            let swapped = |mut f: Family| {
++                f.space.species = Some(derived.0.clone());
++                f.space.coarse = Coarsening::NONE;
++                f
++            };
++            line(
++                &tag,
++                &full.iter().cloned().map(swapped).collect::<Vec<_>>(),
++                &reference,
++                repeats,
++            );
++        }
++        if preset.space.coarse != Coarsening::NONE {
++            line(
++                &format!("{id} tuned fidelity {f}"),
++                &at(f),
++                &reference,
++                repeats,
++            );
++        }
++    }
++}
+diff --git a/crates/telperion-core/src/pipeline/fidelity_tests.rs b/crates/telperion-core/src/pipeline/fidelity_tests.rs
+index 894d1b7b8..604d384e5 100644
+--- a/crates/telperion-core/src/pipeline/fidelity_tests.rs
++++ b/crates/telperion-core/src/pipeline/fidelity_tests.rs
+@@ -11,7 +11,7 @@ const FIDELITIES: [f64; 4] = [0.0, 0.05, 0.25, 1.0];
+ /// Young enough for an ordinary test, and old enough to branch on every preset.
+ const AGE: f64 = 24.0;
+ 
+-fn family(id: &str, age: f64, seed: u32, fidelity: f64) -> Family {
++pub(super) fn family(id: &str, age: f64, seed: u32, fidelity: f64) -> Family {
+     let mut f = by_identity(id).expect("a preset");
+     f.age = age;
+     f.skeleton.seed = seed;
+@@ -147,12 +147,12 @@ fn median(mut v: Vec<f64>) -> f64 {
+     (v[(v.len() - 1) / 2] + v[v.len() / 2]) / 2.0
+ }
+ 
+-fn medians(fs: &[Family], repeats: usize) -> Option<[f64; 9]> {
++pub(super) fn medians(fs: &[Family], repeats: usize) -> Option<[f64; 9]> {
+     let rows = fs.iter().map(|f| read(f, repeats)).collect::<Option<Vec<_>>>()?;
+     Some(std::array::from_fn(|k| median(rows.iter().map(|r| r[k]).collect())))
+ }
+ 
+-fn list<T: std::str::FromStr>(name: &str) -> Vec<T> {
++pub(super) fn list<T: std::str::FromStr>(name: &str) -> Vec<T> {
+     let v = std::env::var(name).unwrap_or_else(|_| panic!("{name}"));
+     v.split(',').map(|x| x.parse().ok().expect("a value")).collect()
+ }
+diff --git a/crates/telperion-space/src/closed_form.rs b/crates/telperion-space/src/closed_form.rs
+index 995c9b93b..71cd36718 100644
+--- a/crates/telperion-space/src/closed_form.rs
++++ b/crates/telperion-space/src/closed_form.rs
+@@ -51,6 +51,26 @@ pub fn expected_counts(species: &Species, age: u32) -> Result<CountTable> {
+     Ok(walk.counts(0, age as usize, Carried::default(), None))
+ }
+ 
++/// The expected phytomers per PA and cycle a bud of age `pa` grows in
++/// `cycles` cycles: `expected_counts` from any age of the reference axis,
++/// what the missing wood of a coarser species is measured by (fn-334).
++pub fn expected_bud_counts(species: &Species, pa: usize, cycles: u32) -> Result<CountTable> {
++    species.validate()?;
++    if cycles == 0 || pa >= species.states.len() {
++        return refuse("bud", "an age of the reference axis grown at least one cycle");
++    }
++    let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
++    let windows = Windows::new(species, cycles);
++    let mut memo = Memo::default();
++    let mut walk = Walk {
++        species,
++        laterals: &laterals,
++        memo: &mut memo,
++        living: Living::new(species, Some(&windows)),
++    };
++    Ok(walk.counts(pa, cycles as usize, Carried::default(), None))
++}
++
+ /// The expected phytomers a tree grown `age` cycles grows, the shed ones
+ /// included: `expected_counts`' table summed, kept as one running total.
+ pub fn expected_grown(species: &Species, age: u32) -> Result<f64> {
+diff --git a/crates/telperion-space/src/closed_form/tests.rs b/crates/telperion-space/src/closed_form/tests.rs
+index f60e38627..d214fb66e 100644
+--- a/crates/telperion-space/src/closed_form/tests.rs
++++ b/crates/telperion-space/src/closed_form/tests.rs
+@@ -87,3 +87,19 @@ fn the_expected_length_weighs_the_expected_counts() {
+         "{length} vs {weighed}"
+     );
+ }
++
++/// A bud of the first age is the seed, and an age or a span the reference
++/// axis lacks is refused by name (fn-334).
++#[test]
++fn a_bud_of_the_first_age_grows_the_trees_counts() {
++    let oak = crate::oak();
++    let (tree, bud) = (expected_counts(&oak, 12), super::expected_bud_counts(&oak, 0, 12));
++    assert_eq!(tree.expect("a tree"), bud.expect("a bud"));
++    let last = oak.states.len() - 1;
++    let tip = super::expected_bud_counts(&oak, last, 12).expect("the last age");
++    assert!((0..last).all(|pa| tip.total(pa) == 0.0) && tip.total(last) > 0.0);
++    for (pa, cycles) in [(last + 1, 12), (0, 0)] {
++        let refused = super::expected_bud_counts(&oak, pa, cycles).expect_err("off the axis");
++        assert!(refused.to_string().contains("bud"), "{refused}");
++    }
++}
+diff --git a/crates/telperion-space/src/lib.rs b/crates/telperion-space/src/lib.rs
+index 60b0177b2..3cbd39f1c 100644
+--- a/crates/telperion-space/src/lib.rs
++++ b/crates/telperion-space/src/lib.rs
+@@ -54,7 +54,8 @@ pub use birch::birch;
+ pub use blend::blend;
+ pub use chain::{passed, AGES};
+ pub use closed_form::{
+-    expected_axes, expected_counts, expected_grown, expected_kept, expected_length,
++    expected_axes, expected_bud_counts, expected_counts, expected_grown, expected_kept,
++    expected_length,
+ };
+ pub use error::{Error, Result};
+ pub use fine::{canonical, digest, identities, lineage_order, ChainTables, PaRow, UnitZone, Units};

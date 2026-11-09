@@ -47,3 +47,13 @@ Evidence against the premise: hand-written means failed the oak by 14 to 17% wit
 ## Open Questions
 
 None.
+
+## Result
+
+Closed 9 Nov 2026, measurement only. The derivation as frozen is refuted: at 1.0 m under D1 no preset holds or comes near; five miss (leaf area worst on four, limbs on the beech) and three are refused before growth (the oak and spruce on upkeep, the palm on leaf area). The tables give the wood a bud could grow unshaded, far more than the tree realises (the oak's age 8: 1,012 times a node's leaf), so the missing quantity is a lateral's realised wood given its light. The rule for which ages coarsen held and carries the speed (the oak 55 times faster without the upkeep term, height within 10% on every preset). The tuned rows hold at 3 to 5% on the oak, spruce and birch. No product code stays; the probe is `probes/derived.patch`. Built by an Opus worker on the host's brief; no gate or review, since the crates are unchanged. Evidence: `.flow/evidence/fn-334-the-dials-rows-are-derived-from-the/RESULT.md`.
+
+## Friction
+
+- `cargo fmt -p telperion-core -- --check` is red on the base in `examples/early.rs`, `premises.rs` and `trunk.rs` (a minute). Disposition: an obvious fix, to ride with the next child that changes the core crate, since a commit there runs the whole gate; a format check in the gate is proposed to the owner.
+- The host froze a protocol whose derived values left the engine's bounds on three presets, found only by the full read. Disposition: the next protocol runs its formulas on one tree per preset before it is frozen.
+

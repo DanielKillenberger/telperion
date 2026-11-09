@@ -87,19 +87,3 @@ fn the_expected_length_weighs_the_expected_counts() {
         "{length} vs {weighed}"
     );
 }
-
-/// A bud of the first age is the seed, and an age or a span the reference
-/// axis lacks is refused by name (fn-334).
-#[test]
-fn a_bud_of_the_first_age_grows_the_trees_counts() {
-    let oak = crate::oak();
-    let (tree, bud) = (expected_counts(&oak, 12), super::expected_bud_counts(&oak, 0, 12));
-    assert_eq!(tree.expect("a tree"), bud.expect("a bud"));
-    let last = oak.states.len() - 1;
-    let tip = super::expected_bud_counts(&oak, last, 12).expect("the last age");
-    assert!((0..last).all(|pa| tip.total(pa) == 0.0) && tip.total(last) > 0.0);
-    for (pa, cycles) in [(last + 1, 12), (0, 0)] {
-        let refused = super::expected_bud_counts(&oak, pa, cycles).expect_err("off the axis");
-        assert!(refused.to_string().contains("bud"), "{refused}");
-    }
-}

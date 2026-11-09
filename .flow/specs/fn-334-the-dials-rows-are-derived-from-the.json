@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-334-the-dials-rows-are-derived-from-the.md",
-  "status": "open",
+  "status": "done",
   "title": "The dial's rows are derived from the species",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-09T20:53:26.005508Z"
+  "updated_at": "2026-11-09T21:16:19.388699Z"
 }

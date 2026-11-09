@@ -51,26 +51,6 @@ pub fn expected_counts(species: &Species, age: u32) -> Result<CountTable> {
     Ok(walk.counts(0, age as usize, Carried::default(), None))
 }
 
-/// The expected phytomers per PA and cycle a bud of age `pa` grows in
-/// `cycles` cycles: `expected_counts` from any age of the reference axis,
-/// what the missing wood of a coarser species is measured by (fn-334).
-pub fn expected_bud_counts(species: &Species, pa: usize, cycles: u32) -> Result<CountTable> {
-    species.validate()?;
-    if cycles == 0 || pa >= species.states.len() {
-        return refuse("bud", "an age of the reference axis grown at least one cycle");
-    }
-    let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
-    let windows = Windows::new(species, cycles);
-    let mut memo = Memo::default();
-    let mut walk = Walk {
-        species,
-        laterals: &laterals,
-        memo: &mut memo,
-        living: Living::new(species, Some(&windows)),
-    };
-    Ok(walk.counts(pa, cycles as usize, Carried::default(), None))
-}
-
 /// The expected phytomers a tree grown `age` cycles grows, the shed ones
 /// included: `expected_counts`' table summed, kept as one running total.
 pub fn expected_grown(species: &Species, age: u32) -> Result<f64> {
