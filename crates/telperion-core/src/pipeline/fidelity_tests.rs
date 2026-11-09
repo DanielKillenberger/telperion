@@ -11,7 +11,7 @@ const FIDELITIES: [f64; 4] = [0.0, 0.05, 0.25, 1.0];
 /// Young enough for an ordinary test, and old enough to branch on every preset.
 const AGE: f64 = 24.0;
 
-fn family(id: &str, age: f64, seed: u32, fidelity: f64) -> Family {
+pub(super) fn family(id: &str, age: f64, seed: u32, fidelity: f64) -> Family {
     let mut f = by_identity(id).expect("a preset");
     f.age = age;
     f.skeleton.seed = seed;
@@ -147,12 +147,12 @@ fn median(mut v: Vec<f64>) -> f64 {
     (v[(v.len() - 1) / 2] + v[v.len() / 2]) / 2.0
 }
 
-fn medians(fs: &[Family], repeats: usize) -> Option<[f64; 9]> {
+pub(super) fn medians(fs: &[Family], repeats: usize) -> Option<[f64; 9]> {
     let rows = fs.iter().map(|f| read(f, repeats)).collect::<Option<Vec<_>>>()?;
     Some(std::array::from_fn(|k| median(rows.iter().map(|r| r[k]).collect())))
 }
 
-fn list<T: std::str::FromStr>(name: &str) -> Vec<T> {
+pub(super) fn list<T: std::str::FromStr>(name: &str) -> Vec<T> {
     let v = std::env::var(name).unwrap_or_else(|_| panic!("{name}"));
     v.split(',').map(|x| x.parse().ok().expect("a value")).collect()
 }

@@ -99,6 +99,10 @@ Follow `docs/evidence-retention.md` when collecting or staging evidence. Keep fi
 <!-- flow-next:model-routing:start -->
 ## Model routing
 
+The host conducts and Opus builds (owner, 9 Nov 2026: "you orchestrate the goal build and have opus do the build work. They should escalate to you for questions."). The host session writes specs, freezes protocols, makes every design judgment and reads every result; a dispatched Opus worker writes the code, runs the measurements and drafts the result, and stops and asks the host at any question about how the system should work ("Dispatch and escalation"). The host keeps push, review dispatch, spec state and the goal log.
+
+implementer: opus
+
 <!-- Scaffolded by /flow-next:setup as an EXAMPLE to edit. Every routing line
      below is commented out, so nothing is routed until you uncomment one.
      These are your preferences to fill in - never detected facts. flow-next
