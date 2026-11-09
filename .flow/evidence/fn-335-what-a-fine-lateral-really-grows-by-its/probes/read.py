@@ -14,7 +14,8 @@ from array import array
 from collections import defaultdict
 
 FIT, TEST = list(range(1001, 1007)), list(range(1007, 1013))
-SPAN_EDGES = [8, 16]  # spans 1-8, 9-16, 17 and over
+# Spans 1 to 8 each its own bin, then 9-16, then 17 and over: ten bins.
+SPAN_EDGES = [1, 2, 3, 4, 5, 6, 7, 8, 16]
 
 binary, preset, cpu, out = sys.argv[1:5]
 
