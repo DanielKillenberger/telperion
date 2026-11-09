@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-332-what-bends-the-old-oaks-trunk.md",
-  "status": "open",
+  "status": "done",
   "title": "What bends the old oak's trunk",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-03T13:03:57.688277Z"
+  "updated_at": "2026-11-09T20:48:42.615095Z"
 }
