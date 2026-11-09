@@ -1,0 +1,11 @@
+# fn-335: the next step (host, 9 Nov 2026)
+
+**What the read settles.** A stand-in read from a node's own state has a measured ceiling. With each species' own averages, taken from its own full cycles, and with the full tree's own laterals to apply them to, the standing amounts come out within 0.2% on the spruce, about 5% on the oak and birch, and 10 to 11% on the beech, and the worst position group is off by 10 to 12% on the three broadleaves. A coarse tree that grows on the stand-in can only do worse, since its errors feed its own light and shedding. The goal's R4 asks 5% on six statistics. So no stand-in of this kind, calculated or trained, holds R4 on the broadleaves; a model given the same inputs cannot beat the averages it would be trained on. What a broadleaf's twigs still carry depends on more than the twig's age, span, light and order: the council's objection of 11 Oct, now with a size, 5 to 11%.
+
+**What does not transfer.** Averages do not carry from one species to another (54 to 75% off), so nothing here is species-free. The pooling used each preset's own light fifths, so this test is rough, and it is not close.
+
+**What it does not say.** It does not say a coarse tree at 10% looks wrong. Every bar this route has been held to (5%, six statistics) is the host's number, and the owner's own criterion is the eye, R10. No still of any coarse candidate has been put before the owner in this goal.
+
+**Proposed next child: the owner looks.** Stills of the oak, spruce, birch and beech at the grove and whole-tree views, the full cycle beside the candidates that exist and their times: the tuned rows (3 to 5%, 5 to 10 times faster) and fn-334's row-free reach rule without the upkeep term (height within 10%, leaf 1.3 to 3.2 times over, limbs short, 7 to 55 times faster). The owner's verdict then picks the point on the curve worth building toward. If the row-free tree is acceptable at the grove view, the work is fixing its leaf and limbs with a species' own measured averages. If only the tuned rows are, the work is making their calibration automatic for any species. If neither, the coarse route ends and the engine's cost is all that is left.
+
+**Not proposed:** training a model on these records. The ceiling above is what it would reach.

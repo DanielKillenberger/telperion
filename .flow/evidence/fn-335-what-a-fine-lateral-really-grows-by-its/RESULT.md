@@ -1,6 +1,6 @@
 # fn-335 result: what a fine lateral really grows, by its light
 
-Drafted by the worker on 9 Nov 2026 under the protocol the host froze (`PROTOCOL.md`). The next step is the host's and is not written here.
+Drafted by the worker on 9 Nov 2026 under the protocol the host froze (`PROTOCOL.md`). The next step, in `NEXT.md` beside this file, is the host's.
 
 ## Verdict (R5)
 

@@ -10,7 +10,7 @@ TBD
 Every R-ID in the parent spec's ## Acceptance Criteria is satisfied; judge this task against the spec's criteria directly.
 
 ## Done summary
-The read ran under the frozen protocol, and the verdict is near. With span and light as inputs, a stand-in read from local state predicts the standing leaf, section and wood of every preset's fine laterals within 10% for the whole tree and 20% for the worst bearer-age group. Span alone is no-go, and so is one curve across species. The full result is `.flow/evidence/fn-335-what-a-fine-lateral-really-grows-by-its/RESULT.md`, with `cells.csv` beside it. No next step is proposed; that is the host's.
+The read ran under the frozen protocol, and the verdict is no-go (host's correction, 9 Nov 2026: the first read used three span bins by mistake and read near; the repeat on the protocol's ten bins reads no-go, the beech past 10% on every predictor). The oak, spruce and birch read near with span and light. Span alone is no-go, and so is one curve across species. The full result is `.flow/evidence/fn-335-what-a-fine-lateral-really-grows-by-its/RESULT.md`, with `cells.csv` beside it. No next step is proposed; that is the host's.
 
 The recorder reads grown quantities before the shed and standing quantities after the settle's shed and scale. Its test holds the standing sums equal to the tree `grow_cycle` returns. The recorder is kept as `probes/recorder.patch`, and the crates end as they began. The read was reduced to cell sums through a pipe, so no record line reached the disk.
 

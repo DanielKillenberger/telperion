@@ -42,3 +42,14 @@ From fn-334: the tuned rows hold the oak, spruce and birch within 3 to 5% at 5 t
 ## Open Questions
 
 None.
+
+## Result
+
+Closed 9 Nov 2026, measurement only, built by an Opus worker through the work stage. Verdict by the frozen rule: no-go for a stand-in read from local state. With each species' own averages by age, span and light, the standing leaf, section and wood of the fine laterals of six unseen trees come out within 0.2% on the spruce, 5% on the oak and birch and 10 to 11% on the beech, with the worst position group at 10 to 12% on the broadleaves; span alone misses by up to 19%, and averages do not carry between species (54 to 75%). Found on the way: a lateral grows 0.43 to 1.21 of its tables' potential over its own span, and the settle sheds 55 to 66% of the finest; fn-334's "10 to 1,000 times" compared against a bud grown for the tree's whole age. The first read used three span bins by mistake and read near; it was repeated on the protocol's ten. No product code stays (the recorder is a patch in evidence); no gate or review, since the crates are unchanged. Evidence: RESULT.md, NEXT.md and cells.csv under .flow/evidence/fn-335-what-a-fine-lateral-really-grows-by-its/.
+
+## Friction
+
+- The recorder printed 134 MB of records for one spruce. Disposition: fixed in the child; the reader reduces the pipe to cell sums and no record reaches the disk.
+- The shell hook refused a heredoc append and a checkout of the crates; the formatter check flags files already on the branch (3 minutes). Disposition: the hook is local setup; the format drift is the one fn-334 named, to ride with the next child that changes the core crate.
+- The host's protocol wrote "1 to 8 each" for the span bins and the worker read it as one bin, found only when the host read the cell table (one repeat, about 5 minutes). Disposition: a protocol lists its bins one by one.
+

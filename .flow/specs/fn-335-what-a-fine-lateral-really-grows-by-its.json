@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-335-what-a-fine-lateral-really-grows-by-its.md",
-  "status": "open",
+  "status": "done",
   "title": "What a fine lateral really grows, by its light",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-09T21:24:31.858044Z"
+  "updated_at": "2026-11-09T21:50:29.384205Z"
 }
