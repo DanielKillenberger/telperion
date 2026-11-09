@@ -1,5 +1,8 @@
 """fn-335 R1 dry run: the recorder's lines read for sense, nothing chosen.
 
+Reads the dry run's line format, the recorder as committed at b2e606b23;
+the final recorder.patch prints read.py's format instead.
+
 Usage: python3 -I dry.py <log>... Reads the `lateral_records` lines
 (TREE, WEIGHTS, POT, NOPOT, REC) and prints, per preset and lateral age:
 the laterals recorded, those with no first light (grew nothing of their

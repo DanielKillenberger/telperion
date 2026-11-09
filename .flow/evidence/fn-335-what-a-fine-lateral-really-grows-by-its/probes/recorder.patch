@@ -13,34 +13,98 @@ index 22f97a6cd..046c782d1 100644
  mod stage;
 diff --git i/crates/telperion-core/src/pipeline/lateral_tests.rs w/crates/telperion-core/src/pipeline/lateral_tests.rs
 new file mode 100644
-index 000000000..fd3b6a999
+index 000000000..320c58cc8
 --- /dev/null
 +++ w/crates/telperion-core/src/pipeline/lateral_tests.rs
-@@ -0,0 +1,78 @@
-+//! fn-335: every lateral a preset's full cycle grows, its light at birth
-+//! and what its subtree really grew, beside the tables' potential for a
-+//! bud of its age over the same span. A measurement, ignored: it prints
-+//! lines for `probes/` in the spec's evidence to read.
+@@ -0,0 +1,140 @@
++//! fn-335: every lateral a preset's full cycle grows, its light at birth,
++//! what its subtree grew and what it still holds at the tree's age, beside
++//! the tables' potential for a bud of its age over the same span
++//! (`PROTOCOL.md` in the spec's evidence). A measurement, ignored: it
++//! prints lines for `probes/read.py` to reduce.
 +use super::executor;
 +use crate::presets::by_identity;
-+use std::collections::BTreeMap;
-+use telperion_space::{expected_bud_counts, grow_laterals};
++use std::collections::HashMap;
++use telperion_space::{expected_bud_counts, grow_laterals, PaState, Species};
 +
-+fn csv(v: &[f64]) -> String {
-+    let parts: Vec<String> = v.iter().map(|x| format!("{x}")).collect();
-+    parts.join(",")
++/// The resolution fn-334's reach rule is read at for the fine ages.
++const FIDELITY: f64 = 1.0;
++
++/// A unit's mean nodes over its zones.
++fn unit_nodes(state: &PaState) -> f64 {
++    state.zones.iter().map(|z| z.nodes.mean()).sum()
 +}
 +
-+fn or_none<T: std::fmt::Display>(v: Option<T>) -> String {
-+    v.map_or("none".into(), |x| x.to_string())
++/// fn-334's reach(j): the expected metres of axis a bud of age j grows.
++fn reaches(species: &Species) -> Vec<f64> {
++    let n = species.states.len();
++    let mut reach = vec![0.0; n + 1];
++    for j in (0..n).rev() {
++        let state = &species.states[j];
++        let unit = unit_nodes(state) * state.internode;
++        let (mut own, mut t) = (0.0, 0.0);
++        while t < state.lifespan {
++            let share = (state.lifespan - t).min(1.0);
++            own += share * state.viability.powf(t + 1.0) * unit;
++            t += 1.0;
++        }
++        reach[j] = own + state.continuation * reach[j + 1];
++    }
++    reach.truncate(n);
++    reach
++}
++
++/// fn-334's step 1 at `FIDELITY`: each age's borne(k) and s_k.
++fn factors(species: &Species) -> Vec<(f64, f64)> {
++    let (n, reach) = (species.states.len(), reaches(species));
++    let at = |state: &PaState| {
++        let mut lat = vec![0.0; n];
++        for z in &state.zones {
++            let per_node = z.nodes.mean() * z.buds * state.readiness;
++            for (o, p) in lat.iter_mut().zip(&z.lateral) {
++                *o += per_node * p;
++            }
++        }
++        let total: f64 = lat.iter().sum();
++        let weighted: f64 = lat.iter().zip(&reach).map(|(l, r)| l * r).sum();
++        let borne = if total > 0.0 { weighted / total } else { 0.0 };
++        let cap = (FIDELITY / state.internode).min(unit_nodes(state)).max(1.0);
++        let s = if borne > 0.0 {
++            (FIDELITY / borne).clamp(1.0, cap)
++        } else {
++            cap
++        };
++        (borne, s)
++    };
++    species.states.iter().map(at).collect()
++}
++
++/// Each age's weight per phytomer for the four quantities: phytomers,
++/// leaf area, section and wood length (fn-334's).
++fn weights(species: &Species) -> Vec<[f64; 4]> {
++    let w = |s: &PaState| [1.0, s.leaf_area, s.form.pipe.powf(s.form.exponent), s.internode];
++    species.states.iter().map(w).collect()
++}
++
++/// The four quantities of `by_age`, each age weighted.
++fn weighed(by_age: &[f64], w: &[[f64; 4]]) -> [f64; 4] {
++    std::array::from_fn(|q| by_age.iter().zip(w).map(|(n, w)| n * w[q]).sum())
++}
++
++fn line(v: &[f64]) -> String {
++    let parts: Vec<String> = v.iter().map(|x| format!("{x:.6e}")).collect();
++    parts.join(" ")
 +}
 +
 +/// `LATERAL_PRESET` at its own age, the full cycle, on each of
-+/// `LATERAL_SEEDS`: per age its weights (`WEIGHTS`), per age and span the
-+/// potential (`POT`), and per lateral its record (`REC`); a span the
-+/// tables refuse is printed as `NOPOT`.
++/// `LATERAL_SEEDS`: the fine ages (`FINE`), and per lateral its record
++/// (`REC`): age, span, first light (-1 where it grew no unit), bearer's
++/// light, order, bearer's age, shed, apex lived; then grown phytomers,
++/// leaf, section, wood and last-cycle phytomers; standing phytomers,
++/// last-cycle leaf, section, wood and last-cycle phytomers; the
++/// potential's phytomers, leaf, section and wood (-1 where refused).
 +#[test]
-+#[ignore = "a measurement: fn-335 R2"]
++#[ignore = "a measurement: fn-335 R2, R3"]
 +fn lateral_records() {
 +    let id = std::env::var("LATERAL_PRESET").expect("a preset");
 +    let seeds = std::env::var("LATERAL_SEEDS").expect("seeds");
@@ -50,48 +114,46 @@ index 000000000..fd3b6a999
 +        f.skeleton.seed = seed;
 +        let g = executor::growth(&f).expect("its growth");
 +        let (species, request) = (&g.species, g.request);
-+        println!("TREE {id} seed {seed} age {} pas {}", request.age, species.states.len());
-+        for (pa, s) in species.states.iter().enumerate() {
-+            let (pipe, exponent) = (s.form.pipe, s.form.exponent);
-+            let (leaf, internode) = (s.leaf_area, s.internode);
-+            println!("WEIGHTS {id} {pa} leaf {leaf} internode {internode} pipe {pipe} exponent {exponent}");
-+        }
-+        let records = grow_laterals(species, request).expect("records");
-+        let mut potential = BTreeMap::new();
-+        for l in &records {
++        let fine: Vec<String> = (factors(species).iter().enumerate())
++            .map(|(k, (borne, s))| format!("{k}:{borne:.4}:{s:.4}"))
++            .collect();
++        println!("FINE {id} {seed} age {} {}", request.age, fine.join(" "));
++        let w = weights(species);
++        let mut potential: HashMap<(usize, u32), [f64; 4]> = HashMap::new();
++        for l in grow_laterals(species, request).expect("records") {
 +            let span = request.age - l.birth;
-+            if potential.contains_key(&(l.pa, span)) {
-+                continue;
-+            }
-+            let line = match expected_bud_counts(species, l.pa, span) {
-+                Ok(t) => {
-+                    let totals: Vec<f64> = (0..t.pas).map(|pa| t.total(pa)).collect();
-+                    format!("POT {id} {seed} {} {span} {}", l.pa, csv(&totals))
++            let pot = *potential.entry((l.pa, span)).or_insert_with(|| {
++                match expected_bud_counts(species, l.pa, span) {
++                    Ok(t) => weighed(&(0..t.pas).map(|pa| t.total(pa)).collect::<Vec<_>>(), &w),
++                    Err(_) => [-1.0; 4],
 +                }
-+                Err(e) => format!("NOPOT {id} {seed} {} {span} {e}", l.pa),
-+            };
-+            println!("{line}");
-+            potential.insert((l.pa, span), ());
-+        }
-+        for l in &records {
-+            println!(
-+                "REC {id} {seed} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
-+                l.lineage,
-+                l.pa,
-+                l.birth,
-+                u8::from(l.woken),
-+                l.bearer_pa,
-+                l.node,
-+                l.order,
-+                or_none(l.light),
++            });
++            let grown = weighed(&l.count, &w);
++            let standing = weighed(&l.standing, &w);
++            let lived = l.apex_end.map_or(span, |e| e - l.birth);
++            let head = [
++                l.pa as f64,
++                f64::from(span),
++                l.light.unwrap_or(-1.0),
 +                l.bearer_light,
-+                or_none(l.apex_end),
-+                or_none(l.last),
-+                u8::from(l.shed),
-+                request.age - l.birth,
-+                csv(&l.count),
-+                csv(&l.scale),
-+            );
++                f64::from(l.order),
++                l.bearer_pa as f64,
++                f64::from(u8::from(l.shed)),
++                f64::from(lived),
++            ];
++            let values = [
++                grown[0],
++                grown[1],
++                grown[2],
++                grown[3],
++                l.count_last.iter().sum(),
++                standing[0],
++                weighed(&l.standing_last, &w)[1],
++                standing[2],
++                standing[3],
++                l.standing_last.iter().sum(),
++            ];
++            println!("REC {} {} {}", line(&head), line(&values), line(&pot));
 +        }
 +    }
 +}
@@ -148,10 +210,10 @@ index 36d260e1a..31921bca5 100644
  
 diff --git i/crates/telperion-space/src/grow/cycle/laterals.rs w/crates/telperion-space/src/grow/cycle/laterals.rs
 new file mode 100644
-index 000000000..d6e663cee
+index 000000000..8a72b186f
 --- /dev/null
 +++ w/crates/telperion-space/src/grow/cycle/laterals.rs
-@@ -0,0 +1,164 @@
+@@ -0,0 +1,281 @@
 +//! fn-335: what every lateral a full cycle grew really carried. The grower
 +//! runs as the reference runs it (every axis open, none retired), its
 +//! presences are assigned as the settle assigns them, and each lateral's
@@ -190,10 +252,15 @@ index 000000000..d6e663cee
 +    pub last: Option<u32>,
 +    /// Whether the settle sheds it.
 +    pub shed: bool,
-+    /// Its whole subtree's phytomers by age, counted and summed by their
-+    /// scale (every presence on their lineage times their unit's size).
++    /// Its whole subtree's phytomers by age as grown, before the shed,
++    /// counted; and those grown in the tree's last cycle.
 +    pub count: Vec<f64>,
-+    pub scale: Vec<f64>,
++    pub count_last: Vec<f64>,
++    /// What its subtree holds at the tree's age, by age: the phytomers the
++    /// settle keeps, summed by their settled scale; and those of the last
++    /// cycle.
++    pub standing: Vec<f64>,
++    pub standing_last: Vec<f64>,
 +}
 +
 +/// Every lateral of `species` grown to `request`'s age through the full
@@ -210,37 +277,92 @@ index 000000000..d6e663cee
 +    }
 +    g.mark();
 +    assign(&mut g.axes, &g.draws, species, g.threads);
-+    let mut out = read(&g.axes, species.states.len());
-+    let shed = crate::shed::shed(g.axes, species, request.age);
-+    let index: Vec<usize> = shed.index;
++    let pas = species.states.len();
++    let mut out = read(&g.axes, pas, request.age);
++    let parents: Vec<Option<usize>> = g.axes.iter().map(|a| a.origin.parent()).collect();
++    let (shed, mut tree) = settled(g, species, request)?;
++    let n = parents.len();
++    let mut standing = vec![0.0; n * pas];
++    let mut standing_last = vec![0.0; n * pas];
++    for (i, &k) in shed.iter().enumerate() {
++        let Some(axis) = (k != usize::MAX).then(|| &tree.axes[k]) else {
++            continue;
++        };
++        for p in &axis.phytomers {
++            standing[i * pas + axis.pa] += p.scale;
++            if p.cycle == request.age {
++                standing_last[i * pas + axis.pa] += p.scale;
++            }
++        }
++    }
++    sum_up(&parents, pas, &mut [&mut standing, &mut standing_last]);
++    tree.axes.clear();
 +    for (lateral, i) in out.iter_mut() {
-+        lateral.shed = index[*i] == usize::MAX;
++        lateral.shed = shed[*i] == usize::MAX;
++        lateral.standing = standing[*i * pas..(*i + 1) * pas].to_vec();
++        lateral.standing_last = standing_last[*i * pas..(*i + 1) * pas].to_vec();
 +    }
 +    Ok(out.into_iter().map(|(l, _)| l).collect())
 +}
 +
++/// The settle's shed and scale, as `settle_shed` and `settle_lay` take
++/// them, of the grower already marked and assigned: each grown axis's
++/// index in the settled tree (none where shed), and that tree scaled.
++fn settled(
++    g: super::super::Grower<'_>,
++    species: &Species,
++    request: Request,
++) -> Result<(Vec<usize>, crate::structure::Structure)> {
++    let threads = g.threads;
++    let w = g.working.as_ref().expect("a working set");
++    let r = w.retirement();
++    let (given, gone) = (|i| r.root(i), |i| r.inside(i));
++    let shed = crate::shed::shed_past(g.axes, species, request.age, (&given, &gone), None).0;
++    let mut tree = crate::structure::Structure {
++        age: request.age,
++        pas: species.states.len(),
++        axes: shed.axes,
++    };
++    crate::geometry::scale(&mut tree, species, threads);
++    Ok((shed.index, tree))
++}
++
++/// Each axis's per-age sums in `cols` gathered into its parent's, from
++/// the tips down (a parent precedes its children).
++fn sum_up(parents: &[Option<usize>], pas: usize, cols: &mut [&mut Vec<f64>]) {
++    for i in (1..parents.len()).rev() {
++        let Some(p) = parents[i] else {
++            continue;
++        };
++        for col in cols.iter_mut() {
++            for k in 0..pas {
++                col[p * pas + k] += col[i * pas + k];
++            }
++        }
++    }
++}
++
 +/// Each lateral's record and its index, every subtree summed from the
 +/// tips down (a parent precedes its children).
-+fn read(axes: &[Axis], pas: usize) -> Vec<(Lateral, usize)> {
++fn read(axes: &[Axis], pas: usize, age: u32) -> Vec<(Lateral, usize)> {
 +    let n = axes.len();
-+    let (mut count, mut scale) = (vec![0.0; n * pas], vec![0.0; n * pas]);
++    let (mut count, mut count_last) = (vec![0.0; n * pas], vec![0.0; n * pas]);
 +    let mut last: Vec<Option<u32>> = vec![None; n];
 +    for (i, a) in axes.iter().enumerate() {
 +        for p in &a.phytomers {
 +            count[i * pas + a.pa] += 1.0;
-+            scale[i * pas + a.pa] += p.scale;
++            if p.cycle == age {
++                count_last[i * pas + a.pa] += 1.0;
++            }
 +        }
 +        last[i] = a.phytomers.iter().map(|p| p.cycle).max();
 +    }
++    let parents: Vec<Option<usize>> = axes.iter().map(|a| a.origin.parent()).collect();
++    sum_up(&parents, pas, &mut [&mut count, &mut count_last]);
 +    for i in (1..n).rev() {
-+        let Some(p) = axes[i].origin.parent() else {
-+            continue;
-+        };
-+        for k in 0..pas {
-+            count[p * pas + k] += count[i * pas + k];
-+            scale[p * pas + k] += scale[i * pas + k];
++        if let Some(p) = parents[i] {
++            last[p] = last[p].max(last[i]);
 +        }
-+        last[p] = last[p].max(last[i]);
 +    }
 +    let mut order = vec![0u32; n];
 +    let mut out = Vec::new();
@@ -271,7 +393,9 @@ index 000000000..d6e663cee
 +            last: last[i],
 +            shed: false,
 +            count: count[i * pas..(i + 1) * pas].to_vec(),
-+            scale: scale[i * pas..(i + 1) * pas].to_vec(),
++            count_last: count_last[i * pas..(i + 1) * pas].to_vec(),
++            standing: Vec::new(),
++            standing_last: Vec::new(),
 +        };
 +        out.push((lateral, i));
 +    }
@@ -314,6 +438,61 @@ index 000000000..d6e663cee
 +        assert_eq!(kept, held);
 +        let grown = |l: &Lateral| l.light.is_some() == (l.count[l.pa] > 0.0);
 +        assert!(records.iter().all(grown));
++        let gone = |l: &&Lateral| l.shed && l.standing.iter().any(|&s| s != 0.0);
++        assert_eq!(records.iter().filter(gone).count(), 0);
++        let held = held_by_lineage(&tree.structure, oak.states.len());
++        for l in records.iter().filter(|l| !l.shed) {
++            let (all, last) = &held[&l.lineage];
++            for (ours, theirs) in [(&l.standing, all), (&l.standing_last, last)] {
++                let near = |(a, b): (&f64, &f64)| (a - b).abs() <= 1e-9 * b.abs().max(1.0);
++                assert!(ours.iter().zip(theirs).all(near), "{ours:?} vs {theirs:?}");
++            }
++        }
++    }
++
++    /// Each lateral of a settled tree's subtree, by age, summed by scale,
++    /// and those of the last cycle, by lineage.
++    fn held_by_lineage(
++        tree: &crate::structure::Structure,
++        pas: usize,
++    ) -> std::collections::HashMap<u64, (Vec<f64>, Vec<f64>)> {
++        let n = tree.axes.len();
++        let (mut all, mut last) = (vec![0.0; n * pas], vec![0.0; n * pas]);
++        for (i, a) in tree.axes.iter().enumerate() {
++            for p in &a.phytomers {
++                all[i * pas + a.pa] += p.scale;
++                if p.cycle == tree.age {
++                    last[i * pas + a.pa] += p.scale;
++                }
++            }
++        }
++        // The settled tree is in lineage order, a child possibly before its
++        // parent: gathered deepest first.
++        let parents: Vec<Option<usize>> = tree.axes.iter().map(|a| a.origin.parent()).collect();
++        let depth = |mut i: usize| {
++            let mut d = 0;
++            while let Some(p) = parents[i] {
++                (i, d) = (p, d + 1);
++            }
++            d
++        };
++        let mut deepest: Vec<usize> = (0..n).collect();
++        deepest.sort_by_key(|&i| std::cmp::Reverse(depth(i)));
++        for i in deepest {
++            let Some(p) = parents[i] else {
++                continue;
++            };
++            for k in 0..pas {
++                all[p * pas + k] += all[i * pas + k];
++                last[p * pas + k] += last[i * pas + k];
++            }
++        }
++        let span = |v: &[f64], i: usize| v[i * pas..(i + 1) * pas].to_vec();
++        // A relay carries its parent's lineage: only laterals are keyed.
++        (tree.axes.iter().enumerate())
++            .filter(|(_, a)| matches!(a.origin, Origin::Lateral { .. }))
++            .map(|(i, a)| (a.lineage, (span(&all, i), span(&last, i))))
++            .collect()
 +    }
 +}
 diff --git i/crates/telperion-space/src/lib.rs w/crates/telperion-space/src/lib.rs
