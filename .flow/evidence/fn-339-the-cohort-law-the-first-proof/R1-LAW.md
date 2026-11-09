@@ -178,7 +178,9 @@ A class is (age, years in it, years since birth, living). Counting by class rath
 
 ## 3. Where the outline is wrong, ambiguous, or cannot be written from the tables
 
-1. **The speed the law can buy, by unit count (inferred from the tables).**
+1. **Correction, 10 Nov 2026, R3's dry run: this item's arithmetic is wrong by a factor of about ten, and its conclusion is reversed.** In steady state, a branch unit laid each year sets beside its own 1 unit the cohort units of every unit laid in the ten years before. That is 24.5 a year at 0.26, not 2.45: the sum over a unit's ten years was divided by ten. Measured on the replay's trees at 40, the cohorts at 0.5 m hold 94.4% of the oak's yearly units, 93.2% of the beech's and 81.9% of the spruce's. By unit count, that bounds the saving at 17.9, 14.7 and 5.5 times (`R3-DRY.md`). The text below is kept as it was written.
+
+   **The speed the law can buy, by unit count (inferred from the tables).**
    - Per oak branch unit-year, the cohort ages grow 2.45 units at 0.26 (24.5 over ten years) and about 3.75 at full light. The branch itself grows 1. If cost follows units grown, taking the oak's twigs and shorts out saves at most 3.5 to 4.8 times on branch wood, at 0.5 m and at 1.0 m alike, since the set is the same.
    - On boughs and limbs the share is smaller, because their laterals are mostly branches, which stay structural.
    - The beech's branch unit: 2.8 cohort units a year against 1, so at most 3.8 times.
