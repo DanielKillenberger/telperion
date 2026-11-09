@@ -35,3 +35,14 @@ Settled by the goal: numbers explain a look and never decide it; only the owner'
 ## Open Questions
 
 None.
+
+## Result
+
+Closed 9 Nov 2026, built by an Opus worker through the work stage; no crate changed, so no gate or review. Nineteen retained sheets (4.1 MiB): the oak, spruce, beech, birch, date palm and ordinary tree at 40 on seeds 1, 7 and 42 at whole, mid and close views beside their reference photographs, and the oak at 120, 200 and 300 with fn-332's probe under each tree. R1's grove view is not met: nothing in the repository draws the website's voxel style without a window, and none was built. The host viewed the oak, old-oak, beech and spruce whole sheets before the question went to the owner. Evidence: RESULT.md and the sheets under .flow/evidence/fn-336-sheets-of-020s-trees-as-they-stand/.
+
+## Friction
+
+- The stills waited about 6 minutes for the GPU, held by a game on the owner's desk. Disposition: local setup, reported.
+- No command draws the voxel style headlessly, so the grove sheet could not be made. Disposition: a line in the child that builds growth in view (goal R1), which needs that view for its benchmark and for R6's sheet.
+- The space still examples take no camera option, so two clipped stills were remade through the headless renderer (10 minutes). Disposition: an obvious fix, to ride with the next child that changes the render crate.
+

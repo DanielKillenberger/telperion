@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-336-sheets-of-020s-trees-as-they-stand.md",
-  "status": "open",
+  "status": "done",
   "title": "Sheets of 0.2.0's trees as they stand",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-09T22:11:32.178001Z"
+  "updated_at": "2026-11-09T22:40:03.113456Z"
 }
