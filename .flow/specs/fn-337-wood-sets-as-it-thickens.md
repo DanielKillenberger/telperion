@@ -42,3 +42,13 @@ Open specs fn-59 (branches bend under the leaves they carry) and fn-200 (branche
 ## Open Questions
 
 None.
+
+## Result
+
+Retired 9 Nov 2026, superseded by fn-338, before any code. Its own R1 stopped it: the sources support the rule's mechanics (each year's added load bends the wood as it then stands, and the bend is kept; Almeras and Fournier 2009, Jirasek, Prusinkiewicz and Moulia 2000, both read) and refute the effect the host wrote into the premise. A radius only grows, so the yearly sum is never less than today's single bend, and on a self-similar limb it is about 10 times today's at 40 and 18 times at 300. The host had the direction reversed. The same sources name what the rule leaves out, reaction wood, as the reason real trees do not weep, and fn-338 builds on that. Kept and still read: R1-NOTE.md, DESIGN-FINDINGS.md and BEFORE.md (the old oak before any change: the crown's mean 11.91 m off the base at 200 and 12.47 m at 300 on the median seed) under .flow/evidence/fn-337-wood-sets-as-it-thickens/. No crate changed; no gate or review.
+
+## Friction
+
+- The shell hook refused a heredoc write (a minute). Disposition: local setup, reported.
+- The host's premise stated an effect its own formula does not give, found by the worker's source check at the first planned stop (about 7 minutes of worker time, no code lost). Disposition: a rule's expected direction is derived on paper in the spec, with its arithmetic, before a child is minted for it.
+
