@@ -37,3 +37,20 @@ Settled by the owner's verdict on fn-341: a measure moving toward a published ra
 ## Open Questions
 
 None.
+
+## Result
+
+Closed 10 Nov 2026 without a fix. The evidence holds `R1-NOTE.md`, `R2-ARITHMETIC.md`, `R3-ABLATION.md` and the ablation sheets, which the host viewed (E's leafless and leafed).
+
+- **The title's premise was wrong.** The lateral that takes the line is a side branch born about 3 years earlier, 0.25 to 0.39 m below its bearer's end; it is the line only because the pipe model makes it the thicker. On thick wood the bearer's tip mostly has not stopped: at 12 years the branch row moves on to the shoot age (32% of the take-overs at 40, 52% at 120). fn-342's "where the tip had stopped" counted those.
+- **Sharing a fork's angle by section fails on paper:** sharp joints per metre go from 0.44 to 2.20 at 40 and from 0.62 to 1.84 at 120, since a lateral at 0.55 to 0.73 of its bearer's radius is the common case and every bearer then zigzags. Murray 1927 was read in full; at the oak's pipe exponent its form gives no angle.
+- **What the eye says (the ablation):** switching off limb relays, wander or sag does not make the oak read less jagged. Halving the branch and twig rows' insertion angles does, at both ages and both seeds, with height, trunk and leaf within 5% of today's, and it costs the oak its wide-angled twiggy look. That variant is an instrument and not a candidate.
+- **How a take-over is drawn:** a relay stays in its parent's run and its corner is rounded; a lateral always starts a run of its own, even when it is the thicker wood past the joint, so its insertion angle is drawn as a hard corner between two tubes while the thinner bearer runs on smoothly as the line (`surface/paths.rs`).
+- **Open, for a later child:** a rule for how wood that leaves at a wide angle goes on from there. Today it holds a straight line from a hard corner. The two facts above are where that child starts.
+- R2's probe was not built and R3 to R5 did not run, for that reason. No code stays; no gate and no review ran.
+
+## Friction
+
+- **The first walk logged only the wood it took** (6 minutes for a second walk). `probes/fork.patch` logs every wood leaving a walked node; a later child reuses it.
+- **A variant four times today's wood was grown before the device refused it** (2 minutes). A census that stops a run outgrowing today's is written into fn-344's R2.
+

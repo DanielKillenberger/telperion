@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-343-a-line-that-changes-hands-carries-on",
   "spec_path": ".flow/tasks/fn-343-a-line-that-changes-hands-carries-on.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Carry a handed-over line on without an elbow",
   "updated_at": "2026-11-10T15:55:42.791388Z"
 }
