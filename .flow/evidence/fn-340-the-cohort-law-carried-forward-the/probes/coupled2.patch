@@ -668,10 +668,10 @@ index 0c978c0aa..7aeb5ecd8 100644
  }
 diff --git i/crates/telperion-space/src/grow/cohort.rs w/crates/telperion-space/src/grow/cohort.rs
 new file mode 100644
-index 000000000..56bc86500
+index 000000000..58ed51300
 --- /dev/null
 +++ w/crates/telperion-space/src/grow/cohort.rs
-@@ -0,0 +1,439 @@
+@@ -0,0 +1,457 @@
 +//! fn-339 R4's probe, the coupled cohorts. With a boundary set
 +//! (`set_cohorts`, or `TELPERION_COHORTS` in metres), a lateral of an age
 +//! whose subtree's expected reach is under it is not sprouted as an axis:
@@ -1005,6 +1005,24 @@ index 000000000..56bc86500
 +        out
 +    }
 +
++    /// fn-340 R1b: each class's line, `DUMPP cycle lineage birth unit pa
++    /// count scale size wood living light stand dead upkeep_handed`.
++    pub(super) fn dump_probe(&self, cycle: u32) {
++        let Some(c) = self.cohorts.as_deref() else {
++            return;
++        };
++        for k in &c.classes {
++            let a = &self.axes[k.axis];
++            let light = k.light.last().copied().unwrap_or(1.0);
++            let up = self.species.states[k.pa].upkeep * k.now[WOOD] * k.count * k.scale * k.size;
++            println!(
++                "DUMPP {cycle} {} {} {} {} {:.6e} {:.6e} {:.6e} {:.6e} {:.6e} {:.6e} {:.6e} {} {:.6e}",
++                a.lineage, a.birth, k.cycle, k.pa, k.count, k.scale, k.size, k.now[WOOD], k.now[LIVING], light, k.stand,
++                u8::from(k.dead), up
++            );
++        }
++    }
++
 +    /// The cohorts on an axis the balance shed die with it.
 +    pub(super) fn cohort_shed(&mut self, shed: &dyn Fn(usize) -> bool) {
 +        if let Some(c) = self.cohorts.as_deref_mut() {
@@ -1213,19 +1231,20 @@ index 000000000..ab1dc18f7
 +    }
 +}
 diff --git i/crates/telperion-space/src/grow/cycle.rs w/crates/telperion-space/src/grow/cycle.rs
-index 36d260e1a..150554952 100644
+index 36d260e1a..90f36ec86 100644
 --- i/crates/telperion-space/src/grow/cycle.rs
 +++ w/crates/telperion-space/src/grow/cycle.rs
-@@ -17,6 +17,8 @@ mod capture_units;
+@@ -17,6 +17,9 @@ mod capture_units;
  mod census;
  mod compact;
  mod footprint;
 +mod laterals;
++mod cohort_dump;
 +pub(crate) mod replay;
  mod passes;
  mod paused;
  mod retire;
-@@ -32,6 +34,9 @@ pub use capture_settled::{
+@@ -32,6 +35,9 @@ pub use capture_settled::{
  };
  pub use census::{Census, Cycle};
  pub use footprint::{Footprint, Store};
@@ -1235,6 +1254,96 @@ index 36d260e1a..150554952 100644
  pub use paused::{admitted, tree_digest, within_year, Paused, Retiring};
  pub(super) use working::Working;
  
+diff --git i/crates/telperion-space/src/grow/cycle/cohort_dump.rs w/crates/telperion-space/src/grow/cycle/cohort_dump.rs
+new file mode 100644
+index 000000000..65cd71a5d
+--- /dev/null
++++ w/crates/telperion-space/src/grow/cycle/cohort_dump.rs
+@@ -0,0 +1,84 @@
++//! fn-340 R1b's diagnostic: at the cycles `TRACE_DUMP` names (a comma
++//! list), what each cohort-age lateral subtree hands its structural
++//! bearer's balance in the cycle, and what each cohort class hands it in
++//! the probe, one line each, keyed by the bearer's lineage and birth and
++//! the cycle its bearing unit was laid. A measurement only.
++use super::super::Grower;
++use super::Working;
++use crate::structure::Origin;
++
++/// Whether `cycle` is one the dump names.
++pub(in crate::grow) fn dumping(cycle: u32) -> bool {
++    std::env::var("TRACE_DUMP").is_ok_and(|v| v.split(',').any(|s| s.parse() == Ok(cycle)))
++}
++
++impl Grower<'_> {
++    /// The cycle's lines: `DUMPC cycle lineage birth unit pa open cost
++    /// frozen light apexes lit phytomers w1 w s1 s2 s3 p1 pencil_wood`, w1
++    /// the subtree's wood at size 1 (internode × presence), w its wood as
++    /// sized, s1..s3 the wood-weighted moments of size, p1 presence summed.
++    pub(in crate::grow) fn dump_cycle(&self, cycle: u32, w: &Working, set: &[bool]) {
++        let sketch = self.sketch.as_ref().expect("sketching");
++        let n = sketch.pencils.len();
++        let mut live = vec![false; self.axes.len()];
++        for a in &self.live {
++            live[a.axis] = true;
++        }
++        for &i in w.list.iter().filter(|&&i| !set[w.pa[i]]) {
++            for &c in w.children(i) {
++                let c = c as usize;
++                if !set[w.pa[c]] || c >= n {
++                    continue;
++                }
++                let Origin::Lateral { parent, node, .. } = self.axes[c].origin else {
++                    continue;
++                };
++                let unit = self.axes[parent].phytomers.get(node).map_or(0, |p| p.cycle);
++                let mut stack = vec![c];
++                let (mut apexes, mut lit, mut count) = (0.0, 0.0, 0.0);
++                let mut m = [0.0f64; 6];
++                let mut wood = 0.0;
++                while let Some(d) = stack.pop() {
++                    if d >= n {
++                        continue;
++                    }
++                    stack.extend(w.children(d).iter().map(|&x| x as usize));
++                    let p = &sketch.pencils[d];
++                    wood += p.wood;
++                    if live[d] {
++                        apexes += 1.0;
++                        lit += p.base_scale * p.running * p.kept * p.light;
++                    }
++                    let inter = self.species.states[self.axes[d].pa].internode;
++                    for ph in &self.axes[d].phytomers {
++                        let w1 = inter * ph.scale;
++                        count += 1.0;
++                        m[0] += w1;
++                        m[1] += w1 * ph.size;
++                        m[2] += w1 * ph.size * ph.size;
++                        m[3] += w1 * ph.size.powi(3);
++                        m[4] += ph.scale;
++                    }
++                }
++                let a = &self.axes[parent];
++                println!(
++                    "DUMPC {cycle} {} {} {unit} {} {} {:.6e} {:.6e} {:.6e} {apexes} {lit:.6e} {count} {:.6e} {:.6e} {:.6e} {:.6e} {:.6e} {:.6e} {:.6e}",
++                    a.lineage,
++                    a.birth,
++                    w.pa[c],
++                    u8::from(w.open[c]),
++                    if w.open[c] { w.cost[c] } else { f32::NAN },
++                    w.frozen[c],
++                    if w.open[c] { w.light[c] } else { 0.0 },
++                    m[0],
++                    m[1],
++                    if m[0] > 0.0 { m[1] / m[0] } else { 0.0 },
++                    if m[0] > 0.0 { m[2] / m[0] } else { 0.0 },
++                    if m[0] > 0.0 { m[3] / m[0] } else { 0.0 },
++                    m[4],
++                    wood,
++                );
++            }
++        }
++    }
++}
 diff --git i/crates/telperion-space/src/grow/cycle/compact.rs w/crates/telperion-space/src/grow/cycle/compact.rs
 index 8b57e4cbf..744c98b43 100644
 --- i/crates/telperion-space/src/grow/cycle/compact.rs
@@ -1535,7 +1644,7 @@ index 000000000..8a72b186f
 +    }
 +}
 diff --git i/crates/telperion-space/src/grow/cycle/passes.rs w/crates/telperion-space/src/grow/cycle/passes.rs
-index 7b1c90c40..cc49470f9 100644
+index 7b1c90c40..bc97b99a0 100644
 --- i/crates/telperion-space/src/grow/cycle/passes.rs
 +++ w/crates/telperion-space/src/grow/cycle/passes.rs
 @@ -17,7 +17,8 @@ impl Grower<'_> {
@@ -1548,16 +1657,28 @@ index 7b1c90c40..cc49470f9 100644
          self.working = Some(w);
      }
  
-@@ -25,6 +26,8 @@ impl Grower<'_> {
+@@ -25,6 +26,20 @@ impl Grower<'_> {
      /// walk over the open axes, each memory kept, every apex shed leaving
      /// the living and every other given its kept share.
      pub(in crate::grow) fn balance_one(&mut self, cycle: u32) {
 +        // fn-339 R4's probe: each axis's cohorts' light, upkeep and living.
-+        let extra = self.cohort_balance();
++        let mut extra = self.cohort_balance();
++        // fn-340 R1b's diagnostic, NEVER a correction: a fitted factor. The
++        // cohorts' upkeep scaled by the measured cycle-over-probe ratio for
++        // this year (`DIAG_UPKEEP`, one per cycle from 1), only to ask
++        // whether closing the balance gap removes the drift.
++        if crate::grow::cohort_trace::switch("diag") {
++            let k = std::env::var("DIAG_UPKEEP").ok().and_then(|v| {
++                v.split(',').nth(cycle as usize - 1).and_then(|x| x.parse::<f32>().ok())
++            });
++            if let Some(k) = k {
++                extra.values_mut().for_each(|e| e.1 *= k);
++            }
++        }
          let mut w = self.working.take().expect("a working set");
          let (species, sketch) = (self.species, self.sketch.as_mut().expect("sketching"));
          let n = sketch.pencils.len();
-@@ -33,17 +36,44 @@ impl Grower<'_> {
+@@ -33,17 +48,44 @@ impl Grower<'_> {
              lit[a.axis] = true;
          }
          let pencils = &sketch.pencils;
@@ -1605,7 +1726,7 @@ index 7b1c90c40..cc49470f9 100644
          let mut laterals = vec![Lateral::default(); w.list.len()];
          let (ws, axes, rules) = (&w, &self.axes, &self.rules);
          crate::cores::fill(&mut laterals, 1 << 12, self.threads, &|k| {
-@@ -84,6 +114,8 @@ impl Grower<'_> {
+@@ -84,6 +126,8 @@ impl Grower<'_> {
                  sketch.pencils[i].memory = f64::from(memory);
              }
          }
@@ -1614,7 +1735,7 @@ index 7b1c90c40..cc49470f9 100644
          let live = std::mem::take(&mut self.live);
          for apex in live {
              if apex.axis < n {
-@@ -96,12 +128,25 @@ impl Grower<'_> {
+@@ -96,12 +140,32 @@ impl Grower<'_> {
              }
              self.live.push(apex);
          }
@@ -1625,6 +1746,13 @@ index 7b1c90c40..cc49470f9 100644
 +            }
 +        }
          self.working = Some(w);
++        if super::cohort_dump::dumping(cycle) {
++            let set = crate::grow::cohort_trace::cohort_ages(species);
++            match self.cohorts.is_some() {
++                true => self.dump_probe(cycle),
++                false => self.dump_cycle(cycle, self.working.as_deref().expect("a working set"), &set),
++            }
++        }
 +        self.cohort_shed(&|i| shed.contains(&i));
      }
  
@@ -1640,7 +1768,7 @@ index 7b1c90c40..cc49470f9 100644
          let mut w = self.working.take().expect("a working set");
          let (species, sketch) = (self.species, self.sketch.as_mut().expect("sketching"));
          let n = sketch.pencils.len();
-@@ -116,10 +161,30 @@ impl Grower<'_> {
+@@ -116,10 +180,30 @@ impl Grower<'_> {
          let lambda: Vec<f32> = (w.list.iter())
              .map(|&i| species.states[w.pa[i]].apical_control as f32)
              .collect();
@@ -2664,7 +2792,7 @@ index 40d87f241..380c31ddf 100644
              match &mut line.axis.origin {
                  Origin::Seed => {}
 diff --git i/crates/telperion-space/src/grow/settle.rs w/crates/telperion-space/src/grow/settle.rs
-index 89be4ae49..ca6ea0620 100644
+index 89be4ae49..da0b89fad 100644
 --- i/crates/telperion-space/src/grow/settle.rs
 +++ w/crates/telperion-space/src/grow/settle.rs
 @@ -7,7 +7,7 @@ use crate::geometry::{place, scale};
@@ -2688,9 +2816,27 @@ index 89be4ae49..ca6ea0620 100644
          let (count, marked) = (self.rules.grown, self.marked);
          // The tree as grown, where any PA keeps shed pipes or thickens by
          // its leaves: what each shed branch had laid down, and the one
-@@ -78,12 +83,21 @@ impl<'a> Grower<'a> {
+@@ -77,13 +82,39 @@ impl<'a> Grower<'a> {
+         let shed = match self.working.take() {
              Some(w) => {
                  let r = w.retirement();
++                // fn-340 R1b: what `geometry.rs:63` would meet, a lateral
++                // whose bearer holds no phytomer at its node.
++                if std::env::var("TRACE_PANIC").is_ok() {
++                    for (c, a) in self.axes.iter().enumerate() {
++                        if let crate::structure::Origin::Lateral { parent, node, .. } = a.origin {
++                            if self.axes[parent].phytomers.len() <= node {
++                                let b = &self.axes[parent];
++                                println!(
++                                    "PANICAT age {} child {c} pa {} phytomers {} inside {} root {} | bearer {parent} pa {} birth {} phytomers {} node {node} inside {} root {:?} more {:?}",
++                                    request.age, a.pa, a.phytomers.len(), r.inside(c), r.root(c).is_some(),
++                                    b.pa, b.birth, b.phytomers.len(), r.inside(parent), r.root(parent).map(|l| (l.lived, l.alive)),
++                                    more(parent).map(|l| (l.lived, l.alive))
++                                );
++                            }
++                        }
++                    }
++                }
                  let (given, gone) = (|i| r.root(i), |i| r.inside(i));
 -                shed_past(self.axes, species, request.age, (&given, &gone), None).0
 +                shed_with(self.axes, species, request.age, (&given, &gone, &more), None).0
