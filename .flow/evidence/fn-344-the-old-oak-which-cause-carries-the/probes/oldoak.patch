@@ -69,7 +69,7 @@ index b773d65cc..b25107d4a 100644
 +    }
 +}
 diff --git i/crates/telperion-render/examples/space/tuning.rs w/crates/telperion-render/examples/space/tuning.rs
-index b52042ac4..b415c48a0 100644
+index b52042ac4..c4dc854bd 100644
 --- i/crates/telperion-render/examples/space/tuning.rs
 +++ w/crates/telperion-render/examples/space/tuning.rs
 @@ -93,6 +93,7 @@ impl Tuning {
@@ -97,7 +97,7 @@ index b52042ac4..b415c48a0 100644
 +    let s = &mut species.states;
 +    for c in set.chars() {
 +        match c {
-+            'B' | 'C' => {}
++            'B' | 'C' | 'H' => {}
 +            'D' => s[4].lifespan = 1000.0,
 +            'E' => {
 +                for pa in [2, 3, 4] {
@@ -118,11 +118,69 @@ index b52042ac4..b415c48a0 100644
 +        );
 +    }
 +}
+diff --git i/crates/telperion-space/src/geometry.rs w/crates/telperion-space/src/geometry.rs
+index 4778b7789..037d60ee2 100644
+--- i/crates/telperion-space/src/geometry.rs
++++ w/crates/telperion-space/src/geometry.rs
+@@ -19,7 +19,7 @@ use crate::cores::{fill, map};
+ use crate::lineage::{insertion, Key, DOMINANCE, ROLL};
+ use crate::species::{PaState, Species};
+ use crate::structure::{Axis, Origin, Structure, Vec3};
+-pub(crate) use lay::{cone, support, Layer};
++pub(crate) use lay::{base_path, cone, support, Layer};
+ pub(crate) use place::place;
+ pub(crate) use q::amount;
+ use q::{add, atan2, between, cross, dot, q3, rotated, scaled, sincos, sub, unit, v3, Q3, UP};
 diff --git i/crates/telperion-space/src/geometry/lay.rs w/crates/telperion-space/src/geometry/lay.rs
-index 0381e143c..2c846c1bf 100644
+index 0381e143c..bc4c32d28 100644
 --- i/crates/telperion-space/src/geometry/lay.rs
 +++ w/crates/telperion-space/src/geometry/lay.rs
-@@ -238,7 +238,12 @@ impl Layer {
+@@ -52,6 +52,13 @@ pub(crate) struct Layer {
+     /// None on every other axis.
+     line: Q3,
+     take: f32,
++    /// fn-344 probe H: the path along the wood from the root collar to
++    /// the walk's base, after each phytomer laid, and at the start of the
++    /// year being laid (`probe_ablate`).
++    base_path: f32,
++    cum: Vec<f32>,
++    year_path: f32,
++    year: u32,
+ }
+ 
+ /// A pull of an axis's internodes towards the vertical: `bend` at `offset`
+@@ -122,9 +129,30 @@ impl Layer {
+             inherited: Vec::new(),
+             line: [0.0; 3],
+             take: 0.0,
++            base_path: 0.0,
++            cum: Vec::new(),
++            year_path: 0.0,
++            year: u32::MAX,
+         }
+     }
+ 
++    /// fn-344 probe H: the walk starting `path` metres along the wood
++    /// from the root collar.
++    pub fn from_path(mut self, path: f32) -> Self {
++        self.base_path = path;
++        self
++    }
++
++    /// fn-344 probe H: the path to the end of phytomer `node` (the base
++    /// where none is laid yet), and to the walk's end.
++    pub fn path_at(&self, node: usize) -> f32 {
++        self.cum.get(node).or(self.cum.last()).copied().unwrap_or(self.base_path)
++    }
++
++    pub fn path_end(&self) -> f32 {
++        self.cum.last().copied().unwrap_or(self.base_path)
++    }
++
+     /// The same, running back onto `line` by `take` at its base (`taken`).
+     pub fn taking_over(mut self, (line, take): super::Take) -> Self {
+         (self.line, self.take) = (line, take);
+@@ -238,7 +266,12 @@ impl Layer {
          load: Option<&Lever>,
          trunk: bool,
      ) -> std::result::Result<(), Stop> {
@@ -136,6 +194,101 @@ index 0381e143c..2c846c1bf 100644
          let (mut running, mut across, tip, mut run, pull, mut curve) = (
              self.running,
              self.across,
+@@ -252,7 +285,18 @@ impl Layer {
+         // its tropism axis to axis (fn-224), the plain product without
+         // spread.
+         let varied = internode(phytomer.key, form.internode_spread);
+-        let length = state.internode as f32 * scale * varied;
++        let mut length = state.internode as f32 * scale * varied;
++        // fn-344 probe H: each new internode shortened by 1 - L / 34.8 m,
++        // L the path from the root collar to the tip at the start of the
++        // internode's year.
++        if crate::probe_ablate::on('H') {
++            let path = self.path_end();
++            if phytomer.cycle != self.year {
++                (self.year, self.year_path) = (phytomer.cycle, path);
++            }
++            length *= (1.0 - self.year_path / 34.8).max(0.0);
++            self.cum.push(path + length);
++        }
+         let tropic = form.tropism as f32 * self.turning * length;
+         let share = falloff(tropic);
+         let bent = toward_elevation(running, across, amount(form.elevation), share);
+@@ -436,7 +480,7 @@ fn rest(k: f32) -> f32 {
+ /// where the walk ends.
+ pub(crate) fn lay(
+     axis: &mut Axis,
+-    (frame, curve, inherited, take): ((Vec3, Vec3, Vec3), Vec3, Vec<Lift>, super::Take),
++    (frame, curve, inherited, take, path): ((Vec3, Vec3, Vec3), Vec3, Vec<Lift>, super::Take, f32),
+     state: &PaState,
+     bend: (f64, f64),
+     load: Option<&[Lever]>,
+@@ -445,7 +489,8 @@ pub(crate) fn lay(
+     let turning = tropism(axis.lineage, state.form.tropism_spread);
+     let mut layer = Layer::bent(frame, curve, turning)
+         .inheriting(inherited)
+-        .taking_over(take);
++        .taking_over(take)
++        .from_path(path);
+     for (k, phytomer) in axis.phytomers.iter_mut().enumerate() {
+         layer.step(phytomer, state, bend, load.map(|l| &l[k]), trunk)?;
+     }
+@@ -504,3 +549,18 @@ pub(super) fn toward_elevation(direction: Q3, side: Q3, elevation: f32, share: f
+ #[cfg(test)]
+ #[path = "lay_tests.rs"]
+ mod tests;
++
++/// fn-344 probe H: an axis's path from the root collar at its base, from
++/// its bearer's walk (`of`): at the node a lateral or relay stands on, or
++/// the bearer's end for a continuation.
++pub(crate) fn base_path<'a>(axis: &Axis, of: &dyn Fn(usize) -> &'a Layer) -> f32 {
++    if !crate::probe_ablate::on('H') {
++        return 0.0;
++    }
++    match axis.origin {
++        crate::structure::Origin::Seed => 0.0,
++        crate::structure::Origin::Lateral { parent, node, .. } => of(parent).path_at(node),
++        crate::structure::Origin::Relay { parent, node, .. } => of(parent).path_at(node),
++        crate::structure::Origin::Continuation { parent } => of(parent).path_end(),
++    }
++}
+diff --git i/crates/telperion-space/src/geometry/place.rs w/crates/telperion-space/src/geometry/place.rs
+index 0fcae76d4..eb0f69aae 100644
+--- i/crates/telperion-space/src/geometry/place.rs
++++ w/crates/telperion-space/src/geometry/place.rs
+@@ -14,7 +14,7 @@ use std::sync::Mutex;
+ 
+ /// What an axis is laid from: its frame, its bearer's wander, the pulls
+ /// it carries on, its bend and reach, and whether it is the trunk.
+-type Start = ((Vec3, Vec3, Vec3), Vec3, Vec<Lift>, Take, (f64, f64), bool);
++type Start = ((Vec3, Vec3, Vec3), Vec3, Vec<Lift>, Take, (f64, f64), bool, f32);
+ 
+ /// What each laid axis left: where its walk ended, its bend and whether
+ /// it is the trunk, and each axis's reach.
+@@ -161,6 +161,7 @@ fn start(structure: &Structure, species: &Species, laid: &Laid, i: usize) -> Sta
+         take,
+         (bent, laid.reaches[i]),
+         trunk,
++        super::lay::base_path(axis, &|p| layer(p)),
+     )
+ }
+ 
+@@ -231,13 +232,13 @@ fn lay_all(
+     spread(work.len(), threads, &|k| {
+         let (at, starts, axes, ends) = work[k].lock().unwrap().take().expect("a piece once");
+         let jobs = at.into_iter().zip(starts).zip(axes.into_iter().zip(ends));
+-        for ((i, (framed, curve, inherited, take, bend, trunk)), (axis, end)) in jobs {
++        for ((i, (framed, curve, inherited, take, bend, trunk, path)), (axis, end)) in jobs {
+             let state = &species.states[axis.pa];
+             let load = levers.map(|t| t[i].as_slice());
+             let base = framed.0.z;
+             match lay(
+                 axis,
+-                (framed, curve, inherited, take),
++                (framed, curve, inherited, take, path),
+                 state,
+                 bend,
+                 load,
 diff --git i/crates/telperion-space/src/grow.rs w/crates/telperion-space/src/grow.rs
 index 18841b7d7..f5a12d6fc 100644
 --- i/crates/telperion-space/src/grow.rs
@@ -352,6 +505,20 @@ index 76db18f5b..aa7f4aec5 100644
      }
  
      /// A closed subtree's upkeep, taken once as the whole tree's pass
+diff --git i/crates/telperion-space/src/grow/draw.rs w/crates/telperion-space/src/grow/draw.rs
+index 3fe00565e..7a09dc557 100644
+--- i/crates/telperion-space/src/grow/draw.rs
++++ w/crates/telperion-space/src/grow/draw.rs
+@@ -296,7 +296,8 @@ fn pencil<'p>(
+     let pencil = Pencil {
+         layer: Layer::bent(framed, curve, turning)
+             .inheriting(handed)
+-            .taking_over(joined(taken(axes, species, i, &ends), carried)),
++            .taking_over(joined(taken(axes, species, i, &ends), carried))
++            .from_path(crate::geometry::base_path(axis, &|p| &of(p).layer)),
+         base_scale: f64::from(inherited * vigour * share as f32),
+         running: 1.0,
+         rank: 0.0,
 diff --git i/crates/telperion-space/src/grow/shoot.rs w/crates/telperion-space/src/grow/shoot.rs
 index d2beb0932..147453139 100644
 --- i/crates/telperion-space/src/grow/shoot.rs

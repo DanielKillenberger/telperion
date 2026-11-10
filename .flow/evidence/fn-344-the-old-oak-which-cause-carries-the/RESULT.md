@@ -276,3 +276,158 @@ Under B, the dead upkeep in brackets is what would have been charged; it is not 
   - 97% at 129 (59,447 of 61,084).
 - **A's whole-tree charge passes its income in year 109** (43,910 against 44,006) and stands at 2.6 times its income by 129. That is the year after its fork limbs are shed, when its living tips fall from 189,037 at 109 to 62,396.
 - **Tips die mostly by the survival draw, in both variants.** In A in year 119 the balance sheds 6,556 tips against 45,173 lost to the survival draw. The balance's work in A is to shed whole limbs at once, not tips one by one.
+
+## Follow-up 3: variant H, B with internodes shortened toward a height limit (host, 10 Nov 2026)
+
+H is an instrument, not a candidate, and nothing here proposes one. **H = B** (dead wood not charged) plus one change: every new internode, on every growing tip of every rank, is multiplied by max(0, 1 − L / 34.8 m). L is the path along the wood from the root collar to that tip at the start of the year. 34.8 m is the oak's published potential maximum height (fn-341, R1-MEASURES.md).
+
+**How L is carried (the probe; read and measured).**
+- **Where it is stored.** The grower did not carry a path length. The probe stores it on the lay's walk (`geometry/lay.rs` `Layer`):
+  - **base path:** the path at the axis's base;
+  - **cumulative path:** the path after each phytomer laid, one f32 per phytomer;
+  - **year path:** the path at the start of the year being laid.
+- **An axis's base path** is its bearer's cumulative path at the node it stands on, for a lateral or a relay, or at the bearer's end, for a continuation. The seed starts at 0.
+- **When the year path is taken.** It is taken when the first phytomer of a new cycle is laid on that axis. For an axis born that year, that is its base path.
+- **The shortening.** The factor multiplies the internode's length in `Layer::step`, and only that. Node counts, the scale that laterals inherit, the wood upkeep (`internode × scale`), rates and angles are unchanged.
+- **Both lays get the same lengths.** The same walk runs in the rough layout grown with the tree (`grow/draw.rs`) and in the final lay (`geometry/place.rs`, through a seventh field of the lay's start). So both lay the same lengths.
+- **Cost.**
+  - **No extra pass.** The probe adds one f32 per laid phytomer.
+  - **Time.** H's grow at 120 took 28 s against B's 30 s.
+  - **Time at 300.** H took 406 s to 300 with the 10-year whole-tree record on, and that record's ground-cell count over every phytomer is itself a cost.
+- **The patch.** The stop factor and memory stop are as in follow-up 1. `ABLATE` takes the letter H, run as `BH`. Everything is in `probes/oldoak.patch`, which is reverted and re-applies cleanly; `git status --short crates` is empty.
+
+**Runs.**
+- **Grow-only first, from 18:24 to 18:51,** under `telperion-heavy 22 --gpu 2 --threads 4`, stopping at eight times A's running peak or 20 GiB:
+  - H on seed 1001 at 40, 120, 200 and 300, and on seed 1007 at 300;
+  - A and B on seed 1001 at 300 again, so all three carry the same whole-tree record.
+- **Then drawn, from 18:51 to 19:07:** A and H at 40, H at 120, 200 and 300, then A and H at 260.
+- **Scripts and sheet.** The runs are `probes/h.sh`, the table is `probes/htable.py`, and the sheet is `probes/sheet-h.sh`, giving `sheet-H.jpg`. Its rows are 40, 120, 200, 260 and 300; its columns are A beside H, leafless, leafed and the lower trunk.
+
+**What stopped (measured).**
+- **H on 1001** reached 300 inside the cap: 16.44 million held, grow peak 14.8 GiB.
+- **The device refused H at 300.** "the wood points buffer needs 300932256 bytes, above the device's limit of 268435456". The mesh had 189.6 million wood vertices. The largest age drawn is 260, at 7.1 million nodes after settling.
+- **H on 1007** stopped at 20 GiB in year 257, holding 24.68 million. It held 17.5 million at 199 (twice 1001's 8.3 million) and was not drawn: its grow alone would have neared the cap while dressed.
+- **B on 1001** stopped at eight times A's running peak in year 237, holding 29.27 million at 18.9 GiB.
+- **B's memory is not repeatable between runs.** In follow-up 1, B on the same seed held 13.8 million at 20 GiB in year 188. Here it held 22.3 million at 14.2 GiB in year 219. The same B build gave different resident memory per phytomer between the two runs. That is measured, not explained.
+
+**Every 20 years, seed 1001.**
+- **Held** is the phytomers the grower holds, and **tips** its living apexes.
+- **Height and lowest limb** are the rough layout's, before the settle.
+- **Spread** is the extent of phytomer tips on the two horizontal axes.
+- **Ground** is the 1 m² ground cells holding a phytomer tip.
+- **Limbs** are the living limbs on the trunk line.
+- **GiB** is the resident memory in that year.
+
+| year | v | held | living tips | height m | spread m | ground m² | lowest limb m | limbs | GiB |
+|---|---|---|---|---|---|---|---|---|---|
+| 19 | A | 54,782 | 4,121 | 6.7 | 3.5 × 3.2 | 14 | 4.7 | 3 | 0.2 |
+| 19 | B | 54,782 | 4,122 | 6.7 | 3.5 × 3.2 | 14 | 4.7 | 3 | 0.2 |
+| 19 | H | 53,905 | 4,071 | 6.1 | 3.3 × 3.1 | 13 | 4.4 | 3 | 0.2 |
+| 39 | A | 302,606 | 24,622 | 10.6 | 6.8 × 8.0 | 46 | 4.7 | 3 | 0.3 |
+| 39 | B | 304,227 | 24,702 | 10.6 | 6.8 × 8.0 | 48 | 4.7 | 3 | 0.3 |
+| 39 | H | 274,278 | 23,016 | 9.2 | 6.4 × 7.6 | 41 | 4.4 | 3 | 0.3 |
+| 59 | A | 839,535 | 61,634 | 14.0 | 13.4 × 9.0 | 106 | 4.7 | 3 | 0.7 |
+| 59 | B | 894,358 | 64,651 | 14.0 | 13.3 × 13.1 | 119 | 4.7 | 3 | 0.7 |
+| 59 | H | 773,529 | 58,373 | 11.9 | 11.8 × 10.4 | 89 | 4.4 | 3 | 0.6 |
+| 79 | A | 1,645,899 | 111,239 | 17.4 | 16.4 × 14.1 | 184 | 4.7 | 3 | 1.0 |
+| 79 | B | 1,890,785 | 130,741 | 17.4 | 18.0 × 14.6 | 193 | 4.7 | 3 | 1.1 |
+| 79 | H | 1,570,854 | 115,310 | 14.2 | 14.3 × 10.8 | 115 | 4.4 | 3 | 1.1 |
+| 99 | A | 2,371,803 | 160,988 | 21.9 | 22.4 × 19.0 | 316 | 4.7 | 4 | 1.5 |
+| 99 | B | 3,141,562 | 212,390 | 22.0 | 23.9 × 19.5 | 335 | 4.7 | 4 | 2.1 |
+| 99 | H | 2,605,435 | 188,277 | 16.3 | 17.5 × 13.7 | 175 | 4.4 | 4 | 1.9 |
+| 119 | A | 2,506,773 | 158,355 | 25.9 | 24.4 × 22.4 | 375 | 4.7 | 4 | 1.7 |
+| 119 | B | 4,712,939 | 307,400 | 26.3 | 26.0 × 25.0 | 463 | 4.7 | 5 | 3.0 |
+| 119 | H | 3,813,670 | 268,321 | 18.4 | 17.9 × 17.2 | 231 | 4.4 | 5 | 2.9 |
+| 139 | A | 1,291,752 | 84,904 | 29.2 | 20.6 × 23.7 | 288 | 18.1 | 3 | 1.4 |
+| 139 | B | 6,639,118 | 426,991 | 30.0 | 29.9 × 31.2 | 681 | 4.7 | 6 | 3.8 |
+| 139 | H | 4,941,820 | 347,399 | 20.3 | 19.3 × 20.1 | 284 | 4.4 | 6 | 3.3 |
+| 159 | A | 1,958,386 | 132,432 | 32.8 | 19.5 × 27.1 | 304 | 18.1 | 3 | 1.6 |
+| 159 | B | 9,047,534 | 590,873 | 34.0 | 33.4 × 35.9 | 846 | 4.7 | 6 | 5.6 |
+| 159 | H | 6,245,124 | 446,982 | 22.1 | 21.8 × 19.3 | 304 | 4.4 | 6 | 4.7 |
+| 179 | A | 2,618,444 | 173,430 | 36.4 | 24.7 × 30.1 | 423 | 18.1 | 3 | 1.8 |
+| 179 | B | 12,234,880 | 803,025 | 39.0 | 37.6 × 44.9 | 1118 | 4.7 | 6 | 7.5 |
+| 179 | H | 7,416,206 | 530,270 | 23.4 | 20.4 × 20.9 | 342 | 4.4 | 6 | 5.5 |
+| 199 | A | 2,179,327 | 148,220 | 38.7 | 26.0 × 22.9 | 332 | 22.5 | 3 | 1.9 |
+| 199 | B | 16,406,972 | 1,094,506 | 44.3 | 41.8 × 47.8 | 1363 | 4.7 | 7 | 10.2 |
+| 199 | H | 8,301,197 | 605,900 | 24.6 | 21.5 × 22.1 | 361 | 4.4 | 7 | 6.3 |
+| 219 | A | 2,919,458 | 205,858 | 42.4 | 26.4 × 25.6 | 345 | 22.5 | 3 | 2.1 |
+| 219 | B | 22,307,241 | 1,513,309 | 49.7 | 48.6 × 57.8 | 1751 | 4.7 | 7 | 14.2 |
+| 219 | H | 10,094,980 | 753,153 | 25.0 | 21.0 × 22.6 | 351 | 4.4 | 7 | 7.5 |
+| 239 | A | 2,225,565 | 169,759 | 44.9 | 19.2 × 25.8 | 239 | 25.4 | 2 | 2.2 |
+| 239 | H | 11,502,894 | 855,716 | 25.8 | 22.2 × 22.4 | 369 | 4.4 | 6 | 9.1 |
+| 259 | A | 3,104,390 | 222,546 | 44.9 | 22.4 × 25.8 | 336 | 25.4 | 2 | 2.5 |
+| 259 | H | 13,098,983 | 1,002,479 | 26.4 | 23.2 × 22.5 | 389 | 4.4 | 6 | 10.3 |
+| 279 | A | 2,956,941 | 77,909 | 46.9 | 25.4 × 29.1 | 456 | 32.2 | 1 | 2.9 |
+| 279 | H | 14,689,964 | 1,131,991 | 26.9 | 24.4 × 23.2 | 404 | 4.4 | 6 | 11.8 |
+| 299 | A | 1,598,756 | 94,929 | 50.2 | 27.2 × 29.0 | 419 | 32.2 | 1 | 2.0 |
+| 299 | H | 16,440,929 | 1,269,211 | 27.3 | 25.0 × 23.7 | 417 | 4.4 | 6 | 13.5 |
+
+B stopped in year 237 (eight times A's peak), so it has no rows from 239.
+
+Seed 1007 (H, stopped at 20 GiB in year 257):
+- **Year 199:** 17.50 million held, 1.39 million tips, 25.5 m, 640 m², lowest limb 4.3 m, 10 limbs.
+- **Year 239:** 23.05 million held, 1.87 million tips, 26.9 m, 30.7 × 29.3 m, 654 m², 10 limbs.
+- **A on 1007 at 299:** 0.80 million held, no living limbs.
+
+**The drawn trees (measured).** Spread is the mesh's two horizontal axes. Leaves are the current year's. The time is wall seconds for growing, dressing and drawing.
+
+| tree | v | height m | spread m | trunk cm | leaves | s |
+|---|---|---|---|---|---|---|
+| 40/1001 | A | 10.6 | 7.6 × 8.0 | 56 | 47,279 | 1.5 |
+| | H | 9.3 | 6.6 × 7.5 | 57 | 40,414 | 1.4 |
+| 120/1001 | A | 25.1 | 26.6 × 25.5 | 143 | 304,559 | 25 |
+| | H | 18.8 | 19.7 × 18.6 | 190 | 366,245 | 31 |
+| 200/1001 | A | 34.3 | 22.1 × 22.1 | 129 | 270,545 | 51 |
+| | H | 25.0 | 22.9 × 22.7 | 261 | 937,616 | 137 |
+| 260/1001 | A | 41.2 | 25.9 × 16.7 | 130 | 246,852 | 83 |
+| | H | 26.8 | 25.5 × 24.5 | 302 | 1,500,853 | 282 |
+| 300/1001 | A | 40.2 | 26.0 × 37.2 | 120 | 233,403 | 96 |
+| | H | refused: wood points 300.9 MB over the device's 268.4 MB | | | | 422 |
+
+**The read.**
+
+**Does H level off? In extent, yes; in held wood, no (measured).**
+- **Height levels.** It stands at 22.1 m (rough) at 159, 24.6 at 199, 25.8 at 239 and 27.3 at 299, and the settled height is 26.8 m at 260. The gain falls from 0.06 m a year at 159 to 199 to about 0.03 at 239 to 299.
+- **Ground area levels.** It is 304 m² at 159, 361 at 199 and 417 at 299. Spread holds near 22 to 25 m a side from 199 on.
+- **Held wood and tips do not level.**
+  - **Held** goes 6.25 million at 159, 8.30 at 199, 11.50 at 239, 16.44 at 299. The yearly gain rises from 44,000 over 179 to 199, to 70,000 over 219 to 239, to 88,000 over 279 to 299.
+  - **Living tips** go 0.45, 0.61, 0.86 and 1.27 million at the same years.
+- **So H stops widening and rising at about 25 to 27 m tall and 22 to 25 m across, from about year 200,** and then fills the same ground ever more densely.
+  - **Tip density** rises from about 1,470 tips per m² at 159 to 3,040 at 299.
+  - **B's density held near 650** (follow-up 2).
+- **The balance starts to bind in H** (`BAL` lines, `raw/stills/oak-300-1001-H-grow.log`).
+  - The share of living tips with negative q − c rises: 0.07% at 159, 1.3% at 199, 3.1% at 239 and 4.7% at 279.
+  - The median light per tip falls from 0.062 to 0.026.
+  - Total income still rises: 42,058 at 159, 94,012 at 279.
+- **Seed 1007** grows the same way and denser still: 23 million held at 239, on 654 m².
+
+**H at 40 against A (measured).**
+- **Height:** 9.3 against 10.6 m, 12% lower.
+- **Spread:** 6.6 × 7.5 against 7.6 × 8.0 m.
+- **Wood:** 2.03 against 2.72 km.
+- **Leaves:** 40,414 against 47,279.
+- **Trunk:** the same, 57 against 56 cm.
+- **The look (eye):** the same young tree, slightly smaller. Its form, its leader and its low limbs along the ground are unchanged.
+
+**H at 120 against A at 120 (eye): not as good an oak.**
+- **Gained.**
+  - A rounder, more compact crown about as wide as tall (19.7 × 18.6 m by 18.8 m).
+  - More, thicker limbs from the fork.
+  - A heavier trunk (190 against 143 cm).
+- **Lost.** A's open two-limb V and its airy, spreading crown. H's crown is a crowded mass of limbs.
+- **Broke.**
+  - **The trunk.** A hard step in girth on the bole a few metres up: a cylinder sleeve where the trunk meets what it bears (`oak-120-1001-H-bole.png`).
+  - **The limbs.** Stubby, knotted wood along them.
+
+**H at 200 and 260 against A (eye): nearer an old open-grown oak in silhouette, broken in its wood.**
+- **The silhouette is nearer.**
+  - **A** is a bare, snaking 34 to 41 m pole with a tuft.
+  - **H** has a short, very thick bole (2.6 to 3.0 m at 1.3 m) and heavy limbs from about 4 m. Its crown is about as wide as tall: 22.9 × 22.7 m by 25.0 m at 200, and 25.5 × 24.5 by 26.8 m at 260.
+  - That is the old open-grown oak's proportion, which A has lost by 200.
+- **What it lost.** Every limb's length and taper. The crown is a dense knot of short, swollen limbs ending in tufts, more a pollard or a bonsai than the long reaching limbs of an old oak.
+- **What it broke (eye, `oak-200-1001-H-bole.png`, `oak-260-1001-H-bare.png`).**
+  - **The trunk top is an open tube.** At about 4 m it ends as a hollow cylinder rim, and the wood above leaves from inside it.
+  - **Sleeves.** Abrupt girth steps along the limbs.
+  - **Knots.** Short, bulbous, kinked segments, where internodes laid near the height limit are nearly zero long and the wood is drawn thick over them.
+  - **No tree on the sheet should be judged by its wood at this distance until these are understood.** That is a host matter.
+- **H at 300 could not be drawn** (device refusal above). Seed 1007 was not drawn.
