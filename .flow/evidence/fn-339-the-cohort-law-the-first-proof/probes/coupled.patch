@@ -1,0 +1,2469 @@
+diff --git i/crates/telperion-core/src/pipeline.rs w/crates/telperion-core/src/pipeline.rs
+index 22f97a6cd..231c15935 100644
+--- i/crates/telperion-core/src/pipeline.rs
++++ w/crates/telperion-core/src/pipeline.rs
+@@ -299,6 +299,12 @@ mod input;
+ mod fidelity_tests;
+ #[cfg(all(test, feature = "geometry"))]
+ mod cycle_cost_tests;
++#[cfg(all(test, feature = "geometry"))]
++mod lateral_tests;
++#[cfg(all(test, feature = "geometry"))]
++mod cohort_tests;
++#[cfg(all(test, feature = "geometry"))]
++mod coupled_tests;
+ #[cfg(not(feature = "geometry"))]
+ mod planned;
+ mod stage;
+diff --git i/crates/telperion-core/src/pipeline/cohort_tests.rs w/crates/telperion-core/src/pipeline/cohort_tests.rs
+new file mode 100644
+index 000000000..7bb8b27f4
+--- /dev/null
++++ w/crates/telperion-core/src/pipeline/cohort_tests.rs
+@@ -0,0 +1,81 @@
++//! fn-339 R3's dry run: the cohort law replayed on a preset's full cycle
++//! (`grow_replay`). A measurement, ignored: it prints lines for
++//! `probes/replay.py` to read.
++use super::executor;
++use crate::presets::by_identity;
++use telperion_space::grow_replay;
++
++fn line(v: &[f64]) -> String {
++    let parts: Vec<String> = v.iter().map(|x| format!("{x:.6e}")).collect();
++    parts.join(" ")
++}
++
++/// `REPLAY_PRESET` at its own age, the full cycle, on each of `REPLAY_SEEDS`:
++/// `REACH` each age's expected subtree reach; `APEX` per cycle the units
++/// grown and those in the cohorts at 0.25, 0.5 and 1.0 m; `CELL` per
++/// lattice node of the bearing units at 0.5 m the units, their mean light
++/// at the tree's age, then for the cycle, the law with births expected and
++/// the law with the cycle's births: the eight quantities, the joined
++/// section and the roots; then the cycle's leaf and wood at size 1;
++/// `TREE` the structure's and the whole cycle's units, leaf and standing
++/// leaf, the leaf columns and the light check.
++#[test]
++#[ignore = "a measurement: fn-339 R3"]
++fn cohort_replay() {
++    let id = std::env::var("REPLAY_PRESET").expect("a preset");
++    let seeds = std::env::var("REPLAY_SEEDS").expect("seeds");
++    for seed in seeds.split(',').map(|s| s.parse::<u32>().expect("a seed")) {
++        one(&id, seed);
++    }
++}
++
++fn one(id: &str, seed: u32) {
++    let mut f = by_identity(id).expect("a preset");
++    f.fidelity = 0.0;
++    f.skeleton.seed = seed;
++    let g = executor::growth(&f).expect("its growth");
++    let started = std::time::Instant::now();
++    let r = grow_replay(&g.species, g.request, [0.25, 0.5, 1.0]).expect("a replay");
++    let seconds = started.elapsed().as_secs_f64();
++    println!("HEAD {id} {seed} age {} seconds {seconds:.2}", g.request.age);
++    for (j, e) in r.reach.iter().enumerate() {
++        println!("REACH {j} {e:.6e}");
++    }
++    for t in [0.25, 0.5, 1.0] {
++        let set = telperion_space::cohorts(&g.species, &r.reach, t);
++        println!("COHORT {t} {set:?}");
++    }
++    for (c, a) in r.apex.iter().enumerate().skip(1) {
++        println!("APEX {c} {} {} {} {}", a[0], a[1], a[2], a[3]);
++    }
++    for (k, c) in &r.cells {
++        let side = |s: &telperion_space::Side| {
++            let mut v = s.v.to_vec();
++            v.extend([s.join, s.roots, s.balance]);
++            line(&v)
++        };
++        println!(
++            "CELL {} {} {} {} {} {} {} {}",
++            k[0],
++            k[1],
++            k[2],
++            c.units,
++            c.light / c.units as f64,
++            side(&c.cycle),
++            c.law.iter().map(side).collect::<Vec<_>>().join(" "),
++            line(&c.at_one)
++        );
++    }
++    for (pa, row) in &r.trace {
++        println!("TRACE {pa} {}", line(row));
++    }
++    let t = [r.structure.to_vec(), r.whole.to_vec()].concat();
++    println!(
++        "TREE {} {} {} {} {:.3e}",
++        line(&t),
++        r.columns[0],
++        r.columns[1],
++        r.light_check.0,
++        r.light_check.1
++    );
++}
+diff --git i/crates/telperion-core/src/pipeline/coupled_tests.rs w/crates/telperion-core/src/pipeline/coupled_tests.rs
+new file mode 100644
+index 000000000..02cd7ad58
+--- /dev/null
++++ w/crates/telperion-core/src/pipeline/coupled_tests.rs
+@@ -0,0 +1,177 @@
++//! fn-339 R4: the coupled cohort probe (`telperion_space::set_cohorts`)
++//! beside the full cycle on the same seeds. A measurement, ignored: it
++//! prints lines for `probes/r4.py` to read.
++use super::{executor, measures, skeleton, GrowInput};
++use crate::presets::by_identity;
++use crate::tree::Tree;
++use std::collections::{HashMap, HashSet};
++use telperion_space::{grow_census, held, set_cohorts};
++
++/// The boundary the probe reads its cohorts at (PROTOCOL.md).
++const BOUNDARY: f64 = 0.5;
++
++/// Height, spread and trunk diameter at breast height (fn-326's read).
++fn shape(tree: &Tree) -> Option<[f64; 3]> {
++    let base = tree.nodes.first()?.position;
++    let (mut top, mut lo, mut hi) = (f64::MIN, [f64::MAX; 2], [f64::MIN; 2]);
++    let mut breast = 0f64;
++    for n in &tree.nodes {
++        let p = n.position;
++        top = top.max(p.y - base.y);
++        lo = [lo[0].min(p.x), lo[1].min(p.z)];
++        hi = [hi[0].max(p.x), hi[1].max(p.z)];
++        if (1.0..=1.6).contains(&(p.y - base.y)) {
++            breast = breast.max(n.radius);
++        }
++    }
++    (breast > 0.0).then_some([top, ((hi[0] - lo[0]) + (hi[1] - lo[1])) / 2.0, 2.0 * breast])
++}
++
++fn list<T: std::str::FromStr>(name: &str) -> Vec<T> {
++    let v = std::env::var(name).unwrap_or_else(|_| panic!("{name}"));
++    v.split(',').map(|x| x.parse().ok().expect("a value")).collect()
++}
++
++fn median(mut v: Vec<f64>) -> f64 {
++    v.sort_by(f64::total_cmp);
++    (v[(v.len() - 1) / 2] + v[v.len() / 2]) / 2.0
++}
++
++/// One grow's seconds: once, and over a grow of at most 0.5 s, five
++/// repeats less the first (fn-327's habit).
++fn seconds(species: &telperion_space::Species, request: telperion_space::Request) -> f64 {
++    let first = grow_census(species, request).expect("a tree").seconds;
++    if first > 0.5 {
++        return first;
++    }
++    let times: Vec<f64> = (0..5)
++        .map(|_| grow_census(species, request).expect("a tree").seconds)
++        .skip(1)
++        .collect();
++    median(times)
++}
++
++/// `COUPLED_PRESET` on each of `COUPLED_SEEDS` at `COUPLED_AGE` (0: the
++/// preset's), the cycle (`base`) and the probe (`probe`):
++/// `READ mode seed height spread trunk limbs leaf_cur leaf_standing
++/// columns lai shoots structure_units cohort_units classes steps
++/// grown_phytomers`. With `COUPLED_BATCHES`, that many alternating timing
++/// batches per seed, `TIME seed batch base probe` in seconds; with
++/// `COUPLED_MODE` only that mode is read (for one process's peak memory).
++#[test]
++#[ignore = "a measurement: fn-339 R4"]
++fn cohort_coupled() {
++    let id = std::env::var("COUPLED_PRESET").expect("a preset");
++    let seeds: Vec<u32> = list("COUPLED_SEEDS");
++    let age: f64 = std::env::var("COUPLED_AGE").ok().and_then(|a| a.parse().ok()).unwrap_or(0.0);
++    let batches: usize = std::env::var("COUPLED_BATCHES").ok().and_then(|b| b.parse().ok()).unwrap_or(0);
++    let only = std::env::var("COUPLED_MODE").ok();
++    for seed in seeds {
++        let mut f = by_identity(&id).expect("a preset");
++        f.fidelity = 0.0;
++        f.skeleton.seed = seed;
++        if age > 0.0 {
++            f.age = age;
++        }
++        for (mode, boundary) in [("base", None), ("probe", Some(BOUNDARY))] {
++            if only.as_deref().is_some_and(|m| m != mode) {
++                continue;
++            }
++            set_cohorts(boundary);
++            read(&f, mode, seed);
++        }
++        if batches > 0 {
++            let g = executor::growth(&f).expect("its growth");
++            for b in 0..batches {
++                let mut t = [0.0; 2];
++                // Alternate which goes first.
++                let order = if b % 2 == 0 { [0, 1] } else { [1, 0] };
++                for k in order {
++                    set_cohorts([None, Some(BOUNDARY)][k]);
++                    t[k] = seconds(&g.species, g.request);
++                }
++                println!("TIME {seed} {b} {:.6} {:.6}", t[0], t[1]);
++            }
++        }
++    }
++    set_cohorts(None);
++}
++
++fn read(f: &crate::presets::Family, mode: &str, seed: u32) {
++    let g = executor::growth(f).expect("its growth");
++    let age = g.request.age;
++    let cycled = grow_census(&g.species, g.request).expect("a tree");
++    let cohorts = held().filter(|_| mode == "probe");
++    let census = cycled.census.as_ref().expect("a census");
++    let units = census.cycles.last().map_or(0, |c| c.active) as f64;
++    // Where the seconds went, by the stage that ended them: the cohorts'
++    // step falls in `Grown` (`Grower::year`).
++    if std::env::var("COUPLED_PHASES").is_ok() {
++        let parts: Vec<String> = census.phases.iter().map(|(k, v)| format!("{k}={v:.4}")).collect();
++        println!("PHASES {mode} {seed} {:.4} {}", cycled.seconds, parts.join(" "));
++    }
++    let species = &g.species;
++    // The structure's leaf and its ground columns, on the settled tree.
++    let (mut cur, mut standing, mut weighted) = (0.0, 0.0, 0.0);
++    let mut columns: HashSet<[i64; 2]> = HashSet::new();
++    let mut at: HashMap<(u64, u32), usize> = HashMap::new();
++    let column = |x: f64, y: f64| [(x / 0.5).floor() as i64, (y / 0.5).floor() as i64];
++    for (i, a) in cycled.structure.axes.iter().enumerate() {
++        at.insert((a.lineage, a.birth), i);
++        let s = &species.states[a.pa];
++        let grew = a.phytomers.last().is_some_and(|p| p.cycle == age);
++        // A unit grown in the last cycle, counted by its presence (the
++        // settled scale over the size), as R3 counts it.
++        let last: Vec<f64> = (a.phytomers.iter().filter(|p| p.cycle == age))
++            .map(|p| if p.size > 0.0 { p.scale / p.size } else { 0.0 })
++            .collect();
++        if !last.is_empty() {
++            weighted += last.iter().sum::<f64>() / last.len() as f64;
++        }
++        let mut bears = false;
++        for p in &a.phytomers {
++            if p.cycle == age {
++                cur += s.leaf_area * p.scale;
++            }
++            if s.cluster_leaves == 0.0 && f64::from(age - p.cycle) < s.leaf_years && s.leaf_area > 0.0 {
++                standing += s.leaf_area * p.scale;
++                columns.insert(column(p.tip.x, p.tip.y));
++                bears = true;
++            }
++        }
++        if s.cluster_leaves > 0.0 && grew {
++            let scale = a.phytomers.last().map_or(0.0, |p| p.scale);
++            standing += s.cluster_leaves * s.leaf_area * scale;
++            if let Some(p) = a.phytomers.last() {
++                columns.insert(column(p.tip.x, p.tip.y));
++            }
++        }
++        let _ = bears;
++    }
++    let (mut c_units, mut classes, mut steps) = (0.0, 0, 0);
++    if let Some(h) = &cohorts {
++        cur += h.totals[3];
++        standing += h.totals[4];
++        c_units = h.totals[0];
++        weighted += h.totals[0];
++        (classes, steps) = (h.classes, h.steps);
++        for &(lineage, birth, node, leaf) in &h.places {
++            if leaf <= 0.0 {
++                continue;
++            }
++            if let Some(p) = at.get(&(lineage, birth)).and_then(|&i| cycled.structure.axes[i].phytomers.get(node)) {
++                columns.insert(column(p.tip.x, p.tip.y));
++            }
++        }
++    }
++    let tree = skeleton(GrowInput::of(f)).expect("a tree").tree;
++    let limbs = measures::limb_count(&tree, f.canopy.clump_system_order).expect("limbs") as f64;
++    let [height, spread, trunk] = shape(&tree).unwrap_or([f64::NAN; 3]);
++    let lai = standing / (columns.len().max(1) as f64 * 0.25);
++    println!(
++        "READ {mode} {seed} {age} {height:.4} {spread:.4} {trunk:.5} {limbs} {cur:.4} {standing:.4} {} {lai:.4} {:.1} {units} {c_units:.1} {classes} {steps} {} {weighted:.1}",
++        columns.len(),
++        units + c_units,
++        cycled.grown
++    );
++}
+diff --git i/crates/telperion-core/src/pipeline/lateral_tests.rs w/crates/telperion-core/src/pipeline/lateral_tests.rs
+new file mode 100644
+index 000000000..320c58cc8
+--- /dev/null
++++ w/crates/telperion-core/src/pipeline/lateral_tests.rs
+@@ -0,0 +1,140 @@
++//! fn-335: every lateral a preset's full cycle grows, its light at birth,
++//! what its subtree grew and what it still holds at the tree's age, beside
++//! the tables' potential for a bud of its age over the same span
++//! (`PROTOCOL.md` in the spec's evidence). A measurement, ignored: it
++//! prints lines for `probes/read.py` to reduce.
++use super::executor;
++use crate::presets::by_identity;
++use std::collections::HashMap;
++use telperion_space::{expected_bud_counts, grow_laterals, PaState, Species};
++
++/// The resolution fn-334's reach rule is read at for the fine ages.
++const FIDELITY: f64 = 1.0;
++
++/// A unit's mean nodes over its zones.
++fn unit_nodes(state: &PaState) -> f64 {
++    state.zones.iter().map(|z| z.nodes.mean()).sum()
++}
++
++/// fn-334's reach(j): the expected metres of axis a bud of age j grows.
++fn reaches(species: &Species) -> Vec<f64> {
++    let n = species.states.len();
++    let mut reach = vec![0.0; n + 1];
++    for j in (0..n).rev() {
++        let state = &species.states[j];
++        let unit = unit_nodes(state) * state.internode;
++        let (mut own, mut t) = (0.0, 0.0);
++        while t < state.lifespan {
++            let share = (state.lifespan - t).min(1.0);
++            own += share * state.viability.powf(t + 1.0) * unit;
++            t += 1.0;
++        }
++        reach[j] = own + state.continuation * reach[j + 1];
++    }
++    reach.truncate(n);
++    reach
++}
++
++/// fn-334's step 1 at `FIDELITY`: each age's borne(k) and s_k.
++fn factors(species: &Species) -> Vec<(f64, f64)> {
++    let (n, reach) = (species.states.len(), reaches(species));
++    let at = |state: &PaState| {
++        let mut lat = vec![0.0; n];
++        for z in &state.zones {
++            let per_node = z.nodes.mean() * z.buds * state.readiness;
++            for (o, p) in lat.iter_mut().zip(&z.lateral) {
++                *o += per_node * p;
++            }
++        }
++        let total: f64 = lat.iter().sum();
++        let weighted: f64 = lat.iter().zip(&reach).map(|(l, r)| l * r).sum();
++        let borne = if total > 0.0 { weighted / total } else { 0.0 };
++        let cap = (FIDELITY / state.internode).min(unit_nodes(state)).max(1.0);
++        let s = if borne > 0.0 {
++            (FIDELITY / borne).clamp(1.0, cap)
++        } else {
++            cap
++        };
++        (borne, s)
++    };
++    species.states.iter().map(at).collect()
++}
++
++/// Each age's weight per phytomer for the four quantities: phytomers,
++/// leaf area, section and wood length (fn-334's).
++fn weights(species: &Species) -> Vec<[f64; 4]> {
++    let w = |s: &PaState| [1.0, s.leaf_area, s.form.pipe.powf(s.form.exponent), s.internode];
++    species.states.iter().map(w).collect()
++}
++
++/// The four quantities of `by_age`, each age weighted.
++fn weighed(by_age: &[f64], w: &[[f64; 4]]) -> [f64; 4] {
++    std::array::from_fn(|q| by_age.iter().zip(w).map(|(n, w)| n * w[q]).sum())
++}
++
++fn line(v: &[f64]) -> String {
++    let parts: Vec<String> = v.iter().map(|x| format!("{x:.6e}")).collect();
++    parts.join(" ")
++}
++
++/// `LATERAL_PRESET` at its own age, the full cycle, on each of
++/// `LATERAL_SEEDS`: the fine ages (`FINE`), and per lateral its record
++/// (`REC`): age, span, first light (-1 where it grew no unit), bearer's
++/// light, order, bearer's age, shed, apex lived; then grown phytomers,
++/// leaf, section, wood and last-cycle phytomers; standing phytomers,
++/// last-cycle leaf, section, wood and last-cycle phytomers; the
++/// potential's phytomers, leaf, section and wood (-1 where refused).
++#[test]
++#[ignore = "a measurement: fn-335 R2, R3"]
++fn lateral_records() {
++    let id = std::env::var("LATERAL_PRESET").expect("a preset");
++    let seeds = std::env::var("LATERAL_SEEDS").expect("seeds");
++    let mut f = by_identity(&id).expect("a preset");
++    f.fidelity = 0.0;
++    for seed in seeds.split(',').map(|s| s.parse::<u32>().expect("a seed")) {
++        f.skeleton.seed = seed;
++        let g = executor::growth(&f).expect("its growth");
++        let (species, request) = (&g.species, g.request);
++        let fine: Vec<String> = (factors(species).iter().enumerate())
++            .map(|(k, (borne, s))| format!("{k}:{borne:.4}:{s:.4}"))
++            .collect();
++        println!("FINE {id} {seed} age {} {}", request.age, fine.join(" "));
++        let w = weights(species);
++        let mut potential: HashMap<(usize, u32), [f64; 4]> = HashMap::new();
++        for l in grow_laterals(species, request).expect("records") {
++            let span = request.age - l.birth;
++            let pot = *potential.entry((l.pa, span)).or_insert_with(|| {
++                match expected_bud_counts(species, l.pa, span) {
++                    Ok(t) => weighed(&(0..t.pas).map(|pa| t.total(pa)).collect::<Vec<_>>(), &w),
++                    Err(_) => [-1.0; 4],
++                }
++            });
++            let grown = weighed(&l.count, &w);
++            let standing = weighed(&l.standing, &w);
++            let lived = l.apex_end.map_or(span, |e| e - l.birth);
++            let head = [
++                l.pa as f64,
++                f64::from(span),
++                l.light.unwrap_or(-1.0),
++                l.bearer_light,
++                f64::from(l.order),
++                l.bearer_pa as f64,
++                f64::from(u8::from(l.shed)),
++                f64::from(lived),
++            ];
++            let values = [
++                grown[0],
++                grown[1],
++                grown[2],
++                grown[3],
++                l.count_last.iter().sum(),
++                standing[0],
++                weighed(&l.standing_last, &w)[1],
++                standing[2],
++                standing[3],
++                l.standing_last.iter().sum(),
++            ];
++            println!("REC {} {} {}", line(&head), line(&values), line(&pot));
++        }
++    }
++}
+diff --git i/crates/telperion-space/src/closed_form.rs w/crates/telperion-space/src/closed_form.rs
+index 995c9b93b..f21be6ec5 100644
+--- i/crates/telperion-space/src/closed_form.rs
++++ w/crates/telperion-space/src/closed_form.rs
+@@ -51,6 +51,26 @@ pub fn expected_counts(species: &Species, age: u32) -> Result<CountTable> {
+     Ok(walk.counts(0, age as usize, Carried::default(), None))
+ }
+ 
++/// The expected phytomers per PA and cycle a bud of age `pa` grows in
++/// `cycles` cycles with nothing shading it: `expected_counts` begun at any
++/// age of the reference axis, the tables' potential (fn-334, fn-335).
++pub fn expected_bud_counts(species: &Species, pa: usize, cycles: u32) -> Result<CountTable> {
++    species.validate()?;
++    if cycles == 0 || pa >= species.states.len() {
++        return refuse("bud", "an age of the reference axis grown at least one cycle");
++    }
++    let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
++    let windows = Windows::new(species, cycles);
++    let mut memo = Memo::default();
++    let mut walk = Walk {
++        species,
++        laterals: &laterals,
++        memo: &mut memo,
++        living: Living::new(species, Some(&windows)),
++    };
++    Ok(walk.counts(pa, cycles as usize, Carried::default(), None))
++}
++
+ /// The expected phytomers a tree grown `age` cycles grows, the shed ones
+ /// included: `expected_counts`' table summed, kept as one running total.
+ pub fn expected_grown(species: &Species, age: u32) -> Result<f64> {
+diff --git i/crates/telperion-space/src/girth/disused.rs w/crates/telperion-space/src/girth/disused.rs
+index ff83a963a..52d3b7af4 100644
+--- i/crates/telperion-space/src/girth/disused.rs
++++ w/crates/telperion-space/src/girth/disused.rs
+@@ -28,6 +28,8 @@ struct Link {
+ pub(crate) struct Grown {
+     links: Vec<Link>,
+     leaf_mean: Option<f64>,
++    /// The leaf mean's two sums (fn-339 R4's probe adds its cohorts').
++    pub sums: Option<[f32; 2]>,
+ }
+ 
+ /// A phytomer as the girth pass reads it, every value as the f32 it is
+@@ -196,12 +198,14 @@ pub(crate) fn attachments_past(
+     (age, threads): (u32, usize),
+     records: Records,
+ ) -> Grown {
+-    let leaf_mean = species.states.iter().any(|s| s.leaf_girth > 0.0).then(|| {
+-        let sums = leaf_partials_past(axes, species, (age, threads), Stand::WHOLE, records);
+-        grown_mean(sums)
++    let sums = species.states.iter().any(|s| s.leaf_girth > 0.0).then(|| {
++        leaf_partials_past(axes, species, (age, threads), Stand::WHOLE, records)
+     });
++    let leaf_mean = sums.map(grown_mean);
+     let at = (Stand::WHOLE, leaf_mean);
+-    attachments_with(axes, species, (age, threads), at, (&|_| None, records))
++    let mut grown = attachments_with(axes, species, (age, threads), at, (&|_| None, records));
++    grown.sums = sums;
++    grown
+ }
+ 
+ fn attachments_with(
+@@ -267,7 +271,11 @@ fn attachments_with(
+             radius,
+         })
+         .collect();
+-    Grown { links, leaf_mean }
++    Grown {
++        links,
++        leaf_mean,
++        sums: None,
++    }
+ }
+ 
+ /// What thickening keeps of the branches shed and fading: a shed branch
+diff --git i/crates/telperion-space/src/grow.rs w/crates/telperion-space/src/grow.rs
+index 18841b7d7..7d8464a33 100644
+--- i/crates/telperion-space/src/grow.rs
++++ w/crates/telperion-space/src/grow.rs
+@@ -9,6 +9,8 @@
+ mod advance;
+ pub(crate) mod alone;
+ mod balance;
++mod cohort;
++pub use cohort::{held, set_cohorts, Held};
+ pub(crate) mod cycle;
+ mod draw;
+ #[cfg(test)]
+@@ -202,8 +204,13 @@ fn start<'a>(
+         age: request.age,
+         grown: 0,
+         one: false,
++        cohort: Vec::new().into(),
+     };
+-    let grower = Grower::seeded(rules, (threads, options.share), sketch, request.seed)?;
++    let mut grower = Grower::seeded(rules, (threads, options.share), sketch, request.seed)?;
++    if let Some(set) = cohort::ages(species) {
++        grower.rules.cohort = set.clone().into();
++        grower.cohorts = Some(Box::new(cohort::Cohorts::new(species, set, request.age)));
++    }
+     Ok((grower, keeps))
+ }
+ 
+@@ -280,6 +287,8 @@ struct Grower<'a> {
+     jobs: [u32; 2],
+     census: Option<Box<cycle::Census>>,
+     working: Option<Box<cycle::Working>>,
++    /// fn-339 R4's probe: the cohorts, where a boundary is set.
++    cohorts: Option<Box<cohort::Cohorts<'a>>>,
+ }
+ 
+ /// Whether any PA reads the tree as grown: its shed pipes or its leaves'
+@@ -331,6 +340,7 @@ impl<'a> Grower<'a> {
+             jobs: [0; 2],
+             census: None,
+             working: None,
++            cohorts: None,
+         })
+     }
+ }
+@@ -381,11 +391,13 @@ impl Grower<'_> {
+         advanced.clear();
+         advanced.extend(self.live.iter().map(|a| a.axis));
+         self.step(cycle, stage)?;
++        self.cohort_step(cycle);
+         stage(Stage::Grown);
+         if self.sketch.is_none() || !sketching {
+             return Ok(());
+         }
+         self.sketch(cycle, advanced)?;
++        self.cohort_leaves(cycle);
+         stage(Stage::Pass(Pass::Sketch));
+         stage(Stage::Sketched);
+         self.shade(stage)?;
+diff --git i/crates/telperion-space/src/grow/alone.rs w/crates/telperion-space/src/grow/alone.rs
+index 0c978c0aa..7aeb5ecd8 100644
+--- i/crates/telperion-space/src/grow/alone.rs
++++ w/crates/telperion-space/src/grow/alone.rs
+@@ -29,5 +29,6 @@ pub(crate) fn drawn(species: &Species, age: u32) -> Rules<'_> {
+         age,
+         grown: 0,
+         one: false,
++        cohort: Vec::new().into(),
+     }
+ }
+diff --git i/crates/telperion-space/src/grow/cohort.rs w/crates/telperion-space/src/grow/cohort.rs
+new file mode 100644
+index 000000000..f12bc97c7
+--- /dev/null
++++ w/crates/telperion-space/src/grow/cohort.rs
+@@ -0,0 +1,390 @@
++//! fn-339 R4's probe, the coupled cohorts. With a boundary set
++//! (`set_cohorts`, or `TELPERION_COHORTS` in metres), a lateral of an age
++//! whose subtree's expected reach is under it is not sprouted as an axis:
++//! it is counted on its bearer's growth unit and moved each year by the
++//! law (`cycle/replay/law.rs`, the species' shedding rule at the bearing
++//! unit's size). Its current-year leaf shades from the unit's place, its
++//! living apexes' light and its wood's upkeep enter its bearer's balance,
++//! its living keeps its bearer open and its subtree's living time enters
++//! the shed, and its root radius joins its bearer's girth. A measurement
++//! only: with no boundary set the grower is unchanged.
++use super::cycle::replay::law::{self, Law, Shed, LEAF_CUR, LEAF_DRAWN, LIVING, STANDING, V, WOOD};
++use super::cycle::replay::{cohorts as ages_under, reaches, GREW};
++use super::Grower;
++use crate::girth::Disused;
++use crate::shed::Living;
++use crate::species::Species;
++use crate::structure::Vec3;
++use std::collections::HashMap;
++use std::sync::atomic::{AtomicU64, Ordering};
++use std::sync::Mutex;
++
++/// The boundary in metres: unset reads the environment; 0 is off.
++static BOUNDARY: AtomicU64 = AtomicU64::new(u64::MAX);
++
++/// Sets the boundary for every grower started after (none: off).
++pub fn set_cohorts(boundary: Option<f64>) {
++    BOUNDARY.store(boundary.map_or(0, f64::to_bits), Ordering::SeqCst);
++}
++
++fn boundary() -> Option<f64> {
++    match BOUNDARY.load(Ordering::SeqCst) {
++        u64::MAX => std::env::var("TELPERION_COHORTS").ok().and_then(|v| v.parse().ok()).filter(|&b: &f64| b > 0.0),
++        0 => None,
++        bits => Some(f64::from_bits(bits)),
++    }
++}
++
++/// The cohort ages of `species` at the boundary, none where it is off.
++pub(crate) fn ages(species: &Species) -> Option<Vec<bool>> {
++    let b = boundary()?;
++    let set = ages_under(species, &reaches(species), b);
++    let mut out = vec![false; species.states.len()];
++    for &j in &set {
++        out[j] = true;
++    }
++    // Marked choice: sleeping buds of a cohort age are not carried by this
++    // probe; none of the oak, spruce or beech holds one at 0.5 m.
++    for s in &species.states {
++        for z in &s.zones {
++            assert!(set.iter().all(|&j| z.dormant[j] == 0.0), "a sleeping bud of a cohort age");
++        }
++    }
++    Some(out)
++}
++
++/// A lateral bud of a cohort age made in a unit.
++#[derive(Debug, Clone, Copy)]
++pub(super) struct Born {
++    pub axis: usize,
++    pub pa: usize,
++    pub presence: f64,
++}
++
++/// One cohort: the laterals of one root age made in one growth unit.
++#[derive(Debug, Clone)]
++struct Class {
++    axis: usize,
++    cycle: u32,
++    pa: usize,
++    count: f64,
++    /// Where its unit was laid: its mean node, its middle node, its size
++    /// and presence (scale before size).
++    laid: bool,
++    place: Vec3,
++    node: usize,
++    size: f64,
++    scale: f64,
++    /// Its bearer's pipe exponent, which its root's radius joins by, and
++    /// its bearer's lineage and birth, which find it in the settled tree.
++    exponent: f64,
++    bearer: (u64, u32),
++    /// The light it grew in, from its birth's next cycle; dead once its
++    /// bearer's subtree is shed by the balance.
++    light: Vec<f64>,
++    dead: bool,
++    now: V,
++    stand: f64,
++    section: f64,
++    last_living: u32,
++}
++
++/// The tree's cohorts, and what the probe's read takes of them.
++#[derive(Clone)]
++pub(super) struct Cohorts<'a> {
++    pub set: Vec<bool>,
++    law: Law<'a>,
++    classes: Vec<Class>,
++    pub pending: Vec<Born>,
++    /// Class-years stepped, and the classes stepped each cycle.
++    steps: u64,
++    /// The leaf term's two sums over every phytomer the cohorts grew, at
++    /// the light each grew in, as the grown tree's are taken.
++    sums: [f64; 2],
++    per_cycle: Vec<u64>,
++}
++
++/// What the last settled grower's cohorts held at its age: the read's.
++#[derive(Debug, Clone, Default)]
++pub struct Held {
++    pub age: u32,
++    /// Units grown in the last cycle, living apexes, members standing,
++    /// current-year and standing leaf, wood: each by count and presence.
++    pub totals: [f64; 6],
++    /// Each standing cohort's bearer (lineage, birth), its node, and its
++    /// standing leaf.
++    pub places: Vec<(u64, u32, usize, f64)>,
++    pub classes: usize,
++    pub steps: u64,
++    pub per_cycle: Vec<u64>,
++}
++
++static HELD: Mutex<Option<Held>> = Mutex::new(None);
++
++/// What the last settled grower's cohorts held.
++pub fn held() -> Option<Held> {
++    HELD.lock().ok()?.clone()
++}
++
++impl<'a> Cohorts<'a> {
++    pub fn new(species: &'a Species, set: Vec<bool>, age: u32) -> Self {
++        let law = Law::new(species, age);
++        let ages: Vec<usize> = (0..set.len()).filter(|&j| set[j]).collect();
++        law.check(&ages);
++        Self {
++            set,
++            law,
++            classes: Vec::new(),
++            pending: Vec::new(),
++            steps: 0,
++            sums: [0.0; 2],
++            per_cycle: vec![0; age as usize + 1],
++        }
++    }
++}
++
++impl Grower<'_> {
++    /// The cycle's births gathered into their units' cohorts, then every
++    /// cohort moved to `cycle` by the law with the light it has had.
++    pub(super) fn cohort_step(&mut self, cycle: u32) {
++        let Some(c) = self.cohorts.as_deref_mut() else {
++            return;
++        };
++        let mut index: HashMap<(usize, usize), usize> = HashMap::new();
++        for b in std::mem::take(&mut c.pending) {
++            let k = *index.entry((b.axis, b.pa)).or_insert_with(|| {
++                c.classes.push(Class {
++                    axis: b.axis,
++                    cycle,
++                    pa: b.pa,
++                    count: 0.0,
++                    laid: false,
++                    place: Vec3::default(),
++                    node: 0,
++                    size: 1.0,
++                    scale: 1.0,
++                    exponent: 2.0,
++                    bearer: (0, 0),
++                    light: Vec::new(),
++                    dead: false,
++                    now: [0.0; law::Q],
++                    stand: 1.0,
++                    section: 0.0,
++                    last_living: cycle,
++                });
++                c.classes.len() - 1
++            });
++            c.classes[k].count += b.presence;
++        }
++        let law = &c.law;
++        let mut stepped = 0;
++        for class in &mut c.classes {
++            if class.cycle == cycle {
++                class.now[LIVING] = 1.0;
++                class.now[STANDING] = 1.0;
++                continue;
++            }
++            let mut path = vec![1.0; cycle as usize + 1];
++            for (k, &l) in class.light.iter().enumerate() {
++                let at = class.cycle as usize + 1 + k;
++                if at <= cycle as usize {
++                    path[at] = l;
++                }
++            }
++            if class.dead {
++                let from = class.cycle as usize + 1 + class.light.len();
++                path.iter_mut().skip(from).for_each(|l| *l = 0.0);
++            }
++            let mut unit = law::Unit::new(law, &path, Shed::Subtree);
++            let (v, stand, section, _) = unit.member(class.pa, class.cycle, true);
++            class.now = v[cycle as usize];
++            (class.stand, class.section) = (stand, section);
++            let s = &law.species().states[class.pa];
++            if s.leaf_area > 0.0 {
++                let nodes = class.now[LEAF_CUR] / s.leaf_area;
++                let pipe = nodes * class.count * s.form.pipe;
++                c.sums[0] += pipe;
++                c.sums[1] += pipe * path[cycle as usize].max(1e-6).powf(s.leaf_girth);
++            }
++            if class.now[LIVING] > 0.0 {
++                class.last_living = cycle;
++            }
++            stepped += 1;
++        }
++        c.classes.retain(|k| k.cycle == cycle || k.stand > 0.0);
++        c.steps += stepped;
++        c.per_cycle[cycle as usize] = stepped;
++    }
++
++    /// The cohorts' units laid this cycle placed, and every cohort's
++    /// current-year leaf added to the leaves the lattice takes.
++    pub(super) fn cohort_leaves(&mut self, cycle: u32) {
++        let Some(c) = self.cohorts.as_deref_mut() else {
++            return;
++        };
++        for class in c.classes.iter_mut().filter(|k| !k.laid) {
++            let axis = &self.axes[class.axis];
++            let unit: Vec<usize> = (0..axis.phytomers.len()).filter(|&j| axis.phytomers[j].cycle == class.cycle).collect();
++            if unit.is_empty() {
++                continue;
++            }
++            let k = unit.len() as f64;
++            let (mut at, mut size, mut scale) = (Vec3::default(), 0.0, 0.0);
++            for &j in &unit {
++                let p = &axis.phytomers[j];
++                at = Vec3::new(at.x + p.tip.x / k, at.y + p.tip.y / k, at.z + p.tip.z / k);
++                size += p.size / k;
++                scale += p.scale / k;
++            }
++            // Marked choice: the cohort joins its bearer at its unit's
++            // middle node.
++            (class.place, class.node, class.size, class.scale) = (at, unit[unit.len() / 2], size, scale);
++            class.exponent = self.species.states[axis.pa].form.exponent;
++            class.bearer = (axis.lineage, axis.birth);
++            class.laid = true;
++        }
++        let _ = cycle;
++        for class in c.classes.iter().filter(|k| k.laid) {
++            let area = class.now[LEAF_CUR] * class.count * class.scale * class.size;
++            if area > 0.0 {
++                self.leaves.push((class.place, area));
++            }
++        }
++    }
++
++    /// The places the cohorts read their light at, in their order.
++    pub(super) fn cohort_places(&self) -> Vec<Vec3> {
++        self.cohorts
++            .as_deref()
++            .map_or_else(Vec::new, |c| c.classes.iter().map(|k| k.place).collect())
++    }
++
++    /// Each cohort's light for the next cycle, read at its place.
++    pub(super) fn cohort_lit(&mut self, read: &[f64]) {
++        let Some(c) = self.cohorts.as_deref_mut() else {
++            return;
++        };
++        for (class, &l) in c.classes.iter_mut().zip(read) {
++            class.light.push(if class.dead { 0.0 } else { l });
++        }
++    }
++
++    /// What each axis's cohorts add to its balance: their living apexes'
++    /// light, their wood's upkeep, and whether any of them lives.
++    pub(super) fn cohort_balance(&self) -> HashMap<usize, (f32, f32, bool)> {
++        let mut out: HashMap<usize, (f32, f32, bool)> = HashMap::new();
++        let Some(c) = self.cohorts.as_deref() else {
++            return out;
++        };
++        for k in &c.classes {
++            let light = k.light.last().copied().unwrap_or(1.0);
++            let presence = k.count * k.scale;
++            let e = out.entry(k.axis).or_default();
++            e.0 += (k.now[LIVING] * presence * light) as f32;
++            e.1 += (self.species.states[k.pa].upkeep * k.now[WOOD] * presence * k.size) as f32;
++            e.2 |= k.now[LIVING] > 0.0;
++        }
++        out
++    }
++
++    /// The cohorts on an axis the balance shed die with it.
++    pub(super) fn cohort_shed(&mut self, shed: &dyn Fn(usize) -> bool) {
++        if let Some(c) = self.cohorts.as_deref_mut() {
++            for k in c.classes.iter_mut().filter(|k| shed(k.axis)) {
++                k.dead = true;
++            }
++        }
++    }
++
++    /// The axes a living cohort keeps open.
++    pub(super) fn cohort_open(&self) -> Vec<usize> {
++        self.cohorts.as_deref().map_or_else(Vec::new, |c| {
++            c.classes.iter().filter(|k| k.now[LIVING] > 0.0).map(|k| k.axis).collect()
++        })
++    }
++
++    /// The cohorts' axes renamed as the grower's are, those let go dropped.
++    pub(super) fn cohort_rename(&mut self, to: &dyn Fn(usize) -> Option<usize>) {
++        if let Some(c) = self.cohorts.as_deref_mut() {
++            c.classes.retain_mut(|k| to(k.axis).map(|a| k.axis = a).is_some());
++            c.pending.retain_mut(|b| to(b.axis).map(|a| b.axis = a).is_some());
++        }
++    }
++
++    /// The living each bearer's cohorts give its subtree at the shed: the
++    /// last cycle any of them lived, from the bearer's birth, and whether
++    /// one lives at the tree's age. Marked choice: whole cycles, and the
++    /// bearer's presence as the living apex's.
++    pub(super) fn cohort_living(&self, age: u32) -> HashMap<usize, Living> {
++        let mut out: HashMap<usize, Living> = HashMap::new();
++        let Some(c) = self.cohorts.as_deref() else {
++            return out;
++        };
++        for k in &c.classes {
++            let birth = self.axes[k.axis].birth;
++            let lived = k.last_living.saturating_sub(birth) as f32;
++            let alive = if k.now[LIVING] > 0.0 && k.last_living == age { k.scale.min(1.0) as f32 } else { 0.0 };
++            let e = out.entry(k.axis).or_default();
++            (e.lived, e.alive) = (e.lived.max(lived), e.alive.max(alive));
++        }
++        out
++    }
++
++}
++
++impl Cohorts<'_> {
++    /// The leaf term's mean with the cohorts' pipes in it: every phytomer
++    /// they grew, at the light it grew in. Marked choice: one pipe per
++    /// cohort, its root age's, and its bearer's presence left out as the
++    /// grown tree's sums take each phytomer's own.
++    pub(super) fn leaf_mean(&self, species: &Species, sums: Option<[f32; 2]>) -> Option<f64> {
++        let _ = species;
++        let [total, weighted] = sums?.map(f64::from);
++        let (total, weighted) = (total + self.sums[0], weighted + self.sums[1]);
++        (weighted > 0.0).then(|| total / weighted)
++    }
++
++    /// Each standing cohort's root radius as its bearer takes it, where the
++    /// shed kept its bearer (`index`), lit by the leaf term, and the read's
++    /// record of them.
++    pub(super) fn girth(&self, species: &Species, index: &[usize], age: u32, mean: Option<f64>) -> Vec<Disused> {
++        let mut out = Vec::new();
++        let c = self;
++        let mut held = Held {
++            age,
++            classes: c.classes.len(),
++            steps: c.steps,
++            per_cycle: c.per_cycle.clone(),
++            ..Held::default()
++        };
++        for k in c.classes.iter().filter(|k| k.stand > 0.0 && k.laid) {
++            let Some(&_kept) = index.get(k.axis).filter(|&&i| i != usize::MAX) else {
++                continue;
++            };
++            let e = k.exponent;
++            let whole = k.count.floor();
++            let moment = whole + (k.count - whole).powf(e);
++            let member = k.section / k.stand;
++            let light = k.light.last().copied().unwrap_or(1.0).max(1e-6);
++            let lit = mean.map_or(1.0, |m| light.powf(species.states[k.pa].leaf_girth) * m);
++            out.push(Disused {
++                axis: _kept,
++                node: Some(k.node),
++                radius: k.size * k.scale * member.sqrt() * lit,
++                share: moment * k.stand,
++            });
++            let presence = k.count * k.scale;
++            for (t, q) in [GREW, LIVING, STANDING].into_iter().enumerate() {
++                held.totals[t] += k.now[q] * presence;
++            }
++            held.totals[3] += k.now[LEAF_CUR] * presence * k.size;
++            held.totals[4] += k.now[LEAF_DRAWN] * presence * k.size;
++            held.totals[5] += k.now[WOOD] * presence * k.size;
++            held.places.push((k.bearer.0, k.bearer.1, k.node, k.now[LEAF_DRAWN] * presence * k.size));
++        }
++        if let Ok(mut h) = HELD.lock() {
++            *h = Some(held);
++        }
++        out
++    }
++}
+diff --git i/crates/telperion-space/src/grow/cycle.rs w/crates/telperion-space/src/grow/cycle.rs
+index 36d260e1a..150554952 100644
+--- i/crates/telperion-space/src/grow/cycle.rs
++++ w/crates/telperion-space/src/grow/cycle.rs
+@@ -17,6 +17,8 @@ mod capture_units;
+ mod census;
+ mod compact;
+ mod footprint;
++mod laterals;
++pub(crate) mod replay;
+ mod passes;
+ mod paused;
+ mod retire;
+@@ -32,6 +34,9 @@ pub use capture_settled::{
+ };
+ pub use census::{Census, Cycle};
+ pub use footprint::{Footprint, Store};
++pub use laterals::{grow_laterals, Lateral};
++pub use replay::{cohorts, grow_replay, reaches, Cell, Replay, Side};
++pub use replay::{GREW, LEAF_CUR, LEAF_DRAWN, LIVING, PHYTO, SECTION, STANDING, WOOD};
+ pub use paused::{admitted, tree_digest, within_year, Paused, Retiring};
+ pub(super) use working::Working;
+ 
+diff --git i/crates/telperion-space/src/grow/cycle/compact.rs w/crates/telperion-space/src/grow/cycle/compact.rs
+index 8b57e4cbf..744c98b43 100644
+--- i/crates/telperion-space/src/grow/cycle/compact.rs
++++ w/crates/telperion-space/src/grow/cycle/compact.rs
+@@ -96,6 +96,7 @@ impl Grower<'_> {
+                 *parent = r.to(*parent);
+             }
+         }
++        self.cohort_rename(&|i| r.at(i));
+         r.keep(&mut self.draws);
+         r.keep(&mut self.horizon);
+         r.keep(&mut self.units);
+diff --git i/crates/telperion-space/src/grow/cycle/laterals.rs w/crates/telperion-space/src/grow/cycle/laterals.rs
+new file mode 100644
+index 000000000..8a72b186f
+--- /dev/null
++++ w/crates/telperion-space/src/grow/cycle/laterals.rs
+@@ -0,0 +1,281 @@
++//! fn-335: what every lateral a full cycle grew really carried. The grower
++//! runs as the reference runs it (every axis open, none retired), its
++//! presences are assigned as the settle assigns them, and each lateral's
++//! subtree is read there, before shedding drops anything; the shed is then
++//! taken as the settle takes it, to name the laterals it drops. A
++//! measurement only: it reads the grower and changes nothing it grows.
++use super::super::sketch::Sketch;
++use super::super::{start, Options, Request};
++use super::Working;
++use crate::error::Result;
++use crate::presence::assign;
++use crate::species::Species;
++use crate::structure::{Axis, Origin};
++
++/// One lateral of the grown tree, the shed ones included.
++#[derive(Debug, Clone, PartialEq)]
++pub struct Lateral {
++    pub lineage: u64,
++    /// Its age on the reference axis, and the cycle its bud was made.
++    pub pa: usize,
++    pub birth: u32,
++    /// Whether its bud slept before it grew.
++    pub woken: bool,
++    /// Its bearer's age, the node it stands at, and the laterals between it
++    /// and the seed, itself included.
++    pub bearer_pa: usize,
++    pub node: usize,
++    pub order: u32,
++    /// The light its first growth unit grew in (none where it grew no
++    /// phytomer), and the light of the bearer's growth unit that made it.
++    pub light: Option<f64>,
++    pub bearer_light: f64,
++    /// The cycle its own apex stopped, none where it lives at the age.
++    pub apex_end: Option<u32>,
++    /// The last cycle anything in its subtree grew; none where nothing did.
++    pub last: Option<u32>,
++    /// Whether the settle sheds it.
++    pub shed: bool,
++    /// Its whole subtree's phytomers by age as grown, before the shed,
++    /// counted; and those grown in the tree's last cycle.
++    pub count: Vec<f64>,
++    pub count_last: Vec<f64>,
++    /// What its subtree holds at the tree's age, by age: the phytomers the
++    /// settle keeps, summed by their settled scale; and those of the last
++    /// cycle.
++    pub standing: Vec<f64>,
++    pub standing_last: Vec<f64>,
++}
++
++/// Every lateral of `species` grown to `request`'s age through the full
++/// cycle, in the grower's order.
++pub fn grow_laterals(species: &Species, request: Request) -> Result<Vec<Lateral>> {
++    let (mut g, _) = start(species, request, Options::default())?;
++    (g.one, g.rules.one) = (true, true);
++    g.working = Some(Box::new(Working::reference()));
++    g.sketch.get_or_insert_with(|| Sketch::new(request.light));
++    g.rules.lasting = vec![None; species.states.len()].into();
++    let mut advanced = Vec::new();
++    for c in 1..=request.age {
++        g.year(c, c < request.age, &mut advanced, &mut |_| {})?;
++    }
++    g.mark();
++    assign(&mut g.axes, &g.draws, species, g.threads);
++    let pas = species.states.len();
++    let mut out = read(&g.axes, pas, request.age);
++    let parents: Vec<Option<usize>> = g.axes.iter().map(|a| a.origin.parent()).collect();
++    let (shed, mut tree) = settled(g, species, request)?;
++    let n = parents.len();
++    let mut standing = vec![0.0; n * pas];
++    let mut standing_last = vec![0.0; n * pas];
++    for (i, &k) in shed.iter().enumerate() {
++        let Some(axis) = (k != usize::MAX).then(|| &tree.axes[k]) else {
++            continue;
++        };
++        for p in &axis.phytomers {
++            standing[i * pas + axis.pa] += p.scale;
++            if p.cycle == request.age {
++                standing_last[i * pas + axis.pa] += p.scale;
++            }
++        }
++    }
++    sum_up(&parents, pas, &mut [&mut standing, &mut standing_last]);
++    tree.axes.clear();
++    for (lateral, i) in out.iter_mut() {
++        lateral.shed = shed[*i] == usize::MAX;
++        lateral.standing = standing[*i * pas..(*i + 1) * pas].to_vec();
++        lateral.standing_last = standing_last[*i * pas..(*i + 1) * pas].to_vec();
++    }
++    Ok(out.into_iter().map(|(l, _)| l).collect())
++}
++
++/// The settle's shed and scale, as `settle_shed` and `settle_lay` take
++/// them, of the grower already marked and assigned: each grown axis's
++/// index in the settled tree (none where shed), and that tree scaled.
++fn settled(
++    g: super::super::Grower<'_>,
++    species: &Species,
++    request: Request,
++) -> Result<(Vec<usize>, crate::structure::Structure)> {
++    let threads = g.threads;
++    let w = g.working.as_ref().expect("a working set");
++    let r = w.retirement();
++    let (given, gone) = (|i| r.root(i), |i| r.inside(i));
++    let shed = crate::shed::shed_past(g.axes, species, request.age, (&given, &gone), None).0;
++    let mut tree = crate::structure::Structure {
++        age: request.age,
++        pas: species.states.len(),
++        axes: shed.axes,
++    };
++    crate::geometry::scale(&mut tree, species, threads);
++    Ok((shed.index, tree))
++}
++
++/// Each axis's per-age sums in `cols` gathered into its parent's, from
++/// the tips down (a parent precedes its children).
++fn sum_up(parents: &[Option<usize>], pas: usize, cols: &mut [&mut Vec<f64>]) {
++    for i in (1..parents.len()).rev() {
++        let Some(p) = parents[i] else {
++            continue;
++        };
++        for col in cols.iter_mut() {
++            for k in 0..pas {
++                col[p * pas + k] += col[i * pas + k];
++            }
++        }
++    }
++}
++
++/// Each lateral's record and its index, every subtree summed from the
++/// tips down (a parent precedes its children).
++fn read(axes: &[Axis], pas: usize, age: u32) -> Vec<(Lateral, usize)> {
++    let n = axes.len();
++    let (mut count, mut count_last) = (vec![0.0; n * pas], vec![0.0; n * pas]);
++    let mut last: Vec<Option<u32>> = vec![None; n];
++    for (i, a) in axes.iter().enumerate() {
++        for p in &a.phytomers {
++            count[i * pas + a.pa] += 1.0;
++            if p.cycle == age {
++                count_last[i * pas + a.pa] += 1.0;
++            }
++        }
++        last[i] = a.phytomers.iter().map(|p| p.cycle).max();
++    }
++    let parents: Vec<Option<usize>> = axes.iter().map(|a| a.origin.parent()).collect();
++    sum_up(&parents, pas, &mut [&mut count, &mut count_last]);
++    for i in (1..n).rev() {
++        if let Some(p) = parents[i] {
++            last[p] = last[p].max(last[i]);
++        }
++    }
++    let mut order = vec![0u32; n];
++    let mut out = Vec::new();
++    for (i, a) in axes.iter().enumerate() {
++        let Origin::Lateral {
++            parent,
++            node,
++            woken,
++            ..
++        } = a.origin
++        else {
++            order[i] = a.origin.parent().map_or(0, |p| order[p]);
++            continue;
++        };
++        order[i] = order[parent] + 1;
++        let bearer = &axes[parent];
++        let lateral = Lateral {
++            lineage: a.lineage,
++            pa: a.pa,
++            birth: a.birth,
++            woken,
++            bearer_pa: bearer.pa,
++            node,
++            order: order[i],
++            light: a.phytomers.first().map(|p| p.light),
++            bearer_light: bearer.phytomers[node].light,
++            apex_end: a.apex_end,
++            last: last[i],
++            shed: false,
++            count: count[i * pas..(i + 1) * pas].to_vec(),
++            count_last: count_last[i * pas..(i + 1) * pas].to_vec(),
++            standing: Vec::new(),
++            standing_last: Vec::new(),
++        };
++        out.push((lateral, i));
++    }
++    out
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::light::Light;
++
++    /// The laterals the recorder keeps are the laterals the full cycle's
++    /// tree holds, by lineage, and a lateral has a first light exactly
++    /// where it grew a phytomer of its own age: the recorder reads the
++    /// tree the cycle grows.
++    #[test]
++    fn the_kept_laterals_are_the_full_cycles() {
++        let light = Light {
++            extinction: 0.5,
++            sky: 0.5,
++        };
++        let request = Request {
++            age: 12,
++            seed: 1001,
++            light,
++        };
++        let oak = crate::oak();
++        let records = grow_laterals(&oak, request).expect("records");
++        let tree = super::super::grow_cycle(&oak, request).expect("a tree");
++        let mut kept: Vec<u64> = (records.iter().filter(|l| !l.shed))
++            .map(|l| l.lineage)
++            .collect();
++        let mut held: Vec<u64> = (tree.structure.axes.iter())
++            .filter(|a| matches!(a.origin, Origin::Lateral { .. }))
++            .map(|a| a.lineage)
++            .collect();
++        kept.sort_unstable();
++        held.sort_unstable();
++        assert!(records.iter().any(|l| l.shed), "nothing shed at 12");
++        assert_eq!(kept, held);
++        let grown = |l: &Lateral| l.light.is_some() == (l.count[l.pa] > 0.0);
++        assert!(records.iter().all(grown));
++        let gone = |l: &&Lateral| l.shed && l.standing.iter().any(|&s| s != 0.0);
++        assert_eq!(records.iter().filter(gone).count(), 0);
++        let held = held_by_lineage(&tree.structure, oak.states.len());
++        for l in records.iter().filter(|l| !l.shed) {
++            let (all, last) = &held[&l.lineage];
++            for (ours, theirs) in [(&l.standing, all), (&l.standing_last, last)] {
++                let near = |(a, b): (&f64, &f64)| (a - b).abs() <= 1e-9 * b.abs().max(1.0);
++                assert!(ours.iter().zip(theirs).all(near), "{ours:?} vs {theirs:?}");
++            }
++        }
++    }
++
++    /// Each lateral of a settled tree's subtree, by age, summed by scale,
++    /// and those of the last cycle, by lineage.
++    fn held_by_lineage(
++        tree: &crate::structure::Structure,
++        pas: usize,
++    ) -> std::collections::HashMap<u64, (Vec<f64>, Vec<f64>)> {
++        let n = tree.axes.len();
++        let (mut all, mut last) = (vec![0.0; n * pas], vec![0.0; n * pas]);
++        for (i, a) in tree.axes.iter().enumerate() {
++            for p in &a.phytomers {
++                all[i * pas + a.pa] += p.scale;
++                if p.cycle == tree.age {
++                    last[i * pas + a.pa] += p.scale;
++                }
++            }
++        }
++        // The settled tree is in lineage order, a child possibly before its
++        // parent: gathered deepest first.
++        let parents: Vec<Option<usize>> = tree.axes.iter().map(|a| a.origin.parent()).collect();
++        let depth = |mut i: usize| {
++            let mut d = 0;
++            while let Some(p) = parents[i] {
++                (i, d) = (p, d + 1);
++            }
++            d
++        };
++        let mut deepest: Vec<usize> = (0..n).collect();
++        deepest.sort_by_key(|&i| std::cmp::Reverse(depth(i)));
++        for i in deepest {
++            let Some(p) = parents[i] else {
++                continue;
++            };
++            for k in 0..pas {
++                all[p * pas + k] += all[i * pas + k];
++                last[p * pas + k] += last[i * pas + k];
++            }
++        }
++        let span = |v: &[f64], i: usize| v[i * pas..(i + 1) * pas].to_vec();
++        // A relay carries its parent's lineage: only laterals are keyed.
++        (tree.axes.iter().enumerate())
++            .filter(|(_, a)| matches!(a.origin, Origin::Lateral { .. }))
++            .map(|(i, a)| (a.lineage, (span(&all, i), span(&last, i))))
++            .collect()
++    }
++}
+diff --git i/crates/telperion-space/src/grow/cycle/passes.rs w/crates/telperion-space/src/grow/cycle/passes.rs
+index 7b1c90c40..35ffc7881 100644
+--- i/crates/telperion-space/src/grow/cycle/passes.rs
++++ w/crates/telperion-space/src/grow/cycle/passes.rs
+@@ -17,7 +17,8 @@ impl Grower<'_> {
+         w.extend(&self.axes, n);
+         let sleeping =
+             (self.asleep.iter().skip(cycle as usize)).flat_map(|a| a.iter().map(|s| s.parent));
+-        w.open_from(self.live.iter().map(|a| a.axis).chain(sleeping), laid);
++        let held = self.cohort_open();
++        w.open_from(self.live.iter().map(|a| a.axis).chain(sleeping).chain(held), laid);
+         self.working = Some(w);
+     }
+ 
+@@ -25,6 +26,8 @@ impl Grower<'_> {
+     /// walk over the open axes, each memory kept, every apex shed leaving
+     /// the living and every other given its kept share.
+     pub(in crate::grow) fn balance_one(&mut self, cycle: u32) {
++        // fn-339 R4's probe: each axis's cohorts' light, upkeep and living.
++        let extra = self.cohort_balance();
+         let mut w = self.working.take().expect("a working set");
+         let (species, sketch) = (self.species, self.sketch.as_mut().expect("sketching"));
+         let n = sketch.pencils.len();
+@@ -33,15 +36,17 @@ impl Grower<'_> {
+             lit[a.axis] = true;
+         }
+         let pencils = &sketch.pencils;
+-        let upkeep =
+-            |i: usize| species.states[self.axes[i].pa].upkeep as f32 * pencils[i].wood as f32;
++        let more = |i: usize| extra.get(&i).copied().unwrap_or((0.0, 0.0, false));
++        let upkeep = |i: usize| {
++            species.states[self.axes[i].pa].upkeep as f32 * pencils[i].wood as f32 + more(i).1
++        };
+         let own = |i: usize| {
+             let p = &pencils[i];
+             let light = match lit[i] {
+                 true => p.base_scale as f32 * p.running as f32 * p.light as f32,
+                 false => 0.0,
+             };
+-            (light, upkeep(i), lit[i])
++            (light + more(i).0, upkeep(i), lit[i] || more(i).2)
+         };
+         w.totals(&own, &upkeep);
+         let mut laterals = vec![Lateral::default(); w.list.len()];
+@@ -84,6 +89,8 @@ impl Grower<'_> {
+                 sketch.pencils[i].memory = f64::from(memory);
+             }
+         }
++        let shed: std::collections::HashSet<usize> =
++            (w.list.iter().zip(&walked)).filter(|(_, wk)| wk.shed).map(|(&i, _)| i).collect();
+         let live = std::mem::take(&mut self.live);
+         for apex in live {
+             if apex.axis < n {
+@@ -97,6 +104,7 @@ impl Grower<'_> {
+             self.live.push(apex);
+         }
+         self.working = Some(w);
++        self.cohort_shed(&|i| shed.contains(&i));
+     }
+ 
+     /// The allotment over the working set: each living apex's unit's size
+diff --git i/crates/telperion-space/src/grow/cycle/paused.rs w/crates/telperion-space/src/grow/cycle/paused.rs
+index a6228520c..624262f5d 100644
+--- i/crates/telperion-space/src/grow/cycle/paused.rs
++++ w/crates/telperion-space/src/grow/cycle/paused.rs
+@@ -346,6 +346,7 @@ impl<'a> Grower<'a> {
+             jobs: [0; 2],
+             census: None,
+             working: self.working.as_ref().map(|w| Box::new(w.settled_copy())),
++            cohorts: self.cohorts.clone(),
+         }
+     }
+ }
+diff --git i/crates/telperion-space/src/grow/cycle/replay.rs w/crates/telperion-space/src/grow/cycle/replay.rs
+new file mode 100644
+index 000000000..703a36476
+--- /dev/null
++++ w/crates/telperion-space/src/grow/cycle/replay.rs
+@@ -0,0 +1,473 @@
++//! fn-339 R3's dry run: the cohort law replayed on a full cycle's tree. The
++//! grower runs as fn-335's recorder runs it (every axis open, none retired),
++//! keeping each year's lattice. On every growth unit of the wood that stays
++//! structural at the boundary, the law's cohorts (`law.rs`), births in
++//! expectation and as the cycle drew them, are set beside what the cycle's
++//! own laterals of the cohort ages hold at the tree's age. A measurement
++//! only: it reads the grower and changes nothing it grows.
++pub(crate) mod law;
++
++use super::super::sketch::Sketch;
++use super::super::{start, Options, Request};
++use super::Working;
++use crate::error::Result;
++use crate::light::Field;
++use crate::presence::assign;
++use crate::species::Species;
++use crate::structure::{Origin, Vec3};
++use law::{Law, Q, V};
++use std::collections::{BTreeMap, HashSet};
++
++pub use law::{GREW, LEAF_CUR, LEAF_DRAWN, LIVING, PHYTO, SECTION, STANDING, WOOD};
++
++/// What one side holds over a set of bearing units: the law's quantities,
++/// the sections joined to the bearer by its exponent, and the roots.
++#[derive(Debug, Clone, Copy, Default)]
++pub struct Side {
++    pub v: V,
++    pub join: f64,
++    pub roots: f64,
++    /// Roots the balance hazard alone sheds before the tree's age.
++    pub balance: f64,
++}
++
++/// One cell's bearing units: the cycle, the law with births in expectation,
++/// the law with the cycle's own births; the cycle's leaf and wood at size 1.
++#[derive(Debug, Clone, Copy, Default)]
++pub struct Cell {
++    pub units: u64,
++    pub cycle: Side,
++    /// The law, births expected: shed by the root at size 1, by the
++    /// species' rule at size 1, by the species' rule at the bearing unit's
++    /// size, by the root at the bearing unit's size; then the species' rule
++    /// at size 1 with the cycle's own births (`LAWS`).
++    pub law: [Side; 5],
++    pub at_one: [f64; 2],
++    pub light: f64,
++}
++
++/// The law's five readings, in `Cell::law`'s order.
++pub const LAWS: [&str; 5] = ["root-1", "subtree-1", "subtree-size", "root-size", "subtree-1-drawn"];
++
++/// The replay of one tree.
++pub struct Replay {
++    /// Each lateral age's expected subtree reach (`R1-LAW.md`), infinite
++    /// where it bears its own age.
++    pub reach: Vec<f64>,
++    /// Per cycle: units grown, and those inside the cohorts at each
++    /// threshold.
++    pub apex: Vec<[u64; 4]>,
++    /// The bearing units' cells, by lattice node.
++    pub cells: BTreeMap<[i32; 3], Cell>,
++    /// The structure's own share of the tree at its age: units grown,
++    /// current-year leaf, standing leaf; the cycle's whole tree beside it.
++    pub structure: [f64; 3],
++    pub whole: [f64; 3],
++    /// Leaf-bearing ground columns of 0.5 m: the cycle's, and the law's.
++    pub columns: [usize; 2],
++    /// The lattice kept against the cycle's own reads: apexes compared and
++    /// the largest difference.
++    pub light_check: (u64, f64),
++    /// The size trace's sums per cohort age.
++    pub trace: BTreeMap<usize, [f64; 9]>,
++}
++
++/// Each lateral age's expected subtree reach: its axis's expected path,
++/// relays carrying it on, plus the farthest of what it bears.
++pub fn reaches(species: &Species) -> Vec<f64> {
++    let n = species.states.len();
++    let mut r = vec![0.0; n + 1];
++    for j in (0..n).rev() {
++        let s = &species.states[j];
++        let unit: f64 = s.zones.iter().map(|z| z.nodes.mean()).sum::<f64>() * s.internode;
++        let (mut own, mut alive, mut t) = (0.0, 1.0, 0.0);
++        while t < s.lifespan {
++            let share = (s.lifespan - t).min(1.0);
++            alive *= 1.0 - (1.0 - s.viability) * (1.0 - s.relay_failed);
++            own += share * alive * unit;
++            alive *= 1.0 - s.viability * s.abortion * (1.0 - s.relay);
++            t += 1.0;
++        }
++        r[j] = own + s.continuation * r[j + 1];
++    }
++    let borne = |j: usize| {
++        let mut out = HashSet::new();
++        let mut k = Some(j);
++        while let Some(pa) = k {
++            for z in &species.states[pa].zones {
++                for i in 0..n {
++                    if z.lateral[i] > 0.0 || z.dormant[i] > 0.0 {
++                        if let Some((li, _)) = species.lived(i) {
++                            out.insert(li);
++                        }
++                    }
++                }
++            }
++            k = (species.states[pa].continuation > 0.0 && pa + 1 < n)
++                .then(|| species.lived(pa + 1).map(|l| l.0))
++                .flatten();
++        }
++        out
++    };
++    fn extent(j: usize, r: &[f64], borne: &dyn Fn(usize) -> HashSet<usize>, seen: &mut Vec<usize>) -> f64 {
++        if seen.contains(&j) {
++            return f64::INFINITY;
++        }
++        seen.push(j);
++        let far = borne(j).into_iter().map(|i| extent(i, r, borne, seen)).fold(0.0, f64::max);
++        seen.pop();
++        r[j] + far
++    }
++    (0..n).map(|j| extent(j, &r, &borne, &mut Vec::new())).collect()
++}
++
++/// The ages that arise as laterals, and those of them whose subtree's
++/// reach is under `threshold`.
++pub fn cohorts(species: &Species, reach: &[f64], threshold: f64) -> Vec<usize> {
++    let mut out = HashSet::new();
++    for s in species.states.iter().filter(|s| s.lifespan > 0.0) {
++        for z in &s.zones {
++            for (i, (&p, &d)) in z.lateral.iter().zip(&z.dormant).enumerate() {
++                if p > 0.0 || d > 0.0 {
++                    if let Some((li, _)) = species.lived(i) {
++                        out.insert(li);
++                    }
++                }
++            }
++        }
++    }
++    let mut out: Vec<usize> = out.into_iter().filter(|&j| reach[j] < threshold).collect();
++    out.sort_unstable();
++    out
++}
++
++/// `species` grown to `request` by the full cycle and replayed with the
++/// cohorts of `thresholds` (the second the boundary read; all three for
++/// the share of units).
++pub fn grow_replay(species: &Species, request: Request, thresholds: [f64; 3]) -> Result<Replay> {
++    let reach = reaches(species);
++    let sets: Vec<Vec<usize>> = thresholds.iter().map(|&t| cohorts(species, &reach, t)).collect();
++    let (mut g, _) = start(species, request, Options::default())?;
++    (g.one, g.rules.one) = (true, true);
++    g.working = Some(Box::new(Working::reference()));
++    g.sketch.get_or_insert_with(|| Sketch::new(request.light));
++    g.rules.lasting = vec![None; species.states.len()].into();
++    let age = request.age;
++    let mut fields: Vec<Option<Field>> = vec![None];
++    let mut check = (0u64, 0.0f64);
++    let mut advanced = Vec::new();
++    for c in 1..=age {
++        g.year(c, c < age, &mut advanced, &mut |_| {})?;
++        let lit = field(&g, request)?;
++        if c < age {
++            check_light(&g, &lit, &mut check);
++        }
++        fields.push(Some(lit));
++    }
++    g.mark();
++    assign(&mut g.axes, &g.draws, species, g.threads);
++    let apex = shares(&g.axes, &sets, age);
++    let n = g.axes.len();
++    let inside = within(&g.axes, &sets[1]);
++    let made: Vec<f64> = g.draws.iter().map(|d| d.birth[0] * d.birth[1]).collect();
++    // The size trace (PROTOCOL.md): for each axis of a cohort age that
++    // grew in the last cycle, its last unit's size, its survival's
++    // presence, and its pencil's presence (base scale, running, kept).
++    let pencils = g.sketch.as_ref().map(|s| &s.pencils);
++    let traced: Vec<Option<[f64; 3]>> = (0..g.axes.len())
++        .map(|i| {
++            let a = &g.axes[i];
++            let d = &g.draws[i];
++            let grew = a.phytomers.last().is_some_and(|p| p.cycle == age);
++            if !grew || !sets[1].contains(&a.pa) {
++                return None;
++            }
++            let unit = d.units.last()?;
++            let size = d.shade.last().map_or(1.0, |s| s[0]);
++            let pencil = pencils.and_then(|p| p.get(i)).map_or(0.0, |p| p.base_scale * p.running * p.kept);
++            Some([size, unit.survive, pencil])
++        })
++        .collect();
++    let grown = std::mem::take(&mut g.axes);
++    let (index, tree) = settled(g, grown.clone(), species, request)?;
++    // Each axis's own standing quantities at the tree's age, summed up.
++    let mut own = vec![[0.0; Q]; n];
++    let mut at_one = vec![[0.0; 2]; n];
++    for (i, a) in grown.iter().enumerate() {
++        let s = &species.states[a.pa];
++        let Some(kept) = (index[i] != usize::MAX).then(|| &tree.axes[index[i]]) else {
++            continue;
++        };
++        // Counts by presence, as the law's are: a member's settled scale.
++        let mean = |ps: &mut dyn Iterator<Item = f64>| {
++            let (sum, k) = ps.fold((0.0, 0.0), |(s, k), x| (s + x, k + 1.0));
++            (k > 0.0).then(|| sum / k)
++        };
++        // The settled scale holds the unit's size (`geometry::scale`): a
++        // phytomer's presence is its scale over its size.
++        let presence = |p: &crate::structure::Phytomer| if p.size > 0.0 { p.scale / p.size } else { 0.0 };
++        let whole = mean(&mut kept.phytomers.iter().map(presence)).unwrap_or(made[i]);
++        let last = mean(&mut kept.phytomers.iter().filter(|p| p.cycle == age).map(presence));
++        own[i][GREW] = last.unwrap_or(0.0);
++        own[i][LIVING] = if a.apex_end.is_none() { kept.phytomers.last().map_or(made[i], presence) } else { 0.0 };
++        own[i][STANDING] = whole;
++        for p in &kept.phytomers {
++            let (scale, bare) = (p.scale, presence(p));
++            own[i][PHYTO] += bare;
++            own[i][WOOD] += s.internode * scale;
++            at_one[i][1] += s.internode * bare;
++            own[i][SECTION] += (s.form.pipe * scale).powi(2);
++            if p.cycle == age {
++                own[i][LEAF_CUR] += s.leaf_area * scale;
++                at_one[i][0] += s.leaf_area * bare;
++            }
++            if s.cluster_leaves == 0.0 && f64::from(age - p.cycle) < s.leaf_years {
++                own[i][LEAF_DRAWN] += s.leaf_area * scale;
++            }
++        }
++        if s.cluster_leaves > 0.0 && own[i][GREW] > 0.0 {
++            let scale = kept.phytomers.last().map_or(0.0, |p| p.scale);
++            own[i][LEAF_DRAWN] += s.cluster_leaves * s.leaf_area * scale;
++        }
++    }
++    // The trace's sums per cohort age: units, then size weighted by one,
++    // by survival's presence, by the pencil's presence, by the settled
++    // scale of the unit's phytomers, each with its weight's own sum.
++    let mut trace: BTreeMap<usize, [f64; 9]> = BTreeMap::new();
++    for (i, t) in traced.iter().enumerate() {
++        let (Some([size, survive, pencil]), true) = (t, index[i] != usize::MAX) else {
++            continue;
++        };
++        let kept = &tree.axes[index[i]].phytomers;
++        let last: Vec<f64> = kept.iter().filter(|p| p.cycle == age).map(|p| p.scale).collect();
++        let settled = last.iter().sum::<f64>() / last.len().max(1) as f64;
++        let row = trace.entry(grown[i].pa).or_default();
++        for (k, x) in [1.0, *size, *survive, survive * size, *pencil, pencil * size, settled, settled * size, 0.0].into_iter().enumerate() {
++            row[k] += x;
++        }
++    }
++    let (mut sub, mut sub_unsized) = (own.clone(), at_one.clone());
++    for i in (1..n).rev() {
++        if let Some(p) = grown[i].origin.parent() {
++            for q in 0..Q {
++                sub[p][q] += sub[i][q];
++            }
++            for q in 0..2 {
++                sub_unsized[p][q] += sub_unsized[i][q];
++            }
++        }
++    }
++    // The structure: kept axes outside every cohort at the boundary.
++    let law = Law::new(species, age);
++    law.check(&sets[1]);
++    let mut cells: BTreeMap<[i32; 3], Cell> = BTreeMap::new();
++    let mut structure = [0.0; 3];
++    let mut whole = [0.0; 3];
++    let mut cols: [HashSet<[i32; 2]>; 2] = [HashSet::new(), HashSet::new()];
++    let column = |p: Vec3| [(p.x / 0.5).floor() as i32, (p.y / 0.5).floor() as i32];
++    for (i, a) in grown.iter().enumerate() {
++        whole[0] += own[i][GREW];
++        whole[1] += own[i][LEAF_CUR];
++        whole[2] += own[i][LEAF_DRAWN];
++        if index[i] != usize::MAX && own[i][LEAF_DRAWN] > 0.0 {
++            for p in &a.phytomers {
++                cols[0].insert(column(p.tip));
++                if !inside[i] {
++                    cols[1].insert(column(p.tip));
++                }
++            }
++        }
++        if inside[i] {
++            continue;
++        }
++        structure[0] += own[i][GREW];
++        structure[1] += own[i][LEAF_CUR];
++        structure[2] += own[i][LEAF_DRAWN];
++    }
++    // The cycle's roots by their bearer's unit.
++    let mut roots: BTreeMap<(usize, u32), Vec<usize>> = BTreeMap::new();
++    for (i, a) in grown.iter().enumerate() {
++        if let Origin::Lateral { parent, node, .. } = a.origin {
++            if sets[1].contains(&a.pa) && !inside[parent] {
++                roots.entry((parent, grown[parent].phytomers[node].cycle)).or_default().push(i);
++            }
++        }
++    }
++    for (i, a) in grown.iter().enumerate() {
++        if inside[i] || index[i] == usize::MAX || a.phytomers.is_empty() {
++            continue;
++        }
++        let e = species.states[a.pa].form.exponent;
++        let mut start = 0;
++        while start < a.phytomers.len() {
++            let b = a.phytomers[start].cycle;
++            let end = start + a.phytomers[start..].iter().take_while(|p| p.cycle == b).count();
++            let unit = &a.phytomers[start..end];
++            start = end;
++            let k = unit.len() as f64;
++            let at = unit.iter().fold(Vec3::default(), |s, p| Vec3::new(s.x + p.tip.x / k, s.y + p.tip.y / k, s.z + p.tip.z / k));
++            // The bearer's presence as the settle scales it.
++            let kept = &tree.axes[index[i]].phytomers;
++            let presence = match kept.len() == a.phytomers.len() {
++                true => kept[start - unit.len()..start].iter().map(|p| if p.size > 0.0 { p.scale / p.size } else { 0.0 }).sum::<f64>() / k,
++                false => 1.0,
++            };
++            let light: Vec<f64> = (0..=age as usize)
++                .map(|c| if c < 2 { 1.0 } else { fields[c - 1].as_ref().map_or(1.0, |f| f.at(at)) })
++                .collect();
++            let cell = cells.entry([0, 1, 2].map(|d| ([at.x, at.y, at.z][d] / 0.5).floor() as i32)).or_default();
++            cell.units += 1;
++            cell.light += light[age as usize];
++            let size = match kept.len() == a.phytomers.len() {
++                true => kept[start - unit.len()..start].iter().map(|p| p.size).sum::<f64>() / k,
++                false => 1.0,
++            };
++            let mut by_root = law::Unit::new(&law, &light, law::Shed::Root);
++            let mut by_subtree = law::Unit::new(&law, &light, law::Shed::Subtree);
++            for &j in &sets[1] {
++                let q = law.lat[a.pa][j];
++                if q > 0.0 {
++                    let [r1, s1, ss, rs, _] = &mut cell.law;
++                    add(r1, &mut by_root, (j, b), (q, presence, 1.0), e);
++                    add(s1, &mut by_subtree, (j, b), (q, presence, 1.0), e);
++                    add(ss, &mut by_subtree, (j, b), (q, presence, size), e);
++                    add(rs, &mut by_root, (j, b), (q, presence, size), e);
++                }
++            }
++            for &r in roots.get(&(i, b)).map_or(&[][..], |v| &v[..]) {
++                add(&mut cell.law[4], &mut by_subtree, (grown[r].pa, b), (1.0, made[r] * presence, 1.0), e);
++                for q in 0..Q {
++                    cell.cycle.v[q] += sub[r][q];
++                }
++                for q in 0..2 {
++                    cell.at_one[q] += sub_unsized[r][q];
++                }
++                if sub[r][STANDING] > 0.0 && own[r][STANDING] > 0.0 {
++                    cell.cycle.join += sub[r][SECTION].powf(e / 2.0);
++                }
++                cell.cycle.roots += 1.0;
++            }
++            if cell.law[1].v[LEAF_DRAWN] > 0.0 {
++                cols[1].insert(column(at));
++            }
++        }
++    }
++    Ok(Replay {
++        reach,
++        apex,
++        cells,
++        structure,
++        whole,
++        columns: [cols[0].len(), cols[1].len()],
++        light_check: check,
++        trace,
++    })
++}
++
++/// `count` roots of age `j` born at `b` on a unit, the law's, into `side`.
++/// `count` roots of age `j` born at `b` on a unit at presence `presence`,
++/// the law's, into `side`, their leaf and wood at `size`. A count is its
++/// whole part and one member at its fraction (R1-ANSWERS.md, answer 8),
++/// and a member at presence p holds a section as p squared and joins its
++/// bearer as p to the bearer's exponent (PROTOCOL.md): so section and join
++/// take the count's second (and e-th) moment, everything else its mean.
++/// A size scales a phytomer as its presence does (`geometry::scale`).
++fn add(side: &mut Side, eval: &mut law::Unit, (j, b): (usize, u32), (count, presence, size): (f64, f64, f64), e: f64) {
++    let (v, stand, section, lost) = eval.member(j, b, true);
++    let whole = count.floor();
++    let moment = |power: f64| (whole + (count - whole).powf(power)) * presence.powf(power);
++    side.balance += count * presence * lost;
++    let at = v.last().copied().unwrap_or([0.0; Q]);
++    for q in 0..Q {
++        let scale = match q {
++            SECTION => moment(2.0) * size * size,
++            LEAF_CUR | LEAF_DRAWN | WOOD => count * presence * size,
++            _ => count * presence,
++        };
++        side.v[q] += scale * at[q];
++    }
++    if stand > 0.0 {
++        side.join += moment(e) * size.powf(e) * stand * (section / stand).powf(e / 2.0);
++    }
++    side.roots += count * presence;
++}
++
++/// The lattice the cycle's leaves of this year cast, over every tip laid
++/// so far and the base, so any later read of a unit laid by now is inside.
++fn field(g: &super::super::Grower<'_>, request: Request) -> Result<Field> {
++    let (mut lo, mut hi) = (Vec3::default(), Vec3::default());
++    for p in g.axes.iter().flat_map(|a| a.phytomers.iter()) {
++        lo = Vec3::new(lo.x.min(p.tip.x), lo.y.min(p.tip.y), lo.z.min(p.tip.z));
++        hi = Vec3::new(hi.x.max(p.tip.x), hi.y.max(p.tip.y), hi.z.max(p.tip.z));
++    }
++    Field::quantised(&request.light, &g.leaves, &[lo, hi], g.threads)
++}
++
++/// The kept lattice read where the cycle read it at the cycle's end
++/// (`Grower::shade`): every living apex's tip, against its pencil's light.
++fn check_light(g: &super::super::Grower<'_>, field: &Field, check: &mut (u64, f64)) {
++    let Some(sketch) = g.sketch.as_ref() else {
++        return;
++    };
++    for a in g.live.iter().filter(|a| a.axis < sketch.pencils.len()) {
++        let axis = &g.axes[a.axis];
++        let tip = axis.phytomers.last().map_or(axis.base, |p| p.tip);
++        let d = (field.at(tip) - sketch.pencils[a.axis].light).abs();
++        check.0 += 1;
++        check.1 = check.1.max(d);
++    }
++}
++
++/// Whether each axis lies inside a cohort of `set`: a lateral of its ages,
++/// or anything it bears or carries on.
++fn within(axes: &[crate::structure::Axis], set: &[usize]) -> Vec<bool> {
++    let mut inside = vec![false; axes.len()];
++    for (i, a) in axes.iter().enumerate() {
++        let parent = a.origin.parent().map_or(false, |p| inside[p]);
++        let root = matches!(a.origin, Origin::Lateral { .. }) && set.contains(&a.pa);
++        inside[i] = parent || root;
++    }
++    inside
++}
++
++/// Per cycle, the units grown, and those inside each set's cohorts.
++fn shares(axes: &[crate::structure::Axis], sets: &[Vec<usize>], age: u32) -> Vec<[u64; 4]> {
++    let inside: Vec<Vec<bool>> = sets.iter().map(|s| within(axes, s)).collect();
++    let mut out = vec![[0u64; 4]; age as usize + 1];
++    for (i, a) in axes.iter().enumerate() {
++        let mut last = None;
++        for p in &a.phytomers {
++            if last == Some(p.cycle) {
++                continue;
++            }
++            last = Some(p.cycle);
++            let row = &mut out[p.cycle as usize];
++            row[0] += 1;
++            for (k, ins) in inside.iter().enumerate() {
++                row[k + 1] += u64::from(ins[i]);
++            }
++        }
++    }
++    out
++}
++
++/// The settle's shed and scale, as fn-335's recorder takes them.
++fn settled(
++    g: super::super::Grower<'_>,
++    axes: Vec<crate::structure::Axis>,
++    species: &Species,
++    request: Request,
++) -> Result<(Vec<usize>, crate::structure::Structure)> {
++    let threads = g.threads;
++    let w = g.working.as_ref().expect("a working set");
++    let r = w.retirement();
++    let (given, gone) = (|i| r.root(i), |i| r.inside(i));
++    let shed = crate::shed::shed_past(axes, species, request.age, (&given, &gone), None).0;
++    let mut tree = crate::structure::Structure {
++        age: request.age,
++        pas: species.states.len(),
++        axes: shed.axes,
++    };
++    crate::geometry::scale(&mut tree, species, threads);
++    Ok((shed.index, tree))
++}
+diff --git i/crates/telperion-space/src/grow/cycle/replay/law.rs w/crates/telperion-space/src/grow/cycle/replay/law.rs
+new file mode 100644
+index 000000000..2536be5f6
+--- /dev/null
++++ w/crates/telperion-space/src/grow/cycle/replay/law.rs
+@@ -0,0 +1,349 @@
++//! fn-339 R3: the cohort law as the host answered it (R1-ANSWERS.md), on
++//! one bearing growth unit and the light the cycle gave its cell each year.
++//! A cohort is the subtrees of one root age born in one cycle on the unit;
++//! what it holds is the expectation over its own years from the tables,
++//! survival shaded by the cell's light, the root's own balance hazard on
++//! top, and the root's death sheds all of it after the root's shedding.
++//! Inner members are counted flat: each stands while it lives and for its
++//! own shedding after, and what it bore stands while the root does.
++use crate::species::Species;
++use std::collections::HashMap;
++
++/// What a cohort holds at a cycle: units grown that cycle, apexes living at
++/// its end, members standing, the current year's leaf (what the lattice
++/// takes), the standing leaf the expansion draws, wood metres, section
++/// (sum of pipe squared, every cohort age's exponent being 2), phytomers.
++pub const Q: usize = 8;
++pub const GREW: usize = 0;
++pub const LIVING: usize = 1;
++pub const STANDING: usize = 2;
++pub const LEAF_CUR: usize = 3;
++pub const LEAF_DRAWN: usize = 4;
++pub const WOOD: usize = 5;
++pub const SECTION: usize = 6;
++pub const PHYTO: usize = 7;
++
++pub type V = [f64; Q];
++
++/// The species read once for the law.
++#[derive(Clone)]
++pub struct Law<'s> {
++    species: &'s Species,
++    /// Each age's expected laterals of each age a unit bears.
++    pub lat: Vec<Vec<f64>>,
++    /// Each age's units, by the age each is grown in, for a member of it.
++    chain: Vec<Vec<usize>>,
++    nodes: Vec<f64>,
++    pub age: u32,
++}
++
++impl<'s> Law<'s> {
++    /// The species it reads.
++    pub fn species(&self) -> &'s Species {
++        self.species
++    }
++
++    pub fn new(species: &'s Species, age: u32) -> Self {
++        let n = species.states.len();
++        let mut lat = vec![vec![0.0; n]; n];
++        for (k, state) in species.states.iter().enumerate() {
++            for (z, probs) in state.laterals().iter().enumerate() {
++                let zone = &state.zones[z];
++                let each = zone.nodes.mean() * zone.buds;
++                for (i, &p) in probs.iter().enumerate() {
++                    if let Some((li, reach)) = species.lived(i) {
++                        lat[k][li] += each * p * reach;
++                    }
++                }
++            }
++        }
++        let nodes = (species.states.iter())
++            .map(|s| s.zones.iter().map(|z| z.nodes.mean()).sum())
++            .collect();
++        let chain = (0..n).map(|j| chain_of(species, j, age)).collect();
++        Self {
++            species,
++            lat,
++            chain,
++            nodes,
++            age,
++        }
++    }
++
++    /// The ages a cohort of `ages` can hold, refused where the law as
++    /// written does not carry what their tables set.
++    pub fn check(&self, ages: &[usize]) {
++        for &j in ages {
++            for &pa in &self.chain[j] {
++                let s = &self.species.states[pa];
++                assert!(s.abortion == 0.0 && s.relay == 0.0, "no abortion or relay on cohort age {pa}");
++                assert!(s.relay_ended == 0.0 && s.relay_failed == 0.0, "no relay on cohort age {pa}");
++                assert!(s.form.exponent == 2.0, "cohort age {pa} sums sections at 2");
++                assert!(s.zones.iter().all(|z| z.dormant.iter().all(|&d| d == 0.0)), "no sleeping buds on {pa}");
++            }
++        }
++    }
++}
++
++/// The ages a member of age `j` grows its units in: each age's whole
++/// lifespan, then on by its continuation where that is 1.
++fn chain_of(species: &Species, j: usize, age: u32) -> Vec<usize> {
++    let mut out = Vec::new();
++    let Some((mut pa, _)) = species.lived(j) else {
++        return out;
++    };
++    loop {
++        let s = &species.states[pa];
++        for _ in 0..(s.lifespan.ceil() as usize) {
++            out.push(pa);
++        }
++        if out.len() > age as usize || s.continuation < 1.0 || pa + 1 >= species.states.len() {
++            break;
++        }
++        match species.lived(pa + 1) {
++            Some((next, reach)) if reach >= 1.0 => pa = next,
++            _ => break,
++        }
++    }
++    out.truncate(age as usize + 1);
++    out
++}
++
++/// The law on one unit: its cell's light each cycle (`light[c]`, 1 at 0),
++/// and the members already worked out, by age and birth.
++pub struct Unit<'l, 's> {
++    law: &'l Law<'s>,
++    light: &'l [f64],
++    memo: HashMap<(usize, u32), Vec<V>>,
++    shed: Shed,
++}
++
++impl<'l, 's> Unit<'l, 's> {
++    pub fn new(law: &'l Law<'s>, light: &'l [f64], shed: Shed) -> Self {
++        Self {
++            law,
++            light,
++            memo: HashMap::new(),
++            shed,
++        }
++    }
++
++    fn sigma(&self, pa: usize, c: u32) -> f64 {
++        let s = &self.law.species.states[pa];
++        let l = self.light[(c as usize).min(self.light.len() - 1)];
++        if s.shade_hazard > 0.0 && l < 1.0 {
++            s.viability.powf(l.powf(-s.shade_hazard))
++        } else {
++            s.viability
++        }
++    }
++
++    /// The member's own contribution at `c` if it grew exactly `k` units
++    /// from birth `t`, before its standing is gated.
++    fn own(&self, ch: &[usize], t: u32, k: usize, c: u32) -> V {
++        let sp = &self.law.species.states;
++        let mut v = [0.0; Q];
++        let since = (c - t) as usize;
++        let g = k.min(since);
++        v[STANDING] = 1.0;
++        if k >= since && since >= 1 {
++            let pa = ch[since - 1];
++            v[GREW] = 1.0;
++            v[LEAF_CUR] = self.law.nodes[pa] * sp[pa].leaf_area;
++            if sp[pa].cluster_leaves > 0.0 {
++                v[LEAF_DRAWN] += sp[pa].cluster_leaves * sp[pa].leaf_area;
++            }
++        }
++        if k > since {
++            v[LIVING] = 1.0;
++        }
++        for n in 1..=g {
++            let s = &sp[ch[n - 1]];
++            let nodes = self.law.nodes[ch[n - 1]];
++            v[PHYTO] += nodes;
++            v[WOOD] += nodes * s.internode;
++            v[SECTION] += nodes * s.form.pipe * s.form.pipe;
++            let wood_age = f64::from(c - (t + n as u32));
++            if s.cluster_leaves == 0.0 && wood_age < s.leaf_years {
++                v[LEAF_DRAWN] += nodes * s.leaf_area;
++            }
++        }
++        v
++    }
++
++    /// The tree's present cycle: the last one whose light is known.
++    fn now(&self) -> u32 {
++        (self.light.len() - 1) as u32
++    }
++
++    /// An inner member of age `j` born at `t`: its expected contents at
++    /// every cycle to the present.
++    pub fn inner(&mut self, j: usize, t: u32) -> Vec<V> {
++        if let Some(v) = self.memo.get(&(j, t)) {
++            return v.clone();
++        }
++        let out = self.member(j, t, false).0;
++        self.memo.insert((j, t), out.clone());
++        out
++    }
++
++    /// A member of age `j` born at `t`, as a root (its balance hazard on)
++    /// or inner; and for a root, the chance it stands at the present with
++    /// the section it then holds on average, and the share of it the
++    /// balance alone takes. How what it bore stands follows `self.shed`.
++    pub fn member(&mut self, j: usize, t: u32, root: bool) -> (Vec<V>, f64, f64, f64) {
++        let now = self.now();
++        let ch = self.law.chain[j].clone();
++        let mut out = vec![[0.0; Q]; now as usize + 1];
++        if ch.is_empty() || t > now {
++            return (out, 0.0, 0.0, 0.0);
++        }
++        // A bud made in the present cycle: its apex waits to grow.
++        if t == now {
++            out[now as usize][LIVING] = 1.0;
++            out[now as usize][STANDING] = 1.0;
++            return (out, 1.0, 0.0, 0.0);
++        }
++        // How many units can matter before the present: the rest lumped.
++        let cap = ch.len().min((now - t) as usize + 1);
++        // What its units bear, worked out first: a root's balance reads it.
++        let mut kids: Vec<Vec<V>> = Vec::with_capacity(cap);
++        for n in 1..=cap {
++            let mut sum = vec![[0.0; Q]; now as usize + 1];
++            let born = t + n as u32;
++            if born <= now {
++                for i in 0..self.law.lat.len() {
++                    let q = self.law.lat[ch[n - 1]][i];
++                    if q > 0.0 {
++                        let d = self.inner(i, born);
++                        for (s, x) in sum.iter_mut().zip(&d) {
++                            for k in 0..Q {
++                                s[k] += q * x[k];
++                            }
++                        }
++                    }
++                }
++            }
++            kids.push(sum);
++        }
++        // Survival to grow unit n, shade and (for a root) balance.
++        let sp = &self.law.species.states;
++        let mut alive = vec![1.0; cap + 1];
++        let mut memory = 1.0;
++        let mut kept = 1.0;
++        for n in 1..=cap {
++            let c = t + n as u32;
++            let pa = ch[n - 1];
++            let mut s = self.sigma(pa, c);
++            if root && sp[pa].balance_hazard > 0.0 {
++                let before = c - 1;
++                let mut living = 1.0;
++                let mut wood: f64 = (1..n).map(|m| self.law.nodes[ch[m - 1]] * sp[ch[m - 1]].internode).sum();
++                for kid in kids.iter().take(n - 1) {
++                    living += kid[before as usize][LIVING];
++                    wood += kid[before as usize][WOOD];
++                }
++                let q = living * self.light[(c as usize).min(self.light.len() - 1)];
++                let cost = sp[pa].upkeep * wood;
++                let balance = if q + cost > 0.0 { (q - cost) / (q + cost) } else { 1.0 };
++                memory = (memory + balance) / 2.0;
++                let hazard = sp[pa].balance_hazard * (sp[pa].tolerance - memory).max(0.0);
++                s *= (-hazard).exp();
++                kept *= (-hazard).exp();
++            }
++            alive[n] = alive[n - 1] * s;
++        }
++        // P(T = k): exactly k units grown; the last of `cap` lumps the rest.
++        let p: Vec<f64> = (0..=cap)
++            .map(|k| if k < cap { alive[k] - alive[k + 1] } else { alive[cap] })
++            .collect();
++        // Whether what it bore stands only while it does.
++        let gated = root || self.shed == Shed::Subtree;
++        let (mut stand_now, mut section_now) = (0.0, 0.0);
++        for c in t + 1..=now {
++            let mut v = [0.0; Q];
++            for (k, &pk) in p.iter().enumerate() {
++                if pk <= 0.0 {
++                    continue;
++                }
++                let mut desc = [0.0; Q];
++                for kid in kids.iter().take(k) {
++                    for q in 0..Q {
++                        desc[q] += kid[c as usize][q];
++                    }
++                }
++                let w = self.stands(&ch, (t, k, c), &kids);
++                let own = self.own(&ch, t, k, c);
++                for q in 0..Q {
++                    v[q] += pk * w * own[q];
++                    v[q] += pk * if gated { w } else { 1.0 } * desc[q];
++                }
++                if c == now {
++                    stand_now += pk * w;
++                    section_now += pk * w * (own[SECTION] + desc[SECTION]);
++                }
++            }
++            out[c as usize] = v;
++        }
++        (out, stand_now, section_now, 1.0 - kept)
++    }
++
++    /// How far a member that grew `k` units from `t` still stands at `c`.
++    /// By its root's death (`Shed::Root`), whole while its own apex lived
++    /// within its shedding. By the species' rule (`Shed::Subtree`), also
++    /// while what it bore lived within that time: the chance any of it
++    /// did, from the expected living, as a Poisson count's (fn-339 R3).
++    fn stands(&self, ch: &[usize], (t, k, c): (u32, usize, u32), kids: &[Vec<V>]) -> f64 {
++        let last = ch[k.max(1) - 1];
++        let shed = self.law.species.states[last].shedding;
++        if f64::from(c) <= f64::from(t) + k as f64 + shed {
++            return 1.0;
++        }
++        if self.shed == Shed::Root {
++            return 0.0;
++        }
++        let from = (f64::from(c) - shed).ceil().max(f64::from(t + 1)) as u32;
++        let mut most: f64 = 0.0;
++        for d in from..=c {
++            let living: f64 = kids.iter().take(k).map(|kid| kid[d as usize][LIVING]).sum();
++            most = most.max(living);
++        }
++        1.0 - (-most).exp()
++    }
++}
++
++/// How a cohort's members stand once their apex has stopped.
++#[derive(Debug, Clone, Copy, PartialEq, Eq)]
++pub enum Shed {
++    /// R1-ANSWERS.md answer 2: a root's death sheds all it bore after its
++    /// shedding; inner members stand flat.
++    Root,
++    /// The species' rule (PROTOCOL.md): each member stands while anything
++    /// it bore lived within its shedding.
++    Subtree,
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    /// The paper's case, worked in law.py: an oak branch's medial node at a
++    /// cell light of 0.26 held all ten years, its twig and short laterals
++    /// grown flat; units grown in each year match the linear recursion.
++    #[test]
++    fn the_flat_law_grows_the_papers_units() {
++        let oak = crate::oak();
++        let law = Law::new(&oak, 11);
++        let light = vec![0.26; 12];
++        let mut unit = Unit::new(&law, &light, Shed::Root);
++        let (short, twig) = (crate::chain::SHORT, crate::chain::TWIG);
++        let s = unit.inner(short, 0);
++        let w = unit.inner(twig, 0);
++        // law.py's closed form, oak branch medial node at 0.26.
++        let want = [0.724, 1.139, 1.366, 1.354, 1.253, 0.939, 0.481, 0.186, 0.0, 0.0];
++        for (y, &u) in want.iter().enumerate() {
++            let got = 0.6 * s[y + 1][GREW] + 0.35 * w[y + 1][GREW];
++            assert!((got - u).abs() < 2e-3, "year {}: {got} vs {u}", y + 1);
++        }
++    }
++}
+diff --git i/crates/telperion-space/src/grow/parallel.rs w/crates/telperion-space/src/grow/parallel.rs
+index 40d87f241..380c31ddf 100644
+--- i/crates/telperion-space/src/grow/parallel.rs
++++ w/crates/telperion-space/src/grow/parallel.rs
+@@ -30,6 +30,7 @@ pub(super) struct Share {
+     asleep: Vec<(usize, Sleeper)>,
+     woken: Vec<Woken>,
+     marked: Vec<u64>,
++    born: Vec<super::cohort::Born>,
+     grown: u64,
+     jobs: [u32; 2],
+     /// Its lists to fill again: its apexes', emptied, and its own.
+@@ -46,6 +47,7 @@ impl Shoot<'_, '_> {
+             asleep: self.asleep,
+             woken: self.woken,
+             marked: self.marked,
++            born: self.born,
+             grown: self.grown,
+             jobs: self.jobs,
+             spare: Spare {
+@@ -143,6 +145,9 @@ impl Grower<'_> {
+         }
+         self.woken.extend(share.woken);
+         self.marked.extend(share.marked);
++        if let Some(c) = self.cohorts.as_deref_mut() {
++            c.pending.extend(share.born);
++        }
+         self.rules.grown += share.grown;
+         self.jobs = std::array::from_fn(|w| self.jobs[w].max(share.jobs[w]));
+         self.spare = share.spare;
+@@ -152,6 +157,9 @@ impl Grower<'_> {
+ impl Share {
+     /// Names every axis it made where the tree will hold it.
+     fn shift(&mut self, moved: &impl Fn(&mut usize)) {
++        for b in &mut self.born {
++            moved(&mut b.axis);
++        }
+         for line in &mut self.made {
+             match &mut line.axis.origin {
+                 Origin::Seed => {}
+diff --git i/crates/telperion-space/src/grow/settle.rs w/crates/telperion-space/src/grow/settle.rs
+index 89be4ae49..ca6ea0620 100644
+--- i/crates/telperion-space/src/grow/settle.rs
++++ w/crates/telperion-space/src/grow/settle.rs
+@@ -7,7 +7,7 @@ use crate::geometry::{place, scale};
+ use crate::girth::{attachments, attachments_past, disused, thicken, Girth};
+ use crate::presence::assign;
+ use crate::sag;
+-use crate::shed::{shed, shed_past};
++use crate::shed::{shed, shed_with};
+ use crate::species::Species;
+ use crate::structure::Structure;
+ 
+@@ -59,6 +59,11 @@ impl<'a> Grower<'a> {
+         stage(Stage::Pass(Pass::Mark));
+         assign(&mut self.axes, &self.draws, species, threads);
+         stage(Stage::Pass(Pass::Assign));
++        // fn-339 R4's probe: each bearer's cohorts' living, and their
++        // roots' radii, read before the shed takes the axes.
++        let living = self.cohort_living(request.age);
++        let more = |i: usize| living.get(&i).copied();
++        let cohorts = self.cohorts.take();
+         let (count, marked) = (self.rules.grown, self.marked);
+         // The tree as grown, where any PA keeps shed pipes or thickens by
+         // its leaves: what each shed branch had laid down, and the one
+@@ -78,12 +83,21 @@ impl<'a> Grower<'a> {
+             Some(w) => {
+                 let r = w.retirement();
+                 let (given, gone) = (|i| r.root(i), |i| r.inside(i));
+-                shed_past(self.axes, species, request.age, (&given, &gone), None).0
++                shed_with(self.axes, species, request.age, (&given, &gone, &more), None).0
+             }
+             None => shed(self.axes, species, request.age),
+         };
+         stage(Stage::Pass(Pass::Shed));
+-        let girth = grown.map_or_else(Girth::default, |g| disused(&g, &shed, species));
++        let sums = grown.as_ref().and_then(|g| g.sums);
++        let mut girth = grown.map_or_else(Girth::default, |g| disused(&g, &shed, species));
++        if let Some(c) = cohorts {
++            // The cohorts' pipes enter the leaf term's mean as their
++            // subtrees' would, and each root's radius takes its light.
++            if let Some(mean) = c.leaf_mean(species, sums) {
++                girth.leaf_mean = Some(mean);
++            }
++            girth.disused.extend(c.girth(species, &shed.index, request.age, girth.leaf_mean));
++        }
+         stage(Stage::Pass(Pass::Disused));
+         let structure = Structure {
+             age: request.age,
+diff --git i/crates/telperion-space/src/grow/shoot.rs w/crates/telperion-space/src/grow/shoot.rs
+index d2beb0932..5a8aefe68 100644
+--- i/crates/telperion-space/src/grow/shoot.rs
++++ w/crates/telperion-space/src/grow/shoot.rs
+@@ -32,6 +32,9 @@ pub(crate) struct Rules<'a> {
+     /// The one cycle's survival (fn-255, fn-256's spike contract): each
+     /// PA's viability read as the f32 its table holds, shaded in f32.
+     pub one: bool,
++    /// fn-339 R4's probe: each age a lateral of which is counted, not
++    /// grown (`cohort.rs`); empty where none is.
++    pub cohort: Arc<[bool]>,
+ }
+ 
+ /// What the rough layout gives a growing apex (`sketch.rs`): its light,
+@@ -92,6 +95,8 @@ pub(super) struct Shoot<'g, 'a> {
+     pub asleep: Vec<(usize, Sleeper)>,
+     pub woken: Vec<Woken>,
+     pub marked: Vec<u64>,
++    /// fn-339 R4's probe: the cohort laterals made.
++    pub born: Vec<super::cohort::Born>,
+     /// The phytomers this share grew.
+     pub grown: u64,
+     /// The units the job growing now grew in the cycle, and the most a
+@@ -134,6 +139,7 @@ impl<'g, 'a> Shoot<'g, 'a> {
+             asleep: Vec::new(),
+             woken: Vec::new(),
+             marked: Vec::new(),
++            born: Vec::new(),
+             grown: 0,
+             job: 0,
+             jobs: [0; 2],
+diff --git i/crates/telperion-space/src/grow/sketch.rs w/crates/telperion-space/src/grow/sketch.rs
+index 3ac2bd528..483599acf 100644
+--- i/crates/telperion-space/src/grow/sketch.rs
++++ w/crates/telperion-space/src/grow/sketch.rs
+@@ -80,7 +80,11 @@ impl Grower<'_> {
+     /// living apex's tip.
+     pub(super) fn shade(&mut self, report: &mut dyn FnMut(Stage)) -> crate::error::Result<()> {
+         let mut sketch = self.sketch.take().expect("sketching");
+-        let tips: Vec<Vec3> = self.live.iter().map(|a| self.tip(a.axis)).collect();
++        let mut tips: Vec<Vec3> = self.live.iter().map(|a| self.tip(a.axis)).collect();
++        // fn-339 R4's probe: the cohorts read the same lattice at their
++        // units' places.
++        let apexes = tips.len();
++        tips.extend(self.cohort_places());
+         let read = match self.unquantised(&sketch, &tips) {
+             Some(read) => read,
+             None => {
+@@ -91,6 +95,7 @@ impl Grower<'_> {
+             }
+         };
+         report(Stage::Pass(Pass::ShadeField));
++        self.cohort_lit(&read[apexes..]);
+         for (apex, &light) in self.live.iter().zip(&read) {
+             sketch.pencils[apex.axis].light = light;
+         }
+diff --git i/crates/telperion-space/src/grow/unit.rs w/crates/telperion-space/src/grow/unit.rs
+index 21be9f4ca..068afcf4c 100644
+--- i/crates/telperion-space/src/grow/unit.rs
++++ w/crates/telperion-space/src/grow/unit.rs
+@@ -91,6 +91,17 @@ impl Shoot<'_, '_> {
+                     let Some((lateral_pa, reach)) = rules.species.lived(drawn_pa) else {
+                         continue;
+                     };
++                    // fn-339 R4's probe: a lateral of a cohort age is
++                    // counted on its unit at the presence its draws make.
++                    if rules.cohort.get(lateral_pa) == Some(&true) {
++                        let window = windows.window((lateral_pa, cycle + 1, None), 1.0);
++                        let lead = lineage::bud_presence(lateral, drawn_pa, d, window);
++                        let key = zone_key.child(drawn).child(slot as u64);
++                        let placed = lineage::place_presence(key, zone.share(slot), window);
++                        let presence = presence::real(presence::times(lead, placed)) * presence::real(presence::q(reach));
++                        self.born.push(super::cohort::Born { axis: apex.axis, pa: lateral_pa, presence });
++                        continue;
++                    }
+                     // Nor where it is certain to be shed by the tree's age
+                     // and nothing reads it while it lives (fn-210).
+                     if self.shed_certain(lateral_pa, cycle, apex.axis) {
+diff --git i/crates/telperion-space/src/lib.rs w/crates/telperion-space/src/lib.rs
+index 60b0177b2..a26227486 100644
+--- i/crates/telperion-space/src/lib.rs
++++ w/crates/telperion-space/src/lib.rs
+@@ -54,17 +54,18 @@ pub use birch::birch;
+ pub use blend::blend;
+ pub use chain::{passed, AGES};
+ pub use closed_form::{
+-    expected_axes, expected_counts, expected_grown, expected_kept, expected_length,
++    expected_axes, expected_bud_counts, expected_counts, expected_grown, expected_kept,
++    expected_length,
+ };
+ pub use error::{Error, Result};
+ pub use fine::{canonical, digest, identities, lineage_order, ChainTables, PaRow, UnitZone, Units};
+ pub use grow::cycle::{
+     admitted, grow_capture, grow_capture_grown, grow_capture_hierarchy_at, grow_capture_light_at,
+     grow_capture_retired, grow_capture_settle_tables, grow_capture_settled_at, grow_capture_tables,
+-    grow_census, grow_cycle, grow_cycle_is_the_reference, tree_digest, within_year, Capture,
+-    Census, Cycle, Cycled, Footprint, Paused, Retiring, SettleTo, Store,
++    grow_census, grow_cycle, grow_cycle_is_the_reference, grow_laterals, grow_replay, cohorts, reaches, Cell, Replay, Side, GREW, LEAF_CUR, LEAF_DRAWN, LIVING, PHYTO, SECTION, STANDING, WOOD, tree_digest, within_year, Capture,
++    Census, Cycle, Cycled, Footprint, Lateral, Paused, Retiring, SettleTo, Store,
+ };
+-pub use grow::{grow, Pass, Request, Stage};
++pub use grow::{grow, held, set_cohorts, Held, Pass, Request, Stage};
+ pub use light::Light;
+ pub use lineage::keys as lineage_keys;
+ pub use lineage::{
+diff --git i/crates/telperion-space/src/shed.rs w/crates/telperion-space/src/shed.rs
+index 538dc2c56..0e676674b 100644
+--- i/crates/telperion-space/src/shed.rs
++++ w/crates/telperion-space/src/shed.rs
+@@ -98,13 +98,25 @@ pub(crate) fn shed_given(
+ /// `shed_given`, every axis `gone` names left out of the fades: one inside
+ /// a subtree retired as it grew, whose root `given` stands for (fn-255).
+ pub(crate) fn shed_past(
+-    mut axes: Vec<Axis>,
++    axes: Vec<Axis>,
+     species: &Species,
+     age: u32,
+     (given, gone): (Given<Living>, Gone),
+     report: Option<usize>,
+ ) -> (Shed, Living) {
+-    let (fade, reported) = fades(&axes, species, age, (given, gone), report);
++    shed_with(axes, species, age, (given, gone, &|_| None), report)
++}
++
++/// `shed_past`, each axis `more` names also living as it gives: fn-339
++/// R4's probe, the cohorts an axis bears.
++pub(crate) fn shed_with(
++    mut axes: Vec<Axis>,
++    species: &Species,
++    age: u32,
++    (given, gone, more): (Given<Living>, Gone, Given<Living>),
++    report: Option<usize>,
++) -> (Shed, Living) {
++    let (fade, reported) = fades(&axes, species, age, (given, gone, more), report);
+     let mut index = vec![usize::MAX; axes.len()];
+     let mut kept = Vec::with_capacity(axes.len());
+     for (i, mut axis) in axes.drain(..).enumerate() {
+@@ -147,7 +159,7 @@ fn fades(
+     axes: &[Axis],
+     species: &Species,
+     age: u32,
+-    (given, gone): (Given<Living>, Gone),
++    (given, gone, more): (Given<Living>, Gone, Given<Living>),
+     report: Option<usize>,
+ ) -> (Vec<f64>, Living) {
+     let delay = |a: &Axis| match a.origin {
+@@ -195,6 +207,9 @@ fn fades(
+         if let Some(g) = given(i) {
+             (*lived, *alive) = (g.lived, g.alive);
+         }
++        if let Some(m) = more(i) {
++            (*lived, *alive) = (lived.max(m.lived), alive.max(m.alive));
++        }
+     }
+     for (i, link) in axes.iter().enumerate().rev() {
+         let Some(parent) = link.origin.parent().filter(|_| !gone(i)) else {
+@@ -255,5 +270,5 @@ pub(crate) fn subtree_living(
+     age: u32,
+     given: Given<Living>,
+ ) -> Living {
+-    fades(axes, species, age, (given, &|_| false), Some(0)).1
++    fades(axes, species, age, (given, &|_| false, &|_| None), Some(0)).1
+ }
+diff --git i/crates/telperion-space/src/structure.rs w/crates/telperion-space/src/structure.rs
+index f838a08c7..334ef27ea 100644
+--- i/crates/telperion-space/src/structure.rs
++++ w/crates/telperion-space/src/structure.rs
+@@ -195,7 +195,7 @@ pub struct Phytomer {
+     /// Its growth unit's size from the vigour light gave its bud
+     /// (`allocation.rs`): in its scale, never in what it bears. 1 where
+     /// nothing shades.
+-    pub(crate) size: f64,
++    pub size: f64,
+     /// The light its bud grew in (`light.rs`): 1 where nothing shades.
+     pub(crate) light: f64,
+     /// How much of a node it is: its unit's presence times its node's
