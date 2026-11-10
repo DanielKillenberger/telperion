@@ -1,0 +1,484 @@
+diff --git i/crates/telperion-core/src/pipeline.rs w/crates/telperion-core/src/pipeline.rs
+index 22f97a6cd..e9b01300e 100644
+--- i/crates/telperion-core/src/pipeline.rs
++++ w/crates/telperion-core/src/pipeline.rs
+@@ -299,6 +299,8 @@ mod input;
+ mod fidelity_tests;
+ #[cfg(all(test, feature = "geometry"))]
+ mod cycle_cost_tests;
++#[cfg(all(test, feature = "geometry"))]
++mod turns_probe_tests;
+ #[cfg(not(feature = "geometry"))]
+ mod planned;
+ mod stage;
+diff --git i/crates/telperion-core/src/pipeline/turns_probe_tests.rs w/crates/telperion-core/src/pipeline/turns_probe_tests.rs
+new file mode 100644
+index 000000000..6ddbf14f0
+--- /dev/null
++++ w/crates/telperion-core/src/pipeline/turns_probe_tests.rs
+@@ -0,0 +1,246 @@
++//! fn-342 probe (evidence only, never merged): every limb's and bough's
++//! thickest-wood path on the settled engine tree, each joint's turn and the
++//! grower event that made it, and the trunk path at any age. Engine
++//! coordinates: z up, metres. A measurement, ignored.
++use super::executor;
++use crate::presets::by_identity;
++use std::collections::{HashMap, HashSet};
++use telperion_space::{grow, probe_tags, Origin, Structure, Vec3};
++
++type At = (usize, usize);
++
++fn sub(a: Vec3, b: Vec3) -> [f64; 3] {
++    [a.x - b.x, a.y - b.y, a.z - b.z]
++}
++fn norm(v: [f64; 3]) -> f64 {
++    (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt()
++}
++fn angle(a: [f64; 3], b: [f64; 3]) -> f64 {
++    let c = (a[0] * b[0] + a[1] * b[1] + a[2] * b[2]) / (norm(a) * norm(b)).max(1e-12);
++    c.clamp(-1.0, 1.0).acos().to_degrees()
++}
++fn v(a: Vec3) -> [f64; 3] {
++    [a.x, a.y, a.z]
++}
++
++struct Graph<'a> {
++    s: &'a Structure,
++    kids: Vec<Vec<Vec<usize>>>,
++}
++
++impl<'a> Graph<'a> {
++    fn new(s: &'a Structure) -> Self {
++        let mut kids: Vec<Vec<Vec<usize>>> =
++            s.axes.iter().map(|a| vec![Vec::new(); a.phytomers.len()]).collect();
++        for (i, a) in s.axes.iter().enumerate() {
++            let Some(p) = a.origin.parent() else { continue };
++            assert!(p < i, "parents come first");
++            let last = s.axes[p].phytomers.len().saturating_sub(1);
++            let node = match a.origin {
++                Origin::Lateral { node, .. } => node,
++                Origin::Relay { node, .. } => a.joined().map_or(node, |j| j.node),
++                _ => last,
++            };
++            if let Some(k) = kids[p].get_mut(node.min(last)) {
++                k.push(i);
++            }
++        }
++        Self { s, kids }
++    }
++    fn r(&self, (a, j): At) -> f64 {
++        self.s.axes[a].phytomers[j].radius
++    }
++    fn start(&self, (a, j): At) -> Vec3 {
++        if j == 0 { self.s.axes[a].base } else { self.s.axes[a].phytomers[j - 1].tip }
++    }
++    fn tip(&self, (a, j): At) -> Vec3 {
++        self.s.axes[a].phytomers[j].tip
++    }
++    fn seg(&self, at: At) -> [f64; 3] {
++        sub(self.tip(at), self.start(at))
++    }
++    fn next(&self, (a, j): At) -> Vec<At> {
++        let mut n: Vec<At> = Vec::new();
++        if j + 1 < self.s.axes[a].phytomers.len() {
++            n.push((a, j + 1));
++        }
++        for &c in &self.kids[a][j] {
++            if !self.s.axes[c].phytomers.is_empty() {
++                n.push((c, 0));
++            }
++        }
++        n
++    }
++    fn thickest(&self, at: At) -> Option<At> {
++        self.next(at).into_iter().max_by(|x, y| self.r(*x).total_cmp(&self.r(*y)))
++    }
++    fn origin(&self, a: usize) -> &'static str {
++        match self.s.axes[a].origin {
++            Origin::Seed => "seed",
++            Origin::Lateral { .. } => "lateral",
++            Origin::Continuation { .. } => "continuation",
++            Origin::Relay { .. } => "relay",
++        }
++    }
++}
++
++const NAMES: [&str; 4] = ["tropism", "wander", "sag", "pull"];
++
++/// The joint from `u` to `w`: its turn and cause, with the tagged turns.
++fn joint(g: &Graph, tags: &HashMap<u64, [f32; 6]>, u: At, w: At) -> (f64, String, String) {
++    let turn = angle(g.seg(u), g.seg(w));
++    let tag = |at: At| tags.get(&g.s.axes[at.0].phytomers[at.1].key()).copied();
++    let (tu, tw) = (tag(u), tag(w));
++    let comps = match (tu, tw) {
++        (Some(a), Some(b)) => [b[0], b[1], b[2], (b[3] - a[3]).abs(), b[4], b[5]],
++        (_, Some(b)) => [b[0], b[1], b[2], b[3], b[4], b[5]],
++        _ => [f32::NAN; 6],
++    };
++    let detail = format!(
++        "trop={:.2} wand={:.2} sag={:.2} dpull={:.2} lift={:.3} over={:.3}",
++        comps[0], comps[1], comps[2], comps[3], comps[4], comps[5]
++    );
++    let cause = if w.0 != u.0 {
++        let frame = angle(g.seg(u), v(g.s.axes[w.0].heading));
++        let kind = match g.s.axes[w.0].origin {
++            Origin::Relay { .. } => "relay".to_string(),
++            Origin::Continuation { .. } => "continuation".to_string(),
++            Origin::Lateral { .. } if u.1 + 1 < g.s.axes[u.0].phytomers.len() => "fork".to_string(),
++            Origin::Lateral { .. } => "lateral_at_end".to_string(),
++            Origin::Seed => "seed".to_string(),
++        };
++        // The wood not taken: the axis's own next phytomer, its radius over
++        // the taken one's, and the phytomers left on that axis.
++        let own = u.1 + 1 < g.s.axes[u.0].phytomers.len();
++        let (alt, left) = if own {
++            (g.r((u.0, u.1 + 1)) / g.r(w).max(1e-12), g.s.axes[u.0].phytomers.len() - u.1 - 1)
++        } else {
++            (0.0, 0)
++        };
++        return (
++            turn,
++            kind,
++            format!("{detail} frame={frame:.2} alt={alt:.3} left={left} apex_end={}", g.s.axes[u.0].apex_end.map_or(-1, |e| e as i64)),
++        );
++    } else if tw.is_none() {
++        "untagged".to_string()
++    } else {
++        let k = (0..4).max_by(|&a, &b| comps[a].total_cmp(&comps[b])).unwrap();
++        match (k, g.s.axes[w.0].origin) {
++            (3, Origin::Lateral { .. }) => "straightening".to_string(),
++            (3, _) => "inherited_pull".to_string(),
++            _ => NAMES[k].to_string(),
++        }
++    };
++    (turn, cause, detail)
++}
++
++#[test]
++#[ignore = "a measurement: fn-342"]
++fn turns_measures() {
++    let id = std::env::var("STRUCT_PRESET").unwrap_or("oregon-white-oak".into());
++    let age: f64 = std::env::var("STRUCT_AGE").ok().and_then(|a| a.parse().ok()).unwrap_or(0.0);
++    let seeds: Vec<u32> = std::env::var("STRUCT_SEEDS").expect("seeds")
++        .split(',').map(|s| s.parse().expect("a seed")).collect();
++    let neutral = std::env::var("TURN_NEUTRAL").unwrap_or_default();
++    let tagged = std::env::var_os("TURN_TAGS").is_some();
++    for seed in seeds {
++        let mut f = by_identity(&id).expect("a preset");
++        f.fidelity = 0.0;
++        f.skeleton.seed = seed;
++        if age > 0.0 {
++            f.age = age;
++        }
++        let mut g = executor::growth(&f).expect("its growth");
++        for pa in [6usize, 7] {
++            let form = &mut g.species.states[pa].form;
++            match neutral.as_str() {
++                "wander" => form.wander = 0.0,
++                "sag" => form.sag = 0.0,
++                "straightening" => g.species.states[pa].straightening = 0.0,
++                "abortion" => g.species.states[pa].abortion = 0.0,
++                _ => {}
++            }
++        }
++        if tagged {
++            probe_tags::start();
++        }
++        let t0 = std::time::Instant::now();
++        let s = grow(&g.species, g.request).expect("a tree");
++        let secs = t0.elapsed().as_secs_f64();
++        let tags = probe_tags::take();
++        read(seed, &s, &tags, secs, &neutral);
++    }
++}
++
++fn read(seed: u32, s: &Structure, tags: &HashMap<u64, [f32; 6]>, secs: f64, neutral: &str) {
++    let g = Graph::new(s);
++    let z0 = s.axes[0].base.z;
++    let top = s.axes.iter().flat_map(|a| &a.phytomers).map(|p| p.tip.z - z0).fold(f64::MIN, f64::max);
++    let keys: HashSet<u64> = s.axes.iter().flat_map(|a| &a.phytomers).map(|p| p.key()).collect();
++    let tagged = keys.iter().filter(|k| tags.contains_key(k)).count();
++    println!(
++        "TREE {seed} age={} neutral={} secs={secs:.2} height={top:.3} axes={} phyt={} keys={} tagged={tagged}",
++        s.age, if neutral.is_empty() { "none" } else { neutral }, s.axes.len(), s.phytomer_count(), keys.len()
++    );
++    // The trunk: the thickest wood from the root.
++    let mut at = (0usize, 0usize);
++    let mut k = 0;
++    loop {
++        let a = &s.axes[at.0];
++        let p = &a.phytomers[at.1];
++        let nx = g.thickest(at);
++        let turn = nx.map_or(f64::NAN, |w| angle(g.seg(at), g.seg(w)));
++        println!(
++            "TRUNK {seed} {k} z={:.3} x={:.3} y={:.3} r={:.4} axis={} pa={} origin={} birth={} cycle={} turn_next={turn:.2}",
++            p.tip.z - z0, p.tip.x, p.tip.y, p.radius, at.0, a.pa, g.origin(at.0), a.birth, p.cycle
++        );
++        let Some(w) = nx else { break };
++        at = w;
++        k += 1;
++    }
++    if tags.is_empty() {
++        return;
++    }
++    // Every limb and bough from its base along its thickest wood, a joint
++    // walked once.
++    let mut seen: HashSet<At> = HashSet::new();
++    let mut path = 0usize;
++    // TURN_RMIN: also every lateral of any PA this thick at its base.
++    let rmin: f64 = std::env::var("TURN_RMIN").ok().and_then(|r| r.parse().ok()).unwrap_or(f64::INFINITY);
++    for (c, a) in s.axes.iter().enumerate() {
++        if !matches!(a.origin, Origin::Lateral { .. }) || a.phytomers.is_empty() {
++            continue;
++        }
++        if !(a.pa == 6 || a.pa == 7 || a.phytomers[0].radius >= rmin) {
++            continue;
++        }
++        if !seen.insert((c, 0)) {
++            continue;
++        }
++        let parent = a.origin.parent().map_or(0, |p| s.axes[p].pa);
++        println!("PATH {seed} {path} pa={} parent_pa={parent} birth={} base_z={:.3}", a.pa, a.birth, a.base.z - z0);
++        let mut u = (c, 0);
++        let mut k = 0;
++        loop {
++            let (s0, t0) = (g.start(u), g.tip(u));
++            println!(
++                "SEG {seed} {path} {k} {:.3} {:.3} {:.3} {:.3} {:.3} {:.3} r={:.4} pa={}",
++                s0.x, s0.y, s0.z - z0, t0.x, t0.y, t0.z - z0, g.r(u), s.axes[u.0].pa
++            );
++            let Some(w) = g.thickest(u) else { break };
++            if !seen.insert(w) {
++                break;
++            }
++            let (turn, cause, detail) = joint(&g, tags, u, w);
++            let len = norm(g.seg(u));
++            println!(
++                "JOINT {seed} {path} {k} turn={turn:.2} cause={cause} pa={} pa_next={} r={:.4} len={len:.4} z={:.3} {detail}",
++                s.axes[u.0].pa, s.axes[w.0].pa, g.r(w), t0.z - z0
++            );
++            u = w;
++            k += 1;
++        }
++        path += 1;
++    }
++}
+diff --git i/crates/telperion-space/src/geometry/lay.rs w/crates/telperion-space/src/geometry/lay.rs
+index 0381e143c..d137105cf 100644
+--- i/crates/telperion-space/src/geometry/lay.rs
++++ w/crates/telperion-space/src/geometry/lay.rs
+@@ -262,7 +262,9 @@ impl Layer {
+             across = turned_by(across, &t);
+             curve = turned_by(curve, &t);
+         }
++        let probe_r0 = self.running;
+         running = bent;
++        let probe_r1 = running;
+         // The node's wander: a turn of keyed angle about a keyed pivot,
+         // none without wander.
+         let kick = (form.wander > 0.0).then(|| {
+@@ -302,6 +304,7 @@ impl Layer {
+         } else {
+             curve = [0.0; 3];
+         }
++        let probe_r2 = running;
+         // Sag: the beam's curvature, its moment over its stiffness, turns
+         // the axis down about the torque's axis (`sag_angle`).
+         if let (Some(load), true) = (load, form.sag > 0.0 && phytomer.radius > 0.0) {
+@@ -315,6 +318,7 @@ impl Layer {
+                 curve = turned_by(curve, &t);
+             }
+         }
++        let probe_r3 = running;
+         // Its own pull, and those it carries on from the axis it relays,
+         // each fading over its reach (fn-206).
+         let own = Lift {
+@@ -393,6 +397,11 @@ impl Layer {
+                 direction = unit;
+             }
+         }
++        crate::probe_tags::record(
++            phytomer.key,
++            [probe_r0, probe_r1, probe_r2, probe_r3, direction],
++            [lift, over],
++        );
+         phytomer.tip = v3(next);
+         phytomer.heading = v3(direction);
+         let side = sub(beside, scaled(direction, dot(beside, direction)));
+diff --git i/crates/telperion-space/src/grow/cycle.rs w/crates/telperion-space/src/grow/cycle.rs
+index 36d260e1a..977c5fbdc 100644
+--- i/crates/telperion-space/src/grow/cycle.rs
++++ w/crates/telperion-space/src/grow/cycle.rs
+@@ -18,6 +18,7 @@ mod census;
+ mod compact;
+ mod footprint;
+ mod passes;
++mod probe;
+ mod paused;
+ mod retire;
+ mod working;
+diff --git i/crates/telperion-space/src/grow/cycle/passes.rs w/crates/telperion-space/src/grow/cycle/passes.rs
+index 7b1c90c40..3acdcfebd 100644
+--- i/crates/telperion-space/src/grow/cycle/passes.rs
++++ w/crates/telperion-space/src/grow/cycle/passes.rs
+@@ -96,6 +96,7 @@ impl Grower<'_> {
+             }
+             self.live.push(apex);
+         }
++        super::probe::year(self, &w, &walked, cycle);
+         self.working = Some(w);
+     }
+ 
+diff --git i/crates/telperion-space/src/grow/cycle/probe.rs w/crates/telperion-space/src/grow/cycle/probe.rs
+new file mode 100644
+index 000000000..645554e9a
+--- /dev/null
++++ w/crates/telperion-space/src/grow/cycle/probe.rs
+@@ -0,0 +1,85 @@
++//! fn-342 probe (evidence only, never merged): the year's record of the
++//! tree as the grower holds it before cycle `cycle` grows, on stdout,
++//! when `PROBE_YEAR` is set: its height, the stem line's limbs and each
++//! one's balance terms.
++use super::working::Working;
++use crate::contract::shed::Walked;
++use crate::grow::Grower;
++use crate::structure::Origin;
++
++pub(super) fn year(g: &Grower, w: &Working, walked: &[Walked], cycle: u32) {
++    if std::env::var_os("PROBE_YEAR").is_none() {
++        return;
++    }
++    let sketch = g.sketch.as_ref().expect("sketching");
++    let n = sketch.pencils.len().min(g.axes.len());
++    let z0 = g.axes[0].base.z;
++    // The stem line: the seed and what carries it on.
++    let mut main = vec![false; n];
++    let mut top = f64::MIN;
++    let mut main_top = f64::MIN;
++    for i in 0..n {
++        let a = &g.axes[i];
++        main[i] = match a.origin {
++            Origin::Seed => true,
++            Origin::Continuation { parent } | Origin::Relay { parent, .. } => main[parent],
++            Origin::Lateral { .. } => false,
++        };
++        for p in &a.phytomers {
++            top = top.max(p.tip.z - z0);
++            if main[i] {
++                main_top = main_top.max(p.tip.z - z0);
++            }
++        }
++    }
++    let upkeep = |i: usize| g.species.states[g.axes[i].pa].upkeep * sketch.pencils[i].wood;
++    // A subtree's upkeep split into its open (living) wood and its closed
++    // (dead, standing) wood.
++    fn split(w: &Working, i: usize, upkeep: &dyn Fn(usize) -> f64, out: &mut [f64; 2]) {
++        out[0] += upkeep(i);
++        for &c in w.children(i) {
++            let c = c as usize;
++            if w.open[c] {
++                split(w, c, upkeep, out);
++            } else {
++                out[1] += f64::from(w.frozen[c]);
++            }
++        }
++    }
++    let (mut living, mut lowest) = (0usize, f64::NAN);
++    for i in 0..n {
++        let a = &g.axes[i];
++        let Origin::Lateral { parent, .. } = a.origin else { continue };
++        if !main[parent] || !(a.pa == 6 || a.pa == 7) || i >= w.open.len() {
++            continue;
++        }
++        let open = w.open[i];
++        let alive = open && w.living[i];
++        let base = a.base.z - z0;
++        if alive {
++            living += usize::from(a.pa == 6);
++            if a.pa == 6 {
++                lowest = if lowest.is_nan() { base } else { lowest.min(base) };
++            }
++        }
++        if !open {
++            continue;
++        }
++        let k = w.at[i] as usize;
++        let mut c = [0.0; 2];
++        split(w, i, &upkeep, &mut c);
++        let wk = &walked[k];
++        println!(
++            "LIMBY {} axis={i} lineage={} pa={} birth={} base={base:.3} live={} light={:.5} cost={:.5} \
++             cost_live={:.5} cost_dead={:.5} memory={:.4} shed={} kept={:.4} wood={:.3}",
++            cycle - 1, a.lineage, a.pa, a.birth, u8::from(alive), w.light[i], w.cost[i], c[0], c[1],
++            wk.memory.map_or(f32::NAN, |m| m), u8::from(wk.shed), wk.kept,
++            sketch.pencils[i].wood
++        );
++    }
++    println!(
++        "YEAR {} height={top:.3} stem_top={main_top:.3} apexes={} limbs_live={living} lowest_limb={lowest:.3}",
++        cycle - 1,
++        g.live.len()
++    );
++}
+diff --git i/crates/telperion-space/src/lib.rs w/crates/telperion-space/src/lib.rs
+index 60b0177b2..56aad8483 100644
+--- i/crates/telperion-space/src/lib.rs
++++ w/crates/telperion-space/src/lib.rs
+@@ -38,6 +38,7 @@ mod memo;
+ mod oak;
+ mod palm;
+ mod presence;
++pub mod probe_tags;
+ mod sag;
+ mod schedule;
+ mod shed;
+diff --git i/crates/telperion-space/src/probe_tags.rs w/crates/telperion-space/src/probe_tags.rs
+new file mode 100644
+index 000000000..0c336a885
+--- /dev/null
++++ w/crates/telperion-space/src/probe_tags.rs
+@@ -0,0 +1,44 @@
++//! fn-342 probe (evidence only, never merged): each laid phytomer's turns
++//! by cause in its lay step, keyed by its node's key; the last lay wins.
++//! Dormant unless `start` was called.
++use std::collections::HashMap;
++use std::sync::atomic::{AtomicBool, Ordering};
++use std::sync::Mutex;
++
++static ON: AtomicBool = AtomicBool::new(false);
++static TAGS: Mutex<Option<HashMap<u64, [f32; 6]>>> = Mutex::new(None);
++
++fn angle(a: [f32; 3], b: [f32; 3]) -> f32 {
++    let n = |v: [f32; 3]| (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt().max(1e-12);
++    let c = (a[0] * b[0] + a[1] * b[1] + a[2] * b[2]) / (n(a) * n(b));
++    c.clamp(-1.0, 1.0).acos().to_degrees()
++}
++
++/// Degrees turned by tropism, wander, sag and the pulls (straightening,
++/// erection, inherited pulls, take-over, landing), then `lift` and `over`.
++pub(crate) fn record(key: u64, r: [[f32; 3]; 5], [lift, over]: [f32; 2]) {
++    if !ON.load(Ordering::Relaxed) {
++        return;
++    }
++    let row = [
++        angle(r[0], r[1]),
++        angle(r[1], r[2]),
++        angle(r[2], r[3]),
++        angle(r[3], r[4]),
++        lift,
++        over,
++    ];
++    if let Some(m) = TAGS.lock().unwrap().as_mut() {
++        m.insert(key, row);
++    }
++}
++
++pub fn start() {
++    *TAGS.lock().unwrap() = Some(HashMap::new());
++    ON.store(true, Ordering::Relaxed);
++}
++
++pub fn take() -> HashMap<u64, [f32; 6]> {
++    ON.store(false, Ordering::Relaxed);
++    TAGS.lock().unwrap().take().unwrap_or_default()
++}
