@@ -13,3 +13,10 @@
 - **What slowed it:** a tree at a year exists only after a settle of a copy (RETHINK, "a year is not a state"), so the trace settled 300 times. The oak at 300 took about 20 minutes on four threads, against about 1.5 minutes for one grow. G's probe as built pays the same: it settles a shed, unlaid copy every year to lay its rings.
 - **Cost:** about 20 minutes of wall time for one seed. R4's oak at 300 on two seeds, timed on one thread, would cost far more.
 - **What would have removed it:** the leaf a section carries, read from the grower's own state each year (the approach's "a year is a state", item 6), with no settle of a copy.
+
+## 10 Nov 2026, R3 U on the oak at 300, the worker
+
+- **Doing:** the probe read of the oak at 300 under G, P and U, before R4's stills.
+- **What slowed it:** under U the oak's held structure grows without the bound the frozen upkeep gave it. It was killed at a 24 GB cap after about 7 minutes, and so was U alone after about 3. Nothing warned before the cap. The run at 120 had already shown twice the cycle's axes, but not at what rate the structure grows past it.
+- **Cost:** about 12 minutes of wall time on two killed runs.
+- **What would have removed it:** a census of held phytomers per year, printed as the grow goes, so a run outgrowing the desk is seen and stopped early. Today the census is read only at the end.
