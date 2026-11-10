@@ -36,3 +36,18 @@ Settled by the owner's verdict: today's structure stays the baseline and publish
 ## Open Questions
 
 None.
+
+## Result
+
+Closed 10 Nov 2026. `RESULT.md` in this spec's evidence holds the tables; `sheet-bare.jpg`, `sheet-limb.jpg` and `sheet-marks.jpg` are the leafless stills, which the host viewed.
+
+- **The jaggedness is a line changing hands.** On limbs and boughs, 71% (at 40) to 92% (at 120) of joints turning 10 degrees or more are relays of 9 to 15 degrees. On all wood 1 cm or thicker, 67 to 74% are a lateral taking its bearer's line at its insertion angle, 34 to 57 degrees; at 40, 1,025 of 1,382 such joints stand where the bearer's tip had stopped. Wander, tropism, sag and straightening make no sharp joint.
+- **Why 40 reads worse** is not in the count: only the thickest wood kinks more at 40 (0.47 a metre against 0.26). The host's read of the stills: at 40 the elbowed branch wood is most of what is drawn, and two low limbs lie along the ground; at 120 the same elbows are hairlines beside smooth limbs.
+- **The oak at 300.** Every limb on the trunk line died the year the balance shed it, carrying 8 to 10 times its living wood's upkeep in wood already dead. Limbs are born only at the growing top, so replacements start at 18, 22, 25 and 32 m. Above 7 m the trunk is a chain of 35 to 67 limb axes pulled toward 60 degrees and not toward vertical. The top gains 0.08 to 0.17 m a year to 300 and nothing ends it.
+- No code stays; the probe is `probes/turns.patch`. No gate and no review ran, for that reason.
+
+## Friction
+
+- **Axis indices change when the grower compacts** (one wasted 300 run, 6 minutes). A doc comment at `Grower::compact` saying lineage is the identity goes into the next child that changes `telperion-space`.
+- **A local shell hook refused a redirect to a variable path** (2 minutes). Local, reported and not specced.
+
