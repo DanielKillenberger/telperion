@@ -302,10 +302,10 @@ index 60b0177b2..854ca2ac5 100644
  mod shed;
 diff --git i/crates/telperion-space/src/probe_ablate.rs w/crates/telperion-space/src/probe_ablate.rs
 new file mode 100644
-index 000000000..6d0bcaf06
+index 000000000..8b103efe5
 --- /dev/null
 +++ w/crates/telperion-space/src/probe_ablate.rs
-@@ -0,0 +1,115 @@
+@@ -0,0 +1,123 @@
 +//! fn-344 probe (evidence only, never merged): the old oak's causes
 +//! switched off one at a time by the letters in `ABLATE`, and a yearly
 +//! census of the held phytomers that stops a grow passing four times
@@ -364,18 +364,20 @@ index 000000000..6d0bcaf06
 +}
 +
 +/// The year's census: printed when `ABLATE_CENSUS` is set; the process
-+/// stops when `held` passes four times today's count at `year`, or the
-+/// process holds 8 GiB.
++/// stops when `held` passes `ABLATE_FACTOR` (4 unset) times the curve's
++/// count at `year`, or the process holds `ABLATE_RSS_GIB` (8 unset).
 +pub(crate) fn census(year: u32, held: u64) {
 +    if std::env::var_os("ABLATE_CENSUS").is_none() {
 +        return;
 +    }
++    let num = |k: &str, d: f64| std::env::var(k).ok().and_then(|v| v.parse().ok()).unwrap_or(d);
++    let (factor, limit) = (num("ABLATE_FACTOR", 4.0), num("ABLATE_RSS_GIB", 8.0));
 +    let rss = resident_gib();
 +    println!("CENSUS {year} {held} rss_gib={rss:.2}");
-+    let over = curve().get(&year).is_some_and(|&a| held > 4 * a);
-+    // 8 GiB: dressing and drawing took the 120-year E from 6.6 to 9.1 GiB,
-+    // so a grow ending past 8 would meet the 12 GB cap while drawn.
-+    if over || rss > 8.0 {
++    let over = curve().get(&year).is_some_and(|&a| held as f64 > factor * a as f64);
++    // 8 GiB unset: dressing and drawing took the 120-year E from 6.6 to
++    // 9.1 GiB, so a grow ending past 8 would meet the 12 GB cap while drawn.
++    if over || rss > limit {
 +        let a = curve().get(&year).copied().unwrap_or(0);
 +        println!("STOP year={year} held={held} today={a} rss_gib={rss:.2}");
 +        std::process::exit(42);
@@ -420,4 +422,10 @@ index 000000000..6d0bcaf06
 +        }
 +    }
 +    println!("SETTLED top={top:.3} limbs_live={living} lowest_limb={lowest:.3} phytomers={}", s.phytomer_count());
++    // A census run that is not drawn: done once the tree is settled, so a
++    // tree too big to dress is never dressed.
++    if std::env::var("ABLATE_GROW_ONLY").is_ok_and(|v| !v.is_empty()) {
++        println!("GROWN rss_gib={:.2}", resident_gib());
++        std::process::exit(0);
++    }
 +}

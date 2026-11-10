@@ -145,3 +145,56 @@ The bar is an old open-grown oak: a short thick bole, heavy low limbs, and a cro
 - **The census rule against a falling A.** R2 stops at "four times today's count at that age". A's count halves in year 132 on 1001 (and later on 1007), the year its fork limbs are shed. So any variant that keeps its limbs is stopped there, whatever its memory. Whether the stop should read A's count that year or the most A had held, as the second reading does, is the host's call. Only D's second reading was run, because B, E and F stop on memory either way.
 - **What the eye still lacks.** There is no 300-year still of B or E, the two variants whose record keeps or makes low limbs. Drawing them at 300 needs either a larger memory scope than 12 GB, or a variant that grows less. Both are host decisions.
 - **E's trunk girth (4.3 m at 120)** follows from the pipe model feeding 54 limbs. Whether that is right for an oak is not judged here.
+
+## Follow-up: B grown as far as the desk allows (host, 10 Nov 2026)
+
+**The host's answers.**
+- **The stop rule** is the most A had held up to that year. The spec's wording, A's count that year, was the host's mistake.
+- **B is the variant that matters.** A sheds its fork limbs in year 132 and B keeps them. The open question is whether B's tree levels off or grows without bound.
+
+**The run.**
+- **The patch.** `probes/oldoak.patch` was extended:
+  - the census reads its factor from `ABLATE_FACTOR` and its resident stop from `ABLATE_RSS_GIB`;
+  - `ABLATE_GROW_ONLY` ends the process once the tree is settled, so a tree too big to dress is never dressed.
+- **The command.** `probes/b-census.sh 300 1001` ran under `GROW_ONLY=1 telperion-heavy 22 --gpu 2 --threads 4`, from 18:13 to 18:15. It stops at eight times A's running peak or at 20 GiB resident. The still runner asks the device at start, so the job went through the GPU admission rather than around it.
+- **The log** is `raw/stills/oak-300-1001-Bh-census.log`, reduced by `probes/btable.py`. The patch is reverted and `git status --short crates` is empty.
+
+**The result (measured).**
+- **B stopped at 20 GiB, not at eight times A.** It hit the resident stop in year 188, holding 14,043,820 phytomers at 20.33 GiB. That is 4.7 times the most A had held by then. The run was not killed.
+- **It never levels off.** B left A's curve in year 94 (1.25 times A's count). Its yearly gain in held phytomers has risen every decade since:
+  - about 79,000 a year over years 109 to 119;
+  - about 100,000 over 129 to 149;
+  - about 145,000 over 159 to 169;
+  - 196,000 a year over 179 to 187.
+- **It is still rising, and faster, when stopped.**
+- **Memory per phytomer grows too.** B holds 1.5 KB of resident memory per held phytomer at 187, against A's 0.7 KB. If the gain stayed flat at its last measured rate, B would hold at least 36 million phytomers at 300 and need about 50 GiB at its last memory per phytomer (an extrapolation, not a run). That is far past this desk.
+- **No stills.** B did not reach 200, so there are no stills at 200 or 300 and no wood-point figure from the device. Seed 1007 was not run, as the host ordered, because 1001 did not finish inside the cap.
+
+A beside B, every 10 years. Lowest limb and height are the rough layout's, before the settle (fn-342: the settled tree stands about 10 m lower at 300). Limbs are the living limbs on the trunk line.
+
+| year | A held | A limbs | A lowest m | A height m | A GiB | B held | B limbs | B lowest m | B height m | B GiB | B / A's peak | B gain a year |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 9 | 7,773 | 0 | - | 3.2 | 0.1 | 7,773 | 0 | - | 3.2 | 0.1 | 1.00 | |
+| 19 | 54,782 | 3 | 4.7 | 6.7 | 0.2 | 54,782 | 3 | 4.7 | 6.7 | 0.2 | 1.00 | 4,701 |
+| 29 | 136,873 | 3 | 4.7 | 8.7 | 0.2 | 136,901 | 3 | 4.7 | 8.7 | 0.2 | 1.00 | 8,212 |
+| 39 | 302,606 | 3 | 4.7 | 10.6 | 0.3 | 304,227 | 3 | 4.7 | 10.6 | 0.3 | 1.01 | 16,733 |
+| 49 | 538,894 | 3 | 4.7 | 12.4 | 0.5 | 564,166 | 3 | 4.7 | 12.4 | 0.5 | 1.05 | 25,994 |
+| 59 | 839,535 | 3 | 4.7 | 14.0 | 0.6 | 894,358 | 3 | 4.7 | 14.0 | 0.8 | 1.07 | 33,019 |
+| 69 | 1,197,933 | 3 | 4.7 | 15.5 | 0.9 | 1,319,597 | 3 | 4.7 | 15.5 | 1.1 | 1.10 | 42,524 |
+| 79 | 1,645,899 | 3 | 4.7 | 17.4 | 1.0 | 1,890,785 | 3 | 4.7 | 17.4 | 1.7 | 1.15 | 57,119 |
+| 89 | 2,033,740 | 4 | 4.7 | 19.6 | 1.3 | 2,475,077 | 4 | 4.7 | 19.6 | 2.3 | 1.22 | 58,429 |
+| 99 | 2,371,803 | 4 | 4.7 | 21.9 | 1.5 | 3,141,562 | 4 | 4.7 | 22.0 | 3.1 | 1.32 | 66,648 |
+| 109 | 2,825,545 | 4 | 4.7 | 23.9 | 1.8 | 3,922,116 | 4 | 4.7 | 24.1 | 4.0 | 1.39 | 78,055 |
+| 119 | 2,506,773 | 4 | 4.7 | 25.9 | 1.6 | 4,712,939 | 5 | 4.7 | 26.3 | 5.2 | 1.61 | 79,082 |
+| 129 | 1,685,315 | 2 | 18.1 | 27.4 | 1.5 | 5,639,597 | 5 | 4.7 | 28.2 | 6.5 | 1.92 | 92,666 |
+| 139 | 1,291,752 | 3 | 18.1 | 29.2 | 1.4 | 6,639,118 | 6 | 4.7 | 30.0 | 8.0 | 2.27 | 99,952 |
+| 149 | 1,541,601 | 3 | 18.1 | 31.2 | 1.4 | 7,633,559 | 6 | 4.7 | 32.2 | 9.8 | 2.61 | 99,444 |
+| 159 | 1,958,386 | 3 | 18.1 | 32.8 | 1.6 | 9,047,534 | 6 | 4.7 | 34.0 | 11.9 | 3.09 | 141,398 |
+| 169 | 2,311,831 | 3 | 18.1 | 34.5 | 1.7 | 10,496,842 | 6 | 4.7 | 36.7 | 14.4 | 3.58 | 144,931 |
+| 179 | 2,618,444 | 3 | 18.1 | 36.4 | 1.8 | 12,234,880 | 6 | 4.7 | 39.0 | 17.3 | 4.18 | 173,804 |
+| 187 | 2,937,737 | 4 | 18.1 | 38.1 | 1.9 | 13,803,452 | 7 | 4.7 | 40.9 | 20.0 | 4.70 | 196,072 |
+
+**The read (measured, no proposal).**
+- **What B keeps.** B keeps the fork's limbs: its lowest living limb stays at 4.7 m to year 187, while A's rises to 18.1 m at 128. B's living limbs on the trunk line rise from 4 to 7. Its height runs only 1 to 3 m above A's.
+- **Where the excess grows.** It is not upward: B holds more wood in the crown it keeps. The excess is already visible before A sheds anything (1.22 times A at 89, 1.39 at 109). So charging dead standing wood was already restraining the whole crown in A, not only its doomed limbs (inferred from the counts).
+- **What this means.** Without that charge, nothing in the record restrains the total. The yearly gain grows with the tree and shows no sign of a ceiling by 188.
