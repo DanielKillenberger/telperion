@@ -6,3 +6,10 @@
 - **Slowed by:** R1's walk logged only the wood it took at each node. The bearer side of the rule needs every lateral at every walked node, so the probe gained a per-node line, was rebuilt, and both ages ran again.
 - **Cost:** about 6 minutes (one build of 30 s, runs of 4 s and 100 s, the ignored raw/ now 341 MB).
 - **Would have removed it:** a walk probe that logs every wood leaving a walked node by default (`probes/fork.patch` now does).
+
+## 10 Nov 2026, worker: G at 120 refused by the device's buffer limit
+
+- **Doing:** the ablation stills, variant G (B, E and F together) on the oak at 120.
+- **Slowed by:** the tree grew 185.9 million wood vertices and the renderer refused it: "the wood points buffer needs 295399072 bytes, above the device's limit of 268435456". The run had grown it (about 2 minutes) before the refusal.
+- **Cost:** about 2 minutes of GPU job, and one tile pair per sheet shown grey.
+- **Would have removed it:** nothing in fn-343's scope; F's branch life at 1000 years makes a tree four times A's wood. A preflight estimate of the wood points before growing would have saved the grow.

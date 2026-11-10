@@ -1,0 +1,85 @@
+diff --git i/crates/telperion-render/examples/space/still.rs w/crates/telperion-render/examples/space/still.rs
+index b773d65cc..0c2b94c44 100644
+--- i/crates/telperion-render/examples/space/still.rs
++++ w/crates/telperion-render/examples/space/still.rs
+@@ -164,6 +164,7 @@ pub fn run(name: &str, preset: &str) -> Result<(), String> {
+                 let ms = started.elapsed().as_secs_f64() * 1e3;
+                 let nodes = x.tree().nodes.len();
+                 let (fine, wood) = wood_km(x.tree());
++                let dbh = trunk_cm(x.tree());
+                 let dressed = Instant::now();
+                 let mesh = x.mesh().map_err(|e| e.to_string())?;
+                 let dress = dressed.elapsed().as_secs_f64() * 1e3;
+@@ -176,7 +177,7 @@ pub fn run(name: &str, preset: &str) -> Result<(), String> {
+                 let bounds = mesh.bounds;
+                 let (b, l) = (bounds.max - bounds.min, mesh.foliage.instances.len());
+                 println!(
+-                "age {age} seed {seed}{variant}: grown in {ms:.1} ms, dressed in {dress:.0} ms; {nodes} nodes, {l} leaves; {:.1} m tall, {:.1} x {:.1} m; wood {wood:.2} km, fine {fine:.2} km",
++                "age {age} seed {seed}{variant}: grown in {ms:.1} ms, dressed in {dress:.0} ms; {nodes} nodes, {l} leaves; {:.1} m tall, {:.1} x {:.1} m; wood {wood:.2} km, fine {fine:.2} km; trunk {dbh:.1} cm at 1.3 m",
+                 b.y, b.x, b.z
+             );
+             }
+@@ -275,3 +276,22 @@ fn close_ups(bounds: &Bounds, hero: &Camera) -> (Camera, Camera, Camera) {
+         shot(top, 0.75 * height),
+     )
+ }
++
++/// fn-343 probe: the trunk's diameter in cm at 1.3 m, along the thickest
++/// wood from the root.
++fn trunk_cm(tree: &telperion_core::tree::Tree) -> f64 {
++    let n = tree.nodes.len();
++    let mut kids = vec![Vec::new(); n];
++    for (i, node) in tree.nodes.iter().enumerate().skip(1) {
++        kids[node.parent.unwrap() as usize].push(i);
++    }
++    let y0 = tree.nodes[0].position.y;
++    let mut at = 0;
++    while tree.nodes[at].position.y - y0 < 1.3 {
++        let Some(&next) = kids[at].iter().max_by(|&&a, &&b| tree.nodes[a].radius.total_cmp(&tree.nodes[b].radius)) else {
++            break;
++        };
++        at = next;
++    }
++    200.0 * tree.nodes[at].radius
++}
+diff --git i/crates/telperion-render/examples/space/tuning.rs w/crates/telperion-render/examples/space/tuning.rs
+index b52042ac4..9fcb7ef49 100644
+--- i/crates/telperion-render/examples/space/tuning.rs
++++ w/crates/telperion-render/examples/space/tuning.rs
+@@ -93,6 +93,7 @@ impl Tuning {
+                 state.form.sag = 0.0;
+             }
+         }
++        ablate(species);
+         let pas = species.states.len();
+         for &(pa, lambda) in &self.controls {
+             let state = species
+@@ -126,3 +127,28 @@ fn two(w: &str, flag: &str) -> Result<(f64, f64), String> {
+     };
+     Ok((a, b))
+ }
++
++/// fn-343 probe (evidence only, never merged): one cause switched off by
++/// `ABLATE`, a set of letters: B no apex abortion on limb (6) and bough
++/// (7); C no wander; D no sag; E branch (9) and twig (13) insertion
++/// halved; F the branch's life past the run, so it never moves on.
++fn ablate(species: &mut Species) {
++    let set = std::env::var("ABLATE").unwrap_or_default();
++    let s = &mut species.states;
++    for c in set.chars() {
++        match c {
++            'B' => (s[6].abortion, s[7].abortion) = (0.0, 0.0),
++            'C' => s.iter_mut().for_each(|p| p.form.wander = 0.0),
++            'D' => s.iter_mut().for_each(|p| p.form.sag = 0.0),
++            'E' => (s[9].insertion, s[13].insertion) = (0.5 * s[9].insertion, 0.5 * s[13].insertion),
++            'F' => s[9].lifespan = 1000.0,
++            _ => panic!("ABLATE: no variant {c}"),
++        }
++    }
++    if !set.is_empty() {
++        eprintln!(
++            "ABLATE {set}: abortion {} {} wander9 {} sag6 {} insertion {} {} life9 {}",
++            s[6].abortion, s[7].abortion, s[9].form.wander, s[6].form.sag, s[9].insertion, s[13].insertion, s[9].lifespan
++        );
++    }
++}
