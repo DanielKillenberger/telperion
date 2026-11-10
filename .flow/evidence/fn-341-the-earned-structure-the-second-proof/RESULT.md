@@ -7,7 +7,7 @@ Drafted by the worker on 10 Nov 2026. The work behind it:
 
 R4 and R5 are below. Nothing further is proposed.
 
-**The sheets are not yet made.** The GPU queue (`telperion-heavy`) admits a job only while other processes hold under half the card, and on 10 Nov from about 13:35 to 14:30 a game held 4.2 to 5.2 GB of its 10. The stills job waited and was stopped before the worker returned. The reads, the timings and R1's table under the probe are done. When the card is free, `probes/r4-stills.sh` (parts oak, beech, others, oak300) and then `probes/r4-sheet.py` make them, with `probes/earned.patch` applied and the space examples built.
+The sheets were made on 10 Nov 2026 at about 15:00, once the card was free, by the host from `probes/r4-stills.sh` and `probes/r4-sheet.py` on examples built with `probes/earned.patch` applied. The host viewed all five.
 
 ## What the probe is
 
@@ -101,8 +101,19 @@ One thread, seed 1001, one grow each (`probes/r4-runs.sh time`, `raw/r4-time-*.l
 
 ## R5: the question for the owner
 
-The sheets will be `sheet-oak-whole.jpg`, `sheet-oak-mid.jpg`, `sheet-beech-whole.jpg`, `sheet-beech-mid.jpg` and `sheet-others-whole.jpg` beside this file. Each shows the cycle on the left and the probe on the right. The oak's sheet carries the line: no rule in this probe limits height or sets the crown's base, and both are open.
+The sheets, beside this file, the cycle on the left and the probe on the right:
 
-**For the owner: are these better?** (Asked once the sheets exist and the worker has viewed every one.)
+- `sheet-oak-whole.jpg` and `sheet-oak-mid.jpg`: the oak at 40, 120 and 300, seeds 1001 and 1007;
+- `sheet-beech-whole.jpg` and `sheet-beech-mid.jpg`: the beech at 40, seeds 1001 and 1007;
+- `sheet-others-whole.jpg`: the spruce, birch, palm and ordinary tree at 40, seed 1001.
+
+What the host saw, which is not a verdict:
+
+- **The oak at 40 and 120.** The probe's trunk and limbs are slim and the limbs rise where the cycle's are thick and bent down. It reads as a lighter, younger tree; the limbs toward the tips read as wiry.
+- **The oak at 300.** Both are a bare, curved trunk under a small crown. The probe's is taller and thinner in the crown. No rule in this probe limits height or sets the crown's base, and both are open.
+- **The beech.** Its trunk is a wire, as its leaf earns. Dark cones stand along the trunk in the probe's stills: geometry at the branch bases that still takes its size from a setting the ring rule does not reach. That is the probe's defect and is not read as the rule's.
+- **The birch** loses the low boughs that trailed to the ground, and the spruce's lowest boughs lift. The palm and the ordinary tree do not change.
+
+**For the owner: are these better?**
 
 The verdict is the owner's, and only his written word counts.

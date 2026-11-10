@@ -7,9 +7,10 @@ TBD
 - [ ] TBD
 
 ## Done summary
-TBD
+R1 to R5 done: measures, rules on paper, probe of girth by rings and posture (upkeep on living wood left out), sheets made and viewed, question put to the owner. No code stays; probe kept as probes/earned.patch.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: 0454f045d
 - Tests:
 - PRs:

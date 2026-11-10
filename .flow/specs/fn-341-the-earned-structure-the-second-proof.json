@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-341-the-earned-structure-the-second-proof.md",
-  "status": "open",
+  "status": "done",
   "title": "The earned structure: the second proof",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-10T11:18:44.243502Z"
+  "updated_at": "2026-11-10T14:04:04.524035Z"
 }

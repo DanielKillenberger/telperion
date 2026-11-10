@@ -41,3 +41,21 @@ Not settled, and the host's to decide on R1 and R2: which rules enter the probe 
 ## Open Questions
 
 None.
+
+## Result
+
+Closed 10 Nov 2026 with the question put to the owner; his verdict is logged in the goal when he gives it. `RESULT.md` in this spec's evidence holds the tables and the sheets' names.
+
+- **Girth by rings and posture by gravitropic performance** did what their paper derivations said. The oak's trunk (median of three seeds) is 0.23, 0.67, 1.05 and 1.71 m at 40, 80, 120 and 300 against the cycle's 0.65, 1.50, 1.50 and 1.20 m, inside White's range from 80 on and never thinning. Limbs hold about 26 degrees from vertical.
+- **Upkeep on living wood left the probe.** The cycle's only bound on how much structure a tree holds is the charge for wood already dead; without it the oak at 300 outgrew 24 GB. A rule needs the carbon balance in real units, which is the next piece of the structure.
+- **Away from real trees:** the oak at 300 stands 52 m against a 34.8 m potential, and the beech's trunk is 3.7 cm at 40 because it follows a leaf a fifth of a real beech's.
+- **Cost:** posture costs nothing measurable; the ring step as probed multiplies one-thread time by 2.2 to 2.3, the probe's cost of settling a copy each year where the rule needs one sum carried up the tree.
+- **R6:** no code stays; the probe is `probes/earned.patch`. No gate and no review ran, for that reason.
+
+## Friction
+
+- **A limb is a chain of 0.2 m relay axes and no measure gives it as one path** (10 minutes). A helper that walks a lateral's thickest wood on the engine's structure goes into the next child that measures limbs.
+- **The leaf above a section is readable only by settling a copy each year** (20 minutes on the paper check, and the probe's 2.2 times). Owned by the approach's "a year is a state"; the ring rule is built with a carried sum, never with the yearly settle.
+- **Nothing shows a run outgrowing the desk before the cap kills it** (12 minutes on two killed runs). A yearly census of held phytomers printed as the grow goes is a line for the next child that changes `telperion-space`.
+- **The stills waited about an hour and a half for the card** while a game held it. The queue's rule worked as the owner set it; a local matter, reported and not specced.
+
