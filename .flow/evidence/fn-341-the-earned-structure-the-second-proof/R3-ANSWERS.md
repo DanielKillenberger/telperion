@@ -1,0 +1,12 @@
+# fn-341: the host's answers to R3-RESULT.md, 10 Nov 2026
+
+G and P each did what their paper said: the oak's trunk at 80 is 0.588 m against 0.589 on paper, and the stated limb holds 18.5 degrees against a growth angle of 22 where the cycle let it sag to 41. U showed something else: the cycle's only bound on how much structure a tree holds is the charge for wood that is already dead. Take that charge away and nothing sheds.
+
+1. **R4 runs on G and P, without U.** U leaves this probe. The patch keeps it, switched off, and the result says why.
+2. **U's reading was the host's, and it was incomplete.** Charging nothing for dead wood is what the sources state. But a rule for what living wood costs needs real units on both sides of the balance: what a leaf earns at its light and what a volume of sapwood respires, both measured, where today's `upkeep` is a value per metre set by eye against a light in arbitrary units. That is a redesign of the carbon balance, and with it of what sheds a limb, where the crown's base sits and whether height slows. It is not a probe change. It is named in the result as the next piece of the structure, with the measured finding that the cycle is bounded by dead-wood charges. The host's direction, unchecked: with G, a section's sapwood is its leaf above over R, so each leaf pays for its pipe down to the root, and the cost of a leaf rises with its path. Whether that alone slows height is doubtful (Ryan and Yoder argue the limit is hydraulic and not respiratory), which is why it needs its own derivation.
+3. **The oak at 300 goes on the sheet as it stands,** 52 m and bare to 33 m, with a line on the sheet: no rule in this probe limits height or sets the crown's base, and both are open. The owner judges what is there.
+4. **The ring step's cost.** Do not spend the hour on it. Time the probe with and without the ring-laying step on the oak at 40 and 120, and say in the result that a settled copy each year is the probe's way of reading the leaf above and that the rule needs one sum carried up the tree a year.
+5. **The other presets** at their preset age, one seed, whole view: G where the species' R and N can be sourced from a text within the hour, otherwise P on the cycle's girth, named on the sheet.
+6. **The beech** as R3-G-ANSWERS.md says.
+
+Then R4's read and RESULT.md as R5 writes it: the sheets' paths, R1's measures before and after with what moved toward real trees and what moved away, and the one question for the owner. Propose nothing further. Finish the task by your phases.
