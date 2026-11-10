@@ -17,10 +17,10 @@ index 22f97a6cd..231c15935 100644
  mod stage;
 diff --git i/crates/telperion-core/src/pipeline/cohort_tests.rs w/crates/telperion-core/src/pipeline/cohort_tests.rs
 new file mode 100644
-index 000000000..7bb8b27f4
+index 000000000..3567398ff
 --- /dev/null
 +++ w/crates/telperion-core/src/pipeline/cohort_tests.rs
-@@ -0,0 +1,81 @@
+@@ -0,0 +1,95 @@
 +//! fn-339 R3's dry run: the cohort law replayed on a preset's full cycle
 +//! (`grow_replay`). A measurement, ignored: it prints lines for
 +//! `probes/replay.py` to read.
@@ -56,11 +56,25 @@ index 000000000..7bb8b27f4
 +    let mut f = by_identity(id).expect("a preset");
 +    f.fidelity = 0.0;
 +    f.skeleton.seed = seed;
++    // fn-340 R1c: the replay at another age.
++    if let Some(age) = std::env::var("REPLAY_AGE").ok().and_then(|a| a.parse::<f64>().ok()) {
++        f.age = age;
++    }
 +    let g = executor::growth(&f).expect("its growth");
 +    let started = std::time::Instant::now();
 +    let r = grow_replay(&g.species, g.request, [0.25, 0.5, 1.0]).expect("a replay");
 +    let seconds = started.elapsed().as_secs_f64();
 +    println!("HEAD {id} {seed} age {} seconds {seconds:.2}", g.request.age);
++    // fn-340 R1c: by the bearing unit's age in decades, the cycle then the
++    // law at the bearing unit's size: the eight quantities, the roots and
++    // the living apexes' lit presence.
++    for (d, sides) in &r.decades {
++        for (k, (s, lit)) in sides.iter().enumerate() {
++            let mut v = s.v.to_vec();
++            v.extend([s.roots, *lit]);
++            println!("DECADE {seed} {d} {} {}", ["cycle", "law"][k], line(&v));
++        }
++    }
 +    for (j, e) in r.reach.iter().enumerate() {
 +        println!("REACH {j} {e:.6e}");
 +    }
@@ -594,7 +608,7 @@ index ff83a963a..52d3b7af4 100644
  
  /// What thickening keeps of the branches shed and fading: a shed branch
 diff --git i/crates/telperion-space/src/grow.rs w/crates/telperion-space/src/grow.rs
-index 18841b7d7..fcc50e586 100644
+index 18841b7d7..687cadff3 100644
 --- i/crates/telperion-space/src/grow.rs
 +++ w/crates/telperion-space/src/grow.rs
 @@ -9,6 +9,10 @@
@@ -632,7 +646,7 @@ index 18841b7d7..fcc50e586 100644
  }
  
  /// Whether any PA reads the tree as grown: its shed pipes or its leaves'
-@@ -331,6 +342,7 @@ impl<'a> Grower<'a> {
+@@ -331,11 +342,36 @@ impl<'a> Grower<'a> {
              jobs: [0; 2],
              census: None,
              working: None,
@@ -640,7 +654,55 @@ index 18841b7d7..fcc50e586 100644
          })
      }
  }
-@@ -381,11 +393,14 @@ impl Grower<'_> {
+ 
+ impl Grower<'_> {
++    /// fn-340 R1c: the year's ledger lines from the apexes living before
++    /// growth (`before`) and the axes laid from `laid` on.
++    fn ledger_year(&self, before: &[(usize, f64)], laid: usize) {
++        use crate::structure::Origin;
++        let after: std::collections::HashSet<usize> = self.live.iter().map(|a| a.axis).collect();
++        for &(axis, spent) in before {
++            let pa = self.axes[axis].pa;
++            cohort_trace::ledger(pa, 0, 1.0);
++            if !after.contains(&axis) {
++                let ended = spent + 1.0 >= self.species.states[pa].life() - 1e-9;
++                cohort_trace::ledger(pa, if ended { 5 } else { 6 }, 1.0);
++            }
++        }
++        for a in &self.axes[laid..] {
++            let line = match a.origin {
++                Origin::Lateral { woken: true, .. } => 2,
++                Origin::Lateral { .. } | Origin::Seed => 1,
++                Origin::Continuation { .. } => 3,
++                Origin::Relay { .. } => 4,
++            };
++            cohort_trace::ledger(a.pa, line, 1.0);
++        }
++    }
++
+     /// One cycle: each living lateral subtree's balance and each apex's
+     /// share of the tree's vigour, then every living apex's growth unit,
+     /// on every core (`parallel.rs`), then the sleeping buds that wake.
+@@ -347,10 +383,18 @@ impl Grower<'_> {
+             report(Stage::Pass(Pass::Balance));
+             self.allot_one();
+             report(Stage::Pass(Pass::Allot));
++            let before: Vec<(usize, f64)> = match cohort_trace::tracing() {
++                true => self.live.iter().map(|a| (a.axis, a.spent)).collect(),
++                false => Vec::new(),
++            };
++            let laid = self.axes.len();
+             let live = std::mem::take(&mut self.live);
+             self.grow_live(live, cycle, report)?;
+             self.wake(cycle)?;
+             report(Stage::Pass(Pass::Wake));
++            if cohort_trace::tracing() {
++                self.ledger_year(&before, laid);
++            }
+             return Ok(());
+         }
+         let rows = self.rows();
+@@ -381,11 +425,14 @@ impl Grower<'_> {
          advanced.clear();
          advanced.extend(self.live.iter().map(|a| a.axis));
          self.step(cycle, stage)?;
@@ -668,10 +730,10 @@ index 0c978c0aa..7aeb5ecd8 100644
  }
 diff --git i/crates/telperion-space/src/grow/cohort.rs w/crates/telperion-space/src/grow/cohort.rs
 new file mode 100644
-index 000000000..58ed51300
+index 000000000..419088dcb
 --- /dev/null
 +++ w/crates/telperion-space/src/grow/cohort.rs
-@@ -0,0 +1,457 @@
+@@ -0,0 +1,478 @@
 +//! fn-339 R4's probe, the coupled cohorts. With a boundary set
 +//! (`set_cohorts`, or `TELPERION_COHORTS` in metres), a lateral of an age
 +//! whose subtree's expected reach is under it is not sprouted as an axis:
@@ -774,6 +836,10 @@ index 000000000..58ed51300
 +    law: Law<'a>,
 +    classes: Vec<Class>,
 +    pub pending: Vec<Born>,
++    /// fn-340's correction (R1B-ANSWERS answer 1): the upkeep each bearer
++    /// keeps paying for its cohorts shed, as the cycle's balance keeps a
++    /// closed subtree's frozen upkeep for as long as its bearer stands.
++    frozen: HashMap<usize, f64>,
 +    /// Class-years stepped, and the classes stepped each cycle.
 +    steps: u64,
 +    /// The leaf term's two sums over every phytomer the cohorts grew, at
@@ -814,6 +880,7 @@ index 000000000..58ed51300
 +            law,
 +            classes: Vec::new(),
 +            pending: Vec::new(),
++            frozen: HashMap::new(),
 +            steps: 0,
 +            sums: [0.0; 2],
 +            per_cycle: vec![0; age as usize + 1],
@@ -891,6 +958,15 @@ index 000000000..58ed51300
 +                class.last_living = cycle;
 +            }
 +            stepped += 1;
++        }
++        // A class that no longer stands leaves its wood's upkeep frozen on
++        // its bearer. Marked choice: the most wood it stood with, the
++        // nearest the law holds to the cycle's frozen sum of every wood the
++        // subtree laid.
++        let species = law.species();
++        for k in c.classes.iter().filter(|k| k.cycle != cycle && k.stand <= 0.0) {
++            let up = species.states[k.pa].upkeep * k.peak_wood * k.count * k.scale * k.size;
++            *c.frozen.entry(k.axis).or_default() += up;
 +        }
 +        c.classes.retain(|k| k.cycle == cycle || k.stand > 0.0);
 +        c.steps += stepped;
@@ -993,6 +1069,9 @@ index 000000000..58ed51300
 +        // fn-340's switch: the upkeep of the most wood the cohort has held,
 +        // as a closed subtree's frozen upkeep stays with its bearer.
 +        let peak = super::cohort_trace::switch("wood");
++        for (&axis, &up) in &c.frozen {
++            out.entry(axis).or_default().1 += up as f32;
++        }
 +        for k in &c.classes {
 +            let light = k.light.last().copied().unwrap_or(1.0);
 +            let presence = k.count * k.scale;
@@ -1044,6 +1123,10 @@ index 000000000..58ed51300
 +        if let Some(c) = self.cohorts.as_deref_mut() {
 +            c.classes.retain_mut(|k| to(k.axis).map(|a| k.axis = a).is_some());
 +            c.pending.retain_mut(|b| to(b.axis).map(|a| b.axis = a).is_some());
++            c.frozen = std::mem::take(&mut c.frozen)
++                .into_iter()
++                .filter_map(|(a, up)| to(a).map(|a| (a, up)))
++                .collect();
 +        }
 +    }
 +
@@ -1131,10 +1214,10 @@ index 000000000..58ed51300
 +}
 diff --git i/crates/telperion-space/src/grow/cohort_trace.rs w/crates/telperion-space/src/grow/cohort_trace.rs
 new file mode 100644
-index 000000000..ab1dc18f7
+index 000000000..1b1511673
 --- /dev/null
 +++ w/crates/telperion-space/src/grow/cohort_trace.rs
-@@ -0,0 +1,95 @@
+@@ -0,0 +1,124 @@
 +//! fn-340 R1's diagnostic: each cycle's read, beside the cycle and the
 +//! coupled probe alike, and the three crude switches that test the drift's
 +//! candidates one at a time (`TELPERION_COHORT_SWITCH`, a comma list of
@@ -1168,6 +1251,9 @@ index 000000000..ab1dc18f7
 +    if let Ok(mut r) = OPEN.lock() {
 +        *r = [0.0; ROW];
 +    }
++    if let Ok(mut l) = LEDGER.lock() {
++        l.clear();
++    }
 +}
 +
 +/// The rows taken since the last call.
@@ -1192,6 +1278,25 @@ index 000000000..ab1dc18f7
 +        out[j] = true;
 +    }
 +    out
++}
++
++/// fn-340 R1c's ledger of the structure's population, by age and line:
++/// 0 apexes living after the balance, 1 sprouted, 2 woken, 3 grown on
++/// (continuation), 4 relayed, 5 stopped at the lifespan's end, 6 stopped
++/// in growth (survival or abortion), 7 shed by the balance, 8 retired;
++/// then over the apexes the allotment sized: 9 presence, 10 light × presence,
++/// 11 size × presence, 12 the bud's vigour.
++pub const LINES: usize = 13;
++static LEDGER: Mutex<std::collections::BTreeMap<usize, [f64; LINES]>> =
++    Mutex::new(std::collections::BTreeMap::new());
++
++pub(super) fn ledger(pa: usize, line: usize, v: f64) {
++    if !tracing() {
++        return;
++    }
++    if let Ok(mut l) = LEDGER.lock() {
++        l.entry(pa).or_insert([0.0; LINES])[line] += v;
++    }
 +}
 +
 +static OPEN: Mutex<[f64; ROW]> = Mutex::new([0.0; ROW]);
@@ -1225,6 +1330,13 @@ index 000000000..ab1dc18f7
 +        let row = OPEN.lock().map(|mut r| std::mem::replace(&mut *r, [0.0; ROW])).unwrap_or([0.0; ROW]);
 +        let mut row = row;
 +        row[0] = f64::from(cycle);
++        let label = if self.cohorts.is_some() { "probe" } else { "base" };
++        if let Ok(mut l) = LEDGER.lock() {
++            for (pa, v) in std::mem::take(&mut *l) {
++                let cells: Vec<String> = v.iter().map(|x| format!("{x:.4}")).collect();
++                println!("LEDGER {label} {cycle} {pa} {}", cells.join(" "));
++            }
++        }
 +        if let Ok(mut r) = ROWS.lock() {
 +            r.push(row);
 +        }
@@ -1644,7 +1756,7 @@ index 000000000..8a72b186f
 +    }
 +}
 diff --git i/crates/telperion-space/src/grow/cycle/passes.rs w/crates/telperion-space/src/grow/cycle/passes.rs
-index 7b1c90c40..bc97b99a0 100644
+index 7b1c90c40..2e4b61eea 100644
 --- i/crates/telperion-space/src/grow/cycle/passes.rs
 +++ w/crates/telperion-space/src/grow/cycle/passes.rs
 @@ -17,7 +17,8 @@ impl Grower<'_> {
@@ -1726,7 +1838,7 @@ index 7b1c90c40..bc97b99a0 100644
          let mut laterals = vec![Lateral::default(); w.list.len()];
          let (ws, axes, rules) = (&w, &self.axes, &self.rules);
          crate::cores::fill(&mut laterals, 1 << 12, self.threads, &|k| {
-@@ -84,6 +126,8 @@ impl Grower<'_> {
+@@ -84,11 +126,14 @@ impl Grower<'_> {
                  sketch.pencils[i].memory = f64::from(memory);
              }
          }
@@ -1735,7 +1847,13 @@ index 7b1c90c40..bc97b99a0 100644
          let live = std::mem::take(&mut self.live);
          for apex in live {
              if apex.axis < n {
-@@ -96,12 +140,32 @@ impl Grower<'_> {
+                 let wk = &walked[w.at[apex.axis] as usize];
+                 if wk.shed {
++                    crate::grow::cohort_trace::ledger(self.axes[apex.axis].pa, 7, 1.0);
+                     self.axes[apex.axis].apex_end = Some(cycle - 1);
+                     continue;
+                 }
+@@ -96,12 +141,32 @@ impl Grower<'_> {
              }
              self.live.push(apex);
          }
@@ -1768,7 +1886,7 @@ index 7b1c90c40..bc97b99a0 100644
          let mut w = self.working.take().expect("a working set");
          let (species, sketch) = (self.species, self.sketch.as_mut().expect("sketching"));
          let n = sketch.pencils.len();
-@@ -116,10 +180,30 @@ impl Grower<'_> {
+@@ -116,10 +181,36 @@ impl Grower<'_> {
          let lambda: Vec<f32> = (w.list.iter())
              .map(|&i| species.states[w.pa[i]].apical_control as f32)
              .collect();
@@ -1785,7 +1903,13 @@ index 7b1c90c40..bc97b99a0 100644
 +            for apex in self.live.iter().filter(|a| a.axis < n) {
 +                let k = w.at[apex.axis] as usize;
 +                let (p, bud, s) = (presence[k], f64::from(w.bud[apex.axis]), sized[k]);
-+                if set[w.pa[apex.axis]] {
++                let pa = w.pa[apex.axis];
++                let light = sketch.pencils[apex.axis].light;
++                crate::grow::cohort_trace::ledger(pa, 9, p);
++                crate::grow::cohort_trace::ledger(pa, 10, p * light);
++                crate::grow::cohort_trace::ledger(pa, 11, p * s);
++                crate::grow::cohort_trace::ledger(pa, 12, bud);
++                if set[pa] {
 +                    add(3, p);
 +                    add(6, bud);
 +                } else {
@@ -1814,10 +1938,10 @@ index a6228520c..624262f5d 100644
  }
 diff --git i/crates/telperion-space/src/grow/cycle/replay.rs w/crates/telperion-space/src/grow/cycle/replay.rs
 new file mode 100644
-index 000000000..703a36476
+index 000000000..c81adb78d
 --- /dev/null
 +++ w/crates/telperion-space/src/grow/cycle/replay.rs
-@@ -0,0 +1,473 @@
+@@ -0,0 +1,490 @@
 +//! fn-339 R3's dry run: the cohort law replayed on a full cycle's tree. The
 +//! grower runs as fn-335's recorder runs it (every axis open, none retired),
 +//! keeping each year's lattice. On every growth unit of the wood that stays
@@ -1890,6 +2014,11 @@ index 000000000..703a36476
 +    pub light_check: (u64, f64),
 +    /// The size trace's sums per cohort age.
 +    pub trace: BTreeMap<usize, [f64; 9]>,
++    /// fn-340 R1c: by the bearing unit's age in decades, the cycle's
++    /// cohort-age laterals and the law at the bearing unit's size (the
++    /// probe's reading), each with its living apexes' lit presence at the
++    /// cell's light in the last cycle.
++    pub decades: BTreeMap<u32, [(Side, f64); 2]>,
 +}
 +
 +/// Each lateral age's expected subtree reach: its axis's expected path,
@@ -2081,6 +2210,7 @@ index 000000000..703a36476
 +    let law = Law::new(species, age);
 +    law.check(&sets[1]);
 +    let mut cells: BTreeMap<[i32; 3], Cell> = BTreeMap::new();
++    let mut decades: BTreeMap<u32, [(Side, f64); 2]> = BTreeMap::new();
 +    let mut structure = [0.0; 3];
 +    let mut whole = [0.0; 3];
 +    let mut cols: [HashSet<[i32; 2]>; 2] = [HashSet::new(), HashSet::new()];
@@ -2142,6 +2272,7 @@ index 000000000..703a36476
 +                true => kept[start - unit.len()..start].iter().map(|p| p.size).sum::<f64>() / k,
 +                false => 1.0,
 +            };
++            let before = (cell.cycle, cell.law[2]);
 +            let mut by_root = law::Unit::new(&law, &light, law::Shed::Root);
 +            let mut by_subtree = law::Unit::new(&law, &light, law::Shed::Subtree);
 +            for &j in &sets[1] {
@@ -2170,6 +2301,15 @@ index 000000000..703a36476
 +            if cell.law[1].v[LEAF_DRAWN] > 0.0 {
 +                cols[1].insert(column(at));
 +            }
++            let lit = light[age as usize];
++            let d = decades.entry((age - b) / 10).or_default();
++            for (k, (now, was)) in [(cell.cycle, before.0), (cell.law[2], before.1)].into_iter().enumerate() {
++                for q in 0..Q {
++                    d[k].0.v[q] += now.v[q] - was.v[q];
++                }
++                d[k].0.roots += now.roots - was.roots;
++                d[k].1 += (now.v[LIVING] - was.v[LIVING]) * lit;
++            }
 +        }
 +    }
 +    Ok(Replay {
@@ -2181,6 +2321,7 @@ index 000000000..703a36476
 +        columns: [cols[0].len(), cols[1].len()],
 +        light_check: check,
 +        trace,
++        decades,
 +    })
 +}
 +
@@ -2646,6 +2787,61 @@ index 000000000..2536be5f6
 +        }
 +    }
 +}
+diff --git i/crates/telperion-space/src/grow/cycle/retire.rs w/crates/telperion-space/src/grow/cycle/retire.rs
+index ed3107bc0..3c092ac53 100644
+--- i/crates/telperion-space/src/grow/cycle/retire.rs
++++ w/crates/telperion-space/src/grow/cycle/retire.rs
+@@ -29,7 +29,7 @@ use crate::contract::presence::{q, real, times};
+ use crate::dormant::Woken;
+ use crate::girth::Frozen;
+ use crate::presence::{assign_living, Draws};
+-use crate::shed::{faded, subtree_living, Living};
++use crate::shed::{faded, Living};
+ use crate::species::Species;
+ use crate::structure::{Axis, Origin};
+ use std::borrow::Cow;
+@@ -111,6 +111,9 @@ struct Tree<'t> {
+     age: u32,
+     /// The cycle about to grow: what has grown is final before it.
+     cycle: u32,
++    /// fn-340: the living each axis's cohorts give it, as the settle reads
++    /// it, so a subtree whose cohorts lived lately is not let go early.
++    cohorts: &'t std::collections::HashMap<usize, Living>,
+ }
+ 
+ /// One closed subtree's verdict: not yet, kept, or retired.
+@@ -145,7 +148,9 @@ impl Grower<'_> {
+         todo.extend(self.faded_out(&mut w, age));
+         todo.sort_unstable();
+         todo.dedup();
++        let cohorts = self.cohort_living(age);
+         let tree = Tree {
++            cohorts: &cohorts,
+             axes: &self.axes,
+             draws: &self.draws,
+             woken: &self.woken,
+@@ -179,7 +184,10 @@ impl Grower<'_> {
+                         w.retire.fading.push(c);
+                     }
+                 }
+-                Verdict::Retired(living) => self.let_go(&mut w, c, living),
++                Verdict::Retired(living) => {
++                    crate::grow::cohort_trace::ledger(self.axes[c].pa, 8, 1.0);
++                    self.let_go(&mut w, c, living)
++                }
+             }
+         }
+         self.working = Some(w);
+@@ -322,7 +330,8 @@ fn evaluate(t: &Tree, w: &Working, c: usize) -> Verdict {
+         Fate::Kept(l) | Fate::Root(l) if part[k] != c => Some(l),
+         _ => None,
+     };
+-    let living = subtree_living(&local, t.species, t.age, &given);
++    let more = |k: usize| t.cohorts.get(&part[k]).copied();
++    let living = crate::shed::subtree_living_with(&local, t.species, t.age, &given, &more);
+     let axis = &t.axes[c];
+     let delay = t.species.states[axis.pa].shedding;
+     if !(sheds(axis, t.species) && faded(delay, axis.birth, living, t.age) <= 0.0) {
 diff --git i/crates/telperion-space/src/grow/cycle/working.rs w/crates/telperion-space/src/grow/cycle/working.rs
 index 76db18f5b..1262a68e3 100644
 --- i/crates/telperion-space/src/grow/cycle/working.rs
@@ -2964,7 +3160,7 @@ index 60b0177b2..7c4a83fce 100644
  pub use lineage::keys as lineage_keys;
  pub use lineage::{
 diff --git i/crates/telperion-space/src/shed.rs w/crates/telperion-space/src/shed.rs
-index 538dc2c56..0e676674b 100644
+index 538dc2c56..0d12f1740 100644
 --- i/crates/telperion-space/src/shed.rs
 +++ w/crates/telperion-space/src/shed.rs
 @@ -98,13 +98,25 @@ pub(crate) fn shed_given(
@@ -3014,12 +3210,24 @@ index 538dc2c56..0e676674b 100644
      }
      for (i, link) in axes.iter().enumerate().rev() {
          let Some(parent) = link.origin.parent().filter(|_| !gone(i)) else {
-@@ -255,5 +270,5 @@ pub(crate) fn subtree_living(
+@@ -255,5 +270,17 @@ pub(crate) fn subtree_living(
      age: u32,
      given: Given<Living>,
  ) -> Living {
 -    fades(axes, species, age, (given, &|_| false), Some(0)).1
-+    fades(axes, species, age, (given, &|_| false, &|_| None), Some(0)).1
++    subtree_living_with(axes, species, age, given, &|_| None)
++}
++
++/// `subtree_living`, each axis `more` names also living as it gives:
++/// fn-340's correction, retirement reading the cohorts an axis bears.
++pub(crate) fn subtree_living_with(
++    axes: &[Axis],
++    species: &Species,
++    age: u32,
++    given: Given<Living>,
++    more: Given<Living>,
++) -> Living {
++    fades(axes, species, age, (given, &|_| false, more), Some(0)).1
  }
 diff --git i/crates/telperion-space/src/structure.rs w/crates/telperion-space/src/structure.rs
 index f838a08c7..334ef27ea 100644
