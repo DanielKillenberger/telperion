@@ -18,7 +18,7 @@ Each is the host's design decision; none is the owner's ruling.
 **B. A sleeping bud wakes where a tip would pay.**
 - Sleeping buds are held on the limb, bough and branch rows, at the limb row's existing values (0.1 per bud place, the 6-year delay, 0.04 a year). They do not expire while their bearer lives.
 - A bud's yearly chance to wake is the existing rate times max(0, 1 − cost / light), where light is the lattice light at the bud's place and cost is what a tip there would be charged, its path over `L_max`. Where a species has no `L_max` the cost is 0 and the factor is 1, which is today's rule.
-- A woken bud takes the age row the existing rule gives it (`dormant::aged`), as today.
+- A sleeping bud does not age while it sleeps: it wakes as the row it was laid as, whenever it wakes. (Corrected the same day on the worker's stop: today's `dormant::aged` ages a bud through its rows as it sleeps and gives none after 16 years, which contradicts a bud that does not expire. A dormant bud is resting tissue, and the shoots from one on an old oak are vigorous new branches.)
 
 Use preset values where the preset can already say it (a row's life, what a row moves on to, which rows hold sleeping buds) and the probe's own code where it cannot; say which was which.
 
