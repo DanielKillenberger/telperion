@@ -55,6 +55,17 @@ MODEL = {
 }
 
 
+# The probe's medians, G and P (R4; raw/r3-*-GPr4.log through r1.py).
+PROBE = {
+    ("oak", 40): dict(dbh=22.9, spread=7.65, height=10.35),
+    ("oak", 80): dict(dbh=66.8, spread=19.16, height=18.01),
+    ("oak", 120): dict(dbh=105.1, spread=23.58, height=26.20),
+    ("oak", 300): dict(dbh=170.6, spread=24.88, height=51.93),
+    ("beech", 40): dict(dbh=3.7, spread=5.99, height=9.75),
+    ("beech", 80): dict(dbh=21.4, spread=19.75, height=17.26),
+}
+
+
 def main(model=MODEL):
     for (sp, age), m in model.items():
         if m["dbh"] is None:
@@ -76,4 +87,5 @@ def main(model=MODEL):
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    main(PROBE if sys.argv[1:] == ["probe"] else MODEL)

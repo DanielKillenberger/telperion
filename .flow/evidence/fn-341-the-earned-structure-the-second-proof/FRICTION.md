@@ -20,3 +20,11 @@
 - **What slowed it:** under U the oak's held structure grows without the bound the frozen upkeep gave it. It was killed at a 24 GB cap after about 7 minutes, and so was U alone after about 3. Nothing warned before the cap. The run at 120 had already shown twice the cycle's axes, but not at what rate the structure grows past it.
 - **Cost:** about 12 minutes of wall time on two killed runs.
 - **What would have removed it:** a census of held phytomers per year, printed as the grow goes, so a run outgrowing the desk is seen and stopped early. Today the census is read only at the end.
+
+## 10 Nov 2026, R4 stills, the worker
+
+- **Doing:** R4's stills, one GPU job through `telperion-heavy 12 --gpu 2`.
+- **What slowed it:** the job waited for VRAM. Another program on the desk held about 5.2 GB of the card's 10 GB, so free VRAM stood below the 3 GB the queue needs. That is a local setup matter, reported and not specced.
+- **Cost:** the stills waited for as long as the card stayed full; the CPU reads ran meanwhile.
+- **What would have removed it:** nothing in the repository. A smaller `--gpu` claim would let the job start, if a still is measured to need less.
+- **Later the same hour:** the wait was the queue's own rule, not the claim's size. `telperion-heavy` admits a GPU job only while other processes hold under half the card ("the owner games"), and a game held 5.2 GB of 10. A 1 GB claim waits just the same. The stills wait for the card; the worker does not override the rule.
