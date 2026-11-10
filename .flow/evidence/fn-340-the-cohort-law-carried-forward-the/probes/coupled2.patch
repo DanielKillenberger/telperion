@@ -730,10 +730,10 @@ index 0c978c0aa..7aeb5ecd8 100644
  }
 diff --git i/crates/telperion-space/src/grow/cohort.rs w/crates/telperion-space/src/grow/cohort.rs
 new file mode 100644
-index 000000000..419088dcb
+index 000000000..374cd977b
 --- /dev/null
 +++ w/crates/telperion-space/src/grow/cohort.rs
-@@ -0,0 +1,478 @@
+@@ -0,0 +1,479 @@
 +//! fn-339 R4's probe, the coupled cohorts. With a boundary set
 +//! (`set_cohorts`, or `TELPERION_COHORTS` in metres), a lateral of an age
 +//! whose subtree's expected reach is under it is not sprouted as an axis:
@@ -744,6 +744,7 @@ index 000000000..419088dcb
 +//! its living keeps its bearer open and its subtree's living time enters
 +//! the shed, and its root radius joins its bearer's girth. A measurement
 +//! only: with no boundary set the grower is unchanged.
++use super::cycle::replay::law::carried::Carried;
 +use super::cycle::replay::law::{self, Law, Shed, LEAF_CUR, LEAF_DRAWN, LIVING, STANDING, V, WOOD};
 +use super::cycle::replay::{cohorts as ages_under, reaches, GREW};
 +use super::Grower;
@@ -827,6 +828,8 @@ index 000000000..419088dcb
 +    last_living: u32,
 +    /// The most wood it has stood with (fn-340's `wood` switch).
 +    peak_wood: f64,
++    /// fn-340 R3: its law carried forward a year at a time.
++    carried: Carried,
 +}
 +
 +/// The tree's cohorts, and what the probe's read takes of them.
@@ -918,6 +921,7 @@ index 000000000..419088dcb
 +                    section: 0.0,
 +                    last_living: cycle,
 +                    peak_wood: 0.0,
++                    carried: Carried::new(&c.law, b.pa, cycle, true, Shed::Subtree),
 +                });
 +                c.classes.len() - 1
 +            });
@@ -931,20 +935,17 @@ index 000000000..419088dcb
 +                class.now[STANDING] = 1.0;
 +                continue;
 +            }
-+            let mut path = vec![1.0; cycle as usize + 1];
-+            for (k, &l) in class.light.iter().enumerate() {
-+                let at = class.cycle as usize + 1 + k;
-+                if at <= cycle as usize {
-+                    path[at] = l;
-+                }
-+            }
-+            if class.dead {
-+                let from = class.cycle as usize + 1 + class.light.len();
-+                path.iter_mut().skip(from).for_each(|l| *l = 0.0);
-+            }
-+            let mut unit = law::Unit::new(law, &path, Shed::Subtree);
-+            let (v, stand, section, _) = unit.member(class.pa, class.cycle, true);
-+            class.now = v[cycle as usize];
++            // This cycle's light as the recomputation's path held it: read
++            // the cycle before, none once its bearer is shed, whole where
++            // none was read.
++            let at = (cycle - class.cycle - 1) as usize;
++            let light = match class.light.get(at) {
++                Some(&l) => l,
++                None if class.dead => 0.0,
++                None => 1.0,
++            };
++            let (v, stand, section) = class.carried.step(law, cycle, light);
++            class.now = v;
 +            class.peak_wood = class.peak_wood.max(class.now[WOOD]);
 +            (class.stand, class.section) = (stand, section);
 +            let s = &law.species().states[class.pa];
@@ -952,7 +953,7 @@ index 000000000..419088dcb
 +                let nodes = class.now[LEAF_CUR] / s.leaf_area;
 +                let pipe = nodes * class.count * s.form.pipe;
 +                c.sums[0] += pipe;
-+                c.sums[1] += pipe * path[cycle as usize].max(1e-6).powf(s.leaf_girth);
++                c.sums[1] += pipe * light.max(1e-6).powf(s.leaf_girth);
 +            }
 +            if class.now[LIVING] > 0.0 {
 +                class.last_living = cycle;
@@ -1756,7 +1757,7 @@ index 000000000..8a72b186f
 +    }
 +}
 diff --git i/crates/telperion-space/src/grow/cycle/passes.rs w/crates/telperion-space/src/grow/cycle/passes.rs
-index 7b1c90c40..2e4b61eea 100644
+index 7b1c90c40..0a5479ff8 100644
 --- i/crates/telperion-space/src/grow/cycle/passes.rs
 +++ w/crates/telperion-space/src/grow/cycle/passes.rs
 @@ -17,7 +17,8 @@ impl Grower<'_> {
@@ -1790,7 +1791,7 @@ index 7b1c90c40..2e4b61eea 100644
          let mut w = self.working.take().expect("a working set");
          let (species, sketch) = (self.species, self.sketch.as_mut().expect("sketching"));
          let n = sketch.pencils.len();
-@@ -33,17 +48,44 @@ impl Grower<'_> {
+@@ -33,17 +48,50 @@ impl Grower<'_> {
              lit[a.axis] = true;
          }
          let pencils = &sketch.pencils;
@@ -1830,7 +1831,13 @@ index 7b1c90c40..2e4b61eea 100644
 +                    }
 +                }
 +            }
-+            for (q, c, _) in extra.values() {
++            // As the cycle's side is read: on open structural bearers only
++            // (fn-340 R3's upkeep hour: R1's read took every bearer).
++            let open_only = !crate::grow::cohort_trace::switch("allbearers");
++            for (&i, (q, c, _)) in &extra {
++                if open_only && !(i < w.open.len() && w.open[i] && !set[w.pa[i]]) {
++                    continue;
++                }
 +                add(12, f64::from(*q));
 +                add(13, f64::from(*c));
 +            }
@@ -1838,7 +1845,7 @@ index 7b1c90c40..2e4b61eea 100644
          let mut laterals = vec![Lateral::default(); w.list.len()];
          let (ws, axes, rules) = (&w, &self.axes, &self.rules);
          crate::cores::fill(&mut laterals, 1 << 12, self.threads, &|k| {
-@@ -84,11 +126,14 @@ impl Grower<'_> {
+@@ -84,11 +132,14 @@ impl Grower<'_> {
                  sketch.pencils[i].memory = f64::from(memory);
              }
          }
@@ -1853,7 +1860,7 @@ index 7b1c90c40..2e4b61eea 100644
                      self.axes[apex.axis].apex_end = Some(cycle - 1);
                      continue;
                  }
-@@ -96,12 +141,32 @@ impl Grower<'_> {
+@@ -96,12 +147,31 @@ impl Grower<'_> {
              }
              self.live.push(apex);
          }
@@ -1877,16 +1884,15 @@ index 7b1c90c40..2e4b61eea 100644
      /// The allotment over the working set: each living apex's unit's size
      /// this cycle (`Grower::allot`).
      pub(in crate::grow) fn allot_one(&mut self) {
-+        // fn-340 R1's switch: the cohorts stand in the split as laterals.
-+        let extra = match crate::grow::cohort_trace::switch("split") {
-+            true => self.cohort_split(),
-+            false => Default::default(),
-+        };
++        // fn-340 R3 (S1a, R1-R2-ANSWERS.md): each cohort class stands in the
++        // split as a lateral at its unit's middle node, by its expected
++        // living apexes' lit presence, its share let go.
++        let extra = self.cohort_split();
 +        let living = self.cohort_living_now();
          let mut w = self.working.take().expect("a working set");
          let (species, sketch) = (self.species, self.sketch.as_mut().expect("sketching"));
          let n = sketch.pencils.len();
-@@ -116,10 +181,36 @@ impl Grower<'_> {
+@@ -116,10 +186,36 @@ impl Grower<'_> {
          let lambda: Vec<f32> = (w.list.iter())
              .map(|&i| species.states[w.pa[i]].apical_control as f32)
              .collect();
@@ -2434,10 +2440,10 @@ index 000000000..c81adb78d
 +}
 diff --git i/crates/telperion-space/src/grow/cycle/replay/law.rs w/crates/telperion-space/src/grow/cycle/replay/law.rs
 new file mode 100644
-index 000000000..2536be5f6
+index 000000000..53b487773
 --- /dev/null
 +++ w/crates/telperion-space/src/grow/cycle/replay/law.rs
-@@ -0,0 +1,349 @@
+@@ -0,0 +1,351 @@
 +//! fn-339 R3: the cohort law as the host answered it (R1-ANSWERS.md), on
 +//! one bearing growth unit and the light the cycle gave its cell each year.
 +//! A cohort is the subtrees of one root age born in one cycle on the unit;
@@ -2448,6 +2454,8 @@ index 000000000..2536be5f6
 +//! own shedding after, and what it bore stands while the root does.
 +use crate::species::Species;
 +use std::collections::HashMap;
++
++pub mod carried;
 +
 +/// What a cohort holds at a cycle: units grown that cycle, apexes living at
 +/// its end, members standing, the current year's leaf (what the lattice
@@ -2784,6 +2792,310 @@ index 000000000..2536be5f6
 +        for (y, &u) in want.iter().enumerate() {
 +            let got = 0.6 * s[y + 1][GREW] + 0.35 * w[y + 1][GREW];
 +            assert!((got - u).abs() < 2e-3, "year {}: {got} vs {u}", y + 1);
++        }
++    }
++}
+diff --git i/crates/telperion-space/src/grow/cycle/replay/law/carried.rs w/crates/telperion-space/src/grow/cycle/replay/law/carried.rs
+new file mode 100644
+index 000000000..d347dd297
+--- /dev/null
++++ w/crates/telperion-space/src/grow/cycle/replay/law/carried.rs
+@@ -0,0 +1,298 @@
++//! fn-340 R3: the cohort law carried forward a year at a time
++//! (R1-R2-NOTE.md, "The cohort's year as a carried state"; the host's
++//! answer 2, exact). A member holds what `Unit::member` recomputes from its
++//! birth: its chance of having grown each unit, its balance memory, its
++//! units' inner members (each carried the same way), and their recent
++//! living, which the species' shedding rule reads. Each year it takes the
++//! year's light and gives what the recomputation gives at that year.
++use super::{Law, Shed, GREW, LEAF_CUR, LEAF_DRAWN, LIVING, PHYTO, Q, SECTION, STANDING, V, WOOD};
++use std::collections::VecDeque;
++
++/// One unit's inner members: each lateral age's expected count and member.
++#[derive(Debug, Clone)]
++struct Group {
++    born: u32,
++    members: Vec<(f64, Carried)>,
++    /// The group's sum last cycle and this one.
++    prev: V,
++    now: V,
++    /// Its living by cycle, the last few: what `stands` reads.
++    living: VecDeque<(u32, f64)>,
++}
++
++/// A member of age `j` born at `t`, carried.
++#[derive(Debug, Clone)]
++pub struct Carried {
++    j: usize,
++    t: u32,
++    root: bool,
++    shed: Shed,
++    ch: Vec<usize>,
++    /// The chance it grew at least n units, for each n settled so far.
++    alive: Vec<f64>,
++    /// The root's balance memory after the units settled.
++    memory: f64,
++    groups: Vec<Group>,
++    /// The living kept per group: the longest shedding window it reads.
++    window: usize,
++}
++
++impl Carried {
++    pub fn new(law: &Law, j: usize, t: u32, root: bool, shed: Shed) -> Self {
++        let ch = law.chain[j].clone();
++        let sp = &law.species().states;
++        let window = (ch.iter())
++            .map(|&pa| sp[pa].shedding)
++            .filter(|s| s.is_finite())
++            .fold(0.0f64, f64::max)
++            .ceil() as usize
++            + 2;
++        Self {
++            j,
++            t,
++            root,
++            shed,
++            ch,
++            alive: vec![1.0],
++            memory: 1.0,
++            groups: Vec::new(),
++            window,
++        }
++    }
++
++    /// Its age.
++    pub fn age(&self) -> usize {
++        self.j
++    }
++
++    /// The member moved to cycle `now` under the cycle's light `light`:
++    /// its contents at `now`, the chance it stands, and the section it
++    /// then holds on average (`Unit::member`'s first three, at `now`).
++    pub fn step(&mut self, law: &Law, now: u32, light: f64) -> (V, f64, f64) {
++        let (v, stand, section, _) = self.moved(law, now, light);
++        (v, stand, section)
++    }
++
++    /// `step`, and its contents a cycle back as this cycle's light revises
++    /// them: the recomputation reads a member's living at a cycle with the
++    /// light of the cycle after, which settles its next unit's survival.
++    fn moved(&mut self, law: &Law, now: u32, light: f64) -> (V, f64, f64, V) {
++        let t = self.t;
++        let mut out = [0.0; Q];
++        if self.ch.is_empty() || t > now {
++            return (out, 0.0, 0.0, out);
++        }
++        if t == now {
++            out[LIVING] = 1.0;
++            out[STANDING] = 1.0;
++            return (out, 1.0, 0.0, [0.0; Q]);
++        }
++        let len = self.ch.len();
++        let since = (now - t) as usize;
++        // The unit born this cycle's inner members, then every group moved.
++        if since <= len {
++            let pa = self.ch[since - 1];
++            let members = (0..law.lat.len())
++                .filter(|&i| law.lat[pa][i] > 0.0)
++                .map(|i| (law.lat[pa][i], Carried::new(law, i, now, false, self.shed)))
++                .collect();
++            self.groups.push(Group {
++                born: now,
++                members,
++                prev: [0.0; Q],
++                now: [0.0; Q],
++                living: VecDeque::new(),
++            });
++        }
++        for g in &mut self.groups {
++            let (mut sum, mut back) = ([0.0; Q], [0.0; Q]);
++            for (q, m) in &mut g.members {
++                let (v, _, _, b) = m.moved(law, now, light);
++                for k in 0..Q {
++                    sum[k] += *q * v[k];
++                    back[k] += *q * b[k];
++                }
++            }
++            (g.prev, g.now) = (back, sum);
++            if let Some(e) = g.living.iter_mut().find(|e| e.0 + 1 == now) {
++                e.1 = back[LIVING];
++            }
++            g.living.push_back((now, sum[LIVING]));
++            while g.living.len() > self.window {
++                g.living.pop_front();
++            }
++        }
++        // The unit grown this cycle settled, at this cycle's light and the
++        // kids as they stood last cycle; the next unit's, provisional, at
++        // the same light and the kids as they stand now.
++        if since <= len {
++            let (s, memory) = self.survival(law, since, light, false);
++            self.memory = memory;
++            let last = self.alive[since - 1];
++            self.alive.push(last * s);
++        }
++        let cap = len.min(since + 1);
++        let mut alive = self.alive.clone();
++        if cap > since {
++            let (s, _) = self.survival(law, cap, light, true);
++            alive.push(alive[since] * s);
++        }
++        let (out, stand, section) = self.at(law, now, &alive[..=cap], true);
++        let back = match now - 1 > t {
++            true => self.at(law, now - 1, &self.alive[..=len.min(since)], false).0,
++            false => [0.0; Q],
++        };
++        (out, stand, section, back)
++    }
++
++    /// Its contents at `c`, from the chances `alive` it grew each unit (the
++    /// last lumping the rest), the groups as they stand at `c` (`now` this
++    /// cycle's, else last cycle's as revised).
++    fn at(&self, law: &Law, c: u32, alive: &[f64], now: bool) -> (V, f64, f64) {
++        let cap = alive.len() - 1;
++        let mut out = [0.0; Q];
++        let gated = self.root || self.shed == Shed::Subtree;
++        let (mut stand, mut section) = (0.0, 0.0);
++        for k in 0..=cap {
++            let pk = if k < cap { alive[k] - alive[k + 1] } else { alive[cap] };
++            if pk <= 0.0 {
++                continue;
++            }
++            let mut desc = [0.0; Q];
++            for g in self.groups.iter().take(k).filter(|g| g.born <= c) {
++                let v = if now { g.now } else { g.prev };
++                for q in 0..Q {
++                    desc[q] += v[q];
++                }
++            }
++            let w = self.stands(law, k, c);
++            let own = own(law, &self.ch, self.t, k, c);
++            for q in 0..Q {
++                out[q] += pk * w * own[q];
++                out[q] += pk * if gated { w } else { 1.0 } * desc[q];
++            }
++            stand += pk * w;
++            section += pk * w * (own[SECTION] + desc[SECTION]);
++        }
++        (out, stand, section)
++    }
++
++    /// Survival to grow unit `n` at the cycle's light: shade, and for a
++    /// root its balance from what its earlier units bear as they stood the
++    /// cycle before (`now` where the unit is next cycle's); with the
++    /// memory after it.
++    fn survival(&self, law: &Law, n: usize, light: f64, next: bool) -> (f64, f64) {
++        let sp = &law.species().states;
++        let pa = self.ch[n - 1];
++        let s = &sp[pa];
++        let mut out = if s.shade_hazard > 0.0 && light < 1.0 {
++            s.viability.powf(light.powf(-s.shade_hazard))
++        } else {
++            s.viability
++        };
++        let mut memory = self.memory;
++        if self.root && s.balance_hazard > 0.0 {
++            let mut living = 1.0;
++            let mut wood: f64 = (1..n).map(|m| law.nodes[self.ch[m - 1]] * sp[self.ch[m - 1]].internode).sum();
++            for g in self.groups.iter().take(n - 1) {
++                let v = if next { g.now } else { g.prev };
++                living += v[LIVING];
++                wood += v[WOOD];
++            }
++            let q = living * light;
++            let cost = s.upkeep * wood;
++            let balance = if q + cost > 0.0 { (q - cost) / (q + cost) } else { 1.0 };
++            memory = (memory + balance) / 2.0;
++            let hazard = s.balance_hazard * (s.tolerance - memory).max(0.0);
++            out *= (-hazard).exp();
++        }
++        (out, memory)
++    }
++
++    /// `Unit::stands` from the living the groups kept.
++    fn stands(&self, law: &Law, k: usize, c: u32) -> f64 {
++        let last = self.ch[k.max(1) - 1];
++        let shed = law.species().states[last].shedding;
++        if f64::from(c) <= f64::from(self.t) + k as f64 + shed {
++            return 1.0;
++        }
++        if self.shed == Shed::Root {
++            return 0.0;
++        }
++        let from = (f64::from(c) - shed).ceil().max(f64::from(self.t + 1)) as u32;
++        let mut most: f64 = 0.0;
++        for d in from..=c {
++            let living: f64 = (self.groups.iter().take(k))
++                .map(|g| g.living.iter().find(|e| e.0 == d).map_or(0.0, |e| e.1))
++                .sum();
++            most = most.max(living);
++        }
++        1.0 - (-most).exp()
++    }
++}
++
++/// `Unit::own`: the member's own contribution at `c` if it grew exactly
++/// `k` units from `t`, before its standing is gated.
++fn own(law: &Law, ch: &[usize], t: u32, k: usize, c: u32) -> V {
++    let sp = &law.species().states;
++    let mut v = [0.0; Q];
++    let since = (c - t) as usize;
++    let g = k.min(since);
++    v[STANDING] = 1.0;
++    if k >= since && since >= 1 {
++        let pa = ch[since - 1];
++        v[GREW] = 1.0;
++        v[LEAF_CUR] = law.nodes[pa] * sp[pa].leaf_area;
++        if sp[pa].cluster_leaves > 0.0 {
++            v[LEAF_DRAWN] += sp[pa].cluster_leaves * sp[pa].leaf_area;
++        }
++    }
++    if k > since {
++        v[LIVING] = 1.0;
++    }
++    for n in 1..=g {
++        let s = &sp[ch[n - 1]];
++        let nodes = law.nodes[ch[n - 1]];
++        v[PHYTO] += nodes;
++        v[WOOD] += nodes * s.internode;
++        v[SECTION] += nodes * s.form.pipe * s.form.pipe;
++        let wood_age = f64::from(c - (t + n as u32));
++        if s.cluster_leaves == 0.0 && wood_age < s.leaf_years {
++            v[LEAF_DRAWN] += nodes * s.leaf_area;
++        }
++    }
++    v
++}
++
++#[cfg(test)]
++mod tests {
++    use super::super::{Law, Shed, Unit, Q};
++    use super::Carried;
++
++    /// The carried member against the recomputed one, every year to 30,
++    /// on the oak's twig and short (the twig's balance on) and under a
++    /// light held constant and one that varies.
++    #[test]
++    fn the_carried_state_is_the_recomputed_expectation() {
++        let oak = crate::oak();
++        let law = Law::new(&oak, 40);
++        let varying: Vec<f64> = (0..=40).map(|c| 0.08 + 0.9 * ((c as f64 * 0.77).sin() * 0.5 + 0.5)).collect();
++        for path in [vec![0.26; 41], varying] {
++            for (j, t) in [(crate::chain::SHORT, 2), (crate::chain::TWIG, 0), (crate::chain::TWIG, 4)] {
++                let mut carried = Carried::new(&law, j, t, true, Shed::Subtree);
++                for now in t..=30u32 {
++                    let (v, stand, section) = carried.step(&law, now, path[now as usize]);
++                    let light = &path[..=now as usize];
++                    let mut unit = Unit::new(&law, light, Shed::Subtree);
++                    let (want, ws, wsec, _) = unit.member(j, t, true);
++                    for q in 0..Q {
++                        let w = want[now as usize][q];
++                        assert!((v[q] - w).abs() <= 1e-9 * w.abs().max(1.0), "age {j} born {t} at {now}, q {q}: {} vs {w}", v[q]);
++                    }
++                    assert!((stand - ws).abs() <= 1e-9, "stand at {now}: {stand} vs {ws}");
++                    assert!((section - wsec).abs() <= 1e-9 * wsec.abs().max(1e-9), "section at {now}: {section} vs {wsec}");
++                }
++            }
 +        }
 +    }
 +}

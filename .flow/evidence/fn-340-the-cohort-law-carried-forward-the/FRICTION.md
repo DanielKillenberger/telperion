@@ -27,3 +27,17 @@
 - **What hindered:** the ledger was not cleared when a run began. The cycle's year-120 counts landed in the probe's year 1, and the first reading named a parting at year 1 and at 30 that did not exist.
 - **Cost:** about 8 minutes and one rerun of both seeds.
 - **What would remove it:** clear every per-run store at `trace(true)`, which the patch now does. The reader also leaves year 1 out.
+
+## 10 Nov 2026, R4: the one-thread timing of the old oak runs about an hour
+
+- **Doing:** fn-339's timing method on the oak at 80 and 120, seeds 1001 to 1006, five alternating batches per seed on one pinned thread.
+- **What hindered:** a cycle at 120 costs about 35 s a grow on one thread and at 80 about 14 s, and each seed takes five batches of both trees. The 80 and 120 timings together take about an hour of wall time, against minutes for the reads.
+- **Cost:** about an hour of waiting, with no other heavy work possible beside it under the one-heavy-run rule.
+- **What would remove it:** a stated smaller batch count for trees over 10 s a grow (fn-327's habit already times a grow over 0.5 s once per batch).
+
+## 10 Nov 2026, R4: the timing ran beside another load on the machine
+
+- **Doing:** the oak's one-thread timing at 80, pinned to core 3.
+- **What hindered:** from about 11:00 the machine carried a load outside this run: load average 32 to 35, with `bun`, `node` and `gocryptfs` processes at 75 to 370% CPU. Seed 1002's grows at 80 took 3 to 6 times seed 1001's, and their cycle-over-probe ratio fell from about 3.3 to about 2.
+- **Cost:** the old oak's timings are not clean. The result reports per-batch ranges and the load beside them.
+- **What would remove it:** the heavy queue reserving a core it times on, or the timing refusing to start (or marking its batches) while the load average exceeds the cores free.
