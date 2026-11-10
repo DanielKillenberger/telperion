@@ -39,3 +39,25 @@ Not settled, and the host's to decide on R1 and R2: how a cohort enters the spli
 ## Open Questions
 
 None.
+
+## Result (host, 10 Nov 2026)
+
+The worker's result is `.flow/evidence/fn-340-the-cohort-law-carried-forward-the/RESULT.md`, with the three notes and the host's three answers beside it and the sheet `sheet-r4-oak.jpg`, which the host viewed.
+
+- **R5, by the goal's reworded rule: the approach stops, on both halves.** The oak's probe is 3.88 times cheaper at 40, 2.49 at 80 and 2.63 at 120, where the rule asks five. Its median trunk is 1.10, 1.35 and 1.21 times the cycle's, and at 120 its spread is 0.875 and its current-year leaf 0.86, where the rule asks a tenth.
+- **What the child established (measured).**
+  - Two corrections the cycle's own rules imply (a shed cohort's wood stays charged to its bearer; retirement reads the cohorts) removed most of fn-339's runaway: seed 1007's trunk at 120 went from 3.66 to 1.50 times the cycle's.
+  - Height holds within 2% at every age. At 40 and 80 the spread and leaf hold within 7%. The spruce and beech at 40 are within 2% (the beech's trunk 1.07) at 2.9 to 3.0 times cheaper.
+  - Peak memory is 3.4 to 3.7 times lower on the oak and spruce.
+  - Carrying each cohort's state forward did not make the cohort step cheap: it is 49% of the oak's probe time at 40 and 63 to 67% at 80 and 120. The structure alone grows 8.8 to 9.5 times under the cycle on the oak (arithmetic from stage timings on seed 1001).
+- **What it did not find.** The trunk's bias; the narrower oak with less leaf at 120; why the probe's branch tips stop more often at more light; why the law, on the cycle's own tree and light, gives a fifth fewer living tips and a leaf excess that rises from 5% at 40 to 17% at 80.
+- **The host's errors.** Its three guesses at the drift's cause (the vigour split, a spread of sizes behind the balance, the balance itself) were each refuted by measurement. Its estimate that carrying the state would free the cohort step was arithmetic and was wrong.
+- **R6:** no crate change stays; the probe is `probes/coupled2.patch`. No gate and no review, for that reason.
+
+## Friction (host's dispositions)
+
+- The settle panic was the probe's own defect and is removed by the retirement correction.
+- The shell hook's refusal and the outside load during timing are the owner's machine, reported and not specced. The 80-year timings on seeds 1004 to 1006 ran under that load and are marked in the result.
+- The replay does not fit 8 GB past 80, so the open-loop read at 120 is missing. No fix is proposed while the approach is stopped.
+- The ledger carrying a previous run's last year was the worker's defect, fixed in the patch.
+- An hour of one-thread timing for the old oak: later timing protocols state one batch for a grow over 10 s.
