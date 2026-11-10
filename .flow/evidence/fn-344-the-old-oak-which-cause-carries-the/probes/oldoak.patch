@@ -151,6 +151,42 @@ index 18841b7d7..f5a12d6fc 100644
  }
  
  /// The whole-tree engine, every axis grown in one grower: test-only, the
+diff --git i/crates/telperion-space/src/grow/advance.rs w/crates/telperion-space/src/grow/advance.rs
+index 813707ca6..83ce24cfd 100644
+--- i/crates/telperion-space/src/grow/advance.rs
++++ w/crates/telperion-space/src/grow/advance.rs
+@@ -132,6 +132,7 @@ impl Shoot<'_, '_> {
+                 contract::decide::abortion(state, grown, (lived.min(next), 0))
+             };
+             let after = self.persists(decide, (pa, cycle), aborts);
++            crate::probe_ablate::tick(1);
+             return self.fail(
+                 apex,
+                 (cycle, carried.gone, step.whole),
+@@ -141,6 +142,7 @@ impl Shoot<'_, '_> {
+             );
+         }
+         if d.0 >= survives && !nested {
++            crate::probe_ablate::tick(1);
+             self.axis_mut(apex.axis).apex_end = Some(cycle - 1);
+             self.draws_mut(apex.axis).failed = true;
+             // The unit that failed is spent: a relay's first unit draws
+@@ -204,6 +206,7 @@ impl Shoot<'_, '_> {
+         if !step.ends {
+             match self.persists(decide, (pa, cycle), aborts) {
+                 Err(lead) => {
++                    crate::probe_ablate::tick(3);
+                     self.axis_mut(apex.axis).apex_end = Some(cycle);
+                     let why = (Stop::Aborted, false, 0);
+                     return self.stop(apex, (cycle, 1.0), lead, decide, apex.spent, why);
+@@ -218,6 +221,7 @@ impl Shoot<'_, '_> {
+             self.next.push(apex);
+             return Ok(());
+         }
++        crate::probe_ablate::tick(2);
+         self.axis_mut(apex.axis).apex_end = Some(cycle);
+         let used = if step.same_cycle() { step.used } else { 1.0 };
+         // Its end is drawn once for its age, whatever cycle it falls in,
 diff --git i/crates/telperion-space/src/grow/cycle.rs w/crates/telperion-space/src/grow/cycle.rs
 index 36d260e1a..55639b7f2 100644
 --- i/crates/telperion-space/src/grow/cycle.rs
@@ -164,23 +200,42 @@ index 36d260e1a..55639b7f2 100644
  mod footprint;
  mod passes;
 diff --git i/crates/telperion-space/src/grow/cycle/passes.rs w/crates/telperion-space/src/grow/cycle/passes.rs
-index 7b1c90c40..459edf045 100644
+index 7b1c90c40..a8a2cfcc2 100644
 --- i/crates/telperion-space/src/grow/cycle/passes.rs
 +++ w/crates/telperion-space/src/grow/cycle/passes.rs
-@@ -96,6 +96,7 @@ impl Grower<'_> {
+@@ -44,6 +44,10 @@ impl Grower<'_> {
+             (light, upkeep(i), lit[i])
+         };
+         w.totals(&own, &upkeep);
++        // fn-344 probe: each living tip's own light and its axis's q - c.
++        let tips: Vec<(f32, f32)> = (self.live.iter().filter(|a| a.axis < n))
++            .map(|a| (own(a.axis).0, w.light[a.axis] - w.cost[a.axis]))
++            .collect();
+         let mut laterals = vec![Lateral::default(); w.list.len()];
+         let (ws, axes, rules) = (&w, &self.axes, &self.rules);
+         crate::cores::fill(&mut laterals, 1 << 12, self.threads, &|k| {
+@@ -89,6 +93,7 @@ impl Grower<'_> {
+             if apex.axis < n {
+                 let wk = &walked[w.at[apex.axis] as usize];
+                 if wk.shed {
++                    crate::probe_ablate::tick(0);
+                     self.axes[apex.axis].apex_end = Some(cycle - 1);
+                     continue;
+                 }
+@@ -96,6 +101,7 @@ impl Grower<'_> {
              }
              self.live.push(apex);
          }
-+        super::probe::year(self, &w, cycle);
++        super::probe::year(self, &w, cycle, &tips);
          self.working = Some(w);
      }
  
 diff --git i/crates/telperion-space/src/grow/cycle/probe.rs w/crates/telperion-space/src/grow/cycle/probe.rs
 new file mode 100644
-index 000000000..855c47359
+index 000000000..4b6e5f9d5
 --- /dev/null
 +++ w/crates/telperion-space/src/grow/cycle/probe.rs
-@@ -0,0 +1,48 @@
+@@ -0,0 +1,80 @@
 +//! fn-344 probe (evidence only, never merged): the year's census of the
 +//! held phytomers (`probe_ablate::census`), and with `PROBE_YEAR` the
 +//! stem line's height and its living limbs, as fn-342's record had them.
@@ -188,9 +243,13 @@ index 000000000..855c47359
 +use crate::grow::Grower;
 +use crate::structure::Origin;
 +
-+pub(super) fn year(g: &Grower, w: &Working, cycle: u32) {
++pub(super) fn year(g: &Grower, w: &Working, cycle: u32, tips: &[(f32, f32)]) {
 +    let held: u64 = g.axes.iter().map(|a| a.phytomers.len() as u64).sum();
 +    crate::probe_ablate::census(cycle - 1, held);
++    let deaths = crate::probe_ablate::take();
++    if (cycle - 1) % 10 == 9 && std::env::var_os("PROBE_BALANCE").is_some() {
++        balance(g, w, cycle - 1, tips, deaths);
++    }
 +    if std::env::var_os("PROBE_YEAR").is_none() {
 +        return;
 +    }
@@ -229,19 +288,70 @@ index 000000000..855c47359
 +        g.live.len()
 +    );
 +}
++
++/// fn-344 probe: the year's balance over the whole tree, from the
++/// balance pass's own numbers (`balance_one`, `Working::totals`).
++fn balance(g: &Grower, w: &Working, year: u32, tips: &[(f32, f32)], deaths: [u64; 4]) {
++    let income = w.light[0];
++    let charged = w.cost[0];
++    let (live, dead) = crate::probe_ablate::upkept();
++    let mut q: Vec<f32> = tips.iter().map(|t| t.0).collect();
++    q.sort_by(f32::total_cmp);
++    let mean = q.iter().map(|&v| f64::from(v)).sum::<f64>() / q.len().max(1) as f64;
++    let median = q.get(q.len() / 2).copied().unwrap_or(f32::NAN);
++    let negative = tips.iter().filter(|t| t.1 < 0.0).count() as f64 / tips.len().max(1) as f64;
++    let (mut lo, mut hi) = ([f64::MAX; 2], [f64::MIN; 2]);
++    let mut cells = std::collections::HashSet::new();
++    for p in g.axes.iter().flat_map(|a| &a.phytomers) {
++        let (x, y) = (p.tip.x, p.tip.y);
++        lo = [lo[0].min(x), lo[1].min(y)];
++        hi = [hi[0].max(x), hi[1].max(y)];
++        cells.insert((x.floor() as i64, y.floor() as i64));
++    }
++    println!(
++        "BAL {year} income={income:.1} charged={charged:.1} upkeep_live={live:.1} upkeep_dead={dead:.1} \
++         tips={} q_mean={mean:.4} q_median={median:.4} negative={negative:.4} leaves={} \
++         spread_x={:.2} spread_y={:.2} cells_m2={} died_balance={} died_survival={} died_life={} aborted={}",
++        tips.len(), g.leaves.len(), hi[0] - lo[0], hi[1] - lo[1], cells.len(),
++        deaths[0], deaths[1], deaths[2], deaths[3]
++    );
++}
 diff --git i/crates/telperion-space/src/grow/cycle/working.rs w/crates/telperion-space/src/grow/cycle/working.rs
-index 76db18f5b..1d0837fc5 100644
+index 76db18f5b..aa7f4aec5 100644
 --- i/crates/telperion-space/src/grow/cycle/working.rs
 +++ w/crates/telperion-space/src/grow/cycle/working.rs
-@@ -190,7 +190,7 @@ impl Working {
-                     light += self.light[c];
+@@ -181,9 +181,11 @@ impl Working {
+         own: &dyn Fn(usize) -> (f32, f32, bool),
+         upkeep: &dyn Fn(usize) -> f32,
+     ) {
++        let (mut live_sum, mut dead_sum) = (0.0f64, 0.0f64);
+         for k in (0..self.list.len()).rev() {
+             let i = self.list[k];
+             let (mut light, mut cost, mut living) = own(i);
++            live_sum += f64::from(cost);
+             for j in 0..self.by_node[i].len() {
+                 let c = self.by_node[i][j] as usize;
+                 if self.open[c] {
+@@ -191,11 +193,18 @@ impl Working {
                      cost += self.cost[c];
                      living |= self.living[c];
--                } else {
-+                } else if !crate::probe_ablate::on('B') {
-                     cost += self.closed(c, upkeep);
+                 } else {
+-                    cost += self.closed(c, upkeep);
++                    // fn-344 probe: what the dead wood is charged, or under
++                    // B would have been.
++                    let dead = self.closed(c, upkeep);
++                    dead_sum += f64::from(dead);
++                    if !crate::probe_ablate::on('B') {
++                        cost += dead;
++                    }
                  }
              }
+             (self.light[i], self.cost[i], self.living[i]) = (light, cost, living);
+         }
++        crate::probe_ablate::upkeep(live_sum, dead_sum);
+     }
+ 
+     /// A closed subtree's upkeep, taken once as the whole tree's pass
 diff --git i/crates/telperion-space/src/grow/shoot.rs w/crates/telperion-space/src/grow/shoot.rs
 index d2beb0932..147453139 100644
 --- i/crates/telperion-space/src/grow/shoot.rs
@@ -302,10 +412,10 @@ index 60b0177b2..854ca2ac5 100644
  mod shed;
 diff --git i/crates/telperion-space/src/probe_ablate.rs w/crates/telperion-space/src/probe_ablate.rs
 new file mode 100644
-index 000000000..8b103efe5
+index 000000000..22e89f3bf
 --- /dev/null
 +++ w/crates/telperion-space/src/probe_ablate.rs
-@@ -0,0 +1,123 @@
+@@ -0,0 +1,145 @@
 +//! fn-344 probe (evidence only, never merged): the old oak's causes
 +//! switched off one at a time by the letters in `ABLATE`, and a yearly
 +//! census of the held phytomers that stops a grow passing four times
@@ -428,4 +538,26 @@ index 000000000..8b103efe5
 +        println!("GROWN rss_gib={:.2}", resident_gib());
 +        std::process::exit(0);
 +    }
++}
++
++/// fn-344: tip deaths by cause since the last `take` (0 balance, 1
++/// survival draw, 2 life ended, 3 abortion), and the year's upkeep of the
++/// open wood and of the closed (dead) wood.
++static DEATHS: [std::sync::atomic::AtomicU64; 4] = [const { std::sync::atomic::AtomicU64::new(0) }; 4];
++static UPKEEP: Mutex<(f64, f64)> = Mutex::new((0.0, 0.0));
++
++pub(crate) fn tick(k: usize) {
++    DEATHS[k].fetch_add(1, std::sync::atomic::Ordering::Relaxed);
++}
++
++pub(crate) fn take() -> [u64; 4] {
++    std::array::from_fn(|k| DEATHS[k].swap(0, std::sync::atomic::Ordering::Relaxed))
++}
++
++pub(crate) fn upkeep(live: f64, dead: f64) {
++    *UPKEEP.lock().unwrap() = (live, dead);
++}
++
++pub(crate) fn upkept() -> (f64, f64) {
++    *UPKEEP.lock().unwrap()
 +}

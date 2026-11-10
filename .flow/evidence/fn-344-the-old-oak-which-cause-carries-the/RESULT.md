@@ -198,3 +198,81 @@ A beside B, every 10 years. Lowest limb and height are the rough layout's, befor
 - **What B keeps.** B keeps the fork's limbs: its lowest living limb stays at 4.7 m to year 187, while A's rises to 18.1 m at 128. B's living limbs on the trunk line rise from 4 to 7. Its height runs only 1 to 3 m above A's.
 - **Where the excess grows.** It is not upward: B holds more wood in the crown it keeps. The excess is already visible before A sheds anything (1.22 times A at 89, 1.39 at 109). So charging dead standing wood was already restraining the whole crown in A, not only its doomed limbs (inferred from the counts).
 - **What this means.** Without that charge, nothing in the record restrains the total. The yearly gain grows with the tree and shows no sign of a ceiling by 188.
+
+## Follow-up 2: the balance over the whole tree, A and B to 150 (host, 10 Nov 2026)
+
+**The probe.** `probes/oldoak.patch` was extended with these numbers, each taken from the balance pass itself.
+- **Income** is `w.light[0]` after `Working::totals`: the root's subtree light, which is the sum of every lit tip's own light.
+- **Light per tip** is the `own` light of each living apex that `balance_one` uses.
+- **A tip's balance** is its axis's q − c (`w.light[i] − w.cost[i]`), the raw value the balance walk is given, not the remembered one.
+- **Upkeep** is summed inside `totals`.
+  - **Living:** each open axis's own upkeep.
+  - **Dead:** each closed child's frozen upkeep (`closed`). Under B it is still computed for the record, but not added to the cost.
+  - **Charged** is `w.cost[0]`.
+- **Tip deaths** are counted where the grower ends an apex:
+  - **balance:** shed in `balance_one`;
+  - **survival:** the viability draw failed (`advance.rs`, both branches);
+  - **life:** the apex reached its PA's lifespan, so it moved on to the next PA or stopped.
+
+  Abortions (7 to 17 in a year) are left out of the table.
+- **Leaves** are the cycle's leaves the light reads (`Grower::leaves`).
+- **Spread** is the extent of every phytomer tip on the two horizontal axes.
+- **Ground area.** The lattice gives no ground area cheaply, so the area is the count of 1 m² ground cells holding any phytomer tip. That is closer to the projected crown than spread squared.
+- **Heights and spreads** are the rough layout's, before the settle.
+
+**The run.** `probes/balance.sh` ran under `telperion-heavy 14 --gpu 2 --threads 4`, grow-only, from 18:18 to 18:20. The tree was grown to age 150, with stops at eight times A's running peak or 12.5 GiB.
+- **Neither variant was stopped.** A peaked at 1.9 GiB in 31 s, and B at 5.1 GiB in 64 s.
+- **The 150 grow and the 300 grow agree.** Held phytomers at 149 match within 0.2% (B: 7.65 against 7.63 million). The 300-year request held 9.8 GiB at that year against 4.6 GiB here.
+- **Logs** are `raw/stills/oak-150-1001-{A,B}bal.log` (`BAL` lines). The patch is reverted and `git status --short crates` is empty.
+
+Every 10 years, the whole tree. Light and upkeep are in the balance's own units. "Neg %" is the share of living tips whose axis's q − c is below 0.
+
+| v | year | income | living tips | q mean | q median | neg % | upkeep living | upkeep dead | charged | leaves | spread m | ground m² | income / m² | tips / m² | died balance | died survival | died life |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A | 9 | 607 | 1,191 | 0.510 | 0.488 | 0.00 | 20 | 6 | 26 | 3,099 | 1.4 × 1.3 | 4 | 152 | 298 | 0 | 130 | 95 |
+| A | 19 | 1,985 | 4,122 | 0.482 | 0.475 | 0.02 | 94 | 155 | 249 | 13,137 | 3.5 × 3.2 | 14 | 142 | 294 | 1 | 655 | 681 |
+| A | 29 | 3,952 | 10,751 | 0.368 | 0.354 | 0.00 | 227 | 554 | 781 | 32,238 | 5.0 × 5.1 | 28 | 141 | 384 | 1 | 1,986 | 1,505 |
+| A | 39 | 6,373 | 24,658 | 0.258 | 0.196 | 0.00 | 521 | 1,464 | 1,985 | 68,724 | 6.8 × 8.0 | 47 | 136 | 525 | 52 | 6,670 | 2,961 |
+| A | 49 | 10,112 | 41,497 | 0.244 | 0.186 | 0.01 | 885 | 3,195 | 4,080 | 116,159 | 10.4 × 9.8 | 76 | 133 | 546 | 447 | 11,630 | 4,986 |
+| A | 59 | 15,101 | 62,146 | 0.243 | 0.197 | 0.01 | 1,332 | 5,898 | 7,230 | 176,519 | 13.3 × 9.0 | 106 | 142 | 586 | 348 | 17,104 | 7,783 |
+| A | 69 | 20,916 | 86,179 | 0.243 | 0.202 | 0.00 | 1,808 | 9,860 | 11,668 | 246,652 | 14.0 × 12.1 | 132 | 158 | 653 | 576 | 22,971 | 11,088 |
+| A | 79 | 26,786 | 112,459 | 0.238 | 0.195 | 0.01 | 2,344 | 15,362 | 17,706 | 321,687 | 16.4 × 14.0 | 183 | 146 | 615 | 2,919 | 31,133 | 14,584 |
+| A | 89 | 33,422 | 140,350 | 0.238 | 0.191 | 0.01 | 2,997 | 22,151 | 25,148 | 402,472 | 19.6 × 16.3 | 240 | 139 | 585 | 3,660 | 39,647 | 18,585 |
+| A | 99 | 38,141 | 163,084 | 0.234 | 0.192 | 0.01 | 3,334 | 30,530 | 33,864 | 463,019 | 22.3 × 19.1 | 324 | 118 | 503 | 1,349 | 45,397 | 20,888 |
+| A | 109 | 44,006 | 189,037 | 0.233 | 0.197 | 0.01 | 3,871 | 40,038 | 43,910 | 547,011 | 22.8 × 22.1 | 350 | 126 | 540 | 2,457 | 50,324 | 25,270 |
+| A | 119 | 41,004 | 163,119 | 0.251 | 0.220 | 0.01 | 3,391 | 50,625 | 54,016 | 475,968 | 24.6 × 22.5 | 381 | 108 | 428 | 6,556 | 45,173 | 22,680 |
+| A | 129 | 23,317 | 62,396 | 0.374 | 0.342 | 0.00 | 1,638 | 59,447 | 61,084 | 192,924 | 20.2 × 23.7 | 319 | 73 | 196 | 542 | 12,098 | 9,713 |
+| A | 139 | 28,552 | 88,230 | 0.324 | 0.290 | 0.00 | 2,205 | 64,313 | 66,518 | 269,232 | 21.0 × 23.8 | 286 | 100 | 308 | 3,347 | 20,059 | 13,373 |
+| A | 149 | 29,021 | 103,429 | 0.281 | 0.241 | 0.01 | 2,509 | 70,528 | 73,037 | 300,784 | 18.4 × 26.6 | 270 | 107 | 383 | 554 | 26,951 | 13,900 |
+| B | 9 | 607 | 1,191 | 0.510 | 0.488 | 0.00 | 20 | (6) | 20 | 3,099 | 1.4 × 1.3 | 4 | 152 | 298 | 0 | 130 | 95 |
+| B | 19 | 1,985 | 4,122 | 0.482 | 0.475 | 0.02 | 94 | (155) | 94 | 13,137 | 3.5 × 3.2 | 14 | 142 | 294 | 0 | 655 | 681 |
+| B | 29 | 3,952 | 10,750 | 0.368 | 0.355 | 0.00 | 227 | (554) | 227 | 32,268 | 5.0 × 5.1 | 28 | 141 | 384 | 1 | 1,988 | 1,513 |
+| B | 39 | 6,390 | 24,701 | 0.259 | 0.196 | 0.01 | 527 | (1,461) | 527 | 69,009 | 6.8 × 8.0 | 49 | 130 | 504 | 0 | 6,706 | 3,000 |
+| B | 49 | 10,313 | 42,665 | 0.242 | 0.184 | 0.01 | 929 | (3,189) | 929 | 120,103 | 10.4 × 10.2 | 81 | 127 | 527 | 5 | 12,046 | 5,239 |
+| B | 59 | 15,474 | 64,717 | 0.239 | 0.192 | 0.00 | 1,423 | (5,946) | 1,423 | 184,707 | 13.3 × 13.5 | 123 | 126 | 526 | 50 | 18,000 | 8,236 |
+| B | 69 | 21,299 | 93,918 | 0.227 | 0.183 | 0.01 | 2,001 | (9,980) | 2,001 | 267,027 | 15.3 × 14.8 | 147 | 145 | 639 | 22 | 26,069 | 11,980 |
+| B | 79 | 28,611 | 130,372 | 0.220 | 0.175 | 0.01 | 2,826 | (15,614) | 2,826 | 371,393 | 17.9 × 14.6 | 191 | 150 | 683 | 24 | 37,668 | 16,861 |
+| B | 89 | 36,255 | 165,341 | 0.219 | 0.172 | 0.00 | 3,609 | (23,165) | 3,609 | 473,950 | 20.6 × 17.2 | 255 | 142 | 648 | 167 | 48,226 | 22,036 |
+| B | 99 | 43,769 | 211,885 | 0.207 | 0.162 | 0.01 | 4,543 | (32,584) | 4,543 | 600,695 | 23.9 × 19.6 | 333 | 131 | 636 | 174 | 63,157 | 27,463 |
+| B | 109 | 52,743 | 256,521 | 0.206 | 0.164 | 0.01 | 5,639 | (44,217) | 5,639 | 732,111 | 26.2 × 22.1 | 411 | 128 | 624 | 440 | 77,296 | 33,720 |
+| B | 119 | 61,539 | 308,555 | 0.199 | 0.159 | 0.01 | 6,697 | (58,214) | 6,697 | 876,058 | 26.3 × 24.5 | 472 | 130 | 654 | 213 | 93,613 | 40,186 |
+| B | 129 | 72,258 | 364,709 | 0.198 | 0.159 | 0.01 | 7,988 | (74,733) | 7,988 | 1,032,926 | 28.4 × 27.8 | 582 | 124 | 627 | 234 | 111,571 | 47,241 |
+| B | 139 | 82,915 | 428,262 | 0.194 | 0.155 | 0.01 | 9,521 | (94,286) | 9,521 | 1,212,102 | 30.1 × 31.5 | 695 | 119 | 616 | 460 | 131,787 | 55,369 |
+| B | 149 | 94,826 | 501,712 | 0.189 | 0.149 | 0.01 | 11,250 | (117,271) | 11,250 | 1,397,186 | 32.1 × 34.4 | 772 | 123 | 650 | 614 | 157,960 | 62,033 |
+
+Under B, the dead upkeep in brackets is what would have been charged; it is not added.
+
+**The read (measured; nothing proposed).**
+- **Income rises with the tips, not past them.**
+  - **In B,** total income rises without levelling, from 10,313 at 49 to 94,826 at 149. Its income per square metre of crown ground stays flat, at 119 to 150 throughout (123 at 149). So does the number of living tips per square metre, at 616 to 683 from 69 on.
+  - **The light per tip falls only slowly** (mean 0.24 at 49, 0.19 at 149).
+  - **Why income keeps rising.** The crown fills each square metre to about the same density and income per square metre flattens. But the crown's ground area does not stop growing: 81 m² at 49, 333 at 99 and 772 at 149, spreading 10 m to 33 m across. Total income tracks that area. Living tips rise in step with it (42,665 to 501,712).
+  - **What B lacks.** Nothing in the measured balance makes B's crown stop widening.
+- **The balance never binds in B.** B's charged upkeep is the living wood alone, about 9 to 12% of income every decade (11,250 of 94,826 at 149). The share of living tips with a negative q − c is 0.01% or less in both variants. The balance sheds 614 tips in B's year 149, against 157,960 tips lost to the survival draw.
+- **A's upkeep is nearly all dead wood.** Of A's total upkeep in each year, dead wood is:
+  - 78% at 49 (3,195 of 4,080);
+  - 88% at 89 (22,151 of 25,148);
+  - 91% at 109 (40,038 of 43,910);
+  - 97% at 129 (59,447 of 61,084).
+- **A's whole-tree charge passes its income in year 109** (43,910 against 44,006) and stands at 2.6 times its income by 129. That is the year after its fork limbs are shed, when its living tips fall from 189,037 at 109 to 62,396.
+- **Tips die mostly by the survival draw, in both variants.** In A in year 119 the balance sheds 6,556 tips against 45,173 lost to the survival draw. The balance's work in A is to shed whole limbs at once, not tips one by one.
