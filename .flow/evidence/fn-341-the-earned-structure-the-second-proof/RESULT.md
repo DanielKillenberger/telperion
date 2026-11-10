@@ -7,7 +7,7 @@ Drafted by the worker on 10 Nov 2026. The work behind it:
 
 R4 and R5 are below. Nothing further is proposed.
 
-**SHEETS_STATUS**
+**The sheets are not yet made.** The GPU queue (`telperion-heavy`) admits a job only while other processes hold under half the card, and on 10 Nov from about 13:35 to 14:30 a game held 4.2 to 5.2 GB of its 10. The stills job waited and was stopped before the worker returned. The reads, the timings and R1's table under the probe are done. When the card is free, `probes/r4-stills.sh` (parts oak, beech, others, oak300) and then `probes/r4-sheet.py` make them, with `probes/earned.patch` applied and the space examples built.
 
 ## What the probe is
 
@@ -101,6 +101,8 @@ One thread, seed 1001, one grow each (`probes/r4-runs.sh time`, `raw/r4-time-*.l
 
 ## R5: the question for the owner
 
-SHEETS_QUESTION
+The sheets will be `sheet-oak-whole.jpg`, `sheet-oak-mid.jpg`, `sheet-beech-whole.jpg`, `sheet-beech-mid.jpg` and `sheet-others-whole.jpg` beside this file. Each shows the cycle on the left and the probe on the right. The oak's sheet carries the line: no rule in this probe limits height or sets the crown's base, and both are open.
+
+**For the owner: are these better?** (Asked once the sheets exist and the worker has viewed every one.)
 
 The verdict is the owner's, and only his written word counts.
