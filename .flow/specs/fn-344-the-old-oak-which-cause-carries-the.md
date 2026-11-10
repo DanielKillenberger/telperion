@@ -36,3 +36,21 @@ Settled by the host after fn-343: five design directions drawn from counts were 
 ## Open Questions
 
 None.
+
+## Result
+
+Closed 10 Nov 2026. `RESULT.md` in this spec's evidence holds every table; the host viewed `sheet-B.jpg`, `sheet-E.jpg` and `sheet-H.jpg`.
+
+- **The collapse is one event with one cause.** Today's oak is charged upkeep for wood already dead: 78% of its whole upkeep at 49, 88% at 89, 91% at 109, 97% at 129. The charge reaches its light income at 109; the fork limbs are shed at 132 and living tips fall from 189k to 62k. After that it is a pole.
+- **B (dead wood not charged)** keeps every low limb (lowest at 4.7 m to 187) and is a runaway: its crown's ground area goes from 81 to 772 square metres between 49 and 149 and its tips follow. Light holds density steady in both A and B (about 125 income and 650 tips per square metre) and bounds nothing else; fewer than 0.01% of tips have a negative balance.
+- **C (trunk line pulled to vertical)** removes the large bends and leaves the bare pole; **D (a long-lived leader)** makes a 98 m pole; **E (trunk buds wake as limbs)** makes a low dense bush with 54 limbs and a 4.3 m trunk.
+- **H (B, and each new internode shortened by 1 - L / 34.8 m)** levels the oak at 25 to 27 m tall and 22 to 25 m wide with limbs alive from 4.4 m. The host's read: at 200 and 260 its silhouette is an old open-grown oak's where today's is a pole; at 120 it is worse than today's (the open V is lost, 18.8 m against 25.1); its wood is broken (nodes packed into knots, tips per square metre up to 3,040, a girth step on the bole, a hollow tube at 4 m) and the device refuses it at 300. An instrument, not a candidate.
+- **The host's stop rule was wrong** (R2 compared with today's count that year, which halves at 132); corrected to the most today's tree had held.
+- **Unexplained:** B's resident memory differs between two runs of the same seed (20 GiB at 188 in one, 14.2 GiB at 219 in another), and tip counts and memory depend on the requested age. fn-345 measures memory and must find this.
+- No code stays; the probe is `probes/oldoak.patch`. No gate and no review ran.
+
+## Friction
+
+- **The local shell hook refused two helper commands** (3 minutes). Local, reported and not specced.
+- **A tree's drawing can need more memory than its grow** (one rebuild). A still runner that refuses, before dressing, a tree its estimate says will not fit is a line for the next child that changes the stills example.
+
