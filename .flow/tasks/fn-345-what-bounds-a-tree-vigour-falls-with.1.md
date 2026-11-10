@@ -7,9 +7,10 @@ TBD
 - [ ] TBD
 
 ## Done summary
-TBD
+R1 note, the probe and its read done. The rule bounds the oak and strips its crown: worse than today's from 120 on, so it failed the host's read and nothing went to the owner as a candidate. No code stays; probe kept as probes/n.patch.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: 512520156
 - Tests:
 - PRs:

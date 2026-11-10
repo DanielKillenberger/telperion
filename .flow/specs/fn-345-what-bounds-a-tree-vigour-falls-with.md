@@ -40,3 +40,19 @@ Not settled, the host's on R1: the form of the decline; whether it acts on the v
 ## Open Questions
 
 None.
+
+## Result
+
+Closed 10 Nov 2026 as a failed read; nothing went to the owner as a candidate. `R1-NOTE.md`, `R1-ANSWERS.md` and `RESULT.md` are in this spec's evidence with `sheet-oak-1001.jpg`, `sheet-oak-1007.jpg` and `sheet-others.jpg`. The host viewed the oak's sheet.
+
+- **The rule as the host wrote it:** each growth unit's node count multiplied by 1 - L / L_max (L the tip's path, L_max 34.8 m for the oak), wood that has died not charged, every row's node counts restated by 1.192 so the oak at 40 holds its height (within 1.4% on three seeds at the first try).
+- **It bounds the tree and strips it.** Held phytomers peak at 784,000 in year 99 and fall to 329,000 by 299; height levels at 27 m; the grow to 300 takes 22 s and 0.7 GiB. But the oak at 120 carries 65,000 leaves against today's 305,000 on a 69 cm trunk against 143, and at 200 and 300 it is a tangle of thin, curling, nearly leafless wood. The host's read agrees with the worker's: worse than today's from 120 on. The beech at 80 loses 72% of its leaf and the birch at 40 loses 67%.
+- **Why, as far as it is known:** tips far along a path make one node or none, so the short-lived fine wood that clothes the crown is not replaced (inferred from the census, not traced). And the linear fall is paid from the first metre, on top of the slowing with age the rows already carry, so the tree's middle years are thinned twice.
+- **What stands from this child:** no source states a decline against path length, only against height, and the one closed form has a fitted asymptote; a shoot's node count never reads its vigour and sizes are normalised per row, so nothing in the grower today can make a shoot grow less; the bole's girth step is today's behaviour (0.711 to 0.546 m across the fork's node).
+- **What the host got wrong:** it wrote a rule to zero for every shoot where the measured decline is of the tree's height, and it kept the rows' own slowing with age beside it.
+- R5: no code stays; the probe is `probes/n.patch`. No gate and no review ran.
+
+## Friction
+
+- **The local shell hook refused redirects written inside a heredoc** (2 minutes). Local, reported and not specced.
+
