@@ -48,3 +48,21 @@ Not settled, and the host's to decide on the worker's findings: how a lateral ne
 ## Open Questions
 
 None.
+
+## Result (host, 10 Nov 2026)
+
+The worker's result is `.flow/evidence/fn-339-the-cohort-law-the-first-proof/RESULT.md`, with `R3-RESULT.md` and the sheets `sheet-r4-oak.jpg`, `sheet-r4-spruce.jpg` and `sheet-r4-beech.jpg`. The host read them and viewed the oak's sheet.
+
+- **R5, by the goal's rule as written: the approach stops.** The coupled probe is no closer to real trees (spruce new shoots 28.4 times over the measured range against the cycle's 27.3; spruce leaf area index 12.9 against 12.0 and a measured 10.5; beech 1.21 against 1.20 and a measured 5.6 to 9.5) and is 3.2 times cheaper on the oak and spruce at 40, 1.95 on the beech, 2.5 on the oak at 80 and 1.8 at 120, where the rule asks five.
+- **What the numbers do and do not show (host's reading, not a verdict).**
+  - The first half of the rule could not have been met: the law reads the same species tables as the cycle, so it lands where the cycle does. The host wrote a rule whose first half tests the tables, not the cohorts.
+  - The cost half read a probe whose law recomputes each cohort from its birth every year. That step is 68% of the oak's probe time and 31% of the spruce's; the rest of the probe runs 11.8 and 4.7 times under the cycle. Carrying a cohort's state forward a year at a time is not measured.
+  - Peak memory fell 3.4 to 7 times, and the probe grows 4 to 17% of the cycle's yearly shoots.
+  - The old oak drifts: trunk 1.36 times the cycle's at 80 and 1.91 at 120, leaf 1.21 and 1.89, and on seed 1007 at 120 it is visibly another tree. The cause is not isolated. The likeliest is that cohorts take no share of the vigour split, so the structure keeps what the twigs used to draw. This is the "averages are not dynamics" risk the goal named, and it is the result that weighs most.
+- **R6:** no crate change stays; the probes are `probes/replay.patch` and `probes/coupled.patch`. No gate and no review, for that reason.
+
+## Friction (host's dispositions)
+
+- Shell hook refusals (redirect to a missing directory, a variable log path, a heredoc holding a Rust tuple type): the owner's local hook, reported and not specced. Later dispatches say to write files with the editor and to redirect only into existing directories.
+- The wrong citation in the dispatch (Harmer for Buck-Sorlin and Bell 1998): the host's slip; R2-REAL-TREES.md carries the right source.
+- Four missing doc lines, each of which cost a rerun: which cycle's leaves `Grower::year`'s light comes from; that the recorder's counts are unweighted axes; that `Phytomer::scale` holds the size once settled; that `leaf_girth` is normalised over the whole tree. They are doc comments in the crates, so they go in as a line of the next child that changes `telperion-space`, not as a gate run of their own.

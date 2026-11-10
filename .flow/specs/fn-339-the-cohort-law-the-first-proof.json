@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-339-the-cohort-law-the-first-proof.md",
-  "status": "open",
+  "status": "done",
   "title": "The cohort law: the first proof",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-09T23:21:41.239491Z"
+  "updated_at": "2026-11-10T01:15:26.023017Z"
 }
