@@ -1,6 +1,6 @@
 //! fn-246's frame probe, extended for fn-259's scorecard: what one shipped
-//! tree costs to start, to rebuild and to draw on the harness's GPU route,
-//! natively at 1920x1080 with the renderer's multisampling, and what it
+//! tree costs to start, to rebuild and to draw on the harness's route
+//! (`mesh::build`, then `Renderer::submit`), natively at 1920x1080 with the renderer's multisampling, and what it
 //! holds afterwards. Prints one JSON line.
 //!
 //!   cargo run --profile ci -p telperion-render --example frames -- <preset> [full|relief-off|parallax-off|no-rachis] [view...]
@@ -9,10 +9,10 @@
 //!   requested) through the programs, the first build and its first frame
 //!   at the hero pose to the device's fence; shader compilation included.
 //! - `warm_ms`: a second build of the same tree in the same process
-//!   (`Generator::prepare` and its submission) to a fenced hero frame.
+//!   (`mesh::build` and its submission) to a fenced hero frame.
 //! - `views`: frame time per view, then `peak_rss_mb` (the process's
 //!   `VmHWM`) and `device_memory` with its source, read last with the tree
-//!   and the generator alive, as on a page.
+//!   up, as on a page.
 //!
 //! Views are any of whole, mid (half the distance), close, bare-whole and
 //! bare-close; all but mid by default.
@@ -25,10 +25,9 @@
 //! `ONE_BUILD=1` builds once and draws four hero frames before reading
 //! memory, for rows that only need memory: the timing keys are null.
 use std::time::Instant;
-use telperion_core::presets::Preset;
+use telperion_core::{mesh, presets::Preset};
 use telperion_render::{
-    generation::Generator, hero_pose, measure, Camera, Frame, Gpu, Renderer, View, GROUND_REACH,
-    STILL_FORMAT,
+    hero_pose, measure, Camera, Frame, Gpu, Renderer, View, GROUND_REACH, STILL_FORMAT,
 };
 
 const SIZE: (u32, u32) = (1920, 1080);
@@ -72,10 +71,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let gpu = pollster::block_on(Gpu::request(None))?;
     let started = Instant::now();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    let generator = Generator::new(&renderer)?;
-    pollster::block_on(generator.prepare_programs())?;
     let frame = Frame::new(&renderer, "frames", SIZE);
-    renderer.submit_prepared(generator.prepare(&family)?)?;
+    renderer.submit(&mesh::build(&family)?)?;
     renderer.set_family(&family);
     renderer.set_material(material);
     let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
@@ -91,7 +88,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ("null".to_owned(), "null".to_owned(), "null".to_owned())
     } else {
         let rebuilt = Instant::now();
-        renderer.submit_prepared(generator.prepare(&family)?)?;
+        renderer.submit(&mesh::build(&family)?)?;
         renderer.draw(&hero, SIZE, frame.target());
         wait(&renderer);
         let warm_ms = ms(rebuilt);

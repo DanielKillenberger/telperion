@@ -7,14 +7,12 @@ import { createHash } from 'node:crypto';
 const output = process.env.GENERATION_OUTPUT;
 if (!output) throw Error('GENERATION_OUTPUT required');
 const completed = process.env.GENERATION_COMPLETED === '1';
-const gpu = process.env.GENERATION_GPU === '1';
-if (gpu && !completed) throw Error('GPU comparison requires GENERATION_COMPLETED=1');
 const server = await createServer({ server: { host: '127.0.0.1', port: 0 } });
 await server.listen();
 const url = `http://127.0.0.1:${server.httpServer.address().port}`;
 const flags = ['--no-sandbox','--enable-unsafe-webgpu','--enable-features=Vulkan','--use-angle=vulkan','--disable-vulkan-surface','--ignore-gpu-blocklist'];
 const browser = await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE||'/usr/bin/chromium',headless:false,args:flags});
-const result = {date:new Date().toISOString(),browser:browser.version(),flags,viewport:{width:1280,height:720},backend:gpu?'experimental-gpu':'cpu',protocol:completed?'hero frame with renderer queue completion':'default camera frame submission and owned CPU output',wasmSha256:createHash('sha256').update(await readFile('src/browser/render/telperion_render_bg.wasm')).digest('hex'),rows:[],gaps:[...(completed?['display compositor presentation is not measured']:['GPU completion is not exposed: frame timing measures submission only']),'phone hardware','native rendering delivery','peak CPU/GPU memory','attachment setup separate from placement']};
+const result = {date:new Date().toISOString(),browser:browser.version(),flags,viewport:{width:1280,height:720},backend:'cpu',protocol:completed?'hero frame with renderer queue completion':'default camera frame submission and owned CPU output',wasmSha256:createHash('sha256').update(await readFile('src/browser/render/telperion_render_bg.wasm')).digest('hex'),rows:[],gaps:[...(completed?['display compositor presentation is not measured']:['GPU completion is not exposed: frame timing measures submission only']),'phone hardware','native rendering delivery','peak CPU/GPU memory','attachment setup separate from placement']};
 try {
  for (const preset of ['oregon-white-oak','norway-spruce']) for (const seed of [1,7]) {
   const page = await browser.newPage({viewport:result.viewport});
@@ -23,7 +21,7 @@ try {
   const navigation = await page.evaluate(() => ({ url: location.href, base: document.baseURI }));
   console.log('navigation', navigation);
   if (!navigation.url.startsWith(url)) throw Error('unexpected navigation: ' + JSON.stringify(navigation));
-  const row = await page.evaluate(async ({preset,seed,completed,gpu})=>{
+  const row = await page.evaluate(async ({preset,seed,completed})=>{
    const begin=performance.now();
    const {createRenderer}=await import('/src/browser/render.ts');
    const {TreeEngine,presetById}=await import('/src/browser/core.ts');
@@ -42,10 +40,9 @@ try {
    if(completed && deviceCount!==1) throw Error(`expected one renderer device, captured ${deviceCount}`);
    const initializationMs=performance.now()-begin;
    if(!completed) hardware=(await navigator.gpu.requestAdapter())?.info;
-   const module = gpu ? await (await import('/src/browser/render/telperion_render.js')).default() : null;
    const samples=[];
    for(let sample=0;sample<6;sample++) {
-    const start=performance.now(); const submitted=gpu?await renderer.setTreeGpu(family):renderer.setTree(family);
+    const start=performance.now(); const submitted=renderer.setTree(family);
     const setTreeMs=performance.now()-start;
     if(completed) renderer.hero();
     const frameStart=performance.now();renderer.frame();
@@ -57,7 +54,6 @@ try {
      record.totalToCompletedFrameMs=performance.now()-start;
      record.frameAndCompletionMs=performance.now()-frameStart;
     }
-    if(module) record.wasmMemoryBytes=module.memory.buffer.byteLength;
     samples.push(record);
    }
    renderer.dispose();
@@ -73,7 +69,7 @@ try {
     engine.dispose();
    }
    return {preset,seed,initializationMs,engineInitializationMs,adapter:hardware?{vendor:hardware.vendor,architecture:hardware.architecture,device:hardware.device,description:hardware.description}:null,samples,cpu};
-  },{preset,seed,completed,gpu});
+  },{preset,seed,completed});
   result.rows.push(row);await writeFile(output,JSON.stringify(result,null,2)+'\n');
   console.log(preset,seed,row.samples.map(x=>x.setTreeMs));await page.close();
  }
