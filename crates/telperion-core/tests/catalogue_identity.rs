@@ -48,8 +48,9 @@ fn every_preset_is_the_family_it_was() {
     assert_eq!(
         digest(&text),
         // fn-328 moved the oak's and spruce's coarse rows; fn-349 replaced
-        // the upkeep row with the inverse height.
-        13_698_512_124_933_910_138,
+        // the upkeep row with the inverse height; fn-354 gave the Two Trees
+        // the beech's.
+        5_784_278_485_669_999_534,
         "{}",
         digest(&text)
     );
@@ -102,8 +103,9 @@ fn every_walk_is_the_walk_it_was() {
     // 3_687_963_222_161_500_942.
     assert_eq!(
         digest(&text),
-        // fn-349 replaced the upkeep row with the inverse height.
-        9_472_083_953_483_493_605,
+        // fn-349 replaced the upkeep row with the inverse height; fn-354
+        // gave the Two Trees the beech's.
+        10_352_803_689_928_916_410,
         "{}",
         digest(&text)
     );
