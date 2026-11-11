@@ -9,6 +9,9 @@
 #            sagged and unsagged (the sag rule off; growth never reads it).
 #   telperion-heavy 12 --gpu 2 --threads 4 -- bash probes/oldtree.sh history <seed>
 #   telperion-heavy 12 --gpu 2 --threads 4 -- bash probes/oldtree.sh shape <seed>
+# LETTERS (PR unset) and AGES ("120 160 200 240 280" unset) and TAG (Q
+# unset) select another variant, ages and file tag; UNSAGGED=0 skips the
+# sag-off pair.
 set -u
 F=.flow/evidence/fn-344-the-old-oak-which-cause-carries-the
 E=.flow/evidence/fn-346-the-carbon-balance-charges-living-wood
@@ -21,7 +24,7 @@ curve="$F/raw/curve-300-$seed-peak.txt"
 unset TELPERION_RINGS TELPERION_POSTURE TELPERION_LIVING
 run() {  # age tag log extra-flags...
   local age="$1" tag="$2" log="$3"; shift 3
-  env PIPES_LMAX=34.8 PIPES_LMAX_FACTOR=2 ABLATE=PR ABLATE_CENSUS=1 ABLATE_GROW_ONLY=1 \
+  env PIPES_LMAX=34.8 PIPES_LMAX_FACTOR=2 ABLATE="${LETTERS:-PR}" ABLATE_CENSUS=1 ABLATE_GROW_ONLY=1 \
     ABLATE_CURVE="$curve" ABLATE_FACTOR=8 ABLATE_RSS_GIB=8 "${ENVS[@]}" \
     python3 "$PEAK" target/ci/examples/space_oak "$out" "$age" --seeds "$seed" --tag "$tag" \
     --shots bare "$@" > "$log" 2>&1
@@ -33,8 +36,9 @@ if [ "$mode" = history ]; then
 fi
 if [ "$mode" = shape ]; then
   ENVS=(PROBE_SHAPE=1)
-  for age in 120 160 200 240 280; do
-    run "$age" Qshape "$out/shape-$age-$seed.log"
-    run "$age" Qflat "$out/shape-$age-$seed-unsagged.log" --unsagged
+  t="${TAG:-}"
+  for age in ${AGES:-120 160 200 240 280}; do
+    run "$age" "Qshape$t" "$out/shape${t:+-$t}-$age-$seed.log"
+    [ "${UNSAGGED:-1}" = 0 ] || run "$age" "Qflat$t" "$out/shape${t:+-$t}-$age-$seed-unsagged.log" --unsagged
   done
 fi
