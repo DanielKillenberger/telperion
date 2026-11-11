@@ -132,7 +132,9 @@ pub const SETTINGS: &[Setting] = &[
         "How a growth unit's size follows the light its bud gets. Dormant where no leaf shades."),
     row("apical_control", Linear, SHARE, "share",
         "The share of vigour the continuing axis keeps against its laterals. Dormant without shade size."),
-    row("inverse_height", Log { floor: 1e-3 }, SHARE, "per metre",
+    // The span real trees stand in: none to a potential height of 10 m
+    // (BUILD-ANSWERS.md 2); validation admits 0 to 1.
+    row("inverse_height", Log { floor: 1e-3 }, [0.0, 0.1], "per metre",
         "The reciprocal of the species' potential height: a living tip costs its size times the square of its path from the root over that height. Dormant at 0, and without a balance hazard."),
     row("balance_hazard", Log { floor: 0.01 }, SHADE, "per year",
         "How fast a lateral whose carbon balance falls below tolerance is shed. Dormant without an inverse height, and on an axis that bears no laterals."),

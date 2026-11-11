@@ -169,13 +169,13 @@ impl Working {
             .extend(was.into_iter().chain(fresh).filter(|&i| !open[i]));
     }
 
-    /// Each open axis's subtree's light, charge and living, counting what
-    /// would remain (fn-346 R5): its own given by `own`, then its open
-    /// children's in order. A child lateral adds its light and charge
-    /// only where it pays (its light at least its charge, each counted
-    /// this way), and is otherwise judged alone; a continuation or relay,
-    /// its bearer's own line, always adds them. A closed child adds
-    /// nothing.
+    /// Each open axis's subtree's light, charge and living (fn-349,
+    /// BUILD-ANSWERS.md 1): a part earns its own light and what each child
+    /// lateral has left over, and costs its own charge. Its own, from `own`,
+    /// takes in its open continuation or relay, its own line, whole; each
+    /// open child lateral then adds its surplus, its light less its charge,
+    /// where that is above none, so a child at break-even hands its bearer
+    /// nothing on either side. A closed child adds nothing.
     pub(super) fn totals(&mut self, own: &dyn Fn(usize) -> (f32, f32, bool)) {
         for k in (0..self.list.len()).rev() {
             let i = self.list[k];
@@ -185,10 +185,11 @@ impl Working {
                 if !self.open[c] {
                     continue;
                 }
-                let line = self.links[c].node == TIP;
-                if line || self.light[c] >= self.cost[c] {
+                if self.links[c].node == TIP {
                     light += self.light[c];
                     cost += self.cost[c];
+                } else {
+                    light += (self.light[c] - self.cost[c]).max(0.0);
                 }
                 living |= self.living[c];
             }

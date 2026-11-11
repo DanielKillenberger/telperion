@@ -31,8 +31,9 @@ impl Grower {
     /// Each living tip collects its size times the light at its tip and is
     /// charged its size times the square of its path from the root collar
     /// over its species' potential height (`charge`); wood that has died
-    /// is charged nothing. Each open subtree's totals take its own tips and
-    /// those of its child laterals that pay (`Working::totals`), and every
+    /// is charged nothing. Each open part earns its own tips' light and
+    /// what its paying child laterals have left over, and costs its own
+    /// tips' charge (`Working::totals`), and every
     /// living subtree but the seed's own axis is tested on its balance,
     /// (Q - C) / (Q + C), remembered as a running average: D16's walk,
     /// each memory kept, every apex shed leaving the living and every other

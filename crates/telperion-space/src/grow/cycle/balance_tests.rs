@@ -1,6 +1,6 @@
 //! The carbon balance on hand-built trees (fn-349 R4): dead wood is
 //! charged nothing, a living tip's charge rises with the square of its
-//! path, and a subtree counts only the child laterals that pay.
+//! path, and a part earns what its paying child laterals have left over.
 use super::passes::charge;
 use super::Working;
 use crate::allocation::{Link, TIP};
@@ -69,7 +69,8 @@ fn a_tip_is_charged_the_square_of_its_path() {
     assert_eq!(charge(0.5, 32.0, inverse), 0.5);
     assert_eq!(charge(0.5, 32.0, 0.0), 0.0);
     // A seed tip and two lateral tips on it, at 8 m and 16 m of path, each
-    // lit enough to pay: the seed's subtree is charged their sum.
+    // lit enough to pay: the seed, charged nothing itself, earns its own
+    // light and what each has left over.
     let paths = [0.0, 8.0, 16.0];
     let own: Vec<(f32, f32)> = paths
         .iter()
@@ -78,15 +79,17 @@ fn a_tip_is_charged_the_square_of_its_path() {
     let mut w = working(&[(None, 0), (Some(0), 1), (Some(0), 3)], &[]);
     totals(&mut w, &own);
     assert_eq!(own[2].1, 4.0 * own[1].1);
-    assert_eq!(w.cost[0], own[1].1 + own[2].1);
+    assert_eq!(w.cost[0], 0.0);
+    assert_eq!(w.light[0], (1.0 + (1.0 - own[1].1)) + (1.0 - own[2].1));
 }
 
-/// A bough with one paying and one failing child lateral counts only the
-/// one that pays, and is kept, while the failing child is judged alone and
-/// shed; a continuation that fails is its bearer's own line and is
-/// always counted.
+/// A bough with one paying and one failing child lateral earns what the
+/// paying one has left over and nothing from the failing one, and is kept,
+/// while the failing child is judged alone and shed; a continuation that
+/// fails is its bearer's own line, counted whole, and tested as a lateral
+/// is.
 #[test]
-fn a_subtree_counts_only_the_children_that_pay() {
+fn a_part_earns_what_its_paying_children_leave_over() {
     // 0 the seed; 1 a bough on it; 2 and 3 its paying and failing child
     // laterals; 4 a failing continuation of the seed.
     let links = [
@@ -99,11 +102,9 @@ fn a_subtree_counts_only_the_children_that_pay() {
     let own = [(0.0, 0.0), (0.2, 0.1), (1.0, 0.5), (0.1, 1.0), (0.1, 1.0)];
     let mut w = working(&links, &[]);
     totals(&mut w, &own);
-    assert_eq!((w.light[1], w.cost[1]), (0.2 + 1.0, 0.1 + 0.5));
-    assert_eq!(
-        (w.light[0], w.cost[0]),
-        ((0.2 + 1.0) + 0.1, (0.1 + 0.5) + 1.0)
-    );
+    assert_eq!((w.light[1], w.cost[1]), ((0.2 + 0.5) + 0.0, 0.1));
+    let bough = w.light[1] - w.cost[1];
+    assert_eq!((w.light[0], w.cost[0]), ((0.0 + bough) + 0.1, 1.0));
     let bud = |i: usize| Bud {
         q: w.light[i],
         c: w.cost[i],
@@ -123,4 +124,21 @@ fn a_subtree_counts_only_the_children_that_pay() {
         .collect();
     let shed: Vec<bool> = walk(&axes, None).iter().map(|w| w.shed).collect();
     assert_eq!(shed, [false, false, false, true, true]);
+}
+
+/// A child lateral crossing break-even moves its bearer by degree: just
+/// below, at and just above, the bearer earns within a hair of the same.
+#[test]
+fn a_child_at_break_even_moves_its_bearer_by_degree() {
+    let links = [(None, 0), (Some(0), 1)];
+    let earned = |light: f32| {
+        let mut w = working(&links, &[]);
+        totals(&mut w, &[(0.5, 0.25), (light, 1.0)]);
+        w.light[0]
+    };
+    let at = earned(1.0);
+    assert_eq!(at, 0.5);
+    for light in [1.0 - 1e-6, 1.0 + 1e-6] {
+        assert!((earned(light) - at).abs() <= 2e-6, "{light}");
+    }
 }

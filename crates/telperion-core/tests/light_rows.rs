@@ -113,14 +113,6 @@ fn light_only(row: &str) -> bool {
     row == "shade_hazard"
 }
 
-/// The rows a preset's own values leave neutral under the site's light:
-/// the ordinary states no inverse height (fn-349), so its balance charges
-/// nothing, stays above its tolerance (0), and its balance hazard sheds
-/// nothing.
-fn neutral_by_its_values(preset: Preset, row: &str) -> bool {
-    preset == Preset::Ordinary && row == "balance_hazard"
-}
-
 /// Whether a preset populates `row`: the size response is no species'
 /// but the oak's and the ordinary's, dormant elsewhere until a source or an
 /// owner verdict sets it (host, 2026-10-12; fn-264 BIRCH.md).
@@ -128,11 +120,19 @@ fn populates(preset: Preset, row: &str) -> bool {
     row != "shade_size" || matches!(preset, Preset::OregonWhiteOak | Preset::Ordinary)
 }
 
-/// R2a on every preset whose response rows are populated, at 40 (where
-/// the oak's balance has shed): the Two Trees carry the beech's species
+/// A species whose balance acts by 40: a potential height of 10 m, the top
+/// of the span real trees stand in, so its charge sheds a short tree's
+/// laterals by the age the test grows (fn-349). The presets' own heights
+/// first shed between 40 and 60.
+fn acting(mut species: Species) -> Species {
+    species.states.iter_mut().for_each(|s| s.inverse_height = 0.1);
+    species
+}
+
+/// R2a on every preset whose response rows are populated, at 40, each with
+/// the balance acting (`acting`): the Two Trees carry the beech's species
 /// (`space_presets.rs`), so the beech stands for them;
-/// each row moves the tree through its consumer under the site's light,
-/// but where its values make it neutral, which is stated and tested; and
+/// each row moves the tree through its consumer under the site's light; and
 /// the light-only row moves nothing where no leaf shades.
 #[test]
 fn each_populated_response_moves_the_tree_through_its_consumer() {
@@ -144,7 +144,7 @@ fn each_populated_response_moves_the_tree_through_its_consumer() {
         Preset::SilverBirch,
     ];
     for preset in populated {
-        let full = species(preset);
+        let full = acting(species(preset));
         let lit_at = Request {
             age: 40,
             ..request()
@@ -166,11 +166,7 @@ fn each_populated_response_moves_the_tree_through_its_consumer() {
                 continue;
             }
             let moves = grow(&without, lit_at).unwrap() != lit_tree;
-            assert_eq!(
-                moves,
-                !neutral_by_its_values(preset, row),
-                "{preset:?}: {row} under the site's light"
-            );
+            assert!(moves, "{preset:?}: {row} under the site's light");
             if light_only(row) {
                 let dark = grow(&without, unlit).unwrap();
                 assert!(dark == dark_tree, "{preset:?}: {row} is neutral unshaded");

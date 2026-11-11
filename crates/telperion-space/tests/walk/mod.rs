@@ -776,7 +776,9 @@ pub fn leafy(s: &mut Species) {
     for pa in [1, 2] {
         s.states[pa].shade_hazard = 1.0;
         s.states[pa].shade_size = 0.5;
-        s.states[pa].inverse_height = 0.3;
+        // The top of the span real trees stand in, a potential height of
+        // 10 m, so the balance acts on a walk tree a few metres tall.
+        s.states[pa].inverse_height = 0.1;
         s.states[pa].balance_hazard = 1.0;
     }
 }
@@ -839,10 +841,11 @@ pub fn light_settings() -> Vec<Setting> {
         shaded("states[2].apical_control", 0.45, 0.55, |s, v| {
             s.states[2].apical_control = v
         }),
-        shaded("states[1].inverse_height", 0.0, 0.6, |s, v| {
+        // The scale row's span (BUILD-ANSWERS.md 2).
+        shaded("states[1].inverse_height", 0.0, 0.1, |s, v| {
             s.states[1].inverse_height = v
         }),
-        shaded("states[2].inverse_height", 0.0, 0.6, |s, v| {
+        shaded("states[2].inverse_height", 0.0, 0.1, |s, v| {
             s.states[2].inverse_height = v
         }),
         shaded("states[1].balance_hazard", 0.0, 3.0, |s, v| {
