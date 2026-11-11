@@ -10,7 +10,8 @@
 #   telperion-heavy 12 --gpu 2 --threads 4 -- bash probes/oldtree.sh history <seed>
 #   telperion-heavy 12 --gpu 2 --threads 4 -- bash probes/oldtree.sh shape <seed>
 # LETTERS (PR unset) and AGES ("120 160 200 240 280" unset) and TAG (Q
-# unset) select another variant, ages and file tag; UNSAGGED=0 skips the
+# unset) select another variant, ages and file tag; FACTOR sets L_max's factor
+# (2 unset); UNSAGGED=0 skips the
 # sag-off pair.
 set -u
 F=.flow/evidence/fn-344-the-old-oak-which-cause-carries-the
@@ -24,7 +25,7 @@ curve="$F/raw/curve-300-$seed-peak.txt"
 unset TELPERION_RINGS TELPERION_POSTURE TELPERION_LIVING
 run() {  # age tag log extra-flags...
   local age="$1" tag="$2" log="$3"; shift 3
-  env PIPES_LMAX=34.8 PIPES_LMAX_FACTOR=2 ABLATE="${LETTERS:-PR}" ABLATE_CENSUS=1 ABLATE_GROW_ONLY=1 \
+  env PIPES_LMAX=34.8 PIPES_LMAX_FACTOR="${FACTOR:-${PIPES_LMAX_FACTOR:-2}}" ABLATE="${LETTERS:-PR}" ABLATE_CENSUS=1 ABLATE_GROW_ONLY=1 \
     ABLATE_CURVE="$curve" ABLATE_FACTOR=8 ABLATE_RSS_GIB=8 "${ENVS[@]}" \
     python3 "$PEAK" target/ci/examples/space_oak "$out" "$age" --seeds "$seed" --tag "$tag" \
     --shots bare "$@" > "$log" 2>&1
