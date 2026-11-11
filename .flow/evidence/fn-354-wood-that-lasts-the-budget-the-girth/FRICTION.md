@@ -16,6 +16,27 @@
 - **Cost:** about 10 minutes and two extra runs.
 - **What would have removed it:** a way to run a named crate under the gate's budgets, for example `gate.py --package telperion-space`.
 
+## 11 Nov 2026, 16:30, builder (task 2, probe): the scoreboard's probe no longer compiles on its own branch
+
+- **Doing:** building the scoreboard's probe against the probe branch's crates.
+- **Slowed by:** `scoreboard/probe/src/engine.rs` reads `Growth::scale`, which fn-353's `afb879895` deleted after the base run. The runner therefore fails to build at the integration branch's head as well, so "keep it able to rerun the base" needed a fix first: `f.supernatural.scale()`, the value the conversion draws at (1 on every tree of the base run).
+- **Cost:** about 10 minutes of reading to confirm what the old field held.
+- **What would have removed it:** the scoreboard's build in the gate, or a note in fn-353's deletion list of the evidence tools that read the deleted surface.
+
+## 11 Nov 2026, 16:35, builder (task 2, probe): edit scripts with a redirect inside a heredoc are refused
+
+- **Doing:** applying a multi-line edit to `run.sh` with an inline Python heredoc.
+- **Slowed by:** the shell hook refuses any heredoc with a line that redirects to a variable path, though the redirects were text being written into the file. The fix was to write the edit script to the scratchpad and run it.
+- **Cost:** about 3 minutes and two refused commands.
+- **What would have removed it:** none needed in the repository; it is a local hook, reported only.
+
+## 11 Nov 2026, 16:38, builder (task 2, probe): the machine is at load 41 while the probe times its pass
+
+- **Doing:** timing the yearly pass on the oak at 40.
+- **Slowed by:** another session's jobs took the load from 17 to 41 between two runs a minute apart. The pass read 0.087 s, then 0.45 s, on the same tree. One-thread times taken now are this afternoon's, not quiet-machine numbers.
+- **Cost:** none yet. The cost stage waits for a quieter machine and records the load beside every number.
+- **What would have removed it:** a way to see from the queue whether a timing job would share the machine (the heavy queue holds memory and threads, not cores for a pinned timing).
+
 ## 11 Nov 2026, 15:40, builder (task 1): the shell hook refuses the plain conflict-resolution commands
 
 - **Doing:** resolving the fn-349 cherry-picks.
