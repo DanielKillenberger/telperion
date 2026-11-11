@@ -14,6 +14,7 @@ use crate::species::Species;
 use crate::structure::Structure;
 use crate::unfold::{present, Presented};
 use std::hash::Hasher;
+use std::sync::Arc;
 
 /// How a paused grower retires its shed subtrees.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -26,8 +27,8 @@ pub enum Retiring {
 }
 
 /// The one cycle between years.
-pub struct Paused<'a> {
-    g: Grower<'a>,
+pub struct Paused {
+    g: Grower,
     keeps: bool,
     request: Request,
     committed: u32,
@@ -75,11 +76,11 @@ pub fn within_year(committed: u32, at: f64) -> Result<f64> {
     Ok(fraction)
 }
 
-impl<'a> Paused<'a> {
+impl Paused {
     /// The grower before its first cycle, for a tree of at most
     /// `horizon.age` cycles, with a census where `census`.
     pub fn begin(
-        species: &'a Species,
+        species: Arc<Species>,
         horizon: Request,
         retiring: Retiring,
         census: bool,
@@ -92,17 +93,18 @@ impl<'a> Paused<'a> {
     }
 
     pub(super) fn with(
-        species: &'a Species,
+        species: Arc<Species>,
         request: Request,
         census: bool,
         working: Working,
     ) -> Result<Self> {
+        let pas = species.states.len();
         let (mut g, keeps) = start(species, request, Options::default())?;
         (g.one, g.rules.one) = (true, true);
         g.working = Some(Box::new(working));
         g.sketch.get_or_insert_with(|| Sketch::new(request.light));
         // Every lateral is grown: while it lives its leaves shade.
-        g.rules.lasting = vec![None; species.states.len()].into();
+        g.rules.lasting = vec![None; pas].into();
         if census {
             g.census = Some(Box::default());
         }
@@ -251,7 +253,7 @@ impl<'a> Paused<'a> {
             axes: Vec::new(),
         };
         let before = self.previous.as_ref().unwrap_or(&empty);
-        Ok(present(tree, before, self.g.species, f))
+        Ok(present(tree, before, &self.g.species, f))
     }
 
     /// The tree at the horizon, settled as `grow_cycle` settles it, with
@@ -316,16 +318,16 @@ impl<'a> Paused<'a> {
     }
 }
 
-impl<'a> Grower<'a> {
+impl Grower {
     /// What the settle reads of this grower, copied, as a tree of age
     /// `at` (fn-270 task 1): the axes, draws, living apexes, woken buds
     /// and retirement; none of the growth's scratch, which it never reads.
-    fn settled_copy(&self, at: u32) -> Grower<'a> {
+    fn settled_copy(&self, at: u32) -> Grower {
         let mut rules = self.rules.clone();
         rules.age = at;
         Grower {
             rules,
-            species: self.species,
+            species: Arc::clone(&self.species),
             threads: self.threads,
             share: self.share,
             horizon: self.horizon.clone(),

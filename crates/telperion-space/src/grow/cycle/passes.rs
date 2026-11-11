@@ -7,7 +7,7 @@ use crate::allocation::TIP;
 use crate::contract::shed::{walk, Bud, Lateral};
 use crate::lineage::{Key, SHED};
 
-impl Grower<'_> {
+impl Grower {
     /// The cycle's working set: the axes laid so far taken in, and those
     /// open on the way to a living apex or a sleeping bud.
     pub(in crate::grow) fn open(&mut self, cycle: u32) {
@@ -26,7 +26,7 @@ impl Grower<'_> {
     /// the living and every other given its kept share.
     pub(in crate::grow) fn balance_one(&mut self, cycle: u32) {
         let mut w = self.working.take().expect("a working set");
-        let (species, sketch) = (self.species, self.sketch.as_mut().expect("sketching"));
+        let (species, sketch) = (&*self.species, self.sketch.as_mut().expect("sketching"));
         let n = sketch.pencils.len();
         let mut lit = vec![false; n];
         for a in self.live.iter().filter(|a| a.axis < n) {
@@ -103,7 +103,7 @@ impl Grower<'_> {
     /// this cycle (`Grower::allot`).
     pub(in crate::grow) fn allot_one(&mut self) {
         let mut w = self.working.take().expect("a working set");
-        let (species, sketch) = (self.species, self.sketch.as_mut().expect("sketching"));
+        let (species, sketch) = (&*self.species, self.sketch.as_mut().expect("sketching"));
         let n = sketch.pencils.len();
         let m = w.list.len();
         let (mut presence, mut psi, mut lit) = (vec![0.0; m], vec![0.0; m], vec![0.0f32; m]);

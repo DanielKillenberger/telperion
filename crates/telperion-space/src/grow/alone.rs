@@ -7,7 +7,7 @@ use crate::shed::lasting;
 use crate::species::{PaState, Species};
 
 /// What every chain of a tree reads: grown once per tree.
-pub(crate) fn rules(species: &Species, age: u32) -> Result<Rules<'_>> {
+pub(crate) fn rules(species: &Species, age: u32) -> Result<Rules> {
     species.validate()?;
     if age == 0 {
         return refuse("age", "a tree grows at least one cycle");
@@ -17,11 +17,10 @@ pub(crate) fn rules(species: &Species, age: u32) -> Result<Rules<'_>> {
 
 /// The rules a tree's units draw by, its light unchecked: its laterals,
 /// lasting and windows.
-pub(crate) fn drawn(species: &Species, age: u32) -> Rules<'_> {
+pub(crate) fn drawn(species: &Species, age: u32) -> Rules {
     let laterals: Vec<_> = species.states.iter().map(PaState::laterals).collect();
     let lasting = lasting(species, &laterals);
     Rules {
-        species,
         laterals: laterals.into(),
         lasting: lasting.into(),
         certain: super::Certain::Skip,

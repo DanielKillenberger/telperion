@@ -10,7 +10,7 @@ use crate::presence::Unit;
 use crate::schedule::Carried;
 use crate::transcendental::Transcendental;
 
-impl Shoot<'_, '_> {
+impl Shoot<'_> {
     /// One living apex's growth unit in `cycle`: its survival, the unit,
     /// then its abortion or its move to its next PA. A unit that ends its
     /// age within the cycle hands the rest of it on (`schedule.rs`).

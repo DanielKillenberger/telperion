@@ -7,10 +7,10 @@ use crate::contract::{decide, presence};
 use crate::error::Result;
 use crate::lineage::{self, Key, ZONE};
 use crate::schedule::Cut;
-use crate::species::{ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
+use crate::species::{Species, ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
 use crate::structure::{Origin, Phytomer, Vec3};
 
-impl Shoot<'_, '_> {
+impl Shoot<'_> {
     /// One growth unit of the apex in `cycle`, laying that share of each
     /// zone's nodes where a lifespan's fraction cut it (`advance::cut`).
     pub(super) fn grow_unit(
@@ -22,7 +22,7 @@ impl Shoot<'_, '_> {
     ) -> Result<()> {
         let rules = self.rules;
         let windows = &rules.windows;
-        let state = &rules.species.states[pa];
+        let (species, state) = (self.species(), &self.species().states[pa]);
         let mut nodes = std::mem::take(&mut self.node_buds);
         let mut leads = std::mem::take(&mut self.leads);
         let along = ALONG.iter().filter(|&&z| z < state.zones.len());
@@ -30,7 +30,7 @@ impl Shoot<'_, '_> {
             let zone_key = unit.child(ZONE + z as u64);
             let lateral = &rules.laterals[pa][z];
             let mut sleeping = std::mem::take(&mut self.sleeping);
-            let node_wood = node_wood(rules, (pa, z), cycle, &mut sleeping);
+            let node_wood = node_wood((rules, species), (pa, z), cycle, &mut sleeping);
             // Each node's presence (D18 reads it).
             let window = decide::node_window(node_wood);
             let draw = zone_key.draw();
@@ -88,7 +88,7 @@ impl Shoot<'_, '_> {
                     };
                     // A bud of an age it passes through grows in the next
                     // it lives in, as far as it reaches it, or not at all.
-                    let Some((lateral_pa, reach)) = rules.species.lived(drawn_pa) else {
+                    let Some((lateral_pa, reach)) = species.lived(drawn_pa) else {
                         continue;
                     };
                     // Nor where it is certain to be shed by the tree's age
@@ -137,12 +137,12 @@ impl Shoot<'_, '_> {
 /// bear, a PA its buds cannot carry taking no part, and the sleeping buds
 /// it is expected to bear, each PA's into `sleeping`.
 pub(crate) fn node_wood(
-    rules: &Rules,
+    (rules, species): (&Rules, &Species),
     (pa, z): (usize, usize),
     cycle: u32,
     sleeping: &mut Vec<f64>,
 ) -> f64 {
-    let (windows, state) = (&rules.windows, &rules.species.states[pa]);
+    let (windows, state) = (&rules.windows, &species.states[pa]);
     let zone = &state.zones[z];
     let expected: f64 = rules.laterals[pa][z]
         .iter()

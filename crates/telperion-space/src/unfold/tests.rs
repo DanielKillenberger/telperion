@@ -82,9 +82,14 @@ fn the_course_runs_from_nothing_to_whole_and_back() {
 fn a_tree_drawn_within_its_year_joins_both_years_with_no_pop() {
     let species = crate::oak();
     let r = request(24);
-    let mut p = Paused::begin(&species, r, Retiring::AtAge, false)
-        .unwrap()
-        .presenting();
+    let mut p = Paused::begin(
+        std::sync::Arc::new(species.clone()),
+        r,
+        Retiring::AtAge,
+        false,
+    )
+    .unwrap()
+    .presenting();
     p.grow_to(24).unwrap();
     let before = p.digest();
     let now = p.settle().unwrap();
@@ -161,9 +166,14 @@ fn a_tree_drawn_within_its_year_joins_both_years_with_no_pop() {
 #[test]
 fn a_gone_twig_at_the_thinnest_drawn_fades_as_everything_gone() {
     let species = crate::oak();
-    let mut p = Paused::begin(&species, request(24), Retiring::AtAge, false)
-        .unwrap()
-        .presenting();
+    let mut p = Paused::begin(
+        std::sync::Arc::new(species.clone()),
+        request(24),
+        Retiring::AtAge,
+        false,
+    )
+    .unwrap()
+    .presenting();
     p.grow_to(24).unwrap();
     let now = p.settle().unwrap();
     let mut last = p.previous().expect("the year before").clone();
@@ -198,9 +208,14 @@ fn a_join_gone_with_its_bearer_fades_with_it() {
     let species = crate::oak();
     // The oak at 27, seed 7, is the first from 20 with a relay gone with
     // its bearer.
-    let mut p = Paused::begin(&species, request(27), Retiring::AtAge, false)
-        .unwrap()
-        .presenting();
+    let mut p = Paused::begin(
+        std::sync::Arc::new(species.clone()),
+        request(27),
+        Retiring::AtAge,
+        false,
+    )
+    .unwrap()
+    .presenting();
     p.grow_to(27).unwrap();
     let now = p.settle().unwrap();
     let mut last = p.previous().expect("the year before").clone();
@@ -237,9 +252,14 @@ fn a_join_gone_with_its_bearer_fades_with_it() {
 #[test]
 fn old_organs_move_only_while_the_shoots_grow() {
     let species = crate::oak();
-    let mut p = Paused::begin(&species, request(12), Retiring::AtAge, false)
-        .unwrap()
-        .presenting();
+    let mut p = Paused::begin(
+        std::sync::Arc::new(species.clone()),
+        request(12),
+        Retiring::AtAge,
+        false,
+    )
+    .unwrap()
+    .presenting();
     p.grow_to(12).unwrap();
     let now = p.settle().unwrap();
     let last = p.previous().expect("the year before").clone();

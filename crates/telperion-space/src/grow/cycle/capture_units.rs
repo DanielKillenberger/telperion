@@ -70,7 +70,7 @@ fn origin(o: Origin) -> (u32, u32, u32, u64) {
     }
 }
 
-impl Grower<'_> {
+impl Grower {
     /// The species' tables the device reads beside `ChainTables::cycle`:
     /// each PA's viability and shade hazard as the f32 its table holds, its
     /// shedding delay plus a cycle, the windows of a whole, a failed

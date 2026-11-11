@@ -31,7 +31,11 @@ fn grow_capture_grown_at(species: &Species, request: Request, cycle: u32) -> Res
     if cycle == 0 || cycle > request.age {
         return crate::error::refuse("cycle", "a captured cycle is one the tree grows");
     }
-    let (mut g, _) = start(species, request, Options::default())?;
+    let (mut g, _) = start(
+        std::sync::Arc::new(species.clone()),
+        request,
+        Options::default(),
+    )?;
     (g.one, g.rules.one) = (true, true);
     g.working = Some(Box::new(Working::reference()));
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));
@@ -54,7 +58,11 @@ fn grow_capture_grown_at(species: &Species, request: Request, cycle: u32) -> Res
 /// apical control, ψ), the light's directions and extinction, and the
 /// settle's and retirement's per-PA constants (`settle_pa`).
 pub fn grow_capture_tables(species: &Species, request: Request) -> Result<Capture> {
-    let (mut g, _) = start(species, request, Options::default())?;
+    let (mut g, _) = start(
+        std::sync::Arc::new(species.clone()),
+        request,
+        Options::default(),
+    )?;
     (g.one, g.rules.one) = (true, true);
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));
     let mut c = Capture { arrays: Vec::new() };
@@ -81,7 +89,7 @@ pub fn grow_capture_tables(species: &Species, request: Request) -> Result<Captur
     Ok(c)
 }
 
-impl super::super::Grower<'_> {
+impl super::super::Grower {
     /// The rough layout's values: each axis's rank, base, heading, side
     /// and phase; each phytomer's (in axis order, then node order) tip,
     /// heading, side, scale, grown, size and rank; each pencil's words.

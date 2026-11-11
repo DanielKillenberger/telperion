@@ -70,7 +70,11 @@ pub fn grow_capture(species: &Species, request: Request) -> Result<Capture> {
     if request.age < 2 {
         return refuse("age", "a capture reads the light of the cycle before");
     }
-    let (mut g, _) = start(species, request, Options::default())?;
+    let (mut g, _) = start(
+        std::sync::Arc::new(species.clone()),
+        request,
+        Options::default(),
+    )?;
     (g.one, g.rules.one) = (true, true);
     g.working = Some(Box::new(super::Working::indexed()));
     g.sketch
@@ -104,7 +108,7 @@ pub fn grow_capture(species: &Species, request: Request) -> Result<Capture> {
     Ok(c)
 }
 
-impl Grower<'_> {
+impl Grower {
     fn capture_light(&self, c: &mut Capture) -> Result<()> {
         let light = self.sketch.as_ref().expect("sketching").light;
         let tips: Vec<_> = self.live.iter().map(|a| self.tip(a.axis)).collect();

@@ -12,11 +12,7 @@ fn request(age: u32, seed: u64, extinction: f64) -> Request {
         extinction,
         sky: 0.5,
     };
-    Request {
-        age,
-        seed,
-        light,
-    }
+    Request { age, seed, light }
 }
 
 /// The oak (lit, its retired records kept), the spruce and the beech.
@@ -32,7 +28,13 @@ fn species() -> [(Species, f64); 3] {
 /// `r.age` holds: the year before the first one past the third, and its own.
 fn eventful(species: &Species, r: Request) -> Vec<u32> {
     // Its verdicts are logged where its records are kept (fn-333).
-    let mut p = Paused::with(species, r, false, Working::indexed()).unwrap();
+    let mut p = Paused::with(
+        std::sync::Arc::new(species.clone()),
+        r,
+        false,
+        Working::indexed(),
+    )
+    .unwrap();
     p.grow_to(r.age).unwrap();
     let g = &p.g;
     let woke = g.woken.iter().map(|w| w.cycle).collect::<Vec<_>>();
@@ -72,7 +74,13 @@ fn a_tree_paused_and_grown_on_is_the_tree_grown_at_once() {
         splits.extend(eventful(&species, r));
         assert!(splits.len() >= 6, "{splits:?}");
         for a in splits {
-            let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap();
+            let mut p = Paused::begin(
+                std::sync::Arc::new(species.clone()),
+                r,
+                Retiring::AtAge,
+                false,
+            )
+            .unwrap();
             p.grow_to(a).unwrap();
             let before = p.digest();
             let first = tree_digest(&p.settle().unwrap());
@@ -103,7 +111,8 @@ fn the_tree_at_a_year_is_the_horizons_prefix() {
     for (species, k) in species() {
         let r = request(h, 7, k);
         let at = |retiring: Retiring, y: u32| {
-            let mut p = Paused::begin(&species, r, retiring, false).unwrap();
+            let mut p =
+                Paused::begin(std::sync::Arc::new(species.clone()), r, retiring, false).unwrap();
             p.grow_to(y).unwrap();
             p.settle().unwrap()
         };
@@ -137,7 +146,8 @@ fn every_year_is_the_horizons_prefix() {
     for (species, k) in species() {
         let r = request(h, 7, k);
         let walk = |retiring: Retiring| -> Vec<u64> {
-            let mut p = Paused::begin(&species, r, retiring, false).unwrap();
+            let mut p =
+                Paused::begin(std::sync::Arc::new(species.clone()), r, retiring, false).unwrap();
             (1..=h)
                 .map(|y| {
                     p.grow_to(y).unwrap();
@@ -155,7 +165,13 @@ fn every_year_is_the_horizons_prefix() {
 #[test]
 fn a_request_the_grower_cannot_meet_is_refused() {
     let species = crate::beech();
-    let mut p = Paused::begin(&species, request(12, 3, 0.0), Retiring::AtAge, false).unwrap();
+    let mut p = Paused::begin(
+        std::sync::Arc::new(species.clone()),
+        request(12, 3, 0.0),
+        Retiring::AtAge,
+        false,
+    )
+    .unwrap();
     p.grow_to(8).unwrap();
     let before = p.digest();
     let refused = |r: Result<()>| match r {
@@ -177,7 +193,13 @@ fn a_request_the_grower_cannot_meet_is_refused() {
     for at in [7.0, 8.01, f64::NAN] {
         assert_eq!(refused(p.settle_at(at).map(drop)), "at", "{at}");
     }
-    let unborn = Paused::begin(&species, request(12, 3, 0.0), Retiring::AtAge, false).unwrap();
+    let unborn = Paused::begin(
+        std::sync::Arc::new(species.clone()),
+        request(12, 3, 0.0),
+        Retiring::AtAge,
+        false,
+    )
+    .unwrap();
     assert_eq!(
         refused(unborn.settle_at(0.0).map(drop)),
         "at",
@@ -200,7 +222,13 @@ fn a_growth_that_failed_is_spent() {
         state.internode = 5.0;
     }
     let r = request(8, 1, 0.5);
-    let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap();
+    let mut p = Paused::begin(
+        std::sync::Arc::new(species.clone()),
+        r,
+        Retiring::AtAge,
+        false,
+    )
+    .unwrap();
     let mut last = None;
     let failed = (1..=r.age).find_map(|y| match p.grow_to(y) {
         Ok(()) => {
@@ -235,9 +263,14 @@ fn a_growth_that_failed_is_spent() {
 fn a_tree_drawn_within_its_year_unfolds_from_the_last() {
     let species = crate::oak();
     let r = request(41, 7, 0.5);
-    let mut p = Paused::begin(&species, r, Retiring::AtAge, false)
-        .unwrap()
-        .presenting();
+    let mut p = Paused::begin(
+        std::sync::Arc::new(species.clone()),
+        r,
+        Retiring::AtAge,
+        false,
+    )
+    .unwrap()
+    .presenting();
     let grow = |p: &mut Paused, a: f64| {
         let to = admitted(p.committed(), p.horizon(), a)?;
         p.grow_to(to)
@@ -266,7 +299,13 @@ fn a_tree_drawn_within_its_year_unfolds_from_the_last() {
         tree_digest(&p.settle_at(41.0).unwrap().structure),
         tree_digest(&today)
     );
-    let mut plain = Paused::begin(&species, request(3, 7, 0.5), Retiring::AtAge, false).unwrap();
+    let mut plain = Paused::begin(
+        std::sync::Arc::new(species.clone()),
+        request(3, 7, 0.5),
+        Retiring::AtAge,
+        false,
+    )
+    .unwrap();
     plain.grow_to(3).unwrap();
     match plain.settle_at(2.5) {
         Err(Error::Refused { input, .. }) => assert_eq!(input, "at"),

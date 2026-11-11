@@ -63,7 +63,7 @@ impl Footprint {
     }
 }
 
-impl Grower<'_> {
+impl Grower {
     /// What this grower holds between cycles.
     pub(super) fn footprint(&self) -> Footprint {
         let mut f = Footprint::default();

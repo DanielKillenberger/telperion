@@ -40,6 +40,7 @@ use crate::error::Result;
 use crate::light::Field;
 use crate::species::Species;
 use crate::structure::{Structure, Vec3};
+use std::sync::Arc;
 
 /// A tree grown through the one cycle: the tree, the phytomers grown for
 /// it (the shed ones included), the seconds the build and its light took,
@@ -68,7 +69,7 @@ pub fn grow_census(species: &Species, request: Request) -> Result<Cycled> {
 /// call.
 fn run(species: &Species, request: Request, census: bool, working: Working) -> Result<Cycled> {
     let started = crate::clock::seconds();
-    let mut paused = Paused::with(species, request, census, working)?;
+    let mut paused = Paused::with(Arc::new(species.clone()), request, census, working)?;
     paused.grow_to(request.age)?;
     paused.finish(started)
 }
@@ -83,7 +84,7 @@ fn tick(phases: &mut Phases, clock: &mut f64, stage: Stage) {
     *clock = now;
 }
 
-impl Grower<'_> {
+impl Grower {
     /// The light at each of `tips` from the cycle's leaves on the lattice,
     /// deposited as integer quanta; with a census, the lattice recorded.
     pub(super) fn read_light(&mut self, tips: &[Vec3]) -> Result<Vec<f64>> {

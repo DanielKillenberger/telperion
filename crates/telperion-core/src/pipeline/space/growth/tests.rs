@@ -6,9 +6,9 @@ use crate::presets::Preset;
 
 const H: u32 = 12;
 
-fn beech() -> (Family, Params) {
+fn beech() -> (Family, std::sync::Arc<Params>) {
     let family = Preset::EuropeanBeech.parameters();
-    let params = Params::of(&family).unwrap();
+    let params = std::sync::Arc::new(Params::of(&family).unwrap());
     (family, params)
 }
 
@@ -81,7 +81,7 @@ fn a_request_the_state_cannot_meet_is_refused_by_name() {
 #[test]
 fn the_oaks_year_runs_from_full_leaf_to_full_leaf_by_degree() {
     let family = Preset::OregonWhiteOak.parameters();
-    let params = Params::of(&family).unwrap();
+    let params = std::sync::Arc::new(Params::of(&family).unwrap());
     let mut s = begin(&params, 7, 10.0).unwrap();
     grow_to(&mut s, 10.0).unwrap();
     let at = |f: f64| settle(&s, 9.0 + f).unwrap();

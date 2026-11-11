@@ -40,7 +40,11 @@ pub fn grow_capture_settled_at(
     request: Request,
     to: SettleTo,
 ) -> Result<Capture> {
-    let (mut g, keeps) = start(species, request, Options::default())?;
+    let (mut g, keeps) = start(
+        std::sync::Arc::new(species.clone()),
+        request,
+        Options::default(),
+    )?;
     (g.one, g.rules.one) = (true, true);
     g.working = Some(Box::new(Working::reference()));
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));
@@ -360,7 +364,11 @@ pub fn grow_cycle_is_the_reference(
 /// 2, its living's lived and alive bits), and the phytomers each cycle
 /// ends holding (`r_held`): what the device's retirement is held to.
 pub fn grow_capture_retired(species: &Species, request: Request) -> Result<Capture> {
-    let (mut g, _) = start(species, request, Options::default())?;
+    let (mut g, _) = start(
+        std::sync::Arc::new(species.clone()),
+        request,
+        Options::default(),
+    )?;
     (g.one, g.rules.one) = (true, true);
     g.working = Some(Box::new(super::Working::indexed()));
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));

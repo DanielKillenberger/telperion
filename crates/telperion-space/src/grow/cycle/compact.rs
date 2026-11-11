@@ -59,7 +59,7 @@ impl Remap {
     }
 }
 
-impl Grower<'_> {
+impl Grower {
     /// The axes inside a retired subtree let go where enough have
     /// gathered.
     pub(in crate::grow) fn compact(&mut self) {

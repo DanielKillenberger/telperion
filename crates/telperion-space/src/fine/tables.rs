@@ -88,7 +88,8 @@ impl Units {
                         let mut sleep_windows = Vec::new();
                         let (windows, sleeps) = (0..=age)
                             .map(|cycle| {
-                                let wood = node_wood(rules, (pa, z), cycle, &mut sleeping);
+                                let wood =
+                                    node_wood((rules, species), (pa, z), cycle, &mut sleeping);
                                 let sleeps = sleeping.iter().any(|&wood| wood > 0.0);
                                 sleep_windows.push(sleeping.iter().map(|&w| window(w)).collect());
                                 (window(wood), sleeps)

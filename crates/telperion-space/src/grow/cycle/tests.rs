@@ -235,8 +235,15 @@ fn letting_go_of_retired_records_leaves_the_tree_as_it_was() {
         (crate::beech(), 0.0),
     ] {
         let r = request(40, 7, k);
-        let mut let_go = Paused::with(&species, r, true, eager()).unwrap();
-        let mut kept = Paused::with(&species, r, true, Working::indexed()).unwrap();
+        let mut let_go =
+            Paused::with(std::sync::Arc::new(species.clone()), r, true, eager()).unwrap();
+        let mut kept = Paused::with(
+            std::sync::Arc::new(species.clone()),
+            r,
+            true,
+            Working::indexed(),
+        )
+        .unwrap();
         for age in [12, 25, 40] {
             let_go.grow_to(age).unwrap();
             kept.grow_to(age).unwrap();

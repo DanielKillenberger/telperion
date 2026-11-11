@@ -79,7 +79,7 @@ fn a_tree_drawn_within_its_year_on_the_device_is_the_cpus() {
         family.canopy.leaf_bases = 0.0;
         let g = executor::growth(&family).expect("a growth");
         let seed = g.request.seed;
-        let params = growth::Params::of(&family).expect("params");
+        let params = std::sync::Arc::new(growth::Params::of(&family).expect("params"));
         let mut cpu = growth::begin(&params, seed as u32, f64::from(h)).expect("begun");
         growth::grow_to(&mut cpu, f64::from(h)).expect("grown");
         let mut dev = GrowthState::sized_now(&gpu, &k, &g, (seed, h));

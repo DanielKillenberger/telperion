@@ -75,7 +75,7 @@ impl Sketch {
     }
 }
 
-impl Grower<'_> {
+impl Grower {
     /// Sweeps the cycle's leaves from the sky and reads the light at every
     /// living apex's tip.
     pub(super) fn shade(&mut self, report: &mut dyn FnMut(Stage)) -> crate::error::Result<()> {
@@ -175,7 +175,7 @@ impl Grower<'_> {
 
     /// What the allotment reads of each laid axis (PHASES.md, phase (ii)).
     pub(super) fn inputs(&self, rows: &Rows) -> Inputs {
-        let species = self.species;
+        let species = &*self.species;
         let sketch = self.sketch.as_ref().expect("sketching");
         let n = sketch.pencils.len();
         let mut lambda = vec![0.0; n];

@@ -10,8 +10,9 @@ use crate::sag;
 use crate::shed::{shed, shed_past};
 use crate::species::Species;
 use crate::structure::Structure;
+use std::sync::Arc;
 
-impl<'a> Grower<'a> {
+impl Grower {
     /// Marks every apex living at the tree's age with how much it lives
     /// on, and sizes every bud that woke by what its bearer kept of it.
     pub(super) fn mark(&mut self) {
@@ -53,8 +54,9 @@ impl<'a> Grower<'a> {
         request: Request,
         keeps: bool,
         stage: &mut dyn FnMut(Stage),
-    ) -> Result<Settling<'a>> {
-        let (species, threads) = (self.species, self.threads);
+    ) -> Result<Settling> {
+        let (owned, threads) = (Arc::clone(&self.species), self.threads);
+        let species = &*owned;
         self.mark();
         stage(Stage::Pass(Pass::Mark));
         assign(&mut self.axes, &self.draws, species, threads);
@@ -99,7 +101,7 @@ impl<'a> Grower<'a> {
             index: shed.index,
             grown: count,
             marked,
-            species,
+            species: owned,
             threads,
         })
     }
@@ -107,17 +109,17 @@ impl<'a> Grower<'a> {
 
 /// The tree settled as far as its order (`Grower::settle_shed`): shed,
 /// its presences assigned, before its scale, girth and lay.
-pub(super) struct Settling<'a> {
+pub(super) struct Settling {
     pub structure: Structure,
     pub girth: Girth,
     pub index: Vec<usize>,
     pub grown: u64,
     pub marked: Vec<u64>,
-    pub species: &'a Species,
+    pub species: Arc<Species>,
     pub threads: usize,
 }
 
-impl Settling<'_> {
+impl Settling {
     /// The rest of the settle: the shed tree scaled, thickened and, with
     /// `lay`, laid and sagged.
     pub(super) fn settle_lay(
@@ -135,6 +137,7 @@ impl Settling<'_> {
             threads,
             ..
         } = self;
+        let species = &*species;
         scale(&mut structure, species, threads);
         stage(Stage::Pass(Pass::Scale));
         // Girth needs no geometry; placing reads it where wood meets the

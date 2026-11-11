@@ -28,7 +28,11 @@ pub fn grow_capture_hierarchy_at(
     if cycle == 0 || cycle > request.age {
         return refuse("cycle", "a captured cycle is one the tree grows");
     }
-    let (mut g, _) = start(species, request, Options::default())?;
+    let (mut g, _) = start(
+        std::sync::Arc::new(species.clone()),
+        request,
+        Options::default(),
+    )?;
     (g.one, g.rules.one) = (true, true);
     g.working = Some(Box::new(super::Working::indexed()));
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));
@@ -66,7 +70,7 @@ fn f(x: f64) -> f32 {
     x as f32
 }
 
-impl Grower<'_> {
+impl Grower {
     fn laid_pencils(&self) -> &[Pencil] {
         &self.sketch.as_ref().expect("sketching").pencils
     }

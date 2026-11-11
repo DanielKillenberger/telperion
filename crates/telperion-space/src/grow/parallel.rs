@@ -36,7 +36,7 @@ pub(super) struct Share {
     spare: Spare,
 }
 
-impl Shoot<'_, '_> {
+impl Shoot<'_> {
     pub fn finish(self, homes: Vec<usize>) -> Share {
         Share {
             base: self.base,
@@ -73,10 +73,10 @@ impl Shoot<'_, '_> {
     }
 }
 
-impl Grower<'_> {
+impl Grower {
     /// What the rough layout gives the apexes growing now.
     pub(super) fn reads(&self) -> Reads<'_> {
-        reads(self.sketch.as_ref(), self.species)
+        reads(self.sketch.as_ref(), &self.species)
     }
 
     /// Grows the `live` apexes' units in `cycle`, in shares in order, and
@@ -87,14 +87,15 @@ impl Grower<'_> {
         cycle: u32,
         report: &mut dyn FnMut(Stage),
     ) -> Result<()> {
-        let reads = reads(self.sketch.as_ref(), self.species);
+        let reads = reads(self.sketch.as_ref(), &self.species);
         let homes = homes(
             (&mut self.axes, &mut self.draws),
             (&mut self.units, &mut self.successor),
             &live,
         );
         report(Stage::Pass(Pass::Homes));
-        let (rules, tree) = (&self.rules, (&self.roots[..], &self.horizon[..]));
+        let rules = (&self.rules, &*self.species);
+        let tree = (&self.roots[..], &self.horizon[..]);
         let shoot = |homes| Shoot {
             homes,
             ..Shoot::new(rules, reads, tree)
@@ -223,11 +224,11 @@ fn first<T>(v: &mut [T], at: usize) -> (&mut T, &mut [T]) {
 
 /// Grows `live`, each apex with its home, in shares of `share` apexes on
 /// up to `threads` cores: the shares in order.
-fn grow_shares<'g, 'a: 'g>(
+fn grow_shares<'g>(
     live: Vec<Apex>,
     homes: Vec<Home<'g>>,
     (threads, share): (usize, usize),
-    (shoot, spare): (&(dyn Fn(Vec<Home<'g>>) -> Shoot<'g, 'a> + Sync), Spare),
+    (shoot, spare): (&(dyn Fn(Vec<Home<'g>>) -> Shoot<'g> + Sync), Spare),
     cycle: u32,
 ) -> Result<Vec<Share>> {
     let count = live.len().div_ceil(share);

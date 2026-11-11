@@ -9,7 +9,7 @@ use crate::presence::Draws;
 use crate::species::Zone;
 use crate::structure::Origin;
 
-impl Grower<'_> {
+impl Grower {
     /// The sleeping buds that wake in `cycle` sprout and grow their
     /// partial first unit, each on an axis something still carries on
     /// past the cycle, by the presence of every draw that kept it alive. A bud that slept through a stage wakes in the
@@ -26,15 +26,18 @@ impl Grower<'_> {
         // The buds that wake make axes of their own and touch none the
         // tree has: one share, numbered from the tree's count.
         let spare = std::mem::take(&mut self.spare);
-        let mut shoot =
-            Shoot::new(&self.rules, self.reads(), (&self.roots, &self.horizon)).spared(spare);
+        let mut shoot = Shoot::new(
+            (&self.rules, &self.species),
+            self.reads(),
+            (&self.roots, &self.horizon),
+        )
+        .spared(spare);
         for sleeper in asleep {
             // It ages through the whole of the time it slept, the share of
             // its waking cycle included, so it never wakes in a stage it
             // has outlived.
             let slept = f64::from(sleeper.slept) + sleeper.sleep;
-            let Some((pa, spent, reach)) = dormant::aged(self.rules.species, sleeper.pa, slept)
-            else {
+            let Some((pa, spent, reach)) = dormant::aged(&self.species, sleeper.pa, slept) else {
                 continue;
             };
             // It wakes on every axis that carries its bearer on, each at
@@ -55,7 +58,7 @@ impl Grower<'_> {
     }
 }
 
-impl Shoot<'_, '_> {
+impl Shoot<'_> {
     /// The sleeping bud `sleeper` wakes on `bearer`, aged to `pa` with
     /// `spent` of it and `reach` of it reached, carried there by `carried`;
     /// `next` is the bearer's next growth unit.
