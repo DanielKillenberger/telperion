@@ -57,3 +57,10 @@
 - **Slowed by:** the default profile has none of the gate profile's test groups, so four of the heaviest core tests (`suite::mesh`, `suite::sweep`, `suite::packed_leaf`, `pipeline::tests::every_shipped_preset_builds_every_artifact`) ran together and the scope was killed at 136 s, 440 of 761 tests in. The gate profile has the groups but cuts budgeted tests at 120 s unless `gate.py` writes the budgets.
 - **Cost:** about 5 minutes and a second run at 16 GB and three tests at once.
 - **What would have removed it:** the same `gate.py --package <crate>` the task 1 entry asks for, which would carry the groups and the budgets into a narrow run.
+
+## 11 Nov 2026, 22:30, builder (task 4): the optioned scoreboard runner lives in another worktree
+
+- **Doing:** the task's panel (seven trees, three seeds) through the scoreboard's runner, label `fn354-leaf`.
+- **Slowed by:** this branch's copy of `run.sh` has no subset options (`PRESETS`, `OAK_AGES`, `CRATES`, `COST_TREES`); they were added on the goal branch (`d0e390f2b`) and live only in the `fn-319` worktree, where task 3 ran it and wrote its outputs. Running it there writes into a worktree this task may not touch; so it was copied into this task's ignored `raw/runner/`, its sheet maker's species list and ages edited there for this panel, and the before-panel needed a checkout of `ba0fc19eb` and a second probe build.
+- **Cost:** about 15 minutes: reading two versions of the runner, the copy, and a second probe build (about 3 minutes).
+- **What would have removed it:** the optioned runner and `variants.py` merged onto the branch a spec's builders work on, with the panel's species and ages as options rather than constants.
