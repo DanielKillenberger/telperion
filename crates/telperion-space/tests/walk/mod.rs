@@ -3,9 +3,11 @@
 //! scale it is walked on. The shape measures are in `measure.rs`.
 #![allow(dead_code)]
 mod bend;
+mod path;
 pub mod degree;
 mod measure;
 pub use bend::sag_bend;
+pub use path::longest_path;
 pub use measure::*;
 use telperion_space::{grow, Form, Light, NodeLaw, PaState, Request, Species, Structure, Zone};
 
@@ -840,13 +842,8 @@ pub fn light_settings() -> Vec<Setting> {
         shaded("states[2].apical_control", 0.45, 0.55, |s, v| {
             s.states[2].apical_control = v
         }),
-        // The scale row's span (BUILD-ANSWERS.md 2).
-        shaded("states[1].inverse_height", 0.0, 0.1, |s, v| {
-            s.states[1].inverse_height = v
-        }),
-        shaded("states[2].inverse_height", 0.0, 0.1, |s, v| {
-            s.states[2].inverse_height = v
-        }),
+        // The range trees stand in, a potential height of 10 m and above,
+        // each walked in the unit the rule reads (`inverse_heights`).
         shaded("states[1].balance_hazard", 0.0, 3.0, |s, v| {
             s.states[1].balance_hazard = v
         }),
@@ -875,5 +872,29 @@ pub fn light_settings() -> Vec<Setting> {
         ..SITE
     });
     all.extend([sky, extinction]);
+    all.extend(inverse_heights());
     all
+}
+
+/// Each PA's inverse height walked over the range trees stand in, 0 to
+/// 0.1 a metre (a potential height of 10 m and above), in the unit the
+/// rule reads it in: the path over the potential height, so a step of
+/// one is the walk tree's longest path from the root collar to a living
+/// tip, measured on the tree grown at none (DEVICE-ANSWERS.md 1).
+fn inverse_heights() -> Vec<Setting> {
+    let set: [fn(&mut Species, f64); 2] = [
+        |s, v| s.states[1].inverse_height = v,
+        |s, v| s.states[2].inverse_height = v,
+    ];
+    (1..=2)
+        .zip(set)
+        .map(|(pa, set)| {
+            let mut walked = shaded(&format!("states[{pa}].inverse_height"), 0.0, 0.1, set);
+            let mut at_none = species();
+            leafy(&mut at_none);
+            set(&mut at_none, 0.0);
+            walked.stretch = longest_path(&lit(&at_none, SITE, 1).expect("the walk tree"));
+            walked
+        })
+        .collect()
 }
