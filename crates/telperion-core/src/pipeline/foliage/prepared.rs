@@ -1,4 +1,4 @@
-//! Compact regular twig stations, shared by accelerated consumers without a GPU dependency.
+//! Regular twig stations and the contact rings they are seated on.
 use super::{cluster, plan, station, CanopyParams, TwigPlacement};
 use crate::math::Transcendental;
 use crate::{
@@ -88,60 +88,6 @@ pub fn prepare_stations(
             rings,
             ring_size,
         }
-    }))
-}
-
-/// Borrows canonical float32 contacts; no ring emission or spatial index is built.
-pub fn prepare_shared_stations<'a>(
-    shared: &'a crate::pipeline::surface::prepared::PreparedWithContacts<'_>,
-    envelope: Envelope,
-    p: CanopyParams,
-    twig: Option<TwigPlacement>,
-) -> Result<Option<PreparedStations<&'a [f32]>>> {
-    if envelope.height != shared.height {
-        return Err(Error::InvalidInput("contact surface height mismatch"));
-    }
-    let result = prepare_inner(
-        shared.tree,
-        envelope,
-        p,
-        twig,
-        shared.params,
-        || Ok(shared),
-        |c, node| c.edges.get(node).copied().flatten(),
-    )?;
-    Ok(result.map(|(segments, count, contacts)| PreparedStations {
-        segments,
-        count,
-        rings: contacts.map_or(&[][..], |c| c.surface.positions.as_slice()),
-        ring_size: contacts.map_or(0, |c| c.surface.segments),
-    }))
-}
-
-/// Station indices tied to compact emitted vertices; no CPU positions are fabricated.
-pub fn prepare_compact_stations(
-    shared: &crate::pipeline::surface::compact::CompactWithContacts<'_>,
-    envelope: Envelope,
-    p: CanopyParams,
-    twig: Option<TwigPlacement>,
-) -> Result<Option<PreparedStations<()>>> {
-    if envelope.height != shared.height {
-        return Err(Error::InvalidInput("contact surface height mismatch"));
-    }
-    let result = prepare_inner(
-        shared.tree,
-        envelope,
-        p,
-        twig,
-        shared.params,
-        || Ok(shared),
-        |c, node| c.edges.get(node).copied().flatten(),
-    )?;
-    Ok(result.map(|(segments, count, contacts)| PreparedStations {
-        segments,
-        count,
-        rings: (),
-        ring_size: contacts.map_or(0, |c| c.surface.segments),
     }))
 }
 

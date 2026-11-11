@@ -7,7 +7,6 @@
 //! element from those leads, so a setting that crosses a draw grows the
 //! element in from nothing.
 mod advance;
-pub(crate) mod alone;
 mod balance;
 pub(crate) mod cycle;
 mod draw;
@@ -37,7 +36,6 @@ pub(crate) use shoot::Rules;
 use sketch::Sketch;
 pub use stage::{Pass, Stage};
 use std::sync::Arc;
-pub(crate) use unit::node_wood;
 
 /// What to grow: cycles, the seed and the site's light.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -59,8 +57,7 @@ struct Apex {
 }
 
 /// Grows, sheds and places the tree through the one cycle (fn-255), in
-/// its canonical lineage order: the CPU's executor, the reference the
-/// device's is held to by lineage (fn-256).
+/// its canonical lineage order.
 pub fn grow(species: &Species, request: Request) -> Result<Structure> {
     Ok(cycle::grow_cycle(species, request)?.structure)
 }
@@ -88,9 +85,6 @@ pub(crate) struct Options {
     /// cycle's layout and sweep (fn-210, lever 3).
     #[cfg(test)]
     pub unread_light: bool,
-    /// Whether the tree stops once scaled and thickened, before its lay:
-    /// what the device's settle is compared with (`capture_settled.rs`).
-    pub settle: bool,
 }
 
 impl Default for Options {
@@ -101,7 +95,6 @@ impl Default for Options {
             share: parallel::SHARE,
             #[cfg(test)]
             unread_light: false,
-            settle: false,
         }
     }
 }
@@ -164,7 +157,7 @@ pub(crate) fn run(
         let sketching = cycle < request.age || !lay || options.unread_light;
         grower.year(cycle, sketching, &mut advanced, stage)?;
     }
-    grower.settle((request, options), (lay, keeps), stage)
+    grower.settle(request, (lay, keeps), stage)
 }
 
 /// The grower of `request` before its first cycle, and whether any PA

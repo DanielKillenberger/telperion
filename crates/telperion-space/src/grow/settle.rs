@@ -1,6 +1,6 @@
 //! The tree once grown: its living apexes marked, its presences assigned,
 //! shed, sized, thickened and laid.
-use super::{Grower, Grown, Options, Pass, Request, Stage};
+use super::{Grower, Grown, Pass, Request, Stage};
 use crate::contract::presence::{q, real, times};
 use crate::error::{Error, Result};
 use crate::geometry::{place, scale};
@@ -38,12 +38,12 @@ impl Grower {
     /// reads the tree as grown (its shed pipes or its leaves' girth).
     pub(super) fn settle(
         self,
-        (request, options): (Request, Options),
+        request: Request,
         (lay, keeps): (bool, bool),
         stage: &mut dyn FnMut(Stage),
     ) -> Result<Grown> {
         let shed = self.settle_shed(request, keeps, stage)?;
-        shed.settle_lay(options, lay, stage)
+        shed.settle_lay(lay, stage)
     }
 
     /// The settle up to its order (fn-256 task 2's first step): each
@@ -98,7 +98,6 @@ impl Grower {
         Ok(Settling {
             structure,
             girth,
-            index: shed.index,
             grown: count,
             marked,
             species: owned,
@@ -112,7 +111,6 @@ impl Grower {
 pub(super) struct Settling {
     pub structure: Structure,
     pub girth: Girth,
-    pub index: Vec<usize>,
     pub grown: u64,
     pub marked: Vec<u64>,
     pub species: Arc<Species>,
@@ -124,7 +122,6 @@ impl Settling {
     /// `lay`, laid and sagged.
     pub(super) fn settle_lay(
         self,
-        options: Options,
         lay: bool,
         stage: &mut dyn FnMut(Stage),
     ) -> Result<Grown> {
@@ -150,7 +147,7 @@ impl Settling {
             grown: count,
             marked,
         };
-        if !lay || options.settle {
+        if !lay {
             return Ok(done(structure));
         }
         place(&mut structure, species, None, threads)?;

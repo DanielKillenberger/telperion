@@ -5,15 +5,9 @@
 //! of building. Light is the lattice for every species (COUNCIL.md,
 //! 2026-10-11), its leaves deposited as integer quanta (`Field::quantised`,
 //! the host's adoption of early test 2). Allocation is `allocation::sizes`
-//! throughout (R2). `grow` is this cycle, the CPU's reference for the
-//! device's (fn-256).
+//! throughout (R2). `grow` is this cycle.
 mod capture;
-mod capture_grown;
-mod capture_hierarchy;
-mod capture_layout;
 mod capture_light;
-mod capture_settled;
-mod capture_units;
 mod census;
 mod compact;
 mod footprint;
@@ -22,14 +16,8 @@ mod paused;
 mod retire;
 mod working;
 
-pub use capture::{grow_capture, Capture};
-pub use capture_grown::{grow_capture_grown, grow_capture_tables};
-pub use capture_hierarchy::grow_capture_hierarchy_at;
+pub use capture::Capture;
 pub use capture_light::grow_capture_light_at;
-pub use capture_settled::{
-    grow_capture_retired, grow_capture_settle_tables, grow_capture_settled_at,
-    grow_cycle_is_the_reference, SettleTo,
-};
 pub use census::{Census, Cycle};
 pub use footprint::{Footprint, Store};
 pub use paused::{admitted, tree_digest, within_year, Paused, Retiring};
@@ -118,6 +106,7 @@ mod tests;
 /// same tree to the bit but for its radii and the pose they bend): every
 /// phytomer's radius's relative shift, its median and its most; none where
 /// anything else differs.
+#[cfg(test)]
 pub(crate) fn girth_apart(a: &Structure, b: &Structure) -> Option<(f64, f64)> {
     // Everything but the girth and the pose a girth bends (its sag) the
     // same to the bit: topology, PAs, vigour, presences, sizes and lights.

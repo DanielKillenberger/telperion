@@ -86,8 +86,6 @@ mod surface;
 mod surface_attachments;
 #[path = "suite/surface_collapse.rs"]
 mod surface_collapse;
-#[path = "suite/surface_prepared.rs"]
-mod surface_prepared;
 #[path = "suite/surface_reference.rs"]
 mod surface_reference;
 #[path = "suite/sweep.rs"]

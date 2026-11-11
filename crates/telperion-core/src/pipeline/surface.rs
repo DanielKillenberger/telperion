@@ -15,9 +15,6 @@ mod build;
 #[cfg(feature = "geometry")]
 mod chunks;
 #[cfg(feature = "geometry")]
-#[doc(hidden)]
-pub mod compact;
-#[cfg(feature = "geometry")]
 mod curve;
 pub mod encode;
 #[cfg(feature = "geometry")]
@@ -49,7 +46,7 @@ pub(crate) use build::{faces, segments, Faces};
 #[cfg(feature = "geometry")]
 use chunks::{Layout, Piece};
 #[cfg(feature = "geometry")]
-pub(crate) use curve::{curve, rows as curve_rows, traced};
+pub(crate) use curve::{curve, traced};
 #[cfg(feature = "geometry")]
 pub use curve::{
     Budget, Curve, CurveCluster, CurvePoint, CurveRun, Demand, PackedPoint, Tessellation, Viewer,

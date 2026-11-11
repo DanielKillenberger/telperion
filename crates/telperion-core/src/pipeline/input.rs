@@ -23,7 +23,8 @@ mod folds;
 mod shoulder;
 use folds::share;
 pub use folds::{reach, Folds};
-pub use shoulder::{beyond, bins, crown_point, BINS};
+#[cfg(all(test, feature = "geometry"))]
+use shoulder::bins;
 
 /// The input of every stage past the skeleton, read off one family.
 #[derive(Debug, Clone)]

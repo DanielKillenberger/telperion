@@ -1,11 +1,11 @@
 //! fn-256 task 2 (DESIGN.md section 2, step 8): one cycle's light
-//! captured for the device. The tree grows through the one cycle to the
-//! captured cycle, grows and lays it (`step`, `sketch`), then takes the
-//! leaves and the living apexes' tips as `read_light` takes them, and the
-//! CPU's box, quanta, densities, lattice and reads. Positions and areas
-//! are the f32s the lattice reads; the sweep's per-direction reals are
-//! the CPU's own f64s, by their bits. An experiment entry point, wired
-//! into nothing.
+//! captured. The tree grows through the one cycle to the captured cycle,
+//! grows and lays it (`step`, `sketch`), then takes the leaves and the
+//! living apexes' tips as `read_light` takes them, and the box, quanta,
+//! densities, lattice and reads. Positions and areas are the f32s the
+//! lattice reads; the sweep's per-direction reals are f64s, by their
+//! bits. `telperion-core`'s `light_rows` test reads the buds' light from
+//! it.
 use super::super::sketch::Sketch;
 use super::super::{start, Grower, Options, Request};
 use super::capture::Capture;

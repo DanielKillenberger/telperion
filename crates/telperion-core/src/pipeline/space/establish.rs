@@ -10,7 +10,7 @@
 //! a shoot drawn part grown within its year is lowered by the height it
 //! has reached, never past the wood below it. Every axis off the stem is
 //! carried by its bearing node's lowering and keeps its own lengths and
-//! girth. `cycle/establish.wgsl` is its twin on the device.
+//! girth.
 use super::FINEST;
 use crate::pipeline::foliage::{establishment, waited, CanopyParams};
 use std::borrow::Cow;
@@ -40,11 +40,6 @@ impl Establishing {
             early: canopy.frond_early_share,
             rise,
         })
-    }
-
-    /// The device's words (`dress.wgsl`'s `Cfg`): none where dormant.
-    pub fn words(this: Option<Self>) -> [f32; 3] {
-        this.map_or([0.0; 3], |e| [e.years, e.early, e.rise].map(|v| v as f32))
     }
 
     /// The metres a stem tip laid `h` up is lowered by.

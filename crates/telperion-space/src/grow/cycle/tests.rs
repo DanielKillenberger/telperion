@@ -114,7 +114,7 @@ fn the_quantised_deposit_is_order_free_and_refuses_overflow() {
     );
 }
 
-/// The f32 survival the device reads: the table's viability, shaded in
+/// The f32 survival the cycle reads: the table's viability, shaded in
 /// f32; whole without shade or in full light.
 #[test]
 fn survival_reads_the_tables_f32() {
@@ -126,27 +126,6 @@ fn survival_reads_the_tables_f32() {
         p < 0.995 && (f64::from(p) - 0.995f64.powf(2.0)).abs() < 1e-6,
         "{p}"
     );
-}
-
-/// How far the one cycle's tree lies from today's whole-tree engine, by
-/// lineage, under the spike's contracts (f32 viability, the one reduction
-/// order, the integer deposit): printed for the evidence, not bounded.
-#[test]
-#[ignore]
-fn agreement_with_todays_tree() {
-    for (name, species, k) in [
-        ("oak", crate::oak(), 0.5),
-        ("beech", crate::beech(), 0.0),
-        ("spruce", crate::spruce(), 0.0),
-    ] {
-        for (age, seed) in [(24, 7), (40, 1)] {
-            let r = request(age, seed, k);
-            let today = crate::grow::whole(&species, r).unwrap();
-            let cycled = grow_cycle(&species, r).unwrap();
-            let a = crate::agree::agreement(&today, &cycled.structure);
-            eprintln!("AGREE {name} {age} {seed}: {a:?}");
-        }
-    }
 }
 
 /// No light at all leaves no survival under any shade hazard, certain
@@ -188,33 +167,6 @@ fn woken_buds_that_stop_at_once_retire_as_the_reference_has_them() {
             apart.is_some_and(|(_, most)| most <= SHIFT),
             "seed {seed}: {retired} retired, girth apart {apart:?}"
         );
-    }
-}
-
-/// The grown capture holds every phytomer the tree grew, none retired,
-/// each with its layout's words, and a pencil an axis laid (fn-256 task 2).
-#[test]
-fn the_grown_capture_holds_every_phytomer() {
-    for (species, age) in [
-        (crate::beech(), 8),
-        (crate::spruce(), 10),
-        (crate::oak(), 9),
-    ] {
-        let c = grow_capture_grown(&species, request(age, 42, 0.5)).unwrap();
-        let u32s = |name: &str| -> Vec<u32> {
-            let b = c.array(name).expect(name).1;
-            b.chunks(4)
-                .map(|w| u32::from_le_bytes(w.try_into().unwrap()))
-                .collect()
-        };
-        let held: u64 = u32s("g_phyt_n").iter().map(|&n| u64::from(n)).sum();
-        let grown = u64::from_le_bytes(c.array("g_grown").unwrap().1.try_into().unwrap());
-        assert_eq!(held, grown, "every phytomer grown is held");
-        assert_eq!(u32s("g_phyt_axis").len() as u64, held);
-        assert_eq!(u32s("sk_phyts").len() as u64, 13 * held);
-        let axes = u32s("g_pa").len();
-        assert_eq!(u32s("sk_axes").len(), 11 * axes);
-        assert_eq!(u32s("sk_pencils").len() % 63, 0);
     }
 }
 

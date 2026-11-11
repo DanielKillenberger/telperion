@@ -74,18 +74,8 @@ pub mod surface {
         Viewer, CLUSTER, CLUSTER_WORDS, LEVELS, POINT_WORDS, RIBBON, SCALES, SECTION_FLOATS,
     };
     #[cfg(feature = "geometry")]
-    pub mod compact {
-        #[cfg(test)]
-        pub use crate::pipeline::surface::compact::*;
-        pub use crate::pipeline::surface::compact::{CompactSurface, CompactWithContacts};
-    }
-    #[cfg(feature = "geometry")]
     pub mod prepared {
-        #[cfg(test)]
-        pub use crate::pipeline::surface::prepared::*;
-        pub use crate::pipeline::surface::prepared::{
-            ring_radius, PreparedSurface, PreparedWithContacts, Run,
-        };
+        pub use crate::pipeline::surface::prepared::Run;
     }
 }
 

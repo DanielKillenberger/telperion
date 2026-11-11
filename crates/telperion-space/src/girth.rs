@@ -172,11 +172,6 @@ pub(super) fn leaf_terms(structure: &Structure, species: &Species) -> Option<f64
     mean_of(total, weighted)
 }
 
-/// The leaf term's mean as `thicken` takes it from the tree alone.
-pub(crate) fn leaf_mean(structure: &Structure, species: &Species) -> Option<f64> {
-    leaf_terms(structure, species)
-}
-
 /// What thickening takes beyond the tree: the shed branches' pipes it
 /// keeps, and the leaf term's mean where the tree as grown sets it.
 #[derive(Debug, Clone, Default)]

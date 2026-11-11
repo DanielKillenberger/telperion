@@ -224,7 +224,7 @@ impl Paused {
         };
         let copy = self.g.settled_copy(at);
         let grown = copy.settle(
-            (request, Options::default()),
+            request,
             (true, self.keeps),
             &mut |_| {},
         )?;
@@ -275,7 +275,7 @@ impl Paused {
         }
         let mut clock = crate::clock::seconds();
         let settled = g.settle(
-            (request, Options::default()),
+            request,
             (true, keeps),
             &mut |s: Stage| tick(&mut phases, &mut clock, s),
         )?;
