@@ -51,9 +51,7 @@ pub use beech::beech;
 pub use birch::birch;
 pub use blend::blend;
 pub use chain::{passed, AGES};
-pub use closed_form::{
-    expected_axes, expected_counts, expected_grown, expected_kept, expected_length,
-};
+pub use closed_form::{expected_counts, expected_grown, expected_kept, expected_length};
 pub use error::{Error, Result};
 pub use fine::{canonical, digest, identities, lineage_order};
 pub use grow::cycle::{
