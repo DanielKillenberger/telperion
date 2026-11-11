@@ -1,4 +1,5 @@
 """fn-330: run one command, then print its wall seconds and peak resident memory.
+# fn-352: copied from fn-330 probes/peak.py, unchanged below.
 
 Usage: peak.py <command...>. The child's output passes through; the last line
 is `PEAK seconds <s> rss_gib <g> exit <code>`.

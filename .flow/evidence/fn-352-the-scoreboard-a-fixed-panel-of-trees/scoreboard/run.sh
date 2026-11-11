@@ -100,7 +100,7 @@ _panel() {
 panel() {
   echo "$(state 'panel starts')" >> "$OUT/RUN.md"
   # 16 GiB covers the old oak's two grows one after the other (fn-345: 5 GiB peak).
-  SMOKE="${SMOKE:-0}" telperion-heavy 16 --gpu 2 --threads 16 -- bash "$S/run.sh" "$LABEL" _panel \
+  SMOKE="${SMOKE:-0}" telperion-heavy 16 --gpu 2 --threads 24 -- bash "$S/run.sh" "$LABEL" _panel \
     | tee "$RAW/panel.log"
   echo "$(state 'panel ends')" >> "$OUT/RUN.md"
   grep -h '^TREE ' "$RAW"/stills/*.log | sed 's/^TREE //' > "$OUT/measures.jsonl"
