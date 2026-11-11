@@ -1,6 +1,6 @@
 # fn-354 R7: a lateral's kind follows its light, by the builder, 12 Nov 2026
 
-R7-DESIGN.md's design is built in `995134622`, in the vector form the host chose on 12 Nov. The beech's leaf rose from 52 to 109 m² to 141 to 241 m² at 40, its leaf area index from 1.9 to 3.7 to 4.5 to 7.6, and its trunk from 9 to 12 cm to 14 to 18 cm. Every other species is byte-equal. Two tests are red, and each is the host's call (below). The task stays `in_progress`. The birch's sapwood change, which came between the tasks, is reported under its own heading.
+R7-DESIGN.md's design is built in `995134622`, in the vector form the host chose on 12 Nov. The beech's leaf rose from 52 to 109 m² to 141 to 241 m² at 40, its leaf area index from 1.9 to 3.7 to 4.5 to 7.6, and its trunk from 9 to 12 cm to 14 to 18 cm. Every other species is byte-equal. The host's answers of 12 Nov are built in `56fb2d366` (last section): the share test is recast and green, and a turned lateral keeps its unturned key. The identity test is still red for the reason the host named as the return condition, so the task stays `in_progress`. The birch's sapwood change, which came between the tasks, is reported under its own heading.
 
 Tier: product code, built by Opus to the host's design (model: claude-opus-5-5).
 
@@ -109,6 +109,56 @@ Seeds 1001, 1007 and 1012, label `fn354-beech` (head `995134622`) against `fn354
 **What the sheets show** (descriptions, not verdicts):
 - **Beech:** the crown is fuller and denser than both task 4 and base, with more leaf at its surface, on a trunk thicker than task 4's and thinner than base's. The close (crown) view reads as a dense round crown.
 - **Telperion:** the crown is a little fuller than task 4, still open and finer-branched than base, on a trunk 105 to 113 cm against base's 265 to 278 cm.
+
+## 12 Nov: the host's answers, built (`56fb2d366`)
+
+**1. A turn does not rekey.**
+- `Shoot::sprout_keyed`: a lateral's lineage is keyed by the age its table drew, `lived(drawn)`, before any turn. The age it became is the axis's `pa`. The shed-certain marks take the same key.
+- A species with no turn is keyed as before, to the bit.
+
+**Still red: `a_node_keeps_its_identity_across_ages`.** It compares more than keys. Read in a diagnostic run, which was reverted:
+- It maps each axis's identity (its bearer, node and slot, `fine::identities`) and each phytomer's index on that axis to the phytomer's key, at requested ages 14 and 15. Then it asserts that every (identity, index) present in both holds the same phytomer key.
+- One axis differs: 6 of 11,003 entries. At 14 it is a short shoot (age 14, 6 phytomers); at 15 it is a long shoot (age 12, 11 phytomers).
+- Its identity and its lineage are now the same in both trees. Its phytomers are not: a short shoot grows one zone of 3 to 5 nodes and a long shoot two zones, so the node at a given index is another node, with another key.
+- **Where it differs:** phytomer keys at indices 0, 1, 3, 4 and 5 of that one axis.
+- **What would pass:** only a test that compares lineages (`Axis::lineage`) or identities, not the phytomers grown under a lineage whose kind the light changed between the two requested ages.
+
+**2. The share test, recast within one tree.**
+- **What it reads:** each of leaf years 1, 1.25 and 2 grows its own beech at 30. In that tree's plan runs, it counts the stations on segments whose node's own phytomer was laid the year before, without mixed wood, and the stations that keep a leaf (`Run::kept_between`, which the placement draws from).
+- **The denominator** comes from the tree's own structure: phytomer keys to cycles, matched to the drawn nodes by identity. It is read through a test-only reader, `Expansion::runs` (`#[cfg(test)]`), and no product field.
+- **The check:** the kept share is exactly 0 at 1 and exactly 1 at 2, and 0.25 within four standard errors at 1.25. It is green.
+- **What "open wood" means here:** the drawing's retention reads wood age only. The test does not separate closed wood, and the Tree holds no open or closed state.
+
+**3. The smaller items:**
+- **`light_rows`:** the table is in its response rows. It is populated on the beech alone, and it is light-only: neutral where nothing shades. Green.
+- **`node_wood`:** no test depends on it reading the kind; every test is green with it reading the full-light table. Whether a node's expected wood should follow the light is a design question, so it is left.
+- **The long-share measure** is not one line (a field, its JSON and a function), so it stays in this task's copy of the runner (`raw/runner/`).
+
+**Repinned:** the one cycle at both ends of the dial:
+
+| Tree | Before | After |
+|---|---|---|
+| Beech | 11333272162776746682 | 17769414538517393552 |
+| Telperion | 7017510222834692025 | 12061773189002990059 |
+| Laurelin | 230258731259285086 | 17749478251659094029 |
+
+**Checks:**
+- The full narrow space and core suites ran once: 765 of 766, the identity test the one failure.
+- Both guards, fmt, tsc and the catalogue check are green.
+- vitest passed 218, after a rebuild. A first run failed three native/Wasm parity tests on a Wasm built before this commit (FRICTION.md).
+
+**Re-measured** (label `fn354-beech2`, seeds 1001, 1007 and 1012, measures only). Every measure is within about 2% of `fn354-beech`, so no new sheets:
+- **Beech:**
+  - leaf 141 / 173 / 241 m²;
+  - leaf area index 4.5 / 6.5 / 7.6;
+  - trunk 14.3 / 15.9 / 17.6 cm;
+  - new shoots 12,315 / 12,450 / 16,115.
+- **Telperion:** leaf 7,998 / 5,676 / 4,949 m²; trunk 113.2 / 105.2 / 106.0 cm.
+- **Laurelin:**
+  - leaf 8,453 / 6,157 / 5,649 m²;
+  - trunk 115.2 / 107.4 / 108.9 cm;
+  - new shoots 109,357 / 82,218 / 69,936. The last is 2.0% under `fn354-beech`'s 71,351, the largest move.
+- **The run record** is in `beech/runs/fn354-beech2/`.
 
 ## The birch's sapwood (host, 12 Nov; commit `efd26ace8`)
 

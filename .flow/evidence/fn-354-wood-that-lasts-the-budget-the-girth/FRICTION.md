@@ -64,3 +64,10 @@
 - **Slowed by:** this branch's copy of `run.sh` has no subset options (`PRESETS`, `OAK_AGES`, `CRATES`, `COST_TREES`); they were added on the goal branch (`d0e390f2b`) and live only in the `fn-319` worktree, where task 3 ran it and wrote its outputs. Running it there writes into a worktree this task may not touch; so it was copied into this task's ignored `raw/runner/`, its sheet maker's species list and ages edited there for this panel, and the before-panel needed a checkout of `ba0fc19eb` and a second probe build.
 - **Cost:** about 15 minutes: reading two versions of the runner, the copy, and a second probe build (about 3 minutes).
 - **What would have removed it:** the optioned runner and `variants.py` merged onto the branch a spec's builders work on, with the panel's species and ages as options rather than constants.
+
+## 12 Nov 2026, 01:00, builder (task 5): vitest's native/Wasm parity reads a Wasm no Rust build refreshes
+
+- **Doing:** the closing checks after the keyed-lateral fix.
+- **Slowed by:** `harness/parity.test.ts` compares the native build against `src/browser/telperion.wasm`, which only `scripts/build-wasm.mjs` writes. The Wasm was built before the fix, so three parity tests failed (the beech and the Two Trees) on a stale binary, not on a difference.
+- **Cost:** about 8 minutes: one vitest run, reading the failures, a Wasm rebuild and a second run.
+- **What would have removed it:** the parity test refusing by name when the Wasm is older than the crates it was built from, or vitest building it first.
