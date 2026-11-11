@@ -21,15 +21,15 @@
 </style>
 <main>
 <h1>Telperion 0.2.0, where it stands</h1>
-<p class="dim">Updated in place by the host. Last update: 11 Nov 2026, 21:10. Nothing is pushed yet; no phase after the first has landed.</p>
+<p class="dim">Updated in place by the host. Last update: 11 Nov 2026, 22:15. Nothing is pushed yet; no phase after the first has landed.</p>
 
 <h2>Unmet, most important first</h2>
 <ol>
-  <li class="bad">The old oak does not read as an old oak. Under the new wood rule it stands at 200 and 300 with a trunk in a real oak's range, but its crown is thin, it shrinks after 200, and at 300 the trunk is a post with a rim where a side limb took over from the lost leader. The rim is being fixed now; the crown is phase 3.</li>
+  <li class="bad">The old oak does not read as an old oak. Under the new wood rule it stands at 200 and 300 with a trunk in a real oak's range, but its crown is thin, it shrinks after 200, and at 300 the trunk is a post with a flat rim where two stems fork. The base has the same rim. Both are phase 3.</li>
   <li class="bad">The oak at 120 has many thin straight limbs where an oak keeps a few heavy ones. Phase 3.</li>
-  <li class="bad">The beech makes too few leafy shoots, so its trunk at 40 is 9 to 12 cm. Its branching values came from shaded trees. A source survey is running.</li>
-  <li class="bad">Telperion at 82 hangs flowers 5 cm under the ground since its wood got a real stiffness. Being measured; not decided.</li>
-  <li class="bad">Speed. One oak at 40 takes 2.0 to 2.4 s natively against the aim of 0.1 s; in the browser 2.1 s against 0.1.4's 0.12 s. The wood rule adds 13 to 19% for now. The large gain is phase 5.</li>
+  <li class="bad">The beech makes too few leafy shoots, so its trunk at 40 is 9 to 12 cm. Its branching values came from shaded trees. The fix (in full light most side shoots grow long, as measured) is designed and queued.</li>
+  <li class="bad">The Two Trees are worse than today's under the new wood rule: thin trunks and long limbs lying on the ground. The wood now follows the leaf, and the grower did not know their leaves are larger than a beech's. The fix is in build.</li>
+  <li class="bad">Speed. One oak at 40 takes 2.0 to 2.4 s natively against the aim of 0.1 s; in the browser 2.1 s against 0.1.4's 0.12 s. The wood rule adds 8 to 13%. The large gain is phase 5.</li>
   <li class="bad">A tree at year 40 on the way to 120 is not the tree asked for at 40. Designed after phase 2.</li>
   <li class="bad">The package's main module is 388 KB compressed against the 250 KB limit. Phase 6.</li>
 </ol>
@@ -39,7 +39,7 @@
   <tr><th>Phase</th><th>State</th><th>Result</th></tr>
   <tr><td>0. One source of truth</td><td class="ok">done</td><td>One goal (fn-351), your rulings in one file, the scoreboard drawn on today's build beside 0.1.4: 162 trees, none refused.</td></tr>
   <tr><td>1. One grower</td><td class="ok">landed on the integration branch</td><td>The GPU grower is deleted. Rust source 202,868 to 164,423 lines; the render module 842 KB to 535 KB compressed. Full gate green (1,387 passed), review clean. Browser paths need your eyes at the end; agents cannot drive WebGPU.</td></tr>
-  <tr><td>2. Wood that lasts</td><td>in build</td><td>The budget fix and the wood rule are built on a branch. Oak trunk 27 to 34, 68 to 93, 106 to 139, 132 to 171, 145 to 185 cm at 40, 80, 120, 200, 300 against a real oak's 28 to 40, 56 to 79, 83 to 109, 121 to 152, 156 to 192. Wood never thins. Open: the rim at a takeover, the cost, Telperion's flowers, the leaf account, the beech.</td></tr>
+  <tr><td>2. Wood that lasts</td><td>in build</td><td>The budget fix and the wood rule are built on a branch. Oak trunk 27 to 34, 68 to 93, 106 to 139, 132 to 171, 145 to 185 cm at 40, 80, 120, 200, 300 against a real oak's 28 to 40, 56 to 79, 83 to 109, 121 to 152, 156 to 192. Wood never thins. Open: the Two Trees, the leaf account, the beech.</td></tr>
   <tr><td>3. A crown that renews</td><td class="dim">not started</td><td></td></tr>
   <tr><td>4. Species on sources</td><td class="dim">not started</td><td></td></tr>
   <tr><td>5. Counted foliage, speed</td><td class="dim">not started</td><td></td></tr>
