@@ -29,3 +29,11 @@ As you planned: draw, wait out the 150 ms floor, then grow the next year, so the
 Noted: the still runner grows through `executor::grow(&family)` and `.expansion()`; task 2 keeps those or moves the still runner first.
 
 Go on with R1 (as restated), R2 and R3.
+
+## 5. Ownership: option A
+
+The host's decision on `R1-OWNERSHIP.md`, in its words:
+
+The grower owns its species: `Paused` and `Grower` hold an `Arc<Species>`, `grow_cycle` clones the species into it once per tree, `Rules` drops its species and `Shoot` reads it from the grower. Reason: one way of holding the species for every caller (no type parameter standing in for a lifetime, no second flavour of grower), and a species is a small value table, so one clone per tree is nothing beside growing it. Hold that claim to a measurement: the oak at 40, seed 1001, one thread, grow time before and after, three runs each through telperion-heavy; if the median moves by more than 2%, stop and return with the numbers. Hold behaviour to the pinned digests: the existing digest and repeat tests in telperion-space and telperion-core pass unchanged, with no baseline edited. At the borrow sites that copy the species out and then change the grower, clone the Arc; do not restructure the passes. If anything beyond ownership has to change (a pass's order, a public signature outside telperion-space and the callers you listed, a test's expectation), stop and return with it.
+
+Do this as its own commit(s) first, then R1 as restated, then R2 and R3.
