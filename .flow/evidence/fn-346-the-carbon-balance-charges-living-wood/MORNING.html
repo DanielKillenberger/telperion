@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The oak's budget, fixed: the night's result</title>
+<style>
+  :root { --bg:#f6f5f1; --fg:#1d1d1b; --mute:#5c5a54; --line:#d9d6cc; --good:#2f6b3a; --bad:#9c2f2f; --card:#fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#161614; --fg:#ecebe6; --mute:#a6a39a; --line:#34332f; --good:#7fc48c; --bad:#e08a8a; --card:#1e1e1b; } }
+  body { background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, sans-serif; margin:0; padding:24px 16px 64px; }
+  main { max-width:1100px; margin:0 auto; }
+  h1 { font-size:28px; margin:0 0 4px; } h2 { font-size:20px; margin:40px 0 8px; }
+  p, li { max-width:75ch; } .mute { color:var(--mute); }
+  table { border-collapse:collapse; margin:12px 0; background:var(--card); }
+  th, td { border:1px solid var(--line); padding:6px 10px; text-align:left; vertical-align:top; font-size:15px; }
+  .good { color:var(--good); font-weight:600; } .bad { color:var(--bad); font-weight:600; }
+  figure { margin:16px 0; } figure img { width:100%; height:auto; border:1px solid var(--line); background:var(--card); }
+  figcaption { color:var(--mute); font-size:14px; margin-top:4px; }
+  .scroll { overflow-x:auto; }
+</style>
+</head>
+<body>
+<main>
+<h1>The oak's budget, fixed: the night's result</h1>
+<p class="mute">Goal fn-347, 11 Nov 2026. Written by the host. Nothing has merged into the working branch; nothing is pushed.</p>
+
+<h2>What is not met</h2>
+<ul>
+  <li><strong>The old oak is not yet good on every seed.</strong> On one of three seeds the oak at 300 is drawn bent over to the ground, which is worse than today's. So the goal's bar (no tree worse) is not met and the fix has not been merged.</li>
+  <li><strong>The product change is not finished.</strong> Its CPU part is being built on a side branch. The GPU grower repeats the budget in shader code and still has to be changed to match; the test gate cannot pass until then.</li>
+  <li><strong>What bends the old tree is not the budget.</strong> The grower holds a steady oak of 30 to 33 m. The drawing step lays it down, because a limb's thickness falls as it sheds what it carries (trunk 137 cm at 120, 36 cm at 300) and sag acts on the thinned wood.</li>
+</ul>
+
+<h2>What is established</h2>
+<ul>
+  <li><strong>The bug is fixed in the probe.</strong> Dead wood costs nothing. A living tip costs its size times the square of its distance from the root over the species' potential height.</li>
+  <li><strong>A limb is judged on what would remain.</strong> A limb is shed only if it would still not pay after its non-paying parts have gone. Before, a limb a hair under break-even was dropped whole (one went at −0.004 with 27,222 tips).</li>
+  <li><strong>The oak stops growing by its own economy, with no cap.</strong> The longest branch path holds at 34 to 38 m from about year 140, the height stops at 32 to 33 m, and tips and wood are level from about 220.</li>
+  <li><strong>It is cheaper.</strong> The grow to 300 takes 131 s and 2.2 GB against today's 146 s and 2.7 GB, measured in one session.</li>
+  <li><strong>Other species are unchanged</strong> at their preset ages: beech, birch, spruce, palm, ordinary.</li>
+</ul>
+
+<h2>My verdict per tree, against today's</h2>
+<div class="scroll">
+<table>
+<tr><th>Oak</th><th>Seed 1001</th><th>Seed 1007</th><th>Seed 1012</th></tr>
+<tr><td>40</td><td>The same</td><td class="mute">not drawn</td><td>The same</td></tr>
+<tr><td>80</td><td>The same</td><td class="mute">not drawn</td><td class="mute">not drawn</td></tr>
+<tr><td>120</td><td class="good">Better: many-limbed, clothed through its depth</td><td class="good">Better: a broad full oak on a short bole</td><td class="good">Better: broad and open where today's leans</td></tr>
+<tr><td>200</td><td>Thinner than today's, form sounder; limbs low on one side</td><td>Neither: upright with a real trunk, thinly clothed</td><td class="good">Better: a low, wide, clothed old tree where today's is a bent pole</td></tr>
+<tr><td>300</td><td class="bad">Worse: the stem bends over to the ground</td><td class="good">Better: a small upright old tree where today's is a twisted pole</td><td class="good">Better: a spreading old tree where today's is a bent pole with a tuft</td></tr>
+</table>
+</div>
+<p>Jev, asked four narrow questions about each of 18 stills, reads today's trunk as snaking at 200 and 300 on every seed (0.99 to 1.00) and today's tree as a pole with a tuft in five of those six. It reads the fixed oak as an old spreading tree in eight of nine stills and as broken in the ninth, the same one I call worse. It disagreed with me once: at 200 on seed 1001 I had called the fixed oak worse; I now keep only "thinner".</p>
+
+<h2>Today's oak beside the fix</h2>
+<p>Columns in the first two sheets: today, the earlier straight-cost variant, <strong>the fix (SR)</strong>, a refuted variant. Rows: 40, 80, 120, 200, 300.</p>
+<figure><img src="square-oak-1001-whole.jpg" alt="Oak seed 1001, today beside the variants, leafed"><figcaption>Seed 1001. The fix is the third column. At 300 the stem is laid over by sag.</figcaption></figure>
+<figure><img src="square-oak-1007-whole.jpg" alt="Oak seed 1007, today beside the variants, leafed"><figcaption>Seed 1007, at 120, 200 and 300. The fix is the third column.</figcaption></figure>
+<figure><img src="last-oak-1012.jpg" alt="Oak seed 1012, today beside the fix"><figcaption>Seed 1012: today beside the fix, leafless then leafed, at 40, 120, 200 and 300.</figcaption></figure>
+<figure><img src="last-oak-1001.jpg" alt="Oak seed 1001 with sag on and off"><figcaption>Seed 1001 with sag on beside sag off (an instrument, not a candidate). Columns: today, today without sag, the fix, the fix without sag, then the fix with the sleeping-bud rule. Without sag the fix stands at 200; at 300 it is a thin pole with a small crown.</figcaption></figure>
+<figure><img src="square-others.jpg" alt="Other species under the fix"><figcaption>The other species under the fix beside today's: the same.</figcaption></figure>
+
+<h2>What was tried and dropped</h2>
+<div class="scroll">
+<table>
+<tr><th>Rule</th><th>Outcome</th></tr>
+<tr><td>One pipe per tip, straight cost</td><td>Refuted by arithmetic before any build: it would cost the oak more than its income from age 45.</td></tr>
+<tr><td>Straight cost at the potential height</td><td>Starves the crown; the oak is dead by 280 on one seed.</td></tr>
+<tr><td>Straight cost at twice the potential height</td><td>The tree never stops spreading: 60 to 83 m wide at 300, limbs on the ground.</td></tr>
+<tr><td>Fine tips live on in place</td><td>A skirt of shoots on the young oak, a thicket over the birch's trunk.</td></tr>
+<tr><td>Sleeping buds wake where a shoot would pay</td><td>Adds leaf at 200, but as built its shoots are born at near-zero size after a long sleep, so the drawn tree loses them. Not judged; needs that defect fixed first.</td></tr>
+<tr><td>A part's radius never falls</td><td>Stacked cylinders and a hard step on the trunk, no tree held up, 2.4 to 4.3 times the cost.</td></tr>
+</table>
+</div>
+
+<h2>My estimates, for you to change</h2>
+<ul>
+  <li><strong>The exponent 2 in the cost.</strong> The source I could reach (McDowell et al. 2002, abstract only) says trees keep more water-carrying wood per leaf as they grow taller, which "partially compensates". Full compensation, the square, is mine.</li>
+  <li><strong>Reading the potential height (34.8 m for the oak) against distance along the wood</strong>, not against height.</li>
+  <li><strong>A species with no value is not charged at all</strong> (the ordinary tree and the two fictional ones). They are not yet drawn under that.</li>
+</ul>
+
+<h2>The decision that is yours</h2>
+<ol>
+  <li><strong>Finish and merge the fix as it stands (my recommendation).</strong> It is the same or better up to 120 on every seed, better or equal at 200 and 300 on two seeds of three, cheaper, and it removes the bug. The one failing case is a drawing fault that today's trees also carry in milder form (today's trunk shrinks from 143 to 120 cm). It needs the GPU part built, about 2 to 3 hours, then the gate and the review.</li>
+  <li><strong>Hold the fix until the old tree stands on every seed.</strong> That means a separate piece of work on how wood keeps its thickness and how sag reads it. Earlier work there (fn-337, fn-338, fn-341) did not end well, and I cannot promise how long it takes.</li>
+</ol>
+</main>
+</body>
+</html>
