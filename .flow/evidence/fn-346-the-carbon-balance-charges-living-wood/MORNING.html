@@ -27,7 +27,9 @@
 <h2>What is not met</h2>
 <ul>
   <li><strong>The old oak is not yet good on every seed.</strong> On one of three seeds the oak at 300 is drawn bent over to the ground, which is worse than today's. So the goal's bar (no tree worse) is not met and the fix has not been merged.</li>
-  <li><strong>The product change is not finished.</strong> Its CPU part is being built on a side branch. The GPU grower repeats the budget in shader code and still has to be changed to match; the test gate cannot pass until then.</li>
+  <li><strong>One tree that draws today is refused.</strong> The product build will not draw the oak at 200 on seed 1012 ("reaches 0.005 m below the ground"); the probe drew it and today's build draws it. Same cause as the bent stem.</li>
+  <li><strong>The product change is built but not green.</strong> CPU and GPU growers both carry the new budget on a side branch. Five tests were red at 08:40 and the builder is on them until 09:40; the full gate and the review have not run.</li>
+  <li><strong>It costs more at 120.</strong> The oak at 120 takes 35.8 s and 2.1 GB against today's 30.9 s and 1.6 GB, because its crown is larger there. It is cheaper at 300.</li>
   <li><strong>What bends the old tree is not the budget.</strong> The grower holds a steady oak of 30 to 33 m. The drawing step lays it down, because a limb's thickness falls as it sheds what it carries (trunk 137 cm at 120, 36 cm at 300) and sag acts on the thinned wood.</li>
 </ul>
 
@@ -36,7 +38,8 @@
   <li><strong>The bug is fixed in the probe.</strong> Dead wood costs nothing. A living tip costs its size times the square of its distance from the root over the species' potential height.</li>
   <li><strong>A limb is judged on what would remain.</strong> A limb is shed only if it would still not pay after its non-paying parts have gone. Before, a limb a hair under break-even was dropped whole (one went at −0.004 with 27,222 tips).</li>
   <li><strong>The oak stops growing by its own economy, with no cap.</strong> The longest branch path holds at 34 to 38 m from about year 140, the height stops at 32 to 33 m, and tips and wood are level from about 220.</li>
-  <li><strong>It is cheaper.</strong> The grow to 300 takes 131 s and 2.2 GB against today's 146 s and 2.7 GB, measured in one session.</li>
+  <li><strong>It is cheaper to 300.</strong> In the product build the grow to 300 takes 117.9 s and 2.0 GB against today's 130.4 s and 2.5 GB, measured in one session.</li>
+  <li><strong>The product build draws the probe's trees.</strong> I viewed its sheets: the oak matches the probe tile for tile, and the two fictional trees, which are not charged, match today's.</li>
   <li><strong>Other species are unchanged</strong> at their preset ages: beech, birch, spruce, palm, ordinary.</li>
 </ul>
 
@@ -47,7 +50,7 @@
 <tr><td>40</td><td>The same</td><td class="mute">not drawn</td><td>The same</td></tr>
 <tr><td>80</td><td>The same</td><td class="mute">not drawn</td><td class="mute">not drawn</td></tr>
 <tr><td>120</td><td class="good">Better: many-limbed, clothed through its depth</td><td class="good">Better: a broad full oak on a short bole</td><td class="good">Better: broad and open where today's leans</td></tr>
-<tr><td>200</td><td>Thinner than today's, form sounder; limbs low on one side</td><td>Neither: upright with a real trunk, thinly clothed</td><td class="good">Better: a low, wide, clothed old tree where today's is a bent pole</td></tr>
+<tr><td>200</td><td>Thinner than today's, form sounder; limbs low on one side</td><td>Neither: upright with a real trunk, thinly clothed</td><td class="bad">Probe: better, a low, wide, clothed old tree. Product: refused, not drawn</td></tr>
 <tr><td>300</td><td class="bad">Worse: the stem bends over to the ground</td><td class="good">Better: a small upright old tree where today's is a twisted pole</td><td class="good">Better: a spreading old tree where today's is a bent pole with a tuft</td></tr>
 </table>
 </div>
@@ -60,6 +63,12 @@
 <figure><img src="last-oak-1012.jpg" alt="Oak seed 1012, today beside the fix"><figcaption>Seed 1012: today beside the fix, leafless then leafed, at 40, 120, 200 and 300.</figcaption></figure>
 <figure><img src="last-oak-1001.jpg" alt="Oak seed 1001 with sag on and off"><figcaption>Seed 1001 with sag on beside sag off (an instrument, not a candidate). Columns: today, today without sag, the fix, the fix without sag, then the fix with the sleeping-bud rule. Without sag the fix stands at 200; at 300 it is a thin pole with a small crown.</figcaption></figure>
 <figure><img src="square-others.jpg" alt="Other species under the fix"><figcaption>The other species under the fix beside today's: the same.</figcaption></figure>
+
+<h2>The product build's trees</h2>
+<p>Each sheet shows today's build beside the product build and, where it exists, the probe.</p>
+<figure><img src="raw/product/drawn-oak-1001-whole.jpg" alt="Product build, oak seed 1001"><figcaption>Seed 1001 at 40, 80, 120, 200 and 300.</figcaption></figure>
+<figure><img src="raw/product/drawn-oak-1012-whole.jpg" alt="Product build, oak seed 1012"><figcaption>Seed 1012. The tile at 200 is missing because the build refuses that tree.</figcaption></figure>
+<figure><img src="raw/product/drawn-two-trees.jpg" alt="Laurelin and Telperion, today and product"><figcaption>The two fictional trees, today's beside the product's: the same.</figcaption></figure>
 
 <h2>What was tried and dropped</h2>
 <div class="scroll">
@@ -78,7 +87,7 @@
 <ul>
   <li><strong>The exponent 2 in the cost.</strong> The source I could reach (McDowell et al. 2002, abstract only) says trees keep more water-carrying wood per leaf as they grow taller, which "partially compensates". Full compensation, the square, is mine.</li>
   <li><strong>Reading the potential height (34.8 m for the oak) against distance along the wood</strong>, not against height.</li>
-  <li><strong>A species with no value is not charged at all</strong> (the ordinary tree and the two fictional ones). They are not yet drawn under that.</li>
+  <li><strong>A species with no value is not charged at all</strong> (the ordinary tree and the two fictional ones). The two fictional trees are now drawn under it and match today's.</li>
 </ul>
 
 <h2>The decision that is yours</h2>
