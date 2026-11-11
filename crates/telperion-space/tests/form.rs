@@ -149,68 +149,6 @@ fn a_lateral_leaves_from_its_parents_direction_at_its_node() {
     assert!(checked > 0);
 }
 
-/// Pipe model: a section is the sum of the sections it bears. A relay's
-/// enters where it joins its parent, by its share at the node whose span
-/// it stands in and the rest at the node before, or below the parent's
-/// first node, where it is in the section the parent hands on (fn-244).
-#[test]
-fn girth_is_the_sum_of_the_sections_carried() {
-    let species = walk::species();
-    let tree = grown(&species, 1);
-    let mut carried = vec![vec![0.0; 0]; tree.axes.len()];
-    for (i, axis) in tree.axes.iter().enumerate() {
-        carried[i] = vec![0.0; axis.phytomers.len()];
-    }
-    let (mut tip, mut below) = (vec![0.0; tree.axes.len()], vec![0.0; tree.axes.len()]);
-    let mut joined = 0;
-    for (i, axis) in tree.axes.iter().enumerate().rev() {
-        let base = axis
-            .phytomers
-            .first()
-            .map_or(tip[i], |p| p.radius * p.radius)
-            + below[i];
-        match (axis.origin, axis.joined()) {
-            (Origin::Relay { parent, .. }, Some(join)) => {
-                let t = f64::from(join.t);
-                carried[parent][join.node] += t * base;
-                match join.node.checked_sub(1) {
-                    Some(k) => carried[parent][k] += (1.0 - t) * base,
-                    None => below[parent] += (1.0 - t) * base,
-                }
-                joined += 1;
-            }
-            (Origin::Lateral { parent, node, .. }, _) if node < carried[parent].len() => {
-                carried[parent][node] += base
-            }
-            (
-                Origin::Lateral { parent, .. }
-                | Origin::Relay { parent, .. }
-                | Origin::Continuation { parent },
-                _,
-            ) => tip[parent] += base,
-            (Origin::Seed, _) => {}
-        }
-    }
-    assert!(joined > 0, "a relay joined");
-    for (i, axis) in tree.axes.iter().enumerate() {
-        let primary = species.states[axis.pa].form.primary;
-        for (k, p) in axis.phytomers.iter().enumerate() {
-            let above = axis
-                .phytomers
-                .get(k + 1)
-                .map_or(tip[i], |q| q.radius * q.radius);
-            let own = (primary * p.scale).powi(2);
-            let want = above + own + carried[i][k];
-            // Sections and radii are f32, a section a power taken in f32
-            // logs (fn-254): the sum holds to a few parts in a million.
-            assert!(
-                (p.radius * p.radius - want).abs() < 1e-5 * want + 1e-12,
-                "axis {i} node {k}"
-            );
-        }
-    }
-}
-
 /// Dominance leaves a few laterals whole and the rest smaller, and grows
 /// no other tree.
 #[test]

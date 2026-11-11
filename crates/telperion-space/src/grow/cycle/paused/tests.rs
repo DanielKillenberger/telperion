@@ -63,7 +63,9 @@ fn eventful(species: &Species, r: Request) -> Vec<u32> {
 
 /// R1 (d): grown on from a pause, with settles, repeated settles and
 /// zero-year advances between, the tree is the one grown in one call, to
-/// the bit, and no settle or empty advance moves the grower.
+/// the bit, and no settle or empty advance moves the grower. Both digests
+/// hold every phytomer's section and sapwood, so a year's wood is laid the
+/// same paused and resumed as straight through (fn-354).
 #[test]
 fn a_tree_paused_and_grown_on_is_the_tree_grown_at_once() {
     let h = 24;

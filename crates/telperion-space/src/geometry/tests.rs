@@ -174,6 +174,8 @@ fn a_length_at_a_span_end_is_the_whole_span() {
             rank: 0.0,
             size: 1.0,
             grown: 1.0,
+            section: 0.0,
+            sapwood: 0.0,
         });
     }
     let tip = total(&axis);

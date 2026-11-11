@@ -171,14 +171,15 @@ fn start(species: Arc<Species>, request: Request, options: Options) -> Result<Gr
     }
     let laterals: Vec<_> = species.states.iter().map(PaState::laterals).collect();
     // The rough layout is grown wherever light shades: every bud reads
-    // it (fn-255); and wherever a ground hazard reads its tips (fn-252 R2),
-    // whole light where nothing shades.
+    // it (fn-255); wherever a ground hazard reads its tips (fn-252 R2),
+    // whole light where nothing shades; and wherever wood is laid by the
+    // leaf above it (fn-354).
     let grounded = species.states.iter().any(|s| s.ground_hazard > 0.0);
-    let sketch = (request.light.shades() || grounded).then(|| Sketch::new(request.light));
+    let laid = request.light.shades() || grounded || crate::girth::lays(&species);
+    let sketch = laid.then(|| Sketch::new(request.light));
     // What shedding will drop is grown only where something reads it
     // while it lives: the light, or the wood its leaf lays in what bore it.
-    let wood = species.states.iter().any(|s| s.form.sapwood > 0.0);
-    let lasting = if options.certain != Certain::Grow && sketch.is_none() && !wood {
+    let lasting = if options.certain != Certain::Grow && sketch.is_none() {
         lasting(&species, &laterals)
     } else {
         vec![None; species.states.len()]
@@ -362,7 +363,8 @@ impl Grower {
     }
 
     /// One cycle: its growth, then, `sketching` where a rough layout is
-    /// grown, its layout and its light, read on the layout's places.
+    /// grown, its layout and its light, read on the layout's places; and
+    /// the year's wood.
     fn year(
         &mut self,
         cycle: u32,
@@ -377,14 +379,19 @@ impl Grower {
         advanced.extend(self.live.iter().map(|a| a.axis));
         self.step(cycle, stage)?;
         stage(Stage::Grown);
-        if self.sketch.is_none() || !sketching {
-            return Ok(());
+        // The wood reads each year's leaf on that year's layout, the last
+        // year's too, whose light no bud reads (fn-354).
+        if self.sketch.is_some() && (sketching || crate::girth::lays(&self.species)) {
+            self.sketch(cycle, advanced)?;
+            stage(Stage::Pass(Pass::Sketch));
+            stage(Stage::Sketched);
+            if sketching {
+                self.shade(stage)?;
+                stage(Stage::Lit);
+            }
         }
-        self.sketch(cycle, advanced)?;
-        stage(Stage::Pass(Pass::Sketch));
-        stage(Stage::Sketched);
-        self.shade(stage)?;
-        stage(Stage::Lit);
+        crate::girth::lay(&mut self.axes, &self.species, cycle, self.threads);
+        stage(Stage::Pass(Pass::Wood));
         Ok(())
     }
 

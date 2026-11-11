@@ -1,9 +1,27 @@
-//! Girth by the pipe model (as Pałubicki et al. 2009 use it): a section is
-//! the sum of the sections it carries, by area. Each phytomer adds the
-//! section of its PA's primary radius by its scale.
-use crate::species::{Form, Species};
-use crate::structure::{Axis, Join, Origin, Structure};
+//! Girth by sapwood and heartwood (fn-354; the rule of PROBE-BRIEF.md as
+//! PRODUCT-DESIGN.md makes it product). Each phytomer carries its whole
+//! section and the sapwood it holds, in m², from the year it is laid: a new
+//! phytomer's section is its primary radius's at its scale. Each year one
+//! pass from the tips down gives every held phytomer the leaf above it
+//! that year, its own, its axis's beyond it and every child's at or beyond
+//! its node (a lateral at its node, a continuation or relay at the tip),
+//! and lays what its sapwood is short of:
+//!
+//! ```text
+//! need = leaf × sapwood × 1e-4    kept = S (1 − 1 / rings)
+//! laid = max(0, need − kept)      T += laid    S = kept + laid
+//! ```
+//!
+//! Wood is never lost: a crown removed or shed lays nothing more and takes
+//! nothing away. At the settle a phytomer's radius is sqrt(T × share / π),
+//! `share` the fade its axis is drawn at.
+use crate::species::{Form, PaState, Species};
+use crate::structure::{Axis, Join, Origin, Phytomer, Structure};
 use crate::upward::Tree;
+use std::f64::consts::PI;
+
+#[cfg(test)]
+mod tests;
 
 /// The radius a phytomer was established with: its PA's primary, by its
 /// scale.
@@ -11,97 +29,111 @@ pub(crate) fn established(form: &Form, scale: f64) -> f64 {
     f64::from(form.primary as f32 * scale as f32)
 }
 
-/// A radius's section, by area.
-fn section(radius: f64) -> f32 {
-    let r = radius as f32;
-    r * r
+/// Whether any age lays wood beyond its primary section.
+pub(crate) fn lays(species: &Species) -> bool {
+    species.states.iter().any(|s| s.form.sapwood > 0.0)
 }
 
-/// A section's radius, by area.
-fn radius(section: f32) -> f64 {
-    f64::from(section.max(0.0).sqrt())
-}
-
-/// Sets every phytomer's radius from the sections it carries, on up to
-/// `threads` cores. Each relay gets its parent's girth where it joins
-/// (`Axis::joined`).
-pub(crate) fn thicken(structure: &mut Structure, species: &Species, threads: usize) {
-    let attached: Vec<_> = (0..structure.axes.len())
-        .map(|i| self::attached(&structure.axes, species, i))
-        .collect();
-    let axes = &mut structure.axes;
-    let links: Vec<Origin> = axes.iter().map(|a| a.origin).collect();
-    let parents: Vec<Option<usize>> = links.iter().map(|l| l.parent()).collect();
-    let tree = Tree::new(&parents);
-    // Section carried into each axis's phytomers by its laterals and
-    // relays, and into its tip by its continuation, the last child first,
-    // as a backward pass meets them. Each child hands on its base radius;
-    // each relay's join is read where it stands.
-    let given_out = tree.upward(
-        axes,
-        threads,
-        &|i, axis, out: &[(f64, Vec<(usize, Join)>)], at_node: &mut Vec<f32>| {
-            let form = species.states[axis.pa].form;
-            at_node.clear();
-            at_node.resize(axis.phytomers.len(), 0.0);
-            let (mut at_tip, mut at_base) = (0.0f32, 0.0f32);
-            // Each relay's node, share and parts, for its join.
-            let mut relays: Vec<(usize, usize, f32, f32, f32)> = Vec::new();
-            for &c in tree.children(i) {
-                let section = section(out[c].0);
-                match (links[c], attached[c]) {
-                    (Origin::Seed, _) => {}
-                    (Origin::Lateral { node, .. }, _) => match at_node.get_mut(node) {
-                        Some(at) => *at += section,
-                        None => at_tip += section,
-                    },
-                    // A relay's wood enters where it joins (fn-244).
-                    (Origin::Relay { .. }, Some((k, t))) => {
-                        let (at, below) = joining(section, t);
-                        at_node[k] += at;
-                        match k.checked_sub(1) {
-                            Some(j) => at_node[j] += below,
-                            None => at_base += below,
-                        }
-                        relays.push((c, k, t, at, below));
-                    }
-                    (Origin::Relay { .. } | Origin::Continuation { .. }, _) => at_tip += section,
-                }
-            }
-            let mut joins = Vec::with_capacity(relays.len());
-            let mut section = at_tip;
-            for (k, phytomer) in axis.phytomers.iter_mut().enumerate().rev() {
-                let own = established(&form, phytomer.scale);
-                section += self::section(own) + at_node[k];
-                phytomer.radius = radius(section);
-                for &(c, _, t, at, below) in relays.iter().filter(|r| r.1 == k) {
-                    let (below, above) = (radius(section + below), radius(section - at));
-                    joins.push((
-                        c,
-                        Join {
-                            node: k,
-                            t,
-                            below,
-                            above,
-                        },
-                    ));
-                }
-            }
-            (radius(section + at_base), joins)
-        },
-    );
-    for (c, join) in given_out.iter().flat_map(|o| &o.1) {
-        structure.axes[*c].joined = Some(Box::new(*join));
+/// The leaf phytomer `p` of a PA in `state` bears in `year`, m²: what the
+/// grower deposits into the light for it, the leaf of the year it was laid.
+pub(crate) fn leaf(state: &PaState, p: &Phytomer, year: u32) -> f64 {
+    match p.cycle == year {
+        true => crate::light::leaf_area(p.scale, p.size, state.leaf_area),
+        false => 0.0,
     }
 }
 
-/// A relay's section as its parent takes it at the relay's attachment
-/// (`geometry::attach`): `t` of it at the node whose span it stands in,
-/// the rest at the node before (or the base), so the parent's samples
-/// move by degree as it moves along (fn-199 R4); the parts.
-pub(crate) fn joining(x: f32, t: f32) -> (f32, f32) {
-    let at = x * t;
-    (at, x - at)
+/// A section and its sapwood, `[T, S]`, one year on under `need`, the
+/// sapwood its leaf needs, at `rings` years of sapwood.
+pub(crate) fn ring([t, s]: [f64; 2], need: f64, rings: f64) -> [f64; 2] {
+    let kept = s * (1.0 - 1.0 / rings);
+    let laid = (need - kept).max(0.0);
+    [t + laid, kept + laid]
+}
+
+/// The year's wood laid on the growing tree on up to `threads` cores: each
+/// phytomer laid since the last pass given its primary section, then every
+/// held phytomer's sapwood set by the leaf above it in `year`.
+pub(crate) fn lay(axes: &mut [Axis], species: &Species, year: u32, threads: usize) {
+    let links: Vec<Origin> = axes.iter().map(|a| a.origin).collect();
+    let parents: Vec<Option<usize>> = links.iter().map(|l| l.parent()).collect();
+    let tree = Tree::new(&parents);
+    tree.upward(
+        axes,
+        threads,
+        &|i, axis, done: &[f64], at_node: &mut Vec<f64>| {
+            let state = &species.states[axis.pa];
+            let form = &state.form;
+            at_node.clear();
+            at_node.resize(axis.phytomers.len(), 0.0);
+            let mut sum = 0.0;
+            for &c in tree.children(i) {
+                match links[c] {
+                    Origin::Lateral { node, .. } if node < at_node.len() => {
+                        at_node[node] += done[c]
+                    }
+                    _ => sum += done[c],
+                }
+            }
+            let per_leaf = form.sapwood * 1e-4;
+            for (k, p) in axis.phytomers.iter_mut().enumerate().rev() {
+                sum += leaf(state, p, year) + at_node[k];
+                if p.section == 0.0 {
+                    let e = established(form, p.scale);
+                    p.section = (PI * e * e) as f32;
+                }
+                let held = [f64::from(p.section), f64::from(p.sapwood)];
+                let [t, s] = ring(held, sum * per_leaf, form.sapwood_rings);
+                (p.section, p.sapwood) = (t as f32, s as f32);
+            }
+            sum
+        },
+    );
+}
+
+/// Every kept axis's share as drawn: its own fade times the share of the
+/// axis it stands on, as its scale takes its bearer's (`geometry::scale`).
+pub(crate) fn shares(axes: &[Axis], index: &[usize], fade: &[f64]) -> Vec<f64> {
+    let mut own = vec![1.0; axes.len()];
+    for (&k, &f) in index.iter().zip(fade) {
+        if k != usize::MAX {
+            own[k] = f;
+        }
+    }
+    let mut share = vec![1.0; axes.len()];
+    for k in 0..axes.len() {
+        let above = axes[k].origin.parent().map_or(1.0, |p| share[p]);
+        share[k] = own[k] * above;
+    }
+    share
+}
+
+/// Every phytomer's radius from its wood, `sqrt(T × share / π)`, `shares`
+/// each axis's (`shares`); each relay joined at the radius of the wood
+/// its join stands in, on both sides, since its leaf enters its bearer at
+/// the tip.
+pub(crate) fn thicken(structure: &mut Structure, species: &Species, shares: &[f64]) {
+    for (axis, &share) in structure.axes.iter_mut().zip(shares) {
+        for p in &mut axis.phytomers {
+            p.radius = (f64::from(p.section) * share / PI).sqrt();
+        }
+    }
+    for i in 0..structure.axes.len() {
+        if !matches!(structure.axes[i].origin, Origin::Relay { .. }) {
+            continue;
+        }
+        let Some((node, t)) = attached(&structure.axes, species, i) else {
+            continue;
+        };
+        let parent = structure.axes[i].origin.parent().expect("a relay's bearer");
+        let r = structure.axes[parent].phytomers[node].radius;
+        structure.axes[i].joined = Some(Box::new(Join {
+            node,
+            t,
+            below: r,
+            above: r,
+        }));
+    }
 }
 
 /// Axis `i`'s attachment as its parent's node and share
@@ -115,6 +147,3 @@ pub(crate) fn attached(axes: &[Axis], species: &Species, i: usize) -> Option<(us
         .checked_sub(1)?;
     Some(crate::geometry::split(x, last))
 }
-
-#[cfg(test)]
-mod tests;

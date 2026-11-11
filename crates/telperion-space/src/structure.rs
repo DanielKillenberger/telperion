@@ -200,6 +200,10 @@ pub struct Phytomer {
     /// times the share of its cycle the unit lived (`presence::assign`),
     /// which a relay standing on its unit reads (`geometry::stand`).
     pub(crate) grown: f64,
+    /// Its whole section and the sapwood it holds, m² (`girth.rs`): none
+    /// until the year's pass first meets it.
+    pub(crate) section: f32,
+    pub(crate) sapwood: f32,
 }
 
 impl Phytomer {

@@ -33,6 +33,8 @@ pub enum Pass {
     Wake,
     /// Each cycle's rough layout.
     Sketch,
+    /// Each cycle's wood laid (`girth::lay`).
+    Wood,
     /// The light: the lattice swept, and read at the buds.
     ShadeField,
     ShadeRead,

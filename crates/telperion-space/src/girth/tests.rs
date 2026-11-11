@@ -1,4 +1,5 @@
-//! Girth on a small tree: a relay's wood where it joins.
+//! The wood on a small tree (PRODUCT-DESIGN.md, "Tests"): what a year
+//! lays, what it never takes away, and where a relay joins.
 use super::*;
 use crate::species::{NodeLaw, PaState, Zone};
 use crate::structure::{Axis, Phytomer, Vec3};
@@ -67,6 +68,8 @@ fn phytomer() -> Phytomer {
         rank: 0.0,
         size: 1.0,
         grown: 1.0,
+        section: 0.0,
+        sapwood: 0.0,
     }
 }
 
@@ -92,59 +95,130 @@ fn axis(origin: Origin, nodes: usize) -> Axis {
     }
 }
 
-/// A relay's wood enters its parent where it joins (fn-244): every
-/// sample below the span it stands in carries it whole, every one above
-/// carries none, and the join's radii are the parent's there with the
-/// relay whole (below) and with its stopped module's own wood (above).
-#[test]
-fn a_relays_wood_enters_where_it_joins_and_its_stub_carries_its_own() {
-    let mut states = vec![state()];
-    // A share and a blend that stand the relay part-way along a span.
-    states[0].relay_at = 0.3;
-    let species = Species { states };
-    let grown = |origin: Option<Origin>| {
-        let mut axes = vec![axis(Origin::Seed, 4)];
-        if let Some(origin) = origin {
-            let mut child = axis(origin, 3);
-            child.blend = 0.4;
-            axes.push(child);
-        }
-        let mut t = Structure {
-            age: 1,
-            pas: 1,
-            axes,
-        };
-        thicken(&mut t, &species, 1);
-        t
-    };
-    let relay = grown(Some(Origin::Relay { parent: 0, node: 1 }));
-    let join = relay.axes[1].joined().expect("a relay's join");
-    let k = join.node;
-    assert!(join.t > 0.0 && join.t < 1.0, "part-way along its span");
-    let lateral = grown(Some(Origin::Lateral {
+/// A lateral at `node` of axis 0.
+fn lateral(node: usize) -> Origin {
+    Origin::Lateral {
         parent: 0,
-        node: k,
+        node,
         slot: 0,
         whorl: 1.0,
         woken: false,
-    }));
-    let alone = grown(None);
-    let radii = |t: &Structure| {
-        t.axes[0]
-            .phytomers
-            .iter()
-            .map(|p| p.radius)
-            .collect::<Vec<_>>()
+    }
+}
+
+/// The wood's species: one age bearing `leaf_area` a node at `sapwood`
+/// cm² per m² and 20 sapwood rings.
+fn wooded(sapwood: f64, leaf_area: f64) -> Species {
+    let mut state = state();
+    (
+        state.leaf_area,
+        state.form.sapwood,
+        state.form.sapwood_rings,
+    ) = (leaf_area, sapwood, 20.0);
+    Species {
+        states: vec![state],
+    }
+}
+
+/// Every phytomer's `[T, S]`, axis by axis.
+fn wood(axes: &[Axis]) -> Vec<Vec<[f32; 2]>> {
+    let each = |a: &Axis| a.phytomers.iter().map(|p| [p.section, p.sapwood]).collect();
+    axes.iter().map(each).collect()
+}
+
+/// A constant need, year on year: the sapwood is the need from the first
+/// year, and the section grows by the need in that year and by one in
+/// `rings` of it every year after, whatever `rings` is.
+#[test]
+fn constant_leaf_holds_its_sapwood_and_adds_one_ring_of_it_a_year() {
+    for rings in [1.0, 20.0, 50.0] {
+        let (need, start) = (2e-4, 1e-5);
+        let mut held = [start, 0.0];
+        for year in 1..=80 {
+            held = ring(held, need, rings);
+            let years = f64::from(year - 1);
+            let want = start + need + years * need / rings;
+            assert!((held[1] - need).abs() < 1e-15, "{rings}, {year}: {held:?}");
+            assert!(
+                (held[0] - want).abs() < 1e-12 * want,
+                "{rings}, {year}: {held:?}"
+            );
+        }
+    }
+}
+
+/// A stem whose crown is removed, or whose lateral is shed, keeps its
+/// section the next year: the leaf above it lays nothing more, and wood is
+/// never lost; its sapwood retires by one ring.
+#[test]
+fn wood_is_never_lost_when_the_leaf_above_goes() {
+    let species = wooded(3.0, 0.01);
+    for crown in [Origin::Continuation { parent: 0 }, lateral(1)] {
+        let mut axes = vec![axis(Origin::Seed, 3), axis(crown, 4)];
+        lay(&mut axes, &species, 1, 1);
+        let before = wood(&axes);
+        assert!(
+            before[0][0][0] > (PI * 0.005f64.powi(2)) as f32,
+            "{crown:?} laid wood"
+        );
+        axes.truncate(1);
+        lay(&mut axes, &species, 2, 1);
+        for (k, (now, was)) in wood(&axes)[0].iter().zip(&before[0]).enumerate() {
+            assert_eq!(now[0], was[0], "{crown:?}, node {k}: its section kept");
+            assert!(now[1] < was[1], "{crown:?}, node {k}: its sapwood retires");
+        }
+    }
+}
+
+/// An age with no sapwood draws its primary radius at its scale, whatever
+/// the leaf above it.
+#[test]
+fn no_sapwood_draws_the_primary_radius_whatever_its_leaf() {
+    for leaf in [0.0, 0.01, 1.0] {
+        let species = wooded(0.0, leaf);
+        let mut axes = vec![axis(Origin::Seed, 3), axis(lateral(0), 3)];
+        axes[0].phytomers[1].scale = 0.5;
+        for year in 1..=3 {
+            lay(&mut axes, &species, year, 1);
+        }
+        let mut t = Structure {
+            age: 3,
+            pas: 1,
+            axes,
+        };
+        thicken(&mut t, &species, &[1.0, 1.0]);
+        for (k, p) in t.axes[0].phytomers.iter().enumerate() {
+            let primary = established(&species.states[0].form, p.scale);
+            assert!(
+                (p.radius - primary).abs() < 1e-9,
+                "{leaf}, node {k}: {}",
+                p.radius
+            );
+        }
+    }
+}
+
+/// A relay's leaf enters its bearer at the tip, so its join stands at the
+/// radius of the wood it joins, on both sides.
+#[test]
+fn a_relay_joins_at_the_radius_of_the_wood_it_stands_in() {
+    let mut species = wooded(3.0, 0.01);
+    // A share and a blend that stand the relay part-way along a span.
+    species.states[0].relay_at = 0.3;
+    let mut relay = axis(Origin::Relay { parent: 0, node: 1 }, 3);
+    relay.blend = 0.4;
+    let mut axes = vec![axis(Origin::Seed, 4), relay];
+    lay(&mut axes, &species, 1, 1);
+    let mut t = Structure {
+        age: 1,
+        pas: 1,
+        axes,
     };
-    let (relay, lateral, alone) = (radii(&relay), radii(&lateral), radii(&alone));
-    assert_eq!(relay[..k], lateral[..k], "the parent below the join");
-    assert_eq!(relay[k + 1..], alone[k + 1..], "the stub");
-    assert!(
-        alone[k] < relay[k] && relay[k] < lateral[k],
-        "the span by degree"
-    );
-    assert_eq!(join.below, lateral[k], "the bole below the join");
-    assert_eq!(join.above, alone[k], "the stub's first span");
+    thicken(&mut t, &species, &[1.0, 1.0]);
+    let join = t.axes[1].joined().expect("a relay's join");
+    assert!(join.t > 0.0 && join.t < 1.0, "part-way along its span");
+    let r = t.axes[0].phytomers[join.node].radius;
+    assert_eq!((join.below, join.above), (r, r));
 }
 
 /// A node growing in from nothing beneath a half-blended relay moves the

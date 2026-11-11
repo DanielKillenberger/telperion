@@ -71,6 +71,21 @@ fn zone(nodes: NodeLaw, buds: u8, lateral: [f64; 3]) -> Zone {
     }
 }
 
+/// The walk tree's leaf a node, m²: a fixture's, chosen (fn-354) so that at
+/// the oak's sapwood its trunk's base stands at seed 1 at the 0.21 m the
+/// pipe model gave it before wood was laid by leaf, 0.213 m, since every
+/// test of this tree set its sag for wood of that girth.
+pub const LEAF: f64 = 0.8;
+
+/// The walk tree's wood: the oak's sapwood and rings at every age.
+pub fn wood() -> Form {
+    Form {
+        sapwood: 1.0 / 0.30,
+        sapwood_rings: 20.0,
+        ..Form::default()
+    }
+}
+
 /// A trunk of two zones, limbs that abort, relay, straighten and age into
 /// twigs, and twigs that are shed: every setting has structure to act on.
 pub fn species() -> Species {
@@ -98,7 +113,7 @@ pub fn species() -> Species {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
-        leaf_area: 0.0,
+        leaf_area: LEAF,
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
@@ -118,7 +133,7 @@ pub fn species() -> Species {
         balance_hazard: 0.0,
         tolerance: 0.0,
         straightening: 0.0,
-        form: Form::default(),
+        form: wood(),
     };
     let limb = PaState {
         lifespan: 6.0,
@@ -140,7 +155,7 @@ pub fn species() -> Species {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
-        leaf_area: 0.0,
+        leaf_area: LEAF,
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
@@ -160,7 +175,7 @@ pub fn species() -> Species {
         balance_hazard: 0.0,
         tolerance: 0.0,
         straightening: 0.3,
-        form: Form::default(),
+        form: wood(),
     };
     let twig = PaState {
         lifespan: 3.0,
@@ -186,7 +201,7 @@ pub fn species() -> Species {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
-        leaf_area: 0.0,
+        leaf_area: LEAF,
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
@@ -206,7 +221,7 @@ pub fn species() -> Species {
         balance_hazard: 0.0,
         tolerance: 0.0,
         straightening: 0.0,
-        form: Form::default(),
+        form: wood(),
     };
     Species {
         states: vec![trunk, limb, twig],
@@ -502,6 +517,33 @@ pub fn settings() -> Vec<Setting> {
             trunk.abortion = v;
         },
     ));
+    // Girth moves the shape only where wood bends under its load: the wood's
+    // rows walked on sagging limbs (fn-354), sapwood from none, the limbs'
+    // primary radius alone, to the oak's. The sag is light enough that no
+    // limb comes down onto the ground across the walk.
+    let wood: [(&str, f64, f64, fn(&mut Species, f64)); 3] = [
+        (
+            "states[1].form.sapwood, sag 3e-5",
+            0.0,
+            1.0 / 0.30,
+            |s, v| s.states[1].form.sapwood = v,
+        ),
+        (
+            "states[1].form.sapwood_rings, sag 3e-5",
+            5.0,
+            50.0,
+            |s, v| s.states[1].form.sapwood_rings = v,
+        ),
+        ("states[1].form.primary, sag 3e-5", 0.002, 0.01, |s, v| {
+            s.states[1].form.primary = v
+        }),
+    ];
+    for (name, low, high, set) in wood {
+        all.push(setting(name.into(), low, high, false, move |s, v| {
+            s.states[1].form.sag = 3e-5;
+            set(s, v);
+        }));
+    }
     // fn-206: each age's lifespan between whole cycles, its last unit
     // grown at the share left and the next age starting in that cycle.
     for (pa, low, high) in [(0, 8.0, 16.0), (1, 3.0, 7.0), (2, 1.0, 4.0)] {

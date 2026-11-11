@@ -4,7 +4,7 @@ use super::{Grower, Grown, Pass, Request, Stage};
 use crate::contract::presence::{q, real, times};
 use crate::error::{Error, Result};
 use crate::geometry::{place, scale};
-use crate::girth::thicken;
+use crate::girth::{shares, thicken};
 use crate::presence::assign;
 use crate::sag;
 use crate::shed::{shed, shed_past};
@@ -68,6 +68,7 @@ impl Grower {
             None => shed(self.axes, species, request.age),
         };
         stage(Stage::Pass(Pass::Shed));
+        let shares = shares(&shed.axes, &shed.index, &shed.fade);
         let structure = Structure {
             age: request.age,
             pas: species.states.len(),
@@ -78,6 +79,7 @@ impl Grower {
         }
         Ok(Settling {
             structure,
+            shares,
             grown: count,
             marked,
             species: owned,
@@ -90,6 +92,8 @@ impl Grower {
 /// its presences assigned, before its scale, girth and lay.
 pub(super) struct Settling {
     pub structure: Structure,
+    /// Each kept axis's share as drawn (`girth::shares`).
+    pub shares: Vec<f64>,
     pub grown: u64,
     pub marked: Vec<u64>,
     pub species: Arc<Species>,
@@ -102,6 +106,7 @@ impl Settling {
     pub(super) fn settle_lay(self, lay: bool, stage: &mut dyn FnMut(Stage)) -> Result<Grown> {
         let Self {
             mut structure,
+            shares,
             grown: count,
             marked,
             species,
@@ -112,7 +117,7 @@ impl Settling {
         stage(Stage::Pass(Pass::Scale));
         // Girth needs no geometry; placing reads it where wood meets the
         // ground.
-        thicken(&mut structure, species, threads);
+        thicken(&mut structure, species, &shares);
         stage(Stage::Pass(Pass::Thicken));
         stage(Stage::Settled);
         let done = move |structure| Grown {

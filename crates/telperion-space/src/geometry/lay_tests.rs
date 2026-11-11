@@ -64,6 +64,8 @@ fn a_step_straight_down_keeps_a_square_frame() {
         rank: 0.0,
         size: 1.0,
         grown: 1.0,
+        section: 0.0,
+        sapwood: 0.0,
     };
     layer.step(&mut p, &state, (0.0, 0.0), None, false).unwrap();
     assert_eq!(p.tip, Vec3::new(1.0, 0.0, 0.25));

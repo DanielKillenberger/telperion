@@ -27,22 +27,32 @@ const LIT: Light = Light {
 /// that sheds early is the last growth some kept bearer had: its fade then
 /// reads the twig, and the twig may not be left ungrown.
 fn long_kept_bearers() -> Species {
-    let mut species = unlit(beech());
+    let mut species = bare(beech());
     for state in &mut species.states[9..13] {
         state.shedding = 6.0;
     }
     species
 }
 
-/// The shed-certain shortcut serves only a species that reads no light, so
-/// the beech and the spruce stand as they grew unlit, before fn-264.
+/// The shed-certain shortcut serves only a species that reads no light
+/// and lays no wood by its leaf, so the beech and the spruce stand as they
+/// grew unlit, before fn-264, and keep their primary radii (fn-354).
 fn species() -> [(&'static str, Species); 4] {
     [
-        ("beech", unlit(beech())),
-        ("spruce", unlit(spruce())),
+        ("beech", bare(beech())),
+        ("spruce", bare(spruce())),
         ("palm", palm()),
         ("beech with long-kept bearers", long_kept_bearers()),
     ]
+}
+
+/// `species` unlit, laying no sapwood.
+fn bare(species: Species) -> Species {
+    let mut species = unlit(species);
+    for state in &mut species.states {
+        state.form.sapwood = 0.0;
+    }
+    species
 }
 
 /// Every lateral the rule finds certain to be shed is gone from the tree:
