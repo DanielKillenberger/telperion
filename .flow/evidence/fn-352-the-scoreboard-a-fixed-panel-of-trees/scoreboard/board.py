@@ -133,7 +133,7 @@ def sheets(label, stills):
             title = f"{NAMES[preset]} ({preset}), {view} view, {leaf}; run {label.name}"
             dest = out / f"{SHORT[preset]}-{view}.jpg"
             subprocess.run(["montage", *tiles, "-tile", f"{len(seeds)}x",
-                            "-geometry", "480x360+4+4", "-pointsize", "13",
+                            "-geometry", "480x360+4+4", "-font", "Adwaita-Sans", "-pointsize", "13",
                             "-title", title, "-quality", "80", str(dest)], check=True)
             print(dest, f"{dest.stat().st_size // 1024} KiB")
 

@@ -4,7 +4,8 @@
   "depends_on_epics": [
     "fn-349-the-corrected-balance-in-the-product",
     "fn-352-the-scoreboard-a-fixed-panel-of-trees",
-    "fn-353-one-grower-the-gpu-grower-is-deleted"
+    "fn-353-one-grower-the-gpu-grower-is-deleted",
+    "fn-354-wood-that-lasts-the-budget-the-girth"
   ],
   "id": "fn-351-020-the-release-candidate",
   "next_task": 1,
@@ -24,5 +25,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-11T12:10:05.311090Z"
+  "updated_at": "2026-11-11T14:39:11.924268Z"
 }

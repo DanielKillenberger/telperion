@@ -1,4 +1,5 @@
 // fn-329: every preset's tree time in the package's Wasm, on the CPU in Node.
+// fn-352: copied from fn-329 probes/wasm.mjs, unchanged below.
 // Usage: node wasm.mjs <dist dir> <fidelity,...>; prints one JSON line per tree.
 // Each tree: one cold build, then five warm builds; a build is the package's
 // `build(family, { field: { n: 36 } })`, timed by wall clock around the call.
