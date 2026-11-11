@@ -20,3 +20,10 @@
 - **What slowed it:** the probe read a bearer axis from inside a grow share (`Shoot::axis`), which panics for an axis that is not one of the share's own. Every run of that build exited 101 in under a second, the preset draws included. The fix reads the bearer's line by index from a table the balance refreshes each cycle.
 - **Cost:** about 5 minutes and one rebuild.
 - **What would remove it:** a one-year smoke run of every probe build before queueing a batch on it, which the worker now does.
+
+## 11 Nov 2026, worker (wood that stays)
+
+- **What:** checking that SR's and SRG's census lines are identical.
+- **What slowed it:** the local hook refused a `diff <(…) <(…) > /dev/null` with a variable in the path, as a redirect to a dynamic path. `cmp -s` with no redirect did the same.
+- **Cost:** one tool call.
+- **What would remove it:** prefer `cmp -s` or `if diff -q` without redirection in probe checks.
