@@ -457,8 +457,8 @@ pub(super) fn cauline(tree: &Tree, p: CanopyParams, nodes: &[usize]) -> bool {
 /// Whether a node bears leaves: a twig, or wood within the slender bound,
 /// never a short shoot's, which bears its leaves at its tip (fn-223), nor
 /// the clothing's bases and frond axes (fn-283).
-/// The girth and the bound are compared in whole micrometres, as both
-/// executors compute them alike (fn-212 task 10, host decision 4, as
+/// The girth and the bound are compared in whole micrometres, so float32
+/// and float64 compute them alike (fn-212 task 10, host decision 4, as
 /// `SHORTEST` in task 8): in float32 and float64 a girth within a float
 /// step of the bound read on either side of it.
 fn bearing_of(tree: &Tree, p: CanopyParams) -> impl Fn(usize) -> bool + '_ {

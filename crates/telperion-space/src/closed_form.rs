@@ -72,8 +72,7 @@ pub fn expected_grown(species: &Species, age: u32) -> Result<f64> {
 
 /// The expected axes a tree grown `age` cycles grows, the shed ones
 /// included: the seed's, every lateral's, woken bud's, relay's and
-/// continuation's that lives in an age (fn-256 task 6: the device's axis
-/// tables sized by their own hint).
+/// continuation's that lives in an age (fn-256 task 6).
 pub fn expected_axes(species: &Species, age: u32) -> Result<f64> {
     species.validate()?;
     if age == 0 {

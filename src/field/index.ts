@@ -2,31 +2,24 @@
  * tree's field read out to that grid (./types `Grid`) out. A preset is
  * grown by passing its parameters (`presetById(id)` from
  * `telperion/presets`); there is no id lookup here (fn-317). The tree grows
- * on the device (WebGPU), through the renderer's module
- * (`telperion-render.wasm`), as the harness grows it, and its field is read
- * out there: only the grid crosses back, and nothing stays on the device
- * (fn-257). Without WebGPU every call rejects with a `FieldError` whose
- * `code` is "webgpu-unavailable", and on a lost device "device-lost";
- * there is no CPU fallback here. The same file runs in a browser page or
- * worker; in Node, which has no WebGPU, it rejects. The CPU's field of the
- * same tree, for Node and tooling, is `TreeEngine.build(family, { field:
- * { n } })` from the main entry. A caller passes the module's bytes, a Response
- * or a compiled Module, or leaves the source to `telperion-render.wasm`
- * beside this file.
+ * on the CPU, through the core's module (`telperion.wasm`), as the main
+ * entry's `TreeEngine.build(family, { field: { n } })` grows it, and only
+ * the grid comes back (fn-353). The same file runs in a browser page, a
+ * worker or Node, with or without WebGPU. A caller passes the module's
+ * bytes, a Response or a compiled Module, or leaves the source to
+ * `telperion.wasm` beside this file.
  *
  * Migrating from 0.1.4's slim entry: `growField` takes the grid's side and
  * resolves to the grid with its answers; the cube query (`query(cells)`),
  * `bounds` and `release()` are gone, and nothing replaces the query (a
  * coarser or finer reading is another side). The `cut` option is gone, and
- * nothing replaces it (every tree grows whole, on the device); the source is
- * the renderer's module, not `telperion-field.wasm`. */
-import { WebField } from "../browser/render/telperion_render.js";
-import { loadModule, type ModuleSource } from "../browser/module";
+ * nothing replaces it (every tree grows whole); the source is the core's
+ * module, not `telperion-field.wasm`. */
+import { TreeEngine } from "../browser/core";
 import type { Family } from "../browser/presets";
-import { wire } from "../browser/wire";
 import { wasmSource } from "../wasm-source";
 import { side } from "./voxelize";
-import type { FieldAnswer, FieldGrid } from "./types";
+import type { FieldGrid } from "./types";
 
 export type { Bounds, FieldAnswer, FieldGrid, Grid } from "./types";
 export type { Family } from "../browser/presets";
@@ -34,67 +27,23 @@ export const NO_LIMB = 0xffffffff;
 /** A grown tree's field, read out to the grid its call named over the tree's
  * own box. */
 export type FieldTree = FieldGrid;
-/** Why the device refused: no WebGPU in this page or worker, or a device
- * lost under a call. The message names the cause; the code is for code. */
-export type FieldErrorCode = "webgpu-unavailable" | "device-lost";
-export class FieldError extends Error {
-  readonly code: FieldErrorCode;
-  constructor(code: FieldErrorCode, message: string) {
-    super(message);
-    this.name = "FieldError";
-    this.code = code;
-  }
-}
-export type FieldSource = ModuleSource;
+/** The core's module: its bytes, a Response, or a compiled Module. */
+export type FieldSource = BufferSource | Response | WebAssembly.Module;
 export interface GrowOptions {
   /** The lateral order whose systems name limbs; the family's own when left
    * out. A higher order parts the crown into more and smaller systems. */
   limbOrder?: number;
-  /** Where the renderer's module comes from. Left out, it is fetched from
-   * `telperion-render.wasm` beside this module. A page holds one module,
-   * shared with `createRenderer`: the first call to load it names the
-   * source, and a later call joins that module whatever it names. */
+  /** Where the core's module comes from. Left out, it is fetched from
+   * `telperion.wasm` beside this module. A page or worker holds one core
+   * for its fields: the first call to load it names the source, and a
+   * later call joins that core whatever it names. */
   source?: FieldSource;
 }
 
 const U32 = 2 ** 32;
 
-
-interface Gpu { requestAdapter(): Promise<unknown> }
-/** This page's or worker's WebGPU: the field grows nowhere else. */
-function device(): Gpu {
-  const gpu = (globalThis.navigator as { gpu?: Gpu } | undefined)?.gpu;
-  if (gpu === undefined) throw new FieldError("webgpu-unavailable", "WebGPU is not available: telperion/field grows its trees on the device");
-  return gpu;
-}
-
-/** `run` on the device, its coded refusals as `FieldError`s. Where the
- * module found no adapter but the browser, asked directly, has one, the
- * module's request was answered early (killenberger fn-46.3: headless
- * Chromium, a page whose first WebGPU use is the field, its first tree
- * refused and the next grown): `run` is tried once more, and only then. */
-async function onDevice<T>(gpu: Gpu, run: () => Promise<T>): Promise<T> {
-  try {
-    return await run();
-  } catch (error) {
-    const refused = coded(error);
-    if (refused?.code !== "webgpu-unavailable" || await gpu.requestAdapter() === null) throw refused ?? error;
-  }
-  try {
-    return await run();
-  } catch (error) {
-    throw coded(error) ?? error;
-  }
-}
-/** The module's refusal with a code, as a `FieldError`; none for another. */
-function coded(error: unknown): FieldError | undefined {
-  const code = (error as { code?: unknown } | null)?.code;
-  if (code !== "webgpu-unavailable" && code !== "device-lost") return undefined;
-  return new FieldError(code, (error as Error).message);
-}
-
 let bundled: Promise<WebAssembly.Module> | undefined;
-/** Compiles the renderer's module, for a caller that grows trees in several
+/** Compiles the core's module, for a caller that grows trees in several
  * workers and passes the Module to each. The module beside this file is
  * compiled once, however many calls ask, and a failed compile is retried by
  * the next call; a Module is returned as given, and any other source is
@@ -103,7 +52,7 @@ export function compileField(source?: FieldSource): Promise<WebAssembly.Module> 
   if (source instanceof WebAssembly.Module) return Promise.resolve(source);
   if (source !== undefined) return compile(source);
   // The literal names the file for a consumer's bundler.
-  bundled ??= compile(wasmSource(new URL("./telperion-render.wasm", import.meta.url))).catch((error: unknown) => {
+  bundled ??= compile(wasmSource(new URL("./telperion.wasm", import.meta.url))).catch((error: unknown) => {
     bundled = undefined;
     throw error;
   });
@@ -118,12 +67,15 @@ async function compile(source: BufferSource | Response | Promise<BufferSource | 
   return WebAssembly.compile(input);
 }
 
-/** The device and its programs made ready before the first tree, so the
- * first `growField` does not wait on them: a page calls it as it loads. */
-export async function prepareField(source?: FieldSource): Promise<void> {
-  const gpu = device();
-  await loadModule(source);
-  await onDevice(gpu, () => WebField.prepare());
+let core: Promise<TreeEngine> | undefined;
+/** The core every field of this page or worker grows on, started once from
+ * the first call's source; a refused start is forgotten. */
+function engine(source?: FieldSource): Promise<TreeEngine> {
+  core ??= TreeEngine.create(source).catch((error: unknown) => {
+    core = undefined;
+    throw error;
+  });
+  return core;
 }
 
 function unsigned(value: number, what: string, limit = U32): number {
@@ -132,41 +84,19 @@ function unsigned(value: number, what: string, limit = U32): number {
 }
 
 /** Grows the tree `family` describes, at its own seed
- * (`family.skeleton.seed`), on the device and reads its field out to `n`
- * cells a side over the tree's box. A preset's id, a side outside 3 to 256
- * and a nonfinite parameter are refused by name before any work; a grid
- * past the device's limits by name before anything is allocated;
- * parameters the core refuses with the core's error, as
- * `TreeEngine.build` refuses them, before a device is asked for; a page or
- * worker without WebGPU, or a lost device, with a `FieldError`. */
+ * (`family.skeleton.seed`), and reads its field out to `n` cells a side
+ * over the tree's box. A preset's id, a side outside 3 to 256 and a
+ * nonfinite parameter are refused by name before any work; parameters the
+ * core refuses with the core's error, as `TreeEngine.build` refuses them. */
 export async function growField(family: Family, n: number, options: GrowOptions = {}): Promise<FieldTree> {
-  const parameters = wire(family);
   side(n);
-  const order = options.limbOrder === undefined ? undefined : unsigned(options.limbOrder, "limbOrder", U32 - 1);
-  await loadModule(options.source);
-  // The family's own error comes before any device is asked for (fn-319 R2).
-  WebField.check(parameters);
-  const gpu = device();
-  const field = (await onDevice(gpu, () => WebField.grow(parameters, n, order))) as WebField;
+  const limbOrder = options.limbOrder === undefined ? undefined : unsigned(options.limbOrder, "limbOrder", U32 - 1);
+  const cpu = await engine(options.source);
   try {
-    const o = field.origin();
-    return { n: field.n(), cell: field.cell(), origin: [o[0], o[1], o[2]], answer: answers(field.answers()) };
+    const { field } = cpu.build(family, { field: limbOrder === undefined ? { n } : { n, limbOrder } });
+    if (field === undefined) throw Error("the core read out no field");
+    return field;
   } finally {
-    field.free();
+    cpu.release();
   }
-}
-
-/** The binding's five words a cell, in cell order, as one answer per cell. */
-function answers(words: Uint32Array): FieldAnswer {
-  const n = words.length / 5;
-  const answer = { flags: new Uint8Array(n), woodRadius: new Float32Array(n), leaves: new Float32Array(n), limbs: new Uint32Array(n), flowers: new Float32Array(n) };
-  const floats = new Float32Array(words.buffer, words.byteOffset, words.length);
-  for (let i = 0; i < n; i++) {
-    answer.flags[i] = words[5 * i];
-    answer.woodRadius[i] = floats[5 * i + 1];
-    answer.leaves[i] = floats[5 * i + 2];
-    answer.limbs[i] = words[5 * i + 3];
-    answer.flowers[i] = floats[5 * i + 4];
-  }
-  return answer;
 }

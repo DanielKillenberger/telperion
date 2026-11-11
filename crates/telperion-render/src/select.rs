@@ -130,23 +130,6 @@ pub struct Select {
 }
 
 impl Select {
-    pub(crate) fn allocated_bytes(&self) -> u64 {
-        [
-            &self.placements,
-            &self.masses,
-            &self.deviations,
-            &self.lists,
-            &self.starts,
-            &self.counts,
-            &self.arguments,
-            &self.scratch,
-        ]
-        .into_iter()
-        .flatten()
-        .map(|b| b.region().capacity())
-        .sum::<u64>()
-    }
-
     pub fn new(gpu: &Gpu) -> Self {
         let compute_layout = bind::compute_layout(gpu);
         let draw_layout = bind::draw_layout(gpu);
@@ -254,21 +237,6 @@ impl Select {
             foliage.instances.len() as u32,
             level,
         );
-    }
-
-    pub(crate) fn submit_resident(
-        &mut self,
-        gpu: &Gpu,
-        element: &telperion_core::foliage::Element,
-        reference: telperion_core::foliage::Reference,
-        count: u32,
-        placements: crate::buffer::Held,
-        masses: crate::buffer::Held,
-        level: Level,
-    ) {
-        self.placements = Some(placements);
-        self.masses = Some(masses);
-        self.setup(gpu, element, reference, count, level);
     }
 
     fn setup(

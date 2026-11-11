@@ -4,8 +4,8 @@
 //! no more wood, so its upkeep is frozen once, as the sum the whole tree's
 //! pass takes; its light and lit presence are none.
 //!
-//! **The one reduction order** (COUNCIL.md, "Decided by the spike"; the
-//! device takes the same): a subtree's sum is its own value, then each
+//! **The one reduction order** (COUNCIL.md, "Decided by the spike"): a
+//! subtree's sum is its own value, then each
 //! child's subtotal in the order they stand on it (by node, then index, a
 //! continuation or relay at the tip last); the normaliser's per-PA sums
 //! run over the growing buds in that subtree order (preorder), cut into
@@ -52,8 +52,8 @@ pub(in crate::grow) struct Working {
     pub(super) all_open: bool,
     pub(super) keep_all: bool,
     /// Whether a retired subtree's records are kept at their indices and
-    /// every verdict logged: the captures, which hand the device every
-    /// axis by its index (fn-333); otherwise they are let go
+    /// every verdict logged: the light capture, which reads every axis by
+    /// its index (fn-333); otherwise they are let go
     /// (`compact.rs`).
     pub(super) keep_records: bool,
     /// The tests': records let go every cycle any are loose.
@@ -71,7 +71,7 @@ impl Working {
     }
 
     /// Retiring as the tree grows, every record kept at its index: what
-    /// a capture hands the device.
+    /// the light capture reads.
     pub(super) fn indexed() -> Self {
         Self {
             keep_records: true,

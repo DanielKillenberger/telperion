@@ -19,7 +19,7 @@ type Framed = (Vec3, Vec3, Vec3);
 
 /// A cycle's rough layout in rounds (fn-211 task 10): the axes that grew,
 /// then the new ones a generation at a time, each round framed here and
-/// drawn by whichever executor lays it (`draw_round`, or a device).
+/// drawn by `draw_round`.
 pub(super) struct Sketching {
     sketch: super::sketch::Sketch,
     cycle: u32,
@@ -74,7 +74,7 @@ impl Sketching {
     }
 }
 
-impl Grower<'_> {
+impl Grower {
     /// Lays the units the `advanced` axes grew in `cycle`, then frames and
     /// lays the axes made in it: parents before children, so every frame
     /// reads wood already laid.
@@ -117,7 +117,7 @@ impl Grower<'_> {
     /// The CPU's round: each axis in `todo` drawn from its own walk, on
     /// every core; the axes that could not be.
     pub(super) fn draw_round(&mut self, s: &mut Sketching, todo: &[usize]) -> Vec<(usize, Error)> {
-        let (species, threads, cycle) = (self.species, self.threads, s.cycle);
+        let (species, threads, cycle) = (&*self.species, self.threads, s.cycle);
         let pencils = s.pencils(todo);
         let jobs: Vec<_> = todo
             .iter()
@@ -141,7 +141,7 @@ impl Grower<'_> {
     /// node; then the next generation, as far as no axis before it failed,
     /// each framed from its parent alone. None once every one is drawn.
     pub(super) fn sketch_round(&mut self, s: &mut Sketching) -> Option<Vec<usize>> {
-        let (species, threads, first_new) = (self.species, self.threads, s.first_new);
+        let (species, threads, first_new) = (&*self.species, self.threads, s.first_new);
         if s.round == 0 {
             let mut generation = vec![0usize; self.axes.len() - first_new];
             let mut generations: Vec<Vec<usize>> = Vec::new();
@@ -210,7 +210,7 @@ impl Grower<'_> {
         if let Some((_, error)) = failed {
             return Err(error);
         }
-        let species = self.species;
+        let species = &*self.species;
         let mut leaves = std::mem::take(&mut self.leaves);
         leaves.clear();
         let laid = grew

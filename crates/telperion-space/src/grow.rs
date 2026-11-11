@@ -7,7 +7,6 @@
 //! element from those leads, so a setting that crosses a draw grows the
 //! element in from nothing.
 mod advance;
-pub(crate) mod alone;
 mod balance;
 pub(crate) mod cycle;
 mod draw;
@@ -36,7 +35,7 @@ use crate::structure::{Axis, Origin, Structure, Vec3};
 pub(crate) use shoot::Rules;
 use sketch::Sketch;
 pub use stage::{Pass, Stage};
-pub(crate) use unit::node_wood;
+use std::sync::Arc;
 
 /// What to grow: cycles, the seed and the site's light.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -58,8 +57,7 @@ struct Apex {
 }
 
 /// Grows, sheds and places the tree through the one cycle (fn-255), in
-/// its canonical lineage order: the CPU's executor, the reference the
-/// device's is held to by lineage (fn-256).
+/// its canonical lineage order.
 pub fn grow(species: &Species, request: Request) -> Result<Structure> {
     Ok(cycle::grow_cycle(species, request)?.structure)
 }
@@ -87,9 +85,6 @@ pub(crate) struct Options {
     /// cycle's layout and sweep (fn-210, lever 3).
     #[cfg(test)]
     pub unread_light: bool,
-    /// Whether the tree stops once scaled and thickened, before its lay:
-    /// what the device's settle is compared with (`capture_settled.rs`).
-    pub settle: bool,
 }
 
 impl Default for Options {
@@ -100,7 +95,6 @@ impl Default for Options {
             share: parallel::SHARE,
             #[cfg(test)]
             unread_light: false,
-            settle: false,
         }
     }
 }
@@ -153,7 +147,7 @@ pub(crate) fn run(
     lay: bool,
     options: Options,
 ) -> Result<Grown> {
-    let (mut grower, keeps) = start(species, request, options)?;
+    let (mut grower, keeps) = start(Arc::new(species.clone()), request, options)?;
     stage(Stage::Pass(Pass::Windows));
     let mut advanced = Vec::new();
     for cycle in 1..=request.age {
@@ -163,16 +157,12 @@ pub(crate) fn run(
         let sketching = cycle < request.age || !lay || options.unread_light;
         grower.year(cycle, sketching, &mut advanced, stage)?;
     }
-    grower.settle((request, options), (lay, keeps), stage)
+    grower.settle(request, (lay, keeps), stage)
 }
 
 /// The grower of `request` before its first cycle, and whether any PA
 /// reads the tree as grown (its shed pipes or its leaves' girth).
-fn start<'a>(
-    species: &'a Species,
-    request: Request,
-    options: Options,
-) -> Result<(Grower<'a>, bool)> {
+fn start(species: Arc<Species>, request: Request, options: Options) -> Result<(Grower, bool)> {
     species.validate()?;
     request.light.validate()?;
     if request.age == 0 {
@@ -186,24 +176,28 @@ fn start<'a>(
     let sketch = (request.light.shades() || grounded).then(|| Sketch::new(request.light));
     // What shedding will drop is grown only where something reads it
     // while it lives: the light, or the girth of what bore it.
-    let keeps = keeps(species);
+    let keeps = keeps(&species);
     let lasting = if options.certain != Certain::Grow && sketch.is_none() && !keeps {
-        lasting(species, &laterals)
+        lasting(&species, &laterals)
     } else {
         vec![None; species.states.len()]
     };
     let threads = options.threads.unwrap_or_else(crate::cores::available);
     let rules = Rules {
-        species,
         laterals: laterals.into(),
         lasting: lasting.into(),
         certain: options.certain,
-        windows: Windows::new(species, request.age),
+        windows: Windows::new(&species, request.age),
         age: request.age,
         grown: 0,
         one: false,
     };
-    let grower = Grower::seeded(rules, (threads, options.share), sketch, request.seed)?;
+    let grower = Grower::seeded(
+        (rules, species),
+        (threads, options.share),
+        sketch,
+        request.seed,
+    )?;
     Ok((grower, keeps))
 }
 
@@ -238,10 +232,10 @@ fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
     }
 }
 
-struct Grower<'a> {
+struct Grower {
     /// What every growth unit reads (`shoot.rs`).
-    rules: Rules<'a>,
-    species: &'a Species,
+    rules: Rules,
+    species: Arc<Species>,
     /// The cores a cycle grows on, and the living apexes in each share.
     threads: usize,
     share: usize,
@@ -291,16 +285,16 @@ pub(crate) fn keeps(species: &Species) -> bool {
         .any(|s| s.retained > 0.0 || s.leaf_girth > 0.0)
 }
 
-impl<'a> Grower<'a> {
+impl Grower {
     /// A grower holding the seed's bud of the youngest PA, about to grow
     /// its first cycle on `threads` cores in shares of `share` apexes.
     fn seeded(
-        rules: Rules<'a>,
+        (rules, species): (Rules, Arc<Species>),
         (threads, share): (usize, usize),
         sketch: Option<Sketch>,
         seed: u64,
     ) -> Result<Self> {
-        let (species, age) = (rules.species, rules.age);
+        let age = rules.age;
         let root = Key::root(seed);
         // The seed grows in the first age it does not pass through, as
         // far as it reaches it.
@@ -335,7 +329,7 @@ impl<'a> Grower<'a> {
     }
 }
 
-impl Grower<'_> {
+impl Grower {
     /// One cycle: each living lateral subtree's balance and each apex's
     /// share of the tree's vigour, then every living apex's growth unit,
     /// on every core (`parallel.rs`), then the sleeping buds that wake.

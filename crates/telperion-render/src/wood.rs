@@ -25,15 +25,6 @@ pub struct Wood {
 }
 
 impl Wood {
-    pub(crate) fn allocated_bytes(&self) -> u64 {
-        self.curve.as_ref().map_or(0, |c| c.bytes())
-    }
-
-    /// Lets the curve's buffers go: nothing is drawn until the next submit.
-    pub(crate) fn release(&mut self) {
-        self.curve = None;
-    }
-
     pub fn new(
         gpu: &Gpu,
         layout: &wgpu::BindGroupLayout,
@@ -53,11 +44,6 @@ impl Wood {
     /// Uploads a tree's wood as its curve; no wood leaves nothing drawn.
     pub fn submit(&mut self, gpu: &Gpu, curve: &Curve) {
         self.curve = (!curve.clusters.is_empty()).then(|| crate::curve::CurveGpu::new(gpu, curve));
-    }
-
-    /// Takes a curve already on the device (fn-212 task 7).
-    pub(crate) fn submit_on_device(&mut self, curve: crate::curve::CurveGpu) {
-        self.curve = Some(curve);
     }
 
     /// Surfaces the wood for `viewport` whatever the frame's size, or for the

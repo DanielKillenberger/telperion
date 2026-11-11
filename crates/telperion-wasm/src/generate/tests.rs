@@ -72,7 +72,7 @@ fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
 }
 
 /// fn-317 R4c: the binding names each limb system by the cell where it
-/// holds the most leaves, as the device entry does.
+/// holds the most leaves.
 #[test]
 fn the_field_names_each_limb_by_its_densest_cell() {
     let request = json!({"family": wire("oregon-white-oak"), "outputs": {"field": {"n": 12}}});

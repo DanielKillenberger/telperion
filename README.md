@@ -42,7 +42,7 @@ answer.flags[0]; // wood = 1, foliage = 2, flowers = 4; zero is a valid empty ce
 engine.dispose();
 ```
 
-The grid is `telperion/field/voxelize`'s `grid` over the tree's own box, the one definition the device field reads too; `n` is a whole number from 3 to 256, and `{ n, limbOrder }` names limbs at that lateral order instead of the family's own. Each answer carries the cell's flags, its thickest wood radius, its leaf estimate, its owning limb and its florets (`flowers`, those whose seat lies in the cell, fn-316), as owned copies that outlive the next build, release and disposal. The field reads the leaf plan and places no leaf; a family the plan cannot describe is refused by name. `{ structure: true }` returns six f64 values per node (xyz, distal/proximal/base radius) and three u32 values (parent, branch, kind). The root parent is `0xffffffff`; kinds are structural 0, branch 1 and twig 2. An empty output selection still generates structure for diagnostics. Invalid inputs throw, and cap diagnostics distinguish incomplete growth from a finished tree.
+The grid is `telperion/field/voxelize`'s `grid` over the tree's own box, the one definition the field package reads too; `n` is a whole number from 3 to 256, and `{ n, limbOrder }` names limbs at that lateral order instead of the family's own. Each answer carries the cell's flags, its thickest wood radius, its leaf estimate, its owning limb and its florets (`flowers`, those whose seat lies in the cell, fn-316), as owned copies that outlive the next build, release and disposal. The field reads the leaf plan and places no leaf; a family the plan cannot describe is refused by name. `{ structure: true }` returns six f64 values per node (xyz, distal/proximal/base radius) and three u32 values (parent, branch, kind). The root parent is `0xffffffff`; kinds are structural 0, branch 1 and twig 2. An empty output selection still generates structure for diagnostics. Invalid inputs throw, and cap diagnostics distinguish incomplete growth from a finished tree.
 
 Migrating from 0.1.4 (for a consumer of the published 0.1.4 package, fn-257 R8b): `{ field: true }` is `{ field: { n } }`, and the field is the grid with its answers. The cube query (`tree.field.query(cells)`), the field's `bounds` and `snapshot()` are gone, and nothing replaces them: a page that queried a regular grid asks for its side, and one that queried its own cubes reads the cells of a grid fine enough for them.
 
@@ -52,16 +52,16 @@ Migrating from 0.1.4 (for a consumer of the published 0.1.4 package, fn-257 R8b)
 `telperion/field` export grows the tree a family's parameters describe and
 reads its occupancy out to the grid the call names, and
 `telperion/field/voxelize` is an example reading of that grid as cubes; the
-field grows on the device (WebGPU), through `telperion-render.wasm`, and
-rejects without it with a `FieldError` coded `"webgpu-unavailable"` (or
-`"device-lost"`). The same field on the CPU, for Node and tooling, is
-`TreeEngine.build(family, { field: { n } })` above. `telperion/presets` holds
+tree grows on the CPU, through `telperion.wasm`, as
+`TreeEngine.build(family, { field: { n } })` above grows it, in a page, a
+worker or Node, with or without WebGPU. `telperion/presets` holds
 the shipped presets as plain data with no Wasm: `presetById(id)` gives a
 preset's parameters to pass to either entry, which take parameters only, never
 an id ([docs/migration-0.2-parameters.md](docs/migration-0.2-parameters.md)). Both are built by
-`npm run build` into `dist`; `field.js` and the main entry `telperion.js`
-load `telperion.wasm` and `telperion-render.wasm` from beside themselves, so
-a site serves the two Wasm files next to the JavaScript. Each
+`npm run build` into `dist`; the main entry `telperion.js` loads
+`telperion.wasm` and `telperion-render.wasm`, and `field.js` loads
+`telperion.wasm`, each from beside itself, so a site serves the Wasm files
+next to the JavaScript. Each
 `new URL("./name.wasm", import.meta.url)` in `dist` is a literal, which
 Vite, webpack and Rollup read as an asset and emit into a site's own build;
 the files are also exported as `telperion/telperion.wasm` and
@@ -266,7 +266,7 @@ node scripts/scenic-cut.mjs --out .flow/evidence/fn25/scenic.mp4
 
 `scripts/scenic-cut.mjs` cuts a whole-tree sequence and a leaf sequence, both already on disk, into the one clip: a half-second crossfade from the first into the second, a light grade of contrast, warmth and a soft vignette, and one ffmpeg encode to 1920 by 1080 H.264 at 24 frames a second. It writes `scenic.json` beside the clip naming every input, the grade and the exact invocation, and it re-reads the finished file rather than assuming it. It renders nothing itself, refuses a sequence it cannot find by naming the path, and on a machine with no `ffmpeg` says so in one line and leaves the sequences standing.
 
-`npm run test:bindings` holds the Wasm binding to its contract (`tests/browser/bindings.mjs`) in a plain headless Chromium, which needs no adapter at all; CI's `bindings` job runs it on every run. `npm run rust:test:wasm` runs the field package's browser suite (`tests/browser/field.mjs`), which grows its trees on WebGPU in a worker: it needs a browser with WebGPU and no CI job runs it. `npm run test:render` drives the page on hardware WebGPU: it needs a display, and skips with the renderer's own words when the machine offers no hardware adapter. `npm run species:qa` renders the species stills through the headless target.
+`npm run test:bindings` holds the Wasm binding to its contract (`tests/browser/bindings.mjs`) in a plain headless Chromium, which needs no adapter at all; CI's `bindings` job runs it on every run. `npm run rust:test:wasm` runs the field package's browser suite (`tests/browser/field.mjs`), which grows its trees on the CPU in a browser worker: it needs Chromium and Playwright, and no CI job runs it. `npm run test:render` drives the page on hardware WebGPU: it needs a display, and skips with the renderer's own words when the machine offers no hardware adapter. `npm run species:qa` renders the species stills through the headless target.
 
 ## Measurements and limits
 
@@ -287,16 +287,8 @@ Chromium 151 and an RTX 3080. The field snapshot and cube query its
 0.2.0 (fn-257: the field is read out to a grid), so those tools are the report's
 record and no longer run against the package.
 
-The separate [fn-91 generation path](scripts/benchmarks/generation.md#qualified-gpu-positions)
-expands compact foliage and qualified wood inputs into GPU-resident buffers shared
-by the native device build (`Generator::prepare`) and browser `setTreeGpu`; the
-renderer's CPU delivery was removed in fn-293. CPU output remains available through
-the core (`mesh::build`, the main entry).
-The [retained desktop measurements](.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/stations/REPORT.md)
-record completed-frame delivery of 158.1–180.8 ms for mature oak and spruce seeds
-1/7 with an initialized renderer. These results do not qualify cold page startup,
-phone performance or complete process/GPU peak memory. This GPU expansion path
-does not revive fn-12's rejected spatial-query implementation.
+Every tree grows on one grower, on the CPU (`mesh::build`, the main entry's
+`TreeEngine.build`, the renderer's `setTree`); the device draws the built tree.
 
 The archived [FN7 surface experiment](experiments/rust-surface-benchmark/REPORT.md) measured a narrower and older workload. Its numbers are historical, not a full-engine migration result. Further botanical realism and species visual QA remain future work. Bark and foliage are now judged lit - colour, sun, shadow and the crown's own depth, beside the reference photographs - and the clay view remains for judging geometry alone; procedural bark relief, leaf veins and two-sided leaf transmission are implemented, with owner judgments at the close-up scales still pending. Full lifecycle simulation is not implemented.
 
@@ -318,7 +310,7 @@ The viewer's species selector exposes Oregon white oak (`oregon-white-oak`,
 Ordinary, Telperion and Laurelin. Choose species independently of the unsigned
 32-bit specimen seed; changing species preserves the seed. Within a stated generator revision and backend, family
 parameters and seed identify the specimen; generated output may change as the
-engine improves. Cross-revision and CPU/GPU byte equality are not promised
+engine improves. Cross-revision byte equality is not promised
 (see STRATEGY.md, Attributability). Different seeds vary structure and
 placement, not species identity. Whole, bare-branch and single-leaf views
 support inspection; the leaf view isolates one placed unit at generated scale.
@@ -326,8 +318,8 @@ Open `/?species=norway-spruce&seed=1` to load a full-foliage specimen directly.
 
 Browser consumers can use `presetById('oregon-white-oak')` (from the main
 entry or `telperion/presets`), set `family.skeleton.seed`, then pass the
-family to `TreeEngine.build`, `growField` or the renderer's `setTree`,
-`setTreeGpu`, `admission` and `beginGrowth`; an id in its place is refused. Native
+family to `TreeEngine.build`, `growField` or the renderer's `setTree` and
+`beginGrowth`; an id in its place is refused. Native
 consumers use `Preset::OregonWhiteOak.parameters()` or
 `Preset::NorwaySpruce.parameters()`. Unknown identities are rejected. Natural
 presets disable the separate supernatural group; Telperion and Laurelin enable

@@ -57,7 +57,7 @@ impl std::fmt::Display for Error {
             Self::WoodMemory { needed, available } => write!(
                 f,
                 "the wood needs {needed} bytes and {available} are left in 32-bit Wasm \
-                 memory; build it through the device entry or with fewer radialSegments"
+                 memory; build it with fewer radialSegments"
             ),
         }
     }

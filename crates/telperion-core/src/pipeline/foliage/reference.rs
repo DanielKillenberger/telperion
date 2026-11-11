@@ -120,20 +120,6 @@ impl Reach {
             )
         })
     }
-
-    /// The terms of a station's reach from wood of radius `w`, for an
-    /// executor that folds its own nodes' box: `max(max(w * scale, beyond)
-    /// + rachis, 0)`, never under `authored`; `[scale, beyond, rachis,
-    /// authored]`.
-    pub(crate) fn terms(self) -> [f64; 4] {
-        let [swell, lobe, flare] = self.skin;
-        let scale = if self.seats {
-            swell * (1.0 + lobe) * flare
-        } else {
-            1.0
-        };
-        [scale, self.beyond, self.rachis, self.authored]
-    }
 }
 
 /// How far outside the authored shell a station can stand.

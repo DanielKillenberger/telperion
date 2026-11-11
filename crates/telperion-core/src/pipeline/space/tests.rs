@@ -274,7 +274,7 @@ fn a_node_keeps_its_identity_across_ages() {
 }
 
 /// Every shipped preset grows under the one site light (fn-264 R1a): the
-/// request both executors grow by carries `SITE`, whose extinction is not
+/// request the grower grows by carries `SITE`, whose extinction is not
 /// zero, so every preset's leaves shade.
 #[test]
 fn every_shipped_preset_grows_under_the_site_light() {

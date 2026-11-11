@@ -156,7 +156,7 @@ fn the_shipped_palm_keeps_its_height_and_narrows_only_its_foot() {
 fn a_stem_drawn_within_its_year_never_dips() {
     use telperion_core::pipeline::growth;
     let palm = family("date-palm", 1, 4.0);
-    let params = growth::Params::of(&palm).unwrap();
+    let params = std::sync::Arc::new(growth::Params::of(&palm).unwrap());
     let mut state = growth::begin(&params, 1, 4.0).unwrap();
     for at in [0.1, 0.3, 0.9, 1.05, 1.3, 2.02, 3.5] {
         growth::grow_to(&mut state, at).unwrap();

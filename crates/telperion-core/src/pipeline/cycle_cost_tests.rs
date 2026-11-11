@@ -37,7 +37,12 @@ fn digest(f: &Family) -> u64 {
 fn every_preset_grows_the_tree_it_grew_at_both_ends_of_the_dial() {
     let read: Vec<(u64, u64)> = CATALOGUE
         .iter()
-        .map(|&(_, id, ..)| (digest(&family(id, AGE, 7, 0.0)), digest(&family(id, AGE, 7, 1.0))))
+        .map(|&(_, id, ..)| {
+            (
+                digest(&family(id, AGE, 7, 0.0)),
+                digest(&family(id, AGE, 7, 1.0)),
+            )
+        })
         .collect();
     assert_eq!(read, PINNED, "{read:?}");
 }
@@ -69,12 +74,21 @@ fn pass_costs() {
             let _warm = grow_census(&g.species, g.request).expect("a tree");
             let c = grow_census(&g.species, g.request).expect("a tree");
             let census = c.census.expect("a census");
-            println!("COST {id} {fidelity} seconds {:.4} grown {} axes {}", c.seconds, c.grown, census.axes);
+            println!(
+                "COST {id} {fidelity} seconds {:.4} grown {} axes {}",
+                c.seconds, c.grown, census.axes
+            );
             let (mut apex, mut axes, mut leaves) = (0u64, 0u64, 0u64);
             for y in &census.cycles {
-                (apex, axes, leaves) = (apex + y.active as u64, axes + y.axes as u64, leaves + y.leaves as u64);
+                (apex, axes, leaves) = (
+                    apex + y.active as u64,
+                    axes + y.axes as u64,
+                    leaves + y.leaves as u64,
+                );
             }
-            println!("WORK {id} {fidelity} apex-cycles {apex} axis-cycles {axes} leaf-cycles {leaves}");
+            println!(
+                "WORK {id} {fidelity} apex-cycles {apex} axis-cycles {axes} leaf-cycles {leaves}"
+            );
             let mut phases: Vec<_> = census.phases.iter().collect();
             phases.sort_by(|a, b| b.1.total_cmp(a.1));
             for (name, s) in phases.into_iter().take(14) {

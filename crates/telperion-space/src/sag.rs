@@ -29,7 +29,7 @@ pub(crate) struct Load {
 }
 
 impl Load {
-    /// A load given in reals (a GPU executor's, a borne bud's).
+    /// A load given in reals (a borne bud's).
     pub(crate) fn of(mass: f64, moment: Vec3) -> Self {
         Self {
             mass: mass as f32,

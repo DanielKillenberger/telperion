@@ -22,7 +22,7 @@ pub const SPAN: f64 = 2.0;
 /// The narrowest window, in log-odds: a twig's.
 pub const FLOOR: f64 = 0.05;
 
-/// A log as the executors hold it (`contract::log32`), none as nothing.
+/// A log as the grower holds it (`contract::log32`), none as nothing.
 fn contract_log(log: f64) -> f32 {
     crate::contract::log32(log)
 }
@@ -38,7 +38,7 @@ pub(crate) struct Windows {
     /// The log of the whole tree's expected metres.
     whole: f64,
     /// woods[m][k]: `expected[m][k]`'s share of the whole tree, as the
-    /// executors read it (host decision 8): taken once a tree, not once a
+    /// grower reads it (host decision 8): taken once a tree, not once a
     /// draw.
     woods: Arc<Vec<Vec<f32>>>,
     age: u32,

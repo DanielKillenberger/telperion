@@ -59,11 +59,7 @@ fn main() {
 }
 
 fn request(age: u32, seed: u64, light: Light) -> Request {
-    Request {
-        age,
-        seed,
-        light,
-    }
+    Request { age, seed, light }
 }
 
 /// R1 (c): the kept tree and the live set, today's against the age grown.
@@ -72,7 +68,13 @@ fn kept(species: &Species, r: Request) {
     let held_today = held(today.census.as_ref().expect("a census"));
     let digest = tree_digest(&today.structure);
     drop(today);
-    let mut p = Paused::begin(species, r, Retiring::AtAge, true).expect("begun");
+    let mut p = Paused::begin(
+        std::sync::Arc::new(species.clone()),
+        r,
+        Retiring::AtAge,
+        true,
+    )
+    .expect("begun");
     p.grow_to(r.age).expect("grown");
     let held_age = held(p.census().expect("a census"));
     let tree = p.settle().expect("settled");
@@ -119,7 +121,13 @@ fn split(species: &Species, r: Request) {
         .collect();
     years.dedup();
     for a in years {
-        let mut p = Paused::begin(species, r, Retiring::AtAge, false).expect("begun");
+        let mut p = Paused::begin(
+            std::sync::Arc::new(species.clone()),
+            r,
+            Retiring::AtAge,
+            false,
+        )
+        .expect("begun");
         p.grow_to(a).expect("grown");
         let before = p.digest();
         let first = tree_digest(&p.settle().expect("settled"));
@@ -144,7 +152,13 @@ fn split(species: &Species, r: Request) {
 /// the run retiring nothing and today's; how far each year moves.
 fn walk(species: &Species, r: Request) {
     let small = r.age <= 40;
-    let mut p = Paused::begin(species, r, Retiring::AtAge, false).expect("begun");
+    let mut p = Paused::begin(
+        std::sync::Arc::new(species.clone()),
+        r,
+        Retiring::AtAge,
+        false,
+    )
+    .expect("begun");
     let mut digests = Vec::new();
     let mut last: Option<Structure> = None;
     let mut moved = Vec::new();
@@ -195,7 +209,8 @@ fn walk(species: &Species, r: Request) {
 
 /// Every year's tree's digest, none where its settle failed.
 fn walk_digests(species: &Species, r: Request, retiring: Retiring) -> Vec<u64> {
-    let mut p = Paused::begin(species, r, retiring, false).expect("begun");
+    let mut p =
+        Paused::begin(std::sync::Arc::new(species.clone()), r, retiring, false).expect("begun");
     (1..=r.age)
         .map(|y| {
             p.grow_to(y).expect("grown");

@@ -34,7 +34,7 @@ impl Stop {
     }
 }
 
-impl Shoot<'_, '_> {
+impl Shoot<'_> {
     /// The apex has spent its age in the growth unit keyed `unit`: it
     /// moves on to the next age it grows in, past any it passes through,
     /// by its continuation, or it stops; in this cycle at the rest of it,

@@ -13,8 +13,6 @@
 //! the bud's path from the root, and every element a draw makes grows in
 //! from nothing as a setting passes the draw, so a walk of any setting at a
 //! fixed seed changes the tree by degree.
-#[cfg(test)]
-mod agree;
 mod allocation;
 mod beech;
 mod birch;
@@ -27,11 +25,11 @@ mod cores;
 mod dormant;
 mod error;
 mod fine;
+pub mod floor;
 mod geometry;
 mod girth;
 mod grow;
 pub mod invariants;
-pub mod floor;
 mod light;
 mod lineage;
 mod memo;
@@ -57,12 +55,10 @@ pub use closed_form::{
     expected_axes, expected_counts, expected_grown, expected_kept, expected_length,
 };
 pub use error::{Error, Result};
-pub use fine::{canonical, digest, identities, lineage_order, ChainTables, PaRow, UnitZone, Units};
+pub use fine::{canonical, digest, identities, lineage_order};
 pub use grow::cycle::{
-    admitted, grow_capture, grow_capture_grown, grow_capture_hierarchy_at, grow_capture_light_at,
-    grow_capture_retired, grow_capture_settle_tables, grow_capture_settled_at, grow_capture_tables,
-    grow_census, grow_cycle, grow_cycle_is_the_reference, tree_digest, within_year, Capture,
-    Census, Cycle, Cycled, Footprint, Paused, Retiring, SettleTo, Store,
+    admitted, grow_capture_light_at, grow_census, grow_cycle, tree_digest, within_year, Capture,
+    Census, Cycle, Cycled, Footprint, Paused, Retiring, Store,
 };
 pub use grow::{grow, Pass, Request, Stage};
 pub use light::Light;
@@ -75,10 +71,10 @@ pub use oak::oak;
 pub use palm::palm;
 pub use presence::{FLOOR, RATE, SPAN};
 pub use schedule::most_units;
+pub use species::coarse::{Coarsening, COARSEST};
 pub use species::scale::{
     scale, setting, settings, zone_settings, Scale, Setting, OUTCOMES, SETTINGS,
 };
-pub use species::coarse::{Coarsening, COARSEST};
 pub use species::{
     Form, NodeLaw, PaState, Species, Zone, BARE, MAX_BUDS, MAX_LEAF_AREA, MEDIAL, SPARE, TOP, ZONES,
 };

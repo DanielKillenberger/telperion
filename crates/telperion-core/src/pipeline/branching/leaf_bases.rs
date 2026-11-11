@@ -76,11 +76,6 @@ fn bearing(p: &CanopyParams) -> bool {
     p.leaf_bases > 0. && p.leaf_base_length > 0.
 }
 
-/// Whether this table hangs any base at all.
-pub fn hangs(p: &CanopyParams) -> bool {
-    bearing(p)
-}
-
 /// Whether this table packs its bases into the lattice rather than hanging
 /// round pegs. At no width every base is the peg it always was.
 fn packed(p: &CanopyParams) -> bool {

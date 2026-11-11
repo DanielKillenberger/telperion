@@ -1,8 +1,7 @@
 //! Digests of what every shipped preset builds, one JSON line a preset and
 //! seed: the pipeline's artifacts for a full request and for the field alone,
 //! and the mesh. Two runs of the same generator print the same lines; a
-//! refactor that keeps the bytes keeps every digest. What the device builds
-//! is digested by the render crate's `resident::digest_tests`.
+//! refactor that keeps the bytes keeps every digest.
 //! `cargo run --profile ci -p telperion-render --example generation_digest
 //! [preset ...]`; `DIGEST_SEEDS` overrides seeds 1 and 7.
 use serde_json::{json, Value};

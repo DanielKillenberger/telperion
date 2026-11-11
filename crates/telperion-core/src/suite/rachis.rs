@@ -27,8 +27,7 @@ const ON: f64 = 1e-3;
 const FINEST: f64 = 2e-4;
 
 /// The rachis width these tests draw the palm at: the shipped palm keeps
-/// zero until the device draws its axes (fn-283 .3, conductor), which sets
-/// this value (FAO 156 ch. I).
+/// zero; this value is the FAO's (FAO 156 ch. I, fn-283 .3).
 const WIDTH: f64 = 0.25;
 
 /// The date palm with its fronds' axes drawn, on a table of its own.

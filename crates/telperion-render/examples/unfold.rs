@@ -32,7 +32,7 @@ fn main() -> Result<(), String> {
     let seed: u32 = seed.parse().map_err(|e| format!("seed: {e}"))?;
     let parse = |f: &str| f.parse().map_err(|e| format!("{f}: {e}"));
     let fractions: Vec<f64> = fractions.split(',').map(parse).collect::<Result<_, _>>()?;
-    let params = growth::Params::of(&family).map_err(|e| e.to_string())?;
+    let params = std::sync::Arc::new(growth::Params::of(&family).map_err(|e| e.to_string())?);
     let mut state = growth::begin(&params, seed, f64::from(age)).map_err(|e| e.to_string())?;
     growth::grow_to(&mut state, f64::from(age)).map_err(|e| e.to_string())?;
     let at = |f: f64| f64::from(age) - 1.0 + f;

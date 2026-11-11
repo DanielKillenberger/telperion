@@ -118,7 +118,7 @@ fn half(word: u32, from: bool) -> u16 {
     }
 }
 
-/// A PA's `leaf_years` as the conversion and the device read it: the
+/// A PA's `leaf_years` as the conversion reads it: the
 /// first age that keeps less than all its stations, and the share that
 /// age keeps. Never: no such age. A share is floored to 16 bits, so a
 /// fraction within 2^-16 of a whole year keeps all.

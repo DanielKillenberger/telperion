@@ -23,7 +23,8 @@ mod folds;
 mod shoulder;
 use folds::share;
 pub use folds::{reach, Folds};
-pub use shoulder::{beyond, bins, crown_point, BINS};
+#[cfg(all(test, feature = "geometry"))]
+use shoulder::bins;
 
 /// The input of every stage past the skeleton, read off one family.
 #[derive(Debug, Clone)]
@@ -62,8 +63,8 @@ impl<'f> GrowInput<'f> {
         };
         // The finest is the species as it stands, not a copy of it.
         if family.fidelity > 0.0 && space.coarse != telperion_space::Coarsening::NONE {
-            let coarsened = (space.species.as_ref())
-                .map(|s| s.coarsened(&space.coarse, family.fidelity));
+            let coarsened =
+                (space.species.as_ref()).map(|s| s.coarsened(&space.coarse, family.fidelity));
             space.to_mut().species = coarsened;
         }
         Self {

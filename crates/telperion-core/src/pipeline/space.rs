@@ -39,8 +39,8 @@ pub(super) const STRUCTURAL: f64 = 0.05;
 /// whole micrometres of wood grown since the last node drawn: a float32
 /// ring stays resolved above them (host, fn-193 C, the beech). The length
 /// is the recorded grown wood (`Tree::grown`) counted as the stations count
-/// it (`plan::micrometres`), so both executors take the merge alike (host,
-/// fn-212 task 8).
+/// it (`plan::micrometres`), so a float32 and a float64 reading take the
+/// merge alike (host, fn-212 task 8).
 pub(crate) const FINEST: f64 = 2e-4;
 const SHORTEST: f64 = 1000.0;
 /// A lateral of `FORK_FROM` to `FORK_AT` of its parent's radius grows in as
@@ -69,61 +69,10 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     Ok(tree)
 }
 
-/// A PA's row as the conversion reads it, for an executor that draws
-/// the engine's tree itself (fn-256 task 3): its internode and its
-/// spread, its flowering share, the leaves at each of its axes' tips (as
-/// a count's word, `telperion_space::word`, each axis drawing its whole
-/// count by `telperion_space::cluster`) and their fan, its leaf retention's first shedding age and that age's
-/// share, and whether it carries the trunk on.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct ConvertRow {
-    pub internode: f64,
-    pub spread: f64,
-    pub flowering: f64,
-    pub leaves: u32,
-    pub fan: f64,
-    pub sheds: u32,
-    pub share: u16,
-    pub trunk: bool,
-    /// Its year on the presentation's clock (fn-270 R5c).
-    pub season: telperion_space::unfold::Season,
-}
-
-/// What another executor grows and draws the family's tree by: the
-/// engine's species, the request, the scale it is drawn at, each PA's
-/// conversion row, and the rows its stem establishes by.
-pub(super) type Grows = (
-    telperion_space::Species,
-    Request,
-    f64,
-    Vec<ConvertRow>,
-    Option<Establishing>,
-);
-
-pub(super) fn growth(input: GrowInput) -> Result<Grows> {
+/// What a family's tree grows by: the engine's species and the request.
+pub(super) fn growth(input: GrowInput) -> Result<(telperion_space::Species, Request)> {
     let (species, request) = asked(&input)?;
-    let rows = pa_rows(species);
-    let establishing = Establishing::of(&input.canopy, species, &input.space.trunk);
-    let rows = rows.iter().enumerate().map(|(pa, r)| ConvertRow {
-        internode: r.internode,
-        spread: r.spread,
-        flowering: r.flowering,
-        // As a word: its floor and share (`telperion_space::word`).
-        leaves: telperion_space::word(r.cluster.0),
-        fan: r.cluster.1,
-        sheds: r.retention.0,
-        share: r.retention.1,
-        trunk: input.space.trunk.contains(&pa),
-        season: r.season,
-    });
-    let rows = rows.collect();
-    Ok((
-        species.clone(),
-        request,
-        input.supernatural.scale(),
-        rows,
-        establishing,
-    ))
+    Ok((species.clone(), request))
 }
 
 /// The converted tree drawn at `scale` times its natural size (fn-217
@@ -282,8 +231,8 @@ fn aside(nodes: &mut [Node], from: &[u32]) {
     // As thick as the stem it leaves, it parts as a fork does, with no
     // socket flange. One drawn down to `FORK_FROM` stands where a fork's
     // weight begins, none, decided by the branch taken and never by the
-    // radius it rounds to (fn-212 host decision, 2026-10-07: the
-    // executors round it differently).
+    // radius it rounds to (fn-212 host decision, 2026-10-07: float32 and
+    // float64 round it differently).
     head.codominant = if scaled {
         None
     } else {

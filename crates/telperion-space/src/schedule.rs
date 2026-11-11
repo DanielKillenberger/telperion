@@ -265,8 +265,8 @@ impl Unit {
 /// ends within the cycle, the relay its end can leave (`relay_ended`)
 /// grows the rest of the cycle whole: beside the continuation where that
 /// is not certain to move on, or in its place where the apex stops. A
-/// failed unit's relay adds one unit that this leaves out: a floor the
-/// device's limits take beside the counts they observe, never a bound.
+/// failed unit's relay adds one unit that this leaves out: a floor, never
+/// a bound.
 pub fn most_units(species: &Species) -> u32 {
     let relays = |a: usize| u32::from(species.states[a].relay_ended > 0.0);
     // Whether an apex whose age ended may stop rather than move on.

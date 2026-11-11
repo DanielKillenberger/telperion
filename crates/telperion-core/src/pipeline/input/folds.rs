@@ -1,8 +1,7 @@
 //! The grown tree's whole-tree folds (fn-212 task 4): its height, the
 //! lowest node of its crown and its widest reach. Each is a fold over the
-//! tree's nodes that any split of them reaches exactly, so an executor
-//! that holds part of a tree's nodes (the GPU's fine roots) folds its part
-//! and the pipeline combines it with its own. The shoulder needs these
+//! tree's nodes that any split of them reaches exactly, so folds of parts
+//! of a tree's nodes combine to the fold of the whole. The shoulder needs these
 //! folds first; it then reads the crown's points (`shoulder.rs`).
 use crate::math::{Transcendental, Vec3};
 use crate::tree::Node;

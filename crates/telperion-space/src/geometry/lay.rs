@@ -131,11 +131,6 @@ impl Layer {
         self
     }
 
-    /// Its take-over as the device holds it: how far, then the line.
-    pub(crate) fn take_words(&self) -> [f32; 4] {
-        [self.take, self.line[0], self.line[1], self.line[2]]
-    }
-
     /// The same, carrying on the pulls `inherited` from the axis it
     /// relays (`handed`).
     pub fn inheriting(mut self, inherited: Vec<Lift>) -> Self {
@@ -208,20 +203,6 @@ impl Layer {
     /// The scaled length laid so far.
     pub fn run(&self) -> f64 {
         f64::from(self.run)
-    }
-
-    /// The walk as the device holds it (fn-256): running, across, tip,
-    /// run, pull, curve and turning, then each pull it carries on as its
-    /// bend, pull, total and offset.
-    pub(crate) fn words(&self) -> Vec<f32> {
-        let mut out: Vec<f32> = [self.running, self.across, self.tip].concat();
-        out.extend([self.run, self.pull]);
-        out.extend(self.curve);
-        out.push(self.turning);
-        for l in &self.inherited {
-            out.extend([l.bend, l.pull, l.total, l.offset]);
-        }
-        out
     }
 
     /// Lays the next phytomer. A running direction bends towards the PA's
@@ -466,7 +447,7 @@ pub(crate) fn support(z: f32, radius: f32, length: f32) -> f32 {
 }
 
 /// The cone about straight down as the sine its lean is held to: a
-/// per-request constant a second executor is handed.
+/// per-request constant.
 pub(crate) fn cone() -> f32 {
     DOWNWARD.sin_fixed() as f32
 }

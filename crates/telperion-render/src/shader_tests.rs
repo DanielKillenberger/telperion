@@ -26,12 +26,9 @@ fn check(name: &str, source: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// Every source the device builds: the drawing passes and the generation
-/// passes, the fine-root executor's included.
+/// Every source the device builds: the drawing passes.
 pub(crate) fn shipped() -> Vec<(&'static str, String)> {
-    let mut all = crate::shaders::all();
-    all.extend(crate::generation::sources::all());
-    all
+    crate::shaders::all()
 }
 
 #[test]
@@ -109,11 +106,9 @@ fn a_faulty_fixture_fails_the_check() {
 
 /// The storage buffers a stage binds past the device's per-stage limit,
 /// the one `Gpu::request` asks for (WebGPU's default 8, within Chrome's
-/// 16; fn-237 R14, fn-266 FRICTION.md). A generation pass binds every
-/// buffer its module declares in one layout (`io::Pass`), so `whole`
-/// counts the module; a drawing pipeline's layout holds what its entry
-/// uses.
-fn storage_over_limit(name: &str, source: &str, whole: bool) -> Option<String> {
+/// 16; fn-237 R14, fn-266 FRICTION.md). A drawing pipeline's layout holds
+/// what its entry uses.
+fn storage_over_limit(name: &str, source: &str) -> Option<String> {
     let module = naga::front::wgsl::parse_str(source).ok()?;
     let flags = naga::valid::ValidationFlags::all();
     let info = naga::valid::Validator::new(flags, capabilities())
@@ -124,19 +119,14 @@ fn storage_over_limit(name: &str, source: &str, whole: bool) -> Option<String> {
         .map(|(h, _)| h)
         .collect();
     let limit = wgpu::Limits::default().max_storage_buffers_per_shader_stage as usize;
-    let mut counts = vec![("module".to_string(), storage.len())];
-    if !whole {
-        counts = (module.entry_points.iter().enumerate())
-            .map(|(i, e)| {
-                let used = info.get_entry_point(i);
-                (
-                    e.name.clone(),
-                    storage.iter().filter(|&&h| !used[h].is_empty()).count(),
-                )
-            })
-            .collect();
-    }
-    let over: Vec<String> = (counts.into_iter())
+    let counts = (module.entry_points.iter().enumerate()).map(|(i, e)| {
+        let used = info.get_entry_point(i);
+        (
+            e.name.clone(),
+            storage.iter().filter(|&&h| !used[h].is_empty()).count(),
+        )
+    });
+    let over: Vec<String> = counts
         .filter(|(_, n)| *n > limit)
         .map(|(at, n)| format!("{name} {at}: {n} storage buffers, the limit is {limit}"))
         .collect();
@@ -145,12 +135,8 @@ fn storage_over_limit(name: &str, source: &str, whole: bool) -> Option<String> {
 
 #[test]
 fn every_shader_holds_the_storage_buffer_limit() {
-    let drawing = crate::shaders::all().into_iter().map(|s| (s, false));
-    let generation = crate::generation::sources::all()
-        .into_iter()
-        .map(|s| (s, true));
-    let over: Vec<String> = (drawing.chain(generation))
-        .filter_map(|((name, source), whole)| storage_over_limit(name, &source, whole))
+    let over: Vec<String> = (crate::shaders::all().into_iter())
+        .filter_map(|(name, source)| storage_over_limit(name, &source))
         .collect();
     assert!(over.is_empty(), "{}", over.join("\n"));
     let limit = wgpu::Limits::default().max_storage_buffers_per_shader_stage as usize;
@@ -163,10 +149,8 @@ fn every_shader_holds_the_storage_buffer_limit() {
         let uses: String = (0..n).map(|i| format!("b{i}[0] = 1u;")).collect();
         format!("{globals}@compute @workgroup_size(1) fn main() {{ {uses} }}")
     };
-    for whole in [true, false] {
-        assert!(storage_over_limit("at the limit", &module(limit), whole).is_none());
-        assert!(storage_over_limit("past it", &module(limit + 1), whole).is_some());
-    }
+    assert!(storage_over_limit("at the limit", &module(limit)).is_none());
+    assert!(storage_over_limit("past it", &module(limit + 1)).is_some());
 }
 
 /// Every shipped source written to `SHADERS=<dir>`, one file a source,

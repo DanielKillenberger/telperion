@@ -18,10 +18,7 @@ use crate::{
     GROUND_REACH,
 };
 
-/// A tree's field grown on a device of its own (fn-257).
-mod field;
-mod generation;
-/// A tree growing on the page's device (fn-270 R6, R7).
+/// A tree growing for the page, on the CPU (fn-270 R6, R7; fn-353).
 mod growing;
 /// The timing protocol as a page runs it, kept beside this file rather than in
 /// it so neither outgrows the project's line rule.
@@ -160,6 +157,26 @@ fn frame_of(acquired: wgpu::CurrentSurfaceTexture) -> Result<wgpu::SurfaceTextur
     }
 }
 
+/// Compiles the wood's surfacing programs and waits for the browser to settle
+/// them, so a renderer that exists can draw a tree's wood. The browser
+/// compiles them in the background: a synchronous compile on the first build
+/// held Chrome's GPU process until its watchdog ended it (fn-243). A program
+/// the browser refuses, or the device lost meanwhile, is the error by name.
+async fn compile_programs(gpu: &Gpu) -> Result<()> {
+    let [validation, memory] = gpu.scopes();
+    crate::curve::passes(gpu);
+    let ready = crate::programs::ready(gpu).await;
+    let (memory, validation) = (memory.pop().await, validation.pop().await);
+    let scoped = match memory.or(validation) {
+        Some(error) => Err(RenderError::DeviceRefused {
+            requirement: "the wood's programs".into(),
+            detail: error.to_string(),
+        }),
+        None => Ok(()),
+    };
+    crate::programs::first_cause(gpu.lost(), ready, scoped)
+}
+
 fn aspect(config: &wgpu::SurfaceConfiguration) -> f64 {
     f64::from(config.width) / f64::from(config.height)
 }
@@ -198,20 +215,23 @@ fn attachments(
 /// invent one.
 #[wasm_bindgen]
 pub struct WebRenderer {
-    generation: generation::Generation,
     live: Rc<RefCell<Option<Live>>>,
 }
 
 #[wasm_bindgen]
 impl WebRenderer {
-    /// A renderer on this canvas, or a rejection naming the condition that
-    /// stopped it: no WebGPU, a software-only adapter, a refused device.
+    /// A renderer on this canvas that can draw a tree, or a rejection naming
+    /// the condition that stopped it: no WebGPU, a software-only adapter, a
+    /// refused device, a wood program the browser refused, or the device lost
+    /// while the programs compiled.
     pub fn create(canvas: HtmlCanvasElement) -> js_sys::Promise {
         future_to_promise(async move {
             let live = Live::new(canvas).await.map_err(js_error)?;
+            compile_programs(live.renderer.gpu())
+                .await
+                .map_err(js_error)?;
             Ok(JsValue::from(Self {
                 live: Rc::new(RefCell::new(Some(live))),
-                generation: Rc::default(),
             }))
         })
     }
@@ -230,8 +250,9 @@ impl WebRenderer {
         // tree drawn in the last tree's colours would be nobody's family.
         let submitted = live.renderer.submit(&mesh).map_err(js_error)?;
         live.renderer.set_family(&family);
+        // A whole tree's leaves, whatever a drawn year left them at.
+        live.renderer.set_colouring(1.0);
         live.redraw.ask();
-        self.generation.borrow_mut().invalidate();
         Ok(submitted_json(&submitted))
     }
 
@@ -411,7 +432,6 @@ impl WebRenderer {
     /// Drops the device and the canvas surface with it. Every later call says
     /// the renderer is disposed rather than reaching a device that is gone.
     pub fn dispose(&self) {
-        self.generation.borrow_mut().dispose();
         self.live.borrow_mut().take();
     }
 }

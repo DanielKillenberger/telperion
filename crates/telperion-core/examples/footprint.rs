@@ -52,7 +52,13 @@ fn main() {
     match args[0].as_str() {
         "stores" => {
             let horizon = request(*ages.iter().max().expect("an age"));
-            let mut p = Paused::begin(&species, horizon, Retiring::AtAge, false).expect("begun");
+            let mut p = Paused::begin(
+                std::sync::Arc::new(species.clone()),
+                horizon,
+                Retiring::AtAge,
+                false,
+            )
+            .expect("begun");
             for &age in &ages {
                 p.grow_to(age).expect("grown");
                 stores(age, &p);

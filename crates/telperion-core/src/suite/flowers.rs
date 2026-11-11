@@ -1,10 +1,10 @@
 //! Flowers on an engine tree (fn-216): the beech's blossom test, built
-//! through the one pipeline and through the executor's step, and walked
-//! across its flowering share and its petal count with no pop.
+//! through the one pipeline, and walked across its flowering share and
+//! its petal count with no pop.
 use telperion_core::{
     foliage::{BloomParams, Instances},
     mesh,
-    pipeline::{self, executor, Request},
+    pipeline::{self, Request},
     presets::{Family, Preset},
 };
 
@@ -39,23 +39,6 @@ fn florets(f: &Family) -> Instances {
 fn a_tree_that_flowers_nowhere_has_no_flowers() {
     let built = mesh::build(&blossoming(0.0, 5.0)).unwrap();
     assert!(built.organ.is_none());
-}
-
-/// Both executors take the flowers through the one step, so they agree.
-#[test]
-fn both_executors_draw_the_same_flowers() {
-    let f = blossoming(0.4, 5.0);
-    let cpu = mesh::build(&f).unwrap().organ.unwrap();
-    let step = executor::grow(&f)
-        .unwrap()
-        .expansion()
-        .unwrap()
-        .organ()
-        .unwrap();
-    let step = step.unwrap();
-    assert!(cpu.instances.len() > 100, "{} florets", cpu.instances.len());
-    assert_eq!(cpu.instances, step.instances);
-    assert_eq!(cpu.element.positions, step.element.positions);
 }
 
 /// A walk across the share: the first florets to appear are barely

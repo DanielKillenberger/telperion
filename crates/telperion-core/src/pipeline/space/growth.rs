@@ -12,13 +12,14 @@ use super::{
 use crate::presets::Family;
 use crate::tree::Tree;
 use crate::{Error, Result};
+use std::sync::Arc;
 use telperion_space::{admitted, Paused, Request, Retiring, Species};
 
 /// What a family's tree grows and is drawn by, read from the family once:
 /// its engine species, site light, trunk PAs, each PA's conversion row,
 /// and the scale it is drawn at.
 pub struct Params {
-    species: Species,
+    species: Arc<Species>,
     light: telperion_space::Light,
     trunk: Vec<usize>,
     rows: Vec<PaRow>,
@@ -37,6 +38,7 @@ impl Params {
         let species = space
             .species
             .clone()
+            .map(Arc::new)
             .ok_or(Error::InvalidInput("no engine species"))?;
         let rows = pa_rows(&species);
         let (light, trunk, scale) = (space.light, space.trunk.clone(), input.supernatural.scale());
@@ -53,13 +55,14 @@ impl Params {
 }
 
 /// A tree growing: the engine's grower paused between calls, at the
-/// cycles it has committed.
-pub struct GrowthState<'p> {
-    params: &'p Params,
-    paused: Paused<'p>,
+/// cycles it has committed. It owns what it reads, so a caller can hold
+/// it between calls (fn-353).
+pub struct GrowthState {
+    params: Arc<Params>,
+    paused: Paused,
 }
 
-impl GrowthState<'_> {
+impl GrowthState {
     /// The whole years grown.
     pub fn committed(&self) -> u32 {
         self.paused.committed()
@@ -74,7 +77,7 @@ impl GrowthState<'_> {
 /// The tree before its first year, to grow at most `horizon` whole years
 /// from `seed`. A horizon that is no whole number of years is refused by
 /// name, and one whose tree is expected past the ceiling before it grows.
-pub fn begin(params: &Params, seed: u32, horizon: f64) -> Result<GrowthState<'_>> {
+pub fn begin(params: &Arc<Params>, seed: u32, horizon: f64) -> Result<GrowthState> {
     if horizon.fract() != 0.0 || !(0.0..=f64::from(u32::MAX)).contains(&horizon) {
         return Err(Error::InvalidValue {
             field: "horizon",
@@ -88,9 +91,10 @@ pub fn begin(params: &Params, seed: u32, horizon: f64) -> Result<GrowthState<'_>
         seed: u64::from(seed),
         light: params.light,
     };
-    let paused = Paused::begin(&params.species, request, Retiring::AtAge, false)
+    let paused = Paused::begin(Arc::clone(&params.species), request, Retiring::AtAge, false)
         .map_err(engine)?
         .presenting();
+    let params = Arc::clone(params);
     Ok(GrowthState { params, paused })
 }
 
@@ -110,7 +114,7 @@ pub fn grow_to(state: &mut GrowthState, age: f64) -> Result<()> {
 pub fn settle(state: &GrowthState, at: f64) -> Result<Tree> {
     let drawn = state.paused.settle_at(at).map_err(engine)?;
     fits(&drawn.structure, KEPT)?;
-    let p = state.params;
+    let p = &state.params;
     let unfolding = Unfolding {
         leaves: &drawn.leaves,
         fraction: drawn.fraction,

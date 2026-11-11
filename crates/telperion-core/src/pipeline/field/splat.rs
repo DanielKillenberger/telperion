@@ -254,7 +254,10 @@ impl Tally {
     /// `estimate` more leaves on `system` in cell `c` (fn-323's measurement).
     #[cfg(test)]
     pub(super) fn add(&mut self, c: usize, system: u32, estimate: f64) {
-        *self.0.entry((c as u64) << 32 | u64::from(system)).or_default() += estimate;
+        *self
+            .0
+            .entry((c as u64) << 32 | u64::from(system))
+            .or_default() += estimate;
     }
 
     /// The limb system with the most leaves in each cell, the lower id on

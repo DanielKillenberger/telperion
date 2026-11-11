@@ -109,8 +109,8 @@ pub(crate) fn mean_of(total: f32, weighted: f32) -> Option<f64> {
 /// The terms a block of the leaf mean's reduction holds.
 pub(crate) const LEAF_BLOCK: usize = 1024;
 
-/// The leaf mean's two sums in the one reduction order both executors
-/// take (fn-256 DESIGN.md sections 2 and 9.4): the terms in the order the
+/// The leaf mean's two sums in the one reduction order (fn-256 DESIGN.md
+/// sections 2 and 9.4): the terms in the order the
 /// axes and their phytomers stand, in blocks of `LEAF_BLOCK`, each block
 /// summed in order from zero, the blocks then added in order.
 #[derive(Debug, Clone, Copy, Default)]
@@ -170,11 +170,6 @@ pub(super) fn leaf_terms(structure: &Structure, species: &Species) -> Option<f64
     }
     let [total, weighted] = sums.sums();
     mean_of(total, weighted)
-}
-
-/// The leaf term's mean as `thicken` takes it from the tree alone.
-pub(crate) fn leaf_mean(structure: &Structure, species: &Species) -> Option<f64> {
-    leaf_terms(structure, species)
 }
 
 /// What thickening takes beyond the tree: the shed branches' pipes it

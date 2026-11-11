@@ -13,12 +13,11 @@ use crate::species::{Species, MAX_BUDS};
 use crate::structure::{Axis, Origin};
 use std::sync::Arc;
 
-/// What every growth unit reads and none writes: the species, its
+/// What every growth unit reads and none writes beside the species: its
 /// laterals as drawn, the bound on each PA's life, the windows, and the
 /// phytomers grown before the cycle.
 #[derive(Clone)]
-pub(crate) struct Rules<'a> {
-    pub species: &'a Species,
+pub(crate) struct Rules {
     /// Each PA's zones' lateral probabilities as drawn (`PaState::laterals`).
     /// Shared, as the windows are, by every fine root's grower.
     pub laterals: Arc<[Vec<Vec<f64>>]>,
@@ -76,8 +75,10 @@ pub(super) struct Line {
 
 /// A share of a cycle's growth: the living axes it advances (`homes`, in
 /// its apexes' order), and the axes it makes, numbered from `base`.
-pub(super) struct Shoot<'g, 'a> {
-    pub rules: &'g Rules<'a>,
+pub(super) struct Shoot<'g> {
+    pub rules: &'g Rules,
+    /// The species the grower owns.
+    pub species: &'g Species,
     pub reads: Reads<'g>,
     /// The tree's roots and horizons, which no growth unit changes.
     pub roots: &'g [u64],
@@ -95,8 +96,8 @@ pub(super) struct Shoot<'g, 'a> {
     /// The phytomers this share grew.
     pub grown: u64,
     /// The units the job growing now grew in the cycle, and the most a
-    /// living apex's job and a waking bud's grew (fn-276: what the
-    /// device's units rounds hold, against `schedule::most_units`).
+    /// living apex's job and a waking bud's grew (fn-276, against
+    /// `schedule::most_units`).
     pub job: u32,
     pub jobs: [u32; 2],
     /// One zone's node presences and its nodes (order draw, draw index,
@@ -118,11 +119,16 @@ pub(super) struct Spare {
     pub sleeping: Vec<f64>,
 }
 
-impl<'g, 'a> Shoot<'g, 'a> {
-    pub fn new(rules: &'g Rules<'a>, reads: Reads<'g>, tree: (&'g [u64], &'g [f64])) -> Self {
+impl<'g> Shoot<'g> {
+    pub fn new(
+        (rules, species): (&'g Rules, &'g Species),
+        reads: Reads<'g>,
+        tree: (&'g [u64], &'g [f64]),
+    ) -> Self {
         let (roots, horizons) = tree;
         Self {
             rules,
+            species,
             reads,
             roots,
             horizons,
@@ -154,8 +160,8 @@ impl<'g, 'a> Shoot<'g, 'a> {
         }
     }
 
-    pub fn species(&self) -> &'a Species {
-        self.rules.species
+    pub fn species(&self) -> &'g Species {
+        self.species
     }
 
     pub fn windows(&self) -> &'g Windows {

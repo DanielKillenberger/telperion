@@ -4,11 +4,10 @@ import { pathToFileURL } from 'node:url';
  * THE FIELD ENTRY POINT, IN A BROWSER WORKER
  *
  * A module worker imports src/field/index.ts from the served origin,
- * lets it fetch the renderer's Wasm from beside itself (no
- * bundler-resolved URL, no source passed), grows one tree on the
- * worker's WebGPU device and reads it out to one grid (fn-257). The page never
- * touches the module: a homepage runs this off its main thread, so the
- * smoke does too. It needs a browser with WebGPU in workers.
+ * lets it fetch the core's Wasm (no bundler-resolved URL, no source
+ * passed), grows one tree on the CPU and reads it out to one grid
+ * (fn-257, fn-353). The page never touches the module: a homepage runs
+ * this off its main thread, so the smoke does too.
  * ------------------------------------------------------------------ */
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ? pathToFileURL(process.env.PLAYWRIGHT_MODULE).href : 'playwright');
 const url = process.env.BROWSER_URL ?? 'http://127.0.0.1:5184';

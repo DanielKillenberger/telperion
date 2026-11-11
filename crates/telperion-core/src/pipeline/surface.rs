@@ -15,9 +15,6 @@ mod build;
 #[cfg(feature = "geometry")]
 mod chunks;
 #[cfg(feature = "geometry")]
-#[doc(hidden)]
-pub mod compact;
-#[cfg(feature = "geometry")]
 mod curve;
 pub mod encode;
 #[cfg(feature = "geometry")]
@@ -49,7 +46,7 @@ pub(crate) use build::{faces, segments, Faces};
 #[cfg(feature = "geometry")]
 use chunks::{Layout, Piece};
 #[cfg(feature = "geometry")]
-pub(crate) use curve::{curve, rows as curve_rows, traced};
+pub(crate) use curve::{curve, traced};
 #[cfg(feature = "geometry")]
 pub use curve::{
     Budget, Curve, CurveCluster, CurvePoint, CurveRun, Demand, PackedPoint, Tessellation, Viewer,
@@ -70,8 +67,8 @@ use {
 };
 /// A wood buffer the allocator refused, named with its remedy.
 const OUT_OF_MEMORY: Error = Error::ResourceLimit(
-    "the wood ran out of memory while its buffers were reserved; build it through the \
-     device entry or with fewer radialSegments",
+    "the wood ran out of memory while its buffers were reserved; build it with fewer \
+     radialSegments",
 );
 fn reserved<T>(n: usize) -> Result<Vec<T>> {
     let mut out = Vec::new();
@@ -145,8 +142,7 @@ crate::catalogue::rows! {
         pub lobes: u32 = "lobes" "lobes" Rail::closed(0.0, 16.0) => [Expand] {
             wire: 79,
             check: input(Site::Surface, 2, "surface parameters"),
-            note: "Raises the side count even at `lobeDepth` zero; the GPU executor draws only \
-                unlobed wood itself.",
+            note: "Raises the side count even at `lobeDepth` zero.",
             blend: Blend::Count,
             dial: bounded("surface_lobes", "how many ridges run up around the trunk", [2.0, 4.0]),
         },

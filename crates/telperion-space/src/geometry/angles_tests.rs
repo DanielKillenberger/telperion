@@ -32,7 +32,7 @@ fn unit(bits: u64) -> f64 {
 }
 
 /// The same nodes and keys to the bit, and scales by lineage
-/// (`agree::PATHS`).
+/// (`SCALE_APART`).
 fn same_topology(name: &str, a: &Structure, b: &Structure) {
     assert_eq!(a.counts(), b.counts(), "{name}: counts");
     assert_eq!(a.axes.len(), b.axes.len(), "{name}: axes");
@@ -41,7 +41,7 @@ fn same_topology(name: &str, a: &Structure, b: &Structure) {
         assert_eq!(x.phytomers.len(), y.phytomers.len(), "{name}");
         for (p, q) in x.phytomers.iter().zip(&y.phytomers) {
             let apart = (p.scale - q.scale).abs() / p.scale.abs().max(1e-12);
-            assert!(apart <= crate::agree::PATHS.scale, "{name}: scale {apart}");
+            assert!(apart <= super::SCALE_APART, "{name}: scale {apart}");
             assert_eq!(p.key(), q.key(), "{name}");
         }
     }

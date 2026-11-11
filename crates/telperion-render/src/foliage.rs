@@ -96,15 +96,6 @@ pub struct Foliage {
 }
 
 impl Foliage {
-    pub(crate) fn allocated_bytes(&self) -> u64 {
-        [&self.positions, &self.normals, &self.coords, &self.indices]
-            .into_iter()
-            .flatten()
-            .map(|b| b.region().capacity())
-            .sum::<u64>()
-            + self.select.allocated_bytes()
-    }
-
     pub fn new(
         gpu: &Gpu,
         layout: &wgpu::BindGroupLayout,
@@ -193,28 +184,6 @@ impl Foliage {
         } else {
             std::borrow::Cow::Borrowed(element)
         }
-    }
-
-    pub(crate) fn submit_resident(
-        &mut self,
-        gpu: &Gpu,
-        element: &telperion_core::foliage::Element,
-        reference: telperion_core::foliage::Reference,
-        count: u32,
-        placements: crate::buffer::Held,
-        masses: crate::buffer::Held,
-    ) {
-        let element = self.drawn(element);
-        self.select.submit_resident(
-            gpu,
-            &element,
-            reference,
-            count,
-            placements,
-            masses,
-            Level::default(),
-        );
-        self.submit_element(gpu, &element);
     }
 
     fn submit_element(&mut self, gpu: &Gpu, element: &telperion_core::foliage::Element) {
@@ -373,12 +342,6 @@ impl Foliage {
     /// The live placement range, for a caller that wants to see what went up.
     pub fn region(&self) -> Option<Region> {
         self.select.region()
-    }
-
-    /// Each level's list in its drawn order, as the last frame left it.
-    #[cfg(test)]
-    pub(crate) fn level_lists(&self, gpu: &Gpu) -> Vec<Vec<u32>> {
-        self.select.level_lists(gpu)
     }
 
     /// What the last frame's selection counted per level, the unseen bucket

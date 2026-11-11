@@ -63,7 +63,7 @@ pub(in crate::grow) struct Retirement {
     pub(super) fading: Vec<usize>,
     /// Every verdict in the order taken: the subtree's root, the cycle,
     /// waited (0), kept (1) or retired (2), and its living (none where it
-    /// waited), for the device's retirement to be held to (fn-256); kept
+    /// waited) (fn-256); kept
     /// only where the records are (`Working::keep_records`), for its
     /// roots are indices.
     pub log: Vec<(usize, u32, u8, Living)>,
@@ -120,7 +120,7 @@ enum Verdict {
     Retired(Living),
 }
 
-impl Grower<'_> {
+impl Grower {
     /// Every lateral whose subtree has closed since the last cycle,
     /// beside an open axis, evaluated and retired where the settle would
     /// drop it.
@@ -131,7 +131,7 @@ impl Grower<'_> {
             self.working = Some(w);
             return;
         }
-        if crate::grow::keeps(self.species) {
+        if crate::grow::keeps(&self.species) {
             self.freeze(&mut w, cycle - 1);
         }
         // The closed subtrees beside an open axis, met at their roots.
@@ -150,7 +150,7 @@ impl Grower<'_> {
             draws: &self.draws,
             woken: &self.woken,
             successor: &self.successor,
-            species: self.species,
+            species: &self.species,
             age,
             cycle,
         };
@@ -175,7 +175,7 @@ impl Grower<'_> {
                 Verdict::Wait => w.retire.pending.push(c),
                 Verdict::Kept(living) => {
                     w.retire.fate[c] = Fate::Kept(living);
-                    if sheds(&self.axes[c], self.species) {
+                    if sheds(&self.axes[c], &self.species) {
                         w.retire.fading.push(c);
                     }
                 }

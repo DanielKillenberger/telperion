@@ -5,8 +5,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * in for, so each test counts the compiles its calls start. */
 const source = vi.fn(async () => new Uint8Array(8));
 vi.mock("../wasm-source", () => ({ wasmSource: () => source() }));
-vi.mock("../browser/render/telperion_render.js", () => ({ WebField: {} }));
-vi.mock("../browser/module", () => ({ loadModule: async () => undefined }));
 
 const module = {} as WebAssembly.Module;
 let compile: ReturnType<typeof vi.spyOn>;

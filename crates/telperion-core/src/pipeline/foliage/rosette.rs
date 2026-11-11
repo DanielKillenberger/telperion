@@ -446,7 +446,7 @@ pub fn frame(axis: Vec3) -> (Vec3, Vec3) {
 /// stays as the stem grows (fn-270 R5b).
 /// What keys the counts of a rosette's organs (fn-277): the key of its
 /// stem's first node, up its stem from the apex to the node the root or
-/// wood that is no stem bears, as both executors walk it.
+/// wood that is no stem bears.
 pub(crate) fn stem_node(tree: &Tree, rosette: &Rosette) -> u32 {
     let mut first = rosette.apex;
     while let Some(p) = tree.nodes[first].parent.map(|p| p as usize) {

@@ -1,0 +1,78 @@
+diff --git i/crates/telperion-core/src/pipeline/space/growth/tests.rs w/crates/telperion-core/src/pipeline/space/growth/tests.rs
+index c12b6c35c..695e79871 100644
+--- i/crates/telperion-core/src/pipeline/space/growth/tests.rs
++++ w/crates/telperion-core/src/pipeline/space/growth/tests.rs
+@@ -47,6 +47,73 @@ fn a_tree_grown_on_is_the_pipelines_tree_grown_at_once() {
+     assert!(settle(&s, f64::from(H)).unwrap() == whole);
+ }
+ 
++/// fn-353 R1: grown a year at a time to its horizon, the tree drawn at
++/// every whole year y is the tree the pipeline grows when asked for age y.
++#[test]
++fn every_year_grown_on_is_the_tree_asked_for_at_that_age() {
++    let (family, params) = beech();
++    let mut s = begin(&params, 7, f64::from(H)).unwrap();
++    for y in 1..=H {
++        grow_to(&mut s, f64::from(y)).unwrap();
++        let asked = super::super::grow(super::super::GrowInput {
++            age: f64::from(y),
++            seed: 7,
++            ..super::super::GrowInput::of(&family)
++        })
++        .unwrap();
++        let drawn = settle(&s, f64::from(y)).unwrap();
++        eprintln!(
++            "COUNT year {y}: nodes {} grown on, {} asked; root radius {:.6} grown on, {:.6} asked; leaves {} grown on, {} asked",
++            drawn.nodes.len(),
++            asked.nodes.len(),
++            drawn.nodes[0].radius,
++            asked.nodes[0].radius,
++            mesh(&s, f64::from(y), &family).unwrap().foliage.instances.len(),
++            {
++                let mut f = family.clone();
++                f.age = f64::from(y);
++                f.skeleton.seed = 7;
++                crate::mesh::build(&f).unwrap().foliage.instances.len()
++            },
++        );
++        eprintln!(
++            "DIAG year {y}: nodes {} frames {} keys {} grown {} blooms {} clusters {} clustered {} leafing {} unfolding {} year {:?}/{:?} clothing {} diag {} crossover {}",
++            drawn.nodes == asked.nodes,
++            drawn.frames == asked.frames,
++            drawn.keys == asked.keys,
++            drawn.grown == asked.grown,
++            drawn.blooms == asked.blooms,
++            drawn.clusters == asked.clusters,
++            drawn.clustered == asked.clustered,
++            drawn.leafing == asked.leafing,
++            drawn.unfolding == asked.unfolding,
++            drawn.year,
++            asked.year,
++            drawn.clothing == asked.clothing,
++            drawn.diagnostics == asked.diagnostics,
++            drawn.crossover == asked.crossover,
++        );
++        if drawn.nodes != asked.nodes {
++            let k = drawn.nodes.iter().zip(&asked.nodes).position(|(a, b)| a != b);
++            if let Some(k) = k {
++                eprintln!("DIAG first node {k}: {:?}\n vs {:?}", drawn.nodes[k], asked.nodes[k]);
++            }
++        }
++        if drawn.unfolding != asked.unfolding {
++            eprintln!("DIAG unfolding lens {} {}; first {:?} vs {:?}", drawn.unfolding.len(), asked.unfolding.len(), drawn.unfolding.first(), asked.unfolding.first());
++        }
++        if y < H {
++            continue;
++        }
++        assert!(
++            drawn == asked,
++            "year {y}: {} nodes grown on, {} asked for",
++            drawn.nodes.len(),
++            asked.nodes.len()
++        );
++    }
++}
++
+ /// R2b: a horizon that is no whole year, an age not finite, past the
+ /// horizon or a year back, and a draw outside the last year grown are
+ /// refused by name, the state left to grow on.

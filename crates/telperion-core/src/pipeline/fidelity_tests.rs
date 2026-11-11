@@ -21,7 +21,9 @@ fn family(id: &str, age: f64, seed: u32, fidelity: f64) -> Family {
 
 fn grown(f: &Family) -> u64 {
     let g = executor::growth(f).expect("its growth");
-    telperion_space::grow_cycle(&g.species, g.request).expect("a tree").grown
+    telperion_space::grow_cycle(&g.species, g.request)
+        .expect("a tree")
+        .grown
 }
 
 #[test]
@@ -56,12 +58,19 @@ fn the_oak_spruce_and_birch_grow_strictly_less_at_each_step() {
 #[test]
 fn a_fidelity_off_its_range_is_refused_by_name() {
     for bad in [-0.5, f64::NAN, f64::INFINITY] {
-        let f = Family { fidelity: bad, ..family("oregon-white-oak", AGE, 7, 0.0) };
+        let f = Family {
+            fidelity: bad,
+            ..family("oregon-white-oak", AGE, 7, 0.0)
+        };
         let refused = f.validate().expect_err("off its range");
         assert!(refused.to_string().contains("fidelity"), "{refused}");
-        let grown = executor::growth(&f).err().expect("the growth entry refuses");
+        let grown = executor::growth(&f)
+            .err()
+            .expect("the growth entry refuses");
         assert!(grown.to_string().contains("fidelity"), "{grown}");
-        let built = skeleton(GrowInput::of(&f)).err().expect("the skeleton refuses");
+        let built = skeleton(GrowInput::of(&f))
+            .err()
+            .expect("the skeleton refuses");
         assert!(built.to_string().contains("fidelity"), "{built}");
     }
 }
@@ -78,7 +87,13 @@ fn a_walk_between_two_fractional_requests_keeps_their_fidelity() {
 fn a_walk_between_two_dials_moves_its_first_age_by_degree() {
     let oak = family("oregon-white-oak", AGE, 7, 1.0);
     let spruce = family("norway-spruce", AGE, 7, 1.0);
-    let first = |t| crate::blend::families(&spruce, &oak, t).expect("a walk").space.coarse.first;
+    let first = |t| {
+        crate::blend::families(&spruce, &oak, t)
+            .expect("a walk")
+            .space
+            .coarse
+            .first
+    };
     assert_eq!(first(0.5), 8.5);
     assert!((first(0.001) - 8.0).abs() < 0.01 && (first(0.999) - 9.0).abs() < 0.01);
 }
@@ -128,18 +143,37 @@ fn read(f: &Family, repeats: usize) -> Option<[f64; 9]> {
     let mut times = vec![first.seconds];
     if repeats > 1 && first.seconds <= 0.5 {
         for _ in 1..repeats {
-            times.push(telperion_space::grow_census(&g.species, g.request).ok()?.seconds);
+            times.push(
+                telperion_space::grow_census(&g.species, g.request)
+                    .ok()?
+                    .seconds,
+            );
         }
         times.remove(0);
     }
-    let kept: u64 = first.structure.axes.iter().map(|a| a.phytomers.len() as u64).sum();
+    let kept: u64 = first
+        .structure
+        .axes
+        .iter()
+        .map(|a| a.phytomers.len() as u64)
+        .sum();
     let shed = measures::shed_share(kept, first.grown).ok()?;
     let age = f.age as u32;
     let leaf = telperion_space::floor::bearing_area(&g.species, &first.structure.axes, age);
     let tree = skeleton(GrowInput::of(f)).ok()?.tree;
     let limbs = measures::limb_count(&tree, f.canopy.clump_system_order).ok()? as f64;
     let [height, spread, trunk] = shape(&tree)?;
-    Some([height, spread, trunk, limbs, shed, leaf, median(times), work[0], work[1]])
+    Some([
+        height,
+        spread,
+        trunk,
+        limbs,
+        shed,
+        leaf,
+        median(times),
+        work[0],
+        work[1],
+    ])
 }
 
 fn median(mut v: Vec<f64>) -> f64 {
@@ -148,13 +182,20 @@ fn median(mut v: Vec<f64>) -> f64 {
 }
 
 fn medians(fs: &[Family], repeats: usize) -> Option<[f64; 9]> {
-    let rows = fs.iter().map(|f| read(f, repeats)).collect::<Option<Vec<_>>>()?;
-    Some(std::array::from_fn(|k| median(rows.iter().map(|r| r[k]).collect())))
+    let rows = fs
+        .iter()
+        .map(|f| read(f, repeats))
+        .collect::<Option<Vec<_>>>()?;
+    Some(std::array::from_fn(|k| {
+        median(rows.iter().map(|r| r[k]).collect())
+    }))
 }
 
 fn list<T: std::str::FromStr>(name: &str) -> Vec<T> {
     let v = std::env::var(name).unwrap_or_else(|_| panic!("{name}"));
-    v.split(',').map(|x| x.parse().ok().expect("a value")).collect()
+    v.split(',')
+        .map(|x| x.parse().ok().expect("a value"))
+        .collect()
 }
 
 /// One line per row of `SEARCH_FILE`, `first factor leaf pipe bud hazard
@@ -178,9 +219,13 @@ fn fidelity_rows() {
     };
     let reference = medians(&at(0.0, None), 1).expect("the full cycle");
     println!("REFERENCE {id} age {age} {reference:?}");
-    let rows = std::fs::read_to_string(std::env::var("SEARCH_FILE").expect("a file")).expect("rows");
+    let rows =
+        std::fs::read_to_string(std::env::var("SEARCH_FILE").expect("a file")).expect("rows");
     for row in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let v: Vec<f64> = row.split_whitespace().map(|x| x.parse().expect("a value")).collect();
+        let v: Vec<f64> = row
+            .split_whitespace()
+            .map(|x| x.parse().expect("a value"))
+            .collect();
         let c = Coarsening {
             first: v[0],
             factor: v[1],

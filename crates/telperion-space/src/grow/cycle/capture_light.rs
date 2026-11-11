@@ -1,11 +1,11 @@
 //! fn-256 task 2 (DESIGN.md section 2, step 8): one cycle's light
-//! captured for the device. The tree grows through the one cycle to the
-//! captured cycle, grows and lays it (`step`, `sketch`), then takes the
-//! leaves and the living apexes' tips as `read_light` takes them, and the
-//! CPU's box, quanta, densities, lattice and reads. Positions and areas
-//! are the f32s the lattice reads; the sweep's per-direction reals are
-//! the CPU's own f64s, by their bits. An experiment entry point, wired
-//! into nothing.
+//! captured. The tree grows through the one cycle to the captured cycle,
+//! grows and lays it (`step`, `sketch`), then takes the leaves and the
+//! living apexes' tips as `read_light` takes them, and the box, quanta,
+//! densities, lattice and reads. Positions and areas are the f32s the
+//! lattice reads; the sweep's per-direction reals are f64s, by their
+//! bits. `telperion-core`'s `light_rows` test reads the buds' light from
+//! it.
 use super::super::sketch::Sketch;
 use super::super::{start, Grower, Options, Request};
 use super::capture::Capture;
@@ -19,7 +19,11 @@ pub fn grow_capture_light_at(species: &Species, request: Request, cycle: u32) ->
     if cycle == 0 || cycle >= request.age {
         return refuse("cycle", "a lit cycle is one before the tree's age");
     }
-    let (mut g, _) = start(species, request, Options::default())?;
+    let (mut g, _) = start(
+        std::sync::Arc::new(species.clone()),
+        request,
+        Options::default(),
+    )?;
     (g.one, g.rules.one) = (true, true);
     g.working = Some(Box::new(super::Working::indexed()));
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));
@@ -39,7 +43,7 @@ pub fn grow_capture_light_at(species: &Species, request: Request, cycle: u32) ->
     Ok(c)
 }
 
-impl Grower<'_> {
+impl Grower {
     /// The living apexes' tips, in the live order `shade` reads them.
     fn lit_tips(&self) -> Vec<crate::structure::Vec3> {
         self.live.iter().map(|a| self.tip(a.axis)).collect()

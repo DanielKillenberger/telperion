@@ -19,7 +19,7 @@ use crate::cores::{fill, map};
 use crate::lineage::{insertion, Key, DOMINANCE, ROLL};
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
-pub(crate) use lay::{cone, support, Layer};
+pub(crate) use lay::{support, Layer};
 pub(crate) use place::place;
 pub(crate) use q::amount;
 use q::{add, atan2, between, cross, dot, q3, rotated, scaled, sincos, sub, unit, v3, Q3, UP};
@@ -401,6 +401,13 @@ fn turned((along, side): (Q3, Q3), azimuth: f32, angle: f32, plane: f32, epitony
     let side = sub(scaled(toward, cos), scaled(along, sin));
     (heading, spun(heading, side, plane))
 }
+
+/// How far a matched node's scale may part between two growths of one
+/// tree whose f32 sums part at their last places: measured 3.6e-4 over the
+/// oak, beech and spruce at 24, seeds 1 to 6 (fn-254), bound at about
+/// twice.
+#[cfg(test)]
+const SCALE_APART: f64 = 6e-4;
 
 #[cfg(test)]
 mod angles_tests;

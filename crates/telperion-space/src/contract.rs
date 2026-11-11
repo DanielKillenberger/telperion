@@ -1,6 +1,6 @@
 //! The decision contract's arithmetic (fn-254, after fn-209 F1): what a
-//! bud's decisions read, in ordinary f32 on the CPU and on the device
-//! (`contract.wgsl`), by the same operations. Identity stays integer:
+//! bud's decisions read, in ordinary f32, by the same operations on every
+//! target. Identity stays integer:
 //!
 //! - **Time** is a count of ticks of 2^-20 cycle. The CPU holds it in an
 //!   f64, where every count below 2^53 and every sum and difference of two
@@ -14,18 +14,17 @@
 //!   none or NaN passes no draw and one of one or more every draw.
 //! - **A probability, a log, a lead, a window and a presence** are f32. A
 //!   log of none is `-INF` and of a certainty's complement `INF`, a finite
-//!   sentinel tested by name at every site, as the device must (WGSL may
-//!   assume no infinities); a lead is a difference of log-odds; a presence
+//!   sentinel tested by name at every site; a lead is a difference of log-odds; a presence
 //!   is in [0, 1].
 //!
 //! - **Logarithms and powers** are the contract's own (`log2`, `exp2`):
-//!   plain f32 arithmetic, the same operations on both executors, never a
-//!   platform's or a GPU's own, whose accuracy near one is an absolute
+//!   plain f32 arithmetic, the same operations on every target, never a
+//!   platform's own, whose accuracy near one is an absolute
 //!   2^-21 and differs from vendor to vendor.
 //!
 //! Values computed once per species point (the closed form's tables, a
-//! species' settings) are inputs: the CPU computes them in f64 and hands
-//! both executors the same values, rounded once to f32 where they enter.
+//! species' settings) are inputs: computed in f64 and rounded once to f32
+//! where they enter.
 
 pub mod decide;
 pub mod presence;
@@ -114,7 +113,7 @@ pub fn exp(x: f32) -> f32 {
     exp2(x * std::f32::consts::LOG2_E)
 }
 
-/// A log as the executors hold it: an unbounded one as the sentinel.
+/// A log as the grower holds it: an unbounded one as the sentinel.
 pub fn log32(x: f64) -> f32 {
     if x <= -f64::from(INF) {
         -INF
@@ -278,7 +277,7 @@ pub fn logit53(d: u64) -> f32 {
     ln(d as f32 / (ONE - d) as f32)
 }
 
-/// D1's hash, for the GPU's mirror: the key one step further, `part`.
+/// D1's hash: the key one step further, `part`.
 pub fn child(key: u64, part: u64) -> u64 {
     crate::lineage::Key(key).child(part).0
 }

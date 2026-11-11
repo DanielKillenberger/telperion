@@ -1,10 +1,9 @@
 //! The release film (fn-272 R2): the declared path rendered frame by frame
 //! through the one pipeline and the shipped renderer, a growth grown once
-//! on the device and settled at whole ages, the next year faded in over
-//! the path's `fade` share of each (fn-270; host, 2026-10-14; owner,
+//! (`pipeline::growth`) and drawn at whole ages, the next year faded in
+//! over the path's `fade` share of each (fn-270; host, 2026-10-14; owner,
 //! 2026-10-19), a walk built at each frame's share by the direct build, as
-//! `headless --walk` builds one (the device refuses some walk frames:
-//! FRICTION.md, 2026-10-19),
+//! `headless --walk` builds one,
 //! the corner map drawn flat over each still, and the stills assembled
 //! into an mp4 by ffmpeg.
 //! Each segment's cost is printed as it ends; each frame's tree in
@@ -42,19 +41,20 @@ use overlay::{Canvas, Overlay};
 use path::{ease, selection, Frame, Kind, Path};
 use std::io::Write as _;
 use telperion_core::{
-    blend, mesh,
+    blend,
+    mesh::{self, TreeMesh},
+    pipeline::growth,
     presets::{by_identity, CATALOGUE},
     surface::Bounds,
     Family,
 };
 use telperion_render::{
-    generation::{Generator, Prepared},
     render, write_png, Gpu, Level, Placement, Renderer, SceneRow, Still, STILL_FORMAT,
 };
 
-/// A settled year to be drawn: its age, the tree, its leaves and bounds,
-/// and its build time.
-type Settled = (f64, Prepared, (usize, Bounds), f64);
+/// A drawn year: its age, the tree, how far its leaves have coloured,
+/// its leaves and bounds, and its build time.
+type Settled = (f64, TreeMesh, f64, (usize, Bounds), f64);
 
 /// A growth's frames, and the earlier year's picture of each frame that
 /// waits for its later year.
@@ -127,8 +127,7 @@ fn main() -> Result<(), String> {
         sun_elevation: path.sun.1,
         ..SceneRow::default()
     });
-    let gen = Generator::new(&film.renderer).map_err(|e| e.to_string())?;
-    let crowns = bounds::of_film(&gen, &path, &frames, cache.map(std::path::Path::new))?;
+    let crowns = bounds::of_film(&path, &frames, cache.map(std::path::Path::new))?;
     let standing = standing::of_film(&path, &crowns)?;
     film.crowns = &crowns;
     film.placements = &standing.placements;
@@ -142,7 +141,7 @@ fn main() -> Result<(), String> {
         }
         peaks.reset();
         let cost = match &segment.kind {
-            Kind::Grow { species, from, to } => film.grow(&gen, k, species, (*from, *to))?,
+            Kind::Grow { species, from, to } => film.grow(k, species, (*from, *to))?,
             Kind::Walk { from, to, age } => film.walk(k, (from, to), *age)?,
         };
         let (rss, device) = peaks.take();
@@ -321,22 +320,16 @@ impl Film<'_> {
         Ok(())
     }
 
-    /// A growth: one tree grown once and settled at whole ages only, where
+    /// A growth: one tree grown once and drawn at whole ages only, where
     /// it stands at full leaf (host, 2026-10-14). A frame between two whole
     /// ages shows the earlier year, the later faded over it by `faded`
     /// where the path's fade has begun; ages rise, so a shrink is drawn
     /// last frame first.
-    fn grow(
-        &mut self,
-        gen: &Generator,
-        k: usize,
-        species: &str,
-        (from, to): (f64, f64),
-    ) -> Result<Cost, String> {
+    fn grow(&mut self, k: usize, species: &str, (from, to): (f64, f64)) -> Result<Cost, String> {
         let family = bounds::ends(species, from.max(to), self.path.seed)?;
         let mut cost = Cost::default();
         let started = std::time::Instant::now();
-        let mut tree = pollster::block_on(gen.begin_growth(&family)).map_err(|e| e.to_string())?;
+        let mut tree = bounds::begin(&family)?;
         cost.build_ms += started.elapsed().as_secs_f64() * 1e3;
         let frames = placing::years_of(&self.of(k), (from, to), self.path.fade);
         let mut year = Year {
@@ -345,33 +338,33 @@ impl Film<'_> {
         };
         for at in placing::built(&frames) {
             let started = std::time::Instant::now();
-            pollster::block_on(gen.grow_to(&mut tree, at))
-                .map_err(|e| format!("{species} to {at}: {e}"))?;
-            let settled = pollster::block_on(gen.settle(&tree, at))
-                .map_err(|e| format!("{species} at {at}: {e}"))?;
+            growth::grow_to(&mut tree, at).map_err(|e| format!("{species} to {at}: {e}"))?;
+            let drawn =
+                growth::mesh(&tree, at, &family).map_err(|e| format!("{species} at {at}: {e}"))?;
+            let colouring = growth::colouring(&tree, at).map_err(|e| e.to_string())?;
             let ms = started.elapsed().as_secs_f64() * 1e3;
             (cost.build_ms, cost.trees) = (cost.build_ms + ms, cost.trees + 1);
-            let shape = (settled.count(), settled.bounds());
-            self.show(&family, (at, settled, shape, ms), &mut year, &mut cost)?;
+            let shape = (drawn.foliage_instances(), drawn.bounds);
+            let settled = (at, drawn, colouring, shape, ms);
+            self.show(&family, settled, &mut year, &mut cost)?;
         }
         cost.frames = frames.len();
         Ok(cost)
     }
 
-    /// One settled year put up and every frame that shows it drawn, the
+    /// One drawn year put up and every frame that shows it drawn, the
     /// person where the frame stands it; a frame that waits for its later
     /// year keeps this one's picture.
     fn show(
         &mut self,
         family: &Family,
-        (at, settled, shape, ms): Settled,
+        (at, drawn, colouring, shape, ms): Settled,
         year: &mut Year,
         cost: &mut Cost,
     ) -> Result<(), String> {
-        self.renderer
-            .submit_prepared(settled)
-            .map_err(|e| e.to_string())?;
+        self.renderer.submit(&drawn).map_err(|e| e.to_string())?;
         self.renderer.set_family(family);
+        self.renderer.set_colouring(colouring);
         let showing = placing::showing(year.frames, at);
         let indices: Vec<usize> = showing.iter().map(|(i, _)| *i).collect();
         self.log(shape, at, &indices, ms)?;
@@ -393,8 +386,7 @@ impl Film<'_> {
 
     /// A walk, as `headless --walk` draws one: each frame's family built at
     /// its eased share by the direct build (`mesh::build`) and put up; a
-    /// held frame draws the last tree again. Not on the device: it refuses
-    /// beech to spruce at 40, t = 0.216 (FRICTION.md, 2026-10-19).
+    /// held frame draws the last tree again.
     fn walk(&mut self, k: usize, (from, to): (&str, &str), age: f64) -> Result<Cost, String> {
         let (a, b) = (
             bounds::ends(from, age, self.path.seed)?,

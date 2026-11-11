@@ -938,7 +938,7 @@ How many ridges run up around the trunk. Raising it gives the bark more flutes; 
 - count (u32), lobes, [0, 16], default 5
 - read by expand; removed growth path: as the direct build
 - checked: Surface site, rank 2, as invalid input `surface parameters`
-- note: Raises the side count even at `lobeDepth` zero; the GPU executor draws only unlobed wood itself.
+- note: Raises the side count even at `lobeDepth` zero.
 - blend: rounded to the nearest; dial: `surface_lobes` (how many ridges run up around the trunk), window its bounds (validated bound), steps 2 and 4
 
 ### `/surface/lobeDepth`

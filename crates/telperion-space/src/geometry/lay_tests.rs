@@ -33,8 +33,7 @@ fn a_resting_step_keeps_its_length_and_rests_its_girth() {
 }
 
 /// A step heading straight down rests along its phytomer's side (host,
-/// 2026-10-21), never refused. The device's `rested` (`lay_walk.wgsl`)
-/// is pinned to the same words (`settle_tests.rs`).
+/// 2026-10-21), never refused.
 #[test]
 fn a_step_straight_down_rests_along_its_side() {
     let next = rested(

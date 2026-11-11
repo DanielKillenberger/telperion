@@ -6,11 +6,7 @@
 use telperion_space::{beech, grow, oak, spruce, Light, Request, Species};
 
 fn request(age: u32, seed: u64, light: Light) -> Request {
-    Request {
-        age,
-        seed,
-        light,
-    }
+    Request { age, seed, light }
 }
 
 const SHADING: [Light; 3] = [

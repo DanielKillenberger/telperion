@@ -289,16 +289,16 @@ pub(crate) use {
     surface::height,
 };
 
+#[cfg(all(test, feature = "geometry"))]
+mod cycle_cost_tests;
 #[cfg(feature = "geometry")]
 mod drawn;
 #[cfg(feature = "geometry")]
 pub mod executor;
-pub mod measures;
-mod input;
 #[cfg(all(test, feature = "geometry"))]
 mod fidelity_tests;
-#[cfg(all(test, feature = "geometry"))]
-mod cycle_cost_tests;
+mod input;
+pub mod measures;
 #[cfg(not(feature = "geometry"))]
 mod planned;
 mod stage;

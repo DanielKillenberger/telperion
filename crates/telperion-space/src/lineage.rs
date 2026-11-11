@@ -52,8 +52,8 @@ impl Key {
 
 /// A draw's 53 bits (fn-209, FINE-CONTRACT.md D1): every decision a draw
 /// takes compares them, as an integer, with a probability's canonical
-/// threshold, so two executors that hold the same bits and the same
-/// threshold take the same decision.
+/// threshold, so a native and a Wasm build that hold the same bits and
+/// the same threshold take the same decision.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) struct Draw(pub u64);
 
@@ -88,7 +88,7 @@ impl Draw {
 }
 
 /// A draw's uniform in f32: its top 24 bits, `(d >> 29) / 2^24`, exact
-/// in [0, 1) on both executors (fn-254).
+/// in [0, 1) on every target (fn-254).
 pub(crate) fn unit(d: Draw) -> f32 {
     (d.0 >> 29) as f32 * (1.0 / 16_777_216.0)
 }
@@ -128,14 +128,14 @@ pub mod organ {
     pub const CLUSTER: u32 = 6;
 }
 
-/// The 32-bit finaliser both executors mix keys with (`tree::mix32`).
+/// The 32-bit finaliser keys are mixed with (`tree::mix32`).
 pub fn mix32(z: u32) -> u32 {
     let z = (z ^ (z >> 16)).wrapping_mul(0x21f0_aaad);
     let z = (z ^ (z >> 15)).wrapping_mul(0x735a_2d97);
     z ^ (z >> 15)
 }
 
-/// A count as both executors read it: its floor, and its fraction as a
+/// A count as the grower reads it: its floor, and its fraction as a
 /// share of 2^16 (as a retention's share is, fn-248).
 pub fn split(count: f64) -> (u32, u32) {
     let floor = count.floor();
@@ -256,7 +256,7 @@ pub(crate) fn place_presence(place: Key, share: f64, window: f32) -> f32 {
 /// draw, under the zone's key `zone`, falls under the share of it left,
 /// at its presence times that draw's lead over `window`, so it grows in
 /// from nothing; the rest are not laid. The presences are summed in index
-/// order and the share is a ratio of ticks, as the device takes them.
+/// order and the share is a ratio of ticks.
 pub(crate) fn laid(presences: &mut Vec<f32>, cut: crate::schedule::Cut, zone: Key, window: f32) {
     let share = contract::ticks(cut.share) as f32 / contract::ticks(cut.of) as f32;
     let quota = share * presences.iter().sum::<f32>();

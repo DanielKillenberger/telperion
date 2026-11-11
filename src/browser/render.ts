@@ -32,62 +32,6 @@ export interface Submitted {
   bounds: { min: Point; max: Point };
 }
 
-/** Host wall-clock milliseconds (`Ms`) and selected allocation capacities (`Bytes`).
- * Timings can nest/overlap; memory snapshots share allocations and are not additive.
- * These omit some transient scratch, allocator-retained Wasm memory, upload staging,
- * driver allocations and deferred destruction; they are not whole-process peaks.
- * Zero/default fields can mean an unused stage. */
-export interface GenerationStages {
-  positionPrepareMs: number;
-  positionUploadMs: number;
-  /** Admission wait remaining after overlapping CPU station work. */
-  positionWaitMs: number;
-  positionCpuBytes: number;
-  positionGpuPeakBytes: number;
-  positionRetainedMetadataBytes: number;
-  /** Unstable diagnostic text; do not branch on its wording. */
-  positionFallback: string | null;
-  gpuPositions: boolean;
-  skeletonMs: number;
-  descriptorsMs: number;
-  uploadDispatchMs: number;
-  placementWaitMs: number;
-  massMs: number;
-  readbackMs: number;
-  woodMs: number;
-  woodPrepareMs: number;
-  woodUploadDispatchMs: number;
-  woodWaitMs: number;
-  woodPreparedCpuBytes: number;
-  woodMetadataCpuBytes: number;
-  woodGpuPeakBytes: number;
-  /** Unstable diagnostic text; do not branch on its wording. */
-  woodFallback: string | null;
-  /** Preparation only; excludes adoption, drawing and completed-frame fencing. */
-  totalMs: number;
-  baseCpuBytes: number;
-  woodCpuBytes: number;
-  descriptorCpuBytes: number;
-  sharedContactCpuBytes: number;
-  sharedPrepareCpuBytes: number;
-  sharedMetadataCpuBytes: number;
-  gpuComputePeakBytes: number;
-  retainedGpuBytes: number;
-}
-
-/** A tree adopted by the renderer; this promise does not fence a completed frame. */
-export type Admission = "beside" | "makeRoom";
-
-export interface GpuSubmitted extends Submitted {
-  stages: GenerationStages;
-  /** Allocated live-tree GPU buffer bytes before adoption; excludes textures/pipelines. */
-  previousTreeGpuBytes: number;
-  /** Allocated live-tree GPU buffer bytes after adoption, with the same exclusions. */
-  treeGpuBytes: number;
-  /** Whether the drawn tree was let go first to make room under the budget. */
-  madeRoom: boolean;
-}
-
 export interface FrameStats {
   drawCalls: number;
   /** The room's and the leaves' triangles: the wood's are the device's own
@@ -166,28 +110,23 @@ function countDevice(step: 1 | -1): void {
   window.telperionLiveDevices = (window.telperionLiveDevices ?? 0) + step;
 }
 
-/** A tree growing on the page's device (fn-270 R6, R7): begun for its
- *  family's age, grown on to any age within it, and drawn at any age in
- *  its last year. The tree on the canvas stays while the next stretch
- *  grows. One call at a time: a second while one is out rejects by name. */
+/** A tree growing on the CPU, on the page's thread (fn-270 R6, R7;
+ *  fn-353): begun for its family's age, grown on to any age within it,
+ *  and drawn at any age in its last year. Each call runs to its end
+ *  before it returns; the tree on the canvas stays until a draw replaces
+ *  it. */
 export interface Growth {
-  /** The whole years grown; null once a failure spent the tree, or while
-   *  a call is working on it. */
-  committed(): number | null;
+  /** The whole years grown. */
+  committed(): number;
   /** The most years it grows: the family's age. */
-  horizon(): number | null;
-  /** Grows on to `age` years and resolves to the whole years grown. An age
-   *  past the horizon, a year or more back, or not finite rejects by name
+  horizon(): number;
+  /** Grows on to `age` years and returns the whole years grown. An age
+   *  past the horizon, a year or more back, or not finite throws by name
    *  before anything moves; a failure spends the tree. */
-  growTo(age: number): Promise<number | null>;
-  /** What the next draw does under the page's budget, as a build's
-   *  `admission` says: beside the tree on the canvas, or that tree let go
-   *  first ("makeRoom"). Throws the budget's own words for a draw that
-   *  does not fit even alone; the tree on the canvas stays. */
-  admission(): Admission;
-  /** Puts the tree drawn at `at`, within its last year, on the canvas,
-   *  letting the tree there go first where `admission` says so. */
-  draw(at: number): Promise<Submitted>;
+  growTo(age: number): number;
+  /** Puts the tree drawn at `at`, within its last year, on the canvas in
+   *  place of the tree there. */
+  draw(at: number): Submitted;
   /** Lets the growth state go. */
   dispose(): void;
 }
@@ -196,21 +135,9 @@ export interface Growth {
  *  disposed with the page element it belongs to. */
 export interface Renderer {
   setTree(family: Family): Submitted;
-  /** What a build of this family does under the page's device budget:
-   *  builds beside the drawn tree, or lets it go first ("makeRoom"), the
-   *  screen empty while it builds. Throws the budget's own words for a tree
-   *  that does not fit even alone; the drawn tree stays. */
-  admission(family: Family): Admission;
-  /** The GPU programs every build dispatches, compiled by the browser in
-   *  the background from the moment the renderer exists. Rejects with the
-   *  program the browser refused, or the device lost meanwhile, by name. */
-  programs: Promise<void>;
-  /** The tree built on the device. Waits on `programs`, and rejects with
-   *  its error without building. */
-  setTreeGpu(family: Family): Promise<GpuSubmitted>;
-  /** The family's tree before its first year, on the device (`Growth`).
-   *  Waits on `programs`, and rejects with its error without beginning. */
-  beginGrowth(family: Family): Promise<Growth>;
+  /** The family's tree before its first year, growing on the CPU
+   *  (`Growth`). Throws the core's words for a family it cannot grow. */
+  beginGrowth(family: Family): Growth;
   setView(view: View): void;
   /** The sun, sky and ground the next frame is drawn under. */
   scene(): SceneRow;
@@ -232,9 +159,11 @@ export interface Renderer {
   dispose(): void;
 }
 
-/** Loads the module once per page and puts a renderer on this canvas.
+/** Loads the module once per page and puts a renderer on this canvas, its
+ *  wood's programs compiled, so it can draw a tree once it resolves.
  *  Rejects with the renderer's own words when there is no WebGPU, only a
- *  software adapter, or the device is refused. */
+ *  software adapter, the device is refused, the browser refuses a program,
+ *  or the device is lost while they compile. */
 export async function createRenderer(canvas: HTMLCanvasElement): Promise<Renderer> {
   await loadModule();
 
@@ -253,11 +182,6 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
   const renderer = (await WebRenderer.create(canvas)) as WebRenderer;
   countDevice(1);
   let disposed = false;
-  /* Compiled now, before any tree is asked for: a synchronous compile on
-     the first build held Chrome's GPU process until its watchdog ended it
-     (fn-243). A build waits here; it never compiles again. */
-  const programs = (renderer.preparePrograms() as Promise<unknown>).then(() => undefined);
-  programs.catch(() => undefined);
 
   const observer = new ResizeObserver(() => {
     if (disposed) return;
@@ -268,25 +192,13 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
 
   return {
     setTree: (family) => JSON.parse(renderer.setTree(wire(family))) as Submitted,
-    admission: (family) => renderer.admission(wire(family)) as Admission,
-    programs,
-    setTreeGpu: async (family) => {
-      const text = wire(family);
-      await programs;
-      if (disposed) throw new Error("the renderer is disposed");
-      return JSON.parse(await renderer.setTreeGpu(text)) as GpuSubmitted;
-    },
-    beginGrowth: async (family) => {
-      const text = wire(family);
-      await programs;
-      if (disposed) throw new Error("the renderer is disposed");
-      const handle = (await renderer.beginGrowth(text)) as WebGrowth;
+    beginGrowth: (family) => {
+      const handle: WebGrowth = renderer.beginGrowth(wire(family));
       return {
-        committed: () => handle.committed() ?? null,
-        horizon: () => handle.horizon() ?? null,
-        growTo: async (age) => ((await renderer.growTo(handle, age)) as number | null),
-        admission: () => renderer.growthAdmission(handle) as Admission,
-        draw: async (at) => JSON.parse((await renderer.drawGrowth(handle, at)) as string) as Submitted,
+        committed: () => handle.committed(),
+        horizon: () => handle.horizon(),
+        growTo: (age) => renderer.growTo(handle, age),
+        draw: (at) => JSON.parse(renderer.drawGrowth(handle, at)) as Submitted,
         dispose: () => handle.free(),
       };
     },

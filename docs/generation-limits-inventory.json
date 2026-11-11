@@ -642,18 +642,6 @@
     "reason": "Ray/triangle closest-point region classification determines the geometric intersection."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/surface/compact.rs",
-    "site": ". max ( params . lobes * 4 )",
-    "classification": "algorithm",
-    "reason": "Angular sampling covers the requested lobes with at least four segments each; it raises resolution rather than truncating a population."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/surface/compact.rs",
-    "site": "for ( i , & node ) in paths . nodes [ path . start . . path . end ] . iter ( ) . enumerate ( ) . skip ( 1 ) {",
-    "classification": "algorithm",
-    "reason": "Contact ranges cover each path edge after the root sample; skipping the first sample avoids inventing an incoming root edge."
-  },
-  {
     "path": "crates/telperion-core/src/pipeline/surface/parallel.rs",
     "site": ". min ( MAX_WORKERS )",
     "classification": "algorithm",

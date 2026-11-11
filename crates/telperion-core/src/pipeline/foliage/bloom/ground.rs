@@ -4,7 +4,7 @@
 //! as the eight corners: its axis's samples, each floret's element corners
 //! and each pedicel's ends. The rachis the renderer rebuilds from the seat
 //! is not turned; its vertices are kept off the ground where they are drawn
-//! (`stalk.wgsl`). `place.wgsl`'s `rested` is the device's copy.
+//! (`stalk.wgsl`).
 use super::super::rest::{best, margin, turned, upright};
 use super::Matrix;
 use crate::math::Vec3;

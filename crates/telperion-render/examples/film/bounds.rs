@@ -6,8 +6,16 @@
 //! drawn tree that differs from its line refuses the file as stale.
 use super::path::{ease, Frame, Kind, Path};
 use super::placing;
-use telperion_core::{blend, math::Vec3, mesh, presets::by_identity, surface::Bounds, Family};
-use telperion_render::generation::Generator;
+use std::sync::Arc;
+use telperion_core::{
+    blend,
+    math::Vec3,
+    mesh,
+    pipeline::growth::{self, GrowthState},
+    presets::by_identity,
+    surface::Bounds,
+    Family,
+};
 
 /// A frame's crowns: its earlier year, its later year (the earlier again
 /// where none fades in) and the later's share.
@@ -20,10 +28,15 @@ pub fn ends(id: &str, age: f64, seed: u32) -> Result<Family, String> {
     Ok(f)
 }
 
+/// `family`'s growth begun for its age and seed (`pipeline::growth`).
+pub fn begin(family: &Family) -> Result<GrowthState, String> {
+    let params = Arc::new(growth::Params::of(family).map_err(|e| e.to_string())?);
+    growth::begin(&params, family.skeleton.seed, family.age).map_err(|e| e.to_string())
+}
+
 /// Every frame's crowns: read from `cache` where it holds the film's, else
 /// built from every tree of the film and written there.
 pub fn of_film(
-    gen: &Generator,
     path: &Path,
     frames: &[Frame],
     cache: Option<&std::path::Path>,
@@ -43,7 +56,7 @@ pub fn of_film(
         let started = std::time::Instant::now();
         match &segment.kind {
             Kind::Grow { species, from, to } => {
-                crowns.extend(grown(gen, path, &of, species, (*from, *to))?)
+                crowns.extend(grown(path, &of, species, (*from, *to))?)
             }
             Kind::Walk { from, to, age } => crowns.extend(walked(path, &of, (from, to), *age)?),
         }
@@ -58,7 +71,6 @@ pub fn of_film(
 
 /// A growth's frames: every whole year it shows grown and settled once.
 fn grown(
-    gen: &Generator,
     path: &Path,
     of: &[(usize, Frame)],
     species: &str,
@@ -66,12 +78,12 @@ fn grown(
 ) -> Result<Vec<Crowns>, String> {
     let family = ends(species, from.max(to), path.seed)?;
     let years = placing::years_of(of, (from, to), path.fade);
-    let mut tree = pollster::block_on(gen.begin_growth(&family)).map_err(|e| e.to_string())?;
+    let mut tree = begin(&family)?;
     let mut settled: Vec<(f64, Bounds)> = Vec::new();
     for at in placing::built(&years) {
-        pollster::block_on(gen.grow_to(&mut tree, at)).map_err(|e| format!("{species}: {e}"))?;
-        let prepared = pollster::block_on(gen.settle(&tree, at)).map_err(|e| e.to_string())?;
-        settled.push((at, prepared.bounds()));
+        growth::grow_to(&mut tree, at).map_err(|e| format!("{species}: {e}"))?;
+        let drawn = growth::mesh(&tree, at, &family).map_err(|e| e.to_string())?;
+        settled.push((at, drawn.bounds));
     }
     let of_year = |y: f64| settled.iter().find(|s| s.0 == y).map(|s| s.1);
     years

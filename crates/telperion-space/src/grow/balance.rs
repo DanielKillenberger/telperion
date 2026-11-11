@@ -25,7 +25,7 @@ pub(super) struct Totals {
     pub living: Vec<bool>,
 }
 
-impl Grower<'_> {
+impl Grower {
     /// Whether the balance runs this cycle: where a rough layout is grown
     /// and any PA's hazard is set, or always in the one cycle.
     pub(super) fn balances(&self) -> bool {
@@ -46,7 +46,7 @@ impl Grower<'_> {
 
     /// Each subtree's totals.
     pub(super) fn totals(&self, rows: &Rows) -> Totals {
-        let (species, pa) = (self.species, &rows.pa);
+        let (species, pa) = (&*self.species, &rows.pa);
         let sketch = self.sketch.as_ref().expect("sketching");
         let n = sketch.pencils.len();
         let (mut light, mut cost, mut living) = (vec![0.0f32; n], vec![0.0f32; n], vec![false; n]);
@@ -99,7 +99,7 @@ impl Grower<'_> {
             living,
         }: &Totals,
     ) -> Vec<Lateral> {
-        let species = self.species;
+        let species = &*self.species;
         let sketch = self.sketch.as_ref().expect("sketching");
         let n = sketch.pencils.len();
         let mut out = vec![Lateral::default(); n];

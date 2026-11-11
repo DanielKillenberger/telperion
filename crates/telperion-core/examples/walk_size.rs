@@ -102,11 +102,7 @@ fn species(family: &Family) -> &Species {
 fn band(ends: &[&Species], age: u32, light: Light) -> [Counts; 2] {
     let (mut lo, mut hi) = ([f64::INFINITY; 2], [0.0f64; 2]);
     for (end, seed) in ends.iter().flat_map(|e| SEEDS.map(|s| (*e, s))) {
-        let request = Request {
-            age,
-            seed,
-            light,
-        };
+        let request = Request { age, seed, light };
         let Some(n) = grown(end, request) else {
             continue;
         };

@@ -74,7 +74,7 @@ pub(super) fn prepare(
 
 /// The field read out from the drawn tree (fn-257 R8): its wood and its
 /// leaf plan's records, to the request's grid, and where the tree flowers
-/// its florets at the window's middle, packed as both executors pack them
+/// its florets at the window's middle, packed against the bloom box
 /// (fn-316), which it hands on so the organ output need not place them
 /// again. A family the plan cannot describe is refused by name; no leaf is
 /// placed for a field.

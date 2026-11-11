@@ -136,7 +136,7 @@ impl Field {
 
     /// `on`, its leaves deposited as integer quanta of `QUANTUM` m² of
     /// weighted area, a u32 a node (COUNCIL.md's early test 2): the sum is
-    /// the same in any order, as device atomics would make it. A node past
+    /// the same in any order. A node past
     /// its u32 is refused by name, never wrapped.
     pub fn quantised(
         light: &super::Light,

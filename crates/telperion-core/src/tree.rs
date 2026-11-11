@@ -203,7 +203,7 @@ pub fn mix32(z: u32) -> u32 {
 }
 
 /// A node's key: its axis's lineage and its phytomer's place along the
-/// axis, mixed; the GPU executor's drawing computes the same words.
+/// axis, mixed.
 pub fn node_key(lineage: u64, place: usize) -> u32 {
     let low = mix32(lineage as u32);
     let high = mix32(low ^ (lineage >> 32) as u32);

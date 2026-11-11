@@ -134,8 +134,7 @@ const F32: f64 = 1e-5;
 
 /// The scales whose last span's share at their summed tip divides to
 /// 0.9999994 in f32: (0.644714 − 0.6) / 0.044714 (fn-303, oak to palm
-/// frame 36's relay at its parent's tip). The device's `span_share` is
-/// held to the same values (`settle_tests.rs`).
+/// frame 36's relay at its parent's tip).
 const SPANS: [f32; 3] = [0.3, 0.3, 0.044714];
 
 /// fn-303: a length at a span's summed end is the span's end, share 1,

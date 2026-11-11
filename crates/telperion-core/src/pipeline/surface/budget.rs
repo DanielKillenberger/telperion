@@ -97,7 +97,7 @@ mod tests {
             "{said}"
         );
         assert!(
-            said.contains("device entry") && said.contains("radialSegments"),
+            said.ends_with("; build it with fewer radialSegments"),
             "{said}"
         );
     }

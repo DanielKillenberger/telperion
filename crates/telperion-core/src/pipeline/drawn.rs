@@ -288,7 +288,7 @@ fn leaves(
 
 /// The flowers (fn-216): where leaves are asked for and the tree's ages
 /// flower, the organ element and its florets, packed against the leaves'
-/// box as the device packs its own (`foliage::bloom_box`), or their own
+/// box (`foliage::bloom_box`), or their own
 /// where the tree has no leaf box; none where nothing flowers. The field's
 /// florets are these where the request draws the window's middle, its
 /// default (fn-316): placed once, they are taken.

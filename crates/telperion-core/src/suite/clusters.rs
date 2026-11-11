@@ -1,6 +1,6 @@
 //! Leaves cluster at the engine's short shoots (fn-223): an age that
 //! states a cluster seats its leaves at each of its axes' tips and none
-//! along them, through the one plan both executors place from; the rows
+//! along them, through the one plan the stations place from; the rows
 //! are refused off their rails by name, and the budget counts the
 //! clusters.
 use telperion_core::{

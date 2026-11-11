@@ -24,7 +24,10 @@ pub fn orders(axes: &[Axis]) -> Vec<u32> {
 /// Each phytomer's order, by the key a drawn node carries as its identity.
 pub fn orders_by_key(axes: &[Axis]) -> std::collections::HashMap<u64, u32> {
     let order = orders(axes);
-    let phytomers = axes.iter().zip(order).flat_map(|(a, o)| a.phytomers.iter().map(move |p| (p.key, o)));
+    let phytomers = axes
+        .iter()
+        .zip(order)
+        .flat_map(|(a, o)| a.phytomers.iter().map(move |p| (p.key, o)));
     phytomers.collect()
 }
 
@@ -33,8 +36,13 @@ pub fn bearing_area(species: &Species, axes: &[Axis], year: u32) -> f64 {
     let mut sum = 0.0;
     for a in axes {
         let s = &species.states[a.pa];
-        let bearing = a.phytomers.iter().filter(|p| f64::from(p.cycle) + s.leaf_years > f64::from(year));
-        sum += bearing.map(|p| leaf_area(p.scale, p.size, s.leaf_area)).sum::<f64>();
+        let bearing = a
+            .phytomers
+            .iter()
+            .filter(|p| f64::from(p.cycle) + s.leaf_years > f64::from(year));
+        sum += bearing
+            .map(|p| leaf_area(p.scale, p.size, s.leaf_area))
+            .sum::<f64>();
     }
     sum
 }
@@ -105,7 +113,13 @@ pub fn light_replay(
             .sqrt()
             / 3f64.sqrt();
         for corner in 0..8u32 {
-            let side = |bit: u32| if corner >> bit & 1 == 1 { spread } else { -spread };
+            let side = |bit: u32| {
+                if corner >> bit & 1 == 1 {
+                    spread
+                } else {
+                    -spread
+                }
+            };
             let p = Vec3::new(mean[0] + side(0), mean[1] + side(1), mean[2] + side(2));
             leaves.push((p, cut.area / 8.0));
         }
@@ -136,7 +150,10 @@ mod tests {
             seed: 7,
             light,
         };
-        let axes = grow_cycle(&species, request).expect("a tree").structure.axes;
+        let axes = grow_cycle(&species, request)
+            .expect("a tree")
+            .structure
+            .axes;
         (species, light, axes)
     }
 
