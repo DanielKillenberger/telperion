@@ -36,7 +36,8 @@ fn long_kept_bearers() -> Species {
 
 /// The shed-certain shortcut serves only a species that reads no light
 /// and lays no wood by its leaf, so the beech and the spruce stand as they
-/// grew unlit, before fn-264, and keep their primary radii (fn-354).
+/// grew unlit, before fn-264, and keep their primary radii, unbent
+/// (fn-354).
 fn species() -> [(&'static str, Species); 4] {
     [
         ("beech", bare(beech())),
@@ -46,11 +47,12 @@ fn species() -> [(&'static str, Species); 4] {
     ]
 }
 
-/// `species` unlit, laying no sapwood.
+/// `species` unlit, laying no sapwood and unbent: wood of its primary
+/// radius alone would bend into the ground under its sag.
 fn bare(species: Species) -> Species {
     let mut species = unlit(species);
     for state in &mut species.states {
-        state.form.sapwood = 0.0;
+        (state.form.sapwood, state.form.sag) = (0.0, 0.0);
     }
     species
 }

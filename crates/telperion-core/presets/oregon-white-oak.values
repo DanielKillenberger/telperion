@@ -219,6 +219,10 @@
 # for Q. garryana.
 /space/ages/2/form/sapwood = 3.3333333333333335
 /space/ages/2/form/sapwoodRings = 20.0
+# Sag (fn-354): 4ρg/E at green oak's 1,060 kg m⁻³ and 8.3 GPa (Lavers 1983,
+# read through Niklas and Spatz 2010, Am. J. Bot. 97: 1587-1594, Table 1;
+# Hamilton 1975), at every age.
+/space/ages/2/form/sag = 5e-6
 /space/ages/2/zones/0/buds = 1.0
 /space/ages/2/zones/0/nodes/min = 4.0
 /space/ages/2/zones/0/nodes/max = 5.0
@@ -253,6 +257,7 @@
 /space/ages/3/form/primary = 0.009
 /space/ages/3/form/sapwood = 3.3333333333333335
 /space/ages/3/form/sapwoodRings = 20.0
+/space/ages/3/form/sag = 5e-6
 /space/ages/3/zones/0/buds = 1.0
 /space/ages/3/zones/0/nodes/min = 3.0
 /space/ages/3/zones/0/nodes/max = 4.0
@@ -288,6 +293,7 @@
 /space/ages/4/form/bendLength = 3.0
 /space/ages/4/form/sapwood = 3.3333333333333335
 /space/ages/4/form/sapwoodRings = 20.0
+/space/ages/4/form/sag = 5e-6
 /space/ages/4/zones/0/buds = 1.0
 /space/ages/4/zones/0/nodes/min = 3.0
 /space/ages/4/zones/0/nodes/max = 4.0
@@ -332,10 +338,10 @@
 /space/ages/6/form/wander = 0.5
 /space/ages/6/form/primary = 0.009
 /space/ages/6/form/roll = 0.8
-/space/ages/6/form/sag = 0.0003
 /space/ages/6/form/bendLength = 3.0
 /space/ages/6/form/sapwood = 3.3333333333333335
 /space/ages/6/form/sapwoodRings = 20.0
+/space/ages/6/form/sag = 5e-6
 /space/ages/6/zones/0/buds = 1.0
 /space/ages/6/zones/0/nodes/min = 2.0
 /space/ages/6/zones/0/nodes/max = 3.0
@@ -390,10 +396,10 @@
 /space/ages/7/form/wander = 0.35
 /space/ages/7/form/primary = 0.004
 /space/ages/7/form/roll = 0.8
-/space/ages/7/form/sag = 5e-5
 /space/ages/7/form/bendLength = 1.5
 /space/ages/7/form/sapwood = 3.3333333333333335
 /space/ages/7/form/sapwoodRings = 20.0
+/space/ages/7/form/sag = 5e-6
 /space/ages/7/zones/0/buds = 1.0
 /space/ages/7/zones/0/nodes/min = 2.0
 /space/ages/7/zones/0/nodes/max = 3.0
@@ -433,6 +439,7 @@
 /space/ages/8/form/roll = 1.2
 /space/ages/8/form/sapwood = 3.3333333333333335
 /space/ages/8/form/sapwoodRings = 20.0
+/space/ages/8/form/sag = 5e-6
 /space/ages/8/zones/0/buds = 1.0
 /space/ages/8/zones/0/nodes/min = 1.0
 /space/ages/8/zones/0/nodes/max = 2.0
@@ -478,6 +485,7 @@
 /space/ages/9/form/roll = 1.2
 /space/ages/9/form/sapwood = 3.3333333333333335
 /space/ages/9/form/sapwoodRings = 20.0
+/space/ages/9/form/sag = 5e-6
 /space/ages/9/zones/0/buds = 1.0
 /space/ages/9/zones/0/nodes/min = 1.0
 /space/ages/9/zones/0/nodes/max = 2.0
@@ -519,6 +527,7 @@
 /space/ages/12/form/roll = 1.2
 /space/ages/12/form/sapwood = 3.3333333333333335
 /space/ages/12/form/sapwoodRings = 20.0
+/space/ages/12/form/sag = 5e-6
 /space/ages/12/zones/0/buds = 1.0
 /space/ages/12/zones/0/nodes/min = 1.0
 /space/ages/12/zones/0/nodes/max = 1.0
@@ -558,6 +567,7 @@
 /space/ages/13/form/roll = 1.2
 /space/ages/13/form/sapwood = 3.3333333333333335
 /space/ages/13/form/sapwoodRings = 20.0
+/space/ages/13/form/sag = 5e-6
 /space/ages/13/zones/0/buds = 1.0
 /space/ages/13/zones/0/nodes/min = 1.0
 /space/ages/13/zones/0/nodes/max = 1.0
@@ -593,6 +603,7 @@
 /space/ages/14/form/primary = 0.0006
 /space/ages/14/form/sapwood = 3.3333333333333335
 /space/ages/14/form/sapwoodRings = 20.0
+/space/ages/14/form/sag = 5e-6
 /space/ages/14/zones/0/buds = 1.0
 /space/ages/14/zones/0/nodes/min = 3.0
 /space/ages/14/zones/0/nodes/max = 5.0

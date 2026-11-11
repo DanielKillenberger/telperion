@@ -20,12 +20,18 @@ use std::f64::consts::{FRAC_PI_2, PI};
 const SAPWOOD: f64 = 1.0 / 0.331;
 /// The years wood stays sapwood: 40, estimated; no source was found.
 const SAPWOOD_RINGS: f64 = 40.0;
-/// The wood every age lays: the sapwood its leaf needs and how long it
-/// stays sapwood, alike at every age.
+/// How far its wood bends under its load, per metre: 4ρg/E, an elastic
+/// beam's, at green birch's 930 kg m⁻³ and 9.9 GPa (Lavers 1983, read through
+/// Niklas and Spatz 2010, Am. J. Bot. 97: 1587-1594, Table 1; Hamilton
+/// 1975), at every age.
+const SAG: f64 = 3.7e-6;
+/// The wood every age lays: the sapwood its leaf needs, how long it stays
+/// sapwood and how far it bends, alike at every age.
 fn wood() -> Form {
     Form {
         sapwood: SAPWOOD,
         sapwood_rings: SAPWOOD_RINGS,
+        sag: SAG,
         ..Form::default()
     }
 }
@@ -184,7 +190,7 @@ pub fn birch() -> Species {
         sapwood_rings: SAPWOOD_RINGS,
         dominance: 0.0,
         roll: 0.0,
-        sag: 0.0,
+        sag: SAG,
         bend_length: 6.0,
         internode_spread: 0.2,
         insertion_spread: 0.0,
@@ -297,7 +303,7 @@ pub fn birch() -> Species {
             sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.2,
             roll: 1.2,
-            sag: 6e-5,
+            sag: SAG,
             bend_length: 3.0,
             internode_spread: 0.7,
             insertion_spread: 0.0,
@@ -328,7 +334,7 @@ pub fn birch() -> Species {
         form: Form {
             tropism: 0.3,
             elevation: 0.5,
-            sag: 8e-5,
+            sag: SAG,
             primary: 0.002,
             ..limb.form
         },
@@ -358,7 +364,7 @@ pub fn birch() -> Species {
             sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.8,
-            sag: 2e-4,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.4,
             insertion_spread: 0.0,
@@ -390,7 +396,7 @@ pub fn birch() -> Species {
         sapwood_rings: SAPWOOD_RINGS,
         dominance: 0.0,
         roll: 1.6,
-        sag: 2e-4,
+        sag: SAG,
         bend_length: 1.0,
         internode_spread: 0.7,
         insertion_spread: 0.5,

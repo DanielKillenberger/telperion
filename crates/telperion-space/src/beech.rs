@@ -17,12 +17,18 @@ const SAPWOOD: f64 = 1.0 / 0.331;
 /// 73 conducting rings Gebauer, Horna and Leuschner found (2008, Tree
 /// Physiol. 28: 1821-1830).
 const SAPWOOD_RINGS: f64 = 50.0;
-/// The wood every age lays: the sapwood its leaf needs and how long it
-/// stays sapwood, alike at every age.
+/// How far its wood bends under its load, per metre: 4ρg/E, an elastic
+/// beam's, at green beech's 1,030 kg m⁻³ and 9.8 GPa (Lavers 1983, read through
+/// Niklas and Spatz 2010, Am. J. Bot. 97: 1587-1594, Table 1; Hamilton
+/// 1975), at every age.
+const SAG: f64 = 4.1e-6;
+/// The wood every age lays: the sapwood its leaf needs, how long it stays
+/// sapwood and how far it bends, alike at every age.
 fn wood() -> Form {
     Form {
         sapwood: SAPWOOD,
         sapwood_rings: SAPWOOD_RINGS,
+        sag: SAG,
         ..Form::default()
     }
 }
@@ -163,7 +169,7 @@ pub fn beech() -> Species {
             sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.0,
-            sag: 0.0,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
@@ -214,7 +220,7 @@ pub fn beech() -> Species {
             sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 1.2,
-            sag: 0.0,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
@@ -285,7 +291,7 @@ pub fn beech() -> Species {
             sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 1.2,
-            sag: 0.0,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
@@ -319,7 +325,7 @@ pub fn beech() -> Species {
             sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.0,
-            sag: 0.0,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
@@ -351,7 +357,7 @@ pub fn beech() -> Species {
             sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.0,
-            sag: 0.0,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,

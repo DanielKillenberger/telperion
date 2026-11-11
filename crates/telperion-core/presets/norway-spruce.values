@@ -182,6 +182,10 @@
 # ring count was read.
 /space/ages/0/form/sapwood = 2.7777777777777777
 /space/ages/0/form/sapwoodRings = 30.0
+# Sag (fn-354): 4ρg/E at green Norway spruce's 960 kg m⁻³ and 6.2 GPa
+# (Lavers 1983, read through Niklas and Spatz 2010, Am. J. Bot. 97:
+# 1587-1594, Table 1; Hamilton 1975), at every age.
+/space/ages/0/form/sag = 6.1e-6
 /space/ages/0/zones/0/buds = 1.0
 /space/ages/0/zones/0/nodes/min = 2.0
 /space/ages/0/zones/0/nodes/max = 3.0
@@ -212,6 +216,7 @@
 /space/ages/1/form/primary = 0.0025
 /space/ages/1/form/sapwood = 2.7777777777777777
 /space/ages/1/form/sapwoodRings = 30.0
+/space/ages/1/form/sag = 6.1e-6
 /space/ages/1/zones/0/buds = 1.0
 /space/ages/1/zones/0/nodes/min = 4.0
 /space/ages/1/zones/0/nodes/max = 5.0
@@ -243,6 +248,7 @@
 /space/ages/2/form/primary = 0.0025
 /space/ages/2/form/sapwood = 2.7777777777777777
 /space/ages/2/form/sapwoodRings = 30.0
+/space/ages/2/form/sag = 6.1e-6
 /space/ages/2/zones/0/buds = 1.0
 /space/ages/2/zones/0/nodes/min = 5.0
 /space/ages/2/zones/0/nodes/max = 6.0
@@ -275,6 +281,7 @@
 /space/ages/4/form/primary = 0.0025
 /space/ages/4/form/sapwood = 2.7777777777777777
 /space/ages/4/form/sapwoodRings = 30.0
+/space/ages/4/form/sag = 6.1e-6
 /space/ages/4/zones/0/buds = 1.0
 /space/ages/4/zones/0/nodes/min = 5.0
 /space/ages/4/zones/0/nodes/max = 6.0
@@ -306,9 +313,9 @@
 /space/ages/8/form/primary = 0.0008
 /space/ages/8/form/dominance = 0.35
 /space/ages/8/form/roll = 0.8
-/space/ages/8/form/sag = 0.0001
 /space/ages/8/form/sapwood = 2.7777777777777777
 /space/ages/8/form/sapwoodRings = 30.0
+/space/ages/8/form/sag = 6.1e-6
 /space/ages/8/zones/0/buds = 1.0
 /space/ages/8/zones/0/nodes/min = 1.0
 /space/ages/8/zones/0/nodes/max = 1.0
@@ -351,9 +358,9 @@
 /space/ages/9/form/primary = 0.0008
 /space/ages/9/form/dominance = 0.35
 /space/ages/9/form/roll = 0.8
-/space/ages/9/form/sag = 0.0009
 /space/ages/9/form/sapwood = 2.7777777777777777
 /space/ages/9/form/sapwoodRings = 30.0
+/space/ages/9/form/sag = 6.1e-6
 /space/ages/9/zones/0/buds = 1.0
 /space/ages/9/zones/0/nodes/min = 1.0
 /space/ages/9/zones/0/nodes/max = 1.0
@@ -394,9 +401,9 @@
 /space/ages/10/form/wander = 0.6
 /space/ages/10/form/primary = 0.0005
 /space/ages/10/form/roll = 0.2
-/space/ages/10/form/sag = 0.0005
 /space/ages/10/form/sapwood = 2.7777777777777777
 /space/ages/10/form/sapwoodRings = 30.0
+/space/ages/10/form/sag = 6.1e-6
 /space/ages/10/zones/0/buds = 1.0
 /space/ages/10/zones/1/buds = 2.0
 /space/ages/10/zones/1/nodes/min = 2.0
@@ -428,9 +435,9 @@
 /space/ages/11/form/wander = 0.6
 /space/ages/11/form/primary = 0.0005
 /space/ages/11/form/roll = 0.2
-/space/ages/11/form/sag = 0.0005
 /space/ages/11/form/sapwood = 2.7777777777777777
 /space/ages/11/form/sapwoodRings = 30.0
+/space/ages/11/form/sag = 6.1e-6
 /space/ages/11/zones/0/buds = 1.0
 /space/ages/11/zones/1/buds = 1.0
 /space/ages/11/zones/2/buds = 2.0
@@ -460,6 +467,7 @@
 /space/ages/12/form/roll = 1.2
 /space/ages/12/form/sapwood = 2.7777777777777777
 /space/ages/12/form/sapwoodRings = 30.0
+/space/ages/12/form/sag = 6.1e-6
 /space/ages/12/zones/0/buds = 1.0
 /space/ages/12/zones/0/nodes/min = 2.0
 /space/ages/12/zones/0/nodes/max = 2.0

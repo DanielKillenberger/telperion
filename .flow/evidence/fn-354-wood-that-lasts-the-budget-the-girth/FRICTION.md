@@ -50,3 +50,10 @@
 - **Slowed by:** deleting `exponent`, `ripening`, `secondary`, `retained` and `leaf_girth` leaves the settle with no girth rule until step 2 lands, so step 1 carries an interim one (the pipe model by area over `primary`). Every test that reads a radius is then judged against a rule that lives for one commit: the palm's column, a relay join's exact radii and the lever's pinned beam bends fail on it, and their fixes belong to step 2's rule. A test fixture also lost values with the rows (the lever's branch had exponent 2.2 and ripening 10, which its pinned bends came from), which a bulk rename hid until the run.
 - **Cost:** about 25 minutes: a base worktree build to find why the lever's bends moved, and the decision to leave three interim failures to step 2 rather than make the interim rule pass tests step 2 rewrites.
 - **What would have removed it:** ordering a row deletion and the rule that replaces its reader as one step, or naming in the design which tests the interim commit may leave red.
+
+## 11 Nov 2026, 20:05, builder (task 3): a narrow core run in an 8 GB scope is killed at its heavy tests
+
+- **Doing:** the space and core suites as one narrow nextest run inside `telperion-heavy 8 --threads 4`, under the default profile.
+- **Slowed by:** the default profile has none of the gate profile's test groups, so four of the heaviest core tests (`suite::mesh`, `suite::sweep`, `suite::packed_leaf`, `pipeline::tests::every_shipped_preset_builds_every_artifact`) ran together and the scope was killed at 136 s, 440 of 761 tests in. The gate profile has the groups but cuts budgeted tests at 120 s unless `gate.py` writes the budgets.
+- **Cost:** about 5 minutes and a second run at 16 GB and three tests at once.
+- **What would have removed it:** the same `gate.py --package <crate>` the task 1 entry asks for, which would carry the groups and the budgets into a narrow run.

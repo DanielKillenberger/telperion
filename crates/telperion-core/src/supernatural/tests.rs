@@ -228,8 +228,12 @@ fn a_family_with_the_group_off_draws_its_base_species_to_the_byte() {
     off.supernatural = legendary(false);
     let base = mesh(&beech);
     assert_eq!(mesh(&off), base);
+    // On, every override but the internodes: a beech of 12 on legendary
+    // internodes of 0.2 m bends its wood, laid by its leaf (fn-354), into
+    // the ground and is refused.
     let mut on = off.clone();
     on.supernatural.enabled = true;
+    on.supernatural.internode = SupernaturalInternode::NONE;
     assert_ne!(mesh(&on), base);
 }
 
