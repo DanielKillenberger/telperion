@@ -51,8 +51,8 @@ stage: impl-review - skipped(config: REVIEW_MODE=none; one codex review of the s
      - It now compares against the small-deflection beam computed on its unbent tree. They agree within 1e-4 relative.
      - Its sag went from 1e-6 to 1e-9, because the branch is now primary wood only.
    - **The walk fixture:** it takes the oak's sapwood and a leaf of 0.8 m² a node. That leaf was chosen so its trunk's base stands at its old 0.21 m (now 0.213 m), because the sags of every test on it were set for that girth.
-   - **The supernatural scale test** reads the beech at 20, not 12. At 12 a tenfold shrink no longer loses a twig: 1,018 leaves at either scale, against 2,652 and 2,631 at 20.
-   - **The group-off test** turns the group on without the legendary 0.2 m internodes. With them, the beech at 12 bends into the ground and is refused.
+   - **Moved fixture: the supernatural scale test** reads the beech at 20, not 12. At 12 a tenfold shrink no longer loses a twig: 1,018 leaves at either scale, against 2,652 and 2,631 at 20.
+   - **Moved fixture: the group-off test** turns the group on without the legendary 0.2 m internodes. With them, the beech at 12 bends into the ground and is refused.
    - **The shed-certain tests** take species that lay no sapwood and bend none.
    - **The pipe-model sum test** (`form.rs`) is deleted with the model.
 
@@ -141,3 +141,102 @@ No pinned trunk median at fidelity above 0 exists among the tests run, so there 
 ## Friction
 
 Two entries were added to FRICTION.md: the interim girth step 1 needed, and an 8 GB narrow run killed at the core's heavy tests.
+
+## 11 Nov 2026, evening: the host's three answers, built and measured
+
+### 1. The pass skips a closed subtree (`222a102ad`)
+
+**Can closed wood reopen? No, not in today's code.**
+- An axis is open while it lies on the path from the root to a living apex or to a sleeping bud not yet woken (`Working::open_from`, from `live` and `asleep[cycle..]`).
+- A closed subtree holds neither. A bud wakes only from `asleep`, and a relay is born only from a living apex, so nothing can grow in a closed subtree again.
+
+**What was built.**
+- `girth::lay` skips an axis its working set calls closed, with no catch-up for the skipped years.
+- The doc comment and docs/pipeline.md say that wood which reopened would first retire its sapwood for the `k` years skipped, `S (1 − 1/N)^k`.
+- Test: a closed lateral that is skipped leaves every section exactly as a full pass lays it; only its unread sapwood differs.
+
+**Checks on the paused and one-call trees.**
+- The repeat test passes (111.6 s), so the paused and one-call trees stay the same.
+- `girth_apart`, which compares the run retiring at its age against the reference retiring nothing, now blanks sapwood. The reference closes nothing, so it walks every axis. Every section still compares equal.
+- The one cycle's digests at both ends of the fidelity dial are repinned. The skipped wood's sapwood moved; no section moved.
+
+**The pass's share after the skip.** One thread, seed 1001, census on, at load 21 to 37 (`raw/t3-census-skip.log`):
+
+| oak | grow, s | `Pass(Wood)`, s | share | share before the skip |
+|---|---|---|---|---|
+| 40 | 1.18 | 0.10 | 8% | 13% |
+| 120 | 50.1 | 6.34 | 13% | 18% |
+| 300 | 206.7 | 26.9 | 13% | 19% |
+
+The grow times are lower than the earlier ones partly because the machine was less loaded.
+
+### 2. The easing follows the run (`3dc7ceaf4`)
+
+**What was built.**
+- Along a run the drawn girth falls no faster than 1 in 1, across a lateral that takes over a bearer that ends.
+- A lateral that starts its own run is drawn at its own base.
+- PRODUCT-DESIGN.md's section is corrected in place, and docs/pipeline.md matches.
+- Tests: a 0.4 m drop is a 0.4 m shoulder both within one axis and across a takeover; a lateral that starts its own run keeps its base.
+
+**How the run chooses its continuation at a junction.** It is not simply the thickest child:
+- A run carries on into its widest child by start radius *that is not a codominant sibling* (`surface/paths.rs`, `leaders`).
+- Only where every child is a codominant sibling does it take the widest.
+
+**Why the stills do not change: the "lathe post" at 300, seed 1001, read from the mesh's curve.**
+- The trunk run (run 0) eases as built: 0.692 to 0.450 m over 5.08 to 5.28 m, a fall of 0.05 m per 0.05 m. It then goes on at 0.47, 0.34, 0.32 and 0.31 m.
+- The wider wood is a separate run (run 1). It starts at y 4.39 m with r 0.616 m from a socket: a codominant sibling. The trunk's run passes it over for the thinner, non-codominant child.
+- So the cylinder with the flat rim is the trunk under a fork of stems, and the leaning stem above it is run 1. That is fn-279's surface. Neither this rule's old form nor its new one eases into a codominant sibling's own run.
+- The narrow, eased continuation of the trunk stands inside and behind run 1.
+- The bands on run 1 are falls of 0.011 to 0.018 m over 0.022 to 0.032 m (slopes up to 0.8, under the 1 in 1 bound), plus two rises (+0.018 m and +0.040 m) near the starts of runs 1 and 2. I did not trace what makes them read as bands.
+- The product-now stills are pixel-identical to product-before on the close views (ImageMagick AE 0 at fuzz 10% for low, foot and joint at 120 and 300). The whole view of the oak at 300, seed 1007, differs on 6 pixels.
+
+**The ring in the root flare at 300 (the low and foot views), from the mesh.**
+- The trunk run's curve radius falls smoothly and monotonically from 1.526 m at the root, by `flareRadius` 2.1 with falloff 0.022, through the first 1.5 m: 0.065, 0.060, 0.055 m … per 0.045 m, with no step.
+- The buried first point and the root point share 1.526 m.
+- So the band is not in the curve's radii. It comes from how the surface is drawn or shaded over the flare. I did not trace which, and fixed nothing.
+
+**Sheets**, label `fn354-product2`, in `product2/` with columns G2, product-before, product-now:
+- `oak-close.jpg`: the oak at 120 and 300, seed 1001.
+- `oak-whole.jpg` and `oak-bare.jpg`: the oak at 120, 200 and 300 on seeds 1001, 1007 and 1012.
+
+### 3. The ground test
+
+**The cause is confirmed.**
+- With Telperion's sag set to 0 on every stage (a scratch edit of its value file, restored and not committed), `ground_reach::nothing_drawn_passes_below_the_ground` passes.
+- Telperion's row then reads wood 0.000, bark 0.787 m, leaves 13.35 m and flowers 13.42 m, with no instance below the ground.
+- The test is unchanged.
+
+**Numbers**, read from the mesh's curve, seed 1:
+- Lowest wood is the lowest `centre.y − radius` over runs other than the trunk.
+- Its distance is measured horizontally from the root.
+- "Limbs" are runs with a largest radius of 5 cm or more; the low count is limbs whose lowest point is under 0.5 m.
+
+| tree | build | height, m | spread, m | lowest wood, m | from the trunk, m | limbs low | runs of any girth low |
+|---|---|---|---|---|---|---|---|
+| Telperion 40 | 933a318c6 | 26.14 | 12.52 x 11.52 | 0.910 | 0.00 | 0 of 30 | 0 of 9,960 |
+| Telperion 40 | product | 25.57 | 12.53 x 11.51 | 1.008 | 0.02 | 0 of 10 | 0 of 10,356 |
+| Telperion 82 | 933a318c6 | 45.09 | 45.87 x 46.93 | 0.376 | 0.01 | 0 of 791 | 1 of 145,623 |
+| Telperion 82 | product | 37.46 | 50.97 x 46.01 | -0.002 | 19.04 | 0 of 170 | 153 of 148,021 |
+| Laurelin 80 | 933a318c6 | 44.50 | 45.31 x 46.63 | 0.317 | 0.01 | 1 of 779 | 1 of 136,920 |
+| Laurelin 80 | product | 37.36 | 51.62 x 45.01 | -0.001 | 20.06 | 0 of 167 | 130 of 139,205 |
+
+**The sheet:** `product2/two-trees.jpg`, Telperion at 40 and 82 and Laurelin at 80, seed 1, whole and bare, base beside product. What it shows:
+- **On base,** the Two Trees at 80 and 82 have a thick trunk under a round crown of heavy limbs.
+- **On the product,** each has a thin trunk.
+- Their limbs are thin and long and arch outward. At the crown's edge they bend down to the ground about 19 to 20 m from the trunk.
+- Leafed, the crown is a wide, low skirt; bare, it reads as a fine, drooping web.
+- Telperion at 40 is a slim single stem in both builds; the product's is thinner and its shoots finer.
+
+### Tests
+
+- **Space and core narrow suites** (16 GB, three at once): 760 of 762 passed. The two failures:
+  - the one cycle's digests, repinned since;
+  - `ground_reach`, red as in item 3.
+- **Since then, alone:**
+  - the cycle digest test passed;
+  - the repeat test passed (111.6 s);
+  - the surface tests passed (45 of 45);
+  - the girth and paused tests passed (23 of 23).
+- **The long walk** was not rerun. I infer it is unaffected: the skip moves no section, and the walk compares trees by shape.
+- **vitest** on the final tree (`3dc7ceaf4` plus this evidence): 218 passed in 26 files.
+- **The task stays `in_progress`.** The ground fix is the host's to decide.
