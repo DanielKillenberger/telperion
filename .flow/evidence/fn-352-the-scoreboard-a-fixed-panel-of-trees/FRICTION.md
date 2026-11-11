@@ -15,3 +15,10 @@ One dated entry per report, written as it happens.
 - **What slowed it:** the seven other presets' 84 trees and the oak at 40 took 9 minutes together; the oak at 80 took 8.5 minutes for 13 trees and the oak at 120 about 1.5 to 2 minutes a tree. At that rate the oak at 200 and 300 will take about another 1.5 to 2 hours, roughly three quarters of the panel. Each tree grows twice (the entry above), and the panel draws 13 oaks at each age where the sheets need 4 and the measures 12.
 - **Cost:** about two hours of wall time per run while no other heavy job may start; worker time spent waiting.
 - **What would remove it:** the structure read above (halves it); or fewer measure seeds at 200 and 300 (a panel design call for the host).
+
+## 11 Nov 2026 16:18, two Wasm timings on one core, and another session's gate beside them
+
+- **Doing:** R3's Wasm times, then R4's 0.1.4 Wasm times.
+- **What went wrong:** I started the 0.1.4 timing (`v014.sh wasm`) when a monitor matched the current build's last Telperion line, but that run still had Laurelin at fidelity 1 to go. `telperion-heavy` admitted both (it admits by memory, not by job count), and both were pinned to core 10 for about a minute (16:17). I stopped the 0.1.4 job. Separately, another session's gate (`cargo nextest run ... -p telperion-core`, four threads) ran in the heavy queue during the cost and Wasm stages, so the machine load was 36 to 48 throughout; the one-thread times carry that.
+- **Cost:** the 0.1.4 times rerun (about 5 minutes); Laurelin's fidelity-1 Wasm time is marked as overlapped.
+- **What would remove it:** run.sh's stages end with a sentinel line the next stage waits on, instead of my matching an output line; and a `telperion-heavy --exclusive` that waits until no other heavy job runs, for timings (a change to the owner's local tool, so reported, not specced).

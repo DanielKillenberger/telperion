@@ -59,7 +59,7 @@ fn tree(args: &[String]) -> Result<(), String> {
         }
     };
     if !shots.is_empty() {
-        stills::shoot(&mesh, &f, out, &shots)?;
+        stills::shoot(&mesh, &f, out, &shots, wood.limbs.joint)?;
     }
     let leaves = drawn::leaves(&mesh);
     let b = mesh.bounds;
@@ -69,12 +69,14 @@ fn tree(args: &[String]) -> Result<(), String> {
     println!(
         "TREE {{{head},\"height\":{height:.3},\"spread_x\":{sx:.3},\"spread_z\":{sz:.3},\
          \"dbh\":{},\"nodes\":{nodes},\"leaves\":{},\"leaf_area\":{:.2},\"crown_area\":{:.2},\
-         \"lai\":{:.3},\"seconds\":{secs:.2},{}}}",
+         \"lai\":{:.3},\"seconds\":{secs:.2},\"limbs\":{:?},\"limb_chord\":{},{}}}",
         json(wood.dbh),
         leaves.count,
         leaves.area,
         leaves.crown,
         leaves.area / leaves.crown.max(1e-9),
+        wood.limbs.bases.iter().map(|d| (d * 1e4).round() / 1e4).collect::<Vec<_>>(),
+        json(wood.limbs.chord),
         e.json()
     );
     Ok(())

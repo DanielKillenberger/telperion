@@ -9,6 +9,66 @@ pub struct Wood {
     /// The trunk's diameter at 1.3 m above its base; none where it never
     /// stands that high.
     pub dbh: Option<f64>,
+    /// fn-354: the limbs off the trunk path (`limbs`).
+    pub limbs: Limbs,
+}
+
+/// The wood leaving the trunk path (the thickest wood from the root): each
+/// limb's base diameter, the largest three; the largest limb's chord (its
+/// junction on the trunk to the end of its own thickest wood) from the
+/// vertical, in degrees; its junction and the trunk's radius there.
+#[derive(Default)]
+pub struct Limbs {
+    pub bases: Vec<f64>,
+    pub chord: Option<f64>,
+    pub joint: Option<(Vec3, f64)>,
+}
+
+fn children(tree: &Tree) -> Vec<Vec<usize>> {
+    let mut kids: Vec<Vec<usize>> = vec![Vec::new(); tree.nodes.len()];
+    for (i, node) in tree.nodes.iter().enumerate() {
+        if let Some(p) = node.parent {
+            kids[p as usize].push(i);
+        }
+    }
+    kids
+}
+
+/// The thickest child of `at`, by its proximal radius.
+fn thickest(tree: &Tree, kids: &[Vec<usize>], at: usize) -> Option<usize> {
+    let n = &tree.nodes;
+    kids[at]
+        .iter()
+        .copied()
+        .max_by(|a, b| n[*a].start_radius.total_cmp(&n[*b].start_radius))
+}
+
+pub fn limbs(tree: &Tree) -> Limbs {
+    let n = &tree.nodes;
+    let kids = children(tree);
+    let mut found: Vec<(f64, usize, usize)> = Vec::new();
+    let mut at = 0usize;
+    while let Some(next) = thickest(tree, &kids, at) {
+        for &c in kids[at].iter().filter(|&&c| c != next) {
+            found.push((2.0 * n[c].start_radius, c, at));
+        }
+        at = next;
+    }
+    found.sort_by(|a, b| b.0.total_cmp(&a.0));
+    let Some(&(_, root, joint)) = found.first() else {
+        return Limbs::default();
+    };
+    let mut end = root;
+    while let Some(next) = thickest(tree, &kids, end) {
+        end = next;
+    }
+    let d = n[end].position - n[joint].position;
+    let chord = (d.length() > 0.0).then(|| (d.y / d.length()).clamp(-1.0, 1.0).acos().to_degrees());
+    Limbs {
+        bases: found.iter().take(3).map(|f| f.0).collect(),
+        chord,
+        joint: Some((n[joint].position, n[joint].radius)),
+    }
 }
 
 /// The trunk is the thickest wood from the root, child by child (fn-341's
@@ -16,13 +76,15 @@ pub struct Wood {
 /// height, its radius taken linearly between the edge's proximal and distal
 /// radii. The drawn mesh's root flare (`pipeline/surface.rs`) is not in it.
 pub fn wood(tree: &Tree) -> Wood {
-    let n = &tree.nodes;
-    let mut kids: Vec<Vec<usize>> = vec![Vec::new(); n.len()];
-    for (i, node) in n.iter().enumerate() {
-        if let Some(p) = node.parent {
-            kids[p as usize].push(i);
-        }
+    Wood {
+        dbh: dbh(tree),
+        limbs: limbs(tree),
     }
+}
+
+fn dbh(tree: &Tree) -> Option<f64> {
+    let n = &tree.nodes;
+    let kids = children(tree);
     let base = n[0].position.y;
     let mut at = 0usize;
     loop {
@@ -30,13 +92,13 @@ pub fn wood(tree: &Tree) -> Wood {
             .iter()
             .max_by(|a, b| n[**a].start_radius.total_cmp(&n[**b].start_radius))
         else {
-            return Wood { dbh: None };
+            return None;
         };
         let (lo, hi) = (n[at].position.y - base, n[next].position.y - base);
         if lo <= 1.3 && 1.3 <= hi && hi > lo {
             let t = (1.3 - lo) / (hi - lo);
             let r = n[next].start_radius + t * (n[next].radius - n[next].start_radius);
-            return Wood { dbh: Some(2.0 * r) };
+            return Some(2.0 * r);
         }
         at = next;
     }
