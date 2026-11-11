@@ -25,7 +25,7 @@ pub(super) fn sample_path(
         1.0 + (params.flare_radius - 1.0)
             * (-y.max(0.0) / (params.flare_falloff * height)).exp_fixed()
     };
-    let girths = girths(tree, path_nodes, &paths.forks, distance);
+    let girths = girths(tree, (path_nodes, run.trunk), &paths.forks, distance);
     if run.trunk {
         trunk_run(tree, path_nodes, girths, distance, burial, &flare, samples);
     } else {
@@ -40,50 +40,47 @@ pub(super) fn sample_path(
 /// except over the fork's diameter past a fork of stems the run carries on
 /// through, where it eases from the trunk's girth at the fork into the stem's
 /// own. The run's first node is where it attaches, never a fork it passes.
-/// Along one stem (`eased`) a girth falls no faster than its distance.
+/// Along the run a girth falls no faster than its distance.
 fn girths<'a>(
     tree: &'a Tree,
-    path_nodes: &'a [usize],
+    (path_nodes, trunk): (&'a [usize], bool),
     forks: &'a [bool],
     distance: &'a [f64],
 ) -> impl Iterator<Item = f64> + 'a {
     let nodes = &tree.nodes;
     let mut fork = None;
+    // The run's drawn girth at the node below: where the wood thins going
+    // up the run, across a takeover too, the drawn girth falls no faster
+    // than 1 in 1, max(own, below − the distance between them), so a drop
+    // in section is a shoulder as long as it is deep, not a rim (fn-354,
+    // host, corrected 11 Nov evening; the slope is an estimate). The
+    // wood's own radii, which every measure reads, are left as they are.
     let mut below: Option<(usize, f64)> = None;
     path_nodes.iter().enumerate().map(move |(k, &i)| {
         let own = nodes[i].radius;
         let girth = fork.map_or(own, |f: usize| {
-            let trunk = nodes[f].radius;
-            let t = (distance[i] - distance[f]) / (2.0 * trunk).max(1e-9);
+            let at = nodes[f].radius;
+            let t = (distance[i] - distance[f]) / (2.0 * at).max(1e-9);
             let held = if t < 1.0 {
                 (1.0 - t) * (1.0 - t) * (1.0 + 2.0 * t)
             } else {
                 0.0
             };
-            own + (trunk - own).max(0.0) * held
+            own + (at - own).max(0.0) * held
         });
         if k > 0 && forks[i] {
             fork = Some(i);
         }
-        let girth = below.map_or(girth, |b| eased(tree, b, (i, girth), distance));
+        // A branch run's first node past where it attaches is a lateral
+        // starting its own run: drawn at its own base.
+        let starts = !trunk && k == 1;
+        let girth = match below.filter(|_| !starts) {
+            Some((b, under)) => girth.max(under - (distance[i] - distance[b])),
+            None => girth,
+        };
         below = Some((i, girth));
         girth
     })
-}
-
-/// Node `i`'s girth `girth` drawn above node `b` at its drawn `below`: where
-/// the two are one stem (an axis and what continues or relays it, never a
-/// bearer and its lateral) and the wood thins going up, it falls no faster
-/// than 1 in 1, `max(girth, below − the distance between them)`, so a drop
-/// in section is a shoulder as long as it is deep, not a rim (fn-354; the
-/// slope is an estimate: no measurement was found). The wood's own radii,
-/// which every measure reads, are left as they are.
-fn eased(tree: &Tree, (b, below): (usize, f64), (i, girth): (usize, f64), distance: &[f64]) -> f64 {
-    let nodes = &tree.nodes;
-    if nodes[i].branch != nodes[b].branch {
-        return girth;
-    }
-    girth.max(below - (distance[i] - distance[b]))
 }
 
 fn trunk_run(

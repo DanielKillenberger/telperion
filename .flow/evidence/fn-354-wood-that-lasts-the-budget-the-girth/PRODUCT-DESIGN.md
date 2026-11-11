@@ -41,9 +41,9 @@ Before a value is written, its source line is checked against the note that reco
 
 ## The drawing eases a change of section
 
-Along one stem (an axis, and the axis that continues or relays it), where the section falls from one phytomer to the next going up, the drawn radius falls no faster than 1 in 1: the thinner side is drawn at `max(its own radius, the radius below − distance along the stem)`. So a drop of half a metre in radius is a shoulder half a metre long, not a rim.
+Along the mesh's run (host, corrected 11 Nov evening: the run, wherever it goes, across axes; this replaces "along one stem"), where the section falls from one node to the next going up, the drawn radius falls no faster than 1 in 1: the thinner side is drawn at `max(its own radius, the radius below − distance along the run)`. So a drop of half a metre in radius is a shoulder half a metre long, not a rim.
 
-- It applies only along a stem's own line, never from a bearer to a lateral.
+- Where a run continues from a bearer into a lateral (a leader takeover: the lathe post at 300 is one), the lateral's drawn radius starts from the bearer's radius at the junction and falls no faster than 1 in 1. A lateral that starts its own run (its bearer's run goes on elsewhere) is drawn at its own base, untouched. (Host, corrected 11 Nov evening; it replaces "only along a stem's own line, never from a bearer to a lateral".)
 - It changes the drawn radius only. The grower's `T`, the sag's load and stiffness, and the measures read the wood.
 - **Estimate, named:** the slope of 1 in 1 is the host's, from what reads as a shoulder; no measurement was found.
 - The flat-topped cylinder under a living fork is not this rule's to fix (fn-279).
