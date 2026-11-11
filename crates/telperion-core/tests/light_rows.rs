@@ -125,7 +125,10 @@ fn populates(preset: Preset, row: &str) -> bool {
 /// laterals by the age the test grows (fn-349). The presets' own heights
 /// first shed between 40 and 60.
 fn acting(mut species: Species) -> Species {
-    species.states.iter_mut().for_each(|s| s.inverse_height = 0.1);
+    species
+        .states
+        .iter_mut()
+        .for_each(|s| s.inverse_height = 0.1);
     species
 }
 

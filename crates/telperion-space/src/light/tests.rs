@@ -39,7 +39,8 @@ fn one(toward: Vec3) -> Vec<(Vec3, f64)> {
 
 fn field(leaves: &[(Vec3, f64)], reads: &[Vec3], directions: &[(Vec3, f64)]) -> Field {
     let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
-    let mut f = Field::spanning(points, super::field::NODES).expect("a test lattice inside its nodes");
+    let mut f =
+        Field::spanning(points, super::field::NODES).expect("a test lattice inside its nodes");
     f.deposit_all(leaves);
     // The directions on four cores: each node sums them in their order.
     f.sweep(K, directions, 4);

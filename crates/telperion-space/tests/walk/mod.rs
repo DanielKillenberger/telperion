@@ -3,12 +3,12 @@
 //! scale it is walked on. The shape measures are in `measure.rs`.
 #![allow(dead_code)]
 mod bend;
-mod path;
 pub mod degree;
 mod measure;
+mod path;
 pub use bend::sag_bend;
-pub use path::longest_path;
 pub use measure::*;
+pub use path::longest_path;
 use telperion_space::{grow, Form, Light, NodeLaw, PaState, Request, Species, Structure, Zone};
 
 pub const STEPS: u32 = 200;

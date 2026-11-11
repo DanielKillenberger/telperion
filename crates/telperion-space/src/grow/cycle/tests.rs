@@ -97,10 +97,12 @@ fn the_quantised_deposit_is_order_free_and_refuses_overflow() {
         .iter()
         .map(|l| l.0 - Vec3::new(0.0, 0.0, 0.3))
         .collect();
-    let forward = Field::quantised(&light, &leaves, &reads, (1, crate::light::field::NODES)).unwrap();
+    let forward =
+        Field::quantised(&light, &leaves, &reads, (1, crate::light::field::NODES)).unwrap();
     let mut reversed = leaves.clone();
     reversed.reverse();
-    let back = Field::quantised(&light, &reversed, &reads, (1, crate::light::field::NODES)).unwrap();
+    let back =
+        Field::quantised(&light, &reversed, &reads, (1, crate::light::field::NODES)).unwrap();
     for &r in &reads {
         assert_eq!(forward.at(r).to_bits(), back.at(r).to_bits());
     }
