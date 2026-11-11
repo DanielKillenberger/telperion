@@ -599,7 +599,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-299-a-walk-frame-grows-within-its-ends.md",
-  "status": "open",
+  "status": "done",
   "title": "A walk frame grows within its ends",
   "tracker": {
     "baseHashFlow": null,
@@ -612,5 +612,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T00:28:48.806551Z"
+  "updated_at": "2026-11-11T11:59:47.041728Z"
 }

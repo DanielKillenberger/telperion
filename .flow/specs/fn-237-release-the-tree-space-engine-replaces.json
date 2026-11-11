@@ -1,5 +1,7 @@
 {
   "branch_name": "fn-237-release-the-tree-space-engine-replaces",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-11T12:00:02.751227Z",
   "created_at": "2026-10-08T22:24:43.589884Z",
   "depends_on_epics": [
     "fn-198-tree-space-f-the-engine-in-production",
@@ -69,8 +71,14 @@
   "next_task": 1,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "retired": {
+    "by": [
+      "fn-351-020-the-release-candidate"
+    ],
+    "reason": "superseded"
+  },
   "spec_path": ".flow/specs/fn-237-release-the-tree-space-engine-replaces.md",
-  "status": "open",
+  "status": "done",
   "title": "Release: the tree-space engine replaces 0.1.4, everywhere",
   "tracker": {
     "baseHashFlow": null,
@@ -83,5 +91,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-09T22:10:33.077772Z"
+  "updated_at": "2026-11-11T12:00:02.751235Z"
 }

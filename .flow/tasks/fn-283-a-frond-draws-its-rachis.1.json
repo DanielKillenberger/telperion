@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-283-a-frond-draws-its-rachis",
   "spec_path": ".flow/tasks/fn-283-a-frond-draws-its-rachis.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "The CPU hangs each frond's axis as wood, with the rachisWidth row",
   "updated_at": "2026-10-19T13:34:24.344208Z"
 }

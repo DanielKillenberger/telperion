@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-319-the-release-audits-slice-lands-before",
   "spec_path": ".flow/tasks/fn-319-the-release-audits-slice-lands-before.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "The renderer takes a Family, and the field types have one definition",
   "updated_at": "2026-10-28T10:49:13.090297Z"
 }

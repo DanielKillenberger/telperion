@@ -116,7 +116,7 @@
     "impl:fn-317-every-generator-entry-takes-a-trees.1": 0
   },
   "spec_path": ".flow/specs/fn-317-every-generator-entry-takes-a-trees.md",
-  "status": "open",
+  "status": "done",
   "title": "Every generator entry takes a tree's parameters",
   "tracker": {
     "baseHashFlow": null,
@@ -129,5 +129,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T11:24:40.745211Z"
+  "updated_at": "2026-11-11T11:59:53.628728Z"
 }

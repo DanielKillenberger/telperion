@@ -511,7 +511,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-283-a-frond-draws-its-rachis.md",
-  "status": "open",
+  "status": "done",
   "title": "A frond draws its rachis",
   "tracker": {
     "baseHashFlow": null,
@@ -524,5 +524,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T14:21:27.322495Z"
+  "updated_at": "2026-11-11T11:59:45.161333Z"
 }

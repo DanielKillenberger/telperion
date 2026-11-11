@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-311-wgpu-comes-from-a-fork-carrying",
   "spec_path": ".flow/tasks/fn-311-wgpu-comes-from-a-fork-carrying.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "The workspace takes every wgpu-family crate from the fork; the vendored copy goes; programs.rs on the PR's signature",
   "updated_at": "2026-10-24T11:15:29.294342Z"
 }

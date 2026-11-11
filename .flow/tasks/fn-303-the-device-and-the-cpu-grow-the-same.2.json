@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-303-the-device-and-the-cpu-grow-the-same",
   "spec_path": ".flow/tasks/fn-303-the-device-and-the-cpu-grow-the-same.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "The rounds frames compare like with like, and the change is measured",
   "updated_at": "2026-10-21T22:35:38.117444Z"
 }

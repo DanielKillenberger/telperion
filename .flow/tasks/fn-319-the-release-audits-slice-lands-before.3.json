@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-319-the-release-audits-slice-lands-before",
   "spec_path": ".flow/tasks/fn-319-the-release-audits-slice-lands-before.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "The device refuses what the CPU refuses",
   "updated_at": "2026-10-28T10:53:26.278219Z"
 }

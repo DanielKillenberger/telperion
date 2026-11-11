@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-351-020-the-release-candidate",
+  "created_at": "2026-11-11T11:59:03.646995Z",
+  "depends_on_epics": [
+    "fn-349-the-corrected-balance-in-the-product"
+  ],
+  "id": "fn-351-020-the-release-candidate",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-351-020-the-release-candidate.md",
+  "status": "open",
+  "title": "0.2.0 the release candidate",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-11T12:00:05.482311Z"
+}

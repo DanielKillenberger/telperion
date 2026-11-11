@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-313-a-prerelease-of-telperion-on-npm",
   "spec_path": ".flow/tasks/fn-313-a-prerelease-of-telperion-on-npm.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "The prerelease moves into release.yml as its own job, published by trusted publishing (host ruling)",
   "updated_at": "2026-10-24T12:19:28.883672Z"
 }

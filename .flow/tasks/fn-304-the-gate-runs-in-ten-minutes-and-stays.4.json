@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-304-the-gate-runs-in-ten-minutes-and-stays",
   "spec_path": ".flow/tasks/fn-304-the-gate-runs-in-ten-minutes-and-stays.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "The runner and the width: measure, declare, rewrite the gate line",
   "updated_at": "2026-10-21T21:10:24.353778Z"
 }

@@ -548,7 +548,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-310-a-person-for-scale-and-a-nicer-world.md",
-  "status": "open",
+  "status": "done",
   "title": "A person for scale and a nicer world around the tree",
   "tracker": {
     "baseHashFlow": null,
@@ -561,5 +561,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-23T20:43:46.139737Z"
+  "updated_at": "2026-11-11T11:59:50.770186Z"
 }

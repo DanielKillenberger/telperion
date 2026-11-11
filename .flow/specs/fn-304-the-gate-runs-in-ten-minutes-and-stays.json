@@ -571,7 +571,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-304-the-gate-runs-in-ten-minutes-and-stays.md",
-  "status": "open",
+  "status": "done",
   "title": "The gate runs in ten minutes and stays there",
   "tracker": {
     "baseHashFlow": null,
@@ -584,5 +584,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T06:24:50.093619Z"
+  "updated_at": "2026-11-11T11:59:48.908541Z"
 }

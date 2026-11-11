@@ -324,7 +324,7 @@
     "impl:fn-272-the-release-film-through-species-space.2": 0
   },
   "spec_path": ".flow/specs/fn-272-the-release-film-through-species-space.md",
-  "status": "open",
+  "status": "done",
   "title": "The release film: through species space, trees growing and shrinking",
   "tracker": {
     "baseHashFlow": null,
@@ -337,5 +337,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-23T12:17:46.103904Z"
+  "updated_at": "2026-11-11T11:59:44.694765Z"
 }

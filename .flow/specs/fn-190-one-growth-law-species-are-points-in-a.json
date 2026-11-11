@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-190-one-growth-law-species-are-points-in-a",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-11T11:59:59.490365Z",
   "created_at": "2026-10-03T08:20:40.538427Z",
   "default_impl": null,
   "default_review": null,
@@ -14,8 +14,14 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": false,
+  "retired": {
+    "by": [
+      "fn-191-tree-space-a-the-engine-core-reproduces"
+    ],
+    "reason": "superseded"
+  },
   "spec_path": ".flow/specs/fn-190-one-growth-law-species-are-points-in-a.md",
-  "status": "open",
+  "status": "done",
   "title": "One growth law: species are points in a continuous architecture space",
   "tracker": {
     "baseHashFlow": null,
@@ -28,5 +34,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T19:31:18.973704Z"
+  "updated_at": "2026-11-11T11:59:59.490373Z"
 }

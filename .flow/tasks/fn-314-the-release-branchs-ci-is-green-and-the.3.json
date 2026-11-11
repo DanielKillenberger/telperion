@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-314-the-release-branchs-ci-is-green-and-the",
   "spec_path": ".flow/tasks/fn-314-the-release-branchs-ci-is-green-and-the.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Every tests.yml job green locally; the gate and npm test",
   "updated_at": "2026-10-24T11:49:41.906086Z"
 }

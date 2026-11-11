@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-294-the-release-reviews-findings-are-fixed",
   "spec_path": ".flow/tasks/fn-294-the-release-reviews-findings-are-fixed.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Tree memory counts flowers; CI keys see the space crate; field test builds the renderer",
   "updated_at": "2026-10-19T09:39:59.288888Z"
 }

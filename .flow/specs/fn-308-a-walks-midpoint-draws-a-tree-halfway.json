@@ -365,7 +365,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-308-a-walks-midpoint-draws-a-tree-halfway.md",
-  "status": "open",
+  "status": "done",
   "title": "A walk's midpoint draws a tree halfway between its ends",
   "tracker": {
     "baseHashFlow": null,
@@ -378,5 +378,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T11:42:49.564962Z"
+  "updated_at": "2026-11-11T11:59:49.836775Z"
 }

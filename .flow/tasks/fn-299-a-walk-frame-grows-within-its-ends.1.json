@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-299-a-walk-frame-grows-within-its-ends",
   "spec_path": ".flow/tasks/fn-299-a-walk-frame-grows-within-its-ends.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "The repro and the trace: oak to palm leaves its ends",
   "updated_at": "2026-10-20T16:53:02.897484Z"
 }

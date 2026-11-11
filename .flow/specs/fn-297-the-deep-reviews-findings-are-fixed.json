@@ -375,7 +375,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-297-the-deep-reviews-findings-are-fixed.md",
-  "status": "open",
+  "status": "done",
   "title": "The deep review's findings are fixed before 0.2.0 merges",
   "tracker": {
     "baseHashFlow": null,
@@ -388,5 +388,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T15:51:45.802074Z"
+  "updated_at": "2026-11-11T11:59:46.107083Z"
 }

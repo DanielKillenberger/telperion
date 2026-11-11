@@ -9,7 +9,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-220-node-identity-from-the-engines-lineage.md",
-  "status": "open",
+  "status": "done",
   "title": "Node identity from the engine's lineage",
   "tracker": {
     "baseHashFlow": null,
@@ -22,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-07T08:45:38.342502Z"
+  "updated_at": "2026-11-11T11:59:43.753444Z"
 }

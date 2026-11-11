@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-198-tree-space-f-the-engine-in-production",
   "spec_path": ".flow/tasks/fn-198-tree-space-f-the-engine-in-production.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Fine roots on the GPU in the pipeline and the harness",
   "updated_at": "2026-10-07T04:10:35.387852Z"
 }

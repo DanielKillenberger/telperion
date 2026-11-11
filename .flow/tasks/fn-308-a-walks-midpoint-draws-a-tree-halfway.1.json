@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-308-a-walks-midpoint-draws-a-tree-halfway",
   "spec_path": ".flow/tasks/fn-308-a-walks-midpoint-draws-a-tree-halfway.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "The walk laws weigh a row by the frame's reach",
   "updated_at": "2026-10-22T09:22:45.225136Z"
 }

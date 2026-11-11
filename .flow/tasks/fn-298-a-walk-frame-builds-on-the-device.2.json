@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-298-a-walk-frame-builds-on-the-device",
   "spec_path": ".flow/tasks/fn-298-a-walk-frame-builds-on-the-device.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Apply the R2 choice so no walk frame outruns its limit",
   "updated_at": "2026-10-20T15:52:27.260585Z"
 }

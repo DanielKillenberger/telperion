@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-192-tree-space-b-continuity-by-construction",
   "spec_path": ".flow/tasks/fn-192-tree-space-b-continuity-by-construction.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Tree space B: continuity by construction",
   "updated_at": "2026-10-03T20:02:55.359401Z"
 }

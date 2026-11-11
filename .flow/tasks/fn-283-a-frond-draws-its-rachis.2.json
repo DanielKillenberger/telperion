@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-283-a-frond-draws-its-rachis",
   "spec_path": ".flow/tasks/fn-283-a-frond-draws-its-rachis.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "The device draws its fronds once, in the leaf-base stage",
   "updated_at": "2026-10-19T13:34:24.344571Z"
 }

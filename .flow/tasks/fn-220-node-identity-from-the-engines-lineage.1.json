@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-220-node-identity-from-the-engines-lineage",
   "spec_path": ".flow/tasks/fn-220-node-identity-from-the-engines-lineage.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Node identity from lineage",
   "updated_at": "2026-10-07T08:45:39.680005Z"
 }

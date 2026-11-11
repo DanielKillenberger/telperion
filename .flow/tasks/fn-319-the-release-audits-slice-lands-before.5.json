@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-319-the-release-audits-slice-lands-before",
   "spec_path": ".flow/tasks/fn-319-the-release-audits-slice-lands-before.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "compileField compiles once, and the CI key reads the parameter reference",
   "updated_at": "2026-10-28T10:53:26.750959Z"
 }

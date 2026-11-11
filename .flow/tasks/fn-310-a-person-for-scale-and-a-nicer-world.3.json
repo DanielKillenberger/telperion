@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-310-a-person-for-scale-and-a-nicer-world",
   "spec_path": ".flow/tasks/fn-310-a-person-for-scale-and-a-nicer-world.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Cost and final proof: frame time against the base, Wasm bytes, docs, final stills",
   "updated_at": "2026-10-23T14:00:35.191954Z"
 }

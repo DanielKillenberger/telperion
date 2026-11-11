@@ -191,7 +191,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-306-the-f4-builds-obvious-friction-fixes.md",
-  "status": "open",
+  "status": "done",
   "title": "The F4 build's obvious friction fixes",
   "tracker": {
     "baseHashFlow": null,
@@ -204,5 +204,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T07:19:18.342099Z"
+  "updated_at": "2026-11-11T11:59:49.377505Z"
 }

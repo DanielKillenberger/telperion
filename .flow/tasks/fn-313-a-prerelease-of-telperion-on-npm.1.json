@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-313-a-prerelease-of-telperion-on-npm",
   "spec_path": ".flow/tasks/fn-313-a-prerelease-of-telperion-on-npm.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "The package job's build steps become one shared composite action",
   "updated_at": "2026-10-24T11:12:43.918504Z"
 }

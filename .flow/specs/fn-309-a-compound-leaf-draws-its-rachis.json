@@ -245,7 +245,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-309-a-compound-leaf-draws-its-rachis.md",
-  "status": "open",
+  "status": "done",
   "title": "A compound leaf draws its rachis wherever it is placed",
   "tracker": {
     "baseHashFlow": null,
@@ -258,5 +258,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T22:41:09.167768Z"
+  "updated_at": "2026-11-11T11:59:50.306424Z"
 }

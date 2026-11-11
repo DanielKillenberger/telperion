@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-298-a-walk-frame-builds-on-the-device",
   "spec_path": ".flow/tasks/fn-298-a-walk-frame-builds-on-the-device.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Sweep the film's walk frames and check agreement and bytes",
   "updated_at": "2026-10-20T16:48:32.408967Z"
 }

@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-230-points-between-species-stay-viable-trees",
   "spec_path": ".flow/tasks/fn-230-points-between-species-stay-viable-trees.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement points between species stay viable trees",
   "updated_at": "2026-10-08T12:50:01.604477Z"
 }

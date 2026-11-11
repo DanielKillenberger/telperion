@@ -156,7 +156,7 @@
     "impl:fn-230-points-between-species-stay-viable-trees.1": 0
   },
   "spec_path": ".flow/specs/fn-230-points-between-species-stay-viable-trees.md",
-  "status": "open",
+  "status": "done",
   "title": "Points between species stay viable trees",
   "tracker": {
     "baseHashFlow": null,
@@ -169,5 +169,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T14:34:13.728270Z"
+  "updated_at": "2026-11-11T11:59:44.222879Z"
 }

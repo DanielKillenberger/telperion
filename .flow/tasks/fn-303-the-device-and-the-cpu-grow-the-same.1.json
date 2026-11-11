@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-303-the-device-and-the-cpu-grow-the-same",
   "spec_path": ".flow/tasks/fn-303-the-device-and-the-cpu-grow-the-same.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "A span's share is 1 where the length reaches its end, on both executors",
   "updated_at": "2026-10-21T22:35:38.117120Z"
 }

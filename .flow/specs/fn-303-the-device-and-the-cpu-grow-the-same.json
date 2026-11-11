@@ -228,7 +228,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-303-the-device-and-the-cpu-grow-the-same.md",
-  "status": "open",
+  "status": "done",
   "title": "The device and the CPU grow the same rounds frames on the release branch",
   "tracker": {
     "baseHashFlow": null,
@@ -241,5 +241,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T01:19:58.797801Z"
+  "updated_at": "2026-11-11T11:59:48.445236Z"
 }

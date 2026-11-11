@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-314-the-release-branchs-ci-is-green-and-the",
   "spec_path": ".flow/tasks/fn-314-the-release-branchs-ci-is-green-and-the.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "CI's two failing checks pass: gate the bloom test, rename the budget entry",
   "updated_at": "2026-10-24T11:47:12.542814Z"
 }

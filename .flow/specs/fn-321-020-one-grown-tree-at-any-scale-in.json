@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-321-020-one-grown-tree-at-any-scale-in",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-11T12:00:03.210666Z",
   "created_at": "2026-10-31T22:54:04.805270Z",
   "default_impl": null,
   "default_review": null,
@@ -32,8 +32,14 @@
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "retired": {
+    "by": [
+      "fn-351-020-the-release-candidate"
+    ],
+    "reason": "superseded"
+  },
   "spec_path": ".flow/specs/fn-321-020-one-grown-tree-at-any-scale-in.md",
-  "status": "open",
+  "status": "done",
   "title": "0.2.0: one grown tree at any scale, in realtime",
   "tracker": {
     "baseHashFlow": null,
@@ -46,5 +52,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-10T23:02:03.605096Z"
+  "updated_at": "2026-11-11T12:00:03.210676Z"
 }

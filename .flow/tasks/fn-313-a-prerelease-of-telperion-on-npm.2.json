@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-313-a-prerelease-of-telperion-on-npm",
   "spec_path": ".flow/tasks/fn-313-a-prerelease-of-telperion-on-npm.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "A workflow_dispatch prerelease under the next tag, its docs and the local dry run",
   "updated_at": "2026-10-24T11:12:43.918576Z"
 }

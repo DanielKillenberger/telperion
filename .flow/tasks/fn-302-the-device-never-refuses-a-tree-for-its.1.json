@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-302-the-device-never-refuses-a-tree-for-its",
   "spec_path": ".flow/tasks/fn-302-the-device-never-refuses-a-tree-for-its.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "A stepped-limit overflow rebuilds once at the bound",
   "updated_at": "2026-10-21T17:08:15.553186Z"
 }

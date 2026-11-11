@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-310-a-person-for-scale-and-a-nicer-world",
   "spec_path": ".flow/tasks/fn-310-a-person-for-scale-and-a-nicer-world.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "The person casts a shadow through the existing shadow pass",
   "updated_at": "2026-10-23T15:28:53.980299Z"
 }

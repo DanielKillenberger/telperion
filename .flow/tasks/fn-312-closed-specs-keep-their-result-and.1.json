@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-312-closed-specs-keep-their-result-and",
   "spec_path": ".flow/tasks/fn-312-closed-specs-keep-their-result-and.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Prune the closed specs' task files and evidence, in two commits",
   "updated_at": "2026-10-24T11:26:41.998671Z"
 }

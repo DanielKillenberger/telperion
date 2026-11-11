@@ -244,7 +244,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-302-the-device-never-refuses-a-tree-for-its.md",
-  "status": "open",
+  "status": "done",
   "title": "The device never refuses a tree for its hierarchy rounds",
   "tracker": {
     "baseHashFlow": null,
@@ -257,5 +257,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T21:34:12.204562Z"
+  "updated_at": "2026-11-11T11:59:47.979838Z"
 }

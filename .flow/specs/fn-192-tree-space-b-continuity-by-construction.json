@@ -288,7 +288,7 @@
     "impl:fn-192-tree-space-b-continuity-by-construction.1": 0
   },
   "spec_path": ".flow/specs/fn-192-tree-space-b-continuity-by-construction.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space B: continuity by construction",
   "tracker": {
     "baseHashFlow": null,
@@ -301,5 +301,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T21:27:57.634380Z"
+  "updated_at": "2026-11-11T11:59:42.318218Z"
 }

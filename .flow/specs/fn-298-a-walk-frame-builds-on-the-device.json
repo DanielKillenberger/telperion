@@ -276,7 +276,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-298-a-walk-frame-builds-on-the-device.md",
-  "status": "open",
+  "status": "done",
   "title": "A walk frame builds on the device",
   "tracker": {
     "baseHashFlow": null,
@@ -289,5 +289,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T11:26:29.307179Z"
+  "updated_at": "2026-11-11T11:59:46.583021Z"
 }

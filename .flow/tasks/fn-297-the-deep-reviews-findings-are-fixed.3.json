@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-297-the-deep-reviews-findings-are-fixed",
   "spec_path": ".flow/tasks/fn-297-the-deep-reviews-findings-are-fixed.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "The cycle's job sizing and block assignment refuse before they write",
   "updated_at": "2026-10-20T01:06:34.246754Z"
 }

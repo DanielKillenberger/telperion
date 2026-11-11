@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-294-the-release-reviews-findings-are-fixed",
   "spec_path": ".flow/tasks/fn-294-the-release-reviews-findings-are-fixed.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Reproduce the metadata panic and the oversized lattice; fix or close each",
   "updated_at": "2026-10-19T09:39:59.763684Z"
 }

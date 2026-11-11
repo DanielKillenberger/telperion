@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-304-the-gate-runs-in-ten-minutes-and-stays",
   "spec_path": ".flow/tasks/fn-304-the-gate-runs-in-ten-minutes-and-stays.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Budgets: 60 s and 4 GB per test, a shrink-only allowlist, the ten-minute total",
   "updated_at": "2026-10-21T21:10:24.860845Z"
 }

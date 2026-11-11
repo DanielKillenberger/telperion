@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-310-a-person-for-scale-and-a-nicer-world",
   "spec_path": ".flow/tasks/fn-310-a-person-for-scale-and-a-nicer-world.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Find and remove the 1.7 s renderer start-up cost",
   "updated_at": "2026-10-23T15:09:34.071124Z"
 }

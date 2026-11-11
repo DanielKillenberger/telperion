@@ -269,7 +269,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-312-closed-specs-keep-their-result-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Closed specs keep their result and verdicts, not their working records",
   "tracker": {
     "baseHashFlow": null,
@@ -282,5 +282,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T12:49:22.617664Z"
+  "updated_at": "2026-11-11T11:59:51.713979Z"
 }

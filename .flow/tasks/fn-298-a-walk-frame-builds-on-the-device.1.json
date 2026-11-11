@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-298-a-walk-frame-builds-on-the-device",
   "spec_path": ".flow/tasks/fn-298-a-walk-frame-builds-on-the-device.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Reproduce each refusal and measure the stepped limits against the bound",
   "updated_at": "2026-10-20T11:30:25.414330Z"
 }

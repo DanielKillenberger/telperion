@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-311-wgpu-comes-from-a-fork-carrying",
   "spec_path": ".flow/tasks/fn-311-wgpu-comes-from-a-fork-carrying.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "The fork branch 30.0.1-async: #10438's browser half, a minimal native side, a README, pushed",
   "updated_at": "2026-10-24T11:15:29.294269Z"
 }

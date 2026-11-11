@@ -391,7 +391,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-319-the-release-audits-slice-lands-before.md",
-  "status": "open",
+  "status": "done",
   "title": "The release audit's slice lands before the tag",
   "tracker": {
     "baseHashFlow": null,
@@ -404,5 +404,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-28T13:33:13.273649Z"
+  "updated_at": "2026-11-11T11:59:54.117929Z"
 }

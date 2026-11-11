@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-299-a-walk-frame-grows-within-its-ends",
   "spec_path": ".flow/tasks/fn-299-a-walk-frame-grows-within-its-ends.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "The rule: a walk frame's ages blend within its ends",
   "updated_at": "2026-10-20T16:53:02.897553Z"
 }

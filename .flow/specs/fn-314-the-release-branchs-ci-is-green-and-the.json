@@ -232,7 +232,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-314-the-release-branchs-ci-is-green-and-the.md",
-  "status": "open",
+  "status": "done",
   "title": "The release branch's CI is green, and the local gate sees what CI sees",
   "tracker": {
     "baseHashFlow": null,
@@ -245,5 +245,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T17:43:18.699049Z"
+  "updated_at": "2026-11-11T11:59:52.649880Z"
 }

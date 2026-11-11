@@ -1265,7 +1265,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-301-a-tree-rests-on-its-ground.md",
-  "status": "open",
+  "status": "done",
   "title": "A tree rests on its ground",
   "tracker": {
     "baseHashFlow": null,
@@ -1278,5 +1278,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T14:32:31.564831Z"
+  "updated_at": "2026-11-11T11:59:47.517073Z"
 }
