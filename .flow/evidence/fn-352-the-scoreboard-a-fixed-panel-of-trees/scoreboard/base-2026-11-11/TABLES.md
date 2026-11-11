@@ -225,4 +225,53 @@ Seed 1001; grown, expanded and dressed in one process pinned to one core (`tasks
 | tree | seconds | process s | peak GiB | nodes | leaves |
 |---|---|---|---|---|---|
 | oak at 40 | 2.41 | 2.4 | 0.40 | 272,095 | 47,279 |
+| spruce at 40 | 12.67 | 12.7 | 1.61 | 1,049,851 | 4,185,635 |
+| beech at 40 | 0.28 | 0.3 | 0.09 | 57,904 | 16,614 |
+| birch at 40 | 2.07 | 2.1 | 0.44 | 315,200 | 139,929 |
+| palm at 40 | 0.02 | 0.0 | 0.01 | 7,605 | 6,554 |
+| ordinary at 40 | 0.68 | 0.7 | 0.12 | 85,294 | 7,957 |
+| laurelin at 80 | 17.31 | 17.5 | 2.51 | 2,021,989 | 572,178 |
+| telperion at 82 | 17.25 | 17.4 | 2.75 | 2,206,057 | 620,535 |
+| oak at 40 | 2.02 | 2.0 | 0.40 | 272,095 | 47,279 |
+| oak at 120 | 45.09 | 45.3 | 2.55 | 1,876,936 | 304,559 |
+| oak at 300 | 170.73 | 170.8 | 2.53 | 1,345,486 | 233,403 |
+
+A thousand distinct oaks: 1000 oaks at 40, seeds 1 to 1000, across 32 threads: **493.1 s** (0 refused), peak 13.0 GiB.
+
+## Cost, Wasm (fn-329's protocol)
+
+Median warm build (five, after one cold) per seed, `build(family, { field: { n: 36 } })`, Node, one thread pinned; seeds 1, 1234, 5678.
+
+| preset | fidelity | age | ms per seed | median ms |
+|---|---|---|---|---|
+| ordinary | 0 | 40 | 411, 505, 426 | 426 |
+| oregon-white-oak | 0 | 40 | 1134, 2175, 2073 | 2073 |
+| norway-spruce | 0 | 40 | 7548, 18873, 6886 | 7548 |
+| european-beech | 0 | 40 | 281, 155, 262 | 262 |
+| silver-birch | 0 | 40 | 1087, 1457, 959 | 1087 |
+| date-palm | 0 | 40 | 20, 17, 17 | 17 |
+| telperion | 0 | 82 | 27068, 19433, 18008 | 19433 |
+| laurelin | 0 | 80 | 24126, 16866, 15085 | 16866 |
+| ordinary | 1 | 40 | 822, 909, 849 | 849 |
+| oregon-white-oak | 1 | 40 | 244, 486, 310 | 310 |
+| norway-spruce | 1 | 40 | 1162, 1350, 1180 | 1180 |
+| european-beech | 1 | 40 | 548, 323, 499 | 499 |
+| silver-birch | 1 | 40 | 425, 489, 361 | 425 |
+| date-palm | 1 | 40 | 27, 28, 27 | 27 |
+| telperion | 1 | 82 | 12130, 15922, 8827 | 12130 |
+| laurelin | 1 | 80 | 10712, 7732, 7765 | 7765 |
+
+## Cost, Wasm, telperion@0.1.4 (the published package)
+
+Median warm build (five, after one cold) per seed, `build(family, { field: true })` (0.1.4's field takes no grid size; no fidelity), Node, one thread pinned; seeds 1, 1234, 5678.
+
+| preset | fidelity | age | ms per seed | median ms |
+|---|---|---|---|---|
+| ordinary | 0.1.4 | 100 | 58, 49, 53 | 53 |
+| oregon-white-oak | 0.1.4 | 100 | 120, 124, 165 | 124 |
+| norway-spruce | 0.1.4 | 100 | 128, 122, 120 | 122 |
+| silver-birch | 0.1.4 | 70 | 169, 239, 251 | 239 |
+| date-palm | 0.1.4 | 100 | 5, 6, 5 | 5 |
+| telperion | 0.1.4 | 100 | 447, 505, 160 | 447 |
+| laurelin | 0.1.4 | 100 | 129, 51, 56 | 56 |
 

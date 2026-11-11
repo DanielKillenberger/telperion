@@ -223,10 +223,14 @@ def cost_tables(label):
     wasm = label / "wasm.jsonl"
     if wasm.exists():
         out += wasm_table(wasm, "## Cost, Wasm (fn-329's protocol)")
+    old = label / "wasm-0.1.4.jsonl"
+    if old.exists():
+        out += wasm_table(old, "## Cost, Wasm, telperion@0.1.4 (the published package)",
+                          "`build(family, { field: true })` (0.1.4's field takes no grid size; no fidelity)")
     return out
 
 
-def wasm_table(path, title):
+def wasm_table(path, title, call="`build(family, { field: { n: 36 } })`"):
     rows = {}
     for line in path.read_text().splitlines():
         if not line.startswith("{"):
@@ -234,7 +238,7 @@ def wasm_table(path, title):
         w = json.loads(line)
         rows.setdefault((w["id"], w["fidelity"]), []).append(w)
     out = [title, "",
-           "Median warm build (five, after one cold) per seed, `build(family, { field: { n: 36 } })`, "
+           f"Median warm build (five, after one cold) per seed, {call}, "
            "Node, one thread pinned; seeds 1, 1234, 5678.", "",
            "| preset | fidelity | age | ms per seed | median ms |", "|---|---|---|---|---|"]
     for (pid, fid), ws in rows.items():
