@@ -96,8 +96,8 @@ pub(super) struct Shoot<'g> {
     /// The phytomers this share grew.
     pub grown: u64,
     /// The units the job growing now grew in the cycle, and the most a
-    /// living apex's job and a waking bud's grew (fn-276: what the
-    /// device's units rounds hold, against `schedule::most_units`).
+    /// living apex's job and a waking bud's grew (fn-276, against
+    /// `schedule::most_units`).
     pub job: u32,
     pub jobs: [u32; 2],
     /// One zone's node presences and its nodes (order draw, draw index,

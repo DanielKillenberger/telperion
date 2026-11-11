@@ -20,3 +20,10 @@ Doing: `npx vitest run src/browser src/field harness` after the R5 core message 
 Slowed: the harness tests run the jev crate's species binary, so a one-line change in `telperion-core` rebuilt telperion-core and telperion-jev in release profile first (about 3.5 minutes) before 142 tests that took seconds.
 Cost: about 3.5 minutes of wall time.
 Would have removed it: the harness tests that need the jev binary split from those that do not, or the binary built in the ci profile that the narrow Rust runs already compiled.
+
+## 11 Nov 2026, task 3: `npx vitest run src/browser` waited four minutes for twelve tests
+
+Doing: the narrow check of decision 7 (`render.test.ts`, `module.test.ts`) after a one-file edit in `telperion-render`.
+Slowed: the run took 239 s, of which the tests took 4.8 s; the rest was the same jev-binary rebuild task 2 reported, reached here although no test in `src/browser` runs the binary.
+Cost: about 4 minutes of wall time.
+Would have removed it: the jev binary built only by the suites that run it (a vitest project or global setup scoped to `harness`), not by every vitest invocation.

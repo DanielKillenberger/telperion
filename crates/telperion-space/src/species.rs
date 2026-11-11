@@ -489,8 +489,8 @@ impl Species {
 
     /// The species with every row `reads_light` reads at 0: the tree the
     /// closed form predicts, whose expectations size a build and a blend
-    /// (fn-257: the birch's ground hazard, left out of one copy of this
-    /// list, sized its device build from nothing).
+    /// (fn-257: the birch's ground hazard was once left out of one copy of
+    /// this list).
     pub fn unlit(&self) -> Species {
         let mut unlit = self.clone();
         for s in &mut unlit.states {

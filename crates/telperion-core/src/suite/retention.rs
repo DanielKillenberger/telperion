@@ -1,6 +1,6 @@
 //! Leaves by their wood's age (fn-248): a station keeps its leaf by its
 //! wood's retention, clamp(leaf_years - age, 0, 1), counted the same in
-//! the plan, the placement and the stations both executors place from;
+//! the plan, the placement and the stations;
 //! a station that sheds its leaf still takes its draws, so every leaf
 //! that stays is the one the tree bore for ever.
 use telperion_core::{

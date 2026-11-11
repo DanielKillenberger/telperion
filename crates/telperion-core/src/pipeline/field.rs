@@ -50,8 +50,8 @@ pub struct Occupancy {
 /// cubes of `cell` metres, `n - 2` of them spanning the box's longest axis,
 /// centred on the box in x and z with one empty cell below its lowest
 /// point. Cell `i + n * (j + n * k)` is centred at `origin + (i + 0.5,
-/// j + 0.5, k + 0.5) * cell`. The CPU, the device and the site's voxelizer
-/// read this one definition.
+/// j + 0.5, k + 0.5) * cell`. The pipeline and the site's voxelizer read
+/// this one definition.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Frame {
     pub n: u32,
@@ -110,13 +110,10 @@ pub struct Grid {
 
 impl Grid {
     /// Each limb system renamed by the cell where it holds the most leaves,
-    /// the lowest on a tie (fn-317 R4c): each executor names a system by
-    /// its own node, so the same partition read on the CPU and on the
-    /// device carries the same names only once both rename it here. A
-    /// system's densest cell lies inside it, where the executors agree,
-    /// not on the edge it shares with a neighbour. Both package entries
-    /// call it on the grid they hand on; inside, a system keeps its node's
-    /// name, the same on every grid of one executor. Names stay opaque.
+    /// the lowest on a tie (fn-317 R4c), so a name does not depend on the
+    /// node a system was grown from. A system's densest cell lies inside
+    /// it, not on the edge it shares with a neighbour. Both package entries
+    /// call it on the grid they hand on. Names stay opaque.
     pub fn name_limbs(&mut self) {
         let mut densest = std::collections::HashMap::<u32, (f64, u32)>::new();
         for (i, cell) in self.cells.iter().enumerate() {

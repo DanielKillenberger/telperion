@@ -142,8 +142,7 @@ crate::catalogue::rows! {
         pub lobes: u32 = "lobes" "lobes" Rail::closed(0.0, 16.0) => [Expand] {
             wire: 79,
             check: input(Site::Surface, 2, "surface parameters"),
-            note: "Raises the side count even at `lobeDepth` zero; the GPU executor draws only \
-                unlobed wood itself.",
+            note: "Raises the side count even at `lobeDepth` zero.",
             blend: Blend::Count,
             dial: bounded("surface_lobes", "how many ridges run up around the trunk", [2.0, 4.0]),
         },

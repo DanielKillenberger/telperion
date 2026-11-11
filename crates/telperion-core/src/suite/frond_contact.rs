@@ -201,8 +201,7 @@ fn a_resting_frond_keeps_its_length() {
 /// A frond meeting the ground straight down rests along its frame's
 /// lift (host, 2026-10-21): +lift with no arch, the arch's way with one
 /// (here a base under its radius, met on its vertical heading), as far
-/// along the ground as its parabola is long past contact. The device is
-/// held to the same cases (`rachis_tests`).
+/// along the ground as its parabola is long past contact.
 #[test]
 fn a_frond_straight_down_rests_along_its_lift() {
     let down = Vec3::new(0.0, -1.0, 0.0);

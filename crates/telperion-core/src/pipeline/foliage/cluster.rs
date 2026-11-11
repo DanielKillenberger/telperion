@@ -2,8 +2,8 @@
 //! that states one bears at its own tip, fanned level about the tip's
 //! bearing, in place of the leaves it would bear along its length. Leaf
 //! `j` of a cluster draws at a station's ordinals on its tip's cluster
-//! stream (`tree::cluster_key`), so both executors seat the same leaves
-//! whatever order they visit the tips in.
+//! stream (`tree::cluster_key`), so the same leaves are seated whatever
+//! order the tips are visited in.
 use super::{organs, CanopyParams};
 #[cfg(feature = "geometry")]
 use super::{rosette, station, Instances};

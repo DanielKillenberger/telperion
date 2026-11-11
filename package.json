@@ -1,7 +1,7 @@
 {
   "name": "telperion",
   "version": "0.2.0",
-  "description": "A procedural tree generator with seeded specimens and named species presets: one Rust core grows every tree botanically through one cycle, on the CPU or on the device, and serves surface meshes, instanced foliage, structural data and a spatial field held on the device.",
+  "description": "A procedural tree generator with seeded specimens and named species presets: one Rust core grows every tree botanically through one cycle, on the CPU, and serves surface meshes, instanced foliage, structural data and a spatial field; the device draws the tree.",
   "keywords": [
     "procedural",
     "tree",

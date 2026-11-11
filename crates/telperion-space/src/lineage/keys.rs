@@ -2,8 +2,7 @@
 //! from the key it is drawn under; two keys under one parent with one
 //! value would draw the same number. Keys named after the reserved top
 //! of the range (`u64::MAX - n`) are unique across every parent, so a new
-//! one takes the next free `n` here and nowhere else. The GPU's mirror is
-//! `telperion-render`'s `cycle/keys.wgsl`, checked against `ALL`.
+//! one takes the next free `n` here and nowhere else.
 
 /// What a key is drawn under.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -89,7 +88,7 @@ pub const CLUSTER: u64 = 0x0c10_0000;
 /// by their ordinal along the run. Clear of the node's places, blooms
 /// and cluster.
 pub const RETAIN: u64 = 0x0c10_0001;
-/// A rosette's fronds on the device, under its apex's key: each frond
+/// A rosette's fronds, under its apex's key: each frond
 /// keyed by its place on the spiral, its leaflets drawing by their index
 /// in it (fn-256). Clear of the node's places, blooms, cluster and
 /// retention.

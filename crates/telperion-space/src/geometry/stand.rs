@@ -180,8 +180,7 @@ pub(super) fn node_x(p: &Axis, length: f32) -> Position {
 /// The share of a span from `before` that is `scale` long that `length`
 /// reaches: whole where it reaches the span's summed end, by the one
 /// comparison that chose the span, so a length at that end is never read
-/// back as 1 − δ by the division (fn-303; the device's `span_share` in
-/// `lay_stand.wgsl` is the same rule).
+/// back as 1 − δ by the division (fn-303).
 pub(super) fn span_share(length: f32, before: f32, scale: f32) -> f32 {
     if length >= before + scale {
         return 1.0;

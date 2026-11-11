@@ -65,7 +65,7 @@ fn a_tree_of_no_cycles_is_refused() {
     assert!(expected_grown(&species(Preset::EuropeanBeech), 0).is_err());
 }
 
-/// fn-256 task 6: the expected axes (the device's axis tables' hint). An
+/// fn-256 task 6: the expected axes. An
 /// axis that sprouts no bud, relays none and carries on none is the tree's
 /// one axis at any age; a species' buds add to it as it ages.
 #[test]

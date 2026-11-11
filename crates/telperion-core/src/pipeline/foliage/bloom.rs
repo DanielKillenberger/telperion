@@ -220,7 +220,7 @@ pub(crate) fn place(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Result
 }
 
 /// The same florets packed against `within`, which holds every one: the
-/// box both executors share (`packing_box`, fn-253).
+/// bloom box (`packing_box`, fn-253).
 pub(crate) fn place_in(
     tree: &Tree,
     p: &BloomParams,
@@ -248,10 +248,10 @@ pub(crate) fn stalk_reach(p: &BloomParams) -> f64 {
     }
 }
 
-/// The box every executor packs a tree's florets against: its leaves' box
-/// padded by a floret's reach. One box on both executors gives each floret
-/// the same words, so thinning, which ranks an organ by its words, keeps
-/// the same florets on both (fn-253).
+/// The box a tree's florets are packed against: its leaves' box padded by
+/// a floret's reach. One box for the organ output and the field gives each
+/// floret the same words in both, so thinning, which ranks an organ by its
+/// words, keeps the same florets (fn-253).
 pub fn packing_box(leaf: Reference, p: &BloomParams) -> Reference {
     let pad = Vec3::new(1.0, 1.0, 1.0) * reach(p);
     Reference::spanning(leaf.min - pad, leaf.min + leaf.extent + pad)
@@ -416,7 +416,7 @@ fn inflorescence(
 /// `seat` along `heading`, `radius` thick there (`stalk.wgsl`'s
 /// `rachis_vertex`): the axis's points, each its radius below it, the
 /// radius tapering to the stamen's half width at the tip. The CPU's mirror
-/// of what the device draws, for the ground's measure (fn-301 R4).
+/// of what the renderer draws, for the ground's measure (fn-301 R4).
 pub fn rachis_low(p: &BloomParams, seat: Vec3, heading: Vec3, radius: f64) -> f64 {
     let axis = Axis::laid(seat, heading, p);
     let end = 0.5 * p.stamen_width;

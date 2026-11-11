@@ -1,4 +1,4 @@
-//! fn-270 R5 and R5a on the CPU, before any device work: one tree, the
+//! fn-270 R5 and R5a: one tree, the
 //! oak, drawn at fractions through one year, joins the year before with
 //! no pop, moves by degree, and is today's tree at the whole year.
 use super::*;

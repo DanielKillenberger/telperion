@@ -69,7 +69,7 @@ impl Shoot<'_> {
         // moves gently as light does, and certain survival not at all.
         let light = self.light(apex.axis);
         let viability = match self.rules.one {
-            // The table's f32, shaded as the device shades it.
+            // The table's f32, shaded by the contract (`shaded`).
             true => f64::from(contract::decide::shaded(
                 state.viability as f32,
                 state.shade_hazard as f32,

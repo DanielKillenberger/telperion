@@ -296,8 +296,8 @@ impl<'a> Kept<'a> {
                     0 => (0.0, [0.0; WIDTH]),
                     _ => (table.a[i - 1], table.b[i - 1]),
                 };
-                // Its count in expectation over the fade, as the executors
-                // fade it by degree (fn-231); its quantities at their powers.
+                // Its count in expectation over the fade, as the grower
+                // fades it by degree (fn-231); its quantities at their powers.
                 for q in 0..WIDTH {
                     let f = if q == COUNT {
                         fade

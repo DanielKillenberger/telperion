@@ -37,8 +37,8 @@ impl Crown {
         Self::new(tree.year, p)
     }
 
-    /// The crown of a tree drawn in `year` (`executor::year`), for an
-    /// executor that holds no tree.
+    /// The crown of a tree drawn in `year` (`executor::year`), without
+    /// the tree.
     pub fn new(year: Option<Year>, p: &CanopyParams) -> Self {
         let kept = p.rosette_fronds + skirt(p);
         Self {
@@ -58,8 +58,7 @@ impl Crown {
         (0..self.slots() as i64).map(move |i| newest - i)
     }
 
-    /// The rows the device draws the crown by (`stations.wgsl`'s
-    /// `rosette`): the fronds made, the years a frond lives, the whole
+    /// The rows the crown is drawn by: the fronds made, the years a frond lives, the whole
     /// years before the last (negative where no engine grew the tree) and
     /// the days into it; its stem's budburst, elongation and expansion,
     /// and the fronds it draws (`slots`); the establishment's years and
@@ -124,8 +123,8 @@ impl Crown {
     }
 
     /// The crown's age in years when it made frond `serial`: a ratio of
-    /// whole numbers (its count over the crown's a life), so every
-    /// executor places it in the same year.
+    /// whole numbers (its count over the crown's a life), so float32 and
+    /// float64 place it in the same year.
     fn made_at(&self, serial: f64) -> f64 {
         (serial + 1.0) * self.life / self.fronds
     }

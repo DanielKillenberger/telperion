@@ -1,5 +1,5 @@
 //! Host decision 8 (FINE-CONTRACT.md, D17), in f32 (fn-254): every presence
-//! the shedding sums read is taken by one procedure on both executors.
+//! the shedding sums read is taken by one procedure.
 //! Shedding by fade decides topology from those sums; their living times
 //! are cycles after a whole birth cycle, so no time grows large in an f32.
 //!
@@ -20,7 +20,7 @@ pub fn times(a: f32, b: f32) -> f32 {
     a * b
 }
 
-/// A non-negative real as an executor's value: none for a negative or NaN.
+/// A non-negative real as the grower's f32: none for a negative or NaN.
 pub fn q(x: f64) -> f32 {
     if x > 0.0 {
         x as f32

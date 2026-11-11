@@ -39,8 +39,8 @@ pub(super) const STRUCTURAL: f64 = 0.05;
 /// whole micrometres of wood grown since the last node drawn: a float32
 /// ring stays resolved above them (host, fn-193 C, the beech). The length
 /// is the recorded grown wood (`Tree::grown`) counted as the stations count
-/// it (`plan::micrometres`), so both executors take the merge alike (host,
-/// fn-212 task 8).
+/// it (`plan::micrometres`), so a float32 and a float64 reading take the
+/// merge alike (host, fn-212 task 8).
 pub(crate) const FINEST: f64 = 2e-4;
 const SHORTEST: f64 = 1000.0;
 /// A lateral of `FORK_FROM` to `FORK_AT` of its parent's radius grows in as
@@ -231,8 +231,8 @@ fn aside(nodes: &mut [Node], from: &[u32]) {
     // As thick as the stem it leaves, it parts as a fork does, with no
     // socket flange. One drawn down to `FORK_FROM` stands where a fork's
     // weight begins, none, decided by the branch taken and never by the
-    // radius it rounds to (fn-212 host decision, 2026-10-07: the
-    // executors round it differently).
+    // radius it rounds to (fn-212 host decision, 2026-10-07: float32 and
+    // float64 round it differently).
     head.codominant = if scaled {
         None
     } else {

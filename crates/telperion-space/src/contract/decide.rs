@@ -1,8 +1,7 @@
 //! The thresholds a decision computes per bud (FINE-CONTRACT.md D5, D6,
-//! D10, D11, D15 and D18), in f32 (fn-254). Each has a form both executors
-//! run on the draw's bits, ticks and table values, and a form the CPU
-//! grower calls with the species' reals, which rounds them once to f32 (the
-//! values the device's tables hold) and calls the first. Where a setting
+//! D10, D11, D15 and D18), in f32 (fn-254). Each has a form on the draw's
+//! bits, ticks and table values, and a form the grower calls with the
+//! species' reals, which rounds them once to f32 and calls the first. Where a setting
 //! decides alone (a whole unit's survival, a hazard that neither rises nor
 //! runs over part of a cycle), the threshold is the setting's own, as D1
 //! gives it.
@@ -57,7 +56,7 @@ pub(crate) fn lived_at(l: f32, share: f64, d: Draw) -> u64 {
     lived_ticks(l, ticks(share.min(1.0)), d.0)
 }
 
-/// A unit's survival as the device takes it (fn-256's spike contract,
+/// A unit's survival (fn-256's spike contract,
 /// COUNCIL.md "Decided by the spike"): its PA's viability `v` as the f32
 /// its table holds, raised by shade to `v^(light^-φ)` in f32 by the
 /// contract's `exp2` and `log2`; whole where `φ` is none or the light full;
@@ -75,7 +74,7 @@ pub fn shaded(v: f32, phi: f32, light: f32) -> f32 {
     }
 }
 
-/// D5 of an f32 survival `p`, as the device decides it: a whole cycle's
+/// D5 of an f32 survival `p`: a whole cycle's
 /// threshold of `p` itself, a part's from its `-log2`.
 pub(crate) fn survival32(p: f32, share: f64, rest: u64) -> u64 {
     if share >= 1.0 {
@@ -188,7 +187,7 @@ pub(crate) fn moved(
     )
 }
 
-/// D10 on the executors' values: the log-odds of `go` (`logit_of`); the
+/// D10 on the f32 values: the log-odds of `go` (`logit_of`); the
 /// logs of the wood at the cycle and the next (`-INF` for none); `used`
 /// ticks; the window's rate, floor and span, the first two scaled by the
 /// stake.
@@ -251,7 +250,7 @@ pub(crate) fn wake(zone: &Zone, d: Draw) -> f64 {
     wake_ticks(delay, (1.0 / zone.rate) as f32, d.0).map_or(f64::INFINITY, |t| t as f64 / CYCLE)
 }
 
-/// D11 on the executors' values: `delay` ticks, `per` years a nat; the
+/// D11 on the f32 values: `delay` ticks, `per` years a nat; the
 /// waking time in ticks, the wait floored to a tick, none past any age.
 pub fn wake_ticks(delay: u64, per: f32, d: u64) -> Option<u64> {
     // -ln(1 - u): a small uniform kept whole by the series, a large one
@@ -314,7 +313,7 @@ pub(crate) fn relay_node(presences: &[f32], first: usize, n: usize, share: f64) 
     relay_node_f(presences, first, n, share.clamp(0.0, 1.0) as f32)
 }
 
-/// D18 on the executors' values, the presences summed in order.
+/// D18 on the f32 values, the presences summed in order.
 pub fn relay_node_f(presences: &[f32], first: usize, n: usize, share: f32) -> usize {
     let total: f32 = presences.iter().sum();
     if total > 0.0 {

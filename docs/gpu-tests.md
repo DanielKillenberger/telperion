@@ -15,7 +15,7 @@ GPU process can take WebGPU away until a reboot (fn-235).
 - **The default suite stays small.** Measured 2026-10-09 on the RTX 3080,
   the heaviest default test's device peaks at 2.6 GiB of owned buffers,
   and whole-tree tests take the device one at a time in a process
-  (`generation::whole_tree`).
+  (`whole_tree`).
 - **A cold driver cache is part of the picture.** The NVIDIA driver caches
   compiled pipelines on disk; a fresh browser profile does not have them.
 - **Release checks run only when asked, on a quiet machine.** A test whose

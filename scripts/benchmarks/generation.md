@@ -118,7 +118,7 @@ fn-12 tested GPU queries over CPU-built spatial indices, with output read back t
 
 A new rendering experiment should upload compact structural inputs, generate placements into buffers the renderer consumes, and avoid full-result readback on the timed display path. Measure the complete path to a finished frame, including CPU preparation, setup, allocation, upload and all GPU passes; report cold page startup separately from an initialized renderer. Compare multiple seeds on a broadleaf and a needle-bearing tree, including a phone-class device, and record peak memory and visual/attachment correctness. Readback for validation is allowed but must not be hidden if production requires it.
 
-Start by profiling current wood construction, attachment preparation, leaf placement, culling, bounds and upload separately. Test foliage expansion before committing to GPU wood or botanical growth. Set the target and bounded experiment scope before building; if end-to-end latency fails to improve or fidelity fails, report the limiting stage and stop that candidate. A fast isolated kernel does not qualify the path. The later fn-91 resident-expansion measurements below establish desktop warm-delivery gains; near-instant cold startup remains unqualified.
+Start by profiling current wood construction, attachment preparation, leaf placement, culling, bounds and upload separately. Test foliage expansion before committing to GPU wood or botanical growth. Set the target and bounded experiment scope before building; if end-to-end latency fails to improve or fidelity fails, report the limiting stage and stop that candidate. A fast isolated kernel does not qualify the path.
 
 ## Skeleton feasibility
 
@@ -299,61 +299,6 @@ been added to conceal it. The placement reads include lazy skeleton packing,
 validation and, for spruce, construction of the contact surface; these costs
 are separate from internal slices and are not a change-record update benchmark.
 
-### Bounded GPU CPU-output readback
-
-GPU CPU delivery and explicit resident verification share a chunked asynchronous
-readback. It reserves the final packed leaf vector once and uses staging capped at
-4,194,300 bytes (4 MiB rounded down to 12-byte records, respecting device limits).
-No full-size intermediate byte vector is retained. Count the final vector, staging,
-and still-live source separately; these limits do not measure whole-process or
-GPU-driver memory. The old staging was released before final decoding, so the old
-peak had two full readback copies, not three simultaneously.
-
-Task fn-91.2's matched seed-1 native comparison is recorded in
-`.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/READBACK.md`, with the
-fresh-process wait4 protocol in `readback-measure.py` (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/readback-measure.py`). Hash verification runs in
-separate processes so its extra verification clone is excluded from timing/RSS.
-
-### Shared canonical contacts
-
-Task .6 reuses prepared wood positions for resident foliage when surface contact
-is enabled. It uploads packed xyz positions once, releases CPU positions, and
-adopts that same GPU buffer for wood after foliage. Ordinary CPU preparation and
-zero-contact requests retain their existing paths. The new shared preparation,
-contact-map and retained-metadata counters identify overlapping CPU lifetimes;
-the foliage GPU peak counts the shared position buffer once, including mass work.
-
-The reproducible native comparison and four-fixture browser results are in
-`.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/shared-rings/REPORT.md`.
-Native comparison isolates task .6 against the saved .5 executable. Browser
-comparison against the saved .4 module includes both .5 and .6. Whole-process
-RSS and Wasm capacity remain distinct from simultaneous explicit buffer counts.
-
-### Qualified GPU positions
-
-Task .8 admits compact GPU positions before resident foliage. The initial fast
-path covers unmodulated profiles (`lobes == 0` or `lobe_depth == 0`), centres
-within 64 m per component, radii at most 32 m and radii at least
-`max(1 m, max(abs(centre))) / 131072`. Other valid inputs retain the canonical
-resident path; these are capability bounds, not engine parameter limits.
-
-Position emission, pre-arithmetic triangle checks, normal admission and enclosing
-bounds complete before contacts consume the buffer. Actual corner-derived ring
-radii use offsets from the first corner to avoid large-coordinate cancellation.
-The same immutable positions feed foliage and final wood; full attributes are
-allocated only after foliage. Geometry rejection drops the candidate before
-canonical preparation, while device errors preserve the existing request contract.
-Standalone owned CPU output creates no position pipeline.
-
-`gpuPositions` identifies actual candidate delivery; `positionFallback` names
-rejected attempts even when the canonical resident path remains GPU-backed.
-Position preparation/upload/completion and CPU/GPU capacities are separate from
-foliage and final expansion. Retained GPU metadata is counted through foliage;
-shared positions count once. See
-`.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/position-integration/REPORT.md`
-for paired delivery, CPU controls, numerical qualification, visual scope and
-remaining cold/device/memory gaps.
-
 ### Native CPU surface expansion
 
 Ordinary CPU wood construction on Linux x86_64 can use up to eight scoped workers
@@ -361,7 +306,6 @@ for independent runs, writing into disjoint slices of the final arrays. Admissio
 requires at least 250,000 vertices, multiple available workers and an explicit
 capacity envelope no larger than the serial builder's. These are scheduling
 conditions; smaller or unsupported requests still receive the serial builder.
-Prepared surfaces and contact preparation retain their existing path.
 
 Position/coordinate emission finishes before preparation storage is released and
 normals/indices are allocated. Each run retains canonical calculation order.
@@ -370,24 +314,3 @@ and release candidate arrays before one serial retry. Wasm requires no threads.
 The accounting includes requested stacks and a runtime allowance, but does not
 prove allocator, thread-cache or whole-process peak memory. Complete CPU-output
 latency and observed RSS are reported separately from the isolated wood speedup.
-
-### Shared station preparation and position overlap
-
-Task .14 streams station frames and avoids per-node child lists. Zero-contact
-resident requests submit GPU positions and their admission readback before CPU
-station preparation, then join admission before consuming geometry. Contact-bearing
-requests preserve their dependencies. Unsupported station capability and station
-errors join submitted work before fallback or return.
-
-The single paired desktop browser run measures completed frames at 158.1/180.8 ms
-for oak seeds 1/7 and 178.9/164.2 ms for spruce, respectively 9.93/10.30/42.64/44.97×
-the original baseline. Oak seed 1 misses the strict 10× threshold by 1.1 ms; no
-repeat was used to turn that miss into a pass. This ends the optimization search.
-All four full station-record comparisons are byte-identical for these fixtures.
-
-Live joint-capacity envelopes remain unchanged, including overlapped preparation
-and conservative output reallocation. Wasm linear-memory high-water is separate:
-oak seed 7 rises 26,279,936 bytes, oak seed 1 falls 24,641,536 bytes, and spruce is
-unchanged. This does not qualify whole-process memory nonincrease or cold/phone
-performance. Raw samples, controls and lifecycle checks are in
-`.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/stations/REPORT.md`.

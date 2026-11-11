@@ -96,8 +96,7 @@ pub struct Walked {
 /// D16 over a grower's axes, parents first: each inherits its bearer's
 /// shedding and kept share, axis 1 takes `root` where its bearer decides it
 /// elsewhere, and each living lateral under a living bearer decides by
-/// `balance` with its bearer's kept share. The one walk every executor
-/// takes (fn-211 task 10).
+/// `balance` with its bearer's kept share (fn-211 task 10).
 pub fn walk(axes: &[Lateral], root: Option<(bool, f32)>) -> Vec<Walked> {
     let mut out: Vec<Walked> = Vec::with_capacity(axes.len());
     for (i, a) in axes.iter().enumerate() {

@@ -3,7 +3,8 @@
 Every tree is built by `telperion_core::pipeline`. Its stages are private to it, so a second chain outside the pipeline does not compile (fn-158; `docs/principles.md`, How they are held). What the pipeline exposes is what may be called:
 
 - **`pipeline::build(&Family, Request)`**, the one build, with its request and outputs. `mesh::build` is the same build assembled into one mesh.
-- **`pipeline::executor`**, the interface a second executor builds through. Its callers are the sanctioned exception, the GPU executor (`telperion_render::generation`), and the renderer's tests.
+- **`pipeline::growth`**, the same growth held between years: `begin` a family's tree for a horizon, `grow_to` an age within it, and `settle`, `colouring` and `mesh` draw it at any age within its last year. The browser's grow-in and play-the-year and the native film tools grow through it.
+- **`pipeline::executor`**, the grown tree and its expansion as tools and tests reach them. Its callers are the renderer's examples and tests and the core's own tests.
 
 The stages live in private modules of the pipeline (`crates/telperion-core/src/pipeline/{branching,foliage,surface,...}`). Their data stays public as types, through `pipeline::contract`, at the paths consumers already name (`telperion_core::foliage::Element`, `telperion_core::surface::SurfaceMesh`): the parameter groups a family is made of and the artifacts a build returns. A type is a contract; a function that builds one is a stage and stays inside. The rest of the crate reaches only the family's own checks (`validate_skeleton`, `build_element`, `canopy_rows`, `height`), re-exported to it by name.
 
@@ -26,10 +27,11 @@ The skeleton stage is the tree-space engine (`pipeline/space.rs`, private). It g
 
 ## The executor interface
 
-The interface hands a second executor prepared artifacts and the CPU steps that make them. It never hands it a stage to chain.
+The interface hands tools and tests the grown tree, its prepared artifacts and the CPU steps that make them. It never hands them a stage to chain.
 
 ```text
 executor::grow(&Family) -> Grown             the skeleton stage, and the inputs
+executor::growth(&Family) -> Growth          the engine's species and request; `year`
 executor::expand(Tree, &Family) -> Expansion  a solved tree the caller supplies, prepared
                                              as `grow` would prepare its own
 executor::element(ElementParams) -> Element  the leaf element, built from its rows
@@ -38,58 +40,46 @@ Grown::expansion(self) -> Expansion          the shed leaf bases (fn-204) and th
                                              the element (validated), the twig placement,
                                              the shell depth checked, the leaf box
 Expansion
-  tree, element, twig, reference, leaves     the prepared artifacts and the rows the GPU packs
-  supports_stations, round_section, seats    what the executor may take on
-  compact, compact_with_contacts             the wood's compact rings, with contacts
-  compact_stations(&shared), stations        the leaf stations, on shared rings or their own
-  prepared_with_contacts, shared_stations    the canonical float32 wood, and stations on it
-  prepared_wood, wood                        the canonical wood; the CPU wood
+  tree, element, reference                   the prepared artifacts
+  wood_box(keep)                             the leaf box of some nodes
+  stations                                   the leaf stations, with contact rings of their own
   curve                                      the wood as curves, which it is surfaced from (fn-208)
-  mesh                                       the CPU reference for the whole tree
-  wood_reach, wood_box(keep)                 a station's reach terms; the leaf box of some nodes
-Folds, envelope, bins, beyond, crown_point   the whole-tree folds of some nodes, combined exactly
+  wood                                       the wood the CPU sweeps
+  mesh                                       the pipeline's own build of the whole tree
 ```
 
-An executor that holds the whole tree on its device (fn-256 task 3) hands the pipeline only its summaries (`executor::resident`, `Summaries`): the whole-tree folds (`Folds`), the crown front, the leaf box's corners, the root's radius and the stem radius, and the pipeline returns the rows, element, twig placement, box and bearing bounds its drawing stages read. No node of the tree crosses.
+Each step is synchronous CPU work. `Expansion::mesh` is the pipeline's own build of the prepared tree, the one `mesh::build` returns.
 
-Each step is synchronous CPU work. The device's build is async end to end (fn-256 task 3): natively the caller blocks on it, and a browser awaits it, since WebGPU completes a readback only on the page's event loop. The GPU executor keeps its own schedule: it calls the steps between its GPU submissions exactly where it called the stage functions, and every timing it reports covers the same work. `Expansion::mesh` is the pipeline's own CPU build of the prepared tree, the reference the device's build is compared with; the device never falls back to it. The renderer's production build reads none of the expansion's CPU station and wood steps (`compact*`, `*stations`, `prepared_*`, `wood`, `curve`, `mesh`, and `foliage/prepared.rs` behind them) since the CPU delivery was removed (fn-293 task 5); its tests read them across the crate boundary, as the device's reference.
+`expand` takes a tree the caller already holds, for tests on hand-built trees, under the envelope that tree grew to. It builds no tree, and nothing outside the pipeline converts the engine's structure, so the tree-space examples' handed-in path is closed (fn-198): growing one stays inside the pipeline, so `expand` opens no second chain. Expansion opens by hanging the shed leaf bases (fn-204) and each frond's axis (fn-283) on the stems, as one tail, so a handed-in tree is clothed exactly as a grown one; a tree that already carries that tail is not clothed again.
 
-`expand` takes a tree the caller already holds, for the renderer's tests of the GPU kernels on hand-built trees, under the envelope that tree grew to. It builds no tree, and nothing outside the pipeline converts the engine's structure, so the tree-space examples' handed-in path is closed (fn-198): growing one stays inside the pipeline, so `expand` opens no second chain. Expansion opens by hanging the shed leaf bases (fn-204) and each frond's axis (fn-283) on the stems, as one tail, so a handed-in tree is clothed exactly as a grown one; a tree that already carries that tail is not clothed again.
+The scaffold's grower, `branching::Specimen`, compiles only into the crate's tests (fn-293); `docs/growth-path.md` keeps the lessons of the separate growth path.
 
-The growth path, the second sanctioned exception, was removed on 2026-10-02 (fn-181, `docs/growth-path.md`); the scaffold's grower, `branching::Specimen`, compiles only into the crate's tests (fn-293).
+## The one cycle and its grower (fn-255)
 
-## The one cycle and its executors (fn-255, fn-256)
+Every tree grows through one cycle (fn-255): the rough layout and the light read, the balance and the allotment, every phase every cycle for every species, a zero setting a neutral term and never another way of building. It runs on one grower, on the CPU (`telperion_space::grow`, the cycle in `crates/telperion-space/src/grow/cycle.rs`). The pipeline's own build (`pipeline::build`, `mesh::build`) runs it, and `pipeline::growth` holds it between years. The device draws: `Renderer::submit` uploads the built tree, and no tree is grown on it.
 
-Every tree grows through one cycle (fn-255): the rough layout and the light read, the balance and the allotment, every phase every cycle for every species, a zero setting a neutral term and never another way of building. It has two executors, chosen by the caller and never by the species (fn-256 R1):
-
-- The CPU's (`telperion_space::grow`, the cycle in `crates/telperion-space/src/grow/cycle.rs`) is the reference. The pipeline's own build (`pipeline::build`, `mesh::build`) runs it; the renderer reaches it only in its tests, through `executor::grow` and the expansion (`prepare_whole_resident`), since the CPU delivery was removed (fn-293 task 5).
-- The device's (`crates/telperion-render/src/generation/cycle/`) grows, settles and lays the whole tree in device buffers and dresses its settled node table into one drawn-record buffer, chain by chain, one wave a dispatch (`chains.wgsl`, `dress.wgsl`): the records by id, then room for the retained leaf bases and each frond's rachis (fn-283: the boots stage draws a crown's fronds once, into the table its stations read, and hangs each frond's axis from it), then the axes by slot (fn-293 task 6). The drawing stages (`generation/resident/`) fold, sweep, station, ring and place by reading that buffer, with no node table of their own; the sweep writes the renderer's packed curve points and clusters itself (`pack.wgsl`), and the rings decode their frames from them, so no pass converts the curve. The pipeline sees only the whole-tree summaries. Every device build takes it (`Generator::prepare`). A family it cannot draw is refused by name, by its capability (leaves that stand on no regular twig stations), and a device or capacity failure is a named error, never a CPU rebuild.
-
-The two agree by lineage, not to the bit: integers exactly, floats within the lineage tolerance (`telperion_space::agree`; the renderer's `resident/agree_tests.rs`). Every decision both take is listed in FINE-CONTRACT.md with its representation, so the executors cannot disagree on topology:
+Every decision the grower takes has a fixed representation, listed in FINE-CONTRACT.md (`.flow/evidence/fn-209-tree-space-f1-trees-resolved-on-demand/`), so a native build and a Wasm build grow the same tree:
 
 - a draw is 53 bits, compared as an integer with a probability's threshold `ceil(p · 2^53)`;
-- tables computed once per species point are supplied to both executors;
-- a probability, a log, a lead, a window and a presence are ordinary f32 on both executors, by the same operations, with the contract's own logarithms and powers (`telperion_space::contract`, the device's `cycle/decide.wgsl`);
-- time is a count of ticks of 2^-20 cycle, which the CPU holds in an f64, where every count below 2^53 is exact, and which is never accumulated in an f32.
+- tables computed once per species point are supplied to the grower;
+- a probability, a log, a lead, a window and a presence are ordinary f32, with the contract's own logarithms and powers (`telperion_space::contract`, `Transcendental`);
+- time is a count of ticks of 2^-20 cycle, which the grower holds in an f64, where every count below 2^53 is exact, and which is never accumulated in an f32.
 
 ## The field (fn-257 R8)
 
-The field is a consumer of the drawn stage's output, as the renderer is: it reads the drawn tree's records and writes them into a grid, and no stage, format or index of its own stands between the records and the grid. A field request names its grid (`FieldRequest`: `n` cells a side over the tree's box, and the limb order); the grid is `field::Frame`, the one definition the CPU, the device and the site's voxelizer (`src/field/voxelize.ts` `grid`) read: `n - 2` cells span the box's longest axis, centred in x and z, one empty cell below. A side outside 3 to 256 is refused by name before any work.
+The field is a consumer of the drawn stage's output, as the renderer is: it reads the drawn tree's records and writes them into a grid, and no stage, format or index of its own stands between the records and the grid. A field request names its grid (`FieldRequest`: `n` cells a side over the tree's box, and the limb order); the grid is `field::Frame`, the one definition the pipeline and the site's voxelizer (`src/field/voxelize.ts` `grid`) read: `n - 2` cells span the box's longest axis, centred in x and z, one empty cell below. A side outside 3 to 256 is refused by name before any work.
 
-- The CPU reads the CPU's drawn tree (`pipeline/field.rs`): each solved node's tapered sweep from its parent, and each leaf-bearing record of the leaf plan (`Plan::descriptors`, a frond's leaflets as oriented boxes) with its station count and limb system. Every record writes the cells it reaches by the cell rule (`field/splat.rs`); `Outputs::field` is the grid, one `Occupancy` a cell. A family the plan cannot describe is refused by name, never placed for its field. The field needs the drawn tree, so without the `geometry` feature it is refused.
-- The device reads the device's (`Generator::grow_field`, `generation/resident/field*`): the drawn records as the dress wrote them, without the curve the field never reads, and the station segments; one pass writes every record into the grid on the device, and only the grid is read back. A flowering tree's placed florets stay on the device: their seats grow the box and each cell counts the seats it holds with an integer atomic, so the count is order-independent; an f32 seat on a cell's face may land one cell over from the CPU's f64 one, so the flowers are held to the CPU by `flowers_agree`'s bounds (`FLOWERS_TOTAL`, `FLOWERS_MOVED`; 4.0e-4 moved at most, fn-319), and a seat outside the grid is refused as the CPU refuses it. Nothing is held on the device after it. A field's generator (`Generator::prepare_field_programs`, fn-319 R1) makes the cycle's kernels, the generator's placement passes and a field's tools (`resident::build::Tools`: the hanger, dresser, stationer and fielder), never the wood's surfacing passes or a build's `Drawing` (the sweeper and ringer), and a stage that sweeps or rings takes `Tools` with the `Drawing`, so a field's tools alone do not compile there. It is the site's field (`src/field/index.ts`, `docs/field-package.md`); there is no `cut` and no CPU coarse route. A family the CPU refuses is refused with the CPU's message, by `executor::checked` (the growth's conversion, then Stage 3's tree-free checks, which `prepared` runs for both executors) before the device is asked for and by the counted instance budget once stationed (`build::instances`), the device's tree build (`Generator::prepare_async`, `setTreeGpu`) alike (fn-319 R2). A family invalid both in a way only growth finds and in a canopy row is refused on the device by the row before it grows, where the CPU grows first (host, 28 Oct 2026). Without WebGPU, or on a lost device, a valid family is refused by name.
-
-The CPU's is the device's reference: every shipped preset at 24, 36 and 48 cells a side agrees within the tolerances `resident/field_tests.rs` holds, both asked over the CPU's grid.
+The field reads the drawn tree (`pipeline/field.rs`): each solved node's tapered sweep from its parent, and each leaf-bearing record of the leaf plan (`Plan::descriptors`, a frond's leaflets as oriented boxes) with its station count and limb system. Every record writes the cells it reaches by the cell rule (`field/splat.rs`); `Outputs::field` is the grid, one `Occupancy` a cell. A family the plan cannot describe is refused by name, never placed for its field. The field needs the drawn tree, so without the `geometry` feature it is refused. It is the site's field (`src/field/index.ts`, `docs/field-package.md`), built on the CPU by `TreeEngine.build(family, { field })` in `telperion.wasm`, with or without WebGPU; there is no `cut` and no coarse route.
 
 ## Flowers (fn-216)
 
 Where a tree flowers is the engine's: each age has a `flowering` share (`/space/ages/<k>/flowering`, neutral 0), and the conversion keeps every drawn node of a flowering age as a bloom beside the tree (`Tree::blooms`: the node, its age's share, the side its bud faces), empty where no age flowers. What flowers is the expansion's (`pipeline/foliage/bloom.rs`, the `/bloom` rows): each bloom grows in past its keyed draw by its share; its florets stand along an axis that leaves the bud's side and turns toward hanging or standing by its droop, each on a stalk, the last floret sized by the count's fraction; each floret is one instance of the organ element, a petal turned `petals` times about it, the last petal sized by the count's fraction (host decision 4); and the time of year (`Request::season`, the window's middle by default) scales each floret in and out of its staggered window. Every draw is keyed by the bearing node's identity, its lineage (fn-220), so a floret is a pure function of (bloom, index, seed).
 
-The flowers are a second foliage (`Outputs::organ`, `TreeMesh::organ`), none where nothing flowers, so a tree that flowers nowhere keeps its bytes. On the CPU they are one step (`Expansion::organ`) over the tree the CPU converts. On the device path (fn-229, fn-256), the device draws every floret by the same keys (`bloom.wgsl`, a mirror of `bloom.rs`), packed against the tree's leaf box padded by a floret's reach. The dress carries each node's phytomer key and its age's share, and the stations count each node's florets beside its runs in one scan. A second entry in `place.wgsl` places them in one organ buffer, in the submission that places the device's leaves. The renderer draws them with the leaf shader under a copy of the frame's block carrying the petals' colours (`/material/bloomFront*`, `bloomBack*`), no veins, margin or mottle, and the florets' own box. They cast no shadow yet. The CPU entry returns them as `organ` beside `foliage`, with `organReference` in the diagnostics (`docs/migration-0.2-flowers.md`).
+The flowers are a second foliage (`Outputs::organ`, `TreeMesh::organ`), none where nothing flowers, so a tree that flowers nowhere keeps its bytes. They are one step of the drawn stage over the tree it converts (`pipeline/drawn.rs`), and `Renderer::submit` uploads them beside the leaves. The renderer draws them with the leaf shader under a copy of the frame's block carrying the petals' colours (`/material/bloomFront*`, `bloomBack*`), no veins, margin or mottle, and the florets' own box. They cast no shadow yet. The CPU entry returns them as `organ` beside `foliage`, with `organReference` in the diagnostics (`docs/migration-0.2-flowers.md`).
 
 ## The wood's curve (fn-208)
 
-The wood is handed over as curves, not triangles (`telperion_core::surface::Curve`, `Expansion::curve`). The surface is drawn from them, by the GPU at the screen's error (fn-208) or by the CPU at a stated view and error. Every tree produces the curve from its solved skeleton by the sweep's own steps (paths, samples, frames), so whatever grew the tree, its wood has one path to the screen.
+The wood is handed over as curves, not triangles (`telperion_core::surface::Curve`, `Expansion::curve`). The surface is drawn from them, by the GPU at the screen's error (fn-208) or by the CPU at a stated view and error. Every tree produces the curve from its solved skeleton by the sweep's own steps (paths, samples, frames), so its wood has one path to the screen.
 
 | Table | Per | Holds |
 |---|---|---|
@@ -134,7 +124,7 @@ A view's budget is its pixels times a bound a pixel on rings, vertices, tube ind
 
 ## Why not a resolver
 
-fn-152's review (`.flow/evidence/fn-152-one-parameter-table-the-generator-flows/ASTRA-REVIEW.md`) rejected one `resolve(&Family)` for every derived value: values live at the family, the grown tree, a branch and a surface sample, and requests skip outputs nobody reads. Typed inputs at the family's lifetime and ordinary functions below it keep each derivation where its inputs exist, and the executor interface is the one door the exception uses.
+fn-152's review (`.flow/evidence/fn-152-one-parameter-table-the-generator-flows/ASTRA-REVIEW.md`) rejected one `resolve(&Family)` for every derived value: values live at the family, the grown tree, a branch and a surface sample, and requests skip outputs nobody reads. Typed inputs at the family's lifetime and ordinary functions below it keep each derivation where its inputs exist, and the executor interface is the one door tools and tests use.
 
 ## Tests
 

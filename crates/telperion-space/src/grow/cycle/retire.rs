@@ -63,7 +63,7 @@ pub(in crate::grow) struct Retirement {
     pub(super) fading: Vec<usize>,
     /// Every verdict in the order taken: the subtree's root, the cycle,
     /// waited (0), kept (1) or retired (2), and its living (none where it
-    /// waited), for the device's retirement to be held to (fn-256); kept
+    /// waited) (fn-256); kept
     /// only where the records are (`Working::keep_records`), for its
     /// roots are indices.
     pub log: Vec<(usize, u32, u8, Living)>,

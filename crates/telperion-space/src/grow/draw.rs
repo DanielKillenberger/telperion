@@ -19,7 +19,7 @@ type Framed = (Vec3, Vec3, Vec3);
 
 /// A cycle's rough layout in rounds (fn-211 task 10): the axes that grew,
 /// then the new ones a generation at a time, each round framed here and
-/// drawn by whichever executor lays it (`draw_round`, or a device).
+/// drawn by `draw_round`.
 pub(super) struct Sketching {
     sketch: super::sketch::Sketch,
     cycle: u32,
