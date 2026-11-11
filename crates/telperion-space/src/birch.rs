@@ -15,10 +15,16 @@ use crate::chain::{self, on_chain};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::{FRAC_PI_2, PI};
 
-/// The sapwood a unit of leaf needs, cm² per m²: the beech's, 1 / 0.331,
-/// estimated; no source was found for the birch.
-const SAPWOOD: f64 = 1.0 / 0.331;
-/// The years wood stays sapwood: 40, estimated; no source was found.
+/// The sapwood a unit of leaf needs, cm² per m²: 4.6, derived, not
+/// measured (fn-354, BIRCH-SAPWOOD.md): Repola 2008's foliage (eq. 12)
+/// over Hölttä et al. 2013's xylem area (Table 2) at 20 and
+/// 25 cm, at Lintunen et al. 2011's specific leaf area, 13.55 m² per kg
+/// (secondary); the whole xylem, a birch of this age read as having no
+/// heartwood.
+const SAPWOOD: f64 = 4.6;
+/// The years wood stays sapwood: 40, estimated; no birch measurement
+/// (Gebauer et al. 2008 found 29 to 88 rings on other diffuse-porous
+/// species).
 const SAPWOOD_RINGS: f64 = 40.0;
 /// How far its wood bends under its load, per metre: 4ρg/E, an elastic
 /// beam's, at green birch's 930 kg m⁻³ and 9.9 GPa (Lavers 1983, read through

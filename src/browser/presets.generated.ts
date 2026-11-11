@@ -4439,7 +4439,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "internodeSpread": 0.2,
               "primary": 0.004,
               "sag": 0.0000037,
-              "sapwood": 3.021148036253776,
+              "sapwood": 4.6,
               "sapwoodRings": 40,
               "tropism": 0.5,
               "wander": 0.35
@@ -4499,7 +4499,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "internodeSpread": 0.2,
               "primary": 0.004,
               "sag": 0.0000037,
-              "sapwood": 3.021148036253776,
+              "sapwood": 4.6,
               "sapwoodRings": 40,
               "tropism": 0.5,
               "wander": 0.35
@@ -4561,7 +4561,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "internodeSpread": 0.2,
               "primary": 0.004,
               "sag": 0.0000037,
-              "sapwood": 3.021148036253776,
+              "sapwood": 4.6,
               "sapwoodRings": 40,
               "tropism": 0.5,
               "wander": 0.35
@@ -4627,7 +4627,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "internodeSpread": 0.2,
               "primary": 0.004,
               "sag": 0.0000037,
-              "sapwood": 3.021148036253776,
+              "sapwood": 4.6,
               "sapwoodRings": 40,
               "tropism": 0.4,
               "wander": 0.5
@@ -4697,7 +4697,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "primary": 0.002,
               "roll": 1.2,
               "sag": 0.0000037,
-              "sapwood": 3.021148036253776,
+              "sapwood": 4.6,
               "sapwoodRings": 40,
               "tropism": 0.9,
               "wander": 0.6
@@ -4770,7 +4770,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "primary": 0.002,
               "roll": 1.2,
               "sag": 0.0000037,
-              "sapwood": 3.021148036253776,
+              "sapwood": 4.6,
               "sapwoodRings": 40,
               "tropism": 0.3,
               "wander": 0.6
@@ -4842,7 +4842,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "primary": 0.0012,
               "roll": 0.8,
               "sag": 0.0000037,
-              "sapwood": 3.021148036253776,
+              "sapwood": 4.6,
               "sapwoodRings": 40,
               "tropism": 0.5,
               "wander": 0.4
@@ -4906,7 +4906,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "primary": 0.0008,
               "roll": 1.6,
               "sag": 0.0000037,
-              "sapwood": 3.021148036253776,
+              "sapwood": 4.6,
               "sapwoodRings": 40,
               "tropism": 3,
               "tropismSpread": 0.6,
@@ -4959,7 +4959,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "primary": 0.0005,
               "sag": 0.0000037,
-              "sapwood": 3.021148036253776,
+              "sapwood": 4.6,
               "sapwoodRings": 40
             },
             "groundHazard": 1,

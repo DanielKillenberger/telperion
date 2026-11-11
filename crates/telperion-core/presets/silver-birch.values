@@ -421,10 +421,14 @@
 /space/ages/2/form/primary = 0.004
 /space/ages/2/form/bendLength = 6.0
 /space/ages/2/form/internodeSpread = 0.2
-# The wood (fn-354): sapwood 1 / 0.331 cm² per m² of leaf, the beech's,
-# estimated: no source was found for the birch; sapwood rings 40,
-# estimated: no source was found.
-/space/ages/2/form/sapwood = 3.021148036253776
+# The wood (fn-354): sapwood 4.6 cm² per m² of leaf, derived, not
+# measured (BIRCH-SAPWOOD.md): Repola 2008's foliage (eq. 12) over Hölttä
+# et al. 2013's xylem area (Table 2) at 20 and 25 cm, at Lintunen et al.
+# 2011's specific leaf area, 13.55 m² per kg (secondary); the whole xylem,
+# a birch of this age read as having no heartwood. Sapwood rings 40,
+# estimated: no birch measurement (Gebauer et al. 2008: 29 to 88 rings on
+# other diffuse-porous species).
+/space/ages/2/form/sapwood = 4.6
 /space/ages/2/form/sapwoodRings = 40.0
 # Sag (fn-354): 4ρg/E at green birch's 930 kg m⁻³ and 9.9 GPa (Lavers 1983,
 # read through Niklas and Spatz 2010, Am. J. Bot. 97: 1587-1594, Table 1;
@@ -463,7 +467,7 @@
 /space/ages/3/form/primary = 0.004
 /space/ages/3/form/bendLength = 6.0
 /space/ages/3/form/internodeSpread = 0.2
-/space/ages/3/form/sapwood = 3.021148036253776
+/space/ages/3/form/sapwood = 4.6
 /space/ages/3/form/sapwoodRings = 40.0
 /space/ages/3/form/sag = 3.7e-6
 /space/ages/3/zones/0/buds = 1.0
@@ -502,7 +506,7 @@
 /space/ages/4/form/primary = 0.004
 /space/ages/4/form/bendLength = 6.0
 /space/ages/4/form/internodeSpread = 0.2
-/space/ages/4/form/sapwood = 3.021148036253776
+/space/ages/4/form/sapwood = 4.6
 /space/ages/4/form/sapwoodRings = 40.0
 /space/ages/4/form/sag = 3.7e-6
 /space/ages/4/zones/0/buds = 1.0
@@ -551,7 +555,7 @@
 /space/ages/5/form/primary = 0.004
 /space/ages/5/form/bendLength = 6.0
 /space/ages/5/form/internodeSpread = 0.2
-/space/ages/5/form/sapwood = 3.021148036253776
+/space/ages/5/form/sapwood = 4.6
 /space/ages/5/form/sapwoodRings = 40.0
 /space/ages/5/form/sag = 3.7e-6
 /space/ages/5/zones/0/buds = 1.0
@@ -600,7 +604,7 @@
 /space/ages/6/form/roll = 1.2
 /space/ages/6/form/bendLength = 3.0
 /space/ages/6/form/internodeSpread = 0.7
-/space/ages/6/form/sapwood = 3.021148036253776
+/space/ages/6/form/sapwood = 4.6
 /space/ages/6/form/sapwoodRings = 40.0
 /space/ages/6/form/sag = 3.7e-6
 /space/ages/6/zones/0/buds = 1.0
@@ -651,7 +655,7 @@
 /space/ages/7/form/roll = 1.2
 /space/ages/7/form/bendLength = 3.0
 /space/ages/7/form/internodeSpread = 0.7
-/space/ages/7/form/sapwood = 3.021148036253776
+/space/ages/7/form/sapwood = 4.6
 /space/ages/7/form/sapwoodRings = 40.0
 /space/ages/7/form/sag = 3.7e-6
 /space/ages/7/zones/0/buds = 1.0
@@ -694,7 +698,7 @@
 /space/ages/8/form/primary = 0.0012
 /space/ages/8/form/roll = 0.8
 /space/ages/8/form/internodeSpread = 0.4
-/space/ages/8/form/sapwood = 3.021148036253776
+/space/ages/8/form/sapwood = 4.6
 /space/ages/8/form/sapwoodRings = 40.0
 /space/ages/8/form/sag = 3.7e-6
 /space/ages/8/zones/0/buds = 1.0
@@ -738,7 +742,7 @@
 /space/ages/9/form/internodeSpread = 0.7
 /space/ages/9/form/insertionSpread = 0.5
 /space/ages/9/form/tropismSpread = 0.6
-/space/ages/9/form/sapwood = 3.021148036253776
+/space/ages/9/form/sapwood = 4.6
 /space/ages/9/form/sapwoodRings = 40.0
 /space/ages/9/form/sag = 3.7e-6
 /space/ages/9/zones/0/buds = 1.0
@@ -772,7 +776,7 @@
 /space/ages/14/inverseHeight = 0.03333333333333333
 /space/ages/14/balanceHazard = 2.2846153846153845
 /space/ages/14/form/primary = 0.0005
-/space/ages/14/form/sapwood = 3.021148036253776
+/space/ages/14/form/sapwood = 4.6
 /space/ages/14/form/sapwoodRings = 40.0
 /space/ages/14/form/sag = 3.7e-6
 /space/ages/14/zones/0/buds = 1.0
