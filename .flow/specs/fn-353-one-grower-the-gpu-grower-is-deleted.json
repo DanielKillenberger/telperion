@@ -15,7 +15,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-353-one-grower-the-gpu-grower-is-deleted.md",
-  "status": "open",
+  "status": "done",
   "title": "One grower the GPU grower is deleted",
   "tracker": {
     "baseHashFlow": null,
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-11T12:10:04.835830Z"
+  "updated_at": "2026-11-11T15:23:19.644956Z"
 }

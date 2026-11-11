@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-353-one-grower-the-gpu-grower-is-deleted",
   "spec_path": ".flow/tasks/fn-353-one-grower-the-gpu-grower-is-deleted.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "CPU growth bound for the browser; the harness and the field entry move to it (R1 to R3)",
   "updated_at": "2026-11-11T12:10:05.764983Z"
 }

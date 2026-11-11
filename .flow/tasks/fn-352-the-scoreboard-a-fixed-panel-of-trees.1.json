@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-352-the-scoreboard-a-fixed-panel-of-trees",
   "spec_path": ".flow/tasks/fn-352-the-scoreboard-a-fixed-panel-of-trees.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Build the scoreboard and run it on the 11 Nov build",
   "updated_at": "2026-11-11T12:01:07.405431Z"
 }

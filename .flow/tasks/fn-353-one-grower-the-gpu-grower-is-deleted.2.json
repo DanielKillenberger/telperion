@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-353-one-grower-the-gpu-grower-is-deleted",
   "spec_path": ".flow/tasks/fn-353-one-grower-the-gpu-grower-is-deleted.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Native tools move; generation and its CPU-side support are deleted (R4 to R6)",
   "updated_at": "2026-11-11T12:10:06.243619Z"
 }

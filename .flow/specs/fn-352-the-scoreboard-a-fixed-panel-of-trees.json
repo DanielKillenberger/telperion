@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-352-the-scoreboard-a-fixed-panel-of-trees.md",
-  "status": "open",
+  "status": "done",
   "title": "The scoreboard a fixed panel of trees drawn and measured",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-11T12:01:06.503594Z"
+  "updated_at": "2026-11-11T15:23:20.170813Z"
 }
