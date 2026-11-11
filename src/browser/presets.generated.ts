@@ -5663,6 +5663,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.3,
             "internode": 0.07,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -5726,6 +5727,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -5789,6 +5791,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.3,
               "wander": 0.2
             },
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -5848,6 +5851,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -5913,6 +5917,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -5976,6 +5981,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -6032,6 +6038,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1,
             "internode": 0.03,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -6097,6 +6104,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1,
             "internode": 0.025,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -6141,6 +6149,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.9,
             "internode": 0.006,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -6562,6 +6571,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.3,
             "internode": 0.07,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -6625,6 +6635,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -6688,6 +6699,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.3,
               "wander": 0.2
             },
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -6747,6 +6759,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -6812,6 +6825,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -6875,6 +6889,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -6931,6 +6946,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1,
             "internode": 0.03,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -6996,6 +7012,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1,
             "internode": 0.025,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -7040,6 +7057,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.9,
             "internode": 0.006,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
