@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-348-the-jev-caller-carries-a-still",
   "spec_path": ".flow/tasks/fn-348-the-jev-caller-carries-a-still.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Carry image assets through the shared Jev caller",
   "updated_at": "2026-11-11T00:27:21.684979Z"
 }

@@ -32,3 +32,16 @@ Settled by the owner: Jev is used for specific questions about faults and featur
 ## Open Questions
 
 None.
+
+## Result
+
+Built and landed on the integration branch (`4a47f980d`), 11 Nov 2026. `jev ask --assets <file>` sends each named image as the API's image asset with the header the API requires for images, refuses by name an image over 16 MiB or outside 280 to 1568 pixels a side before any call, and writes each asset's name, path and SHA-256 to the ledger, never its bytes. A call without the flag sends the bytes it sent before. One live call answered a Choice question about a sheet of stills correctly (`.flow/evidence/fn-348-the-jev-caller-carries-a-still/RESULT.md`). Gate green (1,547 passed, 1,218 s); codex review SHIP from three reviewers.
+
+Left as follow-ups, neither blocking: `--assets` given with no file name is treated as absent, as every flag at the end of the command line is by the existing `flag()` helper; the API's 32 MiB limits on the whole request and on all images together are not checked locally (the API answers 413).
+
+The host accepted the worker's choice that a call's ledger identity includes each image's digest when images are present.
+
+## Friction
+
+- **A fresh worktree has no gate receipts, so a change to `telperion-jev` alone ran every suite: about 29 minutes where a receipt-backed run takes about 2.** Proposed fix, for the owner to decide as its own spec: `scripts/gate.py` accepts receipts copied from another checkout at the same commit for suites whose key matches. Not built here: it changes what the gate trusts.
+

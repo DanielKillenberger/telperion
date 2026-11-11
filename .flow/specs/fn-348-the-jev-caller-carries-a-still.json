@@ -72,7 +72,7 @@
     "impl:fn-348-the-jev-caller-carries-a-still.1": 0
   },
   "spec_path": ".flow/specs/fn-348-the-jev-caller-carries-a-still.md",
-  "status": "open",
+  "status": "done",
   "title": "The Jev caller carries a still",
   "tracker": {
     "baseHashFlow": null,
@@ -85,5 +85,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-11T01:05:53.619779Z"
+  "updated_at": "2026-11-11T01:06:47.460978Z"
 }
