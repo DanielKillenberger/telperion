@@ -1,0 +1,79 @@
+diff --git i/crates/telperion-core/examples/early.rs w/crates/telperion-core/examples/early.rs
+index b19d9518f..597bf0e98 100644
+--- i/crates/telperion-core/examples/early.rs
++++ w/crates/telperion-core/examples/early.rs
+@@ -54,8 +54,17 @@ fn preset(name: &str) -> (Species, Light, f64) {
+         .find(|p| p.1 == name)
+         .expect("a shipped preset");
+     let family = p.parameters();
++    let mut species = family.space.species.expect("an engine species");
++    // fn-350 probe: `retained` on every PA.
++    if let Ok(v) = std::env::var("PROBE_RETAINED") {
++        let v: f64 = v.parse().expect("PROBE_RETAINED a number");
++        for s in &mut species.states {
++            s.retained = v;
++        }
++        println!("PROBE retained {v} on {} PAs", species.states.len());
++    }
+     (
+-        family.space.species.expect("an engine species"),
++        species,
+         family.space.light,
+         family.age,
+     )
+diff --git i/crates/telperion-render/examples/space/still.rs w/crates/telperion-render/examples/space/still.rs
+index b773d65cc..7ef3e80b6 100644
+--- i/crates/telperion-render/examples/space/still.rs
++++ w/crates/telperion-render/examples/space/still.rs
+@@ -164,6 +164,7 @@ pub fn run(name: &str, preset: &str) -> Result<(), String> {
+                 let ms = started.elapsed().as_secs_f64() * 1e3;
+                 let nodes = x.tree().nodes.len();
+                 let (fine, wood) = wood_km(x.tree());
++                let (dbh, reached, limb) = trunk_and_limb(x.tree());
+                 let dressed = Instant::now();
+                 let mesh = x.mesh().map_err(|e| e.to_string())?;
+                 let dress = dressed.elapsed().as_secs_f64() * 1e3;
+@@ -179,6 +180,7 @@ pub fn run(name: &str, preset: &str) -> Result<(), String> {
+                 "age {age} seed {seed}{variant}: grown in {ms:.1} ms, dressed in {dress:.0} ms; {nodes} nodes, {l} leaves; {:.1} m tall, {:.1} x {:.1} m; wood {wood:.2} km, fine {fine:.2} km",
+                 b.y, b.x, b.z
+             );
++                println!("PROBE age {age} seed {seed}: trunk {dbh:.1} cm at 1.3 m (reached {reached}); largest limb {limb:.1} cm at its base");
+             }
+         }
+     }
+@@ -250,6 +252,35 @@ fn wood_km(tree: &telperion_core::tree::Tree) -> (f64, f64) {
+     (fine / 1e3, all / 1e3)
+ }
+ 
++/// fn-350 probe: the stem line from the root along the thickest child;
++/// the trunk's diameter in cm where it first stands 1.3 m above the root
++/// (whether it got there: a stem that bows down may not), and the largest
++/// diameter in cm of any other child leaving that line (the largest
++/// limb's base).
++fn trunk_and_limb(tree: &telperion_core::tree::Tree) -> (f64, bool, f64) {
++    let n = tree.nodes.len();
++    let mut kids = vec![Vec::new(); n];
++    for (i, node) in tree.nodes.iter().enumerate().skip(1) {
++        kids[node.parent.unwrap() as usize].push(i);
++    }
++    let y0 = tree.nodes[0].position.y;
++    let (mut at, mut dbh, mut limb) = (0, None, 0.0f64);
++    loop {
++        if dbh.is_none() && tree.nodes[at].position.y - y0 >= 1.3 {
++            dbh = Some(200.0 * tree.nodes[at].radius);
++        }
++        let by = |&&a: &&usize, &&b: &&usize| tree.nodes[a].radius.total_cmp(&tree.nodes[b].radius);
++        let Some(&next) = kids[at].iter().max_by(by) else {
++            break;
++        };
++        for &k in kids[at].iter().filter(|&&k| k != next) {
++            limb = limb.max(200.0 * tree.nodes[k].radius);
++        }
++        at = next;
++    }
++    (dbh.unwrap_or(200.0 * tree.nodes[at].radius), dbh.is_some(), limb)
++}
++
+ /// Close-ups from the hero camera's side: the trunk base from 6 m, the
+ /// crown a third of its width off the stem at half its height from 9 m,
+ /// and the top of the crown, a quarter of the height below the top, from
