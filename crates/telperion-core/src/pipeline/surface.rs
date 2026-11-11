@@ -340,6 +340,8 @@ pub struct FlatWood {
 }
 #[cfg(all(test, feature = "geometry"))]
 mod fork_tests;
+#[cfg(all(test, feature = "geometry"))]
+mod shoulder_tests;
 
 #[cfg(test)]
 mod tests {

@@ -40,6 +40,7 @@ pub(super) fn sample_path(
 /// except over the fork's diameter past a fork of stems the run carries on
 /// through, where it eases from the trunk's girth at the fork into the stem's
 /// own. The run's first node is where it attaches, never a fork it passes.
+/// Along one stem (`eased`) a girth falls no faster than its distance.
 fn girths<'a>(
     tree: &'a Tree,
     path_nodes: &'a [usize],
@@ -48,6 +49,7 @@ fn girths<'a>(
 ) -> impl Iterator<Item = f64> + 'a {
     let nodes = &tree.nodes;
     let mut fork = None;
+    let mut below: Option<(usize, f64)> = None;
     path_nodes.iter().enumerate().map(move |(k, &i)| {
         let own = nodes[i].radius;
         let girth = fork.map_or(own, |f: usize| {
@@ -63,8 +65,25 @@ fn girths<'a>(
         if k > 0 && forks[i] {
             fork = Some(i);
         }
+        let girth = below.map_or(girth, |b| eased(tree, b, (i, girth), distance));
+        below = Some((i, girth));
         girth
     })
+}
+
+/// Node `i`'s girth `girth` drawn above node `b` at its drawn `below`: where
+/// the two are one stem (an axis and what continues or relays it, never a
+/// bearer and its lateral) and the wood thins going up, it falls no faster
+/// than 1 in 1, `max(girth, below − the distance between them)`, so a drop
+/// in section is a shoulder as long as it is deep, not a rim (fn-354; the
+/// slope is an estimate: no measurement was found). The wood's own radii,
+/// which every measure reads, are left as they are.
+fn eased(tree: &Tree, (b, below): (usize, f64), (i, girth): (usize, f64), distance: &[f64]) -> f64 {
+    let nodes = &tree.nodes;
+    if nodes[i].branch != nodes[b].branch {
+        return girth;
+    }
+    girth.max(below - (distance[i] - distance[b]))
 }
 
 fn trunk_run(
