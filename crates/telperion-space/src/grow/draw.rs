@@ -9,6 +9,7 @@ use super::Grower;
 use crate::cores::{map, picked, PIECE};
 use crate::error::{Error, Result};
 use crate::geometry::{bend, dominance, frame, joined, taken, Layer, NO_TAKE};
+use crate::girth::{bearing, leaf};
 
 use crate::presence::{relay_node, Draws};
 use crate::species::Species;
@@ -210,9 +211,16 @@ impl Grower {
         if let Some((_, error)) = failed {
             return Err(error);
         }
-        let species = &*self.species;
+        let (species, cycle) = (&*self.species, s.cycle);
+        let fades = self.fades(cycle);
+        let fade = |i: usize| fades.get(i).copied().unwrap_or(1.0);
         let mut leaves = std::mem::take(&mut self.leaves);
         leaves.clear();
+        // The year's phytomers first, in the order laying them gave; then
+        // every held axis's older phytomers still bearing leaf (fn-354 R5),
+        // which none does where no leaf outlives its year.
+        let lasting = species.states.iter().any(|s| s.leaf_years > 1.0);
+        let mut older = vec![usize::MAX; if lasting { self.axes.len() } else { 0 }];
         let laid = grew
             .iter()
             .zip(from)
@@ -222,10 +230,23 @@ impl Grower {
             .enumerate()
             .map(|(k, p)| (first_new + k, 0, p.as_ref().expect("drawn").laid));
         for (i, from, to) in laid.chain(made) {
+            if let Some(o) = older.get_mut(i) {
+                *o = from;
+            }
             let axis = &self.axes[i];
-            let area = species.states[axis.pa].leaf_area;
+            let state = &species.states[axis.pa];
             for p in &axis.phytomers[from..to] {
-                leaves.push((p.tip, crate::light::leaf_area(p.scale, p.size, area)));
+                leaves.push((p.tip, leaf(state, p, cycle, fade(i))));
+            }
+        }
+        for (i, axis) in self.axes.iter().enumerate().take(older.len()) {
+            let state = &species.states[axis.pa];
+            let held = &axis.phytomers[..older[i].min(axis.phytomers.len())];
+            for p in &held[bearing(state, held, cycle)..] {
+                let area = leaf(state, p, cycle, fade(i));
+                if area > 0.0 {
+                    leaves.push((p.tip, area));
+                }
             }
         }
         sketch

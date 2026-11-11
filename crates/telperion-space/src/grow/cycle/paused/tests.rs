@@ -347,3 +347,39 @@ fn a_tips_path_survives_letting_go_and_a_pause() {
         assert_eq!(a, b);
     }
 }
+
+/// The light's deposit is the leaf every held phytomer bears that year
+/// (fn-354 R5): with leaves kept three years, the oak's phytomers of the
+/// two years before deposit beside the year's own, and the area is the
+/// held tree's.
+#[test]
+fn the_deposit_is_every_held_phytomers_leaf() {
+    let mut species = crate::oak();
+    for s in &mut species.states {
+        (s.leaf_years, s.shedding) = (3.0, f64::INFINITY);
+    }
+    let r = request(9, 7, 0.5);
+    let mut p = Paused::with(
+        std::sync::Arc::new(species.clone()),
+        r,
+        false,
+        Working::default(),
+    )
+    .unwrap();
+    p.grow_to(8).unwrap();
+    let g = &p.g;
+    let (mut held, mut year) = (0.0, 0.0);
+    for axis in &g.axes {
+        let state = &species.states[axis.pa];
+        for q in &axis.phytomers {
+            held += crate::girth::leaf(state, q, 8, 1.0);
+            year += f64::from(u8::from(q.cycle == 8)) * crate::girth::leaf(state, q, 8, 1.0);
+        }
+    }
+    let deposit: f64 = g.leaves.iter().map(|l| l.1).sum();
+    assert!(held > 1.5 * year, "{held} against this year's {year}");
+    assert!(
+        (deposit - held).abs() <= 1e-9 * held,
+        "{deposit} against {held}"
+    );
+}

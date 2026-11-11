@@ -110,6 +110,35 @@ fn a_group_that_is_on_lays_each_override_over_its_natural_row() {
     }
 }
 
+/// The group's leaf size reaches the grower (fn-354 R5): every age's leaf
+/// area by the square of that size over the natural one, so the light,
+/// the wood and the drawing read one leaf; dormant with the group off or
+/// the size unset.
+#[test]
+fn the_group_s_leaf_size_multiplies_every_age_s_leaf_area_by_its_square() {
+    let natural = Preset::EuropeanBeech.parameters();
+    let leaf = |f: &Family| -> Vec<f64> {
+        let applied = f.applied();
+        let states = &applied.space.species.as_ref().unwrap().states;
+        states.iter().map(|s| s.leaf_area).collect()
+    };
+    let base = leaf(&natural);
+    assert!(base.iter().any(|&a| a > 0.0));
+    let mut large = natural.clone();
+    large.supernatural.enabled = true;
+    large.supernatural.canopy.size = Some(2.3);
+    let multiple = (2.3 / natural.canopy.size).powi(2);
+    let want: Vec<f64> = base.iter().map(|a| a * multiple).collect();
+    assert_eq!(leaf(&large), want);
+    let mut off = large.clone();
+    off.supernatural.enabled = false;
+    assert_eq!(leaf(&off), base, "the group off");
+    let mut unset = natural.clone();
+    unset.supernatural.enabled = true;
+    unset.supernatural.bloom.petals = Some(6.0);
+    assert_eq!(leaf(&unset), base, "the size unset");
+}
+
 #[test]
 fn a_walk_from_the_group_off_ramps_up_from_the_natural_rows() {
     let off = Preset::EuropeanBeech.parameters();
@@ -230,10 +259,13 @@ fn a_family_with_the_group_off_draws_its_base_species_to_the_byte() {
     assert_eq!(mesh(&off), base);
     // On, every override but the internodes: a beech of 12 on legendary
     // internodes of 0.2 m bends its wood, laid by its leaf (fn-354), into
-    // the ground and is refused.
+    // the ground and is refused. Its leaf at Telperion's size: the
+    // legendary 250 times the element is a leaf of tens of square metres
+    // to the grower (fn-354 R5), past every species' leaf area.
     let mut on = off.clone();
     on.supernatural.enabled = true;
     on.supernatural.internode = SupernaturalInternode::NONE;
+    on.supernatural.canopy.size = Some(2.3);
     assert_ne!(mesh(&on), base);
 }
 

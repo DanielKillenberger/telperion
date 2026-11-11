@@ -12,16 +12,18 @@ const SEEDS: [u32; 3] = [1, 1234, 5678];
 /// charges living tips by their path and dead wood nothing, moved the
 /// oak's finest and the birch's coarsest. fn-354's wood, laid by the leaf
 /// above it, and its sag, 4ρg/E, moved every tree; its pass's skipping of
-/// closed wood moved their sapwood there, every section kept.
+/// closed wood moved their sapwood there, every section kept. fn-354's
+/// leaf account moved the spruce, whose needles shade and lay wood for
+/// their 5.5 years, and the Two Trees, whose leaf is their drawn leaf.
 const PINNED: [(u64, u64); 8] = [
     (1233340031879171559, 1233340031879171559),
     (17687829558383956639, 11667850423448962601),
-    (8090738721501801322, 14161706634267101928),
+    (10911873026870395678, 3276643373200734258),
     (15759162824176722754, 15759162824176722754),
     (3753336579002065071, 11296798367218290338),
     (4799502948138528708, 4799502948138528708),
-    (12770220182948769363, 12770220182948769363),
-    (8783816086298483637, 8783816086298483637),
+    (12978362334831825737, 12978362334831825737),
+    (1161467971842050269, 1161467971842050269),
 ];
 
 fn family(id: &str, age: f64, seed: u32, fidelity: f64) -> Family {

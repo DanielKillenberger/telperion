@@ -255,6 +255,16 @@ impl Family {
             }
         }
         if let Some(species) = f.space.species.as_mut() {
+            // The grower's leaf is the drawn leaf (fn-354 R5): a leaf drawn
+            // at the group's size bears its square over the natural size.
+            let natural = self.canopy.size;
+            if let Some(size) = g.canopy.size.filter(|_| natural > 0.0) {
+                let multiple = (size / natural).powi(2);
+                species
+                    .states
+                    .iter_mut()
+                    .for_each(|s| s.leaf_area *= multiple);
+            }
             for (k, share) in g.flowering.shares() {
                 if let (Some(v), Some(state)) = (share, species.states.get_mut(k)) {
                     state.flowering = v;

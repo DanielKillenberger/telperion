@@ -117,7 +117,9 @@ pub fn species() -> Species {
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
-        leaf_years: f64::INFINITY,
+        // Its leaves kept one year, what its walks tested before every
+        // phytomer bore its leaf for its leaf years (fn-354 R5).
+        leaf_years: 1.0,
         elongation: 0.0,
         expansion: 0.0,
         leaf_life: f64::INFINITY,
@@ -159,7 +161,7 @@ pub fn species() -> Species {
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
-        leaf_years: f64::INFINITY,
+        leaf_years: 1.0,
         elongation: 0.0,
         expansion: 0.0,
         leaf_life: f64::INFINITY,
@@ -205,7 +207,7 @@ pub fn species() -> Species {
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
-        leaf_years: f64::INFINITY,
+        leaf_years: 1.0,
         elongation: 0.0,
         expansion: 0.0,
         leaf_life: f64::INFINITY,
@@ -864,6 +866,11 @@ pub fn light_settings() -> Vec<Setting> {
         }),
         shaded("leaf_area", 0.0, 0.6, |s, v| {
             s.states.iter_mut().for_each(|st| st.leaf_area = v)
+        }),
+        // From a deciduous leaf's year to about the spruce's 5.5 (fn-354
+        // R5): older phytomers shade and lay wood by degree.
+        shaded("leaf_years", 1.0, 6.0, |s, v| {
+            s.states.iter_mut().for_each(|st| st.leaf_years = v)
         }),
     ];
     let mut sky = shaded("sky", 0.0, 1.0, |_, _| {});

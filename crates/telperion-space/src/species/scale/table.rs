@@ -112,7 +112,7 @@ pub const SETTINGS: &[Setting] = &[
     row("cluster_spread", Linear, [0.0, FRAC_PI_2], "rad",
         "How far a tip cluster's leaves fan either side of its level. Dormant without tip clusters."),
     row("leaf_years", Kept, EVER, "years",
-        "How many years wood of this age bears its leaves; never, every age bears."),
+        "How many years wood of this age bears its leaves, to the light and the wood as drawn; never, every age bears."),
     row("elongation", Log { floor: 1.0 }, DAYS, "days",
         "Days a growth unit takes to elongate from bud burst."),
     row("expansion", Log { floor: 1.0 }, DAYS, "days",

@@ -102,7 +102,11 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
-        leaf_years: f64::INFINITY,
+        // fn-354 R5: a needle is kept 5.5 years, the age at which half a
+        // cohort is shed (Muukkonen & Lehtonen 2004, Can. J. For. Res. 34:
+        // 2517). Estimated in form: a cohort thins gradually to 12 years,
+        // and one life stands in for that curve.
+        leaf_years: 5.5,
         // fn-270 R5: the days its shoot elongates and its leaf expands
         // within the year, sourced in its preset's value file.
         elongation: 35.0,

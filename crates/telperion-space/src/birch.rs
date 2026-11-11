@@ -122,7 +122,10 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
-        leaf_years: f64::INFINITY,
+        // fn-354 R5: a leaf is kept one year: "deciduous tree species ...
+        // particularly in silver birch" (Dox et al. 2020, Tree Physiol. 40:
+        // 1001).
+        leaf_years: 1.0,
         // fn-270 R5: the days its shoot elongates and its leaf expands
         // within the year, sourced in its preset's value file.
         elongation: 110.0,

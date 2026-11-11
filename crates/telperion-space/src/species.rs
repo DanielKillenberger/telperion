@@ -169,9 +169,9 @@ pub struct PaState {
     /// retention clamp(leaf_years - age, 0, 1), on top of the slender
     /// wood the canopy bears on (fn-248). Fractional, the one age it
     /// splits keeps that share of its stations by a keyed draw. The
-    /// engine grows nothing of it; the pipeline's expansion reads it.
-    /// Neutral infinite, every age bears; a short shoot's cluster bears
-    /// while its shoot lives.
+    /// grower reads it too (fn-354 R5): a phytomer's leaf shades and lays
+    /// wood by the same retention (`girth::leaf`). Neutral infinite, every
+    /// age bears; a short shoot's cluster bears while its shoot lives.
     pub leaf_years: f64,
     /// The days a growth unit of this PA takes to elongate from bud burst,
     /// its shoot extending from its base along the logistic course
