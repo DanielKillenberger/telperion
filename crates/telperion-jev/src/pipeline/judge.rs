@@ -102,6 +102,7 @@ mod tests {
             tool: "screen".into(),
             state_sha256: "abc".into(),
             source: None,
+            assets: Vec::new(),
             model: "jev-latest".into(),
             questions: json!({}),
             answers: json!({}),

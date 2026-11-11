@@ -1404,6 +1404,7 @@ dependencies = [
 name = "telperion-jev"
 version = "0.1.0"
 dependencies = [
+ "base64",
  "regex",
  "serde",
  "serde_json",

@@ -3,6 +3,7 @@
 //! This crate is never a dependency of `telperion-core`, `telperion-render`
 //! or `telperion-wasm`. Workspace tests run with the key unset.
 
+pub mod assets;
 pub mod caller;
 pub mod cases;
 pub mod cite;

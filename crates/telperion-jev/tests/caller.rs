@@ -262,6 +262,45 @@ fn same_state_writes_distinct_ids_and_files() {
     assert_eq!(std::fs::read_dir(&dir).unwrap().count(), 2);
 }
 
+#[test]
+fn a_call_without_assets_sends_the_request_it_always_sent() {
+    let transport = Scripted::new(vec![Ok(HttpResponse {
+        status: 200,
+        body: ok_body(),
+    })]);
+    let state = json!({"note": "crown"});
+    let questions = json!({"kind": {"type": "noul", "instructions": "x"}});
+    evaluate(
+        &transport,
+        "k",
+        EvaluateRequest {
+            tool: "ask",
+            source: None,
+            state: &state,
+            questions: &questions,
+            ledger_dir: &tempfile(),
+        },
+    )
+    .unwrap();
+    let seen = transport.seen.lock().unwrap();
+    let headers: Vec<_> = seen[0]
+        .headers
+        .iter()
+        .map(|(k, v)| (k.as_str(), v.as_str()))
+        .collect();
+    assert_eq!(
+        headers,
+        [
+            ("Authorization", "Bearer k"),
+            ("Content-Type", "application/json")
+        ]
+    );
+    assert_eq!(
+        String::from_utf8(seen[0].body.clone().unwrap()).unwrap(),
+        r#"{"model":"jev-latest","questions":{"kind":{"instructions":"x","type":"noul"}},"state":{"note":"crown"}}"#
+    );
+}
+
 fn tempfile() -> std::path::PathBuf {
     let dir = std::env::temp_dir().join(format!(
         "jev-caller-{}-{}",

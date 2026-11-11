@@ -1,0 +1,11 @@
+{
+  "foliage": {
+    "type": "choice",
+    "instructions": "Do the trees shown in `still` carry leaves?",
+    "criteria": {
+      "in_leaf": "Most trees in the picture carry green leaves.",
+      "bare": "Most trees in the picture are bare branches without leaves.",
+      "neither": "The picture shows no trees, or it cannot be told whether they carry leaves."
+    }
+  }
+}
