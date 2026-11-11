@@ -25,6 +25,8 @@ Checked by the host before any rule is designed and before any child is minted. 
 - **A path to engines, no plugin.** 1 Nov 2026: "what we're builing must have a modular path to build a plugin or smth to be imported by game engines to generate trees at scale." and "Any imports to game engines are out of scope for this goal." [fn-321]
 - **The website downloads at most 250 KB.** 1 Nov 2026, selected: "At most 250 KB" [fn-321]
 - **One pipeline.** 5 Oct 2026: "In the end we want one pipeline. So if we choose f1-f3 the old one gets removed." [fn-198]
+- **Levels of detail.** 18 Sep 2026 (P): the far draw is "the near draw minus what the eye cannot resolve at that distance, and nothing more, so a walk from base to hero pose shows no step in fidelity". [fn-176]
+- **No cull after growth.** 3 Oct 2026: "growth decides where leaves are, so expansion places them without culling." [fn-125]
 - **Mantra (8 Sep 2026):** "Minimalist af, efficient af and beautiful" [AGENTS.md]
 
 ## How the work is run

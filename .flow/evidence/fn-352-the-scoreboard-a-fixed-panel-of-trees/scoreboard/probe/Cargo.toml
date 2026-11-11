@@ -1,0 +1,33 @@
+# fn-352: the scoreboard's probe, a crate of its own outside the workspace so
+# no crate that lands changes. It reaches the checkout's crates by relative
+# path, so it builds against whichever checkout holds this evidence; run.sh
+# copies the checkout's Cargo.lock in and builds into the ignored raw/ target.
+[package]
+name = "scoreboard-probe"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+telperion-core = { path = "../../../../../crates/telperion-core" }
+telperion-render = { path = "../../../../../crates/telperion-render" }
+telperion-space = { path = "../../../../../crates/telperion-space" }
+pollster = "1"
+rayon = "1"
+
+# The workspace's wgpu fork (root Cargo.toml).
+[patch.crates-io]
+wgpu = { git = "https://github.com/DanielKillenberger/wgpu", rev = "165ebd16f930baefecca51c22e753a48f911a5fa" }
+wgpu-core = { git = "https://github.com/DanielKillenberger/wgpu", rev = "165ebd16f930baefecca51c22e753a48f911a5fa" }
+wgpu-hal = { git = "https://github.com/DanielKillenberger/wgpu", rev = "165ebd16f930baefecca51c22e753a48f911a5fa" }
+wgpu-types = { git = "https://github.com/DanielKillenberger/wgpu", rev = "165ebd16f930baefecca51c22e753a48f911a5fa" }
+naga = { git = "https://github.com/DanielKillenberger/wgpu", rev = "165ebd16f930baefecca51c22e753a48f911a5fa" }
+wgpu-naga-bridge = { git = "https://github.com/DanielKillenberger/wgpu", rev = "165ebd16f930baefecca51c22e753a48f911a5fa" }
+
+# The workspace's ci profile.
+[profile.ci]
+inherits = "release"
+lto = false
+codegen-units = 16
