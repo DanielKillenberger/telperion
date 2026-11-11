@@ -1,6 +1,6 @@
 # fn-354 R5: the leaf account, by the builder, 11 Nov 2026
 
-LEAF-ACCOUNT.md's design is built in one commit, `bfe2fd92f`. `ground_reach` is green. The oak and the beech are unmoved on every measure. The spruce keeps its shape with 7% fewer new shoots and a trunk twice as thick. The Two Trees' limbs are off the ground. Three tests are red, and each needs a call from the host: two one-cycle reference tests on the spruce, and the drawing's retention test. The task stays `in_progress`, and task 5 has not been started.
+LEAF-ACCOUNT.md's design is built in one commit, `bfe2fd92f`. `ground_reach` is green. The oak and the beech are unmoved on every measure. The spruce keeps its shape with 7% fewer new shoots and a trunk twice as thick. The Two Trees' limbs are off the ground. The host's corrections of 12 Nov are built in `96b4b503d` (the last section): the fade is gone, a leaf stands while its wood is open, and every narrow test is green. The spruce's trunk is then 25 to 27 cm, not 35 to 38.
 
 Tier: product code, built by Opus to the host's design (model: claude-opus-5-5).
 
@@ -26,7 +26,7 @@ Baseline: green via handoff (narrow space and core 760 of 762 at `0583ece15`, `g
 - **The Two Trees' leaf:** in `Family::applied` (`supernatural.rs`), beside the internode and primary overrides. The natural size is reachable there as `self.canopy.size`, the family's own row before the group's rows are laid over it. Where the group sets `canopy.size`, every age's `leaf_area` is multiplied by `(size / natural)²`: 4.37 for Telperion, 4.76 for Laurelin.
 - **Docs:** `docs/pipeline.md`, the `leaf_years` doc comment and its row text, and the regenerated `presets.generated.ts` and `parameters.generated.ts`.
 
-## For the host to decide
+## For the host to decide (answered 12 Nov; see the last section)
 
 1. **The one-cycle reference tests on the spruce are red.** They are `grow::cycle::tests::the_working_set_and_retirement_leave_the_tree_as_it_was` and `grow::cycle::paused::tests::the_tree_at_a_year_is_the_horizons_prefix`. Both answer `girth apart None` on the spruce, and the oak and the beech pass. The spruce failed in the same way before its value moved from never to 5.5. The reference retires nothing and computes no fade, so a subtree the product has shed and let go still deposits its needles in the reference, and lays wood with them. Before this task, closed wood bore no leaf, so the reference and the product agreed. The test's promise, that retirement leaves the tree as it was, cannot hold for an age whose leaf outlives closure unless the reference sheds as it grows. That needs every presence assigned each year, which the grower does not have. I have not changed either test.
 2. **The fade inside a closed subtree is an approximation.** `Retirement::drawn` knows the living only of the roots it evaluated: closed subtrees that closed beside an open axis. An axis inside such a subtree that closed in the same year as its root stays whole until the root fades. The settle gives it its own fade, so a spruce twig of shedding 1 under a limb of shedding 3 is drawn by the settle a year or two before its needles leave the grower's account. Getting the settle's value would need each evaluated subtree's inner livings kept, or the whole tree's fades each year. Not built.
@@ -114,3 +114,41 @@ The machine was loaded (load 35 to 56 on both runs). The oak, the beech and the 
 - **Spruce:** the same cone in all three columns, a little narrower in the leaf column. It is not stripped to a pole or a tuft.
 - **Birch:** the same tree, its interior a little barer in the leaf column.
 - **Oak and beech:** before and leaf are identical.
+
+## 12 Nov 2026: the host's corrections, built (`96b4b503d`)
+
+**What changed:**
+- **The fade is gone.** `leaf(p, y)` is `leaf_area × scale × size × clamp(leaf_years − age, 0, 1)` while p's wood is open, and 0 once it is closed. LEAF-ACCOUNT.md is corrected in place.
+- **Open wood:** "open" is `Working::closed`'s negation, on the way to a living apex or a sleeping bud at the start of the year. The reference that holds every axis open now keeps that predicate from its own state (`Working::wood`), and retires nothing.
+- **Closed wood:**
+  - the wood pass skips every closed subtree again, unconditionally;
+  - the deposit skips closed axes.
+- **Deleted:** `Retirement::drawn` and `Grower::fades`.
+- **Both reference tests pass on the spruce** with their comparisons unchanged: `the_working_set_and_retirement_leave_the_tree_as_it_was` and `the_tree_at_a_year_is_the_horizons_prefix`.
+- **The retention test** now grows each value's own tree. Every drawn leaf must stand within 0.25 m of wood whose retention keeps some stations, and none stands where no wood bears. The reach is estimated: a beech leaf, its petiole and the station's offset. The comparison across values is dropped.
+- **The deposit** moved to `grow/deposit.rs`; `draw.rs` is 392 lines.
+- **`floor.rs`'s measuring code reads `leaf()`:**
+  - `bearing_area`, read by the fidelity measurement test, now counts a fractional last year at its share (an age-5 needle at 0.5), not whole.
+  - `light_replay`, read by the floor timing test, now deposits each phytomer's leaf of that year, where it deposited every phytomer's whole leaf ever laid. The replays therefore weigh only the leaf standing that year.
+  - Neither is a published scoreboard measure.
+- **Repinned:** the spruce's one-cycle digest, (10911873026870395678, 3276643373200734258) → (12287197284966836912, 1773060326561079923). No other pin moved.
+
+**Tests:**
+- The narrow space and core suites: 765 of 765 passed (603 s).
+- fmt is green.
+- The guards, tsc, the catalogue check and vitest were green at `e5cedcc89`. This commit touches only Rust under the space crate and one core test, which the narrow suites cover, so they were not rerun.
+
+**The spruce at 40,** label `fn354-leaf2`, seeds 1001, 1007 and 1012:
+
+| Measure | leaf | leaf2 | base |
+|---|---|---|---|
+| trunk at 1.3 m, cm | 36.5 / 35.2 / 37.5 | 25.9 / 25.0 / 26.7 | 34 / 33 / 37 |
+| new shoots | 98,092 / 90,342 / 98,506 | 102,174 / 94,893 / 103,095 | 101,300 / 94,146 / 101,889 |
+| drawn leaf area, m² | 201 / 189 / 208 | 209 / 196 / 217 | 244 / 234 / 251 |
+| leaf area index | 7.1 / 6.6 / 7.4 | 7.2 / 6.7 / 7.5 | 6.4 / 6.0 / 6.6 |
+| height, m | 12.4 / 12.0 / 11.7 | equal | equal |
+
+- Before this task the new shoots were 104,994 / 97,399 / 106,120, so the spruce now makes 3 to 3.5% fewer.
+- The trunk moved by about 30%. The needles of closed boughs no longer lay wood in the trunk below them.
+- **The sheets are in `leaf2/`:** `spruce-whole.jpg`, `-bare.jpg` and `-mid.jpg`, with columns base, before, leaf and leaf2. Measures are in `leaf2/VARIANTS.md`; the run record is in `leaf/runs/fn354-leaf2/`.
+- **What the sheet shows:** the same cone in every column, the leaf2 trunk at its foot thinner than base's.
