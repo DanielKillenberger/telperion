@@ -50,6 +50,7 @@ pub(crate) fn respond(ages: &mut [(usize, PaState)], t: f64) {
 pub(crate) fn unlit(mut species: crate::Species) -> crate::Species {
     for s in &mut species.states {
         (s.shade_hazard, s.shade_size, s.balance_hazard) = (0.0, 0.0, 0.0);
+        s.shade_short.iter_mut().for_each(|e| *e = 0.0);
     }
     species
 }

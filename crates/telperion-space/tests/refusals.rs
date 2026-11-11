@@ -51,6 +51,7 @@ fn species() -> Species {
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        shade_short: Vec::new(),
         straightening: 0.0,
         form: Form::default(),
     };
@@ -68,7 +69,7 @@ const REQUEST: Request = Request {
 #[test]
 fn every_input_the_engine_cannot_draw_is_refused_by_name() {
     type Edit = fn(&mut Species);
-    let cases: [(Edit, &str); 46] = [
+    let cases: [(Edit, &str); 49] = [
         (|s| s.states.clear(), "states"),
         (|s| s.states[0].continuation = 1.5, "states[0].continuation"),
         (
@@ -93,6 +94,20 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
             "states[1].leaf_years",
         ),
         (|s| s.states[1].lifespan = -0.5, "states[1].lifespan"),
+        // fn-354 R7: a bud cannot turn into its own age; one exponent an
+        // age, each in its range.
+        (
+            |s| s.states[1].shade_short = vec![0.0, 0.5],
+            "states[1].shade_short[1]",
+        ),
+        (
+            |s| s.states[0].shade_short = vec![0.0, 11.0],
+            "states[0].shade_short[1]",
+        ),
+        (
+            |s| s.states[0].shade_short = vec![0.0, 0.5, 0.5],
+            "states[0].shade_short",
+        ),
         (|s| s.states[0].zones.clear(), "states[0].zones"),
         (
             |s| s.states[0].zones = vec![s.states[0].zones[0].clone(); 5],

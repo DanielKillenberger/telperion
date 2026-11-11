@@ -47,6 +47,7 @@ const BEFORE: &[Before] = &[
     ("colouring", [0.0, 365.0], false, BOTH),
     ("leaf_fall", [0.0, 365.0], false, BOTH),
     ("shade_hazard", [0.0, 10.0], false, BOTH),
+    ("shade_short", [0.0, 10.0], false, BOTH),
     ("ground_hazard", [0.0, 1.0], false, BOTH),
     ("shade_size", [0.0, 10.0], false, BOTH),
     ("apical_control", [0.0, 1.0], false, BOTH),

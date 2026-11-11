@@ -3665,8 +3665,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -3790,8 +3790,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -3856,8 +3856,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -3915,8 +3915,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -3961,6 +3961,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "lifespan": 10,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
+            "shadeShort": {
+              "14": 0.38
+            },
             "shedding": 1,
             "viability": 0.95,
             "zones": {
@@ -3974,7 +3977,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "14": 0.7
+                  "12": 0.53,
+                  "14": 0.17
                 },
                 "nodes": {
                   "max": 3,
@@ -4029,6 +4033,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "lifespan": 5,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
+            "shadeShort": {
+              "14": 0.38
+            },
             "shedding": 1,
             "viability": 0.95,
             "zones": {
@@ -5808,8 +5815,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -5933,8 +5940,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -5999,8 +6006,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -6058,8 +6065,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -6104,6 +6111,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "lifespan": 10,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
+            "shadeShort": {
+              "14": 0.38
+            },
             "shedding": 1,
             "viability": 0.95,
             "zones": {
@@ -6117,7 +6127,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "14": 0.7
+                  "12": 0.53,
+                  "14": 0.17
                 },
                 "nodes": {
                   "max": 3,
@@ -6172,6 +6183,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "lifespan": 5,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
+            "shadeShort": {
+              "14": 0.38
+            },
             "shedding": 1,
             "viability": 0.95,
             "zones": {
@@ -6724,8 +6738,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -6849,8 +6863,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -6915,8 +6929,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -6974,8 +6988,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -7020,6 +7034,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "lifespan": 10,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
+            "shadeShort": {
+              "14": 0.38
+            },
             "shedding": 1,
             "viability": 0.95,
             "zones": {
@@ -7033,7 +7050,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "14": 0.7
+                  "12": 0.53,
+                  "14": 0.17
                 },
                 "nodes": {
                   "max": 3,
@@ -7088,6 +7106,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "lifespan": 5,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
+            "shadeShort": {
+              "14": 0.38
+            },
             "shedding": 1,
             "viability": 0.95,
             "zones": {

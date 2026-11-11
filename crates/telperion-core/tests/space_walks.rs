@@ -34,6 +34,7 @@ fn neutral(species: &Species) -> Species {
     let mut neutral = species.clone();
     for s in &mut neutral.states {
         (s.shade_hazard, s.shade_size, s.balance_hazard) = (0.0, 0.0, 0.0);
+        s.shade_short.iter_mut().for_each(|e| *e = 0.0);
     }
     neutral
 }

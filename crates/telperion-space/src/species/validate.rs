@@ -146,6 +146,7 @@ impl PaState {
         if !admits("tolerance", self.tolerance) {
             return refuse(format!("{at}.tolerance"), "a balance lies in -1 to 1");
         }
+        self.shade_validate(at, pa, count)?;
         if !admits("divergence", self.divergence) {
             return refuse(
                 format!("{at}.divergence"),
@@ -244,6 +245,27 @@ impl Zone {
         }
         if !admits("zone.rate", self.rate) {
             return refuse(format!("{at}.rate"), "a rate lies in its bounded range");
+        }
+        Ok(())
+    }
+}
+
+impl PaState {
+    /// Refuses a shade table (`shade_short`) of the wrong width, an entry
+    /// off its range, or one on the PA's own index: a bud cannot turn into
+    /// itself.
+    fn shade_validate(&self, at: &str, pa: usize, count: usize) -> Result<()> {
+        let at = format!("{at}.shade_short");
+        if !self.shade_short.is_empty() && self.shade_short.len() != count {
+            return refuse(at, "none, or one exponent per physiological age");
+        }
+        for (j, &e) in self.shade_short.iter().enumerate() {
+            if !admits("shade_short", e) {
+                return refuse(format!("{at}[{j}]"), "an exponent lies in 0 to 10");
+            }
+            if j == pa && e > 0.0 {
+                return refuse(format!("{at}[{j}]"), "a bud cannot turn into its own age");
+            }
         }
         Ok(())
     }

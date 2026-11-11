@@ -10,6 +10,7 @@ fn species(preset: Preset) -> Species {
     let mut s = preset.parameters().space.species.expect("an engine preset");
     for st in &mut s.states {
         (st.shade_hazard, st.shade_size, st.balance_hazard) = (0.0, 0.0, 0.0);
+        st.shade_short.iter_mut().for_each(|e| *e = 0.0);
     }
     s
 }

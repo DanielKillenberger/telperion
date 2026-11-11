@@ -134,6 +134,7 @@ pub fn species() -> Species {
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        shade_short: Vec::new(),
         straightening: 0.0,
         form: wood(),
     };
@@ -176,6 +177,7 @@ pub fn species() -> Species {
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        shade_short: Vec::new(),
         straightening: 0.3,
         form: wood(),
     };
@@ -222,6 +224,7 @@ pub fn species() -> Species {
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        shade_short: Vec::new(),
         straightening: 0.0,
         form: wood(),
     };
@@ -866,6 +869,11 @@ pub fn light_settings() -> Vec<Setting> {
         }),
         shaded("leaf_area", 0.0, 0.6, |s, v| {
             s.states.iter_mut().for_each(|st| st.leaf_area = v)
+        }),
+        // A limb bud's kind under shade, one entry by degree (fn-354 R7):
+        // it turns into a twig as its bearer's light falls.
+        shaded("states[1].shade_short[2]", 0.0, 1.0, |s, v| {
+            s.states[1].shade_short = vec![0.0, 0.0, v]
         }),
         // From a deciduous leaf's year to about the spruce's 5.5 (fn-354
         // R5): older phytomers shade and lay wood by degree.

@@ -120,6 +120,7 @@ const SETTINGS: &[(&str, Group)] = &[
     ("zone.nodes.max", Branching),
     ("zone.buds", Branching),
     ("zone.lateral", Branching),
+    ("shade_short", Branching),
     ("zone.dormant", Branching),
     ("zone.delay", Branching),
     ("zone.rate", Branching),

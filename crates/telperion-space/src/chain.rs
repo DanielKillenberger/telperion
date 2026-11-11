@@ -79,6 +79,7 @@ pub fn passed() -> PaState {
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        shade_short: vec![0.0; AGES],
         form: Form::default(),
     }
 }

@@ -92,6 +92,7 @@ fn the_ordinary_tree_is_the_centroid_of_the_branching_species() {
         let mut neutral = species.clone();
         for s in &mut neutral.states {
             (s.shade_hazard, s.shade_size, s.balance_hazard) = (0.0, 0.0, 0.0);
+            s.shade_short.iter_mut().for_each(|e| *e = 0.0);
         }
         expected_kept(&neutral, 80).unwrap().unwrap()
     };

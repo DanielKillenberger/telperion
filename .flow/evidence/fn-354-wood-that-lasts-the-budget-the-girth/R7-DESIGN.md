@@ -33,14 +33,15 @@ On the base the beech's trunk at 40 is 0.32 m (0.26 to 0.51, twelve seeds), insi
 
 One rule, in the grower, for every species:
 
-- A new row on a PA, `shade_short`, two values: the PA a bud of this kind becomes when shade denies it, and an exponent e. Neutral: e = 0, the bud always keeps its kind.
-- When a lateral bud of a PA with e > 0 forms at light L (the same light, 0 to 1 of open sky, that the shade hazard reads at its bearer's tip), it keeps its kind with probability L^e and otherwise forms as the named PA.
+- A new row on a PA, `shade_short`: a vector over the PAs, as the zones' `lateral` tables are, entry j the exponent with which a bud of this PA's kind turns into PA j when shade denies it. Neutral: every entry 0, the bud always keeps its kind. (Host, 12 Nov: the row is a vector; it replaces "two values: the PA a bud of this kind becomes, and an exponent e", since the tables name a PA only by its place in such a vector.)
+- When a lateral bud of a PA forms at light L (the same light, 0 to 1 of open sky, that the shade hazard reads at its bearer's tip), with e the sum of its PA's `shade_short[j]`, it keeps its kind with probability L^e; if it turns, it becomes PA j with probability shade_short[j] / e. With one nonzero entry that is the rule as first written. It blends by degree like the lateral tables. (Host, 12 Nov.)
+- The keep-or-turn decision draws off the bud's own key, only where e > 0, so a species at 0 takes no draw and grows byte-equal; its presence is by degree, as every other drawn row's is. An entry on a PA's own index is refused by name: a bud cannot turn into itself. (Host, 12 Nov.)
 - The species' tables then hold what the species does in full light, and the understorey tree is the same table under less light.
 - It changes by degree, is dormant at 0 and where no leaf shades, and adds no draw to a species that leaves it at 0.
 
 Values for the beech:
 
-- **e = 0.38** on SHOOT and BRANCH, both becoming SHORT. From Lemoine's two settled classes: the long share falls from 0.85 to 0.40 as light falls from 1 to 255/1,850 = 0.138, and ln(0.40/0.85) / ln(0.138) = 0.38. The thinned class (0.60 at 0.84) is not used: it was measured the season after thinning. Estimate in form: a power law through two points.
+- **e = 0.38** on SHOOT and BRANCH, both becoming SHORT (`shade_short[SHORT] = 0.38`, every other entry 0). From Lemoine's two settled classes: the long share falls from 0.85 to 0.40 as light falls from 1 to 255/1,850 = 0.138, and ln(0.40/0.85) / ln(0.138) = 0.38. The thinned class (0.60 at 0.84) is not used: it was measured the season after thinning. Estimate in form: a power law through two points.
 - **The full-light tables:** every zone that mixes long and short laterals takes 85% long at its present total.
   - Branch, medial zone: `[(SHOOT, 0.53), (SHORT, 0.17)]` in place of `[(SHORT, 0.7)]`. With the spare's SHOOT 0.65 and the top's BRANCH 0.08 unchanged, a unit bears 2.8 laterals, 2.38 long (85%). At light 0.138 the long ones are 2.38 × 0.47 = 1.12, 40%, Lemoine's shade class and today's tree.
   - Reiterates, medial zone: `[(SHORT, 0.085), (BRANCH, 0.485)]` in place of `[(SHORT, 0.3), (BRANCH, 0.27)]`.

@@ -176,6 +176,12 @@ fn put(state: &mut PaState, path: &str, tail: &[&str], cell: Cell) -> Result<(),
         }
         return zone(&mut state.zones[z], path, rest, cell);
     }
+    if let ["shadeShort", j] = tail[..] {
+        let j = index(path, j, AGES)?;
+        state.shade_short.resize(AGES, 0.0);
+        state.shade_short[j] = number(path, cell)?;
+        return Ok(());
+    }
     let wire = tail.join("/");
     for (name, slot) in settings(state) {
         if camel(name) == wire {
@@ -228,7 +234,10 @@ pub fn rows(space: &Space) -> Result<Vec<(String, Cell)>, String> {
                 continue;
             }
             let mut state = state.clone();
-            for ((name, v), d) in settings(&mut state).into_iter().zip(&defaults) {
+            // The shade table is written by its entries, below.
+            let shade = std::mem::take(&mut state.shade_short);
+            let rows = settings(&mut state).into_iter().zip(&defaults);
+            for ((name, v), d) in rows.filter(|((n, _), _)| *n != "shade_short") {
                 if v.to_bits() != d.to_bits() {
                     let cell = if v.is_infinite() {
                         Cell::Never
@@ -236,6 +245,11 @@ pub fn rows(space: &Space) -> Result<Vec<(String, Cell)>, String> {
                         Cell::Number(*v)
                     };
                     out.push((format!("{PREFIX}ages/{k}/{}", camel(name)), cell));
+                }
+            }
+            for (j, &e) in shade.iter().enumerate() {
+                if e.to_bits() != 0f64.to_bits() {
+                    out.push((format!("{PREFIX}ages/{k}/shadeShort/{j}"), Cell::Number(e)));
                 }
             }
             for (z, zone) in state.zones.iter().enumerate() {

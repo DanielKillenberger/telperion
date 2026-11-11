@@ -87,9 +87,19 @@ impl Shoot<'_> {
                     let Some((drawn_pa, d)) = *bud else {
                         continue;
                     };
+                    let key = zone_key.child(drawn).child(slot as u64);
+                    // Its kind under its bearer's shade (fn-354 R7): no
+                    // draw where its age turns into none.
+                    let shade = &species.states[drawn_pa].shade_short;
+                    let turns = species.states[drawn_pa].turns();
+                    let light = self.light(apex.axis);
+                    let kind = match turns {
+                        true => lineage::kind_under_shade(shade, drawn_pa, light, key),
+                        false => drawn_pa,
+                    };
                     // A bud of an age it passes through grows in the next
                     // it lives in, as far as it reaches it, or not at all.
-                    let Some((lateral_pa, reach)) = species.lived(drawn_pa) else {
+                    let Some((lateral_pa, reach)) = species.lived(kind) else {
                         continue;
                     };
                     // Nor where it is certain to be shed by the tree's age
@@ -98,7 +108,6 @@ impl Shoot<'_> {
                         if rules.certain == Certain::Skip {
                             continue;
                         }
-                        let key = zone_key.child(drawn).child(slot as u64);
                         self.marked.push(key.onto(lateral_pa).0);
                     }
                     let origin = Origin::Lateral {
@@ -108,10 +117,14 @@ impl Shoot<'_> {
                         whorl: zone.buds,
                         woken: false,
                     };
-                    let key = zone_key.child(drawn).child(slot as u64);
                     // Host decision 8: the made presences.
                     let window = windows.window((lateral_pa, cycle + 1, None), 1.0);
-                    let lead = lineage::bud_presence(lateral, drawn_pa, d, window);
+                    let mut lead = lineage::bud_presence(lateral, drawn_pa, d, window);
+                    if turns {
+                        let by =
+                            lineage::shaded_presence(shade, (drawn_pa, kind), light, key, window);
+                        lead = presence::times(lead, by);
+                    }
                     let placed = lineage::place_presence(key, zone.share(slot), window);
                     let made = [
                         presence::real(presence::times(lead, placed)),

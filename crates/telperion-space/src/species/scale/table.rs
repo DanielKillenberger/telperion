@@ -137,6 +137,8 @@ pub const SETTINGS: &[Setting] = &[
         "The reciprocal of the species' potential height: a living tip costs its size times the square of its path from the root over that height. Dormant at 0, and without a balance hazard."),
     row("balance_hazard", Log { floor: 0.01 }, SHADE, "per year",
         "How fast a lateral whose carbon balance falls below tolerance is shed. Dormant without an inverse height, and on an axis that bears no laterals."),
+    row("shade_short", Linear, SHADE, "exponent",
+        "How fast a lateral of this age turns into the age its entry names as the light at its bearer falls: it keeps its kind with probability light to the sum. Neutral 0, every bud keeps its kind."),
     row("tolerance", Linear, [-1.0, 1.0], "balance",
         "The carbon balance below which a lateral starts to be shed: shade tolerance. Dormant without a balance hazard."),
     row("form.tropism", Log { floor: 0.1 }, RATE, "per m",

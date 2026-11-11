@@ -72,6 +72,7 @@ fn the_expected_length_weighs_the_expected_counts() {
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        shade_short: Vec::new(),
         form: Form::default(),
     };
     let species = Species {

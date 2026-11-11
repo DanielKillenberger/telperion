@@ -52,8 +52,9 @@ fn every_preset_is_the_family_it_was() {
         // the beech's, renamed the pipe the primary radius, added the
         // sapwood rows and deleted the pipe model's, then set every age's
         // sag to its wood's 4ρg/E; fn-354 R5 gave the spruce, the birch and
-        // the ordinary tree their leaf years; the birch's sapwood 4.6.
-        5_899_378_939_696_360_618,
+        // the ordinary tree their leaf years; the birch's sapwood 4.6; R7
+        // gave every age a shade table and the beech its full-light tables.
+        3_725_984_341_644_380_676,
         "{}",
         digest(&text)
     );
@@ -111,8 +112,9 @@ fn every_walk_is_the_walk_it_was() {
         // radius, added the sapwood rows and deleted the pipe model's, and
         // set every age's sag to its wood's 4ρg/E; R5 gave the spruce, the
         // birch and the ordinary tree their leaf years; the birch's sapwood
-        // 4.6.
-        6_249_782_841_009_558_150,
+        // 4.6; R7 gave every age a shade table and the beech its full-light
+        // tables.
+        5_134_440_887_525_534_452,
         "{}",
         digest(&text)
     );
@@ -141,8 +143,9 @@ fn every_override_reads_and_writes_as_it_did() {
         // the upkeep row with the inverse height; fn-354 renamed the
         // supernatural pipe the primary radius and deleted the coarse pipe,
         // and set every age's sag to its wood's 4ρg/E; R5 gave the spruce
-        // and the birch their leaf years; the birch's sapwood 4.6.
-        3_907_831_028_619_621_265,
+        // and the birch their leaf years; the birch's sapwood 4.6; R7 gave
+        // every age a shade table.
+        9_054_662_260_167_386_261,
         "{}",
         digest(&text)
     );

@@ -58,6 +58,7 @@ fn state(
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        shade_short: Vec::new(),
         straightening: 0.0,
         form: Form::default(),
     }

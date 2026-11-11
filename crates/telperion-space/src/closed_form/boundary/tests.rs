@@ -25,18 +25,19 @@ use crate::{beech, oak, palm, spruce, Species};
 // 0.031 m nodes, the sapling rate Hibbs and Yoder measured, not 0.07 m.
 // fn-354 (2026-11-11) cut the rows to the chance kept, the phytomers and
 // the reach when the pipe model's girth went: the pins are re-taken over
-// those three fields.
+// those three fields. fn-354 R7 re-pinned the beech's from 2 years on: its
+// tables hold full light, 85% of its long laterals' kind (Lemoine 2002).
 const PINNED: [(&str, u32, u64); 40] = [
     ("beech", 1, 0xa2e130ba18028771),
-    ("beech", 2, 0xa46182ccf2b20338),
-    ("beech", 3, 0xb9a5adec88ed25e4),
-    ("beech", 5, 0xc3bbf1f672caf104),
-    ("beech", 8, 0x40625bc859d2d458),
-    ("beech", 13, 0xa6fa035979a32662),
-    ("beech", 21, 0x2b16bb9e964cf1b9),
-    ("beech", 34, 0x7bba7d2d37900d16),
-    ("beech", 55, 0xdfa82ba2adf2d66c),
-    ("beech", 80, 0x341d1327b9983e35),
+    ("beech", 2, 0x03bc696d4cdfb040),
+    ("beech", 3, 0x009517b81c6fa372),
+    ("beech", 5, 0x613360fc6c404a9f),
+    ("beech", 8, 0xe98b8a669dffbbc6),
+    ("beech", 13, 0x7f2fc5431ef443db),
+    ("beech", 21, 0x0a2f3002ce70f181),
+    ("beech", 34, 0x45152ee12b0ea134),
+    ("beech", 55, 0x4c2be3b2b7dfd2d1),
+    ("beech", 80, 0x93f1f15db3c8025b),
     ("spruce", 1, 0x1bd7503c848b7e4e),
     ("spruce", 2, 0x63658628179a71ef),
     ("spruce", 3, 0x1e5ee6e850a43c37),

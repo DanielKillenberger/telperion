@@ -46,6 +46,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        shade_short: Vec::new(),
         straightening: 0.0,
         form: Form::default(),
     }
@@ -504,6 +505,7 @@ fn a_fractional_shedding_delay_keeps_by_its_fade() {
         let mut beech = telperion_space::beech();
         for s in &mut beech.states {
             (s.shade_hazard, s.shade_size, s.balance_hazard) = (0.0, 0.0, 0.0);
+            s.shade_short.iter_mut().for_each(|e| *e = 0.0);
         }
         for s in beech.states.iter_mut().filter(|s| s.shedding.is_finite()) {
             s.shedding += more;

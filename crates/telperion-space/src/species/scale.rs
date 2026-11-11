@@ -129,6 +129,7 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         inverse_height,
         balance_hazard,
         tolerance,
+        shade_short,
         form,
     } = state;
     let super::Form {
@@ -147,7 +148,7 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         insertion_spread,
         tropism_spread,
     } = form;
-    vec![
+    let mut out = vec![
         ("lifespan", lifespan),
         ("continuation", continuation),
         ("viability", viability),
@@ -200,7 +201,9 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         ("form.internode_spread", internode_spread),
         ("form.insertion_spread", insertion_spread),
         ("form.tropism_spread", tropism_spread),
-    ]
+    ];
+    out.extend(shade_short.iter_mut().map(|e| ("shade_short", e)));
+    out
 }
 
 /// Every scalar setting of a zone by name, its tables' entries each under

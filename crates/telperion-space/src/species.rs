@@ -242,6 +242,14 @@ pub struct PaState {
     /// this PA starts to be shed: its shade tolerance. Dormant without
     /// `balance_hazard`.
     pub tolerance: f64,
+    /// A lateral's kind under shade (fn-354 R7): one exponent per PA, as
+    /// the zones' `lateral` tables are, entry j how a bud of this PA turns
+    /// into PA j as the light at its bearer's tip falls. With e the sum,
+    /// a bud formed at light L keeps its kind with probability L^e and
+    /// otherwise becomes PA j with probability `shade_short[j]` / e.
+    /// Neutral every entry 0, or none at all, the bud always keeps its
+    /// kind, and no draw is taken.
+    pub shade_short: Vec<f64>,
     /// How far the base of a lateral axis of this PA straightens towards
     /// the vertical, as Troll's plagiotropic axes do. Neutral 0.
     pub straightening: f64,
@@ -470,6 +478,7 @@ impl Species {
                 || s.ground_hazard != 0.0
                 || s.shade_size != 0.0
                 || s.balance_hazard != 0.0
+                || s.turns()
         })
     }
 
@@ -482,6 +491,7 @@ impl Species {
         for s in &mut unlit.states {
             (s.shade_hazard, s.ground_hazard, s.shade_size) = (0.0, 0.0, 0.0);
             s.balance_hazard = 0.0;
+            s.shade_short.iter_mut().for_each(|e| *e = 0.0);
         }
         debug_assert!(!unlit.reads_light());
         unlit
@@ -523,6 +533,11 @@ impl PaState {
             return self.abortion;
         }
         1.0 - (1.0 - self.abortion).powf_fixed(t.powf_fixed(self.abortion_rise))
+    }
+
+    /// Whether a bud of this PA may turn under shade (`shade_short`).
+    pub(crate) fn turns(&self) -> bool {
+        self.shade_short.iter().any(|&e| e > 0.0)
     }
 
     /// Each zone's lateral probabilities as the axis draws them: spread

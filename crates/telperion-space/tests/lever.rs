@@ -153,6 +153,7 @@ fn grown(height: f64, sag: f64, seed: u64, bough: Bough, twigs: (f64, f64)) -> S
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        shade_short: Vec::new(),
         straightening: 0.0,
         form: Form {
             primary: PRIMARY[0],

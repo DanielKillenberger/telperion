@@ -49,7 +49,7 @@ pub(super) fn table(out: &mut String) {
     out.push_str("export const SPACE_SETTINGS: readonly SpaceSetting[] = [\n");
     for s in SETTINGS
         .iter()
-        .filter(|s| !matches!(s.name, "zone.lateral" | "zone.dormant"))
+        .filter(|s| !matches!(s.name, "zone.lateral" | "zone.dormant" | "shade_short"))
     {
         let value = neutral.iter().find(|(n, _)| *n == s.name).map(|&(_, v)| v);
         row(out, s, value.expect("every setting has a neutral"));

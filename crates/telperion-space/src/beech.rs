@@ -22,6 +22,20 @@ const SAPWOOD_RINGS: f64 = 50.0;
 /// Niklas and Spatz 2010, Am. J. Bot. 97: 1587-1594, Table 1; Hamilton
 /// 1975), at every age.
 const SAG: f64 = 4.1e-6;
+/// How a long lateral's kind follows its light (fn-354 R7): a SHOOT or
+/// BRANCH bud keeps its kind with probability light^0.38 and otherwise
+/// forms as a short shoot. Lemoine et al. 2002 (Table II): long laterals
+/// are 85 ± 3% of laterals in sun (PAR 1,850) and 40 ± 6% in shade (255),
+/// dominant 30-year beeches; ln(0.40 / 0.85) / ln(255 / 1,850) = 0.38.
+/// Estimated in form: a power law through the two settled classes.
+const SHADE_SHORT: f64 = 0.38;
+
+/// The shade table of a long lateral's age: it turns into a short shoot.
+fn to_short() -> Vec<f64> {
+    let mut shade = vec![0.0; PAS];
+    shade[SHORT] = SHADE_SHORT;
+    shade
+}
 /// The wood every age lays: the sapwood its leaf needs, how long it stays
 /// sapwood and how far it bends, alike at every age.
 fn wood() -> Form {
@@ -120,6 +134,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         inverse_height: 1.0 / 40.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        shade_short: vec![0.0; PAS],
         straightening: 0.0,
         form: wood(),
     }
@@ -231,7 +246,9 @@ pub fn beech() -> Species {
             0.0,
             vec![
                 zone(2, 3, &[]),
-                zone(2, 3, &[(SHORT, 0.3), (BRANCH, 0.27)]),
+                // In full light 85% long (Lemoine et al. 2002, Table II) at
+                // the zone's total of 0.57: shade turns them short.
+                zone(2, 3, &[(SHORT, 0.085), (BRANCH, 0.485)]),
                 zone(1, 1, top),
             ],
         )
@@ -277,6 +294,7 @@ pub fn beech() -> Species {
     // shoots, Z23 long shoots bearing short shoots, Z22 partial
     // reiteration, base to tip (acrotony).
     let branch = PaState {
+        shade_short: to_short(),
         insertion: 1.0,
         viability: 0.95,
         shedding: 1.0,
@@ -302,7 +320,10 @@ pub fn beech() -> Species {
             1.0,
             vec![
                 zone(1, 2, &[]),
-                zone(2, 3, &[(SHORT, 0.7)]),
+                // In full light 85% of the unit's laterals long (Lemoine et
+                // al. 2002, Table II): with the spare's 0.65 and the top's
+                // 0.08, 2.38 long of 2.8; shade turns them short.
+                zone(2, 3, &[(SHOOT, 0.53), (SHORT, 0.17)]),
                 // The top, then the spare, which stands below it.
                 zone(1, 1, &[(BRANCH, 0.08)]),
                 zone(1, 2, &[(SHOOT, 0.65)]),
@@ -311,6 +332,7 @@ pub fn beech() -> Species {
     };
     // GreenLab's PA 3: a long shoot bearing only short shoots.
     let shoot = PaState {
+        shade_short: to_short(),
         insertion: 1.0,
         viability: 0.95,
         shedding: 1.0,

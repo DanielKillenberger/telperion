@@ -391,8 +391,8 @@
 /space/ages/4/zones/1/buds = 1.0
 /space/ages/4/zones/1/nodes/min = 2.0
 /space/ages/4/zones/1/nodes/max = 3.0
-/space/ages/4/zones/1/lateral/9 = 0.27
-/space/ages/4/zones/1/lateral/14 = 0.3
+/space/ages/4/zones/1/lateral/9 = 0.485
+/space/ages/4/zones/1/lateral/14 = 0.085
 /space/ages/4/zones/2/buds = 1.0
 /space/ages/4/zones/2/nodes/min = 1.0
 /space/ages/4/zones/2/nodes/max = 1.0
@@ -471,8 +471,8 @@
 /space/ages/6/zones/1/buds = 1.0
 /space/ages/6/zones/1/nodes/min = 2.0
 /space/ages/6/zones/1/nodes/max = 3.0
-/space/ages/6/zones/1/lateral/9 = 0.27
-/space/ages/6/zones/1/lateral/14 = 0.3
+/space/ages/6/zones/1/lateral/9 = 0.485
+/space/ages/6/zones/1/lateral/14 = 0.085
 /space/ages/6/zones/2/buds = 1.0
 /space/ages/6/zones/2/nodes/min = 1.0
 /space/ages/6/zones/2/nodes/max = 1.0
@@ -515,8 +515,8 @@
 /space/ages/7/zones/1/buds = 1.0
 /space/ages/7/zones/1/nodes/min = 2.0
 /space/ages/7/zones/1/nodes/max = 3.0
-/space/ages/7/zones/1/lateral/9 = 0.27
-/space/ages/7/zones/1/lateral/14 = 0.3
+/space/ages/7/zones/1/lateral/9 = 0.485
+/space/ages/7/zones/1/lateral/14 = 0.085
 /space/ages/7/zones/2/buds = 1.0
 /space/ages/7/zones/2/nodes/min = 1.0
 /space/ages/7/zones/2/nodes/max = 1.0
@@ -552,8 +552,8 @@
 /space/ages/8/zones/1/buds = 1.0
 /space/ages/8/zones/1/nodes/min = 2.0
 /space/ages/8/zones/1/nodes/max = 3.0
-/space/ages/8/zones/1/lateral/9 = 0.27
-/space/ages/8/zones/1/lateral/14 = 0.3
+/space/ages/8/zones/1/lateral/9 = 0.485
+/space/ages/8/zones/1/lateral/14 = 0.085
 /space/ages/8/zones/2/buds = 1.0
 /space/ages/8/zones/2/nodes/min = 1.0
 /space/ages/8/zones/2/nodes/max = 1.0
@@ -583,13 +583,24 @@
 /space/ages/9/form/sapwood = 3.021148036253776
 /space/ages/9/form/sapwoodRings = 50.0
 /space/ages/9/form/sag = 4.1e-6
+# fn-354 R7: a long lateral's kind follows its light. A SHOOT or BRANCH
+# bud keeps its kind with probability light^0.38 and otherwise forms as a
+# short shoot (`shadeShort/14`): Lemoine et al. 2002, Table II, long
+# laterals 85 +- 3% of laterals in sun (PAR 1,850) and 40 +- 6% in shade
+# (255), ln(0.40 / 0.85) / ln(255 / 1,850) = 0.38; estimated in form, a
+# power law through the two settled classes. The tables hold full light:
+# the branch's medial zone 85% long of the unit's 2.8 laterals (SHOOT
+# 0.53, SHORT 0.17 for SHORT 0.7), and every reiterate's medial zone 85%
+# long at its 0.57 (SHORT 0.085, BRANCH 0.485 for 0.3 and 0.27).
+/space/ages/9/shadeShort/14 = 0.38
 /space/ages/9/zones/0/buds = 1.0
 /space/ages/9/zones/0/nodes/min = 1.0
 /space/ages/9/zones/0/nodes/max = 2.0
 /space/ages/9/zones/1/buds = 1.0
 /space/ages/9/zones/1/nodes/min = 2.0
 /space/ages/9/zones/1/nodes/max = 3.0
-/space/ages/9/zones/1/lateral/14 = 0.7
+/space/ages/9/zones/1/lateral/12 = 0.53
+/space/ages/9/zones/1/lateral/14 = 0.17
 /space/ages/9/zones/2/buds = 1.0
 /space/ages/9/zones/2/nodes/min = 1.0
 /space/ages/9/zones/2/nodes/max = 1.0
@@ -623,6 +634,7 @@
 /space/ages/12/form/sapwood = 3.021148036253776
 /space/ages/12/form/sapwoodRings = 50.0
 /space/ages/12/form/sag = 4.1e-6
+/space/ages/12/shadeShort/14 = 0.38
 /space/ages/12/zones/0/buds = 1.0
 /space/ages/12/zones/0/nodes/min = 1.0
 /space/ages/12/zones/0/nodes/max = 1.0

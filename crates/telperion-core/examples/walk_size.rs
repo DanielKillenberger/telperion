@@ -126,6 +126,7 @@ fn predicted(species: &Species, age: u32) -> String {
     let mut n = species.clone();
     for s in &mut n.states {
         (s.shade_hazard, s.shade_size, s.balance_hazard) = (0.0, 0.0, 0.0);
+        s.shade_short.iter_mut().for_each(|e| *e = 0.0);
     }
     let kept = expected_kept(&n, age).unwrap().unwrap_or(f64::NAN);
     format!("{kept:.0} {:.0}", expected_grown(&n, age).unwrap())

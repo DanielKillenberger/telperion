@@ -90,6 +90,7 @@ pub fn palm() -> Species {
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        shade_short: vec![0.0; chain::AGES],
         straightening: 0.0,
         form: Form {
             tropism: 0.5,

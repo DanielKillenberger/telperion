@@ -124,6 +124,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         inverse_height: 1.0 / 30.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        shade_short: vec![0.0; PAS],
         straightening: 0.0,
         flowering: 0.0,
         cluster_leaves: 0.0,
