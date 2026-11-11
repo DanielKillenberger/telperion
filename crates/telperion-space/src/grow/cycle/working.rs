@@ -90,6 +90,13 @@ impl Working {
         &self.by_node[i]
     }
 
+    /// Whether axis `i`, laid before this cycle, is closed this cycle:
+    /// nothing in its subtree lives or sleeps, so no leaf stands above it
+    /// again (`open_from`).
+    pub(in crate::grow) fn closed(&self, i: usize) -> bool {
+        i < self.open.len() && !self.open[i]
+    }
+
     /// Which subtrees have been retired.
     pub(in crate::grow) fn retirement(&self) -> &super::retire::Retirement {
         &self.retire

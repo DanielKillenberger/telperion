@@ -54,7 +54,19 @@ pub(crate) fn ring([t, s]: [f64; 2], need: f64, rings: f64) -> [f64; 2] {
 /// The year's wood laid on the growing tree on up to `threads` cores: each
 /// phytomer laid since the last pass given its primary section, then every
 /// held phytomer's sapwood set by the leaf above it in `year`.
-pub(crate) fn lay(axes: &mut [Axis], species: &Species, year: u32, threads: usize) {
+///
+/// An axis `closed` names is skipped, its subtree with it: nothing in it
+/// lives or sleeps, so no leaf stands above it again and it lays nothing,
+/// its section exact. Its sapwood stops retiring and is unread while it is
+/// skipped. Closed wood never reopens today (`Working::open_from`); wood
+/// that did would first retire its sapwood for the `k` years skipped,
+/// `S (1 − 1 / rings)^k`.
+pub(crate) fn lay(
+    axes: &mut [Axis],
+    species: &Species,
+    year: u32,
+    (closed, threads): (&(dyn Fn(usize) -> bool + Sync), usize),
+) {
     let links: Vec<Origin> = axes.iter().map(|a| a.origin).collect();
     let parents: Vec<Option<usize>> = links.iter().map(|l| l.parent()).collect();
     let tree = Tree::new(&parents);
@@ -62,6 +74,9 @@ pub(crate) fn lay(axes: &mut [Axis], species: &Species, year: u32, threads: usiz
         axes,
         threads,
         &|i, axis, done: &[f64], at_node: &mut Vec<f64>| {
+            if closed(i) {
+                return 0.0;
+            }
             let state = &species.states[axis.pa];
             let form = &state.form;
             at_node.clear();

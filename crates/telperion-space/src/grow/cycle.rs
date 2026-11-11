@@ -111,7 +111,8 @@ mod tests;
 #[cfg(test)]
 pub(crate) fn girth_apart(a: &Structure, b: &Structure) -> Option<(f64, f64)> {
     // Everything but the girth and the pose a girth bends (its sag) the
-    // same to the bit: topology, PAs, vigour, presences, sizes and lights.
+    // same to the bit: topology, PAs, vigour, presences, sizes and every
+    // section.
     let bare = |t: &Structure| {
         let mut t = t.clone();
         for axis in &mut t.axes {
@@ -122,6 +123,10 @@ pub(crate) fn girth_apart(a: &Structure, b: &Structure) -> Option<(f64, f64)> {
                 None,
             );
             for p in &mut axis.phytomers {
+                // The sapwood of wood a closed subtree skips is unread
+                // (`girth::lay`), and the reference retiring nothing
+                // closes none.
+                p.sapwood = 0.0;
                 (p.radius, p.tip, p.heading, p.side) = (
                     0.0,
                     Default::default(),

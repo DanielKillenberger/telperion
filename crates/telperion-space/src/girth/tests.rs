@@ -155,18 +155,38 @@ fn wood_is_never_lost_when_the_leaf_above_goes() {
     let species = wooded(3.0, 0.01);
     for crown in [Origin::Continuation { parent: 0 }, lateral(1)] {
         let mut axes = vec![axis(Origin::Seed, 3), axis(crown, 4)];
-        lay(&mut axes, &species, 1, 1);
+        lay(&mut axes, &species, 1, (&|_| false, 1));
         let before = wood(&axes);
         assert!(
             before[0][0][0] > (PI * 0.005f64.powi(2)) as f32,
             "{crown:?} laid wood"
         );
         axes.truncate(1);
-        lay(&mut axes, &species, 2, 1);
+        lay(&mut axes, &species, 2, (&|_| false, 1));
         for (k, (now, was)) in wood(&axes)[0].iter().zip(&before[0]).enumerate() {
             assert_eq!(now[0], was[0], "{crown:?}, node {k}: its section kept");
             assert!(now[1] < was[1], "{crown:?}, node {k}: its sapwood retires");
         }
+    }
+}
+
+/// A closed lateral, whose subtree bears no leaf again, is skipped: every
+/// section stands as a full pass lays it, and only the skipped wood's
+/// sapwood, unread while it is skipped, is left as it was.
+#[test]
+fn a_closed_subtree_is_skipped_and_every_section_stays_exact() {
+    let species = wooded(3.0, 0.01);
+    let grown = |skip: bool| {
+        let mut axes = vec![axis(Origin::Seed, 3), axis(lateral(1), 4)];
+        lay(&mut axes, &species, 1, (&|_| false, 1));
+        lay(&mut axes, &species, 2, (&|i| skip && i == 1, 1));
+        wood(&axes)
+    };
+    let (full, skipped) = (grown(false), grown(true));
+    assert_eq!(full[0], skipped[0], "the bearer");
+    for (f, s) in full[1].iter().zip(&skipped[1]) {
+        assert_eq!(f[0], s[0], "its section");
+        assert!(s[1] > f[1], "its sapwood, unread, not retired");
     }
 }
 
@@ -179,7 +199,7 @@ fn no_sapwood_draws_the_primary_radius_whatever_its_leaf() {
         let mut axes = vec![axis(Origin::Seed, 3), axis(lateral(0), 3)];
         axes[0].phytomers[1].scale = 0.5;
         for year in 1..=3 {
-            lay(&mut axes, &species, year, 1);
+            lay(&mut axes, &species, year, (&|_| false, 1));
         }
         let mut t = Structure {
             age: 3,
@@ -208,7 +228,7 @@ fn a_relay_joins_at_the_radius_of_the_wood_it_stands_in() {
     let mut relay = axis(Origin::Relay { parent: 0, node: 1 }, 3);
     relay.blend = 0.4;
     let mut axes = vec![axis(Origin::Seed, 4), relay];
-    lay(&mut axes, &species, 1, 1);
+    lay(&mut axes, &species, 1, (&|_| false, 1));
     let mut t = Structure {
         age: 1,
         pas: 1,
