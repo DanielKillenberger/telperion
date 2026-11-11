@@ -9,6 +9,13 @@
 - **Cost:** about 15 minutes and five oak growths to 120.
 - **What would have removed it:** the census script printing the commit it was built from and whether the tree was dirty, next to the counts.
 
+## 11 Nov 2026, 16:20, builder (task 1): a narrow nextest run cuts budgeted tests at 120 s
+
+- **Doing:** the space and core suites, narrow, through `cargo nextest run --profile gate -p <crate>`.
+- **Slowed by:** two tests that `.config/gate-budgets.toml` allows 636 s and 181 s timed out at 120 s. These were `walks every_setting_changes_the_tree_by_degree_and_branches_come_and_go_at_vanishing_size` and core's `repeat_tests::the_largest_tree_and_the_palm_grow_the_same_tree_again_and_on_any_cores`. Only `scripts/gate.py` turns the budgets into a nextest tool config. Each test then had to run again alone, and passed in 307 s and 70 s. The repeat test's log also prints "a NaN in the tree", from its own deliberate NaN check, which reads like the failure.
+- **Cost:** about 10 minutes and two extra runs.
+- **What would have removed it:** a way to run a named crate under the gate's budgets, for example `gate.py --package telperion-space`.
+
 ## 11 Nov 2026, 15:40, builder (task 1): the shell hook refuses the plain conflict-resolution commands
 
 - **Doing:** resolving the fn-349 cherry-picks.
