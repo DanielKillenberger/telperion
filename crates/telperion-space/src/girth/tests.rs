@@ -155,14 +155,14 @@ fn wood_is_never_lost_when_the_leaf_above_goes() {
     let species = wooded(3.0, 0.01);
     for crown in [Origin::Continuation { parent: 0 }, lateral(1)] {
         let mut axes = vec![axis(Origin::Seed, 3), axis(crown, 4)];
-        lay(&mut axes, &species, (1, &[]), (&|_| false, 1));
+        lay(&mut axes, &species, 1, (&|_| false, 1));
         let before = wood(&axes);
         assert!(
             before[0][0][0] > (PI * 0.005f64.powi(2)) as f32,
             "{crown:?} laid wood"
         );
         axes.truncate(1);
-        lay(&mut axes, &species, (2, &[]), (&|_| false, 1));
+        lay(&mut axes, &species, 2, (&|_| false, 1));
         for (k, (now, was)) in wood(&axes)[0].iter().zip(&before[0]).enumerate() {
             assert_eq!(now[0], was[0], "{crown:?}, node {k}: its section kept");
             assert!(now[1] < was[1], "{crown:?}, node {k}: its sapwood retires");
@@ -178,8 +178,8 @@ fn a_closed_subtree_is_skipped_and_every_section_stays_exact() {
     let species = wooded(3.0, 0.01);
     let grown = |skip: bool| {
         let mut axes = vec![axis(Origin::Seed, 3), axis(lateral(1), 4)];
-        lay(&mut axes, &species, (1, &[]), (&|_| false, 1));
-        lay(&mut axes, &species, (2, &[]), (&|i| skip && i == 1, 1));
+        lay(&mut axes, &species, 1, (&|_| false, 1));
+        lay(&mut axes, &species, 2, (&|i| skip && i == 1, 1));
         wood(&axes)
     };
     let (full, skipped) = (grown(false), grown(true));
@@ -191,10 +191,10 @@ fn a_closed_subtree_is_skipped_and_every_section_stays_exact() {
 }
 
 /// A phytomer bears its whole leaf while its age is under its PA's
-/// `leaf_years`, the share left in the year it passes it and none after,
-/// each at its axis's fade (LEAF-ACCOUNT.md, "The design").
+/// `leaf_years`, the share left in the year it passes it and none after
+/// (LEAF-ACCOUNT.md, "The design").
 #[test]
-fn a_phytomer_bears_its_leaf_for_its_leaf_years_at_its_fade() {
+fn a_phytomer_bears_its_leaf_for_its_leaf_years() {
     let mut species = wooded(3.0, 0.01);
     species.states[0].leaf_years = 5.5;
     let state = &species.states[0];
@@ -206,28 +206,10 @@ fn a_phytomer_bears_its_leaf_for_its_leaf_years_at_its_fade() {
     let whole = crate::light::leaf_area(p.scale, p.size, state.leaf_area);
     let kept = [1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0, 0.0];
     for (year, kept) in (1..).zip(kept) {
-        for fade in [1.0, 0.25] {
-            let want = whole * kept * fade;
-            assert_eq!(leaf(state, &p, year, fade), want, "{year}, {fade}");
-        }
+        assert_eq!(leaf(state, &p, year), whole * kept, "{year}");
         let bears = usize::from(kept == 0.0);
         assert_eq!(bearing(state, &[p], year), bears, "{year}");
     }
-}
-
-/// A closed lateral whose leaf is kept from earlier years is laid as any
-/// other: its leaf stands above it and its bearer.
-#[test]
-fn a_closed_subtree_still_in_leaf_is_laid() {
-    let mut species = wooded(3.0, 0.01);
-    species.states[0].leaf_years = 3.0;
-    let grown = |skip: bool| {
-        let mut axes = vec![axis(Origin::Seed, 3), axis(lateral(1), 4)];
-        lay(&mut axes, &species, (1, &[]), (&|_| false, 1));
-        lay(&mut axes, &species, (2, &[]), (&|i| skip && i == 1, 1));
-        wood(&axes)
-    };
-    assert_eq!(grown(true), grown(false));
 }
 
 /// An age with no sapwood draws its primary radius at its scale, whatever
@@ -239,7 +221,7 @@ fn no_sapwood_draws_the_primary_radius_whatever_its_leaf() {
         let mut axes = vec![axis(Origin::Seed, 3), axis(lateral(0), 3)];
         axes[0].phytomers[1].scale = 0.5;
         for year in 1..=3 {
-            lay(&mut axes, &species, (year, &[]), (&|_| false, 1));
+            lay(&mut axes, &species, year, (&|_| false, 1));
         }
         let mut t = Structure {
             age: 3,
@@ -268,7 +250,7 @@ fn a_relay_joins_at_the_radius_of_the_wood_it_stands_in() {
     let mut relay = axis(Origin::Relay { parent: 0, node: 1 }, 3);
     relay.blend = 0.4;
     let mut axes = vec![axis(Origin::Seed, 4), relay];
-    lay(&mut axes, &species, (1, &[]), (&|_| false, 1));
+    lay(&mut axes, &species, 1, (&|_| false, 1));
     let mut t = Structure {
         age: 1,
         pas: 1,

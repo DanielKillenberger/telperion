@@ -47,6 +47,10 @@ pub(in crate::grow) struct Working {
     pub(super) retire: super::retire::Retirement,
     /// The tests' references: every laid axis open and none retired.
     pub(super) all_open: bool,
+    /// Where every axis is held open, which of them are on the way to a
+    /// living apex or a sleeping bud: the wood whose leaf stands
+    /// (`closed`), from the tree's state alone.
+    wood: Vec<bool>,
     pub(super) keep_all: bool,
     /// Whether a retired subtree's records are kept at their indices and
     /// every verdict logged: the light capture, which reads every axis by
@@ -91,10 +95,16 @@ impl Working {
     }
 
     /// Whether axis `i`, laid before this cycle, is closed this cycle:
-    /// nothing in its subtree lives or sleeps, so no leaf stands above it
-    /// again (`open_from`).
+    /// nothing in its subtree lives or sleeps, so it bears no leaf and no
+    /// leaf stands above it again (`open_from`, fn-354 R5). The same for a
+    /// reference that holds every axis open.
     pub(in crate::grow) fn closed(&self, i: usize) -> bool {
-        i < self.open.len() && !self.open[i]
+        let open = if self.all_open {
+            &self.wood
+        } else {
+            &self.open
+        };
+        i < open.len() && !open[i]
     }
 
     /// Which subtrees have been retired.
@@ -147,11 +157,20 @@ impl Working {
         for &i in &was {
             self.open[i] = false;
         }
+        let from: Vec<usize> = from.filter(|&i| i < self.links.len()).collect();
         if self.all_open {
+            self.wood = vec![false; self.links.len()];
+            for &f in &from {
+                let mut i = Some(f);
+                while let Some(k) = i.filter(|&k| !self.wood[k]) {
+                    self.wood[k] = true;
+                    i = self.links[k].parent;
+                }
+            }
             self.list.extend(0..self.links.len());
             self.list.iter().for_each(|&i| self.open[i] = true);
         }
-        for mut i in from.filter(|&i| i < self.links.len()) {
+        for mut i in from {
             while !self.open[i] {
                 self.open[i] = true;
                 self.list.push(i);

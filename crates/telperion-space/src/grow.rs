@@ -8,6 +8,7 @@
 //! element in from nothing.
 mod advance;
 pub(crate) mod cycle;
+mod deposit;
 mod draw;
 #[cfg(test)]
 mod ground_tests;
@@ -390,13 +391,12 @@ impl Grower {
                 stage(Stage::Lit);
             }
         }
-        let fades = self.fades(cycle);
         let working = self.working.as_deref();
         let closed = |i: usize| working.is_some_and(|w| w.closed(i));
         crate::girth::lay(
             &mut self.axes,
             &self.species,
-            (cycle, &fades),
+            cycle,
             (&closed, self.threads),
         );
         stage(Stage::Pass(Pass::Wood));

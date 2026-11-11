@@ -34,17 +34,20 @@ pub(crate) fn lays(species: &Species) -> bool {
     species.states.iter().any(|s| s.form.sapwood > 0.0)
 }
 
-/// The leaf phytomer `p` of a PA in `state` bears in `year`, m², its axis
-/// drawn at `fade` (fn-354 R5, LEAF-ACCOUNT.md): its own leaf while its
-/// age is under its PA's `leaf_years`, the last year's share of it at
-/// the fraction. The one leaf the light's deposit and the wood read.
+/// The leaf phytomer `p` of a PA in `state` bears in `year`, m², while its
+/// wood is open (fn-354 R5, LEAF-ACCOUNT.md as the host corrected it on
+/// 12 Nov): its own leaf while its age is under its PA's `leaf_years`, the
+/// last year's share of it at the fraction. Wood that has closed, on the
+/// way to no living apex or sleeping bud, bears none; its callers leave it
+/// out (`Working::closed`). The one leaf the light's deposit and the wood
+/// read.
 ///
 /// ```text
-/// leaf = leaf_area × scale × size × clamp(leaf_years − age, 0, 1) × fade
+/// leaf = leaf_area × scale × size × clamp(leaf_years − age, 0, 1)
 /// ```
-pub(crate) fn leaf(state: &PaState, p: &Phytomer, year: u32, fade: f64) -> f64 {
+pub(crate) fn leaf(state: &PaState, p: &Phytomer, year: u32) -> f64 {
     let kept = (state.leaf_years - f64::from(year.saturating_sub(p.cycle))).clamp(0.0, 1.0);
-    crate::light::leaf_area(p.scale, p.size, state.leaf_area) * kept * fade
+    crate::light::leaf_area(p.scale, p.size, state.leaf_area) * kept
 }
 
 /// The first of an axis's `phytomers` that bears leaf in `year`: those
@@ -65,19 +68,18 @@ pub(crate) fn ring([t, s]: [f64; 2], need: f64, rings: f64) -> [f64; 2] {
 /// The year's wood laid on the growing tree on up to `threads` cores: each
 /// phytomer laid since the last pass given its primary section, then every
 /// held phytomer's sapwood set by the leaf above it in `year`, each axis's
-/// leaf at its `fades` share (`leaf`).
+/// leaf (`leaf`).
 ///
-/// An axis `closed` names whose subtree bears no leaf is skipped: nothing
-/// in it lives or sleeps and no leaf stands above it again, so it lays
-/// nothing, its section exact. Its sapwood stops retiring and is unread
-/// while it is skipped. Closed wood never reopens today
+/// An axis `closed` names is skipped, its subtree with it: nothing in it
+/// lives or sleeps, so it bears no leaf and none stands above it again, and
+/// it lays nothing, its section exact. Its sapwood stops retiring and is
+/// unread while it is skipped. Closed wood never reopens today
 /// (`Working::open_from`); wood that did would first retire its sapwood
-/// for the `k` years skipped, `S (1 − 1 / rings)^k`. A closed subtree
-/// still bearing leaf kept from earlier years lays as any other.
+/// for the `k` years skipped, `S (1 − 1 / rings)^k`.
 pub(crate) fn lay(
     axes: &mut [Axis],
     species: &Species,
-    (year, fades): (u32, &[f64]),
+    year: u32,
     (closed, threads): (&(dyn Fn(usize) -> bool + Sync), usize),
 ) {
     let links: Vec<Origin> = axes.iter().map(|a| a.origin).collect();
@@ -87,15 +89,10 @@ pub(crate) fn lay(
         axes,
         threads,
         &|i, axis, done: &[f64], at_node: &mut Vec<f64>| {
-            let state = &species.states[axis.pa];
-            let bare = || {
-                bearing(state, &axis.phytomers, year) == axis.phytomers.len()
-                    && tree.children(i).iter().all(|&c| done[c] == 0.0)
-            };
-            if closed(i) && bare() {
+            if closed(i) {
                 return 0.0;
             }
-            let fade = fades.get(i).copied().unwrap_or(1.0);
+            let state = &species.states[axis.pa];
             let form = &state.form;
             at_node.clear();
             at_node.resize(axis.phytomers.len(), 0.0);
@@ -110,7 +107,7 @@ pub(crate) fn lay(
             }
             let per_leaf = form.sapwood * 1e-4;
             for (k, p) in axis.phytomers.iter_mut().enumerate().rev() {
-                sum += leaf(state, p, year, fade) + at_node[k];
+                sum += leaf(state, p, year) + at_node[k];
                 if p.section == 0.0 {
                     let e = established(form, p.scale);
                     p.section = (PI * e * e) as f32;

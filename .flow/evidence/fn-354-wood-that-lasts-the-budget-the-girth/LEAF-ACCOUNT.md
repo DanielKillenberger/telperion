@@ -31,12 +31,14 @@ The survey is a Fable agent's, read-only, condensed by the host; the design unde
 
 One definition, in the grower, of the leaf a phytomer bears in year y:
 
-    leaf(p, y) = leaf_area × p.scale × p.size × clamp(leaf_years − (y − p.cycle), 0, 1) × fade(p's axis, y)
+    leaf(p, y) = leaf_area × p.scale × p.size × clamp(leaf_years − (y − p.cycle), 0, 1), while p's wood is open; 0 once it is closed
+
+(host, corrected 12 Nov: the fade term is gone. A leaf's standing must not depend on retirement, which is an optimisation. "Open" is on the path to a living apex or a sleeping bud, a function of the tree's state, so a reference grower that retires nothing computes the same from its own state. The wood pass again skips every closed subtree. The drawing's own fading of a shed branch is untouched.)
 
 - `leaf_years` is a trait with a value for every species: the years a phytomer keeps its leaf. The light's deposit and the wood rule both read `leaf(p, y)`; the drawing keeps reading the same row for its stations.
-- `fade` is the kept share a closed subtree is already drawn at while it is held, so a dead shoot's needles go by degree and not in a step.
+- ~~`fade` is the kept share a closed subtree is already drawn at while it is held~~ (host, corrected 12 Nov: replaced by the open-wood condition above).
 - No cluster term. `cluster_leaves` stays the drawing's.
-- The deposit walks every held axis, not only the open ones.
+- The deposit walks every open axis that bears leaf (host, corrected 12 Nov; was "every held axis, not only the open ones").
 
 Values:
 

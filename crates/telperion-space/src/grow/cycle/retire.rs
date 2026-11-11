@@ -78,24 +78,6 @@ impl Retirement {
         }
     }
 
-    /// Each axis's share as drawn at `age` while it is held (fn-354 R5):
-    /// a closed subtree kept by a lateral that sheds at the fade the
-    /// settle would draw it at, `shed::faded` of its living, times the
-    /// share of the axis it stands on; whole elsewhere.
-    pub(in crate::grow) fn drawn(&self, axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
-        let mut share = vec![1.0; axes.len()];
-        for (i, axis) in axes.iter().enumerate() {
-            let own = match self.fate.get(i) {
-                Some(Fate::Kept(living)) if sheds(axis, species) => {
-                    faded(species.states[axis.pa].shedding, axis.birth, *living, age)
-                }
-                _ => 1.0,
-            };
-            share[i] = own * axis.origin.parent().map_or(1.0, |p| share[p]);
-        }
-        share
-    }
-
     /// The subtrees retired.
     pub fn roots(&self) -> usize {
         self.fate
@@ -185,17 +167,6 @@ impl Grower {
             }
         }
         self.working = Some(w);
-    }
-
-    /// Each axis's share as drawn after the growth of `year`
-    /// (`Retirement::drawn`), none where no leaf outlives its year: then
-    /// every phytomer bearing leaf grew this year on an open axis, whole.
-    pub(in crate::grow) fn fades(&self, year: u32) -> Vec<f64> {
-        let lasting = self.species.states.iter().any(|s| s.leaf_years > 1.0);
-        match (lasting, self.working.as_deref()) {
-            (true, Some(w)) => w.retire.drawn(&self.axes, &self.species, year),
-            _ => Vec::new(),
-        }
     }
 
     /// The fading subtrees whose fade at `age` has reached none, taken

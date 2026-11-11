@@ -1,13 +1,15 @@
 //! Leaves by their wood's age (fn-248): a station keeps its leaf by its
 //! wood's retention, clamp(leaf_years - age, 0, 1), counted the same in
 //! the plan, the placement and the stations;
-//! a station that sheds its leaf still takes its draws, so every leaf
-//! that stays is the one the tree bore for ever.
+//! a station that sheds its leaf still takes its draws. Since fn-354 R5
+//! the grower reads the same row, so each value grows its own tree.
 use telperion_core::{
     foliage::Leaf,
+    math::Vec3,
     mesh,
     pipeline::executor,
     presets::{Family, Preset},
+    tree::Tree,
 };
 
 /// The beech young, every age's wood bearing for `years`, its short
@@ -27,24 +29,51 @@ fn leaves(f: &Family) -> Vec<Leaf> {
     mesh::build(f).unwrap().foliage.instances.leaves
 }
 
-/// Whether `part` is `whole` with some leaves taken out, in order.
-fn within(part: &[Leaf], whole: &[Leaf]) -> bool {
-    let mut rest = whole.iter();
-    part.iter().all(|leaf| rest.any(|w| w == leaf))
+/// The distance from `p` to the nearest wood segment `bears` names, a
+/// segment the stretch from a node's parent to it.
+fn nearest(tree: &Tree, bears: &dyn Fn(usize) -> bool, p: Vec3) -> f64 {
+    let mut best = f64::INFINITY;
+    for (i, n) in tree.nodes.iter().enumerate() {
+        let Some(parent) = n.parent.filter(|_| bears(i)) else {
+            continue;
+        };
+        let a = tree.nodes[parent as usize].position;
+        let ab = n.position - a;
+        let t = ((p - a).dot(ab) / ab.dot(ab).max(1e-18)).clamp(0.0, 1.0);
+        best = best.min(p.distance(a + ab * t));
+    }
+    best
 }
 
-/// Fewer years keep fewer leaves, and each that stays is one the tree
-/// bearing for ever bore, bit for bit; none stays where no wood bears.
+/// A leaf is drawn only on wood younger than its age's `leaf_years`
+/// (fn-248; fn-354 R5, host 12 Nov): on each value's own tree, every drawn
+/// leaf stands within a leaf's reach of wood whose retention keeps some
+/// stations, and none stands where no wood bears.
 #[test]
 fn a_leaf_stays_only_where_its_wood_keeps_it() {
-    let all = leaves(&retaining(f64::INFINITY));
-    let mut fewer = all.len() + 1;
+    // A beech leaf and its petiole, with room for the station's offset.
+    const REACH: f64 = 0.25;
     for years in [3.0, 2.0, 1.5, 1.0] {
-        let kept = leaves(&retaining(years));
-        assert!(kept.len() < fewer, "{years}: {} leaves", kept.len());
-        assert!(!kept.is_empty(), "{years}");
-        assert!(within(&kept, &all), "{years}: a leaf moved");
-        fewer = kept.len();
+        let f = retaining(years);
+        let x = executor::grow(&f).unwrap().expansion().unwrap();
+        let tree = x.tree();
+        let bears = |i: usize| tree.leafing(i).keep != 0;
+        let all = |_: usize| true;
+        let placed = mesh::build(&f).unwrap().foliage.instances;
+        assert!(!placed.leaves.is_empty(), "{years}");
+        assert!(
+            (0..tree.nodes.len()).any(|i| !bears(i)),
+            "{years}: old wood"
+        );
+        for (k, &leaf) in placed.leaves.iter().enumerate() {
+            let at = placed.reference.position(leaf);
+            let young = nearest(tree, &bears, at);
+            assert!(
+                young <= REACH,
+                "{years}: leaf {k} {young} m from bearing wood, {} from any",
+                nearest(tree, &all, at)
+            );
+        }
     }
     assert!(leaves(&retaining(0.0)).is_empty());
 }

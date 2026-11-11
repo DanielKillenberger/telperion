@@ -14,11 +14,12 @@ const SEEDS: [u32; 3] = [1, 1234, 5678];
 /// above it, and its sag, 4ρg/E, moved every tree; its pass's skipping of
 /// closed wood moved their sapwood there, every section kept. fn-354's
 /// leaf account moved the spruce, whose needles shade and lay wood for
-/// their 5.5 years, and the Two Trees, whose leaf is their drawn leaf.
+/// their 5.5 years while their wood is open, and the Two Trees, whose
+/// leaf is their drawn leaf.
 const PINNED: [(u64, u64); 8] = [
     (1233340031879171559, 1233340031879171559),
     (17687829558383956639, 11667850423448962601),
-    (10911873026870395678, 3276643373200734258),
+    (12287197284966836912, 1773060326561079923),
     (15759162824176722754, 15759162824176722754),
     (3753336579002065071, 11296798367218290338),
     (4799502948138528708, 4799502948138528708),

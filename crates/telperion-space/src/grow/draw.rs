@@ -9,7 +9,6 @@ use super::Grower;
 use crate::cores::{map, picked, PIECE};
 use crate::error::{Error, Result};
 use crate::geometry::{bend, dominance, frame, joined, taken, Layer, NO_TAKE};
-use crate::girth::{bearing, leaf};
 
 use crate::presence::{relay_node, Draws};
 use crate::species::Species;
@@ -201,6 +200,7 @@ impl Grower {
     pub(super) fn sketch_end(&mut self, s: Sketching) -> Result<()> {
         let Sketching {
             mut sketch,
+            cycle,
             first_new,
             grew,
             from,
@@ -211,16 +211,6 @@ impl Grower {
         if let Some((_, error)) = failed {
             return Err(error);
         }
-        let (species, cycle) = (&*self.species, s.cycle);
-        let fades = self.fades(cycle);
-        let fade = |i: usize| fades.get(i).copied().unwrap_or(1.0);
-        let mut leaves = std::mem::take(&mut self.leaves);
-        leaves.clear();
-        // The year's phytomers first, in the order laying them gave; then
-        // every held axis's older phytomers still bearing leaf (fn-354 R5),
-        // which none does where no leaf outlives its year.
-        let lasting = species.states.iter().any(|s| s.leaf_years > 1.0);
-        let mut older = vec![usize::MAX; if lasting { self.axes.len() } else { 0 }];
         let laid = grew
             .iter()
             .zip(from)
@@ -229,30 +219,11 @@ impl Grower {
             .iter()
             .enumerate()
             .map(|(k, p)| (first_new + k, 0, p.as_ref().expect("drawn").laid));
-        for (i, from, to) in laid.chain(made) {
-            if let Some(o) = older.get_mut(i) {
-                *o = from;
-            }
-            let axis = &self.axes[i];
-            let state = &species.states[axis.pa];
-            for p in &axis.phytomers[from..to] {
-                leaves.push((p.tip, leaf(state, p, cycle, fade(i))));
-            }
-        }
-        for (i, axis) in self.axes.iter().enumerate().take(older.len()) {
-            let state = &species.states[axis.pa];
-            let held = &axis.phytomers[..older[i].min(axis.phytomers.len())];
-            for p in &held[bearing(state, held, cycle)..] {
-                let area = leaf(state, p, cycle, fade(i));
-                if area > 0.0 {
-                    leaves.push((p.tip, area));
-                }
-            }
-        }
+        let grown: Vec<_> = laid.chain(made).collect();
+        self.deposit(cycle, &grown);
         sketch
             .pencils
             .extend(fresh.into_iter().map(|p| p.expect("drawn")));
-        self.leaves = leaves;
         self.sketch = Some(sketch);
         Ok(())
     }
