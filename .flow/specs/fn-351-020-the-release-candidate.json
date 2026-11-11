@@ -2,7 +2,8 @@
   "branch_name": "fn-351-020-the-release-candidate",
   "created_at": "2026-11-11T11:59:03.646995Z",
   "depends_on_epics": [
-    "fn-349-the-corrected-balance-in-the-product"
+    "fn-349-the-corrected-balance-in-the-product",
+    "fn-352-the-scoreboard-a-fixed-panel-of-trees"
   ],
   "id": "fn-351-020-the-release-candidate",
   "next_task": 1,
@@ -22,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-11T12:00:05.482311Z"
+  "updated_at": "2026-11-11T12:01:06.965175Z"
 }
