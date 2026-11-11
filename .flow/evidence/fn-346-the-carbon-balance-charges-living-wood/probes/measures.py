@@ -1,7 +1,8 @@
 """fn-346: each drawn tree's measures, today (A) beside P1 and P2.
 
 Today's logs are fn-345's (same crates, its probe dormant) but for the oak
-at 80, drawn here. Usage: python3 -I probes/measures.py
+at 80, drawn here. Usage: python3 -I probes/measures.py [variants] [trees]   (comma lists;
+A,P1,P2 and the first run's trees unset)
 Columns: height, spread, trunk at 1.3 m, the settled stem line's lowest
 living limb and its living limbs (oak rows only; PA 6), current-year
 leaves, held phytomers (settled), peak resident GiB of the drawn run, and
@@ -50,8 +51,12 @@ def cell(r, k, f):
 
 print("| tree | v | height m | spread m | trunk cm | lowest living limb m | limbs | leaves | held | peak GiB | 1-thread s |")
 print("|---|---|---|---|---|---|---|---|---|---|---|")
+import sys
+VARIANTS = sys.argv[1].split(",") if len(sys.argv) > 1 else ["A", "P1", "P2"]
+if len(sys.argv) > 2:
+    TREES = sys.argv[2].split(",")
 for t in TREES:
-    for v in ["A", "P1", "P2"]:
+    for v in VARIANTS:
         r = read(t, v)
         if r is None:
             continue

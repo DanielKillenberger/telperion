@@ -17,7 +17,7 @@ for run in $2; do
   [ "$set" = - ] && set=""
   [ "$lmax" = - ] && lmax=""
   [ "$factor" = - ] && factor=""
-  env ${lmax:+PIPES_LMAX=$lmax} ${factor:+PIPES_LMAX_FACTOR=$factor} \
+  env RENEW_LIFE=1000 ${lmax:+PIPES_LMAX=$lmax} ${factor:+PIPES_LMAX_FACTOR=$factor} \
     PROBE_YEAR=1 PROBE_BALANCE=1 PROBE_RENEWAL=1 ABLATE="$set" ABLATE_CENSUS=1 ABLATE_GROW_ONLY=1 \
     ABLATE_CURVE="$F/raw/curve-300-1001-peak.txt" ABLATE_FACTOR=8 ABLATE_RSS_GIB=8 \
     python3 "$PEAK" target/ci/examples/space_oak "$out" "$age" --seeds 1001 --tag "$tag" \

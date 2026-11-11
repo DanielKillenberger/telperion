@@ -30,7 +30,7 @@ for run in $1; do
   [ "$mode" = draw ] && { only=""; rss=20; log="$out/$sp-$age-$seed-$tag.log"; }
   pin=""; rec=1
   [ "$mode" = time ] && { pin="taskset -c 3"; rec=""; rss=20; }
-  env ${lmax:+PIPES_LMAX=$lmax} ${factor:+PIPES_LMAX_FACTOR=$factor} ${rec:+PROBE_YEAR=1 PROBE_BALANCE=1} \
+  env RENEW_LIFE=1000 ${lmax:+PIPES_LMAX=$lmax} ${factor:+PIPES_LMAX_FACTOR=$factor} ${rec:+PROBE_YEAR=1 PROBE_BALANCE=1} \
     ABLATE="$set" ABLATE_CENSUS=1 ABLATE_GROW_ONLY="$only" \
     ABLATE_CURVE="$curve" ABLATE_FACTOR=8 ABLATE_RSS_GIB=$rss \
     $pin python3 "$PEAK" "target/ci/examples/space_$sp" "$out" "$age" --seeds "$seed" --tag "$tag" \
