@@ -1,0 +1,32 @@
+{
+  "branch_name": "fn-354-wood-that-lasts-the-budget-the-girth",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-11-11T14:38:58.539118Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-354-wood-that-lasts-the-budget-the-girth",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-354-wood-that-lasts-the-budget-the-girth.md",
+  "status": "open",
+  "title": "Wood that lasts the budget the girth and the sag",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-11T14:39:11.003493Z"
+}

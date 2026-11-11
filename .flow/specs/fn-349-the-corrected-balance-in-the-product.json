@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-349-the-corrected-balance-in-the-product",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-11T14:39:14.552700Z",
   "created_at": "2026-11-11T04:38:58.490028Z",
   "default_impl": null,
   "default_review": null,
@@ -15,8 +15,14 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "retired": {
+    "by": [
+      "fn-354-wood-that-lasts-the-budget-the-girth"
+    ],
+    "reason": "superseded"
+  },
   "spec_path": ".flow/specs/fn-349-the-corrected-balance-in-the-product.md",
-  "status": "open",
+  "status": "done",
   "title": "The corrected balance in the product",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +35,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-11T04:39:14.250419Z"
+  "updated_at": "2026-11-11T14:39:14.552706Z"
 }
