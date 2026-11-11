@@ -16,6 +16,9 @@ pub struct Engine {
     lowest_live5: Option<f64>,
     axes: usize,
     phytomers: usize,
+    /// fn-354: phytomers whose radius is under the drawing's finest wood
+    /// (`pipeline/space.rs` FINEST, 0.2 mm), where it ends an axis.
+    fine: usize,
     scale: f64,
 }
 
@@ -23,13 +26,14 @@ impl Engine {
     pub fn json(&self) -> String {
         format!(
             "\"new_shoots\":{},\"new_phytomers\":{},\"lowest_live\":{},\"lowest_live5\":{},\
-             \"axes\":{},\"phytomers\":{},\"scale\":{}",
+             \"axes\":{},\"phytomers\":{},\"under_finest\":{},\"scale\":{}",
             self.new_shoots,
             self.new_phytomers,
             crate::json(self.lowest_live),
             crate::json(self.lowest_live5),
             self.axes,
             self.phytomers,
+            self.fine,
             self.scale
         )
     }
@@ -38,7 +42,9 @@ impl Engine {
 pub fn measures(f: &Family) -> Result<Engine, String> {
     let g = executor::growth(f).map_err(|e| e.to_string())?;
     let s = grow(&g.species, g.request).map_err(|e| e.to_string())?;
-    Ok(read(&s, g.scale))
+    // The engine grows at natural size; the conversion draws it at the
+    // supernatural scale (`pipeline/space.rs`; `Growth::scale` is gone).
+    Ok(read(&s, f.supernatural.scale()))
 }
 
 type At = (usize, usize);
@@ -131,6 +137,9 @@ fn read(s: &Structure, scale: f64) -> Engine {
         lowest_live5: lowest5,
         axes: s.axes.len(),
         phytomers: s.axes.iter().map(|a| a.phytomers.len()).sum(),
+        fine: (s.axes.iter().flat_map(|a| &a.phytomers))
+            .filter(|p| p.radius * scale < 2e-4)
+            .count(),
         scale,
     }
 }
