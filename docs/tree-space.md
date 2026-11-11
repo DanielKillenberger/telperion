@@ -15,7 +15,7 @@ The programme aims at four claims that, to our knowledge, no generator makes tog
 
 ## Stand on botany, invent the space
 
-- **Reproduced, never invented:** plant science (physiological age, the reference axis, the architectural models, light interception, the pipe model). Each is reproduced against an oracle (an executable model run unchanged, or a published closed form or figure) before anything is built on it.
+- **Reproduced, never invented:** plant science (physiological age, the reference axis, the architectural models, light interception, the pipe model as sapwood that follows the leaf it serves and heartwood that stays, Shinozaki et al. 1964 and Lehnebach et al. 2018). Each is reproduced against an oracle (an executable model run unchanged, or a published closed form or figure) before anything is built on it.
 - **Invented:** the continuous space that holds every architecture, its continuity guarantees, and its speed.
 - **Never copied:** external code or data. Oracles are run and compared against; Telperion's code is written from the published papers.
 
