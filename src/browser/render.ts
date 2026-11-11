@@ -135,11 +135,6 @@ export interface Growth {
  *  disposed with the page element it belongs to. */
 export interface Renderer {
   setTree(family: Family): Submitted;
-  /** The wood's surfacing programs, compiled by the browser in the
-   *  background from the moment the renderer exists; the wood is drawn
-   *  once they have settled. Rejects with the program the browser
-   *  refused, or the device lost meanwhile, by name. */
-  programs: Promise<void>;
   /** The family's tree before its first year, growing on the CPU
    *  (`Growth`). Throws the core's words for a family it cannot grow. */
   beginGrowth(family: Family): Growth;
@@ -164,9 +159,11 @@ export interface Renderer {
   dispose(): void;
 }
 
-/** Loads the module once per page and puts a renderer on this canvas.
+/** Loads the module once per page and puts a renderer on this canvas, its
+ *  wood's programs compiled, so it can draw a tree once it resolves.
  *  Rejects with the renderer's own words when there is no WebGPU, only a
- *  software adapter, or the device is refused. */
+ *  software adapter, the device is refused, the browser refuses a program,
+ *  or the device is lost while they compile. */
 export async function createRenderer(canvas: HTMLCanvasElement): Promise<Renderer> {
   await loadModule();
 
@@ -185,11 +182,6 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
   const renderer = (await WebRenderer.create(canvas)) as WebRenderer;
   countDevice(1);
   let disposed = false;
-  /* Compiled now, before any tree is asked for: a synchronous compile on
-     the first build held Chrome's GPU process until its watchdog ended it
-     (fn-243). */
-  const programs = (renderer.preparePrograms() as Promise<unknown>).then(() => undefined);
-  programs.catch(() => undefined);
 
   const observer = new ResizeObserver(() => {
     if (disposed) return;
@@ -200,7 +192,6 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
 
   return {
     setTree: (family) => JSON.parse(renderer.setTree(wire(family))) as Submitted,
-    programs,
     beginGrowth: (family) => {
       const handle: WebGrowth = renderer.beginGrowth(wire(family));
       return {

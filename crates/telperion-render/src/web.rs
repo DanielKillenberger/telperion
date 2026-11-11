@@ -157,6 +157,26 @@ fn frame_of(acquired: wgpu::CurrentSurfaceTexture) -> Result<wgpu::SurfaceTextur
     }
 }
 
+/// Compiles the wood's surfacing programs and waits for the browser to settle
+/// them, so a renderer that exists can draw a tree's wood. The browser
+/// compiles them in the background: a synchronous compile on the first build
+/// held Chrome's GPU process until its watchdog ended it (fn-243). A program
+/// the browser refuses, or the device lost meanwhile, is the error by name.
+async fn compile_programs(gpu: &Gpu) -> Result<()> {
+    let [validation, memory] = gpu.scopes();
+    crate::curve::passes(gpu);
+    let ready = crate::programs::ready(gpu).await;
+    let (memory, validation) = (memory.pop().await, validation.pop().await);
+    let scoped = match memory.or(validation) {
+        Some(error) => Err(RenderError::DeviceRefused {
+            requirement: "the wood's programs".into(),
+            detail: error.to_string(),
+        }),
+        None => Ok(()),
+    };
+    crate::programs::first_cause(gpu.lost(), ready, scoped)
+}
+
 fn aspect(config: &wgpu::SurfaceConfiguration) -> f64 {
     f64::from(config.width) / f64::from(config.height)
 }
@@ -200,39 +220,19 @@ pub struct WebRenderer {
 
 #[wasm_bindgen]
 impl WebRenderer {
-    /// A renderer on this canvas, or a rejection naming the condition that
-    /// stopped it: no WebGPU, a software-only adapter, a refused device.
+    /// A renderer on this canvas that can draw a tree, or a rejection naming
+    /// the condition that stopped it: no WebGPU, a software-only adapter, a
+    /// refused device, a wood program the browser refused, or the device lost
+    /// while the programs compiled.
     pub fn create(canvas: HtmlCanvasElement) -> js_sys::Promise {
         future_to_promise(async move {
             let live = Live::new(canvas).await.map_err(js_error)?;
+            compile_programs(live.renderer.gpu())
+                .await
+                .map_err(js_error)?;
             Ok(JsValue::from(Self {
                 live: Rc::new(RefCell::new(Some(live))),
             }))
-        })
-    }
-
-    /// Compiles the wood's surfacing programs as soon as the device exists:
-    /// the browser compiles them in the background, and the wood is drawn
-    /// once they have settled (fn-243 R3). A program the browser refuses,
-    /// or a device lost meanwhile, rejects by name.
-    #[wasm_bindgen(js_name = preparePrograms)]
-    pub fn prepare_programs(&self) -> js_sys::Promise {
-        let live = self.live.clone();
-        future_to_promise(async move {
-            let gpu = borrow(&live)?.renderer.gpu().clone();
-            let [validation, memory] = gpu.scopes();
-            crate::curve::passes(&gpu);
-            let ready = crate::programs::ready(&gpu).await;
-            let (memory, validation) = (memory.pop().await, validation.pop().await);
-            let scoped = match memory.or(validation) {
-                Some(error) => Err(RenderError::DeviceRefused {
-                    requirement: "the wood's programs".into(),
-                    detail: error.to_string(),
-                }),
-                None => Ok(()),
-            };
-            crate::programs::first_cause(gpu.lost(), ready, scoped).map_err(js_error)?;
-            Ok(JsValue::UNDEFINED)
         })
     }
 

@@ -46,3 +46,9 @@ The host's answers to `R1-OWNERSHIP-MEASURED.md`, in its words:
 (2) `compileField` and the field's `source` option stay, with `TreeEngine.create` accepting a compiled `WebAssembly.Module`: sharing one compiled module across workers has nothing to do with the device, and the field's contract is unchanged.
 (3) Now verify the parked R1 to R3 and land them on the task branch: build the Wasm modules, typecheck, run the node tests that cover what you touched (field, test-dist, render unit tests, the harness's own), and the narrow Rust tests for the new growth test and the binding crate. Fix what is red. What only a browser with WebGPU can show (the binding drawing a year, the harness's controls) stays unverified by you: list exactly those items in the done summary so the host can have them checked. Then finish the task (flowctl done) if R1 to R3 hold; otherwise return with what is red.
 Keep heavy runs inside telperion-heavy at a size that fits beside the scoreboard job running from the fn-319 checkout; never raise a cap to get past a kill, lower the test threads instead.
+
+## 7. The wood's programs compile inside `createRenderer`
+
+The host's decision on task 2's kept `preparePrograms`, in its words:
+
+`preparePrograms` and the browser renderer's public `programs` member go. The wood's surfacing passes are compiled inside `createRenderer` and awaited there, so a renderer that has been created can always draw a CPU tree, and a caller has nothing to prepare. If `createRenderer` cannot await that compile without changing its public signature (it is already asynchronous if it returns a promise), stop and return with what it would change.

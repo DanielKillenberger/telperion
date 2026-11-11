@@ -16,7 +16,7 @@ vi.mock("./render/telperion_render.js", () => ({
     }
   },
   WebRenderer: {
-    create: async () => ({ preparePrograms: async () => undefined, resize: () => undefined, dispose: () => undefined, free: () => undefined }),
+    create: async () => ({ resize: () => undefined, dispose: () => undefined, free: () => undefined }),
   },
 }));
 

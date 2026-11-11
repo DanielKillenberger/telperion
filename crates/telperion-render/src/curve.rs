@@ -48,7 +48,7 @@ const PASSES: [(&str, &[u32]); 11] = [
 ];
 
 /// The passes' programs: made once a device, on its first curve or when
-/// the page prepares its programs, and shared by every tree's curve
+/// the page's renderer is created, and shared by every tree's curve
 /// (fn-243). In a browser they compile in the background.
 pub(crate) fn passes(gpu: &Gpu) -> &[Program] {
     gpu.curve.get_or_init(|| {
