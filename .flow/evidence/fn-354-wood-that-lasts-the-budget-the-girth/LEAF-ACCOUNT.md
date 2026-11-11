@@ -64,3 +64,15 @@ Values:
 
 - **The beech's missing leaf** is in how many shoots it makes (R7) and nowhere else: its trunk under the wood rule stays 9 to 12 cm at 40 until that is fixed.
 - **The drawn leaf is not yet the grower's leaf:** blade size (the beech draws 2.1 times its measured leaf, the oak 1.4), the oak's station spacing, the spruce's needle count, and the girth-relative bearing bound. All of it is the drawing's and is rebuilt in Phase 5 from the grower's counts. Until then the bearing bound moves with the trunk, and the scoreboard shows what that does.
+
+## The Two Trees' leaf (host, 11 Nov 2026, late evening)
+
+**Seen** (`product2/two-trees.jpg`, seed 1, base beside product): under the wood rule Telperion at 82 and Laurelin at 80 are worse than the base, plainly. A thin trunk under long thin limbs that arch out and lie on the ground 19 to 20 m from the trunk, where the base has a thick trunk and a round crown of heavy limbs. 153 thin runs stand under 0.5 m against 1; `ground_reach` is red on 14 flowers under the ground. Telperion at 40 is a slim stem in both.
+
+**Cause, read in the presets:** the Two Trees are the beech with internodes 2.6 times and primary radii 3 times on their coarse ages, and leaves drawn at `/supernatural/canopy/size` 2.3 against the beech's 1.1. The grower's leaf stays the beech's 15.7 cm². The old girth summed primary radii, so the thick primaries made the thick wood. The wood rule reads the leaf, and the grower's leaf does not know these trees bear larger leaves. So their wood is a beech's leaf-worth on levers 2.6 times as long, and it bends.
+
+**Design:** the supernatural canopy size reaches the grower. Where the group sets its canopy size, the species' `leaf_area` is multiplied by (that size / the natural `/canopy/size`)², at the same place the group's internode and primary overrides are applied to the species. For the Two Trees that is (2.3 / 1.1)² = 4.37. One leaf for the light, the wood and the drawing, which is what R5 is. Dormant with the group off or the size unset.
+
+**Expected on paper:** sections 4.37 times wherever leaf sets them, so radii 2.1 times; the bend of a limb under its own weight goes with 1/r², about a quarter. The grower's shade deepens 4.37 times inside these crowns (their hazard is the beech's weak 0.169), so some interior shoots go. R7 then adds the beech's long shoots on top. The limbs should leave the ground and `ground_reach` should pass.
+
+**What would refute it:** `ground_reach` still red; the Two Trees still a web on a thin trunk at 80; or their crowns hollowed by their own shade. If refuted, the builder returns with the sheet; the sag of a supernatural tree is the host's next question, not the builder's.
