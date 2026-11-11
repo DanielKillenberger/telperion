@@ -11,8 +11,9 @@ const MAIN = 'dist/telperion.wasm';
 // fn-150's first slim build: 355,100 to 526,965 bytes (its FRICTION.md),
 // replayed on the render module now that the slim one is gone (fn-257).
 const fn150 = { base: { ...recorded, [FIELD]: 355_100 }, head: { ...recorded, [FIELD]: 526_965 } };
-// fn-170's fork rule: master 1,395,510 and 358,698 bytes to its CI build.
-const fn170 = { base: { ...recorded, [MAIN]: 1_395_510 }, head: recorded };
+// fn-170's fork rule: master 1,395,510 and 358,698 bytes to its CI build,
+// whose main module was 1,410,330 bytes (+1.1 percent).
+const fn170 = { base: { ...recorded, [MAIN]: 1_395_510 }, head: { ...recorded, [MAIN]: 1_410_330 } };
 const on = (/** @type {Record<string, number>} */ sizes) => ({ label: 'abcd1234', sizes });
 
 describe('artifact ceilings', () => {
