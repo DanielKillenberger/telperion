@@ -25,11 +25,11 @@ mod cores;
 mod dormant;
 mod error;
 mod fine;
+pub mod floor;
 mod geometry;
 mod girth;
 mod grow;
 pub mod invariants;
-pub mod floor;
 mod light;
 mod lineage;
 mod memo;
@@ -71,10 +71,10 @@ pub use oak::oak;
 pub use palm::palm;
 pub use presence::{FLOOR, RATE, SPAN};
 pub use schedule::most_units;
+pub use species::coarse::{Coarsening, COARSEST};
 pub use species::scale::{
     scale, setting, settings, zone_settings, Scale, Setting, OUTCOMES, SETTINGS,
 };
-pub use species::coarse::{Coarsening, COARSEST};
 pub use species::{
     Form, NodeLaw, PaState, Species, Zone, BARE, MAX_BUDS, MAX_LEAF_AREA, MEDIAL, SPARE, TOP, ZONES,
 };

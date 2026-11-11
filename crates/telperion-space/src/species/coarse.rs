@@ -55,7 +55,11 @@ impl Coarsening {
         if !(self.factor >= 1.0 && self.factor.is_finite()) {
             return refuse("coarse factor", "a finite factor of at least 1");
         }
-        for (name, v) in [("coarse leaf", self.leaf), ("coarse pipe", self.pipe), ("coarse bud", self.bud)] {
+        for (name, v) in [
+            ("coarse leaf", self.leaf),
+            ("coarse pipe", self.pipe),
+            ("coarse bud", self.bud),
+        ] {
             if !(v > 0.0 && v.is_finite()) {
                 return refuse(name, "a finite positive multiplier");
             }
@@ -154,7 +158,10 @@ mod tests {
 
     #[test]
     fn past_the_coarsest_a_tree_grows_no_coarser() {
-        assert_eq!(oak().coarsened(&ROWS, 7.0), oak().coarsened(&ROWS, COARSEST));
+        assert_eq!(
+            oak().coarsened(&ROWS, 7.0),
+            oak().coarsened(&ROWS, COARSEST)
+        );
     }
 
     #[test]
@@ -168,9 +175,17 @@ mod tests {
     #[test]
     fn a_row_under_one_thins_the_laterals_by_degree() {
         let thin = Coarsening { bud: 0.25, ..ROWS };
-        let sums = |s: &Species, pa: usize| -> f64 { s.states[pa].zones.iter().flat_map(|z| &z.lateral).sum() };
-        let pa = (9..oak().states.len()).find(|&pa| sums(&oak(), pa) > 0.0).expect("a bearing age");
-        let (base, half, whole) = (sums(&oak(), pa), oak().coarsened(&thin, 0.5), oak().coarsened(&thin, 1.0));
+        let sums = |s: &Species, pa: usize| -> f64 {
+            s.states[pa].zones.iter().flat_map(|z| &z.lateral).sum()
+        };
+        let pa = (9..oak().states.len())
+            .find(|&pa| sums(&oak(), pa) > 0.0)
+            .expect("a bearing age");
+        let (base, half, whole) = (
+            sums(&oak(), pa),
+            oak().coarsened(&thin, 0.5),
+            oak().coarsened(&thin, 1.0),
+        );
         assert!((sums(&whole, pa) / base - 0.25).abs() < 1e-12);
         assert!((sums(&half, pa) / base - 0.5).abs() < 1e-12);
         assert_eq!(oak().states[..9], whole.states[..9]);
@@ -188,15 +203,57 @@ mod tests {
     #[test]
     fn rows_off_their_domain_are_refused_by_name() {
         let bad = [
-            ("first", Coarsening { first: -1.0, ..ROWS }),
-            ("factor", Coarsening { factor: 0.0, ..ROWS }),
-            ("factor", Coarsening { factor: f64::NAN, ..ROWS }),
+            (
+                "first",
+                Coarsening {
+                    first: -1.0,
+                    ..ROWS
+                },
+            ),
+            (
+                "factor",
+                Coarsening {
+                    factor: 0.0,
+                    ..ROWS
+                },
+            ),
+            (
+                "factor",
+                Coarsening {
+                    factor: f64::NAN,
+                    ..ROWS
+                },
+            ),
             ("leaf", Coarsening { leaf: 0.0, ..ROWS }),
-            ("pipe", Coarsening { pipe: f64::INFINITY, ..ROWS }),
+            (
+                "pipe",
+                Coarsening {
+                    pipe: f64::INFINITY,
+                    ..ROWS
+                },
+            ),
             ("bud", Coarsening { bud: 0.0, ..ROWS }),
-            ("hazard", Coarsening { hazard: 0.5, ..ROWS }),
-            ("shedding", Coarsening { shedding: 0.0, ..ROWS }),
-            ("shedding", Coarsening { shedding: 2.0, ..ROWS }),
+            (
+                "hazard",
+                Coarsening {
+                    hazard: 0.5,
+                    ..ROWS
+                },
+            ),
+            (
+                "shedding",
+                Coarsening {
+                    shedding: 0.0,
+                    ..ROWS
+                },
+            ),
+            (
+                "shedding",
+                Coarsening {
+                    shedding: 2.0,
+                    ..ROWS
+                },
+            ),
         ];
         for (name, rows) in bad {
             let refused = rows.validate().expect_err(name).to_string();

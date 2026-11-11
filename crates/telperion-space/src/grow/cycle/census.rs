@@ -147,7 +147,10 @@ impl Census {
             let d = a.origin.parent().map_or(0, |p| self.depth[p] + 1);
             self.depth.push(d);
             let lateral = matches!(a.origin, crate::structure::Origin::Lateral { .. });
-            let order = a.origin.parent().map_or(0, |p| self.order[p] + u32::from(lateral));
+            let order = a
+                .origin
+                .parent()
+                .map_or(0, |p| self.order[p] + u32::from(lateral));
             self.order.push(order);
             self.born.push(0);
             if let Some(p) = a.origin.parent() {

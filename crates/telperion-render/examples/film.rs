@@ -325,12 +325,7 @@ impl Film<'_> {
     /// ages shows the earlier year, the later faded over it by `faded`
     /// where the path's fade has begun; ages rise, so a shrink is drawn
     /// last frame first.
-    fn grow(
-        &mut self,
-        k: usize,
-        species: &str,
-        (from, to): (f64, f64),
-    ) -> Result<Cost, String> {
+    fn grow(&mut self, k: usize, species: &str, (from, to): (f64, f64)) -> Result<Cost, String> {
         let family = bounds::ends(species, from.max(to), self.path.seed)?;
         let mut cost = Cost::default();
         let started = std::time::Instant::now();
@@ -344,8 +339,8 @@ impl Film<'_> {
         for at in placing::built(&frames) {
             let started = std::time::Instant::now();
             growth::grow_to(&mut tree, at).map_err(|e| format!("{species} to {at}: {e}"))?;
-            let drawn = growth::mesh(&tree, at, &family)
-                .map_err(|e| format!("{species} at {at}: {e}"))?;
+            let drawn =
+                growth::mesh(&tree, at, &family).map_err(|e| format!("{species} at {at}: {e}"))?;
             let colouring = growth::colouring(&tree, at).map_err(|e| e.to_string())?;
             let ms = started.elapsed().as_secs_f64() * 1e3;
             (cost.build_ms, cost.trees) = (cost.build_ms + ms, cost.trees + 1);

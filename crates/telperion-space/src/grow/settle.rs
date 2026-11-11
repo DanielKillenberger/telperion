@@ -120,11 +120,7 @@ pub(super) struct Settling {
 impl Settling {
     /// The rest of the settle: the shed tree scaled, thickened and, with
     /// `lay`, laid and sagged.
-    pub(super) fn settle_lay(
-        self,
-        lay: bool,
-        stage: &mut dyn FnMut(Stage),
-    ) -> Result<Grown> {
+    pub(super) fn settle_lay(self, lay: bool, stage: &mut dyn FnMut(Stage)) -> Result<Grown> {
         let Self {
             mut structure,
             girth,

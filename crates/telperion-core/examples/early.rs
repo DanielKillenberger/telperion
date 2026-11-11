@@ -28,11 +28,7 @@ fn main() {
     let (species, light, default) = preset(&args[1]);
     let age = args[2].parse().unwrap_or(default as u32);
     let seed = args[3].parse().expect("a seed");
-    let r = Request {
-        age,
-        seed,
-        light,
-    };
+    let r = Request { age, seed, light };
     println!("{} age {age} seed {seed}", args[1]);
     match args[0].as_str() {
         "three" => three(&species, r, &args[4]),

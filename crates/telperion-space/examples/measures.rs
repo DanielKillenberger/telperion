@@ -29,11 +29,7 @@ fn main() {
     let seeds: Vec<u64> = args.get(2).map_or(vec![1, 7], |s| {
         s.split(',').map(|v| v.parse().expect("seed")).collect()
     });
-    let request = |seed, light| Request {
-        age,
-        seed,
-        light,
-    };
+    let request = |seed, light| Request { age, seed, light };
     let only = args.get(3).filter(|o| o.as_str() != "all");
     // `hash` defaults to neutral light.
     let lights: Vec<Light> = match (args.get(4).map(String::as_str), what) {

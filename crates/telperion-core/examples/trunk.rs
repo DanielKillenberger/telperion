@@ -67,7 +67,11 @@ fn report(s: &Structure, args: &[String]) {
         match at.and_then(|j| s.axes[j].joined()) {
             Some(join) if join.node < tips.len() => {
                 path.extend(&tips[..join.node]);
-                let from = path.last().copied().unwrap_or(Vec3 { x: 0.0, y: 0.0, z: 0.0 });
+                let from = path.last().copied().unwrap_or(Vec3 {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                });
                 path.push(lerp(from, tips[join.node], f64::from(join.t)));
             }
             _ => path.extend(&tips),
@@ -76,13 +80,21 @@ fn report(s: &Structure, args: &[String]) {
             let rise = s.axes[j].heading.z.asin().to_degrees();
             steps.push(format!(
                 "{}{}@{rise:.0}",
-                if matches!(s.axes[j].origin, Origin::Relay { .. }) { 'R' } else { 'C' },
+                if matches!(s.axes[j].origin, Origin::Relay { .. }) {
+                    'R'
+                } else {
+                    'C'
+                },
                 s.axes[j].pa
             ));
         }
     }
     println!("TRUNK {} age {} seed {}", args[0], args[1], args[2]);
-    let origin = Vec3 { x: 0.0, y: 0.0, z: 0.0 };
+    let origin = Vec3 {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
     let (mut length, mut last, mut mark, mut from) = (0.0, origin, 0.0, origin);
     for p in &path {
         length += distance(last, *p);
@@ -104,10 +116,16 @@ fn report(s: &Structure, args: &[String]) {
         steps.join(" "),
         steps.len() - relays
     );
-    let tips: Vec<Vec3> = s.axes.iter().flat_map(|a| a.phytomers.iter().map(|p| p.tip)).collect();
+    let tips: Vec<Vec3> = s
+        .axes
+        .iter()
+        .flat_map(|a| a.phytomers.iter().map(|p| p.tip))
+        .collect();
     let top = tips.iter().map(|p| p.z).fold(0.0, f64::max);
     let n = tips.len().max(1) as f64;
-    let (cx, cy) = tips.iter().fold((0.0, 0.0), |(x, y), p| (x + p.x / n, y + p.y / n));
+    let (cx, cy) = tips
+        .iter()
+        .fold((0.0, 0.0), |(x, y), p| (x + p.x / n, y + p.y / n));
     println!(
         "  top {top:.2} m; crown mean {:.2} m out from the base; trunk path ends {:.2} high, {:.2} out",
         (cx * cx + cy * cy).sqrt(),
@@ -121,5 +139,9 @@ fn distance(a: Vec3, b: Vec3) -> f64 {
 }
 
 fn lerp(a: Vec3, b: Vec3, t: f64) -> Vec3 {
-    Vec3 { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t }
+    Vec3 {
+        x: a.x + (b.x - a.x) * t,
+        y: a.y + (b.y - a.y) * t,
+        z: a.z + (b.z - a.z) * t,
+    }
 }

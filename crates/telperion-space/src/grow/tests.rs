@@ -13,11 +13,7 @@ fn grown(species: &Species, age: u32, seed: u64, certain: Certain) -> Grown {
 }
 
 fn grown_in(species: &Species, (age, seed, light): (u32, u64, Light), options: Options) -> Grown {
-    let request = Request {
-        age,
-        seed,
-        light,
-    };
+    let request = Request { age, seed, light };
     run(species, request, &mut |_| {}, true, options).unwrap()
 }
 

@@ -223,11 +223,7 @@ impl Paused {
             ..self.request
         };
         let copy = self.g.settled_copy(at);
-        let grown = copy.settle(
-            request,
-            (true, self.keeps),
-            &mut |_| {},
-        )?;
+        let grown = copy.settle(request, (true, self.keeps), &mut |_| {})?;
         Ok(lineage_order(grown.structure))
     }
 
@@ -274,11 +270,9 @@ impl Paused {
             c.ended(&g.axes);
         }
         let mut clock = crate::clock::seconds();
-        let settled = g.settle(
-            request,
-            (true, keeps),
-            &mut |s: Stage| tick(&mut phases, &mut clock, s),
-        )?;
+        let settled = g.settle(request, (true, keeps), &mut |s: Stage| {
+            tick(&mut phases, &mut clock, s)
+        })?;
         if let Some(c) = taken.as_mut() {
             c.phases = phases;
             c.retired = retired;

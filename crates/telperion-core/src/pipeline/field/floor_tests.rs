@@ -134,7 +134,12 @@ fn cut_field(
 ) -> Grid {
     let system = systems(tree, limb_order);
     let by_position: HashMap<[u64; 3], usize> = (tree.nodes.iter().enumerate())
-        .map(|(i, n)| ([n.position.x, n.position.y, n.position.z].map(f64::to_bits), i))
+        .map(|(i, n)| {
+            (
+                [n.position.x, n.position.y, n.position.z].map(f64::to_bits),
+                i,
+            )
+        })
         .collect();
     let mut root = vec![usize::MAX; tree.nodes.len()];
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
@@ -215,11 +220,19 @@ fn measure(full: &[Occupancy], cut: &[Occupancy]) -> [f64; 5] {
             both += u64::from(f(a) && f(b));
             either += u64::from(f(a) || f(b));
         }
-        if either == 0 { 1.0 } else { both as f64 / either as f64 }
+        if either == 0 {
+            1.0
+        } else {
+            both as f64 / either as f64
+        }
     };
     let sum: f64 = full.iter().map(|c| c.leaves).sum();
     let got: f64 = cut.iter().map(|c| c.leaves).sum();
-    let diff: f64 = full.iter().zip(cut).map(|(a, b)| (a.leaves - b.leaves).abs()).sum();
+    let diff: f64 = full
+        .iter()
+        .zip(cut)
+        .map(|(a, b)| (a.leaves - b.leaves).abs())
+        .sum();
     let mut shared: HashMap<u32, HashMap<u32, u64>> = HashMap::new();
     for (a, b) in full.iter().zip(cut) {
         if let (Some(a), Some(b)) = (a.limb, b.limb) {
@@ -228,13 +241,22 @@ fn measure(full: &[Occupancy], cut: &[Occupancy]) -> [f64; 5] {
     }
     let name: HashMap<u32, u32> = shared
         .iter()
-        .map(|(b, m)| (*b, *m.iter().max_by_key(|(a, n)| (**n, std::cmp::Reverse(**a))).expect("a cell").0))
+        .map(|(b, m)| {
+            (
+                *b,
+                *m.iter()
+                    .max_by_key(|(a, n)| (**n, std::cmp::Reverse(**a)))
+                    .expect("a cell")
+                    .0,
+            )
+        })
         .collect();
     let (mut agree, mut held) = (0u64, 0u64);
     for (a, b) in full.iter().zip(cut) {
         if a.limb.is_some() || b.limb.is_some() {
             held += 1;
-            agree += u64::from(a.limb.is_some() && b.limb.and_then(|b| name.get(&b).copied()) == a.limb);
+            agree +=
+                u64::from(a.limb.is_some() && b.limb.and_then(|b| name.get(&b).copied()) == a.limb);
         }
     }
     [
@@ -242,7 +264,11 @@ fn measure(full: &[Occupancy], cut: &[Occupancy]) -> [f64; 5] {
         jaccard(|c| c.foliage),
         diff / sum.max(1e-12),
         got / sum.max(1e-12),
-        if held == 0 { 1.0 } else { agree as f64 / held as f64 },
+        if held == 0 {
+            1.0
+        } else {
+            agree as f64 / held as f64
+        },
     ]
 }
 
@@ -300,7 +326,10 @@ fn floor_field() {
     for seed in seeds.split(',').map(|s| s.parse::<u32>().expect("a seed")) {
         let f = oak(age, seed);
         let ask = Request {
-            field: Some(FieldRequest { n: 36, limb_order: None }),
+            field: Some(FieldRequest {
+                n: 36,
+                limb_order: None,
+            }),
             ..Request::default()
         };
         let built = pipeline::build(&f, ask).expect("the full tree");
@@ -343,12 +372,20 @@ fn floor_cost() {
     let mut last = None;
     for r in 0..repeats {
         let c = telperion_space::grow_census(species, request).expect("the tree");
-        println!("CYCLE age {age} seed {seed} repeat {r} seconds {:.4} light {:.4}", c.seconds, c.light_seconds);
+        println!(
+            "CYCLE age {age} seed {seed} repeat {r} seconds {:.4} light {:.4}",
+            c.seconds, c.light_seconds
+        );
         last = Some(c);
     }
     let c = last.expect("a repeat");
     let census = c.census.as_ref().expect("a census");
-    let kept: u64 = c.structure.axes.iter().map(|a| a.phytomers.len() as u64).sum();
+    let kept: u64 = c
+        .structure
+        .axes
+        .iter()
+        .map(|a| a.phytomers.len() as u64)
+        .sum();
     println!(
         "SHED age {age} seed {seed} kept {kept} grown {} share {:.4} axes {}",
         c.grown,
@@ -360,8 +397,16 @@ fn floor_cost() {
     for y in &census.cycles {
         let line: Vec<String> = y.by_order.iter().map(usize::to_string).collect();
         let short: Vec<String> = y.short_by_order.iter().map(usize::to_string).collect();
-        println!("LIVE age {age} seed {seed} year {} {} short {}", y.cycle, line.join(" "), short.join(" "));
-        y.by_order.iter().enumerate().for_each(|(o, n)| by_order[o] += *n as u64);
+        println!(
+            "LIVE age {age} seed {seed} year {} {} short {}",
+            y.cycle,
+            line.join(" "),
+            short.join(" ")
+        );
+        y.by_order
+            .iter()
+            .enumerate()
+            .for_each(|(o, n)| by_order[o] += *n as u64);
     }
     println!("APEX_CYCLES age {age} seed {seed} {by_order:?}");
     let axes = &c.structure.axes;
@@ -372,8 +417,9 @@ fn floor_cost() {
         for &y in &years {
             let mut runs: Vec<f64> = Vec::new();
             for r in 0..repeats {
-                let rep = telperion_space::floor::light_replay(species, &request.light, axes, (k, y))
-                    .expect("a replay");
+                let rep =
+                    telperion_space::floor::light_replay(species, &request.light, axes, (k, y))
+                        .expect("a replay");
                 // The protocol throws the first away as its warm-up.
                 if r > 0 {
                     runs.push(rep.seconds);
@@ -426,7 +472,10 @@ fn floor_subtree_cut() {
     for seed in seeds.split(',').map(|s| s.parse::<u32>().expect("a seed")) {
         let f = oak(age, seed);
         let ask = Request {
-            field: Some(FieldRequest { n: 36, limb_order: None }),
+            field: Some(FieldRequest {
+                n: 36,
+                limb_order: None,
+            }),
             ..Request::default()
         };
         let built = pipeline::build(&f, ask).expect("the full tree");
@@ -440,7 +489,12 @@ fn floor_subtree_cut() {
         for n in [10u64, 30, 100, 300, 1000, 3000] {
             let order: Vec<u32> = held.iter().map(|&h| u32::from(h < n)).collect();
             let limb_order = f.canopy.clump_system_order;
-            let grid = cut_field((tree, plan), full.frame, (0, Kernel::Gaussian), (&order, limb_order));
+            let grid = cut_field(
+                (tree, plan),
+                full.frame,
+                (0, Kernel::Gaussian),
+                (&order, limb_order),
+            );
             let m = measure(&full.cells, &grid.cells);
             let kept = order.iter().filter(|&&o| o == 0).count();
             println!(
