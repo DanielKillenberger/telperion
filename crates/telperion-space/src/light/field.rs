@@ -16,8 +16,14 @@ use crate::structure::Vec3;
 
 /// The position domain: every coordinate below 2^12 m.
 const REACH: f32 = 4096.0;
-/// The nodes a box holds.
-const NODES: u64 = 1 << 28;
+/// The nodes a box holds: the platform's limit, which the product passes
+/// wherever a lattice is spanned (`Grid::spanning`).
+pub(crate) const NODES: u64 = 1 << 28;
+/// The nodes the refusal's tests hold a small tree's lattice to: a box of
+/// 3 by 3 by 3 nodes, 1.5 m on a side, which the oak outgrows in its
+/// first years.
+#[cfg(test)]
+pub(crate) const SMALL: u64 = 3 * 3 * 3;
 /// The quantised deposit's unit of weighted leaf area: 2^-20 m².
 pub(crate) const QUANTUM: f64 = 1.0 / 1_048_576.0;
 
@@ -47,9 +53,9 @@ fn node(x: f32) -> (i32, f32) {
 impl Grid {
     /// The box holding every point's eight corners: from the least node to
     /// the greatest plus one on each axis; one node at the origin for none.
-    /// A box past 2^28 nodes is refused by name, before anything the size
-    /// of it is allocated.
-    pub(super) fn spanning(points: impl Iterator<Item = Vec3>) -> Result<Self> {
+    /// A box past `most` nodes (the product's `NODES`, 2^28) is refused by
+    /// name, before anything the size of it is allocated.
+    pub(super) fn spanning(points: impl Iterator<Item = Vec3>, most: u64) -> Result<Self> {
         let (mut low, mut high) = ([i32::MAX; 3], [i32::MIN; 3]);
         for p in points {
             let p = [p.x as f32, p.y as f32, p.z as f32];
@@ -65,7 +71,7 @@ impl Grid {
         }
         let size = [0, 1, 2].map(|a| (high[a] - low[a] + 1) as u32);
         let nodes: u64 = size.iter().map(|&s| u64::from(s)).product();
-        if nodes > NODES {
+        if nodes > most {
             return refuse("light.lattice", "a lattice spans at most 2^28 nodes");
         }
         Ok(Self { low, size })
@@ -128,7 +134,7 @@ impl Field {
         threads: usize,
     ) -> Self {
         let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
-        let mut field = Self::spanning(points).expect("a test lattice inside its nodes");
+        let mut field = Self::spanning(points, NODES).expect("a test lattice inside its nodes");
         field.deposit_all(leaves);
         field.sweep(light.extinction, &light.directions(), threads);
         field
@@ -136,15 +142,15 @@ impl Field {
 
     /// `on`, its leaves deposited as integer quanta of `QUANTUM` m² of
     /// weighted area, a u32 a node (COUNCIL.md's early test 2): the sum is
-    /// the same in any order. A node past
-    /// its u32 is refused by name, never wrapped.
+    /// the same in any order. A node past its u32 is refused by name,
+    /// never wrapped; a box past `most` nodes too (`Grid::spanning`).
     pub fn quantised(
         light: &super::Light,
         leaves: &[(Vec3, f64)],
         reads: &[Vec3],
-        threads: usize,
+        (threads, most): (usize, u64),
     ) -> Result<Self> {
-        Self::quantised_with(light, leaves, reads, threads).map(|q| q.0)
+        Self::quantised_with(light, leaves, reads, (threads, most)).map(|q| q.0)
     }
 
     /// `quantised`, with each node's quanta (fn-256's busy-cycle capture).
@@ -152,9 +158,10 @@ impl Field {
         light: &super::Light,
         leaves: &[(Vec3, f64)],
         reads: &[Vec3],
-        threads: usize,
+        (threads, most): (usize, u64),
     ) -> Result<(Self, Vec<u32>)> {
-        let mut field = Self::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()))?;
+        let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
+        let mut field = Self::spanning(points, most)?;
         let mut quanta = vec![0u32; field.grid.nodes()];
         for &(at, area) in leaves {
             let area = area as f32;
@@ -216,8 +223,8 @@ impl Field {
         f64::from(sum.clamp(0.0, 1.0))
     }
 
-    pub(super) fn spanning(points: impl Iterator<Item = Vec3>) -> Result<Self> {
-        let grid = Grid::spanning(points)?;
+    pub(super) fn spanning(points: impl Iterator<Item = Vec3>, most: u64) -> Result<Self> {
+        let grid = Grid::spanning(points, most)?;
         Ok(Self {
             grid,
             density: vec![0.0; grid.nodes()],

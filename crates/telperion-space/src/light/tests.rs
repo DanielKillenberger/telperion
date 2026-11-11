@@ -39,7 +39,7 @@ fn one(toward: Vec3) -> Vec<(Vec3, f64)> {
 
 fn field(leaves: &[(Vec3, f64)], reads: &[Vec3], directions: &[(Vec3, f64)]) -> Field {
     let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
-    let mut f = Field::spanning(points).expect("a test lattice inside its nodes");
+    let mut f = Field::spanning(points, super::field::NODES).expect("a test lattice inside its nodes");
     f.deposit_all(leaves);
     // The directions on four cores: each node sums them in their order.
     f.sweep(K, directions, 4);
@@ -283,16 +283,12 @@ fn a_shaded_sample_is_never_below_nothing() {
     }
 }
 
-/// fn-294 R6: a tree inside every parameter bound whose leaves and tips
-/// span more than 2^28 lattice nodes, every coordinate under 4096 m (the
-/// oak, every internode 5 m of the 100 allowed, grown 8 years), is refused
-/// by name before the lattice is allocated, never an assert.
+/// fn-294 R6: a tree whose leaves and tips span more lattice nodes than
+/// the lattice may hold is refused by name before the lattice is
+/// allocated, never an assert: the oak grown 8 years, its lattice held to
+/// `field::SMALL` nodes in place of the platform's 2^28 (fn-349).
 #[test]
 fn a_lattice_past_its_nodes_is_refused_by_name() {
-    let mut species = crate::oak();
-    for state in &mut species.states {
-        state.internode = 5.0;
-    }
     let request = crate::Request {
         age: 8,
         seed: 1,
@@ -301,9 +297,14 @@ fn a_lattice_past_its_nodes_is_refused_by_name() {
             sky: 0.5,
         },
     };
-    let refused = crate::grow(&species, request).unwrap_err();
+    let oak = std::sync::Arc::new(crate::oak());
+    let paused = crate::grow::cycle::Paused::begin(oak, request, AT_AGE, false);
+    let mut paused = paused.unwrap().lattice_within(super::field::SMALL);
+    let refused = paused.grow_to(request.age).unwrap_err();
     assert!(
         matches!(&refused, crate::Error::Refused { input, .. } if input == "light.lattice"),
         "{refused}"
     );
 }
+
+const AT_AGE: crate::grow::cycle::Retiring = crate::grow::cycle::Retiring::AtAge;

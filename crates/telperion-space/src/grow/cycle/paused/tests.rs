@@ -212,23 +212,22 @@ fn a_request_the_grower_cannot_meet_is_refused() {
 }
 
 /// R2b: a cycle that fails (here a lattice past its nodes, as
-/// `a_lattice_past_its_nodes_is_refused_by_name` grows it) spends the
+/// `a_lattice_past_its_nodes_is_refused_by_name` holds it) spends the
 /// grower; every later growth and draw is refused by name, and a tree
 /// drawn before stays whole.
 #[test]
 fn a_growth_that_failed_is_spent() {
-    let mut species = crate::oak();
-    for state in &mut species.states {
-        state.internode = 5.0;
-    }
+    let species = crate::oak();
     let r = request(8, 1, 0.5);
-    let mut p = Paused::begin(
+    let small = crate::light::field::SMALL;
+    let begun = Paused::begin(
         std::sync::Arc::new(species.clone()),
         r,
         Retiring::AtAge,
         false,
     )
     .unwrap();
+    let mut p = begun.lattice_within(small);
     let mut last = None;
     let failed = (1..=r.age).find_map(|y| match p.grow_to(y) {
         Ok(()) => {

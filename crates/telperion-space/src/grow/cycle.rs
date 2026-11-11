@@ -78,7 +78,7 @@ impl Grower {
     pub(super) fn read_light(&mut self, tips: &[Vec3]) -> Result<Vec<f64>> {
         let started = crate::clock::seconds();
         let light = self.sketch.as_ref().expect("sketching").light;
-        let field = Field::quantised(&light, &self.leaves, tips, self.threads)?;
+        let field = Field::quantised(&light, &self.leaves, tips, (self.threads, self.lattice))?;
         let mut read = vec![0.0; tips.len()];
         crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at(tips[k]));
         self.light_seconds += crate::clock::seconds() - started;

@@ -125,7 +125,7 @@ pub fn light_replay(
         }
     }
     let started = crate::clock::seconds();
-    let field = Field::quantised(light, &leaves, &tips, 1)?;
+    let field = Field::quantised(light, &leaves, &tips, (1, crate::light::field::NODES))?;
     let read: f64 = tips.iter().map(|t| field.at(*t)).sum();
     let seconds = crate::clock::seconds() - started;
     assert!(read.is_finite(), "the replay's light is a number");

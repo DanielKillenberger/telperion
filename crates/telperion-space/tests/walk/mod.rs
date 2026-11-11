@@ -776,9 +776,8 @@ pub fn leafy(s: &mut Species) {
     for pa in [1, 2] {
         s.states[pa].shade_hazard = 1.0;
         s.states[pa].shade_size = 0.5;
-        // The top of the span real trees stand in, a potential height of
-        // 10 m, so the balance acts on a walk tree a few metres tall.
-        s.states[pa].inverse_height = 0.1;
+        // The oak's own potential height, 34.8 m (fn-349).
+        s.states[pa].inverse_height = 1.0 / 34.8;
         s.states[pa].balance_hazard = 1.0;
     }
 }

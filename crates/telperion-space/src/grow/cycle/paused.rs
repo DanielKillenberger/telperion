@@ -125,6 +125,14 @@ impl Paused {
         })
     }
 
+    /// The grower with its light's lattice refused past `most` nodes, not
+    /// the platform's: the tests that hold the refusal on a small tree.
+    #[cfg(test)]
+    pub(crate) fn lattice_within(mut self, most: u64) -> Self {
+        self.g.lattice = most;
+        self
+    }
+
     /// The grower keeping the tree drawn a year before the age grown, so
     /// it can be drawn within its last year (`settle_at`).
     pub fn presenting(mut self) -> Self {
@@ -339,6 +347,7 @@ impl Grower {
             spare: Default::default(),
             one: self.one,
             light_seconds: self.light_seconds,
+            lattice: self.lattice,
             jobs: [0; 2],
             census: None,
             working: self.working.as_ref().map(|w| Box::new(w.settled_copy())),

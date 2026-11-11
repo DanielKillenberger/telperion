@@ -271,6 +271,10 @@ struct Grower {
     /// the seconds the light took, and its census.
     one: bool,
     light_seconds: f64,
+    /// The most nodes its light's lattice may span: the platform's
+    /// `light::field::NODES`, and a small one in the tests that hold the
+    /// refusal.
+    lattice: u64,
     /// The most units one living apex's job and one waking bud's grew in
     /// the cycle (`Shoot::jobs`), which the census takes.
     jobs: [u32; 2],
@@ -324,6 +328,7 @@ impl Grower {
             spare: Default::default(),
             one: false,
             light_seconds: 0.0,
+            lattice: crate::light::field::NODES,
             jobs: [0; 2],
             census: None,
             working: None,
