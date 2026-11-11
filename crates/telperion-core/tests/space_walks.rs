@@ -33,7 +33,7 @@ fn species(family: &Family) -> &Species {
 fn neutral(species: &Species) -> Species {
     let mut neutral = species.clone();
     for s in &mut neutral.states {
-        (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+        (s.shade_hazard, s.shade_size, s.balance_hazard) = (0.0, 0.0, 0.0);
     }
     neutral
 }

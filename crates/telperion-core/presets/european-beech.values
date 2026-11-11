@@ -328,13 +328,18 @@
 # beech's portrait; a lower bound, fn-345).
 /space/ages/2/inverseHeight = 0.025
 /space/ages/2/balanceHazard = 0.33846153846153876
-/space/ages/2/leafGirth = 1.0
 /space/ages/2/form/tropism = 0.6
 /space/ages/2/form/elevation = 1.4
 /space/ages/2/form/wander = 0.2
 /space/ages/2/form/plane = 1.5707963267948966
-/space/ages/2/form/pipe = 0.008
-/space/ages/2/form/exponent = 2.6
+/space/ages/2/form/primary = 0.008
+# The wood (fn-354): sapwood 1 / 0.331 cm² per m² of leaf, from 0.331 m² of
+# leaf per cm² of sapwood over 38 beeches of 8 to 59 years (Bartelink 1997,
+# Ann. Sci. For. 54: 39-50); sapwood rings 50, estimated as the middle of
+# the 25 to 73 conducting rings of Gebauer, Horna and Leuschner (2008, Tree
+# Physiol. 28: 1821-1830).
+/space/ages/2/form/sapwood = 3.021148036253776
+/space/ages/2/form/sapwoodRings = 50.0
 /space/ages/2/zones/0/buds = 1.0
 /space/ages/2/zones/0/nodes/min = 3.0
 /space/ages/2/zones/0/nodes/max = 4.0
@@ -368,14 +373,13 @@
 /space/ages/4/shadeHazard = 0.16923076923076938
 /space/ages/4/inverseHeight = 0.025
 /space/ages/4/balanceHazard = 0.33846153846153876
-/space/ages/4/leafGirth = 1.0
 /space/ages/4/form/tropism = 0.6
 /space/ages/4/form/elevation = 1.35
 /space/ages/4/form/wander = 1.2
-/space/ages/4/form/pipe = 0.008
-/space/ages/4/form/exponent = 2.6
-/space/ages/4/form/ripening = 15.0
+/space/ages/4/form/primary = 0.008
 /space/ages/4/form/roll = 1.2
+/space/ages/4/form/sapwood = 3.021148036253776
+/space/ages/4/form/sapwoodRings = 50.0
 /space/ages/4/zones/0/buds = 1.0
 /space/ages/4/zones/0/nodes/min = 2.0
 /space/ages/4/zones/0/nodes/max = 3.0
@@ -404,13 +408,13 @@
 /space/ages/5/shadeHazard = 0.16923076923076938
 /space/ages/5/inverseHeight = 0.025
 /space/ages/5/balanceHazard = 0.33846153846153876
-/space/ages/5/leafGirth = 1.0
 /space/ages/5/form/tropism = 0.3
 /space/ages/5/form/elevation = 1.5707963267948966
 /space/ages/5/form/wander = 0.2
 /space/ages/5/form/plane = 1.5707963267948966
-/space/ages/5/form/pipe = 0.008
-/space/ages/5/form/exponent = 2.6
+/space/ages/5/form/primary = 0.008
+/space/ages/5/form/sapwood = 3.021148036253776
+/space/ages/5/form/sapwoodRings = 50.0
 /space/ages/5/zones/0/buds = 1.0
 /space/ages/5/zones/0/nodes/min = 2.0
 /space/ages/5/zones/0/nodes/max = 3.0
@@ -447,14 +451,13 @@
 /space/ages/6/shadeHazard = 0.16923076923076938
 /space/ages/6/inverseHeight = 0.025
 /space/ages/6/balanceHazard = 0.33846153846153876
-/space/ages/6/leafGirth = 1.0
 /space/ages/6/form/tropism = 0.6
 /space/ages/6/form/elevation = 0.3
 /space/ages/6/form/wander = 1.2
-/space/ages/6/form/pipe = 0.008
-/space/ages/6/form/exponent = 2.6
-/space/ages/6/form/ripening = 15.0
+/space/ages/6/form/primary = 0.008
 /space/ages/6/form/roll = 1.2
+/space/ages/6/form/sapwood = 3.021148036253776
+/space/ages/6/form/sapwoodRings = 50.0
 /space/ages/6/zones/0/buds = 1.0
 /space/ages/6/zones/0/nodes/min = 2.0
 /space/ages/6/zones/0/nodes/max = 3.0
@@ -491,14 +494,13 @@
 /space/ages/7/shadeHazard = 0.16923076923076938
 /space/ages/7/inverseHeight = 0.025
 /space/ages/7/balanceHazard = 0.33846153846153876
-/space/ages/7/leafGirth = 1.0
 /space/ages/7/form/tropism = 0.6
 /space/ages/7/form/elevation = 0.2
 /space/ages/7/form/wander = 1.2
-/space/ages/7/form/pipe = 0.008
-/space/ages/7/form/exponent = 2.6
-/space/ages/7/form/ripening = 15.0
+/space/ages/7/form/primary = 0.008
 /space/ages/7/form/roll = 1.2
+/space/ages/7/form/sapwood = 3.021148036253776
+/space/ages/7/form/sapwoodRings = 50.0
 /space/ages/7/zones/0/buds = 1.0
 /space/ages/7/zones/0/nodes/min = 2.0
 /space/ages/7/zones/0/nodes/max = 3.0
@@ -528,14 +530,13 @@
 /space/ages/8/shadeHazard = 0.16923076923076938
 /space/ages/8/inverseHeight = 0.025
 /space/ages/8/balanceHazard = 0.33846153846153876
-/space/ages/8/leafGirth = 1.0
 /space/ages/8/form/tropism = 0.25
 /space/ages/8/form/elevation = 0.6
 /space/ages/8/form/wander = 1.2
-/space/ages/8/form/pipe = 0.008
-/space/ages/8/form/exponent = 2.6
-/space/ages/8/form/ripening = 15.0
+/space/ages/8/form/primary = 0.008
 /space/ages/8/form/roll = 1.2
+/space/ages/8/form/sapwood = 3.021148036253776
+/space/ages/8/form/sapwoodRings = 50.0
 /space/ages/8/zones/0/buds = 1.0
 /space/ages/8/zones/0/nodes/min = 2.0
 /space/ages/8/zones/0/nodes/max = 3.0
@@ -565,12 +566,13 @@
 /space/ages/9/shadeHazard = 0.16923076923076938
 /space/ages/9/inverseHeight = 0.025
 /space/ages/9/balanceHazard = 0.33846153846153876
-/space/ages/9/leafGirth = 1.0
 /space/ages/9/form/tropism = 0.8
 /space/ages/9/form/elevation = 0.35
 /space/ages/9/form/wander = 0.5
-/space/ages/9/form/pipe = 0.0009
+/space/ages/9/form/primary = 0.0009
 /space/ages/9/form/roll = 1.2
+/space/ages/9/form/sapwood = 3.021148036253776
+/space/ages/9/form/sapwoodRings = 50.0
 /space/ages/9/zones/0/buds = 1.0
 /space/ages/9/zones/0/nodes/min = 1.0
 /space/ages/9/zones/0/nodes/max = 2.0
@@ -604,11 +606,12 @@
 /space/ages/12/shadeHazard = 0.16923076923076938
 /space/ages/12/inverseHeight = 0.025
 /space/ages/12/balanceHazard = 0.33846153846153876
-/space/ages/12/leafGirth = 1.0
 /space/ages/12/form/tropism = 1.0
 /space/ages/12/form/elevation = 0.15
 /space/ages/12/form/wander = 1.0
-/space/ages/12/form/pipe = 0.0009
+/space/ages/12/form/primary = 0.0009
+/space/ages/12/form/sapwood = 3.021148036253776
+/space/ages/12/form/sapwoodRings = 50.0
 /space/ages/12/zones/0/buds = 1.0
 /space/ages/12/zones/0/nodes/min = 1.0
 /space/ages/12/zones/0/nodes/max = 1.0
@@ -636,8 +639,9 @@
 /space/ages/14/shadeHazard = 0.16923076923076938
 /space/ages/14/inverseHeight = 0.025
 /space/ages/14/balanceHazard = 0.33846153846153876
-/space/ages/14/leafGirth = 1.0
-/space/ages/14/form/pipe = 0.00095
+/space/ages/14/form/primary = 0.00095
+/space/ages/14/form/sapwood = 3.021148036253776
+/space/ages/14/form/sapwoodRings = 50.0
 /space/ages/14/zones/0/buds = 1.0
 /space/ages/14/zones/0/nodes/min = 3.0
 /space/ages/14/zones/0/nodes/max = 5.0

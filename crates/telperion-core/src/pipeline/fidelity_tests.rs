@@ -198,8 +198,8 @@ fn list<T: std::str::FromStr>(name: &str) -> Vec<T> {
         .collect()
 }
 
-/// One line per row of `SEARCH_FILE`, `first factor leaf pipe bud hazard
-/// shedding fidelity`, for `SEARCH_PRESET` on `SEARCH_SEEDS`, at `SEARCH_AGE`
+/// One line per row of `SEARCH_FILE`, `first factor leaf bud hazard shedding
+/// fidelity`, for `SEARCH_PRESET` on `SEARCH_SEEDS`, at `SEARCH_AGE`
 /// or the preset's own: each statistic over the same seeds' full cycle.
 #[test]
 #[ignore = "a measurement: fn-326 R5, and the search for a preset's rows"]
@@ -230,20 +230,19 @@ fn fidelity_rows() {
             first: v[0],
             factor: v[1],
             leaf: v[2],
-            pipe: v[3],
-            bud: v[4],
-            hazard: v[5],
-            shedding: v[6],
+            bud: v[3],
+            hazard: v[4],
+            shedding: v[5],
         };
-        let Some(m) = medians(&at(v[7], Some(c)), repeats) else {
+        let Some(m) = medians(&at(v[6], Some(c)), repeats) else {
             println!("FAILED {row}");
             continue;
         };
         let q: [f64; 6] = std::array::from_fn(|k| m[k] / reference[k]);
         let worst = q.iter().map(|x| (x - 1.0).abs()).fold(0.0, f64::max);
         println!(
-            "CAND age {age} first {} factor {} leaf {} pipe {} bud {} hazard {} shedding {} fidelity {} height {:.3} spread {:.3} trunk {:.3} limbs {:.3} shed {:.3} area {:.3} worst {worst:.3} seconds {:.4} axes {:.0} apexes {:.0}",
-            c.first, c.factor, c.leaf, c.pipe, c.bud, c.hazard, c.shedding, v[7], q[0], q[1], q[2], q[3], q[4], q[5], m[6], m[7], m[8]
+            "CAND age {age} first {} factor {} leaf {} bud {} hazard {} shedding {} fidelity {} height {:.3} spread {:.3} trunk {:.3} limbs {:.3} shed {:.3} area {:.3} worst {worst:.3} seconds {:.4} axes {:.0} apexes {:.0}",
+            c.first, c.factor, c.leaf, c.bud, c.hazard, c.shedding, v[6], q[0], q[1], q[2], q[3], q[4], q[5], m[6], m[7], m[8]
         );
     }
 }

@@ -94,8 +94,8 @@ fn a_tree_grows_the_same_without_what_it_is_certain_to_shed() {
     }
 }
 
-/// Where something reads a lateral while it lives, the oak's girth here,
-/// nothing is decided before growth.
+/// Where something reads a lateral while it lives, the wood its leaf lays
+/// in the oak's bearers here, nothing is decided before growth.
 #[test]
 fn nothing_is_skipped_where_shed_wood_is_read() {
     let tree = grown(&oak(), 20, 1, Certain::Mark);

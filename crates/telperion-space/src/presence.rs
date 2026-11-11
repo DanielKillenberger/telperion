@@ -170,9 +170,8 @@ pub(crate) struct Draws {
     /// How much a living apex lives on (`Grower::living`).
     pub living: f64,
     /// Per growth unit, where light shades: its phytomers' size from its
-    /// bud's vigour (`allocation.rs`) and the light its bud grew in, whole
-    /// where nothing reads it; empty where nothing shades.
-    pub shade: Vec<[f64; 2]>,
+    /// bud's vigour (`allocation.rs`); empty where nothing shades.
+    pub shade: Vec<f64>,
     /// The apex stopped by failing to survive a growth unit.
     pub failed: bool,
     /// A relay of an age that ended or of a unit that failed
@@ -237,9 +236,9 @@ impl Draws {
         self.units.iter().map(|u| u.share).sum::<f64>()
     }
 
-    /// Growth unit `k`'s size and light, whole where nothing shades.
-    pub fn shade(&self, k: usize) -> [f64; 2] {
-        self.shade.get(k).copied().unwrap_or([1.0; 2])
+    /// Growth unit `k`'s size, whole where nothing shades.
+    pub fn shade(&self, k: usize) -> f64 {
+        self.shade.get(k).copied().unwrap_or(1.0)
     }
 
     /// The share of the cycle its age ended at, where it ended there and
@@ -336,14 +335,6 @@ pub(crate) fn relay_node(p: &Axis, draws: &Draws, share: f64) -> usize {
     crate::contract::decide::relay_node(&presences, first, n, share)
 }
 
-/// Axis `axis` assigned alone from its draws, as `assign` assigns it:
-/// its phytomers' scales, sizes and lights, and its end's presence.
-pub(crate) fn assigned(axis: &Axis, draws: &Draws) -> (Axis, f64) {
-    let mut a = axis.clone();
-    let end = assign_one(&mut a, draws, None);
-    (a, end)
-}
-
 /// Assigns one axis's presences from its draws: its end's presence.
 /// Every presence a fade reads is an f32, each product taken in turn (host
 /// decision 8); the ranks stay real, which geometry alone reads.
@@ -357,13 +348,12 @@ fn assign_one(axis: &mut Axis, draws: &Draws, living: Option<f64>) -> f64 {
         running = times(running, q(unit.survive));
         let grown = q(unit.share);
         presences.push(real(times(running, grown)));
-        let [size, light] = draws.shade(k);
+        let size = draws.shade(k);
         while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
             let laid = q(unit.size);
             axis.phytomers[j].scale = real(times(times(running, q(draws.nodes[j])), laid));
             axis.phytomers[j].grown = axis.phytomers[j].scale;
             axis.phytomers[j].size = size;
-            axis.phytomers[j].light = light;
             axis.phytomers[j].rank = rank;
             rank += draws.nodes[j] * unit.size;
             j += 1;

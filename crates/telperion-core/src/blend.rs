@@ -183,7 +183,6 @@ fn space(a: &Space, b: &Space, t: f64, age: u32) -> Result<Space> {
         },
         factor: walk(p.factor, q.factor),
         leaf: walk(p.leaf, q.leaf),
-        pipe: walk(p.pipe, q.pipe),
         bud: walk(p.bud, q.bud),
         hazard: walk(p.hazard, q.hazard),
         shedding: walk(p.shedding, q.shedding),

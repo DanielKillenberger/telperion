@@ -325,13 +325,16 @@
 # fn-345).
 /space/ages/2/inverseHeight = 0.025
 /space/ages/2/balanceHazard = 0.33846153846153876
-/space/ages/2/leafGirth = 1.0
 /space/ages/2/form/tropism = 0.6
 /space/ages/2/form/elevation = 1.4
 /space/ages/2/form/wander = 0.2
 /space/ages/2/form/plane = 1.5707963267948966
-/space/ages/2/form/pipe = 0.008
-/space/ages/2/form/exponent = 2.6
+/space/ages/2/form/primary = 0.008
+# The wood (fn-354): the beech's, its recorded base species: sapwood
+# 1 / 0.331 cm² per m² of leaf (Bartelink 1997) and sapwood rings 50
+# (estimated, Gebauer et al. 2008's 25 to 73).
+/space/ages/2/form/sapwood = 3.021148036253776
+/space/ages/2/form/sapwoodRings = 50.0
 /space/ages/2/zones/0/buds = 1.0
 /space/ages/2/zones/0/nodes/min = 3.0
 /space/ages/2/zones/0/nodes/max = 4.0
@@ -365,14 +368,13 @@
 /space/ages/4/shadeHazard = 0.16923076923076938
 /space/ages/4/inverseHeight = 0.025
 /space/ages/4/balanceHazard = 0.33846153846153876
-/space/ages/4/leafGirth = 1.0
 /space/ages/4/form/tropism = 0.6
 /space/ages/4/form/elevation = 1.35
 /space/ages/4/form/wander = 1.2
-/space/ages/4/form/pipe = 0.008
-/space/ages/4/form/exponent = 2.6
-/space/ages/4/form/ripening = 15.0
+/space/ages/4/form/primary = 0.008
 /space/ages/4/form/roll = 1.2
+/space/ages/4/form/sapwood = 3.021148036253776
+/space/ages/4/form/sapwoodRings = 50.0
 /space/ages/4/zones/0/buds = 1.0
 /space/ages/4/zones/0/nodes/min = 2.0
 /space/ages/4/zones/0/nodes/max = 3.0
@@ -401,13 +403,13 @@
 /space/ages/5/shadeHazard = 0.16923076923076938
 /space/ages/5/inverseHeight = 0.025
 /space/ages/5/balanceHazard = 0.33846153846153876
-/space/ages/5/leafGirth = 1.0
 /space/ages/5/form/tropism = 0.3
 /space/ages/5/form/elevation = 1.5707963267948966
 /space/ages/5/form/wander = 0.2
 /space/ages/5/form/plane = 1.5707963267948966
-/space/ages/5/form/pipe = 0.008
-/space/ages/5/form/exponent = 2.6
+/space/ages/5/form/primary = 0.008
+/space/ages/5/form/sapwood = 3.021148036253776
+/space/ages/5/form/sapwoodRings = 50.0
 /space/ages/5/zones/0/buds = 1.0
 /space/ages/5/zones/0/nodes/min = 2.0
 /space/ages/5/zones/0/nodes/max = 3.0
@@ -444,14 +446,13 @@
 /space/ages/6/shadeHazard = 0.16923076923076938
 /space/ages/6/inverseHeight = 0.025
 /space/ages/6/balanceHazard = 0.33846153846153876
-/space/ages/6/leafGirth = 1.0
 /space/ages/6/form/tropism = 0.6
 /space/ages/6/form/elevation = 0.3
 /space/ages/6/form/wander = 1.2
-/space/ages/6/form/pipe = 0.008
-/space/ages/6/form/exponent = 2.6
-/space/ages/6/form/ripening = 15.0
+/space/ages/6/form/primary = 0.008
 /space/ages/6/form/roll = 1.2
+/space/ages/6/form/sapwood = 3.021148036253776
+/space/ages/6/form/sapwoodRings = 50.0
 /space/ages/6/zones/0/buds = 1.0
 /space/ages/6/zones/0/nodes/min = 2.0
 /space/ages/6/zones/0/nodes/max = 3.0
@@ -488,14 +489,13 @@
 /space/ages/7/shadeHazard = 0.16923076923076938
 /space/ages/7/inverseHeight = 0.025
 /space/ages/7/balanceHazard = 0.33846153846153876
-/space/ages/7/leafGirth = 1.0
 /space/ages/7/form/tropism = 0.6
 /space/ages/7/form/elevation = 0.2
 /space/ages/7/form/wander = 1.2
-/space/ages/7/form/pipe = 0.008
-/space/ages/7/form/exponent = 2.6
-/space/ages/7/form/ripening = 15.0
+/space/ages/7/form/primary = 0.008
 /space/ages/7/form/roll = 1.2
+/space/ages/7/form/sapwood = 3.021148036253776
+/space/ages/7/form/sapwoodRings = 50.0
 /space/ages/7/zones/0/buds = 1.0
 /space/ages/7/zones/0/nodes/min = 2.0
 /space/ages/7/zones/0/nodes/max = 3.0
@@ -525,14 +525,13 @@
 /space/ages/8/shadeHazard = 0.16923076923076938
 /space/ages/8/inverseHeight = 0.025
 /space/ages/8/balanceHazard = 0.33846153846153876
-/space/ages/8/leafGirth = 1.0
 /space/ages/8/form/tropism = 0.25
 /space/ages/8/form/elevation = 0.6
 /space/ages/8/form/wander = 1.2
-/space/ages/8/form/pipe = 0.008
-/space/ages/8/form/exponent = 2.6
-/space/ages/8/form/ripening = 15.0
+/space/ages/8/form/primary = 0.008
 /space/ages/8/form/roll = 1.2
+/space/ages/8/form/sapwood = 3.021148036253776
+/space/ages/8/form/sapwoodRings = 50.0
 /space/ages/8/zones/0/buds = 1.0
 /space/ages/8/zones/0/nodes/min = 2.0
 /space/ages/8/zones/0/nodes/max = 3.0
@@ -562,12 +561,13 @@
 /space/ages/9/shadeHazard = 0.16923076923076938
 /space/ages/9/inverseHeight = 0.025
 /space/ages/9/balanceHazard = 0.33846153846153876
-/space/ages/9/leafGirth = 1.0
 /space/ages/9/form/tropism = 0.8
 /space/ages/9/form/elevation = 0.35
 /space/ages/9/form/wander = 0.5
-/space/ages/9/form/pipe = 0.0009
+/space/ages/9/form/primary = 0.0009
 /space/ages/9/form/roll = 1.2
+/space/ages/9/form/sapwood = 3.021148036253776
+/space/ages/9/form/sapwoodRings = 50.0
 /space/ages/9/zones/0/buds = 1.0
 /space/ages/9/zones/0/nodes/min = 1.0
 /space/ages/9/zones/0/nodes/max = 2.0
@@ -601,11 +601,12 @@
 /space/ages/12/shadeHazard = 0.16923076923076938
 /space/ages/12/inverseHeight = 0.025
 /space/ages/12/balanceHazard = 0.33846153846153876
-/space/ages/12/leafGirth = 1.0
 /space/ages/12/form/tropism = 1.0
 /space/ages/12/form/elevation = 0.15
 /space/ages/12/form/wander = 1.0
-/space/ages/12/form/pipe = 0.0009
+/space/ages/12/form/primary = 0.0009
+/space/ages/12/form/sapwood = 3.021148036253776
+/space/ages/12/form/sapwoodRings = 50.0
 /space/ages/12/zones/0/buds = 1.0
 /space/ages/12/zones/0/nodes/min = 1.0
 /space/ages/12/zones/0/nodes/max = 1.0
@@ -633,8 +634,9 @@
 /space/ages/14/shadeHazard = 0.16923076923076938
 /space/ages/14/inverseHeight = 0.025
 /space/ages/14/balanceHazard = 0.33846153846153876
-/space/ages/14/leafGirth = 1.0
-/space/ages/14/form/pipe = 0.00095
+/space/ages/14/form/primary = 0.00095
+/space/ages/14/form/sapwood = 3.021148036253776
+/space/ages/14/form/sapwoodRings = 50.0
 /space/ages/14/zones/0/buds = 1.0
 /space/ages/14/zones/0/nodes/min = 3.0
 /space/ages/14/zones/0/nodes/max = 5.0
@@ -649,24 +651,24 @@
 
 # Broad and nearly as tall as Telperion (fn-248): the beech's coarse ages
 # (stem, leader, fork, limbs, boughs, spurs) grow internodes 2.6 times and
-# pipes 3.4 times the natural ones, while the fine ages (branch systems,
+# primary radii 3.4 times the natural ones, while the fine ages (branch systems,
 # shoots, short shoots) stay the beech's. The engine computes attachment
 # and girth, so her shoots and the wood under her leaves are the beech's
 # own, at 45 m tall and 44 m across, as the old uniform scale of 2.5 drew
 # her. Her natural internodes: 0.07 m on the stem, 0.04 on the others;
-# pipes 0.008.
+# primary radii 0.008.
 /supernatural/internode/age2 = 0.182
 /supernatural/internode/age4 = 0.104
 /supernatural/internode/age5 = 0.104
 /supernatural/internode/age6 = 0.104
 /supernatural/internode/age7 = 0.104
 /supernatural/internode/age8 = 0.104
-/supernatural/pipe/age2 = 0.0272
-/supernatural/pipe/age4 = 0.0272
-/supernatural/pipe/age5 = 0.0272
-/supernatural/pipe/age6 = 0.0272
-/supernatural/pipe/age7 = 0.0272
-/supernatural/pipe/age8 = 0.0272
+/supernatural/primary/age2 = 0.0272
+/supernatural/primary/age4 = 0.0272
+/supernatural/primary/age5 = 0.0272
+/supernatural/primary/age6 = 0.0272
+/supernatural/primary/age7 = 0.0272
+/supernatural/primary/age8 = 0.0272
 # Leaves larger than the beech's (fn-248): her crown is about 2.5 times
 # as wide on the beech's own fine wood and twigs, so leaves 2.4 times the
 # element (the beech's 1.1) bring the crown's leaf area index to 6.2, in the

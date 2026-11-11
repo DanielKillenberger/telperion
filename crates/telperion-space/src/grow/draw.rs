@@ -351,7 +351,7 @@ pub(super) fn draw_bent(
         // The share of a node's length its nodes grew at (`Unit::size`).
         let grown = drawn.size as f32;
         let present = pencil.running as f32 * drawn.survive as f32;
-        let [size, _] = draws.shade(k);
+        let size = draws.shade(k);
         let birth = axis.birth;
         let unit = |p: &crate::structure::Phytomer| (p.cycle - birth - 1) as usize == k;
         let end = pencil.laid

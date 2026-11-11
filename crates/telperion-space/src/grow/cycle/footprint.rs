@@ -129,7 +129,6 @@ impl Retirement {
     /// What it holds.
     pub(super) fn footprint(&self, f: &mut Footprint) {
         f.vec("retire.fate", &self.fate);
-        f.vec("retire.frozen", &self.frozen);
         f.vec("retire.woken", &self.woken);
         f.vec("retire.pending", &self.pending);
         f.vec("retire.fading", &self.fading);

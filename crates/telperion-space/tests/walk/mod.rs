@@ -117,8 +117,6 @@ pub fn species() -> Species {
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -161,8 +159,6 @@ pub fn species() -> Species {
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
         straightening: 0.3,
         form: Form::default(),
     };
@@ -209,8 +205,6 @@ pub fn species() -> Species {
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -376,7 +370,7 @@ pub fn settings() -> Vec<Setting> {
         // Sag over a range from none to limbs bowed to the ground; the
         // trunk only leans under its crown.
         let sag = [2e-4, 1e-4, 3e-4][pa];
-        let form: [(&str, f64, f64, bool, Set); 16] = [
+        let form: [(&str, f64, f64, bool, Set); 13] = [
             ("abortion_rise", 0.0, 3.0, false, |s, pa, v| {
                 s.states[pa].abortion_rise = v
             }),
@@ -408,20 +402,11 @@ pub fn settings() -> Vec<Setting> {
             ("form.dominance", 0.0, 1.0, false, |s, pa, v| {
                 s.states[pa].form.dominance = v
             }),
-            ("form.ripening", 0.0, 20.0, false, |s, pa, v| {
-                s.states[pa].form.ripening = v
-            }),
-            ("form.exponent", 2.0, 3.0, false, |s, pa, v| {
-                s.states[pa].form.exponent = v
-            }),
             ("form.roll", 0.0, std::f64::consts::PI, false, |s, pa, v| {
                 s.states[pa].form.roll = v
             }),
             ("form.sag", 0.0, sag, false, |s, pa, v| {
                 s.states[pa].form.sag = v
-            }),
-            ("form.secondary", 0.0, 1.0, false, |s, pa, v| {
-                s.states[pa].form.secondary = v
             }),
             // fn-222: each internode's length varied node to node.
             ("form.internode_spread", 0.0, 1.0, false, |s, pa, v| {
@@ -515,21 +500,6 @@ pub fn settings() -> Vec<Setting> {
             trunk.insertion = 0.3;
             trunk.straightening = 1.0;
             trunk.abortion = v;
-        },
-    ));
-    // Girth moves the shape only where wood bends under its load: secondary
-    // growth walked on sagging limbs, from wood that keeps its established
-    // width to the pipe model's (fn-205 R3). The sag is light enough that
-    // no limb comes down onto the ground across the walk, where landing
-    // turns a limb steeply but continuously (fn-206).
-    all.push(setting(
-        "states[1].form.secondary, sag 3e-5".into(),
-        0.0,
-        1.0,
-        false,
-        |s, v| {
-            s.states[1].form.sag = 3e-5;
-            s.states[1].form.secondary = v;
         },
     ));
     // fn-206: each age's lifespan between whole cycles, its last unit
@@ -849,16 +819,6 @@ pub fn light_settings() -> Vec<Setting> {
         }),
         shaded("states[2].tolerance", -0.5, 0.5, |s, v| {
             s.states[2].tolerance = v
-        }),
-        // Girth moves the tree's shape only through sag, so these two are
-        // walked with the limbs sagging.
-        shaded("states[2].retained, limbs sag", 0.0, 1.0, |s, v| {
-            s.states[1].form.sag = 1e-4;
-            s.states[2].retained = v
-        }),
-        shaded("states[1].leaf_girth, limbs sag", 0.0, 2.0, |s, v| {
-            s.states[1].form.sag = 1e-4;
-            s.states[1].leaf_girth = v
         }),
         shaded("leaf_area", 0.0, 0.6, |s, v| {
             s.states.iter_mut().for_each(|st| st.leaf_area = v)

@@ -9,6 +9,24 @@ use crate::chain::{self, on_chain};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::{FRAC_PI_2, PI};
 
+/// The sapwood a unit of leaf needs, cm² per m²: the reciprocal of 0.331 m²
+/// of leaf per cm² of sapwood over 38 beeches of 8 to 59 years
+/// (Bartelink 1997, Ann. Sci. For. 54: 39-50).
+const SAPWOOD: f64 = 1.0 / 0.331;
+/// The years wood stays sapwood: 50, estimated as the middle of the 25 to
+/// 73 conducting rings Gebauer, Horna and Leuschner found (2008, Tree
+/// Physiol. 28: 1821-1830).
+const SAPWOOD_RINGS: f64 = 50.0;
+/// The wood every age lays: the sapwood its leaf needs and how long it
+/// stays sapwood, alike at every age.
+fn wood() -> Form {
+    Form {
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
+        ..Form::default()
+    }
+}
+
 /// The beech's ages on the shared reference axis (`chain.rs`), youngest
 /// first: its spur stands at the chain's sprig, its fork at the top fork.
 const TRUNK: usize = chain::TRUNK;
@@ -96,10 +114,8 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         inverse_height: 1.0 / 40.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
         straightening: 0.0,
-        form: Form::default(),
+        form: wood(),
     }
 }
 
@@ -142,13 +158,12 @@ pub fn beech() -> Species {
             elevation: 1.4,
             wander: 0.2,
             plane: FRAC_PI_2,
-            pipe: 0.008,
-            exponent: 2.6,
-            ripening: 0.0,
+            primary: 0.008,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.0,
             sag: 0.0,
-            secondary: 1.0,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
@@ -194,13 +209,12 @@ pub fn beech() -> Species {
             elevation,
             wander: 1.2,
             plane: 0.0,
-            pipe: 0.008,
-            exponent: 2.6,
-            ripening: 15.0,
+            primary: 0.008,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 1.2,
             sag: 0.0,
-            secondary: 1.0,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
@@ -266,13 +280,12 @@ pub fn beech() -> Species {
             elevation: 0.35,
             wander: 0.5,
             plane: 0.0,
-            pipe: 0.0009,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.0009,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 1.2,
             sag: 0.0,
-            secondary: 1.0,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
@@ -301,13 +314,12 @@ pub fn beech() -> Species {
             elevation: 0.15,
             wander: 1.0,
             plane: 0.0,
-            pipe: 0.0009,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.0009,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.0,
             sag: 0.0,
-            secondary: 1.0,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
@@ -334,13 +346,12 @@ pub fn beech() -> Species {
             elevation: 0.0,
             wander: 0.0,
             plane: 0.0,
-            pipe: 0.00095,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.00095,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.0,
             sag: 0.0,
-            secondary: 1.0,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,

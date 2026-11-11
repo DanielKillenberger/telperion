@@ -4,7 +4,7 @@ use super::{Grower, Grown, Pass, Request, Stage};
 use crate::contract::presence::{q, real, times};
 use crate::error::{Error, Result};
 use crate::geometry::{place, scale};
-use crate::girth::{attachments, attachments_past, disused, thicken, Girth};
+use crate::girth::thicken;
 use crate::presence::assign;
 use crate::sag;
 use crate::shed::{shed, shed_past};
@@ -34,25 +34,22 @@ impl Grower {
         }
     }
 
-    /// Settles and, with `lay`, lays the grown tree; `keeps` where any PA
-    /// reads the tree as grown (its shed pipes or its leaves' girth).
+    /// Settles and, with `lay`, lays the grown tree.
     pub(super) fn settle(
         self,
         request: Request,
-        (lay, keeps): (bool, bool),
+        lay: bool,
         stage: &mut dyn FnMut(Stage),
     ) -> Result<Grown> {
-        let shed = self.settle_shed(request, keeps, stage)?;
+        let shed = self.settle_shed(request, stage)?;
         shed.settle_lay(lay, stage)
     }
 
     /// The settle up to its order (fn-256 task 2's first step): each
-    /// living apex marked, every presence assigned, the tree as grown
-    /// thickened where any PA keeps it, shed, and its disused pipes kept.
+    /// living apex marked, every presence assigned, and shed.
     pub(super) fn settle_shed(
         mut self,
         request: Request,
-        keeps: bool,
         stage: &mut dyn FnMut(Stage),
     ) -> Result<Settling> {
         let (owned, threads) = (Arc::clone(&self.species), self.threads);
@@ -62,20 +59,6 @@ impl Grower {
         assign(&mut self.axes, &self.draws, species, threads);
         stage(Stage::Pass(Pass::Assign));
         let (count, marked) = (self.rules.grown, self.marked);
-        // The tree as grown, where any PA keeps shed pipes or thickens by
-        // its leaves: what each shed branch had laid down, and the one
-        // population the leaf term's mean is taken over at any retained
-        // share.
-        let grown = keeps.then(|| match self.working.as_ref() {
-            Some(w) => {
-                let r = w.retirement();
-                attachments_past(&self.axes, species, (request.age, threads), &|i| {
-                    r.frozen_root(i)
-                })
-            }
-            None => attachments(&self.axes, species, request.age, threads),
-        });
-        stage(Stage::Pass(Pass::Attachments));
         let shed = match self.working.take() {
             Some(w) => {
                 let r = w.retirement();
@@ -85,8 +68,6 @@ impl Grower {
             None => shed(self.axes, species, request.age),
         };
         stage(Stage::Pass(Pass::Shed));
-        let girth = grown.map_or_else(Girth::default, |g| disused(&g, &shed, species));
-        stage(Stage::Pass(Pass::Disused));
         let structure = Structure {
             age: request.age,
             pas: species.states.len(),
@@ -97,7 +78,6 @@ impl Grower {
         }
         Ok(Settling {
             structure,
-            girth,
             grown: count,
             marked,
             species: owned,
@@ -110,7 +90,6 @@ impl Grower {
 /// its presences assigned, before its scale, girth and lay.
 pub(super) struct Settling {
     pub structure: Structure,
-    pub girth: Girth,
     pub grown: u64,
     pub marked: Vec<u64>,
     pub species: Arc<Species>,
@@ -123,19 +102,17 @@ impl Settling {
     pub(super) fn settle_lay(self, lay: bool, stage: &mut dyn FnMut(Stage)) -> Result<Grown> {
         let Self {
             mut structure,
-            girth,
             grown: count,
             marked,
             species,
             threads,
-            ..
         } = self;
         let species = &*species;
         scale(&mut structure, species, threads);
         stage(Stage::Pass(Pass::Scale));
         // Girth needs no geometry; placing reads it where wood meets the
         // ground.
-        thicken(&mut structure, species, &girth, threads);
+        thicken(&mut structure, species, threads);
         stage(Stage::Pass(Pass::Thicken));
         stage(Stage::Settled);
         let done = move |structure| Grown {

@@ -24,7 +24,7 @@ const TS: [f64; 8] = [0.0, 1e-6, 1e-3, 0.01, 0.99, 1.0 - 1e-3, 1.0 - 1e-6, 1.0];
 fn neutral(species: &Species) -> Species {
     let mut neutral = species.clone();
     for s in &mut neutral.states {
-        (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+        (s.shade_hazard, s.shade_size, s.balance_hazard) = (0.0, 0.0, 0.0);
     }
     neutral
 }

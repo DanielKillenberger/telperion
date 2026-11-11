@@ -201,9 +201,9 @@ fn an_unloaded_tip_keeps_its_tropism() {
 /// stops bending.
 #[test]
 fn a_vanishing_moment_bends_by_degree() {
-    let at = |pipe: f64| {
+    let at = |primary: f64| {
         let mut species = level_limbs(1e-4);
-        species.states[1].form.pipe = pipe;
+        species.states[1].form.primary = primary;
         let tree = walk::tree(&species, 1).unwrap();
         tree.axes
             .iter()

@@ -10,6 +10,22 @@ use crate::chain::{self, on_chain};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::{FRAC_PI_2, PI};
 
+/// The sapwood a unit of leaf needs, cm² per m²: the reciprocal of 0.36 m²
+/// of leaf per cm² of sapwood over 28 spruces of 7 to 31 m (McDowell et al.
+/// 2002, Oecologia 132: 12-20, Table 1).
+const SAPWOOD: f64 = 1.0 / 0.36;
+/// The years wood stays sapwood: 30, estimated; no ring count was read.
+const SAPWOOD_RINGS: f64 = 30.0;
+/// The wood every age lays: the sapwood its leaf needs and how long it
+/// stays sapwood, alike at every age.
+fn wood() -> Form {
+    Form {
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
+        ..Form::default()
+    }
+}
+
 /// The spruce's ages on the shared reference axis (`chain.rs`), youngest
 /// first: its crown's leader stands at the chain's leader.
 const SEEDLING: usize = chain::SEEDLING;
@@ -102,10 +118,8 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         inverse_height: 1.0 / 61.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
         straightening: 0.0,
-        form: Form::default(),
+        form: wood(),
     }
 }
 
@@ -129,13 +143,12 @@ pub fn spruce() -> Species {
         elevation: FRAC_PI_2,
         wander: 0.1,
         plane: FRAC_PI_2,
-        pipe: 0.0025,
-        exponent: 2.4,
-        ripening: 0.0,
+        primary: 0.0025,
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
         dominance: 0.0,
         roll: 0.0,
         sag: 0.0,
-        secondary: 1.0,
         bend_length: 0.0,
         internode_spread: 0.0,
         insertion_spread: 0.0,
@@ -190,13 +203,12 @@ pub fn spruce() -> Species {
             elevation: 1.0,
             wander: 1.0,
             plane: 0.0,
-            pipe: 0.0008,
-            exponent: 2.2,
-            ripening: 10.0,
+            primary: 0.0008,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.35,
             roll: 0.8,
             sag: 9e-4,
-            secondary: 1.0,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
@@ -226,7 +238,6 @@ pub fn spruce() -> Species {
             tropism: 0.4,
             elevation: 0.35,
             sag: 1e-4,
-            secondary: 1.0,
             bend_length: 0.0,
             ..branch.form
         },
@@ -247,13 +258,12 @@ pub fn spruce() -> Species {
             elevation: -1.0,
             wander: 0.6,
             plane: 0.0,
-            pipe: 0.0005,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.0005,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.2,
             sag: 5e-4,
-            secondary: 1.0,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
@@ -305,9 +315,9 @@ pub fn spruce() -> Species {
             tropism: 1.0,
             elevation: -0.5,
             wander: 1.0,
-            pipe: 0.0004,
+            primary: 0.0004,
             roll: 1.2,
-            ..Form::default()
+            ..wood()
         },
         ..state(2, 0.0, vec![zone(2, 2, 1, &[])])
     };

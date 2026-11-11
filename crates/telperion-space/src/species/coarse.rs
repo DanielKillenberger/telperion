@@ -22,8 +22,6 @@ pub struct Coarsening {
     pub factor: f64,
     /// How much more leaf area a node bears.
     pub leaf: f64,
-    /// How much more pipe a phytomer adds, past what keeps a unit's area.
-    pub pipe: f64,
     /// How much likelier a lateral bud is, up to its zone's certainty; under
     /// 1, how much of the laterals the coarse wood keeps.
     pub bud: f64,
@@ -39,7 +37,6 @@ impl Coarsening {
         first: 0.0,
         factor: 1.0,
         leaf: 1.0,
-        pipe: 1.0,
         bud: 1.0,
         hazard: 1.0,
         shedding: 1.0,
@@ -55,11 +52,7 @@ impl Coarsening {
         if !(self.factor >= 1.0 && self.factor.is_finite()) {
             return refuse("coarse factor", "a finite factor of at least 1");
         }
-        for (name, v) in [
-            ("coarse leaf", self.leaf),
-            ("coarse pipe", self.pipe),
-            ("coarse bud", self.bud),
-        ] {
+        for (name, v) in [("coarse leaf", self.leaf), ("coarse bud", self.bud)] {
             if !(v > 0.0 && v.is_finite()) {
                 return refuse(name, "a finite positive multiplier");
             }
@@ -88,7 +81,6 @@ impl Species {
             let s = at(c.factor);
             state.internode *= s;
             state.leaf_area *= at(c.leaf);
-            state.form.pipe *= at(c.pipe) * s.powf(1.0 / state.form.exponent);
             state.shade_hazard *= at(c.hazard);
             state.balance_hazard *= at(c.hazard);
             state.shedding *= at(c.shedding);
@@ -120,7 +112,6 @@ mod tests {
         first: 9.0,
         factor: 2.0,
         leaf: 16.0,
-        pipe: 2.5,
         bud: 1.3,
         hazard: 2.0,
         shedding: 0.25,
@@ -225,13 +216,6 @@ mod tests {
                 },
             ),
             ("leaf", Coarsening { leaf: 0.0, ..ROWS }),
-            (
-                "pipe",
-                Coarsening {
-                    pipe: f64::INFINITY,
-                    ..ROWS
-                },
-            ),
             ("bud", Coarsening { bud: 0.0, ..ROWS }),
             (
                 "hazard",

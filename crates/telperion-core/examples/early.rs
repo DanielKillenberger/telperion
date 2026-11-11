@@ -173,7 +173,7 @@ fn hint(species: &Species, age: u32) {
     let t = Instant::now();
     let mut unshaded = species.clone();
     for s in &mut unshaded.states {
-        (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+        (s.shade_hazard, s.shade_size, s.balance_hazard) = (0.0, 0.0, 0.0);
     }
     let kept = telperion_space::expected_kept(&unshaded, age).expect("a closed form");
     println!(

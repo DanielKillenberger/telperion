@@ -75,10 +75,7 @@ fn leaf_area_alone_changes_no_growth() {
     for preset in [Preset::DatePalm] {
         let lit = species(preset);
         let read = |s: &telperion_space::PaState| {
-            s.shade_hazard != 0.0
-                || s.shade_size != 0.0
-                || s.balance_hazard != 0.0
-                || s.leaf_girth != 0.0
+            s.shade_hazard != 0.0 || s.shade_size != 0.0 || s.balance_hazard != 0.0
         };
         assert!(!lit.states.iter().any(read), "{preset:?} reads no light");
         let mut bare = lit.clone();
@@ -96,19 +93,16 @@ fn leaf_area_alone_changes_no_growth() {
 
 /// Each response row a preset populates, set to its neutral; apical
 /// control is architecture, each species' own (host, 2026-10-12).
-const RESPONSES: [(&str, fn(&mut telperion_space::PaState)); 4] = [
+const RESPONSES: [(&str, fn(&mut telperion_space::PaState)); 3] = [
     ("shade_hazard", |s| s.shade_hazard = 0.0),
     ("shade_size", |s| s.shade_size = 0.0),
     ("balance_hazard", |s| s.balance_hazard = 0.0),
-    ("leaf_girth", |s| s.leaf_girth = 0.0),
 ];
 
 /// The light-only response: with no leaf shading it reads a light of one,
 /// where it is neutral to the bit. The shade size also follows the split
-/// apical control makes in an even light, the balance charges its living
-/// tips by their path, and the leaf girth's term at a light of one is not
-/// bit-identical to its dormant path (measured), so those move an
-/// unshaded tree too.
+/// apical control makes in an even light, and the balance charges its
+/// living tips by their path, so those move an unshaded tree too.
 fn light_only(row: &str) -> bool {
     row == "shade_hazard"
 }

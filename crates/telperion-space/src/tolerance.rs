@@ -7,8 +7,8 @@
 //! - The hazards (shade and balance), the oak's one value of each, times
 //!   (5 - T) / (5 - T of the oak): an intolerant species sheds more in
 //!   shade.
-//! - Tolerance and leaf girth are shared physiology: the oak's, unscaled,
-//!   so the balance hazard bites. The inverse height is the species' own
+//! - Tolerance is shared physiology: the oak's, unscaled, so the balance
+//!   hazard bites. The inverse height is the species' own
 //!   measured trait and is never copied (fn-349).
 //! - Apical control is architecture, and the size response (shade size)
 //!   is not set by tolerance: each stays the species' own, the size response
@@ -36,10 +36,10 @@ pub(crate) fn respond(ages: &mut [(usize, PaState)], t: f64) {
     };
     let k = (MOST - t) / (MOST - ANCHOR);
     let (hazard, balance) = (k * one(|s| s.shade_hazard), k * one(|s| s.balance_hazard));
-    let (tolerance, girth) = (one(|s| s.tolerance), one(|s| s.leaf_girth));
+    let tolerance = one(|s| s.tolerance);
     for (_, s) in ages {
         (s.shade_hazard, s.balance_hazard) = (hazard, balance);
-        (s.tolerance, s.leaf_girth) = (tolerance, girth);
+        s.tolerance = tolerance;
     }
 }
 
@@ -49,7 +49,7 @@ pub(crate) fn respond(ages: &mut [(usize, PaState)], t: f64) {
 #[cfg(test)]
 pub(crate) fn unlit(mut species: crate::Species) -> crate::Species {
     for s in &mut species.states {
-        (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+        (s.shade_hazard, s.shade_size, s.balance_hazard) = (0.0, 0.0, 0.0);
     }
     species
 }
@@ -71,12 +71,11 @@ mod tests {
         let at = one(ANCHOR);
         assert_eq!((at.shade_hazard, at.balance_hazard), (1.0, 2.0));
         assert_eq!(at.shade_size, 0.0, "the size response is not mapped");
-        assert_eq!((at.tolerance, at.leaf_girth), (0.0, 1.0));
+        assert_eq!(at.tolerance, 0.0);
         assert_eq!(at.inverse_height, 0.0, "the inverse height is never copied");
         let (shy, bold) = (one(4.56), one(2.03));
         assert!(shy.shade_hazard < at.shade_hazard && at.shade_hazard < bold.shade_hazard);
         assert!(shy.balance_hazard < bold.balance_hazard);
-        assert_eq!(bold.leaf_girth, 1.0);
         assert_eq!(one(MOST).shade_hazard, 0.0);
     }
 }

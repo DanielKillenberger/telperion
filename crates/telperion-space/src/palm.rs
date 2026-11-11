@@ -90,15 +90,12 @@ pub fn palm() -> Species {
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form {
             tropism: 0.5,
             elevation: FRAC_PI_2,
             wander: 0.05,
-            pipe: 0.297,
-            secondary: 0.0,
+            primary: 0.297,
             ..Form::default()
         },
     };

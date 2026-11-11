@@ -72,11 +72,9 @@ fn grown(height: f64, sag: f64, seed: u64, bough: Bough, twigs: (f64, f64)) -> S
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form {
-            pipe: 0.05,
+            primary: 0.05,
             ..Form::default()
         },
     };
@@ -90,9 +88,7 @@ fn grown(height: f64, sag: f64, seed: u64, bough: Bough, twigs: (f64, f64)) -> S
             tropism: bough.tropism,
             elevation: bough.elevation,
             wander: bough.wander,
-            pipe: 0.0008,
-            exponent: 2.2,
-            ripening: 10.0,
+            primary: 0.0008,
             roll: twigs.1,
             sag,
             ..Form::default()
@@ -105,7 +101,7 @@ fn grown(height: f64, sag: f64, seed: u64, bough: Bough, twigs: (f64, f64)) -> S
         internode: 0.05,
         insertion: 0.9,
         form: Form {
-            pipe: 0.0005,
+            primary: 0.0005,
             tropism: 2.0,
             elevation: -1.0,
             ..Form::default()

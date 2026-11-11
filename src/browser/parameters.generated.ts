@@ -753,36 +753,36 @@ export interface Family {
       /** `/space/ages/14/internode` while the group is on; unset, the natural internode length. */
       age14?: number;
     };
-    pipe: {
-      /** `/space/ages/0/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+    primary: {
+      /** `/space/ages/0/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age0?: number;
-      /** `/space/ages/1/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      /** `/space/ages/1/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age1?: number;
-      /** `/space/ages/2/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      /** `/space/ages/2/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age2?: number;
-      /** `/space/ages/3/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      /** `/space/ages/3/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age3?: number;
-      /** `/space/ages/4/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      /** `/space/ages/4/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age4?: number;
-      /** `/space/ages/5/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      /** `/space/ages/5/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age5?: number;
-      /** `/space/ages/6/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      /** `/space/ages/6/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age6?: number;
-      /** `/space/ages/7/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      /** `/space/ages/7/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age7?: number;
-      /** `/space/ages/8/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      /** `/space/ages/8/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age8?: number;
-      /** `/space/ages/9/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      /** `/space/ages/9/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age9?: number;
-      /** `/space/ages/10/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      /** `/space/ages/10/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age10?: number;
-      /** `/space/ages/11/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      /** `/space/ages/11/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age11?: number;
-      /** `/space/ages/12/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      /** `/space/ages/12/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age12?: number;
-      /** `/space/ages/13/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      /** `/space/ages/13/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age13?: number;
-      /** `/space/ages/14/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      /** `/space/ages/14/form/primary` while the group is on; unset, the natural primary radius a shoot extends at. */
       age14?: number;
     };
   };
@@ -1190,21 +1190,21 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/supernatural/internode/age12", label: "age12", kind: "real", optional: true, meaning: "`/space/ages/12/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
   { path: "/supernatural/internode/age13", label: "age13", kind: "real", optional: true, meaning: "`/space/ages/13/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
   { path: "/supernatural/internode/age14", label: "age14", kind: "real", optional: true, meaning: "`/space/ages/14/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age0", label: "age0", kind: "real", optional: true, meaning: "`/space/ages/0/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age1", label: "age1", kind: "real", optional: true, meaning: "`/space/ages/1/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age2", label: "age2", kind: "real", optional: true, meaning: "`/space/ages/2/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age3", label: "age3", kind: "real", optional: true, meaning: "`/space/ages/3/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age4", label: "age4", kind: "real", optional: true, meaning: "`/space/ages/4/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age5", label: "age5", kind: "real", optional: true, meaning: "`/space/ages/5/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age6", label: "age6", kind: "real", optional: true, meaning: "`/space/ages/6/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age7", label: "age7", kind: "real", optional: true, meaning: "`/space/ages/7/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age8", label: "age8", kind: "real", optional: true, meaning: "`/space/ages/8/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age9", label: "age9", kind: "real", optional: true, meaning: "`/space/ages/9/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age10", label: "age10", kind: "real", optional: true, meaning: "`/space/ages/10/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age11", label: "age11", kind: "real", optional: true, meaning: "`/space/ages/11/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age12", label: "age12", kind: "real", optional: true, meaning: "`/space/ages/12/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age13", label: "age13", kind: "real", optional: true, meaning: "`/space/ages/13/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
-  { path: "/supernatural/pipe/age14", label: "age14", kind: "real", optional: true, meaning: "`/space/ages/14/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age0", label: "age0", kind: "real", optional: true, meaning: "`/space/ages/0/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age1", label: "age1", kind: "real", optional: true, meaning: "`/space/ages/1/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age2", label: "age2", kind: "real", optional: true, meaning: "`/space/ages/2/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age3", label: "age3", kind: "real", optional: true, meaning: "`/space/ages/3/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age4", label: "age4", kind: "real", optional: true, meaning: "`/space/ages/4/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age5", label: "age5", kind: "real", optional: true, meaning: "`/space/ages/5/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age6", label: "age6", kind: "real", optional: true, meaning: "`/space/ages/6/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age7", label: "age7", kind: "real", optional: true, meaning: "`/space/ages/7/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age8", label: "age8", kind: "real", optional: true, meaning: "`/space/ages/8/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age9", label: "age9", kind: "real", optional: true, meaning: "`/space/ages/9/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age10", label: "age10", kind: "real", optional: true, meaning: "`/space/ages/10/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age11", label: "age11", kind: "real", optional: true, meaning: "`/space/ages/11/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age12", label: "age12", kind: "real", optional: true, meaning: "`/space/ages/12/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age13", label: "age13", kind: "real", optional: true, meaning: "`/space/ages/13/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
+  { path: "/supernatural/primary/age14", label: "age14", kind: "real", optional: true, meaning: "`/space/ages/14/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature", group: "supernatural" },
 ];
 
 /** One engine setting, as a control over every age a species states. */
@@ -1270,19 +1270,16 @@ export const SPACE_SETTINGS: readonly SpaceSetting[] = [
   { name: "inverse_height", key: "inverseHeight", zone: false, label: "inverse height", scale: "log", floor: 0.001, low: 0, high: 1, lowOpen: false, never: false, neutral: 0, unit: "per metre", meaning: "The reciprocal of the species' potential height: a living tip costs its size times the square of its path from the root over that height. Dormant at 0, and without a balance hazard.", group: "branching" },
   { name: "balance_hazard", key: "balanceHazard", zone: false, label: "balance hazard", scale: "log", floor: 0.01, low: 0, high: 10, lowOpen: false, never: false, neutral: 0, unit: "per year", meaning: "How fast a lateral whose carbon balance falls below tolerance is shed. Dormant without an inverse height, and on an axis that bears no laterals.", group: "branching" },
   { name: "tolerance", key: "tolerance", zone: false, label: "tolerance", scale: "linear", floor: 0, low: -1, high: 1, lowOpen: false, never: false, neutral: 0, unit: "balance", meaning: "The carbon balance below which a lateral starts to be shed: shade tolerance. Dormant without a balance hazard.", group: "branching" },
-  { name: "retained", key: "retained", zone: false, label: "retained", scale: "linear", floor: 0, low: 0, high: 1, lowOpen: false, never: false, neutral: 0, unit: "share", meaning: "The share of a shed branch's pipe that stays in its bearer's girth. Dormant where nothing is shed.", group: "form" },
-  { name: "leaf_girth", key: "leafGirth", zone: false, label: "leaf girth", scale: "linear", floor: 0, low: 0, high: 10, lowOpen: false, never: false, neutral: 0, unit: "exponent", meaning: "How a phytomer's own pipe follows its leaves' light. Dormant where no leaf shades.", group: "form" },
   { name: "form.tropism", key: "form/tropism", zone: false, label: "tropism", scale: "log", floor: 0.1, low: 0, high: 100, lowOpen: false, never: false, neutral: 0, unit: "per m", meaning: "How fast the axis bends towards its elevation.", group: "form" },
   { name: "form.elevation", key: "form/elevation", zone: false, label: "elevation", scale: "linear", floor: 0, low: -1.5707963267948966, high: 1.5707963267948966, lowOpen: false, never: false, neutral: 0, unit: "rad", meaning: "The elevation the axis bends towards, above the horizontal.", group: "form" },
   { name: "form.wander", key: "form/wander", zone: false, label: "wander", scale: "log", floor: 0.05, low: 0, high: 100, lowOpen: false, never: false, neutral: 0, unit: "rad per m", meaning: "How far each node turns the axis at random: sinuosity.", group: "form" },
   { name: "form.plane", key: "form/plane", zone: false, label: "plane", scale: "linear", floor: 0, low: -6.283185307179586, high: 6.283185307179586, lowOpen: false, never: false, neutral: 0, unit: "rad", meaning: "The turn of the plane a lateral of this axis branches in. Dormant on an axis that bears no laterals.", group: "branching" },
-  { name: "form.pipe", key: "form/pipe", zone: false, label: "pipe", scale: "log", floor: 0.00001, low: 0, high: 1, lowOpen: false, never: false, neutral: 0.005, unit: "m", meaning: "The pipe radius each phytomer adds below it: how thick the wood grows.", group: "form" },
-  { name: "form.exponent", key: "form/exponent", zone: false, label: "exponent", scale: "linear", floor: 0, low: 1.5, high: 4, lowOpen: false, never: false, neutral: 2, unit: "-", meaning: "The pipe model's exponent; larger keeps limbs thicker beside their bearer. Dormant on an axis that bears no laterals.", group: "form" },
-  { name: "form.ripening", key: "form/ripening", zone: false, label: "ripening", scale: "log", floor: 1, low: 0, high: 1000, lowOpen: false, never: false, neutral: 0, unit: "years", meaning: "The years a phytomer takes to lay down its own pipe. Dormant where the girth keeps its established width (secondary 0).", group: "form" },
+  { name: "form.primary", key: "form/primary", zone: false, label: "primary", scale: "log", floor: 0.00001, low: 0, high: 1, lowOpen: false, never: false, neutral: 0.005, unit: "m", meaning: "The radius a shoot extends at: its wood before any sapwood is laid.", group: "form" },
+  { name: "form.sapwood", key: "form/sapwood", zone: false, label: "sapwood", scale: "linear", floor: 0, low: 0, high: 100, lowOpen: false, never: false, neutral: 0, unit: "cm² per m²", meaning: "The sapwood a unit of leaf above the wood needs. Dormant at 0: the wood keeps its primary radius.", group: "form" },
+  { name: "form.sapwood_rings", key: "form/sapwoodRings", zone: false, label: "sapwood rings", scale: "linear", floor: 0, low: 1, high: 1000, lowOpen: false, never: false, neutral: 1, unit: "years", meaning: "The years wood stays sapwood before it is heartwood. Dormant without sapwood.", group: "form" },
   { name: "form.dominance", key: "form/dominance", zone: false, label: "dominance", scale: "linear", floor: 0, low: 0, high: 1, lowOpen: false, never: false, neutral: 0, unit: "share", meaning: "How unequal sibling laterals are, so a few dominate. Dormant on an axis that bears no laterals.", group: "branching" },
   { name: "form.roll", key: "form/roll", zone: false, label: "roll", scale: "linear", floor: 0, low: 0, high: 3.141592653589793, lowOpen: false, never: false, neutral: 0, unit: "rad", meaning: "How far a lateral turns about its parent, so siblings do not stack. Dormant on an axis that bears no laterals.", group: "branching" },
   { name: "form.sag", key: "form/sag", zone: false, label: "sag", scale: "log", floor: 0.00001, low: 0, high: 1000, lowOpen: false, never: false, neutral: 0, unit: "-", meaning: "How far the axis bends under the load it carries.", group: "form" },
-  { name: "form.secondary", key: "form/secondary", zone: false, label: "secondary", scale: "linear", floor: 0, low: 0, high: 1, lowOpen: false, never: false, neutral: 1, unit: "share", meaning: "How far the girth follows the load; 0 keeps the established width.", group: "form" },
   { name: "form.bend_length", key: "form/bendLength", zone: false, label: "bend length", scale: "log", floor: 0.1, low: 0, high: 1000, lowOpen: false, never: false, neutral: 0, unit: "m", meaning: "How far the wander remembers its bend: slow arcs rather than kinks. Dormant without wander.", group: "form" },
   { name: "form.internode_spread", key: "form/internodeSpread", zone: false, label: "internode spread", scale: "linear", floor: 0, low: 0, high: 1, lowOpen: false, never: false, neutral: 0, unit: "share", meaning: "How far each internode's length departs from its age's.", group: "form" },
   { name: "form.insertion_spread", key: "form/insertionSpread", zone: false, label: "insertion spread", scale: "linear", floor: 0, low: 0, high: 1.5707963267948966, lowOpen: false, never: false, neutral: 0, unit: "rad", meaning: "How far each lateral's insertion angle departs from its age's. Dormant on an axis that bears no laterals.", group: "branching" },

@@ -6,12 +6,7 @@
 //! copy of it and `shed::subtree_living` with it as root, and where its
 //! fade at the age grown is none the settle would drop it: its phytomers
 //! and draws are let go, and its living stands for it in its bearer's fade
-//! (`shed::shed_past`). Where any row keeps shed pipes or leaf girth, each
-//! axis's girth is frozen as it closes (fn-270 R4, the host's ruling: dead
-//! wood does not ripen once nothing in it lives): its base radius and its
-//! two leaf-mean sums at its own base, carried up from its children's
-//! (`girth::Frozen`); a retired root stands for its subtree by them.
-//! A kept subtree's living is remembered, so an ancestor's evaluation
+//! (`shed::shed_past`). A kept subtree's living is remembered, so an ancestor's evaluation
 //! stops there. A subtree holding a bud that woke waits until that bud's
 //! kept share is final (`Woken::kept`): its bearer's next unit, grown in
 //! the cycle after the waking, and whether the bearer stopped then, which
@@ -27,7 +22,6 @@
 use super::{Grower, Working};
 use crate::contract::presence::{q, real, times};
 use crate::dormant::Woken;
-use crate::girth::Frozen;
 use crate::presence::{assign_living, Draws};
 use crate::shed::{faded, subtree_living, Living};
 use crate::species::Species;
@@ -48,12 +42,10 @@ pub(in crate::grow) enum Fate {
     Inside,
 }
 
-/// Each axis's fate and, closed where rows keep it, its frozen girth; the
-/// woken bud each axis is, where it is one.
+/// Each axis's fate; the woken bud each axis is, where it is one.
 #[derive(Debug, Clone, Default)]
 pub(in crate::grow) struct Retirement {
     pub fate: Vec<Fate>,
-    pub frozen: Vec<Frozen>,
     pub(super) woken: Vec<u32>,
     pub(super) seen: usize,
     /// Closed subtrees waiting on a woken bud's kept share.
@@ -93,11 +85,6 @@ impl Retirement {
             .filter(|f| matches!(f, Fate::Root(_)))
             .count()
     }
-
-    /// A retired root's frozen girth, which stands for its subtree's.
-    pub fn frozen_root(&self, i: usize) -> Option<Frozen> {
-        matches!(self.fate.get(i), Some(Fate::Root(_))).then(|| self.frozen[i])
-    }
 }
 
 /// What the evaluation reads of the tree.
@@ -130,9 +117,6 @@ impl Grower {
         if w.keep_all {
             self.working = Some(w);
             return;
-        }
-        if crate::grow::keeps(&self.species) {
-            self.freeze(&mut w, cycle - 1);
         }
         // The closed subtrees beside an open axis, met at their roots.
         let beside = |c: usize| w.links[c].parent.is_none_or(|p| w.open[p]);
@@ -208,7 +192,6 @@ impl Grower {
     fn take_in(&self, w: &mut Working) {
         let n = w.links.len();
         w.retire.fate.resize(n, Fate::Open);
-        w.retire.frozen.resize(n, Frozen::default());
         w.retire.woken.resize(self.axes.len(), u32::MAX);
         for k in w.retire.seen..self.woken.len() {
             let axis = self.woken[k].axis;
@@ -218,72 +201,6 @@ impl Grower {
             w.retire.woken[axis] = k as u32;
         }
         w.retire.seen = self.woken.len();
-    }
-
-    /// Each axis closed since the last cycle frozen at `age`, the age it
-    /// closed at, deepest first: its children closed before it or with it.
-    fn freeze(&self, w: &mut Working, age: u32) {
-        let mut closed = w.closed.clone();
-        closed.sort_unstable_by(|a, b| b.cmp(a));
-        for i in closed {
-            w.retire.frozen[i] = self.frozen_at(w, i, age);
-        }
-    }
-
-    /// Axis `i`'s girth at its own base, closed at `age`: its phytomers'
-    /// pipes, lit and not by the tree's mean, and each child's frozen
-    /// girth by its base against `i`'s, in order (`girth::Frozen`).
-    fn frozen_at(&self, w: &Working, i: usize, age: u32) -> Frozen {
-        let state = &self.species.states[self.axes[i].pa];
-        let (form, chi) = (&state.form, state.leaf_girth);
-        let (axis, end) = crate::presence::assigned(&self.axes[i], &self.draws[i]);
-        let mut f = Frozen::default();
-        let mut section = 0.0f32;
-        for p in &axis.phytomers {
-            let scale = f64::from(p.scale as f32 * 1.0 * p.size as f32);
-            let (pipe, term) = crate::girth::terms(
-                crate::girth::own_at(form, p.cycle, age, scale, 1.0),
-                p.light,
-                chi,
-            );
-            f.sums[0] += pipe;
-            f.sums[1] += term;
-            section += crate::girth::section(f64::from(term), form.exponent);
-        }
-        for &c in w.children(i) {
-            let c = c as usize;
-            let ratio = self.ratio(w, (c, &axis), (end, age));
-            let child = w.retire.frozen[c];
-            section += crate::girth::section(f64::from(ratio * child.radius), form.exponent);
-            f.sums[0] += ratio * child.sums[0];
-            f.sums[1] += ratio * child.sums[1];
-        }
-        f.radius = crate::girth::radius(section, form.exponent) as f32;
-        f
-    }
-
-    /// Child `c`'s base against its bearer's (`girth::bases`), its bearer
-    /// assigned and ending at `end`, at `age`: a lateral's node's scale,
-    /// its vigour and its dominance share; a carried axis's vigour.
-    fn ratio(&self, w: &Working, (c, bearer): (usize, &Axis), (end, age): (f64, u32)) -> f32 {
-        use crate::contract::presence::{q, real, times};
-        let a = &self.axes[c];
-        let d = &self.draws[c];
-        let mut birth = d.birth[1];
-        if let Some(&k) = w.retire.woken.get(c).filter(|&&k| k != u32::MAX) {
-            let kept = self.woken[k as usize].kept(&self.axes, &self.draws, &self.successor, age);
-            birth = real(times(q(birth), q(kept)));
-        }
-        let made = times(q(d.birth[0]), q(birth));
-        match a.origin {
-            Origin::Lateral { node, .. } => {
-                let scale = bearer.phytomers.get(node).map_or(0.0, |p| p.scale as f32);
-                let share =
-                    crate::geometry::dominance(self.species.states[a.pa].form.dominance, a.lineage);
-                scale * 1.0 * real(made) as f32 * share as f32
-            }
-            _ => real(times(q(end), made)) as f32 * 1.0,
-        }
     }
 
     /// `c`'s subtree let go: its phytomers and draws, its root standing

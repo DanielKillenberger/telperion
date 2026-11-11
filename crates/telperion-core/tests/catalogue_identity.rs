@@ -49,8 +49,9 @@ fn every_preset_is_the_family_it_was() {
         digest(&text),
         // fn-328 moved the oak's and spruce's coarse rows; fn-349 replaced
         // the upkeep row with the inverse height; fn-354 gave the Two Trees
-        // the beech's.
-        5_784_278_485_669_999_534,
+        // the beech's, renamed the pipe the primary radius, added the
+        // sapwood rows and deleted the pipe model's.
+        7_779_922_868_753_139_500,
         "{}",
         digest(&text)
     );
@@ -104,8 +105,9 @@ fn every_walk_is_the_walk_it_was() {
     assert_eq!(
         digest(&text),
         // fn-349 replaced the upkeep row with the inverse height; fn-354
-        // gave the Two Trees the beech's.
-        10_352_803_689_928_916_410,
+        // gave the Two Trees the beech's, then renamed the pipe the primary
+        // radius, added the sapwood rows and deleted the pipe model's.
+        7_674_238_961_079_696_998,
         "{}",
         digest(&text)
     );
@@ -131,8 +133,9 @@ fn every_override_reads_and_writes_as_it_did() {
     assert_eq!(
         digest(&text),
         // fn-328 moved the oak's and spruce's coarse rows; fn-349 replaced
-        // the upkeep row with the inverse height.
-        1_402_438_456_769_190_590,
+        // the upkeep row with the inverse height; fn-354 renamed the
+        // supernatural pipe the primary radius and deleted the coarse pipe.
+        17_451_910_608_512_068_560,
         "{}",
         digest(&text)
     );
@@ -195,7 +198,9 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        4_291_284_850_864_067_711,
+        // fn-354 renamed the pipe the primary radius, added the sapwood
+        // rows' refusals and deleted the pipe model's.
+        6_914_840_421_197_035_565,
         "{}",
         digest(&text)
     );

@@ -193,13 +193,13 @@ fn girth_is_the_sum_of_the_sections_carried() {
     }
     assert!(joined > 0, "a relay joined");
     for (i, axis) in tree.axes.iter().enumerate() {
-        let pipe = species.states[axis.pa].form.pipe;
+        let primary = species.states[axis.pa].form.primary;
         for (k, p) in axis.phytomers.iter().enumerate() {
             let above = axis
                 .phytomers
                 .get(k + 1)
                 .map_or(tip[i], |q| q.radius * q.radius);
-            let own = (pipe * p.scale).powi(2);
+            let own = (primary * p.scale).powi(2);
             let want = above + own + carried[i][k];
             // Sections and radii are f32, a section a power taken in f32
             // logs (fn-254): the sum holds to a few parts in a million.
@@ -209,56 +209,6 @@ fn girth_is_the_sum_of_the_sections_carried() {
             );
         }
     }
-}
-
-/// A larger pipe exponent on the trunk keeps its limbs thicker beside
-/// it, and grows no other tree.
-#[test]
-fn a_larger_pipe_exponent_keeps_limbs_thicker_beside_their_bearer() {
-    let ratio = |exponent: f64| {
-        let mut species = walk::species();
-        species.states[0].form.exponent = exponent;
-        let tree = grown(&species, 1);
-        let trunk = tree.axes[0].phytomers[0].radius;
-        let limb = tree
-            .axes
-            .iter()
-            .filter(|a| a.pa == 1 && matches!(a.origin, Origin::Lateral { .. }))
-            .filter_map(|a| a.phytomers.first())
-            .map(|p| p.radius)
-            .fold(0.0, f64::max);
-        (limb / trunk, tree.axes.len())
-    };
-    let (area, axes) = ratio(2.0);
-    let (wider, same) = ratio(3.0);
-    assert_eq!(axes, same, "the same tree");
-    assert!(wider > area, "limbs {wider} against {area} of the trunk");
-}
-
-/// Ripening thins an axis's young tip against its old base, and grows no
-/// other tree.
-#[test]
-fn ripening_leaves_young_tips_fine() {
-    let tip_over_base = |ripening: f64| {
-        let mut species = walk::species();
-        species.states[1].form.ripening = ripening;
-        let tree = grown(&species, 1);
-        let limb = tree
-            .axes
-            .iter()
-            .filter(|a| a.pa == 1 && a.phytomers.len() > 4)
-            .max_by_key(|a| a.phytomers.len())
-            .unwrap();
-        let (base, tip) = (
-            limb.phytomers[0].radius,
-            limb.phytomers.last().unwrap().radius,
-        );
-        (tip / base, tree.axes.len())
-    };
-    let (whole, axes) = tip_over_base(0.0);
-    let (ripened, same) = tip_over_base(10.0);
-    assert_eq!(axes, same, "the same tree");
-    assert!(ripened < whole, "tip over base {ripened} against {whole}");
 }
 
 /// Dominance leaves a few laterals whole and the rest smaller, and grows
@@ -456,46 +406,4 @@ fn the_abortion_hazard_rises_with_an_axis_units() {
     assert!(state.abortion_at(3.0) > state.abortion_at(2.0));
     state.abortion_rise = 0.0;
     assert_eq!(state.abortion_at(5.0), 0.2);
-}
-
-/// fn-205 R2: an unbranched stem with no secondary growth keeps the width
-/// its apex laid each phytomer down at, its own pipe, so it is a column;
-/// with full secondary growth its girth is the pipe model's, each section
-/// the sum of the sections above it.
-#[test]
-fn a_stem_without_secondary_growth_is_a_column() {
-    let stem = |secondary: f64| {
-        let mut species = walk::species();
-        species.states[0].readiness = 0.0;
-        species.states[0].form.secondary = secondary;
-        let tree = grown(&species, 1);
-        assert_eq!(tree.axes.len(), 1, "one axis");
-        tree.axes[0].phytomers.clone()
-    };
-    let form = walk::species().states[0].form;
-    let column = stem(0.0);
-    assert!(column.len() > 20, "{} phytomers", column.len());
-    for (k, p) in column.iter().enumerate() {
-        let established = form.pipe * p.scale;
-        // The established pipe is its product in f32 (fn-254).
-        assert!(
-            (p.radius - established).abs() < 1e-6 * established,
-            "{k}: {}",
-            p.radius
-        );
-    }
-    let (base, apex) = (column[0].radius, column[column.len() - 1].radius);
-    assert!((base / apex - 1.0).abs() < 1e-6, "{base} against {apex}");
-    let mut section = 0.0;
-    for (k, p) in stem(1.0).iter().enumerate().rev() {
-        section += (form.pipe * p.scale).powf(form.exponent);
-        let expected = section.powf(1.0 / form.exponent);
-        // A radius is the power of an f32 section taken in f32 logs
-        // (fn-254): a few parts in a million.
-        assert!(
-            (p.radius - expected).abs() < 1e-5 * expected,
-            "{k}: {} against {expected}",
-            p.radius
-        );
-    }
 }

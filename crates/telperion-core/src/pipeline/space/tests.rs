@@ -166,7 +166,7 @@ fn a_tree_expected_over_the_ceiling_is_refused_before_it_grows() {
     // The beech as it grew unlit, before fn-264: the predictor foresees
     // only a species that reads no light.
     for s in &mut species.states {
-        (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+        (s.shade_hazard, s.shade_size, s.balance_hazard) = (0.0, 0.0, 0.0);
     }
     let expected = telperion_space::expected_kept(&species, 15)
         .unwrap()

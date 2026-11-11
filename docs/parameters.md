@@ -3604,154 +3604,154 @@ How rough the back and the margin are as mirrors: low is a sharp glint, high a b
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-## `/supernatural/pipe`
+## `/supernatural/primary`
 
-### `/supernatural/pipe/age0`
+### `/supernatural/primary/age0`
 
-`/space/ages/0/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/0/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 0, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 0, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-### `/supernatural/pipe/age1`
+### `/supernatural/primary/age1`
 
-`/space/ages/1/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/1/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 1, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 1, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-### `/supernatural/pipe/age2`
+### `/supernatural/primary/age2`
 
-`/space/ages/2/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/2/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 2, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 2, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-### `/supernatural/pipe/age3`
+### `/supernatural/primary/age3`
 
-`/space/ages/3/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/3/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 3, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 3, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-### `/supernatural/pipe/age4`
+### `/supernatural/primary/age4`
 
-`/space/ages/4/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/4/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 4, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 4, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-### `/supernatural/pipe/age5`
+### `/supernatural/primary/age5`
 
-`/space/ages/5/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/5/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 5, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 5, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-### `/supernatural/pipe/age6`
+### `/supernatural/primary/age6`
 
-`/space/ages/6/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/6/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 6, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 6, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-### `/supernatural/pipe/age7`
+### `/supernatural/primary/age7`
 
-`/space/ages/7/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/7/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 7, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 7, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-### `/supernatural/pipe/age8`
+### `/supernatural/primary/age8`
 
-`/space/ages/8/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/8/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 8, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 8, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-### `/supernatural/pipe/age9`
+### `/supernatural/primary/age9`
 
-`/space/ages/9/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/9/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 9, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 9, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-### `/supernatural/pipe/age10`
+### `/supernatural/primary/age10`
 
-`/space/ages/10/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/10/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 10, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 10, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-### `/supernatural/pipe/age11`
+### `/supernatural/primary/age11`
 
-`/space/ages/11/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/11/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 11, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 11, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-### `/supernatural/pipe/age12`
+### `/supernatural/primary/age12`
 
-`/space/ages/12/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/12/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 12, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 12, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-### `/supernatural/pipe/age13`
+### `/supernatural/primary/age13`
 
-`/space/ages/13/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/13/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 13, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 13, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
-### `/supernatural/pipe/age14`
+### `/supernatural/primary/age14`
 
-`/space/ages/14/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+`/space/ages/14/form/primary` while the group is on; unset, the natural primary radius a shoot extends at.
 
 - optional real, m, [0, 1], default unset
 - read by grow; removed growth path: as the direct build
-- checked: Supernatural site, rank 14, as invalid input `supernatural pipe`
+- checked: Supernatural site, rank 14, as invalid input `supernatural primary`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none

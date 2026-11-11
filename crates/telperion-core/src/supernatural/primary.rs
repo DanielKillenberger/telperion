@@ -1,6 +1,6 @@
-//! The supernatural group's pipes (fn-248): the girth each age's
-//! phytomer adds to the wood that bears it, overridden by age as the
-//! natural `/space/ages/<k>/form/pipe` rows state it.
+//! The supernatural group's primary radii (fn-248, renamed by fn-354):
+//! the radius each age's shoot extends at, overridden by age as the
+//! natural `/space/ages/<k>/form/primary` rows state it.
 use crate::catalogue::{input, Bounds, Site};
 
 /// An override has no value of its own to step: it is unset on every
@@ -8,141 +8,141 @@ use crate::catalogue::{input, Bounds, Site};
 const OVERRIDE: crate::catalogue::Dial = crate::catalogue::Dial::Derived;
 
 crate::catalogue::rows! {
-    /// Each age's pipe a phytomer adds, which the group overrides.
+    /// Each age's primary radius, which the group overrides.
     #[derive(Debug, Clone, Copy, PartialEq)]
     #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
-    pub struct SupernaturalPipe in "/supernatural/pipe" {
-        /// `/space/ages/0/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+    pub struct SupernaturalPrimary in "/supernatural/primary" {
+        /// `/space/ages/0/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age0: Option<f64> = "age0" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 348,
-            check: input(Site::Supernatural, 0, "supernatural pipe"),
+            check: input(Site::Supernatural, 0, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
-        /// `/space/ages/1/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+        /// `/space/ages/1/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age1: Option<f64> = "age1" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 349,
-            check: input(Site::Supernatural, 1, "supernatural pipe"),
+            check: input(Site::Supernatural, 1, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
-        /// `/space/ages/2/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+        /// `/space/ages/2/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age2: Option<f64> = "age2" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 350,
-            check: input(Site::Supernatural, 2, "supernatural pipe"),
+            check: input(Site::Supernatural, 2, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
-        /// `/space/ages/3/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+        /// `/space/ages/3/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age3: Option<f64> = "age3" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 351,
-            check: input(Site::Supernatural, 3, "supernatural pipe"),
+            check: input(Site::Supernatural, 3, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
-        /// `/space/ages/4/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+        /// `/space/ages/4/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age4: Option<f64> = "age4" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 352,
-            check: input(Site::Supernatural, 4, "supernatural pipe"),
+            check: input(Site::Supernatural, 4, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
-        /// `/space/ages/5/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+        /// `/space/ages/5/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age5: Option<f64> = "age5" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 353,
-            check: input(Site::Supernatural, 5, "supernatural pipe"),
+            check: input(Site::Supernatural, 5, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
-        /// `/space/ages/6/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+        /// `/space/ages/6/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age6: Option<f64> = "age6" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 354,
-            check: input(Site::Supernatural, 6, "supernatural pipe"),
+            check: input(Site::Supernatural, 6, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
-        /// `/space/ages/7/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+        /// `/space/ages/7/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age7: Option<f64> = "age7" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 355,
-            check: input(Site::Supernatural, 7, "supernatural pipe"),
+            check: input(Site::Supernatural, 7, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
-        /// `/space/ages/8/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+        /// `/space/ages/8/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age8: Option<f64> = "age8" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 356,
-            check: input(Site::Supernatural, 8, "supernatural pipe"),
+            check: input(Site::Supernatural, 8, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
-        /// `/space/ages/9/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+        /// `/space/ages/9/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age9: Option<f64> = "age9" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 357,
-            check: input(Site::Supernatural, 9, "supernatural pipe"),
+            check: input(Site::Supernatural, 9, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
-        /// `/space/ages/10/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+        /// `/space/ages/10/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age10: Option<f64> = "age10" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 358,
-            check: input(Site::Supernatural, 10, "supernatural pipe"),
+            check: input(Site::Supernatural, 10, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
-        /// `/space/ages/11/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+        /// `/space/ages/11/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age11: Option<f64> = "age11" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 359,
-            check: input(Site::Supernatural, 11, "supernatural pipe"),
+            check: input(Site::Supernatural, 11, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
-        /// `/space/ages/12/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+        /// `/space/ages/12/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age12: Option<f64> = "age12" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 360,
-            check: input(Site::Supernatural, 12, "supernatural pipe"),
+            check: input(Site::Supernatural, 12, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
-        /// `/space/ages/13/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+        /// `/space/ages/13/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age13: Option<f64> = "age13" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 361,
-            check: input(Site::Supernatural, 13, "supernatural pipe"),
+            check: input(Site::Supernatural, 13, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
-        /// `/space/ages/14/form/pipe` while the group is on; unset, the natural
-        /// pipe a phytomer adds.
+        /// `/space/ages/14/form/primary` while the group is on; unset, the natural
+        /// primary radius a shoot extends at.
         pub age14: Option<f64> = "age14" "m" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 362,
-            check: input(Site::Supernatural, 14, "supernatural pipe"),
+            check: input(Site::Supernatural, 14, "supernatural primary"),
             applies: "`/supernatural/enabled` off",
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
@@ -150,7 +150,7 @@ crate::catalogue::rows! {
     }
 }
 
-impl SupernaturalPipe {
+impl SupernaturalPrimary {
     /// Every override unset.
     pub const NONE: Self = Self {
         age0: None,

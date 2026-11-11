@@ -196,8 +196,6 @@ pub struct Phytomer {
     /// (`allocation.rs`): in its scale, never in what it bears. 1 where
     /// nothing shades.
     pub(crate) size: f64,
-    /// The light its bud grew in (`light.rs`): 1 where nothing shades.
-    pub(crate) light: f64,
     /// How much of a node it is: its unit's presence times its node's
     /// times the share of its cycle the unit lived (`presence::assign`),
     /// which a relay standing on its unit reads (`geometry::stand`).

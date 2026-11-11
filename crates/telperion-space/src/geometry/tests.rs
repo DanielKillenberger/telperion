@@ -173,7 +173,6 @@ fn a_length_at_a_span_end_is_the_whole_span() {
             key: 0,
             rank: 0.0,
             size: 1.0,
-            light: 1.0,
             grown: 1.0,
         });
     }

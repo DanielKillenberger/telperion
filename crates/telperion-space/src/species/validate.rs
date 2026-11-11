@@ -62,7 +62,6 @@ impl PaState {
             ("shade_size", self.shade_size),
             ("inverse_height", self.inverse_height),
             ("balance_hazard", self.balance_hazard),
-            ("leaf_girth", self.leaf_girth),
         ];
         for (name, value) in rates {
             if !admits(name, value) {
@@ -84,7 +83,6 @@ impl PaState {
             ("rhythm", self.rhythm),
             ("straightening", self.straightening),
             ("apical_control", self.apical_control),
-            ("retained", self.retained),
         ];
         for (name, value) in shares {
             if !admits(name, value) {
@@ -163,8 +161,8 @@ impl Form {
         let rates = [
             ("tropism", self.tropism),
             ("wander", self.wander),
-            ("pipe", self.pipe),
-            ("ripening", self.ripening),
+            ("primary", self.primary),
+            ("sapwood", self.sapwood),
             ("sag", self.sag),
             ("bend_length", self.bend_length),
             ("internode_spread", self.internode_spread),
@@ -182,13 +180,14 @@ impl Form {
                 "an elevation lies in -pi / 2 to pi / 2",
             );
         }
-        if !admits("form.exponent", self.exponent) {
-            return refuse(format!("{at}.exponent"), "a pipe exponent lies in 1.5 to 4");
+        if !admits("form.sapwood_rings", self.sapwood_rings) {
+            return refuse(
+                format!("{at}.sapwood_rings"),
+                "sapwood lasts 1 to 1000 years",
+            );
         }
-        for (name, value) in [("dominance", self.dominance), ("secondary", self.secondary)] {
-            if !admits(&format!("form.{name}"), value) {
-                return refuse(format!("{at}.{name}"), "a share lies in 0 to 1");
-            }
+        if !admits("form.dominance", self.dominance) {
+            return refuse(format!("{at}.dominance"), "a share lies in 0 to 1");
         }
         if !admits("form.roll", self.roll) {
             return refuse(format!("{at}.roll"), "a roll lies in 0 to pi");

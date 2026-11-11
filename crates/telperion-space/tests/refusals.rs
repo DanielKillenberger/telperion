@@ -51,8 +51,6 @@ fn species() -> Species {
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -70,7 +68,7 @@ const REQUEST: Request = Request {
 #[test]
 fn every_input_the_engine_cannot_draw_is_refused_by_name() {
     type Edit = fn(&mut Species);
-    let cases: [(Edit, &str); 47] = [
+    let cases: [(Edit, &str); 46] = [
         (|s| s.states.clear(), "states"),
         (|s| s.states[0].continuation = 1.5, "states[0].continuation"),
         (
@@ -157,7 +155,7 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
             |s| s.states[1].form.wander = f64::NAN,
             "states[1].form.wander",
         ),
-        (|s| s.states[0].form.pipe = 2.0, "states[0].form.pipe"),
+        (|s| s.states[0].form.primary = 2.0, "states[0].form.primary"),
         (
             |s| s.states[1].form.elevation = 2.0,
             "states[1].form.elevation",
@@ -165,12 +163,16 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
         (|s| s.states[0].form.plane = 1e9, "states[0].form.plane"),
         (|s| s.states[1].form.roll = -0.1, "states[1].form.roll"),
         (
-            |s| s.states[0].form.exponent = 1.0,
-            "states[0].form.exponent",
+            |s| s.states[0].form.sapwood = -0.1,
+            "states[0].form.sapwood",
         ),
         (
-            |s| s.states[1].form.ripening = -1.0,
-            "states[1].form.ripening",
+            |s| s.states[1].form.sapwood_rings = 0.5,
+            "states[1].form.sapwood_rings",
+        ),
+        (
+            |s| s.states[0].form.sapwood_rings = f64::NAN,
+            "states[0].form.sapwood_rings",
         ),
         (
             |s| s.states[1].form.dominance = 1.5,
@@ -185,14 +187,6 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
         (|s| s.states[0].erection = -1.0, "states[0].erection"),
         (|s| s.states[1].form.sag = -0.1, "states[1].form.sag"),
         (|s| s.states[0].form.sag = f64::NAN, "states[0].form.sag"),
-        (
-            |s| s.states[0].form.secondary = -0.1,
-            "states[0].form.secondary",
-        ),
-        (
-            |s| s.states[1].form.secondary = f64::NAN,
-            "states[1].form.secondary",
-        ),
     ];
     for (edit, input) in cases {
         let mut s = species();

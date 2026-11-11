@@ -39,10 +39,8 @@ pub(crate) struct Rules {
 #[derive(Clone, Copy)]
 pub(super) struct Reads<'g> {
     pub pencils: &'g [Pencil],
-    /// Whether a rough layout is grown at all, and whether any PA reads
-    /// its leaves' light into its girth.
+    /// Whether a rough layout is grown at all.
     pub sketching: bool,
-    pub lights: bool,
 }
 
 /// A living axis a share grows, in the tree where it stands: each share

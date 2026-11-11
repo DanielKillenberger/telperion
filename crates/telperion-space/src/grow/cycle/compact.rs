@@ -2,8 +2,8 @@
 //! shed subtree's phytomers and draws (`retire.rs`) and its root stands
 //! for it; nothing reads the axes inside it again, for every pass, the
 //! settle's included, stops at the root: the balance, which charges dead
-//! wood nothing, the evaluation of an ancestor at its fate, the girth at
-//! its frozen girth, the fades at its living. Those axes are then dropped from every store
+//! wood nothing, the evaluation of an ancestor at its fate, the fades at
+//! its living. Those axes are then dropped from every store
 //! the grower keeps by axis, and every axis held moves down to its place
 //! among those held. The order of the held axes is kept, so every pass
 //! visits them, and sums them, in the order it did; the tree grows the
@@ -182,7 +182,6 @@ fn rename_working(w: &mut Working, r: &Remap) {
     r.keep(&mut w.living);
     let t = &mut w.retire;
     r.keep(&mut t.fate);
-    r.keep(&mut t.frozen);
     r.rename(&mut t.pending);
     r.rename(&mut t.fading);
     t.loose = t.fate.iter().filter(|f| **f == Fate::Inside).count();

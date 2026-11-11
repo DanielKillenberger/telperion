@@ -1,7 +1,8 @@
 //! What a bud's subtree is expected to keep at the tree's age (fn-209,
-//! host decisions 9, 15 and 16): its wood and that wood's moments, its
-//! base section's mean and mean square, its mass for sag and the mass's
-//! moment, with shedding taken; and how far it can reach.
+//! host decisions 9 and 16): its wood and that wood's moments and its
+//! phytomers, with shedding taken; and how far it can reach. Test-only:
+//! the reference the predictor's counts are held to (fn-354 cut it to
+//! these columns when the pipe model's girth went).
 //!
 //! Shedding fades a lateral or relay by its subtree's last living cycle T
 //! against its PA's delay (`shed.rs`), and T is the latest of its own
@@ -12,11 +13,6 @@
 //! of them, its quantity, which over a zone's random node count is the
 //! count's generating function and its derivatives (`kept/path.rs`).
 //!
-//! A section is carried in its own PA's exponent and handed to a bearer of
-//! another through E[S^(e_p / e_c)], taken by the delta method from its
-//! mean and mean square among the subtrees kept (`kept/section.rs`); the
-//! mass's radius likewise, at the axis's own exponent (host decision 15).
-//!
 //! A bud's table is its first unit's with the rest of its axis, the same
 //! PA's bud one cycle younger carrying the time spent, set at the unit's
 //! tip (fn-209, P1): each table one unit's work, and buds that grow alike
@@ -24,11 +20,8 @@
 //!
 //! Approximations, each measured (`tests.rs`): presences whole, as the
 //! counts have them; times whole cycles; axes straight, azimuths even;
-//! the delta method's second order; a unit's own phytomers bearing, for
-//! sag, the section beyond its middle, and the section beyond a unit
-//! the rest of its axis's as one mixture over how it ends; a relay's
-//! section entering at its axis's tip, a failed unit's relay at the
-//! rest's base; sleeping buds independent of the axis that bears them.
+//! a failed unit's relay at the rest's base; sleeping buds independent of
+//! the axis that bears them.
 use super::along::Along;
 use super::predictor::window;
 use super::steps::{first_step, rest};
@@ -43,35 +36,23 @@ use std::rc::Rc;
 
 mod bound;
 mod ends;
-mod mass;
 mod path;
-pub(crate) mod section;
 #[cfg(test)]
 mod tests;
 
 /// The quantities, per unit base scale: wood (Σ l), its first moment along
 /// the heading, its second moment about the base, its second moment along
-/// the heading; the pipes' mass Σ l r² and its moment along the heading;
-/// the leaves' mass Σ l o² and its moment; the base section S in the
-/// bud's own exponent, and S²; and the phytomers (fn-209 F1, the cut's
-/// predictor), which no base scale changes.
+/// the heading; and the phytomers (fn-209 F1, the cut's predictor), which
+/// no base scale changes.
 pub(crate) const WOOD: usize = 0;
 pub(crate) const ALONG: usize = 1;
 pub(crate) const SQUARE: usize = 2;
 pub(crate) const PARALLEL: usize = 3;
-pub(crate) const MASS: usize = 4;
-pub(crate) const MASS_ALONG: usize = 5;
-pub(crate) const LEAVES: usize = 6;
-pub(crate) const LEAVES_ALONG: usize = 7;
-pub(crate) const SECTION: usize = 8;
-pub(crate) const SECTION2: usize = 9;
-pub(crate) const COUNT: usize = 10;
-pub(crate) const WIDTH: usize = 11;
+pub(crate) const COUNT: usize = 4;
+pub(crate) const WIDTH: usize = 5;
 
-/// Each quantity's power of the base scale, the section's at exponent `e`.
-fn powers(e: f64) -> [f64; WIDTH] {
-    [1.0, 2.0, 3.0, 3.0, 3.0, 4.0, 3.0, 4.0, e, 2.0 * e, 0.0]
-}
+/// Each quantity's power of the base scale.
+const POWERS: [f64; WIDTH] = [1.0, 2.0, 3.0, 3.0, 0.0];
 
 /// A bud's kept quantities by cycle t from `lo` on: `a` the chance its
 /// subtree's last living cycle is at most t, `k` the chance of that and
@@ -82,8 +63,6 @@ pub(crate) struct Table {
     pub a: Vec<f64>,
     pub k: Vec<f64>,
     pub b: Vec<[f64; WIDTH]>,
-    /// The exponent its section is carried in.
-    pub e: f64,
     /// How far its wood can reach (`bound.rs`).
     pub reach: f64,
 }
@@ -146,11 +125,10 @@ impl Placing {
         p
     }
 
-    /// A borne subtree's quantities `c`, placed; its section is handed
-    /// over apart (`section.rs`).
+    /// A borne subtree's quantities `c`, placed.
     pub fn place(&self, c: &[f64; WIDTH], out: &mut [f64; WIDTH]) {
-        let [s1, s2, s3, s4] = self.s;
-        let [x1, x2, x3] = self.x;
+        let [s1, s2, s3, _] = self.s;
+        let [x1, x2, _] = self.x;
         let q1 = self.x2[0];
         let [cos, cos2] = self.turn;
         let sin2 = 1.0 - cos2;
@@ -160,10 +138,6 @@ impl Placing {
         out[SQUARE] += square + s3 * c[SQUARE];
         let across = c[SQUARE] - c[PARALLEL];
         out[PARALLEL] += square + s3 * (cos2 * c[PARALLEL] + sin2 * across / 2.0);
-        out[MASS] += s3 * c[MASS];
-        out[MASS_ALONG] += x3 * c[MASS] + cos * s4 * c[MASS_ALONG];
-        out[LEAVES] += s3 * c[LEAVES];
-        out[LEAVES_ALONG] += x3 * c[LEAVES] + cos * s4 * c[LEAVES_ALONG];
         out[COUNT] += self.n * c[COUNT];
     }
 }
@@ -228,7 +202,6 @@ impl<'a> Kept<'a> {
                 a: vec![1.0; m + 1],
                 k: vec![1.0; m + 1],
                 b: vec![[0.0; WIDTH]; m + 1],
-                e: 2.0,
                 reach: 0.0,
             });
         };
@@ -236,17 +209,15 @@ impl<'a> Kept<'a> {
         if reach == 1.0 {
             return table;
         }
-        let p = powers(table.e);
         let b = table
             .b
             .iter()
-            .map(|b| std::array::from_fn(|q| b[q] * reach.powf_fixed(p[q])));
+            .map(|b| std::array::from_fn(|q| b[q] * reach.powf_fixed(POWERS[q])));
         Rc::new(Table {
             lo: table.lo,
             a: table.a.clone(),
             k: table.k.clone(),
             b: b.collect(),
-            e: table.e,
             reach: reach * table.reach,
         })
     }
@@ -284,7 +255,7 @@ impl<'a> Kept<'a> {
         if let Some(t) = self.faded.get(&key) {
             return t.clone();
         }
-        let p = powers(table.e);
+        let p = POWERS;
         let (mut b, mut kept) = (Vec::with_capacity(m + 1), Vec::with_capacity(m + 1));
         let (mut sum, mut k_sum) = ([0.0; WIDTH], 0.0);
         for (i, s) in (table.lo..=m).enumerate() {
@@ -316,7 +287,6 @@ impl<'a> Kept<'a> {
             a: table.a.clone(),
             k: kept,
             b,
-            e: table.e,
             reach: table.reach,
         });
         self.faded.insert(key, t.clone());
@@ -359,13 +329,11 @@ impl<'a> Kept<'a> {
             b.push(bt);
         }
         self.tape = outer;
-        let e = self.species.states[k].form.exponent;
         let table = Rc::new(Table {
             lo,
             k: a.clone(),
             a,
             b,
-            e,
             reach,
         });
         self.memo.insert(key, table.clone());

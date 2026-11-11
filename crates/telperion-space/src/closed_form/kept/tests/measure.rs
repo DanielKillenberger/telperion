@@ -1,18 +1,17 @@
 //! Measurements, not tests (fn-209 STEP1-C.md), run by hand with
-//! `--ignored`: the closed form's kept quantities and extent bound against
-//! the beech and the spruce.
-use super::super::{Kept, LEAVES, MASS, SECTION, WOOD};
+//! `--ignored`: the closed form's kept wood and extent bound against the
+//! beech and the spruce.
+use super::super::{Kept, WOOD};
 use super::bound::farthest;
 use super::{about, raw, tree};
 use crate::presence::Windows;
 use crate::schedule::Carried;
 use crate::species::Species;
 use crate::structure::Origin;
-use crate::transcendental::Transcendental;
 use std::collections::HashMap;
 
 /// A measurement, not a test (fn-209 STEP1-C.md): the beech's and the
-/// spruce's kept wood, base sections and mass against the formula, by PA
+/// spruce's kept wood against the formula, by PA
 /// and age band, every lateral made counted; and how near the extent
 /// bound their wood reaches.
 #[test]
@@ -32,14 +31,14 @@ fn measure_production() {
         let started = std::time::Instant::now();
         let mut kept = Kept::new(&species, &windows);
         // by (pa, age band of 5 cycles): realized and formula wood, and made count
-        let mut acc: std::collections::BTreeMap<(usize, u32), [f64; 7]> = Default::default();
+        let mut acc: std::collections::BTreeMap<(usize, u32), [f64; 3]> = Default::default();
         let mut tight: Vec<f64> = Vec::new();
         let mut prep = 0.0;
         for seed in 0..4 {
             let (Ok(grown), Ok(whole)) = (tree(&species, age, seed), tree(&twin, age, seed)) else {
                 continue;
             };
-            let sums = raw(&grown, &species);
+            let sums = raw(&grown);
             let reached = farthest(&grown);
             for (i, axis) in grown.axes.iter().enumerate() {
                 let Origin::Lateral { parent, node, .. } = axis.origin else {
@@ -75,21 +74,12 @@ fn measure_production() {
                 let delay = species.states[axis.pa].shedding;
                 let t = kept.shed((axis.pa, m, Carried::default(), None), delay);
                 prep += t0.elapsed().as_secs_f64();
-                let e = species.states[axis.pa].form.exponent;
                 let a = acc.entry((axis.pa, m as u32 / 5)).or_default();
                 a[0] += 1.0;
                 let b = t.at(m as i64).2.expect("born");
                 a[2] += b[WOOD] * base;
-                a[4] += b[SECTION] * base.powf_fixed(e);
-                a[6] += (b[MASS] + b[LEAVES]) * base.powi(3);
                 if let Some(&k) = by.get(&axis.lineage) {
-                    let v = about(&grown, &sums, k, e);
-                    a[1] += v[0];
-                    a[5] += v[3];
-                    a[3] += grown.axes[k]
-                        .phytomers
-                        .first()
-                        .map_or(0.0, |p| p.radius.powf_fixed(e));
+                    a[1] += about(&grown, &sums, k)[0];
                 }
             }
         }
@@ -100,13 +90,11 @@ fn measure_production() {
         );
         for ((pa, band), a) in acc.iter().filter(|(_, a)| a[0] >= 100.0) {
             println!(
-                "  {name} PA {pa} age {}-{} ({:.0} made): realized/formula wood {:.3}, section {:.3}, mass {:.3}",
+                "  {name} PA {pa} age {}-{} ({:.0} made): realized/formula wood {:.3}",
                 band * 5,
                 band * 5 + 4,
                 a[0],
                 a[1] / a[2],
-                a[3] / a[4],
-                a[5] / a[6]
             );
         }
         tight.sort_by(f64::total_cmp);

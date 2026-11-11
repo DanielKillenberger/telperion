@@ -146,7 +146,7 @@ pub(crate) fn run(
     lay: bool,
     options: Options,
 ) -> Result<Grown> {
-    let (mut grower, keeps) = start(Arc::new(species.clone()), request, options)?;
+    let mut grower = start(Arc::new(species.clone()), request, options)?;
     stage(Stage::Pass(Pass::Windows));
     let mut advanced = Vec::new();
     for cycle in 1..=request.age {
@@ -159,12 +159,11 @@ pub(crate) fn run(
     // Its working set served the balance alone: the settle reads the
     // whole tree.
     grower.working = None;
-    grower.settle(request, (lay, keeps), stage)
+    grower.settle(request, lay, stage)
 }
 
-/// The grower of `request` before its first cycle, and whether any PA
-/// reads the tree as grown (its shed pipes or its leaves' girth).
-fn start(species: Arc<Species>, request: Request, options: Options) -> Result<(Grower, bool)> {
+/// The grower of `request` before its first cycle.
+fn start(species: Arc<Species>, request: Request, options: Options) -> Result<Grower> {
     species.validate()?;
     request.light.validate()?;
     if request.age == 0 {
@@ -177,9 +176,9 @@ fn start(species: Arc<Species>, request: Request, options: Options) -> Result<(G
     let grounded = species.states.iter().any(|s| s.ground_hazard > 0.0);
     let sketch = (request.light.shades() || grounded).then(|| Sketch::new(request.light));
     // What shedding will drop is grown only where something reads it
-    // while it lives: the light, or the girth of what bore it.
-    let keeps = keeps(&species);
-    let lasting = if options.certain != Certain::Grow && sketch.is_none() && !keeps {
+    // while it lives: the light, or the wood its leaf lays in what bore it.
+    let wood = species.states.iter().any(|s| s.form.sapwood > 0.0);
+    let lasting = if options.certain != Certain::Grow && sketch.is_none() && !wood {
         lasting(&species, &laterals)
     } else {
         vec![None; species.states.len()]
@@ -194,13 +193,12 @@ fn start(species: Arc<Species>, request: Request, options: Options) -> Result<(G
         grown: 0,
         one: false,
     };
-    let grower = Grower::seeded(
+    Grower::seeded(
         (rules, species),
         (threads, options.share),
         sketch,
         request.seed,
-    )?;
-    Ok((grower, keeps))
+    )
 }
 
 /// The share of an apex's expected wood a stop decides: a stop with no
@@ -280,15 +278,6 @@ struct Grower {
     jobs: [u32; 2],
     census: Option<Box<cycle::Census>>,
     working: Option<Box<cycle::Working>>,
-}
-
-/// Whether any PA reads the tree as grown: its shed pipes or its leaves'
-/// girth.
-pub(crate) fn keeps(species: &Species) -> bool {
-    species
-        .states
-        .iter()
-        .any(|s| s.retained > 0.0 || s.leaf_girth > 0.0)
 }
 
 impl Grower {

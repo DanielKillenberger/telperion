@@ -19,7 +19,7 @@ pub fn grow_capture_light_at(species: &Species, request: Request, cycle: u32) ->
     if cycle == 0 || cycle >= request.age {
         return refuse("cycle", "a lit cycle is one before the tree's age");
     }
-    let (mut g, _) = start(
+    let mut g = start(
         std::sync::Arc::new(species.clone()),
         request,
         Options::default(),

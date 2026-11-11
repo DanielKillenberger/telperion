@@ -12,6 +12,26 @@ use crate::chain::{self, on_chain};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::FRAC_PI_2;
 
+/// The sapwood a unit of leaf needs, cm² per m²: the reciprocal of 0.30 m²
+/// of leaf per cm² of sapwood, the middle of the 0.23 and 0.37 Phillips,
+/// Bond, McDowell, Ryan and Schauer measured on *Q. garryana* of 10 and
+/// 25 m (2003, Funct. Ecol. 17: 832-840, Table 1).
+const SAPWOOD: f64 = 1.0 / 0.30;
+/// The years wood stays sapwood: 20, from Hollstein's 20.4 rings in
+/// European oak of 100 to 200 years (in Haneca, Čufar and Beeckman 2009,
+/// J. Archaeol. Sci. 36: 1-11, Table 1; read secondary). Estimated for
+/// *Q. garryana*.
+const SAPWOOD_RINGS: f64 = 20.0;
+/// The wood every age lays: the sapwood its leaf needs and how long it
+/// stays sapwood, alike at every age.
+fn wood() -> Form {
+    Form {
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
+        ..Form::default()
+    }
+}
+
 /// The oak's ages on the shared reference axis (`chain.rs`), youngest
 /// first: its fork stands at the low fork, and its shoot, which its
 /// branch moves on to, before its twig, which it bears.
@@ -119,10 +139,8 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         inverse_height: 1.0 / 34.8,
         balance_hazard: 2.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 1.0,
         straightening: 0.0,
-        form: Form::default(),
+        form: wood(),
     }
 }
 
@@ -143,13 +161,12 @@ pub fn oak() -> Species {
         elevation: FRAC_PI_2,
         wander: 0.25,
         plane: 0.0,
-        pipe: 0.009,
-        exponent: 2.6,
-        ripening: 0.0,
+        primary: 0.009,
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
         dominance: 0.0,
         roll: 0.0,
         sag: 0.0,
-        secondary: 1.0,
         bend_length: 0.0,
         internode_spread: 0.0,
         insertion_spread: 0.0,
@@ -226,13 +243,12 @@ pub fn oak() -> Species {
             elevation: 1.05,
             wander: 0.5,
             plane: 0.0,
-            pipe: 0.009,
-            exponent: 2.8,
-            ripening: 15.0,
+            primary: 0.009,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.8,
             sag: 0.0003,
-            secondary: 1.0,
             bend_length: 3.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
@@ -279,10 +295,8 @@ pub fn oak() -> Species {
             // flat past the crown's edge.
             elevation: 0.9,
             wander: 0.35,
-            pipe: 0.004,
-            exponent: 2.6,
+            primary: 0.004,
             sag: 0.00005,
-            secondary: 1.0,
             bend_length: 1.5,
             ..limb.form
         },
@@ -313,13 +327,12 @@ pub fn oak() -> Species {
             elevation: 0.7,
             wander: 0.4,
             plane: 0.0,
-            pipe: 0.0012,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.0012,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 1.2,
             sag: 0.0,
-            secondary: 1.0,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
@@ -358,13 +371,12 @@ pub fn oak() -> Species {
             elevation: 0.2,
             wander: 0.4,
             plane: 0.0,
-            pipe: 0.0009,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.0009,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 1.2,
             sag: 0.0,
-            secondary: 1.0,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
@@ -394,9 +406,9 @@ pub fn oak() -> Species {
             tropism: 0.4,
             elevation: 0.2,
             wander: 0.4,
-            pipe: 0.0008,
+            primary: 0.0008,
             roll: 1.2,
-            ..Form::default()
+            ..wood()
         },
         ..state(
             5,
@@ -415,9 +427,9 @@ pub fn oak() -> Species {
             tropism: 0.8,
             elevation: 0.2,
             wander: 0.4,
-            pipe: 0.0009,
+            primary: 0.0009,
             roll: 1.2,
-            ..Form::default()
+            ..wood()
         },
         ..state(4, 0.0, unit((1, 1), &[(SHORT, 0.3)], (2, &[(SHORT, 0.35)])))
     };
@@ -432,8 +444,8 @@ pub fn oak() -> Species {
         shade_size: 1.0,
         shedding: 2.0,
         form: Form {
-            pipe: 0.0006,
-            ..Form::default()
+            primary: 0.0006,
+            ..wood()
         },
         ..state(3, 0.0, vec![zone(3, 5, 1, &[])])
     };

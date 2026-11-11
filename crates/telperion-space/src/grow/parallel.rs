@@ -11,7 +11,6 @@ use crate::cores::spread;
 use crate::dormant::{Sleeper, Woken};
 use crate::error::Result;
 use crate::presence::Draws;
-use crate::species::Species;
 use crate::structure::{Axis, Origin};
 use std::sync::Mutex;
 
@@ -76,7 +75,7 @@ impl Shoot<'_> {
 impl Grower {
     /// What the rough layout gives the apexes growing now.
     pub(super) fn reads(&self) -> Reads<'_> {
-        reads(self.sketch.as_ref(), &self.species)
+        reads(self.sketch.as_ref())
     }
 
     /// Grows the `live` apexes' units in `cycle`, in shares in order, and
@@ -87,7 +86,7 @@ impl Grower {
         cycle: u32,
         report: &mut dyn FnMut(Stage),
     ) -> Result<()> {
-        let reads = reads(self.sketch.as_ref(), &self.species);
+        let reads = reads(self.sketch.as_ref());
         let homes = homes(
             (&mut self.axes, &mut self.draws),
             (&mut self.units, &mut self.successor),
@@ -173,11 +172,10 @@ impl Share {
     }
 }
 
-fn reads<'g>(sketch: Option<&'g Sketch>, species: &Species) -> Reads<'g> {
+fn reads(sketch: Option<&Sketch>) -> Reads<'_> {
     Reads {
         pencils: sketch.map_or(&[], |s| &s.pencils[..]),
         sketching: sketch.is_some(),
-        lights: species.states.iter().any(|s| s.leaf_girth > 0.0),
     }
 }
 

@@ -15,6 +15,21 @@ use crate::chain::{self, on_chain};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::{FRAC_PI_2, PI};
 
+/// The sapwood a unit of leaf needs, cm² per m²: the beech's, 1 / 0.331,
+/// estimated; no source was found for the birch.
+const SAPWOOD: f64 = 1.0 / 0.331;
+/// The years wood stays sapwood: 40, estimated; no source was found.
+const SAPWOOD_RINGS: f64 = 40.0;
+/// The wood every age lays: the sapwood its leaf needs and how long it
+/// stays sapwood, alike at every age.
+fn wood() -> Form {
+    Form {
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
+        ..Form::default()
+    }
+}
+
 /// One leaf a node, in m² (fn-264 R2, host decision 1, derived): the
 /// mid-points of the blade's 3-7.5 x 1.5-6 cm, "triangular-ovate or
 /// rhombic-ovate" (Flora of China 4, *Betula pendula*), times 0.67, the
@@ -97,8 +112,6 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         inverse_height: 1.0 / 30.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
         straightening: 0.0,
         flowering: 0.0,
         cluster_leaves: 0.0,
@@ -115,7 +128,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         senescence: 277.0,
         colouring: 5.0,
         leaf_fall: 45.0,
-        form: Form::default(),
+        form: wood(),
     }
 }
 
@@ -166,13 +179,12 @@ pub fn birch() -> Species {
         elevation: FRAC_PI_2,
         wander: 0.35,
         plane: 0.0,
-        pipe: 0.004,
-        exponent: 2.5,
-        ripening: 0.0,
+        primary: 0.004,
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
         dominance: 0.0,
         roll: 0.0,
         sag: 0.0,
-        secondary: 1.0,
         bend_length: 6.0,
         internode_spread: 0.2,
         insertion_spread: 0.0,
@@ -280,13 +292,12 @@ pub fn birch() -> Species {
             elevation: 1.3,
             wander: 0.6,
             plane: 0.0,
-            pipe: 0.002,
-            exponent: 2.4,
-            ripening: 10.0,
+            primary: 0.002,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.2,
             roll: 1.2,
             sag: 6e-5,
-            secondary: 1.0,
             bend_length: 3.0,
             internode_spread: 0.7,
             insertion_spread: 0.0,
@@ -318,7 +329,7 @@ pub fn birch() -> Species {
             tropism: 0.3,
             elevation: 0.5,
             sag: 8e-5,
-            pipe: 0.002,
+            primary: 0.002,
             ..limb.form
         },
         ..state(100, 0.0, {
@@ -342,13 +353,12 @@ pub fn birch() -> Species {
             elevation: 0.8,
             wander: 0.4,
             plane: 0.0,
-            pipe: 0.0012,
-            exponent: 2.2,
-            ripening: 0.0,
+            primary: 0.0012,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.8,
             sag: 2e-4,
-            secondary: 1.0,
             bend_length: 0.0,
             internode_spread: 0.4,
             insertion_spread: 0.0,
@@ -375,13 +385,12 @@ pub fn birch() -> Species {
         elevation: -FRAC_PI_2,
         wander: 0.4,
         plane: 0.0,
-        pipe: 0.0008,
-        exponent: 2.0,
-        ripening: 0.0,
+        primary: 0.0008,
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
         dominance: 0.0,
         roll: 1.6,
         sag: 2e-4,
-        secondary: 1.0,
         bend_length: 1.0,
         internode_spread: 0.7,
         insertion_spread: 0.5,
@@ -416,8 +425,8 @@ pub fn birch() -> Species {
         viability: 0.92,
         shedding: 1.0,
         form: Form {
-            pipe: 0.0005,
-            ..Form::default()
+            primary: 0.0005,
+            ..wood()
         },
         ..state(6, 0.0, vec![zone(2, 3, &[])])
     };

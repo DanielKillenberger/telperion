@@ -118,8 +118,6 @@ pub fn species(set: &Value) -> Species {
                 inverse_height: 0.0,
                 balance_hazard: 0.0,
                 tolerance: 0.0,
-                retained: 0.0,
-                leaf_girth: 0.0,
                 straightening: 0.0,
                 form: Form::default(),
             }

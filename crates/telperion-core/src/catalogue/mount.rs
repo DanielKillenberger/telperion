@@ -13,7 +13,7 @@ use crate::{
     radius::RadiusParams,
     supernatural::{
         Supernatural, SupernaturalBloom, SupernaturalCanopy, SupernaturalFlowering,
-        SupernaturalInternode, SupernaturalMaterial, SupernaturalPipe,
+        SupernaturalInternode, SupernaturalMaterial, SupernaturalPrimary,
     },
     surface::SurfaceParams,
     twigs::{TwigAnatomy, TwigParams},
@@ -141,7 +141,7 @@ groups! {
     SupernaturalCanopy: supernatural.canopy;
     SupernaturalFlowering: supernatural.flowering;
     SupernaturalInternode: supernatural.internode;
-    SupernaturalPipe: supernatural.pipe;
+    SupernaturalPrimary: supernatural.primary;
 }
 
 const fn find<S>(rows: &[Row<S>], path: &str) -> Option<usize> {

@@ -3,7 +3,7 @@
 //! stochastic one the mean over every lateral made, the shed counting
 //! nothing, with each subtree's last living cycle read off a twin that
 //! never sheds and so keeps every axis it grew.
-use super::{Kept, COUNT, LEAVES, LEAVES_ALONG, MASS, MASS_ALONG, SECTION, WOOD};
+use super::{Kept, COUNT, WOOD};
 use crate::grow::{grow, Request};
 use crate::light::Light;
 use crate::presence::Windows;
@@ -54,8 +54,6 @@ fn state(lifespan: f64, zones: Vec<Zone>) -> PaState {
         inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form::default(),
     }
@@ -81,8 +79,7 @@ fn tree(species: &Species, age: u32, seed: u64) -> crate::Result<Structure> {
     grow(species, request)
 }
 
-/// Each axis's subtree, in the tree's frame: Σ l, Σ l x, Σ l |x|², the
-/// pipe model's mass Σ l (r² + o²) and its moment Σ l x (r² + o²), and
+/// Each axis's subtree, in the tree's frame: Σ l, Σ l x, Σ l |x|², and
 /// its phytomers.
 #[derive(Clone, Copy, Default)]
 struct Raw {
@@ -90,27 +87,20 @@ struct Raw {
     wood: f64,
     first: Vec3,
     square: f64,
-    mass: f64,
-    moment: Vec3,
 }
 
-fn raw(tree: &Structure, species: &Species) -> Vec<Raw> {
+fn raw(tree: &Structure) -> Vec<Raw> {
     let mut sums = vec![Raw::default(); tree.axes.len()];
     for (i, axis) in tree.axes.iter().enumerate() {
-        let pipe = species.states[axis.pa].form.pipe;
         let mut from = axis.base;
         for p in &axis.phytomers {
             let l = (p.tip - from).length();
             let x = (from + p.tip) * 0.5;
-            let own = pipe * p.scale;
-            let mass = l * (p.radius * p.radius + own * own);
             let s = &mut sums[i];
             s.count += 1.0;
             s.wood += l;
             s.first = s.first + x * l;
             s.square += l * x.dot(x);
-            s.mass += mass;
-            s.moment = s.moment + x * mass;
             from = p.tip;
         }
     }
@@ -122,57 +112,30 @@ fn raw(tree: &Structure, species: &Species) -> Vec<Raw> {
             s.wood += c.wood;
             s.first = s.first + c.first;
             s.square += c.square;
-            s.mass += c.mass;
-            s.moment = s.moment + c.moment;
         }
     }
     sums
 }
 
 /// Axis `i`'s subtree about its base along its heading: wood, along,
-/// square, mass, mass moment, its base section in exponent `e`, and its
-/// phytomers.
-fn about(tree: &Structure, sums: &[Raw], i: usize, e: f64) -> [f64; 7] {
+/// square, and its phytomers.
+fn about(tree: &Structure, sums: &[Raw], i: usize) -> [f64; 4] {
     let s = sums[i];
     let (o, h) = (tree.axes[i].base, tree.axes[i].heading);
-    let section = tree.axes[i]
-        .phytomers
-        .first()
-        .map_or(0.0, |p| p.radius.powf_fixed(e));
     [
         s.wood,
         (s.first - o * s.wood).dot(h),
         s.square - 2.0 * o.dot(s.first) + s.wood * o.dot(o),
-        s.mass,
-        (s.moment - o * s.mass).dot(h),
-        section,
         s.count,
     ]
 }
 
-/// The formula's [wood, along, square, mass, mass moment, section,
-/// phytomers].
-fn formula(b: &[f64]) -> [f64; 7] {
-    [
-        b[WOOD],
-        b[super::ALONG],
-        b[super::SQUARE],
-        b[MASS] + b[LEAVES],
-        b[MASS_ALONG] + b[LEAVES_ALONG],
-        b[SECTION],
-        b[COUNT],
-    ]
+/// The formula's [wood, along, square, phytomers].
+fn formula(b: &[f64]) -> [f64; 4] {
+    [b[WOOD], b[super::ALONG], b[super::SQUARE], b[COUNT]]
 }
 
-const NAMES: [&str; 7] = [
-    "wood",
-    "along",
-    "square",
-    "mass",
-    "moment",
-    "section",
-    "phytomers",
-];
+const NAMES: [&str; 4] = ["wood", "along", "square", "phytomers"];
 
 /// A deterministic species whose twigs die young and are shed; its trunk
 /// relayed half way along every unit where `relayed`, or carried on whole.
@@ -194,28 +157,26 @@ fn deterministic(relayed: bool) -> Species {
 
 /// A deterministic tree that sheds keeps what the formula keeps, to
 /// rounding, at every age, its trunk carried on whole or relayed half way
-/// along every unit: mass and its moment included, since at exponent 2
-/// with whole secondary growth the radius's square is linear in the
-/// section and the delta method exact.
+/// along every unit.
 #[test]
 fn a_deterministic_tree_keeps_what_the_formula_keeps() {
     for relayed in [false, true] {
         let species = deterministic(relayed);
         for age in [1, 3, 5, 7, 9] {
             let grown = tree(&species, age, 1).expect("grows");
-            let sums = raw(&grown, &species);
-            let ours = about(&grown, &sums, 0, 2.0);
+            let sums = raw(&grown);
+            let ours = about(&grown, &sums, 0);
             let windows = Windows::new(&species, age);
             let mut kept = Kept::new(&species, &windows);
             let table = kept.of(0, age as usize, Carried::default(), None);
             let (a, _, b) = table.at(age as i64);
             let theirs = formula(b.expect("born"));
             assert!((a - 1.0).abs() < 1e-12);
-            for q in 0..7 {
+            for q in 0..4 {
                 let (a, b) = (ours[q], theirs[q]);
                 assert!(
-                    // The tree's girth and sag are f32 (fn-254), the
-                    // formula f64 (1e-6 relative).
+                    // The tree's layout is f32 (fn-254), the formula f64
+                    // (1e-6 relative).
                     (a - b).abs() <= 1e-6 * b.abs().max(1e-6),
                     "relayed {relayed}, age {age} {}: {a} vs {b}",
                     NAMES[q]
@@ -267,21 +228,8 @@ fn branches_keep_on_average_what_the_formula_keeps() {
     branches_agree(&shedding_species());
 }
 
-/// As above, the branches' pipe exponent above their twigs' (host
-/// decision 15: the section handed over by the delta method).
-#[test]
-fn branches_of_another_exponent_keep_what_the_formula_keeps() {
-    let mut species = shedding_species();
-    species.states[1].form.exponent = 2.4;
-    branches_agree(&species);
-    species.states[1].form.exponent = 2.0;
-    species.states[2].form.exponent = 2.6;
-    branches_agree(&species);
-}
-
 fn branches_agree(species: &Species) {
     let species = species.clone();
-    let e = species.states[1].form.exponent;
     let mut twin = species.clone();
     twin.states
         .iter_mut()
@@ -291,12 +239,12 @@ fn branches_agree(species: &Species) {
     let mut kept = Kept::every_cycle(&species, &windows);
     // By birth: each branch's kept quantities per unit base scale, and its
     // subtree's last living cycle, from its birth.
-    let mut groups: HashMap<u32, Vec<([f64; 7], u32)>> = HashMap::new();
+    let mut groups: HashMap<u32, Vec<([f64; 4], u32)>> = HashMap::new();
     for seed in 0..60 {
         let (Ok(grown), Ok(whole)) = (tree(&species, age, seed), tree(&twin, age, seed)) else {
             continue;
         };
-        let sums = raw(&grown, &species);
+        let sums = raw(&grown);
         // A relay carries its axis's lineage: the first axis of a lineage
         // is the one that began it.
         let mut by_lineage: HashMap<u64, usize> = HashMap::new();
@@ -317,11 +265,11 @@ fn branches_agree(species: &Species) {
             }
             let ours = match by_lineage.get(&axis.lineage) {
                 Some(&k) => {
-                    let v = about(&grown, &sums, k, e);
-                    let p = [1.0, 2.0, 3.0, 3.0, 4.0, e, 0.0];
+                    let v = about(&grown, &sums, k);
+                    let p = [1.0, 2.0, 3.0, 0.0];
                     std::array::from_fn(|q| v[q] / base.powf_fixed(p[q]))
                 }
-                None => [0.0; 7],
+                None => [0.0; 4],
             };
             groups
                 .entry(axis.birth)
@@ -341,11 +289,11 @@ fn branches_agree(species: &Species) {
         let table = kept.of(1, m, Carried::default(), None);
         let theirs = formula(table.at(m as i64).2.expect("born"));
         let n = subjects.len() as f64;
-        for q in 0..7 {
+        for q in 0..4 {
             let values: Vec<f64> = subjects.iter().map(|s| s.0[q]).collect();
             let (mean, error) = moments(&values);
             println!(
-                "e {e}, born {birth} ({n}): {} {mean:.5} ± {error:.5} vs {:.5}",
+                "born {birth} ({n}): {} {mean:.5} ± {error:.5} vs {:.5}",
                 NAMES[q], theirs[q]
             );
             assert!(

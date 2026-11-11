@@ -43,3 +43,10 @@
 - **Slowed by:** the hook refuses `git checkout <ref> -- <path>`, `git restore --worktree`, `rm -r` and a redirect to a variable path, each the usual way to take one side of a conflict or clear a stray directory. The workarounds were `git show <ref>:<path>` to a new file and then `mv`, and moving directories to `/tmp`.
 - **Cost:** about 5 minutes and four refused commands.
 - **What would have removed it:** none needed in the repository; it is a local hook, reported only.
+
+## 11 Nov 2026, 19:30, builder (task 3): step 1 needs an interim girth that step 2 throws away
+
+- **Doing:** step 1 of R6 (the rows) as its own green commit before step 2 (the state and the yearly pass).
+- **Slowed by:** deleting `exponent`, `ripening`, `secondary`, `retained` and `leaf_girth` leaves the settle with no girth rule until step 2 lands, so step 1 carries an interim one (the pipe model by area over `primary`). Every test that reads a radius is then judged against a rule that lives for one commit: the palm's column, a relay join's exact radii and the lever's pinned beam bends fail on it, and their fixes belong to step 2's rule. A test fixture also lost values with the rows (the lever's branch had exponent 2.2 and ripening 10, which its pinned bends came from), which a bulk rename hid until the run.
+- **Cost:** about 25 minutes: a base worktree build to find why the lever's bends moved, and the decision to leave three interim failures to step 2 rather than make the interim rule pass tests step 2 rewrites.
+- **What would have removed it:** ordering a row deletion and the rule that replaces its reader as one step, or naming in the design which tests the interim commit may leave red.

@@ -29,7 +29,6 @@ pub enum Retiring {
 /// The one cycle between years.
 pub struct Paused {
     g: Grower,
-    keeps: bool,
     request: Request,
     committed: u32,
     advanced: Vec<usize>,
@@ -99,7 +98,7 @@ impl Paused {
         working: Working,
     ) -> Result<Self> {
         let pas = species.states.len();
-        let (mut g, keeps) = start(species, request, Options::default())?;
+        let mut g = start(species, request, Options::default())?;
         (g.one, g.rules.one) = (true, true);
         g.working = Some(Box::new(working));
         g.sketch.get_or_insert_with(|| Sketch::new(request.light));
@@ -113,7 +112,6 @@ impl Paused {
         let (presenting, previous) = (false, None);
         Ok(Self {
             g,
-            keeps,
             request,
             committed: 0,
             advanced,
@@ -231,7 +229,7 @@ impl Paused {
             ..self.request
         };
         let copy = self.g.settled_copy(at);
-        let grown = copy.settle(request, (true, self.keeps), &mut |_| {})?;
+        let grown = copy.settle(request, true, &mut |_| {})?;
         Ok(lineage_order(grown.structure))
     }
 
@@ -265,7 +263,6 @@ impl Paused {
     pub(super) fn finish(self, started: f64) -> Result<Cycled> {
         let Self {
             g,
-            keeps,
             request,
             mut phases,
             ..
@@ -278,7 +275,7 @@ impl Paused {
             c.ended(&g.axes);
         }
         let mut clock = crate::clock::seconds();
-        let settled = g.settle(request, (true, keeps), &mut |s: Stage| {
+        let settled = g.settle(request, true, &mut |s: Stage| {
             tick(&mut phases, &mut clock, s)
         })?;
         if let Some(c) = taken.as_mut() {

@@ -66,3 +66,11 @@ Along one stem (an axis, and the axis that continues or relays it), where the se
 ## Not in this task
 
 The leaf function's new body (R5), the beech's branching (R7), the twelve-seed scoreboard (R8), the gate and the review (R9).
+
+## The fidelity dial (host, answer to the builder's stop)
+
+Host decision on the coarse pipe row: option C.
+
+Delete the coarse pipe row and its factor: a tree's primary radius does not move with fidelity, and the two fitted values (oak 3.742, spruce 2.2) go. Reason: under the rule nothing sums primary radii, so the factor has nothing left to compensate; the per-species coarse rows are ruled out by the owner and are deleted whole in a later phase, so no new value or renamed row is added for them now. The other coarse rows (factor, leaf) stay untouched in this task. If a test of the fidelity dial pinned trunk medians at fidelity above 0 against the old girth, it keeps checking what it promised with new numbers measured on this branch; list each such number with before and after. If deleting the row breaks the dial in a way that is not a number moving (a tree refused, a walk over fidelity failing its bound), stop and return with it.
+
+Your list of smaller things is accepted as you propose: the sag load's stand-in becomes primary × scale; the supernatural override of pipe is renamed the override of primary with its values kept; the phytomer's light field, Reads::lights, the presence.rs assignment and the invariant go with leaf_girth; tolerance::respond's leaf_girth line goes; closed_form/kept and boundary are cut down to the count column the predictor's tests hold, their section and mass columns and those tests deleted; the examples' leaf_girth and retained lines go. /radii/forkExponent and the unrelated "secondary" words are not this task's.
