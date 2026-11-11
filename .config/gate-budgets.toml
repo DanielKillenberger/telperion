@@ -40,12 +40,6 @@ mib = 4800
 measured = { seconds = 69, mib = 4344 }
 
 [[test]]
-name = "telperion_render generation::cycle::retire_tests::the_node_table_with_retirement_is_the_same_on_every_context"
-seconds = 164
-mib = 4096
-measured = { seconds = 82, mib = 491 }
-
-[[test]]
 name = "telperion_wasm generate::tests::flowers_cross_the_binding_where_the_pipeline_grows_them"
 seconds = 239
 mib = 4096

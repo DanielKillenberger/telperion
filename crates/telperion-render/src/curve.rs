@@ -129,73 +129,30 @@ impl CurveGpu {
             filled(gpu, "curve points", bytemuck::cast_slice(&points)),
             filled(gpu, "curve clusters", bytemuck::cast_slice(&clusters)),
         );
-        let blocks = (blocks.0, blocks.1, sections(gpu, curve));
-        let counts = (points.len() as u64, clusters.len() as u32);
-        Self::on_device(gpu, curve, blocks, counts, curve.demand())
-    }
-
-    /// A curve already on the device in its packed form (`points`,
-    /// `clusters` and `sections` words, `counts` of the first two) with
-    /// the rows and demand `rows`' and `demand` give: the device's block
-    /// packed after the CPU's (fn-212 task 7, host decision 2).
-    pub(crate) fn on_device(
-        gpu: &Gpu,
-        rows: &Curve,
-        (points, clusters, sections): (Owned, Owned, Owned),
-        (point_count, count): (u64, u32),
-        demand: Demand,
-    ) -> Self {
         // A slice of whole points, on a 256-byte boundary.
         let per_slice = (BINDING / 256) * 256 / 4;
-        let words = point_count * POINT_WORDS as u64;
+        let words = points.len() as u64 * POINT_WORDS as u64;
         Self {
-            points,
+            points: blocks.0,
             point_slice: per_slice.min(words),
             point_bytes: words * 4,
-            clusters,
-            sections,
-            count,
-            demand,
+            clusters: blocks.1,
+            sections: sections(gpu, curve),
+            count: clusters.len() as u32,
+            demand: curve.demand(),
             shape: [
-                rows.lobe_depth as f32,
-                rows.twist_rate as f32,
-                rows.height as f32,
+                curve.lobe_depth as f32,
+                curve.twist_rate as f32,
+                curve.height as f32,
                 0.0,
             ],
-            lobes: rows.lobes,
+            lobes: curve.lobes,
             shared: None,
             camera: None,
             sun: None,
             views: None,
             feedback: [Feedback::new(gpu), Feedback::new(gpu)],
         }
-    }
-
-    /// The section's rows this curve draws by: lobe depth, twist, height,
-    /// and the lobes.
-    #[cfg(test)]
-    pub(crate) fn rows(&self) -> ([f32; 4], u32) {
-        (self.shape, self.lobes)
-    }
-
-    /// The packed points and clusters, how many of each, and the demand
-    /// (fn-212 task 7's parity probe reads them back).
-    #[cfg(test)]
-    pub(crate) fn blocks(&self) -> (&wgpu::Buffer, &wgpu::Buffer, u64, u32, Demand) {
-        let points = self.point_bytes / (POINT_WORDS as u64 * 4);
-        (
-            &self.points,
-            &self.clusters,
-            points,
-            self.count,
-            self.demand,
-        )
-    }
-
-    /// The packed sections (the resident digest reads them back).
-    #[cfg(test)]
-    pub(crate) fn sections(&self) -> &wgpu::Buffer {
-        &self.sections
     }
 
     /// Bytes on the device: the curve, the views' shared buffers, each

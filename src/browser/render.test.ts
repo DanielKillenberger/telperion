@@ -23,7 +23,6 @@ vi.mock("./render/telperion_render.js", () => ({
   WebRenderer: {
     create: async () => ({
       preparePrograms: () => { fake.prepared += 1; return fake.programs; },
-      setTreeGpu: async (family: string) => { fake.builds.push(family); return "{}"; },
       beginGrowth: (family: string) => {
         fake.builds.push(`grow ${family}`);
         let committed = 0;
@@ -39,9 +38,9 @@ vi.mock("./render/telperion_render.js", () => ({
 }));
 
 const { createRenderer } = await import("./render");
-const { NORWAY_SPRUCE, OREGON_WHITE_OAK, SILVER_BIRCH } = await import("./presets");
+const { OREGON_WHITE_OAK } = await import("./presets");
 const { wire } = await import("./wire");
-const BIRCH = wire(SILVER_BIRCH), SPRUCE = wire(NORWAY_SPRUCE), OAK = wire(OREGON_WHITE_OAK);
+const OAK = wire(OREGON_WHITE_OAK);
 const canvas = { clientWidth: 4, clientHeight: 4, width: 0, height: 0 } as unknown as HTMLCanvasElement;
 const flush = async () => { await new Promise(resolve => setTimeout(resolve, 0)); };
 
@@ -53,34 +52,30 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllGlobals(); });
 
-it("starts compiling at creation and holds a build until the programs resolve", async () => {
+it("starts compiling the wood's programs once, at creation, and resolves when they settle", async () => {
   const programs = deferred();
   fake.programs = programs.promise;
   const renderer = await createRenderer(canvas);
   expect(fake.prepared).toBe(1);
-  const built = renderer.setTreeGpu(SILVER_BIRCH);
+  let settled = false;
+  void renderer.programs.then(() => { settled = true; });
   await flush();
-  expect(fake.builds).toEqual([]);
+  expect(settled).toBe(false);
   programs.resolve();
-  await built;
-  await renderer.setTreeGpu(NORWAY_SPRUCE);
-  expect(fake.builds).toEqual([BIRCH, SPRUCE]);
+  await renderer.programs;
+  expect(settled).toBe(true);
   expect(fake.prepared).toBe(1);
 });
 
 it.each([
-  "the browser refused the GPU program `grow`: internal: the shader failed to compile",
+  "the browser refused the GPU program `rings`: internal: the shader failed to compile",
   "the GPU device was lost: Unknown: A valid external Instance reference no longer exists.",
-])("a preparation that fails (%s) rejects every build by name, and none starts", async message => {
+])("a preparation that fails (%s) rejects the programs by name", async message => {
   const programs = deferred();
   fake.programs = programs.promise;
   const renderer = await createRenderer(canvas);
-  const built = renderer.setTreeGpu(SILVER_BIRCH);
   programs.reject(new Error(message));
   await expect(renderer.programs).rejects.toThrow(message);
-  await expect(built).rejects.toThrow(message);
-  await expect(renderer.setTreeGpu(NORWAY_SPRUCE)).rejects.toThrow(message);
-  expect(fake.builds).toEqual([]);
 });
 
 it("a resize notice that keeps the canvas's pixel size does not reset it (fn-246)", async () => {
@@ -110,7 +105,7 @@ it("a resize notice that keeps the canvas's pixel size does not reset it (fn-246
   expect(writes).toEqual(["width=4", "height=4"]);
 });
 
-it("a growth begins on the CPU without the device's programs, then grows and draws through its handle (fn-353)", async () => {
+it("a growth begins on the CPU without the wood's programs, then grows and draws through its handle (fn-353)", async () => {
   fake.programs = deferred().promise;
   const renderer = await createRenderer(canvas);
   const growth = renderer.beginGrowth(OREGON_WHITE_OAK);
@@ -120,7 +115,7 @@ it("a growth begins on the CPU without the device's programs, then grows and dra
   expect(growth.draw(2.5).foliageInstances).toBe(2.5);
 });
 
-it.each(["setTree", "admission", "setTreeGpu", "beginGrowth"] as const)(
+it.each(["setTree", "beginGrowth"] as const)(
   "%s refuses a preset id by wire's message, before the renderer sees it",
   async method => {
     fake.programs = Promise.resolve();

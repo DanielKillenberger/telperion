@@ -299,10 +299,6 @@ been added to conceal it. The placement reads include lazy skeleton packing,
 validation and, for spruce, construction of the contact surface; these costs
 are separate from internal slices and are not a change-record update benchmark.
 
-The experimental shared GPU browser path is measured only by explicit opt-in:
-`GENERATION_GPU=1 GENERATION_COMPLETED=1 GENERATION_OUTPUT=<file> node scripts/benchmarks/mature-generation.mjs`.
-It awaits `setTreeGpu`, retains the existing hero/queue-completion boundary, and records backend, preparation stages, explicit buffer counts and whole-module Wasm memory. The default remains synchronous CPU generation. Run `GENERATION_OUTPUT=<file> node scripts/benchmarks/generation-gpu-smoke.mjs` for bounded browser lifecycle validation before the full fixture matrix.
-
 ### Bounded GPU CPU-output readback
 
 GPU CPU delivery and explicit resident verification share a chunked asynchronous
@@ -317,32 +313,6 @@ Task fn-91.2's matched seed-1 native comparison is recorded in
 `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/READBACK.md`, with the
 fresh-process wait4 protocol in `readback-measure.py` (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/readback-measure.py`). Hash verification runs in
 separate processes so its extra verification clone is excluded from timing/RSS.
-
-### Resident wood expansion
-
-The resident build (`Generator::prepare`, the browser's `setTreeGpu` through the
-renderer's module) grows, draws and keeps the wood on the device; there is no
-CPU delivery and no CPU wood fallback (fn-293). A device or capacity failure is
-a named error. The CPU mesh (`mesh::build`) stays the reference for tests and
-for consumers without a GPU.
-
-Resident expansion copies pre-rounded coordinates/radii, emits ordered indices,
-and gathers incident triangles per vertex into finite unit normals. Verification
-readback stays outside delivery timing. Resident metadata supplies actual counts
-and run spans; a replacement keeps the old tree alive until validation and adoption.
-Final buffers retain their vertex/index/storage/copy usages for later CPU uploads.
-
-Reports distinguish `woodFallback`, compact preparation, upload/
-dispatch and status wait, prepared CPU capacity, packed metadata CPU capacity,
-wood GPU buffers including status staging, retained buffers and each previous live
-tree's buffers. At wood expansion, add the previous live tree, new foliage buffers
-and wood compute buffers to account their coexistence. Compare this with foliage
-compute plus the previous tree; the two compute stages run sequentially. CPU
-preparation scratch, allocator overhead, queue upload staging, the four-byte status
-result, pipeline/compiler/driver allocations and delayed destruction remain outside
-these counters. Wasm linear-memory size and process peak RSS have separate meanings.
-Task .4's native/browser measurements and coverage limits live in
-`.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/resident-wood/REPORT.md`.
 
 ### Shared canonical contacts
 

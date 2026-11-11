@@ -32,62 +32,6 @@ export interface Submitted {
   bounds: { min: Point; max: Point };
 }
 
-/** Host wall-clock milliseconds (`Ms`) and selected allocation capacities (`Bytes`).
- * Timings can nest/overlap; memory snapshots share allocations and are not additive.
- * These omit some transient scratch, allocator-retained Wasm memory, upload staging,
- * driver allocations and deferred destruction; they are not whole-process peaks.
- * Zero/default fields can mean an unused stage. */
-export interface GenerationStages {
-  positionPrepareMs: number;
-  positionUploadMs: number;
-  /** Admission wait remaining after overlapping CPU station work. */
-  positionWaitMs: number;
-  positionCpuBytes: number;
-  positionGpuPeakBytes: number;
-  positionRetainedMetadataBytes: number;
-  /** Unstable diagnostic text; do not branch on its wording. */
-  positionFallback: string | null;
-  gpuPositions: boolean;
-  skeletonMs: number;
-  descriptorsMs: number;
-  uploadDispatchMs: number;
-  placementWaitMs: number;
-  massMs: number;
-  readbackMs: number;
-  woodMs: number;
-  woodPrepareMs: number;
-  woodUploadDispatchMs: number;
-  woodWaitMs: number;
-  woodPreparedCpuBytes: number;
-  woodMetadataCpuBytes: number;
-  woodGpuPeakBytes: number;
-  /** Unstable diagnostic text; do not branch on its wording. */
-  woodFallback: string | null;
-  /** Preparation only; excludes adoption, drawing and completed-frame fencing. */
-  totalMs: number;
-  baseCpuBytes: number;
-  woodCpuBytes: number;
-  descriptorCpuBytes: number;
-  sharedContactCpuBytes: number;
-  sharedPrepareCpuBytes: number;
-  sharedMetadataCpuBytes: number;
-  gpuComputePeakBytes: number;
-  retainedGpuBytes: number;
-}
-
-/** A tree adopted by the renderer; this promise does not fence a completed frame. */
-export type Admission = "beside" | "makeRoom";
-
-export interface GpuSubmitted extends Submitted {
-  stages: GenerationStages;
-  /** Allocated live-tree GPU buffer bytes before adoption; excludes textures/pipelines. */
-  previousTreeGpuBytes: number;
-  /** Allocated live-tree GPU buffer bytes after adoption, with the same exclusions. */
-  treeGpuBytes: number;
-  /** Whether the drawn tree was let go first to make room under the budget. */
-  madeRoom: boolean;
-}
-
 export interface FrameStats {
   drawCalls: number;
   /** The room's and the leaves' triangles: the wood's are the device's own
@@ -191,18 +135,11 @@ export interface Growth {
  *  disposed with the page element it belongs to. */
 export interface Renderer {
   setTree(family: Family): Submitted;
-  /** What a build of this family does under the page's device budget:
-   *  builds beside the drawn tree, or lets it go first ("makeRoom"), the
-   *  screen empty while it builds. Throws the budget's own words for a tree
-   *  that does not fit even alone; the drawn tree stays. */
-  admission(family: Family): Admission;
-  /** The GPU programs every build dispatches, compiled by the browser in
-   *  the background from the moment the renderer exists. Rejects with the
-   *  program the browser refused, or the device lost meanwhile, by name. */
+  /** The wood's surfacing programs, compiled by the browser in the
+   *  background from the moment the renderer exists; the wood is drawn
+   *  once they have settled. Rejects with the program the browser
+   *  refused, or the device lost meanwhile, by name. */
   programs: Promise<void>;
-  /** The tree built on the device. Waits on `programs`, and rejects with
-   *  its error without building. */
-  setTreeGpu(family: Family): Promise<GpuSubmitted>;
   /** The family's tree before its first year, growing on the CPU
    *  (`Growth`). Throws the core's words for a family it cannot grow. */
   beginGrowth(family: Family): Growth;
@@ -250,7 +187,7 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
   let disposed = false;
   /* Compiled now, before any tree is asked for: a synchronous compile on
      the first build held Chrome's GPU process until its watchdog ended it
-     (fn-243). A build waits here; it never compiles again. */
+     (fn-243). */
   const programs = (renderer.preparePrograms() as Promise<unknown>).then(() => undefined);
   programs.catch(() => undefined);
 
@@ -263,14 +200,7 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
 
   return {
     setTree: (family) => JSON.parse(renderer.setTree(wire(family))) as Submitted,
-    admission: (family) => renderer.admission(wire(family)) as Admission,
     programs,
-    setTreeGpu: async (family) => {
-      const text = wire(family);
-      await programs;
-      if (disposed) throw new Error("the renderer is disposed");
-      return JSON.parse(await renderer.setTreeGpu(text)) as GpuSubmitted;
-    },
     beginGrowth: (family) => {
       const handle: WebGrowth = renderer.beginGrowth(wire(family));
       return {

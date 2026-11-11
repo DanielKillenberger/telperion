@@ -70,8 +70,8 @@ use {
 };
 /// A wood buffer the allocator refused, named with its remedy.
 const OUT_OF_MEMORY: Error = Error::ResourceLimit(
-    "the wood ran out of memory while its buffers were reserved; build it through the \
-     device entry or with fewer radialSegments",
+    "the wood ran out of memory while its buffers were reserved; build it with fewer \
+     radialSegments",
 );
 fn reserved<T>(n: usize) -> Result<Vec<T>> {
     let mut out = Vec::new();

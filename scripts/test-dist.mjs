@@ -63,7 +63,7 @@ async function refused() {
     said = e instanceof Error ? e.message : String(e);
   }
   if (said === undefined) throw Error('built a wood it should have refused');
-  const named = /^Tree core: the wood needs \d+ bytes and \d+ are left in 32-bit Wasm memory; .*device entry.*radialSegments/;
+  const named = /^Tree core: the wood needs \d+ bytes and \d+ are left in 32-bit Wasm memory; build it with fewer radialSegments/;
   if (!named.test(said)) throw Error(`not refused by name: ${said}`);
   const memory = engine.memoryBytes;
   if (memory > LIMIT) throw Error(`refused only after Wasm memory reached ${mib(memory)} MiB`);

@@ -13,7 +13,6 @@ mod curve;
 mod device;
 mod encoder;
 mod foliage;
-pub mod generation;
 #[cfg(not(target_arch = "wasm32"))]
 mod headless;
 mod mass;
@@ -126,7 +125,6 @@ pub struct Timed<'a> {
 
 /// A device with the room built on it, holding at most one tree.
 pub struct Renderer {
-    identity: std::sync::Arc<()>,
     gpu: Gpu,
     scene: scene::Scene,
     shadow: shadow::Shadow,
@@ -195,7 +193,6 @@ impl Renderer {
         let foliage = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface, false);
         let organ = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface, true);
         Self {
-            identity: std::sync::Arc::new(()),
             gpu,
             scene,
             shadow,

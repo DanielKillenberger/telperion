@@ -6,7 +6,9 @@
 //! browser at once, through the forked wgpu's
 //! `create_compute_pipeline_async` (docs/wgpu-fork.md), and `ready`
 //! settles them all before anything dispatches one.
-use crate::{Gpu, RenderError, Result};
+use crate::Gpu;
+#[cfg(any(test, target_arch = "wasm32"))]
+use crate::{RenderError, Result};
 #[cfg(any(test, target_arch = "wasm32"))]
 use std::future::Future;
 
@@ -22,59 +24,20 @@ pub(crate) struct Program {
 impl Program {
     /// The pipeline `desc` states, asked of the device now.
     pub fn make(gpu: &Gpu, desc: &wgpu::ComputePipelineDescriptor<'_>) -> Self {
-        #[cfg(test)]
-        MADE.with(|made| made.set(made.get() + 1));
         Self::asked(gpu, desc)
     }
 
-    /// The pipelines `descs` state, asked of the device at once: natively
-    /// each made on its own thread, as a browser compiles them side by
-    /// side, so a module's cold compile is its slowest entry's, not their
-    /// sum (fn-256, DESIGN.md 9.3). Each comes with what asking for it took
-    /// natively; a browser compiles in the background, and has no clock
-    /// `std::time` reads, so there asking takes nothing measured.
-    pub fn make_many(
-        gpu: &Gpu,
-        descs: &[wgpu::ComputePipelineDescriptor<'_>],
-    ) -> Vec<(Self, std::time::Duration)> {
-        #[cfg(test)]
-        MADE.with(|made| made.set(made.get() + descs.len()));
-        #[cfg(not(target_arch = "wasm32"))]
-        return std::thread::scope(|s| {
-            let timed = |d: &wgpu::ComputePipelineDescriptor<'_>| {
-                let started = std::time::Instant::now();
-                let made = Self::asked(gpu, d);
-                (made, started.elapsed())
-            };
-            let asked: Vec<_> = descs.iter().map(|d| s.spawn(move || timed(d))).collect();
-            asked
-                .into_iter()
-                .map(|h| h.join().expect("a pipeline made"))
-                .collect()
-        });
-        #[cfg(target_arch = "wasm32")]
-        descs
-            .iter()
-            .map(|d| (Self::asked(gpu, d), std::time::Duration::ZERO))
-            .collect()
-    }
-
     fn asked(gpu: &Gpu, desc: &wgpu::ComputePipelineDescriptor<'_>) -> Self {
-        // Natively a pipeline may be made on any thread (`make_many`), and
-        // error scopes are a thread's own, so each is made under scopes of
-        // its own and a refusal kept by name for `ready`.
+        // Natively a refusal is caught by scopes of its own, not by wgpu's
+        // uncaptured-error handler, which panics; the frame that
+        // dispatches the refused pipeline fails by its own scopes.
         #[cfg(not(target_arch = "wasm32"))]
         {
             let validation = gpu.device.push_error_scope(wgpu::ErrorFilter::Validation);
             let memory = gpu.device.push_error_scope(wgpu::ErrorFilter::OutOfMemory);
             let made = gpu.device.create_compute_pipeline(desc);
-            let memory = pollster::block_on(memory.pop());
-            let caught = memory.or(pollster::block_on(validation.pop()));
-            if let Some(error) = caught {
-                let name = desc.label.unwrap_or("unnamed").to_string();
-                let mut refused = gpu.refused.lock().expect("the refusals");
-                refused.push((name, error.to_string()));
-            }
+            drop(pollster::block_on(memory.pop()));
+            drop(pollster::block_on(validation.pop()));
             Self { made }
         }
         #[cfg(target_arch = "wasm32")]
@@ -93,13 +56,6 @@ impl Program {
             ));
             Self { made }
         }
-    }
-
-    /// The pipeline. In a browser, only after `ready` settled it: every
-    /// generation pass's owner awaits `ready` before it dispatches.
-    pub fn get(&self) -> &wgpu::ComputePipeline {
-        self.compiled()
-            .expect("a GPU program dispatched before `programs::ready` settled it")
     }
 
     /// The pipeline, where it is compiled: always natively, in a browser
@@ -133,32 +89,19 @@ fn rejection(error: wgpu::Error) -> String {
     }
 }
 
-/// Every program asked of `gpu` so far, settled: natively there is nothing
-/// to wait on; in a browser each compile is awaited, all of them already
-/// running side by side.
+/// Every program the browser was asked for so far, settled: each compile
+/// awaited, all of them already running side by side.
+#[cfg(target_arch = "wasm32")]
 pub(crate) async fn ready(gpu: &Gpu) -> Result<()> {
-    #[cfg(target_arch = "wasm32")]
-    {
-        let pending = std::mem::take(&mut *gpu.programs.borrow_mut());
-        settle(pending, || gpu.lost()).await?;
-    }
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        let refused = std::mem::take(&mut *gpu.refused.lock().expect("the refusals"));
-        if let Some(lost) = gpu.lost() {
-            return Err(lost);
-        }
-        if let Some((program, reason)) = refused.into_iter().next() {
-            return Err(RenderError::ProgramRefused { program, reason });
-        }
-    }
-    Ok(())
+    let pending = std::mem::take(&mut *gpu.programs.borrow_mut());
+    settle(pending, || gpu.lost()).await
 }
 
 /// What a preparation reports when more than one thing went wrong: a lost
 /// device first, then the program the browser refused, by name, then
 /// whatever the error scopes caught (a refused program's shader also
 /// raises a scoped validation error, which names nothing).
+#[cfg(any(test, target_arch = "wasm32"))]
 pub(crate) fn first_cause(
     lost: Option<RenderError>,
     ready: Result<()>,
@@ -186,19 +129,6 @@ where
         compiled.map_err(|reason| RenderError::ProgramRefused { program, reason })?;
     }
     Ok(())
-}
-
-#[cfg(test)]
-thread_local! {
-    /// Programs this thread asked of a device, for the test that each is
-    /// made once.
-    static MADE: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
-}
-
-/// How many programs this thread has asked of a device.
-#[cfg(test)]
-pub(crate) fn made() -> usize {
-    MADE.with(|made| made.get())
 }
 
 #[cfg(test)]

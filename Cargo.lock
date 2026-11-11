@@ -1417,7 +1417,6 @@ dependencies = [
 name = "telperion-render"
 version = "0.1.0"
 dependencies = [
- "ash",
  "bytemuck",
  "font8x8",
  "futures-channel",

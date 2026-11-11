@@ -18,9 +18,6 @@ use crate::{
     GROUND_REACH,
 };
 
-/// A tree's field grown on a device of its own (fn-257).
-mod field;
-mod generation;
 /// A tree growing for the page, on the CPU (fn-270 R6, R7; fn-353).
 mod growing;
 /// The timing protocol as a page runs it, kept beside this file rather than in
@@ -198,7 +195,6 @@ fn attachments(
 /// invent one.
 #[wasm_bindgen]
 pub struct WebRenderer {
-    generation: generation::Generation,
     live: Rc<RefCell<Option<Live>>>,
 }
 
@@ -211,8 +207,32 @@ impl WebRenderer {
             let live = Live::new(canvas).await.map_err(js_error)?;
             Ok(JsValue::from(Self {
                 live: Rc::new(RefCell::new(Some(live))),
-                generation: Rc::default(),
             }))
+        })
+    }
+
+    /// Compiles the wood's surfacing programs as soon as the device exists:
+    /// the browser compiles them in the background, and the wood is drawn
+    /// once they have settled (fn-243 R3). A program the browser refuses,
+    /// or a device lost meanwhile, rejects by name.
+    #[wasm_bindgen(js_name = preparePrograms)]
+    pub fn prepare_programs(&self) -> js_sys::Promise {
+        let live = self.live.clone();
+        future_to_promise(async move {
+            let gpu = borrow(&live)?.renderer.gpu().clone();
+            let [validation, memory] = gpu.scopes();
+            crate::curve::passes(&gpu);
+            let ready = crate::programs::ready(&gpu).await;
+            let (memory, validation) = (memory.pop().await, validation.pop().await);
+            let scoped = match memory.or(validation) {
+                Some(error) => Err(RenderError::DeviceRefused {
+                    requirement: "the wood's programs".into(),
+                    detail: error.to_string(),
+                }),
+                None => Ok(()),
+            };
+            crate::programs::first_cause(gpu.lost(), ready, scoped).map_err(js_error)?;
+            Ok(JsValue::UNDEFINED)
         })
     }
 
@@ -233,7 +253,6 @@ impl WebRenderer {
         // A whole tree's leaves, whatever a drawn year left them at.
         live.renderer.set_colouring(1.0);
         live.redraw.ask();
-        self.generation.borrow_mut().invalidate();
         Ok(submitted_json(&submitted))
     }
 
@@ -413,7 +432,6 @@ impl WebRenderer {
     /// Drops the device and the canvas surface with it. Every later call says
     /// the renderer is disposed rather than reaching a device that is gone.
     pub fn dispose(&self) {
-        self.generation.borrow_mut().dispose();
         self.live.borrow_mut().take();
     }
 }

@@ -12,7 +12,6 @@
 //! as far down as its base depth; the rest clear the ground by the encoder's
 //! margin (host, 2026-10-21). The instance is then turned about a
 //! horizontal axis by the rotation that carries `d` onto up.
-//! `generation/rest.wgsl` is the device's copy, in the same order.
 use super::Element;
 use crate::math::Vec3;
 
