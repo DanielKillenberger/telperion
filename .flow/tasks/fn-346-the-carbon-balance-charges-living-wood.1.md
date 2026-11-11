@@ -7,9 +7,10 @@ TBD
 - [ ] TBD
 
 ## Done summary
-TBD
+Measurement, five probes and their reads done; no code stays. The rule found is SR (square charge, what would remain); verdicts and what is left are in the spec Result.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: 977ba7bcd
 - Tests:
 - PRs:

@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-346-the-carbon-balance-charges-living-wood.md",
-  "status": "open",
+  "status": "done",
   "title": "The carbon balance charges living wood by the pipes it carries",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-10T22:53:08.620552Z"
+  "updated_at": "2026-11-11T05:13:52.607610Z"
 }

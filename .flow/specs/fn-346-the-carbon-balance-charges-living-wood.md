@@ -47,3 +47,22 @@ Not settled, the host's after R1: whether a lateral's balance counts its tips' p
 ## Open Questions
 
 None.
+
+## Result
+
+Closed 11 Nov 2026 as a measured finding with no code left in the crates; every probe is a patch under `probes/`. Now a child of goal fn-347.
+
+- **The rule found (variant SR, `probes/square.patch`):** wood that has died is charged nothing; a living tip is charged its size times the square of its path from the root over the species' potential height; a lateral subtree's sums take only the child laterals that pay; an axis that continues or relays its bearer is tested as a lateral is. Under it the oak has a steady state for the first time: the longest path holds at 34 to 38 m from about 140, the height stops at 32 to 33 m, tips and held phytomers are level from about 220, and the grow to 300 costs 131 s and 2.2 GiB against today's 146 s and 2.7.
+- **The host's verdicts for SR, against today's:** oak 40 and 80 the same; oak 120 better on three seeds; oak 200 thinner on seed 1001, neither on 1007, better on 1012; oak 300 worse on 1001 (the stem laid to the ground by sag), better on 1007 and 1012; every other preset the same. Jev's answers on 18 stills agree (`JEV-SR.md`).
+- **Refuted on the way, each by arithmetic or an ablation sheet:** one pipe per tip (`R1-NOTE.md`); the straight charge at the potential height (starves) and at twice it (no bound on extent); rule A, fine tips living on (skirts and thickets); rule G as built, a part's largest radius held (stacked cylinders, no tree held up). Rule B, sleeping buds waking where a tip would pay, is not judged: as built a long-slept bud wakes at near-zero presence (`LAST-RESULT.md`).
+- **What is left is outside the balance:** the girth falls with what a part bears (SR's trunk 137, 82, 36 cm at 120, 200, 300) and the settle's sag lays the old tree down on it.
+- **Next:** fn-349 rewrites SR as product code off the integration branch; whether it merges before girth and sag are fixed is the owner's (goal log, 11 Nov).
+
+The acceptance as written: R1 to R3 done; R4 judged by the host and not passed (one tree worse); R5 took its second branch (the probe leaves the crates as a patch).
+
+## Friction
+
+- **The shell hook refuses a heredoc that contains a redirect line, `git checkout -- crates`, and a redirect to a variable path** (twice, about 4 minutes). A local setup matter, reported and not specced; the dispatch now tells workers to write files with the file tool and revert a probe with `git apply -R`.
+- **A still batch run under a timeout shorter than the batch was killed** (2 minutes). Worker's practice changed in the run: batches run in the background with no guard.
+- **A probe build that panicked on every run was queued as a batch** (5 minutes). Worker's practice changed in the run: a one-year smoke run before any batch. Proposed as a line for the next child that draws stills: the still runner's preflight, already on the carried list from fn-344, also runs one year of the build.
+
