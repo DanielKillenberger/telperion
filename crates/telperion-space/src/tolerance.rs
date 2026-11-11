@@ -7,8 +7,9 @@
 //! - The hazards (shade and balance), the oak's one value of each, times
 //!   (5 - T) / (5 - T of the oak): an intolerant species sheds more in
 //!   shade.
-//! - Upkeep, tolerance and leaf girth are shared physiology: the oak's,
-//!   unscaled, so the balance hazard bites.
+//! - Tolerance and leaf girth are shared physiology: the oak's, unscaled,
+//!   so the balance hazard bites. The inverse height is the species' own
+//!   measured trait and is never copied (fn-349).
 //! - Apical control is architecture, and the size response (shade size)
 //!   is not set by tolerance: each stays the species' own, the size response
 //!   dormant until a source or an owner verdict sets it (host, 2026-10-12:
@@ -35,14 +36,10 @@ pub(crate) fn respond(ages: &mut [(usize, PaState)], t: f64) {
     };
     let k = (MOST - t) / (MOST - ANCHOR);
     let (hazard, balance) = (k * one(|s| s.shade_hazard), k * one(|s| s.balance_hazard));
-    let (upkeep, tolerance, girth) = (
-        one(|s| s.upkeep),
-        one(|s| s.tolerance),
-        one(|s| s.leaf_girth),
-    );
+    let (tolerance, girth) = (one(|s| s.tolerance), one(|s| s.leaf_girth));
     for (_, s) in ages {
         (s.shade_hazard, s.balance_hazard) = (hazard, balance);
-        (s.upkeep, s.tolerance, s.leaf_girth) = (upkeep, tolerance, girth);
+        (s.tolerance, s.leaf_girth) = (tolerance, girth);
     }
 }
 
@@ -74,11 +71,12 @@ mod tests {
         let at = one(ANCHOR);
         assert_eq!((at.shade_hazard, at.balance_hazard), (1.0, 2.0));
         assert_eq!(at.shade_size, 0.0, "the size response is not mapped");
-        assert_eq!((at.upkeep, at.tolerance, at.leaf_girth), (0.35, 0.0, 1.0));
+        assert_eq!((at.tolerance, at.leaf_girth), (0.0, 1.0));
+        assert_eq!(at.inverse_height, 0.0, "the inverse height is never copied");
         let (shy, bold) = (one(4.56), one(2.03));
         assert!(shy.shade_hazard < at.shade_hazard && at.shade_hazard < bold.shade_hazard);
         assert!(shy.balance_hazard < bold.balance_hazard);
-        assert_eq!((shy.upkeep, bold.leaf_girth), (0.35, 1.0));
+        assert_eq!(bold.leaf_girth, 1.0);
         assert_eq!(one(MOST).shade_hazard, 0.0);
     }
 }

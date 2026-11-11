@@ -228,12 +228,14 @@ pub struct PaState {
     /// split, gives every bud its own light's share; dormant while
     /// `shade_size` is 0 or no leaf shades.
     pub apical_control: f64,
-    /// The carbon balance's upkeep (fn-197 step 4): what a metre of this
-    /// PA's present wood costs, in the units of the light a bud of whole
-    /// presence collects in full light. Neutral 0, free.
-    pub upkeep: f64,
+    /// The reciprocal of the species' potential height, per metre
+    /// (fn-349): a living tip of this PA costs the carbon balance its size
+    /// times the square of its path from the root collar times this, the
+    /// living wood a leaf keeps rising with the square of its path. Every
+    /// row of a species states the same value. Neutral 0, free.
+    pub inverse_height: f64,
     /// How fast a lateral of this PA is shed as its remembered balance,
-    /// (light - upkeep) / (light + upkeep) over its subtree, falls below
+    /// (light - cost) / (light + cost) over its subtree, falls below
     /// `tolerance`: a yearly hazard of balance_hazard x (tolerance -
     /// balance) where the balance lies below it. Neutral 0, never.
     pub balance_hazard: f64,

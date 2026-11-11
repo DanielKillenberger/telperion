@@ -96,7 +96,10 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        // The potential height, 61 m: "In central Europe, heights of up to
+        // 203 feet (61 m) have been reported" (USDA FEIS, Picea abies; a
+        // reported maximum, fn-345).
+        inverse_height: 1.0 / 61.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
         retained: 0.0,

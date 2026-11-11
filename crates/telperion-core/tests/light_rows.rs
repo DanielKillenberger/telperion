@@ -105,17 +105,18 @@ const RESPONSES: [(&str, fn(&mut telperion_space::PaState)); 4] = [
 
 /// The light-only response: with no leaf shading it reads a light of one,
 /// where it is neutral to the bit. The shade size also follows the split
-/// apical control makes in an even light,
-/// the balance weighs its wood's upkeep, and the leaf girth's term at a
-/// light of one is not bit-identical to its dormant path (measured), so
-/// those move an unshaded tree too.
+/// apical control makes in an even light, the balance charges its living
+/// tips by their path, and the leaf girth's term at a light of one is not
+/// bit-identical to its dormant path (measured), so those move an
+/// unshaded tree too.
 fn light_only(row: &str) -> bool {
     row == "shade_hazard"
 }
 
 /// The rows a preset's own values leave neutral under the site's light:
-/// the ordinary's upkeep (0.006) keeps every balance above its tolerance
-/// (0), so its balance hazard sheds nothing.
+/// the ordinary states no inverse height (fn-349), so its balance charges
+/// nothing, stays above its tolerance (0), and its balance hazard sheds
+/// nothing.
 fn neutral_by_its_values(preset: Preset, row: &str) -> bool {
     preset == Preset::Ordinary && row == "balance_hazard"
 }

@@ -35,7 +35,6 @@
 /space/ages/0/shadeHazard = 0.33333333333333337
 /space/ages/0/shadeSize = 0.5
 /space/ages/0/apicalControl = 0.48333333333333334
-/space/ages/0/upkeep = 0.006054004063162271
 /space/ages/0/balanceHazard = 0.048577660026506514
 /space/ages/0/retained = 0.16666666666666669
 /space/ages/0/leafGirth = 0.33333333333333337
@@ -80,7 +79,6 @@
 /space/ages/1/shadeHazard = 0.33333333333333337
 /space/ages/1/shadeSize = 0.5
 /space/ages/1/apicalControl = 0.48333333333333334
-/space/ages/1/upkeep = 0.006054004063162271
 /space/ages/1/balanceHazard = 0.048577660026506514
 /space/ages/1/retained = 0.16666666666666669
 /space/ages/1/leafGirth = 0.33333333333333337
@@ -126,7 +124,6 @@
 /space/ages/2/shadeHazard = 0.33333333333333337
 /space/ages/2/shadeSize = 0.5
 /space/ages/2/apicalControl = 0.48333333333333334
-/space/ages/2/upkeep = 0.006054004063162271
 /space/ages/2/balanceHazard = 0.048577660026506514
 /space/ages/2/retained = 0.16666666666666669
 /space/ages/2/leafGirth = 0.33333333333333337
@@ -174,7 +171,6 @@
 /space/ages/3/shadeHazard = 0.33333333333333337
 /space/ages/3/shadeSize = 0.5
 /space/ages/3/apicalControl = 0.48333333333333334
-/space/ages/3/upkeep = 0.006054004063162271
 /space/ages/3/balanceHazard = 0.048577660026506514
 /space/ages/3/retained = 0.16666666666666669
 /space/ages/3/leafGirth = 0.33333333333333337
@@ -219,7 +215,6 @@
 /space/ages/4/shadeHazard = 0.33333333333333337
 /space/ages/4/shadeSize = 0.5
 /space/ages/4/apicalControl = 0.48333333333333334
-/space/ages/4/upkeep = 0.006054004063162271
 /space/ages/4/balanceHazard = 0.048577660026506514
 /space/ages/4/retained = 0.16666666666666669
 /space/ages/4/leafGirth = 0.33333333333333337
@@ -263,7 +258,6 @@
 /space/ages/5/shadeHazard = 0.33333333333333337
 /space/ages/5/shadeSize = 0.5
 /space/ages/5/apicalControl = 0.48333333333333334
-/space/ages/5/upkeep = 0.006054004063162271
 /space/ages/5/balanceHazard = 0.048577660026506514
 /space/ages/5/retained = 0.16666666666666669
 /space/ages/5/leafGirth = 0.33333333333333337
@@ -313,7 +307,6 @@
 /space/ages/6/shadeHazard = 0.33333333333333337
 /space/ages/6/shadeSize = 0.5
 /space/ages/6/apicalControl = 0.48333333333333334
-/space/ages/6/upkeep = 0.006054004063162271
 /space/ages/6/balanceHazard = 0.048577660026506514
 /space/ages/6/retained = 0.16666666666666669
 /space/ages/6/leafGirth = 0.33333333333333337
@@ -376,7 +369,6 @@
 /space/ages/7/shadeHazard = 0.33333333333333337
 /space/ages/7/shadeSize = 0.5
 /space/ages/7/apicalControl = 0.48333333333333334
-/space/ages/7/upkeep = 0.006054004063162271
 /space/ages/7/balanceHazard = 0.048577660026506514
 /space/ages/7/retained = 0.16666666666666669
 /space/ages/7/leafGirth = 0.33333333333333337
@@ -429,7 +421,6 @@
 /space/ages/8/shadeHazard = 0.33333333333333337
 /space/ages/8/shadeSize = 0.5
 /space/ages/8/apicalControl = 0.48333333333333334
-/space/ages/8/upkeep = 0.006054004063162271
 /space/ages/8/balanceHazard = 0.048577660026506514
 /space/ages/8/retained = 0.16666666666666669
 /space/ages/8/leafGirth = 0.33333333333333337
@@ -490,7 +481,6 @@
 /space/ages/9/shadeHazard = 0.33333333333333337
 /space/ages/9/shadeSize = 0.5
 /space/ages/9/apicalControl = 0.48333333333333334
-/space/ages/9/upkeep = 0.006054004063162271
 /space/ages/9/balanceHazard = 0.048577660026506514
 /space/ages/9/retained = 0.16666666666666669
 /space/ages/9/leafGirth = 0.33333333333333337
@@ -553,7 +543,6 @@
 /space/ages/10/shadeHazard = 0.33333333333333337
 /space/ages/10/shadeSize = 0.5
 /space/ages/10/apicalControl = 0.48333333333333334
-/space/ages/10/upkeep = 0.006054004063162271
 /space/ages/10/balanceHazard = 0.048577660026506514
 /space/ages/10/retained = 0.16666666666666669
 /space/ages/10/leafGirth = 0.33333333333333337
@@ -595,7 +584,6 @@
 /space/ages/11/shadeHazard = 0.33333333333333337
 /space/ages/11/shadeSize = 0.5
 /space/ages/11/apicalControl = 0.48333333333333334
-/space/ages/11/upkeep = 0.006054004063162271
 /space/ages/11/balanceHazard = 0.048577660026506514
 /space/ages/11/retained = 0.16666666666666669
 /space/ages/11/leafGirth = 0.33333333333333337
@@ -634,7 +622,6 @@
 /space/ages/12/shadeHazard = 0.33333333333333337
 /space/ages/12/shadeSize = 0.5
 /space/ages/12/apicalControl = 0.48333333333333334
-/space/ages/12/upkeep = 0.006054004063162271
 /space/ages/12/balanceHazard = 0.048577660026506514
 /space/ages/12/retained = 0.16666666666666669
 /space/ages/12/leafGirth = 0.33333333333333337
@@ -673,7 +660,6 @@
 /space/ages/13/shadeHazard = 0.33333333333333337
 /space/ages/13/shadeSize = 0.5
 /space/ages/13/apicalControl = 0.48333333333333334
-/space/ages/13/upkeep = 0.006054004063162271
 /space/ages/13/balanceHazard = 0.048577660026506514
 /space/ages/13/retained = 0.16666666666666669
 /space/ages/13/leafGirth = 0.33333333333333337
@@ -712,7 +698,6 @@
 /space/ages/14/shadeHazard = 0.33333333333333337
 /space/ages/14/shadeSize = 0.5
 /space/ages/14/apicalControl = 0.48333333333333334
-/space/ages/14/upkeep = 0.006054004063162271
 /space/ages/14/balanceHazard = 0.048577660026506514
 /space/ages/14/retained = 0.16666666666666669
 /space/ages/14/leafGirth = 0.33333333333333337

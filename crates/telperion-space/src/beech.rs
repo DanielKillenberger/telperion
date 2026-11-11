@@ -91,7 +91,9 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        // The potential height, 40 m: "it may reach over 40 m in height"
+        // (waldwissen.net, the beech's portrait; a lower bound, fn-345).
+        inverse_height: 1.0 / 40.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
         retained: 0.0,

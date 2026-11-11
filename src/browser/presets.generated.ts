@@ -343,7 +343,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 0.33333333333333337,
             "takeover": 0.75,
             "trunk": true,
-            "upkeep": 0.006054004063162271,
             "zones": {
               "0": {
                 "buds": 1,
@@ -409,7 +408,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 0.33333333333333337,
             "takeover": 0.75,
             "trunk": true,
-            "upkeep": 0.006054004063162271,
             "zones": {
               "0": {
                 "buds": 1,
@@ -480,7 +478,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 0.33333333333333337,
             "takeover": 0.75,
             "trunk": true,
-            "upkeep": 0.006054004063162271,
             "zones": {
               "0": {
                 "buds": 1,
@@ -553,7 +550,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 0.33333333333333337,
             "takeover": 0.75,
             "trunk": true,
-            "upkeep": 0.006054004063162271,
             "zones": {
               "0": {
                 "buds": 1,
@@ -626,7 +622,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 0.33333333333333337,
             "takeover": 0.75,
             "trunk": true,
-            "upkeep": 0.006054004063162271,
             "zones": {
               "0": {
                 "buds": 1,
@@ -693,7 +688,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "trunk": true,
-            "upkeep": 0.006054004063162271,
             "zones": {
               "0": {
                 "buds": 1,
@@ -769,7 +763,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shedding": 17,
             "straightening": 0.25,
             "takeover": 0.75,
-            "upkeep": 0.006054004063162271,
             "viability": 0.9983333333333334,
             "zones": {
               "0": {
@@ -862,7 +855,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shedding": 13.999999999999996,
             "straightening": 0.2,
             "takeover": 0.75,
-            "upkeep": 0.006054004063162271,
             "viability": 0.9973333333333333,
             "zones": {
               "0": {
@@ -938,7 +930,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeSize": 0.5,
             "shedding": 10.999999999999998,
             "straightening": 0.08333333333333334,
-            "upkeep": 0.006054004063162271,
             "viability": 0.981,
             "zones": {
               "0": {
@@ -1029,7 +1020,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeSize": 0.5,
             "shedding": 2,
             "takeover": 0.75,
-            "upkeep": 0.006054004063162271,
             "viability": 0.976,
             "zones": {
               "0": {
@@ -1123,7 +1113,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeSize": 0.5,
             "shedding": 1.4,
             "takeover": 0.75,
-            "upkeep": 0.006054004063162271,
             "viability": 0.9733333333333333,
             "zones": {
               "0": {
@@ -1191,7 +1180,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 1.25,
-            "upkeep": 0.006054004063162271,
             "viability": 0.9566666666666667,
             "zones": {
               "0": {
@@ -1251,7 +1239,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 1.7692307692307692,
-            "upkeep": 0.006054004063162271,
             "viability": 0.9266666666666666,
             "zones": {
               "0": {
@@ -1314,7 +1301,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 1.7692307692307692,
-            "upkeep": 0.006054004063162271,
             "viability": 0.9333333333333333,
             "zones": {
               "0": {
@@ -1377,7 +1363,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 1.7692307692307692,
-            "upkeep": 0.006054004063162271,
             "viability": 0.9,
             "zones": {
               "0": {
@@ -1752,6 +1737,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.25
             },
             "internode": 0.045,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
             "leafGirth": 1,
@@ -1762,7 +1748,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -1809,6 +1794,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.25
             },
             "internode": 0.045,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
             "leafGirth": 1,
@@ -1819,7 +1805,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -1867,6 +1852,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.5
             },
             "internode": 0.05,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
             "leafGirth": 1,
@@ -1877,7 +1863,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -1934,6 +1919,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.5,
             "internode": 0.035,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
             "leafGirth": 1,
@@ -1948,7 +1934,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeSize": 0.5,
             "shedding": 5,
             "straightening": 0.15,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2020,6 +2005,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.6,
             "internode": 0.03,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
             "leafGirth": 1,
@@ -2034,7 +2020,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeSize": 0.5,
             "shedding": 4,
             "takeover": 0.75,
-            "upkeep": 0.35,
             "viability": 0.999,
             "zones": {
               "0": {
@@ -2084,6 +2069,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.7,
             "internode": 0.031,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
             "leafGirth": 1,
@@ -2094,7 +2080,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1.5,
             "shedding": 3,
-            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -2146,6 +2131,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1,
             "internode": 0.017,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
             "leafGirth": 1,
@@ -2160,7 +2146,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeSize": 1,
             "shedding": 3,
             "takeover": 0.75,
-            "upkeep": 0.35,
             "viability": 0.98,
             "zones": {
               "0": {
@@ -2212,6 +2197,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.8,
             "internode": 0.015,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
             "leafGirth": 1,
@@ -2222,7 +2208,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1,
             "shedding": 2,
-            "upkeep": 0.35,
             "viability": 0.93,
             "zones": {
               "0": {
@@ -2272,6 +2257,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.8,
             "internode": 0.012,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
             "leafGirth": 1,
@@ -2282,7 +2268,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1,
             "shedding": 2,
-            "upkeep": 0.35,
             "viability": 0.98,
             "zones": {
               "0": {
@@ -2328,6 +2313,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.9,
             "internode": 0.006,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
             "leafGirth": 1,
@@ -2338,7 +2324,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1,
             "shedding": 2,
-            "upkeep": 0.35,
             "viability": 0.9,
             "zones": {
               "0": {
@@ -2713,6 +2698,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.1
             },
             "internode": 0.02,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.0006713,
             "leafFall": 45,
             "leafGirth": 1,
@@ -2721,7 +2707,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2762,6 +2747,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.1
             },
             "internode": 0.028,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.00093982,
             "leafFall": 45,
             "leafGirth": 1,
@@ -2770,7 +2756,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2817,6 +2802,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.1
             },
             "internode": 0.042,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.0014097299999999999,
             "leafFall": 45,
             "leafGirth": 1,
@@ -2824,7 +2810,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2872,6 +2857,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.1
             },
             "internode": 0.03,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.00100695,
             "leafFall": 45,
             "leafGirth": 1,
@@ -2879,7 +2865,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2929,13 +2914,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1.5,
             "internode": 0.05,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.00167825,
             "leafFall": 45,
             "leafGirth": 1,
             "lifespan": 6,
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
-            "upkeep": 0.35,
             "viability": 0.998,
             "zones": {
               "0": {
@@ -3002,6 +2987,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1.5,
             "internode": 0.034,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.00114121,
             "leafFall": 45,
             "leafGirth": 1,
@@ -3009,7 +2995,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "shedding": 3,
-            "upkeep": 0.35,
             "viability": 0.998,
             "zones": {
               "0": {
@@ -3072,6 +3057,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.9,
             "internode": 0.016,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.00053704,
             "leafFall": 45,
             "leafGirth": 1,
@@ -3079,7 +3065,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.99,
             "zones": {
               "0": {
@@ -3125,6 +3110,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.9,
             "internode": 0.006,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.00020139,
             "leafFall": 45,
             "leafGirth": 1,
@@ -3132,7 +3118,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.99,
             "zones": {
               "0": {
@@ -3169,6 +3154,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1.1,
             "internode": 0.02,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.0006713,
             "leafFall": 45,
             "leafGirth": 1,
@@ -3176,7 +3162,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "shedding": 3,
-            "upkeep": 0.35,
             "viability": 0.9,
             "zones": {
               "0": {
@@ -3555,6 +3540,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.3,
             "internode": 0.07,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -3570,7 +3556,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 1,
             "takeover": 0.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -3619,6 +3604,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -3634,7 +3620,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 1,
             "takeover": 0.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -3683,6 +3668,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.3,
               "wander": 0.2
             },
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -3692,7 +3678,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -3743,6 +3728,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -3757,7 +3743,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -3809,6 +3794,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -3823,7 +3809,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -3873,6 +3858,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -3882,7 +3868,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.25,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -3930,6 +3915,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1,
             "internode": 0.03,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -3939,7 +3925,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -3996,6 +3981,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1,
             "internode": 0.025,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -4005,7 +3991,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -4041,6 +4026,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.9,
             "internode": 0.006,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
             "leafGirth": 1,
@@ -4050,7 +4036,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.9,
             "zones": {
               "0": {
@@ -4418,6 +4403,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "groundHazard": 1,
             "internode": 0.055,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
             "leafGirth": 1,
@@ -4426,7 +4412,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -4475,6 +4460,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.35
             },
             "groundHazard": 1,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
             "leafGirth": 1,
@@ -4483,7 +4469,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -4535,6 +4520,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.35
             },
             "groundHazard": 1,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
             "leafGirth": 1,
@@ -4543,7 +4529,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -4600,6 +4585,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "groundHazard": 1,
             "internode": 0.015,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
             "leafGirth": 1,
@@ -4613,7 +4599,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1.1423076923076922,
             "takeover": 0.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -4671,6 +4656,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "groundHazard": 1,
             "insertion": 0.6,
             "internode": 0.055,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
             "leafGirth": 1,
@@ -4683,7 +4669,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1.1423076923076922,
             "shedding": 3,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.998,
             "zones": {
               "0": {
@@ -4744,6 +4729,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "groundHazard": 1,
             "insertion": 0.6,
             "internode": 0.03,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
             "leafGirth": 1,
@@ -4756,7 +4742,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1.1423076923076922,
             "shedding": 2,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -4814,6 +4799,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "groundHazard": 1,
             "insertion": 0.7,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
             "leafGirth": 1,
@@ -4822,7 +4808,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
             "shedding": 2,
-            "upkeep": 0.35,
             "viability": 0.97,
             "zones": {
               "0": {
@@ -4878,6 +4863,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "groundHazard": 1,
             "insertion": 0.7,
             "internode": 0.06,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
             "leafGirth": 1,
@@ -4886,7 +4872,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.92,
             "zones": {
               "0": {
@@ -4925,6 +4910,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "groundHazard": 1,
             "insertion": 0.8,
             "internode": 0.003,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
             "leafGirth": 1,
@@ -4933,7 +4919,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.92,
             "zones": {
               "0": {
@@ -5693,7 +5678,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 1,
             "takeover": 0.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -5757,7 +5741,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 1,
             "takeover": 0.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -5815,7 +5798,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -5880,7 +5862,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -5946,7 +5927,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -6005,7 +5985,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.25,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -6062,7 +6041,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -6128,7 +6106,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -6173,7 +6150,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.9,
             "zones": {
               "0": {
@@ -6601,7 +6577,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 1,
             "takeover": 0.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -6665,7 +6640,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 1,
             "takeover": 0.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -6723,7 +6697,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -6788,7 +6761,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -6854,7 +6826,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -6913,7 +6884,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.25,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -6970,7 +6940,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -7036,7 +7005,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -7081,7 +7049,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.9,
             "zones": {
               "0": {

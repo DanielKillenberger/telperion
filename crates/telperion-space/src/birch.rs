@@ -91,7 +91,10 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         ground_hazard: GROUND_HAZARD,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        // The potential height, 30 m (European Atlas of Forest Tree
+        // Species, Betula, Beck et al.: "... 30 m"; B. pendula inferred
+        // from the excerpt, fn-345).
+        inverse_height: 1.0 / 30.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
         retained: 0.0,

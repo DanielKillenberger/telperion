@@ -1,10 +1,9 @@
 //! A retired subtree's records let go (fn-333). Retirement lets go of a
 //! shed subtree's phytomers and draws (`retire.rs`) and its root stands
-//! for it; nothing reads the axes inside it again, once its root's
-//! upkeep is frozen (`Working::closed`), for every pass, the settle's
-//! included, stops at the root: the balance at its frozen upkeep, the
-//! evaluation of an ancestor at its fate, the girth at its frozen girth,
-//! the fades at its living. Those axes are then dropped from every store
+//! for it; nothing reads the axes inside it again, for every pass, the
+//! settle's included, stops at the root: the balance, which charges dead
+//! wood nothing, the evaluation of an ancestor at its fate, the girth at
+//! its frozen girth, the fades at its living. Those axes are then dropped from every store
 //! the grower keeps by axis, and every axis held moves down to its place
 //! among those held. The order of the held axes is kept, so every pass
 //! visits them, and sums them, in the order it did; the tree grows the
@@ -131,14 +130,13 @@ impl Grower {
     }
 }
 
-/// The axes let go: those inside a retired subtree whose root's upkeep
-/// is frozen.
+/// The axes let go: those inside a retired subtree.
 fn gone(w: &Working) -> Remap {
     let n = w.links.len();
     let mut out = vec![false; n];
     let mut todo = Vec::new();
     for (i, f) in w.retire.fate.iter().enumerate() {
-        if matches!(f, Fate::Root(_)) && !w.frozen[i].is_nan() {
+        if matches!(f, Fate::Root(_)) {
             todo.extend(w.by_node[i].iter().map(|&c| c as usize));
         }
     }
@@ -168,7 +166,6 @@ fn rename_working(w: &mut Working, r: &Remap) {
     for kids in &mut w.by_node {
         kids.retain_mut(|c| r.at(*c as usize).map(|k| *c = k as u32).is_some());
     }
-    r.keep(&mut w.frozen);
     r.keep(&mut w.open);
     r.rename(&mut w.list);
     r.rename(&mut w.closed);

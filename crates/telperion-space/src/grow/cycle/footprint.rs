@@ -97,6 +97,7 @@ impl Grower {
             let heap = sketch.pencils.iter().map(|p| p.layer.heap());
             let allocs = heap.clone().filter(|&b| b > 0).count();
             f.add("pencils.inherited", allocs, heap.sum(), allocs);
+            f.inner("pencils.path", &sketch.pencils, |p| &p.path);
         }
         if let Some(w) = &self.working {
             w.footprint(&mut f);

@@ -312,3 +312,37 @@ fn a_tree_drawn_within_its_year_unfolds_from_the_last() {
         other => panic!("{other:?}"),
     }
 }
+
+/// Each laid living tip's path from the root collar, by its axis's
+/// lineage.
+fn paths(p: &Paused) -> Vec<(u64, u32)> {
+    let pencils = &p.g.sketch.as_ref().expect("sketching").pencils;
+    let path = |i: usize| (p.g.axes[i].lineage, pencils[i].path_end().to_bits());
+    let laid = p.g.live.iter().filter(|a| a.axis < pencils.len());
+    let mut out: Vec<(u64, u32)> = laid.map(|a| path(a.axis)).collect();
+    out.sort_unstable();
+    out
+}
+
+/// fn-349: the path a living tip is charged by survives the records let
+/// go (`compact.rs`) and a grower paused and grown on: grown in three
+/// steps, letting go of every retired record, each tip's path is the one
+/// a grower keeping every record and grown at once holds, to the bit.
+#[test]
+fn a_tips_path_survives_letting_go_and_a_pause() {
+    for (species, k) in species() {
+        let species = std::sync::Arc::new(species);
+        let r = request(40, 7, k);
+        let mut eager = Working::default();
+        eager.eager = true;
+        let mut stepped = Paused::with(species.clone(), r, false, eager).unwrap();
+        for age in [12, 25, 40] {
+            stepped.grow_to(age).unwrap();
+        }
+        let mut once = Paused::with(species, r, false, Working::indexed()).unwrap();
+        once.grow_to(40).unwrap();
+        let (a, b) = (paths(&stepped), paths(&once));
+        assert!(!a.is_empty() && a.iter().any(|&(_, l)| f32::from_bits(l) > 1.0));
+        assert_eq!(a, b);
+    }
+}

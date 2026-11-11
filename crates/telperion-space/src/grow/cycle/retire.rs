@@ -17,8 +17,8 @@
 //! the cycle after the waking, and whether the bearer stopped then, which
 //! the balance of the cycle after that may still decide by shedding it
 //! (`apex_end` one cycle back); so from three cycles after the waking,
-//! once that balance has run. Its upkeep stays frozen in its bearer's balance
-//! (`working.rs`), as the balance charges it today. The subtrees closed in
+//! once that balance has run. Being dead wood, it charges its bearer's
+//! balance nothing (`working.rs`). The subtrees closed in
 //! a cycle are evaluated on every core, each alone, and applied in order.
 //! The fade is read at the age grown so far, never at the tree's final age
 //! (fn-270 R3), so a tree grows on from any age: a kept lateral that sheds

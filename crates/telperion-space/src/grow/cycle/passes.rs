@@ -1,9 +1,8 @@
 //! The one cycle's balance and allotment over its working set
-//! (`working.rs`): the same arithmetic as `balance.rs` and `sketch.rs`'s
+//! (`working.rs`): the balance, and the same arithmetic as `sketch.rs`'s
 //! allotment, each in the whole tree's order, visiting only the open axes.
 use super::working::sizes;
 use super::Grower;
-use crate::allocation::TIP;
 use crate::contract::shed::{walk, Bud, Lateral};
 use crate::lineage::{Key, SHED};
 
@@ -21,9 +20,23 @@ impl Grower {
         self.working = Some(w);
     }
 
-    /// `balance` over the working set: each open subtree's totals, D16's
-    /// walk over the open axes, each memory kept, every apex shed leaving
-    /// the living and every other given its kept share.
+    /// Whether the balance runs this cycle: where a rough layout is grown
+    /// and any PA's hazard is set, or always in the one cycle.
+    pub(in crate::grow) fn balances(&self) -> bool {
+        self.sketch.is_some()
+            && (self.one || self.species.states.iter().any(|s| s.balance_hazard != 0.0))
+    }
+
+    /// The carbon balance (fn-197 step 4, fn-349) over the working set.
+    /// Each living tip collects its size times the light at its tip and is
+    /// charged its size times the square of its path from the root collar
+    /// over its species' potential height (`charge`); wood that has died
+    /// is charged nothing. Each open subtree's totals take its own tips and
+    /// those of its child laterals that pay (`Working::totals`), and every
+    /// living subtree but the seed's own axis is tested on its balance,
+    /// (Q - C) / (Q + C), remembered as a running average: D16's walk,
+    /// each memory kept, every apex shed leaving the living and every other
+    /// given its kept share.
     pub(in crate::grow) fn balance_one(&mut self, cycle: u32) {
         let mut w = self.working.take().expect("a working set");
         let (species, sketch) = (&*self.species, self.sketch.as_mut().expect("sketching"));
@@ -33,24 +46,27 @@ impl Grower {
             lit[a.axis] = true;
         }
         let pencils = &sketch.pencils;
-        let upkeep =
-            |i: usize| species.states[self.axes[i].pa].upkeep as f32 * pencils[i].wood as f32;
         let own = |i: usize| {
+            if !lit[i] {
+                return (0.0, 0.0, false);
+            }
             let p = &pencils[i];
-            let light = match lit[i] {
-                true => p.base_scale as f32 * p.running as f32 * p.light as f32,
-                false => 0.0,
-            };
-            (light, upkeep(i), lit[i])
+            let size = p.base_scale as f32 * p.running as f32;
+            let inverse = species.states[self.axes[i].pa].inverse_height as f32;
+            (
+                size * p.light as f32,
+                charge(size, p.path_end(), inverse),
+                true,
+            )
         };
-        w.totals(&own, &upkeep);
+        w.totals(&own);
         let mut laterals = vec![Lateral::default(); w.list.len()];
         let (ws, axes, rules) = (&w, &self.axes, &self.rules);
         crate::cores::fill(&mut laterals, 1 << 12, self.threads, &|k| {
             let i = ws.list[k];
             let link = ws.links[i];
             let parent = link.parent.map(|p| ws.at[p]);
-            if !(parent.is_some() && link.node != TIP && ws.living[i]) {
+            if !(parent.is_some() && ws.living[i]) {
                 return Lateral {
                     parent,
                     ..Lateral::default()
@@ -125,4 +141,12 @@ impl Grower {
         }
         self.working = Some(w);
     }
+}
+
+/// A living tip's charge: its size times the square of its path from the
+/// root collar times its species' inverse height; none at an inverse
+/// height of 0.
+pub(super) fn charge(size: f32, path: f32, inverse_height: f32) -> f32 {
+    let reach = path * inverse_height;
+    size * reach * reach
 }

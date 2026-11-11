@@ -112,7 +112,7 @@ pub fn species() -> Species {
         ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
         retained: 0.0,
@@ -156,7 +156,7 @@ pub fn species() -> Species {
         ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
         retained: 0.0,
@@ -204,7 +204,7 @@ pub fn species() -> Species {
         ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
         retained: 0.0,
@@ -776,7 +776,7 @@ pub fn leafy(s: &mut Species) {
     for pa in [1, 2] {
         s.states[pa].shade_hazard = 1.0;
         s.states[pa].shade_size = 0.5;
-        s.states[pa].upkeep = 0.3;
+        s.states[pa].inverse_height = 0.3;
         s.states[pa].balance_hazard = 1.0;
     }
 }
@@ -839,8 +839,12 @@ pub fn light_settings() -> Vec<Setting> {
         shaded("states[2].apical_control", 0.45, 0.55, |s, v| {
             s.states[2].apical_control = v
         }),
-        shaded("states[1].upkeep", 0.0, 0.6, |s, v| s.states[1].upkeep = v),
-        shaded("states[2].upkeep", 0.0, 0.6, |s, v| s.states[2].upkeep = v),
+        shaded("states[1].inverse_height", 0.0, 0.6, |s, v| {
+            s.states[1].inverse_height = v
+        }),
+        shaded("states[2].inverse_height", 0.0, 0.6, |s, v| {
+            s.states[2].inverse_height = v
+        }),
         shaded("states[1].balance_hazard", 0.0, 3.0, |s, v| {
             s.states[1].balance_hazard = v
         }),

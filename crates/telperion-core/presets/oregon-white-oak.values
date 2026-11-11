@@ -200,7 +200,10 @@
 /space/ages/2/shadeHazard = 1.0
 /space/ages/2/shadeSize = 1.5
 /space/ages/2/apicalControl = 0.45
-/space/ages/2/upkeep = 0.35
+# The inverse height (fn-349), every age alike: the reciprocal of the
+# potential height, 34.8 m: "The maximum potential height for OWO on a good site was 34.8 m"
+# (Gould, Harrington and Devine 2011; checked against the text by fn-341).
+/space/ages/2/inverseHeight = 0.02873563218390805
 /space/ages/2/balanceHazard = 2.0
 /space/ages/2/leafGirth = 1.0
 /space/ages/2/leafYears = 1.0
@@ -234,7 +237,7 @@
 /space/ages/3/shadeHazard = 1.0
 /space/ages/3/shadeSize = 1.5
 /space/ages/3/apicalControl = 0.45
-/space/ages/3/upkeep = 0.35
+/space/ages/3/inverseHeight = 0.02873563218390805
 /space/ages/3/balanceHazard = 2.0
 /space/ages/3/leafGirth = 1.0
 /space/ages/3/leafYears = 1.0
@@ -268,7 +271,7 @@
 /space/ages/4/shadeHazard = 1.0
 /space/ages/4/shadeSize = 1.5
 /space/ages/4/apicalControl = 0.45
-/space/ages/4/upkeep = 0.35
+/space/ages/4/inverseHeight = 0.02873563218390805
 /space/ages/4/balanceHazard = 2.0
 /space/ages/4/leafGirth = 1.0
 /space/ages/4/leafYears = 1.0
@@ -314,7 +317,7 @@
 /space/ages/6/shadeHazard = 1.0
 /space/ages/6/shadeSize = 0.5
 /space/ages/6/apicalControl = 0.45
-/space/ages/6/upkeep = 0.35
+/space/ages/6/inverseHeight = 0.02873563218390805
 /space/ages/6/balanceHazard = 2.0
 /space/ages/6/leafGirth = 1.0
 /space/ages/6/leafYears = 1.0
@@ -373,7 +376,7 @@
 /space/ages/7/shadeHazard = 1.0
 /space/ages/7/shadeSize = 0.5
 /space/ages/7/apicalControl = 0.45
-/space/ages/7/upkeep = 0.35
+/space/ages/7/inverseHeight = 0.02873563218390805
 /space/ages/7/balanceHazard = 2.0
 /space/ages/7/leafGirth = 1.0
 /space/ages/7/leafYears = 1.0
@@ -415,7 +418,7 @@
 /space/ages/8/shadeHazard = 1.0
 /space/ages/8/shadeSize = 1.5
 /space/ages/8/apicalControl = 0.45
-/space/ages/8/upkeep = 0.35
+/space/ages/8/inverseHeight = 0.02873563218390805
 /space/ages/8/balanceHazard = 2.0
 /space/ages/8/leafGirth = 1.0
 /space/ages/8/leafYears = 1.0
@@ -459,7 +462,7 @@
 /space/ages/9/shadeHazard = 1.0
 /space/ages/9/shadeSize = 1.0
 /space/ages/9/apicalControl = 0.45
-/space/ages/9/upkeep = 0.35
+/space/ages/9/inverseHeight = 0.02873563218390805
 /space/ages/9/balanceHazard = 2.0
 /space/ages/9/leafGirth = 1.0
 /space/ages/9/leafYears = 1.0
@@ -499,7 +502,7 @@
 /space/ages/12/shadeHazard = 1.0
 /space/ages/12/shadeSize = 1.0
 /space/ages/12/apicalControl = 0.45
-/space/ages/12/upkeep = 0.35
+/space/ages/12/inverseHeight = 0.02873563218390805
 /space/ages/12/balanceHazard = 2.0
 /space/ages/12/leafGirth = 1.0
 /space/ages/12/leafYears = 1.0
@@ -537,7 +540,7 @@
 /space/ages/13/shadeHazard = 1.0
 /space/ages/13/shadeSize = 1.0
 /space/ages/13/apicalControl = 0.45
-/space/ages/13/upkeep = 0.35
+/space/ages/13/inverseHeight = 0.02873563218390805
 /space/ages/13/balanceHazard = 2.0
 /space/ages/13/leafGirth = 1.0
 /space/ages/13/leafYears = 1.0
@@ -575,7 +578,7 @@
 /space/ages/14/shadeHazard = 1.0
 /space/ages/14/shadeSize = 1.0
 /space/ages/14/apicalControl = 0.45
-/space/ages/14/upkeep = 0.35
+/space/ages/14/inverseHeight = 0.02873563218390805
 /space/ages/14/balanceHazard = 2.0
 /space/ages/14/leafGirth = 1.0
 /space/ages/14/leafYears = 1.0

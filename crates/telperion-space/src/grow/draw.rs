@@ -305,9 +305,16 @@ fn pencil<'p>(
         trunk,
         light: 1.0,
         size: 1.0,
-        wood: 0.0,
         memory: 1.0,
         kept: 1.0,
+        root: match axis.origin {
+            Origin::Seed => 0.0,
+            Origin::Lateral { parent, node, .. } | Origin::Relay { parent, node } => {
+                of(parent).path_at(node)
+            }
+            Origin::Continuation { parent } => of(parent).path_end(),
+        },
+        path: Vec::new(),
     };
     (framed, pencil)
 }
@@ -378,11 +385,10 @@ pub(super) fn draw_bent(
             // Laid at its size, then left unsized for what it bears.
             let bare = p.scale;
             p.scale = f64::from(bare as f32 * p.size as f32);
-            pencil
-                .layer
+            let length = (pencil.layer)
                 .step(p, state, (bent, total), None, pencil.trunk)
                 .map_err(|s| s.error(i, axis.pa, axis.birth, axis.base.z))?;
-            pencil.wood = f64::from(pencil.wood as f32 + state.internode as f32 * p.scale as f32);
+            pencil.path.push(pencil.path_end() + length);
             p.scale = bare;
         }
         pencil.laid = end;

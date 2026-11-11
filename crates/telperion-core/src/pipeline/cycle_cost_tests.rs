@@ -8,13 +8,15 @@ const AGE: f64 = 16.0;
 const SEEDS: [u32; 3] = [1, 1234, 5678];
 /// Young enough for an ordinary test: a table of every preset at both ends of
 /// the dial, in the catalogue's order, finest first. fn-328 moved the oak's
-/// and the spruce's coarsest, with their rows.
+/// and the spruce's coarsest, with their rows; fn-349's balance, which
+/// charges living tips by their path and dead wood nothing, moved the
+/// oak's finest and the birch's coarsest.
 const PINNED: [(u64, u64); 8] = [
     (16272751982230226601, 16272751982230226601),
-    (12999673495698669235, 10917942057397426609),
+    (7914065858759038141, 10917942057397426609),
     (5368894633571808108, 4441961240579546268),
     (14897056881827234501, 14897056881827234501),
-    (14406147026974271235, 12712794672242601209),
+    (14406147026974271235, 5591598335842068934),
     (2986554069661840414, 2986554069661840414),
     (259041985667409418, 259041985667409418),
     (5805902079962987722, 5805902079962987722),

@@ -166,7 +166,10 @@
 /space/ages/0/colouring = 16.0
 /space/ages/0/leafFall = 45.0
 /space/ages/0/shadeHazard = 0.21153846153846145
-/space/ages/0/upkeep = 0.35
+# The inverse height (fn-349), every age alike: the reciprocal of the
+# potential height, 61 m: "In central Europe, heights of up to 203 feet (61 m) have
+# been reported" (USDA FEIS, Picea abies; a reported maximum, fn-345).
+/space/ages/0/inverseHeight = 0.01639344262295082
 /space/ages/0/balanceHazard = 0.4230769230769229
 /space/ages/0/leafGirth = 1.0
 /space/ages/0/form/tropism = 2.0
@@ -196,7 +199,7 @@
 /space/ages/1/colouring = 16.0
 /space/ages/1/leafFall = 45.0
 /space/ages/1/shadeHazard = 0.21153846153846145
-/space/ages/1/upkeep = 0.35
+/space/ages/1/inverseHeight = 0.01639344262295082
 /space/ages/1/balanceHazard = 0.4230769230769229
 /space/ages/1/leafGirth = 1.0
 /space/ages/1/form/tropism = 2.0
@@ -227,7 +230,7 @@
 /space/ages/2/colouring = 16.0
 /space/ages/2/leafFall = 45.0
 /space/ages/2/shadeHazard = 0.21153846153846145
-/space/ages/2/upkeep = 0.35
+/space/ages/2/inverseHeight = 0.01639344262295082
 /space/ages/2/balanceHazard = 0.4230769230769229
 /space/ages/2/leafGirth = 1.0
 /space/ages/2/form/tropism = 2.0
@@ -259,7 +262,7 @@
 /space/ages/4/colouring = 16.0
 /space/ages/4/leafFall = 45.0
 /space/ages/4/shadeHazard = 0.21153846153846145
-/space/ages/4/upkeep = 0.35
+/space/ages/4/inverseHeight = 0.01639344262295082
 /space/ages/4/balanceHazard = 0.4230769230769229
 /space/ages/4/leafGirth = 1.0
 /space/ages/4/form/tropism = 2.0
@@ -291,7 +294,7 @@
 /space/ages/8/colouring = 16.0
 /space/ages/8/leafFall = 45.0
 /space/ages/8/shadeHazard = 0.21153846153846145
-/space/ages/8/upkeep = 0.35
+/space/ages/8/inverseHeight = 0.01639344262295082
 /space/ages/8/balanceHazard = 0.4230769230769229
 /space/ages/8/leafGirth = 1.0
 /space/ages/8/form/tropism = 0.4
@@ -337,7 +340,7 @@
 /space/ages/9/colouring = 16.0
 /space/ages/9/leafFall = 45.0
 /space/ages/9/shadeHazard = 0.21153846153846145
-/space/ages/9/upkeep = 0.35
+/space/ages/9/inverseHeight = 0.01639344262295082
 /space/ages/9/balanceHazard = 0.4230769230769229
 /space/ages/9/leafGirth = 1.0
 /space/ages/9/form/tropism = 1.4
@@ -382,7 +385,7 @@
 /space/ages/10/colouring = 16.0
 /space/ages/10/leafFall = 45.0
 /space/ages/10/shadeHazard = 0.21153846153846145
-/space/ages/10/upkeep = 0.35
+/space/ages/10/inverseHeight = 0.01639344262295082
 /space/ages/10/balanceHazard = 0.4230769230769229
 /space/ages/10/leafGirth = 1.0
 /space/ages/10/form/tropism = 2.0
@@ -415,7 +418,7 @@
 /space/ages/11/colouring = 16.0
 /space/ages/11/leafFall = 45.0
 /space/ages/11/shadeHazard = 0.21153846153846145
-/space/ages/11/upkeep = 0.35
+/space/ages/11/inverseHeight = 0.01639344262295082
 /space/ages/11/balanceHazard = 0.4230769230769229
 /space/ages/11/leafGirth = 1.0
 /space/ages/11/form/tropism = 3.0
@@ -444,7 +447,7 @@
 /space/ages/12/colouring = 16.0
 /space/ages/12/leafFall = 45.0
 /space/ages/12/shadeHazard = 0.21153846153846145
-/space/ages/12/upkeep = 0.35
+/space/ages/12/inverseHeight = 0.01639344262295082
 /space/ages/12/balanceHazard = 0.4230769230769229
 /space/ages/12/leafGirth = 1.0
 /space/ages/12/form/tropism = 1.0

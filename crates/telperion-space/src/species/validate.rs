@@ -60,7 +60,7 @@ impl PaState {
             ("leaf_area", self.leaf_area),
             ("shade_hazard", self.shade_hazard),
             ("shade_size", self.shade_size),
-            ("upkeep", self.upkeep),
+            ("inverse_height", self.inverse_height),
             ("balance_hazard", self.balance_hazard),
             ("leaf_girth", self.leaf_girth),
         ];

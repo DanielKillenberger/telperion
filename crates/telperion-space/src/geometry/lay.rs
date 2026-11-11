@@ -210,7 +210,7 @@ impl Layer {
     /// to the internode's length; the phytomer's direction is that running
     /// direction pulled towards the vertical by `bend` at the base, fading
     /// to none at `total`, the axis's scaled reach. With `load`, it turns
-    /// down by its sag first.
+    /// down by its sag first. The internode's length laid, in metres.
     pub fn step(
         &mut self,
         phytomer: &mut Phytomer,
@@ -218,7 +218,7 @@ impl Layer {
         (bend, total): (f64, f64),
         load: Option<&Lever>,
         trunk: bool,
-    ) -> std::result::Result<(), Stop> {
+    ) -> std::result::Result<f32, Stop> {
         let form = state.form;
         let (mut running, mut across, tip, mut run, pull, mut curve) = (
             self.running,
@@ -380,7 +380,7 @@ impl Layer {
         phytomer.side = v3(unit(side).unwrap_or(beside));
         (self.running, self.across, self.tip, self.run, self.curve) =
             (running, across, next, run, curve);
-        Ok(())
+        Ok(length)
     }
 }
 

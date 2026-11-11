@@ -408,7 +408,10 @@
 /space/ages/2/leafFall = 45.0
 /space/ages/2/shadeHazard = 1.1423076923076922
 /space/ages/2/groundHazard = 1.0
-/space/ages/2/upkeep = 0.35
+# The inverse height (fn-349), every age alike: the reciprocal of the
+# potential height, 30 m (European Atlas of Forest Tree Species, Betula, Beck et al.:
+# "... 30 m"; B. pendula inferred from the excerpt, fn-345).
+/space/ages/2/inverseHeight = 0.03333333333333333
 /space/ages/2/balanceHazard = 2.2846153846153845
 /space/ages/2/leafGirth = 1.0
 /space/ages/2/form/tropism = 0.5
@@ -442,7 +445,7 @@
 /space/ages/3/leafFall = 45.0
 /space/ages/3/shadeHazard = 1.1423076923076922
 /space/ages/3/groundHazard = 1.0
-/space/ages/3/upkeep = 0.35
+/space/ages/3/inverseHeight = 0.03333333333333333
 /space/ages/3/balanceHazard = 2.2846153846153845
 /space/ages/3/leafGirth = 1.0
 /space/ages/3/form/tropism = 0.5
@@ -479,7 +482,7 @@
 /space/ages/4/leafFall = 45.0
 /space/ages/4/shadeHazard = 1.1423076923076922
 /space/ages/4/groundHazard = 1.0
-/space/ages/4/upkeep = 0.35
+/space/ages/4/inverseHeight = 0.03333333333333333
 /space/ages/4/balanceHazard = 2.2846153846153845
 /space/ages/4/leafGirth = 1.0
 /space/ages/4/form/tropism = 0.5
@@ -526,7 +529,7 @@
 /space/ages/5/leafFall = 45.0
 /space/ages/5/shadeHazard = 1.1423076923076922
 /space/ages/5/groundHazard = 1.0
-/space/ages/5/upkeep = 0.35
+/space/ages/5/inverseHeight = 0.03333333333333333
 /space/ages/5/balanceHazard = 2.2846153846153845
 /space/ages/5/leafGirth = 1.0
 /space/ages/5/form/tropism = 0.4
@@ -571,7 +574,7 @@
 /space/ages/6/leafFall = 45.0
 /space/ages/6/shadeHazard = 1.1423076923076922
 /space/ages/6/groundHazard = 1.0
-/space/ages/6/upkeep = 0.35
+/space/ages/6/inverseHeight = 0.03333333333333333
 /space/ages/6/balanceHazard = 2.2846153846153845
 /space/ages/6/leafGirth = 1.0
 /space/ages/6/form/tropism = 0.9
@@ -622,7 +625,7 @@
 /space/ages/7/leafFall = 45.0
 /space/ages/7/shadeHazard = 1.1423076923076922
 /space/ages/7/groundHazard = 1.0
-/space/ages/7/upkeep = 0.35
+/space/ages/7/inverseHeight = 0.03333333333333333
 /space/ages/7/balanceHazard = 2.2846153846153845
 /space/ages/7/leafGirth = 1.0
 /space/ages/7/form/tropism = 0.3
@@ -667,7 +670,7 @@
 /space/ages/8/leafFall = 45.0
 /space/ages/8/shadeHazard = 1.1423076923076922
 /space/ages/8/groundHazard = 1.0
-/space/ages/8/upkeep = 0.35
+/space/ages/8/inverseHeight = 0.03333333333333333
 /space/ages/8/balanceHazard = 2.2846153846153845
 /space/ages/8/leafGirth = 1.0
 /space/ages/8/form/tropism = 0.5
@@ -707,7 +710,7 @@
 /space/ages/9/leafFall = 45.0
 /space/ages/9/shadeHazard = 1.1423076923076922
 /space/ages/9/groundHazard = 1.0
-/space/ages/9/upkeep = 0.35
+/space/ages/9/inverseHeight = 0.03333333333333333
 /space/ages/9/balanceHazard = 2.2846153846153845
 /space/ages/9/leafGirth = 1.0
 /space/ages/9/form/tropism = 3.0
@@ -747,7 +750,7 @@
 /space/ages/14/leafFall = 45.0
 /space/ages/14/shadeHazard = 1.1423076923076922
 /space/ages/14/groundHazard = 1.0
-/space/ages/14/upkeep = 0.35
+/space/ages/14/inverseHeight = 0.03333333333333333
 /space/ages/14/balanceHazard = 2.2846153846153845
 /space/ages/14/leafGirth = 1.0
 /space/ages/14/form/pipe = 0.0005

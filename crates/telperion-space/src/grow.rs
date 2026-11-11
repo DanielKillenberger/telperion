@@ -7,7 +7,6 @@
 //! element from those leads, so a setting that crosses a draw grows the
 //! element in from nothing.
 mod advance;
-mod balance;
 pub(crate) mod cycle;
 mod draw;
 #[cfg(test)]
@@ -157,6 +156,9 @@ pub(crate) fn run(
         let sketching = cycle < request.age || !lay || options.unread_light;
         grower.year(cycle, sketching, &mut advanced, stage)?;
     }
+    // Its working set served the balance alone: the settle reads the
+    // whole tree.
+    grower.working = None;
     grower.settle(request, (lay, keeps), stage)
 }
 
@@ -347,9 +349,14 @@ impl Grower {
             report(Stage::Pass(Pass::Wake));
             return Ok(());
         }
-        let rows = self.rows();
-        self.balance(cycle, rows.as_ref());
+        // The whole-tree grower balances through the one cycle's working
+        // set, every axis it reaches open and none retired.
+        if self.balances() {
+            self.open(cycle);
+            self.balance_one(cycle);
+        }
         report(Stage::Pass(Pass::Balance));
+        let rows = self.rows();
         self.allot(rows.as_ref());
         drop(rows);
         report(Stage::Pass(Pass::Allot));

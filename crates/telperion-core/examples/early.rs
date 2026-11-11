@@ -7,7 +7,8 @@
 //!   cargo run --profile ci -p telperion-core --example early -- three norway-spruce default 42 cycle
 //!
 //! - `live <preset> <age|default> <seed>`: fn-256 task 5's live set, each
-//!   cycle's phytomers not retired against those grown by then.
+//!   cycle's phytomers not retired against those grown by then, and its
+//!   living apexes (fn-349 R5).
 use std::time::Instant;
 use telperion_core::presets::Preset;
 use telperion_space::{grow_census, Census, Light, Request, Species, Structure};
@@ -139,12 +140,12 @@ fn census(c: &Census) {
 /// Each cycle's live phytomers (not retired) against those grown by its
 /// end, then the largest live set and the largest share past cycle 10.
 fn live(c: &Census) {
-    println!("  cycle grown live share axes");
+    println!("  cycle grown live share axes apexes");
     for k in &c.cycles {
         let share = k.phytomers as f64 / k.grown.max(1) as f64;
         println!(
-            "  {} {} {} {share:.3} {}",
-            k.cycle, k.grown, k.phytomers, k.axes
+            "  {} {} {} {share:.3} {} {}",
+            k.cycle, k.grown, k.phytomers, k.axes, k.active
         );
     }
     let peak = c

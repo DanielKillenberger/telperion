@@ -75,7 +75,7 @@ impl Tuning {
     pub fn apply(&self, species: &mut Species) -> Result<(), String> {
         for state in &mut species.states {
             if let Some((r, k, t)) = self.balance {
-                (state.upkeep, state.balance_hazard, state.tolerance) = (r, k, t);
+                (state.inverse_height, state.balance_hazard, state.tolerance) = (r, k, t);
             }
             if let Some(lambda) = self.control {
                 state.apical_control = lambda;

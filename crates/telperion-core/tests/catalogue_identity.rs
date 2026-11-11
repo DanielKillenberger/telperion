@@ -47,8 +47,9 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        // fn-328 moved the oak's and spruce's coarse rows.
-        8_843_512_391_922_370_086,
+        // fn-328 moved the oak's and spruce's coarse rows; fn-349 replaced
+        // the upkeep row with the inverse height.
+        13_698_512_124_933_910_138,
         "{}",
         digest(&text)
     );
@@ -101,7 +102,8 @@ fn every_walk_is_the_walk_it_was() {
     // 3_687_963_222_161_500_942.
     assert_eq!(
         digest(&text),
-        3_687_963_222_161_500_942,
+        // fn-349 replaced the upkeep row with the inverse height.
+        9_472_083_953_483_493_605,
         "{}",
         digest(&text)
     );
@@ -126,8 +128,9 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        // fn-328 moved the oak's and spruce's coarse rows.
-        11_821_538_192_718_248_754,
+        // fn-328 moved the oak's and spruce's coarse rows; fn-349 replaced
+        // the upkeep row with the inverse height.
+        1_402_438_456_769_190_590,
         "{}",
         digest(&text)
     );

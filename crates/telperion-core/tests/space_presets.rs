@@ -23,10 +23,20 @@ fn engine() -> [(Preset, Species, Vec<usize>); 7] {
         (Preset::OregonWhiteOak, oak(), vec![2, 3, 4]),
         (Preset::DatePalm, palm(), vec![2]),
         (Preset::SilverBirch, birch(), vec![2, 3, 4, 5]),
-        // The Two Trees' natural base is the beech (fn-218, fn-219).
-        (Preset::Laurelin, beech(), vec![2, 4, 5]),
-        (Preset::Telperion, beech(), vec![2, 4, 5]),
+        // The Two Trees' natural base is the beech (fn-218, fn-219), with
+        // no potential height: no source gives one (fn-349).
+        (Preset::Laurelin, unpriced(beech()), vec![2, 4, 5]),
+        (Preset::Telperion, unpriced(beech()), vec![2, 4, 5]),
     ]
+}
+
+/// `species` with no inverse height: its balance charges nothing.
+fn unpriced(mut species: Species) -> Species {
+    species
+        .states
+        .iter_mut()
+        .for_each(|s| s.inverse_height = 0.0);
+    species
 }
 
 #[test]

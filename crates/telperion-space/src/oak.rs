@@ -113,7 +113,10 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         ground_hazard: 0.0,
         shade_size: 1.5,
         apical_control: 0.45,
-        upkeep: 0.35,
+        // The potential height, 34.8 m: "The maximum potential height for
+        // OWO on a good site was 34.8 m" (Gould, Harrington and Devine
+        // 2011; checked against the text by fn-341).
+        inverse_height: 1.0 / 34.8,
         balance_hazard: 2.0,
         tolerance: 0.0,
         retained: 0.0,

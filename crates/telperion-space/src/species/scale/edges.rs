@@ -50,7 +50,7 @@ const BEFORE: &[Before] = &[
     ("ground_hazard", [0.0, 1.0], false, BOTH),
     ("shade_size", [0.0, 10.0], false, BOTH),
     ("apical_control", [0.0, 1.0], false, BOTH),
-    ("upkeep", [0.0, 10.0], false, BOTH),
+    ("inverse_height", [0.0, 1.0], false, BOTH),
     ("balance_hazard", [0.0, 10.0], false, BOTH),
     ("tolerance", [-1.0, 1.0], false, BOTH),
     ("retained", [0.0, 1.0], false, BOTH),

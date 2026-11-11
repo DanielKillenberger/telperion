@@ -116,7 +116,7 @@ const SETTINGS: &[(&str, Group)] = &[
     ("shade_hazard", Branching),
     ("ground_hazard", Branching),
     ("shade_size", Branching),
-    ("upkeep", Branching),
+    ("inverse_height", Branching),
     ("balance_hazard", Branching),
     ("tolerance", Branching),
     ("zone.nodes.min", Branching),
