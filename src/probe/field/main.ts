@@ -1,6 +1,6 @@
 /* The field probe page (fn-257 R3), served by the dev server at
  * /field-probe.html and opened by the owner in Chrome: each species the site
- * grows, at three seeds, twice (the first round on a cold shader cache, the
+ * grows, at three seeds, twice (the first round on a cold module, the
  * second warm), grown and read out in a worker as the site does it, beside
  * 0.1.4's time. Never part of the library or the harness. */
 import type { Case, Message, Timed } from "./worker";
@@ -31,16 +31,14 @@ function show(row: Timed, warm: boolean): void {
 }
 
 const worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
-let prepared = 0;
 worker.onmessage = (event: MessageEvent<Message>) => {
   const m = event.data;
-  if (m.kind === "prepared") { prepared = m.ms; status(`Device and programs ready in ${m.ms.toFixed(0)} ms; growing...`); }
   if (m.kind === "timed") { rows.push(m.row); show(m.row, rows.length > SPECIES.length * SEEDS.length); }
   if (m.kind === "failed") status(`Failed: ${m.error}`);
   if (m.kind === "done") {
     status("Done. The second round is warm.");
     const json = document.querySelector("#json");
-    if (json) json.textContent = JSON.stringify({ probe: "fn-257 field", userAgent: navigator.userAgent, preparedMs: prepared, rows }, null, 2);
+    if (json) json.textContent = JSON.stringify({ probe: "fn-257 field", userAgent: navigator.userAgent, rows }, null, 2);
   }
 };
 worker.postMessage(cases);

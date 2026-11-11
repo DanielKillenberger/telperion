@@ -92,13 +92,17 @@ export class TreeEngine {
   private constructor(instance: WebAssembly.Instance) { this.exports = instance.exports as Exports; }
   /** Drop the instance, allowing its linear memory to be reclaimed by the host. */
   dispose(): void { this.exports?.release(); this.exports = undefined; }
-  static async create(source?: BufferSource | Response): Promise<TreeEngine> {
+  /** The core from its bytes, a Response, or a Module compiled once and
+   * shared between workers (`telperion/field`'s `compileField`). */
+  static async create(source?: BufferSource | Response | WebAssembly.Module): Promise<TreeEngine> {
+    const imports = { env: { now: () => performance.now() } };
+    if (source instanceof WebAssembly.Module) return new TreeEngine(await WebAssembly.instantiate(source, imports));
     // The literal names the file for a consumer's bundler; the library build
     // leaves it as it is (vite.config.ts) and ships the file beside this one.
     const input = source ?? await wasmSource(new URL("./telperion.wasm", import.meta.url));
     if (input instanceof Response && !input.ok) throw Error(`Tree core load failed: HTTP ${input.status}`);
     const bytes = input instanceof Response ? await input.arrayBuffer() : input;
-    const { instance } = await WebAssembly.instantiate(bytes, { env: { now: () => performance.now() } });
+    const { instance } = await WebAssembly.instantiate(bytes, imports);
     return new TreeEngine(instance);
   }
   private metadata(): unknown {

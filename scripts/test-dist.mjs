@@ -120,18 +120,20 @@ if (args[0] === '--refused') {
     failures.push(failure);
   }
   if (failures.length) throw Error(`${failures.length} of ${PRESETS.length * SEEDS.length + 1} cases failed:\n${failures.join('\n')}`);
-  // The field grows on the device alone (fn-257): Node has no WebGPU, so it
-  // rejects by name, never growing on the CPU.
-  const { growField, FieldError } = await import(new URL('field.js', dist));
+  // The field grows on the CPU (fn-353): in Node, without WebGPU, it reads
+  // out the grid the main entry's build reads out, from the Wasm beside it.
+  const { growField } = await import(new URL('field.js', dist));
   const { presetById: preset } = await import(new URL('presets.js', dist));
+  const { TreeEngine } = await import(new URL('telperion.js', dist));
   const birch = preset('silver-birch');
-  const refused = await growField(birch, 36).then(() => 'grown', e => e);
-  if (!(refused instanceof FieldError && refused.code === 'webgpu-unavailable')) throw Error(`field.js in Node: ${refused}`);
+  const grid = await growField(birch, 36);
+  const built = (await TreeEngine.create()).build(birch, { field: { n: 36 } }).field;
+  if (grid.n !== 36 || !grid.answer.flags.some(f => f & 1) || JSON.stringify(grid) !== JSON.stringify(built)) throw Error('field.js in Node: the grid is not the main entry\'s');
   // The presets are plain data (fn-317 R3): their entry imports nothing,
   // so loading it fetches no Wasm.
   const presets = readFileSync(new URL('presets.js', dist), 'utf8');
   if (/\bimport\b|\.wasm/.test(presets)) throw Error('presets.js imports or names a module');
   const side2 = await growField(birch, 2).then(() => 'grown', e => String(e.message));
   if (!side2.includes('field grid side')) throw Error(`field.js in Node, a side of two: ${side2}`);
-  console.log(`dist in Node ${process.version}: telperion.js built all ${PRESETS.length * SEEDS.length} cases from the Wasm beside it, each at or under ${mib(LIMIT)} MiB; field.js refused without WebGPU and a side of two by name.`);
+  console.log(`dist in Node ${process.version}: telperion.js built all ${PRESETS.length * SEEDS.length} cases from the Wasm beside it, each at or under ${mib(LIMIT)} MiB; field.js grew the birch's grid without WebGPU and refused a side of two by name.`);
 }

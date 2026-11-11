@@ -40,8 +40,7 @@ if (process.env.TELPERION_WRITE_REFERENCE) {
 // run time and a Node caller reads it from the same place. Nothing is inlined
 // into the scripts.
 await mkdir(new URL('dist/', root), { recursive: true });
-await copyFile(source, new URL('src/browser/telperion.wasm', root));
-await copyFile(source, new URL('dist/telperion.wasm', root));
-// The field entry grows on the device through the renderer's module
-// (scripts/build-render.mjs, fn-257); there is no slim module.
+// The field entry (src/field) grows on the CPU through the same module
+// (fn-353), read from beside itself.
+for (const dir of ['src/browser/', 'src/field/', 'dist/']) await copyFile(source, new URL(`${dir}telperion.wasm`, root));
 console.log(`Built the Wasm; the family metadata was ${process.env.TELPERION_WRITE_REFERENCE ? 'rewritten' : 'current'}.`);

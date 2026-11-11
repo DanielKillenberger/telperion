@@ -16,5 +16,13 @@ engine.build(birch, { field: { n: 36 } });  // was engine.build("silver-birch", 
 - The field's types have one definition: `Grid`, `FieldAnswer`, `FieldGrid` and `Bounds` from `telperion/field` (and `Bounds` from the main entry) are the same types `TreeEngine.build` returns, its `diagnostics.field` a `Grid` and its `field` a `FieldGrid`.
 - `telperion/presets` exports `presetById`, `PRESETS`, the named presets (`ORDINARY`, `TELPERION`, `LAURELIN`, ...) and the `Family` and `TreePreset` types; the main entry re-exports them unchanged.
 - `growField`'s result carries no `species` or `seed`; the caller holds the parameters it passed.
-- The field's refusals for no WebGPU and a lost device are a `FieldError` with `code` `"webgpu-unavailable"` or `"device-lost"`; the messages are as before.
 - Both fields name a limb system by the cell where it holds the most leaves, so a limb's id in `answer.limbs` differs from 0.1.4's, and the CPU's and the device's ids agree. Ids stay opaque; `NO_LIMB` is unchanged.
+
+## One grower: the field and growth run on the CPU (fn-353)
+
+Against the 0.2.0-next prereleases, which grew `telperion/field`'s trees and the renderer's growth on the device:
+
+- `growField` grows on the CPU through `telperion.wasm`, the main entry's core, and returns the same `FieldGrid` as `TreeEngine.build(family, { field: { n, limbOrder } })`. It works with and without WebGPU, in a page, a worker or Node.
+- `prepareField` and `FieldError` (with its codes `"webgpu-unavailable"` and `"device-lost"`) are gone. There is no device to prepare, and nothing refuses for one. A family the core refuses rejects with the core's message (`Tree core: ...`), as `TreeEngine.build` does.
+- `growField`'s `source` and `compileField` name `telperion.wasm`, not `telperion-render.wasm`. A compiled `Module` is still accepted, and `TreeEngine.create` takes one too.
+- The renderer's growth runs on the CPU, on the page's thread: `beginGrowth(family)` returns its `Growth` at once rather than a promise, and `growTo` and `draw` return their results directly. `Growth.admission()` is gone, and so are a draw's `madeRoom` and its nulls for a spent or busy tree.
