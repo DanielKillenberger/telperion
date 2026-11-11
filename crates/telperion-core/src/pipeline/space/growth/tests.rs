@@ -47,6 +47,40 @@ fn a_tree_grown_on_is_the_pipelines_tree_grown_at_once() {
     assert!(settle(&s, f64::from(H)).unwrap() == whole);
 }
 
+/// fn-353 R1, as the page's binding grows it (`WebRenderer::growTo`, then
+/// `drawGrowth`): one year at a time, each year drawn twice is the same
+/// tree, and at the horizon it is the tree asked for at that age and the
+/// tree grown there straight through. The years before the horizon are the
+/// tree on its way to that age, not the tree asked for at theirs: fn-351's
+/// P4, open.
+#[test]
+fn a_tree_grown_a_year_at_a_time_repeats_and_ends_at_the_tree_asked_for() {
+    let (family, params) = beech();
+    let asked = super::super::grow(super::super::GrowInput {
+        age: f64::from(H),
+        seed: 7,
+        ..super::super::GrowInput::of(&family)
+    })
+    .unwrap();
+    let mut straight = begin(&params, 7, f64::from(H)).unwrap();
+    grow_to(&mut straight, f64::from(H)).unwrap();
+    let mut s = begin(&params, 7, f64::from(H)).unwrap();
+    for y in 1..=H {
+        grow_to(&mut s, f64::from(y)).unwrap();
+        let drawn = settle(&s, f64::from(y)).unwrap();
+        assert!(
+            settle(&s, f64::from(y)).unwrap() == drawn,
+            "year {y} repeats"
+        );
+    }
+    let end = settle(&s, f64::from(H)).unwrap();
+    assert!(end == asked, "the horizon is the tree asked for");
+    assert!(
+        end == settle(&straight, f64::from(H)).unwrap(),
+        "and the tree grown straight through"
+    );
+}
+
 /// R2b: a horizon that is no whole year, an age not finite, past the
 /// horizon or a year back, and a draw outside the last year grown are
 /// refused by name, the state left to grow on.

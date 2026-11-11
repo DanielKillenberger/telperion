@@ -1,5 +1,4 @@
 import {
-  type Admission,
   createRenderer,
   type FrameStats,
   type Growth,
@@ -33,18 +32,14 @@ import { eyeOf, orbitOf, pan, push, turn, type Orbit } from "./orbit";
  * ------------------------------------------------------------------ */
 
 export interface Stage {
-  /** The GPU programs every build runs on, compiling in the background
-   *  since the stage was made (`Renderer.programs`). */
-  programs: Promise<void>;
-  /** Replaces the tree with the one these parameters describe. Rejects with
-   *  the generator's or the renderer's own message; the tree already on
-   *  the canvas stays where it is. */
-  setTreeGpu(family: Family): Promise<Submitted>;
-  /** The family's tree before its first year, growing on the device
+  /** Replaces the tree with the one these parameters describe, grown on
+   *  the CPU (`Renderer.setTree`). Throws the generator's or the
+   *  renderer's own message; the tree already on the canvas stays where
+   *  it is. */
+  setTree(family: Family): Submitted;
+  /** The family's tree before its first year, growing on the CPU
    *  (`Renderer.beginGrowth`); the tree on the canvas stays. */
-  beginGrowth(family: Family): Promise<Growth>;
-  /** What the build does under the page's device budget (`Renderer.admission`). */
-  admission(family: Family): Admission;
+  beginGrowth(family: Family): Growth;
   setView(view: View): void;
   /** The sun, sky and ground the renderer is drawing under, its own default
    *  until something sets another. */
@@ -151,10 +146,8 @@ export async function createStage(
   canvas.addEventListener("wheel", onWheel, { passive: false });
 
   return {
-    programs: renderer.programs,
-    setTreeGpu: (family) => renderer.setTreeGpu(family),
+    setTree: (family) => renderer.setTree(family),
     beginGrowth: (family) => renderer.beginGrowth(family),
-    admission: (family) => renderer.admission(family),
     scene: () => renderer.scene(),
     setScene: (row) => { renderer.setScene(row); },
     setView: (view) => {

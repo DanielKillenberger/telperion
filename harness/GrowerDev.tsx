@@ -57,10 +57,6 @@ export function GrowerDev() {
      still on the canvas is not the one asked for. */
   const [refused, setRefused] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
-  const [makingRoom, setMakingRoom] = useState(false);
-  /* The browser compiles the GPU programs from the moment the stage
-     exists (fn-243); the first build waits on them. */
-  const [preparing, setPreparing] = useState(true);
 
   /* One device per canvas, for the canvas's whole life. React's
      development double-mount builds a stage and disposes it before the
@@ -74,16 +70,10 @@ export function GrowerDev() {
       (stage) => {
         if (cancelled) { stage.dispose(); return; }
         stageRef.current = stage;
-        setPreparing(true);
-        stage.programs.then(
-          () => { if (!cancelled) setPreparing(false); },
-          (error: unknown) => { if (!cancelled) setBuildError(String(error)); },
-        );
         const held: Held = { growth: null, family: null };
         heldRef.current = held;
         buildsRef.current = latestBuild(stageRun(stage, held, toFamily, {
           growing: setGrowing,
-          makingRoom: setMakingRoom,
           built: (ms) => { lastBuildMs.current = ms; },
         }));
         setReady(true);
@@ -299,7 +289,6 @@ export function GrowerDev() {
           <button className="gd-button" onClick={() => setLoadAttempt(n => n + 1)}>retry build</button>
         </div>}
         {!ready && !buildError && <p role="status" className="gd-note">Starting the renderer…</p>}
-        {ready && preparing && !buildError && <p role="status" className="gd-note">preparing GPU programs…</p>}
         <p className="gd-note">
           clay. flat grey, neutral sky, no bloom. this is the judging mode.
           drag to walk round the tree, wheel to come in.
@@ -381,9 +370,6 @@ export function GrowerDev() {
           </button>
         </div>
 
-        {makingRoom && <p role="status" className="gd-note">
-          the drawn tree was let go to make room under the device budget; the screen is empty while this tree builds
-        </p>}
         <p className="gd-note">
           {stats === null
             ? "building..."

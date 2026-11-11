@@ -166,28 +166,23 @@ function countDevice(step: 1 | -1): void {
   window.telperionLiveDevices = (window.telperionLiveDevices ?? 0) + step;
 }
 
-/** A tree growing on the page's device (fn-270 R6, R7): begun for its
- *  family's age, grown on to any age within it, and drawn at any age in
- *  its last year. The tree on the canvas stays while the next stretch
- *  grows. One call at a time: a second while one is out rejects by name. */
+/** A tree growing on the CPU, on the page's thread (fn-270 R6, R7;
+ *  fn-353): begun for its family's age, grown on to any age within it,
+ *  and drawn at any age in its last year. Each call runs to its end
+ *  before it returns; the tree on the canvas stays until a draw replaces
+ *  it. */
 export interface Growth {
-  /** The whole years grown; null once a failure spent the tree, or while
-   *  a call is working on it. */
-  committed(): number | null;
+  /** The whole years grown. */
+  committed(): number;
   /** The most years it grows: the family's age. */
-  horizon(): number | null;
-  /** Grows on to `age` years and resolves to the whole years grown. An age
-   *  past the horizon, a year or more back, or not finite rejects by name
+  horizon(): number;
+  /** Grows on to `age` years and returns the whole years grown. An age
+   *  past the horizon, a year or more back, or not finite throws by name
    *  before anything moves; a failure spends the tree. */
-  growTo(age: number): Promise<number | null>;
-  /** What the next draw does under the page's budget, as a build's
-   *  `admission` says: beside the tree on the canvas, or that tree let go
-   *  first ("makeRoom"). Throws the budget's own words for a draw that
-   *  does not fit even alone; the tree on the canvas stays. */
-  admission(): Admission;
-  /** Puts the tree drawn at `at`, within its last year, on the canvas,
-   *  letting the tree there go first where `admission` says so. */
-  draw(at: number): Promise<Submitted>;
+  growTo(age: number): number;
+  /** Puts the tree drawn at `at`, within its last year, on the canvas in
+   *  place of the tree there. */
+  draw(at: number): Submitted;
   /** Lets the growth state go. */
   dispose(): void;
 }
@@ -208,9 +203,9 @@ export interface Renderer {
   /** The tree built on the device. Waits on `programs`, and rejects with
    *  its error without building. */
   setTreeGpu(family: Family): Promise<GpuSubmitted>;
-  /** The family's tree before its first year, on the device (`Growth`).
-   *  Waits on `programs`, and rejects with its error without beginning. */
-  beginGrowth(family: Family): Promise<Growth>;
+  /** The family's tree before its first year, growing on the CPU
+   *  (`Growth`). Throws the core's words for a family it cannot grow. */
+  beginGrowth(family: Family): Growth;
   setView(view: View): void;
   /** The sun, sky and ground the next frame is drawn under. */
   scene(): SceneRow;
@@ -276,17 +271,13 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
       if (disposed) throw new Error("the renderer is disposed");
       return JSON.parse(await renderer.setTreeGpu(text)) as GpuSubmitted;
     },
-    beginGrowth: async (family) => {
-      const text = wire(family);
-      await programs;
-      if (disposed) throw new Error("the renderer is disposed");
-      const handle = (await renderer.beginGrowth(text)) as WebGrowth;
+    beginGrowth: (family) => {
+      const handle: WebGrowth = renderer.beginGrowth(wire(family));
       return {
-        committed: () => handle.committed() ?? null,
-        horizon: () => handle.horizon() ?? null,
-        growTo: async (age) => ((await renderer.growTo(handle, age)) as number | null),
-        admission: () => renderer.growthAdmission(handle) as Admission,
-        draw: async (at) => JSON.parse((await renderer.drawGrowth(handle, at)) as string) as Submitted,
+        committed: () => handle.committed(),
+        horizon: () => handle.horizon(),
+        growTo: (age) => renderer.growTo(handle, age),
+        draw: (at) => JSON.parse(renderer.drawGrowth(handle, at)) as Submitted,
         dispose: () => handle.free(),
       };
     },

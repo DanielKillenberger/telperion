@@ -21,7 +21,7 @@ use crate::{
 /// A tree's field grown on a device of its own (fn-257).
 mod field;
 mod generation;
-/// A tree growing on the page's device (fn-270 R6, R7).
+/// A tree growing for the page, on the CPU (fn-270 R6, R7; fn-353).
 mod growing;
 /// The timing protocol as a page runs it, kept beside this file rather than in
 /// it so neither outgrows the project's line rule.
@@ -230,6 +230,8 @@ impl WebRenderer {
         // tree drawn in the last tree's colours would be nobody's family.
         let submitted = live.renderer.submit(&mesh).map_err(js_error)?;
         live.renderer.set_family(&family);
+        // A whole tree's leaves, whatever a drawn year left them at.
+        live.renderer.set_colouring(1.0);
         live.redraw.ask();
         self.generation.borrow_mut().invalidate();
         Ok(submitted_json(&submitted))
