@@ -102,13 +102,16 @@ impl Shoot<'_> {
                     let Some((lateral_pa, reach)) = species.lived(kind) else {
                         continue;
                     };
+                    // Keyed by the kind its table drew, before any turn, so
+                    // a turn moves no key and no draw below it (host, 12 Nov).
+                    let keyed = species.lived(drawn_pa).map_or(lateral_pa, |(p, _)| p);
                     // Nor where it is certain to be shed by the tree's age
                     // and nothing reads it while it lives (fn-210).
                     if self.shed_certain(lateral_pa, cycle, apex.axis) {
                         if rules.certain == Certain::Skip {
                             continue;
                         }
-                        self.marked.push(key.onto(lateral_pa).0);
+                        self.marked.push(key.onto(keyed).0);
                     }
                     let origin = Origin::Lateral {
                         parent: apex.axis,
@@ -130,7 +133,7 @@ impl Shoot<'_> {
                         presence::real(presence::times(lead, placed)),
                         presence::real(presence::q(reach)),
                     ];
-                    self.sprout(key, lateral_pa, cycle, origin, made);
+                    self.sprout_keyed(key, (lateral_pa, keyed), cycle, origin, made);
                 }
                 if sleeping.iter().any(|&wood| wood > 0.0) {
                     let at = (apex.axis, node, self.draws(apex.axis).units.len() - 1);

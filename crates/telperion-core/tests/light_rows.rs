@@ -93,10 +93,14 @@ fn leaf_area_alone_changes_no_growth() {
 
 /// Each response row a preset populates, set to its neutral; apical
 /// control is architecture, each species' own (host, 2026-10-12).
-const RESPONSES: [(&str, fn(&mut telperion_space::PaState)); 3] = [
+const RESPONSES: [(&str, fn(&mut telperion_space::PaState)); 4] = [
     ("shade_hazard", |s| s.shade_hazard = 0.0),
     ("shade_size", |s| s.shade_size = 0.0),
     ("balance_hazard", |s| s.balance_hazard = 0.0),
+    // fn-354 R7: a lateral's kind under shade.
+    ("shade_short", |s| {
+        s.shade_short.iter_mut().for_each(|e| *e = 0.0)
+    }),
 ];
 
 /// The light-only response: with no leaf shading it reads a light of one,
@@ -104,14 +108,19 @@ const RESPONSES: [(&str, fn(&mut telperion_space::PaState)); 3] = [
 /// apical control makes in an even light, and the balance charges its
 /// living tips by their path, so those move an unshaded tree too.
 fn light_only(row: &str) -> bool {
-    row == "shade_hazard"
+    matches!(row, "shade_hazard" | "shade_short")
 }
 
 /// Whether a preset populates `row`: the size response is no species'
 /// but the oak's and the ordinary's, dormant elsewhere until a source or an
-/// owner verdict sets it (host, 2026-10-12; fn-264 BIRCH.md).
+/// owner verdict sets it (host, 2026-10-12; fn-264 BIRCH.md); the kind
+/// under shade the beech's alone (fn-354 R7).
 fn populates(preset: Preset, row: &str) -> bool {
-    row != "shade_size" || matches!(preset, Preset::OregonWhiteOak | Preset::Ordinary)
+    match row {
+        "shade_size" => matches!(preset, Preset::OregonWhiteOak | Preset::Ordinary),
+        "shade_short" => preset == Preset::EuropeanBeech,
+        _ => true,
+    }
 }
 
 /// A species whose balance acts by 40: a potential height of 10 m, the top

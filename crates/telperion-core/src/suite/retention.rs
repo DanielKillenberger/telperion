@@ -78,23 +78,49 @@ fn a_leaf_stays_only_where_its_wood_keeps_it() {
     assert!(leaves(&retaining(0.0)).is_empty());
 }
 
-/// A fraction of a year keeps that share of the year it splits, within
-/// four standard errors of its draws.
+/// Of one tree's stations on wood laid the year before, the share that
+/// bears a leaf is its age's share of that year (fn-248; recast within one
+/// tree, fn-354 R5, host 12 Nov): none at one year, a quarter at 1.25, all
+/// at two, within four standard errors of the draws. Each value grows its
+/// own tree, and the stations are read off its own runs; a segment of
+/// mixed wood is left out.
 #[test]
 fn a_share_of_a_year_keeps_that_share() {
-    let n = |years: f64| {
+    for (years, want) in [(1.0, 0.0), (1.25, 0.25), (2.0, 1.0)] {
         let mut f = retaining(years);
         f.age = 30.0;
-        leaves(&f).len() as f64
-    };
-    let (one, two) = (n(1.0), n(2.0));
-    for share in [0.25, 0.5, 0.75] {
-        let kept = (n(1.0 + share) - one) / (two - one);
-        let error = (share * (1.0 - share) / (two - one)).sqrt();
+        let g = executor::growth(&f).unwrap();
+        let structure = telperion_space::grow(&g.species, g.request).unwrap();
+        let cycle: std::collections::HashMap<u64, u32> = (structure.axes.iter())
+            .flat_map(|a| a.phytomers.iter().map(|p| (p.key(), p.cycle)))
+            .collect();
+        let x = executor::grow(&f).unwrap().expansion().unwrap();
+        let tree = x.tree();
+        let (runs, twig) = x.runs().unwrap().expect("regular stations");
+        let year_old = |i: usize| {
+            let born = cycle.get(&tree.nodes[i].identity.birth_order());
+            born == Some(&(structure.age - 1)) && tree.leafing(i).older == 0.0
+        };
+        let (mut stations, mut kept) = (0u64, 0u64);
+        for run in &runs {
+            for s in 0..run.nodes.len() - 1 {
+                if !year_old(run.nodes[s + 1]) {
+                    continue;
+                }
+                let (first, last) = run.segment_stations(s, twig);
+                stations += u64::from(last - first);
+                kept += u64::from(run.kept_between(tree, twig, (first, last)));
+            }
+        }
         assert!(
-            (kept - share).abs() < 4.0 * error,
-            "{share}: {kept} of {}",
-            two - one
+            stations > 1000,
+            "{years}: {stations} stations on last year's wood"
+        );
+        let share = kept as f64 / stations as f64;
+        let error = (want * (1.0 - want) / stations as f64).sqrt();
+        assert!(
+            (share - want).abs() <= 4.0 * error,
+            "{years}: {kept} of {stations}, {share}"
         );
     }
 }

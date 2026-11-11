@@ -327,6 +327,21 @@ impl<'g> Shoot<'g> {
     /// grows in moves no key; a continuation's or relay's `key` is its
     /// axis's own. A relay carries on its axis's time spent in its PA.
     pub fn sprout(&mut self, key: Key, pa: usize, cycle: u32, origin: Origin, made: [f64; 2]) {
+        self.sprout_keyed(key, (pa, pa), cycle, origin, made);
+    }
+
+    /// `sprout`, a seed or lateral keyed by the age `keyed` in place of its
+    /// own: a lateral that shade turned keeps the key of the kind its table
+    /// drew (fn-354 R7, host 12 Nov), so every draw below it is the one it
+    /// would have drawn unturned.
+    pub fn sprout_keyed(
+        &mut self,
+        key: Key,
+        (pa, keyed): (usize, usize),
+        cycle: u32,
+        origin: Origin,
+        made: [f64; 2],
+    ) {
         let spent = match origin {
             Origin::Relay { parent, .. } => *self.units_mut(parent),
             _ => 0.0,
@@ -335,7 +350,7 @@ impl<'g> Shoot<'g> {
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
                 (self.root(parent), key)
             }
-            Origin::Seed | Origin::Lateral { .. } => (key.0, key.onto(pa)),
+            Origin::Seed | Origin::Lateral { .. } => (key.0, key.onto(keyed)),
         };
         self.next.push(Apex {
             axis: self.len(),

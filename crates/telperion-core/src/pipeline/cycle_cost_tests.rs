@@ -16,16 +16,17 @@ const SEEDS: [u32; 3] = [1, 1234, 5678];
 /// leaf account moved the spruce, whose needles shade and lay wood for
 /// their 5.5 years while their wood is open, and the Two Trees, whose
 /// leaf is their drawn leaf. The birch's sapwood, 4.6, moved the birch.
-/// R7's lateral kind under shade moved the beech and the Two Trees.
+/// R7's lateral kind under shade moved the beech and the Two Trees, and
+/// again when a turned lateral kept its unturned key.
 const PINNED: [(u64, u64); 8] = [
     (1233340031879171559, 1233340031879171559),
     (17687829558383956639, 11667850423448962601),
     (12287197284966836912, 1773060326561079923),
-    (11333272162776746682, 11333272162776746682),
+    (17769414538517393552, 17769414538517393552),
     (3184370250942454689, 16241647282371321572),
     (4799502948138528708, 4799502948138528708),
-    (7017510222834692025, 7017510222834692025),
-    (230258731259285086, 230258731259285086),
+    (12061773189002990059, 12061773189002990059),
+    (17749478251659094029, 17749478251659094029),
 ];
 
 fn family(id: &str, age: f64, seed: u32, fidelity: f64) -> Family {

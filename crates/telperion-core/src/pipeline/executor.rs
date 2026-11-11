@@ -154,6 +154,15 @@ impl Expansion {
         let params = &self.inputs.surface.params;
         prepared::prepare_stations(&self.tree, envelope, canopy, Some(self.twig), params)
     }
+    /// The plan's leaf-bearing runs and the twig layer they are walked
+    /// under: the tests that count a run's stations by its wood (fn-354
+    /// R5). `None` where the family has no regular stations.
+    #[cfg(test)]
+    pub(crate) fn runs(&self) -> Result<Option<(Vec<foliage::plan::Run>, TwigPlacement)>> {
+        let runs =
+            foliage::plan::runs(&self.tree, self.envelope(), self.canopy(), Some(self.twig))?;
+        Ok(runs.map(|r| (r, self.twig)))
+    }
     /// The wood as curves (fn-208): every run's ring points and frames, the
     /// run table and the clusters a view culls by, which the wood is surfaced
     /// from.
