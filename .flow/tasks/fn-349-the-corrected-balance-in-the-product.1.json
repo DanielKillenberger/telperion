@@ -1,0 +1,15 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-11-11T04:39:14.736126Z",
+  "depends_on": [],
+  "id": "fn-349-the-corrected-balance-in-the-product.1",
+  "implicit_owner": true,
+  "priority": null,
+  "spec": "fn-349-the-corrected-balance-in-the-product",
+  "spec_path": ".flow/tasks/fn-349-the-corrected-balance-in-the-product.1.md",
+  "status": "todo",
+  "title": "Scope, then build the corrected balance on its own branch",
+  "updated_at": "2026-11-11T04:39:14.736126Z"
+}
