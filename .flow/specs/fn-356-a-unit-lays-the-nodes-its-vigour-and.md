@@ -52,9 +52,27 @@ Built (`90e3b3dda`), the survival by `min(1, presence x N)` failed the narrow su
 
 **What would refute it:** any closed-form oracle, independence test or walk failing; leaf, height or trunk moving by more than a twentieth on the oak at 40 or 120; phytomers at 120 falling by less than a quarter; the oak at 200 on seed 1002 still over 16 GB (then the count is Phase 5's to carry as counts, and this rule stays only if it costs nothing).
 
+### The third design is refuted; the fourth (host, 12 Nov 2026)
+
+Built (`551494642`), ending every tip under the grain failed one closed-form oracle and would have ended nine in ten of the oak's living tips at 120. The host's arithmetic was wrong by one to two orders: measured, a tip at full presence reads 1e-7 to 1e-6 of the tree's expected wood on the young oak and less as the tree grows (median presence x share at 120: 3.9e-9), and in a reiterating fixture whole elements read 1e-9. A whole element must never be touched. The rule and its tests are reverted; the `GRAIN` constant, `Windows::start` and the census stay.
+
+**What the three attempts fixed as constraints:** the closed form counts a faint element at its share, linearly, so whatever is done to faint elements must keep every expected count; it must read nothing but the element's own lineage and the tables; it must never touch a whole element; and dominance and shade size are designed sizes, not faintness.
+
+**The fourth design: under the grain, faintness is rounded, not carried.**
+
+- **Faintness** `f` is a new number on an axis: the product of the by-degree presences of the draws that made its lineage and of its own running presence, without dominance and without shade size. Its stored scale is that times the designed sizes, as today.
+- **The floor** of an element is `tau = min(1, GRAIN / share)`, `share` being `Windows::start` for its PA at its cycle: the presence at which the element would stand at the grain, and never more than whole.
+- **The rule:** at the start of a tip's unit, and at a lateral's birth, if `f < tau` the element is kept with probability `f / tau` and then stands at faintness `tau`; otherwise it ends there (a bud is not made; a tip ends as a dead apex does). The draw is the element's own, keyed by its key and the cycle.
+- So an element's expected presence is unchanged (`tau x f / tau = f`): every expected count the closed form gives stays what it is. A whole element has `f = 1 >= tau` and is never touched. An element larger than the grain keeps its by-degree presence down to the grain; one smaller than the grain is whole or absent, and what comes or goes at a crossing is at most the grain, a tenth of the walks' vanishing bound.
+- Nothing reads another branch. No new value beyond `GRAIN`.
+
+**Expected on paper:** the oak's living tips at 120 fall from about 694 thousand toward their summed presence, about 216 thousand, and held phytomers from 9.7 to about 3 million; the phytomers under 0.2 mm go; leaf, height, spread and trunk are unchanged in expectation and move by a seed's noise (a few percent). Trees are not byte-equal to today's at any age where a faint element exists.
+
+**What would refute it:** a closed-form oracle, independence test or walk failing (statistical oracles may read more variance: report the statistic, do not repin an oracle); the leaf, height or trunk of the oak at 40 or 120 moving by more than a twentieth on the mean of three seeds; held phytomers at 120 falling by less than half. If it is refuted the host returns to the owner: this is the last attempt on this fault inside Phase 2.
+
 ## Acceptance Criteria
 
-- **R1.** The rule (the third design) is in the grower for every species, with no branch by species; a tree in which every tip stands over the grain is byte-equal to today's, and a tip under it ends (both tested on fixtures).
+- **R1.** The rule (the fourth design) is in the grower for every species, with no branch by species; a tree of whole elements is byte-equal to today's; over many keys a faint element under its floor is kept in the share `f / tau` and then stands at `tau` (both tested on fixtures, the second as a count within its sampling error).
 - **R2.** The walks hold: a branch that enters at a crossing enters at vanishing size and no step breaks its bound.
 - **R3.** Paused and one-call growth agree; fn-355's year tests (a tree at y is the tree asked for at y) pass unchanged.
 - **R4.** Census on the oak at 80 and 120, seed 1002, before and after: living tips, summed presence, held phytomers, phytomers under 0.2 mm, leaf area, by decade for the tip count.
