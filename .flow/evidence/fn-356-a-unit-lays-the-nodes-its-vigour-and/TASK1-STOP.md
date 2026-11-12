@@ -387,3 +387,108 @@ Both shed-certain tests still fail on the beech at seed 1, now with one marked l
 - **Inferred:** its own units are whole, so it is something carried through the presence-weighted times of the lateral itself or of what it stands on.
 - **Moving the marking after the rounding** (marking from the lateral as rounded) would not change whether this lateral is marked, since the certainty reads no presence. A kept lateral whose lifted base lengthens its shedding would still be marked "certain".
 - **What would be needed:** for the certainty to take the rounding into account, it would have to read the lifted presence the fade reads. That changes what "certain" means: today it is from the settings alone.
+
+# The final build: the floor capped by the bearer, 12 Nov 2026
+
+The host capped a bud's floor by its bearer: tau = min(1, GRAIN / `Windows::start`, the faintness of the bearer node), so a bud is lifted at most to where its bearer stands (`9e41eb29e`). Every stop test is green. The rule changes the oak by about 2%: held phytomers at 120 fall from 9,175,834 to 8,985,206, against the spec's bar of a half. As instructed, only the drawn oaks were run after that.
+
+## The stop tests and the narrow suites
+
+- **Green:** `no_wood_reaches_past_the_extent_bound`, `a_lateral_certain_to_be_shed_is_shed`, `a_tree_grows_the_same_without_what_it_is_certain_to_shed`, and both R1 tests. The marked lateral on the beech no longer stands.
+- **The narrow suites** at `9e41eb29e`: 771 tests run, 770 passed, 1 failed, in 887 s (`raw/narrow5.log`). The one failure was the digest pin `every_preset_grows_the_tree_it_grew_at_both_ends_of_the_dial`, repinned in `ce3cafe6b` and green alone. Every closed-form oracle, the simulator comparison, every independence test, and the release-law and light walks held.
+
+**Repinned** (one-cycle pairs, finest and coarsest):
+
+| Preset | Before | After |
+|---|---|---|
+| Ordinary | (9819307049801252693, same) | (6140595842041759935, same) |
+| Oak | (15182297322291910030, 7299178540230679106) | (13840889171035546725, 2645395923140980620) |
+| Spruce | (12665486350558508414, 9318247602647309830) | (5525689554924515248, 11696905042117004053) |
+| Beech | (16361327149142543059, same) | (8981059381894905392, same) |
+| Birch | (2054489571488262802, 18014430067925384448) | (4215464324190338601, 14262830774646988751) |
+| Palm | (4799502948138528708, same) | unchanged |
+| Telperion | (3392261673279751331, same) | (8313110392539200405, same) |
+| Laurelin | (16456616023369512333, same) | (15186680002835372376, same) |
+
+## The census, the oak on seed 1002
+
+Head is `d29f29cc5` (`raw/census/grain-head.log`); now is `9e41eb29e` (`raw/census/round-now.log`).
+
+| | Head 80 | Now 80 | Head 120 | Now 120 |
+|---|---|---|---|---|
+| Living tips | 180,727 | 178,064 | 333,373 | 321,589 |
+| Summed tip presence | 98,076 | 98,211 | 125,344 | 126,945 |
+| Held phytomers | 4,683,475 | 4,629,609 | 9,175,834 | 8,985,206 (0.979) |
+| Under 0.2 mm | 1,161,509 | 1,117,813 | 3,888,756 | 3,754,195 |
+| Grower's leaf, m² | 1,000.6 | 1,001.7 | 1,263.9 | 1,276.6 |
+| Tip presence, 10th / 50th / 90th | 0.0051 / 0.68 / 1 | 0.0061 / 0.69 / 1 | 0.00004 / 0.100 / 1 | 0.00008 / 0.161 / 1 |
+| Run, s; peak GiB | 83; 11.16 | 102; 10.86 | | |
+
+The tips' faintness after the rule, as the census reads it at 120 (presence x share, 1st / 10th / 25th / 50th / 90th): 8.7e-13 / 7.7e-11 / 5.2e-10 / 5.0e-9 / 1.0e-7. 625,037 of 694,762 living apexes are under the grain.
+
+Each decade, the buds the rule kept at their floor and those it did not make:
+
+| Decade to | Kept | Ended |
+|---|---|---|
+| 10 | 1 | 2 |
+| 20 | 37 | 32 |
+| 30 | 310 | 297 |
+| 40 | 1,374 | 1,314 |
+| 50 | 3,698 | 3,768 |
+| 60 | 7,847 | 8,053 |
+| 70 | 13,525 | 13,521 |
+| 80 | 18,648 | 18,625 |
+| 90 | 23,930 | 23,901 |
+| 100 | 29,734 | 29,425 |
+| 110 | 35,089 | 35,312 |
+| 120 | 41,510 | 40,996 |
+
+Living apexes by decade, now: 1.8, 7.6, 26, 61, 114, 189, 279, 368, 460, 550, 628, 695 thousand. Head: ... 565, 650, 719 thousand at 100, 110 and 120.
+
+## The drawn oaks at 40 and 120, seeds 1001, 1002 and 1007
+
+One load window, head then now per tree, at load 17 down to 2 (`raw/census/drawn-round.log`). `seconds_p` is the whole process.
+
+
+### Oak 40
+
+| Measure | head 1001 / now 1001 | head 1002 / now 1002 | head 1007 / now 1007 | head mean | now mean | now / head |
+|---|---|---|---|---|---|---|
+| height | 10.69 / 10.69 | 10.61 / 10.61 | 10.43 / 10.43 | 10.57 | 10.57 | 1.000 |
+| spread_x | 7.28 / 7.28 | 9.57 / 9.57 | 8.07 / 8.08 | 8.31 | 8.31 | 1.000 |
+| spread_z | 8.23 / 8.23 | 8.86 / 8.86 | 7.51 / 7.51 | 8.20 | 8.20 | 1.000 |
+| dbh | 0.261 / 0.261 | 0.350 / 0.350 | 0.335 / 0.335 | 0.315 | 0.315 | 1.000 |
+| leaf_area | 87.5 / 87.6 | 221.7 / 221.7 | 189.4 / 189.4 | 166.2 | 166.2 | 1.000 |
+| phytomers | 326166 / 324736 | 658537 / 655490 | 476669 / 475186 | 487124 | 485137 | 0.996 |
+| new_shoots | 17797 / 17693 | 35585 / 35360 | 26630 / 26515 | 26671 | 26523 | 0.994 |
+| seconds_p | 1.5 / 1.5 | 3.4 / 3.2 | 2.2 / 2.2 | 2.4 | 2.3 | 0.972 |
+| gib | 0.54 / 0.54 | 1.08 / 1.06 | 0.60 / 0.59 | 0.74 | 0.73 | 0.986 |
+
+### Oak 120
+
+| Measure | head 1001 / now 1001 | head 1002 / now 1002 | head 1007 / now 1007 | head mean | now mean | now / head |
+|---|---|---|---|---|---|---|
+| height | 27.26 / 27.22 | 30.03 / 30.14 | 27.12 / 27.12 | 28.14 | 28.16 | 1.001 |
+| spread_x | 25.35 / 25.32 | 39.02 / 39.07 | 32.46 / 32.44 | 32.28 | 32.28 | 1.000 |
+| spread_z | 23.09 / 23.03 | 38.76 / 38.99 | 31.14 / 31.13 | 31.00 | 31.05 | 1.002 |
+| dbh | 1.074 / 1.072 | 1.470 / 1.472 | 1.383 / 1.383 | 1.309 | 1.309 | 1.000 |
+| leaf_area | 1068.9 / 1059.8 | 1946.1 / 1972.0 | 1644.1 / 1641.9 | 1553.1 | 1557.9 | 1.003 |
+| phytomers | 3100796 / 3033353 | 9175834 / 8985206 | 4582520 / 4505965 | 5619717 | 5508175 | 0.980 |
+| new_shoots | 144746 / 141178 | 390396 / 377348 | 213307 / 208972 | 249483 | 242499 | 0.972 |
+| seconds_p | 47.7 / 47.1 | 155.6 / 151.7 | 85.7 / 84.4 | 96.3 | 94.4 | 0.980 |
+| gib | 3.43 / 3.37 | 11.11 / 11.23 | 4.98 / 4.94 | 6.51 | 6.51 | 1.001 |
+
+- **Leaf, height and trunk:** within 0.3% of the head on the three-seed mean at 40 and at 120, well inside a twentieth.
+- **Held phytomers:** down 0.4% at 40 and 2.0% at 120.
+- **Seconds and peak memory:** move by 0 to 3%.
+
+## Reading (inferred, not measured)
+
+- **The cap is why so little moves.** A bud is rounded only where it is fainter than its floor and its bearer stands over that floor, and then lifted only to its bearer.
+- **Most faint buds are not rounded.** The survey found 94% of faint shoots on an already faint bearer; under the cap such a bud's floor is its bearer's faintness, which a bud no fainter than its bearer already meets.
+- **Faintness is inherited, so the faint population survives.** It is made by the bearers and passed down, so rounding at a bud's birth, capped by the bearer, cannot reach it.
+- **The rule is unbiased but changes little.** Kept and ended balance each decade (41,510 against 40,996 in the last), as the design expects. But about 82 thousand buds were rounded in the last decade, against 11.3 million phytomers held at 120.
+
+## Not done
+
+R3, the long walk, R5, the oaks at 200, docs, vitest and both guards, as instructed when phytomers fall by less than half.
