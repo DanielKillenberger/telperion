@@ -12,6 +12,11 @@
 # equal weights, as examples/centroid.rs takes every row.
 # fn-354 R5: every age keeps its leaves one year (`leafYears`),
 # estimated: a deciduous broadleaf, not the corners' point.
+# fn-354 task 7 (host, 12 Nov 2026): every age's leaf is 15.7 cm²
+# (`leafArea`), the mean of the oak's 18.1, the beech's 15.7 and the
+# birch's 13.2; estimated: the ordinary tree is a deciduous broadleaf, as
+# its `leafYears` already says, and the corners' point (1.67 cm², between
+# a needle, a blade and a frond) is no tree's leaf.
 /space/ages/0/lifespan = 0.4422495703074083
 /space/ages/0/internode = 0.0399334633667196
 /space/ages/0/insertion = 0.1
@@ -26,7 +31,7 @@
 /space/ages/0/erection = 0.012239800905693142
 /space/ages/0/rhythm = 0.7666666666666667
 /space/ages/0/straightening = 0.33333333333333337
-/space/ages/0/leafArea = 0.00016730748660601915
+/space/ages/0/leafArea = 0.00157
 /space/ages/0/leafYears = 1.0
 /space/ages/0/elongation = 19.08298850246509
 /space/ages/0/expansion = 25.888428479342984
@@ -77,7 +82,7 @@
 /space/ages/1/erection = 0.012239800905693142
 /space/ages/1/rhythm = 0.9
 /space/ages/1/straightening = 0.33333333333333337
-/space/ages/1/leafArea = 0.00016730748660601915
+/space/ages/1/leafArea = 0.00157
 /space/ages/1/leafYears = 1.0
 /space/ages/1/elongation = 19.08298850246509
 /space/ages/1/expansion = 25.888428479342984
@@ -123,7 +128,7 @@
 /space/ages/2/takeover = 0.75
 /space/ages/2/erection = 0.012239800905693142
 /space/ages/2/straightening = 0.33333333333333337
-/space/ages/2/leafArea = 0.00016730748660601915
+/space/ages/2/leafArea = 0.00157
 /space/ages/2/leafYears = 1.0
 /space/ages/2/elongation = 19.08298850246509
 /space/ages/2/expansion = 25.888428479342984
@@ -171,7 +176,7 @@
 /space/ages/3/takeover = 0.75
 /space/ages/3/erection = 0.012239800905693142
 /space/ages/3/straightening = 0.33333333333333337
-/space/ages/3/leafArea = 0.00016730748660601915
+/space/ages/3/leafArea = 0.00157
 /space/ages/3/leafYears = 1.0
 /space/ages/3/elongation = 19.08298850246509
 /space/ages/3/expansion = 25.888428479342984
@@ -216,7 +221,7 @@
 /space/ages/4/epitony = 0.2
 /space/ages/4/takeover = 0.75
 /space/ages/4/straightening = 0.33333333333333337
-/space/ages/4/leafArea = 0.00016730748660601915
+/space/ages/4/leafArea = 0.00157
 /space/ages/4/leafYears = 1.0
 /space/ages/4/elongation = 19.08298850246509
 /space/ages/4/expansion = 25.888428479342984
@@ -259,7 +264,7 @@
 /space/ages/5/continuation = 0.6666666666666666
 /space/ages/5/internode = 0.03917031545357339
 /space/ages/5/divergence = 2.437666666666667
-/space/ages/5/leafArea = 0.00016730748660601915
+/space/ages/5/leafArea = 0.00157
 /space/ages/5/leafYears = 1.0
 /space/ages/5/elongation = 19.08298850246509
 /space/ages/5/expansion = 25.888428479342984
@@ -309,7 +314,7 @@
 /space/ages/6/epitony = 0.2666666666666667
 /space/ages/6/takeover = 0.75
 /space/ages/6/straightening = 0.25
-/space/ages/6/leafArea = 0.00016730748660601915
+/space/ages/6/leafArea = 0.00157
 /space/ages/6/leafYears = 1.0
 /space/ages/6/elongation = 19.08298850246509
 /space/ages/6/expansion = 25.888428479342984
@@ -370,7 +375,7 @@
 /space/ages/7/epitony = 0.2666666666666667
 /space/ages/7/takeover = 0.75
 /space/ages/7/straightening = 0.2
-/space/ages/7/leafArea = 0.00016730748660601915
+/space/ages/7/leafArea = 0.00157
 /space/ages/7/leafYears = 1.0
 /space/ages/7/elongation = 19.08298850246509
 /space/ages/7/expansion = 25.888428479342984
@@ -421,7 +426,7 @@
 /space/ages/8/insertion = 0.9666666666666666
 /space/ages/8/divergence = 2.932061769059862
 /space/ages/8/straightening = 0.08333333333333334
-/space/ages/8/leafArea = 0.00016730748660601915
+/space/ages/8/leafArea = 0.00157
 /space/ages/8/leafYears = 1.0
 /space/ages/8/elongation = 19.08298850246509
 /space/ages/8/expansion = 25.888428479342984
@@ -480,7 +485,7 @@
 /space/ages/9/relayFailed = 0.2777777777777778
 /space/ages/9/epitony = 0.06666666666666668
 /space/ages/9/takeover = 0.75
-/space/ages/9/leafArea = 0.00016730748660601915
+/space/ages/9/leafArea = 0.00157
 /space/ages/9/leafYears = 1.0
 /space/ages/9/elongation = 19.08298850246509
 /space/ages/9/expansion = 25.888428479342984
@@ -541,7 +546,7 @@
 /space/ages/10/relayFailed = 0.25
 /space/ages/10/epitony = 0.06666666666666668
 /space/ages/10/takeover = 0.75
-/space/ages/10/leafArea = 0.00016730748660601915
+/space/ages/10/leafArea = 0.00157
 /space/ages/10/leafYears = 1.0
 /space/ages/10/elongation = 19.08298850246509
 /space/ages/10/expansion = 25.888428479342984
@@ -583,7 +588,7 @@
 /space/ages/11/internode = 0.013280073963843116
 /space/ages/11/insertion = 0.9
 /space/ages/11/divergence = 2.6848642178632645
-/space/ages/11/leafArea = 0.00016730748660601915
+/space/ages/11/leafArea = 0.00157
 /space/ages/11/leafYears = 1.0
 /space/ages/11/elongation = 19.08298850246509
 /space/ages/11/expansion = 25.888428479342984
@@ -622,7 +627,7 @@
 /space/ages/12/internode = 0.01959543053831074
 /space/ages/12/insertion = 0.9666666666666667
 /space/ages/12/divergence = 2.932061769059862
-/space/ages/12/leafArea = 0.00016730748660601915
+/space/ages/12/leafArea = 0.00157
 /space/ages/12/leafYears = 1.0
 /space/ages/12/elongation = 19.08298850246509
 /space/ages/12/expansion = 25.888428479342984
@@ -662,7 +667,7 @@
 /space/ages/13/internode = 0.018218168565924873
 /space/ages/13/insertion = 0.9666666666666667
 /space/ages/13/divergence = 2.932061769059862
-/space/ages/13/leafArea = 0.00016730748660601915
+/space/ages/13/leafArea = 0.00157
 /space/ages/13/leafYears = 1.0
 /space/ages/13/elongation = 19.08298850246509
 /space/ages/13/expansion = 25.888428479342984
@@ -702,7 +707,7 @@
 /space/ages/14/internode = 0.009095746992151862
 /space/ages/14/insertion = 0.9666666666666667
 /space/ages/14/divergence = 2.932061769059862
-/space/ages/14/leafArea = 0.00016730748660601915
+/space/ages/14/leafArea = 0.00157
 /space/ages/14/leafYears = 1.0
 /space/ages/14/elongation = 19.08298850246509
 /space/ages/14/expansion = 25.888428479342984

@@ -53,8 +53,9 @@ fn every_preset_is_the_family_it_was() {
         // sapwood rows and deleted the pipe model's, then set every age's
         // sag to its wood's 4ρg/E; fn-354 R5 gave the spruce, the birch and
         // the ordinary tree their leaf years; the birch's sapwood 4.6; R7
-        // gave every age a shade table and the beech its full-light tables.
-        3_725_984_341_644_380_676,
+        // gave every age a shade table and the beech its full-light tables;
+        // task 7 gave the ordinary tree a leaf of 15.7 cm².
+        10_350_555_559_716_766_246,
         "{}",
         digest(&text)
     );
@@ -113,8 +114,8 @@ fn every_walk_is_the_walk_it_was() {
         // set every age's sag to its wood's 4ρg/E; R5 gave the spruce, the
         // birch and the ordinary tree their leaf years; the birch's sapwood
         // 4.6; R7 gave every age a shade table and the beech its full-light
-        // tables.
-        5_134_440_887_525_534_452,
+        // tables; task 7 gave the ordinary tree a leaf of 15.7 cm².
+        2_951_567_655_200_818_636,
         "{}",
         digest(&text)
     );

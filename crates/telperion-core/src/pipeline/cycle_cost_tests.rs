@@ -19,9 +19,10 @@ const SEEDS: [u32; 3] = [1, 1234, 5678];
 /// R7's lateral kind under shade moved the beech and the Two Trees, and
 /// again when a turned lateral kept its unturned key. fn-355's windows,
 /// which look `LOOK` cycles on for every draw and read no horizon, moved
-/// every tree but the palm.
+/// every tree but the palm. fn-354 task 7's leaf of 15.7 cm² moved the
+/// ordinary tree.
 const PINNED: [(u64, u64); 8] = [
-    (3477975257458263232, 3477975257458263232),
+    (9819307049801252693, 9819307049801252693),
     (15182297322291910030, 7299178540230679106),
     (12665486350558508414, 9318247602647309830),
     (15521184810353786578, 15521184810353786578),

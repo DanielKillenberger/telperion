@@ -71,3 +71,10 @@
 - **Slowed by:** `harness/parity.test.ts` compares the native build against `src/browser/telperion.wasm`, which only `scripts/build-wasm.mjs` writes. The Wasm was built before the fix, so three parity tests failed (the beech and the Two Trees) on a stale binary, not on a difference.
 - **Cost:** about 8 minutes: one vitest run, reading the failures, a Wasm rebuild and a second run.
 - **What would have removed it:** the parity test refusing by name when the Wasm is older than the crates it was built from, or vitest building it first.
+
+## 12 Nov 2026, 04:10, builder (task 7): the grower's own leaf has no public reader; the queue is full
+
+- **Doing:** setting up task 7's panel, which asks for the grower's leaf (the sum of `girth::leaf`) beside the drawn leaf.
+- **Slowed by:** `girth::leaf`, `light::leaf_area` and `Phytomer::size` are all crate-private, so the probe reads `size` out of the phytomer's derived `Debug` text. Separately, a one-test check (8 GB) waited about 4 minutes in `telperion-heavy` behind another job's 40 GB old oak, the room going negative; it was stopped and its answer inferred from the rows instead.
+- **Cost:** about 10 minutes reading for a reader, and the 4-minute wait.
+- **What would have removed it:** a public read of a settled tree's grower leaf (the same sum the wood rule reads), or the probe kept on the branch with it; for the queue, nothing in the repository.
