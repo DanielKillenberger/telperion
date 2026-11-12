@@ -17,6 +17,14 @@ A draw's window is a function of the species, the draw's physiological age and t
 - **RATE, SPAN and FLOOR stay** as they are.
 - Estimate, named: "the PA's own lifespan" as the look is the host's choice among the survey's option A's forms; fn-192 rejected a one-cycle look because narrow windows pop.
 
+### Corrected by the host, 12 Nov 2026, on the builder's first stop
+
+The look by the whole lifespan needs the expected-length table 500 rows past the year on the oak (1.4 s on a 2.6 to 3.9 s tree). The table itself does not depend on how far it runs (tested to the bit on five species).
+
+- **The look is bounded:** the cycles left of the PA's lifespan, or `LOOK` = 40 cycles, whichever is less. `LOOK` is a contract constant beside RATE, SPAN and FLOOR. Estimate, named: 40 is the host's, the age most presets are asked for and their walk bounds were measured at, so a young draw's window stays near what it has been. A fractional lifespan reads between two rows.
+- **The table** runs to the year grown plus `LOOK`, for the grower and for every other reader of the windows (`expected_kept`, `blend::size`); its cost is measured at that extent.
+- **A sleeper is recorded when it can wake:** when its drawn wake time falls before the bud ages past its last stage, which is a bound of the species' own tables (16 years on the oak, 50 on the spruce, 12 on the birch as the builder read them). A sleeper that can never wake is not recorded and holds nothing open.
+
 ## Acceptance Criteria
 
 - **R1.** No site in `crates/telperion-space` reads the requested age to decide a draw, a window, a presence, a sleeper or a closure. A structural test holds it: the tree at year y of a growth to y + n is the tree of a growth to y, by the digest the paused-prefix test uses, for the oak, beech and spruce at two pairs of ages each.
