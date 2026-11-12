@@ -5,7 +5,7 @@ use super::shoot::{Rules, Shoot};
 use super::{Apex, Certain};
 use crate::contract::{decide, presence};
 use crate::error::Result;
-use crate::lineage::{self, Key, VIGOUR, ZONE};
+use crate::lineage::{self, Key, ZONE};
 use crate::schedule::Cut;
 use crate::species::{Species, ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
 use crate::structure::{Origin, Phytomer, Vec3};
@@ -25,33 +25,18 @@ impl Shoot<'_> {
         let (species, state) = (self.species(), &self.species().states[pa]);
         let mut nodes = std::mem::take(&mut self.node_buds);
         let mut leads = std::mem::take(&mut self.leads);
-        // The unit lays the share of its nodes its vigour gives, counted
-        // from its base (fn-356): the quota of all its zones' presences.
-        let vigour = self.vigour(apex.axis) as f32;
-        let quota = match vigour < 1.0 {
-            true => {
-                let mut sum = 0.0;
-                for z in ALONG.iter().filter(|&&z| z < state.zones.len()) {
-                    let mut sleeping = std::mem::take(&mut self.sleeping);
-                    let at = ((pa, *z), (unit, cycle, cut));
-                    zone_leads((rules, species), at, &mut sleeping, &mut leads);
-                    sum += leads.iter().sum::<f32>();
-                    self.sleeping = sleeping;
-                }
-                Some(vigour * sum)
-            }
-            false => None,
-        };
-        let mut held = 0.0;
         let along = ALONG.iter().filter(|&&z| z < state.zones.len());
         for (z, zone) in along.map(|&z| (z, &state.zones[z])) {
             let zone_key = unit.child(ZONE + z as u64);
             let lateral = &rules.laterals[pa][z];
             let mut sleeping = std::mem::take(&mut self.sleeping);
-            let at = ((pa, z), (unit, cycle, cut));
-            let window = zone_leads((rules, species), at, &mut sleeping, &mut leads);
-            if let Some(quota) = quota {
-                lineage::lay(&mut leads, (quota, &mut held), zone_key, (VIGOUR, window));
+            let node_wood = node_wood((rules, species), (pa, z), cycle, &mut sleeping);
+            // Each node's presence (D18 reads it).
+            let window = decide::node_window(node_wood);
+            let draw = zone_key.draw();
+            lineage::node_presences(zone.nodes, draw, MAX_NODES_PER_ZONE, window, &mut leads);
+            if let Some(cut) = cut {
+                lineage::laid(&mut leads, cut, zone_key, window);
             }
             nodes.clear();
             for (i, &node_presence) in leads.iter().enumerate() {
@@ -162,33 +147,6 @@ impl Shoot<'_> {
         self.leads = leads;
         Ok(())
     }
-}
-
-/// Zone `z`'s node presences in `unit` of `pa`, grown in `cycle`, into
-/// `leads`, that share of them where a lifespan's fraction cut the unit;
-/// its sleeping buds' expected wood into `sleeping`. Its nodes' window.
-fn zone_leads(
-    (rules, species): (&Rules, &Species),
-    ((pa, z), (unit, cycle, cut)): ((usize, usize), (Key, u32, Option<Cut>)),
-    sleeping: &mut Vec<f64>,
-    leads: &mut Vec<f32>,
-) -> f32 {
-    let zone_key = unit.child(ZONE + z as u64);
-    let node_wood = node_wood((rules, species), (pa, z), cycle, sleeping);
-    // Each node's presence (D18 reads it).
-    let window = decide::node_window(node_wood);
-    let zone = &species.states[pa].zones[z];
-    lineage::node_presences(
-        zone.nodes,
-        zone_key.draw(),
-        MAX_NODES_PER_ZONE,
-        window,
-        leads,
-    );
-    if let Some(cut) = cut {
-        lineage::laid(leads, cut, zone_key, window);
-    }
-    window
 }
 
 /// The wood a node of zone `z` of a unit of `pa` grown in `cycle` decides,

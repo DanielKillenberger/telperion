@@ -126,7 +126,7 @@ impl Grower {
         let (mut presence, mut psi, mut lit) = (vec![0.0; m], vec![0.0; m], vec![0.0f32; m]);
         for apex in self.live.iter().filter(|a| a.axis < n) {
             let (k, p) = (w.at[apex.axis] as usize, &sketch.pencils[apex.axis]);
-            presence[k] = p.presence();
+            presence[k] = p.base_scale * p.running * p.kept;
             lit[k] = (presence[k] * p.light) as f32;
             psi[k] = species.states[w.pa[apex.axis]].shade_size;
         }

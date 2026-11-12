@@ -258,14 +258,6 @@ impl<'g> Shoot<'g> {
         self.reads.pencils.get(i).map_or(1.0, |p| p.size)
     }
 
-    /// The share of its nodes axis `i`'s growth unit lays this cycle
-    /// (fn-356): its size times its presence (`Pencil::presence`), at most
-    /// whole; whole where nothing shades.
-    pub fn vigour(&self, i: usize) -> f64 {
-        let at = |p: &Pencil| (p.size * p.presence()).min(1.0);
-        self.reads.pencils.get(i).map_or(1.0, at)
-    }
-
     /// What the subtrees' survival of their shedding this cycle makes of
     /// axis `i`'s unit: whole where nothing sheds.
     pub fn kept(&self, i: usize) -> f64 {
