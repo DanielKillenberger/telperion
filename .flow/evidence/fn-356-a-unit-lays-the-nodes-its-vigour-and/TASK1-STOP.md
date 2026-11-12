@@ -339,3 +339,51 @@ The host withdrew the grain rule and wrote the fourth design: under its floor, a
 
 - The census and the drawn oaks at 40 and 120 on seeds 1001, 1002 and 1007. The head probe is built against `ec9efa1a7`, with kept and ended per decade in its census.
 - R2 to R6, the long walk, vitest and both guards.
+
+# The fourth design with one site: returned with two cases, 12 Nov 2026
+
+The host withdrew the rounding at a tip's unit start and kept it at a lateral's birth. That is built (`edd90ebba`). Two of the failures stay, and neither can be fixed inside the host's instructions, so both are returned. The narrow suites, the census and the drawn oaks were not run past the four tests below.
+
+## Built
+
+- **`Shoot::advance`** is back to its form at `53c2baa62`, the base: a living tip is never rounded.
+- **The rounding stays only at a lateral's birth** in `grow_unit`, where the lift goes into the bud's made presence (`birth[0]`), and so into its vigour and base.
+- **`ROUND`** is now registered under a bud place's key.
+
+**Relays:** not rounded. A relay has a made presence of its own. But each of its makers carries the relay on as soon as it is made (`relay_bud` carries it on, `fail` pops it for its abortion, `move_on`'s relay follows the continuation). Not making a relay would change those stop flows, which is a design change, so it was not done.
+
+**The difference in the final lay (moot):** the final lay reads a relay's base from its parent's end at the tree's age. A relay is only ever made once its parent's apex has stopped: `fail`, `stop` and an ended age all set the parent's `apex_end` first. So the parent grows no unit after the relay's birth, and its end at the relay's birth is its end at any later age. With tips no longer rounded, nothing else lifts a parent after a birth either.
+
+**Woken sleepers:** not rounded. They are made in `wake`, not at a lateral's birth in `grow_unit`.
+
+## Four tests run on this build
+
+`round_tests` (both), `keys`, the two shed-certain tests and the extent bound.
+
+### Case 1: the extent bound cannot hold for a lateral whose descendants are lifted above it
+
+`closed_form::kept::tests::bound::no_wood_reaches_past_the_extent_bound` promises that no wood stands farther from a lateral's base than the closed form's extent bound x that base. It fails by more than before:
+- **What failed:** axis 202 (PA 10, born 12) reaches 0.024512 against its bound 0.016956, 44.6% past.
+- **Its base:** the test computes the base from the axis's vigour, which already includes its own lift. So the axis's own base is the lifted one, as asked.
+- **The cause, measured:** a lateral among axis 202's descendants (PA 12) has a vigour of 4.68 relative to its bearer's node.
+  - A bud is lifted to its own floor, `GRAIN / Windows::start(its PA)`. Its lift is floor / (its bearer's node faintness x its made presence).
+  - Where the bearer's node is itself fainter than the bud's floor, which can hold where the bud's PA has a smaller share (a higher floor) than its bearer's, the bud's vigour comes out over 1.
+- **Why this is returned:** the extent bound assumes every element of a subtree stands no larger than its bearer allows. A lifted lateral stands larger than its bearer, so a bound taken from the subtree's root cannot hold, whatever base it uses. Computing it from each lifted base along the subtree would change what the bound is.
+
+### Case 2: the shed-certain shortcut
+
+Both shed-certain tests still fail on the beech at seed 1, now with one marked lateral standing, against 16 with tips rounded:
+- `a_lateral_certain_to_be_shed_is_shed`: "1 marked laterals stand";
+- `a_tree_grows_the_same_without_what_it_is_certain_to_shed`: "the tree changed".
+
+**Found, measured:**
+- **The lateral:** lineage 17490269221437826867, PA 12, born 10, borne at node 9 of axis 14. It is whole in its units (each unit's presence 1.0), its apex ended at 15, it has 20 phytomers and no laterals, and its vigour is 0.0675.
+- **At the base** (`d29f29cc5`, no rounding), the same tree at 30 holds no such axis, with the same 1,929 laterals marked.
+- **When it is marked:** at its birth, before the rounding: in `grow_unit` the shed-certain check comes before the rule.
+- **What the certainty reads:** settings only (`shed::lasting`, its bearer's horizon, the PA's shedding delay). It reads no presence.
+- **What the shedding reads:** the fade (`shed::fades`) measures a subtree's lived time in presence-weighted cycles. A child carries its time up to its bearer weighted by its vigour x its bearer's node scale, and a lateral is dropped once its fade reaches nothing.
+
+**Not determined:** which presence the lift changes so that this lateral's fade no longer reaches nothing by 30.
+- **Inferred:** its own units are whole, so it is something carried through the presence-weighted times of the lateral itself or of what it stands on.
+- **Moving the marking after the rounding** (marking from the lateral as rounded) would not change whether this lateral is marked, since the certainty reads no presence. A kept lateral whose lifted base lengthens its shedding would still be marked "certain".
+- **What would be needed:** for the certainty to take the rounding into account, it would have to read the lifted presence the fade reads. That changes what "certain" means: today it is from the settings alone.
