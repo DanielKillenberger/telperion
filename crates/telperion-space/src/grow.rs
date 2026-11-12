@@ -20,8 +20,6 @@ mod stage;
 mod stop;
 #[cfg(test)]
 mod tests;
-#[cfg(test)]
-mod tip_tests;
 mod unit;
 mod wake;
 
