@@ -268,3 +268,74 @@ At 120, the 90th percentile tip reads under the grain. The spec's estimate puts 
 - The census after the rule, and the drawn oak at 40 and 120. The probes for both sides are built against `d29f29cc5` and `551494642`, so each is one command.
 - R2 to R6, the long walk, vitest and both guards.
 - **The base worktree** `.worktrees/fn-356-base` is now detached at `d29f29cc5`.
+
+# The fourth design: stopped at the narrow suites, 12 Nov 2026
+
+The host withdrew the grain rule and wrote the fourth design: under its floor, an element's faintness is rounded, not carried. Built, it fails a closed-form test, the extent bound. It also fails the shed-certain shortcut's two tests. The census and the drawn oaks were not run.
+
+## What was done
+
+| Commit | What |
+|---|---|
+| `131350768`, `53c2baa62` | The grain rule and its tests reverted. `GRAIN`, `Windows::start` and the census reading stay (`d29f29cc5`). |
+| `ec9efa1a7` | The rule, with R1's tests (`grow/round_tests.rs`). |
+
+**Built** (`grow/advance.rs`, `grow/unit.rs`, `grow/shoot.rs`, `grow/wake.rs`, `presence.rs`, `lineage/keys.rs`):
+- **Faintness:**
+  - `Draws::faint` (an f32) is an axis's faintness at its base, set where every axis is made (`Shoot::push`). It is what the axis inherits times its made presences.
+  - **What an axis inherits:** a lateral takes its node's faintness (`presence::faint_at_node`). A woken sleeper takes the faintness of the node it slept at, read by the grower (`Shoot::waking`). A continuation or relay takes its axis's end (`presence::faint_at_end`). The seed takes its own.
+  - A tip's faintness is its base times its units' presences, in `assign_one`'s order.
+- **Floor:** `presence::floor` = min(1, GRAIN / `Windows::start(pa, cycle)`).
+- **The rule:**
+  - **A tip, at its unit's start:** read at `Windows::start(pa, cycle)`, after the unit's cut is known and before survival.
+  - **A lateral, at its birth:** in `grow_unit`, after its made presences, read at `start(lateral_pa, cycle + 1)`.
+  - **Under the floor:** a draw keyed `ROUND` (`u64::MAX - 20`), under the unit's key for a tip and the bud place's key for a lateral, keeps the element with chance f / floor (`presence::rounded`). A kept element stands at the floor; the factor floor / f is folded into the unit's survival presence, or into the bud's made presence (`birth[0]`). An element not kept ends as a failed apex with no relay does, or its bud is not made.
+  - **At or over the floor:** no draw is taken and nothing changes.
+  - **A woken sleeper:** whole in its waking unit.
+- **The census** counts the elements kept and ended each cycle (`Cycle::rounded`, through `Shoot`, `Share` and `Grower`).
+- **`Draws` stays 144 bytes on 64-bit**: `an_axis_and_its_draws_stay_compact` passes. On wasm32 it is inferred to grow from 104 to 112 bytes; that was not measured.
+
+**Settled in code, as asked:**
+- **Where the by-degree presences enter the stored scale today:**
+  - a lateral's birth draws as `Draws::birth`, which becomes `vigour`, then `base_scale` (`draw.rs`) and `geometry::scale` (the final lay);
+  - each unit's `survive` and `persist`, multiplied into `running` (`draw_bent` and `assign_one`);
+  - each node's presence (`Draws::nodes`), and each unit's `size` (the share of a node it grew);
+  - the bearer's node scale, inherited unsized.
+  - Dominance enters only at a lateral's `base_scale` (`draw.rs` `share`; `geometry::dominance`), and shade size only when a phytomer is laid.
+  - So f is the same chain with those two left out. It is carried beside the scale, and no scale changes when the rule does not fire. Every lift goes into an existing presence (a unit's `survive`, a bud's `birth[0]`), so the rough and final lays both read it.
+- **Running presence** is re-multiplied from the axis's units each time it is read, not carried. A rounded element stands at or just over its floor at that cycle (`next_up` where f32 would leave it a part under). But the floor rises as the tree grows, so a faint tip can be rounded again in a later cycle, each time by a fresh, unbiased draw.
+- **Relays and "both outcomes grown":**
+  - Each side has its own f. The unit the parent grows carries its lift, including the failed unit pushed in `fail`.
+  - A relay's base is the parent's end, read when the relay is made, times its own made presences.
+  - The final lay reads a relay's vigour from the parent's end at the tree's age (`end[parent]`), which can differ where the parent grows on as the other outcome. f reads the end at the relay's birth.
+
+**R1 tests** (both green):
+- **`a_tree_of_whole_elements_is_as_it_was`:**
+  - **The fixture:** the lit oak at 7, every element whole (every lateral's vigour exactly 1).
+  - **The checks:** the census counts no rounding at any cycle, and the digests equal those at `53c2baa62`, (5471803321526034208, 12893453816766107291).
+- **`a_faint_element_is_kept_in_its_share_and_stands_at_its_floor`:**
+  - **The fixture:** 200,000 keys at four (faint, floor) pairs.
+  - **The checks:** the kept share is within four standard errors of faint / floor, and a kept element stands in [floor as f32, floor x (1 + 1e-6)].
+  - It calls the new rounding function, so it could not be written red first.
+
+## The narrow suites at `ec9efa1a7`
+
+771 tests run: 767 passed, 4 failed, in 867 s (`raw/narrow4.log`).
+
+| Test | What it promises | What failed |
+|---|---|---|
+| `closed_form::kept::tests::bound::no_wood_reaches_past_the_extent_bound` | No wood stands farther from a lateral's base than the closed form's extent bound x its base (the bearer's node scale x its vigour). Host decision 16. | Axis 588 (PA 14, born 10) reaches 0.009710 against its bound 0.009621: 0.93% past, against a tolerance of 1e-5 relative. |
+| `grow::tests::a_lateral_certain_to_be_shed_is_shed` | Every lateral the shed-certain rule marks is gone at the tree's age. | Beech at seed 1: 16 marked laterals stand. |
+| `grow::tests::a_tree_grows_the_same_without_what_it_is_certain_to_shed` | Leaving those laterals ungrown leaves the tree the same to the bit. | Beech at seed 1: the tree changed. |
+| `every_preset_grows_the_tree_it_grew_at_both_ends_of_the_dial` | A digest pin. | Moved. Not repinned, since the run stopped. |
+
+**Held:** every other closed-form oracle (the counts, death, dormant, settings, relays and kept wood on average), the simulator comparison, every independence test, the release-law and light walks, and the shed test's bounds.
+
+**On the failures** (inferred, not measured):
+- **The extent bound** assumes an axis's presences never exceed 1 past its base. A tip kept at its floor stands at the floor / f times its former presence, with no limit, so its realised reach can pass the bound even where its expectation is unchanged.
+- **The shed-certain tests** run on unlit trees. Since f is read from the draws and not from a pencil, the rule now also rounds unlit trees. Why marked laterals now stand was not determined.
+
+## Not done
+
+- The census and the drawn oaks at 40 and 120 on seeds 1001, 1002 and 1007. The head probe is built against `ec9efa1a7`, with kept and ended per decade in its census.
+- R2 to R6, the long walk, vitest and both guards.
