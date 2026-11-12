@@ -21,12 +21,14 @@
 </style>
 <main>
 <h1>Telperion 0.2.0, where it stands</h1>
-<p class="dim">Updated in place by the host. Last update: 12 Nov 2026, 07:00. Nothing is pushed yet; no phase after the first has landed.</p>
+<p class="dim">Updated in place by the host. Last update: 12 Nov 2026, 16:16. Nothing is pushed yet; no phase after the first has landed.</p>
 
 <h2>Unmet, most important first</h2>
 <ol>
   <li class="bad"><strong>Decision needed from you.</strong> Old oaks cost far too much, and I could not fix it inside this phase. Now that the oak no longer collapses with age, one 200-year oak needs 29.6 GB and 29 million stem segments (today's build: 5.9 GB). About half the segments are near-invisible shoots carrying under 1% of the leaf. Five designs to remove them were built and measured; none worked without breaking a guarantee the grower rests on, and all are reverted. The cost can only be solved by carrying such shoots as counts, which is the plan's phase 5. So: (a) phase 2 cannot meet its landing rule as written, because some old oaks can no longer be drawn in 16 GB; (b) phase 3, the old crown, cannot be worked on trees that take 18 minutes and 30 GB each. I recommend doing phase 5's counting before phase 3, and landing phase 2 together with it. Until you say otherwise I am measuring the phase in full and surveying phase 5's design, which is needed either way.</li>
-  <li class="bad">The old oak does not yet read as an old oak: thin crown after 200, and a flat rim where two stems fork (today's build has the same rim). Phase 3.</li>
+  <li class="bad"><strong>The oak at 300 on one seed is a dead, bare 7.8 m post, plainly worse than today's build.</strong> Two causes, both measured. The tree is nearly dead by then: its leaf falls from 757 m² at 120 to 206 at 200 and 4 at 300, because tips are shed once their path from the root is long, even in good light, and nothing regrows from old wood. And what still lives is drawn at zero size, a drawing fault whose cause is being traced. Two more 300-year oaks could not be drawn in 40 GB before the memory cuts below; not yet redrawn.</li>
+  <li class="bad">The full test gate is red on phase 2's branch: two tests failed, seven were cut off at their time limit, and the run was killed at its 8 GB limit with 293 tests unrun. Causes are being diagnosed test by test.</li>
+  <li class="bad">The old oak at 200 does not yet read as an old oak: a sparse fan of long thin wandering limbs with leaf at the rim, and a flat rim where two stems fork (today's build has the same rim). Phase 3. Two trials with preset values only: sleeping buds that wake as boughs keep 2.4 times the leaf at 200 but the limbs stay thin; a few dominant limbs give a compact dense crown, the most credible old oak drawn so far, 23 m tall against 33 m.</li>
   <li class="bad">The ordinary tree is thinner than today's: a 9 to 10 cm trunk against 22 to 25 cm. Wood now follows leaf, and this preset has very little leaf. It stands, but reads as a sparse sapling.</li>
   <li class="bad">The Two Trees are less massive than today's: trunks of 1.15 to 1.28 m against 2.7 to 3.0 m, and more open crowns. They stand and read as large trees, not as legendary ones.</li>
   <li class="bad">The oak at 120 has many thin straight limbs where an oak keeps a few heavy ones. Phase 3.</li>
@@ -36,6 +38,7 @@
 
 <h2>Met since the last update</h2>
 <ul>
+  <li class="ok">The grower holds 46% less memory for the same tree, to the bit: the oak at 120 on one seed went from 7.1 to 3.8 GiB.</li>
   <li class="ok">A tree at any year is the same tree whatever age was asked for, checked to the bit on the oak, spruce and beech, and a growth can be continued past the age first asked for.</li>
   <li class="ok">The oak's trunk follows its leaf and never thins: 0.34, 0.94, 1.41 m at 40, 80, 120 over twelve seeds, against 0.78, 2.06, 2.07 m today and 0.28 to 0.40, 0.56 to 0.79, 0.83 to 1.09 m for real oaks.</li>
   <li class="ok">The beech has a dense round crown, fuller than today's, on a 17 to 21 cm trunk (stand beeches of 40 average 20 cm).</li>
@@ -48,7 +51,7 @@
   <tr><td>0. One source of truth</td><td class="ok">done</td><td>One goal (fn-351), your rulings in one file, the scoreboard drawn on today's build beside 0.1.4: 162 trees, none refused.</td></tr>
   <tr><td>1. One grower</td><td class="ok">landed on the integration branch</td><td>The GPU grower is deleted. Rust source 202,868 to 164,423 lines; the render module 842 KB to 535 KB compressed. Full gate green (1,387 passed), review clean. Browser paths need your eyes at the end; agents cannot drive WebGPU.</td></tr>
   <tr><td>2. Wood that lasts</td><td>in build, not landed</td><td>The budget fix, the wood rule, the leaf account, year-independence and the beech's light response are built on a branch. Oak trunk 27 to 34, 68 to 93, 106 to 139, 132 to 171, 145 to 185 cm at 40, 80, 120, 200, 300 against a real oak's 28 to 40, 56 to 79, 83 to 109, 121 to 152, 156 to 192. Wood never thins. Open: the Two Trees, the leaf account, the beech.</td></tr>
-  <tr><td>3. A crown that renews</td><td class="dim">not started</td><td></td></tr>
+  <tr><td>3. A crown that renews</td><td>surveyed and measured, rule not yet designed</td><td>Why the old oak thins is measured; three preset-only trials drawn. Records: <code>PHASE3-SURVEY.md</code>, <code>PHASE3-PROBES.md</code>.</td></tr>
   <tr><td>4. Species on sources</td><td class="dim">not started</td><td></td></tr>
   <tr><td>5. Counted foliage, speed</td><td class="dim">not started</td><td></td></tr>
   <tr><td>6. Drawn fast, website, entry</td><td class="dim">not started</td><td></td></tr>
