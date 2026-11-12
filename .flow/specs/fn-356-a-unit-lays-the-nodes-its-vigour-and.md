@@ -35,9 +35,26 @@ Built as above (`9bc970234`), the quota did what it was for (the oak at 120, see
 
 **What would refute it:** leaf, height or trunk moving by more than a twentieth on the oak at 40 or 120; phytomers at 120 falling by less than a third; the tip count still climbing against a flat summed presence over the last two decades at 120; a closed-form oracle or an independence test failing (return with which and by how much; do not repin an oracle).
 
+### The second design is refuted; the third (host, 12 Nov 2026)
+
+Built (`90e3b3dda`), the survival by `min(1, presence x N)` failed the narrow suites before any tree was measured: nine closed-form oracles, three independence tests, two walks, and one simulator comparison refused as collapsed. The cause is in the design, not the build: the closed form counts a faint element at its share, linearly, and any rule that treats a faint element differently from a whole one is not linear in presence; and a unit's summed node presences read its laterals' and sleepers' expected wood, so the rule read other draws. Its commits are reverted. Two attempts on this fault are spent.
+
+**What both attempts taught:** inside this grower, faint elements cannot be made to die by a rule of growth without giving up the closed form, the independence of draws, or the leaf. So they are not given a rule of growth.
+
+**The third design: the grower does not grow what is under its own grain.** It rests on a measurement (the survey's census: 47% of the phytomers at 120 stand under a presence of 0.05 and carry 0.8% of the leaf) and on the contract the walks already hold (a branch under 1e-6 of the tree counts as vanished).
+
+- A bud is not grown, and a living tip ends, when its presence times the share of the tree's expected wood that its window already reads (`Windows::wood` for its PA at its cycle, the same number that sizes its window, age-free since fn-355) is under `GRAIN`.
+- `GRAIN` = 1e-7, a contract constant beside RATE, SPAN, FLOOR and LOOK. Estimate, named: a tenth of the walks' vanishing bound, so that what is dropped stays under that bound when its realised wood is several times its expected.
+- It is no draw and reads nothing but the tip's own lineage and the species' tables, so it moves no other draw and adds nothing the closed form's fixtures can see: there every element is far over the grain. If a closed-form oracle or an independence test does move, that refutes it.
+- It is not a limit on how much a tree may grow: nothing is counted and nothing is refused. It is the resolution the grower works at, and it is relative to the tree.
+
+**Expected on paper:** a whole twig's share in the oak at 120 is of the order of 1e-6 to 1e-5, so tips under a presence of about 0.01 to 0.1 end: a third to a half of the phytomers at 120 and more at 200, with the leaf, height and trunk moving by about a hundredth. Young trees do not change at all (their elements are far over the grain); the tests' small trees do not change.
+
+**What would refute it:** any closed-form oracle, independence test or walk failing; leaf, height or trunk moving by more than a twentieth on the oak at 40 or 120; phytomers at 120 falling by less than a quarter; the oak at 200 on seed 1002 still over 16 GB (then the count is Phase 5's to carry as counts, and this rule stays only if it costs nothing).
+
 ## Acceptance Criteria
 
-- **R1.** The rule (the second design) is in the grower for every species, with no branch by species; a tree in which every tip stands at `presence x N >= 1` is byte-equal to today's (tested on a fixture).
+- **R1.** The rule (the third design) is in the grower for every species, with no branch by species; a tree in which every tip stands over the grain is byte-equal to today's, and a tip under it ends (both tested on fixtures).
 - **R2.** The walks hold: a branch that enters at a crossing enters at vanishing size and no step breaks its bound.
 - **R3.** Paused and one-call growth agree; fn-355's year tests (a tree at y is the tree asked for at y) pass unchanged.
 - **R4.** Census on the oak at 80 and 120, seed 1002, before and after: living tips, summed presence, held phytomers, phytomers under 0.2 mm, leaf area, by decade for the tip count.
