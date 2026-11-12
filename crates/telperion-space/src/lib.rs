@@ -67,7 +67,7 @@ pub use lineage::{
 };
 pub use oak::oak;
 pub use palm::palm;
-pub use presence::{FLOOR, RATE, SPAN};
+pub use presence::{FLOOR, LOOK, RATE, SPAN};
 pub use schedule::most_units;
 pub use species::coarse::{Coarsening, COARSEST};
 pub use species::scale::{

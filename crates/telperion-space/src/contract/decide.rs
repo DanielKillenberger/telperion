@@ -176,7 +176,8 @@ pub(crate) fn moved(
     d: Draw,
     stake: f64,
 ) -> f32 {
-    let log = |c: u32| super::log32(windows.log_wood(pa, c));
+    // A move begins its next age: it looks over that age's lifespan.
+    let log = |c: u32| super::log32(windows.log_wood(pa, 0.0, c));
     let window = ((RATE * stake) as f32, (FLOOR * stake) as f32, SPAN as f32);
     moved_f(
         logit_of(go),

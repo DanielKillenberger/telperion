@@ -139,6 +139,10 @@ impl Grower {
             self.live.extend(share.next);
         }
         for (wakes, sleeper) in share.asleep {
+            // Every sleeper that can wake is held, however far on.
+            if self.asleep.len() <= wakes {
+                self.asleep.resize_with(wakes + 1, Vec::new);
+            }
             self.asleep[wakes].push(sleeper);
         }
         self.woken.extend(share.woken);

@@ -13,6 +13,8 @@ The programme aims at four claims that, to our knowledge, no generator makes tog
 | Continuity by construction | Walks between any two points at a fixed seed change the tree by degree with no visible pop, on still strips and a per-step measure |
 | Game speed | End-to-end time and memory per mature tree and per forest on the named machine, against today's pinned baseline |
 
+A year is a state (fn-355): the grower reads no horizon, so the tree at year 40 on the way to 120 is the tree asked for at 40, and growth goes on from any year it has reached. How the windows look and what a sleeping bud records is in `docs/pipeline.md`, "The one cycle and its grower".
+
 ## Stand on botany, invent the space
 
 - **Reproduced, never invented:** plant science (physiological age, the reference axis, the architectural models, light interception, the pipe model as sapwood that follows the leaf it serves and heartwood that stays, Shinozaki et al. 1964 and Lehnebach et al. 2018). Each is reproduced against an oracle (an executable model run unchanged, or a published closed form or figure) before anything is built on it.

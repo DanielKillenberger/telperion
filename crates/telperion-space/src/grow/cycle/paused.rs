@@ -1,7 +1,8 @@
 //! The one cycle paused between years (fn-270): the grower begun for a
-//! horizon, grown on to any age within it, and settled at the age grown
+//! first age, grown on to any age, that one or past it (fn-355: a year is
+//! a state, and the grower reads no horizon), and settled at the age grown
 //! from a copy of what the settle reads, the grower left as it was.
-//! `grow_cycle` is this loop run to the horizon in one call. A request
+//! `grow_cycle` is this loop run to the age asked in one call. A request
 //! the grower cannot meet is refused by name before anything moves; a
 //! failure while it grows leaves it spent, and every later call is
 //! refused by name (spec R2b).
@@ -44,16 +45,12 @@ pub struct Paused {
 }
 
 /// The whole cycle a request for `age` commits a grower at `committed`
-/// under `horizon` to (fn-270 R2a', R2b): its ceiling; `committed` where
-/// the request falls within the last year grown. A non-finite or negative
-/// age, one a year or more back, and one past the horizon are refused by
-/// name.
-pub fn admitted(committed: u32, horizon: u32, age: f64) -> Result<u32> {
-    if !age.is_finite() || age < 0.0 {
+/// to (fn-270 R2a', R2b): its ceiling; `committed` where the request falls
+/// within the last year grown. A non-finite or negative age, and one a
+/// year or more back, are refused by name.
+pub fn admitted(committed: u32, age: f64) -> Result<u32> {
+    if !age.is_finite() || !(0.0..=f64::from(u32::MAX)).contains(&age) {
         return refuse("age", "an age is finite and not negative");
-    }
-    if age > f64::from(horizon) {
-        return refuse("age.horizon", "a tree grows no further than its horizon");
     }
     if age <= f64::from(committed) - 1.0 {
         return refuse("age.backward", "a tree grows only forward");
@@ -76,11 +73,12 @@ pub fn within_year(committed: u32, at: f64) -> Result<f64> {
 }
 
 impl Paused {
-    /// The grower before its first cycle, for a tree of at most
-    /// `horizon.age` cycles, with a census where `census`.
+    /// The grower before its first cycle, for a tree asked first at
+    /// `first.age` cycles, with a census where `census`; it may grow on
+    /// past that age.
     pub fn begin(
         species: Arc<Species>,
-        horizon: Request,
+        first: Request,
         retiring: Retiring,
         census: bool,
     ) -> Result<Self> {
@@ -88,7 +86,7 @@ impl Paused {
             Retiring::AtAge => Working::default(),
             Retiring::Never => Working::reference(),
         };
-        Self::with(species, horizon, census, working)
+        Self::with(species, first, census, working)
     }
 
     pub(super) fn with(
@@ -148,7 +146,7 @@ impl Paused {
         self.committed
     }
 
-    /// The most cycles it grows.
+    /// The age it was first asked for, which bounds nothing it grows.
     pub fn horizon(&self) -> u32 {
         self.request.age
     }
@@ -174,14 +172,11 @@ impl Paused {
         self.g.census.as_deref()
     }
 
-    /// Every cycle up to `age` grown; none where it has grown them.
-    /// Past the horizon it is refused by name, as is an age before the one
-    /// grown, and a spent grower; a cycle that fails spends it.
+    /// Every cycle up to `age` grown; none where it has grown them. An
+    /// age before the one grown is refused by name, as is a spent grower;
+    /// a cycle that fails spends it.
     pub fn grow_to(&mut self, age: u32) -> Result<()> {
         self.usable()?;
-        if age > self.request.age {
-            return refuse("age.horizon", "a tree grows no further than its horizon");
-        }
         if age < self.committed {
             return refuse("age.backward", "a tree grows only forward");
         }
@@ -207,12 +202,11 @@ impl Paused {
     fn cycles(&mut self, age: u32) -> Result<()> {
         let (phases, clock) = (&mut self.phases, &mut self.clock);
         for cycle in self.committed + 1..=age {
-            // The last cycle's layout and light are read by no bud.
-            let sketching = cycle < self.request.age;
-            self.g
-                .year(cycle, sketching, &mut self.advanced, &mut |s| {
-                    tick(phases, clock, s)
-                })?;
+            // Every year is laid out and lit like any other: the next one,
+            // where it is grown, reads its light (fn-355).
+            self.g.year(cycle, true, &mut self.advanced, &mut |s| {
+                tick(phases, clock, s)
+            })?;
             self.g.count(cycle);
             self.committed = cycle;
         }
@@ -258,8 +252,8 @@ impl Paused {
         Ok(present(tree, before, &self.g.species, f))
     }
 
-    /// The tree at the horizon, settled as `grow_cycle` settles it, with
-    /// its census.
+    /// The tree at the age grown, settled as `grow_cycle` settles it,
+    /// with its census.
     pub(super) fn finish(self, started: f64) -> Result<Cycled> {
         let Self {
             g,

@@ -81,10 +81,12 @@ impl<'a> Living<'a> {
         };
         let relay = self.species.states[k].relay_ended;
         // From `used` of the way through the cycle it ended in, as the
-        // grower reads it (`Windows::wood_at`).
+        // grower reads it (`contract::decide::moved`): that cycle is the
+        // tree's age, which its windows serve, less `left`.
+        let cycle = windows.year().saturating_sub(left as u32);
         let (a, b) = (
-            windows.wood_left(next, left + 1),
-            windows.wood_left(next, left),
+            windows.wood(next, 0.0, cycle),
+            windows.wood(next, 0.0, cycle + 1),
         );
         let wood = if a > 0.0 && b > 0.0 {
             (a.ln_fixed() + (b.ln_fixed() - a.ln_fixed()) * used).exp_fixed()

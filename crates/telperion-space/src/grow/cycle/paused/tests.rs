@@ -159,6 +159,28 @@ fn a_year_is_a_state_not_a_horizon() {
     }
 }
 
+/// fn-355 R2: a growth goes on past its first request, and the tree is
+/// the one asked for that far, to the bit.
+#[test]
+fn a_growth_goes_on_past_its_first_request() {
+    for (species, k) in species() {
+        let (first, later) = (12, 21);
+        let asked = grow_cycle(&species, request(later, 7, k)).unwrap();
+        let mut p = Paused::begin(
+            std::sync::Arc::new(species.clone()),
+            request(first, 7, k),
+            Retiring::AtAge,
+            false,
+        )
+        .unwrap();
+        p.grow_to(first).unwrap();
+        p.settle().unwrap();
+        p.grow_to(later).unwrap();
+        let on = tree_digest(&p.settle().unwrap());
+        assert_eq!(on, tree_digest(&asked.structure), "grown on to {later}");
+    }
+}
+
 /// R1 (b), every year: one run settled at each year is the run that
 /// retires nothing, year by year (60 s on one thread; out of the gate).
 ///
@@ -183,9 +205,9 @@ fn every_year_is_the_horizons_prefix() {
     }
 }
 
-/// R2b: a non-finite, negative, backward or past-horizon age, and a draw
-/// outside the last year grown, are refused by name, and the grower is
-/// left as it was.
+/// R2b: a non-finite, negative or backward age, and a draw outside the
+/// last year grown, are refused by name, and the grower is left as it
+/// was. An age past the first one asked is admitted (fn-355 R2).
 #[test]
 fn a_request_the_grower_cannot_meet_is_refused() {
     let species = crate::beech();
@@ -202,17 +224,15 @@ fn a_request_the_grower_cannot_meet_is_refused() {
         Err(Error::Refused { input, .. }) => input,
         other => panic!("{other:?}"),
     };
-    assert_eq!(refused(p.grow_to(13)), "age.horizon");
     assert_eq!(refused(p.grow_to(7)), "age.backward");
     let ages = [
         (f64::NAN, "age"),
         (f64::INFINITY, "age"),
         (-0.5, "age"),
-        (12.01, "age.horizon"),
         (7.0, "age.backward"),
     ];
     for (age, name) in ages {
-        assert_eq!(refused(admitted(8, 12, age).map(drop)), name, "{age}");
+        assert_eq!(refused(admitted(8, age).map(drop)), name, "{age}");
     }
     for at in [7.0, 8.01, f64::NAN] {
         assert_eq!(refused(p.settle_at(at).map(drop)), "at", "{at}");
@@ -230,9 +250,10 @@ fn a_request_the_grower_cannot_meet_is_refused() {
         "nothing grown yet"
     );
     assert_eq!(p.digest(), before);
-    assert_eq!(admitted(8, 12, 7.25).unwrap(), 8);
-    assert_eq!(admitted(8, 12, 8.0).unwrap(), 8);
-    assert_eq!(admitted(8, 12, 8.25).unwrap(), 9);
+    assert_eq!(admitted(8, 7.25).unwrap(), 8);
+    assert_eq!(admitted(8, 8.0).unwrap(), 8);
+    assert_eq!(admitted(8, 8.25).unwrap(), 9);
+    assert_eq!(admitted(8, 12.01).unwrap(), 13);
 }
 
 /// R2b: a cycle that fails (here a lattice past its nodes, as
@@ -295,7 +316,7 @@ fn a_tree_drawn_within_its_year_unfolds_from_the_last() {
     .unwrap()
     .presenting();
     let grow = |p: &mut Paused, a: f64| {
-        let to = admitted(p.committed(), p.horizon(), a)?;
+        let to = admitted(p.committed(), a)?;
         p.grow_to(to)
     };
     grow(&mut p, 40.0).unwrap();

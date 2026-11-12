@@ -291,7 +291,6 @@ impl Grower {
         sketch: Option<Sketch>,
         seed: u64,
     ) -> Result<Self> {
-        let age = rules.age;
         let root = Key::root(seed);
         // The seed grows in the first age it does not pass through, as
         // far as it reaches it.
@@ -312,7 +311,7 @@ impl Grower {
             units: vec![0.0],
             successor: vec![Vec::new()],
             roots: vec![root.0],
-            asleep: vec![Vec::new(); age as usize + 2],
+            asleep: Vec::new(),
             woken: Vec::new(),
             sketch,
             leaves: Vec::new(),
@@ -375,6 +374,12 @@ impl Grower {
     ) -> Result<()> {
         if self.one {
             self.compact();
+        }
+        // A growth that goes on reads windows as far as it goes; an entry
+        // is the same however far its table runs (fn-355).
+        if cycle > self.rules.windows.year() {
+            let year = cycle.max(2 * self.rules.windows.year());
+            self.rules.windows = Windows::new(&self.species, year);
         }
         advanced.clear();
         advanced.extend(self.live.iter().map(|a| a.axis));

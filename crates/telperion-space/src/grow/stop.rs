@@ -7,8 +7,8 @@ use super::{stop_stake, Apex};
 use crate::contract::{self, presence};
 use crate::error::Result;
 use crate::lineage::{threshold, Key, ABORTION, MOVE, RELAY};
-use crate::presence::Unit;
 use crate::presence::SPAN;
+use crate::presence::{At, Unit};
 use crate::species::PaState;
 use crate::structure::Origin;
 
@@ -75,7 +75,7 @@ impl Shoot<'_> {
         // where its relay draw makes one (D9's integer test).
         let relay = state.relay_ended;
         if made < presence::ONE && relay > 0.0 && unit.child(RELAY).draw().under(relay) {
-            let relayed = self.relayed(relay, unit, (pa, cycle, Some(used)));
+            let relayed = self.relayed(relay, unit, (pa, apex.spent, cycle, Some(used)));
             *self.units_mut(apex.axis) = apex.spent;
             let made = [1.0 - presence::real(made), presence::real(relayed)];
             self.relay_bud(
@@ -143,7 +143,7 @@ impl Shoot<'_> {
     pub(super) fn persists(
         &self,
         decide: Key,
-        (pa, cycle): (usize, u32),
+        (pa, spent, cycle): (usize, f64, u32),
         aborts: u64,
     ) -> std::result::Result<f64, f32> {
         if aborts == 0 {
@@ -159,7 +159,7 @@ impl Shoot<'_> {
         // near its bound fades the stem (host decision 11), each a
         // presence (host decision 8).
         let state = &self.species().states[pa];
-        let at = (pa, cycle + 1, None);
+        let at = (pa, spent, cycle + 1, None);
         let window = self.windows().window(at, stop_stake(state.relay));
         let faded = presence::of_over(aborts, d.0, window);
         let relayed = self.relayed(state.relay, decide, at);
@@ -225,7 +225,7 @@ impl Shoot<'_> {
     /// The presence of the relay a stop in the growth unit keyed `unit`
     /// would have (host decision 8): none where its PA relays none
     /// or the draw fails.
-    pub(super) fn relayed(&self, relay: f64, unit: Key, at: (usize, u32, Option<f64>)) -> f32 {
+    pub(super) fn relayed(&self, relay: f64, unit: Key, at: At) -> f32 {
         if relay <= 0.0 {
             return 0.0;
         }
@@ -266,7 +266,7 @@ impl Shoot<'_> {
         }
         let d = unit.child(RELAY).draw();
         if d.under(relay) {
-            let at = (axis.pa, cycle, Some(used));
+            let at = (axis.pa, spent, cycle, Some(used));
             // A stop is whole: the apex that all but stopped grew its relay
             // as well (host decision 11), and a failed unit's relay is
             // grown by `fail`, never here. A presence (host decision 8).

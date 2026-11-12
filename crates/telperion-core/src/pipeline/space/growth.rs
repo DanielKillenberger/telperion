@@ -1,6 +1,6 @@
-//! Growth that continues (fn-270 R2): a family's tree begun for a horizon,
-//! grown on to any age within it, and drawn at any age within its last
-//! year, through the one cycle and the one conversion `grow` takes. The
+//! Growth that continues (fn-270 R2): a family's tree begun for a first
+//! age, grown on to any age, past it too (fn-355), and drawn at any age
+//! within its last year, through the one cycle and the one conversion `grow` takes. The
 //! state holds the engine's grower between calls (`telperion_space::Paused`);
 //! a draw is a snapshot of its own and never moves the state. Ages are
 //! years: growth commits whole cycles, and a draw within the year unfolds
@@ -68,7 +68,7 @@ impl GrowthState {
         self.paused.committed()
     }
 
-    /// The most years it grows.
+    /// The years it was first asked to grow, which bounds nothing.
     pub fn horizon(&self) -> u32 {
         self.paused.horizon()
     }
@@ -100,12 +100,18 @@ pub fn begin(params: &Arc<Params>, seed: u32, horizon: f64) -> Result<GrowthStat
 
 /// The tree grown to `age` years: every whole cycle to its ceiling,
 /// none where `age` falls within the last year grown. An age that is not
-/// finite, a year or more back, or past the horizon is refused by name
-/// before anything moves; a failure while it grows spends the state.
+/// finite, a year or more back, or whose tree is expected past the
+/// ceiling is refused by name before anything moves; a failure while it
+/// grows spends the state.
 pub fn grow_to(state: &mut GrowthState, age: f64) -> Result<()> {
     let p = &mut state.paused;
     p.usable().map_err(engine)?;
-    let to = admitted(p.committed(), p.horizon(), age).map_err(engine)?;
+    let to = admitted(p.committed(), age).map_err(engine)?;
+    // The ceiling is judged at the year grown, past the first request too
+    // (fn-355).
+    if to > p.committed() {
+        foreseen(&state.params.species, to, KEPT)?;
+    }
     p.grow_to(to).map_err(engine)
 }
 

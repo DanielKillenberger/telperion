@@ -6,13 +6,12 @@
 //! in over a long stretch of a walk and a twig over a short one, and since
 //! the expectation is a smooth function of the settings, never of the wood
 //! that grew, a branch made anywhere moves no other draw's window.
-use crate::closed_form::expected_log_lengths;
 use crate::contract::presence::{q, real, times, ONE};
-use crate::dormant::wakes_in;
-use crate::species::{Species, Zone};
+use crate::species::Species;
 use crate::structure::{Axis, Origin};
-use crate::transcendental::Transcendental;
-use std::sync::Arc;
+
+mod windows;
+pub(crate) use windows::{At, Windows};
 
 /// The window, in log-odds, per share of the tree's expected length that a
 /// draw decides.
@@ -21,138 +20,12 @@ pub const RATE: f64 = 6.0;
 pub const SPAN: f64 = 2.0;
 /// The narrowest window, in log-odds: a twig's.
 pub const FLOOR: f64 = 0.05;
-
-/// A log as the grower holds it (`contract::log32`), none as nothing.
-fn contract_log(log: f64) -> f32 {
-    crate::contract::log32(log)
-}
-
-/// The expected wood each draw decides, as a share of the whole tree's.
-/// Its tables are shared: every fine root's grower holds the tree's
-/// (`Rules`), and a copy of them a root cost most of a root's growth in
-/// Wasm.
-#[derive(Clone)]
-pub(crate) struct Windows {
-    /// expected[m][k]: the log of the metres a bud of PA k grows in m cycles.
-    expected: Arc<Vec<Vec<f64>>>,
-    /// The log of the whole tree's expected metres.
-    whole: f64,
-    /// woods[m][k]: `expected[m][k]`'s share of the whole tree, as the
-    /// grower reads it (host decision 8): taken once a tree, not once a
-    /// draw.
-    woods: Arc<Vec<Vec<f32>>>,
-    age: u32,
-}
-
-impl Windows {
-    pub fn new(species: &Species, age: u32) -> Self {
-        let expected = expected_log_lengths(species, age);
-        let whole = expected[age as usize][0];
-        // A wood of none stays none: its log less a finite one is -inf.
-        let woods = expected
-            .iter()
-            .map(|row| {
-                row.iter()
-                    .map(|&log| crate::contract::exp(contract_log(log - whole)))
-                    .collect()
-            })
-            .collect();
-        Self {
-            expected: Arc::new(expected),
-            whole,
-            woods: Arc::new(woods),
-            age,
-        }
-    }
-
-    /// The wood a bud of `pa` is expected to grow from `cycle` on, the cycle
-    /// itself included, as a share of the whole tree's.
-    pub fn wood(&self, pa: usize, cycle: u32) -> f64 {
-        let log = self.expected[(self.age + 1).saturating_sub(cycle) as usize][pa];
-        if log == f64::NEG_INFINITY {
-            return 0.0;
-        }
-        (log - self.whole).exp_fixed()
-    }
-
-    /// The log of `wood`: none where it is none (FINE-CONTRACT.md D10's
-    /// table).
-    pub fn log_wood(&self, pa: usize, cycle: u32) -> f64 {
-        let log = self.expected[(self.age + 1).saturating_sub(cycle) as usize][pa];
-        if log == f64::NEG_INFINITY {
-            return log;
-        }
-        log - self.whole
-    }
-
-    /// The wood a bud of `pa` is expected to grow over the `left` cycles
-    /// left of the tree's age, as a share of the whole tree's: `wood` at
-    /// the cycle `left` cycles before the tree's age.
-    pub fn wood_left(&self, pa: usize, left: usize) -> f64 {
-        let log = self.expected[left.min(self.age as usize)][pa];
-        if log == f64::NEG_INFINITY {
-            return 0.0;
-        }
-        (log - self.whole).exp_fixed()
-    }
-
-    /// The chance that a draw made with probability `p` is made within its
-    /// window, at a presence below 1, deciding `decided` of `wood`: where
-    /// a stop all but made grows both outcomes (host decision 11).
-    pub fn borderline(&self, p: f64, wood: f64, decided: f64) -> f64 {
-        let window = (RATE * wood * decided).clamp(FLOOR * decided, SPAN);
-        if p <= 0.0 || p >= 1.0 || window <= 0.0 {
-            return 0.0;
-        }
-        let logit = (p / (1.0 - p)).ln_fixed();
-        p - 1.0 / (1.0 + (window - logit).exp_fixed())
-    }
-
-    /// The wood a sleeping bud of `pa` on a node grown in `cycle` is
-    /// expected to grow, over the years it may wake in.
-    fn dormant(&self, zone: &Zone, pa: usize, cycle: u32) -> f64 {
-        (0..self.age.saturating_sub(cycle))
-            .map(|s| wakes_in(zone, s) * self.wood(pa, cycle + 1 + s))
-            .sum()
-    }
-
-    /// The wood each PA's sleeping bud on a node of `zone` grown in `cycle`
-    /// is expected to grow, into `woods` (none where the zone bears none),
-    /// and the wood the sleeping buds of one bud place are expected to.
-    pub fn sleeping(&self, zone: &Zone, cycle: u32, woods: &mut Vec<f64>) -> f64 {
-        woods.clear();
-        let mut expected = 0.0;
-        for (pa, &p) in zone.dormant.iter().enumerate() {
-            let wood = if p > 0.0 {
-                self.dormant(zone, pa, cycle)
-            } else {
-                0.0
-            };
-            expected += p * wood;
-            woods.push(wood);
-        }
-        expected
-    }
-
-    /// `metres` as a share of the whole tree's expected wood.
-    pub fn share(&self, metres: f64) -> f64 {
-        metres * (-self.whole).exp_fixed()
-    }
-
-    /// The window of a draw deciding `stake` of the wood a bud of `pa` is
-    /// expected to grow from `cycle` on, or from `used` of the way through
-    /// it (host decision 8, `contract::presence`).
-    pub fn window(&self, (pa, cycle, used): (usize, u32, Option<f64>), stake: f64) -> f32 {
-        use crate::contract::{presence, ticks};
-        let log = |c: u32| crate::contract::log32(self.log_wood(pa, c));
-        let wood = match used {
-            None => self.woods[(self.age + 1).saturating_sub(cycle) as usize][pa],
-            Some(used) => presence::wood_at((log(cycle), log(cycle + 1)), ticks(used)),
-        };
-        let window = ((RATE * stake) as f32, (FLOOR * stake) as f32, SPAN as f32);
-        presence::window(wood, window)
-    }
-}
+/// The most cycles a draw looks over (fn-355): the cycles left of its PA's
+/// lifespan, at most this many. Estimate, the host's: 40 is the age most
+/// presets are asked for and their walk bounds were measured at, so a
+/// young draw's window stays near what it has been, and a lifespan of any
+/// size costs the expected-length table no more than this.
+pub const LOOK: f64 = 40.0;
 
 /// The presences of the draws that shaped one axis.
 #[derive(Debug, Clone, Default)]
