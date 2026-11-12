@@ -63,8 +63,6 @@ pub struct Cycle {
     /// percentiles, and the tips under the grain, which end then.
     pub grain: [f64; 5],
     pub under_grain: usize,
-    /// The elements the cycle kept at their floor and ended under it.
-    pub rounded: [u64; 2],
 }
 
 impl Census {

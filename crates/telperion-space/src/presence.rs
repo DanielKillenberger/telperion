@@ -86,9 +86,6 @@ pub(crate) struct Draws {
     /// The share of its first cycle gone before it grew, asleep or to the
     /// age before it, which its first growth unit lacks.
     pub sleep: f64,
-    /// Its faintness at its base (fn-356): the presences of the draws that
-    /// made its lineage, without dominance or shade size.
-    pub faint: f32,
 }
 
 /// One growth unit's draws.
@@ -110,7 +107,6 @@ impl Draws {
     pub fn made(birth: [f64; 2]) -> Self {
         Self {
             birth,
-            faint: times(q(birth[0]), q(birth[1])),
             ..Self::default()
         }
     }
@@ -135,50 +131,6 @@ impl Draws {
     pub fn outlive(&mut self, used: f64) {
         (self.ended_at, self.outlives) = (used, true);
     }
-}
-
-/// The floor of an element of `pa` at the start of `cycle` (fn-356): the
-/// faintness at which it would stand at the grain, at most whole.
-pub(crate) fn floor(windows: &Windows, pa: usize, cycle: u32) -> f64 {
-    (GRAIN / f64::from(windows.start(pa, cycle))).min(1.0)
-}
-
-/// An element of faintness `faint` under its `floor`, by the draw `d`:
-/// kept with the chance `faint / floor`, by the factor that stands it at
-/// the floor (never a part under it in f32), or none.
-pub(crate) fn rounded(faint: f32, floor: f64, d: crate::lineage::Draw) -> Option<f32> {
-    let faint = f64::from(faint);
-    d.under(faint / floor).then(|| {
-        let lift = (floor / faint) as f32;
-        match (faint as f32 * lift) < floor as f32 {
-            true => lift.next_up(),
-            false => lift,
-        }
-    })
-}
-
-/// An axis's faintness past every growth unit it has grown: its base's
-/// times its units' presences, in `assign_one`'s order.
-pub(crate) fn faint_at_end(draws: &Draws) -> f32 {
-    let mut running = draws.faint;
-    for unit in &draws.units {
-        running = times(times(running, q(unit.survive)), q(unit.persist));
-    }
-    running
-}
-
-/// The faintness of axis `axis`'s node `node`, what a bud there inherits:
-/// its unit's, its node's presence and the share of a node it grew, as
-/// `assign_one` lays its scale.
-pub(crate) fn faint_at_node(axis: &Axis, draws: &Draws, node: usize) -> f32 {
-    let k = (axis.phytomers[node].cycle - axis.birth - 1) as usize;
-    let mut running = draws.faint;
-    for unit in &draws.units[..k] {
-        running = times(times(running, q(unit.survive)), q(unit.persist));
-    }
-    let unit = &draws.units[k];
-    let running = times(running, q(unit.survive));
-    times(times(running, q(draws.nodes[node])), q(unit.size))
 }
 
 /// Sets every axis's vigour, growth-unit presences, phytomer scales (each

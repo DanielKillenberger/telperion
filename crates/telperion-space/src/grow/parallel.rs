@@ -31,7 +31,6 @@ pub(super) struct Share {
     marked: Vec<u64>,
     grown: u64,
     jobs: [u32; 2],
-    rounded: [u64; 2],
     /// Its lists to fill again: its apexes', emptied, and its own.
     spare: Spare,
 }
@@ -48,7 +47,6 @@ impl Shoot<'_> {
             marked: self.marked,
             grown: self.grown,
             jobs: self.jobs,
-            rounded: self.rounded,
             spare: Spare {
                 next: Vec::new(),
                 leads: self.leads,
@@ -150,7 +148,6 @@ impl Grower {
         self.woken.extend(share.woken);
         self.marked.extend(share.marked);
         self.rules.grown += share.grown;
-        self.rounded = std::array::from_fn(|w| self.rounded[w] + share.rounded[w]);
         self.jobs = std::array::from_fn(|w| self.jobs[w].max(share.jobs[w]));
         self.spare = share.spare;
     }

@@ -129,20 +129,10 @@ impl Shoot<'_> {
                         lead = presence::times(lead, by);
                     }
                     let placed = lineage::place_presence(key, zone.share(slot), window);
-                    let lead = presence::times(lead, placed);
-                    // Under its floor a bud is kept at it or not made
-                    // (fn-356).
-                    let made = [lead, presence::q(reach)];
-                    let at = crate::presence::faint_at_node(
-                        self.axis(apex.axis),
-                        self.draws(apex.axis),
-                        node,
-                    );
-                    let faint = presence::times(at, presence::times(made[0], made[1]));
-                    let Some(lift) = self.round(faint, (lateral_pa, cycle + 1), key) else {
-                        continue;
-                    };
-                    let made = [presence::times(lead, lift), made[1]].map(presence::real);
+                    let made = [
+                        presence::real(presence::times(lead, placed)),
+                        presence::real(presence::q(reach)),
+                    ];
                     self.sprout_keyed(key, (lateral_pa, keyed), cycle, origin, made);
                 }
                 if sleeping.iter().any(|&wood| wood > 0.0) {

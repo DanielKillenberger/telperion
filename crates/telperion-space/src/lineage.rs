@@ -14,7 +14,7 @@ pub(crate) use turn::{kind_under_shade, shaded_presence};
 
 pub(crate) use keys::{
     ABORTION, CONTINUATION, DOMINANCE, DORMANT, END, ENDED, FAILED, INSERTION, INTERNODE, LAID,
-    MOVE, PLACED, RELAY, ROLL, ROUND, SHED, TROPISM, TURN, VIABILITY, WANDER, ZONE,
+    MOVE, PLACED, RELAY, ROLL, SHED, TROPISM, TURN, VIABILITY, WANDER, ZONE,
 };
 
 /// A hashed path from the root.

@@ -13,8 +13,6 @@ mod draw;
 #[cfg(test)]
 mod ground_tests;
 mod parallel;
-#[cfg(test)]
-mod round_tests;
 mod settle;
 mod shoot;
 mod sketch;
@@ -280,9 +278,6 @@ struct Grower {
     /// The most units one living apex's job and one waking bud's grew in
     /// the cycle (`Shoot::jobs`), which the census takes.
     jobs: [u32; 2],
-    /// The elements the cycle kept at their floor and ended under it
-    /// (`Shoot::round`), which the census takes.
-    rounded: [u64; 2],
     census: Option<Box<cycle::Census>>,
     working: Option<Box<cycle::Working>>,
 }
@@ -325,7 +320,6 @@ impl Grower {
             light_seconds: 0.0,
             lattice: crate::light::field::NODES,
             jobs: [0; 2],
-            rounded: [0; 2],
             census: None,
             working: None,
         })

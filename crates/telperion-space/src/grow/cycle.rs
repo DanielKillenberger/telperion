@@ -104,7 +104,6 @@ impl Grower {
 
     /// The census's records at the end of `cycle`.
     fn count(&mut self, cycle: u32) {
-        let rounded = std::mem::take(&mut self.rounded);
         if let Some(mut c) = self.census.take() {
             let reading = self.grain_reading(cycle + 1);
             c.cycle(
@@ -112,8 +111,7 @@ impl Grower {
                 &self.axes,
                 (&self.live, &reading),
             );
-            let last = c.cycles.last_mut().expect("a cycle");
-            (last.jobs, last.rounded) = (std::mem::take(&mut self.jobs), rounded);
+            c.cycles.last_mut().expect("a cycle").jobs = std::mem::take(&mut self.jobs);
             self.census = Some(c);
         }
     }

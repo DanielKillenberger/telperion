@@ -48,8 +48,6 @@ impl Grower {
             {
                 let next = self.draws[bearer].units.len();
                 let aged = (pa, spent, reach);
-                let (p, node) = (sleeper.parent, sleeper.node);
-                shoot.waking = crate::presence::faint_at_node(&self.axes[p], &self.draws[p], node);
                 shoot.woke(&sleeper, aged, carried, (bearer, next), cycle)?;
             }
             shoot.jobs[1] = shoot.jobs[1].max(shoot.job);
