@@ -195,3 +195,76 @@ The host withdrew the quota and wrote the second design: a tip whose unit is les
 
 - R4's census and the drawn oak on the second design. The probe for the head is rebuilt (`raw/raw/target-fn-355`), so both are one command each.
 - R2's walk check (`raw/r2-walks-unrun.diff` is the first design's), R3, R5, R6, the long walk, vitest, and both guards.
+
+# The third design: stopped at the narrow suites, 12 Nov 2026
+
+The host withdrew the survival rule and wrote the third design: the grower does not grow what is under its grain. Built, it fails one closed-form oracle in the narrow suites, which the spec names as a refutation. The base census shows why: the shares the windows read are one to two orders under the spec's estimate. The census after the rule and the drawn oak were not run.
+
+## What was done
+
+| Commit | What |
+|---|---|
+| `c9119b103`, `12b4e5479` | The survival rule and its tests reverted. |
+| `d29f29cc5` | `GRAIN = 1e-7` in `presence.rs` beside `LOOK`, with the spec's comment, and exported. `Windows::start(pa, cycle)`, the share at a cycle's start that sizes a window; `window` now reads it. The census reads every living tip against the grain at the next cycle's start, as percentiles, and counts the tips under it. Nothing grows differently. |
+| `b198faa60` | R1's two fixture tests (`grow/grain_tests.rs`). |
+| `551494642` | The rule. |
+
+**The rule:**
+- **One site:** `Shoot::advance`, at the start of a tip's unit, after its share is known and before survival.
+- **The test:** presence (`base_scale x running`) x `Windows::start(pa, cycle)` < `GRAIN`. When it holds, the apex ends as a failed apex without a relay does: `apex_end = cycle - 1`, `failed`, and its spent units recorded. It returns before any unit is grown.
+- **A lateral bud under the grain** keeps its axis record but grows nothing: it ends at its first unit.
+- **An axis made this cycle** (no pencil) is whole. So a woken sleeping bud is first read at its next cycle, and needs no second site.
+
+**R1 tests:**
+- `a_tip_under_the_grain_is_not_grown`:
+  - **The fixture:** the oak with every draw whole, no death, and the lateral kinds' dominance at 1, so a lateral of the trunk stands at its dominance draw's fourth power.
+  - **The check:** the trunk's laterals under half the grain at their first unit grow nothing, and those over twice it grow.
+  - **Result:** red before the rule (seed 1: one at 1.4e-9 grew), green with it.
+- `a_tree_whose_every_tip_stands_over_the_grain_is_as_it_was`:
+  - **The fixture:** the lit oak at 5. The census reads no tip under the grain at any cycle.
+  - **The check:** digests pinned at `d29f29cc5`, (14144581626978832127, 17731531182853926843). Equal under the rule.
+  - **Why age 5:** the lit oak at 12 has tips under the grain from cycle 8 (seed 1: 2 of 745) and from cycle 6 (seed 7: 1 of 231). Its median tip reads 1.2e-6 to 2.4e-6 from cycle 3 to 12, 12 to 24 times the grain.
+
+## The narrow suites at `551494642`
+
+771 tests run: 769 passed, 2 failed, in 827 s (`raw/narrow3.log`).
+- **`closed_form::deterministic_trees_grow_the_closed_form_counts`:** a deterministic tree grows exactly the closed form's counts. It fails on the "reiterated" set: PA 2, cycle 3, grew 0 against the formula's 2.
+  - Every tip there is whole (presence 1). A PA 2 draw's window reads 2.7e-9 at cycle 3, falling to 1.5e-10 at cycle 9.
+  - The whole in that share is the tree expected at the cycle plus `LOOK`, and a reiterating tree grows exponentially over 40 cycles. So whole elements of a small tree fall 37 times under the grain.
+  - This refutes the design's premise that the closed form's fixtures stand far over the grain.
+- **`every_preset_grows_the_tree_it_grew_at_both_ends_of_the_dial`:** a digest pin, moved. Not repinned, since the run stopped.
+- **Held:** every independence test, the release-law and light walks, the other closed-form oracles, and the simulator comparison.
+
+## The grain's place on the oak at 120, seed 1002, before the rule
+
+Read at `d29f29cc5` by the census (`raw/census/grain-head.log`). Each value is a living tip's presence x the share its window reads at the next cycle's start.
+
+| Cycle | Living tips | Under the grain | 1st | 10th | 25th | 50th | 90th percentile |
+|---|---|---|---|---|---|---|---|
+| 80 | 374,527 | 316,652 (85%) | 2.1e-11 | 8.2e-10 | 4.8e-9 | 3.4e-8 | 5.7e-7 |
+| 120 | 719,340 | 650,480 (90%) | 5.2e-13 | 5.7e-11 | 4.5e-10 | 3.9e-9 | 8.1e-8 |
+
+Tips under the grain at a cycle's end, summed over the cycles of each decade before the rule. On the head they live on, so this counts the tip-years the rule would end, not tips:
+
+| Decade ending at | Tip-years |
+|---|---|
+| 10 | 2 |
+| 20 | 638 |
+| 30 | 14 thousand |
+| 40 | 85 thousand |
+| 50 | 265 thousand |
+| 60 | 668 thousand |
+| 70 | 1.9 million |
+| 80 | 2.7 million |
+| 90 | 3.5 million |
+| 100 | 4.5 million |
+| 110 | 5.3 million |
+| 120 | 6.0 million |
+
+At 120, the 90th percentile tip reads under the grain. The spec's estimate puts a whole twig at 1e-6 to 1e-5. Measured, a tip at full presence reads about 1e-7 to 1e-6 on the young oak (cycles 3 to 12) and less as the tree grows. So the grain at 1e-7 would end about nine in ten of the oak's living tips at 120, not the faint third to half. The same census at `d29f29cc5` repeats the earlier head numbers to the unit: tips 333,373 at 120; held phytomers 9,175,834; grower's leaf 1,263.9 m²; 83 s and 11.16 GiB peak.
+
+## Not done
+
+- The census after the rule, and the drawn oak at 40 and 120. The probes for both sides are built against `d29f29cc5` and `551494642`, so each is one command.
+- R2 to R6, the long walk, vitest and both guards.
+- **The base worktree** `.worktrees/fn-356-base` is now detached at `d29f29cc5`.
