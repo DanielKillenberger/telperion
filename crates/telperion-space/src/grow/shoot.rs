@@ -10,7 +10,7 @@ use crate::dormant::{Sleeper, Woken};
 use crate::lineage::{Draw, Key};
 use crate::presence::{Draws, Windows};
 use crate::species::{Species, MAX_BUDS};
-use crate::structure::{Axis, Origin};
+use crate::structure::{Axis, Growing, Origin};
 use std::sync::Arc;
 
 /// What every growth unit reads and none writes beside the species: its
@@ -46,7 +46,7 @@ pub(super) struct Reads<'g> {
 /// A living axis a share grows, in the tree where it stands: each share
 /// holds its own apexes' axes, which no other share touches.
 pub(super) struct Home<'g> {
-    pub axis: &'g mut Axis,
+    pub axis: &'g mut Axis<Growing>,
     pub draws: &'g mut Draws,
     pub units: &'g mut f64,
     pub successor: &'g mut Vec<usize>,
@@ -54,7 +54,7 @@ pub(super) struct Home<'g> {
 
 /// One axis a share made, beside its `Axis`.
 pub(super) struct Line {
-    pub axis: Axis,
+    pub axis: Axis<Growing>,
     pub draws: Draws,
     /// Its time spent in its PA when its apex stopped, or at its birth
     /// while it lives: what a relay of it carries on.
@@ -191,14 +191,14 @@ impl<'g> Shoot<'g> {
         }
     }
 
-    pub fn axis(&self, i: usize) -> &Axis {
+    pub fn axis(&self, i: usize) -> &Axis<Growing> {
         if i >= self.base {
             return &self.made[i - self.base].axis;
         }
         &*self.homes[self.at_home(i)].axis
     }
 
-    pub fn axis_mut(&mut self, i: usize) -> &mut Axis {
+    pub fn axis_mut(&mut self, i: usize) -> &mut Axis<Growing> {
         if i >= self.base {
             return &mut self.made[i - self.base].axis;
         }

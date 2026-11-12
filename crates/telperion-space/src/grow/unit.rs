@@ -8,7 +8,7 @@ use crate::error::Result;
 use crate::lineage::{self, Key, ZONE};
 use crate::schedule::Cut;
 use crate::species::{Species, ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
-use crate::structure::{Origin, Phytomer, Vec3};
+use crate::structure::{Growing, Origin};
 
 impl Shoot<'_> {
     /// One growth unit of the apex in `cycle`, laying that share of each
@@ -67,20 +67,8 @@ impl Shoot<'_> {
             for &(_, drawn, node_presence, buds) in &nodes {
                 let axis = self.axis_mut(apex.axis);
                 let node = axis.phytomers.len();
-                axis.phytomers.push(Phytomer {
-                    cycle,
-                    tip: Vec3::default(),
-                    heading: Vec3::default(),
-                    side: Vec3::default(),
-                    radius: 0.0,
-                    scale: 1.0,
-                    key: zone_key.child(drawn).0,
-                    rank: 0.0,
-                    size: 1.0,
-                    grown: 0.0,
-                    section: 0.0,
-                    sapwood: 0.0,
-                });
+                axis.phytomers
+                    .push(Growing::new(cycle, zone_key.child(drawn).0));
                 let node_presence = presence::real(node_presence);
                 self.draws_mut(apex.axis).nodes.push(node_presence);
                 for (slot, bud) in buds[..zone.places()].iter().enumerate() {

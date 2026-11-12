@@ -16,7 +16,7 @@
 //! nothing away. At the settle a phytomer's radius is sqrt(T × share / π),
 //! `share` the fade its axis is drawn at.
 use crate::species::{Form, PaState, Species};
-use crate::structure::{Axis, Join, Origin, Phytomer, Structure};
+use crate::structure::{Axis, Join, Node, Origin, Structure};
 use crate::upward::Tree;
 use std::f64::consts::PI;
 
@@ -45,16 +45,16 @@ pub(crate) fn lays(species: &Species) -> bool {
 /// ```text
 /// leaf = leaf_area × scale × size × clamp(leaf_years − age, 0, 1)
 /// ```
-pub(crate) fn leaf(state: &PaState, p: &Phytomer, year: u32) -> f64 {
-    let kept = (state.leaf_years - f64::from(year.saturating_sub(p.cycle))).clamp(0.0, 1.0);
-    crate::light::leaf_area(p.scale, p.size, state.leaf_area) * kept
+pub(crate) fn leaf(state: &PaState, p: &impl Node, year: u32) -> f64 {
+    let kept = (state.leaf_years - f64::from(year.saturating_sub(p.cycle()))).clamp(0.0, 1.0);
+    crate::light::leaf_area(p.scale(), p.size(), state.leaf_area) * kept
 }
 
 /// The first of an axis's `phytomers` that bears leaf in `year`: those
 /// before it are older than its PA's `leaf_years`. Laid in order, an
 /// axis's phytomers are no younger than those before them.
-pub(crate) fn bearing(state: &PaState, phytomers: &[Phytomer], year: u32) -> usize {
-    phytomers.partition_point(|p| f64::from(year.saturating_sub(p.cycle)) >= state.leaf_years)
+pub(crate) fn bearing(state: &PaState, phytomers: &[impl Node], year: u32) -> usize {
+    phytomers.partition_point(|p| f64::from(year.saturating_sub(p.cycle())) >= state.leaf_years)
 }
 
 /// A section and its sapwood, `[T, S]`, one year on under `need`, the
@@ -76,8 +76,8 @@ pub(crate) fn ring([t, s]: [f64; 2], need: f64, rings: f64) -> [f64; 2] {
 /// unread while it is skipped. Closed wood never reopens today
 /// (`Working::open_from`); wood that did would first retire its sapwood
 /// for the `k` years skipped, `S (1 − 1 / rings)^k`.
-pub(crate) fn lay(
-    axes: &mut [Axis],
+pub(crate) fn lay<P: Node + Send>(
+    axes: &mut [Axis<P>],
     species: &Species,
     year: u32,
     (closed, threads): (&(dyn Fn(usize) -> bool + Sync), usize),
@@ -108,13 +108,15 @@ pub(crate) fn lay(
             let per_leaf = form.sapwood * 1e-4;
             for (k, p) in axis.phytomers.iter_mut().enumerate().rev() {
                 sum += leaf(state, p, year) + at_node[k];
-                if p.section == 0.0 {
-                    let e = established(form, p.scale);
-                    p.section = (PI * e * e) as f32;
+                let scale = p.scale();
+                let (section, sapwood) = p.wood();
+                if *section == 0.0 {
+                    let e = established(form, scale);
+                    *section = (PI * e * e) as f32;
                 }
-                let held = [f64::from(p.section), f64::from(p.sapwood)];
+                let held = [f64::from(*section), f64::from(*sapwood)];
                 let [t, s] = ring(held, sum * per_leaf, form.sapwood_rings);
-                (p.section, p.sapwood) = (t as f32, s as f32);
+                (*section, *sapwood) = (t as f32, s as f32);
             }
             sum
         },

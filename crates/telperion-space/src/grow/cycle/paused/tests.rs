@@ -404,11 +404,13 @@ fn livings(p: &Paused) -> Livings {
     });
     let mut settled = g.settled_copy(p.committed);
     settled.mark();
-    crate::presence::assign(&mut settled.axes, &settled.draws, &g.species, 1);
+    let held = std::mem::take(&mut settled.axes).into_iter();
+    let mut axes: Vec<_> = held.map(crate::structure::Axis::settled).collect();
+    crate::presence::assign(&mut axes, &settled.draws, &g.species, 1);
     let r = &g.working.as_ref().expect("a working set").retire;
     let (mut kept, mut roots) = (Vec::new(), Vec::new());
     for (i, f) in r.fate.iter().enumerate() {
-        let a = &settled.axes[i];
+        let a = &axes[i];
         match *f {
             Fate::Kept(l) => kept.push((a.lineage, a.birth, bits(l))),
             Fate::Root(l) => roots.push((a.birth, (a.vigour as f32).to_bits(), bits(l))),

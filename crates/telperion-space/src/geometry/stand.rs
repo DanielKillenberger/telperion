@@ -23,7 +23,7 @@
 use super::q::{add, dot, q3, scaled, sub, unit, Q3};
 use super::{by_rank, phase};
 use crate::species::Species;
-use crate::structure::Axis;
+use crate::structure::{Axis, Node};
 
 /// A point along an axis and the frame there; its rank, once on a line,
 /// the azimuth (an amount) it turns a bud by (`stand`).
@@ -54,7 +54,7 @@ impl Point {
 /// `relay_at`, blended back towards the one before by its extent, that
 /// one towards the one before it by its own, down to a whole unit or the
 /// line's base. Its rank is the azimuth a bud there turns by.
-pub(super) fn stand(axes: &[Axis], species: &Species, p: usize, node: usize) -> Point {
+pub(super) fn stand<P: Node>(axes: &[Axis<P>], species: &Species, p: usize, node: usize) -> Point {
     // The units newest first, each with its point and extent, to the
     // first grown whole.
     let mut units: Vec<(Point, f32)> = Vec::new();
@@ -112,7 +112,7 @@ pub(super) fn stand(axes: &[Axis], species: &Species, p: usize, node: usize) -> 
 /// one towards the one before it by its own, down to a whole unit or
 /// `p`'s start. Blended by length, so a node growing in from nothing
 /// moves no relay (fn-244 review).
-pub(super) fn position(axes: &[Axis], species: &Species, p: usize, node: usize) -> f32 {
+pub(super) fn position<P: Node>(axes: &[Axis<P>], species: &Species, p: usize, node: usize) -> f32 {
     let axis = &axes[p];
     let relay_at = species.states[axis.pa].relay_at;
     // The units newest first, each with its position and extent, to the
@@ -146,29 +146,35 @@ pub(super) fn position(axes: &[Axis], species: &Species, p: usize, node: usize) 
 }
 
 /// A unit's extent: its nodes' grown shares, summed base to tip.
-fn extent(p: &Axis, (first, end): (usize, usize)) -> f32 {
-    p.phytomers[first..end].iter().map(|q| q.grown as f32).sum()
+fn extent<P: Node>(p: &Axis<P>, (first, end): (usize, usize)) -> f32 {
+    p.phytomers[first..end]
+        .iter()
+        .map(|q| q.grown() as f32)
+        .sum()
 }
 
 /// The scaled length of the phytomers `range` of axis `p`, base to tip.
-fn length_of(p: &Axis, (first, end): (usize, usize)) -> f32 {
-    p.phytomers[first..end].iter().map(|q| q.scale as f32).sum()
+fn length_of<P: Node>(p: &Axis<P>, (first, end): (usize, usize)) -> f32 {
+    p.phytomers[first..end]
+        .iter()
+        .map(|q| q.scale() as f32)
+        .sum()
 }
 
 /// The scaled length along axis `p` to `t` of the way along its node `k`'s
 /// span.
-fn length_to(p: &Axis, k: usize, t: f32) -> f32 {
-    length_of(p, (0, k)) + t * p.phytomers[k].scale as f32
+fn length_to<P: Node>(p: &Axis<P>, k: usize, t: f32) -> f32 {
+    length_of(p, (0, k)) + t * p.phytomers[k].scale() as f32
 }
 
 /// The scaled length along axis `p` as a position in its nodes (`split`):
 /// in the first span that reaches it, the tip past them all. `before` is
 /// the left fold of the phytomers' f32 scales from the base, the fold
 /// `total` runs, so a length at the tip lands on the last span's end.
-pub(super) fn node_x(p: &Axis, length: f32) -> Position {
+pub(super) fn node_x<P: Node>(p: &Axis<P>, length: f32) -> Position {
     let mut before = 0.0;
     for (k, q) in p.phytomers.iter().enumerate() {
-        let scale = q.scale as f32;
+        let scale = q.scale() as f32;
         if scale > 0.0 && before + scale >= length {
             return (k, span_share(length, before, scale));
         }
@@ -189,7 +195,7 @@ pub(super) fn span_share(length: f32, before: f32, scale: f32) -> f32 {
 }
 
 /// The scaled length of axis `p`.
-pub(super) fn total(p: &Axis) -> f32 {
+pub(super) fn total<P: Node>(p: &Axis<P>) -> f32 {
     length_of(p, (0, p.phytomers.len()))
 }
 
@@ -200,7 +206,7 @@ pub(crate) type Position = (usize, f32);
 /// The point at position `x` along axis `p`: `t` of the way along the span
 /// of node `k` from node `k - 1` (or the base) to node `k`; `p`'s base
 /// where it has no nodes.
-pub(super) fn at(p: &Axis, x: Position) -> Q3 {
+pub(super) fn at<P: Node>(p: &Axis<P>, x: Position) -> Q3 {
     let Some(n) = p.phytomers.len().checked_sub(1) else {
         return q3(p.base);
     };
@@ -208,9 +214,9 @@ pub(super) fn at(p: &Axis, x: Position) -> Q3 {
     let start = q3(if k == 0 {
         p.base
     } else {
-        p.phytomers[k - 1].tip
+        p.phytomers[k - 1].tip()
     });
-    add(start, scaled(sub(q3(p.phytomers[k].tip), start), t))
+    add(start, scaled(sub(q3(p.phytomers[k].tip()), start), t))
 }
 
 /// Position `x` along an axis of last node `last` as a node of it and the
@@ -232,11 +238,11 @@ fn square(side: Q3, along: Q3) -> Q3 {
 }
 
 /// Each growth unit's phytomers, as index ranges, base to tip.
-fn unit_ranges(p: &Axis) -> Vec<(usize, usize)> {
+fn unit_ranges<P: Node>(p: &Axis<P>) -> Vec<(usize, usize)> {
     let mut out: Vec<(usize, usize)> = Vec::new();
     for (j, q) in p.phytomers.iter().enumerate() {
         match out.last_mut() {
-            Some(r) if p.phytomers[r.0].cycle == q.cycle => r.1 = j + 1,
+            Some(r) if p.phytomers[r.0].cycle() == q.cycle() => r.1 = j + 1,
             _ => out.push((j, j + 1)),
         }
     }
@@ -246,7 +252,7 @@ fn unit_ranges(p: &Axis) -> Vec<(usize, usize)> {
 /// The node of the unit `range` of axis `p` a relay at `share` of it
 /// stands in, by the phytomers' scaled lengths, as the contract's node
 /// is decided on their presences.
-fn zone_node(p: &Axis, (first, end): (usize, usize), share: f64) -> usize {
+fn zone_node<P: Node>(p: &Axis<P>, (first, end): (usize, usize), share: f64) -> usize {
     let share = share as f32;
     let total = length_of(p, (first, end));
     if total <= 0.0 {
@@ -255,7 +261,7 @@ fn zone_node(p: &Axis, (first, end): (usize, usize), share: f64) -> usize {
     }
     let (want, mut before) = (share * total, 0.0);
     for (j, q) in p.phytomers[first..end].iter().enumerate() {
-        let scale = q.scale as f32;
+        let scale = q.scale() as f32;
         if scale > 0.0 && before + scale >= want {
             return first + j;
         }
@@ -269,26 +275,29 @@ fn zone_node(p: &Axis, (first, end): (usize, usize), share: f64) -> usize {
 /// turns from one phytomer's direction to the next's along each span, so
 /// the point's frame moves by degree as `share` does. Its rank is the
 /// node's.
-fn point_in(p: &Axis, range: (usize, usize), share: f64, k: usize) -> Point {
+fn point_in<P: Node>(p: &Axis<P>, range: (usize, usize), share: f64, k: usize) -> Point {
     let t = span_in(p, range, share, k);
     let at = &p.phytomers[k];
     let start = q3(if k == 0 {
         p.base
     } else {
-        p.phytomers[k - 1].tip
+        p.phytomers[k - 1].tip()
     });
     let next = p.phytomers.get(k + 1);
     let blend = |a, b| {
         let (a, b) = (q3(a), q3(b));
         unit(add(scaled(a, 1.0 - t), scaled(b, t))).unwrap_or(a)
     };
-    let along = blend(at.heading, next.map_or(at.heading, |q| q.heading));
-    let rank = at.rank as f32;
+    let along = blend(at.heading(), next.map_or(at.heading(), |q| q.heading()));
+    let rank = at.rank() as f32;
     Point {
-        base: add(start, scaled(sub(q3(at.tip), start), t)),
+        base: add(start, scaled(sub(q3(at.tip()), start), t)),
         along,
-        side: square(blend(at.side, next.map_or(at.side, |q| q.side)), along),
-        rank: rank + t * (next.map_or(p.rank, |q| q.rank) as f32 - rank),
+        side: square(
+            blend(at.side(), next.map_or(at.side(), |q| q.side())),
+            along,
+        ),
+        rank: rank + t * (next.map_or(p.rank, |q| q.rank()) as f32 - rank),
     }
 }
 
@@ -296,10 +305,10 @@ fn point_in(p: &Axis, range: (usize, usize), share: f64, k: usize) -> Point {
 /// 1`, or the base, to node `k`) a relay at `share` of the unit stands, by
 /// its phytomers' scaled lengths, so a node growing in from nothing moves
 /// it by nothing (fn-206).
-fn span_in(p: &Axis, (first, end): (usize, usize), share: f64, k: usize) -> f32 {
+fn span_in<P: Node>(p: &Axis<P>, (first, end): (usize, usize), share: f64, k: usize) -> f32 {
     let share = share as f32;
     let total = length_of(p, (first, end));
-    let scale = p.phytomers[k].scale as f32;
+    let scale = p.phytomers[k].scale() as f32;
     if total > 0.0 && scale > 0.0 {
         let before = length_of(p, (first.min(k), k));
         ((share * total - before) / scale).clamp(0.0, 1.0)

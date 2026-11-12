@@ -14,7 +14,7 @@ use crate::allocation::{sizes, vigours_from, Link, TIP};
 use crate::cores::fill;
 use crate::geometry::Layer;
 use crate::light::Light;
-use crate::structure::{Origin, Vec3};
+use crate::structure::{Node, Origin, Vec3};
 
 /// The axes in a piece of the gathering of rows.
 const ROWS: usize = 1 << 15;
@@ -230,6 +230,6 @@ impl Grower {
 
     pub(super) fn tip(&self, i: usize) -> Vec3 {
         let axis = &self.axes[i];
-        axis.phytomers.last().map_or(axis.base, |p| p.tip)
+        axis.phytomers.last().map_or(axis.base, |p| p.tip())
     }
 }

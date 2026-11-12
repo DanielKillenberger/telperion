@@ -8,7 +8,7 @@
 //! that grew, a branch made anywhere moves no other draw's window.
 use crate::contract::presence::{q, real, times, ONE};
 use crate::species::Species;
-use crate::structure::{Axis, Origin};
+use crate::structure::{Axis, Node, Origin};
 
 mod windows;
 pub(crate) use windows::{At, Windows};
@@ -194,15 +194,15 @@ pub(crate) fn assign_living<D: std::borrow::Borrow<Draws> + Sync>(
 
 /// The node of axis `p`'s last growth unit a relay of it stands at,
 /// `share` of the way along the unit by its nodes' presences.
-pub(crate) fn relay_node(p: &Axis, draws: &Draws, share: f64) -> usize {
+pub(crate) fn relay_node<P: Node>(p: &Axis<P>, draws: &Draws, share: f64) -> usize {
     let n = p.phytomers.len();
-    let Some(last) = p.phytomers.last().map(|q| q.cycle) else {
+    let Some(last) = p.phytomers.last().map(|q| q.cycle()) else {
         return 0;
     };
     let first = p
         .phytomers
         .iter()
-        .position(|q| q.cycle == last)
+        .position(|q| q.cycle() == last)
         .unwrap_or(0);
     // Each presence is an f32 held exactly in its real.
     let presences: Vec<f32> = draws.nodes[first..n].iter().map(|&x| x as f32).collect();

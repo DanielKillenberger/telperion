@@ -18,7 +18,7 @@ mod stand;
 use crate::cores::{fill, map};
 use crate::lineage::{insertion, Key, DOMINANCE, ROLL};
 use crate::species::{PaState, Species};
-use crate::structure::{Axis, Origin, Structure, Vec3};
+use crate::structure::{Axis, Node, Origin, Structure, Vec3};
 pub(crate) use lay::{support, Layer};
 pub(crate) use place::place;
 pub(crate) use q::amount;
@@ -104,7 +104,7 @@ pub(crate) fn scale(structure: &mut Structure, species: &Species, threads: usize
 /// base: its straightening, and its secondary erection over its years;
 /// an axis carried on only as far as it has left the line of the axis it
 /// carries on (`Axis::carried_on`), so a continuation's none.
-pub(crate) fn bend(axis: &Axis, state: &PaState, years: f64) -> f64 {
+pub(crate) fn bend<P>(axis: &Axis<P>, state: &PaState, years: f64) -> f64 {
     // 1 - e^(-erection years): the contract's `fails` of its log2.
     let x = state.erection as f32 * years as f32;
     let grown = crate::contract::fails(x * std::f32::consts::LOG2_E);
@@ -150,12 +150,12 @@ pub(crate) fn dominance(dominance: f64, lineage: u64) -> f64 {
 }
 
 /// Where axis `p` ends: its last node and the frame there, or its base.
-fn end(p: &Axis) -> (Q3, Q3, Q3) {
+fn end<P: Node>(p: &Axis<P>) -> (Q3, Q3, Q3) {
     let (base, heading, side) = p
         .phytomers
         .last()
         .map_or((p.base, p.heading, p.side), |last| {
-            (last.tip, last.heading, last.side)
+            (last.tip(), last.heading(), last.side())
         });
     (q3(base), q3(heading), q3(side))
 }
@@ -163,8 +163,8 @@ fn end(p: &Axis) -> (Q3, Q3, Q3) {
 /// The base, heading and side of axis `i`, from its already placed parent
 /// and the running direction and side its parent's walk ended on (`ends`).
 /// In f32, angles as amounts in turns.
-pub(crate) fn frame(
-    axes: &[Axis],
+pub(crate) fn frame<P: Node>(
+    axes: &[Axis<P>],
     species: &Species,
     i: usize,
     ends: &dyn Fn(usize) -> (Vec3, Vec3),
@@ -173,8 +173,8 @@ pub(crate) fn frame(
     (v3(base), v3(heading), v3(side))
 }
 
-fn framed(
-    axes: &[Axis],
+fn framed<P: Node>(
+    axes: &[Axis<P>],
     species: &Species,
     i: usize,
     ends: &dyn Fn(usize) -> (Vec3, Vec3),
@@ -235,8 +235,8 @@ fn framed(
 /// PA's take-over as far as it has left that line (its blend), towards
 /// its parent's running direction where the parent's walk ended (`ends`).
 /// None on any other axis, or a line of no direction.
-pub(crate) fn taken(
-    axes: &[Axis],
+pub(crate) fn taken<P>(
+    axes: &[Axis<P>],
     species: &Species,
     i: usize,
     ends: &dyn Fn(usize) -> (Vec3, Vec3),
@@ -280,7 +280,7 @@ pub(crate) fn joined((mine, own): Take, (line, carried): Take) -> Take {
 /// tip by its blend along the parent's scaled length, as a position in the
 /// parent's nodes (`stand::split`). The one place a relay joins: its base,
 /// girth, sag and the drawing read it. None for any other axis.
-pub(crate) fn attach(axes: &[Axis], species: &Species, i: usize) -> Option<Position> {
+pub(crate) fn attach<P: Node>(axes: &[Axis<P>], species: &Species, i: usize) -> Option<Position> {
     let Origin::Relay { parent, node } = axes[i].origin else {
         return None;
     };
@@ -297,8 +297,8 @@ pub(crate) fn attach(axes: &[Axis], species: &Species, i: usize) -> Option<Posit
 
 /// A lateral bud's base, heading and side on its laid bearer: `frame`'s
 /// lateral, and `bud_frame`'s for a bud record.
-pub(super) fn lateral(
-    axes: &[Axis],
+pub(super) fn lateral<P: Node>(
+    axes: &[Axis<P>],
     species: &Species,
     (origin, pa, lineage): (Origin, usize, u64),
 ) -> (Q3, Q3, Q3) {
@@ -320,12 +320,12 @@ pub(super) fn lateral(
     let roll = amount(species.states[pa].form.roll) * signed;
     let slot = f32::from(slot) / whorl as f32;
     let azimuth = phase(axes, species, parent)
-        + by_rank(parent_state.divergence, at.rank as f32)
+        + by_rank(parent_state.divergence, at.rank() as f32)
         + slot
         + roll;
     let state = &species.states[pa];
     let (heading, side) = turned(
-        (q3(at.heading), q3(at.side)),
+        (q3(at.heading()), q3(at.side())),
         azimuth,
         insertion(lineage, state.insertion, state.form.insertion_spread),
         amount(parent_state.form.plane),
@@ -333,9 +333,9 @@ pub(super) fn lateral(
     );
     // A bud that slept stands on its slot's side half an internode below
     // the node, apart from the bud that grew at once.
-    let tip = q3(at.tip);
+    let tip = q3(at.tip());
     let base = if woken {
-        let below = node.checked_sub(1).map_or(p.base, |n| p.phytomers[n].tip);
+        let below = node.checked_sub(1).map_or(p.base, |n| p.phytomers[n].tip());
         add(q3(below), tip).map(|c| c * 0.5)
     } else {
         tip
@@ -345,7 +345,7 @@ pub(super) fn lateral(
 
 /// Axis `axis`'s insertion angle, an amount: its PA's, offset by its
 /// lineage's draw at its PA's spread (fn-224).
-fn angle(species: &Species, axis: &Axis) -> f32 {
+fn angle<P>(species: &Species, axis: &Axis<P>) -> f32 {
     let state = &species.states[axis.pa];
     insertion(axis.lineage, state.insertion, state.form.insertion_spread)
 }
@@ -355,12 +355,12 @@ fn angle(species: &Species, axis: &Axis) -> f32 {
 /// carried on turns its laterals on from where that axis's would have
 /// stood (fn-199, host 2026-10-07), as far as it is still its
 /// continuation; a lateral or the seed starts afresh.
-pub(crate) fn phase(axes: &[Axis], species: &Species, i: usize) -> f32 {
+pub(crate) fn phase<P>(axes: &[Axis<P>], species: &Species, i: usize) -> f32 {
     phase_by(axes, &|pa| species.states[pa].divergence, i)
 }
 
 /// `phase`, each PA's divergence (radians per rank) given by `divergence`.
-pub(crate) fn phase_by(axes: &[Axis], divergence: &dyn Fn(usize) -> f64, i: usize) -> f32 {
+pub(crate) fn phase_by<P>(axes: &[Axis<P>], divergence: &dyn Fn(usize) -> f64, i: usize) -> f32 {
     let mut line = Vec::new();
     let mut at = i;
     while let Some((parent, b)) = axes[at].carried_on() {

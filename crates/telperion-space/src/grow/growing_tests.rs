@@ -13,6 +13,14 @@ const LIT: Light = Light {
     sky: 0.5,
 };
 
+/// A growing phytomer holds 72 bytes, the tree's 136 (fn-358).
+#[test]
+fn a_growing_phytomer_holds_what_growth_reads() {
+    use std::mem::size_of;
+    assert_eq!(size_of::<crate::structure::Growing>(), 72);
+    assert_eq!(size_of::<crate::structure::Phytomer>(), 136);
+}
+
 /// The unlaid oak, beech and spruce in light, pinned at `8d15b662c`,
 /// before the grower held its phytomers narrow.
 #[test]

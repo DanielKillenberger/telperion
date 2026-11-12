@@ -5,7 +5,7 @@
 //! ancestors and attachments).
 use super::super::Apex;
 use crate::light::Field;
-use crate::structure::Axis;
+use crate::structure::{Axis, Growing};
 use std::collections::BTreeMap;
 
 /// The census of one run.
@@ -76,7 +76,7 @@ impl Census {
     pub(in crate::grow) fn cycle(
         &mut self,
         (cycle, grown): (u32, u64),
-        axes: &[Axis],
+        axes: &[Axis<Growing>],
         live: &[Apex],
     ) {
         self.extend(axes);
@@ -99,7 +99,7 @@ impl Census {
 
     /// The grown hierarchy's shape at the end of growth: the axes held
     /// and those let go (`compact.rs`) alike.
-    pub(in crate::grow) fn ended(&mut self, axes: &[Axis]) {
+    pub(in crate::grow) fn ended(&mut self, axes: &[Axis<Growing>]) {
         self.extend(axes);
         self.axes = self.gone + axes.len();
         let mut depth = self.gone_depth.clone();
@@ -142,7 +142,7 @@ impl Census {
         f.vec("census.cycles", &self.cycles);
     }
 
-    fn extend(&mut self, axes: &[Axis]) {
+    fn extend(&mut self, axes: &[Axis<Growing>]) {
         for a in &axes[self.depth.len()..] {
             let d = a.origin.parent().map_or(0, |p| self.depth[p] + 1);
             self.depth.push(d);

@@ -30,7 +30,7 @@ use crate::dormant::Woken;
 use crate::presence::{assign_living, Draws};
 use crate::shed::{faded, subtree_living, Living, Stand};
 use crate::species::Species;
-use crate::structure::{Axis, Origin};
+use crate::structure::{Axis, Growing, Origin};
 use std::borrow::Cow;
 
 /// What retirement knows of each axis.
@@ -113,7 +113,7 @@ impl Retirement {
 
 /// What the evaluation reads of the tree.
 struct Tree<'t> {
-    axes: &'t [Axis],
+    axes: &'t [Axis<Growing>],
     draws: &'t [Draws],
     woken: &'t [Woken],
     successor: &'t [Vec<usize>],
@@ -287,7 +287,7 @@ fn evaluate(t: &Tree, w: &Working, c: usize) -> Verdict {
 }
 
 /// Whether `axis` is a lateral that sheds.
-fn sheds(axis: &Axis, species: &Species) -> bool {
+fn sheds<P>(axis: &Axis<P>, species: &Species) -> bool {
     let lateral = matches!(axis.origin, Origin::Lateral { .. });
     lateral && species.states[axis.pa].shedding.is_finite()
 }
@@ -327,7 +327,7 @@ fn copied(t: &Tree, w: &Working, part: &[usize], stub: &dyn Fn(usize) -> bool) -
             let phytomers = if stub(i) {
                 Vec::new()
             } else {
-                a.phytomers.clone()
+                a.phytomers.iter().map(Growing::settled).collect()
             };
             Axis {
                 lineage: a.lineage,

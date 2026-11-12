@@ -3,6 +3,9 @@
 //! axes joined by `Origin::Continuation`. Parents precede their children.
 use std::ops::{Add, Mul, Sub};
 
+mod growing;
+pub(crate) use growing::{Growing, Node};
+
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Vec3 {
     pub x: f64,
@@ -78,7 +81,7 @@ pub enum Origin {
     Relay { parent: usize, node: usize },
 }
 
-impl Axis {
+impl<P> Axis<P> {
     /// The axis it carries on and how far it has left that axis's line:
     /// a relay by its blend, a continuation at none, for it is a relay at
     /// blend 0 (fn-199, host 2026-10-07); none for a lateral or the seed.
@@ -108,8 +111,10 @@ impl Origin {
     }
 }
 
+/// An axis of the settled tree; a grower holds its axes' phytomers
+/// narrower (`Growing`).
 #[derive(Debug, Clone, PartialEq)]
-pub struct Axis {
+pub struct Axis<P = Phytomer> {
     /// The hash of the bud's path from the root: the same bud under any
     /// settings at the same seed.
     pub lineage: u64,
@@ -134,7 +139,7 @@ pub struct Axis {
     pub heading: Vec3,
     pub side: Vec3,
     /// Base to tip.
-    pub phytomers: Vec<Phytomer>,
+    pub phytomers: Vec<P>,
     /// The presence of each growth unit its apex grew, base to tip, times
     /// the share of its cycle it grew: the time it lived, by presence.
     pub(crate) units: Vec<f64>,

@@ -11,7 +11,7 @@ use crate::cores::spread;
 use crate::dormant::{Sleeper, Woken};
 use crate::error::Result;
 use crate::presence::Draws;
-use crate::structure::{Axis, Origin};
+use crate::structure::{Axis, Growing, Origin};
 use std::sync::Mutex;
 
 /// The living apexes in a share: enough work to pay for its merge.
@@ -188,7 +188,7 @@ fn reads(sketch: Option<&Sketch>) -> Reads<'_> {
 /// picks them (a fine root makes this list each cycle it grows, so its
 /// allocations count).
 fn homes<'g>(
-    (axes, draws): (&'g mut [Axis], &'g mut [Draws]),
+    (axes, draws): (&'g mut [Axis<Growing>], &'g mut [Draws]),
     (units, successor): (&'g mut [f64], &'g mut [Vec<usize>]),
     live: &[Apex],
 ) -> Vec<Home<'g>> {

@@ -33,7 +33,7 @@ use crate::lineage::Key;
 use crate::presence::{Draws, Windows};
 use crate::shed::lasting;
 use crate::species::{PaState, Species};
-use crate::structure::{Axis, Origin, Structure, Vec3};
+use crate::structure::{Axis, Growing, Origin, Structure, Vec3};
 pub(crate) use shoot::Rules;
 use sketch::Sketch;
 pub use stage::{Pass, Stage};
@@ -214,7 +214,7 @@ fn stop_stake(relay: f64) -> f64 {
     1.0 - relay
 }
 
-fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
+fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis<Growing> {
     Axis {
         lineage: key.0,
         pa,
@@ -248,7 +248,8 @@ struct Grower {
     /// (a delay and the cycle its fade runs over).
     horizon: Vec<f64>,
     marked: Vec<u64>,
-    axes: Vec<Axis>,
+    /// Its axes, each phytomer held as growth reads it (fn-358).
+    axes: Vec<Axis<Growing>>,
     /// Each axis's draws' presences, by index.
     draws: Vec<Draws>,
     live: Vec<Apex>,

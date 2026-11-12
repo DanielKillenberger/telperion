@@ -4,6 +4,7 @@
 //! still in leaf, which none is where no age keeps its leaf past its year.
 use super::Grower;
 use crate::girth::{bearing, leaf};
+use crate::structure::Node;
 
 impl Grower {
     /// The leaves of `cycle`: `grown` names each axis laid on in it, by
@@ -21,7 +22,7 @@ impl Grower {
             let axis = &self.axes[i];
             let state = &species.states[axis.pa];
             for p in &axis.phytomers[from..to] {
-                leaves.push((p.tip, leaf(state, p, cycle)));
+                leaves.push((p.tip(), leaf(state, p, cycle)));
             }
         }
         let working = self.working.as_deref();
@@ -35,7 +36,7 @@ impl Grower {
             for p in &held[bearing(state, held, cycle)..] {
                 let area = leaf(state, p, cycle);
                 if area > 0.0 {
-                    leaves.push((p.tip, area));
+                    leaves.push((p.tip(), area));
                 }
             }
         }

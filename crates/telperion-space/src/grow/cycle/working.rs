@@ -18,7 +18,7 @@ use crate::allocation::{drawn, sized, Link, TIP};
 
 /// The growing buds a block of the normaliser's sums holds.
 pub(super) const BLOCK: usize = 1024;
-use crate::structure::{Axis, Origin};
+use crate::structure::{Axis, Growing, Origin};
 
 /// What the passes keep across cycles.
 #[derive(Debug, Default)]
@@ -114,7 +114,7 @@ impl Working {
 
     /// The laid axes `axes[..n]` taken in: the new ones' links and PAs,
     /// each set among its bearer's children.
-    pub(super) fn extend(&mut self, axes: &[Axis], n: usize) {
+    pub(super) fn extend(&mut self, axes: &[Axis<Growing>], n: usize) {
         for i in self.links.len()..n {
             let link = match axes[i].origin {
                 Origin::Seed => Link {

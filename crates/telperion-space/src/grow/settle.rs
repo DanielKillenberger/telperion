@@ -9,7 +9,7 @@ use crate::presence::assign;
 use crate::sag;
 use crate::shed::{shed, shed_past};
 use crate::species::Species;
-use crate::structure::Structure;
+use crate::structure::{Axis, Structure};
 use std::sync::Arc;
 
 impl Grower {
@@ -56,7 +56,10 @@ impl Grower {
         let species = &*owned;
         self.mark();
         stage(Stage::Pass(Pass::Mark));
-        assign(&mut self.axes, &self.draws, species, threads);
+        // Each phytomer widened into the tree's, to the bit (fn-358).
+        let held = std::mem::take(&mut self.axes);
+        let mut axes: Vec<Axis> = held.into_iter().map(Axis::settled).collect();
+        assign(&mut axes, &self.draws, species, threads);
         stage(Stage::Pass(Pass::Assign));
         let (count, marked) = (self.rules.grown, self.marked);
         let shed = match self.working.take() {
@@ -65,9 +68,9 @@ impl Grower {
                 let (given, gone) = (|i| r.root(i), |i| r.inside(i));
                 let stands = r.standing();
                 let fates = (&given as _, &gone as _, &stands[..]);
-                shed_past(self.axes, species, request.age, fates, None).0
+                shed_past(axes, species, request.age, fates, None).0
             }
-            None => shed(self.axes, species, request.age),
+            None => shed(axes, species, request.age),
         };
         stage(Stage::Pass(Pass::Shed));
         let shares = shares(&shed.axes, &shed.index, &shed.fade);

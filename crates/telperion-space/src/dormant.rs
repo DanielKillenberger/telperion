@@ -103,8 +103,8 @@ pub(crate) fn draw(
 /// that carried the axis on; with each axis that carries it on now. None
 /// where nothing carries it on any more; more than one where a stop all
 /// but made grew both its continuation and its relay (host decision 11).
-pub(crate) fn carried(
-    axes: &[Axis],
+pub(crate) fn carried<P>(
+    axes: &[Axis<P>],
     draws: &[Draws],
     successor: &[Vec<usize>],
     sleeper: &Sleeper,
@@ -342,7 +342,13 @@ impl Woken {
     /// so a bud that woke just before its bearer's end is small (host,
     /// 2026-10-04). An f32 presence, its sums and products taken in turn
     /// (host decision 8).
-    pub fn kept(&self, axes: &[Axis], draws: &[Draws], successor: &[Vec<usize>], age: u32) -> f64 {
+    pub fn kept<P>(
+        &self,
+        axes: &[Axis<P>],
+        draws: &[Draws],
+        successor: &[Vec<usize>],
+        age: u32,
+    ) -> f64 {
         let bearer = &draws[self.bearer];
         let share = q(self.share);
         // A bearer whose age ended within the waking cycle: the part of
