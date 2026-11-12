@@ -30,8 +30,11 @@ impl Shoot<'_> {
             let zone_key = unit.child(ZONE + z as u64);
             let lateral = &rules.laterals[pa][z];
             let mut sleeping = std::mem::take(&mut self.sleeping);
-            let at = ((pa, z), (unit, cycle));
-            let window = zone_leads((rules, species), at, &mut sleeping, &mut leads);
+            let node_wood = node_wood((rules, species), (pa, z), cycle, &mut sleeping);
+            // Each node's presence (D18 reads it).
+            let window = decide::node_window(node_wood);
+            let draw = zone_key.draw();
+            lineage::node_presences(zone.nodes, draw, MAX_NODES_PER_ZONE, window, &mut leads);
             if let Some(cut) = cut {
                 lineage::laid(&mut leads, cut, zone_key, window);
             }
@@ -144,52 +147,6 @@ impl Shoot<'_> {
         self.leads = leads;
         Ok(())
     }
-
-    /// The nodes `unit` of `pa` grown in `cycle` lays, whole, counted by
-    /// their presences (fn-356): every zone's, before any lifespan's cut,
-    /// whose share the survival runs over.
-    pub(super) fn nodes(&mut self, pa: usize, unit: Key, cycle: u32) -> f32 {
-        let (rules, species) = (self.rules, self.species());
-        let zones = species.states[pa].zones.len();
-        let mut leads = std::mem::take(&mut self.leads);
-        let mut sleeping = std::mem::take(&mut self.sleeping);
-        let mut sum = 0.0;
-        for &z in ALONG.iter().filter(|&&z| z < zones) {
-            zone_leads(
-                (rules, species),
-                ((pa, z), (unit, cycle)),
-                &mut sleeping,
-                &mut leads,
-            );
-            sum += leads.iter().sum::<f32>();
-        }
-        (self.leads, self.sleeping) = (leads, sleeping);
-        sum
-    }
-}
-
-/// Zone `z`'s node presences in `unit` of `pa`, grown in `cycle`, into
-/// `leads`, and its sleeping buds' expected wood into `sleeping`; its
-/// nodes' window.
-fn zone_leads(
-    (rules, species): (&Rules, &Species),
-    ((pa, z), (unit, cycle)): ((usize, usize), (Key, u32)),
-    sleeping: &mut Vec<f64>,
-    leads: &mut Vec<f32>,
-) -> f32 {
-    let zone_key = unit.child(ZONE + z as u64);
-    let node_wood = node_wood((rules, species), (pa, z), cycle, sleeping);
-    // Each node's presence (D18 reads it).
-    let window = decide::node_window(node_wood);
-    let zone = &species.states[pa].zones[z];
-    lineage::node_presences(
-        zone.nodes,
-        zone_key.draw(),
-        MAX_NODES_PER_ZONE,
-        window,
-        leads,
-    );
-    window
 }
 
 /// The wood a node of zone `z` of a unit of `pa` grown in `cycle` decides,

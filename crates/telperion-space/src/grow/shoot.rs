@@ -258,14 +258,6 @@ impl<'g> Shoot<'g> {
         self.reads.pencils.get(i).map_or(1.0, |p| p.size)
     }
 
-    /// The faintness axis `i`'s unit is grown at (fn-356): its base scale,
-    /// the presences of the draws that made its lineage and their
-    /// dominance, times its running presence; none where it has no pencil
-    /// (made this cycle), which counts it whole.
-    pub fn faint(&self, i: usize) -> Option<f64> {
-        self.reads.pencils.get(i).map(|p| p.base_scale * p.running)
-    }
-
     /// What the subtrees' survival of their shedding this cycle makes of
     /// axis `i`'s unit: whole where nothing sheds.
     pub fn kept(&self, i: usize) -> f64 {
