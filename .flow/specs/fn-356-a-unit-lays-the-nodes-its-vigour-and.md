@@ -19,10 +19,26 @@ A growth unit lays a share of its nodes: `min(1, size x presence)` of them, coun
 
 **What would refute it:** a census at 120 that still shows the tip count rising against a flat summed presence (then a tip that lays nothing must also end, and the host designs that from Borchert and Honda's F_min rule); the oak's leaf area falling by more than a tenth; a crown hollowed or a tree visibly barer than before on the sheets; a walk failing its bound.
 
+### The first design is refuted; the second (host, 12 Nov 2026)
+
+Built as above (`9bc970234`), the quota did what it was for (the oak at 120, seed 1002: 9.18 to 2.13 million phytomers, phytomers under 0.2 mm 3.89 million to 5 thousand, the living apices level off) and broke the tree: the drawn oak's leaf fell 78% at 40 and 42% at 120, and the tree at 120 shrank from 30.0 to 25.6 m. It also made one branch's node count read the other branches (three independence tests), and gave the closed form a rule it has no term for. The host's errors: the shade size is normalised to a mean of one, so a cap at one takes nodes from every unit below the mean and gives none back above it (Pałubicki's vigour is absolute and uncapped); and the presence the allotment carries holds dominance, which is a designed size, not faintness. The quota is withdrawn: its commit and its test are reverted.
+
+**The second design: a tip whose unit is less than one node ends.**
+
+- Each year a living tip's survival is multiplied by `min(1, presence x N)`, where `N` is the number of nodes its unit lays this cycle and `presence` is the faintness it is grown at: the product of the by-degree presences of the draws that made its lineage and of its own running presence. Where the axis's stored scale also holds dominance and the two cannot be told apart without a new field, the stored scale is used and the report says how many laterals of a whole draw fall under `1 / N` by dominance alone.
+- The shade size is not read. Nothing reads another branch.
+- A unit of one node or more (`presence x N >= 1`) is untouched: on a unit of four nodes that is every tip at a quarter present or more.
+- It is a hazard like the others: by degree, drawn on the tip's own key, its presence handled as the shade hazard's is.
+- No new value. Source: the same sentence of Pałubicki et al. 2009 (a bud whose vigour gives less than one metamer lays none), and Borchert & Honda 1984's rule that a terminal under its minimum flux dies after a few increments; read as a yearly survival where they have a cut-off and a delay. That reading is the host's.
+
+**Expected on paper:** at 120, tips under a presence of 0.2 are about 55% of the living tips and their units hold 56% of the phytomers and 2.4% of the leaf; most end within a year or two of falling under a quarter of a node, and their wood closes and is shed. Held phytomers about halve (9.7 to 4 to 5 million); leaf, height, spread and trunk move by a few percent at most. At 200 the tree should fit a 16 GB scope.
+
+**What would refute it:** leaf, height or trunk moving by more than a twentieth on the oak at 40 or 120; phytomers at 120 falling by less than a third; the tip count still climbing against a flat summed presence over the last two decades at 120; a closed-form oracle or an independence test failing (return with which and by how much; do not repin an oracle).
+
 ## Acceptance Criteria
 
-- **R1.** The rule is in the grower for every species, with no branch by species; a unit at `size x presence >= 1` is byte-equal to today's (tested on a fixture).
-- **R2.** A walk across a unit's quota moves by degree: a node enters at vanishing size (tested as the other node-count walks are).
+- **R1.** The rule (the second design) is in the grower for every species, with no branch by species; a tree in which every tip stands at `presence x N >= 1` is byte-equal to today's (tested on a fixture).
+- **R2.** The walks hold: a branch that enters at a crossing enters at vanishing size and no step breaks its bound.
 - **R3.** Paused and one-call growth agree; fn-355's year tests (a tree at y is the tree asked for at y) pass unchanged.
 - **R4.** Census on the oak at 80 and 120, seed 1002, before and after: living tips, summed presence, held phytomers, phytomers under 0.2 mm, leaf area, by decade for the tip count.
 - **R5.** Measured on seeds 1001, 1007, 1012 beside the branch's head: the oak at 40 and 120, the ordinary tree, beech, birch, spruce at 40, Telperion at 82: height, spread, trunk, drawn leaf, new shoots, held phytomers, seconds and peak memory in one load window; sheets whole and bare. Then the oak at 200 on seeds 1001, 1002 and 7 in a 16 GB scope: drawn or not, peak memory, seconds, sheets.
