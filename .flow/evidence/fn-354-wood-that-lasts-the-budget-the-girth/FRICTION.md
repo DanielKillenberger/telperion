@@ -78,3 +78,10 @@
 - **Slowed by:** `girth::leaf`, `light::leaf_area` and `Phytomer::size` are all crate-private, so the probe reads `size` out of the phytomer's derived `Debug` text. Separately, a one-test check (8 GB) waited about 4 minutes in `telperion-heavy` behind another job's 40 GB old oak, the room going negative; it was stopped and its answer inferred from the rows instead.
 - **Cost:** about 10 minutes reading for a reader, and the 4-minute wait.
 - **What would have removed it:** a public read of a settled tree's grower leaf (the same sum the wood rule reads), or the probe kept on the branch with it; for the queue, nothing in the repository.
+
+## 12 Nov 2026, 15:10, gate-failure diagnosis: a commit that does not build, and timing at load 40 to 80
+
+- **Doing:** bisecting the palm's moved skeleton digest and timing the gate's seven cut-off tests on the branch and its base, back to back.
+- **Slowed by:** b9d337a63, a docs commit, also deletes `crates/telperion-space/src/girth/disused.rs` while `girth.rs` and `grow/settle.rs` still use it, so the bisect could not test it and ended on two candidates. The desk's load was 20 to 80 from other programs throughout, so each pair of timings had to run back to back to be read at all.
+- **Cost:** one extra manual build of two commits (about 5 minutes). The timing pairs took about 2 hours of wall time.
+- **What would have removed it:** each commit on a branch building, kept by a pre-commit `cargo check`. For the load, nothing in the repository.
