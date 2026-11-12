@@ -106,7 +106,7 @@ impl Shoot<'_> {
         // and its presence over the unit's cycle (host decision 8).
         let relay = state.relay_failed;
         let relays = relay > 0.0 && decide.child(RELAY).draw().under(relay);
-        let relayed = || self.relayed(relay, decide, (pa, apex.spent, cycle, Some(step.used)));
+        let relayed = || self.relayed(relay, decide, (pa, cycle, Some(step.used)));
         // The first unit of a failed unit's relay, the rest of that cycle,
         // carries on where its own failure relays, at that relay's
         // presence, as an apex that all but failed does: relays do not
@@ -131,7 +131,7 @@ impl Shoot<'_> {
             } else {
                 contract::decide::abortion(state, grown, (lived.min(next), 0))
             };
-            let after = self.persists(decide, (pa, apex.spent + lived, cycle), aborts);
+            let after = self.persists(decide, (pa, cycle), aborts);
             return self.fail(
                 apex,
                 (cycle, carried.gone, step.whole),
@@ -159,7 +159,7 @@ impl Shoot<'_> {
         // Its presence on its survival's own threshold (host decision
         // 8), and its subtrees' survival of shedding on their balance.
         let stake = stop_stake(state.relay_failed);
-        let window = self.windows().window((pa, apex.spent, cycle, None), stake);
+        let window = self.windows().window((pa, cycle, None), stake);
         let survive = presence::of_under(survives, d.0, window);
         // An apex that all but failed carries on as itself and as the
         // relay it would have had, as one that all but aborted does (host
@@ -200,7 +200,7 @@ impl Shoot<'_> {
         };
         let aborts = contract::decide::abortion(state, grown, exposure);
         if !step.ends {
-            match self.persists(decide, (pa, apex.spent, cycle), aborts) {
+            match self.persists(decide, (pa, cycle), aborts) {
                 Err(lead) => {
                     self.axis_mut(apex.axis).apex_end = Some(cycle);
                     let why = (Stop::Aborted, false, 0);

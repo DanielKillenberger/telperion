@@ -30,8 +30,7 @@ impl Shoot<'_> {
             let zone_key = unit.child(ZONE + z as u64);
             let lateral = &rules.laterals[pa][z];
             let mut sleeping = std::mem::take(&mut self.sleeping);
-            let at = (pa, z, apex.spent);
-            let node_wood = node_wood((rules, species), at, cycle, &mut sleeping);
+            let node_wood = node_wood((rules, species), (pa, z), cycle, &mut sleeping);
             // Each node's presence (D18 reads it).
             let window = decide::node_window(node_wood);
             let draw = zone_key.draw();
@@ -122,7 +121,7 @@ impl Shoot<'_> {
                         woken: false,
                     };
                     // Host decision 8: the made presences.
-                    let window = windows.window((lateral_pa, 0.0, cycle + 1, None), 1.0);
+                    let window = windows.window((lateral_pa, cycle + 1, None), 1.0);
                     let mut lead = lineage::bud_presence(lateral, drawn_pa, d, window);
                     if turns {
                         let by =
@@ -150,14 +149,13 @@ impl Shoot<'_> {
     }
 }
 
-/// The wood a node of zone `z` of a unit of `pa` grown in `cycle`, its
-/// axis `spent` of the way through the PA, decides, as a share of the
-/// tree's: its internode and the buds it is expected to
+/// The wood a node of zone `z` of a unit of `pa` grown in `cycle` decides,
+/// as a share of the tree's: its internode and the buds it is expected to
 /// bear, a PA its buds cannot carry taking no part, and the sleeping buds
 /// it is expected to bear, each PA's into `sleeping`.
 pub(crate) fn node_wood(
     (rules, species): (&Rules, &Species),
-    (pa, z, spent): (usize, usize, f64),
+    (pa, z): (usize, usize),
     cycle: u32,
     sleeping: &mut Vec<f64>,
 ) -> f64 {
@@ -167,8 +165,8 @@ pub(crate) fn node_wood(
         .iter()
         .enumerate()
         .filter(|&(_, &p)| p > 0.0)
-        .map(|(j, p)| p * windows.wood(j, 0.0, cycle + 1))
+        .map(|(j, p)| p * windows.wood(j, cycle + 1))
         .sum();
     let expected = expected + windows.sleeping(zone, cycle, sleeping);
-    windows.share(state.internode, (pa, spent, cycle)) + zone.buds * expected
+    windows.share(state.internode, cycle) + zone.buds * expected
 }

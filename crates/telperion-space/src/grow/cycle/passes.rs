@@ -43,11 +43,8 @@ impl Grower {
         let (species, sketch) = (&*self.species, self.sketch.as_mut().expect("sketching"));
         let n = sketch.pencils.len();
         let mut lit = vec![false; n];
-        // Each axis's time spent in its PA: its living apex's, or where it
-        // stopped, which its draw's window looks on from (fn-355).
-        let mut spent = self.units.clone();
         for a in self.live.iter().filter(|a| a.axis < n) {
-            (lit[a.axis], spent[a.axis]) = (true, a.spent);
+            lit[a.axis] = true;
         }
         let pencils = &sketch.pencils;
         let own = |i: usize| {
@@ -81,7 +78,7 @@ impl Grower {
                 .child(SHED)
                 .child(u64::from(cycle))
                 .draw();
-            let window = rules.windows.window((ws.pa[i], spent[i], cycle, None), 1.0);
+            let window = rules.windows.window((ws.pa[i], cycle, None), 1.0);
             let bud = Bud {
                 q: ws.light[i],
                 c: ws.cost[i],

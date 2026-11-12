@@ -1,9 +1,10 @@
 //! The windows (fn-192 R2, fn-355): the expected wood each draw decides, as
-//! a share of the whole tree's. A draw of PA k in cycle c looks over the
-//! cycles left of k's lifespan, at most `LOOK`; its wood is what a bud of k
-//! grows over that look, and the whole is the tree expected at c and that
-//! look. Nothing a draw reads depends on the age a tree is asked for, so
-//! the tree at a year is the same on the way to any later one.
+//! a share of the whole tree's. A draw of PA k in cycle c looks `LOOK`
+//! cycles on: its wood is what a bud of k grows over the look, its own
+//! stages and the ones it goes on into, and the whole is the tree expected
+//! at c and the look. Nothing a draw reads depends on the age a tree is
+//! asked for, so the tree at a year is the same on the way to any later
+//! one.
 use super::LOOK;
 use crate::closed_form::expected_log_lengths;
 use crate::dormant::{last_stage, wakes_in};
@@ -11,10 +12,9 @@ use crate::species::{Species, Zone};
 use crate::transcendental::Transcendental;
 use std::sync::Arc;
 
-/// Where a draw stands: the PA whose wood it decides, the time its axis
-/// has spent in that PA, the cycle, and how far through the cycle (none
-/// for its start).
-pub(crate) type At = (usize, f64, u32, Option<f64>);
+/// Where a draw stands: the PA whose wood it decides, the cycle, and how
+/// far through the cycle (none for its start).
+pub(crate) type At = (usize, u32, Option<f64>);
 
 /// The expected wood each draw decides, as a share of the whole tree's.
 /// Its tables are shared: every fine root's grower holds the tree's
@@ -25,59 +25,52 @@ pub(crate) struct Windows {
     /// expected[m][k]: the log of the metres a bud of PA k grows in m
     /// cycles; an entry does not depend on how far the table runs.
     expected: Arc<Vec<Vec<f64>>>,
-    /// Each PA's lifespan, and the years a sleeping bud of it may sleep
-    /// before it ages past its last stage.
-    life: Arc<Vec<f64>>,
+    /// The years a sleeping bud of each PA may sleep before it ages past
+    /// its last stage; none for a PA no zone puts to sleep.
     stages: Arc<Vec<f64>>,
-    /// fresh[c][k]: the share of a bud of PA k drawn at the start of cycle
-    /// c, as the grower reads it (host decision 8): taken once a table.
-    fresh: Arc<Vec<Vec<f32>>>,
+    /// woods[c][k]: the share of a draw of PA k at the start of cycle c,
+    /// as the grower reads it (host decision 8): taken once a table.
+    woods: Arc<Vec<Vec<f32>>>,
     /// The last year a draw may be made in.
     year: u32,
 }
+
+/// The look, in whole rows of the table.
+const ROWS: usize = LOOK as usize;
 
 impl Windows {
     /// The windows of every draw a tree makes up to `year`, the year's
     /// look and its sleeping buds' waking included.
     pub fn new(species: &Species, year: u32) -> Self {
         let pas = species.states.len();
-        let life: Vec<f64> = species.states.iter().map(|s| s.life()).collect();
         // Only an age some zone puts to sleep, under a release law that
         // wakes it, is ever summed or recorded asleep.
         let sleeps = |k: usize| {
-            let zones = species.states.iter().flat_map(|s| &s.zones);
-            zones
-                .into_iter()
-                .any(|z| z.rate > 0.0 && z.dormant.get(k).is_some_and(|&p| p > 0.0))
+            let mut zones = species.states.iter().flat_map(|s| &s.zones);
+            zones.any(|z| z.rate > 0.0 && z.dormant.get(k).is_some_and(|&p| p > 0.0))
         };
         let stages: Vec<f64> = (0..pas)
-            .map(|k| {
-                if sleeps(k) {
-                    last_stage(species, k)
-                } else {
-                    0.0
-                }
+            .map(|k| match sleeps(k) {
+                true => last_stage(species, k),
+                false => 0.0,
             })
             .collect();
-        let slept = stages.iter().fold(0.0_f64, |a, &b| a.max(b)).ceil();
-        let rows = f64::from(year) + LOOK + slept + 2.0;
+        let slept = stages.iter().fold(0.0_f64, |a, &b| a.max(b)).ceil() as u32;
+        let rows = year + ROWS as u32 + slept + 2;
         let mut windows = Self {
-            expected: Arc::new(expected_log_lengths(species, rows as u32)),
-            life: Arc::new(life),
+            expected: Arc::new(expected_log_lengths(species, rows)),
             stages: Arc::new(stages),
-            fresh: Arc::default(),
+            woods: Arc::default(),
             year,
         };
-        let fresh = (0..=year + 1)
+        let woods = (0..=year + 1)
             .map(|c| {
                 (0..pas)
-                    .map(|k| {
-                        crate::contract::exp(crate::contract::log32(windows.log_wood(k, 0.0, c)))
-                    })
+                    .map(|k| crate::contract::exp(crate::contract::log32(windows.log_wood(k, c))))
                     .collect()
             })
             .collect();
-        windows.fresh = Arc::new(fresh);
+        windows.woods = Arc::new(woods);
         windows
     }
 
@@ -86,53 +79,25 @@ impl Windows {
         self.year
     }
 
-    /// The cycles a draw of `pa` looks over, its axis `spent` of the way
-    /// through the PA's lifespan.
-    fn look(&self, pa: usize, spent: f64) -> f64 {
-        (self.life[pa] - spent).clamp(0.0, LOOK)
+    /// The log of the whole tree's expected metres at the end of the look
+    /// of a draw in `cycle`.
+    fn whole(&self, cycle: u32) -> f64 {
+        self.expected[cycle as usize - 1 + ROWS][0]
     }
 
-    /// The log of the metres a bud of `pa` grows in `m` cycles, read
-    /// between the two whole rows around it: by their logs, or by the
-    /// woods themselves where either is none.
-    fn row(&self, pa: usize, m: f64) -> f64 {
-        let (whole, f) = (m.floor(), m - m.floor());
-        let a = self.expected[whole as usize][pa];
-        if f == 0.0 {
-            return a;
-        }
-        let b = self.expected[whole as usize + 1][pa];
-        if a == f64::NEG_INFINITY || b == f64::NEG_INFINITY {
-            let lerp = (1.0 - f) * a.exp_fixed() + f * b.exp_fixed();
-            return if lerp > 0.0 {
-                lerp.ln_fixed()
-            } else {
-                f64::NEG_INFINITY
-            };
-        }
-        a + (b - a) * f
-    }
-
-    /// The log of the whole tree's expected metres `m` cycles grown.
-    fn whole(&self, m: f64) -> f64 {
-        self.row(0, m)
-    }
-
-    /// The log of the share a draw of `pa` in `cycle`, its axis `spent`
-    /// of the way through the PA, decides: none where it decides none
-    /// (FINE-CONTRACT.md D10's table).
-    pub fn log_wood(&self, pa: usize, spent: f64, cycle: u32) -> f64 {
-        let look = self.look(pa, spent);
-        let log = self.row(pa, look);
+    /// The log of the share a draw of `pa` in `cycle` decides: none where
+    /// it decides none (FINE-CONTRACT.md D10's table).
+    pub fn log_wood(&self, pa: usize, cycle: u32) -> f64 {
+        let log = self.expected[ROWS][pa];
         if log == f64::NEG_INFINITY {
             return log;
         }
-        log - self.whole(f64::from(cycle) - 1.0 + look)
+        log - self.whole(cycle)
     }
 
     /// `log_wood`'s share itself.
-    pub fn wood(&self, pa: usize, spent: f64, cycle: u32) -> f64 {
-        let log = self.log_wood(pa, spent, cycle);
+    pub fn wood(&self, pa: usize, cycle: u32) -> f64 {
+        let log = self.log_wood(pa, cycle);
         if log == f64::NEG_INFINITY {
             return 0.0;
         }
@@ -157,7 +122,7 @@ impl Windows {
     /// age past its last stage.
     fn dormant(&self, zone: &Zone, pa: usize, cycle: u32) -> f64 {
         (0..self.stages[pa].ceil() as u32)
-            .map(|s| wakes_in(zone, s) * self.wood(pa, 0.0, cycle + 1 + s))
+            .map(|s| wakes_in(zone, s) * self.wood(pa, cycle + 1 + s))
             .sum()
     }
 
@@ -179,23 +144,21 @@ impl Windows {
         expected
     }
 
-    /// `metres` laid in `cycle` on an axis of `pa` `spent` of the way
-    /// through it, as a share of the whole tree's expected wood over the
-    /// draw's look.
-    pub fn share(&self, metres: f64, (pa, spent, cycle): (usize, f64, u32)) -> f64 {
-        let look = self.look(pa, spent);
-        metres * (-self.whole(f64::from(cycle) - 1.0 + look)).exp_fixed()
+    /// `metres` laid in `cycle` as a share of the whole tree's expected
+    /// wood at the end of its look.
+    pub fn share(&self, metres: f64, cycle: u32) -> f64 {
+        metres * (-self.whole(cycle)).exp_fixed()
     }
 
-    /// The window of a draw at `at` deciding `stake` of its wood (host
-    /// decision 8, `contract::presence`).
-    pub fn window(&self, (pa, spent, cycle, used): At, stake: f64) -> f32 {
+    /// The window of a draw at `at` deciding `stake` of its wood, or from
+    /// `used` of the way through its cycle (host decision 8,
+    /// `contract::presence`).
+    pub fn window(&self, (pa, cycle, used): At, stake: f64) -> f32 {
         use super::{FLOOR, RATE, SPAN};
         use crate::contract::{presence, ticks};
-        let log = |c: u32| crate::contract::log32(self.log_wood(pa, spent, c));
+        let log = |c: u32| crate::contract::log32(self.log_wood(pa, c));
         let wood = match used {
-            None if spent == 0.0 => self.fresh[cycle as usize][pa],
-            None => crate::contract::exp(log(cycle)),
+            None => self.woods[cycle as usize][pa],
             Some(used) => presence::wood_at((log(cycle), log(cycle + 1)), ticks(used)),
         };
         let window = ((RATE * stake) as f32, (FLOOR * stake) as f32, SPAN as f32);

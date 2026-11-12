@@ -20,11 +20,12 @@ pub const RATE: f64 = 6.0;
 pub const SPAN: f64 = 2.0;
 /// The narrowest window, in log-odds: a twig's.
 pub const FLOOR: f64 = 0.05;
-/// The most cycles a draw looks over (fn-355): the cycles left of its PA's
-/// lifespan, at most this many. Estimate, the host's: 40 is the age most
-/// presets are asked for and their walk bounds were measured at, so a
-/// young draw's window stays near what it has been, and a lifespan of any
-/// size costs the expected-length table no more than this.
+/// The cycles every draw looks over (fn-355): the wood a bud of its PA
+/// grows in them, which the expected-length table ends where its life
+/// ends and carries on into its next stages. Estimate, the host's: 40 is
+/// the age most presets are asked for and their walk bounds were measured
+/// at, so a young draw's window stays near what it has been, and a
+/// lifespan of any size costs the expected-length table no more than this.
 pub const LOOK: f64 = 40.0;
 
 /// The presences of the draws that shaped one axis.
