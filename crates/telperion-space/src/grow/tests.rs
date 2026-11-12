@@ -93,10 +93,13 @@ fn a_tree_grows_the_same_without_what_it_is_certain_to_shed() {
             // more; the palm sheds nothing.
             // The beech's short shoot lives 12 years (fn-354 task 7), so
             // fewer of its laterals are certain to be shed by 30: at seed 1
-            // it grows 0.81 of its phytomers without them, measured.
+            // the beech grows 0.81 of its phytomers without them, and the
+            // beech with long-kept bearers 0.93 (0.79 with the short shoot
+            // at its former 4 years), measured.
             let share = match name {
                 "palm" => continue,
-                "beech" | "beech with long-kept bearers" => 0.9,
+                "beech" => 0.9,
+                "beech with long-kept bearers" => 0.95,
                 _ => 2.0 / 3.0,
             };
             assert!(
