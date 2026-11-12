@@ -137,6 +137,28 @@ fn the_tree_at_a_year_is_the_horizons_prefix() {
     }
 }
 
+/// fn-355 R1: the grower reads no horizon. The tree at year y of a growth
+/// begun for a later age is the tree of a growth to y, to the bit, for the
+/// oak, the spruce and the beech at two pairs of ages each.
+#[test]
+fn a_year_is_a_state_not_a_horizon() {
+    for (species, k) in species() {
+        for (y, later) in [(14, 15), (20, 28)] {
+            let asked = tree_digest(&grow_cycle(&species, request(y, 7, k)).unwrap().structure);
+            let mut p = Paused::begin(
+                std::sync::Arc::new(species.clone()),
+                request(later, 7, k),
+                Retiring::AtAge,
+                false,
+            )
+            .unwrap();
+            p.grow_to(y).unwrap();
+            let on_the_way = tree_digest(&p.settle().unwrap());
+            assert_eq!(on_the_way, asked, "year {y} of a growth to {later}");
+        }
+    }
+}
+
 /// R1 (b), every year: one run settled at each year is the run that
 /// retires nothing, year by year (60 s on one thread; out of the gate).
 ///

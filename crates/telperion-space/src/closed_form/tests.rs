@@ -86,3 +86,26 @@ fn the_expected_length_weighs_the_expected_counts() {
         "{length} vs {weighed}"
     );
 }
+
+/// fn-355: an entry of the expected-length table is the same to the bit
+/// however far the table runs, so a grower that extends it as it goes on
+/// reads the entries a grower that filled it at once does.
+#[test]
+fn an_expected_length_does_not_depend_on_how_far_the_table_runs() {
+    let bits = |row: &[f64]| row.iter().map(|x| x.to_bits()).collect::<Vec<_>>();
+    for species in [
+        crate::oak(),
+        crate::beech(),
+        crate::spruce(),
+        crate::birch(),
+        crate::palm(),
+    ] {
+        let (short, long) = (
+            expected_log_lengths(&species, 40),
+            expected_log_lengths(&species, 120),
+        );
+        for (m, row) in short.iter().enumerate() {
+            assert_eq!(bits(row), bits(&long[m]), "row {m}");
+        }
+    }
+}
