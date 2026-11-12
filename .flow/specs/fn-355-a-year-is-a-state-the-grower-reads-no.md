@@ -25,6 +25,13 @@ The look by the whole lifespan needs the expected-length table 500 rows past the
 - **The table** runs to the year grown plus `LOOK`, for the grower and for every other reader of the windows (`expected_kept`, `blend::size`); its cost is measured at that extent.
 - **A sleeper is recorded when it can wake:** when its drawn wake time falls before the bud ages past its last stage, which is a bound of the species' own tables (16 years on the oak, 50 on the spruce, 12 on the birch as the builder read them). A sleeper that can never wake is not recorded and holds nothing open.
 
+### Corrected again by the host, 12 Nov 2026, on the builder's second stop
+
+Built as above, R1 to R3 hold to the bit and every walk holds its degree bound, but one branch enters at 1.156e-6 of the tree against the vanishing bound of 1e-6 (`states[1].abortion_rise`, seed 3), and a relay at the end of an age looks over 0 cycles, so its window falls to the floor.
+
+- **The look is `LOOK` for every draw,** with no minimum against the lifespan. The host's "cycles left of the lifespan" was wrong twice over: an axis goes on into its next stage when a stage's lifespan ends, so the lifespan left understates the wood a draw decides; and the expected-length table already ends a bud's wood where its life ends, so the bound was the table's to give. Expected: no window falls to the floor at a stage's end, and the entering branch is smaller.
+- **The sleeper stop** read "up by more than a fifth" over a base of none held; 41 to 92 sleepers on the oak at 120, with peak memory down from 3.48 to 3.29 GiB, is accepted.
+
 ## Acceptance Criteria
 
 - **R1.** No site in `crates/telperion-space` reads the requested age to decide a draw, a window, a presence, a sleeper or a closure. A structural test holds it: the tree at year y of a growth to y + n is the tree of a growth to y, by the digest the paused-prefix test uses, for the oak, beech and spruce at two pairs of ages each.
