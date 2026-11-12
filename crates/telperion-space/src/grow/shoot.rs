@@ -258,6 +258,19 @@ impl<'g> Shoot<'g> {
         self.reads.pencils.get(i).map_or(1.0, |p| p.size)
     }
 
+    /// Whether axis `i`'s tip stands under the grain at the start of
+    /// `cycle` (fn-356): its presence, its base scale times its running
+    /// presence, times the share of the tree's expected wood its window
+    /// reads (`Windows::start`), under `GRAIN`. Never where it has no
+    /// pencil, made this cycle.
+    pub fn under_grain(&self, i: usize, cycle: u32) -> bool {
+        let Some(p) = self.reads.pencils.get(i) else {
+            return false;
+        };
+        let share = self.windows().start(self.axis(i).pa, cycle);
+        p.base_scale * p.running * f64::from(share) < crate::presence::GRAIN
+    }
+
     /// What the subtrees' survival of their shedding this cycle makes of
     /// axis `i`'s unit: whole where nothing sheds.
     pub fn kept(&self, i: usize) -> f64 {
