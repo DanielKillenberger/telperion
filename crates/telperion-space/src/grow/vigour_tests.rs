@@ -7,7 +7,8 @@ use std::collections::BTreeMap;
 /// The oak with whole units of a fixed count: no death, abortion, relay,
 /// shedding or sleeping bud, whole lifespans and buds, and every zone's
 /// count its law's mean rounded. A unit's nodes then all stand whole at
-/// its presence, so the scale of its fullest node is that presence.
+/// its presence, so the scale of its fullest node, which the lay sizes,
+/// is that presence times its size.
 fn whole_units() -> Species {
     let mut species = oak();
     for state in &mut species.states {
@@ -50,28 +51,29 @@ fn a_unit_lays_the_share_its_size_and_presence_give() {
             let state = &species.states[axis.pa];
             let along = ALONG.iter().filter(|&&z| z < state.zones.len());
             let count: f64 = along.map(|&z| state.zones[z].nodes.mean()).sum();
-            let mut units: BTreeMap<u32, (usize, f64, f64)> = BTreeMap::new();
+            let mut units: BTreeMap<u32, (usize, f64)> = BTreeMap::new();
             for p in &axis.phytomers {
-                let unit = units.entry(p.cycle).or_insert((0, 0.0, p.size));
+                let unit = units.entry(p.cycle).or_insert((0, 0.0));
                 unit.0 += 1;
                 unit.1 = unit.1.max(p.scale);
             }
-            for (cycle, (laid, presence, size)) in units {
-                let q = (size * presence).min(1.0);
-                let nodes = q * count;
-                // Clear of a whole count by more than the f32 they are
-                // laid in moves it.
-                if (nodes - nodes.round()).abs() < 1e-3 || (q - 1.0).abs() < 1e-4 {
+            for (cycle, (laid, sized)) in units {
+                let nodes = sized * count;
+                // Clear of a whole count, and of a whole unit, by more than
+                // the f32 they are laid in moves them.
+                let near = (nodes - nodes.round()).abs() < 1e-3 && sized < 1.0;
+                if near || (sized - 1.0).abs() < 1e-4 {
                     continue;
                 }
                 let at = format!("seed {seed} axis {} cycle {cycle}", axis.lineage);
-                if q >= 1.0 {
+                if sized >= 1.0 {
                     whole += 1;
                     assert_eq!(laid as f64, count, "{at}: a whole unit");
                 } else {
                     shared += 1;
-                    let most = nodes.floor() + 1.0;
-                    assert!(laid as f64 <= most, "{at}: {laid} laid at {q} of {count}");
+                    let whole = nodes.floor();
+                    let fits = (whole..=whole + 1.0).contains(&(laid as f64));
+                    assert!(fits, "{at}: {laid} laid at {sized} of {count}");
                 }
             }
         }

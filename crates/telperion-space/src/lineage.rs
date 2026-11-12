@@ -14,7 +14,7 @@ pub(crate) use turn::{kind_under_shade, shaded_presence};
 
 pub(crate) use keys::{
     ABORTION, CONTINUATION, DOMINANCE, DORMANT, END, ENDED, FAILED, INSERTION, INTERNODE, LAID,
-    MOVE, PLACED, RELAY, ROLL, SHED, TROPISM, TURN, VIABILITY, WANDER, ZONE,
+    MOVE, PLACED, RELAY, ROLL, SHED, TROPISM, TURN, VIABILITY, VIGOUR, WANDER, ZONE,
 };
 
 /// A hashed path from the root.
@@ -263,21 +263,35 @@ pub(crate) fn place_presence(place: Key, share: f64, window: f32) -> f32 {
 pub(crate) fn laid(presences: &mut Vec<f32>, cut: crate::schedule::Cut, zone: Key, window: f32) {
     let share = contract::ticks(cut.share) as f32 / contract::ticks(cut.of) as f32;
     let quota = share * presences.iter().sum::<f32>();
-    let mut held = 0.0;
+    lay(presences, (quota, &mut 0.0), zone, (LAID, window));
+}
+
+/// Lays the nodes of a zone `presences` holds against `quota`, `held` of
+/// it taken by the nodes laid before them, as `laid` lays a zone's: each
+/// node the quota still holds whole, the next at its draw keyed `part`
+/// under its node's key, grown in over `window`, the rest not. Once the
+/// quota is spent, `held` is past it, so no later zone lays a node.
+pub(crate) fn lay(
+    presences: &mut Vec<f32>,
+    (quota, held): (f32, &mut f32),
+    zone: Key,
+    (part, window): (u64, f32),
+) {
     for (j, &p) in presences.iter().enumerate() {
-        if held + p <= quota {
-            held += p;
+        if *held + p <= quota {
+            *held += p;
             continue;
         }
-        let left = quota - held;
+        let left = quota - *held;
         let last = (left > 0.0).then(|| {
-            let d = zone.child(j as u64).child(LAID).draw();
+            let d = zone.child(j as u64).child(part).draw();
             let t = contract::threshold(left / p);
             let lead = presence::of_under(t, d.0, window);
             (d.0 < t).then(|| presence::times(p, lead))
         });
         presences.truncate(j);
         presences.extend(last.flatten());
+        *held = f32::INFINITY;
         return;
     }
 }

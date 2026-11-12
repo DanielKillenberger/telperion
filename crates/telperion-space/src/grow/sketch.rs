@@ -70,6 +70,13 @@ pub(super) struct Pencil {
 }
 
 impl Pencil {
+    /// Its presence this cycle: its base scale, its draws' presence over
+    /// the units laid and its subtrees' survival of shedding (`balance.rs`),
+    /// so a bud about to be shed weighs nothing as it goes.
+    pub(super) fn presence(&self) -> f64 {
+        self.base_scale * self.running * self.kept
+    }
+
     /// The path from the root collar to its tip.
     pub(super) fn path_end(&self) -> f32 {
         self.path.last().copied().unwrap_or(self.root)
@@ -204,10 +211,7 @@ impl Grower {
         let (mut lit, mut presence, mut psi) = (vec![0.0; n], vec![0.0; n], vec![0.0; n]);
         for apex in self.live.iter().filter(|a| a.axis < n) {
             let p = &sketch.pencils[apex.axis];
-            // Its presence this cycle includes its subtrees' survival of
-            // shedding (`balance.rs`), so a bud about to be shed weighs
-            // nothing as it goes.
-            presence[apex.axis] = p.base_scale * p.running * p.kept;
+            presence[apex.axis] = p.presence();
             lit[apex.axis] = presence[apex.axis] * p.light;
             psi[apex.axis] = species.states[rows.pa[apex.axis]].shade_size;
         }
