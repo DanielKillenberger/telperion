@@ -58,11 +58,6 @@ pub struct Cycle {
     /// Of those, the apexes on axes under 3 phytomers, counted apart in a
     /// report and never in its cost (fn-323's manifest).
     pub short_by_order: [usize; 8],
-    /// Each living tip's presence times the share its window reads at the
-    /// next cycle's start (fn-356): its 1st, 10th, 25th, 50th and 90th
-    /// percentiles, and the tips under the grain, which end then.
-    pub grain: [f64; 5],
-    pub under_grain: usize,
 }
 
 impl Census {
@@ -82,7 +77,7 @@ impl Census {
         &mut self,
         (cycle, grown): (u32, u64),
         axes: &[Axis],
-        (live, reading): (&[Apex], &[f64]),
+        live: &[Apex],
     ) {
         self.extend(axes);
         let mut c = self.lattice.take().unwrap_or_default();
@@ -94,11 +89,6 @@ impl Census {
             c.by_order[row] += 1;
             c.short_by_order[row] += usize::from(axes[a.axis].phytomers.len() < 3);
         }
-        let mut read = reading.to_vec();
-        read.sort_by(f64::total_cmp);
-        let at = |q: f64| read.get(((read.len() as f64 - 1.0) * q).round() as usize);
-        c.grain = [0.01, 0.1, 0.25, 0.5, 0.9].map(|q| at(q).copied().unwrap_or(f64::NAN));
-        c.under_grain = read.partition_point(|&v| v < crate::presence::GRAIN);
         let busiest = self.cycles.iter().map(|c| c.active).max().unwrap_or(0);
         if live.len() > busiest {
             let d: Vec<u32> = live.iter().map(|a| self.depth[a.axis]).collect();

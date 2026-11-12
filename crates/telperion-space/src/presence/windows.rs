@@ -144,12 +144,6 @@ impl Windows {
         expected
     }
 
-    /// The share a draw of `pa` at the start of `cycle` decides, as the
-    /// grower reads it: what sizes its window.
-    pub fn start(&self, pa: usize, cycle: u32) -> f32 {
-        self.woods[cycle as usize][pa]
-    }
-
     /// `metres` laid in `cycle` as a share of the whole tree's expected
     /// wood at the end of its look.
     pub fn share(&self, metres: f64, cycle: u32) -> f64 {
@@ -164,7 +158,7 @@ impl Windows {
         use crate::contract::{presence, ticks};
         let log = |c: u32| crate::contract::log32(self.log_wood(pa, c));
         let wood = match used {
-            None => self.start(pa, cycle),
+            None => self.woods[cycle as usize][pa],
             Some(used) => presence::wood_at((log(cycle), log(cycle + 1)), ticks(used)),
         };
         let window = ((RATE * stake) as f32, (FLOOR * stake) as f32, SPAN as f32);
