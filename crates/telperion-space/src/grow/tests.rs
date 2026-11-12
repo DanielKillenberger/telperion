@@ -91,9 +91,12 @@ fn a_tree_grows_the_same_without_what_it_is_certain_to_shed() {
             );
             // The shipped trees' twigs are a third of what they grow or
             // more; the palm sheds nothing.
+            // The beech's short shoot lives 12 years (fn-354 task 7), so
+            // fewer of its laterals are certain to be shed by 30: at seed 1
+            // it grows 0.81 of its phytomers without them, measured.
             let share = match name {
                 "palm" => continue,
-                "beech with long-kept bearers" => 0.9,
+                "beech" | "beech with long-kept bearers" => 0.9,
                 _ => 2.0 / 3.0,
             };
             assert!(
