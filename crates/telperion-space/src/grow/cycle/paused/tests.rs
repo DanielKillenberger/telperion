@@ -371,20 +371,22 @@ fn paths(p: &Paused) -> Vec<(u64, u32)> {
 /// fn-349: the path a living tip is charged by survives the records let
 /// go (`compact.rs`) and a grower paused and grown on: grown in three
 /// steps, letting go of every retired record, each tip's path is the one
-/// a grower keeping every record and grown at once holds, to the bit.
+/// a grower keeping every record and grown at once holds, to the bit. At
+/// 30 the spruce's two growers peak at 0.7 GiB; at 40 they took 1.4 GiB
+/// (12 Nov 2026), and 30 still holds 16,000 to 67,000 living tips a species.
 #[test]
 fn a_tips_path_survives_letting_go_and_a_pause() {
     for (species, k) in species() {
         let species = std::sync::Arc::new(species);
-        let r = request(40, 7, k);
+        let r = request(30, 7, k);
         let mut eager = Working::default();
         eager.eager = true;
         let mut stepped = Paused::with(species.clone(), r, false, eager).unwrap();
-        for age in [12, 25, 40] {
+        for age in [10, 20, 30] {
             stepped.grow_to(age).unwrap();
         }
         let mut once = Paused::with(species, r, false, Working::indexed()).unwrap();
-        once.grow_to(40).unwrap();
+        once.grow_to(30).unwrap();
         let (a, b) = (paths(&stepped), paths(&once));
         assert!(!a.is_empty() && a.iter().any(|&(_, l)| f32::from_bits(l) > 1.0));
         assert_eq!(a, b);
@@ -428,17 +430,19 @@ fn livings(p: &Paused) -> Livings {
 /// go of every retired record, its root included, the grower holds stands
 /// in their place, and every closed subtree's living, each one evaluated
 /// with the roots let go below it, is the one a grower keeping every
-/// record holds, to the bit.
+/// record holds, to the bit. At 30 the spruce's two growers peak at 0.9
+/// GiB; at 40 they took 2.0 GiB (12 Nov 2026), and 30 still lets go of
+/// 3,600 to 110,000 retired roots a species.
 #[test]
 fn a_retired_root_let_go_is_read_as_it_was() {
     for (species, k) in species() {
         let species = std::sync::Arc::new(species);
-        let r = request(40, 7, k);
+        let r = request(30, 7, k);
         let mut eager = Working::default();
         eager.eager = true;
         let mut let_go = Paused::with(species.clone(), r, false, eager).unwrap();
         let mut kept = Paused::with(species, r, false, Working::indexed()).unwrap();
-        for age in [12, 25, 40] {
+        for age in [10, 20, 30] {
             let_go.grow_to(age).unwrap();
             kept.grow_to(age).unwrap();
             assert_eq!(livings(&let_go), livings(&kept), "at {age}");
