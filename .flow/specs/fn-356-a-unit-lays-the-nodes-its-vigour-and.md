@@ -92,6 +92,19 @@ The host twice wrote that a failure here would go to the owner, and told the own
 
 **The end of this fault inside Phase 2, whichever way it goes:** after this build the host makes no further design for it. If a closed-form oracle, an independence test, a walk, the extent bound or the shortcut's tests fail, or held phytomers on the oak at 120 fall by less than half, the rule is reverted whole, the fault is written up with its numbers for the owner, and the run goes on with what does not depend on it.
 
+### Result: the fault stands, the rule is reverted whole (host, 12 Nov 2026)
+
+With the floor capped by the bearer (`9e41eb29e`) every test passed: the extent bound, the shed-certain shortcut, every closed-form oracle, the simulators, every independence test, both walks. And it did almost nothing: on the oak at 120, seed 1002, held phytomers fell 2.1% (9,175,834 to 8,985,206), living tips 3.5%; leaf, height and trunk moved by under 0.3% on three seeds. 625,037 of 694,762 living apices still stand under the grain. Faintness is inherited from bearers (94% of faint shoots stand on a faint bearer), and a bud may not be lifted above its bearer, so rounding at birth never reaches the faint population. By the end fixed above, the rule and its constant are reverted (`2b3af9e5c` to `7983897b7`); the code is what it was at `5f07de93f`, which keeps only the two shed-bound corrections.
+
+**What five builds established, for whoever takes this up:**
+
+1. The count of an old tree's shoots has no ceiling because light caps the presence-weighted leaf while presence only multiplies downward and nothing reads it. Measured on the oak at 120: 47% of phytomers under a presence of 0.05 carrying 0.8% of the leaf.
+2. A rule of growth that treats a faint element differently from a whole one breaks the closed form (which counts an element at its share, linearly), or the independence of draws, or the leaf (designs one to three).
+3. Rounding faintness without bias keeps all of those (design four), but a child may not stand above its bearer, and under that cap the faint population is out of reach.
+4. So the faint population cannot be removed element by element inside this grower. It can be carried more cheaply: a faint limb's shoots are the same shoots scaled, which is what fn-351's Phase 5 (leafy shoots carried as counts in the cells of the tree's light) is for. The old oak's cost is Phase 5's.
+
+Not determined: whether the faint population is what makes the old crown thin; why seed 1001 stays small at 200.
+
 ## Acceptance Criteria
 
 - **R1.** The rule (the fourth design) is in the grower for every species, with no branch by species; a tree of whole elements is byte-equal to today's; over many keys a faint element under its floor is kept in the share `f / tau` and then stands at `tau` (both tested on fixtures, the second as a count within its sampling error).
