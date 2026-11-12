@@ -108,3 +108,38 @@ The four together come to 10.9 GiB in an 8 GB scope. Each test is under its own 
   The tree grew in fn-354: first by the commits before b2b45f3c6, among them R7's lateral kind by light, then by task 7's 12-year short shoot. fn-355 did not change it. The test builds this tree twice and submits it to the device, which comes to 2.96 GiB.
 
 **Not changed.** Whether a new test or a test that grew joins the one-at-a-time group, and whether bark_detail's fixture should be a smaller tree, are for the host.
+
+## 5. The gate run again, at 86d273e59
+
+The run was `telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`, with receipts, which reran every suite. Another program's heavy job ran beside it, and the load average was 15 to 60.
+
+**Summary.** `Summary [2836.013s] 1394 tests run: 1369 passed, 7 failed, 18 timed out, 87 skipped`. The test run took 2,840 s against its 1,560 s budget. The suites that failed were the test run's budget, rust-jev, rust-wasm, rust-render, rust-core and node.
+
+**Not passing, and what was checked:**
+
+- **Cut off at its time budget**, all at about 120 s unless shown:
+  - the seven of item 3;
+  - `relay_tests::a_stem_never_thickens_on_its_way_up`, 33 s in the first gate;
+  - `repeat_tests::the_largest_tree_and_the_palm...`, cut at 181 s; 144 s in the first gate;
+  - `suite::mesh::every_preset_builds_a_mesh...`;
+  - `grow::cycle::tests::woken_buds_that_stop_at_once_retire...`;
+  - `boundary a_stage_outside_the_executor_interface_does_not_compile`, a trybuild compile;
+  - `suite::packed_leaf...`, cut at 139 s; 76 s alone;
+  - `ground_reach nothing_drawn_passes_below_the_ground`, cut at 124 s;
+  - `light_rows each_populated_response...`;
+  - `walks a_walk_between_species_changes_the_tree_by_degree`;
+  - `walk_leaves spruce_to_birch...`, cut at 186 s;
+  - `form the_beech_grows_at_every_age_of_its_sheet`;
+  - `telperion_wasm flowers_cross_the_binding...`, cut at 239 s.
+
+  None of the eleven beyond item 3's seven was timed alone, so load and growth are not told apart for them.
+- **Over the memory budget:**
+  - `smooth_bark the_smooth_barks_hold_the_resolution_and_redraw_contracts` peaked at 6,001 MiB against 4,096. Its assertions pass. Alone it passes in 72 s on the branch, against 23 s on the base.
+  - `telperion_wasm every_shipped_preset_builds_through_the_main_entry` peaked at 4,250 MiB against 4,096; its recorded figure is 3,977.
+- **Assertions that fail on the branch, alone, and pass on the base, alone.** These five never ran in the first gate. Their causes were not diagnosed:
+  - `bark_distance resolved_scales_survive_until_the_two_pixel_boundary`: "distance series aliases on the OregonWhiteOak 2x: mean 5.5257, p95 13.50".
+  - `bark_occlusion the_darkened_side_of_a_furrow_follows_the_sun`: "the term did nothing at sun 45: 0, 0".
+  - `bark_structure_colour each_structure_colour_row_changes_the_picture_and_moves_no_wood`: "the shipped oak barely moved: 0.5518/255".
+  - `curve the_device_surfaces_the_wood_the_cpu_reference_does`: "ordinary close: over budget", 3 against 0.
+  - `curve the_second_slices_hold_what_the_first_could_not`: "no view reached the second slices at scale 1".
+- **node.** `catalogue/date-palm/README.md` differed from its regeneration. The page prints the skeleton digest repinned in item 1. **Fixed** in 801c4e74e by `node scripts/catalogue-pages.mjs`; `catalogue-check` now passes.
