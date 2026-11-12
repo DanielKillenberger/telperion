@@ -139,7 +139,7 @@ impl Shoot<'_> {
                         node,
                     );
                     let faint = presence::times(at, presence::times(made[0], made[1]));
-                    let Some(lift) = self.round(faint, (lateral_pa, cycle + 1), key) else {
+                    let Some(lift) = self.round((faint, at), (lateral_pa, cycle + 1), key) else {
                         continue;
                     };
                     let made = [presence::times(lead, lift), made[1]].map(presence::real);

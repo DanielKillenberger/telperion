@@ -317,12 +317,19 @@ impl<'g> Shoot<'g> {
         }
     }
 
-    /// Whether an element of `pa` of faintness `faint` at the start of
-    /// `cycle` is kept, and the factor that stands it at its floor
-    /// (fn-356): untouched (1) at its floor or over it; under it, kept
-    /// with the chance `faint / floor` by the draw keyed `key`, else none.
-    pub fn round(&mut self, faint: f32, (pa, cycle): (usize, u32), key: Key) -> Option<f32> {
-        let floor = crate::presence::floor(self.windows(), pa, cycle);
+    /// Whether a bud of `pa` of faintness `faint` at the start of `cycle`,
+    /// borne on a node of faintness `bearer`, is kept, and the factor that
+    /// stands it at its floor (fn-356): the floor capped by its bearer, so
+    /// a bud is lifted at most to where its bearer stands. Untouched (1) at
+    /// its floor or over it; under it, kept with the chance
+    /// `faint / floor` by the draw keyed `key`, else none.
+    pub fn round(
+        &mut self,
+        (faint, bearer): (f32, f32),
+        (pa, cycle): (usize, u32),
+        key: Key,
+    ) -> Option<f32> {
+        let floor = crate::presence::floor(self.windows(), pa, cycle).min(f64::from(bearer));
         if f64::from(faint) >= floor {
             return Some(1.0);
         }
