@@ -108,8 +108,8 @@ pub const ORGANS: u64 = u64::MAX - 18;
 /// Whether a lateral bud keeps its kind under shade, under its place's
 /// key (fn-354 R7); the kind it turns into, under that draw's key.
 pub const TURN: u64 = u64::MAX - 19;
-/// Whether an element under its floor is kept at it (fn-356): under a
-/// growth unit's key for its tip, under a bud place's for a lateral.
+/// Whether a lateral under its floor at its birth is kept at it
+/// (fn-356), under its bud place's key.
 pub const ROUND: u64 = u64::MAX - 20;
 /// An axis carried on into an age, under its chain's lineage.
 pub const CONTINUATION: u64 = u64::MAX;
@@ -148,7 +148,7 @@ pub const ALL: [(&str, u64, Under); 33] = [
     ("JOIN", JOIN, Under::Node),
     ("ORGANS", ORGANS, Under::Node),
     ("TURN", TURN, Under::Place),
-    ("ROUND", ROUND, Under::Unit),
+    ("ROUND", ROUND, Under::Place),
     ("CONTINUATION", CONTINUATION, Under::Lineage),
 ];
 

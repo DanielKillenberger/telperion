@@ -6,7 +6,7 @@ use super::{stop_stake, Apex};
 use crate::contract::{self, presence};
 use crate::error::Result;
 use crate::lineage::{Key, END, ENDED, FAILED, RELAY, VIABILITY};
-use crate::presence::{faint_at_end, Unit};
+use crate::presence::Unit;
 use crate::schedule::Carried;
 use crate::transcendental::Transcendental;
 
@@ -64,19 +64,6 @@ impl Shoot<'_> {
         // unit's relay, whose rest a draw made.
         let successor = draws.carried && !draws.rest;
         let laid = step.laid(carried.gone, (first && successor, first && draws.woke));
-        // Under its floor a tip is kept at it or ends here, as a dead apex
-        // does (fn-356); a sleeping bud waking now is whole in its first.
-        let (woken, faint) = (draws.woke && first, faint_at_end(draws));
-        let lift = match woken {
-            true => Some(1.0),
-            false => self.round(faint, (pa, cycle), unit),
-        };
-        let Some(lift) = lift else {
-            self.axis_mut(apex.axis).apex_end = Some(cycle - 1);
-            self.draws_mut(apex.axis).failed = true;
-            *self.units_mut(apex.axis) = apex.spent + share;
-            return Ok(());
-        };
         // Shade raises the apex's death hazard, ln survival = ln
         // viability x light^-phi (host, 2026-10-05): near-certain survival
         // moves gently as light does, and certain survival not at all.
@@ -148,7 +135,7 @@ impl Shoot<'_> {
             return self.fail(
                 apex,
                 (cycle, carried.gone, step.whole),
-                (lived, below, presence::times(relayed, lift), stopped),
+                (lived, below, relayed, stopped),
                 (pa, unit, decide),
                 after,
             );
@@ -184,7 +171,7 @@ impl Shoot<'_> {
             survive
         };
         let survive = presence::times(survive, presence::q(self.kept(apex.axis)));
-        let survive = presence::real(presence::times(survive, lift));
+        let survive = presence::real(survive);
         let (size, reads) = (self.size(apex.axis), self.reads);
         let draws = self.draws_mut(apex.axis);
         draws.units.push(Unit {
