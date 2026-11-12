@@ -88,10 +88,29 @@ impl Grower {
         Ok(read)
     }
 
+    /// Each living tip's presence times the share its window reads at the
+    /// start of `cycle`, where it has a pencil (fn-356, `Shoot::grain`).
+    fn grain_reading(&self, cycle: u32) -> Vec<f64> {
+        let (Some(sketch), true) = (&self.sketch, cycle <= self.rules.windows.year() + 1) else {
+            return Vec::new();
+        };
+        let at = |a: &super::Apex| {
+            let p = sketch.pencils.get(a.axis)?;
+            let share = self.rules.windows.start(self.axes[a.axis].pa, cycle);
+            Some(p.base_scale * p.running * f64::from(share))
+        };
+        self.live.iter().filter_map(at).collect()
+    }
+
     /// The census's records at the end of `cycle`.
     fn count(&mut self, cycle: u32) {
         if let Some(mut c) = self.census.take() {
-            c.cycle((cycle, self.rules.grown), &self.axes, &self.live);
+            let reading = self.grain_reading(cycle + 1);
+            c.cycle(
+                (cycle, self.rules.grown),
+                &self.axes,
+                (&self.live, &reading),
+            );
             c.cycles.last_mut().expect("a cycle").jobs = std::mem::take(&mut self.jobs);
             self.census = Some(c);
         }

@@ -27,6 +27,12 @@ pub const FLOOR: f64 = 0.05;
 /// at, so a young draw's window stays near what it has been, and a
 /// lifespan of any size costs the expected-length table no more than this.
 pub const LOOK: f64 = 40.0;
+/// The grower's grain (fn-356): a tip whose presence times the share of
+/// the tree's expected wood its window reads is under it is not grown.
+/// Estimate, the host's: a tenth of the walks' vanishing bound (1e-6 of
+/// the tree), so what is dropped stays under that bound when its realised
+/// wood is several times its expected.
+pub const GRAIN: f64 = 1e-7;
 
 /// The presences of the draws that shaped one axis.
 #[derive(Debug, Clone, Default)]
