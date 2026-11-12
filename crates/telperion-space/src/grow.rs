@@ -11,6 +11,8 @@ pub(crate) mod cycle;
 mod deposit;
 mod draw;
 #[cfg(test)]
+mod grain_tests;
+#[cfg(test)]
 mod ground_tests;
 mod parallel;
 mod settle;
