@@ -6,8 +6,10 @@
 //! apexes' order, and the tree is the one grown in turn.
 use super::sketch::Pencil;
 use super::{bud, Apex, Certain, Placed};
+use crate::contract::presence;
 use crate::dormant::{Sleeper, Woken};
-use crate::lineage::{Draw, Key};
+use crate::lineage::{Draw, Key, ROUND};
+use crate::presence::{faint_at_end, faint_at_node};
 use crate::presence::{Draws, Windows};
 use crate::species::{Species, MAX_BUDS};
 use crate::structure::{Axis, Origin};
@@ -104,6 +106,11 @@ pub(super) struct Shoot<'g> {
     pub node_buds: Vec<(Draw, u64, f32, [Placed; MAX_BUDS as usize])>,
     /// One zone's sleeping buds' expected wood per PA, reused.
     pub sleeping: Vec<f64>,
+    /// The faintness of the node a sleeping bud waking now was borne at
+    /// (`Grower::wake`), which its first stage inherits.
+    pub waking: f32,
+    /// The elements under their floor kept at it and ended (fn-356).
+    pub rounded: [u64; 2],
 }
 
 /// The lists a share fills and the grower empties each cycle, kept
@@ -144,6 +151,8 @@ impl<'g> Shoot<'g> {
             leads: Vec::new(),
             node_buds: Vec::new(),
             sleeping: Vec::new(),
+            waking: 1.0,
+            rounded: [0; 2],
         }
     }
 
@@ -278,7 +287,9 @@ impl<'g> Shoot<'g> {
         origin: Origin,
         line: (f64, u64, Draws),
     ) {
-        let (units, root, draws) = line;
+        let (units, root, mut draws) = line;
+        let made = presence::times(presence::q(draws.birth[0]), presence::q(draws.birth[1]));
+        draws.faint = presence::times(self.inherited(origin), made);
         let horizon = self.horizon_of(pa, origin);
         self.made.push(Line {
             axis: bud(key, pa, cycle, origin),
@@ -288,6 +299,36 @@ impl<'g> Shoot<'g> {
             root,
             horizon,
         });
+    }
+
+    /// The faintness an axis growing from `origin` inherits (fn-356): a
+    /// lateral its node's, a woken one the node it slept at
+    /// (`Shoot::waking`), a continuation or relay its axis's end.
+    fn inherited(&self, origin: Origin) -> f32 {
+        match origin {
+            Origin::Seed => presence::ONE,
+            Origin::Lateral { woken: true, .. } => self.waking,
+            Origin::Lateral { parent, node, .. } => {
+                faint_at_node(self.axis(parent), self.draws(parent), node)
+            }
+            Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
+                faint_at_end(self.draws(parent))
+            }
+        }
+    }
+
+    /// Whether an element of `pa` of faintness `faint` at the start of
+    /// `cycle` is kept, and the factor that stands it at its floor
+    /// (fn-356): untouched (1) at its floor or over it; under it, kept
+    /// with the chance `faint / floor` by the draw keyed `key`, else none.
+    pub fn round(&mut self, faint: f32, (pa, cycle): (usize, u32), key: Key) -> Option<f32> {
+        let floor = crate::presence::floor(self.windows(), pa, cycle);
+        if f64::from(faint) >= floor {
+            return Some(1.0);
+        }
+        let lift = crate::presence::rounded(faint, floor, key.child(ROUND).draw());
+        self.rounded[usize::from(lift.is_none())] += 1;
+        lift
     }
 
     /// The horizon of a new axis of `pa` growing from `origin`.

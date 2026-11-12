@@ -340,6 +340,7 @@ impl Grower {
             light_seconds: self.light_seconds,
             lattice: self.lattice,
             jobs: [0; 2],
+            rounded: [0; 2],
             census: None,
             working: self.working.as_ref().map(|w| Box::new(w.settled_copy())),
         }
