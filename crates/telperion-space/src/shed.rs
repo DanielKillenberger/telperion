@@ -9,6 +9,9 @@ use crate::contract::presence::{carry, fade, q, real, times};
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
 
+#[cfg(test)]
+mod tests;
+
 /// Per PA, the cycles past a fresh bud's birth by which every apex its
 /// subtree can grow has stopped, from the settings alone; none where no
 /// bound holds under every draw (fn-210, lever 1). An apex grows its age's
