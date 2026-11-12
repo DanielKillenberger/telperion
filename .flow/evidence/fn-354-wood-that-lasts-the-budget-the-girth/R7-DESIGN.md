@@ -53,3 +53,17 @@ Values for the beech:
 **What would refute it:** leaf staying near 32 m² (the limb count or the hazards hold it, not the kind of lateral); leaf over a leaf area index of about 9 on its own ground; a beech that reads as a thicket; the walk over `shade_short` failing its bound.
 
 **What it will not settle.** White's open-grown 0.32 m needs about 266 m² of leaf under the rule. The rows left with the most leverage are estimates with no source (the branch top's BRANCH 0.08, which keeps a branch from replacing itself: 0.64 daughters a life; the lifespans), and the beech stands 10 m tall at 40. If the trunk is still under White's range after this, that is recorded against the beech on the scoreboard and is Phase 4's (species on sources), with the measured gap as its start.
+
+## After the twelve-seed scoreboard: two leaf values (host, 12 Nov 2026)
+
+**The ordinary tree's leaf.** Seen on `phase2-2026-11-12/sheets/ordinary-whole.jpg` beside the base's: a 3 to 4 cm trunk under a collapsing wisp, plainly worse than the base's 22 to 25 cm. Its `leafArea` is the corners' point, 1.67 cm², between a needle and a blade; 23,810 leafy phytomers of that are 4 m² in the grower against 45 m² drawn.
+
+- **Decision:** its `leafArea` is 15.7 cm² on every age, the mean of the oak's 18.1, the beech's 15.7 and the birch's 13.2 (estimated: the ordinary tree is a deciduous broadleaf, as its `leafYears` already says; the point between a needle, a blade and a frond is no tree's leaf).
+- **Expected:** about 37 m² of leaf, a section of 113 cm², a 12 cm trunk at 40; it stands. Still under the base's trunk: it is a sparse tree (drawn leaf area index 0.8).
+- **Refuted if** it still cannot hold itself up, or its crown changes shape by its own deeper shade.
+
+**The beech's short shoot.** A Fable source check (web, read-only) found no measured lifespan of a *Fagus sylvatica* short shoot in anything retrievable; Roloff 1989 ("Kurztrieblebensdauer", Schweiz. Z. Forstwes. 140: 943-963) is the likely measured source and was not reachable. Read in text: Aas (LWF Wissen 86, the beech's morphology): short-shoot chains reach "gut und gerne 10 - 15 Jahre", a review statement without a measurement; Thiébaut & Puech 1984: a short unit has 3 to 5 internodes (isolated trees); Renard 1971 through Thiébaut & Puech: 77% of leaves on short units [secondary]. The preset's four years is "estimated, from three", set so a drawn leaf area index reached the literature's with blades drawn 2.14 times the measured leaf.
+
+- **Decision:** the short shoot's `lifespan` is 12 (estimated: the middle of Aas's 10 to 15, an expert's statement, not a measurement; to be replaced by Roloff 1989 when read). Its yearly viability stays 0.9.
+- **Expected:** a short shoot's expected life rises from 3.4 to 7.2 years where its bearer lasts (shoots live 5, branches 10), so leaf about 1.4 to 1.6 times, the gap to Bartelink's leaf per crown area (3.38 x cpa^1.028; the grower stands at about 2.3 per m²). Trunk about 1.2 times: the beech 19 to 20 cm at 40, the Two Trees about 1.3 m.
+- **Refuted if** the leaf per crown projection passes about 5, or the drawn crown (still at 2.14 times blades until Phase 5) reads as a solid mass.
