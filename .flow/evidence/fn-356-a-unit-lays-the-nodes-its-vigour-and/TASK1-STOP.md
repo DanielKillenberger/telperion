@@ -120,3 +120,78 @@ The paper's estimate assumed the faint units carry the leaf they carry today. Me
 - **Not done:** R3, R5, R6, the long walk, vitest, and both guards.
 - **`.worktrees/fn-356-base`:** detached at `6da2ff9a3`, with its own target in the runner's `raw/raw/target-fn-356-base`.
 - **The runner copy** in `raw/runner/` carries the `census` subcommand.
+
+# The second design: stopped at the narrow suites, 12 Nov 2026
+
+The host withdrew the quota and wrote the second design: a tip whose unit is less than one node ends. Built, it fails the spec's refutation: closed-form oracles and independence tests fail, and three walks jump. The census and the drawn trees were not run, since the order stops at the first refutation.
+
+## What was done
+
+| Commit | What |
+|---|---|
+| `0eb6c4fd3`, `022ec1d2c` | The quota and its R1 test reverted. The crates are as at `6da2ff9a3`. |
+| `5f07de93f` | The "beech with long-kept bearers" fixture takes the 0.95 shed bound. Measured at seed 1: 0.932 (234,037 of 251,179) with the beech's short shoot at 12 years, and 0.793 (148,906 of 187,687) with the fixture's short shoot set back to 4 years. The 12-year short shoot is what moved it. Seed 7 passes under 0.95. |
+| `d954b888c` | R1's tests, `grow/tip_tests.rs`, red before the rule. |
+| `90e3b3dda` | The rule. |
+
+**The rule** (`grow/advance.rs`, `grow/unit.rs`, `grow/shoot.rs`):
+- Beside the ground hazard, a living tip's viability is multiplied by `min(1, presence x N)`, f32 in the one cycle as the other factors are. It is decided on the same VIABILITY draw, and its lead sizes the unit's presence as the shade hazard's does.
+- At 1 or more no new step is taken.
+- An axis with no pencil (made this cycle) is whole.
+
+**Choices made (for the host):**
+- **Presence** is `Pencil::base_scale x running`, which is also the balance's "size". `kept` is not included.
+- **N** is the sum of the unit's node presences over all its zones, by degree, before any lifespan's cut. The survival already runs over the unit's share, so a cut unit is not treated as faint.
+
+**Dominance in the stored scale:**
+- `base_scale` = the bearer node's unsized scale x the birth draws' presences x the lateral's dominance share. Dominance is not kept apart, so the stored scale is used.
+- On the oak and the beech every age's `form.dominance` is 0, in `oak.rs`, `beech.rs` and the presets' value files. So on both, at 40 or any age, no lateral of a whole draw falls under `1/N` by dominance alone: 0, by code; no run was needed.
+- Dominance is set on the spruce (0.35), the birch (0.2) and the ordinary tree (0.117). There a share is at least `1 - dominance`, so only a unit under about 1.5 nodes on the spruce could fall under by dominance alone. That was not counted.
+
+**R1 tests:**
+- `a_tip_under_a_node_ends`: the lit oak fixture, every draw whole, the lateral kinds' dominance at 0.99, age 7, seeds 1 and 7. Before the rule, the trunk's laterals that lay under a quarter of a node grew 100 of the 100 units their age allowed: red. With the rule, they grow under half, and whole laterals grow every unit.
+- `a_tree_whose_every_tip_lays_a_node_is_as_it_was`: the same fixture without dominance. Every lateral's made presence is exactly 1. The digests are pinned from `6da2ff9a3` and are equal under the rule: (8086766086517289291, 16931195750158535152).
+
+## The narrow suites at `90e3b3dda`
+
+771 tests run: 756 passed, 15 failed, in 822 s, starting at load 1.7 (`raw/narrow2.log`). Nothing was repinned and no test was changed.
+
+**Closed-form oracles** (the GreenLab closed form, or a simulator, against the grower):
+
+| Test | What it promises | By how much it fails |
+|---|---|---|
+| `closed_form::kept::tests::branches_keep_on_average_what_the_formula_keeps` | the kept wood on average matches the formula | born 3: P(T ≤ 0) 0.103 against 0.05 |
+| `closed_form::a_fractional_bud_place_is_counted_at_its_share` | a fractional bud place is counted at its share | PA 2 cycle 2: 2.156 against 2.3 |
+| `closed_form::a_bud_reaching_its_stage_in_part_is_counted_whole` | a bud reaching its stage in part counts whole | PA 3 cycle 4: 1.499 against 2 |
+| `closed_form::the_closed_form_counts_the_relay_of_a_move_all_but_made` | a relay's count | age 2, PA 2 cycle 2: 0.323 against 0.5 |
+| `death::mortal_apices_grow_the_expected_counts` | mortal apexes grow the expected counts | PA 2 cycle 3: 0.19 off |
+| `dormant::sleeping_buds_grow_the_expected_counts` | sleeping buds' expected counts | PA 2 cycle 4: 18.13 against 19.57 |
+| `dormant::a_bud_never_wakes_in_a_stage_it_outlived` | waking counts by stage | PA 2 cycle 4: 16.15 against 16.96 |
+| `settings::the_settings_grow_the_expected_counts` | every setting grows the expected counts | PA 2 cycle 4: 0.89 off |
+| `oracle::stochastic_structures_match_the_simulators_in_distribution` | the grower matches the simulators in distribution | the grower refused a tree: `Err(Collapsed)` |
+
+**Independence:**
+
+| Test | What it promises | What failed |
+|---|---|---|
+| `lineage::adding_a_branch_reshuffles_nothing_else` | adding a branch moves no other | seed 1, p 0.20: s/10.0/1.1 regrew, units [6, 6] against none |
+| `dormant::adding_a_sleeping_bud_moves_no_other_draw` | a sleeping bud added moves no other draw | seed 2, p 0.50: s/5.0/r/7.0/2.0/4.0/0.0 vanished |
+| `form::dominance_leaves_a_few_laterals_whole` | "the same tree" | 644 against 156 |
+
+**Walks** (by degree):
+- `the_release_law_changes_the_tree_by_degree` jumps on:
+  - `sleeping: states[1].zones[0].delay`, seed 2 at 0.32;
+  - `sleeping: states[0].zones[1].rate`, seed 3 at 0.7618;
+  - `sleeping: states[0].zones[1].delay`, seed 3 at 1.68, plain and "limbs rise and erect".
+- `light_changes_the_tree_by_degree` jumps on `light: states[1].shade_hazard`, seed 2 at 0.525 and at 0.495, with a refinement floor of 0.0.
+
+**Pins:** `every_preset_grows_the_tree_it_grew_at_both_ends_of_the_dial` moved on oak, spruce and birch (and others), as any tree change moves it. It was not repinned.
+
+**Not determined:** why the independence tests move. These are inferences, not measured:
+- The windows of a zone's node presences read the expected wood of its laterals and sleeping buds (`node_wood`), so a setting that adds a bud moves `N` by degree.
+- A tip's presence reads its bearer node's scale.
+
+## Not done
+
+- R4's census and the drawn oak on the second design. The probe for the head is rebuilt (`raw/raw/target-fn-355`), so both are one command each.
+- R2's walk check (`raw/r2-walks-unrun.diff` is the first design's), R3, R5, R6, the long walk, vitest, and both guards.
