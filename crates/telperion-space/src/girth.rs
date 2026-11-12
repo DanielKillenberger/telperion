@@ -14,7 +14,9 @@
 //!
 //! Wood is never lost: a crown removed or shed lays nothing more and takes
 //! nothing away. At the settle a phytomer's radius is sqrt(T × share / π),
-//! `share` the fade its axis is drawn at.
+//! `share` the fade its axis is drawn at: its applied fade, the least on
+//! its way from the seed, the same number its scale carries (a subtree
+//! fades once, fn-359).
 use crate::species::{Form, PaState, Species};
 use crate::structure::{Axis, Join, Node, Origin, Structure};
 use crate::upward::Tree;
@@ -123,25 +125,8 @@ pub(crate) fn lay<P: Node + Send>(
     );
 }
 
-/// Every kept axis's share as drawn: its own fade times the share of the
-/// axis it stands on, as its scale takes its bearer's (`geometry::scale`).
-pub(crate) fn shares(axes: &[Axis], index: &[usize], fade: &[f64]) -> Vec<f64> {
-    let mut own = vec![1.0; axes.len()];
-    for (&k, &f) in index.iter().zip(fade) {
-        if k != usize::MAX {
-            own[k] = f;
-        }
-    }
-    let mut share = vec![1.0; axes.len()];
-    for k in 0..axes.len() {
-        let above = axes[k].origin.parent().map_or(1.0, |p| share[p]);
-        share[k] = own[k] * above;
-    }
-    share
-}
-
 /// Every phytomer's radius from its wood, `sqrt(T × share / π)`, `shares`
-/// each axis's (`shares`); each relay joined at the radius of the wood
+/// each axis's applied fade (`Shed::applied`); each relay joined at the radius of the wood
 /// its join stands in, on both sides, since its leaf enters its bearer at
 /// the tip.
 pub(crate) fn thicken(structure: &mut Structure, species: &Species, shares: &[f64]) {

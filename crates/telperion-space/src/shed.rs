@@ -4,8 +4,11 @@
 //! by its presence, so a branch whose last growth a setting is unmaking
 //! shrinks away before it is shed; it is dropped once its fade reaches
 //! nothing, which for whole presences and delays is the cycle GreenLab
-//! drops it in (fn-206).
-use crate::contract::presence::{carry, fade, q, real, times};
+//! drops it in (fn-206). A subtree fades once (fn-359): an axis is drawn
+//! at its applied fade, the least of its own and its bearers', so a line
+//! carried on past its last full-sized living wood is drawn at its living
+//! apex's size however many axes carry it.
+use crate::contract::presence::{carry, fade, q, real, times, ONE};
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
 
@@ -57,12 +60,11 @@ pub(crate) fn lasting(species: &Species, laterals: &[Vec<Vec<f64>>]) -> Vec<Opti
     last
 }
 
-/// What shedding leaves: the kept axes, each grown axis's index among
-/// them (`usize::MAX` where it was shed) and each grown axis's fade.
+/// What shedding leaves: the kept axes and each one's applied fade, the
+/// share its scale and its girth are drawn at.
 pub(crate) struct Shed {
     pub axes: Vec<Axis>,
-    pub index: Vec<usize>,
-    pub fade: Vec<f64>,
+    pub applied: Vec<f64>,
 }
 
 pub(crate) fn shed(axes: Vec<Axis>, species: &Species, age: u32) -> Shed {
@@ -125,6 +127,7 @@ pub(crate) fn shed_past(
     let (fade, reported) = fades(&axes, species, age, (given, gone, stands), report);
     let mut index = vec![usize::MAX; axes.len()];
     let mut kept = Vec::with_capacity(axes.len());
+    let mut applied: Vec<f32> = Vec::with_capacity(axes.len());
     for (i, mut axis) in axes.drain(..).enumerate() {
         // Gone with its parent, or once its fade has reached nothing: its
         // subtree idle past its delay by a whole cycle, in the time its
@@ -139,7 +142,14 @@ pub(crate) fn shed_past(
         if lost {
             continue;
         }
-        axis.vigour *= fade[i];
+        // Its applied fade: the lesser of its bearer's and its own, which
+        // is one on the seed and on a continuation. Its vigour takes only
+        // what its own asks beyond its bearers', in f32: one where they
+        // have applied as much, its own fade where they applied none.
+        let bearer = axis.origin.parent().map_or(ONE, |p| applied[index[p]]);
+        let own = bearer.min(q(fade[i]));
+        axis.vigour *= real(own / bearer);
+        applied.push(own);
         match &mut axis.origin {
             Origin::Seed => {}
             Origin::Continuation { parent }
@@ -151,8 +161,7 @@ pub(crate) fn shed_past(
     }
     let shed = Shed {
         axes: kept,
-        index,
-        fade,
+        applied: applied.into_iter().map(real).collect(),
     };
     (shed, reported)
 }

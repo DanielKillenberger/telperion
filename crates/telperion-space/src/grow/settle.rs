@@ -4,7 +4,7 @@ use super::{Grower, Grown, Pass, Request, Stage};
 use crate::contract::presence::{q, real, times};
 use crate::error::{Error, Result};
 use crate::geometry::{place, scale};
-use crate::girth::{shares, thicken};
+use crate::girth::thicken;
 use crate::presence::assign;
 use crate::sag;
 use crate::shed::{shed, shed_past};
@@ -73,7 +73,6 @@ impl Grower {
             None => shed(axes, species, request.age),
         };
         stage(Stage::Pass(Pass::Shed));
-        let shares = shares(&shed.axes, &shed.index, &shed.fade);
         let structure = Structure {
             age: request.age,
             pas: species.states.len(),
@@ -84,7 +83,7 @@ impl Grower {
         }
         Ok(Settling {
             structure,
-            shares,
+            shares: shed.applied,
             grown: count,
             marked,
             species: owned,
@@ -97,7 +96,7 @@ impl Grower {
 /// its presences assigned, before its scale, girth and lay.
 pub(super) struct Settling {
     pub structure: Structure,
-    /// Each kept axis's share as drawn (`girth::shares`).
+    /// Each kept axis's share as drawn: its applied fade (`Shed::applied`).
     pub shares: Vec<f64>,
     pub grown: u64,
     pub marked: Vec<u64>,

@@ -72,7 +72,7 @@ fn line(apex: f64) -> Vec<Axis> {
 
 /// Each kept axis's share as drawn, which its girth reads.
 fn shares(shed: &Shed) -> Vec<f64> {
-    crate::girth::shares(&shed.axes, &shed.index, &shed.fade)
+    shed.applied.clone()
 }
 
 /// Each kept axis's base scale, settled at `age`.
