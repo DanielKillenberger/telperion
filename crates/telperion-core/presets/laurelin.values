@@ -587,6 +587,11 @@
 # the branch's medial zone 85% long of the unit's 2.8 laterals (SHOOT
 # 0.53, SHORT 0.17 for SHORT 0.7), and every reiterate's medial zone 85%
 # long at its 0.57 (SHORT 0.085, BRANCH 0.485 for 0.3 and 0.27).
+# fn-354 task 7 (host, 12 Nov 2026): a short shoot lives twelve years
+# (`ages/14/lifespan`), estimated: the middle of Aas's "gut und gerne
+# 10 - 15 Jahre" for short-shoot chains (LWF Wissen 86), an expert's
+# statement, not a measurement; to be replaced by Roloff 1989
+# ("Kurztrieblebensdauer") when read. Its yearly viability stays 0.9.
 /space/ages/9/shadeShort/14 = 0.38
 /space/ages/9/zones/0/buds = 1.0
 /space/ages/9/zones/0/nodes/min = 1.0
@@ -637,7 +642,7 @@
 /space/ages/12/zones/1/nodes/min = 2.0
 /space/ages/12/zones/1/nodes/max = 3.0
 /space/ages/12/zones/1/lateral/14 = 0.6
-/space/ages/14/lifespan = 4.0
+/space/ages/14/lifespan = 12.0
 /space/ages/14/continuation = 0.0
 /space/ages/14/viability = 0.9
 /space/ages/14/shedding = 1.0

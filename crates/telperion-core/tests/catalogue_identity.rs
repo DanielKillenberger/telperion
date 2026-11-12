@@ -54,8 +54,9 @@ fn every_preset_is_the_family_it_was() {
         // sag to its wood's 4ρg/E; fn-354 R5 gave the spruce, the birch and
         // the ordinary tree their leaf years; the birch's sapwood 4.6; R7
         // gave every age a shade table and the beech its full-light tables;
-        // task 7 gave the ordinary tree a leaf of 15.7 cm².
-        10_350_555_559_716_766_246,
+        // task 7 gave the ordinary tree a leaf of 15.7 cm² and the beech's
+        // short shoot a life of twelve years.
+        16_645_187_557_545_691_998,
         "{}",
         digest(&text)
     );
@@ -114,8 +115,9 @@ fn every_walk_is_the_walk_it_was() {
         // set every age's sag to its wood's 4ρg/E; R5 gave the spruce, the
         // birch and the ordinary tree their leaf years; the birch's sapwood
         // 4.6; R7 gave every age a shade table and the beech its full-light
-        // tables; task 7 gave the ordinary tree a leaf of 15.7 cm².
-        2_951_567_655_200_818_636,
+        // tables; task 7 gave the ordinary tree a leaf of 15.7 cm² and the
+        // beech's short shoot a life of twelve years.
+        16_404_614_338_522_828_711,
         "{}",
         digest(&text)
     );

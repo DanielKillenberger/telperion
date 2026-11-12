@@ -359,9 +359,11 @@ pub fn beech() -> Species {
     // branches. It bears its leaves at its tip while it lives (fn-248):
     // four, one a metamer of [LET]'s "usually 3 or 4", the beech bearing
     // one leaf a node (inferred); fanned 0.6 rad either side (estimated).
-    // It lives four years (estimated, from three), so the crown's leaf area
-    // index stands at 5.2 at 40 and 7.3 at 80, in the range measured in
-    // beech forests (Glatthorn et al. 2017: 7.1 and 7.4 on average).
+    // It lives twelve years (fn-354 task 7, host, 12 Nov 2026; estimated:
+    // the middle of Aas's "gut und gerne 10 - 15 Jahre" for short-shoot
+    // chains, LWF Wissen 86, an expert's statement, not a measurement; to
+    // be replaced by Roloff 1989, "Kurztrieblebensdauer", when read). Its
+    // yearly viability stays 0.9.
     let short = PaState {
         cluster_leaves: 4.0,
         cluster_spread: 0.6,
@@ -385,7 +387,7 @@ pub fn beech() -> Species {
             insertion_spread: 0.0,
             tropism_spread: 0.0,
         },
-        ..state(4, 0.0, vec![zone(3, 5, &[])])
+        ..state(12, 0.0, vec![zone(3, 5, &[])])
     };
     let mut ages = vec![
         (TRUNK, trunk),

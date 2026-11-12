@@ -27,17 +27,19 @@ use crate::{beech, oak, palm, spruce, Species};
 // the reach when the pipe model's girth went: the pins are re-taken over
 // those three fields. fn-354 R7 re-pinned the beech's from 2 years on: its
 // tables hold full light, 85% of its long laterals' kind (Lemoine 2002).
+// fn-354 task 7 re-pinned the beech's from age 5 on: its short shoots live
+// twelve years, not four (Aas, estimated).
 const PINNED: [(&str, u32, u64); 40] = [
     ("beech", 1, 0xa2e130ba18028771),
     ("beech", 2, 0x03bc696d4cdfb040),
     ("beech", 3, 0x009517b81c6fa372),
-    ("beech", 5, 0x613360fc6c404a9f),
-    ("beech", 8, 0xe98b8a669dffbbc6),
-    ("beech", 13, 0x7f2fc5431ef443db),
-    ("beech", 21, 0x0a2f3002ce70f181),
-    ("beech", 34, 0x45152ee12b0ea134),
-    ("beech", 55, 0x4c2be3b2b7dfd2d1),
-    ("beech", 80, 0x93f1f15db3c8025b),
+    ("beech", 5, 0x2cd7d25d39d2d2f9),
+    ("beech", 8, 0x0dd380b8633c2aa7),
+    ("beech", 13, 0xabb50900911070af),
+    ("beech", 21, 0x2b7e2e0bc690bcd3),
+    ("beech", 34, 0x83a3f8bfab63fa0b),
+    ("beech", 55, 0xe8fe297d03aaf235),
+    ("beech", 80, 0xdc45213cb6d254e2),
     ("spruce", 1, 0x1bd7503c848b7e4e),
     ("spruce", 2, 0x63658628179a71ef),
     ("spruce", 3, 0x1e5ee6e850a43c37),
