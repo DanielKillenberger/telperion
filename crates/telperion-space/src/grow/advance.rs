@@ -56,14 +56,6 @@ impl Shoot<'_> {
         };
         let step = carried.unit(state.life(), 1);
         let share = step.share;
-        // The grower does not grow what is under its grain (fn-356): a tip
-        // under it ends here, before its unit, as a dead apex does.
-        if self.under_grain(apex.axis, cycle) {
-            self.axis_mut(apex.axis).apex_end = Some(cycle - 1);
-            self.draws_mut(apex.axis).failed = true;
-            *self.units_mut(apex.axis) = apex.spent + share;
-            return Ok(());
-        }
         // A unit a lifespan's fraction cuts, the age's last or its
         // successor's rest of the cycle, lays that share of each zone's
         // nodes, whole (fn-231); every other unit all of them at its share.

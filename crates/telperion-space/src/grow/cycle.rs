@@ -89,7 +89,7 @@ impl Grower {
     }
 
     /// Each living tip's presence times the share its window reads at the
-    /// start of `cycle`, where it has a pencil (fn-356, `Shoot::under_grain`).
+    /// start of `cycle`, where it has a pencil (fn-356, `Shoot::grain`).
     fn grain_reading(&self, cycle: u32) -> Vec<f64> {
         let (Some(sketch), true) = (&self.sketch, cycle <= self.rules.windows.year() + 1) else {
             return Vec::new();
