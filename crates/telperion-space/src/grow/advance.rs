@@ -88,6 +88,19 @@ impl Shoot<'_> {
             (true, true) => f64::from(viability as f32 * (1.0 - state.ground_hazard as f32)),
             (true, false) => viability * (1.0 - state.ground_hazard),
         };
+        // A tip whose unit is less than one node ends (fn-356): one more
+        // factor, min(1, presence x nodes), its presence the faintness it
+        // is grown at and its nodes those its unit lays, whole.
+        let lays = self.faint(apex.axis).map(|faint| {
+            let nodes = self.nodes(pa, unit, cycle);
+            (faint as f32 * nodes).min(1.0)
+        });
+        let viability = match (lays, one) {
+            (None, _) => viability,
+            (Some(f), _) if f >= 1.0 => viability,
+            (Some(f), true) => f64::from(viability as f32 * f),
+            (Some(f), false) => viability * f64::from(f),
+        };
         // Decided on the contract's threshold (FINE-CONTRACT.md D5); the
         // real survival sizes the unit's presence.
         // A failed unit's relay's first unit holds a part of a tick more
