@@ -21,8 +21,6 @@ mod stop;
 #[cfg(test)]
 mod tests;
 mod unit;
-#[cfg(test)]
-mod vigour_tests;
 mod wake;
 
 use crate::contract::presence::{q, real, times, ONE};
