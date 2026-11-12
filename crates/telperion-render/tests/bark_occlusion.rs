@@ -7,9 +7,13 @@ use telperion_render::{render, Camera, Renderer, SceneRow, Still, View, STILL_FO
 
 const SIZE: (u32, u32) = (480, 300);
 
+/// The oak's trunk at 2 m across the frame's middle. fn-354's wood took that
+/// trunk at 80, seed 1, from 222 to 127 pixels wide on this frame's middle
+/// row, so the camera came in from 2.47 m to 1.42 m along the same line to
+/// frame the bark it framed before.
 fn trunk() -> Camera {
     Camera {
-        position: Vec3::new(1.7307636095778745, 2.2967023330704928, -1.7307636095778745),
+        position: Vec3::new(0.995, 2.171, -0.995),
         target: Vec3::new(0.0, 2.0, 0.0),
         field_of_view: 38.0,
         near: 0.01,
