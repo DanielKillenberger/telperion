@@ -22,7 +22,8 @@ fn a_growing_phytomer_holds_what_growth_reads() {
 }
 
 /// The unlaid oak, beech and spruce in light, pinned at `8d15b662c`,
-/// before the grower held its phytomers narrow.
+/// before the grower held its phytomers narrow; re-pinned by fn-359 where
+/// a fade below one nests in another (oak 1, beech 1, spruce 1 and 7).
 #[test]
 fn a_growing_phytomer_is_read_as_it_was() {
     let trees = [
@@ -30,19 +31,19 @@ fn a_growing_phytomer_is_read_as_it_was() {
             "oak",
             oak(),
             20,
-            [6125320244909560580, 10572993160139470314],
+            [10364051823450299320, 10572993160139470314],
         ),
         (
             "beech",
             beech(),
             30,
-            [14165751050450917155, 11778063828277882196],
+            [2408497720773702210, 11778063828277882196],
         ),
         (
             "spruce",
             spruce(),
             30,
-            [17982918076840580537, 14152319693416367426],
+            [10160230377130830586, 13617150108993612047],
         ),
     ];
     for (name, species, age, pins) in trees {
