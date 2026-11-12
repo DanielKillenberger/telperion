@@ -80,6 +80,18 @@ The host had written that a refutation here goes to the owner. It reads this res
 - **The shed-certain shortcut** must mark a lateral after it is rounded, from the base it then has. Why 16 marked laterals stood is not known; the builder finds it. If the shortcut's certainty cannot hold under rounding, that is returned.
 - The refutations stand as written for this build, and it is the last: an oracle, independence test or walk failing after this change goes to the owner.
 
+### The one-site build: a child lifted above its bearer (host, 12 Nov 2026)
+
+Built (`edd90ebba`): the extent bound fails by more, 44.6% on one axis, and one lateral marked certain to be shed still stands on the beech. Measured cause of the first: a bud is lifted to its own kind's floor, and where its bearer is fainter than that floor the bud then stands above its bearer (a vigour of 4.68 against its bearer's node). That is a defect of the host's design, plain once seen: nothing a faint branch bears may be larger than the branch allows, for the bound and for the branch to vanish by degree with what it bears.
+
+The host twice wrote that a failure here would go to the owner, and told the owner so. It is going on once more and records that it is breaking its own stated stop, because the owner's condition for a return (no further attempt that rests on a measurement) is not met: the cause is measured and the remedy is one term.
+
+- **The floor is capped by the bearer:** `tau = min(1, GRAIN / share, the bearer node's faintness)`. A bud is lifted at most to where its bearer stands; its expected presence is unchanged as before.
+- Hypothesis, not shown: the lateral that outlives its certain shedding is the same defect (a child weighted above its bearer in the fade's lived time). If it still stands after the cap, the builder reports which presence the fade read.
+- Cost of the cap, known in advance: the shoots of a faint limb stay as faint as the limb. How much of the count that leaves is not known.
+
+**The end of this fault inside Phase 2, whichever way it goes:** after this build the host makes no further design for it. If a closed-form oracle, an independence test, a walk, the extent bound or the shortcut's tests fail, or held phytomers on the oak at 120 fall by less than half, the rule is reverted whole, the fault is written up with its numbers for the owner, and the run goes on with what does not depend on it.
+
 ## Acceptance Criteria
 
 - **R1.** The rule (the fourth design) is in the grower for every species, with no branch by species; a tree of whole elements is byte-equal to today's; over many keys a faint element under its floor is kept in the share `f / tau` and then stands at `tau` (both tested on fixtures, the second as a count within its sampling error).
