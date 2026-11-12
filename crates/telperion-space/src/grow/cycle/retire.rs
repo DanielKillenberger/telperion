@@ -19,11 +19,16 @@
 //! (fn-270 R3), so a tree grows on from any age: a kept lateral that sheds
 //! waits among the fading, its living final, and is evaluated again once
 //! its fade there reaches none.
+//!
+//! A retired root is read only through its bearer: its carry into the
+//! bearer's living, at every settle and every later evaluation of a subtree
+//! holding it, as long as that bearer is held (fn-357, READING.md). Once
+//! records are let go (`compact.rs`) it keeps only that, a `Stand`.
 use super::{Grower, Working};
 use crate::contract::presence::{q, real, times};
 use crate::dormant::Woken;
 use crate::presence::{assign_living, Draws};
-use crate::shed::{faded, subtree_living, Living};
+use crate::shed::{faded, subtree_living, Living, Stand};
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
 use std::borrow::Cow;
@@ -59,9 +64,12 @@ pub(in crate::grow) struct Retirement {
     /// only where the records are (`Working::keep_records`), for its
     /// roots are indices.
     pub log: Vec<(usize, u32, u8, Living)>,
-    /// The axes let go inside a retired subtree whose records are still
-    /// held (`compact.rs`).
+    /// The axes let go with a retired subtree, its root included, whose
+    /// records are still held (`compact.rs`).
     pub(super) loose: usize,
+    /// The retired roots whose records are let go, each by its bearer, in
+    /// the bearers' order (fn-357).
+    pub(super) stands: Vec<Stand>,
 }
 
 impl Retirement {
@@ -78,12 +86,28 @@ impl Retirement {
         }
     }
 
-    /// The subtrees retired.
+    /// The subtrees retired: the roots held, and those let go whose
+    /// bearer has not been retired since.
     pub fn roots(&self) -> usize {
-        self.fate
-            .iter()
-            .filter(|f| matches!(f, Fate::Root(_)))
-            .count()
+        let held = |f: &Fate| matches!(f, Fate::Root(_));
+        let bearing =
+            |s: &&Stand| matches!(self.fate[s.bearer as usize], Fate::Open | Fate::Kept(_));
+        self.fate.iter().filter(|f| held(f)).count() + self.stands.iter().filter(bearing).count()
+    }
+
+    /// The retired roots let go that axis `i` bears.
+    pub(super) fn stands_of(&self, i: usize) -> &[Stand] {
+        let from = self.stands.partition_point(|s| (s.bearer as usize) < i);
+        let to = self.stands.partition_point(|s| (s.bearer as usize) <= i);
+        &self.stands[from..to]
+    }
+
+    /// The retired roots let go whose bearer is neither retired nor inside
+    /// a retired subtree: those the settle carries up.
+    pub(in crate::grow) fn standing(&self) -> Vec<Stand> {
+        let bearing =
+            |s: &&Stand| matches!(self.fate[s.bearer as usize], Fate::Open | Fate::Kept(_));
+        self.stands.iter().filter(bearing).copied().collect()
     }
 }
 
@@ -207,11 +231,15 @@ impl Grower {
     /// for it by `living`.
     fn let_go(&mut self, w: &mut Working, c: usize, living: Living) {
         w.retire.fate[c] = Fate::Root(living);
+        w.retire.loose += 1;
         let mut gone = vec![c];
         while let Some(i) = gone.pop() {
             if i != c && w.retire.fate[i] != Fate::Inside {
+                // A root retired before is counted loose already.
+                if !matches!(w.retire.fate[i], Fate::Root(_)) {
+                    w.retire.loose += 1;
+                }
                 w.retire.fate[i] = Fate::Inside;
-                w.retire.loose += 1;
             }
             self.axes[i].phytomers = Vec::new();
             let d = &mut self.draws[i];
@@ -239,7 +267,17 @@ fn evaluate(t: &Tree, w: &Working, c: usize) -> Verdict {
         Fate::Kept(l) | Fate::Root(l) if part[k] != c => Some(l),
         _ => None,
     };
-    let living = subtree_living(&local, t.species, t.age, &given);
+    // The roots let go on each axis it descends through, by local index.
+    let stands: Vec<Stand> = (part.iter().enumerate())
+        .filter(|&(_, &i)| i == c || !stub(i))
+        .flat_map(|(k, &i)| {
+            (w.retire.stands_of(i).iter()).map(move |s| Stand {
+                bearer: k as u32,
+                ..*s
+            })
+        })
+        .collect();
+    let living = subtree_living(&local, t.species, t.age, (&given, &stands));
     let axis = &t.axes[c];
     let delay = t.species.states[axis.pa].shedding;
     if !(sheds(axis, t.species) && faded(delay, axis.birth, living, t.age) <= 0.0) {

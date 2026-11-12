@@ -5,13 +5,20 @@
 //! wood nothing, the evaluation of an ancestor at its fate, the fades at
 //! its living. Those axes are then dropped from every store
 //! the grower keeps by axis, and every axis held moves down to its place
-//! among those held. The order of the held axes is kept, so every pass
-//! visits them, and sums them, in the order it did; the tree grows the
-//! same to the bit. It runs once the axes let go but held reach a
-//! quarter of those held, so its cost is spread over the cycles.
+//! among those held. The root goes with them (fn-357): its own fade is
+//! none for good, and all that is read of it is its carry into its
+//! bearer's living, so it keeps a `Stand` of 24 bytes, its bearer, node,
+//! birth, vigour and living, until its bearer is retired in turn. The
+//! order of the held axes is kept, so every pass visits them, and sums
+//! them, in the order it did; the tree grows the same to the bit. It runs
+//! once the axes let go but held reach a quarter of those held, so its
+//! cost is spread over the cycles.
 use super::super::Grower;
 use super::retire::Fate;
 use super::Working;
+use crate::contract::presence::{q, real, times};
+use crate::shed::Stand;
+use crate::structure::Origin;
 
 /// Each axis's new index, or none where it is let go; past `map`'s end,
 /// moved down by every axis let go.
@@ -59,9 +66,9 @@ impl Remap {
 }
 
 impl Grower {
-    /// The axes inside a retired subtree let go where enough have
-    /// gathered.
-    pub(in crate::grow) fn compact(&mut self) {
+    /// The axes of a retired subtree let go where enough have gathered,
+    /// the tree grown to `age`.
+    pub(in crate::grow) fn compact(&mut self, age: u32) {
         let Some(w) = self.working.as_deref() else {
             return;
         };
@@ -76,9 +83,11 @@ impl Grower {
         if r.gone == 0 {
             return;
         }
+        let stands = self.stands(w, &r, age);
         self.rename_axes(&r);
         let w = self.working.as_deref_mut().expect("a working set");
         rename_working(w, &r);
+        w.retire.stands = stands;
         if let Some(c) = self.census.as_mut() {
             c.compact(&|i| r.held(i));
         }
@@ -130,14 +139,54 @@ impl Grower {
     }
 }
 
-/// The axes let go: those inside a retired subtree.
+impl Grower {
+    /// The stands after `r`: each held root's, beside those let go before
+    /// whose bearer is held, each bearer renamed, in the bearers' order.
+    fn stands(&self, w: &Working, r: &Remap, age: u32) -> Vec<Stand> {
+        let renamed = |s: &Stand| Stand {
+            bearer: r.to(s.bearer as usize) as u32,
+            ..*s
+        };
+        let before = w.retire.stands.iter().filter(|s| r.held(s.bearer as usize));
+        let mut out: Vec<Stand> = before.map(renamed).collect();
+        for (i, f) in w.retire.fate.iter().enumerate() {
+            let Fate::Root(living) = *f else {
+                continue;
+            };
+            let axis = &self.axes[i];
+            let Origin::Lateral { parent, node, .. } = axis.origin else {
+                unreachable!("a retired root is a lateral");
+            };
+            // Its vigour as the settle assigns it (`Grower::mark`,
+            // `presence::assign`), a woken bud's share kept, final by now
+            // (`retire.rs`).
+            let mut birth = self.draws[i].birth;
+            if let Some(&k) = w.retire.woken.get(i).filter(|&&k| k != GONE) {
+                let kept =
+                    self.woken[k as usize].kept(&self.axes, &self.draws, &self.successor, age);
+                birth[1] = real(times(q(birth[1]), q(kept)));
+            }
+            out.push(Stand {
+                bearer: r.to(parent) as u32,
+                node: node as u32,
+                birth: axis.birth,
+                vigour: times(q(birth[0]), q(birth[1])),
+                living,
+            });
+        }
+        out.sort_by_key(|s| s.bearer);
+        out
+    }
+}
+
+/// The axes let go: retired roots and those inside them.
 fn gone(w: &Working) -> Remap {
     let n = w.links.len();
     let mut out = vec![false; n];
     let mut todo = Vec::new();
     for (i, f) in w.retire.fate.iter().enumerate() {
         if matches!(f, Fate::Root(_)) {
-            todo.extend(w.by_node[i].iter().map(|&c| c as usize));
+            todo.push(i);
         }
     }
     while let Some(i) = todo.pop() {
@@ -184,5 +233,6 @@ fn rename_working(w: &mut Working, r: &Remap) {
     r.keep(&mut t.fate);
     r.rename(&mut t.pending);
     r.rename(&mut t.fading);
-    t.loose = t.fate.iter().filter(|f| **f == Fate::Inside).count();
+    let loose = |f: &&Fate| matches!(f, Fate::Root(_) | Fate::Inside);
+    t.loose = t.fate.iter().filter(loose).count();
 }

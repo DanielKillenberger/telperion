@@ -373,7 +373,7 @@ impl Grower {
         stage: &mut dyn FnMut(Stage),
     ) -> Result<()> {
         if self.one {
-            self.compact();
+            self.compact(cycle - 1);
         }
         // A growth that goes on reads windows as far as it goes; an entry
         // is the same however far its table runs (fn-355).

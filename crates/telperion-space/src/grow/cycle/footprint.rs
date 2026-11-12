@@ -138,5 +138,6 @@ impl Retirement {
         f.vec("retire.pending", &self.pending);
         f.vec("retire.fading", &self.fading);
         f.vec("retire.log", &self.log);
+        f.vec("retire.stands", &self.stands);
     }
 }

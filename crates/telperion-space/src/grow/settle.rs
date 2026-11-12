@@ -63,7 +63,9 @@ impl Grower {
             Some(w) => {
                 let r = w.retirement();
                 let (given, gone) = (|i| r.root(i), |i| r.inside(i));
-                shed_past(self.axes, species, request.age, (&given, &gone), None).0
+                let stands = r.standing();
+                let fates = (&given as _, &gone as _, &stands[..]);
+                shed_past(self.axes, species, request.age, fates, None).0
             }
             None => shed(self.axes, species, request.age),
         };

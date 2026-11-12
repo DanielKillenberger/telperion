@@ -391,6 +391,61 @@ fn a_tips_path_survives_letting_go_and_a_pause() {
     }
 }
 
+/// Each closed subtree's living, to the bit: those kept by their root's
+/// lineage and birth; and those retired whose bearer is held, by birth,
+/// with the vigour the settle reads of the root (`Grower::mark`,
+/// `presence::assign`), sorted.
+type Livings = (Vec<(u64, u32, [u32; 2])>, Vec<(u32, u32, [u32; 2])>);
+
+fn livings(p: &Paused) -> Livings {
+    use super::super::retire::Fate;
+    let (g, bits) = (&p.g, |l: crate::shed::Living| {
+        [l.lived, l.alive].map(f32::to_bits)
+    });
+    let mut settled = g.settled_copy(p.committed);
+    settled.mark();
+    crate::presence::assign(&mut settled.axes, &settled.draws, &g.species, 1);
+    let r = &g.working.as_ref().expect("a working set").retire;
+    let (mut kept, mut roots) = (Vec::new(), Vec::new());
+    for (i, f) in r.fate.iter().enumerate() {
+        let a = &settled.axes[i];
+        match *f {
+            Fate::Kept(l) => kept.push((a.lineage, a.birth, bits(l))),
+            Fate::Root(l) => roots.push((a.birth, (a.vigour as f32).to_bits(), bits(l))),
+            _ => {}
+        }
+    }
+    let stands = r.standing().into_iter();
+    roots.extend(stands.map(|s| (s.birth, s.vigour.to_bits(), bits(s.living))));
+    kept.sort_unstable();
+    roots.sort_unstable();
+    (kept, roots)
+}
+
+/// fn-357: a retired root let go keeps what is read of it. Grown letting
+/// go of every retired record, its root included, the grower holds stands
+/// in their place, and every closed subtree's living, each one evaluated
+/// with the roots let go below it, is the one a grower keeping every
+/// record holds, to the bit.
+#[test]
+fn a_retired_root_let_go_is_read_as_it_was() {
+    for (species, k) in species() {
+        let species = std::sync::Arc::new(species);
+        let r = request(40, 7, k);
+        let mut eager = Working::default();
+        eager.eager = true;
+        let mut let_go = Paused::with(species.clone(), r, false, eager).unwrap();
+        let mut kept = Paused::with(species, r, false, Working::indexed()).unwrap();
+        for age in [12, 25, 40] {
+            let_go.grow_to(age).unwrap();
+            kept.grow_to(age).unwrap();
+            assert_eq!(livings(&let_go), livings(&kept), "at {age}");
+        }
+        let held = |p: &Paused| p.g.working.as_ref().map(|w| w.retire.stands.len());
+        assert!(held(&let_go) > Some(100) && held(&kept) == Some(0));
+    }
+}
+
 /// The light's deposit is the leaf every open phytomer bears that year
 /// (fn-354 R5): with leaves kept three years, the oak's phytomers of the
 /// two years before deposit beside the year's own, and the area is the
