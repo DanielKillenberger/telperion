@@ -70,6 +70,16 @@ Built (`551494642`), ending every tip under the grain failed one closed-form ora
 
 **What would refute it:** a closed-form oracle, independence test or walk failing (statistical oracles may read more variance: report the statistic, do not repin an oracle); the leaf, height or trunk of the oak at 40 or 120 moving by more than a twentieth on the mean of three seeds; held phytomers at 120 falling by less than half. If it is refuted the host returns to the owner: this is the last attempt on this fault inside Phase 2.
 
+### The fourth design, first build: what held, and one site withdrawn (host, 12 Nov 2026)
+
+Built (`ec9efa1a7`): every closed-form count, death, dormancy, relay and kept-wood oracle held, the simulator comparison held, every independence test held, the release-law and light walks held. Four tests failed: the extent bound (one lateral 0.93% past it), the two tests of the shed-certain shortcut, and a digest pin.
+
+The host had written that a refutation here goes to the owner. It reads this result as not one, and says why: the design's principle (expected presence unchanged, whole elements untouched, nothing read from another branch) passed every test written to catch its three predecessors. What failed is one of its two sites. Rounding a living tip at the start of a later unit lifts an axis past the base its extent bound was computed from; the bound is sound only if an axis's presence never rises after its birth. And the survey measured that an axis's running presence stays near one (first percentile 0.93): faintness is made at birth and inherited, not gathered along an axis.
+
+- **The rule keeps one site: a lateral's birth.** There the lift goes into the base, and the extent bound is computed from the base as lifted. A living tip is not rounded again.
+- **The shed-certain shortcut** must mark a lateral after it is rounded, from the base it then has. Why 16 marked laterals stood is not known; the builder finds it. If the shortcut's certainty cannot hold under rounding, that is returned.
+- The refutations stand as written for this build, and it is the last: an oracle, independence test or walk failing after this change goes to the owner.
+
 ## Acceptance Criteria
 
 - **R1.** The rule (the fourth design) is in the grower for every species, with no branch by species; a tree of whole elements is byte-equal to today's; over many keys a faint element under its floor is kept in the share `f / tau` and then stands at `tau` (both tested on fixtures, the second as a count within its sampling error).
