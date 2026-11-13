@@ -324,3 +324,5 @@ The oak's shoot is now drawn as the base drew it, the floor's 1-in-1 fall, withi
 **R4 rows, this fix:** forks at the floor 0 of 47 and 0 of 33; trunk largest fall 21.7%, 4.4% (k 125), 33.3%, 27.9%; wood vertices unchanged on all four trees; surface stage 4.63, 1.18, 1.87 and 0.66 s.
 
 **Laterals against their bearer, against base:** none floats off anywhere. Newly inside: oak 120 51 (deepest 2.3 mm), oak 200 7 (0.5 mm), spruce 1 (0.3 mm), beech 2 (1.2 mm). Over 1 cm deeper: oak 120 12 (most 2.1 cm, child 113), oak 200 14 (most 3.2 cm, child 4927), beech 1 (1.9 cm, child 115, was 3.5 cm), spruce 0. These are within the host's acceptance above.
+
+**Generation-limit guard (13 Nov):** the ease left five unclassified sites in `samples.rs`. Two are stale: one `.max(0.0)` and one `.max(1e-9)` belonged to the removed fork ease and are dropped from the inventory. Three are new, each classified `algorithm` as a bound of the formula, none a cap on growth: `.max(2.0 * own)` (the scan reach), `.max(below - (at(k) - at(k - 1)))` (the 1-in-1 floor) and `.min(end - at(j - 1))` (the hold length). Both sub-second guards pass; the 84 narrow tests pass unchanged.
