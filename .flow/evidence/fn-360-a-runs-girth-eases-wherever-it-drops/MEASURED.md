@@ -278,7 +278,7 @@ A 0.10 m axis ends, and its run carries on into a 2.2 mm shoot 2 mm beyond it. B
 
 The task closed on the final rule (`e7444be0f`) after the host's acceptance above. Not run: the `pipeline` tests outside the surface, fork, bark and pin filters; the full gate is the phase's, at its landing.
 
-## Follow-up: a run ends at its own radius (held, 13 Nov)
+## Follow-up: a run ends at its own radius (held, 13 Nov; superseded below)
 
 The host asked for `ℓ_j = min(2a_j, S_end − s_(j−1))`, so that every hold is zero at a run's last ring, with the 1-in-1 floor kept, and for a test: a 0.2 m run carrying on into a 3 mm shoot 0.2 m long ends at 3 mm and falls monotonically along the shoot.
 
@@ -287,3 +287,40 @@ The host asked for `ℓ_j = min(2a_j, S_end − s_(j−1))`, so that every hold 
 - The change also breaks `a_rings_girth_reads_only_the_wood_up_to_it`. Each girth now reads the run's end (S_end), so a run cut at a ring ends at that ring's radius: at ring 21 the cut run draws 0.59 against the whole run's 0.6392. That test checked locality, which the change gives up by design. The girth is still a pure function of the run's radii and distances.
 
 The fix (code, spec formula, docs) is held on branch `fn-360-run-end-wip` at `7bcd0e27c`. The red test is reverted on the task branch (`7c1621a89`), so the task branch is green as before. Not re-read: the two sites, oak 200's trunk, g/r and the laterals; they wait on the host's choice of the floor or the test.
+
+## Follow-up landed: a run ends with no hold (host, 13 Nov)
+
+Host decision: the floor stays and outranks the run's end. A run ending where the floor draws it is no worse than the base, which fell 1 in 1 there too. The fix, `ℓ_j = min(2a_j, S_end − s_(j−1))`, is on the task branch (`6d336051d`; docs and spec `7a1cd78fb`), with the tests restated:
+- `a_run_ends_with_no_hold`: below a 0.2 m shoot, the last ring is drawn with no hold, at max(radius, the ring before − distance) = 0.0192 m, under the old rule's 0.1015 m. Below a 0.6 m shoot it ends at 3 mm. Both narrow all along the shoot.
+- `a_rings_girth_reads_only_the_wood_up_to_it_and_the_runs_end`: extending a run moves no ring at least twice the widest upstream radius before the old end, to the bit; a run cut at a ring draws that ring with no hold.
+- The host's wording called the end "the floor-only girth". With no holds anywhere the run's end in that fixture would be 3 mm. The 0.0192 m is the floor from the ring before, which still carries its holds, so the test asserts "no hold at the last ring".
+
+Narrow run: 84 passed, 0 failed. No PAUSE inside the reading run, 02:39–02:42.
+
+**Oak 200's trunk at k 106 to 140: unchanged to the bit** (0.66432, 0.66365, 0.63697, 0.62765, 0.61562, 0.50652, 0.37490, 0.34559, 0.33987, 0.33243). The fork stills would not change, so the sheet was not redrawn.
+
+**The two sites, girth against base:**
+
+| oak 200 k | node | radius | base | before this fix | now |
+|---|---|---|---|---|---|
+| 101 | 10990 | 0.00308 | 0.06917 | 0.16481 | 0.06922 |
+| 149 | 20655 | 0.00157 | 0.01011 | 0.12153 | 0.01016 |
+| 154 | **20660** | 0.00150 | 0.00477 | 0.11721 | 0.00482 |
+| 155 | 20661 (end) | 0.00150 | 0.00373 | 0.11641 | 0.00378 |
+
+| beech 40 k | node | radius | base | before this fix | now |
+|---|---|---|---|---|---|
+| 5 | 39 | 0.00220 | 0.09832 | 0.10042 | 0.10039 |
+| 30 | 64 | 0.00129 | 0.04867 | | 0.06751 |
+| 50 | 84 | 0.00111 | 0.00896 | | 0.02780 |
+| 66 | 100 | 0.00046 | 0.00046 | 0.03307 | 0.00252 |
+| 71 | **126** | 0.00033 | 0.00033 | 0.02731 | 0.00051 |
+| 73 | 128 (end) | 0.00033 | 0.00033 | 0.02514 | 0.00033 |
+
+The oak's shoot is now drawn as the base drew it, the floor's 1-in-1 fall, within 0.05 mm. The beech's shoot (0.17 m from the 0.10 m axis to its tip) ends at its radius. Along the way it is wider than the base drew it (0.068 against 0.049 m at k 30, 0.028 against 0.009 m at k 50), since the hold now fades over the shoot's own length.
+
+**Largest girth / radius per tree:** oak 120 23.7 (node 77471, unchanged); oak 200 31.0 (node 26062, 6.5 mm on 0.21 mm; was 77.9 at node 20660); spruce 40 1.69 (node 360558, unchanged); beech 40 52.5 (node 64, 0.068 m on 1.3 mm, mid-shoot on the same run; was 82.6 at node 126).
+
+**R4 rows, this fix:** forks at the floor 0 of 47 and 0 of 33; trunk largest fall 21.7%, 4.4% (k 125), 33.3%, 27.9%; wood vertices unchanged on all four trees; surface stage 4.63, 1.18, 1.87 and 0.66 s.
+
+**Laterals against their bearer, against base:** none floats off anywhere. Newly inside: oak 120 51 (deepest 2.3 mm), oak 200 7 (0.5 mm), spruce 1 (0.3 mm), beech 2 (1.2 mm). Over 1 cm deeper: oak 120 12 (most 2.1 cm, child 113), oak 200 14 (most 3.2 cm, child 4927), beech 1 (1.9 cm, child 115, was 3.5 cm), spruce 0. These are within the host's acceptance above.
