@@ -337,6 +337,11 @@
 /space/ages/6/form/elevation = 1.05
 /space/ages/6/form/wander = 0.5
 /space/ages/6/form/primary = 0.009
+# The limbs' dominance (fn-361, host, 13 Nov 2026): 0.5, an estimate, not sourced.
+# The smallest of 0, 0.25, 0.5, 0.75 keeping a living crown at 300 on three seeds (an unsourced lifespan premise);
+# Dassot et al. 2019's branch-diameter exponent sits nearer some inequality than none, not separating 0.25 to 0.75.
+# Evidence: .flow/evidence/fn-351-020-the-release-candidate/DIAMETER-SCALING.md and DOMINANCE-SOURCES.md.
+/space/ages/6/form/dominance = 0.5
 /space/ages/6/form/roll = 0.8
 /space/ages/6/form/bendLength = 3.0
 /space/ages/6/form/sapwood = 3.3333333333333335

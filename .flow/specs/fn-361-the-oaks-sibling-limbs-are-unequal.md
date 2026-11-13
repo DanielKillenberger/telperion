@@ -43,7 +43,7 @@ The value is a preset row like the other species' and changes the tree by degree
 
 One row and its comment. No code, no other species, no bough row, no sleeper rule.
 
-Amended (host, 13 Nov 2026): the engine's own table mirrors the preset, as the birch's does, so the limb's `dominance: 0.5` line in `crates/telperion-space/src/oak.rs` is the one code change allowed; `space_presets` stays as it is (the builder's stop, `.flow/evidence/fn-361-the-oaks-sibling-limbs-are-unequal/STOP.md`).
+Amended (host, 13 Nov 2026): the engine's own table mirrors the preset, as the birch's does, so the lines oak.rs needs to mirror the row (the limb's `dominance: 0.5`, and `dominance: 0.0` on the bough, which inherits the limb's form) are the one code change allowed in `crates/telperion-space/src/oak.rs`; `space_presets` stays as it is (the builder's stop, `.flow/evidence/fn-361-the-oaks-sibling-limbs-are-unequal/STOP.md`).
 
 ## Rigor
 
