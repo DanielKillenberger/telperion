@@ -565,4 +565,6 @@ mod relay_tests;
 #[cfg(test)]
 mod repeat_tests;
 #[cfg(test)]
+mod stretch_tests;
+#[cfg(test)]
 mod tests;
