@@ -5,6 +5,7 @@
 //! the legacy envelope builder still compacts. Consumer reads exclude dead nodes.
 mod bloom;
 mod cluster;
+mod handed;
 mod identity;
 mod leafing;
 mod section;
@@ -12,6 +13,7 @@ mod shoot;
 use crate::{math::Vec3, Error, Result};
 pub use bloom::Bloom;
 pub use cluster::{cluster_key, Cluster};
+pub use handed::Handed;
 pub use identity::NodeIdentity;
 #[cfg(test)]
 pub(crate) use identity::NodeKey;
@@ -159,6 +161,16 @@ pub struct Tree {
     /// Empty where `grown` is. Never stored, as `sections`.
     #[cfg_attr(feature = "json", serde(skip))]
     pub bearing: Vec<f64>,
+    /// Leaf-bearing wood handed to nodes by spans laid too short to draw
+    /// only for their stretch (`Handed`, fn-364), by node. Empty where
+    /// every stretch is whole. Never stored, as `sections`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub handed: Vec<Handed>,
+    /// Whether wood that would be drawn with every stretch at 1 follows
+    /// each node on its axis (`Tree::followed`). Empty where every stretch
+    /// is whole. Never stored, as `sections`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub followed: Vec<bool>,
     /// The nodes that may flower, in node order (fn-216). Empty on every
     /// tree whose ages bear none, and never stored, as `sections` is.
     #[cfg_attr(feature = "json", serde(skip))]

@@ -208,6 +208,7 @@ pub(crate) fn scaffold(family: &Family) -> Result<Tree> {
 /// length, built from its rows only where an axis is drawn.
 pub(crate) fn clothe(tree: &mut Tree, inputs: &Inputs) -> Result<()> {
     let p = &inputs.plan.canopy;
+    foliage::plan::hand(tree, *p);
     let blade = match foliage::draws_rachis(p) {
         true => foliage::blade(&foliage::build_element(inputs.plan.element)?),
         false => 0.0,
@@ -246,6 +247,8 @@ fn fitted(tree: &mut Tree) {
     tree.keys.shrink_to_fit();
     tree.grown.shrink_to_fit();
     tree.bearing.shrink_to_fit();
+    tree.handed.shrink_to_fit();
+    tree.followed.shrink_to_fit();
     tree.blooms.shrink_to_fit();
     tree.clusters.shrink_to_fit();
     tree.clustered.shrink_to_fit();

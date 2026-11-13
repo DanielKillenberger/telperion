@@ -1,8 +1,8 @@
-//! fn-364, the host's answer to R1: a stretch shortens the wood and keeps
-//! every node and its leaf, so a run's stations stand for its nodes. They
-//! are counted from the leaf-bearing wood, the stretch left out, and placed
-//! on the wood as laid; a span laid too short to draw hands its
-//! leaf-bearing wood to the node that draws it.
+//! fn-364, host: a stretch moves stations, never makes or removes one.
+//! Each node's own wood is counted as allotted and keeps the kind it has
+//! laid whole; a span merged only for its stretch hands its leaf-bearing
+//! wood to the node it merges into, as its own short run at that node's
+//! tip.
 use super::*;
 use crate::pipeline::executor;
 use crate::pipeline::foliage::prepared::PreparedStations;
@@ -64,27 +64,115 @@ fn stations(family: &crate::family::Family, structure: &Structure) -> PreparedSt
 /// The stations' summed laid span over their count: how far apart they
 /// stand on the wood as laid, on average.
 fn spacing(s: &PreparedStations) -> f64 {
-    let laid: f64 = s
-        .segments
-        .iter()
+    let laid: f64 = (s.segments.iter())
         .map(|g| (g.endpoints[1] - g.endpoints[0]).length())
         .sum();
     laid / f64::from(s.count)
 }
 
-/// A tree laid at half its length draws its stations at half the spacing
-/// and as many of them, but for the spans a halved lay brings inside the
-/// wood of the node they leave, which merge into the next node and may
-/// carry their wood onto wood of another kind (measured 1,794 against
-/// 1,784 on the oak at 12, seed 7).
+/// The three stretched trees the host named: every phytomer at half,
+/// relaid; each axis's last two phytomers past its first at none; every
+/// third phytomer at none.
+fn variants(whole: &Structure) -> [(&'static str, Structure); 3] {
+    [
+        ("half", stretched(whole, 0.5, &|_, _| true, true)),
+        (
+            "tips",
+            stretched(whole, 0.0, &|n, j| j > 0 && j + 2 >= n, false),
+        ),
+        ("thirds", stretched(whole, 0.0, &|_, j| j % 3 == 1, false)),
+    ]
+}
+
+/// What the drawing reads of `structure`: its expansion, its leaf-bearing
+/// wood as converted (own and handed, before any is resolved) and each
+/// drawn node's leaf-bearing kind by its key.
+fn read(
+    family: &crate::family::Family,
+    structure: &Structure,
+) -> (
+    executor::Expansion,
+    f64,
+    std::collections::HashMap<u32, Option<bool>>,
+) {
+    let species = family.space.species.as_ref().unwrap();
+    let tree = convert(structure, (&family.space.trunk, &pa_rows(species)));
+    let wood = tree.bearing.iter().sum::<f64>() + tree.handed.iter().map(|h| h.length).sum::<f64>();
+    let x = executor::expand(tree, family).unwrap();
+    let kinds = {
+        let t = x.tree();
+        let bears = crate::pipeline::foliage::plan::bearing_of(t, family.canopy);
+        // A key two nodes share (a chain carried on keeps its lineage)
+        // names neither.
+        let mut kinds = std::collections::HashMap::new();
+        for i in 1..t.nodes.len() {
+            kinds
+                .entry(t.keys[i])
+                .and_modify(|k| *k = None)
+                .or_insert(Some(bears(i)));
+        }
+        kinds
+    };
+    (x, wood, kinds)
+}
+
+/// fn-364, host: a stretch moves stations and never makes or removes wood
+/// that bears them. In each stretched tree the leaf-bearing wood, own and
+/// handed, is the tree laid whole's to the millimetre, and every drawn
+/// node bears as its wood does laid whole. The station count moves only
+/// by the station rule's rounding on the runs a stretch splits into own
+/// and handed wood: each handed run's wood rounds up to whole twig
+/// internodes once more, so at most one internode's stations more for
+/// each handed run, none fewer.
+#[test]
+fn a_stretch_moves_stations_and_keeps_their_wood_and_kind() {
+    let (family, whole) = grown();
+    let (x, wood, kinds) = read(&family, &whole);
+    let (runs, twig) = x.runs().unwrap().unwrap();
+    assert!(runs
+        .iter()
+        .all(|r| !crate::pipeline::foliage::plan::is_handed(&r.nodes)));
+    let count = x.stations().unwrap().unwrap().count;
+    let per = twig.stations_per_internode;
+    let mut held = Vec::new();
+    for (name, s) in variants(&whole) {
+        let (y, w, k) = read(&family, &s);
+        let differ = k
+            .iter()
+            .filter(|(key, b)| {
+                b.is_some() && kinds.get(key).is_some_and(|a| a.is_some() && a != *b)
+            })
+            .count();
+        let (runs, _) = y.runs().unwrap().unwrap();
+        let handed = runs
+            .iter()
+            .filter(|r| crate::pipeline::foliage::plan::is_handed(&r.nodes))
+            .count();
+        let c = y.stations().unwrap().unwrap().count;
+        println!("{name}: {c} stations against {count}, {handed} handed runs, wood {w} against {wood}, {differ} kinds moved");
+        held.push((name, c, handed, w, differ));
+    }
+    for (name, c, handed, w, differ) in held {
+        assert!((w - wood).abs() <= 1e-3, "{name}: wood {w} against {wood}");
+        assert_eq!(differ, 0, "{name}: nodes whose kind moved");
+        assert!(
+            c >= count && c - count <= per * handed as u32,
+            "{name}: {c} against {count}"
+        );
+        assert!(
+            f64::from(c - count) <= 0.02 * f64::from(count),
+            "{name}: {c} against {count}"
+        );
+    }
+}
+
+/// At half its length everywhere a tree's stations stand half as far
+/// apart on the wood as laid.
 #[test]
 fn a_run_laid_at_half_its_length_keeps_its_stations_at_half_the_spacing() {
     let (family, whole) = grown();
     let half = stretched(&whole, 0.5, &|_, _| true, true);
     let (a, b) = (stations(&family, &whole), stations(&family, &half));
-    assert!(a.count > 1000, "{} stations", a.count);
-    let moved = f64::from(a.count.abs_diff(b.count)) / f64::from(a.count);
-    assert!(moved < 0.01, "{} against {}", a.count, b.count);
     let ratio = spacing(&b) / spacing(&a);
     assert!(
         (ratio - 0.5).abs() < 0.01,
@@ -92,20 +180,20 @@ fn a_run_laid_at_half_its_length_keeps_its_stations_at_half_the_spacing() {
     );
 }
 
-/// A tip past its limit lays its last units at no length: every axis's
-/// last two phytomers past its first laid at none merge into the axis's
-/// last drawn node, which bears their leaf-bearing wood, so the tree keeps
-/// every metre of it. (How many stations the drawing makes of it depends
-/// on which nodes bear, a node's kind, and is the host's question: 1,794
-/// laid whole against 4,389 here, R1-READING.md.)
+/// Wood laid at no length hands its stations to the node it merges into:
+/// they stand at that node's one point, many to a segment, each turned by
+/// its own ordinal (`run_station` onward) as along the wood it was
+/// allotted.
 #[test]
-fn a_span_laid_at_no_length_hands_its_leaves_to_the_node_that_draws_it() {
+fn stations_on_wood_laid_at_no_length_stand_at_one_point() {
     let (family, whole) = grown();
     let tips = stretched(&whole, 0.0, &|n, j| j > 0 && j + 2 >= n, false);
-    let species = family.space.species.as_ref().unwrap();
-    let rows = pa_rows(species);
-    let [a, b] = [&whole, &tips].map(|s| convert(s, (&family.space.trunk, &rows)));
-    assert!(b.nodes.len() < a.nodes.len(), "no span merged");
-    let sum = |t: &crate::tree::Tree| t.bearing.iter().sum::<f64>();
-    assert!((sum(&a) - sum(&b)).abs() <= 1e-9 * sum(&a));
+    let s = stations(&family, &tips);
+    let at_a_point = s
+        .segments
+        .iter()
+        .filter(|g| g.endpoints[0] == g.endpoints[1] && g.span > 0.0);
+    assert!(at_a_point
+        .clone()
+        .any(|g| g.count >= 2 && g.cluster.is_none()));
 }
