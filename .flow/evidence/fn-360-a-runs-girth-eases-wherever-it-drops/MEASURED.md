@@ -228,13 +228,52 @@ The largest girth/radius ratios sit where a run carries on into a child whose ow
 | beech 40 | 1 | child 115, +3.50 cm | 5.0 → 8.5 cm | 0.087 / 0.0014 |
 | spruce 40 | 0 | child 453, +0.20 cm | | |
 
-These children were inside already at base: fork siblings and laterals sunk into their socket by design. They sit deeper because the bearer no longer drops where they leave; at a fork that is the ledge being removed. The host's acceptance was "none floating off, none over 1 cm in". These are over 1 cm deeper, though none floats off and none was outside before. The run stops here with the sheet drawn and without `flowctl done`.
+These children were inside already at base: fork siblings and laterals sunk into their socket by design. They sit deeper because the bearer no longer drops where they leave; at a fork that is the ledge being removed. The host's acceptance was "none floating off, none over 1 cm in". These are over 1 cm deeper, though none floats off and none was outside before. The run stopped here with the sheet drawn and without `flowctl done`.
+
+**Host decision, 13 Nov 2026:** accepted. The laterals already sunk into their bearer that now sit up to 3.5 cm deeper were inside by design, none floats off, and at a fork the extra depth is the ledge being removed. The host viewed the final sheet: no ledge, no shoulder, no band round the trunk, the stem's growth-unit band gone, spruce and beech unchanged; better than the base and than trial A.
 
 **R5, final sheet** (`sheet.jpg`, redrawn 02:26 on `e7444be0f`; replaces the max-form sheet). Rows: oak 200 fork az 0 and az 90 (base | after | the probe's trial A), then beech 40, oak 200 stem 120, spruce 40 (base | after). The builder's description, for the host to judge:
 - Oak fork, both azimuths: no ledge and no rounded shoulder. The trunk tapers continuously into the stems, and no dark band runs round the trunk; trial A, beside it, still has one.
 - Stem 120: the growth-unit band across the stem is gone.
 - Beech and spruce trunks: no visible difference.
 
-## Not done
+## Not judged: thick wood carrying on into thin
 
-`flowctl done` was not run: the creeping-stem test as specified (within 0.1%) fails at 0.156%, and its bound is the host's call (above). The full narrow lists of `pipeline` tests beyond `surface`, `fork`, `bark` and the two pins were not run.
+The two largest drawn-girth-to-radius sites, read with `probe around` on base `b93621b5b` and the final rule `e7444be0f` (girth = ring radius over the collar swell; radius = the node's own). In both, a thick axis ends and its run carries on into a thin lateral that takes over. A run follows the widest child by `start_radius` (`paths.rs`), so a 2 mm shoot is the run's continuation when it is the only child left.
+
+**Oak 200, node 20660** (the limb of branch 168 ends at node 485, k 100, and the run carries on into the shoot of branch 10990):
+
+| k | d | node | radius | base girth | final girth |
+|---|---|---|---|---|---|
+| 100 | 8.4456 | 485 (limb, last node) | 0.22735 | 0.22735 | 0.22740 |
+| 101 | 8.6038 | 10990 (shoot, first node) | 0.00308 | 0.06917 | 0.16481 |
+| 149 | 8.6628 | 20655 | 0.00157 | 0.01011 | 0.12153 |
+| 150 | 8.6639 | 20656 | 0.00157 | 0.00902 | 0.12056 |
+| 151 | 8.6650 | 20657 | 0.00156 | 0.00797 | 0.11964 |
+| 152 | 8.6660 | 20658 | 0.00156 | 0.00691 | 0.11881 |
+| 153 | 8.6671 | 20659 | 0.00155 | 0.00582 | 0.11801 |
+| 154 | 8.6682 | **20660** | 0.00150 | 0.00477 | 0.11721 |
+| 155 | 8.6692 | 20661 (run's last ring) | 0.00150 | 0.00373 | 0.11641 |
+
+(k 154 has only one ring after it; the five before it are listed.) A limb of 0.227 m radius ends, and its run carries on into a 3 mm shoot 0.158 m beyond it. Base drew the fall with the 1-in-1 floor: 0.069 m at the shoot's first ring, down to 4 mm at its tip 6.5 cm on. The final rule holds the limb's fall over twice its radius, 0.45 m, so the whole 6.5 cm shoot is drawn as the tail of a cone 0.165 to 0.116 m wide, about 78 times its own radius.
+
+**Beech 40, node 126** (the axis of branch 27, r 0.100 m, ends at node 30, k 4; the run carries on into branch 39, a 2.2 mm shoot, 2 mm beyond it):
+
+| k | d | node | radius | base girth | final girth |
+|---|---|---|---|---|---|
+| 4 | 1.8837 | 30 (axis, last node) | 0.10029 | 0.10030 | 0.10045 |
+| 5 | 1.8857 | 39 (shoot, first node) | 0.00220 | 0.09832 | 0.10042 |
+| 66 | 2.0068 | 100 | 0.00046 | 0.00046 | 0.03307 |
+| 67 | 2.0084 | 122 | 0.00046 | 0.00046 | 0.03192 |
+| 68 | 2.0101 | 123 | 0.00046 | 0.00046 | 0.03078 |
+| 69 | 2.0117 | 124 | 0.00041 | 0.00041 | 0.02960 |
+| 70 | 2.0134 | 125 | 0.00035 | 0.00035 | 0.02843 |
+| 71 | 2.0150 | **126** | 0.00033 | 0.00033 | 0.02731 |
+| 72 | 2.0167 | 127 | 0.00033 | 0.00033 | 0.02621 |
+| 73 | 2.0184 | 128 (run's last ring) | 0.00033 | 0.00033 | 0.02514 |
+
+A 0.10 m axis ends, and its run carries on into a 2.2 mm shoot 2 mm beyond it. Base drew the fall 1 in 1 and was back at the shoot's radius 0.12 m on (by k 66). The final rule holds it over 0.20 m, so the shoot's 0.13 m tip is drawn 25 to 33 mm wide against 0.33 to 0.46 mm.
+
+## Closed
+
+The task closed on the final rule (`e7444be0f`) after the host's acceptance above. Not run: the `pipeline` tests outside the surface, fork, bark and pin filters; the full gate is the phase's, at its landing.
