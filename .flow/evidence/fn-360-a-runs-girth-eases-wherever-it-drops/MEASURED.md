@@ -131,6 +131,15 @@ The largest trunk fall is 5.1%, at k 114 (slope 0.65): the second fork's own ste
 
 **Laterals starting inside their bearer (after2 against base):** oak 120: 48 newly inside, deepest 1.7 mm (child 1052181); oak 200: 7, deepest 0.5 mm (420570); spruce 40: 1, 0.3 mm (20284); beech 40: 2, 1.1 mm (17983). None is no longer inside, so none floats off. All are under 1 cm, within the earlier acceptance.
 
-## Not done because of the stop
+## R5: the sheet
 
-R5's stills were not drawn, and `flowctl done` was not run: the run stopped at the question above. The full narrow lists of `pipeline` tests beyond `surface`, `fork`, `bark` and the two pins were not run.
+`sheet.jpg`, base left and after right (the stateless rule with the floor, `c526b1531`), leafless. Rows: the beech's trunk at 40, the oak's first fork at 200 from az 0 and az 90 (the probe's camera, `FORK_CAM=-0.07,4.9,0.016,4.0`), the oak's stem 120 at 200 (eye 2.214, 5.6, −1.0015 toward −0.07, 5.6, 0.016), the spruce's trunk at 40. One GPU job, 01:57–02:01.
+
+The builder's description of what the stills show, for the host to judge:
+- Oak fork, both azimuths: the base's flat, square-edged ledge is gone. The trunk's top is now a rounded shoulder, with the bark running from the trunk up into the stems on the far side. The rounded top edge is still visible on the near side, more of it than in the probe's trial A (`fork/fork-sheet2.jpg`), which drew a straight taper there. The numbers agree: trial A kept 0.618 m at 0.2 m past node 112, and this rule draws 0.573 m at 0.15 m. Under the rule as specified, the first fork's wood holds the second fork's drop over its own remaining ease and does not start a new one. A thin dark band runs round the trunk at the shoulder, as in trial A.
+- Stem 120: the base's dark band across the stem at mid-frame (a growth-unit step) is gone. The dark line low in the frame, where the stem meets the trunk's shoulder, remains.
+- The beech and spruce trunks: no difference visible at this distance.
+
+## Not done
+
+`flowctl done` was not run: the creeping-stem test as specified (within 0.1%) fails at 0.156%, and its bound is the host's call (above). The full narrow lists of `pipeline` tests beyond `surface`, `fork`, `bark` and the two pins were not run.
