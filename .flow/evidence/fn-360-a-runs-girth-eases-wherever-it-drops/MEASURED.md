@@ -277,3 +277,13 @@ A 0.10 m axis ends, and its run carries on into a 2.2 mm shoot 2 mm beyond it. B
 ## Closed
 
 The task closed on the final rule (`e7444be0f`) after the host's acceptance above. Not run: the `pipeline` tests outside the surface, fork, bark and pin filters; the full gate is the phase's, at its landing.
+
+## Follow-up: a run ends at its own radius (held, 13 Nov)
+
+The host asked for `ℓ_j = min(2a_j, S_end − s_(j−1))`, so that every hold is zero at a run's last ring, with the 1-in-1 floor kept, and for a test: a 0.2 m run carrying on into a 3 mm shoot 0.2 m long ends at 3 mm and falls monotonically along the shoot.
+
+- On the old rule the test was red: the run ended at 0.1015 m (`100ddba9b`).
+- On the change it is still red: the run ends at **0.0192 m**. The rule alone draws 0.1692, 0.1015, 0.0338 and 0.0030 m at the shoot's four rings (0.05 m apart). The floor, max(girth, below − 0.05), lifts them to 0.1692, 0.1192, 0.0692 and **0.0192**. A 0.197 m fall over the shoot's 0.2 m cannot reach the radius under a 1-in-1 floor once the ease front-loads the first rings.
+- The change also breaks `a_rings_girth_reads_only_the_wood_up_to_it`. Each girth now reads the run's end (S_end), so a run cut at a ring ends at that ring's radius: at ring 21 the cut run draws 0.59 against the whole run's 0.6392. That test checked locality, which the change gives up by design. The girth is still a pure function of the run's radii and distances.
+
+The fix (code, spec formula, docs) is held on branch `fn-360-run-end-wip` at `7bcd0e27c`. The red test is reverted on the task branch (`7c1621a89`), so the task branch is green as before. Not re-read: the two sites, oak 200's trunk, g/r and the laterals; they wait on the host's choice of the floor or the test.
