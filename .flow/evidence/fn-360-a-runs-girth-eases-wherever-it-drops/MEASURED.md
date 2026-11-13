@@ -191,6 +191,50 @@ Failures:
 
 The spec's own lines disagree here. "One step from a to b draws b + (a − b) w(Δ/2a)", with Δ the step's length, is the s_(j−1) anchor; "g does not move at a drop" is the s_j anchor. Which anchor the rule uses is the host's call. The run stops here: the task branch holds the max-form rule at `c526b1531`, green on its tests.
 
+## The final rule built: holds measured from the ring the wood fell from (host, 13 Nov)
+
+`g(s) = r(s) + Σ δ_j · w((s − s_(j−1))/2a_j)` with the 1-in-1 floor, on the task branch at `e7444be0f`. Narrow run: 83 passed, 0 failed (surface, fork, bark, the palm's leaf pin). The five tests that failed on the s_j anchor pass again unchanged. The creeping test passes with the host's two-part bound.
+
+**R4, final rule** (one core, no PAUSE inside 02:15–02:18; base from the first table):
+
+| tree | forks at floor | trunk largest fall | pairs > 2% | wood vertices | surface s | steepest girth slope (floor on) | largest girth / radius |
+|---|---|---|---|---|---|---|---|
+| oak 120 | 0 of 47 (base 2) | 21.7% (21.7%) | 1,126,900 (1,126,983) | unchanged | 4.68 (4.56) | 0.89 | 23.7 at node 77471 (0.0153 against 0.00064) |
+| oak 200 | 0 of 33 (base 4) | **4.4%** at k 125 (9.3% at the second fork) | 365,615 (365,557) | unchanged | 1.31 (1.33) | 0.92 | 77.9 at node 20660 (0.1172 against 0.0015) |
+| spruce 40 | 0 | 33.3% (33.3%) | 630,679 (630,691) | unchanged | 2.05 (1.87) | 0.21 | 1.69 at node 360558 |
+| beech 40 | 0 of 9 | 27.9% (26.9%) | 123,704 (123,718) | unchanged | 0.73 (0.69) | 0.83 | 82.6 at node 126 (0.0273 against 0.00033) |
+
+The largest girth/radius ratios sit where a run carries on into a child whose own radius is a small fraction of its start (the followed child's `start_radius` equals the parent's, FORK-PROBE §1). The rule holds the fall over twice the radius it fell from, so a 2.7 cm limb running on into a 0.3 mm shoot is drawn wide for about 5 cm. Not compared against base (the base probe has no such reading).
+
+**Oak 200's trunk, built against paper:** the girth at k 106, 107, 113, 114, 115, 121, 128, 131, 135 and 140 is 0.66432, 0.66365, 0.63697, 0.62765, 0.61562, 0.50652, 0.37490, 0.34559, 0.33987 and 0.33243. The paper (s_(j−1) anchor, `paper-final.txt`) gave 0.6643, 0.6636, 0.637, 0.6276, 0.6156, 0.5065, 0.3749, 0.3456, 0.3399 and 0.3324, so they agree to rounding. Across the second fork (k 113 → 114) the girth falls 1.5%. The largest trunk fall is 4.4% at k 125 (d 5.634, 0.6 m past the second fork), as on paper.
+
+**Bands on stem 120, final rule:**
+
+| ring pair | base | first rule | final |
+|---|---|---|---|
+| k 7 → 8, relay join (swell over one 0.40 m segment) | 9.3% | 9.2% | 9.3% |
+| k 25 → 26, growth unit 19 → 20 | 4.0% | 0.3% | 0.3% |
+| k 38 → 39, growth unit 21 → 22 | 3.9% | 0.2% | 0.4% |
+
+**Laterals against their bearer (final against base):** newly inside: oak 120 51 (deepest 2.3 mm, child 1052181), oak 200 7 (0.5 mm), spruce 1 (0.3 mm), beech 2 (1.1 mm). None left the inside set, so none floats off.
+
+**Stop: laterals already inside at base now sit more than 1 cm deeper.** Measured as the change in each lateral's margin (bearer drawn radius − its first ring's reach) against base:
+
+| tree | laterals over 1 cm deeper | deepest | its depth, base → final | bearer drawn / node radius at attach |
+|---|---|---|---|---|
+| oak 120 | 12 | child 113 (the second trunk fork's sibling), +2.06 cm | 15.3 → 17.4 cm | 0.503 / 0.386 |
+| oak 200 | 14 | child 4927, +3.20 cm | 15.3 → 18.5 cm | 0.304 / 0.279 |
+| oak 200 | | child 113 (the second trunk fork's sibling), +2.10 cm | 15.7 → 17.8 cm | 0.638 / 0.473 |
+| beech 40 | 1 | child 115, +3.50 cm | 5.0 → 8.5 cm | 0.087 / 0.0014 |
+| spruce 40 | 0 | child 453, +0.20 cm | | |
+
+These children were inside already at base: fork siblings and laterals sunk into their socket by design. They sit deeper because the bearer no longer drops where they leave; at a fork that is the ledge being removed. The host's acceptance was "none floating off, none over 1 cm in". These are over 1 cm deeper, though none floats off and none was outside before. The run stops here with the sheet drawn and without `flowctl done`.
+
+**R5, final sheet** (`sheet.jpg`, redrawn 02:26 on `e7444be0f`; replaces the max-form sheet). Rows: oak 200 fork az 0 and az 90 (base | after | the probe's trial A), then beech 40, oak 200 stem 120, spruce 40 (base | after). The builder's description, for the host to judge:
+- Oak fork, both azimuths: no ledge and no rounded shoulder. The trunk tapers continuously into the stems, and no dark band runs round the trunk; trial A, beside it, still has one.
+- Stem 120: the growth-unit band across the stem is gone.
+- Beech and spruce trunks: no visible difference.
+
 ## Not done
 
 `flowctl done` was not run: the creeping-stem test as specified (within 0.1%) fails at 0.156%, and its bound is the host's call (above). The full narrow lists of `pipeline` tests beyond `surface`, `fork`, `bark` and the two pins were not run.
