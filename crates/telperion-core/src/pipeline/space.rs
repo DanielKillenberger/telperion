@@ -370,7 +370,7 @@ fn unfolded(
             // The wood's retention, every piece of it the phytomer's own
             // (fn-248).
             let (q, qw) = unfolding.kept(retention, structure.age, p.cycle);
-            let piece = internode * p.scale * telperion_space::internode_factor(p.key(), spread);
+            let piece = internode * p.length() * telperion_space::internode_factor(p.key(), spread);
             let here = joins[i].iter().filter(|(_, j)| j.node == place);
             for &(c, _) in here.clone().filter(|(_, j)| j.t <= 0.0) {
                 joined[c] = Some((parent, place));

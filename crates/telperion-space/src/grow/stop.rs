@@ -104,7 +104,7 @@ impl Shoot<'_> {
         after: std::result::Result<f64, f32>,
     ) -> Result<()> {
         let survive = presence::times(relayed, presence::q(self.kept(apex.axis)));
-        let (size, reads) = (self.size(apex.axis), self.reads);
+        let (shade, reads) = (self.shade(apex.axis), self.reads);
         let draws = self.draws_mut(apex.axis);
         draws.units.push(Unit {
             survive: presence::real(survive),
@@ -113,7 +113,7 @@ impl Shoot<'_> {
             size: lived,
         });
         if reads.sketching {
-            draws.shade.push(size);
+            draws.shade.push(shade);
         }
         draws.failed = true;
         self.grow_unit(apex, pa, unit, (cycle, None))?;

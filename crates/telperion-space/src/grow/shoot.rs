@@ -8,7 +8,7 @@ use super::sketch::Pencil;
 use super::{bud, Apex, Certain, Placed};
 use crate::dormant::{Sleeper, Woken};
 use crate::lineage::{Draw, Key};
-use crate::presence::{Draws, Windows};
+use crate::presence::{Draws, Shade, Windows};
 use crate::species::{Species, MAX_BUDS};
 use crate::structure::{Axis, Growing, Origin};
 use std::sync::Arc;
@@ -252,10 +252,14 @@ impl<'g> Shoot<'g> {
         (self.reads.pencils.get(i)).is_some_and(|p| !p.trunk && p.laid > 0 && p.layer.rests())
     }
 
-    /// Axis `i`'s growth unit's size this cycle (`allocation.rs`); whole
-    /// where nothing shades.
-    pub fn size(&self, i: usize) -> f64 {
-        self.reads.pencils.get(i).map_or(1.0, |p| p.size)
+    /// Axis `i`'s growth unit's size this cycle (`allocation.rs`) and its
+    /// stretch (`passes::surplus`); whole where nothing shades. The size
+    /// is an `f32`'s image, as growth lays it.
+    pub fn shade(&self, i: usize) -> Shade {
+        self.reads.pencils.get(i).map_or(Shade::WHOLE, |p| Shade {
+            size: super::draw::image(p.size),
+            stretch: p.stretch,
+        })
     }
 
     /// What the subtrees' survival of their shedding this cycle makes of

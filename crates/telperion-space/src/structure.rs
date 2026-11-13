@@ -201,6 +201,10 @@ pub struct Phytomer {
     /// (`allocation.rs`): in its scale, never in what it bears. 1 where
     /// nothing shades.
     pub(crate) size: f64,
+    /// The share of its scale its internode is long: what its tip's
+    /// balance left its growth unit (`passes::surplus`, fn-364), never in
+    /// its leaf or girth. 1 where nothing is charged.
+    pub(crate) stretch: f32,
     /// How much of a node it is: its unit's presence times its node's
     /// times the share of its cycle the unit lived (`presence::assign`),
     /// which a relay standing on its unit reads (`geometry::stand`).
@@ -215,6 +219,13 @@ impl Phytomer {
     /// The key of its node's draw (D1): the same node under any settings.
     pub fn key(&self) -> u64 {
         self.key
+    }
+
+    /// Its internode's length relative to a fully grown phytomer's: its
+    /// scale times its stretch (fn-364). Every reader of a phytomer's
+    /// length reads it here.
+    pub fn length(&self) -> f64 {
+        self.scale * f64::from(self.stretch)
     }
 }
 

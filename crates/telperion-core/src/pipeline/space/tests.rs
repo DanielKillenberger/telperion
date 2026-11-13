@@ -73,7 +73,7 @@ fn grown_wood_is_the_internodes_as_laid_at_a_spread() {
         let arc: f64 = (j + 1..=k).map(|m| laid(axis, m)).sum();
         let internode = species.states[axis.pa].internode;
         let plain: f64 = (j + 1..=k)
-            .map(|m| internode * axis.phytomers[m].scale)
+            .map(|m| internode * axis.phytomers[m].length())
             .sum();
         let grown = tree.grown[i];
         // The lay is f32 (fn-254): its lengths a few of its places apart

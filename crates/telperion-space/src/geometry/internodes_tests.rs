@@ -30,7 +30,7 @@ fn factors(species: &Species, tree: &Structure) -> Vec<(f64, f64)> {
         let mut base: Vec3 = axis.base;
         for p in &axis.phytomers {
             let d = p.tip - base;
-            let expected = internode * p.scale;
+            let expected = internode * p.length();
             if base.z > 1e-6 && p.tip.z > 1e-6 && expected > 1e-9 {
                 out.push((d.length() / expected, expected));
             }

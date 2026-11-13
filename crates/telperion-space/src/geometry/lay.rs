@@ -228,7 +228,7 @@ impl Layer {
             self.pull,
             self.curve,
         );
-        let scale = phytomer.scale() as f32;
+        let scale = phytomer.length() as f32;
         // Its internode varies node to node by its own draw (fn-222), and
         // its tropism axis to axis (fn-224), the plain product without
         // spread.

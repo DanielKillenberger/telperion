@@ -18,6 +18,8 @@ pub(crate) trait Node {
     fn scale(&self) -> f64;
     fn grown(&self) -> f64;
     fn size(&self) -> f64;
+    /// Its internode's length relative to a fully grown phytomer's.
+    fn length(&self) -> f64;
     fn rank(&self) -> f64;
     /// Laid by the walk (`Layer::step`): its node, and its direction and
     /// side there.
@@ -79,6 +81,7 @@ impl Growing {
             key: self.key,
             rank: f64::from(self.rank),
             size: f64::from(self.size),
+            stretch: 1.0,
             grown: f64::from(self.grown),
             section: self.section,
             sapwood: self.sapwood,
@@ -113,6 +116,11 @@ impl Node for Growing {
     }
     fn size(&self) -> f64 {
         f64::from(self.size)
+    }
+    /// Its scale: growth folds its unit's size and stretch into it only
+    /// for the moment it lays it (`draw_bent`).
+    fn length(&self) -> f64 {
+        f64::from(self.scale)
     }
     fn rank(&self) -> f64 {
         f64::from(self.rank)
@@ -152,6 +160,9 @@ impl Node for Phytomer {
     }
     fn size(&self) -> f64 {
         self.size
+    }
+    fn length(&self) -> f64 {
+        Phytomer::length(self)
     }
     fn rank(&self) -> f64 {
         self.rank

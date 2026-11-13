@@ -43,9 +43,9 @@ pub(crate) struct Draws {
     pub alive: bool,
     /// How much a living apex lives on (`Grower::living`).
     pub living: f64,
-    /// Per growth unit, where light shades: its phytomers' size from its
-    /// bud's vigour (`allocation.rs`); empty where nothing shades.
-    pub shade: Vec<f64>,
+    /// Per growth unit, where light shades: its phytomers' size and
+    /// stretch (`Shade`); empty where nothing shades.
+    pub shade: Vec<Shade>,
     /// The apex stopped by failing to survive a growth unit.
     pub failed: bool,
     /// A relay of an age that ended or of a unit that failed
@@ -82,6 +82,26 @@ pub(crate) struct Draws {
     pub sleep: f64,
 }
 
+/// One growth unit's share of the light, where light shades: its
+/// phytomers' size from its bud's vigour (`allocation.rs`), in their scale
+/// and so their leaf, and their stretch, the share of that length its
+/// tip's balance left it (`passes::surplus`, fn-364), in their length
+/// alone. Each an `f32`, as growth lays them, in one record so a unit
+/// costs what its size alone did (`an_axis_and_its_draws_stay_compact`).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) struct Shade {
+    pub size: f32,
+    pub stretch: f32,
+}
+
+impl Shade {
+    /// A unit nothing shades.
+    pub const WHOLE: Self = Self {
+        size: 1.0,
+        stretch: 1.0,
+    };
+}
+
 /// One growth unit's draws.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Unit {
@@ -110,9 +130,9 @@ impl Draws {
         self.units.iter().map(|u| u.share).sum::<f64>()
     }
 
-    /// Growth unit `k`'s size, whole where nothing shades.
-    pub fn shade(&self, k: usize) -> f64 {
-        self.shade.get(k).copied().unwrap_or(1.0)
+    /// Growth unit `k`'s size and stretch, whole where nothing shades.
+    pub fn shade(&self, k: usize) -> Shade {
+        self.shade.get(k).copied().unwrap_or(Shade::WHOLE)
     }
 
     /// The share of the cycle its age ended at, where it ended there and
@@ -222,12 +242,13 @@ fn assign_one(axis: &mut Axis, draws: &Draws, living: Option<f64>) -> f64 {
         running = times(running, q(unit.survive));
         let grown = q(unit.share);
         presences.push(real(times(running, grown)));
-        let size = draws.shade(k);
+        let shade = draws.shade(k);
         while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
             let laid = q(unit.size);
             axis.phytomers[j].scale = real(times(times(running, q(draws.nodes[j])), laid));
             axis.phytomers[j].grown = axis.phytomers[j].scale;
-            axis.phytomers[j].size = size;
+            axis.phytomers[j].size = f64::from(shade.size);
+            axis.phytomers[j].stretch = shade.stretch;
             axis.phytomers[j].rank = rank;
             rank += draws.nodes[j] * unit.size;
             j += 1;

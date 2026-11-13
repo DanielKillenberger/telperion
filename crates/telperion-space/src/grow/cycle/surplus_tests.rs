@@ -174,5 +174,8 @@ fn the_settled_lengths_are_the_growing_lays() {
         }
     }
     assert!(shortened > 1000, "{shortened} shortened");
-    assert!(worst < 1e-4, "a node above 0.5 m stands {worst} m from its laid place");
+    assert!(
+        worst < 1e-4,
+        "a node above 0.5 m stands {worst} m from its laid place"
+    );
 }
