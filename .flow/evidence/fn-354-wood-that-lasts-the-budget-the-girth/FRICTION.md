@@ -85,3 +85,23 @@
 - **Slowed by:** b9d337a63, a docs commit, also deletes `crates/telperion-space/src/girth/disused.rs` while `girth.rs` and `grow/settle.rs` still use it, so the bisect could not test it and ended on two candidates. The desk's load was 20 to 80 from other programs throughout, so each pair of timings had to run back to back to be read at all.
 - **Cost:** one extra manual build of two commits (about 5 minutes). The timing pairs took about 2 hours of wall time.
 - **What would have removed it:** each commit on a branch building, kept by a pre-commit `cargo check`. For the load, nothing in the repository.
+
+## 12 Nov 2026, 18:00, gate-failure follow-up: load 55 to 95 and a queue behind other agents
+
+- **Doing:** timing and measuring the gate's open failures alone, on the branch and its base, back to back.
+- **Slowed by:** the desk's load average stood at 34 to 95 from other agents' jobs, and the first build waited about 8 minutes in `telperion-heavy` for room. Per-test durations had to be read in pairs taken minutes apart to mean anything; the shell hook also refuses a truncating redirect to a variable path, so every log is appended.
+- **Cost:** about 10 minutes queued before the first run; every timing carries the load beside it.
+- **What would have removed it:** for the load, nothing in the repository; a desk-wide quiet window for timing runs.
+
+## 13 Nov 2026, 01:30, gate-failure follow-up: runs lost to pauses and an interrupted batch
+
+- **Doing:** timing the eleven cut-off tests alone, on the branch and its base.
+- **Slowed by:**
+  - The first timing batch was stopped partway when the session was interrupted, and it was started again under the new watcher.
+  - Four runs had a watcher `PAUSE` inside them and had to be run again. One base light_rows run took 1,029 s, nearly all of it paused.
+  - `form` was killed twice under the 8 GB scope before a 16 GB run showed it needs 8.6 GiB.
+  - Probes also waited up to 50 minutes in the queue for a 16 GB slot.
+- **Cost:** about 2 hours of wall time beyond the runs themselves.
+- **What would have removed it:**
+  - `telperion-heavy` printing the cap it killed at, and the test, when the kill is SIGTERM rather than SIGKILL.
+  - The gate's runner recording a pause-free duration.

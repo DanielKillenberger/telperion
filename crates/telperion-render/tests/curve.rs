@@ -12,10 +12,15 @@ use common::gpu;
 const SIZE: (u32, u32) = (480, 360);
 
 /// A preset's mesh, which carries its wood's curve; `ordinary` is the
-/// ordinary dressing on a young engine beech (fn-198, `common::ordinary`).
+/// ordinary dressing on a young engine beech (fn-198, `common::ordinary`),
+/// and `ordinary-30` that tree at 30, its own year 30.
 fn tree(id: &str) -> (telperion_core::mesh::TreeMesh, Curve) {
     let family = match id {
         "ordinary" => common::ordinary(),
+        "ordinary-30" => telperion_core::Family {
+            age: 30.0,
+            ..common::ordinary()
+        },
         id => Preset::from_id(id).unwrap().parameters(),
     };
     let mesh = executor::grow(&family)
@@ -133,12 +138,16 @@ fn the_device_surfaces_the_wood_the_cpu_reference_does() {
 
 /// A view small enough that its screen-sized budget is crossed halfway, so
 /// every record, vertex and index past the first slice is written through
-/// the second binding (host decision 21), and still the reference's.
+/// the second binding (host decision 21), and still the reference's. The
+/// tree is the ordinary tree at 30: fn-354's tree at 40 asks about 2.6 times
+/// the base's wood a pixel, and no view from 40 to 96 pixels wide draws it at
+/// the finest scale; at 30 (4.9 M wood vertices, the base's tree at 40 had
+/// 5.5 M) the 76-pixel view does (12 Nov 2026).
 #[test]
 fn the_second_slices_hold_what_the_first_could_not() {
     let Some(gpu) = gpu() else { return };
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    let (mesh, curve) = tree("ordinary");
+    let (mesh, curve) = tree("ordinary-30");
     renderer.submit(&mesh).unwrap();
     // The smallest view whose finest scale still fits, and so fills its
     // budget furthest: the demand a pixel rises as the view shrinks.

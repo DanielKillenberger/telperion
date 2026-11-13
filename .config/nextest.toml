@@ -43,6 +43,7 @@ priority = 99
 
 [[profile.gate.overrides]]
 filter = '''
+    (binary(bark_detail) & test(=relief_moves_the_light_while_every_wood_mesh_byte_holds)) |
     (binary(bark_occlusion) & test(=the_darkened_side_of_a_furrow_follows_the_sun)) |
     (binary(bark_occlusion) & test(=the_row_at_zero_leaves_the_frame_exactly_as_it_was)) |
     (binary(bark_resolution) & test(=grazing_trunks_agree_with_a_box_reduction_at_half_resolution)) |
