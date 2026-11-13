@@ -31,13 +31,18 @@ def main():
     rs = v.runs(args)
     ms = [v.measures(lab) for _, lab, _ in rs]
     tiles = []
+    oom = Path(__file__).with_name("OOM.txt")
+    killed = {}
+    for line in oom.read_text().splitlines() if oom.exists() else []:
+        label_, age_, seed_ = line.split()[:3]
+        killed[(label_, int(age_), int(seed_))] = "killed at the 24 GB scope (OOM.txt)"
     for age in (int(a) for a in ages.split(",")):
         for seed in SEEDS:
-            for (name, _, stills), m in zip(rs, ms):
+            for (name, lab, stills), m in zip(rs, ms):
                 t = m.get((v.OAK, float(age), seed))
                 png = stills / f"{v.OAK}-{age}-{seed}-{shot}.png"
                 if t is None and (r := v.refused(stills, v.OAK, age, seed)):
-                    t = {"refused": r}
+                    t = {"refused": killed.get((lab.name, age, seed), r)}
                 text = label(name, t, age, seed, shot)
                 if not png.exists() and t is not None and "refused" not in t:
                     text = text.split("\n")[0] + "\nthis shot not taken in this run"

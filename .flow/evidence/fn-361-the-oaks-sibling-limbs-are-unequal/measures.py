@@ -46,7 +46,7 @@ def tree(label, stills, age, seed, held):
     t = None
     for line in Path(label, "measures.jsonl").read_text().splitlines():
         r = json.loads(line)
-        if r["age"] == age and r["seed"] == seed:
+        if r["preset"] == OAK and r["age"] == age and r["seed"] == seed:
             t = r
     if not log.exists():
         return t, None, None

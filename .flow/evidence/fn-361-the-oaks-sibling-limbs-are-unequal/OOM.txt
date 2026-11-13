@@ -1,2 +1,12 @@
 fn361-d05 200 1002 killed at the 24 GB scope 04:51:43 (and at the 16 GB scope 04:42:39; kernel OOM killer, journal)
 fn361-d05 200 1010 killed at the 24 GB scope 05:56:44
+fn361-d05 300 7 killed at the 24 GB scope 07:07:10
+fn361-d05 300 1002 killed at the 24 GB scope 07:19:12
+fn361-d05 300 1005 killed at the 24 GB scope 07:50:29
+fn361-d05 300 1006 killed at the 24 GB scope 07:58:37
+fn361-d05 300 1008 killed at the 24 GB scope 08:18:58
+fn361-d05 300 1009 killed at the 24 GB scope 08:31:14
+fn361-d05 300 1010 killed at the 24 GB scope 08:38:19
+fn361-d05 300 1011 killed at the 24 GB scope 08:45:05
+fn361-norow 300 1002 killed at the 24 GB scope 09:02:44
+fn361-norow 300 1010 killed at the 24 GB scope 10:16:07
