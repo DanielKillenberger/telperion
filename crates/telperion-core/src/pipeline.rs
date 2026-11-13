@@ -245,6 +245,7 @@ fn fitted(tree: &mut Tree) {
     tree.frames.shrink_to_fit();
     tree.keys.shrink_to_fit();
     tree.grown.shrink_to_fit();
+    tree.bearing.shrink_to_fit();
     tree.blooms.shrink_to_fit();
     tree.clusters.shrink_to_fit();
     tree.clustered.shrink_to_fit();

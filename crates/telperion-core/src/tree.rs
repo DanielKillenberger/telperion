@@ -151,6 +151,14 @@ pub struct Tree {
     /// chord. Never stored, as `sections`.
     #[cfg_attr(feature = "json", serde(skip))]
     pub grown: Vec<f64>,
+    /// Each node's leaf-bearing wood, in metres: the internodes of the
+    /// phytomers it draws at the length their nodes were allotted, their
+    /// stretch left out (fn-364), with the wood of the spans merged into
+    /// it. What stands for its nodes: a run's stations are counted and
+    /// split by it, and placed on the wood as laid (`foliage::plan::walk`).
+    /// Empty where `grown` is. Never stored, as `sections`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub bearing: Vec<f64>,
     /// The nodes that may flower, in node order (fn-216). Empty on every
     /// tree whose ages bear none, and never stored, as `sections` is.
     #[cfg_attr(feature = "json", serde(skip))]
@@ -240,8 +248,16 @@ impl Tree {
     pub fn key(&self, i: usize) -> u32 {
         self.keys.get(i).copied().unwrap_or(i as u32)
     }
-    /// Node `i`'s grown wood (`grown`), or its chord from its parent where
+    /// Node `i`'s leaf-bearing wood (`bearing`), or its grown wood where
     /// no engine grew it.
+    pub fn bearing_length(&self, i: usize) -> f64 {
+        self.bearing
+            .get(i)
+            .copied()
+            .unwrap_or_else(|| self.grown_length(i))
+    }
+    /// Node `i`'s grown wood as laid (`grown`), or its chord from its
+    /// parent where no engine grew it.
     pub fn grown_length(&self, i: usize) -> f64 {
         self.grown.get(i).copied().unwrap_or_else(|| {
             let n = &self.nodes[i];

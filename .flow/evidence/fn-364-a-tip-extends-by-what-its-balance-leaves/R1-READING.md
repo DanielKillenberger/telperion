@@ -47,6 +47,19 @@ Builder (Opus), 13 Nov 2026, on `fn-364-a-tip-extends-by-what-its-balance-leaves
 
 The design keeps a unit's leaf area at the allotment's size, and it asks the pipeline's piece to read length through the one function. Under a twig layer the drawn leaves are counted from that piece (`foliage/plan.rs`, `walk`, `station_count`). Read together, the settled tree keeps full leaf on short internodes, while the drawing places leaf stations in proportion to the shortened wood, and none on zero-length wood. Whether the drawing's stations should read length or the leaf's scale is a question about scaling leaf, so I build the piece to read length as the spec says and bring the measured effect to the host before any sheet is drawn (R5, MEASURES.md).
 
+**The host's answer (13 Nov 2026):** stations stand for nodes. They are counted from the wood's leaf-bearing length (the piece without the stretch, `Tree::bearing`) and placed on the stretched run; a merged span hands its leaf-bearing length to the node that draws it, the axis's last drawn node where none follows. Built with two tests in `pipeline/space/stretch_tests.rs`; R5 measures the drawn stations beside the settled leaf.
+
+**Measured on the build (13 Nov 2026, `pipeline/space/stretch_tests.rs`, the oak's family at 12, seed 7, no potential height, so every stretch 1 before the hand edit):**
+
+| the same structure | drawn nodes | leaf-bearing wood m | wood in leaf-bearing runs m | stations |
+|---|---|---|---|---|
+| laid whole | 16,366 | 143.03 | 12.71 | 1,794 |
+| every phytomer at 0.5, its places halved | 15,958 | 143.03 | 12.93 | 1,784 (−0.6%), spacing 0.50 of the whole |
+| every axis's last two phytomers (past its first) at 0 | 12,692 | 143.03 | 37.28 | **4,389 (×2.4)** |
+| every third phytomer at 0 | 10,914 | 143.03 | 20.85 | **2,662 (×1.5)** |
+
+The leaf-bearing wood is kept to the metre in every case, and the spacing halves. The station count does not hold where spans merge, because which wood bears is decided per drawn node (`foliage/plan.rs`, `bearing_of`: a node bears where it is a twig, a node with no child, or as slender as the shoot radius). On the oak only 12.7 of the 143 m bears: mostly each axis's terminal node. A span merged forward hands its wood to the node that draws it, and where that node bears and the span's own node would not have (an axis's last drawn node, now terminal, taking its zero-length tip units), the wood starts bearing. That is a question about which wood bears leaf under a stretch, the host's; the test holds only that the leaf-bearing wood is kept.
+
 ## Zero-length internodes, by stage
 
 - Growth's and the settle's lay: a zero step, no turn, no fade advance; nothing divides by the length.

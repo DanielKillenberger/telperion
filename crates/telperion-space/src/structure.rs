@@ -204,7 +204,7 @@ pub struct Phytomer {
     /// The share of its scale its internode is long: what its tip's
     /// balance left its growth unit (`passes::surplus`, fn-364), never in
     /// its leaf or girth. 1 where nothing is charged.
-    pub(crate) stretch: f32,
+    pub stretch: f32,
     /// How much of a node it is: its unit's presence times its node's
     /// times the share of its cycle the unit lived (`presence::assign`),
     /// which a relay standing on its unit reads (`geometry::stand`).

@@ -40,7 +40,8 @@ pub fn micrometres(metres: f64) -> f64 {
 }
 
 /// The points one run passes through, the chord along it to each (what its
-/// frames read) and the wood grown along it to each (`Tree::grown`), into
+/// frames read) and the leaf-bearing wood along it to each
+/// (`Tree::bearing`, fn-364), into
 /// scratch the caller owns; the run's own grown length is the last of them.
 /// Under a twig layer each node's wood is counted in whole micrometres
 /// (`micrometres`); on a shoot no twig layer marks it is in metres. The
@@ -61,7 +62,7 @@ pub(crate) fn walk(
     along.push(0.);
     for i in 1..points.len() {
         chord.push(chord[i - 1] + points[i].distance(points[i - 1]));
-        let wood = tree.grown_length(nodes[i]);
+        let wood = tree.bearing_length(nodes[i]);
         let step = match twig {
             Some(_) => micrometres(wood),
             None => wood,
