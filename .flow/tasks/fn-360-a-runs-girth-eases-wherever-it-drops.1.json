@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-11-13T00:11:41.989188Z",
+  "depends_on": [],
+  "id": "fn-360-a-runs-girth-eases-wherever-it-drops.1",
+  "priority": null,
+  "spec": "fn-360-a-runs-girth-eases-wherever-it-drops",
+  "spec_path": ".flow/tasks/fn-360-a-runs-girth-eases-wherever-it-drops.1.md",
+  "status": "todo",
+  "title": "A run's girth eases wherever it drops",
+  "updated_at": "2026-11-13T00:11:41.989188Z"
+}
