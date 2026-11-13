@@ -1,6 +1,6 @@
-# fn-362 R4 (partial): the CPU mesh before and after, and the stop it hit
+# fn-362 R4: the CPU mesh before and after
 
-Base 038ce5548 (a scratch worktree with its own `target/`), head 5b9c9fbd5. One run each. Stopped here on the spec's fourth stop; the stills (R5), the memory items and the two guards were not run.
+Base 038ce5548 (a scratch worktree with its own `target/`), head 5b9c9fbd5. One run each. The build stopped here once on the spec's fourth stop; the host's ruling below resumed it.
 
 ## Method
 
@@ -39,7 +39,7 @@ Rings per class are unchanged on every tree (the beech at 80: 905,745 under 1 mm
 
 Runs by sides on the head, beech at 80 (of 244,103): 3: 5,140; 4: 10,282; 5: 20,223; 6: 83,553; 7: 76,895; 8: 18,530; 9: 20,104; 10 to 19: 9,442; 20: 934.
 
-## Against the paper (the stop)
+## Against the paper: the host's arithmetic corrected
 
 The design expected, on the beech at 80: under 1 mm 18.3 M → about 4 M; 1 to 2 mm 73.5 M → about 25 M; total 101.8 M → roughly 40 M; return if off by more than a quarter.
 
@@ -51,6 +51,15 @@ The design expected, on the beech at 80: under 1 mm 18.3 M → about 4 M; 1 to 2
 
 The class under 1 mm is off by more than a quarter. Its 905,745 rings average 5.66 vertices each (caps included), against the 3 to 5 sides the paper gave rings that thin: a ring is cut with its run's count, and many rings under 1 mm stand on runs whose widest ring is 1 to 2 mm (6 or 7 sides). The rule as built is the rule as written ("a run takes one count for all its rings: the count its widest drawn ring needs"); the paper's class estimate read each ring at its own radius. This is a reading of the numbers above, not a measured breakdown of which runs hold those rings.
 
+**Host ruling (13 Nov 2026):** "the build is right and my paper figure for the class under 1 mm was loose; go on and finish." The cause accepted is the one above: a ring under 1 mm on a run whose widest ring is 1 to 2 mm takes that run's 6 or 7 sides, and the paper costed each ring alone. The total (38.2 M against roughly 40 M) and the class of 1 to 2 mm (26.6 M against 25 M) are within the bound. This is the host's arithmetic corrected, not a fault of the build.
+
+## Decisions the host accepted, with their reasons (13 Nov 2026)
+
+- **The cap is `max(radialSegments, 4·lobes)`**, the surface's existing count (20 on every shipped preset, the "cap 20" of the design), not the bare `radialSegments` row (12). Below the cap the lobe floor does not bind, as the design's numbers already took.
+- **The socket is still sized from the cap's inscribed radius** (`samples.rs`). Sizing it from the bearer's own count would change the sample radius the curve stores, and so the GPU's wood. A child's sunk ring may therefore stand up to 0.2 mm outside its bearer's faces: `pr (1 − cos(π/n)) ≤ FINEST`, since the bearer's widest drawn ring is at least `pr`. That is under `FINEST`, which the drawing does not show.
+- **The needle test's plane tolerance** (`suite::surface_attachments`) is the sum of the per-axis half steps along the facet's normal, `Σ h_k |n_k|`: the true bound of a quantised point's distance off a plane. The largest single half step was too tight for a slanted facet. A correction, not a loosening; the derivation is in the test's comment.
+- **The spruce's leaf digest moves** because its needles sit on the wood's faces (`surfaceContact` 1); its tree and curve do not.
+
 ## Pins upstream of the surface stage (R6, as far as measured)
 
-The digests of the grown tree, the curve and the leaves are equal on base and head for all six trees but one: the Norway spruce at 40 keeps its tree and curve digests (2caa72b377c06942, b4f35f4dbc40a18b) and its 3,484,945 leaves, and its leaves' digest moves (1cbbacca7ae4ff02 → e3df37eee36b55d8). The spruce is the one shipped preset whose leaves sit on the wood (`surfaceContact` 1; READING.md item 8 named the oak, which was wrong), so its needles are seated on the new polygons, downstream of the surface stage. The wood digest moves on all six. The committed species digests (`suite/species/digests.json`, tree, wood and leaves together) will move for every species seed whose wood has a run under 1.5 cm; that suite was not run.
+The digests of the grown tree, the curve and the leaves are equal on base and head for all six trees but one: the Norway spruce at 40 keeps its tree and curve digests (2caa72b377c06942, b4f35f4dbc40a18b) and its 3,484,945 leaves, and its leaves' digest moves (1cbbacca7ae4ff02 → e3df37eee36b55d8). The spruce is the one shipped preset whose leaves sit on the wood (`surfaceContact` 1; READING.md item 8 named the oak, which was wrong), so its needles are seated on the new polygons, downstream of the surface stage. The wood digest moves on all six. The committed species digests are listed in PINS.md.
