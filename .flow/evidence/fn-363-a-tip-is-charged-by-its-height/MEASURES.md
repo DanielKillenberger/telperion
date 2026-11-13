@@ -2,6 +2,12 @@
 
 **The spec's first Stop fired before any drawing. R6 was not drawn.** Telperion at its preset age, 82, seed 1, holds 3,393 m² of settled leaf on this branch against 2,400 on the top, +41% (Stop: more than 25%). The browser's ceiling test agrees at seed 42: Telperion keeps 6,120,872 phytomers against 3,614,135 (+69%) and Laurelin 5,422,804 against 3,382,695 (+60%), both over the 4,000,000 ceiling (PINS.md).
 
+## The host's decision on the Stop (13 Nov 2026, evening)
+
+The host's decision, in substance: go on. Telperion at 82, seed 1, rose from 2,400 to 3,393 m² of leaf (+41%) at an unchanged height of 43.8 m. The Two Trees stand on the beech's rows with a potential height of their own. Phase 2 recorded their trunks as too thin against the base (1.15 to 1.28 m against 2.7 to 3.0 m). More leaf under the height charge therefore moves them toward the base, not away from it, and the verdict is taken on the sheet. R6 adds Telperion and Laurelin at their preset ages on seeds 1 and 7, in three columns: base-2026-11-11, top, and this branch, both whole and leafless. Where the seed chain has no phytomer at 1.3 m, each tile prints the scoreboard tool's own trunk measure.
+
+The host's message did not address the browser's ceiling test (PINS.md: Telperion 6.12 M and Laurelin 5.42 M phytomers at seed 42 against the 4 M ceiling), and it still fails on this branch.
+
 ## Method
 
 - **before:** a detached checkout of `fn-351-phase-top` (`f17affbb3`) at `.worktrees/fn-363-before`. **after:** a detached checkout of `c2d897a37` (this branch's product; the later commits change only tests and evidence) at `.worktrees/fn-363-after`. Each has the surplus probe's reader applied uncommitted (`reader.patch`, `v4-census.patch`, `extras.patch` from the probe's scratch folder) and its own target.
