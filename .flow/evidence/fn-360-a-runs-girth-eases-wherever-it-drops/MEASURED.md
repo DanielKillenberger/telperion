@@ -140,6 +140,35 @@ The builder's description of what the stills show, for the host to judge:
 - Stem 120: the base's dark band across the stem at mid-frame (a growth-unit step) is gone. The dark line low in the frame, where the stem meets the trunk's shoulder, remains.
 - The beech and spruce trunks: no difference visible at this distance.
 
+## The additive rule checked on paper before building (host's third form, 13 Nov)
+
+The rule is `g(s) = r(s) + Σ drops j ≤ s of δ_j · w((s − s_j)/2a_j)`. Its paper claims were checked in Python (scratch) on the creeping stem and on oak 200's real trunk radii and distances (`probe trunkfall … 0 391`, all 391 rings), with the 1-in-1 floor. The product code was not changed this round.
+
+**The creeping stem does not come out.** For 0.05% a ring, 0.05 m rings and r 0.3 m, the excess reaches **0.325%** of r, against the stated "at most 0.3%". At ring 150 the excess is 0.000849 m, while half the thinning within the upstream window 2r(s) (11 rings back) is 0.000768 m, so the test's bound "half the thinning within the upstream window, plus 1e-6" fails by about 10%. The reason is that the holds are a sum at discrete rings: Σ_{n=0}^{N−1} w(n/N) = N/2 + 1/2. The newest drop counts at w(0) = 1 in full, so the excess is half the window's thinning plus half of one ring's drop (6.5 δ against 6 δ here).
+
+**Oak 200's trunk under the additive rule (paper):**
+
+| k | m past node 112 | radius | g |
+|---|---|---|---|
+| 106 | −0.315 (fork 1, node 105) | 0.66406 | 0.6643 |
+| 107 | −0.270 | 0.47261 | 0.6643 |
+| 113 | 0.000 (fork 2, node 112) | 0.47261 | 0.6437 |
+| 114 | 0.050 | 0.34079 | 0.6362 |
+| 115 | 0.100 | 0.34079 | 0.6268 |
+| 121 | 0.400 | 0.34079 | 0.5262 |
+| 128 | 0.750 | 0.34079 | 0.3889 |
+| 131 | 0.900 | 0.34079 | 0.3520 |
+| 135 | 1.100 | 0.32504 | 0.3405 |
+| 140 | 1.350 | 0.31544 | 0.3343 |
+
+- **Continuity at the drops: comes out.** At k 107, g holds at 0.6643 across the drop. At the second fork (k 113 → 114) g falls 1.2%, from the first fork's hold fading, against the stateless rule's 5.1%.
+- The trunk run's largest fall moves off the second fork, to k 126 (d 5.684, 0.65 m past it): 4.4%, with the flare included.
+- "About 0.512 at 0.35 m further" comes out: 0.526 at 0.40 m.
+- "0.615 just past the second fork" does not: g is 0.636 there. The paper took the first drop at 0.3 m back; on the tree it is 0.315 m back, at a radius of 0.664, not 0.637.
+- "Equal to 0.341 from 1.27 m past the first fork" does not: the trunk keeps thinning past the forks (0.341 → 0.325 → 0.315), and each of those drops lays its own hold. At 1.35 m past node 112, g is 0.334 against r 0.315.
+
+The run stops here, as the host asked, before building: the creeping-stem arithmetic does not come out, and the bound is the host's to set.
+
 ## Not done
 
 `flowctl done` was not run: the creeping-stem test as specified (within 0.1%) fails at 0.156%, and its bound is the host's call (above). The full narrow lists of `pipeline` tests beyond `surface`, `fork`, `bark` and the two pins were not run.
