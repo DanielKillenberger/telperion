@@ -253,7 +253,8 @@ pub fn oak() -> Species {
             primary: 0.009,
             sapwood: SAPWOOD,
             sapwood_rings: SAPWOOD_RINGS,
-            dominance: 0.0,
+            // fn-361: an estimate; see the preset's comment (oregon-white-oak.values).
+            dominance: 0.5,
             roll: 0.8,
             sag: SAG,
             bend_length: 3.0,
@@ -305,6 +306,8 @@ pub fn oak() -> Species {
             primary: 0.004,
             sag: SAG,
             bend_length: 1.5,
+            // fn-361: the limb's dominance is the limb's alone.
+            dominance: 0.0,
             ..limb.form
         },
         ..state(

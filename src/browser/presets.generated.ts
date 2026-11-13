@@ -1920,6 +1920,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 35,
             "form": {
               "bendLength": 3,
+              "dominance": 0.5,
               "elevation": 1.05,
               "primary": 0.009,
               "roll": 0.8,

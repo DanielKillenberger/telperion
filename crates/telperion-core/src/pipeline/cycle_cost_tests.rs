@@ -23,9 +23,10 @@ const SEEDS: [u32; 3] = [1, 1234, 5678];
 /// ordinary tree; its short shoot's twelve years moved the beech and the
 /// Two Trees. fn-359's drawn scale for nested fades moved the ordinary
 /// tree, the oak, the spruce's coarsest, the beech and the birch's coarsest.
+/// fn-361's limb dominance, 0.5, moved the oak.
 const PINNED: [(u64, u64); 8] = [
     (13986120611573680668, 13986120611573680668),
-    (14944671683796001899, 475426537269313102),
+    (12276229172433221013, 16700210903344882314),
     (12665486350558508414, 8154765959244887056),
     (13924919106548380920, 13924919106548380920),
     (2054489571488262802, 9663260454690218178),
