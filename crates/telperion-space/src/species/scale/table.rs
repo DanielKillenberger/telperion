@@ -134,7 +134,7 @@ pub const SETTINGS: &[Setting] = &[
         "The share of vigour the continuing axis keeps against its laterals. Dormant without shade size."),
     // A potential height of 1 m and above (DEVICE-ANSWERS.md 2).
     row("inverse_height", Log { floor: 1e-3 }, SHARE, "per metre",
-        "The reciprocal of the species' potential height: a living tip costs its size times the square of its path from the root over that height. Dormant at 0, and without a balance hazard."),
+        "The reciprocal of the species' potential height: a living tip costs its size times the square of its height above the root collar over that height. Dormant at 0, and without a balance hazard."),
     row("balance_hazard", Log { floor: 0.01 }, SHADE, "per year",
         "How fast a lateral whose carbon balance falls below tolerance is shed. Dormant without an inverse height, and on an axis that bears no laterals."),
     row("shade_short", Linear, SHADE, "exponent",

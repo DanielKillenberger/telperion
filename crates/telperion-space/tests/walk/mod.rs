@@ -4,11 +4,11 @@
 #![allow(dead_code)]
 mod bend;
 pub mod degree;
+mod height;
 mod measure;
-mod path;
 pub use bend::sag_bend;
+pub use height::tallest_tip;
 pub use measure::*;
-pub use path::longest_path;
 use telperion_space::{grow, Form, Light, NodeLaw, PaState, Request, Species, Structure, Zone};
 
 pub const STEPS: u32 = 200;
@@ -895,9 +895,9 @@ pub fn light_settings() -> Vec<Setting> {
 
 /// Each PA's inverse height walked over the range trees stand in, 0 to
 /// 0.1 a metre (a potential height of 10 m and above), in the unit the
-/// rule reads it in: the path over the potential height, so a step of
-/// one is the walk tree's longest path from the root collar to a living
-/// tip, measured on the tree grown at none (DEVICE-ANSWERS.md 1).
+/// rule reads it in: the height over the potential height, so a step of
+/// one is the walk tree's tallest living tip above the root collar,
+/// measured on the tree grown at none (DEVICE-ANSWERS.md 1; fn-363).
 fn inverse_heights() -> Vec<Setting> {
     let set: [fn(&mut Species, f64); 2] = [
         |s, v| s.states[1].inverse_height = v,
@@ -910,7 +910,7 @@ fn inverse_heights() -> Vec<Setting> {
             let mut at_none = species();
             leafy(&mut at_none);
             set(&mut at_none, 0.0);
-            walked.stretch = longest_path(&lit(&at_none, SITE, 1).expect("the walk tree"));
+            walked.stretch = tallest_tip(&lit(&at_none, SITE, 1).expect("the walk tree"));
             walked
         })
         .collect()

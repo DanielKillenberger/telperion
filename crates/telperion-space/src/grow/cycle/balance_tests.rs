@@ -1,6 +1,7 @@
 //! The carbon balance on hand-built trees (fn-349 R4): dead wood is
 //! charged nothing, a living tip's charge rises with the square of its
-//! path, and a part earns what its paying child laterals have left over.
+//! height (fn-363), and a part earns what its paying child laterals have
+//! left over.
 use super::super::bud;
 use super::passes::{charge, charged};
 use super::Working;
@@ -60,22 +61,22 @@ fn a_limb_is_charged_nothing_for_its_dead_twigs() {
     );
 }
 
-/// A living tip is charged its size times the square of its path over the
+/// A charge is a tip's size times the square of its height over the
 /// potential height: a seed tip at the root collar nothing, a lateral tip
 /// at half the height a quarter of its size, one at the full height its
 /// whole size, and none where the species has no height.
 #[test]
-fn a_tip_is_charged_the_square_of_its_path() {
+fn a_charge_is_the_square_of_the_height() {
     let inverse = 1.0 / 32.0;
     assert_eq!(charge(0.5, 0.0, inverse), 0.0);
     assert_eq!(charge(0.5, 16.0, inverse), 0.125);
     assert_eq!(charge(0.5, 32.0, inverse), 0.5);
     assert_eq!(charge(0.5, 32.0, 0.0), 0.0);
-    // A seed tip and two lateral tips on it, at 8 m and 16 m of path, each
-    // lit enough to pay: the seed, charged nothing itself, earns its own
-    // light and what each has left over.
-    let paths = [0.0, 8.0, 16.0];
-    let own: Vec<(f32, f32)> = paths
+    // A seed tip and two lateral tips on it, 8 m and 16 m up, each lit
+    // enough to pay: the seed, charged nothing itself, earns its own light
+    // and what each has left over.
+    let heights = [0.0, 8.0, 16.0];
+    let own: Vec<(f32, f32)> = heights
         .iter()
         .map(|&l| (1.0, charge(1.0, l, inverse)))
         .collect();
@@ -120,7 +121,12 @@ fn a_tip_is_charged_the_square_of_its_height_whatever_its_path() {
     let straight = lateral(0.25, &[[2.0, 0.0, 8.25]]);
     let wandering = lateral(
         0.25,
-        &[[6.0, 0.0, 6.25], [6.0, 5.0, 10.25], [-3.0, 4.0, 9.25], [1.0, 3.0, 8.25]],
+        &[
+            [6.0, 0.0, 6.25],
+            [6.0, 5.0, 10.25],
+            [-3.0, 4.0, 9.25],
+            [1.0, 3.0, 8.25],
+        ],
     );
     assert_eq!(charged(0.5, &straight, 1, inverse), 0.5 / 16.0);
     assert_eq!(charged(0.5, &wandering, 1, inverse), 0.5 / 16.0);

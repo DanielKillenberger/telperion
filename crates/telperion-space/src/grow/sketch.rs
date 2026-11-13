@@ -14,7 +14,7 @@ use crate::allocation::{sizes, vigours_from, Link, TIP};
 use crate::cores::fill;
 use crate::geometry::Layer;
 use crate::light::Light;
-use crate::structure::{Node, Origin, Vec3};
+use crate::structure::{Axis, Growing, Node, Origin, Vec3};
 
 /// The axes in a piece of the gathering of rows.
 const ROWS: usize = 1 << 15;
@@ -64,7 +64,7 @@ pub(super) struct Pencil {
     pub(super) kept: f64,
     /// The path along the wood from the root collar to its base, and to
     /// the node of each phytomer laid, as the layout lays it (fn-349): what
-    /// its tip is charged by and what its laterals start from.
+    /// its laterals start from.
     pub(super) root: f32,
     pub(super) path: Vec<f32>,
 }
@@ -229,7 +229,11 @@ impl Grower {
     }
 
     pub(super) fn tip(&self, i: usize) -> Vec3 {
-        let axis = &self.axes[i];
-        axis.phytomers.last().map_or(axis.base, |p| p.tip())
+        tip(&self.axes[i])
     }
+}
+
+/// An axis's tip: its last laid node, or its base where it has laid none.
+pub(super) fn tip(axis: &Axis<Growing>) -> Vec3 {
+    axis.phytomers.last().map_or(axis.base, |p| p.tip())
 }

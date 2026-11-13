@@ -1,10 +1,12 @@
 //! The one cycle's balance and allotment over its working set
 //! (`working.rs`): the balance, and the same arithmetic as `sketch.rs`'s
 //! allotment, each in the whole tree's order, visiting only the open axes.
+use super::super::sketch::tip;
 use super::working::sizes;
 use super::Grower;
 use crate::contract::shed::{walk, Bud, Lateral};
 use crate::lineage::{Key, SHED};
+use crate::structure::{Axis, Growing};
 
 impl Grower {
     /// The cycle's working set: the axes laid so far taken in, and those
@@ -29,9 +31,9 @@ impl Grower {
 
     /// The carbon balance (fn-197 step 4, fn-349) over the working set.
     /// Each living tip collects its size times the light at its tip and is
-    /// charged its size times the square of its path from the root collar
-    /// over its species' potential height (`charge`); wood that has died
-    /// is charged nothing. Each open part earns its own tips' light and
+    /// charged its size times the square of its height above the root
+    /// collar over its species' potential height (`charged`, fn-363); wood
+    /// that has died is charged nothing. Each open part earns its own tips' light and
     /// what its paying child laterals have left over, and costs its own
     /// tips' charge (`Working::totals`), and every
     /// living subtree but the seed's own axis is tested on its balance,
@@ -56,7 +58,7 @@ impl Grower {
             let inverse = species.states[self.axes[i].pa].inverse_height as f32;
             (
                 size * p.light as f32,
-                charge(size, p.path_end(), inverse),
+                charged(size, &self.axes, i, inverse),
                 true,
             )
         };
@@ -144,10 +146,18 @@ impl Grower {
     }
 }
 
-/// A living tip's charge: its size times the square of its path from the
-/// root collar times its species' inverse height; none at an inverse
-/// height of 0.
-pub(super) fn charge(size: f32, path: f32, inverse_height: f32) -> f32 {
-    let reach = path * inverse_height;
+/// Axis `i`'s living tip's charge at `size` (fn-363): its size times the
+/// square of its height times its species' inverse height, its height
+/// that of its last laid node above the root collar's base, the seed's,
+/// and none below it.
+pub(super) fn charged(size: f32, axes: &[Axis<Growing>], i: usize, inverse_height: f32) -> f32 {
+    let height = (tip(&axes[i]).z - axes[0].base.z).max(0.0);
+    charge(size, height as f32, inverse_height)
+}
+
+/// A charge: `size` times the square of `height` times the inverse
+/// height; none at an inverse height of 0.
+pub(super) fn charge(size: f32, height: f32, inverse_height: f32) -> f32 {
+    let reach = height * inverse_height;
     size * reach * reach
 }

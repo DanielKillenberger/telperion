@@ -228,9 +228,10 @@ pub struct PaState {
     /// `shade_size` is 0 or no leaf shades.
     pub apical_control: f64,
     /// The reciprocal of the species' potential height, per metre
-    /// (fn-349): a living tip of this PA costs the carbon balance its size
-    /// times the square of its path from the root collar times this, the
-    /// living wood a leaf keeps rising with the square of its path. Every
+    /// (fn-349, fn-363): a living tip of this PA costs the carbon balance
+    /// its size times the square of its height above the root collar times
+    /// this, the living wood a leaf keeps rising with the square of its
+    /// height. Every
     /// row of a species states the same value. Neutral 0, free.
     pub inverse_height: f64,
     /// How fast a lateral of this PA is shed as its remembered balance,
