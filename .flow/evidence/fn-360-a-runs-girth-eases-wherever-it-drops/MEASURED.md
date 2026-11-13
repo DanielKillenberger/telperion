@@ -89,6 +89,48 @@ The growth-unit steps no longer draw as a fall. At the relay join the node radiu
 
 `every_preset_grows_the_tree_it_grew_at_both_ends_of_the_dial` expects `[(9819307049801252693, 9819307049801252693), (15182297322291910030, 7299178540230679106), (12665486350558508414, 9318247602647309830), (16361327149142543059, 16361327149142543059), (2054489571488262802, 18014430067925384448), (4799502948138528708, 4799502948138528708), (3392261673279751331, 3392261673279751331), (16456616023369512333, 16456616023369512333)]` and gets `[(13986120611573680668, 13986120611573680668), (14944671683796001899, 475426537269313102), (12665486350558508414, 8154765959244887056), (13924919106548380920, 13924919106548380920), (2054489571488262802, 9663260454690218178), (4799502948138528708, 4799502948138528708), (3392261673279751331, 3392261673279751331), (16456616023369512333, 16456616023369512333)]`, the same on base and after.
 
+## The stateless rule (host, 13 Nov, second decision)
+
+The host replaced the first rule with one that has no state: `g(s) = max over rings s' ≤ s of r(s) + max(0, r(s') − r(s)) · w((s − s')/2r(s'))`. "after2" below is that rule without the 1-in-1 floor, measured to decide the floor; the floor is then kept (below), and the narrow tests ran with it. Same probe, one core, no PAUSE inside the run (01:49–01:52).
+
+| tree | forks at floor | trunk largest fall | pairs > 2% | wood vertices | surface s | steepest girth slope, no floor |
+|---|---|---|---|---|---|---|
+| oak 120 | 0 of 47 (base 2) | 21.7% (base 21.7%) | 1,126,904 (base 1,126,983) | unchanged | 4.61 (base 4.56) | 0.83 |
+| oak 200 | 0 of 33 (base 4) | **5.1%** (base 9.3%) | 365,624 (base 365,557) | unchanged | 1.32 (base 1.33) | **1.57** |
+| spruce 40 | 0 | 33.3% (base 33.3%) | 630,677 (base 630,691) | unchanged | 2.12 (base 1.87) | 0.21 |
+| beech 40 | 0 of 9 | 27.9% (base 26.9%) | 123,704 (base 123,718) | unchanged | 0.67 (base 0.69) | 0.79 |
+
+**The floor stays.** Without it, oak 200 falls 1.57 in 1 at node 27778 (d 18.471), girth 0.00577 → 0.00336 over 0.0015 m, a twig. The floor is back as a separate step after the rule.
+
+**Oak 200 trunk past the two forks** (node 112 at k 113, d 5.034; target = radius):
+
+| k | d − 5.034 | radius | drawn girth |
+|---|---|---|---|
+| 113 | 0.00 | 0.4726 | 0.6369 |
+| 114 | 0.05 | 0.3408 | 0.6042 |
+| 116 | 0.15 | 0.3408 | 0.5729 |
+| 118 | 0.25 | 0.3408 | 0.5383 |
+| 120 | 0.35 | 0.3408 | 0.5021 |
+| 122 | 0.45 | 0.3408 | 0.4659 |
+| 124 | 0.55 | 0.3408 | 0.4313 |
+| 126 | 0.65 | 0.3408 | 0.4001 |
+| 128 | 0.75 | 0.3408 | 0.3738 |
+| 130 | 0.85 | 0.3408 | 0.3542 |
+| 132 | 0.95 | 0.3408 | 0.3429 |
+| 134 | 1.05 | 0.3250 | 0.3406 |
+| 140 | 1.35 | 0.3154 | 0.3276 |
+| 145 | 1.60 | 0.3154 | 0.3208 |
+
+The largest trunk fall is 5.1%, at k 114 (slope 0.65): the second fork's own step, 0.6369 → 0.6042, with the first fork's wood still holding.
+
+**Oak 200 at k 320 to 325:** 0.21115, 0.20993, 0.20911, 0.20841, 0.20798, 0.20792 against radii 0.20799 to 0.20790, so 1.5% over at k 320, falling to 0.01% at k 325. This is not creep. At k 318 (d 13.45) the radius steps 6.1%, 0.22145 → 0.20799, and k 320 is 0.07 m into that step's ease (the rule's single-step ease; twice the radius is 0.44 m). The creep before it (k 296–317, radius 0.22151 → 0.22145) is drawn within 0.02%.
+
+**The creeping-stem test as specified fails, and is held back.** The test asked for a run thinning 0.05% a ring over 200 rings, 0.05 m apart at 0.3 m, to be drawn within 0.1% of its radii. The rule draws it up to 0.156% over (red: "0.29993 against 0.29955 at 0.15"). On paper, a creep of c per ring held over 2r/Δ rings gives an excess of about c · (2r/Δ) · max t·w(t) ≈ c · (2r/Δ) · 0.30. That is 0.156% here, 0.236% at 0.033 m spacing, and 0.094% at a creep of 0.03% a ring. The upstream ring's surplus counts against every ring within its reach, not just once. Whether the bound or the test changes is the host's call. The test is not committed.
+
+**Bands on sibling stem 120 (after2):** not re-read on the stateless rule; the first rule's reading stands above.
+
+**Laterals starting inside their bearer (after2 against base):** oak 120: 48 newly inside, deepest 1.7 mm (child 1052181); oak 200: 7, deepest 0.5 mm (420570); spruce 40: 1, 0.3 mm (20284); beech 40: 2, 1.1 mm (17983). None is no longer inside, so none floats off. All are under 1 cm, within the earlier acceptance.
+
 ## Not done because of the stop
 
 R5's stills were not drawn, and `flowctl done` was not run: the run stopped at the question above. The full narrow lists of `pipeline` tests beyond `surface`, `fork`, `bark` and the two pins were not run.

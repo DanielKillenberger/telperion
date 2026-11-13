@@ -36,68 +36,63 @@ pub(super) fn sample_path(
     }
 }
 
-/// Each node's girth along a run, from its first node: the node's own
-/// radius, except where the wood thins (fn-360, host). There the drawn girth
-/// eases from what is drawn to the new radius over twice the girth drawn
-/// where the drop began; a further drop met inside an ease carries on from
-/// the girth drawn there, toward the new radius, over twice that girth. One
-/// rule for every drop, a fork's, a growth unit's or a relay's, across a
-/// lateral that takes over a bearer that ends too. The girth never falls
-/// faster than 1 in 1 and never below the node's radius; where the radius
-/// does not fall it is the radius. A branch run's walk starts at its first
-/// node past where it attaches, drawn at its own base.
+/// Each node's girth along a run, from its first node (fn-360, host): wood
+/// that was wider upstream holds the surface out, and its hold fades over
+/// twice its own radius. At ring s it is the most, over every ring s' at or
+/// before it, of `r(s) + max(0, r(s') − r(s)) · w((s − s') / 2r(s'))`, with
+/// `w` the ease curve. One rule for every drop, a fork's, a growth unit's or
+/// a relay's, across a lateral that takes over a bearer that ends too. Each
+/// girth reads only the run's radii and distances up to it, and it never
+/// falls faster than 1 in 1. It is never below the node's radius, and is
+/// the radius where nothing upstream within reach was wider. A branch run's
+/// first node past where it attaches starts its own run, at its own base.
 fn girths<'a>(
     tree: &'a Tree,
     (path_nodes, trunk): (&'a [usize], bool),
     distance: &'a [f64],
 ) -> impl Iterator<Item = f64> + 'a {
-    let nodes = &tree.nodes;
-    // The drawn girth at the node below, and the ease under way.
-    let mut below: Option<(usize, f64)> = None;
-    let mut ease: Option<Ease> = None;
-    path_nodes.iter().enumerate().map(move |(k, &i)| {
-        let own = nodes[i].radius;
-        let starts = !trunk && k == 1;
-        let Some((b, under)) = below.filter(|_| !starts) else {
-            ease = None;
-            below = Some((i, own));
-            return own;
-        };
-        if own >= under {
-            ease = None;
-        } else if ease.is_none_or(|e| own < e.to) {
-            ease = Some(Ease {
-                from: under,
-                at: distance[b],
-                to: own,
-            });
+    let radius = move |k: usize| tree.nodes[path_nodes[k]].radius;
+    let at = move |k: usize| distance[path_nodes[k]];
+    // Twice the widest radius from the run's base: no ring further back
+    // than that holds the surface out.
+    let mut reach = 0.0_f64;
+    // The girth drawn at the ring before, for the 1-in-1 floor.
+    let mut below = 0.0_f64;
+    (0..path_nodes.len()).map(move |k| {
+        let base = if trunk || k == 0 { 0 } else { 1 };
+        if k == base {
+            reach = 0.0;
+            below = 0.0;
         }
-        let girth = ease.map_or(own, |e| e.girth(distance[i]).max(own));
-        // The 1-in-1 floor (fn-354, host; the slope is an estimate).
-        let girth = girth.max(under - (distance[i] - distance[b]));
-        below = Some((i, girth));
+        let own = radius(k);
+        reach = reach.max(2.0 * own);
+        let mut girth = own;
+        for j in (base..k).rev() {
+            let gap = at(k) - at(j);
+            if gap >= reach {
+                break;
+            }
+            let up = radius(j);
+            if up > own {
+                girth = girth.max(own + (up - own) * ease(gap / (2.0 * up)));
+            }
+        }
+        // The 1-in-1 floor (fn-354, host): kept, since without it a twig of
+        // the oak at 200 falls 1.57 in 1 between two close rings (fn-360).
+        if k > base {
+            girth = girth.max(below - (at(k) - at(k - 1)));
+        }
+        below = girth;
         girth
     })
 }
 
-/// A drop being eased: from the girth drawn where it began, at that
-/// distance along, to the radius it falls to, over twice the girth.
-#[derive(Clone, Copy)]
-struct Ease {
-    from: f64,
-    at: f64,
-    to: f64,
-}
-
-impl Ease {
-    fn girth(self, d: f64) -> f64 {
-        let t = (d - self.at) / (2.0 * self.from).max(1e-9);
-        let held = if t < 1.0 {
-            (1.0 - t) * (1.0 - t) * (1.0 + 2.0 * t)
-        } else {
-            0.0
-        };
-        self.to + (self.from - self.to) * held
+/// The ease curve: 1 at 0, 0 from 1 on, flat at both ends.
+fn ease(t: f64) -> f64 {
+    if t < 1.0 {
+        (1.0 - t) * (1.0 - t) * (1.0 + 2.0 * t)
+    } else {
+        0.0
     }
 }
 

@@ -1,8 +1,8 @@
-//! fn-360: one rule for every drop along a run (host). Where the wood
-//! thins, the drawn girth eases from what is drawn to the new radius over
-//! twice the drawn girth; a further drop met inside an ease carries on from
-//! the girth drawn there, so two forks close together draw no ledge and a
-//! stem that steps every growth unit draws no ring.
+//! fn-360: one rule for every drop along a run (host). Wood that was wider
+//! upstream holds the surface out, and its hold fades over twice its own
+//! radius, so two forks close together draw no ledge and a stem that steps
+//! every growth unit draws no ring. Each girth reads only the run's radii
+//! and distances up to it.
 use super::{paths::paths, samples::sample_path, Sample, SurfaceParams};
 use crate::{
     math::Vec3,
@@ -125,5 +125,26 @@ fn a_run_that_never_thins_is_drawn_at_its_radii() {
     let rings = trunk(&tree);
     for (s, n) in rings.iter().zip(&tree.nodes) {
         assert_eq!(s.r, n.radius, "at {}", s.d);
+    }
+}
+
+/// The girth at a ring is the same drawn with the whole run or with the
+/// run cut off at that ring: nothing downstream or carried shapes it.
+#[test]
+fn a_rings_girth_reads_only_the_wood_up_to_it() {
+    let radius = |y: f64| match y {
+        y if y <= 1.0 + 1e-9 => 0.64,
+        y if y <= 1.3 + 1e-9 => 0.47,
+        _ => 0.34 * 0.97_f64.powi((y / 0.4) as i32),
+    };
+    let whole = stem(3.5, radius, &[]);
+    let rings = trunk(&whole);
+    for k in 1..whole.nodes.len() {
+        let cut = Tree {
+            crossover: k + 1,
+            nodes: whole.nodes[..=k].to_vec(),
+            ..Tree::default()
+        };
+        assert_eq!(trunk(&cut).last().unwrap().r, rings[k].r, "at ring {k}");
     }
 }
