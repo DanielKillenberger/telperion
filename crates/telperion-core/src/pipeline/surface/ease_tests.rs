@@ -154,23 +154,64 @@ fn a_stem_thinning_steadily_is_drawn_by_half_its_thinning() {
     }
 }
 
-/// The girth at a ring is the same drawn with the whole run or with the
-/// run cut off at that ring: nothing downstream or carried shapes it.
+/// Where the girth is drawn with no hold at all: its radius, or the ring
+/// before less the distance between them, the 1-in-1 floor.
+fn floored(rings: &[Sample], k: usize, radius: f64) -> f64 {
+    radius.max(rings[k - 1].r - (rings[k].d - rings[k - 1].d))
+}
+
+/// A ring's girth reads only the wood up to it and where the run ends:
+/// extending a run moves no ring at least twice the widest radius upstream
+/// of it before the old end, to the bit, and a run cut at a ring draws that
+/// ring with no hold, at its radius or the floor.
 #[test]
-fn a_rings_girth_reads_only_the_wood_up_to_it() {
+fn a_rings_girth_reads_only_the_wood_up_to_it_and_the_runs_end() {
     let radius = |y: f64| match y {
         y if y <= 1.0 + 1e-9 => 0.64,
         y if y <= 1.3 + 1e-9 => 0.47,
-        _ => 0.34 * 0.97_f64.powi((y / 0.4) as i32),
+        _ => 0.34 * 0.97_f64.powi((y.min(3.5) / 0.4) as i32),
     };
     let whole = stem(3.5, radius, &[]);
     let rings = trunk(&whole);
+    let longer = trunk(&stem(4.5, radius, &[]));
+    let end = rings.last().unwrap().d;
+    let mut widest = 0.0_f64;
+    for (k, ring) in rings.iter().enumerate() {
+        widest = widest.max(whole.nodes[k].radius);
+        if end - ring.d >= 2.0 * widest {
+            assert_eq!(longer[k].r, ring.r, "extended, at ring {k}");
+        }
+    }
     for k in 1..whole.nodes.len() {
         let cut = Tree {
             crossover: k + 1,
             nodes: whole.nodes[..=k].to_vec(),
             ..Tree::default()
         };
-        assert_eq!(trunk(&cut).last().unwrap().r, rings[k].r, "at ring {k}");
+        let cut = trunk(&cut);
+        assert_eq!(cut[k].r, floored(&cut, k, whole.nodes[k].radius), "cut at ring {k}");
+    }
+}
+
+/// A run of 0.2 m that carries on into a 3 mm shoot ends with no hold: at
+/// the floor below a 0.2 m shoot, short of the 0.1015 m the holds drew
+/// there before, and at the shoot's own radius below a 0.6 m shoot. Either
+/// way it narrows all along the shoot.
+#[test]
+fn a_run_ends_with_no_hold() {
+    for (length, ends) in [(0.2, None), (0.6, Some(0.003))] {
+        let tree = stem(1.0 + length, |y| if y <= 1.0 + 1e-9 { 0.2 } else { 0.003 }, &[]);
+        let rings = trunk(&tree);
+        let last = rings.len() - 1;
+        let end = rings[last].r;
+        assert_eq!(end, floored(&rings, last, 0.003), "{length}");
+        assert!(end < 0.1015, "{length}: {end}");
+        if let Some(radius) = ends {
+            assert_eq!(end, radius);
+        }
+        let shoot = rings.iter().position(|s| s.d > 1.0 + 1e-9).unwrap();
+        for pair in rings[shoot - 1..].windows(2) {
+            assert!(pair[1].r <= pair[0].r, "{length}: it rises at {}", pair[1].d);
+        }
     }
 }

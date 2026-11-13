@@ -15,7 +15,9 @@ A trial (reverted, not product) started the ease past a fork from the run's draw
 
 One rule for every drop, fork or not, with no state (host, 13 Nov 2026, final form; it replaces a first rule whose ease depended on its own history, and a max form whose term r(s) stepped down at a second drop and left a band). Along a run, every ring j where the grown radius falls from the ring before (δ_j = r(j−1) − r(j) > 0, a_j = r(j−1)) lays a hold that fades over twice the radius it fell from, and the holds add:
 
-  g(s) = r(s) + Σ over drops j with s_j ≤ s of  δ_j × w((s − s_(j−1)) / (2 a_j)),   w(t) = (1 − t)²(1 + 2t) on [0, 1], 0 beyond
+  g(s) = r(s) + Σ over drops j with s_j ≤ s of  δ_j × w((s − s_(j−1)) / ℓ_j),   ℓ_j = min(2 a_j, S_end − s_(j−1)),   w(t) = (1 − t)²(1 + 2t) on [0, 1], 0 beyond
+
+with S_end the distance of the run's last ring: a hold fades over twice the radius it fell from or over what is left of the run, whichever is shorter, so a run ends at its own radius (host, 13 Nov 2026, after a 3 mm shoot carrying on from a 0.227 m limb was drawn ending 0.116 m wide).
 
 The radius falls across the segment from ring j−1 to ring j, so a hold's clock starts at s_(j−1), where the fall starts (host, 13 Nov 2026).
 
