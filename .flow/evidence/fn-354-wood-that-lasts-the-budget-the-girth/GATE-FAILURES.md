@@ -143,3 +143,79 @@ The run was `telperion-heavy 8 --threads 4 -- python3 scripts/gate.py`, with rec
   - `curve the_device_surfaces_the_wood_the_cpu_reference_does`: "ordinary close: over budget", 3 against 0.
   - `curve the_second_slices_hold_what_the_first_could_not`: "no view reached the second slices at scale 1".
 - **node.** `catalogue/date-palm/README.md` differed from its regeneration. The page prints the skeleton digest repinned in item 1. **Fixed** in 801c4e74e by `node scripts/catalogue-pages.mjs`; `catalogue-check` now passes.
+
+# The render, memory and timing items, 12 to 13 Nov 2026
+
+Worked in `.worktrees/gate2` (branch `gate/render-and-memory`, head 34b28aa43 at the start) against the base 5ebab2de0 in `.worktrees/gate-base`, each with its own `target/`. Every test ran alone through `telperion-heavy 8 --threads 4` (`--gpu 2` for device tests), under nextest's default profile with the gate's runner (`scripts/gate_test.py`) taking the peak. Times are nextest's test durations, without the build. Tree sizes come from a scratch probe, `mesh::build` alone in its own process with peak `VmHWM`. Scratch probes were not committed.
+
+## 6. Five assertions that failed here and passed on the base
+
+| Test | What it promises | Base | Branch | Cause | Outcome |
+|---|---|---|---|---|---|
+| `bark_occlusion the_darkened_side_of_a_furrow_follows_the_sun` | The occlusion term darkens the side away from the sun, and that side swaps when the sun crosses | took 0.0917 / 0 at sun 45 | took 0 / 0 | Framing. The oak at 80, seed 1, is thinner: the wood across the frame's middle row went from 222 to 127 px, and the strips 20 to 90 px either side of centre held little trunk | **Fixed** in 086dfedc5. The camera comes in from 2.47 m to 1.42 m along the same line. Takes 0.0703 at sun 45 and 0.1028 at sun 225, and the swing changes sides |
+| `bark_structure_colour each_structure_colour_row_changes_the_picture_and_moves_no_wood` | Each structure row changes the frame, and the shipped row moves it by more than 1/255 | shipped 1.8014/255 | 0.5518/255 | Framing, on the same tree and pose as `bark_depth` (oak seed 7). The middle row went from 236 to 123 px of wood | **Fixed** in 086dfedc5, with `bark_depth`'s 1.09 m pose (200 px). Shipped 1.6223/255; the rows 0.938, 0.772 and 1.374 (base 1.118, 0.751 and 1.474) |
+| `curve the_second_slices_hold_what_the_first_could_not` | Some view from 40 to 96 px wide is drawn at scale 1 past half its budget, so the second slices are written | found at 84 px | none | The fixture tree grew. The ordinary tree on the beech at 40 went from 5.50 M to 19.16 M wood vertices. Its close view asks about 2.6 times the wood a pixel, so no small view fits the finest scale: scale 8 up to 92 px, and 2 at 96 px | **Fixed** in 8eeac71af. This test now uses that tree at 30, its own year 30, with 4.91 M wood vertices. The 76 px view draws at scale 1, 33,363 vertices against a budget of 36,525, and matches the reference |
+| `curve the_device_surfaces_the_wood_the_cpu_reference_does` | At 480x360, the hero view and then the close view are drawn within budget and match the CPU reference | close: scale 8, overrun 0 | close: overrun 3 | **Product.** The device sizes the close frame's budget from the hero frame's demand. Tube indices: the budget was 100,350 on the base and is 27,990 here, against a close demand of 254,556. No scale fits, and a cluster is left out. The shipped `european-beech` at its default age gives the same: overrun 3 here, 0 on the base | **Returned** |
+| `bark_distance resolved_scales_survive_until_the_two_pixel_boundary` | The shipped oak's trunk at 2x and 4x distance agrees across resolution within 5.2 and 5.8 mean, and 14 and 15.25 p95 | 2x: 4.42 / 12.75; 4x: 5.52 / 14.50 | 2x: 5.53 / 13.50; 4x: 6.03 / 16.25 | **Product, as measured.** The trunk is thinner at the same distance. The mask fell from 9,972 to 4,123 px at 2x. The central half of each mask row still reads 4.96 against 3.72 on the base at 2x, so the rise is not only edge pixels. Moving the camera in would change the footprint series the test exists for | **Returned** |
+
+On the curve overrun: the base shows the same mechanism on younger ordinary trees. At 25, 20 and 15 the close frame after the hero frame overruns (3) on both commits. The branch's tree at 40 and the shipped beech at 40 now land in it.
+
+## 7. Memory
+
+| Test | Base peak (MiB) | Branch peak (MiB) | What holds it | Outcome |
+|---|---:|---:|---|---|
+| `paused a_retired_root_let_go_is_read_as_it_was` | not on base | 2,025 → **954** | The spruce's two growers, 2,008 alone at 40 | **Fixed** in d6bbf6f4a: grown to 30 in steps 10, 20, 30. It still lets go of 13,062, 110,705 and 3,657 retired roots (oak, spruce, beech; the test asks for over 100), and every closed subtree's living is equal. Not listed |
+| `paused a_tips_path_survives_letting_go_and_a_pause` | not on base | 1,442 → **737** | The spruce, 1,458 alone at 40 | **Fixed** in d6bbf6f4a, the same way. It compares 19,203, 67,273 and 16,435 living tips, all equal. Not listed |
+| `bark_detail relief_moves_the_light_while_every_wood_mesh_byte_holds` | 976 | 2,929 | Its fixture, the ordinary tree on the beech at 40, built twice: 19.16 M wood vertices (base 5.50 M), 1,143 MiB a build | **Listed** one-at-a-time in `.config/nextest.toml` (d6bbf6f4a). A younger tree does not prove it: the relief changes 0 channels at 20, 30 and 35, and 311 at 40 (the bar is 100). The test needs wood in view thicker than the 0.16 m ridge scale; this was read from the shader's guard and not measured |
+| `smooth_bark the_smooth_barks_hold_the_resolution_and_redraw_contracts` | 2,254 | 5,883 (fails its 4,096 budget; assertions pass) | The build of the shipped **european-beech at 80, seed 1**: 101.7 M wood vertices and 5,826 MiB, against 35.2 M and 2,094 MiB on the base, in 54 s against 8 s. The birch at 80 is unchanged: 1,684 against 1,674 | **Returned**: a shipped preset at 80 needs 2.8 times the memory |
+| `telperion_wasm every_shipped_preset_builds_through_the_main_entry` | 3,981 | 4,198 alone (4,250 in the gate), against 4,096 | The largest preset, **telperion** at its default age: 73.3 M wood vertices and 4,432 MiB a build, against 72.6 M and 4,286 on the base. laurelin is at 4,204 against 4,114. The beech grew most, 360 to 1,138, but is not the largest | **Returned**: +146 MiB on the largest shipped preset |
+
+Builds of every shipped preset at its default age (seed 42), base → branch, in wood vertices and MiB:
+
+- oak: 6.30 M / 445 → 7.14 M / 460
+- spruce: 24.5 M / 1,590 → 26.9 M / 1,737
+- beech: 5.50 M / 360 → 19.16 M / 1,138
+- birch: 6.71 M / 449 → 7.05 M / 456
+- palm: equal
+- telperion: 72.6 M / 4,286 → 73.3 M / 4,432
+- laurelin: 68.0 M / 4,114 → 68.9 M / 4,204
+
+Three more tests are now over their memory budgets alone. Their assertions pass. All three were found while timing item 8, and each is returned:
+
+| Test | Base peak (MiB) | Branch peak (MiB) | Budget | What holds it |
+|---|---:|---:|---:|---|
+| `form the_beech_grows_at_every_age_of_its_sheet` | 1,809 | **8,631** | 4,096 | The beech grown to 10, 20, 40 and 80 at seeds 1 and 7; its largest are the trees at 80. The beech at 80, seed 1, builds 101.7 M wood vertices against 35.2 M. Under the 8 GB scope the test was killed twice (SIGTERM at 82 to 90 s), so it now needs more than the gate's whole scope |
+| `ground_reach nothing_drawn_passes_below_the_ground` | 4,660 | **5,984** | 5,184 | The largest row, **telperion at its own age 82, seed 1**: 56.7 M wood vertices and 3,369 MiB a build, against 42.9 M and 2,519 MiB. laurelin at 80, seed 1: 53.6 M and 3,207 MiB, against 40.2 M and 2,424 MiB |
+| `telperion_wasm flowers_cross_the_binding_where_the_pipeline_grows_them` | 3,903 | **4,173** and 4,178 (4,007 once) | 4,096 | Telperion and laurelin at their default ages, as in the main-entry test above |
+
+No budget in `.config/gate-budgets.toml` was raised.
+
+## 8. The eleven tests cut off in the loaded gate, timed alone
+
+Each test ran alone, branch then base, back to back where the queue allowed. The times are nextest's test durations. A run with a watcher `PAUSE` inside it was discarded and run again. The runs on 12 Nov came before the watcher existed and are taken at the load shown. Peaks come from the gate's runner.
+
+| Test | Base s / MiB (load) | Branch s / MiB (load) | Reading |
+|---|---|---|---|
+| `relay_tests a_stem_never_thickens_on_its_way_up` | 35.5 / 1,511 (42) | 58.6 / 3,269 (15) | **A larger tree**: 2.2 times the memory, 1.65 times the time at lower load |
+| `repeat_tests the_largest_tree_and_the_palm...` | 121.9 / 2,686 (46) | 185.9 / 2,144 (72) | **Load**, as far as can be told: less memory on the branch, and the run sat at load 72 against 46 |
+| `suite::mesh every_preset_builds_a_mesh...` | 44.5 / 4,380 (48) | 60.8 / 4,386 (40) | **Slower code or load**: the same memory, 1.37 times the time. The beech's build alone is 0.97 s on the base and 2.82 s on the branch at seed 42 |
+| `grow::cycle::tests::woken_buds_that_stop_at_once_retire...` | 0.71 / 24 (45) | 225.8 / 246 (29) | **Slower code, about 300 times.** The same oak, 2,207 axes against 2,208. One seed's `grow_census` takes 0.11 s on the base and 35.4 s on the branch, and the reference grower 0.09 s and 34.2 s. No blend is involved. The commit was not bisected |
+| `suite::packed_leaf every_station...` | 83.2 / 4,352 (55) | 115.3 / 4,416 (45) | **Slower code or load**: the same memory, 1.39 times the time |
+| `ground_reach nothing_drawn_passes_below_the_ground` | 88.4 / 4,660 (56) | 114.2 / 5,984 (57) | **A larger tree**: telperion and laurelin at seed 1, item 7. Over its memory budget |
+| `light_rows each_populated_response...` | 45.5 / 1,622 (8) | 68.1 / 1,233 (36) | **Load** most likely: less memory, and the branch's run sat at load 36 against 8 |
+| `form the_beech_grows_at_every_age_of_its_sheet` | 18.5 / 1,809 (10) | 71.2 / 8,631 (7) | **A larger tree**: the beech at 80, 4.8 times the memory. Over its memory budget and killed under the 8 GB scope |
+| `telperion_wasm flowers_cross_the_binding...` | 91.8 / 3,903 (9) | 93.4 / 4,173 (4) | **Not slower alone.** Its 239 s cut came from the loaded gate. Over its 4,096 MiB budget, item 7 |
+| `boundary a_stage_outside_the_executor_interface_does_not_compile` | not cleanly timed (8.0 s with a pause inside; 107.9 s on a cold trybuild cache) | 46.9 / 925 (11) | **A compile, not a tree**: its time follows trybuild's build cache |
+| `walks a_walk_between_species_changes_the_tree_by_degree` | — | — | **Blends species**: the cause another agent is fixing (item 3). Not timed |
+| `walk_leaves spruce_to_birch_changes_its_leaves_by_degree` | — | — | **Blends species**: as above. Not timed |
+
+## What is returned to the host
+
+1. **The device budget after a hero frame.** `curve the_device_surfaces...`: at 480x360 a close frame after the hero frame overruns (3) for the ordinary tree on the beech at 40, and for the shipped beech at its default age. The tube-index budget is 27,990 against a demand of 254,556; the base had a budget of 100,350, with overrun 0. The same mechanism overruns on the base for younger trees (15 to 25).
+2. **The shipped oak's bark aliasing at distance.** `bark_distance` reads mean 5.53 at 2x against a bound of 5.2 (base 4.42). On the central half of the trunk it reads 4.96 against 3.72 on the base.
+3. **Shipped presets that need more memory**:
+   - the beech at 80, seed 1: 101.7 M wood vertices and 5,826 MiB, against 35.2 M and 2,094 (`smooth_bark`, `form`);
+   - telperion at 82, seed 1: 3,369 against 2,519 MiB, and laurelin at 80, seed 1: 3,207 against 2,424 MiB (`ground_reach`);
+   - telperion at its default age: 4,432 against 4,286 MiB (`every_shipped_preset...` at 4,198, and `flowers_cross...` at 4,173, both against 4,096).
+4. **`bark_detail` needs the tree at 40.** It is listed one-at-a-time at 2,929 MiB; younger trees change 0 channels.
+5. **The grower is about 300 times slower** on `woken_buds` (0.7 s to 226 s), on an unchanged tree, with no blend.
