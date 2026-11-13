@@ -29,7 +29,7 @@ pub enum Retiring {
 
 /// The one cycle between years.
 pub struct Paused {
-    g: Grower,
+    pub(super) g: Grower,
     request: Request,
     committed: u32,
     advanced: Vec<usize>,
