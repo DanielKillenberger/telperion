@@ -174,3 +174,17 @@ fn a_rings_girth_reads_only_the_wood_up_to_it() {
         assert_eq!(trunk(&cut).last().unwrap().r, rings[k].r, "at ring {k}");
     }
 }
+
+/// A run of 0.2 m that carries on into a 3 mm shoot 0.2 m long ends at the
+/// shoot's radius and narrows all along it: a hold fades over what is left
+/// of the run when that is shorter than twice the radius it fell from.
+#[test]
+fn a_run_ends_at_its_own_radius() {
+    let tree = stem(1.2, |y| if y <= 1.0 + 1e-9 { 0.2 } else { 0.003 }, &[]);
+    let rings = trunk(&tree);
+    assert_eq!(rings.last().unwrap().r, 0.003);
+    let shoot = rings.iter().position(|s| s.d > 1.0 + 1e-9).unwrap();
+    for pair in rings[shoot - 1..].windows(2) {
+        assert!(pair[1].r <= pair[0].r, "it rises at {}", pair[1].d);
+    }
+}
