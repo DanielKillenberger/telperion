@@ -182,7 +182,10 @@ fn dominance_leaves_a_few_laterals_whole() {
 }
 
 /// The beech grows at every age its sheet draws, at both seeds, standing
-/// and above the ground.
+/// and above the ground, under the site's light as the sheet draws it
+/// (fn-264 R1a). Unshaded, a beech of 80 is no tree a preset grows: every
+/// lateral keeps its long kind (fn-354 R7) and seed 7 holds 27 million
+/// phytomers (fn-351, `BEECH-FORM-MEMORY.md`).
 #[test]
 fn the_beech_grows_at_every_age_of_its_sheet() {
     for age in [10, 20, 40, 80] {
@@ -193,7 +196,7 @@ fn the_beech_grows_at_every_age_of_its_sheet() {
             let request = Request {
                 age,
                 seed,
-                light: telperion_space::Light::NEUTRAL,
+                light: walk::SITE,
             };
             let tree = grow(&beech(), request).unwrap_or_else(|e| panic!("{age}, {seed}: {e:?}"));
             assert!(tree.axes[0].phytomers[0].radius > 0.0);
