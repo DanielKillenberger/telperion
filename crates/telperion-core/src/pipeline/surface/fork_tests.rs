@@ -167,7 +167,7 @@ fn grown(fork: f64) -> (Family, Tree) {
 fn a_grown_clump_parts_cleanly_and_one_at_the_ground_is_untouched() {
     let (_, tree) = grown(0.4);
     let paths = paths(&tree).unwrap();
-    let forks: Vec<usize> = (0..tree.nodes.len()).filter(|&i| paths.forks[i]).collect();
+    let forks = forks_of(&tree);
     assert_eq!(forks.len(), 1, "the clump parts at {forks:?}");
     let fork = forks[0];
     let lean = |i: usize| {
@@ -198,7 +198,21 @@ fn a_grown_clump_parts_cleanly_and_one_at_the_ground_is_untouched() {
     assert!((lean(off[0]) - 24.0).abs() < 2.0);
     // At the ground no node is a fork: both stems leave the root.
     let (_, tree) = grown(0.0);
-    assert!(!super::paths::paths(&tree).unwrap().forks.contains(&true));
+    assert!(forks_of(&tree).is_empty());
+}
+
+/// Every node above the root a codominant sibling leaves.
+fn forks_of(tree: &Tree) -> Vec<usize> {
+    let mut forks: Vec<usize> = tree
+        .nodes
+        .iter()
+        .filter(|n| n.codominant.is_some())
+        .map(|n| n.parent.unwrap() as usize)
+        .filter(|&at| at != 0)
+        .collect();
+    forks.sort_unstable();
+    forks.dedup();
+    forks
 }
 
 #[test]
@@ -235,7 +249,6 @@ fn siblings_part_from_their_forks(tree: &Tree) -> usize {
             .unwrap_or_else(|| panic!("sibling {i} carries on another run"));
         assert_eq!(paths.nodes[run.start], fork, "sibling {i} leaves elsewhere");
         assert_eq!(run.trunk, fork == 0, "sibling {i} at {fork}");
-        assert_eq!(paths.forks[fork], fork != 0, "fork {fork} not recognised");
         let through = paths
             .runs
             .iter()

@@ -1,8 +1,8 @@
 //! Seeding one run of the sweep: the ring centres, radii and path distances a
 //! run is swept over. A trunk run starts at the root it stands on — buried by
 //! the flare's own depth and widened by it — and every other run starts sunk
-//! into the socket of the wood it forks off. A run that carries on through a
-//! fork of stems eases the trunk's girth into the stem it follows.
+//! into the socket of the wood it forks off. Wherever a run's wood thins, at
+//! a fork of stems or anywhere else, the drawn girth eases into it.
 use super::{
     paths::{Paths, Run},
     Sample, SurfaceParams,
@@ -25,7 +25,7 @@ pub(super) fn sample_path(
         1.0 + (params.flare_radius - 1.0)
             * (-y.max(0.0) / (params.flare_falloff * height)).exp_fixed()
     };
-    let girths = girths(tree, (path_nodes, run.trunk), &paths.forks, distance);
+    let girths = girths(tree, (path_nodes, run.trunk), distance);
     if run.trunk {
         trunk_run(tree, path_nodes, girths, distance, burial, &flare, samples);
     } else {
@@ -36,51 +36,69 @@ pub(super) fn sample_path(
     }
 }
 
-/// Each node's girth along a run, from its first node: the node's own radius,
-/// except over the fork's diameter past a fork of stems the run carries on
-/// through, where it eases from the trunk's girth at the fork into the stem's
-/// own. The run's first node is where it attaches, never a fork it passes.
-/// Along the run a girth falls no faster than its distance.
+/// Each node's girth along a run, from its first node: the node's own
+/// radius, except where the wood thins (fn-360, host). There the drawn girth
+/// eases from what is drawn to the new radius over twice the girth drawn
+/// where the drop began; a further drop met inside an ease carries on from
+/// the girth drawn there, toward the new radius, over twice that girth. One
+/// rule for every drop, a fork's, a growth unit's or a relay's, across a
+/// lateral that takes over a bearer that ends too. The girth never falls
+/// faster than 1 in 1 and never below the node's radius; where the radius
+/// does not fall it is the radius. A branch run's walk starts at its first
+/// node past where it attaches, drawn at its own base.
 fn girths<'a>(
     tree: &'a Tree,
     (path_nodes, trunk): (&'a [usize], bool),
-    forks: &'a [bool],
     distance: &'a [f64],
 ) -> impl Iterator<Item = f64> + 'a {
     let nodes = &tree.nodes;
-    let mut fork = None;
-    // The run's drawn girth at the node below: where the wood thins going
-    // up the run, across a takeover too, the drawn girth falls no faster
-    // than 1 in 1, max(own, below − the distance between them), so a drop
-    // in section is a shoulder as long as it is deep, not a rim (fn-354,
-    // host, corrected 11 Nov evening; the slope is an estimate). The
-    // wood's own radii, which every measure reads, are left as they are.
+    // The drawn girth at the node below, and the ease under way.
     let mut below: Option<(usize, f64)> = None;
+    let mut ease: Option<Ease> = None;
     path_nodes.iter().enumerate().map(move |(k, &i)| {
         let own = nodes[i].radius;
-        let girth = fork.map_or(own, |f: usize| {
-            let at = nodes[f].radius;
-            let t = (distance[i] - distance[f]) / (2.0 * at).max(1e-9);
-            let held = if t < 1.0 {
-                (1.0 - t) * (1.0 - t) * (1.0 + 2.0 * t)
-            } else {
-                0.0
-            };
-            own + (at - own).max(0.0) * held
-        });
-        if k > 0 && forks[i] {
-            fork = Some(i);
-        }
-        // A branch run's first node past where it attaches is a lateral
-        // starting its own run: drawn at its own base.
         let starts = !trunk && k == 1;
-        let girth = match below.filter(|_| !starts) {
-            Some((b, under)) => girth.max(under - (distance[i] - distance[b])),
-            None => girth,
+        let Some((b, under)) = below.filter(|_| !starts) else {
+            ease = None;
+            below = Some((i, own));
+            return own;
         };
+        if own >= under {
+            ease = None;
+        } else if ease.is_none_or(|e| own < e.to) {
+            ease = Some(Ease {
+                from: under,
+                at: distance[b],
+                to: own,
+            });
+        }
+        let girth = ease.map_or(own, |e| e.girth(distance[i]).max(own));
+        // The 1-in-1 floor (fn-354, host; the slope is an estimate).
+        let girth = girth.max(under - (distance[i] - distance[b]));
         below = Some((i, girth));
         girth
     })
+}
+
+/// A drop being eased: from the girth drawn where it began, at that
+/// distance along, to the radius it falls to, over twice the girth.
+#[derive(Clone, Copy)]
+struct Ease {
+    from: f64,
+    at: f64,
+    to: f64,
+}
+
+impl Ease {
+    fn girth(self, d: f64) -> f64 {
+        let t = (d - self.at) / (2.0 * self.from).max(1e-9);
+        let held = if t < 1.0 {
+            (1.0 - t) * (1.0 - t) * (1.0 + 2.0 * t)
+        } else {
+            0.0
+        };
+        self.to + (self.from - self.to) * held
+    }
 }
 
 fn trunk_run(

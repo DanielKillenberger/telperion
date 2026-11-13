@@ -56,7 +56,6 @@ pub(super) fn admitted(
         && envelope(
             paths.nodes.capacity() * size_of::<usize>()
                 + paths.runs.capacity() * size_of::<paths::Run>()
-                + paths.forks.capacity()
                 + distance.len() * 8,
             ordered.capacity() * size_of::<(usize, f64)>(),
             // A worker's sweep scratch, and a split run's points and normals

@@ -1,8 +1,9 @@
 //! fn-354: the drawing eases a change of section along a run (host,
-//! corrected 11 Nov evening). Where the wood thins from one node to the
-//! next going up the run, across a lateral that takes over a bearer that
-//! ends, the drawn girth falls no faster than 1 in 1; a lateral that starts
-//! its own run is drawn at its own base.
+//! corrected 11 Nov evening; fn-360 made the ease one rule for every drop).
+//! Where the wood thins from one node to the next going up the run, across
+//! a lateral that takes over a bearer that ends, the drawn girth falls no
+//! faster than 1 in 1; a lateral that starts its own run is drawn at its own
+//! base.
 use super::{paths::paths, samples::sample_path, Sample, SurfaceParams};
 use crate::{
     math::Vec3,
@@ -96,9 +97,9 @@ fn rings(tree: &Tree) -> Vec<(usize, Vec<Sample>)> {
 }
 
 /// Along the run the drawn girth never falls faster than 1 in 1, within
-/// one axis and across a takeover alike: the drop of 0.4 m is a shoulder
-/// 0.4 m long, and the wood below it and well above it is drawn at its own
-/// radius.
+/// one axis and across a takeover alike: the drop of 0.4 m eases over twice
+/// the girth where it began, 1 m (fn-360), and the wood below it and past
+/// the ease is drawn at its own radius.
 #[test]
 fn a_run_never_thins_faster_than_one_in_one() {
     for taken in [false, true] {
@@ -115,12 +116,13 @@ fn a_run_never_thins_faster_than_one_in_one() {
         }
         let at = |y: f64| stem.iter().find(|s| (s.p.y - y).abs() < 1e-9).unwrap().r;
         assert_eq!(at(1.0), 0.5, "{taken}: below the drop");
+        // Half way along the ease, half way down: (1 - t)²(1 + 2t) at 0.5.
         assert!(
-            (at(1.2) - 0.3).abs() < 1e-9,
-            "{taken}: the shoulder: {}",
-            at(1.2)
+            (at(1.5) - 0.3).abs() < 1e-9,
+            "{taken}: the ease: {}",
+            at(1.5)
         );
-        assert_eq!(at(1.6), 0.1, "{taken}: above the shoulder");
+        assert_eq!(at(2.05), 0.1, "{taken}: past the ease");
     }
 }
 
