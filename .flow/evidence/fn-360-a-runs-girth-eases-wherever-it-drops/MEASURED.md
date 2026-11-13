@@ -169,6 +169,28 @@ The rule is `g(s) = r(s) + Σ drops j ≤ s of δ_j · w((s − s_j)/2a_j)`. Its
 
 The run stops here, as the host asked, before building: the creeping-stem arithmetic does not come out, and the bound is the host's to set.
 
+## The additive rule built: the drop ring is held at the radius above it (stop)
+
+Built as written (branch `fn-360-additive-wip`, commit `91e6a65ea`, not on the task branch), the narrow run gives 77 passed and 6 failed.
+
+The six failures come from one property. The formula anchors each hold at s_j, the ring the wood falls to, with w(0) = 1. So that ring is always drawn at the girth above it, however far apart the rings are, and a drop shows only from the next ring on. The earlier rules measured from the ring the wood fell from, s_(j−1), where a drop over a segment longer than 2a completes inside the segment. Worked examples, rings as (distance, radius):
+
+| case | rings | anchored at s_j (as specified) | anchored at s_(j−1) |
+|---|---|---|---|
+| suite taper, 4 m apart | 1, 0.5, 0.333 | 1, **1.0**, 0.5 | 1, 0.5, 0.333 |
+| tip below float32, 4 m apart | 1, 1, 0.001 | 1, 1, **1.0** | 1, 1, 0.001 |
+| twig, 3 cm apart | 4, 4, 2 mm | 4, 4, **4 mm** | 4, 4, 2 mm |
+
+As specified, every tip ring is drawn at the ring below it, so every shoot's last segment is drawn untapered with a blunt cap. A ring can no longer collapse to a point after a drop. Every taper on rings spaced wider than twice their radius (most twigs) lags one segment.
+
+Failures:
+- `suite::surface::tapered_closed_surface_has_normals_and_bounds` checks drawn ring = node radius on a 3-ring taper.
+- `suite::surface_collapse::a_ring_collapsed_to_one_point_drops_the_strips_that_meet_it` and `a_tip_below_float32_resolution_far_out_drops_its_cap` check the sweep's handling of degenerate rings, which can no longer occur after a drop.
+- `fork_tests::the_trunks_girth_eases_into_the_stem_over_the_forks_diameter` and `shoulder_tests::a_run_never_thins_faster_than_one_in_one` expect the ease to start at the wider ring; under the s_j anchor it starts one ring later.
+- The new creeping test fails near the run's base. With fewer than a full window of rings upstream, the holds have not faded: ring 3, 0.15 m from the root, is 0.000436 over against a bound of 0.000376. Rings with a full window behave as the paper says.
+
+The spec's own lines disagree here. "One step from a to b draws b + (a − b) w(Δ/2a)", with Δ the step's length, is the s_(j−1) anchor; "g does not move at a drop" is the s_j anchor. Which anchor the rule uses is the host's call. The run stops here: the task branch holds the max-form rule at `c526b1531`, green on its tests.
+
 ## Not done
 
 `flowctl done` was not run: the creeping-stem test as specified (within 0.1%) fails at 0.156%, and its bound is the host's call (above). The full narrow lists of `pipeline` tests beyond `surface`, `fork`, `bark` and the two pins were not run.
