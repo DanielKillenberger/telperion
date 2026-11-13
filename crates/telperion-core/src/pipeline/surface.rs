@@ -339,6 +339,8 @@ pub struct FlatWood {
     pub indices: Vec<u32>,
 }
 #[cfg(all(test, feature = "geometry"))]
+mod ease_tests;
+#[cfg(all(test, feature = "geometry"))]
 mod fork_tests;
 #[cfg(all(test, feature = "geometry"))]
 mod shoulder_tests;
