@@ -344,6 +344,8 @@ mod ease_tests;
 mod fork_tests;
 #[cfg(all(test, feature = "geometry"))]
 mod shoulder_tests;
+#[cfg(all(test, feature = "geometry"))]
+mod sides_tests;
 
 #[cfg(test)]
 mod tests {
