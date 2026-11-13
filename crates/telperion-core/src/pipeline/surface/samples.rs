@@ -36,16 +36,17 @@ pub(super) fn sample_path(
     }
 }
 
-/// Each node's girth along a run, from its first node (fn-360, host): wood
-/// that was wider upstream holds the surface out, and its hold fades over
-/// twice its own radius. At ring s it is the most, over every ring s' at or
-/// before it, of `r(s) + max(0, r(s') − r(s)) · w((s − s') / 2r(s'))`, with
-/// `w` the ease curve. One rule for every drop, a fork's, a growth unit's or
-/// a relay's, across a lateral that takes over a bearer that ends too. Each
-/// girth reads only the run's radii and distances up to it, and it never
-/// falls faster than 1 in 1. It is never below the node's radius, and is
-/// the radius where nothing upstream within reach was wider. A branch run's
-/// first node past where it attaches starts its own run, at its own base.
+/// Each node's girth along a run, from its first node (fn-360, host): every
+/// ring where the wood falls from the ring before lays a hold of that fall,
+/// fading over twice the radius it fell from, and the holds add, `g(s) =
+/// r(s) + Σ δ_j · w((s − s_j) / 2a_j)` with `w` the ease curve. So the girth
+/// does not move at a drop, only eases after it. One rule for every drop, a
+/// fork's, a growth unit's or a relay's, across a lateral that takes over a
+/// bearer that ends too. Each girth reads only the run's radii and distances
+/// up to it, and it never falls faster than 1 in 1. It is never below the
+/// node's radius, and is the radius where no drop lies within reach. A
+/// branch run's first node past where it attaches starts its own run, at
+/// its own base.
 fn girths<'a>(
     tree: &'a Tree,
     (path_nodes, trunk): (&'a [usize], bool),
@@ -53,8 +54,8 @@ fn girths<'a>(
 ) -> impl Iterator<Item = f64> + 'a {
     let radius = move |k: usize| tree.nodes[path_nodes[k]].radius;
     let at = move |k: usize| distance[path_nodes[k]];
-    // Twice the widest radius from the run's base: no ring further back
-    // than that holds the surface out.
+    // Twice the widest radius from the run's base: no drop further back
+    // than that holds anything.
     let mut reach = 0.0_f64;
     // The girth drawn at the ring before, for the 1-in-1 floor.
     let mut below = 0.0_f64;
@@ -67,14 +68,14 @@ fn girths<'a>(
         let own = radius(k);
         reach = reach.max(2.0 * own);
         let mut girth = own;
-        for j in (base..k).rev() {
+        for j in (base + 1..=k).rev() {
             let gap = at(k) - at(j);
             if gap >= reach {
                 break;
             }
-            let up = radius(j);
-            if up > own {
-                girth = girth.max(own + (up - own) * ease(gap / (2.0 * up)));
+            let (from, to) = (radius(j - 1), radius(j));
+            if from > to {
+                girth += (from - to) * ease(gap / (2.0 * from));
             }
         }
         // The 1-in-1 floor (fn-354, host): kept, since without it a twig of

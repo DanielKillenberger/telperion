@@ -13,16 +13,16 @@ A trial (reverted, not product) started the ease past a fork from the run's draw
 
 ## The design (host)
 
-One rule for every drop, fork or not, with no state (host, 13 Nov 2026, replacing a first rule whose ease was defined by its own history: it stalled where the radius crept down, or depended on restart order). Along a run, with s the distance along the wood and r(s) the grown tree's radius at each ring, the drawn girth is
+One rule for every drop, fork or not, with no state (host, 13 Nov 2026, final form; it replaces a first rule whose ease depended on its own history, and a max form whose term r(s) stepped down at a second drop and left a band). Along a run, every ring j where the grown radius falls from the ring before (δ_j = r(j−1) − r(j) > 0, a_j = r(j−1)) lays a hold that fades over twice the radius it fell from, and the holds add:
 
-  g(s) = max over every ring s' at or before s on the run of  r(s) + max(0, r(s') − r(s)) × w((s − s') / (2 r(s')))
+  g(s) = r(s) + Σ over drops j at or before s of  δ_j × w((s − s_j) / (2 a_j)),   w(t) = (1 − t)²(1 + 2t) on [0, 1], 0 beyond
 
-with w(t) = (1 − t)²(1 + 2t) for t in [0, 1] and 0 beyond (the ease curve the fork already uses). Wood that was wider upstream holds the surface out, and its hold fades over twice its own radius. Nothing restarts and nothing is carried: g is a pure function of the run's radii and distances.
+(w is the ease curve the fork already used). Rises lay nothing, so g ≥ r always, and g = r wherever no drop lies within twice its own upstream radius. g is a pure function of the run's radii and distances: no state, no order.
 
-- A single step from a to b draws b + (a − b) w(Δ/2a). Past two forks 0.3 m apart on a 0.64 m stem the first fork's wood still holds, (0.64 − r) w(Δ/1.28), so no ledge. A radius that creeps down is drawn within its creep of itself.
-- g is never below r, and equals r to the bit wherever the radius has not dropped within twice the upstream radius.
-- The steepest slope one upstream ring can give is 0.75. The 1-in-1 floor goes as a separate step if no ring pair on the measured trees exceeds slope 1 without it; otherwise it stays and the builder says where.
-- The scan reaches back only as far as a ring can hold (s − s' < 2 r(s'); bounding it by twice the largest radius seen so far on the run is fine).
+- One step from a to b draws b + (a − b) w(Δ/2a). At a drop r falls by δ and a new term δ w(0) = δ appears, so g does not move at a drop; its fall ring to ring is only the fading of holds already laid.
+- A stem thinning steadily is drawn wider than its radius by at most half of what it thins over the upstream 2r, plus one ring's drop (the holds are summed at discrete rings).
+- The 1-in-1 floor stays as a separate step after the rule: without it a twig of the oak at 200 falls 1.57 in 1 (node 27778).
+- The scan reaches back only as far as a hold can reach (s − s_j < 2 a_j; bounded by twice the largest radius seen so far on the run).
 - The run's base, the collar swell and the sockets are untouched; the rule reads the radii the old ease read.
 - The fork's own constants (`FORK_FROM`, `FORK_AT`) decide what is a codominant fork and stay as they are; the ease past a fork becomes this rule and its separate window goes.
 
@@ -33,7 +33,7 @@ Not checked by the host, to be read by the builder before changing anything: whe
 ## Acceptance Criteria
 
 - **R1.** The reading above, in the evidence, before any product change.
-- **R2.** Tests, red before and green after: a hand-built run with two forks 0.3 m apart on a 0.64 m stem, whose largest ring-to-ring slope is under the floor and whose girth falls monotonically over at least the first ease length; a hand-built run with a 5% step every 0.8 m, whose drawn girth has no ring-to-ring fall above 1%. A third: a run whose radius never drops is drawn at its radii to the bit. A fourth: a run thinning 0.05% per ring over 200 rings is drawn within 0.1% of its radii. A fifth: g is the same whether a run's rings are drawn in one pass or the function is evaluated ring by ring.
+- **R2.** Tests, red before and green after: a hand-built run with two forks 0.3 m apart on a 0.64 m stem, whose largest ring-to-ring slope is under the floor and whose girth falls monotonically over at least the first ease length; a hand-built run with a 5% step every 0.8 m, whose drawn girth has no ring-to-ring fall above 1%. A third: a run whose radius never drops is drawn at its radii to the bit. A fourth: a run thinning 0.05% per ring over 200 rings is drawn over its radii by at most half the thinning within the upstream window plus one ring's drop, plus 1e-6. A fifth: g is the same whether a run's rings are drawn in one pass or the function is evaluated ring by ring.
 - **R3.** The existing surface, fork and bark tests pass, or a test that changes is named with what it checked.
 - **R4.** Measured before and after on the oak, seed 1001, at 120 and 200: forks at slope 1.00 of all forks; the largest ring-to-ring fall on the trunk run and over all runs; count of ring pairs falling more than 2%; wood vertices; one-thread seconds of the surface stage. The same for the spruce and the beech at 40 on one seed.
 - **R5.** Stills on one sheet, before beside after: the oak's first fork at 200 from two azimuths as the probe drew it, one stem of the oak at 200 where the bands were matched, the spruce's and the beech's trunk at 40.

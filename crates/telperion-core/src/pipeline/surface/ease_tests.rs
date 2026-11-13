@@ -1,8 +1,9 @@
-//! fn-360: one rule for every drop along a run (host). Wood that was wider
-//! upstream holds the surface out, and its hold fades over twice its own
-//! radius, so two forks close together draw no ledge and a stem that steps
-//! every growth unit draws no ring. Each girth reads only the run's radii
-//! and distances up to it.
+//! fn-360: one rule for every drop along a run (host). Each fall of the
+//! wood lays a hold that fades over twice the radius it fell from, and the
+//! holds add, so two forks close together draw no ledge, a stem that steps
+//! every growth unit draws no ring, and a stem that thins steadily is drawn
+//! wider than its radius by about half its thinning over that reach. Each
+//! girth reads only the run's radii and distances up to it.
 use super::{paths::paths, samples::sample_path, Sample, SurfaceParams};
 use crate::{
     math::Vec3,
@@ -125,6 +126,25 @@ fn a_run_that_never_thins_is_drawn_at_its_radii() {
     let rings = trunk(&tree);
     for (s, n) in rings.iter().zip(&tree.nodes) {
         assert_eq!(s.r, n.radius, "at {}", s.d);
+    }
+}
+
+/// A run thinning 0.05% a ring over 200 rings is drawn over its radii by
+/// at most half its thinning over the reach upstream of each ring, plus one
+/// ring's drop: the holds are summed at the rings.
+#[test]
+fn a_stem_thinning_steadily_is_drawn_by_half_its_thinning() {
+    let tree = stem(10.0, |y| 0.3 * 0.9995_f64.powi((y / STEP).round() as i32), &[]);
+    let rings = trunk(&tree);
+    let r: Vec<f64> = tree.nodes.iter().map(|n| n.radius).collect();
+    assert!(rings.len() > 200);
+    for k in 1..rings.len() {
+        let first = (0..=k)
+            .find(|&i| rings[k].d - rings[i].d <= 2.0 * r[i])
+            .unwrap();
+        let bound = 0.5 * (r[first] - r[k]) + (r[k - 1] - r[k]) + 1e-6;
+        let over = rings[k].r - r[k];
+        assert!((0.0..=bound).contains(&over), "{over} over, bound {bound}, at {}", rings[k].d);
     }
 }
 
