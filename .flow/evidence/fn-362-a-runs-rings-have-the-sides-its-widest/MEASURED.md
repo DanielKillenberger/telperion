@@ -60,6 +60,36 @@ The class under 1 mm is off by more than a quarter. Its 905,745 rings average 5.
 - **The needle test's plane tolerance** (`suite::surface_attachments`) is the sum of the per-axis half steps along the facet's normal, `Σ h_k |n_k|`: the true bound of a quantised point's distance off a plane. The largest single half step was too tight for a slanted facet. A correction, not a loosening; the derivation is in the test's comment.
 - **The spruce's leaf digest moves** because its needles sit on the wood's faces (`surfaceContact` 1); its tree and curve do not.
 
+## The render crate and the guards (R3)
+
+`cargo nextest run --cargo-profile ci -p telperion-render --profile gate` under the gate's runner, `telperion-heavy 8 --gpu 2 --threads 4` (`raw/render.log`): 217 run, 215 passed, 2 failed, 14 skipped, 303 s. The two failures are the two GATE-3.md records on the base of this branch, with the same figures: `bark_distance resolved_scales_survive_until_the_two_pixel_boundary` ("distance series aliases on the OregonWhiteOak 4x: mean 6.0038, p95 16.25") and `curve the_device_surfaces_the_wood_the_cpu_reference_does` ("ordinary close: over budget", left 3, right 0). Neither is this change's: the first reads the GPU's bark, the second the device's budget at a view, and both read the curve, which this change does not touch. `compile_size` passes (2 passed), and `generation_limit_guard` passes (2 passed) with no new limit site.
+
+## The gate's memory items, each alone
+
+Each ran alone under nextest's `gate` profile with the gate's runner (`scripts/gate_test.py`, peak resident memory), `telperion-heavy 12 --threads 4` (`--gpu 2` for `smooth_bark`), 04:02 to 04:09; no watcher PAUSE fell inside. "Before" is this branch's base (038ce5548) as GATE-3.md and GATE-FAILURES.md item 7 recorded it, and the older gate base beside it.
+
+| Test | Budget MiB | Gate base | Before fn-362 | fn-362 | Seconds |
+|---|---|---|---|---|---|
+| `smooth_bark the_smooth_barks_hold_the_resolution_and_redraw_contracts` | 4,096 | 2,254 | 5,817 | **3,887**, passes | 25.3 |
+| `ground_reach nothing_drawn_passes_below_the_ground` | 5,184 | 4,660 | 6,035 | **3,618**, passes | 58.2 |
+| `telperion_wasm every_shipped_preset_builds_through_the_main_entry` | 4,096 | 3,981 | 4,198 alone (4,250 in the gate) | **2,848**, passes | 49.0 |
+| `telperion_wasm flowers_cross_the_binding_where_the_pipeline_grows_them` | 4,096 | 3,903 | 4,173 | **2,985**, passes | 108.0 |
+| `form the_beech_grows_at_every_age_of_its_sheet` | 4,096 | 1,809 | 8,631; **8,662** measured here on 038ce5548 | **8,711**, fails its budget | 87.2 |
+
+The beech's form test is not this change's to move: it is `telperion-space`'s, which does not depend on `telperion-core` (`cargo tree`) and has no diff from the base. Run alone on the base worktree the same way it peaked at 8,662 MiB; 8,711 on the head is the same code's run to run spread (0.6%). It grows the beech at 10, 20, 40 and 80 in the space crate alone, so GATE-FAILURES.md's reading of it as the 101.7 M-vertex wood is not borne out: it builds no wood. Its overrun stays with the grower.
+
 ## Pins upstream of the surface stage (R6, as far as measured)
 
 The digests of the grown tree, the curve and the leaves are equal on base and head for all six trees but one: the Norway spruce at 40 keeps its tree and curve digests (2caa72b377c06942, b4f35f4dbc40a18b) and its 3,484,945 leaves, and its leaves' digest moves (1cbbacca7ae4ff02 → e3df37eee36b55d8). The spruce is the one shipped preset whose leaves sit on the wood (`surfaceContact` 1; READING.md item 8 named the oak, which was wrong), so its needles are seated on the new polygons, downstream of the surface stage. The wood digest moves on all six. The committed species digests are listed in PINS.md.
+
+## The sheet (R5)
+
+`SHEET.jpg`: five sites, each base, head, base with the wood flat-shaded, head with the wood flat-shaded. The CPU mesh, the wood this change touches, is drawn by a scratch z-buffered rasteriser (`fn362_still.rs`, in the session scratchpad, not committed) at 640 px a tile, orthographic, across the site's run, with the mesh's own vertex normals (the first two columns) or each triangle's own (the last two, so the sides read). Leaves are drawn from the build's own instances. Everything nearer the eye than three times the run's radius is cut away, so leaves in front do not hide the wood. Each site is picked off the curve, which is identical on base and head, so both frame the same place:
+
+1. The beech at 80, seed 1: the run of 1 to 2 mm with the most leaves round its tip (r 1.15 mm), 24 mm across.
+2. The oak at 120, seed 1001: a twig of 2 to 3.5 mm with the most leaves round it (r 2.29 mm), 40 mm across.
+3. The spruce at 40, seed 1: a shoot of 1 to 2 mm with the most needles round it (r 1.72 mm), 24 mm across; its needles are seated on the wood (`surfaceContact` 1).
+4. The beech at 80, seed 1: a twig of r 1.59 mm at its socket, 20 mm across. The picker looked for a twig whose socket lies inside a ring of the widest wood near it; it found a ring of 32 cm radius within reach, but the bearer in the frame is a thin one. That is the 0.2 mm case: a bearer under 1.5 cm is the one cut with fewer sides than its socket's containment assumes. A limb of 1.5 cm or more keeps the cap's sides, so a twig socketed into one meets the same polygon as before.
+5. The oak at 120, seed 1001: the widest run off the trunk at its socket (the trunk's widest ring r 37 cm), 3.6 m across.
+
+What it shows, for the host's verdict: on the flat-shaded columns the head's twigs show broad facets where the base's show narrow ones; on the smooth columns the difference is in the silhouettes and is slight. The spruce's needles stand on the shoot on both. The socket shows no opening at the join on either. The fork's wood carries the cap's sides on both.
