@@ -6,11 +6,11 @@
 //! asked for, so the tree at a year is the same on the way to any later
 //! one.
 use super::LOOK;
-use crate::closed_form::expected_log_lengths;
+use crate::closed_form::log_lengths;
 use crate::dormant::{last_stage, wakes_in};
 use crate::species::{Species, Zone};
 use crate::transcendental::Transcendental;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 /// Where a draw stands: the PA whose wood it decides, the cycle, and how
 /// far through the cycle (none for its start).
@@ -22,9 +22,14 @@ pub(crate) type At = (usize, u32, Option<f64>);
 /// Wasm.
 #[derive(Clone)]
 pub(crate) struct Windows {
-    /// expected[m][k]: the log of the metres a bud of PA k grows in m
-    /// cycles; an entry does not depend on how far the table runs.
-    expected: Arc<Vec<Vec<f64>>>,
+    /// look[k]: the log of the metres a bud of PA k grows over the look.
+    look: Arc<Vec<f64>>,
+    /// whole[c]: the log of the whole tree's expected metres at the end
+    /// of the look of a draw in cycle c, row c - 1 + LOOK of the table
+    /// (row LOOK - 1 for cycle 0, as the table's index wrapped). Of the expected-length table
+    /// these read one row and one column, and only they are walked; an
+    /// entry does not depend on how far the table runs.
+    whole: Arc<Vec<f64>>,
     /// The years a sleeping bud of each PA may sleep before it ages past
     /// its last stage; none for a PA no zone puts to sleep.
     stages: Arc<Vec<f64>>,
@@ -38,10 +43,45 @@ pub(crate) struct Windows {
 /// The look, in whole rows of the table.
 const ROWS: usize = LOOK as usize;
 
+/// The grower's windows built most recently, oldest first, by the
+/// species' every bit (its `Debug`, which writes each number to round
+/// trip) and the year. A tree grown again on the same species and age,
+/// or beside its reference, reads the same windows; where every age may
+/// sleep for centuries one costs seconds (fn-355, BLEND-COST.md).
+static BUILT: Mutex<Vec<(String, u32, Windows)>> = Mutex::new(Vec::new());
+
+/// Windows held: a grower's and its reference's, and a few trees beside.
+const HELD: usize = 4;
+
 impl Windows {
     /// The windows of every draw a tree makes up to `year`, the year's
-    /// look and its sleeping buds' waking included.
+    /// look and its sleeping buds' waking included: the grower's, taken
+    /// from those built most recently where they match to the bit.
     pub fn new(species: &Species, year: u32) -> Self {
+        let key = format!("{species:?}");
+        let lock = || {
+            BUILT
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner())
+        };
+        let held = lock()
+            .iter()
+            .find(|(k, y, _)| *y == year && *k == key)
+            .map(|(.., w)| w.clone());
+        if let Some(windows) = held {
+            return windows;
+        }
+        let windows = Self::sleeping_too(species, year);
+        let mut built = lock();
+        if built.len() == HELD {
+            built.remove(0);
+        }
+        built.push((key, year, windows.clone()));
+        windows
+    }
+
+    /// `new`'s windows, built.
+    fn sleeping_too(species: &Species, year: u32) -> Self {
         let pas = species.states.len();
         // Only an age some zone puts to sleep, under a release law that
         // wakes it, is ever summed or recorded asleep.
@@ -55,10 +95,30 @@ impl Windows {
                 false => 0.0,
             })
             .collect();
-        let slept = stages.iter().fold(0.0_f64, |a, &b| a.max(b)).ceil() as u32;
-        let rows = year + ROWS as u32 + slept + 2;
+        let slept = stages.iter().fold(0.0_f64, |a, &b| a.max(b)).ceil() as usize;
+        Self::over(species, year, stages, slept)
+    }
+
+    /// `new`'s windows of the draws alone, without the years its sleeping
+    /// buds wake in, which the closed form never reads: its table is the
+    /// sleepers' longest stage chain shorter (16 rows on the oak), and its
+    /// entries the same to the bit. `sleeping` on it panics.
+    pub fn drawn(species: &Species, year: u32) -> Self {
+        Self::over(species, year, Vec::new(), 0)
+    }
+
+    /// The windows up to `year`, their table running `slept` rows past the
+    /// last look.
+    fn over(species: &Species, year: u32, stages: Vec<f64>, slept: usize) -> Self {
+        let pas = species.states.len();
+        let rows = year as usize + ROWS + slept + 2;
+        let look = (0..pas).map(|k| (k, ROWS));
+        let whole = (ROWS - 1..=rows).map(|m| (0, m));
+        let mut logs = log_lengths(species, look.chain(whole));
+        let whole = logs.split_off(pas);
         let mut windows = Self {
-            expected: Arc::new(expected_log_lengths(species, rows)),
+            look: Arc::new(logs),
+            whole: Arc::new(whole),
             stages: Arc::new(stages),
             woods: Arc::default(),
             year,
@@ -82,13 +142,13 @@ impl Windows {
     /// The log of the whole tree's expected metres at the end of the look
     /// of a draw in `cycle`.
     fn whole(&self, cycle: u32) -> f64 {
-        self.expected[cycle as usize - 1 + ROWS][0]
+        self.whole[cycle as usize]
     }
 
     /// The log of the share a draw of `pa` in `cycle` decides: none where
     /// it decides none (FINE-CONTRACT.md D10's table).
     pub fn log_wood(&self, pa: usize, cycle: u32) -> f64 {
-        let log = self.expected[ROWS][pa];
+        let log = self.look[pa];
         if log == f64::NEG_INFINITY {
             return log;
         }
@@ -163,5 +223,56 @@ impl Windows {
         };
         let window = ((RATE * stake) as f32, (FLOOR * stake) as f32, SPAN as f32);
         presence::window(wood, window)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Windows;
+    use crate::{oak, spruce};
+    use std::sync::Arc;
+
+    /// The closed form's windows read every draw's wood as the grower's
+    /// do, to the bit, though their table stops short of the sleepers.
+    #[test]
+    fn the_drawn_windows_are_the_growers_without_the_sleepers() {
+        for species in [oak(), spruce()] {
+            let (grower, drawn) = (Windows::new(&species, 12), Windows::drawn(&species, 12));
+            same(&grower, &drawn, species.states.len(), 13);
+        }
+    }
+
+    /// Windows taken from those held are the ones built, to the bit, and
+    /// a species a bit apart is built anew.
+    #[test]
+    fn held_windows_are_the_ones_built() {
+        let oak = oak();
+        let built = Windows::sleeping_too(&oak, 30);
+        let (first, again) = (Windows::new(&oak, 30), Windows::new(&oak, 30));
+        same(&built, &first, oak.states.len(), 31 + 16);
+        same(&built, &again, oak.states.len(), 31 + 16);
+        let mut apart = oak.clone();
+        apart.states[1].internode = f64::from_bits(apart.states[1].internode.to_bits() + 1);
+        let other = Windows::new(&apart, 30);
+        assert!(
+            !Arc::ptr_eq(&other.whole, &first.whole),
+            "a species a bit apart"
+        );
+        same(
+            &Windows::sleeping_too(&apart, 30),
+            &other,
+            oak.states.len(),
+            31,
+        );
+    }
+
+    /// Two windows' woods, every PA's, to cycle `last`, to the bit.
+    fn same(a: &Windows, b: &Windows, pas: usize, last: u32) {
+        for pa in 0..pas {
+            for cycle in 0..=last {
+                let (x, y) = (a.log_wood(pa, cycle), b.log_wood(pa, cycle));
+                assert_eq!(x.to_bits(), y.to_bits(), "PA {pa} in cycle {cycle}");
+            }
+        }
     }
 }

@@ -40,7 +40,7 @@ pub fn expected_counts(species: &Species, age: u32) -> Result<CountTable> {
     let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
     // The tree's windows: an apex that all but stopped moving on grows its
     // continuation and its relay, which count whole (host decision 13).
-    let windows = Windows::new(species, age);
+    let windows = Windows::drawn(species, age);
     let mut memo = Memo::default();
     let mut walk = Walk {
         species,
@@ -59,7 +59,7 @@ pub fn expected_grown(species: &Species, age: u32) -> Result<f64> {
         return refuse("age", "a tree grows at least one cycle");
     }
     let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
-    let windows = Windows::new(species, age);
+    let windows = Windows::drawn(species, age);
     let mut memo = Memo::default();
     let mut walk = Walk {
         species,
@@ -84,7 +84,7 @@ pub fn expected_kept(species: &Species, age: u32) -> Result<Option<f64>> {
     }
     Ok(Some(predictor::tree(
         species,
-        &Windows::new(species, age),
+        &Windows::drawn(species, age),
         age,
     )))
 }
@@ -97,7 +97,7 @@ pub fn expected_length(species: &Species, age: u32) -> Result<f64> {
     if age == 0 {
         return refuse("age", "a tree grows at least one cycle");
     }
-    Ok(expected_log_lengths(species, age)[age as usize][0].exp_fixed())
+    Ok(log_lengths(species, [(0, age as usize)])[0].exp_fixed())
 }
 
 /// A substructure: its PA, cycles, what it carries, and the law of a woken
@@ -243,7 +243,23 @@ impl Walk<'_, f64> {
 /// each phytomer's internode. In logs, so a branching that multiplies
 /// without bound over many cycles stays finite; no wood is negative
 /// infinity. The species is valid.
+#[cfg(test)]
 pub(crate) fn expected_log_lengths(species: &Species, age: u32) -> Vec<Vec<f64>> {
+    let pas = species.states.len();
+    let asked = (0..=age as usize).flat_map(|m| (0..pas).map(move |k| (k, m)));
+    let logs = log_lengths(species, asked);
+    logs.chunks(pas).map(<[f64]>::to_vec).collect()
+}
+
+/// `expected_log_lengths`' entries `(pa, m)` asked, in one walk, and no
+/// other: each is a function of its own bud alone (its memo's key), so it
+/// is the same to the bit whatever else is asked. A reader of a few rows
+/// spares the walk the rest; the windows read one row and one column of
+/// a table some 100 rows long (blend-cost, fn-355).
+pub(crate) fn log_lengths(
+    species: &Species,
+    asked: impl IntoIterator<Item = (usize, usize)>,
+) -> Vec<f64> {
     let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
     let mut memo = Memo::default();
     let mut walk = Walk {
@@ -252,12 +268,9 @@ pub(crate) fn expected_log_lengths(species: &Species, age: u32) -> Vec<Vec<f64>>
         memo: &mut memo,
         living: Living::new(species, None),
     };
-    (0..=age as usize)
-        .map(|m| {
-            (0..species.states.len())
-                .map(|k| walk.log_length(k, m, Carried::default(), None))
-                .collect()
-        })
+    asked
+        .into_iter()
+        .map(|(k, m)| walk.log_length(k, m, Carried::default(), None))
         .collect()
 }
 
