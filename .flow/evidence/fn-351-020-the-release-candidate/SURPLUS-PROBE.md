@@ -185,3 +185,390 @@ The trunk, fork, leader and sprig shed 0 in every run.
   In V1 the total peaks at 6.05 M (seed 1001, 200) and 15.1 M (seed 1007, 300). Smaller sizes mean shorter internodes, which means more tips with s > 0 surviving the balance (T3 at 80 shows 50 against 6,167 sheds). Cost follows: seed 1007 at 300 took 480 s and 9.0 GiB against 99 s and 2.0 GiB.
 - **The test list above comes from reading only.** No test was run against V1.
 - **V2 is open:** which row(s) stand for "this axis goes on" (see the table at the top).
+
+---
+
+# Round 2 (13 Nov 2026): V3, year-independence, the settle trace, V4 to V6
+
+## Broken, killed or cut
+
+- **No grow panicked, and every finished run exited 0.** The space invariants (`telperion_space::invariants`), now run on every settled tree, failed 0 times.
+- **V6 is partial.** Seed 1007 at 120 was frozen by the owner's PAUSE (16:50) and cancelled on your instruction. Seed 1007 at 200 and 300 were not run. V6 has seed 1001 at all five ages and seed 1007 at 40 and 80.
+- **Pauses.** The desk paused the V3 build for 27 minutes (14:38 to 15:05) and V4 to V6 for 65 minutes (15:44 to 16:49). Rows whose run spanned a PAUSE are marked "not timed": V5 at seed 1001 age 300, and V6 at seed 1001 age 200.
+- **Test literals.** The V3 patch had to add `stretch: 1.0` to five test literals of `Phytomer` (`geometry/lay_tests.rs`, `geometry/tests.rs`, `girth/tests.rs` ×2, `shed/tests.rs`) so the lib tests compile. This is plumbing only; no assertion changed.
+- **Clean up.** The worktree is clean (`git status` empty, `d9228bdd8`). The patches, logs, binaries and tables are in this folder.
+
+## V3: the surplus share shortens internodes only
+
+### What was built (`v3.patch`, on reader + V0)
+
+- **The rule.** `allot_one` computes the same s that V1 used and stores it as `Pencil::stretch`. The allotment's `size` is left as `sizes` gave it.
+- **Growth.**
+  - At each unit, `advance.rs` and `stop.rs` push the stretch into a new per-unit record, `Draws::stretch`, beside `Draws::shade`. `Reads::stretch` reads it like `size`.
+  - `draw_bent` lays each phytomer with `scale = bare × size × stretch` (in f32) and builds the pull's `total` from the same lengths. So `path_end`, which the balance reads, is the shortened path.
+  - `p.size` stays the allotment's size. The growing leaf (`light::leaf_area(scale, size, area)`) therefore uses the unstretched size, and so do the light deposit and `girth::lay`'s sapwood demand.
+- **The settle.**
+  - `presence::assign_one` copies the stretch onto a new settled field, `Phytomer::stretch: f64`.
+  - `Node::stretch()` is a default method: 1 for `Growing`, the field for `Phytomer`.
+  - Every settled reader of length multiplies by it: `Layer::step` (internode length, tropism, run), `geometry::reaches` (straightening reach), and `stand.rs` (`length_of`, `length_to`, `node_x`, `zone_node`, `span_in`).
+  - Settled `scale` keeps the size, so leaf (`leaf_area × scale`) is unshortened.
+  - `fine::canonical` hashes the stretch too.
+- **`retire.rs`** lets go of `stretch` with `shade`.
+
+### What a product build would need
+
+- **The settled tree cannot hold a length different from its leaf without a new field.** The settled `scale` serves both, so V3 adds `Phytomer::stretch`.
+- **Bytes per record:**
+  - settled `Phytomer`: +8 B per phytomer (one f64);
+  - `Draws`: +24 B per axis (a Vec header), plus 8 B per growth unit on the heap wherever a rough layout is grown;
+  - `Pencil`: +8 B per axis;
+  - `Growing`: unchanged, because the stretch is folded into `scale` only for the moment of the step.
+  - `an_axis_and_its_draws_stay_compact` pins `Draws`, so it would likely fail (not run).
+- **Functions that change:**
+  - `allot_one`;
+  - `Reads::stretch` (new);
+  - `advance.rs` and `stop.rs` (the push);
+  - `Draws::stretch` (new);
+  - `presence::assign_one`;
+  - the retire let-go;
+  - `draw_bent`;
+  - `Node` (a new method);
+  - `Layer::step`;
+  - `geometry::reaches`;
+  - five functions in `stand.rs`;
+  - `fine::canonical`.
+- **Consumers that read length from `scale`:**
+  - `telperion-core/src/pipeline/space.rs:373` computes each internode's piece as `internode * p.scale * internode_factor(...)` for the drawing's join splitting. It would not follow the shortened length. It also cannot read the field, which is `pub(crate)`, so a product build needs a public accessor and this line changed.
+  - Node positions come from the laid tips, so they do follow.
+- **What silently follows the shortened length, and what does not:**
+  - Girth does not: sections come from the growing leaf, which keeps the size.
+  - The growth-time `stand.rs` on `Growing` axes reads the bare scale. It already excluded `size` before this change and still excludes the stretch.
+  - Sag levers were not checked: unknown.
+  - Light deposits sit at the shortened tips with unshortened area.
+- **Length-0 internodes:**
+  - Settled phytomers with scale > 0 and length 0 reach 842,770 at seed 1007 age 120, of which 183,917 are leafed.
+  - The space invariants pass 0 failures.
+  - The pipeline's conversion, expansion and wood mesh (`executor::grow` → `expansion()` → `wood()`, no drawing) ran on seed 1007 at 80, which has 514,905 such phytomers: 2,412,470 nodes and a wood mesh of 283 chunks, 176,093 runs, no error.
+  - Nothing clamped and nothing failed.
+
+### Year-independence on V3 (measured, no test edited)
+
+- The five tests in `grow/cycle/paused/tests.rs` were run with V0 and V3 applied (`cargo test --profile ci -p telperion-space --lib`, through the queue):
+  - `a_tree_paused_and_grown_on_is_the_tree_grown_at_once`: ok;
+  - `the_tree_at_a_year_is_the_horizons_prefix`: ok;
+  - `a_year_is_a_state_not_a_horizon`: ok;
+  - `a_growth_goes_on_past_its_first_request`: ok;
+  - `every_year_is_the_horizons_prefix`: ignored by default ("slow"); run by name with `--ignored`, ok in 17 s.
+- Their species include `crate::oak()`: inverse height 1/34.8, light extinction 0.5, 24 years. So the rule is exercised.
+- **Runner check** (seed 1001, the preset): a tree grown at once to 80 and one paused at 40, settled there and grown on to 80 have equal `tree_digest` (`476114bd6a93687c`). At 40, the direct grow and the paused settle are also equal. `tree_digest` is the Debug form of the tree, so it includes `stretch`.
+
+### V3 tables
+
+The full tables are in `tables-all.md`.
+
+T1 (V3):
+
+| seed | age | height m | spread x/y m | r 1.3 m (m) | leaf m² | leafed ph | phytomers | living apexes | ph/m² leaf | peak GiB | s |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1001 | 40 | 10.36 | 6.8/8.2 | 0.129 | 110.2 | 71,219 | 316,379 | 24,312 | 2,872 | 0.2 | 1 |
+| 1001 | 80 | 16.38 | 18.0/13.5 | 0.327 | 435.3 | 329,673 | 1,671,527 | 115,738 | 3,840 | 1.0 | 7 |
+| 1001 | 120 | 22.12 | 19.4/18.3 | 0.478 | 510.3 | 457,056 | 2,477,813 | 150,920 | 4,856 | 1.5 | 21 |
+| 1001 | 200 | 23.51 | 19.4/20.5 | 0.573 | 160.4 | 201,632 | 1,164,348 | 62,568 | 7,259 | 1.1 | 38 |
+| 1001 | 300 | 20.41 | 9.6/9.8 | 0.603 | 35.2 | 78,420 | 458,156 | 22,961 | 13,014 | 1.1 | 47 |
+| 1007 | 40 | 10.10 | 8.0/7.3 | 0.164 | 174.3 | 106,398 | 460,000 | 39,282 | 2,639 | 0.3 | 1 |
+| 1007 | 80 | 17.18 | 21.8/20.6 | 0.435 | 751.7 | 550,958 | 2,873,211 | 209,031 | 3,822 | 1.8 | 13 |
+| 1007 | 120 | 21.77 | 23.5/24.4 | 0.607 | 746.1 | 671,448 | 3,764,981 | 246,739 | 5,046 | 2.5 | 37 |
+| 1007 | 200 | 19.32 | 19.7/20.3 | 0.752 | 384.7 | 530,468 | 3,128,382 | 185,091 | 8,132 | 2.3 | 75 |
+| 1007 | 300 | 18.93 | 14.6/20.1 | 0.844 | 198.6 | 382,243 | 2,202,663 | 128,364 | 11,090 | 1.8 | 113 |
+
+**T2** (V3, all structural tips, median; "length factor" is size × stretch):
+
+| seed | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|
+| 1001: tips | 870 | 3,718 | 4,339 | 1,543 | 477 |
+| 1001: s = 0 | 0 | 504 | 1,077 | 317 | 55 |
+| 1001: s | 0.80 | 0.40 | 0.20 | 0.41 | 0.47 |
+| 1001: length factor | 0.64 | 0.33 | 0.16 | 0.41 | 0.56 |
+| 1007: tips | 1,734 | 7,894 | 8,337 | 5,345 | 3,482 |
+| 1007: s = 0 | 0 | 1,910 | 2,674 | 834 | 663 |
+| 1007: s | 0.76 | 0.25 | 0.13 | 0.43 | 0.28 |
+
+**T3** (V3, total balance sheds in the last 20 cycles):
+
+| seed | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|
+| 1001 | 0 | 8,134 | 71,076 | 24,362 | 5,099 |
+| 1007 | 0 | 74,275 | 164,598 | 26,613 | 36,293 |
+
+**T4** (V3, longest path to a living tip, settled):
+
+| seed | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|
+| 1001 | 10.78 | 18.41 | 24.86 | 27.06 | 25.91 |
+| 1007 | 10.91 | 21.30 | 26.07 | 25.95 | 26.34 |
+
+**E1 to E4 for V3:**
+- **E1:** height at 40 is −2.7% against V0 on both seeds (10.36 vs 10.65, 10.10 vs 10.38). The maximum at any age is 23.51 m.
+- **E2:** leaf at 300 over leaf at 120 is 0.069 (seed 1001) and 0.266 (seed 1007).
+- **E3:** leaf against V0's is 0.97 and 0.87 at 40 and 80 on seed 1001, and 0.96 and 0.83 on seed 1007.
+- **E4:** phytomers per m² of leaf at 200 and 300 are 7,259 and 13,014 (seed 1001), and 8,132 and 11,090 (seed 1007). V0's at 120 are 4,198 and 4,115.
+
+## The settle trace: V0, seed 1001, at 300
+
+**The settle drops none of them.** It draws them at a fifth of their size.
+
+- **Nothing is removed.** All 94 living limb, bough and branch tips in the grower's live set, and all 4,334 living axes, survive `shed_past` (`TR|tips|live structural 94|kept by the settle 94`). No ancestor of any of them meets `lost`, the parent-lost or `fade <= 0.0` test.
+- **What shrinks them** is the applied fade in `crates/telperion-space/src/shed.rs`, `shed_past`:
+
+  ```rust
+  let own = bearer.min(q(fade[i]));
+  axis.vigour *= real(own / bearer);
+  ```
+
+  The fade comes from `fades` → `faded` → `contract::presence::fade(delay = q(shedding + 1), birth, (lived, alive), age)` = `clamp(delay − ((age − birth) − lived), alive, 1)`. Here `lived` is the subtree's presence-weighted living time carried up through `carry(before, weight, gap, l) = before + weight·(gap + l)`, with weight = vigour × the bearing node's presence. `alive` is the presence of the subtree's most present living apex, relative to the axis.
+- **Where it lands for each traced tip:**
+  - The bough tip (grower path 19.31 m, relay born 300, light 0.59) sits under limb lateral axis 2 (row 6, born 13). There `lived` = 222 of 287 cycles, so idle = 65 against a delay of 5 + 1. The fade clamps to alive = 0.2219.
+  - The three longest branch tips (grower paths 30.73, 24.44 and 24.39 m, light 0.94 to 0.96) sit under limb lateral axis 4 (row 6, born 14). There `lived` = 274 of 286, so idle = 12 against 6. The fade clamps to alive = 0.1320.
+  - Every other ancestor on these walks has fade 1, except one branch run on tip 1's walk at 0.217.
+  - The applied fade multiplies `vigour`, so `geometry::scale`'s base scale carries it down the whole limb subtree. Settled lengths along tip 1's lineage are 0.13 times the grower's laid lengths. For example, axis 6 is 1.736 m in the grower's layout and 0.229 m settled.
+- **The grower never sees this fade.** The grower's pencils keep base scale 0.789 and 0.948 on axes 4 and 2, against settled vigour 0.104 and 0.222. Its layout, light read and balance run on the unfaded subtree. In the last 20 cycles the traced tips' presence (base × running × kept) is 0.08 to 0.21, kept = 1, never closed.
+- **The leaf gap at 300:** the grower's own leaf deposit (`OO|meta deposit`) is 4.08 m², against 0.88 m² settled, a factor of 4.6 ≈ 1/0.22. At 120 the two are 757.5 and 738.6 m².
+- **This resolves the earlier unknown.** The earlier census's 757, 206 and 4 m² match the grower's deposit at 120, 200 and 300 (757.5, 205.7, 4.08); this report's figures are the settled tree's (738.6, 199.3, 0.88).
+- **How long before 300 the settled tree already shows it** (fresh grows of V0, seed 1001; applied fade of the living axes and of the living structural tips):
+
+  | age | living structural tips | of them faded below 1 / below 0.5 | median fade (all living axes) | longest living path: settled / grower m | leaf: settled / grower deposit m² |
+  |---|---|---|---|---|---|
+  | 120 | 5,225 | 495 / 327 | 1.00 | 31.21 / 30.97 | 738.6 / 757.5 |
+  | 200 | 1,672 | 116 / 70 | 1.00 | 38.15 / 37.98 | 199.3 / 205.7 |
+  | 240 | 374 | 76 / 39 | 1.00 | 35.47 / 35.35 | 38.2 / 41.3 |
+  | 260 | 208 | 179 / 134 | 0.22 | 33.84 / 34.87 | 8.3 / 12.4 |
+  | 280 | 132 | 124 / 101 | 0.22 | 33.76 / 34.42 | 4.0 / 7.5 |
+  | 300 | 94 | 94 / 94 | 0.22 | 8.43 / 30.72 | 0.9 / 4.1 |
+
+  The longest settled path holds until one unfaded tip remains. At 300 every living axis is under a fade of 0.22 or less, and the drawn height falls to 7.69 m.
+
+## V4 to V6: the charge's form
+
+**How each variant was built.** Each changes only `charge`'s inputs or form, on the V0 base, with no surplus rule (`v4.patch`, `v5.patch`, `v6.patch`):
+- **V4** reads height for path, exponent 2.
+- **V5** reads path, exponent 1.
+- **V6** reads height, exponent 1.
+
+**Where V4's height comes from.** It is at hand in `balance_one`, with no new record:
+- It is the z of the tip's last laid node (`Growing::tip[2]`, written by last cycle's rough layout), or the axis base where no node is laid.
+- The collar is axis 0's base z, and height is never below 0.
+- It is read through `self.axes`, which the `own` closure already borrows.
+
+**T2's s** is 1 − charge/earn under each variant's own charge.
+
+### T1: added columns, all variants that ran
+
+**Height** (m):
+
+| seed | variant | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|---|
+| 1001 | V0 | 10.65 | 18.00 | 27.10 | 32.55 | 7.69 |
+| 1001 | V1 | 10.34 | 16.24 | 22.01 | 26.17 | 27.74 |
+| 1001 | V3 | 10.36 | 16.38 | 22.12 | 23.51 | 20.41 |
+| 1001 | V4 | 10.65 | 18.01 | 27.42 | 36.84 | 36.05 |
+| 1007 | V0 | 10.38 | 18.62 | 26.94 | 30.92 | 22.17 |
+| 1007 | V1 | 10.08 | 16.79 | 21.62 | 26.22 | 27.91 |
+| 1007 | V3 | 10.10 | 17.18 | 21.77 | 19.32 | 18.93 |
+| 1007 | V4 | 10.38 | 18.82 | 28.44 | 37.12 | 38.79 |
+
+**Crown spread, x / y** (m):
+
+| seed | variant | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|---|
+| 1001 | V0 | 7.2 / 8.2 | 20.2 / 15.8 | 25.2 / 23.0 | 30.2 / 29.1 | 1.9 / 0.8 |
+| 1001 | V1 | 6.8 / 8.0 | 16.6 / 13.2 | 18.8 / 17.9 | 21.7 / 21.4 | 22.9 / 20.9 |
+| 1001 | V3 | 6.8 / 8.2 | 18.0 / 13.5 | 19.4 / 18.3 | 19.4 / 20.5 | 9.6 / 9.8 |
+| 1001 | V4 | 7.2 / 8.2 | 20.3 / 15.8 | 26.4 / 24.7 | 35.5 / 37.3 | 38.7 / 30.3 |
+| 1007 | V0 | 8.0 / 7.4 | 24.2 / 21.9 | 32.4 / 31.1 | 29.6 / 25.7 | 18.2 / 16.2 |
+| 1007 | V1 | 7.8 / 7.1 | 20.1 / 18.4 | 22.9 / 23.9 | 25.8 / 29.5 | 31.2 / 26.5 |
+| 1007 | V3 | 8.0 / 7.3 | 21.8 / 20.6 | 23.5 / 24.4 | 19.7 / 20.3 | 14.6 / 20.1 |
+| 1007 | V4 | 8.0 / 7.4 | 25.4 / 23.7 | 37.1 / 35.3 | 52.5 / 53.7 | 48.7 / 51.7 |
+
+**Trunk diameter at 1.3 m** (m, twice the radius):
+
+| seed | variant | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|---|
+| 1001 | V0 | 0.262 | 0.690 | 1.074 | 1.332 | 1.346 |
+| 1001 | V1 | 0.244 | 0.578 | 0.882 | 1.342 | 1.656 |
+| 1001 | V3 | 0.258 | 0.654 | 0.956 | 1.146 | 1.206 |
+| 1001 | V4 | 0.262 | 0.696 | 1.154 | 1.804 | 2.196 |
+| 1007 | V0 | 0.334 | 0.936 | 1.384 | 1.668 | 1.812 |
+| 1007 | V1 | 0.310 | 0.784 | 1.290 | 1.990 | 2.484 |
+| 1007 | V3 | 0.328 | 0.870 | 1.214 | 1.504 | 1.688 |
+| 1007 | V4 | 0.334 | 0.984 | 1.646 | 2.590 | 3.126 |
+
+**Mean spread over diameter:**
+
+| seed | variant | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|---|
+| 1001 | V0 | 29.3 | 26.0 | 22.4 | 22.2 | 1.0 |
+| 1001 | V1 | 30.2 | 25.8 | 20.8 | 16.0 | 13.2 |
+| 1001 | V3 | 29.2 | 24.1 | 19.7 | 17.4 | 8.0 |
+| 1001 | V4 | 29.3 | 26.0 | 22.2 | 20.2 | 15.7 |
+| 1007 | V0 | 23.1 | 24.7 | 22.9 | 16.6 | 9.5 |
+| 1007 | V1 | 24.0 | 24.5 | 18.2 | 13.9 | 11.6 |
+| 1007 | V3 | 23.2 | 24.3 | 19.7 | 13.3 | 10.3 |
+| 1007 | V4 | 23.1 | 24.9 | 22.0 | 20.5 | 16.1 |
+
+**Height over diameter:**
+
+| seed | variant | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|---|
+| 1001 | V0 | 40.8 | 26.1 | 25.2 | 24.4 | 5.7 |
+| 1001 | V1 | 42.2 | 28.1 | 24.9 | 19.5 | 16.7 |
+| 1001 | V3 | 40.3 | 25.0 | 23.1 | 20.5 | 16.9 |
+| 1001 | V4 | 40.8 | 25.9 | 23.8 | 20.4 | 16.4 |
+| 1007 | V0 | 31.0 | 19.9 | 19.5 | 18.5 | 12.2 |
+| 1007 | V1 | 32.5 | 21.4 | 16.8 | 13.2 | 11.2 |
+| 1007 | V3 | 30.7 | 19.8 | 17.9 | 12.8 | 11.2 |
+| 1007 | V4 | 31.0 | 19.1 | 17.3 | 14.3 | 12.4 |
+
+**Leaf per leafed phytomer** (cm²):
+
+| seed | variant | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|---|
+| 1001 | V0 | 15.35 | 13.39 | 12.39 | 11.03 | 0.62 |
+| 1001 | V1 | 12.88 | 8.19 | 8.20 | 7.75 | 6.15 |
+| 1001 | V3 | 15.47 | 13.20 | 11.16 | 7.96 | 4.49 |
+| 1001 | V4 | 15.35 | 13.45 | 12.57 | 12.53 | 11.62 |
+| 1007 | V0 | 16.25 | 13.95 | 12.64 | 7.69 | 6.97 |
+| 1007 | V1 | 12.96 | 7.17 | 7.92 | 7.13 | 4.16 |
+| 1007 | V3 | 16.38 | 13.64 | 11.11 | 7.25 | 5.20 |
+| 1007 | V4 | 16.25 | 14.15 | 12.92 | 12.70 | 9.48 |
+
+**Dead-standing phytomers as a share of all** (apex ended, nothing living below):
+
+| seed | variant | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|---|
+| 1001 | V0 | 0.478 | 0.491 | 0.529 | 0.550 | 0.530 |
+| 1001 | V1 | 0.482 | 0.501 | 0.517 | 0.515 | 0.523 |
+| 1001 | V3 | 0.475 | 0.474 | 0.497 | 0.496 | 0.526 |
+| 1001 | V4 | 0.478 | 0.484 | 0.507 | 0.528 | 0.537 |
+| 1007 | V0 | 0.442 | 0.469 | 0.515 | 0.501 | 0.538 |
+| 1007 | V1 | 0.448 | 0.464 | 0.508 | 0.508 | 0.517 |
+| 1007 | V3 | 0.438 | 0.446 | 0.451 | 0.442 | 0.472 |
+| 1007 | V4 | 0.442 | 0.437 | 0.480 | 0.509 | 0.504 |
+
+**Leaf over crown ground area,** taken as the ellipse of the two spreads (π/4 · x · y), not a hull:
+
+| seed | variant | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|---|
+| 1001 | V0 | 2.47 | 2.00 | 1.62 | 0.29 | 0.74 |
+| 1001 | V1 | 2.31 | 1.90 | 1.92 | 1.48 | 0.77 |
+| 1001 | V3 | 2.51 | 2.28 | 1.83 | 0.51 | 0.48 |
+| 1001 | V4 | 2.47 | 2.04 | 1.88 | 1.00 | 0.64 |
+| 1007 | V0 | 3.87 | 2.18 | 1.41 | 0.53 | 0.94 |
+| 1007 | V1 | 3.52 | 2.15 | 2.16 | 2.09 | 1.17 |
+| 1007 | V3 | 3.82 | 2.14 | 1.66 | 1.22 | 0.86 |
+| 1007 | V4 | 3.87 | 2.25 | 1.92 | 0.99 | 0.56 |
+
+**V4's leaf, phytomers and cost** (the other three variants are in the round-1 T1 and the V3 table above):
+
+| seed | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|
+| 1001: leaf m² | 113.5 | 513.8 | 967.8 | 1,041.4 | 589.9 |
+| 1001: phytomers | 326,166 | 1,885,934 | 3,984,042 | 4,311,571 | 2,625,032 |
+| 1001: s, peak GiB | 1, 0.2 | 7, 1.1 | 25, 2.2 | 75, 2.6 | 121, 2.0 |
+| 1007: leaf m² | 181.0 | 1,062.7 | 1,974.5 | 2,198.1 | 1,111.1 |
+| 1007: phytomers | 476,669 | 3,796,021 | 8,025,988 | 9,068,912 | 6,324,353 |
+| 1007: s, peak GiB | 1, 0.3 | 16, 2.3 | 55, 4.7 | 171, 5.7 | 287, 4.4 |
+
+V4 at 40 is identical to V0 on both seeds: the balance has shed nothing by then in either.
+
+### V5 and V6
+
+**V5, all of T1:**
+
+| seed | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|
+| 1001: height m | 10.64 | 17.55 | 25.59 | 27.73 | 7.69 |
+| 1001: leaf m² | 102.4 | 301.5 | 334.8 | 48.3 | 0.0 |
+| 1007: height m | 10.35 | 17.49 | 24.98 | 29.94 | 7.34 |
+| 1007: leaf m² | 151.6 | 474.1 | 505.3 | 0.0 | 0.0 |
+
+V5 already sheds at 40: 4,460 balance sheds on seed 1001 and 12,657 on seed 1007. At seed 1001 age 300 it has 4 axes, 172 phytomers and no living apex.
+
+**V6, partial.** Seed 1001: height 10.64, 17.69, 26.05, 36.85 and 32.12 m; leaf 105.0, 355.3, 493.4, 356.8 and 109.2 m². Seed 1007: 40 and 80 only (height 10.35 and 17.66 m; leaf 158.4 and 590.5 m²).
+
+### T2 to T4 for V4 to V6
+
+**T2:** all structural tips, median s, with the count of tips at s = 0:
+
+| seed | variant | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|---|
+| 1001 | V4 | 0.85 (0) | 0.59 (164) | 0.32 (1,188) | 0.11 (2,638) | 0 (2,625 of 4,831) |
+| 1001 | V5 | 0.38 (171) | 0.16 (620) | 0 | 0 | none living |
+| 1001 | V6 | 0.43 (151) | 0.25 (541) | 0.09 (1,204) | 0 (1,543) | 0.02 (298 of 728) |
+| 1007 | V4 | 0.83 (0) | 0.41 (1,197) | 0.23 (3,696) | 0.07 (6,711) | 0.19 (2,735 of 10,486) |
+| 1007 | V5 | 0.36 (323) | 0.10 (1,365) | 0 (2,710) | 0.06 (66 of 182) | 0.22 (0 of 11) |
+| 1007 | V6 | 0.45 (289) | 0.21 (1,266) | cancelled | not run | not run |
+
+**T3:** total balance sheds in the last 20 cycles:
+
+| seed | variant | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|---|
+| 1001 | V4 | 0 | 852 | 68,302 | 292,088 | 314,626 |
+| 1001 | V5 | 4,460 | 67,398 | 154,713 | 30,720 | 0 |
+| 1001 | V6 | 3,507 | 52,534 | 138,429 | 217,764 | 35,687 |
+| 1007 | V4 | 0 | 19,238 | 229,484 | 787,984 | 329,036 |
+| 1007 | V5 | 12,657 | 181,035 | 376,011 | 14,178 | 0 |
+
+**T4:** longest path to a living tip (settled) / tallest living tip / widest spread, all in m:
+
+| seed | variant | 40 | 80 | 120 | 200 | 300 |
+|---|---|---|---|---|---|---|
+| 1001 | V4 | 11.12 / 10.65 / 8.2 | 20.39 / 18.01 / 20.3 | 31.47 / 27.42 / 26.4 | 48.81 / 36.84 / 37.3 | 58.64 / 36.05 / 38.7 |
+| 1001 | V5 | 11.11 / 10.64 / 8.0 | 19.89 / 17.55 / 17.3 | 29.50 / 25.59 / 22.9 | 38.25 / 27.73 / 28.7 | none living / – / 0.2 |
+| 1001 | V6 | 11.11 / 10.64 / 8.1 | 20.05 / 17.69 / 18.1 | 29.92 / 26.05 / 23.3 | 47.07 / 36.85 / 36.6 | 57.61 / 32.12 / 32.0 |
+| 1007 | V4 | 11.27 / 10.38 / 8.0 | 24.60 / 18.82 / 25.4 | 40.66 / 28.44 / 37.1 | 54.09 / 37.12 / 53.7 | 64.89 / 38.79 / 51.7 |
+| 1007 | V5 | 11.24 / 10.35 / 7.4 | 20.20 / 17.49 / 19.4 | 29.66 / 24.98 / 29.2 | 16.07 / 6.43 / 19.8 | 5.47 / 5.18 / 0.4 |
+
+V5 at seed 1007 age 200 shows the settle-fade split again: the grower's path is 35.59 m against 16.07 m settled.
+
+### F1 to F5 (numbers placed, no judgement)
+
+- **F1, height under 34.8 m at every age:**
+  - V0: maximum 32.55 m;
+  - V1: 27.91 m;
+  - V3: 23.51 m;
+  - V4: 36.84 and 36.05 m on seed 1001 (200, 300), 37.12 and 38.79 m on seed 1007;
+  - V5: maximum 29.94 m;
+  - V6: 36.85 m at seed 1001 age 200.
+- **F2, leaf at 300 over leaf at 120** (seed 1001, seed 1007):
+
+  | V0 | V1 | V3 | V4 | V5 | V6 |
+  |---|---|---|---|---|---|
+  | 0.001, 0.197 | 0.572, 0.822 | 0.069, 0.266 | 0.610, 0.563 | 0.000, 0.000 | 0.221, not run |
+
+- **F3, leaf over V0's** at 40 / 80 / 120:
+
+  | seed | V1 | V3 | V4 | V5 | V6 |
+  |---|---|---|---|---|---|
+  | 1001 | 0.87 / 0.65 / 0.69 | 0.97 / 0.87 / 0.69 | 1.00 / 1.02 / 1.31 | 0.90 / 0.60 / 0.45 | 0.92 / 0.71 / 0.67 |
+  | 1007 | 0.84 / 0.69 / 0.83 | 0.96 / 0.83 / 0.67 | 1.00 / 1.17 / 1.77 | 0.84 / 0.52 / 0.45 | 0.88 / 0.65 / – |
+
+- **F4, phytomers per m² of leaf over V0's at 120,** at 40 / 80 / 120 / 200 / 300:
+
+  | seed | V0 | V4 | V1 | V3 | V5 | V6 |
+  |---|---|---|---|---|---|---|
+  | 1001 | 0.68 / 0.88 / 1.00 / 1.18 / 22.9 | 0.68 / 0.87 / 0.98 / 0.99 / 1.06 | up to 4.65 | up to 3.10 | 1.03 at 200, no leaf at 300 | 0.69 / 0.84 / 0.89 / 0.87 / 1.19 |
+  | 1007 | 0.64 / 0.87 / 1.00 / 1.74 / 1.80 | 0.64 / 0.87 / 0.99 / 1.00 / 1.38 | up to 4.83 | up to 2.70 | 1,286 at 200, 2,349 at 300 | – |
+
+- **F5, mean spread over diameter** at 120 / 200 / 300:
+
+  | seed | V0 | V1 | V3 | V4 | V5 | V6 |
+  |---|---|---|---|---|---|---|
+  | 1001 | 22.4 / 22.3 / 1.0 | 20.8 / 16.0 / 13.2 | 19.7 / 17.4 / 8.0 | 22.2 / 20.2 / 15.7 | 27.2 / 26.7 / 0.14 | 24.6 / 27.7 / 18.7 |
+  | 1007 | 22.9 / 16.6 / 9.5 | 18.2 / 13.9 / 11.6 | 19.7 / 13.3 / 10.3 | 22.0 / 20.5 / 16.1 | 28.0 / 16.5 / 0.39 | – |
+
+## Unknowns (round 2)
+
+- **Sag levers under V3:** whether they read a phytomer's length from `scale` was not checked.
+- **V3's `an_axis_and_its_draws_stay_compact`** and the other pins were not run.
+- **V4's height** is last cycle's laid tip, the same lag as `path_end`. Whether the grower's rough layout and the settled tree stand the tip at the same height was not compared.
+- **The settle's applied fade** (trace above) also acts on V1, V3 and V4 trees. In every variant, the settled-against-grower gaps it causes are inside the tables' settled figures.
