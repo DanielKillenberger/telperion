@@ -109,7 +109,9 @@ fn compare(
 }
 
 /// The device's wood is the reference's at the hero view and close in, for
-/// a preset of round wood and the palm's shaped cells.
+/// a preset of round wood and the palm's shaped cells. The close view's first
+/// frame may pass the capacity the hero sized and draw at the finest scale
+/// that fits; the next frame has the room (`src/curve/feedback.rs`, fn-258).
 #[test]
 fn the_device_surfaces_the_wood_the_cpu_reference_does() {
     let Some(gpu) = gpu() else { return };
@@ -123,16 +125,32 @@ fn the_device_surfaces_the_wood_the_cpu_reference_does() {
             position: hero.target + (hero.position - hero.target) * 0.15,
             ..hero
         };
-        for (name, camera) in [("hero", hero), ("close", close)] {
-            render(&mut renderer, &camera, SIZE.0, SIZE.1).unwrap();
-            let report = renderer.curve_report().unwrap();
-            assert_eq!(report.overrun, 0, "{id} {name}: over budget");
-            let found = compare(&renderer, &curve, &camera, SIZE, report.scale);
-            println!(
-                "{id} {name}: scale {}, demand {:?}: {found}",
-                report.scale, report.demand
-            );
-        }
+        render(&mut renderer, &hero, SIZE.0, SIZE.1).unwrap();
+        let report = renderer.curve_report().unwrap();
+        assert_eq!(report.overrun, 0, "{id} hero: over budget");
+        let found = compare(&renderer, &curve, &hero, SIZE, report.scale);
+        println!(
+            "{id} hero: scale {}, demand {:?}: {found}",
+            report.scale, report.demand
+        );
+        render(&mut renderer, &close, SIZE.0, SIZE.1).unwrap();
+        let first = renderer.curve_report().unwrap();
+        assert!(
+            [1.0, 2.0, 4.0, 8.0].contains(&first.scale),
+            "{id} close: the first frame drew at no scale `choose` returns: {first:?}"
+        );
+        println!(
+            "{id} close, first frame: scale {}, overrun {}, budget {:?}, demand {:?}",
+            first.scale, first.overrun, first.budget, first.demand
+        );
+        render(&mut renderer, &close, SIZE.0, SIZE.1).unwrap();
+        let report = renderer.curve_report().unwrap();
+        assert_eq!(report.overrun, 0, "{id} close, next frame: over budget");
+        let found = compare(&renderer, &curve, &close, SIZE, report.scale);
+        println!(
+            "{id} close, next frame: scale {}, demand {:?}: {found}",
+            report.scale, report.demand
+        );
     }
 }
 
