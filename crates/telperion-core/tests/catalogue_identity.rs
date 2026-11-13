@@ -55,9 +55,8 @@ fn every_preset_is_the_family_it_was() {
         // the ordinary tree their leaf years; the birch's sapwood 4.6; R7
         // gave every age a shade table and the beech its full-light tables;
         // task 7 gave the ordinary tree a leaf of 15.7 cm² and the beech's
-        // short shoot a life of twelve years; fn-361 gave the oak's limb a
-        // dominance.
-        17_200_827_603_434_776_716,
+        // short shoot a life of twelve years.
+        16_645_187_557_545_691_998,
         "{}",
         digest(&text)
     );
@@ -117,9 +116,8 @@ fn every_walk_is_the_walk_it_was() {
         // birch and the ordinary tree their leaf years; the birch's sapwood
         // 4.6; R7 gave every age a shade table and the beech its full-light
         // tables; task 7 gave the ordinary tree a leaf of 15.7 cm² and the
-        // beech's short shoot a life of twelve years; fn-361 gave the oak's
-        // limb a dominance.
-        14_407_390_098_334_827_746,
+        // beech's short shoot a life of twelve years.
+        16_404_614_338_522_828_711,
         "{}",
         digest(&text)
     );
@@ -149,8 +147,8 @@ fn every_override_reads_and_writes_as_it_did() {
         // supernatural pipe the primary radius and deleted the coarse pipe,
         // and set every age's sag to its wood's 4ρg/E; R5 gave the spruce
         // and the birch their leaf years; the birch's sapwood 4.6; R7 gave
-        // every age a shade table; fn-361 gave the oak's limb a dominance.
-        3_108_744_754_618_608_219,
+        // every age a shade table.
+        9_054_662_260_167_386_261,
         "{}",
         digest(&text)
     );
