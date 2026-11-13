@@ -10,7 +10,7 @@ use crate::closed_form::log_lengths;
 use crate::dormant::{last_stage, wakes_in};
 use crate::species::{Species, Zone};
 use crate::transcendental::Transcendental;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 /// Where a draw stands: the PA whose wood it decides, the cycle, and how
 /// far through the cycle (none for its start).
@@ -43,10 +43,45 @@ pub(crate) struct Windows {
 /// The look, in whole rows of the table.
 const ROWS: usize = LOOK as usize;
 
+/// The grower's windows built most recently, oldest first, by the
+/// species' every bit (its `Debug`, which writes each number to round
+/// trip) and the year. A tree grown again on the same species and age,
+/// or beside its reference, reads the same windows; where every age may
+/// sleep for centuries one costs seconds (fn-355, BLEND-COST.md).
+static BUILT: Mutex<Vec<(String, u32, Windows)>> = Mutex::new(Vec::new());
+
+/// Windows held: a grower's and its reference's, and a few trees beside.
+const HELD: usize = 4;
+
 impl Windows {
     /// The windows of every draw a tree makes up to `year`, the year's
-    /// look and its sleeping buds' waking included: the grower's.
+    /// look and its sleeping buds' waking included: the grower's, taken
+    /// from those built most recently where they match to the bit.
     pub fn new(species: &Species, year: u32) -> Self {
+        let key = format!("{species:?}");
+        let lock = || {
+            BUILT
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner())
+        };
+        let held = lock()
+            .iter()
+            .find(|(k, y, _)| *y == year && *k == key)
+            .map(|(.., w)| w.clone());
+        if let Some(windows) = held {
+            return windows;
+        }
+        let windows = Self::sleeping_too(species, year);
+        let mut built = lock();
+        if built.len() == HELD {
+            built.remove(0);
+        }
+        built.push((key, year, windows.clone()));
+        windows
+    }
+
+    /// `new`'s windows, built.
+    fn sleeping_too(species: &Species, year: u32) -> Self {
         let pas = species.states.len();
         // Only an age some zone puts to sleep, under a release law that
         // wakes it, is ever summed or recorded asleep.
@@ -195,6 +230,7 @@ impl Windows {
 mod tests {
     use super::Windows;
     use crate::{oak, spruce};
+    use std::sync::Arc;
 
     /// The closed form's windows read every draw's wood as the grower's
     /// do, to the bit, though their table stops short of the sleepers.
@@ -202,11 +238,40 @@ mod tests {
     fn the_drawn_windows_are_the_growers_without_the_sleepers() {
         for species in [oak(), spruce()] {
             let (grower, drawn) = (Windows::new(&species, 12), Windows::drawn(&species, 12));
-            for pa in 0..species.states.len() {
-                for cycle in 0..=13 {
-                    let (a, b) = (grower.log_wood(pa, cycle), drawn.log_wood(pa, cycle));
-                    assert_eq!(a.to_bits(), b.to_bits(), "PA {pa} in cycle {cycle}");
-                }
+            same(&grower, &drawn, species.states.len(), 13);
+        }
+    }
+
+    /// Windows taken from those held are the ones built, to the bit, and
+    /// a species a bit apart is built anew.
+    #[test]
+    fn held_windows_are_the_ones_built() {
+        let oak = oak();
+        let built = Windows::sleeping_too(&oak, 30);
+        let (first, again) = (Windows::new(&oak, 30), Windows::new(&oak, 30));
+        same(&built, &first, oak.states.len(), 31 + 16);
+        same(&built, &again, oak.states.len(), 31 + 16);
+        let mut apart = oak.clone();
+        apart.states[1].internode = f64::from_bits(apart.states[1].internode.to_bits() + 1);
+        let other = Windows::new(&apart, 30);
+        assert!(
+            !Arc::ptr_eq(&other.whole, &first.whole),
+            "a species a bit apart"
+        );
+        same(
+            &Windows::sleeping_too(&apart, 30),
+            &other,
+            oak.states.len(),
+            31,
+        );
+    }
+
+    /// Two windows' woods, every PA's, to cycle `last`, to the bit.
+    fn same(a: &Windows, b: &Windows, pas: usize, last: u32) {
+        for pa in 0..pas {
+            for cycle in 0..=last {
+                let (x, y) = (a.log_wood(pa, cycle), b.log_wood(pa, cycle));
+                assert_eq!(x.to_bits(), y.to_bits(), "PA {pa} in cycle {cycle}");
             }
         }
     }

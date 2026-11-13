@@ -103,3 +103,62 @@ For the decision:
 - Seven tests: `telperion-heavy 8 --threads 4 -- cargo nextest run --cargo-profile ci -p telperion-core <--lib|--test X> -E 'test(=<name>)'`, base and fix in turn per test.
 - Narrow suites: `telperion-heavy 8 --threads 4 -- cargo nextest run --cargo-profile ci -p telperion-space --lib`. Then the core's `cycle_cost_tests`, `pipeline::space::`, `suite::species::` with `space_presets` and `space_walks`.
 - Raw logs: the dispatching session's scratchpad, `bc/`.
+
+## Follow-up, 13 Nov 2026: the grower's table where every age sleeps
+
+The host's bisect (dispatching session's scratchpad, `GATE-BISECT.md`) found a second cost of 4ca638dfd that 574afa7b4 does not cure. `grow::cycle::tests::woken_buds_that_stop_at_once_retire_as_the_reference_has_them` takes 0.37 s at the parent and 121 to 147 s at 4ca638dfd. That test makes every PA of the oak sleep, at rate 0.6, so `last_stage` sums to 500 years and the grower's table runs to 22 + 40 + 500 + 2 = 564 rows.
+
+**The test, CPU seconds (user+sys)**, each run warm and alone through `TELPERION_HEAVY_RESERVE=8 telperion-heavy 8 --threads 4`, two rounds at load 5 to 7. No PAUSE fell inside any of the four runs (the watcher's last PAUSE/RESUME was 02:03 to 02:04):
+
+| Commit | Round 1 | Round 2 |
+|---|---:|---:|
+| 574afa7b4 | 132.6 | 134.0 |
+| fix (the commit after ba6e7eb29) | 15.3 | 16.1 |
+
+**Scaling of one table.** These are the oak's own species, with a temporary `#[ignore]` probe that has since been removed. Times are wall seconds for one table, in one process at load 5 to 7; that process's CPU time was 25.8 s against 12.6 s of wall, as `cargo test` built and ran it.
+
+| Age | Rows | Grower's windows, column and row only (s) | Full table, every PA at every row (s) |
+|---:|---:|---:|---:|
+| 20 | 78 | 0.009 | 0.014 |
+| 60 | 118 | 0.026 | 0.033 |
+| 160 | 218 | 0.091 | 0.103 |
+| 260 | 318 | 0.193 | 0.213 |
+| 360 | 418 | 0.323 | 0.347 |
+
+The oak's whole-tree column on the test's species (every PA asleep for up to 500 years), to a given row:
+
+| Rows | s |
+|---:|---:|
+| 62 | 0.048 |
+| 100 | 0.158 |
+| 150 | 0.420 |
+| 200 | 0.766 |
+| 300 | 2.005 |
+
+So the oak's own table grows about as rows^2 (exponent 1.95 from 218 to 418 rows), and the test species' about as rows^2.3 (from 100 to 300 rows). Extrapolated, 564 rows take about 8.5 s. The bisect measured 14 to 17 s for the full table there, and the whole test now takes 15 CPU s with one table. On the oak, the column and row are 0.9 times the full table. The saving 574afa7b4 made on the blend is small here because the grower already reads the full column.
+
+**The loop nest.** This was read from the code; the exponents above are measured, but the keys were not counted per level this time.
+
+1. `closed_form.rs::lived_log_length` is memoised by bud `(PA, m, carried, first)`.
+2. `events::first_events` and `steps::first_step` make the bud's first unit.
+3. `events::sleeping` loops `for s in 0..(m - i)` over every year of sleep, per zone and per dormant PA. For each `s` it reads `Living::woken(s)` and `Living::after(bearer, i, i + 2 + s)`, each memoised, and recurses into `log_length(pa, m - 1 - s, woken { slept }, first(s))`.
+4. A woken bud's key carries its `first` law and `slept`, so the memo holds one woken substructure per (PA, m', s). Each one's `rest` chain carries its spent time on, and each of those keys again loops over every year of sleep.
+
+The work is about rows × (years of sleep)² per PA. Where the years of sleep `S` are bounded (16 on the oak) it grows gently. Where `S` reaches the row count (500 here) it grows faster: about rows^2.3 is measured up to 300 rows.
+
+**What the grower reads.** `Windows::sleeping` and `dormant` sum `wakes_in(zone, s) × wood(pa, cycle + 1 + s)` for `s` below `ceil(stages[pa])`. That reads the whole-tree column out to `cycle + 1 + stages`, and every term adds to the sum's bits. So the grower reads the full column it builds, and computing less would change results. That part is inherent; I did not change what the grower reads or the sleepers' rows.
+
+**What was fixed: the same table built again on identical inputs.** In the test, the grower and its reference each built the same windows, for four seeds on the same species and year: 8 builds of one table. `Windows::new` now keeps the last 4 windows it built, keyed by the species' `Debug` (each number written to round-trip, as `blend/size.rs` keys its ends) and the year, and returns a clone of the shared tables on a match. `Windows::drawn`, the closed form's, is not held, because a blend never asks for the same scaled species twice. New test `held_windows_are_the_ones_built` checks that windows taken from the hold equal a fresh build to the bit, and that a species one ULP apart in one internode is built anew. The test now builds its table once: 15 to 16 CPU s, against 132 to 134.
+
+**Proof of equality.** With the hold in place:
+
+- `telperion-space --lib` passed 131 of 131 tests, among them every `paused` test and the woken-buds test's girth comparison. It took 60 s, against 260 s on 12 Nov, though under different load.
+- The core's narrow suites passed 47 of 47: the one-cycle digests, `pipeline::space::` (repeat, year by year, ceiling), the species digests, `space_presets` and `space_walks`.
+
+Neither run had a PAUSE inside it.
+
+**What is left, for the host:**
+
+- One table on this test's species costs about 8 to 15 s, and every grow of a species whose sleepers can sleep for centuries pays it once.
+- A real oak at 300 has 358 rows: about 0.24 s, interpolated between 0.19 s at 318 rows and 0.32 s at 418. Per grow that is one grower table, plus one more each time a growth goes past its request (`grow.rs`, doubling the year). The oak reads light, so `pipeline::space::foreseen` builds no closed-form table for it. A species that does not read light builds one more `drawn` table, without sleepers.
+- How far a sleeper is summed (`stages`, `last_stage`) is the design's choice, and so the faster growth on long sleepers is too.
