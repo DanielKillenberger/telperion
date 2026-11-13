@@ -10,9 +10,22 @@ pub(super) struct Sample {
     pub(super) r: f64,
     pub(super) d: f64,
 }
-/// Radial segments a ring is cut into: never fewer than four to a lobe.
+/// The most sides a ring is cut into: never fewer than four to a lobe.
 pub(crate) fn segments(params: &SurfaceParams) -> usize {
     params.radial_segments.max(params.lobes * 4) as usize
+}
+
+/// The sides every ring of a run is cut with, read off its widest drawn
+/// ring's `radius` (fn-362, host): the fewest, three at least, that keep the
+/// polygon's flat, `radius (1 − cos(π / n))`, within `FINEST` of the circle
+/// the drawing resolves, and never more than `most`.
+pub(crate) fn sides(radius: f64, most: usize) -> usize {
+    let flat = |n: usize| radius * (1.0 - (std::f64::consts::PI / n as f64).cos_fixed());
+    let mut n = 3;
+    while n < most && flat(n) > crate::pipeline::space::FINEST {
+        n += 1;
+    }
+    n
 }
 
 #[cfg(test)]
@@ -26,20 +39,19 @@ pub fn extent(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<WoodEx
     if paths.runs.is_empty() {
         return Ok(WoodExtent::default());
     }
-    let segments = segments(params);
     let distance = rings::distances(tree)?;
-    let angular = angular::samples(segments, params)?;
+    let rounds = angular::Rounds::new(segments(params), params)?;
     let at = rings::Swept {
         tree,
         height: height.max(1e-6),
         params,
         paths: &paths,
         distance: &distance,
-        angular: &angular,
+        rounds: &rounds,
     };
     let ordered = rings::rank(at, &mut rings::Scratch::new(at.longest()?)?)?;
-    let rings = ordered.iter().map(|o| at.rings(o.0));
-    Ok(Layout::new(rings, segments, true, CHUNK_VERTICES)?.extent(segments))
+    let rings = ordered.iter().map(|o| (at.rings(o.0), at.sides(o.1)));
+    Ok(Layout::new(rings, true, CHUNK_VERTICES)?.extent())
 }
 
 /// Builds only wood geometry. Invalid input or allocation failure returns no partial mesh.
@@ -137,12 +149,11 @@ pub(super) fn shaded(
     let Some(first) = pieces.first().map(|p| p.chunk) else {
         return Ok((Vec::new(), 0));
     };
-    let segments = rings.segments;
-    let indices = rings.layout.indices(segments, true)?;
+    let indices = rings.layout.indices(true)?;
     let count = pieces.last().map_or(0, |p| p.chunk + 1) - first;
     let mut chunks: Vec<FaceChunk> = reserved(count)?;
     let whole = pieces.iter().filter(|p| p.lead && p.tail);
-    let longest = whole.map(|p| p.vertices(segments, true)).max();
+    let longest = whole.map(|p| p.vertices(true)).max();
     let mut normals = reserved(longest.unwrap_or(0) * 3)?;
     let mut dropped = 0;
     for run in pieces.chunk_by(|a, b| a.run == b.run) {
@@ -163,7 +174,7 @@ pub(super) fn shaded(
             continue;
         };
         let chunk = &mut chunks[piece.chunk - first];
-        let (base, count) = (piece.base, piece.rings);
+        let (base, count, segments) = (piece.base, piece.rings, piece.sides);
         let vertices = count * segments + 2;
         let positions = &rings.chunks[piece.chunk].positions[base * 3..(base + vertices) * 3];
         normals.clear();
@@ -215,12 +226,11 @@ fn split(
     chunks: &mut [FaceChunk],
     spans: &mut Vec<[u32; 2]>,
 ) -> Result<usize> {
-    let segments = rings.segments;
     let (lead, tail) = (run[0], run[run.len() - 1]);
-    let count = tail.first + tail.rings;
+    let (count, segments) = (tail.first + tail.rings, lead.sides);
     let ring = count * segments;
     let point = |p: &Piece, v: usize| {
-        let at = p.local(v, count, segments) * 3;
+        let at = p.local(v, count) * 3;
         &rings.chunks[p.chunk].positions[at..at + 3]
     };
     let mut positions = reserved((ring + 2) * 3)?;
@@ -256,7 +266,7 @@ fn split(
         &mut normals,
         |t| {
             let piece = owner(t);
-            let local = t.map(|v| piece.local(v as usize, count, segments) as u16);
+            let local = t.map(|v| piece.local(v as usize, count) as u16);
             chunks[piece.chunk - lead.chunk].indices.extend(local);
         },
     )?;

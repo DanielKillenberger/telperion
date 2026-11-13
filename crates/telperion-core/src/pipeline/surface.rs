@@ -132,7 +132,9 @@ crate::catalogue::rows! {
         pub radial_segments: u32 = "radialSegments" "sides" Rail::closed(3.0, 64.0) => [Expand] {
             wire: 78,
             check: input(Site::Surface, 1, "surface parameters"),
-            note: "Wood is drawn with `max(radialSegments, 4·lobes)` sides.",
+            note: "Wood is drawn with at most `max(radialSegments, 4·lobes)` sides; a run whose \
+                widest ring stands within 0.2 mm of its circle with fewer takes the fewest that \
+                do (fn-362).",
             blend: Blend::Count,
             dial: bounded("radial_segments", "how many sides each piece of wood is drawn with",
                 [2.0, 4.0]).span([6.0, 18.0]),

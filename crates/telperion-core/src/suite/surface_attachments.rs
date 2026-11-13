@@ -46,8 +46,11 @@ fn needle_origins_touch_rendered_facets_across_bends_and_sockets() {
         stations_per_internode: 1,
     });
     // The twig run stands between these corners; a station's own code is
-    // half this box's step from where it was computed, and that half step is
-    // the slack every facet test below carries.
+    // half this box's step on each axis from where it was computed, so it
+    // stands off a facet's plane by at most those half steps along the
+    // facet's normal (fn-362: with fewer sides a facet faces more nearly
+    // across two axes), and the largest half step is the slack the edge
+    // tests carry.
     let box_of = Reference::spanning(Vec3::new(-0.05, 0.95, -0.05), Vec3::new(0.20, 1.25, 0.10));
     let step = box_of.step();
     let slack = step.x.max(step.y).max(step.z) / 2.;
@@ -83,7 +86,8 @@ fn needle_origins_touch_rendered_facets_across_bends_and_sockets() {
                     let b = point(t[1]);
                     let c = point(t[2]);
                     let n = (b - a).cross(c - a).normalized();
-                    (p - a).dot(n).abs() < 2e-7 + slack
+                    let off = n.x.abs() * step.x + n.y.abs() * step.y + n.z.abs() * step.z;
+                    (p - a).dot(n).abs() < 2e-7 + off / 2.
                         && [(a, b), (b, c), (c, a)]
                             .iter()
                             .all(|(u, v)| (*v - *u).cross(p - *u).dot(n) >= -2e-8 - slack)

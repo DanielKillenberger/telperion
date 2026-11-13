@@ -9,7 +9,8 @@ fn runs_fill_chunks_in_order_and_a_long_run_splits() {
     let (segments, limit) = (4, 64);
     // 15 rings and caps is 62 vertices; 3 is 14; 38 is 154 and splits, its
     // last piece repeating the first ring and bottom cap.
-    let layout = Layout::new([15, 3, 38, 2].into_iter(), segments, true, limit).unwrap();
+    let runs = [15, 3, 38, 2].map(|rings| (rings, segments));
+    let layout = Layout::new(runs.into_iter(), true, limit).unwrap();
     let pieces: Vec<_> = layout
         .pieces
         .iter()
@@ -31,7 +32,7 @@ fn runs_fill_chunks_in_order_and_a_long_run_splits() {
     let split = &layout.pieces[2..5];
     let pairs: Vec<_> = split.iter().flat_map(|p| p.pairs()).collect();
     assert_eq!(pairs, (0..37).collect::<Vec<_>>());
-    let extent = layout.extent(segments);
+    let extent = layout.extent();
     assert_eq!(extent.chunks, 6);
     assert_eq!(extent.indices, (15 + 3 + 38 + 2) * segments * 6);
 }
@@ -101,7 +102,7 @@ fn a_run_longer_than_a_chunk_splits_with_no_value_changed() {
     let trunk = whole.layout.pieces[0];
     assert_eq!((trunk.run, trunk.base), (0, 0));
     let flat = &whole.chunks[0];
-    let segments = whole.segments;
+    let segments = trunk.sides;
     let vertices = trunk.rings * segments + 2;
     assert!(vertices > 2 * CHUNK_VERTICES);
     let mut normals = vec![0.0; vertices * 3];

@@ -52,6 +52,8 @@ pub struct PreparedStations<R = Vec<Vec3>> {
     pub segments: Vec<StationSegment>,
     pub count: u32,
     pub rings: R,
+    /// The most points a ring of `rings` holds; a contact's ring holds its
+    /// upper ring's index less its lower's (fn-362).
     pub ring_size: u32,
 }
 
@@ -77,7 +79,10 @@ pub fn prepare_stations(
         twig,
         surface,
         || AttachmentSurface::new(tree, envelope.height, surface),
-        |c, node| c.edges.get(node).copied().flatten(),
+        |c, node| {
+            let edge = c.edges.get(node).copied().flatten();
+            edge.map(|[lo, hi, start, end, _]| [lo, hi, start, end])
+        },
     )?;
     Ok(result.map(|(segments, count, contacts)| {
         let (rings, ring_size) =

@@ -18,8 +18,8 @@ fn trees() -> Vec<(&'static str, Tree, f64, SurfaceParams)> {
 }
 
 /// The curve carries the whole wood: the sweep's rings, drawn from the curve
-/// alone, are the sweep's own to the bit at every preset's side count (12
-/// for all but the lobed legends), its shaped leaf-base cells included.
+/// alone, are the sweep's own to the bit at every run's side count (fn-362),
+/// its shaped leaf-base cells included.
 #[test]
 fn every_presets_rings_are_drawn_from_its_curve_to_the_bit() {
     let _turn = crate::one_tree::turn();
@@ -92,7 +92,7 @@ fn packed_points_stand_within_their_stated_error() {
             let points = curve.run_points(run);
             let largest = points.iter().map(|p| p.radius).fold(0.0, f64::max);
             let lobe = 1.0 + curve.lobe_depth.abs();
-            let vertices = points.len() * segments + 2;
+            let vertices = points.len() * run.sides(segments) + 2;
             for v in at..at + vertices {
                 let e = |k: usize| f64::from(exact[v * 3 + k]);
                 let d = (0..3)
