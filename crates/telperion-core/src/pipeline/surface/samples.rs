@@ -37,10 +37,10 @@ pub(super) fn sample_path(
 }
 
 /// Each node's girth along a run, from its first node (fn-360, host): every
-/// ring where the wood falls from the ring before lays a hold of that fall,
-/// fading over twice the radius it fell from, and the holds add, `g(s) =
-/// r(s) + Σ δ_j · w((s − s_j) / 2a_j)` with `w` the ease curve. So the girth
-/// does not move at a drop, only eases after it. One rule for every drop, a
+/// segment across which the wood falls lays a hold of that fall, fading
+/// from the ring it fell from over twice the radius it fell from, and the
+/// holds add, `g(s) = r(s) + Σ δ_j · w((s − s_(j−1)) / 2a_j)` with `w` the
+/// ease curve. So a fall eases out after the segment it happens across. One rule for every drop, a
 /// fork's, a growth unit's or a relay's, across a lateral that takes over a
 /// bearer that ends too. Each girth reads only the run's radii and distances
 /// up to it, and it never falls faster than 1 in 1. It is never below the
@@ -54,7 +54,7 @@ fn girths<'a>(
 ) -> impl Iterator<Item = f64> + 'a {
     let radius = move |k: usize| tree.nodes[path_nodes[k]].radius;
     let at = move |k: usize| distance[path_nodes[k]];
-    // Twice the widest radius from the run's base: no drop further back
+    // Twice the widest radius from the run's base: no fall further back
     // than that holds anything.
     let mut reach = 0.0_f64;
     // The girth drawn at the ring before, for the 1-in-1 floor.
@@ -69,7 +69,7 @@ fn girths<'a>(
         reach = reach.max(2.0 * own);
         let mut girth = own;
         for j in (base + 1..=k).rev() {
-            let gap = at(k) - at(j);
+            let gap = at(k) - at(j - 1);
             if gap >= reach {
                 break;
             }

@@ -130,8 +130,9 @@ fn a_run_that_never_thins_is_drawn_at_its_radii() {
 }
 
 /// A run thinning 0.05% a ring over 200 rings is drawn over its radii by
-/// at most half its thinning over the reach upstream of each ring, plus one
-/// ring's drop: the holds are summed at the rings.
+/// at most its thinning over the reach upstream of each ring, since each
+/// hold is at most its fall, and where a full reach of wood lies upstream
+/// by at most half that thinning plus one ring's drop.
 #[test]
 fn a_stem_thinning_steadily_is_drawn_by_half_its_thinning() {
     let tree = stem(10.0, |y| 0.3 * 0.9995_f64.powi((y / STEP).round() as i32), &[]);
@@ -140,9 +141,14 @@ fn a_stem_thinning_steadily_is_drawn_by_half_its_thinning() {
     assert!(rings.len() > 200);
     for k in 1..rings.len() {
         let first = (0..=k)
-            .find(|&i| rings[k].d - rings[i].d <= 2.0 * r[i])
+            .find(|&i| rings[k].d - rings[i].d < 2.0 * r[i])
             .unwrap();
-        let bound = 0.5 * (r[first] - r[k]) + (r[k - 1] - r[k]) + 1e-6;
+        let thinning = r[first] - r[k];
+        let bound = if first > 0 {
+            0.5 * thinning + (r[k - 1] - r[k])
+        } else {
+            thinning
+        } + 1e-6;
         let over = rings[k].r - r[k];
         assert!((0.0..=bound).contains(&over), "{over} over, bound {bound}, at {}", rings[k].d);
     }
