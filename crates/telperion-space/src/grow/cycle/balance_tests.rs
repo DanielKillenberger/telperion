@@ -1,10 +1,13 @@
 //! The carbon balance on hand-built trees (fn-349 R4): dead wood is
 //! charged nothing, a living tip's charge rises with the square of its
 //! path, and a part earns what its paying child laterals have left over.
-use super::passes::charge;
+use super::super::bud;
+use super::passes::{charge, charged};
 use super::Working;
 use crate::allocation::{Link, TIP};
 use crate::contract::shed::{walk, Bud, Lateral};
+use crate::lineage::Key;
+use crate::structure::{Axis, Growing, Origin, Vec3};
 
 /// A working set of `links`, each axis open but those in `closed`, its
 /// children by node then index as `Working::extend` sets them.
@@ -81,6 +84,58 @@ fn a_tip_is_charged_the_square_of_its_path() {
     assert_eq!(own[2].1, 4.0 * own[1].1);
     assert_eq!(w.cost[0], 0.0);
     assert_eq!(w.light[0], (1.0 + (1.0 - own[1].1)) + (1.0 - own[2].1));
+}
+
+/// A seed whose collar stands at `collar` and a lateral on it, born at
+/// the seed's first node, its nodes at `tips`.
+fn lateral(collar: f32, tips: &[[f32; 3]]) -> Vec<Axis<Growing>> {
+    let laid = |at: &[f32; 3]| Growing {
+        tip: *at,
+        ..Growing::new(1, 0)
+    };
+    let mut seed = bud(Key(1), 0, 0, Origin::Seed);
+    seed.base = Vec3::new(0.0, 0.0, f64::from(collar));
+    seed.phytomers.push(laid(&[0.0, 0.0, collar + 4.0]));
+    let born = Origin::Lateral {
+        parent: 0,
+        node: 0,
+        slot: 0,
+        whorl: 0.0,
+        woken: false,
+    };
+    let mut side = bud(Key(2), 1, 1, born);
+    side.base = Vec3::new(0.0, 0.0, f64::from(collar) + 4.0);
+    side.phytomers.extend(tips.iter().map(laid));
+    vec![seed, side]
+}
+
+/// fn-363 R2: a living tip is charged its size times the square of its
+/// height above the root collar's base over the potential height, the
+/// same whatever length of wood reaches it: a lateral 8 m above the
+/// collar, straight or wandering out and back, is charged a sixteenth of
+/// its size at a potential height of 32 m.
+#[test]
+fn a_tip_is_charged_the_square_of_its_height_whatever_its_path() {
+    let inverse = 1.0 / 32.0;
+    let straight = lateral(0.25, &[[2.0, 0.0, 8.25]]);
+    let wandering = lateral(
+        0.25,
+        &[[6.0, 0.0, 6.25], [6.0, 5.0, 10.25], [-3.0, 4.0, 9.25], [1.0, 3.0, 8.25]],
+    );
+    assert_eq!(charged(0.5, &straight, 1, inverse), 0.5 / 16.0);
+    assert_eq!(charged(0.5, &wandering, 1, inverse), 0.5 / 16.0);
+    // A tip that has laid no node stands at its base, 4 m up.
+    assert_eq!(charged(0.5, &lateral(0.25, &[]), 1, inverse), 0.5 / 64.0);
+}
+
+/// fn-363 R2: a tip below the root collar's base is charged nothing, and
+/// so is every tip of a species with no potential height.
+#[test]
+fn a_tip_below_the_collar_or_without_a_height_is_charged_nothing() {
+    let below = lateral(0.25, &[[3.0, 0.0, 2.0], [5.0, 0.0, -0.5]]);
+    assert_eq!(charged(0.5, &below, 1, 1.0 / 32.0), 0.0);
+    let high = lateral(0.25, &[[2.0, 0.0, 8.25]]);
+    assert_eq!(charged(0.5, &high, 1, 0.0), 0.0);
 }
 
 /// A bough with one paying and one failing child lateral earns what the
