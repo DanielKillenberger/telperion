@@ -10,8 +10,8 @@ const HEADROOM: u64 = CHUNK_VERTICES as u64 * 3 * 4;
 
 /// Refuses, by name, a wood whose layout needs more bytes than are left.
 /// Where no source of the bytes left is installed, nothing is checked.
-pub(super) fn check(layout: &Layout, segments: usize, coords: Coords) -> Result<()> {
-    fits(need(layout, segments, coords), crate::memory::left())
+pub(super) fn check(layout: &Layout, coords: Coords) -> Result<()> {
+    fits(need(layout, coords), crate::memory::left())
 }
 
 /// `needed` against `left`, where a host said what is left.
@@ -27,14 +27,11 @@ fn fits(needed: u64, left: Option<u64>) -> Result<()> {
 /// chunk lists the ring step, the mesh step and the wood each hold; the run
 /// table and spans, twice where the mesh step drops triangles; and the mesh
 /// step's float scratch (`scratch`).
-pub(super) fn need(layout: &Layout, segments: usize, coords: Coords) -> u64 {
+pub(super) fn need(layout: &Layout, coords: Coords) -> u64 {
     let vertices: u64 = layout.chunks.iter().map(|&v| v as u64).sum();
-    let rings: u64 = layout.chunks.iter().map(|&v| (v / segments) as u64).sum();
+    let rings = layout.rings as u64;
     let pieces = &layout.pieces;
-    let indices: u64 = pieces
-        .iter()
-        .map(|p| p.indices(segments, true) as u64)
-        .sum();
+    let indices: u64 = pieces.iter().map(|p| p.indices(true) as u64).sum();
     let along = match coords {
         Coords::None => 0,
         Coords::Bark(_) => vertices * 2 * 2,
@@ -49,19 +46,19 @@ pub(super) fn need(layout: &Layout, segments: usize, coords: Coords) -> u64 {
         + indices * 2
         + lists
         + tables
-        + scratch(layout, segments)
+        + scratch(layout)
         + HEADROOM
 }
 
 /// The mesh step's float scratch at its largest: the normals of its longest
 /// whole run, held while a split run gathers its points and float normals
 /// whole beside its pieces' index starts (`build::split`).
-fn scratch(layout: &Layout, segments: usize) -> u64 {
+fn scratch(layout: &Layout) -> u64 {
     let pieces = &layout.pieces;
     let whole = pieces
         .iter()
         .filter(|p| p.lead && p.tail)
-        .map(|p| p.vertices(segments, true) as u64)
+        .map(|p| p.vertices(true) as u64)
         .max()
         .unwrap_or(0);
     let split = pieces
@@ -69,7 +66,7 @@ fn scratch(layout: &Layout, segments: usize) -> u64 {
         .filter(|run| run.len() > 1)
         .map(|run| {
             let tail = run[run.len() - 1];
-            let vertices = ((tail.first + tail.rings) * segments + 2) as u64;
+            let vertices = ((tail.first + tail.rings) * tail.sides + 2) as u64;
             vertices * 3 * 4 * 2 + run.len() as u64 * 8
         })
         .max()
@@ -112,24 +109,21 @@ mod tests {
     fn a_split_run_s_whole_points_and_normals_count_as_scratch() {
         // 38 rings of 4 sides split over three chunks of at most 64 (the
         // layout `chunks::tests` pins); the longest whole run is 62 vertices.
-        let layout = Layout::new([15usize, 3, 38, 2].into_iter(), 4, true, 64).unwrap();
+        let runs = [15usize, 3, 38, 2].map(|rings| (rings, 4));
+        let layout = Layout::new(runs.into_iter(), true, 64).unwrap();
         let split = (38 * 4 + 2) * 3 * 4 * 2 + 3 * 8;
-        assert_eq!(scratch(&layout, 4), 62 * 3 * 4 + split);
+        assert_eq!(scratch(&layout), 62 * 3 * 4 + split);
     }
 
     #[test]
     fn the_need_counts_every_chunk_buffer_and_the_headroom() {
-        let segments = 8;
-        let layout =
-            Layout::new([10usize, 20].into_iter(), segments, true, CHUNK_VERTICES).unwrap();
+        let runs = [10usize, 20].map(|rings| (rings, 8));
+        let layout = Layout::new(runs.into_iter(), true, CHUNK_VERTICES).unwrap();
         let vertices: u64 = layout.chunks.iter().map(|&v| v as u64).sum();
-        let bare = need(&layout, segments, Coords::None);
+        let bare = need(&layout, Coords::None);
         // Positions and normals at least, and never less than the headroom.
         assert!(bare >= vertices * (12 + 4) + HEADROOM);
         // Bark coords add exactly two unorm16 a vertex.
-        assert_eq!(
-            need(&layout, segments, Coords::Bark(1.0)) - bare,
-            vertices * 4
-        );
+        assert_eq!(need(&layout, Coords::Bark(1.0)) - bare, vertices * 4);
     }
 }

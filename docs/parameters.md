@@ -928,7 +928,7 @@ How many sides each piece of wood is drawn with. Raising it makes the wood round
 - count (u32), sides, [3, 64], default 12
 - read by expand; removed growth path: as the direct build
 - checked: Surface site, rank 1, as invalid input `surface parameters`
-- note: Wood is drawn with `max(radialSegments, 4·lobes)` sides.
+- note: Wood is drawn with at most `max(radialSegments, 4·lobes)` sides; a run whose widest ring stands within 0.2 mm of its circle with fewer takes the fewest that do (fn-362).
 - blend: rounded to the nearest; dial: `radial_segments` (how many sides each piece of wood is drawn with), window its bounds (validated bound), steps 2 and 4, presets span [6, 18]
 
 ### `/surface/lobes`

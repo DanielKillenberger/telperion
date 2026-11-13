@@ -20,6 +20,40 @@ fn profile(angle: f64, phase: f64, params: &SurfaceParams) -> f64 {
         1.0 + params.lobe_depth * (params.lobes as f64 * (angle + phase)).cos_fixed()
     }
 }
+/// The points round a ring of every count a run may be cut with, three to
+/// the surface's own (`build::sides`), each made once a sweep.
+pub(super) struct Rounds {
+    rounds: Vec<Vec<Angular>>,
+}
+impl Rounds {
+    pub(super) fn new(cap: usize, params: &SurfaceParams) -> Result<Self> {
+        let mut rounds = reserved(cap + 1)?;
+        for n in 0..=cap {
+            rounds.push(if n < 3 {
+                Vec::new()
+            } else {
+                samples(n, params)?
+            });
+        }
+        Ok(Self { rounds })
+    }
+
+    /// The points round a ring of `n` sides.
+    pub(super) fn of(&self, n: usize) -> &[Angular] {
+        &self.rounds[n]
+    }
+
+    /// The most sides a ring is cut with.
+    pub(super) fn cap(&self) -> usize {
+        self.rounds.len() - 1
+    }
+
+    /// The bytes the rounds hold.
+    pub(super) fn bytes(&self) -> usize {
+        self.rounds.iter().map(|r| size_of_val(&r[..])).sum()
+    }
+}
+
 pub(super) fn samples(segments: usize, params: &SurfaceParams) -> Result<Vec<Angular>> {
     let mut out = reserved(segments)?;
     for k in 0..segments {

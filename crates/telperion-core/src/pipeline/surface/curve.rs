@@ -47,6 +47,15 @@ pub struct CurveRun {
     pub largest_radius: f64,
 }
 
+impl CurveRun {
+    /// The sides the CPU mesh cuts every ring of this run with, at most
+    /// `most`: the fewest that keep its widest ring within the drawing's
+    /// finest wood of its circle (fn-362).
+    pub fn sides(&self, most: usize) -> usize {
+        sides(self.largest_radius, most)
+    }
+}
+
 /// Up to `CLUSTER` consecutive points of one run, with what a view reads
 /// before it draws them.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -126,7 +135,7 @@ pub(crate) fn traced(tree: &Tree, height: f64, params: &SurfaceParams) -> Result
         });
     }
     tree.validate_solved()?;
-    let angular = angular::samples(segments(params), params)?;
+    let rounds = angular::Rounds::new(segments(params), params)?;
     let distance = rings::distances(tree)?;
     let at = rings::Swept {
         tree,
@@ -134,7 +143,7 @@ pub(crate) fn traced(tree: &Tree, height: f64, params: &SurfaceParams) -> Result
         params,
         paths: &paths,
         distance: &distance,
-        angular: &angular,
+        rounds: &rounds,
     };
     let mut scratch = Scratch::new(at.longest()?)?;
     let ordered = rings::rank(at, &mut scratch)?;
@@ -341,18 +350,14 @@ impl Curve {
         &self.points[run.first as usize..(run.first + run.count) as usize]
     }
 
-    /// The sweep's rings drawn from the curve alone at `segments` sides:
-    /// every run's ring vertices and its two caps, with their coords, in the
-    /// order and to the bit the sweep draws them. What proves the curve
-    /// carries all the wood is that these are the sweep's own.
+    /// The sweep's rings drawn from the curve alone at most `segments`
+    /// sides, each run at its own (`CurveRun::sides`): every run's ring
+    /// vertices and its two caps, with their coords, in the order and to the
+    /// bit the sweep draws them. What proves the curve carries all the wood
+    /// is that these are the sweep's own.
     pub fn rings(&self, segments: usize) -> Result<(Vec<f32>, Vec<f32>)> {
         let params = self.surface_params();
-        let angular = angular::samples(segments, &params)?;
-        let ring = Ring {
-            params: &params,
-            height: self.height,
-            angular: &angular,
-        };
+        let rounds = angular::Rounds::new(segments, &params)?;
         let (mut positions, mut coords) = (Vec::new(), Vec::new());
         let mut samples = Vec::new();
         let mut frame = Vec::new();
@@ -368,6 +373,11 @@ impl Curve {
                 frame.push((p.normal, p.binormal));
             }
             let shape = run.section.map(|s| &self.sections[s as usize]);
+            let ring = Ring {
+                params: &params,
+                height: self.height,
+                angular: rounds.of(run.sides(segments)),
+            };
             emit_run(
                 &samples,
                 &frame,

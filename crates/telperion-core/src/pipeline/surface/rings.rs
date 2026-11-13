@@ -28,14 +28,16 @@ pub(crate) struct Rings {
     pub(super) chunks: Vec<RingChunk>,
     /// Each node's lower and upper ring, then the first and last ring of the
     /// piece that answers for it, as ring addresses (`chunks::address`),
-    /// where the sweep kept them.
-    pub(super) edges: Vec<Option<[usize; 4]>>,
+    /// and its lower ring's place (`chunks::record`), where the sweep kept
+    /// them.
+    pub(super) edges: Vec<Option<[usize; 5]>>,
     /// The runs and their pieces, in the sweep's order.
     pub(super) layout: Layout,
     /// The run table as swept, one entry a piece, where drawn: widest run
     /// first, ties in path order, each span before the mesh step drops any
     /// triangle.
     pub(super) runs: Vec<WoodRun>,
+    /// The most sides a ring is cut with.
     pub(super) segments: usize,
     /// The longest distance along the wood, which coords are quantised over.
     pub(super) along: f64,
@@ -178,7 +180,7 @@ pub(super) fn rings_mode(
     }
     tree.validate_solved()?;
     let height = height.max(1e-6);
-    let angular = angular::samples(segments, params)?;
+    let rounds = angular::Rounds::new(segments, params)?;
     let distance = distances(tree)?;
     out.along = distance.iter().copied().fold(0.0, f64::max);
     let at = Swept {
@@ -187,7 +189,7 @@ pub(super) fn rings_mode(
         params,
         paths,
         distance: &distance,
-        angular: &angular,
+        rounds: &rounds,
     };
     let longest = at.longest()?;
     let mut scratch = Scratch::new(longest)?;
@@ -200,19 +202,17 @@ pub(super) fn rings_mode(
     } else if sweep.drawn {
         rank(at, &mut scratch)?
     } else {
-        let mut order = reserved(paths.runs.len())?;
-        order.extend((0..paths.runs.len()).map(|path_id| (path_id, 0.0)));
-        order
+        widths(at, &mut scratch)?
     };
-    let rings = ordered.iter().map(|o| at.rings(o.0));
-    out.layout = Layout::new(rings, segments, sweep.drawn, limit)?;
+    let rings = ordered.iter().map(|o| (at.rings(o.0), at.sides(o.1)));
+    out.layout = Layout::new(rings, sweep.drawn, limit)?;
     let coords = match (sweep.drawn, sweep.distances) {
         (false, _) => Coords::None,
         (true, false) => Coords::Bark(out.along),
         (true, true) => Coords::Distances,
     };
     if sweep.drawn {
-        super::budget::check(&out.layout, segments, coords)?;
+        super::budget::check(&out.layout, coords)?;
     }
     if sweep.edges {
         at.record(&mut out.edges, &ordered, &out.layout);
@@ -264,6 +264,10 @@ pub(super) fn written(
     };
     let count = pieces.last().map_or(0, |p| p.chunk + 1) - first;
     let mut chunks: Vec<RingChunk> = reserved(count)?;
+    let rings = match coords {
+        Coords::Distances => layout.rings()?,
+        _ => Vec::new(),
+    };
     for run in pieces.chunk_by(|a, b| a.run == b.run) {
         for piece in run {
             if piece.chunk - first == chunks.len() {
@@ -272,14 +276,10 @@ pub(super) fn written(
                     Coords::Bark(_) => n * 2,
                     _ => 0,
                 };
-                let rings = |n: usize| match coords {
-                    Coords::Distances => n / at.segments(),
-                    _ => 0,
-                };
                 chunks.push(RingChunk {
                     positions: reserved(vertices * 3)?,
                     coords: reserved(per(vertices))?,
-                    distances: reserved(rings(vertices))?,
+                    distances: reserved(rings.get(piece.chunk).copied().unwrap_or(0))?,
                 });
             }
         }
@@ -288,45 +288,54 @@ pub(super) fn written(
             Some(curve) => scratch.read(curve, run[0].run),
             None => scratch.sweep(at, path_id),
         };
-        let ring = samples.len() * at.segments();
+        let sides = run[0].sides;
+        let ring = samples.len() * sides;
         let shape = (at.section(path_id), at.paths.runs[path_id].trunk);
         let mut v = 0;
-        emit_run(samples, frame, at.ring(), shape, drawn, |xyz, coord| {
-            for piece in run {
-                // Run vertex `v`: a ring the piece holds, or the cap it holds;
-                // a split run's last piece takes its first ring again from
-                // the first piece before its bottom cap.
-                if matches!(coords, Coords::Bark(_)) && v == ring && piece.repeats() {
-                    let (lead, segments) = (run[0], at.segments());
-                    let (held, rest) = chunks.split_at_mut(piece.chunk - first);
-                    let (from, to) = (&held[lead.chunk - first], &mut rest[0]);
-                    let at = |n: usize| lead.base * n..(lead.base + segments) * n;
-                    to.positions.extend_from_slice(&from.positions[at(3)]);
-                    to.coords.extend_from_slice(&from.coords[at(2)]);
-                }
-                let holds = run.len() == 1
-                    || if v < ring {
-                        (piece.first..piece.first + piece.rings).contains(&(v / at.segments()))
-                    } else {
-                        (v == ring && (piece.lead || piece.repeats())) || (v > ring && piece.tail)
-                    };
-                if holds {
-                    let chunk = &mut chunks[piece.chunk - first];
-                    chunk.positions.extend(xyz);
-                    match coords {
-                        Coords::Bark(along) => {
-                            let [d, angle] = coord.map(f64::from);
-                            chunk.coords.extend(encode::coord(d, angle, along));
+        emit_run(
+            samples,
+            frame,
+            at.ring(sides),
+            shape,
+            drawn,
+            |xyz, coord| {
+                for piece in run {
+                    // Run vertex `v`: a ring the piece holds, or the cap it holds;
+                    // a split run's last piece takes its first ring again from
+                    // the first piece before its bottom cap.
+                    if matches!(coords, Coords::Bark(_)) && v == ring && piece.repeats() {
+                        let (lead, segments) = (run[0], sides);
+                        let (held, rest) = chunks.split_at_mut(piece.chunk - first);
+                        let (from, to) = (&held[lead.chunk - first], &mut rest[0]);
+                        let at = |n: usize| lead.base * n..(lead.base + segments) * n;
+                        to.positions.extend_from_slice(&from.positions[at(3)]);
+                        to.coords.extend_from_slice(&from.coords[at(2)]);
+                    }
+                    let holds = run.len() == 1
+                        || if v < ring {
+                            (piece.first..piece.first + piece.rings).contains(&(v / sides))
+                        } else {
+                            (v == ring && (piece.lead || piece.repeats()))
+                                || (v > ring && piece.tail)
+                        };
+                    if holds {
+                        let chunk = &mut chunks[piece.chunk - first];
+                        chunk.positions.extend(xyz);
+                        match coords {
+                            Coords::Bark(along) => {
+                                let [d, angle] = coord.map(f64::from);
+                                chunk.coords.extend(encode::coord(d, angle, along));
+                            }
+                            Coords::Distances if v < ring && v % sides == 0 => {
+                                chunk.distances.push(coord[0]);
+                            }
+                            _ => {}
                         }
-                        Coords::Distances if v < ring && v % at.segments() == 0 => {
-                            chunk.distances.push(coord[0]);
-                        }
-                        _ => {}
                     }
                 }
-            }
-            v += 1;
-        })?;
+                v += 1;
+            },
+        )?;
     }
     Ok(chunks)
 }
@@ -383,7 +392,7 @@ pub(super) struct Swept<'a> {
     pub(super) params: &'a SurfaceParams,
     pub(super) paths: &'a paths::Paths,
     pub(super) distance: &'a [f64],
-    pub(super) angular: &'a [angular::Angular],
+    pub(super) rounds: &'a angular::Rounds,
 }
 impl Swept<'_> {
     /// Whether the flare buries a ring at the foot of every trunk, as
@@ -402,12 +411,12 @@ impl Swept<'_> {
             .ok_or(Error::ResourceLimit("surface samples"))
     }
 
-    /// What every ring of this sweep is drawn with.
-    pub(super) fn ring(&self) -> Ring<'_> {
+    /// What every ring of `sides` sides of this sweep is drawn with.
+    pub(super) fn ring(&self, sides: usize) -> Ring<'_> {
         Ring {
             params: self.params,
             height: self.height,
-            angular: self.angular,
+            angular: self.rounds.of(sides),
         }
     }
 
@@ -436,15 +445,15 @@ impl Swept<'_> {
         section::of(self.tree, self.paths, &self.paths.runs[path_id])
     }
 
-    /// Points round a ring.
-    pub(super) fn segments(&self) -> usize {
-        self.angular.len()
+    /// The sides of a run whose widest ring is `radius` (`build::sides`).
+    pub(super) fn sides(&self, radius: f64) -> usize {
+        sides(radius, self.rounds.cap())
     }
 
     /// Records every node's contact rings over the layout of `ordered`.
     pub(super) fn record(
         &self,
-        edges: &mut [Option<[usize; 4]>],
+        edges: &mut [Option<[usize; 5]>],
         ordered: &[(usize, f64)],
         layout: &Layout,
     ) {
@@ -452,7 +461,7 @@ impl Swept<'_> {
             let path = &self.paths.runs[ordered[pieces[0].run].0];
             let nodes = &self.paths.nodes[path.start..path.end];
             let offset = usize::from(path.trunk && self.buried());
-            chunks::record(edges, nodes, pieces, self.segments(), offset, layout.shift);
+            chunks::record(edges, nodes, pieces, offset, layout.shift);
         }
     }
 }
@@ -474,14 +483,24 @@ pub(super) fn distances(tree: &Tree) -> Result<Vec<f64>> {
 /// Every path with its run's largest sample radius, widest first. Ties keep
 /// path order, so the order is deterministic.
 pub(super) fn rank(at: Swept, scratch: &mut Scratch) -> Result<Vec<(usize, f64)>> {
-    let mut ordered = reserved(at.paths.runs.len())?;
-    for path_id in 0..at.paths.runs.len() {
-        at.sample(path_id, &mut scratch.samples);
-        let radius = scratch.samples.iter().map(|s| s.r).fold(0.0, f64::max);
-        ordered.push((path_id, radius));
-    }
+    let mut ordered = widths(at, scratch)?;
     ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
     Ok(ordered)
+}
+
+/// Every path with its run's largest sample radius, in path order.
+fn widths(at: Swept, scratch: &mut Scratch) -> Result<Vec<(usize, f64)>> {
+    let mut out = reserved(at.paths.runs.len())?;
+    for path_id in 0..at.paths.runs.len() {
+        at.sample(path_id, &mut scratch.samples);
+        out.push((path_id, widest(&scratch.samples)));
+    }
+    Ok(out)
+}
+
+/// A run's largest sample radius.
+pub(super) fn widest(samples: &[Sample]) -> f64 {
+    samples.iter().map(|s| s.r).fold(0.0, f64::max)
 }
 
 /// The ranked runs as the run table, a piece an entry. It is allocated
@@ -496,7 +515,7 @@ pub(super) fn table(ordered: Vec<(usize, f64)>, mut out: Rings) -> Result<Rings>
         if piece.chunk != chunk {
             (chunk, first_index) = (piece.chunk, 0);
         }
-        let count = piece.indices(out.segments, true);
+        let count = piece.indices(true);
         let index_count = u32::try_from(count).map_err(|_| too_many())?;
         runs.push(WoodRun {
             chunk: chunk as u32,
@@ -524,7 +543,7 @@ pub(super) struct Resweep<'t> {
 struct Ranked {
     paths: paths::Paths,
     distance: Vec<f64>,
-    angular: Vec<angular::Angular>,
+    rounds: angular::Rounds,
     ordered: Vec<(usize, f64)>,
 }
 impl<'t> Resweep<'t> {
@@ -544,7 +563,7 @@ impl<'t> Resweep<'t> {
             params: self.params,
             paths: &r.paths,
             distance: &r.distance,
-            angular: &r.angular,
+            rounds: &r.rounds,
         }
     }
 
@@ -552,7 +571,7 @@ impl<'t> Resweep<'t> {
         let mut r = Ranked {
             paths: paths(self.tree)?,
             distance: distances(self.tree)?,
-            angular: angular::samples(segments(self.params), self.params)?,
+            rounds: angular::Rounds::new(segments(self.params), self.params)?,
             ordered: Vec::new(),
         };
         let at = self.at(&r);

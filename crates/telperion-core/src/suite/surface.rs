@@ -134,16 +134,18 @@ fn root_only_and_float32_limits() {
     assert!(build(&tree, 24.0, &p).is_err());
     // A tenth of a nanometre thick ten million kilometres out, where a
     // float32 step is a kilometre: every ring flattens onto the plane its
-    // axis stands in, the strips keep their sliver of area, and only the two
-    // caps, which round onto the axis, drop. Since fn-49 that is a tree, not
-    // an error: forty triangles is inside two rings' worth.
+    // axis stands in, and wood that thin is cut with three sides (fn-362).
+    // The two caps, which round onto the axis, drop their six triangles, and
+    // four of the strips' eighteen slivers round onto a line and drop too.
+    // Since fn-49 that is a tree, not an error: ten triangles is inside two
+    // rings' worth.
     for n in &mut tree.nodes {
         n.position.x = 1e10;
         n.radius = 1e-10;
         n.start_radius = 1e-10;
     }
     let flat = build(&tree, 24.0, &p).unwrap();
-    assert_eq!(flat.dropped, 2 * 20);
+    assert_eq!(flat.dropped, 2 * 3 + 4);
     assert!(flat.flattened().normals.iter().all(|v| v.is_finite()));
     for params in [
         SurfaceParams {

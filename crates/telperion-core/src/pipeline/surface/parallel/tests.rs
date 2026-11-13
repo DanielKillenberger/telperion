@@ -20,17 +20,18 @@ fn candidate(tree: &Tree, params: &SurfaceParams, limit: usize) -> Result<Surfac
     let paths = paths(tree)?;
     let segments = segments(params);
     let distance = distances(tree)?;
-    let angular = angular::samples(segments, params)?;
+    let rounds = angular::Rounds::new(segments, params)?;
     let at = Swept {
         tree,
         height,
         params,
         paths: &paths,
         distance: &distance,
-        angular: &angular,
+        rounds: &rounds,
     };
     let ordered = rank(at, &mut Scratch::new(at.longest()?)?)?;
-    let layout = Layout::new(ordered.iter().map(|o| at.rings(o.0)), segments, true, limit)?;
+    let runs = ordered.iter().map(|o| (at.rings(o.0), at.sides(o.1)));
+    let layout = Layout::new(runs, true, limit)?;
     let mut out = Rings {
         chunks: Vec::new(),
         edges: Vec::new(),
