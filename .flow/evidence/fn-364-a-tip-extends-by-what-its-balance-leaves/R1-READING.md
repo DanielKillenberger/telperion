@@ -60,6 +60,19 @@ The design keeps a unit's leaf area at the allotment's size, and it asks the pip
 
 The leaf-bearing wood is kept to the metre in every case, and the spacing halves. The station count does not hold where spans merge, because which wood bears is decided per drawn node (`foliage/plan.rs`, `bearing_of`: a node bears where it is a twig, a node with no child, or as slender as the shoot radius). On the oak only 12.7 of the 143 m bears: mostly each axis's terminal node. A span merged forward hands its wood to the node that draws it, and where that node bears and the span's own node would not have (an axis's last drawn node, now terminal, taking its zero-length tip units), the wood starts bearing. That is a question about which wood bears leaf under a stretch, the host's; the test holds only that the leaf-bearing wood is kept.
 
+**The host's invariant (13 Nov 2026, second answer) and what it touches (builder, reading, 14 Nov):** "the station count of a tree, and which wood bears them, do not depend on any stretch; a stretch moves stations, never makes or removes one." Read against the code:
+
+- The conversion has one node list, and it serves the wood and the leaves at once. It must merge every span laid under `SHORTEST` (1 mm) so the sweep never meets a ring it cannot resolve; that merge is decided on laid length, so it moves with the stretch.
+- Leaf-bearing is decided on those same drawn nodes (`plan::bearing_of`: terminal, or as slender as the shoot radius; `bearing_runs`: chains of one bearing child on one branch). A second accumulator gives each drawn node its allotted length, but the kind and the run boundaries come from the node list, which already holds the merges.
+- The leaves are seated on the drawn wood by node index: `drawn.rs` passes the wood's rings as seats (`Seat::Own`), and `prepared.rs` builds its contact surface from the same tree's nodes (`AttachmentSurface::new(tree, …)`, edges by node index). The rachis clothing (`pipeline::clothe`) appends leaf-base nodes to that same tree.
+
+So the invariant needs the leaves to see the tree as allotted while the wood sees it as laid. Both ways I can see are a second structure, not a second accumulator:
+
+1. **A leaf tree.** The conversion runs a second time with its merges decided on allotted length (the node list of the unstretched tree, its nodes at their laid places, so zero-length wood stands at one point). It is clothed and scaled as the wood's tree is. Stations, runs and contact rings are read from it, and a map from each leaf node to the wood node it lies in gives the seats. Cost: a second conversion pass and a second `Tree` in memory, only where some stretch is below 1. Touches `space.rs`, `space/growth.rs`, `executor.rs` (`Grown`, `Expansion`), `pipeline.rs` (`build`, `outputs`, `clothe`, `fitted`), `drawn.rs`, `foliage/prepared.rs`, and any render path that seats leaves by node index (not read).
+2. **Allotted pieces per drawn node.** Each drawn node carries the allotted spans merged into it, with their own kind decided in a pre-pass over the structure as if every stretch were 1. `plan::runs`, `bearing_runs`, `walk` and the station preparation then count runs over the pieces and place each station by the axis's map from allotted to laid length. One tree, but the foliage plan's run and seat logic is rewritten to walk pieces.
+
+Either is a change across the foliage stage of a size the spec did not foresee. Not started; the choice is the host's.
+
 ## Zero-length internodes, by stage
 
 - Growth's and the settle's lay: a zero step, no turn, no fade advance; nothing divides by the length.
