@@ -6,6 +6,8 @@ Every tree is built by `telperion_core::pipeline`. Its stages are private to it,
 - **`pipeline::growth`**, the same growth held between years: `begin` a family's tree for a first age, `grow_to` any age, past it too (a year is a state, fn-355), and `settle`, `colouring` and `mesh` draw it at any age within its last year. The browser's grow-in and play-the-year and the native film tools grow through it.
 - **`pipeline::executor`**, the grown tree and its expansion as tools and tests reach them. Its callers are the renderer's examples and tests and the core's own tests.
 
+The first two are the native entry an engine links: `docs/native-entry.md` states its calls, what they return and what is promised.
+
 The stages live in private modules of the pipeline (`crates/telperion-core/src/pipeline/{branching,foliage,surface,...}`). Their data stays public as types, through `pipeline::contract`, at the paths consumers already name (`telperion_core::foliage::Element`, `telperion_core::surface::SurfaceMesh`): the parameter groups a family is made of and the artifacts a build returns. A type is a contract; a function that builds one is a stage and stays inside. The rest of the crate reaches only the family's own checks (`validate_skeleton`, `build_element`, `canopy_rows`, `height`), re-exported to it by name.
 
 ## Typed stage inputs

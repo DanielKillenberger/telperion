@@ -56,10 +56,12 @@ impl Params {
 
 /// A tree growing: the engine's grower paused between calls, at the
 /// cycles it has committed. It owns what it reads, so a caller can hold
-/// it between calls (fn-353).
+/// it between calls (fn-353). It keeps the seed it was begun with, which
+/// everything drawn of it is keyed by (fn-365 R6).
 pub struct GrowthState {
     params: Arc<Params>,
     paused: Paused,
+    seed: u32,
 }
 
 impl GrowthState {
@@ -95,7 +97,11 @@ pub fn begin(params: &Arc<Params>, seed: u32, horizon: f64) -> Result<GrowthStat
         .map_err(engine)?
         .presenting();
     let params = Arc::clone(params);
-    Ok(GrowthState { params, paused })
+    Ok(GrowthState {
+        params,
+        paused,
+        seed,
+    })
 }
 
 /// The tree grown to `age` years: every whole cycle to its ceiling,
@@ -143,10 +149,13 @@ pub fn colouring(state: &GrowthState, at: f64) -> Result<f64> {
 
 /// The tree drawn at `at` dressed in wood and leaves, as `mesh::build`
 /// dresses the tree it grows; `family` is the one `Params` was read from.
+/// Its leaves are keyed by the seed the state was begun with, never the
+/// family's `skeleton.seed` row: a growth has one seed (fn-365 R6).
 #[cfg(feature = "geometry")]
 pub fn mesh(state: &GrowthState, at: f64, family: &Family) -> Result<crate::mesh::TreeMesh> {
     let mut tree = settle(state, at)?;
-    let inputs = super::super::Inputs::of(family, super::super::grown_envelope(&tree));
+    let mut inputs = super::super::Inputs::of(family, super::super::grown_envelope(&tree));
+    (inputs.plan.seed, inputs.leaves.seed) = (state.seed, state.seed);
     super::super::clothe(&mut tree, &inputs)?;
     let outputs = super::super::outputs(&tree, &inputs, super::super::Request::mesh())?;
     crate::mesh::assembled(outputs)
