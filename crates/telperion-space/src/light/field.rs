@@ -97,7 +97,7 @@ impl Grid {
 
     /// The corners about `at`: each node's index (none outside) and weight;
     /// corner `c` is upper on axis `a` where bit `a` of `c` is set.
-    fn corners(&self, at: Vec3) -> [(Option<usize>, f32); 8] {
+    pub(super) fn corners(&self, at: Vec3) -> [(Option<usize>, f32); 8] {
         let split = [at.x, at.y, at.z].map(|x| node(x as f32));
         std::array::from_fn(|c| {
             let upper = |a: usize| (c >> a) & 1 == 1;
@@ -118,6 +118,20 @@ impl Grid {
 /// its own lattice of quanta and their merge.
 const PART: usize = 1 << 12;
 
+/// `x.round()` as a count of quanta; none past a u32, or for NaN. A count
+/// rounds to a u32 exactly where it is under `u32::MAX + 0.5`; below
+/// that its whole part is exact, what is left of it is exact, and it
+/// rounds up, half away from none, where that is a half or more. An `x`
+/// under none counts none, as the cast of its `round` does. No call
+/// into the platform's libm, which `round` is without SSE4.1.
+pub(super) fn rounded(x: f64) -> Option<u32> {
+    if !(x < 4_294_967_295.5) {
+        return None;
+    }
+    let whole = x as u32;
+    Some(whole + u32::from(x - f64::from(whole) >= 0.5))
+}
+
 /// A node past its u32 of quanta, refused by name.
 fn overfull<T>() -> Result<T> {
     refuse(
@@ -134,19 +148,34 @@ impl Grid {
         for &(at, area) in leaves {
             let area = area as f32;
             assert!(area >= 0.0, "a leaf's area inside the contract's bound");
-            for (i, w) in self.corners(at) {
-                let i = i.expect("a leaf inside its box");
-                let q = (f64::from(area) * f64::from(w) / QUANTUM).round();
-                let sum = (q <= f64::from(u32::MAX))
-                    .then(|| quanta[i].checked_add(q as u32))
-                    .flatten();
-                let Some(sum) = sum else {
+            for (i, w) in self.inside(at) {
+                let q = rounded(f64::from(area) * f64::from(w) / QUANTUM);
+                let Some(sum) = q.and_then(|q| quanta[i].checked_add(q)) else {
                     return overfull();
                 };
                 quanta[i] = sum;
             }
         }
         Ok(quanta)
+    }
+
+    /// `corners` about a leaf, every one inside the box: each corner's
+    /// index and weight as `corners` gives them, the box tested once a
+    /// leaf, at its lowest and highest corner, which hold the rest between
+    /// them. A weight is its axes' shares multiplied in the axes' order,
+    /// as `corners` folds them from one.
+    pub(super) fn inside(&self, at: Vec3) -> [(usize, f32); 8] {
+        let split = [at.x, at.y, at.z].map(|x| node(x as f32));
+        let low = split.map(|s| s.0);
+        let within = |n: [i32; 3]| self.index(n).expect("a leaf inside its box");
+        let (base, _highest) = (within(low), within(low.map(|n| n.wrapping_add(1))));
+        let [sx, sy, _] = self.size.map(|s| s as usize);
+        let share = split.map(|s| [1.0 - s.1, s.1]);
+        std::array::from_fn(|c| {
+            let up = |a: usize| (c >> a) & 1;
+            let i = base + up(0) + up(1) * sx + up(2) * sx * sy;
+            (i, share[0][up(0)] * share[1][up(1)] * share[2][up(2)])
+        })
     }
 
     /// Each node's quanta of `leaves`, on up to `threads` cores: the
