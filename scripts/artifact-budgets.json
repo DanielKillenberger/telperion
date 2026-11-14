@@ -6,8 +6,8 @@
   "artifacts": [
     {
       "path": "dist/telperion.wasm",
-      "ceilingBytes": 1600000,
-      "reason": "owner, 2026-09-27: headroom for the main module",
+      "ceilingBytes": 1338000,
+      "reason": "owner, 2026-09-27: headroom for the main module; lowered by fn-366 (14 Nov 2026) to the measured 1,273,894 bytes and the 5% growth share, after its levers took the module's custom sections and rayon out",
       "baselineBytes": 1273894,
       "baselineOn": "fn-366 ef7acb165, npm run build"
     },
