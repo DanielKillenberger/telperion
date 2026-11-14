@@ -19,14 +19,14 @@ Both were over their potential height of 40 m on fn-363's branch (43.5 to 45.5 m
 
 With R8 in (`be4357b7e`, measured on `8e22c8a17`), the Two Trees stand against 104 m (40 m × 0.182 / 0.07). At their preset ages they stand 41.7 to 43.7 m, inside the host's 38 to 46 m around the paper's 41 m:
 
-| tree | height m (base median / fn-363 / this, R8) | leaf m² (base ~9,500 / fn-363 / this, R8) | trunk m (base median / this, R8) | phytomers (fn-363 / this, R8) | living tips at s = 0 |
+| tree | height m (base median / fn-363 / this, R8) | leaf m² (base median / fn-363 / this, R8) | trunk m (base median / this, R8) | phytomers (fn-363 / this, R8) | living tips at s = 0 |
 |---|---|---|---|---|---|
-| Laurelin 80, seed 1 | 46.4 / 43.6 / **41.7** | 3,473 / **4,875** | 2.83 / - | 3,368,079 / 5,087,956 | 29,497 of 229,943 |
-| Laurelin 80, seed 7 | 46.4 / 45.1 / **43.2** | 5,217 / **7,485** | 2.83 / 2.05 | 4,810,022 / 7,596,573 | 46,069 of 345,598 |
-| Telperion 82, seed 1 | 45.5 / 43.8 / **42.2** | 3,393 / **4,859** | 3.06 / - | 3,701,260 / 5,591,003 | 29,145 of 249,228 |
-| Telperion 82, seed 7 | 45.5 / 45.5 / **43.7** | 5,181 / **7,469** | 3.06 / 2.06 | 5,264,660 / 8,344,437 | 45,329 of 375,488 |
+| Laurelin 80, seed 1 | 45.5 / 43.6 / **41.7** | 9,561 / 3,473 / **4,875** | 3.06 / - | 3,368,079 / 5,087,956 | 29,497 of 229,943 |
+| Laurelin 80, seed 7 | 45.5 / 45.1 / **43.2** | 9,561 / 5,217 / **7,485** | 3.06 / 2.05 | 4,810,022 / 7,596,573 | 46,069 of 345,598 |
+| Telperion 82, seed 1 | 46.4 / 43.8 / **42.2** | 9,479 / 3,393 / **4,859** | 2.83 / - | 3,701,260 / 5,591,003 | 29,145 of 249,228 |
+| Telperion 82, seed 7 | 46.4 / 45.5 / **43.7** | 9,479 / 5,181 / **7,469** | 2.83 / 2.06 | 5,264,660 / 8,344,437 | 45,329 of 375,488 |
 
-The base's medians are fn-352's SCOREBOARD.md figures as the host quoted them (height 46.4 m Laurelin and 45.5 m Telperion, trunks 2.83 and 3.06 m, leaf about 9,500 m²). The top's rows are fn-363's MEASURES.md "before" rows. At 40 the Two Trees stand 25.3 and 26.3 m on R8, against fn-363's 25.8 and 26.9 m. Every row is in the table below, beside fn-363's and this branch's without R8. The browser's ceiling test with R8: see R4 (PINS.md).
+The base's medians are fn-352's SCOREBOARD.md rows (twelve trees each): Laurelin at 80 45.5 m, trunk 3.06 m, leaf 9,561 m²; Telperion at 82 46.4 m, trunk 2.83 m, leaf 9,479 m². The top's rows are fn-363's MEASURES.md "before" rows. At 40 the Two Trees stand 25.3 and 26.3 m on R8, against fn-363's 25.8 and 26.9 m. Every row is in the table below, beside fn-363's and this branch's without R8. The browser's ceiling test with R8: see R4 (PINS.md).
 
 ## Method
 
@@ -122,13 +122,13 @@ The oak grown to 80 at once equals the oak paused at 40, settled there and grown
 | laurelin | 80 | 1 | this, R8 | 41.7 | 43.5 | - | 4,875 | 856,571 | 803,351 | 5,087,956 | 60.7 | 1,044 | 41.7 / 104.0 | 21,570 | 29,497 of 229,943 | 441,484 | 2.0 | 21 |
 | laurelin | 80 | 7 | fn-363 | 45.1 | 55.7 | 1.76 | 5,217 | 940,724 | 814,335 | 4,810,022 | 64.1 | 922 | 45.1 / 40.0 | 275,564 | - | - | 2.1 | 15 |
 | laurelin | 80 | 7 | this | 33.3 | 43.5 | 1.27 | 2,417 | 294,362 | 375,076 | 2,321,917 | 64.4 | 961 | 33.3 / 40.0 | 178,507 | 72,260 of 106,479 | 1,320,815 | 1.0 | 13 |
-| laurelin | 80 | 7 | this, R8 | 43.2 | 53.4 | 2.05 | 7,485 | - | 1,204,193 | 7,596,573 | 62.2 | 1,015 | 43.2 / 104.0 | 33,319 | 46,069 of 345,598 | 659,110 | 2.9 | not timed |
+| laurelin | 80 | 7 | this, R8 | 43.2 | 53.4 | 2.05 | 7,485 | 1,280,431 | 1,204,193 | 7,596,573 | 62.2 | 1,015 | 43.2 / 104.0 | 33,319 | 46,069 of 345,598 | 659,110 | 2.9 | not timed |
 | telperion | 40 | 1 | fn-363 | 25.8 | 14.4 | - | 382 | 93,168 | 88,506 | 457,100 | 43.2 | 1,196 | 25.8 / 40.0 | 1,183 | - | - | 0.2 | 1 |
 | telperion | 40 | 1 | this | 22.8 | 11.9 | - | 338 | 68,128 | 76,043 | 393,545 | 44.4 | 1,165 | 22.8 / 40.0 | 2,627 | 8,308 of 21,619 | 111,586 | 0.2 | 1 |
-| telperion | 40 | 1 | this, R8 | 25.3 | 14.0 | - | 387 | - | 90,156 | 469,735 | 42.9 | 1,215 | 25.3 / 104.0 | 0 | 14 of 25,582 | 91 | 0.2 | 1 |
+| telperion | 40 | 1 | this, R8 | 25.3 | 14.0 | - | 387 | 94,277 | 90,156 | 469,735 | 42.9 | 1,215 | 25.3 / 104.0 | 0 | 14 of 25,582 | 91 | 0.2 | 1 |
 | telperion | 40 | 7 | fn-363 | 26.9 | 21.6 | 0.64 | 930 | 177,244 | 164,121 | 753,965 | 56.6 | 811 | 26.8 / 40.0 | 4,531 | - | - | 0.3 | 1 |
 | telperion | 40 | 7 | this | 23.5 | 18.5 | 0.59 | 796 | 127,277 | 137,412 | 630,501 | 58.0 | 792 | 23.5 / 40.0 | 7,703 | 16,088 of 39,139 | 181,110 | 0.3 | 1 |
-| telperion | 40 | 7 | this, R8 | 26.3 | 21.1 | 0.65 | 964 | - | 171,979 | 804,743 | 56.0 | 835 | 26.2 / 104.0 | 113 | 1,587 of 49,014 | 12,546 | 0.3 | 1 |
+| telperion | 40 | 7 | this, R8 | 26.3 | 21.1 | 0.65 | 964 | 182,142 | 171,979 | 804,743 | 56.0 | 835 | 26.2 / 104.0 | 113 | 1,587 of 49,014 | 12,546 | 0.3 | 1 |
 | telperion | 80 | 1 | fn-363 | 43.5 | 46.4 | - | 3,382 | 686,557 | 605,873 | 3,608,122 | 55.8 | 1,067 | 43.5 / 40.0 | 166,463 | - | - | 1.5 | 10 |
 | telperion | 80 | 1 | this | 32.2 | 30.9 | - | 1,403 | 198,309 | 256,849 | 1,672,944 | 54.6 | 1,192 | 32.2 / 40.0 | 116,656 | 46,639 of 72,725 | 890,999 | 0.8 | 7 |
 | telperion | 80 | 1 | this, R8 | not run | | | | | | | | | | | | | | | |
