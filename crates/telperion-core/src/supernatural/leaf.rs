@@ -50,5 +50,5 @@ impl Family {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "geometry"))]
 mod tests;
