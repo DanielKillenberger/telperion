@@ -46,8 +46,9 @@ for (tree, threads), sides in sorted(runs.items()):
             f"cycles {med[side].get('cycles', 0) / 1e9:.3f} G, "
             f"cache misses {med[side].get('cache_misses', 0) / 1e6:.2f} M, digest {digests}"
         )
-    if len(sides) == 2:
-        a, b = list(sides)
+    first = next(iter(sides))
+    for b in list(sides)[1:]:
+        a = first
         gains = ", ".join(
             f"{k} {100 * (1 - med[b][k] / med[a][k]):+.1f}%"
             for k in med[a]

@@ -52,3 +52,10 @@
 - Cost: the round's verdicts. In 82 minutes the queue gave this round one base run with counters, one sampled run, and two builds of the base; no candidate has been compiled.
 - Done about it: the round returns early with its profile, its ranking and the candidates as patches (`SPEED-ROUND-2.md`, `speed2-candidates/`), and the one command that builds and reads them all, as this file's rule asks of a build stopped by a known inefficiency.
 - What would remove it: a measurement window the owner grants (the watcher paused, or the other repository's suite held, for the twenty minutes six builds and their reads take); the fixes named at 12:39 and 13:21 above.
+## 14 Nov 2026 16:00 Zurich: no quiet core for a verdict in seconds (speed round 2, second part)
+
+- Doing: the round reopened at 14:52: six candidates built and read, five proved alone, the kept four timed against the base.
+- What hindered: the queue froze again from 14:55 to 14:57 and from 14:58 to 15:24 (26 minutes, `PAUSE (cpu 15 cores)`), and from 15:46 to 15:48; outside the freezes the desk stood at a load of 4 to 9, so pinned runs of one binary spread by a third (the base on one thread, 0.97 to 1.41 s over 20 runs). The ruling's bar of 3 % in median seconds over five runs cannot be read cleanly from one batch at that spread: the tip's four one-thread batches read 2.8 %, 5.1 %, 4.9 % faster and 6.3 % slower, its four-thread batches from 5 % slower to 6 % faster.
+- Cost: about 30 minutes frozen of the 68 the second part took, and a four-thread verdict that stays open.
+- Done about it: verdicts carried by instructions and cycles, which the load does not move, with every batch's seconds given beside them (`SPEED-ROUND-2.md`, "Measurements").
+- What would remove it: a measurement window with the desk at a load under 1, or an isolated core (`isolcpus`) kept for timings.
