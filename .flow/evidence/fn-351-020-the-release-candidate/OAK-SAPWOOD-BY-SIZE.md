@@ -123,13 +123,13 @@ The scoreboard's probe (`fn-352…/scoreboard/probe`) with one added line that p
 | 80 | 1012 | 77.1 | 82.4 | 86 to 93 | 56 to 79 | 1.04 times its top | 18.1 to 18.1 | 950 to 950 |
 | 120 | 1001 | 115 [record] | 106.4 | 115 to 108 | 83 to 109 | in | 27.4 [record] to 27.6 | - to 1432 |
 | 120 | 1007 | 165 [record] | 150.1 | 163 to 146 | 83 to 109 | 1.38 times its top | 28.4 [record] to 28.6 | - to 2999 |
-| 120 | 1012 | 134 [record] | not run | 138 to 131 | 83 to 109 | not run | 26.0 [record] to not run | - to - |
+| 120 | 1012 | 134 [record] | 124.0 | 138 to 131 | 83 to 109 | 1.14 times its top | 26.0 [record] to 26.1 | - to 2083 |
 | 200 | 1001 | 180 [record] | 153.0 | 175 to 151 | 121 to 152 | 1.01 times its top | 36.8 [record] to 36.7 | - to 1541 |
-| 200 | 1007 | 259 [record] | not run | 251 to 211 | 121 to 152 | not run | 37.1 [record] to not run | - to - |
-| 200 | 1012 | 227 [record] | not run | 221 to 190 | 121 to 152 | not run | 39.4 [record] to not run | - to - |
+| 200 | 1007 | 259 [record] | 218.5 | 251 to 211 | 121 to 152 | 1.44 times its top | 37.1 [record] to 36.7 | - to 3292 |
+| 200 | 1012 | 227 [record] | 192.3 | 221 to 190 | 121 to 152 | 1.27 times its top | 39.4 [record] to 39.2 | - to 2858 |
 | 300 | 1001 | 220 [record] | 181.3 | 215 to 179 | 156 to 192 | in | 36.0 [record] to 36.0 | - to 884 |
 | 300 | 1007 | 313 [record] | 257.1 | 306 to 250 | 156 to 192 | 1.34 times its top | 38.8 [record] to 38.5 | - to 1654 |
-| 300 | 1012 | 290 [record] | not run | 285 to 237 | 156 to 192 | not run | 38.2 [record] to not run | - to - |
+| 300 | 1012 | 290 [record] | 238.6 | 285 to 237 | 156 to 192 | 1.24 times its top | 38.2 [record] to 38.0 | - to 2149 |
 <!-- /measured -->
 
 `oak-sapwood/fill.py` writes this table from the logs; `read.py` prints every run with its digest.
@@ -172,7 +172,6 @@ No bound was loosened. A pin among the tests not run is unknown: see "What was n
 
 ## What was not run
 
-- **The trees the table marks "not run"**: seed 1007 at 200 and seed 1012 at 120, 200 and 300. The yield watcher froze every heavy scope from about 13:00 to about 14:20 (FRICTION.md, two entries of 14 Nov), and `job-b.sh` was still growing them when this was written. A finished tree is kept, and `fill.py` rewrites the table.
 - **The rest of the tests that read the oak.** About 110 Rust files name it. `job-c.sh` ran the space crate's unit tests, `refusals`, `chain`, `blend_reach`, the core's `catalogue_identity`, `native_entry`, `space_stems`, `grown_total`, `capability`, `space_walks`, and the core suites `suite::species`, `suite::establish`, `suite::sag`, `suite::codominance`, `pipeline::space`, `pipeline::cycle_cost` and `family::tests`: green but for the two pins under "Pins". Every other test that names the oak was not run (the render crate's, the Wasm crate's, the browser's, the core's remaining suites and walks, and every ignored test), so a pin among them is unknown.
 - **`scripts/build-wasm.mjs`**, which holds `presets.generated.ts` to the Rust presets.
 - **The sheet** of the leafless oak at 120 and 300, before beside after. No GPU job was started.
