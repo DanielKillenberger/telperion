@@ -104,6 +104,39 @@ fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
     }
 }
 
+/// The renderer's tree carries no surface, so its box is the curve's joined
+/// with the leaves' and the flowers' (fn-351): every cluster's box and every
+/// placement lies inside it, on every shipped preset.
+#[test]
+fn the_drawn_mesh_s_box_holds_its_curve_and_its_placements() {
+    let _turn = crate::one_tree::turn();
+    for &(_, id, _, _) in telperion_core::presets::CATALOGUE {
+        let family = Preset::from_id(id).expect("preset identity").parameters();
+        if family.space.species.is_none() {
+            let none = Error::InvalidInput("no engine species");
+            assert_eq!(mesh::drawn(&family).err(), Some(none), "{id}");
+            continue;
+        }
+        let m = mesh::drawn(&family).expect("the preset draws");
+        assert!(m.wood.is_none(), "{id}: drawn built a surface");
+        assert!(!m.curve.clusters.is_empty(), "{id}: no curve");
+        for c in &m.curve.clusters {
+            assert!(
+                contains(m.bounds, c.bounds.min) && contains(m.bounds, c.bounds.max),
+                "{id}: a curve cluster outside the drawn box"
+            );
+        }
+        for f in std::iter::once(&m.foliage).chain(m.organ.as_ref()) {
+            for i in 0..f.instances.len() {
+                assert!(
+                    contains(m.bounds, f.instances.position(i)),
+                    "{id}: placement {i} outside the drawn box"
+                );
+            }
+        }
+    }
+}
+
 #[test]
 fn a_family_the_generator_rejects_surfaces_its_own_message() {
     let mut family = Preset::from_id("date-palm")

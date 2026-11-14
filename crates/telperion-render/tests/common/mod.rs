@@ -94,5 +94,7 @@ pub fn box_of(points: &[telperion_core::math::Vec3]) -> telperion_core::surface:
 /// core's wood asks for it.
 #[allow(dead_code)]
 pub fn surface(tree: &telperion_core::mesh::TreeMesh) -> &telperion_core::surface::SurfaceMesh {
-    tree.wood.as_ref().expect("mesh::build makes the wood surface")
+    tree.wood
+        .as_ref()
+        .expect("mesh::build makes the wood surface")
 }

@@ -20,8 +20,7 @@ pub struct Foliage {
 /// plus its instances, and the union bounds. `wood` is the same wood as the
 /// pipeline's CPU reference build, an indexed surface, for consumers without
 /// a GPU: built by `build`, and none from `drawn`, the renderer's tree, which
-/// surfaces the curve on the device instead (fn-351). The bounds are the
-/// curve's box joined with the leaves' and the flowers', the same either way.
+/// surfaces the curve on the device instead (fn-351).
 #[derive(Debug)]
 pub struct TreeMesh {
     pub wood: Option<SurfaceMesh>,
@@ -32,6 +31,14 @@ pub struct TreeMesh {
     /// none where the tree flowers nowhere (fn-216).
     #[cfg(feature = "geometry")]
     pub organ: Option<Foliage>,
+    /// The box round the buffers this mesh carries: the wood's, the leaves'
+    /// and the flowers'. The wood's is the CPU surface's where `build` made
+    /// one and the curve's where `drawn` made none, so `build` and `drawn`
+    /// give different boxes for one tree.
+    /// The surface is the curve cut into polygons and stored in float32, and
+    /// that rounding steps outside the curve's analytic box, or stops inside
+    /// it, by up to about 2e-5 m (measured on the shipped presets at seed 42,
+    /// fn-351). Each box holds exactly what its own mesh draws.
     pub bounds: Bounds,
 }
 impl TreeMesh {
@@ -118,7 +125,13 @@ pub(crate) fn assembled(outputs: pipeline::Outputs) -> Result<TreeMesh> {
     let curve = outputs
         .curve
         .ok_or(Error::InvalidInput("mesh needs the wood's curve"))?;
-    let bounds = union(curve.bounds(), leaves.bounds.map(Bounds::from));
+    // The wood's part of the box: the surface's where one was built, as
+    // before fn-351, else the curve's.
+    let woods = match &wood {
+        Some(w) => w.bounds,
+        None => curve.bounds(),
+    };
+    let bounds = union(woods, leaves.bounds.map(Bounds::from));
     #[cfg(feature = "geometry")]
     let bounds = match &outputs.organ {
         Some(o) => union(bounds, o.instances.bounds(&o.element)?.map(Bounds::from)),

@@ -84,7 +84,7 @@ So the counts have one display reader and can be deleted, but deleting them does
 
 **Change.**
 - `mesh::drawn(family)` and `growth::drawn(state, at, family)` are `mesh::build` and `growth::mesh` with `Request::drawn()`: curve and leaves, no wood. `TreeMesh.wood` is `Option<SurfaceMesh>` (`Some` from `build`). `wood_vertices()` and `wood_triangles()` return `Option<usize>`.
-- `assembled` takes the tree's box from `Curve::bounds()` joined with the leaves' and flowers', for every mesh.
+- `assembled` takes the wood's part of the box from the CPU surface where `build` made one (as before, so `build`'s output is unchanged), and from `Curve::bounds()` where `drawn` made none, joined with the leaves' and flowers' in both cases. This was decision (iii) after the first commit (2c76fee32), which used the curve for every mesh.
 - `WebRenderer.setTree`, `drawGrowth` and the `headless` example build through `drawn`.
 - `Submitted` loses `wood_vertices` and `wood_triangles`, and so do its JSON (`web.rs`), the TypeScript `Submitted` (`src/browser/render.ts`) and the harness note (`harness/GrowerDev.tsx`).
 - `tests/headless.rs` and `tests/submit.rs` drop the two equalities, with a comment. In `tests/conformance.rs`, `drew_the_tree` checks `renderer.curve_bytes() > 0` instead, and the shipped-family test submits `mesh::drawn`.
@@ -124,7 +124,7 @@ Telperion's peak falls by 1,855 MiB (34 %) and its time by about 1.7 s. The oak'
 
 **Render Wasm size:** `dist/telperion-render.wasm` is 2,181,291 bytes and `dist/telperion.wasm` 1,226,690 (ceilings 3,700,000 and 1,338,000). The growth path is 352,578 Brotli bytes. I did not build a before on the same base. The candidate checkout's build from 12:07, at another commit, is 2,180,768 and 1,226,042.
 
-**Re-pinned:** `catalogue/date-palm/pins.json`, through `telperion_jev::runner::pins::write`, the runner's writer. Only `min[1]` moved: -0.059595685452222824 → -0.059595686267089845, the box. No other pin is checked by a test.
+**Re-pinned:** none. 2c76fee32 re-pinned `catalogue/date-palm/pins.json` (`min[1]`) for the curve box. Decision (iii) restores `build`'s box, so that re-pin is reverted, and the file equals its state before this work.
 
 **Tests run (narrow).**
 - core lib `pipeline::tests pipeline::executor suite::leaf_bases suite::leaf_base_lattice suite::codominance suite::sweep suite::mesh`: 36 passed, **1 failed** (below).
@@ -134,10 +134,24 @@ Telperion's peak falls by 1,855 MiB (34 %) and its time by about 1.7 s. The oak'
 - `npx tsc --noEmit`: 0 errors. vitest `src/browser/render.test.ts` and `module.test.ts`: 9 passed.
 - `npm run build`, then `node scripts/artifact-budgets.mjs`: within every ceiling.
 
-**The failing test, a question for the host.** `suite::mesh::every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers` asserts that every CPU wood vertex lies inside `m.bounds` (`suite/mesh.rs:88`). With the box from the curve, some vertices lie outside it, on six of eight presets (table above). Most are at the root's foot, under 2e-9 m (below one float32 step at that height). The spruce's tip vertex is outside by 2.7e-7 m. The CPU surface is no longer what the box describes, but the test promises "the bounds enclose both parts". I left it as it is: changing it would loosen or redefine a bound. The candidates:
+**The failing test (resolved by the host: (iii) with (i) beside it).** First, the question as it was put: `suite::mesh::every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers` asserts that every CPU wood vertex lies inside `m.bounds` (`suite/mesh.rs:88`). With the box from the curve, some vertices lie outside it, on six of eight presets (table above). Most are at the root's foot, under 2e-9 m (below one float32 step at that height). The spruce's tip vertex is outside by 2.7e-7 m. The CPU surface is no longer what the box describes, but the test promises "the bounds enclose both parts". I left it as it is: changing it would loosen or redefine a bound. The candidates:
 - (i) Check the curve's cluster boxes and the leaves against `m.bounds`: what the renderer uploads.
 - (ii) Keep the surface check against a box widened by a stated tolerance: a loosened bound.
 - (iii) Join the surface's box into `bounds` where `build` made a surface. The renderer's box would then differ between `build` and `drawn`.
+
+**After the host's decision (merge of `fn-351-candidate` first).**
+- The merge conflicted only in `FRICTION.md`, where both sides had appended entries; both are kept. `growth.rs` and `docs/pipeline.md` merged cleanly.
+- A built mesh's box is the surface's again. `every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers` passes; its only edit is reading `wood` through `Option`.
+- New: `suite::mesh::the_drawn_mesh_s_box_holds_its_curve_and_its_placements` checks every shipped preset. A preset with no engine species is refused by name. On the others, every curve cluster's box and every leaf and flower placement lies inside `drawn`'s box. It passes alone in 43 s with a peak of 3,404 MiB, inside the gate's default 120 s and 4 GiB.
+- The `bounds` doc comment states why the two boxes differ: the surface's float32 polygons against the curve's analytic box, up to about 2e-5 m.
+- The (1) to (3) tables above stand. The renderer draws `drawn`, and its box is the curve's.
+- Run after the change:
+  - core `suite::mesh`: 3 passed.
+  - the two guards: `generation_limit_guard` 2 passed; render `--lib compile_size` 2 passed.
+  - jev `runner_accept` 6 passed and `runner_catalogue` 2 passed, with the palm's pins untouched.
+  - `npm run catalogue:check`: 6 species pass.
+  - render `headless` 1, `submit` 7, `conformance` 5 and `curve` 4: all passed, through `telperion-heavy 8 --gpu 2`.
+  - `cargo fmt --all --check`: clean, after formatting four lines of this work's own.
 
 ## 5. Tests, sizes, browser steps
 

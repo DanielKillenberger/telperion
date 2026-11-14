@@ -36,7 +36,11 @@ fn relief_moves_the_light_while_every_wood_mesh_byte_holds() {
         hash(surface(&off)),
         hash(surface(&on))
     );
-    assert_eq!(hash(surface(&off)), hash(surface(&on)), "R1 wood mesh bytes");
+    assert_eq!(
+        hash(surface(&off)),
+        hash(surface(&on)),
+        "R1 wood mesh bytes"
+    );
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&off).unwrap();
     renderer.set_view(View::Bare);

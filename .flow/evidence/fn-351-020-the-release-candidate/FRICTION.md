@@ -33,6 +33,7 @@
 - What hindered: the job waited about 25 minutes in admission with no line I could see. I had piped it through `tail -2`, which holds the queue's "waiting" lines until exit. Another session's `film_grow laurelin` held the room, so a 12 GB claim could not start.
 - Cost: about 25 minutes of wall time.
 - What would remove it: claim what the job needs (the oak fits in 4 GB) and never pipe a queued job through `tail`. This was my own mistake, not the queue's.
+
 ## 14 Nov 2026 12:36 Zurich: every build and narrow test waits on a full queue (Fable, oak sapwood by size)
 
 - Doing: building the base probe and running the girth unit tests for the oak's sapwood rows by tree height (OAK-SAPWOOD-BY-SIZE.md).
