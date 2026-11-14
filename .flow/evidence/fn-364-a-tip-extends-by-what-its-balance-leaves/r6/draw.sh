@@ -24,7 +24,7 @@ for a in 40 80 120 200 300; do
     trees="$trees fn364-this:oregon-white-oak:$a:$s:$shots:$gb"
   done
 done
-trees="$trees fn364-363tip:oregon-white-oak:200:1001:tip:24"
+trees="$trees fn364-363tip:oregon-white-oak:200:1001:tip:8"
 for t in $trees; do
   IFS=: read -r label p a s shots gb <<< "$t"
   probe=$B/raw/target/ci/scoreboard-probe

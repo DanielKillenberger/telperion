@@ -50,6 +50,15 @@ Each was reread by its own test after the repin (`raw/` repin log). `catalogue_i
 
 `telperion-space/tests/light.rs`, `light_no_bud_reads_leaves_every_passed_species_to_the_bit`: "beech seed 1: Light { extinction: 0.5, sky: 0.0 } changed the tree". The test zeroes every light response a bud has (`shade_hazard`, `shade_size`, `balance_hazard`, `shade_short`) and holds that the tree is then the same under any light. It keeps `inverse_height`. The surplus share reads the tip's light whatever the hazard: a tip charged against its potential height is laid shorter in less light. So under this rule, a species with a potential height has buds that read light even when every other response is zero. Whether the share should read light where the balance's hazard is zero, or the test's promise should name the potential height as a light response, is a question about the form of s, so the test is left as it is and goes to the host.
 
-## The browser's ceiling test (R8)
+## The browser's ceiling test (R8): fails, not loosened
 
-`pipeline::space::ceiling_tests::every_shipped_preset_keeps_under_the_wasm_ceiling` on R8: see `raw/r8-ceiling.log`. The counts are added here once it has run.
+`pipeline::space::ceiling_tests::every_shipped_preset_keeps_under_the_wasm_ceiling` on `8e22c8a17` (`raw/r8-ceiling.log`). Phytomers kept at seed 42 and each preset's age, against the 4,000,000 ceiling:
+
+| preset | top (fn-363's PINS.md) | fn-363 | this, R8 |
+|---|---|---|---|
+| Telperion, 82 | 3,614,135 | 6,120,872 | **9,066,716 (over by 127%)** |
+| Laurelin, 80 | 3,382,695 | 5,422,804 | **8,227,011 (over by 106%)** |
+| oak, 40 | 349,024 | 355,333 | 348,790 |
+| ordinary, spruce, beech, birch, palm, 40 | 159,293; 1,143,268; 935,092; 347,917; 480 | the same | 159,293; 1,142,638; 917,858; 316,396; 480 |
+
+The test fails on Telperion and Laurelin, as it failed on fn-363's branch. Its ceiling is untouched.
