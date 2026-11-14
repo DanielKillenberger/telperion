@@ -41,6 +41,7 @@ mod schedule;
 mod shed;
 mod species;
 mod spruce;
+pub mod stage;
 mod structure;
 mod tolerance;
 mod transcendental;

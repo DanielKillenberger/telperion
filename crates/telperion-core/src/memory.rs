@@ -1,18 +1,23 @@
-//! The bytes the build may still allocate, where its host can say.
-//!
-//! The Wasm binding installs a source that counts the live heap (fn-291
-//! R2f), so freed memory counts as left. A native host installs none: no
-//! limit there is known, and no budget is checked.
-use std::sync::OnceLock;
+//! Memory a build asks the machine for. A store whose size is known before
+//! it fills is reserved at once, and a reserve the machine refuses is the
+//! refusal by name (fn-369); the stage tags name a refusal the code cannot
+//! return.
+use crate::{Error, Result};
 
-static LEFT: OnceLock<fn() -> u64> = OnceLock::new();
+/// The stage tags the Wasm binding's allocator records with a refusal.
+pub use telperion_space::stage;
 
-/// Installs the source of the bytes left; the first source installed stays.
-pub fn set_left(source: fn() -> u64) {
-    let _ = LEFT.set(source);
-}
+/// The phytomers the last grown tree kept, read by the ceiling's
+/// measurement build (`scripts/wasm-ceiling.mjs`) alone, even after a trap.
+#[cfg(feature = "measure-ceiling")]
+pub static KEPT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 
-/// The bytes left, where a source is installed.
-pub(crate) fn left() -> Option<u64> {
-    LEFT.get().map(|source| source())
+/// `v` with room for `n` elements in all, reserved at once; the machine's
+/// refusal is `store` named with the bytes it asked for.
+pub(crate) fn reserve<T>(v: &mut Vec<T>, n: usize, store: &'static str) -> Result<()> {
+    let more = n.saturating_sub(v.len());
+    v.try_reserve_exact(more).map_err(|_| Error::Memory {
+        store,
+        needed: (n as u64).saturating_mul(size_of::<T>() as u64),
+    })
 }

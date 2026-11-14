@@ -39,7 +39,7 @@ fn where_the_oak_at_80_seed_7_draws_wood_thinner_than_finest() {
         light: family.space.light,
     };
     let structure = telperion_space::grow(&species, request).unwrap();
-    let tree = convert(&structure, (&family.space.trunk, &pa_rows(&species)));
+    let tree = converted(&structure, (&family.space.trunk, &pa_rows(&species)));
     // Each phytomer's radius and the least `above` of the joins inside its
     // span, by its node identity.
     let mut grown = std::collections::HashMap::new();

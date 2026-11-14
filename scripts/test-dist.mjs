@@ -11,11 +11,14 @@ import { fileURLToPath } from 'node:url';
  * Every shipped preset at seeds 1, 7 and 42 builds through telperion.js
  * with surface and foliage, each case in its own process, because Wasm
  * memory only grows: a case's `memoryBytes` is its own high-water mark, held
- * at or under 3.5 GiB of the 32-bit binding's 4 GiB (fn-291). The 24 cases
- * take about four minutes on the owner's desk (fn-291 PROBE.md). One more
- * case must be refused by name before its wood is allocated. */
+ * at or under 3.5 GiB of the 32-bit binding's 4 GiB (fn-291), and printed:
+ * the check that every shipped preset at its own seed (42) builds in Wasm,
+ * in place of the kept-phytomer ceiling (fn-369). The 24 cases take about
+ * four minutes on the owner's desk (fn-291 PROBE.md). One more case must be
+ * refused by name: a tree the machine cannot hold. */
 const dist = new URL('../dist/', import.meta.url);
 const LIMIT = 3.5 * 2 ** 30;
+const REFUSED_AGE = 118;
 const SEEDS = [1, 7, 42];
 
 /** One case: build it, check its wood chunks and its memory, report a row. */
@@ -47,14 +50,15 @@ async function one(id, seed) {
   return { nodes, chunks: chunks.length, memory, seconds };
 }
 
-/** A wood 32-bit Wasm cannot hold (fn-291 R2f): telperion at seed 7 with
- * 64 sides a ring must be refused by name, before its wood is allocated,
- * so the memory stays far below the 4 GiB it would otherwise reach. */
+/** A tree 32-bit Wasm cannot hold (fn-369 step 2): the spruce at seed 42
+ * at `REFUSED_AGE`, two years past the youngest the machine refused, is
+ * refused by name with the bytes it asked for and the stage, and the next
+ * request on the same engine builds on a fresh instance. */
 async function refused() {
   const { TreeEngine, PRESETS } = await import(new URL('telperion.js', dist));
-  const family = structuredClone(PRESETS.find(p => p.id === 'telperion'));
-  family.skeleton.seed = 7;
-  family.surface.radialSegments = 64;
+  const spruce = PRESETS.find(p => p.id === 'norway-spruce');
+  const family = structuredClone(spruce);
+  family.age = REFUSED_AGE;
   const engine = await TreeEngine.create();
   let said;
   try {
@@ -62,12 +66,13 @@ async function refused() {
   } catch (e) {
     said = e instanceof Error ? e.message : String(e);
   }
-  if (said === undefined) throw Error('built a wood it should have refused');
-  const named = /^Tree core: the wood needs \d+ bytes and \d+ are left in 32-bit Wasm memory; build it with fewer radialSegments/;
-  if (!named.test(said)) throw Error(`not refused by name: ${said}`);
-  const memory = engine.memoryBytes;
-  if (memory > LIMIT) throw Error(`refused only after Wasm memory reached ${mib(memory)} MiB`);
-  return { said, memory };
+  if (said === undefined) throw Error('built a tree it should have refused');
+  const named = /^Tree core: the [\w' ]+ needs (\d+) bytes and the machine did not give them(?: \((\d+) bytes live\))?$/.exec(said);
+  if (!named) throw Error(`not refused by name: ${said}`);
+  const live = named[2] === undefined ? null : Number(named[2]);
+  const next = engine.build(spruce, { surface: true, foliage: true });
+  if (!(next.diagnostics.nodes > 0)) throw Error('the next request built no tree');
+  return { said, live, next: next.diagnostics.nodes, memory: engine.memoryBytes };
 }
 
 const mib = bytes => Math.round(bytes / 2 ** 20).toLocaleString('en');
@@ -76,7 +81,7 @@ if (args[0] === '--refused') {
   try {
     console.log(JSON.stringify(await refused()));
   } catch (e) {
-    console.error(`telperion.js: telperion seed 7 at 64 sides: ${e instanceof Error ? e.message : e}`);
+    console.error(`telperion.js: norway-spruce seed 42 at ${REFUSED_AGE}: ${e instanceof Error ? e.message : e}`);
     process.exitCode = 1;
   }
 } else if (args[0] === '--case') {
@@ -116,10 +121,10 @@ if (args[0] === '--refused') {
   try {
     const out = execFileSync(process.execPath, [fileURLToPath(import.meta.url), '--refused'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
     const row = JSON.parse(out.trim().split('\n').pop());
-    console.log(`telperion.js: telperion seed 7 at 64 sides: refused at ${mib(row.memory)} MiB: ${row.said}`);
+    console.log(`telperion.js: norway-spruce seed 42 at ${REFUSED_AGE}: ${row.said}; the next request built ${row.next} nodes in ${mib(row.memory)} MiB`);
   } catch (e) {
     const said = String(e.stderr ?? '').trim().split('\n').findLast(l => l.startsWith('telperion.js:'));
-    const failure = said ?? `telperion.js: telperion seed 7 at 64 sides: the case process ${e.signal ? `was killed by ${e.signal}` : `exited ${e.status}`}`;
+    const failure = said ?? `telperion.js: norway-spruce seed 42 at ${REFUSED_AGE}: the case process ${e.signal ? `was killed by ${e.signal}` : `exited ${e.status}`}`;
     console.error(failure);
     failures.push(failure);
   }

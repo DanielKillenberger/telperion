@@ -20,7 +20,7 @@ fn a_flowering_axis_bears_its_bloom_at_its_own_tip() {
         light: family.space.light,
     };
     let structure = telperion_space::grow(&species, request).unwrap();
-    let tree = convert(&structure, (&family.space.trunk, &pa_rows(&species)));
+    let tree = converted(&structure, (&family.space.trunk, &pa_rows(&species)));
     let node: HashMap<u64, usize> = (1..tree.nodes.len())
         .map(|i| (tree.nodes[i].identity.birth_order(), i))
         .collect();

@@ -7,6 +7,11 @@ license = "MIT"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[features]
+# The binding without the kept-phytomer refusal, for `scripts/wasm-ceiling.mjs`
+# alone; the shipped module is never built with it.
+measure-ceiling = ["telperion-core/measure-ceiling"]
+
 [dependencies]
 # One thread in Wasm: the core without its thread pool (fn-366, lever c).
 telperion-core = { path = "../telperion-core", default-features = false, features = ["geometry", "json"] }

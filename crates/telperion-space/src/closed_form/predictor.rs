@@ -99,8 +99,8 @@ pub(in crate::closed_form) fn tilts(pmf: &[f64], f: f64, zone: &Zone) -> (f64, C
 }
 
 /// The whole tree's expected kept phytomers at `age`: the seed's table
-/// at the tree's age, which no bearer fades (fn-198 host decision 15:
-/// the browser's ceiling read before the tree grows).
+/// at the tree's age, which no bearer fades (fn-198 host decision 15; the
+/// browser's ceiling it was first read for went in fn-369).
 pub(crate) fn tree(species: &Species, windows: &Windows, age: u32) -> f64 {
     let m = age as usize;
     let mut walk = Walk::new(species, windows);

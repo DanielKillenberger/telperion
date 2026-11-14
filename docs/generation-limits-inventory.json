@@ -1480,5 +1480,11 @@
     "site": "if rest < 0 . 0 {",
     "classification": "algorithm",
     "reason": "fn-301 R2: two corners' bounds that do not meet on the unit sphere offer no candidate; geometry, not a limit."
+  },
+  {
+    "path": "crates/telperion-wasm/src/measured.rs",
+    "site": ". min ( EVENTS )",
+    "classification": "algorithm",
+    "reason": "The ceiling's measurement build (`measure-ceiling`, never shipped) reads at most its fixed record of large allocations; it counts every one and limits no tree."
   }
 ]

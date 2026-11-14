@@ -216,7 +216,7 @@ type Matrix = ([f32; 16], bool);
 pub(crate) fn place(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Result<Instances> {
     let step = reference(&matrices(tree, p, season, None)?, p).step().y;
     let matrices = matrices(tree, p, season, Some(step))?;
-    Ok(packed(&matrices, reference(&matrices, p)))
+    packed(&matrices, reference(&matrices, p))
 }
 
 /// The same florets packed against `within`, which holds every one: the
@@ -228,7 +228,7 @@ pub(crate) fn place_in(
     within: Reference,
 ) -> Result<Instances> {
     let matrices = matrices(tree, p, season, Some(within.step().y))?;
-    Ok(packed(&matrices, within))
+    packed(&matrices, within)
 }
 
 /// The farthest a floret stands from its node: along the axis, then its
@@ -270,7 +270,13 @@ fn matrices(
         Some(step) => Some(Ground::of(&element(p)?, p, step)),
         None => None,
     };
+    // Every inflorescence's florets and its rachis at most, reserved once
+    // (fn-369): one that is not grown, or a floret too small to draw, takes
+    // fewer.
+    let each = p.florets.ceil() as usize + usize::from(p.rachis > 0.0);
+    let most = tree.blooms.len().saturating_mul(each);
     let mut matrices = Vec::new();
+    crate::memory::reserve(&mut matrices, most, "flower store")?;
     for bloom in &tree.blooms {
         inflorescence(tree, bloom, p, now, ground.as_ref(), &mut matrices)?;
     }
@@ -318,15 +324,20 @@ impl Ground {
     }
 }
 
-fn packed(matrices: &[Matrix], reference: Reference) -> Instances {
+fn packed(matrices: &[Matrix], reference: Reference) -> Result<Instances> {
     let mut instances = Instances::new(reference);
+    crate::memory::reserve(
+        &mut instances.leaves,
+        matrices.len(),
+        "flower instance store",
+    )?;
     for (m, rachis) in matrices {
         instances.push(m);
         if *rachis {
             instances.leaves.last_mut().expect("just pushed")[2] |= RACHIS;
         }
     }
-    instances
+    Ok(instances)
 }
 
 /// The box every floret stands in, a petal's reach round their positions.
