@@ -1,0 +1,47 @@
+{
+  "branch_name": "fn-223-leaves-cluster-at-the-engines-short",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-08T14:48:30.520945Z",
+  "created_at": "2026-10-07T17:26:46.917762Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-223-leaves-cluster-at-the-engines-short",
+  "impl_review_rounds": {
+    "fn-223-leaves-cluster-at-the-engines-short.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-08T13:08:10.009460Z",
+  "ready": true,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-223-leaves-cluster-at-the-engines-short.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-223-leaves-cluster-at-the-engines-short.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-223-leaves-cluster-at-the-engines-short.md",
+  "status": "done",
+  "title": "Leaves cluster at the engine's short shoots",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-08T22:38:02.429430Z"
+}

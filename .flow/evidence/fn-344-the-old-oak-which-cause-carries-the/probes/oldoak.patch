@@ -1,0 +1,730 @@
+diff --git i/crates/telperion-render/examples/space/still.rs w/crates/telperion-render/examples/space/still.rs
+index b773d65cc..b25107d4a 100644
+--- i/crates/telperion-render/examples/space/still.rs
++++ w/crates/telperion-render/examples/space/still.rs
+@@ -164,6 +164,7 @@ pub fn run(name: &str, preset: &str) -> Result<(), String> {
+                 let ms = started.elapsed().as_secs_f64() * 1e3;
+                 let nodes = x.tree().nodes.len();
+                 let (fine, wood) = wood_km(x.tree());
++                let dbh = trunk_cm(x.tree());
+                 let dressed = Instant::now();
+                 let mesh = x.mesh().map_err(|e| e.to_string())?;
+                 let dress = dressed.elapsed().as_secs_f64() * 1e3;
+@@ -176,7 +177,7 @@ pub fn run(name: &str, preset: &str) -> Result<(), String> {
+                 let bounds = mesh.bounds;
+                 let (b, l) = (bounds.max - bounds.min, mesh.foliage.instances.len());
+                 println!(
+-                "age {age} seed {seed}{variant}: grown in {ms:.1} ms, dressed in {dress:.0} ms; {nodes} nodes, {l} leaves; {:.1} m tall, {:.1} x {:.1} m; wood {wood:.2} km, fine {fine:.2} km",
++                "age {age} seed {seed}{variant}: grown in {ms:.1} ms, dressed in {dress:.0} ms; {nodes} nodes, {l} leaves; {:.1} m tall, {:.1} x {:.1} m; wood {wood:.2} km, fine {fine:.2} km; trunk {dbh:.1} cm at 1.3 m",
+                 b.y, b.x, b.z
+             );
+             }
+@@ -216,6 +217,9 @@ fn stills(
+         // The limb close-up in leaf: how the needles dress a spray.
+         (View::Whole, "spray", &limb),
+         (View::Whole, "crown", &crown),
++        // fn-344 probe: the lower trunk, ground to a little past half the
++        // height, from the hero's side.
++        (View::Bare, "bole", &bole(&mesh.bounds, &camera)),
+     ];
+     for (view, shot, camera) in shots.into_iter().filter(|s| tuning.shoots(s.1)) {
+         renderer
+@@ -275,3 +279,38 @@ fn close_ups(bounds: &Bounds, hero: &Camera) -> (Camera, Camera, Camera) {
+         shot(top, 0.75 * height),
+     )
+ }
++
++/// fn-343 probe: the trunk's diameter in cm at 1.3 m, along the thickest
++/// wood from the root.
++fn trunk_cm(tree: &telperion_core::tree::Tree) -> f64 {
++    let n = tree.nodes.len();
++    let mut kids = vec![Vec::new(); n];
++    for (i, node) in tree.nodes.iter().enumerate().skip(1) {
++        kids[node.parent.unwrap() as usize].push(i);
++    }
++    let y0 = tree.nodes[0].position.y;
++    let mut at = 0;
++    while tree.nodes[at].position.y - y0 < 1.3 {
++        let Some(&next) = kids[at].iter().max_by(|&&a, &&b| tree.nodes[a].radius.total_cmp(&tree.nodes[b].radius)) else {
++            break;
++        };
++        at = next;
++    }
++    200.0 * tree.nodes[at].radius
++}
++
++/// fn-344 probe: the lower trunk's mid view, aimed at a quarter of the
++/// height from 0.9 of the height away on the hero's side.
++fn bole(bounds: &Bounds, hero: &Camera) -> Camera {
++    let toward = Vec3::new(hero.position.x, 0.0, hero.position.z);
++    let toward = toward * (1.0 / toward.length().max(1e-9));
++    let height = bounds.max.y - bounds.min.y;
++    let target = Vec3::new(0.0, 0.25 * height, 0.0);
++    Camera {
++        position: target + toward * (0.9 * height) + Vec3::new(0.0, 0.5, 0.0),
++        target,
++        field_of_view: 38.0,
++        near: 0.05,
++        far: 500.0,
++    }
++}
+diff --git i/crates/telperion-render/examples/space/tuning.rs w/crates/telperion-render/examples/space/tuning.rs
+index b52042ac4..c4dc854bd 100644
+--- i/crates/telperion-render/examples/space/tuning.rs
++++ w/crates/telperion-render/examples/space/tuning.rs
+@@ -93,6 +93,7 @@ impl Tuning {
+                 state.form.sag = 0.0;
+             }
+         }
++        ablate(species);
+         let pas = species.states.len();
+         for &(pa, lambda) in &self.controls {
+             let state = species
+@@ -126,3 +127,37 @@ fn two(w: &str, flag: &str) -> Result<(f64, f64), String> {
+     };
+     Ok((a, b))
+ }
++
++/// fn-344 probe (evidence only, never merged): the old oak's causes
++/// switched off by `ABLATE`, a set of letters. The preset values set
++/// here: D the leader's (PA 4) life past the run, so the trunk stays a
++/// leader; E sleeping buds on the trunk (2), fork (3) and leader (4) rows,
++/// as the limb row's (p 0.1, delay 6, rate 0.04) but waking as limbs (6).
++/// B, C and E's stem-line limbs are switched in the grower
++/// (`telperion-space` `probe_ablate`); F is B, C and E.
++fn ablate(species: &mut Species) {
++    let set = std::env::var("ABLATE").unwrap_or_default();
++    let s = &mut species.states;
++    for c in set.chars() {
++        match c {
++            'B' | 'C' | 'H' => {}
++            'D' => s[4].lifespan = 1000.0,
++            'E' => {
++                for pa in [2, 3, 4] {
++                    for zone in &mut s[pa].zones {
++                        zone.dormant[6] = 0.1;
++                        (zone.delay, zone.rate) = (6.0, 0.04);
++                    }
++                }
++            }
++            _ => panic!("ABLATE: no variant {c}"),
++        }
++    }
++    if !set.is_empty() {
++        eprintln!(
++            "ABLATE {set}: leader life {} trunk/fork/leader sleeping limbs {:?}",
++            s[4].lifespan,
++            [2, 3, 4].map(|pa| s[pa].zones.iter().map(|z| z.dormant[6]).fold(0.0, f64::max))
++        );
++    }
++}
+diff --git i/crates/telperion-space/src/geometry.rs w/crates/telperion-space/src/geometry.rs
+index 4778b7789..037d60ee2 100644
+--- i/crates/telperion-space/src/geometry.rs
++++ w/crates/telperion-space/src/geometry.rs
+@@ -19,7 +19,7 @@ use crate::cores::{fill, map};
+ use crate::lineage::{insertion, Key, DOMINANCE, ROLL};
+ use crate::species::{PaState, Species};
+ use crate::structure::{Axis, Origin, Structure, Vec3};
+-pub(crate) use lay::{cone, support, Layer};
++pub(crate) use lay::{base_path, cone, support, Layer};
+ pub(crate) use place::place;
+ pub(crate) use q::amount;
+ use q::{add, atan2, between, cross, dot, q3, rotated, scaled, sincos, sub, unit, v3, Q3, UP};
+diff --git i/crates/telperion-space/src/geometry/lay.rs w/crates/telperion-space/src/geometry/lay.rs
+index 0381e143c..bc4c32d28 100644
+--- i/crates/telperion-space/src/geometry/lay.rs
++++ w/crates/telperion-space/src/geometry/lay.rs
+@@ -52,6 +52,13 @@ pub(crate) struct Layer {
+     /// None on every other axis.
+     line: Q3,
+     take: f32,
++    /// fn-344 probe H: the path along the wood from the root collar to
++    /// the walk's base, after each phytomer laid, and at the start of the
++    /// year being laid (`probe_ablate`).
++    base_path: f32,
++    cum: Vec<f32>,
++    year_path: f32,
++    year: u32,
+ }
+ 
+ /// A pull of an axis's internodes towards the vertical: `bend` at `offset`
+@@ -122,9 +129,30 @@ impl Layer {
+             inherited: Vec::new(),
+             line: [0.0; 3],
+             take: 0.0,
++            base_path: 0.0,
++            cum: Vec::new(),
++            year_path: 0.0,
++            year: u32::MAX,
+         }
+     }
+ 
++    /// fn-344 probe H: the walk starting `path` metres along the wood
++    /// from the root collar.
++    pub fn from_path(mut self, path: f32) -> Self {
++        self.base_path = path;
++        self
++    }
++
++    /// fn-344 probe H: the path to the end of phytomer `node` (the base
++    /// where none is laid yet), and to the walk's end.
++    pub fn path_at(&self, node: usize) -> f32 {
++        self.cum.get(node).or(self.cum.last()).copied().unwrap_or(self.base_path)
++    }
++
++    pub fn path_end(&self) -> f32 {
++        self.cum.last().copied().unwrap_or(self.base_path)
++    }
++
+     /// The same, running back onto `line` by `take` at its base (`taken`).
+     pub fn taking_over(mut self, (line, take): super::Take) -> Self {
+         (self.line, self.take) = (line, take);
+@@ -238,7 +266,12 @@ impl Layer {
+         load: Option<&Lever>,
+         trunk: bool,
+     ) -> std::result::Result<(), Stop> {
+-        let form = state.form;
++        let mut form = state.form;
++        // fn-344 probe C: the stem line pulled toward vertical as the
++        // leader is (oak.rs leader: tropism 0.6, elevation pi/2).
++        if trunk && crate::probe_ablate::on('C') {
++            (form.tropism, form.elevation) = (0.6, std::f64::consts::FRAC_PI_2);
++        }
+         let (mut running, mut across, tip, mut run, pull, mut curve) = (
+             self.running,
+             self.across,
+@@ -252,7 +285,18 @@ impl Layer {
+         // its tropism axis to axis (fn-224), the plain product without
+         // spread.
+         let varied = internode(phytomer.key, form.internode_spread);
+-        let length = state.internode as f32 * scale * varied;
++        let mut length = state.internode as f32 * scale * varied;
++        // fn-344 probe H: each new internode shortened by 1 - L / 34.8 m,
++        // L the path from the root collar to the tip at the start of the
++        // internode's year.
++        if crate::probe_ablate::on('H') {
++            let path = self.path_end();
++            if phytomer.cycle != self.year {
++                (self.year, self.year_path) = (phytomer.cycle, path);
++            }
++            length *= (1.0 - self.year_path / 34.8).max(0.0);
++            self.cum.push(path + length);
++        }
+         let tropic = form.tropism as f32 * self.turning * length;
+         let share = falloff(tropic);
+         let bent = toward_elevation(running, across, amount(form.elevation), share);
+@@ -436,7 +480,7 @@ fn rest(k: f32) -> f32 {
+ /// where the walk ends.
+ pub(crate) fn lay(
+     axis: &mut Axis,
+-    (frame, curve, inherited, take): ((Vec3, Vec3, Vec3), Vec3, Vec<Lift>, super::Take),
++    (frame, curve, inherited, take, path): ((Vec3, Vec3, Vec3), Vec3, Vec<Lift>, super::Take, f32),
+     state: &PaState,
+     bend: (f64, f64),
+     load: Option<&[Lever]>,
+@@ -445,7 +489,8 @@ pub(crate) fn lay(
+     let turning = tropism(axis.lineage, state.form.tropism_spread);
+     let mut layer = Layer::bent(frame, curve, turning)
+         .inheriting(inherited)
+-        .taking_over(take);
++        .taking_over(take)
++        .from_path(path);
+     for (k, phytomer) in axis.phytomers.iter_mut().enumerate() {
+         layer.step(phytomer, state, bend, load.map(|l| &l[k]), trunk)?;
+     }
+@@ -504,3 +549,18 @@ pub(super) fn toward_elevation(direction: Q3, side: Q3, elevation: f32, share: f
+ #[cfg(test)]
+ #[path = "lay_tests.rs"]
+ mod tests;
++
++/// fn-344 probe H: an axis's path from the root collar at its base, from
++/// its bearer's walk (`of`): at the node a lateral or relay stands on, or
++/// the bearer's end for a continuation.
++pub(crate) fn base_path<'a>(axis: &Axis, of: &dyn Fn(usize) -> &'a Layer) -> f32 {
++    if !crate::probe_ablate::on('H') {
++        return 0.0;
++    }
++    match axis.origin {
++        crate::structure::Origin::Seed => 0.0,
++        crate::structure::Origin::Lateral { parent, node, .. } => of(parent).path_at(node),
++        crate::structure::Origin::Relay { parent, node, .. } => of(parent).path_at(node),
++        crate::structure::Origin::Continuation { parent } => of(parent).path_end(),
++    }
++}
+diff --git i/crates/telperion-space/src/geometry/place.rs w/crates/telperion-space/src/geometry/place.rs
+index 0fcae76d4..eb0f69aae 100644
+--- i/crates/telperion-space/src/geometry/place.rs
++++ w/crates/telperion-space/src/geometry/place.rs
+@@ -14,7 +14,7 @@ use std::sync::Mutex;
+ 
+ /// What an axis is laid from: its frame, its bearer's wander, the pulls
+ /// it carries on, its bend and reach, and whether it is the trunk.
+-type Start = ((Vec3, Vec3, Vec3), Vec3, Vec<Lift>, Take, (f64, f64), bool);
++type Start = ((Vec3, Vec3, Vec3), Vec3, Vec<Lift>, Take, (f64, f64), bool, f32);
+ 
+ /// What each laid axis left: where its walk ended, its bend and whether
+ /// it is the trunk, and each axis's reach.
+@@ -161,6 +161,7 @@ fn start(structure: &Structure, species: &Species, laid: &Laid, i: usize) -> Sta
+         take,
+         (bent, laid.reaches[i]),
+         trunk,
++        super::lay::base_path(axis, &|p| layer(p)),
+     )
+ }
+ 
+@@ -231,13 +232,13 @@ fn lay_all(
+     spread(work.len(), threads, &|k| {
+         let (at, starts, axes, ends) = work[k].lock().unwrap().take().expect("a piece once");
+         let jobs = at.into_iter().zip(starts).zip(axes.into_iter().zip(ends));
+-        for ((i, (framed, curve, inherited, take, bend, trunk)), (axis, end)) in jobs {
++        for ((i, (framed, curve, inherited, take, bend, trunk, path)), (axis, end)) in jobs {
+             let state = &species.states[axis.pa];
+             let load = levers.map(|t| t[i].as_slice());
+             let base = framed.0.z;
+             match lay(
+                 axis,
+-                (framed, curve, inherited, take),
++                (framed, curve, inherited, take, path),
+                 state,
+                 bend,
+                 load,
+diff --git i/crates/telperion-space/src/grow.rs w/crates/telperion-space/src/grow.rs
+index 18841b7d7..f5a12d6fc 100644
+--- i/crates/telperion-space/src/grow.rs
++++ w/crates/telperion-space/src/grow.rs
+@@ -61,7 +61,9 @@ struct Apex {
+ /// its canonical lineage order: the CPU's executor, the reference the
+ /// device's is held to by lineage (fn-256).
+ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
+-    Ok(cycle::grow_cycle(species, request)?.structure)
++    let s = cycle::grow_cycle(species, request)?.structure;
++    crate::probe_ablate::settled(&s);
++    Ok(s)
+ }
+ 
+ /// The whole-tree engine, every axis grown in one grower: test-only, the
+diff --git i/crates/telperion-space/src/grow/advance.rs w/crates/telperion-space/src/grow/advance.rs
+index 813707ca6..83ce24cfd 100644
+--- i/crates/telperion-space/src/grow/advance.rs
++++ w/crates/telperion-space/src/grow/advance.rs
+@@ -132,6 +132,7 @@ impl Shoot<'_, '_> {
+                 contract::decide::abortion(state, grown, (lived.min(next), 0))
+             };
+             let after = self.persists(decide, (pa, cycle), aborts);
++            crate::probe_ablate::tick(1);
+             return self.fail(
+                 apex,
+                 (cycle, carried.gone, step.whole),
+@@ -141,6 +142,7 @@ impl Shoot<'_, '_> {
+             );
+         }
+         if d.0 >= survives && !nested {
++            crate::probe_ablate::tick(1);
+             self.axis_mut(apex.axis).apex_end = Some(cycle - 1);
+             self.draws_mut(apex.axis).failed = true;
+             // The unit that failed is spent: a relay's first unit draws
+@@ -204,6 +206,7 @@ impl Shoot<'_, '_> {
+         if !step.ends {
+             match self.persists(decide, (pa, cycle), aborts) {
+                 Err(lead) => {
++                    crate::probe_ablate::tick(3);
+                     self.axis_mut(apex.axis).apex_end = Some(cycle);
+                     let why = (Stop::Aborted, false, 0);
+                     return self.stop(apex, (cycle, 1.0), lead, decide, apex.spent, why);
+@@ -218,6 +221,7 @@ impl Shoot<'_, '_> {
+             self.next.push(apex);
+             return Ok(());
+         }
++        crate::probe_ablate::tick(2);
+         self.axis_mut(apex.axis).apex_end = Some(cycle);
+         let used = if step.same_cycle() { step.used } else { 1.0 };
+         // Its end is drawn once for its age, whatever cycle it falls in,
+diff --git i/crates/telperion-space/src/grow/cycle.rs w/crates/telperion-space/src/grow/cycle.rs
+index 36d260e1a..55639b7f2 100644
+--- i/crates/telperion-space/src/grow/cycle.rs
++++ w/crates/telperion-space/src/grow/cycle.rs
+@@ -15,6 +15,7 @@ mod capture_light;
+ mod capture_settled;
+ mod capture_units;
+ mod census;
++mod probe;
+ mod compact;
+ mod footprint;
+ mod passes;
+diff --git i/crates/telperion-space/src/grow/cycle/passes.rs w/crates/telperion-space/src/grow/cycle/passes.rs
+index 7b1c90c40..a8a2cfcc2 100644
+--- i/crates/telperion-space/src/grow/cycle/passes.rs
++++ w/crates/telperion-space/src/grow/cycle/passes.rs
+@@ -44,6 +44,10 @@ impl Grower<'_> {
+             (light, upkeep(i), lit[i])
+         };
+         w.totals(&own, &upkeep);
++        // fn-344 probe: each living tip's own light and its axis's q - c.
++        let tips: Vec<(f32, f32)> = (self.live.iter().filter(|a| a.axis < n))
++            .map(|a| (own(a.axis).0, w.light[a.axis] - w.cost[a.axis]))
++            .collect();
+         let mut laterals = vec![Lateral::default(); w.list.len()];
+         let (ws, axes, rules) = (&w, &self.axes, &self.rules);
+         crate::cores::fill(&mut laterals, 1 << 12, self.threads, &|k| {
+@@ -89,6 +93,7 @@ impl Grower<'_> {
+             if apex.axis < n {
+                 let wk = &walked[w.at[apex.axis] as usize];
+                 if wk.shed {
++                    crate::probe_ablate::tick(0);
+                     self.axes[apex.axis].apex_end = Some(cycle - 1);
+                     continue;
+                 }
+@@ -96,6 +101,7 @@ impl Grower<'_> {
+             }
+             self.live.push(apex);
+         }
++        super::probe::year(self, &w, cycle, &tips);
+         self.working = Some(w);
+     }
+ 
+diff --git i/crates/telperion-space/src/grow/cycle/probe.rs w/crates/telperion-space/src/grow/cycle/probe.rs
+new file mode 100644
+index 000000000..4b6e5f9d5
+--- /dev/null
++++ w/crates/telperion-space/src/grow/cycle/probe.rs
+@@ -0,0 +1,80 @@
++//! fn-344 probe (evidence only, never merged): the year's census of the
++//! held phytomers (`probe_ablate::census`), and with `PROBE_YEAR` the
++//! stem line's height and its living limbs, as fn-342's record had them.
++use super::working::Working;
++use crate::grow::Grower;
++use crate::structure::Origin;
++
++pub(super) fn year(g: &Grower, w: &Working, cycle: u32, tips: &[(f32, f32)]) {
++    let held: u64 = g.axes.iter().map(|a| a.phytomers.len() as u64).sum();
++    crate::probe_ablate::census(cycle - 1, held);
++    let deaths = crate::probe_ablate::take();
++    if (cycle - 1) % 10 == 9 && std::env::var_os("PROBE_BALANCE").is_some() {
++        balance(g, w, cycle - 1, tips, deaths);
++    }
++    if std::env::var_os("PROBE_YEAR").is_none() {
++        return;
++    }
++    let n = w.open.len().min(g.axes.len());
++    let z0 = g.axes[0].base.z;
++    let mut main = vec![false; n];
++    let (mut top, mut main_top) = (f64::MIN, f64::MIN);
++    for i in 0..n {
++        let a = &g.axes[i];
++        main[i] = match a.origin {
++            Origin::Seed => true,
++            Origin::Continuation { parent } | Origin::Relay { parent, .. } => main[parent],
++            Origin::Lateral { .. } => false,
++        };
++        for p in &a.phytomers {
++            top = top.max(p.tip.z - z0);
++            if main[i] {
++                main_top = main_top.max(p.tip.z - z0);
++            }
++        }
++    }
++    let (mut living, mut lowest) = (0usize, f64::NAN);
++    for i in 0..n {
++        let a = &g.axes[i];
++        let Origin::Lateral { parent, .. } = a.origin else { continue };
++        if !main[parent] || a.pa != 6 || !(w.open[i] && w.living[i]) {
++            continue;
++        }
++        living += 1;
++        let base = a.base.z - z0;
++        lowest = if lowest.is_nan() { base } else { lowest.min(base) };
++    }
++    println!(
++        "YEAR {} held={held} height={top:.3} stem_top={main_top:.3} apexes={} limbs_live={living} lowest_limb={lowest:.3}",
++        cycle - 1,
++        g.live.len()
++    );
++}
++
++/// fn-344 probe: the year's balance over the whole tree, from the
++/// balance pass's own numbers (`balance_one`, `Working::totals`).
++fn balance(g: &Grower, w: &Working, year: u32, tips: &[(f32, f32)], deaths: [u64; 4]) {
++    let income = w.light[0];
++    let charged = w.cost[0];
++    let (live, dead) = crate::probe_ablate::upkept();
++    let mut q: Vec<f32> = tips.iter().map(|t| t.0).collect();
++    q.sort_by(f32::total_cmp);
++    let mean = q.iter().map(|&v| f64::from(v)).sum::<f64>() / q.len().max(1) as f64;
++    let median = q.get(q.len() / 2).copied().unwrap_or(f32::NAN);
++    let negative = tips.iter().filter(|t| t.1 < 0.0).count() as f64 / tips.len().max(1) as f64;
++    let (mut lo, mut hi) = ([f64::MAX; 2], [f64::MIN; 2]);
++    let mut cells = std::collections::HashSet::new();
++    for p in g.axes.iter().flat_map(|a| &a.phytomers) {
++        let (x, y) = (p.tip.x, p.tip.y);
++        lo = [lo[0].min(x), lo[1].min(y)];
++        hi = [hi[0].max(x), hi[1].max(y)];
++        cells.insert((x.floor() as i64, y.floor() as i64));
++    }
++    println!(
++        "BAL {year} income={income:.1} charged={charged:.1} upkeep_live={live:.1} upkeep_dead={dead:.1} \
++         tips={} q_mean={mean:.4} q_median={median:.4} negative={negative:.4} leaves={} \
++         spread_x={:.2} spread_y={:.2} cells_m2={} died_balance={} died_survival={} died_life={} aborted={}",
++        tips.len(), g.leaves.len(), hi[0] - lo[0], hi[1] - lo[1], cells.len(),
++        deaths[0], deaths[1], deaths[2], deaths[3]
++    );
++}
+diff --git i/crates/telperion-space/src/grow/cycle/working.rs w/crates/telperion-space/src/grow/cycle/working.rs
+index 76db18f5b..aa7f4aec5 100644
+--- i/crates/telperion-space/src/grow/cycle/working.rs
++++ w/crates/telperion-space/src/grow/cycle/working.rs
+@@ -181,9 +181,11 @@ impl Working {
+         own: &dyn Fn(usize) -> (f32, f32, bool),
+         upkeep: &dyn Fn(usize) -> f32,
+     ) {
++        let (mut live_sum, mut dead_sum) = (0.0f64, 0.0f64);
+         for k in (0..self.list.len()).rev() {
+             let i = self.list[k];
+             let (mut light, mut cost, mut living) = own(i);
++            live_sum += f64::from(cost);
+             for j in 0..self.by_node[i].len() {
+                 let c = self.by_node[i][j] as usize;
+                 if self.open[c] {
+@@ -191,11 +193,18 @@ impl Working {
+                     cost += self.cost[c];
+                     living |= self.living[c];
+                 } else {
+-                    cost += self.closed(c, upkeep);
++                    // fn-344 probe: what the dead wood is charged, or under
++                    // B would have been.
++                    let dead = self.closed(c, upkeep);
++                    dead_sum += f64::from(dead);
++                    if !crate::probe_ablate::on('B') {
++                        cost += dead;
++                    }
+                 }
+             }
+             (self.light[i], self.cost[i], self.living[i]) = (light, cost, living);
+         }
++        crate::probe_ablate::upkeep(live_sum, dead_sum);
+     }
+ 
+     /// A closed subtree's upkeep, taken once as the whole tree's pass
+diff --git i/crates/telperion-space/src/grow/draw.rs w/crates/telperion-space/src/grow/draw.rs
+index 3fe00565e..7a09dc557 100644
+--- i/crates/telperion-space/src/grow/draw.rs
++++ w/crates/telperion-space/src/grow/draw.rs
+@@ -296,7 +296,8 @@ fn pencil<'p>(
+     let pencil = Pencil {
+         layer: Layer::bent(framed, curve, turning)
+             .inheriting(handed)
+-            .taking_over(joined(taken(axes, species, i, &ends), carried)),
++            .taking_over(joined(taken(axes, species, i, &ends), carried))
++            .from_path(crate::geometry::base_path(axis, &|p| &of(p).layer)),
+         base_scale: f64::from(inherited * vigour * share as f32),
+         running: 1.0,
+         rank: 0.0,
+diff --git i/crates/telperion-space/src/grow/shoot.rs w/crates/telperion-space/src/grow/shoot.rs
+index d2beb0932..147453139 100644
+--- i/crates/telperion-space/src/grow/shoot.rs
++++ w/crates/telperion-space/src/grow/shoot.rs
+@@ -275,6 +275,13 @@ impl<'g, 'a> Shoot<'g, 'a> {
+         line: (f64, u64, Draws),
+     ) {
+         let (units, root, draws) = line;
++        if crate::probe_ablate::on('E') {
++            if let Origin::Continuation { parent } | Origin::Relay { parent, .. } = origin {
++                let bearer = self.axis(parent);
++                let seed = matches!(bearer.origin, Origin::Seed);
++                crate::probe_ablate::carry(seed, bearer.lineage, key.0);
++            }
++        }
+         let horizon = self.horizon_of(pa, origin);
+         self.made.push(Line {
+             axis: bud(key, pa, cycle, origin),
+diff --git i/crates/telperion-space/src/grow/wake.rs w/crates/telperion-space/src/grow/wake.rs
+index 7841db566..8cb172abc 100644
+--- i/crates/telperion-space/src/grow/wake.rs
++++ w/crates/telperion-space/src/grow/wake.rs
+@@ -141,6 +141,23 @@ impl Shoot<'_, '_> {
+         at: (usize, usize, usize),
+         cycle: u32,
+     ) {
++        // fn-344 probe E: a limb's sleeping buds on the stem line wake as
++        // limbs where its row has them wake as branches.
++        let swapped;
++        let (zone, woods) = if crate::probe_ablate::on('E')
++            && zone.dormant[crate::chain::BRANCH] > 0.0
++            && crate::probe_ablate::stem(self.axis(at.0).lineage)
++        {
++            let mut z = zone.clone();
++            z.dormant[crate::chain::LIMB] = z.dormant[crate::chain::BRANCH];
++            z.dormant[crate::chain::BRANCH] = 0.0;
++            let mut w = Vec::new();
++            self.rules.windows.sleeping(&z, cycle, &mut w);
++            swapped = (z, w);
++            (&swapped.0, swapped.1.as_slice())
++        } else {
++            (zone, woods)
++        };
+         for slot in 0..zone.places() {
+             let place = node_key.child(slot as u64);
+             if !lineage::placed(place, zone.share(slot)) {
+diff --git i/crates/telperion-space/src/lib.rs w/crates/telperion-space/src/lib.rs
+index 60b0177b2..854ca2ac5 100644
+--- i/crates/telperion-space/src/lib.rs
++++ w/crates/telperion-space/src/lib.rs
+@@ -38,6 +38,7 @@ mod memo;
+ mod oak;
+ mod palm;
+ mod presence;
++mod probe_ablate;
+ mod sag;
+ mod schedule;
+ mod shed;
+diff --git i/crates/telperion-space/src/probe_ablate.rs w/crates/telperion-space/src/probe_ablate.rs
+new file mode 100644
+index 000000000..22e89f3bf
+--- /dev/null
++++ w/crates/telperion-space/src/probe_ablate.rs
+@@ -0,0 +1,145 @@
++//! fn-344 probe (evidence only, never merged): the old oak's causes
++//! switched off one at a time by the letters in `ABLATE`, and a yearly
++//! census of the held phytomers that stops a grow passing four times
++//! today's count (`ABLATE_CURVE`, lines `year held`) or 8 GiB resident.
++//! Dormant unless the variables are set.
++use std::collections::{HashMap, HashSet};
++use std::sync::{Mutex, OnceLock};
++
++fn letters() -> &'static str {
++    static SET: OnceLock<String> = OnceLock::new();
++    SET.get_or_init(|| std::env::var("ABLATE").unwrap_or_default())
++}
++
++/// Whether variant letter `c` is on.
++pub(crate) fn on(c: char) -> bool {
++    letters().contains(c)
++}
++
++static STEM: Mutex<Option<HashSet<u64>>> = Mutex::new(None);
++
++/// Marks `child` as on the stem line when its bearer is.
++pub(crate) fn carry(bearer_seed: bool, bearer: u64, child: u64) {
++    let mut g = STEM.lock().unwrap();
++    let set = g.get_or_insert_with(HashSet::new);
++    if bearer_seed || set.contains(&bearer) {
++        set.insert(child);
++    }
++}
++
++/// Whether the axis of lineage `key` is on the stem line above the seed.
++pub(crate) fn stem(key: u64) -> bool {
++    STEM.lock().unwrap().as_ref().is_some_and(|s| s.contains(&key))
++}
++
++fn curve() -> &'static HashMap<u32, u64> {
++    static CURVE: OnceLock<HashMap<u32, u64>> = OnceLock::new();
++    CURVE.get_or_init(|| {
++        let path = std::env::var("ABLATE_CURVE").unwrap_or_default();
++        if path.is_empty() {
++            return HashMap::new();
++        }
++        let text = std::fs::read_to_string(&path).expect("ABLATE_CURVE readable");
++        text.lines()
++            .filter_map(|l| {
++                let mut w = l.split_whitespace();
++                Some((w.next()?.parse().ok()?, w.next()?.parse().ok()?))
++            })
++            .collect()
++    })
++}
++
++fn resident_gib() -> f64 {
++    let s = std::fs::read_to_string("/proc/self/statm").unwrap_or_default();
++    let pages: f64 = s.split_whitespace().nth(1).and_then(|p| p.parse().ok()).unwrap_or(0.0);
++    pages * 4096.0 / f64::from(1u32 << 30)
++}
++
++/// The year's census: printed when `ABLATE_CENSUS` is set; the process
++/// stops when `held` passes `ABLATE_FACTOR` (4 unset) times the curve's
++/// count at `year`, or the process holds `ABLATE_RSS_GIB` (8 unset).
++pub(crate) fn census(year: u32, held: u64) {
++    if std::env::var_os("ABLATE_CENSUS").is_none() {
++        return;
++    }
++    let num = |k: &str, d: f64| std::env::var(k).ok().and_then(|v| v.parse().ok()).unwrap_or(d);
++    let (factor, limit) = (num("ABLATE_FACTOR", 4.0), num("ABLATE_RSS_GIB", 8.0));
++    let rss = resident_gib();
++    println!("CENSUS {year} {held} rss_gib={rss:.2}");
++    let over = curve().get(&year).is_some_and(|&a| held as f64 > factor * a as f64);
++    // 8 GiB unset: dressing and drawing took the 120-year E from 6.6 to
++    // 9.1 GiB, so a grow ending past 8 would meet the 12 GB cap while drawn.
++    if over || rss > limit {
++        let a = curve().get(&year).copied().unwrap_or(0);
++        println!("STOP year={year} held={held} today={a} rss_gib={rss:.2}");
++        std::process::exit(42);
++    }
++}
++
++/// The settled tree's stem line: its living limbs (PA 6 laterals of the
++/// seed's line with a living apex in their subtree) and the lowest one's
++/// base, engine metres above the root.
++pub(crate) fn settled(s: &crate::structure::Structure) {
++    use crate::structure::Origin;
++    if std::env::var_os("ABLATE_CENSUS").is_none() {
++        return;
++    }
++    let n = s.axes.len();
++    let mut main = vec![false; n];
++    for i in 0..n {
++        main[i] = match s.axes[i].origin {
++            Origin::Seed => true,
++            Origin::Continuation { parent } | Origin::Relay { parent, .. } => main[parent],
++            Origin::Lateral { .. } => false,
++        };
++    }
++    let mut alive: Vec<bool> = s.axes.iter().map(|a| a.apex_end.is_none() && !a.phytomers.is_empty()).collect();
++    for i in (0..n).rev() {
++        if let Some(p) = s.axes[i].origin.parent() {
++            assert!(p < i, "parents come first");
++            if alive[i] {
++                alive[p] = true;
++            }
++        }
++    }
++    let z0 = s.axes[0].base.z;
++    let top = s.axes.iter().flat_map(|a| &a.phytomers).map(|p| p.tip.z - z0).fold(f64::MIN, f64::max);
++    let (mut living, mut lowest) = (0usize, f64::NAN);
++    for (i, a) in s.axes.iter().enumerate() {
++        let Origin::Lateral { parent, .. } = a.origin else { continue };
++        if main[parent] && a.pa == 6 && alive[i] {
++            living += 1;
++            let base = a.base.z - z0;
++            lowest = if lowest.is_nan() { base } else { lowest.min(base) };
++        }
++    }
++    println!("SETTLED top={top:.3} limbs_live={living} lowest_limb={lowest:.3} phytomers={}", s.phytomer_count());
++    // A census run that is not drawn: done once the tree is settled, so a
++    // tree too big to dress is never dressed.
++    if std::env::var("ABLATE_GROW_ONLY").is_ok_and(|v| !v.is_empty()) {
++        println!("GROWN rss_gib={:.2}", resident_gib());
++        std::process::exit(0);
++    }
++}
++
++/// fn-344: tip deaths by cause since the last `take` (0 balance, 1
++/// survival draw, 2 life ended, 3 abortion), and the year's upkeep of the
++/// open wood and of the closed (dead) wood.
++static DEATHS: [std::sync::atomic::AtomicU64; 4] = [const { std::sync::atomic::AtomicU64::new(0) }; 4];
++static UPKEEP: Mutex<(f64, f64)> = Mutex::new((0.0, 0.0));
++
++pub(crate) fn tick(k: usize) {
++    DEATHS[k].fetch_add(1, std::sync::atomic::Ordering::Relaxed);
++}
++
++pub(crate) fn take() -> [u64; 4] {
++    std::array::from_fn(|k| DEATHS[k].swap(0, std::sync::atomic::Ordering::Relaxed))
++}
++
++pub(crate) fn upkeep(live: f64, dead: f64) {
++    *UPKEEP.lock().unwrap() = (live, dead);
++}
++
++pub(crate) fn upkept() -> (f64, f64) {
++    *UPKEEP.lock().unwrap()
++}

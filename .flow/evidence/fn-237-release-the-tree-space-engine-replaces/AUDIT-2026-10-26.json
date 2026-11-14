@@ -1,0 +1,286 @@
+{
+  "date": "2026-10-26 Europe/Zurich",
+  "releaseHead": "b2261e4728ab0cd930bd8ddd74d7379a1cb4b05c",
+  "baseline": "telperion@0.1.4, npm cache",
+  "consumer": "telperion@0.2.0-next.20261025.af1d320, installed killenberger.com package",
+  "productionSourceDifference": "af1d320..b2261e472 changes only a Rust test and fn-318 spec files",
+  "method": "Headless Chromium 1243, dedicated module workers, NVIDIA Ampere Vulkan, sequential grows at n=36; localhost assets; no throttling. First run seeds 1/1234, repeat seed 1 twice. grow includes grid query and owned JS answers, excludes voxelization. prepare includes device and programs; compile includes localhost fetch and Wasm compile. No visual-equivalence claim. Small diagnostic sample, not statistical release qualification. GPU work through telperion-heavy 4 --gpu 3 --threads 2. Review processes separately capped at 8GB/2 threads.",
+  "runs": [
+    {
+      "version": "v014",
+      "compile": 5.199999999953434,
+      "prepare": 0,
+      "rows": [
+        {
+          "species": "oregon-white-oak",
+          "seed": 1,
+          "grow": 259.69999999995343,
+          "voxel": 6.600000000093132,
+          "cubes": 9486
+        },
+        {
+          "species": "oregon-white-oak",
+          "seed": 1234,
+          "grow": 232.89999999990687,
+          "voxel": 6.100000000093132,
+          "cubes": 9858
+        },
+        {
+          "species": "silver-birch",
+          "seed": 1,
+          "grow": 239.30000000004657,
+          "voxel": 5.099999999860302,
+          "cubes": 8749
+        },
+        {
+          "species": "silver-birch",
+          "seed": 1234,
+          "grow": 304.10000000009313,
+          "voxel": 5.099999999860302,
+          "cubes": 8568
+        },
+        {
+          "species": "norway-spruce",
+          "seed": 1,
+          "grow": 212.19999999995343,
+          "voxel": 2.800000000046566,
+          "cubes": 2700
+        },
+        {
+          "species": "norway-spruce",
+          "seed": 1234,
+          "grow": 203.19999999995343,
+          "voxel": 1,
+          "cubes": 2667
+        }
+      ]
+    },
+    {
+      "version": "next",
+      "compile": 22.699999999953434,
+      "prepare": 12816.199999999953,
+      "rows": [
+        {
+          "species": "oregon-white-oak",
+          "seed": 1,
+          "grow": 642.0999999998603,
+          "voxel": 2.9000000001396984,
+          "cubes": 3643
+        },
+        {
+          "species": "oregon-white-oak",
+          "seed": 1234,
+          "grow": 354.69999999995343,
+          "voxel": 2.800000000046566,
+          "cubes": 5613
+        },
+        {
+          "species": "silver-birch",
+          "seed": 1,
+          "grow": 254.0999999998603,
+          "voxel": 2.7000000001862645,
+          "cubes": 2383
+        },
+        {
+          "species": "silver-birch",
+          "seed": 1234,
+          "grow": 281.5,
+          "voxel": 2.5999999998603016,
+          "cubes": 2579
+        },
+        {
+          "species": "norway-spruce",
+          "seed": 1,
+          "grow": 538.6000000000931,
+          "voxel": 3.0999999998603016,
+          "cubes": 2750
+        },
+        {
+          "species": "norway-spruce",
+          "seed": 1234,
+          "grow": 503.5,
+          "voxel": 1,
+          "cubes": 2532
+        }
+      ]
+    },
+    {
+      "version": "next",
+      "compile": 23.199999999953434,
+      "prepare": 1015.1999999999534,
+      "info": {
+        "vendor": "nvidia",
+        "architecture": "ampere",
+        "device": "",
+        "description": ""
+      },
+      "rows": [
+        {
+          "species": "oregon-white-oak",
+          "seed": 1,
+          "grow": 371,
+          "voxel": 2.8999999999068677,
+          "cubes": 3643
+        },
+        {
+          "species": "oregon-white-oak",
+          "seed": 1,
+          "grow": 312.89999999990687,
+          "voxel": 3.1000000000931323,
+          "cubes": 3643
+        },
+        {
+          "species": "silver-birch",
+          "seed": 1,
+          "grow": 259,
+          "voxel": 2.3999999999068677,
+          "cubes": 2383
+        },
+        {
+          "species": "silver-birch",
+          "seed": 1,
+          "grow": 264.70000000018626,
+          "voxel": 1.1999999999534339,
+          "cubes": 2383
+        },
+        {
+          "species": "norway-spruce",
+          "seed": 1,
+          "grow": 553.8999999999069,
+          "voxel": 1.3000000000465661,
+          "cubes": 2750
+        },
+        {
+          "species": "norway-spruce",
+          "seed": 1,
+          "grow": 509.60000000009313,
+          "voxel": 0.8999999999068677,
+          "cubes": 2750
+        }
+      ]
+    }
+  ],
+  "moduleBytes": {
+    "v014": {
+      "raw": 344798,
+      "gzip": 132393,
+      "brotli": 107663
+    },
+    "next": {
+      "raw": 3518285,
+      "gzip": 1127007,
+      "brotli": 834077
+    }
+  },
+  "otherChecks": {
+    "compileFieldDefaultConcurrentReturnsSameModule": {
+      "v014": true,
+      "next": false
+    },
+    "familyJsonStringifyMs": 0.05356,
+    "fullSuite": "Not run; read-only review, no implementation changes"
+  },
+  "confirmedSourceFindings": [
+    {
+      "item": "Unused field startup programs",
+      "paths": [
+        "crates/telperion-render/src/generation/resident.rs:46",
+        "crates/telperion-render/src/generation/resident/build.rs:44",
+        "crates/telperion-render/src/curve.rs:36"
+      ],
+      "status": "Confirmed execution path; saving from removal not measured"
+    },
+    {
+      "item": "Site warms with unused fully grown birch",
+      "paths": [
+        "/home/daniel/Projects/killenberger.com/src/lib/grove/client.ts:196"
+      ],
+      "status": "Confirmed source; replace with preparation in the same worker"
+    },
+    {
+      "item": "Default compileField lost module memoization",
+      "paths": [
+        "src/field/index.ts:108"
+      ],
+      "status": "Node check returned sameModule true for 0.1.4, false for next; site currently caches its own compile promise"
+    },
+    {
+      "item": "Renderer parameter API still JSON strings",
+      "paths": [
+        "src/browser/render.ts:196",
+        "src/browser/render.ts:268"
+      ],
+      "status": "Confirmed signatures; other entry points take Family"
+    },
+    {
+      "item": "Flower field reads full floret snapshot to CPU",
+      "paths": [
+        "crates/telperion-render/src/generation/resident/florets.rs:130",
+        "crates/telperion-render/src/generation/resident/field/make.rs:97"
+      ],
+      "status": "Confirmed source; browser cost not isolated"
+    },
+    {
+      "item": "CPU renderer asks for indexed surface and curve, uploads curve",
+      "paths": [
+        "crates/telperion-core/src/pipeline.rs:75",
+        "crates/telperion-render/src/web.rs:227",
+        "crates/telperion-render/src/lib.rs:246"
+      ],
+      "status": "Confirmed source; not on site growField path"
+    },
+    {
+      "item": "Timing helper fences device even for discarded field timings",
+      "paths": [
+        "crates/telperion-render/src/generation/resident/build.rs:105",
+        "crates/telperion-render/src/generation/resident/field/make.rs:73"
+      ],
+      "status": "Candidate for bounded measurement; some synchronization may be required for resource accounting"
+    }
+  ],
+  "validationRepro": {
+    "family": "ordinary, seed 1, n12",
+    "cases": [
+      {
+        "input": {
+          "canopy.maxInstances": 1
+        },
+        "cpu": "reject: foliage instance budget",
+        "gpu": "accepted, field returned"
+      },
+      {
+        "input": {
+          "canopy.scatter": -1
+        },
+        "cpu": "reject: scatter",
+        "gpu": "accepted, field returned"
+      }
+    ]
+  },
+  "review": {
+    "rid": "e3b7ae54c7e28ef1aab325e781f9036a",
+    "verdict": "NEEDS_WORK",
+    "completed": [
+      "contracts",
+      "integration"
+    ],
+    "failed": {
+      "correctness": "Selected model is at capacity. Please try a different model."
+    },
+    "sourceChanges": "none",
+    "releaseRecommendations": [
+      "Compile only programs used by field consumer",
+      "Use prepareField in site worker instead of discarded birch; restore default compileField memoization",
+      "Enforce CPU/GPU field canopy validation and instance-budget parity",
+      "Use Family consistently at public renderer boundary and share field types",
+      "Correct CI receipt inputs and qualify actual browser field performance"
+    ],
+    "postRelease": [
+      "fn-242: lean field artifact, same engine",
+      "fn-285: current growth/kernel profile and mature tree cost",
+      "Remove unused indexed surface from CPU renderer and full floret readback from field",
+      "Explicit runtime ownership, memory budget, cancellation, reusable sampling",
+      "fn-318 GPU pregeneration; fn-300 executor agreement; fn-307 shared validation"
+    ]
+  }
+}

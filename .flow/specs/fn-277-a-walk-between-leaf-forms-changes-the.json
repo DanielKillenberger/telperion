@@ -1,0 +1,44 @@
+{
+  "branch_name": "fn-277-a-walk-between-leaf-forms-changes-the",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-14T10:11:44.961541Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-277-a-walk-between-leaf-forms-changes-the",
+  "impl_review_rounds": {
+    "fn-277-a-walk-between-leaf-forms-changes-the.1": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-277-a-walk-between-leaf-forms-changes-the.1": 2,
+    "plan": 2,
+    "plan#completion": 2
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-277-a-walk-between-leaf-forms-changes-the.1": 0
+  },
+  "spec_path": ".flow/specs/fn-277-a-walk-between-leaf-forms-changes-the.md",
+  "status": "done",
+  "title": "A walk between leaf forms changes the leaves by degree",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-15T20:17:26.218819Z"
+}

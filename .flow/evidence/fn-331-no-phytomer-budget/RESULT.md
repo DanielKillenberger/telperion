@@ -1,0 +1,6 @@
+# fn-331 result: no phytomer budget
+
+- **R1:** `Request.budget`, the rules' budget, both CPU checks, `Error::Budget`, the pipeline's `BUDGET` and its `ResourceLimit("engine phytomer budget")` mapping are gone. On the device, the `Flag::Budget` refusal is gone and the phytomer table is sized from observed counts like every other table (it had been clamped to the budget). Tests that asserted the refusal are deleted; one walk test's leftover assertion that a blend predicts under 20,000,000 grown phytomers is removed. No small-budget test was bounding a runaway grow.
+- **R2:** the real memory refusals are unchanged: device buffers past their size, the device's memory ledger, and the Wasm `KEPT` bound. A growth error from the engine now surfaces as `InvalidValue` on `engine`, since the engine's remaining errors are refusals of input.
+- **R3:** `the_oak_at_200_builds_with_no_phytomer_budget` (ignored) built the oak at 200, seed 1, through the pipeline with wood, curves and leaves: 106.1 s, of which skeleton 105.4 s, 1,281,121 nodes, peak 9.2 GiB (`VmHWM` 9,650,352 kB), one run, 3 Nov 2026.
+- **R4:** gate green on `a3fccc4c6` (test run 1,164 s against 1,560 s, package and core without geometry passing); codex review, three reviewers on correctness, contracts and integration, SHIP with no findings.

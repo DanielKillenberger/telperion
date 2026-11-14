@@ -3,28 +3,28 @@
 /* ------------------------------------------------------------------ *
  * THE DIALS, AS CONTROLS
  *
- * One control per catalogue row the build reads, grouped by where the
- * row sits in the family, each with its meaning and, where it has one,
- * the condition under which it does nothing. The two named transforms
- * sit in the group whose rows they move. Split out of the panel
- * component because the panel owns the canvas, the stage's lifecycle
- * and the params.
+ * One control per catalogue row the build reads and per engine setting
+ * the species states, grouped by what it does to the tree (`panel.ts`),
+ * each under a plain label with its unit, its meaning and, where it has
+ * one, the condition under which it does nothing. A control that
+ * differs from the preset says so, and goes back with its own reset, its
+ * group's, or the tree's. Split out of the panel component because the
+ * panel owns the canvas, the stage's lifecycle and the params.
  *
  * Nothing here knows what will draw the tree. It takes the params and
  * hands back the params changed, which is the whole contract.
  * ------------------------------------------------------------------ */
 
-import type { Dispatch, SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 
-import { PARAMETERS, type Parameter } from "../src/browser/parameters.generated";
-import { ADAPTERS, adapterAdmits, type Adapter } from "./family";
+import type { Parameter } from "../src/browser/parameters.generated";
+import { Changed } from "./changed";
+import { changed, controls, matches, reset, resetAll, type Control } from "./panel";
 import type { GrowerParams } from "./params";
-import { admit, groupOf, labelOf, readRow, shownRows, slider, writeRow, type Value } from "./rows";
+import { admit, readRow, slider, writeRow, type Value } from "./rows";
+import { SpaceDial } from "./space-dials";
 
-/** Rows another control owns: the seed box and each adapter's row. */
-const OWNED: ReadonlySet<string> = new Set([
-  "/skeleton/seed", ...ADAPTERS.flatMap(a => (a.owns === undefined ? [] : [a.owns])),
-]);
+type SetParams = Dispatch<SetStateAction<GrowerParams>>;
 
 /** A dial's value, at a precision that can tell its own steps apart -
  *  which is the STEP's business and not the value's. */
@@ -73,22 +73,19 @@ function Numeric({ id, value, whole, range, onChange }: {
   </>;
 }
 
-/** Where a row does nothing, said beside its control. */
-function Dormant({ applies }: { applies: readonly string[] }) {
-  return <>{applies.filter(a => a !== "").map(a => <p className="gd-dormant" key={a}>dormant: {a}</p>)}</>;
-}
-
 /** One catalogue row: its control, its meaning and its dormancy. */
-function Row({ parameter: p, value, onChange }: {
+function Row({ parameter: p, value, isChanged, onChange, onReset }: {
   parameter: Parameter;
   value: Value;
+  isChanged: boolean;
   onChange: (value: Value) => void;
+  onReset: () => void;
 }) {
   const id = `gd-${p.path}`;
   const range = typeof value === "number" ? slider(p, value) : null;
-  return <div className="gd-dial">
+  return <div className={isChanged ? "gd-dial gd-changed" : "gd-dial"}>
     <label className="gd-label" htmlFor={id}>
-      {labelOf(p.path)}
+      {p.label}
       {typeof value === "number" && <span className="gd-value">
         {range === null ? value : format(value, range.notch)} {p.unit}
       </span>}
@@ -101,55 +98,79 @@ function Row({ parameter: p, value, onChange }: {
             const admitted = admit(p, raw);
             if (admitted !== null) onChange(admitted);
           }} />}
+    {isChanged && <Changed label={p.label} onReset={onReset} />}
     <p className="gd-meaning">{p.meaning}</p>
-    <Dormant applies={[p.applies]} />
+    {p.applies !== "" && <p className="gd-dormant">dormant: {p.applies}</p>}
   </div>;
 }
 
-/** A named transform, drawn as a row is, carrying the dormancy of the rows
- *  it moves. */
-function AdapterDial({ adapter: a, params, onChange }: {
-  adapter: Adapter;
-  params: GrowerParams;
-  onChange: (value: number) => void;
-}) {
-  const id = `gd-${a.key}`;
-  const value = params[a.key];
-  const applies = [...new Set(PARAMETERS.filter(p => a.moves.includes(p.path)).map(p => p.applies))];
-  return <div className="gd-dial">
-    <label className="gd-label" htmlFor={id}>
-      {a.key}<span className="gd-value">{format(value, a.step)}</span>
-    </label>
-    <Numeric id={id} value={value} whole={false}
-      range={{ ends: [Math.min(a.min, value), Math.max(a.max, value)], notch: a.step }}
-      onChange={raw => { if (adapterAdmits(params, a, raw)) onChange(raw); }} />
-    <p className="gd-meaning">{a.meaning}</p>
-    <Dormant applies={applies} />
+/** The oldest age the age dial reaches, in years (fn-198 host decision 5:
+ *  the engine's species open at 40 with the dial to 80). The engine grows
+ *  at least one year. A preset older than this keeps its own age on the
+ *  dial, as a row's slider takes its value in. */
+export const AGE_MAX = 80;
+
+/** The age the tree is drawn at, in whole years: the viewer's control, not
+ *  a tuning dial (the `/age` row's catalogue entry), so it stands beside
+ *  the seed. Every age rebuilds through the same engine path. */
+export function AgeDial({ age, onChange }: { age: number; onChange: (age: number) => void }) {
+  const set = (raw: number): void => {
+    if (Number.isFinite(raw)) onChange(Math.max(1, Math.round(raw)));
+  };
+  return <div className="gd-row">
+    <label className="gd-label" htmlFor="gd-age">age <span className="gd-value">{age} years</span></label>
+    <input id="gd-age" type="range" min={1} max={Math.max(AGE_MAX, age)} step={1} value={age}
+      onChange={event => set(event.target.valueAsNumber)} />
   </div>;
 }
 
-/** The rows the build reads, by group. */
-export function Dials({ params, setParams }: {
-  params: GrowerParams;
-  setParams: Dispatch<SetStateAction<GrowerParams>>;
-}) {
-  const groups = new Map<string, Parameter[]>();
-  for (const p of shownRows()) {
-    if (!OWNED.has(p.path)) groups.set(groupOf(p.path), [...groups.get(groupOf(p.path)) ?? [], p]);
+/** One control, as its kind draws it. */
+function Dial({ c, params, setParams }: { c: Control; params: GrowerParams; setParams: SetParams }) {
+  const isChanged = changed(c, params.family, params.preset);
+  const onReset = (): void => setParams(prev => ({ ...prev, family: reset(c, prev.family, prev.preset) }));
+  if (c.kind === "space") {
+    return <SpaceDial s={c.setting} params={params} setParams={setParams} isChanged={isChanged} onReset={onReset} />;
   }
+  const path = c.row.path;
+  return <Row parameter={c.row} value={readRow(params.family, path)} isChanged={isChanged} onReset={onReset}
+    onChange={value => setParams(prev => ({ ...prev, family: writeRow(prev.family, path, value) }))} />;
+}
+
+/** The groups a closed panel opens on: the most telling. */
+const OPEN: ReadonlySet<string> = new Set(["size", "form"]);
+
+/** Every control, by what it does, with a filter and the tree's reset. */
+export function Dials({ params, setParams }: { params: GrowerParams; setParams: SetParams }) {
+  const [filter, setFilter] = useState("");
+  const groups = controls(params.preset);
+  const anyChanged = groups.some(g => g.controls.some(c => changed(c, params.family, params.preset)));
+  const supernatural = params.family.supernatural.enabled;
   return <>
-    {[...groups].map(([group, rows]) => (
-      <details className="gd-dials" key={group}>
-        <summary>{group}</summary>
-        {ADAPTERS.filter(a => a.group === group).map(a => (
-          <AdapterDial key={a.key} adapter={a} params={params}
-            onChange={value => setParams(prev => ({ ...prev, [a.key]: value }))} />
-        ))}
-        {rows.map(p => (
-          <Row key={p.path} parameter={p} value={readRow(params.family, p.path)}
-            onChange={value => setParams(prev => ({ ...prev, family: writeRow(prev.family, p.path, value) }))} />
-        ))}
-      </details>
-    ))}
+    <div className="gd-row">
+      <input className="gd-filter" type="search" placeholder="find a control" aria-label="find a control"
+        value={filter} onChange={event => setFilter(event.target.value)} />
+      <button className="gd-button" type="button" disabled={!anyChanged}
+        onClick={() => setParams(prev => ({ ...prev, family: structuredClone(prev.preset) }))}>
+        reset tree
+      </button>
+    </div>
+    {groups.map(({ group, title, controls: all }) => {
+      const shown = all.filter(c => matches(c, filter));
+      if (shown.length === 0) return null;
+      const changes = all.filter(c => changed(c, params.family, params.preset));
+      const open = filter !== "" || OPEN.has(group);
+      return <details className="gd-dials" key={`${group}-${open}`} open={open}>
+        <summary>
+          {title}
+          {group === "supernatural" && !supernatural && <span className="gd-dormant"> dormant: off for this tree</span>}
+          {changes.length > 0 && <span className="gd-value"> · {changes.length} changed</span>}
+        </summary>
+        {changes.length > 0 && <button className="gd-reset" type="button"
+          onClick={() => setParams(prev => ({ ...prev, family: resetAll(changes, prev.family, prev.preset) }))}>
+          reset {title}
+        </button>}
+        {shown.map(c => <Dial key={c.id} c={c} params={params} setParams={setParams} />)}
+      </details>;
+    })}
   </>;
 }

@@ -1,51 +1,31 @@
 # A species run carries no spending cap
 
-## Conversation Evidence
+## Goal
 
-> user (2026-09-23): "Can we stop with the budget pls? We're still building it. I think once we have run some loops to completion we can figure out what a usual loop would cost and start flagging ones that are completely out of line. But let's keep going for now, note when we're inefficient and try and fix that for later runs. Avoid runaway quotas but drop the cap."
-> user (2026-09-23), on a CLAUDE.md rule saying not to ask: "but can't we just remove the thing that was asking for it instead of writing a NOT rule"
+On 2026-09-23 the date palm's run stopped for a cap three times (conductor 2 M, 6 M, 10 M) and the tuning loop twice more on its own token, evaluation and round caps, each needing a decision restating new numbers. The owner wants the caps gone while the loop is built, runaway guards kept, and spend still recorded so a usual loop's cost can be learned.
 
-## Goal & Context
-<!-- scope: business -->
+Owner quotes (2026-09-23):
+> "Can we stop with the budget pls? We're still building it. I think once we have run some loops to completion we can figure out what a usual loop would cost and start flagging ones that are completely out of line. But let's keep going for now, note when we're inefficient and try and fix that for later runs. Avoid runaway quotas but drop the cap."
+> On a CLAUDE.md rule saying not to ask: "but can't we just remove the thing that was asking for it instead of writing a NOT rule" (PR #72, which wrote that rule, was closed).
 
-On 2026-09-23 the date palm's run stopped for a cap three times (the conductor's 2 M, then 6 M, then 10 M) and the tuning loop twice more on its own token, evaluation and round caps, each needing a decision that restated the new numbers. The owner wants the caps gone while the loop is built, with only the guards against a runaway kept, and every run's spend still recorded so a usual loop's cost can be learned later. [paraphrase]
+## Decisions
 
-## Architecture & Data Models
-<!-- scope: technical -->
-
-- **What exists, checked 2026-09-23 on the fn-80 branch.**
-  - Conductor: `Budget` (`conductor/mod.rs:115`) holds `max_tokens`, `attempt_max_tokens`, `max_dispatches`, `max_tuning_revisions` as required `u64`; config validation refuses zero (`mod.rs:143`); `dependency.rs:93-98` pauses when dispatches or the next attempt's tokens would pass them. [checked]
-  - Tuning: `state::Budget` (`tuning/state.rs:108`) holds `max_evaluations`, `max_images`, `max_tokens`, `max_rounds` (required) and `max_visual_passes`; `engine.rs:648` pauses "round preflight cannot fit"; `experimental_pilot` must repeat every cap exactly (`continuation.rs:334`, "authority mismatch"), and raising one needs a `*_cap_extension` in a resume decision. [checked]
-  - The runaway guards that do not depend on a cap: the continuation trio refuses "equivalent failed attempts without new evidence" (`continuation.rs:38`), and a track whose every strength was tried stops (`bundle/round.rs`, `Turn::AllTried`). [checked]
-- **The design (host, 2026-09-23).** [host design]
-  - Every cap above becomes optional. Absent means no cap; a config that sets one keeps today's behaviour, so tests and replays that rely on a cap still can.
-  - The shipped and example configs drop their caps. The conductor's config needs no `budget` block at all.
-  - The pilot authority and the cap-extension decisions compare only the caps a config sets; with none set there is nothing to restate on resume.
-  - Spend is recorded exactly as today (tokens, dispatches, revisions, evaluations, images, visual passes) in the run record, the result and the report.
-  - The runaway guards stay as they are, and one is added in code: a tuning run that finishes `k` consecutive rounds (default 5, config) with no adoption kept pauses as a runaway, with the rounds' spend in the pause.
+- Host design (2026-09-23): every conductor and tuning cap becomes optional; absent means no cap, a set cap behaves as before. Shipped configs drop their caps; the conductor needs no `budget` block. Pilot authority and resume compare only caps a config sets.
+- Spend recorded as before. Runaway guards kept, plus a new one: `runaway_rounds` (default 5) consecutive rounds with no kept adoption pause the run, naming rounds and spend.
+- Capture budgets in AGENTS.md unchanged.
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** A conductor config with no budget block runs; nothing pauses for tokens, dispatches or revisions, and the run's spend is still recorded and reported. [inferred]
-- **R2:** A tuning config with no caps runs rounds without a "cannot fit" pause; the pilot authority and a resume carry no cap numbers. [inferred]
-- **R3:** A config that sets a cap still pauses at it, as today. [inferred]
-- **R4:** A tuning run with `k` consecutive rounds keeping nothing pauses as a runaway, naming the rounds and their spend; the continuation guard against repeated failure is unchanged. [inferred]
-- **R5:** The gate is green: `cargo test --profile ci --workspace --no-fail-fast`. [paraphrase]
+- **R1:** Conductor config with no budget block runs, nothing pauses, spend reported — met.
+- **R2:** Uncapped tuning has no "cannot fit" pause; pilot and resume carry no cap numbers — met.
+- **R3:** A set cap still pauses — met.
+- **R4:** `k` rounds keeping nothing pause as a runaway — met (red without the guard).
+- **R5:** Gate green — met (658 passed).
 
-## Boundaries
+## Result
 
-- Capture budgets in CLAUDE.md are unchanged. [paraphrase]
-- No change to readiness, gates or verdicts. [inferred]
+Landed in `e0e157f3` (`tuning/caps.rs`, `tuning/runaway.rs`); carried into the fn-149 rewrite (#121), which kept the no-progress stop. Host-check decisions recorded: `next_tokens` asked only when a token cap is set (unknown otherwise); a fresh run's visual counter opens at 0; resuming a capped run with an uncapped config drops its caps.
 
-## Decision Context
+## Open
 
-- The owner chose on 2026-09-23 to remove the mechanism rather than write a rule against asking; PR #72, which wrote that rule, was closed. [user]
-
-## Open Questions
-
-- None.
-
-## Settled
-
-Closed as landed (2026-09-26, fn-149 R8): #121 removed the spending cap; the no-progress stop is kept.
+None.

@@ -53,7 +53,8 @@ fn the_material_row_travels_the_wire_and_is_refused_by_field_name() {
 fn catalogue_roundtrips_all_controls_and_identities() {
     for &(abi, id, _, _) in CATALOGUE.iter().rev() {
         let mut value = metadata(&preset(abi).unwrap());
-        assert_eq!(value, metadata(&parse(&json!(id)).unwrap()));
+        assert_eq!(value, metadata(&by_identity(id).unwrap()));
+        assert!(parse(&json!(id)).is_err(), "{id}: an id is not parameters");
         assert_eq!(value, metadata(&parse(&value).unwrap()));
         value["skeleton"]["bias"]["supernatural"] = json!({"enabled":false,"writheAmplitude":0.12,"writheWavelength":0.4,"spiralRate":3.0,"maxWritheMagnitude":0.9});
         value["element"]["connectorLength"] = json!(0.002);
@@ -129,13 +130,7 @@ fn catalogue_roundtrips_all_controls_and_identities() {
             ("leanRise", json!(-1.5)),
             ("outward", json!(-0.2)),
             ("upward", json!(-0.6)),
-            // Short shoots are rows too, neutral at a spacing of zero.
-            ("shortShootSpacing", json!(0.12)),
-            ("shortShootRadius", json!(0.3)),
-            ("shortShootLength", json!(0.02)),
-            ("shortShootLeaves", json!(5)),
-            ("shortShootSpread", json!(60.0)),
-            // So is the gap between limb systems, neutral at none.
+            // The gap between limb systems is a row too, neutral at none.
             ("limbClumping", json!(0.4)),
         ] {
             value["canopy"][trait_name] = set;
@@ -153,6 +148,7 @@ fn catalogue_roundtrips_all_controls_and_identities() {
             Some(Error::InvalidInput("unknown canopy trait"))
         );
     }
+    #[cfg(feature = "geometry")]
     for (trait_name, bad, message) in [
         ("forwardLean", json!(1.5), "forward lean"),
         ("forwardLean", json!(-1.5), "forward lean"),
@@ -160,11 +156,6 @@ fn catalogue_roundtrips_all_controls_and_identities() {
         ("outward", json!(-1.5), "outward"),
         ("upward", json!(-1.5), "upward"),
         ("surfaceContact", json!(2.0), "surface contact"),
-        ("shortShootSpacing", json!(0.001), "short shoot spacing"),
-        ("shortShootRadius", json!(1.5), "short shoot radius"),
-        ("shortShootLength", json!(0.6), "short shoot length"),
-        ("shortShootLeaves", json!(9), "short shoot leaves"),
-        ("shortShootSpread", json!(95.0), "short shoot spread"),
         ("limbClumping", json!(1.5), "limb clumping"),
         ("limbClumping", json!(-0.1), "limb clumping"),
     ] {
@@ -251,8 +242,6 @@ fn the_retired_growth_rows_are_refused_by_name() {
     assert!(error.to_string().contains(why), "{error}");
 }
 
-
-
 #[test]
 fn a_table_in_work_is_reserved_unlisted_and_not_built_by_name() {
     for &(abi, id, _, _) in IN_WORK {
@@ -327,4 +316,18 @@ fn the_first_malformed_row_on_the_wire_names_the_refusal() {
             "{wire}"
         );
     }
+}
+
+/// fn-294 R5: a family built in Rust under a light no row states (a valid
+/// `Light`, not the site's) cannot be written as a wire; an overlay of it
+/// is refused by name, never a panic.
+#[test]
+fn an_overlay_of_a_family_under_another_light_is_refused_by_name() {
+    let mut family = preset(3).unwrap();
+    family.space.light = telperion_space::Light::NEUTRAL;
+    let refused = overlay(&family, &json!({})).unwrap_err();
+    assert!(
+        matches!(&refused, Error::InvalidValue { field: "space", value } if value.contains("site's light")),
+        "{refused}"
+    );
 }

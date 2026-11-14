@@ -1,0 +1,286 @@
+diff --git i/crates/telperion-core/src/pipeline.rs w/crates/telperion-core/src/pipeline.rs
+index 22f97a6cd..b3e402023 100644
+--- i/crates/telperion-core/src/pipeline.rs
++++ w/crates/telperion-core/src/pipeline.rs
+@@ -299,6 +299,8 @@ mod input;
+ mod fidelity_tests;
+ #[cfg(all(test, feature = "geometry"))]
+ mod cycle_cost_tests;
++#[cfg(all(test, feature = "geometry"))]
++mod structure_probe_tests;
+ #[cfg(not(feature = "geometry"))]
+ mod planned;
+ mod stage;
+diff --git i/crates/telperion-core/src/pipeline/structure_probe_tests.rs w/crates/telperion-core/src/pipeline/structure_probe_tests.rs
+new file mode 100644
+index 000000000..93a76bf47
+--- /dev/null
++++ w/crates/telperion-core/src/pipeline/structure_probe_tests.rs
+@@ -0,0 +1,267 @@
++//! fn-341 R1: the structure's measures on the settled engine tree, for
++//! `probes/r1.py` to set beside published ranges. A measurement, ignored.
++//! Engine coordinates: z up, metres.
++use super::executor;
++use crate::presets::by_identity;
++use telperion_space::{grow, Origin, Structure, Vec3};
++
++type At = (usize, usize);
++
++fn sub(a: Vec3, b: Vec3) -> [f64; 3] {
++    [a.x - b.x, a.y - b.y, a.z - b.z]
++}
++fn norm(v: [f64; 3]) -> f64 {
++    (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt()
++}
++fn angle(a: [f64; 3], b: [f64; 3]) -> f64 {
++    let c = (a[0] * b[0] + a[1] * b[1] + a[2] * b[2]) / (norm(a) * norm(b)).max(1e-12);
++    c.clamp(-1.0, 1.0).acos().to_degrees()
++}
++fn q(mut v: Vec<f64>, p: f64) -> f64 {
++    if v.is_empty() {
++        return f64::NAN;
++    }
++    v.sort_by(f64::total_cmp);
++    v[((v.len() - 1) as f64 * p).round() as usize]
++}
++
++struct Graph<'a> {
++    s: &'a Structure,
++    kids: Vec<Vec<Vec<usize>>>,
++    live: Vec<bool>,
++}
++
++impl<'a> Graph<'a> {
++    fn new(s: &'a Structure) -> Self {
++        let mut kids: Vec<Vec<Vec<usize>>> =
++            s.axes.iter().map(|a| vec![Vec::new(); a.phytomers.len()]).collect();
++        for (i, a) in s.axes.iter().enumerate() {
++            let Some(p) = a.origin.parent() else { continue };
++            assert!(p < i, "parents come first");
++            let last = s.axes[p].phytomers.len().saturating_sub(1);
++            let node = match a.origin {
++                Origin::Lateral { node, .. } => node,
++                Origin::Relay { node, .. } => a.joined().map_or(node, |j| j.node),
++                _ => last,
++            };
++            if let Some(k) = kids[p].get_mut(node.min(last)) {
++                k.push(i);
++            }
++        }
++        let age = s.age;
++        let mut live: Vec<bool> =
++            s.axes.iter().map(|a| a.phytomers.iter().any(|p| p.cycle == age)).collect();
++        for i in (1..s.axes.len()).rev() {
++            if let (true, Some(p)) = (live[i], s.axes[i].origin.parent()) {
++                live[p] = true;
++            }
++        }
++        Self { s, kids, live }
++    }
++    fn r(&self, (a, j): At) -> f64 {
++        self.s.axes[a].phytomers[j].radius
++    }
++    fn start(&self, (a, j): At) -> Vec3 {
++        if j == 0 { self.s.axes[a].base } else { self.s.axes[a].phytomers[j - 1].tip }
++    }
++    fn tip(&self, (a, j): At) -> Vec3 {
++        self.s.axes[a].phytomers[j].tip
++    }
++    /// What leaves the tip of `at`: its axis's next phytomer, then each child axis's first.
++    fn next(&self, (a, j): At) -> Vec<At> {
++        let mut n: Vec<At> = Vec::new();
++        if j + 1 < self.s.axes[a].phytomers.len() {
++            n.push((a, j + 1));
++        }
++        for &c in &self.kids[a][j] {
++            if !self.s.axes[c].phytomers.is_empty() {
++                n.push((c, 0));
++            }
++        }
++        n
++    }
++    /// The trunk by the thickest wood from the root, with each step's
++    /// second-thickest over the thickest.
++    fn trunk(&self) -> Vec<(At, f64)> {
++        let mut path = vec![((0, 0), 0.0)];
++        let mut at = (0usize, 0usize);
++        loop {
++            let mut n = self.next(at);
++            if n.is_empty() {
++                return path;
++            }
++            n.sort_by(|x, y| self.r(*y).total_cmp(&self.r(*x)));
++            let ratio = n.get(1).map_or(0.0, |&b| self.r(b) / self.r(n[0]).max(1e-12));
++            path.last_mut().unwrap().1 = ratio;
++            at = n[0];
++            path.push((at, 0.0));
++        }
++    }
++    /// A lateral's chord over its first `reach` metres along its thickest
++    /// wood (relays and continuations included), and the length walked.
++    fn heading(&self, c: usize, reach: f64) -> ([f64; 3], f64) {
++        let base = self.s.axes[c].base;
++        let (mut at, mut walked) = ((c, 0), 0.0);
++        loop {
++            walked += norm(sub(self.tip(at), self.start(at)));
++            let n = self.next(at);
++            if walked >= reach || n.is_empty() {
++                return (sub(self.tip(at), base), walked);
++            }
++            at = *n.iter().max_by(|x, y| self.r(**x).total_cmp(&self.r(**y))).unwrap();
++        }
++    }
++}
++
++/// `STRUCT_PRESET` at `STRUCT_AGE` (0: the preset's) on each of `STRUCT_SEEDS`.
++#[test]
++#[ignore = "a measurement: fn-341 R1"]
++fn structure_measures() {
++    let id = std::env::var("STRUCT_PRESET").expect("a preset");
++    let age: f64 = std::env::var("STRUCT_AGE").ok().and_then(|a| a.parse().ok()).unwrap_or(0.0);
++    let seeds: Vec<u32> = std::env::var("STRUCT_SEEDS").expect("seeds")
++        .split(',').map(|s| s.parse().expect("a seed")).collect();
++    for seed in seeds {
++        let mut f = by_identity(&id).expect("a preset");
++        f.fidelity = 0.0;
++        f.skeleton.seed = seed;
++        if age > 0.0 {
++            f.age = age;
++        }
++        let g = executor::growth(&f).expect("its growth");
++        let t0 = std::time::Instant::now();
++        let s = grow(&g.species, g.request).expect("a tree");
++        let secs = t0.elapsed().as_secs_f64();
++        read(&id, seed, &s, g.scale, secs);
++        if std::env::var("STRUCT_TREE").is_ok() {
++            // fn-340's read on the pipeline's tree: the widest node in 1.0 to 1.6 m.
++            let tree = super::skeleton(super::GrowInput::of(&f)).expect("a tree").tree;
++            let base = tree.nodes[0].position;
++            let (mut band, mut stem) = (0f64, 0f64);
++            for n in &tree.nodes {
++                if (1.0..=1.6).contains(&(n.position.y - base.y)) {
++                    band = band.max(n.radius);
++                    if n.stem {
++                        stem = stem.max(n.radius);
++                    }
++                }
++            }
++            println!("PIPE {id} {seed} dband={:.4} dstem={:.4}", 2.0 * band, 2.0 * stem);
++        }
++    }
++}
++
++fn read(id: &str, seed: u32, s: &Structure, scale: f64, secs: f64) {
++    let g = Graph::new(s);
++    let z0 = s.axes[0].base.z;
++    let z = |v: Vec3| v.z - z0;
++    let (mut top, mut lo, mut hi) = (f64::MIN, [f64::MAX; 2], [f64::MIN; 2]);
++    let mut band = 0f64;
++    for a in &s.axes {
++        for p in &a.phytomers {
++            top = top.max(z(p.tip));
++            lo = [lo[0].min(p.tip.x), lo[1].min(p.tip.y)];
++            hi = [hi[0].max(p.tip.x), hi[1].max(p.tip.y)];
++            if (1.0..=1.6).contains(&z(p.tip)) {
++                band = band.max(p.radius);
++            }
++        }
++    }
++    let spread = ((hi[0] - lo[0]) + (hi[1] - lo[1])) / 2.0;
++    let path = g.trunk();
++    // The trunk's diameter where its internode spans height `h`.
++    let d_at = |h: f64| {
++        path.iter()
++            .find(|(at, _)| z(g.start(*at)) <= h && h <= z(g.tip(*at)))
++            .map_or(f64::NAN, |(at, _)| 2.0 * g.r(*at))
++    };
++    let dbh = d_at(1.3);
++    // The bole: the trunk up to its first junction whose second wood is
++    // half the first's or more (a fork).
++    let fork = path.iter().position(|(_, ratio)| *ratio >= 0.5).unwrap_or(path.len() - 1);
++    let fork_z = z(g.tip(path[fork].0));
++    let d_fork = 2.0 * g.r(path[fork].0);
++    let taper = (dbh - d_fork) / (fork_z - 1.3) * 100.0;
++    let end_z = z(g.tip(path.last().unwrap().0));
++    // Laterals off the bole and off the whole trunk path.
++    let on_path: std::collections::HashSet<At> = path.iter().map(|p| p.0).collect();
++    let (mut lowest_live, mut lowest_live5) = (f64::NAN, f64::NAN);
++    let mut bole = [0usize; 4];
++    let mut lats = Vec::new();
++    for (k, (at, _)) in path.iter().enumerate() {
++        let carrier = path.get(k + 1).map(|p| p.0);
++        for &c in &g.kids[at.0][at.1] {
++            if Some((c, 0)) == carrier || s.axes[c].phytomers.is_empty() {
++                continue;
++            }
++            let d = 2.0 * g.r((c, 0));
++            let h = z(g.tip(*at));
++            if k <= fork {
++                if g.live[c] {
++                    lowest_live = if lowest_live.is_nan() { h } else { lowest_live.min(h) };
++                    if d >= 0.05 {
++                        lowest_live5 = if lowest_live5.is_nan() { h } else { lowest_live5.min(h) };
++                    }
++                }
++                for (i, lim) in [0.0, 0.02, 0.05, 0.10].iter().enumerate() {
++                    bole[i] += usize::from(g.live[c] && d >= *lim);
++                }
++            }
++            if d >= 0.05 {
++                let up = sub(g.tip(*at), g.start(*at));
++                let dir = g.heading(c, 1.0).0;
++                let parent_r = g.r(*at);
++                let pa = s.axes[c].pa;
++                let (whole, len) = g.heading(c, f64::INFINITY);
++                let reach = (whole[0].hypot(whole[1]), whole[2]);
++                lats.push((h, d, parent_r, angle(dir, [0.0, 0.0, 1.0]), angle(dir, up), pa, g.live[c], len, reach));
++            }
++        }
++    }
++    let _ = on_path;
++    // Limbs of the limb PA borne by a stem PA (2 to 5).
++    let limbs = (0..s.axes.len())
++        .filter(|&i| s.axes[i].pa == 6 && g.live[i])
++        .filter(|&i| s.axes[i].origin.parent().is_some_and(|p| (2..=5).contains(&s.axes[p].pa)))
++        .count();
++    // Junctions in wood of 2 cm or more: each child's over the wood below,
++    // and the sections above over the section below.
++    let (mut child, mut area) = (Vec::new(), Vec::new());
++    for (a, axis) in s.axes.iter().enumerate() {
++        for j in 0..axis.phytomers.len() {
++            let r_in = g.r((a, j));
++            if r_in < 0.02 {
++                continue;
++            }
++            let n = g.next((a, j));
++            if n.len() < 2 {
++                continue;
++            }
++            let sum: f64 = n.iter().map(|&x| g.r(x).powi(2)).sum();
++            area.push(sum / r_in.powi(2));
++            let mut rs: Vec<f64> = n.iter().map(|&x| g.r(x)).collect();
++            rs.sort_by(|x, y| y.total_cmp(x));
++            for r in &rs[1..] {
++                child.push(r / r_in);
++            }
++        }
++    }
++    let qs = |v: &Vec<f64>| format!("{:.3}/{:.3}/{:.3}", q(v.clone(), 0.25), q(v.clone(), 0.5), q(v.clone(), 0.75));
++    let phyt: usize = s.axes.iter().map(|a| a.phytomers.len()).sum();
++    println!(
++        "TREE {id} {seed} {} scale={scale} secs={secs:.2} axes={} phyt={phyt} height={top:.3} spread={spread:.3} \
++         dbh={dbh:.4} dband={:.4} d03={:.4} d25={:.4} dhalf={:.4} fork_z={fork_z:.3} d_fork={d_fork:.4} \
++         taper_cm_m={taper:.3} path_end={end_z:.3} lowest_live={lowest_live:.3} lowest_live5={lowest_live5:.3} \
++         bole_live={} bole_live2={} bole_live5={} bole_live10={} limbs_pa={limbs} \
++         junctions={} child_q={} area_q={}",
++        s.age, s.axes.len(), 2.0 * band, d_at(0.3), d_at(2.5), d_at(top / 2.0),
++        bole[0], bole[1], bole[2], bole[3], area.len(), qs(&child), qs(&area)
++    );
++    for (h, d, pr, vert, from_parent, pa, live, len, reach) in lats {
++        println!(
++            "LAT {id} {seed} {} h={h:.3} rel={:.3} d={d:.4} ratio={:.3} vert={vert:.1} from_trunk={from_parent:.1} pa={pa} live={} \
++             length={len:.2} out={:.2} up={:.2}",
++            s.age, h / top, d / (2.0 * pr), u8::from(live), reach.0, reach.1
++        );
++    }
++}

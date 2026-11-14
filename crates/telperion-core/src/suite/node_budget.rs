@@ -33,6 +33,7 @@ fn stubs(tree: &Tree) -> usize {
         .count()
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn a_tree_at_its_budget_finishes_every_axis() {
     // The tree no budget binds has a few axes that end short on their own,
@@ -60,6 +61,7 @@ fn a_tree_at_its_budget_finishes_every_axis() {
     }
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn a_larger_budget_walks_toward_the_unbudgeted_tree() {
     let mut last = (0, 0);
@@ -77,6 +79,7 @@ fn a_larger_budget_walks_toward_the_unbudgeted_tree() {
     assert!(whole.nodes.len() > last.1);
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn a_budget_the_tree_cannot_meet_leaves_it_incomplete_and_says_why() {
     // Just above the oak's framework (2 750 nodes), even a tree with no

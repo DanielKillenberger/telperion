@@ -46,8 +46,14 @@ fn needle_origins_touch_rendered_facets_across_bends_and_sockets() {
         stations_per_internode: 1,
     });
     // The twig run stands between these corners; a station's own code is
-    // half this box's step from where it was computed, and that half step is
-    // the slack every facet test below carries.
+    // half this box's step on each axis from where it was computed. Each
+    // axis's error e_k lies within ±h_k, h_k that half step, so its distance
+    // off a facet's plane, |Σ e_k n_k| for the facet's unit normal n, is at
+    // most Σ h_k |n_k|: the true bound of the quantisation along that
+    // normal. The largest single half step bounds it only for a facet facing
+    // along one axis, and was too tight for a slanted facet, which a run of
+    // fewer sides turns towards the station (fn-362, host). The largest half
+    // step is the slack the edge tests carry.
     let box_of = Reference::spanning(Vec3::new(-0.05, 0.95, -0.05), Vec3::new(0.20, 1.25, 0.10));
     let step = box_of.step();
     let slack = step.x.max(step.y).max(step.z) / 2.;
@@ -59,7 +65,7 @@ fn needle_origins_touch_rendered_facets_across_bends_and_sockets() {
             flare_depth: 0.0,
             ..SurfaceParams::default()
         };
-        let mesh = build(&tree, env.height, &params).unwrap();
+        let mesh = build(&tree, env.height, &params).unwrap().flattened();
         let placed = place_on_surface(&tree, env, 1, canopy, twig, &params, box_of).unwrap();
         let circular = place(&tree, env, 1, canopy, twig, box_of).unwrap();
         assert_eq!(placed.len(), circular.len());
@@ -83,7 +89,8 @@ fn needle_origins_touch_rendered_facets_across_bends_and_sockets() {
                     let b = point(t[1]);
                     let c = point(t[2]);
                     let n = (b - a).cross(c - a).normalized();
-                    (p - a).dot(n).abs() < 2e-7 + slack
+                    let off = n.x.abs() * step.x + n.y.abs() * step.y + n.z.abs() * step.z;
+                    (p - a).dot(n).abs() < 2e-7 + off / 2.
                         && [(a, b), (b, c), (c, a)]
                             .iter()
                             .all(|(u, v)| (*v - *u).cross(p - *u).dot(n) >= -2e-8 - slack)

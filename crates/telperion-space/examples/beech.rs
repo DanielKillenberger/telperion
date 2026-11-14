@@ -8,8 +8,6 @@ use std::fmt::Write;
 use std::time::Instant;
 use telperion_space::{beech, expected_counts, grow, oak, spruce, Origin, Request, Structure};
 
-const BUDGET: u32 = 20_000_000;
-
 fn main() {
     let mut args: Vec<String> = std::env::args().skip(1).collect();
     let mut seeds = vec![1u64, 7];
@@ -46,7 +44,6 @@ fn main() {
                 Request {
                     age,
                     seed,
-                    budget: BUDGET,
                     light: telperion_space::Light::NEUTRAL,
                 },
             ) {

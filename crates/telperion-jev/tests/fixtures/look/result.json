@@ -9,9 +9,6 @@
       "round": 2,
       "label": "bundle@0.5",
       "overrides": {
-        "canopy": {
-          "shortShootSpacing": 0.034999999999999996
-        },
         "material": {
           "barkBlue": 0.42500000000000004,
           "barkGrainStrength": 0.22499999999999998,

@@ -9,8 +9,14 @@
 //! already geometric (host decision 19). `settings` lists every
 //! setting of an age by name, its fields named one by one, so a setting
 //! added to `PaState`, `Form` or `Zone` does not compile until it is listed
-//! there, and one listed with no scale here is refused.
+//! there, and one listed with no row in the table (`table.rs`) is refused.
 use super::{NodeLaw, PaState, Zone};
+use crate::transcendental::Transcendental;
+
+mod table;
+pub use table::{Setting, SETTINGS};
+#[cfg(test)]
+mod edges;
 
 /// How a setting mixes between two species.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -38,61 +44,14 @@ pub const OUTCOMES: &[(&str, &str)] = &[
     ("viability", "relay_failed"),
 ];
 
-/// Every setting's scale, by the name `settings` gives it.
-pub const SCALES: &[(&str, Scale)] = &[
-    ("lifespan", Log { floor: 1.0 }),
-    ("continuation", Outcome),
-    ("viability", Outcome),
-    ("shedding", Kept),
-    ("internode", Log { floor: 1e-3 }),
-    ("insertion", Linear),
-    ("divergence", Linear),
-    ("abortion", Outcome),
-    ("abortion_rise", Linear),
-    ("relay", Outcome),
-    ("relay_ended", Outcome),
-    ("relay_failed", Outcome),
-    ("relay_at", Linear),
-    ("epitony", Linear),
-    ("erection", Log { floor: 0.01 }),
-    ("readiness", Linear),
-    ("rhythm", Linear),
-    ("straightening", Linear),
-    // Phase E (fn-197): an area, a cost and a rate are magnitudes; a
-    // response's exponent, a share and a balance mix by value.
-    ("leaf_area", Log { floor: 1e-4 }),
-    ("shade_hazard", Linear),
-    ("shade_size", Linear),
-    ("apical_control", Linear),
-    ("upkeep", Log { floor: 1e-3 }),
-    ("balance_hazard", Log { floor: 0.01 }),
-    ("tolerance", Linear),
-    ("retained", Linear),
-    ("leaf_girth", Linear),
-    ("form.tropism", Log { floor: 0.1 }),
-    ("form.elevation", Linear),
-    ("form.wander", Log { floor: 0.05 }),
-    ("form.plane", Linear),
-    ("form.pipe", Log { floor: 1e-5 }),
-    ("form.exponent", Linear),
-    ("form.ripening", Log { floor: 1.0 }),
-    ("form.dominance", Linear),
-    ("form.roll", Linear),
-    ("form.sag", Log { floor: 1e-5 }),
-    ("form.secondary", Linear),
-    ("form.bend_length", Log { floor: 0.1 }),
-    ("zone.nodes.min", Linear),
-    ("zone.nodes.max", Linear),
-    ("zone.buds", Linear),
-    ("zone.lateral", Linear),
-    ("zone.dormant", Linear),
-    ("zone.delay", Log { floor: 0.1 }),
-    ("zone.rate", Log { floor: 0.01 }),
-];
+/// The setting named `name`, as the table states it.
+pub fn setting(name: &str) -> Option<&'static Setting> {
+    SETTINGS.iter().find(|s| s.name == name)
+}
 
 /// The scale of the setting named `name`, if the table holds one.
 pub fn scale(name: &str) -> Option<Scale> {
-    SCALES.iter().find(|(n, _)| *n == name).map(|&(_, s)| s)
+    setting(name).map(|s| s.scale)
 }
 
 impl Scale {
@@ -110,7 +69,8 @@ impl Scale {
             Linear | Outcome => lerp(a, b),
             // Never below the lesser end, which rounding could leave.
             Log { floor } => {
-                let mixed = lerp((a + floor).ln(), (b + floor).ln()).exp() - floor;
+                let mixed =
+                    lerp((a + floor).ln_fixed(), (b + floor).ln_fixed()).exp_fixed() - floor;
                 mixed.max(a.min(b))
             }
             Kept => {
@@ -145,19 +105,31 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         relay_failed,
         relay_at,
         epitony,
+        takeover,
         erection,
         readiness,
         rhythm,
         straightening,
         leaf_area,
+        flowering,
+        cluster_leaves,
+        cluster_spread,
+        leaf_years,
+        elongation,
+        expansion,
+        leaf_life,
+        budburst,
+        senescence,
+        colouring,
+        leaf_fall,
         shade_hazard,
+        ground_hazard,
         shade_size,
         apical_control,
-        upkeep,
+        inverse_height,
         balance_hazard,
         tolerance,
-        retained,
-        leaf_girth,
+        shade_short,
         form,
     } = state;
     let super::Form {
@@ -165,16 +137,22 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         elevation,
         wander,
         plane,
-        pipe,
-        exponent,
-        ripening,
+        primary,
+        sapwood,
+        sapwood_rings,
+        sapwood_tall,
+        sapwood_rings_tall,
+        sapwood_from,
+        sapwood_to,
         dominance,
         roll,
         sag,
-        secondary,
         bend_length,
+        internode_spread,
+        insertion_spread,
+        tropism_spread,
     } = form;
-    vec![
+    let mut out = vec![
         ("lifespan", lifespan),
         ("continuation", continuation),
         ("viability", viability),
@@ -189,32 +167,51 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         ("relay_failed", relay_failed),
         ("relay_at", relay_at),
         ("epitony", epitony),
+        ("takeover", takeover),
         ("erection", erection),
         ("readiness", readiness),
         ("rhythm", rhythm),
         ("straightening", straightening),
         ("leaf_area", leaf_area),
+        ("flowering", flowering),
+        ("cluster_leaves", cluster_leaves),
+        ("cluster_spread", cluster_spread),
+        ("leaf_years", leaf_years),
+        ("elongation", elongation),
+        ("expansion", expansion),
+        ("leaf_life", leaf_life),
+        ("budburst", budburst),
+        ("senescence", senescence),
+        ("colouring", colouring),
+        ("leaf_fall", leaf_fall),
         ("shade_hazard", shade_hazard),
+        ("ground_hazard", ground_hazard),
         ("shade_size", shade_size),
         ("apical_control", apical_control),
-        ("upkeep", upkeep),
+        ("inverse_height", inverse_height),
         ("balance_hazard", balance_hazard),
         ("tolerance", tolerance),
-        ("retained", retained),
-        ("leaf_girth", leaf_girth),
         ("form.tropism", tropism),
         ("form.elevation", elevation),
         ("form.wander", wander),
         ("form.plane", plane),
-        ("form.pipe", pipe),
-        ("form.exponent", exponent),
-        ("form.ripening", ripening),
+        ("form.primary", primary),
+        ("form.sapwood", sapwood),
+        ("form.sapwood_rings", sapwood_rings),
+        ("form.sapwood_tall", sapwood_tall),
+        ("form.sapwood_rings_tall", sapwood_rings_tall),
+        ("form.sapwood_from", sapwood_from),
+        ("form.sapwood_to", sapwood_to),
         ("form.dominance", dominance),
         ("form.roll", roll),
         ("form.sag", sag),
-        ("form.secondary", secondary),
         ("form.bend_length", bend_length),
-    ]
+        ("form.internode_spread", internode_spread),
+        ("form.insertion_spread", insertion_spread),
+        ("form.tropism_spread", tropism_spread),
+    ];
+    out.extend(shade_short.iter_mut().map(|e| ("shade_short", e)));
+    out
 }
 
 /// Every scalar setting of a zone by name, its tables' entries each under
@@ -263,18 +260,44 @@ mod tests {
         for name in &names {
             assert!(scale(name).is_some(), "{name} has no scale");
         }
-        for (name, _) in SCALES {
-            assert!(names.contains(name), "{name} is no setting");
+        for setting in SETTINGS {
+            assert!(
+                names.contains(&setting.name),
+                "{} is no setting",
+                setting.name
+            );
         }
     }
 
     /// A magnitude mixes geometrically: the midpoint of the palm's stem
-    /// pipe and the beech's branch pipe is their geometric mean, nearly.
+    /// primary radius and the beech's branch one is their geometric mean,
+    /// nearly.
     #[test]
     fn a_magnitude_mixes_on_its_log() {
-        let (a, b) = (palm().states[2].form.pipe, beech().states[9].form.pipe);
-        let mid = scale("form.pipe").unwrap().mix(a, b, 0.5);
+        let (a, b) = (
+            palm().states[2].form.primary,
+            beech().states[9].form.primary,
+        );
+        let mid = scale("form.primary").unwrap().mix(a, b, 0.5);
         assert!((mid - ((a + 1e-5) * (b + 1e-5)).sqrt() + 1e-5).abs() < 1e-12);
         assert!(mid < (a + b) / 2.0 / 5.0, "{mid}");
+    }
+
+    /// A walk between cluster counts moves by degree (fn-277): from none
+    /// to three leaves every step is a valid species, its count the walk's.
+    #[test]
+    fn a_walk_between_cluster_counts_moves_by_degree() {
+        let mut a = beech();
+        a.states[14].cluster_leaves = 0.0;
+        let mut b = beech();
+        b.states[14].cluster_leaves = 3.0;
+        for k in 0..=20 {
+            let t = f64::from(k) / 20.0;
+            let walked = crate::blend(&a, &b, t, 40).unwrap();
+            assert!(
+                (walked.states[14].cluster_leaves - 3.0 * t).abs() < 1e-12,
+                "{t}"
+            );
+        }
     }
 }

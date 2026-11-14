@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-186-the-no-geometry-job-tests-the-build",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-16T03:49:22.392314Z",
   "created_at": "2026-10-02T15:26:17.440933Z",
   "default_impl": null,
   "default_review": null,
@@ -10,15 +10,29 @@
     "fn-181-the-growth-path-is-removed-to-be"
   ],
   "id": "fn-186-the-no-geometry-job-tests-the-build",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-186-the-no-geometry-job-tests-the-build.1": 0
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-16T02:58:43.651030Z",
   "ready": true,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-186-the-no-geometry-job-tests-the-build.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-186-the-no-geometry-job-tests-the-build.1": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-186-the-no-geometry-job-tests-the-build.md",
-  "status": "open",
+  "status": "done",
   "title": "The no-geometry job tests the build without geometry",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +45,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T15:30:20.873305Z"
+  "updated_at": "2026-10-16T05:57:09.753487Z"
 }

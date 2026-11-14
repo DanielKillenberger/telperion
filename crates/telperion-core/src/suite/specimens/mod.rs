@@ -75,11 +75,10 @@ pub fn path(family: &Family) -> Option<PathBuf> {
     let metadata = params::metadata(family);
     let wire = metadata.to_string();
     let seed = family.skeleton.seed;
+    // The scaffold's shipped tables: an engine preset's is grown by the
+    // engine, so its scaffold tree is no fixed specimen (fn-198).
     let fixed = [
         Preset::Ordinary,
-        Preset::OregonWhiteOak,
-        Preset::NorwaySpruce,
-        Preset::EuropeanBeech,
         Preset::SilverBirch,
         Preset::Telperion,
         Preset::Laurelin,

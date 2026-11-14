@@ -4,6 +4,7 @@
 //! under light from overhead (Letort et al., eq. 1), the sky's shares, and
 //! the neutral and by-degree contracts.
 use super::*;
+use crate::transcendental::Transcendental;
 
 const K: f64 = 0.5;
 
@@ -37,11 +38,12 @@ fn one(toward: Vec3) -> Vec<(Vec3, f64)> {
 }
 
 fn field(leaves: &[(Vec3, f64)], reads: &[Vec3], directions: &[(Vec3, f64)]) -> Field {
-    let mut f = Field::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()));
-    for &(at, area) in leaves {
-        f.deposit(at, area);
-    }
-    f.sweep(K, directions);
+    let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
+    let mut f =
+        Field::spanning(points, super::field::NODES).expect("a test lattice inside its nodes");
+    f.deposit_all(leaves);
+    // The directions on four cores: each node sums them in their order.
+    f.sweep(K, directions, 4);
     f
 }
 
@@ -67,10 +69,12 @@ fn a_leaf_slab_transmits_exp_of_minus_k_l_along_every_direction() {
         for k in 0..=8 {
             let at = Vec3::new(0.0, 0.0, f64::from(k) * CELL);
             let lai = density * (top - at.z);
-            let expected = (-K * lai / toward.z).exp();
+            let expected = (-K * lai / toward.z).exp_fixed();
             let got = f.at(at);
+            // Areas enter and light is read in f32 (fn-254), so the law
+            // holds to a few units of f32's last place.
             assert!(
-                (got / expected - 1.0).abs() < 1e-9,
+                (got - expected).abs() < 1e-6,
                 "toward {toward:?}, depth {}: {got} against {expected}",
                 top - at.z
             );
@@ -107,7 +111,7 @@ fn a_leaf_sphere_transmits_exp_of_minus_k_rho_chord() {
         let f = field(&leaves, &reads, &one(toward));
         for &p in &reads {
             let expected = K * density * chord(p, centre, radius, toward);
-            let got = -f.at(p).ln();
+            let got = -f.at(p).ln_fixed();
             worst = worst.max((got - expected).abs());
             assert!(
                 (got - expected).abs() < tolerance,
@@ -135,13 +139,13 @@ fn an_even_crown_gathers_greenlabs_production_from_overhead() {
             Vec3::new(0.0, 0.0, high) + corner,
             density,
             4,
-            |p| p.x.hypot(p.y) < radius,
+            |p| p.x.hypot_fixed(p.y) < radius,
         );
         let f = field(&leaves, &[], &one(Vec3::new(0.0, 0.0, 1.0)));
         let gathered: f64 = leaves.iter().map(|&(p, a)| K * a * f.at(p)).sum();
         let projected = std::f64::consts::PI * radius * radius;
         let area: f64 = leaves.iter().map(|l| l.1).sum();
-        let expected = projected * (1.0 - (-K * area / projected).exp());
+        let expected = projected * (1.0 - (-K * area / projected).exp_fixed());
         (gathered / expected - 1.0).abs()
     };
     let (narrow, wide) = (error(5.0), error(10.0));
@@ -166,13 +170,13 @@ fn the_skys_shares_follow_their_radiance_laws() {
             (0..m)
                 .map(|i| {
                     let e = a + (f64::from(i) + 0.5) * h;
-                    radiance(e) * e.sin() * e.cos() * h
+                    radiance(e) * e.sin_fixed() * e.cos_fixed() * h
                 })
                 .sum::<f64>()
         };
         total(from.to_radians(), to.to_radians(), h) / total(0.0, 90f64.to_radians(), h)
     };
-    let laws: [(f64, fn(f64) -> f64); 2] = [(0.5, |e| 1.0 + 2.0 * e.sin()), (1.0, |_| 1.0)];
+    let laws: [(f64, fn(f64) -> f64); 2] = [(0.5, |e| 1.0 + 2.0 * e.sin_fixed()), (1.0, |_| 1.0)];
     for (sky, radiance) in laws {
         let d = Light { extinction: K, sky }.directions();
         let band = |from: usize, to: usize| d[from..to].iter().map(|x| x.1).sum::<f64>();
@@ -247,4 +251,158 @@ fn a_leaf_or_a_read_moving_across_a_cell_changes_the_light_by_degree() {
         worst < 50.0 * step,
         "a 1 mm step moved the light by {worst}"
     );
+}
+
+/// A fully shaded sample stays at nothing: the corners' f32 weights may
+/// sum a place over one, and the light is never read below nothing or
+/// above one (fn-254 review, its three points and a sweep of the cell).
+#[test]
+fn a_shaded_sample_is_never_below_nothing() {
+    let corners: Vec<(Vec3, f64)> = (0..8)
+        .map(|c| {
+            let at = |a: usize| if (c >> a) & 1 == 1 { 0.5 } else { 0.0 };
+            (Vec3::new(at(0), at(1), at(2)), 1e3)
+        })
+        .collect();
+    let f = field(&corners, &[], &one(Vec3::new(0.0, 0.0, 1.0)));
+    let given = [
+        Vec3::new(0.4396865964, 0.02739467844, 0.1894081980),
+        Vec3::new(0.01489860937, 0.10931898654, 0.25267764926),
+        Vec3::new(
+            0.2360713630914688,
+            0.050350602716207504,
+            0.21708591282367706,
+        ),
+    ];
+    let swept = (0..4096).map(|k| {
+        let u = |s: u32| f64::from((k * s) % 997) / 997.0 * 0.5;
+        Vec3::new(u(13), u(31), u(71))
+    });
+    for at in given.into_iter().chain(swept) {
+        let light = f.at(at);
+        assert!((0.0..=1.0).contains(&light), "{at:?}: {light:e}");
+    }
+}
+
+/// fn-294 R6: a tree whose leaves and tips span more lattice nodes than
+/// the lattice may hold is refused by name before the lattice is
+/// allocated, never an assert: the oak grown 8 years, its lattice held to
+/// `field::SMALL` nodes in place of the platform's 2^28 (fn-349).
+#[test]
+fn a_lattice_past_its_nodes_is_refused_by_name() {
+    let request = crate::Request {
+        age: 8,
+        seed: 1,
+        light: Light {
+            extinction: K,
+            sky: 0.5,
+        },
+    };
+    let oak = std::sync::Arc::new(crate::oak());
+    let paused = crate::grow::cycle::Paused::begin(oak, request, AT_AGE, false);
+    let mut paused = paused.unwrap().lattice_within(super::field::SMALL);
+    let refused = paused.grow_to(request.age).unwrap_err();
+    assert!(
+        matches!(&refused, crate::Error::Refused { input, .. } if input == "light.lattice"),
+        "{refused}"
+    );
+}
+
+const AT_AGE: crate::grow::cycle::Retiring = crate::grow::cycle::Retiring::AtAge;
+
+/// fn-351 speed round 2: the quantised deposit cut into parts for four
+/// cores is the deposit in turn, node for node, and a node only the parts
+/// together fill past its u32 is refused as it is in turn.
+#[test]
+fn the_deposit_in_parts_is_the_deposit_in_turn() {
+    let light = Light {
+        extinction: K,
+        sky: 0.5,
+    };
+    let most = super::field::NODES;
+    let leaves: Vec<(Vec3, f64)> = (0..40_000)
+        .map(|k| {
+            let t = f64::from(k);
+            let at = Vec3::new(
+                (t * 0.37).sin() * 2.0,
+                (t * 0.71).cos() * 2.0,
+                2.0 + (t * 0.13).sin(),
+            );
+            (at, 0.0018 * (1.0 + (t * 0.3).cos()))
+        })
+        .collect();
+    let quanta = |threads: usize| {
+        let field = Field::quantised_with(&light, &leaves, &[], (threads, most));
+        field.unwrap().1
+    };
+    let (turn, parts) = (quanta(1), quanta(4));
+    assert!(turn.iter().any(|&q| q > 0), "leaf deposited");
+    assert_eq!(turn, parts);
+    // 16,384 leaves of 0.3 m² on one node: 5.2e9 quanta, a quarter of
+    // them under a u32.
+    let heavy = vec![(Vec3::new(0.0, 0.0, 1.0), 0.3); 1 << 14];
+    for threads in [1, 4] {
+        let refused = Field::quantised_with(&light, &heavy, &[], (threads, most));
+        let refused = refused.err().expect("refused");
+        assert!(
+            format!("{refused}").starts_with("light.deposit"),
+            "{threads}: {refused}"
+        );
+    }
+}
+
+/// fn-351 speed round 2: the deposit's count of quanta is `round`'s, cast
+/// as it was, at every edge and over a sweep of deposits; and a leaf's
+/// corners, tested against the box once, are `corners`' to the bit.
+#[test]
+fn the_deposits_count_and_corners_are_the_ones_it_took() {
+    use super::field::{rounded, Grid, NODES, QUANTUM};
+    let counted = |x: f64| (x.round() <= f64::from(u32::MAX)).then(|| x.round() as u32);
+    let edges = [
+        0.0,
+        -0.0,
+        0.25,
+        0.499_999_999_999_999_94,
+        0.5,
+        0.500_000_000_000_000_1,
+        1.5,
+        2.5,
+        -0.3,
+        -0.5,
+        -7.0,
+        4_294_967_294.5,
+        4_294_967_295.0,
+        4_294_967_295.499_999,
+        4_294_967_295.5,
+        4_294_967_296.0,
+        1e300,
+        f64::INFINITY,
+        f64::NAN,
+    ];
+    for x in edges {
+        assert_eq!(rounded(x), counted(x), "{x:e}");
+    }
+    let mut state = 1u64;
+    for _ in 0..200_000 {
+        state = state
+            .wrapping_mul(6_364_136_223_846_793_005)
+            .wrapping_add(1_442_695_040_888_963_407);
+        let area = (state >> 40) as f32 / 1e5;
+        let weight = ((state >> 16) & 0xff_ffff) as f32 / 16_777_216.0;
+        let x = f64::from(area) * f64::from(weight) / QUANTUM;
+        assert_eq!(rounded(x), counted(x), "{x:e}");
+    }
+    let points = [
+        Vec3::new(0.3, -1.2, 2.7),
+        Vec3::new(-0.0, 0.0, 0.5),
+        Vec3::new(-1e-9, 1.999_999, 3.25),
+        Vec3::new(1.0, 1.0, 1.0),
+    ];
+    let grid = Grid::spanning(points.iter().copied(), NODES).unwrap();
+    for at in points {
+        for (took, takes) in grid.corners(at).iter().zip(&grid.inside(at)) {
+            assert_eq!(took.0, Some(takes.0), "{at:?}");
+            assert_eq!(took.1.to_bits(), takes.1.to_bits(), "{at:?}");
+        }
+    }
 }

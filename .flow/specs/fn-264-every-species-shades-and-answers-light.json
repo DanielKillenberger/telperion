@@ -1,0 +1,48 @@
+{
+  "branch_name": "fn-264-every-species-shades-and-answers-light",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-11T09:11:10.767518Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-255-one-growth-law-reads-light-for-every"
+  ],
+  "id": "fn-264-every-species-shades-and-answers-light",
+  "impl_review_rounds": {
+    "fn-264-every-species-shades-and-answers-light.1": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-11T09:13:58.303919Z",
+  "ready": true,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-264-every-species-shades-and-answers-light.1": 3,
+    "plan": 2,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-264-every-species-shades-and-answers-light.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-264-every-species-shades-and-answers-light.md",
+  "status": "done",
+  "title": "Every species shades and answers light by its sources",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-13T08:11:18.754136Z"
+}

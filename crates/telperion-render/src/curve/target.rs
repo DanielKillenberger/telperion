@@ -2,6 +2,7 @@
 //! decisions 19 and 21): sized from the view's pixels, each buffer larger
 //! than a binding bound in slices that do not overlap.
 use super::{CurveGpu, BINDING, PASSES, RECORD_WORDS, VERTEX_FLOATS};
+use crate::buffer::Owned;
 use crate::device::Gpu;
 
 /// What a view may write per pixel it covers: rings, vertices, tube indices
@@ -74,33 +75,118 @@ pub struct CurveReport {
     pub budget: [u32; 4],
 }
 
-/// One view's buffers, its slices and the bind group each pass reads.
+/// Where a budget's records, vertices and indices sit: the words, floats
+/// and indices each of the two slices holds, on 256-byte boundaries.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Slices {
+    vertex: u64,
+    index: u64,
+    record: u64,
+}
+
+impl Slices {
+    fn of(budget: Budget) -> Self {
+        let indices = u64::from(budget.tube_indices) + u64::from(budget.ribbon_indices);
+        Self {
+            vertex: slice(u64::from(budget.vertices) * VERTEX_FLOATS, 2),
+            index: slice(indices, 2),
+            // Whole records a slice, on a 256-byte boundary: 32 of 88 bytes.
+            record: u64::from(budget.rings).div_ceil(2).div_ceil(32).max(1) * 32,
+        }
+    }
+
+    /// Bytes of the records, the vertices and the indices.
+    fn bytes(self) -> [u64; 3] {
+        [
+            2 * self.record * RECORD_WORDS * 4,
+            2 * self.vertex * 4,
+            2 * self.index * 4,
+        ]
+    }
+}
+
+/// The buffers both views' passes write in turn (fn-258 R2): the clusters'
+/// counts, offsets and scan blocks, the ring records, and the surfaced
+/// vertices and indices. A frame that redraws the sun's map surfaces the
+/// sun's view, draws the map from it and only then surfaces the camera's
+/// over it, so one set serves both, as large as the larger view asks.
+pub(crate) struct Shared {
+    bytes: [u64; 3],
+    counts: Owned,
+    offsets: Owned,
+    block: Owned,
+    records: Owned,
+    vertices: Owned,
+    indices: Owned,
+}
+
+impl Shared {
+    pub(super) fn new(gpu: &Gpu, curve: &CurveGpu, budgets: [Budget; 2]) -> Self {
+        use wgpu::BufferUsages as U;
+        let per = u64::from(curve.count.max(1)) * 16;
+        let blocks = u64::from(curve.count.div_ceil(256).max(1)) * 16;
+        let bytes = Self::wanted(budgets);
+        let output = U::STORAGE | U::COPY_SRC;
+        Self {
+            bytes,
+            counts: buffer(gpu, "curve counts", per, U::STORAGE),
+            offsets: buffer(gpu, "curve offsets", per, U::STORAGE),
+            block: buffer(gpu, "curve blocks", blocks, U::STORAGE),
+            records: buffer(gpu, "curve records", bytes[0], U::STORAGE),
+            vertices: buffer(gpu, "curve vertices", bytes[1], output | U::VERTEX),
+            indices: buffer(gpu, "curve indices", bytes[2], output | U::INDEX),
+        }
+    }
+
+    /// What the two views ask between them: the larger of each.
+    fn wanted(budgets: [Budget; 2]) -> [u64; 3] {
+        let [a, b] = budgets.map(|b| Slices::of(b).bytes());
+        std::array::from_fn(|k| a[k].max(b[k]))
+    }
+
+    /// Whether these are the buffers `budgets` ask for.
+    pub(super) fn fits(&self, budgets: [Budget; 2]) -> bool {
+        self.bytes == Self::wanted(budgets)
+    }
+
+    pub(super) fn bytes(&self) -> u64 {
+        let own = [
+            &self.counts,
+            &self.offsets,
+            &self.block,
+            &self.records,
+            &self.vertices,
+            &self.indices,
+        ];
+        own.iter().map(|b| b.size()).sum()
+    }
+}
+
+/// One view's own buffers, its slices of the shared ones and the bind
+/// group each pass reads.
 pub(crate) struct Target {
     pub(crate) budget: Budget,
-    pub(super) config: wgpu::Buffer,
-    pub(super) totals: wgpu::Buffer,
+    pub(super) config: Owned,
+    pub(super) totals: Owned,
     pub(crate) vertices: wgpu::Buffer,
     pub(crate) indices: wgpu::Buffer,
-    pub(crate) args: wgpu::Buffer,
+    pub(crate) args: Owned,
     pub(super) vertex_slice: u64,
     pub(super) index_slice: u64,
     pub(super) record_slice: u64,
     pub(super) groups: Vec<wgpu::BindGroup>,
-    held: Vec<wgpu::Buffer>,
 }
 
-pub(super) fn buffer(
-    gpu: &Gpu,
-    label: &str,
-    bytes: u64,
-    usage: wgpu::BufferUsages,
-) -> wgpu::Buffer {
-    gpu.device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some(label),
-        size: bytes.max(256).div_ceil(256) * 256,
-        usage: usage | wgpu::BufferUsages::COPY_DST,
-        mapped_at_creation: false,
-    })
+pub(super) fn buffer(gpu: &Gpu, label: &str, bytes: u64, usage: wgpu::BufferUsages) -> Owned {
+    Owned::create(
+        gpu,
+        &wgpu::BufferDescriptor {
+            label: Some(label),
+            size: bytes.max(256).div_ceil(256) * 256,
+            usage: usage | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        },
+    )
 }
 
 /// `elements` words cut into `slices` equal slices on 256-byte boundaries:
@@ -122,39 +208,19 @@ fn part(b: &wgpu::Buffer, offset: u64, size: u64) -> wgpu::BindingResource<'_> {
 }
 
 impl Target {
-    pub(super) fn new(gpu: &Gpu, label: &str, budget: Budget, curve: &CurveGpu) -> Self {
+    pub(super) fn new(
+        gpu: &Gpu,
+        label: &str,
+        budget: Budget,
+        (curve, shared): (&CurveGpu, &Shared),
+        pipelines: &[&wgpu::ComputePipeline],
+    ) -> Self {
         use wgpu::BufferUsages as U;
-        let per = u64::from(curve.count.max(1)) * 16;
-        let blocks = u64::from(curve.count.div_ceil(256).max(1)) * 16;
-        // Floats a vertex slice holds and indices an index slice holds, so
-        // the slices tile the buffer without overlapping.
-        let vertex_slice = slice(u64::from(budget.vertices) * VERTEX_FLOATS, 2);
-        // Whole records a slice, on a 256-byte boundary: 32 of 88 bytes.
-        let record_slice = u64::from(budget.rings).div_ceil(2).div_ceil(32).max(1) * 32;
-        let indices = u64::from(budget.tube_indices) + u64::from(budget.ribbon_indices);
-        let index_slice = slice(indices, 2);
-        let made = [
-            buffer(gpu, label, 208, U::UNIFORM),
-            buffer(gpu, label, per, U::STORAGE),
-            buffer(gpu, label, per, U::STORAGE),
-            buffer(gpu, label, blocks, U::STORAGE),
-            buffer(gpu, label, 192, U::STORAGE | U::COPY_SRC),
-            buffer(gpu, label, 2 * record_slice * RECORD_WORDS * 4, U::STORAGE),
-            buffer(
-                gpu,
-                label,
-                2 * vertex_slice * 4,
-                U::STORAGE | U::VERTEX | U::COPY_SRC,
-            ),
-            buffer(
-                gpu,
-                label,
-                2 * index_slice * 4,
-                U::STORAGE | U::INDEX | U::COPY_SRC,
-            ),
-            buffer(gpu, label, 64, U::STORAGE | U::INDIRECT | U::COPY_SRC),
-        ];
-        let [config, counts, offsets, block, totals, records, vertices, index, args] = made;
+        let s = Slices::of(budget);
+        let (vertex_slice, index_slice, record_slice) = (s.vertex, s.index, s.record);
+        let config = buffer(gpu, label, 208, U::UNIFORM);
+        let totals = buffer(gpu, label, 192, U::STORAGE | U::COPY_SRC);
+        let args = buffer(gpu, label, 64, U::STORAGE | U::INDIRECT | U::COPY_SRC);
         // The points' second slice, or where they fit one, a read-only
         // repeat of the first's start.
         let first = curve.point_slice * 4;
@@ -167,21 +233,21 @@ impl Target {
                 2 => part(&curve.points, rest_offset, rest_size),
                 3 => whole(&curve.clusters),
                 4 => whole(&curve.sections),
-                5 => whole(&counts),
-                6 => whole(&offsets),
-                7 => whole(&block),
+                5 => whole(&shared.counts),
+                6 => whole(&shared.offsets),
+                7 => whole(&shared.block),
                 8 => whole(&totals),
                 9 | 12 => {
                     let bytes = record_slice * RECORD_WORDS * 4;
-                    part(&records, u64::from(binding == 12) * bytes, bytes)
+                    part(&shared.records, u64::from(binding == 12) * bytes, bytes)
                 }
                 10 | 11 => part(
-                    &vertices,
+                    &shared.vertices,
                     u64::from(binding - 10) * vertex_slice * 4,
                     vertex_slice * 4,
                 ),
                 13 | 14 => part(
-                    &index,
+                    &shared.indices,
                     u64::from(binding - 13) * index_slice * 4,
                     index_slice * 4,
                 ),
@@ -190,7 +256,7 @@ impl Target {
         };
         let groups = PASSES
             .iter()
-            .zip(&curve.pipelines)
+            .zip(pipelines)
             .map(|((entry, bindings), pipeline)| {
                 let entries: Vec<_> = bindings
                     .iter()
@@ -210,28 +276,20 @@ impl Target {
             budget,
             config,
             totals,
-            vertices,
-            indices: index,
+            vertices: (*shared.vertices).clone(),
+            indices: (*shared.indices).clone(),
             args,
             vertex_slice,
             index_slice,
             record_slice,
             groups,
-            held: vec![counts, offsets, block, records],
         }
     }
 
-    /// Bytes this view holds on the device.
+    /// Bytes this view holds on the device beside the shared buffers.
     pub(crate) fn bytes(&self) -> u64 {
-        let own = [
-            &self.vertices,
-            &self.indices,
-            &self.args,
-            &self.totals,
-            &self.config,
-        ];
-        own.iter()
-            .chain(self.held.iter().collect::<Vec<_>>().iter())
+        [&self.args, &self.totals, &self.config]
+            .iter()
             .map(|b| b.size())
             .sum()
     }
@@ -259,15 +317,18 @@ impl Target {
         &self,
         gpu: &Gpu,
     ) -> impl std::future::Future<Output = Option<CurveReport>> + 'static {
-        let staging = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("curve readback"),
-            size: 192,
-            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
-            mapped_at_creation: false,
-        });
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let staging = crate::buffer::Owned::create(
+            gpu,
+            &wgpu::BufferDescriptor {
+                label: Some("curve readback"),
+                size: 192,
+                usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+                mapped_at_creation: false,
+            },
+        );
+        let mut encoder = gpu.encoder(&Default::default());
         encoder.copy_buffer_to_buffer(&self.totals, 0, &staging, 0, 192);
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         let (sender, receiver) = futures_channel::oneshot::channel();
         staging.slice(..).map_async(wgpu::MapMode::Read, move |r| {
             let _ = sender.send(r);
@@ -307,15 +368,18 @@ impl Target {
 #[cfg(not(target_arch = "wasm32"))]
 fn read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Vec<u8> {
     let bytes = bytes.max(4).div_ceil(4) * 4;
-    let staging = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("curve readback"),
-        size: bytes,
-        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
-        mapped_at_creation: false,
-    });
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let staging = crate::buffer::Owned::create(
+        gpu,
+        &wgpu::BufferDescriptor {
+            label: Some("curve readback"),
+            size: bytes,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        },
+    );
+    let mut encoder = gpu.encoder(&Default::default());
     encoder.copy_buffer_to_buffer(source, 0, &staging, 0, bytes);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let slice = staging.slice(..);
     slice.map_async(wgpu::MapMode::Read, |_| {});
     let _ = gpu.device.poll(wgpu::PollType::wait_indefinitely());

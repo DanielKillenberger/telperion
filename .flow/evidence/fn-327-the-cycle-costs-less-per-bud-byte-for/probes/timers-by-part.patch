@@ -1,0 +1,153 @@
+diff --git i/crates/telperion-core/src/pipeline/cycle_cost_tests.rs w/crates/telperion-core/src/pipeline/cycle_cost_tests.rs
+index 98df39fd8..dd1e83d94 100644
+--- i/crates/telperion-core/src/pipeline/cycle_cost_tests.rs
++++ w/crates/telperion-core/src/pipeline/cycle_cost_tests.rs
+@@ -66,7 +66,9 @@ fn pass_costs() {
+             let f = family(id, age, 1, fidelity);
+             let g = executor::growth(&f).expect("its growth");
+             let _warm = grow_census(&g.species, g.request).expect("a tree");
++            telperion_space::probe_reset();
+             let c = grow_census(&g.species, g.request).expect("a tree");
++            println!("PROBE {id} {fidelity} {:?}", telperion_space::probe_read());
+             let census = c.census.expect("a census");
+             println!("COST {id} {fidelity} seconds {:.4} grown {} axes {}", c.seconds, c.grown, census.axes);
+             let (mut apex, mut axes, mut leaves) = (0u64, 0u64, 0u64);
+diff --git i/crates/telperion-space/src/grow.rs w/crates/telperion-space/src/grow.rs
+index 7b0f4c4a7..aac65b9e9 100644
+--- i/crates/telperion-space/src/grow.rs
++++ w/crates/telperion-space/src/grow.rs
+@@ -10,6 +10,7 @@ mod advance;
+ pub(crate) mod alone;
+ mod balance;
+ pub(crate) mod cycle;
++pub(crate) mod probe { pub use super::cycle::PROBE; }
+ mod draw;
+ #[cfg(test)]
+ mod ground_tests;
+diff --git i/crates/telperion-space/src/grow/cycle.rs w/crates/telperion-space/src/grow/cycle.rs
+index 2311cc5d6..5a5393cf0 100644
+--- i/crates/telperion-space/src/grow/cycle.rs
++++ w/crates/telperion-space/src/grow/cycle.rs
+@@ -16,6 +16,7 @@ mod capture_settled;
+ mod capture_units;
+ mod census;
+ mod passes;
++pub use passes::PROBE;
+ mod paused;
+ mod retire;
+ mod working;
+diff --git i/crates/telperion-space/src/grow/cycle/passes.rs w/crates/telperion-space/src/grow/cycle/passes.rs
+index 7b1c90c40..885a7b7fb 100644
+--- i/crates/telperion-space/src/grow/cycle/passes.rs
++++ w/crates/telperion-space/src/grow/cycle/passes.rs
+@@ -7,10 +7,18 @@ use crate::allocation::TIP;
+ use crate::contract::shed::{walk, Bud, Lateral};
+ use crate::lineage::{Key, SHED};
+ 
++pub static PROBE: [std::sync::atomic::AtomicU64; 8] = [const { std::sync::atomic::AtomicU64::new(0) }; 8];
++pub(super) fn lap(k: usize, clock: &mut f64) {
++    let now = crate::clock::seconds();
++    PROBE[k].fetch_add(((now - *clock) * 1e9) as u64, std::sync::atomic::Ordering::Relaxed);
++    *clock = now;
++}
++
+ impl Grower<'_> {
+     /// The cycle's working set: the axes laid so far taken in, and those
+     /// open on the way to a living apex or a sleeping bud.
+     pub(in crate::grow) fn open(&mut self, cycle: u32) {
++        let mut clock = crate::clock::seconds();
+         let n = self.sketch.as_ref().expect("sketching").pencils.len();
+         let mut w = self.working.take().unwrap_or_default();
+         let laid = w.links.len();
+@@ -19,12 +27,14 @@ impl Grower<'_> {
+             (self.asleep.iter().skip(cycle as usize)).flat_map(|a| a.iter().map(|s| s.parent));
+         w.open_from(self.live.iter().map(|a| a.axis).chain(sleeping), laid);
+         self.working = Some(w);
++        lap(0, &mut clock);
+     }
+ 
+     /// `balance` over the working set: each open subtree's totals, D16's
+     /// walk over the open axes, each memory kept, every apex shed leaving
+     /// the living and every other given its kept share.
+     pub(in crate::grow) fn balance_one(&mut self, cycle: u32) {
++        let mut clock = crate::clock::seconds();
+         let mut w = self.working.take().expect("a working set");
+         let (species, sketch) = (self.species, self.sketch.as_mut().expect("sketching"));
+         let n = sketch.pencils.len();
+@@ -43,7 +53,9 @@ impl Grower<'_> {
+             };
+             (light, upkeep(i), lit[i])
+         };
++        lap(0, &mut clock);
+         w.totals(&own, &upkeep);
++        lap(1, &mut clock);
+         let mut laterals = vec![Lateral::default(); w.list.len()];
+         let (ws, axes, rules) = (&w, &self.axes, &self.rules);
+         crate::cores::fill(&mut laterals, 1 << 12, self.threads, &|k| {
+@@ -78,7 +90,9 @@ impl Grower<'_> {
+                 bud,
+             }
+         });
++        lap(2, &mut clock);
+         let walked = walk(&laterals, None);
++        lap(3, &mut clock);
+         for (&i, wk) in w.list.iter().zip(&walked) {
+             if let Some(memory) = wk.memory {
+                 sketch.pencils[i].memory = f64::from(memory);
+@@ -97,6 +111,7 @@ impl Grower<'_> {
+             self.live.push(apex);
+         }
+         self.working = Some(w);
++        lap(4, &mut clock);
+     }
+ 
+     /// The allotment over the working set: each living apex's unit's size
+diff --git i/crates/telperion-space/src/grow/cycle/retire.rs w/crates/telperion-space/src/grow/cycle/retire.rs
+index 3dbdee8ff..0610bcf40 100644
+--- i/crates/telperion-space/src/grow/cycle/retire.rs
++++ w/crates/telperion-space/src/grow/cycle/retire.rs
+@@ -126,9 +126,11 @@ impl Grower<'_> {
+             self.working = Some(w);
+             return;
+         }
++        let mut clock = crate::clock::seconds();
+         if crate::grow::keeps(self.species) {
+             self.freeze(&mut w, cycle - 1);
+         }
++        super::passes::lap(5, &mut clock);
+         // The closed subtrees beside an open axis, met at their roots.
+         let beside = |c: usize| w.links[c].parent.is_none_or(|p| w.open[p]);
+         let waiting = std::mem::take(&mut w.retire.pending);
+@@ -153,6 +155,7 @@ impl Grower<'_> {
+         let verdicts = crate::cores::map(todo.clone(), 16, self.threads, &|_, c| {
+             evaluate(&tree, wr, c)
+         });
++        super::passes::lap(6, &mut clock);
+         for (c, verdict) in todo.into_iter().zip(verdicts) {
+             // Let go already with a fading ancestor that faded out with it.
+             if w.retire.fate[c] == Fate::Inside {
+@@ -176,6 +179,7 @@ impl Grower<'_> {
+             }
+         }
+         self.working = Some(w);
++        super::passes::lap(7, &mut clock);
+     }
+ 
+     /// The fading subtrees whose fade at `age` has reached none, taken
+diff --git i/crates/telperion-space/src/lib.rs w/crates/telperion-space/src/lib.rs
+index de9cb15ca..f455b6e1c 100644
+--- i/crates/telperion-space/src/lib.rs
++++ w/crates/telperion-space/src/lib.rs
+@@ -85,3 +85,12 @@ pub use species::{
+ pub use spruce::spruce;
+ pub use structure::{Axis, CountTable, Join, Origin, Phytomer, Structure, Vec3};
+ pub use transcendental::Transcendental;
++
++pub fn probe_reset() {
++    use std::sync::atomic::Ordering::Relaxed;
++    grow::probe::PROBE.iter().for_each(|a| a.store(0, Relaxed));
++}
++pub fn probe_read() -> Vec<u64> {
++    use std::sync::atomic::Ordering::Relaxed;
++    grow::probe::PROBE.iter().map(|a| a.load(Relaxed) / 1_000_000).collect()
++}

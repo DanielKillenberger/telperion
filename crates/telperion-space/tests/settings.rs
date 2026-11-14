@@ -108,7 +108,6 @@ fn straightening_lifts_a_laterals_base() {
         Request {
             age: 12,
             seed: 1,
-            budget: 2_000_000,
             light: telperion_space::Light::NEUTRAL,
         },
     )

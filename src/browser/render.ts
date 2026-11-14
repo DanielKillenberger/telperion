@@ -1,4 +1,7 @@
-import init, { WebRenderer } from "./render/telperion_render.js";
+import { WebRenderer, type WebGrowth } from "./render/telperion_render.js";
+import { loadModule } from "./module";
+import type { Family } from "./presets";
+import { wire } from "./wire";
 
 /* ------------------------------------------------------------------ *
  * THE RENDERER, AS A PAGE HOLDS IT
@@ -8,8 +11,8 @@ import init, { WebRenderer } from "./render/telperion_render.js";
  * device pixels the canvas is asked for, and when that number
  * changes. Everything else is a call straight through.
  *
- * No geometry crosses this boundary. Parameters go in as text and
- * counts come back as text; the tree itself is generated and uploaded
+ * No geometry crosses this boundary. A family goes in as the one wire
+ * text every entry hands the cores (`wire`), and counts come back as text; the tree itself is generated and uploaded
  * inside the module's own memory, so there is no view over wasm memory
  * here to detach when that memory grows.
  * ------------------------------------------------------------------ */
@@ -22,66 +25,11 @@ const MAX_PIXEL_RATIO = 2;
 /** Metres, Y up, right-handed - the renderer's own frame. */
 export type Point = readonly [number, number, number];
 
+/** What went up. The wood goes up as its curve, which the device surfaces
+ *  at the screen's error; no CPU wood surface is built to count (fn-351). */
 export interface Submitted {
-  woodVertices: number;
-  woodTriangles: number;
   foliageInstances: number;
   bounds: { min: Point; max: Point };
-}
-
-/** Host wall-clock milliseconds (`Ms`) and selected allocation capacities (`Bytes`).
- * Timings can nest/overlap; memory snapshots share allocations and are not additive.
- * These omit some transient scratch, allocator-retained Wasm memory, upload staging,
- * driver allocations and deferred destruction; they are not whole-process peaks.
- * Zero/default fields can mean an unused stage. */
-export interface GenerationStages {
-  positionPrepareMs: number;
-  positionUploadMs: number;
-  /** Admission wait remaining after overlapping CPU station work. */
-  positionWaitMs: number;
-  positionCpuBytes: number;
-  positionGpuPeakBytes: number;
-  positionRetainedMetadataBytes: number;
-  /** Unstable diagnostic text; do not branch on its wording. */
-  positionFallback: string | null;
-  gpuPositions: boolean;
-  skeletonMs: number;
-  descriptorsMs: number;
-  uploadDispatchMs: number;
-  placementWaitMs: number;
-  compactMs: number;
-  massMs: number;
-  readbackMs: number;
-  woodMs: number;
-  woodPrepareMs: number;
-  woodUploadDispatchMs: number;
-  woodWaitMs: number;
-  woodPreparedCpuBytes: number;
-  woodMetadataCpuBytes: number;
-  woodGpuPeakBytes: number;
-  woodBackend: "Cpu" | "Gpu" | "CpuFallback" | null;
-  /** Unstable diagnostic text; do not branch on its wording. */
-  woodFallback: string | null;
-  /** Preparation only; excludes adoption, drawing and completed-frame fencing. */
-  totalMs: number;
-  baseCpuBytes: number;
-  woodCpuBytes: number;
-  descriptorCpuBytes: number;
-  sharedContactCpuBytes: number;
-  sharedPrepareCpuBytes: number;
-  sharedMetadataCpuBytes: number;
-  gpuComputePeakBytes: number;
-  retainedGpuBytes: number;
-}
-
-/** A tree adopted by the renderer; this promise does not fence a completed frame. */
-export interface GpuSubmitted extends Submitted {
-  backend: "Gpu" | "CpuFallback";
-  stages: GenerationStages;
-  /** Allocated live-tree GPU buffer bytes before adoption; excludes textures/pipelines. */
-  previousTreeGpuBytes: number;
-  /** Allocated live-tree GPU buffer bytes after adoption, with the same exclusions. */
-  treeGpuBytes: number;
 }
 
 export interface FrameStats {
@@ -123,6 +71,9 @@ export interface TimingReport {
   selection_p95_ms?: number;
   shadow_p50_ms?: number;
   shadow_p95_ms?: number;
+  /** Measured frames that reused the sun's map: each costs zero in the
+   *  shadow numbers above rather than going unmeasured (fn-246). */
+  shadow_cached?: number;
   /** Three passes added frame by frame and then ranked: a frame's own cost. */
   total_p50_ms?: number;
   total_p95_ms?: number;
@@ -159,14 +110,34 @@ function countDevice(step: 1 | -1): void {
   window.telperionLiveDevices = (window.telperionLiveDevices ?? 0) + step;
 }
 
-let loading: Promise<void> | undefined;
+/** A tree growing on the CPU, on the page's thread (fn-270 R6, R7;
+ *  fn-353): begun for its family's age, grown on to any age within it,
+ *  and drawn at any age in its last year. Each call runs to its end
+ *  before it returns; the tree on the canvas stays until a draw replaces
+ *  it. */
+export interface Growth {
+  /** The whole years grown. */
+  committed(): number;
+  /** The most years it grows: the family's age. */
+  horizon(): number;
+  /** Grows on to `age` years and returns the whole years grown. An age
+   *  past the horizon, a year or more back, or not finite throws by name
+   *  before anything moves; a failure spends the tree. */
+  growTo(age: number): number;
+  /** Puts the tree drawn at `at`, within its last year, on the canvas in
+   *  place of the tree there. */
+  draw(at: number): Submitted;
+  /** Lets the growth state go. */
+  dispose(): void;
+}
 
 /** One canvas drawn by the Rust renderer, sized to the display and
  *  disposed with the page element it belongs to. */
 export interface Renderer {
-  setTree(family: string): Submitted;
-  /** Experimental GPU foliage; unsupported inputs report CpuFallback. */
-  setTreeGpu(family: string): Promise<GpuSubmitted>;
+  setTree(family: Family): Submitted;
+  /** The family's tree before its first year, growing on the CPU
+   *  (`Growth`). Throws the core's words for a family it cannot grow. */
+  beginGrowth(family: Family): Growth;
   setView(view: View): void;
   /** The sun, sky and ground the next frame is drawn under. */
   scene(): SceneRow;
@@ -188,19 +159,23 @@ export interface Renderer {
   dispose(): void;
 }
 
-/** Loads the module once per page and puts a renderer on this canvas.
+/** Loads the module once per page and puts a renderer on this canvas, its
+ *  wood's programs compiled, so it can draw a tree once it resolves.
  *  Rejects with the renderer's own words when there is no WebGPU, only a
- *  software adapter, or the device is refused. */
+ *  software adapter, the device is refused, the browser refuses a program,
+ *  or the device is lost while they compile. */
 export async function createRenderer(canvas: HTMLCanvasElement): Promise<Renderer> {
-  // The literal names the module for a consumer's bundler; the library build
-  // leaves it as it is (vite.config.ts) and ships the file beside this one.
-  loading ??= init({ module_or_path: new URL("./telperion-render.wasm", import.meta.url) }).then(() => undefined);
-  await loading;
+  await loadModule();
 
+  /* Writing a canvas's size clears its picture even at the same value, and
+     the renderer redraws only on a change (fn-246), so an unchanged size is
+     never written. */
   const resize = (): void => {
     const ratio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
-    canvas.width = Math.max(1, Math.round((canvas.clientWidth || 1) * ratio));
-    canvas.height = Math.max(1, Math.round((canvas.clientHeight || 1) * ratio));
+    const width = Math.max(1, Math.round((canvas.clientWidth || 1) * ratio));
+    const height = Math.max(1, Math.round((canvas.clientHeight || 1) * ratio));
+    if (canvas.width !== width) canvas.width = width;
+    if (canvas.height !== height) canvas.height = height;
   };
   resize();
 
@@ -216,10 +191,16 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
   observer.observe(canvas);
 
   return {
-    setTree: (family) => JSON.parse(renderer.setTree(family)) as Submitted,
-    setTreeGpu: async (family) => {
-      if (disposed) throw new Error("the renderer is disposed");
-      return JSON.parse(await renderer.setTreeGpu(family)) as GpuSubmitted;
+    setTree: (family) => JSON.parse(renderer.setTree(wire(family))) as Submitted,
+    beginGrowth: (family) => {
+      const handle: WebGrowth = renderer.beginGrowth(wire(family));
+      return {
+        committed: () => handle.committed(),
+        horizon: () => handle.horizon(),
+        growTo: (age) => renderer.growTo(handle, age),
+        draw: (at) => JSON.parse(renderer.drawGrowth(handle, at)) as Submitted,
+        dispose: () => handle.free(),
+      };
     },
     setView: (view) => renderer.setView(view),
     scene: () => JSON.parse(renderer.scene()) as SceneRow,

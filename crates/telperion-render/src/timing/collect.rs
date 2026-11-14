@@ -44,6 +44,7 @@ pub(super) fn collect(
     let mut vegetation = Vec::with_capacity(MEASURED);
     let mut selection = Vec::with_capacity(MEASURED);
     let mut shadow = Vec::with_capacity(MEASURED);
+    let mut cached = Vec::with_capacity(MEASURED);
     let mut surfacing = Vec::with_capacity(MEASURED);
     let mut counted: Vec<Vec<u32>> = Vec::with_capacity(MEASURED);
     let mut wall = Vec::with_capacity(MEASURED);
@@ -58,6 +59,7 @@ pub(super) fn collect(
         vegetation.push(pass);
         selection.push(select);
         shadow.push(sun);
+        cached.push(renderer.shadow_cached());
         surfacing.push(surfaced);
         if let Some(counts) = crown.then(|| renderer.level_counts()).flatten() {
             counted.push(counts);
@@ -73,7 +75,7 @@ pub(super) fn collect(
         .with_wood(wood.0, wood.1)
         .with_multisample(samples)
         .with_casters(triangles, instances)
-        .with_passes(&vegetation, &selection, &shadow, &surfacing)
+        .with_passes(&vegetation, &selection, &shadow, &surfacing, &cached)
         .with_levels(&deviations, &counted);
     Ok(if walls {
         report.with_wall(&wall)

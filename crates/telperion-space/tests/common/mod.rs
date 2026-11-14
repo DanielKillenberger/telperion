@@ -8,8 +8,6 @@ use telperion_space::{
     grow, CountTable, Form, NodeLaw, Origin, PaState, Request, Species, Structure, Zone,
 };
 
-pub const BUDGET: u32 = 1_000_000;
-
 pub fn sets() -> Vec<Value> {
     let path = concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -97,18 +95,30 @@ pub fn species(set: &Value) -> Species {
                 relay_failed: 0.0,
                 relay_at: 1.0,
                 epitony: 0.0,
+                takeover: 0.0,
                 erection: 0.0,
                 readiness: 1.0,
                 rhythm: 1.0,
                 leaf_area: 0.0,
+                flowering: 0.0,
+                cluster_leaves: 0.0,
+                cluster_spread: 0.0,
+                leaf_years: f64::INFINITY,
+                elongation: 0.0,
+                expansion: 0.0,
+                leaf_life: f64::INFINITY,
+                budburst: 0.0,
+                senescence: 0.0,
+                colouring: 0.0,
+                leaf_fall: 0.0,
                 shade_hazard: 0.0,
+                ground_hazard: 0.0,
                 shade_size: 0.0,
                 apical_control: 0.5,
-                upkeep: 0.0,
+                inverse_height: 0.0,
                 balance_hazard: 0.0,
                 tolerance: 0.0,
-                retained: 0.0,
-                leaf_girth: 0.0,
+                shade_short: Vec::new(),
                 straightening: 0.0,
                 form: Form::default(),
             }
@@ -140,7 +150,6 @@ pub fn tree(species: &Species, age: u32, seed: u64) -> Structure {
         Request {
             age,
             seed,
-            budget: BUDGET,
             light: telperion_space::Light::NEUTRAL,
         },
     )

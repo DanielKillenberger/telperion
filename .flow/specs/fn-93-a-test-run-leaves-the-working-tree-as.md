@@ -1,27 +1,30 @@
 # A test run leaves the working tree as it found it
 
-## Goal & Context
+## Goal
 
-Running the render tests rewrites a tracked file. `crates/telperion-render/tests/common/resolution.rs` `record` writes each resolution test's measured margins to `.flow/evidence/fn71/resolution/<name>.json` on every run, and four such receipts are tracked: `bark_distance`, `bark_resolution_grazing`, `bark_resolution_trunk` and `smooth_bark`. The measurement comes off the GPU and is not stable to the printed precision: on 2026-09-20 one full-suite run moved `smooth_bark.json`'s SilverBirch row from mean 2.5470, p95 9.25 to mean 2.5604, p95 9.50. The other three did not move in the runs observed; whether they can is unknown. [user]
+`crates/telperion-render/tests/common/resolution.rs` `record` rewrote the four tracked resolution receipts in `.flow/evidence/fn71/resolution/` on every render-test run, with GPU-measured margins not stable to the printed precision. Every gate run left a dirty tree; three times on 2026-09-20 (fn-87, fn-92) `git add -A` swept the file into an unrelated commit or a tagged stash was needed to restore it. The receipts are wanted; a routine test run deciding what the committed evidence says is not. [user]
 
-The cost is a dirty tree after every gate run. It was hit three times on 2026-09-20 during fn-87 and fn-92: `git add -A`, which flow-next's work skill requires, sweeps the file into an unrelated commit unless it is restored first, and the owner's local `dcg` hook blocks `git checkout -- <path>` and `git restore`, so each restore took a tagged stash. [user]
+## Decisions
 
-The receipts are wanted. `record`'s own comment says a receipt that cannot be written is a failure, because the margin the next change needs would be unknown. What is not wanted is a routine test run deciding what the committed evidence says. [inferred]
-
-## Architecture & Data Models
-
-`record` keeps writing a receipt on every run, to an untracked place: `env!("CARGO_TARGET_TMPDIR")/resolution/<name>.json`. It writes into the tracked evidence directory only when `TELPERION_RECORD_EVIDENCE=1` is set, which is how a spec that changes bark resolution refreshes the committed margins on purpose. The JSON shape, the assertion that the receipt exists after the write, and every bound a test holds are unchanged. The evidence directory stays named in one function, `receipt_path`. [inferred]
+- `record` keeps writing a receipt on every run, to `env!("CARGO_TARGET_TMPDIR")/resolution/<name>.json`; it writes to the tracked evidence directory only when `TELPERION_RECORD_EVIDENCE=1` is set. JSON shape, the post-write assertion and every bound are unchanged; the evidence directory is named in one function, `receipt_path`.
+- The four committed receipts are left as committed; refreshing them on the owner's hardware is the owner's call.
 
 ## Acceptance Criteria
 
-- **R1** On the owner's desk, from a clean tree, `cargo test --profile ci -p telperion-render` leaves `git status --porcelain` empty. Red on the base: the same command leaves `.flow/evidence/fn71/resolution/smooth_bark.json` modified (run it until it does, at most five runs, and record the count; if it never does, stop with `NEEDS_HUMAN`, because the repro this spec rests on did not hold).
-- **R2** The same run writes all four receipts under the target temp directory, asserted by the tests themselves through `record`'s existing post-write check.
-- **R3** With `TELPERION_RECORD_EVIDENCE=1`, the four receipts are written to `.flow/evidence/fn71/resolution/` in the unchanged JSON shape. Covered by a unit test of `receipt_path` over both settings, not by a second GPU run.
-- **R4** No test's bound, fixture or assertion changes; `git diff` touches `tests/common/resolution.rs` and its new test only, plus a line in `docs/` or the module comment naming the variable.
+- **R1:** From a clean tree, `cargo test --profile ci -p telperion-render` leaves `git status --porcelain` empty; red on the base first — met: red on run 1 of 5 (all four receipts moved, not only `smooth_bark`), empty after the fix, also after the full workspace gate.
+- **R2:** The run writes all four receipts under the target temp directory, asserted by `record` — met.
+- **R3:** With `TELPERION_RECORD_EVIDENCE=1` the receipts go to `.flow/evidence/fn71/resolution/`, covered by a unit test of `receipt_path` — met.
+- **R4:** No bound, fixture or assertion changes; the diff is `resolution.rs`, its test and module comment — met.
 
-## Boundaries
+## Result
 
-- The four committed receipts are left as they are; this spec does not refresh them.
-- No change to rendering, presets, the generator or CI.
-- Not a search for other tests that write into tracked paths. If the worker meets one it is reported in FRICTION.md, not fixed here.
-- No GPU captures and no image inspection.
+Shipped in `3f23637b`. The committed rows are not this machine's measurements (e.g. `bark_distance` OregonWhiteOak 2x mean 1.6262 / p95 4.50 here vs committed 1.9390 / 5.75), so the drift was a machine difference on top of run-to-run wobble. Gate: 877 passed, 0 failed, porcelain empty afterwards.
+
+## Open
+
+Whether to refresh the four fn-71 receipts on the owner's hardware (owner). No search was made for other tests writing into tracked paths.
+
+## Friction
+
+- A fresh worktree paid a ~7 min cold ci build before the repro could run -> standing cost of isolated worktrees; a pre-built cache would remove it.
+- Local `dcg` hook blocked `rm -rf` on a `target/` path -> local setup, reported only.

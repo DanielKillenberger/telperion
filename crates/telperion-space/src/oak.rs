@@ -12,6 +12,59 @@ use crate::chain::{self, on_chain};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::FRAC_PI_2;
 
+/// The sapwood a unit of leaf needs on a tree of `SAPWOOD_FROM`, cm² per
+/// m²: the reciprocal of the 0.23 m² of leaf per cm² of sapwood Phillips,
+/// Bond, McDowell, Ryan and Schauer measured on *Q. garryana* of 10 m and
+/// 40 years (2003, Funct. Ecol. 17: 832-840, Table 1: "Oak leaf area:
+/// sapwood area (m2 cm-2) 0·37 ± 0·01 | 0·23 ± 0·02", the 25 m plot and
+/// the 10 m plot, standard errors; checked against the text, fn-351
+/// OAK-SAPWOOD-BY-SIZE.md).
+const SAPWOOD: f64 = 1.0 / 0.23;
+/// The sapwood a unit of leaf needs on a tree of `SAPWOOD_TO`, as a share
+/// of `SAPWOOD`: 0.23 over the 0.37 of the same table's 25 m, 250-year
+/// plot. "25 m trees had a leaf to sapwood area ratio 1·6 times greater
+/// than that of 10 m trees."
+const SAPWOOD_TALL: f64 = 0.23 / 0.37;
+/// The tree heights the two rows are read between, m: Phillips's two
+/// plots' "Oak canopy height (m) 25 | 10". Height, not age, since the
+/// paper states the change by it: "a species in which leaf to sapwood
+/// area ratio increases with tree size", "changes in AL : AS as trees
+/// grow in height".
+const SAPWOOD_FROM: f64 = 10.0;
+const SAPWOOD_TO: f64 = 25.0;
+/// The years wood stays sapwood on a tree of `SAPWOOD_FROM`: 16, the mean
+/// sapwood ring count of German oak under 100 years (Hollstein 1965, 1980,
+/// in Haneca, Čufar and Beeckman 2009, J. Archaeol. Sci. 36: 1-11, Table
+/// 1: "<100 16.00", "100-200 20.40", ">200 25.90"; read secondary, the
+/// table checked against its text), the class Phillips's 40-year plot
+/// falls in. Estimated for *Q. garryana*, whose rings no source counts.
+const SAPWOOD_RINGS: f64 = 16.0;
+/// The years wood stays sapwood on a tree of `SAPWOOD_TO`, as a share of
+/// `SAPWOOD_RINGS`: the same table's 25.9 rings over 200 years, the class
+/// Phillips's 250-year plot falls in, over its 16.0. Estimated for *Q.
+/// garryana*, and read by height where Hollstein classed by age.
+const SAPWOOD_RINGS_TALL: f64 = 25.9 / 16.0;
+/// How far its wood bends under its load, per metre: 4ρg/E, an elastic
+/// beam's, at green oak's 1,060 kg m⁻³ and 8.3 GPa (Lavers 1983, read through
+/// Niklas and Spatz 2010, Am. J. Bot. 97: 1587-1594, Table 1; Hamilton
+/// 1975), at every age.
+const SAG: f64 = 5.0e-6;
+/// The wood every age lays: the sapwood its leaf needs and how long it
+/// stays sapwood, each at the two tree heights it was measured at, and how
+/// far it bends, alike at every age.
+fn wood() -> Form {
+    Form {
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
+        sapwood_tall: SAPWOOD_TALL,
+        sapwood_rings_tall: SAPWOOD_RINGS_TALL,
+        sapwood_from: SAPWOOD_FROM,
+        sapwood_to: SAPWOOD_TO,
+        sag: SAG,
+        ..Form::default()
+    }
+}
+
 /// The oak's ages on the shared reference axis (`chain.rs`), youngest
 /// first: its fork stands at the low fork, and its shoot, which its
 /// branch moves on to, before its twig, which it bears.
@@ -77,6 +130,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
@@ -85,21 +139,42 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         // to 200 years old (Visakorpi et al. 2020, PLoS ONE 15: e0228157,
         // Table 1).
         leaf_area: 0.00181,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        // Leaves on the current year's wood alone (fn-236 host ruling,
+        // 2026-10-14): Q. garryana is "deciduous" (Flora of North America).
+        leaf_years: 1.0,
+        // fn-270 R5: the days its shoot elongates and its leaf expands
+        // within the year, sourced in its preset's value file.
+        elongation: 14.0,
+        expansion: 35.0,
+        // fn-270 R5c: its leaves' lifespan and season, sourced in its
+        // preset's value file.
+        leaf_life: 0.53,
+        budburst: 128.0,
+        senescence: 264.0,
+        colouring: 16.0,
+        leaf_fall: 45.0,
         // Light as the oak's own values (fn-195 round 5, on fn-197's
         // engine; host decision 29): shade raises its shoots' death hazard
         // and shares its growth by light within each order (Borchert-Honda,
-        // λ 0.45), its carbon balance sheds its starved laterals, its shed
-        // branches leave a share of their pipe, and lit limbs thicken.
+        // λ 0.45), its carbon balance sheds its starved laterals, and lit
+        // limbs thicken. A shed branch leaves none of its pipe (fn-236
+        // round 1): at 0.5 the stem stood two to four times Silvics' DBH.
         shade_hazard: 1.0,
+        ground_hazard: 0.0,
         shade_size: 1.5,
         apical_control: 0.45,
-        upkeep: 0.35,
+        // The potential height, 34.8 m: "The maximum potential height for
+        // OWO on a good site was 34.8 m" (Gould, Harrington and Devine
+        // 2011; checked against the text by fn-341).
+        inverse_height: 1.0 / 34.8,
         balance_hazard: 2.0,
         tolerance: 0.0,
-        retained: 0.5,
-        leaf_girth: 1.0,
+        shade_short: vec![0.0; PAS],
         straightening: 0.0,
-        form: Form::default(),
+        form: wood(),
     }
 }
 
@@ -120,14 +195,17 @@ pub fn oak() -> Species {
         elevation: FRAC_PI_2,
         wander: 0.25,
         plane: 0.0,
-        pipe: 0.009,
-        exponent: 2.6,
-        ripening: 0.0,
+        primary: 0.009,
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
         dominance: 0.0,
         roll: 0.0,
-        sag: 0.0,
-        secondary: 1.0,
+        sag: SAG,
         bend_length: 0.0,
+        internode_spread: 0.0,
+        insertion_spread: 0.0,
+        tropism_spread: 0.0,
+        ..wood()
     };
     // The young stem: erect and monopodial, a yearly shoot of about
     // 0.36 m, its laterals temporary long shoots that die within three
@@ -138,15 +216,17 @@ pub fn oak() -> Species {
         ..state(12, 1.0, unit((4, 5), &[(SPRIG, 0.4)], (3, &[(SPRIG, 0.6)])))
     };
     // The fork: for two years the top cluster of each yearly shoot grows
-    // out as limbs, so three or four limbs leave at two heights (K19's
-    // main branches of unequal insertion height).
+    // out as limbs, so four or five limbs leave at two heights (K19's
+    // main branches of unequal insertion height; fn-236 round 3 raised
+    // 0.55 to 0.8, so no seed's crown stands on two limbs alone).
     let fork = PaState {
         internode: 0.045,
         form: stem,
-        ..state(2, 1.0, unit((3, 4), &[(SPRIG, 0.3)], (3, &[(LIMB, 0.55)])))
+        ..state(2, 1.0, unit((3, 4), &[(SPRIG, 0.3)], (3, &[(LIMB, 0.8)])))
     };
-    // The stem carries on above the fork as a weaker leader for two
-    // decades, bearing limbs now and then and boughs from its top
+    // The stem carries on above the fork as a weaker leader for six
+    // years (fn-236 round 1; two decades stood it above the dome as a
+    // tuft), bearing limbs now and then and boughs from its top
     // clusters, so the crown's top fills and rounds; then it carries on
     // as one more limb. K19: the trunk "contributes to the vertical tree
     // extent", the lowest main branches to the horizontal. The limbs it
@@ -160,7 +240,7 @@ pub fn oak() -> Species {
             ..stem
         },
         ..state(
-            19,
+            6,
             1.0,
             unit(
                 (3, 4),
@@ -182,26 +262,33 @@ pub fn oak() -> Species {
         // found). An E-side value, reconciled with the oak's branch.
         shedding: 5.0,
         insertion: 0.5,
-        internode: 0.045,
+        // fn-236 round 1: 0.035 m and a light share of ψ 0.5 (as the
+        // bough's), so a lit limb does not outgrow the dome.
+        internode: 0.035,
+        shade_size: 0.5,
         straightening: 0.15,
         abortion: 0.15,
         relay: 1.0,
         relay_ended: 1.0,
         relay_failed: 1.0,
         epitony: 0.2,
+        takeover: 0.0,
         form: Form {
             tropism: 0.5,
             elevation: 1.05,
             wander: 0.5,
             plane: 0.0,
-            pipe: 0.009,
-            exponent: 2.8,
-            ripening: 15.0,
+            primary: 0.009,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.8,
-            sag: 0.0003,
-            secondary: 1.0,
+            sag: SAG,
             bend_length: 3.0,
+            internode_spread: 0.0,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
+            ..wood()
         },
         // A limb grows for as long as an oak lives (500 years), then stops.
         ..state(
@@ -209,7 +296,7 @@ pub fn oak() -> Species {
             0.0,
             unit(
                 (2, 3),
-                &[(SHORT, 0.25), (BRANCH, 0.45)],
+                &[(SHORT, 0.4), (BRANCH, 0.45)],
                 (3, &[(LIMB, 0.007), (BOUGH, 0.08)]),
             ),
         )
@@ -228,6 +315,7 @@ pub fn oak() -> Species {
     let bough = PaState {
         insertion: 0.6,
         internode: 0.03,
+        shade_size: 0.5,
         viability: 0.999,
         shedding: 4.0,
         abortion: 0.1,
@@ -235,14 +323,16 @@ pub fn oak() -> Species {
         relay_ended: 1.0,
         relay_failed: 1.0,
         epitony: 0.2,
+        // fn-286 (2026-10-15): a relay runs three quarters back onto the line it takes over, so the owner's zigzag (seed 7) goes; the limb keeps its relays' kinks, its tortuous course (RELAYS.md).
+        takeover: 0.75,
         form: Form {
             tropism: 0.48,
-            elevation: 0.5,
+            // Ascending (fn-236 round 1): at 0.5 rad the boughs spread
+            // flat past the crown's edge.
+            elevation: 0.9,
             wander: 0.35,
-            pipe: 0.004,
-            exponent: 2.6,
-            sag: 0.00005,
-            secondary: 1.0,
+            primary: 0.004,
+            sag: SAG,
             bend_length: 1.5,
             ..limb.form
         },
@@ -251,17 +341,21 @@ pub fn oak() -> Species {
             0.0,
             unit(
                 (2, 3),
-                &[(SHORT, 0.3), (BRANCH, 0.3)],
+                &[(SHORT, 0.5), (BRANCH, 0.3)],
                 (3, &[(BRANCH, 0.3)]),
             ),
         )
     };
-    // The young stem's laterals: long shoots of about 0.35 m a year for
-    // ten years, ascending as Rauh's laterals repeat the trunk, and
-    // branching, then branch systems, so a sapling is a bushy young tree.
+    // The young stem's laterals: long shoots for ten years, ascending as
+    // Rauh's laterals repeat the trunk, and branching, then branch
+    // systems, so a sapling is a bushy young tree. A lateral grows no
+    // faster than its sapling's stem: Hibbs and Yoder (1993, via FEIS)
+    // measured Oregon white oak saplings at 15.7 cm a year, so about 5
+    // nodes of 0.031 m. fn-236 (2026-10-15): at 0.07 m, an unsourced
+    // 0.35 m a year, these shoots outran the crown as long low wands.
     let sprig = PaState {
         insertion: 0.7,
-        internode: 0.07,
+        internode: 0.031,
         viability: 0.95,
         shedding: 3.0,
         form: Form {
@@ -269,14 +363,17 @@ pub fn oak() -> Species {
             elevation: 0.7,
             wander: 0.4,
             plane: 0.0,
-            pipe: 0.0012,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.0012,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 1.2,
-            sag: 0.0,
-            secondary: 1.0,
+            sag: SAG,
             bend_length: 0.0,
+            internode_spread: 0.0,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
+            ..wood()
         },
         ..state(
             10,
@@ -289,9 +386,13 @@ pub fn oak() -> Species {
         )
     };
     // Branch systems: a long shoot each year, its laterals short shoots
-    // and twigs and, clustered at its top, twigs.
+    // and twigs and, at its top, fewer twigs. fn-236 round 3 moved the
+    // twigs from the top cluster to the medial nodes, opened the angle and
+    // eased the fine orders' light share (ψ 1.0), so the fine wood fills
+    // between the limbs' clumps instead of crowding their tips.
     let branch = PaState {
-        insertion: 0.8,
+        insertion: 1.0,
+        shade_size: 1.0,
         internode: 0.017,
         viability: 0.98,
         shedding: 3.0,
@@ -300,50 +401,57 @@ pub fn oak() -> Species {
         relay_ended: 1.0,
         relay_failed: 1.0,
         epitony: 0.2,
+        // fn-286 (2026-10-15): a relay runs three quarters back onto the line it takes over, so the owner's zigzag (seed 7) goes; the limb keeps its relays' kinks, its tortuous course (RELAYS.md).
+        takeover: 0.75,
         form: Form {
             tropism: 0.33,
             elevation: 0.2,
             wander: 0.4,
             plane: 0.0,
-            pipe: 0.0009,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.0009,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 1.2,
-            sag: 0.0,
-            secondary: 1.0,
+            sag: SAG,
             bend_length: 0.0,
+            internode_spread: 0.0,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
+            ..wood()
         },
         ..state(
             12,
             1.0,
             unit(
                 (1, 2),
-                &[(SHORT, 0.3), (TWIG, 0.18)],
-                (3, &[(TWIG, 0.25), (BRANCH, 0.02)]),
+                &[(SHORT, 0.6), (TWIG, 0.35)],
+                (3, &[(TWIG, 0.1), (BRANCH, 0.02)]),
             ),
         )
     };
-    // Twigs: one more order, three years of short growth bearing short
+    // Twigs: one more order, five years of short growth bearing short
     // shoots, so the fine wood between the boughs is a web of short
-    // twigs rather than a few long shoots.
+    // twigs rather than a few long shoots (fn-236 round 3: 3 years at
+    // 0.95 to 5 at 0.98).
     let twig = PaState {
         insertion: 0.8,
         internode: 0.012,
-        viability: 0.95,
+        viability: 0.98,
+        shade_size: 1.0,
         shedding: 2.0,
         form: Form {
             tropism: 0.4,
             elevation: 0.2,
             wander: 0.4,
-            pipe: 0.0008,
+            primary: 0.0008,
             roll: 1.2,
-            ..Form::default()
+            ..wood()
         },
         ..state(
-            3,
+            5,
             0.0,
-            unit((1, 1), &[(SHORT, 0.4)], (3, &[(TWIG, 0.0), (SHORT, 0.3)])),
+            unit((1, 1), &[(SHORT, 0.7)], (3, &[(TWIG, 0.0), (SHORT, 0.3)])),
         )
     };
     // Long shoots bearing short shoots only.
@@ -351,26 +459,31 @@ pub fn oak() -> Species {
         insertion: 0.8,
         internode: 0.015,
         viability: 0.93,
+        shade_size: 1.0,
         shedding: 2.0,
         form: Form {
             tropism: 0.8,
             elevation: 0.2,
             wander: 0.4,
-            pipe: 0.0009,
+            primary: 0.0009,
             roll: 1.2,
-            ..Form::default()
+            ..wood()
         },
         ..state(4, 0.0, unit((1, 1), &[(SHORT, 0.3)], (2, &[(SHORT, 0.35)])))
     };
     // Short shoots: a few crowded leaves and a bud cluster, unbranched.
+    // fn-236 round 1 raised the shares that bear them (limb 0.4, bough
+    // 0.5, branch 0.6, twig 0.7) to fill the crown, and thinned their pipe
+    // so the wood below does not thicken with them.
     let short = PaState {
         insertion: 0.9,
         internode: 0.006,
         viability: 0.9,
+        shade_size: 1.0,
         shedding: 2.0,
         form: Form {
-            pipe: 0.00095,
-            ..Form::default()
+            primary: 0.0006,
+            ..wood()
         },
         ..state(3, 0.0, vec![zone(3, 5, 1, &[])])
     };

@@ -149,7 +149,7 @@ fn main() {
                     directory
                 });
                 let mesh = outputs.wood.take().unwrap();
-                let paths = wood_paths::paths(&tree.nodes).unwrap();
+                let paths = wood_paths::paths(&tree).unwrap();
                 let segments = f.surface.radial_segments.max(f.surface.lobes * 4) as usize;
                 let key = |p: Vec3| [p.x as f32, p.y as f32, p.z as f32].map(f32::to_bits);
                 let mut by_tip = std::collections::HashMap::new();
@@ -161,13 +161,14 @@ fn main() {
                     );
                 }
                 let mut wood_triangles = Vec::new();
-                for span in &mesh.run_table {
+                for run in &mesh.run_table {
+                    let (chunk, span) = (&mesh.chunks[run.chunk as usize], run.span);
                     let index_offset = span.first_index as usize;
                     let end = index_offset + span.index_count as usize;
                     // The final cap's centre is the path's terminal node. Match
                     // that identity, never the old path ordinal or just its length.
-                    let top = mesh.indices[end - 3] as usize * 3;
-                    let tip = mesh.positions[top..top + 3].try_into().unwrap();
+                    let top = chunk.indices[end - 3] as usize * 3;
+                    let tip = chunk.positions[top..top + 3].try_into().unwrap();
                     let path = by_tip
                         .remove(&<[f32; 3]>::map(tip, f32::to_bits))
                         .expect("wood run cap must identify exactly one path");
@@ -179,12 +180,12 @@ fn main() {
                         samples * segments * 6,
                         "wood run must cover this path's rings and caps"
                     );
-                    let base = mesh.indices[index_offset] as usize;
+                    let base = chunk.indices[index_offset] as usize;
                     for edge in 0..samples - 1 {
                         let child = ns[(edge + 1).saturating_sub(buried)];
                         let ring = base + (edge + 1) * segments;
                         let centre = (ring..ring + segments).fold(Vec3::ZERO, |sum, v| {
-                            let p = &mesh.positions[v * 3..v * 3 + 3];
+                            let p = &chunk.positions[v * 3..v * 3 + 3];
                             sum + Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)
                         }) / segments as f64;
                         assert!(
@@ -192,7 +193,7 @@ fn main() {
                             "wood run ring belongs to another path"
                         );
                         if in_system[child] {
-                            for tri in mesh.indices[index_offset + edge * segments * 6
+                            for tri in chunk.indices[index_offset + edge * segments * 6
                                 ..index_offset + (edge + 1) * segments * 6]
                                 .as_chunks::<3>()
                                 .0
@@ -200,7 +201,7 @@ fn main() {
                                 wood_triangles.push(
                                     tri.iter()
                                         .map(|&v| {
-                                            mesh.positions[v as usize * 3..v as usize * 3 + 3]
+                                            chunk.positions[v as usize * 3..v as usize * 3 + 3]
                                                 .to_vec()
                                         })
                                         .collect::<Vec<_>>(),

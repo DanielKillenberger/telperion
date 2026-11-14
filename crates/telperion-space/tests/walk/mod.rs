@@ -3,13 +3,62 @@
 //! scale it is walked on. The shape measures are in `measure.rs`.
 #![allow(dead_code)]
 mod bend;
+pub mod degree;
+mod height;
 mod measure;
 pub use bend::sag_bend;
+pub use height::tallest_tip;
 pub use measure::*;
 use telperion_space::{grow, Form, Light, NodeLaw, PaState, Request, Species, Structure, Zone};
 
 pub const STEPS: u32 = 200;
 pub const AGE: u32 = 12;
+
+/// `work(k)` for every `k` below `count` on every core, in `k`'s order.
+/// The walks' trees are independent, so a test's longest chain is one
+/// piece of work, never one setting's whole walk (fn-271). Each worker
+/// grows its trees on one core: the engine's tree is the same on any
+/// number (`cores.rs`), and a walk tree too small to share out spent
+/// more of the machine waiting on its helpers than growing. A piece's
+/// panic is the test's.
+pub fn spread<T: Send>(count: usize, work: impl Fn(usize) -> T + Sync) -> Vec<T> {
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let cores = std::thread::available_parallelism().map_or(1, |n| n.get());
+    let mut out: Vec<Option<T>> = (0..count).map(|_| None).collect();
+    std::thread::scope(|scope| {
+        let workers: Vec<_> = (0..cores.min(count))
+            .map(|_| {
+                scope.spawn(|| {
+                    let one = rayon::ThreadPoolBuilder::new()
+                        .num_threads(1)
+                        .build()
+                        .unwrap();
+                    one.install(|| {
+                        let mut done = Vec::new();
+                        loop {
+                            let k = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                            if k >= count {
+                                break done;
+                            }
+                            done.push((k, work(k)));
+                        }
+                    })
+                })
+            })
+            .collect();
+        for worker in workers {
+            let done = worker
+                .join()
+                .unwrap_or_else(|p| std::panic::resume_unwind(p));
+            for (k, value) in done {
+                out[k] = Some(value);
+            }
+        }
+    });
+    out.into_iter()
+        .map(|v| v.expect("every piece ran"))
+        .collect()
+}
 
 fn zone(nodes: NodeLaw, buds: u8, lateral: [f64; 3]) -> Zone {
     Zone {
@@ -20,6 +69,27 @@ fn zone(nodes: NodeLaw, buds: u8, lateral: [f64; 3]) -> Zone {
         rate: 0.0,
         lateral: lateral.to_vec(),
     }
+}
+
+/// The walk tree's leaf a node, m²: a fixture's, chosen (fn-354) so that at
+/// the oak's sapwood its trunk's base stands at seed 1 at the 0.21 m the
+/// pipe model gave it before wood was laid by leaf, 0.213 m, since every
+/// test of this tree set its sag for wood of that girth.
+pub const LEAF: f64 = 0.8;
+
+/// The walk tree's wood: the oak's sapwood and rings at every age.
+pub fn wood() -> Form {
+    Form {
+        sapwood: 1.0 / 0.30,
+        sapwood_rings: 20.0,
+        ..Form::default()
+    }
+}
+
+/// The limbs' wood stated at trees of the two heights, m.
+fn sized(s: &mut Species, [from, to]: [f64; 2]) {
+    let form = &mut s.states[1].form;
+    (form.sapwood_from, form.sapwood_to) = (from, to);
 }
 
 /// A trunk of two zones, limbs that abort, relay, straighten and age into
@@ -45,20 +115,34 @@ pub fn species() -> Species {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
-        leaf_area: 0.0,
+        leaf_area: LEAF,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        // Its leaves kept one year, what its walks tested before every
+        // phytomer bore its leaf for its leaf years (fn-354 R5).
+        leaf_years: 1.0,
+        elongation: 0.0,
+        expansion: 0.0,
+        leaf_life: f64::INFINITY,
+        budburst: 0.0,
+        senescence: 0.0,
+        colouring: 0.0,
+        leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
+        shade_short: Vec::new(),
         straightening: 0.0,
-        form: Form::default(),
+        form: wood(),
     };
     let limb = PaState {
         lifespan: 6.0,
@@ -76,20 +160,32 @@ pub fn species() -> Species {
         relay_failed: 0.3,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
-        leaf_area: 0.0,
+        leaf_area: LEAF,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        leaf_years: 1.0,
+        elongation: 0.0,
+        expansion: 0.0,
+        leaf_life: f64::INFINITY,
+        budburst: 0.0,
+        senescence: 0.0,
+        colouring: 0.0,
+        leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
+        shade_short: Vec::new(),
         straightening: 0.3,
-        form: Form::default(),
+        form: wood(),
     };
     let twig = PaState {
         lifespan: 3.0,
@@ -111,20 +207,32 @@ pub fn species() -> Species {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
-        leaf_area: 0.0,
+        leaf_area: LEAF,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        leaf_years: 1.0,
+        elongation: 0.0,
+        expansion: 0.0,
+        leaf_life: f64::INFINITY,
+        budburst: 0.0,
+        senescence: 0.0,
+        colouring: 0.0,
+        leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
+        shade_short: Vec::new(),
         straightening: 0.0,
-        form: Form::default(),
+        form: wood(),
     };
     Species {
         states: vec![trunk, limb, twig],
@@ -192,7 +300,11 @@ impl Setting {
 
     /// The tree's shape at walk coordinate `x`.
     pub fn shape(&self, x: f64, seed: u64) -> Shape {
-        let value = self.value(x);
+        self.shape_at(self.value(x), seed)
+    }
+
+    /// The tree's shape at the setting's `value`.
+    pub fn shape_at(&self, value: f64, seed: u64) -> Shape {
         let tree = lit(&self.at(value), (self.light)(value), seed)
             .unwrap_or_else(|e| panic!("{} at {value}, seed {seed}: {e}", self.name));
         Shape::of(&tree)
@@ -284,7 +396,7 @@ pub fn settings() -> Vec<Setting> {
         // Sag over a range from none to limbs bowed to the ground; the
         // trunk only leans under its crown.
         let sag = [2e-4, 1e-4, 3e-4][pa];
-        let form: [(&str, f64, f64, bool, Set); 14] = [
+        let form: [(&str, f64, f64, bool, Set); 13] = [
             ("abortion_rise", 0.0, 3.0, false, |s, pa, v| {
                 s.states[pa].abortion_rise = v
             }),
@@ -316,21 +428,24 @@ pub fn settings() -> Vec<Setting> {
             ("form.dominance", 0.0, 1.0, false, |s, pa, v| {
                 s.states[pa].form.dominance = v
             }),
-            ("form.ripening", 0.0, 20.0, false, |s, pa, v| {
-                s.states[pa].form.ripening = v
-            }),
-            ("form.exponent", 2.0, 3.0, false, |s, pa, v| {
-                s.states[pa].form.exponent = v
-            }),
             ("form.roll", 0.0, std::f64::consts::PI, false, |s, pa, v| {
                 s.states[pa].form.roll = v
             }),
             ("form.sag", 0.0, sag, false, |s, pa, v| {
                 s.states[pa].form.sag = v
             }),
-            ("form.secondary", 0.0, 1.0, false, |s, pa, v| {
-                s.states[pa].form.secondary = v
+            // fn-222: each internode's length varied node to node.
+            ("form.internode_spread", 0.0, 1.0, false, |s, pa, v| {
+                s.states[pa].form.internode_spread = v
             }),
+            // fn-224: each axis's insertion angle varied axis to axis.
+            (
+                "form.insertion_spread",
+                0.0,
+                std::f64::consts::FRAC_PI_2,
+                false,
+                |s, pa, v| s.states[pa].form.insertion_spread = v,
+            ),
         ];
         for (field, low, high, odds, set) in table.into_iter().chain(form) {
             let mut walked = setting(at(field), low, high, odds, move |s, v| set(s, pa, v));
@@ -413,21 +528,62 @@ pub fn settings() -> Vec<Setting> {
             trunk.abortion = v;
         },
     ));
-    // Girth moves the shape only where wood bends under its load: secondary
-    // growth walked on sagging limbs, from wood that keeps its established
-    // width to the pipe model's (fn-205 R3). The sag is light enough that
-    // no limb comes down onto the ground across the walk, where landing
-    // turns a limb steeply but continuously (fn-206).
-    all.push(setting(
-        "states[1].form.secondary, sag 3e-5".into(),
-        0.0,
-        1.0,
-        false,
-        |s, v| {
+    // Girth moves the shape only where wood bends under its load: the wood's
+    // rows walked on sagging limbs (fn-354), sapwood from none, the limbs'
+    // primary radius alone, to the oak's. The sag is light enough that no
+    // limb comes down onto the ground across the walk.
+    // The rows at two tree heights (fn-351), each walked on limbs whose
+    // tree passes both heights as it grows: the tall shares across 1, where
+    // they are dormant, and each height across the other's side of the tree.
+    let wood: [(&str, f64, f64, fn(&mut Species, f64)); 7] = [
+        ("states[1].form.sapwood_tall, sag 3e-5", 0.5, 1.5, |s, v| {
+            sized(s, [10.0, 30.0]);
+            s.states[1].form.sapwood_tall = v;
+        }),
+        (
+            "states[1].form.sapwood_rings_tall, sag 3e-5",
+            0.5,
+            2.0,
+            |s, v| {
+                sized(s, [10.0, 30.0]);
+                s.states[1].form.sapwood_rings_tall = v;
+            },
+        ),
+        (
+            "states[1].form.sapwood_from, sag 3e-5",
+            0.0,
+            30.0,
+            |s, v| {
+                sized(s, [v, 30.0]);
+                s.states[1].form.sapwood_tall = 0.5;
+            },
+        ),
+        ("states[1].form.sapwood_to, sag 3e-5", 10.0, 50.0, |s, v| {
+            sized(s, [10.0, v]);
+            s.states[1].form.sapwood_tall = 0.5;
+        }),
+        (
+            "states[1].form.sapwood, sag 3e-5",
+            0.0,
+            1.0 / 0.30,
+            |s, v| s.states[1].form.sapwood = v,
+        ),
+        (
+            "states[1].form.sapwood_rings, sag 3e-5",
+            5.0,
+            50.0,
+            |s, v| s.states[1].form.sapwood_rings = v,
+        ),
+        ("states[1].form.primary, sag 3e-5", 0.002, 0.01, |s, v| {
+            s.states[1].form.primary = v
+        }),
+    ];
+    for (name, low, high, set) in wood {
+        all.push(setting(name.into(), low, high, false, move |s, v| {
             s.states[1].form.sag = 3e-5;
-            s.states[1].form.secondary = v;
-        },
-    ));
+            set(s, v);
+        }));
+    }
     // fn-206: each age's lifespan between whole cycles, its last unit
     // grown at the share left and the next age starting in that cycle.
     for (pa, low, high) in [(0, 8.0, 16.0), (1, 3.0, 7.0), (2, 1.0, 4.0)] {
@@ -439,6 +595,20 @@ pub fn settings() -> Vec<Setting> {
             move |s, v| s.states[pa].lifespan = v,
         ));
     }
+    // fn-231: a node count walked where a lifespan's fraction cuts a unit,
+    // the limb living six and a half cycles: its last unit lays half its
+    // zone's present nodes, and a node the law starts to make adds a
+    // vanishing share, laying no other node whole (codex on fn-231).
+    all.push(setting(
+        "states[1].zones[0].nodes.mean, lifespan 6.5".into(),
+        0.5,
+        2.5,
+        false,
+        |s, v| {
+            s.states[1].lifespan = 6.5;
+            s.states[1].zones[0].nodes = NodeLaw::Poisson { mean: v };
+        },
+    ));
     // fn-206: the twigs' shedding delay between whole cycles.
     all.push(setting(
         "states[2].shedding".into(),
@@ -449,7 +619,32 @@ pub fn settings() -> Vec<Setting> {
     ));
     all.extend(sleeping_settings());
     all.extend(bend_settings());
+    all.extend(turning_settings());
     all
+}
+
+/// fn-224: each axis's tropism varied axis to axis, walked on a tree that
+/// bends (the walk tree's own tropism is none, where the spread is dormant).
+fn turning_settings() -> Vec<Setting> {
+    (0..3)
+        .map(|pa| {
+            // The tropism walk's highest: the trunk's keeps its crown off
+            // the ground.
+            let bend = [0.03, 1.0, 1.0][pa];
+            let mut walked = setting(
+                format!("states[{pa}].form.tropism_spread, bending"),
+                0.0,
+                1.0,
+                false,
+                move |s, v| {
+                    s.states[pa].form.tropism = bend;
+                    s.states[pa].form.tropism_spread = v;
+                },
+            );
+            walked.stretch = 1.0;
+            walked
+        })
+        .collect()
 }
 
 /// fn-207 R3: the wander's bend length walked on a wandering tree, and the
@@ -611,7 +806,6 @@ pub fn lit(species: &Species, light: Light, seed: u64) -> telperion_space::Resul
         Request {
             age: AGE,
             seed,
-            budget: 2_000_000,
             light,
         },
     )
@@ -636,7 +830,8 @@ pub fn leafy(s: &mut Species) {
     for pa in [1, 2] {
         s.states[pa].shade_hazard = 1.0;
         s.states[pa].shade_size = 0.5;
-        s.states[pa].upkeep = 0.3;
+        // The oak's own potential height, 34.8 m (fn-349).
+        s.states[pa].inverse_height = 1.0 / 34.8;
         s.states[pa].balance_hazard = 1.0;
     }
 }
@@ -650,9 +845,8 @@ fn shaded(name: &str, low: f64, high: f64, edit: fn(&mut Species, f64)) -> Setti
     walked
 }
 
-/// Every setting walked in leaf under the site's light, the full lay
-/// grown with the tree included (host decision 8): `leafy` first, then
-/// the setting.
+/// Every setting walked in leaf under the site's light (host decision
+/// 8): `leafy` first, then the setting.
 pub fn in_leaf(all: Vec<Setting>) -> Vec<Setting> {
     all.into_iter()
         .map(|walked| {
@@ -700,26 +894,26 @@ pub fn light_settings() -> Vec<Setting> {
         shaded("states[2].apical_control", 0.45, 0.55, |s, v| {
             s.states[2].apical_control = v
         }),
-        shaded("states[1].upkeep", 0.0, 0.6, |s, v| s.states[1].upkeep = v),
-        shaded("states[2].upkeep", 0.0, 0.6, |s, v| s.states[2].upkeep = v),
+        // The range trees stand in, a potential height of 10 m and above,
+        // each walked in the unit the rule reads (`inverse_heights`).
         shaded("states[1].balance_hazard", 0.0, 3.0, |s, v| {
             s.states[1].balance_hazard = v
         }),
         shaded("states[2].tolerance", -0.5, 0.5, |s, v| {
             s.states[2].tolerance = v
         }),
-        // Girth moves the tree's shape only through sag, so these two are
-        // walked with the limbs sagging.
-        shaded("states[2].retained, limbs sag", 0.0, 1.0, |s, v| {
-            s.states[1].form.sag = 1e-4;
-            s.states[2].retained = v
-        }),
-        shaded("states[1].leaf_girth, limbs sag", 0.0, 2.0, |s, v| {
-            s.states[1].form.sag = 1e-4;
-            s.states[1].leaf_girth = v
-        }),
         shaded("leaf_area", 0.0, 0.6, |s, v| {
             s.states.iter_mut().for_each(|st| st.leaf_area = v)
+        }),
+        // A limb bud's kind under shade, one entry by degree (fn-354 R7):
+        // it turns into a twig as its bearer's light falls.
+        shaded("states[1].shade_short[2]", 0.0, 1.0, |s, v| {
+            s.states[1].shade_short = vec![0.0, 0.0, v]
+        }),
+        // From a deciduous leaf's year to about the spruce's 5.5 (fn-354
+        // R5): older phytomers shade and lay wood by degree.
+        shaded("leaf_years", 1.0, 6.0, |s, v| {
+            s.states.iter_mut().for_each(|st| st.leaf_years = v)
         }),
     ];
     let mut sky = shaded("sky", 0.0, 1.0, |_, _| {});
@@ -730,5 +924,29 @@ pub fn light_settings() -> Vec<Setting> {
         ..SITE
     });
     all.extend([sky, extinction]);
+    all.extend(inverse_heights());
     all
+}
+
+/// Each PA's inverse height walked over the range trees stand in, 0 to
+/// 0.1 a metre (a potential height of 10 m and above), in the unit the
+/// rule reads it in: the height over the potential height, so a step of
+/// one is the walk tree's tallest living tip above the root collar,
+/// measured on the tree grown at none (DEVICE-ANSWERS.md 1; fn-363).
+fn inverse_heights() -> Vec<Setting> {
+    let set: [fn(&mut Species, f64); 2] = [
+        |s, v| s.states[1].inverse_height = v,
+        |s, v| s.states[2].inverse_height = v,
+    ];
+    (1..=2)
+        .zip(set)
+        .map(|(pa, set)| {
+            let mut walked = shaded(&format!("states[{pa}].inverse_height"), 0.0, 0.1, set);
+            let mut at_none = species();
+            leafy(&mut at_none);
+            set(&mut at_none, 0.0);
+            walked.stretch = tallest_tip(&lit(&at_none, SITE, 1).expect("the walk tree"));
+            walked
+        })
+        .collect()
 }

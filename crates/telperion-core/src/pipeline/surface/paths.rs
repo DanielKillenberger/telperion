@@ -1,5 +1,5 @@
 use super::{filled, reserved};
-use crate::{tree::Node, Error, Result};
+use crate::{tree::Tree, Error, Result};
 pub(super) struct Run {
     pub start: usize,
     pub end: usize,
@@ -8,11 +8,11 @@ pub(super) struct Run {
 pub(super) struct Paths {
     pub nodes: Vec<usize>,
     pub runs: Vec<Run>,
-    /// Every node above the root a codominant sibling leaves: the run through
-    /// it carries on into the widest wood that is not one, the fork's primary.
-    pub forks: Vec<bool>,
 }
-pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
+/// The tree's runs: each carries on into the widest child that is not a
+/// codominant sibling.
+pub(super) fn paths(tree: &Tree) -> Result<Paths> {
+    let nodes = &tree.nodes;
     let n = nodes.len();
     let mut result = Paths {
         nodes: reserved(
@@ -20,7 +20,6 @@ pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
                 .ok_or(Error::ResourceLimit("surface paths"))?,
         )?,
         runs: reserved(n)?,
-        forks: filled(n, false)?,
     };
     if n < 2 {
         return Ok(result);
@@ -45,9 +44,10 @@ pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
             if wider(widest[at]) {
                 widest[at] = i;
             }
-            if nodes[i].codominant.is_some() {
-                result.forks[at] = at != 0;
-            } else if wider(leaders[at]) {
+            // A codominant sibling leaves its fork on a run of its own: the
+            // run through the fork carries on into the widest wood that is
+            // not one, the fork's primary.
+            if nodes[i].codominant.is_none() && wider(leaders[at]) {
                 leaders[at] = i;
             }
         } else {
@@ -77,7 +77,7 @@ pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
         let (attach, mut at) = seeds[s];
         let start = result.nodes.len();
         result.nodes.extend([attach, at]);
-        while leaders[at] != usize::MAX {
+        loop {
             let leader = leaders[at];
             let mut k = first[at];
             while k != usize::MAX {
@@ -85,6 +85,9 @@ pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
                     seeds.push((at, k));
                 }
                 k = next[k];
+            }
+            if leader == usize::MAX {
+                break;
             }
             result.nodes.push(leader);
             at = leader;

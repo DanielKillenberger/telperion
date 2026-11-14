@@ -18,7 +18,16 @@ impl Default for NodeIdentity {
     }
 }
 impl NodeIdentity {
-    /// Monotone within the specimen, including after slots have been reused.
+    /// An engine node's identity: its phytomer's lineage key (fn-220), the
+    /// same node at any age and wherever the fine cut falls.
+    pub(crate) fn lineage(key: u64) -> Self {
+        Self {
+            birth: key,
+            key: NodeKey::null(),
+        }
+    }
+    /// The scaffold's birth order, monotone within the specimen including
+    /// after slots have been reused; an engine node's lineage key.
     pub fn birth_order(self) -> u64 {
         self.birth
     }

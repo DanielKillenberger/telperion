@@ -2,6 +2,7 @@
 //! the wood the core hands up and the frame the device draws are what they
 //! were; with it on, the picture changes by a measured amount.
 mod common;
+use common::surface;
 use telperion_core::{
     material::MaterialParams, math::Vec3, mesh, presets::Preset, surface::SurfaceMesh,
 };
@@ -9,9 +10,13 @@ use telperion_render::{render, Camera, Renderer, Still, View, STILL_FORMAT};
 
 const SIZE: (u32, u32) = (640, 400);
 
+/// The oak's trunk at 2 m, filling about a quarter of the frame's width. fn-354's
+/// wood took that trunk from about 170 to 75 pixels wide in this frame, so the
+/// camera came in from 2.47 m to 1.09 m along the same line to frame the bark
+/// it framed before.
 fn trunk() -> Camera {
     Camera {
-        position: Vec3::new(1.7307636095778745, 2.2967023330704928, -1.7307636095778745),
+        position: Vec3::new(0.765, 2.131, -0.765),
         target: Vec3::new(0.0, 2.0, 0.0),
         field_of_view: 38.0,
         near: 0.01,
@@ -20,6 +25,8 @@ fn trunk() -> Camera {
 }
 
 fn hash(mesh: &SurfaceMesh) -> u64 {
+    // The chunks laid end to end: the hash the flat wood had.
+    let mesh = mesh.flattened();
     mesh.positions
         .iter()
         .chain(&mesh.normals)
@@ -69,8 +76,8 @@ fn the_depth_row_moves_no_wood_and_changes_the_picture() {
     };
     let tree = mesh::build(&family).unwrap();
     assert_eq!(
-        hash(&tree.wood),
-        hash(&lit.wood),
+        hash(surface(&tree)),
+        hash(surface(&lit)),
         "the depth row moved the wood the core hands up"
     );
     let Some(gpu) = common::gpu() else { return };

@@ -33,8 +33,8 @@ mod seed;
 #[cfg(test)]
 pub use pendant::in_band;
 use pendant::Curtain;
-pub(super) use planner::Planner;
 use planner::Axis;
+pub(super) use planner::Planner;
 #[derive(Clone, Default)]
 pub(super) struct Frontier {
     queue: std::collections::VecDeque<Shoot>,
@@ -73,4 +73,3 @@ impl Frontier {
 mod append;
 #[cfg(test)]
 pub use append::append;
-

@@ -31,7 +31,7 @@ integration was demonstrated.
 
 ## Matched query evidence
 
-The [authoritative raw run](gpu-results.json) preserves one warmup and five paired
+The authoritative raw run (archived in the 2026-10-16 evidence trim; see `.flow/evidence/ARCHIVE-MANIFEST.md`) preserved one warmup and five paired
 measured samples for each full, unmodified preset, alternating specimen and CPU/GPU
 query order. All twelve builds completed without caps. Field-only output retains
 wood and foliage, without render meshes. [Independent input verification](gpu-input-verification.json)
@@ -66,13 +66,13 @@ The final giant 64³ source-resident subset passes its timing and exact-grid gat
 corrected data. It does not qualify a general query API: giant contacts have 54
 mismatches, including six false-negative cells. Ordinary contacts have 65 mismatches,
 including 21 false-negative cells; Ordinary 64³ has two foliage mismatches, including
-one false negative. Raw cells and flags are retained. Both wood and foliage contact
+one false negative. Raw cells and flags were retained in the archived raw run. Both wood and foliage contact
 predicates drift; no epsilon relaxation, boundary correction or workload reduction
 was applied.
 
 Preliminary and internal-timing runs failed every resident timing qualification.
 Their superseded dumps remain in Git history at `6f3adb2`, alongside the rejected
-implementation; the working tree retains the authoritative final raw run. The final
+implementation; the final raw run is archived as above. The final
 run supersedes their cold sums with a direct caller stopwatch. This observed
 variability limits performance claims; no slow sample was discarded. The CPU
 baseline's interrupted export attempt is documented in its protocol and is
@@ -91,7 +91,7 @@ is released in success and failure paths.
 
 The measured GPU configuration is Linux 7.1.9-arch1-2, Ryzen 9 5950X, Chromium
 151.0.7922.173, RTX 3080/NVIDIA Ampere, non-fallback Vulkan/ANGLE adapter with timestamp
-queries. Exact launch flags, adapter limits and metadata are in the raw samples.
+queries. Exact launch flags, adapter limits and metadata were in the archived raw samples.
 This is one configuration, not a supported hardware matrix. The evidence does not
 pin a driver package version or prove other drivers/browsers. Software adapters,
 other platforms and cross-device repeatability remain unqualified. Timestamps are
@@ -137,13 +137,11 @@ no competing CPU benchmark/test load. No additional GPU run was needed for the
 rejection or removal.
 
 Native workspace tests, formatting and clippy ran after the snapshot Rust change;
-no Rust code changed afterward. Durable receipts: [native tests](native-tests.log)
-(69 passed, six ignored), [format](native-fmt.log) and [clippy](native-clippy.log).
+no Rust code changed afterward. Native tests: 69 passed, six ignored; format and clippy clean.
 The final task also checks typecheck, harness tests, package build and CPU-only browser
 bindings. Browser snapshot checks cover exact reference flags, mutation isolation,
 stale/released/disposed handles, empty snapshots and staging cleanup. GPU hardware
-and controlled failure checks remain those of task 2. Final command outcomes are
-recorded in [validation](validation.json) with accompanying logs.
+and controlled failure checks remain those of task 2. Final command logs were archived in the 2026-10-16 evidence trim.
 
 R1 is resolved by measured CPU stages and matched query evidence, with GPU growth
 and construction explicitly inconclusive. R2 rejects this candidate and retains CPU

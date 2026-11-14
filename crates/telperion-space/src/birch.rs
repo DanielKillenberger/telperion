@@ -1,0 +1,466 @@
+//! The silver birch (*Betula pendula*) as a point in the tree space:
+//! values only. Its architecture is the one Millet, Bouchard and Édelin
+//! (1999) describe for its sister the grey birch: related to Rauh's model,
+//! though sympodial, a hierarchy of five orthotropic axis categories on a
+//! 2/5 spiral, rhythmic, branching acrotonically and deferred, the last
+//! category an unbranched short shoot; few reiterates, and the old trunk
+//! ending in small forks. Long shoots build the tree, short shoots bearing
+//! one bud at best replace themselves (Jones and Harper 1987). The outer
+//! long shoots hang: a branch holds its angle by its gravitropic set-point
+//! (Muranen et al. 2026), which the birch's fine shoots set below the
+//! horizontal, and bend under their own weight. Each value's source is in
+//! `.flow/evidence/fn-213-tree-space-the-silver-birch-as-a-point/MODEL-BIRCH.md`;
+//! a value no source gives is marked there as estimated.
+use crate::chain::{self, on_chain};
+use crate::species::{Form, NodeLaw, PaState, Species, Zone};
+use std::f64::consts::{FRAC_PI_2, PI};
+
+/// The sapwood a unit of leaf needs, cm² per m²: 4.6, derived, not
+/// measured (fn-354, BIRCH-SAPWOOD.md): Repola 2008's foliage (eq. 12)
+/// over Hölttä et al. 2013's xylem area (Table 2) at 20 and
+/// 25 cm, at Lintunen et al. 2011's specific leaf area, 13.55 m² per kg
+/// (secondary); the whole xylem, a birch of this age read as having no
+/// heartwood.
+const SAPWOOD: f64 = 4.6;
+/// The years wood stays sapwood: 40, estimated; no birch measurement
+/// (Gebauer et al. 2008 found 29 to 88 rings on other diffuse-porous
+/// species).
+const SAPWOOD_RINGS: f64 = 40.0;
+/// How far its wood bends under its load, per metre: 4ρg/E, an elastic
+/// beam's, at green birch's 930 kg m⁻³ and 9.9 GPa (Lavers 1983, read through
+/// Niklas and Spatz 2010, Am. J. Bot. 97: 1587-1594, Table 1; Hamilton
+/// 1975), at every age.
+const SAG: f64 = 3.7e-6;
+/// The wood every age lays: the sapwood its leaf needs, how long it stays
+/// sapwood and how far it bends, alike at every age.
+fn wood() -> Form {
+    Form {
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
+        sag: SAG,
+        ..Form::default()
+    }
+}
+
+/// One leaf a node, in m² (fn-264 R2, host decision 1, derived): the
+/// mid-points of the blade's 3-7.5 x 1.5-6 cm, "triangular-ovate or
+/// rhombic-ovate" (Flora of China 4, *Betula pendula*), times 0.67, the
+/// area over length x width of an ovate leaf in the strict sense
+/// (Schrader et al. 2021, Ann. Bot. 128: 395, Table 1). A short shoot's
+/// "two or three leaves" stand one to a node (KU03).
+const LEAF_AREA: f64 = (3.0 + 7.5) / 2.0 * (1.5 + 6.0) / 2.0 * 0.67 * 1e-4;
+
+/// The birch's ages on the shared reference axis (`chain.rs`), youngest
+/// first: the young stem, the stem in the crown, its old top of small
+/// forks, the limbs and their boughs, the young stem's passing branches,
+/// the hanging long-shoot systems, their long shoots and the short shoots.
+const TRUNK: usize = chain::TRUNK;
+const YOUNG: usize = chain::LOW_FORK;
+const LEADER: usize = chain::LEADER;
+const TOP: usize = chain::TOP_FORK;
+const LIMB: usize = chain::LIMB;
+const BOUGH: usize = chain::BOUGH;
+const SPRIG: usize = chain::SPRIG;
+const BRANCH: usize = chain::BRANCH;
+const SHORT: usize = chain::SHORT;
+const PAS: usize = chain::AGES;
+
+/// The 2/5 spiral of the birch's leaves and buds (MBE99).
+const SPIRAL: f64 = 2.0 * PI * 2.0 / 5.0;
+
+/// One zone: nodes from `min` to `max`, one bud each (the leaves are
+/// alternate), bearing `pa` with probability `p` (bare where `p` is 0).
+fn zone(min: u32, max: u32, laterals: &[(usize, f64)]) -> Zone {
+    let mut lateral = vec![0.0; PAS];
+    for &(pa, p) in laterals {
+        lateral[pa] = p;
+    }
+    Zone {
+        nodes: NodeLaw::Uniform {
+            min: f64::from(min),
+            max: f64::from(max),
+        },
+        buds: 1.0,
+        dormant: vec![0.0; lateral.len()],
+        delay: 0.0,
+        rate: 0.0,
+        lateral,
+    }
+}
+
+/// The neutral state every row below starts from: one growth unit a year
+/// on the 2/5 spiral. The birch's axes are sympodia "with a hierarchic
+/// development similar to that of a monopodium" (MBE99), so they are drawn
+/// monopodial, as the beech's stem is.
+fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
+    PaState {
+        lifespan: f64::from(lifespan),
+        continuation,
+        viability: 1.0,
+        zones,
+        shedding: f64::INFINITY,
+        internode: 0.04,
+        insertion: 0.0,
+        divergence: SPIRAL,
+        abortion: 0.0,
+        abortion_rise: 0.0,
+        relay: 0.0,
+        relay_ended: 0.0,
+        relay_failed: 0.0,
+        relay_at: 1.0,
+        epitony: 0.0,
+        takeover: 0.0,
+        erection: 0.0,
+        readiness: 1.0,
+        rhythm: 1.0,
+        leaf_area: LEAF_AREA,
+        shade_hazard: 0.0,
+        ground_hazard: GROUND_HAZARD,
+        shade_size: 0.0,
+        apical_control: 0.5,
+        // The potential height, 30 m (European Atlas of Forest Tree
+        // Species, Betula, Beck et al.: "... 30 m"; B. pendula inferred
+        // from the excerpt, fn-345).
+        inverse_height: 1.0 / 30.0,
+        balance_hazard: 0.0,
+        tolerance: 0.0,
+        shade_short: vec![0.0; PAS],
+        straightening: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        // fn-354 R5: a leaf is kept one year: "deciduous tree species ...
+        // particularly in silver birch" (Dox et al. 2020, Tree Physiol. 40:
+        // 1001).
+        leaf_years: 1.0,
+        // fn-270 R5: the days its shoot elongates and its leaf expands
+        // within the year, sourced in its preset's value file.
+        elongation: 110.0,
+        expansion: 24.0,
+        // fn-270 R5c: its leaves' lifespan and season, sourced in its
+        // preset's value file.
+        leaf_life: 0.61,
+        budburst: 101.0,
+        senescence: 277.0,
+        colouring: 5.0,
+        leaf_fall: 45.0,
+        form: wood(),
+    }
+}
+
+/// Old limb wood's sleeping buds: each node of `zone` also holds, with
+/// probability `p`, a bud of a hanging strand that wakes years later
+/// (Cameron and Sani 1994: *B. pendula* sprouts epicormic shoots), so the
+/// limbs stay hung with strands along their older wood.
+fn sleeping(mut zone: Zone, p: f64) -> Zone {
+    zone.dormant[BRANCH] = p;
+    zone.delay = 4.0;
+    zone.rate = 0.15;
+    zone
+}
+
+/// A growth unit: a bare base, medial nodes and the acrotonic top.
+fn unit(
+    bare: (u32, u32),
+    medial: ((u32, u32), &[(usize, f64)]),
+    top: ((u32, u32), &[(usize, f64)]),
+) -> Vec<Zone> {
+    vec![
+        zone(bare.0, bare.1, &[]),
+        zone(medial.0 .0, medial.0 .1, medial.1),
+        zone(top.0 .0, top.0 .1, top.1),
+    ]
+}
+
+/// How the ground ends a shoot whose tip reaches it (fn-252 R2): a
+/// declared stand-in of 1, a hanging shoot stops at the ground, resting
+/// on the owner's verdict (2026-10-14: "we might also want to fix the
+/// birch's branches drooping all the way to the ground"). No source read
+/// says whether a wild silver birch's hanging shoots end there; the one
+/// text found says the opposite of the grafted cultivar 'Youngii' (a
+/// nursery page, no evidence cited: its branches "will eventually root in
+/// the soil or create an untidy mat on the ground if not lifted"), fn-252
+/// R2-PLAN.md.
+const GROUND_HAZARD: f64 = 1.0;
+
+/// Its shade tolerance T (Niinemets and Valladares 2006, Appendix A;
+/// Jev fn264-pick:18dddb15cf3d5bc7-3e6351-0), which sets how it answers
+/// light (`tolerance.rs`, fn-264 R2).
+const SHADE_TOLERANCE: f64 = 2.03;
+
+/// The birch, one growth cycle a year.
+pub fn birch() -> Species {
+    let stem = Form {
+        tropism: 0.5,
+        elevation: FRAC_PI_2,
+        wander: 0.35,
+        plane: 0.0,
+        primary: 0.004,
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
+        dominance: 0.0,
+        roll: 0.0,
+        sag: SAG,
+        bend_length: 6.0,
+        internode_spread: 0.2,
+        insertion_spread: 0.0,
+        tropism_spread: 0.0,
+        ..Form::default()
+    };
+    // A1, the young stem: fast yearly units, bearing the young tree's
+    // passing branches acrotonically.
+    let trunk = PaState {
+        internode: 0.055,
+        form: stem,
+        ..state(
+            5,
+            1.0,
+            unit(
+                (4, 6),
+                ((6, 8), &[(SPRIG, 0.3), (SHORT, 0.3)]),
+                ((2, 3), &[(SPRIG, 0.7)]),
+            ),
+        )
+    };
+    // The young stem in the crown, years 6 to 14: shorter units bearing
+    // passing branches, which the bole sheds.
+    let young = PaState {
+        internode: 0.04,
+        form: stem,
+        ..state(
+            9,
+            1.0,
+            unit(
+                (3, 4),
+                ((3, 5), &[(SPRIG, 0.25), (BRANCH, 0.06), (SHORT, 0.3)]),
+                ((2, 2), &[(LIMB, 0.1), (SPRIG, 0.6), (BRANCH, 0.12)]),
+            ),
+        )
+    };
+    // The stem's middle years, 15 to 40: a few scaffold limbs that live
+    // and grow for decades into the old crown's top (S1, S3; host, round
+    // 7), among passing branches.
+    let leader = PaState {
+        internode: 0.04,
+        form: stem,
+        ..state(
+            26,
+            1.0,
+            unit(
+                (3, 4),
+                (
+                    (3, 5),
+                    &[(LIMB, 0.04), (SPRIG, 0.25), (BRANCH, 0.06), (SHORT, 0.3)],
+                ),
+                ((2, 2), &[(LIMB, 0.22), (SPRIG, 0.45), (BRANCH, 0.12)]),
+            ),
+        )
+    };
+    // The old top: short units forking into small boughs.
+    // The old stem gives up its lead (MBE99: "the extremity of the main
+    // stem assume[s] a divaricated structure with very short growth
+    // units"): from its 40s its tip often dies and a bud below it, barely
+    // turned upward, carries on at a slant: small forks (round 6).
+    let top = PaState {
+        internode: 0.015,
+        abortion: 0.8,
+        relay: 1.0,
+        relay_ended: 1.0,
+        relay_failed: 1.0,
+        relay_at: 0.6,
+        epitony: 0.2,
+        // fn-286 (2026-10-15): a relay runs half back onto the line it takes over (RELAYS.md).
+        takeover: 0.5,
+        form: Form {
+            tropism: 0.4,
+            elevation: 1.0,
+            wander: 0.5,
+            ..stem
+        },
+        ..state(
+            100,
+            0.0,
+            unit(
+                (1, 2),
+                ((2, 3), &[(BRANCH, 0.3), (SHORT, 0.3)]),
+                ((1, 2), &[(BOUGH, 0.5), (BRANCH, 0.4)]),
+            ),
+        )
+    };
+    // Crooked, irregularly subdivided limbs (host and Astra, sheet 3):
+    // the apex now and then dies and a bud on the upper side of its last
+    // unit carries the limb on, a kink; boughs differ in vigour; the
+    // limb's bend is remembered over metres (fn-207); a few limbs die and
+    // are shed.
+    let limb = PaState {
+        insertion: 0.6,
+        internode: 0.055,
+        viability: 0.998,
+        shedding: 3.0,
+        abortion: 0.08,
+        relay: 1.0,
+        relay_ended: 1.0,
+        relay_failed: 1.0,
+        epitony: 0.4,
+        // fn-286 (2026-10-15): a relay runs half back onto the line it takes over (RELAYS.md).
+        takeover: 0.5,
+        form: Form {
+            tropism: 0.9,
+            elevation: 1.3,
+            wander: 0.6,
+            plane: 0.0,
+            primary: 0.002,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
+            dominance: 0.2,
+            roll: 1.2,
+            sag: SAG,
+            bend_length: 3.0,
+            internode_spread: 0.7,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
+            ..Form::default()
+        },
+        ..state(
+            25,
+            1.0,
+            unit(
+                (2, 3),
+                ((3, 5), &[(BOUGH, 0.12), (BRANCH, 0.15), (SHORT, 0.58)]),
+                ((1, 2), &[(BOUGH, 0.45), (BRANCH, 0.4)]),
+            ),
+        )
+    };
+    let bough = PaState {
+        insertion: 0.6,
+        internode: 0.03,
+        viability: 0.995,
+        shedding: 2.0,
+        abortion: 0.08,
+        relay: 1.0,
+        relay_ended: 1.0,
+        relay_failed: 1.0,
+        epitony: 0.4,
+        // fn-286 (2026-10-15): a relay runs half back onto the line it takes over (RELAYS.md).
+        takeover: 0.5,
+        form: Form {
+            tropism: 0.3,
+            elevation: 0.5,
+            sag: SAG,
+            primary: 0.002,
+            ..limb.form
+        },
+        ..state(100, 0.0, {
+            let mut u = unit(
+                (1, 2),
+                ((3, 4), &[(BRANCH, 0.4), (SHORT, 0.45)]),
+                ((1, 1), &[(BRANCH, 0.5)]),
+            );
+            u[1] = sleeping(u[1].clone(), 0.2);
+            u
+        })
+    };
+    // The young stem's branches, which pass: the bole clears.
+    let sprig = PaState {
+        insertion: 0.7,
+        internode: 0.04,
+        viability: 0.97,
+        shedding: 2.0,
+        form: Form {
+            tropism: 0.5,
+            elevation: 0.8,
+            wander: 0.4,
+            plane: 0.0,
+            primary: 0.0012,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
+            dominance: 0.0,
+            roll: 0.8,
+            sag: SAG,
+            bend_length: 0.0,
+            internode_spread: 0.4,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
+            ..Form::default()
+        },
+        ..state(
+            14,
+            0.0,
+            unit(
+                (1, 2),
+                ((3, 4), &[(BRANCH, 0.4), (SHORT, 0.45)]),
+                ((1, 1), &[(BRANCH, 0.5)]),
+            ),
+        )
+    };
+    // The hanging long-shoot system: thin, set below the horizontal and
+    // bowed by its own weight, clothed in short shoots. A long shoot's
+    // every leaf has an axillary bud and most shoots a branch bears are
+    // short (SU03, >80 %): the medial nodes of the strands, limbs, boughs
+    // and passing branches bear a shoot at 0.85, the short shoot taking
+    // what the long laterals leave (round 13; the 0.85 estimated).
+    let hanging = Form {
+        tropism: 3.0,
+        elevation: -FRAC_PI_2,
+        wander: 0.4,
+        plane: 0.0,
+        primary: 0.0008,
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
+        dominance: 0.0,
+        roll: 1.6,
+        sag: SAG,
+        bend_length: 1.0,
+        internode_spread: 0.7,
+        insertion_spread: 0.5,
+        tropism_spread: 0.6,
+        ..Form::default()
+    };
+    let branch = PaState {
+        insertion: 0.7,
+        internode: 0.06,
+        viability: 0.92,
+        shedding: 1.0,
+        form: hanging,
+        ..state(
+            12,
+            0.0,
+            vec![
+                zone(1, 1, &[]),
+                zone(3, 5, &[(SHORT, 0.845), (BRANCH, 0.005)]),
+            ],
+        )
+    };
+    // The short shoot: a few crowded nodes a year, its one bud carrying it
+    // on, never branching. It bears its leaves at its tip, "two or three
+    // leaves" (KU03 on B. pendula; SU03): three, fanned 0.6 rad either side.
+    // Its pipe is thin, as a brachyblast stays a millimetre or two thick:
+    // 0.0005 holds the stem's DBH to round 12's at 40 and 80 with round
+    // 13's shoots (round 14; estimated, MODEL-BIRCH.md).
+    let short = PaState {
+        cluster_leaves: 3.0,
+        cluster_spread: 0.6,
+        insertion: 0.8,
+        internode: 0.003,
+        viability: 0.92,
+        shedding: 1.0,
+        form: Form {
+            primary: 0.0005,
+            ..wood()
+        },
+        ..state(6, 0.0, vec![zone(2, 3, &[])])
+    };
+    let mut ages = vec![
+        (TRUNK, trunk),
+        (YOUNG, young),
+        (LEADER, leader),
+        (TOP, top),
+        (LIMB, limb),
+        (BOUGH, bough),
+        (SPRIG, sprig),
+        (BRANCH, branch),
+        (SHORT, short),
+    ];
+    crate::tolerance::respond(&mut ages, SHADE_TOLERANCE);
+    on_chain(ages)
+}

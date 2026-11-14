@@ -5,7 +5,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 30% [user], 50% [paraphrase], 20% [inferred] -->
 
 European ash (Fraxinus excelsior) joins the catalogue the way the oak, the spruce, the beech and the birch did: a frozen botanical profile with cited ranges, catalogued references, a preset that is a value table, the fixed and fresh seed protocol, numeric gates, and matched pairs the owner judges. It is the natural base of Yggdrasil in fn-10. [paraphrase]
 

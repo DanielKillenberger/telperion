@@ -1,74 +1,45 @@
-## Conversation Evidence
+## Goal
 
-> owner (2026-09-27, on fn-177's plane candidate beside the Schützenmattpark photograph): "The structure of those trees is much different. Now we have 1 super thick center and then it tapers off to be thin very quickly anyway. The plane i sent has very thick multiple leaders and thick branches from that. Then there's actually very few branches off that secondary level that lead to many twigs with leaves."
-> owner: "Is thie branching hierarchy part of 177? i think it would also fix the beech"
-> owner (2026-09-28, on a beech Tune candidate): "why arey ou showing me this abomination?" (a crown that is a ball of long straight twigs with no limb structure)
-> owner (2026-09-28): "ok merge it and spec"; fn-173 is being built, so this builds after it.
+Open-grown broadleaves read by their branching hierarchy: a few strong scaffold limbs carrying their girth far out, sparse middle orders, dense short twigs at the crown's edge. The owner's London plane photograph (`.flow/references/london-plane/schutzenmattpark-basel-2026-09-27.jpg`) and the beech's references show it; the generator did not (fn-177: every limb born thin and branching everywhere; the beech's runner Tunes kept crowns of similar-sized sticks). After fn-61, fn-170, fn-177 and fn-180 this was the capability the beech still lacked. Measure first, then decide the rows.
 
-## Goal & Context
-<!-- scope: business -->
+## Decisions
 
-Open-grown broadleaves read by their branching hierarchy: a few strong scaffold limbs that carry their girth far out, sparse branching in the middle orders, and dense, short twigs concentrated at the crown's edge. The owner's London plane photograph (`.flow/references/london-plane/schutzenmattpark-basel-2026-09-27.jpg`) and the beech's references show it. The generator does not: fn-177 measured that on fn-170's plane candidate each lateral an axis bears takes its share of the pipe (96 percent of the thinning), so every limb is born thin and branches everywhere; the beech's two runner Tunes (fn-62, 2026-09-27) kept nothing and their best candidates were crowns of similar-sized sticks with no limbs. After fn-61 (limb angle by height, ragged reach), fn-170 (codominant forks), fn-177 (held girth) and fn-180 (even finish at the budget), this is the capability the beech still lacks. [paraphrase]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-**What exists, checked 2026-09-28 on master.** The scaffold's lateral rows are `lateralsPerStation`, `lateralSpacing`, `lateralLengthRatio`, `lateralOrders` and `apicalDominance` (`crates/telperion-core/src/pipeline/branching/traits.rs:25-162`); the twig layer's are `laterals` per station, `stationsPerInternode`, `lengthRatio`, `ratioPower` and `generations` (`crates/telperion-core/src/pipeline/twigs.rs:50-147`). Each is one value per family. [checked]
-
-**Unknown until measured.** Whether any of these already varies by order in effect (through `lengthRatio`/`ratioPower`, vigour or the scaffold's room), and what the beech and the plane need per order. [unknown]
-
-**Measure first (R1).** On the shipped beech, fn-170's plane candidate and the oak at seeds 1 to 4, per branch order: laterals per metre of parent, lateral length against parent length, and girth at birth against the parent's; and, from the owner's two photographs and the beech's curated B-BARE, the host's read of the same three quantities per visible order (few / many, long / short, thick / thin). The report names which quantity differs and at which orders. [inferred]
-
-**Decision (host, 2026-09-28, from R1's measurement in `.flow/evidence/fn-182-branching-hierarchy-few-strong-limbs/R1-MEASUREMENT.md`).** [checked]
-- The scaffold is already sparse (4 to 8 laterals per parent; 0.5 to 0.7 per metre at orders 2 and 3, near the photographs). The difference is the twig layer: it bears shoots at 3.7 to 10.8 per metre along every scaffold limb, inner wood included, where the photographs show bare inner limbs and a twig shell 1 to 3 m deep at the crown's edge.
-- **The capability is a twig shell.** Two rows in the twig layer: `twigShell`, the depth from the crown's outer surface, as a share of the crown's radius, within which the twig law bears shoots on scaffold wood; and `twigShellSoftness`, the width of the fade at that depth. Unset `twigShell` is today's law (no shell), so every shipped preset is byte-identical; walking it moves the tree by degree. It reads the crown's outline geometry for depth (not fn-173's table, Astra review 2026-10-02), and builds on fn-183's twig layer, which changes the same code.
-- **Not new rows:** the plane's thin first-order limbs (born at 0.18 of the parent against 0.5 to 0.7 in the photograph, because each stem carries about 22 first-order laterals where the photograph shows 3 to 4 leaders) are values: `lateralSpacing` and `lateralsPerStation` on the stems, (the claim that removing inner twigs leaves the remaining limbs thicker was wrong: the pipe solve sums only nodes before the crossover, `radius.rs:169`; Astra visual review, 2026-10-02). The beech's 32 m single stem, where its reference dissolves into 4 to 6 limbs at 30 to 40 percent of the height, is `codominance` with a fork height near 0.3 (fn-170). Both are values the beech's Tune and the plane's candidate set.
-- Length ratios differ least and are left alone.
-
-**Build choices (host, 2026-10-02, from `R5-RESULT.md`).** [checked]
-- **Depth reads the smooth outline,** as shedding, the cull and the fill do: the smaller of the horizontal room and the distance to the smooth profile, read once per seeding pass. A lobed depth would move 0.7 to 2.4% of the beech's stations across shells 0.15 to 0.4.
-- **The fade runs past `twigShell`,** so a shell of 1 is a pure neutral at any softness; R4's "bears no shoots deeper than `twigShell`" holds past `twigShell + twigShellSoftness`, and exactly at softness 0.
-- **The neutral is a value, `twigShell` = 1** (the top of its rail), not an absent option.
-- **Laterals only:** a scaffold tip deep in the crown still grows its terminal twig. Wood below the crown base counts as outside the outline and bears. A deep station bears no hanging shoots either; no shipped hanging preset sets a shell. On the hidden growth path depth reads that year's outline.
-
-**Held (host, 2026-10-02, after the owner's verdict and Astra's visual review in `ASTRA-VISUAL-REVIEW.md`).** The R5 stills show the shell does not give the beech its hierarchy: the beech still reads as long straight rods, and the plane is "slightly closer but not there at all" (owner). The rods are rule-grown: scaffold laterals take the whole parent axis's length times `lateralLengthRatio` (0.65 on the beech) wherever they depart, with 3 degrees of crookedness (`scaffold.rs:317`). The PR is held. Next is a bounded comparison on the beech with the shell neutral, using existing rows (`lateralLengthRatio`, `raggedReach`, `crookedness`, `pitchVariation`, `codominance` with `forkWays` near 2, the short-shoot radius and spacing, `limbRadius`, `sheddingThreshold`), measured on a few traced branch systems (daughter thickness and length against the parent's remaining extent, length between substantial divisions, curvature, departure-angle variation, codominant continuations included); then a shell ablation on the best candidate. The shell is kept only if it adds a distinct improvement after that. Two limits Astra verified in the code may become gaps if values cannot reach the look: forks are placed by absolute tree height, so a limb cannot fork along its own course; and deeper laterals take a fixed share of the parent's whole length, with no term for where they depart. [checked]
-
-**Shape (superseded by the decision above).** Most likely a per-order profile on the rows that differ (density, length and birth girth falling or rising with order), each dormant at today's value and changing the tree by degree, declared once in the catalogue; or a vigour-weighted lateral allocation if density alone does not produce few strong limbs. The spec is updated with the decision before any code. [inferred]
+- owner (2026-09-27, on fn-177's plane candidate beside the Schützenmattpark photograph): "The structure of those trees is much different. Now we have 1 super thick center and then it tapers off to be thin very quickly anyway. The plane i sent has very thick multiple leaders and thick branches from that. Then there's actually very few branches off that secondary level that lead to many twigs with leaves."
+- owner: "Is thie branching hierarchy part of 177? i think it would also fix the beech"
+- owner (2026-09-28, on a beech Tune candidate): "why arey ou showing me this abomination?" (a crown that is a ball of long straight twigs with no limb structure)
+- owner (2026-09-28): "ok merge it and spec"; built after fn-173, later re-sequenced after fn-183 (host, 2026-10-02).
+- Host decision from R1 (2026-09-28): the capability is a twig shell (`twigShell`, `twigShellSoftness`), because the scaffold is already sparse and the twig layer bears shoots along every limb; the plane's thin first-order limbs and the beech's single stem are values (`lateralSpacing`, `lateralsPerStation`; `codominance` near fork height 0.3).
+- Host build choices (2026-10-02): depth reads the smooth outline; the fade runs past `twigShell`; neutral is `twigShell` = 1; laterals only.
+- Held (host, 2026-10-02, after the owner's verdict and Astra's visual review): the beech still reads as long straight rods — rule-grown, since scaffold laterals take the whole parent length × `lateralLengthRatio` (0.65) with 3° crookedness. A bounded comparison with existing rows came next.
+- owner (2026-10-02), on deleting the shell: "y" — `sheddingThreshold` 0.25 clears the inner crown as the shell does and the stills show no difference. The shell's code stays on the unmerged branch `fn-182-branching-hierarchy-few-strong-limbs` (a046d8da, 3d8ac476, 768feab5).
+- Paused (owner, 2026-10-02): the two supported code changes (a limb tip's continuation takes the ordinary shoot length; twig bearing stops depending on wood thickness) wait on fn-188. Their evidence is on branch `fn-182-girth` (`R7-GIRTH.md`, `R8-HORNS.md`, `ASTRA-THICKNESS-REVIEW.md`).
+- Superseded by fn-190 (owner, 2026-10-03): the hierarchy is the new growth law's to deliver, by axis differentiation and competition rather than a twig shell or girth patches; this spec's evidence carries over.
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** The per-order measurement of the three trees and the photographs is reported, naming the quantities that differ and at which orders. [inferred]
-- **R2:** The host's design decision is recorded in this spec before code: the rows, their dormant values, and why they reach the photographs' hierarchy. [inferred]
-- **R3:** The new rows are dormant at their neutral values: every shipped preset is byte-identical to master at seeds 1 and 7; they are declared once in the catalogue, blended, on the dials, refused by name off their rails. [inferred]
-- **R4:** On a synthetic family, scaffold wood deeper than `twigShell` from the crown's surface bears no twig-layer shoots, wood within it bears them as today, the fade is continuous over `twigShellSoftness`, and the tree moves continuously as the rows move. [inferred]
-- **R5:** Candidate values for the plane and the beech (host-chosen, not shipped presets) are rendered and opened in the harness (`species --look` / `harness/looks/`) beside the owner's photographs, with one question: does the structure now read like the photographs? [inferred]
-- **R6:** The workspace gate and `npm test` are green; build time, peak memory and every shipped artifact's size are reported (the size check's 5 percent per PR applies). [inferred]
+- **R1:** Per-order measurement of the beech, plane candidate and oak against the photographs — met: the plane's order-1 limbs are born at 0.18 of the stem (photograph 0.5 to 0.7); the twig law seeds 21 to 61 laterals along every limb (3.7 to 10.8 per metre) where the photographs show bare inner limbs; fine twigs sit evenly along parents, not at the edge; length ratios differ least; the beech's 32 m excurrent trunk keeps its limbs short (0.34).
+- **R2:** Design decision recorded before code — met (twig shell).
+- **R3:** New rows dormant and byte-identical at neutral, catalogued, blended, on dials — met on the unmerged branch.
+- **R4:** Synthetic family: no twig-layer shoots deeper than the shell, continuous fade — met on the unmerged branch.
+- **R5:** Plane and beech candidates shown to the owner beside the photographs — met; verdict: the plane "slightly closer but not there at all", the beech still rods.
+- **R6:** Gates green; cost and sizes reported — met on the unmerged branch.
+- **R7:** The girth rows walked one at a time on Candidate B — moved to fn-190 (evidence on `fn-182-girth`).
+- **R8:** Host decision on thickness, including Astra's two verified limits (forks placed by absolute tree height, `scaffold/fork.rs:87`; laterals take a fixed share of the parent's whole length, `scaffold.rs:317`) — moved to fn-190.
 
-## Boundaries
-<!-- scope: business -->
+## Result
 
-- Not the beech's values (fn-62) or a London plane preset. Not girth (fn-177) or forks (fn-170). Builds after fn-183 (the twig layer grows without the crown as a wall), which reworks the same twig-layer code (host, 2026-10-02; was fn-173).
+The shell was dropped. Candidate B's direction went to fn-62 (values in `R5-RESULT.md`, "Bounded comparison"): `lateralLengthRatio` 0.3 from 0.65 ends the long rods (side branches 0.82 of the parent's remaining extent against 1.15; 6 of 293 longer than half their parent against 171 of 260), with `crookedness` 10, `pitchVariation` 16, `shortShootRadius` 0.3, `shortShootSpacing` 0.08 and shedding for the inner crown, on Hierarchy 1 (`codominance` 0.3, `forkHeight` 0.35, `forkWays` 4). It is sparse, low and wide against the reference. Branch thickness stays unsolved: at substantial divisions daughters stay about 0.78 of their parent across every row tested.
 
-## Strategy Alignment
+## Open
 
-- Serves "Mature trees are the product" and "Growth and botanical fidelity": the owner judges trees by their structure first. [strategy:Our approach]
+Thickness hierarchy and the two code changes are fn-190's.
 
-## The shell is dropped; the spec goes on (owner, 2026-10-02)
+## Friction
 
-The bounded comparison (`R5-RESULT.md`) showed `sheddingThreshold` 0.25 clears the beech's inner crown as `twigShell` 0.25 does, and the stills show no visible difference between no shell, the shell and shedding at this scale. The owner agreed to delete the shell ("y"): its code stays on the unmerged branch `fn-182-branching-hierarchy-few-strong-limbs` (a046d8da, 3d8ac476, 768feab5) and is not merged. What the evidence established goes on: Candidate B's direction to fn-62 (`lateralLengthRatio` 0.3 from 0.65 ends the long rods: side branches 0.82 of the parent's remaining extent against 1.15, 6 of 293 longer than half their parent against 171 of 260; `crookedness` 10, `pitchVariation` 16, `shortShootRadius` 0.3, `shortShootSpacing` 0.08, shedding for the inner crown); and branch thickness, which no tested row moved (daughters stay about 0.78 of their parent), stays this spec's open question. [checked]
+- No checklist of the sites a new row must touch; four found only by the gate -> proposal: an "adding a row" checklist in `docs/parameters.md` or a catalogue test naming each site.
+- `growth_profile --features query-count` takes a preset, not a family -> proposal: `--family FILE`.
+- The dcg hook blocks redirects to variable paths -> local setup, reported.
 
-## Next: thickness (host, 2026-10-02)
+## Evidence
 
-The goal is unchanged: a few thick limbs dividing into ever finer twigs. At substantial divisions (daughter radius at least 0.3 of the parent's) a daughter stays about 0.78 of its parent's radius across every row the bounded comparison tested. The rows that set thickness were not tested: `girthHold` and `girthFall` (fn-177, `pipeline/radius/hold.rs`), `ratioPower`, and the scaffold's pipe split, `forkExponent`, `lateralShare` and `forkBalance` (`pipeline/radius.rs`). [checked: rows exist; their effect is unknown]
-
-- **R7:** On the beech at seed 1, from Candidate B, each of those rows walked one at a time across its window and measured on the same traced branch systems (thickness and length against the parent at substantial divisions, length between divisions, tortuosity, angle spread), with nodes, leaves and skeleton time, the workspace suite run on the exploratory build, and bare stills beside the reference for the best sets. [inferred]
-- **R8:** The host's decision is recorded before any code: existing rows reach the references (values to fn-62), or the missing capability is named with its measured shortfall, including whether Astra's two verified limits take part: forks placed by absolute tree height (`scaffold/fork.rs:87`), and laterals taking a fixed share of the parent's whole length wherever they depart (`scaffold.rs:317`). [inferred]
-
-## Paused (owner, 2026-10-02)
-
-The two code changes the evidence supports (a limb tip's continuation takes the ordinary shoot length; twig bearing stops depending on wood thickness) wait on fn-188, which questions the scaffold/twig split they both sit on. The evidence for them is on branch `fn-182-girth` (`R7-GIRTH.md`, `R8-HORNS.md`, `ASTRA-THICKNESS-REVIEW.md`). [user]
-
-## Superseded by fn-190-one-growth-law-species-are-points-in-a (owner, 2026-10-03)
-
-The branching hierarchy is the new growth law's to deliver, by axis differentiation and competition rather than a twig shell or girth patches. This spec's evidence (on branch `fn-182-girth` and in `.flow/evidence/fn-182-branching-hierarchy-few-strong-limbs/`) carries over. [user]
+- `.flow/evidence/fn-182-branching-hierarchy-few-strong-limbs/R5-RESULT.md` (the shell's build, per-order results and the bounded comparison fn-62 starts from).

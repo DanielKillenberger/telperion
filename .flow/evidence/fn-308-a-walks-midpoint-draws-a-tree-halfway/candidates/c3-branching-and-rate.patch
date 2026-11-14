@@ -1,0 +1,28 @@
+diff --git i/crates/telperion-space/src/blend.rs w/crates/telperion-space/src/blend.rs
+index 238e5ca66..6c64b3815 100644
+--- i/crates/telperion-space/src/blend.rs
++++ w/crates/telperion-space/src/blend.rs
+@@ -162,6 +162,10 @@ fn reaching(a: &Species, b: &Species) -> (Species, Species) {
+ 
+ /// `state` with `from`'s timing rows (`TIMING`).
+ fn timed(state: &mut PaState, from: &PaState) {
++    // fn-308 candidate 3: the branching rows too, which a canonical
++    // placeholder zeroes (`Species::canonical`).
++    state.zones = from.zones.clone();
++    (state.readiness, state.rhythm) = (from.readiness, from.rhythm);
+     let mut from = from.clone();
+     for ((name, v), (_, w)) in settings(state).into_iter().zip(settings(&mut from)) {
+         if TIMING.contains(&name) {
+diff --git i/crates/telperion-space/src/species/scale/table.rs w/crates/telperion-space/src/species/scale/table.rs
+index 082e45ac4..eb3e36eb9 100644
+--- i/crates/telperion-space/src/species/scale/table.rs
++++ w/crates/telperion-space/src/species/scale/table.rs
+@@ -65,7 +65,7 @@ const RATE: [f64; 2] = [0.0, MAX_RATE];
+ 
+ /// Every setting, in the order `settings` and `zone_settings` list them.
+ pub const SETTINGS: &[Setting] = &[
+-    row("lifespan", Log { floor: 1.0 }, [0.0, MAX_LIFESPAN], "years",
++    row("lifespan", Kept, [0.0, MAX_LIFESPAN], "years",
+         "The years an apex grows in this age before it moves on. Dormant while the tree is younger than it."),
+     row("continuation", Outcome, SHARE, "probability",
+         "The chance an apex that has spent its lifespan moves on to the next age. Dormant at the last age."),

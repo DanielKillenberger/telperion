@@ -1,21 +1,29 @@
-//! Compact regular twig stations, shared by accelerated consumers without a GPU dependency.
-use super::{plan, station, CanopyParams, TwigPlacement};
+//! Regular twig stations and the contact rings they are seated on.
+use super::{cluster, plan, station, CanopyParams, TwigPlacement};
 use crate::math::Transcendental;
 use crate::{
     envelope::Envelope,
     math::Vec3,
     pipeline::surface::{AttachmentSurface, SurfaceParams},
-    tree::Tree,
+    tree::{Leafing, Tree},
     Error, Result,
 };
 
 /// A contiguous range of stations on one swept wood segment. Ordinals refer
 /// to the uncullled stream, so scheduling never changes random draws.
+/// `count` leaves stand on it from leaf `first`: its stations from
+/// ordinal `run_station` that keep their leaves.
 #[derive(Debug)]
 pub struct StationSegment {
     pub first: u32,
     pub count: u32,
     pub run_station: u32,
+    /// Where some of its stations shed their leaves (fn-248): the boundary
+    /// along the run in whole micrometres, the retentions before and from
+    /// it a year before, which a placement walks its stations by to find
+    /// each leaf's ordinal, and now (`tree::Leafing`, fn-270 R5a). `None`
+    /// where every station keeps one.
+    pub retention: Option<(u32, u32, u32)>,
     /// Sine/cosine of the first internode turn, evaluated before f32 narrowing.
     pub phase: [f64; 2],
     pub endpoints: [Vec3; 2],
@@ -25,6 +33,17 @@ pub struct StationSegment {
     pub frame: [Vec3; 3],
     /// Lower/upper ring, then first/last ring on the sweep path.
     pub contact: Option<[u32; 4]>,
+    /// The key of its run's first node (`Tree::key`): with the family's
+    /// seed, the stream its leaves draw from (`tree::leaf_stream`).
+    pub key: u32,
+    /// A short shoot's cluster (fn-223), its spread and its leaves: `count`
+    /// instances, each leaf its leaflets (fn-277), at the tip `endpoints`
+    /// names, fanned about the heading `frame[0]`, drawing on the tip's
+    /// cluster stream (`key`).
+    pub cluster: Option<(f64, u32)>,
+    /// Its leaves where the tree is drawn within its year (fn-270 R5, R5c,
+    /// `Tree::unfolding`): its distal node's.
+    pub unfolding: crate::tree::Unfolded,
 }
 
 /// No per-leaf positions or transforms are constructed by this preparation.
@@ -33,6 +52,8 @@ pub struct PreparedStations<R = Vec<Vec3>> {
     pub segments: Vec<StationSegment>,
     pub count: u32,
     pub rings: R,
+    /// The most points a ring of `rings` holds; a contact's ring holds its
+    /// upper ring's index less its lower's (fn-362).
     pub ring_size: u32,
 }
 
@@ -58,7 +79,10 @@ pub fn prepare_stations(
         twig,
         surface,
         || AttachmentSurface::new(tree, envelope.height, surface),
-        |c, node| c.edges.get(node).copied().flatten(),
+        |c, node| {
+            let edge = c.edges.get(node).copied().flatten();
+            edge.map(|[lo, hi, start, end, _]| [lo, hi, start, end])
+        },
     )?;
     Ok(result.map(|(segments, count, contacts)| {
         let (rings, ring_size) =
@@ -69,60 +93,6 @@ pub fn prepare_stations(
             rings,
             ring_size,
         }
-    }))
-}
-
-/// Borrows canonical float32 contacts; no ring emission or spatial index is built.
-pub fn prepare_shared_stations<'a>(
-    shared: &'a crate::pipeline::surface::prepared::PreparedWithContacts<'_>,
-    envelope: Envelope,
-    p: CanopyParams,
-    twig: Option<TwigPlacement>,
-) -> Result<Option<PreparedStations<&'a [f32]>>> {
-    if envelope.height != shared.height {
-        return Err(Error::InvalidInput("contact surface height mismatch"));
-    }
-    let result = prepare_inner(
-        shared.tree,
-        envelope,
-        p,
-        twig,
-        shared.params,
-        || Ok(shared),
-        |c, node| c.edges.get(node).copied().flatten(),
-    )?;
-    Ok(result.map(|(segments, count, contacts)| PreparedStations {
-        segments,
-        count,
-        rings: contacts.map_or(&[][..], |c| c.surface.positions.as_slice()),
-        ring_size: contacts.map_or(0, |c| c.surface.segments),
-    }))
-}
-
-/// Station indices tied to compact emitted vertices; no CPU positions are fabricated.
-pub fn prepare_compact_stations(
-    shared: &crate::pipeline::surface::compact::CompactWithContacts<'_>,
-    envelope: Envelope,
-    p: CanopyParams,
-    twig: Option<TwigPlacement>,
-) -> Result<Option<PreparedStations<()>>> {
-    if envelope.height != shared.height {
-        return Err(Error::InvalidInput("contact surface height mismatch"));
-    }
-    let result = prepare_inner(
-        shared.tree,
-        envelope,
-        p,
-        twig,
-        shared.params,
-        || Ok(shared),
-        |c, node| c.edges.get(node).copied().flatten(),
-    )?;
-    Ok(result.map(|(segments, count, contacts)| PreparedStations {
-        segments,
-        count,
-        rings: (),
-        ring_size: contacts.map_or(0, |c| c.surface.segments),
     }))
 }
 
@@ -165,8 +135,19 @@ fn prepare_inner<C>(
         None
     };
     let runs = plan::runs(tree, envelope, p, Some(twig))?.unwrap_or_default();
+    let (mut points, mut chord, mut along) = (Vec::new(), Vec::new(), Vec::new());
     for run in &runs {
-        let points: Vec<_> = run.nodes.iter().map(|&i| tree.nodes[i].position).collect();
+        // The leaves this run's tiles before the next one keep.
+        let mut seen = 0u32;
+        // The chord along the run, which its frames read; its stations
+        // stand by the grown wood (`run.along`).
+        plan::walk(
+            tree,
+            &run.nodes,
+            Some(twig),
+            &mut points,
+            (&mut chord, &mut along),
+        );
         // Eight f64 rounding units cover the original multiply/divide angle
         // chain. Keep periodic tile reconstruction below 0.00025 radians of
         // extra uncertainty; larger valid requests use the reference CPU path.
@@ -178,10 +159,10 @@ fn prepare_inner<C>(
             return Ok(None);
         }
         for (segment, (tangent, normal, binormal)) in
-            station::station_frame_iter(&points, &run.along).enumerate()
+            station::station_frame_iter(&points, &chord, tree.seed_side(run.nodes[0])).enumerate()
         {
             let (first, last) = run.segment_stations(segment, twig);
-            if first == last {
+            if run.leaves_between(tree, (twig, &p), (first, last)) == 0 {
                 continue;
             }
             let nodes = &run.nodes;
@@ -200,30 +181,72 @@ fn prepare_inner<C>(
                     Ok(indices)
                 })
                 .transpose()?;
+            let leafing = tree.leafing(nodes[segment + 1]);
+            let retention = (leafing != Leafing::ALL).then(|| {
+                let boundary = run.along[segment] + plan::micrometres(leafing.older);
+                (boundary as u32, leafing.was, leafing.keep)
+            });
             let mut tile_first = first;
             while tile_first < last {
                 let tile_count = (last - tile_first).min(256);
+                let kept =
+                    run.leaves_between(tree, (twig, &p), (tile_first, tile_first + tile_count));
+                let before = seen;
+                seen += kept;
+                if kept == 0 {
+                    tile_first += tile_count;
+                    continue;
+                }
                 let turn = (tile_first / twig.stations_per_internode) as f64
                     * p.divergence
                     * std::f64::consts::PI
                     / 180.0;
                 let (sin, cos) = turn.sin_cos_fixed();
                 segments.push(StationSegment {
-                    first: total_count + tile_first,
-                    count: tile_count,
+                    first: total_count + before,
+                    count: kept,
                     run_station: tile_first,
+                    retention,
                     phase: [sin, cos],
                     endpoints: [points[segment], points[segment + 1]],
                     radii: [distal.start_radius, distal.radius],
-                    along: run.along[segment],
-                    span: run.along[segment + 1] - run.along[segment],
+                    along: run.along[segment] * 1e-6,
+                    span: (run.along[segment + 1] - run.along[segment]) * 1e-6,
                     frame: [tangent, normal, binormal],
                     contact,
+                    key: tree.key(run.nodes[1]),
+                    cluster: None,
+                    unfolding: tree.unfolding(nodes[segment + 1]),
                 });
                 tile_first += tile_count;
             }
         }
-        total_count += run.count;
+        total_count += run.leaves;
+    }
+    // Each short shoot's cluster after every run (fn-223): one segment at
+    // its tip.
+    for c in cluster::of(tree, &p) {
+        let tip = c.node as usize;
+        let at = tree.nodes[tip].position;
+        let radius = tree.nodes[tip].radius;
+        let leaves = cluster::leaves(tree, &p, c);
+        segments.push(StationSegment {
+            first: total_count,
+            count: leaves,
+            run_station: 0,
+            retention: None,
+            phase: [0.0, 1.0],
+            endpoints: [at; 2],
+            radii: [radius; 2],
+            along: 0.0,
+            span: 0.0,
+            frame: [cluster::heading(tree, tip), Vec3::ZERO, Vec3::ZERO],
+            contact: None,
+            key: crate::tree::cluster_key(tree.key(tip)),
+            cluster: Some((c.spread, c.leaves)),
+            unfolding: tree.unfolding(tip),
+        });
+        total_count += leaves;
     }
     Ok(Some((segments, total_count, contacts)))
 }

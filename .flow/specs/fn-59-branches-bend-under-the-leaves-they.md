@@ -6,7 +6,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 30% [user], 30% [paraphrase], 40% [inferred] -->
 
 A broadleaf in leaf is not its winter skeleton with leaves added. The leaves weigh the limbs down, so a crown that stands upright and open when bare arches out and hangs low in summer. Telperion grows one skeleton and draws the same wood in both states, so its leaf-on beech is a vase of upright limbs holding the leaves high over a bare lower crown, where B-WHOLE's crown hangs almost to the ground. [paraphrase]
 

@@ -7,26 +7,30 @@
 use super::sketch::Pencil;
 use super::{bud, Apex, Certain, Placed};
 use crate::dormant::{Sleeper, Woken};
-use crate::lineage::Key;
+use crate::lineage::{Draw, Key};
 use crate::presence::{Draws, Windows};
 use crate::species::{Species, MAX_BUDS};
-use crate::structure::{Axis, Origin};
+use crate::structure::{Axis, Growing, Origin};
+use std::sync::Arc;
 
-/// What every growth unit reads and none writes: the species, its
+/// What every growth unit reads and none writes beside the species: its
 /// laterals as drawn, the bound on each PA's life, the windows, and the
-/// phytomers grown before the cycle, against the budget.
-pub(super) struct Rules<'a> {
-    pub species: &'a Species,
+/// phytomers grown before the cycle.
+#[derive(Clone)]
+pub(crate) struct Rules {
     /// Each PA's zones' lateral probabilities as drawn (`PaState::laterals`).
-    pub laterals: Vec<Vec<Vec<f64>>>,
+    /// Shared, as the windows are, by every fine root's grower.
+    pub laterals: Arc<[Vec<Vec<f64>>]>,
     /// Each PA's bound on its subtree's life (`shed::lasting`); none
     /// throughout where shedding is not decided before growth.
-    pub lasting: Vec<Option<f64>>,
+    pub lasting: Arc<[Option<f64>]>,
     pub certain: Certain,
     pub windows: Windows,
     pub age: u32,
-    pub budget: u32,
     pub grown: u64,
+    /// The one cycle's survival (fn-255, fn-256's spike contract): each
+    /// PA's viability read as the f32 its table holds, shaded in f32.
+    pub one: bool,
 }
 
 /// What the rough layout gives a growing apex (`sketch.rs`): its light,
@@ -35,16 +39,14 @@ pub(super) struct Rules<'a> {
 #[derive(Clone, Copy)]
 pub(super) struct Reads<'g> {
     pub pencils: &'g [Pencil],
-    /// Whether a rough layout is grown at all, and whether any PA reads
-    /// its leaves' light into its girth.
+    /// Whether a rough layout is grown at all.
     pub sketching: bool,
-    pub lights: bool,
 }
 
 /// A living axis a share grows, in the tree where it stands: each share
 /// holds its own apexes' axes, which no other share touches.
 pub(super) struct Home<'g> {
-    pub axis: &'g mut Axis,
+    pub axis: &'g mut Axis<Growing>,
     pub draws: &'g mut Draws,
     pub units: &'g mut f64,
     pub successor: &'g mut Vec<usize>,
@@ -52,7 +54,7 @@ pub(super) struct Home<'g> {
 
 /// One axis a share made, beside its `Axis`.
 pub(super) struct Line {
-    pub axis: Axis,
+    pub axis: Axis<Growing>,
     pub draws: Draws,
     /// Its time spent in its PA when its apex stopped, or at its birth
     /// while it lives: what a relay of it carries on.
@@ -71,8 +73,10 @@ pub(super) struct Line {
 
 /// A share of a cycle's growth: the living axes it advances (`homes`, in
 /// its apexes' order), and the axes it makes, numbered from `base`.
-pub(super) struct Shoot<'g, 'a> {
-    pub rules: &'g Rules<'a>,
+pub(super) struct Shoot<'g> {
+    pub rules: &'g Rules,
+    /// The species the grower owns.
+    pub species: &'g Species,
     pub reads: Reads<'g>,
     /// The tree's roots and horizons, which no growth unit changes.
     pub roots: &'g [u64],
@@ -89,19 +93,51 @@ pub(super) struct Shoot<'g, 'a> {
     pub marked: Vec<u64>,
     /// The phytomers this share grew.
     pub grown: u64,
-    /// One zone's node leads and its nodes (order draw, draw index, lead,
-    /// buds), reused.
-    pub leads: Vec<f64>,
-    pub node_buds: Vec<(f64, u64, f64, [Placed; MAX_BUDS as usize])>,
+    /// The units the job growing now grew in the cycle, and the most a
+    /// living apex's job and a waking bud's grew (fn-276, against
+    /// `schedule::most_units`).
+    pub job: u32,
+    pub jobs: [u32; 2],
+    /// One zone's node presences and its nodes (order draw, draw index,
+    /// presence, buds), reused.
+    pub leads: Vec<f32>,
+    pub node_buds: Vec<(Draw, u64, f32, [Placed; MAX_BUDS as usize])>,
     /// One zone's sleeping buds' expected wood per PA, reused.
+    pub sleeping: Vec<f64>,
+    /// The wood a node decides, by PA, zone and cycle, as the share has
+    /// taken it (`Shoot::node_wood`).
+    pub woods: Vec<NodeWood>,
+}
+
+/// The wood a node of a PA's zone grown in a cycle decides (`at`), and
+/// each PA's sleeping bud's on it (`unit::node_wood`).
+pub(super) struct NodeWood {
+    pub at: (usize, usize, u32),
+    pub wood: f64,
     pub sleeping: Vec<f64>,
 }
 
-impl<'g, 'a> Shoot<'g, 'a> {
-    pub fn new(rules: &'g Rules<'a>, reads: Reads<'g>, tree: (&'g [u64], &'g [f64])) -> Self {
+/// The lists a share fills and the grower empties each cycle, kept
+/// between cycles: a fine root grows a few apexes a cycle, and making
+/// them anew each one was most of its allocations.
+#[derive(Default)]
+pub(super) struct Spare {
+    pub next: Vec<Apex>,
+    pub leads: Vec<f32>,
+    pub node_buds: Vec<(Draw, u64, f32, [Placed; MAX_BUDS as usize])>,
+    pub sleeping: Vec<f64>,
+}
+
+impl<'g> Shoot<'g> {
+    pub fn new(
+        (rules, species): (&'g Rules, &'g Species),
+        reads: Reads<'g>,
+        tree: (&'g [u64], &'g [f64]),
+    ) -> Self {
         let (roots, horizons) = tree;
         Self {
             rules,
+            species,
             reads,
             roots,
             horizons,
@@ -114,14 +150,28 @@ impl<'g, 'a> Shoot<'g, 'a> {
             woken: Vec::new(),
             marked: Vec::new(),
             grown: 0,
+            job: 0,
+            jobs: [0; 2],
             leads: Vec::new(),
             node_buds: Vec::new(),
             sleeping: Vec::new(),
+            woods: Vec::new(),
         }
     }
 
-    pub fn species(&self) -> &'a Species {
-        self.rules.species
+    /// The share, filling `spare`'s lists rather than new ones.
+    pub fn spared(self, spare: Spare) -> Self {
+        Self {
+            next: spare.next,
+            leads: spare.leads,
+            node_buds: spare.node_buds,
+            sleeping: spare.sleeping,
+            ..self
+        }
+    }
+
+    pub fn species(&self) -> &'g Species {
+        self.species
     }
 
     pub fn windows(&self) -> &'g Windows {
@@ -153,14 +203,14 @@ impl<'g, 'a> Shoot<'g, 'a> {
         }
     }
 
-    pub fn axis(&self, i: usize) -> &Axis {
+    pub fn axis(&self, i: usize) -> &Axis<Growing> {
         if i >= self.base {
             return &self.made[i - self.base].axis;
         }
         &*self.homes[self.at_home(i)].axis
     }
 
-    pub fn axis_mut(&mut self, i: usize) -> &mut Axis {
+    pub fn axis_mut(&mut self, i: usize) -> &mut Axis<Growing> {
         if i >= self.base {
             return &mut self.made[i - self.base].axis;
         }
@@ -204,6 +254,14 @@ impl<'g, 'a> Shoot<'g, 'a> {
     /// before, or whole where nothing shades.
     pub fn light(&self, i: usize) -> f64 {
         self.reads.pencils.get(i).map_or(1.0, |p| p.light)
+    }
+
+    /// Whether axis `i`'s tip, as the rough layout laid it last cycle,
+    /// rests on the ground (fn-252 R2): a laid walk off the stem whose tip
+    /// stands at the ground, where only the resting clamp, or the run
+    /// along the ground it began, puts it.
+    pub fn rests(&self, i: usize) -> bool {
+        (self.reads.pencils.get(i)).is_some_and(|p| !p.trunk && p.laid > 0 && p.layer.rests())
     }
 
     /// Axis `i`'s growth unit's size this cycle (`allocation.rs`); whole
@@ -281,6 +339,21 @@ impl<'g, 'a> Shoot<'g, 'a> {
     /// grows in moves no key; a continuation's or relay's `key` is its
     /// axis's own. A relay carries on its axis's time spent in its PA.
     pub fn sprout(&mut self, key: Key, pa: usize, cycle: u32, origin: Origin, made: [f64; 2]) {
+        self.sprout_keyed(key, (pa, pa), cycle, origin, made);
+    }
+
+    /// `sprout`, a seed or lateral keyed by the age `keyed` in place of its
+    /// own: a lateral that shade turned keeps the key of the kind its table
+    /// drew (fn-354 R7, host 12 Nov), so every draw below it is the one it
+    /// would have drawn unturned.
+    pub fn sprout_keyed(
+        &mut self,
+        key: Key,
+        (pa, keyed): (usize, usize),
+        cycle: u32,
+        origin: Origin,
+        made: [f64; 2],
+    ) {
         let spent = match origin {
             Origin::Relay { parent, .. } => *self.units_mut(parent),
             _ => 0.0,
@@ -289,16 +362,13 @@ impl<'g, 'a> Shoot<'g, 'a> {
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
                 (self.root(parent), key)
             }
-            Origin::Seed | Origin::Lateral { .. } => (key.0, key.onto(pa)),
+            Origin::Seed | Origin::Lateral { .. } => (key.0, key.onto(keyed)),
         };
         self.next.push(Apex {
             axis: self.len(),
             spent,
         });
-        let draws = Draws {
-            birth: made,
-            ..Draws::default()
-        };
+        let draws = Draws::made(made);
         self.push(lineage, pa, cycle, origin, (spent, root, draws));
     }
 
@@ -310,7 +380,8 @@ impl<'g, 'a> Shoot<'g, 'a> {
         }
         let apex = self.next.pop().expect("sprouted");
         self.axis_mut(apex.axis).birth = cycle - 1;
-        self.draws_mut(apex.axis).sleep = used;
+        let draws = self.draws_mut(apex.axis);
+        (draws.sleep, draws.carried) = (used, true);
         self.advance(apex, cycle)
     }
 }

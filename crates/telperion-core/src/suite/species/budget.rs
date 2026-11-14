@@ -1,13 +1,19 @@
 //! What the whole test binary may spend on specimens at once.
 //!
-//! Three numbers, not two. `MemAvailable` is read once, at the first call: the
-//! machine keeps a **reserve** of the larger of two gibibytes and a quarter of
-//! it, what is left is the **process ceiling** this binary holds itself to,
-//! and admission may charge only two thirds of that ceiling. The third between
-//! them is headroom for the two things a prediction does not size - the
-//! fifteen percent it is allowed to underestimate the retained buffers by, and
-//! the transient allocations that sit on top of them while a seed is checked -
+//! Two numbers, both stated here and neither read from the host: the
+//! **process ceiling** this binary holds itself to, and the **charge limit**,
+//! two thirds of it, which admission may spend. The third between them is
+//! headroom for the two things a prediction does not size - the fifteen
+//! percent it is allowed to underestimate the retained buffers by, and the
+//! transient allocations that sit on top of them while a seed is checked -
 //! and it is inside the ceiling rather than outside it.
+//!
+//! The ceiling used to be a share of the host's `MemAvailable`, read at the
+//! first call. Under another worktree's load that share shrank below what
+//! the binary's fixed overhead and allocator retention need, and the fixed
+//! beech failed its ceiling by one or two percent while passing alone
+//! (fn-206 and fn-208 FRICTION.md; fn-198 task 7). A stated ceiling admits
+//! the same specimens on every machine with the cores to run them.
 //!
 //! One budget serves the whole binary. Each heavy test calls `in_flight`
 //! independently, so a budget divided per test would let every one of them
@@ -20,13 +26,14 @@ use std::{
     sync::{Condvar, Mutex, MutexGuard, OnceLock},
 };
 
-/// The machine keeps at least this much whatever else is going on.
-const RESERVE_FLOOR: u64 = 2 * (1 << 30);
+/// What this binary holds itself to, in bytes, whatever the host has free.
+pub const CEILING: u64 = CEILING_GIB << 30;
+const CEILING_GIB: u64 = 6;
 
-/// The one budget the binary shares, from this host's own free memory.
+/// The one budget the binary shares, on the stated ceiling.
 pub fn budget() -> &'static Budget {
     static SHARED: OnceLock<Budget> = OnceLock::new();
-    SHARED.get_or_init(Budget::of_host)
+    SHARED.get_or_init(|| Budget::with(CEILING, cores()))
 }
 
 pub struct Budget {
@@ -57,11 +64,6 @@ struct State {
 }
 
 impl Budget {
-    /// The three numbers this host's free memory gives, read once.
-    pub fn of_host() -> Self {
-        Self::with(ceiling_from(available_bytes().unwrap_or(0)), cores())
-    }
-
     /// A budget on a stated ceiling, for a test that drives it rather than
     /// the host that has to live within it.
     pub fn with(ceiling: u64, cores: usize) -> Self {
@@ -230,19 +232,6 @@ impl Drop for Seat<'_> {
     }
 }
 
-/// What a machine with this much free memory leaves this process: it keeps the
-/// larger of two gibibytes and a quarter of what it has, and the rest is the
-/// ceiling. A machine with less than the reserve leaves nothing, which admits
-/// one specimen at a time and says so of every one of them.
-fn ceiling_from(available: u64) -> u64 {
-    available.saturating_sub(RESERVE_FLOOR.max(available / 4))
-}
-
-/// Memory this machine can hand out without swapping, in bytes.
-fn available_bytes() -> Option<u64> {
-    field("/proc/meminfo", "MemAvailable:")
-}
-
 /// The highest resident set this process has held, in bytes.
 pub fn peak_resident() -> Option<u64> {
     field("/proc/self/status", "VmHWM:")
@@ -332,33 +321,18 @@ fn touched(bytes: u64) -> Vec<u8> {
     block
 }
 
-/// The machine's reserve, the process ceiling and the charge limit are three
-/// numbers, and each is a stated share of the one before it.
+/// The ceiling and the charge limit are two stated numbers, the second two
+/// thirds of the first, and the shared budget reads no host memory to find
+/// them: a loaded machine admits what a quiet one does.
 #[test]
-fn the_reserve_the_ceiling_and_the_charge_limit_are_three_numbers() {
-    let gib = 1_u64 << 30;
-    // Under four times the floor the machine keeps the floor; above it, the
-    // quarter is the larger and the machine keeps that.
-    for (available, ceiling) in [
-        (0, 0),
-        (gib, 0),
-        (2 * gib, 0),
-        (4 * gib, 2 * gib),
-        (8 * gib, 6 * gib),
-        (64 * gib, 48 * gib),
-    ] {
-        assert_eq!(
-            ceiling_from(available),
-            ceiling,
-            "at {available} bytes free"
-        );
+fn the_ceiling_and_the_charge_limit_are_stated_not_read_from_the_host() {
+    let shared = budget();
+    assert_eq!(shared.ceiling(), CEILING);
+    assert_eq!(shared.charge_limit(), CEILING / 3 * 2);
+    assert!(shared.charge_limit() < shared.ceiling());
+    for ceiling in [0, 1 << 20, CEILING] {
         let budget = Budget::with(ceiling, 4);
-        assert_eq!(budget.ceiling(), ceiling);
         assert_eq!(budget.charge_limit(), ceiling / 3 * 2);
-        assert!(
-            budget.charge_limit() < budget.ceiling() || ceiling == 0,
-            "the charge limit is the smaller of the two"
-        );
     }
 }
 

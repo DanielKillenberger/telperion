@@ -1,48 +1,31 @@
 # The curtain's surface search, cheap
 
-## Conversation Evidence
+## Goal
 
-> user (2026-09-27): "we have found many optimizations but skeleton generation seems to still take a lot of time. Can we investigate how we can speed that up?"
-> user (2026-09-27): "i have said many times as we build the engine we don't need things byte identical. If we get massive improvements for different generators that aren't identical that's fine. If it being identical helps verifying at no downside then it's good req to have."
-> user (2026-09-27, on splitting the growth work into focused specs): "yes and make fn-125 depend on B if that's the most efficient way"
+The silver birch grew in 136 ms at seed 1 and 267 ms at seed 7 on master f9487810, with fewer nodes than the oak's 51 ms; on seed 7 the curtain's admission search (`Curtain::admits` → `in_band` → `lower_surface`, up to 32 climb steps and 32 halvings of lobed `radius_toward` probes) took about 80% of growth. Asked as one of the focused growth-speed specs split from the owner's request to speed up skeleton generation.
 
-## Goal & Context
-<!-- Goal & Context: 30% [user], 70% [checked] from the 2026-09-27 growth profile -->
+## Decisions
 
-The silver birch grows in 136 ms at seed 1 and 267 ms at seed 7 (`growth_profile` medians, master f9487810), with fewer nodes than the oak's 51 ms. On seed 7, the curtain's admission (`Curtain::admits` → `in_band` → `lower_surface`) takes 78.6 to 81.3% of growth under the scratch sampler, about 210 ms. This spec makes that search cheap. [checked]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-- **Today, checked 2026-09-27.** A hanging shoot's candidate outside the shell is admitted when it lies in the curtain's band below the shell (`local/pendant.rs:111`, `in_band` `:226`). `lower_surface` (`:260`) finds the shell's lower surface over the candidate's column. It climbs up to `SEARCH = 32` steps and then halves `HALVINGS = 32` times, and each probe is a `radius_toward` with lobe noise. Its only production caller is `in_band`, which returns a bool. The suite calls `in_curtain_band` as a check. [checked]
-- **Candidates, chosen by measurement.**
-  - The lower surface as a prepared table over bearing and radial distance, from fn-173's shell, so a query becomes a lookup.
-  - A search that stops once the band decision is known. `walk` is linear and `limit` is where the band's foot meets `p.y`, so the answer is often fixed before the bracket closes. [unknown: whether that holds for every branch of `in_band` has not been checked in code]
-  - Halvings reduced to the precision the band test needs. [inferred]
-- **Identity is not required.** Output may change within the curtain checks and the owner's visual verdict. [user]
-
-## Edge Cases & Constraints
-
-- A column that never meets the shell below `limit` stays `None`. [checked]
-- The date palm (`hang = 2.75`) and the spruce (`hang = 1.0`) also hang shoots; both are measured. [checked]
-- No full-forest capture. [AGENTS.md]
+- user (2026-09-27): "we have found many optimizations but skeleton generation seems to still take a lot of time. Can we investigate how we can speed that up?"
+- user (2026-09-27): "i have said many times as we build the engine we don't need things byte identical. If we get massive improvements for different generators that aren't identical that's fine. If it being identical helps verifying at no downside then it's good req to have."
+- user (2026-09-27, on splitting the growth work into focused specs): "yes and make fn-125 depend on B if that's the most efficient way"
+- Depended on fn-173 so its gain would be measured on the cheaper shell.
+- Closed 2026-10-02 as superseded by fn-183 (#137): the direct build no longer admits curtain strides, so the search was deleted rather than made cheap (`docs/principles.md`, "Question, delete, then optimise").
 
 ## Acceptance Criteria
 
-- **R1:** On fn-173's merged code, birch growth at seeds 1 and 7 is at most half the base's `growth_profile` median. Every other preset is recorded, and none is more than 2% slower. A miss stops with `NEEDS_HUMAN` and the profile. [inferred]
-- **R2:** The suite's curtain checks (`suite/drop.rs`, `suite/outline.rs`, `suite/growth.rs`) pass for every preset. Those checks call `in_curtain_band`, the predicate this spec changes, so they cannot catch its errors. A test therefore holds the new `in_band` to an independent reference: a dense scan of fn-173's prepared shell down each column, written in the test and sharing no code with the search. It covers a column with no crossing below `limit`, the first crossing of a lobed column, surfaces just above and below `limit`, the band's top and foot, drop shares of 0, 1 and one between, and tolerances of 0 and above. A point within fn-173's bound of a band edge may fall on either side, and the test states this; every other point must agree. [inferred]
-- **R3:** The owner's visual verdict on the birch at seeds 1 and 7 is recorded, with at most four stills each. [user]
+- **R1:** Birch growth at seeds 1 and 7 at most half the base median, no preset more than 2% slower — not built (superseded; fn-183 cut birch skeleton time 87%).
+- **R2:** The new `in_band` held to an independent dense-scan reference — not built (superseded).
+- **R3:** Owner's visual verdict on the birch at seeds 1 and 7 — not built (superseded).
 
-## Boundaries
+## Result
 
-- The shell table is fn-173's. [inferred]
-- The curtain's botany (hang, drop, floor) is unchanged. [inferred]
+Superseded. After fn-183, `in_band` and `lower_surface` run only on the hidden growth path, which fn-181 removes. The birch's skeleton fell from 183 to about 25 ms at seed 1 by deleting the search.
 
-## Decision Context
+## Open
 
-- Depends on fn-173 so its gain is measured on top of the cheaper shell. [user]
-- Evidence: `.flow/evidence/fn-173-growth-reads-a-prepared-crown-shell/PROFILE.md`. [checked]
+None.
 
-## Closed (2026-10-02)
+## Evidence
 
-Superseded by fn-183 (#137): the direct build no longer admits curtain strides, so `in_band` and `lower_surface` run only on the hidden growth path, which fn-181 removes. The birch's skeleton time fell 87% (183 to about 25 ms at seed 1) by deleting the search, not by making it cheap (`docs/principles.md`, "Question, delete, then optimise"). [checked]
+- Growth profile cited: `.flow/evidence/fn-173-growth-reads-a-prepared-crown-shell/PROFILE.md`.

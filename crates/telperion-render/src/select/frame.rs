@@ -22,8 +22,14 @@ pub struct Uniforms {
     pub box_extent: [f32; 4],
     pub instances: u32,
     pub levels: u32,
-    pub stride: u32,
+    /// Words between two levels' start words.
+    pub slot: u32,
     pub forced: i32,
+    /// The rachis's and the pedicel's lengths on the organ (fn-253), which
+    /// size an inflorescence thinned as one, how many of the element's
+    /// levels, coarsest first, are the rachis's, and the rachis's droop.
+    /// Zero on the leaves.
+    pub stalk: [f32; 4],
 }
 
 /// A vector and the scalar that travels beside it.

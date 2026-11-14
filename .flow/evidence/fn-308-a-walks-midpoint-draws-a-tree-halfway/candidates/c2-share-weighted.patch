@@ -1,0 +1,84 @@
+diff --git i/crates/telperion-core/src/blend.rs w/crates/telperion-core/src/blend.rs
+index 3dc790c80..741ac76ce 100644
+--- i/crates/telperion-core/src/blend.rs
++++ w/crates/telperion-core/src/blend.rs
+@@ -136,7 +136,7 @@ fn mixed(a: &Family, b: &Family, t: f64) -> Result<Family> {
+     );
+     g.max_nodes = (oa.max_nodes.is_some() || ob.max_nodes.is_some())
+         .then(|| linear(ga.max_nodes as f64, gb.max_nodes as f64, t).round() as usize);
+-    f.space = space(&a.space, &b.space, t)?;
++    f.space = space(&a.space, &b.space, t, linear(a.age, b.age, t))?;
+     f.supernatural = crate::supernatural::blend(a, b, t);
+     Ok(f)
+ }
+@@ -146,10 +146,10 @@ fn mixed(a: &Family, b: &Family, t: f64) -> Result<Family> {
+ /// grow under, which a walk does not interpolate (fn-264 R1a). A walk from
+ /// a family with no species to one with one is refused by name: there is
+ /// no species to start from; so is one between two sites' light.
+-fn space(a: &Space, b: &Space, t: f64) -> Result<Space> {
++fn space(a: &Space, b: &Space, t: f64, age: f64) -> Result<Space> {
+     let species = match (&a.species, &b.species) {
+         (Some(x), Some(y)) => Some(
+-            telperion_space::blend(x, y, t)
++            telperion_space::blend_aged(x, y, t, age)
+                 .map_err(|_| Error::InvalidInput("blend of two engine species"))?,
+         ),
+         (None, None) => None,
+diff --git i/crates/telperion-space/src/blend.rs w/crates/telperion-space/src/blend.rs
+index 238e5ca66..8a68bf3ad 100644
+--- i/crates/telperion-space/src/blend.rs
++++ w/crates/telperion-space/src/blend.rs
+@@ -15,6 +15,12 @@ use crate::species::{NodeLaw, PaState, Species, Zone, ZONES};
+ /// written on one reference axis, with uniform node counts throughout, as
+ /// the four species are; anything else is refused.
+ pub fn blend(a: &Species, b: &Species, t: f64) -> Result<Species> {
++    blend_aged(a, b, t, f64::NAN)
++}
++
++/// fn-308 candidate 2: `blend` with each lifespan's mix weighted by the
++/// share of the tree's `age` each end spends in the stage.
++pub fn blend_aged(a: &Species, b: &Species, t: f64, age: f64) -> Result<Species> {
+     if a.states.len() != b.states.len() {
+         return refuse(
+             "states",
+@@ -35,17 +41,24 @@ pub fn blend(a: &Species, b: &Species, t: f64) -> Result<Species> {
+         .states
+         .iter()
+         .zip(&b.states)
+-        .map(|(x, y)| state(x, y, t))
++        .map(|(x, y)| state(x, y, t, age))
+         .collect::<Result<_>>()?;
+     let species = Species { states };
+     species.validate()?;
+     Ok(species)
+ }
+ 
+-fn state(x: &PaState, y: &PaState, t: f64) -> Result<PaState> {
++fn state(x: &PaState, y: &PaState, t: f64, age: f64) -> Result<PaState> {
+     let (mut out, mut other) = (x.clone(), y.clone());
+     for ((name, a), (_, b)) in settings(&mut out).into_iter().zip(settings(&mut other)) {
+-        *a = mixed(name, *a, *b, t)?;
++        let mut at = t;
++        if name == "lifespan" && age > 0.0 && t > 0.0 && t < 1.0 {
++            let (sa, sb) = ((1.0 - t) * a.min(age) / age, t * b.min(age) / age);
++            if sa + sb > 0.0 {
++                at = sb / (sa + sb);
++            }
++        }
++        *a = mixed(name, *a, *b, at)?;
+     }
+     outcomes(&mut out, x, y, t);
+     let roles = |s: &PaState| -> Vec<Zone> {
+diff --git i/crates/telperion-space/src/lib.rs w/crates/telperion-space/src/lib.rs
+index dfa0b2df7..501672f12 100644
+--- i/crates/telperion-space/src/lib.rs
++++ w/crates/telperion-space/src/lib.rs
+@@ -50,7 +50,7 @@ mod upward;
+ 
+ pub use beech::beech;
+ pub use birch::birch;
+-pub use blend::blend;
++pub use blend::{blend, blend_aged};
+ pub use chain::{passed, AGES};
+ pub use closed_form::{
+     expected_axes, expected_counts, expected_grown, expected_kept, expected_length,

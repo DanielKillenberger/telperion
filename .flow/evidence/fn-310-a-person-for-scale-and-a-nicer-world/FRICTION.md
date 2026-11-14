@@ -1,0 +1,64 @@
+# Friction: fn-310
+
+## 2026-10-23, conductor, run start
+
+- Doing: starting `/flow-next:flow --auto fn-310-a-person-for-scale-and-a-nicer-world` in worktree f4-310.
+- Hindered by: the spec has no ready flag, so `pilot snapshot` reports `eligible: false` (route `host`, rule "spec not ready"). `flowctl spec ready` is documented as a person's consent gate, so the conductor cannot set it on an agent's instruction.
+- Cost: one round trip to the host before any planning; about 5 minutes and a few thousand tokens.
+- Would have removed it: marking the spec ready (`flowctl spec ready fn-310-...`) in the same commit that recorded the owner's pick (201288747), before dispatching the run.
+
+## 2026-10-23, task 2 worker, the person's placement
+
+- Doing: D2's placement against the in-frame acceptance (every shipped preset at the hero shot, 16:9).
+- Hindered by: the hero frame puts the ground at the trunk's foot near the frame's bottom edge, so any foot stood toward the camera drops below the frame. With the bounds' box as the footprint no offset the sun rule allows (at most 70 degrees left of the camera, so the foot stays within 90 degrees of the 135 sun) keeps the oak in frame: the first test run failed at y = -1.27, and a projection sweep in Python over offsets 0 to 70 found none. The inscribed ellipsoid (`camera.rs` `reach_of`, the crown the hero pose fits) at offset 68 and margin 0.5 m keeps every tree in, the feet at y = -0.97 at worst.
+- Cost: one failed test run and about 15 minutes of geometry sweeps.
+- Would have removed it: checking the in-frame AC against the hero frame's geometry before the spec stated an offset rule and a sun condition together; the feasible window is narrow (offset about 64 to 70).
+
+## 2026-10-23, task 3 worker, the base build and the frame-time runs
+
+- Doing: building the base `201288747` for frame time and Wasm bytes in a scratch directory.
+- Hindered by: the session's scratchpad is shared with earlier runs, so `base/` and `wasm-base.log` already existed from an earlier export. I had to check that the base's `telperion-render` sources matched `201288747` file by file and that its binary carried no branch-only shader text before I trusted a number. dcg also refused a `>` redirect to a variable path, so the runs went through a script with literal paths.
+- Cost: about 5 minutes and two extra tool rounds. The builds were cheap: 13 s for the base `frames` example with the worktree's `ci` deps copied into its own target, and 49 s for each render Wasm.
+- Would have removed it: a fresh, task-named scratch subdirectory per worker (for example `scratchpad/<task-id>/`) chosen by the conductor.
+
+## 2026-10-23, task 4 worker, the start-time diagnosis
+
+- Doing: confirming task 3's +1.7 s `fresh_ms` under equal cache state.
+- Hindered by: the NVIDIA shader disk cache on this machine (`~/.cache/nvidia/GLCache`) is full at its 1 GiB ceiling and takes no new entries, so every `fresh_ms` taken with the default cache depends on which shaders happened to be cached before it filled. Task 3's +1.7 s was that, not the branch; it cost task 3's NEEDS_HUMAN and this task. dcg also refused a heredoc that wrote a script to a variable path, so the script went through the Write tool.
+- Cost: this task, about 25 minutes and five probe rounds (about 3 minutes of GPU time); the code side cost nothing.
+- Would have removed it: the `frames` probe (or `docs/gpu-tests.md`) stating the driver cache state for `fresh_ms`, for example running with `__GL_SHADER_DISK_CACHE=0` for a cold number or a fresh `__GL_SHADER_DISK_CACHE_PATH` per run. The full cache itself is a local setup problem on the owner's machine (clearing or raising `__GL_SHADER_DISK_CACHE_SIZE`), reported, not specced.
+
+## 2026-10-23, conductor, the first gate
+
+- Doing: the declared gate at a1b170043, after tasks .1-.4 (void by the host once task .5 was added, but run to its end).
+- Hindered by: two failures the tasks' focused runs could not see: `tint_rule_tests::every_shipped_shader_keeps_tints_rules` (a lib test; task .1's WGSL mixes `*` and `^` without parentheses) and `conformance::the_renderer_library_never_names_a_family` (task .2's bounds table names presets in `camera.rs`). Task .1's worker ran conformance before task .2 broke it; neither ran the lib's tint rule test.
+- Cost: both fixes and a second gate (about 21 minutes of gate each), plus a worker round.
+- Would have removed it: a short, sub-second "static checks" list beside the two pre-gate guards (`generation_limit_guard`, `compile_size`) that every render task runs before review: the lib's `tint_rule_tests` and `tests/conformance.rs`. Both are fast and catch exactly this class.
+
+## 2026-10-23, task 6 (worker): the scratch "base" is not 201288747
+
+Doing: reusing task .3's base export for the film's base-against-HEAD timing, as the dispatch suggested. Hindered: `scratchpad/base` is an older export, not 201288747 (it has no `examples/film*`, and dozens of `telperion-render` and `telperion-core` files differ from `git archive 201288747`). Cost: about 3 minutes to check, and a fresh export and cold build under its own target dir (`scratchpad/t6base`). What would remove it: a base export named by its commit (`scratchpad/base-<sha>`) with a `COMMIT` file written beside it, so a reuse is one `cat` instead of a tree diff.
+
+## 2026-10-23, task 7 (worker): D6's whole-in-frame rule has no solution at age 1
+
+Doing: checking D6 (the person along the D2 azimuth at the nearest distance where the whole 1.75 m figure fits the hero frame) against every preset at age 1 before writing code. Hindered: no preset at age 1 is taller than 1.34 m, and the hero frame fits the seedling at 1.15 margin, so a taller figure at the same depth or nearer the camera cannot fit; the D2 azimuth (47°, 68° left of the 115° camera) only brings the figure nearer the camera as it moves out. A projection sweep found no fitting distance for any preset (best max(|x|,|y|) in clip space 1.61 for Telperion and Laurelin, 3.8 to 17 for the rest; oak and spruce at age 1 put the hero camera 0.67 m and 0.16 m from the trunk). Film frame 720 under D5's envelope (Laurelin at 80) puts the person 27.9 m out, behind the film camera. Cost: about 20 minutes and one 9 s bounds run; no implementation started. Would have removed it: running the whole-in-frame sweep for the AC's age-1 row before the finding was written (`raw/person-fit/` holds the scripts).
+
+## 2026-10-23, task 8 (worker): D7 flips sides inside segment 6, and walks jitter
+
+Doing: the D7 motion check before the before/after sheet. Hindered: D7 has no flip-free placement where an orbiting camera crosses the sun's azimuth with the sun behind it. The film's camera bearing is 20 + 4t degrees and its sun stands at 115, so the view crosses the sun at t = 23.75 s, between frames 712 and 713, inside segment 6 (frames 690-719, the walk from the date palm to Laurelin at age 1). Just before the crossing the only bearings both at or behind the trunk and on the sun's side are view + 90 to view + 90 + e; just after, view - 90 - e to view - 90, so any D7 rule moves the person 180 degrees round there. `tests/film_placing.rs` `the_person_never_changes_sides_within_a_segment` (ignored, pending the host) reports `[(6, 713)]`; strip `film-d7-strip-690.jpg` shows it. Separately, strip `film-d7-strip-240.jpg` (segment 1, a walk at age 40) shows the person hopping in and out from frame to frame: each walk frame places it beside its own tree (D5 as ruled for walks), and the crown width changes by up to 2.4 m between consecutive frames (frames.tsv, 241 to 242: 8.81 to 11.19 m), so the foot moves up to about 1.2 m a frame. The orbit itself moves it about 1 cm a frame there. Cost: about 15 minutes of film builds and viewing; the code was 40 minutes. Would have removed it: checking D7's side rule against the release path's camera and sun bearings before the ruling (one line of arithmetic: 20 + 4t = 115).
+
+## 2026-10-23, task 8 (worker, resumed): neither film side is out of the shadow on every frame
+
+Doing: checking the host's one-side rule before building the film's bounds pass. Estimate: cut 7's `frames.tsv` (fn-272 raw/cut7, heights and widths of every frame) with each crown taken as the centred ellipsoid of that height and width, the smoothed reach A(f) with W = 15, a 0.25 m person column at 0, 0.9 and 1.75 m, the film's sun 115/60. Left (view - 90, screen left) is in the crown's shadow on frames 26-487 (most of segments 0-4: 26-29, 31-357, 359-381, and scattered 403-487); right (view + 90) on 908-1049 (end of segment 7 and all of segment 8). No frame fails on both sides, so one side change anywhere in 488-907 would keep every frame lit. The smoothed reach's largest frame-to-frame foot move in that model is 0.25 m, at frame 698. Cost: about 10 minutes; no film build. Would have removed it: the same arithmetic at the ruling (script in raw/person-side/est.py). The exact check needs every frame's real bounds, a full-film build pass.
+
+## 2026-10-23, task 8 (worker, option (a)): no left angle serves 309 frames
+
+Doing: option (a), the person on the camera's left at the smallest out-of-shadow angle. The whole-film bounds pass ran once (`film ... --bounds raw/film-bounds.tsv`, 2,400 s; segment 8's Telperion walk alone 1,486 s, the age-40 walks 897 s, every growth under 11 s). Found: with the person at the crown's reach and the 0.5 m margin, no angle from 90 to 180 degrees on the camera's left puts the whole figure out of the shadow of the crown the bounds inscribe, under the film's sun at 115/60, on 309 frames: 187-381 nearly all (segments 0 end to 2), scattered 389-433, 433-495, scattered 497-589 (segments 3-4), and 609, 613, 648, 671, 678, 680, 721, 724. Where an angle does serve in segments 0-3 it averages 154-174 degrees, the person nearly straight behind the trunk (estimate, raw/person-side/need.py). Measured with a coarser body (estimate, raw/person-side/out.py): at 90 degrees, beside the trunk, moving further out than the reach clears the shadow on every frame; the most it takes is 3.7 m (segment 1, frame 255), 0.6 m in segment 4 and nothing in segments 6-8. Cost: 40 minutes of bounds pass and 10 minutes of analysis; the code is parked on branch `fn-310-t8-wip` (5ee2ca00d) and the task branch is back at its last commit. Would have removed it: one line of the earlier estimate, the angle each frame needs, not only whether 90 degrees serves.
+
+## 2026-10-23, task 8 (worker, distance ruling): the base export filled the /tmp quota
+
+Doing: exporting 83ec74e0d with a copy of the worktree's `target/ci` for frame 975's before. Hindered: the session scratchpad is on tmpfs (RAM) under a per-user quota, and earlier tasks' exports already hold 4.8 GB there (`base` 1.7 GB, `t6base` and `t6nodither` 745 MB each), so the 2.4 GB copy failed with "Disk quota exceeded". The hook then refused a recursive delete of the copied target and a move of the export into the worktree, so it was exported again under raw/base-83ec74e0d on disk (2.7 GB, gitignored, safe to delete). Cost: about 5 minutes. With the copied target the base built in 32 s and frame 975 rendered in 18 s. Would have removed it: base exports on disk under the evidence raw/ folder by default, named by commit, and the old scratch exports cleared.
+
+## 2026-10-23, task 9 (worker): the far band share is a draw, not a measurement
+
+Doing: bisecting `rim_at_distance` and finding its cause. Hindered: the far view's whole-picture sums are about 110 green steps for the band and 840 for the face, so the share moves by about 0.01 with any change to the lighting. Moving the far camera from 8.0 to 7.9 or 8.1 times the hero distance alone spans 0.120 to 0.137 with the person and 0.119 to 0.130 without it, against a pass bound of 0.1365. Any change to the sun's map fit re-rolls the result. Cost: about 25 minutes, five measured runs (two of them exports at 3e63d7e32 and 837853234), no code change. The hook also refused a redirect to a variable path once (about 1 minute). Would have removed it: a far measurement with enough counted steps to resolve 20 % (a larger STEP or a higher resolution), or the test reading a mean over a few far distances. That is the host's decision, not the worker's.

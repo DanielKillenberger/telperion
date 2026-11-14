@@ -1,98 +1,105 @@
 //! One growth unit of an apex: its zones' nodes, in the order their roles
 //! stand along the unit, and the buds of each node, laterals that sprout
 //! and sleeping buds put to sleep.
-use super::shoot::Shoot;
+use super::shoot::{NodeWood, Rules, Shoot};
 use super::{Apex, Certain};
-use crate::error::{Error, Result};
+use crate::contract::{decide, presence};
+use crate::error::Result;
 use crate::lineage::{self, Key, ZONE};
-use crate::species::{ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
-use crate::structure::{Origin, Phytomer, Vec3};
+use crate::schedule::Cut;
+use crate::species::{Species, ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
+use crate::structure::{Growing, Origin};
 
-impl Shoot<'_, '_> {
-    pub(super) fn grow_unit(&mut self, apex: Apex, pa: usize, unit: Key, cycle: u32) -> Result<()> {
+impl Shoot<'_> {
+    /// One growth unit of the apex in `cycle`, laying that share of each
+    /// zone's nodes where a lifespan's fraction cut it (`advance::cut`).
+    pub(super) fn grow_unit(
+        &mut self,
+        apex: Apex,
+        pa: usize,
+        unit: Key,
+        (cycle, cut): (u32, Option<Cut>),
+    ) -> Result<()> {
         let rules = self.rules;
         let windows = &rules.windows;
-        let state = &rules.species.states[pa];
+        let (species, state) = (self.species(), &self.species().states[pa]);
         let mut nodes = std::mem::take(&mut self.node_buds);
         let mut leads = std::mem::take(&mut self.leads);
         let along = ALONG.iter().filter(|&&z| z < state.zones.len());
         for (z, zone) in along.map(|&z| (z, &state.zones[z])) {
             let zone_key = unit.child(ZONE + z as u64);
-            lineage::nodes(zone.nodes, zone_key.unit(), MAX_NODES_PER_ZONE, &mut leads);
             let lateral = &rules.laterals[pa][z];
-            // A node decides its internode and the buds it is expected to bear;
-            // a PA its buds cannot carry takes no part.
-            let expected: f64 = lateral
-                .iter()
-                .enumerate()
-                .filter(|&(_, &p)| p > 0.0)
-                .map(|(j, p)| p * windows.wood(j, cycle + 1))
-                .sum();
-            // And the sleeping buds it is expected to bear.
             let mut sleeping = std::mem::take(&mut self.sleeping);
-            let expected = expected + windows.sleeping(zone, cycle, &mut sleeping);
-            let node_wood = windows.share(state.internode) + zone.buds * expected;
+            let node_wood = self.node_wood((pa, z), cycle, &mut sleeping);
+            // Each node's presence (D18 reads it).
+            let window = decide::node_window(node_wood);
+            let draw = zone_key.draw();
+            lineage::node_presences(zone.nodes, draw, MAX_NODES_PER_ZONE, window, &mut leads);
+            if let Some(cut) = cut {
+                lineage::laid(&mut leads, cut, zone_key, window);
+            }
             nodes.clear();
-            for (i, &node_lead) in leads.iter().enumerate() {
+            for (i, &node_presence) in leads.iter().enumerate() {
                 let node_key = zone_key.child(i as u64);
                 let mut buds = [None; MAX_BUDS as usize];
                 for (slot, bud) in buds[..zone.places()].iter_mut().enumerate() {
                     let place_key = node_key.child(slot as u64);
-                    let placed = zone.share(slot);
-                    *bud = lineage::bud(lateral, place_key.unit())
-                        .map(|(pa, lead)| (pa, lead, placed));
+                    let d = place_key.draw();
+                    let stands = lineage::placed(place_key, zone.share(slot));
+                    *bud = stands
+                        .then(|| lineage::bud(lateral, d))
+                        .flatten()
+                        .map(|pa| (pa, d));
                 }
                 // Ordered by the first place's draw, which every node has, so
-                // a place a fraction grows moves no node.
-                let order = node_key.child(0).unit();
-                nodes.push((order, i as u64, node_lead, buds));
+                // a place a fraction grows moves no node; by its bits, and
+                // equal bits by the node's index (FINE-CONTRACT.md D4).
+                let order = node_key.child(0).draw();
+                nodes.push((order, i as u64, node_presence, buds));
             }
             // Acrotony: the nodes stand in order of their draws, so the
             // youngest lateral PA is on top, bare nodes at the base, and a
             // bud a setting makes or unmakes moves no node.
-            nodes.sort_by(|a, b| b.0.total_cmp(&a.0));
+            nodes.sort_by_key(|n| std::cmp::Reverse(n.0));
             // Counted a zone at a time; the shares of a cycle are summed
             // once they are merged (`Grower::step`).
             self.grown += nodes.len() as u64;
-            if rules.grown + self.grown > u64::from(rules.budget) {
-                return Err(Error::Budget {
-                    limit: rules.budget,
-                });
-            }
-            for &(_, drawn, node_lead, buds) in &nodes {
+            for &(_, drawn, node_presence, buds) in &nodes {
                 let axis = self.axis_mut(apex.axis);
                 let node = axis.phytomers.len();
-                axis.phytomers.push(Phytomer {
-                    cycle,
-                    tip: Vec3::default(),
-                    heading: Vec3::default(),
-                    side: Vec3::default(),
-                    radius: 0.0,
-                    scale: 1.0,
-                    key: zone_key.child(drawn).0,
-                    rank: 0.0,
-                    size: 1.0,
-                    light: 1.0,
-                });
-                let node_presence = windows.presence(node_lead, node_wood);
+                axis.phytomers
+                    .push(Growing::new(cycle, zone_key.child(drawn).0));
+                let node_presence = presence::real(node_presence);
                 self.draws_mut(apex.axis).nodes.push(node_presence);
                 for (slot, bud) in buds[..zone.places()].iter().enumerate() {
-                    let Some((lateral_pa, lead, placed)) = *bud else {
+                    let Some((drawn_pa, d)) = *bud else {
                         continue;
+                    };
+                    let key = zone_key.child(drawn).child(slot as u64);
+                    // Its kind under its bearer's shade (fn-354 R7): no
+                    // draw where its age turns into none.
+                    let shade = &species.states[drawn_pa].shade_short;
+                    let turns = species.states[drawn_pa].turns();
+                    let light = self.light(apex.axis);
+                    let kind = match turns {
+                        true => lineage::kind_under_shade(shade, drawn_pa, light, key),
+                        false => drawn_pa,
                     };
                     // A bud of an age it passes through grows in the next
                     // it lives in, as far as it reaches it, or not at all.
-                    let Some((lateral_pa, reach)) = rules.species.lived(lateral_pa) else {
+                    let Some((lateral_pa, reach)) = species.lived(kind) else {
                         continue;
                     };
+                    // Keyed by the kind its table drew, before any turn, so
+                    // a turn moves no key and no draw below it (host, 12 Nov).
+                    let keyed = species.lived(drawn_pa).map_or(lateral_pa, |(p, _)| p);
                     // Nor where it is certain to be shed by the tree's age
                     // and nothing reads it while it lives (fn-210).
                     if self.shed_certain(lateral_pa, cycle, apex.axis) {
                         if rules.certain == Certain::Skip {
                             continue;
                         }
-                        let key = zone_key.child(drawn).child(slot as u64);
-                        self.marked.push(key.onto(lateral_pa).0);
+                        self.marked.push(key.onto(keyed).0);
                     }
                     let origin = Origin::Lateral {
                         parent: apex.axis,
@@ -101,10 +108,20 @@ impl Shoot<'_, '_> {
                         whorl: zone.buds,
                         woken: false,
                     };
-                    let key = zone_key.child(drawn).child(slot as u64);
-                    let wood = windows.wood(lateral_pa, cycle + 1);
-                    let made = [windows.presence(lead, wood) * placed, reach];
-                    self.sprout(key, lateral_pa, cycle, origin, made);
+                    // Host decision 8: the made presences.
+                    let window = windows.window((lateral_pa, cycle + 1, None), 1.0);
+                    let mut lead = lineage::bud_presence(lateral, drawn_pa, d, window);
+                    if turns {
+                        let by =
+                            lineage::shaded_presence(shade, (drawn_pa, kind), light, key, window);
+                        lead = presence::times(lead, by);
+                    }
+                    let placed = lineage::place_presence(key, zone.share(slot), window);
+                    let made = [
+                        presence::real(presence::times(lead, placed)),
+                        presence::real(presence::q(reach)),
+                    ];
+                    self.sprout_keyed(key, (lateral_pa, keyed), cycle, origin, made);
                 }
                 if sleeping.iter().any(|&wood| wood > 0.0) {
                     let at = (apex.axis, node, self.draws(apex.axis).units.len() - 1);
@@ -118,4 +135,48 @@ impl Shoot<'_, '_> {
         self.leads = leads;
         Ok(())
     }
+}
+
+impl Shoot<'_> {
+    /// `node_wood` of zone `z` of a unit of `pa` grown in `cycle`, taken
+    /// once a share (fn-351 speed round 2): it reads the PA, the zone and
+    /// the cycle alone, of rules no growth unit changes, so every unit of
+    /// one PA and zone in a cycle decides the same wood, to the bit.
+    fn node_wood(&mut self, (pa, z): (usize, usize), cycle: u32, sleeping: &mut Vec<f64>) -> f64 {
+        let at = (pa, z, cycle);
+        if let Some(held) = self.woods.iter().find(|w| w.at == at) {
+            sleeping.clear();
+            sleeping.extend_from_slice(&held.sleeping);
+            return held.wood;
+        }
+        let wood = node_wood((self.rules, self.species), (pa, z), cycle, sleeping);
+        self.woods.push(NodeWood {
+            at,
+            wood,
+            sleeping: sleeping.clone(),
+        });
+        wood
+    }
+}
+
+/// The wood a node of zone `z` of a unit of `pa` grown in `cycle` decides,
+/// as a share of the tree's: its internode and the buds it is expected to
+/// bear, a PA its buds cannot carry taking no part, and the sleeping buds
+/// it is expected to bear, each PA's into `sleeping`.
+pub(crate) fn node_wood(
+    (rules, species): (&Rules, &Species),
+    (pa, z): (usize, usize),
+    cycle: u32,
+    sleeping: &mut Vec<f64>,
+) -> f64 {
+    let (windows, state) = (&rules.windows, &species.states[pa]);
+    let zone = &state.zones[z];
+    let expected: f64 = rules.laterals[pa][z]
+        .iter()
+        .enumerate()
+        .filter(|&(_, &p)| p > 0.0)
+        .map(|(j, p)| p * windows.wood(j, cycle + 1))
+        .sum();
+    let expected = expected + windows.sleeping(zone, cycle, sleeping);
+    windows.share(state.internode, cycle) + zone.buds * expected
 }

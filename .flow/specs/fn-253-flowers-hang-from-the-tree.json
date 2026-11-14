@@ -1,0 +1,47 @@
+{
+  "branch_name": "fn-253-flowers-hang-from-the-tree",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T19:45:14.719192Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-253-flowers-hang-from-the-tree",
+  "impl_review_rounds": {
+    "fn-253-flowers-hang-from-the-tree.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T19:48:09.417451Z",
+  "ready": true,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-253-flowers-hang-from-the-tree.1": 5,
+    "plan": 2,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-253-flowers-hang-from-the-tree.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-253-flowers-hang-from-the-tree.md",
+  "status": "done",
+  "title": "Flowers hang from the tree",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-11T14:28:55.119137Z"
+}

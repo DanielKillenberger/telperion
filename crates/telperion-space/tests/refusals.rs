@@ -28,18 +28,30 @@ fn species() -> Species {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        leaf_years: f64::INFINITY,
+        elongation: 0.0,
+        expansion: 0.0,
+        leaf_life: f64::INFINITY,
+        budburst: 0.0,
+        senescence: 0.0,
+        colouring: 0.0,
+        leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
+        shade_short: Vec::new(),
         straightening: 0.0,
         form: Form::default(),
     };
@@ -51,14 +63,13 @@ fn species() -> Species {
 const REQUEST: Request = Request {
     age: 6,
     seed: 1,
-    budget: 10_000,
     light: telperion_space::Light::NEUTRAL,
 };
 
 #[test]
 fn every_input_the_engine_cannot_draw_is_refused_by_name() {
     type Edit = fn(&mut Species);
-    let cases: [(Edit, &str); 42] = [
+    let cases: [(Edit, &str); 52] = [
         (|s| s.states.clear(), "states"),
         (|s| s.states[0].continuation = 1.5, "states[0].continuation"),
         (
@@ -67,7 +78,36 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
         ),
         (|s| s.states[0].viability = f64::NAN, "states[0].viability"),
         (|s| s.states[0].shedding = -1.0, "states[0].shedding"),
+        // fn-248: a leaf's years lie in 0 to never.
+        (|s| s.states[0].leaf_years = -0.5, "states[0].leaf_years"),
+        (|s| s.states[0].elongation = 366.0, "states[0].elongation"),
+        (|s| s.states[0].expansion = f64::NAN, "states[0].expansion"),
+        (
+            |s| {
+                s.states[0].elongation = 300.0;
+                s.states[0].expansion = 66.0
+            },
+            "states[0].expansion",
+        ),
+        (
+            |s| s.states[1].leaf_years = f64::NAN,
+            "states[1].leaf_years",
+        ),
         (|s| s.states[1].lifespan = -0.5, "states[1].lifespan"),
+        // fn-354 R7: a bud cannot turn into its own age; one exponent an
+        // age, each in its range.
+        (
+            |s| s.states[1].shade_short = vec![0.0, 0.5],
+            "states[1].shade_short[1]",
+        ),
+        (
+            |s| s.states[0].shade_short = vec![0.0, 11.0],
+            "states[0].shade_short[1]",
+        ),
+        (
+            |s| s.states[0].shade_short = vec![0.0, 0.5, 0.5],
+            "states[0].shade_short",
+        ),
         (|s| s.states[0].zones.clear(), "states[0].zones"),
         (
             |s| s.states[0].zones = vec![s.states[0].zones[0].clone(); 5],
@@ -130,7 +170,7 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
             |s| s.states[1].form.wander = f64::NAN,
             "states[1].form.wander",
         ),
-        (|s| s.states[0].form.pipe = 2.0, "states[0].form.pipe"),
+        (|s| s.states[0].form.primary = 2.0, "states[0].form.primary"),
         (
             |s| s.states[1].form.elevation = 2.0,
             "states[1].form.elevation",
@@ -138,12 +178,28 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
         (|s| s.states[0].form.plane = 1e9, "states[0].form.plane"),
         (|s| s.states[1].form.roll = -0.1, "states[1].form.roll"),
         (
-            |s| s.states[0].form.exponent = 1.0,
-            "states[0].form.exponent",
+            |s| s.states[0].form.sapwood = -0.1,
+            "states[0].form.sapwood",
         ),
         (
-            |s| s.states[1].form.ripening = -1.0,
-            "states[1].form.ripening",
+            |s| s.states[1].form.sapwood_rings = 0.5,
+            "states[1].form.sapwood_rings",
+        ),
+        (
+            |s| s.states[0].form.sapwood_rings = f64::NAN,
+            "states[0].form.sapwood_rings",
+        ),
+        (
+            |s| s.states[0].form.sapwood_tall = -0.1,
+            "states[0].form.sapwood_tall",
+        ),
+        (
+            |s| s.states[0].form.sapwood_rings_tall = 0.01,
+            "states[0].form.sapwood_rings_tall",
+        ),
+        (
+            |s| s.states[1].form.sapwood_from = 1.0,
+            "states[1].form.sapwood_to",
         ),
         (
             |s| s.states[1].form.dominance = 1.5,
@@ -158,14 +214,6 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
         (|s| s.states[0].erection = -1.0, "states[0].erection"),
         (|s| s.states[1].form.sag = -0.1, "states[1].form.sag"),
         (|s| s.states[0].form.sag = f64::NAN, "states[0].form.sag"),
-        (
-            |s| s.states[0].form.secondary = -0.1,
-            "states[0].form.secondary",
-        ),
-        (
-            |s| s.states[1].form.secondary = f64::NAN,
-            "states[1].form.secondary",
-        ),
     ];
     for (edit, input) in cases {
         let mut s = species();
@@ -200,29 +248,6 @@ fn a_seed_that_dies_before_it_grows_is_a_collapsed_tree() {
     assert_eq!(grow(&s, REQUEST), Err(Error::Collapsed));
 }
 
-#[test]
-fn a_tree_past_its_budget_is_refused() {
-    assert_eq!(
-        grow(
-            &species(),
-            Request {
-                budget: 5,
-                light: telperion_space::Light::NEUTRAL,
-                ..REQUEST
-            }
-        ),
-        Err(Error::Budget { limit: 5 })
-    );
-}
-
-#[test]
-fn a_trunk_below_the_ground_is_an_error() {
-    let mut s = species();
-    s.states[0].form.tropism = 1.0;
-    s.states[0].form.elevation = -std::f64::consts::FRAC_PI_2;
-    assert!(matches!(grow(&s, REQUEST), Err(Error::BelowGround { .. })));
-}
-
 /// A tree whose only wood stands exactly at its draw has no size: it is a
 /// collapsed tree, not a tree of zero length.
 #[test]
@@ -241,4 +266,20 @@ fn a_tree_of_no_size_is_a_collapsed_tree() {
         grow(&s, Request { age: 1, ..REQUEST }),
         Err(Error::Collapsed)
     );
+}
+
+/// fn-264: a node bears up to `MAX_LEAF_AREA` (5 m², above the date palm's
+/// 2.81 m² frond) and no more, refused by name past it.
+#[test]
+fn a_leaf_area_is_drawn_to_its_bound_and_refused_past_it() {
+    let at = |area: f64| {
+        let mut s = species();
+        s.states[0].leaf_area = area;
+        grow(&s, REQUEST)
+    };
+    assert!(at(telperion_space::MAX_LEAF_AREA).is_ok());
+    match at(telperion_space::MAX_LEAF_AREA * (1.0 + 1e-12)) {
+        Err(Error::Refused { input, .. }) => assert_eq!(input, "states[0].leaf_area"),
+        other => panic!("{other:?}"),
+    }
 }

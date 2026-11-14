@@ -84,4 +84,3 @@ pub(in crate::pipeline::branching) fn generate(
     )?;
     Ok(tree)
 }
-

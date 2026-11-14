@@ -29,9 +29,7 @@ Follow-ups: the FRICTION.md entries (a checklist for new rows, a unit test that 
 
 Baseline: none run before the edits. By project rule the gate runs once, at the end of the task. It was green on the third run: the first two runs failed on a fixed-length array and on the conformance jitter, and both are fixed.
 
-Tier: session (actual model: claude-opus-5-5)
 
-stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
 - Commits: e1315e0a217e89e789e75c48dd5cfb3d1ce2a255
 - Tests: cargo test --profile ci --workspace --no-fail-fast, cargo test --profile ci -p telperion-core --test skirt --test rosette --test capability --test sweep --test generation_limit_guard --test geometry_benchmark, cargo test --profile ci -p telperion-jev --test dial_table --test tuning_engine, cargo run --profile ci -p telperion-render --example headless -- --preset date-palm --seed 1 --size 768x768 --camera '{"fill":3.5,"targetHeight":0.88,"elevation":5}'

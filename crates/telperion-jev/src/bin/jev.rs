@@ -6,7 +6,10 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use serde_json::{Map, Value};
-use telperion_jev::caller::{evaluate, load_key, CallerError, EvaluateRequest, UreqTransport};
+use telperion_jev::assets::{load_assets, ImageAsset};
+use telperion_jev::caller::{
+    evaluate_with_assets, load_key, CallerError, EvaluateRequest, UreqTransport,
+};
 use telperion_jev::cases::{format_scores, run_labelled_cases};
 use telperion_jev::cite::{
     cite, format_report as format_cite, load_claim_source, parse_research, research_markdown,
@@ -108,8 +111,13 @@ fn run(cmd: &str, args: &[String]) -> Result<(), String> {
         "ask" => {
             // One evaluation over a state and a question set code wrote: the
             // caller, the ledger and the no-match answers are the asker's.
+            // `--assets` maps each image's reference string to its file.
             let state = read_map(&required(args, "--state")?)?;
             let questions = read_map(&required(args, "--questions")?)?;
+            let images = match flag(args, "--assets") {
+                Some(path) => load_assets(&read_map(&path)?)?,
+                None => Vec::new(),
+            };
             let tool = flag(args, "--tool").unwrap_or_else(|| "ask".into());
             let key = load_key().map_err(|err| err.to_string())?;
             let out = ask_with(
@@ -119,6 +127,7 @@ fn run(cmd: &str, args: &[String]) -> Result<(), String> {
                 &tool,
                 &Value::Object(state),
                 &Value::Object(questions),
+                &images,
             )?;
             println!(
                 "{}",
@@ -204,8 +213,9 @@ fn ask_with(
     tool: &str,
     state: &Value,
     questions: &Value,
+    images: &[ImageAsset],
 ) -> Result<Value, String> {
-    let entry = evaluate(
+    let entry = evaluate_with_assets(
         transport,
         key,
         EvaluateRequest {
@@ -215,6 +225,7 @@ fn ask_with(
             questions,
             ledger_dir: ledger,
         },
+        images,
     )
     .map_err(show_err)?;
     Ok(
@@ -246,11 +257,48 @@ mod tests {
         }
         let dir = env::temp_dir().join(telperion_jev::ledger::new_entry_id());
         let out = ask_with(&Mock, "mock-key", &dir, "ask", &serde_json::json!({"observation":"ambiguous crown"}),
-            &serde_json::json!({"action":{"type":"choice","instructions":"Select supported action.","criteria":{"hold":"No change justified.","insufficient_evidence":"Evidence is insufficient."}}})).unwrap();
+            &serde_json::json!({"action":{"type":"choice","instructions":"Select supported action.","criteria":{"hold":"No change justified.","insufficient_evidence":"Evidence is insufficient."}}}), &[]).unwrap();
         assert_eq!(out["model"], "jev-test");
         assert_eq!(out["answers"]["action"]["choice"], "insufficient_evidence");
         assert!(out["reference"].as_str().unwrap().contains("ask"));
         assert_eq!(fs::read_dir(&dir).unwrap().count(), 1);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn ask_refuses_an_oversized_asset_by_name_before_the_key_or_a_call() {
+        let dir = env::temp_dir().join(telperion_jev::ledger::new_entry_id());
+        fs::create_dir_all(&dir).unwrap();
+        let write = |name: &str, bytes: &[u8]| {
+            let path = dir.join(name);
+            fs::write(&path, bytes).unwrap();
+            path.to_string_lossy().into_owned()
+        };
+        let mut png = b"\x89PNG\r\n\x1a\n\0\0\0\x0dIHDR".to_vec();
+        png.extend(2440u32.to_be_bytes());
+        png.extend(1980u32.to_be_bytes());
+        let still = write("still.png", &png);
+        let assets = write(
+            "assets.json",
+            format!(r#"{{"still-1":"{still}"}}"#).as_bytes(),
+        );
+        let state = write("state.json", br#"{"still":"still-1"}"#);
+        let questions = write("questions.json", br#"{"q":{"type":"noul"}}"#);
+        let ledger = dir.join("ledger").to_string_lossy().into_owned();
+        let args = [
+            "--state",
+            &state,
+            "--questions",
+            &questions,
+            "--assets",
+            &assets,
+        ];
+        let args: Vec<String> = args.iter().map(|arg| arg.to_string()).collect();
+        let args = [args, vec!["--ledger".into(), ledger.clone()]].concat();
+        let err = run("ask", &args).unwrap_err();
+        assert!(err.starts_with("asset still-1 ("), "{err}");
+        assert!(err.contains("2440x1980"), "{err}");
+        assert!(!Path::new(&ledger).exists(), "no call, so no ledger entry");
         fs::remove_dir_all(dir).unwrap();
     }
 

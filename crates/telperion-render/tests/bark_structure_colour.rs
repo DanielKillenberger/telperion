@@ -3,6 +3,7 @@
 //! one alone changes the picture; all of them at zero leave it exactly as it
 //! was before the rows existed, and none of them moves a vertex.
 mod common;
+use common::surface;
 use telperion_core::{
     material::MaterialParams, math::Vec3, mesh, presets::Preset, surface::SurfaceMesh,
 };
@@ -10,9 +11,13 @@ use telperion_render::{render, Camera, Renderer, Still, View, STILL_FORMAT};
 
 const SIZE: (u32, u32) = (384, 320);
 
+/// The oak's trunk at 2 m, framed as `bark_depth` frames it: fn-354's wood
+/// took the wood across this frame's middle row (seed 7) from 236 to 123
+/// pixels, so the camera came in from 2.47 m to 1.09 m along the same line,
+/// where the row holds 200.
 fn trunk() -> Camera {
     Camera {
-        position: Vec3::new(1.7307636095778745, 2.2967023330704928, -1.7307636095778745),
+        position: Vec3::new(0.765, 2.131, -0.765),
         target: Vec3::new(0.0, 2.0, 0.0),
         field_of_view: 38.0,
         near: 0.01,
@@ -21,6 +26,8 @@ fn trunk() -> Camera {
 }
 
 fn hash(mesh: &SurfaceMesh) -> u64 {
+    // The chunks laid end to end: the hash the flat wood had.
+    let mesh = mesh.flattened();
     mesh.positions
         .iter()
         .chain(&mesh.normals)
@@ -118,8 +125,8 @@ fn each_structure_colour_row_changes_the_picture_and_moves_no_wood() {
         let mut with = family.clone();
         with.material = row;
         assert_eq!(
-            hash(&tree.wood),
-            hash(&mesh::build(&with).unwrap().wood),
+            hash(surface(&tree)),
+            hash(surface(&mesh::build(&with).unwrap())),
             "{name} moved the wood the core hands up"
         );
         renderer.set_material(row);

@@ -1,5 +1,5 @@
 use super::*;
-use crate::pipeline::{clothe, skeleton, GrowInput, Inputs};
+use crate::pipeline::{clothe, scaffold, Inputs};
 use crate::presets::{Preset, CATALOGUE, IN_WORK};
 
 /// Every values preset's clothed skeleton, its surface rows and its name.
@@ -9,8 +9,8 @@ fn trees() -> Vec<(&'static str, Tree, f64, SurfaceParams)> {
         .chain(IN_WORK)
         .map(|&(_, id, _, _)| {
             let family = Preset::from_id(id).unwrap().parameters();
-            let mut tree = skeleton(GrowInput::of(&family)).unwrap().tree;
-            let inputs = Inputs::of(&family);
+            let mut tree = scaffold(&family).unwrap();
+            let inputs = Inputs::of(&family, family.skeleton.envelope);
             clothe(&mut tree, &inputs).unwrap();
             (id, tree, inputs.surface.height, inputs.surface.params)
         })
@@ -18,12 +18,16 @@ fn trees() -> Vec<(&'static str, Tree, f64, SurfaceParams)> {
 }
 
 /// The curve carries the whole wood: the sweep's rings, drawn from the curve
-/// alone, are the sweep's own to the bit at every preset's side count (12
-/// for all but the lobed legends), its shaped leaf-base cells included.
+/// alone, are the sweep's own to the bit at every run's side count (fn-362),
+/// its shaped leaf-base cells included.
 #[test]
 fn every_presets_rings_are_drawn_from_its_curve_to_the_bit() {
+    let _turn = crate::one_tree::turn();
     for (id, tree, height, params) in trees() {
         let mesh = build(&tree, height, &params).unwrap();
+        let (runs, along) = (mesh.runs, mesh.along);
+        let kept: Vec<u16> = mesh.chunks.iter().flat_map(|c| c.coords.clone()).collect();
+        let mesh = mesh.flattened();
         let curve = curve(&tree, height, &params).unwrap();
         let (positions, coords) = curve.rings(segments(&params)).unwrap();
         let bits = |v: &[f32]| v.iter().map(|x| x.to_bits()).collect::<Vec<_>>();
@@ -32,8 +36,13 @@ fn every_presets_rings_are_drawn_from_its_curve_to_the_bit() {
             bits(&positions) == bits(&mesh.positions),
             "{id}: positions differ"
         );
-        assert!(bits(&coords) == bits(&mesh.coords), "{id}: coords differ");
-        assert_eq!(curve.runs.len(), mesh.runs, "{id}: runs");
+        // The wood keeps its coords encoded; the curve's encode to them.
+        let encoded = coords.as_chunks::<2>().0.iter().flat_map(|c| {
+            let [d, angle] = c.map(f64::from);
+            encode::coord(d, angle, along)
+        });
+        assert!(encoded.eq(kept), "{id}: coords differ");
+        assert_eq!(curve.runs.len(), runs, "{id}: runs");
         if id == "date-palm" {
             assert!(
                 !curve.sections.is_empty(),
@@ -72,6 +81,7 @@ fn clusters_bound_every_ring_and_their_ladder_rises() {
 /// place, 2.4e-7 of its distance from the origin).
 #[test]
 fn packed_points_stand_within_their_stated_error() {
+    let _turn = crate::one_tree::turn();
     for (id, tree, height, params) in trees() {
         let curve = curve(&tree, height, &params).unwrap();
         let segments = segments(&params);
@@ -82,7 +92,7 @@ fn packed_points_stand_within_their_stated_error() {
             let points = curve.run_points(run);
             let largest = points.iter().map(|p| p.radius).fold(0.0, f64::max);
             let lobe = 1.0 + curve.lobe_depth.abs();
-            let vertices = points.len() * segments + 2;
+            let vertices = points.len() * run.sides(segments) + 2;
             for v in at..at + vertices {
                 let e = |k: usize| f64::from(exact[v * 3 + k]);
                 let d = (0..3)
@@ -98,5 +108,42 @@ fn packed_points_stand_within_their_stated_error() {
         }
         eprintln!("{id}: packed off by at most {worst:.2e} m, {share:.2} of the stated error");
         assert!(share <= 1.0, "{id}: {share}");
+    }
+}
+
+/// A cap under three (fn-351 review): a run is never cut with fewer than
+/// three sides (`build::sides`), so the rings at caps 0 to 2 are the
+/// three-sided rings, those at three, and nothing indexes past the rounds.
+#[test]
+fn a_cap_under_three_draws_three_sided_rings() {
+    use crate::tree::Node;
+    let tree = Tree {
+        nodes: (0..3)
+            .map(|i| Node {
+                position: Vec3::new(0.0, i as f64 * 4.0, 0.0),
+                parent: (i > 0).then(|| i - 1),
+                radius: 1.0 / (i + 1) as f64,
+                start_radius: 1.0,
+                ..Node::root()
+            })
+            .collect(),
+        ..Tree::default()
+    };
+    let params = SurfaceParams {
+        lobes: 0,
+        radial_segments: 8,
+        ..SurfaceParams::default()
+    };
+    let curve = curve(&tree, 24.0, &params).unwrap();
+    assert!(!curve.runs.is_empty());
+    let (three, _) = curve.rings(3).unwrap();
+    let vertices: usize = (curve.runs.iter())
+        .map(|r| curve.run_points(r).len() * 3 + 2)
+        .sum();
+    assert_eq!(three.len(), vertices * 3);
+    for cap in 0..3 {
+        assert!(curve.runs.iter().all(|r| r.sides(cap) == 3), "cap {cap}");
+        let (rings, _) = curve.rings(cap).unwrap();
+        assert_eq!(rings, three, "cap {cap}");
     }
 }

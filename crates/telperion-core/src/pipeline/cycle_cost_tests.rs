@@ -1,0 +1,123 @@
+//! fn-327: what the one cycle grows, to the bit, and what each of its passes
+//! costs. A digest here moves only where a change moved a tree.
+use super::executor;
+use crate::presets::{by_identity, Family, CATALOGUE};
+use telperion_space::{grow_census, grow_cycle, tree_digest};
+
+const AGE: f64 = 16.0;
+const SEEDS: [u32; 3] = [1, 1234, 5678];
+/// Young enough for an ordinary test: every preset's tree at `AGE`, seed 7,
+/// in the catalogue's order. fn-349's balance, which charges living tips by
+/// their path and dead wood nothing, moved the oak. fn-354's wood, laid by the leaf
+/// above it, and its sag, 4ρg/E, moved every tree; its pass's skipping of
+/// closed wood moved their sapwood there, every section kept. fn-354's
+/// leaf account moved the spruce, whose needles shade and lay wood for
+/// their 5.5 years while their wood is open, and the Two Trees, whose
+/// leaf is their drawn leaf. The birch's sapwood, 4.6, moved the birch.
+/// R7's lateral kind under shade moved the beech and the Two Trees, and
+/// again when a turned lateral kept its unturned key. fn-355's windows,
+/// which look `LOOK` cycles on for every draw and read no horizon, moved
+/// every tree but the palm. fn-354 task 7's leaf of 15.7 cm² moved the
+/// ordinary tree; its short shoot's twelve years moved the beech and the
+/// Two Trees. fn-359's drawn scale for nested fades moved the ordinary
+/// tree, the oak and the beech. fn-367 deleted the coarse end of the dial
+/// with the dial; every tree here is the one its fine end held. fn-371's
+/// leaf of its drawn blade, 44.245 cm², moved the ordinary tree. fn-351's
+/// sapwood rows by tree height (OAK-SAPWOOD-BY-SIZE.md) moved the oak alone.
+const PINNED: [u64; 8] = [
+    8470248290376253591,
+    16841942324685558229,
+    12665486350558508414,
+    13924919106548380920,
+    2054489571488262802,
+    4799502948138528708,
+    3392261673279751331,
+    16456616023369512333,
+];
+
+fn family(id: &str, age: f64, seed: u32) -> Family {
+    let mut f = by_identity(id).expect("a preset");
+    f.age = age;
+    f.skeleton.seed = seed;
+    f
+}
+
+fn digest(f: &Family) -> u64 {
+    let g = executor::growth(f).expect("its growth");
+    tree_digest(&grow_cycle(&g.species, g.request).expect("a tree").structure)
+}
+
+#[test]
+fn every_preset_grows_the_tree_it_grew_at_sixteen() {
+    let read: Vec<u64> = CATALOGUE
+        .iter()
+        .map(|&(_, id, ..)| digest(&family(id, AGE, 7)))
+        .collect();
+    assert_eq!(read, PINNED, "{read:?}");
+}
+
+/// The heavier read of R2: each tree's digest at its preset's age.
+#[test]
+#[ignore = "a measurement: fn-327 R2, read before and after"]
+fn digests_at_preset_age() {
+    for id in ["oregon-white-oak", "norway-spruce", "silver-birch"] {
+        let age = by_identity(id).expect("a preset").age;
+        for seed in SEEDS {
+            let d = digest(&family(id, age, seed));
+            println!("DIGEST {id} {age} {seed} {d}");
+        }
+    }
+}
+
+/// Each pass's seconds and the cycle's work: `COST_PRESET`, its age, seed 1.
+#[test]
+#[ignore = "a measurement: fn-327 R1, one thread"]
+fn pass_costs() {
+    for id in ["oregon-white-oak", "norway-spruce", "silver-birch"] {
+        let age = by_identity(id).expect("a preset").age;
+        let f = family(id, age, 1);
+        let g = executor::growth(&f).expect("its growth");
+        let _warm = grow_census(&g.species, g.request).expect("a tree");
+        let c = grow_census(&g.species, g.request).expect("a tree");
+        let census = c.census.expect("a census");
+        println!(
+            "COST {id} seconds {:.4} grown {} axes {}",
+            c.seconds, c.grown, census.axes
+        );
+        let (mut apex, mut axes, mut leaves) = (0u64, 0u64, 0u64);
+        for y in &census.cycles {
+            (apex, axes, leaves) = (
+                apex + y.active as u64,
+                axes + y.axes as u64,
+                leaves + y.leaves as u64,
+            );
+        }
+        println!("WORK {id} apex-cycles {apex} axis-cycles {axes} leaf-cycles {leaves}");
+        let mut phases: Vec<_> = census.phases.iter().collect();
+        phases.sort_by(|a, b| b.1.total_cmp(a.1));
+        for (name, s) in phases.into_iter().take(14) {
+            println!("PASS {id} {name} {:.1}", s * 1000.0);
+        }
+    }
+}
+
+/// fn-331 R3: with the phytomer budget gone, the oak at 200, seed 1, which
+/// the budget refused at 80, builds wood and leaves through the pipeline on
+/// the CPU; its seconds, the skeleton's share and the process's peak memory.
+#[test]
+#[ignore = "a measurement: fn-331 R3, minutes and gigabytes"]
+fn the_oak_at_200_builds_with_no_phytomer_budget() {
+    let mut f = by_identity("oregon-white-oak").expect("a preset");
+    (f.age, f.skeleton.seed) = (200.0, 1);
+    let started = std::time::Instant::now();
+    let built = super::build(&f, super::Request::mesh()).expect("the oak at 200");
+    let seconds = started.elapsed().as_secs_f64();
+    let status = std::fs::read_to_string("/proc/self/status").unwrap_or_default();
+    let peak = status
+        .lines()
+        .find(|l| l.starts_with("VmHWM"))
+        .unwrap_or("VmHWM: unknown");
+    let skeleton = built.outputs.stages.skeleton_ms / 1e3;
+    let nodes = built.skeleton.tree.nodes.len();
+    println!("OAK200 seconds {seconds:.1} skeleton {skeleton:.1} nodes {nodes} {peak}");
+}

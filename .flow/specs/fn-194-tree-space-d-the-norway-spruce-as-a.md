@@ -1,30 +1,42 @@
 # Tree space D: the Norway spruce as a point
 
-## Goal & Context
+## Goal
 
-The spruce (Massart's model) as a point in the tree space, after the beech. [user]
+Phase D of the tree-space programme (`docs/tree-space.md`; owner, 2026-10-03): the Norway spruce (*Picea abies*, Massart's model) as a point in the tree space after the beech, values only, from fn-190's MODEL-SPRUCE.md and its sources. Gate as in phase C (host confident, Astra agreeing, traits named); wrong-path stop as phase C, or the beech regresses.
 
-## Programme
+## Decisions
 
-This spec is one phase of the tree-space programme (`docs/tree-space.md`, STRATEGY.md track "The tree space"; owner, 2026-10-03). Read that document first: the four claims, the rule "stand on botany, invent the space", the phase table with each phase's gate and wrong-path stop, how a species is judged, and the rules for running unattended. The research behind it is in `.flow/evidence/fn-188-one-branching-law-from-trunk-to-twig/` (LITERATURE.md; source texts in the local research worktree `/home/daniel/Projects/telperion/.worktrees/fn-188-research/.firecrawl/lit/`) and `.flow/evidence/fn-190-one-growth-law-species-are-points-in-a/` (the eighteen failed probe rounds and why, the model specifications MODEL-OAK.md, MODEL-SPRUCE.md, MODEL-PALM.md, STAGE1-BEECH.md, and today's pinned baseline BASELINE.md, whose raw stills sit in `/home/daniel/Projects/telperion/.worktrees/fn-190/.flow/evidence/fn-190-one-growth-law-species-are-points-in-a/raw/baseline/`). [user, checked]
-
-## Edge Cases & Constraints
-
-- **Stand on botany, invent the space:** botanical mechanisms are reproduced against an oracle before use; external code and data are never copied, only run and compared against. [user]
-- **Errors, not fallbacks;** a collapsed tree or wood below the ground is an error. Every setting changes the tree by degree; no switches (`docs/principles.md`). [principles]
-- **Judging:** the host views every still first; a species passes only when the host is confident it reads as itself beside its reference photographs and Astra, reading the same sheet independently, agrees. Numbers explain a look and never decide it (memory: judge each generator round by its stills). [user]
-- **Unattended:** this spec runs under `/loop /flow-next:flow --auto` overnight. Its gate is evidence, never the owner's sign-off; the owner's verdict comes at the PR in the morning. Nothing merges to master. A wrong-path condition stops with `NEEDS_HUMAN` and a report of what was tried. [user]
-- **Agents:** design judgments go to the host (AGENTS.md, "Dispatch and escalation"); friction is written to this spec's FRICTION.md as it happens. [AGENTS.md]
+- Values in `crates/telperion-space/src/spruce.rs`; sources in SOURCES.md (needle retention from Muukkonen and Lehtonen 2004). Drawn by `crates/telperion-render/examples/space_spruce.rs` through the shared still runner.
+- Host answers to round 1 (2026-10-04): ground and droop built as fn-200 (`form.sag`, ground support); dormant buds later (built as fn-202); comb habit as S1 shows; colours moved into the norway-spruce preset; more seed variety, a thinner young trunk, a crown widened toward S1's 0.75.
+- Engine work the spruce needed went into its own specs: fn-200 (sag, ground), fn-201 (foliage dispatch past 65,535), fn-202 (dormant buds), fn-203 (bent-lever sag), fn-205 (secondary girth, the spruce at `secondary: 1.0`).
+- Up to about 9 s for an 80-year tree accepted; phase F owns cost (host, after round 3).
+- Host and Astra iterated seven gates (rounds 4 to 10) without agreeing (Astra: insufficient foliage mass on the hanging branchlets), so the spruce went to the owner. Round 11 was tried and reverted; round 10 kept.
+- R3 split to task 2, blocked by fn-206: the beech's and spruce's physiological-age chains differ, so they have no per-setting midpoint until both sit on one reference axis.
 
 ## Acceptance Criteria
 
-- **R1:** The spruce's values, from MODEL-SPRUCE.md and its sources, at several ages and mature, seeds 1 and 7, beside `.flow/references/norway-spruce/` and today's spruce. [user]
-- **R2:** The gate as in phase C: host confident and Astra agreeing, traits named. [user]
-- **R3:** A walk from the beech to the spruce at a fixed seed, as still strips, with no visible pop. [user]
-- **R4:** The beech's passed sheet is re-rendered and unchanged in look. [user]
-- **Wrong-path stop:** as phase C, or the beech regresses. [user]
+- **R1:** The spruce's values from MODEL-SPRUCE.md and its sources, at several ages and mature, seeds 1 and 7, beside the references and today's spruce — met (rounds 1 to 11).
+- **R2:** The gate as in phase C — met on the owner's verdict, round 10.
+- **R3:** A beech-to-spruce walk at a fixed seed as still strips, no visible pop — met (task 2, on fn-206's shared chain, PR #154).
+- **R4:** The beech's passed sheet re-rendered, unchanged in look — met (shown on fn-196's branch, `38c2de33`; only lighting and leaf placement differ).
 
-## Boundaries
+## Result
 
-- Only this phase's deliverable; later phases are their own specs. [user]
-- Not the add-species pipeline's recalibration (its own spec after F). [user]
+Owner verdict (2026-10-05): "spruce looks good but not as lush and big as the reference. but definitely acceptable. Still much to be improved but i think it's structurally sound." Passed with round 10's values: the bough hook on fn-203's bent-lever sag, sleeping-bud curtains, dense sprays, a broad base. R3 walk (age 40, seed 1): by degree from the forked beech through open single-stemmed and tiered midpoints to the spruce spire, leader kept throughout, no pop. Gate 1044 passed; Codex SHIP (PR #149).
+
+## Open
+
+- The hanging curtains' volume: bounded by about 210M wood triangles and 16M needles per 80-year tree, where the GPU runs out of memory. Phase F levers: cheap fine-twig drawing, shedding before growth.
+- Dormant-bud draperies are values-limited by the same budget (sleeping probability stops near 0.45).
+- The 10-year sapling reads sparse.
+- The spruce stills report height and width but not dbh (Codex P2, recorded).
+
+## Friction
+
+- `BelowGround` named only the axis index -> done in fn-200 (names PA, birth cycle, base height).
+- wgpu panicked on a dispatch over 65,535 workgroups -> fixed by fn-201.
+- GPU out of memory on 80-year trees, varying with other desktop apps -> proposed: renderer memory estimate refusing by name before allocating; a level of detail for sub-millimetre twigs (the limit is wood triangles, not needles).
+
+## Evidence
+
+- `.flow/evidence/fn-194-tree-space-d-the-norway-spruce-as-a/SOURCES.md` (values and sources; cited by `spruce.rs`)

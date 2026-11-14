@@ -9,6 +9,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::assets::AssetRef;
+
 static ENTRY_SEQ: AtomicU64 = AtomicU64::new(0);
 
 /// Unique immutable id for one ledger write. Distinct even when the state
@@ -42,6 +44,9 @@ pub struct LedgerEntry {
     pub tool: String,
     pub state_sha256: String,
     pub source: Option<SourceRef>,
+    /// Each image the call carried, by name, path and digest; never its bytes.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub assets: Vec<AssetRef>,
     pub model: String,
     pub questions: Value,
     pub answers: Value,
@@ -155,6 +160,7 @@ mod tests {
             tool: "screen".into(),
             state_sha256: "abcd".into(),
             source: None,
+            assets: Vec::new(),
             model: "jev-latest".into(),
             questions: json!({}),
             answers: json!({}),

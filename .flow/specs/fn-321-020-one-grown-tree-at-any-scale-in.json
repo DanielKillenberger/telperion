@@ -1,0 +1,56 @@
+{
+  "branch_name": "fn-321-020-one-grown-tree-at-any-scale-in",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-11T12:00:03.210666Z",
+  "created_at": "2026-10-31T22:54:04.805270Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-322-local-verification-reruns-only-what-a",
+    "fn-320-a-tree-grown-twice-on-the-device-grows",
+    "fn-323-the-goals-measurement-manifest-and-the",
+    "fn-324-can-a-coarse-oak-grow-fewer-longer",
+    "fn-325-tune-the-oaks-fine-wood-dial-to-hold",
+    "fn-326-the-grower-takes-a-fidelity",
+    "fn-334-the-dials-rows-are-derived-from-the",
+    "fn-335-what-a-fine-lateral-really-grows-by-its",
+    "fn-336-sheets-of-020s-trees-as-they-stand",
+    "fn-337-wood-sets-as-it-thickens",
+    "fn-338-a-limb-holds-its-angle-where-its",
+    "fn-339-the-cohort-law-the-first-proof",
+    "fn-340-the-cohort-law-carried-forward-the",
+    "fn-341-the-earned-structure-the-second-proof",
+    "fn-342-where-todays-oak-goes-wrong-to-the-eye",
+    "fn-343-a-line-that-changes-hands-carries-on",
+    "fn-344-the-old-oak-which-cause-carries-the",
+    "fn-345-what-bounds-a-tree-vigour-falls-with"
+  ],
+  "id": "fn-321-020-one-grown-tree-at-any-scale-in",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "retired": {
+    "by": [
+      "fn-351-020-the-release-candidate"
+    ],
+    "reason": "superseded"
+  },
+  "spec_path": ".flow/specs/fn-321-020-one-grown-tree-at-any-scale-in.md",
+  "status": "done",
+  "title": "0.2.0: one grown tree at any scale, in realtime",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-11T12:00:03.210676Z"
+}

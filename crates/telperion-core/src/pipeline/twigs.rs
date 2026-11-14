@@ -1,5 +1,6 @@
 //! Fixed shoot anatomy and finite authoring rails for the local branch law.
 use crate::catalogue::{bounded, input, tuned, value, Blend, Bounds, Dial, Growth, Site};
+#[cfg(test)]
 use crate::math::Transcendental;
 use crate::Result;
 /// Top of the `generations` rail, and its neutral.
@@ -8,12 +9,14 @@ crate::catalogue::rows! {
     #[derive(Debug, Clone, Copy, PartialEq)]
     #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
     pub struct TwigAnatomy in "/skeleton/twigs/twig" {
-        /// The finished thickness of a twig in metres. Wood at or below half
-        /// of it is drawn as a twig, so raising it thickens the twig layer and
-        /// hands more of the fine wood to it.
-        pub diameter: f64 = "diameter" "m" Bounds::closed(1e-6, 1e6) => [Grow, Plan] {
+        /// The leaf box's reach where foliage sits on twigs, as the thickness
+        /// of the wood a leaf station is seated on, in metres; the engine
+        /// sizes the grown wood itself (fn-198).
+        pub diameter: f64 = "diameter" "m" Bounds::closed(1e-6, 1e6) => [Plan] {
             wire: 41,
             check: value(Site::Twig, 0, "twig diameter"),
+            applies: "`canopy.shootRadius` above zero",
+            label: "leaf box: twig thickness",
             note: "Wood at or below half of it is a twig; it is also the twig radius, the cap on \
                 childless tips (with `twigTipTaper`), and the leaf box's size where \
                 `canopy.shootRadius` is zero.",
@@ -23,7 +26,7 @@ crate::catalogue::rows! {
         /// The length in metres a twig shoot grows before it stops, and the
         /// whole of one internode on leaf-bearing wood. Raising it lengthens
         /// every twig, so the crown carries a deeper, shaggier skin.
-        pub length: f64 = "length" "m" Bounds::closed(1e-6, 1e6) => [Grow] {
+        pub length: f64 = "length" "m" Bounds::closed(1e-6, 1e6) => [] {
             wire: 42,
             check: value(Site::Twig, 1, "twig length"),
             growth: Growth::Differs("also sets how far a waiting shoot reaches"),
@@ -36,9 +39,10 @@ crate::catalogue::rows! {
         /// diameter, and the spacing of the stations a leaf sits on. Raising
         /// it gives longer segments, so laterals and leaves sit further apart.
         pub internode_length: f64 = "internodeLength" "m"
-            Bounds::closed(1e-6, 1e6) => [Grow, Plan, Expand] {
+            Bounds::closed(1e-6, 1e6) => [Plan, Expand] {
             wire: 43,
             check: value(Site::Twig, 2, "twig internodeLength"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             note: "Also the spacing of leaf stations; the canopy check bounds it again at [1e-6, \
                 1e6] (`twig internode`).",
             dial: bounded("twig_internode_length", "metres between the joints on wood thicker \
@@ -51,6 +55,7 @@ crate::catalogue::rows! {
             Bounds::closed(1.0, 32.0) => [Plan, Expand] {
             wire: 44,
             check: value(Site::Twig, 4, "twig stationsPerInternode"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             note: "Conflicting bounds: the canopy check admits 1 to 64 (`twig stations`), and \
                 this check's 1 to 32 answers first. The skeleton never reads it; with \
                 `canopy.divergence` it sets the phyllotaxis.",
@@ -61,7 +66,7 @@ crate::catalogue::rows! {
         /// The thickness in metres at or below which a shoot bears leaves and
         /// side shoots of its own. Raising it lets thicker wood bear, so
         /// foliage reaches further back down the branch.
-        pub bearing_diameter: f64 = "bearingDiameter" "m" Bounds::closed(1e-6, 1e6) => [Grow] {
+        pub bearing_diameter: f64 = "bearingDiameter" "m" Bounds::closed(1e-6, 1e6) => [] {
             wire: 45,
             check: value(Site::Twig, 3, "twig bearingDiameter"),
             growth: Growth::Differs("also marks leaf-bearing wood and caps `canopy.shootRadius`"),
@@ -91,7 +96,7 @@ crate::catalogue::rows! {
         /// A shoot's length as a share of the one that bore it. Raising it
         /// makes each generation of twigs longer relative to its parent.
         pub length_ratio: f64 = "lengthRatio" "share"
-            crate::ranges::LENGTH_RATIO.bounds() => [Grow] {
+            crate::ranges::LENGTH_RATIO.bounds() => [] {
             wire: 46,
             check: value(Site::Twig, 0, "twig lengthRatio"),
             note: "With `ratioPower` it sets the child radius; a varied draw is clamped to the \
@@ -101,7 +106,7 @@ crate::catalogue::rows! {
         },
         /// How much thinner a shoot is than its parent for the same drop in
         /// length. Raising it leaves side shoots finer.
-        pub ratio_power: f64 = "ratioPower" "-" Bounds::closed(0.0, 8.0) => [Grow] {
+        pub ratio_power: f64 = "ratioPower" "-" Bounds::closed(0.0, 8.0) => [] {
             wire: 47,
             check: value(Site::Twig, 1, "twig ratioPower"),
             dial: bounded("twig_ratio_power", "how much finer a shoot is than its parent for the \
@@ -110,7 +115,7 @@ crate::catalogue::rows! {
         /// The fewest of its own diameters a segment of wood may span. Raising
         /// it makes segments longer for the same thickness, so there are fewer
         /// joints and the wood reads straighter.
-        pub internode_factor: f64 = "internodeFactor" "-" Bounds::closed(0.05, 32.0) => [Grow] {
+        pub internode_factor: f64 = "internodeFactor" "-" Bounds::closed(0.05, 32.0) => [] {
             wire: 48,
             check: value(Site::Twig, 2, "twig internodeFactor"),
             dial: bounded("twig_internode_factor", "the fewest of its own diameters a segment of \
@@ -121,7 +126,7 @@ crate::catalogue::rows! {
         /// caps the cost rather than states a look.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_max_internodes"))]
         pub max_internodes: u32 = "maxInternodes" "internodes"
-            crate::ranges::POSITIVE_COUNT.bounds() => [Grow] {
+            crate::ranges::POSITIVE_COUNT.bounds() => [] {
             wire: 51,
             check: value(Site::Twig, 9, "twig maxInternodes"),
             blend: Blend::Count,
@@ -130,7 +135,7 @@ crate::catalogue::rows! {
         },
         /// How many side shoots leave each station along a twig. Raising it
         /// crowds more twigs onto the same length of wood.
-        pub laterals: u32 = "laterals" "laterals" Bounds::closed(0.0, 7.0) => [Grow] {
+        pub laterals: u32 = "laterals" "laterals" Bounds::closed(0.0, 7.0) => [] {
             wire: 49,
             check: value(Site::Twig, 3, "twig laterals"),
             growth: Growth::Differs("also sizes the rollback checkpoint"),
@@ -145,7 +150,7 @@ crate::catalogue::rows! {
         /// the twig layer's depth is a row a table states rather than a
         /// consequence of how thick the wood is.
         pub generations: u32 = "generations" "generations"
-            Bounds::closed(1.0, MAX_GENERATIONS as f64) => [Grow] {
+            Bounds::closed(1.0, MAX_GENERATIONS as f64) => [] {
             wire: 50,
             check: input(Site::Twig, 13, "twig generations"),
             blend: Blend::Count,
@@ -156,7 +161,7 @@ crate::catalogue::rows! {
         /// bearing twigs. Raising it lets twigs start on thicker wood, so
         /// they reach further back toward the trunk.
         pub limb_radius: f64 = "limbRadius" "share of root radius"
-            Bounds::closed(0.0, 1.0) => [Grow] {
+            Bounds::closed(0.0, 1.0) => [] {
             wire: 54,
             check: value(Site::Twig, 4, "twig limbRadius"),
             note: "Measured against the thickest stem where laterals are seeded and against the \
@@ -168,7 +173,7 @@ crate::catalogue::rows! {
         /// as a share of the crown: the scaffold is grown into what is left
         /// inside it. Raising it holds the structural wood further in and
         /// leaves a deeper twig layer.
-        pub reach: f64 = "reach" "share" Bounds::closed(0.0, 0.9) => [Grow] {
+        pub reach: f64 = "reach" "share" Bounds::closed(0.0, 0.9) => [] {
             wire: 55,
             check: value(Site::Twig, 5, "twig reach"),
             note: "Shrinks the scaffold's room and, with `attractorWeight` above zero, the \
@@ -178,7 +183,7 @@ crate::catalogue::rows! {
         },
         /// The degrees a side shoot leaves its parent. Raising it swings
         /// twigs further out toward square with the branch.
-        pub angle: f64 = "angle" "degrees" crate::ranges::ANGLE.bounds() => [Grow] {
+        pub angle: f64 = "angle" "degrees" crate::ranges::ANGLE.bounds() => [] {
             wire: 56,
             check: value(Site::Twig, 6, "twig angle"),
             note: "Also sets the laterals' separation, `min(angle, maxTurnPerStep)`; a varied \
@@ -190,7 +195,7 @@ crate::catalogue::rows! {
         /// How many degrees that departure angle varies shoot to shoot.
         /// Raising it makes the twig layer less uniform.
         pub angle_variation: f64 = "angleVariation" "degrees"
-            crate::ranges::ANGLE.bounds() => [Grow] {
+            crate::ranges::ANGLE.bounds() => [] {
             wire: 57,
             check: value(Site::Twig, 7, "twig angleVariation"),
             blend: Blend::Degrees,
@@ -199,7 +204,7 @@ crate::catalogue::rows! {
         },
         /// How much shoot length varies shoot to shoot. Raising it gives a
         /// more uneven, less combed twig layer.
-        pub vigour_variation: f64 = "vigourVariation" "share" Bounds::closed(0.0, 0.95) => [Grow] {
+        pub vigour_variation: f64 = "vigourVariation" "share" Bounds::closed(0.0, 0.95) => [] {
             wire: 58,
             check: value(Site::Twig, 8, "twig vigourVariation"),
             dial: bounded("twig_vigour_variation", "how far shoot length varies shoot to shoot",
@@ -208,7 +213,7 @@ crate::catalogue::rows! {
         /// The degrees each successive shoot is turned around the wood that
         /// bears it. Raising it swings the next shoot further around, so the
         /// twigs spiral differently.
-        pub divergence: f64 = "divergence" "degrees" Bounds::FINITE => [Grow] {
+        pub divergence: f64 = "divergence" "degrees" Bounds::FINITE => [] {
             wire: 59,
             check: input(Site::Twig, 12, "twig divergence"),
             blend: Blend::Degrees,
@@ -220,7 +225,7 @@ crate::catalogue::rows! {
         },
         /// How strongly a shoot hangs, 0 to 3. At 0 nothing hangs and the local
         /// law is the ordinary one; at 1 a curtain takes its full droop.
-        pub hang: f64 = "hang" "-" Bounds::closed(0.0, 3.0) => [Grow] {
+        pub hang: f64 = "hang" "-" Bounds::closed(0.0, 3.0) => [] {
             wire: 60,
             check: input(Site::Twig, 14, "hang"),
             note: "Gates the curtain: the pendulous, separation, sag, variation, droop and \
@@ -231,7 +236,7 @@ crate::catalogue::rows! {
         },
         /// Metres a pendulous shoot grows before it stops, and the length its
         /// droop reaches the cap over.
-        pub pendulous_length: f64 = "pendulousLength" "m" Bounds::closed(0.05, 5.0) => [Grow] {
+        pub pendulous_length: f64 = "pendulousLength" "m" Bounds::closed(0.05, 5.0) => [] {
             wire: 61,
             check: input(Site::Twig, 15, "pendulous length"),
             applies: "`hang` zero",
@@ -241,7 +246,7 @@ crate::catalogue::rows! {
         },
         /// Fraction of the root radius at or below which a station's shoots hang.
         pub pendulous_radius: f64 = "pendulousRadius" "share of stem radius"
-            Bounds::closed(0.0, 1.0) => [Grow] {
+            Bounds::closed(0.0, 1.0) => [] {
             wire: 62,
             check: input(Site::Twig, 16, "pendulous radius"),
             applies: "`hang` zero",
@@ -250,7 +255,7 @@ crate::catalogue::rows! {
         },
         /// Degrees between neighbouring shoots in a curtain.
         pub curtain_separation: f64 = "curtainSeparation" "degrees"
-            Bounds::closed(1.0, 45.0) => [Grow] {
+            Bounds::closed(1.0, 45.0) => [] {
             wire: 63,
             check: input(Site::Twig, 17, "curtain separation"),
             applies: "`hang` zero",
@@ -263,7 +268,7 @@ crate::catalogue::rows! {
         /// it departed with and the curtain is a set of rods, at 1 it hangs
         /// vertical, and the turn is spread along the run as an arc steepest at the
         /// wood that bears it.
-        pub sag: f64 = "sag" "share" Bounds::closed(0.0, 1.0) => [Grow] {
+        pub sag: f64 = "sag" "share" Bounds::closed(0.0, 1.0) => [] {
             wire: 64,
             check: input(Site::Twig, 18, "sag"),
             applies: "`hang` zero",
@@ -276,7 +281,7 @@ crate::catalogue::rows! {
         /// this times a draw in 0 to 1 keyed by the shoot and the seed. At 0 every
         /// shoot has the one length the table states.
         pub pendulous_variation: f64 = "pendulousVariation" "share"
-            Bounds::closed(0.0, 1.0) => [Grow] {
+            Bounds::closed(0.0, 1.0) => [] {
             wire: 65,
             check: input(Site::Twig, 19, "pendulous variation"),
             applies: "`hang` zero",
@@ -289,7 +294,7 @@ crate::catalogue::rows! {
         /// the shell binds a hanging shoot as it binds every other, at 1 the shoot
         /// may fall to the clearance. Only a shoot that hangs, only under the
         /// crown's footprint.
-        pub curtain_drop: f64 = "curtainDrop" "share" Bounds::closed(0.0, 1.0) => [Grow] {
+        pub curtain_drop: f64 = "curtainDrop" "share" Bounds::closed(0.0, 1.0) => [] {
             wire: 66,
             check: input(Site::Twig, 20, "curtain drop"),
             note: "Above zero admits wood below the shell and stops shoots sleeping.",
@@ -299,7 +304,7 @@ crate::catalogue::rows! {
         },
         /// Metres above the ground no hanging shoot falls below, 0 to 5. Never
         /// above the crown's own base, whatever the row says.
-        pub curtain_clearance: f64 = "curtainClearance" "m" Bounds::closed(0.0, 5.0) => [Grow] {
+        pub curtain_clearance: f64 = "curtainClearance" "m" Bounds::closed(0.0, 5.0) => [] {
             wire: 67,
             check: input(Site::Twig, 21, "curtain clearance"),
             applies: "unless `sag` or `curtainDrop` is above zero",
@@ -310,7 +315,7 @@ crate::catalogue::rows! {
         /// The furthest a hanging shoot may bend toward straight down.
         /// Raising it lets curtains hang more heavily.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_max_droop"))]
-        pub max_droop: f64 = "maxDroop" "-" Bounds::closed(0.0, 10.0) => [Grow] {
+        pub max_droop: f64 = "maxDroop" "-" Bounds::closed(0.0, 10.0) => [] {
             wire: 52,
             check: value(Site::Twig, 10, "twig maxDroop"),
             applies: "`hang` zero",
@@ -324,7 +329,7 @@ crate::catalogue::rows! {
             serde(default = "crate::ranges::default_curtain_step_clearance")
         )]
         pub curtain_step_clearance: f64 = "curtainStepClearance" "share"
-            Bounds::closed(0.0, 1.0) => [Grow] {
+            Bounds::closed(0.0, 1.0) => [] {
             wire: 53,
             check: value(Site::Twig, 11, "twig curtainStepClearance"),
             applies: "`hang` zero",
@@ -377,6 +382,7 @@ impl TwigParams {
         crate::catalogue::check(Self::CHECKS, &self, Site::Twig)?;
         Ok(self)
     }
+    #[cfg(test)]
     pub(crate) fn internodes(self, radius: f64, length: f64) -> usize {
         let floor = if radius <= self.twig.bearing_diameter / 2.0 {
             self.twig.length
@@ -391,9 +397,11 @@ impl TwigParams {
         .max(1.0) as usize
     }
 }
+#[cfg(test)]
 pub fn branch_length(radius: f64) -> f64 {
     148.0 / 7.4_f64.powf_fixed(2.0 / 3.0) * radius.max(0.0).powf_fixed(2.0 / 3.0)
 }
+#[cfg(test)]
 pub fn child_radius(radius: f64, ratio: f64, power: f64) -> f64 {
     radius * ratio.powf_fixed(power)
 }

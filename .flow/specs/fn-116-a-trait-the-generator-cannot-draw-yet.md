@@ -1,47 +1,26 @@
 # A trait the generator cannot draw yet never vetoes an adoption
 
-## Conversation Evidence
+## Goal
 
-> fn-80 live run, 2026-09-23: the date palm's second tuning revision rolled back 12 adoptions and kept 2; 10 of the 12 were "trait fruit-clusters-pendent went from Unknown to Fail". The date cluster is fn-111, not landed.
-> user (2026-09-23): "i would have thought we run this until we have a palm unless we have an issue/friction that needs fixed"
+In fn-80's live run (2026-09-23) the date palm's second tuning revision rolled back 12 adoptions and kept 2; 10 of the 12 were "trait fruit-clusters-pendent went from Unknown to Fail" — the date cluster is fn-111, not landed. Every time the crown grew enough for the reviewer to see it, the absent fruit flipped the trait to fail and the closing review rolled the move back (~3.5 M tokens for two small moves). A trait the generator cannot express yet must not veto moves that answer the owner's priorities. Owner (2026-09-23): "i would have thought we run this until we have a palm unless we have an issue/friction that needs fixed".
 
-## Goal & Context
-<!-- scope: business -->
+## Decisions
 
-The palm's crown grew in the second revision, and every time it grew enough for the reviewer to see the crown clearly, the reviewer judged the date clusters absent and the trait flipped from unknown to fail. The closing review treats that flip as the candidate getting worse and rolls it back, so the loop spent about 3.5 M tokens and kept two small moves. The fruit is not a thing any dial can draw: its organ is an open spec. A trait the generator cannot express yet must not veto the moves that answer the owner's priorities. [paraphrase]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-- **What exists, checked 2026-09-23 on the fn-80 branch.** `tuning/veto/restore.rs` `worsened` lists a required cell that went pass to fail and every coverage trait whose status went backwards (`backwards`: pass to fail, or unknown to fail). A non-empty list rolls the adoption back. The reference-first inventory (`.flow/evidence/fn80/reference-first/inventory.json`) lists `fruit-clusters-pendent` as a core trait. [checked]
-- **The design (host, 2026-09-23).** [host design]
-  - The tuning config (`tuning::live::Config`) gains `unexpressed`: a list of `{trait, spec}`, a trait id from the inventory and the open spec whose landing will let the generator draw it.
-  - `worsened` skips a coverage trait listed there and records it instead, in words a router can read: `trait <id> went from <a> to <b>; not a veto: the generator cannot draw it until <spec> lands`. Required cells are untouched.
-  - Readiness is untouched: `ready()` and the core-coverage gate still refuse a failing core trait, so a species with an unexpressed core trait never reads ready.
-  - Config validation refuses an entry whose trait is not in the inventory, or whose spec is empty.
+- Host design (2026-09-23): the tuning config gains `unexpressed: [{trait, spec}]`. `worsened` skips a listed coverage trait and records `trait <id> went from <a> to <b>; not a veto: the generator cannot draw it until <spec> lands`. Required cells, `ready()` and the core-coverage gate are untouched, so a species with an unexpressed core trait never reads ready. Validation refuses a trait missing from the inventory, a blank spec, or a listing with no inventory.
+- Fixed under fn-80's boundary (a loop defect the live run proves), into the palm's stack.
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** An adoption whose only backwards change is a listed trait going unknown to fail, or pass to fail, is kept, and the route notes carry the not-a-veto line. [inferred]
-- **R2:** The same flip on an unlisted trait still rolls the adoption back, and a required cell going pass to fail still does, listed or not. [inferred]
-- **R3:** A species with a listed core trait that fails is not ready. [inferred]
-- **R4:** A config listing a trait the inventory lacks, or an empty spec, is refused at load. [inferred]
-- **R5:** The gate is green: `cargo test --profile ci --workspace --no-fail-fast`. [paraphrase]
+- **R1:** An adoption whose only backwards change is a listed trait is kept, with the not-a-veto note — met.
+- **R2:** An unlisted trait, or a required cell going pass to fail, still rolls back — met.
+- **R3:** A species with a listed failing core trait is not ready — met.
+- **R4:** Unknown trait or empty spec refused at load — met.
+- **R5:** Gate green — met (937 passed).
 
-## Boundaries
+## Result
 
-- No change to readiness, the core-coverage gate or the reviewer's verdicts. [inferred]
-- No live run here; the palm's next revision exercises it with `fruit-clusters-pendent` listed against fn-111. [inferred]
+Landed in `c1002d60`; later carried by the fn-149 runner rewrite (#121, `c2ac430b`).
 
-## Decision Context
+## Open
 
-- Found by the host in the fn-80 live run and fixed under fn-80's boundary that a loop defect the live run proves is fixed and named in the run's record. It goes into the palm's stack under fn-115. [paraphrase]
-
-## Open Questions
-
-- None.
-
-## Settled
-
-Closed as landed (2026-09-26, fn-149 R8): carried by the fn-149 runner rewrite, merged in #121 (c2ac430b).
+None.

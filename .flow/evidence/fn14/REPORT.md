@@ -78,27 +78,24 @@ the only difference between it and the lit oak is which room the tree stands in.
 
 | Still | Preset | View | Wood triangles | Foliage instances |
 |---|---|---|---:|---:|
-| [oregon-white-oak-hero.png](oregon-white-oak-hero.png) | Oregon white oak | whole, lit | 8,255,000 | 869,310 |
-| [norway-spruce-hero.png](norway-spruce-hero.png) | Norway spruce | whole, lit | 5,580,040 | 7,012,326 |
-| [oregon-white-oak-clay.png](oregon-white-oak-clay.png) | Oregon white oak | clay | 8,255,000 | 869,310 |
+| [oregon-white-oak-hero.jpg](oregon-white-oak-hero.jpg) | Oregon white oak | whole, lit | 8,255,000 | 869,310 |
+| [norway-spruce-hero.jpg](norway-spruce-hero.jpg) | Norway spruce | whole, lit | 5,580,040 | 7,012,326 |
 
 The counts are the same trees fn-24 drew, down to the instance. Both lit stills
 lay over fn-24's
-[oak](../fn24/oregon-white-oak-hero.png) and [spruce](../fn24/norway-spruce-hero.png)
+[oak](../fn24/oregon-white-oak-hero.jpg) and [spruce](../fn24/norway-spruce-hero.jpg)
 at the same preset, seed, view, pose, size and machine, so the pair is the light
 and nothing else.
 
-![Oregon white oak, hero pose, lit](oregon-white-oak-hero.png)
+![Oregon white oak, hero pose, lit](oregon-white-oak-hero.jpg)
 
-![Norway spruce, hero pose, lit](norway-spruce-hero.png)
-
-![Oregon white oak, clay view](oregon-white-oak-clay.png)
+![Norway spruce, hero pose, lit](norway-spruce-hero.jpg)
 
 fn-24's unlit sides of the pair:
 
-![Oregon white oak, fn-24 clay hero](../fn24/oregon-white-oak-hero.png)
+![Oregon white oak, fn-24 clay hero](../fn24/oregon-white-oak-hero.jpg)
 
-![Norway spruce, fn-24 clay hero](../fn24/norway-spruce-hero.png)
+![Norway spruce, fn-24 clay hero](../fn24/norway-spruce-hero.jpg)
 
 **What the pixels say about the clay view, as an aid and not as a verdict.** The
 neutral room is the one place where this spec is supposed to have changed
@@ -294,8 +291,8 @@ is stated: a device that refuses four samples draws at one and the record says
 so.
 
 **R3: met.** The clay view is selectable from the page and the headless command,
-draws no material, no sun and no tone map, and its still is
-[oregon-white-oak-clay.png](oregon-white-oak-clay.png). The pixel table above
+draws no material, no sun and no tone map, and its still was
+archived in the 2026-10-16 evidence trim. The pixel table above
 puts it against the room's own picture from fn-24, and the flat-paint half of
 the `look.rs` pin holds at a mean channel error of 0.009. Material GPU and
 memory costs are reported in the materials section: 1.813 ms of shadow, 1.057 ms

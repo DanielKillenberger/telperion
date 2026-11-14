@@ -1,51 +1,39 @@
 # The apical rosette: fronds borne only at the apex of an unbranched stem
 
-## Conversation Evidence
+## Goal
 
-> gap loop, round two on `date-palm/gate/onboarding-gate/capability`, 2026-09-22: the stronger set's winner `apical-rosette-of-pinnate-fronds`, route `owner` (row 0, table version 1, the winning fix moves a pin), ledger `689d507b53a140dcfbdded02`. Jev: best match 0.42 against none 0.34; change kind generator, generalizes.
-> user (2026-09-22): "ok it's really hard for me to judge if the palm needs a apical rosette but if confidence is high let's go for it?" Resolved as the owner's confirmation on the gap-fix decision.
+The date palm's gate halted on five capabilities; two are its crown: `apical-rosette` (fronds only as a rosette at the apex of a thick unbranched stem, no laterals, no twig clothing) and `pinnate-frond` (one frond as leaflets along a rachis in one placement). The canopy layer bears foliage on wood below a radius threshold and the element layer draws one blade, so nothing placed a whorl of large compound leaves at one point. This spec adds that crown, off by default, as fn-82's dependency — the first gap-loop spec that changes the generator (gap loop round two, winner `apical-rosette-of-pinnate-fronds`, Jev 0.42 vs none 0.34, route owner).
 
-## Goal & Context
-<!-- scope: business -->
-<!-- Goal & Context: 30% [user], 40% [paraphrase], 30% [inferred] -->
+Owner (2026-09-22): "ok it's really hard for me to judge if the palm needs a apical rosette but if confidence is high let's go for it?" — taken as confirmation.
 
-The date palm's gate halts on five capabilities the generator does not express. Two of them are the palm's crown: `apical-rosette`, fronds borne only as a rosette at the apex of a thick unbranched stem with no laterals and no twig clothing of the trunk, and `pinnate-frond`, one frond as leaflets along a rachis in one placement. The host's capability assessment of 2026-09-19 reads both as unsupported anatomy at high confidence: the canopy layer bears foliage on wood below a radius threshold along branch systems, and the element layer draws one blade, so nothing places a whorl of large compound leaves at one point. [paraphrase]
+## Decisions
 
-This spec gives the generator that crown, off by default so every shipped preset stays byte-identical, and it is minted by the gap loop as fn-82's dependency: the second spec the loop has minted, and the first that changes the generator. The trunk organs (persistent leaf bases, acanthophylls) and the infructescence are the gate's other three names and their own specs. [inferred]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-- **The design is the strong tier's, not this spec's.** The conductor judged the gap's design complexity and routes the design to a high-reasoning model at medium effort; that design handoff resolves the interfaces, invariants, difficult cases and verification, and names what stays unknown. This section records only what the assessment checked. [host design]
-- **What the code has, checked 2026-09-19 in the capability packet:** a single unbranched stem is reachable (`stems` 1, `lateral_orders` 0, `apical_dominance` 1, `length_taper` 0, landed as fn-108). Foliage placement keys on wood radius (`canopy.shoot_radius`, `foliage/placement.rs`); the element layer (`element`: length, width, lobe count, section roundness) draws one simple blade per placement; the twig layer clothes wood below a diameter. None of these places a rosette. [checked]
-- **The shape the design must land on:** a rosette organ at the stem's apex bearing N fronds on a phyllotactic spiral, each frond a pinnate element (a rachis with leaflets, the frond's own length, arch and droop), with existing capability names `apical-rosette` and `pinnate-frond` moved into the vocabulary's expressed list in the one line the runbook names, with the test that failed before the implementation. Every parameter is a row on the family wire with a validated range and a doc comment, and appears in the dial table. [inferred]
-- **Off by default.** With the rosette absent every shipped preset builds byte-identically; the beech, oak, spruce, birch pins and the catalogue tests are the check. [paraphrase]
+Host decisions on the strong-tier design handoff (2026-09-22):
+- A frond is one placement expanded into leaflets, never a compound element (fn-33's grouping-at-the-placement decision; element stays single, renderer unchanged).
+- The pinnate rows live on `canopy`, authored once here; fn-33 adopts them for its leaflet half.
+- `pinnate-compound` moves into the expressed list with the two new names; the ash's gate (fn-56) then halts on its own values, a value round, not a gap.
+- An apex that bears a rosette bears no twig.
+- Left open (not the host's): what `species_measure` reports for a frond (fn-82), and whether a leaning palm's rosette follows its axis (default) or the sky.
+- Blocker resolution (host, 2026-09-22): the tuning loop's proposal-state cap (24 KiB, 358 bytes of headroom, set without a measured limit) was raised to 32 KiB because fn-68's ledger shows Jev answering 34,000-token batches; scoping the proposal menu to a round's priorities is the structural fix, proposed in fn-80's friction.
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** The palm run's gate, rerun at the landed commit, names `apical-rosette` and `pinnate-frond` as expressed and halts on `acanthophyll`, `persistent-leaf-base` and `infructescence` alone. Errors: a gate still naming either of the two means the vocabulary line was not moved or the capability is not produced by the value table.
-- **R2:** Every shipped preset is byte-identical in mesh and metrics with the rosette absent. Errors: a changed pin on any preset is a defect.
-- **R3:** The date palm at seed 1 builds with a rosette at the apex and no foliage elsewhere on the stem, and `species_measure` reports it within the species gates once fn-82's values are set; the palm's still, rendered by the headless renderer, is judged by the owner's eye and the reviewer, never by this spec. Errors: foliage on the stem below the apex, twig wood at an apex that bears a rosette, or a frond drawn as a simple blade, fails.
-- **R4:** The new rows are in the dial table with meaning, range and steps, and the table's coverage test passes. The workspace gate is green.
+- **R1:** The palm gate names `apical-rosette` and `pinnate-frond` as expressed and halts on the other three — vocabulary and derivation met (`tests/capability.rs`, `stages_downstream.rs`); gate rerun the host's after landing.
+- **R2:** Every shipped preset byte-identical with the rosette absent — met (species digests and catalogue pins unchanged, with a positive control).
+- **R3:** The palm at seed 1 builds a rosette at the apex, no foliage or twig wood below it — met (eight tests in `tests/rosette.rs`, one still); the owner's look belongs to fn-82.
+- **R4:** New rows in the dial table; gate green — met after the cap raise (894 passed).
 
-### Host decisions on the design handoff (2026-09-22)
+## Result
 
-The strong-tier design (`.flow/evidence/fn80/design-fn-109.md`, dispatch-4 of fn-80) raised five unknowns; the host settles the three that are system design, and restates one sentence.
+`foliage/rosette.rs` is a third placement source at every stem apex (`Tree::stem_apices`, the stem run's last node) bearing N fronds on a phyllotactic spiral; `fan` is the one expansion of a placement into leaflets, shared by the station walk, short shoots and the rosette; `terminal_leaflet` blends the last leaflet's pitch. Ten canopy rows with ranges, wire lines, blend buckets and dial rows; `clear_apical_twigs` and `mesh::grow` keep rosette apices twig-free. Two corrections to the handoff: the apex is the stem run's last node, not a childless tip; the terminal leaflet is a blend, not an extra instance. Commits `90b61031`, `9c08aa55`, `31f1f763`.
 
-- **A frond is one placement expanded into leaflets, never a compound element.** fn-33 decided grouping at the placement over a multi-blade element, because one element per tree and the level ladder's three anchors are load-bearing (`mesh.rs:82`, `foliage/levels.rs:172-186`). The Architecture sentence "each frond a pinnate element" means exactly that expansion; the element stays single and the renderer is unchanged. [host design]
-- **The pinnate rows live on `canopy`, authored once, here.** fn-33 authored them under `element`; this spec pays nothing for the `canopy` placement while `element` would change five signatures and about a dozen call sites for no gain. fn-33 keeps flowers and cones and adopts these rows for its leaflet half; recorded in fn-33's Decision Context. [host design]
-- **`pinnate-compound` moves into the expressed list with the two names this spec adds.** The implementation draws exactly that meaning, and a vocabulary that says the generator cannot draw what it draws is wrong. The ash's gate (fn-56) then halts on its own value table until it sets the leaflet rows, which is the honest state and a value round, not a gap. [host design]
-- **An apex that bears a rosette bears no twig.** The capability packet notes a childless tip still gets a terminal twig; suppressing only twig-borne foliage would leave bare twig wood under the fronds, which no palm has. R3's error clause carries it. [host design]
-- **Open, not the host's:** what `species_measure` reports for a frond (the leaflet is the unit; fn-82 states which number its gates hold), and whether a leaning palm's rosette follows its axis or the sky (the axis by default; an owner verdict on the still can ask for the other). [inferred]
+## Open
 
-## Boundaries
-<!-- scope: business -->
+None here; leaflet size and trunk habit are fn-82's tuning.
 
-- No trunk organs, no infructescence, no bark or material work; those are the gate's other three names.
-- No species branch: the palm is a value table over the new capability like any other.
-- Not the palm's acceptance: fn-82 owns the species and the owner's verdict on stills.
+## Friction
 
-## Strategy Alignment
-
-- Serves "The catalogue": a form the generator could not draw becomes a shared capability. [strategy:The catalogue]
+- The species test flaked on a process memory ceiling read off the machine at suite start (one rerun) -> the budget guard should report inconclusive and retry once.
+- "Childless tip of each order-zero axis" read two ways (~4 min) -> handoffs name the predicate (`Tree::stem_apices`).
+- Handoff listed five authoring sites per row, not six (the `blend.rs` bucket); caught by the investigation -> logged only.
+- Proposal cap had 358 bytes of headroom (~20 min) -> raised to 32 KiB; grouping/scoping the menu proposed.

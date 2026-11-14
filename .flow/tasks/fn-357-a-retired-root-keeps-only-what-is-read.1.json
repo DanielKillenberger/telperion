@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-11-12T06:22:33.552309Z",
+  "depends_on": [],
+  "id": "fn-357-a-retired-root-keeps-only-what-is-read.1",
+  "priority": null,
+  "spec": "fn-357-a-retired-root-keeps-only-what-is-read",
+  "spec_path": ".flow/tasks/fn-357-a-retired-root-keeps-only-what-is-read.1.md",
+  "status": "todo",
+  "title": "A retired root's stores let go; the tree equal to the bit",
+  "updated_at": "2026-11-12T06:22:33.552309Z"
+}

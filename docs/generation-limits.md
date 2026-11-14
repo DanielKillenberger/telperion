@@ -1,6 +1,6 @@
 # Generation budgets
 
-Generation honours the caller's `skeleton.growth.maxNodes` budget. Its default remains 250,000; it is no longer a ceiling on an explicitly larger budget. The valid range is 0 through `u32::MAX`, the node-index representation. Exhausting this budget still reports `node_capped`. There is no independent headroom estimate that reduces it, 4,096-unit axis truncation, or unreachable twelve-order truncation. Foliage uses `maxInstances`, checked index arithmetic and fallible reservations instead of per-axis 512 and per-wood 65,536 limits. Zero short-shoot spacing disables short shoots; positive spacing is not raised to a hidden floor.
+Generation honours the caller's `skeleton.growth.maxNodes` budget. Its default remains 250,000; it is no longer a ceiling on an explicitly larger budget. The valid range is 0 through `u32::MAX`, the node-index representation. Exhausting this budget still reports `node_capped`. There is no independent headroom estimate that reduces it, 4,096-unit axis truncation, or unreachable twelve-order truncation. Foliage uses `maxInstances`, checked index arithmetic and fallible reservations instead of per-axis 512 and per-wood 65,536 limits.
 
 Former form/work limits are now ordinary authorable, blended, serialized parameters. Defaults preserve existing valid input behaviour:
 
@@ -22,8 +22,6 @@ The growth path's work budget, once a row here, went with the path (fn-181); the
 Touched Twig/Radius inputs that were silently clamped now fail with their field name outside the same declared intervals. Fullness endpoints 0 and 1 and positive shoulders use their authored values; endpoint arithmetic is handled explicitly. Writhe wavelength and spiral rate are no longer adapted to an eight-step sampling rail. Non-finite derived arithmetic is refused rather than silently reducing an authored value. Bounds and defaults live in `telperion_core::ranges`.
 
 New fields default individually when reading legacy JSON.
-
-Wasm generation-count diagnostics now contain `twigs.generations + 1` entries instead of thirteen slots from the removed depth constant. No reachable order is discarded; consumers should use the returned array length.
 
 The harness sliders use practical working windows, not the full core integer domains: internodes/reach/sampling/neighbours1–512 and clump order0–32. Hydrating a family outside these windows preserves its authored values unchanged.
 

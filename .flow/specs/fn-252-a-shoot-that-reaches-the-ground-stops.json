@@ -1,0 +1,43 @@
+{
+  "branch_name": "fn-252-a-shoot-that-reaches-the-ground-stops",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T19:38:07.385892Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-252-a-shoot-that-reaches-the-ground-stops",
+  "impl_review_rounds": {
+    "fn-252-a-shoot-that-reaches-the-ground-stops.1": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 2,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-09T19:41:38.014539Z",
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-252-a-shoot-that-reaches-the-ground-stops.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-252-a-shoot-that-reaches-the-ground-stops.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-252-a-shoot-that-reaches-the-ground-stops.md",
+  "status": "done",
+  "title": "A shoot that reaches the ground stops there",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-15T20:17:24.219698Z"
+}

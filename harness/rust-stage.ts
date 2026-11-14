@@ -1,12 +1,14 @@
 import {
   createRenderer,
   type FrameStats,
+  type Growth,
   type Renderer,
   type SceneRow,
   type Submitted,
   type TimingReport,
   type View,
 } from "../src/browser/render";
+import type { Family } from "../src/browser/presets";
 
 import { eyeOf, orbitOf, pan, push, turn, type Orbit } from "./orbit";
 
@@ -30,10 +32,14 @@ import { eyeOf, orbitOf, pan, push, turn, type Orbit } from "./orbit";
  * ------------------------------------------------------------------ */
 
 export interface Stage {
-  /** Replaces the tree with the one these parameters describe. Rejects with
-   *  the generator's or the renderer's own message; the tree already on
-   *  the canvas stays where it is. */
-  setTreeGpu(family: string): Promise<Submitted>;
+  /** Replaces the tree with the one these parameters describe, grown on
+   *  the CPU (`Renderer.setTree`). Throws the generator's or the
+   *  renderer's own message; the tree already on the canvas stays where
+   *  it is. */
+  setTree(family: Family): Submitted;
+  /** The family's tree before its first year, growing on the CPU
+   *  (`Renderer.beginGrowth`); the tree on the canvas stays. */
+  beginGrowth(family: Family): Growth;
   setView(view: View): void;
   /** The sun, sky and ground the renderer is drawing under, its own default
    *  until something sets another. */
@@ -46,6 +52,8 @@ export interface Stage {
   /** Frames it only while this stage is still waiting to be framed - on
    *  its first tree, or on the next one after `frameNext`. */
   frameIfWaiting(): void;
+  /** Whether the stage is still waiting to be framed. */
+  waiting(): boolean;
   /** Asks for the next tree to arrive to be framed, for a caller that
    *  has just requested one and cannot frame it yet. */
   frameNext(): void;
@@ -92,7 +100,8 @@ export async function createStage(
 
   /* Drawing is the loop's, always: the panel never calls `frame` on the
      renderer itself, so a dial move and a camera move cost the same one
-     frame each. */
+     frame each. `frame` draws only when the picture changed, so an idle
+     canvas costs the device nothing (fn-246). */
   let handle = requestAnimationFrame(function tick(): void {
     handle = requestAnimationFrame(tick);
     if (measuring) return;
@@ -137,7 +146,8 @@ export async function createStage(
   canvas.addEventListener("wheel", onWheel, { passive: false });
 
   return {
-    setTreeGpu: (family) => renderer.setTreeGpu(family),
+    setTree: (family) => renderer.setTree(family),
+    beginGrowth: (family) => renderer.beginGrowth(family),
     scene: () => renderer.scene(),
     setScene: (row) => { renderer.setScene(row); },
     setView: (view) => {
@@ -151,6 +161,7 @@ export async function createStage(
     frameIfWaiting: () => {
       if (waitingToFrame) frame();
     },
+    waiting: () => waitingToFrame,
     frameNext: () => {
       waitingToFrame = true;
     },

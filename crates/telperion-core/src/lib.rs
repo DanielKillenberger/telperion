@@ -11,6 +11,7 @@ pub mod capability;
 pub mod envelope;
 pub mod material;
 pub mod math;
+pub mod memory;
 #[cfg(feature = "geometry")]
 pub mod mesh;
 pub mod noise;
@@ -29,13 +30,23 @@ extern crate self as telperion_core;
 pub mod presets;
 pub mod ranges;
 pub mod rng;
+pub mod supernatural;
 pub mod tree;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     InvalidInput(&'static str),
-    InvalidValue { field: &'static str, value: String },
+    InvalidValue {
+        field: &'static str,
+        value: String,
+    },
     ResourceLimit(&'static str),
+    /// A store the machine did not give the memory it needs, refused as
+    /// it is reserved: which store and the bytes it asked for (fn-369).
+    Memory {
+        store: &'static str,
+        needed: u64,
+    },
 }
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -43,11 +54,17 @@ impl std::fmt::Display for Error {
             Self::InvalidValue { field, value } => write!(f, "invalid input: {field} = {value}"),
             Self::InvalidInput(message) => write!(f, "invalid input: {message}"),
             Self::ResourceLimit(message) => write!(f, "resource limit: {message}"),
+            Self::Memory { store, needed } => write!(
+                f,
+                "the {store} needs {needed} bytes and the machine did not give them"
+            ),
         }
     }
 }
 impl std::error::Error for Error {}
 pub type Result<T> = std::result::Result<T, Error>;
 
+#[cfg(test)]
+mod one_tree;
 #[cfg(all(test, feature = "geometry", feature = "json"))]
 mod suite;

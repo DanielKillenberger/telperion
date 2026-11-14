@@ -1,0 +1,36 @@
+{
+  "branch_name": "fn-347-a-tree-pays-only-for-living-wood-and",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-11T12:00:03.668681Z",
+  "created_at": "2026-11-10T23:01:44.629985Z",
+  "depends_on_epics": [
+    "fn-346-the-carbon-balance-charges-living-wood",
+    "fn-348-the-jev-caller-carries-a-still",
+    "fn-349-the-corrected-balance-in-the-product"
+  ],
+  "id": "fn-347-a-tree-pays-only-for-living-wood-and",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "retired": {
+    "by": [
+      "fn-351-020-the-release-candidate"
+    ],
+    "reason": "superseded"
+  },
+  "spec_path": ".flow/specs/fn-347-a-tree-pays-only-for-living-wood-and.md",
+  "status": "done",
+  "title": "A tree pays only for living wood, and still stops growing",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-11T12:00:03.668691Z"
+}

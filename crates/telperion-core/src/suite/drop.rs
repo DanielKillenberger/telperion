@@ -137,6 +137,10 @@ fn every_shipped_preset_at_neutral_drop_is_the_tree_the_row_never_reached() {
     for (id, pin) in IDS.iter().zip(NEUTRAL) {
         let mut f = preset(id);
         f.skeleton.twigs.curtain_drop = 0.0;
+        // An engine preset's rows reach the scaffold's grower no more (fn-198).
+        if f.space.species.is_some() {
+            continue;
+        }
         let grown = tree(&f);
         assert_eq!(skeleton(&grown), pin, "{id}: a neutral drop moved the tree");
     }
@@ -277,7 +281,6 @@ fn no_shoot_falls_below_the_clearance_nor_the_clearance_above_the_crown_base() {
         "seed {SEED}: a clearance above the crown base is not the crown base"
     );
 }
-
 
 #[test]
 fn a_walk_of_the_drop_row_lowers_the_curtain_continuously() {

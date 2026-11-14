@@ -309,13 +309,14 @@ fn a_group_too_large_to_cut_is_told_apart_by_the_leaf_s_first_word() {
         .collect();
     assert_eq!(bundle::family("/material/barkRed", &small), "material");
 
-    // The live 91 material rows fall into families no cut can leave whole.
+    // The live 97 material rows fall into families no cut can leave whole;
+    // fn-221's old-bark rows are the 33rd, `material.mature`.
     let material = table
         .iter()
         .filter(|d| d.path.starts_with("/material/"))
         .map(|d| bundle::family(&d.path, &table))
         .collect::<std::collections::BTreeSet<_>>();
-    assert_eq!(material.len(), 32, "{material:?}");
+    assert_eq!(material.len(), 33, "{material:?}");
     for name in ["material.bark", "material.plate", "material.lichen"] {
         assert!(material.contains(name), "{material:?}");
     }

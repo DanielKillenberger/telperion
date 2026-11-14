@@ -9,7 +9,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 30% [user], 45% [paraphrase], 25% [inferred] -->
 
 Every leaf Telperion draws comes from one outline built from a handful of
 numbers: length, width, where the blade is widest, how full its base is, how

@@ -8,20 +8,16 @@
 > user (turn 2, selected): "i think we can combine a + b?"
 
 ## Goal & Context
+
 <!-- scope: business -->
-<!-- Goal & Context: 60% [user], 30% [paraphrase], 10% [inferred] -->
 
-Today the species pipeline's building blocks serve one person at a terminal. The tuning loop (fn-68) has an authored dial table, candidates as partial overlays on a preset, Jev choosing a named direction and size per dial, and code computing every value. The species conductor (fn-89) and the add-species runner wire those into an owner-run onboarding. None of it is reachable from the UI, which offers hand dials only.
+The species pipeline's blocks (fn-68's dial table, partial-overlay candidates, Jev choosing a direction and size per dial with code computing every value; fn-89's conductor and the add-species runner) serve one person at a terminal; the UI offers hand dials only.
 
-The owner wants the UI reworked so it exposes these blocks natively. The main entry point is easy: say what you want and it happens, beside the few most important dials someone might want to tune quickly. Behind it sits the option to look at the parameters, grouped intuitively, with explainers where needed. A person connects their own Claude Code or Codex and talks to it in the studio page, in words and pictures.
+The owner wants the UI to expose these blocks natively. The entry point: say what you want and it happens, beside the few most important quick dials; behind it, the parameters grouped intuitively with explainers. A person connects their own Claude Code or Codex and talks to it in the studio page, in words and pictures. It is a collaboration: the person says what they see; the agent states the gap more clearly (from botanical facts it may look up) or names gaps it sees itself, and the person can correct it. The agent sets parameters at once, says what changed and why, and one click takes a change back.
 
-The work is a collaboration. The person tells the agent what they see; the agent states the gap more clearly, or from botanical facts it may look up; the agent also names the gap it sees itself, and the person can correct it. The agent sets the parameters at once and says what it changed and why, and one click takes a change back.
+On 2026-09-20 the owner split out the page itself (entry view, quick dials, grouped explained parameters) as fn-96, which this spec depends on, and Jev's tuning proposals as fn-97, which depends on this spec and fn-68. This spec is the loop between a person and their agent.
 
-On 2026-09-20 the owner split two parts out. The page itself, the entry view, the quick dials and the grouped, explained parameters, is fn-96, which this spec depends on. Jev proposing tuning sets is fn-97, which depends on this spec and on fn-68. This spec is the loop between a person and their agent.
-
-The owner is the first user, and the studio is built so an outside developer can use it unchanged with their own agent and their own TypeSafe key. The first proof is a tree the owner would keep, reached from words. When a look cannot be reached, the follow-on spec (fn-95) turns that into a gap spec people can contribute; this spec ends where the loop reports it is stuck.
-
-The target here is a description, where fn-68's is a photograph. The blocks carry over; the photograph-distance score does not decide a described tree.
+The owner is the first user; an outside developer can use the studio unchanged with their own agent and TypeSafe key. The first proof is a tree the owner would keep, reached from words. When a look cannot be reached, fn-95 turns it into a gap spec; this spec ends where the loop reports it is stuck. The target is a description, not fn-68's photograph: the blocks carry over, the photograph-distance score does not.
 
 ## Architecture & Data Models
 <!-- scope: technical -->
@@ -100,14 +96,14 @@ Between page and local process: chat messages both ways, agent status (starting,
 ### Motivation
 <!-- scope: business -->
 
-The owner wants tuning a tree to feel like talking to a collaborator, where today it means a terminal, a dial table and a pipeline only the owner runs. Owner first, because the owner can judge it daily and outsiders arrive once it works; their own keep verdict on one described tree closes the spec. Apply-then-undo was chosen over propose-then-approve so that saying it makes it happen. Bring-your-own-key keeps the project from holding or paying for a key. [paraphrase]
+Tuning a tree should feel like talking to a collaborator, not a terminal, a dial table and an owner-only pipeline. Owner first, because the owner judges it daily; their keep verdict on one described tree closes the spec. Apply-then-undo over propose-then-approve, so saying it makes it happen. Bring-your-own-key keeps the project from holding or paying for a key. [paraphrase]
 
 ### Implementation Tradeoffs
 <!-- scope: technical -->
 
-The owner first combined the agent connection and Jev's proposals in one spec, then on 2026-09-20 split the page (fn-96) and Jev's proposals (fn-97) out: R4 and R21 could not be met before fn-68 lands, and the page ships and is checked without an agent. R4, R9, R14 and R21 moved with them; the remaining R-IDs keep their numbers. The studio reuses fn-68's candidate shape so there is one overlay vocabulary; it drops fn-68's score because a described tree has no photograph to measure against. [paraphrase]
+The owner first combined the agent connection and Jev's proposals, then on 2026-09-20 split out the page (fn-96) and Jev's proposals (fn-97): R4 and R21 could not be met before fn-68 lands, and the page ships without an agent. R4, R9, R14 and R21 moved with them; the remaining R-IDs keep their numbers. The studio reuses fn-68's candidate shape (one overlay vocabulary) and drops its score (no photograph to measure against). [paraphrase]
 
-Local only, with the studio starting the agent, was chosen over a hosted page with a local helper and over attaching a session the person started: one command, nothing to wire, and the person's existing login pays for the agent. Claude Code first behind one seam, because the proof needs one agent and the two start differently. The agent may read the repository but not write or run anything, which keeps a stranger's first session safe and leaves spec writing to fn-95. Duplication: none identified here; the two dial tables are fn-97's to merge. Structure: no back-edge, since the studio depends on the library and the page and neither depends on it. [paraphrase]
+Local only, with the studio starting the agent, beat a hosted page with a local helper and attaching a person-started session: one command, nothing to wire, the person's login pays. Claude Code first behind one seam, because the proof needs one agent and the two start differently. Read-only repository access keeps a stranger's first session safe and leaves spec writing to fn-95. No duplication identified (the two dial tables are fn-97's to merge); no back-edge (the studio depends on the library and page, not the reverse). [paraphrase]
 
 ## Strategy Alignment
 
@@ -116,15 +112,12 @@ Local only, with the studio starting the agent, was chosen over a hosted page wi
 
 ## Resolved via Project Docs
 
-- Who Telperion is for: game and real-time 3D developers first, the owner as first user. STRATEGY.md, "Who it's for".
-- Interactive editing is a named use case for fast generation. STRATEGY.md, "Key metrics", Build.
-- Growth stays behind its flag and the direct build is what every verdict judges. CLAUDE.md, "Mature trees are the product".
-- Jev never runs in the browser source. CLAUDE.md, "TypeSafe".
+- Audience: game and real-time 3D developers first, the owner as first user; interactive editing is a named Build use case (STRATEGY.md).
+- Growth stays behind its flag; Jev never runs in the browser source (AGENTS.md).
 
 ## Resolved via Codebase
 
-- The harness is a development-only Vite and React page; the published library is the core, presets and renderer loader with no UI (`vite.config.ts`, `package.json`).
-- The harness renders its dials from one table carrying key, label, group, range, step and unit, with no explainers (`harness/params.ts`, `SLIDERS`); `harness/family.ts` translates them to the generator's family.
-- Jev is a local Rust command and crate with a shared caller, ledger and isolation guard (`crates/telperion-jev`), so proposals need a local process.
-- fn-68's dial table is not in the repository yet; its one task is in progress. The overlay it relies on is `params::overlay` in the core.
-- The generator's declared capabilities live in the core's `capability` module (fn-84).
+- The harness is a development-only Vite and React page; the published library has no UI (`vite.config.ts`, `package.json`).
+- The harness renders dials from one table (`harness/params.ts`, `SLIDERS`: key, label, group, range, step, unit; no explainers), translated by `harness/family.ts`.
+- Jev is a local Rust crate with shared caller, ledger and isolation guard (`crates/telperion-jev`), so proposals need a local process.
+- fn-68's dial table was not in the repository when written; its overlay is `params::overlay` in the core. Declared capabilities live in the core's `capability` module (fn-84).

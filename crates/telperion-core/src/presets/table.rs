@@ -85,6 +85,8 @@ macro_rules! preset_values {
     };
 }
 
+// The value files' numbers, as authored (a right angle written 1.5708).
+#[allow(clippy::approx_constant)]
 mod compiled {
     use super::Preset;
     include!(concat!(env!("OUT_DIR"), "/presets.rs"));
@@ -95,11 +97,18 @@ pub fn rows(preset: Preset) -> &'static [Value] {
     compiled::rows(preset)
 }
 
+/// The `/space` rows `preset`'s value file sets: its engine species.
+pub fn space(preset: Preset) -> &'static [(&'static str, super::space::Cell)] {
+    compiled::space(preset)
+}
+
 /// The default family with `preset`'s rows set.
 pub fn family(preset: Preset) -> Family {
     let mut f = Family::default();
     for value in rows(preset) {
         value.apply(&mut f);
     }
+    f.space = super::space::read(space(preset).iter().copied())
+        .expect("the build judged every shipped preset's space rows");
     f
 }

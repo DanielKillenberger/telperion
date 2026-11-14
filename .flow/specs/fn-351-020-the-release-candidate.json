@@ -1,0 +1,43 @@
+{
+  "branch_name": "fn-351-020-the-release-candidate",
+  "created_at": "2026-11-11T11:59:03.646995Z",
+  "depends_on_epics": [
+    "fn-349-the-corrected-balance-in-the-product",
+    "fn-352-the-scoreboard-a-fixed-panel-of-trees",
+    "fn-353-one-grower-the-gpu-grower-is-deleted",
+    "fn-354-wood-that-lasts-the-budget-the-girth",
+    "fn-357-a-retired-root-keeps-only-what-is-read",
+    "fn-359-a-subtree-fades-once",
+    "fn-360-a-runs-girth-eases-wherever-it-drops",
+    "fn-361-the-oaks-sibling-limbs-are-unequal",
+    "fn-362-a-runs-rings-have-the-sides-its-widest",
+    "fn-363-a-tip-is-charged-by-its-height",
+    "fn-364-a-tip-extends-by-what-its-balance-leaves",
+    "fn-365-the-native-entry-is-named-and-a",
+    "fn-366-the-growth-paths-download-measured-and",
+    "fn-367-the-per-species-coarse-rows-and-their",
+    "fn-368-the-growers-speed-loop-the-same-tree",
+    "fn-369-the-browsers-ceiling-is-measured-again",
+    "fn-370-the-drawing-draws-the-leaf-the-tree-grew",
+    "fn-371-the-ordinary-tree-grows-the-leaf-it"
+  ],
+  "id": "fn-351-020-the-release-candidate",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-351-020-the-release-candidate.md",
+  "status": "open",
+  "title": "0.2.0 the release candidate",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-14T05:26:22.969818Z"
+}

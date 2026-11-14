@@ -9,8 +9,7 @@ use telperion_core::{
     material::MaterialParams,
     math::Vec3,
     mesh::{self, Foliage, TreeMesh},
-    presets::Preset,
-    surface::{Bounds, SurfaceMesh},
+    surface::Bounds,
 };
 use telperion_render::{render, Camera, Renderer, SceneRow, Still, View, STILL_FORMAT};
 
@@ -92,9 +91,10 @@ fn shell() -> TreeMesh {
     }
     let reach = RADIUS + 0.2;
     TreeMesh {
-        wood: SurfaceMesh::default(),
+        wood: None,
         curve: Default::default(),
         foliage: Foliage { element, instances },
+        organ: None,
         bounds: Bounds {
             min: CENTRE - Vec3::new(reach, reach, reach),
             max: CENTRE + Vec3::new(reach, reach, reach),
@@ -242,7 +242,7 @@ fn the_crown_shade_darkens_the_underside_of_the_mass_more_than_its_top() {
 /// degrees round from in front of it, low over the horizon.
 fn one_leaf(azimuth: f64) -> (Renderer, Camera) {
     let gpu = common::gpu().expect("checked by the caller");
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(20);
     let mut tree = mesh::build(&family).unwrap();
     tree.foliage.element = executor::element(ElementParams {
@@ -332,7 +332,7 @@ fn no_canopy_row_touches_the_clay_room_or_the_wood() {
     let Some(gpu) = common::gpu() else { return };
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let row = translucent();
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(400);
     let wood = mesh::build(&family).unwrap();
     let pose = |tree: &TreeMesh| {

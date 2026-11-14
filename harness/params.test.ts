@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_PARAMS, SEED_MAX, normalizeSeed } from "./params";
+import { DEFAULT_PARAMS, OPENING_PARAMS, SEED_MAX, normalizeAge, normalizeSeed } from "./params";
 
 describe("normalizeSeed", () => {
   it.each([
@@ -24,6 +24,24 @@ describe("normalizeSeed", () => {
     ["seed", "not a number"],
   ])("rejects %s (%s)", (raw) => {
     expect(normalizeSeed(raw)).toBeNull();
+  });
+});
+
+describe("normalizeAge", () => {
+  it("takes whole years from one", () => {
+    expect(normalizeAge("1")).toBe(1);
+    expect(normalizeAge("80")).toBe(80);
+  });
+
+  it.each(["", "0", "-4", "40.5", "4e1", " 40", "age"])("rejects %j", (raw) => {
+    expect(normalizeAge(raw)).toBeNull();
+  });
+});
+
+describe("the opening tree", () => {
+  it("is the engine's beech at 40 (fn-198 host decision 5)", () => {
+    expect(OPENING_PARAMS.family.age).toBe(40);
+    expect(OPENING_PARAMS.family.space).toBeDefined();
   });
 });
 
@@ -64,12 +82,6 @@ describe("carried native controls", () => {
     // The leaf and the way it sits on its shoot are rows as well.
     expect(DEFAULT_PARAMS.family.element).toMatchObject({ lobeCount: 0, lobeDepth: 0, sectionRoundness: 0 });
     expect(DEFAULT_PARAMS.family.canopy).toMatchObject({ forwardLean: 0, leanRise: 0, surfaceContact: 0 });
-    // Short shoots are canopy rows the panel renders as its own controls,
-    // neutral at a spacing of zero: no table grows one until it says so.
-    expect(DEFAULT_PARAMS.family.canopy).toMatchObject({
-      shortShootSpacing: 0, shortShootRadius: 0.15, shortShootLength: 0.04,
-      shortShootLeaves: 3, shortShootSpread: 45,
-    });
     // So is the gap between limb systems, neutral at none.
     expect(DEFAULT_PARAMS.family.canopy).toMatchObject({ limbClumping: 0 });
     expect(DEFAULT_PARAMS.family.element).not.toHaveProperty("anatomy");

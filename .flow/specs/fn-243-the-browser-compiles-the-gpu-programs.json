@@ -1,0 +1,47 @@
+{
+  "branch_name": "fn-243-the-browser-compiles-the-gpu-programs",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T07:38:40.814467Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-243-the-browser-compiles-the-gpu-programs",
+  "impl_review_rounds": {
+    "fn-243-the-browser-compiles-the-gpu-programs.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T07:42:31.362580Z",
+  "ready": true,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-243-the-browser-compiles-the-gpu-programs.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-243-the-browser-compiles-the-gpu-programs.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-243-the-browser-compiles-the-gpu-programs.md",
+  "status": "done",
+  "title": "The browser compiles the GPU programs in the background",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T08:55:05.975374Z"
+}

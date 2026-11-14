@@ -10,7 +10,7 @@ A tuning revision should spend its Jev and vision budget on moves that can be ke
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-**What exists, from fn-157's FRICTION.md and its run report (2026-09-26).** [checked]
+**What exists, from fn-157's friction entries and its run report (2026-09-26), now summarised in fn-157's spec.** [checked]
 - With no dials named in the tuning config, a revision offers every row of the dial table (227); the first proposal call asked all 227 in one request (302 KB) and was refused with a 400, after which the recorded configs set `max_questions_per_call` 32.
 - From round 3 of the beech's revision every bundle failed the gating crown width; the runaway rule stopped the revision only after those rounds had been proposed, rendered and judged.
 

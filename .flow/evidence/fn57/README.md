@@ -8,13 +8,11 @@ The 2026-09-16 sweep and the five live Jev pilots that sit behind
 | `INVENTORY.md` | Sixteen sites, one disposition each (`jev`, `code`, `leave`) |
 | `pilot/RESULTS.md` | Labelled outcomes, token and wall-time totals |
 | `pilot/SOURCES.md` | Fetched source URLs, SHA-256 and byte counts |
-| `pilot/exp1_screen.json` | Twelve labelled sentences and the screen questions |
-| `pilot/exp2_cite.json` | Nine labelled claims |
-| `pilot/exp4_triage.json` | Eight routes, seven duplicate pairs, four severity labels |
-| `pilot/exp5_sections.json` | Report-section selection over fn-30 `REPORT.md` |
-| `pilot/jev.py`, `build_exp.py`, `build_exp2.py` | Pilot scripts. They are evidence, not shipped tools |
+| `pilot/jev.py` | The pilot caller. Evidence, not a shipped tool |
 | `cases-live.txt` | Rewrite live run of `jev cases`: per-case rows, accuracy and confidence spread |
 
-The shipped caller and tools are a rewrite with tests in `crates/telperion-jev`.
-The labelled cases the tools load live in `crates/telperion-jev/data/cases`.
-Do not invoke the Python pilots as product commands.
+The pilot's labelled sets (formerly `pilot/exp*.json`) now live, rewritten, in
+`crates/telperion-jev/data/cases`; the pilot build scripts are archived (see
+`.flow/evidence/ARCHIVE-MANIFEST.md`). The shipped caller and tools are a
+rewrite with tests in `crates/telperion-jev`. Do not invoke the Python pilot as
+a product command.

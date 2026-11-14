@@ -1,0 +1,3 @@
+{"preset":"european-beech","age":40,"seed":1001,"seconds":0.699,"nodes":60737,"leaves":15322,"process_seconds":0.7,"rss_gib":0.09,"exit":0}
+{"preset":"telperion","age":82,"seed":1001,"seconds":25.291,"nodes":1514064,"leaves":417039,"process_seconds":25.5,"rss_gib":1.90,"exit":0}
+{"preset":"laurelin","age":80,"seed":1001,"seconds":24.006,"nodes":1439407,"leaves":401026,"process_seconds":24.2,"rss_gib":1.84,"exit":0}

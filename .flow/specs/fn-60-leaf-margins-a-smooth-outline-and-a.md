@@ -6,7 +6,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 25% [user], 35% [paraphrase], 40% [inferred] -->
 
 No leaf had been judged beside a photograph. The references B-LEAF, B-LEAVES, S-LEAF and S-SHOOT carry no shot block, so the runner rendered one leaf and paired it with nothing. Paired by hand on 2026-09-16 (`.flow/evidence/fn34/measure/pairs-leaf22/`), both leaves fall short. [paraphrase]
 

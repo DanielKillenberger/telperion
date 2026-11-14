@@ -59,8 +59,11 @@ pub const fn default_rosette_pitch() -> f64 {
 pub const fn default_rosette_pitch_spread() -> f64 {
     60.0
 }
-pub const fn default_leaflet_count() -> u32 {
-    1
+pub const fn default_leaflet_count() -> f64 {
+    1.0
+}
+pub const fn default_cauline() -> f64 {
+    1.0
 }
 pub const fn default_leaflet_pitch() -> f64 {
     45.0

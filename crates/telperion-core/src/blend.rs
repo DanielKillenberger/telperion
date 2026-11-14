@@ -5,26 +5,85 @@
 use crate::{
     bias::SupernaturalParams,
     catalogue::{linear, walk},
-    presets::Family,
+    presets::{space::Space, Family},
     Error, Result,
 };
+
+mod size;
 
 /// The family at `t` between `a` and `b`, where 0 is `a` and 1 is `b`, both
 /// returned unchanged. The two rows are read at one seed — the result carries
 /// `a`'s, and the caller sets the seed it wants on both before it asks.
 ///
-/// A spacing whose zero grows nothing walks as the density it stands for, so
-/// a walk from none thins in from nothing rather than arriving at its closest.
 /// Angles take the shortest path between their two bearings. Counts are
 /// rounded last, and the leaf's counts are rounded the way its own rule
 /// demands: lobes down and sections up, so a margin that is legal at both ends
 /// is legal in between. A supernatural field that is off carries no amplitude,
 /// which is how the bias itself reads it, so a family that switches the terms
 /// on ramps up from nothing.
+///
+/// Between two engine species the species is the ends' at the frame's
+/// whole age, the age it is grown to (`telperion_space::blend`, fn-308),
+/// and its rows are then shrunk to the ends' size (`size`): a two-way walk
+/// is `centroid` of the two at shares `1 - t` and `t`.
 pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
     if !t.is_finite() || !(0.0..=1.0).contains(&t) {
         return Err(Error::InvalidInput("blend parameter"));
     }
+    if t == 0.0 || t == 1.0 {
+        return mixed(a, b, t);
+    }
+    sized(mixed(a, b, t)?, &[(a, 1.0 - t), (b, t)])
+}
+
+/// The point at `shares` of `points` (fn-230, host 2026-10-08): the weighted
+/// centroid of every row, each point a share `w / W` of the way from the
+/// centroid of those before it, where `W` is their weights so far, the
+/// engine species read at each fold's own whole age (fn-308); then,
+/// between engine species, one factor on the lateral probabilities so the
+/// light-neutral predicted size at the centroid's age is the points'
+/// weighted geometric mean, shrinking only. Every row a two-way walk mixes
+/// on a continuous scale, the engine species and its size included, is the
+/// same in any order, but for the rows fn-308's rule reads by each fold
+/// (recorded, not solved): a lifespan past a fold's age, which each fold
+/// clamps, and every row of an age one fold's end never reaches, which it
+/// takes from the other; a row of whole counts rounds at each point, so
+/// the order can move it by one.
+pub fn centroid(points: &[(&Family, f64)]) -> Result<Family> {
+    let total: f64 = points.iter().map(|(_, w)| w).sum();
+    let bad = |w: &f64| !w.is_finite() || *w < 0.0;
+    if points.iter().any(|(_, w)| bad(w)) || !(total > 0.0 && total.is_finite()) {
+        return Err(Error::InvalidInput("blend weights"));
+    }
+    // Shares, so weights near the largest double weigh as their ratios do.
+    let shares: Vec<(&Family, f64)> = points.iter().map(|&(p, w)| (p, w / total)).collect();
+    let (first, rest) = shares.split_first().expect("a positive total has a point");
+    let (mut mean, mut seen) = (first.0.clone(), first.1);
+    for &(point, share) in rest {
+        seen += share;
+        if seen > 0.0 {
+            mean = mixed(&mean, point, share / seen)?;
+        }
+    }
+    sized(mean, &shares)
+}
+
+/// The rows' point, shrunk to its ends' size where both carry a species.
+fn sized(mut f: Family, ends: &[(&Family, f64)]) -> Result<Family> {
+    let Some(shape) = f.space.species.take() else {
+        return Ok(f);
+    };
+    let ends: Vec<(&telperion_space::Species, f64)> = ends
+        .iter()
+        .filter(|(_, w)| *w > 0.0)
+        .filter_map(|(e, w)| e.space.species.as_ref().map(|s| (s, *w)))
+        .collect();
+    f.space.species = Some(size::sized(shape, &ends, f.age as u32)?);
+    Ok(f)
+}
+
+/// Every row `t` of the way from `a` to `b`, before the size is matched.
+fn mixed(a: &Family, b: &Family, t: f64) -> Result<Family> {
     if t == 0.0 {
         return Ok(a.clone());
     }
@@ -82,7 +141,38 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
     );
     g.max_nodes = (oa.max_nodes.is_some() || ob.max_nodes.is_some())
         .then(|| linear(ga.max_nodes as f64, gb.max_nodes as f64, t).round() as usize);
+    f.space = space(&a.space, &b.space, t, f.age as u32)?;
+    f.supernatural = crate::supernatural::blend(a, b, t);
     Ok(f)
+}
+
+/// The engine species between two families' for a tree `age` years old,
+/// the frame's whole age that `sized` and the grower read (fn-206's walk on
+/// the shared reference axis, fn-308), the stem ages of either end, and the
+/// site's light both grow under, which a walk does not interpolate (fn-264
+/// R1a). A walk from a family with no species to one with one is refused
+/// by name: there is no species to start from; so is one between two
+/// sites' light.
+fn space(a: &Space, b: &Space, t: f64, age: u32) -> Result<Space> {
+    let species = match (&a.species, &b.species) {
+        (Some(x), Some(y)) => Some(
+            telperion_space::blend(x, y, t, age)
+                .map_err(|_| Error::InvalidInput("blend of two engine species"))?,
+        ),
+        (None, None) => None,
+        _ => return Err(Error::InvalidInput("blend of one engine species")),
+    };
+    let mut trunk: Vec<usize> = a.trunk.iter().chain(&b.trunk).copied().collect();
+    trunk.sort_unstable();
+    trunk.dedup();
+    if a.light != b.light {
+        return Err(Error::InvalidInput("a walk between two sites' light"));
+    }
+    Ok(Space {
+        species,
+        trunk,
+        light: a.light,
+    })
 }
 
 /// A growth override neither row states is left to the envelope, as it was on
@@ -117,7 +207,7 @@ fn supernatural(a: SupernaturalParams, b: SupernaturalParams, t: f64) -> Superna
 mod tests {
     use super::*;
 
-    use crate::catalogue::{degrees, density};
+    use crate::catalogue::degrees;
 
     #[test]
     fn a_walk_rounds_each_kind_of_number_the_way_its_rule_demands() {
@@ -150,12 +240,6 @@ mod tests {
             (4, 21)
         );
         assert_eq!(at(0.4).skeleton.attractors, 400);
-        // A spacing walks as its density: halfway from none to a shoot every
-        // 10 cm is one every 20, and between two spacings the harmonic mean.
-        assert_eq!(density(0.0, 0.1, 0.5), 0.2);
-        assert_eq!(density(0.1, 0.0, 1.0), 0.0);
-        assert!((density(0.1, 0.3, 0.5) - 0.15).abs() < 1e-12);
-        assert_eq!(density(0.0, 0.1, 1e-9), 1000.0);
         // An override neither row states stays the envelope's to answer.
         assert_eq!(overridden(None, None, 1.0, 2.0, 0.5), None);
         assert_eq!(overridden(None, Some(2.0), 1.0, 2.0, 0.5), Some(1.5));

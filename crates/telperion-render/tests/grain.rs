@@ -23,6 +23,14 @@ fn moved(a: &Still, b: &Still) -> (usize, u8, f64) {
     (count, worst, total as f64 / a.rgba.len() as f64)
 }
 
+/// A still of a view whose wood budget has settled: a view that asks more
+/// than the budget holds draws coarser for one frame while it grows
+/// (fn-258), so the still is the second frame.
+fn settled(renderer: &mut Renderer, camera: &Camera, width: u32, height: u32) -> Still {
+    render(renderer, camera, width, height).unwrap();
+    render(renderer, camera, width, height).unwrap()
+}
+
 /// The row with its grain on and off drawn from one pose: near, the grain
 /// has to show; far, it has to have converged by `converged` of the mean
 /// move it made near, the way the pixel's box integral of its noise does.
@@ -39,9 +47,9 @@ fn near_and_far(
     for (distance, showing) in [(near, true), (far, false)] {
         let pose = camera(distance);
         renderer.set_material(off);
-        let smooth = render(renderer, &pose, size.0, size.1).unwrap();
+        let smooth = settled(renderer, &pose, size.0, size.1);
         renderer.set_material(on);
-        let grained = render(renderer, &pose, size.0, size.1).unwrap();
+        let grained = settled(renderer, &pose, size.0, size.1);
         let (count, worst, mean) = moved(&smooth, &grained);
         eprintln!("distance {distance}: {count} channels moved, worst {worst}, mean {mean:.4}");
         if showing {
@@ -94,7 +102,7 @@ fn bark_grain_shows_near_and_is_its_mean_far() {
 #[test]
 fn blade_grain_shows_near_and_is_its_mean_far() {
     let Some(gpu) = common::gpu() else { return };
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(20);
     let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);

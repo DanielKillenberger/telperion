@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-191-tree-space-a-the-engine-core-reproduces",
   "spec_path": ".flow/tasks/fn-191-tree-space-a-the-engine-core-reproduces.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Tree space A: the engine core reproduces GreenLab",
   "updated_at": "2026-10-03T19:34:40.111478Z"
 }

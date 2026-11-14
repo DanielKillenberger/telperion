@@ -1,42 +1,37 @@
-## Conversation Evidence
+## Goal
 
-> owner (2026-09-27, fn-170 session, Basel Schützenmattpark photograph): "I feel our generator fundamentally lacks the ability to have strong limbs that quickly taper at the edge of the crown to leaf level."
-> owner (2026-09-27, on fn-170's R7 London plane candidate): "birch looks good and the plane looks decent but yes it thins out too quickly for sure"
+A London plane's limbs, and a beech's, stay thick almost to the crown's edge and then break into fine wood over a short distance; the generator's limbs thinned steadily from the fork. On fn-170's 8-seed plane candidate the owner confirmed the forks read and the limbs thin too early. This spec lets a table hold a limb's girth over most of its reach and taper it to leaf level near the crown's edge.
 
-## Goal & Context
-<!-- scope: business -->
+## Decisions
 
-A London plane's limbs, and a beech's, stay thick almost to the edge of the crown and then break into fine wood over a short distance. The generator's limbs thin steadily from the fork, so by mid-crown they have already become fine wood. fn-170 made the plane's codominant forks possible; on its 8-seed candidate (oak base, 26 m, `lengthTaper` 0.2, `lateralShare` 0.45) the owner confirmed the forks read and the limbs thin too early. This spec lets a table hold a limb's girth over most of its reach and taper it to leaf level near the crown's edge. [paraphrase]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-**What exists, checked 2026-09-27 on the fn-170 branch (PR #131), merged to master as `ed23f773`.** The radius solve (`crates/telperion-core/src/pipeline/radius.rs:121`) thins wood two ways: bottom up, each node's pipe is its children's pipes combined through `forkExponent`, so every lateral that leaves takes its share (scaled by fn-170's `lateralShare` and `forkBalance`); and `lengthTaper` adds an exponential thinning over the path length from the root. There is no row that makes a limb's girth depend on how far along its own reach a point is. [checked]
-
-**Measured, 2026-09-27 (R1, `.flow/evidence/fn-177-limbs-hold-their-girth-to-the-crowns/R1-MEASUREMENT.md`).** On the plane candidate the tip count thins the limbs: at mid-path the thickest limbs keep 14% of their base girth, the pipe model accounts for 96% of that thinning (in log terms) and `lengthTaper` for 4%. No existing row gives a held girth that then falls: `lateralShare` at its floor holds the girth, but the limb ends blunt at 30% of its base and the tree regrows. The earlier claim that the profile acts "per limb system (fn-61's limb bound)" was unchecked and is wrong for this tree: on 7 of 8 seeds the thick wood is codominant stems, which fn-61's bound does not cover, and a path leaves the stems at 43% of its length with 25% of its girth. [checked]
-
-**The rule (host, 2026-09-27).** One rule for all structural wood (stems, codominant siblings and limbs alike), with no separate case per kind. The root is a point, not wood: every part leaving it starts an axis, as do a lateral and a codominant sibling, and a fork's primary above the root carries its axis on. Each axis holds its own base girth, which is the pipe model's radius where the axis starts (its first node's start radius). A node's share of its axis's reach is t = d / (d + L): d is its path from where the axis leaves its parent, so every node of an axis lies past its start and a hold rising from zero moves no radius by a jump, and L is its path on along the axis's own continuation to that axis's tip. L does not run through the laterals, so a leader that ends in a whorl is not left blunt. A node's radius is the larger of the pipe model's radius and the held girth. The held girth is the base up to `girthHold`, then falls to the pipe radius by the tip, as a smoothstep in log radius (C1 at the hold point and where the fall ends). The fall lasts `girthHold / girthFall` of the reach and is cut at the tip. [checked]
-
-**Rows.** Two rows in `/radii`. `girthHold` is the share of the reach, from 0 to 0.9: at 0 the tree is today's to the bit, and the ceiling leaves every axis at least a tenth of its reach to fall, so no tip ends blunt. `girthFall` is from 0.5 to 8, default 2: at 0.5 the fall is twice the hold, close to the pipe model's steady thinning, and at 8 it is an eighth of the hold, a break over a few stations of a long limb. Both rows are declared once in the catalogue, blended linearly and on the dials, and the hidden growth path ignores both. [checked]
-
-**What is given up.** Where the held girth wins, a fork's parts carry more wood than their parent, so the pipe model's conservation at forks is given up over the hold. A solved tree's invariants hold: no node starts thinner than it ends, and a part's start is clamped to its parent's radius at the junction. The hold is applied once the twigs have grown, in the direct build's final radius pass, so the twig layer seeds on the pipe model's radii. The tree keeps the pipe radii of the wood it held (`Tree::pipe`), and every foliage decision about which wood bears leaves, and which child carries a run, reads them. As a result no twig or leaf borne is added or lost. A leaf still sits on the wood as drawn, so the envelope's interior cull, which reads where each leaf is, may keep a handful more or fewer: 3 of 83,000 on Ordinary at seed 1. [checked]
-
-**Accepted refinements (host, 2026-09-27).** The build refined the host's rule in four places, and the host accepted each one. The root is a point, and every part leaving it starts its own axis. An axis is measured from where it leaves its parent. Foliage decides which wood bears leaves on the radii from before the hold. The `girthHold` rail stops at 0.9. [checked]
+- owner (2026-09-27, fn-170 session, Basel Schützenmattpark photograph): "I feel our generator fundamentally lacks the ability to have strong limbs that quickly taper at the edge of the crown to leaf level."
+- owner (2026-09-27, on fn-170's R7 London plane candidate): "birch looks good and the plane looks decent but yes it thins out too quickly for sure"
+- The rule (host, 2026-09-27): one rule for all structural wood. Every part leaving the root, every lateral and every codominant sibling starts an axis; a fork's primary carries its axis on. Each axis holds its base girth (the pipe radius where it starts). A node's share of reach is t = d / (d + L), d measured from where the axis leaves its parent, L along the axis's own continuation to its tip (not through laterals, so a whorl-ended leader is not blunt). Radius is the larger of the pipe radius and the held girth, which holds to `girthHold` and then falls to the pipe radius by the tip as a smoothstep in log radius over `girthHold / girthFall` of the reach.
+- Rows in `/radii`: `girthHold` 0 to 0.9 (0 is today's tree to the bit; the ceiling leaves a tenth of reach to fall), `girthFall` 0.5 to 8, default 2; catalogued, blended, on the dials; the hidden growth path ignores both.
+- Given up: conservation at forks over the hold. The hold is applied in the final radius pass after twigs grow; foliage decisions read the pre-hold radii (`Tree::pipe`), so no twig or leaf is added or lost.
+- Four refinements accepted by the host: the root is a point, axes are measured from where they leave the parent, leaf decisions read pre-hold radii, the rail stops at 0.9.
+- R4 verdict, owner decision: merge the rows as a dial the beech needs (fn-62), and let the beech run's Tune and Gaps show whether the hierarchy is reachable or a generator gap.
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** The measurement is reported: radius along the thickest limbs of the plane candidate at 8 seeds, split into the tip-count and length-taper parts. [checked]
-- **R2:** `girthHold` and `girthFall` exist in `/radii` with the rails above. They are validated by name, on the wire, blended, in the browser metadata and on the dial table. At zero every shipped preset's skeleton, mesh, leaves and field match master (seeds 1 and 7). [checked]
-- **R3:** On a synthetic limb, the girth stays within 1e-9 of its base over the hold and is the pipe radius from the end of the fall to the tip. A leader ending in a long lateral falls to the pipe radius at its tip. Walking either row in small steps moves every radius by a small step, from zero hold onwards, and the junction invariants hold throughout. [checked]
-- **R4:** The plane candidate is rendered at the 8 seeds with the rows set, bare and in leaf, and the stills go to the owner with one question: do the limbs hold their girth to the crown's edge now? [inferred]
-- **R5:** The workspace gate and `npm test` are green; build time and peak memory on the candidate are reported against fn-170's numbers. [inferred]
+- **R1:** Radius along the plane's thickest limbs at 8 seeds, split into tip-count and length-taper parts — met: at mid-path the thickest limbs keep 14% of base girth; the pipe model explains 96% of the thinning (log terms), `lengthTaper` 4%. On 7 of 8 seeds the thick wood is codominant stems (not fn-61's limb systems), left at 43% of the path with 25% of the girth. `lateralShare` at its floor holds girth but ends blunt at 30% and regrows the tree; no existing row gives hold-then-fall.
+- **R2:** `girthHold`, `girthFall` with rails, by name, wire, blend, metadata, dials; zero matches master on every preset at seeds 1 and 7 — met (16 of 16 identical; specimen schema 7).
+- **R3:** Synthetic limb held within 1e-9 over the hold, pipe radius after the fall, whorl-ended leader not blunt, continuity under small steps — met (`crates/telperion-core/src/pipeline/radius/hold_tests.rs`, red first).
+- **R4:** Plane candidate rendered with the rows at 8 seeds for the owner — met; rejected as the plane's fix (verdict below).
+- **R5:** Gates green; cost against fn-170 — met: median build 771 vs 769 ms, peak 619 vs 618 MB, nodes and leaves identical.
 
-## Boundaries
-<!-- scope: business -->
+## Result
 
-- Not a London plane preset: the plane is onboarded by its own species spec. Not the fork rule (fn-170). No change to how many twigs or leaves a tree bears.
+The rows work as a dial and are neutral at zero. Owner verdict (2026-09-27, girthHold 0.75, girthFall 4): "it looks unnatural tbh. ... The structure of those trees is much different. Now we have 1 super thick center and then it tapers off to be thin very quickly anyway. The plane i sent has very thick multiple leaders and thick branches from that. Then there's actually very few branches off that secondary level that lead to many twigs with leaves." The missing piece is branching hierarchy (few strong scaffold limbs, sparse middle orders, dense twigs at the edge), taken up by fn-182. Reference photograph: `.flow/references/london-plane/schutzenmattpark-basel-2026-09-27.jpg`. Codex SHIP after a host-authorised review-round reset.
 
-## Strategy Alignment
+## Open
 
-- Serves "Growth and botanical fidelity": a limb that holds its girth to the crown's edge is the look of the open-grown broadleaves the catalogue needs. [strategy:Growth and botanical fidelity]
+- A fork's primary keeps its axis's girth past the fork while a sibling starts thinner at its pipe share.
+- Wood 10 cm and thicker grows only from 33 m to 41 m, because the pipe model still gives every limb a thin base.
+
+## Friction
+
+- Nothing read radius along a limb, and radius feeds growth -> `examples/limb_girth.rs` written; run R1 before marking a spec ready.
+- Two new dial rows re-recorded the beech tape (8 Jev calls); `tape_trim` not idempotent; replay needs `headless` built by the gate -> fn-170's remedy again (tape key not hashing the dial table).
+- The axis reach was defined twice (through laterals; restarting at a fork's primary) -> L along the continuation; whorl case added to the test.
+- The review cap of 2 refused the re-review of the third fix -> host reset; a higher cap for pipeline-stage tasks proposed.

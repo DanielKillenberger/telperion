@@ -1,43 +1,41 @@
-## Conversation Evidence
+## Goal
 
-> owner (2026-09-27), on the beech run's node-capped candidates: "why do we still have a node limit i thought we removed all arbitrary limits"
-> owner, on the host's proposal that a tree finishes evenly at its budget and `maxNodes` becomes a dial: "ok"
+fn-53 kept the node budget as a named row, `maxNodes` (default 250,000), as a bound on work and memory. The trees the new rows draw reached it (fn-170's plane on every seed; three of four beech Tune candidates in fn-62's round 1), and a tree that reached it stopped wherever the count ran out, leaving branches in blunt, cut-off stubs the reviewer named on all four of the beech's failing traits. A tree must never look truncated because of a compute bound: at its budget it gives up fine detail evenly and stays whole, and a species can state the budget its look needs, at a measured cost.
 
-## Goal & Context
-<!-- scope: business -->
+## Decisions
 
-fn-53 removed the hidden hardcoded caps and kept the node budget as a named row, `maxNodes`, because a runtime generator needs a bound on work and memory. Two things now go wrong at it. The default (250,000, unset in every preset) is reached by the trees the new rows draw: fn-170's plane candidate reached it on every seed, and on the beech's runner Tune (fn-62, 2026-09-27) three of four candidates in round 1 and all in round 5 reached it. And a tree that reaches it stops growing wherever the count runs out, so branches end in blunt, cut-off stubs: the reviewer named "coarse, thick branches that end in blunt, cut-off stubs" on all four of the beech's failing traits. A tree must never look truncated because of a compute bound: at its budget it gives up fine detail evenly and stays whole, and a species can state the budget its look needs, at a measured cost. [paraphrase]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-**What exists, checked 2026-09-27 on master (`563b1534`), unchanged at `f86f9ad2`.** `maxNodes` is declared at `crates/telperion-core/src/pipeline/branching.rs:172`: unset means 250,000 (`ranges.rs:4`), it blends, and it is excluded from the dial table ("a resource cap"). The scaffold stops growing the moment the node count reaches it (`pipeline/branching/scaffold.rs:138`) and sets `diagnostics.node_capped`; the one-shot colonization loop does the same (`pipeline/colonization.rs:205`, `:309`). fn-170 found that the mature build drains structural growth before twigs, so reaching the budget can suppress the local twig pass. [checked]
-
-**Shape.** [inferred]
-- **Finish evenly.** When a build would exceed its budget, it reduces fine detail uniformly across the whole tree, for example one twig generation fewer everywhere, or a uniformly sparser finest order, and then finishes every branch to its tips. No branch ends where the count ran out; `node_capped` then means "detail was reduced", with the reduction recorded.
-- **Deterministic.** The same family and seed reduce the same way, and the reduction depends on the budget and the tree, never on build order.
-- **The budget is a dial.** `maxNodes` joins the dial table with its cost stated (nodes, build time and peak memory measured per step), so Tune can raise it where a species' look needs more wood, and a preset states it where it binds.
-- **Unknown.** Which reduction reads best (a whole twig generation, or a uniform thinning of the finest order), measured on the beech and the plane candidate before choosing. [unknown]
+- owner (2026-09-27), on the beech run's node-capped candidates: "why do we still have a node limit i thought we removed all arbitrary limits"
+- owner, on the host's proposal that a tree finishes evenly at its budget and `maxNodes` becomes a dial: "ok"
+- Measured choice of reduction: thin the finest order uniformly, in sixteenths of a twig generation (removing a whole generation left the plane over budget at 267k and dropped the beech to 68k); whole generations first, then a bisection inside the one that does not fit; the highest fitting level is kept as `diagnostics.twig_detail`.
+- Host (2026-09-27): a dial declares the value its unset row stands for (`ranges::DEFAULT_MAX_NODES`); a reduced tree is whole and feasible for Tune, only an `incomplete` one (with a named reason) is refused.
+- Size trim (host, 2026-09-28): each detail level regrows from its rows instead of cloning `Specimen`.
+- Not render level of detail (fn-176), not removing the budget, not the beech's values (fn-62).
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** On fn-170's plane candidate and the beech's node-capped Tune candidates, a build at its budget has no branch that ends short of its tips; every axis reaches its twig ends, and the reduction applied is recorded. [inferred]
-- **R2:** A tree under its budget is byte-identical to master on every shipped preset at seeds 1 and 7. [inferred]
-- **R3:** Raising `maxNodes` walks the tree continuously toward the unbudgeted tree; `maxNodes` is on the dial table with its measured cost per step. [inferred]
-- **R4:** Stills of the plane candidate and a beech candidate at the default budget, before and after, go to the owner with one question: do the stubs go away? [inferred]
-- **R5:** The workspace gate and `npm test` are green; build time and peak memory at the budget are reported against master. [inferred]
+- **R1:** On the plane and the beech's capped candidates, a build at its budget has no branch ending short of its tips, the reduction recorded — met: stubs at the default budget, plane seed 1 55,626 on master to 178; seed 2 62,066 to 169; beech candidates 34,087 to 585, 52,394 to 444, 12,367 to 271 (each fewer than the unbudgeted tree's).
+- **R2:** Under budget, byte-identical to master on every preset at seeds 1 and 7 — met (skeleton digests).
+- **R3:** Raising `maxNodes` walks continuously to the unbudgeted tree; on the dial table with cost per step — met: nodes and detail rise monotonically from 100k to the whole tree (plane whole at 600k, beech at 550k); a 50,000-node step costs about 0.2 to 0.9 s and 90 to 150 MB; dial window 100,000 to 1,000,000.
+- **R4:** Before/after stills of the plane and a beech candidate go to the owner: do the stubs go away? — stills made (kept in the ignored `raw/`); no owner verdict recorded here.
+- **R5:** Gates green; time and memory at the budget against master — met: at the budget the skeleton is 3 to 4 times slower (plane 206 to 862 ms, beech 212 to 1,016 ms); whole request plane 1,003 to 1,887 ms, beech 5,127 to 4,898 ms; peak memory the same or lower.
 
-## Boundaries
-<!-- scope: business -->
+## Result
 
-- Not render level of detail (fn-176). Not removing the budget. Not the beech's values (fn-62).
+Diagnostics split into `reduced` (whole, with `twig_detail`, feasible for Tune) and `incomplete` (`node_capped`, named reason, refused by the tuning gates). `telperion-field.wasm` 369,691 bytes (+0.5% over base 367,819) after the clone-free trim; output identical to the cloning version. Test changes: `the_beech_stays_at_its_stated_depth_whatever_its_radii` uses a 12 m tree for its fine-twig case; dial counts 233 and 138. Codex fan-out SHIP after fixes.
 
 ## Open
 
-- **The framework alone exceeds the budget** (host, 2026-09-27; follow-up, not built here). When the structural scaffold reaches `maxNodes` before any twig grows, the build stops where the count ran out and is flagged `incomplete` ("the framework alone exceeds the node budget"). Giving up structural detail evenly is its own spec.
+- The framework alone exceeds the budget (host, 2026-09-27; not built): when the scaffold reaches `maxNodes` before any twig grows, the build stops and is flagged `incomplete` ("the framework alone exceeds the node budget"). Giving up structural detail evenly is its own spec.
+- A cheaper first guess for the level search.
 
-## Strategy Alignment
+## Friction
 
-- Serves "Mature trees are the product": a compute bound never shows as a truncated tree. [strategy:Our approach]
+- Capped Tune candidates had no family file -> proposal: a per-candidate overlay file named by case id.
+- The dial half of R3 was a design fork (unset `Option`, reduced vs truncated) -> host decided the same day.
+- Re-recording the beech tape (9 Jev calls) and pruning it by hand -> proposal: `tape_trim --prune <replay>`.
+- A review fix to the dial's stated cost re-recorded the tape again (9 calls) -> a tape key not hashing dial wording.
+- The size check caught a +7.9% clone only in CI -> host to spec running the size check locally for core changes.
 
+## Evidence
+
+- `.flow/evidence/fn-180-a-tree-finishes-evenly-at-its-node/plane-candidate.json` (fn-170's plane with `girthHold` 0.75, `girthFall` 4) and `beech-candidate.json` (fn-62 r3 case `candidate-a49edc4aab1c`), the overlays measured with `crates/telperion-core/examples/node_budget.rs`.

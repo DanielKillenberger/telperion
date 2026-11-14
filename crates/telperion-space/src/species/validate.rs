@@ -1,12 +1,18 @@
 //! Every input the engine cannot draw, refused by name: each age's
-//! settings, its form and its zones, each on its rail.
+//! settings, its form and its zones, each on its rail. A single range is
+//! the setting's row in the table (`scale::SETTINGS`); a check across
+//! settings is written here.
 use super::*;
 use crate::error::{refuse, Result};
-use std::f64::consts::{FRAC_PI_2, PI, TAU};
+
+/// Whether the setting `name` admits `v` on its own.
+fn admits(name: &str, v: f64) -> bool {
+    scale::setting(name).is_some_and(|s| s.admits(v))
+}
 
 impl PaState {
     pub(super) fn validate(&self, at: &str, pa: usize, count: usize) -> Result<()> {
-        if !(0.0..=1.0).contains(&self.viability) {
+        if !admits("viability", self.viability) {
             return refuse(format!("{at}.viability"), "a probability lies in 0 to 1");
         }
         if self.zones.is_empty() || self.zones.len() > ZONES {
@@ -18,7 +24,7 @@ impl PaState {
         for (z, zone) in self.zones.iter().enumerate() {
             zone.validate(&format!("{at}.zones[{z}]"), pa, count)?;
         }
-        if !(0.0..=MAX_LIFESPAN).contains(&self.lifespan) {
+        if !admits("lifespan", self.lifespan) {
             return refuse(
                 format!("{at}.lifespan"),
                 "a lifespan lies in 0 to 1000000 cycles",
@@ -33,37 +39,38 @@ impl PaState {
                 "an age of no lifespan is passed through and moves on",
             );
         }
-        if self.shedding.is_nan() || self.shedding < 0.0 {
+        if !admits("shedding", self.shedding) {
             return refuse(format!("{at}.shedding"), "a delay is 0 or more cycles");
         }
-        if !(self.internode > 0.0 && self.internode <= MAX_INTERNODE) {
+        if !admits("internode", self.internode) {
             return refuse(
                 format!("{at}.internode"),
                 "an internode is longer than 0 and at most 100 m",
             );
         }
-        if !(0.0..=PI).contains(&self.insertion) {
+        if !admits("insertion", self.insertion) {
             return refuse(
                 format!("{at}.insertion"),
                 "an insertion angle lies in 0 to pi",
             );
         }
         let rates = [
-            ("abortion_rise", self.abortion_rise, MAX_RISE),
-            ("erection", self.erection, MAX_RATE),
-            ("leaf_area", self.leaf_area, MAX_LEAF_AREA),
-            ("shade_hazard", self.shade_hazard, MAX_SHADE),
-            ("shade_size", self.shade_size, MAX_SHADE),
-            ("upkeep", self.upkeep, MAX_SHADE),
-            ("balance_hazard", self.balance_hazard, MAX_SHADE),
-            ("leaf_girth", self.leaf_girth, MAX_SHADE),
+            ("abortion_rise", self.abortion_rise),
+            ("erection", self.erection),
+            ("leaf_area", self.leaf_area),
+            ("shade_hazard", self.shade_hazard),
+            ("shade_size", self.shade_size),
+            ("inverse_height", self.inverse_height),
+            ("balance_hazard", self.balance_hazard),
         ];
-        for (name, value, most) in rates {
-            if !(0.0..=most).contains(&value) {
+        for (name, value) in rates {
+            if !admits(name, value) {
                 return refuse(format!("{at}.{name}"), "a rate lies in its bounded range");
             }
         }
         let shares = [
+            ("ground_hazard", self.ground_hazard),
+            ("flowering", self.flowering),
             ("continuation", self.continuation),
             ("abortion", self.abortion),
             ("relay", self.relay),
@@ -71,21 +78,76 @@ impl PaState {
             ("relay_failed", self.relay_failed),
             ("relay_at", self.relay_at),
             ("epitony", self.epitony),
+            ("takeover", self.takeover),
             ("readiness", self.readiness),
             ("rhythm", self.rhythm),
             ("straightening", self.straightening),
             ("apical_control", self.apical_control),
-            ("retained", self.retained),
         ];
         for (name, value) in shares {
-            if !(0.0..=1.0).contains(&value) {
+            if !admits(name, value) {
                 return refuse(format!("{at}.{name}"), "a share lies in 0 to 1");
             }
         }
-        if !(-1.0..=1.0).contains(&self.tolerance) {
+        let leaves = self.cluster_leaves;
+        if !admits("cluster_leaves", leaves) {
+            return refuse(
+                format!("{at}.cluster_leaves"),
+                "a cluster holds 0 to 8 leaves",
+            );
+        }
+        if !admits("cluster_spread", self.cluster_spread) {
+            return refuse(
+                format!("{at}.cluster_spread"),
+                "a cluster's spread lies in 0 to pi / 2",
+            );
+        }
+        if !admits("leaf_years", self.leaf_years) {
+            return refuse(
+                format!("{at}.leaf_years"),
+                "a leaf's years lie in 0 to never",
+            );
+        }
+        // A shoot and the leaf at its last node are whole within the year
+        // (fn-270 R5), so a whole year draws them whole.
+        let days = [
+            ("elongation", self.elongation),
+            ("expansion", self.expansion),
+        ];
+        for (name, value) in days {
+            if !admits(name, value) {
+                return refuse(format!("{at}.{name}"), "a span of days lies in 0 to 365");
+            }
+        }
+        if self.elongation + self.expansion > crate::unfold::YEAR {
+            return refuse(
+                format!("{at}.expansion"),
+                "a shoot and its last leaf unfold within the year",
+            );
+        }
+        // R5c: a leaf's lifespan, and its season's days on the calendar.
+        if !admits("leaf_life", self.leaf_life) {
+            return refuse(
+                format!("{at}.leaf_life"),
+                "a leaf's years lie in 0 to never",
+            );
+        }
+        let calendar = [
+            ("budburst", self.budburst),
+            ("senescence", self.senescence),
+            ("colouring", self.colouring),
+            ("leaf_fall", self.leaf_fall),
+        ];
+        for (name, value) in calendar {
+            if !admits(name, value) {
+                return refuse(format!("{at}.{name}"), "a day of the year lies in 0 to 365");
+            }
+        }
+        if !admits("tolerance", self.tolerance) {
             return refuse(format!("{at}.tolerance"), "a balance lies in -1 to 1");
         }
-        if !(-TAU..=TAU).contains(&self.divergence) {
+        self.shade_validate(at, pa, count)?;
+        if !admits("divergence", self.divergence) {
             return refuse(
                 format!("{at}.divergence"),
                 "a divergence angle lies in -2 pi to 2 pi",
@@ -98,36 +160,56 @@ impl PaState {
 impl Form {
     fn validate(&self, at: &str) -> Result<()> {
         let rates = [
-            ("tropism", self.tropism, MAX_RATE),
-            ("wander", self.wander, MAX_RATE),
-            ("pipe", self.pipe, MAX_PIPE),
-            ("ripening", self.ripening, MAX_RIPENING),
-            ("sag", self.sag, MAX_SAG),
-            ("bend_length", self.bend_length, MAX_BEND_LENGTH),
+            ("tropism", self.tropism),
+            ("wander", self.wander),
+            ("primary", self.primary),
+            ("sapwood", self.sapwood),
+            ("sapwood_tall", self.sapwood_tall),
+            ("sapwood_rings_tall", self.sapwood_rings_tall),
+            ("sapwood_from", self.sapwood_from),
+            ("sapwood_to", self.sapwood_to),
+            ("sag", self.sag),
+            ("bend_length", self.bend_length),
+            ("internode_spread", self.internode_spread),
+            ("insertion_spread", self.insertion_spread),
+            ("tropism_spread", self.tropism_spread),
         ];
-        for (name, value, most) in rates {
-            if !(0.0..=most).contains(&value) {
+        for (name, value) in rates {
+            if !admits(&format!("form.{name}"), value) {
                 return refuse(format!("{at}.{name}"), "a rate lies in its bounded range");
             }
         }
-        if !(-FRAC_PI_2..=FRAC_PI_2).contains(&self.elevation) {
+        if !admits("form.elevation", self.elevation) {
             return refuse(
                 format!("{at}.elevation"),
                 "an elevation lies in -pi / 2 to pi / 2",
             );
         }
-        if !(MIN_EXPONENT..=MAX_EXPONENT).contains(&self.exponent) {
-            return refuse(format!("{at}.exponent"), "a pipe exponent lies in 1.5 to 4");
+        if !admits("form.sapwood_rings", self.sapwood_rings) {
+            return refuse(
+                format!("{at}.sapwood_rings"),
+                "sapwood lasts 1 to 1000 years",
+            );
         }
-        for (name, value) in [("dominance", self.dominance), ("secondary", self.secondary)] {
-            if !(0.0..=1.0).contains(&value) {
-                return refuse(format!("{at}.{name}"), "a share lies in 0 to 1");
-            }
+        if self.sapwood_rings * self.sapwood_rings_tall < 1.0 {
+            return refuse(
+                format!("{at}.sapwood_rings_tall"),
+                "sapwood lasts a year or more on a tall tree",
+            );
         }
-        if !(0.0..=PI).contains(&self.roll) {
+        if self.sapwood_to < self.sapwood_from {
+            return refuse(
+                format!("{at}.sapwood_to"),
+                "the far height is no less than the near height",
+            );
+        }
+        if !admits("form.dominance", self.dominance) {
+            return refuse(format!("{at}.dominance"), "a share lies in 0 to 1");
+        }
+        if !admits("form.roll", self.roll) {
             return refuse(format!("{at}.roll"), "a roll lies in 0 to pi");
         }
-        if !(-TAU..=TAU).contains(&self.plane) {
+        if !admits("form.plane", self.plane) {
             return refuse(
                 format!("{at}.plane"),
                 "a plane's turn lies in -2 pi to 2 pi",
@@ -146,7 +228,7 @@ impl Zone {
                     "the least node count exceeds the most",
                 );
             }
-            NodeLaw::Uniform { max, .. } if max.is_nan() || max > f64::from(MAX_NODES_PER_ZONE) => {
+            NodeLaw::Uniform { max, .. } if !admits("zone.nodes.max", max) => {
                 return refuse(format!("{at}.nodes.max"), "a zone holds at most 1000 nodes");
             }
             NodeLaw::Poisson { mean } if !(0.0..=MAX_MEAN_NODES).contains(&mean) => {
@@ -157,28 +239,61 @@ impl Zone {
             }
             _ => {}
         }
-        if !(1.0..=f64::from(MAX_BUDS)).contains(&self.buds) {
+        if !admits("zone.buds", self.buds) {
             return refuse(format!("{at}.buds"), "a node carries 1 to 6 buds");
         }
-        table(&format!("{at}.lateral"), &self.lateral, pa, count)?;
-        table(&format!("{at}.dormant"), &self.dormant, pa, count)?;
-        if !(0.0..=MAX_DELAY).contains(&self.delay) {
+        table(
+            &format!("{at}.lateral"),
+            &self.lateral,
+            pa,
+            count,
+            "zone.lateral",
+        )?;
+        table(
+            &format!("{at}.dormant"),
+            &self.dormant,
+            pa,
+            count,
+            "zone.dormant",
+        )?;
+        if !admits("zone.delay", self.delay) {
             return refuse(format!("{at}.delay"), "a delay lies in 0 to 1000 years");
         }
-        if !(0.0..=MAX_RATE).contains(&self.rate) {
+        if !admits("zone.rate", self.rate) {
             return refuse(format!("{at}.rate"), "a rate lies in its bounded range");
         }
         Ok(())
     }
 }
 
+impl PaState {
+    /// Refuses a shade table (`shade_short`) of the wrong width, an entry
+    /// off its range, or one on the PA's own index: a bud cannot turn into
+    /// itself.
+    fn shade_validate(&self, at: &str, pa: usize, count: usize) -> Result<()> {
+        let at = format!("{at}.shade_short");
+        if !self.shade_short.is_empty() && self.shade_short.len() != count {
+            return refuse(at, "none, or one exponent per physiological age");
+        }
+        for (j, &e) in self.shade_short.iter().enumerate() {
+            if !admits("shade_short", e) {
+                return refuse(format!("{at}[{j}]"), "an exponent lies in 0 to 10");
+            }
+            if j == pa && e > 0.0 {
+                return refuse(format!("{at}[{j}]"), "a bud cannot turn into its own age");
+            }
+        }
+        Ok(())
+    }
+}
+
 /// Refuses a table of bud probabilities, one per PA, that is not one.
-fn table(at: &str, table: &[f64], pa: usize, count: usize) -> Result<()> {
+fn table(at: &str, table: &[f64], pa: usize, count: usize, name: &str) -> Result<()> {
     if table.len() != count {
         return refuse(at, "one probability per physiological age");
     }
     for (j, &p) in table.iter().enumerate() {
-        if !(0.0..=1.0).contains(&p) {
+        if !admits(name, p) {
             return refuse(format!("{at}[{j}]"), "a probability lies in 0 to 1");
         }
         if j < pa && p > 0.0 {

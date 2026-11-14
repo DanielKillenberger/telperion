@@ -1,0 +1,32 @@
+{
+  "branch_name": "fn-268-a-neural-network-compresses-the",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-11T12:00:00.445664Z",
+  "created_at": "2026-10-13T08:03:42.248051Z",
+  "depends_on_epics": [],
+  "id": "fn-268-a-neural-network-compresses-the",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "retired": {
+    "by": [
+      "fn-351-020-the-release-candidate"
+    ],
+    "reason": "moot"
+  },
+  "spec_path": ".flow/specs/fn-268-a-neural-network-compresses-the.md",
+  "status": "done",
+  "title": "A neural network compresses the generator function",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-11T12:00:00.445673Z"
+}

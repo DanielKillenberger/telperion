@@ -10,7 +10,7 @@ use telperion_core::{
     material::MaterialParams,
     math::Vec3,
     mesh::{Foliage, TreeMesh},
-    surface::{Bounds, SurfaceMesh},
+    surface::Bounds,
 };
 use telperion_render::{render, Camera, Renderer, SceneRow, Still, View, STILL_FORMAT};
 
@@ -60,9 +60,10 @@ fn lobes() -> TreeMesh {
         instances.push(m);
     }
     TreeMesh {
-        wood: SurfaceMesh::default(),
+        wood: None,
         curve: Default::default(),
         foliage: Foliage { element, instances },
+        organ: None,
         bounds: Bounds {
             min: Vec3::new(-1.2, 0.8, -1.2),
             max: Vec3::new(1.2, 3.7, 1.2),

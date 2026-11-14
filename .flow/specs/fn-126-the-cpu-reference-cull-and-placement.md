@@ -9,9 +9,8 @@
 
 ## Goal & Context
 
-<!-- Goal & Context: 30% [user], 70% [inferred] code reading and fn-125's feasibility check -->
 
-After fn-125, every tree goes through one expansion with two executors (STRATEGY.md, amended 2026-09-24). The CPU reference executor defines correct, serves consumers without a GPU, and runs in every test that builds a tree. Today the same work is the slowest part of the CPU build. At seed 1, spruce placement takes 3,845 ms (82.5% of its build) and its cull 360 ms (fn-91 `CPU-CANDIDATE.md`). Birch placement and cull take 4.21 s together (`.flow/evidence/fn76/LOCAL.md`). This spec makes the reference executor fast once fn-125 has defined it. [inferred]
+After fn-125, every tree goes through one expansion with two executors (STRATEGY.md, amended 2026-09-24). The CPU reference executor defines correct, serves consumers without a GPU, and runs in every test that builds a tree. Today the same work is the slowest part of the CPU build. At seed 1, spruce placement takes 3,845 ms (82.5% of its build) and its cull 360 ms (fn-91 `CPU-CANDIDATE.md` (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/CPU-CANDIDATE.md`)). Birch placement and cull take 4.21 s together (`.flow/evidence/fn76/LOCAL.md`). This spec makes the reference executor fast once fn-125 has defined it. [inferred]
 
 The first draft targeted today's CPU placed path. fn-125 deletes that path (`placement.rs:133` `place_on`) and rewrites station placement (`station.rs:70` `place_run`) as station sources, so the draft's changes B (cull while placing) and C (a forward cursor in `place_run`) have no target left. Rewritten 2026-09-24 to depend on fn-125. [user]
 
@@ -34,7 +33,7 @@ The work is profile first, then fix in ranked order. [inferred]
 ## Acceptance Criteria
 
 - **R1:** A committed profile of the reference executor, split by stage, for the oak, spruce, birch and beech at seeds 1 and 7, taken on fn-125's merged code before any change. [inferred]
-- **R2:** Each change keeps the reference executor's output byte-identical to fn-125's for every catalogue and in-work preset at seeds 1 and 7. A change shared with the GPU keeps the two executors within fn-125's tolerance. [inferred]
+- **R2:** Each change keeps the reference executor's output byte-identical to fn-125's for every catalogue and in-work preset at seeds 1 and 7. A change shared with the GPU keeps the two executors within fn-125's tolerance. [inferred] *(superseded by AGENTS.md "Generator evolution" (owner, 2026-09-20): it pins the pre-engine direct build's bytes, which the tree-space engine (fn-198) replaced; an intended change carries its measured evidence instead, and byte equality stays a check only where unchanged output is intended (fn-293 task 7).)*
 - **R3:** Stage medians of five runs are recorded on base and candidate for each change. A change that does not speed its stage by at least 5% on the preset it targets is reverted and reported. [inferred]
 - **R4:** Native peak RSS and the wall time of `cargo test --profile ci --workspace --no-fail-fast` are recorded on base and candidate. [inferred]
 - **R5:** The profiler is a committed native example that prints one JSON line per run (preset, seed, revision, and each stage's time) for any catalogue or in-work preset, and R1's profile and every R3 measurement come from it. Errors: an unknown preset id is refused by name. [inferred]
@@ -42,7 +41,7 @@ The work is profile first, then fix in ranked order. [inferred]
 
 ## Boundaries
 
-- No change to the algorithm's output. Speed only. [inferred]
+- No change to the algorithm's output. Speed only. [inferred] *(superseded by AGENTS.md "Generator evolution" (owner, 2026-09-20): a measured speed-up may change output when its visual and correctness checks pass; byte equality is the verification aid where it holds (fn-293 task 7).)*
 - Growth speed is fn-124; the GPU expansion's own speed is fn-125's R4. [inferred]
 - No full-forest capture. [CLAUDE.md]
 
@@ -58,5 +57,5 @@ The work is profile first, then fix in ranked order. [inferred]
 ## Resolved via Codebase
 
 - Every reference re-anchored on master c71ef3e1: `place_on` `placement.rs:138`, `place_run` `station.rs:45`, the cull `foliage.rs:255`, `radius_at` `envelope.rs:120` through `quadrant()` `:269`, the profile scan `envelope.rs:255, 276`, the GPU `in_shell` `place.wgsl:42`. fn-125 rewrites the placement and cull code, so the R1 profile is taken on fn-125's merged code, as R1 already says.
-- The evidence files hold what the spec quotes: fn-91 `CPU-CANDIDATE.md:21` (spruce 3844.62 ms, 82.5%, cull 359.57 ms) and `.flow/evidence/fn76/LOCAL.md:17` (birch place plus cull 4.21 s), both from 2026-09-21.
+- The evidence files hold what the spec quotes: fn-91 `CPU-CANDIDATE.md:21` (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/CPU-CANDIDATE.md`) (spruce 3844.62 ms, 82.5%, cull 359.57 ms) and `.flow/evidence/fn76/LOCAL.md:17` (birch place plus cull 4.21 s), both from 2026-09-21.
 - The presets exist for R1 and R2: `params::CATALOGUE` and `IN_WORK`; oak, spruce, birch and beech are in `catalogue/`; `[profile.ci]` is in the workspace `Cargo.toml`.

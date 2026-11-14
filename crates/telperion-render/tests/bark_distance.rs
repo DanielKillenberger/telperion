@@ -70,7 +70,7 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
             resource: output.as_entire_binding(),
         }],
     });
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     {
         let mut pass = encoder.begin_compute_pass(&Default::default());
         pass.set_pipeline(&pipeline);
@@ -78,7 +78,7 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
         pass.dispatch_workgroups(64, 1, 1);
     }
     encoder.copy_buffer_to_buffer(&output, 0, &readback, 0, output.size());
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, recv) = std::sync::mpsc::channel();
     readback
         .slice(..)
@@ -158,7 +158,9 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
             let low = render(&mut renderer, &camera, 800, 500).unwrap();
             let (mean, p95) = resolution::masked_agreement(&high, &low, &mask);
             eprintln!("{preset:?} {distance}x resolution: {} pixels, mean {mean:.6}/255, p95 {p95:.2}/255", mask.len());
-            rows.push((format!("{preset:?} {distance}x"), mean, p95, 3.0));
+            // The prefiltered bark's bounds (see the assertion below).
+            let bound = if distance == 2 { 5.7 } else { 7.0 };
+            rows.push((format!("{preset:?} {distance}x"), mean, p95, bound));
         }
     }
     resolution::record("bark_distance", &rows);
@@ -170,9 +172,27 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
     // 3.134, no highlight at all 3.167. fn-71 found the error a bias, the far
     // draw lighter than the near one reduced, and gave the far draw the shade
     // of the slopes its footprint lost; the oak reads 2.53 at 4x since.
+    // Re-pinned for the prefiltered bark (owner, fn-246 FPS.md "Owner
+    // decision", 2026-10-09): one shading cell a pixel, bands faded to their
+    // means. Bounds are the prefilter's measured value here plus 0.5 mean
+    // (p95 plus 2 where it passed the old 12). Distance to the present
+    // shader's 4x truth (examples/bark_truth), present / prefilter:
+    // oak 2x 2.54 / 5.70, oak 4x 4.90 / 7.14. Here the prefilter reads
+    // 4.68 / 12.0 at 2x and 5.29 / 13.25 at 4x (present under 3.0 / 12).
+    // On 14 Nov 2026 the 4x bounds were re-pinned by the same rule (host,
+    // approved on the frames, fn-351 BARK-DISTANCE.md): no bark shader had
+    // changed, but the oak's trunk at the strip thinned from 71 to 28 pixels
+    // (fn-354), so the strip holds the curved stem edge to edge and reads
+    // 6.00 / 16.25, its frame-to-frame shimmer within 0.5 of the full-size
+    // reference's and below the 11 Nov base's. Later on 14 Nov 2026 both
+    // distances were re-pinned by the same rule: the oak's sapwood rows
+    // followed tree height (fn-351), the trunk at the strip widened from 55
+    // to 64 pixels at 2x and from 28 to 33 at 4x, and it reads 5.20 / 13.50
+    // and 6.53 / 17.25, its shimmer within 0.4 of the full-size reference's.
     for (fixture, mean, p95, bound) in &rows {
+        let tail = if fixture.ends_with("2x") { 15.5 } else { 19.25 };
         assert!(
-            mean <= bound && *p95 <= 12.0,
+            mean <= bound && *p95 <= tail,
             "distance series aliases on the {fixture}: mean {mean:.4}, p95 {p95:.2}"
         );
     }

@@ -1,0 +1,47 @@
+{
+  "branch_name": "fn-235-the-harness-never-hangs-the-gpu",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-08T20:13:05.342180Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-235-the-harness-never-hangs-the-gpu",
+  "impl_review_rounds": {
+    "fn-235-the-harness-never-hangs-the-gpu.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-08T21:47:57.547120Z",
+  "ready": true,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-235-the-harness-never-hangs-the-gpu.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-235-the-harness-never-hangs-the-gpu.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-235-the-harness-never-hangs-the-gpu.md",
+  "status": "done",
+  "title": "The harness never hangs the GPU",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T02:28:43.173996Z"
+}

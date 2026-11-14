@@ -1,0 +1,70 @@
+{
+  "branch_name": "fn-259-the-release-meets-the-bar-on-every",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-19T08:53:32.600526Z",
+  "created_at": "2026-10-09T19:56:29.991755Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-257-the-site-grows-its-trees-on-the-device",
+    "fn-258-a-prepared-tree-meets-masters-memory",
+    "fn-291-the-cpu-entry-builds-every-shipped",
+    "fn-287-020-clean-up-from-the-release-review",
+    "fn-293-each-stages-output-has-one-form-and-its"
+  ],
+  "id": "fn-259-the-release-meets-the-bar-on-every",
+  "impl_review_rounds": {
+    "fn-259-the-release-meets-the-bar-on-every.1": 0,
+    "fn-259-the-release-meets-the-bar-on-every.2": 0,
+    "fn-259-the-release-meets-the-bar-on-every.3": 0,
+    "fn-259-the-release-meets-the-bar-on-every.4": 0,
+    "fn-259-the-release-meets-the-bar-on-every.5": 0,
+    "fn-259-the-release-meets-the-bar-on-every.6": 0,
+    "fn-259-the-release-meets-the-bar-on-every.7": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "stale",
+  "plan_reviewed_at": "2026-10-19T00:53:44.852972Z",
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-259-the-release-meets-the-bar-on-every.1": 1,
+    "impl:fn-259-the-release-meets-the-bar-on-every.2": 1,
+    "impl:fn-259-the-release-meets-the-bar-on-every.3": 2,
+    "impl:fn-259-the-release-meets-the-bar-on-every.4": 1,
+    "impl:fn-259-the-release-meets-the-bar-on-every.5": 1,
+    "impl:fn-259-the-release-meets-the-bar-on-every.6": 1,
+    "impl:fn-259-the-release-meets-the-bar-on-every.7": 1,
+    "plan": 4,
+    "plan#completion": 3
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-259-the-release-meets-the-bar-on-every.1": 0,
+    "impl:fn-259-the-release-meets-the-bar-on-every.2": 0,
+    "impl:fn-259-the-release-meets-the-bar-on-every.3": 0,
+    "impl:fn-259-the-release-meets-the-bar-on-every.4": 0,
+    "impl:fn-259-the-release-meets-the-bar-on-every.5": 0,
+    "impl:fn-259-the-release-meets-the-bar-on-every.6": 0,
+    "impl:fn-259-the-release-meets-the-bar-on-every.7": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-259-the-release-meets-the-bar-on-every.md",
+  "status": "done",
+  "title": "The release meets the bar on every consumer",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-19T08:53:45.482534Z"
+}

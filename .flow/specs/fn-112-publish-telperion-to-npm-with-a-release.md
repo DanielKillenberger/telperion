@@ -1,73 +1,48 @@
 # Publish telperion to npm with a release pipeline in CI
 
-## Conversation Evidence
+## Goal
 
-> user: "so telperion is ready to be integrated into killenberger.com?"
-> assistant: "The package is not on a registry and has no release tag. fn-101's spec leaves that step to you. Until then the site consumes it as a git dependency or a local build."
-> user: "should we package an npm module?"
-> assistant: "Yes, publish it. ... The package's `files` is `dist`, and `dist` is gitignored, so a git dependency would have to build on install. ... Name: `telperion`, since it is free and the repo is public. ... Version: start at `0.1.0` and tag releases `v0.1.0`. ... A release workflow beside `tests.yml`: on a `v*` tag, run the gate, `npm run build`, then `npm publish --provenance` with a trusted publisher on npm so no token lives in the repo. ... The one thing to add before the first publish is a short README section pointing at `docs/field-package.md`."
-> user: "/flow-next:capture this including a release pipeline in ci"
+killenberger.com integrates Telperion through fn-101's slim field package, but the package was on no registry and the repository had no release tag; with `dist` gitignored, a git install would compile Rust on the site's deploy machine. This spec publishes the built package to npm from a tag-driven CI workflow so installs are plain downloads traceable to a tagged, gated commit.
 
-## Goal & Context
+Owner quotes:
+> "so telperion is ready to be integrated into killenberger.com?"
+> "should we package an npm module?"
+> "/flow-next:capture this including a release pipeline in ci"
 
-<!-- Goal & Context: 40% [paraphrase], 60% [inferred] from the repository -->
+## Decisions
 
-killenberger.com integrates Telperion through the slim field package fn-101 landed on master on 2026-09-22: the `telperion/field` and `telperion/field/voxelize` exports, built by one command into a `dist` folder with the slim Wasm beside them. The package is not on any registry and the repository has no release tag, so today a consumer would install it from git and build it at install time, which needs the Rust toolchain and the wasm target on the site's deploy machine for about a minute of compile per install. [paraphrase]
-
-This spec publishes the built package to npm and makes the publish a CI step driven by a version tag, so a consumer's install is a plain download and every published version traces to a tagged, gated commit. [paraphrase]
-
-Facts checked on 2026-09-22: the repository is public under MIT; `package.json` names the package `telperion` at version 0.1.0, is not marked private, ships `files: ["dist"]`, and `dist` is gitignored; the `telperion` name is free on the npm registry, as is a scoped `@killenberger/telperion`; the only workflow is `tests.yml`. [inferred]
-
-## Architecture & Data Models
-
-The release is a second workflow beside the test workflow, triggered by a tag matching `v*`. It runs the same gate the test workflow runs, builds the package, and publishes with npm provenance under a trusted publisher configured on the npm side, so no publish token lives in the repository or its secrets. A tag whose version does not equal the version in `package.json` fails before publishing. [paraphrase]
-
-The package publishes as `telperion`, unscoped, starting at 0.1.0; a pre-1.0 version signals that the field contract may still move. [paraphrase]
-
-The README gains a short section that names the field package and points at the package doc, since the registry page shows the README. [paraphrase]
-
-## Edge Cases & Constraints
-
-- A tag pushed on a commit whose gate is red publishes nothing; the workflow stops at the gate. [inferred]
-- A tag for a version already on the registry fails at publish; the workflow reports it and nothing is overwritten. [inferred]
-- The published tarball holds `dist`, plus the three root files npm includes in every tarball whatever `files` says: `package.json`, `README.md` and `LICENSE`. Under `dist`: the entry points, their type declarations, the slim Wasm beside `field.js`, and the full module the main entry uses. No source, no evidence, no experiments. [inferred, reworded 2026-09-22]
-- The publish step never runs on a branch push or a pull request; the test workflow is unchanged. [inferred]
+- Registry over git dependency; unscoped `telperion` (free, repo public, MIT); start at 0.1.0, tags `v*`; versions bumped and tagged by hand; no changelog tooling or pre-release channels.
+- `.github/workflows/release.yml` on `v*` tags only: version check -> the `tests.yml` gate (rust nextest, core-plan) -> node suite, `npm run build`, `npm publish --provenance --access public` via a trusted publisher; no stored token.
+- R7 (owner, 2026-09-22): fix the main entry's 6.7 MB inlined Wasm before the first tag so 0.1.0 is lean on every entry.
+- R6 amended by the host (2026-09-22: npm attaches a trusted publisher only to an existing package, so the first step is the owner's) and by the owner (2026-09-23): create the package with a placeholder `0.0.1` (no code, deprecated after), attach the publisher with direct publish allowed, and let the workflow publish 0.1.0. Staged publishing can be enabled later (`npm stage publish`).
 
 ## Acceptance Criteria
 
-- **R1:** A release workflow exists beside the test workflow, triggered only by a `v*` tag, and it runs the repository's gate before any build or publish step. [paraphrase]
-- **R2:** The workflow builds the package with the existing build command and publishes it to npm with provenance through a trusted publisher; no npm token is stored in the repository or its secrets. [paraphrase]
-- **R3:** A tag whose version differs from `package.json` fails the workflow before the publish step, with the two versions named in the failure. [inferred]
-- **R4:** A dry-run pack on a clean checkout lists files under `dist` and the three root files npm always includes, `package.json`, `README.md` and `LICENSE`, and nothing else; among the `dist` files are `field.js`, `voxelize.js` and `telperion-field.wasm` with their type declarations. The listing is recorded in the spec's evidence. [inferred, reworded 2026-09-22 after review]
-- **R5:** The README carries a section naming the field package, the two exports and the doc that describes them. [paraphrase]
-- **R6 (amended by the host, 2026-09-22; again by the owner, 2026-09-23):** npm attaches a trusted publisher only to a package that already exists, so the owner creates the package by hand with a placeholder `0.0.1` that carries no code and is deprecated afterwards. The owner then attaches the trusted publisher on npmjs.com with direct publish allowed, and the workflow proves itself on `v0.1.0`, published with provenance and no stored token. A fresh project with no Rust toolchain installs that version from the registry and runs the Node smoke from the package doc: grow a species, query a grid, read the four answers. The tag, the workflow run, the install and the smoke run are recorded in the spec's evidence with the Node version. [paraphrase, host amendment, owner amendment]
+- **R1:** Release workflow on `v*` tags only, running the gate first — met.
+- **R2:** Builds and publishes with provenance through a trusted publisher, no token — met.
+- **R3:** Tag/`package.json` version mismatch fails before publish naming both — met (checked by hand: `v0.2.0`, `v0.1.0-rc1` fail).
+- **R4:** Dry-run pack lists only `dist` plus `package.json`, `README.md`, `LICENSE` — met.
+- **R5:** README section on the field package and its two exports — met.
+- **R6:** Workflow publishes `v0.1.0` with provenance; a fresh project with no Rust installs it and runs the Node smoke — met (2026-09-23).
+- **R7:** Main entry JavaScript-only, Wasm shipped as files resolved at run time; suites green; harness still draws — met.
 
-- **R7 (owner, 2026-09-22):** The main entry no longer inlines Wasm: `dist/telperion.js` is JavaScript only, and the full generator Wasm and the renderer's Wasm ship as their own files in `dist`, resolved at run time the way the field entry resolves `telperion-field.wasm`. The pack listing records the new sizes beside the old 6.7 MB, every existing binding, browser and vitest suite passes, and the harness (`npm run dev`) still draws a tree. [user]
+## Result
 
-## Boundaries
+- `telperion@0.1.0` published by Release run 35791697498 (attempt 2, tag on `dd86fa05`) with SLSA v1 provenance (Sigstore log index 2919901357); `0.0.1` placeholder by hand. Tarball 20 files, 1.2 MB packed / 3.7 MB unpacked.
+- R7: `dist/telperion.js` 6,659,763 -> 108,486 bytes (22.7 kB gzip); `telperion.wasm` 1,286,823 and `telperion-render.wasm` 1,813,306 ship beside it. wasm-bindgen runs with `--omit-default-module-path`. A Vite plugin `telperion:wasm-beside-entry` keeps the plain `new URL("./x.wasm", import.meta.url)` literal in `dist` so consumers' bundlers emit the Wasm; `src/wasm-source.ts` reads `file:` URLs through `node:fs` in Node. A consumer Vite 8 site built and loaded all three Wasm files; `scripts/test-dist.mjs` checks Node imports in the release workflow.
+- Fresh install on Node v26.8.1 with no Rust: 654 ms, `npm audit signatures` verified; the smoke grew silver-birch at seed 7 and queried an 8x8x8 grid in 0.5 s (wood 380, foliage 385 cells, max wood radius 0.252 m, 76 limb systems).
+- The harness check (`npm run test:render`) drew all six presets but stopped on an orbit wall-clock p95 (30.00 ms vs 16.7 ms) on a contended display: recorded inconclusive.
 
-- No change to the package's exports or the field contract. The build changes only in how the main entry's Wasm reaches `dist` (R7). [inferred, amended]
-- No changelog tooling, no automatic version bumps and no pre-release channels. A version is bumped by hand in `package.json` and tagged by hand. [inferred]
-- The trusted publisher on the npm side is configured by the owner, whose account owns the package; the spec's workflow assumes it exists and R6 is the proof. [paraphrase]
+## Open
 
-## Decision Context
+- Deprecate the `0.0.1` placeholder (owner).
 
-- Registry rather than git dependency, because `dist` is gitignored and a git install would compile Rust on the consumer's deploy machine. [paraphrase]
-- Unscoped `telperion` rather than `@killenberger/telperion`: the name is free and the repository is public. The owner may still choose the scope before the first publish; only the package name changes. [paraphrase]
-- Provenance with a trusted publisher rather than a stored token, so the published artifact is bound to the tagged commit and the workflow run. [paraphrase]
-- Depends on fn-101, landed on master as PR #58 on 2026-09-22. [inferred]
+## Friction
 
-## Decision Context, added by the host (2026-09-22)
-
-- The first publish moves to the owner's hand because npm's trusted-publisher form lives on an existing package's settings page; the workflow's proof is the first tag after it. Recorded in RESULTS.md and FRICTION.md by the worker as an unknown, settled here.
-- The main entry's 6.7 MB inlined Wasm: the owner chose to fix the loading before the first tag (R7), so 0.1.0 is lean on every entry.
-
-## Decision Context, added by the owner (2026-09-23)
-
-- A placeholder `0.0.1` creates the package instead of a hand publish of 0.1.0, so 0.1.0, the first real version, is the one the workflow publishes with provenance. The placeholder stays on the registry, deprecated, because npm never frees a published version.
-- The trusted publisher allows direct `npm publish`. It can be switched to staged publishing later: untick the setting and change the workflow's publish step to `npm stage publish`.
-
-## Parked unknowns
-
-- Whether the owner's npm account already has two-factor and a trusted publisher; R6 settles it at the first tag.
-- Whether `npm run build` on a fresh CI runner completes within the runner's default time; the test workflow's node job already runs the Wasm and renderer builds, so it is expected to.
+- dcg hook refused variable-path redirects, `rm -rf dist`, heredocs and `mv` several times -> local setup, reported only.
+- Trusted-publisher form unreachable before a first publish -> R6 amended (placeholder).
+- Render suite's orbit timing fails on a shared display after ~6 min -> a draw-only mode or a contended-display skip would remove it.
+- wasm-bindgen's default module path inlined 2.4 MB more -> `--omit-default-module-path`.
+- The plugin's regex rewrote a literal in a doc comment -> literal not spelled in prose.
+- Placeholder publish answered 404 because npm was not logged in -> R6 steps start with `npm whoami`.
+- Fresh install hit a stale npm cache (`notarget`) -> use `--prefer-online`.

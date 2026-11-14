@@ -1,0 +1,39 @@
+{
+  "branch_name": "fn-337-wood-sets-as-it-thickens",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-09T22:49:43.981168Z",
+  "created_at": "2026-11-09T22:40:50.033129Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-337-wood-sets-as-it-thickens",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "retired": {
+    "by": [
+      "fn-338-a-limb-holds-its-angle-where-its"
+    ],
+    "reason": "superseded"
+  },
+  "spec_path": ".flow/specs/fn-337-wood-sets-as-it-thickens.md",
+  "status": "done",
+  "title": "Wood sets as it thickens",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-09T22:49:43.981174Z"
+}

@@ -2,12 +2,15 @@
 //! expected counts.
 use super::{expected_counts, expected_log_lengths};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
+use crate::transcendental::Transcendental;
 
 /// The expected length is the expected counts weighted by internode,
-/// with every setting away from neutral but two that count what weighs
+/// with every setting away from neutral but three that count what weighs
 /// less than whole: bud places are whole (a fractional one counts whole
-/// at its share of the length), and an age that ends relays none (a move
-/// all but made grows its relay, counted whole and faded).
+/// at its share of the length), an age that ends relays none (a move all
+/// but made grows its relay, counted whole and faded), and a failed unit
+/// relays none (its apex grew its nodes whole at the share of their
+/// length it lived, fn-199 R1).
 #[test]
 fn the_expected_length_weighs_the_expected_counts() {
     let state = |continuation, internode, lateral: [f64; 2]| PaState {
@@ -42,22 +45,34 @@ fn the_expected_length_weighs_the_expected_counts() {
         // A move all but made grows its relay beside its continuation,
         // counted whole and of no expected length (host decision 13).
         relay_ended: 0.0,
-        relay_failed: 0.4,
+        relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 0.8,
         rhythm: 0.6,
         straightening: 0.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
+        leaf_years: f64::INFINITY,
+        elongation: 0.0,
+        expansion: 0.0,
+        leaf_life: f64::INFINITY,
+        budburst: 0.0,
+        senescence: 0.0,
+        colouring: 0.0,
+        leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
+        shade_short: Vec::new(),
         form: Form::default(),
     };
     let species = Species {
@@ -65,9 +80,32 @@ fn the_expected_length_weighs_the_expected_counts() {
     };
     let counts = expected_counts(&species, 7).unwrap();
     let weighed = counts.total(0) * 0.7 + counts.total(1) * 0.3;
-    let length = expected_log_lengths(&species, 7)[7][0].exp();
+    let length = expected_log_lengths(&species, 7)[7][0].exp_fixed();
     assert!(
         (length - weighed).abs() < 1e-9 * weighed,
         "{length} vs {weighed}"
     );
+}
+
+/// fn-355: an entry of the expected-length table is the same to the bit
+/// however far the table runs, so a grower that extends it as it goes on
+/// reads the entries a grower that filled it at once does.
+#[test]
+fn an_expected_length_does_not_depend_on_how_far_the_table_runs() {
+    let bits = |row: &[f64]| row.iter().map(|x| x.to_bits()).collect::<Vec<_>>();
+    for species in [
+        crate::oak(),
+        crate::beech(),
+        crate::spruce(),
+        crate::birch(),
+        crate::palm(),
+    ] {
+        let (short, long) = (
+            expected_log_lengths(&species, 40),
+            expected_log_lengths(&species, 120),
+        );
+        for (m, row) in short.iter().enumerate() {
+            assert_eq!(bits(row), bits(&long[m]), "row {m}");
+        }
+    }
 }

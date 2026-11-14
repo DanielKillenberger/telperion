@@ -1,0 +1,49 @@
+{
+  "branch_name": "fn-251-a-walk-never-grows-a-tree-larger-than",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T19:06:36.252001Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-255-one-growth-law-reads-light-for-every"
+  ],
+  "id": "fn-251-a-walk-never-grows-a-tree-larger-than",
+  "impl_review_rounds": {
+    "fn-251-a-walk-never-grows-a-tree-larger-than.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T19:15:28.673286Z",
+  "ready": true,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-251-a-walk-never-grows-a-tree-larger-than.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-251-a-walk-never-grows-a-tree-larger-than.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-251-a-walk-never-grows-a-tree-larger-than.md",
+  "status": "done",
+  "title": "A walk never grows a tree larger than its ends",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-14T01:33:08.733199Z"
+}

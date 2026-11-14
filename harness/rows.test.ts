@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { PRESETS } from "../src/browser/core";
 import { PARAMETERS, type Parameter } from "../src/browser/parameters.generated";
 
-import { admit, groupOf, labelOf, readRow, shownRows, slider } from "./rows";
+import { admit, readRow, shownRows, slider } from "./rows";
 
 function leaves(value: unknown, at: string, out: Map<string, unknown>): Map<string, unknown> {
   if (typeof value === "object" && value !== null) {
@@ -24,6 +24,9 @@ describe("the generated metadata", () => {
     (_id, preset) => {
       const { id: _ignored, name: _name, note: _note, ...family } = preset;
       const wire = leaves(family, "", new Map());
+      // An engine species' /space rows are judged by the engine, not the
+      // catalogue's metadata; the harness reaches them in fn-198 task 3.
+      for (const path of [...wire.keys()]) if (path.startsWith("/space/")) wire.delete(path);
       const paths = new Set(PARAMETERS.map(p => p.path));
       for (const path of wire.keys()) expect(paths, path).toContain(path);
       for (const p of PARAMETERS) {
@@ -38,8 +41,14 @@ describe("the generated metadata", () => {
 describe("shownRows", () => {
   it("draws only the rows the mature build reads", () => {
     const shown = shownRows().map(p => p.path);
-    expect(shown).toContain("/shellDepth");
-    expect(shown).not.toContain("/age");
+    // Read by a stage of the build: the grown tree's trunk, not the scaffold's.
+    expect(shown).toContain("/radii/trunkRadius");
+    // Checked, never read past the check (fn-212 R2); the engine grows no
+    // scaffold habit (fn-198), so neither is a control (fn-284).
+    expect(shown).not.toContain("/shellDepth");
+    expect(shown).not.toContain("/skeleton/habit/lateralOrders");
+    // The engine grows the tree to its age (fn-198).
+    expect(shown).toContain("/age");
     expect(shown).not.toContain("/canopy/spacing");
   });
 });
@@ -48,9 +57,10 @@ describe("the control's arithmetic", () => {
   const orders = row("/skeleton/habit/lateralOrders");
   const shell = row("/shellDepth");
 
-  it("groups and labels a row by its pointer", () => {
-    expect([groupOf(orders.path), labelOf(orders.path)]).toEqual(["/skeleton/habit", "lateral orders"]);
-    expect([groupOf(shell.path), labelOf(shell.path)]).toEqual(["/", "shell depth"]);
+  it("groups and labels a row as the catalogue states it", () => {
+    expect([shell.group, shell.label]).toEqual(["advanced", "shell depth"]);
+    expect([row("/canopy/rosetteFronds").group, row("/canopy/rosetteFronds").label]).toEqual(["leaves", "rosette fronds"]);
+    expect(row("/radii/trunkRadius").label).toBe("leaf box: wood radius");
   });
 
   it("slides over the tuning window, widened to the value, at a notch that resolves it", () => {
@@ -73,8 +83,6 @@ describe("the control's arithmetic", () => {
     expect(admit(shell, Number.NaN)).toBeNull();
     const open = PARAMETERS.find(p => p.lowOpen && !p.zero)!;
     expect(admit(open, open.low)).toBeNull();
-    const zero = PARAMETERS.find(p => p.zero && p.low > 0)!;
-    expect(admit(zero, 0)).toBe(0);
   });
 });
 

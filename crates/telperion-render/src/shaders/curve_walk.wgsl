@@ -131,6 +131,7 @@ fn sides(rho: f32, error: f32) -> u32 {
     let b = bend();
     if (b > 1.0) { exact = max(exact, TAU * sqrt(rho * b / (8.0 * error))); }
     var n = 3u;
+    // cap: n doubles to MOST_SIDES.
     loop {
         if (f32(n) >= exact || n >= MOST_SIDES) { break; }
         n *= 2u;
@@ -207,17 +208,20 @@ struct Walk {
     tube_start: u32,     // the previous ring's polygon and ribbon, as global
     ribbon_start: u32,   // vertex indices, and its sides
     sides: u32,
+    trunk: bool,         // the cluster is a trunk's run's
 };
 
 // Record flags: the ring's polygon, the strip to the previous polygon, the
 // caps at its start and end, its ribbon vertices, the quad to the previous
-// ribbon.
+// ribbon, and whether it is a trunk's (its cluster's flag 8), whose buried
+// foot stands below the ground.
 const POLYGON: u32 = 1u;
 const STRIP: u32 = 2u;
 const CAP_START: u32 = 4u;
 const CAP_END: u32 = 8u;
 const RIBBON: u32 = 16u;
 const QUAD: u32 = 32u;
+const TRUNK: u32 = 64u;
 
 fn put_record(at: u32, ring: Ring, flags: u32, starts: vec3<u32>, previous: vec3<u32>) {
     let p = ring.p;
@@ -276,6 +280,7 @@ fn settle(w: ptr<function, Walk>, after: bool, has_next: bool, write: bool, base
         if (!before) { flags |= CAP_START; (*w).counts.y += 1u; (*w).counts.z += 3u * ring.sides; }
         if (!after) { flags |= CAP_END; (*w).counts.y += 1u; (*w).counts.z += 3u * ring.sides; }
     }
+    if ((*w).trunk) { flags |= TRUNK; }
     if (write && base.x + (*w).counts.x < cfg.ring_budget) {
         let previous = vec3((*w).tube_start, (*w).sides, (*w).ribbon_start);
         put_record(base.x + (*w).counts.x, ring, flags, vec3(v, t, r), previous);
@@ -311,6 +316,7 @@ fn ring_at(p: Point, slope: f32, error: f32, shaped: bool) -> Ring {
 fn walk(i: u32, error: f32, write: bool, base: vec4<u32>) -> vec4<u32> {
     var w: Walk;
     let c = cluster(i);
+    w.trunk = (c.flags & 8u) != 0u;
     let half = 0.5 * error;
     var held = false;
     if ((c.flags & 4u) != 0u) {
@@ -331,6 +337,7 @@ fn walk(i: u32, error: f32, write: bool, base: vec4<u32>) -> vec4<u32> {
         let step = 1u << level;
         let last = c.count - 1u;
         var ka = 0u;
+        // cap: ka moves on by step each pass, to last.
         loop {
             if (ka >= last) { break; }
             let kb = min(ka + step, last);

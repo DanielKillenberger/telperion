@@ -1,4 +1,4 @@
-use std::sync::Mutex;
+use std::{sync::Mutex, time::Duration};
 
 use serde_json::json;
 use telperion_jev::caller::{
@@ -9,6 +9,7 @@ use telperion_jev::caller::{
 struct Scripted {
     replies: Mutex<Vec<Result<HttpResponse, String>>>,
     seen: Mutex<Vec<HttpRequest>>,
+    waited: Mutex<Vec<Duration>>,
 }
 
 impl Scripted {
@@ -16,11 +17,16 @@ impl Scripted {
         Self {
             replies: Mutex::new(replies),
             seen: Mutex::new(Vec::new()),
+            waited: Mutex::new(Vec::new()),
         }
     }
 }
 
 impl Transport for Scripted {
+    fn wait(&self, backoff: Duration) {
+        self.waited.lock().unwrap().push(backoff);
+    }
+
     fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
         self.seen.lock().unwrap().push(HttpRequest {
             method: request.method,
@@ -94,6 +100,7 @@ fn retries_429_then_records_success() {
         Some("site_quality_criterion")
     );
     assert_eq!(transport.seen.lock().unwrap().len(), 2);
+    assert_eq!(*transport.waited.lock().unwrap(), [Duration::from_secs(1)]);
     let written = std::fs::read_dir(&dir).unwrap().count();
     assert_eq!(written, 1);
     let file = std::fs::read_dir(&dir).unwrap().next().unwrap().unwrap();
@@ -141,6 +148,11 @@ fn exhausted_retries_record_failure_and_error() {
         CallerError::Http { status, .. } => assert_eq!(status, 529),
         other => panic!("{other}"),
     }
+    // Four attempts, backing off 1, 2 and 4 s between them.
+    assert_eq!(
+        *transport.waited.lock().unwrap(),
+        [1, 2, 4].map(Duration::from_secs)
+    );
     let file = std::fs::read_dir(&dir).unwrap().next().unwrap().unwrap();
     let body = std::fs::read_to_string(file.path()).unwrap();
     assert!(body.contains("HTTP 529"), "{body}");
@@ -248,6 +260,45 @@ fn same_state_writes_distinct_ids_and_files() {
     assert_ne!(first.reference(), second.reference());
     assert!(first.reference().contains(&first.id));
     assert_eq!(std::fs::read_dir(&dir).unwrap().count(), 2);
+}
+
+#[test]
+fn a_call_without_assets_sends_the_request_it_always_sent() {
+    let transport = Scripted::new(vec![Ok(HttpResponse {
+        status: 200,
+        body: ok_body(),
+    })]);
+    let state = json!({"note": "crown"});
+    let questions = json!({"kind": {"type": "noul", "instructions": "x"}});
+    evaluate(
+        &transport,
+        "k",
+        EvaluateRequest {
+            tool: "ask",
+            source: None,
+            state: &state,
+            questions: &questions,
+            ledger_dir: &tempfile(),
+        },
+    )
+    .unwrap();
+    let seen = transport.seen.lock().unwrap();
+    let headers: Vec<_> = seen[0]
+        .headers
+        .iter()
+        .map(|(k, v)| (k.as_str(), v.as_str()))
+        .collect();
+    assert_eq!(
+        headers,
+        [
+            ("Authorization", "Bearer k"),
+            ("Content-Type", "application/json")
+        ]
+    );
+    assert_eq!(
+        String::from_utf8(seen[0].body.clone().unwrap()).unwrap(),
+        r#"{"model":"jev-latest","questions":{"kind":{"instructions":"x","type":"noul"}},"state":{"note":"crown"}}"#
+    );
 }
 
 fn tempfile() -> std::path::PathBuf {

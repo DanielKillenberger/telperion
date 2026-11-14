@@ -1,0 +1,15 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-11-10T11:18:44.684675Z",
+  "depends_on": [],
+  "id": "fn-341-the-earned-structure-the-second-proof.1",
+  "implicit_owner": true,
+  "priority": null,
+  "spec": "fn-341-the-earned-structure-the-second-proof",
+  "spec_path": ".flow/tasks/fn-341-the-earned-structure-the-second-proof.1.md",
+  "status": "done",
+  "title": "Implement The earned structure: the second proof",
+  "updated_at": "2026-11-10T11:18:44.684675Z"
+}

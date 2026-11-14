@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-315-the-browser-render-test-waits-for-the",
+  "created_at": "2026-10-24T18:22:51.927887Z",
+  "depends_on_epics": [],
+  "id": "fn-315-the-browser-render-test-waits-for-the",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-315-the-browser-render-test-waits-for-the.md",
+  "status": "open",
+  "title": "The browser render test waits for the tree it checks",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-24T18:22:51.934607Z"
+}

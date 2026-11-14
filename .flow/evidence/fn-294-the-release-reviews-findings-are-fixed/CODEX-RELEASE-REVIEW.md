@@ -1,0 +1,16 @@
+# Codex release review (owner-run, 2026-10-19)
+
+Range `428009eb8..848f3a72b`, code only (`.flow/`, `vendor/`, lock files excluded). Prompt: `codex-release-review.md` beside this file. Read-only; selective source review across eight areas, nothing executed.
+
+| id | severity | verdict | file:line | defect | failure scenario | suggested fix |
+|---|---|---|---|---|---|---|
+| 3.1 | P1 | CONFIRMED | crates/telperion-render/src/generation.rs:141 | Admission omits flower buffers from the memory released by replacing a tree. | With a flowering tree displayed, `tree_buffer_bytes` counts only wood and leaves, while the allocation ledger includes flowers. Admission can therefore reject a replacement as too large even though `release_tree`, which releases all three, would make enough room. Reported tree memory is also understated. | Include `renderer.organ.allocated_bytes()` in releasable tree memory. |
+| 5.1 | P2 | PLAUSIBLE | crates/telperion-core/src/params.rs:31 | Metadata serialization can panic for a valid Rust family. | Change a preset's `space.light` to another valid light setting, then call `params::overlay`. Overlay calls `metadata`, whose `expect` panics because `space::rows` rejects non-`SITE` light. | Propagate the serialization refusal through `overlay` and define fallible metadata behavior. |
+| 6.1 | P2 | PLAUSIBLE | crates/telperion-space/src/light/field.rs:66 | An oversized light lattice asserts instead of returning a named refusal. | A palm-derived species with 100 m internodes, four nodes per unit and six horizontal lateral buds, grown to year 3 within a 10,000-phytomer budget; its box can exceed 2^28 lattice nodes while every coordinate stays below 4096 m. Not executed. | Make lattice spanning fallible and propagate a named domain error before allocation. |
+| 7.1 | P1 | CONFIRMED | crates/telperion-wasm/src/generate.rs:125 | The Wasm binding discards the pipeline's flower geometry. | `TreeEngine.build(LAURELIN, { foliage: true })` produces `Outputs::organ`; the binding transfers only `o.leaves` and `o.element`. Package consumers receive a flowerless tree despite paying to generate its flowers. | Transfer the organ element, instances and reference through the binding and public output. |
+| 7.2 | P2 | CONFIRMED | scripts/ci-key.mjs:37 | Cached test keys omit the new tree-space dependency. | A commit changing only `crates/telperion-space` leaves the core, render and Node suite keys unchanged; green receipts skip those suites. | Include SPACE in every dependent suite's input hash. |
+| 7.3 | P2 | CONFIRMED | scripts/test-wasm.mjs:13 | The field browser test builds the wrong Wasm module. | On a fresh checkout, `npm run rust:test:wasm` builds only core Wasm, then loads the field entry, which imports renderer glue and Wasm this command does not produce. A warm checkout can test stale renderer artifacts. | Build the renderer before starting the field test server. |
+
+Areas 1 (GPU growth cycle), 2 (resident sweep and field), 4 (core pipeline) and 8 (cross-cutting) had no further findings.
+
+Codex's own caveat: not every changed line was inspected; no tests, builds or GPU captures ran; layout equivalence across WGSL/Rust/TypeScript, shader maths, large-tree limits, device-memory release, visual parity and all preset combinations remain unverified.

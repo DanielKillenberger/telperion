@@ -77,7 +77,8 @@ fn final_fn6_geometry_comparison() {
                 .collect(),
             ..Tree::default()
         };
-        let mesh = build(&tree, c[0], &params).unwrap_or_else(|e| panic!("{id}: {e}"));
+        let wood = build(&tree, c[0], &params).unwrap_or_else(|e| panic!("{id}: {e}"));
+        let mesh = wood.flattened();
         let reference = f32s(dir, id, "surface-positions");
         let normals = f32s(dir, id, "surface-normals");
         let indices: Vec<u32> = fs::read(dir.join(format!("{id}-surface-indices.bin")))
@@ -105,8 +106,10 @@ fn final_fn6_geometry_comparison() {
             error <= 8.0 * f32::EPSILON as f64 * c[0].max(1.0),
             "{id} position error {error}"
         );
-        assert!(normal_error <= 1e-5, "{id} normal error {normal_error}");
-        if let Some(bounds) = mesh.bounds {
+        // The wood keeps its normals octahedral in two snorm16, decoded
+        // within 1e-4 radians (`encode` tests), so a component within 1e-4.
+        assert!(normal_error <= 1e-4, "{id} normal error {normal_error}");
+        if let Some(bounds) = wood.bounds {
             for (k, (lo, hi)) in [
                 (bounds.min.x, bounds.max.x),
                 (bounds.min.y, bounds.max.y),

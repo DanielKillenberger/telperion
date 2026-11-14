@@ -149,7 +149,4 @@ fn natural_bias_is_independent_of_disabled_effects() {
         natural.tree.nodes,
         generate(&p, RadiusParams::default()).unwrap().tree.nodes
     );
-    for preset in [Preset::Telperion, Preset::Laurelin] {
-        assert!(preset.parameters().skeleton.bias.supernatural.enabled);
-    }
 }

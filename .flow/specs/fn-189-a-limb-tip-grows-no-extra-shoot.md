@@ -1,53 +1,27 @@
 # A limb tip grows no extra shoot
 
-## Conversation Evidence
+## Goal
 
-> owner (2026-10-02, on the beech's thick leaders running bare past the crown): "now they look like devil horns"
-> owner (2026-10-02, on fn-188's step 2 and the host's recommendation to ship the deletion on its own): "makes sense"
+When a scaffold limb's tip had no children, the twig layer seeded one continuation shoot at the tip's full radius, 38.97 · r^(2/3) long (about 13 m on a 0.2 m limb; `local/seed.rs:158`, `twigs.rs:394`). On the beech it made 77% of each visible horn and pushed tips 5 m above the crown (fn-182's horn trace). fn-188's ablation deleted it: on the beech at seed 1 the trunk path fell from 31.87 m to 27.27 m (envelope 32), the visible pole from 4.14 m to 0.49 m, nodes −12% (213,044 to 187,972), leaves −15%, skeleton 71 to 56 ms, generate-and-mesh 3,326 to 2,815 ms cold. This spec was to delete the special case on the direct build for every preset.
 
-## Goal & Context
-<!-- scope: business -->
-<!-- Goal & Context: 20% [user], 70% [checked], 10% [inferred] -->
+## Decisions
 
-When a scaffold limb's tip has no children, the twig layer seeds one continuation shoot at the tip's full radius, with a length grown from that radius: 38.97 · r^(2/3), about 13 m on a 0.2 m limb (`local/seed.rs:158`, `twigs.rs:394`, kept along the run by `local/advance.rs:108`). On the beech it made 77% of each visible horn and pushed tips 5 m above the crown (fn-182 `R8-HORNS.md`). fn-188's step 2 deleted it outright (`.flow/evidence/fn-188-one-branching-law-from-trunk-to-twig/R2-ABLATIONS.md`, ablation b): on the shipped beech at seed 1 the trunk path tops out at 27.27 m instead of 31.87 m (envelope 32), the visible pole falls from 4.14 m (R8's shortening) to 0.49 m, nodes fall 12% (213,044 to 187,972) and leaves 15%, skeleton time 71 to 56 ms, generate and mesh 3,326 to 2,815 ms cold. [checked]
-
-This spec deletes that special case on the direct build, for every preset. [inferred]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-- The deletion is the one fn-188 measured: a childless scaffold tip seeds no full-radius continuation. Terminal buds elsewhere, laterals, curtains and the twig law's own continuations are unchanged. [checked: R2-ABLATIONS ablation b]
-- Code that becomes dead on every path is removed; the hidden growth path (removed by fn-181 where landed) is not tuned. [inferred]
-- Every preset's tree changes; byte identity is not required (AGENTS.md "Generator evolution"); pins and digests are re-recorded with the reason. [AGENTS.md]
-
-## Edge Cases & Constraints
-
-- The date palm's rosette apex already grows no twig layer (fn-183); its drawn tree is checked unchanged or explained. [checked]
-- No full-forest capture. [AGENTS.md]
+- owner (2026-10-02, on the beech's thick leaders running bare past the crown): "now they look like devil horns"
+- owner (2026-10-02, on shipping the deletion on its own): "makes sense" — it replaced fn-182's paused "the continuation takes the ordinary shoot length".
+- Held (owner, 2026-10-02): deleting the tip shoot strips the twig layer from trees whose scaffold is everywhere thicker than the twig gate: Telperion at seed 7 dropped from 18,140 nodes and 128,852 leaves to 363 nodes and none; ordinary, laurelin and Telperion at seed 1 lost 25 to 41% of their leaves. The "helps every tree" claim rested on the beech alone and was wrong. Owner: "figure out what it was and make sure that we have the elegant right solution. Don't just accept looks good without understanding why".
+- Superseded by fn-190 (owner, 2026-10-03): the tip shoot goes together with the thickness gate it compensated for, as part of fn-190's deletions.
 
 ## Acceptance Criteria
 
-- **R1:** On the direct build no childless scaffold tip seeds a continuation shoot; a test pins it on a synthetic family and on every catalogue preset. [inferred]
-- **R2:** Paired `growth_profile` runs against one named base for every catalogue preset at seeds 1 and 7: nodes, leaves, skeleton time, generate-and-mesh time; no preset slower beyond the noise. [inferred]
-- **R3:** Stills of every catalogue preset at seeds 1 and 7 beside today's, bare and whole, at a fixed camera per preset, with the owner's verdict. [user]
-- **R4:** `cargo test --profile ci --workspace --no-fail-fast` and `npm test` green; artifact sizes and peak memory reported. [AGENTS.md]
+- **R1:** No childless scaffold tip seeds a continuation shoot, pinned on a synthetic family and every preset — not merged (superseded).
+- **R2:** Paired `growth_profile` runs for every preset at seeds 1 and 7, no preset slower — measured on the branch; not merged.
+- **R3:** Stills of every preset beside today's with the owner's verdict — superseded.
+- **R4:** Gates green, sizes and memory reported — superseded.
 
-## Boundaries
+## Result
 
-- The branching hierarchy and twig density are fn-188's and fn-182's. [inferred]
+Not merged. The trace (`TRACE.md` and `RESULT.md` on branch `fn-189-a-limb-tip-grows-no-extra-shoot`) showed the tip shoot compensates for the `limbRadius` thickness gate: Telperion at seed 7 has every scaffold node at or just above the gate, so its tip shoots carried 100% of its twigs.
 
-## Decision Context
+## Open
 
-- Shipped on its own because it helps every tree and does not depend on fn-188's outcome (owner, 2026-10-02). It replaces fn-182's paused "the continuation takes the ordinary shoot length". [user]
-
-## Strategy Alignment
-
-- `docs/principles.md`, "Question, delete, then optimise": a special case deleted, every tree faster. [strategy:Our approach]
-
-## Held (owner, 2026-10-02)
-
-Deleting the tip shoot strips the twig layer from trees whose scaffold is everywhere thicker than the twig gate: telperion at seed 7 drops from 18,140 nodes and 128,852 leaves to 363 nodes and none; ordinary, laurelin and telperion at seed 1 lose 25 to 41% of their leaves (`RESULT.md` on branch `fn-189-a-limb-tip-grows-no-extra-shoot`). The claim that the deletion "helps every tree" rested on the beech alone and was wrong. The tip shoot compensates for the same thickness gate fn-188 is examining, so this spec waits on fn-188; the mechanism is traced before any choice (owner: "figure out what it was and make sure that we have the elegant right solution. Don't just accept looks good without understanding why"). [checked]
-
-## Superseded by fn-190-one-growth-law-species-are-points-in-a (owner, 2026-10-03)
-
-The tip shoot goes together with the thickness gate it compensated for, as part of fn-190-one-growth-law-species-are-points-in-a's deletions; deleting it alone strips whole twig layers (`TRACE.md` on branch `fn-189-a-limb-tip-grows-no-extra-shoot`). [user]
+Carried by fn-190.

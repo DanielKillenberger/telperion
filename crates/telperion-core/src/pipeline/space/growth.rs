@@ -1,0 +1,186 @@
+//! Growth that continues (fn-270 R2): a family's tree begun for a first
+//! age, grown on to any age, past it too (fn-355), and drawn at any age
+//! within its last year, through the one cycle and the one conversion `grow` takes. The
+//! state holds the engine's grower between calls (`telperion_space::Paused`);
+//! a draw is a snapshot of its own and never moves the state. Ages are
+//! years: growth commits whole cycles, and a draw within the year unfolds
+//! this year's shoots and leaves and moves the rest from the year before
+//! (`telperion_space::unfold`, R5 and R5a).
+use super::{engine, pa_rows, scaled, unfolded, Establishing, PaRow, Unfolding};
+use crate::presets::Family;
+use crate::tree::Tree;
+use crate::{Error, Result};
+use std::sync::Arc;
+use telperion_space::{admitted, Paused, Request, Retiring, Species};
+
+/// What a family's tree grows and is drawn by, read from the family once:
+/// its engine species, site light, trunk PAs, each PA's conversion row,
+/// and the scale it is drawn at.
+pub struct Params {
+    species: Arc<Species>,
+    light: telperion_space::Light,
+    trunk: Vec<usize>,
+    rows: Vec<PaRow>,
+    scale: f64,
+    establishing: Option<Establishing>,
+}
+
+impl Params {
+    /// The family's growth, its supernatural rows applied and judged. A
+    /// family with no engine species is refused by name.
+    pub fn of(family: &Family) -> Result<Self> {
+        let input = super::GrowInput::of(family)?;
+        input.supernatural.validate()?;
+        let space = input.space.as_ref();
+        let species = space
+            .species
+            .clone()
+            .map(Arc::new)
+            .ok_or(Error::InvalidInput("no engine species"))?;
+        let rows = pa_rows(&species);
+        let (light, trunk, scale) = (space.light, space.trunk.clone(), input.supernatural.scale());
+        let establishing = Establishing::of(&input.canopy, &species, &trunk);
+        Ok(Self {
+            species,
+            light,
+            trunk,
+            rows,
+            scale,
+            establishing,
+        })
+    }
+}
+
+/// A tree growing: the engine's grower paused between calls, at the
+/// cycles it has committed. It owns what it reads, so a caller can hold
+/// it between calls (fn-353). It keeps the seed it was begun with, which
+/// everything drawn of it is keyed by (fn-365 R6).
+pub struct GrowthState {
+    params: Arc<Params>,
+    paused: Paused,
+    seed: u32,
+}
+
+impl GrowthState {
+    /// The whole years grown.
+    pub fn committed(&self) -> u32 {
+        self.paused.committed()
+    }
+
+    /// The years it was first asked to grow, which bounds nothing.
+    pub fn horizon(&self) -> u32 {
+        self.paused.horizon()
+    }
+}
+
+/// The tree before its first year, to grow at most `horizon` whole years
+/// from `seed`. A horizon that is no whole number of years is refused by
+/// name.
+pub fn begin(params: &Arc<Params>, seed: u32, horizon: f64) -> Result<GrowthState> {
+    begun(params, seed, horizon, true)
+}
+
+/// `begin` for a tree drawn at whole years only, as a film of its years
+/// draws it: it keeps no year before, so a year grown settles nothing,
+/// and a draw within the year is refused by name. At a whole year it is
+/// `begin`'s tree to the bit.
+pub fn begin_whole(params: &Arc<Params>, seed: u32, horizon: f64) -> Result<GrowthState> {
+    begun(params, seed, horizon, false)
+}
+
+/// `begin`, keeping the year before where `within` asks for draws within
+/// the year.
+fn begun(params: &Arc<Params>, seed: u32, horizon: f64, within: bool) -> Result<GrowthState> {
+    if horizon.fract() != 0.0 || !(0.0..=f64::from(u32::MAX)).contains(&horizon) {
+        return Err(Error::InvalidValue {
+            field: "horizon",
+            value: format!("{horizon}"),
+        });
+    }
+    let age = horizon as u32;
+    let request = Request {
+        age,
+        seed: u64::from(seed),
+        light: params.light,
+    };
+    let paused = Paused::begin(Arc::clone(&params.species), request, Retiring::AtAge, false)
+        .map_err(engine)?;
+    let paused = match within {
+        true => paused.presenting(),
+        false => paused,
+    };
+    let params = Arc::clone(params);
+    Ok(GrowthState {
+        params,
+        paused,
+        seed,
+    })
+}
+
+/// The tree grown to `age` years: every whole cycle to its ceiling,
+/// none where `age` falls within the last year grown. An age that is not
+/// finite or a year or more back is refused by name before anything
+/// moves; a failure while it grows spends the state.
+pub fn grow_to(state: &mut GrowthState, age: f64) -> Result<()> {
+    let p = &mut state.paused;
+    p.usable().map_err(engine)?;
+    let to = admitted(p.committed(), age).map_err(engine)?;
+    p.grow_to(to).map_err(engine)
+}
+
+/// The tree drawn at `at`, within the last year grown, as the pipeline's
+/// tree: a snapshot of its own, the state left as it was.
+pub fn settle(state: &GrowthState, at: f64) -> Result<Tree> {
+    let drawn = state.paused.settle_at(at).map_err(engine)?;
+    let p = &state.params;
+    let unfolding = Unfolding {
+        leaves: &drawn.leaves,
+        fraction: drawn.fraction,
+        gone: drawn.gone,
+    };
+    let structure = Establishing::apply(p.establishing, &drawn.structure, &p.trunk);
+    let (mut tree, _) = unfolded(&structure, (&p.trunk, &p.rows), unfolding)?;
+    scaled(&mut tree, p.scale);
+    Ok(tree)
+}
+
+/// How far the tree drawn at `at` has coloured its falling leaves, which
+/// the renderer turns its withered leaves by (fn-270 R5c,
+/// `telperion_space::unfold::colouring`); `at` is checked as `settle`
+/// checks it.
+pub fn colouring(state: &GrowthState, at: f64) -> Result<f64> {
+    let f = telperion_space::within_year(state.committed(), at).map_err(engine)?;
+    Ok(telperion_space::unfold::colouring(&state.params.species, f))
+}
+
+/// The tree drawn at `at` dressed in wood and leaves, as `mesh::build`
+/// dresses the tree it grows; `family` is the one `Params` was read from.
+/// Its leaves are keyed by the seed the state was begun with, never the
+/// family's `skeleton.seed` row: a growth has one seed (fn-365 R6).
+#[cfg(feature = "geometry")]
+pub fn mesh(state: &GrowthState, at: f64, family: &Family) -> Result<crate::mesh::TreeMesh> {
+    dressed(state, at, family, super::super::Request::mesh())
+}
+
+/// `mesh` without the CPU wood surface: the tree a renderer draws (fn-351).
+#[cfg(feature = "geometry")]
+pub fn drawn(state: &GrowthState, at: f64, family: &Family) -> Result<crate::mesh::TreeMesh> {
+    dressed(state, at, family, super::super::Request::drawn())
+}
+
+#[cfg(feature = "geometry")]
+fn dressed(
+    state: &GrowthState,
+    at: f64,
+    family: &Family,
+    request: super::super::Request,
+) -> Result<crate::mesh::TreeMesh> {
+    let mut tree = settle(state, at)?;
+    let mut inputs = super::super::Inputs::of(family, super::super::grown_envelope(&tree));
+    (inputs.plan.seed, inputs.leaves.seed) = (state.seed, state.seed);
+    super::super::clothe(&mut tree, &inputs)?;
+    crate::mesh::assembled(super::super::outputs(&tree, &inputs, request)?)
+}
+
+#[cfg(test)]
+mod tests;

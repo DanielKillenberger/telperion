@@ -241,24 +241,3 @@ fn the_rows_are_refused_off_their_rails() {
         }
     }
 }
-
-/// fn-177's boundary: a hold adds or loses no twig or leaf. Wood bears leaves
-/// by the pipe model's radii, here where the canopy clothes slender
-/// structural wood and bears short shoots along it. A leaf still sits on the
-/// wood as drawn, so the envelope's interior cull, which reads where a leaf
-/// is, may keep a handful fewer or more.
-#[test]
-fn a_hold_adds_or_loses_no_leaf() {
-    let placed = |girth_hold: f64| {
-        let mut f = crate::presets::Preset::Ordinary.parameters();
-        f.skeleton.seed = 1;
-        f.canopy.shoot_radius = 0.2;
-        f.canopy.short_shoot_spacing = 0.5;
-        f.radii.girth_hold = girth_hold;
-        f.radii.girth_fall = 4.0;
-        let built = crate::pipeline::build(&f, crate::pipeline::Request::mesh()).unwrap();
-        let leaves = built.outputs.leaves.unwrap();
-        (built.skeleton.tree.nodes.len(), leaves.placed)
-    };
-    assert_eq!(placed(0.75), placed(0.0));
-}

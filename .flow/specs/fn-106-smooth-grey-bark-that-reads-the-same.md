@@ -7,7 +7,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 40% [user], 40% [paraphrase], 20% [inferred] -->
 
 Two observations on the beech, one from the reviewer and one from the owner. The reviewer, at the base view: "pervasive tile-like relief and strong horizontal scoring" against the reference's continuous smooth grey, and the marks "remain conspicuous at whole-tree scale". The owner, on the same stills: the bark from afar does not look like the detailed view. The fn-68 materials run (six rounds, 91 material dials) never isolated a family: every bundle darkened the bark, lowered roughness, raised `ridge_scale` from 0.002 to 0.012 in one half step, and switched bark plates on from zero. This gap is independent of the structural ones. [paraphrase]
 

@@ -1,6 +1,7 @@
 use telperion_core::{presets::Preset, radius, tree::NodeKind};
 
 use super::specimens;
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn only_childless_species_structure_gets_terminal_taper() {
     for preset in [

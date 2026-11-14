@@ -1,0 +1,408 @@
+{
+  "branch_name": "fn-319-the-release-audits-slice-lands-before",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-28T10:40:42.252017Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-319-the-release-audits-slice-lands-before",
+  "impl_review_rounds": {
+    "fn-319-the-release-audits-slice-lands-before.1": 0,
+    "fn-319-the-release-audits-slice-lands-before.2": 0,
+    "fn-319-the-release-audits-slice-lands-before.3": 0,
+    "fn-319-the-release-audits-slice-lands-before.4": 0,
+    "fn-319-the-release-audits-slice-lands-before.5": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-28T10:54:05.620378Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "545a74513c78420a77814ed9a46758727bf7f1823b699e4ef3a049ec696e144f",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-217ba01dc73697c238f939c5c0e22d11",
+            "classification": "introduced",
+            "findingId": "finding-217ba01dc73697c238f939c5c0e22d11",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-098bb5239590ed789ef723166879284c",
+            "classification": "introduced",
+            "findingId": "finding-098bb5239590ed789ef723166879284c",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-49fcff9862b62c91a18a9ed37881ae8d",
+            "classification": "introduced",
+            "findingId": "finding-49fcff9862b62c91a18a9ed37881ae8d",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6eec11357f46993cafe5272b9faec99d62d7b2bc",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 403312,
+      "output_sha256": "e4204b9eea15ecf0a63336f949aca2e329f8c3e6b577ac59a9adf52d61870d5c",
+      "reservation_id": "ea0485317d204cd1832d176650de274e",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-28T10:52:55.305049Z",
+      "tool_calls": 24,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "462a8728827cbca76247bb5f9bc578392c97e585648d56700c6eced05fa6dea0",
+      "backend": "codex",
+      "base_sha": "428009eb8106d1255fefd2ebcbfac978fb9a469a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-217ba01dc73697c238f939c5c0e22d11",
+            "classification": "introduced",
+            "findingId": "finding-217ba01dc73697c238f939c5c0e22d11",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-098bb5239590ed789ef723166879284c",
+            "classification": "introduced",
+            "findingId": "finding-098bb5239590ed789ef723166879284c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-49fcff9862b62c91a18a9ed37881ae8d",
+            "classification": "introduced",
+            "findingId": "finding-49fcff9862b62c91a18a9ed37881ae8d",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6eec11357f46993cafe5272b9faec99d62d7b2bc",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 821,
+      "output_sha256": "480ad107cfd00b81c16800e884379fa8a98d83a8902560d0a5e24c4fa43f175b",
+      "reservation_id": "ada226d9578b4d4fa24dbccc1bb82eb6",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-28T10:54:05.617251Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e482b17382c4fbfc62b829a7ac47ba37e5b5ec38d9c18dd4eca6b3df4de1c200",
+      "backend": "codex",
+      "base_sha": "eb6e7ccce26c41cb90603b3f07e3d7d9ac129e50",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7d5b962037485a3860262644fa1d134fe3680ad4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "5704b7cc331f4aec828f5bcc764c39fb",
+      "round_consumed": true,
+      "scope": "impl:fn-319-the-release-audits-slice-lands-before.4",
+      "superseded_by": null,
+      "task": "fn-319-the-release-audits-slice-lands-before.4",
+      "timestamp": "2026-10-28T11:13:32.133851Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "0a4f82570431e6b9a48e36ae7451caf0f47eadd2af4217faaacf49177a0b53e7",
+      "backend": "codex",
+      "base_sha": "22d3da19fb60d73a137345d71a163a8a6ffe48be",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c790849b86bdd8ab1eee28e6c37220c531e1fc48",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "7d4611737978414ab68aaee6811915a1",
+      "round_consumed": true,
+      "scope": "impl:fn-319-the-release-audits-slice-lands-before.1",
+      "superseded_by": null,
+      "task": "fn-319-the-release-audits-slice-lands-before.1",
+      "timestamp": "2026-10-28T11:19:57.570100Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "fc959ac76e9f0d428e3c396a950e9900cd8f07df95eede68badf82b91b9d55f2",
+      "backend": "codex",
+      "base_sha": "ecd5902a4a7812d86d68fc3bf496f0679edeba09",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e923feaf8561635bca487e9b074c8b49f9dc1d86",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "2ce32c8e838f4d82afe6fc192f5735ad",
+      "round_consumed": true,
+      "scope": "impl:fn-319-the-release-audits-slice-lands-before.2",
+      "superseded_by": null,
+      "task": "fn-319-the-release-audits-slice-lands-before.2",
+      "timestamp": "2026-10-28T12:16:03.709160Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "f0dfd0152c1cb6fa0a3446347b807c04eeb7fd201017bb936b59ed69b48376a6",
+      "backend": "codex",
+      "base_sha": "22b9ae6e1361c183560f913b5385f13341770e32",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9cefe9ad1ace4d3d4ae521fa437f601d",
+            "classification": "introduced",
+            "findingId": "finding-9cefe9ad1ace4d3d4ae521fa437f601d",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "94f56ca8e6d1c75add98274778d1ebe78d8f9073",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 884,
+      "output_sha256": "7970bd797efed9dbcd8a24a0a6230d8d93393ed8b80b1e47cdc7448d9ade9589",
+      "reservation_id": "970eaf2bde584b4f94ba645e64804b40",
+      "round_consumed": true,
+      "scope": "impl:fn-319-the-release-audits-slice-lands-before.3",
+      "superseded_by": null,
+      "task": "fn-319-the-release-audits-slice-lands-before.3",
+      "timestamp": "2026-10-28T13:06:08.917469Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "900a550b90f87edc8b9c6b2e8f2abebd5c66517037207b5fa6b67edb844565b2",
+      "backend": "codex",
+      "base_sha": "22b9ae6e1361c183560f913b5385f13341770e32",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9cefe9ad1ace4d3d4ae521fa437f601d",
+            "classification": "introduced",
+            "findingId": "finding-9cefe9ad1ace4d3d4ae521fa437f601d",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "40cefe7a9c47ae423361f6d07457ae6804a1783a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 947,
+      "output_sha256": "6164aa1626d11fba22265741236b039ca2b584922f17c42ebb521075d5a26ca2",
+      "reservation_id": "9bcf5cec36fe4930808e4afd5ae2a4ec",
+      "round_consumed": true,
+      "scope": "impl:fn-319-the-release-audits-slice-lands-before.3",
+      "superseded_by": null,
+      "task": "fn-319-the-release-audits-slice-lands-before.3",
+      "timestamp": "2026-10-28T13:27:16.708948Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "5b6be29c12c868cb1fb9f9dcf75d5a4f13b172eb1fdd4f2b547ecb0ccc0d6b78",
+      "backend": "codex",
+      "base_sha": "4b9f600db8e5b2120e70f9601e1a18278929ddb2",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6ea5bf24b11f63bd984f4dfb0cbfc9687029739d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "7e2f468688b44fb3af8cbfa4679ce6dc",
+      "round_consumed": true,
+      "scope": "impl:fn-319-the-release-audits-slice-lands-before.5",
+      "superseded_by": null,
+      "task": "fn-319-the-release-audits-slice-lands-before.5",
+      "timestamp": "2026-10-28T13:33:13.270843Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-319-the-release-audits-slice-lands-before.1": 1,
+    "impl:fn-319-the-release-audits-slice-lands-before.2": 1,
+    "impl:fn-319-the-release-audits-slice-lands-before.3": 1,
+    "impl:fn-319-the-release-audits-slice-lands-before.4": 1,
+    "impl:fn-319-the-release-audits-slice-lands-before.5": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-319-the-release-audits-slice-lands-before.1": 0,
+    "impl:fn-319-the-release-audits-slice-lands-before.2": 0,
+    "impl:fn-319-the-release-audits-slice-lands-before.3": 0,
+    "impl:fn-319-the-release-audits-slice-lands-before.4": 0,
+    "impl:fn-319-the-release-audits-slice-lands-before.5": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-319-the-release-audits-slice-lands-before.md",
+  "status": "done",
+  "title": "The release audit's slice lands before the tag",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-11T11:59:54.117929Z"
+}

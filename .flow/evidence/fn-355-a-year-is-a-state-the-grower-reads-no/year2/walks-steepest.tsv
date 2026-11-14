@@ -1,0 +1,148 @@
+walk	fn-354 head	now
+beech to spruce	230.82	240.06
+in leaf: sleeping: states[1].zones[0].dormant[2]	1.18	1.17
+in leaf: states[1].form.sag	0.61	3.63
+in leaf: states[1].viability	3.10	4.50
+in leaf: states[2].shedding	0.14	0.13
+light: extinction	8.60	8.34
+light: leaf_area	14.33	13.90
+light: leaf_years	1.03	0.86
+light: sky	9.59	7.42
+light: states[0].apical_control	27.82	17.79
+light: states[1].apical_control	29.88	13.44
+light: states[1].balance_hazard	1.83	2.84
+light: states[1].inverse_height	3.63	3.64
+light: states[1].shade_hazard	1.61	1.58
+light: states[1].shade_short[2]	29.55	28.95
+light: states[1].shade_size	2.17	2.19
+light: states[2].apical_control	1.97	1.96
+light: states[2].inverse_height	2.31	2.40
+light: states[2].shade_hazard	3.16	2.87
+light: states[2].shade_size	1.12	1.64
+light: states[2].tolerance	6.21	7.16
+oak to palm	80.59	93.07
+sleeping: states[0].zones[1].delay	1.23	1.22
+sleeping: states[0].zones[1].delay, limbs rise and erect	1.23	1.24
+sleeping: states[0].zones[1].dormant[1]	1.69	1.44
+sleeping: states[0].zones[1].rate	6.04	5.83
+sleeping: states[1].abortion	2.54	2.65
+sleeping: states[1].viability	3.03	4.09
+sleeping: states[1].zones[0].delay	0.46	0.49
+sleeping: states[1].zones[0].dormant[2]	1.57	1.56
+sleeping: states[1].zones[0].rate	2.45	2.45
+sleeping: states[1].zones[0].rate, twigs rise and erect	2.82	2.60
+spruce to oak	231.74	241.78
+states[0].abortion	1.51	1.06
+states[0].abortion, relay 1	4.51	4.51
+states[0].abortion_rise	0.00	0.00
+states[0].continuation	0.00	0.00
+states[0].divergence	2.55	2.56
+states[0].epitony	0.00	0.00
+states[0].erection	0.00	0.00
+states[0].form.bend_length, wandering	0.13	0.13
+states[0].form.dominance	0.00	0.00
+states[0].form.elevation	0.00	0.00
+states[0].form.insertion_spread	0.00	0.00
+states[0].form.internode_spread	0.08	0.09
+states[0].form.plane	0.14	0.16
+states[0].form.roll	0.00	0.00
+states[0].form.sag	1.29	1.39
+states[0].form.tropism	0.75	0.75
+states[0].form.tropism_spread, bending	0.45	0.45
+states[0].form.wander	0.08	0.08
+states[0].form.wander, bending	0.15	0.15
+states[0].insertion	0.00	0.00
+states[0].internode	1.99	1.99
+states[0].lifespan	2.79	2.77
+states[0].readiness	2.13	2.46
+states[0].relay	0.00	0.00
+states[0].relay_at	0.00	0.00
+states[0].relay_ended	0.00	0.01
+states[0].relay_failed	0.00	0.00
+states[0].rhythm	3.21	3.20
+states[0].straightening	0.00	0.00
+states[0].viability	1.34	0.94
+states[0].zones[0].buds	8.61	8.57
+states[0].zones[0].lateral[0]	10.28	9.62
+states[0].zones[0].lateral[1]	2.03	1.86
+states[0].zones[0].lateral[2]	1.30	1.31
+states[0].zones[0].nodes.mean	19.39	20.48
+states[0].zones[1].buds	9.93	10.28
+states[0].zones[1].lateral[0]	12.62	12.46
+states[0].zones[1].lateral[1]	3.10	2.77
+states[0].zones[1].lateral[2]	1.12	1.13
+states[0].zones[1].nodes.max	2.62	2.91
+states[0].zones[1].nodes.min	6.30	9.47
+states[1].abortion	2.49	2.47
+states[1].abortion_rise	3.80	4.99
+states[1].continuation	1.12	1.11
+states[1].divergence	1.31	1.31
+states[1].epitony	0.07	0.06
+states[1].erection	1.27	1.42
+states[1].form.bend_length, continued bending	0.17	0.19
+states[1].form.bend_length, wandering	0.17	0.19
+states[1].form.dominance	2.55	2.65
+states[1].form.elevation	0.00	0.00
+states[1].form.insertion_spread	0.24	0.24
+states[1].form.internode_spread	0.06	0.06
+states[1].form.plane	0.21	0.20
+states[1].form.primary, sag 3e-5	3.66	3.64
+states[1].form.roll	0.22	0.24
+states[1].form.sag	0.19	0.23
+states[1].form.sapwood, sag 3e-5	4.41	7.12
+states[1].form.sapwood_rings, sag 3e-5	0.01	0.01
+states[1].form.tropism	0.14	0.20
+states[1].form.tropism_spread, bending	0.24	0.25
+states[1].form.wander	0.05	0.07
+states[1].form.wander, bending	0.10	0.10
+states[1].insertion	0.47	0.53
+states[1].internode	1.39	1.40
+states[1].lifespan	6.89	6.96
+states[1].readiness	1.09	1.55
+states[1].relay	1.50	1.71
+states[1].relay_at	0.98	0.91
+states[1].relay_ended	0.00	0.00
+states[1].relay_failed	1.47	2.23
+states[1].rhythm	0.00	0.00
+states[1].straightening	0.32	0.36
+states[1].viability	3.95	4.09
+states[1].zones[0].buds	12.39	12.17
+states[1].zones[0].lateral[1]	3.04	2.93
+states[1].zones[0].lateral[2]	1.46	1.47
+states[1].zones[0].nodes.mean	11.44	12.08
+states[1].zones[0].nodes.mean, lifespan 6.5	11.47	12.31
+states[2].abortion	2.19	2.21
+states[2].abortion_rise	0.00	0.00
+states[2].continuation	0.00	0.00
+states[2].divergence	0.27	0.27
+states[2].epitony	0.00	0.00
+states[2].erection	0.80	0.79
+states[2].form.bend_length, wandering	0.04	0.04
+states[2].form.dominance	0.99	0.98
+states[2].form.elevation	0.00	0.00
+states[2].form.insertion_spread	0.13	0.13
+states[2].form.internode_spread	0.02	0.02
+states[2].form.plane	0.17	0.17
+states[2].form.roll	0.09	0.09
+states[2].form.sag	0.13	0.13
+states[2].form.tropism	0.91	0.90
+states[2].form.tropism_spread, bending	0.09	0.09
+states[2].form.wander	0.05	0.05
+states[2].form.wander, bearer bending	0.04	0.04
+states[2].form.wander, bending	0.04	0.04
+states[2].insertion	0.17	0.18
+states[2].internode	3.30	3.43
+states[2].lifespan	6.21	6.26
+states[2].readiness	1.03	1.05
+states[2].relay	0.00	0.00
+states[2].relay_at	0.00	0.00
+states[2].relay_ended	1.47	1.46
+states[2].relay_failed	1.48	1.48
+states[2].rhythm	0.00	0.00
+states[2].shedding	0.19	0.19
+states[2].straightening	0.13	0.13
+states[2].viability	2.89	2.88
+states[2].zones[0].buds	6.87	6.79
+states[2].zones[0].lateral[2]	2.86	2.75
+states[2].zones[0].nodes.max	4.16	4.40
+states[2].zones[0].nodes.min	11.15	11.15

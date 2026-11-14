@@ -33,7 +33,7 @@ fn placed(f: &Family) -> (Tree, foliage::Instances) {
 
 fn bare(f: &Family) -> Family {
     let mut g = f.clone();
-    g.canopy.skirt_fronds = 0;
+    g.canopy.skirt_fronds = 0.0;
     g
 }
 

@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-280-wood-grows-around-the-wood-already-there",
+  "created_at": "2026-10-14T13:40:24.468581Z",
+  "depends_on_epics": [],
+  "id": "fn-280-wood-grows-around-the-wood-already-there",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-280-wood-grows-around-the-wood-already-there.md",
+  "status": "open",
+  "title": "Wood grows around the wood already there",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-14T13:40:24.478069Z"
+}

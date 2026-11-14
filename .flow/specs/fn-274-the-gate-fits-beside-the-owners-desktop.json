@@ -1,0 +1,42 @@
+{
+  "branch_name": "fn-274-the-gate-fits-beside-the-owners-desktop",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-14T01:33:18.879150Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-274-the-gate-fits-beside-the-owners-desktop",
+  "impl_review_rounds": {
+    "fn-274-the-gate-fits-beside-the-owners-desktop.1": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_attempts": [],
+  "review_hash_epoch": {
+    "impl:fn-274-the-gate-fits-beside-the-owners-desktop.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-274-the-gate-fits-beside-the-owners-desktop.1": 0
+  },
+  "spec_path": ".flow/specs/fn-274-the-gate-fits-beside-the-owners-desktop.md",
+  "status": "done",
+  "title": "The gate fits beside the owner's desktop",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-14T03:24:51.270425Z"
+}

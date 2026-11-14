@@ -134,6 +134,10 @@ fn shipped_scaffolds_are_reproducible() {
         (Preset::Ordinary, 9848876633805652422),
     ] {
         let family = preset.parameters();
+        // An engine preset's rows reach the scaffold's grower no more (fn-198).
+        if family.space.species.is_some() {
+            continue;
+        }
         let hash = hashed(&family);
         assert_eq!(hash, hashed(&family), "{preset:?}: not reproducible");
         assert_eq!(hash, expected, "{preset:?} scaffold changed");
@@ -144,6 +148,10 @@ fn shipped_scaffolds_are_reproducible() {
 fn every_habit_trait_moves_every_shipped_preset() {
     for preset in PRESETS {
         let family = preset.parameters();
+        // An engine preset's rows reach the scaffold's grower no more (fn-198).
+        if family.space.species.is_some() {
+            continue;
+        }
         let base = hashed(&family);
         let h = family.skeleton.habit;
         for (trait_name, habit) in [
@@ -358,6 +366,10 @@ fn every_habit_trait_moves_every_shipped_preset() {
 fn every_bias_term_reaches_every_shipped_preset() {
     for preset in PRESETS {
         let family = preset.parameters();
+        // An engine preset's rows reach the scaffold's grower no more (fn-198).
+        if family.space.species.is_some() {
+            continue;
+        }
         let base = hashed(&family);
         let b = family.skeleton.bias;
         for (term, bias) in [

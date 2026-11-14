@@ -1,0 +1,33 @@
+{
+  "branch_name": "fn-335-what-a-fine-lateral-really-grows-by-its",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-11-09T21:24:22.416939Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-335-what-a-fine-lateral-really-grows-by-its",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-335-what-a-fine-lateral-really-grows-by-its.md",
+  "status": "done",
+  "title": "What a fine lateral really grows, by its light",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-09T21:50:29.384205Z"
+}

@@ -7,6 +7,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use serde_json::{json, Value};
 
+use crate::assets::{self, AssetRef, ImageAsset, IMAGES_HEADER};
 use crate::ledger::{derived_identity, new_entry_id, write_entry, LedgerEntry, SourceRef, Usage};
 use crate::sha256_hex;
 
@@ -69,6 +70,12 @@ pub struct HttpResponse {
 
 pub trait Transport {
     fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String>;
+
+    /// The back-off before a retry after a 429 or 529. A scripted transport
+    /// records it rather than sleeping through it.
+    fn wait(&self, backoff: Duration) {
+        thread::sleep(backoff);
+    }
 }
 
 /// Live ureq transport. Used only from the `jev` binary.
@@ -142,14 +149,36 @@ pub fn evaluate(
     key: &str,
     request: EvaluateRequest<'_>,
 ) -> Result<LedgerEntry, CallerError> {
-    let payload = json!({
+    evaluate_with_assets(transport, key, request, &[])
+}
+
+/// `evaluate`, carrying images the state or questions name by reference.
+/// Without assets the request is exactly `evaluate`'s.
+pub fn evaluate_with_assets(
+    transport: &dyn Transport,
+    key: &str,
+    request: EvaluateRequest<'_>,
+    images: &[ImageAsset],
+) -> Result<LedgerEntry, CallerError> {
+    let mut payload = json!({
         "model": MODEL,
         "state": request.state,
         "questions": request.questions,
     });
+    let mut headers = vec![("Content-Type".to_string(), "application/json".to_string())];
+    if !images.is_empty() {
+        payload["assets"] = assets::payload(images);
+        headers.push((IMAGES_HEADER.into(), "true".into()));
+    }
     let body = serde_json::to_vec(&payload).expect("state serializes");
     let state_sha256 = sha256_hex(&serde_json::to_vec(request.state).expect("state serializes"));
-    let started = Instant::now();
+    let records: Vec<AssetRef> = images.iter().map(|image| image.record.clone()).collect();
+    let call = Call {
+        request: &request,
+        state_sha256: &state_sha256,
+        assets: &records,
+        started: Instant::now(),
+    };
     let mut last_status = 0u16;
     let mut last_body = String::new();
 
@@ -157,21 +186,16 @@ pub fn evaluate(
         let http = HttpRequest {
             method: "POST",
             url: ENDPOINT.to_string(),
-            headers: vec![
-                ("Authorization".into(), format!("Bearer {key}")),
-                ("Content-Type".into(), "application/json".into()),
-            ],
+            headers: [("Authorization".into(), format!("Bearer {key}"))]
+                .into_iter()
+                .chain(headers.iter().cloned())
+                .collect(),
             body: Some(body.clone()),
         };
         let response = match transport.send(&http) {
             Ok(response) => response,
             Err(err) => {
-                let entry = failure_entry(
-                    &request,
-                    &state_sha256,
-                    started,
-                    format!("transport: {err}"),
-                );
+                let entry = failure_entry(&call, format!("transport: {err}"));
                 let _ = write_entry(request.ledger_dir, &entry);
                 return Err(CallerError::Transport(err));
             }
@@ -183,18 +207,13 @@ pub fn evaluate(
             .collect();
         if response.status == 429 || response.status == 529 {
             if attempt + 1 < MAX_ATTEMPTS {
-                thread::sleep(Duration::from_secs(1 << attempt));
+                transport.wait(Duration::from_secs(1 << attempt));
                 continue;
             }
             break;
         }
         if response.status >= 400 {
-            let entry = failure_entry(
-                &request,
-                &state_sha256,
-                started,
-                format!("HTTP {last_status}: {last_body}"),
-            );
+            let entry = failure_entry(&call, format!("HTTP {last_status}: {last_body}"));
             let _ = write_entry(request.ledger_dir, &entry);
             return Err(CallerError::Http {
                 status: response.status,
@@ -204,27 +223,17 @@ pub fn evaluate(
         let parsed: Value = match serde_json::from_slice(&response.body) {
             Ok(value) => value,
             Err(err) => {
-                let entry = failure_entry(
-                    &request,
-                    &state_sha256,
-                    started,
-                    format!("response json: {err}"),
-                );
+                let entry = failure_entry(&call, format!("response json: {err}"));
                 let _ = write_entry(request.ledger_dir, &entry);
                 return Err(CallerError::Json(err.to_string()));
             }
         };
-        let entry = success_entry(&request, &state_sha256, started, parsed);
+        let entry = success_entry(&call, parsed);
         write_entry(request.ledger_dir, &entry).map_err(CallerError::Transport)?;
         return Ok(entry);
     }
 
-    let entry = failure_entry(
-        &request,
-        &state_sha256,
-        started,
-        format!("HTTP {last_status}: {last_body}"),
-    );
+    let entry = failure_entry(&call, format!("HTTP {last_status}: {last_body}"));
     let _ = write_entry(request.ledger_dir, &entry);
     Err(CallerError::Http {
         status: last_status,
@@ -232,24 +241,36 @@ pub fn evaluate(
     })
 }
 
-fn success_entry(
-    request: &EvaluateRequest<'_>,
-    state_sha256: &str,
+/// What every ledger entry of one call shares.
+struct Call<'a> {
+    request: &'a EvaluateRequest<'a>,
+    state_sha256: &'a str,
+    assets: &'a [AssetRef],
     started: Instant,
-    parsed: Value,
-) -> LedgerEntry {
+}
+
+impl Call<'_> {
+    fn identity(&self, model: &str) -> String {
+        let content = assets::content_sha256(self.state_sha256, self.assets);
+        derived_identity(&content, self.request.questions, model)
+    }
+}
+
+fn success_entry(call: &Call<'_>, parsed: Value) -> LedgerEntry {
+    let request = call.request;
     let usage = parsed.get("usage").and_then(|value| {
         Some(Usage {
             input_tokens: value.get("input_tokens")?.as_u64()?,
             output_tokens: value.get("output_tokens")?.as_u64()?,
         })
     });
-    let identity = derived_identity(state_sha256, request.questions, request_model(&parsed));
+    let identity = call.identity(request_model(&parsed));
     LedgerEntry {
         id: new_entry_id(),
         tool: request.tool.to_string(),
-        state_sha256: state_sha256.to_string(),
+        state_sha256: call.state_sha256.to_string(),
         source: request.source.cloned(),
+        assets: call.assets.to_vec(),
         model: parsed
             .get("model")
             .and_then(Value::as_str)
@@ -258,32 +279,29 @@ fn success_entry(
         questions: request.questions.clone(),
         answers: parsed.get("answers").cloned().unwrap_or(Value::Null),
         usage,
-        elapsed_ms: started.elapsed().as_millis() as u64,
+        elapsed_ms: call.started.elapsed().as_millis() as u64,
         recorded_at: now_rfc3339(),
         error: None,
         identity,
     }
 }
 
-fn failure_entry(
-    request: &EvaluateRequest<'_>,
-    state_sha256: &str,
-    started: Instant,
-    error: String,
-) -> LedgerEntry {
+fn failure_entry(call: &Call<'_>, error: String) -> LedgerEntry {
+    let request = call.request;
     LedgerEntry {
         id: new_entry_id(),
         tool: request.tool.to_string(),
-        state_sha256: state_sha256.to_string(),
+        state_sha256: call.state_sha256.to_string(),
         source: request.source.cloned(),
+        assets: call.assets.to_vec(),
         model: MODEL.to_string(),
         questions: request.questions.clone(),
         answers: Value::Null,
         usage: None,
-        elapsed_ms: started.elapsed().as_millis() as u64,
+        elapsed_ms: call.started.elapsed().as_millis() as u64,
         recorded_at: now_rfc3339(),
         error: Some(error),
-        identity: derived_identity(state_sha256, request.questions, MODEL),
+        identity: call.identity(MODEL),
     }
 }
 

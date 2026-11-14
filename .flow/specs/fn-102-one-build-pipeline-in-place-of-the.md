@@ -1,88 +1,57 @@
 # One build pipeline in place of the copied chains
 
-## Conversation Evidence
+## Goal
 
-> user: "should we think about how to simplify this design in core and telperion over all facets? Make it really a clean building pipeline with set stages that all coherently make sense as part of the whole and also what consumes them."
-> user: "Can you illustrate current structure of the code base with every relevant branch and show the new structure that we'll be working towards with a clean pipeline design"
-> user: "this pipeline restructure's performance must be faster or at worst equal to current performance. Is there a way this streamlining can actually improve performance?"
-> user: "do we need the cpu chain for leaves? beacuse if you're going to render millions of leaves you'll need a gpu anyway to not stutter like crazy..?"
-> assistant: "fn-102: shrink it to pipeline consolidation only. One function replaces the three copied chains, output stays byte-identical, and no algorithm changes."
-> user: "ok makes sense so we just simplify cut the engine in 102?"
+The core's mature build recipe was written out more than once: `mesh::build` and the Wasm binding each spelled out growth, wood surface, leaf placement and cull, a test existed only to hold them equal, and the copies had already diverged (`mesh::grow` ran `clear_apical_twigs` and `clothe_leaf_bases`, the binding skipped both, latent until the date palm ships). The owner wants one pipeline with set stages, consumers reading what stages produce, each artifact built once and independent stages run in parallel. This spec does the structural half: one place that names stages, artifacts, order and scheduling, with every algorithm and random draw unchanged.
 
-Review of 2026-09-23 (notes in `.flow/evidence/fn-102-one-build-pipeline-in-place-of-the/REVIEW-2026-09-23.md`):
+Owner quotes:
+> "should we think about how to simplify this design in core and telperion over all facets? Make it really a clean building pipeline with set stages that all coherently make sense as part of the whole and also what consumes them."
+> "this pipeline restructure's performance must be faster or at worst equal to current performance. Is there a way this streamlining can actually improve performance?"
+> "do we need the cpu chain for leaves? beacuse if you're going to render millions of leaves you'll need a gpu anyway to not stutter like crazy..?"
+> "ok makes sense so we just simplify cut the engine in 102?"
+> (2026-09-23) "In the end this needs to be a high performing pipeline at every stage of it to be able to achieve the performance goals we have."
+> (2026-09-23) "well yes the pipeline should create output needed for other stages exactly once that's the whole point"
+> (2026-09-23) "yes and that should also be a principle of the pipeline. We build stages that later stages depend on only once. But if we have depending stages that are independent of eachother we run them in parallel."
 
-> user: "In the end this needs to be a high performing pipeline at every stage of it to be able to achieve the performance goals we have."
-> user: "well yes the pipeline should create output needed for other stages exactly once that's the whole point"
-> user: "yes and that should also be a principle of the pipeline. We build stages that later stages depend on only once. But if we have depending stages that are independent of eachother we run them in parallel."
+## Decisions
 
-## Goal & Context
-
-<!-- Goal & Context: 40% [paraphrase], 60% [inferred] code reading -->
-
-The core's mature build recipe is written out more than once. The direct mesh build (`mesh::build`) and the Wasm binding (`telperion-wasm/src/generate.rs`) each spell out growth, wood surface, leaf placement and cull in the same order, and a test exists only to hold the two copies equal. The binding chooses stages with a row of flags. The renderer's GPU preparation and the specimen view each call some of the same stages on their own.
-
-The copies have already diverged. `mesh::grow` runs `branching::clear_apical_twigs` and `branching::clothe_leaf_bases` after growth; the binding calls `branching::generate` and skips both, so a family with rosette fronds or leaf bases builds differently in the browser. The equality test covers only the oak and the spruce and did not see it. The date palm is `IN_WORK` and not served by name today, so the defect is latent until fn-82 ships it. [inferred, read on origin/master `6aab6192`, 2026-09-23]
-
-The owner wants one pipeline with set stages, each coherent as part of the whole, with consumers reading what stages produce, and the pipeline itself efficient: each artifact a later stage needs is built once, and stages independent of each other run in parallel. This spec does the structural half: one place that names the stages, their artifacts, their order and their scheduling. Every algorithm and every random draw stays as it is. [user]
-
-## Architecture & Data Models
-
-The pipeline names five stages, each producing one artifact. [paraphrase]
-
-1. Family: the parameter table from a preset, a blend or a request.
-2. Skeleton: the solved tree from the direct build's growth, including the post-growth steps `mesh::grow` runs today (apical twig clearing and leaf-base clothing).
-3. Plan: what is prepared from the skeleton before any triangle or leaf exists, as far as today's code already prepares it, plus the leaf element and, for a family with surface contact, the wood's ring sweep.
-4. Outputs, each optional: the wood surface, the leaves, the occupancy field and the structure export.
-5. Tree mesh: the wood surface and leaves with their union bounds.
-
-One pipeline function in the core takes the set of wanted artifacts and runs each needed stage, calling the stage functions that exist today. The direct mesh build and the Wasm binding both become callers of it. [paraphrase]
-
-Three scheduling principles bind the function (owner, 2026-09-23): [user]
-
-- **Once.** Every artifact a later stage needs is produced exactly once per request and read by every stage that needs it. An artifact nobody asked for, directly or through a dependent, is never built and never held.
-- **Parallel where independent.** The stages form a dependency graph. A stage runs when its inputs are ready, and stages that do not depend on each other run concurrently where the target has threads. On native targets the wood surface and the leaves run concurrently when both are wanted, except for a family with surface contact, whose leaves read the wood.
-- **Correct serially.** The same graph runs one stage at a time where there are no threads (Wasm today). Output never depends on scheduling: each stage keeps its own random stream, results join in a fixed order, and when several stages fail the earliest stage's error is returned.
-
-The shared ring sweep: `foliage::place_on_surface` builds a `surface::attachment::AttachmentSurface` when `surface_contact > 0`, which repeats `surface::build`'s sweep (`sample_path`, `frames`, the angular profile) and rounds each ring point to the float32 vertex `build` submits. Among shipped presets only the Norway spruce sets contact (`presets.rs:243`, contact 1.0; the default is 0). The wood surface's vertex array is the one ring store (host, 2026-09-23, after the first build): for a family with surface contact the wood runs first and leaf placement reads its rings in place from the wood's float32 vertices, with no second sweep, no copy into a separate ring array and no sweep ahead of the wood. Such a family therefore runs wood and leaves in turn; families without contact run them side by side. The first build's two-mode sharing (a sweep ahead of the wood on native, rings read back from the wood in Wasm) cost about 260 lines to keep Wasm peak memory flat and is replaced. [inferred, checked against the code 2026-09-23]
-
-The specimen view is not a copy of the mature recipe: it grows through the timeline and shares only `surface::build`, `foliage::build_element`, `foliage::cull` and `mesh::union`. The renderer's `prepare_async` already calls `mesh::grow` for the Skeleton stage and `mesh::assemble` for its full CPU fallback; its GPU path places and culls leaves in shaders and calls neither `place_on_surface` nor `cull`. Both change only where they already run the identical stage. [inferred, checked 2026-09-23]
-
-## Edge Cases & Constraints
-
-- A request for an output whose stage fails returns the same error as today; when several stages fail, under either schedule, the error base returned is returned: base built the wood before the element, the twig rows and the leaf plan, so the order is Skeleton, wood, Plan, leaves, field, structure (host, 2026-09-24, corrected against base's `mesh::assemble` and binding; the first draft's Plan-before-wood order was an unchecked inference). [inferred, checked]
-- The binding's timing metadata keeps its per-stage fields and meanings; under concurrency each stage's time is its own wall time and `coreMs` the whole request. [inferred]
-- The growth path stays buildable and pinned and is not routed through anything new. [inferred]
-- A family with zero surface contact builds no ring sweep for its leaves, as today. [inferred]
+- Five stages, one artifact each: Family, Skeleton (direct build growth incl. apical clearing and leaf-base clothing), Plan (leaf element, leaf plan, ring sweep for contact families), Outputs (wood, leaves, field, structure), Tree mesh. One function `telperion_core::pipeline` takes the wanted artifacts; `mesh::build`, `mesh::assemble` and the binding call it.
+- Scheduling principles (owner, 2026-09-23): **once** (every needed artifact built exactly once, unrequested ones never), **parallel where independent** (native wood and leaves concurrently unless the family has surface contact), **correct serially** (Wasm serial; own random streams, fixed join order, earliest stage's error wins).
+- The wood's float32 vertex array is the one ring store (host, 2026-09-23): a contact family (only the Norway spruce) builds wood first and placement reads rings in place; the first build's two-mode sharing (~260 lines) was replaced.
+- Error order follows base (host, 2026-09-24): Skeleton, wood, Plan, leaves, field, structure.
+- R3 exception (owner, 2026-09-23): the binding's output may change for rosette-frond/leaf-base families, where it now equals the mesh build.
+- R4 rulings (owner): 2026-09-23, the whole build must be no slower; a concurrent stage's own wall time may rise (deferred as item J). 2026-09-24, accepted the spruce +4.6% CPU-path slowdown for ~70 MB less native peak memory (up to 75 MB less in Wasm); faster ring reads belong to fn-126.
+- Direction (owner, 2026-09-23): consumers are GPU applications; the generator owns the plan's expansion into leaves and wood as a contract and the GPU becomes the drawn default — its own spec (fn-125). CPU hot-path ideas (cull early exit, cull while placing, forward cursor, parallel cull) went to fn-126; growth speed (attractor grid, Wasm SIMD) to fn-124. Design notes: `.flow/evidence/fn-102-one-build-pipeline-in-place-of-the/REVIEW-2026-09-23.md`.
 
 ## Acceptance Criteria
 
-- **R1:** The core has one pipeline function that names the stages and their order. The direct mesh build and the Wasm binding reach growth (including apical twig clearing and leaf-base clothing), surface, leaf placement, cull, field and structure export only through it, and neither spells the recipe out. [paraphrase]
-- **R2:** The test that pins the binding's chain equal to the mesh build is deleted because one chain remains, and nothing replaces it. [inferred]
-- **R3:** Output is byte-identical to the base commit for every preset in the catalogue and in `IN_WORK`, at seeds 1 and 7: the mesh build's wood and foliage, and every combination of the binding's outputs. One exception (owner, 2026-09-23): the binding's output changes for a family with rosette fronds or leaf bases, and there it equals the mesh build's, because that change is the fix. The existing pinned hashes pass without edits. [user]
-- **R4:** Stage and total timings from `examples/generation_stages.rs`, extended to time placement and cull separately, and the binding's own stage timings, are recorded on base and candidate as the median of five runs for the oak, spruce and birch and every other catalogue preset. The whole-build median is no slower on the candidate than on the base (owner, 2026-09-23: a concurrent stage's own wall time may rise while it shares the machine, as long as the whole build is faster; per-stage medians are recorded, and the concurrent slowdown is left for later optimisation). Accepted exception (owner, 2026-09-24): the Norway spruce, the one family with surface contact, builds about 4.6% slower on the CPU path (4,720 to 4,939 ms native, placement +5.5%) because placement reads rings in place from the wood's float32 vertices; in exchange its peak memory falls by about 70 MB native and up to 75 MB in Wasm. Faster ring reads belong to fn-126. Peak Wasm linear memory for each output combination is not higher than the base's, except where R3's exception adds wood; native peak RSS is recorded for base and candidate and any rise is reported beside the time it bought. [user]
-- **R5:** The binding's exports, request shape and metadata fields are unchanged, and every existing binding and browser test passes without edits. [inferred]
-- **R6:** The specimen view and the renderer's GPU preparation build and pass their existing tests without edits. Where either was changed to call a shared stage function, its output is byte-identical to the base. [inferred]
-- **R7:** For a family with surface contact, one request performs one ring sweep, read by both the wood surface and the leaf placement; the element is built once per request. A test counts the sweeps through the pipeline's stage instrumentation. [user]
-- **R8:** On a native target with threads, the wood surface and the leaves run concurrently when both are wanted and the family has no surface contact; a test builds every catalogue preset with scheduling forced serial and forced concurrent and finds the outputs byte-identical, and a test with two failing stages finds the earlier stage's error. [user]
+- **R1:** One pipeline function names the stages; mesh build and binding reach every stage only through it — met.
+- **R2:** The chain-equality test is deleted, nothing replaces it — met.
+- **R3:** Byte-identical to base for every catalogue and in-work preset at seeds 1 and 7, mesh and all binding output combinations, except the palm's binding fix — met (16/16 mesh; 7 families x 30 binding builds identical, palm changed as allowed).
+- **R4:** Stage and whole-build medians recorded; whole build no slower; peak Wasm memory not higher — met under the owner's rulings (spruce exception accepted).
+- **R5:** Binding exports, request shape and metadata unchanged; tests pass unedited — met.
+- **R6:** Specimen view and GPU preparation build and pass unedited — met.
+- **R7:** A contact family gets one ring sweep and one element per request, counted by test — met.
+- **R8:** Serial and concurrent schedules byte-identical for every preset; two failing stages return the earlier error — met.
 
-## Boundaries
+## Result
 
-- No algorithm changes. Leaf placement, the cull, station preparation, the GPU path and the growth path work exactly as they do now. [user]
-- No output changes beyond R3's exception. A byte difference anywhere else is a defect of this spec. [paraphrase]
-- The renderer's two browser calls keep their behaviour: `setTree` builds through `mesh::build` on the CPU, and `setTreeGpu`, which the harness already uses (`harness/GrowerDev.tsx:79`), prepares through `Generator::prepare_async` with GPU leaves where the family is supported. Making the GPU expansion the generator's own contract and the only drawn path is the follow-up below, not this spec. [inferred, checked 2026-09-23]
-- No Wasm threads; the binding stays serial. [inferred]
-- No full-forest capture. Byte comparison on single trees and the 8-tree forest is the proof. [inferred]
+Native median of five, seed 1, base -> candidate (shared machine, load 11-17): ordinary 155 -> 135 ms (-13.4%), oak 483 -> 414 (-14.2%), spruce 4,720 -> 4,939 (+4.6%, placement +5.5%, peak RSS 360 -> 290 MB), birch 2,695 -> 2,601 (-3.5%), telperion 1,123 -> 1,036 (-7.7%), laurelin 449 -> 432 (-3.9%). Spruce Wasm surface+foliage peak 360 -> 285 MB. Production diff +786/-269 lines. Gate 930 passed; `npm test` 124/124; codex review one pass, one finding (R8 error precedence under concurrency) fixed with a red-to-green test.
 
-## Decision Context
+## Open
 
-- An earlier draft also deleted per-leaf CPU placement, moved the cull before expansion and made the GPU path the default. An outside review on 2026-09-21 found three blockers, each checked against the code: the crown-shell cull reads every transformed vertex of every leaf and station preparation takes no shell depth; the growth path's timeline calls the same run-walker as mature placement; and short shoots, families with no twig layer and a numeric fallback have no station form. [inferred]
-- Direction (owner, 2026-09-23): consumers are GPU applications and receive the full-fidelity tree to draw. The generator owns the expansion of the plan into leaves and wood as a contract (the plan's layout, portable shaders, and a CPU reference expander that defines correct), and the GPU becomes the drawn default. That is its own spec after this one, with a gap spec per family that lacks a station form. This spec's Plan stage is where that contract will live, which is why it goes first. [user]
-- Ideas deferred to their own specs, listed with evidence in the review notes: a per-leaf early exit in the cull, culling while placing, a forward cursor in station placement, the attractor grid in growth, a parallel cull, Wasm SIMD, and overlaps in the renderer's GPU preparation. [inferred]
-- The earlier line "the birch cull costs 3.1 s of a 3.3 s build" had no committed measurement. The nearest is `.flow/evidence/fn76/LOCAL.md`: birch generate 0.28 s, surface 0.37 s, placement and cull together 4.21 s at seed 1. R4's split timing supplies the real figure. [inferred]
-- "The field reads the plan, not placed leaves" (fn-100) has landed; the field stage reads the plan. The slim package (fn-101) has landed and is untouched here. [inferred]
+- J: the concurrent wood stage's own wall time rises (+12-15 ms ordinary, +54-67 ms spruce); profile on an idle machine. K: thread oversubscription when the wood starts 8 surface workers beside leaves and field. Both deferred.
+- The native family wire encodes `maxInstances` as 64-bit `usize::MAX`, which wasm32 refuses; needs a width-independent "no limit" encoding.
 
-## Resolved before ready (host, 2026-09-23)
+## Friction
 
-- Which stages the renderer and the specimen view share: answered under Architecture, read on origin/master `6aab6192`.
-- Whether the attachment rings are the same computation as the wood sweep: they are, down to the float32 rounding (`surface/attachment.rs:63-77`, "Query exactly the float32 vertices submitted by build()"). Sharing them is a reuse, not a derivation.
-- The renderer crate's direct imports of foliage and surface items stay; moving them behind the pipeline's artifacts belongs to the GPU contract spec.
+- `maxInstances` wire not round-trippable native/Wasm (~5 min) -> follow-up above.
+- dcg hook refused variable redirects and `git checkout <ref> -- <path>` (several times) -> local setup, reported only.
+- Finding a flat Wasm peak layout took three designs and four probe rebuilds (~60 min), and a plan-before-wood reorder raised the oak's peak 10 MB found only by the full R3 pass -> proposed a per-stage Wasm memory probe in the binding metadata.
+- Spruce ring-read A/B needed hand env switches and rebuilds (~20 min) -> proposed a placement microbenchmark over a fixed skeleton.
+- `generation_limit_guard` failed late on moved loop sites (one extra gate run) -> run it in the per-change check.
+- Evidence tools went stale against HEAD; the base worktree vanished from the scratchpad -> keep base binaries under ignored `raw/`; compile tools as example targets.
+
+## Evidence
+
+- `.flow/evidence/fn-102-one-build-pipeline-in-place-of-the/REVIEW-2026-09-23.md` (owner-reviewed design notes and deferred optimisation items A-K)

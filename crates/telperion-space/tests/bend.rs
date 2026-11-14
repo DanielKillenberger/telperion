@@ -26,7 +26,6 @@ fn grown(species: &Species, seed: u64) -> Structure {
     let request = Request {
         age: 40,
         seed,
-        budget: 1_000_000,
         light: Light::NEUTRAL,
     };
     grow(species, request).unwrap()

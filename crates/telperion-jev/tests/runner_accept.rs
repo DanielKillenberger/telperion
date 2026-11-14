@@ -107,7 +107,8 @@ fn an_accepted_palm_sets_the_moved_rows_of_its_value_file_and_its_pins() {
         "{word}"
     );
     let file = std::fs::read_to_string(root.join(VALUES).join("date-palm.values")).unwrap();
-    assert!(file.contains("\n/canopy/leafBases = 200\n"));
+    // A real row is written as one: fn-277 made the leaf bases a real count.
+    assert!(file.contains("\n/canopy/leafBases = 200.0\n"));
     assert!(file.contains("\n/shellDepth = 0.8\n"));
     assert!(
         !file.contains("/canopy/leafBases = 256"),
@@ -125,7 +126,8 @@ fn an_accepted_palm_sets_the_moved_rows_of_its_value_file_and_its_pins() {
         serde_json::from_str(&std::fs::read_to_string(folder.join("pins.json")).unwrap()).unwrap();
     assert_eq!(pins["species"], "date-palm");
     assert_eq!(pins["seed"], 7);
-    assert_eq!(pins["growth_reference"]["height_m"], 22.86);
+    // The grown tree's height (fn-198).
+    assert_eq!(pins["growth_reference"]["height_m"], pins["pins"]["max"][1]);
     assert!(accept::accepted(&path, &dir).unwrap());
 }
 
@@ -150,8 +152,8 @@ fn a_new_species_is_written_and_registered_from_its_template() {
     let read = |p: &str| std::fs::read_to_string(root.join(p)).unwrap();
     let file = read("crates/telperion-core/presets/canary-palm.values");
     assert!(file.starts_with("# Canary Island date palm, Phoenix canariensis.\n"));
-    assert!(file.contains("\n/canopy/leafBases = 64\n"));
-    assert!(file.contains("\n/skeleton/envelope/height = 22.86\n"));
+    assert!(file.contains("\n/canopy/leafBases = 64.0\n"));
+    assert!(file.contains("\n/space/ages/2/lifespan = 150.0\n"));
     let accepted = accept::family(&path).unwrap();
     assert_eq!(
         format!("{:?}", values::read(&file).unwrap()),

@@ -1,13 +1,15 @@
 //! Deterministic space colonization. Attractors keep their nearest node as the tree grows.
+#[cfg(test)]
 use crate::math::Transcendental;
 #[cfg(test)]
 pub mod fill;
 #[cfg(test)]
 mod grid;
 
-use crate::{envelope::Envelope, math::Vec3, Error, Result};
+use crate::{envelope::Envelope, Error, Result};
 #[cfg(test)]
 use crate::{
+    math::Vec3,
     pipeline::bias::GrowthBias,
     tree::{Node, Tree},
 };
@@ -80,6 +82,7 @@ impl GrowthConfig {
 }
 
 /// Great-circle turn limit; arguments are unit directions and a nonnegative angle.
+#[cfg(test)]
 pub fn limit_turn(from: Option<Vec3>, wanted: Vec3, max_radians: f64) -> Vec3 {
     let Some(from) = from else { return wanted };
     if max_radians >= std::f64::consts::PI {

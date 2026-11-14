@@ -57,7 +57,6 @@ fn an_age_passed_through_grows_nothing() {
         let request = Request {
             age: walk::AGE,
             seed,
-            budget: 1_000_000,
             light: telperion_space::Light::NEUTRAL,
         };
         let tree = grow(&spread, request).unwrap();
@@ -77,7 +76,6 @@ fn a_chain_of_passed_ages_collapses() {
     let request = Request {
         age: 3,
         seed: 1,
-        budget: 1_000_000,
         light: telperion_space::Light::NEUTRAL,
     };
     assert!(grow(&species, request).is_err());
@@ -91,7 +89,6 @@ fn a_blend_ends_on_its_species() {
     let request = Request {
         age: 10,
         seed: 1,
-        budget: 1_000_000,
         light: telperion_space::Light::NEUTRAL,
     };
     let tips = |s: &Species| -> Vec<(f64, f64, f64)> {
@@ -112,8 +109,14 @@ fn a_blend_ends_on_its_species() {
     };
     let pairs = [(beech(), spruce()), (spruce(), oak()), (oak(), palm())];
     for (a, b) in &pairs {
-        assert!(close(&tips(&blend(a, b, 0.0).unwrap()), &tips(a)), "t = 0");
-        assert!(close(&tips(&blend(a, b, 1.0).unwrap()), &tips(b)), "t = 1");
+        assert!(
+            close(&tips(&blend(a, b, 0.0, request.age).unwrap()), &tips(a)),
+            "t = 0"
+        );
+        assert!(
+            close(&tips(&blend(a, b, 1.0, request.age).unwrap()), &tips(b)),
+            "t = 1"
+        );
     }
 }
 
@@ -150,7 +153,7 @@ fn a_canonical_species_grows_its_own_tree() {
 fn a_blend_refuses_an_invalid_species() {
     let mut broken = telperion_space::beech();
     broken.states[9].zones.clear();
-    assert!(telperion_space::blend(&broken, &telperion_space::beech(), 0.5).is_err());
+    assert!(telperion_space::blend(&broken, &telperion_space::beech(), 0.5, 40).is_err());
 }
 
 /// Host decision 12: a stop's three outcomes mix as shares. The beech's
@@ -158,9 +161,34 @@ fn a_blend_refuses_an_invalid_species() {
 /// aborts: halfway, it aborts a quarter of its years and always relays.
 #[test]
 fn a_blend_mixes_a_stops_outcomes_as_shares() {
-    let half =
-        telperion_space::blend(&telperion_space::beech(), &telperion_space::spruce(), 0.5).unwrap();
+    let half = telperion_space::blend(
+        &telperion_space::beech(),
+        &telperion_space::spruce(),
+        0.5,
+        40,
+    )
+    .unwrap();
     let trunk = &half.states[2];
     assert!((trunk.abortion - 0.25).abs() < 1e-12, "{}", trunk.abortion);
     assert_eq!(trunk.relay, 1.0);
+}
+
+/// fn-248: a leaf's years mix by the share they keep, as a delay that may
+/// be infinite does: halfway from never to the beech's one year is three.
+/// The spruce keeps its needles 5.5 years since fn-354; here it keeps
+/// them for ever, the end the walk starts from.
+#[test]
+fn leaf_years_mix_from_never_by_the_share_they_keep() {
+    let (mut spruce, beech) = (telperion_space::spruce(), telperion_space::beech());
+    spruce
+        .states
+        .iter_mut()
+        .for_each(|s| s.leaf_years = f64::INFINITY);
+    let ends = (spruce.states[8].leaf_years, beech.states[8].leaf_years);
+    assert_eq!(ends, (f64::INFINITY, 1.0));
+    let half = telperion_space::blend(&spruce, &beech, 0.5, 40).unwrap();
+    assert_eq!(half.states[8].leaf_years, 3.0);
+    let near = telperion_space::blend(&spruce, &beech, 1e-9, 40).unwrap();
+    let years = near.states[8].leaf_years;
+    assert!(years > 1e8, "{years}");
 }

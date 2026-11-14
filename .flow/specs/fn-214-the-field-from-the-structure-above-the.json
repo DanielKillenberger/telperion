@@ -1,0 +1,28 @@
+{
+  "branch_name": "fn-214-the-field-from-the-structure-above-the",
+  "created_at": "2026-10-07T08:27:47.234962Z",
+  "depends_on_epics": [
+    "fn-198-tree-space-f-the-engine-in-production",
+    "fn-236-tree-space-the-oregon-white-oaks-crown",
+    "fn-213-tree-space-the-silver-birch-as-a-point"
+  ],
+  "id": "fn-214-the-field-from-the-structure-above-the",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-214-the-field-from-the-structure-above-the.md",
+  "status": "done",
+  "title": "The field from the structure above the cut",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-15T22:48:16.552288Z"
+}

@@ -1,0 +1,13 @@
+diff --git i/crates/telperion-space/src/species/scale/table.rs w/crates/telperion-space/src/species/scale/table.rs
+index 082e45ac4..eb3e36eb9 100644
+--- i/crates/telperion-space/src/species/scale/table.rs
++++ w/crates/telperion-space/src/species/scale/table.rs
+@@ -65,7 +65,7 @@ const RATE: [f64; 2] = [0.0, MAX_RATE];
+ 
+ /// Every setting, in the order `settings` and `zone_settings` list them.
+ pub const SETTINGS: &[Setting] = &[
+-    row("lifespan", Log { floor: 1.0 }, [0.0, MAX_LIFESPAN], "years",
++    row("lifespan", Kept, [0.0, MAX_LIFESPAN], "years",
+         "The years an apex grows in this age before it moves on. Dormant while the tree is younger than it."),
+     row("continuation", Outcome, SHARE, "probability",
+         "The chance an apex that has spent its lifespan moves on to the next age. Dormant at the last age."),

@@ -50,11 +50,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let leaves = o.leaves.ok_or("no leaves")?;
         let (instances, bounds) = (&leaves.instances, leaves.bounds);
         let mut hash = 14695981039346656037_u64;
-        for byte in wood
+        let flat = wood.flattened();
+        for byte in flat
             .positions
             .iter()
             .flat_map(|v| v.to_le_bytes())
-            .chain(wood.indices.iter().flat_map(|v| v.to_le_bytes()))
+            .chain(flat.indices.iter().flat_map(|v| v.to_le_bytes()))
             .chain(
                 instances
                     .leaves
@@ -84,8 +85,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "preset":preset,"seed":seed,"height_m":f.skeleton.envelope.height,
             "complete":tree.diagnostics.complete(),"nodes":tree.nodes.len(),"structural":tree.crossover,
             "node_capped":tree.diagnostics.node_capped,
-            "placed":leaves.placed,"retained":instances.len(),"wood_vertices":wood.positions.len()/3,
-            "wood_triangles":wood.indices.len()/3,"wood_dropped":wood.dropped,"foliage_bounds_present":bounds.is_some(),
+            "placed":leaves.placed,"retained":instances.len(),"wood_vertices":wood.vertices(),
+            "wood_triangles":wood.triangles(),"wood_dropped":wood.dropped,"foliage_bounds_present":bounds.is_some(),
             "milliseconds":{"growth":t.skeleton_ms,"rings":t.rings_ms,"surface":t.wood_ms,
                 "placement":t.placement_ms,"cull":t.cull_ms,"total":t.total_ms}})
         );

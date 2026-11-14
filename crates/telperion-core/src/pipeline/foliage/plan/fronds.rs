@@ -2,13 +2,16 @@
 //! wood, so no run describes them: every leaflet of every frond, living or
 //! dead, is described by its own oriented box. Each is drawn on the frond's
 //! stream exactly as placement draws it (`rosette::fronds`,
-//! `leaflet::leaflets`, `leaflet::drawn`), so the planned leaflet stands
-//! where the placed one does, and no instance or matrix is built.
+//! `leaflet::leaflets`, `leaflet::drawn`) and rested on the ground as
+//! placement rests it (`rest::leaf`), so the planned leaflet stands where
+//! the placed one does.
 use super::Descriptor;
 use crate::{
     math::Vec3,
     pipeline::foliage::{
         leaflet::{self, Leaflet},
+        organs, rachis,
+        rest::{self, Wedge},
         rosette::{self, frame},
         CanopyParams, Element,
     },
@@ -23,8 +26,10 @@ use crate::{
 const MARGIN: (f64, f64) = (0.001, 0.005);
 
 /// Appends a box for every leaflet of every rosette and returns how many,
-/// before any cull. `system` names each node's limb system, a leaflet taking
-/// its apex's. Over the instance budget is an error, as placement's count is.
+/// before any cull: each apex its own whole fronds and each frond its own
+/// leaflets (fn-277), as placement draws them. `system` names each node's
+/// limb system, a leaflet taking its apex's. Over the instance budget is an
+/// error, as placement's count is.
 pub(super) fn describe(
     tree: &Tree,
     p: CanopyParams,
@@ -33,38 +38,50 @@ pub(super) fn describe(
     system: &[u32],
     out: &mut Vec<Descriptor>,
 ) -> Result<u32> {
-    if tree.nodes.len() < 2 || p.size == 0.0 {
+    if tree.nodes.len() < 2 || p.size == 0.0 || !rosette::bearing(&p) {
         return Ok(0);
     }
-    let apices = rosette::rosettes(tree);
-    let per = rosette::leaflets(&p);
-    let fronds = (p.rosette_fronds + rosette::skirt(&p)) as usize;
-    let total = apices.len() * fronds * per;
-    if total > p.max_instances || total > u32::MAX as usize {
-        return Err(Error::ResourceLimit("foliage instance budget"));
-    }
-    out.try_reserve(total)
-        .map_err(|_| Error::ResourceLimit("foliage plan allocation"))?;
+    let budget = || Error::ResourceLimit("foliage instance budget");
     let shape = Shape::of(element);
-    for apex in &apices {
+    let mut total = 0usize;
+    for apex in &rosette::rosettes(tree) {
         let system = system[apex.apex];
-        let birth = tree.nodes[apex.apex].identity.birth_order();
-        for frond in rosette::fronds(apex, &p) {
-            let c = frond.canopy;
-            let mut rng = rosette::stream(seed, birth, &frond);
+        let (stem, node) = (
+            rosette::stem_key(tree, apex),
+            rosette::stem_node(tree, apex),
+        );
+        let at = organs::apex(&p, node);
+        if !rosette::bearing(&at) {
+            continue;
+        }
+        let crown = super::super::Crown::of(tree, &at);
+        for frond in rosette::fronds(apex, &at, crown, super::super::blade(element)) {
+            let key = organs::frond_key(node, frond.serial);
+            let per = organs::frond_leaflets(&at, frond.canopy.leaflet_count, key);
+            let c = organs::placement(&frond.canopy, key);
+            total = total
+                .checked_add(per)
+                .filter(|t| *t <= p.max_instances && *t <= u32::MAX as usize)
+                .ok_or_else(budget)?;
+            out.try_reserve(per)
+                .map_err(|_| Error::ResourceLimit("foliage plan allocation"))?;
+            let mut rng = rosette::stream(seed, stem, &frond);
             if per == 1 {
                 // One blade at the station, turned as `fan` turns it.
                 let blade = Leaflet {
                     at: frond.at,
                     axis: frond.heading,
                     run: frond.radial,
-                    share: None,
+                    share: frond.split.map(|s| rosette::lone(&s, &c)),
                 };
                 out.push(shape.boxed(&blade, apex.axis, &c, &mut rng, system));
                 continue;
             }
             let (_, side) = frame(frond.heading);
-            for leaf in leaflet::leaflets(frond.at, frond.heading, c, per) {
+            let girth = rachis::girth(&c, &at);
+            for leaf in
+                leaflet::leaflets(frond.at, frond.heading, (c, Some(girth)), per, frond.split)
+            {
                 out.push(shape.boxed(&leaf, side, &c, &mut rng, system));
             }
         }
@@ -72,10 +89,12 @@ pub(super) fn describe(
     Ok(total as u32)
 }
 
-/// The leaf element's box in its own frame: its centre and half extents.
+/// The leaf element's box in its own frame: its centre and half extents,
+/// and the wedge it rests on the ground by.
 struct Shape {
     centre: Vec3,
     half: Vec3,
+    wedge: Wedge,
 }
 impl Shape {
     fn of(element: &Element) -> Self {
@@ -92,11 +111,14 @@ impl Shape {
         Self {
             centre: (lo + hi) * 0.5,
             half: (hi - lo) * 0.5,
+            wedge: Wedge::of(element),
         }
     }
     /// The oriented box one drawn leaflet stands in, with the packing margin:
     /// its run along the leaf's axis, its side along its flank and its
-    /// radius across its face.
+    /// radius across its face, in the frame it rests in. The plan has no
+    /// stored box, so the rest clears by the rotation and the scale alone;
+    /// the packing margin holds the half code that leaves out.
     fn boxed(
         &self,
         leaf: &Leaflet,
@@ -105,8 +127,9 @@ impl Shape {
         rng: &mut Rng,
         system: u32,
     ) -> Descriptor {
-        let ([flank, axis, face], scale) = leaflet::drawn(leaf.axis, leaf.run, normal, c, rng);
+        let (frame, scale) = leaflet::drawn(leaf.axis, leaf.run, normal, c, rng);
         let k = scale * leaf.share.unwrap_or(1.0);
+        let [flank, axis, face] = rested(frame, k, leaf.at, &self.wedge);
         let (centre, half) = (self.centre * k, self.half * k);
         let reach = (centre.length() + half.length()) * MARGIN.1 + MARGIN.0;
         let at = leaf.at + flank * centre.x + axis * centre.y + face * centre.z;
@@ -119,4 +142,23 @@ impl Shape {
             side: flank * (half.x + reach),
         }
     }
+}
+
+/// The unit frame a leaflet drawn on `frame` at scale `k` from `at` rests
+/// in (`rest::leaf`).
+fn rested(frame: [Vec3; 3], k: f64, at: Vec3, wedge: &Wedge) -> [Vec3; 3] {
+    let mut m = [0f32; 16];
+    for (c, v) in frame.iter().enumerate() {
+        m[c * 4] = (v.x * k) as f32;
+        m[c * 4 + 1] = (v.y * k) as f32;
+        m[c * 4 + 2] = (v.z * k) as f32;
+    }
+    (m[12], m[13], m[14], m[15]) = (at.x as f32, at.y as f32, at.z as f32, 1.0);
+    let r = rest::leaf(m, wedge, 0.0);
+    if r == m {
+        return frame;
+    }
+    std::array::from_fn(|c| {
+        Vec3::new(r[c * 4].into(), r[c * 4 + 1].into(), r[c * 4 + 2].into()).normalized()
+    })
 }

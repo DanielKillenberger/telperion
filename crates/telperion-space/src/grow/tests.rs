@@ -1,5 +1,6 @@
 //! The speed levers leave every tree as it was (fn-210).
 use super::{run, Certain, Grown, Options};
+use crate::tolerance::unlit;
 use crate::{beech, oak, palm, spruce, Light, Request, Species};
 use std::collections::HashSet;
 
@@ -12,12 +13,7 @@ fn grown(species: &Species, age: u32, seed: u64, certain: Certain) -> Grown {
 }
 
 fn grown_in(species: &Species, (age, seed, light): (u32, u64, Light), options: Options) -> Grown {
-    let request = Request {
-        age,
-        seed,
-        budget: 20_000_000,
-        light,
-    };
+    let request = Request { age, seed, light };
     run(species, request, &mut |_| {}, true, options).unwrap()
 }
 
@@ -31,20 +27,34 @@ const LIT: Light = Light {
 /// that sheds early is the last growth some kept bearer had: its fade then
 /// reads the twig, and the twig may not be left ungrown.
 fn long_kept_bearers() -> Species {
-    let mut species = beech();
+    let mut species = bare(beech());
     for state in &mut species.states[9..13] {
         state.shedding = 6.0;
     }
     species
 }
 
+/// The shed-certain shortcut serves only a species that reads no light
+/// and lays no wood by its leaf, so the beech and the spruce stand as they
+/// grew unlit, before fn-264, and keep their primary radii, unbent
+/// (fn-354).
 fn species() -> [(&'static str, Species); 4] {
     [
-        ("beech", beech()),
-        ("spruce", spruce()),
+        ("beech", bare(beech())),
+        ("spruce", bare(spruce())),
         ("palm", palm()),
         ("beech with long-kept bearers", long_kept_bearers()),
     ]
+}
+
+/// `species` unlit, laying no sapwood and unbent: wood of its primary
+/// radius alone would bend into the ground under its sag.
+fn bare(species: Species) -> Species {
+    let mut species = unlit(species);
+    for state in &mut species.states {
+        (state.form.sapwood, state.form.sag) = (0.0, 0.0);
+    }
+    species
 }
 
 /// Every lateral the rule finds certain to be shed is gone from the tree:
@@ -81,9 +91,15 @@ fn a_tree_grows_the_same_without_what_it_is_certain_to_shed() {
             );
             // The shipped trees' twigs are a third of what they grow or
             // more; the palm sheds nothing.
+            // The beech's short shoot lives 12 years (fn-354 task 7), so
+            // fewer of its laterals are certain to be shed by 30: at seed 1
+            // the beech grows 0.81 of its phytomers without them, and the
+            // beech with long-kept bearers 0.93 (0.79 with the short shoot
+            // at its former 4 years), measured.
             let share = match name {
                 "palm" => continue,
-                "beech with long-kept bearers" => 0.9,
+                "beech" => 0.9,
+                "beech with long-kept bearers" => 0.95,
                 _ => 2.0 / 3.0,
             };
             assert!(
@@ -96,8 +112,8 @@ fn a_tree_grows_the_same_without_what_it_is_certain_to_shed() {
     }
 }
 
-/// Where something reads a lateral while it lives, the oak's girth here,
-/// nothing is decided before growth.
+/// Where something reads a lateral while it lives, the wood its leaf lays
+/// in the oak's bearers here, nothing is decided before growth.
 #[test]
 fn nothing_is_skipped_where_shed_wood_is_read() {
     let tree = grown(&oak(), 20, 1, Certain::Mark);
@@ -167,4 +183,108 @@ fn many_cores_grow_the_tree_one_does() {
             assert_eq!(one.grown, many.grown, "{name} seed {seed}");
         }
     }
+}
+
+/// Every pass reports as it ends, before its stage (fn-211): the oak in
+/// light, whose every pass runs.
+#[test]
+fn every_pass_is_reported() {
+    use super::{Pass, Stage};
+    let request = Request {
+        age: 11,
+        seed: 1,
+        light: LIT,
+    };
+    let mut reported = Vec::new();
+    run(
+        &oak(),
+        request,
+        &mut |s| reported.push(s),
+        true,
+        Options::default(),
+    )
+    .unwrap();
+    let passes: HashSet<Pass> = reported
+        .iter()
+        .filter_map(|s| match s {
+            Stage::Pass(p) => Some(*p),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(passes.len(), Pass::SagPlace as usize + 1, "{passes:?}");
+    let at = |s: Stage| reported.iter().position(|&r| r == s).unwrap();
+    assert!(at(Stage::Pass(Pass::Wake)) < at(Stage::Grown));
+    assert!(at(Stage::Pass(Pass::ShadeRead)) < at(Stage::Lit));
+    assert!(at(Stage::Pass(Pass::Thicken)) < at(Stage::Settled));
+    assert!(at(Stage::Pass(Pass::SagPlace)) < at(Stage::Laid));
+}
+
+/// fn-197 step 2, moved from `tests/light.rs` when `grow` became the
+/// cycle (fn-256): the oak without sag, erection, straightening, take-over
+/// (fn-286: like straightening, it fades over the reach later years
+/// extend) or shedding, its rough layout (`sketch`) against the final lay of the
+/// engine that sketches it (`whole`): every phytomer where the final lay
+/// puts it, but for wood near the ground, which the final lay eases by
+/// its girth.
+#[test]
+fn without_what_later_years_add_the_rough_layout_is_the_final_one() {
+    let mut species = oak();
+    for state in &mut species.states {
+        state.form.sag = 0.0;
+        state.erection = 0.0;
+        state.straightening = 0.0;
+        state.takeover = 0.0;
+        state.shedding = f64::INFINITY;
+    }
+    let lit = Request {
+        age: 25,
+        seed: 3,
+        light: Light {
+            extinction: 0.5,
+            sky: 0.5,
+        },
+    };
+    let laid = super::whole(&species, lit).unwrap();
+    let rough = super::sketch(&species, lit).unwrap();
+    let worst = deviation(&laid, &rough, 0.5);
+    // The layout is f32 (fn-254): the two walks part by a last place of a
+    // position (2.4e-7 m at 3 m), which the walk carries on (1.8e-5 m the
+    // most measured).
+    assert!(
+        worst < 1e-4,
+        "a phytomer above 0.5 m stands {worst} m from its final place"
+    );
+}
+
+/// The farthest any phytomer standing above `above` metres in `a` stands
+/// from its place in `b`.
+fn deviation(a: &crate::Structure, b: &crate::Structure, above: f64) -> f64 {
+    assert_eq!(a.axes.len(), b.axes.len());
+    let mut worst = 0.0f64;
+    for (x, y) in a.axes.iter().zip(&b.axes) {
+        for (p, q) in x.phytomers.iter().zip(&y.phytomers) {
+            if p.tip.z > above {
+                worst = worst.max((p.tip - q.tip).length());
+            }
+        }
+    }
+    worst
+}
+
+/// An axis and its draws carry no empty slot a joinless axis or a living
+/// apex would pay for: a relay's join is boxed and `outlived`'s presence
+/// is a flag (fn-291 R5, PROBE.md task 3). 64-bit sizes first, wasm32's
+/// second.
+#[test]
+fn an_axis_and_its_draws_stay_compact() {
+    use std::mem::size_of;
+    let wide = cfg!(target_pointer_width = "64");
+    assert_eq!(
+        size_of::<crate::structure::Axis>(),
+        if wide { 232 } else { 192 }
+    );
+    assert_eq!(
+        size_of::<crate::presence::Draws>(),
+        if wide { 144 } else { 104 }
+    );
 }

@@ -1,0 +1,132 @@
+diff --git i/crates/telperion-core/src/pipeline/cycle_cost_tests.rs w/crates/telperion-core/src/pipeline/cycle_cost_tests.rs
+index 98df39fd8..1f6760cb7 100644
+--- i/crates/telperion-core/src/pipeline/cycle_cost_tests.rs
++++ w/crates/telperion-core/src/pipeline/cycle_cost_tests.rs
+@@ -66,7 +66,9 @@ fn pass_costs() {
+             let f = family(id, age, 1, fidelity);
+             let g = executor::growth(&f).expect("its growth");
+             let _warm = grow_census(&g.species, g.request).expect("a tree");
++            telperion_space::probe::reset();
+             let c = grow_census(&g.species, g.request).expect("a tree");
++            println!("LAPS {id} {fidelity} {:?}", telperion_space::probe::read());
+             let census = c.census.expect("a census");
+             println!("COST {id} {fidelity} seconds {:.4} grown {} axes {}", c.seconds, c.grown, census.axes);
+             let (mut apex, mut axes, mut leaves) = (0u64, 0u64, 0u64);
+diff --git i/crates/telperion-space/src/grow/advance.rs w/crates/telperion-space/src/grow/advance.rs
+index 813707ca6..246ecc4f6 100644
+--- i/crates/telperion-space/src/grow/advance.rs
++++ w/crates/telperion-space/src/grow/advance.rs
+@@ -15,6 +15,7 @@ impl Shoot<'_, '_> {
+     /// then its abortion or its move to its next PA. A unit that ends its
+     /// age within the cycle hands the rest of it on (`schedule.rs`).
+     pub fn advance(&mut self, mut apex: Apex, cycle: u32) -> Result<()> {
++        let mut clock = crate::clock::seconds();
+         self.job += 1;
+         let pa = self.axis(apex.axis).pa;
+         let state = &self.species().states[pa];
+@@ -185,7 +186,9 @@ impl Shoot<'_, '_> {
+                 .shade
+                 .push([size, if reads.lights { light } else { 1.0 }]);
+         }
++        crate::probe::lap(0, &mut clock);
+         self.grow_unit(apex, pa, unit, (cycle, laid))?;
++        clock = crate::clock::seconds();
+         apex.spent += share;
+         // An apex that has spent its PA's lifespan moves on; it does not
+         // also abort. Its hazard counts the time its axis has grown, and
+@@ -216,8 +219,10 @@ impl Shoot<'_, '_> {
+         }
+         if !step.ends {
+             self.next.push(apex);
++            crate::probe::lap(4, &mut clock);
+             return Ok(());
+         }
++        crate::probe::lap(4, &mut clock);
+         self.axis_mut(apex.axis).apex_end = Some(cycle);
+         let used = if step.same_cycle() { step.used } else { 1.0 };
+         // Its end is drawn once for its age, whatever cycle it falls in,
+diff --git i/crates/telperion-space/src/grow/draw.rs w/crates/telperion-space/src/grow/draw.rs
+index 3fe00565e..54bd6f0f7 100644
+--- i/crates/telperion-space/src/grow/draw.rs
++++ w/crates/telperion-space/src/grow/draw.rs
+@@ -79,14 +79,22 @@ impl Grower<'_> {
+     /// lays the axes made in it: parents before children, so every frame
+     /// reads wood already laid.
+     pub(super) fn sketch(&mut self, cycle: u32, advanced: &[usize]) -> Result<()> {
++        let mut clock = crate::clock::seconds();
+         let mut s = self.sketch_begin(cycle, advanced);
+         let mut todo = s.grew();
+         loop {
+             let failures = self.draw_round(&mut s, &todo);
++            crate::probe::lap(5, &mut clock);
+             s.failed(failures)?;
+-            match self.sketch_round(&mut s) {
++            let round = self.sketch_round(&mut s);
++            crate::probe::lap(6, &mut clock);
++            match round {
+                 Some(next) => todo = next,
+-                None => return self.sketch_end(s),
++                None => {
++                    let end = self.sketch_end(s);
++                    crate::probe::lap(7, &mut clock);
++                    return end;
++                }
+             }
+         }
+     }
+diff --git i/crates/telperion-space/src/grow/unit.rs w/crates/telperion-space/src/grow/unit.rs
+index 0616a64b7..2fc45e2d5 100644
+--- i/crates/telperion-space/src/grow/unit.rs
++++ w/crates/telperion-space/src/grow/unit.rs
+@@ -27,6 +27,7 @@ impl Shoot<'_, '_> {
+         let mut leads = std::mem::take(&mut self.leads);
+         let along = ALONG.iter().filter(|&&z| z < state.zones.len());
+         for (z, zone) in along.map(|&z| (z, &state.zones[z])) {
++            let mut clock = crate::clock::seconds();
+             let zone_key = unit.child(ZONE + z as u64);
+             let lateral = &rules.laterals[pa][z];
+             let mut sleeping = std::mem::take(&mut self.sleeping);
+@@ -38,6 +39,7 @@ impl Shoot<'_, '_> {
+             if let Some(cut) = cut {
+                 lineage::laid(&mut leads, cut, zone_key, window);
+             }
++            crate::probe::lap(1, &mut clock);
+             nodes.clear();
+             for (i, &node_presence) in leads.iter().enumerate() {
+                 let node_key = zone_key.child(i as u64);
+@@ -61,6 +63,7 @@ impl Shoot<'_, '_> {
+             // youngest lateral PA is on top, bare nodes at the base, and a
+             // bud a setting makes or unmakes moves no node.
+             nodes.sort_by_key(|n| std::cmp::Reverse(n.0));
++            crate::probe::lap(2, &mut clock);
+             // Counted a zone at a time; the shares of a cycle are summed
+             // once they are merged (`Grower::step`).
+             self.grown += nodes.len() as u64;
+@@ -130,6 +133,7 @@ impl Shoot<'_, '_> {
+                 }
+             }
+             self.sleeping = sleeping;
++            crate::probe::lap(3, &mut clock);
+         }
+         self.node_buds = nodes;
+         self.leads = leads;
+diff --git i/crates/telperion-space/src/lib.rs w/crates/telperion-space/src/lib.rs
+index de9cb15ca..1090a6334 100644
+--- i/crates/telperion-space/src/lib.rs
++++ w/crates/telperion-space/src/lib.rs
+@@ -85,3 +85,15 @@ pub use species::{
+ pub use spruce::spruce;
+ pub use structure::{Axis, CountTable, Join, Origin, Phytomer, Structure, Vec3};
+ pub use transcendental::Transcendental;
++
++pub mod probe {
++    use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
++    pub static LAPS: [AtomicU64; 8] = [const { AtomicU64::new(0) }; 8];
++    pub fn lap(k: usize, clock: &mut f64) {
++        let now = crate::clock::seconds();
++        LAPS[k].fetch_add(((now - *clock) * 1e9) as u64, Relaxed);
++        *clock = now;
++    }
++    pub fn reset() { LAPS.iter().for_each(|a| a.store(0, Relaxed)); }
++    pub fn read() -> Vec<u64> { LAPS.iter().map(|a| a.load(Relaxed) / 1_000_000).collect() }
++}

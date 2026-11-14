@@ -9,9 +9,7 @@ use std::collections::BTreeMap;
 use std::f64::consts::FRAC_PI_2;
 
 use telperion_core::{
-    blend,
-    branching,
-    params,
+    blend, branching, params,
     presets::{Family, Preset},
     tree::{NodeKind, Tree},
     Error,
@@ -177,6 +175,10 @@ fn every_shipped_preset_at_neutral_variation_is_the_tree_the_row_never_reached()
     for (id, pin) in IDS.iter().zip(NEUTRAL) {
         let mut f = preset(id);
         f.skeleton.twigs.pendulous_variation = 0.0;
+        // An engine preset's rows reach the scaffold's grower no more (fn-198).
+        if f.space.species.is_some() {
+            continue;
+        }
         assert_eq!(
             skeleton(&tree(&f)),
             pin,
@@ -309,7 +311,6 @@ fn a_short_strand_under_a_full_sag_ends_hanging_straight_down() {
         );
     }
 }
-
 
 #[test]
 fn a_walk_of_the_variation_row_shortens_the_curtain_continuously() {

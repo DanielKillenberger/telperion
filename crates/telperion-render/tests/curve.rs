@@ -11,9 +11,18 @@ use common::gpu;
 
 const SIZE: (u32, u32) = (480, 360);
 
-/// A preset's mesh, which carries its wood's curve.
+/// A preset's mesh, which carries its wood's curve; `ordinary` is the
+/// ordinary dressing on a young engine beech (fn-198, `common::ordinary`),
+/// and `ordinary-30` that tree at 30, its own year 30.
 fn tree(id: &str) -> (telperion_core::mesh::TreeMesh, Curve) {
-    let family = Preset::from_id(id).unwrap().parameters();
+    let family = match id {
+        "ordinary" => common::ordinary(),
+        "ordinary-30" => telperion_core::Family {
+            age: 30.0,
+            ..common::ordinary()
+        },
+        id => Preset::from_id(id).unwrap().parameters(),
+    };
     let mesh = executor::grow(&family)
         .unwrap()
         .expansion()
@@ -100,7 +109,9 @@ fn compare(
 }
 
 /// The device's wood is the reference's at the hero view and close in, for
-/// a preset of round wood and the palm's shaped cells.
+/// a preset of round wood and the palm's shaped cells. The close view's first
+/// frame may pass the capacity the hero sized and draw at the finest scale
+/// that fits; the next frame has the room (`src/curve/feedback.rs`, fn-258).
 #[test]
 fn the_device_surfaces_the_wood_the_cpu_reference_does() {
     let Some(gpu) = gpu() else { return };
@@ -114,27 +125,47 @@ fn the_device_surfaces_the_wood_the_cpu_reference_does() {
             position: hero.target + (hero.position - hero.target) * 0.15,
             ..hero
         };
-        for (name, camera) in [("hero", hero), ("close", close)] {
-            render(&mut renderer, &camera, SIZE.0, SIZE.1).unwrap();
-            let report = renderer.curve_report().unwrap();
-            assert_eq!(report.overrun, 0, "{id} {name}: over budget");
-            let found = compare(&renderer, &curve, &camera, SIZE, report.scale);
-            println!(
-                "{id} {name}: scale {}, demand {:?}: {found}",
-                report.scale, report.demand
-            );
-        }
+        render(&mut renderer, &hero, SIZE.0, SIZE.1).unwrap();
+        let report = renderer.curve_report().unwrap();
+        assert_eq!(report.overrun, 0, "{id} hero: over budget");
+        let found = compare(&renderer, &curve, &hero, SIZE, report.scale);
+        println!(
+            "{id} hero: scale {}, demand {:?}: {found}",
+            report.scale, report.demand
+        );
+        render(&mut renderer, &close, SIZE.0, SIZE.1).unwrap();
+        let first = renderer.curve_report().unwrap();
+        assert!(
+            [1.0, 2.0, 4.0, 8.0].contains(&first.scale),
+            "{id} close: the first frame drew at no scale `choose` returns: {first:?}"
+        );
+        println!(
+            "{id} close, first frame: scale {}, overrun {}, budget {:?}, demand {:?}",
+            first.scale, first.overrun, first.budget, first.demand
+        );
+        render(&mut renderer, &close, SIZE.0, SIZE.1).unwrap();
+        let report = renderer.curve_report().unwrap();
+        assert_eq!(report.overrun, 0, "{id} close, next frame: over budget");
+        let found = compare(&renderer, &curve, &close, SIZE, report.scale);
+        println!(
+            "{id} close, next frame: scale {}, demand {:?}: {found}",
+            report.scale, report.demand
+        );
     }
 }
 
 /// A view small enough that its screen-sized budget is crossed halfway, so
 /// every record, vertex and index past the first slice is written through
-/// the second binding (host decision 21), and still the reference's.
+/// the second binding (host decision 21), and still the reference's. The
+/// tree is the ordinary tree at 30: fn-354's tree at 40 asks about 2.6 times
+/// the base's wood a pixel, and no view from 40 to 96 pixels wide draws it at
+/// the finest scale; at 30 (4.9 M wood vertices, the base's tree at 40 had
+/// 5.5 M) the 76-pixel view does (12 Nov 2026).
 #[test]
 fn the_second_slices_hold_what_the_first_could_not() {
     let Some(gpu) = gpu() else { return };
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    let (mesh, curve) = tree("ordinary");
+    let (mesh, curve) = tree("ordinary-30");
     renderer.submit(&mesh).unwrap();
     // The smallest view whose finest scale still fits, and so fills its
     // budget furthest: the demand a pixel rises as the view shrinks.
@@ -158,4 +189,78 @@ fn the_second_slices_hold_what_the_first_could_not() {
     }
     let (size, close, report) = crossed.expect("no view reached the second slices at scale 1");
     println!("{}", compare(&renderer, &curve, &close, size, report.scale));
+}
+
+/// A view whose finest scale does not fit its budget measures the coarser
+/// scales only then (fn-258), and draws the coarsest that fits as the
+/// reference draws it at that scale.
+#[test]
+fn a_view_past_its_finest_scale_is_drawn_at_the_coarser_scale_that_fits() {
+    let Some(gpu) = gpu() else { return };
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    let (mesh, curve) = tree("ordinary");
+    renderer.submit(&mesh).unwrap();
+    let coarser = (40..=96).step_by(2).find_map(|width| {
+        let size = (width, width * 3 / 4);
+        let aspect = f64::from(size.0) / f64::from(size.1);
+        let hero = hero_pose(mesh.bounds, aspect, GROUND_REACH);
+        let close = Camera {
+            position: hero.target + (hero.position - hero.target) * 0.15,
+            ..hero
+        };
+        render(&mut renderer, &close, size.0, size.1).unwrap();
+        let report = renderer.curve_report().unwrap();
+        (report.scale > 1.0 && report.overrun == 0).then_some((size, close, report))
+    });
+    let (size, close, report) = coarser.expect("no view chose a coarser scale that fits");
+    println!(
+        "{size:?}: scale {}, {}",
+        report.scale,
+        compare(&renderer, &curve, &close, size, report.scale)
+    );
+}
+
+/// fn-301 surface clearance on the device: the silver birch at 40, seed 1,
+/// lays wood on the ground. The device surfaces it as the reference does,
+/// which sets every vertex of wood but a trunk's onto the ground where it
+/// would stand below it: the device leaves no more vertices below the
+/// ground than the reference, none lower.
+#[test]
+fn wood_resting_on_the_ground_surfaces_off_it_on_the_device() {
+    let Some(gpu) = gpu() else { return };
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    let mut family = Preset::SilverBirch.parameters();
+    family.skeleton.seed = 1;
+    let mesh = executor::grow(&family)
+        .unwrap()
+        .expansion()
+        .unwrap()
+        .mesh()
+        .unwrap();
+    renderer.submit(&mesh).unwrap();
+    let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
+    let hero = hero_pose(mesh.bounds, aspect, GROUND_REACH);
+    render(&mut renderer, &hero, SIZE.0, SIZE.1).unwrap();
+    let report = renderer.curve_report().unwrap();
+    println!(
+        "{}",
+        compare(&renderer, &mesh.curve, &hero, SIZE, report.scale)
+    );
+    let (vertices, _, _) = renderer.curve_mesh().unwrap();
+    let cpu = mesh
+        .curve
+        .tessellate(&curve_viewer(&hero, SIZE), 0.5 * report.scale, None)
+        .unwrap();
+    let below = |ys: &mut dyn Iterator<Item = f32>| {
+        ys.filter(|&y| y < 0.0)
+            .fold((0, 0.0f32), |(n, low), y| (n + 1, low.min(y)))
+    };
+    let device = below(&mut vertices.chunks_exact(9).map(|v| v[1]));
+    let reference = below(&mut cpu.positions.chunks_exact(3).map(|p| p[1]));
+    println!("below the ground: device {device:?}, reference {reference:?}");
+    assert!(device.0 <= reference.0, "{device:?} against {reference:?}");
+    assert!(
+        device.1 >= reference.1 - 1e-6,
+        "{device:?} against {reference:?}"
+    );
 }

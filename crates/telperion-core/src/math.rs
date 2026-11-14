@@ -1,6 +1,5 @@
-mod transcendental;
 use std::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
-pub(crate) use transcendental::Transcendental;
+pub(crate) use telperion_space::Transcendental;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]

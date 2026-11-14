@@ -1,0 +1,8 @@
+# fn-359 friction
+
+## 12 Nov 2026, the builder (Opus), task 1
+
+- **The narrow suites outran a 595 s timeout on the base.** `grow::cycle::tests::woken_buds_that_stop_at_once_retire_as_the_reference_has_them` was still running when `timeout` cut the run. It was the only test of the six filters that had not finished, so the base run has no result for it. After the change it ran on its own (see `TASK1-DONE.md`). Cost: about 10 minutes and one extra run. A named list of the tests longer than a minute, kept next to the gate budgets, would have let the base run skip it from the start.
+- **The queue held the 16 GB GPU job for 28 minutes.** The R4 "before" measuring job waited from 16:51 until 17:19, while other agents' census, fork and gate jobs held the memory (the reported room fell to -15 GB). The wait is the queue doing its job. It is reported here because it dwarfs the work: the probe build took under a minute. If the queue showed each job's measured peak beside its request, a smaller request (the tips run peaked at 2.1 GiB in the diagnosis) could have been chosen with evidence.
+- **The one-thread cost reads did not fit the timebox.** Each one-thread read of an old oak is 2 to 4 minutes, and R4 asks for 14 of them (7 trees, before and after). With queue waits that is about an hour, after about 40 minutes of the measuring jobs. Eight reads ran. 1001 at 280 and seeds 1007 and 1012 were not run. A cost read inside the measuring job's own run, or one thread run beside the multi-thread draw, would have halved it.
+- **The shell hook refused a dynamic redirect** (`> $F/logs/...`), and also refused `git checkout -p` (which I had no reason to run). The build and run steps went into script files with literal paths. Cost: about 2 minutes.

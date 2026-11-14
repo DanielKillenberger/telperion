@@ -1,0 +1,31 @@
+# The device and the CPU agree past age 12
+
+## Goal & Context
+
+fn-298 (host, 2026-10-20) measured the CPU and the device on walk frames at age 40. The trees match node for node; the positions do not.
+
+| Tree | Nodes | Largest gap |
+|---|---|---|
+| Beech to spruce, seed 7, t = 0.2160 | 275,557 matched | 0.342 m in position, 0.035 m in radius (tolerances 1e-3 m and 1e-5 m) |
+| Base walk frame, t = 0.1 | – | 0.080 m |
+| Base walk frame, t = 0.5 | – | 0.072 m |
+| Spruce alone at 40 | one node off | – |
+
+`agree_tests` only holds presets at age 12, so nothing in the gate covers this. The cause is unknown. Two readings are possible:
+- **A float difference amplified by growth.** Forty years of feedback through light and space colonisation magnify a difference at the last bit. Then the contract has to say what agreement means past a given age.
+- **A defect.** One executor computes something differently, and it shows only on older or blended trees.
+
+After the release (host, 2026-10-20). The film and the package each build one way per frame, so a viewer never sees the two side by side.
+
+## Requirements
+
+- **R1:** measure the gap against age, at 12, 20, 30 and 40, for every shipped preset and for the fn-298 walk frames, seeds 1, 7 and 42. Find the first cycle and the first node where the two diverge past tolerance, and the quantity behind it.
+  - Topology diverges too. On spruce to birch at 40, seed 42, frame 56, the device builds 323,513 nodes against the CPU's 323,512 (fn-298, host, 2026-10-21; the ignored test `fn300_the_spruce_to_birch_frames_have_the_cpus_nodes`). The base spruce alone at 40 is a node apart too (966,171 / 966,172). Find that node.
+  - fn-308's aged blend changed which trees the walk grows and showed the same divergence on two more spruce to birch frames at 40: seed 1, frame 63, 387,693 / 387,695 nodes, and seed 42, frame 59, 393,600 / 393,601 nodes, device / CPU (fn-308, host, 2026-10-22; the same ignored test).
+  - Spruce to birch at 40, seed 7, frame 63 is 12 nodes and 2 instances apart: 382,987 / 382,999 nodes and 187,997 / 187,999 instances, device / CPU (fn-303, host, 2026-10-22; the ignored test `fn300_the_spruce_to_birch_frame_63_has_the_cpus_counts`). fn-303's trace reached a lineage (0xe7a34cf416e9d0b0) through the finest link, where frame 48's `below` word leads, and two untraced leaves, 62549 and 145787. Start there.
+- **R2:** if a defect is found, fix it. Agreement then holds at age 40 to `agree_tests`' tolerances.
+- **R3:** if the divergence is amplification of a last-bit difference, state the contract instead.
+  - At any age, topology (node counts) agrees exactly.
+  - Positions agree to a stated bound that grows with age.
+  - The test holds both. The owner sees the bound before it is written in.
+- **R4:** the gate is green, with a codex review per task.

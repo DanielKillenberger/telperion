@@ -1,0 +1,32 @@
+{
+  "branch_name": "fn-353-one-grower-the-gpu-grower-is-deleted",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-11-11T12:09:48.461485Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-353-one-grower-the-gpu-grower-is-deleted",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-353-one-grower-the-gpu-grower-is-deleted.md",
+  "status": "done",
+  "title": "One grower the GPU grower is deleted",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-11T15:23:19.644956Z"
+}

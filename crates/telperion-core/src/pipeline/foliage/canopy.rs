@@ -6,12 +6,6 @@ use super::{range, rosette};
 use crate::{catalogue::Site, envelope::Envelope, tree::Tree, Error, Result};
 pub use params::CanopyParams;
 
-/// The closest two short shoots may stand, in metres, and the furthest: a
-/// walk from none thins in from here, where no tree has wood enough for one.
-pub const SHORT_SHOOT_SPACING: (f64, f64) = (0.01, 1000.);
-/// The most leaves one short shoot's cluster carries.
-pub const MAX_SHORT_SHOOT_LEAVES: u32 = 8;
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct TwigPlacement {
@@ -60,7 +54,7 @@ pub(super) fn validate(
 /// them against.
 pub(crate) fn rows(p: CanopyParams, twig: Option<TwigPlacement>) -> Result<()> {
     crate::catalogue::check(CanopyParams::CHECKS, &p, Site::Canopy)?;
-    validate_short_shoots(&p)?;
+    crate::catalogue::check(CanopyParams::CHECKS, &p, Site::Clumping)?;
     rosette::validate(&p)?;
     if let Some(t) = twig {
         range(t.internode_length, 1e-6, 1e6, "twig internode")?;
@@ -69,9 +63,4 @@ pub(crate) fn rows(p: CanopyParams, twig: Option<TwigPlacement>) -> Result<()> {
         }
     }
     Ok(())
-}
-
-/// The short-shoot rows on their rails.
-pub(super) fn validate_short_shoots(p: &CanopyParams) -> Result<()> {
-    crate::catalogue::check(CanopyParams::CHECKS, p, Site::ShortShoots)
 }

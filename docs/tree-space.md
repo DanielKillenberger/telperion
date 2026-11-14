@@ -13,9 +13,11 @@ The programme aims at four claims that, to our knowledge, no generator makes tog
 | Continuity by construction | Walks between any two points at a fixed seed change the tree by degree with no visible pop, on still strips and a per-step measure |
 | Game speed | End-to-end time and memory per mature tree and per forest on the named machine, against today's pinned baseline |
 
+A year is a state (fn-355): the grower reads no horizon, so the tree at year 40 on the way to 120 is the tree asked for at 40, and growth goes on from any year it has reached. How the windows look and what a sleeping bud records is in `docs/pipeline.md`, "The one cycle and its grower".
+
 ## Stand on botany, invent the space
 
-- **Reproduced, never invented:** plant science (physiological age, the reference axis, the architectural models, light interception, the pipe model). Each is reproduced against an oracle (an executable model run unchanged, or a published closed form or figure) before anything is built on it.
+- **Reproduced, never invented:** plant science (physiological age, the reference axis, the architectural models, light interception, the pipe model as sapwood that follows the leaf it serves and heartwood that stays, Shinozaki et al. 1964 and Lehnebach et al. 2018). Each is reproduced against an oracle (an executable model run unchanged, or a published closed form or figure) before anything is built on it.
 - **Invented:** the continuous space that holds every architecture, its continuity guarantees, and its speed.
 - **Never copied:** external code or data. Oracles are run and compared against; Telperion's code is written from the published papers.
 
@@ -38,6 +40,8 @@ Calibrating further species is the add-species pipeline's job (`docs/species-onb
 
 Specs: A fn-191, B fn-192, C fn-193 (beech), D fn-194 (spruce), fn-195 (oak), fn-196 (date palm), E fn-197, F fn-198.
 
+Where it stands at 0.2.0: all eight specs are done. F's "today's generator keeps the rest" no longer holds: every shipped preset grows on the engine, and a family with no engine species is refused by name (`docs/pipeline.md`, "Stage 2"). The engine runs on one grower, on the CPU (fn-353). Since F, its wood is sapwood laid for the leaf above and heartwood that stays (fn-354), and its carbon balance charges a tip by its height above the root collar, where it was charged by its path length before (fn-363). Of the four claims, game speed is not met: on 11 Nov 2026 the oak at 40 took 2,073 ms in Wasm against 0.1.4's 124 ms for its own presets, and the candidate's oak at 40 takes 1.44 s on one native thread (fn-352, fn-368; `CHANGELOG.md`, "Known limits").
+
 ## How a species is judged
 
 **The owner's verdict passes a species (owner, 2026-10-04).** When host and Astra have iterated without agreeing, the host puts its strongest sheet to the owner, and the owner's look decides; Astra's remaining critiques are recorded as known gaps for later work.
@@ -49,6 +53,7 @@ The host views every still first and fails the obvious ones itself. A species pa
 The phases are captured up front as chained specs (A to F), each depending on the one before; the owner marks them ready, which is the consent for the run. The driver is flow-next's own: `/loop /flow-next:flow --auto`, which drives the next ready spec whose dependency is met to an open PR, branching from its predecessor's pushed branch, and repeats.
 
 - **Gates are evidence, not sign-off:** oracle and walk tests (A, B), the host-and-Astra visual pass (C to E), the workspace gate, speed and the Codex review (F).
+- **A new setting is proven alone first:** `WALK=<substring> cargo test --profile ci -p telperion-space --test walks` walks only the settings whose name holds it; the gate runs unset and walks them all.
 - **The owner's verdict comes in the morning,** on every passed species and on F's PR; nothing merges to master without it.
 - **The run stops** only on a backend outage, `NO_WORK`, or a genuine wrong path: the host can name no next design step the evidence supports, or the engine cannot express the botany. A trait that fails after a change aimed at it is not a stop by itself (owner, 2026-10-04): the host decides the design question the failure raises, records it, and continues. A stop writes what was tried, what failed and the decision needed.
 - **Merging (owner, 2026-10-04):** a phase's PR whose checks pass and whose review passed (a host-reset review counter counts) may be merged by the run.

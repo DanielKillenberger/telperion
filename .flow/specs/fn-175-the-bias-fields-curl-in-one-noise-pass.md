@@ -7,7 +7,6 @@
 > user (2026-09-27, on splitting the growth work into focused specs): "yes and make fn-125 depend on B if that's the most efficient way"
 
 ## Goal & Context
-<!-- Goal & Context: 30% [user], 70% [checked] from the 2026-09-27 growth profile -->
 
 Telperion grows in 391 ms at seed 1 (`growth_profile` median, master f9487810). Under the scratch sampler, `GrowthBias::apply` takes 47.0% of that time and `Noise::curl` 42.4%, with `Noise::at` itself at 41.2%. The curl runs only when the supernatural bias is enabled, which Telperion and Laurelin set. This spec makes the curl cheap. [checked]
 

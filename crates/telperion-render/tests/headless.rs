@@ -1,7 +1,7 @@
 //! The proof the whole path holds on real hardware: a tree from the core, up
 //! through its curve, surfaced on the device and out as pixels. Skips with a
 //! reason where there is no GPU to ask; it never fails for lack of one.
-use telperion_core::{mesh, presets::Preset};
+use telperion_core::mesh;
 use telperion_render::{hero_pose, render, Renderer, GROUND_REACH, STILL_FORMAT};
 
 mod common;
@@ -10,12 +10,12 @@ use common::gpu;
 #[test]
 fn a_tree_reaches_the_pixels() {
     let Some(gpu) = gpu() else { return };
-    let tree = mesh::build(&Preset::Ordinary.parameters()).expect("the core built");
+    let tree = mesh::build(&common::ordinary()).expect("the core built");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    let submitted = renderer.submit(&tree).expect("the tree fits the device");
+    renderer.submit(&tree).expect("the tree fits the device");
 
-    assert_eq!(submitted.wood_vertices, tree.wood_vertices());
-    assert_eq!(submitted.wood_triangles, tree.wood_triangles());
+    // The renderer no longer builds a CPU wood surface to count (fn-351):
+    // the wood it holds is the curve, checked uploaded below.
     assert!(
         renderer.curve_bytes().is_some_and(|b| b > 0),
         "the curve was not uploaded"

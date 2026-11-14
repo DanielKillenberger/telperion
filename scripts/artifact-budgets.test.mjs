@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { budgets, check, declaredGrowth, findBase } from './artifact-budgets.mjs';
 
@@ -5,13 +6,20 @@ import { budgets, check, declaredGrowth, findBase } from './artifact-budgets.mjs
  * ceilings, and the per-PR growth share over the base, read through an
  * injected reader so nothing here touches the network. */
 const b = await budgets();
+// The rows fn-170's replays were written against, frozen at 240f66578 when
+// fn-366 (14 Nov 2026) lowered telperion.wasm's ceiling below fn-170's
+// 1,410,330-byte module: those two tests hold the growth rule on fn-170's
+// sizes, which the live ceiling no longer admits.
+const frozen = JSON.parse(readFileSync(new URL('artifact-budgets.fn170-frozen.json', import.meta.url), 'utf8'));
 const recorded = Object.fromEntries(b.artifacts.map(a => [a.path, a.baselineBytes]));
-const FIELD = 'dist/telperion-field.wasm';
+const FIELD = 'dist/telperion-render.wasm';
 const MAIN = 'dist/telperion.wasm';
-// fn-150's first slim build: 355,100 to 526,965 bytes (its FRICTION.md).
+// fn-150's first slim build: 355,100 to 526,965 bytes (its FRICTION.md),
+// replayed on the render module now that the slim one is gone (fn-257).
 const fn150 = { base: { ...recorded, [FIELD]: 355_100 }, head: { ...recorded, [FIELD]: 526_965 } };
-// fn-170's fork rule: master 1,395,510 and 358,698 bytes to its CI build.
-const fn170 = { base: { ...recorded, [MAIN]: 1_395_510, [FIELD]: 358_698 }, head: recorded };
+// fn-170's fork rule: master 1,395,510 and 358,698 bytes to its CI build,
+// whose main module was 1,410,330 bytes (+1.1 percent).
+const fn170 = { base: { ...recorded, [MAIN]: 1_395_510 }, head: { ...recorded, [MAIN]: 1_410_330 } };
 const on = (/** @type {Record<string, number>} */ sizes) => ({ label: 'abcd1234', sizes });
 
 describe('artifact ceilings', () => {
@@ -33,12 +41,12 @@ describe('growth per PR', () => {
   it('fails fn-150s rejected slim build, naming the base and the growth', () => {
     const fails = check(b, fn150.head, { base: on(fn150.base) });
     expect(fails).toContain(
-      `${FIELD}: 526965 bytes, +48.4% over 355100 on the base abcd1234, above the 5% growth share per PR; name telperion-field.wasm in the PR's Decisions section, or shrink the artifact`,
+      `${FIELD}: 526965 bytes, +48.4% over 355100 on the base abcd1234, above the 5% growth share per PR; name telperion-render.wasm in the PR's Decisions section, or shrink the artifact`,
     );
   });
 
   it('passes fn-170s fork rule under the budget file as it stands', () => {
-    expect(check(b, fn170.head, { base: on(fn170.base) })).toEqual([]);
+    expect(check(frozen, fn170.head, { base: on(fn170.base) })).toEqual([]);
   });
 
   it('passes exactly the share and fails one byte more', () => {
@@ -51,14 +59,14 @@ describe('growth per PR', () => {
     const grown = { ...recorded, [FIELD]: 380_000, [MAIN]: 1_500_000 };
     const body = [
       '## Change', 'telperion.wasm is not declared here.',
-      '## Decisions', '- D1: the leaf plan grows `dist/telperion-field.wasm` by 5 percent.',
+      '## Decisions', '- D1: the leaf plan grows `dist/telperion-render.wasm` by 5 percent.',
       '## Open', '- telperion.wasm grows too.',
     ].join('\r\n');
-    const declared = declaredGrowth(b, body);
+    const declared = declaredGrowth(frozen, body);
     expect([...declared]).toEqual([FIELD]);
     const base = on({ ...recorded, [FIELD]: 355_100, [MAIN]: 1_400_000 });
-    expect(check(b, grown, { base, declared })).toEqual([expect.stringMatching(/^dist\/telperion\.wasm: 1500000 bytes, \+7\.1%/)]);
-    expect(declaredGrowth(b, '## Decisions\n- telperion-render.wasm and telperion.json')).toEqual(new Set(['dist/telperion-render.wasm']));
+    expect(check(frozen, grown, { base, declared })).toEqual([expect.stringMatching(/^dist\/telperion\.wasm: 1500000 bytes, \+7\.1%/)]);
+    expect(declaredGrowth(frozen, '## Decisions\n- telperion-render.wasm and telperion.json')).toEqual(new Set(['dist/telperion-render.wasm']));
   });
 });
 

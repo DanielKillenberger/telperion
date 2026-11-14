@@ -20,7 +20,7 @@ A throwaway example timed each stage of one fixed specimen at seed 1
 
 The skeleton is a twentieth of a specimen; the spec's cost model (the
 generator, and 21 files rebuilding the species suite's seeds) is recorded as
-wrong in FRICTION.md. The other files build the shipped tables at seed 7, or
+wrong in FRICTION.md (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn76/FRICTION.md`). The other files build the shipped tables at seed 7, or
 at the presets' own seeds (42, birch 1, beech 2), through `mesh::build`.
 
 ## R1: one generation, a committed digest
@@ -90,7 +90,7 @@ stay ignored, as before.
   one seed after another on one core; the sum of everything else divides by
   four cores.
 
-## After the first runner run (RUNS.md): named shards, seeds on threads
+## After the first runner run (RUNS.md) (archived: see .flow/evidence/ARCHIVE-MANIFEST.md, `git show 8dab10634:.flow/evidence/fn76/RUNS.md`): named shards, seeds on threads
 
 The runner's per-test times (run 35385460955, `runner-durations.json` from
 its log) predict the core shards. A species test's core-seconds stay what

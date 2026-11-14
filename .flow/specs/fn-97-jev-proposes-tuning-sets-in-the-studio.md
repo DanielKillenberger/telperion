@@ -11,7 +11,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 50% [user], 40% [paraphrase], 10% [inferred] -->
 
 In the agent studio (fn-94) a person describes a tree and their agent sets the dials. The owner's idea has one more voice in that loop: Jev proposes tuning sets and the agent sets the parameters. Jev's part needs what the tuning loop (fn-68) is still building, an authored dial table with named steps and a validated adjustment question, so it was split out of fn-94 to let the studio finish first.
 

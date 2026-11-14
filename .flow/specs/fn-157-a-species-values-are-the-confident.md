@@ -1,56 +1,58 @@
-## Conversation Evidence
+## Goal
 
-> owner (2026-09-25): "How can it be so hard to gather some data on trees and determine average values"
-> owner (2026-09-25): "why are we not searching documentation regarding the species download it all that we can find and compose the highest confidence aggregate from those?"
-> owner (2026-09-25): "ok go.."
-> owner (2026-09-26), on the host's proposal that this spec also carries the beech's first live run through Tune, Gaps and the owner's look, and a photograph search that finds the whole tree: "yes"
+A species' starting values should be what its literature agrees on, without a person checking each number. fn-149's per-field search took a 4.36 m trunk and a 25.9 m crown from one heritage-tree page, read a leaf length as its width and left the height unsourced. The owner asked to replace the stage: gather everything written about the species, read each document once, and compose each value in code as the confident aggregate across sources. On 2026-09-26 the spec also took the beech's first live run through Tune and Gaps to the owner's look, and a photograph search that finds the whole tree.
 
-## Goal & Context
-<!-- scope: business -->
+## Decisions
 
-A species' starting values should be what the literature agrees on, and a run should get them without a person checking each number. Today the literature stage searches the web separately for each field, admits a source only after a licence check, and lets Jev choose one quote per field. On fn-149's recorded beech run (2026-09-25) that took a trunk diameter of 4.36 m and a crown of 25.9 m from one heritage-tree page describing a single giant beech, read a leaf length as the leaf width, and left the height unsourced; the first run's only admitted source was Wikipedia. Each fix made the stage run further and none made its numbers more trustworthy. This spec replaces the stage's shape: gather everything written about the species, read each document once, and compose each value as the confident aggregate across sources. [paraphrase]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-**What exists, checked 2026-09-25 on the fn-149 branch (`055a414e`).** [checked]
-- The literature stages are discover, fetch, extract, screen, quality, select, verify and fit, with search-again rounds per unmet field (`crates/telperion-jev/src/pipeline/stages/`). Discover proposes sources per field; a source is read only after admission, which requires a rights class (`pipeline/rights.rs`). The Czech forestry journal PDF found for the beech was refused as rights class `none` and never read.
-- Select keeps one value per field from Jev's ranking of candidate spans; a contradicted value becomes the range of the sources' spans (`keep-range`) or is dropped (`unsourced`).
-- The recorded beech profile (`.flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/`) has dbh 4.36 m and crown width 25.9 m from P1 (`extension.wsu.edu/clark/.../heritage-tree`), leaf width 7.6-15 cm from P2 (NC State), and no height.
-
-**The shape.** [inferred]
-1. **Gather.** One broad search per species (flora, silvics and forestry manuals, arboreta, extension pages, papers; Wikipedia only as a lead to its references), downloading every useful document, bounded by a document count and the Firecrawl budget the preflight reports.
-2. **Read and extract.** Each document is read once. Code finds every candidate span; Jev labels each with its field, its unit and its context: typical or record/single specimen, mature or at a stated age, open-grown or stand-grown, and the organ it describes. Jev never chooses between sources and never supplies a number.
-3. **Aggregate in code.** Per field: the value is the median of the typical, mature values from independent sources; the range is their spread; confidence is the count of agreeing independent sources and their dispersion. A value far outside the others is set aside and noted. Record and single-specimen values are kept as the field's maximum, never as its typical value. Every field cites the sources behind it.
-4. **Rights.** Reading a document to extract facts needs no licence. Only a copy stored in the catalogue does: open-licence sources are copied, the rest are cited by URL.
-
-**Replaced.** Per-field discovery and search-again rounds, source admission before reading, the quality bars, per-field selection, and the decision kinds built around them. **Kept.** The fetch retry and pacing, Wikipedia as a lead, record and replay, the preflight, the reference photograph search, and the profile's output shape, so Start, Tune and Gaps read it unchanged. [inferred]
-
-**Reference photographs of the whole tree.** On fn-149's recorded beech run (`crates/telperion-jev/tests/fixtures/replay/european-beech`) the photograph search (`pipeline/photos/`, first Commons query "<taxon> tree") kept one photograph, a bark close-up, and Tune refuses without one of the whole tree (`tuning/live.rs:170`, "no reference photograph of the whole tree"). The search keeps at least one mature, open-grown tree in leaf and, where one exists, the bare tree, so the reviewer compares crown and silhouette, not bark alone. [checked]
-
-**The second half of the runner, live.** fn-149's proof replays the beech through Start; Tune, Gaps and Accept have never run live on a new species under the runner. With this spec's values and photographs in place, the beech runs from its bare seed through Tune and Gaps to the owner's look, and that run is recorded and replayed the same way. [inferred]
-
-**Unknown.** [unknown]
-- The document count and the agreement threshold that make a value confident; measured on the beech and one shipped species.
-- Whether the aggregate needs per-source weighting (a flora above a nursery page) or the median over independent sources is enough.
+- owner (2026-09-25): "How can it be so hard to gather some data on trees and determine average values"
+- owner (2026-09-25): "why are we not searching documentation regarding the species download it all that we can find and compose the highest confidence aggregate from those?"
+- owner (2026-09-25): "ok go.."
+- owner (2026-09-26), on carrying the beech's live run through Tune, Gaps and the owner's look, and a whole-tree photograph search: "yes"
+- Shape: one broad gather per species; Jev labels each candidate span (field, unit, typical or record, age, growing condition, organ) and never picks a source or supplies a number; code aggregates (median of typical mature values from independent sources, spread, agreement count). A record value is the field's maximum only. Reading needs no licence; only open-licence copies go into the catalogue.
+- Replaced and deleted: per-field discovery and search-again rounds, admission before reading, quality bars, per-field selection and their decision kinds. Kept: fetch pacing, Wikipedia as a lead, record and replay, preflight, photograph search, the profile's output shape.
+- Host decisions (2026-09-26): documents are classed by kind; a value gates only when a flora, forestry or garden tier agrees on it (otherwise contextual); Start takes the median; appearance reads the best tier only; queries include the native range; photographs come from Commons single-tree categories; a found photograph gets a shot chosen from code's candidates; Tune is capped at three rounds; a gap is reachable only when a judged attempt passes the trait.
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** The beech, run from a bare seed, gets height, trunk diameter, crown width and leaf length and width from at least three independent sources each where the literature has them, and every value sits inside the range standard floras give for the species. [inferred]
-- **R2:** A single-specimen or record value (the heritage beech's 4.36 m trunk) is kept as the field's maximum and never as its typical value; a test over the recorded pages shows it. [inferred]
-- **R3:** A source stating no licence is read and cited; only open-licence sources are copied into the catalogue. [inferred]
-- **R4:** Each field records its sources, its spread and its confidence, and Start derives the tree from the aggregate without code changes downstream. [inferred]
-- **R5:** The run is recorded and replayed offline in the workspace gate, and a shipped species (the oak or the ash) run the same way lands within its catalogue ranges. [inferred]
-- **R6:** The replaced stages and decision kinds are gone, not disabled; lines before and after are reported; the workspace gate and `npm test` are green. [inferred]
-- **R7:** The beech's reference photographs include at least one mature, open-grown tree in leaf, kept from open-licence sources; a test over the recorded search shows it. [inferred]
-- **R8:** The beech runs live from its bare seed through Tune and Gaps to the owner's look; that run is recorded, and the workspace gate replays it offline through Tune's first revision. `gaps.md` classes every failing trait, and the owner's look is the only stop left. [inferred]
+- **R1:** Beech height, trunk diameter, crown width and leaf size from at least three independent sources each, inside flora ranges — partial: height 40 m from three agreeing forestry sources; leaf width 11.4 cm rests on one extension page, outside the flora's 2.5-7 cm (contextual).
+- **R2:** A record value is the field's maximum, never its typical value — met (`tests/aggregate.rs`).
+- **R3:** Unlicensed sources are read and cited; only open-licence sources are copied — met (`runner::folder`).
+- **R4:** Each field records sources, spread and confidence; Start derives the tree with downstream code unchanged — met.
+- **R5:** Recorded run replays offline; a shipped species lands within its catalogue ranges — met for the Oregon white oak, though every oak value rests on one source.
+- **R6:** Replaced stages and decision kinds deleted, gates green — met.
+- **R7:** Reference photographs include a mature open-grown beech in leaf — met ("Fagus sylvatica TK 2023-05-06 1", CC BY-SA 4.0); no bare tree kept.
+- **R8:** The beech runs live through Tune and Gaps to the owner's look, replayed offline through Tune's first revision — met (the replay needs a hardware GPU; CI skips).
 
-## Boundaries
-<!-- scope: business -->
+## Result
 
-- Not the species runner's structure (fn-149), how tuning chooses its moves, or the generator. Not photo input (fn-147). One species' values and how they are composed.
+- Beech, native-range run: height 40.0 m (30-40, forestry, agreed); crown 12.9 m and leaf length 8.5 cm (extension, contextual); trunk 1.5 m (nursery, thin); crown base unsourced.
+- Tune (three-round cap) kept round 2's half-strength bundle: crown 13.4 m to 17.7 m, envelope spread 0.161 to 0.211, habit, twig, bark and shading rows. Round 3 kept nothing.
+- Gaps: 0 reachable, 7 identity (3 waiting on fn-61; single clear bole, fine layered twig sprays, light translucent foliage and leaf shape for the host under fn-62), 0 global, 5 unsourced. `gaps.md` is 3.7 KB.
+- Owner verdict: the owner does not accept this beech; it waits on fn-61.
+- Oak (R5): height 21.3 m, dbh 0.8 m, leaf length 0.10 m, all inside the catalogue; no photograph found.
+- Fixtures: beech 447 files, 11 MB; oak 244 files, 1.4 MB; `tape_trim --check` clean. Gates on the rebased head: workspace 1048 passed, `npm test` 110 passed.
 
-## Strategy Alignment
+## Open
 
-- Serves "Fidelity" and "The catalogue": a species starts from what its literature agrees on. [strategy:Our approach]
+- Non-European whole-tree photographs (the oak kept none): not built.
+- Tune's proposal asks about every dial (227): a dial set sized to the species or a question cap (`--init-tuning`, fn-165).
+- A harness view of a run's kept tree (captured as fn-166).
+- Proposal batches stable under a dial-table reorder.
+
+## Friction
+
+- A changed literature stage cannot replay the old tape -> re-record budgeted into the live run.
+- Firecrawl refused past 22 plan credits, R5 blocked for a time -> account credits; `--status` could warn.
+- A failed later inner stage reran the paid earlier one; HTTP 520 not retried -> follow-up (refresh per record, retry 5xx).
+- An archived PDF served as text/html was read as binary -> fetch takes `%PDF-` bodies as PDF.
+- Tune from a name had no profile manifest -> Start writes it (fixed).
+- The measurer refused Start's draft profile -> Start writes a frozen ready copy (fixed, 87c38b48).
+- A one-source value gated as a point -> host's tier and agreement rule.
+- A found photograph had no shot -> host: shot chosen from code's candidates.
+- `tape_trim --check` exited 0 on a finding -> exits nonzero (fixed).
+- Tune asked Jev about 227 dials in one call (HTTP 400) -> `max_questions_per_call` 32; dial set to fn-165.
+- Tune spent about 2.04 M Jev tokens on rounds that could keep nothing -> three-round cap; a same-gate stop proposed.
+- `gaps.md` grew to 306 KB and 1.3 MB of repeated links -> one readable line per gap (fixed, 3.7 KB).
+- A Tune recording did not replay from another directory (four run-specific request keys) -> each fixed with a test; round 1 re-recorded.
+- The harness cannot show the kept tree -> fn-166.
+- The rebase onto fn-152 reordered dial batches and missed the tape -> round 1 re-recorded; stable batch keys proposed.

@@ -39,6 +39,7 @@ fn main() {
             let wood = built.outputs.wood.as_ref().unwrap();
             let leaves = &built.outputs.leaves.as_ref().unwrap().instances.leaves;
             let tree_hash = hash(bincode::serialize(tree).unwrap());
+            let wood = wood.flattened();
             let wood_hash = hash(
                 wood.positions
                     .iter()

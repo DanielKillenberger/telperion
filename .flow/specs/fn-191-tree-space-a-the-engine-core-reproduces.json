@@ -88,7 +88,7 @@
     "impl:fn-191-tree-space-a-the-engine-core-reproduces.1": 0
   },
   "spec_path": ".flow/specs/fn-191-tree-space-a-the-engine-core-reproduces.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space A: the engine core reproduces GreenLab",
   "tracker": {
     "baseHashFlow": null,
@@ -101,5 +101,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T20:01:58.110668Z"
+  "updated_at": "2026-11-11T11:59:41.846868Z"
 }

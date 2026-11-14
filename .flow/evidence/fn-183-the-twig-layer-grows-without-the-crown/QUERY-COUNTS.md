@@ -1,6 +1,6 @@
 # Crown queries by caller, master e12a9a28, 2026-10-02
 
-Scratch instrumentation (`query-count.diff`): counters on `Envelope::radius_at`, the twig-layer stride check and its bisection in `local/planner.rs`, `Planner::run` calls and `scaffold::reach`. Growth is single-threaded, so the deltas are exact. One `growth_profile` sample per preset, native release, seed 1.
+Scratch instrumentation (later merged as the `query-count` feature): counters on `Envelope::radius_at`, the twig-layer stride check and its bisection in `local/planner.rs`, `Planner::run` calls and `scaffold::reach`. Growth is single-threaded, so the deltas are exact. One `growth_profile` sample per preset, native release, seed 1.
 
 | Preset | `radius_at` | Stride checks | Radius in stride checks | Strides refused | Radius in bisection | Local axes | Scaffold reach radius | Rest |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|

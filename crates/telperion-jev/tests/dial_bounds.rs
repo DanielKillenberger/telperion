@@ -63,10 +63,11 @@ fn no_row_takes_a_wall_from_the_preset_span() {
     let rows = audited();
     // 75 former preset-span rows, less `foliage_spacing` and `tip_clump`,
     // whose rows are deprecated and offer no dial (fn-152), and less
-    // `stem_divergence`, whose row fn-170 retired.
+    // `stem_divergence`, whose row fn-170 retired, and `short_shoot_spread`,
+    // whose row fn-223 retired.
     assert_eq!(
         rows.len(),
-        72,
+        71,
         "the audit covers the former preset-span rows"
     );
     for dial in &rows {

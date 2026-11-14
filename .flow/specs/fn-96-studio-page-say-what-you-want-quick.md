@@ -11,7 +11,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 60% [user], 30% [paraphrase], 10% [inferred] -->
 
 The UI today is a developer harness: every dial in one panel, labelled for the person who wrote the generator. The owner wants the main entry point to be easy: a place to say what you want, the tree, and the few most important dials someone might want to tune quickly. Behind it sits the option to look at the parameters, grouped intuitively, with explainers where needed.
 

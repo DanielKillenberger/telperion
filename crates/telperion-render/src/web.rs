@@ -18,7 +18,8 @@ use crate::{
     GROUND_REACH,
 };
 
-mod generation;
+/// A tree growing for the page, on the CPU (fn-270 R6, R7; fn-353).
+mod growing;
 /// The timing protocol as a page runs it, kept beside this file rather than in
 /// it so neither outgrows the project's line rule.
 mod session;
@@ -45,6 +46,16 @@ struct Live {
     renderer: Renderer,
     camera: Camera,
     stats: FrameStats,
+    /// Whether the last frame's work is still on the device. The page asks
+    /// for a frame every animation frame; a frame is drawn only once the
+    /// last one's work is done, so a tree that takes longer than a frame to
+    /// draw never queues work faster than the device does it, and a build's
+    /// readbacks are not starved behind frames (fn-212 task 10, host
+    /// decision 1).
+    drawing: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    /// Whether the picture changed since the last frame drew it (fn-246):
+    /// an unchanged picture is not drawn again.
+    redraw: crate::redraw::Redraw,
 }
 
 impl Live {
@@ -65,6 +76,8 @@ impl Live {
             renderer,
             camera,
             stats: FrameStats::default(),
+            drawing: Default::default(),
+            redraw: Default::default(),
         })
     }
 
@@ -75,6 +88,7 @@ impl Live {
             return;
         }
         (self.config.width, self.config.height) = (width, height);
+        self.redraw.ask();
         // Between frames by construction: a surface texture is acquired,
         // drawn and presented inside `draw`, and never held across a call.
         self.surface
@@ -143,6 +157,26 @@ fn frame_of(acquired: wgpu::CurrentSurfaceTexture) -> Result<wgpu::SurfaceTextur
     }
 }
 
+/// Compiles the wood's surfacing programs and waits for the browser to settle
+/// them, so a renderer that exists can draw a tree's wood. The browser
+/// compiles them in the background: a synchronous compile on the first build
+/// held Chrome's GPU process until its watchdog ended it (fn-243). A program
+/// the browser refuses, or the device lost meanwhile, is the error by name.
+async fn compile_programs(gpu: &Gpu) -> Result<()> {
+    let [validation, memory] = gpu.scopes();
+    crate::curve::passes(gpu);
+    let ready = crate::programs::ready(gpu).await;
+    let (memory, validation) = (memory.pop().await, validation.pop().await);
+    let scoped = match memory.or(validation) {
+        Some(error) => Err(RenderError::DeviceRefused {
+            requirement: "the wood's programs".into(),
+            detail: error.to_string(),
+        }),
+        None => Ok(()),
+    };
+    crate::programs::first_cause(gpu.lost(), ready, scoped)
+}
+
 fn aspect(config: &wgpu::SurfaceConfiguration) -> f64 {
     f64::from(config.width) / f64::from(config.height)
 }
@@ -181,20 +215,23 @@ fn attachments(
 /// invent one.
 #[wasm_bindgen]
 pub struct WebRenderer {
-    generation: generation::Generation,
     live: Rc<RefCell<Option<Live>>>,
 }
 
 #[wasm_bindgen]
 impl WebRenderer {
-    /// A renderer on this canvas, or a rejection naming the condition that
-    /// stopped it: no WebGPU, a software-only adapter, a refused device.
+    /// A renderer on this canvas that can draw a tree, or a rejection naming
+    /// the condition that stopped it: no WebGPU, a software-only adapter, a
+    /// refused device, a wood program the browser refused, or the device lost
+    /// while the programs compiled.
     pub fn create(canvas: HtmlCanvasElement) -> js_sys::Promise {
         future_to_promise(async move {
             let live = Live::new(canvas).await.map_err(js_error)?;
+            compile_programs(live.renderer.gpu())
+                .await
+                .map_err(js_error)?;
             Ok(JsValue::from(Self {
                 live: Rc::new(RefCell::new(Some(live))),
-                generation: Rc::default(),
             }))
         })
     }
@@ -207,13 +244,15 @@ impl WebRenderer {
         let value = serde_json::from_str(family)
             .map_err(|error| JsError::new(&format!("the parameters are not JSON: {error}")))?;
         let family = params::parse(&value).map_err(|error| js_error(RenderError::from(error)))?;
-        let mesh = mesh::build(&family).map_err(|error| js_error(error.into()))?;
+        let mesh = mesh::drawn(&family).map_err(|error| js_error(error.into()))?;
         let mut live = self.borrow()?;
         // The material rides with the tree: these parameters state both, and a
         // tree drawn in the last tree's colours would be nobody's family.
         let submitted = live.renderer.submit(&mesh).map_err(js_error)?;
-        live.renderer.set_material(family.material);
-        self.generation.borrow_mut().invalidate();
+        live.renderer.set_family(&family);
+        // A whole tree's leaves, whatever a drawn year left them at.
+        live.renderer.set_colouring(1.0);
+        live.redraw.ask();
         Ok(submitted_json(&submitted))
     }
 
@@ -226,7 +265,9 @@ impl WebRenderer {
                 View::NAMES.join(", ")
             ))
         })?;
-        self.borrow()?.renderer.set_view(view);
+        let mut live = self.borrow()?;
+        live.renderer.set_view(view);
+        live.redraw.ask();
         Ok(())
     }
 
@@ -245,7 +286,9 @@ impl WebRenderer {
     #[wasm_bindgen(js_name = setScene)]
     pub fn set_scene(&self, scene: &str) -> std::result::Result<(), JsError> {
         let row = SceneRow::parse(scene).map_err(js_error)?;
-        self.borrow()?.renderer.set_scene(row);
+        let mut live = self.borrow()?;
+        live.renderer.set_scene(row);
+        live.redraw.ask();
         Ok(())
     }
 
@@ -260,6 +303,7 @@ impl WebRenderer {
         };
         let camera = hero_pose(bounds, aspect(&live.config), GROUND_REACH);
         live.camera = camera;
+        live.redraw.ask();
         Ok(json!({
             "position": [camera.position.x, camera.position.y, camera.position.z],
             "target": [camera.target.x, camera.target.y, camera.target.z],
@@ -283,6 +327,7 @@ impl WebRenderer {
         let mut live = self.borrow()?;
         live.camera.position = Vec3::new(x, y, z);
         live.camera.target = Vec3::new(target_x, target_y, target_z);
+        live.redraw.ask();
         Ok(())
     }
 
@@ -293,9 +338,28 @@ impl WebRenderer {
         Ok(())
     }
 
-    /// Draws one frame.
+    /// Draws one frame, when the picture changed (or the last frame failed)
+    /// and the last one's work is no longer on the device; otherwise nothing.
+    /// A lost device is named, never drawn on: the page stops its frame loop
+    /// on the error and rebuilds on a fresh device only when asked (fn-235).
     pub fn frame(&self) -> std::result::Result<(), JsError> {
-        self.borrow()?.draw(None).map_err(js_error)
+        let mut live = self.borrow()?;
+        if let Some(lost) = live.renderer.gpu().lost() {
+            return Err(js_error(lost));
+        }
+        let order = std::sync::atomic::Ordering::Relaxed;
+        let failed = live.renderer.frame_error().is_some();
+        if !live.redraw.due(live.drawing.load(order), failed) {
+            return Ok(());
+        }
+        live.draw(None).map_err(js_error)?;
+        let whole = live.renderer.drew_whole();
+        live.redraw.submitted(whole);
+        let drawing = live.drawing.clone();
+        drawing.store(true, order);
+        let queue = &live.renderer.gpu().queue;
+        queue.on_submitted_work_done(move || drawing.store(false, order));
+        Ok(())
     }
 
     /// What the last frame cost, as JSON. `triangles` leaves out the wood,
@@ -368,7 +432,6 @@ impl WebRenderer {
     /// Drops the device and the canvas surface with it. Every later call says
     /// the renderer is disposed rather than reaching a device that is gone.
     pub fn dispose(&self) {
-        self.generation.borrow_mut().dispose();
         self.live.borrow_mut().take();
     }
 }
@@ -394,8 +457,6 @@ fn borrow(
 fn submitted_json(submitted: &Submitted) -> String {
     let (min, max) = (submitted.bounds.min, submitted.bounds.max);
     json!({
-        "woodVertices": submitted.wood_vertices,
-        "woodTriangles": submitted.wood_triangles,
         "foliageInstances": submitted.foliage_instances,
         "bounds": { "min": [min.x, min.y, min.z], "max": [max.x, max.y, max.z] },
     })

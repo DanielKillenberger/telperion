@@ -1,0 +1,89 @@
+{
+  "branch_name": "fn-348-the-jev-caller-carries-a-still",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-11-11T00:27:05.645888Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-348-the-jev-caller-carries-a-still",
+  "impl_review_rounds": {
+    "fn-348-the-jev-caller-carries-a-still.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "f5e124c4b530ebf36b283a0f1f49c91fbef953d1e618957892cf199019e25b0d",
+      "backend": "codex",
+      "base_sha": "448031b12ebe166bf7a8179d9b31915f37bf7b43",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-380c04cb76b9cf3204d0e0953363300b",
+            "classification": "introduced",
+            "findingId": "finding-380c04cb76b9cf3204d0e0953363300b",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d0ab47f5c3db10e3d9f01de356d3cd7522bef47e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 756,
+      "output_sha256": "fbfa7b924e91be55d34ef48328d2d85112e518fa3b0be1f45ab37699039359ea",
+      "reservation_id": "965a1495824c44babbeb0dbdc4648976",
+      "round_consumed": true,
+      "scope": "impl:fn-348-the-jev-caller-carries-a-still.1",
+      "superseded_by": null,
+      "task": "fn-348-the-jev-caller-carries-a-still.1",
+      "timestamp": "2026-11-11T01:05:53.616882Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-348-the-jev-caller-carries-a-still.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-348-the-jev-caller-carries-a-still.1": 0
+  },
+  "spec_path": ".flow/specs/fn-348-the-jev-caller-carries-a-still.md",
+  "status": "done",
+  "title": "The Jev caller carries a still",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-11T01:06:47.460978Z"
+}

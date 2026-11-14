@@ -9,7 +9,6 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 50% [user], 30% [paraphrase], 20% [inferred] -->
 
 In the tree studio a person describes a tree and iterates with their own agent and Jev's proposals. Some looks will not be reachable with the dials the generator has. The owner wants that moment to produce something useful: the agent writes a flow-next spec that would close the gap, and people send pull requests with those specs or with finished implementations.
 

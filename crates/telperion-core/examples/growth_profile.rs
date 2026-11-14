@@ -30,9 +30,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         println!(
-            "{{\"preset\":\"{preset}\",\"seed\":{seed},\"sample\":{sample},\"ms\":{ms:.3},\"nodes\":{},\"shed\":{},\"tree_fnv1a64\":\"{hash:016x}\"{}}}",
+            "{{\"preset\":\"{preset}\",\"seed\":{seed},\"sample\":{sample},\"ms\":{ms:.3},\"nodes\":{},\"tree_fnv1a64\":\"{hash:016x}\"{}}}",
             skeleton.tree.nodes.len(),
-            skeleton.shed,
             queries::take().map_or(String::new(), counted)
         );
     }

@@ -1,24 +1,29 @@
 # Tree space: wander bends over a length
 
-## Goal & Context
+## Goal
 
-The owner judged the oak (fn-195, round 8) "structurally ok but very blob like and unnatural in subtle ways. Branches are a bit chaotic ... the reference looks calmer and more natural" (owner, 2026-10-05). The cause is checked in the code: `form.wander` draws an independent turn, of random angle and random direction, at every node (`geometry/lay.rs:83-90`). An axis's direction is therefore a random walk with no memory; wander can only add jitter at the scale of one internode, never a slow, deliberate bend. A real oak's limbs make a few large, slow turns while its fine wood stays even, and the rounds that raised wander to get "tortuous" limbs (fn-195 rounds 6 to 8) made every order jittery instead. The beech's known gap ("fewer, heavier limbs", its fan-shaped boughs) may share the cause (host, 2026-10-05).
+The owner judged the oak (fn-195, round 8) "structurally ok but very blob like and unnatural in subtle ways. Branches are a bit chaotic ... the reference looks calmer and more natural" (owner, 2026-10-05). Cause, checked in code: `form.wander` drew an independent turn at every node (`geometry/lay.rs`), a memoryless random walk that can only jitter at internode scale, never bend slowly. A real oak's limbs make a few large, slow turns while fine wood stays even; raising wander for "tortuous" limbs made every order jittery. The beech's "fewer, heavier limbs" gap may share the cause (host, 2026-10-05). Geometry only; the oak's values stay fn-195's.
 
-## Design (host, 2026-10-05)
+## Decisions
 
-- **Curvature that persists.** Each axis carries a curvature vector (perpendicular to its heading) that evolves along the axis as a mean-reverting process keyed by lineage: at each node it relaxes toward zero over a correlation length and is kicked by a keyed draw. The turn applied at a node is that curvature times the internode's length.
-- **Two settings per physiological age:** `form.wander` stays the amplitude (the stationary spread of the bend per metre), and a new `form.bend_length` (metres) is the correlation length. At `bend_length` 0 the process has no memory and reproduces today's per-node draw exactly (neutral: every existing tree byte-identical). Longer lengths give slow, smooth arcs of the same overall spread.
-- **Continuity:** the curvature is a smooth function of the settings and the keyed draws; walk-tested within the bound of 30.
-- **Inheritance:** a lateral starts with zero curvature (its own process); a continuation or relay carries its bearer's curvature on, so a limb's bend continues through its relays.
+- Design (host, 2026-10-05): each axis carries a curvature vector, a lineage-keyed mean-reverting process relaxing over a correlation length; the turn is curvature × internode. `form.wander` stays the amplitude; new `form.bend_length` (m) is the correlation length, 0 reproducing today's per-node draw exactly. A lateral starts with zero curvature; a continuation or relay carries its bearer's on.
 
 ## Requirements
 
-- **R1:** `bend_length`, neutral at 0 with every existing tree byte-identical (beech, spruce, oak, palm at seeds 1 and 7).
-- **R2:** A test that at a long `bend_length` an axis's heading changes smoothly (successive turns correlated, with the expected correlation for the length) and the overall spread matches the neutral case's for the same `wander`; red first on the per-node draw.
-- **R3:** Walk tests on `bend_length` and `wander` within the bound of 30.
-- **R4:** The oak re-rendered with slow bends on the limbs and low wander on the boughs and fine wood, viewed by the host beside round 8 and S1.
-- **R5:** Workspace gate; Codex review.
+- **R1:** `bend_length` neutral at 0, every existing tree byte-identical — met for beech, spruce, oak at seeds 1 and 7 (the palm was not on this branch; its check falls to the palm's branch).
+- **R2:** At a long `bend_length` successive turns correlate as expected with the neutral spread; red first on the per-node draw — met (`tests/bend.rs`: lag-one correlation −0.011 red vs exp(−0.1/2) = 0.951; spread within 10% of wander²/3).
+- **R3:** Walks on `bend_length` and `wander` within bound 30 — met (steepest 0.16).
+- **R4:** The oak re-rendered with slow limb bends and low fine-wood wander, viewed by the host beside round 8 and S1 — met, recorded in fn-195 ("fn-207 R4 trial").
+- **R5:** Workspace gate; Codex review — met (1,063 passed; Codex SHIP on review 2).
 
-## Boundaries
+## Result
 
-Geometry only. No species values beyond the oak's R4 trial (the oak's values are fn-195's).
+`Form::bend_length` (neutral 0, max 1,000): curvature relaxes by exp(−internode / bend_length) and is kicked by the keyed draw scaled by √(1 − keep²). Codex review 1's two P1s fixed (curvature updated at bend length 0; relaxation runs whenever bend length > 0, without kick at zero wander), with two red-first walks across a continuation.
+
+## Open
+
+R1's palm check on the palm's branch.
+
+## Friction
+
+- Gate ran before Codex review, whose fixes forced a second 9-min gate -> on tasks needing both, review before the gate.

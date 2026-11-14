@@ -1,75 +1,25 @@
-## Conversation Evidence
+## Goal
 
-> user (2026-09-15, on the round-5b beech): "Also just much more thick core trunks for almost the entire height of the tree. Our tree thins out too quickly"
-> user (2026-09-15, on the round-5c winter pair): "well we need to figure out how to get there. It's just not there. It's not appearing strong/large enough. Too many small branches. It does seem like there's less density on the reference actually. Fewer larger branches compared to ours which has many more thinner ones directly attached to the trunk"
+The owner wanted the winter beech photograph's architecture: a thick trunk running up through the crown, a few large steep limbs, fine twigs on them. The generated beech thinned out too quickly and carried too many small branches straight off the trunk, and the value tier could not reach it: raising the pipe model's fork exponent toward Murray's law thickened the core but sent every protocol seed to the 250,000-node ceiling. This spec decouples the twig layer's depth from the radius with a row a table can state, so the beech can have thick limbs and a bounded crown.
 
-## Goal & Context
-<!-- scope: business -->
-<!-- Goal & Context: 45% [user], 35% [paraphrase], 20% [inferred] -->
+## Decisions
 
-The beech in the winter photograph is a thick trunk that runs up through the crown, a few large limbs leaving it steeply, and fine twigs on those limbs. The generated beech, after rounds 5b and 5c on its habit rows, has the trunk and the steep limbs but thins out too quickly and carries too many small branches straight off the trunk. The owner wants the photograph's architecture: fewer, larger branches, and a core that stays thick for almost the whole height. [user]
-
-The value tier cannot reach it. The row that keeps a leader thick is the fork exponent of the pipe model; raising it toward Murray's law gives exactly the core the owner asked for on the pair, and every protocol seed hits the 250,000-node ceiling, because the thicker wood stays above the twig threshold for one more generation and the twig layer spends the whole budget there. Halving the laterals per station, which is what the photograph asks for anyway, frees nothing: the twig layer takes what the limbs gave up. The twig rows that should bound it (twig diameter, bearing diameter, the limb handoff share) leave the fifth generation and the cap in place. The wood budget follows the radius, so any table that asks for girth is refused by the ceiling. [paraphrase]
-
-This spec decouples them: the twig layer's depth and count are bounded by rows a table can state, independent of how thick the pipe model makes the wood, so the beech can have thick limbs and a bounded crown. The beech is the specimen judged on the matched pairs. [inferred]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-- **Where the budget goes.** Seed 1 of the beech at fork exponent 1.8: 115,255 branches over four generations, 115,080 twigs, 193,836 nodes. At 2.8: 149,743 branches with a fifth generation of 35,655, 82,843 twigs, capped at 250,000. At 2.8 with two laterals a station: 60 first-order limbs instead of 106, a fifth generation of 73,627, capped. The twig law keeps branching a lateral while its radius is above the twig diameter and its length above the internode; the pipe model with a high exponent leaves the outer wood above that diameter for one more generation, and the `is_twig` test in `advance.rs` is the only thing that stops it. [inferred]
-- **A generation cap that is a row.** `skeleton.twigs.generations` (1 to 6, neutral today's `MAX_LEVELS` behaviour): the twig-law generation at which a lateral is a twig whatever its radius. A table that states 4 gets four generations and its twigs at the fourth, however thick the pipe model leaves them. Neutral reproduces every shipped tree to the byte. [inferred]
-- **Girth without a fifth generation.** With the generation row set, the beech's fork exponent may rise toward Murray's law and the twig layer stays where it was; the radius solve is untouched. The node estimate in `branching.rs` (`nodes_for`) learns the cap so the planner's budget is honest. [inferred]
-- **Fewer, larger limbs are rows already.** `laterals_per_station`, `lateral_spacing` and `lateral_length_ratio` give the beech its few big limbs; this spec only makes them affordable. [paraphrase]
-- **The ceiling stays.** `NODE_CEILING` is the owner's cost line and does not move here. [user]
-
-## API Contracts
-<!-- scope: technical -->
-
-- **Family row** `skeleton.twigs.generations` validated by name, on the wire, blended as a count, in the browser metadata, in the sweep's moved or held lists. [inferred]
-- **Species metrics** already report branches per order; the report records the beech's before and after. [paraphrase]
-- **Views and commands unchanged.** [paraphrase]
-
-## Edge Cases & Constraints
-<!-- scope: technical -->
-
-- **Neutral is inert.** Every shipped preset at the neutral value is byte-identical, asserted by the pins. [paraphrase]
-- **A generation cap never strands wood.** A lateral that becomes a twig by the cap still bears its twig stations and leaves; nothing is left bare. [inferred]
-- **The planner's estimate agrees.** `nodes_for` counts generations to the cap so the node budget the planner reserves matches what grows. [inferred]
-- **Determinism and blend.** Same seed and rows, same tree; a walk of the count row changes the tree at integer steps the way leaf lobe counts do. [paraphrase]
-- **File sizes.** `advance.rs` is at 367 lines; the cap is one comparison beside the `is_twig` test and the row lives in `twigs.rs`. [paraphrase]
+- user (2026-09-15, on the round-5b beech): "Also just much more thick core trunks for almost the entire height of the tree. Our tree thins out too quickly"
+- user (2026-09-15, on the round-5c winter pair): "well we need to figure out how to get there. It's just not there. It's not appearing strong/large enough. Too many small branches. It does seem like there's less density on the reference actually. Fewer larger branches compared to ours which has many more thinner ones directly attached to the trunk"
+- The node ceiling does not move (owner's cost line); a species row bounds the twig layer instead. Radius solve and pipe model untouched.
+- Found in the work: the cap was not a fifth generation (MAX_LEVELS 12 never approached); the exponent moves `is_twig`'s absolute radius test, turning single-node twigs into branch runs. The row that holds the beech's core is apical dominance (leader to 0.9 of height); the generation row is kept as a general capability.
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** `skeleton.twigs.generations` is a twig row with a rail of 1 to 6, neutral at today's behaviour, refused by name outside it, on the wire, blended as a count, in the regenerated browser metadata and on the harness dial; every shipped preset is byte-identical at neutral. Errors: a value outside the rail is refused naming the field. [inferred]
-- **R2:** With the row set, no twig-law lateral above that generation exists on any fixed seed, whatever the pipe model's radii; the planner's node estimate counts to the cap. Errors: a branch beyond the cap fails the test naming the seed. [paraphrase]
-- **R3:** The beech's table states the generation cap, two laterals a station further apart and longer, and a fork exponent near Murray's law; the 24-seed protocol passes with no seed capped and the DBH gate held; the matched pairs are rendered again with the numbers and the branches-per-order table beside round 5c's in `.flow/evidence/fn34/REPORT.md`; the owner judges the pairs and records the verdict in fn-34. Errors: a rejecting verdict stops the spec with the owner's words and a one-paragraph blocker. [user]
-- **R4:** The tests cover: neutral byte identity on every preset, the rail, the cap on a synthetic family whose radii would otherwise branch past it, the estimate against the count, determinism per seed and a blend walk of the count. Errors: a missing case is a review finding, not implementer discretion. [inferred]
+- **R1:** `skeleton.twigs.generations` twig row, rail 1 to 6, neutral 6, refused by name, wire, blend as count, metadata, harness; presets byte-identical at neutral — met.
+- **R2:** no twig-law lateral above the stated generation on any fixed seed; planner estimate counts to the cap — met.
+- **R3:** beech table states the cap, 24-seed protocol with no seed capped and DBH held, pairs rendered beside round 5c, owner judges in fn-34 — met except the owner's verdict, which moved to fn-62.
+- **R4:** tests for neutral identity, rail, cap on a synthetic family, estimate vs count, determinism, blend walk — met.
 
-## Boundaries
-<!-- scope: business -->
+## Result
 
-- The node ceiling does not move. [user]
-- No change to the radius solve or the pipe model; the exponent is a row the beech sets. [paraphrase]
-- No shedding or self-pruning by shade; fn-16 and fn-21 own those. [paraphrase]
+Beech table: apical dominance 0.9, limbs at 48 degrees rising 0.45, side branches 0.1, crown base 0.05, shoulder 1.5 at 0.48, fork exponent 2.6 (2.8 sat on a cliff where the local layer collapsed from ~150k to 55k nodes). Seed 1 round 5c to 6: 193,836 to 188,636 nodes, branch axes 115,255 to 87,670, twigs 115,080 to 86,700; leader reaches 0.60 to 0.90 of height; stems at a third of height 7 to 1. All 48 protocol cases pass, heaviest beech seed 197,872 nodes, none capped (nor in 120 more random seeds, heaviest 206,066); DBH proxy 0.889 m. Host read: one thick leader with steep limbs (the photograph's architecture), but the upper crown too full and wide, trunk above the first limbs too slim, leaf mass stopping at a third of the height. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
 
-## Decision Context
-<!-- scope: both -->
+## Open
 
-### Motivation
-
-- The owner's loop: a species exposed a coupling the value tier cannot undo, and the generator gains a row that bounds it. [user]
-
-### Implementation Tradeoffs
-
-- A generation cap over a radius-independent twig threshold: the twig law already keys its kind on generation for the level cap; a row on that path is one comparison, and it leaves the radius model whole. [inferred]
-- A row over raising the ceiling: the ceiling is a cost line for every consumer, the row is a species' own choice. [user]
-
-## Resolved via Codebase
-
-- The twig kind test: `crates/telperion-core/src/branching/local/advance.rs:149-153` (`is_twig`: terminal, bearing lateral, radius at or under `twig_radius`, or length under the internode); the level cap at `:160-163` (`MAX_LEVELS`, `level_capped`).
-- The twig radius: `advance.rs:35` (`t.twig.diameter / 2.0`); twig anatomy rows and defaults `crates/telperion-core/src/twigs.rs:7-24` (diameter 5 mm, bearing diameter 50 mm), rails at `:111-118`.
-- The node estimate: `crates/telperion-core/src/branching.rs:165-180` (`nodes_for`, `child_radius`); the ceiling `branching.rs:23` (`NODE_CEILING` 250,000) and its clamp at `:157`.
-- The pipe model: `crates/telperion-core/src/radius.rs:60-76` (a parent is the n-th root of the sum of its children's n-th powers, normalised at node zero), incremental form `radius/incremental.rs:113-116`.
-- The beech's table: `crates/telperion-core/src/presets/species.rs` (habit rows, `twigs.laterals` 5, `length_ratio` 0.40, `fork_exponent` 1.8, `length_taper` 0.3).
-- The round-5d attempts and their branch-order counts: `.flow/evidence/fn34/REPORT.md`, "Round 5d, attempted".
+None here; the beech's verdict is fn-62's.

@@ -55,10 +55,6 @@ pub(crate) fn hold(tree: &mut Tree, p: RadiusParams) {
         let whole = along[i] + reach[i];
         share[i] = if whole > 0.0 { along[i] / whole } else { 1.0 };
     }
-    tree.pipe = tree.nodes[..count]
-        .iter()
-        .map(|n| [n.start_radius, n.radius])
-        .collect();
     for i in 1..count {
         let n = &tree.nodes[i];
         let parent = n.parent.unwrap() as usize;

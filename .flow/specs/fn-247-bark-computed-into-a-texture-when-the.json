@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-247-bark-computed-into-a-texture-when-the",
+  "created_at": "2026-10-09T10:46:40.410351Z",
+  "depends_on_epics": [
+    "fn-246-the-harness-holds-60-fps-on-every"
+  ],
+  "id": "fn-247-bark-computed-into-a-texture-when-the",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-247-bark-computed-into-a-texture-when-the.md",
+  "status": "open",
+  "title": "Bark computed into a texture when the tree is built",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T10:46:40.997695Z"
+}

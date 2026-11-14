@@ -1,13 +1,11 @@
 {
   "$schema": "https://flow-next.dev/schema/flow-config.schema.json",
-  "artifacts": {
-    "html": {
-      "enabled": true
-    }
-  },
   "chart": {
     "claimStaleAfter": 24,
     "maxDecisions": 12
+  },
+  "features": {
+    "staleAfterCommits": 50
   },
   "judge": {
     "enabled": true
@@ -24,7 +22,6 @@
     "gateClasses": []
   },
   "pipeline": {
-    "chainStages": "off",
     "qa": "auto"
   },
   "planSync": {
@@ -33,6 +30,7 @@
   },
   "review": {
     "backend": "codex",
+    "fanoutExecution": "concurrent",
     "maxIterations": 2
   },
   "scouts": {

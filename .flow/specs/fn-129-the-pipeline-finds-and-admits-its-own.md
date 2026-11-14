@@ -1,55 +1,32 @@
 # The pipeline finds and admits its own sources
 
-## Conversation Evidence
+## Goal
 
-> user (2026-09-23), asked to admit a source for the palm's height and trunk diameter: "why can only i admit sources? the pipeline should be able to do this"
+Twice on 2026-09-23 the palm's run stopped for the owner to admit sources. Admission was the owner's because someone had to confirm a source's rights and because "admitting a manifest is never routine" kept a cheap agent from admitting junk. Both can be met by the pipeline with guards, so the owner is asked only when the pipeline has run out of sources. Owner (2026-09-23): "why can only i admit sources? the pipeline should be able to do this"
 
-## Goal & Context
-<!-- scope: business -->
+## Decisions
 
-Twice on 2026-09-23 the palm's run stopped for the owner to admit sources: the version 2 manifest's seven, then a study of height and trunk diameter by age that the host found for the two fields still unmet. Admission was the owner's for two reasons: someone had to confirm a source's rights before its numbers reach a preset, and "admitting a manifest is never routine" kept a cheap agent from admitting junk. Both can be met by the pipeline with guards, so the owner is asked only when the pipeline has run out of sources. [paraphrase]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-- **What exists, checked 2026-09-23 on the fn-80 branch.**
-  - `discover` (`pipeline/stages/discover.rs`) lists known sources, then searches the web and the research index with a plain query per field (`plain_query(taxon, field, condition)`), and Jev ranks the hits; its draft marks a new source's rights "unstated: a person confirms the rights before admission" (the palm's P4 to P7). [checked]
-  - `data/conductor-policy.json` makes `manifest-proposed` admission and `requirements-unmet` the owner's ("its sources are the owner's to add"). [checked]
-- **The design (host, 2026-09-23).** [host design]
-  - *Rights by code, classified by Jev.* Code fetches each proposed source's licence evidence (a CC licence in the page's metadata or text, a PMC or DOAJ open-access record, a public extension or arboretum page); Jev classifies it among `open-licence`, `public-cite-only`, `restricted` and no-match. `open-licence` and `public-cite-only` are admitted with their class recorded; the numbers are cited and no text is reproduced, as for every source today. `restricted` and no-match are not admitted.
-  - *Relevance by Jev.* A proposed source is admitted only if the ranking judged it to state the field it was found for.
-  - *Admission by the pipeline.* `manifest-proposed` is resolved `admit` by the pipeline (`by: pipeline`) when every source in the draft passes both checks and nothing else in the manifest changed but its sources; a draft that changes fields, bars or appearance traits still goes to the owner.
-  - *A requirement unmet searches again.* `requirements-unmet`'s `add-sources` is taken by the pipeline: it reruns `discover` with a query aimed at the field's dominant gap (for `no_age_indexed_points`, the field at stated ages), admits what passes, and reruns the stages. After two such rounds with no newly admitted source for a field, the decision goes to the owner (NEEDS_HUMAN) with the sources tried.
-  - The bars stay the requirements table's; nothing here lowers one.
-- **Appearance traits (host, 2026-09-23, after the first implementation).** [host design]
-  - Adding an already-admitted or newly pipeline-admitted source id to an appearance trait's `sources` list is a sources-only change the pipeline may make.
-  - An unmet appearance trait (`select`'s `requirements-unmet`) is searched again like an evidence field: the same two-round limit, the same rights and relevance checks. An admitted source the trait does not name is a candidate too.
-  - Only a change to a trait's name or level table stays the owner's.
-- **Also settled by the host, 2026-09-23.** [host design] A draft that lifts a version 1 manifest to version 2 goes to the owner (it changes the schema version, which binds the bars). A PMC article's open-access record is Europe PMC's, whose `license` field carries PubMed Central's licence; the PMC open-access service answers 404.
+Host design (2026-09-23):
+- Rights by code, classified by Jev: code fetches licence evidence; Jev classifies `open-licence`, `public-cite-only`, `restricted` or no-match. The first two are admitted with the class recorded (numbers cited, no text reproduced); the rest are not.
+- Relevance by Jev: admitted only if the ranking judged the source to state its field.
+- The pipeline resolves `manifest-proposed` (`by: pipeline`) only for a sources-only draft whose sources all pass; drafts changing fields, bars, appearance traits or the schema version (v1 -> v2) go to the owner.
+- `requirements-unmet` `add-sources` is taken by the pipeline: up to two `search-again` rounds with a gap-aimed query, then the owner gets the decision with the sources tried. Bars never lowered.
+- Appearance traits (added after the first implementation, R6): searched again the same way; adding an admitted id to a trait's `sources` is a sources-only change; renaming a trait or changing its level table stays the owner's.
+- A PMC article's open-access record is Europe PMC's `license` field (the PMC OA service answers 404).
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** A draft whose new sources all carry an open licence or a public cite-only page and state their field is admitted by the pipeline and recorded with each source's rights class; one with a restricted or unclassifiable source goes to the owner. [inferred]
-- **R2:** A draft that changes a field, a bar or an appearance trait goes to the owner. [inferred]
-- **R3:** A `requirements-unmet` field is searched again with a gap-aimed query, twice at most; a newly admitted source reruns the stages; two empty rounds hand the owner the decision with the sources tried. [inferred]
-- **R4:** The rights classes have labelled cases (the palm's F1, A1, M1, P4 to P7 among them) and a no-match answer. [inferred]
-- **R5:** The gate is green: `cargo test --profile ci --workspace --no-fail-fast`. [paraphrase]
-- **R6:** An unmet appearance trait (the palm's `bark_colour` and `leaf_brightness_range` shape) is searched again like a field, two rounds at most; an admitted source the ranking chooses joins the trait's `sources` list, a new source that passes the rights check joins both the manifest's and the trait's, and the decision resolves. A change to a trait's name or level table goes to the owner. [host design]
+- **R1:** A draft of open/public sources stating their field is admitted by the pipeline with rights classes; restricted or unclassifiable goes to the owner — met.
+- **R2:** A draft changing a field, bar or appearance trait goes to the owner — met.
+- **R3:** An unmet field is searched again twice at most; two empty rounds hand the owner the decision — met.
+- **R4:** Rights classes have labelled cases (palm F1, A1, M1, P4-P7) and a no-match answer — met (16 cases from real fetches, scored at the 0.9 bar).
+- **R5:** Gate green — met (994 passed).
+- **R6:** Unmet appearance traits searched again like fields; owner keeps trait shape changes — met.
 
-## Boundaries
+## Result
 
-- No bar lowered, no manifest field changed by the pipeline. [inferred]
-- Text of a source is never reproduced; numbers are cited. [paraphrase]
+Landed in `461a8c2c`, `a9baf10d`, `93169d74` (`pipeline/admission.rs`, `pipeline/search/`, `data/questions/rights.json`); carried by the fn-149 rewrite (#121). A round ended by an adapter or Jev error still counts, so the search cannot loop.
 
-## Decision Context
+## Open
 
-- The owner asked on 2026-09-23 that the pipeline admit sources itself. [user]
-
-## Open Questions
-
-- None.
-
-## Settled
-
-Closed as landed (2026-09-26, fn-149 R8): carried by the fn-149 runner rewrite, merged in #121 (c2ac430b).
+None.

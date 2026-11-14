@@ -202,6 +202,5 @@ pub(in crate::pipeline::branching) fn placed(params: &SkeletonParams) -> Result<
     Ok(())
 }
 
-#[cfg(test)]
 #[path = "fork_tests.rs"]
 mod tests;

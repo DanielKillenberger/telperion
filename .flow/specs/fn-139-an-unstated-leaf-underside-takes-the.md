@@ -1,39 +1,25 @@
 # An unstated leaf underside takes the front colour
 
-## Conversation Evidence
+## Goal
 
-> fn-80 live run, 2026-09-24: no admitted source describes the palm's leaf underside; two search rounds found none; `requirements-unmet/leaf_back_colour` reached the owner with `add-sources` as its only option.
-> user (2026-09-24): "Default to front colour (Recommended)" — for every species, recorded as a default, tuning refines it from the photographs.
-> host (2026-09-24): the underside default also applies when the back's value was dropped by a claim resolution (`replace-source` or `drop-value`, recorded under `dropped` in select's appearance entry) and no replacement source was found, as long as the front is sourced — a dropped underside is an unstated one. Live evidence in the fn-80 worktree's `.flow/evidence/date-palm/pipeline/select.json`: `leaf_back_colour` = {"dropped":"replace-source: date-palm/verify/claim-unsupported//profiles/0/appearance/leaf_back_colour","level":"unstated","source":null} with front `grey_green`, and `requirements-unmet/leaf_back_colour` filed.
+No admitted source described the palm's leaf underside, two search rounds found none, and `requirements-unmet/leaf_back_colour` reached the owner (fn-80, 2026-09-24). Many sources describe a leaf's colour without separating its faces. Owner (2026-09-24): "Default to front colour (Recommended)" — for every species, recorded as a default that tuning refines from the photographs.
 
-## Goal & Context
-<!-- scope: business -->
+## Decisions
 
-Many sources describe a leaf's colour without separating its faces. When every admitted source leaves the underside unstated and the front colour is sourced, the underside takes the front colour as a recorded default, and tuning refines it against the photographs. [user]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-- **What exists, checked 2026-09-24 on the fn-80 branch.** fn-133 made an unstated *variation* trait take its zero-width level as a recorded default (select output and profile with its reason and no source, provenance under `defaults`); a colour trait still files `requirements-unmet`. The palm's `leaf_front_colour` is `grey_green` from F1; `leaf_back_colour` is unstated. [checked]
-- **Shape.** [host design] The same default path, for `leaf_back_colour` only: when it is unstated and `leaf_front_colour` has a sourced level, the back takes the front's level and its ranges mapped onto the back's material fields, recorded as a default citing the front's source and this rule. No other colour trait defaults.
-- **Shape, dropped values.** [host design] A back a claim resolution dropped (`replace-source` or `drop-value`, recorded under `dropped` in select's appearance entry) with no replacement source found on the rerun is an unstated one: the same default applies, as long as `leaf_front_colour` is (still) sourced.
+- Host design: on fn-133's default path, an unstated `leaf_back_colour` with a sourced `leaf_front_colour` takes the front's level and ranges mapped onto the back's material fields, recorded as a default citing the front's source. No other colour trait defaults; bark never does.
+- Host (2026-09-24, R4): a back dropped by a claim resolution (`replace-source`/`drop-value`) with no replacement found is an unstated one, so the same default applies while the front is sourced (live palm case: back dropped, front `grey_green`).
 
 ## Acceptance Criteria
-<!-- scope: both -->
 
-- **R1:** A red test on the palm's shape: unstated back, grey-green front from F1, gives a back of `grey_green` recorded as a default with its reason; no `requirements-unmet` is filed for it. [inferred]
-- **R2:** An unstated back with an unstated front still files `requirements-unmet` for both; bark colour never defaults. [inferred]
-- **R3:** The gate is green: `cargo test --profile ci --workspace --no-fail-fast`. [paraphrase]
-- **R4:** [host design] A red test first: a back sourced (wrongly) off the same sentence as the front, then dropped by a `drop-value`/`replace-source` resolution with no replacement source found on the rerun - front still `grey_green` from F1 - gives a back of `grey_green` recorded as a default with its reason; no `requirements-unmet` is filed for it, matching R1's outcome for a back that was never sourced at all.
+- **R1:** Unstated back, grey-green front from F1 -> back `grey_green` as a default, no `requirements-unmet` — met.
+- **R2:** Both faces unstated still file for both; bark never defaults — met.
+- **R3:** Gate green — met (1052 passed).
+- **R4:** A dropped back with no replacement defaults to the sourced front — met.
 
-## Decision Context
+## Result
 
-- The owner chose this rule for every species on 2026-09-24. [user]
+Landed in `03e1cc9a`, `1fb79862` (`pipeline/stages/appearance.rs` `default_to_front`, two-pass `drop_flagged`); tests in `tests/judged_select.rs`, each red first. Carried by the fn-149 rewrite (#121).
 
-## Open Questions
+## Open
 
-- None.
-
-## Settled
-
-Closed as landed (2026-09-26, fn-149 R8): carried by the fn-149 runner rewrite, merged in #121 (c2ac430b).
+None.

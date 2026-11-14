@@ -1,51 +1,42 @@
-## Goal & Context
-<!-- scope: business -->
+# One leaf in twelve bytes
 
-A leaf transform is stored in 64 bytes and carries 12 bytes of information. The spruce at seed 1 places 7,353,754 leaves, which is 470.6 MB of the 639 MB that specimen holds, and fn-85 has already taken the second copy of it away. [user]
+## Goal
+A leaf transform was stored in 64 bytes but carries 12 bytes of information (a rotation, a uniform scale and a translation); on the spruce at seed 1 that is 470.6 MB of a 639 MB specimen. The forest target (a thousand trees, vegetation inside 4 ms on an RTX 3080, about 1 MB of leaf data per hero tree) needs the factor. After fn-85, peak RSS was spruces 3,244 MB, beeches 3,945, oaks 1,469, birches 778. This spec stores a leaf as three `u32` words on CPU and GPU.
 
-`station::matrix` is the single constructor of every leaf transform, reached by `short_shoots.rs:144` too. It builds `face` by Gram-Schmidt against `axis`, sets `side = axis x face`, and multiplies all three by one scalar. Three orthonormal right-handed basis vectors and a uniform scale is a rotation, a scale factor and a translation: 3 + 3 + 1 numbers, written as 16 floats of which 4 are the constants `Instances::validate` already enforces. [paraphrase]
-
-The forest target is the reason the remaining factor matters. STRATEGY.md asks for a thousand-tree forest whose vegetation layer renders inside 4 ms on an RTX 3080. A thousand specimens at 639 MB each is 639 GB against a 10 GB card, and the hero tier of a tiered budget affords about 1 MB of leaf data per tree, which is 87,000 leaves at 12 bytes and 16,000 at 64. [user]
-
-Measured after fn-85, peak RSS polled from `/proc/<pid>/status` VmHWM with one test per process on the `ci` profile: `fixed_spruces` 3,244 MB, `fixed_beeches` 3,945 MB, `fixed_oaks` 1,469 MB, `fixed_birches` 778 MB. [user]
-
-## Architecture & Data Models
-<!-- scope: technical -->
-
-- **The stored leaf is three `u32` words, 12 bytes, the same layout on the CPU and the GPU.** Word 0 is the rotation as a smallest-three quaternion: 2 bits naming the dropped largest component, 10 bits each for the other three over the range plus or minus one over root two. Word 1 is the x and y position as `u16` unorm over the reference box. Word 2 is the z position as `u16` unorm in its low half and the scale as `f16` in its high half. WGSL reads word 1 and the low half of word 2 with `unpack2x16unorm` and the scale with `unpack2x16float`. [inferred]
-- **The reference box is derived from parameters, not from the tree.** It is the authored envelope, extended by the curtain band below it and by the largest node radius, held per axis as a min and an extent. It is therefore fixed for a species at its authored age and cannot drift. A tree-derived box cannot be used: `timeline::Placement` caches leaves per shoot across ages while the tree's own AABB grows, so words quantized against one age's box would decode against a different one at the next, and the growth path would need a requantisation pass over every cached leaf whenever the box moved. Precision is unaffected, because the stated error bound was already computed against the mature size. [inferred]
-- **Three shaders bind the placement buffer, not two.** `shaders/foliage.wgsl:10`, `shaders/select.wgsl:29` and `shaders/shadow.wgsl:21` each declare `array<mat4x4<f32>>` and become `array<u32>` read three words at a time. `foliage.wgsl` rebuilds the rotation for the position and the normal, `shadow.wgsl:31` multiplies the placement into the light's view, and `select.wgsl:70` currently derives the scale as the longest column length and reads the scale word directly instead, which is fewer instructions than it runs today. `telperion-render/src/select.rs:179` uploads the core vector through `bytemuck::cast_slice`, so the storage buffer is the bytes the generator wrote. [paraphrase]
-- **The error each approximation introduces, against a leaf 70 mm long on the beech.** Position: 16 bits over the spruce's 32 m axis is a 0.49 mm step and at most 0.24 mm of error. Rotation: a smallest-three quaternion at 10 bits per component is about 0.001 rad typically and 0.0026 rad at worst, which is 0.149 degrees. The worst case is larger than the component half-step because the dropped component reconstructs as the root of one minus the other three squared, so its sensitivity is one over itself and reaches two near half a turn; measured over 4,096 orientations it is 0.00316 rad with each component rounded alone and 0.00250 rad with the encoder taking the nearest of its cell's eight corners, which is what ships at the same thirty bits. Scale: `f16` near 1.0 is a relative error of about 5e-4, which is 35 micrometres. None of the three is a measurement the numeric protocol reads. [inferred]
-- **The reading sites move with the representation.** `foliage::transform_point`, `Instances::bounds`, the bound and shell tests inside `cull`, `foliage/clumping.rs:63`, `telperion-render/src/mass.rs:32`, `timeline::Placement.transform`, the Wasm slot-5 boundary (`lib.rs:163` and `:212`, `generate.rs`, `specimen.rs:38`) and the browser TypeScript that reads sixteen floats a leaf. [paraphrase]
-- **The committed digests move once.** `tests/species.rs:33` hashes every stored float, so the digest changes for every species, and `crates/telperion-core/tests/species/digests.json` is recommitted in the same commit. This is a change detector rather than a contract, and fn-53's `--pin-note` covers preset value tables, not these. [user]
+## Decisions
+- Owner, 2026-09-19: go straight to the 12-byte quantised form rather than a 32-byte similarity first, so the reading sites and three shaders are rewritten once.
+- Owner, 2026-09-19: byte identity is not a requirement while the generator is in development; the committed digests are a change detector and a deliberate change recommits them.
+- Owner, 2026-09-19: the rotation bound moved from 0.002 rad when thirty bits proved unable to reach it; it then moved to the analytic 0.003 (`3 * sqrt(2) * 6.91e-4`) after the preset round trip found the 4,096-orientation sweep undersampled (0.00250 sweep vs 0.00271 on 13 million real placements).
+- Owner's host, 2026-09-19: R4 and R8 cover the four species the generator can express; the European ash has no preset and belongs to fn-56.
+- Layout: word 0 a smallest-three quaternion (2-bit index, three 10-bit components); word 1 x,y as `u16` unorm; word 2 z as `u16` unorm plus scale as `f16`. The reference box is derived from parameters (envelope, curtain band, largest radius), so cached growth placements decode at any age. A `mat4x3` was rejected because WGSL pads it back to 64 bytes.
+- The parameter-derived box and the third shader (`shadow.wgsl`) were found in fn-85 and escalated rather than guessed. Spec sized to one session on purpose.
 
 ## Acceptance Criteria
-<!-- scope: both -->
+- **R1:** One leaf is 12 bytes on CPU and GPU — met.
+- **R2:** Round trip within half a code step plus one ulp on position (worst 0.2527 mm, beech), 0.003 rad rotation, 1e-3 relative scale, over the shipped presets' own placements — met.
+- **R3:** The reference box comes from parameters alone and is identical at every age — met.
+- **R4:** Oak, spruce, beech and birch pass `species:qa` unchanged; retained count moves under 0.1% — met (96/96 cases; worst seed beech +0.00170%, birch -0.00177%; oak and spruce unmoved).
+- **R5:** `digests.json` recommitted with the encoding; old/new digest named per species — met (49 of 49 moved; seed 1 beech `f160e7b5d26e8b5f` -> `20f49a7c4e806880`, spruce `ff7036aa4bcde448` -> `91d4655c94fa66ac`, oak `648a3aaf8592e555` -> `d2e207bdf8d77c11`, birch `e20e3d6368f80ac2` -> `cac3ef4d4fd5ca39`).
+- **R6:** All three shaders read the new layout; cached growth placements decode at a later age — met (birch 16 -> 18: 407 of 744 leaves served from cache, standoff exact; an age-dependent box drifts up to 2.85 m).
+- **R7:** `fixed_spruces` peak RSS below 1,800 MB — met.
+- **R8:** One headless still per expressible species after the numeric gates pass — met.
 
-- **R1:** One leaf occupies 12 bytes on the CPU and 12 bytes in the GPU storage buffer, asserted by `size_of` and by the buffer's byte length for a known instance count.
-- **R2:** Rebuilding the transform from the stored words reproduces the pre-quantisation transform within bounds stated as properties of the encoding rather than as constants: **position** within half a code step on each axis plus one `f32` ulp at that magnitude, which is the whole of what quantising and storing an `f32` cost, measured worst 0.2527 mm on the beech, whose box is the widest; **rotation** within 0.003 rad, the analytic worst for a smallest-three quaternion at ten bits a component, since the dropped component reconstructs with a sensitivity as large as root two on each of three inputs, giving `3 * sqrt(2) * 6.91e-4`; **scale** within 1e-3 relative. A test drives the round trip over the shipped presets' own placements rather than constructed cases, which is what establishes these numbers: the constructed 4,096-orientation sweep measured 0.00250 rad and the thirteen million real placements measured 0.00271, so the sweep alone would have set the bound 8 percent too tight. The owner moved the rotation figure from 0.002 on 2026-09-19 when thirty bits proved unable to reach it; the move to the analytic 0.003 followed the preset round trip finding the sweep had undersampled, and it is an analysis the encoding cannot exceed rather than a number raised to whatever passed.
+## Result
+Encoding landed in 5b49227c. Peak RSS (ci, VmHWM, one test per process): spruces 3,244 -> 1,763 MB (-46%), beeches 3,945 -> 2,589 (-34%), oaks 1,469 -> 1,271 (-13%), birches 778 -> 704 (-10%). Stills (960x720, RTX 3080, seed 1, captured at a5c16243) draw exactly the retained counts `species_measure` reports (oak 715,065, spruce 7,353,754, beech 4,928,812, birch 226,057 leaves), each with foliage shadows from the same words. `catalogue:check` had gone red because pins moved without regenerated pages; regenerated in 50f7e9d5.
 
-- **R3:** The reference box is computed from parameters alone and is identical at every age of one species, asserted by a test that builds the same species at two ages and compares the box. A station outside the box cannot occur by construction, and a debug assertion says so.
-- **R4:** The four catalogue species the generator can express, the oak, the spruce, the beech and the birch, pass `npm run species:qa` with their numeric gates unchanged, and the retained leaf count moves by less than 0.1 percent on every species, which bounds the cull decisions quantisation can flip at the shell boundary.
-- **R5:** `crates/telperion-core/tests/species/digests.json` is recommitted in the commit that changes the encoding, and the evidence names the old and the new digest for one seed per species.
-- **R6:** All three shaders read the new layout, and the growth path's cached placements decode correctly at an age later than the one that wrote them.
-- **R7:** Peak RSS of `fixed_spruces` falls below 1,800 MB from the recorded 3,244 MB, measured by the same VmHWM poll with one test per process on the `ci` profile, and the number for all four `fixed_*` tests is recorded in the evidence.
-- **R8:** One headless still per expressible catalogue species, the same four, is captured on the commit that lands the renderer change, for the owner's eye, and no still is captured before the numeric gates pass.
+## Open
+Cluster cards, detail levels, LOD tiers, impostors and streaming placement, each its own spec; the wood mesh (168.3 MB of the spruce).
 
-- The European ash is not one of the four. It has no registered preset, `Preset::from_id("european-ash")` is asserted to be `None` at `crates/telperion-core/tests/species.rs:166`, its `pins.json` is the empty stub and it appears in neither profiles file, so the generator produces nothing to gate or to draw for it. Its capability assessment and its first render belong to fn-56. The spec's original wording said five and was wrong about what the catalogue directory means (owner's host, 2026-09-19).
+## Friction
+- Fresh worktree had no build cache -> pointed `CARGO_TARGET_DIR` at the main target; proposed the worktree kit set it (later superseded by the rule that checkouts never share a target).
+- Stated rotation bound and bit budget disagreed (~25 min) -> bound derived from the worst case.
+- Eight criteria in one box -> spec sized to one session.
+- No before-count recorded for R4; a second worktree and run at base (~25 min) -> proposed `species:qa --measure-only` writing a count summary and diff.
+- Catalogue pages did not follow `pins.json` -> proposed regenerating pages where pins are written.
+- `/usr/bin/time` missing -> local setup.
 
-## Boundaries
-<!-- scope: business -->
-
-- What the generator draws does not change beyond the stated error bounds. No generator parameter moves, no preset value moves, and no preset pin in the species pipeline moves.
-- The cull's second buffer is fn-85 and has landed. This spec depends on `cull` already taking its `Instances` by value.
-- Cluster cards, a detail level parameter, LOD tiers, impostors and streaming placement are not this spec. They are what the forest target needs next, and each is its own spec.
-- The wood mesh, 168.3 MB of the spruce's 639 MB, is not this spec.
-
-## Decision Context
-
-- The owner chose on 2026-09-19 to go straight to the 12-byte quantised form rather than land a 32-byte similarity first, because the same reading sites and three shaders would otherwise be rewritten twice. [user]
-- The owner stated on 2026-09-19 that byte identity is not a requirement while the generator is in development, and that bytes are expected to move as quality and performance improve. The committed digests are a change detector, and a deliberate change recommits them. [user]
-- The row-oriented three-word layout is chosen over a float matrix because WGSL pads a `vec3` column to 16 bytes, so a four-column `mat4x3` would still occupy 64 bytes on the GPU and return nothing for the change. [inferred]
-- The parameter-derived reference box and the third shader were both found during fn-85's implementation and escalated to the host under the 2026-09-19 escalation rule rather than guessed at by the implementer. [user]
-- This spec is sized to one session on purpose. fn-85 carried both halves and its first dispatch returned one criterion of eight; the friction entry recorded that a spec whose acceptance names `species:qa` across five species, four RSS measurements and five headless stills does not close inside 90 minutes whatever the implementation costs. [user]
+## Evidence
+- `.flow/evidence/fn-86-one-leaf-in-twelve-bytes/stills/oregon-white-oak-1-whole.jpg`
+- `.flow/evidence/fn-86-one-leaf-in-twelve-bytes/stills/norway-spruce-1-whole.jpg`
+- `.flow/evidence/fn-86-one-leaf-in-twelve-bytes/stills/european-beech-1-whole.jpg`
+- `.flow/evidence/fn-86-one-leaf-in-twelve-bytes/stills/silver-birch-1-whole.jpg`

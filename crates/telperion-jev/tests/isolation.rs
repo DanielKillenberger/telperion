@@ -1,11 +1,10 @@
 use std::path::PathBuf;
 
-use telperion_jev::isolation::{endpoint_marker, scan, IsolationHit};
+use telperion_jev::isolation::{scan, IsolationHit};
 use telperion_jev::ENDPOINT;
 
 #[test]
 fn generation_path_does_not_import_the_caller_or_name_the_endpoint() {
-    assert_eq!(endpoint_marker(), ENDPOINT);
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()

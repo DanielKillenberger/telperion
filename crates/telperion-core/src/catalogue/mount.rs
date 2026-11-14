@@ -8,9 +8,13 @@ use crate::{
     bias::{BiasParams, SupernaturalParams},
     branching::{GrowthOverrides, HabitParams, SkeletonParams},
     envelope::Envelope,
-    foliage::{CanopyParams, ElementParams},
+    foliage::{BloomParams, CanopyParams, ElementParams},
     material::MaterialParams,
     radius::RadiusParams,
+    supernatural::{
+        Supernatural, SupernaturalBloom, SupernaturalCanopy, SupernaturalFlowering,
+        SupernaturalInternode, SupernaturalMaterial, SupernaturalPrimary,
+    },
     surface::SurfaceParams,
     twigs::{TwigAnatomy, TwigParams},
     Family,
@@ -130,6 +134,14 @@ groups! {
     CanopyParams: canopy;
     ElementParams: element;
     MaterialParams: material;
+    BloomParams: bloom;
+    Supernatural: supernatural;
+    SupernaturalMaterial: supernatural.material;
+    SupernaturalBloom: supernatural.bloom;
+    SupernaturalCanopy: supernatural.canopy;
+    SupernaturalFlowering: supernatural.flowering;
+    SupernaturalInternode: supernatural.internode;
+    SupernaturalPrimary: supernatural.primary;
 }
 
 const fn find<S>(rows: &[Row<S>], path: &str) -> Option<usize> {
