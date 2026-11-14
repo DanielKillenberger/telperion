@@ -104,6 +104,17 @@ pub(super) struct Shoot<'g> {
     pub node_buds: Vec<(Draw, u64, f32, [Placed; MAX_BUDS as usize])>,
     /// One zone's sleeping buds' expected wood per PA, reused.
     pub sleeping: Vec<f64>,
+    /// The wood a node decides, by PA, zone and cycle, as the share has
+    /// taken it (`Shoot::node_wood`).
+    pub woods: Vec<NodeWood>,
+}
+
+/// The wood a node of a PA's zone grown in a cycle decides (`at`), and
+/// each PA's sleeping bud's on it (`unit::node_wood`).
+pub(super) struct NodeWood {
+    pub at: (usize, usize, u32),
+    pub wood: f64,
+    pub sleeping: Vec<f64>,
 }
 
 /// The lists a share fills and the grower empties each cycle, kept
@@ -144,6 +155,7 @@ impl<'g> Shoot<'g> {
             leads: Vec::new(),
             node_buds: Vec::new(),
             sleeping: Vec::new(),
+            woods: Vec::new(),
         }
     }
 

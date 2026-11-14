@@ -1,7 +1,7 @@
 //! One growth unit of an apex: its zones' nodes, in the order their roles
 //! stand along the unit, and the buds of each node, laterals that sprout
 //! and sleeping buds put to sleep.
-use super::shoot::{Rules, Shoot};
+use super::shoot::{NodeWood, Rules, Shoot};
 use super::{Apex, Certain};
 use crate::contract::{decide, presence};
 use crate::error::Result;
@@ -30,7 +30,7 @@ impl Shoot<'_> {
             let zone_key = unit.child(ZONE + z as u64);
             let lateral = &rules.laterals[pa][z];
             let mut sleeping = std::mem::take(&mut self.sleeping);
-            let node_wood = node_wood((rules, species), (pa, z), cycle, &mut sleeping);
+            let node_wood = self.node_wood((pa, z), cycle, &mut sleeping);
             // Each node's presence (D18 reads it).
             let window = decide::node_window(node_wood);
             let draw = zone_key.draw();
@@ -134,6 +134,28 @@ impl Shoot<'_> {
         self.node_buds = nodes;
         self.leads = leads;
         Ok(())
+    }
+}
+
+impl Shoot<'_> {
+    /// `node_wood` of zone `z` of a unit of `pa` grown in `cycle`, taken
+    /// once a share (fn-351 speed round 2): it reads the PA, the zone and
+    /// the cycle alone, of rules no growth unit changes, so every unit of
+    /// one PA and zone in a cycle decides the same wood, to the bit.
+    fn node_wood(&mut self, (pa, z): (usize, usize), cycle: u32, sleeping: &mut Vec<f64>) -> f64 {
+        let at = (pa, z, cycle);
+        if let Some(held) = self.woods.iter().find(|w| w.at == at) {
+            sleeping.clear();
+            sleeping.extend_from_slice(&held.sleeping);
+            return held.wood;
+        }
+        let wood = node_wood((self.rules, self.species), (pa, z), cycle, sleeping);
+        self.woods.push(NodeWood {
+            at,
+            wood,
+            sleeping: sleeping.clone(),
+        });
+        wood
     }
 }
 
