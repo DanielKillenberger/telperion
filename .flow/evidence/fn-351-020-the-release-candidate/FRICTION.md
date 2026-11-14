@@ -91,3 +91,24 @@
 - Cost: about 30 minutes frozen of the 68 the second part took, and a four-thread verdict that stays open.
 - Done about it: verdicts carried by instructions and cycles, which the load does not move, with every batch's seconds given beside them (`SPEED-ROUND-2.md`, "Measurements").
 - What would remove it: a measurement window with the desk at a load under 1, or an isolated core (`isolcpus`) kept for timings.
+## 14 Nov 2026 09:10 Zurich: the release checks have no script of their own (Opus, release checks L3)
+
+- Doing: finding the commands for fn-237 R2's checks (harness timing, the field against 0.1.4, sizes, docs, version) on the candidate.
+- What hindered: no file lists them with commands. They are spread over fn-198 task 9's text, fn-259 `RELEASE.md`, `docs/gpu-tests.md` (the `frames` probe and `gpu-row.mjs`), and fn-352's scoreboard (`wasm.mjs`, `wasm014.mjs`). The scoreboard's `wasm.mjs` sets `family.fidelity`, which fn-367 retired, so it is refused on the candidate and needed a one-line scratch copy. `every_pipeline_within_2_5_s_cold`, the cold probe `docs/gpu-tests.md` still names, no longer exists (the GPU grower is gone), and the doc was not updated. The 0.1.4 package was found already unpacked in the session scratchpad from 11 Nov.
+- Cost: about 20 minutes of reading before the first run.
+- What would remove it: one `scripts/release-checks` entry (or a section in `docs/gpu-tests.md`) listing each check, its command and its bar, kept current when a probe is retired; the host decides whether it is specced.
+
+## 14 Nov 2026 09:12 Zurich: a GPU row inside the queue holds its memory while it waits for the card (Opus, release checks L3)
+
+- Doing: the cold `frames` rows (`gpu-row.mjs` inside `telperion-heavy 6 --gpu 2`), while `npm test` waited for 8 GB.
+- What hindered: `telperion-heavy` admitted the row's unit at 09:07, then `gpu-row.mjs` waited for the three other heavy units (a codex review, the film probe, another worktree's gate) to end. The idle unit's 6 GB counted as claimed, so `npm test` sat at "room 0 GB for 8" behind a job that was itself only waiting. I stopped the row job at 09:12 to let the test run first.
+- Cost: about 5 minutes of both jobs waiting; the cold rows moved after `npm test`.
+- What would remove it: `gpu-row.mjs` waiting for an empty queue before `telperion-heavy` admits it (a pre-admission wait, or `telperion-heavy` not counting a unit that carries the `.row-waiting` marker as claimed); the host decides whether it is specced.
+
+## 14 Nov 2026 10:06 Zurich: the cold rows wait for an empty queue that other sessions keep filling (Opus, release checks L3)
+
+- Doing: the cold `frames` rows, queued again at 09:35 after `npm test` and the Wasm timings.
+- What hindered: `gpu-row.mjs` starts only when no other `telperion-heavy` unit runs. Since 09:35 the queue has held, in turn, the film probe (from 09:03), the host's `gate.py --full` (from 09:39) and a film cut (from 09:59). Each new unit is admitted beside the waiting row, so the row's start moves with every one.
+- Cost: 30 minutes of waiting by 10:06, still waiting; no agent time beyond checking.
+- What would remove it: a GPU row holding a place in the queue (new heavy units wait behind a waiting row), or the host scheduling the release checks in a quiet window; the host decides.
+- Update, 16:01: the rows ran in bursts between other units. The first started at 11:16 after 101 minutes of waiting. The second Telperion row then waited from 12:07 to 15:58. Each row runs for seconds to a minute, but the 24 rows took 6.5 hours of wall clock. Laurelin's third row is invalid because GNO's model worker came onto the card during it.
