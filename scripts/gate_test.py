@@ -23,16 +23,33 @@ def budget(key: str) -> int:
     return listed.get(key, MIB)
 
 
-def one_arena(env) -> dict:
-    """The test's environment with glibc held to one malloc arena. A build
-    grows on the pool's threads and draws its wood on another, glibc gives
-    each thread an arena, and bytes one arena has freed are not handed to the
-    next: 1.7 to 2.0 GiB of a Two Trees build's peak was resident and not
-    live (fn-351 NATIVE-PEAK.md, 14 Nov 2026). One arena measures what the
-    test keeps. A setting the caller already made stands."""
-    env = dict(env)
+# Whole-catalogue builds, measured on one malloc arena. A build grows on the
+# pool's threads and draws its wood on another, glibc gives each thread an
+# arena, and bytes one arena has freed are not handed to the next: 1.7 to
+# 2.0 GiB of a Two Trees build's peak was resident and not live. On one arena
+# these read what they keep, 875 to 1,191 MiB under their budgets; set for
+# every test it cost the threaded walks their time limits, so it is set for
+# these alone (fn-351 NATIVE-PEAK.md, 14 Nov 2026).
+ONE_ARENA = {
+    "telperion_core pipeline::tests::"
+    "every_shipped_preset_builds_every_artifact_through_the_pipeline",
+    "telperion_core suite::mesh::"
+    "every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers",
+    "telperion_core suite::packed_leaf::"
+    "every_station_stands_inside_its_box_at_a_quarter_millimetre_step",
+    "conformance every_shipped_family_renders_through_the_one_path",
+    "telperion_wasm generate::tests::"
+    "every_shipped_preset_builds_through_the_main_entry",
+    "telperion_wasm generate::tests::"
+    "flowers_cross_the_binding_where_the_pipeline_grows_them",
+}
+
+
+def environment(key: str) -> dict:
+    """The test's environment; a malloc setting the caller made stands."""
+    env = dict(os.environ)
     tunables = env.get("GLIBC_TUNABLES", "")
-    if "glibc.malloc.arena_max" not in tunables:
+    if key in ONE_ARENA and "glibc.malloc.arena_max" not in tunables:
         ours = "glibc.malloc.arena_max=1"
         env["GLIBC_TUNABLES"] = f"{tunables}:{ours}" if tunables else ours
     return env
@@ -42,13 +59,13 @@ def main() -> int:
     cmd = sys.argv[1:]
     if "--list" in cmd:
         os.execv(cmd[0], cmd)
-    rc = subprocess.call(cmd, env=one_arena(os.environ))
-    if rc < 0:
-        signal.signal(-rc, signal.SIG_DFL)
-        os.kill(os.getpid(), -rc)
     binary = os.path.basename(cmd[0]).rsplit("-", 1)[0]
     test = cmd[cmd.index("--exact") + 1] if "--exact" in cmd else ""
     key = f"{binary} {test}"
+    rc = subprocess.call(cmd, env=environment(key))
+    if rc < 0:
+        signal.signal(-rc, signal.SIG_DFL)
+        os.kill(os.getpid(), -rc)
     peak_kib = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss
     peak = -(-peak_kib // 1024)
     report = os.environ.get("GATE_REPORT")
