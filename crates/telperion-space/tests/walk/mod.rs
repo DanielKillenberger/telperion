@@ -536,15 +536,10 @@ pub fn settings() -> Vec<Setting> {
     // tree passes both heights as it grows: the tall shares across 1, where
     // they are dormant, and each height across the other's side of the tree.
     let wood: [(&str, f64, f64, fn(&mut Species, f64)); 7] = [
-        (
-            "states[1].form.sapwood_tall, sag 3e-5",
-            0.5,
-            1.5,
-            |s, v| {
-                sized(s, [10.0, 30.0]);
-                s.states[1].form.sapwood_tall = v;
-            },
-        ),
+        ("states[1].form.sapwood_tall, sag 3e-5", 0.5, 1.5, |s, v| {
+            sized(s, [10.0, 30.0]);
+            s.states[1].form.sapwood_tall = v;
+        }),
         (
             "states[1].form.sapwood_rings_tall, sag 3e-5",
             0.5,
@@ -563,15 +558,10 @@ pub fn settings() -> Vec<Setting> {
                 s.states[1].form.sapwood_tall = 0.5;
             },
         ),
-        (
-            "states[1].form.sapwood_to, sag 3e-5",
-            10.0,
-            50.0,
-            |s, v| {
-                sized(s, [10.0, v]);
-                s.states[1].form.sapwood_tall = 0.5;
-            },
-        ),
+        ("states[1].form.sapwood_to, sag 3e-5", 10.0, 50.0, |s, v| {
+            sized(s, [10.0, v]);
+            s.states[1].form.sapwood_tall = 0.5;
+        }),
         (
             "states[1].form.sapwood, sag 3e-5",
             0.0,

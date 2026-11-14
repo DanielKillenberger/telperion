@@ -333,7 +333,10 @@ fn the_rows_are_read_by_degree_between_the_two_stated_heights() {
     let step = at(13.0)[0] - at(10.0)[0];
     for k in 1..5 {
         let (low, high) = (at(10.0 + 3.0 * f64::from(k)), at(13.0 + 3.0 * f64::from(k)));
-        assert!((high[0] - low[0] - step).abs() < 1e-12, "{k}: a straight line");
+        assert!(
+            (high[0] - low[0] - step).abs() < 1e-12,
+            "{k}: a straight line"
+        );
         assert!(high[1] > low[1], "{k}: the rings rise");
     }
 }
