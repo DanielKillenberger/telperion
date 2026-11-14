@@ -22,7 +22,7 @@ fn a_tree_grown_on_is_the_pipelines_tree_grown_at_once() {
     let input = super::super::GrowInput {
         age: f64::from(H),
         seed: 7,
-        ..super::super::GrowInput::of(&family)
+        ..super::super::GrowInput::of(&family).unwrap()
     };
     let whole = super::super::grow(input).unwrap();
     for a in [5, H - 1] {
@@ -59,7 +59,7 @@ fn a_tree_grown_a_year_at_a_time_repeats_and_ends_at_the_tree_asked_for() {
     let asked = super::super::grow(super::super::GrowInput {
         age: f64::from(H),
         seed: 7,
-        ..super::super::GrowInput::of(&family)
+        ..super::super::GrowInput::of(&family).unwrap()
     })
     .unwrap();
     let mut straight = begin(&params, 7, f64::from(H)).unwrap();

@@ -92,6 +92,7 @@ impl Family {
     pub fn validate(&self) -> Result<()> {
         use crate::foliage::TwigPlacement;
         self.supernatural.validate()?;
+        self.drawn_leaf()?;
         self.applied().judged()?;
         self.material.validate()?;
         crate::catalogue::check(BloomParams::CHECKS, &self.bloom, Site::Bloom)?;

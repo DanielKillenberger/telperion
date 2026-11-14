@@ -54,18 +54,22 @@ pub(crate) struct GrowInput<'f> {
 }
 
 impl<'f> GrowInput<'f> {
-    pub(crate) fn of(family: &'f Family) -> Self {
+    /// The family's skeleton input, refused at `supernatural.canopy.size`
+    /// where the leaf drawn at it passes the species' edge, before the
+    /// engine judges the leaf it lands on (fn-351 review, host).
+    pub(crate) fn of(family: &'f Family) -> Result<Self> {
+        family.drawn_leaf()?;
         let space = match family.applied() {
             Cow::Borrowed(f) => Cow::Borrowed(&f.space),
             Cow::Owned(f) => Cow::Owned(f.space),
         };
-        Self {
+        Ok(Self {
             space,
             age: family.age,
             seed: family.skeleton.seed,
             supernatural: family.supernatural,
             canopy: family.canopy,
-        }
+        })
     }
 }
 

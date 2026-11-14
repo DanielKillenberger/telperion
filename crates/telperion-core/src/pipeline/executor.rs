@@ -25,7 +25,7 @@ pub struct Grown {
 
 /// Stage 2: the family read once into its stage inputs, and its skeleton.
 pub fn grow(family: &Family) -> Result<Grown> {
-    let tree = super::skeleton(GrowInput::of(family))?.tree;
+    let tree = super::skeleton(GrowInput::of(family)?)?.tree;
     let inputs = Inputs::of(family, grown_envelope(&tree));
     Ok(Grown { tree, inputs })
 }
@@ -54,7 +54,7 @@ impl Growth {
 /// The family's growth (`Growth`). A family with no engine species is
 /// refused by name.
 pub fn growth(family: &Family) -> Result<Growth> {
-    let (species, request) = super::space::growth(GrowInput::of(family))?;
+    let (species, request) = super::space::growth(GrowInput::of(family)?)?;
     Ok(Growth { species, request })
 }
 
