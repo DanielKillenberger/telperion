@@ -1,0 +1,241 @@
+--- a/crates/telperion-space/src/light/field.rs
++++ b/crates/telperion-space/src/light/field.rs
+@@ -97,7 +97,7 @@
+ 
+     /// The corners about `at`: each node's index (none outside) and weight;
+     /// corner `c` is upper on axis `a` where bit `a` of `c` is set.
+-    fn corners(&self, at: Vec3) -> [(Option<usize>, f32); 8] {
++    pub(super) fn corners(&self, at: Vec3) -> [(Option<usize>, f32); 8] {
+         let split = [at.x, at.y, at.z].map(|x| node(x as f32));
+         std::array::from_fn(|c| {
+             let upper = |a: usize| (c >> a) & 1 == 1;
+@@ -114,6 +114,99 @@
+     }
+ }
+ 
++/// The leaves a part of the quantised deposit holds: enough to pay for
++/// its own lattice of quanta and their merge.
++const PART: usize = 1 << 12;
++
++/// `x.round()` as a count of quanta; none past a u32, or for NaN. A count
++/// rounds to a u32 exactly where it is under `u32::MAX + 0.5`; below
++/// that its whole part is exact, what is left of it is exact, and it
++/// rounds up, half away from none, where that is a half or more. An `x`
++/// under none counts none, as the cast of its `round` does. No call
++/// into the platform's libm, which `round` is without SSE4.1.
++pub(super) fn rounded(x: f64) -> Option<u32> {
++    if !(x < 4_294_967_295.5) {
++        return None;
++    }
++    let whole = x as u32;
++    Some(whole + u32::from(x - f64::from(whole) >= 0.5))
++}
++
++/// A node past its u32 of quanta, refused by name.
++fn overfull<T>() -> Result<T> {
++    refuse(
++        "light.deposit",
++        "a lattice node holds at most 2^32 quanta of 2^-20 m² of leaf area",
++    )
++}
++
++impl Grid {
++    /// Each node's quanta of `leaves`, deposited in turn. A node past its
++    /// u32 is refused by name, never wrapped.
++    fn quanta_in_turn(&self, leaves: &[(Vec3, f64)]) -> Result<Vec<u32>> {
++        let mut quanta = vec![0u32; self.nodes()];
++        for &(at, area) in leaves {
++            let area = area as f32;
++            assert!(area >= 0.0, "a leaf's area inside the contract's bound");
++            for (i, w) in self.inside(at) {
++                let q = rounded(f64::from(area) * f64::from(w) / QUANTUM);
++                let Some(sum) = q.and_then(|q| quanta[i].checked_add(q)) else {
++                    return overfull();
++                };
++                quanta[i] = sum;
++            }
++        }
++        Ok(quanta)
++    }
++
++    /// `corners` about a leaf, every one inside the box: each corner's
++    /// index and weight as `corners` gives them, the box tested once a
++    /// leaf, at its lowest and highest corner, which hold the rest between
++    /// them. A weight is its axes' shares multiplied in the axes' order,
++    /// as `corners` folds them from one.
++    pub(super) fn inside(&self, at: Vec3) -> [(usize, f32); 8] {
++        let split = [at.x, at.y, at.z].map(|x| node(x as f32));
++        let low = split.map(|s| s.0);
++        let base = self.index(low).expect("a leaf inside its box");
++        self.index(low.map(|n| n.wrapping_add(1)))
++            .expect("a leaf inside its box");
++        let [sx, sy, _] = self.size.map(|s| s as usize);
++        let share = split.map(|s| [1.0 - s.1, s.1]);
++        std::array::from_fn(|c| {
++            let up = |a: usize| (c >> a) & 1;
++            let i = base + up(0) + up(1) * sx + up(2) * sx * sy;
++            (i, share[0][up(0)] * share[1][up(1)] * share[2][up(2)])
++        })
++    }
++
++    /// Each node's quanta of `leaves`, on up to `threads` cores: the
++    /// leaves cut into parts, each deposited on its own lattice, and the
++    /// lattices added. A quantum is a whole number of at least none, so
++    /// the sum is the same in any parts, and a node passes its u32 in
++    /// them exactly where it does in turn: where one quantum is past it,
++    /// or the node's whole sum is. A part's lattice costs its nodes, so
++    /// the leaves are cut only where each part holds more of them than
++    /// the box has nodes.
++    fn quanta(&self, leaves: &[(Vec3, f64)], threads: usize) -> Result<Vec<u32>> {
++        let parts = threads.min(leaves.len() / PART.max(self.nodes()));
++        if parts <= 1 {
++            return self.quanta_in_turn(leaves);
++        }
++        let cut: Vec<&[(Vec3, f64)]> = leaves.chunks(leaves.len().div_ceil(parts)).collect();
++        let each = crate::cores::map(cut, 1, threads, &|_, part| self.quanta_in_turn(part));
++        let mut quanta = vec![0u32; self.nodes()];
++        for part in each {
++            for (sum, q) in quanta.iter_mut().zip(part?) {
++                let Some(more) = sum.checked_add(q) else {
++                    return overfull();
++                };
++                *sum = more;
++            }
++        }
++        Ok(quanta)
++    }
++}
++
+ impl Field {
+     /// The field of `leaves` (each a point and its leaf area in square
+     /// metres) under `light`, over a box that holds every leaf and every
+@@ -162,25 +255,7 @@
+     ) -> Result<(Self, Vec<u32>)> {
+         let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
+         let mut field = Self::spanning(points, most)?;
+-        let mut quanta = vec![0u32; field.grid.nodes()];
+-        for &(at, area) in leaves {
+-            let area = area as f32;
+-            assert!(area >= 0.0, "a leaf's area inside the contract's bound");
+-            for (i, w) in field.grid.corners(at) {
+-                let i = i.expect("a leaf inside its box");
+-                let q = (f64::from(area) * f64::from(w) / QUANTUM).round();
+-                let sum = (q <= f64::from(u32::MAX))
+-                    .then(|| quanta[i].checked_add(q as u32))
+-                    .flatten();
+-                let Some(sum) = sum else {
+-                    return refuse(
+-                        "light.deposit",
+-                        "a lattice node holds at most 2^32 quanta of 2^-20 m² of leaf area",
+-                    );
+-                };
+-                quanta[i] = sum;
+-            }
+-        }
++        let quanta = field.grid.quanta(leaves, threads)?;
+         for (d, &q) in field.density.iter_mut().zip(&quanta) {
+             *d = (8.0 * f64::from(q) * QUANTUM) as f32;
+         }
+--- a/crates/telperion-space/src/light/tests.rs
++++ b/crates/telperion-space/src/light/tests.rs
+@@ -309,3 +309,100 @@
+ }
+ 
+ const AT_AGE: crate::grow::cycle::Retiring = crate::grow::cycle::Retiring::AtAge;
++
++/// fn-351 speed round 2: the quantised deposit cut into parts for four
++/// cores is the deposit in turn, node for node, and a node only the parts
++/// together fill past its u32 is refused as it is in turn.
++#[test]
++fn the_deposit_in_parts_is_the_deposit_in_turn() {
++    let light = Light {
++        extinction: K,
++        sky: 0.5,
++    };
++    let most = super::field::NODES;
++    let leaves: Vec<(Vec3, f64)> = (0..40_000)
++        .map(|k| {
++            let t = f64::from(k);
++            let at = Vec3::new(
++                (t * 0.37).sin() * 2.0,
++                (t * 0.71).cos() * 2.0,
++                2.0 + (t * 0.13).sin(),
++            );
++            (at, 0.0018 * (1.0 + (t * 0.3).cos()))
++        })
++        .collect();
++    let quanta = |threads: usize| {
++        let field = Field::quantised_with(&light, &leaves, &[], (threads, most));
++        field.unwrap().1
++    };
++    let (turn, parts) = (quanta(1), quanta(4));
++    assert!(turn.iter().any(|&q| q > 0), "leaf deposited");
++    assert_eq!(turn, parts);
++    // 16,384 leaves of 0.3 m² on one node: 5.2e9 quanta, a quarter of
++    // them under a u32.
++    let heavy = vec![(Vec3::new(0.0, 0.0, 1.0), 0.3); 1 << 14];
++    for threads in [1, 4] {
++        let refused = Field::quantised_with(&light, &heavy, &[], (threads, most));
++        let refused = refused.err().expect("refused");
++        assert!(
++            format!("{refused}").starts_with("light.deposit"),
++            "{threads}: {refused}"
++        );
++    }
++}
++
++/// fn-351 speed round 2: the deposit's count of quanta is `round`'s, cast
++/// as it was, at every edge and over a sweep of deposits; and a leaf's
++/// corners, tested against the box once, are `corners`' to the bit.
++#[test]
++fn the_deposits_count_and_corners_are_the_ones_it_took() {
++    use super::field::{rounded, Grid, NODES, QUANTUM};
++    let counted = |x: f64| (x.round() <= f64::from(u32::MAX)).then(|| x.round() as u32);
++    let edges = [
++        0.0,
++        -0.0,
++        0.25,
++        0.499_999_999_999_999_94,
++        0.5,
++        0.500_000_000_000_000_1,
++        1.5,
++        2.5,
++        -0.3,
++        -0.5,
++        -7.0,
++        4_294_967_294.5,
++        4_294_967_295.0,
++        4_294_967_295.499_999,
++        4_294_967_295.5,
++        4_294_967_296.0,
++        1e300,
++        f64::INFINITY,
++        f64::NAN,
++    ];
++    for x in edges {
++        assert_eq!(rounded(x), counted(x), "{x:e}");
++    }
++    let mut state = 1u64;
++    for _ in 0..200_000 {
++        state = state
++            .wrapping_mul(6_364_136_223_846_793_005)
++            .wrapping_add(1_442_695_040_888_963_407);
++        let area = (state >> 40) as f32 / 1e5;
++        let weight = ((state >> 16) & 0xff_ffff) as f32 / 16_777_216.0;
++        let x = f64::from(area) * f64::from(weight) / QUANTUM;
++        assert_eq!(rounded(x), counted(x), "{x:e}");
++    }
++    let points = [
++        Vec3::new(0.3, -1.2, 2.7),
++        Vec3::new(-0.0, 0.0, 0.5),
++        Vec3::new(-1e-9, 1.999_999, 3.25),
++        Vec3::new(1.0, 1.0, 1.0),
++    ];
++    let grid = Grid::spanning(points.iter().copied(), NODES).unwrap();
++    for at in points {
++        for (took, takes) in grid.corners(at).iter().zip(&grid.inside(at)) {
++            assert_eq!(took.0, Some(takes.0), "{at:?}");
++            assert_eq!(took.1.to_bits(), takes.1.to_bits(), "{at:?}");
++        }
++    }
++}
