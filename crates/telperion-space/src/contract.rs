@@ -83,6 +83,26 @@ pub fn log2(x: f32) -> f32 {
     e as f32 + ln * std::f32::consts::LOG2_E
 }
 
+/// `x.floor()`, to the bit, without the call into libm that `floor` is on
+/// x86-64 below SSE4.1 (fn-351 speed round 2). An f32 of magnitude 2^23
+/// or more is whole and returned as it is, as are the infinities and a
+/// NaN; below that its cast is its whole part toward none, exact, and one
+/// less where that lies above it. A zero keeps its sign, as `floor`'s
+/// does: -0.0 of -0.0, 0.0 of a value in [0, 1). (A signalling NaN, which
+/// no arithmetic makes, `floor` would quiet.)
+pub fn floor(x: f32) -> f32 {
+    if !(x.abs() < 8_388_608.0) {
+        return x;
+    }
+    let whole = x as i32 as f32;
+    let below = if whole > x { whole - 1.0 } else { whole };
+    if below == 0.0 {
+        0.0f32.copysign(x)
+    } else {
+        below
+    }
+}
+
 /// `2^x`: none below 2^-126, the largest below 2^128 past it; `x` split
 /// into its nearest whole `n` and the rest `f` in [-1/2, 1/2], `2^f` by
 /// its Taylor series to the seventh power.
@@ -92,7 +112,7 @@ pub fn exp2(x: f32) -> f32 {
     if x < -126.0 {
         return 0.0;
     }
-    let n = (x.min(127.0) + 0.5).floor();
+    let n = floor(x.min(127.0) + 0.5);
     let f = x.min(127.0) - n;
     let p = 1.0
         + f * (0.693_147_2

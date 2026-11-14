@@ -46,7 +46,7 @@ pub(crate) struct Grid {
 /// A coordinate's node and its fraction of the way to the next.
 fn node(x: f32) -> (i32, f32) {
     let s = x / CELL as f32;
-    let n = s.floor();
+    let n = crate::contract::floor(s);
     (n as i32, s - n)
 }
 

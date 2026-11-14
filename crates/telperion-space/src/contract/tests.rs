@@ -138,3 +138,44 @@ fn near_certain_chances_keep_their_distance() {
     );
     assert!(!kept(dead, None, ONE - 135_107_988), "one under it sheds");
 }
+
+/// fn-351 speed round 2: the contract's `floor` is `f32::floor` to the
+/// bit: at every edge, and at every 37th of the 2^32 f32s (a signalling
+/// NaN apart, which `f32::floor` quiets and no arithmetic makes).
+#[test]
+fn the_contracts_floor_is_floor_to_the_bit() {
+    let same = |x: f32| {
+        let (ours, theirs) = (super::floor(x), x.floor());
+        assert_eq!(ours.to_bits(), theirs.to_bits(), "{x:e}");
+    };
+    let edges = [
+        0.0,
+        -0.0,
+        0.5,
+        -0.5,
+        1.0,
+        -1.0,
+        0.999_999_94,
+        -0.999_999_94,
+        f32::MIN_POSITIVE,
+        -f32::MIN_POSITIVE,
+        1e-45,
+        -1e-45,
+        8_388_607.5,
+        -8_388_607.5,
+        8_388_608.0,
+        -8_388_608.0,
+        2_147_483_648.0,
+        -2_147_483_648.0,
+        f32::MAX,
+        f32::MIN,
+        f32::INFINITY,
+        f32::NEG_INFINITY,
+        f32::NAN,
+    ];
+    edges.into_iter().for_each(same);
+    let signalling = |bits: u32| f32::from_bits(bits).is_nan() && bits & 0x0040_0000 == 0;
+    for bits in (0..=u32::MAX).step_by(37).filter(|&b| !signalling(b)) {
+        same(f32::from_bits(bits));
+    }
+}
