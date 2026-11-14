@@ -12,7 +12,7 @@ Time: the oak at 40 (`oregon-white-oak`, 316,270 nodes), one field request at n 
 |---|--:|--:|--:|--:|---|
 | base | 1,556,211 | 395,245 | | 1,722 | |
 | a. custom sections stripped (`build-wasm.mjs`, no tool) | 1,318,997 | 371,563 | **23,682** | 2,206 | yes, `5321d1b85` |
-| b. `preset`/`catalogue` exports out, catalogue written natively | 1,550,015 | 394,059 | 1,186 | 2,036 | **no: Stop** (below) |
+| b. `preset`/`catalogue` exports out, catalogue written natively | 1,550,015 | 394,059 | 1,186 | 2,036 | no: dropped by the host (below) |
 | c. rayon out behind `threads` | 1,496,135 | 382,905 | **12,340** | 1,894 | yes, `055489df0` |
 | d. formatting and `serde_json::Value` off the request path | | | not built | | no: no narrow way (READING.md) |
 | e. field page without the renderer's glue and the presets | (JS only) | | **20,759** (`module.js` 12,393 and `presets.js` 8,562 off, `core.js` +192, `field.js` +4) | unchanged module | yes, `ef7acb165` |
@@ -37,15 +37,19 @@ The three-run medians of a, b, c and f(s) sit inside the desk's noise: they ran 
 | + a, c, e, f(s), g | | | unmeasured | |
 | + b | | | unmeasured cumulatively; alone 1,186, and 1,777 on top of c unstripped | |
 
-**The measured floor is 364,870 Brotli bytes, 114,870 over P11's 250,000.** With f(s) and g, neither applied, 316,857 and 291,123, both still over.
+## The floor, for the owner's page
+
+- **364,870 Brotli bytes applied** (levers a, c and e), 114,870 over P11's 250,000.
+- **291,123 the lowest measured**, still 41,123 over. It needs a field that does not read the drawn tree (lever g; Phase 6's grove read from the tree's cells) and it is without the size profile, which slows the oak about 20%.
+- `wasm-opt` is unmeasured: it is not installed, and nothing was installed for this spec.
 
 f(s) and its speed rule: stripped, the size profile wins 48,013 Brotli bytes on top of a and c (raw falls too, 1,273,894 to 1,149,432; unstripped it grows, because the name section grows with it). The oak was timed in seven interleaved pairs, 03:38:02 to 03:38:58, no PAUSE: a, c at 1,637 to 2,018 ms (median 1,833), with f(s) at 2,069 to 2,513 (median 2,193). Every pair was slower with f(s), by 13 to 30%. The rule is under 3%, so f is not kept.
 
 g, measured only: a scratch copy of the base with the binding on `telperion-core` without `geometry`, and the four lines that read the field's grid and the flowers removed so it compiles (the field is geometry-gated: "the field needs the drawn tree"). It saves 75,885 alone; it is an upper bound for a field-serving module, since this stub serves no field at all. What stands in the way is the field's dependence on the drawn wood and leaf plan, as the spec says.
 
-## Stops and what is open
+## Decisions and what is open
 
-- **Lever b stopped (host).** A native run does not render `presets.generated.ts` byte-equal: `canopy.maxInstances` is a `usize` whose default is `usize::MAX`, so the 64-bit run writes 18446744073709552000 where the Wasm run wrote 4294967295, in eight presets (R5). The lever is set aside, unapplied; its patch and example are in the worker's scratchpad. It wins 1,186 bytes alone.
-- **`telperion.wasm`'s ceiling held at 1,600,000 (host).** Lowered to 1,338,000 (size and the 5% share), `artifact-budgets.test.mjs` fails two tests that replay fn-170's 1,410,330- and 1,500,000-byte main modules "under the budget file as it stands". Lowering it needs those fixtures moved, which is a test-design call. `module.js`'s ceiling went from 70,000 to 63,000.
-- **`scripts/test-dist.mjs` is red on the base.** "telperion seed 7 at 64 sides: built a wood it should have refused" fails on the base's own dist (run 03:37 against `dist-base`), so it is inherited; every other case passed on the levers' dist, and the field-in-Node tail, which that failure skips, was run on its own and passed.
-- `tests/browser/bindings.mjs` was not run (agents do not drive a browser); with lever b set aside it is unchanged.
+- **Lever b, measured and not applied (host, 14 Nov 2026: 1,186 bytes do not pay for a second way to write the presets).** Its finding: a native run does not render `presets.generated.ts` byte-equal. `canopy.maxInstances` is a `usize` defaulting to `usize::MAX`, so a 64-bit run writes 18446744073709552000 where the Wasm run writes 4294967295, in eight presets.
+- **Ceilings.** `telperion.wasm` 1,600,000 to 1,338,000 and `module.js` 70,000 to 63,000: each the measured size and the file's 5% growth share. The two budget tests that replay fn-170's 1,410,330- and 1,500,000-byte modules read the rows they were written against, frozen at `240f66578` in `scripts/artifact-budgets.fn170-frozen.json` beside the test; no assertion changed (host's ruling).
+- **`scripts/test-dist.mjs`'s refused case is red on the base.** It builds telperion at seed 7 with `surface.radialSegments` 64 and asserts the build is refused by name ("the wood needs N bytes and M are left in 32-bit Wasm memory") with memory under 3.5 GiB: fn-291 R2f's proof that a wood 32-bit Wasm cannot hold is refused before it is allocated. In fn-291 (16 Oct) that tree had 3,358,968 nodes and its wood alone needed about 3.5 to 3.8 GiB at 20 sides a ring, so 64 sides crossed the 4 GiB address space. Today (`dist` at `e0d8306d6`) it has 856,221 nodes. At 64 sides it builds 12,382,299 vertices and 73,482,510 indices, about 329 MiB of wood (three f32 and two i16 a vertex, u16 indices), and the module's memory peaks at 911 MiB. At 12 sides it is 293 MiB, also peaking at 911 MiB. Two things moved: the grower makes a tree a quarter the size, and since fn-362 `radialSegments` is the most sides a run may have, not every ring's count (`surface/build.rs`, `sides`: the fewest that keep the polygon within `FINEST` of the circle). So 64 raises the wood by 12%, not 3.2 times. The case no longer reaches the limit it was written to cross, and is unchanged here (`raw`: the worker's `refused-probe.mjs`).
+- `tests/browser/bindings.mjs` was not run (agents do not drive a browser); with lever b dropped it is unchanged.
