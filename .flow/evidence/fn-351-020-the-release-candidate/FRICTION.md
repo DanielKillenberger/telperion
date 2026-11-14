@@ -13,3 +13,10 @@
 - What hindered: one extra Bare draw before the test's clay draw moved the 2x mask from 4,150 to 4,049 pixels and the 4x reading from 6.0038 / 16.25 to 5.9570 / 16.00; the same still drawn twice is byte-identical, so the state the renderer carries between frames (sun's map, wood surfacing) changes what a later frame draws. Matching the test needed its exact draw order.
 - Cost: one rebuild and rerun, about 3 minutes.
 - What would remove it: a doc line on `render` naming which renderer state carries from one still to the next, or a reset a measuring caller can call; the host decides whether it is specced.
+
+## 14 Nov 2026 09:20 Zurich: measuring one budgeted test the gate's way needs gate.py's private steps by hand (Opus, native peak)
+
+- Doing: measuring the six over-budget tests' peaks the way `scripts/gate.py` does, filtered, without running the full gate.
+- What hindered: the gate's per-test time-outs live in a tool config `gate.py` writes to `target/gate/budgets.toml` at run time; a filtered `cargo nextest run --profile gate` without it cuts every test at the profile's 120 s, so `flowers_cross_the_binding...` (budget 239 s) timed out and its peak was lost. The runner, `GATE_REPORT` and the tool config each had to be read out of `gate.py` and set by hand. Also: the brief named `.flow/evidence/fn-351-the-release-candidate/`, which does not exist; the spec's directory is `fn-351-020-the-release-candidate`.
+- Cost: one 7-minute run whose sixth test was lost, plus about 10 minutes reading `gate.py`.
+- What would remove it: a `gate.py --only <filterset>` (or `--measure`) that runs a named set through the same runner, tool config and report, and prints each test's peak and time against its budget.
