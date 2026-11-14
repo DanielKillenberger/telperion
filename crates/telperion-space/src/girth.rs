@@ -12,6 +12,10 @@
 //! laid = max(0, need − kept)      T += laid    S = kept + laid
 //! ```
 //!
+//! A species whose source measured the two rows at two tree sizes states
+//! both, and the wood reads them by the tree's height that year (`tall`,
+//! `rows`): no age class and no switch, one value where one is stated.
+//!
 //! Wood is never lost: a crown removed or shed lays nothing more and takes
 //! nothing away. At the settle a phytomer's radius is sqrt(T × share / π),
 //! `share` the fade its axis is drawn at: its applied fade, the least on
@@ -67,10 +71,44 @@ pub(crate) fn ring([t, s]: [f64; 2], need: f64, rings: f64) -> [f64; 2] {
     [t + laid, kept + laid]
 }
 
+/// How far a tree of `height` metres stands between the two heights its
+/// wood's rows are stated at: 0 up to `sapwood_from`, 1 from `sapwood_to`,
+/// a straight line between. Outside them it holds the nearer row: nothing
+/// was measured there, so nothing is extrapolated.
+pub(crate) fn tall(form: &Form, height: f64) -> f64 {
+    let (from, to) = (form.sapwood_from, form.sapwood_to);
+    if height <= from {
+        0.0
+    } else if height >= to {
+        1.0
+    } else {
+        (height - from) / (to - from)
+    }
+}
+
+/// The wood's two rows on a tree `tall` of the way between its stated
+/// heights: the sapwood a unit of leaf needs, cm² per m², and the years it
+/// stays sapwood, each its own value times `1 + tall × (share − 1)`. At
+/// shares of 1 they are the rows themselves, to the bit.
+pub(crate) fn rows(form: &Form, tall: f64) -> [f64; 2] {
+    let at = |share: f64| 1.0 + tall * (share - 1.0);
+    [
+        form.sapwood * at(form.sapwood_tall),
+        form.sapwood_rings * at(form.sapwood_rings_tall),
+    ]
+}
+
+/// The tree's height, m: its highest axis tip above the seed's base.
+fn height<P: Node>(axes: &[Axis<P>]) -> f64 {
+    let Some(seed) = axes.first() else { return 0.0 };
+    let top = |a: &Axis<P>| a.phytomers.last().map_or(a.base.z, |p| p.tip().z);
+    axes.iter().map(top).fold(seed.base.z, f64::max) - seed.base.z
+}
+
 /// The year's wood laid on the growing tree on up to `threads` cores: each
 /// phytomer laid since the last pass given its primary section, then every
 /// held phytomer's sapwood set by the leaf above it in `year`, each axis's
-/// leaf (`leaf`).
+/// leaf (`leaf`), at its PA's rows for the tree's height that year (`rows`).
 ///
 /// An axis `closed` names is skipped, its subtree with it: nothing in it
 /// lives or sleeps, so it bears no leaf and none stands above it again, and
@@ -87,6 +125,7 @@ pub(crate) fn lay<P: Node + Send>(
     let links: Vec<Origin> = axes.iter().map(|a| a.origin).collect();
     let parents: Vec<Option<usize>> = links.iter().map(|l| l.parent()).collect();
     let tree = Tree::new(&parents);
+    let height = height(axes);
     tree.upward(
         axes,
         threads,
@@ -107,7 +146,8 @@ pub(crate) fn lay<P: Node + Send>(
                     _ => sum += done[c],
                 }
             }
-            let per_leaf = form.sapwood * 1e-4;
+            let [sapwood, rings] = rows(form, tall(form, height));
+            let per_leaf = sapwood * 1e-4;
             for (k, p) in axis.phytomers.iter_mut().enumerate().rev() {
                 sum += leaf(state, p, year) + at_node[k];
                 let scale = p.scale();
@@ -117,7 +157,7 @@ pub(crate) fn lay<P: Node + Send>(
                     *section = (PI * e * e) as f32;
                 }
                 let held = [f64::from(*section), f64::from(*sapwood)];
-                let [t, s] = ring(held, sum * per_leaf, form.sapwood_rings);
+                let [t, s] = ring(held, sum * per_leaf, rings);
                 (*section, *sapwood) = (t as f32, s as f32);
             }
             sum

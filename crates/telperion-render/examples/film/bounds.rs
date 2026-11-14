@@ -28,10 +28,11 @@ pub fn ends(id: &str, age: f64, seed: u32) -> Result<Family, String> {
     Ok(f)
 }
 
-/// `family`'s growth begun for its age and seed (`pipeline::growth`).
+/// `family`'s growth begun for its age and seed (`pipeline::growth`), to
+/// be drawn at whole years only, as the film draws a growth.
 pub fn begin(family: &Family) -> Result<GrowthState, String> {
     let params = Arc::new(growth::Params::of(family).map_err(|e| e.to_string())?);
-    growth::begin(&params, family.skeleton.seed, family.age).map_err(|e| e.to_string())
+    growth::begin_whole(&params, family.skeleton.seed, family.age).map_err(|e| e.to_string())
 }
 
 /// Every frame's crowns: read from `cache` where it holds the film's, else

@@ -77,6 +77,20 @@ impl GrowthState {
 /// from `seed`. A horizon that is no whole number of years is refused by
 /// name.
 pub fn begin(params: &Arc<Params>, seed: u32, horizon: f64) -> Result<GrowthState> {
+    begun(params, seed, horizon, true)
+}
+
+/// `begin` for a tree drawn at whole years only, as a film of its years
+/// draws it: it keeps no year before, so a year grown settles nothing,
+/// and a draw within the year is refused by name. At a whole year it is
+/// `begin`'s tree to the bit.
+pub fn begin_whole(params: &Arc<Params>, seed: u32, horizon: f64) -> Result<GrowthState> {
+    begun(params, seed, horizon, false)
+}
+
+/// `begin`, keeping the year before where `within` asks for draws within
+/// the year.
+fn begun(params: &Arc<Params>, seed: u32, horizon: f64, within: bool) -> Result<GrowthState> {
     if horizon.fract() != 0.0 || !(0.0..=f64::from(u32::MAX)).contains(&horizon) {
         return Err(Error::InvalidValue {
             field: "horizon",
@@ -90,8 +104,11 @@ pub fn begin(params: &Arc<Params>, seed: u32, horizon: f64) -> Result<GrowthStat
         light: params.light,
     };
     let paused = Paused::begin(Arc::clone(&params.species), request, Retiring::AtAge, false)
-        .map_err(engine)?
-        .presenting();
+        .map_err(engine)?;
+    let paused = match within {
+        true => paused.presenting(),
+        false => paused,
+    };
     let params = Arc::clone(params);
     Ok(GrowthState {
         params,

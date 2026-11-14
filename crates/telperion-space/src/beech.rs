@@ -189,6 +189,7 @@ pub fn beech() -> Species {
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         ..state(
             9,
@@ -240,6 +241,7 @@ pub fn beech() -> Species {
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         ..state(
             lifespan,
@@ -314,6 +316,7 @@ pub fn beech() -> Species {
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         ..state(
             10,
@@ -352,6 +355,7 @@ pub fn beech() -> Species {
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         ..state(5, 0.0, vec![zone(1, 1, &[]), zone(2, 3, &[(SHORT, 0.6)])])
     };
@@ -386,6 +390,7 @@ pub fn beech() -> Species {
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         ..state(12, 0.0, vec![zone(3, 5, &[])])
     };

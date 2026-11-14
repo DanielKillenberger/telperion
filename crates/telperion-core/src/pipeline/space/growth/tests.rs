@@ -81,6 +81,29 @@ fn a_tree_grown_a_year_at_a_time_repeats_and_ends_at_the_tree_asked_for() {
     );
 }
 
+/// fn-351: a growth begun for whole years (`begin_whole`), as the film
+/// draws one, is `begin`'s tree to the bit at every year, and refuses a
+/// draw within the year by name.
+#[test]
+fn a_tree_begun_for_whole_years_is_the_same_tree_at_each() {
+    let (_, params) = beech();
+    let mut kept = begin(&params, 7, f64::from(H)).unwrap();
+    let mut whole = begin_whole(&params, 7, f64::from(H)).unwrap();
+    for y in 1..=H {
+        let at = f64::from(y);
+        grow_to(&mut kept, at).unwrap();
+        grow_to(&mut whole, at).unwrap();
+        assert!(
+            settle(&whole, at).unwrap() == settle(&kept, at).unwrap(),
+            "year {y}"
+        );
+    }
+    match settle(&whole, f64::from(H) - 0.5).map(drop) {
+        Err(Error::InvalidValue { value, .. }) => assert!(value.starts_with("at:"), "{value}"),
+        other => panic!("{other:?}"),
+    }
+}
+
 /// R2b: a first age that is no whole year, an age not finite or a year
 /// back, and a draw outside the last year grown are refused by name, the
 /// state left to grow on; an age past the first one asked is grown

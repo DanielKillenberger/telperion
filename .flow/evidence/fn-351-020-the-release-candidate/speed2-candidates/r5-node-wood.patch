@@ -1,0 +1,77 @@
+--- a/crates/telperion-space/src/grow/unit.rs
++++ b/crates/telperion-space/src/grow/unit.rs
+@@ -1,7 +1,7 @@
+ //! One growth unit of an apex: its zones' nodes, in the order their roles
+ //! stand along the unit, and the buds of each node, laterals that sprout
+ //! and sleeping buds put to sleep.
+-use super::shoot::{Rules, Shoot};
++use super::shoot::{NodeWood, Rules, Shoot};
+ use super::{Apex, Certain};
+ use crate::contract::{decide, presence};
+ use crate::error::Result;
+@@ -30,7 +30,7 @@
+             let zone_key = unit.child(ZONE + z as u64);
+             let lateral = &rules.laterals[pa][z];
+             let mut sleeping = std::mem::take(&mut self.sleeping);
+-            let node_wood = node_wood((rules, species), (pa, z), cycle, &mut sleeping);
++            let node_wood = self.node_wood((pa, z), cycle, &mut sleeping);
+             // Each node's presence (D18 reads it).
+             let window = decide::node_window(node_wood);
+             let draw = zone_key.draw();
+@@ -137,6 +137,28 @@
+     }
+ }
+ 
++impl Shoot<'_> {
++    /// `node_wood` of zone `z` of a unit of `pa` grown in `cycle`, taken
++    /// once a share (fn-351 speed round 2): it reads the PA, the zone and
++    /// the cycle alone, of rules no growth unit changes, so every unit of
++    /// one PA and zone in a cycle decides the same wood, to the bit.
++    fn node_wood(&mut self, (pa, z): (usize, usize), cycle: u32, sleeping: &mut Vec<f64>) -> f64 {
++        let at = (pa, z, cycle);
++        if let Some(held) = self.woods.iter().find(|w| w.at == at) {
++            sleeping.clear();
++            sleeping.extend_from_slice(&held.sleeping);
++            return held.wood;
++        }
++        let wood = node_wood((self.rules, self.species), (pa, z), cycle, sleeping);
++        self.woods.push(NodeWood {
++            at,
++            wood,
++            sleeping: sleeping.clone(),
++        });
++        wood
++    }
++}
++
+ /// The wood a node of zone `z` of a unit of `pa` grown in `cycle` decides,
+ /// as a share of the tree's: its internode and the buds it is expected to
+ /// bear, a PA its buds cannot carry taking no part, and the sleeping buds
+--- a/crates/telperion-space/src/grow/shoot.rs
++++ b/crates/telperion-space/src/grow/shoot.rs
+@@ -104,6 +104,17 @@
+     pub node_buds: Vec<(Draw, u64, f32, [Placed; MAX_BUDS as usize])>,
+     /// One zone's sleeping buds' expected wood per PA, reused.
+     pub sleeping: Vec<f64>,
++    /// The wood a node decides, by PA, zone and cycle, as the share has
++    /// taken it (`Shoot::node_wood`).
++    pub woods: Vec<NodeWood>,
++}
++
++/// The wood a node of a PA's zone grown in a cycle decides (`at`), and
++/// each PA's sleeping bud's on it (`unit::node_wood`).
++pub(super) struct NodeWood {
++    pub at: (usize, usize, u32),
++    pub wood: f64,
++    pub sleeping: Vec<f64>,
+ }
+ 
+ /// The lists a share fills and the grower empties each cycle, kept
+@@ -144,6 +155,7 @@
+             leads: Vec::new(),
+             node_buds: Vec::new(),
+             sleeping: Vec::new(),
++            woods: Vec::new(),
+         }
+     }
+ 

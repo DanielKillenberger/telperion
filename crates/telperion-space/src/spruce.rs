@@ -102,10 +102,13 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
-        // fn-354 R5: a needle is kept 5.5 years, the age at which half a
-        // cohort is shed (Muukkonen & Lehtonen 2004, Can. J. For. Res. 34:
-        // 2517). Estimated in form: a cohort thins gradually to 12 years,
-        // and one life stands in for that curve.
+        // fn-354 R5: a cohort is held whole to this age, so the matching
+        // measure is the mean needle lifespan. 5.5 is the half-shed age
+        // (Muukkonen & Lehtonen 2004, Can. J. For. Res. 34: 2517, full
+        // text); the sources' range for the mean is 5.1 (that paper's
+        // survival table summed) to 7.2 (Reich et al. 1996, a lowland
+        // Polish plantation). Its mass turnover of 0.10 a year is not
+        // this measure. Passages in the preset's value file.
         leaf_years: 5.5,
         // fn-270 R5: the days its shoot elongates and its leaf expands
         // within the year, sourced in its preset's value file.
@@ -164,6 +167,7 @@ pub fn spruce() -> Species {
         internode_spread: 0.0,
         insertion_spread: 0.0,
         tropism_spread: 0.0,
+        ..Form::default()
     };
     // The seedling (M4): two short, unbranched years.
     let seedling = PaState {
@@ -224,6 +228,7 @@ pub fn spruce() -> Species {
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         // For as long as the tree lives, then they stop.
         ..state(
@@ -279,6 +284,7 @@ pub fn spruce() -> Species {
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         ..state(
             10,

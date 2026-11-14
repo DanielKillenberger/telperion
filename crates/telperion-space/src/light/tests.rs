@@ -309,3 +309,100 @@ fn a_lattice_past_its_nodes_is_refused_by_name() {
 }
 
 const AT_AGE: crate::grow::cycle::Retiring = crate::grow::cycle::Retiring::AtAge;
+
+/// fn-351 speed round 2: the quantised deposit cut into parts for four
+/// cores is the deposit in turn, node for node, and a node only the parts
+/// together fill past its u32 is refused as it is in turn.
+#[test]
+fn the_deposit_in_parts_is_the_deposit_in_turn() {
+    let light = Light {
+        extinction: K,
+        sky: 0.5,
+    };
+    let most = super::field::NODES;
+    let leaves: Vec<(Vec3, f64)> = (0..40_000)
+        .map(|k| {
+            let t = f64::from(k);
+            let at = Vec3::new(
+                (t * 0.37).sin() * 2.0,
+                (t * 0.71).cos() * 2.0,
+                2.0 + (t * 0.13).sin(),
+            );
+            (at, 0.0018 * (1.0 + (t * 0.3).cos()))
+        })
+        .collect();
+    let quanta = |threads: usize| {
+        let field = Field::quantised_with(&light, &leaves, &[], (threads, most));
+        field.unwrap().1
+    };
+    let (turn, parts) = (quanta(1), quanta(4));
+    assert!(turn.iter().any(|&q| q > 0), "leaf deposited");
+    assert_eq!(turn, parts);
+    // 16,384 leaves of 0.3 m² on one node: 5.2e9 quanta, a quarter of
+    // them under a u32.
+    let heavy = vec![(Vec3::new(0.0, 0.0, 1.0), 0.3); 1 << 14];
+    for threads in [1, 4] {
+        let refused = Field::quantised_with(&light, &heavy, &[], (threads, most));
+        let refused = refused.err().expect("refused");
+        assert!(
+            format!("{refused}").starts_with("light.deposit"),
+            "{threads}: {refused}"
+        );
+    }
+}
+
+/// fn-351 speed round 2: the deposit's count of quanta is `round`'s, cast
+/// as it was, at every edge and over a sweep of deposits; and a leaf's
+/// corners, tested against the box once, are `corners`' to the bit.
+#[test]
+fn the_deposits_count_and_corners_are_the_ones_it_took() {
+    use super::field::{rounded, Grid, NODES, QUANTUM};
+    let counted = |x: f64| (x.round() <= f64::from(u32::MAX)).then(|| x.round() as u32);
+    let edges = [
+        0.0,
+        -0.0,
+        0.25,
+        0.499_999_999_999_999_94,
+        0.5,
+        0.500_000_000_000_000_1,
+        1.5,
+        2.5,
+        -0.3,
+        -0.5,
+        -7.0,
+        4_294_967_294.5,
+        4_294_967_295.0,
+        4_294_967_295.499_999,
+        4_294_967_295.5,
+        4_294_967_296.0,
+        1e300,
+        f64::INFINITY,
+        f64::NAN,
+    ];
+    for x in edges {
+        assert_eq!(rounded(x), counted(x), "{x:e}");
+    }
+    let mut state = 1u64;
+    for _ in 0..200_000 {
+        state = state
+            .wrapping_mul(6_364_136_223_846_793_005)
+            .wrapping_add(1_442_695_040_888_963_407);
+        let area = (state >> 40) as f32 / 1e5;
+        let weight = ((state >> 16) & 0xff_ffff) as f32 / 16_777_216.0;
+        let x = f64::from(area) * f64::from(weight) / QUANTUM;
+        assert_eq!(rounded(x), counted(x), "{x:e}");
+    }
+    let points = [
+        Vec3::new(0.3, -1.2, 2.7),
+        Vec3::new(-0.0, 0.0, 0.5),
+        Vec3::new(-1e-9, 1.999_999, 3.25),
+        Vec3::new(1.0, 1.0, 1.0),
+    ];
+    let grid = Grid::spanning(points.iter().copied(), NODES).unwrap();
+    for at in points {
+        for (took, takes) in grid.corners(at).iter().zip(&grid.inside(at)) {
+            assert_eq!(took.0, Some(takes.0), "{at:?}");
+            assert_eq!(took.1.to_bits(), takes.1.to_bits(), "{at:?}");
+        }
+    }
+}

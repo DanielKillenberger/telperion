@@ -145,12 +145,20 @@
 # duration of 35 days of shoot and needle lengthening was estimated for
 # both larch and spruce" (Rossi, Rathgeber and Deslauriers 2009, Ann.
 # For. Sci. 66: 206).
-# fn-354 R5: a needle is kept 5.5 years (`leafYears`), the age at which
-# half a cohort is shed (Muukkonen and Lehtonen 2004, Can. J. For. Res.
-# 34: 2517); estimated in form, since a cohort thins gradually to 12
-# years and one life stands in for that curve ("all of the Norway spruce
-# populations had between 6.4 and 7.2 needle age cohorts", Reich et al.
-# 1996, Tree Physiol. 16: 643). The grower's light and wood and the
+# fn-354 R5: a needle is kept 5.5 years (`leafYears`). A cohort is held
+# whole to that age and then dropped, so the measure that matches is the
+# mean needle lifespan, the area under the survival curve. 5.5 is the
+# half-shed age: "At the age of 5.5 years, 50% of the needles of that
+# needle cohort have been shed" (Muukkonen and Lehtonen 2004, Can. J.
+# For. Res. 34: 2517, read in full text; 15th-whorl branches, southern
+# Finland). The sources' range for the mean is 5.1 to 7.2: that paper's
+# survival table (Table 1) sums to 5.1 cohort-years at class mid-points,
+# and "all of the Norway spruce populations had between 6.4 and 7.2
+# needle age cohorts" keeping over half their needles in a lowland
+# Polish plantation (Reich et al. 1996, Tree Physiol. 16: 643). The same
+# paper's turnover of 0.10 a year is of needle mass, weighted by needle
+# age and yellowing, and is not this measure
+# (fn-351 SPRUCE-NEEDLE-YEARS.md). The grower's light and wood and the
 # drawing read it alike. fn-270 R5c: no needle drops and grows again on
 # old wood, and only the new flush unfolds. "May shoot of spruce ... Meanobs (date) 12 May" (Rotzer et al.
 # 2004, Int. J. Biometeorol. 48: 109): day 132. Colouring and fall are
