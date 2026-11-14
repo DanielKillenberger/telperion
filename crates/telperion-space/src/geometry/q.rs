@@ -91,7 +91,7 @@ pub(crate) fn carry(from: Q3, to: Q3) -> Option<Turn> {
 
 /// An amount within half a turn of none: the orientation it reads.
 pub(crate) fn wrap(turns: f32) -> f32 {
-    turns - (turns + 0.5).floor()
+    turns - crate::contract::floor(turns + 0.5)
 }
 
 /// The amount from orientation `from` to `to`, the short way.
