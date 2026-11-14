@@ -21,3 +21,10 @@
 - **Cost:** one admission and the compile restarted, a few minutes.
 - **What would remove it:** the wrapper naming who sent the signal (the cap, the watcher or a user stop) instead of guessing.
 - **Update 05:26:** `journalctl --user` names it: the kernel's OOM killer in the scope, at the 8 GB cap and again at 10 GB, about a minute in. The test binaries then compiled outside the queue in 27 s, so the compile was not it: the likely cause is `telperion-wasm`'s whole library suite (its `generate` tests build trees) running four at a time, which my filter did not narrow. Rerun with the wasm tests filtered to `live::`.
+
+## 2026-11-14 05:40 to 07:50, the beech walked to 400 again
+
+- **Doing:** step E's walk for the largest age that builds after the conversion's exact sizing.
+- **What slowed it:** after step 2 the beech builds at every age from 121 to 400 (its kept count peaks near 9.2 M and falls), so the ten-year walk ran to the 400 cap again, as the oak did in R2. The fix proposed in the 03:50 entry (stop once the kept count has fallen twice) would have ended it at 141.
+- **Cost:** about two hours of the run, the spruce's walk taking twenty minutes.
+- **What would remove it:** the same as the 03:50 entry; both entries point at one change to `scripts/wasm-ceiling.mjs`'s walk.

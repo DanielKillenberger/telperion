@@ -270,9 +270,11 @@ fn matrices(
         Some(step) => Some(Ground::of(&element(p)?, p, step)),
         None => None,
     };
-    // Every inflorescence's florets at most, reserved once (fn-369): one
-    // that is not grown, or a floret too small to draw, takes fewer.
-    let most = tree.blooms.len().saturating_mul(p.florets.ceil() as usize);
+    // Every inflorescence's florets and its rachis at most, reserved once
+    // (fn-369): one that is not grown, or a floret too small to draw, takes
+    // fewer.
+    let each = p.florets.ceil() as usize + usize::from(p.rachis > 0.0);
+    let most = tree.blooms.len().saturating_mul(each);
     let mut matrices = Vec::new();
     crate::memory::reserve(&mut matrices, most, "flower store")?;
     for bloom in &tree.blooms {
@@ -324,7 +326,11 @@ impl Ground {
 
 fn packed(matrices: &[Matrix], reference: Reference) -> Result<Instances> {
     let mut instances = Instances::new(reference);
-    crate::memory::reserve(&mut instances.leaves, matrices.len(), "flower instance store")?;
+    crate::memory::reserve(
+        &mut instances.leaves,
+        matrices.len(),
+        "flower instance store",
+    )?;
     for (m, rachis) in matrices {
         instances.push(m);
         if *rachis {
