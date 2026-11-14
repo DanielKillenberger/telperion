@@ -4,19 +4,21 @@ Branch `fn-351-speed-round-2`, from `fn-351-candidate` at `7685ee85b`. Tree: Ore
 
 ## What the round reached
 
-The round's two hours bought one profile, six candidate changes written as patches with their proofs, and no measured change: the one admission that builds and reads them (`speed2-build.sh`) was queued at 13:21 and had not been admitted when this was written. No change is kept, since none is measured; the branch holds the profile, the method and the candidates. The queue was frozen or full for most of it (FRICTION.md, 14 Nov 12:28, 12:39 and 13:21): the first build took 24 minutes of wall for a few minutes of work, and a 4 GB claim found no room from 12:57 on.
+The round's two hours bought one profile, six candidate changes written as patches with their proofs, and no measured change: the one admission that builds and reads them (`speed2-build.sh`) was queued at 13:21 and withdrawn at 13:45 unadmitted, the queue frozen since 13:10:59 under a desk at a load of 60 to 118. No change is kept, since none is measured, and none has been compiled; the branch holds the profile, the method and the candidates. The round returned early, at 83 of its 120 minutes, as the friction rule asks of a build stopped by a known inefficiency (FRICTION.md, 14 Nov 12:28, 12:39, 13:21 and 13:44): the first build took 24 minutes of wall for a few minutes of work, a 4 GB claim found no room from 12:57 on, and the queue ran for about 12 minutes of the round's last hour.
 
 ## The base, and why seconds cannot carry a verdict today
 
 One thread, the tree's own clock (`cycle: … s`, growth and settle):
 
-| when | how | clock | CPU to the grown tree | user instructions | cycles | L2 misses |
+| when | how | clock | CPU to the grown tree | user instructions | cycles | cache misses |
 |---|---|---|---|---|---|---|
-| 12:48 | in the queue, desk at load 35 to 48 | 1.48 s | 1.47 s | 15.81 G | 8.97 G | 63.9 M |
+| 12:48 | in the queue, two minutes after a thaw, beside every other thawed job | 1.48 s | 1.47 s | 15.81 G | 8.97 G | 63.9 M |
 | 13:11 | in the queue, pinned to one core, load 9 | 0.95 s | 0.94 s | | | |
-| 13:12 | under the sampler, load 9 | 0.98 s | 0.96 s | | | |
+| 13:12 | in the queue under the sampler, load 9 | 0.98 s | 0.96 s | | | |
 
-The same binary on the same tree spreads by half with the desk's load, so fn-368's 1.44 s is a loaded-desk reading of a tree that grows in 0.95 s on a quiet core. A 3 % verdict is read in user-space instructions (`count.py`, `perf_event_open`), which the load does not move, beside the seconds.
+The same binary on the same tree spreads by half with what runs beside it, so fn-368's 1.44 s is a loaded-desk reading of a tree that grows in 0.95 s on a quieter core. A 3 % verdict is therefore read in user-space instructions (`count.py`, `perf_event_open`), which the load does not move, beside the seconds.
+
+The counters are the whole process's, and `early` digests the tree after growing it: by the sampled run the digest is 40 % of the process's cycles (3,310 of 8,206 samples). Both sides of a pair digest the same tree, so the difference between them is the change's own; its share of growth is that difference over 0.60 of the base's cycles. The instructions' split between growth and digest is not measured. The cache misses are the kernel's generic event (on this Ryzen 9 5950X, by its usual mapping, misses of the 512 kB L2), 64 M of them in the process.
 
 ## The profile
 

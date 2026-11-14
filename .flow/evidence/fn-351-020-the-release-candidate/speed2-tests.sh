@@ -6,7 +6,8 @@
 #     .flow/evidence/fn-351-020-the-release-candidate/speed2-tests.sh <label> [all]
 #
 # - the engine's own: the paused grower's equalities, the wood's, the
-#   light's, many cores, and the retirement's against the reference
+#   light's and its deposit's, the contract's floor where a candidate
+#   adds it, many cores, and the retirement's against the reference
 #   retiring nothing;
 # - the pinned digests: every preset's tree at sixteen (`PINNED`), and the
 #   catalogue's identity;
@@ -23,6 +24,8 @@ cargo test --profile ci -p telperion-space --lib -- \
   grow::cycle::paused::tests:: \
   girth::tests:: \
   light::tests:: \
+  contract::tests::the_contracts_floor_is_floor_to_the_bit \
+  grow::cycle::tests::the_quantised_deposit_is_order_free_and_refuses_overflow \
   grow::tests::many_cores_grow_the_tree_one_does \
   grow::growing_tests::a_growing_phytomer_holds_what_growth_reads \
   grow::tests::an_axis_and_its_draws_stay_compact \

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # fn-351 speed round 2: each candidate change built on its own from a
 # patch against the base (speed2-candidates/<patch>.patch), its `early`
-# kept as raw/speed2/<label>/early, and the working tree left as it was;
-# then each read against its base (speed2-ab.sh). One queue admission:
+# kept as raw/speed2/<label>/early, the working tree left as it was, and
+# the change read against its base (speed2-ab.sh) before the next is built,
+# so a row names a base built before it. One queue admission:
 #
 #   TELPERION_HEAVY_RESERVE=8 telperion-heavy 4 --threads 4 -- \
 #     .flow/evidence/fn-351-020-the-release-candidate/speed2-build.sh "<label>:<patch>:<before> ..."
@@ -26,10 +27,7 @@ for row in $1; do
     grep -A12 "^error" "$out/build.log" | head -60
   fi
   git apply -R "$here/speed2-candidates/$patch.patch"
-done
-for row in $1; do
-  IFS=: read -r label patch before <<< "$row"
-  [ -x "$here/raw/speed2/$label/early" ] || continue
+  [ -x "$out/early" ] || continue
   "$here/speed2-ab.sh" "$before" "$label" 5
   python3 "$here/speed2-ab.py" "$here/raw/speed2/$label/ab"
 done

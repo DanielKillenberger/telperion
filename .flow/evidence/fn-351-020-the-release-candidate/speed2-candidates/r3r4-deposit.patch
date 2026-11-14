@@ -9,7 +9,7 @@
          let split = [at.x, at.y, at.z].map(|x| node(x as f32));
          std::array::from_fn(|c| {
              let upper = |a: usize| (c >> a) & 1 == 1;
-@@ -114,6 +114,99 @@
+@@ -114,6 +114,98 @@
      }
  }
  
@@ -66,9 +66,8 @@
 +    pub(super) fn inside(&self, at: Vec3) -> [(usize, f32); 8] {
 +        let split = [at.x, at.y, at.z].map(|x| node(x as f32));
 +        let low = split.map(|s| s.0);
-+        let base = self.index(low).expect("a leaf inside its box");
-+        self.index(low.map(|n| n.wrapping_add(1)))
-+            .expect("a leaf inside its box");
++        let within = |n: [i32; 3]| self.index(n).expect("a leaf inside its box");
++        let (base, _highest) = (within(low), within(low.map(|n| n.wrapping_add(1))));
 +        let [sx, sy, _] = self.size.map(|s| s as usize);
 +        let share = split.map(|s| [1.0 - s.1, s.1]);
 +        std::array::from_fn(|c| {
@@ -109,7 +108,7 @@
  impl Field {
      /// The field of `leaves` (each a point and its leaf area in square
      /// metres) under `light`, over a box that holds every leaf and every
-@@ -162,25 +255,7 @@
+@@ -162,25 +254,7 @@
      ) -> Result<(Self, Vec<u32>)> {
          let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
          let mut field = Self::spanning(points, most)?;

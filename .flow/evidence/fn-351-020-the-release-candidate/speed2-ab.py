@@ -14,7 +14,7 @@ import sys
 out = pathlib.Path(sys.argv[1])
 runs = {}
 for f in sorted(out.glob("*.txt")):
-    m = re.match(r"(.+?)-([a-z-]+-\d+-\d+)-t(\d+)-(\d+)$", f.stem)
+    m = re.match(r"(.+)__(.+)-t(\d+)-(\d+)$", f.stem)
     side, tree, threads = m.group(1), m.group(2), int(m.group(3))
     text = f.read_text()
     grab = lambda pattern: (re.search(pattern, text) or [None, None])[1]
@@ -54,3 +54,12 @@ for (tree, threads), sides in sorted(runs.items()):
             if k in med[b] and med[a][k]
         )
         print(f"  {b} on {a}: {gains}")
+        # The counters are the whole process's, the digest of the grown
+        # tree included, the same on both sides: the difference is the
+        # change's own, to be read against growth's share of the base.
+        saved = ", ".join(
+            f"{k} {(med[a][k] - med[b][k]) / 1e6:+.1f} M"
+            for k in ("instructions", "cycles", "cache_misses")
+            if k in med[a] and k in med[b]
+        )
+        print(f"  saved: {saved}")

@@ -23,7 +23,7 @@ for row in $rows; do
   for k in $(seq 1 "$pairs"); do
     for threads in 1 4; do
       for side in "$before" "$after"; do
-        f="$out/$side-$preset-$age-$seed-t$threads-$k.txt"
+        f="$out/${side}__$preset-$age-$seed-t$threads-$k.txt"
         RAYON_NUM_THREADS=$threads python3 "$here/count.py" \
           "$here/raw/speed2/$side/early" three "$preset" "$age" "$seed" cycle >> "$f" 2>&1
         echo "rc=$? $side $preset $age $seed t$threads $k $(date '+%F %T')" >> "$out/STATUS"

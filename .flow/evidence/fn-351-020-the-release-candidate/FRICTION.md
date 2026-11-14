@@ -45,3 +45,10 @@
 - Cost: about 25 minutes (13 on the sampler, 12 waiting on admissions that were then withdrawn and repacked into one job).
 - Done about it: every candidate is a patch against the base, and one admission builds each on its own and reads each against its base (`speed2-build.sh`), so the round needs two admissions, not ten.
 - What would remove it: `perf` installed, or `kernel.perf_event_mlock_kb` raised so `samply` runs; a profile build with frame pointers kept beside the `ci` one; and a queue that admits by measured peak, as fn-368's FRICTION.md already asks.
+## 14 Nov 2026 13:44 Zurich: the round's builds never ran (speed round 2)
+
+- Doing: waiting on the one admission that builds the six candidates and reads each against the base (`speed2-build.sh`, queued 13:21 at 4 GB).
+- What hindered: the queue has been frozen since 13:10:59 (`PAUSE (cpu 7 cores)`), 33 minutes at the time of writing, and thawed for about 12 minutes in the hour before that. The desk's load average stood at 62 at 13:37, 76 at 13:40 and 118 at 13:43, from another repository's test suite (`node --test`, `oxlint`, the vault's indexer) and a `scoreboard-probe` run directly; available memory fell to 10 GB against 17 GB of queue claims.
+- Cost: the round's verdicts. In 82 minutes the queue gave this round one base run with counters, one sampled run, and two builds of the base; no candidate has been compiled.
+- Done about it: the round returns early with its profile, its ranking and the candidates as patches (`SPEED-ROUND-2.md`, `speed2-candidates/`), and the one command that builds and reads them all, as this file's rule asks of a build stopped by a known inefficiency.
+- What would remove it: a measurement window the owner grants (the watcher paused, or the other repository's suite held, for the twenty minutes six builds and their reads take); the fixes named at 12:39 and 13:21 above.
