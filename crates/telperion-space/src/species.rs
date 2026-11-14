@@ -7,7 +7,6 @@
 use crate::error::{refuse, Result};
 use crate::transcendental::Transcendental;
 
-pub mod coarse;
 pub(crate) mod scale;
 mod validate;
 

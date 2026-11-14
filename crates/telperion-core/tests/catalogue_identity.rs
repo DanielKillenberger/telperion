@@ -55,8 +55,9 @@ fn every_preset_is_the_family_it_was() {
         // the ordinary tree their leaf years; the birch's sapwood 4.6; R7
         // gave every age a shade table and the beech its full-light tables;
         // task 7 gave the ordinary tree a leaf of 15.7 cm² and the beech's
-        // short shoot a life of twelve years.
-        16_645_187_557_545_691_998,
+        // short shoot a life of twelve years. fn-367 deleted `/fidelity` and
+        // the oak's, spruce's and birch's coarse rows.
+        14_553_619_485_299_927_510,
         "{}",
         digest(&text)
     );
@@ -116,8 +117,9 @@ fn every_walk_is_the_walk_it_was() {
         // birch and the ordinary tree their leaf years; the birch's sapwood
         // 4.6; R7 gave every age a shade table and the beech its full-light
         // tables; task 7 gave the ordinary tree a leaf of 15.7 cm² and the
-        // beech's short shoot a life of twelve years.
-        16_404_614_338_522_828_711,
+        // beech's short shoot a life of twelve years. fn-367 deleted
+        // `/fidelity` and the coarse rows, which every walk carried.
+        7_879_059_221_637_557_532,
         "{}",
         digest(&text)
     );
@@ -147,8 +149,9 @@ fn every_override_reads_and_writes_as_it_did() {
         // supernatural pipe the primary radius and deleted the coarse pipe,
         // and set every age's sag to its wood's 4ρg/E; R5 gave the spruce
         // and the birch their leaf years; the birch's sapwood 4.6; R7 gave
-        // every age a shade table.
-        9_054_662_260_167_386_261,
+        // every age a shade table. fn-367 deleted `/fidelity` from the wire
+        // and the coarse rows.
+        13_198_617_521_797_237_499,
         "{}",
         digest(&text)
     );
@@ -212,8 +215,9 @@ fn every_refusal_is_the_refusal_it_was() {
     assert_eq!(
         digest(&text),
         // fn-354 renamed the pipe the primary radius, added the sapwood
-        // rows' refusals and deleted the pipe model's.
-        6_914_840_421_197_035_565,
+        // rows' refusals and deleted the pipe model's. fn-367 deleted
+        // `/fidelity` and its refusal.
+        11_839_571_377_004_440_045,
         "{}",
         digest(&text)
     );

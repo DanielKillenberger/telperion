@@ -299,8 +299,6 @@ mod cycle_cost_tests;
 mod drawn;
 #[cfg(feature = "geometry")]
 pub mod executor;
-#[cfg(all(test, feature = "geometry"))]
-mod fidelity_tests;
 mod input;
 pub mod measures;
 #[cfg(not(feature = "geometry"))]

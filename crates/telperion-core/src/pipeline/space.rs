@@ -105,7 +105,6 @@ fn scaled(tree: &mut Tree, scale: f64) {
 /// conversion reads its scale.
 fn asked<'a>(input: &'a GrowInput<'_>) -> Result<(&'a telperion_space::Species, Request)> {
     input.supernatural.validate()?;
-    input.fidelity_admitted()?;
     let species = (input.space.species.as_ref()).ok_or(Error::InvalidInput("no engine species"))?;
     let age = input.age;
     if age.fract() != 0.0 || !(0.0..=f64::from(u32::MAX)).contains(&age) {

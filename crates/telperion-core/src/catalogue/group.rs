@@ -49,7 +49,6 @@ use Group::{Advanced, Bark, Branching, Flowers, Form, Leaves, Size, Supernatural
 /// Catalogue rows by path or path prefix (ending in `/`).
 const ROWS: &[(&str, Group)] = &[
     ("/age", Size),
-    ("/fidelity", Advanced),
     ("/skeleton/seed", Advanced),
     ("/radii/trunkRadius", Advanced),
     ("/skeleton/twigs/twig/diameter", Advanced),
