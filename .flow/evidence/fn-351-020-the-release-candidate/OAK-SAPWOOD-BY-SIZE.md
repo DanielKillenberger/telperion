@@ -6,10 +6,10 @@ By a Fable build agent on `fn-351-oak-sapwood-by-size`, branched from `fn-351-ca
 
 ## What changed
 
-- **The old oak with its new rows was not measured inside this run.** On paper seed 1001 at 300 goes from 2.15 m to 1.79 m, inside White's 1.56 to 1.92 m; the trees were queued and the queue froze ("What was not run"). At 40 and 80 the paper lands within 3 cm of the grown tree on four of five trees and 6 cm on the fifth.
+- **Seed 1001's trunk at 300 is 1.81 m, against 2.20 m before and White's 1.56 to 1.92 m.** It is 1.06 m at 120 (inside 0.83 to 1.09) and 1.53 m at 200 (White's top is 1.52). The paper lands within 3 cm of the grown tree at 120, 200 and 300.
 - **The oak at 40 is thicker**, 30.8 to 39.6 cm where it stood 26.1 to 33.5 cm, inside White's 28 to 40 cm and further above *Q. garryana*'s own figures (23 cm in Phillips's 40-year plot, a 26 cm ceiling in Gould 2008).
 - **Every other preset grows the same tree to the bit.** Seven tree digests are equal before and after ("Other presets").
-- **Seed 1007 stays out of White's range**, as the reading said it would. Its excess is its leaf and crown spread, which these rows do not touch.
+- **Seed 1007 stays out of White's range**, 2.57 m at 300 where it stood 3.13 m, 1.34 times White's top, as the reading said it would. Its excess is its leaf and crown spread, which these rows do not touch.
 
 ## Sources, checked against their text
 
@@ -104,7 +104,7 @@ The oak's `sapwood` is now 1 / 0.23 and its `sapwood_rings` 16.0.
 ## Tests
 
 - `girth::tests` [run, green]: the read equals the rows at the near height and their shares at the far one, is a straight line between and constant outside; shares of 1 lay the same wood to the bit at four heights; a tree below the near height lays a single-row species' wood and above the far height the far rows' wood.
-- `species::scale::edges`, `tests/refusals.rs` [run, green after a table-length fix; see "What was not run"].
+- `species::scale::edges`, `tests/refusals.rs` [run, green].
 - `tests/walks.rs` with `WALK=form.sapwood` [run, green]: the four new rows and the two old ones walked on sagging limbs, each by degree.
 - `telperion-core`: `space_presets`, `preset_values`, `light_rows`, `parameter_reference`, `--lib catalogue` [run, green]. The oak's value file is what the writer makes of its family.
 
@@ -158,7 +158,10 @@ Moved, each by its own procedure:
 - `crates/telperion-core/presets/oregon-white-oak.values` and `src/browser/presets.generated.ts`, the oak's ten wooded ages: `sapwood`, `sapwoodRings` and the four new rows. `preset_values` holds the value file to the writer's output [run, green]. The TypeScript table was edited by hand to the same values and was not checked by `scripts/build-wasm.mjs` [not run].
 - `src/browser/parameters.generated.ts`, four rows, rewritten by `parameter_reference` under `TELPERION_WRITE_REFERENCE=1` [run, green].
 
-No bound was loosened. Whether any other test pins a figure of the oak's that these rows move is not known: see "What was not run".
+- `crates/telperion-space/src/grow/growing_tests.rs`, `a_growing_phytomer_is_read_as_it_was`: the unlaid oak at 20, seeds 1 and 7, re-pinned from the test's printed values; its beech and spruce pins hold [run, green].
+- `crates/telperion-core/src/pipeline/cycle_cost_tests.rs`, `every_preset_grows_the_tree_it_grew_at_sixteen`: the oak's digest, the second of eight, re-pinned; the other seven did not move [run, green]. Its ignored sibling at each preset's age was not run, and its oak pin will have moved.
+
+No bound was loosened. A pin among the tests not run is unknown: see "What was not run".
 
 ## What stays unmet
 
@@ -169,9 +172,8 @@ No bound was loosened. Whether any other test pins a figure of the oak's that th
 
 ## What was not run
 
-- **The old oak, where the table says "not run".** `job-a.sh` and `job-b.sh` were admitted at 12:47 after 20 minutes in the queue, and the yield watcher froze every heavy scope from about 13:00 with one ten-second gap (FRICTION.md, two entries of 14 Nov). The logs resume: a finished tree is kept, and `fill.py` rewrites the table.
-- **The tests that read the oak, beyond those listed under "Tests".** About 110 Rust files name the oak. `job-c.sh` runs the space crate's unit tests, `refusals`, `chain`, `blend_reach`, and the core's `native_entry`, `space_stems`, `walk_midpoint`, `grown_total`, `capability`, `space_walks` and the suites that name the oak. It was killed at a 4 GB cap inside the space crate's unit tests, requeued at 8 GB and not admitted. A pin of the oak's trunk, digest or node count in any of them is unknown, and so is a walk bound that the thicker young oak moves.
-- **`tests/refusals.rs`** failed to compile on a table length (49 written, 52 needed); the length is corrected and the test was not run again.
+- **The trees the table marks "not run"**: seed 1007 at 200 and seed 1012 at 120, 200 and 300. The yield watcher froze every heavy scope from about 13:00 to about 14:20 (FRICTION.md, two entries of 14 Nov), and `job-b.sh` was still growing them when this was written. A finished tree is kept, and `fill.py` rewrites the table.
+- **The rest of the tests that read the oak.** About 110 Rust files name it. `job-c.sh` ran the space crate's unit tests, `refusals`, `chain`, `blend_reach`, the core's `catalogue_identity`, `native_entry`, `space_stems`, `grown_total`, `capability`, `space_walks`, and the core suites `suite::species`, `suite::establish`, `suite::sag`, `suite::codominance`, `pipeline::space`, `pipeline::cycle_cost` and `family::tests`: green but for the two pins under "Pins". Every other test that names the oak was not run (the render crate's, the Wasm crate's, the browser's, the core's remaining suites and walks, and every ignored test), so a pin among them is unknown.
 - **`scripts/build-wasm.mjs`**, which holds `presets.generated.ts` to the Rust presets.
 - **The sheet** of the leafless oak at 120 and 300, before beside after. No GPU job was started.
 - **The gate**, by instruction.
