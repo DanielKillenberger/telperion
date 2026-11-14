@@ -38,6 +38,10 @@ const MAX_PRIMARY: f64 = 1.0;
 const MAX_SAPWOOD: f64 = 100.0;
 /// The most years wood stays sapwood.
 const MAX_SAPWOOD_RINGS: f64 = 1_000.0;
+/// The most a tall tree's sapwood row is of a short tree's.
+const MAX_TALL: f64 = 10.0;
+/// The tallest tree a sapwood row is stated at, in metres.
+const MAX_HEIGHT: f64 = 1_000.0;
 /// The most an axis bends per unit of its moment over its section's
 /// stiffness.
 const MAX_SAG: f64 = 1_000.0;
@@ -288,6 +292,25 @@ pub struct Form {
     /// what its leaf is then short of. At least 1. Dormant without
     /// sapwood.
     pub sapwood_rings: f64,
+    /// The sapwood a unit of leaf needs on a tall tree, as a share of
+    /// `sapwood`: what a source that measured the row at two tree sizes
+    /// found at the larger over what it found at the smaller. The wood
+    /// reads `sapwood` while the tree stands no higher than `sapwood_from`,
+    /// this share of it from `sapwood_to` up, and a straight line between
+    /// by the tree's height; outside the two heights it holds the nearer
+    /// value, since nothing was measured there (`girth::tall`). Neutral 1:
+    /// one value at every height.
+    pub sapwood_tall: f64,
+    /// The years wood stays sapwood on a tall tree, as a share of
+    /// `sapwood_rings`, read between the same two heights; the rings it
+    /// gives are at least 1. Neutral 1.
+    pub sapwood_rings_tall: f64,
+    /// The tree height, in metres, `sapwood` and `sapwood_rings` were
+    /// measured at. Dormant while both tall shares are 1.
+    pub sapwood_from: f64,
+    /// The tree height, in metres, the tall shares were measured at, no
+    /// less than `sapwood_from`. Dormant while both tall shares are 1.
+    pub sapwood_to: f64,
     /// How unequal laterals of this PA are among their siblings: each
     /// keeps a share of its size, from all of it (0) towards a keyed share
     /// few hold whole (1), so a few dominate and the rest stay small.
@@ -338,6 +361,10 @@ impl Default for Form {
             primary: 0.005,
             sapwood: 0.0,
             sapwood_rings: 1.0,
+            sapwood_tall: 1.0,
+            sapwood_rings_tall: 1.0,
+            sapwood_from: 0.0,
+            sapwood_to: 0.0,
             dominance: 0.0,
             roll: 0.0,
             sag: 0.0,

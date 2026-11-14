@@ -86,6 +86,12 @@ pub fn wood() -> Form {
     }
 }
 
+/// The limbs' wood stated at trees of the two heights, m.
+fn sized(s: &mut Species, [from, to]: [f64; 2]) {
+    let form = &mut s.states[1].form;
+    (form.sapwood_from, form.sapwood_to) = (from, to);
+}
+
 /// A trunk of two zones, limbs that abort, relay, straighten and age into
 /// twigs, and twigs that are shed: every setting has structure to act on.
 pub fn species() -> Species {
@@ -526,7 +532,46 @@ pub fn settings() -> Vec<Setting> {
     // rows walked on sagging limbs (fn-354), sapwood from none, the limbs'
     // primary radius alone, to the oak's. The sag is light enough that no
     // limb comes down onto the ground across the walk.
-    let wood: [(&str, f64, f64, fn(&mut Species, f64)); 3] = [
+    // The rows at two tree heights (fn-351), each walked on limbs whose
+    // tree passes both heights as it grows: the tall shares across 1, where
+    // they are dormant, and each height across the other's side of the tree.
+    let wood: [(&str, f64, f64, fn(&mut Species, f64)); 7] = [
+        (
+            "states[1].form.sapwood_tall, sag 3e-5",
+            0.5,
+            1.5,
+            |s, v| {
+                sized(s, [10.0, 30.0]);
+                s.states[1].form.sapwood_tall = v;
+            },
+        ),
+        (
+            "states[1].form.sapwood_rings_tall, sag 3e-5",
+            0.5,
+            2.0,
+            |s, v| {
+                sized(s, [10.0, 30.0]);
+                s.states[1].form.sapwood_rings_tall = v;
+            },
+        ),
+        (
+            "states[1].form.sapwood_from, sag 3e-5",
+            0.0,
+            30.0,
+            |s, v| {
+                sized(s, [v, 30.0]);
+                s.states[1].form.sapwood_tall = 0.5;
+            },
+        ),
+        (
+            "states[1].form.sapwood_to, sag 3e-5",
+            10.0,
+            50.0,
+            |s, v| {
+                sized(s, [10.0, v]);
+                s.states[1].form.sapwood_tall = 0.5;
+            },
+        ),
         (
             "states[1].form.sapwood, sag 3e-5",
             0.0,

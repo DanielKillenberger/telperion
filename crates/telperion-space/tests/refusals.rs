@@ -69,7 +69,7 @@ const REQUEST: Request = Request {
 #[test]
 fn every_input_the_engine_cannot_draw_is_refused_by_name() {
     type Edit = fn(&mut Species);
-    let cases: [(Edit, &str); 49] = [
+    let cases: [(Edit, &str); 52] = [
         (|s| s.states.clear(), "states"),
         (|s| s.states[0].continuation = 1.5, "states[0].continuation"),
         (
@@ -188,6 +188,18 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
         (
             |s| s.states[0].form.sapwood_rings = f64::NAN,
             "states[0].form.sapwood_rings",
+        ),
+        (
+            |s| s.states[0].form.sapwood_tall = -0.1,
+            "states[0].form.sapwood_tall",
+        ),
+        (
+            |s| s.states[0].form.sapwood_rings_tall = 0.01,
+            "states[0].form.sapwood_rings_tall",
+        ),
+        (
+            |s| s.states[1].form.sapwood_from = 1.0,
+            "states[1].form.sapwood_to",
         ),
         (
             |s| s.states[1].form.dominance = 1.5,

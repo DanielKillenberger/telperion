@@ -58,7 +58,11 @@ fn every_preset_is_the_family_it_was() {
         // short shoot a life of twelve years. fn-367 deleted `/fidelity` and
         // the oak's, spruce's and birch's coarse rows. fn-371 gave the
         // ordinary tree the leaf of its drawn blade, 44.245 cm².
-        1_331_506_400_587_336_810,
+        // fn-351 (OAK-SAPWOOD-BY-SIZE.md) added the four rows that state
+        // the sapwood rows at two tree heights, in every family at their
+        // neutral 1, 1, 0, 0, and gave the oak Phillips's two plots and
+        // Hollstein's two classes.
+        12_906_218_276_796_877_916,
         "{}",
         digest(&text)
     );
@@ -121,7 +125,11 @@ fn every_walk_is_the_walk_it_was() {
         // beech's short shoot a life of twelve years. fn-367 deleted
         // `/fidelity` and the coarse rows, which every walk carried. fn-371
         // gave the ordinary tree the leaf of its drawn blade, 44.245 cm².
-        9_604_828_268_205_602_703,
+        // fn-351 (OAK-SAPWOOD-BY-SIZE.md) added the four rows that state
+        // the sapwood rows at two tree heights, in every family at their
+        // neutral 1, 1, 0, 0, and gave the oak Phillips's two plots and
+        // Hollstein's two classes.
+        11_594_325_576_688_982_239,
         "{}",
         digest(&text)
     );
@@ -153,7 +161,11 @@ fn every_override_reads_and_writes_as_it_did() {
         // and the birch their leaf years; the birch's sapwood 4.6; R7 gave
         // every age a shade table. fn-367 deleted `/fidelity` from the wire
         // and the coarse rows.
-        13_198_617_521_797_237_499,
+        // fn-351 (OAK-SAPWOOD-BY-SIZE.md) added the four rows that state
+        // the sapwood rows at two tree heights, in every family at their
+        // neutral 1, 1, 0, 0, and gave the oak Phillips's two plots and
+        // Hollstein's two classes.
+        4_023_025_894_783_596_163,
         "{}",
         digest(&text)
     );

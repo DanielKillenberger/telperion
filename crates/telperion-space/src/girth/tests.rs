@@ -294,3 +294,71 @@ fn a_node_growing_in_moves_no_relays_attachment() {
     assert!((grown_in - two).abs() < 1e-9, "{grown_in} against {two}");
     assert!((barely - two).abs() < 1e-5, "{barely} against {two}");
 }
+
+/// A species whose rows are stated at trees of 10 and 25 m (fn-351): the
+/// first row's sapwood and rings, and the shares of them at the far height.
+fn sized(sapwood: f64, shares: [f64; 2]) -> Species {
+    let mut species = wooded(sapwood, 0.01);
+    let form = &mut species.states[0].form;
+    [form.sapwood_tall, form.sapwood_rings_tall] = shares;
+    (form.sapwood_from, form.sapwood_to) = (10.0, 25.0);
+    species
+}
+
+/// The seed's stem and a lateral after three years' wood, the stem's tip
+/// `height` metres up.
+fn laid(species: &Species, height: f64) -> Vec<Vec<[f32; 2]>> {
+    let mut axes = vec![axis(Origin::Seed, 3), axis(lateral(1), 4)];
+    axes[0].phytomers[2].tip = Vec3::new(0.0, 0.0, height);
+    for year in 1..=3 {
+        lay(&mut axes, species, year, (&|_| false, 1));
+    }
+    wood(&axes)
+}
+
+/// The rows are read by degree between the two stated heights: the first
+/// row to the bit at the near height, its tall share at the far one, a
+/// straight line between, and the nearer row held outside them.
+#[test]
+fn the_rows_are_read_by_degree_between_the_two_stated_heights() {
+    let form = sized(4.0, [0.5, 1.5]).states[0].form;
+    let at = |height: f64| rows(&form, tall(&form, height));
+    for height in [0.0, 3.0, 10.0] {
+        assert_eq!(at(height), [4.0, 20.0], "{height} m: the near rows");
+    }
+    for height in [25.0, 40.0, 1e3] {
+        assert_eq!(at(height), [2.0, 30.0], "{height} m: the far rows");
+    }
+    assert_eq!(at(17.5), [3.0, 25.0], "half way");
+    let step = at(13.0)[0] - at(10.0)[0];
+    for k in 1..5 {
+        let (low, high) = (at(10.0 + 3.0 * f64::from(k)), at(13.0 + 3.0 * f64::from(k)));
+        assert!((high[0] - low[0] - step).abs() < 1e-12, "{k}: a straight line");
+        assert!(high[1] > low[1], "{k}: the rings rise");
+    }
+}
+
+/// Shares of 1 are one value at every height: the two heights then change
+/// no wood, to the bit, wherever the tree stands against them.
+#[test]
+fn rows_stated_once_lay_the_same_wood_at_every_height() {
+    let plain = wooded(3.0, 0.01);
+    for height in [0.0, 5.0, 17.5, 60.0] {
+        let before = laid(&plain, height);
+        assert_eq!(laid(&sized(3.0, [1.0, 1.0]), height), before, "{height} m");
+    }
+}
+
+/// A tree lays its wood at the rows of its height: below the near height
+/// as a species of the first row alone, above the far one as a species of
+/// the far rows alone, and between them more than the one and less than
+/// the other.
+#[test]
+fn a_tree_lays_its_wood_at_the_rows_of_its_height() {
+    let species = sized(4.0, [0.5, 1.0]);
+    assert_eq!(laid(&species, 8.0), laid(&wooded(4.0, 0.01), 8.0), "short");
+    assert_eq!(laid(&species, 30.0), laid(&wooded(2.0, 0.01), 30.0), "tall");
+    let base = |height: f64| laid(&species, height)[0][0][0];
+    assert!(base(8.0) > base(17.5) && base(17.5) > base(30.0));
+    assert!(base(17.4) > base(17.5), "by degree");
+}
