@@ -452,10 +452,10 @@ Wired, for one tree:
 
 Absent:
 
-- **Any forest.** "One tree, one sun, one GPU." The renderer holds one submitted tree; a new `submit` replaces it [code: `crates/telperion-render/src/lib.rs`, module doc; `Renderer::submit`]. No code draws two trees, places instances of a tree, or shares buffers between trees [derived: no match for "forest" in the render crate, `src` or `harness`].
+- **Any forest.** "One tree, one sun, one GPU." The renderer holds one submitted tree; `submit` "uploads one tree in place" [code: `crates/telperion-render/src/lib.rs`, module doc; `Renderer::submit`]. No code draws two trees, places instances of a tree, or shares buffers between trees [derived: no match for "forest" in the render crate, `src` or `harness`].
 - **The 8-tree forest** the capture rule names [derived: same search].
 - **A frame number on today's trees.** "P11, P13: Not measured." [record: PLAN section 2]
-- **A named measure of a thousand trees' build**, P3's third aim; `walks` and the scoreboard build trees in parallel, but no tool reports "1,000 oaks at 40" [unknown: not found].
+- **A named measure of a thousand trees' build**, P3's third aim: no tool was found that reports "1,000 oaks at 40" [unknown: not found by search; the scoreboard's tooling was not read].
 
 ### 6.4 What earlier specs tried
 
@@ -494,7 +494,7 @@ Host's:
 - Whether the rig is a native example, a harness page, or both, and whether the renderer's "one tree" becomes many or the rig composes one buffer set from many trees.
 - Memory: one oak at 40 is 6.0 M wood vertices on the CPU mesh and 272,095 nodes [record: fn-353 RESULT.md]; a thousand of them cannot be held whole, so the rig's design and item 1's levels are one question.
 - What the 8-tree forest is, since the capture rule requires it before any 1,024-tree run.
-- Where P3's "a thousand oaks at 40 in 10 s" is measured; today one oak at 40 takes about 1.8 s native on one thread [record: fn-351 log, 11 Nov 15:34], so 32 cores give about a minute before any change.
+- Where P3's "a thousand oaks at 40 in 10 s" is measured; today one oak at 40 takes about 1.8 s native on one thread [record: fn-351 log, 11 Nov 15:34], so a thousand is about 1,800 core-seconds before any change, against an aim of 10 s of wall time [derived: 1,000 × 1.8 s].
 
 Options, unranked: (a) the measure first on one tree with `frames.rs` at whole, mid and far distances, and the forest's cost projected from them, stated as a projection; (b) an 8-tree native rig that submits several trees into one renderer, then scaled; (c) a rig of a few distinct trees instanced to a thousand, reported as that; (d) the report alone for the candidate, with the gap and the approaches, as the speed ruling allows for an aim.
 
