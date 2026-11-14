@@ -17,8 +17,10 @@
 # element's 42.509 cm² at `/canopy/size` 1, times 1 + 0.35²/3 for its
 # `/canopy/sizeVariation` 0.35 (`leaflet.rs` draws a blade's scale as
 # size × (1 + v × U(−1, 1))), 44.245 cm². It replaces fn-354 task 7's
-# 15.7 cm², the beech's measured leaf: the tree was drawn with one leaf
-# and grown with another, 2.83 times smaller (fn-370 R1).
+# 15.7 cm², which that comment called the mean of the oak's, the beech's
+# and the birch's leaves (that mean is 15.67) but which is the beech's
+# measured 15.723 cm², rounded: the tree was drawn with one leaf and grown
+# with another, 2.82 times smaller (fn-370 R1).
 /space/ages/0/lifespan = 0.4422495703074083
 /space/ages/0/internode = 0.0399334633667196
 /space/ages/0/insertion = 0.1

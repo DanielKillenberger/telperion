@@ -33,3 +33,13 @@ The ordinary tree's `leafArea` rows and what pins them. No rule, no other row, n
 ## Rigor
 
 Opus builds; heavy runs through `telperion-heavy` with `TELPERION_HEAVY_RESERVE=8`, asking for the memory a job needs, GPU stills with `--gpu 2` one at a time, in the background, checked by the clock. The host views the sheet and gives the verdict.
+
+## Verdict (host, 14 Nov)
+
+Accepted, on the sheet `.flow/evidence/fn-371-the-ordinary-tree-grows-the-leaf-it/sheets/ordinary.jpg` (base `base-2026-11-11`, the candidate, this branch; whole and mid; seeds 1001 and 1007 at 40). The trunk reads as a tree's again: 14.1 and 16.7 cm against the candidate's 8.6 and 10.1, height over trunk 93 and 75. The crown is the candidate's, and nothing reads barer.
+
+- **Unmet for the ordinary tree, recorded:** it is still slimmer and a little sparser than the base's (trunk 21.7 and 24.6 cm; 35 and 46 m² drawn against 25 and 31). Its drawing now shows about half the leaf it grows (50.9 and 63.6 m² grown).
+- **No Stop:** the grower's leaf on seed 1007 (63.6 m²) is over the design's 45 to 60. That is the light taking back less than allowed for (1.5 to 2.4% at 40).
+- **The old comment:** fn-354 task 7 called 15.7 cm² "the mean of the oak's 18.1, the beech's 15.7 and the birch's 13.2". That mean is 15.67, and the value is the beech's measured 15.723, rounded. The row's comment now says so, and calls the new value the drawn blade's area, a listed estimate.
+
+Evidence: `R1.md` (the reading), `R3.md` (before and after, and the pins moved).
