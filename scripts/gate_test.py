@@ -50,7 +50,8 @@ def environment(key: str) -> dict:
     """The test's environment; a malloc setting the caller made stands."""
     env = dict(os.environ)
     tunables = env.get("GLIBC_TUNABLES", "")
-    if key in FEW_ARENAS and "glibc.malloc.arena_max" not in tunables:
+    stated = "glibc.malloc.arena_max" in tunables or "MALLOC_ARENA_MAX" in env
+    if key in FEW_ARENAS and not stated:
         ours = "glibc.malloc.arena_max=4"
         env["GLIBC_TUNABLES"] = f"{tunables}:{ours}" if tunables else ours
     return env

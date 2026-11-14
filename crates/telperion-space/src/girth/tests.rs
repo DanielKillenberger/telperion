@@ -365,3 +365,20 @@ fn a_tree_lays_its_wood_at_the_rows_of_its_height() {
     assert!(base(8.0) > base(17.5) && base(17.5) > base(30.0));
     assert!(base(17.4) > base(17.5), "by degree");
 }
+
+/// A retired axis keeps its record, emptied, until the records are
+/// compacted: it has no tip, so its base high above the living tips reads
+/// no height and the tree lays the wood it lays without the record.
+#[test]
+fn a_retired_axis_s_record_adds_nothing_to_the_height() {
+    let species = sized(4.0, [0.5, 1.0]);
+    let mut axes = vec![axis(Origin::Seed, 3), axis(lateral(1), 4)];
+    axes[0].phytomers[2].tip = Vec3::new(0.0, 0.0, 8.0);
+    let mut stub = axis(lateral(2), 0);
+    stub.base = Vec3::new(0.0, 0.0, 30.0);
+    axes.push(stub);
+    for year in 1..=3 {
+        lay(&mut axes, &species, year, (&|_| false, 1));
+    }
+    assert_eq!(wood(&axes)[..2], laid(&species, 8.0)[..]);
+}
