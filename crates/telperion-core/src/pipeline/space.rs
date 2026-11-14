@@ -27,7 +27,10 @@ use telperion_space::{Origin, Request, Structure};
 /// slack a page's earlier trees and other seeds take. fn-209's fine path
 /// lifts it.
 const WASM_KEPT: usize = 4_000_000;
-const KEPT: Option<usize> = if cfg!(target_arch = "wasm32") {
+const KEPT: Option<usize> = if cfg!(all(
+    target_arch = "wasm32",
+    not(feature = "measure-ceiling")
+)) {
     Some(WASM_KEPT)
 } else {
     None
@@ -179,6 +182,8 @@ fn foreseen(species: &telperion_space::Species, age: u32, ceiling: Option<usize>
 /// any of its preparation is allocated: a tree kept above its expectation.
 fn fits(structure: &Structure, ceiling: Option<usize>) -> Result<()> {
     let kept: usize = structure.axes.iter().map(|a| a.phytomers.len()).sum();
+    #[cfg(feature = "measure-ceiling")]
+    crate::memory::KEPT.store(kept, std::sync::atomic::Ordering::Relaxed);
     match ceiling {
         Some(most) if kept > most => Err(OVER),
         _ => Ok(()),

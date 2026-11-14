@@ -7,6 +7,11 @@ use std::sync::OnceLock;
 
 static LEFT: OnceLock<fn() -> u64> = OnceLock::new();
 
+/// The phytomers the last grown tree kept, read by the ceiling's
+/// measurement build (`scripts/wasm-ceiling.mjs`) alone, even after a trap.
+#[cfg(feature = "measure-ceiling")]
+pub static KEPT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+
 /// Installs the source of the bytes left; the first source installed stays.
 pub fn set_left(source: fn() -> u64) {
     let _ = LEFT.set(source);

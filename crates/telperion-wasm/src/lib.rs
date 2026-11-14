@@ -108,6 +108,14 @@ pub extern "C" fn catalogue() -> u32 {
         status(&mut e, Ok(json!(entries)))
     })
 }
+/// The phytomers the last grown tree kept, in the measurement build alone
+/// (`scripts/wasm-ceiling.mjs`); it reads no engine state, so it answers
+/// after a trap.
+#[cfg(feature = "measure-ceiling")]
+#[no_mangle]
+pub extern "C" fn measured_kept() -> usize {
+    telperion_core::memory::KEPT.load(std::sync::atomic::Ordering::Relaxed)
+}
 #[no_mangle]
 pub extern "C" fn release() {
     ENGINE.with(|e| {
