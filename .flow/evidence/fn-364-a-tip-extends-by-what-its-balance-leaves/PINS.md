@@ -62,3 +62,13 @@ Each was reread by its own test after the repin (`raw/` repin log). `catalogue_i
 | ordinary, spruce, beech, birch, palm, 40 | 159,293; 1,143,268; 935,092; 347,917; 480 | the same | 159,293; 1,142,638; 917,858; 316,396; 480 |
 
 The test fails on Telperion and Laurelin, as it failed on fn-363's branch. Its ceiling is untouched.
+
+## After the withdrawal (host's verdict, 14 Nov; `52f109501`)
+
+Every code change of this spec but R8 is reverted to `49ec1f379` (fn-363's product and evidence). Proven on `52f109501` (raw `w-*.log`):
+
+- **Every pin is fn-363's again, none repinned.** `pipeline::cycle_cost_tests::every_preset_grows_the_tree_it_grew_at_both_ends_of_the_dial` passes on fn-363's PINNED for all eight presets, the Two Trees included: at age 16 R8's lengthened potential height moves no tree (nothing is charged near its height there). `grow::growing_tests::a_growing_phytomer_is_read_as_it_was` passes on fn-363's six pins. `catalogue_identity` passes (5).
+- **The oak at 120 on seed 1001, `tree_digest`:** `8beac71dc9821c18` on `52f109501` and on fn-363's `c2d897a37` (`.worktrees/fn-364-base363`, its own target; its stop and lay prints are behind unset environment flags).
+- **Year-independence:** `every_year_is_the_horizons_prefix` by name (16.8 s), and the four others in `grow::cycle::paused::tests` (12 passed with `growing_tests`).
+- **R8:** `supernatural::` 18 passed, `the_two_trees_with_the_group_off_are_the_beech` and both `height_tests` among them.
+- **The light test** `light_no_bud_reads_leaves_every_passed_species_to_the_bit` passes by name as fn-363 had it, without R10's zeroing (17.1 s).
