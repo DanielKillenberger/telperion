@@ -26,3 +26,10 @@
 - What hindered: the film builds every tree once for the person's bounds (`film/bounds.rs`) before it builds them all again to draw, so a five-frame probe of segment 0 cost 55.7 min wall (bounds pass 3,289 s, of it Laurelin to Telperion 1,976 s). fn-310's bounds file could not be reused: it lives in another checkout's ignored `raw/` and the engine has changed since. Also, the brief's path `.flow/evidence/fn-351-the-release-candidate/film/raw/` does not exist on this branch (the spec's directory is `fn-351-020-the-release-candidate`), and a `raw/` one level under `film/` is not covered by `.gitignore`'s `/.flow/evidence/*/raw/`; the frames went to `fn-351-020-the-release-candidate/raw/film/` instead.
 - Cost: about 55 minutes of queue time spent before the first full-film frame, and about 5 minutes finding an ignored path.
 - What would remove it: the bounds pass kept with the build it measured (the drawing pass reusing its trees, or the bounds written while drawing in a two-pass order), and the brief naming the spec's evidence directory as it is on the branch; the host decides whether either is specced.
+
+## 14 Nov 2026, the renderer's surface removal (render-off-thread worker)
+
+- Doing: the native headless stills before the change (`headless --preset oregon-white-oak --seed 42`) through `telperion-heavy 12 --gpu 2`.
+- What hindered: the job waited about 25 minutes in admission with no line I could see. I had piped it through `tail -2`, which holds the queue's "waiting" lines until exit. Another session's `film_grow laurelin` held the room, so a 12 GB claim could not start.
+- Cost: about 25 minutes of wall time.
+- What would remove it: claim what the job needs (the oak fits in 4 GB) and never pipe a queued job through `tail`. This was my own mistake, not the queue's.

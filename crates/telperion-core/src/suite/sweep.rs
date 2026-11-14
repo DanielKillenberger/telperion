@@ -402,6 +402,8 @@ fn grows(a: &str, b: &str, step: usize) {
     let mesh = mesh::build(&family).unwrap_or_else(|e| panic!("{a}->{b} at {at}: {e}"));
     assert!(
         mesh.wood
+            .as_ref()
+            .expect("build makes the wood surface")
             .chunks
             .iter()
             .flat_map(|c| &c.positions)
@@ -413,7 +415,7 @@ fn grows(a: &str, b: &str, step: usize) {
     // A node cap this low truncates the tree before its twigs, and a
     // step that keeps no leaf under it still keeps its wood.
     assert!(
-        mesh.wood_vertices() > 0,
+        mesh.wood_vertices() > Some(0),
         "{a}->{b} at {at}: nothing was built"
     );
 }

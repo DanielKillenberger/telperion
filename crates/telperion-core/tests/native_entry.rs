@@ -39,7 +39,7 @@ fn read(state: &GrowthState, age: f64, family: &telperion_core::Family) -> (f64,
     let tree = growth::settle(state, age).expect("the tree settles");
     let mesh = growth::mesh(state, age, family).expect("the tree is dressed");
     assert!(!tree.nodes.is_empty(), "a structure at {age}");
-    assert!(mesh.wood_triangles() > 0, "wood at {age}");
+    assert!(mesh.wood_triangles() > Some(0), "wood at {age}");
     assert!(!mesh.curve.points.is_empty(), "the wood's curve at {age}");
     assert!(mesh.foliage_instances() > 0, "leaf instances at {age}");
     let b = mesh.bounds;

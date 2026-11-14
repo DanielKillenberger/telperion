@@ -3,6 +3,7 @@
 //! at zero draw the frame they started from byte for byte. The two tables
 //! that state them hold the resolution and redraw contracts every bark does.
 mod common;
+use common::surface;
 #[path = "common/resolution.rs"]
 mod resolution;
 use telperion_core::{
@@ -99,7 +100,7 @@ fn each_smooth_layer_changes_the_close_up_and_moves_no_wood() {
     let young = |material| {
         let mut family = family(Preset::SilverBirch);
         (family.age, family.material) = (YOUNG, material);
-        hash(&mesh::build(&family).unwrap().wood)
+        hash(surface(&mesh::build(&family).unwrap()))
     };
     let shipped_wood = young(shipped);
     for (name, row) in [

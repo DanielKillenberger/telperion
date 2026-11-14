@@ -244,7 +244,7 @@ impl WebRenderer {
         let value = serde_json::from_str(family)
             .map_err(|error| JsError::new(&format!("the parameters are not JSON: {error}")))?;
         let family = params::parse(&value).map_err(|error| js_error(RenderError::from(error)))?;
-        let mesh = mesh::build(&family).map_err(|error| js_error(error.into()))?;
+        let mesh = mesh::drawn(&family).map_err(|error| js_error(error.into()))?;
         let mut live = self.borrow()?;
         // The material rides with the tree: these parameters state both, and a
         // tree drawn in the last tree's colours would be nobody's family.
@@ -457,8 +457,6 @@ fn borrow(
 fn submitted_json(submitted: &Submitted) -> String {
     let (min, max) = (submitted.bounds.min, submitted.bounds.max);
     json!({
-        "woodVertices": submitted.wood_vertices,
-        "woodTriangles": submitted.wood_triangles,
         "foliageInstances": submitted.foliage_instances,
         "bounds": { "min": [min.x, min.y, min.z], "max": [max.x, max.y, max.z] },
     })

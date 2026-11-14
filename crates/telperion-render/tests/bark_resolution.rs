@@ -115,7 +115,7 @@ fn grazing_trunks_agree_with_a_box_reduction_at_half_resolution() {
             near: 0.01,
             far: 1000.0,
         };
-        let mask = edge_mask(&tree.wood, &camera);
+        let mask = edge_mask(tree.wood.as_ref().expect("build makes the wood surface"), &camera);
         assert!(
             mask.len() > 1000,
             "grazing fixture has too little wood: {}",

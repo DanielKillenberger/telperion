@@ -31,6 +31,7 @@ Against 0.1.4 (tagged 25 Sep 2026). The spec in parentheses owns each line and l
 - The `/fidelity` parameter and the per-species `/space/coarse` rows (fn-367). `/fidelity` is refused by name.
 - Retired rows, each refused by name with what replaced it: `/growth`, `/skeleton/habit/stems` and its `stem*` siblings, and the `/canopy/shortShoot*` rows.
 - The `/space` form rows `pipe` (renamed `primary`), `exponent`, `ripening`, `secondary`, `retained` and `leafGirth` (fn-354).
+- The renderer's `Submitted.woodVertices` and `woodTriangles`. The renderer builds no CPU wood surface to count, since it draws the wood from its curve; `setTree` and a growth's `draw` skip that surface, which was 88.6 MB for the oak at 40 and 1.18 GB for Telperion. The tree's box is now the curve's box joined with the leaves' and flowers', so the figure and the hero pose move by up to 21 µm. `TreeEngine.build`'s `surface` output is unchanged (fn-351).
 
 ### Added
 

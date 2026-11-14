@@ -10,7 +10,9 @@
 //!    quantisation box and the wood's rings, swept once for the wood and
 //!    for leaves seated on it.
 //! 4. Outputs: the wood surface, the leaves, the field and the structure.
-//! 5. Tree mesh: wood and leaves with their union bounds (`mesh::build`).
+//! 5. Tree mesh: the curve and leaves under their union bounds, with the CPU
+//!    wood surface (`mesh::build`) or without it, as a renderer draws
+//!    (`mesh::drawn`, fn-351).
 //!
 //! Wood and leaves read only the skeleton and the plan, so where the target
 //! has threads they run concurrently, and the field beside the leaves.
@@ -78,6 +80,14 @@ impl Request {
             curve: true,
             leaves: true,
             ..Self::default()
+        }
+    }
+
+    /// A tree mesh without its CPU wood surface: what a renderer draws.
+    pub fn drawn() -> Self {
+        Self {
+            wood: false,
+            ..Self::mesh()
         }
     }
 }

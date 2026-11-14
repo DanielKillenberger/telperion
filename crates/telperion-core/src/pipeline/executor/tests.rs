@@ -45,7 +45,7 @@ fn the_executor_expands_what_the_pipeline_builds() {
         assert_eq!(x.wood().unwrap(), wood, "{name}: wood");
         let leaves = built.outputs.leaves.unwrap().instances;
         let mesh = x.mesh().unwrap();
-        assert_eq!(mesh.wood, wood, "{name}: mesh wood");
+        assert_eq!(mesh.wood, Some(wood), "{name}: mesh wood");
         assert_eq!(mesh.foliage.instances, leaves, "{name}: mesh leaves");
         assert_eq!(
             x.element(),

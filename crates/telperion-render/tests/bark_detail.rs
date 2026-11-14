@@ -1,5 +1,6 @@
 //! Bark changes shading, never the bytes that locate a silhouette.
 mod common;
+use common::surface;
 use telperion_core::{material::MaterialParams, math::Vec3, mesh, surface::SurfaceMesh};
 use telperion_render::{render, Camera, Renderer, View, STILL_FORMAT};
 
@@ -32,10 +33,10 @@ fn relief_moves_the_light_while_every_wood_mesh_byte_holds() {
     let on = mesh::build(&family).unwrap();
     println!(
         "R1 wood hash: off={}, on={}",
-        hash(&off.wood),
-        hash(&on.wood)
+        hash(surface(&off)),
+        hash(surface(&on))
     );
-    assert_eq!(hash(&off.wood), hash(&on.wood), "R1 wood mesh bytes");
+    assert_eq!(hash(surface(&off)), hash(surface(&on)), "R1 wood mesh bytes");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&off).unwrap();
     renderer.set_view(View::Bare);

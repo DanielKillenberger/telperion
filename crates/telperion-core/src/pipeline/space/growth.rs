@@ -142,12 +142,27 @@ pub fn colouring(state: &GrowthState, at: f64) -> Result<f64> {
 /// family's `skeleton.seed` row: a growth has one seed (fn-365 R6).
 #[cfg(feature = "geometry")]
 pub fn mesh(state: &GrowthState, at: f64, family: &Family) -> Result<crate::mesh::TreeMesh> {
+    dressed(state, at, family, super::super::Request::mesh())
+}
+
+/// `mesh` without the CPU wood surface: the tree a renderer draws (fn-351).
+#[cfg(feature = "geometry")]
+pub fn drawn(state: &GrowthState, at: f64, family: &Family) -> Result<crate::mesh::TreeMesh> {
+    dressed(state, at, family, super::super::Request::drawn())
+}
+
+#[cfg(feature = "geometry")]
+fn dressed(
+    state: &GrowthState,
+    at: f64,
+    family: &Family,
+    request: super::super::Request,
+) -> Result<crate::mesh::TreeMesh> {
     let mut tree = settle(state, at)?;
     let mut inputs = super::super::Inputs::of(family, super::super::grown_envelope(&tree));
     (inputs.plan.seed, inputs.leaves.seed) = (state.seed, state.seed);
     super::super::clothe(&mut tree, &inputs)?;
-    let outputs = super::super::outputs(&tree, &inputs, super::super::Request::mesh())?;
-    crate::mesh::assembled(outputs)
+    crate::mesh::assembled(super::super::outputs(&tree, &inputs, request)?)
 }
 
 #[cfg(test)]

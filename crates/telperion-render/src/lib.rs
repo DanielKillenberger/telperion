@@ -259,8 +259,6 @@ impl Renderer {
             .map(|level| level.deviation)
             .collect();
         Ok(Submitted {
-            wood_vertices: mesh.wood_vertices(),
-            wood_triangles: mesh.wood_triangles(),
             foliage_instances: mesh.foliage_instances(),
             bounds: mesh.bounds,
         })

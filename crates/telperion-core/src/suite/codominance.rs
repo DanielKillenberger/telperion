@@ -79,6 +79,8 @@ fn at_rate_zero_no_table_forks_whatever_the_other_rows_say() {
             (
                 fnv(m
                     .wood
+                    .as_ref()
+                    .expect("the mesh builds its wood")
                     .flattened()
                     .positions
                     .iter()

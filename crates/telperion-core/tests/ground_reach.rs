@@ -50,7 +50,7 @@ const BELOW: f64 = -1e-4;
 /// curve's run order, a trunk's below the root not counted.
 fn wood_low(m: &TreeMesh, params: &SurfaceParams) -> f64 {
     let segments = params.radial_segments.max(params.lobes * 4) as usize;
-    let drawn = m.wood.flattened().positions;
+    let drawn = m.wood.as_ref().expect("build makes the wood").flattened().positions;
     let (mut low, mut at) = (f64::INFINITY, 0);
     for run in &m.curve.runs {
         let vertices = run.count as usize * run.sides(segments) + 2;

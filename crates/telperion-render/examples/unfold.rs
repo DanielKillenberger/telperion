@@ -70,9 +70,9 @@ fn main() -> Result<(), String> {
         let file = format!("{out}/{preset}-{age}-{seed}-{f}-{shot}.png");
         write_png(std::path::Path::new(&file), &still).map_err(|e| e.to_string())?;
         println!(
-            "{file}: drawn in {drawn} ms, {} leaves, {} wood vertices",
+            "{file}: drawn in {drawn} ms, {} leaves, {} curve points",
             mesh.foliage_instances(),
-            mesh.wood_vertices()
+            mesh.curve.points.len()
         );
     }
     Ok(())

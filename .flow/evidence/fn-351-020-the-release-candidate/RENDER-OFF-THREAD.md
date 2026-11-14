@@ -80,6 +80,65 @@ So the counts have one display reader and can be deleted, but deleting them does
 
 **Not measured:** the before and after peak resident memory and seconds, and the render Wasm's size, because nothing was changed. One extra observation: running every shipped preset, with Telperion at its own age, in one process under the 4 GB cap was killed (`telperion-heavy`, exit 137) after the date palm. Telperion alone ran inside 4 GB in the morning's measurement. The full-surface peak is the likely cause; it was not measured.
 
+## 4c. Option (a) built (host decision, 14 Nov afternoon)
+
+**Change.**
+- `mesh::drawn(family)` and `growth::drawn(state, at, family)` are `mesh::build` and `growth::mesh` with `Request::drawn()`: curve and leaves, no wood. `TreeMesh.wood` is `Option<SurfaceMesh>` (`Some` from `build`). `wood_vertices()` and `wood_triangles()` return `Option<usize>`.
+- `assembled` takes the tree's box from `Curve::bounds()` joined with the leaves' and flowers', for every mesh.
+- `WebRenderer.setTree`, `drawGrowth` and the `headless` example build through `drawn`.
+- `Submitted` loses `wood_vertices` and `wood_triangles`, and so do its JSON (`web.rs`), the TypeScript `Submitted` (`src/browser/render.ts`) and the harness note (`harness/GrowerDev.tsx`).
+- `tests/headless.rs` and `tests/submit.rs` drop the two equalities, with a comment. In `tests/conformance.rs`, `drew_the_tree` checks `renderer.curve_bytes() > 0` instead, and the shipped-family test submits `mesh::drawn`.
+- `pipeline/drawn.rs` traces a curve asked for without the wood beside the leaves, as the wood was. The first build ran it after the leaves, which made Telperion about 2 s slower than before (20.4 and 20.9 s against 19.1 and 18.5 s). Concurrent tracing removed that.
+- CHANGELOG has a line under 0.2.0 "Removed".
+
+**(1) The box, before (CPU surface box ∪ leaves ∪ flowers) and after (curve box ∪ the same), seed 42 at each preset's own age.** In every row, the curve, the leaves, the flowers and the box from `drawn` equal `build`'s.
+
+| preset | largest component difference (m) | component | CPU wood vertices outside the new box (farthest) |
+|---|---|---|---|
+| ordinary | 2.095e-5 | max.y (12.289375 → 12.289396) | 21 (7.2e-10 m) |
+| oregon-white-oak | 5.618e-8 | max.z | 21 (7.7e-10 m) |
+| norway-spruce | 2.713e-7 | max.y (11.6368484 → 11.6368482) | 1 (2.7e-7 m) |
+| european-beech | 1.093e-5 | max.y | 21 (5.1e-10 m) |
+| silver-birch | 1.760e-5 | max.x | 0 |
+| date-palm | 5.560e-10 | min.y | 21 (5.6e-10 m) |
+| telperion (82) | 1.788e-9 | min.y | 21 (1.8e-9 m) |
+| laurelin (80) | 1.192e-9 | min.y | 0 |
+
+**(2) Stills at the hero pose** (`examples/headless --preset <id> --seed 42`, 1024², 4 samples). Raw PNGs are in `raw/wood-surface/`. The sheet is `wood-surface/sheet.jpg`.
+
+| tree | pixels differing | largest channel difference |
+|---|---|---|
+| oak at 40 | 14 of 1,048,576 | 1/255 |
+| Telperion at 82 | 0 | 0 |
+
+The before and after binaries each reproduce their own still byte for byte across runs.
+
+**(3) Native headless submit, whole process** (build, upload, one frame and the PNG), seed 42, through `telperion-heavy --gpu 2`, peak from `ru_maxrss`. Runs 4 and 5 are the final code, back to back on a quiet desk.
+
+| tree | before: s, peak MiB | after: s, peak MiB |
+|---|---|---|
+| oak at 40 | 1.28, 560 / 1.29, 559 | 1.23, 470 / 1.30, 473 |
+| Telperion at 82 | 19.58, 5,466 / 19.56, 5,466 | 17.71, 3,611 / 18.01, 3,606 |
+
+Telperion's peak falls by 1,855 MiB (34 %) and its time by about 1.7 s. The oak's peak falls by 88 MiB.
+
+**Render Wasm size:** `dist/telperion-render.wasm` is 2,181,291 bytes and `dist/telperion.wasm` 1,226,690 (ceilings 3,700,000 and 1,338,000). The growth path is 352,578 Brotli bytes. I did not build a before on the same base. The candidate checkout's build from 12:07, at another commit, is 2,180,768 and 1,226,042.
+
+**Re-pinned:** `catalogue/date-palm/pins.json`, through `telperion_jev::runner::pins::write`, the runner's writer. Only `min[1]` moved: -0.059595685452222824 → -0.059595686267089845, the box. No other pin is checked by a test.
+
+**Tests run (narrow).**
+- core lib `pipeline::tests pipeline::executor suite::leaf_bases suite::leaf_base_lattice suite::codominance suite::sweep suite::mesh`: 36 passed, **1 failed** (below).
+- core `native_entry`, `ground_reach`: passed.
+- jev `runner_accept` (after the re-pin) and `runner_catalogue`: passed.
+- render `--lib compile_size`, plus `headless submit conformance curve`, every `bark_*`, `mature_bark colour_cavity smooth_bark person_frame canopy_light lobe_shade`: all passed, on the RTX 3080.
+- `npx tsc --noEmit`: 0 errors. vitest `src/browser/render.test.ts` and `module.test.ts`: 9 passed.
+- `npm run build`, then `node scripts/artifact-budgets.mjs`: within every ceiling.
+
+**The failing test, a question for the host.** `suite::mesh::every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers` asserts that every CPU wood vertex lies inside `m.bounds` (`suite/mesh.rs:88`). With the box from the curve, some vertices lie outside it, on six of eight presets (table above). Most are at the root's foot, under 2e-9 m (below one float32 step at that height). The spruce's tip vertex is outside by 2.7e-7 m. The CPU surface is no longer what the box describes, but the test promises "the bounds enclose both parts". I left it as it is: changing it would loosen or redefine a bound. The candidates:
+- (i) Check the curve's cluster boxes and the leaves against `m.bounds`: what the renderer uploads.
+- (ii) Keep the surface check against a box widened by a stated tolerance: a loosened bound.
+- (iii) Join the surface's box into `bounds` where `build` made a surface. The renderer's box would then differ between `build` and `drawn`.
+
 ## 5. Tests, sizes, browser steps
 
 No code was changed, so no tests were run beyond the scratch measurement, which built and ran in 19 s through `telperion-heavy 4 --threads 4`. `npm ci`, `npm run build` and `node scripts/artifact-budgets.mjs` were not run, because no shipped artifact changed. Browser steps for the owner are written once a design lands: a check list now would describe code that does not exist.

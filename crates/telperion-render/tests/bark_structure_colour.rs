@@ -3,6 +3,7 @@
 //! one alone changes the picture; all of them at zero leave it exactly as it
 //! was before the rows existed, and none of them moves a vertex.
 mod common;
+use common::surface;
 use telperion_core::{
     material::MaterialParams, math::Vec3, mesh, presets::Preset, surface::SurfaceMesh,
 };
@@ -124,8 +125,8 @@ fn each_structure_colour_row_changes_the_picture_and_moves_no_wood() {
         let mut with = family.clone();
         with.material = row;
         assert_eq!(
-            hash(&tree.wood),
-            hash(&mesh::build(&with).unwrap().wood),
+            hash(surface(&tree)),
+            hash(surface(&mesh::build(&with).unwrap())),
             "{name} moved the wood the core hands up"
         );
         renderer.set_material(row);

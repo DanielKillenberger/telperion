@@ -53,7 +53,7 @@ fn main() -> Result<(), String> {
                         let size = m.bounds.max - m.bounds.min;
                         println!(
                             "  mesh: {} wood triangles, {} leaves, {:.4} x {:.4} x {:.4} m",
-                            m.wood_triangles(),
+                            m.wood_triangles().ok_or("no wood surface")?,
                             m.foliage_instances(),
                             size.x,
                             size.y,

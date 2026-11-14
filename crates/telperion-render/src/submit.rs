@@ -17,8 +17,6 @@ use crate::{
 /// own, so a caller can hold the renderer to what the core reported.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Submitted {
-    pub wood_vertices: usize,
-    pub wood_triangles: usize,
     pub foliage_instances: usize,
     pub bounds: Bounds,
 }

@@ -2,7 +2,7 @@
 
 Every tree is built by `telperion_core::pipeline`. Its stages are private to it, so a second chain outside the pipeline does not compile (fn-158; `docs/principles.md`, How they are held). What the pipeline exposes is what may be called:
 
-- **`pipeline::build(&Family, Request)`**, the one build, with its request and outputs. `mesh::build` is the same build assembled into one mesh.
+- **`pipeline::build(&Family, Request)`**, the one build, with its request and outputs. `mesh::build` is the same build assembled into one mesh, and `mesh::drawn` is that mesh without the CPU wood surface, which is what the renderer uploads (fn-351). Both take the tree's box from the curve joined with the leaves' and flowers'.
 - **`pipeline::growth`**, the same growth held between years: `begin` a family's tree for a first age, `grow_to` any age, past it too (a year is a state, fn-355), and `settle`, `colouring` and `mesh` draw it at any age within its last year. The browser's grow-in and play-the-year and the native film tools grow through it.
 - **`pipeline::executor`**, the grown tree and its expansion as tools and tests reach them. Its callers are the renderer's examples and tests and the core's own examples and tests.
 

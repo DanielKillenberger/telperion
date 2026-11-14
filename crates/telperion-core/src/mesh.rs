@@ -19,10 +19,12 @@ pub struct Foliage {
 /// renderer surfaces at the screen's error (fn-208), foliage as one element
 /// plus its instances, and the union bounds. `wood` is the same wood as the
 /// pipeline's CPU reference build, an indexed surface, for consumers without
-/// a GPU.
+/// a GPU: built by `build`, and none from `drawn`, the renderer's tree, which
+/// surfaces the curve on the device instead (fn-351). The bounds are the
+/// curve's box joined with the leaves' and the flowers', the same either way.
 #[derive(Debug)]
 pub struct TreeMesh {
-    pub wood: SurfaceMesh,
+    pub wood: Option<SurfaceMesh>,
     #[cfg(feature = "geometry")]
     pub curve: crate::surface::Curve,
     pub foliage: Foliage,
@@ -33,11 +35,13 @@ pub struct TreeMesh {
     pub bounds: Bounds,
 }
 impl TreeMesh {
-    pub fn wood_vertices(&self) -> usize {
-        self.wood.vertices()
+    /// The CPU surface's vertices; none where it was not built (`drawn`).
+    pub fn wood_vertices(&self) -> Option<usize> {
+        self.wood.as_ref().map(SurfaceMesh::vertices)
     }
-    pub fn wood_triangles(&self) -> usize {
-        self.wood.triangles()
+    /// The CPU surface's triangles; none where it was not built (`drawn`).
+    pub fn wood_triangles(&self) -> Option<usize> {
+        self.wood.as_ref().map(SurfaceMesh::triangles)
     }
     pub fn foliage_instances(&self) -> usize {
         self.foliage.instances.len()
@@ -88,6 +92,12 @@ pub fn build(family: &Family) -> Result<TreeMesh> {
     assembled(pipeline::build(family, pipeline::Request::mesh())?.outputs)
 }
 
+/// The tree a renderer draws: `build`'s curve, leaves, flowers and bounds,
+/// with no CPU wood surface, which the renderer never reads (fn-351).
+pub fn drawn(family: &Family) -> Result<TreeMesh> {
+    assembled(pipeline::build(family, pipeline::Request::drawn())?.outputs)
+}
+
 /// Plaits the wood surface and places the culled foliage on a grown
 /// skeleton, for the crate's own tests.
 #[cfg(test)]
@@ -96,18 +106,19 @@ pub(crate) fn assemble(tree: &crate::tree::Tree, family: &Family) -> Result<Tree
     assembled(pipeline::outputs(tree, &inputs, pipeline::Request::mesh())?)
 }
 
-/// The pipeline's last stage: wood and leaves under their union bounds.
+/// The pipeline's last stage: the curve and leaves under their union
+/// bounds, with the wood surface where the request built one.
 pub(crate) fn assembled(outputs: pipeline::Outputs) -> Result<TreeMesh> {
-    let missing = Error::InvalidInput("mesh needs wood and leaves");
-    let (Some(wood), Some(leaves), Some(element)) = (outputs.wood, outputs.leaves, outputs.element)
-    else {
+    let missing = Error::InvalidInput("mesh needs leaves");
+    let (Some(leaves), Some(element)) = (outputs.leaves, outputs.element) else {
         return Err(missing);
     };
+    let wood = outputs.wood;
     #[cfg(feature = "geometry")]
     let curve = outputs
         .curve
         .ok_or(Error::InvalidInput("mesh needs the wood's curve"))?;
-    let bounds = union(wood.bounds, leaves.bounds.map(Bounds::from));
+    let bounds = union(curve.bounds(), leaves.bounds.map(Bounds::from));
     #[cfg(feature = "geometry")]
     let bounds = match &outputs.organ {
         Some(o) => union(bounds, o.instances.bounds(&o.element)?.map(Bounds::from)),

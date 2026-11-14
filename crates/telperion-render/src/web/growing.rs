@@ -3,7 +3,7 @@
 //! its last year, through `telperion_core::pipeline::growth`, the one
 //! grower, on the page's main thread. The growth state crosses the binding
 //! as a handle the page holds (`WebGrowth`); a draw dresses the tree as
-//! `mesh::build` does and puts it up through `Renderer::submit`, the tree
+//! `mesh::drawn` does and puts it up through `Renderer::submit`, the tree
 //! drawn before staying on the canvas until it does.
 use super::*;
 use std::sync::Arc;
@@ -61,7 +61,7 @@ impl WebRenderer {
     pub fn draw_growth(&self, growth: &WebGrowth, at: f64) -> std::result::Result<String, JsError> {
         let (state, family) = (&growth.state, &growth.family);
         let colouring = growth::colouring(state, at).map_err(core_error)?;
-        let mesh = growth::mesh(state, at, family).map_err(core_error)?;
+        let mesh = growth::drawn(state, at, family).map_err(core_error)?;
         let mut live = self.borrow()?;
         let submitted = live.renderer.submit(&mesh).map_err(js_error)?;
         live.renderer.set_family(family);

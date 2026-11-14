@@ -2,6 +2,7 @@
 //! the wood the core hands up and the frame the device draws are what they
 //! were; with it on, the picture changes by a measured amount.
 mod common;
+use common::surface;
 use telperion_core::{
     material::MaterialParams, math::Vec3, mesh, presets::Preset, surface::SurfaceMesh,
 };
@@ -75,8 +76,8 @@ fn the_depth_row_moves_no_wood_and_changes_the_picture() {
     };
     let tree = mesh::build(&family).unwrap();
     assert_eq!(
-        hash(&tree.wood),
-        hash(&lit.wood),
+        hash(surface(&tree)),
+        hash(surface(&lit)),
         "the depth row moved the wood the core hands up"
     );
     let Some(gpu) = common::gpu() else { return };

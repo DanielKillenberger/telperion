@@ -27,11 +27,19 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     let rings = OnceLock::new();
     let sweep = || self::rings(tree, surface, request, seats);
     let shared = || rings.get_or_init(sweep).as_ref().map_err(Clone::clone);
+    // A curve asked for without the wood is traced on its own, beside the
+    // leaves as the wood would be (fn-351): the renderer's tree.
+    let alone = request.curve && !request.wood;
     let (wood, planned) = both(
-        request.schedule == Schedule::Concurrent && request.wood && places,
+        request.schedule == Schedule::Concurrent && (request.wood || alone) && places,
         || {
             let wood = |r: &(_, _, _)| self::wood(tree, surface, request, &r.0);
-            request.wood.then(|| shared().and_then(wood)).transpose()
+            let wood = request.wood.then(|| shared().and_then(wood)).transpose()?;
+            let curve = alone.then(|| {
+                tag::at(tag::CURVE);
+                surface::curve(tree, surface.height, &surface.params)
+            });
+            Ok((wood, curve.transpose()?))
         },
         || {
             tag::at(tag::PREPARE);
@@ -50,7 +58,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
         },
     );
     // The wood's error answers first, as it did run in turn.
-    let wood = wood?;
+    let (wood, alone) = wood?;
     let (prepared, (leaves, field)) = planned?;
     let (mut leaves, field) = (leaves?, field?);
     let rings = rings.into_inner().transpose()?;
@@ -86,9 +94,9 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
         Some((rings, curve, _)) => (Some(rings), curve),
         None => (None, None),
     };
-    let traces = request.curve && drawn_from.is_none();
     #[cfg(test)]
     super::tests::count(|t| {
+        let traces = request.curve && drawn_from.is_none();
         let own = seats && !request.wood && leaves.is_some();
         t.sweeps += u32::from(rings.is_some()) + u32::from(own) + u32::from(traces);
         t.elements += u32::from(prepared.element.is_some());
@@ -98,13 +106,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
         .map(|((faces, _), rings)| rings.into_mesh(faces));
     tag::at(tag::ORGAN);
     let organ = organ(tree, inputs, request, prepared.reference, florets.flatten())?;
-    tag::at(tag::CURVE);
-    let curve = match drawn_from {
-        Some(curve) => Some(curve),
-        None => traces
-            .then(|| surface::curve(tree, surface.height, &surface.params))
-            .transpose()?,
-    };
+    let curve = drawn_from.or(alone);
     Ok(Outputs {
         element: prepared.element,
         plan: prepared.leaf_plan,

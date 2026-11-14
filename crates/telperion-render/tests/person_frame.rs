@@ -285,8 +285,7 @@ fn shaded(bounds: Bounds, from: Vec3, to_sun: Vec3) -> bool {
 /// flower's stalks count out to their reach.
 fn over(tree: &TreeMesh, foot: Vec3, radius: f64) -> Option<Vec3> {
     let near = |p: Vec3, reach: f64| (p.x - foot.x).hypot(p.z - foot.z) < radius + reach;
-    let wood = tree
-        .wood
+    let wood = common::surface(tree)
         .chunks
         .iter()
         .flat_map(|c| c.positions.as_chunks::<3>().0);

@@ -46,7 +46,7 @@ fn run() -> Result<(), String> {
         return transition(&arguments, family, far);
     }
 
-    let tree = mesh::build(&family).map_err(|error| error.to_string())?;
+    let tree = mesh::drawn(&family).map_err(|error| error.to_string())?;
     let florets = tree.organ.as_ref().map_or(0, |o| o.instances.len());
     let level = level_of(arguments.level, tree.foliage.element.levels.len())?;
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|error| error.to_string())?;
@@ -84,14 +84,13 @@ fn run() -> Result<(), String> {
     }
 
     println!(
-        "{} {}x{} on {adapter} at {} samples a pixel: {} wood vertices, {} wood triangles, \
+        "{} {}x{} on {adapter} at {} samples a pixel: {} curve points, \
          {} foliage instances, {} florets; {} triangles and {} instances drawn in {} calls; {} wood caster triangles; {} foliage caster instances",
         arguments.out.display(),
         width,
         height,
         renderer.samples(),
-        submitted.wood_vertices,
-        submitted.wood_triangles,
+        tree.curve.points.len(),
         submitted.foliage_instances,
         florets,
         still.stats.triangles,

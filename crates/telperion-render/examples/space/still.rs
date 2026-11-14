@@ -198,9 +198,8 @@ fn stills(
     // Before the GPU sees it, so a refused allocation still says what it
     // was asked to hold.
     eprintln!(
-        "{path}: mesh {} wood vertices, {} wood triangles, {} leaves",
-        mesh.wood_vertices(),
-        mesh.wood_triangles(),
+        "{path}: mesh {} curve points, {} leaves",
+        mesh.curve.points.len(),
         mesh.foliage_instances()
     );
     let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
