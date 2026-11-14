@@ -1,0 +1,33 @@
+{
+  "branch_name": "fn-371-the-ordinary-tree-grows-the-leaf-it",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-11-14T05:26:12.025453Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-371-the-ordinary-tree-grows-the-leaf-it",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-371-the-ordinary-tree-grows-the-leaf-it.md",
+  "status": "open",
+  "title": "The ordinary tree grows the leaf it draws",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-14T05:26:22.451872Z"
+}

@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-11-14T05:26:23.478059Z",
+  "depends_on": [],
+  "id": "fn-371-the-ordinary-tree-grows-the-leaf-it.1",
+  "priority": null,
+  "spec": "fn-371-the-ordinary-tree-grows-the-leaf-it",
+  "spec_path": ".flow/tasks/fn-371-the-ordinary-tree-grows-the-leaf-it.1.md",
+  "status": "todo",
+  "title": "The ordinary trees leaf area is its drawn blades",
+  "updated_at": "2026-11-14T05:26:23.478059Z"
+}
