@@ -48,6 +48,38 @@ A side finding: `mesh::build` builds the CPU wood surface (88.6 MB for the oak, 
 - **Q4, the worker's home.** Should the package ship the worker module and own its protocol (supersede by request id, errors by name, refusal as a typed message), or does the page bring its own worker?
 - **Q5, the unused surface.** Should the renderer stop building the CPU wood surface it only counts? This is separate from the worker, but it is 1.18 GB of Telperion's build.
 
+## 4b. Question 5 built? No: the surface feeds three values, and two cannot be had exactly without it (14 Nov, afternoon)
+
+The host asked for this: the renderer stops building the CPU wood surface, and the two counts it reads come from the wood's layout, exactly. The reading stops at the host's own stop condition. Nothing was changed.
+
+**What the renderer reads from the surface.** `Renderer::submit_at` (`crates/telperion-render/src/lib.rs:240-266`) reads three things from it, not two:
+
+1. `Submitted.wood_vertices` (`mesh.wood_vertices()`).
+2. `Submitted.wood_triangles` (`mesh.wood_triangles()`).
+3. **`mesh.bounds`**, the union of the surface's box (`SurfaceMesh::bounds`, the box of the float32 vertices, `surface/build.rs:418`) with the leaves' and flowers' boxes (`mesh.rs`, `assembled`). The renderer draws with it: the scale figure's placement (`lib.rs:248`), `self.bounds`, which the sun's caster box reads (`lib.rs:398, 569`) and the hero camera reads (`web.rs:301`), and `Submitted.bounds`.
+
+**Can each be had exactly without the surface?**
+
+- Vertices: yes. The layout gives them (`Layout::extent().positions / 3`). The sizing arithmetic exists as `surface::build::extent` (`#[cfg(test)]`), which runs the paths, `rings::rank` and `Layout::new` and builds no mesh.
+- Triangles: **not by layout alone.** `triangles()` is `indices.len() / 3` after the mesh step leaves out every triangle whose float32 corners span no area (`dropped`; `surface/build.rs:107`, `normals::accumulate`). The layout gives `extent.indices / 3`, which equals the count only where `dropped == 0`. Knowing `dropped` needs every ring's float32 positions, which is the sweep. On the six shipped presets without the Two Trees at their seed 42, `dropped` is 0, so the layout count happens to be exact there. That is a measurement, not a rule; the code allows up to `DROPPED_RINGS * 2 * segments`.
+- The box: **no.** The curve's box (`Curve::bounds`, the analytic boxes of its clusters with lobes included) is not the polygon's float32 box. With the leaves and flowers joined to each, the tree's box differs on **every** shipped preset measured: ordinary, oak, spruce, beech, birch and date palm, seed 42, the Two Trees not run. The difference is about 1e-9 to 2.1e-5 m, mostly in `min.y` (the root's foot, `-0.0491461455821991` against `-0.04914614486694336` for the ordinary) and in one `max` (ordinary `max.y` 12.289375 against 12.289396). So any change of the box's source moves the figure, the sun's caster box and the hero pose by micrometres. What is drawn is then no longer byte-identical.
+
+**Every reader of the two counts** (src, harness, tests, scripts, crates):
+
+- Page: `src/browser/render.ts:29-30` (the `Submitted` type) and **`harness/GrowerDev.tsx:376`**, a text note ("N wood tris, N wood verts"). That is the only page consumer. Nothing in `src/`, `tests/browser` or `scripts/` reads the renderer's `Submitted` counts.
+- Renderer: `crates/telperion-render/src/web.rs:460-461` (JSON out), `submit.rs:20-21` (the struct), `examples/headless.rs:93-94` (printed), `tests/headless.rs:17-18` and `tests/submit.rs:252-255` (equal to the tree's own counts), `tests/conformance.rs:141-143` (`wood_triangles > 0`, a check that something was submitted).
+- The rest read `TreeMesh::wood_*` from `mesh::build`, not the renderer: `crates/telperion-jev/src/runner/pins.rs:54` (catalogue pins), then `scripts/catalogue-check.mjs` and `catalogue-pages.mjs`, then the core's examples and suites. They keep the surface on their own path, and this change would not touch them.
+
+So the counts have one display reader and can be deleted, but deleting them does not free the surface. The box is still read from it, and the box is drawn.
+
+**Options for the host** (unranked, none built):
+
+- (a) Delete `woodVertices`/`woodTriangles` from `Submitted`, the harness note and the two equality tests. Take the box from the curve (with the leaves and flowers). The picture moves by up to 21 µm at the figure, the sun's caster box and the hero pose. This needs a byte-change acceptance under "Generator evolution", with visual evidence.
+- (b) The same deletion, and the wood's box from a sweep that keeps only the float32 positions: no normals, coords or indices, and no index pass. The box stays exact and the picture byte-identical. The positions are still built, which is about 445 MB of Telperion's 1.18 GB. This is a second consumer of the rings with a new output, so it is a design call.
+- (c) Keep the box and the counts, and build the surface less often. That is not a fix.
+
+**Not measured:** the before and after peak resident memory and seconds, and the render Wasm's size, because nothing was changed. One extra observation: running every shipped preset, with Telperion at its own age, in one process under the 4 GB cap was killed (`telperion-heavy`, exit 137) after the date palm. Telperion alone ran inside 4 GB in the morning's measurement. The full-surface peak is the likely cause; it was not measured.
+
 ## 5. Tests, sizes, browser steps
 
 No code was changed, so no tests were run beyond the scratch measurement, which built and ran in 19 s through `telperion-heavy 4 --threads 4`. `npm ci`, `npm run build` and `node scripts/artifact-budgets.mjs` were not run, because no shipped artifact changed. Browser steps for the owner are written once a design lands: a check list now would describe code that does not exist.
