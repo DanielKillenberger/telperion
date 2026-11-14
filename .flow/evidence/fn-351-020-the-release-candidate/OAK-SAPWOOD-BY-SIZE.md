@@ -120,15 +120,15 @@ The scoreboard's probe (`fn-352…/scoreboard/probe`) with one added line that p
 | 40 | 1012 | 28.2 | 33.5 | 34 to 40 | 28 to 40 | in | 10.5 to 10.5 | 101 to 121 |
 | 80 | 1001 | 69.5 | 74.5 | 71 to 78 | 56 to 79 | in | 18.1 to 18.1 | 774 to 774 |
 | 80 | 1007 | 98.5 | 103.4 | 99 to 102 | 56 to 79 | 1.31 times its top | 18.9 to 18.9 | 1650 to 1651 |
-| 80 | 1012 | 77.1 | not run | 86 to 93 | 56 to 79 | not run | 18.1 to not run | 950 to - |
-| 120 | 1001 | 115 [record] | not run | 115 to 108 | 83 to 109 | not run | 27.4 [record] to not run | - to - |
-| 120 | 1007 | 165 [record] | not run | 163 to 146 | 83 to 109 | not run | 28.4 [record] to not run | - to - |
+| 80 | 1012 | 77.1 | 82.4 | 86 to 93 | 56 to 79 | 1.04 times its top | 18.1 to 18.1 | 950 to 950 |
+| 120 | 1001 | 115 [record] | 106.4 | 115 to 108 | 83 to 109 | in | 27.4 [record] to 27.6 | - to 1432 |
+| 120 | 1007 | 165 [record] | 150.1 | 163 to 146 | 83 to 109 | 1.38 times its top | 28.4 [record] to 28.6 | - to 2999 |
 | 120 | 1012 | 134 [record] | not run | 138 to 131 | 83 to 109 | not run | 26.0 [record] to not run | - to - |
-| 200 | 1001 | 180 [record] | not run | 175 to 151 | 121 to 152 | not run | 36.8 [record] to not run | - to - |
+| 200 | 1001 | 180 [record] | 153.0 | 175 to 151 | 121 to 152 | 1.01 times its top | 36.8 [record] to 36.7 | - to 1541 |
 | 200 | 1007 | 259 [record] | not run | 251 to 211 | 121 to 152 | not run | 37.1 [record] to not run | - to - |
 | 200 | 1012 | 227 [record] | not run | 221 to 190 | 121 to 152 | not run | 39.4 [record] to not run | - to - |
-| 300 | 1001 | 220 [record] | not run | 215 to 179 | 156 to 192 | not run | 36.0 [record] to not run | - to - |
-| 300 | 1007 | 313 [record] | not run | 306 to 250 | 156 to 192 | not run | 38.8 [record] to not run | - to - |
+| 300 | 1001 | 220 [record] | 181.3 | 215 to 179 | 156 to 192 | in | 36.0 [record] to 36.0 | - to 884 |
+| 300 | 1007 | 313 [record] | 257.1 | 306 to 250 | 156 to 192 | 1.34 times its top | 38.8 [record] to 38.5 | - to 1654 |
 | 300 | 1012 | 290 [record] | not run | 285 to 237 | 156 to 192 | not run | 38.2 [record] to not run | - to - |
 <!-- /measured -->
 

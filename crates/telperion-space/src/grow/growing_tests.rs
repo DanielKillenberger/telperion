@@ -25,7 +25,8 @@ fn a_growing_phytomer_holds_what_growth_reads() {
 /// before the grower held its phytomers narrow; re-pinned by fn-359 where
 /// a fade below one nests in another (oak 1, beech 1, spruce 1 and 7), and
 /// by fn-361 where the oak's limbs take a dominance (oak 1 and 7), which
-/// fn-363 removed (oak 1 and 7 back to their fn-359 pins).
+/// fn-363 removed (oak 1 and 7 back to their fn-359 pins), and by fn-351
+/// where the oak's sapwood rows are read by tree height (oak 1 and 7).
 #[test]
 fn a_growing_phytomer_is_read_as_it_was() {
     let trees = [
@@ -33,7 +34,7 @@ fn a_growing_phytomer_is_read_as_it_was() {
             "oak",
             oak(),
             20,
-            [10364051823450299320, 10572993160139470314],
+            [14204008603386723031, 3800829117034085399],
         ),
         (
             "beech",
