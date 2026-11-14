@@ -26,7 +26,10 @@ pub(super) struct Rounds {
     rounds: Vec<Vec<Angular>>,
 }
 impl Rounds {
+    /// The rounds through `cap` sides, and through three below it: a ring
+    /// is never cut with fewer (`build::sides`; fn-351 review).
     pub(super) fn new(cap: usize, params: &SurfaceParams) -> Result<Self> {
+        let cap = cap.max(3);
         let mut rounds = reserved(cap + 1)?;
         for n in 0..=cap {
             rounds.push(if n < 3 {
@@ -106,6 +109,19 @@ mod tests {
                     }
                 }
             }
+        }
+    }
+
+    /// A cap under three holds the three sides `build::sides` never cuts
+    /// below, and reports them as its most (fn-351 review).
+    #[test]
+    fn a_cap_under_three_holds_three_sides() {
+        let params = SurfaceParams::default();
+        for cap in 0..3 {
+            let rounds = Rounds::new(cap, &params).unwrap();
+            let sides = crate::pipeline::surface::build::sides(1.0, rounds.cap());
+            assert_eq!((rounds.cap(), sides), (3, 3), "cap {cap}");
+            assert_eq!(rounds.of(sides).len(), 3, "cap {cap}");
         }
     }
 }
