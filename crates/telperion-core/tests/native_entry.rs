@@ -81,3 +81,37 @@ fn a_native_entry_takes_parameters_and_a_seed_and_returns_the_trees_data_at_any_
         "the tree at 20 on the way to 40 is the tree at 20 alone"
     );
 }
+
+/// fn-365 R6: a growth has one seed. The oak begun with seed A is drawn
+/// alike, wood and leaves to the bit, under a family whose `skeleton.seed`
+/// row says A and under one whose row says B; begun with B, it differs.
+#[test]
+fn a_growth_draws_by_the_seed_it_was_begun_with_never_the_familys_row() {
+    const A: u32 = 7;
+    const B: u32 = 8;
+    let with_row = |seed| {
+        let mut family = Preset::OregonWhiteOak.parameters();
+        family.skeleton.seed = seed;
+        family
+    };
+    let (row_a, row_b) = (with_row(A), with_row(B));
+    let params = Arc::new(growth::Params::of(&row_b).expect("growth parameters"));
+    let grown = |seed| {
+        let mut state = growth::begin(&params, seed, 20.0).expect("begun");
+        growth::grow_to(&mut state, 20.0).expect("grown to 20");
+        state
+    };
+    let drawn = |state: &GrowthState, family: &telperion_core::Family| {
+        let mesh = growth::mesh(state, 20.0, family).expect("the tree is dressed");
+        (
+            digest(&(&mesh.wood, &mesh.curve)),
+            digest(&(&mesh.foliage, &mesh.organ)),
+        )
+    };
+    let a = grown(A);
+    let under_a = drawn(&a, &row_a);
+    assert_eq!(drawn(&a, &row_b), under_a, "(wood, leaves) begun with A");
+    let b = drawn(&grown(B), &row_b);
+    assert_ne!(b.0, under_a.0, "the wood begun with B");
+    assert_ne!(b.1, under_a.1, "the leaves begun with B");
+}

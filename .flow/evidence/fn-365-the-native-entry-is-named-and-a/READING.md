@@ -49,3 +49,25 @@ Beside the entry, inside `telperion-core`:
 - `presets` is public: `Preset` (with `from_id(&str)` and `profile_id()`), `by_identity(&str)`, `CATALOGUE`.
 
 Per R4 these are returned to the host and not removed here.
+
+## R6: where each seed is read after `begin` (14 Nov 2026, at `de1215694`)
+
+`begin`'s seed goes into `telperion_space::Request::seed` and is held only inside the engine's `Paused`. `Paused` has no accessor for it, and `GrowthState` keeps no seed of its own. So the state does not hold its seed in a form the core can read. Everything the engine grows and settles comes from that seed: the structure, its keys, `Tree::clusters`, `Tree::blooms` and `Tree::unfolding`.
+
+The family's `skeleton.seed` row reaches a growth only through `growth::mesh`, which derives `Inputs::of(family, ...)` as the build does. That gives it two fields:
+
+- `LeafInput::seed` → `foliage::place_on` (`pipeline/drawn.rs`). This keys every leaf stream:
+  - each run's leaves (`placement.rs`, `tree::leaf_stream(seed, key)`);
+  - a short shoot's cluster (`cluster.rs`);
+  - a frond's rosette (`rosette.rs`, `stream`);
+  - a station's leaflets (`station.rs`, `leaflet_stream`);
+  - the clumping thin (`clumping.rs`, `draw`).
+- `PlanInput::seed` → `plan::plan` (`pipeline/stage.rs`). This runs only when a field is requested. `growth::mesh` requests `Request::mesh()`, with no field, so it never reads this one.
+
+Not read after `begin`:
+
+- **The wood.** Rings, sweep and curve key their frames from the tree (`surface/rings.rs`, `frames::seed`, the node's seed side), not from a seed.
+- **Flowers.** Florets are keyed by the bearing node's lineage and their index (`foliage/bloom.rs`). They are packed against the leaves' box, though, so they move with the leaves.
+- **`settle`.** `Params::of` keeps no seed.
+- **`colouring`.** It reads the species and the year's fraction only, and draws nothing.
+- **`GrowthBias`.** Its noise is keyed by the seed, but it is built only by the scaffold's specimen, which compiles into tests alone.
