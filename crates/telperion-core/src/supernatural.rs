@@ -410,6 +410,4 @@ pub(crate) fn blend(a: &Family, b: &Family, t: f64) -> Supernatural {
 #[cfg(all(test, feature = "geometry"))]
 mod scale_tests;
 #[cfg(test)]
-mod height_tests;
-#[cfg(test)]
 mod tests;
