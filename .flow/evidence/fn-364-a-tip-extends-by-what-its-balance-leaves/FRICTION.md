@@ -13,3 +13,10 @@
 - **What slowed it:** the yield watcher froze the queue from 20:28 to 21:40 and again from 21:43; fn-363's builder's old-oak runs held the memory between pauses. Nothing of either chain ran in 80 minutes. I stopped both when the host's answer on stations changed the core (they would have measured the wrong drawing), so they restart from nothing.
 - **Cost:** about 80 minutes of wall time; every narrow core run since takes 3 to 7 minutes of queue for under a minute of work.
 - **What would have removed it:** nothing in the repository. Declaring each job near its measured peak (4 to 6 GB, not 8) gets it admitted sooner between pauses.
+
+## 14 Nov 2026, 03:20 (builder, Opus)
+
+- **Doing:** R5's old oak, R6's draws and the drawn-station pass, each a heavy job through the queue.
+- **What slowed it:** the old oak at 120, seed 1001, took 83 minutes of wall time for a 26 s grow, because the watcher's pauses and the other builder's draws held the queue. One draw (fn-363's limb crop at 200) waited at "room 0 GB for 24" because I declared it at fn-363's 24 GB when it peaks near 3 GiB. I restarted it at 8.
+- **Cost:** about two hours of wall time on R5 and R6. Little of it was mine to change.
+- **What would have removed it:** each job declared near its own measured peak from the start. The scoreboard's draw script takes one figure per age, not per tree; a table of measured peaks per tree would let every script declare honestly.
