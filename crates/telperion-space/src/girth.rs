@@ -98,11 +98,14 @@ pub(crate) fn rows(form: &Form, tall: f64) -> [f64; 2] {
     ]
 }
 
-/// The tree's height, m: its highest axis tip above the seed's base.
+/// The tree's height, m: its highest axis tip above the seed's base. An
+/// axis that holds no phytomer has no tip: a retired axis keeps its record
+/// until the records are compacted, and the height must not depend on when
+/// that happens.
 fn height<P: Node>(axes: &[Axis<P>]) -> f64 {
     let Some(seed) = axes.first() else { return 0.0 };
-    let top = |a: &Axis<P>| a.phytomers.last().map_or(a.base.z, |p| p.tip().z);
-    axes.iter().map(top).fold(seed.base.z, f64::max) - seed.base.z
+    let top = |a: &Axis<P>| a.phytomers.last().map(|p| p.tip().z);
+    axes.iter().filter_map(top).fold(seed.base.z, f64::max) - seed.base.z
 }
 
 /// The year's wood laid on the growing tree on up to `threads` cores: each
