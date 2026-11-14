@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { budgets, check, declaredGrowth, findBase } from './artifact-budgets.mjs';
 
@@ -5,6 +6,11 @@ import { budgets, check, declaredGrowth, findBase } from './artifact-budgets.mjs
  * ceilings, and the per-PR growth share over the base, read through an
  * injected reader so nothing here touches the network. */
 const b = await budgets();
+// The rows fn-170's replays were written against, frozen at 240f66578 when
+// fn-366 (14 Nov 2026) lowered telperion.wasm's ceiling below fn-170's
+// 1,410,330-byte module: those two tests hold the growth rule on fn-170's
+// sizes, which the live ceiling no longer admits.
+const frozen = JSON.parse(readFileSync(new URL('artifact-budgets.fn170-frozen.json', import.meta.url), 'utf8'));
 const recorded = Object.fromEntries(b.artifacts.map(a => [a.path, a.baselineBytes]));
 const FIELD = 'dist/telperion-render.wasm';
 const MAIN = 'dist/telperion.wasm';
@@ -40,7 +46,7 @@ describe('growth per PR', () => {
   });
 
   it('passes fn-170s fork rule under the budget file as it stands', () => {
-    expect(check(b, fn170.head, { base: on(fn170.base) })).toEqual([]);
+    expect(check(frozen, fn170.head, { base: on(fn170.base) })).toEqual([]);
   });
 
   it('passes exactly the share and fails one byte more', () => {
@@ -56,11 +62,11 @@ describe('growth per PR', () => {
       '## Decisions', '- D1: the leaf plan grows `dist/telperion-render.wasm` by 5 percent.',
       '## Open', '- telperion.wasm grows too.',
     ].join('\r\n');
-    const declared = declaredGrowth(b, body);
+    const declared = declaredGrowth(frozen, body);
     expect([...declared]).toEqual([FIELD]);
     const base = on({ ...recorded, [FIELD]: 355_100, [MAIN]: 1_400_000 });
-    expect(check(b, grown, { base, declared })).toEqual([expect.stringMatching(/^dist\/telperion\.wasm: 1500000 bytes, \+7\.1%/)]);
-    expect(declaredGrowth(b, '## Decisions\n- telperion-render.wasm and telperion.json')).toEqual(new Set(['dist/telperion-render.wasm']));
+    expect(check(frozen, grown, { base, declared })).toEqual([expect.stringMatching(/^dist\/telperion\.wasm: 1500000 bytes, \+7\.1%/)]);
+    expect(declaredGrowth(frozen, '## Decisions\n- telperion-render.wasm and telperion.json')).toEqual(new Set(['dist/telperion-render.wasm']));
   });
 });
 
