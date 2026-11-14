@@ -8,50 +8,50 @@
       "path": "dist/telperion.wasm",
       "ceilingBytes": 1600000,
       "reason": "owner, 2026-09-27: headroom for the main module",
-      "baselineBytes": 1538240,
-      "baselineOn": "fn-353-one-grower 12b390701, npm run build"
+      "baselineBytes": 1273894,
+      "baselineOn": "fn-366 ef7acb165, npm run build"
     },
     {
       "path": "dist/telperion-render.wasm",
       "ceilingBytes": 3700000,
       "reason": "owner, 2026-10-16 (fn-237, \"fix the rest as proposed\"): raised to the size measured on fn-257's branch (3601258 bytes) and a small margin for this release; fn-242 brings the modules down after it",
-      "baselineBytes": 2220865,
-      "baselineOn": "fn-353-one-grower 12b390701, npm run build"
+      "baselineBytes": 2236781,
+      "baselineOn": "fn-366 ef7acb165, npm run build"
     },
     {
       "path": "dist/telperion.js",
       "ceilingBytes": 200000,
       "reason": "owner, 2026-10-16 (fn-237, \"fix the rest as proposed\"): raised to the size measured on fn-257's branch (194685 bytes) and a small margin for this release; fn-242 brings the modules down after it",
-      "baselineBytes": 3993,
-      "baselineOn": "fn-353-one-grower 12b390701, npm run build"
+      "baselineBytes": 4021,
+      "baselineOn": "fn-366 ef7acb165, npm run build"
     },
     {
       "path": "dist/presets.js",
       "ceilingBytes": 200000,
       "reason": "fn-317, 2026-10-25: the presets moved out of telperion.js into their own entry (R3); held at telperion.js's ceiling, the owner's 2026-10-16 decision, which they were measured under. The owner confirms or sets it",
-      "baselineBytes": 187035,
-      "baselineOn": "fn-353-one-grower 12b390701, npm run build"
+      "baselineBytes": 190008,
+      "baselineOn": "fn-366 ef7acb165, npm run build"
     },
     {
       "path": "dist/field.js",
       "ceilingBytes": 16000,
       "reason": "owner, 2026-09-27: headroom for the field entry script",
-      "baselineBytes": 1299,
-      "baselineOn": "fn-353-one-grower 12b390701, npm run build"
+      "baselineBytes": 1269,
+      "baselineOn": "fn-366 ef7acb165, npm run build"
     },
     {
       "path": "dist/module.js",
-      "ceilingBytes": 70000,
-      "reason": "fn-257, 2026-10-16: the chunk the main and the field entries share since the field grows through the renderer's glue (64,564 bytes on fn-257's branch); owner's 2026-10-16 decision on raised ceilings, fn-242 after the release; fn-297 (171e522cc) renamed the shared chunk after src/browser/module.ts, from dist/wasm-source.js",
-      "baselineBytes": 60291,
-      "baselineOn": "fn-353-one-grower 12b390701, npm run build"
+      "ceilingBytes": 63000,
+      "reason": "fn-257, 2026-10-16: the chunk the main and the field entries share since the field grows through the renderer's glue (64,564 bytes on fn-257's branch); owner's 2026-10-16 decision on raised ceilings, fn-242 after the release; fn-297 (171e522cc) renamed the shared chunk after src/browser/module.ts, from dist/wasm-source.js; lowered by fn-366 (14 Nov 2026) to the measured 59,707 bytes and the 5% growth share, after the field entry's shared loader moved to core.js (lever e)",
+      "baselineBytes": 59707,
+      "baselineOn": "fn-366 ef7acb165, npm run build"
     },
     {
       "path": "dist/voxelize.js",
       "ceilingBytes": 16000,
       "reason": "owner, 2026-09-27: headroom for the voxelize entry script",
       "baselineBytes": 4573,
-      "baselineOn": "fn-353-one-grower 12b390701, npm run build"
+      "baselineOn": "fn-366 ef7acb165, npm run build"
     }
   ]
 }
