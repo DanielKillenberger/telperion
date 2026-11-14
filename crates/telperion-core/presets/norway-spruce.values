@@ -486,13 +486,3 @@
 /space/ages/1/trunk = true
 /space/ages/2/trunk = true
 /space/ages/4/trunk = true
-
-# The fidelity dial at its coarsest (fn-328: all six of R4's medians within 5%
-# on tuning seeds 1001 to 1050 and on the held-out seeds, at 35% less time than
-# fn-326's S1 on the fifty).
-/space/coarse/first = 8
-/space/coarse/factor = 2.693
-/space/coarse/leaf = 18.645
-/space/coarse/bud = 0.982
-/space/coarse/hazard = 3.759
-/space/coarse/shedding = 0.051

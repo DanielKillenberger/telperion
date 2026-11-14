@@ -81,8 +81,7 @@ const SWEEP_NODES: usize = 8_000;
 // with the rest of the scaffold; the birch (fn-213) moves the envelope, the
 // clump, the peel, the curtain and the twig length, so the sweep walks
 // those. Every preset is now an engine preset, so every pair is walked.
-const HELD: [&str; 140] = [
-    "/fidelity",
+const HELD: [&str; 139] = [
     "/bloom/florets",
     "/bloom/rachis",
     "/bloom/droop",

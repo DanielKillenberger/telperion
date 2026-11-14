@@ -33,7 +33,6 @@ impl Params {
     pub fn of(family: &Family) -> Result<Self> {
         let input = super::GrowInput::of(family);
         input.supernatural.validate()?;
-        input.fidelity_admitted()?;
         let space = input.space.as_ref();
         let species = space
             .species

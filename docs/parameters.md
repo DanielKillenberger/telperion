@@ -43,16 +43,6 @@ How deep into the crown leaves were kept, as a share of the crown's widest radiu
 - note: The leaves stage checks it again; no cull reads it since fn-212 R2, and the planned field does not read it.
 - blend: linear; dial: `shell_depth` (how deep into the crown leaves are kept, as a share of its widest radius), window its bounds (validated bound), steps 0.15 and 0.3
 
-### `/fidelity`
-
-The size of the smallest feature the tree resolves, in metres: 0 grows the full cycle, and a coarser request grows less of the same tree through the same cycle (fn-326). The field's grid side stays its own input.
-
-- real, metres, [0, 1000000], default 0
-- read by grow; removed growth path: as the direct build
-- checked: Age site, rank 1, as invalid value `fidelity`
-- note: Picks the specimen, so a consumer holds one fidelity for a tree's life. Past the coarsest a tree grows no coarser, and a species with no `/space/coarse` rows is dormant to it.
-- blend: linear; dial: none: What the consumer asks for, never a look the tuner steps.
-
 ## `/skeleton`
 
 ### `/skeleton/seed`
