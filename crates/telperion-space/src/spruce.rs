@@ -164,6 +164,7 @@ pub fn spruce() -> Species {
         internode_spread: 0.0,
         insertion_spread: 0.0,
         tropism_spread: 0.0,
+        ..Form::default()
     };
     // The seedling (M4): two short, unbranched years.
     let seedling = PaState {
@@ -224,6 +225,7 @@ pub fn spruce() -> Species {
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         // For as long as the tree lives, then they stop.
         ..state(
@@ -279,6 +281,7 @@ pub fn spruce() -> Species {
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         ..state(
             10,

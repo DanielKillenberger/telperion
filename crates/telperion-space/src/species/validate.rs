@@ -164,6 +164,10 @@ impl Form {
             ("wander", self.wander),
             ("primary", self.primary),
             ("sapwood", self.sapwood),
+            ("sapwood_tall", self.sapwood_tall),
+            ("sapwood_rings_tall", self.sapwood_rings_tall),
+            ("sapwood_from", self.sapwood_from),
+            ("sapwood_to", self.sapwood_to),
             ("sag", self.sag),
             ("bend_length", self.bend_length),
             ("internode_spread", self.internode_spread),
@@ -185,6 +189,18 @@ impl Form {
             return refuse(
                 format!("{at}.sapwood_rings"),
                 "sapwood lasts 1 to 1000 years",
+            );
+        }
+        if self.sapwood_rings * self.sapwood_rings_tall < 1.0 {
+            return refuse(
+                format!("{at}.sapwood_rings_tall"),
+                "sapwood lasts a year or more on a tall tree",
+            );
+        }
+        if self.sapwood_to < self.sapwood_from {
+            return refuse(
+                format!("{at}.sapwood_to"),
+                "the far height is no less than the near height",
             );
         }
         if !admits("form.dominance", self.dominance) {

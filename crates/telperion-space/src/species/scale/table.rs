@@ -6,8 +6,8 @@
 use super::Scale::{self, Kept, Linear, Log, Outcome};
 use crate::species::{
     MAX_BEND_LENGTH, MAX_BUDS, MAX_CLUSTER_LEAVES, MAX_DELAY, MAX_INTERNODE, MAX_LEAF_AREA,
-    MAX_LIFESPAN, MAX_NODES_PER_ZONE, MAX_PRIMARY, MAX_RATE, MAX_RISE, MAX_SAG, MAX_SAPWOOD,
-    MAX_SAPWOOD_RINGS, MAX_SHADE,
+    MAX_HEIGHT, MAX_LIFESPAN, MAX_NODES_PER_ZONE, MAX_PRIMARY, MAX_RATE, MAX_RISE, MAX_SAG,
+    MAX_SAPWOOD, MAX_SAPWOOD_RINGS, MAX_SHADE, MAX_TALL,
 };
 use crate::unfold::YEAR;
 use std::f64::consts::{FRAC_PI_2, PI, TAU};
@@ -155,6 +155,14 @@ pub const SETTINGS: &[Setting] = &[
         "The sapwood a unit of leaf above the wood needs. Dormant at 0: the wood keeps its primary radius."),
     row("form.sapwood_rings", Linear, [1.0, MAX_SAPWOOD_RINGS], "years",
         "The years wood stays sapwood before it is heartwood. Dormant without sapwood."),
+    row("form.sapwood_tall", Linear, [0.0, MAX_TALL], "share",
+        "The sapwood a unit of leaf needs on a tree of the far height, as a share of the near height's. Neutral 1; dormant without sapwood."),
+    row("form.sapwood_rings_tall", Linear, [0.0, MAX_TALL], "share",
+        "The years wood stays sapwood on a tree of the far height, as a share of the near height's. Neutral 1; dormant without sapwood."),
+    row("form.sapwood_from", Linear, [0.0, MAX_HEIGHT], "m",
+        "The tree height the sapwood rows are stated at: the near height. Dormant while both tall shares are 1."),
+    row("form.sapwood_to", Linear, [0.0, MAX_HEIGHT], "m",
+        "The tree height the tall shares are stated at: the far height, read by degree from the near one. Dormant while both tall shares are 1."),
     row("form.dominance", Linear, SHARE, "share",
         "How unequal sibling laterals are, so a few dominate. Dormant on an axis that bears no laterals."),
     row("form.roll", Linear, [0.0, PI], "rad",
