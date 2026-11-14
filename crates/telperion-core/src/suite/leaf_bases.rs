@@ -210,8 +210,8 @@ fn raising_the_bases_moves_the_palms_own_wood() {
     let without = mesh::build(&bare).expect("the palm builds");
     let with = mesh::build(&family("date-palm", 1)).expect("the palm builds");
     assert_ne!(
-        without.wood.flattened().positions,
-        with.wood.flattened().positions,
+        without.wood.as_ref().expect("built").flattened().positions,
+        with.wood.as_ref().expect("built").flattened().positions,
         "a trunk clothed in bases has to be a different piece of wood"
     );
     assert!(with.wood_vertices() > without.wood_vertices());

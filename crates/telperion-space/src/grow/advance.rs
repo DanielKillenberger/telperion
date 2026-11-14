@@ -181,9 +181,7 @@ impl Shoot<'_> {
             size: laid.map_or(share, |c| c.of),
         });
         if reads.sketching {
-            draws
-                .shade
-                .push([size, if reads.lights { light } else { 1.0 }]);
+            draws.shade.push(size);
         }
         self.grow_unit(apex, pa, unit, (cycle, laid))?;
         apex.spent += share;

@@ -78,7 +78,7 @@ impl Grower {
     pub(super) fn read_light(&mut self, tips: &[Vec3]) -> Result<Vec<f64>> {
         let started = crate::clock::seconds();
         let light = self.sketch.as_ref().expect("sketching").light;
-        let field = Field::quantised(&light, &self.leaves, tips, self.threads)?;
+        let field = Field::quantised(&light, &self.leaves, tips, (self.threads, self.lattice))?;
         let mut read = vec![0.0; tips.len()];
         crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at(tips[k]));
         self.light_seconds += crate::clock::seconds() - started;
@@ -99,6 +99,8 @@ impl Grower {
 }
 
 #[cfg(test)]
+mod balance_tests;
+#[cfg(test)]
 mod tests;
 
 /// The girth two trees of one shape stand apart by (fn-270 R4: retirement
@@ -109,7 +111,8 @@ mod tests;
 #[cfg(test)]
 pub(crate) fn girth_apart(a: &Structure, b: &Structure) -> Option<(f64, f64)> {
     // Everything but the girth and the pose a girth bends (its sag) the
-    // same to the bit: topology, PAs, vigour, presences, sizes and lights.
+    // same to the bit: topology, PAs, vigour, presences, sizes and every
+    // section.
     let bare = |t: &Structure| {
         let mut t = t.clone();
         for axis in &mut t.axes {
@@ -120,6 +123,10 @@ pub(crate) fn girth_apart(a: &Structure, b: &Structure) -> Option<(f64, f64)> {
                 None,
             );
             for p in &mut axis.phytomers {
+                // The sapwood of wood a closed subtree skips is unread
+                // (`girth::lay`), and the reference retiring nothing
+                // closes none.
+                p.sapwood = 0.0;
                 (p.radius, p.tip, p.heading, p.side) = (
                     0.0,
                     Default::default(),

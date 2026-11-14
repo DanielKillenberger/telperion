@@ -159,7 +159,7 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
             let (mean, p95) = resolution::masked_agreement(&high, &low, &mask);
             eprintln!("{preset:?} {distance}x resolution: {} pixels, mean {mean:.6}/255, p95 {p95:.2}/255", mask.len());
             // The prefiltered bark's bounds (see the assertion below).
-            let bound = if distance == 2 { 5.2 } else { 5.8 };
+            let bound = if distance == 2 { 5.7 } else { 7.0 };
             rows.push((format!("{preset:?} {distance}x"), mean, p95, bound));
         }
     }
@@ -179,8 +179,18 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
     // shader's 4x truth (examples/bark_truth), present / prefilter:
     // oak 2x 2.54 / 5.70, oak 4x 4.90 / 7.14. Here the prefilter reads
     // 4.68 / 12.0 at 2x and 5.29 / 13.25 at 4x (present under 3.0 / 12).
+    // On 14 Nov 2026 the 4x bounds were re-pinned by the same rule (host,
+    // approved on the frames, fn-351 BARK-DISTANCE.md): no bark shader had
+    // changed, but the oak's trunk at the strip thinned from 71 to 28 pixels
+    // (fn-354), so the strip holds the curved stem edge to edge and reads
+    // 6.00 / 16.25, its frame-to-frame shimmer within 0.5 of the full-size
+    // reference's and below the 11 Nov base's. Later on 14 Nov 2026 both
+    // distances were re-pinned by the same rule: the oak's sapwood rows
+    // followed tree height (fn-351), the trunk at the strip widened from 55
+    // to 64 pixels at 2x and from 28 to 33 at 4x, and it reads 5.20 / 13.50
+    // and 6.53 / 17.25, its shimmer within 0.4 of the full-size reference's.
     for (fixture, mean, p95, bound) in &rows {
-        let tail = if fixture.ends_with("2x") { 14.0 } else { 15.25 };
+        let tail = if fixture.ends_with("2x") { 15.5 } else { 19.25 };
         assert!(
             mean <= bound && *p95 <= tail,
             "distance series aliases on the {fixture}: mean {mean:.4}, p95 {p95:.2}"

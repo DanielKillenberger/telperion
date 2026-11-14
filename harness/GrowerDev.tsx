@@ -373,7 +373,7 @@ export function GrowerDev() {
         <p className="gd-note">
           {stats === null
             ? "building..."
-            : `${stats.woodTriangles.toLocaleString()} wood tris, ${stats.woodVertices.toLocaleString()} wood verts, ${stats.foliageInstances.toLocaleString()} foliage instances, ${stats.buildMs.toFixed(1)} ms`}
+            : `${stats.foliageInstances.toLocaleString()} foliage instances, ${stats.buildMs.toFixed(1)} ms`}
         </p>
 
         {/* The renderer's half, which the build cannot know: what the

@@ -25,6 +25,11 @@ pub(super) struct Piece {
     /// The first ring of the run it holds, and how many it holds.
     pub(super) first: usize,
     pub(super) rings: usize,
+    /// The sides each of its rings is cut with: its run's.
+    pub(super) sides: usize,
+    /// Its first ring's place among every ring the layout holds, counted
+    /// piece by piece.
+    pub(super) ring: usize,
     /// Whether it holds the run's first ring and bottom cap, and its last
     /// ring and top cap.
     pub(super) lead: bool,
@@ -40,14 +45,14 @@ impl Piece {
 
     /// The vertices it holds past its rings where the sweep draws caps: the
     /// repeated first ring, then each cap it holds, bottom before top.
-    fn extra(&self, segments: usize, drawn: bool) -> usize {
+    fn extra(&self, drawn: bool) -> usize {
         let repeats = usize::from(self.repeats());
         let caps = usize::from(self.lead) + repeats + usize::from(self.tail);
-        usize::from(drawn) * (repeats * segments + caps)
+        usize::from(drawn) * (repeats * self.sides + caps)
     }
 
-    pub(super) fn vertices(&self, segments: usize, drawn: bool) -> usize {
-        self.rings * segments + self.extra(segments, drawn)
+    pub(super) fn vertices(&self, drawn: bool) -> usize {
+        self.rings * self.sides + self.extra(drawn)
     }
 
     /// The ring pairs it draws and answers contact queries for, by the lower
@@ -61,14 +66,15 @@ impl Piece {
 
     /// The indices it draws: six a segment of each pair, and three a segment
     /// of each cap, both caps in the run's last piece.
-    pub(super) fn indices(&self, segments: usize, drawn: bool) -> usize {
+    pub(super) fn indices(&self, drawn: bool) -> usize {
         let caps = 2 * usize::from(drawn && self.tail);
-        (self.pairs().len() * 2 + caps) * segments * 3
+        (self.pairs().len() * 2 + caps) * self.sides * 3
     }
 
     /// Where run vertex `v` sits in its chunk: a ring vertex this piece holds
     /// or repeats, or one of the run's caps, `rings` rings past its first.
-    pub(super) fn local(&self, v: usize, rings: usize, segments: usize) -> usize {
+    pub(super) fn local(&self, v: usize, rings: usize) -> usize {
+        let segments = self.sides;
         let (ring, past) = (rings * segments, self.base + self.rings * segments);
         let repeats = usize::from(self.repeats());
         if v < ring {
@@ -90,36 +96,33 @@ pub(super) struct Layout {
     pub(super) chunks: Vec<usize>,
     /// Bits a chunk's local vertex takes in a ring address.
     pub(super) shift: u32,
+    /// The rings every piece holds, counted piece by piece.
+    pub(super) rings: usize,
 }
 
 impl Layout {
-    /// Lays out runs of `rings` rings each, in order, in chunks of at most
-    /// `limit` vertices; `usize::MAX` is one chunk.
+    /// Lays out runs of `rings` rings of `sides` sides each, in order, in
+    /// chunks of at most `limit` vertices; `usize::MAX` is one chunk.
     pub(super) fn new(
-        rings: impl ExactSizeIterator<Item = usize>,
-        segments: usize,
+        runs: impl ExactSizeIterator<Item = (usize, usize)>,
         drawn: bool,
         limit: usize,
     ) -> Result<Self> {
         let caps = 2 * usize::from(drawn);
-        // A piece holds more rings than it repeats, so a split moves on.
-        assert!(
-            limit / segments > OVERLAP + 1,
-            "a chunk of {limit} holds too few rings"
-        );
         let mut out = Self {
-            pieces: reserved(rings.len())?,
+            pieces: reserved(runs.len())?,
             chunks: Vec::new(),
             shift: if limit == usize::MAX {
                 ONE
             } else {
                 limit.next_power_of_two().ilog2()
             },
+            rings: 0,
         };
         let too_many = || Error::ResourceLimit("surface vertices");
-        for (run, count) in rings.enumerate() {
+        for (run, (count, sides)) in runs.enumerate() {
             let whole = count
-                .checked_mul(segments)
+                .checked_mul(sides)
                 .and_then(|n| n.checked_add(caps))
                 .ok_or_else(too_many)?;
             let mut piece = Piece {
@@ -128,6 +131,8 @@ impl Layout {
                 base: 0,
                 first: 0,
                 rings: count,
+                sides,
+                ring: 0,
                 lead: true,
                 tail: true,
             };
@@ -135,19 +140,24 @@ impl Layout {
                 out.place(piece, whole, limit)?;
                 continue;
             }
+            // A piece holds more rings than it repeats, so a split moves on.
+            assert!(
+                limit / sides > OVERLAP + 1,
+                "a chunk of {limit} holds too few rings"
+            );
             out.open()?;
             loop {
                 let rest = count - piece.first;
                 (piece.rings, piece.tail) = (rest, true);
-                if piece.vertices(segments, drawn) <= limit {
-                    out.place(piece, piece.vertices(segments, drawn), limit)?;
+                if piece.vertices(drawn) <= limit {
+                    out.place(piece, piece.vertices(drawn), limit)?;
                     break;
                 }
                 // Short of the whole rest, so the last piece moves on.
                 let lead = usize::from(drawn && piece.lead);
-                piece.rings = ((limit - lead) / segments).min(rest - 1);
+                piece.rings = ((limit - lead) / sides).min(rest - 1);
                 piece.tail = false;
-                out.place(piece, piece.vertices(segments, drawn), limit)?;
+                out.place(piece, piece.vertices(drawn), limit)?;
                 out.open()?;
                 piece.first += piece.rings - OVERLAP;
                 (piece.lead, piece.tail) = (false, true);
@@ -159,7 +169,12 @@ impl Layout {
     /// Opens a fresh chunk unless the last one is still empty.
     fn open(&mut self) -> Result<()> {
         if self.chunks.last().is_none_or(|&n| n > 0) {
-            self.chunks.try_reserve(1).map_err(|_| OUT_OF_MEMORY)?;
+            let needed = (self.chunks.len() as u64 + 1) * size_of::<usize>() as u64;
+            let refused = |_| Error::Memory {
+                store: "wood's layout",
+                needed,
+            };
+            self.chunks.try_reserve(1).map_err(refused)?;
             self.chunks.push(0);
         }
         Ok(())
@@ -175,6 +190,8 @@ impl Layout {
         let fill = &mut self.chunks[piece.chunk];
         piece.base = *fill;
         *fill += vertices;
+        piece.ring = self.rings;
+        self.rings += piece.rings;
         self.pieces.push(piece);
         Ok(())
     }
@@ -185,22 +202,31 @@ impl Layout {
     }
 
     /// Each chunk's indices, over the pieces it holds.
-    pub(super) fn indices(&self, segments: usize, drawn: bool) -> Result<Vec<usize>> {
+    pub(super) fn indices(&self, drawn: bool) -> Result<Vec<usize>> {
         let mut out = filled(self.chunks.len(), 0)?;
         for piece in &self.pieces {
-            out[piece.chunk] += piece.indices(segments, drawn);
+            out[piece.chunk] += piece.indices(drawn);
+        }
+        Ok(out)
+    }
+
+    /// Each chunk's rings, over the pieces it holds.
+    pub(super) fn rings(&self) -> Result<Vec<usize>> {
+        let mut out = filled(self.chunks.len(), 0)?;
+        for piece in &self.pieces {
+            out[piece.chunk] += piece.rings;
         }
         Ok(out)
     }
 
     /// The elements every chunk together holds.
-    pub(super) fn extent(&self, segments: usize) -> WoodExtent {
+    pub(super) fn extent(&self) -> WoodExtent {
         let vertices: usize = self.chunks.iter().sum();
         let pieces = self.pieces.iter();
         WoodExtent {
             positions: vertices * 3,
             coords: vertices * 2,
-            indices: pieces.map(|p| p.indices(segments, true)).sum(),
+            indices: pieces.map(|p| p.indices(true)).sum(),
             chunks: self.chunks.len(),
         }
     }
@@ -208,13 +234,13 @@ impl Layout {
 
 /// Records each node's contact rings over a run's pieces: its pair's lower
 /// and upper ring, then the first and last ring of the piece that answers
-/// for the pair, as ring addresses. `offset` is the rings before the run's
+/// for the pair, as ring addresses, and the lower ring's place among the
+/// layout's rings (`Piece::ring`). `offset` is the rings before the run's
 /// first node, a buried foot.
 pub(super) fn record(
-    edges: &mut [Option<[usize; 4]>],
+    edges: &mut [Option<[usize; 5]>],
     nodes: &[usize],
     pieces: &[Piece],
-    segments: usize,
     offset: usize,
     shift: u32,
 ) {
@@ -225,12 +251,13 @@ pub(super) fn record(
             pieces.next();
         }
         let Some(p) = pieces.peek() else { return };
-        let at = |ring: usize| address(p.chunk, p.base + (ring - p.first) * segments, shift);
+        let at = |ring: usize| address(p.chunk, p.base + (ring - p.first) * p.sides, shift);
         edges[node] = Some([
             at(pair),
             at(pair + 1),
             at(p.first),
             at(p.first + p.rings - 1),
+            p.ring + pair - p.first,
         ]);
     }
 }

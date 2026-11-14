@@ -6,13 +6,12 @@
 //! in over a long stretch of a walk and a twig over a short one, and since
 //! the expectation is a smooth function of the settings, never of the wood
 //! that grew, a branch made anywhere moves no other draw's window.
-use crate::closed_form::expected_log_lengths;
 use crate::contract::presence::{q, real, times, ONE};
-use crate::dormant::wakes_in;
-use crate::species::{Species, Zone};
-use crate::structure::{Axis, Origin};
-use crate::transcendental::Transcendental;
-use std::sync::Arc;
+use crate::species::Species;
+use crate::structure::{Axis, Node, Origin};
+
+mod windows;
+pub(crate) use windows::{At, Windows};
 
 /// The window, in log-odds, per share of the tree's expected length that a
 /// draw decides.
@@ -21,138 +20,13 @@ pub const RATE: f64 = 6.0;
 pub const SPAN: f64 = 2.0;
 /// The narrowest window, in log-odds: a twig's.
 pub const FLOOR: f64 = 0.05;
-
-/// A log as the grower holds it (`contract::log32`), none as nothing.
-fn contract_log(log: f64) -> f32 {
-    crate::contract::log32(log)
-}
-
-/// The expected wood each draw decides, as a share of the whole tree's.
-/// Its tables are shared: every fine root's grower holds the tree's
-/// (`Rules`), and a copy of them a root cost most of a root's growth in
-/// Wasm.
-#[derive(Clone)]
-pub(crate) struct Windows {
-    /// expected[m][k]: the log of the metres a bud of PA k grows in m cycles.
-    expected: Arc<Vec<Vec<f64>>>,
-    /// The log of the whole tree's expected metres.
-    whole: f64,
-    /// woods[m][k]: `expected[m][k]`'s share of the whole tree, as the
-    /// grower reads it (host decision 8): taken once a tree, not once a
-    /// draw.
-    woods: Arc<Vec<Vec<f32>>>,
-    age: u32,
-}
-
-impl Windows {
-    pub fn new(species: &Species, age: u32) -> Self {
-        let expected = expected_log_lengths(species, age);
-        let whole = expected[age as usize][0];
-        // A wood of none stays none: its log less a finite one is -inf.
-        let woods = expected
-            .iter()
-            .map(|row| {
-                row.iter()
-                    .map(|&log| crate::contract::exp(contract_log(log - whole)))
-                    .collect()
-            })
-            .collect();
-        Self {
-            expected: Arc::new(expected),
-            whole,
-            woods: Arc::new(woods),
-            age,
-        }
-    }
-
-    /// The wood a bud of `pa` is expected to grow from `cycle` on, the cycle
-    /// itself included, as a share of the whole tree's.
-    pub fn wood(&self, pa: usize, cycle: u32) -> f64 {
-        let log = self.expected[(self.age + 1).saturating_sub(cycle) as usize][pa];
-        if log == f64::NEG_INFINITY {
-            return 0.0;
-        }
-        (log - self.whole).exp_fixed()
-    }
-
-    /// The log of `wood`: none where it is none (FINE-CONTRACT.md D10's
-    /// table).
-    pub fn log_wood(&self, pa: usize, cycle: u32) -> f64 {
-        let log = self.expected[(self.age + 1).saturating_sub(cycle) as usize][pa];
-        if log == f64::NEG_INFINITY {
-            return log;
-        }
-        log - self.whole
-    }
-
-    /// The wood a bud of `pa` is expected to grow over the `left` cycles
-    /// left of the tree's age, as a share of the whole tree's: `wood` at
-    /// the cycle `left` cycles before the tree's age.
-    pub fn wood_left(&self, pa: usize, left: usize) -> f64 {
-        let log = self.expected[left.min(self.age as usize)][pa];
-        if log == f64::NEG_INFINITY {
-            return 0.0;
-        }
-        (log - self.whole).exp_fixed()
-    }
-
-    /// The chance that a draw made with probability `p` is made within its
-    /// window, at a presence below 1, deciding `decided` of `wood`: where
-    /// a stop all but made grows both outcomes (host decision 11).
-    pub fn borderline(&self, p: f64, wood: f64, decided: f64) -> f64 {
-        let window = (RATE * wood * decided).clamp(FLOOR * decided, SPAN);
-        if p <= 0.0 || p >= 1.0 || window <= 0.0 {
-            return 0.0;
-        }
-        let logit = (p / (1.0 - p)).ln_fixed();
-        p - 1.0 / (1.0 + (window - logit).exp_fixed())
-    }
-
-    /// The wood a sleeping bud of `pa` on a node grown in `cycle` is
-    /// expected to grow, over the years it may wake in.
-    fn dormant(&self, zone: &Zone, pa: usize, cycle: u32) -> f64 {
-        (0..self.age.saturating_sub(cycle))
-            .map(|s| wakes_in(zone, s) * self.wood(pa, cycle + 1 + s))
-            .sum()
-    }
-
-    /// The wood each PA's sleeping bud on a node of `zone` grown in `cycle`
-    /// is expected to grow, into `woods` (none where the zone bears none),
-    /// and the wood the sleeping buds of one bud place are expected to.
-    pub fn sleeping(&self, zone: &Zone, cycle: u32, woods: &mut Vec<f64>) -> f64 {
-        woods.clear();
-        let mut expected = 0.0;
-        for (pa, &p) in zone.dormant.iter().enumerate() {
-            let wood = if p > 0.0 {
-                self.dormant(zone, pa, cycle)
-            } else {
-                0.0
-            };
-            expected += p * wood;
-            woods.push(wood);
-        }
-        expected
-    }
-
-    /// `metres` as a share of the whole tree's expected wood.
-    pub fn share(&self, metres: f64) -> f64 {
-        metres * (-self.whole).exp_fixed()
-    }
-
-    /// The window of a draw deciding `stake` of the wood a bud of `pa` is
-    /// expected to grow from `cycle` on, or from `used` of the way through
-    /// it (host decision 8, `contract::presence`).
-    pub fn window(&self, (pa, cycle, used): (usize, u32, Option<f64>), stake: f64) -> f32 {
-        use crate::contract::{presence, ticks};
-        let log = |c: u32| crate::contract::log32(self.log_wood(pa, c));
-        let wood = match used {
-            None => self.woods[(self.age + 1).saturating_sub(cycle) as usize][pa],
-            Some(used) => presence::wood_at((log(cycle), log(cycle + 1)), ticks(used)),
-        };
-        let window = ((RATE * stake) as f32, (FLOOR * stake) as f32, SPAN as f32);
-        presence::window(wood, window)
-    }
-}
+/// The cycles every draw looks over (fn-355): the wood a bud of its PA
+/// grows in them, which the expected-length table ends where its life
+/// ends and carries on into its next stages. Estimate, the host's: 40 is
+/// the age most presets are asked for and their walk bounds were measured
+/// at, so a young draw's window stays near what it has been, and a
+/// lifespan of any size costs the expected-length table no more than this.
+pub const LOOK: f64 = 40.0;
 
 /// The presences of the draws that shaped one axis.
 #[derive(Debug, Clone, Default)]
@@ -170,9 +44,8 @@ pub(crate) struct Draws {
     /// How much a living apex lives on (`Grower::living`).
     pub living: f64,
     /// Per growth unit, where light shades: its phytomers' size from its
-    /// bud's vigour (`allocation.rs`) and the light its bud grew in, whole
-    /// where nothing reads it; empty where nothing shades.
-    pub shade: Vec<[f64; 2]>,
+    /// bud's vigour (`allocation.rs`); empty where nothing shades.
+    pub shade: Vec<f64>,
     /// The apex stopped by failing to survive a growth unit.
     pub failed: bool,
     /// A relay of an age that ended or of a unit that failed
@@ -237,9 +110,9 @@ impl Draws {
         self.units.iter().map(|u| u.share).sum::<f64>()
     }
 
-    /// Growth unit `k`'s size and light, whole where nothing shades.
-    pub fn shade(&self, k: usize) -> [f64; 2] {
-        self.shade.get(k).copied().unwrap_or([1.0; 2])
+    /// Growth unit `k`'s size, whole where nothing shades.
+    pub fn shade(&self, k: usize) -> f64 {
+        self.shade.get(k).copied().unwrap_or(1.0)
     }
 
     /// The share of the cycle its age ended at, where it ended there and
@@ -321,27 +194,19 @@ pub(crate) fn assign_living<D: std::borrow::Borrow<Draws> + Sync>(
 
 /// The node of axis `p`'s last growth unit a relay of it stands at,
 /// `share` of the way along the unit by its nodes' presences.
-pub(crate) fn relay_node(p: &Axis, draws: &Draws, share: f64) -> usize {
+pub(crate) fn relay_node<P: Node>(p: &Axis<P>, draws: &Draws, share: f64) -> usize {
     let n = p.phytomers.len();
-    let Some(last) = p.phytomers.last().map(|q| q.cycle) else {
+    let Some(last) = p.phytomers.last().map(|q| q.cycle()) else {
         return 0;
     };
     let first = p
         .phytomers
         .iter()
-        .position(|q| q.cycle == last)
+        .position(|q| q.cycle() == last)
         .unwrap_or(0);
     // Each presence is an f32 held exactly in its real.
     let presences: Vec<f32> = draws.nodes[first..n].iter().map(|&x| x as f32).collect();
     crate::contract::decide::relay_node(&presences, first, n, share)
-}
-
-/// Axis `axis` assigned alone from its draws, as `assign` assigns it:
-/// its phytomers' scales, sizes and lights, and its end's presence.
-pub(crate) fn assigned(axis: &Axis, draws: &Draws) -> (Axis, f64) {
-    let mut a = axis.clone();
-    let end = assign_one(&mut a, draws, None);
-    (a, end)
 }
 
 /// Assigns one axis's presences from its draws: its end's presence.
@@ -357,13 +222,12 @@ fn assign_one(axis: &mut Axis, draws: &Draws, living: Option<f64>) -> f64 {
         running = times(running, q(unit.survive));
         let grown = q(unit.share);
         presences.push(real(times(running, grown)));
-        let [size, light] = draws.shade(k);
+        let size = draws.shade(k);
         while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
             let laid = q(unit.size);
             axis.phytomers[j].scale = real(times(times(running, q(draws.nodes[j])), laid));
             axis.phytomers[j].grown = axis.phytomers[j].scale;
             axis.phytomers[j].size = size;
-            axis.phytomers[j].light = light;
             axis.phytomers[j].rank = rank;
             rank += draws.nodes[j] * unit.size;
             j += 1;

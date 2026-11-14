@@ -33,17 +33,16 @@ pub enum Pass {
     Wake,
     /// Each cycle's rough layout.
     Sketch,
+    /// Each cycle's wood laid (`girth::lay`).
+    Wood,
     /// The light: the lattice swept, and read at the buds.
     ShadeField,
     ShadeRead,
-    /// Once settled: the living apexes marked, presences assigned, the
-    /// tree as grown sized for its shed pipes, shedding, the pipes
-    /// kept, scale and girth.
+    /// Once settled: the living apexes marked, presences assigned,
+    /// shedding, scale and girth.
     Mark,
     Assign,
-    Attachments,
     Shed,
-    Disused,
     Scale,
     Thicken,
     /// The final lay, its sag's levers, and the lay under sag.

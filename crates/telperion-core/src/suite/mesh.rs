@@ -39,14 +39,15 @@ fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
             Some(_) => mesh::build(&family).expect("the preset builds"),
             None => specimens::mesh(&family),
         };
-        let mut ends = vec![0; m.wood.chunks.len()];
+        let wood = m.wood.as_ref().expect("build makes the wood surface");
+        let mut ends = vec![0; wood.chunks.len()];
         let mut radius = f64::INFINITY;
         // Widest first on each side of the fine roots' seam: the structure
         // above the cut, then the fine roots (fn-212 D5), so the order
         // starts over at most once. The spans tile each chunk's indices.
         let mut sides = 1;
-        assert_eq!(m.wood.run_table.len(), m.wood.runs);
-        for (i, run) in m.wood.run_table.iter().enumerate() {
+        assert_eq!(wood.run_table.len(), wood.runs);
+        for (i, run) in wood.run_table.iter().enumerate() {
             let (end, span) = (&mut ends[run.chunk as usize], run.span);
             assert_eq!(span.first_index, *end, "{id}: run {i}");
             assert!(
@@ -69,8 +70,8 @@ fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
             "{id}"
         );
         assert_eq!(m.foliage_instances(), m.foliage.instances.len(), "{id}");
-        assert!(m.wood_triangles() > 0 && m.foliage_instances() > 0, "{id}");
-        for (chunk, &end) in m.wood.chunks.iter().zip(&ends) {
+        assert!(wood.triangles() > 0 && m.foliage_instances() > 0, "{id}");
+        for (chunk, &end) in wood.chunks.iter().zip(&ends) {
             let vertices = chunk.positions.len() / 3;
             assert!(
                 vertices <= CHUNK_VERTICES,
@@ -100,6 +101,39 @@ fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
             contains(m.bounds, leaves.min) && contains(m.bounds, leaves.max),
             "{id}: foliage outside the mesh bounds"
         );
+    }
+}
+
+/// The renderer's tree carries no surface, so its box is the curve's joined
+/// with the leaves' and the flowers' (fn-351): every cluster's box and every
+/// placement lies inside it, on every shipped preset.
+#[test]
+fn the_drawn_mesh_s_box_holds_its_curve_and_its_placements() {
+    let _turn = crate::one_tree::turn();
+    for &(_, id, _, _) in telperion_core::presets::CATALOGUE {
+        let family = Preset::from_id(id).expect("preset identity").parameters();
+        if family.space.species.is_none() {
+            let none = Error::InvalidInput("no engine species");
+            assert_eq!(mesh::drawn(&family).err(), Some(none), "{id}");
+            continue;
+        }
+        let m = mesh::drawn(&family).expect("the preset draws");
+        assert!(m.wood.is_none(), "{id}: drawn built a surface");
+        assert!(!m.curve.clusters.is_empty(), "{id}: no curve");
+        for c in &m.curve.clusters {
+            assert!(
+                contains(m.bounds, c.bounds.min) && contains(m.bounds, c.bounds.max),
+                "{id}: a curve cluster outside the drawn box"
+            );
+        }
+        for f in std::iter::once(&m.foliage).chain(m.organ.as_ref()) {
+            for i in 0..f.instances.len() {
+                assert!(
+                    contains(m.bounds, f.instances.position(i)),
+                    "{id}: placement {i} outside the drawn box"
+                );
+            }
+        }
     }
 }
 

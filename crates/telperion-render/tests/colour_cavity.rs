@@ -1,5 +1,6 @@
 //! Colour and contact shade the existing wood; crown depth hides only sky.
 mod common;
+use common::surface;
 use telperion_core::{
     material::MaterialParams,
     math::Vec3,
@@ -111,8 +112,8 @@ fn fissures_crests_and_mottle_change_colour_without_changing_wood() {
         family.material = row;
         let on_tree = mesh::build(&family).unwrap();
         assert_eq!(
-            hash(&tree.wood),
-            hash(&on_tree.wood),
+            hash(surface(&tree)),
+            hash(surface(&on_tree)),
             "{name} changed wood bytes"
         );
         let on = draw(&mut renderer, &trunk(), row);
@@ -245,7 +246,7 @@ fn crown_occlusion_darkens_wood_and_leaves_but_not_a_single_leaf_or_clay() {
         "fixture needs interior leaves"
     );
     assert!(
-        tree.wood
+        surface(&tree)
             .chunks
             .iter()
             .flat_map(|c| c.positions.as_chunks::<3>().0)

@@ -91,7 +91,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.42,
         "width": 0.06
       },
-      "fidelity": 0,
       "material": {
         "barkBlue": 0.068,
         "barkGrainScale": 0,
@@ -318,24 +317,25 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 25.888428479342984,
             "form": {
               "elevation": 1.5138642178632644,
-              "exponent": 2.533333333333333,
-              "pipe": 0.005648183260318469,
               "plane": 1.0471975511965976,
+              "primary": 0.005648183260318469,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.9095746992151857,
               "wander": 0.1740702373278582
             },
             "insertion": 0.1,
             "internode": 0.0399334633667196,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 0.4422495703074083,
             "relay": 1,
             "relayAt": 0.7166666666666666,
             "relayEnded": 0.33333333333333337,
             "relayFailed": 0.33333333333333337,
-            "retained": 0.16666666666666669,
             "rhythm": 0.7666666666666667,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
@@ -343,7 +343,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 0.33333333333333337,
             "takeover": 0.75,
             "trunk": true,
-            "upkeep": 0.006054004063162271,
             "zones": {
               "0": {
                 "buds": 1,
@@ -384,24 +383,25 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 25.888428479342984,
             "form": {
               "elevation": 1.5138642178632644,
-              "exponent": 2.533333333333333,
-              "pipe": 0.005648183260318469,
               "plane": 1.0471975511965976,
+              "primary": 0.005648183260318469,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.9095746992151857,
               "wander": 0.1740702373278582
             },
             "insertion": 0.1,
             "internode": 0.04458319119887085,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 1.080083823051904,
             "relay": 1,
             "relayAt": 0.7166666666666666,
             "relayEnded": 0.33333333333333337,
             "relayFailed": 0.33333333333333337,
-            "retained": 0.16666666666666669,
             "rhythm": 0.9,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
@@ -409,7 +409,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 0.33333333333333337,
             "takeover": 0.75,
             "trunk": true,
-            "upkeep": 0.006054004063162271,
             "zones": {
               "0": {
                 "buds": 1,
@@ -456,31 +455,31 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 25.888428479342984,
             "form": {
               "elevation": 1.5138642178632644,
-              "exponent": 2.533333333333333,
-              "pipe": 0.005648183260318469,
               "plane": 1.0471975511965976,
+              "primary": 0.005648183260318469,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.9095746992151857,
               "wander": 0.1740702373278582
             },
             "insertion": 0.1,
             "internode": 0.0509790349410698,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 15.726893214738396,
             "relay": 1,
             "relayAt": 0.7166666666666666,
             "relayEnded": 0.33333333333333337,
             "relayFailed": 0.33333333333333337,
-            "retained": 0.16666666666666669,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "straightening": 0.33333333333333337,
             "takeover": 0.75,
             "trunk": true,
-            "upkeep": 0.006054004063162271,
             "zones": {
               "0": {
                 "buds": 1,
@@ -529,31 +528,31 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 25.888428479342984,
             "form": {
               "elevation": 1.5138642178632644,
-              "exponent": 2.533333333333333,
-              "pipe": 0.005648183260318469,
               "plane": 1.0471975511965976,
+              "primary": 0.005648183260318469,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.9095746992151857,
               "wander": 0.1740702373278582
             },
             "insertion": 0.1,
             "internode": 0.0509790349410698,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 0.4422495703074083,
             "relay": 1,
             "relayAt": 0.7166666666666666,
             "relayEnded": 0.33333333333333337,
             "relayFailed": 0.33333333333333337,
-            "retained": 0.16666666666666669,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "straightening": 0.33333333333333337,
             "takeover": 0.75,
             "trunk": true,
-            "upkeep": 0.006054004063162271,
             "zones": {
               "0": {
                 "buds": 1,
@@ -601,32 +600,31 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "bendLength": 0.2141380652391394,
               "elevation": 1.4971975511965978,
-              "exponent": 2.533333333333333,
-              "pipe": 0.005648183260318469,
               "plane": 0.5235987755982988,
-              "ripening": 1.5198420997897464,
+              "primary": 0.005648183260318469,
               "roll": 0.4,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.9095746992151857,
               "wander": 0.4189443638417259
             },
             "insertion": 0.23333333333333334,
             "internode": 0.03917031545357339,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 61.72780864270068,
             "relay": 1,
             "relayAt": 0.7166666666666666,
             "relayFailed": 0.33333333333333337,
-            "retained": 0.16666666666666669,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "straightening": 0.33333333333333337,
             "takeover": 0.75,
             "trunk": true,
-            "upkeep": 0.006054004063162271,
             "zones": {
               "0": {
                 "buds": 1,
@@ -676,24 +674,24 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "bendLength": 0.2141380652391394,
               "elevation": 1.5707963267948966,
-              "exponent": 2.533333333333333,
-              "pipe": 0.005648183260318469,
               "plane": 1.0471975511965976,
+              "primary": 0.005648183260318469,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.7377718728240056,
               "wander": 0.22424032762163093
             },
             "internode": 0.03917031545357339,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 0.4422495703074083,
-            "retained": 0.16666666666666669,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "trunk": true,
-            "upkeep": 0.006054004063162271,
             "zones": {
               "0": {
                 "buds": 1,
@@ -742,34 +740,32 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "bendLength": 0.2141380652391394,
               "elevation": 0.9735987755982989,
-              "exponent": 2.6,
-              "pipe": 0.005648183260318469,
               "plane": 0.5235987755982988,
-              "ripening": 5.349604207872798,
+              "primary": 0.005648183260318469,
               "roll": 0.6666666666666667,
-              "sag": 0.00002141380652391393,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.8590093948322178,
               "wander": 0.4189443638417259
             },
             "insertion": 0.4,
             "internode": 0.0378121583039837,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 31.88758812795099,
             "relay": 1,
             "relayAt": 0.7166666666666666,
             "relayEnded": 1,
             "relayFailed": 1,
-            "retained": 0.16666666666666669,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 17,
             "straightening": 0.25,
             "takeover": 0.75,
-            "upkeep": 0.006054004063162271,
             "viability": 0.9983333333333334,
             "zones": {
               "0": {
@@ -836,33 +832,31 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "bendLength": 0.15198420997897463,
               "dominance": 0.11666666666666665,
               "elevation": 0.35,
-              "exponent": 2.466666666666667,
-              "pipe": 0.0029531522678490356,
-              "ripening": 13.121393341304252,
+              "primary": 0.0029531522678490356,
               "roll": 0.9333333333333333,
-              "sag": 0.000030412400206221867,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.487713065921074,
               "wander": 0.7567143230122718
             },
             "insertion": 0.9333333333333332,
             "internode": 0.03917031545357339,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 11.36603608919039,
             "relay": 1,
             "relayAt": 0.7166666666666666,
             "relayEnded": 1,
             "relayFailed": 0.75,
-            "retained": 0.16666666666666669,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 13.999999999999996,
             "straightening": 0.2,
             "takeover": 0.75,
-            "upkeep": 0.006054004063162271,
             "viability": 0.9973333333333333,
             "zones": {
               "0": {
@@ -917,28 +911,26 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "dominance": 0.11666666666666665,
               "elevation": 0.5499999999999999,
-              "exponent": 2.2666666666666666,
-              "pipe": 0.001977471768911922,
-              "ripening": 4.604078661310774,
+              "primary": 0.001977471768911922,
               "roll": 1.0666666666666667,
-              "sag": 0.00001223980090569314,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.3717693980316533,
               "wander": 0.7890167065610476
             },
             "insertion": 0.9666666666666666,
             "internode": 0.05195058881305778,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 11.603408836646643,
-            "retained": 0.16666666666666669,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 10.999999999999998,
             "straightening": 0.08333333333333334,
-            "upkeep": 0.006054004063162271,
             "viability": 0.981,
             "zones": {
               "0": {
@@ -1006,30 +998,28 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "dominance": 0.11666666666666665,
               "elevation": 0.5166666666666666,
-              "exponent": 2.066666666666667,
-              "pipe": 0.0008653651809040252,
-              "ripening": 1.2239800905693157,
+              "primary": 0.0008653651809040252,
               "roll": 1.0666666666666667,
-              "sag": 0.00003497941445275416,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.7341946649781853,
               "wander": 0.5881481297672508
             },
             "insertion": 1.1,
             "internode": 0.025929859097224436,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 34.04565470689849,
             "relay": 0.33333333333333337,
             "relayFailed": 0.2777777777777778,
-            "retained": 0.16666666666666669,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 2,
             "takeover": 0.75,
-            "upkeep": 0.006054004063162271,
             "viability": 0.976,
             "zones": {
               "0": {
@@ -1101,29 +1091,29 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 25.888428479342984,
             "form": {
               "elevation": -0.1499999999999999,
-              "pipe": 0.0007402701249205786,
+              "primary": 0.0007402701249205786,
               "roll": 0.8666666666666667,
-              "sag": 0.00002708429769266187,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.8332043472543913,
               "wander": 0.49387135618713135
             },
             "insertion": 0.9,
             "internode": 0.020168709029234323,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 1.2239800905693157,
             "relay": 0.33333333333333337,
             "relayEnded": 0.33333333333333337,
             "relayFailed": 0.25,
-            "retained": 0.16666666666666669,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 1.4,
             "takeover": 0.75,
-            "upkeep": 0.006054004063162271,
             "viability": 0.9733333333333333,
             "zones": {
               "0": {
@@ -1173,25 +1163,25 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 25.888428479342984,
             "form": {
               "elevation": -0.3333333333333333,
-              "pipe": 0.0007402701249205786,
+              "primary": 0.0007402701249205786,
               "roll": 0.4666666666666667,
-              "sag": 0.00002708429769266187,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 1.3532231116551476,
               "wander": 0.6246912167913121
             },
             "insertion": 0.9,
             "internode": 0.013280073963843116,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 2.4482172403827303,
-            "retained": 0.16666666666666669,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 1.25,
-            "upkeep": 0.006054004063162271,
             "viability": 0.9566666666666667,
             "zones": {
               "0": {
@@ -1234,24 +1224,25 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 25.888428479342984,
             "form": {
               "elevation": -0.05000000000000002,
-              "pipe": 0.0006876252863505538,
+              "primary": 0.0006876252863505538,
               "roll": 0.7999999999999999,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.9288276478101777,
               "wander": 0.7416448131856115
             },
             "insertion": 0.9666666666666667,
             "internode": 0.01959543053831074,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 3.481404746557164,
-            "retained": 0.16666666666666669,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 1.7692307692307692,
-            "upkeep": 0.006054004063162271,
             "viability": 0.9266666666666666,
             "zones": {
               "0": {
@@ -1297,24 +1288,25 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 25.888428479342984,
             "form": {
               "elevation": -0.05000000000000002,
-              "pipe": 0.0006610734999884338,
+              "primary": 0.0006610734999884338,
               "roll": 0.7999999999999999,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.7457690558114921,
               "wander": 0.7416448131856115
             },
             "insertion": 0.9666666666666667,
             "internode": 0.018218168565924873,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 0.5874010519681996,
-            "retained": 0.16666666666666669,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 1.7692307692307692,
-            "upkeep": 0.006054004063162271,
             "viability": 0.9333333333333333,
             "zones": {
               "0": {
@@ -1360,24 +1352,25 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 25.888428479342984,
             "form": {
               "elevation": -0.16666666666666666,
-              "pipe": 0.0007129508526476628,
+              "primary": 0.0007129508526476628,
               "roll": 0.39999999999999997,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.12239800905693157,
               "wander": 0.08794620881905606
             },
             "insertion": 0.9666666666666667,
             "internode": 0.009095746992151862,
-            "leafArea": 0.00016730748660601915,
+            "leafArea": 0.0044245,
             "leafFall": 45,
-            "leafGirth": 0.33333333333333337,
             "leafLife": 1.3024755700325734,
+            "leafYears": 1,
             "lifespan": 1.5198420997897464,
-            "retained": 0.16666666666666669,
             "senescence": 264,
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 1.7692307692307692,
-            "upkeep": 0.006054004063162271,
             "viability": 0.9,
             "zones": {
               "0": {
@@ -1412,7 +1405,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "internode": {},
         "marginReflectance": 0,
         "material": {},
-        "pipe": {},
+        "primary": {},
         "roughness": 0.3,
         "scale": 1
       },
@@ -1522,7 +1515,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.55,
         "width": 0.075
       },
-      "fidelity": 0,
       "material": {
         "barkBlue": 0.105,
         "barkGrainScale": 0.0025,
@@ -1746,15 +1738,21 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 35,
             "form": {
               "elevation": 1.5707963267948966,
-              "exponent": 2.6,
-              "pipe": 0.009,
+              "primary": 0.009,
+              "sag": 0.000005,
+              "sapwood": 4.3478260869565215,
+              "sapwoodFrom": 10,
+              "sapwoodRings": 16,
+              "sapwoodRingsTall": 1.61875,
+              "sapwoodTall": 0.6216216216216216,
+              "sapwoodTo": 25,
               "tropism": 0.6,
               "wander": 0.25
             },
             "internode": 0.045,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.53,
             "leafYears": 1,
             "lifespan": 12,
@@ -1762,7 +1760,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -1803,15 +1800,21 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 35,
             "form": {
               "elevation": 1.5707963267948966,
-              "exponent": 2.6,
-              "pipe": 0.009,
+              "primary": 0.009,
+              "sag": 0.000005,
+              "sapwood": 4.3478260869565215,
+              "sapwoodFrom": 10,
+              "sapwoodRings": 16,
+              "sapwoodRingsTall": 1.61875,
+              "sapwoodTall": 0.6216216216216216,
+              "sapwoodTo": 25,
               "tropism": 0.6,
               "wander": 0.25
             },
             "internode": 0.045,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.53,
             "leafYears": 1,
             "lifespan": 2,
@@ -1819,7 +1822,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -1861,15 +1863,21 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "bendLength": 3,
               "elevation": 1.5707963267948966,
-              "exponent": 2.6,
-              "pipe": 0.009,
+              "primary": 0.009,
+              "sag": 0.000005,
+              "sapwood": 4.3478260869565215,
+              "sapwoodFrom": 10,
+              "sapwoodRings": 16,
+              "sapwoodRingsTall": 1.61875,
+              "sapwoodTall": 0.6216216216216216,
+              "sapwoodTo": 25,
               "tropism": 0.6,
               "wander": 0.5
             },
             "internode": 0.05,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.53,
             "leafYears": 1,
             "lifespan": 6,
@@ -1877,7 +1885,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -1924,19 +1931,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "bendLength": 3,
               "elevation": 1.05,
-              "exponent": 2.8,
-              "pipe": 0.009,
-              "ripening": 15,
+              "primary": 0.009,
               "roll": 0.8,
-              "sag": 0.0003,
+              "sag": 0.000005,
+              "sapwood": 4.3478260869565215,
+              "sapwoodFrom": 10,
+              "sapwoodRings": 16,
+              "sapwoodRingsTall": 1.61875,
+              "sapwoodTall": 0.6216216216216216,
+              "sapwoodTo": 25,
               "tropism": 0.5,
               "wander": 0.5
             },
             "insertion": 0.5,
             "internode": 0.035,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.53,
             "leafYears": 1,
             "lifespan": 500,
@@ -1948,7 +1959,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeSize": 0.5,
             "shedding": 5,
             "straightening": 0.15,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2010,19 +2020,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "bendLength": 1.5,
               "elevation": 0.9,
-              "exponent": 2.6,
-              "pipe": 0.004,
-              "ripening": 15,
+              "primary": 0.004,
               "roll": 0.8,
-              "sag": 0.00005,
+              "sag": 0.000005,
+              "sapwood": 4.3478260869565215,
+              "sapwoodFrom": 10,
+              "sapwoodRings": 16,
+              "sapwoodRingsTall": 1.61875,
+              "sapwoodTall": 0.6216216216216216,
+              "sapwoodTo": 25,
               "tropism": 0.48,
               "wander": 0.35
             },
             "insertion": 0.6,
             "internode": 0.03,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.53,
             "leafYears": 1,
             "lifespan": 60,
@@ -2034,7 +2048,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeSize": 0.5,
             "shedding": 4,
             "takeover": 0.75,
-            "upkeep": 0.35,
             "viability": 0.999,
             "zones": {
               "0": {
@@ -2077,16 +2090,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 35,
             "form": {
               "elevation": 0.7,
-              "pipe": 0.0012,
+              "primary": 0.0012,
               "roll": 1.2,
+              "sag": 0.000005,
+              "sapwood": 4.3478260869565215,
+              "sapwoodFrom": 10,
+              "sapwoodRings": 16,
+              "sapwoodRingsTall": 1.61875,
+              "sapwoodTall": 0.6216216216216216,
+              "sapwoodTo": 25,
               "tropism": 0.5,
               "wander": 0.4
             },
             "insertion": 0.7,
             "internode": 0.031,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.53,
             "leafYears": 1,
             "lifespan": 10,
@@ -2094,7 +2114,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1.5,
             "shedding": 3,
-            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -2139,16 +2158,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 35,
             "form": {
               "elevation": 0.2,
-              "pipe": 0.0009,
+              "primary": 0.0009,
               "roll": 1.2,
+              "sag": 0.000005,
+              "sapwood": 4.3478260869565215,
+              "sapwoodFrom": 10,
+              "sapwoodRings": 16,
+              "sapwoodRingsTall": 1.61875,
+              "sapwoodTall": 0.6216216216216216,
+              "sapwoodTo": 25,
               "tropism": 0.33,
               "wander": 0.4
             },
             "insertion": 1,
             "internode": 0.017,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.53,
             "leafYears": 1,
             "lifespan": 12,
@@ -2160,7 +2186,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeSize": 1,
             "shedding": 3,
             "takeover": 0.75,
-            "upkeep": 0.35,
             "viability": 0.98,
             "zones": {
               "0": {
@@ -2205,16 +2230,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 35,
             "form": {
               "elevation": 0.2,
-              "pipe": 0.0009,
+              "primary": 0.0009,
               "roll": 1.2,
+              "sag": 0.000005,
+              "sapwood": 4.3478260869565215,
+              "sapwoodFrom": 10,
+              "sapwoodRings": 16,
+              "sapwoodRingsTall": 1.61875,
+              "sapwoodTall": 0.6216216216216216,
+              "sapwoodTo": 25,
               "tropism": 0.8,
               "wander": 0.4
             },
             "insertion": 0.8,
             "internode": 0.015,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.53,
             "leafYears": 1,
             "lifespan": 4,
@@ -2222,7 +2254,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1,
             "shedding": 2,
-            "upkeep": 0.35,
             "viability": 0.93,
             "zones": {
               "0": {
@@ -2265,16 +2296,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 35,
             "form": {
               "elevation": 0.2,
-              "pipe": 0.0008,
+              "primary": 0.0008,
               "roll": 1.2,
+              "sag": 0.000005,
+              "sapwood": 4.3478260869565215,
+              "sapwoodFrom": 10,
+              "sapwoodRings": 16,
+              "sapwoodRingsTall": 1.61875,
+              "sapwoodTall": 0.6216216216216216,
+              "sapwoodTo": 25,
               "tropism": 0.4,
               "wander": 0.4
             },
             "insertion": 0.8,
             "internode": 0.012,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.53,
             "leafYears": 1,
             "lifespan": 5,
@@ -2282,7 +2320,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1,
             "shedding": 2,
-            "upkeep": 0.35,
             "viability": 0.98,
             "zones": {
               "0": {
@@ -2324,13 +2361,20 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "elongation": 14,
             "expansion": 35,
             "form": {
-              "pipe": 0.0006
+              "primary": 0.0006,
+              "sag": 0.000005,
+              "sapwood": 4.3478260869565215,
+              "sapwoodFrom": 10,
+              "sapwoodRings": 16,
+              "sapwoodRingsTall": 1.61875,
+              "sapwoodTall": 0.6216216216216216,
+              "sapwoodTo": 25
             },
             "insertion": 0.9,
             "internode": 0.006,
+            "inverseHeight": 0.02873563218390805,
             "leafArea": 0.00181,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.53,
             "leafYears": 1,
             "lifespan": 3,
@@ -2338,7 +2382,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1,
             "shedding": 2,
-            "upkeep": 0.35,
             "viability": 0.9,
             "zones": {
               "0": {
@@ -2350,15 +2393,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               }
             }
           }
-        },
-        "coarse": {
-          "bud": 0.82,
-          "factor": 1.687,
-          "first": 9,
-          "hazard": 2.385,
-          "leaf": 26.289,
-          "pipe": 3.742,
-          "shedding": 0.243
         }
       },
       "supernatural": {
@@ -2373,7 +2407,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "internode": {},
         "marginReflectance": 0,
         "material": {},
-        "pipe": {},
+        "primary": {},
         "roughness": 0.3,
         "scale": 1
       },
@@ -2483,7 +2517,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.2,
         "width": 0.0015
       },
-      "fidelity": 0,
       "material": {
         "barkBlue": 0.028,
         "barkGrainScale": 0.0018,
@@ -2706,22 +2739,24 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 35,
             "form": {
               "elevation": 1.5707963267948966,
-              "exponent": 2.4,
-              "pipe": 0.0025,
               "plane": 1.5707963267948966,
+              "primary": 0.0025,
+              "sag": 0.0000061,
+              "sapwood": 2.7777777777777777,
+              "sapwoodRings": 30,
               "tropism": 2,
               "wander": 0.1
             },
             "internode": 0.02,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.0006713,
             "leafFall": 45,
-            "leafGirth": 1,
+            "leafYears": 5.5,
             "lifespan": 2,
             "rhythm": 0.3,
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2755,22 +2790,24 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 35,
             "form": {
               "elevation": 1.5707963267948966,
-              "exponent": 2.4,
-              "pipe": 0.0025,
               "plane": 1.5707963267948966,
+              "primary": 0.0025,
+              "sag": 0.0000061,
+              "sapwood": 2.7777777777777777,
+              "sapwoodRings": 30,
               "tropism": 2,
               "wander": 0.1
             },
             "internode": 0.028,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.00093982,
             "leafFall": 45,
-            "leafGirth": 1,
+            "leafYears": 5.5,
             "lifespan": 8,
             "rhythm": 0.7,
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2810,21 +2847,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 35,
             "form": {
               "elevation": 1.5707963267948966,
-              "exponent": 2.4,
-              "pipe": 0.0025,
               "plane": 1.5707963267948966,
+              "primary": 0.0025,
+              "sag": 0.0000061,
+              "sapwood": 2.7777777777777777,
+              "sapwoodRings": 30,
               "tropism": 2,
               "wander": 0.1
             },
             "internode": 0.042,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.0014097299999999999,
             "leafFall": 45,
-            "leafGirth": 1,
+            "leafYears": 5.5,
             "lifespan": 35,
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2865,21 +2904,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 35,
             "form": {
               "elevation": 1.5707963267948966,
-              "exponent": 2.4,
-              "pipe": 0.0025,
               "plane": 1.5707963267948966,
+              "primary": 0.0025,
+              "sag": 0.0000061,
+              "sapwood": 2.7777777777777777,
+              "sapwoodRings": 30,
               "tropism": 2,
               "wander": 0.1
             },
             "internode": 0.03,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.00100695,
             "leafFall": 45,
-            "leafGirth": 1,
+            "leafYears": 5.5,
             "lifespan": 300,
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2919,23 +2960,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "dominance": 0.35,
               "elevation": 0.35,
-              "exponent": 2.2,
-              "pipe": 0.0008,
-              "ripening": 10,
+              "primary": 0.0008,
               "roll": 0.8,
-              "sag": 0.0001,
+              "sag": 0.0000061,
+              "sapwood": 2.7777777777777777,
+              "sapwoodRings": 30,
               "tropism": 0.4,
               "wander": 1
             },
             "insertion": 1.5,
             "internode": 0.05,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.00167825,
             "leafFall": 45,
-            "leafGirth": 1,
+            "leafYears": 5.5,
             "lifespan": 6,
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
-            "upkeep": 0.35,
             "viability": 0.998,
             "zones": {
               "0": {
@@ -2992,24 +3033,24 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "dominance": 0.35,
               "elevation": 1,
-              "exponent": 2.2,
-              "pipe": 0.0008,
-              "ripening": 10,
+              "primary": 0.0008,
               "roll": 0.8,
-              "sag": 0.0009,
+              "sag": 0.0000061,
+              "sapwood": 2.7777777777777777,
+              "sapwoodRings": 30,
               "tropism": 1.4,
               "wander": 1
             },
             "insertion": 1.5,
             "internode": 0.034,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.00114121,
             "leafFall": 45,
-            "leafGirth": 1,
+            "leafYears": 5.5,
             "lifespan": 300,
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "shedding": 3,
-            "upkeep": 0.35,
             "viability": 0.998,
             "zones": {
               "0": {
@@ -3064,22 +3105,24 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 35,
             "form": {
               "elevation": -1,
-              "pipe": 0.0005,
+              "primary": 0.0005,
               "roll": 0.2,
-              "sag": 0.0005,
+              "sag": 0.0000061,
+              "sapwood": 2.7777777777777777,
+              "sapwoodRings": 30,
               "tropism": 2,
               "wander": 0.6
             },
             "insertion": 0.9,
             "internode": 0.016,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.00053704,
             "leafFall": 45,
-            "leafGirth": 1,
+            "leafYears": 5.5,
             "lifespan": 10,
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.99,
             "zones": {
               "0": {
@@ -3117,22 +3160,24 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 35,
             "form": {
               "elevation": -1.35,
-              "pipe": 0.0005,
+              "primary": 0.0005,
               "roll": 0.2,
-              "sag": 0.0005,
+              "sag": 0.0000061,
+              "sapwood": 2.7777777777777777,
+              "sapwoodRings": 30,
               "tropism": 3,
               "wander": 0.6
             },
             "insertion": 0.9,
             "internode": 0.006,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.00020139,
             "leafFall": 45,
-            "leafGirth": 1,
+            "leafYears": 5.5,
             "lifespan": 40,
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.99,
             "zones": {
               "0": {
@@ -3162,21 +3207,24 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 35,
             "form": {
               "elevation": -0.5,
-              "pipe": 0.0004,
+              "primary": 0.0004,
               "roll": 1.2,
+              "sag": 0.0000061,
+              "sapwood": 2.7777777777777777,
+              "sapwoodRings": 30,
               "tropism": 1,
               "wander": 1
             },
             "insertion": 1.1,
             "internode": 0.02,
+            "inverseHeight": 0.01639344262295082,
             "leafArea": 0.0006713,
             "leafFall": 45,
-            "leafGirth": 1,
+            "leafYears": 5.5,
             "lifespan": 2,
             "senescence": 264,
             "shadeHazard": 0.21153846153846145,
             "shedding": 3,
-            "upkeep": 0.35,
             "viability": 0.9,
             "zones": {
               "0": {
@@ -3188,15 +3236,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               }
             }
           }
-        },
-        "coarse": {
-          "bud": 0.982,
-          "factor": 2.693,
-          "first": 8,
-          "hazard": 3.759,
-          "leaf": 18.645,
-          "pipe": 2.2,
-          "shedding": 0.051
         }
       },
       "supernatural": {
@@ -3211,7 +3250,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "internode": {},
         "marginReflectance": 0,
         "material": {},
-        "pipe": {},
+        "primary": {},
         "roughness": 0.3,
         "scale": 1
       },
@@ -3321,7 +3360,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.45,
         "width": 0.05
       },
-      "fidelity": 0,
       "material": {
         "barkBlue": 0.0165,
         "barkGrainScale": 0.002,
@@ -3547,17 +3585,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 1.4,
-              "exponent": 2.6,
-              "pipe": 0.008,
               "plane": 1.5707963267948966,
+              "primary": 0.008,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.6,
               "wander": 0.2
             },
             "insertion": 0.3,
             "internode": 0.07,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 9,
@@ -3570,7 +3610,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 1,
             "takeover": 0.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -3611,17 +3650,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 1.35,
-              "exponent": 2.6,
-              "pipe": 0.008,
-              "ripening": 15,
+              "primary": 0.008,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.6,
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 40,
@@ -3634,7 +3674,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 1,
             "takeover": 0.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -3646,8 +3685,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -3677,22 +3716,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 1.5707963267948966,
-              "exponent": 2.6,
-              "pipe": 0.008,
               "plane": 1.5707963267948966,
+              "primary": 0.008,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.3,
               "wander": 0.2
             },
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 2,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -3735,17 +3775,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.3,
-              "exponent": 2.6,
-              "pipe": 0.008,
-              "ripening": 15,
+              "primary": 0.008,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.6,
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 70,
@@ -3757,7 +3798,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -3770,8 +3810,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -3801,17 +3841,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.2,
-              "exponent": 2.6,
-              "pipe": 0.008,
-              "ripening": 15,
+              "primary": 0.008,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.6,
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 30,
@@ -3823,7 +3864,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -3836,8 +3876,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -3865,24 +3905,24 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.6,
-              "exponent": 2.6,
-              "pipe": 0.008,
-              "ripening": 15,
+              "primary": 0.008,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.25,
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 25,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.25,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -3895,8 +3935,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -3923,23 +3963,28 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.35,
-              "pipe": 0.0009,
+              "primary": 0.0009,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.8,
               "wander": 0.5
             },
             "insertion": 1,
             "internode": 0.03,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 10,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
+            "shadeShort": {
+              "14": 0.38
+            },
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -3952,7 +3997,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "14": 0.7
+                  "12": 0.53,
+                  "14": 0.17
                 },
                 "nodes": {
                   "max": 3,
@@ -3990,22 +4036,27 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.15,
-              "pipe": 0.0009,
+              "primary": 0.0009,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 1,
               "wander": 1
             },
             "insertion": 1,
             "internode": 0.025,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 5,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
+            "shadeShort": {
+              "14": 0.38
+            },
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -4037,20 +4088,22 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "elongation": 14,
             "expansion": 14,
             "form": {
-              "pipe": 0.00095
+              "primary": 0.00095,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50
             },
             "insertion": 0.9,
             "internode": 0.006,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
-            "lifespan": 4,
+            "lifespan": 12,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.9,
             "zones": {
               "0": {
@@ -4076,7 +4129,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "internode": {},
         "marginReflectance": 0,
         "material": {},
-        "pipe": {},
+        "primary": {},
         "roughness": 0.3,
         "scale": 1
       },
@@ -4186,7 +4239,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.2,
         "width": 0.037
       },
-      "fidelity": 0,
       "material": {
         "barkBlue": 0.7,
         "barkGrainScale": 0.002,
@@ -4410,23 +4462,25 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "bendLength": 6,
               "elevation": 1.5707963267948966,
-              "exponent": 2.5,
               "internodeSpread": 0.2,
-              "pipe": 0.004,
+              "primary": 0.004,
+              "sag": 0.0000037,
+              "sapwood": 4.6,
+              "sapwoodRings": 40,
               "tropism": 0.5,
               "wander": 0.35
             },
             "groundHazard": 1,
             "internode": 0.055,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.61,
+            "leafYears": 1,
             "lifespan": 5,
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -4468,22 +4522,24 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "bendLength": 6,
               "elevation": 1.5707963267948966,
-              "exponent": 2.5,
               "internodeSpread": 0.2,
-              "pipe": 0.004,
+              "primary": 0.004,
+              "sag": 0.0000037,
+              "sapwood": 4.6,
+              "sapwoodRings": 40,
               "tropism": 0.5,
               "wander": 0.35
             },
             "groundHazard": 1,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.61,
+            "leafYears": 1,
             "lifespan": 9,
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -4528,22 +4584,24 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "bendLength": 6,
               "elevation": 1.5707963267948966,
-              "exponent": 2.5,
               "internodeSpread": 0.2,
-              "pipe": 0.004,
+              "primary": 0.004,
+              "sag": 0.0000037,
+              "sapwood": 4.6,
+              "sapwoodRings": 40,
               "tropism": 0.5,
               "wander": 0.35
             },
             "groundHazard": 1,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.61,
+            "leafYears": 1,
             "lifespan": 26,
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -4592,18 +4650,21 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "bendLength": 6,
               "elevation": 1,
-              "exponent": 2.5,
               "internodeSpread": 0.2,
-              "pipe": 0.004,
+              "primary": 0.004,
+              "sag": 0.0000037,
+              "sapwood": 4.6,
+              "sapwoodRings": 40,
               "tropism": 0.4,
               "wander": 0.5
             },
             "groundHazard": 1,
             "internode": 0.015,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.61,
+            "leafYears": 1,
             "lifespan": 100,
             "relay": 1,
             "relayAt": 0.6,
@@ -4613,7 +4674,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1.1423076923076922,
             "takeover": 0.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -4659,22 +4719,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "bendLength": 3,
               "dominance": 0.2,
               "elevation": 1.3,
-              "exponent": 2.4,
               "internodeSpread": 0.7,
-              "pipe": 0.002,
-              "ripening": 10,
+              "primary": 0.002,
               "roll": 1.2,
-              "sag": 0.00006,
+              "sag": 0.0000037,
+              "sapwood": 4.6,
+              "sapwoodRings": 40,
               "tropism": 0.9,
               "wander": 0.6
             },
             "groundHazard": 1,
             "insertion": 0.6,
             "internode": 0.055,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.61,
+            "leafYears": 1,
             "lifespan": 25,
             "relay": 1,
             "relayEnded": 1,
@@ -4683,7 +4744,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1.1423076923076922,
             "shedding": 3,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.998,
             "zones": {
               "0": {
@@ -4732,22 +4792,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "bendLength": 3,
               "dominance": 0.2,
               "elevation": 0.5,
-              "exponent": 2.4,
               "internodeSpread": 0.7,
-              "pipe": 0.002,
-              "ripening": 10,
+              "primary": 0.002,
               "roll": 1.2,
-              "sag": 0.00008,
+              "sag": 0.0000037,
+              "sapwood": 4.6,
+              "sapwoodRings": 40,
               "tropism": 0.3,
               "wander": 0.6
             },
             "groundHazard": 1,
             "insertion": 0.6,
             "internode": 0.03,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.61,
+            "leafYears": 1,
             "lifespan": 100,
             "relay": 1,
             "relayEnded": 1,
@@ -4756,7 +4817,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1.1423076923076922,
             "shedding": 2,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -4804,25 +4864,26 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 24,
             "form": {
               "elevation": 0.8,
-              "exponent": 2.2,
               "internodeSpread": 0.4,
-              "pipe": 0.0012,
+              "primary": 0.0012,
               "roll": 0.8,
-              "sag": 0.0002,
+              "sag": 0.0000037,
+              "sapwood": 4.6,
+              "sapwoodRings": 40,
               "tropism": 0.5,
               "wander": 0.4
             },
             "groundHazard": 1,
             "insertion": 0.7,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.61,
+            "leafYears": 1,
             "lifespan": 14,
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
             "shedding": 2,
-            "upkeep": 0.35,
             "viability": 0.97,
             "zones": {
               "0": {
@@ -4868,9 +4929,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "elevation": -1.5707963267948966,
               "insertionSpread": 0.5,
               "internodeSpread": 0.7,
-              "pipe": 0.0008,
+              "primary": 0.0008,
               "roll": 1.6,
-              "sag": 0.0002,
+              "sag": 0.0000037,
+              "sapwood": 4.6,
+              "sapwoodRings": 40,
               "tropism": 3,
               "tropismSpread": 0.6,
               "wander": 0.4
@@ -4878,15 +4941,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "groundHazard": 1,
             "insertion": 0.7,
             "internode": 0.06,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.61,
+            "leafYears": 1,
             "lifespan": 12,
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.92,
             "zones": {
               "0": {
@@ -4920,20 +4983,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "elongation": 110,
             "expansion": 24,
             "form": {
-              "pipe": 0.0005
+              "primary": 0.0005,
+              "sag": 0.0000037,
+              "sapwood": 4.6,
+              "sapwoodRings": 40
             },
             "groundHazard": 1,
             "insertion": 0.8,
             "internode": 0.003,
+            "inverseHeight": 0.03333333333333333,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.61,
+            "leafYears": 1,
             "lifespan": 6,
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.92,
             "zones": {
               "0": {
@@ -4945,15 +5011,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               }
             }
           }
-        },
-        "coarse": {
-          "bud": 1.534,
-          "factor": 1.503,
-          "first": 8,
-          "hazard": 2.366,
-          "leaf": 10.045,
-          "pipe": 2.131,
-          "shedding": 0.65
         }
       },
       "supernatural": {
@@ -4968,7 +5025,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "internode": {},
         "marginReflectance": 0,
         "material": {},
-        "pipe": {},
+        "primary": {},
         "roughness": 0.3,
         "scale": 1
       },
@@ -5078,7 +5135,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.42,
         "width": 0.0725
       },
-      "fidelity": 0,
       "material": {
         "barkBlue": 0.135,
         "barkGrainScale": 0,
@@ -5299,8 +5355,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 139,
             "form": {
               "elevation": 1.5707963267948966,
-              "pipe": 0.297,
-              "secondary": 0,
+              "primary": 0.297,
               "tropism": 0.5,
               "wander": 0.05
             },
@@ -5334,7 +5389,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "internode": {},
         "marginReflectance": 0,
         "material": {},
-        "pipe": {},
+        "primary": {},
         "roughness": 0.3,
         "scale": 1
       },
@@ -5444,7 +5499,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.45,
         "width": 0.05
       },
-      "fidelity": 0,
       "material": {
         "barkBlue": 0.0165,
         "barkGrainScale": 0.002,
@@ -5670,17 +5724,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 1.4,
-              "exponent": 2.6,
-              "pipe": 0.008,
               "plane": 1.5707963267948966,
+              "primary": 0.008,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.6,
               "wander": 0.2
             },
             "insertion": 0.3,
             "internode": 0.07,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 9,
@@ -5693,7 +5749,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 1,
             "takeover": 0.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -5734,17 +5789,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 1.35,
-              "exponent": 2.6,
-              "pipe": 0.008,
-              "ripening": 15,
+              "primary": 0.008,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.6,
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 40,
@@ -5757,7 +5813,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 1,
             "takeover": 0.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -5769,8 +5824,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -5800,22 +5855,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 1.5707963267948966,
-              "exponent": 2.6,
-              "pipe": 0.008,
               "plane": 1.5707963267948966,
+              "primary": 0.008,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.3,
               "wander": 0.2
             },
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 2,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -5858,17 +5914,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.3,
-              "exponent": 2.6,
-              "pipe": 0.008,
-              "ripening": 15,
+              "primary": 0.008,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.6,
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 70,
@@ -5880,7 +5937,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -5893,8 +5949,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -5924,17 +5980,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.2,
-              "exponent": 2.6,
-              "pipe": 0.008,
-              "ripening": 15,
+              "primary": 0.008,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.6,
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 30,
@@ -5946,7 +6003,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -5959,8 +6015,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -5988,24 +6044,24 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.6,
-              "exponent": 2.6,
-              "pipe": 0.008,
-              "ripening": 15,
+              "primary": 0.008,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.25,
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 25,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.25,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -6018,8 +6074,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -6046,23 +6102,28 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.35,
-              "pipe": 0.0009,
+              "primary": 0.0009,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.8,
               "wander": 0.5
             },
             "insertion": 1,
             "internode": 0.03,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 10,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
+            "shadeShort": {
+              "14": 0.38
+            },
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -6075,7 +6136,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "14": 0.7
+                  "12": 0.53,
+                  "14": 0.17
                 },
                 "nodes": {
                   "max": 3,
@@ -6113,22 +6175,27 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.15,
-              "pipe": 0.0009,
+              "primary": 0.0009,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 1,
               "wander": 1
             },
             "insertion": 1,
             "internode": 0.025,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 5,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
+            "shadeShort": {
+              "14": 0.38
+            },
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -6160,20 +6227,22 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "elongation": 14,
             "expansion": 14,
             "form": {
-              "pipe": 0.00095
+              "primary": 0.00095,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50
             },
             "insertion": 0.9,
             "internode": 0.006,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
-            "lifespan": 4,
+            "lifespan": 12,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.9,
             "zones": {
               "0": {
@@ -6235,7 +6304,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "leafFrontGreen": 0.022,
           "leafFrontRed": 0.0055
         },
-        "pipe": {
+        "primary": {
           "age2": 0.024,
           "age4": 0.024,
           "age5": 0.024,
@@ -6352,7 +6421,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.45,
         "width": 0.05
       },
-      "fidelity": 0,
       "material": {
         "barkBlue": 0.0165,
         "barkGrainScale": 0.002,
@@ -6578,17 +6646,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 1.4,
-              "exponent": 2.6,
-              "pipe": 0.008,
               "plane": 1.5707963267948966,
+              "primary": 0.008,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.6,
               "wander": 0.2
             },
             "insertion": 0.3,
             "internode": 0.07,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 9,
@@ -6601,7 +6671,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 1,
             "takeover": 0.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -6642,17 +6711,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 1.35,
-              "exponent": 2.6,
-              "pipe": 0.008,
-              "ripening": 15,
+              "primary": 0.008,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.6,
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 40,
@@ -6665,7 +6735,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "straightening": 1,
             "takeover": 0.5,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -6677,8 +6746,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -6708,22 +6777,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 1.5707963267948966,
-              "exponent": 2.6,
-              "pipe": 0.008,
               "plane": 1.5707963267948966,
+              "primary": 0.008,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.3,
               "wander": 0.2
             },
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 2,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "trunk": true,
-            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -6766,17 +6836,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.3,
-              "exponent": 2.6,
-              "pipe": 0.008,
-              "ripening": 15,
+              "primary": 0.008,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.6,
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 70,
@@ -6788,7 +6859,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -6801,8 +6871,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -6832,17 +6902,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.2,
-              "exponent": 2.6,
-              "pipe": 0.008,
-              "ripening": 15,
+              "primary": 0.008,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.6,
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 30,
@@ -6854,7 +6925,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
             "takeover": 0.5,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -6867,8 +6937,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -6896,24 +6966,24 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.6,
-              "exponent": 2.6,
-              "pipe": 0.008,
-              "ripening": 15,
+              "primary": 0.008,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.25,
               "wander": 1.2
             },
             "insertion": 0.7,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 25,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.25,
-            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -6926,8 +6996,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.27,
-                  "14": 0.3
+                  "9": 0.485,
+                  "14": 0.085
                 },
                 "nodes": {
                   "max": 3,
@@ -6954,23 +7024,28 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.35,
-              "pipe": 0.0009,
+              "primary": 0.0009,
               "roll": 1.2,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 0.8,
               "wander": 0.5
             },
             "insertion": 1,
             "internode": 0.03,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 10,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
+            "shadeShort": {
+              "14": 0.38
+            },
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -6983,7 +7058,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "14": 0.7
+                  "12": 0.53,
+                  "14": 0.17
                 },
                 "nodes": {
                   "max": 3,
@@ -7021,22 +7097,27 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "expansion": 14,
             "form": {
               "elevation": 0.15,
-              "pipe": 0.0009,
+              "primary": 0.0009,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50,
               "tropism": 1,
               "wander": 1
             },
             "insertion": 1,
             "internode": 0.025,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
             "lifespan": 5,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
+            "shadeShort": {
+              "14": 0.38
+            },
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -7068,20 +7149,22 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "elongation": 14,
             "expansion": 14,
             "form": {
-              "pipe": 0.00095
+              "primary": 0.00095,
+              "sag": 0.0000041,
+              "sapwood": 3.021148036253776,
+              "sapwoodRings": 50
             },
             "insertion": 0.9,
             "internode": 0.006,
+            "inverseHeight": 0.025,
             "leafArea": 0.0015723,
             "leafFall": 45,
-            "leafGirth": 1,
             "leafLife": 0.54,
             "leafYears": 1,
-            "lifespan": 4,
+            "lifespan": 12,
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "shedding": 1,
-            "upkeep": 0.35,
             "viability": 0.9,
             "zones": {
               "0": {
@@ -7146,7 +7229,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "marginGreen": 0.52,
           "marginRed": 0.75
         },
-        "pipe": {
+        "primary": {
           "age2": 0.0272,
           "age4": 0.0272,
           "age5": 0.0272,

@@ -1,0 +1,107 @@
+--- a/crates/telperion-space/src/contract.rs
++++ b/crates/telperion-space/src/contract.rs
+@@ -83,6 +83,26 @@
+     e as f32 + ln * std::f32::consts::LOG2_E
+ }
+ 
++/// `x.floor()`, to the bit, without the call into libm that `floor` is on
++/// x86-64 below SSE4.1 (fn-351 speed round 2). An f32 of magnitude 2^23
++/// or more is whole and returned as it is, as are the infinities and a
++/// NaN; below that its cast is its whole part toward none, exact, and one
++/// less where that lies above it. A zero keeps its sign, as `floor`'s
++/// does: -0.0 of -0.0, 0.0 of a value in [0, 1). (A signalling NaN, which
++/// no arithmetic makes, `floor` would quiet.)
++pub fn floor(x: f32) -> f32 {
++    if !(x.abs() < 8_388_608.0) {
++        return x;
++    }
++    let whole = x as i32 as f32;
++    let below = if whole > x { whole - 1.0 } else { whole };
++    if below == 0.0 {
++        0.0f32.copysign(x)
++    } else {
++        below
++    }
++}
++
+ /// `2^x`: none below 2^-126, the largest below 2^128 past it; `x` split
+ /// into its nearest whole `n` and the rest `f` in [-1/2, 1/2], `2^f` by
+ /// its Taylor series to the seventh power.
+@@ -92,7 +112,7 @@
+     if x < -126.0 {
+         return 0.0;
+     }
+-    let n = (x.min(127.0) + 0.5).floor();
++    let n = floor(x.min(127.0) + 0.5);
+     let f = x.min(127.0) - n;
+     let p = 1.0
+         + f * (0.693_147_2
+--- a/crates/telperion-space/src/contract/tests.rs
++++ b/crates/telperion-space/src/contract/tests.rs
+@@ -138,3 +138,44 @@
+     );
+     assert!(!kept(dead, None, ONE - 135_107_988), "one under it sheds");
+ }
++
++/// fn-351 speed round 2: the contract's `floor` is `f32::floor` to the
++/// bit: at every edge, and at every 37th of the 2^32 f32s (a signalling
++/// NaN apart, which `f32::floor` quiets and no arithmetic makes).
++#[test]
++fn the_contracts_floor_is_floor_to_the_bit() {
++    let same = |x: f32| {
++        let (ours, theirs) = (super::floor(x), x.floor());
++        assert_eq!(ours.to_bits(), theirs.to_bits(), "{x:e}");
++    };
++    let edges = [
++        0.0,
++        -0.0,
++        0.5,
++        -0.5,
++        1.0,
++        -1.0,
++        0.999_999_94,
++        -0.999_999_94,
++        f32::MIN_POSITIVE,
++        -f32::MIN_POSITIVE,
++        1e-45,
++        -1e-45,
++        8_388_607.5,
++        -8_388_607.5,
++        8_388_608.0,
++        -8_388_608.0,
++        2_147_483_648.0,
++        -2_147_483_648.0,
++        f32::MAX,
++        f32::MIN,
++        f32::INFINITY,
++        f32::NEG_INFINITY,
++        f32::NAN,
++    ];
++    edges.into_iter().for_each(same);
++    let signalling = |bits: u32| f32::from_bits(bits).is_nan() && bits & 0x0040_0000 == 0;
++    for bits in (0..=u32::MAX).step_by(37).filter(|&b| !signalling(b)) {
++        same(f32::from_bits(bits));
++    }
++}
+--- a/crates/telperion-space/src/geometry/q.rs
++++ b/crates/telperion-space/src/geometry/q.rs
+@@ -91,7 +91,7 @@
+ 
+ /// An amount within half a turn of none: the orientation it reads.
+ pub(crate) fn wrap(turns: f32) -> f32 {
+-    turns - (turns + 0.5).floor()
++    turns - crate::contract::floor(turns + 0.5)
+ }
+ 
+ /// The amount from orientation `from` to `to`, the short way.
+--- a/crates/telperion-space/src/light/field.rs
++++ b/crates/telperion-space/src/light/field.rs
+@@ -46,7 +46,7 @@
+ /// A coordinate's node and its fraction of the way to the next.
+ fn node(x: f32) -> (i32, f32) {
+     let s = x / CELL as f32;
+-    let n = s.floor();
++    let n = crate::contract::floor(s);
+     (n as i32, s - n)
+ }
+ 

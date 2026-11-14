@@ -1,8 +1,8 @@
 //! The one cycle's working set (fn-255, CYCLE-COST.md levers 1 to 3). The
 //! balance and the allotment visit only the open axes: those on the way
-//! from the root to a living apex or a sleeping bud. A closed subtree lays
-//! no more wood, so its upkeep is frozen once, as the sum the whole tree's
-//! pass takes; its light and lit presence are none.
+//! from the root to a living apex or a sleeping bud. A closed subtree holds
+//! nothing living, so it adds nothing to either: no light, no charge and
+//! no lit presence (fn-349: wood that has died is charged nothing).
 //!
 //! **The one reduction order** (COUNCIL.md, "Decided by the spike"): a
 //! subtree's sum is its own value, then each
@@ -10,15 +10,15 @@
 //! continuation or relay at the tip last); the normaliser's per-PA sums
 //! run over the growing buds in that subtree order (preorder), cut into
 //! blocks of `BLOCK` buds, each block summed in order and the blocks then
-//! added in order (`order`, `passes.rs`). Every sum is therefore the same whether
-//! a closed subtree is frozen or summed again, and whatever retires. The
+//! added in order (`order`, `passes.rs`). Every sum is therefore the same
+//! whatever is closed, and whatever retires. The
 //! links and each axis's children are kept across cycles, and the lists
 //! each pass fills are kept for the next.
 use crate::allocation::{drawn, sized, Link, TIP};
 
 /// The growing buds a block of the normaliser's sums holds.
 pub(super) const BLOCK: usize = 1024;
-use crate::structure::{Axis, Origin};
+use crate::structure::{Axis, Growing, Origin};
 
 /// What the passes keep across cycles.
 #[derive(Debug, Default)]
@@ -28,8 +28,6 @@ pub(in crate::grow) struct Working {
     /// Each axis's children by node then index (the tip's last): the
     /// order every subtree sum and the split take them in.
     pub(super) by_node: Vec<Vec<u32>>,
-    /// A closed subtree's upkeep, once taken (NaN until then).
-    pub(super) frozen: Vec<f32>,
     /// Whether each axis is open this cycle, the open ones in order, and
     /// each one's place among them.
     pub(super) open: Vec<bool>,
@@ -47,9 +45,12 @@ pub(in crate::grow) struct Working {
     kids: Vec<u32>,
     /// Which subtrees have been retired (`retire.rs`).
     pub(super) retire: super::retire::Retirement,
-    /// The tests' references: every laid axis open, none frozen; none
-    /// retired.
+    /// The tests' references: every laid axis open and none retired.
     pub(super) all_open: bool,
+    /// Where every axis is held open, which of them are on the way to a
+    /// living apex or a sleeping bud: the wood whose leaf stands
+    /// (`closed`), from the tree's state alone.
+    wood: Vec<bool>,
     pub(super) keep_all: bool,
     /// Whether a retired subtree's records are kept at their indices and
     /// every verdict logged: the light capture, which reads every axis by
@@ -93,6 +94,19 @@ impl Working {
         &self.by_node[i]
     }
 
+    /// Whether axis `i`, laid before this cycle, is closed this cycle:
+    /// nothing in its subtree lives or sleeps, so it bears no leaf and no
+    /// leaf stands above it again (`open_from`, fn-354 R5). The same for a
+    /// reference that holds every axis open.
+    pub(in crate::grow) fn closed(&self, i: usize) -> bool {
+        let open = if self.all_open {
+            &self.wood
+        } else {
+            &self.open
+        };
+        i < open.len() && !open[i]
+    }
+
     /// Which subtrees have been retired.
     pub(in crate::grow) fn retirement(&self) -> &super::retire::Retirement {
         &self.retire
@@ -100,7 +114,7 @@ impl Working {
 
     /// The laid axes `axes[..n]` taken in: the new ones' links and PAs,
     /// each set among its bearer's children.
-    pub(super) fn extend(&mut self, axes: &[Axis], n: usize) {
+    pub(super) fn extend(&mut self, axes: &[Axis<Growing>], n: usize) {
         for i in self.links.len()..n {
             let link = match axes[i].origin {
                 Origin::Seed => Link {
@@ -125,7 +139,6 @@ impl Working {
             self.links.push(link);
             self.pa.push(axes[i].pa);
             self.by_node.push(Vec::new());
-            self.frozen.push(f32::NAN);
             self.open.push(false);
             self.at.push(u32::MAX);
             self.light.push(0.0);
@@ -144,11 +157,20 @@ impl Working {
         for &i in &was {
             self.open[i] = false;
         }
+        let from: Vec<usize> = from.filter(|&i| i < self.links.len()).collect();
         if self.all_open {
+            self.wood = vec![false; self.links.len()];
+            for &f in &from {
+                let mut i = Some(f);
+                while let Some(k) = i.filter(|&k| !self.wood[k]) {
+                    self.wood[k] = true;
+                    i = self.links[k].parent;
+                }
+            }
             self.list.extend(0..self.links.len());
             self.list.iter().for_each(|&i| self.open[i] = true);
         }
-        for mut i in from.filter(|&i| i < self.links.len()) {
+        for mut i in from {
             while !self.open[i] {
                 self.open[i] = true;
                 self.list.push(i);
@@ -173,44 +195,32 @@ impl Working {
             .extend(was.into_iter().chain(fresh).filter(|&i| !open[i]));
     }
 
-    /// Each open axis's subtree's light, upkeep and living, its own given
-    /// by `own`, then its children's in order: a closed child's frozen
-    /// upkeep, no light and nothing living.
-    pub(super) fn totals(
-        &mut self,
-        own: &dyn Fn(usize) -> (f32, f32, bool),
-        upkeep: &dyn Fn(usize) -> f32,
-    ) {
+    /// Each open axis's subtree's light, charge and living (fn-349,
+    /// BUILD-ANSWERS.md 1): a part earns its own light and what each child
+    /// lateral has left over, and costs its own charge. Its own, from `own`,
+    /// takes in its open continuation or relay, its own line, whole; each
+    /// open child lateral then adds its surplus, its light less its charge,
+    /// where that is above none, so a child at break-even hands its bearer
+    /// nothing on either side. A closed child adds nothing.
+    pub(super) fn totals(&mut self, own: &dyn Fn(usize) -> (f32, f32, bool)) {
         for k in (0..self.list.len()).rev() {
             let i = self.list[k];
             let (mut light, mut cost, mut living) = own(i);
             for j in 0..self.by_node[i].len() {
                 let c = self.by_node[i][j] as usize;
-                if self.open[c] {
+                if !self.open[c] {
+                    continue;
+                }
+                if self.links[c].node == TIP {
                     light += self.light[c];
                     cost += self.cost[c];
-                    living |= self.living[c];
                 } else {
-                    cost += self.closed(c, upkeep);
+                    light += (self.light[c] - self.cost[c]).max(0.0);
                 }
+                living |= self.living[c];
             }
             (self.light[i], self.cost[i], self.living[i]) = (light, cost, living);
         }
-    }
-
-    /// A closed subtree's upkeep, taken once as the whole tree's pass
-    /// takes it.
-    fn closed(&mut self, c: usize, upkeep: &dyn Fn(usize) -> f32) -> f32 {
-        if !self.frozen[c].is_nan() {
-            return self.frozen[c];
-        }
-        let mut cost = upkeep(c);
-        for j in 0..self.by_node[c].len() {
-            let g = self.by_node[c][j] as usize;
-            cost += self.closed(g, upkeep);
-        }
-        self.frozen[c] = cost;
-        cost
     }
 
     /// `allocation::split` over the open axes: each subtree's lit
@@ -292,7 +302,6 @@ impl Working {
         f.vec("working.pa", &self.pa);
         f.vec("working.by_node", &self.by_node);
         f.inner("working.by_node.each", &self.by_node, |v| v);
-        f.vec("working.frozen", &self.frozen);
         f.vec("working.open", &self.open);
         f.vec("working.list", &self.list);
         f.vec("working.closed", &self.closed);

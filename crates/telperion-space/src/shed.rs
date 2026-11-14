@@ -4,10 +4,16 @@
 //! by its presence, so a branch whose last growth a setting is unmaking
 //! shrinks away before it is shed; it is dropped once its fade reaches
 //! nothing, which for whole presences and delays is the cycle GreenLab
-//! drops it in (fn-206).
-use crate::contract::presence::{carry, fade, q, real, times};
+//! drops it in (fn-206). A subtree fades once (fn-359): an axis is drawn
+//! at its applied fade, the least of its own and its bearers', so a line
+//! carried on past its last full-sized living wood is drawn at its living
+//! apex's size however many axes carry it.
+use crate::contract::presence::{carry, fade, q, real, times, ONE};
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
+
+#[cfg(test)]
+mod tests;
 
 /// Per PA, the cycles past a fresh bud's birth by which every apex its
 /// subtree can grow has stopped, from the settings alone; none where no
@@ -54,12 +60,11 @@ pub(crate) fn lasting(species: &Species, laterals: &[Vec<Vec<f64>>]) -> Vec<Opti
     last
 }
 
-/// What shedding leaves: the kept axes, each grown axis's index among
-/// them (`usize::MAX` where it was shed) and each grown axis's fade.
+/// What shedding leaves: the kept axes and each one's applied fade, the
+/// share its scale and its girth are drawn at.
 pub(crate) struct Shed {
     pub axes: Vec<Axis>,
-    pub index: Vec<usize>,
-    pub fade: Vec<f64>,
+    pub applied: Vec<f64>,
 }
 
 pub(crate) fn shed(axes: Vec<Axis>, species: &Species, age: u32) -> Shed {
@@ -74,6 +79,19 @@ pub(crate) fn shed(axes: Vec<Axis>, species: &Species, age: u32) -> Shed {
 pub(crate) struct Living {
     pub lived: f32,
     pub alive: f32,
+}
+
+/// A retired root kept as what its bearer's fade reads of it (fn-357): its
+/// bearer and the node it stands at, its birth cycle, the vigour its draws
+/// give (`presence::assign`) and its subtree's living. Its own fade is none
+/// for good, so it is never drawn; it is only carried up.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) struct Stand {
+    pub bearer: u32,
+    pub node: u32,
+    pub birth: u32,
+    pub vigour: f32,
+    pub living: Living,
 }
 
 /// What stands in for an axis whose subtree is grown elsewhere: its
@@ -92,21 +110,24 @@ pub(crate) fn shed_given(
     given: Given<Living>,
     report: Option<usize>,
 ) -> (Shed, Living) {
-    shed_past(axes, species, age, (given, &|_| false), report)
+    shed_past(axes, species, age, (given, &|_| false, &[]), report)
 }
 
 /// `shed_given`, every axis `gone` names left out of the fades: one inside
-/// a subtree retired as it grew, whose root `given` stands for (fn-255).
+/// a subtree retired as it grew, whose root `given` stands for (fn-255);
+/// and each of `stands` carried up into its bearer, a root let go of
+/// whose subtree is shed for good (fn-357).
 pub(crate) fn shed_past(
     mut axes: Vec<Axis>,
     species: &Species,
     age: u32,
-    (given, gone): (Given<Living>, Gone),
+    (given, gone, stands): (Given<Living>, Gone, &[Stand]),
     report: Option<usize>,
 ) -> (Shed, Living) {
-    let (fade, reported) = fades(&axes, species, age, (given, gone), report);
+    let (fade, reported) = fades(&axes, species, age, (given, gone, stands), report);
     let mut index = vec![usize::MAX; axes.len()];
     let mut kept = Vec::with_capacity(axes.len());
+    let mut applied: Vec<f32> = Vec::with_capacity(axes.len());
     for (i, mut axis) in axes.drain(..).enumerate() {
         // Gone with its parent, or once its fade has reached nothing: its
         // subtree idle past its delay by a whole cycle, in the time its
@@ -121,7 +142,14 @@ pub(crate) fn shed_past(
         if lost {
             continue;
         }
-        axis.vigour *= fade[i];
+        // Its applied fade: the lesser of its bearer's and its own, which
+        // is one on the seed and on a continuation. Its vigour takes only
+        // what its own asks beyond its bearers', in f32: one where they
+        // have applied as much, its own fade where they applied none.
+        let bearer = axis.origin.parent().map_or(ONE, |p| applied[index[p]]);
+        let own = bearer.min(q(fade[i]));
+        axis.vigour *= real(own / bearer);
+        applied.push(own);
         match &mut axis.origin {
             Origin::Seed => {}
             Origin::Continuation { parent }
@@ -133,8 +161,7 @@ pub(crate) fn shed_past(
     }
     let shed = Shed {
         axes: kept,
-        index,
-        fade,
+        applied: applied.into_iter().map(real).collect(),
     };
     (shed, reported)
 }
@@ -147,7 +174,7 @@ fn fades(
     axes: &[Axis],
     species: &Species,
     age: u32,
-    (given, gone): (Given<Living>, Gone),
+    (given, gone, stands): (Given<Living>, Gone, &[Stand]),
     report: Option<usize>,
 ) -> (Vec<f64>, Living) {
     let delay = |a: &Axis| match a.origin {
@@ -196,19 +223,14 @@ fn fades(
             (*lived, *alive) = (g.lived, g.alive);
         }
     }
-    for (i, link) in axes.iter().enumerate().rev() {
-        let Some(parent) = link.origin.parent().filter(|_| !gone(i)) else {
-            continue;
-        };
-        let mut weight = q(link.vigour);
-        if let Origin::Lateral { node, .. } = link.origin {
-            weight = times(weight, q(axes[parent].phytomers[node].scale));
-        }
+    // What a child born in `birth` carries up into `parent` at `weight`:
+    // its living time and its living apex's presence.
+    let up = |parent: usize, birth: u32, weight: f32, (l, a): (f32, f32)| {
         let p = &axes[parent];
-        let units = (link.birth.saturating_sub(p.birth) as usize).min(p.units.len());
+        let units = (birth.saturating_sub(p.birth) as usize).min(p.units.len());
         // A relay made the cycle its parent died starts a cycle after
         // the parent's last growth unit.
-        let gap = link.birth - p.birth - units as u32;
+        let gap = birth - p.birth - units as u32;
         // The parent's own time to the child's birth: from its share of
         // its first cycle gone, through its units before the child; none
         // where the child carries it on in the cycle it began, whose own
@@ -218,9 +240,28 @@ fn fades(
         } else {
             q(p.sleep) + grown[at[parent] + units]
         };
-        let carried = carry(before, weight, gap, lived[i]);
-        lived[parent] = lived[parent].max(carried);
-        alive[parent] = alive[parent].max(times(alive[i], weight));
+        (carry(before, weight, gap, l), times(a, weight))
+    };
+    // A stand's carry first: a bearer takes the most of its children's, in
+    // any order, before its own is carried up.
+    for s in stands {
+        let (parent, node) = (s.bearer as usize, s.node as usize);
+        let weight = times(s.vigour, q(axes[parent].phytomers[node].scale));
+        let (l, a) = up(parent, s.birth, weight, (s.living.lived, s.living.alive));
+        lived[parent] = lived[parent].max(l);
+        alive[parent] = alive[parent].max(a);
+    }
+    for (i, link) in axes.iter().enumerate().rev() {
+        let Some(parent) = link.origin.parent().filter(|_| !gone(i)) else {
+            continue;
+        };
+        let mut weight = q(link.vigour);
+        if let Origin::Lateral { node, .. } = link.origin {
+            weight = times(weight, q(axes[parent].phytomers[node].scale));
+        }
+        let (l, a) = up(parent, link.birth, weight, (lived[i], alive[i]));
+        lived[parent] = lived[parent].max(l);
+        alive[parent] = alive[parent].max(a);
     }
     let reported = report.map_or_else(Living::default, |r| Living {
         lived: lived[r],
@@ -247,13 +288,14 @@ pub(crate) fn faded(d: f64, birth: u32, living: Living, age: u32) -> f64 {
 }
 
 /// The living of the subtree `axes` stands for, axis 0 its root, each
-/// axis `given` names standing for a subtree whose living it gives: what
-/// the whole tree's fades read of it (fn-255's retirement).
+/// axis `given` names standing for a subtree whose living it gives, and
+/// each of `stands` carried up into its bearer: what the whole tree's
+/// fades read of it (fn-255's retirement).
 pub(crate) fn subtree_living(
     axes: &[Axis],
     species: &Species,
     age: u32,
-    given: Given<Living>,
+    (given, stands): (Given<Living>, &[Stand]),
 ) -> Living {
-    fades(axes, species, age, (given, &|_| false), Some(0)).1
+    fades(axes, species, age, (given, &|_| false, stands), Some(0)).1
 }

@@ -23,64 +23,65 @@ use crate::{beech, oak, palm, spruce, Species};
 // raises the stem by what its crown's establishment lowers it.
 // fn-236 (2026-10-15) re-pinned the oak's: its young stem's laterals grow
 // 0.031 m nodes, the sapling rate Hibbs and Yoder measured, not 0.07 m.
+// fn-354 (2026-11-11) cut the rows to the chance kept, the phytomers and
+// the reach when the pipe model's girth went: the pins are re-taken over
+// those three fields. fn-354 R7 re-pinned the beech's from 2 years on: its
+// tables hold full light, 85% of its long laterals' kind (Lemoine 2002).
+// fn-354 task 7 re-pinned the beech's from age 5 on: its short shoots live
+// twelve years, not four (Aas, estimated).
 const PINNED: [(&str, u32, u64); 40] = [
-    ("beech", 1, 0x744ad9d4c38baff6),
-    ("beech", 2, 0xd9f87b741891c18c),
-    ("beech", 3, 0xd3d7e320ab50986a),
-    ("beech", 5, 0xa25780f4606665e1),
-    ("beech", 8, 0x43868d5a16f4f5e6),
-    ("beech", 13, 0xc15c3e16c911ad80),
-    ("beech", 21, 0x2e6e97941a820b8f),
-    ("beech", 34, 0x25d4b089f88103ef),
-    ("beech", 55, 0x7fbaa3b3b032c06d),
-    ("beech", 80, 0xb2611e6c03bc5cd5),
-    ("spruce", 1, 0xac6954d6503540ef),
-    ("spruce", 2, 0x888227367b6eebbf),
-    ("spruce", 3, 0x7c582f520c81ba87),
-    ("spruce", 5, 0xa3aaad14e39da2f6),
-    ("spruce", 8, 0xe2ae9b3d587cb8cc),
-    ("spruce", 13, 0x43f9877dcae3d07c),
-    ("spruce", 21, 0xb25b6c20092f8cd4),
-    ("spruce", 34, 0x8591291469644b73),
-    ("spruce", 55, 0xd8d66197922ef708),
-    ("spruce", 80, 0xa453b49bcdabd3a7),
-    ("oak", 1, 0x85a24b1a6d792878),
-    ("oak", 2, 0xc8a959d1e850b247),
-    ("oak", 3, 0x8f9a1180135f3a6e),
-    ("oak", 5, 0xcd76f1424072db54),
-    ("oak", 8, 0x4acc0e62c26bf48a),
-    ("oak", 13, 0x0e9f262e999e438f),
-    ("oak", 21, 0x5a3f45e2a91bd524),
-    ("oak", 34, 0xe842d2ff6a339d4e),
-    ("oak", 55, 0xc0327a273d354879),
-    ("oak", 80, 0xa647e4d74297988f),
-    ("palm", 1, 0x0ce2f02f7186f784),
-    ("palm", 2, 0x5aab3ecd4c102ab4),
-    ("palm", 3, 0x2373698dcb356a49),
-    ("palm", 5, 0x1c8c78a14b8ad458),
-    ("palm", 8, 0x29f142d42c6555a2),
-    ("palm", 13, 0x13939ec283bdf95f),
-    ("palm", 21, 0xaf09a40e56020f89),
-    ("palm", 34, 0xbb9c3490b560c4ab),
-    ("palm", 55, 0x0c0c45ae81a6006b),
-    ("palm", 80, 0x0b6b03e0e9395181),
+    ("beech", 1, 0xa2e130ba18028771),
+    ("beech", 2, 0x03bc696d4cdfb040),
+    ("beech", 3, 0x009517b81c6fa372),
+    ("beech", 5, 0x2cd7d25d39d2d2f9),
+    ("beech", 8, 0x0dd380b8633c2aa7),
+    ("beech", 13, 0xabb50900911070af),
+    ("beech", 21, 0x2b7e2e0bc690bcd3),
+    ("beech", 34, 0x83a3f8bfab63fa0b),
+    ("beech", 55, 0xe8fe297d03aaf235),
+    ("beech", 80, 0xdc45213cb6d254e2),
+    ("spruce", 1, 0x1bd7503c848b7e4e),
+    ("spruce", 2, 0x63658628179a71ef),
+    ("spruce", 3, 0x1e5ee6e850a43c37),
+    ("spruce", 5, 0xef2d2ef62ec223e8),
+    ("spruce", 8, 0x645aa5147e7101be),
+    ("spruce", 13, 0xab4e5787746cd792),
+    ("spruce", 21, 0x2f902f0a824dec1b),
+    ("spruce", 34, 0xb83837f7f3106c9d),
+    ("spruce", 55, 0xa9cab43f03d04d34),
+    ("spruce", 80, 0x87064a4dbac8eca5),
+    ("oak", 1, 0xe977ae2b69a0d744),
+    ("oak", 2, 0x6e89997a17c69ecf),
+    ("oak", 3, 0xf7b38ea083456564),
+    ("oak", 5, 0x3ab37aac3931ef48),
+    ("oak", 8, 0x9268783ae7b7e589),
+    ("oak", 13, 0x5f17d42f54aaefaf),
+    ("oak", 21, 0x0fb84f45740b210e),
+    ("oak", 34, 0xc15b53bef7bd8c04),
+    ("oak", 55, 0x195eba1890ff0358),
+    ("oak", 80, 0x0616657716130d14),
+    ("palm", 1, 0xe48e7cc1296888a8),
+    ("palm", 2, 0xbe604c115631bda8),
+    ("palm", 3, 0xde0e1c605fdc5598),
+    ("palm", 5, 0x7fe3463534ba163d),
+    ("palm", 8, 0x1856f757b027d525),
+    ("palm", 13, 0x4c65739378feaa18),
+    ("palm", 21, 0x7c9e2d76ea9888f6),
+    ("palm", 34, 0xb7e2ac08a2e9fd99),
+    ("palm", 55, 0xfc1bf47547e91c5e),
+    ("palm", 80, 0xf7fae13e8d99d9e2),
 ];
 
 /// Each row's fields as their bits, the seed's last.
-fn bits(rows: &Rows) -> Vec<[u64; 9]> {
-    let field = |r: &Row| {
-        [
-            r.kept, r.s1, r.s2, r.grown1, r.grown2, r.mass, r.moment, r.reach, r.e,
-        ]
-        .map(f64::to_bits)
-    };
+fn bits(rows: &Rows) -> Vec<[u64; 3]> {
+    let field = |r: &Row| [r.kept, r.count, r.reach].map(f64::to_bits);
     let mut out: Vec<_> = rows.rows.iter().map(field).collect();
     out.push(field(&rows.seed));
     out
 }
 
 /// FNV-1a over the bits, a pin that names a change without holding it.
-fn hash(bits: &[[u64; 9]]) -> u64 {
+fn hash(bits: &[[u64; 3]]) -> u64 {
     let mut h = 0xcbf2_9ce4_8422_2325u64;
     for word in bits.iter().flatten() {
         for byte in word.to_le_bytes() {
@@ -126,24 +127,15 @@ fn the_rows_hold_their_values() {
 /// The rows of 9f063433 at 40 and 80, each borne PA's at every eighth age,
 /// its oldest and the seed (a sample that held the largest mass and moment
 /// differences of every row for beech and spruce): species, age, row, and
-/// the bits of kept, E[S; kept], E[S²; kept], mass, moment and reach.
+/// the bits of kept, E[S; kept], E[S²; kept], mass, moment and reach, of
+/// which the chance kept and the reach are still read.
 const OLD: &str = include_str!("rows-9f063433.txt");
 
 /// Each field's largest relative difference from the old rows that this
-/// reading may make. The chance kept, the section and the reach are the
-/// same recursion summed in another order. Mass and moment take each
-/// unit's section beyond it from the rest of the axis as one mixture,
-/// where 9f063433 took it end by end, and a failed relay's section at the
-/// rest's base rather than at its node: the radius's power of a mixture,
-/// measured at most 5.5e-3 (beech's moment at 80).
-const TOLERANCE: [(&str, f64); 6] = [
-    ("kept", 1e-9),
-    ("s1", 1e-9),
-    ("s2", 1e-9),
-    ("mass", 1e-2),
-    ("moment", 1e-2),
-    ("reach", 1e-9),
-];
+/// reading may make, by its column in the old rows and in `bits`: the
+/// chance kept and the reach are the same recursion summed in another
+/// order.
+const TOLERANCE: [(&str, usize, usize, f64); 2] = [("kept", 0, 0, 1e-9), ("reach", 5, 2, 1e-9)];
 
 /// The rows stay within the tolerance of 9f063433's, field by field;
 /// prints the largest and the 95th percentile of each.
@@ -163,8 +155,8 @@ fn the_rows_stay_near_the_old_reading() {
         for line in OLD.lines().filter(|l| l.starts_with(&prefix)) {
             let w: Vec<&str> = line.split(' ').collect();
             let row = &new[w[2].parse::<usize>().unwrap()];
-            for (q, field) in [0, 1, 2, 5, 6, 7].into_iter().enumerate() {
-                let o = f64::from_bits(u64::from_str_radix(w[3 + q], 16).unwrap());
+            for (q, &(_, old, field, _)) in TOLERANCE.iter().enumerate() {
+                let o = f64::from_bits(u64::from_str_radix(w[3 + old], 16).unwrap());
                 let n = f64::from_bits(row[field]);
                 let scale = o.abs().max(n.abs());
                 d[q].push(if scale > 0.0 {
@@ -179,7 +171,7 @@ fn the_rows_stay_near_the_old_reading() {
         for (q, d) in d.iter_mut().enumerate() {
             d.sort_by(f64::total_cmp);
             let (max, p95) = (d[d.len() - 1], d[(d.len() * 95 / 100).min(d.len() - 1)]);
-            let (field, tolerance) = TOLERANCE[q];
+            let (field, _, _, tolerance) = TOLERANCE[q];
             line += &format!(" {field} {max:.1e}/{p95:.1e}");
             if max > tolerance {
                 worst.push(format!("{name} {age} {field} {max:.2e}"));

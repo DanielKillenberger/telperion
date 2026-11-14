@@ -5,9 +5,9 @@ use telperion_space::{Form, Origin, Structure, Vec3};
 /// it eases: the sum over its phytomers of the moment they carry over
 /// their radius to the fourth, times their length. The load is the wood
 /// and foliage beyond each phytomer, as `sag.rs` weighs it, at the walk
-/// tree's default pipe and no ripening.
+/// tree's default primary radius.
 pub fn sag_bend(tree: &Structure, pa: usize) -> f64 {
-    let pipe = Form::default().pipe;
+    let primary = Form::default().primary;
     let n = tree.axes.len();
     // Each axis's phytomers' masses and centres, base to tip.
     let parts: Vec<Vec<(f64, Vec3)>> = tree
@@ -19,7 +19,7 @@ pub fn sag_bend(tree: &Structure, pa: usize) -> f64 {
                 .iter()
                 .map(|p| {
                     let length = (p.tip - from).length();
-                    let leaf = pipe * p.scale;
+                    let leaf = primary * p.scale;
                     let part = (
                         length * (p.radius * p.radius + leaf * leaf),
                         (from + p.tip) * 0.5,

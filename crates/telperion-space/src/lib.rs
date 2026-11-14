@@ -41,6 +41,7 @@ mod schedule;
 mod shed;
 mod species;
 mod spruce;
+pub mod stage;
 mod structure;
 mod tolerance;
 mod transcendental;
@@ -51,9 +52,7 @@ pub use beech::beech;
 pub use birch::birch;
 pub use blend::blend;
 pub use chain::{passed, AGES};
-pub use closed_form::{
-    expected_axes, expected_counts, expected_grown, expected_kept, expected_length,
-};
+pub use closed_form::{expected_counts, expected_grown, expected_kept, expected_length};
 pub use error::{Error, Result};
 pub use fine::{canonical, digest, identities, lineage_order};
 pub use grow::cycle::{
@@ -69,9 +68,8 @@ pub use lineage::{
 };
 pub use oak::oak;
 pub use palm::palm;
-pub use presence::{FLOOR, RATE, SPAN};
+pub use presence::{FLOOR, LOOK, RATE, SPAN};
 pub use schedule::most_units;
-pub use species::coarse::{Coarsening, COARSEST};
 pub use species::scale::{
     scale, setting, settings, zone_settings, Scale, Setting, OUTCOMES, SETTINGS,
 };

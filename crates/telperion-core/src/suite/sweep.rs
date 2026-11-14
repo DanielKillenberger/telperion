@@ -81,8 +81,7 @@ const SWEEP_NODES: usize = 8_000;
 // with the rest of the scaffold; the birch (fn-213) moves the envelope, the
 // clump, the peel, the curtain and the twig length, so the sweep walks
 // those. Every preset is now an engine preset, so every pair is walked.
-const HELD: [&str; 140] = [
-    "/fidelity",
+const HELD: [&str; 139] = [
     "/bloom/florets",
     "/bloom/rachis",
     "/bloom/droop",
@@ -209,15 +208,15 @@ const HELD: [&str; 140] = [
     "/supernatural/internode/age12",
     "/supernatural/internode/age13",
     "/supernatural/internode/age14",
-    "/supernatural/pipe/age0",
-    "/supernatural/pipe/age1",
-    "/supernatural/pipe/age3",
-    "/supernatural/pipe/age9",
-    "/supernatural/pipe/age10",
-    "/supernatural/pipe/age11",
-    "/supernatural/pipe/age12",
-    "/supernatural/pipe/age13",
-    "/supernatural/pipe/age14",
+    "/supernatural/primary/age0",
+    "/supernatural/primary/age1",
+    "/supernatural/primary/age3",
+    "/supernatural/primary/age9",
+    "/supernatural/primary/age10",
+    "/supernatural/primary/age11",
+    "/supernatural/primary/age12",
+    "/supernatural/primary/age13",
+    "/supernatural/primary/age14",
     "/canopy/spacing",
     "/skeleton/attractors",
     "/skeleton/bias/supernatural/spiralRate",
@@ -403,6 +402,8 @@ fn grows(a: &str, b: &str, step: usize) {
     let mesh = mesh::build(&family).unwrap_or_else(|e| panic!("{a}->{b} at {at}: {e}"));
     assert!(
         mesh.wood
+            .as_ref()
+            .expect("build makes the wood surface")
             .chunks
             .iter()
             .flat_map(|c| &c.positions)
@@ -414,7 +415,7 @@ fn grows(a: &str, b: &str, step: usize) {
     // A node cap this low truncates the tree before its twigs, and a
     // step that keeps no leaf under it still keeps its wood.
     assert!(
-        mesh.wood_vertices() > 0,
+        mesh.wood_vertices() > Some(0),
         "{a}->{b} at {at}: nothing was built"
     );
 }

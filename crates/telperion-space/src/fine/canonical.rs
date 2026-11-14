@@ -138,7 +138,7 @@ pub fn digest(structure: &Structure) -> u64 {
             for v in [p.tip, p.heading, p.side] {
                 put_vec(&mut put, v);
             }
-            for v in [p.radius, p.scale, p.rank, p.size, p.light] {
+            for v in [p.radius, p.scale, p.rank, p.size] {
                 put(v.to_bits());
             }
             put(p.key);

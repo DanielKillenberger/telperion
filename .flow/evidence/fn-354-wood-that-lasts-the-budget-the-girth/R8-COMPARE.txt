@@ -1,0 +1,127 @@
+$ python3 -I scoreboard/board.py compare scoreboard/base-2026-11-11 scoreboard/phase2b-2026-11-12
+tree                   measure                            base-2026-11-11 phase2b-2026-11-12  change
+beech at 40            cost rss_gib                                 0.09           0.35  +288.9%
+beech at 40            cost seconds                                0.276          1.064  +285.5%
+beech at 40            crown_ratio                                0.7086         0.9438  +33.2%
+beech at 40            dbh                                        0.3156         0.2115  -33.0%
+beech at 40            lai                                         3.433          7.461  +117.3%
+beech at 40            leaf_area                                   113.6          320.2  +182.0%
+beech at 40            lowest_live                                 3.056          0.563  -81.6%
+beech at 40            lowest_live5                                3.163           1.02  -67.7%
+beech at 40            new_shoots                                   8608      2.311e+04  +168.4%
+beech at 40            nodes                                   1.109e+05      4.332e+05  +290.5%
+beech at 40            spread_x                                    6.546          7.931  +21.1%
+birch at 40            cost rss_gib                                 0.44           0.48  +9.1%
+birch at 40            cost seconds                                2.067           1.89  -8.6%
+birch at 40            crown_ratio                                0.7066         0.8062  +14.1%
+birch at 40            dbh                                        0.2958         0.2253  -23.8%
+birch at 40            lai                                         3.058          2.577  -15.7%
+birch at 40            leaf_area                                   157.4          110.7  -29.6%
+birch at 40            lowest_live                                  4.89          3.233  -33.9%
+birch at 40            nodes                                   3.081e+05      3.256e+05  +5.7%
+birch at 40            spread_x                                    8.176          7.562  -7.5%
+birch at 40            spread_z                                    8.538          7.585  -11.2%
+date-palm at preset    wasm ms fidelity 0                          16.67           29.7  +78.2%
+european-beech at preset wasm ms fidelity 0                          261.9           1572  +500.5%
+european-beech at preset wasm ms fidelity 1                          498.9           1868  +274.3%
+laurelin at preset     wasm ms fidelity 0                      1.687e+04      1.199e+04  -28.9%
+laurelin at preset     wasm ms fidelity 1                           7765      2.344e+04  +201.9%
+laurelin at 80         cost rss_gib                                 2.51           3.57  +42.2%
+laurelin at 80         cost seconds                                17.31          21.22  +22.5%
+laurelin at 80         crown_ratio                                0.7573         0.9396  +24.1%
+laurelin at 80         dbh                                         3.061          1.186  -61.3%
+laurelin at 80         lai                                         5.529          4.237  -23.4%
+laurelin at 80         leaf_area                                    9561           7443  -22.2%
+laurelin at 80         lowest_live                                 11.43          2.729  -76.1%
+laurelin at 80         lowest_live5                                11.43          2.729  -76.1%
+laurelin at 80         new_shoots                              1.416e+05      1.042e+05  -26.4%
+norway-spruce at preset wasm ms fidelity 0                           7548           9519  +26.1%
+norway-spruce at preset wasm ms fidelity 1                          1180          570.4  -51.7%
+oak at 120             cost rss_gib                                 2.55           3.39  +32.9%
+oak at 120             cost seconds                                45.09           42.8  -5.1%
+oak at 120             dbh                                         2.024          1.418  -29.9%
+oak at 120             lai                                          2.5          1.968  -21.2%
+oak at 120             leaf_area                                   1409           1823  +29.4%
+oak at 120             lowest_live                                 4.971          4.315  -13.2%
+oak at 120             lowest_live5                                4.971           4.59  -7.7%
+oak at 120             new_shoots                              2.134e+05      2.649e+05  +24.1%
+oak at 120             nodes                                   3.244e+06      4.014e+06  +23.7%
+oak at 120             spread_x                                    31.24          35.87  +14.8%
+oak at 120             spread_z                                    30.49          34.38  +12.8%
+oak at 200             crown_ratio                                0.4992         0.8465  +69.6%
+oak at 200             dbh                                         1.349            1.8  +33.4%
+oak at 200             height                                      32.38          30.17  -6.8%
+oak at 200             lai                                         2.329          2.175  -6.6%
+oak at 200             leaf_area                                   638.2           1168  +82.9%
+oak at 200             lowest_live                                 15.88          4.635  -70.8%
+oak at 200             lowest_live5                                16.54          4.635  -72.0%
+oak at 200             new_shoots                              8.624e+04      2.951e+05  +242.2%
+oak at 200             nodes                                   1.384e+06      3.895e+06  +181.5%
+oak at 200             spread_x                                    24.05          29.18  +21.3%
+oak at 200             spread_z                                    24.97          27.04  +8.3%
+oak at 300             cost rss_gib                                 2.53           1.89  -25.3%
+oak at 300             cost seconds                                170.7          80.95  -52.6%
+oak at 300             crown_ratio                                0.3876         0.8338  +115.2%
+oak at 300             dbh                                         1.277          2.006  +57.1%
+oak at 300             drawn                                          12             10  -16.7%
+oak at 300             height                                      35.29          27.68  -21.6%
+oak at 300             lai                                         2.106          1.699  -19.3%
+oak at 300             leaf_area                                   560.6          507.8  -9.4%
+oak at 300             lowest_live                                 20.18           4.72  -76.6%
+oak at 300             lowest_live5                                20.18           4.72  -76.6%
+oak at 300             new_shoots                              7.344e+04      1.306e+05  +77.8%
+oak at 300             nodes                                   1.249e+06      1.951e+06  +56.2%
+oak at 300             spread_x                                    25.88           22.1  -14.6%
+oak at 300             spread_z                                    24.51          21.98  -10.3%
+oak at 40              cost rss_gib                                  0.4           0.44  +10.0%
+oak at 40              cost seconds                                 2.02          1.582  -21.7%
+oak at 40              dbh                                        0.7823          0.329  -57.9%
+oak at 40              lowest_live                                  0.36         0.3375  -6.3%
+oak at 40              lowest_live5                                 0.36         0.8549  +137.5%
+oak at 40              nodes                                   3.682e+05       4.64e+05  +26.0%
+oak at 80              crown_ratio                                0.7631         0.9446  +23.8%
+oak at 80              dbh                                         1.995         0.9442  -52.7%
+oak at 80              lai                                         2.689          3.417  +27.1%
+oak at 80              leaf_area                                   1120           1424  +27.1%
+oak at 80              lowest_live                                 4.635          1.054  -77.3%
+oak at 80              lowest_live5                                4.635          1.125  -75.7%
+oak at 80              new_shoots                              1.589e+05      1.748e+05  +10.0%
+oak at 80              nodes                                   2.235e+06       2.88e+06  +28.9%
+ordinary at preset     wasm ms fidelity 0                          425.9           1609  +277.9%
+ordinary at preset     wasm ms fidelity 1                          848.5           1609  +89.7%
+ordinary at 40         cost rss_gib                                 0.12           0.13  +8.3%
+ordinary at 40         cost seconds                                0.675          1.644  +143.6%
+ordinary at 40         dbh                                         0.248         0.1011  -59.2%
+ordinary at 40         lai                                         0.825         0.5025  -39.1%
+ordinary at 40         leaf_area                                   45.34          31.45  -30.6%
+ordinary at 40         lowest_live5                               0.6652          3.344  +402.7%
+ordinary at 40         spread_x                                    8.643          9.236  +6.9%
+ordinary at 40         spread_z                                    8.681          9.226  +6.3%
+oregon-white-oak at preset wasm ms fidelity 0                           2073           2344  +13.1%
+oregon-white-oak at preset wasm ms fidelity 1                          310.2          238.7  -23.1%
+palm at 40             cost seconds                                0.018          0.019  +5.6%
+silver-birch at preset wasm ms fidelity 0                           1087           1906  +75.3%
+silver-birch at preset wasm ms fidelity 1                          424.9          694.5  +63.4%
+spruce at 40           cost rss_gib                                 1.61           1.72  +6.8%
+spruce at 40           cost seconds                                12.67           11.6  -8.5%
+spruce at 40           dbh                                        0.3543         0.2592  -26.8%
+spruce at 40           lai                                         6.655           7.55  +13.4%
+spruce at 40           leaf_area                                   232.2          196.5  -15.4%
+spruce at 40           lowest_live5                               0.392           None  only in one
+spruce at 40           nodes                                   9.895e+05      1.072e+06  +8.3%
+spruce at 40           spread_x                                    7.256          6.417  -11.6%
+spruce at 40           spread_z                                    6.883          6.049  -12.1%
+telperion at preset    wasm ms fidelity 0                      1.943e+04      2.114e+04  +8.8%
+telperion at preset    wasm ms fidelity 1                      1.213e+04      2.068e+04  +70.4%
+telperion at 82        cost rss_gib                                 2.75           3.75  +36.4%
+telperion at 82        cost seconds                                17.25          23.34  +35.3%
+telperion at 82        crown_ratio                                 0.762         0.9408  +23.5%
+telperion at 82        dbh                                         2.834          1.168  -58.8%
+telperion at 82        lai                                         5.215          3.706  -28.9%
+telperion at 82        leaf_area                                   9479           6740  -28.9%
+telperion at 82        lowest_live                                 11.43          2.729  -76.1%
+telperion at 82        lowest_live5                                11.43          2.729  -76.1%
+telperion at 82        new_shoots                              1.533e+05      1.002e+05  -34.6%
+telperion at 82        nodes                                   2.335e+06      2.168e+06  -7.2%
+telperion at 82        spread_z                                    50.86          53.81  +5.8%
+124 of 178 measures moved by more than 5%

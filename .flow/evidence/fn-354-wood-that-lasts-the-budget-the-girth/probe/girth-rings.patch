@@ -1,0 +1,468 @@
+diff --git a/crates/telperion-space/src/geometry/lay_tests.rs b/crates/telperion-space/src/geometry/lay_tests.rs
+index b2a084882..f4c626943 100644
+--- a/crates/telperion-space/src/geometry/lay_tests.rs
++++ b/crates/telperion-space/src/geometry/lay_tests.rs
+@@ -65,6 +65,7 @@ fn a_step_straight_down_keeps_a_square_frame() {
+         size: 1.0,
+         light: 1.0,
+         grown: 1.0,
++        wood: crate::girth::rings::UNSET,
+     };
+     layer.step(&mut p, &state, (0.0, 0.0), None, false).unwrap();
+     assert_eq!(p.tip, Vec3::new(1.0, 0.0, 0.25));
+diff --git a/crates/telperion-space/src/geometry/tests.rs b/crates/telperion-space/src/geometry/tests.rs
+index 83a6b9271..f0a7d545f 100644
+--- a/crates/telperion-space/src/geometry/tests.rs
++++ b/crates/telperion-space/src/geometry/tests.rs
+@@ -175,6 +175,7 @@ fn a_length_at_a_span_end_is_the_whole_span() {
+             size: 1.0,
+             light: 1.0,
+             grown: 1.0,
++            wood: crate::girth::rings::UNSET,
+         });
+     }
+     let tip = total(&axis);
+diff --git a/crates/telperion-space/src/girth.rs b/crates/telperion-space/src/girth.rs
+index c7407b19d..921b99228 100644
+--- a/crates/telperion-space/src/girth.rs
++++ b/crates/telperion-space/src/girth.rs
+@@ -12,6 +12,7 @@
+ //! (`leaf_girth`), and a shed branch leaves a share of its pipe in its
+ //! bearer (`retained`; Shinozaki's disused pipes; `girth/disused.rs`).
+ mod disused;
++pub(crate) mod rings;
+ 
+ use crate::contract::{exp2, log2};
+ use crate::species::{Form, Species};
+diff --git a/crates/telperion-space/src/girth/rings.rs b/crates/telperion-space/src/girth/rings.rs
+new file mode 100644
+index 000000000..21e3ae424
+--- /dev/null
++++ b/crates/telperion-space/src/girth/rings.rs
+@@ -0,0 +1,246 @@
++//! fn-354 probe (never merged): girth by sapwood and rings, the host's
++//! rule in PROBE-BRIEF.md. Each phytomer carries `wood = [T, S]`, its whole
++//! section and the sapwood it holds (m²). After every cycle one pass from
++//! the tips down gives each held phytomer `A`, the leaf above it this
++//! year, and lays what its sapwood is short of:
++//!
++//!   need = A / (R 10⁴); kept = S (1 - 1/N); laid = max(0, need - kept)
++//!   T += laid; S = kept + laid
++//!
++//! At the settle the radius is `sqrt(T share / π)`, `share` the fade the
++//! phytomer's axis is drawn at. Switched by the environment: unset,
++//! nothing here is read and the tree is today's.
++use crate::species::Species;
++use crate::structure::{Axis, Join, Origin, Structure};
++use std::f64::consts::PI;
++use std::sync::OnceLock;
++
++/// The rule's values for one species, and the elastic sag, as the probe's
++/// runner sets them.
++#[derive(Debug, Clone, Copy)]
++pub(crate) struct Rule {
++    /// Leaf area per sapwood area, m² per cm².
++    pub r: f64,
++    /// Sapwood rings.
++    pub n: f64,
++    /// Years a leaf counts.
++    pub leaf_years: f64,
++}
++
++#[derive(Debug, Clone, Copy, Default)]
++pub(crate) struct Probe {
++    pub rule: Option<Rule>,
++    /// `4ρg/E`, per metre, for every growth stage.
++    pub sag: Option<f64>,
++    /// The yearly trace printed (`RING` lines).
++    pub trace: bool,
++    /// The last cycle's rough layout grown with no rule (a check that it
++    /// leaves the tree as it was).
++    pub last_sketch: bool,
++}
++
++/// `TELPERION_GIRTH` = "R:N:L", `TELPERION_SAG` = per metre,
++/// `TELPERION_RING_TRACE` and `TELPERION_LAST_SKETCH` set or not.
++pub(crate) fn probe() -> Probe {
++    static P: OnceLock<Probe> = OnceLock::new();
++    *P.get_or_init(|| {
++        let num = |s: &str| s.parse::<f64>().expect("a number");
++        let rule = std::env::var("TELPERION_GIRTH").ok().map(|v| {
++            let x: Vec<f64> = v.split(':').map(num).collect();
++            Rule {
++                r: x[0],
++                n: x[1],
++                leaf_years: x[2],
++            }
++        });
++        let sag = std::env::var("TELPERION_SAG").ok().map(|v| num(&v));
++        Probe {
++            rule,
++            sag,
++            trace: std::env::var("TELPERION_RING_TRACE").is_ok(),
++            last_sketch: std::env::var("TELPERION_LAST_SKETCH").is_ok(),
++        }
++    })
++}
++
++pub(crate) fn rule() -> Option<Rule> {
++    probe().rule
++}
++
++/// Seconds the yearly passes took in this process.
++pub(crate) static PASS_NANOS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
++
++/// A phytomer not yet passed: its wood unset.
++pub(crate) const UNSET: [f32; 2] = [-1.0, 0.0];
++
++/// Where child `c` hands its leaf to its parent: the node of a lateral,
++/// the tip of a continuation or relay; none for the seed.
++fn handed(axes: &[Axis], c: usize) -> Option<(usize, Option<usize>)> {
++    let a = &axes[c];
++    let p = a.origin.parent()?;
++    let last = axes[p].phytomers.len().checked_sub(1);
++    let node = match a.origin {
++        Origin::Lateral { node, .. } => last.map(|l| node.min(l)),
++        _ => last,
++    };
++    Some((p, node))
++}
++
++/// The year's pass over the growing tree: every held phytomer's leaf
++/// above, and its wood laid. Returns the trace line where asked.
++pub(crate) fn pass(axes: &mut [Axis], species: &Species, cycle: u32, rule: Rule) -> Option<String> {
++    let started = std::time::Instant::now();
++    let n = axes.len();
++    let mut offset = Vec::with_capacity(n + 1);
++    offset.push(0usize);
++    for a in axes.iter() {
++        offset.push(offset.last().unwrap() + a.phytomers.len());
++    }
++    // Leaf handed to each phytomer by the children at its node, and to
++    // each axis's base where it holds no phytomer.
++    let mut at_node = vec![0.0f64; offset[n]];
++    let mut at_tip = vec![0.0f64; n];
++    let trace = probe().trace;
++    let mut above = if trace {
++        vec![0.0f32; offset[n]]
++    } else {
++        Vec::new()
++    };
++    let sapwood = 1.0 / (rule.r * 1e4);
++    let retire = 1.0 - 1.0 / rule.n;
++    for i in (0..n).rev() {
++        let state = &species.states[axes[i].pa];
++        let (leaf, form) = (state.leaf_area, state.form);
++        let base = offset[i];
++        let mut sum = at_tip[i];
++        for (j, p) in axes[i].phytomers.iter_mut().enumerate().rev() {
++            if f64::from(cycle - p.cycle) < rule.leaf_years {
++                sum += crate::light::leaf_area(p.scale, p.size, leaf);
++            }
++            sum += at_node[base + j];
++            if trace {
++                above[base + j] = sum as f32;
++            }
++            if p.wood[0] < 0.0 {
++                let e = super::established(&form, p.scale);
++                p.wood = [(PI * e * e) as f32, 0.0];
++            }
++            let [t, s] = p.wood.map(f64::from);
++            let kept = s * retire;
++            let laid = (sum * sapwood - kept).max(0.0);
++            p.wood = [(t + laid) as f32, (kept + laid) as f32];
++        }
++        match handed(axes, i) {
++            Some((p, Some(node))) => at_node[offset[p] + node] += sum,
++            Some((p, None)) => at_tip[p] += sum,
++            None => at_tip[i] = sum,
++        }
++    }
++    PASS_NANOS.fetch_add(
++        started.elapsed().as_nanos() as u64,
++        std::sync::atomic::Ordering::Relaxed,
++    );
++    trace.then(|| {
++        trace_line(
++            axes,
++            &offset,
++            &above,
++            cycle,
++            at_tip.first().copied().unwrap_or(0.0),
++        )
++    })
++}
++
++/// The year's `RING` line: the leaf above, T and S on the trunk at 1.3 m
++/// of the rough layout (the thickest wood from the root), the tree's
++/// height there and its whole leaf.
++fn trace_line(axes: &[Axis], offset: &[usize], above: &[f32], cycle: u32, whole: f64) -> String {
++    let z0 = axes.first().map_or(0.0, |a| a.base.z);
++    let height = (axes.iter().flat_map(|a| &a.phytomers))
++        .map(|p| p.tip.z - z0)
++        .fold(0.0, f64::max);
++    let mut kids: Vec<Vec<(usize, usize)>> = vec![Vec::new(); axes.len()];
++    for c in 0..axes.len() {
++        if let Some((p, Some(node))) = handed(axes, c) {
++            if !axes[c].phytomers.is_empty() {
++                kids[p].push((node, c));
++            }
++        }
++    }
++    let mut at = (0usize, 0usize);
++    let mut found = None;
++    while axes[at.0].phytomers.len() > at.1 {
++        let p = &axes[at.0].phytomers[at.1];
++        if p.tip.z - z0 >= 1.3 {
++            found = Some((above[offset[at.0] + at.1], p.wood));
++            break;
++        }
++        let mut next: Vec<(usize, usize)> = kids[at.0]
++            .iter()
++            .filter(|(node, _)| *node == at.1)
++            .map(|&(_, c)| (c, 0))
++            .collect();
++        if at.1 + 1 < axes[at.0].phytomers.len() {
++            next.push((at.0, at.1 + 1));
++        }
++        let wood = |(a, j): (usize, usize)| axes[a].phytomers[j].wood[0];
++        match next
++            .into_iter()
++            .max_by(|x, y| wood(*x).total_cmp(&wood(*y)))
++        {
++            Some(n) => at = n,
++            None => break,
++        }
++    }
++    let (a, t, s) = found.map_or((-1.0, -1.0, -1.0), |(a, w)| (a, w[0], w[1]));
++    format!(
++        "RING {{\"year\":{cycle},\"leaf_whole\":{whole:.3},\"leaf_13\":{a:.3},\"t_13\":{t:.6},\
++         \"s_13\":{s:.6},\"dbh_13\":{:.4},\"height\":{height:.3}}}",
++        2.0 * (f64::from(t).max(0.0) / PI).sqrt()
++    )
++}
++
++/// The settled tree's radii from its wood: `sqrt(T share / π)`, `share`
++/// each axis's fade as drawn; each relay's join at its node's radius.
++pub(crate) fn thicken(structure: &mut Structure, species: &Species, shares: &[f64]) {
++    for (axis, &share) in structure.axes.iter_mut().zip(shares) {
++        for p in &mut axis.phytomers {
++            let t = f64::from(p.wood[0]);
++            assert!(t >= 0.0, "a phytomer the yearly pass never met");
++            p.radius = (t * share / PI).sqrt();
++        }
++    }
++    for i in 0..structure.axes.len() {
++        if !matches!(structure.axes[i].origin, Origin::Relay { .. }) {
++            continue;
++        }
++        let Some((node, t)) = super::attached(&structure.axes, species, i) else {
++            continue;
++        };
++        let parent = structure.axes[i].origin.parent().expect("a relay's parent");
++        let r = structure.axes[parent].phytomers[node].radius;
++        structure.axes[i].joined = Some(Box::new(Join {
++            node,
++            t,
++            below: r,
++            above: r,
++        }));
++    }
++}
++
++/// Each kept axis's share as drawn: its own fade times its parent's, as
++/// its scale inherits it.
++pub(crate) fn shares(axes: &[Axis], index: &[usize], fade: &[f64]) -> Vec<f64> {
++    let mut own = vec![1.0; axes.len()];
++    for (i, &k) in index.iter().enumerate() {
++        if k != usize::MAX {
++            own[k] = fade[i];
++        }
++    }
++    let mut share = vec![1.0; axes.len()];
++    for k in 0..axes.len() {
++        let above = axes[k].origin.parent().map_or(1.0, |p| share[p]);
++        share[k] = own[k] * above;
++    }
++    share
++}
+diff --git a/crates/telperion-space/src/girth/tests.rs b/crates/telperion-space/src/girth/tests.rs
+index c99053296..3c5e2d902 100644
+--- a/crates/telperion-space/src/girth/tests.rs
++++ b/crates/telperion-space/src/girth/tests.rs
+@@ -73,6 +73,7 @@ fn phytomer(light: f64) -> Phytomer {
+         size: 1.0,
+         light,
+         grown: 1.0,
++        wood: crate::girth::rings::UNSET,
+     }
+ }
+ 
+diff --git a/crates/telperion-space/src/grow/cycle/paused.rs b/crates/telperion-space/src/grow/cycle/paused.rs
+index b943bafc5..1082fc583 100644
+--- a/crates/telperion-space/src/grow/cycle/paused.rs
++++ b/crates/telperion-space/src/grow/cycle/paused.rs
+@@ -99,7 +99,18 @@ impl Paused {
+         working: Working,
+     ) -> Result<Self> {
+         let pas = species.states.len();
++        let probe = crate::girth::rings::probe();
++        crate::girth::rings::PASS_NANOS.store(0, std::sync::atomic::Ordering::Relaxed);
++        let mut species = species;
++        if let Some(sag) = probe.sag {
++            // fn-354 probe: every growth stage takes wood's elastic sag.
++            for s in &mut Arc::make_mut(&mut species).states {
++                s.form.sag = sag;
++            }
++        }
+         let (mut g, keeps) = start(species, request, Options::default())?;
++        // Under the rule nothing reads the tree as grown.
++        let keeps = keeps && probe.rule.is_none();
+         (g.one, g.rules.one) = (true, true);
+         g.working = Some(Box::new(working));
+         g.sketch.get_or_insert_with(|| Sketch::new(request.light));
+@@ -207,8 +218,8 @@ impl Paused {
+ 
+     /// Every cycle up to `age` grown.
+     fn cycles(&mut self, age: u32) -> Result<()> {
+-        let (phases, clock) = (&mut self.phases, &mut self.clock);
+         for cycle in self.committed + 1..=age {
++            let (phases, clock) = (&mut self.phases, &mut self.clock);
+             // The last cycle's layout and light are read by no bud.
+             let sketching = cycle < self.request.age;
+             self.g
+@@ -217,6 +228,30 @@ impl Paused {
+                 })?;
+             self.g.count(cycle);
+             self.committed = cycle;
++            self.ring_year(cycle, sketching)?;
++        }
++        Ok(())
++    }
++
++    /// fn-354 probe: the year's wood laid on the growing tree, the last
++    /// cycle's rough layout grown first so its leaves are sized as every
++    /// other year's.
++    fn ring_year(&mut self, cycle: u32, sketching: bool) -> Result<()> {
++        let probe = crate::girth::rings::probe();
++        if probe.rule.is_none() && !probe.last_sketch {
++            return Ok(());
++        }
++        if !sketching {
++            let advanced = std::mem::take(&mut self.advanced);
++            self.g.sketch(cycle, &advanced)?;
++            self.advanced = advanced;
++        }
++        let Some(rule) = probe.rule else {
++            return Ok(());
++        };
++        let g = &mut self.g;
++        if let Some(line) = crate::girth::rings::pass(&mut g.axes, &g.species, cycle, rule) {
++            eprintln!("{line}");
+         }
+         Ok(())
+     }
+@@ -281,6 +316,10 @@ impl Paused {
+         let settled = g.settle(request, (true, keeps), &mut |s: Stage| {
+             tick(&mut phases, &mut clock, s)
+         })?;
++        if crate::girth::rings::rule().is_some() {
++            let nanos = crate::girth::rings::PASS_NANOS.load(std::sync::atomic::Ordering::Relaxed);
++            eprintln!("RINGPASS {{\"seconds\":{:.4}}}", nanos as f64 * 1e-9);
++        }
+         if let Some(c) = taken.as_mut() {
+             c.phases = phases;
+             c.retired = retired;
+diff --git a/crates/telperion-space/src/grow/cycle/retire.rs b/crates/telperion-space/src/grow/cycle/retire.rs
+index a9985d145..4bb6055b4 100644
+--- a/crates/telperion-space/src/grow/cycle/retire.rs
++++ b/crates/telperion-space/src/grow/cycle/retire.rs
+@@ -131,7 +131,7 @@ impl Grower {
+             self.working = Some(w);
+             return;
+         }
+-        if crate::grow::keeps(&self.species) {
++        if crate::grow::keeps(&self.species) && crate::girth::rings::rule().is_none() {
+             self.freeze(&mut w, cycle - 1);
+         }
+         // The closed subtrees beside an open axis, met at their roots.
+diff --git a/crates/telperion-space/src/grow/settle.rs b/crates/telperion-space/src/grow/settle.rs
+index df6189a83..0a1a35d20 100644
+--- a/crates/telperion-space/src/grow/settle.rs
++++ b/crates/telperion-space/src/grow/settle.rs
+@@ -86,6 +86,8 @@ impl Grower {
+         };
+         stage(Stage::Pass(Pass::Shed));
+         let girth = grown.map_or_else(Girth::default, |g| disused(&g, &shed, species));
++        let shares = crate::girth::rings::rule()
++            .map(|_| crate::girth::rings::shares(&shed.axes, &shed.index, &shed.fade));
+         stage(Stage::Pass(Pass::Disused));
+         let structure = Structure {
+             age: request.age,
+@@ -98,6 +100,7 @@ impl Grower {
+         Ok(Settling {
+             structure,
+             girth,
++            shares,
+             grown: count,
+             marked,
+             species: owned,
+@@ -111,6 +114,8 @@ impl Grower {
+ pub(super) struct Settling {
+     pub structure: Structure,
+     pub girth: Girth,
++    /// fn-354 probe: each kept axis's share as drawn, under the rule.
++    pub shares: Option<Vec<f64>>,
+     pub grown: u64,
+     pub marked: Vec<u64>,
+     pub species: Arc<Species>,
+@@ -124,18 +129,21 @@ impl Settling {
+         let Self {
+             mut structure,
+             girth,
++            shares,
+             grown: count,
+             marked,
+             species,
+             threads,
+-            ..
+         } = self;
+         let species = &*species;
+         scale(&mut structure, species, threads);
+         stage(Stage::Pass(Pass::Scale));
+         // Girth needs no geometry; placing reads it where wood meets the
+         // ground.
+-        thicken(&mut structure, species, &girth, threads);
++        match &shares {
++            Some(shares) => crate::girth::rings::thicken(&mut structure, species, shares),
++            None => thicken(&mut structure, species, &girth, threads),
++        }
+         stage(Stage::Pass(Pass::Thicken));
+         stage(Stage::Settled);
+         let done = move |structure| Grown {
+diff --git a/crates/telperion-space/src/grow/unit.rs b/crates/telperion-space/src/grow/unit.rs
+index 0ee4fa574..3dd987460 100644
+--- a/crates/telperion-space/src/grow/unit.rs
++++ b/crates/telperion-space/src/grow/unit.rs
+@@ -79,6 +79,7 @@ impl Shoot<'_> {
+                     size: 1.0,
+                     light: 1.0,
+                     grown: 0.0,
++                    wood: crate::girth::rings::UNSET,
+                 });
+                 let node_presence = presence::real(node_presence);
+                 self.draws_mut(apex.axis).nodes.push(node_presence);
+diff --git a/crates/telperion-space/src/structure.rs b/crates/telperion-space/src/structure.rs
+index f838a08c7..89c889ec7 100644
+--- a/crates/telperion-space/src/structure.rs
++++ b/crates/telperion-space/src/structure.rs
+@@ -202,6 +202,9 @@ pub struct Phytomer {
+     /// times the share of its cycle the unit lived (`presence::assign`),
+     /// which a relay standing on its unit reads (`geometry::stand`).
+     pub(crate) grown: f64,
++    /// fn-354 probe: its whole section and the sapwood it holds, m²
++    /// (`girth::rings`); `rings::UNSET` until a yearly pass meets it.
++    pub(crate) wood: [f32; 2],
+ }
+ 
+ impl Phytomer {

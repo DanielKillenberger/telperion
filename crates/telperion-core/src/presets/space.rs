@@ -21,9 +21,7 @@
 //! `leafYears` alone.
 //! This file is shared with the build script, which judges every shipped
 //! preset's rows as the crate compiles.
-use telperion_space::{
-    passed, settings, zone_settings, Coarsening, Light, PaState, Species, Zone, AGES,
-};
+use telperion_space::{passed, settings, zone_settings, Light, PaState, Species, Zone, AGES};
 use telperion_space::{NodeLaw, ZONES};
 
 /// Where every row of the group sits.
@@ -78,10 +76,6 @@ pub struct Space {
     /// on from the trunk, is stem.
     pub trunk: Vec<usize>,
     pub light: Light,
-    /// What the fidelity dial does to this species at its coarsest: one
-    /// `/space/coarse/<setting>` row each, and without them the dial is
-    /// dormant.
-    pub coarse: Coarsening,
 }
 
 impl Default for Space {
@@ -90,7 +84,6 @@ impl Default for Space {
             species: None,
             trunk: Vec::new(),
             light: SITE,
-            coarse: Coarsening::NONE,
         }
     }
 }
@@ -125,7 +118,6 @@ pub fn read<'a>(rows: impl IntoIterator<Item = (&'a str, Cell)>) -> Result<Space
                     ));
                 }
             }
-            ["coarse", name] => *coarse_row(&mut space.coarse, path, name)? = number(path, cell)?,
             ["ages", k, ref tail @ ..] => {
                 let k = index(path, k, AGES)?;
                 if tail == ["trunk"] {
@@ -143,7 +135,6 @@ pub fn read<'a>(rows: impl IntoIterator<Item = (&'a str, Cell)>) -> Result<Space
             _ => return Err(format!("{path} is not a space row")),
         }
     }
-    space.coarse.validate().map_err(|e| e.to_string())?;
     space.trunk.sort_unstable();
     if let Some(k) = (0..AGES).find(|&k| stated[k] && states[k].lifespan <= 0.0) {
         return Err(format!("/space/ages/{k} states an age with no lifespan"));
@@ -154,20 +145,6 @@ pub fn read<'a>(rows: impl IntoIterator<Item = (&'a str, Cell)>) -> Result<Space
     Ok(space)
 }
 
-/// The dial's setting a `/space/coarse` row names.
-fn coarse_row<'c>(c: &'c mut Coarsening, path: &str, name: &str) -> Result<&'c mut f64, String> {
-    Ok(match name {
-        "first" => &mut c.first,
-        "factor" => &mut c.factor,
-        "leaf" => &mut c.leaf,
-        "pipe" => &mut c.pipe,
-        "bud" => &mut c.bud,
-        "hazard" => &mut c.hazard,
-        "shedding" => &mut c.shedding,
-        _ => return Err(format!("{path} is not a space row")),
-    })
-}
-
 /// Sets the setting at `tail` of one age.
 fn put(state: &mut PaState, path: &str, tail: &[&str], cell: Cell) -> Result<(), String> {
     if let ["zones", z, ref rest @ ..] = tail[..] {
@@ -176,6 +153,12 @@ fn put(state: &mut PaState, path: &str, tail: &[&str], cell: Cell) -> Result<(),
             state.zones.push(passed().zones[0].clone());
         }
         return zone(&mut state.zones[z], path, rest, cell);
+    }
+    if let ["shadeShort", j] = tail[..] {
+        let j = index(path, j, AGES)?;
+        state.shade_short.resize(AGES, 0.0);
+        state.shade_short[j] = number(path, cell)?;
+        return Ok(());
     }
     let wire = tail.join("/");
     for (name, slot) in settings(state) {
@@ -229,7 +212,10 @@ pub fn rows(space: &Space) -> Result<Vec<(String, Cell)>, String> {
                 continue;
             }
             let mut state = state.clone();
-            for ((name, v), d) in settings(&mut state).into_iter().zip(&defaults) {
+            // The shade table is written by its entries, below.
+            let shade = std::mem::take(&mut state.shade_short);
+            let rows = settings(&mut state).into_iter().zip(&defaults);
+            for ((name, v), d) in rows.filter(|((n, _), _)| *n != "shade_short") {
                 if v.to_bits() != d.to_bits() {
                     let cell = if v.is_infinite() {
                         Cell::Never
@@ -237,6 +223,11 @@ pub fn rows(space: &Space) -> Result<Vec<(String, Cell)>, String> {
                         Cell::Number(*v)
                     };
                     out.push((format!("{PREFIX}ages/{k}/{}", camel(name)), cell));
+                }
+            }
+            for (j, &e) in shade.iter().enumerate() {
+                if e.to_bits() != 0f64.to_bits() {
+                    out.push((format!("{PREFIX}ages/{k}/shadeShort/{j}"), Cell::Number(e)));
                 }
             }
             for (z, zone) in state.zones.iter().enumerate() {
@@ -254,21 +245,6 @@ pub fn rows(space: &Space) -> Result<Vec<(String, Cell)>, String> {
     }
     if space.light != SITE {
         return Err("a preset grows under the site's light, which no row states".into());
-    }
-    let c = space.coarse;
-    let settings = [
-        ("first", c.first, Coarsening::NONE.first),
-        ("factor", c.factor, Coarsening::NONE.factor),
-        ("leaf", c.leaf, Coarsening::NONE.leaf),
-        ("pipe", c.pipe, Coarsening::NONE.pipe),
-        ("bud", c.bud, Coarsening::NONE.bud),
-        ("hazard", c.hazard, Coarsening::NONE.hazard),
-        ("shedding", c.shedding, Coarsening::NONE.shedding),
-    ];
-    for (name, v, neutral) in settings {
-        if v != neutral {
-            out.push((format!("{PREFIX}coarse/{name}"), Cell::Number(v)));
-        }
     }
     Ok(out)
 }

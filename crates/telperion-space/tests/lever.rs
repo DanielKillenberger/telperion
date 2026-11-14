@@ -1,7 +1,9 @@
 //! fn-203: sag measures its lever on the bent branch. The load beyond a
 //! phytomer turns with the bends before it, so a heavy branch hangs and
 //! stops, and the ground carries what rests on it.
-use telperion_space::{grow, Form, NodeLaw, PaState, Request, Species, Structure, Vec3, Zone};
+use telperion_space::{
+    grow, Form, NodeLaw, Origin, PaState, Request, Species, Structure, Vec3, Zone,
+};
 
 fn zone(lateral: Vec<f64>, buds: u8) -> Zone {
     Zone {
@@ -12,6 +14,85 @@ fn zone(lateral: Vec<f64>, buds: u8) -> Zone {
         rate: 0.0,
         lateral,
     }
+}
+
+/// The primary radius of the pole, the branch and its twigs, m: wood that
+/// lays no sapwood, so every phytomer keeps it.
+const PRIMARY: [f64; 3] = [0.05, 0.0008, 0.0005];
+
+/// The small-deflection beam's bend of each of the branch's internodes on
+/// the unbent tree `plain` under `sag`: each phytomer turns by `sag` times
+/// the level moment about its end of the load beyond it, wood and foliage
+/// as `sag.rs` weighs them, over its radius to the fourth, times its
+/// length; an internode's direction moves by its own turn and every turn
+/// before it.
+fn beam(plain: &Structure, sag: f64) -> Vec<f64> {
+    let n = plain.axes.len();
+    // Each axis's phytomers' masses and centres, base to tip.
+    let parts: Vec<Vec<(f64, Vec3)>> = plain
+        .axes
+        .iter()
+        .map(|a| {
+            let mut from = a.base;
+            let own = PRIMARY[a.pa];
+            a.phytomers
+                .iter()
+                .map(|p| {
+                    let leaf = own * p.scale;
+                    let part = (
+                        (p.tip - from).length() * (p.radius * p.radius + leaf * leaf),
+                        (from + p.tip) * 0.5,
+                    );
+                    from = p.tip;
+                    part
+                })
+                .collect()
+        })
+        .collect();
+    // Each axis's whole load, borne by its parent at a node.
+    let mut whole = vec![(0.0, Vec3::default()); n];
+    for i in (0..n).rev() {
+        let (mut m, mut c) = parts[i]
+            .iter()
+            .fold((0.0, Vec3::default()), |(m, c), &(w, x)| (m + w, c + x * w));
+        for (j, a) in plain.axes.iter().enumerate().skip(i + 1) {
+            if a.origin.parent() == Some(i) {
+                m += whole[j].0;
+                c = c + whole[j].1;
+            }
+        }
+        whole[i] = (m, c);
+    }
+    let branch = &plain.axes[1];
+    let mut from = branch.base;
+    let (mut turned, mut out) = (0.0, Vec::new());
+    for (k, p) in branch.phytomers.iter().enumerate() {
+        // The load beyond the phytomer's end: the branch's later wood and
+        // every axis it bears at this node or beyond.
+        let (mut m, mut c) = (0.0, Vec3::default());
+        for &(w, x) in &parts[1][k + 1..] {
+            (m, c) = (m + w, c + x * w);
+        }
+        for (j, a) in plain.axes.iter().enumerate() {
+            let at = match a.origin {
+                Origin::Lateral {
+                    parent: 1, node, ..
+                } => node,
+                Origin::Continuation { parent: 1 } | Origin::Relay { parent: 1, .. } => usize::MAX,
+                _ => continue,
+            };
+            if at >= k {
+                (m, c) = (m + whole[j].0, c + whole[j].1);
+            }
+        }
+        let lever = c - p.tip * m;
+        let level = lever.x.hypot(lever.y);
+        let turn = sag * level / p.radius.powi(4) * (p.tip - from).length();
+        turned += turn;
+        out.push(turned);
+        from = p.tip;
+    }
+    out
 }
 
 /// A branch's own form: its tip's turn towards its elevation, and how it
@@ -69,14 +150,13 @@ fn grown(height: f64, sag: f64, seed: u64, bough: Bough, twigs: (f64, f64)) -> S
         ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
+        shade_short: Vec::new(),
         straightening: 0.0,
         form: Form {
-            pipe: 0.05,
+            primary: PRIMARY[0],
             ..Form::default()
         },
     };
@@ -90,9 +170,7 @@ fn grown(height: f64, sag: f64, seed: u64, bough: Bough, twigs: (f64, f64)) -> S
             tropism: bough.tropism,
             elevation: bough.elevation,
             wander: bough.wander,
-            pipe: 0.0008,
-            exponent: 2.2,
-            ripening: 10.0,
+            primary: PRIMARY[1],
             roll: twigs.1,
             sag,
             ..Form::default()
@@ -105,7 +183,7 @@ fn grown(height: f64, sag: f64, seed: u64, bough: Bough, twigs: (f64, f64)) -> S
         internode: 0.05,
         insertion: 0.9,
         form: Form {
-            pipe: 0.0005,
+            primary: PRIMARY[2],
             tropism: 2.0,
             elevation: -1.0,
             ..Form::default()
@@ -210,11 +288,16 @@ fn a_heavy_low_bough_on_the_ground_does_not_swing_round() {
 }
 
 /// R2: a lightly loaded branch bends as the small-deflection beam says:
-/// within one percent of fn-200's bends, and in proportion to its load,
+/// within one percent of the beam's bends on its unbent tree (`beam`; fn-354
+/// replaced fn-200's pinned bends, taken on a pipe-model girth that is
+/// gone), and in proportion to its load,
 /// doubling a light sag doubling every bend to within a few percent (the
 /// correction is first order in the bend).
 #[test]
 fn a_light_branch_bends_as_the_small_deflection_beam_does() {
+    // A sag light enough that the bend stays small on wood that keeps its
+    // primary radius.
+    const SAG: f64 = 1e-9;
     let still = Bough {
         tropism: 0.0,
         elevation: 0.0,
@@ -233,20 +316,16 @@ fn a_light_branch_bends_as_the_small_deflection_beam_does() {
             .map(|(u, v)| u.cross(*v).length().atan2(u.dot(*v)))
             .collect()
     };
-    let (one, two) = (bends(1e-6), bends(2e-6));
-    // Every tenth internode's bend under fn-200's small-deflection sag
-    // (commit 0706c79c, run on this certain tree for fn-206), the
-    // reference: the corrected bend stays within one percent of it, and
-    // within the f32 directions' own noise of a bend, 1.5e-5 rad measured
-    // on the first internode's (fn-254).
-    let reference = [
-        0.000807, 0.008268, 0.014627, 0.019900, 0.024110, 0.027292, 0.029568,
-    ];
-    for (k, (&ours, small)) in one.iter().step_by(10).zip(reference).enumerate() {
+    let (one, two) = (bends(SAG), bends(2.0 * SAG));
+    // The small-deflection beam on the unbent tree (`beam`): the corrected
+    // bend stays within one percent of it, and within the f32 directions'
+    // own noise of a bend, 1.5e-5 rad measured on the first internode's
+    // (fn-254).
+    let small = beam(&certain(0.0), SAG);
+    for (k, (&ours, &small)) in one.iter().zip(&small).enumerate().step_by(10) {
         assert!(
             (ours - small).abs() <= 0.01 * small + 2e-5,
-            "internode {}: {ours} rad against the small-deflection {small}",
-            10 * k
+            "internode {k}: {ours} rad against the small-deflection {small}"
         );
     }
     let most = one.iter().fold(0.0f64, |m, &b| m.max(b));

@@ -11,8 +11,7 @@ use crate::cores::spread;
 use crate::dormant::{Sleeper, Woken};
 use crate::error::Result;
 use crate::presence::Draws;
-use crate::species::Species;
-use crate::structure::{Axis, Origin};
+use crate::structure::{Axis, Growing, Origin};
 use std::sync::Mutex;
 
 /// The living apexes in a share: enough work to pay for its merge.
@@ -76,7 +75,7 @@ impl Shoot<'_> {
 impl Grower {
     /// What the rough layout gives the apexes growing now.
     pub(super) fn reads(&self) -> Reads<'_> {
-        reads(self.sketch.as_ref(), &self.species)
+        reads(self.sketch.as_ref())
     }
 
     /// Grows the `live` apexes' units in `cycle`, in shares in order, and
@@ -87,7 +86,7 @@ impl Grower {
         cycle: u32,
         report: &mut dyn FnMut(Stage),
     ) -> Result<()> {
-        let reads = reads(self.sketch.as_ref(), &self.species);
+        let reads = reads(self.sketch.as_ref());
         let homes = homes(
             (&mut self.axes, &mut self.draws),
             (&mut self.units, &mut self.successor),
@@ -140,6 +139,10 @@ impl Grower {
             self.live.extend(share.next);
         }
         for (wakes, sleeper) in share.asleep {
+            // Every sleeper that can wake is held, however far on.
+            if self.asleep.len() <= wakes {
+                self.asleep.resize_with(wakes + 1, Vec::new);
+            }
             self.asleep[wakes].push(sleeper);
         }
         self.woken.extend(share.woken);
@@ -173,11 +176,10 @@ impl Share {
     }
 }
 
-fn reads<'g>(sketch: Option<&'g Sketch>, species: &Species) -> Reads<'g> {
+fn reads(sketch: Option<&Sketch>) -> Reads<'_> {
     Reads {
         pencils: sketch.map_or(&[], |s| &s.pencils[..]),
         sketching: sketch.is_some(),
-        lights: species.states.iter().any(|s| s.leaf_girth > 0.0),
     }
 }
 
@@ -186,7 +188,7 @@ fn reads<'g>(sketch: Option<&'g Sketch>, species: &Species) -> Reads<'g> {
 /// picks them (a fine root makes this list each cycle it grows, so its
 /// allocations count).
 fn homes<'g>(
-    (axes, draws): (&'g mut [Axis], &'g mut [Draws]),
+    (axes, draws): (&'g mut [Axis<Growing>], &'g mut [Draws]),
     (units, successor): (&'g mut [f64], &'g mut [Vec<usize>]),
     live: &[Apex],
 ) -> Vec<Home<'g>> {

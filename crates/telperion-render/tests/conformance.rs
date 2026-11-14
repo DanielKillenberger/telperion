@@ -136,11 +136,19 @@ fn florets(tree: &mesh::TreeMesh) -> usize {
 /// wood and its whole crown, the leaves and any florets. (A frame's triangles no longer exceed the CPU
 /// wood's: the GPU surfaces the wood's curve at the screen's error, fn-208,
 /// and an engine tree's fine wood outnumbers what a small view draws.)
-fn drew_the_tree(id: &str, submitted: &Submitted, florets: usize, stats: &FrameStats) {
+fn drew_the_tree(
+    id: &str,
+    submitted: &Submitted,
+    curve: Option<u64>,
+    florets: usize,
+    stats: &FrameStats,
+) {
+    // The wood is counted by the curve the renderer holds: it builds no CPU
+    // wood surface to count (fn-351).
+    let curve = curve.unwrap_or(0);
     assert!(
-        submitted.wood_triangles > 0 && submitted.foliage_instances > 0,
-        "{id} generated {} wood triangles and {} placements: there is no tree to draw",
-        submitted.wood_triangles,
+        curve > 0 && submitted.foliage_instances > 0,
+        "{id} uploaded {curve} curve bytes and {} placements: there is no tree to draw",
         submitted.foliage_instances
     );
     assert_eq!(
@@ -162,7 +170,7 @@ fn every_shipped_family_renders_through_the_one_path() {
             assert_eq!(refused, Some(none), "{id} has no engine species (fn-198)");
             continue;
         }
-        let tree = mesh::build(&family).expect("the core built the tree");
+        let tree = mesh::drawn(&family).expect("the core built the tree");
         let submitted = renderer.submit(&tree).expect("the tree fits the device");
         let camera = hero_pose(tree.bounds, 1.0, GROUND_REACH);
         let still = render(&mut renderer, &camera, 128, 128).expect("the frame was drawn");
@@ -170,7 +178,8 @@ fn every_shipped_family_renders_through_the_one_path() {
             still.has_subject(),
             "{id} came out as flat background: nothing of it was drawn"
         );
-        drew_the_tree(id, &submitted, florets(&tree), &still.stats);
+        let curve = renderer.curve_bytes();
+        drew_the_tree(id, &submitted, curve, florets(&tree), &still.stats);
     }
 }
 
@@ -211,7 +220,8 @@ fn parameter_sets_nobody_wrote_by_hand_render_the_same_way() {
                     continue;
                 }
                 let set = format!("set {attempts} from {id}");
-                drew_the_tree(&set, &submitted, florets, &stats);
+                let curve = renderer.curve_bytes();
+                drew_the_tree(&set, &submitted, curve, florets, &stats);
                 rendered += 1;
             }
         }

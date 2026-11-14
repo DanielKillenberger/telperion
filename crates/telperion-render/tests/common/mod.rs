@@ -88,3 +88,13 @@ pub fn box_of(points: &[telperion_core::math::Vec3]) -> telperion_core::surface:
     }
     telperion_core::surface::Bounds { min, max }
 }
+
+/// The CPU wood surface `mesh::build` makes beside the curve; the renderer
+/// itself no longer builds one (fn-351), so only a test that reads the
+/// core's wood asks for it.
+#[allow(dead_code)]
+pub fn surface(tree: &telperion_core::mesh::TreeMesh) -> &telperion_core::surface::SurfaceMesh {
+    tree.wood
+        .as_ref()
+        .expect("mesh::build makes the wood surface")
+}

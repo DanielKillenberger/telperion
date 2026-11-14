@@ -126,11 +126,10 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         ground_hazard,
         shade_size,
         apical_control,
-        upkeep,
+        inverse_height,
         balance_hazard,
         tolerance,
-        retained,
-        leaf_girth,
+        shade_short,
         form,
     } = state;
     let super::Form {
@@ -138,19 +137,22 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         elevation,
         wander,
         plane,
-        pipe,
-        exponent,
-        ripening,
+        primary,
+        sapwood,
+        sapwood_rings,
+        sapwood_tall,
+        sapwood_rings_tall,
+        sapwood_from,
+        sapwood_to,
         dominance,
         roll,
         sag,
-        secondary,
         bend_length,
         internode_spread,
         insertion_spread,
         tropism_spread,
     } = form;
-    vec![
+    let mut out = vec![
         ("lifespan", lifespan),
         ("continuation", continuation),
         ("viability", viability),
@@ -186,27 +188,30 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         ("ground_hazard", ground_hazard),
         ("shade_size", shade_size),
         ("apical_control", apical_control),
-        ("upkeep", upkeep),
+        ("inverse_height", inverse_height),
         ("balance_hazard", balance_hazard),
         ("tolerance", tolerance),
-        ("retained", retained),
-        ("leaf_girth", leaf_girth),
         ("form.tropism", tropism),
         ("form.elevation", elevation),
         ("form.wander", wander),
         ("form.plane", plane),
-        ("form.pipe", pipe),
-        ("form.exponent", exponent),
-        ("form.ripening", ripening),
+        ("form.primary", primary),
+        ("form.sapwood", sapwood),
+        ("form.sapwood_rings", sapwood_rings),
+        ("form.sapwood_tall", sapwood_tall),
+        ("form.sapwood_rings_tall", sapwood_rings_tall),
+        ("form.sapwood_from", sapwood_from),
+        ("form.sapwood_to", sapwood_to),
         ("form.dominance", dominance),
         ("form.roll", roll),
         ("form.sag", sag),
-        ("form.secondary", secondary),
         ("form.bend_length", bend_length),
         ("form.internode_spread", internode_spread),
         ("form.insertion_spread", insertion_spread),
         ("form.tropism_spread", tropism_spread),
-    ]
+    ];
+    out.extend(shade_short.iter_mut().map(|e| ("shade_short", e)));
+    out
 }
 
 /// Every scalar setting of a zone by name, its tables' entries each under
@@ -265,11 +270,15 @@ mod tests {
     }
 
     /// A magnitude mixes geometrically: the midpoint of the palm's stem
-    /// pipe and the beech's branch pipe is their geometric mean, nearly.
+    /// primary radius and the beech's branch one is their geometric mean,
+    /// nearly.
     #[test]
     fn a_magnitude_mixes_on_its_log() {
-        let (a, b) = (palm().states[2].form.pipe, beech().states[9].form.pipe);
-        let mid = scale("form.pipe").unwrap().mix(a, b, 0.5);
+        let (a, b) = (
+            palm().states[2].form.primary,
+            beech().states[9].form.primary,
+        );
+        let mid = scale("form.primary").unwrap().mix(a, b, 0.5);
         assert!((mid - ((a + 1e-5) * (b + 1e-5)).sqrt() + 1e-5).abs() < 1e-12);
         assert!(mid < (a + b) / 2.0 / 5.0, "{mid}");
     }

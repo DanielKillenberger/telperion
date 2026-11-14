@@ -4,7 +4,7 @@
 use telperion_core::blend::families;
 use telperion_core::presets::{by_identity, Family};
 
-/// The film's walks (fn-272's `release.json`), as `units_bound` names them.
+/// The film's walks (fn-272's `release.json`).
 const WALKS: [(&str, &str, f64); 6] = [
     ("european-beech", "norway-spruce", 40.0),
     ("norway-spruce", "silver-birch", 40.0),

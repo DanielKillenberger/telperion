@@ -93,14 +93,7 @@ pub(crate) fn levers_given(
 ) -> (Vec<Vec<Lever>>, Vec<Load>) {
     let axes = &structure.axes;
     let all: Vec<usize> = (0..axes.len()).collect();
-    gather(
-        axes,
-        species,
-        structure.age,
-        (&all, &trunks(axes)),
-        (&[], given),
-        threads,
-    )
+    gather(axes, species, (&all, &trunks(axes)), (&[], given), threads)
 }
 
 /// Whether each axis is the trunk: the seed axis and what carries it on,
@@ -136,7 +129,6 @@ pub(crate) struct Borne {
 pub(crate) fn gather(
     axes: &[crate::structure::Axis],
     species: &Species,
-    age: u32,
     (members, trunk): (&[usize], &[bool]),
     (borne, given): (&[Borne], crate::shed::Given<Load>),
     threads: usize,
@@ -234,7 +226,7 @@ pub(crate) fn gather(
                 });
                 let tip = q3(p.tip);
                 let length = length(sub(tip, base));
-                let leaves = crate::girth::own(&state.form, p, age, p.scale, 1.0) as f32;
+                let leaves = crate::girth::established(&state.form, p.scale) as f32;
                 let r = p.radius as f32;
                 // length (r^2 + leaves^2).
                 let mass = (r * r + leaves * leaves) * length;

@@ -200,15 +200,38 @@
 /space/ages/2/shadeHazard = 1.0
 /space/ages/2/shadeSize = 1.5
 /space/ages/2/apicalControl = 0.45
-/space/ages/2/upkeep = 0.35
+# The inverse height (fn-349), every age alike: the reciprocal of the
+# potential height, 34.8 m: "The maximum potential height for OWO on a good site was 34.8 m"
+# (Gould, Harrington and Devine 2011; checked against the text by fn-341).
+/space/ages/2/inverseHeight = 0.02873563218390805
 /space/ages/2/balanceHazard = 2.0
-/space/ages/2/leafGirth = 1.0
 /space/ages/2/leafYears = 1.0
 /space/ages/2/form/tropism = 0.6
 /space/ages/2/form/elevation = 1.5707963267948966
 /space/ages/2/form/wander = 0.25
-/space/ages/2/form/pipe = 0.009
-/space/ages/2/form/exponent = 2.6
+/space/ages/2/form/primary = 0.009
+# The wood (fn-354; by the tree's height, fn-351 OAK-SAPWOOD-BY-SIZE.md):
+# sapwood 1 / 0.23 cm² per m² of leaf on a tree of 10 m (sapwoodFrom) and
+# 0.23 / 0.37 of that (sapwoodTall) on one of 25 m (sapwoodTo), a straight
+# line between and the nearer value outside: Phillips, Bond, McDowell, Ryan
+# and Schauer on Q. garryana (2003, Funct. Ecol. 17: 832-840, Table 1: "Oak
+# leaf area: sapwood area (m2 cm-2) 0·37 ± 0·01 | 0·23 ± 0·02" under "Oak
+# canopy height (m) 25 | 10"; "leaf to sapwood area ratio increases with
+# tree size"). Sapwood rings 16.0 at 10 m and 25.9 / 16.0 of that
+# (sapwoodRingsTall) at 25 m: Hollstein's German oak under 100 and over 200
+# years, the classes of Phillips's 40- and 250-year plots (in Haneca, Čufar
+# and Beeckman 2009, J. Archaeol. Sci. 36: 1-11, Table 1; read secondary),
+# estimated for Q. garryana.
+/space/ages/2/form/sapwood = 4.3478260869565215
+/space/ages/2/form/sapwoodRings = 16.0
+/space/ages/2/form/sapwoodTall = 0.6216216216216216
+/space/ages/2/form/sapwoodRingsTall = 1.61875
+/space/ages/2/form/sapwoodFrom = 10.0
+/space/ages/2/form/sapwoodTo = 25.0
+# Sag (fn-354): 4ρg/E at green oak's 1,060 kg m⁻³ and 8.3 GPa (Lavers 1983,
+# read through Niklas and Spatz 2010, Am. J. Bot. 97: 1587-1594, Table 1;
+# Hamilton 1975), at every age.
+/space/ages/2/form/sag = 5e-6
 /space/ages/2/zones/0/buds = 1.0
 /space/ages/2/zones/0/nodes/min = 4.0
 /space/ages/2/zones/0/nodes/max = 5.0
@@ -234,15 +257,20 @@
 /space/ages/3/shadeHazard = 1.0
 /space/ages/3/shadeSize = 1.5
 /space/ages/3/apicalControl = 0.45
-/space/ages/3/upkeep = 0.35
+/space/ages/3/inverseHeight = 0.02873563218390805
 /space/ages/3/balanceHazard = 2.0
-/space/ages/3/leafGirth = 1.0
 /space/ages/3/leafYears = 1.0
 /space/ages/3/form/tropism = 0.6
 /space/ages/3/form/elevation = 1.5707963267948966
 /space/ages/3/form/wander = 0.25
-/space/ages/3/form/pipe = 0.009
-/space/ages/3/form/exponent = 2.6
+/space/ages/3/form/primary = 0.009
+/space/ages/3/form/sapwood = 4.3478260869565215
+/space/ages/3/form/sapwoodRings = 16.0
+/space/ages/3/form/sapwoodTall = 0.6216216216216216
+/space/ages/3/form/sapwoodRingsTall = 1.61875
+/space/ages/3/form/sapwoodFrom = 10.0
+/space/ages/3/form/sapwoodTo = 25.0
+/space/ages/3/form/sag = 5e-6
 /space/ages/3/zones/0/buds = 1.0
 /space/ages/3/zones/0/nodes/min = 3.0
 /space/ages/3/zones/0/nodes/max = 4.0
@@ -268,16 +296,21 @@
 /space/ages/4/shadeHazard = 1.0
 /space/ages/4/shadeSize = 1.5
 /space/ages/4/apicalControl = 0.45
-/space/ages/4/upkeep = 0.35
+/space/ages/4/inverseHeight = 0.02873563218390805
 /space/ages/4/balanceHazard = 2.0
-/space/ages/4/leafGirth = 1.0
 /space/ages/4/leafYears = 1.0
 /space/ages/4/form/tropism = 0.6
 /space/ages/4/form/elevation = 1.5707963267948966
 /space/ages/4/form/wander = 0.5
-/space/ages/4/form/pipe = 0.009
-/space/ages/4/form/exponent = 2.6
+/space/ages/4/form/primary = 0.009
 /space/ages/4/form/bendLength = 3.0
+/space/ages/4/form/sapwood = 4.3478260869565215
+/space/ages/4/form/sapwoodRings = 16.0
+/space/ages/4/form/sapwoodTall = 0.6216216216216216
+/space/ages/4/form/sapwoodRingsTall = 1.61875
+/space/ages/4/form/sapwoodFrom = 10.0
+/space/ages/4/form/sapwoodTo = 25.0
+/space/ages/4/form/sag = 5e-6
 /space/ages/4/zones/0/buds = 1.0
 /space/ages/4/zones/0/nodes/min = 3.0
 /space/ages/4/zones/0/nodes/max = 4.0
@@ -314,19 +347,22 @@
 /space/ages/6/shadeHazard = 1.0
 /space/ages/6/shadeSize = 0.5
 /space/ages/6/apicalControl = 0.45
-/space/ages/6/upkeep = 0.35
+/space/ages/6/inverseHeight = 0.02873563218390805
 /space/ages/6/balanceHazard = 2.0
-/space/ages/6/leafGirth = 1.0
 /space/ages/6/leafYears = 1.0
 /space/ages/6/form/tropism = 0.5
 /space/ages/6/form/elevation = 1.05
 /space/ages/6/form/wander = 0.5
-/space/ages/6/form/pipe = 0.009
-/space/ages/6/form/exponent = 2.8
-/space/ages/6/form/ripening = 15.0
+/space/ages/6/form/primary = 0.009
 /space/ages/6/form/roll = 0.8
-/space/ages/6/form/sag = 0.0003
 /space/ages/6/form/bendLength = 3.0
+/space/ages/6/form/sapwood = 4.3478260869565215
+/space/ages/6/form/sapwoodRings = 16.0
+/space/ages/6/form/sapwoodTall = 0.6216216216216216
+/space/ages/6/form/sapwoodRingsTall = 1.61875
+/space/ages/6/form/sapwoodFrom = 10.0
+/space/ages/6/form/sapwoodTo = 25.0
+/space/ages/6/form/sag = 5e-6
 /space/ages/6/zones/0/buds = 1.0
 /space/ages/6/zones/0/nodes/min = 2.0
 /space/ages/6/zones/0/nodes/max = 3.0
@@ -373,19 +409,22 @@
 /space/ages/7/shadeHazard = 1.0
 /space/ages/7/shadeSize = 0.5
 /space/ages/7/apicalControl = 0.45
-/space/ages/7/upkeep = 0.35
+/space/ages/7/inverseHeight = 0.02873563218390805
 /space/ages/7/balanceHazard = 2.0
-/space/ages/7/leafGirth = 1.0
 /space/ages/7/leafYears = 1.0
 /space/ages/7/form/tropism = 0.48
 /space/ages/7/form/elevation = 0.9
 /space/ages/7/form/wander = 0.35
-/space/ages/7/form/pipe = 0.004
-/space/ages/7/form/exponent = 2.6
-/space/ages/7/form/ripening = 15.0
+/space/ages/7/form/primary = 0.004
 /space/ages/7/form/roll = 0.8
-/space/ages/7/form/sag = 5e-5
 /space/ages/7/form/bendLength = 1.5
+/space/ages/7/form/sapwood = 4.3478260869565215
+/space/ages/7/form/sapwoodRings = 16.0
+/space/ages/7/form/sapwoodTall = 0.6216216216216216
+/space/ages/7/form/sapwoodRingsTall = 1.61875
+/space/ages/7/form/sapwoodFrom = 10.0
+/space/ages/7/form/sapwoodTo = 25.0
+/space/ages/7/form/sag = 5e-6
 /space/ages/7/zones/0/buds = 1.0
 /space/ages/7/zones/0/nodes/min = 2.0
 /space/ages/7/zones/0/nodes/max = 3.0
@@ -415,15 +454,21 @@
 /space/ages/8/shadeHazard = 1.0
 /space/ages/8/shadeSize = 1.5
 /space/ages/8/apicalControl = 0.45
-/space/ages/8/upkeep = 0.35
+/space/ages/8/inverseHeight = 0.02873563218390805
 /space/ages/8/balanceHazard = 2.0
-/space/ages/8/leafGirth = 1.0
 /space/ages/8/leafYears = 1.0
 /space/ages/8/form/tropism = 0.5
 /space/ages/8/form/elevation = 0.7
 /space/ages/8/form/wander = 0.4
-/space/ages/8/form/pipe = 0.0012
+/space/ages/8/form/primary = 0.0012
 /space/ages/8/form/roll = 1.2
+/space/ages/8/form/sapwood = 4.3478260869565215
+/space/ages/8/form/sapwoodRings = 16.0
+/space/ages/8/form/sapwoodTall = 0.6216216216216216
+/space/ages/8/form/sapwoodRingsTall = 1.61875
+/space/ages/8/form/sapwoodFrom = 10.0
+/space/ages/8/form/sapwoodTo = 25.0
+/space/ages/8/form/sag = 5e-6
 /space/ages/8/zones/0/buds = 1.0
 /space/ages/8/zones/0/nodes/min = 1.0
 /space/ages/8/zones/0/nodes/max = 2.0
@@ -459,15 +504,21 @@
 /space/ages/9/shadeHazard = 1.0
 /space/ages/9/shadeSize = 1.0
 /space/ages/9/apicalControl = 0.45
-/space/ages/9/upkeep = 0.35
+/space/ages/9/inverseHeight = 0.02873563218390805
 /space/ages/9/balanceHazard = 2.0
-/space/ages/9/leafGirth = 1.0
 /space/ages/9/leafYears = 1.0
 /space/ages/9/form/tropism = 0.33
 /space/ages/9/form/elevation = 0.2
 /space/ages/9/form/wander = 0.4
-/space/ages/9/form/pipe = 0.0009
+/space/ages/9/form/primary = 0.0009
 /space/ages/9/form/roll = 1.2
+/space/ages/9/form/sapwood = 4.3478260869565215
+/space/ages/9/form/sapwoodRings = 16.0
+/space/ages/9/form/sapwoodTall = 0.6216216216216216
+/space/ages/9/form/sapwoodRingsTall = 1.61875
+/space/ages/9/form/sapwoodFrom = 10.0
+/space/ages/9/form/sapwoodTo = 25.0
+/space/ages/9/form/sag = 5e-6
 /space/ages/9/zones/0/buds = 1.0
 /space/ages/9/zones/0/nodes/min = 1.0
 /space/ages/9/zones/0/nodes/max = 2.0
@@ -499,15 +550,21 @@
 /space/ages/12/shadeHazard = 1.0
 /space/ages/12/shadeSize = 1.0
 /space/ages/12/apicalControl = 0.45
-/space/ages/12/upkeep = 0.35
+/space/ages/12/inverseHeight = 0.02873563218390805
 /space/ages/12/balanceHazard = 2.0
-/space/ages/12/leafGirth = 1.0
 /space/ages/12/leafYears = 1.0
 /space/ages/12/form/tropism = 0.8
 /space/ages/12/form/elevation = 0.2
 /space/ages/12/form/wander = 0.4
-/space/ages/12/form/pipe = 0.0009
+/space/ages/12/form/primary = 0.0009
 /space/ages/12/form/roll = 1.2
+/space/ages/12/form/sapwood = 4.3478260869565215
+/space/ages/12/form/sapwoodRings = 16.0
+/space/ages/12/form/sapwoodTall = 0.6216216216216216
+/space/ages/12/form/sapwoodRingsTall = 1.61875
+/space/ages/12/form/sapwoodFrom = 10.0
+/space/ages/12/form/sapwoodTo = 25.0
+/space/ages/12/form/sag = 5e-6
 /space/ages/12/zones/0/buds = 1.0
 /space/ages/12/zones/0/nodes/min = 1.0
 /space/ages/12/zones/0/nodes/max = 1.0
@@ -537,15 +594,21 @@
 /space/ages/13/shadeHazard = 1.0
 /space/ages/13/shadeSize = 1.0
 /space/ages/13/apicalControl = 0.45
-/space/ages/13/upkeep = 0.35
+/space/ages/13/inverseHeight = 0.02873563218390805
 /space/ages/13/balanceHazard = 2.0
-/space/ages/13/leafGirth = 1.0
 /space/ages/13/leafYears = 1.0
 /space/ages/13/form/tropism = 0.4
 /space/ages/13/form/elevation = 0.2
 /space/ages/13/form/wander = 0.4
-/space/ages/13/form/pipe = 0.0008
+/space/ages/13/form/primary = 0.0008
 /space/ages/13/form/roll = 1.2
+/space/ages/13/form/sapwood = 4.3478260869565215
+/space/ages/13/form/sapwoodRings = 16.0
+/space/ages/13/form/sapwoodTall = 0.6216216216216216
+/space/ages/13/form/sapwoodRingsTall = 1.61875
+/space/ages/13/form/sapwoodFrom = 10.0
+/space/ages/13/form/sapwoodTo = 25.0
+/space/ages/13/form/sag = 5e-6
 /space/ages/13/zones/0/buds = 1.0
 /space/ages/13/zones/0/nodes/min = 1.0
 /space/ages/13/zones/0/nodes/max = 1.0
@@ -575,25 +638,20 @@
 /space/ages/14/shadeHazard = 1.0
 /space/ages/14/shadeSize = 1.0
 /space/ages/14/apicalControl = 0.45
-/space/ages/14/upkeep = 0.35
+/space/ages/14/inverseHeight = 0.02873563218390805
 /space/ages/14/balanceHazard = 2.0
-/space/ages/14/leafGirth = 1.0
 /space/ages/14/leafYears = 1.0
-/space/ages/14/form/pipe = 0.0006
+/space/ages/14/form/primary = 0.0006
+/space/ages/14/form/sapwood = 4.3478260869565215
+/space/ages/14/form/sapwoodRings = 16.0
+/space/ages/14/form/sapwoodTall = 0.6216216216216216
+/space/ages/14/form/sapwoodRingsTall = 1.61875
+/space/ages/14/form/sapwoodFrom = 10.0
+/space/ages/14/form/sapwoodTo = 25.0
+/space/ages/14/form/sag = 5e-6
 /space/ages/14/zones/0/buds = 1.0
 /space/ages/14/zones/0/nodes/min = 3.0
 /space/ages/14/zones/0/nodes/max = 5.0
 /space/ages/2/trunk = true
 /space/ages/3/trunk = true
 /space/ages/4/trunk = true
-
-# The fidelity dial at its coarsest (fn-328: fewer laterals, each with more
-# leaf; all six of R4's medians within 5% on tuning seeds 1001 to 1050 at 42%
-# less time than fn-325's rows; its held-out read is 0.081, on limbs).
-/space/coarse/first = 9
-/space/coarse/factor = 1.687
-/space/coarse/leaf = 26.289
-/space/coarse/pipe = 3.742
-/space/coarse/bud = 0.82
-/space/coarse/hazard = 2.385
-/space/coarse/shedding = 0.243

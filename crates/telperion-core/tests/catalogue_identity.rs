@@ -47,8 +47,22 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        // fn-328 moved the oak's and spruce's coarse rows.
-        8_843_512_391_922_370_086,
+        // fn-328 moved the oak's and spruce's coarse rows; fn-349 replaced
+        // the upkeep row with the inverse height; fn-354 gave the Two Trees
+        // the beech's, renamed the pipe the primary radius, added the
+        // sapwood rows and deleted the pipe model's, then set every age's
+        // sag to its wood's 4ρg/E; fn-354 R5 gave the spruce, the birch and
+        // the ordinary tree their leaf years; the birch's sapwood 4.6; R7
+        // gave every age a shade table and the beech its full-light tables;
+        // task 7 gave the ordinary tree a leaf of 15.7 cm² and the beech's
+        // short shoot a life of twelve years. fn-367 deleted `/fidelity` and
+        // the oak's, spruce's and birch's coarse rows. fn-371 gave the
+        // ordinary tree the leaf of its drawn blade, 44.245 cm².
+        // fn-351 (OAK-SAPWOOD-BY-SIZE.md) added the four rows that state
+        // the sapwood rows at two tree heights, in every family at their
+        // neutral 1, 1, 0, 0, and gave the oak Phillips's two plots and
+        // Hollstein's two classes.
+        12_906_218_276_796_877_916,
         "{}",
         digest(&text)
     );
@@ -101,7 +115,21 @@ fn every_walk_is_the_walk_it_was() {
     // 3_687_963_222_161_500_942.
     assert_eq!(
         digest(&text),
-        3_687_963_222_161_500_942,
+        // fn-349 replaced the upkeep row with the inverse height; fn-354
+        // gave the Two Trees the beech's, then renamed the pipe the primary
+        // radius, added the sapwood rows and deleted the pipe model's, and
+        // set every age's sag to its wood's 4ρg/E; R5 gave the spruce, the
+        // birch and the ordinary tree their leaf years; the birch's sapwood
+        // 4.6; R7 gave every age a shade table and the beech its full-light
+        // tables; task 7 gave the ordinary tree a leaf of 15.7 cm² and the
+        // beech's short shoot a life of twelve years. fn-367 deleted
+        // `/fidelity` and the coarse rows, which every walk carried. fn-371
+        // gave the ordinary tree the leaf of its drawn blade, 44.245 cm².
+        // fn-351 (OAK-SAPWOOD-BY-SIZE.md) added the four rows that state
+        // the sapwood rows at two tree heights, in every family at their
+        // neutral 1, 1, 0, 0, and gave the oak Phillips's two plots and
+        // Hollstein's two classes.
+        11_594_325_576_688_982_239,
         "{}",
         digest(&text)
     );
@@ -126,8 +154,18 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        // fn-328 moved the oak's and spruce's coarse rows.
-        11_821_538_192_718_248_754,
+        // fn-328 moved the oak's and spruce's coarse rows; fn-349 replaced
+        // the upkeep row with the inverse height; fn-354 renamed the
+        // supernatural pipe the primary radius and deleted the coarse pipe,
+        // and set every age's sag to its wood's 4ρg/E; R5 gave the spruce
+        // and the birch their leaf years; the birch's sapwood 4.6; R7 gave
+        // every age a shade table. fn-367 deleted `/fidelity` from the wire
+        // and the coarse rows.
+        // fn-351 (OAK-SAPWOOD-BY-SIZE.md) added the four rows that state
+        // the sapwood rows at two tree heights, in every family at their
+        // neutral 1, 1, 0, 0, and gave the oak Phillips's two plots and
+        // Hollstein's two classes.
+        4_023_025_894_783_596_163,
         "{}",
         digest(&text)
     );
@@ -190,7 +228,10 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        4_291_284_850_864_067_711,
+        // fn-354 renamed the pipe the primary radius, added the sapwood
+        // rows' refusals and deleted the pipe model's. fn-367 deleted
+        // `/fidelity` and its refusal.
+        11_839_571_377_004_440_045,
         "{}",
         digest(&text)
     );

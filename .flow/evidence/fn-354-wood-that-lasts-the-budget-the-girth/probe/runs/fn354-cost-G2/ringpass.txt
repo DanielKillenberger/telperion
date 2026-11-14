@@ -1,0 +1,3 @@
+oregon-white-oak 40 {"seconds":0.1362}
+oregon-white-oak 120 {"seconds":5.5679}
+oregon-white-oak 300 {"seconds":31.2478}

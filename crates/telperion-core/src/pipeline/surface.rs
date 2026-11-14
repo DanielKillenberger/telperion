@@ -9,8 +9,6 @@ mod angular;
 #[cfg(feature = "geometry")]
 mod attachment;
 #[cfg(feature = "geometry")]
-mod budget;
-#[cfg(feature = "geometry")]
 mod build;
 #[cfg(feature = "geometry")]
 mod chunks;
@@ -65,14 +63,11 @@ use {
     paths::paths,
     samples::sample_path,
 };
-/// A wood buffer the allocator refused, named with its remedy.
-const OUT_OF_MEMORY: Error = Error::ResourceLimit(
-    "the wood ran out of memory while its buffers were reserved; build it with fewer \
-     radialSegments",
-);
+/// A wood buffer of exactly `n` elements, laid out before it fills: the
+/// machine's refusal is the wood's, named with the bytes it asked for.
 fn reserved<T>(n: usize) -> Result<Vec<T>> {
     let mut out = Vec::new();
-    out.try_reserve_exact(n).map_err(|_| OUT_OF_MEMORY)?;
+    crate::memory::reserve(&mut out, n, "wood")?;
     Ok(out)
 }
 fn filled<T: Clone>(n: usize, value: T) -> Result<Vec<T>> {
@@ -132,7 +127,9 @@ crate::catalogue::rows! {
         pub radial_segments: u32 = "radialSegments" "sides" Rail::closed(3.0, 64.0) => [Expand] {
             wire: 78,
             check: input(Site::Surface, 1, "surface parameters"),
-            note: "Wood is drawn with `max(radialSegments, 4·lobes)` sides.",
+            note: "Wood is drawn with at most `max(radialSegments, 4·lobes)` sides; a run whose \
+                widest ring stands within 0.2 mm of its circle with fewer takes the fewest that \
+                do (fn-362).",
             blend: Blend::Count,
             dial: bounded("radial_segments", "how many sides each piece of wood is drawn with",
                 [2.0, 4.0]).span([6.0, 18.0]),
@@ -339,15 +336,32 @@ pub struct FlatWood {
     pub indices: Vec<u32>,
 }
 #[cfg(all(test, feature = "geometry"))]
+mod ease_tests;
+#[cfg(all(test, feature = "geometry"))]
 mod fork_tests;
+#[cfg(all(test, feature = "geometry"))]
+mod shoulder_tests;
+#[cfg(all(test, feature = "geometry"))]
+mod sides_tests;
 
 #[cfg(test)]
 mod tests {
     #[test]
-    fn allocation_failure_is_named_with_its_remedy() {
-        let refused = super::reserved::<f32>(usize::MAX).unwrap_err();
-        assert_eq!(refused, super::OUT_OF_MEMORY);
+    fn a_wood_the_machine_cannot_hold_is_refused_with_its_bytes() {
+        let n = usize::MAX / 8;
+        let refused = super::reserved::<f32>(n).unwrap_err();
+        let needed = n as u64 * 4;
+        assert_eq!(
+            refused,
+            crate::Error::Memory {
+                store: "wood",
+                needed
+            }
+        );
         let said = refused.to_string();
-        assert!(said.contains("the wood ran out of memory") && said.contains("radialSegments"));
+        assert_eq!(
+            said,
+            format!("the wood needs {needed} bytes and the machine did not give them")
+        );
     }
 }

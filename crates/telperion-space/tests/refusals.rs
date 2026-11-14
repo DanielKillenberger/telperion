@@ -48,11 +48,10 @@ fn species() -> Species {
         ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
+        shade_short: Vec::new(),
         straightening: 0.0,
         form: Form::default(),
     };
@@ -70,7 +69,7 @@ const REQUEST: Request = Request {
 #[test]
 fn every_input_the_engine_cannot_draw_is_refused_by_name() {
     type Edit = fn(&mut Species);
-    let cases: [(Edit, &str); 47] = [
+    let cases: [(Edit, &str); 52] = [
         (|s| s.states.clear(), "states"),
         (|s| s.states[0].continuation = 1.5, "states[0].continuation"),
         (
@@ -95,6 +94,20 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
             "states[1].leaf_years",
         ),
         (|s| s.states[1].lifespan = -0.5, "states[1].lifespan"),
+        // fn-354 R7: a bud cannot turn into its own age; one exponent an
+        // age, each in its range.
+        (
+            |s| s.states[1].shade_short = vec![0.0, 0.5],
+            "states[1].shade_short[1]",
+        ),
+        (
+            |s| s.states[0].shade_short = vec![0.0, 11.0],
+            "states[0].shade_short[1]",
+        ),
+        (
+            |s| s.states[0].shade_short = vec![0.0, 0.5, 0.5],
+            "states[0].shade_short",
+        ),
         (|s| s.states[0].zones.clear(), "states[0].zones"),
         (
             |s| s.states[0].zones = vec![s.states[0].zones[0].clone(); 5],
@@ -157,7 +170,7 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
             |s| s.states[1].form.wander = f64::NAN,
             "states[1].form.wander",
         ),
-        (|s| s.states[0].form.pipe = 2.0, "states[0].form.pipe"),
+        (|s| s.states[0].form.primary = 2.0, "states[0].form.primary"),
         (
             |s| s.states[1].form.elevation = 2.0,
             "states[1].form.elevation",
@@ -165,12 +178,28 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
         (|s| s.states[0].form.plane = 1e9, "states[0].form.plane"),
         (|s| s.states[1].form.roll = -0.1, "states[1].form.roll"),
         (
-            |s| s.states[0].form.exponent = 1.0,
-            "states[0].form.exponent",
+            |s| s.states[0].form.sapwood = -0.1,
+            "states[0].form.sapwood",
         ),
         (
-            |s| s.states[1].form.ripening = -1.0,
-            "states[1].form.ripening",
+            |s| s.states[1].form.sapwood_rings = 0.5,
+            "states[1].form.sapwood_rings",
+        ),
+        (
+            |s| s.states[0].form.sapwood_rings = f64::NAN,
+            "states[0].form.sapwood_rings",
+        ),
+        (
+            |s| s.states[0].form.sapwood_tall = -0.1,
+            "states[0].form.sapwood_tall",
+        ),
+        (
+            |s| s.states[0].form.sapwood_rings_tall = 0.01,
+            "states[0].form.sapwood_rings_tall",
+        ),
+        (
+            |s| s.states[1].form.sapwood_from = 1.0,
+            "states[1].form.sapwood_to",
         ),
         (
             |s| s.states[1].form.dominance = 1.5,
@@ -185,14 +214,6 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
         (|s| s.states[0].erection = -1.0, "states[0].erection"),
         (|s| s.states[1].form.sag = -0.1, "states[1].form.sag"),
         (|s| s.states[0].form.sag = f64::NAN, "states[0].form.sag"),
-        (
-            |s| s.states[0].form.secondary = -0.1,
-            "states[0].form.secondary",
-        ),
-        (
-            |s| s.states[1].form.secondary = f64::NAN,
-            "states[1].form.secondary",
-        ),
     ];
     for (edit, input) in cases {
         let mut s = species();

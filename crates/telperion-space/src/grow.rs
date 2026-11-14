@@ -7,11 +7,13 @@
 //! element from those leads, so a setting that crosses a draw grows the
 //! element in from nothing.
 mod advance;
-mod balance;
 pub(crate) mod cycle;
+mod deposit;
 mod draw;
 #[cfg(test)]
 mod ground_tests;
+#[cfg(test)]
+mod growing_tests;
 mod parallel;
 mod settle;
 mod shoot;
@@ -31,7 +33,7 @@ use crate::lineage::Key;
 use crate::presence::{Draws, Windows};
 use crate::shed::lasting;
 use crate::species::{PaState, Species};
-use crate::structure::{Axis, Origin, Structure, Vec3};
+use crate::structure::{Axis, Growing, Origin, Structure, Vec3};
 pub(crate) use shoot::Rules;
 use sketch::Sketch;
 pub use stage::{Pass, Stage};
@@ -147,7 +149,7 @@ pub(crate) fn run(
     lay: bool,
     options: Options,
 ) -> Result<Grown> {
-    let (mut grower, keeps) = start(Arc::new(species.clone()), request, options)?;
+    let mut grower = start(Arc::new(species.clone()), request, options)?;
     stage(Stage::Pass(Pass::Windows));
     let mut advanced = Vec::new();
     for cycle in 1..=request.age {
@@ -157,12 +159,14 @@ pub(crate) fn run(
         let sketching = cycle < request.age || !lay || options.unread_light;
         grower.year(cycle, sketching, &mut advanced, stage)?;
     }
-    grower.settle(request, (lay, keeps), stage)
+    // Its working set served the balance alone: the settle reads the
+    // whole tree.
+    grower.working = None;
+    grower.settle(request, lay, stage)
 }
 
-/// The grower of `request` before its first cycle, and whether any PA
-/// reads the tree as grown (its shed pipes or its leaves' girth).
-fn start(species: Arc<Species>, request: Request, options: Options) -> Result<(Grower, bool)> {
+/// The grower of `request` before its first cycle.
+fn start(species: Arc<Species>, request: Request, options: Options) -> Result<Grower> {
     species.validate()?;
     request.light.validate()?;
     if request.age == 0 {
@@ -170,14 +174,15 @@ fn start(species: Arc<Species>, request: Request, options: Options) -> Result<(G
     }
     let laterals: Vec<_> = species.states.iter().map(PaState::laterals).collect();
     // The rough layout is grown wherever light shades: every bud reads
-    // it (fn-255); and wherever a ground hazard reads its tips (fn-252 R2),
-    // whole light where nothing shades.
+    // it (fn-255); wherever a ground hazard reads its tips (fn-252 R2),
+    // whole light where nothing shades; and wherever wood is laid by the
+    // leaf above it (fn-354).
     let grounded = species.states.iter().any(|s| s.ground_hazard > 0.0);
-    let sketch = (request.light.shades() || grounded).then(|| Sketch::new(request.light));
+    let laid = request.light.shades() || grounded || crate::girth::lays(&species);
+    let sketch = laid.then(|| Sketch::new(request.light));
     // What shedding will drop is grown only where something reads it
-    // while it lives: the light, or the girth of what bore it.
-    let keeps = keeps(&species);
-    let lasting = if options.certain != Certain::Grow && sketch.is_none() && !keeps {
+    // while it lives: the light, or the wood its leaf lays in what bore it.
+    let lasting = if options.certain != Certain::Grow && sketch.is_none() {
         lasting(&species, &laterals)
     } else {
         vec![None; species.states.len()]
@@ -192,13 +197,12 @@ fn start(species: Arc<Species>, request: Request, options: Options) -> Result<(G
         grown: 0,
         one: false,
     };
-    let grower = Grower::seeded(
+    Grower::seeded(
         (rules, species),
         (threads, options.share),
         sketch,
         request.seed,
-    )?;
-    Ok((grower, keeps))
+    )
 }
 
 /// The share of an apex's expected wood a stop decides: a stop with no
@@ -210,7 +214,7 @@ fn stop_stake(relay: f64) -> f64 {
     1.0 - relay
 }
 
-fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
+fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis<Growing> {
     Axis {
         lineage: key.0,
         pa,
@@ -244,7 +248,8 @@ struct Grower {
     /// (a delay and the cycle its fade runs over).
     horizon: Vec<f64>,
     marked: Vec<u64>,
-    axes: Vec<Axis>,
+    /// Its axes, each phytomer held as growth reads it (fn-358).
+    axes: Vec<Axis<Growing>>,
     /// Each axis's draws' presences, by index.
     draws: Vec<Draws>,
     live: Vec<Apex>,
@@ -269,20 +274,15 @@ struct Grower {
     /// the seconds the light took, and its census.
     one: bool,
     light_seconds: f64,
+    /// The most nodes its light's lattice may span: the platform's
+    /// `light::field::NODES`, and a small one in the tests that hold the
+    /// refusal.
+    lattice: u64,
     /// The most units one living apex's job and one waking bud's grew in
     /// the cycle (`Shoot::jobs`), which the census takes.
     jobs: [u32; 2],
     census: Option<Box<cycle::Census>>,
     working: Option<Box<cycle::Working>>,
-}
-
-/// Whether any PA reads the tree as grown: its shed pipes or its leaves'
-/// girth.
-pub(crate) fn keeps(species: &Species) -> bool {
-    species
-        .states
-        .iter()
-        .any(|s| s.retained > 0.0 || s.leaf_girth > 0.0)
 }
 
 impl Grower {
@@ -294,7 +294,6 @@ impl Grower {
         sketch: Option<Sketch>,
         seed: u64,
     ) -> Result<Self> {
-        let age = rules.age;
         let root = Key::root(seed);
         // The seed grows in the first age it does not pass through, as
         // far as it reaches it.
@@ -315,13 +314,14 @@ impl Grower {
             units: vec![0.0],
             successor: vec![Vec::new()],
             roots: vec![root.0],
-            asleep: vec![Vec::new(); age as usize + 2],
+            asleep: Vec::new(),
             woken: Vec::new(),
             sketch,
             leaves: Vec::new(),
             spare: Default::default(),
             one: false,
             light_seconds: 0.0,
+            lattice: crate::light::field::NODES,
             jobs: [0; 2],
             census: None,
             working: None,
@@ -347,9 +347,14 @@ impl Grower {
             report(Stage::Pass(Pass::Wake));
             return Ok(());
         }
-        let rows = self.rows();
-        self.balance(cycle, rows.as_ref());
+        // The whole-tree grower balances through the one cycle's working
+        // set, every axis it reaches open and none retired.
+        if self.balances() {
+            self.open(cycle);
+            self.balance_one(cycle);
+        }
         report(Stage::Pass(Pass::Balance));
+        let rows = self.rows();
         self.allot(rows.as_ref());
         drop(rows);
         report(Stage::Pass(Pass::Allot));
@@ -361,7 +366,8 @@ impl Grower {
     }
 
     /// One cycle: its growth, then, `sketching` where a rough layout is
-    /// grown, its layout and its light, read on the layout's places.
+    /// grown, its layout and its light, read on the layout's places; and
+    /// the year's wood.
     fn year(
         &mut self,
         cycle: u32,
@@ -370,20 +376,38 @@ impl Grower {
         stage: &mut dyn FnMut(Stage),
     ) -> Result<()> {
         if self.one {
-            self.compact();
+            self.compact(cycle - 1);
+        }
+        // A growth that goes on reads windows as far as it goes; an entry
+        // is the same however far its table runs (fn-355).
+        if cycle > self.rules.windows.year() {
+            let year = cycle.max(2 * self.rules.windows.year());
+            self.rules.windows = Windows::new(&self.species, year);
         }
         advanced.clear();
         advanced.extend(self.live.iter().map(|a| a.axis));
         self.step(cycle, stage)?;
         stage(Stage::Grown);
-        if self.sketch.is_none() || !sketching {
-            return Ok(());
+        // The wood reads each year's leaf on that year's layout, the last
+        // year's too, whose light no bud reads (fn-354).
+        if self.sketch.is_some() && (sketching || crate::girth::lays(&self.species)) {
+            self.sketch(cycle, advanced)?;
+            stage(Stage::Pass(Pass::Sketch));
+            stage(Stage::Sketched);
+            if sketching {
+                self.shade(stage)?;
+                stage(Stage::Lit);
+            }
         }
-        self.sketch(cycle, advanced)?;
-        stage(Stage::Pass(Pass::Sketch));
-        stage(Stage::Sketched);
-        self.shade(stage)?;
-        stage(Stage::Lit);
+        let working = self.working.as_deref();
+        let closed = |i: usize| working.is_some_and(|w| w.closed(i));
+        crate::girth::lay(
+            &mut self.axes,
+            &self.species,
+            cycle,
+            (&closed, self.threads),
+        );
+        stage(Stage::Pass(Pass::Wood));
         Ok(())
     }
 

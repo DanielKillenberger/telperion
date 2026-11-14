@@ -7,8 +7,8 @@ use super::{stop_stake, Apex};
 use crate::contract::{self, presence};
 use crate::error::Result;
 use crate::lineage::{threshold, Key, ABORTION, MOVE, RELAY};
-use crate::presence::Unit;
 use crate::presence::SPAN;
+use crate::presence::{At, Unit};
 use crate::species::PaState;
 use crate::structure::Origin;
 
@@ -104,7 +104,7 @@ impl Shoot<'_> {
         after: std::result::Result<f64, f32>,
     ) -> Result<()> {
         let survive = presence::times(relayed, presence::q(self.kept(apex.axis)));
-        let (size, light, reads) = (self.size(apex.axis), self.light(apex.axis), self.reads);
+        let (size, reads) = (self.size(apex.axis), self.reads);
         let draws = self.draws_mut(apex.axis);
         draws.units.push(Unit {
             survive: presence::real(survive),
@@ -113,9 +113,7 @@ impl Shoot<'_> {
             size: lived,
         });
         if reads.sketching {
-            draws
-                .shade
-                .push([size, if reads.lights { light } else { 1.0 }]);
+            draws.shade.push(size);
         }
         draws.failed = true;
         self.grow_unit(apex, pa, unit, (cycle, None))?;
@@ -227,7 +225,7 @@ impl Shoot<'_> {
     /// The presence of the relay a stop in the growth unit keyed `unit`
     /// would have (host decision 8): none where its PA relays none
     /// or the draw fails.
-    pub(super) fn relayed(&self, relay: f64, unit: Key, at: (usize, u32, Option<f64>)) -> f32 {
+    pub(super) fn relayed(&self, relay: f64, unit: Key, at: At) -> f32 {
         if relay <= 0.0 {
             return 0.0;
         }

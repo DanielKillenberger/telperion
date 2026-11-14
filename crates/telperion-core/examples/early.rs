@@ -7,10 +7,11 @@
 //!   cargo run --profile ci -p telperion-core --example early -- three norway-spruce default 42 cycle
 //!
 //! - `live <preset> <age|default> <seed>`: fn-256 task 5's live set, each
-//!   cycle's phytomers not retired against those grown by then.
+//!   cycle's phytomers not retired against those grown by then, and its
+//!   living apexes (fn-349 R5).
 use std::time::Instant;
 use telperion_core::presets::Preset;
-use telperion_space::{grow_census, Census, Light, Request, Species, Structure};
+use telperion_space::{grow_census, tree_digest, Census, Light, Request, Species, Structure};
 
 const PRESETS: [(Preset, &str); 8] = [
     (Preset::EuropeanBeech, "european-beech"),
@@ -61,7 +62,12 @@ fn three(species: &Species, r: Request, which: &str) {
     assert_eq!(which, "cycle", "F4's builds went with fn-256");
     match grow_census(species, r) {
         Ok(c) => {
+            // fn-368: the process's CPU seconds once the tree is grown, read
+            // before its digest, which formats every phytomer.
+            println!("  cpu: {:.2} s", cpu_seconds());
             tree("cycle", &c.structure, c.grown, c.seconds);
+            // fn-368: the tree to the bit, read beside each round's seconds.
+            println!("  digest: {}", tree_digest(&c.structure));
             census(&c.census.expect("a census"));
         }
         Err(e) => println!(
@@ -69,6 +75,21 @@ fn three(species: &Species, r: Request, which: &str) {
             started.elapsed().as_secs_f64()
         ),
     }
+}
+
+/// The process's user and system CPU seconds so far (Linux's
+/// `/proc/self/stat`, in clock ticks of 1/100 s); none elsewhere.
+fn cpu_seconds() -> f64 {
+    let stat = std::fs::read_to_string("/proc/self/stat").unwrap_or_default();
+    // The fields after the command's closing parenthesis; utime and stime
+    // are the 14th and 15th of the whole line.
+    let rest = stat.rsplit_once(')').map_or("", |(_, r)| r);
+    let field = |k: usize| {
+        rest.split_whitespace()
+            .nth(k)
+            .and_then(|v| v.parse::<f64>().ok())
+    };
+    field(11).unwrap_or(0.0) / 100.0 + field(12).unwrap_or(0.0) / 100.0
 }
 
 /// The kept tree's size, ancestors and attachments.
@@ -139,12 +160,12 @@ fn census(c: &Census) {
 /// Each cycle's live phytomers (not retired) against those grown by its
 /// end, then the largest live set and the largest share past cycle 10.
 fn live(c: &Census) {
-    println!("  cycle grown live share axes");
+    println!("  cycle grown live share axes apexes");
     for k in &c.cycles {
         let share = k.phytomers as f64 / k.grown.max(1) as f64;
         println!(
-            "  {} {} {} {share:.3} {}",
-            k.cycle, k.grown, k.phytomers, k.axes
+            "  {} {} {} {share:.3} {} {}",
+            k.cycle, k.grown, k.phytomers, k.axes, k.active
         );
     }
     let peak = c
@@ -172,7 +193,8 @@ fn hint(species: &Species, age: u32) {
     let t = Instant::now();
     let mut unshaded = species.clone();
     for s in &mut unshaded.states {
-        (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+        (s.shade_hazard, s.shade_size, s.balance_hazard) = (0.0, 0.0, 0.0);
+        s.shade_short.iter_mut().for_each(|e| *e = 0.0);
     }
     let kept = telperion_space::expected_kept(&unshaded, age).expect("a closed form");
     println!(

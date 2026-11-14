@@ -58,27 +58,6 @@ impl Crown {
         (0..self.slots() as i64).map(move |i| newest - i)
     }
 
-    /// The rows the crown is drawn by: the fronds made, the years a frond lives, the whole
-    /// years before the last (negative where no engine grew the tree) and
-    /// the days into it; its stem's budburst, elongation and expansion,
-    /// and the fronds it draws (`slots`); the establishment's years and
-    /// early share, none where no engine grew the tree.
-    pub fn rows(&self) -> [[f64; 4]; 3] {
-        let slots = self.slots() as f64;
-        match (self.clock(), self.year) {
-            (Some((whole, tau)), Some(y)) => [
-                [self.made(), self.life, whole, tau],
-                [y.budburst, y.elongation, y.expansion, slots],
-                [self.establishment, self.early, 0.0, 0.0],
-            ],
-            _ => [
-                [0.0, self.life, -1.0, 0.0],
-                [0.0, 0.0, 0.0, slots],
-                [0.0; 4],
-            ],
-        }
-    }
-
     /// The fronds the crown draws, newest first: every one until those
     /// grown above it fill the living crown and the skirt (`fronds`), the
     /// last fading over its last place. A crown its tree grows draws only

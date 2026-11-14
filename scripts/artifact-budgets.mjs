@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { measure as growthPath } from './growth-path.mjs';
 
 /* Every shipped Wasm module and package script against the two limits in
  * artifact-budgets.json (docs/principles.md), measured on the package CI
@@ -193,6 +194,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const named = 'declared' in pr && pr.declared?.has(path) ? ', growth named in Decisions' : '';
     console.log(`${path}: ${sizes[path]} bytes (ceiling ${ceilingBytes}${growth}${named})`);
   }
+  // P11's total (fn-366), reported; it holds a ceiling once the owner sets one.
+  const path = await growthPath(new URL('dist/', root));
+  console.log(`growth path: ${path.brotli} Brotli bytes (${path.raw} raw): ${path.rows.map(r => r.file).join(', ')}`);
   const fails = check(b, sizes, 'skip' in pr ? {} : pr);
   for (const f of fails) console.error(`FAIL ${f}`);
   process.exit(fails.length ? 1 : 0);

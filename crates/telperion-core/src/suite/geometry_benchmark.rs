@@ -379,12 +379,6 @@ fn stated(schema: &Value, given: &Value, path: &str) {
             // An override the family leaves to the envelope's own derivation.
             continue;
         }
-        if path.is_empty() && key == "fidelity" {
-            // What a consumer asks for, newer than the frozen file, whose
-            // trees are the finest: its default.
-            assert_eq!(value.as_f64(), Some(0.0));
-            continue;
-        }
         if path.is_empty() && key == "skeleton" {
             // The habit is the one object the frozen file no longer speaks.
             let mut narrowed = value.clone();

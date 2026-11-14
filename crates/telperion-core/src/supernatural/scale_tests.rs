@@ -4,10 +4,12 @@ use crate::pipeline::{self, executor, grown_envelope, Request};
 use crate::presets::{Family, Preset};
 use crate::tree::Tree;
 
-/// The young beech at `scale`, the group on.
+/// The young beech at `scale`, the group on: at 20, since at 12 its wood
+/// laid by its leaf (fn-354) loses no twig under the finest wood drawn when
+/// shrunk tenfold (1,018 leaves at either scale; at 20, 2,652 and 2,631).
 fn beech(scale: f64) -> Family {
     let mut f = Preset::EuropeanBeech.parameters();
-    (f.age, f.skeleton.seed) = (12.0, 1);
+    (f.age, f.skeleton.seed) = (20.0, 1);
     f.supernatural.enabled = true;
     f.supernatural.scale = scale;
     f

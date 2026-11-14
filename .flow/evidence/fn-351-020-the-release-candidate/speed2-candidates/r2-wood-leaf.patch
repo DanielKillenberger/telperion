@@ -1,0 +1,19 @@
+--- a/crates/telperion-space/src/girth.rs
++++ b/crates/telperion-space/src/girth.rs
+@@ -108,8 +108,15 @@
+                 }
+             }
+             let per_leaf = form.sapwood * 1e-4;
++            // A phytomer past its leaf years bears a leaf of exactly 0.0
++            // (`leaf`'s clamp), and 0.0 + x is x to the bit, so only those
++            // from `bearing` on are asked for theirs (fn-351 speed round 2).
++            let bears = bearing(state, &axis.phytomers[..], year);
+             for (k, p) in axis.phytomers.iter_mut().enumerate().rev() {
+-                sum += leaf(state, p, year) + at_node[k];
++                sum += match k >= bears {
++                    true => leaf(state, p, year) + at_node[k],
++                    false => at_node[k],
++                };
+                 let scale = p.scale();
+                 let (section, sapwood) = p.wood();
+                 if *section == 0.0 {

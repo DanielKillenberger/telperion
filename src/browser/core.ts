@@ -81,29 +81,36 @@ interface Exports extends WebAssembly.Exports {
   metadata_ptr(): number; metadata_len(): number; build(): number; release(): void;
   buffer_ptr(slot: number): number; buffer_len(slot: number): number;
   chunk_ptr(chunk: number, field: number): number; chunk_len(chunk: number, field: number): number;
+  /** The request the machine refused, read after a trap: four u32 words,
+   * failed, bytes asked, bytes live and the stage's tag. */
+  refusal_ptr(): number; stage_name_ptr(tag: number): number; stage_name_len(tag: number): number;
 }
+const IMPORTS = { env: { now: () => performance.now() } };
 export class TreeEngine {
   private exports: Exports | undefined;
+  private readonly module: WebAssembly.Module;
   private get e(): Exports {
     if (!this.exports) throw Error("Tree engine is disposed");
     return this.exports;
   }
   get disposed(): boolean { return this.exports === undefined; }
-  private constructor(instance: WebAssembly.Instance) { this.exports = instance.exports as Exports; }
+  private constructor(module: WebAssembly.Module, instance: WebAssembly.Instance) {
+    this.module = module;
+    this.exports = instance.exports as Exports;
+  }
   /** Drop the instance, allowing its linear memory to be reclaimed by the host. */
   dispose(): void { this.exports?.release(); this.exports = undefined; }
   /** The core from its bytes, a Response, or a Module compiled once and
    * shared between workers (`telperion/field`'s `compileField`). */
   static async create(source?: BufferSource | Response | WebAssembly.Module): Promise<TreeEngine> {
-    const imports = { env: { now: () => performance.now() } };
-    if (source instanceof WebAssembly.Module) return new TreeEngine(await WebAssembly.instantiate(source, imports));
+    if (source instanceof WebAssembly.Module) return new TreeEngine(source, await WebAssembly.instantiate(source, IMPORTS));
     // The literal names the file for a consumer's bundler; the library build
     // leaves it as it is (vite.config.ts) and ships the file beside this one.
     const input = source ?? await wasmSource(new URL("./telperion.wasm", import.meta.url));
     if (input instanceof Response && !input.ok) throw Error(`Tree core load failed: HTTP ${input.status}`);
     const bytes = input instanceof Response ? await input.arrayBuffer() : input;
-    const { instance } = await WebAssembly.instantiate(bytes, imports);
-    return new TreeEngine(instance);
+    const { module, instance } = await WebAssembly.instantiate(bytes, IMPORTS);
+    return new TreeEngine(module, instance);
   }
   private metadata(): unknown {
     const e = this.e;
@@ -120,6 +127,32 @@ export class TreeEngine {
    * built by passing its parameters (`presetById(id)` or a constant); a
    * preset's id is refused by name. */
   build(family: Family, outputs: Outputs): TreeOutput {
+    try {
+      return this.built(family, outputs);
+    } catch (error) {
+      throw this.trapped(error);
+    }
+  }
+  /** After a trap the instance is replaced, so the next request starts on a
+   * clean core; a trap the core recorded as a request the machine refused
+   * becomes that refusal by name, any other is rethrown as it is. */
+  private trapped(error: unknown): unknown {
+    if (!(error instanceof WebAssembly.RuntimeError) || !this.exports) return error;
+    const refused = this.refusal();
+    this.exports = new WebAssembly.Instance(this.module, IMPORTS).exports as Exports;
+    return refused ?? error;
+  }
+  /** The core's record of the request the machine refused, read through
+   * exports that touch no engine state; none where it recorded none. */
+  private refusal(): Error | undefined {
+    const e = this.e;
+    const [failed, asked, live, tag] = new Uint32Array(e.memory.buffer, e.refusal_ptr() >>> 0, 4);
+    if (!failed) return undefined;
+    const name = new TextDecoder().decode(new Uint8Array(e.memory.buffer, e.stage_name_ptr(tag) >>> 0, e.stage_name_len(tag)));
+    const stage = name === "growth" ? `growth in year ${tag}` : name;
+    return Error(`Tree core: the ${stage} needs ${asked} bytes and the machine did not give them (${live} bytes live)`);
+  }
+  private built(family: Family, outputs: Outputs): TreeOutput {
     const started = performance.now();
     const request = new TextEncoder().encode(`{"family":${wire(family)},"outputs":${JSON.stringify(outputs, finite)}}`);
     const e = this.e;

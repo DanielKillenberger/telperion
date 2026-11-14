@@ -28,7 +28,7 @@ pub(crate) fn legendary(enabled: bool) -> Supernatural {
     for k in 0..SupernaturalFlowering::AGES {
         g.flowering.set(k, 0.5);
         g.internode.set(k, 0.2);
-        g.pipe.set(k, 0.01);
+        g.primary.set(k, 0.01);
     }
     g
 }
@@ -47,7 +47,7 @@ fn every_override_mirrors_its_natural_row() {
     }
     assert_eq!(SupernaturalFlowering::ROWS.len(), telperion_space::AGES);
     assert_eq!(SupernaturalInternode::ROWS.len(), telperion_space::AGES);
-    assert_eq!(SupernaturalPipe::ROWS.len(), telperion_space::AGES);
+    assert_eq!(SupernaturalPrimary::ROWS.len(), telperion_space::AGES);
 }
 
 #[test]
@@ -74,7 +74,7 @@ fn a_group_that_is_on_lays_each_override_over_its_natural_row() {
     assert!(states.iter().all(|s| s.flowering == 0.5));
     assert!(states
         .iter()
-        .all(|s| (s.internode, s.form.pipe) == (0.2, 0.01)));
+        .all(|s| (s.internode, s.form.primary) == (0.2, 0.01)));
     assert_eq!(beech.supernatural.scale(), 3.0);
     assert_eq!(beech.supernatural.reflection().back_tint, [0.9, 0.92, 0.95]);
     // One override alone moves only its own row.
@@ -92,11 +92,11 @@ fn a_group_that_is_on_lays_each_override_over_its_natural_row() {
         (f.canopy.size, f.canopy.size_variation),
         (2.0, large.canopy.size_variation)
     );
-    // An age's internode or pipe alone moves only its own age (fn-248).
+    // An age's internode or primary radius alone moves only its own age (fn-248).
     let mut coarse = Preset::EuropeanBeech.parameters();
     coarse.supernatural.enabled = true;
     coarse.supernatural.internode.set(6, 0.1);
-    coarse.supernatural.pipe.set(6, 0.02);
+    coarse.supernatural.primary.set(6, 0.02);
     let natural = &coarse.space.species.as_ref().unwrap().states;
     let applied = coarse.applied();
     let states = &applied.space.species.as_ref().unwrap().states;
@@ -104,10 +104,39 @@ fn a_group_that_is_on_lays_each_override_over_its_natural_row() {
         let want = if k == 6 {
             (0.1, 0.02)
         } else {
-            (n.internode, n.form.pipe)
+            (n.internode, n.form.primary)
         };
-        assert_eq!((s.internode, s.form.pipe), want, "age {k}");
+        assert_eq!((s.internode, s.form.primary), want, "age {k}");
     }
+}
+
+/// The group's leaf size reaches the grower (fn-354 R5): every age's leaf
+/// area by the square of that size over the natural one, so the light,
+/// the wood and the drawing read one leaf; dormant with the group off or
+/// the size unset.
+#[test]
+fn the_group_s_leaf_size_multiplies_every_age_s_leaf_area_by_its_square() {
+    let natural = Preset::EuropeanBeech.parameters();
+    let leaf = |f: &Family| -> Vec<f64> {
+        let applied = f.applied();
+        let states = &applied.space.species.as_ref().unwrap().states;
+        states.iter().map(|s| s.leaf_area).collect()
+    };
+    let base = leaf(&natural);
+    assert!(base.iter().any(|&a| a > 0.0));
+    let mut large = natural.clone();
+    large.supernatural.enabled = true;
+    large.supernatural.canopy.size = Some(2.3);
+    let multiple = (2.3 / natural.canopy.size).powi(2);
+    let want: Vec<f64> = base.iter().map(|a| a * multiple).collect();
+    assert_eq!(leaf(&large), want);
+    let mut off = large.clone();
+    off.supernatural.enabled = false;
+    assert_eq!(leaf(&off), base, "the group off");
+    let mut unset = natural.clone();
+    unset.supernatural.enabled = true;
+    unset.supernatural.bloom.petals = Some(6.0);
+    assert_eq!(leaf(&unset), base, "the size unset");
 }
 
 #[test]
@@ -127,12 +156,12 @@ fn a_walk_from_the_group_off_ramps_up_from_the_natural_rows() {
         let natural = off.material.leaf_front_red;
         assert_eq!(g.material.leaf_front_red, Some((natural + 0.25) / 2.0));
         assert_eq!(g.flowering.get(3), Some(0.25));
-        // The leaf's size, an age's internode and its pipe walk up from the
+        // The leaf's size, an age's internode and its primary radius walk up from the
         // natural rows too.
         assert_eq!(g.canopy.size, Some(linear(off.canopy.size, 250.0, 0.5)));
         let age = &off.space.species.as_ref().unwrap().states[6];
         assert_eq!(g.internode.get(6), Some(linear(age.internode, 0.2, 0.5)));
-        assert_eq!(g.pipe.get(6), Some(linear(age.form.pipe, 0.01, 0.5)));
+        assert_eq!(g.primary.get(6), Some(linear(age.form.primary, 0.01, 0.5)));
         let a = half.applied();
         assert_eq!(a.material.leaf_front_red, (natural + 0.25) / 2.0);
     }
@@ -158,7 +187,7 @@ fn a_row_off_its_bounds_is_refused_by_name_whether_or_not_the_group_is_on() {
         let name = "supernatural material marginBlue";
         assert_eq!(f.validate(), Err(Error::InvalidInput(name)));
         f.supernatural.material.margin_blue = None;
-        // The leaf's size, an age's internode and pipe off their bounds
+        // The leaf's size, an age's internode and primary radius off their bounds
         // (fn-248).
         f.supernatural.canopy.size = Some(1000.5);
         let name = "supernatural canopy size";
@@ -168,8 +197,11 @@ fn a_row_off_its_bounds_is_refused_by_name_whether_or_not_the_group_is_on() {
         let name = "supernatural internode";
         assert_eq!(f.validate(), Err(Error::InvalidInput(name)));
         f.supernatural.internode.set(4, 0.1);
-        f.supernatural.pipe.set(4, 1.5);
-        assert_eq!(f.validate(), Err(Error::InvalidInput("supernatural pipe")));
+        f.supernatural.primary.set(4, 1.5);
+        assert_eq!(
+            f.validate(),
+            Err(Error::InvalidInput("supernatural primary"))
+        );
     }
 }
 
@@ -225,8 +257,15 @@ fn a_family_with_the_group_off_draws_its_base_species_to_the_byte() {
     off.supernatural = legendary(false);
     let base = mesh(&beech);
     assert_eq!(mesh(&off), base);
+    // On, every override but the internodes: a beech of 12 on legendary
+    // internodes of 0.2 m bends its wood, laid by its leaf (fn-354), into
+    // the ground and is refused. Its leaf at Telperion's size: the
+    // legendary 250 times the element is a leaf of tens of square metres
+    // to the grower (fn-354 R5), past every species' leaf area.
     let mut on = off.clone();
     on.supernatural.enabled = true;
+    on.supernatural.internode = SupernaturalInternode::NONE;
+    on.supernatural.canopy.size = Some(2.3);
     assert_ne!(mesh(&on), base);
 }
 

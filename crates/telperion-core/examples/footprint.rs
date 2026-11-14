@@ -59,9 +59,10 @@ fn main() {
                 false,
             )
             .expect("begun");
+            let started = std::time::Instant::now();
             for &age in &ages {
                 p.grow_to(age).expect("grown");
-                stores(age, &p);
+                stores(age, &p, started.elapsed().as_secs_f64());
             }
         }
         "tree" => {
@@ -82,20 +83,20 @@ fn main() {
     }
 }
 
-/// The grower at `age`, by store, largest first.
-fn stores(age: u32, p: &Paused) {
+/// The grower at `age`, grown in `seconds`, by store, largest first.
+fn stores(age: u32, p: &Paused, seconds: f64) {
     let f = p.footprint();
     let (held, most) = (HELD.load(Relaxed) as f64, MOST.load(Relaxed) as f64);
     println!(
-        "AGE {age}: counted {:.3} GiB; heap held {:.3} GiB, most {:.3} GiB; {}",
+        "AGE {age}: counted {:.3} GiB; heap held {:.3} GiB, most {:.3} GiB; {}; grown in {seconds:.1} s",
         f.bytes() as f64 / GB,
         held / GB,
         most / GB,
         peak()
     );
     println!(
-        "  axes: open or kept {}, retired roots {}, inside retired {}",
-        f.axes[0], f.axes[1], f.axes[2]
+        "  axes held: open {}, closed {}, retired roots {}, inside retired {}",
+        f.axes[0], f.axes[1], f.axes[2], f.axes[3]
     );
     let mut s = f.stores.clone();
     s.sort_by(|a, b| b.bytes.cmp(&a.bytes));

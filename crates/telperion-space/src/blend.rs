@@ -49,6 +49,10 @@ pub fn blend(a: &Species, b: &Species, t: f64, age: u32) -> Result<Species> {
 
 fn state(x: &PaState, y: &PaState, t: f64) -> Result<PaState> {
     let (mut out, mut other) = (x.clone(), y.clone());
+    // A shade table stated by one end alone is the other's zeros.
+    let width = out.shade_short.len().max(other.shade_short.len());
+    out.shade_short.resize(width, 0.0);
+    other.shade_short.resize(width, 0.0);
     for ((name, a), (_, b)) in settings(&mut out).into_iter().zip(settings(&mut other)) {
         *a = mixed(name, *a, *b, t)?;
     }

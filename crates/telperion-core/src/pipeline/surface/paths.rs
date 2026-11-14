@@ -8,10 +8,6 @@ pub(super) struct Run {
 pub(super) struct Paths {
     pub nodes: Vec<usize>,
     pub runs: Vec<Run>,
-    /// Every node above the root a codominant sibling leaves: the run
-    /// through it carries on into the widest wood that is not one, the
-    /// fork's primary.
-    pub forks: Vec<bool>,
 }
 /// The tree's runs: each carries on into the widest child that is not a
 /// codominant sibling.
@@ -24,7 +20,6 @@ pub(super) fn paths(tree: &Tree) -> Result<Paths> {
                 .ok_or(Error::ResourceLimit("surface paths"))?,
         )?,
         runs: reserved(n)?,
-        forks: filled(n, false)?,
     };
     if n < 2 {
         return Ok(result);
@@ -49,9 +44,10 @@ pub(super) fn paths(tree: &Tree) -> Result<Paths> {
             if wider(widest[at]) {
                 widest[at] = i;
             }
-            if nodes[i].codominant.is_some() {
-                result.forks[at] = at != 0;
-            } else if wider(leaders[at]) {
+            // A codominant sibling leaves its fork on a run of its own: the
+            // run through the fork carries on into the widest wood that is
+            // not one, the fork's primary.
+            if nodes[i].codominant.is_none() && wider(leaders[at]) {
                 leaders[at] = i;
             }
         } else {

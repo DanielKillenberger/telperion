@@ -135,7 +135,7 @@ impl Shoot<'_> {
     }
 
     /// The sleeping buds of the node keyed `node_key`, at `at` (its axis,
-    /// node and growth unit), that wake within the tree's age.
+    /// node and growth unit), that can wake.
     pub(super) fn sleep(
         &mut self,
         zone: &Zone,
@@ -149,8 +149,8 @@ impl Shoot<'_> {
             if !lineage::placed(place, zone.share(slot)) {
                 continue;
             }
-            let age = self.rules.age;
-            let drawn = dormant::draw(zone, place, (at, slot as u8), woods, (cycle, age));
+            let species = self.species();
+            let drawn = dormant::draw((species, zone), place, (at, slot as u8), woods, cycle);
             if let Some((wakes, sleeper)) = drawn {
                 self.asleep.push((wakes, sleeper));
             }

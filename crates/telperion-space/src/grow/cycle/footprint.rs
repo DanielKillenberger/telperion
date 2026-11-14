@@ -15,12 +15,13 @@ pub struct Store {
     pub allocations: usize,
 }
 
-/// Every store a grower holds, and its axes by retirement: open or kept,
-/// a retired subtree's root, and inside one.
+/// Every store a grower holds, and its axes held by kind: open (on the
+/// way to a living apex or a sleeping bud), closed and not retired, a
+/// retired subtree's root, and inside one.
 #[derive(Debug, Clone, Default)]
 pub struct Footprint {
     pub stores: Vec<Store>,
-    pub axes: [usize; 3],
+    pub axes: [usize; 4],
 }
 
 impl Footprint {
@@ -97,10 +98,11 @@ impl Grower {
             let heap = sketch.pencils.iter().map(|p| p.layer.heap());
             let allocs = heap.clone().filter(|&b| b > 0).count();
             f.add("pencils.inherited", allocs, heap.sum(), allocs);
+            f.inner("pencils.path", &sketch.pencils, |p| &p.path);
         }
         if let Some(w) = &self.working {
             w.footprint(&mut f);
-            f.axes = w.retirement().tally();
+            f.axes = w.tally();
             // Axes laid since the retirement table last grew are open.
             f.axes[0] += self.axes.len() - w.retirement().fate.len();
         }
@@ -111,27 +113,31 @@ impl Grower {
     }
 }
 
-impl Retirement {
-    /// The axes open or kept, retired roots, and inside a retired subtree.
-    pub(super) fn tally(&self) -> [usize; 3] {
-        let mut t = [0; 3];
-        for f in &self.fate {
+impl super::Working {
+    /// The axes taken in, open, closed and not retired, retired roots, and
+    /// inside a retired subtree.
+    fn tally(&self) -> [usize; 4] {
+        let mut t = [0; 4];
+        for (i, f) in self.retirement().fate.iter().enumerate() {
             t[match f {
-                Fate::Open | Fate::Kept(_) => 0,
-                Fate::Root(_) => 1,
-                Fate::Inside => 2,
+                Fate::Root(_) => 2,
+                Fate::Inside => 3,
+                _ if self.closed(i) => 1,
+                _ => 0,
             }] += 1;
         }
         t
     }
+}
 
+impl Retirement {
     /// What it holds.
     pub(super) fn footprint(&self, f: &mut Footprint) {
         f.vec("retire.fate", &self.fate);
-        f.vec("retire.frozen", &self.frozen);
         f.vec("retire.woken", &self.woken);
         f.vec("retire.pending", &self.pending);
         f.vec("retire.fading", &self.fading);
         f.vec("retire.log", &self.log);
+        f.vec("retire.stands", &self.stands);
     }
 }

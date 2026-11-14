@@ -9,7 +9,7 @@ use telperion_core::{
     material::MaterialParams,
     math::Vec3,
     mesh::{self, Foliage, TreeMesh},
-    surface::{Bounds, SurfaceMesh},
+    surface::Bounds,
 };
 use telperion_render::{render, Camera, Renderer, SceneRow, Still, View, STILL_FORMAT};
 
@@ -91,7 +91,7 @@ fn shell() -> TreeMesh {
     }
     let reach = RADIUS + 0.2;
     TreeMesh {
-        wood: SurfaceMesh::default(),
+        wood: None,
         curve: Default::default(),
         foliage: Foliage { element, instances },
         organ: None,

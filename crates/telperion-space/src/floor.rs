@@ -2,7 +2,8 @@
 //! cost on a tree cut at an order with the rest standing as density
 //! (fn-323's manifest). A replay on a tree grown whole, for the measuring
 //! code alone: no tree is grown through it.
-use crate::light::{leaf_area, Field};
+use crate::girth::leaf;
+use crate::light::Field;
 use crate::structure::{Axis, Origin, Vec3};
 use crate::{Light, Result, Species};
 
@@ -31,18 +32,16 @@ pub fn orders_by_key(axes: &[Axis]) -> std::collections::HashMap<u64, u32> {
     phytomers.collect()
 }
 
-/// The leaf area standing at `year`, by each age's own leaf years: R4's metric.
+/// The leaf area standing at `year`, the grower's leaf of every phytomer
+/// (`girth::leaf`, fn-354 R5): R4's metric. The finished tree holds no
+/// closed wood's state, so wood that closed with its leaf still on it is
+/// counted.
 pub fn bearing_area(species: &Species, axes: &[Axis], year: u32) -> f64 {
     let mut sum = 0.0;
     for a in axes {
         let s = &species.states[a.pa];
-        let bearing = a
-            .phytomers
-            .iter()
-            .filter(|p| f64::from(p.cycle) + s.leaf_years > f64::from(year));
-        sum += bearing
-            .map(|p| leaf_area(p.scale, p.size, s.leaf_area))
-            .sum::<f64>();
+        let laid = a.phytomers.iter().filter(|p| p.cycle <= year);
+        sum += laid.map(|p| leaf(s, p, year)).sum::<f64>();
     }
     sum
 }
@@ -66,7 +65,8 @@ struct Cut {
 }
 
 /// The light of `year` on `axes`, finished, cut at order `k`, on one thread:
-/// the kept axes' leaves plus 8 points for each subtree cut, read at the kept
+/// the kept axes' leaves, each phytomer's grower's leaf in `year`
+/// (`girth::leaf`), plus 8 points for each subtree cut, read at the kept
 /// axes' living tips. An axis stands from its birth, at its finished place.
 pub fn light_replay(
     species: &Species,
@@ -83,10 +83,10 @@ pub fn light_replay(
         if a.birth > year {
             continue;
         }
-        let area = species.states[a.pa].leaf_area;
+        let state = &species.states[a.pa];
         let bearing = a.phytomers.iter().filter(|p| p.cycle <= year);
         if order[i] <= k {
-            leaves.extend(bearing.map(|p| (p.tip, leaf_area(p.scale, p.size, area))));
+            leaves.extend(bearing.map(|p| (p.tip, leaf(state, p, year))));
             let living = a.apex_end.is_none_or(|end| end > year);
             if let (true, Some(p)) = (living, a.phytomers.iter().rfind(|p| p.cycle <= year)) {
                 tips.push(p.tip);
@@ -97,7 +97,7 @@ pub fn light_replay(
         root[i] = if order[parent] <= k { i } else { root[parent] };
         let cut: &mut Cut = cuts.entry(root[i]).or_default();
         for p in bearing {
-            let w = leaf_area(p.scale, p.size, area);
+            let w = leaf(state, p, year);
             cut.area += w;
             let at = [p.tip.x, p.tip.y, p.tip.z];
             for c in 0..3 {
@@ -125,7 +125,7 @@ pub fn light_replay(
         }
     }
     let started = crate::clock::seconds();
-    let field = Field::quantised(light, &leaves, &tips, 1)?;
+    let field = Field::quantised(light, &leaves, &tips, (1, crate::light::field::NODES))?;
     let read: f64 = tips.iter().map(|t| field.at(*t)).sum();
     let seconds = crate::clock::seconds() - started;
     assert!(read.is_finite(), "the replay's light is a number");

@@ -7,7 +7,7 @@ use crate::contract::{exp2, fails};
 use crate::lineage::{internode, signed, tropism, unit as uniform, Key, WANDER};
 use crate::sag::Lever;
 use crate::species::PaState;
-use crate::structure::{Axis, Phytomer, Vec3};
+use crate::structure::{Axis, Node, Vec3};
 use crate::transcendental::Transcendental;
 
 /// The height, in the wood's own radii, below which it eases onto the
@@ -210,15 +210,15 @@ impl Layer {
     /// to the internode's length; the phytomer's direction is that running
     /// direction pulled towards the vertical by `bend` at the base, fading
     /// to none at `total`, the axis's scaled reach. With `load`, it turns
-    /// down by its sag first.
+    /// down by its sag first. The internode's length laid, in metres.
     pub fn step(
         &mut self,
-        phytomer: &mut Phytomer,
+        phytomer: &mut impl Node,
         state: &PaState,
         (bend, total): (f64, f64),
         load: Option<&Lever>,
         trunk: bool,
-    ) -> std::result::Result<(), Stop> {
+    ) -> std::result::Result<f32, Stop> {
         let form = state.form;
         let (mut running, mut across, tip, mut run, pull, mut curve) = (
             self.running,
@@ -228,11 +228,11 @@ impl Layer {
             self.pull,
             self.curve,
         );
-        let scale = phytomer.scale as f32;
+        let scale = phytomer.scale() as f32;
         // Its internode varies node to node by its own draw (fn-222), and
         // its tropism axis to axis (fn-224), the plain product without
         // spread.
-        let varied = internode(phytomer.key, form.internode_spread);
+        let varied = internode(phytomer.key(), form.internode_spread);
         let length = state.internode as f32 * scale * varied;
         let tropic = form.tropism as f32 * self.turning * length;
         let share = falloff(tropic);
@@ -247,7 +247,7 @@ impl Layer {
         // The node's wander: a turn of keyed angle about a keyed pivot,
         // none without wander.
         let kick = (form.wander > 0.0).then(|| {
-            let key = Key(phytomer.key).child(WANDER);
+            let key = Key(phytomer.key()).child(WANDER);
             // 2u - 1 of the draw's uniform, and its azimuth in turns.
             let signed = signed(key.child(0).draw());
             let draw = form.wander as f32 * signed;
@@ -285,10 +285,10 @@ impl Layer {
         }
         // Sag: the beam's curvature, its moment over its stiffness, turns
         // the axis down about the torque's axis (`sag_angle`).
-        if let (Some(load), true) = (load, form.sag > 0.0 && phytomer.radius > 0.0) {
+        if let (Some(load), true) = (load, form.sag > 0.0 && phytomer.radius() > 0.0) {
             let at = (running, across, tip);
             if let Some((pivot, angle)) =
-                super::sagged::sag_angle(load, (phytomer, length), state, at, trunk)
+                super::sagged::sag_angle(load, (&*phytomer, length), state, at, trunk)
             {
                 let t = q::turn(pivot, angle);
                 running = turned_by(running, &t);
@@ -340,7 +340,7 @@ impl Layer {
         // ground, which is reached in a finite run; its lean is kept, never
         // normalised on its own, so a step near straight down stays near
         // straight down.
-        let radius = phytomer.radius as f32;
+        let radius = phytomer.radius() as f32;
         if !trunk && direction[2] < 0.0 {
             let ease = support(tip[2] - radius, radius, length);
             if ease < 1.0 {
@@ -374,13 +374,11 @@ impl Layer {
                 direction = unit;
             }
         }
-        phytomer.tip = v3(next);
-        phytomer.heading = v3(direction);
         let side = sub(beside, scaled(direction, dot(beside, direction)));
-        phytomer.side = v3(unit(side).unwrap_or(beside));
+        phytomer.lay(next, direction, unit(side).unwrap_or(beside));
         (self.running, self.across, self.tip, self.run, self.curve) =
             (running, across, next, run, curve);
-        Ok(())
+        Ok(length)
     }
 }
 

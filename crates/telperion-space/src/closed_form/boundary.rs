@@ -3,7 +3,7 @@
 //! tree's age, so a bud's boundary is a row times powers of its base
 //! scale, the same at any zoom and in any order of refinement. Test-only:
 //! the rows the predictor's counts are held to (`predictor/tests.rs`).
-use super::kept::{Kept, Table, COUNT, LEAVES, LEAVES_ALONG, MASS, MASS_ALONG, SECTION, SECTION2};
+use super::kept::{Kept, Table, COUNT};
 use crate::presence::Windows;
 use crate::schedule::Carried;
 use crate::species::Species;
@@ -13,24 +13,15 @@ use std::sync::{Arc, Mutex, PoisonError};
 mod tests;
 
 /// What a bud of one PA made `m` cycles before the tree's age keeps, per
-/// unit base scale: the chance it is kept; its base section's partial
-/// moments on that (E[S; kept], E[S²; kept]) in its own exponent `e`;
-/// the same before its own fade, which its bearer retains a share of;
-/// its mass and that mass's moment along its heading, on being kept; its
-/// phytomers kept (E[N; kept], the cut's predictor, fn-209 F1); and its
-/// extent bound.
+/// unit base scale: the chance it is kept; its phytomers kept (E[N; kept],
+/// the cut's predictor, fn-209 F1); its extent bound; and whether a bud of
+/// the PA is borne at all.
 #[derive(Debug, Clone, Copy, Default)]
 pub(crate) struct Row {
     pub kept: f64,
-    pub s1: f64,
-    pub s2: f64,
-    pub grown1: f64,
-    pub grown2: f64,
-    pub mass: f64,
-    pub moment: f64,
     pub count: f64,
     pub reach: f64,
-    pub e: f64,
+    pub borne: bool,
 }
 
 /// One core's rows, by PA and age.
@@ -82,7 +73,7 @@ impl Rows {
             if k == 0 && whole {
                 let whole = kept.of(0, m_max, Carried::default(), None);
                 let reach = kept.reach_bound(0, m_max, Carried::default(), None);
-                *seed.lock().unwrap() = row(&whole, &whole, m_max, reach);
+                *seed.lock().unwrap() = row(&whole, m_max, reach);
             }
         });
         let mut rows = vec![Row::default(); species.states.len() * (m_max + 1)];
@@ -99,7 +90,7 @@ impl Rows {
     /// The row of a lateral of `pa` `m` cycles from the tree's age, none
     /// where no bud of the PA is borne (the predictor's proof).
     pub(crate) fn row_at(&self, pa: usize, m: usize) -> Option<&Row> {
-        self.rows.get(pa * (self.age + 1) + m).filter(|r| r.e > 0.0)
+        self.rows.get(pa * (self.age + 1) + m).filter(|r| r.borne)
     }
 
     /// The seed: the whole tree.
@@ -181,26 +172,17 @@ pub(super) fn borne(species: &Species) -> Vec<bool> {
 /// A lateral of `pa` made `m` cycles before the tree's age.
 fn read(kept: &mut Kept, species: &Species, pa: usize, m: usize) -> Row {
     let delay = species.states[pa].shedding;
-    let grown = kept.of(pa, m, Carried::default(), None);
     let faded = kept.shed((pa, m, Carried::default(), None), delay);
     let reach = kept.reach_bound(pa, m, Carried::default(), None);
-    row(&faded, &grown, m, reach)
+    row(&faded, m, reach)
 }
 
-fn row(faded: &Table, grown: &Table, m: usize, reach: f64) -> Row {
+fn row(faded: &Table, m: usize, reach: f64) -> Row {
     let (_, kept, b) = faded.at(m as i64);
-    let (_, _, g) = grown.at(m as i64);
-    let (b, g) = (b.expect("born"), g.expect("born"));
     Row {
         kept,
-        s1: b[SECTION],
-        s2: b[SECTION2],
-        grown1: g[SECTION],
-        grown2: g[SECTION2],
-        mass: b[MASS] + b[LEAVES],
-        moment: b[MASS_ALONG] + b[LEAVES_ALONG],
-        count: b[COUNT],
+        count: b.expect("born")[COUNT],
         reach,
-        e: faded.e,
+        borne: true,
     }
 }

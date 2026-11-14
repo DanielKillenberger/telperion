@@ -22,6 +22,14 @@ On paper, the line above: the lateral born 14 keeps 0.7888 x 0.132 = 0.104 and e
 
 Not checked by the host, to be read by the builder before changing anything: every other reader of `Shed::fade` and of a faded `vigour` (the retirement's `Stand`, `subtree_living`, the grower's own fades in `grow/cycle/`, the closed form's shed bound in `closed_form/kept/`), and whether any of them assumes the product form. If one does, stop and return with the site.
 
+Host, 12 Nov 2026, on the builder's stop (`girth::shares` composes the raw fade; `.flow/evidence/fn-359-a-subtree-fades-once/READING.md`): the girth fades once too, with the scale.
+
+- `Shed` carries each kept axis's applied fade `A` (seed 1; a continuation its parent's; a lateral or relay the lesser of its parent's `A` and its own fade). The factor into `vigour` is `A / A(parent)`. The raw own fade stays available where the loss test or anything else reads it.
+- `girth::shares` reads the applied fade: an axis's share is its `A`, not its own fade times its bearer's share, so the scale's fade factor and the girth's share are the same number on every axis. Anything else `shares` multiplies down the bearers stays; only the fade's part is replaced. `docs/pipeline.md` and `girth.rs`'s doc say it.
+- On the diagnosis's line the share is then 0.132 on all four axes (radius factor 0.363), where the base scale is 0.104: the lateral's own birth draw 0.7888 is in the scale and not in the share, as today.
+- The closed form's `Kept::shed` is read now. If it is a bound that must stay no less than the grown tree, fading once gives every axis a factor no less than the product form's and no more than 1, so check the bound still holds: if the closed form's own tests and the bound tests under `closed_form/kept/` pass unchanged, go on and record what was read; if one fails, stop with the test, its numbers and what the closed form assumes.
+- R2 adds: on the hand-built line the girth share of the last relay equals the lateral's. R4 adds: the trunk's and the three largest limbs' drawn base diameters before and after on seed 1001 at 120, 200, 250 and 300.
+
 ## Acceptance Criteria
 
 - **R1.** The reading above, in the evidence, before any product change.

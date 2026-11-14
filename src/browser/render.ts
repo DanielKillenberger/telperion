@@ -25,9 +25,9 @@ const MAX_PIXEL_RATIO = 2;
 /** Metres, Y up, right-handed - the renderer's own frame. */
 export type Point = readonly [number, number, number];
 
+/** What went up. The wood goes up as its curve, which the device surfaces
+ *  at the screen's error; no CPU wood surface is built to count (fn-351). */
 export interface Submitted {
-  woodVertices: number;
-  woodTriangles: number;
   foliageInstances: number;
   bounds: { min: Point; max: Point };
 }

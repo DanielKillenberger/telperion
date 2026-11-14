@@ -41,12 +41,12 @@ pub(super) fn admitted(
     longest: usize,
     layout: &Layout,
 ) -> Option<usize> {
-    let extent = layout.extent(at.segments());
+    let extent = layout.extent();
     let vertices = extent.positions / 3;
     let Swept {
         paths,
         distance,
-        angular,
+        rounds,
         ..
     } = at;
     let count = workers();
@@ -56,14 +56,13 @@ pub(super) fn admitted(
         && envelope(
             paths.nodes.capacity() * size_of::<usize>()
                 + paths.runs.capacity() * size_of::<paths::Run>()
-                + paths.forks.capacity()
                 + distance.len() * 8,
             ordered.capacity() * size_of::<(usize, f64)>(),
             // A worker's sweep scratch, and a split run's points and normals
             // gathered whole in the mesh step.
             longest * (size_of::<Sample>() + size_of::<(Vec3, Vec3)>() + size_of::<Vec3>())
-                + (longest * angular.len() + 2) * 6 * size_of::<f32>(),
-            size_of_val(angular),
+                + (longest * rounds.cap() + 2) * 6 * size_of::<f32>(),
+            rounds.bytes(),
             vertices,
             extent.indices,
             layout.pieces.len(),

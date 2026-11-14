@@ -1,0 +1,57 @@
+{
+  "recipe": "npm run build on the pinned toolchain: scripts/build-wasm.mjs, scripts/build-render.mjs, then vite build",
+  "note": "Two limits (docs/principles.md). A ceiling is set by the owner from what the product's consumers need; crossing one is an owner decision, never a routine raise. The growth share limits how much one PR may grow an artifact over its base; a PR whose Decisions section names the artifact passes above it. baselineBytes is a recorded measurement, not a limit.",
+  "growthPercent": 5,
+  "growthReason": "An ordinary feature grows an artifact by a percent or two (fn-170's fork rule: +1.1 percent on the main module; fn-152, fn-61 and fn-170 together used 5 percent in one day), while the change the check exists to stop, fn-150's first slim build, grew the field module 48 percent in one PR. 5 percent per PR lets a feature through and stops a change of that kind unless the PR names it.",
+  "artifacts": [
+    {
+      "path": "dist/telperion.wasm",
+      "ceilingBytes": 1600000,
+      "reason": "owner, 2026-09-27: headroom for the main module",
+      "baselineBytes": 1538240,
+      "baselineOn": "fn-353-one-grower 12b390701, npm run build"
+    },
+    {
+      "path": "dist/telperion-render.wasm",
+      "ceilingBytes": 3700000,
+      "reason": "owner, 2026-10-16 (fn-237, \"fix the rest as proposed\"): raised to the size measured on fn-257's branch (3601258 bytes) and a small margin for this release; fn-242 brings the modules down after it",
+      "baselineBytes": 2220865,
+      "baselineOn": "fn-353-one-grower 12b390701, npm run build"
+    },
+    {
+      "path": "dist/telperion.js",
+      "ceilingBytes": 200000,
+      "reason": "owner, 2026-10-16 (fn-237, \"fix the rest as proposed\"): raised to the size measured on fn-257's branch (194685 bytes) and a small margin for this release; fn-242 brings the modules down after it",
+      "baselineBytes": 3993,
+      "baselineOn": "fn-353-one-grower 12b390701, npm run build"
+    },
+    {
+      "path": "dist/presets.js",
+      "ceilingBytes": 200000,
+      "reason": "fn-317, 2026-10-25: the presets moved out of telperion.js into their own entry (R3); held at telperion.js's ceiling, the owner's 2026-10-16 decision, which they were measured under. The owner confirms or sets it",
+      "baselineBytes": 187035,
+      "baselineOn": "fn-353-one-grower 12b390701, npm run build"
+    },
+    {
+      "path": "dist/field.js",
+      "ceilingBytes": 16000,
+      "reason": "owner, 2026-09-27: headroom for the field entry script",
+      "baselineBytes": 1299,
+      "baselineOn": "fn-353-one-grower 12b390701, npm run build"
+    },
+    {
+      "path": "dist/module.js",
+      "ceilingBytes": 70000,
+      "reason": "fn-257, 2026-10-16: the chunk the main and the field entries share since the field grows through the renderer's glue (64,564 bytes on fn-257's branch); owner's 2026-10-16 decision on raised ceilings, fn-242 after the release; fn-297 (171e522cc) renamed the shared chunk after src/browser/module.ts, from dist/wasm-source.js",
+      "baselineBytes": 60291,
+      "baselineOn": "fn-353-one-grower 12b390701, npm run build"
+    },
+    {
+      "path": "dist/voxelize.js",
+      "ceilingBytes": 16000,
+      "reason": "owner, 2026-09-27: headroom for the voxelize entry script",
+      "baselineBytes": 4573,
+      "baselineOn": "fn-353-one-grower 12b390701, npm run build"
+    }
+  ]
+}

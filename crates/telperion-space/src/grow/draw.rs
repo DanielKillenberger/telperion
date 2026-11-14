@@ -12,7 +12,7 @@ use crate::geometry::{bend, dominance, frame, joined, taken, Layer, NO_TAKE};
 
 use crate::presence::{relay_node, Draws};
 use crate::species::Species;
-use crate::structure::{Axis, Origin, Vec3};
+use crate::structure::{Axis, Growing, Origin, Vec3};
 
 /// A new axis's frame: base, heading and side.
 type Framed = (Vec3, Vec3, Vec3);
@@ -200,6 +200,7 @@ impl Grower {
     pub(super) fn sketch_end(&mut self, s: Sketching) -> Result<()> {
         let Sketching {
             mut sketch,
+            cycle,
             first_new,
             grew,
             from,
@@ -210,9 +211,6 @@ impl Grower {
         if let Some((_, error)) = failed {
             return Err(error);
         }
-        let species = &*self.species;
-        let mut leaves = std::mem::take(&mut self.leaves);
-        leaves.clear();
         let laid = grew
             .iter()
             .zip(from)
@@ -221,17 +219,11 @@ impl Grower {
             .iter()
             .enumerate()
             .map(|(k, p)| (first_new + k, 0, p.as_ref().expect("drawn").laid));
-        for (i, from, to) in laid.chain(made) {
-            let axis = &self.axes[i];
-            let area = species.states[axis.pa].leaf_area;
-            for p in &axis.phytomers[from..to] {
-                leaves.push((p.tip, crate::light::leaf_area(p.scale, p.size, area)));
-            }
-        }
+        let grown: Vec<_> = laid.chain(made).collect();
+        self.deposit(cycle, &grown);
         sketch
             .pencils
             .extend(fresh.into_iter().map(|p| p.expect("drawn")));
-        self.leaves = leaves;
         self.sketch = Some(sketch);
         Ok(())
     }
@@ -241,7 +233,7 @@ impl Grower {
 /// from what its draws have made of it so far, from its parent's pencil
 /// (`of`) and wood alone.
 fn pencil<'p>(
-    (axes, draws): (&[Axis], &[Draws]),
+    (axes, draws): (&[Axis<Growing>], &[Draws]),
     species: &Species,
     of: &(dyn Fn(usize) -> &'p Pencil + Sync),
     i: usize,
@@ -279,9 +271,7 @@ fn pencil<'p>(
     };
     let (inherited, vigour, trunk) = match axis.origin {
         Origin::Seed => (1.0, made, true),
-        Origin::Lateral { parent, node, .. } => {
-            (axes[parent].phytomers[node].scale as f32, made, false)
-        }
+        Origin::Lateral { parent, node, .. } => (axes[parent].phytomers[node].scale, made, false),
         Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
             let p = of(parent);
             (p.base_scale as f32, p.running as f32 * made, p.trunk)
@@ -305,9 +295,16 @@ fn pencil<'p>(
         trunk,
         light: 1.0,
         size: 1.0,
-        wood: 0.0,
         memory: 1.0,
         kept: 1.0,
+        root: match axis.origin {
+            Origin::Seed => 0.0,
+            Origin::Lateral { parent, node, .. } | Origin::Relay { parent, node } => {
+                of(parent).path_at(node)
+            }
+            Origin::Continuation { parent } => of(parent).path_end(),
+        },
+        path: Vec::new(),
     };
     (framed, pencil)
 }
@@ -315,7 +312,7 @@ fn pencil<'p>(
 /// Lays axis `i`'s units not yet laid, as `presence::assign` will size
 /// them, at `cycle`.
 fn draw(
-    (axis, pencil): (&mut Axis, &mut Pencil),
+    (axis, pencil): (&mut Axis<Growing>, &mut Pencil),
     draws: &Draws,
     species: &Species,
     (i, cycle): (usize, u32),
@@ -325,14 +322,14 @@ fn draw(
 }
 
 /// An axis's pull towards the vertical at its age in `cycle` (`bend`).
-pub(super) fn bent(axis: &Axis, draws: &Draws, species: &Species, cycle: u32) -> f64 {
+pub(super) fn bent(axis: &Axis<Growing>, draws: &Draws, species: &Species, cycle: u32) -> f64 {
     let years = f64::from(cycle.saturating_sub(axis.birth)) - draws.sleep;
     bend(axis, &species.states[axis.pa], years)
 }
 
 /// `draw` with its pull towards the vertical `bent` given.
 pub(super) fn draw_bent(
-    (axis, pencil): (&mut Axis, &mut Pencil),
+    (axis, pencil): (&mut Axis<Growing>, &mut Pencil),
     draws: &Draws,
     species: &Species,
     (i, bent): (usize, f64),
@@ -344,9 +341,9 @@ pub(super) fn draw_bent(
         // The share of a node's length its nodes grew at (`Unit::size`).
         let grown = drawn.size as f32;
         let present = pencil.running as f32 * drawn.survive as f32;
-        let [size, _] = draws.shade(k);
+        let size = draws.shade(k);
         let birth = axis.birth;
-        let unit = |p: &crate::structure::Phytomer| (p.cycle - birth - 1) as usize == k;
+        let unit = |p: &Growing| (p.cycle - birth - 1) as usize == k;
         let end = pencil.laid
             + axis.phytomers[pencil.laid..]
                 .iter()
@@ -361,28 +358,27 @@ pub(super) fn draw_bent(
             // (`presence::assign_one`, `geometry::scale`), so the two lay
             // the same phytomer alike.
             let grew = present * node * grown;
-            p.scale = f64::from(grew * pencil.base_scale as f32);
-            p.grown = f64::from(grew);
-            p.size = size;
-            p.rank = pencil.rank;
+            p.scale = grew * pencil.base_scale as f32;
+            p.grown = grew;
+            p.size = image(size);
+            p.rank = image(pencil.rank);
             pencil.rank = f64::from(pencil.rank as f32 + node * grown);
         }
         let total = pencil.layer.run() as f32
             + axis.phytomers[pencil.laid..end]
                 .iter()
-                .map(|p| p.scale as f32 * p.size as f32)
+                .map(|p| p.scale * p.size)
                 .sum::<f32>();
         let total = f64::from(total);
         for j in pencil.laid..end {
             let p = &mut axis.phytomers[j];
             // Laid at its size, then left unsized for what it bears.
             let bare = p.scale;
-            p.scale = f64::from(bare as f32 * p.size as f32);
-            pencil
-                .layer
+            p.scale = bare * p.size;
+            let length = (pencil.layer)
                 .step(p, state, (bent, total), None, pencil.trunk)
                 .map_err(|s| s.error(i, axis.pa, axis.birth, axis.base.z))?;
-            pencil.wood = f64::from(pencil.wood as f32 + state.internode as f32 * p.scale as f32);
+            pencil.path.push(pencil.path_end() + length);
             p.scale = bare;
         }
         pencil.laid = end;
@@ -391,4 +387,13 @@ pub(super) fn draw_bent(
     }
     axis.rank = pencil.rank;
     Ok(())
+}
+
+/// `x`, an `f32`'s image, as that `f32`: a growing phytomer holds what the
+/// layout wrote at the width it wrote it (fn-358), so the tree widened from
+/// it is the same to the bit.
+fn image(x: f64) -> f32 {
+    let held = x as f32;
+    assert!(f64::from(held) == x || x.is_nan(), "{x} is no f32's image");
+    held
 }

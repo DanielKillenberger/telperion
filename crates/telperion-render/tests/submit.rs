@@ -7,7 +7,7 @@ use telperion_core::{
     math::Vec3,
     mesh::{self, Foliage, TreeMesh},
     params,
-    surface::{Bounds, Curve, CurvePoint, CurveRun, SurfaceMesh},
+    surface::{Bounds, Curve, CurvePoint, CurveRun},
 };
 use telperion_render::{
     fits, hero_pose, render, Level, Region, Renderer, View, GROUND_REACH, MAX_LEVELS, STILL_FORMAT,
@@ -56,7 +56,7 @@ fn wood(runs: u32, points: u32) -> Curve {
 /// large and leave the others out of the way.
 fn small() -> TreeMesh {
     TreeMesh {
-        wood: SurfaceMesh::default(),
+        wood: None,
         curve: wood(1, 2),
         foliage: Foliage {
             element: Element::default(),
@@ -249,12 +249,8 @@ fn a_submitted_tree_is_the_tree_the_core_counted() {
         let tree = mesh::build(&family).expect("the core built the tree");
         let submitted = renderer.submit(&tree).expect("the tree fits the device");
 
-        assert_eq!(submitted.wood_vertices, tree.wood_vertices(), "{id} wood");
-        assert_eq!(
-            submitted.wood_triangles,
-            tree.wood_triangles(),
-            "{id} triangles"
-        );
+        // The renderer no longer builds a CPU wood surface to count
+        // (fn-351); its wood is the curve, whose buffers the fit holds.
         assert_eq!(
             submitted.foliage_instances,
             tree.foliage_instances(),

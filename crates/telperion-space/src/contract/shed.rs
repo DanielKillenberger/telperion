@@ -33,11 +33,13 @@ pub struct Balance {
     pub kept: f32,
 }
 
-/// `(q - c) / (q + c)`; one where `q + c` is none or less.
+/// `(q - c) / (q + c)`; none where `q + c` is none or less: a subtree
+/// that collects nothing and is charged nothing has no balance (fn-346
+/// R5).
 fn now(q: f32, c: f32) -> f32 {
     let total = q + c;
     if total <= 0.0 {
-        return 1.0;
+        return 0.0;
     }
     (q - c) / total
 }

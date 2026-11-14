@@ -19,7 +19,7 @@ fn grown(leaf_years: f64) -> (Structure, Tree, telperion_space::Species) {
     };
     let structure = telperion_space::grow(&species, request).unwrap();
     let rows = pa_rows(&species);
-    let tree = convert(&structure, (&family.space.trunk, &rows));
+    let tree = converted(&structure, (&family.space.trunk, &rows));
     (structure, tree, species)
 }
 
@@ -113,6 +113,7 @@ fn within_its_year_old_wood_drops_its_leaves_and_grows_them_again() {
                 gone: usize::MAX,
             },
         )
+        .unwrap()
         .0;
         let tau = f * telperion_space::unfold::YEAR;
         let mut seen = [0usize; 2];

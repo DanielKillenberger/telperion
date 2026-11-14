@@ -29,11 +29,16 @@ pub use walk::{degrees, linear, walk, weighted};
 
 /// Rows the catalogue no longer holds, each refused with what replaced it: a
 /// wire or value file that still names one is refused, never read silently.
-const RETIRED: [(&str, &str); 11] = [
+const RETIRED: [(&str, &str); 12] = [
     (
         "/growth",
         "/growth is retired: the growth path its rows tuned was removed (fn-181), \
          to be rewritten",
+    ),
+    (
+        "/fidelity",
+        "/fidelity is retired: the per-species coarse rows it dialled were deleted \
+         (fn-367), and every tree grows the full cycle",
     ),
     (
         "/skeleton/habit/stems",

@@ -1,0 +1,22 @@
+# fn-364 friction
+
+## 13 Nov 2026, 20:28 (builder, Opus)
+
+- **Doing:** the R2 tests green after the change, one narrow `cargo test -p telperion-space --lib surplus_tests` through `telperion-heavy 8`.
+- **What slowed it:** the yield watcher paused the queue at 20:22:53 while the owner used the machine, and fn-363's builder's old-oak runs held the memory (the queue read "room -1 to 7 GB for 8"). A build that took 9 s at 20:16 waited from 20:21.
+- **Cost:** wall time only; the docs (R7), the R5 runner, its scripts and its table script were written meanwhile.
+- **What would have removed it:** nothing in the repository; it is the shared machine's admission working as designed.
+
+## 13 Nov 2026, 22:30 (builder, Opus)
+
+- **Doing:** the R3/R4 suites and the R5 chain, queued at 20:37.
+- **What slowed it:** the yield watcher froze the queue from 20:28 to 21:40 and again from 21:43; fn-363's builder's old-oak runs held the memory between pauses. Nothing of either chain ran in 80 minutes. I stopped both when the host's answer on stations changed the core (they would have measured the wrong drawing), so they restart from nothing.
+- **Cost:** about 80 minutes of wall time; every narrow core run since takes 3 to 7 minutes of queue for under a minute of work.
+- **What would have removed it:** nothing in the repository. Declaring each job near its measured peak (4 to 6 GB, not 8) gets it admitted sooner between pauses.
+
+## 14 Nov 2026, 03:20 (builder, Opus)
+
+- **Doing:** R5's old oak, R6's draws and the drawn-station pass, each a heavy job through the queue.
+- **What slowed it:** the old oak at 120, seed 1001, took 83 minutes of wall time for a 26 s grow, because the watcher's pauses and the other builder's draws held the queue. One draw (fn-363's limb crop at 200) waited at "room 0 GB for 24" because I declared it at fn-363's 24 GB when it peaks near 3 GiB. I restarted it at 8.
+- **Cost:** about two hours of wall time on R5 and R6. Little of it was mine to change.
+- **What would have removed it:** each job declared near its own measured peak from the start. The scoreboard's draw script takes one figure per age, not per tree; a table of measured peaks per tree would let every script declare honestly.

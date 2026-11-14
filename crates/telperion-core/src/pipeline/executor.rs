@@ -25,7 +25,7 @@ pub struct Grown {
 
 /// Stage 2: the family read once into its stage inputs, and its skeleton.
 pub fn grow(family: &Family) -> Result<Grown> {
-    let tree = super::skeleton(GrowInput::of(family))?.tree;
+    let tree = super::skeleton(GrowInput::of(family)?)?.tree;
     let inputs = Inputs::of(family, grown_envelope(&tree));
     Ok(Grown { tree, inputs })
 }
@@ -54,7 +54,7 @@ impl Growth {
 /// The family's growth (`Growth`). A family with no engine species is
 /// refused by name.
 pub fn growth(family: &Family) -> Result<Growth> {
-    let (species, request) = super::space::growth(GrowInput::of(family))?;
+    let (species, request) = super::space::growth(GrowInput::of(family)?)?;
     Ok(Growth { species, request })
 }
 
@@ -153,6 +153,15 @@ impl Expansion {
         let (envelope, canopy) = (self.envelope(), self.canopy());
         let params = &self.inputs.surface.params;
         prepared::prepare_stations(&self.tree, envelope, canopy, Some(self.twig), params)
+    }
+    /// The plan's leaf-bearing runs and the twig layer they are walked
+    /// under: the tests that count a run's stations by its wood (fn-354
+    /// R5). `None` where the family has no regular stations.
+    #[cfg(test)]
+    pub(crate) fn runs(&self) -> Result<Option<(Vec<foliage::plan::Run>, TwigPlacement)>> {
+        let runs =
+            foliage::plan::runs(&self.tree, self.envelope(), self.canopy(), Some(self.twig))?;
+        Ok(runs.map(|r| (r, self.twig)))
     }
     /// The wood as curves (fn-208): every run's ring points and frames, the
     /// run table and the clusters a view culls by, which the wood is surfaced

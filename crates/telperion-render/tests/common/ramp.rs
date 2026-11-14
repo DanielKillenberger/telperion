@@ -6,7 +6,7 @@ use telperion_core::{
     material::MaterialParams,
     math::Vec3,
     mesh::{Foliage, TreeMesh},
-    surface::{Bounds, Curve, CurvePoint, CurveRun, SurfaceMesh},
+    surface::{Bounds, Curve, CurvePoint, CurveRun},
 };
 use telperion_render::{render, Camera, Renderer, Still};
 
@@ -40,7 +40,7 @@ pub fn ramp() -> TreeMesh {
         largest_radius: THICK,
     };
     TreeMesh {
-        wood: SurfaceMesh::default(),
+        wood: None,
         curve: Curve::of_runs(points, vec![run]),
         foliage: Foliage {
             element: Element::default(),

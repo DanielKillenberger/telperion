@@ -6,8 +6,8 @@
 //! for the natural row it mirrors. An override's path is the natural row's
 //! with `/supernatural` in front; the flowering share of age `k`, a `/space`
 //! row, is overridden at `/supernatural/flowering/age<k>`, and its
-//! internode and pipe at `/supernatural/internode/age<k>` and
-//! `/supernatural/pipe/age<k>` (fn-248). An unset override leaves its
+//! internode and primary radius at `/supernatural/internode/age<k>` and
+//! `/supernatural/primary/age<k>` (fn-248). An unset override leaves its
 //! natural row as it is.
 use crate::catalogue::{self, input, linear, value, Blend, Bounds, Dial, Entry, Site};
 use crate::{Family, Result};
@@ -16,13 +16,14 @@ use std::borrow::Cow;
 mod canopy;
 mod flowering;
 mod internode;
+mod leaf;
 mod overrides;
-mod pipe;
+mod primary;
 pub use canopy::SupernaturalCanopy;
 pub use flowering::SupernaturalFlowering;
 pub use internode::SupernaturalInternode;
 pub use overrides::{SupernaturalBloom, SupernaturalMaterial};
-pub use pipe::SupernaturalPipe;
+pub use primary::SupernaturalPrimary;
 
 /// No legendary row is tuned until a legendary species is onboarded.
 const LEGENDARY: Dial = Dial::Excluded(
@@ -122,7 +123,7 @@ crate::catalogue::rows! {
         pub canopy: SupernaturalCanopy,
         pub flowering: SupernaturalFlowering,
         pub internode: SupernaturalInternode,
-        pub pipe: SupernaturalPipe,
+        pub primary: SupernaturalPrimary,
     }
 }
 
@@ -168,7 +169,7 @@ impl Supernatural {
         canopy: SupernaturalCanopy::NONE,
         flowering: SupernaturalFlowering::NONE,
         internode: SupernaturalInternode::NONE,
-        pipe: SupernaturalPipe::NONE,
+        primary: SupernaturalPrimary::NONE,
     };
 
     /// What the group applies: itself while enabled, none while off.
@@ -217,7 +218,11 @@ impl Supernatural {
             &self.internode,
             Site::Supernatural,
         )?;
-        catalogue::check(SupernaturalPipe::CHECKS, &self.pipe, Site::Supernatural)
+        catalogue::check(
+            SupernaturalPrimary::CHECKS,
+            &self.primary,
+            Site::Supernatural,
+        )
     }
 }
 
@@ -251,6 +256,14 @@ impl Family {
             }
         }
         if let Some(species) = f.space.species.as_mut() {
+            // The grower's leaf is the drawn leaf (fn-354 R5): a leaf drawn
+            // at the group's size bears its square over the natural size.
+            if let Some(multiple) = self.leaf_multiple() {
+                species
+                    .states
+                    .iter_mut()
+                    .for_each(|s| s.leaf_area *= multiple);
+            }
             for (k, share) in g.flowering.shares() {
                 if let (Some(v), Some(state)) = (share, species.states.get_mut(k)) {
                     state.flowering = v;
@@ -261,9 +274,9 @@ impl Family {
                     state.internode = v;
                 }
             }
-            for (k, pipe) in g.pipe.values() {
-                if let (Some(v), Some(state)) = (pipe, species.states.get_mut(k)) {
-                    state.form.pipe = v;
+            for (k, primary) in g.primary.values() {
+                if let (Some(v), Some(state)) = (primary, species.states.get_mut(k)) {
+                    state.form.primary = v;
                 }
             }
         }
@@ -294,7 +307,7 @@ impl Supernatural {
             || set(SupernaturalCanopy::CHECKS, &self.canopy)
             || self.flowering.shares().any(|(_, v)| v.is_some())
             || self.internode.values().any(|(_, v)| v.is_some())
-            || self.pipe.values().any(|(_, v)| v.is_some())
+            || self.primary.values().any(|(_, v)| v.is_some())
     }
 }
 
@@ -311,7 +324,7 @@ pub(crate) fn blend(a: &Family, b: &Family, t: f64) -> Supernatural {
         canopy: SupernaturalCanopy::NONE,
         flowering: SupernaturalFlowering::NONE,
         internode: SupernaturalInternode::NONE,
-        pipe: SupernaturalPipe::NONE,
+        primary: SupernaturalPrimary::NONE,
         ..from
     };
     let rows = [
@@ -385,9 +398,9 @@ pub(crate) fn blend(a: &Family, b: &Family, t: f64) -> Supernatural {
             f.supernatural.internode.set(k, v);
         }
     }
-    for (k, v) in walked(|g, k| g.pipe.get(k), |s| s.form.pipe).enumerate() {
+    for (k, v) in walked(|g, k| g.primary.get(k), |s| s.form.primary).enumerate() {
         if let Some(v) = v {
-            f.supernatural.pipe.set(k, v);
+            f.supernatural.primary.set(k, v);
         }
     }
     f.supernatural

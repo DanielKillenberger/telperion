@@ -1,12 +1,10 @@
-//! Step 5's girth terms on a small tree: the leaf term keeps the tree's
-//! own pipe and thickens the lit limb, and a retained pipe thickens its
-//! bearer by degree.
+//! The wood on a small tree (PRODUCT-DESIGN.md, "Tests"): what a year
+//! lays, what it never takes away, and where a relay joins.
 use super::*;
 use crate::species::{NodeLaw, PaState, Zone};
-use crate::structure::{Axis, Vec3};
-use crate::transcendental::Transcendental;
+use crate::structure::{Axis, Phytomer, Vec3};
 
-fn state(leaf_girth: f64) -> PaState {
+fn state() -> PaState {
     PaState {
         lifespan: 4.0,
         continuation: 0.0,
@@ -38,7 +36,7 @@ fn state(leaf_girth: f64) -> PaState {
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
-        leaf_years: f64::INFINITY,
+        leaf_years: 1.0,
         elongation: 0.0,
         expansion: 0.0,
         leaf_life: f64::INFINITY,
@@ -50,17 +48,16 @@ fn state(leaf_girth: f64) -> PaState {
         ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        inverse_height: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth,
+        shade_short: Vec::new(),
         straightening: 0.0,
         form: Form::default(),
     }
 }
 
-fn phytomer(light: f64) -> Phytomer {
+fn phytomer() -> Phytomer {
     Phytomer {
         cycle: 1,
         tip: Vec3::default(),
@@ -71,12 +68,13 @@ fn phytomer(light: f64) -> Phytomer {
         key: 0,
         rank: 0.0,
         size: 1.0,
-        light,
         grown: 1.0,
+        section: 0.0,
+        sapwood: 0.0,
     }
 }
 
-fn axis(origin: Origin, lights: &[f64]) -> Axis {
+fn axis(origin: Origin, nodes: usize) -> Axis {
     Axis {
         lineage: 0,
         pa: 0,
@@ -88,7 +86,7 @@ fn axis(origin: Origin, lights: &[f64]) -> Axis {
         base: Vec3::default(),
         heading: Vec3::default(),
         side: Vec3::default(),
-        phytomers: lights.iter().map(|&l| phytomer(l)).collect(),
+        phytomers: (0..nodes).map(|_| phytomer()).collect(),
         units: Vec::new(),
         alive: 1.0,
         rank: 0.0,
@@ -98,177 +96,172 @@ fn axis(origin: Origin, lights: &[f64]) -> Axis {
     }
 }
 
-/// A trunk of two nodes bearing a lit limb and a shaded one.
-fn tree() -> Structure {
-    let lateral = |node| Origin::Lateral {
+/// A lateral at `node` of axis 0.
+fn lateral(node: usize) -> Origin {
+    Origin::Lateral {
         parent: 0,
         node,
         slot: 0,
         whorl: 1.0,
         woken: false,
-    };
-    Structure {
-        age: 1,
-        pas: 1,
-        axes: vec![
-            axis(Origin::Seed, &[0.6, 0.6]),
-            axis(lateral(0), &[0.9, 0.9, 0.9]),
-            axis(lateral(1), &[0.2, 0.2, 0.2]),
-        ],
     }
 }
 
-fn own_total(t: &Structure, species: &Species) -> f64 {
-    let mean = leaf_terms(t, species);
-    let state = &species.states[0];
-    t.axes
-        .iter()
-        .flat_map(|a| &a.phytomers)
-        .map(|p| {
-            let leaf = mean.map_or(1.0, |m| p.light.powf_fixed(state.leaf_girth) * m);
-            own(&state.form, p, t.age, p.scale, leaf)
-        })
-        .sum()
+/// The wood's species: one age bearing `leaf_area` a node at `sapwood`
+/// cm² per m² and 20 sapwood rings.
+fn wooded(sapwood: f64, leaf_area: f64) -> Species {
+    let mut state = state();
+    (
+        state.leaf_area,
+        state.form.sapwood,
+        state.form.sapwood_rings,
+    ) = (leaf_area, sapwood, 20.0);
+    Species {
+        states: vec![state],
+    }
 }
 
-#[test]
-fn the_leaf_term_keeps_the_trees_pipe_and_thickens_the_lit_limb() {
-    let neutral = Species {
-        states: vec![state(0.0)],
-    };
-    let leafy = Species {
-        states: vec![state(1.0)],
-    };
-    let (mut a, mut b) = (tree(), tree());
-    thicken(&mut a, &neutral, &Girth::default(), 1);
-    thicken(&mut b, &leafy, &Girth::default(), 1);
-    let (ta, tb) = (own_total(&a, &neutral), own_total(&b, &leafy));
-    // The mean and each pipe are f32 (fn-254), so the tree's pipe holds
-    // to f32's last places summed (1e-6 relative).
-    assert!((ta - tb).abs() < 1e-6 * ta, "own pipe {ta} against {tb}");
-    assert_eq!(a.axes[1].phytomers[0].radius, a.axes[2].phytomers[0].radius);
-    assert!(b.axes[1].phytomers[0].radius > a.axes[1].phytomers[0].radius);
-    assert!(b.axes[2].phytomers[0].radius < a.axes[2].phytomers[0].radius);
+/// Every phytomer's `[T, S]`, axis by axis.
+fn wood(axes: &[Axis]) -> Vec<Vec<[f32; 2]>> {
+    let each = |a: &Axis| a.phytomers.iter().map(|p| [p.section, p.sapwood]).collect();
+    axes.iter().map(each).collect()
 }
 
+/// A constant need, year on year: the sapwood is the need from the first
+/// year, and the section grows by the need in that year and by one in
+/// `rings` of it every year after, whatever `rings` is.
 #[test]
-fn a_retained_pipe_thickens_its_bearer_by_degree() {
-    let species = Species {
-        states: vec![state(0.0)],
-    };
-    let base = |share: f64| {
-        let mut t = tree();
-        let disused = [Disused {
-            axis: 0,
-            node: Some(0),
-            radius: 0.02,
-            share,
-        }];
-        let girth = Girth {
-            disused: disused.to_vec(),
-            leaf_mean: None,
-        };
-        thicken(&mut t, &species, &girth, 1);
-        t.axes[0].phytomers[0].radius
-    };
-    let mut last = base(0.0);
-    for step in 1..=100 {
-        let now = base(f64::from(step) / 100.0);
+fn constant_leaf_holds_its_sapwood_and_adds_one_ring_of_it_a_year() {
+    for rings in [1.0, 20.0, 50.0] {
+        let (need, start) = (2e-4, 1e-5);
+        let mut held = [start, 0.0];
+        for year in 1..=80 {
+            held = ring(held, need, rings);
+            let years = f64::from(year - 1);
+            let want = start + need + years * need / rings;
+            assert!((held[1] - need).abs() < 1e-15, "{rings}, {year}: {held:?}");
+            assert!(
+                (held[0] - want).abs() < 1e-12 * want,
+                "{rings}, {year}: {held:?}"
+            );
+        }
+    }
+}
+
+/// A stem whose crown is removed, or whose lateral is shed, keeps its
+/// section the next year: the leaf above it lays nothing more, and wood is
+/// never lost; its sapwood retires by one ring.
+#[test]
+fn wood_is_never_lost_when_the_leaf_above_goes() {
+    let species = wooded(3.0, 0.01);
+    for crown in [Origin::Continuation { parent: 0 }, lateral(1)] {
+        let mut axes = vec![axis(Origin::Seed, 3), axis(crown, 4)];
+        lay(&mut axes, &species, 1, (&|_| false, 1));
+        let before = wood(&axes);
         assert!(
-            now > last && now - last < 1e-3,
-            "step {step}: {last} to {now}"
+            before[0][0][0] > (PI * 0.005f64.powi(2)) as f32,
+            "{crown:?} laid wood"
         );
-        last = now;
+        axes.truncate(1);
+        lay(&mut axes, &species, 2, (&|_| false, 1));
+        for (k, (now, was)) in wood(&axes)[0].iter().zip(&before[0]).enumerate() {
+            assert_eq!(now[0], was[0], "{crown:?}, node {k}: its section kept");
+            assert!(now[1] < was[1], "{crown:?}, node {k}: its sapwood retires");
+        }
     }
 }
 
-/// Host review: the leaf term's mean is one population, the tree as grown,
-/// at every retained share, so the kept wood's girth meets the same value
-/// as the retained share runs to 0.
+/// A closed lateral, whose subtree bears no leaf again, is skipped: every
+/// section stands as a full pass lays it, and only the skipped wood's
+/// sapwood, unread while it is skipped, is left as it was.
 #[test]
-fn the_leaf_mean_is_the_grown_trees_at_every_retained_share() {
-    use crate::shed::Shed;
-    let mut species = Species {
-        states: vec![state(1.0)],
+fn a_closed_subtree_is_skipped_and_every_section_stays_exact() {
+    let species = wooded(3.0, 0.01);
+    let grown = |skip: bool| {
+        let mut axes = vec![axis(Origin::Seed, 3), axis(lateral(1), 4)];
+        lay(&mut axes, &species, 1, (&|_| false, 1));
+        lay(&mut axes, &species, 2, (&|i| skip && i == 1, 1));
+        wood(&axes)
     };
-    let grown = tree();
-    let shed = Shed {
-        axes: vec![grown.axes[0].clone(), grown.axes[1].clone()],
-        index: vec![0, 1, usize::MAX],
-        fade: vec![1.0; 3],
-    };
-    let radius = |retained: f64, species: &mut Species| {
-        species.states[0].retained = retained;
-        let g = attachments(&grown.axes, species, grown.age, 1);
-        let girth = disused(&g, &shed, species);
-        let mut kept = Structure {
-            age: grown.age,
-            pas: 1,
-            axes: shed.axes.clone(),
-        };
-        thicken(&mut kept, species, &girth, 1);
-        kept.axes[1].phytomers[0].radius
-    };
-    let (at_zero, near_zero) = (radius(0.0, &mut species), radius(1e-9, &mut species));
-    assert!(
-        (at_zero - near_zero).abs() < 1e-9,
-        "{at_zero} against {near_zero}"
-    );
+    let (full, skipped) = (grown(false), grown(true));
+    assert_eq!(full[0], skipped[0], "the bearer");
+    for (f, s) in full[1].iter().zip(&skipped[1]) {
+        assert_eq!(f[0], s[0], "its section");
+        assert!(s[1] > f[1], "its sapwood, unread, not retired");
+    }
 }
 
-/// A relay's wood enters its parent where it joins (fn-244): every
-/// sample below the span it stands in carries it whole, every one above
-/// carries none, and the join's radii are the parent's there with the
-/// relay whole (below) and with its stopped module's own wood (above).
+/// A phytomer bears its whole leaf while its age is under its PA's
+/// `leaf_years`, the share left in the year it passes it and none after
+/// (LEAF-ACCOUNT.md, "The design").
 #[test]
-fn a_relays_wood_enters_where_it_joins_and_its_stub_carries_its_own() {
-    let mut states = vec![state(0.0)];
-    // A share and a blend that stand the relay part-way along a span.
-    states[0].relay_at = 0.3;
-    let species = Species { states };
-    let grown = |origin: Option<Origin>| {
-        let mut axes = vec![axis(Origin::Seed, &[0.5; 4])];
-        if let Some(origin) = origin {
-            let mut child = axis(origin, &[0.5; 3]);
-            child.blend = 0.4;
-            axes.push(child);
+fn a_phytomer_bears_its_leaf_for_its_leaf_years() {
+    let mut species = wooded(3.0, 0.01);
+    species.states[0].leaf_years = 5.5;
+    let state = &species.states[0];
+    let p = Phytomer {
+        scale: 0.8,
+        size: 0.5,
+        ..phytomer()
+    };
+    let whole = crate::light::leaf_area(p.scale, p.size, state.leaf_area);
+    let kept = [1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0, 0.0];
+    for (year, kept) in (1..).zip(kept) {
+        assert_eq!(leaf(state, &p, year), whole * kept, "{year}");
+        let bears = usize::from(kept == 0.0);
+        assert_eq!(bearing(state, &[p], year), bears, "{year}");
+    }
+}
+
+/// An age with no sapwood draws its primary radius at its scale, whatever
+/// the leaf above it.
+#[test]
+fn no_sapwood_draws_the_primary_radius_whatever_its_leaf() {
+    for leaf in [0.0, 0.01, 1.0] {
+        let species = wooded(0.0, leaf);
+        let mut axes = vec![axis(Origin::Seed, 3), axis(lateral(0), 3)];
+        axes[0].phytomers[1].scale = 0.5;
+        for year in 1..=3 {
+            lay(&mut axes, &species, year, (&|_| false, 1));
         }
         let mut t = Structure {
-            age: 1,
+            age: 3,
             pas: 1,
             axes,
         };
-        thicken(&mut t, &species, &Girth::default(), 1);
-        t
+        thicken(&mut t, &species, &[1.0, 1.0]);
+        for (k, p) in t.axes[0].phytomers.iter().enumerate() {
+            let primary = established(&species.states[0].form, p.scale);
+            assert!(
+                (p.radius - primary).abs() < 1e-9,
+                "{leaf}, node {k}: {}",
+                p.radius
+            );
+        }
+    }
+}
+
+/// A relay's leaf enters its bearer at the tip, so its join stands at the
+/// radius of the wood it joins, on both sides.
+#[test]
+fn a_relay_joins_at_the_radius_of_the_wood_it_stands_in() {
+    let mut species = wooded(3.0, 0.01);
+    // A share and a blend that stand the relay part-way along a span.
+    species.states[0].relay_at = 0.3;
+    let mut relay = axis(Origin::Relay { parent: 0, node: 1 }, 3);
+    relay.blend = 0.4;
+    let mut axes = vec![axis(Origin::Seed, 4), relay];
+    lay(&mut axes, &species, 1, (&|_| false, 1));
+    let mut t = Structure {
+        age: 1,
+        pas: 1,
+        axes,
     };
-    let relay = grown(Some(Origin::Relay { parent: 0, node: 1 }));
-    let join = relay.axes[1].joined().expect("a relay's join");
-    let k = join.node;
+    thicken(&mut t, &species, &[1.0, 1.0]);
+    let join = t.axes[1].joined().expect("a relay's join");
     assert!(join.t > 0.0 && join.t < 1.0, "part-way along its span");
-    let lateral = grown(Some(Origin::Lateral {
-        parent: 0,
-        node: k,
-        slot: 0,
-        whorl: 1.0,
-        woken: false,
-    }));
-    let alone = grown(None);
-    let radii = |t: &Structure| {
-        t.axes[0]
-            .phytomers
-            .iter()
-            .map(|p| p.radius)
-            .collect::<Vec<_>>()
-    };
-    let (relay, lateral, alone) = (radii(&relay), radii(&lateral), radii(&alone));
-    assert_eq!(relay[..k], lateral[..k], "the parent below the join");
-    assert_eq!(relay[k + 1..], alone[k + 1..], "the stub");
-    assert!(
-        alone[k] < relay[k] && relay[k] < lateral[k],
-        "the span by degree"
-    );
-    assert_eq!(join.below, lateral[k], "the bole below the join");
-    assert_eq!(join.above, alone[k], "the stub's first span");
+    let r = t.axes[0].phytomers[join.node].radius;
+    assert_eq!((join.below, join.above), (r, r));
 }
 
 /// A node growing in from nothing beneath a half-blended relay moves the
@@ -276,17 +269,17 @@ fn a_relays_wood_enters_where_it_joins_and_its_stub_carries_its_own() {
 /// parent's scaled length, not its node count.
 #[test]
 fn a_node_growing_in_moves_no_relays_attachment() {
-    let mut states = vec![state(0.0)];
+    let mut states = vec![state()];
     states[0].relay_at = 0.0;
     let species = Species { states };
     // Where relay 1 joins its parent of nodes at heights `tips` and scales
     // `scales`, in space.
     let joined = |tips: &[f64], scales: &[f64]| {
-        let mut parent = axis(Origin::Seed, &vec![0.5; tips.len()]);
+        let mut parent = axis(Origin::Seed, tips.len());
         for ((p, &z), &s) in parent.phytomers.iter_mut().zip(tips).zip(scales) {
             (p.tip, p.scale, p.grown) = (Vec3::new(0.0, 0.0, z), s, s);
         }
-        let mut relay = axis(Origin::Relay { parent: 0, node: 0 }, &[0.5]);
+        let mut relay = axis(Origin::Relay { parent: 0, node: 0 }, 1);
         relay.blend = 0.5;
         let axes = vec![parent, relay];
         let x = crate::geometry::attach(&axes, &species, 1).expect("a relay");
@@ -302,94 +295,73 @@ fn a_node_growing_in_moves_no_relays_attachment() {
     assert!((barely - two).abs() < 1e-5, "{barely} against {two}");
 }
 
-/// `terms` read independently in the one reduction order: each block of
-/// 1,024 folded from zero, the blocks folded from zero.
-fn folded(terms: &[(f32, f32)]) -> [f32; 2] {
-    let fold = |pick: &dyn Fn(&(f32, f32)) -> f32| -> f32 {
-        let blocks = terms
-            .chunks(LEAF_BLOCK)
-            .map(|c| c.iter().map(pick).fold(0.0f32, |a, x| a + x));
-        blocks.fold(0.0f32, |a, x| a + x)
-    };
-    [fold(&|t| t.0), fold(&|t| t.1)]
+/// A species whose rows are stated at trees of 10 and 25 m (fn-351): the
+/// first row's sapwood and rings, and the shares of them at the far height.
+fn sized(sapwood: f64, shares: [f64; 2]) -> Species {
+    let mut species = wooded(sapwood, 0.01);
+    let form = &mut species.states[0].form;
+    [form.sapwood_tall, form.sapwood_rings_tall] = shares;
+    (form.sapwood_from, form.sapwood_to) = (10.0, 25.0);
+    species
 }
 
-/// The leaf mean's sums are the one reduction order (fn-256 DESIGN.md
-/// 9.4). Where a sequential sum loses the small terms behind a large one,
-/// the blocks keep the block of them that stands alone.
-#[test]
-fn the_leaf_mean_sums_in_blocks_of_1024_in_order() {
-    let terms: Vec<(f32, f32)> = std::iter::once((1e8, 1e8))
-        .chain(std::iter::repeat_n((1.0, 0.5), 2047))
-        .collect();
-    let mut blocked = Blocked::default();
-    let mut sequential = [0.0f32; 2];
-    for &t in &terms {
-        blocked.push(t);
-        (sequential[0], sequential[1]) = (sequential[0] + t.0, sequential[1] + t.1);
+/// The seed's stem and a lateral after three years' wood, the stem's tip
+/// `height` metres up.
+fn laid(species: &Species, height: f64) -> Vec<Vec<[f32; 2]>> {
+    let mut axes = vec![axis(Origin::Seed, 3), axis(lateral(1), 4)];
+    axes[0].phytomers[2].tip = Vec3::new(0.0, 0.0, height);
+    for year in 1..=3 {
+        lay(&mut axes, species, year, (&|_| false, 1));
     }
-    let sums = blocked.sums();
-    assert_eq!(sums, folded(&terms));
-    assert_eq!(sums[0], 1e8 + 1024.0, "the second block stands alone");
-    assert_eq!(sequential[0], 1e8, "a sequential sum loses every 1");
+    wood(&axes)
 }
 
-/// A tree of 2,600 phytomers takes its leaf mean from its terms in the
-/// order its axes and their phytomers stand, blocked, both from the tree
-/// (`leaf_terms`) and from the tree as grown (`leaf_partials`).
+/// The rows are read by degree between the two stated heights: the first
+/// row to the bit at the near height, its tall share at the far one, a
+/// straight line between, and the nearer row held outside them.
 #[test]
-fn the_trees_leaf_mean_is_its_terms_blocked_in_order() {
-    let species = Species {
-        states: vec![state(1.0)],
-    };
-    let mut t = tree();
-    let phytomers: Vec<Phytomer> = (0..1300)
-        .map(|k| {
-            let mut p = t.axes[1].phytomers[0];
-            (p.scale, p.light) = (0.1 + (k % 97) as f64 * 0.009, 0.05 + (k % 89) as f64 * 0.01);
-            p
-        })
-        .collect();
-    t.axes[0].phytomers = phytomers.iter().rev().copied().collect();
-    t.axes[1].phytomers = phytomers;
-    let state = &species.states[0];
-    let terms: Vec<(f32, f32)> = (t.axes.iter().flat_map(|a| &a.phytomers))
-        .map(|p| {
-            super::terms(
-                own(&state.form, p, t.age, p.scale, 1.0),
-                p.light,
-                state.leaf_girth,
-            )
-        })
-        .collect();
-    let [total, weighted] = folded(&terms);
-    assert_eq!(leaf_terms(&t, &species), mean_of(total, weighted));
-    let sequential = terms
-        .iter()
-        .fold([0.0f32; 2], |a, x| [a[0] + x.0, a[1] + x.1]);
-    println!("blocked {:?}, sequential {sequential:?}", [total, weighted]);
-    assert_eq!(
-        leaf_partials(&t.axes, &species, (t.age, 4), Stand::WHOLE),
-        {
-            let bases = bases(&t.axes, &species, None);
-            let grown: Vec<(f32, f32)> = (t
-                .axes
-                .iter()
-                .zip(&bases)
-                .flat_map(|(a, &b)| a.phytomers.iter().map(move |p| (p, b))))
-            .map(|(p, b)| {
-                let g = super::disused::Grew::of(p);
-                let pipe = own_at(
-                    &state.form,
-                    g.cycle,
-                    t.age,
-                    f64::from(g.scale * b * g.size),
-                    1.0,
-                );
-                super::terms(pipe, f64::from(g.light), state.leaf_girth)
-            })
-            .collect();
-            folded(&grown)
-        }
-    );
+fn the_rows_are_read_by_degree_between_the_two_stated_heights() {
+    let form = sized(4.0, [0.5, 1.5]).states[0].form;
+    let at = |height: f64| rows(&form, tall(&form, height));
+    for height in [0.0, 3.0, 10.0] {
+        assert_eq!(at(height), [4.0, 20.0], "{height} m: the near rows");
+    }
+    for height in [25.0, 40.0, 1e3] {
+        assert_eq!(at(height), [2.0, 30.0], "{height} m: the far rows");
+    }
+    assert_eq!(at(17.5), [3.0, 25.0], "half way");
+    let step = at(13.0)[0] - at(10.0)[0];
+    for k in 1..5 {
+        let (low, high) = (at(10.0 + 3.0 * f64::from(k)), at(13.0 + 3.0 * f64::from(k)));
+        assert!(
+            (high[0] - low[0] - step).abs() < 1e-12,
+            "{k}: a straight line"
+        );
+        assert!(high[1] > low[1], "{k}: the rings rise");
+    }
+}
+
+/// Shares of 1 are one value at every height: the two heights then change
+/// no wood, to the bit, wherever the tree stands against them.
+#[test]
+fn rows_stated_once_lay_the_same_wood_at_every_height() {
+    let plain = wooded(3.0, 0.01);
+    for height in [0.0, 5.0, 17.5, 60.0] {
+        let before = laid(&plain, height);
+        assert_eq!(laid(&sized(3.0, [1.0, 1.0]), height), before, "{height} m");
+    }
+}
+
+/// A tree lays its wood at the rows of its height: below the near height
+/// as a species of the first row alone, above the far one as a species of
+/// the far rows alone, and between them more than the one and less than
+/// the other.
+#[test]
+fn a_tree_lays_its_wood_at_the_rows_of_its_height() {
+    let species = sized(4.0, [0.5, 1.0]);
+    assert_eq!(laid(&species, 8.0), laid(&wooded(4.0, 0.01), 8.0), "short");
+    assert_eq!(laid(&species, 30.0), laid(&wooded(2.0, 0.01), 30.0), "tall");
+    let base = |height: f64| laid(&species, height)[0][0][0];
+    assert!(base(8.0) > base(17.5) && base(17.5) > base(30.0));
+    assert!(base(17.4) > base(17.5), "by degree");
 }

@@ -1,13 +1,15 @@
 //! Leaves by their wood's age (fn-248): a station keeps its leaf by its
 //! wood's retention, clamp(leaf_years - age, 0, 1), counted the same in
 //! the plan, the placement and the stations;
-//! a station that sheds its leaf still takes its draws, so every leaf
-//! that stays is the one the tree bore for ever.
+//! a station that sheds its leaf still takes its draws. Since fn-354 R5
+//! the grower reads the same row, so each value grows its own tree.
 use telperion_core::{
     foliage::Leaf,
+    math::Vec3,
     mesh,
     pipeline::executor,
     presets::{Family, Preset},
+    tree::Tree,
 };
 
 /// The beech young, every age's wood bearing for `years`, its short
@@ -27,45 +29,98 @@ fn leaves(f: &Family) -> Vec<Leaf> {
     mesh::build(f).unwrap().foliage.instances.leaves
 }
 
-/// Whether `part` is `whole` with some leaves taken out, in order.
-fn within(part: &[Leaf], whole: &[Leaf]) -> bool {
-    let mut rest = whole.iter();
-    part.iter().all(|leaf| rest.any(|w| w == leaf))
+/// The distance from `p` to the nearest wood segment `bears` names, a
+/// segment the stretch from a node's parent to it.
+fn nearest(tree: &Tree, bears: &dyn Fn(usize) -> bool, p: Vec3) -> f64 {
+    let mut best = f64::INFINITY;
+    for (i, n) in tree.nodes.iter().enumerate() {
+        let Some(parent) = n.parent.filter(|_| bears(i)) else {
+            continue;
+        };
+        let a = tree.nodes[parent as usize].position;
+        let ab = n.position - a;
+        let t = ((p - a).dot(ab) / ab.dot(ab).max(1e-18)).clamp(0.0, 1.0);
+        best = best.min(p.distance(a + ab * t));
+    }
+    best
 }
 
-/// Fewer years keep fewer leaves, and each that stays is one the tree
-/// bearing for ever bore, bit for bit; none stays where no wood bears.
+/// A leaf is drawn only on wood younger than its age's `leaf_years`
+/// (fn-248; fn-354 R5, host 12 Nov): on each value's own tree, every drawn
+/// leaf stands within a leaf's reach of wood whose retention keeps some
+/// stations, and none stands where no wood bears.
 #[test]
 fn a_leaf_stays_only_where_its_wood_keeps_it() {
-    let all = leaves(&retaining(f64::INFINITY));
-    let mut fewer = all.len() + 1;
+    // A beech leaf and its petiole, with room for the station's offset.
+    const REACH: f64 = 0.25;
     for years in [3.0, 2.0, 1.5, 1.0] {
-        let kept = leaves(&retaining(years));
-        assert!(kept.len() < fewer, "{years}: {} leaves", kept.len());
-        assert!(!kept.is_empty(), "{years}");
-        assert!(within(&kept, &all), "{years}: a leaf moved");
-        fewer = kept.len();
+        let f = retaining(years);
+        let x = executor::grow(&f).unwrap().expansion().unwrap();
+        let tree = x.tree();
+        let bears = |i: usize| tree.leafing(i).keep != 0;
+        let all = |_: usize| true;
+        let placed = mesh::build(&f).unwrap().foliage.instances;
+        assert!(!placed.leaves.is_empty(), "{years}");
+        assert!(
+            (0..tree.nodes.len()).any(|i| !bears(i)),
+            "{years}: old wood"
+        );
+        for (k, &leaf) in placed.leaves.iter().enumerate() {
+            let at = placed.reference.position(leaf);
+            let young = nearest(tree, &bears, at);
+            assert!(
+                young <= REACH,
+                "{years}: leaf {k} {young} m from bearing wood, {} from any",
+                nearest(tree, &all, at)
+            );
+        }
     }
     assert!(leaves(&retaining(0.0)).is_empty());
 }
 
-/// A fraction of a year keeps that share of the year it splits, within
-/// four standard errors of its draws.
+/// Of one tree's stations on wood laid the year before, the share that
+/// bears a leaf is its age's share of that year (fn-248; recast within one
+/// tree, fn-354 R5, host 12 Nov): none at one year, a quarter at 1.25, all
+/// at two, within four standard errors of the draws. Each value grows its
+/// own tree, and the stations are read off its own runs; a segment of
+/// mixed wood is left out.
 #[test]
 fn a_share_of_a_year_keeps_that_share() {
-    let n = |years: f64| {
+    for (years, want) in [(1.0, 0.0), (1.25, 0.25), (2.0, 1.0)] {
         let mut f = retaining(years);
         f.age = 30.0;
-        leaves(&f).len() as f64
-    };
-    let (one, two) = (n(1.0), n(2.0));
-    for share in [0.25, 0.5, 0.75] {
-        let kept = (n(1.0 + share) - one) / (two - one);
-        let error = (share * (1.0 - share) / (two - one)).sqrt();
+        let g = executor::growth(&f).unwrap();
+        let structure = telperion_space::grow(&g.species, g.request).unwrap();
+        let cycle: std::collections::HashMap<u64, u32> = (structure.axes.iter())
+            .flat_map(|a| a.phytomers.iter().map(|p| (p.key(), p.cycle)))
+            .collect();
+        let x = executor::grow(&f).unwrap().expansion().unwrap();
+        let tree = x.tree();
+        let (runs, twig) = x.runs().unwrap().expect("regular stations");
+        let year_old = |i: usize| {
+            let born = cycle.get(&tree.nodes[i].identity.birth_order());
+            born == Some(&(structure.age - 1)) && tree.leafing(i).older == 0.0
+        };
+        let (mut stations, mut kept) = (0u64, 0u64);
+        for run in &runs {
+            for s in 0..run.nodes.len() - 1 {
+                if !year_old(run.nodes[s + 1]) {
+                    continue;
+                }
+                let (first, last) = run.segment_stations(s, twig);
+                stations += u64::from(last - first);
+                kept += u64::from(run.kept_between(tree, twig, (first, last)));
+            }
+        }
         assert!(
-            (kept - share).abs() < 4.0 * error,
-            "{share}: {kept} of {}",
-            two - one
+            stations > 1000,
+            "{years}: {stations} stations on last year's wood"
+        );
+        let share = kept as f64 / stations as f64;
+        let error = (want * (1.0 - want) / stations as f64).sqrt();
+        assert!(
+            (share - want).abs() <= 4.0 * error,
+            "{years}: {kept} of {stations}, {share}"
         );
     }
 }

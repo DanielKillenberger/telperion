@@ -60,24 +60,24 @@ pub(crate) struct Sleeper {
 
 /// The sleeping bud of the bud place keyed `place`, slot `slot` of the
 /// node at `at` (its axis, node and growth unit) grown in `cycle`, if it
-/// holds one that wakes within the tree's `age`: the cycle it first grows
-/// in, and the bud.
+/// holds one that can wake: one whose waking time falls before it ages
+/// past its last stage (fn-355, host). The cycle it first grows in, and
+/// the bud.
 pub(crate) fn draw(
-    zone: &Zone,
+    (species, zone): (&Species, &Zone),
     place: Key,
     ((parent, node, unit), slot): ((usize, usize, usize), u8),
     woods: &[f64],
-    (cycle, age): (u32, u32),
+    cycle: u32,
 ) -> Option<(usize, Sleeper)> {
     let key = place.child(DORMANT);
     let pa = lineage::bud(&zone.dormant, key.draw())?;
     // By the inverse of the release law's distribution, on the tick grid
     // (FINE-CONTRACT.md D11).
     let years = crate::contract::decide::wake(zone, key.child(DORMANT).draw());
-    if years >= f64::from(age - cycle) {
-        return None;
-    }
     let whole = years.floor();
+    // Aged as the grower ages it when it wakes (`Grower::wake`).
+    aged(species, pa, whole + (years - whole))?;
     let window = node_window(woods[pa]);
     let sleeper = Sleeper {
         parent,
@@ -103,8 +103,8 @@ pub(crate) fn draw(
 /// that carried the axis on; with each axis that carries it on now. None
 /// where nothing carries it on any more; more than one where a stop all
 /// but made grew both its continuation and its relay (host decision 11).
-pub(crate) fn carried(
-    axes: &[Axis],
+pub(crate) fn carried<P>(
+    axes: &[Axis<P>],
     draws: &[Draws],
     successor: &[Vec<usize>],
     sleeper: &Sleeper,
@@ -143,6 +143,22 @@ pub(crate) fn carried(
         }
     }
     out
+}
+
+/// The years a bud of PA `pa` may sleep before it ages past its last
+/// stage: its stages' lifespans summed, none where it grows in none.
+pub(crate) fn last_stage(species: &Species, pa: usize) -> f64 {
+    let Some((mut k, _)) = species.lived(pa) else {
+        return 0.0;
+    };
+    let mut years = 0.0;
+    loop {
+        years += species.states[k].life();
+        match species.successor(k) {
+            Some((next, _)) => k = next,
+            None => return years,
+        }
+    }
 }
 
 /// The stage a bud of PA `pa` that slept `slept` years, a real time,
@@ -326,7 +342,13 @@ impl Woken {
     /// so a bud that woke just before its bearer's end is small (host,
     /// 2026-10-04). An f32 presence, its sums and products taken in turn
     /// (host decision 8).
-    pub fn kept(&self, axes: &[Axis], draws: &[Draws], successor: &[Vec<usize>], age: u32) -> f64 {
+    pub fn kept<P>(
+        &self,
+        axes: &[Axis<P>],
+        draws: &[Draws],
+        successor: &[Vec<usize>],
+        age: u32,
+    ) -> f64 {
         let bearer = &draws[self.bearer];
         let share = q(self.share);
         // A bearer whose age ended within the waking cycle: the part of

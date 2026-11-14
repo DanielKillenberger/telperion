@@ -168,31 +168,10 @@ fn space(a: &Space, b: &Space, t: f64, age: u32) -> Result<Space> {
     if a.light != b.light {
         return Err(Error::InvalidInput("a walk between two sites' light"));
     }
-    use telperion_space::Coarsening;
-    let (p, q) = (a.coarse, b.coarse);
-    let walk = |x: f64, y: f64| x.powf(1.0 - t) * y.powf(t);
-    let coarse = Coarsening {
-        // A species with no dial keeps the other's first, since its rows of 1
-        // change nothing there; two with a dial move by degree between theirs.
-        first: if p == Coarsening::NONE {
-            q.first
-        } else if q == Coarsening::NONE {
-            p.first
-        } else {
-            p.first * (1.0 - t) + q.first * t
-        },
-        factor: walk(p.factor, q.factor),
-        leaf: walk(p.leaf, q.leaf),
-        pipe: walk(p.pipe, q.pipe),
-        bud: walk(p.bud, q.bud),
-        hazard: walk(p.hazard, q.hazard),
-        shedding: walk(p.shedding, q.shedding),
-    };
     Ok(Space {
         species,
         trunk,
         light: a.light,
-        coarse,
     })
 }
 

@@ -149,118 +149,6 @@ fn a_lateral_leaves_from_its_parents_direction_at_its_node() {
     assert!(checked > 0);
 }
 
-/// Pipe model: a section is the sum of the sections it bears. A relay's
-/// enters where it joins its parent, by its share at the node whose span
-/// it stands in and the rest at the node before, or below the parent's
-/// first node, where it is in the section the parent hands on (fn-244).
-#[test]
-fn girth_is_the_sum_of_the_sections_carried() {
-    let species = walk::species();
-    let tree = grown(&species, 1);
-    let mut carried = vec![vec![0.0; 0]; tree.axes.len()];
-    for (i, axis) in tree.axes.iter().enumerate() {
-        carried[i] = vec![0.0; axis.phytomers.len()];
-    }
-    let (mut tip, mut below) = (vec![0.0; tree.axes.len()], vec![0.0; tree.axes.len()]);
-    let mut joined = 0;
-    for (i, axis) in tree.axes.iter().enumerate().rev() {
-        let base = axis
-            .phytomers
-            .first()
-            .map_or(tip[i], |p| p.radius * p.radius)
-            + below[i];
-        match (axis.origin, axis.joined()) {
-            (Origin::Relay { parent, .. }, Some(join)) => {
-                let t = f64::from(join.t);
-                carried[parent][join.node] += t * base;
-                match join.node.checked_sub(1) {
-                    Some(k) => carried[parent][k] += (1.0 - t) * base,
-                    None => below[parent] += (1.0 - t) * base,
-                }
-                joined += 1;
-            }
-            (Origin::Lateral { parent, node, .. }, _) if node < carried[parent].len() => {
-                carried[parent][node] += base
-            }
-            (
-                Origin::Lateral { parent, .. }
-                | Origin::Relay { parent, .. }
-                | Origin::Continuation { parent },
-                _,
-            ) => tip[parent] += base,
-            (Origin::Seed, _) => {}
-        }
-    }
-    assert!(joined > 0, "a relay joined");
-    for (i, axis) in tree.axes.iter().enumerate() {
-        let pipe = species.states[axis.pa].form.pipe;
-        for (k, p) in axis.phytomers.iter().enumerate() {
-            let above = axis
-                .phytomers
-                .get(k + 1)
-                .map_or(tip[i], |q| q.radius * q.radius);
-            let own = (pipe * p.scale).powi(2);
-            let want = above + own + carried[i][k];
-            // Sections and radii are f32, a section a power taken in f32
-            // logs (fn-254): the sum holds to a few parts in a million.
-            assert!(
-                (p.radius * p.radius - want).abs() < 1e-5 * want + 1e-12,
-                "axis {i} node {k}"
-            );
-        }
-    }
-}
-
-/// A larger pipe exponent on the trunk keeps its limbs thicker beside
-/// it, and grows no other tree.
-#[test]
-fn a_larger_pipe_exponent_keeps_limbs_thicker_beside_their_bearer() {
-    let ratio = |exponent: f64| {
-        let mut species = walk::species();
-        species.states[0].form.exponent = exponent;
-        let tree = grown(&species, 1);
-        let trunk = tree.axes[0].phytomers[0].radius;
-        let limb = tree
-            .axes
-            .iter()
-            .filter(|a| a.pa == 1 && matches!(a.origin, Origin::Lateral { .. }))
-            .filter_map(|a| a.phytomers.first())
-            .map(|p| p.radius)
-            .fold(0.0, f64::max);
-        (limb / trunk, tree.axes.len())
-    };
-    let (area, axes) = ratio(2.0);
-    let (wider, same) = ratio(3.0);
-    assert_eq!(axes, same, "the same tree");
-    assert!(wider > area, "limbs {wider} against {area} of the trunk");
-}
-
-/// Ripening thins an axis's young tip against its old base, and grows no
-/// other tree.
-#[test]
-fn ripening_leaves_young_tips_fine() {
-    let tip_over_base = |ripening: f64| {
-        let mut species = walk::species();
-        species.states[1].form.ripening = ripening;
-        let tree = grown(&species, 1);
-        let limb = tree
-            .axes
-            .iter()
-            .filter(|a| a.pa == 1 && a.phytomers.len() > 4)
-            .max_by_key(|a| a.phytomers.len())
-            .unwrap();
-        let (base, tip) = (
-            limb.phytomers[0].radius,
-            limb.phytomers.last().unwrap().radius,
-        );
-        (tip / base, tree.axes.len())
-    };
-    let (whole, axes) = tip_over_base(0.0);
-    let (ripened, same) = tip_over_base(10.0);
-    assert_eq!(axes, same, "the same tree");
-    assert!(ripened < whole, "tip over base {ripened} against {whole}");
-}
-
 /// Dominance leaves a few laterals whole and the rest smaller, and grows
 /// no other tree.
 #[test]
@@ -294,7 +182,10 @@ fn dominance_leaves_a_few_laterals_whole() {
 }
 
 /// The beech grows at every age its sheet draws, at both seeds, standing
-/// and above the ground.
+/// and above the ground, under the site's light as the sheet draws it
+/// (fn-264 R1a). Unshaded, a beech of 80 is no tree a preset grows: every
+/// lateral keeps its long kind (fn-354 R7) and seed 7 holds 27 million
+/// phytomers (fn-351, `BEECH-FORM-MEMORY.md`).
 #[test]
 fn the_beech_grows_at_every_age_of_its_sheet() {
     for age in [10, 20, 40, 80] {
@@ -305,7 +196,7 @@ fn the_beech_grows_at_every_age_of_its_sheet() {
             let request = Request {
                 age,
                 seed,
-                light: telperion_space::Light::NEUTRAL,
+                light: walk::SITE,
             };
             let tree = grow(&beech(), request).unwrap_or_else(|e| panic!("{age}, {seed}: {e:?}"));
             assert!(tree.axes[0].phytomers[0].radius > 0.0);
@@ -456,46 +347,4 @@ fn the_abortion_hazard_rises_with_an_axis_units() {
     assert!(state.abortion_at(3.0) > state.abortion_at(2.0));
     state.abortion_rise = 0.0;
     assert_eq!(state.abortion_at(5.0), 0.2);
-}
-
-/// fn-205 R2: an unbranched stem with no secondary growth keeps the width
-/// its apex laid each phytomer down at, its own pipe, so it is a column;
-/// with full secondary growth its girth is the pipe model's, each section
-/// the sum of the sections above it.
-#[test]
-fn a_stem_without_secondary_growth_is_a_column() {
-    let stem = |secondary: f64| {
-        let mut species = walk::species();
-        species.states[0].readiness = 0.0;
-        species.states[0].form.secondary = secondary;
-        let tree = grown(&species, 1);
-        assert_eq!(tree.axes.len(), 1, "one axis");
-        tree.axes[0].phytomers.clone()
-    };
-    let form = walk::species().states[0].form;
-    let column = stem(0.0);
-    assert!(column.len() > 20, "{} phytomers", column.len());
-    for (k, p) in column.iter().enumerate() {
-        let established = form.pipe * p.scale;
-        // The established pipe is its product in f32 (fn-254).
-        assert!(
-            (p.radius - established).abs() < 1e-6 * established,
-            "{k}: {}",
-            p.radius
-        );
-    }
-    let (base, apex) = (column[0].radius, column[column.len() - 1].radius);
-    assert!((base / apex - 1.0).abs() < 1e-6, "{base} against {apex}");
-    let mut section = 0.0;
-    for (k, p) in stem(1.0).iter().enumerate().rev() {
-        section += (form.pipe * p.scale).powf(form.exponent);
-        let expected = section.powf(1.0 / form.exponent);
-        // A radius is the power of an f32 section taken in f32 logs
-        // (fn-254): a few parts in a million.
-        assert!(
-            (p.radius - expected).abs() < 1e-5 * expected,
-            "{k}: {} against {expected}",
-            p.radius
-        );
-    }
 }

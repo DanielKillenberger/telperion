@@ -59,7 +59,7 @@ fn tree(args: &[String]) -> Result<(), String> {
         }
     };
     if !shots.is_empty() {
-        stills::shoot(&mesh, &f, out, &shots, wood.limbs.joint)?;
+        stills::shoot(&mesh, &f, out, &shots, (wood.limbs.joint, wood.limbs.tip))?;
     }
     let leaves = drawn::leaves(&mesh);
     let b = mesh.bounds;

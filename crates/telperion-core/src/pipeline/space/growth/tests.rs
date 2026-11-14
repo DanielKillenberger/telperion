@@ -22,7 +22,7 @@ fn a_tree_grown_on_is_the_pipelines_tree_grown_at_once() {
     let input = super::super::GrowInput {
         age: f64::from(H),
         seed: 7,
-        ..super::super::GrowInput::of(&family)
+        ..super::super::GrowInput::of(&family).unwrap()
     };
     let whole = super::super::grow(input).unwrap();
     for a in [5, H - 1] {
@@ -50,16 +50,16 @@ fn a_tree_grown_on_is_the_pipelines_tree_grown_at_once() {
 /// fn-353 R1, as the page's binding grows it (`WebRenderer::growTo`, then
 /// `drawGrowth`): one year at a time, each year drawn twice is the same
 /// tree, and at the horizon it is the tree asked for at that age and the
-/// tree grown there straight through. The years before the horizon are the
-/// tree on its way to that age, not the tree asked for at theirs: fn-351's
-/// P4, open.
+/// tree grown there straight through. A year on the way is a state, not a
+/// horizon (fn-355): the space crate's `a_year_is_a_state_not_a_horizon`
+/// holds the years before it to the trees asked for at theirs.
 #[test]
 fn a_tree_grown_a_year_at_a_time_repeats_and_ends_at_the_tree_asked_for() {
     let (family, params) = beech();
     let asked = super::super::grow(super::super::GrowInput {
         age: f64::from(H),
         seed: 7,
-        ..super::super::GrowInput::of(&family)
+        ..super::super::GrowInput::of(&family).unwrap()
     })
     .unwrap();
     let mut straight = begin(&params, 7, f64::from(H)).unwrap();
@@ -81,9 +81,33 @@ fn a_tree_grown_a_year_at_a_time_repeats_and_ends_at_the_tree_asked_for() {
     );
 }
 
-/// R2b: a horizon that is no whole year, an age not finite, past the
-/// horizon or a year back, and a draw outside the last year grown are
-/// refused by name, the state left to grow on.
+/// fn-351: a growth begun for whole years (`begin_whole`), as the film
+/// draws one, is `begin`'s tree to the bit at every year, and refuses a
+/// draw within the year by name.
+#[test]
+fn a_tree_begun_for_whole_years_is_the_same_tree_at_each() {
+    let (_, params) = beech();
+    let mut kept = begin(&params, 7, f64::from(H)).unwrap();
+    let mut whole = begin_whole(&params, 7, f64::from(H)).unwrap();
+    for y in 1..=H {
+        let at = f64::from(y);
+        grow_to(&mut kept, at).unwrap();
+        grow_to(&mut whole, at).unwrap();
+        assert!(
+            settle(&whole, at).unwrap() == settle(&kept, at).unwrap(),
+            "year {y}"
+        );
+    }
+    match settle(&whole, f64::from(H) - 0.5).map(drop) {
+        Err(Error::InvalidValue { value, .. }) => assert!(value.starts_with("at:"), "{value}"),
+        other => panic!("{other:?}"),
+    }
+}
+
+/// R2b: a first age that is no whole year, an age not finite or a year
+/// back, and a draw outside the last year grown are refused by name, the
+/// state left to grow on; an age past the first one asked is grown
+/// (fn-355 R2).
 #[test]
 fn a_request_the_state_cannot_meet_is_refused_by_name() {
     let (_, params) = beech();
@@ -98,13 +122,14 @@ fn a_request_the_state_cannot_meet_is_refused_by_name() {
     let mut s = begin(&params, 7, f64::from(H)).unwrap();
     grow_to(&mut s, 6.0).unwrap();
     named(grow_to(&mut s, f64::NAN), "age:");
-    named(grow_to(&mut s, 12.5), "age.horizon");
     named(grow_to(&mut s, 5.0), "age.backward");
     named(settle(&s, 6.5).map(drop), "at:");
     named(settle(&s, 5.0).map(drop), "at:");
     assert_eq!(s.committed(), 6);
     grow_to(&mut s, f64::from(H)).unwrap();
     assert_eq!(s.committed(), H);
+    grow_to(&mut s, 12.5).unwrap();
+    assert_eq!(s.committed(), H + 1);
 }
 
 /// fn-270 R5c: the oak through one year, its leaves' state moving by

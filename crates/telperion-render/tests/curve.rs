@@ -12,10 +12,15 @@ use common::gpu;
 const SIZE: (u32, u32) = (480, 360);
 
 /// A preset's mesh, which carries its wood's curve; `ordinary` is the
-/// ordinary dressing on a young engine beech (fn-198, `common::ordinary`).
+/// ordinary dressing on a young engine beech (fn-198, `common::ordinary`),
+/// and `ordinary-30` that tree at 30, its own year 30.
 fn tree(id: &str) -> (telperion_core::mesh::TreeMesh, Curve) {
     let family = match id {
         "ordinary" => common::ordinary(),
+        "ordinary-30" => telperion_core::Family {
+            age: 30.0,
+            ..common::ordinary()
+        },
         id => Preset::from_id(id).unwrap().parameters(),
     };
     let mesh = executor::grow(&family)
@@ -104,7 +109,9 @@ fn compare(
 }
 
 /// The device's wood is the reference's at the hero view and close in, for
-/// a preset of round wood and the palm's shaped cells.
+/// a preset of round wood and the palm's shaped cells. The close view's first
+/// frame may pass the capacity the hero sized and draw at the finest scale
+/// that fits; the next frame has the room (`src/curve/feedback.rs`, fn-258).
 #[test]
 fn the_device_surfaces_the_wood_the_cpu_reference_does() {
     let Some(gpu) = gpu() else { return };
@@ -118,27 +125,47 @@ fn the_device_surfaces_the_wood_the_cpu_reference_does() {
             position: hero.target + (hero.position - hero.target) * 0.15,
             ..hero
         };
-        for (name, camera) in [("hero", hero), ("close", close)] {
-            render(&mut renderer, &camera, SIZE.0, SIZE.1).unwrap();
-            let report = renderer.curve_report().unwrap();
-            assert_eq!(report.overrun, 0, "{id} {name}: over budget");
-            let found = compare(&renderer, &curve, &camera, SIZE, report.scale);
-            println!(
-                "{id} {name}: scale {}, demand {:?}: {found}",
-                report.scale, report.demand
-            );
-        }
+        render(&mut renderer, &hero, SIZE.0, SIZE.1).unwrap();
+        let report = renderer.curve_report().unwrap();
+        assert_eq!(report.overrun, 0, "{id} hero: over budget");
+        let found = compare(&renderer, &curve, &hero, SIZE, report.scale);
+        println!(
+            "{id} hero: scale {}, demand {:?}: {found}",
+            report.scale, report.demand
+        );
+        render(&mut renderer, &close, SIZE.0, SIZE.1).unwrap();
+        let first = renderer.curve_report().unwrap();
+        assert!(
+            [1.0, 2.0, 4.0, 8.0].contains(&first.scale),
+            "{id} close: the first frame drew at no scale `choose` returns: {first:?}"
+        );
+        println!(
+            "{id} close, first frame: scale {}, overrun {}, budget {:?}, demand {:?}",
+            first.scale, first.overrun, first.budget, first.demand
+        );
+        render(&mut renderer, &close, SIZE.0, SIZE.1).unwrap();
+        let report = renderer.curve_report().unwrap();
+        assert_eq!(report.overrun, 0, "{id} close, next frame: over budget");
+        let found = compare(&renderer, &curve, &close, SIZE, report.scale);
+        println!(
+            "{id} close, next frame: scale {}, demand {:?}: {found}",
+            report.scale, report.demand
+        );
     }
 }
 
 /// A view small enough that its screen-sized budget is crossed halfway, so
 /// every record, vertex and index past the first slice is written through
-/// the second binding (host decision 21), and still the reference's.
+/// the second binding (host decision 21), and still the reference's. The
+/// tree is the ordinary tree at 30: fn-354's tree at 40 asks about 2.6 times
+/// the base's wood a pixel, and no view from 40 to 96 pixels wide draws it at
+/// the finest scale; at 30 (4.9 M wood vertices, the base's tree at 40 had
+/// 5.5 M) the 76-pixel view does (12 Nov 2026).
 #[test]
 fn the_second_slices_hold_what_the_first_could_not() {
     let Some(gpu) = gpu() else { return };
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    let (mesh, curve) = tree("ordinary");
+    let (mesh, curve) = tree("ordinary-30");
     renderer.submit(&mesh).unwrap();
     // The smallest view whose finest scale still fits, and so fills its
     // budget furthest: the demand a pixel rises as the view shrinks.

@@ -43,9 +43,6 @@ pub fn invariants(tree: &Structure) -> Vec<String> {
             if !(p.radius >= 0.0 && p.scale >= 0.0 && p.size >= 0.0) {
                 fail("a radius, scale or size below nothing", i, k);
             }
-            if !(0.0..=1.0).contains(&p.light) {
-                fail("light outside nothing to one", i, k);
-            }
             if !(0.0..=1.0 + 1e-6).contains(&p.grown) {
                 fail("a node more than whole", i, k);
             }

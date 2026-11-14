@@ -154,7 +154,7 @@ fn lattice(count: u32, width: f64) -> (f64, f64, f64, usize) {
     let mut f = palm(count);
     f.canopy.leaf_base_width = width;
     let tree = mesh::grow(&f).unwrap();
-    let wood = mesh::build(&f).unwrap().wood;
+    let wood = mesh::build(&f).unwrap().wood.expect("build makes the wood");
     let rosette = &foliage::rosettes(&tree)[0];
     let axis = rosette.axis;
     let (normal, binormal) = foliage::frame(axis);

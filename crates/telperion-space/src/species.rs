@@ -7,7 +7,6 @@
 use crate::error::{refuse, Result};
 use crate::transcendental::Transcendental;
 
-pub mod coarse;
 pub(crate) mod scale;
 mod validate;
 
@@ -33,13 +32,16 @@ const MAX_STATES: usize = 64;
 const MAX_INTERNODE: f64 = 100.0;
 /// The fastest bend or wander, in radians (or shares) per metre.
 const MAX_RATE: f64 = 100.0;
-/// The widest pipe one phytomer adds, in metres.
-const MAX_PIPE: f64 = 1.0;
-/// The longest ripening of a phytomer's own wood, in years.
-const MAX_RIPENING: f64 = 1_000.0;
-/// The pipe model's exponents: below 1.5 a fork outgrows what bears it.
-const MIN_EXPONENT: f64 = 1.5;
-const MAX_EXPONENT: f64 = 4.0;
+/// The widest primary radius a shoot extends at, in metres.
+const MAX_PRIMARY: f64 = 1.0;
+/// The most sapwood a unit of leaf needs, in cm² per m².
+const MAX_SAPWOOD: f64 = 100.0;
+/// The most years wood stays sapwood.
+const MAX_SAPWOOD_RINGS: f64 = 1_000.0;
+/// The most a tall tree's sapwood row is of a short tree's.
+const MAX_TALL: f64 = 10.0;
+/// The tallest tree a sapwood row is stated at, in metres.
+const MAX_HEIGHT: f64 = 1_000.0;
 /// The most an axis bends per unit of its moment over its section's
 /// stiffness.
 const MAX_SAG: f64 = 1_000.0;
@@ -170,9 +172,9 @@ pub struct PaState {
     /// retention clamp(leaf_years - age, 0, 1), on top of the slender
     /// wood the canopy bears on (fn-248). Fractional, the one age it
     /// splits keeps that share of its stations by a keyed draw. The
-    /// engine grows nothing of it; the pipeline's expansion reads it.
-    /// Neutral infinite, every age bears; a short shoot's cluster bears
-    /// while its shoot lives.
+    /// grower reads it too (fn-354 R5): a phytomer's leaf shades and lays
+    /// wood by the same retention (`girth::leaf`). Neutral infinite, every
+    /// age bears; a short shoot's cluster bears while its shoot lives.
     pub leaf_years: f64,
     /// The days a growth unit of this PA takes to elongate from bud burst,
     /// its shoot extending from its base along the logistic course
@@ -228,12 +230,15 @@ pub struct PaState {
     /// split, gives every bud its own light's share; dormant while
     /// `shade_size` is 0 or no leaf shades.
     pub apical_control: f64,
-    /// The carbon balance's upkeep (fn-197 step 4): what a metre of this
-    /// PA's present wood costs, in the units of the light a bud of whole
-    /// presence collects in full light. Neutral 0, free.
-    pub upkeep: f64,
+    /// The reciprocal of the species' potential height, per metre
+    /// (fn-349, fn-363): a living tip of this PA costs the carbon balance
+    /// its size times the square of its height above the root collar times
+    /// this, the living wood a leaf keeps rising with the square of its
+    /// height. Every
+    /// row of a species states the same value. Neutral 0, free.
+    pub inverse_height: f64,
     /// How fast a lateral of this PA is shed as its remembered balance,
-    /// (light - upkeep) / (light + upkeep) over its subtree, falls below
+    /// (light - cost) / (light + cost) over its subtree, falls below
     /// `tolerance`: a yearly hazard of balance_hazard x (tolerance -
     /// balance) where the balance lies below it. Neutral 0, never.
     pub balance_hazard: f64,
@@ -241,15 +246,14 @@ pub struct PaState {
     /// this PA starts to be shed: its shade tolerance. Dormant without
     /// `balance_hazard`.
     pub tolerance: f64,
-    /// The share of a shed branch of this PA's pipe that stays in its
-    /// bearer's girth: Shinozaki's disused pipes, which Pałubicki (2009)
-    /// keeps whole. Neutral 0, today's.
-    pub retained: f64,
-    /// How a phytomer of this PA's own pipe follows its leaves' light:
-    /// (light / the tree's pipe-weighted mean)^χ, so limbs whose leaves
-    /// catch more light thicken and the tree's own pipe is conserved.
-    /// Neutral 0; dormant where no leaf shades.
-    pub leaf_girth: f64,
+    /// A lateral's kind under shade (fn-354 R7): one exponent per PA, as
+    /// the zones' `lateral` tables are, entry j how a bud of this PA turns
+    /// into PA j as the light at its bearer's tip falls. With e the sum,
+    /// a bud formed at light L keeps its kind with probability L^e and
+    /// otherwise becomes PA j with probability `shade_short[j]` / e.
+    /// Neutral every entry 0, or none at all, the bud always keeps its
+    /// kind, and no draw is taken.
+    pub shade_short: Vec<f64>,
     /// How far the base of a lateral axis of this PA straightens towards
     /// the vertical, as Troll's plagiotropic axes do. Neutral 0.
     pub straightening: f64,
@@ -274,18 +278,39 @@ pub struct Form {
     /// The turn, in radians about its heading, of the plane a lateral of
     /// this axis branches in. Neutral 0: the plane holds its parent.
     pub plane: f64,
-    /// The pipe each phytomer of this PA adds below it, as a radius in
-    /// metres (the pipe model: a section is the sum of the sections it bears).
-    pub pipe: f64,
-    /// The pipe model's exponent at this PA's wood: its radius to this
-    /// power is the sum of the radii it carries to this power. 2 sums
-    /// areas; a larger one keeps what it carries thicker beside it, so
-    /// its limbs taper less abruptly from it. Neutral 2.
-    pub exponent: f64,
-    /// The years over which a phytomer lays down its own pipe, from a
-    /// share at its first year to all of it: a limb stays heavy where it
-    /// is old and ends in fine young tips. Neutral 0, at once.
-    pub ripening: f64,
+    /// The radius, in metres, a shoot of this PA extends at, by its scale:
+    /// its primary section, all the wood it has before a year's sapwood is
+    /// laid on it (`girth.rs`).
+    pub primary: f64,
+    /// The sapwood a unit of leaf above the wood needs, in cm² per m² of
+    /// leaf: the reciprocal of the measured leaf area per sapwood area
+    /// (`girth.rs`). Neutral 0: the wood lays nothing beyond its primary
+    /// section, as a palm's stem does.
+    pub sapwood: f64,
+    /// How many years wood stays sapwood before it is heartwood: each year
+    /// one in this many of the sapwood's area retires, and the wood lays
+    /// what its leaf is then short of. At least 1. Dormant without
+    /// sapwood.
+    pub sapwood_rings: f64,
+    /// The sapwood a unit of leaf needs on a tall tree, as a share of
+    /// `sapwood`: what a source that measured the row at two tree sizes
+    /// found at the larger over what it found at the smaller. The wood
+    /// reads `sapwood` while the tree stands no higher than `sapwood_from`,
+    /// this share of it from `sapwood_to` up, and a straight line between
+    /// by the tree's height; outside the two heights it holds the nearer
+    /// value, since nothing was measured there (`girth::tall`). Neutral 1:
+    /// one value at every height.
+    pub sapwood_tall: f64,
+    /// The years wood stays sapwood on a tall tree, as a share of
+    /// `sapwood_rings`, read between the same two heights; the rings it
+    /// gives are at least 1. Neutral 1.
+    pub sapwood_rings_tall: f64,
+    /// The tree height, in metres, `sapwood` and `sapwood_rings` were
+    /// measured at. Dormant while both tall shares are 1.
+    pub sapwood_from: f64,
+    /// The tree height, in metres, the tall shares were measured at, no
+    /// less than `sapwood_from`. Dormant while both tall shares are 1.
+    pub sapwood_to: f64,
     /// How unequal laterals of this PA are among their siblings: each
     /// keeps a share of its size, from all of it (0) towards a keyed share
     /// few hold whole (1), so a few dominate and the rest stay small.
@@ -301,13 +326,6 @@ pub struct Form {
     /// of its length (`sag.rs`). Its tip carries nothing and keeps its
     /// tropism. Neutral 0.
     pub sag: f64,
-    /// Secondary growth: how far the girth follows the load the wood
-    /// carries. The radius is `secondary` times the pipe model's radius
-    /// plus the rest times the radius the phytomer was established with,
-    /// its own pipe as its apex laid it down. Neutral 1, the pipe model;
-    /// at 0 the axis keeps its established width for life, as a palm's
-    /// stem does.
-    pub secondary: f64,
     /// How far, in metres, the axis's wander remembers its bend: the
     /// correlation length of a curvature that relaxes towards none and is
     /// kicked by each node's keyed draw (fn-207). 0 draws an independent
@@ -332,20 +350,24 @@ pub struct Form {
 }
 
 impl Default for Form {
-    /// Straight axes in their parent's plane, each phytomer a 5 mm pipe.
+    /// Straight axes in their parent's plane, each shoot 5 mm through its
+    /// primary radius and laying no sapwood.
     fn default() -> Self {
         Self {
             tropism: 0.0,
             elevation: 0.0,
             wander: 0.0,
             plane: 0.0,
-            pipe: 0.005,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.005,
+            sapwood: 0.0,
+            sapwood_rings: 1.0,
+            sapwood_tall: 1.0,
+            sapwood_rings_tall: 1.0,
+            sapwood_from: 0.0,
+            sapwood_to: 0.0,
             dominance: 0.0,
             roll: 0.0,
             sag: 0.0,
-            secondary: 1.0,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
@@ -475,7 +497,7 @@ impl Species {
 
     /// Whether any bud reads the light or the rough layout: its survival
     /// (by its light or the ground its tip reaches), its unit's size,
-    /// its subtree's carbon balance or its pipe. Without one the light
+    /// or its subtree's carbon balance. Without one the light
     /// changes nothing and the tree grows no rough layout.
     pub(crate) fn reads_light(&self) -> bool {
         self.states.iter().any(|s| {
@@ -483,7 +505,7 @@ impl Species {
                 || s.ground_hazard != 0.0
                 || s.shade_size != 0.0
                 || s.balance_hazard != 0.0
-                || s.leaf_girth != 0.0
+                || s.turns()
         })
     }
 
@@ -495,7 +517,8 @@ impl Species {
         let mut unlit = self.clone();
         for s in &mut unlit.states {
             (s.shade_hazard, s.ground_hazard, s.shade_size) = (0.0, 0.0, 0.0);
-            (s.balance_hazard, s.leaf_girth) = (0.0, 0.0);
+            s.balance_hazard = 0.0;
+            s.shade_short.iter_mut().for_each(|e| *e = 0.0);
         }
         debug_assert!(!unlit.reads_light());
         unlit
@@ -537,6 +560,11 @@ impl PaState {
             return self.abortion;
         }
         1.0 - (1.0 - self.abortion).powf_fixed(t.powf_fixed(self.abortion_rise))
+    }
+
+    /// Whether a bud of this PA may turn under shade (`shade_short`).
+    pub(crate) fn turns(&self) -> bool {
+        self.shade_short.iter().any(|&e| e > 0.0)
     }
 
     /// Each zone's lateral probabilities as the axis draws them: spread

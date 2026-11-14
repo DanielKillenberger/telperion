@@ -14,6 +14,7 @@ use crate::{
     Result,
 };
 use std::sync::OnceLock;
+use telperion_space::stage as tag;
 
 /// Stages 3 and 4 with the wood and the leaves compiled in.
 pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<Outputs> {
@@ -26,19 +27,29 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     let rings = OnceLock::new();
     let sweep = || self::rings(tree, surface, request, seats);
     let shared = || rings.get_or_init(sweep).as_ref().map_err(Clone::clone);
+    // A curve asked for without the wood is traced on its own, beside the
+    // leaves as the wood would be (fn-351): the renderer's tree.
+    let alone = request.curve && !request.wood;
     let (wood, planned) = both(
-        request.schedule == Schedule::Concurrent && request.wood && places,
+        request.schedule == Schedule::Concurrent && (request.wood || alone) && places,
         || {
             let wood = |r: &(_, _, _)| self::wood(tree, surface, request, &r.0);
-            request.wood.then(|| shared().and_then(wood)).transpose()
+            let wood = request.wood.then(|| shared().and_then(wood)).transpose()?;
+            let curve = alone.then(|| {
+                tag::at(tag::CURVE);
+                surface::curve(tree, surface.height, &surface.params)
+            });
+            Ok((wood, curve.transpose()?))
         },
         || {
+            tag::at(tag::PREPARE);
             let prepared = stage::prepare(tree, &inputs.plan, request, places)?;
             let seat = match (seats, request.wood) {
                 (false, _) => Ok(Seat::Free),
                 (true, false) => Ok(Seat::Own),
                 (true, true) => shared().map(|r| Seat::Shared(&r.0)),
             };
+            tag::at(tag::FOLIAGE);
             let made = match seat {
                 Ok(seat) => leaves_and_field(tree, inputs, request, &prepared, twig, seat),
                 Err(error) => (Err(error), Ok(None)),
@@ -47,7 +58,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
         },
     );
     // The wood's error answers first, as it did run in turn.
-    let wood = wood?;
+    let (wood, alone) = wood?;
     let (prepared, (leaves, field)) = planned?;
     let (mut leaves, field) = (leaves?, field?);
     let rings = rings.into_inner().transpose()?;
@@ -74,6 +85,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
             l.instances = Instances::new(l.instances.reference);
         }
     }
+    tag::at(tag::STRUCTURE);
     let structure = request
         .structure
         .then(|| stage::structure(tree))
@@ -82,9 +94,9 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
         Some((rings, curve, _)) => (Some(rings), curve),
         None => (None, None),
     };
-    let traces = request.curve && drawn_from.is_none();
     #[cfg(test)]
     super::tests::count(|t| {
+        let traces = request.curve && drawn_from.is_none();
         let own = seats && !request.wood && leaves.is_some();
         t.sweeps += u32::from(rings.is_some()) + u32::from(own) + u32::from(traces);
         t.elements += u32::from(prepared.element.is_some());
@@ -92,13 +104,9 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     let wood = wood
         .zip(rings)
         .map(|((faces, _), rings)| rings.into_mesh(faces));
+    tag::at(tag::ORGAN);
     let organ = organ(tree, inputs, request, prepared.reference, florets.flatten())?;
-    let curve = match drawn_from {
-        Some(curve) => Some(curve),
-        None => traces
-            .then(|| surface::curve(tree, surface.height, &surface.params))
-            .transpose()?,
-    };
+    let curve = drawn_from.or(alone);
     Ok(Outputs {
         element: prepared.element,
         plan: prepared.leaf_plan,
@@ -162,6 +170,7 @@ pub(super) fn rings(
     seats: bool,
 ) -> Result<(Rings, Option<Curve>, f64)> {
     let start = (request.clock)();
+    tag::at(tag::RINGS);
     let (height, params) = (input.height, &input.params);
     let (rings, curve) = if request.wood && request.curve {
         let traced = surface::traced(tree, height, params)?;
@@ -186,6 +195,7 @@ pub(super) fn wood(
     rings: &Rings,
 ) -> Result<(Faces, f64)> {
     let start = (request.clock)();
+    tag::at(tag::FACES);
     let (height, params) = (input.height, &input.params);
     let faces = surface::faces(rings, tree, height, params)?;
     Ok((faces, (request.clock)() - start))

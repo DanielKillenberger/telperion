@@ -48,43 +48,27 @@ pub(crate) struct GrowInput<'f> {
     pub(crate) space: Cow<'f, Space>,
     pub(crate) age: f64,
     pub(crate) seed: u32,
-    /// The family's request, already in `space`: kept for its refusal.
-    pub(crate) fidelity: f64,
     pub(crate) supernatural: Supernatural,
     /// The crown's rows a rosette's stem establishes by (fn-275 R2a).
     pub(crate) canopy: crate::pipeline::foliage::CanopyParams,
 }
 
 impl<'f> GrowInput<'f> {
-    pub(crate) fn of(family: &'f Family) -> Self {
-        let mut space = match family.applied() {
+    /// The family's skeleton input, refused at `supernatural.canopy.size`
+    /// where the leaf drawn at it passes the species' edge, before the
+    /// engine judges the leaf it lands on (fn-351 review, host).
+    pub(crate) fn of(family: &'f Family) -> Result<Self> {
+        family.drawn_leaf()?;
+        let space = match family.applied() {
             Cow::Borrowed(f) => Cow::Borrowed(&f.space),
             Cow::Owned(f) => Cow::Owned(f.space),
         };
-        // The finest is the species as it stands, not a copy of it.
-        if family.fidelity > 0.0 && space.coarse != telperion_space::Coarsening::NONE {
-            let coarsened =
-                (space.species.as_ref()).map(|s| s.coarsened(&space.coarse, family.fidelity));
-            space.to_mut().species = coarsened;
-        }
-        Self {
+        Ok(Self {
             space,
             age: family.age,
             seed: family.skeleton.seed,
-            fidelity: family.fidelity,
             supernatural: family.supernatural,
             canopy: family.canopy,
-        }
-    }
-
-    /// Refuses a fidelity off its range, whichever entry asked for the tree.
-    pub(crate) fn fidelity_admitted(&self) -> crate::Result<()> {
-        if crate::family::FIDELITY.admits(self.fidelity) {
-            return Ok(());
-        }
-        Err(crate::Error::InvalidValue {
-            field: "fidelity",
-            value: format!("{}", self.fidelity),
         })
     }
 }

@@ -12,6 +12,59 @@ use crate::chain::{self, on_chain};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::FRAC_PI_2;
 
+/// The sapwood a unit of leaf needs on a tree of `SAPWOOD_FROM`, cm² per
+/// m²: the reciprocal of the 0.23 m² of leaf per cm² of sapwood Phillips,
+/// Bond, McDowell, Ryan and Schauer measured on *Q. garryana* of 10 m and
+/// 40 years (2003, Funct. Ecol. 17: 832-840, Table 1: "Oak leaf area:
+/// sapwood area (m2 cm-2) 0·37 ± 0·01 | 0·23 ± 0·02", the 25 m plot and
+/// the 10 m plot, standard errors; checked against the text, fn-351
+/// OAK-SAPWOOD-BY-SIZE.md).
+const SAPWOOD: f64 = 1.0 / 0.23;
+/// The sapwood a unit of leaf needs on a tree of `SAPWOOD_TO`, as a share
+/// of `SAPWOOD`: 0.23 over the 0.37 of the same table's 25 m, 250-year
+/// plot. "25 m trees had a leaf to sapwood area ratio 1·6 times greater
+/// than that of 10 m trees."
+const SAPWOOD_TALL: f64 = 0.23 / 0.37;
+/// The tree heights the two rows are read between, m: Phillips's two
+/// plots' "Oak canopy height (m) 25 | 10". Height, not age, since the
+/// paper states the change by it: "a species in which leaf to sapwood
+/// area ratio increases with tree size", "changes in AL : AS as trees
+/// grow in height".
+const SAPWOOD_FROM: f64 = 10.0;
+const SAPWOOD_TO: f64 = 25.0;
+/// The years wood stays sapwood on a tree of `SAPWOOD_FROM`: 16, the mean
+/// sapwood ring count of German oak under 100 years (Hollstein 1965, 1980,
+/// in Haneca, Čufar and Beeckman 2009, J. Archaeol. Sci. 36: 1-11, Table
+/// 1: "<100 16.00", "100-200 20.40", ">200 25.90"; read secondary, the
+/// table checked against its text), the class Phillips's 40-year plot
+/// falls in. Estimated for *Q. garryana*, whose rings no source counts.
+const SAPWOOD_RINGS: f64 = 16.0;
+/// The years wood stays sapwood on a tree of `SAPWOOD_TO`, as a share of
+/// `SAPWOOD_RINGS`: the same table's 25.9 rings over 200 years, the class
+/// Phillips's 250-year plot falls in, over its 16.0. Estimated for *Q.
+/// garryana*, and read by height where Hollstein classed by age.
+const SAPWOOD_RINGS_TALL: f64 = 25.9 / 16.0;
+/// How far its wood bends under its load, per metre: 4ρg/E, an elastic
+/// beam's, at green oak's 1,060 kg m⁻³ and 8.3 GPa (Lavers 1983, read through
+/// Niklas and Spatz 2010, Am. J. Bot. 97: 1587-1594, Table 1; Hamilton
+/// 1975), at every age.
+const SAG: f64 = 5.0e-6;
+/// The wood every age lays: the sapwood its leaf needs and how long it
+/// stays sapwood, each at the two tree heights it was measured at, and how
+/// far it bends, alike at every age.
+fn wood() -> Form {
+    Form {
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
+        sapwood_tall: SAPWOOD_TALL,
+        sapwood_rings_tall: SAPWOOD_RINGS_TALL,
+        sapwood_from: SAPWOOD_FROM,
+        sapwood_to: SAPWOOD_TO,
+        sag: SAG,
+        ..Form::default()
+    }
+}
+
 /// The oak's ages on the shared reference axis (`chain.rs`), youngest
 /// first: its fork stands at the low fork, and its shoot, which its
 /// branch moves on to, before its twig, which it bears.
@@ -113,13 +166,15 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         ground_hazard: 0.0,
         shade_size: 1.5,
         apical_control: 0.45,
-        upkeep: 0.35,
+        // The potential height, 34.8 m: "The maximum potential height for
+        // OWO on a good site was 34.8 m" (Gould, Harrington and Devine
+        // 2011; checked against the text by fn-341).
+        inverse_height: 1.0 / 34.8,
         balance_hazard: 2.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 1.0,
+        shade_short: vec![0.0; PAS],
         straightening: 0.0,
-        form: Form::default(),
+        form: wood(),
     }
 }
 
@@ -140,17 +195,17 @@ pub fn oak() -> Species {
         elevation: FRAC_PI_2,
         wander: 0.25,
         plane: 0.0,
-        pipe: 0.009,
-        exponent: 2.6,
-        ripening: 0.0,
+        primary: 0.009,
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
         dominance: 0.0,
         roll: 0.0,
-        sag: 0.0,
-        secondary: 1.0,
+        sag: SAG,
         bend_length: 0.0,
         internode_spread: 0.0,
         insertion_spread: 0.0,
         tropism_spread: 0.0,
+        ..wood()
     };
     // The young stem: erect and monopodial, a yearly shoot of about
     // 0.36 m, its laterals temporary long shoots that die within three
@@ -223,17 +278,17 @@ pub fn oak() -> Species {
             elevation: 1.05,
             wander: 0.5,
             plane: 0.0,
-            pipe: 0.009,
-            exponent: 2.8,
-            ripening: 15.0,
+            primary: 0.009,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.8,
-            sag: 0.0003,
-            secondary: 1.0,
+            sag: SAG,
             bend_length: 3.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..wood()
         },
         // A limb grows for as long as an oak lives (500 years), then stops.
         ..state(
@@ -276,10 +331,8 @@ pub fn oak() -> Species {
             // flat past the crown's edge.
             elevation: 0.9,
             wander: 0.35,
-            pipe: 0.004,
-            exponent: 2.6,
-            sag: 0.00005,
-            secondary: 1.0,
+            primary: 0.004,
+            sag: SAG,
             bend_length: 1.5,
             ..limb.form
         },
@@ -310,17 +363,17 @@ pub fn oak() -> Species {
             elevation: 0.7,
             wander: 0.4,
             plane: 0.0,
-            pipe: 0.0012,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.0012,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 1.2,
-            sag: 0.0,
-            secondary: 1.0,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..wood()
         },
         ..state(
             10,
@@ -355,17 +408,17 @@ pub fn oak() -> Species {
             elevation: 0.2,
             wander: 0.4,
             plane: 0.0,
-            pipe: 0.0009,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.0009,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 1.2,
-            sag: 0.0,
-            secondary: 1.0,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..wood()
         },
         ..state(
             12,
@@ -391,9 +444,9 @@ pub fn oak() -> Species {
             tropism: 0.4,
             elevation: 0.2,
             wander: 0.4,
-            pipe: 0.0008,
+            primary: 0.0008,
             roll: 1.2,
-            ..Form::default()
+            ..wood()
         },
         ..state(
             5,
@@ -412,9 +465,9 @@ pub fn oak() -> Species {
             tropism: 0.8,
             elevation: 0.2,
             wander: 0.4,
-            pipe: 0.0009,
+            primary: 0.0009,
             roll: 1.2,
-            ..Form::default()
+            ..wood()
         },
         ..state(4, 0.0, unit((1, 1), &[(SHORT, 0.3)], (2, &[(SHORT, 0.35)])))
     };
@@ -429,8 +482,8 @@ pub fn oak() -> Species {
         shade_size: 1.0,
         shedding: 2.0,
         form: Form {
-            pipe: 0.0006,
-            ..Form::default()
+            primary: 0.0006,
+            ..wood()
         },
         ..state(3, 0.0, vec![zone(3, 5, 1, &[])])
     };

@@ -10,6 +10,28 @@ use crate::chain::{self, on_chain};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::{FRAC_PI_2, PI};
 
+/// The sapwood a unit of leaf needs, cm² per m²: the reciprocal of 0.36 m²
+/// of leaf per cm² of sapwood over 28 spruces of 7 to 31 m (McDowell et al.
+/// 2002, Oecologia 132: 12-20, Table 1).
+const SAPWOOD: f64 = 1.0 / 0.36;
+/// The years wood stays sapwood: 30, estimated; no ring count was read.
+const SAPWOOD_RINGS: f64 = 30.0;
+/// How far its wood bends under its load, per metre: 4ρg/E, an elastic
+/// beam's, at green Norway spruce's 960 kg m⁻³ and 6.2 GPa (Lavers 1983, read through
+/// Niklas and Spatz 2010, Am. J. Bot. 97: 1587-1594, Table 1; Hamilton
+/// 1975), at every age.
+const SAG: f64 = 6.1e-6;
+/// The wood every age lays: the sapwood its leaf needs, how long it stays
+/// sapwood and how far it bends, alike at every age.
+fn wood() -> Form {
+    Form {
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
+        sag: SAG,
+        ..Form::default()
+    }
+}
+
 /// The spruce's ages on the shared reference axis (`chain.rs`), youngest
 /// first: its crown's leader stands at the chain's leader.
 const SEEDLING: usize = chain::SEEDLING;
@@ -80,7 +102,14 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
-        leaf_years: f64::INFINITY,
+        // fn-354 R5: a cohort is held whole to this age, so the matching
+        // measure is the mean needle lifespan. 5.5 is the half-shed age
+        // (Muukkonen & Lehtonen 2004, Can. J. For. Res. 34: 2517, full
+        // text); the sources' range for the mean is 5.1 (that paper's
+        // survival table summed) to 7.2 (Reich et al. 1996, a lowland
+        // Polish plantation). Its mass turnover of 0.10 a year is not
+        // this measure. Passages in the preset's value file.
+        leaf_years: 5.5,
         // fn-270 R5: the days its shoot elongates and its leaf expands
         // within the year, sourced in its preset's value file.
         elongation: 35.0,
@@ -96,13 +125,15 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        // The potential height, 61 m: "In central Europe, heights of up to
+        // 203 feet (61 m) have been reported" (USDA FEIS, Picea abies; a
+        // reported maximum, fn-345).
+        inverse_height: 1.0 / 61.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
+        shade_short: vec![0.0; PAS],
         straightening: 0.0,
-        form: Form::default(),
+        form: wood(),
     }
 }
 
@@ -126,17 +157,17 @@ pub fn spruce() -> Species {
         elevation: FRAC_PI_2,
         wander: 0.1,
         plane: FRAC_PI_2,
-        pipe: 0.0025,
-        exponent: 2.4,
-        ripening: 0.0,
+        primary: 0.0025,
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
         dominance: 0.0,
         roll: 0.0,
-        sag: 0.0,
-        secondary: 1.0,
+        sag: SAG,
         bend_length: 0.0,
         internode_spread: 0.0,
         insertion_spread: 0.0,
         tropism_spread: 0.0,
+        ..Form::default()
     };
     // The seedling (M4): two short, unbranched years.
     let seedling = PaState {
@@ -187,17 +218,17 @@ pub fn spruce() -> Species {
             elevation: 1.0,
             wander: 1.0,
             plane: 0.0,
-            pipe: 0.0008,
-            exponent: 2.2,
-            ripening: 10.0,
+            primary: 0.0008,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.35,
             roll: 0.8,
-            sag: 9e-4,
-            secondary: 1.0,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         // For as long as the tree lives, then they stop.
         ..state(
@@ -222,8 +253,7 @@ pub fn spruce() -> Species {
         form: Form {
             tropism: 0.4,
             elevation: 0.35,
-            sag: 1e-4,
-            secondary: 1.0,
+            sag: SAG,
             bend_length: 0.0,
             ..branch.form
         },
@@ -244,17 +274,17 @@ pub fn spruce() -> Species {
             elevation: -1.0,
             wander: 0.6,
             plane: 0.0,
-            pipe: 0.0005,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.0005,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.2,
-            sag: 5e-4,
-            secondary: 1.0,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         ..state(
             10,
@@ -302,9 +332,9 @@ pub fn spruce() -> Species {
             tropism: 1.0,
             elevation: -0.5,
             wander: 1.0,
-            pipe: 0.0004,
+            primary: 0.0004,
             roll: 1.2,
-            ..Form::default()
+            ..wood()
         },
         ..state(2, 0.0, vec![zone(2, 2, 1, &[])])
     };

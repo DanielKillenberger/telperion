@@ -6,32 +6,31 @@
 //! copy of it and `shed::subtree_living` with it as root, and where its
 //! fade at the age grown is none the settle would drop it: its phytomers
 //! and draws are let go, and its living stands for it in its bearer's fade
-//! (`shed::shed_past`). Where any row keeps shed pipes or leaf girth, each
-//! axis's girth is frozen as it closes (fn-270 R4, the host's ruling: dead
-//! wood does not ripen once nothing in it lives): its base radius and its
-//! two leaf-mean sums at its own base, carried up from its children's
-//! (`girth::Frozen`); a retired root stands for its subtree by them.
-//! A kept subtree's living is remembered, so an ancestor's evaluation
+//! (`shed::shed_past`). A kept subtree's living is remembered, so an ancestor's evaluation
 //! stops there. A subtree holding a bud that woke waits until that bud's
 //! kept share is final (`Woken::kept`): its bearer's next unit, grown in
 //! the cycle after the waking, and whether the bearer stopped then, which
 //! the balance of the cycle after that may still decide by shedding it
 //! (`apex_end` one cycle back); so from three cycles after the waking,
-//! once that balance has run. Its upkeep stays frozen in its bearer's balance
-//! (`working.rs`), as the balance charges it today. The subtrees closed in
+//! once that balance has run. Being dead wood, it charges its bearer's
+//! balance nothing (`working.rs`). The subtrees closed in
 //! a cycle are evaluated on every core, each alone, and applied in order.
 //! The fade is read at the age grown so far, never at the tree's final age
 //! (fn-270 R3), so a tree grows on from any age: a kept lateral that sheds
-//! waits among the fading, its living final, and is evaluated again once
-//! its fade there reaches none.
+//! waits among the fading, its living final, and is retired at that living
+//! once its fade there reaches none (fn-368).
+//!
+//! A retired root is read only through its bearer: its carry into the
+//! bearer's living, at every settle and every later evaluation of a subtree
+//! holding it, as long as that bearer is held (fn-357, READING.md). Once
+//! records are let go (`compact.rs`) it keeps only that, a `Stand`.
 use super::{Grower, Working};
 use crate::contract::presence::{q, real, times};
 use crate::dormant::Woken;
-use crate::girth::Frozen;
 use crate::presence::{assign_living, Draws};
-use crate::shed::{faded, subtree_living, Living};
+use crate::shed::{faded, subtree_living, Living, Stand};
 use crate::species::Species;
-use crate::structure::{Axis, Origin};
+use crate::structure::{Axis, Growing, Origin};
 use std::borrow::Cow;
 
 /// What retirement knows of each axis.
@@ -48,12 +47,10 @@ pub(in crate::grow) enum Fate {
     Inside,
 }
 
-/// Each axis's fate and, closed where rows keep it, its frozen girth; the
-/// woken bud each axis is, where it is one.
+/// Each axis's fate; the woken bud each axis is, where it is one.
 #[derive(Debug, Clone, Default)]
 pub(in crate::grow) struct Retirement {
     pub fate: Vec<Fate>,
-    pub frozen: Vec<Frozen>,
     pub(super) woken: Vec<u32>,
     pub(super) seen: usize,
     /// Closed subtrees waiting on a woken bud's kept share.
@@ -67,9 +64,12 @@ pub(in crate::grow) struct Retirement {
     /// only where the records are (`Working::keep_records`), for its
     /// roots are indices.
     pub log: Vec<(usize, u32, u8, Living)>,
-    /// The axes let go inside a retired subtree whose records are still
-    /// held (`compact.rs`).
+    /// The axes let go with a retired subtree, its root included, whose
+    /// records are still held (`compact.rs`).
     pub(super) loose: usize,
+    /// The retired roots whose records are let go, each by its bearer, in
+    /// the bearers' order (fn-357).
+    pub(super) stands: Vec<Stand>,
 }
 
 impl Retirement {
@@ -86,23 +86,34 @@ impl Retirement {
         }
     }
 
-    /// The subtrees retired.
+    /// The subtrees retired: the roots held, and those let go whose
+    /// bearer has not been retired since.
     pub fn roots(&self) -> usize {
-        self.fate
-            .iter()
-            .filter(|f| matches!(f, Fate::Root(_)))
-            .count()
+        let held = |f: &Fate| matches!(f, Fate::Root(_));
+        let bearing =
+            |s: &&Stand| matches!(self.fate[s.bearer as usize], Fate::Open | Fate::Kept(_));
+        self.fate.iter().filter(|f| held(f)).count() + self.stands.iter().filter(bearing).count()
     }
 
-    /// A retired root's frozen girth, which stands for its subtree's.
-    pub fn frozen_root(&self, i: usize) -> Option<Frozen> {
-        matches!(self.fate.get(i), Some(Fate::Root(_))).then(|| self.frozen[i])
+    /// The retired roots let go that axis `i` bears.
+    pub(super) fn stands_of(&self, i: usize) -> &[Stand] {
+        let from = self.stands.partition_point(|s| (s.bearer as usize) < i);
+        let to = self.stands.partition_point(|s| (s.bearer as usize) <= i);
+        &self.stands[from..to]
+    }
+
+    /// The retired roots let go whose bearer is neither retired nor inside
+    /// a retired subtree: those the settle carries up.
+    pub(in crate::grow) fn standing(&self) -> Vec<Stand> {
+        let bearing =
+            |s: &&Stand| matches!(self.fate[s.bearer as usize], Fate::Open | Fate::Kept(_));
+        self.stands.iter().filter(bearing).copied().collect()
     }
 }
 
 /// What the evaluation reads of the tree.
 struct Tree<'t> {
-    axes: &'t [Axis],
+    axes: &'t [Axis<Growing>],
     draws: &'t [Draws],
     woken: &'t [Woken],
     successor: &'t [Vec<usize>],
@@ -131,9 +142,6 @@ impl Grower {
             self.working = Some(w);
             return;
         }
-        if crate::grow::keeps(&self.species) {
-            self.freeze(&mut w, cycle - 1);
-        }
         // The closed subtrees beside an open axis, met at their roots.
         let beside = |c: usize| w.links[c].parent.is_none_or(|p| w.open[p]);
         let waiting = std::mem::take(&mut w.retire.pending);
@@ -155,8 +163,14 @@ impl Grower {
             cycle,
         };
         let wr = &w;
-        let verdicts = crate::cores::map(todo.clone(), 16, self.threads, &|_, c| {
-            evaluate(&tree, wr, c)
+        // A kept subtree that faded out is retired at the living it was
+        // kept at, which is final; only a closed one is evaluated.
+        let verdicts = crate::cores::map(todo.clone(), 16, self.threads, &|_, c| match wr
+            .retire
+            .fate[c]
+        {
+            Fate::Kept(living) => Verdict::Retired(living),
+            _ => evaluate(&tree, wr, c),
         });
         for (c, verdict) in todo.into_iter().zip(verdicts) {
             // Let go already with a fading ancestor that faded out with it.
@@ -208,7 +222,6 @@ impl Grower {
     fn take_in(&self, w: &mut Working) {
         let n = w.links.len();
         w.retire.fate.resize(n, Fate::Open);
-        w.retire.frozen.resize(n, Frozen::default());
         w.retire.woken.resize(self.axes.len(), u32::MAX);
         for k in w.retire.seen..self.woken.len() {
             let axis = self.woken[k].axis;
@@ -220,81 +233,19 @@ impl Grower {
         w.retire.seen = self.woken.len();
     }
 
-    /// Each axis closed since the last cycle frozen at `age`, the age it
-    /// closed at, deepest first: its children closed before it or with it.
-    fn freeze(&self, w: &mut Working, age: u32) {
-        let mut closed = w.closed.clone();
-        closed.sort_unstable_by(|a, b| b.cmp(a));
-        for i in closed {
-            w.retire.frozen[i] = self.frozen_at(w, i, age);
-        }
-    }
-
-    /// Axis `i`'s girth at its own base, closed at `age`: its phytomers'
-    /// pipes, lit and not by the tree's mean, and each child's frozen
-    /// girth by its base against `i`'s, in order (`girth::Frozen`).
-    fn frozen_at(&self, w: &Working, i: usize, age: u32) -> Frozen {
-        let state = &self.species.states[self.axes[i].pa];
-        let (form, chi) = (&state.form, state.leaf_girth);
-        let (axis, end) = crate::presence::assigned(&self.axes[i], &self.draws[i]);
-        let mut f = Frozen::default();
-        let mut section = 0.0f32;
-        for p in &axis.phytomers {
-            let scale = f64::from(p.scale as f32 * 1.0 * p.size as f32);
-            let (pipe, term) = crate::girth::terms(
-                crate::girth::own_at(form, p.cycle, age, scale, 1.0),
-                p.light,
-                chi,
-            );
-            f.sums[0] += pipe;
-            f.sums[1] += term;
-            section += crate::girth::section(f64::from(term), form.exponent);
-        }
-        for &c in w.children(i) {
-            let c = c as usize;
-            let ratio = self.ratio(w, (c, &axis), (end, age));
-            let child = w.retire.frozen[c];
-            section += crate::girth::section(f64::from(ratio * child.radius), form.exponent);
-            f.sums[0] += ratio * child.sums[0];
-            f.sums[1] += ratio * child.sums[1];
-        }
-        f.radius = crate::girth::radius(section, form.exponent) as f32;
-        f
-    }
-
-    /// Child `c`'s base against its bearer's (`girth::bases`), its bearer
-    /// assigned and ending at `end`, at `age`: a lateral's node's scale,
-    /// its vigour and its dominance share; a carried axis's vigour.
-    fn ratio(&self, w: &Working, (c, bearer): (usize, &Axis), (end, age): (f64, u32)) -> f32 {
-        use crate::contract::presence::{q, real, times};
-        let a = &self.axes[c];
-        let d = &self.draws[c];
-        let mut birth = d.birth[1];
-        if let Some(&k) = w.retire.woken.get(c).filter(|&&k| k != u32::MAX) {
-            let kept = self.woken[k as usize].kept(&self.axes, &self.draws, &self.successor, age);
-            birth = real(times(q(birth), q(kept)));
-        }
-        let made = times(q(d.birth[0]), q(birth));
-        match a.origin {
-            Origin::Lateral { node, .. } => {
-                let scale = bearer.phytomers.get(node).map_or(0.0, |p| p.scale as f32);
-                let share =
-                    crate::geometry::dominance(self.species.states[a.pa].form.dominance, a.lineage);
-                scale * 1.0 * real(made) as f32 * share as f32
-            }
-            _ => real(times(q(end), made)) as f32 * 1.0,
-        }
-    }
-
     /// `c`'s subtree let go: its phytomers and draws, its root standing
     /// for it by `living`.
     fn let_go(&mut self, w: &mut Working, c: usize, living: Living) {
         w.retire.fate[c] = Fate::Root(living);
+        w.retire.loose += 1;
         let mut gone = vec![c];
         while let Some(i) = gone.pop() {
             if i != c && w.retire.fate[i] != Fate::Inside {
+                // A root retired before is counted loose already.
+                if !matches!(w.retire.fate[i], Fate::Root(_)) {
+                    w.retire.loose += 1;
+                }
                 w.retire.fate[i] = Fate::Inside;
-                w.retire.loose += 1;
             }
             self.axes[i].phytomers = Vec::new();
             let d = &mut self.draws[i];
@@ -322,7 +273,17 @@ fn evaluate(t: &Tree, w: &Working, c: usize) -> Verdict {
         Fate::Kept(l) | Fate::Root(l) if part[k] != c => Some(l),
         _ => None,
     };
-    let living = subtree_living(&local, t.species, t.age, &given);
+    // The roots let go on each axis it descends through, by local index.
+    let stands: Vec<Stand> = (part.iter().enumerate())
+        .filter(|&(_, &i)| i == c || !stub(i))
+        .flat_map(|(k, &i)| {
+            (w.retire.stands_of(i).iter()).map(move |s| Stand {
+                bearer: k as u32,
+                ..*s
+            })
+        })
+        .collect();
+    let living = subtree_living(&local, t.species, t.age, (&given, &stands));
     let axis = &t.axes[c];
     let delay = t.species.states[axis.pa].shedding;
     if !(sheds(axis, t.species) && faded(delay, axis.birth, living, t.age) <= 0.0) {
@@ -332,7 +293,7 @@ fn evaluate(t: &Tree, w: &Working, c: usize) -> Verdict {
 }
 
 /// Whether `axis` is a lateral that sheds.
-fn sheds(axis: &Axis, species: &Species) -> bool {
+fn sheds<P>(axis: &Axis<P>, species: &Species) -> bool {
     let lateral = matches!(axis.origin, Origin::Lateral { .. });
     lateral && species.states[axis.pa].shedding.is_finite()
 }
@@ -372,7 +333,7 @@ fn copied(t: &Tree, w: &Working, part: &[usize], stub: &dyn Fn(usize) -> bool) -
             let phytomers = if stub(i) {
                 Vec::new()
             } else {
-                a.phytomers.clone()
+                a.phytomers.iter().map(Growing::settled).collect()
             };
             Axis {
                 lineage: a.lineage,

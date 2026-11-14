@@ -7,27 +7,28 @@ use super::q::{add, amount, atan2, between, cross, dot, q3, scaled, sub, unit, Q
 use crate::contract::INF;
 use crate::sag::{held, log2_q, torque, turn, unit_w, Lever};
 use crate::species::PaState;
-use crate::structure::Phytomer;
+use crate::structure::Node;
 
 /// The sag of a loaded phytomer `length` metres long as it is laid, its
 /// node's own internode draw taken (`sag.rs`): its pivot and amount, or
 /// none (CONTRACT-A.md 2.5); its room is an amount, unwrapped.
 pub(super) fn sag_angle(
     load: &Lever,
-    (phytomer, length): (&Phytomer, f32),
+    (phytomer, length): (&impl Node, f32),
     state: &PaState,
     (running, across, tip): (Q3, Q3, Q3),
     trunk: bool,
 ) -> Option<(Q3, f32)> {
     let form = state.form;
-    let radius = phytomer.radius as f32;
+    let radius = phytomer.radius() as f32;
     // The lever was taken on the tree before it bent. The load beyond is
     // turned rigidly by the rotation that takes the phytomer's frame then
     // (its heading and side, still the first lay's) to its frame now
     // (fn-203).
     // Where either frame has no side (a phytomer never laid, as a chain
     // resolved alone meets it), the lever is not carried: as before.
-    let frames = Frame::of(q3(phytomer.heading), q3(phytomer.side)).zip(Frame::of(running, across));
+    let frames =
+        Frame::of(q3(phytomer.heading()), q3(phytomer.side())).zip(Frame::of(running, across));
     let now = frames
         .as_ref()
         .map_or(load.moment, |(from, to)| from.carry(to, load.moment));
@@ -61,7 +62,7 @@ pub(super) fn sag_angle(
     };
     // The unbent lever's moment caps the turned one's.
     let cap = unit_w(torque(load.moment)).1 + log2_q(carried);
-    let angle = turn(now, cap, form.sag, phytomer.radius, f64::from(length));
+    let angle = turn(now, cap, form.sag, phytomer.radius(), f64::from(length));
     let angle = angle.min((room - amount(HANG)).max(0.0));
     // Wood resting on the ground is carried by it and keeps its direction
     // there.

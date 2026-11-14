@@ -41,11 +41,11 @@ pub enum Error {
         value: String,
     },
     ResourceLimit(&'static str),
-    /// A wood the memory left cannot hold, refused before any of it is
-    /// allocated: the bytes it needs and the bytes left (fn-291 R2f).
-    WoodMemory {
+    /// A store the machine did not give the memory it needs, refused as
+    /// it is reserved: which store and the bytes it asked for (fn-369).
+    Memory {
+        store: &'static str,
         needed: u64,
-        available: u64,
     },
 }
 impl std::fmt::Display for Error {
@@ -54,10 +54,9 @@ impl std::fmt::Display for Error {
             Self::InvalidValue { field, value } => write!(f, "invalid input: {field} = {value}"),
             Self::InvalidInput(message) => write!(f, "invalid input: {message}"),
             Self::ResourceLimit(message) => write!(f, "resource limit: {message}"),
-            Self::WoodMemory { needed, available } => write!(
+            Self::Memory { store, needed } => write!(
                 f,
-                "the wood needs {needed} bytes and {available} are left in 32-bit Wasm \
-                 memory; build it with fewer radialSegments"
+                "the {store} needs {needed} bytes and the machine did not give them"
             ),
         }
     }

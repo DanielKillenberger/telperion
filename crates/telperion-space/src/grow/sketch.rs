@@ -14,7 +14,7 @@ use crate::allocation::{sizes, vigours_from, Link, TIP};
 use crate::cores::fill;
 use crate::geometry::Layer;
 use crate::light::Light;
-use crate::structure::{Origin, Vec3};
+use crate::structure::{Axis, Growing, Node, Origin, Vec3};
 
 /// The axes in a piece of the gathering of rows.
 const ROWS: usize = 1 << 15;
@@ -58,12 +58,31 @@ pub(super) struct Pencil {
     /// growth unit's size among its siblings this cycle.
     pub(super) light: f64,
     pub(super) size: f64,
-    /// Its own present wood in metres, its remembered carbon balance and
-    /// what its subtrees' survival of shedding makes of its unit this
-    /// cycle (`balance.rs`).
-    pub(super) wood: f64,
+    /// Its remembered carbon balance and what its subtrees' survival of
+    /// shedding makes of its unit this cycle (`cycle/passes.rs`).
     pub(super) memory: f64,
     pub(super) kept: f64,
+    /// The path along the wood from the root collar to its base, and to
+    /// the node of each phytomer laid, as the layout lays it (fn-349): what
+    /// its laterals start from.
+    pub(super) root: f32,
+    pub(super) path: Vec<f32>,
+}
+
+impl Pencil {
+    /// The path from the root collar to its tip.
+    pub(super) fn path_end(&self) -> f32 {
+        self.path.last().copied().unwrap_or(self.root)
+    }
+
+    /// The path from the root collar to node `node`, laid; its base where
+    /// it laid none (a relay of an apex that stopped before it grew).
+    pub(super) fn path_at(&self, node: usize) -> f32 {
+        match self.path.is_empty() {
+            true => self.root,
+            false => self.path[node],
+        }
+    }
 }
 
 impl Sketch {
@@ -210,7 +229,11 @@ impl Grower {
     }
 
     pub(super) fn tip(&self, i: usize) -> Vec3 {
-        let axis = &self.axes[i];
-        axis.phytomers.last().map_or(axis.base, |p| p.tip)
+        tip(&self.axes[i])
     }
+}
+
+/// An axis's tip: its last laid node, or its base where it has laid none.
+pub(super) fn tip(axis: &Axis<Growing>) -> Vec3 {
+    axis.phytomers.last().map_or(axis.base, |p| p.tip())
 }

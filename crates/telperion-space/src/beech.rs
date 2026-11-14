@@ -9,6 +9,44 @@ use crate::chain::{self, on_chain};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::{FRAC_PI_2, PI};
 
+/// The sapwood a unit of leaf needs, cm² per m²: the reciprocal of 0.331 m²
+/// of leaf per cm² of sapwood over 38 beeches of 8 to 59 years
+/// (Bartelink 1997, Ann. Sci. For. 54: 39-50).
+const SAPWOOD: f64 = 1.0 / 0.331;
+/// The years wood stays sapwood: 50, estimated as the middle of the 25 to
+/// 73 conducting rings Gebauer, Horna and Leuschner found (2008, Tree
+/// Physiol. 28: 1821-1830).
+const SAPWOOD_RINGS: f64 = 50.0;
+/// How far its wood bends under its load, per metre: 4ρg/E, an elastic
+/// beam's, at green beech's 1,030 kg m⁻³ and 9.8 GPa (Lavers 1983, read through
+/// Niklas and Spatz 2010, Am. J. Bot. 97: 1587-1594, Table 1; Hamilton
+/// 1975), at every age.
+const SAG: f64 = 4.1e-6;
+/// How a long lateral's kind follows its light (fn-354 R7): a SHOOT or
+/// BRANCH bud keeps its kind with probability light^0.38 and otherwise
+/// forms as a short shoot. Lemoine et al. 2002 (Table II): long laterals
+/// are 85 ± 3% of laterals in sun (PAR 1,850) and 40 ± 6% in shade (255),
+/// dominant 30-year beeches; ln(0.40 / 0.85) / ln(255 / 1,850) = 0.38.
+/// Estimated in form: a power law through the two settled classes.
+const SHADE_SHORT: f64 = 0.38;
+
+/// The shade table of a long lateral's age: it turns into a short shoot.
+fn to_short() -> Vec<f64> {
+    let mut shade = vec![0.0; PAS];
+    shade[SHORT] = SHADE_SHORT;
+    shade
+}
+/// The wood every age lays: the sapwood its leaf needs, how long it stays
+/// sapwood and how far it bends, alike at every age.
+fn wood() -> Form {
+    Form {
+        sapwood: SAPWOOD,
+        sapwood_rings: SAPWOOD_RINGS,
+        sag: SAG,
+        ..Form::default()
+    }
+}
+
 /// The beech's ages on the shared reference axis (`chain.rs`), youngest
 /// first: its spur stands at the chain's sprig, its fork at the top fork.
 const TRUNK: usize = chain::TRUNK;
@@ -91,13 +129,14 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
-        upkeep: 0.0,
+        // The potential height, 40 m: "it may reach over 40 m in height"
+        // (waldwissen.net, the beech's portrait; a lower bound, fn-345).
+        inverse_height: 1.0 / 40.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
+        shade_short: vec![0.0; PAS],
         straightening: 0.0,
-        form: Form::default(),
+        form: wood(),
     }
 }
 
@@ -140,17 +179,17 @@ pub fn beech() -> Species {
             elevation: 1.4,
             wander: 0.2,
             plane: FRAC_PI_2,
-            pipe: 0.008,
-            exponent: 2.6,
-            ripening: 0.0,
+            primary: 0.008,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.0,
-            sag: 0.0,
-            secondary: 1.0,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         ..state(
             9,
@@ -192,24 +231,26 @@ pub fn beech() -> Species {
             elevation,
             wander: 1.2,
             plane: 0.0,
-            pipe: 0.008,
-            exponent: 2.6,
-            ripening: 15.0,
+            primary: 0.008,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 1.2,
-            sag: 0.0,
-            secondary: 1.0,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         ..state(
             lifespan,
             0.0,
             vec![
                 zone(2, 3, &[]),
-                zone(2, 3, &[(SHORT, 0.3), (BRANCH, 0.27)]),
+                // In full light 85% long (Lemoine et al. 2002, Table II) at
+                // the zone's total of 0.57: shade turns them short.
+                zone(2, 3, &[(SHORT, 0.085), (BRANCH, 0.485)]),
                 zone(1, 1, top),
             ],
         )
@@ -255,6 +296,7 @@ pub fn beech() -> Species {
     // shoots, Z23 long shoots bearing short shoots, Z22 partial
     // reiteration, base to tip (acrotony).
     let branch = PaState {
+        shade_short: to_short(),
         insertion: 1.0,
         viability: 0.95,
         shedding: 1.0,
@@ -264,24 +306,27 @@ pub fn beech() -> Species {
             elevation: 0.35,
             wander: 0.5,
             plane: 0.0,
-            pipe: 0.0009,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.0009,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 1.2,
-            sag: 0.0,
-            secondary: 1.0,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         ..state(
             10,
             1.0,
             vec![
                 zone(1, 2, &[]),
-                zone(2, 3, &[(SHORT, 0.7)]),
+                // In full light 85% of the unit's laterals long (Lemoine et
+                // al. 2002, Table II): with the spare's 0.65 and the top's
+                // 0.08, 2.38 long of 2.8; shade turns them short.
+                zone(2, 3, &[(SHOOT, 0.53), (SHORT, 0.17)]),
                 // The top, then the spare, which stands below it.
                 zone(1, 1, &[(BRANCH, 0.08)]),
                 zone(1, 2, &[(SHOOT, 0.65)]),
@@ -290,6 +335,7 @@ pub fn beech() -> Species {
     };
     // GreenLab's PA 3: a long shoot bearing only short shoots.
     let shoot = PaState {
+        shade_short: to_short(),
         insertion: 1.0,
         viability: 0.95,
         shedding: 1.0,
@@ -299,17 +345,17 @@ pub fn beech() -> Species {
             elevation: 0.15,
             wander: 1.0,
             plane: 0.0,
-            pipe: 0.0009,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.0009,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.0,
-            sag: 0.0,
-            secondary: 1.0,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
         ..state(5, 0.0, vec![zone(1, 1, &[]), zone(2, 3, &[(SHORT, 0.6)])])
     };
@@ -317,9 +363,11 @@ pub fn beech() -> Species {
     // branches. It bears its leaves at its tip while it lives (fn-248):
     // four, one a metamer of [LET]'s "usually 3 or 4", the beech bearing
     // one leaf a node (inferred); fanned 0.6 rad either side (estimated).
-    // It lives four years (estimated, from three), so the crown's leaf area
-    // index stands at 5.2 at 40 and 7.3 at 80, in the range measured in
-    // beech forests (Glatthorn et al. 2017: 7.1 and 7.4 on average).
+    // It lives twelve years (fn-354 task 7, host, 12 Nov 2026; estimated:
+    // the middle of Aas's "gut und gerne 10 - 15 Jahre" for short-shoot
+    // chains, LWF Wissen 86, an expert's statement, not a measurement; to
+    // be replaced by Roloff 1989, "Kurztrieblebensdauer", when read). Its
+    // yearly viability stays 0.9.
     let short = PaState {
         cluster_leaves: 4.0,
         cluster_spread: 0.6,
@@ -332,19 +380,19 @@ pub fn beech() -> Species {
             elevation: 0.0,
             wander: 0.0,
             plane: 0.0,
-            pipe: 0.00095,
-            exponent: 2.0,
-            ripening: 0.0,
+            primary: 0.00095,
+            sapwood: SAPWOOD,
+            sapwood_rings: SAPWOOD_RINGS,
             dominance: 0.0,
             roll: 0.0,
-            sag: 0.0,
-            secondary: 1.0,
+            sag: SAG,
             bend_length: 0.0,
             internode_spread: 0.0,
             insertion_spread: 0.0,
             tropism_spread: 0.0,
+            ..Form::default()
         },
-        ..state(4, 0.0, vec![zone(3, 5, &[])])
+        ..state(12, 0.0, vec![zone(3, 5, &[])])
     };
     let mut ages = vec![
         (TRUNK, trunk),

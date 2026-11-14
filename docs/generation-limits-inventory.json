@@ -528,6 +528,12 @@
     "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
   },
   {
+    "path": "crates/telperion-core/src/pipeline/surface/angular.rs",
+    "site": ". max ( 3 )",
+    "classification": "algorithm",
+    "reason": "The ring cache's extent matches build::sides, which never cuts a ring with fewer than three sides; it sizes a lookup table, it does not limit generated populations (fn-351 review)."
+  },
+  {
     "path": "crates/telperion-core/src/pipeline/surface/build.rs",
     "site": ". max ( p [ 0 ] as f64 )",
     "classification": "algorithm",
@@ -685,18 +691,6 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/surface/samples.rs",
-    "site": ". max ( 0 . 0 )",
-    "classification": "algorithm",
-    "reason": "Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/surface/samples.rs",
-    "site": ". max ( 1e - 9 )",
-    "classification": "numeric",
-    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/surface/samples.rs",
     "site": ". max ( 1e - 9 )",
     "classification": "numeric",
     "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
@@ -706,6 +700,24 @@
     "site": ". max ( params . lobes * 4 )",
     "classification": "algorithm",
     "reason": "Each surface lobe requires four radial samples to represent its contour; this is a sampling floor, not truncation."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/samples.rs",
+    "site": ". max ( 2 . 0 * own )",
+    "classification": "algorithm",
+    "reason": "fn-360 ease: the scan reaches back twice the widest radius seen on the run, beyond which every hold is zero; a bound of the formula, it drops nothing."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/samples.rs",
+    "site": ". max ( below - ( at ( k ) - at ( k - 1 ) ) )",
+    "classification": "algorithm",
+    "reason": "The 1-in-1 floor (fn-354, host): the drawn girth falls no faster than its distance; a lower bound on a drawn radius, not a cap on growth."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/samples.rs",
+    "site": ". min ( end - at ( j - 1 ) )",
+    "classification": "algorithm",
+    "reason": "fn-360 ease: a hold fades over twice its radius or what is left of the run, whichever is shorter; a min of two lengths in the formula, not a cap."
   },
   {
     "path": "crates/telperion-core/src/tree.rs",
@@ -1474,5 +1486,11 @@
     "site": "if rest < 0 . 0 {",
     "classification": "algorithm",
     "reason": "fn-301 R2: two corners' bounds that do not meet on the unit sphere offer no candidate; geometry, not a limit."
+  },
+  {
+    "path": "crates/telperion-wasm/src/measured.rs",
+    "site": ". min ( EVENTS )",
+    "classification": "algorithm",
+    "reason": "The ceiling's measurement build (`measure-ceiling`, never shipped) reads at most its fixed record of large allocations; it counts every one and limits no tree."
   }
 ]

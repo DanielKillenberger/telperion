@@ -60,9 +60,8 @@ impl PaState {
             ("leaf_area", self.leaf_area),
             ("shade_hazard", self.shade_hazard),
             ("shade_size", self.shade_size),
-            ("upkeep", self.upkeep),
+            ("inverse_height", self.inverse_height),
             ("balance_hazard", self.balance_hazard),
-            ("leaf_girth", self.leaf_girth),
         ];
         for (name, value) in rates {
             if !admits(name, value) {
@@ -84,7 +83,6 @@ impl PaState {
             ("rhythm", self.rhythm),
             ("straightening", self.straightening),
             ("apical_control", self.apical_control),
-            ("retained", self.retained),
         ];
         for (name, value) in shares {
             if !admits(name, value) {
@@ -148,6 +146,7 @@ impl PaState {
         if !admits("tolerance", self.tolerance) {
             return refuse(format!("{at}.tolerance"), "a balance lies in -1 to 1");
         }
+        self.shade_validate(at, pa, count)?;
         if !admits("divergence", self.divergence) {
             return refuse(
                 format!("{at}.divergence"),
@@ -163,8 +162,12 @@ impl Form {
         let rates = [
             ("tropism", self.tropism),
             ("wander", self.wander),
-            ("pipe", self.pipe),
-            ("ripening", self.ripening),
+            ("primary", self.primary),
+            ("sapwood", self.sapwood),
+            ("sapwood_tall", self.sapwood_tall),
+            ("sapwood_rings_tall", self.sapwood_rings_tall),
+            ("sapwood_from", self.sapwood_from),
+            ("sapwood_to", self.sapwood_to),
             ("sag", self.sag),
             ("bend_length", self.bend_length),
             ("internode_spread", self.internode_spread),
@@ -182,13 +185,26 @@ impl Form {
                 "an elevation lies in -pi / 2 to pi / 2",
             );
         }
-        if !admits("form.exponent", self.exponent) {
-            return refuse(format!("{at}.exponent"), "a pipe exponent lies in 1.5 to 4");
+        if !admits("form.sapwood_rings", self.sapwood_rings) {
+            return refuse(
+                format!("{at}.sapwood_rings"),
+                "sapwood lasts 1 to 1000 years",
+            );
         }
-        for (name, value) in [("dominance", self.dominance), ("secondary", self.secondary)] {
-            if !admits(&format!("form.{name}"), value) {
-                return refuse(format!("{at}.{name}"), "a share lies in 0 to 1");
-            }
+        if self.sapwood_rings * self.sapwood_rings_tall < 1.0 {
+            return refuse(
+                format!("{at}.sapwood_rings_tall"),
+                "sapwood lasts a year or more on a tall tree",
+            );
+        }
+        if self.sapwood_to < self.sapwood_from {
+            return refuse(
+                format!("{at}.sapwood_to"),
+                "the far height is no less than the near height",
+            );
+        }
+        if !admits("form.dominance", self.dominance) {
+            return refuse(format!("{at}.dominance"), "a share lies in 0 to 1");
         }
         if !admits("form.roll", self.roll) {
             return refuse(format!("{at}.roll"), "a roll lies in 0 to pi");
@@ -245,6 +261,27 @@ impl Zone {
         }
         if !admits("zone.rate", self.rate) {
             return refuse(format!("{at}.rate"), "a rate lies in its bounded range");
+        }
+        Ok(())
+    }
+}
+
+impl PaState {
+    /// Refuses a shade table (`shade_short`) of the wrong width, an entry
+    /// off its range, or one on the PA's own index: a bud cannot turn into
+    /// itself.
+    fn shade_validate(&self, at: &str, pa: usize, count: usize) -> Result<()> {
+        let at = format!("{at}.shade_short");
+        if !self.shade_short.is_empty() && self.shade_short.len() != count {
+            return refuse(at, "none, or one exponent per physiological age");
+        }
+        for (j, &e) in self.shade_short.iter().enumerate() {
+            if !admits("shade_short", e) {
+                return refuse(format!("{at}[{j}]"), "an exponent lies in 0 to 10");
+            }
+            if j == pa && e > 0.0 {
+                return refuse(format!("{at}[{j}]"), "a bud cannot turn into its own age");
+            }
         }
         Ok(())
     }

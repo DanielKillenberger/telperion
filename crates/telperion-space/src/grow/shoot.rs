@@ -10,7 +10,7 @@ use crate::dormant::{Sleeper, Woken};
 use crate::lineage::{Draw, Key};
 use crate::presence::{Draws, Windows};
 use crate::species::{Species, MAX_BUDS};
-use crate::structure::{Axis, Origin};
+use crate::structure::{Axis, Growing, Origin};
 use std::sync::Arc;
 
 /// What every growth unit reads and none writes beside the species: its
@@ -39,16 +39,14 @@ pub(crate) struct Rules {
 #[derive(Clone, Copy)]
 pub(super) struct Reads<'g> {
     pub pencils: &'g [Pencil],
-    /// Whether a rough layout is grown at all, and whether any PA reads
-    /// its leaves' light into its girth.
+    /// Whether a rough layout is grown at all.
     pub sketching: bool,
-    pub lights: bool,
 }
 
 /// A living axis a share grows, in the tree where it stands: each share
 /// holds its own apexes' axes, which no other share touches.
 pub(super) struct Home<'g> {
-    pub axis: &'g mut Axis,
+    pub axis: &'g mut Axis<Growing>,
     pub draws: &'g mut Draws,
     pub units: &'g mut f64,
     pub successor: &'g mut Vec<usize>,
@@ -56,7 +54,7 @@ pub(super) struct Home<'g> {
 
 /// One axis a share made, beside its `Axis`.
 pub(super) struct Line {
-    pub axis: Axis,
+    pub axis: Axis<Growing>,
     pub draws: Draws,
     /// Its time spent in its PA when its apex stopped, or at its birth
     /// while it lives: what a relay of it carries on.
@@ -106,6 +104,17 @@ pub(super) struct Shoot<'g> {
     pub node_buds: Vec<(Draw, u64, f32, [Placed; MAX_BUDS as usize])>,
     /// One zone's sleeping buds' expected wood per PA, reused.
     pub sleeping: Vec<f64>,
+    /// The wood a node decides, by PA, zone and cycle, as the share has
+    /// taken it (`Shoot::node_wood`).
+    pub woods: Vec<NodeWood>,
+}
+
+/// The wood a node of a PA's zone grown in a cycle decides (`at`), and
+/// each PA's sleeping bud's on it (`unit::node_wood`).
+pub(super) struct NodeWood {
+    pub at: (usize, usize, u32),
+    pub wood: f64,
+    pub sleeping: Vec<f64>,
 }
 
 /// The lists a share fills and the grower empties each cycle, kept
@@ -146,6 +155,7 @@ impl<'g> Shoot<'g> {
             leads: Vec::new(),
             node_buds: Vec::new(),
             sleeping: Vec::new(),
+            woods: Vec::new(),
         }
     }
 
@@ -193,14 +203,14 @@ impl<'g> Shoot<'g> {
         }
     }
 
-    pub fn axis(&self, i: usize) -> &Axis {
+    pub fn axis(&self, i: usize) -> &Axis<Growing> {
         if i >= self.base {
             return &self.made[i - self.base].axis;
         }
         &*self.homes[self.at_home(i)].axis
     }
 
-    pub fn axis_mut(&mut self, i: usize) -> &mut Axis {
+    pub fn axis_mut(&mut self, i: usize) -> &mut Axis<Growing> {
         if i >= self.base {
             return &mut self.made[i - self.base].axis;
         }
@@ -329,6 +339,21 @@ impl<'g> Shoot<'g> {
     /// grows in moves no key; a continuation's or relay's `key` is its
     /// axis's own. A relay carries on its axis's time spent in its PA.
     pub fn sprout(&mut self, key: Key, pa: usize, cycle: u32, origin: Origin, made: [f64; 2]) {
+        self.sprout_keyed(key, (pa, pa), cycle, origin, made);
+    }
+
+    /// `sprout`, a seed or lateral keyed by the age `keyed` in place of its
+    /// own: a lateral that shade turned keeps the key of the kind its table
+    /// drew (fn-354 R7, host 12 Nov), so every draw below it is the one it
+    /// would have drawn unturned.
+    pub fn sprout_keyed(
+        &mut self,
+        key: Key,
+        (pa, keyed): (usize, usize),
+        cycle: u32,
+        origin: Origin,
+        made: [f64; 2],
+    ) {
         let spent = match origin {
             Origin::Relay { parent, .. } => *self.units_mut(parent),
             _ => 0.0,
@@ -337,7 +362,7 @@ impl<'g> Shoot<'g> {
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
                 (self.root(parent), key)
             }
-            Origin::Seed | Origin::Lateral { .. } => (key.0, key.onto(pa)),
+            Origin::Seed | Origin::Lateral { .. } => (key.0, key.onto(keyed)),
         };
         self.next.push(Apex {
             axis: self.len(),
