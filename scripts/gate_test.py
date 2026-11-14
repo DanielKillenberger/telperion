@@ -23,14 +23,15 @@ def budget(key: str) -> int:
     return listed.get(key, MIB)
 
 
-# Whole-catalogue builds, measured on one malloc arena. A build grows on the
+# Whole-catalogue builds, measured on four malloc arenas. A build grows on the
 # pool's threads and draws its wood on another, glibc gives each thread an
 # arena, and bytes one arena has freed are not handed to the next: 1.7 to
-# 2.0 GiB of a Two Trees build's peak was resident and not live. On one arena
-# these read what they keep, 875 to 1,191 MiB under their budgets; set for
-# every test it cost the threaded walks their time limits, so it is set for
+# 2.0 GiB of a Two Trees build's peak was resident and not live. On four arenas
+# these read 359 to 1,032 MiB under their budgets at their unlimited times;
+# on one they ran up to 1.8 times as long, and set for every test one arena
+# cost the threaded walks their time limits, so the limit is set for
 # these alone (fn-351 NATIVE-PEAK.md, 14 Nov 2026).
-ONE_ARENA = {
+FEW_ARENAS = {
     "telperion_core pipeline::tests::"
     "every_shipped_preset_builds_every_artifact_through_the_pipeline",
     "telperion_core suite::mesh::"
@@ -49,8 +50,8 @@ def environment(key: str) -> dict:
     """The test's environment; a malloc setting the caller made stands."""
     env = dict(os.environ)
     tunables = env.get("GLIBC_TUNABLES", "")
-    if key in ONE_ARENA and "glibc.malloc.arena_max" not in tunables:
-        ours = "glibc.malloc.arena_max=1"
+    if key in FEW_ARENAS and "glibc.malloc.arena_max" not in tunables:
+        ours = "glibc.malloc.arena_max=4"
         env["GLIBC_TUNABLES"] = f"{tunables}:{ours}" if tunables else ours
     return env
 
