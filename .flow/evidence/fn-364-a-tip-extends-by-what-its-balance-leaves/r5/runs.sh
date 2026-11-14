@@ -13,6 +13,8 @@ side=${2:-this}
 bin=heldrun
 [ "$side" = leaf363 ] && bin=leaf363
 [ "$side" = leaf364 ] && bin=leaf364
+[ "$side" = r8 ] && bin=heldrun-r8
+[ "$side" = leafr8 ] && bin=leafr8
 for job in $1; do
   IFS=: read -r preset age seed gb <<< "$job"
   name=$side-$preset-a$age-s$seed

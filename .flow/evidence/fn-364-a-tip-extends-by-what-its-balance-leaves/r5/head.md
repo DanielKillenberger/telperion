@@ -15,6 +15,19 @@ Both were over their potential height of 40 m on fn-363's branch (43.5 to 45.5 m
 
 **The oak at 40** is within 5% of fn-363's, as the spec expects: height 10.7 to 10.4 m and 11.1 to 10.8 m (−3%), leaf 115 to 112 m² and 180 to 175 m² (−3%).
 
+## R8: the Two Trees' potential height lengthened with them (host, 14 Nov 2026)
+
+With R8 in (`be4357b7e`, measured on `8e22c8a17`), the Two Trees stand against 104 m (40 m × 0.182 / 0.07). At their preset ages they stand 41.7 to 43.7 m, inside the host's 38 to 46 m around the paper's 41 m:
+
+| tree | height m (base median / fn-363 / this, R8) | leaf m² (base ~9,500 / fn-363 / this, R8) | trunk m (base median / this, R8) | phytomers (fn-363 / this, R8) | living tips at s = 0 |
+|---|---|---|---|---|---|
+| Laurelin 80, seed 1 | 46.4 / 43.6 / **41.7** | 3,473 / **4,875** | 2.83 / - | 3,368,079 / 5,087,956 | 29,497 of 229,943 |
+| Laurelin 80, seed 7 | 46.4 / 45.1 / **43.2** | 5,217 / **7,485** | 2.83 / 2.05 | 4,810,022 / 7,596,573 | 46,069 of 345,598 |
+| Telperion 82, seed 1 | 45.5 / 43.8 / **42.2** | 3,393 / **4,859** | 3.06 / - | 3,701,260 / 5,591,003 | 29,145 of 249,228 |
+| Telperion 82, seed 7 | 45.5 / 45.5 / **43.7** | 5,181 / **7,469** | 3.06 / 2.06 | 5,264,660 / 8,344,437 | 45,329 of 375,488 |
+
+The base's medians are fn-352's SCOREBOARD.md figures as the host quoted them (height 46.4 m Laurelin and 45.5 m Telperion, trunks 2.83 and 3.06 m, leaf about 9,500 m²). The top's rows are fn-363's MEASURES.md "before" rows. At 40 the Two Trees stand 25.3 and 26.3 m on R8, against fn-363's 25.8 and 26.9 m. Every row is in the table below, beside fn-363's and this branch's without R8. The browser's ceiling test with R8: see R4 (PINS.md).
+
 ## Method
 
 - **fn-363's rows** are its builder's (`scratchpad/fn363/logs/after-*`, fn-363's product at `c2d897a37` with the probe's reader). None were grown again.

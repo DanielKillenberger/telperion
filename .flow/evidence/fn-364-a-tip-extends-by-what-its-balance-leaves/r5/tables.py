@@ -81,11 +81,12 @@ def fmt(v, f):
 
 
 def row(preset, age, seed, side, ps):
-    folder, prefix = (BEFORE, "after") if side == "fn-363" else (D, "this")
+    folder, prefix = {"fn-363": (BEFORE, "after"), "this": (D, "this"), "this, R8": (D, "r8")}[side]
     name = f"{prefix}-{preset}-a{age}-s{seed}"
     r = read(folder, name)
     if r is not None:
-        drawn = read(D, f"{'leaf363' if side == 'fn-363' else 'leaf364'}-{preset}-a{age}-s{seed}")
+        leaf = {"fn-363": "leaf363", "this": "leaf364", "this, R8": "leafr8"}[side]
+        drawn = read(D, f"{leaf}-{preset}-a{age}-s{seed}")
         r["stations"] = drawn and drawn["stations"]
     head = f"| {preset} | {age} | {seed} | {side} |"
     if r is None or r["exit"] != 0 or r["ph"] is None:
@@ -97,6 +98,8 @@ def row(preset, age, seed, side, ps):
         lo, hi = WHITE[int(age)]
         white = " (in)" if lo <= dbh <= hi else f" (out of {lo} to {hi})"
     pot = POTENTIAL.get(preset)
+    if side == "this, R8" and preset in ("laurelin", "telperion"):
+        pot = 104.0
     tall = fmt(r["tall"], "{:.1f}") + (f" / {pot}" if pot else "")
     leaf = r["leaf"]
     per = leaf / r["leafed"] * 1e4 if leaf and r["leafed"] else None
@@ -125,7 +128,8 @@ def main():
             for s in ["1", "7"]:
                 trees.append((p, a, s))
     for t in trees:
-        for side in ["fn-363", "this"]:
+        two = t[0] in ("laurelin", "telperion") and t[1] in ("40", "80", "82")
+        for side in ["fn-363", "this"] + (["this, R8"] if two else []):
             print(row(*t, side, ps))
 
 
