@@ -22,6 +22,9 @@ pub struct Limbs {
     pub bases: Vec<f64>,
     pub chord: Option<f64>,
     pub joint: Option<(Vec3, f64)>,
+    /// fn-364: the middle of the largest limb's outer metre, along its
+    /// thickest wood back from its end.
+    pub tip: Option<Vec3>,
 }
 
 fn children(tree: &Tree) -> Vec<Vec<usize>> {
@@ -68,7 +71,22 @@ pub fn limbs(tree: &Tree) -> Limbs {
         bases: found.iter().take(3).map(|f| f.0).collect(),
         chord,
         joint: Some((n[joint].position, n[joint].radius)),
+        tip: Some(outer(tree, end, 0.5)),
     }
+}
+
+/// The place `back` metres of wood back from node `end` towards the root.
+fn outer(tree: &Tree, end: usize, back: f64) -> Vec3 {
+    let n = &tree.nodes;
+    let (mut at, mut gone) = (end, 0.0);
+    while let Some(p) = n[at].parent.map(|p| p as usize) {
+        gone += (n[at].position - n[p].position).length();
+        at = p;
+        if gone >= back {
+            break;
+        }
+    }
+    n[at].position
 }
 
 /// The trunk is the thickest wood from the root, child by child (fn-341's

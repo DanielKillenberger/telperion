@@ -6,7 +6,8 @@
 //! (a limb from 9 m, leafed) and `low` (the trunk base from 6 m, leafed);
 //! fn-354: `joint` (the largest limb's junction with the trunk, leafless,
 //! from eight trunk radii and no nearer than 3 m) and `foot` (the trunk
-//! base from 6 m, leafless).
+//! base from 6 m, leafless); fn-364: `tip` (the largest limb's outer metre,
+//! leafless, from 1.4 m).
 use telperion_core::{math::Vec3, mesh::TreeMesh, Family};
 use telperion_render::{
     hero_pose, render, write_png, Camera, Gpu, Level, Renderer, SceneRow, View, GROUND_REACH,
@@ -21,13 +22,14 @@ pub fn shoot(
     family: &Family,
     out: &str,
     shots: &[&str],
-    joint: Option<(Vec3, f64)>,
+    (joint, tip): (Option<(Vec3, f64)>, Option<Vec3>),
 ) -> Result<(), String> {
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let hero = hero_pose(mesh.bounds, f64::from(SIZE.0) / f64::from(SIZE.1), GROUND_REACH);
     let (base, limb, crown) = close_ups(mesh, &hero);
     let at_joint = joint.map(|(at, r)| near(&hero, at, (8.0 * r).max(3.0)));
+    let at_tip = tip.map(|t| near(&hero, t, 1.4));
     for &shot in shots {
         let (view, camera) = match shot {
             "whole" => (View::Whole, &hero),
@@ -36,6 +38,10 @@ pub fn shoot(
             "spray" => (View::Whole, &limb),
             "low" => (View::Whole, &base),
             "foot" => (View::Bare, &base),
+            "tip" => match &at_tip {
+                Some(c) => (View::Bare, c),
+                None => return Err("no limb leaves the trunk".into()),
+            },
             "joint" => match &at_joint {
                 Some(c) => (View::Bare, c),
                 None => return Err("no limb leaves the trunk".into()),
