@@ -119,8 +119,7 @@ impl Grower {
     }
 
     /// The allotment over the working set: each living apex's unit's size
-    /// this cycle (`Grower::allot`), and the share of its length its
-    /// balance leaves it (`surplus`, fn-364).
+    /// this cycle (`Grower::allot`).
     pub(in crate::grow) fn allot_one(&mut self) {
         let mut w = self.working.take().expect("a working set");
         let (species, sketch) = (&*self.species, self.sketch.as_mut().expect("sketching"));
@@ -141,10 +140,7 @@ impl Grower {
         let groups: Vec<usize> = w.list.iter().map(|&i| w.pa[i]).collect();
         let sized = sizes(&got, &presence, &psi, &groups, &w.order());
         for apex in self.live.iter().filter(|a| a.axis < n) {
-            let p = &mut sketch.pencils[apex.axis];
-            p.size = sized[w.at[apex.axis] as usize];
-            let inverse = species.states[self.axes[apex.axis].pa].inverse_height as f32;
-            p.stretch = surplus(&self.axes, apex.axis, inverse, p.light as f32);
+            sketch.pencils[apex.axis].size = sized[w.at[apex.axis] as usize];
         }
         self.working = Some(w);
     }
@@ -157,22 +153,6 @@ impl Grower {
 pub(super) fn charged(size: f32, axes: &[Axis<Growing>], i: usize, inverse_height: f32) -> f32 {
     let height = (tip(&axes[i]).z - axes[0].base.z).max(0.0);
     charge(size, height as f32, inverse_height)
-}
-
-/// Axis `i`'s living tip's surplus share (fn-364): what its balance
-/// leaves of what it earns, its charge per unit of its size (`charged`)
-/// against its `light`. Whole where it is charged nothing, at or below the
-/// collar or without a potential height; none in the dark or where its
-/// charge reaches its light.
-pub(super) fn surplus(axes: &[Axis<Growing>], i: usize, inverse_height: f32, light: f32) -> f32 {
-    let charge = charged(1.0, axes, i, inverse_height);
-    if charge == 0.0 {
-        1.0
-    } else if light <= 0.0 {
-        0.0
-    } else {
-        (1.0 - charge / light).max(0.0)
-    }
 }
 
 /// A charge: `size` times the square of `height` times the inverse

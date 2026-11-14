@@ -1,6 +1,6 @@
 # telperion
 
-A procedural tree generator with an authored silhouette, seeded specimens and named species presets. One Rust core grows the structure; consumers choose surface meshes, instanced foliage, structural data or spatial fields.
+A procedural tree generator with seeded specimens and named species presets. One Rust core grows every tree botanically, year by year, on the CPU; consumers choose surface meshes, instanced foliage, structural data or spatial fields. What changed since 0.1.4 is in [CHANGELOG.md](CHANGELOG.md).
 
 https://github.com/user-attachments/assets/47c668ef-1174-4dfc-9d89-cf11f4834613
 
@@ -28,7 +28,7 @@ engine.release(); // returned arrays are owned copies and remain usable
 engine.dispose();
 ```
 
-`ORDINARY`, `TELPERION` and `LAURELIN` come from Rust preset metadata. Parameters define the family; the seed selects a specimen. `PRESETS` contains all five named templates; `TWO_TREES` contains Telperion and Laurelin. `createRenderer(canvas)` puts the Rust renderer on a canvas and draws the tree its own module generates; it is the package's only rendering path and it has no runtime dependencies. The native core uses pinned `libm` and `slotmap`; its optional `json` feature supplies the wire schema used by the Wasm binding.
+`ORDINARY`, `TELPERION` and `LAURELIN` come from Rust preset metadata. Parameters define the family; the seed selects a specimen. `PRESETS` contains all eight shipped presets; `TWO_TREES` contains Telperion and Laurelin. `createRenderer(canvas)` puts the Rust renderer on a canvas and draws the tree its own module generates; it is the package's only rendering path and it has no runtime dependencies. The native core uses pinned `libm` and `slotmap`; its optional `json` feature supplies the wire schema used by the Wasm binding.
 
 For a block-based consumer, request occupancy read out to a grid, without constructing a wood surface or transferring render buffers:
 
@@ -72,31 +72,31 @@ describes the entry point, the voxelizer's dials, and the Node smoke.
 
 ## Architecture
 
-The direct build grows the mature tree in one pass. The core uses pinned
+Every tree is grown year by year from its seed through one cycle, on one grower, on the CPU, and the tree at any year on the way to a later age is the tree asked for at that year ([docs/pipeline.md](docs/pipeline.md), fn-355). The core uses pinned
 pure-Rust `libm` for transcendental functions. Run
 `npm run wasm:build && npx vitest run harness/parity.test.ts` to compare the
-preset node buffers byte for byte across native and wasm targets. The growth
-path that grew a specimen year by year was removed on 2026-10-02 (fn-181), to
-be rewritten with a different approach; [docs/growth-path.md](docs/growth-path.md)
+preset node buffers byte for byte across native and wasm targets. An earlier,
+separate growth path was removed on 2026-10-02 (fn-181); [docs/growth-path.md](docs/growth-path.md)
 keeps its design and why it did not hold.
 
-The native entry is `branching::generate(&family.skeleton, family.radii)`. Its solved `Tree` can feed `surface::build`, foliage placement/culling, or `Field::new` independently. The Wasm binding assembles the requested stages; `src/browser` loads it and copies output arrays, the wood chunk by chunk. There is no TypeScript generator and no TypeScript renderer.
+The native entry is `pipeline::growth` and `pipeline::build` in `telperion-core` ([docs/native-entry.md](docs/native-entry.md)); the pipeline's stages are private to it, so no stage is called on its own. The Wasm binding builds through the same pipeline; `src/browser` loads it and copies output arrays, the wood chunk by chunk. There is no TypeScript generator and no TypeScript renderer.
 
-| Owner in `crates/telperion-core/src` | Responsibility |
+| Owner | Responsibility |
 |---|---|
-| `envelope`, `colonization`, `bias` | Authored crown, attractor points, directional fields and turn constraints |
-| `branching/traits`, `branching/scaffold` | The numeric habit traits and the one builder that grows every axis from them |
-| `branching/local`, `twigs`, `radius` | Radius-driven branch generations, fixed twig anatomy, local taper and fork conservation |
-| `surface` | Continuous swept wood, transported frames, lobes, twist and sockets |
-| `foliage` | Leaf outline and lean from numeric traits, anatomical stations, phyllotaxis and shell retention |
-| `field` | Wood and foliage cell occupancy, independently of render meshes |
-| `presets` | Named parameter sets and scale choices |
+| `crates/telperion-space` | The growth engine: a species as physiological ages, the one cycle (light, carbon balance, allotment), wood laid from sapwood and leaf, shedding and sag |
+| `pipeline/space.rs` | The skeleton stage: grows the family's engine species and converts its structure into the pipeline's tree |
+| `pipeline/surface` | The wood as curves and as a chunked swept mesh: transported frames, lobes, twist and sockets |
+| `pipeline/foliage` | The leaf element, the leaf plan and its stations, and the flowers |
+| `pipeline/field` | Wood and foliage cell occupancy, independently of render meshes |
+| `presets`, `params`, `catalogue` | Named parameter sets, the wire and every row's declaration |
+
+Paths below `pipeline/` are in `crates/telperion-core/src`.
 
 `crates/telperion-render` draws that output on wgpu, and is the only renderer in the repository. It compiles to two targets from one code path: a wasm module the page loads through `src/browser/render.ts`, which takes a family's parameters as every other entry does and generates and uploads inside its own linear memory, and a native offscreen target whose `headless` example writes a PNG at the hero pose and, on request, a GPU timing record. The renderer owns the whole scene - ground, sky, one sun and the single depth map it casts its shadow through, a 1.75 m person for scale, camera and the whole, bare, single-leaf and clay views - and it never names a species: only the headless entry point resolves a preset id. Appearance is numbers, not textures: a material row on the family carries the bark and leaf colours, the bark's roughness, the hue and brightness ranges each leaf varies inside and how far the crown's interior is darkened, while a separate scene row carries the sun, the sky, the ground and the shadow coarsening and filtering controls; both reach the shaders as uniforms and no shader path branches on a species. Colour and depth are drawn at four samples a pixel where the adapter offers them and resolved into the single-sample target, and one filmic tone map closes every lit frame. The clay view draws the neutral room this renderer started as - no material, no sun, no tone map - so geometry can still be judged with nothing over it. The crown is not one draw: a compute pass reads every placement once per frame, projects the leaf element's extent to a pixel size and gives that leaf the coarsest level whose outline deviation projects under half a pixel, or the unseen bucket if it is outside the frustum; the renderer then issues one indexed indirect draw per level, over the instances that chose it. A level is a subset of the element's own sections, so a coarse leaf's vertices are a fine leaf's and no placement, count or bound changes with the level drawn.
 
 The sun writes one 1,024-square depth map. Wood casters are a prefix of whole runs ordered by largest radius; foliage casters use a fixed placement stride at the coarsest level, scaling each retained surface by the square root of the stride about its centre. The connector stays fixed. The shared read averages a square of comparisons after offsetting the receiver along its normal; taps outside the map are lit. The caster sets do not depend on camera selection. Reordering placements changes the sampled subset, and changing run radii retunes the threshold; future vertex motion must also move the casters.
 
-The crown envelope controls the silhouette. One scaffold builder grows every axis inside it from a table of numeric habit traits - apical dominance, whorl strength, station spacing, pitch, rise, crookedness and the rest - and every growth unit of every axis takes its heading from one sum of the rule heading, the pull of the envelope's attractors and the bias field. Attractor pull is a trait weight in that sum rather than a phase of its own, and no species has a builder or a field the others lack: an oak and a spruce are two rows of the same table, and any point between them is a tree. The leaf is a row too - lobe count, lobe depth and section roundness draw the outline, forward lean, lean rise and surface contact place it on its shoot - so there is no anatomy to switch between. Local branch laws continue from the scaffold down to leaf-bearing twigs and read the same traits. Forks conserve cross-sectional area with a tunable exponent. Branch resolution and lateral count are independent. Terminal twig anatomy is measured in metres; the giant presets retain fine twigs instead of uniformly enlarging them.
+The tree grows; no authored envelope shapes it. Each bud carries a physiological age whose `/space` rows set how it grows and branches, light read through the tree and a carbon balance decide which shoots live, and the crown's outline is the grown tree's ([docs/tree-space.md](docs/tree-space.md)). No species has a rule or a stage the others lack: an oak and a spruce are two sets of rows of the same table, and a walk between them changes the tree by degree. The leaf is a row too - lobe count, lobe depth and section roundness draw the outline, forward lean, lean rise and surface contact place it on its shoot - so there is no anatomy to switch between. A branch's section is the sapwood its leaf needs plus the heartwood it has kept.
 
 Botanical and output changes have separate owners. A representative development exercise and the retained test mapping are in [the migration guide](tests/migration/README.md#changing-a-rule-or-an-output). Native mesh-free examples are exercised in `crates/telperion-core/src/suite/field.rs`; browser binding ownership and failure recovery are checked in `tests/browser/bindings.mjs`, and the page on a real GPU in `tests/browser/render.mjs`.
 
@@ -124,7 +124,7 @@ npm run test:render
 npm run dev
 ```
 
-The repository pins Rust in `rust-toolchain.toml`, and `render:build` checks the installed `wasm-bindgen` against the version the crate pins before it generates the glue - a mismatch fails with the command to run. `dev` and `build` regenerate both Wasm modules and the preset metadata. Build them before running the Node harness tests from a clean checkout. The package ships both binaries as their own files, `telperion.wasm` and `telperion-render.wasm`, fetched at run time from beside `dist/telperion.js`; consumers do not need Rust. The development viewer exposes every generator parameter, the material and scene rows through the same numeric controls, the five presets and the whole, bare, single-leaf and clay views, with a GPU timing session on the button beside them.
+The repository pins Rust in `rust-toolchain.toml`, and `render:build` checks the installed `wasm-bindgen` against the version the crate pins before it generates the glue - a mismatch fails with the command to run. `dev` and `build` regenerate both Wasm modules and the preset metadata. Build them before running the Node harness tests from a clean checkout. The package ships both binaries as their own files, `telperion.wasm` and `telperion-render.wasm`, fetched at run time from beside `dist/telperion.js`; consumers do not need Rust. The development viewer exposes every generator parameter, the material and scene rows through the same numeric controls, the eight presets and the whole, bare, single-leaf and clay views, with a GPU timing session on the button beside them.
 
 A still without a browser, from the same renderer:
 
@@ -305,9 +305,11 @@ git archive 1922505a8a396d73b335974eabf6a9faf33ccd62 .flow/evidence experiments/
 
 ## Species and reproducible specimens
 
-The viewer's species selector exposes Oregon white oak (`oregon-white-oak`,
-*Quercus garryana*) and Norway spruce (`norway-spruce`, *Picea abies*), alongside
-Ordinary, Telperion and Laurelin. Choose species independently of the unsigned
+The viewer's species selector exposes every shipped preset: Oregon white oak
+(`oregon-white-oak`, *Quercus garryana*), Norway spruce (`norway-spruce`,
+*Picea abies*), European beech (`european-beech`), silver birch
+(`silver-birch`) and date palm (`date-palm`), alongside Ordinary, Telperion
+and Laurelin. Choose species independently of the unsigned
 32-bit specimen seed; changing species preserves the seed. Within a stated generator revision and backend, family
 parameters and seed identify the specimen; generated output may change as the
 engine improves. Cross-revision byte equality is not promised
@@ -325,10 +327,9 @@ consumers use `Preset::OregonWhiteOak.parameters()` or
 presets disable the separate supernatural group; Telperion and Laurelin enable
 it explicitly. Botanical lean and gravitropism remain independent.
 
-Native needle placement can use `foliage::place_on_surface` with the family’s
-`SurfaceParams` to attach to the rendered polygonal sweep and fork sockets without
-building mesh indices or normals. The browser engine and species measurement
-runner use this path. `foliage::place` retains the circular-radius placement API.
+Leaf and needle placement is a stage of the pipeline and private to it; a
+native consumer takes the placed leaves from `pipeline::build`'s `leaves`
+output ([docs/native-entry.md](docs/native-entry.md)).
 
 The [frozen botanical profiles](.flow/evidence/fn9/profiles.json) define mature
 open-grown contexts, source-backed dimensional gates, contextual estimates and

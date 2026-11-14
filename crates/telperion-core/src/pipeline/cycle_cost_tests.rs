@@ -6,11 +6,9 @@ use telperion_space::{grow_census, grow_cycle, tree_digest};
 
 const AGE: f64 = 16.0;
 const SEEDS: [u32; 3] = [1, 1234, 5678];
-/// Young enough for an ordinary test: a table of every preset at both ends of
-/// the dial, in the catalogue's order, finest first. fn-328 moved the oak's
-/// and the spruce's coarsest, with their rows; fn-349's balance, which
-/// charges living tips by their path and dead wood nothing, moved the
-/// oak's finest and the birch's coarsest. fn-354's wood, laid by the leaf
+/// Young enough for an ordinary test: every preset's tree at `AGE`, seed 7,
+/// in the catalogue's order. fn-349's balance, which charges living tips by
+/// their path and dead wood nothing, moved the oak. fn-354's wood, laid by the leaf
 /// above it, and its sag, 4ρg/E, moved every tree; its pass's skipping of
 /// closed wood moved their sapwood there, every section kept. fn-354's
 /// leaf account moved the spruce, whose needles shade and lay wood for
@@ -22,23 +20,23 @@ const SEEDS: [u32; 3] = [1, 1234, 5678];
 /// every tree but the palm. fn-354 task 7's leaf of 15.7 cm² moved the
 /// ordinary tree; its short shoot's twelve years moved the beech and the
 /// Two Trees. fn-359's drawn scale for nested fades moved the ordinary
-/// tree, the oak, the spruce's coarsest, the beech and the birch's coarsest.
-const PINNED: [(u64, u64); 8] = [
-    (13986120611573680668, 13986120611573680668),
-    (14944671683796001899, 475426537269313102),
-    (12665486350558508414, 8154765959244887056),
-    (13924919106548380920, 13924919106548380920),
-    (2054489571488262802, 9663260454690218178),
-    (4799502948138528708, 4799502948138528708),
-    (3392261673279751331, 3392261673279751331),
-    (16456616023369512333, 16456616023369512333),
+/// tree, the oak and the beech. fn-367 deleted the coarse end of the dial
+/// with the dial; every tree here is the one its fine end held.
+const PINNED: [u64; 8] = [
+    13986120611573680668,
+    14944671683796001899,
+    12665486350558508414,
+    13924919106548380920,
+    2054489571488262802,
+    4799502948138528708,
+    3392261673279751331,
+    16456616023369512333,
 ];
 
-fn family(id: &str, age: f64, seed: u32, fidelity: f64) -> Family {
+fn family(id: &str, age: f64, seed: u32) -> Family {
     let mut f = by_identity(id).expect("a preset");
     f.age = age;
     f.skeleton.seed = seed;
-    f.fidelity = fidelity;
     f
 }
 
@@ -48,15 +46,10 @@ fn digest(f: &Family) -> u64 {
 }
 
 #[test]
-fn every_preset_grows_the_tree_it_grew_at_both_ends_of_the_dial() {
-    let read: Vec<(u64, u64)> = CATALOGUE
+fn every_preset_grows_the_tree_it_grew_at_sixteen() {
+    let read: Vec<u64> = CATALOGUE
         .iter()
-        .map(|&(_, id, ..)| {
-            (
-                digest(&family(id, AGE, 7, 0.0)),
-                digest(&family(id, AGE, 7, 1.0)),
-            )
-        })
+        .map(|&(_, id, ..)| digest(&family(id, AGE, 7)))
         .collect();
     assert_eq!(read, PINNED, "{read:?}");
 }
@@ -68,10 +61,8 @@ fn digests_at_preset_age() {
     for id in ["oregon-white-oak", "norway-spruce", "silver-birch"] {
         let age = by_identity(id).expect("a preset").age;
         for seed in SEEDS {
-            for fidelity in [0.0, 1.0] {
-                let d = digest(&family(id, age, seed, fidelity));
-                println!("DIGEST {id} {age} {seed} {fidelity} {d}");
-            }
+            let d = digest(&family(id, age, seed));
+            println!("DIGEST {id} {age} {seed} {d}");
         }
     }
 }
@@ -82,32 +73,28 @@ fn digests_at_preset_age() {
 fn pass_costs() {
     for id in ["oregon-white-oak", "norway-spruce", "silver-birch"] {
         let age = by_identity(id).expect("a preset").age;
-        for fidelity in [0.0, 1.0] {
-            let f = family(id, age, 1, fidelity);
-            let g = executor::growth(&f).expect("its growth");
-            let _warm = grow_census(&g.species, g.request).expect("a tree");
-            let c = grow_census(&g.species, g.request).expect("a tree");
-            let census = c.census.expect("a census");
-            println!(
-                "COST {id} {fidelity} seconds {:.4} grown {} axes {}",
-                c.seconds, c.grown, census.axes
+        let f = family(id, age, 1);
+        let g = executor::growth(&f).expect("its growth");
+        let _warm = grow_census(&g.species, g.request).expect("a tree");
+        let c = grow_census(&g.species, g.request).expect("a tree");
+        let census = c.census.expect("a census");
+        println!(
+            "COST {id} seconds {:.4} grown {} axes {}",
+            c.seconds, c.grown, census.axes
+        );
+        let (mut apex, mut axes, mut leaves) = (0u64, 0u64, 0u64);
+        for y in &census.cycles {
+            (apex, axes, leaves) = (
+                apex + y.active as u64,
+                axes + y.axes as u64,
+                leaves + y.leaves as u64,
             );
-            let (mut apex, mut axes, mut leaves) = (0u64, 0u64, 0u64);
-            for y in &census.cycles {
-                (apex, axes, leaves) = (
-                    apex + y.active as u64,
-                    axes + y.axes as u64,
-                    leaves + y.leaves as u64,
-                );
-            }
-            println!(
-                "WORK {id} {fidelity} apex-cycles {apex} axis-cycles {axes} leaf-cycles {leaves}"
-            );
-            let mut phases: Vec<_> = census.phases.iter().collect();
-            phases.sort_by(|a, b| b.1.total_cmp(a.1));
-            for (name, s) in phases.into_iter().take(14) {
-                println!("PASS {id} {fidelity} {name} {:.1}", s * 1000.0);
-            }
+        }
+        println!("WORK {id} apex-cycles {apex} axis-cycles {axes} leaf-cycles {leaves}");
+        let mut phases: Vec<_> = census.phases.iter().collect();
+        phases.sort_by(|a, b| b.1.total_cmp(a.1));
+        for (name, s) in phases.into_iter().take(14) {
+            println!("PASS {id} {name} {:.1}", s * 1000.0);
         }
     }
 }

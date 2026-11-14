@@ -5,8 +5,8 @@
 //! the process (fn-211 task 3): it holds one thread a core, so trees
 //! grown at once share the cores rather than each taking every one.
 //! Where threads cannot be made (wasm), `available` is one and every
-//! piece runs on the calling thread.
-use std::sync::atomic::{AtomicUsize, Ordering};
+//! piece runs on the calling thread; the Wasm binding builds without the
+//! `threads` feature, so rayon is not compiled in at all.
 use std::sync::Mutex;
 
 /// The cores the machine has; one where it cannot say (wasm).
@@ -17,11 +17,29 @@ pub(crate) fn available() -> usize {
 /// Runs `work(k)` for every `k` below `count`, on this thread and on up
 /// to `threads - 1` of the pool's threads.
 pub(crate) fn spread(count: usize, threads: usize, work: &(dyn Fn(usize) + Sync)) {
-    let helpers = threads.min(count).min(rayon::current_num_threads());
-    if helpers <= 1 {
-        (0..count).for_each(work);
-        return;
+    match threads.min(count).min(pool()) {
+        #[cfg(feature = "threads")]
+        helpers @ 2.. => pooled(count, helpers, work),
+        _ => (0..count).for_each(work),
     }
+}
+
+/// The pool's threads.
+#[cfg(feature = "threads")]
+fn pool() -> usize {
+    rayon::current_num_threads()
+}
+/// One: the build has no pool (the `threads` feature is off).
+#[cfg(not(feature = "threads"))]
+const fn pool() -> usize {
+    1
+}
+
+/// `spread`'s pieces handed out by ticket to this thread and `helpers - 1`
+/// of the pool's.
+#[cfg(feature = "threads")]
+fn pooled(count: usize, helpers: usize, work: &(dyn Fn(usize) + Sync)) {
+    use std::sync::atomic::{AtomicUsize, Ordering};
     let ticket = AtomicUsize::new(0);
     let run = || loop {
         let k = ticket.fetch_add(1, Ordering::Relaxed);

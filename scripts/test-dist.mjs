@@ -97,6 +97,10 @@ if (args[0] === '--refused') {
   for (const file of ['telperion.js', 'telperion.wasm', 'telperion-render.wasm', 'field.js']) {
     if (!present.has(file)) throw Error(`dist/${file} is missing; run npm run build first`);
   }
+  // The core's module ships without custom sections (fn-366, lever a).
+  const core = new WebAssembly.Module(readFileSync(new URL('telperion.wasm', dist)));
+  const custom = ['name', 'producers', 'target_features'].filter(n => WebAssembly.Module.customSections(core, n).length);
+  if (custom.length) throw Error(`telperion.wasm ships custom sections: ${custom.join(', ')}`);
   const { PRESETS, decodeNormals } = await import(new URL('telperion.js', dist));
   if (typeof decodeNormals !== 'function') throw Error('telperion.js does not export decodeNormals');
   const failures = [];

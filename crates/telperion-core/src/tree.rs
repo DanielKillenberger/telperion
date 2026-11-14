@@ -5,7 +5,6 @@
 //! the legacy envelope builder still compacts. Consumer reads exclude dead nodes.
 mod bloom;
 mod cluster;
-mod handed;
 mod identity;
 mod leafing;
 mod section;
@@ -13,7 +12,6 @@ mod shoot;
 use crate::{math::Vec3, Error, Result};
 pub use bloom::Bloom;
 pub use cluster::{cluster_key, Cluster};
-pub use handed::Handed;
 pub use identity::NodeIdentity;
 #[cfg(test)]
 pub(crate) use identity::NodeKey;
@@ -153,24 +151,6 @@ pub struct Tree {
     /// chord. Never stored, as `sections`.
     #[cfg_attr(feature = "json", serde(skip))]
     pub grown: Vec<f64>,
-    /// Each node's leaf-bearing wood, in metres: the internodes of the
-    /// phytomers it draws at the length their nodes were allotted, their
-    /// stretch left out (fn-364), with the wood of the spans merged into
-    /// it. What stands for its nodes: a run's stations are counted and
-    /// split by it, and placed on the wood as laid (`foliage::plan::walk`).
-    /// Empty where `grown` is. Never stored, as `sections`.
-    #[cfg_attr(feature = "json", serde(skip))]
-    pub bearing: Vec<f64>,
-    /// Leaf-bearing wood handed to nodes by spans laid too short to draw
-    /// only for their stretch (`Handed`, fn-364), by node. Empty where
-    /// every stretch is whole. Never stored, as `sections`.
-    #[cfg_attr(feature = "json", serde(skip))]
-    pub handed: Vec<Handed>,
-    /// Whether wood that would be drawn with every stretch at 1 follows
-    /// each node on its axis (`Tree::followed`). Empty where every stretch
-    /// is whole. Never stored, as `sections`.
-    #[cfg_attr(feature = "json", serde(skip))]
-    pub followed: Vec<bool>,
     /// The nodes that may flower, in node order (fn-216). Empty on every
     /// tree whose ages bear none, and never stored, as `sections` is.
     #[cfg_attr(feature = "json", serde(skip))]
@@ -260,16 +240,8 @@ impl Tree {
     pub fn key(&self, i: usize) -> u32 {
         self.keys.get(i).copied().unwrap_or(i as u32)
     }
-    /// Node `i`'s leaf-bearing wood (`bearing`), or its grown wood where
+    /// Node `i`'s grown wood (`grown`), or its chord from its parent where
     /// no engine grew it.
-    pub fn bearing_length(&self, i: usize) -> f64 {
-        self.bearing
-            .get(i)
-            .copied()
-            .unwrap_or_else(|| self.grown_length(i))
-    }
-    /// Node `i`'s grown wood as laid (`grown`), or its chord from its
-    /// parent where no engine grew it.
     pub fn grown_length(&self, i: usize) -> f64 {
         self.grown.get(i).copied().unwrap_or_else(|| {
             let n = &self.nodes[i];

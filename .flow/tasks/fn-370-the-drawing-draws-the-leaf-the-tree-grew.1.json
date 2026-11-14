@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-11-14T04:46:40.606310Z",
+  "depends_on": [],
+  "id": "fn-370-the-drawing-draws-the-leaf-the-tree-grew.1",
+  "priority": null,
+  "spec": "fn-370-the-drawing-draws-the-leaf-the-tree-grew",
+  "spec_path": ".flow/tasks/fn-370-the-drawing-draws-the-leaf-the-tree-grew.1.md",
+  "status": "todo",
+  "title": "The drawing draws the growers leaf",
+  "updated_at": "2026-11-14T04:46:40.606310Z"
+}

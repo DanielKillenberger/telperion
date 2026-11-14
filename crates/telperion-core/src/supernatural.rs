@@ -270,20 +270,6 @@ impl Family {
                     state.flowering = v;
                 }
             }
-            // A lengthened tree's potential height lengthens with it (fn-364
-            // R8, host): by its stem's internode over the natural one, on
-            // every age, one ratio for the tree's one potential height.
-            let stem = self.space.trunk.first().copied();
-            let written = stem.and_then(|k| g.internode.values().nth(k)?.1);
-            if let (Some(k), Some(v)) = (stem, written) {
-                if let Some(natural) = species.states.get(k).map(|s| s.internode) {
-                    let ratio = v / natural;
-                    species
-                        .states
-                        .iter_mut()
-                        .for_each(|s| s.inverse_height /= ratio);
-                }
-            }
             for (k, length) in g.internode.values() {
                 if let (Some(v), Some(state)) = (length, species.states.get_mut(k)) {
                     state.internode = v;
@@ -421,8 +407,6 @@ pub(crate) fn blend(a: &Family, b: &Family, t: f64) -> Supernatural {
     f.supernatural
 }
 
-#[cfg(test)]
-mod height_tests;
 #[cfg(all(test, feature = "geometry"))]
 mod scale_tests;
 #[cfg(test)]

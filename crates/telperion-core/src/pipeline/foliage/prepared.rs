@@ -181,7 +181,7 @@ fn prepare_inner<C>(
                     Ok(indices)
                 })
                 .transpose()?;
-            let leafing = plan::leafing_at(tree, nodes, segment);
+            let leafing = tree.leafing(nodes[segment + 1]);
             let retention = (leafing != Leafing::ALL).then(|| {
                 let boundary = run.along[segment] + plan::micrometres(leafing.older);
                 (boundary as u32, leafing.was, leafing.keep)

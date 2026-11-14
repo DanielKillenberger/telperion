@@ -125,7 +125,7 @@ pub(crate) fn bend<P>(axis: &Axis<P>, state: &PaState, years: f64) -> f64 {
 pub(crate) fn reaches(axes: &[Axis]) -> Vec<f64> {
     let mut reach: Vec<f32> = axes
         .iter()
-        .map(|a| a.phytomers.iter().map(|p| p.length() as f32).sum())
+        .map(|a| a.phytomers.iter().map(|p| p.scale as f32).sum())
         .collect();
     // Relays follow their parents, so a backward pass meets each one's
     // reach before its parent's.

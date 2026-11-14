@@ -15,6 +15,19 @@ Both were over their potential height of 40 m on fn-363's branch (43.5 to 45.5 m
 
 **The oak at 40** is within 5% of fn-363's, as the spec expects: height 10.7 to 10.4 m and 11.1 to 10.8 m (−3%), leaf 115 to 112 m² and 180 to 175 m² (−3%).
 
+**The old oak against the probe's V8 (the spec's oak Stop does not fire).** Every measure the probe quoted is met within a few per cent, most to the decimal:
+
+| measure | probe V8 (seeds 1001, 1007) | this branch | White / potential |
+|---|---|---|---|
+| tallest living tip, any age | 26.8, 26.9 m | 23.4 to 27.1 m (1001 and 1007 at 120 to 300), 26.5 to 27.1 m at 200 to 300 on 1012 | potential 34.8 m |
+| trunk at 1.3 m at 120 | 1.06 m (1001) | 1.06 (1001, in), 1.49 (1007), 1.22 (1012) | 0.83 to 1.09 |
+| trunk at 300 | 1.71, 2.53 m | 1.71 (in), 2.53, and 2.36 on 1012 | 1.56 to 1.92 |
+| settled leaf at 120 | 741.4, 1,473.7 m² | 741, 1,474 | |
+| leaf at 300 over leaf at 120 | 0.34, 0.55 | 0.34, 0.55, and 0.65 on 1012 | |
+| peak at 300, seed 1001 | 1.5 GiB, 87 s | 1.5 GiB, 105 s | |
+
+Against fn-363's branch the old oak stands 23 to 27 m where it stood 26 to 39 m, and keeps 47 to 75% of its settled leaf at 120 to 300. Its trunk at 300 is 1.71 to 2.53 m where it was 2.20 to 3.13 m.
+
 ## R8: the Two Trees' potential height lengthened with them (host, 14 Nov 2026)
 
 With R8 in (`be4357b7e`, measured on `8e22c8a17`), the Two Trees stand against 104 m (40 m × 0.182 / 0.07). At their preset ages they stand 41.7 to 43.7 m, inside the host's 38 to 46 m around the paper's 41 m:

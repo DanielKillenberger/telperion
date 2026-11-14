@@ -786,12 +786,3 @@
 /space/ages/3/trunk = true
 /space/ages/4/trunk = true
 /space/ages/5/trunk = true
-
-# The fidelity dial at its coarsest (fn-326's B3: all six of R4's medians within
-# 5% on tuning seeds 1001 to 1050, worst 0.041; five held-out seeds read 0.118).
-/space/coarse/first = 8
-/space/coarse/factor = 1.503
-/space/coarse/leaf = 10.045
-/space/coarse/bud = 1.534
-/space/coarse/hazard = 2.366
-/space/coarse/shedding = 0.65

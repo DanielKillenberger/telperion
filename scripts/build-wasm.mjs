@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = new URL('../', import.meta.url);
@@ -41,6 +41,23 @@ if (process.env.TELPERION_WRITE_REFERENCE) {
 // into the scripts.
 await mkdir(new URL('dist/', root), { recursive: true });
 // The field entry (src/field) grows on the CPU through the same module
-// (fn-353), read from beside itself.
-for (const dir of ['src/browser/', 'src/field/', 'dist/']) await copyFile(source, new URL(`${dir}telperion.wasm`, root));
+// (fn-353), read from beside itself. It ships without its custom sections
+// (function names, producers, target features): nothing reads them at run
+// time, and they were 23,682 of its Brotli bytes (fn-366, lever a).
+const shipped = strip(await readFile(source));
+for (const dir of ['src/browser/', 'src/field/', 'dist/']) await writeFile(new URL(`${dir}telperion.wasm`, root), shipped);
 console.log(`Built the Wasm; the family metadata was ${process.env.TELPERION_WRITE_REFERENCE ? 'rewritten' : 'current'}.`);
+
+/** The module with every custom section (id 0) left out, the others as built.
+ * @param {Uint8Array} bytes */
+function strip(bytes) {
+  const kept = [bytes.subarray(0, 8)];
+  for (let at = 8; at < bytes.length;) {
+    const start = at, id = bytes[at++];
+    let size = 0;
+    for (let shift = 0, b = 0x80; b & 0x80; shift += 7) size += ((b = bytes[at++]) & 0x7f) * 2 ** shift;
+    at += size;
+    if (id !== 0) kept.push(bytes.subarray(start, at));
+  }
+  return Buffer.concat(kept);
+}

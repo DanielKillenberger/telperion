@@ -5,7 +5,10 @@ edition = "2021"
 license = "MIT"
 
 [features]
-default = ["geometry"]
+default = ["geometry", "threads"]
+# The engine's pool of helper threads (telperion-space's `threads`); the
+# one-thread Wasm binding builds without it.
+threads = ["telperion-space/threads"]
 # The wood surface, leaf placement and the mesh. Off,
 # the crate is the solved tree, the leaf plan and the field: what a consumer
 # that draws its own geometry needs, and nothing it does not.
@@ -23,7 +26,7 @@ json = ["dep:serde", "dep:serde_json", "slotmap/serde"]
 telperion-space = { path = "../telperion-space" }
 
 [dependencies]
-telperion-space = { path = "../telperion-space" }
+telperion-space = { path = "../telperion-space", default-features = false }
 serde = { version = "1", features = ["derive"], optional = true }
 serde_json = { version = "1", optional = true }
 slotmap = "=1.1.1"

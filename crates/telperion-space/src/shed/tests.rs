@@ -24,7 +24,6 @@ fn axis(origin: Origin, pa: usize, birth: u32, alive: f64) -> Axis {
         key: 0,
         rank: 0.0,
         size: 1.0,
-        stretch: 1.0,
         grown: 1.0,
         section: 0.0,
         sapwood: 0.0,
@@ -95,11 +94,17 @@ fn settled(axes: Vec<Axis>, age: u32) -> (Vec<f64>, Shed) {
 fn a_line_idle_past_its_delay_fades_once_to_its_living_apex() {
     let (base, shed) = settled(line(0.125), 20);
     assert_eq!(shed.axes.len(), 5, "nothing shed");
-    assert_eq!(base[1], 0.125, "the lateral at an eighth of its unfaded scale");
+    assert_eq!(
+        base[1], 0.125,
+        "the lateral at an eighth of its unfaded scale"
+    );
     assert_eq!(base[4], base[1], "the last relay at the lateral's scale");
     let share = shares(&shed);
     assert_eq!(share[1], 0.125);
-    assert_eq!(share[4], share[1], "the last relay's girth at the lateral's share");
+    assert_eq!(
+        share[4], share[1],
+        "the last relay's girth at the lateral's share"
+    );
 }
 
 /// R2: where every presence is whole, nothing kept fades: every share is

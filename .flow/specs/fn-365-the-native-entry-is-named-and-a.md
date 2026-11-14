@@ -20,6 +20,7 @@ P10 (fn-351): "a native entry with no browser, harness or engine dependency take
 - **R3.** `docs/native-entry.md` as above; every promise in it names its test.
 - **R4.** If R1 finds a name or id on the entry's surface inside `telperion-core`, return with it; do not remove it here. (The Wasm binding's `preset(id)` and `catalogue()` exports belong to the size spec.)
 - **R5.** Narrow tests only while building; the two sub-second guards before finishing (`generation_limit_guard`, `compile_size`).
+- **R6.** (host, 14 Nov 2026) A growth has one seed. `growth::mesh` (and `colouring`, if it draws) places leaves and every other keyed thing from the seed the state was begun with, never from the family's `skeleton.seed` row. `pipeline::build` keeps reading the family's row and passes it on, so no shipped tree may move: every preset's digest through `build` stays equal to the bit (the existing pin, by name). First a reading of where each of the two seeds is read after `begin` (leaf placement, clusters, bloom, colouring, anything else) and whether the state already holds its seed. A test beside the native-entry test, red before and green after: the oak begun with seed A under a family whose `skeleton.seed` row says B draws the same wood and the same leaves as the oak begun with seed A under a family whose row says A, to the bit, and differs from seed B. `docs/native-entry.md`'s sentence on it updated. Stop and return if making it so would move a shipped preset's digest or needs a stage's signature opened.
 
 ## Stops
 

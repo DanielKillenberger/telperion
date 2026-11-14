@@ -157,14 +157,14 @@ fn extent<P: Node>(p: &Axis<P>, (first, end): (usize, usize)) -> f32 {
 fn length_of<P: Node>(p: &Axis<P>, (first, end): (usize, usize)) -> f32 {
     p.phytomers[first..end]
         .iter()
-        .map(|q| q.length() as f32)
+        .map(|q| q.scale() as f32)
         .sum()
 }
 
 /// The scaled length along axis `p` to `t` of the way along its node `k`'s
 /// span.
 fn length_to<P: Node>(p: &Axis<P>, k: usize, t: f32) -> f32 {
-    length_of(p, (0, k)) + t * p.phytomers[k].length() as f32
+    length_of(p, (0, k)) + t * p.phytomers[k].scale() as f32
 }
 
 /// The scaled length along axis `p` as a position in its nodes (`split`):
@@ -174,7 +174,7 @@ fn length_to<P: Node>(p: &Axis<P>, k: usize, t: f32) -> f32 {
 pub(super) fn node_x<P: Node>(p: &Axis<P>, length: f32) -> Position {
     let mut before = 0.0;
     for (k, q) in p.phytomers.iter().enumerate() {
-        let scale = q.length() as f32;
+        let scale = q.scale() as f32;
         if scale > 0.0 && before + scale >= length {
             return (k, span_share(length, before, scale));
         }
@@ -261,7 +261,7 @@ fn zone_node<P: Node>(p: &Axis<P>, (first, end): (usize, usize), share: f64) -> 
     }
     let (want, mut before) = (share * total, 0.0);
     for (j, q) in p.phytomers[first..end].iter().enumerate() {
-        let scale = q.length() as f32;
+        let scale = q.scale() as f32;
         if scale > 0.0 && before + scale >= want {
             return first + j;
         }
@@ -308,7 +308,7 @@ fn point_in<P: Node>(p: &Axis<P>, range: (usize, usize), share: f64, k: usize) -
 fn span_in<P: Node>(p: &Axis<P>, (first, end): (usize, usize), share: f64, k: usize) -> f32 {
     let share = share as f32;
     let total = length_of(p, (first, end));
-    let scale = p.phytomers[k].length() as f32;
+    let scale = p.phytomers[k].scale() as f32;
     if total > 0.0 && scale > 0.0 {
         let before = length_of(p, (first.min(k), k));
         ((share * total - before) / scale).clamp(0.0, 1.0)

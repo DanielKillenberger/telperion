@@ -89,7 +89,7 @@ fn a_charge_is_the_square_of_the_height() {
 
 /// A seed whose collar stands at `collar` and a lateral on it, born at
 /// the seed's first node, its nodes at `tips`.
-pub(super) fn lateral(collar: f32, tips: &[[f32; 3]]) -> Vec<Axis<Growing>> {
+fn lateral(collar: f32, tips: &[[f32; 3]]) -> Vec<Axis<Growing>> {
     let laid = |at: &[f32; 3]| Growing {
         tip: *at,
         ..Growing::new(1, 0)

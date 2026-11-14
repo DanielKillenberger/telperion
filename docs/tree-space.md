@@ -40,6 +40,8 @@ Calibrating further species is the add-species pipeline's job (`docs/species-onb
 
 Specs: A fn-191, B fn-192, C fn-193 (beech), D fn-194 (spruce), fn-195 (oak), fn-196 (date palm), E fn-197, F fn-198.
 
+Where it stands at 0.2.0: all eight specs are done. F's "today's generator keeps the rest" no longer holds: every shipped preset grows on the engine, and a family with no engine species is refused by name (`docs/pipeline.md`, "Stage 2"). The engine runs on one grower, on the CPU (fn-353). Since F, its wood is sapwood laid for the leaf above and heartwood that stays (fn-354), and its carbon balance charges a tip by its height above the root collar, where it was charged by its path length before (fn-363). Of the four claims, game speed is not met: on 11 Nov 2026 the oak at 40 took 2,073 ms in Wasm against 0.1.4's 124 ms for its own presets, and the candidate's oak at 40 takes 1.44 s on one native thread (fn-352, fn-368; `CHANGELOG.md`, "Known limits").
+
 ## How a species is judged
 
 **The owner's verdict passes a species (owner, 2026-10-04).** When host and Astra have iterated without agreeing, the host puts its strongest sheet to the owner, and the owner's look decides; Astra's remaining critiques are recorded as known gaps for later work.
