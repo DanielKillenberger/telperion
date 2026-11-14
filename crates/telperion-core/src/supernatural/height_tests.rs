@@ -31,10 +31,7 @@ fn a_lengthened_tree_has_its_potential_height_lengthened() {
     assert!(natural.iter().any(|&h| h > 0.0));
     let applied = inverse_heights(&f);
     for (a, n) in applied.iter().zip(&natural) {
-        assert!(
-            (a - n / 2.5).abs() <= 1e-12 * n.max(1e-300),
-            "{a} against {n}"
-        );
+        assert!((a - n / 2.5).abs() <= 1e-12 * n.max(1e-300), "{a} against {n}");
     }
     f.supernatural.enabled = false;
     assert_eq!(inverse_heights(&f), natural);
@@ -52,10 +49,7 @@ fn the_two_trees_stand_against_their_lengthened_height() {
     let beech = inverse_heights(&Preset::EuropeanBeech.parameters());
     for preset in [Preset::Laurelin, Preset::Telperion] {
         for (a, b) in inverse_heights(&preset.parameters()).iter().zip(&beech) {
-            assert!(
-                (a * 0.182 / 0.07 - b).abs() <= 1e-12,
-                "{preset:?}: {a} against {b}"
-            );
+            assert!((a * 0.182 / 0.07 - b).abs() <= 1e-12, "{preset:?}: {a} against {b}");
         }
     }
 }
