@@ -21,3 +21,17 @@
 - Hindered: the beech at 80 took 35.3 CPU s for a 27.4 s grow; the gap was `tree_digest`, which formats every phytomer's Debug text (4.5 M phytomers). Every CPU_S of the base runs taken so far carried it.
 - Cost: about 10 minutes and the base runs so far, retaken.
 - Removed it: `early` prints the process's CPU seconds (`/proc/self/stat`) once the tree is grown, before the digest; `summary.py` reads that.
+
+## 14 Nov 2026, 03:18, one-thread CPU seconds spread a quarter between runs
+
+- Doing: the base round (`raw/r0`), three runs a tree at one thread.
+- Hindered: the same binary on the same tree spread 1.00 to 1.63 CPU s (oak at 40), 19.98 to 25.51 (beech at 80), 47.3 to 52.4 (oak at 120), with no PAUSE inside: the desk was loaded by other sessions' jobs, and CPU seconds still follow the clock speed and the shared caches. A median of three cannot tell the 3 to 5% the candidates promise from that spread.
+- Cost: unknown yet; every round's verdict is weaker for it.
+- Would have removed it: a counted measure (instructions, from `perf stat`, not installed), or rounds measured on a quiet desk.
+
+## 14 Nov 2026, 03:40, the preset digest pin is red on the base
+
+- Doing: R3's tests after round 1.
+- Hindered: `every_preset_grows_the_tree_it_grew_at_both_ends_of_the_dial` fails on the base (`d59085ecc`, the round reverted, `raw/r0/pin.log`) with the same read as round 1 (`raw/r1/pin.log`): every preset's digest differs from `PINNED`, so a change since the pin moved every tree without repinning it. R3's pin cannot be green; round 1 is held to it by its read being equal to the base's, entry for entry.
+- Cost: about 6 minutes (a base build and run).
+- Would have removed it: the pin repinned by the spec that moved it. Repinning is the host's call; not done here.

@@ -17,8 +17,8 @@
 //! a cycle are evaluated on every core, each alone, and applied in order.
 //! The fade is read at the age grown so far, never at the tree's final age
 //! (fn-270 R3), so a tree grows on from any age: a kept lateral that sheds
-//! waits among the fading, its living final, and is evaluated again once
-//! its fade there reaches none.
+//! waits among the fading, its living final, and is retired at that living
+//! once its fade there reaches none (fn-368).
 //!
 //! A retired root is read only through its bearer: its carry into the
 //! bearer's living, at every settle and every later evaluation of a subtree
@@ -163,8 +163,13 @@ impl Grower {
             cycle,
         };
         let wr = &w;
+        // A kept subtree that faded out is retired at the living it was
+        // kept at, which is final; only a closed one is evaluated.
         let verdicts = crate::cores::map(todo.clone(), 16, self.threads, &|_, c| {
-            evaluate(&tree, wr, c)
+            match wr.retire.fate[c] {
+                Fate::Kept(living) => Verdict::Retired(living),
+                _ => evaluate(&tree, wr, c),
+            }
         });
         for (c, verdict) in todo.into_iter().zip(verdicts) {
             // Let go already with a fading ancestor that faded out with it.

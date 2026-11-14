@@ -10,15 +10,16 @@ here=$(cd "$(dirname "$0")" && pwd)
 root=$(git -C "$here" rev-parse --show-toplevel)
 label=$1
 threads=${2:-1}
-# Each row's last field is the memory the queue holds for it, GB: the
-# small trees' measured peaks are far under it (FRICTION.md, 02:43).
-rows=${3:-"oregon-white-oak:40:1001:2 european-beech:80:1:2 norway-spruce:40:1:2 oregon-white-oak:120:1001:8"}
+# Each row's last field is the memory the queue holds for it, GB, as the
+# host set it on 14 Nov: 2 for the small trees, 4 for the beech, the oak at
+# 120 and a cargo build (peaks 0.15, 0.7, 1.4 and 1.6 GB).
+rows=${3:-"oregon-white-oak:40:1001:2 european-beech:80:1:4 norway-spruce:40:1:2 oregon-white-oak:120:1001:4"}
 out="$here/raw/$label"
 mkdir -p "$out"
 cd "$root" || exit 1
 export TELPERION_HEAVY_RESERVE=8
 echo "build $(date '+%F %T')" >> "$out/STATUS"
-if ! telperion-heavy 8 --threads 8 -- cargo build --profile ci -p telperion-core --example early > "$out/build.log" 2>&1; then
+if ! telperion-heavy 4 --threads 8 -- cargo build --profile ci -p telperion-core --example early > "$out/build.log" 2>&1; then
   echo "build failed $(date '+%F %T')" >> "$out/STATUS"
   exit 1
 fi
