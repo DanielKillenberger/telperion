@@ -528,6 +528,12 @@
     "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
   },
   {
+    "path": "crates/telperion-core/src/pipeline/surface/angular.rs",
+    "site": ". max ( 3 )",
+    "classification": "algorithm",
+    "reason": "The ring cache's extent matches build::sides, which never cuts a ring with fewer than three sides; it sizes a lookup table, it does not limit generated populations (fn-351 review)."
+  },
+  {
     "path": "crates/telperion-core/src/pipeline/surface/build.rs",
     "site": ". max ( p [ 0 ] as f64 )",
     "classification": "algorithm",

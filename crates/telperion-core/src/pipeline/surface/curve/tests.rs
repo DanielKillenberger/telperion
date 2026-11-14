@@ -110,3 +110,40 @@ fn packed_points_stand_within_their_stated_error() {
         assert!(share <= 1.0, "{id}: {share}");
     }
 }
+
+/// A cap under three (fn-351 review): a run is never cut with fewer than
+/// three sides (`build::sides`), so the rings at caps 0 to 2 are the
+/// three-sided rings, those at three, and nothing indexes past the rounds.
+#[test]
+fn a_cap_under_three_draws_three_sided_rings() {
+    use crate::tree::Node;
+    let tree = Tree {
+        nodes: (0..3)
+            .map(|i| Node {
+                position: Vec3::new(0.0, i as f64 * 4.0, 0.0),
+                parent: (i > 0).then(|| i - 1),
+                radius: 1.0 / (i + 1) as f64,
+                start_radius: 1.0,
+                ..Node::root()
+            })
+            .collect(),
+        ..Tree::default()
+    };
+    let params = SurfaceParams {
+        lobes: 0,
+        radial_segments: 8,
+        ..SurfaceParams::default()
+    };
+    let curve = curve(&tree, 24.0, &params).unwrap();
+    assert!(!curve.runs.is_empty());
+    let (three, _) = curve.rings(3).unwrap();
+    let vertices: usize = (curve.runs.iter())
+        .map(|r| curve.run_points(r).len() * 3 + 2)
+        .sum();
+    assert_eq!(three.len(), vertices * 3);
+    for cap in 0..3 {
+        assert!(curve.runs.iter().all(|r| r.sides(cap) == 3), "cap {cap}");
+        let (rings, _) = curve.rings(cap).unwrap();
+        assert_eq!(rings, three, "cap {cap}");
+    }
+}

@@ -223,7 +223,7 @@ pub fn build(family: &Family, request: Request) -> Result<Built> {
         field::Frame::side(f.n)?;
     }
     let started = (request.clock)();
-    let mut skeleton = skeleton(GrowInput::of(family))?;
+    let mut skeleton = skeleton(GrowInput::of(family)?)?;
     telperion_space::stage::at(telperion_space::stage::CLOTHE);
     let inputs = Inputs::of(family, grown_envelope(&skeleton.tree));
     clothe(&mut skeleton.tree, &inputs)?;

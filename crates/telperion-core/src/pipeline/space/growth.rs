@@ -29,7 +29,7 @@ impl Params {
     /// The family's growth, its supernatural rows applied and judged. A
     /// family with no engine species is refused by name.
     pub fn of(family: &Family) -> Result<Self> {
-        let input = super::GrowInput::of(family);
+        let input = super::GrowInput::of(family)?;
         input.supernatural.validate()?;
         let space = input.space.as_ref();
         let species = space

@@ -16,6 +16,7 @@ use std::borrow::Cow;
 mod canopy;
 mod flowering;
 mod internode;
+mod leaf;
 mod overrides;
 mod primary;
 pub use canopy::SupernaturalCanopy;
@@ -257,9 +258,7 @@ impl Family {
         if let Some(species) = f.space.species.as_mut() {
             // The grower's leaf is the drawn leaf (fn-354 R5): a leaf drawn
             // at the group's size bears its square over the natural size.
-            let natural = self.canopy.size;
-            if let Some(size) = g.canopy.size.filter(|_| natural > 0.0) {
-                let multiple = (size / natural).powi(2);
+            if let Some(multiple) = self.leaf_multiple() {
                 species
                     .states
                     .iter_mut()

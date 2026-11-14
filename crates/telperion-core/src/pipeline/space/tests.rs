@@ -228,7 +228,7 @@ fn every_shipped_preset_grows_under_the_site_light() {
     assert!(SITE.extinction > 0.0);
     for &(_, id, ..) in CATALOGUE {
         let family = by_identity(id).unwrap();
-        let (_, request) = asked(&GrowInput::of(&family)).unwrap();
+        let (_, request) = asked(&GrowInput::of(&family).unwrap()).unwrap();
         assert_eq!(request.light, SITE, "{id}");
     }
 }
