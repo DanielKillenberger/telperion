@@ -39,3 +39,10 @@
 - What hindered: the queue showed room between -15 and 3 GB from 12:50 to 13:37, with four scopes holding claims (a full gate, two measurement loops and a frames sweep frozen since 09:35 on 36 MiB of its 6 GB claim). The 8 GB batch was admitted at 13:37 at load 67 and its scope was frozen by the watcher within minutes; at 13:44 the load was 112, most of it another project's test suites outside the queue. A waiting job cannot be told from a frozen one except by `systemctl --user status`.
 - Cost: about 55 of the task's 120 minutes waiting; three queued jobs stopped and re-queued to ask for less.
 - What would remove it: a local matter, reported and not specced: timed runs need a desk that is not running another project's suites. In the repository, `telperion-heavy` could print "frozen" for its own scope, and a frozen scope's unused claim could stop counting against the room.
+
+## 14 Nov 2026 15:25 Zurich: a three-minute test took thirty, frozen for twenty-six (Fable, Two Trees time)
+
+- Doing: `every_preset_grows_the_same_tree_again_and_on_any_cores`, admitted at 14:58 on the host's word that the desk was free.
+- What hindered: the scope was frozen 18 s after it started, at load 30 to 42 from another project's suites, and thawed at 15:24. The test reports 1,815 s.
+- Cost: 26 minutes, and the timed runs behind it started half an hour late, at load 7 to 15 instead of under 4.
+- What would remove it: as the 13:45 entry; a test's own clock cannot tell a freeze from work, so a gate budget read during a freeze would fail a healthy test (the 13 Nov 13:30 entry is the same thing).
