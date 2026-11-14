@@ -309,3 +309,44 @@ fn a_lattice_past_its_nodes_is_refused_by_name() {
 }
 
 const AT_AGE: crate::grow::cycle::Retiring = crate::grow::cycle::Retiring::AtAge;
+
+/// fn-351 speed round 2: the quantised deposit cut into parts for four
+/// cores is the deposit in turn, node for node, and a node only the parts
+/// together fill past its u32 is refused as it is in turn.
+#[test]
+fn the_deposit_in_parts_is_the_deposit_in_turn() {
+    let light = Light {
+        extinction: K,
+        sky: 0.5,
+    };
+    let most = super::field::NODES;
+    let leaves: Vec<(Vec3, f64)> = (0..40_000)
+        .map(|k| {
+            let t = f64::from(k);
+            let at = Vec3::new(
+                (t * 0.37).sin() * 2.0,
+                (t * 0.71).cos() * 2.0,
+                2.0 + (t * 0.13).sin(),
+            );
+            (at, 0.0018 * (1.0 + (t * 0.3).cos()))
+        })
+        .collect();
+    let quanta = |threads: usize| {
+        let field = Field::quantised_with(&light, &leaves, &[], (threads, most));
+        field.unwrap().1
+    };
+    let (turn, parts) = (quanta(1), quanta(4));
+    assert!(turn.iter().any(|&q| q > 0), "leaf deposited");
+    assert_eq!(turn, parts);
+    // 16,384 leaves of 0.3 m² on one node: 5.2e9 quanta, a quarter of
+    // them under a u32.
+    let heavy = vec![(Vec3::new(0.0, 0.0, 1.0), 0.3); 1 << 14];
+    for threads in [1, 4] {
+        let refused = Field::quantised_with(&light, &heavy, &[], (threads, most));
+        let refused = refused.err().expect("refused");
+        assert!(
+            format!("{refused}").starts_with("light.deposit"),
+            "{threads}: {refused}"
+        );
+    }
+}

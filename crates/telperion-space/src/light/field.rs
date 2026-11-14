@@ -114,6 +114,69 @@ impl Grid {
     }
 }
 
+/// The leaves a part of the quantised deposit holds: enough to pay for
+/// its own lattice of quanta and their merge.
+const PART: usize = 1 << 12;
+
+/// A node past its u32 of quanta, refused by name.
+fn overfull<T>() -> Result<T> {
+    refuse(
+        "light.deposit",
+        "a lattice node holds at most 2^32 quanta of 2^-20 m² of leaf area",
+    )
+}
+
+impl Grid {
+    /// Each node's quanta of `leaves`, deposited in turn. A node past its
+    /// u32 is refused by name, never wrapped.
+    fn quanta_in_turn(&self, leaves: &[(Vec3, f64)]) -> Result<Vec<u32>> {
+        let mut quanta = vec![0u32; self.nodes()];
+        for &(at, area) in leaves {
+            let area = area as f32;
+            assert!(area >= 0.0, "a leaf's area inside the contract's bound");
+            for (i, w) in self.corners(at) {
+                let i = i.expect("a leaf inside its box");
+                let q = (f64::from(area) * f64::from(w) / QUANTUM).round();
+                let sum = (q <= f64::from(u32::MAX))
+                    .then(|| quanta[i].checked_add(q as u32))
+                    .flatten();
+                let Some(sum) = sum else {
+                    return overfull();
+                };
+                quanta[i] = sum;
+            }
+        }
+        Ok(quanta)
+    }
+
+    /// Each node's quanta of `leaves`, on up to `threads` cores: the
+    /// leaves cut into parts, each deposited on its own lattice, and the
+    /// lattices added. A quantum is a whole number of at least none, so
+    /// the sum is the same in any parts, and a node passes its u32 in
+    /// them exactly where it does in turn: where one quantum is past it,
+    /// or the node's whole sum is. A part's lattice costs its nodes, so
+    /// the leaves are cut only where each part holds more of them than
+    /// the box has nodes.
+    fn quanta(&self, leaves: &[(Vec3, f64)], threads: usize) -> Result<Vec<u32>> {
+        let parts = threads.min(leaves.len() / PART.max(self.nodes()));
+        if parts <= 1 {
+            return self.quanta_in_turn(leaves);
+        }
+        let cut: Vec<&[(Vec3, f64)]> = leaves.chunks(leaves.len().div_ceil(parts)).collect();
+        let each = crate::cores::map(cut, 1, threads, &|_, part| self.quanta_in_turn(part));
+        let mut quanta = vec![0u32; self.nodes()];
+        for part in each {
+            for (sum, q) in quanta.iter_mut().zip(part?) {
+                let Some(more) = sum.checked_add(q) else {
+                    return overfull();
+                };
+                *sum = more;
+            }
+        }
+        Ok(quanta)
+    }
+}
+
 impl Field {
     /// The field of `leaves` (each a point and its leaf area in square
     /// metres) under `light`, over a box that holds every leaf and every
@@ -162,25 +225,7 @@ impl Field {
     ) -> Result<(Self, Vec<u32>)> {
         let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
         let mut field = Self::spanning(points, most)?;
-        let mut quanta = vec![0u32; field.grid.nodes()];
-        for &(at, area) in leaves {
-            let area = area as f32;
-            assert!(area >= 0.0, "a leaf's area inside the contract's bound");
-            for (i, w) in field.grid.corners(at) {
-                let i = i.expect("a leaf inside its box");
-                let q = (f64::from(area) * f64::from(w) / QUANTUM).round();
-                let sum = (q <= f64::from(u32::MAX))
-                    .then(|| quanta[i].checked_add(q as u32))
-                    .flatten();
-                let Some(sum) = sum else {
-                    return refuse(
-                        "light.deposit",
-                        "a lattice node holds at most 2^32 quanta of 2^-20 m² of leaf area",
-                    );
-                };
-                quanta[i] = sum;
-            }
-        }
+        let quanta = field.grid.quanta(leaves, threads)?;
         for (d, &q) in field.density.iter_mut().zip(&quanta) {
             *d = (8.0 * f64::from(q) * QUANTUM) as f32;
         }
