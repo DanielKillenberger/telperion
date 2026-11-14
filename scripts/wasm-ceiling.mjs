@@ -17,13 +17,37 @@ import { fileURLToPath } from 'node:url';
  * Each species is stepped by ten years from its preset age to its first
  * failure, then bisected to the year (fn-198 BROWSER.md's walk); the Two
  * Trees are built at their preset ages on seeds 42, 1 and 7. Builds
- * nothing itself; takes up to 4 GB a case and minutes a species. */
+ * nothing itself; takes up to 4 GB a case and minutes a species.
+ *
+ * `node scripts/wasm-ceiling.mjs <module> --allocations` prints, a JSON line
+ * a case, the measurement allocator's records for the trees each side of a
+ * trap and the Two Trees at seed 42: the failed request, every block of
+ * 16 MiB or more with its stage, and the large blocks live at the high-water
+ * mark. */
 const dist = new URL('../dist/', import.meta.url);
 const SPECIES = ['norway-spruce', 'european-beech', 'oregon-white-oak'];
 const TWO_TREES = ['telperion', 'laurelin'];
 const SEEDS = [42, 1, 7];
 const STEP = 10;
 const OLDEST = 400;
+/** `--allocations`: the trees each side of a trap, and the Two Trees. */
+const TRACED = [['norway-spruce', 88], ['norway-spruce', 89], ['european-beech', 121], ['european-beech', 122], ['telperion'], ['laurelin']];
+/** The stage tags of `telperion_space::measure`; growth tags its year. */
+const STAGES = { 0: 'before', 1001: 'settle', 1002: 'order', 1003: 'establish', 1004: 'convert', 1005: 'clothe', 1006: 'rings', 1007: 'faces', 1008: 'prepare', 1009: 'foliage', 1010: 'organ', 1011: 'structure', 1012: 'curve', 1013: 'handout' };
+const stage = tag => STAGES[tag] ?? `growth ${tag}`;
+
+/** The measurement allocator's records (crates/telperion-wasm/src/measured.rs). */
+function allocations(e) {
+  const words = kind => Array.from(new Uint32Array(e.memory.buffer, e.measured_words(kind) >>> 0, e.measured_words_len(kind)));
+  const [high, highStage, highPages, live, pages, seen, , ...f] = words(0);
+  const groups = (w, n) => Array.from({ length: w.length / n }, (_, k) => w.slice(k * n, k * n + n));
+  return {
+    high, highStage: stage(highStage), memoryAtHigh: highPages * 65536, liveAfter: live, memoryAfter: pages * 65536, largeEvents: seen,
+    failed: f[5] ? { size: f[0], old: f[1], realloc: f[1] > 0, stage: stage(f[2]), live: f[3], memory: f[4] * 65536 } : null,
+    events: groups(words(1), 4).map(([size, old, tag, at]) => ({ size, old, stage: stage(tag), at })),
+    atHigh: groups(words(2), 3).map(([at, size, tag]) => ({ at, size, stage: stage(tag) })).sort((a, b) => b.size - a.size),
+  };
+}
 
 /** One case in this process: the tree's outcome, kept count and memory. */
 async function one(module, id, age, seed) {
@@ -42,17 +66,19 @@ async function one(module, id, age, seed) {
   }
   // The export reads no engine state, so it answers after a trap; zero is
   // a tree that never finished growing.
-  const kept = engine['exports'].measured_kept() >>> 0;
+  const e = engine['exports'];
+  const kept = e.measured_kept() >>> 0;
   const bytes = engine.memoryBytes;
   const seconds = (performance.now() - started) / 1000;
-  return { id, age: family.age, seed, kept: kept || null, bytes, outcome, seconds };
+  const traced = e.measured_words ? { allocations: allocations(e) } : {};
+  return { id, age: family.age, seed, kept: kept || null, bytes, outcome, seconds, ...traced };
 }
 
 /** One case in a child process of its own. */
 function child(module, id, age, seed) {
   const args = [fileURLToPath(import.meta.url), '--case', module, id, String(age ?? ''), String(seed)];
   try {
-    const out = execFileSync(process.execPath, args, { encoding: 'utf8', maxBuffer: 1 << 20 });
+    const out = execFileSync(process.execPath, args, { encoding: 'utf8', maxBuffer: 1 << 26 });
     return JSON.parse(out.trim().split('\n').at(-1));
   } catch (e) {
     return { id, age, seed, kept: null, bytes: null, outcome: `died: ${String(e.stderr ?? e).trim().split('\n').at(-1)}`, seconds: null };
@@ -60,6 +86,7 @@ function child(module, id, age, seed) {
 }
 
 function row(r) {
+  delete r.allocations;
   const per = r.kept && r.outcome === 'built' ? Math.round(r.bytes / r.kept) : '';
   const n = v => v === null || v === undefined ? 'unknown' : v.toLocaleString('en');
   console.log(`| ${r.id} | ${r.age} | ${r.seed} | ${n(r.kept)} | ${n(r.bytes)} | ${r.outcome} | ${per} |`);
@@ -91,6 +118,10 @@ if (args[0] === '--case') {
 } else {
   const module = args[0];
   if (!module) throw Error('usage: node scripts/wasm-ceiling.mjs <measurement telperion_wasm.wasm> [species...]');
+  if (args[1] === '--allocations') {
+    for (const [id, age] of TRACED) console.log(JSON.stringify(child(module, id, age, 42)));
+    process.exit();
+  }
   const only = args.slice(1);
   console.log('| Tree | Age | Seed | Kept phytomers | Wasm bytes | Outcome | Bytes per kept |');
   console.log('|---|--:|--:|--:|--:|---|--:|');

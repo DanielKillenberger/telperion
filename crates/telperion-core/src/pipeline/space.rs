@@ -17,7 +17,7 @@ use crate::tree::{
     Bloom, BudFate, Cluster, Leafing, Node, NodeIdentity, NodeKind, ShootState, Tree,
 };
 use crate::{Error, Result};
-use telperion_space::{Origin, Request, Structure};
+use telperion_space::{measure, Origin, Request, Structure};
 
 /// The most phytomers a tree may keep where the pipeline runs in 32-bit
 /// Wasm, so its CPU preparation fits the 4 GB Wasm memory and a tree too
@@ -66,7 +66,9 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     // and a relay's girth never depend on how the tree was assembled.
     let structure = telperion_space::grow(species, request).map_err(engine)?;
     fits(&structure, KEPT)?;
+    measure::at(measure::ESTABLISH);
     let structure = Establishing::apply(establishing, &structure, rows.0);
+    measure::at(measure::CONVERT);
     let mut tree = convert(&structure, rows);
     scaled(&mut tree, input.supernatural.scale());
     Ok(tree)

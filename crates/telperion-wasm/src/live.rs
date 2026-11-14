@@ -5,7 +5,7 @@ use std::alloc::{GlobalAlloc, Layout, System};
 use std::sync::atomic::{AtomicUsize, Ordering::Relaxed};
 
 /// The heap's live bytes.
-static LIVE: AtomicUsize = AtomicUsize::new(0);
+pub(crate) static LIVE: AtomicUsize = AtomicUsize::new(0);
 
 /// The system allocator, counting what it holds.
 pub(crate) struct Counting;

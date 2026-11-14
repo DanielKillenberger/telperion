@@ -84,3 +84,62 @@ The oak's rows by age are in `raw/table.md`; its kept count rises to 3.54 M at 1
 | telperion | 82 | 7 | 8,344,437 | 7,056,523 | 3,928,621,056 | 3,928,621,056 | built |
 
 At 64 sides the high-water mark is the same byte for byte as at 12: the wood never sets it; the peak lies before the wood, in growth or the conversion. Telperion at seed 7 with 64 sides, the test's own request, builds at 3.93 GB with the kept refusal lifted. No tree under 4,000,000 kept, at the parameter's top, comes near the wood refusal. Whether another stated parameter (a leaf or lobe count, `lobes`) can push the wood past what is left under the kept bound was not measured: **unknown**.
+
+## Step 1 (host, 14 Nov 2026): which allocation traps, and what holds the peak
+
+`node scripts/wasm-ceiling.mjs <module> --allocations` on the `measure-ceiling` module, whose global allocator (`crates/telperion-wasm/src/measured.rs`) wraps the counting one: live bytes and their high-water mark, every allocation or reallocation of 16 MiB or more with its size, old size and stage, the large blocks live when the mark last rose, and a failed request with its size, stage and the live bytes. The stage is a tag (`telperion_space::measure`) set at boundaries the code already has: each growth year, the settle, lineage order, establishing, conversion, clothing and fitting, rings (and the curve), faces, the leaf plan, foliage, flowers, structure, the binding's handout. Raw: `raw/allocations.jsonl`. MiB below are 2^20 bytes. The tracing does not move the peak: each case's memory matches its untraced run in R2 to the 0.1 MiB (the spruce at 88, 3,420.3 MiB = 3,586,326,528 bytes; the beech at 121, 4,082.2; Telperion 4,000.5; Laurelin 4,076.3).
+
+### The failed request
+
+| Tree | Kept | Failed request | Stage | Realloc of | Live at failure | Memory at failure | Room to grow |
+|---|--:|--:|---|--:|--:|--:|--:|
+| spruce 89 | 5,215,960 | 768.0 MiB | convert | 384.0 MiB | 1,832.7 MiB | 3,420.3 MiB | 675.7 MiB |
+| beech 122 | 9,183,489 | 768.0 MiB | convert | 384.0 MiB | 2,239.9 MiB | 3,332.5 MiB | 763.5 MiB |
+
+Both traps are the same request: `tree.nodes` in `pipeline/space.rs`'s `unfolded`, begun as `vec![Node::root()]` and pushed one node a phytomer, doubling its capacity from 2^22 to 2^23 nodes (96 bytes a node: 768 MiB is 2^23 × 96). Neither fails for want of bytes: 1,588 and 1,093 MiB lie free inside the memory, and 2,264 and 1,856 MiB of the 4 GiB are not live. The memory cannot grow the 768 MiB (676 and 764 MiB of room) and no free hole inside it takes 768 MiB whole.
+
+### At the high-water mark
+
+| Tree | Built | Live at the mark | Stage | Memory then | Not live (freed, unreturned) | Ten largest live blocks (MiB @ stage) |
+|---|---|--:|---|--:|--:|---|
+| spruce 88 | yes | 2,817.7 | settle | 3,420.3 | 602.6 (17.6%) | 435.5 @ growth 88, 331.6 @ growth 76, 249.4 @ settle, 235.9 @ growth 88, 96.0 @ growth 88, 96.0 @ settle, 64.0 @ growth 67, 27.2 @ growth 88, 18.2 @ growth 73, 18.2 @ growth 73 |
+| spruce 89 | trapped | 2,871.6 | settle | 3,420.3 | 548.7 (16.0%) | 435.5 @ growth 88, 331.6 @ growth 76, 281.4 @ settle, 235.9 @ growth 88, 96.0 @ growth 88, 96.0 @ settle, 64.0 @ growth 67, 27.2 @ growth 88, 18.2 @ growth 73, 18.2 @ growth 73 |
+| beech 121 | yes | 3,171.1 | foliage | 4,082.3 | 911.2 (22.3%) | 703.5 @ clothe, 175.9 @ clothe, 117.2 @ clothe, 58.6 @ clothe, 58.6 @ clothe, 58.6 @ foliage, 29.3 @ clothe |
+| beech 122 | trapped | 2,648.5 | settle | 2,820.4 | 171.9 (6.1%) | 207.8 @ growth 101, 173.0 @ growth 85, 135.9 @ settle, 112.6 @ growth 101, 64.0 @ growth 80 |
+| Telperion 82, seed 42 | yes | 3,819.2 | organ | 4,000.6 | 181.4 (4.5%) | 717.0 @ clothe, 179.2 @ clothe, 119.5 @ clothe, 68.0 @ organ, 59.7 @ clothe, 59.7 @ clothe, 29.9 @ clothe, 17.8 @ foliage |
+| Laurelin 80, seed 42 | yes | 3,718.3 | organ | 4,076.4 | 358.1 (8.8%) | 644.4 @ clothe, 272.0 @ organ, 161.1 @ clothe, 107.4 @ clothe, 53.7 @ clothe, 53.7 @ clothe, 48.0 @ organ, 26.8 @ clothe, 16.2 @ foliage |
+
+Fewer than ten rows mean fewer large blocks were live. The "@ clothe" blocks are the conversion's per-node vectors after `fitted` shrinks them: `nodes` (96 bytes a node), `frames` (`[f32; 6]`, 24 bytes), a 16-byte vector, `lengths` and `bearing` (`f64`), `keys` (`u32`). Their 2^23-capacity forms in the conversion sum to 1,248 MiB. The spruce peaks in the settle, with the grower's stores still live; the beech and the Two Trees peak in foliage and the flowers, when the shrunk node vectors are the largest live blocks.
+
+### Doublings
+
+| Tree | Large events | Doublings (new = 2 × old) | In growth | In settle | In convert | In foliage / organ |
+|---|--:|--:|--:|--:|--:|--:|
+| spruce 88 | 434 | 237 | 208 | 6 | 22 | 1 |
+| spruce 89 | 418 | 238 | 211 | 6 | 21 | 0 |
+| beech 121 | 233 | 122 | 99 | 1 | 22 | 0 |
+| beech 122 | 216 | 122 | 100 | 1 | 21 | 0 |
+| Telperion 82 | 167 | 97 | 71 | 1 | 22 | 3 |
+| Laurelin 80 | 147 | 91 | 61 | 1 | 22 | 7 |
+
+- **Known beforehand:** the conversion's 21 or 22 (each per-node vector, `nodes` among them, the one that fails). Each phytomer kept becomes at most one node, and `fits` has just counted the kept phytomers, so kept + 1 is an upper bound before the first push. The exact count needs a pass over the structure, or `fitted`'s shrink after the reserve.
+- **Not known before the year runs, as the code stands:** the growth's 61 to 211, the grower's stores growing with the tree; and the flowers' (Laurelin's florets to 272 MiB, `organ`). Whether either has a bound the code could compute first was not read: **unknown**.
+- **The settle's** six on the spruce (8 to 96 MiB) were not named: **unknown**.
+
+### The next cliff
+
+Telperion keeps about 7.8 M nodes at seed 42 (717.0 MiB / 96 bytes) and Laurelin 7.0 M. The next doubling of `nodes`, past 8,388,608 nodes, asks for 1,536 MiB beside a 768 MiB block.
+
+## Step 1, what the code does today (read, not run, unless said)
+
+- **The loader after a trap.** `TreeEngine.build` (`src/browser/core.ts`) does not catch it: the `RuntimeError` reaches the caller and the `TreeEngine` keeps its instance, not disposed. `initializeTreeCore` returns that same shared engine on the next call (it only replaces a disposed one); `telperion/field`'s `engine()` keeps its promise for the page. No path makes a fresh instance. Inside the instance, `build` holds `ENGINE.borrow_mut()` when it traps, and Wasm does not unwind (wasm32-unknown-unknown aborts), so the `RefCell` stays borrowed: the next `build`, `metadata_ptr`, `buffer_ptr` or `chunk_ptr` panics on the borrow and traps again. Exports that read no engine state still answer, and the memory stays readable: **run**, `measured_kept` and `measured_words` were read after each trap above.
+- **`fits`** reads the grown `Structure`'s kept phytomers, the sum of `axes[].phytomers.len()`, after growth and before the structure is established or converted, against `KEPT` (`Some(4,000,000)` on wasm32). `foreseen` reads the closed form's seed-free expectation before growth, and only for a species that reads no light; the hidden growth path (`space/growth.rs`) calls both.
+- **The wood's refusal** (fn-291 R2f, `surface/budget.rs`) reads `need(layout, coords)`, the exact bytes the wood's chunks, lists, run tables and scratch will take plus one chunk's positions of headroom, against `memory::left()`: 2^32 less `__heap_base` less the live heap the counting allocator holds. It counts freed bytes as left. At the spruce's failure it would have read about 2,264 MiB left while a 768 MiB request failed.
+
+## Step 1, against the direction
+
+1. **A failed allocation cannot become an `Err` where it happens.** `Vec::push` and the like call `handle_alloc_error`, which aborts. The wrapper can record the failure but cannot return a refusal through the pipeline; the refusal would be made by the loader after the trap, from the record that survives it (measured to survive), and the instance replaced. Today nothing replaces it.
+2. **Live bytes are not the machine's answer.** Both traps had 1.8 to 2.2 GiB of the 4 GiB not live; the wood's `left()` would have passed them. A refusal from counted bytes passes requests the address space then refuses; only the failed request itself, or exact sizing that removes the hole-finding, reads the machine.
+3. **The peak depends on the instance's history.** Every number here is a fresh instance. The harness and the field entry reuse one instance across builds, whose freed blocks change where the next large block fits, so "builds in Wasm under node, fresh" does not say a page that built other trees first can build it. Not measured: **unknown**.
+4. **`scripts/test-dist.mjs` holds every preset at or under 3.5 GiB** (`LIMIT`). 3.5 GiB is 3,758,096,384 bytes; Telperion at seeds 42 and 7 (4.19 and 3.93 GB) and Laurelin at seed 42 (4.27 GB) peak over it, so that bar fails them whatever replaces `WASM_KEPT`.
+5. **`WASM_KEPT` has three readers:** `grow`, `foreseen` and the hidden growth path (`growth.rs` calls `foreseen` before every step and `fits` after).

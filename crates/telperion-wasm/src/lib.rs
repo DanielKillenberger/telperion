@@ -2,14 +2,19 @@
 mod generate;
 #[cfg(any(target_arch = "wasm32", test))]
 mod live;
+#[cfg(all(target_arch = "wasm32", feature = "measure-ceiling"))]
+mod measured;
 use generate::{generate, Output};
 use serde_json::{json, Value};
 use std::cell::RefCell;
 use telperion_core::{params, Error, Result};
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(feature = "measure-ceiling")))]
 #[global_allocator]
 static ALLOCATOR: live::Counting = live::Counting;
+#[cfg(all(target_arch = "wasm32", feature = "measure-ceiling"))]
+#[global_allocator]
+static ALLOCATOR: measured::Measured = measured::Measured;
 
 #[cfg(target_arch = "wasm32")]
 #[link(wasm_import_module = "env")]
@@ -116,6 +121,18 @@ pub extern "C" fn catalogue() -> u32 {
 pub extern "C" fn measured_kept() -> usize {
     telperion_core::memory::KEPT.load(std::sync::atomic::Ordering::Relaxed)
 }
+/// One of the measurement allocator's records as u32 words
+/// (`measured::words`), and its length in words.
+#[cfg(all(target_arch = "wasm32", feature = "measure-ceiling"))]
+#[no_mangle]
+pub extern "C" fn measured_words(kind: u32) -> *const u32 {
+    measured::words(kind).0
+}
+#[cfg(all(target_arch = "wasm32", feature = "measure-ceiling"))]
+#[no_mangle]
+pub extern "C" fn measured_words_len(kind: u32) -> usize {
+    measured::words(kind).1
+}
 #[no_mangle]
 pub extern "C" fn release() {
     ENGINE.with(|e| {
@@ -132,6 +149,8 @@ pub extern "C" fn build() -> u32 {
     ENGINE.with(|e| {
         let mut e = e.borrow_mut();
         e.output = Output::default();
+        #[cfg(feature = "measure-ceiling")]
+        telperion_core::memory::measure::at(telperion_core::memory::measure::BEFORE);
         e.revision = e.revision.wrapping_add(1);
         let result = serde_json::from_slice(&e.input)
             .map_err(|_| Error::InvalidInput("malformed JSON request"))

@@ -5,6 +5,10 @@ edition = "2021"
 license = "MIT"
 description = "The tree space's growth engine core: buds with a physiological age, growth units of phytomers, death and shedding, continuous in every setting. Outside the pipeline until phase F (docs/tree-space.md)."
 
+[features]
+# Stage tags for the ceiling's measurement build (`measure.rs`); never shipped.
+measure-ceiling = []
+
 [dependencies]
 # The pinned pure-Rust transcendentals the engine and the core read
 # (`transcendental.rs`), so native and Wasm trees agree to the bit (fn-11,

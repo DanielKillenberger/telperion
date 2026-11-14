@@ -14,6 +14,7 @@ use crate::{
     Result,
 };
 use std::sync::OnceLock;
+use telperion_space::measure;
 
 /// Stages 3 and 4 with the wood and the leaves compiled in.
 pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<Outputs> {
@@ -33,12 +34,14 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
             request.wood.then(|| shared().and_then(wood)).transpose()
         },
         || {
+            measure::at(measure::PREPARE);
             let prepared = stage::prepare(tree, &inputs.plan, request, places)?;
             let seat = match (seats, request.wood) {
                 (false, _) => Ok(Seat::Free),
                 (true, false) => Ok(Seat::Own),
                 (true, true) => shared().map(|r| Seat::Shared(&r.0)),
             };
+            measure::at(measure::FOLIAGE);
             let made = match seat {
                 Ok(seat) => leaves_and_field(tree, inputs, request, &prepared, twig, seat),
                 Err(error) => (Err(error), Ok(None)),
@@ -74,6 +77,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
             l.instances = Instances::new(l.instances.reference);
         }
     }
+    measure::at(measure::STRUCTURE);
     let structure = request
         .structure
         .then(|| stage::structure(tree))
@@ -92,7 +96,9 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     let wood = wood
         .zip(rings)
         .map(|((faces, _), rings)| rings.into_mesh(faces));
+    measure::at(measure::ORGAN);
     let organ = organ(tree, inputs, request, prepared.reference, florets.flatten())?;
+    measure::at(measure::CURVE);
     let curve = match drawn_from {
         Some(curve) => Some(curve),
         None => traces
@@ -162,6 +168,7 @@ pub(super) fn rings(
     seats: bool,
 ) -> Result<(Rings, Option<Curve>, f64)> {
     let start = (request.clock)();
+    measure::at(measure::RINGS);
     let (height, params) = (input.height, &input.params);
     let (rings, curve) = if request.wood && request.curve {
         let traced = surface::traced(tree, height, params)?;
@@ -186,6 +193,7 @@ pub(super) fn wood(
     rings: &Rings,
 ) -> Result<(Faces, f64)> {
     let start = (request.clock)();
+    measure::at(measure::FACES);
     let (height, params) = (input.height, &input.params);
     let faces = surface::faces(rings, tree, height, params)?;
     Ok((faces, (request.clock)() - start))

@@ -133,6 +133,8 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
             ..Default::default()
         },
     )?;
+    #[cfg(feature = "measure-ceiling")]
+    telperion_core::memory::measure::at(telperion_core::memory::measure::HANDOUT);
     let (tree, mut o) = (&built.skeleton.tree, built.outputs);
     // The limbs as both entries name them (fn-317 R4c).
     if let Some(grid) = &mut o.field {

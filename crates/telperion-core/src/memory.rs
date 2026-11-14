@@ -12,6 +12,10 @@ static LEFT: OnceLock<fn() -> u64> = OnceLock::new();
 #[cfg(feature = "measure-ceiling")]
 pub static KEPT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 
+/// The stage tags the measurement build's allocator reads.
+#[cfg(feature = "measure-ceiling")]
+pub use telperion_space::measure;
+
 /// Installs the source of the bytes left; the first source installed stays.
 pub fn set_left(source: fn() -> u64) {
     let _ = LEFT.set(source);

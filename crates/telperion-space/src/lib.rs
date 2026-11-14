@@ -32,6 +32,7 @@ mod grow;
 pub mod invariants;
 mod light;
 mod lineage;
+pub mod measure;
 mod memo;
 mod oak;
 mod palm;
