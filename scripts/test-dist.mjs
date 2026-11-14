@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
  * refused by name: a tree the machine cannot hold. */
 const dist = new URL('../dist/', import.meta.url);
 const LIMIT = 3.5 * 2 ** 30;
-const REFUSED_AGE = 126;
+const REFUSED_AGE = 118;
 const SEEDS = [1, 7, 42];
 
 /** One case: build it, check its wood chunks and its memory, report a row. */

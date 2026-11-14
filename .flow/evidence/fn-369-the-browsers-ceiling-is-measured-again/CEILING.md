@@ -143,3 +143,47 @@ Telperion keeps about 7.8 M nodes at seed 42 (717.0 MiB / 96 bytes) and Laurelin
 3. **The peak depends on the instance's history.** Every number here is a fresh instance. The harness and the field entry reuse one instance across builds, whose freed blocks change where the next large block fits, so "builds in Wasm under node, fresh" does not say a page that built other trees first can build it. Not measured: **unknown**.
 4. **`scripts/test-dist.mjs` holds every preset at or under 3.5 GiB** (`LIMIT`). 3.5 GiB is 3,758,096,384 bytes; Telperion at seeds 42 and 7 (4.19 and 3.93 GB) and Laurelin at seed 42 (4.27 GB) peak over it, so that bar fails them whatever replaces `WASM_KEPT`.
 5. **`WASM_KEPT` has three readers:** `grow`, `foreseen` and the hidden growth path (`growth.rs` calls `foreseen` before every step and `fits` after).
+
+## Step 2 (host, 14 Nov): the count goes, the machine answers
+
+Built on this branch and re-proved after merging `fn-351-candidate` at `edfc27090` (the candidate without fn-364's extension rule, station handing and R8). Raw: `raw/m-*.jsonl`, `raw/m-table.md`, `raw/m2.log`, `raw/m3.log`, `raw/m-test-dist.txt`; the pre-merge runs are `raw/e-*`.
+
+**A. The conversion sizes its stores once.** `unfolded` reserves `nodes`, `frames`, `keys`, `lengths`, and where on `unfolded`, `leafing` (the 16-byte store) and `clustered`, with `try_reserve_exact` at 1 + kept phytomers + the relays joined inside a span (a span a relay joins inside draws a node for the relay as well as its own, so kept + 1 alone is not a bound). A refused reserve is `Error::Memory { store, needed }`: "the conversion's frame store needs 247628808 bytes and the machine did not give them". `fitted` still shrinks them. Of the other stores after growth: the **flowers'** matrices are reserved at every bloom's florets and its rachis, and their packed instances at the matrices' count; the **foliage** already reserved its instances from the plan's prediction, fallibly ("foliage allocation"); the **curve** is not traced in a Wasm build (`Request::curve` is false there); the **handout** copies only the leaf and flower element meshes (small) and moves every large buffer. The wood's buffers were already reserved exactly from the layout; their refusal is now the same `Error::Memory`.
+- Equal to the bit: the clothed trees of `space_hash` (beech, spruce, oak, palm at 40 and 80, seeds 1 and 7) hash the same before and after A, 16 of 16 (`raw/space-hash-base.txt`, `raw/step2-tests.txt`); `catalogue_identity`'s five pins and `every_preset_grows_the_same_tree_again_and_on_any_cores` pass before and after the merge.
+- Pre-merge, the conversion's 21 or 22 large doublings went to none, and the peaks fell: the beech at 121 from 4,082 to 3,854 MiB, Laurelin from 4,076 to 3,830, Telperion from 4,001 to 3,926. Both step-1 traps now built: the spruce to 123 and the beech to 400.
+
+**B. A failure the code cannot return is still named.** The shipped allocator (`telperion-wasm/src/live.rs`) records a refused request's size, the live bytes and the stage tag (`telperion_space::stage`, one static store a boundary). `TreeEngine.build` catches a trap, reads the record through `refusal_ptr` and `stage_name_ptr`/`stage_name_len`, throws "Tree core: the settle needs 370877184 bytes and the machine did not give them (3706444010 bytes live)", and replaces its instance from the module it keeps; a trap with no record is rethrown as it is. `initializeTreeCore` and the field entry hand out the same `TreeEngine`, so its fresh instance is theirs. No public surface changed (the constructor is private). Proof: `a_request_the_machine_refuses_is_recorded_with_its_stage`; test-dist's refused case (below) builds the next request on the same engine.
+
+**C.** Deleted: `WASM_KEPT`, `KEPT`, `fits`, `foreseen` (nothing else read it; `expected_kept` stays for `blend::size`, the examples and the walks' tests), their calls in `grow` and the growth path, `ceiling_tests.rs`, `a_tree_over_the_wasm_ceiling_is_refused_by_name`, the two `foreseen` tests, `surface/budget.rs` with `memory::left`, `set_left` and `live::left`. `telperion.values`'s comment and `docs/native-entry.md`'s promise follow.
+
+**D.** `scripts/test-dist.mjs`: every shipped preset at seeds 1, 7 and 42 builds in Wasm in its own process, peak printed, all 24 at or under 3,584 MiB (the 3.5 GiB bar holds). The refused case: the spruce at seed 42 at 118, two past the first refused (116), is refused by name and the next request builds (1,112,555 nodes).
+
+### E, on the merge
+
+| Tree | Age | Seed | Kept | Peak (bytes) | Outcome |
+|---|--:|--:|--:|--:|---|
+| spruce | 88 | 42 | 5,248,108 | 3,353.8 MiB (traced) | built |
+| spruce | 89 | 42 | 5,333,043 | 3,422.3 MiB (traced) | built |
+| spruce | **115** | 42 | 7,372,337 | 4,246,274,048 | **built, the largest** |
+| spruce | 116 | 42 | unknown | 3,968,139,264 | trap named: the settle needs 407,127,360 bytes (3,683,770,054 live) |
+| spruce | 117 | 42 | unknown | 3,909,025,792 | trap named: the settle needs 452,774,592 bytes |
+| spruce | 120 | 42 | unknown | 4,246,274,048 | trap named: growth in year 120 needs 926,999,040 bytes |
+| beech | 90 | 42 | 9,132,408 | 3,782,606,848 | built |
+| beech | **96** | 42 | 9,836,905 | 4,287,823,872 | **built, the largest** |
+| beech | 97 | 42 | 9,956,854 | 4,118,740,992 | refused (reserve): the conversion's frame store needs 239,061,840 bytes |
+| beech | 100 | 42 | 10,313,465 | 4,216,324,096 | refused (reserve): the conversion's frame store needs 247,628,808 bytes |
+| beech | 121 | 42 | unknown | 4,294,967,296 | trap named: the settle needs 2,992 bytes (3,972,406,120 live) |
+| beech | 122 | 42 | unknown | 4,076.2 MiB (traced) | trap named: the settle needs 192,293,376 bytes |
+| Telperion | 82 | 42 / 1 / 7 | 6,120,872 / 3,701,260 / 5,264,660 | 3,091,529,728 / 1,822,687,232 / 2,674,458,624 | built |
+| Laurelin | 80 | 42 / 1 / 7 | 5,422,804 / 3,368,079 / 4,810,022 | 2,805,071,872 / 1,694,040,064 / 2,489,843,712 | built |
+
+The merged grower keeps more on the beech (10.3 M at 100 against 8.3 M before), so its edge moved from past 400 to 96. Every failure is now named: a reserve the conversion makes returns the refusal, the grower's and the settle's stores trap and the loader names them.
+
+At the high-water mark (traced): Telperion at seed 42 peaks in the flowers with 2,896 MiB live of 2,948 MiB; its largest blocks are the shrunk node store (542.8 MiB), the frames (135.7), the flower matrices (102.2) and the length, leafing and key stores. Laurelin likewise, 2,642 of 2,675 MiB. Remaining doublings are the grower's (46 to 211 a tree), the settle's (1 to 6) and one in foliage; none in the conversion.
+
+**Reuse** (`raw/m-reuse.jsonl`): the oak at 40 then Telperion at 82 in one instance builds (3,091,529,728 bytes after, the same as Telperion fresh), and Telperion twice in a row builds both times, the memory unchanged after the second.
+
+### Open, for the host
+
+- **Unknown:** whether `new WebAssembly.Instance` (synchronous, from the compiled module) is allowed on a browser's main thread for this module's size; agents do not drive a browser. Node allows it.
+- The grower's and the settle's stores are where every remaining trap falls; their sizes are not known before the year runs, as the code stands.

@@ -115,11 +115,17 @@ function row(r) {
 function edge(module, id, from) {
   const built = age => row(child(module, id, age, 42)).outcome === 'built';
   let low = row(child(module, id, from, 42));
-  if (low.outcome !== 'built') throw Error(`${id} fails at age ${low.age}, where its walk starts`);
-  let lowAge = low.age, high;
+  if (low.outcome !== 'built') return console.log(`| ${id} | fails at ${low.age}, where its walk starts; start it younger |||||`);
+  let lowAge = low.age, high, kept = low.kept, falls = 0;
   for (let age = lowAge + STEP; age <= OLDEST; age += STEP) {
-    if (!built(age)) { high = age; break; }
+    const r = row(child(module, id, age, 42));
+    if (r.outcome !== 'built') { high = age; break; }
     lowAge = age;
+    // Past its peak a tree keeps fewer each step: two falls in a row end
+    // the walk, the light thinning it rather than the memory stopping it.
+    falls = r.kept < kept ? falls + 1 : 0;
+    kept = r.kept;
+    if (falls === 2) return console.log(`| ${id} | builds to ${age}, its kept count falling |||||`);
   }
   if (high === undefined) return console.log(`| ${id} | builds to ${OLDEST} |||||`);
   while (high - lowAge > 1) {
