@@ -27,7 +27,11 @@ struct Image {
 
 impl Image {
     fn from_still(still: &Still) -> Self {
-        let rgb = still.rgba.chunks(4).flat_map(|p| [p[0], p[1], p[2]]).collect();
+        let rgb = still
+            .rgba
+            .chunks(4)
+            .flat_map(|p| [p[0], p[1], p[2]])
+            .collect();
         let (width, height) = (still.width as usize, still.height as usize);
         Self { width, height, rgb }
     }
@@ -35,7 +39,11 @@ impl Image {
     /// The full-size still reduced the way `masked_agreement` reads it, as
     /// floats so no rounding enters the comparison.
     fn reduced(high: &Still) -> Vec<f64> {
-        let (hw, w, h) = (high.width as usize, high.width as usize / 2, high.height as usize / 2);
+        let (hw, w, h) = (
+            high.width as usize,
+            high.width as usize / 2,
+            high.height as usize / 2,
+        );
         let mut out = vec![0.0; w * h * 3];
         for y in 0..h {
             for x in 0..w {
@@ -57,11 +65,18 @@ impl Image {
 
     fn write(&self, path: &Path) {
         let file = std::fs::File::create(path).unwrap();
-        let mut encoder =
-            png::Encoder::new(std::io::BufWriter::new(file), self.width as u32, self.height as u32);
+        let mut encoder = png::Encoder::new(
+            std::io::BufWriter::new(file),
+            self.width as u32,
+            self.height as u32,
+        );
         encoder.set_color(png::ColorType::Rgb);
         encoder.set_depth(png::BitDepth::Eight);
-        encoder.write_header().unwrap().write_image_data(&self.rgb).unwrap();
+        encoder
+            .write_header()
+            .unwrap()
+            .write_image_data(&self.rgb)
+            .unwrap();
     }
 }
 
@@ -94,7 +109,9 @@ fn trunk_width(clay: &Still) -> f64 {
     let w = clay.width as usize;
     let warm = |x: usize, y: usize| clay.rgba[(y * w + x) * 4] > clay.rgba[(y * w + x) * 4 + 2];
     let widths = (200..300).filter_map(|y| {
-        let seed = (0..60).flat_map(|d| [400 - d, 400 + d]).find(|&x| warm(x, y))?;
+        let seed = (0..60)
+            .flat_map(|d| [400 - d, 400 + d])
+            .find(|&x| warm(x, y))?;
         let left = (0..seed).rev().take_while(|&x| warm(x, y)).count();
         let right = (seed..w).take_while(|&x| warm(x, y)).count();
         Some((left + right) as f64)
@@ -134,7 +151,11 @@ fn draw(renderer: &mut Renderer, distance: f64) -> Pair {
     renderer.set_view(View::Bare);
     let high = render(renderer, &camera, 1600, 1000).unwrap();
     let low = render(renderer, &camera, 800, 500).unwrap();
-    Pair { clay, low, reduced: Image::reduced(&high) }
+    Pair {
+        clay,
+        low,
+        reduced: Image::reduced(&high),
+    }
 }
 
 /// The crop enlarged by `scale`, nearest neighbour; pixels off `mask` dimmed.
@@ -148,7 +169,11 @@ fn crop(pixel: impl Fn(usize, usize) -> [u8; 3], mask: &[bool], scale: usize) ->
             rgb.extend(pixel(sx, sy).map(|v| if on { v } else { v / 3 }));
         }
     }
-    Image { width: w, height: h, rgb }
+    Image {
+        width: w,
+        height: h,
+        rgb,
+    }
 }
 
 fn side_by_side(parts: &[Image], gap: usize) -> Image {
@@ -188,15 +213,21 @@ fn still_pair(renderer: &mut Renderer, distance: f64, out: &Path) -> String {
     let mask = wood(&pair.clay);
     let pixels = strip(&mask, 800, distance);
     let low = Image::from_still(&pair.low);
-    let errors = pixels.iter().flat_map(|&(x, y)| {
-        (0..3).map(move |c| (y * 800 + x) * 3 + c)
-    });
-    let errors = errors.map(|i| (pair.reduced[i] - f64::from(low.rgb[i])).abs()).collect();
+    let errors = pixels
+        .iter()
+        .flat_map(|&(x, y)| (0..3).map(move |c| (y * 800 + x) * 3 + c));
+    let errors = errors
+        .map(|i| (pair.reduced[i] - f64::from(low.rgb[i])).abs())
+        .collect();
     let (mean, p95) = summary(errors);
     let mut on = vec![false; 800 * 500];
     pixels.iter().for_each(|&(x, y)| on[y * 800 + x] = true);
     let at = |i: usize| pair.reduced[i].round() as u8;
-    let high = crop(|x, y| std::array::from_fn(|c| at((y * 800 + x) * 3 + c)), &on, 4);
+    let high = crop(
+        |x, y| std::array::from_fn(|c| at((y * 800 + x) * 3 + c)),
+        &on,
+        4,
+    );
     let diff = crop(
         |x, y| {
             let i = (y * 800 + x) * 3;
@@ -257,7 +288,11 @@ fn shimmer(renderer: &mut Renderer, distance: f64, out: &Path) -> String {
 }
 
 fn main() {
-    let out = PathBuf::from(std::env::args().nth(1).expect("usage: bark_distance_frames <out>"));
+    let out = PathBuf::from(
+        std::env::args()
+            .nth(1)
+            .expect("usage: bark_distance_frames <out>"),
+    );
     std::fs::create_dir_all(&out).unwrap();
     let gpu = pollster::block_on(Gpu::request(None)).expect("a device");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
