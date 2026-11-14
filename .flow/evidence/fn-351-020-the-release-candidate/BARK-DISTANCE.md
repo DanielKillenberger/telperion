@@ -49,3 +49,32 @@ The 2x bound was not touched. It passes with 0.03 to spare (5.17 against 5.2).
 
 - `strip-4x-base.jpg`, `strip-4x-candidate.jpg`: the 4x strip crop (columns 340..460, rows 192..308) enlarged 4 times with nearest neighbour. From left to right: the full-size still reduced, the low still, and the largest channel difference scaled so 16 is white. Pixels off the mask are dimmed.
 - `frames-4x-base.jpg`, `frames-4x-candidate.jpg`: the twelve 800x500 frames from 3.9x to 4.1x, the same crop at 2 times, in two rows of six, with each frame's wood mask undimmed.
+
+## After the oak's sapwood followed height (14 Nov 2026, afternoon)
+
+After fn-351-candidate (b29f674e3) was merged into `.worktrees/bark`, the test failed again. At 4x it read mean 6.5346 against 6.5 and p95 17.25. At 2x it read 5.1983 against 5.2, passing by 0.002. No bark shader changed. The oak's sapwood rows now follow tree height (fn-351-oak-sapwood-by-size), so its trunk at the strip is thicker. The same helper and procedure were used. The helper reproduces the test's printout exactly: 5,055 and 1,957 mask pixels. The same still drawn twice is byte-identical.
+
+| | trunk px | mask px | mean | p95 | shimmer low mean / p95 | shimmer ref mean / p95 |
+|---|---|---|---|---|---|---|
+| base 2x (11 Nov) | 134.2 | 9,972 | 4.4203 | 12.75 | 2.2970 / 9.00 | 2.4711 / 8.50 |
+| before 2x (97e0e105a) | 54.6 | 4,150 | 5.1708 | 13.00 | 1.8685 / 7.00 | 1.7364 / 5.75 |
+| sapwood 2x | 64.2 | 5,055 | 5.1983 | 13.50 | 1.9904 / 9.00 | 1.8636 / 6.25 |
+| base 4x (11 Nov) | 71.4 | 4,625 | 5.5206 | 14.50 | 2.0668 / 7.00 | 1.9065 / 6.25 |
+| before 4x (97e0e105a) | 28.0 | 1,563 | 6.0038 | 16.25 | 1.8578 / 7.00 | 1.3663 / 4.75 |
+| sapwood 4x | 32.8 | 1,957 | 6.5346 | 17.25 | 1.8110 / 7.00 | 1.4491 / 5.00 |
+
+The acceptance was that the low-resolution shimmer lies within 0.5 of its own full-size reference. It held at both distances:
+
+- 2x: 1.9904 against 1.8636, a difference of 0.13. It is 0.31 below the base's 2.2970.
+- 4x: 1.8110 against 1.4491, a difference of 0.36. It is 0.26 below the base's 2.0668.
+
+Both distances were re-pinned by the test's rule: measured mean plus 0.5, rounded to one place, and p95 plus 2, since both p95 values passed their old bounds.
+
+| | old mean / p95 | new mean / p95 |
+|---|---|---|
+| 2x | 5.2 / 14.0 | 5.7 / 15.5 |
+| 4x | 6.5 / 18.25 | 7.0 / 19.25 |
+
+No bound was lowered. The comment gained one dated sentence. The test runs green by name at these values, and `cargo fmt --all --check` is clean.
+
+Images in `bark-distance/` use the same crops and layout as above: `strip-2x-sapwood.jpg`, `strip-4x-sapwood.jpg`, `frames-2x-sapwood.jpg` and `frames-4x-sapwood.jpg`. Raw PNGs are in `raw/bark-sapwood/`, which is ignored.
