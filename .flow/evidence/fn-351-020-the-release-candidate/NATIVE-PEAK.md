@@ -79,3 +79,56 @@ The largest of these is 35 MiB against shortfalls of 300 to 860 MiB, so none was
 ## Where this lives
 
 The brief named `.flow/evidence/fn-351-the-release-candidate/`; the spec's directory is `fn-351-020-the-release-candidate`, so this file and the friction entry are there. The raw logs stayed under the brief's path in the ignored `raw/` (`base.log`, `probe.log`, `exp1.log`, `exp2.log`, the `*.tsv` peaks, `six.sh`, `one.sh`, `peak_probe.rs`, `probe.diff`).
+
+## Follow-up (host, 14 Nov 2026): `arena_max` against time
+
+The host's full gate with `arena_max=1` for every test passed all six memory tests but timed out six others. Here: the six memory tests and those six, twelve tests in one batch for each setting, through `cargo nextest run --profile gate` with the gate's runner (`scripts/gate_test.py`), its per-test time-outs (`target/gate/budgets.toml`, written by `gate.py`'s own `timeouts`), its four threads and test groups, each batch through `TELPERION_HEAVY_RESERVE=8 telperion-heavy 8 --threads 4`, on the worktree's binaries at `3c50d2f1c` (the candidate's code). `GLIBC_TUNABLES=glibc.malloc.arena_max=N` was set for the whole batch. Raw: `raw/grid.sh`, `raw/grid.log`, `raw/grid-*.tsv`. A film render shared the machine. The batches ran in the order unset (a), 1, 4, unset (b). Then the mesh test ran alone at 2 to check whether the earlier 180 s was an outlier. The grid would have run past 75 minutes, so 8 and the full batch at 2 were dropped.
+
+| Batch | Start, end | Load at start (1, 5, 15 min) | Load at end |
+|---|---|---|---|
+| unset (a) | 10:27:55, 10:41:35 | 6.16, 7.56, 13.80 | 5.73, 8.42, 12.02 |
+| arena_max=1 | 10:41:35, 11:02:58 | 5.73, 8.42, 12.02 | 4.71, 17.18, 20.37 |
+| arena_max=4 | 11:02:58, 11:17:03 | 4.71, 17.18, 20.37 | 2.87, 9.19, 15.58 |
+| unset (b) | 11:17:13, 11:28:53 | 2.66, 8.93, 15.43 | 2.44, 6.44, 11.85 |
+| mesh alone, arena_max=2 | 11:28:53, 11:29:42 | 2.44, 6.44, 11.85 | 2.16, 5.75, 11.33 |
+
+The load was not even: during arena_max=1 and arena_max=4 the 5- and 15-minute loads stood at 9 to 20, against 6 to 13 for the unset batches. So part of those two batches' extra time may be the render's. Neither unset batch ran under the same load as arena_max=4.
+
+### Memory tests: peak MiB (seconds), against the budget
+
+| Test | Budget | unset (a) | unset (b) | arena_max=1 | arena_max=4 |
+|---|--:|--:|--:|--:|--:|
+| pipeline every_shipped_preset... | 4,096 | 4,693 (60) | 4,712 (53) | 3,048 (93) | 3,587 (52) |
+| suite::mesh | 4,864 | 5,206 (54) | 5,187 (47) | 3,673 (66) | 3,832 (47) |
+| suite::packed_leaf | 4,800 | 5,278 (56) | 5,221 (46) | 3,688 (63) | 3,978 (46) |
+| conformance | 4,992 | 5,810 (57) | 5,859 (49) | 4,117 (66) | 4,619 (49) |
+| wasm main_entry | 4,096 | 4,787 (53) | 4,331 (45) | 3,074 (53) | 3,737 (46) |
+| wasm flowers_cross | 4,096 | 4,591 (125) | 4,522 (102) | 3,117 (125) | 3,462 (103) |
+
+The mesh test alone at arena_max=2: 3,731 MiB in 49 s. The earlier 180 s was an outlier.
+
+### The six that timed out under arena_max=1: seconds (peak MiB)
+
+Each test's limit is the 120 s cut-off, or its row's `seconds` where it has a row.
+
+| Test | Limit | unset (a) | unset (b) | arena_max=1 | arena_max=4 |
+|---|--:|--:|--:|--:|--:|
+| suite::sweep every_pair_of_presets... | 120 | 105 (449) | 96 (493) | TIMEOUT 120 | TIMEOUT 120 |
+| repeat_tests the_largest_tree_and_the_palm... | 181 (row) | TIMEOUT 181 | 173 (2,708) | TIMEOUT 181 | TIMEOUT 181 |
+| catalogue_identity every_walk_is_the_walk_it_was | 120 | 41 (571) | 34 (597) | TIMEOUT 120 | 81 (318) |
+| walks a_walk_between_species... | 120 | 54 (726) | 65 (753) | TIMEOUT 120 | 70 (438) |
+| walks light_changes_the_tree_by_degree | 120 | 54 (381) | 52 (408) | TIMEOUT 120 | 53 (300) |
+| walks every_setting_changes_the_tree_by_degree... | 636 (row) | 233 (5,135) | 185 (4,985) | TIMEOUT 636 | 321 (3,836) |
+
+A test that timed out leaves no peak: the runner reports a peak only when its child exits. repeat_tests timed out in the first unset batch too, so the machine alone can push it over its row. The rows quoted:
+
+- `"telperion_core pipeline::space::repeat_tests::the_largest_tree_and_the_palm_grow_the_same_tree_again_and_on_any_cores"`: `seconds = 181`, `mib = 4096`, `measured = { seconds = 90, mib = 3276 }`
+- `"walks every_setting_changes_the_tree_by_degree_and_branches_come_and_go_at_vanishing_size"`: `seconds = 636`, `mib = 5952`, `measured = { seconds = 318, mib = 5396 }`
+
+### What the grid says
+
+- **arena_max=1:** every memory test is under its budget, with 911 to 1,191 MiB of room. Every timing test times out, including every_setting at its 636 s row (233 and 185 s unset). The rayon-parallel tests contend on the one arena. This is the host's result again.
+- **arena_max=4:** every memory test is under its budget. The room is 509 (pipeline), 1,032 (mesh), 822 (packed_leaf), 373 (conformance), 359 (main entry) and 634 (flowers) MiB. The memory tests ran as fast as unset (b). The timing tests ran slower than both unset batches: sweep timed out at 120 against 105 and 96, repeat_tests timed out against 173 (b), catalogue_identity took 81 against 34 to 41, and every_setting 321 against 185 to 233 (still half its row). The arena_max=4 batch also ran under the higher load, so this slowdown is not separated from the render's: **unknown** how much belongs to the setting.
+- **arena_max=2:** measured on the mesh test only (3,731 MiB, 49 s); not on the timing tests.
+- **arena_max=1 on the six memory tests only:** every memory figure is in the arena_max=1 column. The timing tests would keep their unset times, since the setting would not reach them.
+- Not measured: 8, 2 on the timing tests, and any setting under the full gate's 500-test concurrency (this grid ran 12 tests).
