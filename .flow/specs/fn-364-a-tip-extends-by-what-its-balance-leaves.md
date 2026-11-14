@@ -28,6 +28,12 @@ with h, `inverse_height` and `light` exactly the quantities fn-363's charge and 
 
 Expected, from the probe (the builder returns if a measure is off these by more than a quarter): the oak on seeds 1001 and 1007 as quoted above; at 40 within 5% of fn-363's tree in height and leaf.
 
+## Verdict (host, 14 Nov)
+
+R9 does not cure it: the limbs still run as thick bare tentacles to their tips. The fault is the rule's, not the lay's: a tip held at break-even neither rises nor is shed, so it stalls for centuries, thickens where it stands and bears almost no twigs, where fn-363's tip rises, is shed and is renewed from below, which is what gives fn-363's old oak its taper and its mass of fine wood. fn-363's oak is the better tree at 200 and 300 by eye; its trunk and height stay over their ranges and are recorded as unmet. So the surplus share is withdrawn.
+
+Withdrawn with it: the stretch record and `Phytomer::stretch`, the one length function, the station handing (`Tree::bearing`, the handed spans, the allotted-length accumulator) and R10's change to the light test. Kept: R8 (a lengthened tree's potential height lengthens with it), which now acts through the height charge alone, the scoreboard probe's `tip` shot and every piece of evidence (CURVATURE.md, RELAYS.md, R9-PROBE.md and the rest) as the record of why the rule went.
+
 ## Acceptance Criteria
 
 - **R1.** The reading, in the evidence, before the change: every reader of a phytomer's length in both crates (lay, reaches, stand, sag, the pipeline's conversion, the surface stage's joins, leaves' placement, anything in the render crate that reads the grown structure), each marked "reads position" or "reads scale times internode"; what a zero-length internode does in each (the probe grew 842,770 of them and built a wood mesh without error; whether a run of coincident rings is drawn, dropped or degenerate in the surface stage is not known); the bytes added per settled phytomer, per unit and per axis, with the type chosen and why; which compactness or size tests see it.

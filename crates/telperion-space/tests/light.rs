@@ -29,14 +29,12 @@ fn light_no_bud_reads_leaves_every_passed_species_to_the_bit() {
     let all: [(&str, fn() -> Species); 3] = [("beech", beech), ("spruce", spruce), ("oak", oak)];
     for (name, make) in all {
         // The species as no bud reading light would grow it: the oak reads
-        // light by its own values since its round 5, and a tip with a
-        // potential height extends by its light since fn-364 (R10, host).
+        // light by its own values since its round 5.
         let mut species = make();
         for state in &mut species.states {
             state.shade_hazard = 0.0;
             state.shade_size = 0.0;
             state.balance_hazard = 0.0;
-            state.inverse_height = 0.0;
             state.shade_short.iter_mut().for_each(|e| *e = 0.0);
         }
         for seed in [1, 7] {

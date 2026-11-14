@@ -24,7 +24,6 @@ fn axis(origin: Origin, pa: usize, birth: u32, alive: f64) -> Axis {
         key: 0,
         rank: 0.0,
         size: 1.0,
-        stretch: 1.0,
         grown: 1.0,
         section: 0.0,
         sapwood: 0.0,

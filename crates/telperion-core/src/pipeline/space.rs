@@ -89,11 +89,8 @@ fn scaled(tree: &mut Tree, scale: f64) {
         n.start_radius *= scale;
         n.base_radius *= scale;
     }
-    for grown in tree.grown.iter_mut().chain(&mut tree.bearing) {
+    for grown in &mut tree.grown {
         *grown *= scale;
-    }
-    for h in &mut tree.handed {
-        (h.length, h.radius) = (h.length * scale, h.radius * scale);
     }
     for leafing in &mut tree.leafing {
         leafing.older *= scale;
@@ -289,11 +286,7 @@ fn unfolded(
     let unfolding_on = unfolding.within();
     let mut unfolded = vec![crate::tree::Unfolded::WHOLE; usize::from(unfolding_on)];
     let mut keys = vec![0u32];
-    let (mut lengths, mut bearing) = (vec![0.0], vec![0.0]);
-    // The wood as allotted beside the wood as laid (`hand.rs`), kept only
-    // where some stretch is below whole.
-    let stretched = (structure.axes.iter()).any(|a| a.phytomers.iter().any(|p| p.stretch < 1.0));
-    let (mut handed, mut followed) = (Vec::new(), vec![false; usize::from(stretched)]);
+    let mut lengths = vec![0.0];
     // The node each axis ends on, for what continues it.
     let mut ends: Vec<Option<u32>> = vec![None; structure.axes.len()];
     // Each axis's drawn nodes, base first.
@@ -359,9 +352,7 @@ fn unfolded(
         // The whole leaves this axis's cluster holds: none, it is no short
         // shoot (fn-277).
         let cluster = (telperion_space::cluster(cluster.0, axis.lineage), cluster.1);
-        let mut pending = join::Wood::default();
-        let mut hand = (stretched && cluster.0 == 0)
-            .then(|| hand::Hand::of(axis, (internode, spread), least, &joins[i]));
+        let mut pending = 0.0;
         // The retentions of the wood merged into the next node: where the
         // last change falls, the retention before it and the latest.
         let mut wood: Option<(f64, u16, u16)> = None;
@@ -379,11 +370,7 @@ fn unfolded(
             // The wood's retention, every piece of it the phytomer's own
             // (fn-248).
             let (q, qw) = unfolding.kept(retention, structure.age, p.cycle);
-            let piece = join::Wood::of(
-                p,
-                internode,
-                telperion_space::internode_factor(p.key(), spread),
-            );
+            let piece = internode * p.scale * telperion_space::internode_factor(p.key(), spread);
             let here = joins[i].iter().filter(|(_, j)| j.node == place);
             for &(c, _) in here.clone().filter(|(_, j)| j.t <= 0.0) {
                 joined[c] = Some((parent, place));
@@ -404,40 +391,25 @@ fn unfolded(
             let mut rest = piece;
             for d in draws {
                 let piece = if d.relay.is_some() { d.piece } else { rest };
-                rest = if d.relay.is_some() {
-                    rest.minus(d.piece)
-                } else {
-                    rest
-                };
+                rest -= if d.relay.is_some() { d.piece } else { 0.0 };
                 let from = nodes[parent as usize].position;
                 // ... and those still inside the wood of the joint, where a
                 // turn over less than the stem's radius would fold its surface.
                 let inside =
                     along != Vec3::ZERO && (d.tip - from).length() < nodes[parent as usize].radius;
                 let behind = !made && ((d.tip - from).dot(along) < 0.0 || inside);
-                if let Some(h) = hand.as_mut() {
-                    h.open((wood, was));
-                }
                 was = Some(match (wood, was) {
                     (Some((_, _, last)), Some((_, latest))) if q != last => (latest, qw),
                     (Some(_), Some((before, _))) => (before, qw),
                     _ => (qw, qw),
                 });
                 wood = Some(match wood {
-                    Some((_, _, last)) if q != last => (pending.bearing, last, q),
+                    Some((_, _, last)) if q != last => (pending, last, q),
                     Some(held) => held,
                     None => (0.0, q, q),
                 });
-                pending = pending.plus(piece);
-                // A group that would be drawn laid whole and merges only
-                // for its stretch, short or brought behind its joint by it.
-                let (whole, shortened) = hand.as_mut().map_or((false, false), |h| h.add(piece));
-                if behind || super::foliage::plan::micrometres(pending.laid) < SHORTEST {
-                    if let (Some(h), true) = (hand.as_mut(), whole && (!behind || shortened)) {
-                        let mut kept = (wood, was);
-                        h.give(place, d.radius, (q, qw), (&mut pending.bearing, &mut kept));
-                        (wood, was) = kept;
-                    }
+                pending += piece;
+                if behind || super::foliage::plan::micrometres(pending) < SHORTEST {
                     match d.relay {
                         Some(c) => joined[c] = Some((parent, place)),
                         None => drawn[i].push(parent),
@@ -449,9 +421,8 @@ fn unfolded(
                 // the relay it joins: its lineage, the same node at any age and
                 // any cut (fn-220).
                 node.identity = NodeIdentity::lineage(d.identity);
-                let from = hand.as_ref().and_then(|h| h.from());
-                let inherited = from.unwrap_or(nodes[parent as usize].radius);
-                let first = !made && !hand.as_ref().is_some_and(|h| h.gave);
+                let inherited = nodes[parent as usize].radius;
+                let first = !made;
                 node.shoot = ShootState {
                     bud_fate: if lateral && first {
                         BudFate::Lateral
@@ -473,20 +444,10 @@ fn unfolded(
                     node.codominant = codominance(d.radius, inherited);
                 }
                 parent = nodes.len() as u32;
-                if stretched {
-                    let ahead = hand.as_mut().is_some_and(|h| {
-                        let (ahead, given) = h.drawn(place, parent);
-                        handed.extend(given);
-                        ahead
-                    });
-                    followed.push(ahead);
-                }
                 let (h, s) = (up(p.heading), up(p.side));
                 frames.push([h.x, h.y, h.z, s.x, s.y, s.z].map(|v| v as f32));
                 keys.push(d.key);
-                let merged = std::mem::take(&mut pending);
-                lengths.push(merged.laid);
-                bearing.push(merged.bearing);
+                lengths.push(std::mem::take(&mut pending));
                 if unfolding_on {
                     unfolded.push(unfolding.node(
                         (i, place),
@@ -525,17 +486,6 @@ fn unfolded(
             if thin {
                 break;
             }
-        }
-        // The leaf-bearing wood of spans past its last drawn node, laid at
-        // too little length to draw, is borne by that node, or by the node
-        // the axis stands on where it drew none, but for a short shoot's,
-        // whose leaves its cluster bears.
-        if made || cluster.0 == 0 {
-            bearing[parent as usize] += pending.bearing;
-        }
-        if let Some(h) = hand.as_mut() {
-            let node = parent;
-            handed.extend(h.held.drain(..).map(|g| crate::tree::Handed { node, ..g }));
         }
         // A flowering age's inflorescence stands at its axis's tip, as its
         // cluster does (fn-253): where the shoot ends, never along it.
@@ -583,9 +533,6 @@ fn unfolded(
         frames,
         keys,
         grown: lengths,
-        bearing,
-        handed,
-        followed,
         blooms,
         clusters,
         clustered,
@@ -608,7 +555,6 @@ pub mod growth;
 #[cfg(test)]
 mod leafing_tests;
 pub use establish::Establishing;
-mod hand;
 mod join;
 mod unfolding;
 use unfolding::Unfolding;
@@ -618,7 +564,5 @@ mod radii_tests;
 mod relay_tests;
 #[cfg(test)]
 mod repeat_tests;
-#[cfg(test)]
-mod stretch_tests;
 #[cfg(test)]
 mod tests;

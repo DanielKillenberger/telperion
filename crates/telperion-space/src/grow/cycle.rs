@@ -101,8 +101,6 @@ impl Grower {
 #[cfg(test)]
 mod balance_tests;
 #[cfg(test)]
-mod surplus_tests;
-#[cfg(test)]
 mod tests;
 
 /// The girth two trees of one shape stand apart by (fn-270 R4: retirement

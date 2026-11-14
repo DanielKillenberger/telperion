@@ -295,7 +295,6 @@ fn pencil<'p>(
         trunk,
         light: 1.0,
         size: 1.0,
-        stretch: 1.0,
         memory: 1.0,
         kept: 1.0,
         root: match axis.origin {
@@ -342,7 +341,7 @@ pub(super) fn draw_bent(
         // The share of a node's length its nodes grew at (`Unit::size`).
         let grown = drawn.size as f32;
         let present = pencil.running as f32 * drawn.survive as f32;
-        let shade = draws.shade(k);
+        let size = draws.shade(k);
         let birth = axis.birth;
         let unit = |p: &Growing| (p.cycle - birth - 1) as usize == k;
         let end = pencil.laid
@@ -361,22 +360,21 @@ pub(super) fn draw_bent(
             let grew = present * node * grown;
             p.scale = grew * pencil.base_scale as f32;
             p.grown = grew;
-            p.size = shade.size;
+            p.size = image(size);
             p.rank = image(pencil.rank);
             pencil.rank = f64::from(pencil.rank as f32 + node * grown);
         }
         let total = pencil.layer.run() as f32
             + axis.phytomers[pencil.laid..end]
                 .iter()
-                .map(|p| p.scale * p.size * shade.stretch)
+                .map(|p| p.scale * p.size)
                 .sum::<f32>();
         let total = f64::from(total);
         for j in pencil.laid..end {
             let p = &mut axis.phytomers[j];
-            // Laid at its size and its tip's share, then left at its bare
-            // scale for what it bears.
+            // Laid at its size, then left unsized for what it bears.
             let bare = p.scale;
-            p.scale = bare * p.size * shade.stretch;
+            p.scale = bare * p.size;
             let length = (pencil.layer)
                 .step(p, state, (bent, total), None, pencil.trunk)
                 .map_err(|s| s.error(i, axis.pa, axis.birth, axis.base.z))?;
@@ -394,7 +392,7 @@ pub(super) fn draw_bent(
 /// `x`, an `f32`'s image, as that `f32`: a growing phytomer holds what the
 /// layout wrote at the width it wrote it (fn-358), so the tree widened from
 /// it is the same to the bit.
-pub(super) fn image(x: f64) -> f32 {
+fn image(x: f64) -> f32 {
     let held = x as f32;
     assert!(f64::from(held) == x || x.is_nan(), "{x} is no f32's image");
     held

@@ -172,7 +172,7 @@ impl Shoot<'_> {
         };
         let survive = presence::times(survive, presence::q(self.kept(apex.axis)));
         let survive = presence::real(survive);
-        let (shade, reads) = (self.shade(apex.axis), self.reads);
+        let (size, reads) = (self.size(apex.axis), self.reads);
         let draws = self.draws_mut(apex.axis);
         draws.units.push(Unit {
             survive,
@@ -181,7 +181,7 @@ impl Shoot<'_> {
             size: laid.map_or(share, |c| c.of),
         });
         if reads.sketching {
-            draws.shade.push(shade);
+            draws.shade.push(size);
         }
         self.grow_unit(apex, pa, unit, (cycle, laid))?;
         apex.spent += share;

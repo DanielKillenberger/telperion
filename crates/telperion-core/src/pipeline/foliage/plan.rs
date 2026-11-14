@@ -11,7 +11,7 @@ use crate::{
     envelope::Envelope,
     math::Vec3,
     pipeline::surface::SurfaceParams,
-    tree::{Leafing, NodeKind, Tree},
+    tree::{NodeKind, Tree},
     Error, Result,
 };
 use stations::addressable;
@@ -40,15 +40,12 @@ pub fn micrometres(metres: f64) -> f64 {
 }
 
 /// The points one run passes through, the chord along it to each (what its
-/// frames read) and the leaf-bearing wood along it to each
-/// (`Tree::bearing`, fn-364), into
+/// frames read) and the wood grown along it to each (`Tree::grown`), into
 /// scratch the caller owns; the run's own grown length is the last of them.
 /// Under a twig layer each node's wood is counted in whole micrometres
 /// (`micrometres`); on a shoot no twig layer marks it is in metres. The
 /// builder sweeps this walk and the count reads it, so a run is measured by
-/// one rule however many times it is read. A node's handed run (`handed`)
-/// is its parent, then the node twice: no wood to the node, then the
-/// handed wood at the node's one point.
+/// one rule however many times it is read.
 pub(crate) fn walk(
     tree: &Tree,
     nodes: &[usize],
@@ -62,14 +59,9 @@ pub(crate) fn walk(
     chord.push(0.);
     along.clear();
     along.push(0.);
-    let handed = is_handed(nodes);
     for i in 1..points.len() {
         chord.push(chord[i - 1] + points[i].distance(points[i - 1]));
-        let wood = match (handed, nodes[i] == nodes[i - 1]) {
-            (false, _) => tree.bearing_length(nodes[i]),
-            (true, true) => handed_wood(tree.handed_at(nodes[i]), twig),
-            (true, false) => 0.0,
-        };
+        let wood = tree.grown_length(nodes[i]);
         let step = match twig {
             Some(_) => micrometres(wood),
             None => wood,
@@ -97,40 +89,9 @@ pub(crate) fn kept(
     }
     // The first segment starts at 0, at or before every station.
     let segment = along[..along.len() - 1].partition_point(|&a| a <= distance) - 1;
-    let leafing = leafing_at(tree, nodes, segment);
+    let leafing = tree.leafing(nodes[segment + 1]);
     let at = (distance - along[segment], micrometres(leafing.older));
     leafing.kept(at, tree.key(nodes[1]), ordinal)
-}
-
-/// The wood of a node's handed spans, each its own short run: under a
-/// twig layer each rounded up to whole twig internodes, as the station
-/// rule counts a run, so the spans keep the stations each would have.
-fn handed_wood(spans: &[crate::tree::Handed], twig: Option<TwigPlacement>) -> f64 {
-    let one = |h: &crate::tree::Handed| match twig {
-        Some(t) => {
-            let per = micrometres(t.internode_length);
-            (micrometres(h.length) / per).ceil() * per * 1e-6
-        }
-        None => h.length,
-    };
-    spans.iter().map(one).sum()
-}
-
-/// Whether `nodes` is a node's handed run: its parent, then it twice.
-pub(crate) fn is_handed(nodes: &[usize]) -> bool {
-    nodes.len() == 3 && nodes[1] == nodes[2]
-}
-
-/// The retention of the wood of segment `segment` of the run `nodes`: its
-/// distal node's, or a handed run's handed wood's.
-pub(crate) fn leafing_at(tree: &Tree, nodes: &[usize], segment: usize) -> Leafing {
-    match nodes[segment] == nodes[segment + 1] {
-        true => tree
-            .handed_at(nodes[segment])
-            .last()
-            .map_or(Leafing::ALL, |h| h.leafing()),
-        false => tree.leafing(nodes[segment + 1]),
-    }
 }
 
 /// One unbranched run of leaf-bearing wood under a twig layer: its nodes,
@@ -484,20 +445,6 @@ pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
             runs.push(run);
         }
     }
-    // Each node's handed wood, its own short run at its tip (fn-364),
-    // joining and splitting no chain.
-    let mut at = tree
-        .handed
-        .iter()
-        .map(|h| h.node as usize)
-        .collect::<Vec<_>>();
-    at.dedup();
-    for i in at {
-        let run = vec![tree.nodes[i].parent.map_or(i, |p| p as usize), i, i];
-        if cauline(tree, p, &run) {
-            runs.push(run);
-        }
-    }
     runs
 }
 
@@ -514,18 +461,7 @@ pub(super) fn cauline(tree: &Tree, p: CanopyParams, nodes: &[usize]) -> bool {
 /// and float64 compute them alike (fn-212 task 10, host decision 4, as
 /// `SHORTEST` in task 8): in float32 and float64 a girth within a float
 /// step of the bound read on either side of it.
-/// Resolves the tree's handed wood for this family's canopy (fn-364): a
-/// handed span bears by the kind its wood would have had laid whole, in
-/// its axis's terminal wood or as slender as `bearing_of` holds wood.
-pub(crate) fn hand(tree: &mut Tree, p: CanopyParams) {
-    if tree.handed.is_empty() {
-        return;
-    }
-    let slender = micrometres(tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius);
-    tree.resolve_handed(&|radius| slender > 0. && micrometres(radius) <= slender);
-}
-
-pub(crate) fn bearing_of(tree: &Tree, p: CanopyParams) -> impl Fn(usize) -> bool + '_ {
+fn bearing_of(tree: &Tree, p: CanopyParams) -> impl Fn(usize) -> bool + '_ {
     let slender = micrometres(tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius);
     move |i: usize| {
         let n = &tree.nodes[i];
@@ -533,8 +469,7 @@ pub(crate) fn bearing_of(tree: &Tree, p: CanopyParams) -> impl Fn(usize) -> bool
         n.parent.is_some()
             && !tree.is_clustered(i)
             && !tree.in_clothing(i)
-            && ((n.kind == NodeKind::Twig && !tree.followed(i))
-                || (slender > 0. && girth() <= slender))
+            && (n.kind == NodeKind::Twig || (slender > 0. && girth() <= slender))
     }
 }
 

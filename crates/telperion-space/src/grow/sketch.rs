@@ -58,9 +58,6 @@ pub(super) struct Pencil {
     /// growth unit's size among its siblings this cycle.
     pub(super) light: f64,
     pub(super) size: f64,
-    /// The share of that unit's length its balance leaves it this cycle
-    /// (`passes::surplus`, fn-364): whole where nothing is charged.
-    pub(super) stretch: f32,
     /// Its remembered carbon balance and what its subtrees' survival of
     /// shedding makes of its unit this cycle (`cycle/passes.rs`).
     pub(super) memory: f64,

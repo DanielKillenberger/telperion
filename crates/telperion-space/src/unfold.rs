@@ -371,7 +371,7 @@ impl Presenting<'_> {
             0 => (base, a.base),
             k => (grown[k - 1], a.phytomers[k - 1].tip),
         };
-        let wood = |p: &Phytomer| p.length() * internode_factor(p.key, state.form.internode_spread);
+        let wood = |p: &Phytomer| p.scale * internode_factor(p.key, state.form.internode_spread);
         let total: f64 = a.phytomers[olds..].iter().map(wood).sum();
         let tau = Season::of(state).grown(self.f * YEAR);
         let reach = run(tau, state.elongation) * total;

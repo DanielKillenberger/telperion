@@ -30,59 +30,19 @@ pub(super) fn by_parent(structure: &Structure) -> Vec<Vec<(usize, Join)>> {
 }
 
 /// What the drawing draws a node of: its place, radius, identity, key and
-/// the wood grown into it, as laid and leaf-bearing (`Wood`); the relay it
-/// is the join of, if it is one.
+/// the wood grown into it; the relay it is the join of, if it is one.
 pub(super) struct Draw {
     pub tip: Vec3,
     pub radius: f64,
     pub identity: u64,
     pub key: u32,
-    pub piece: Wood,
+    pub piece: f64,
     pub relay: Option<usize>,
-}
-
-/// A span's wood, in metres: as laid, its internodes at their length
-/// (`Phytomer::length`), and leaf-bearing, at the length their nodes were
-/// allotted, the stretch left out (fn-364).
-#[derive(Debug, Clone, Copy, Default, PartialEq)]
-pub(super) struct Wood {
-    pub laid: f64,
-    pub bearing: f64,
-}
-
-impl Wood {
-    /// Phytomer `p`'s wood at its PA's `internode` and its spread's
-    /// `factor`.
-    pub fn of(p: &telperion_space::Phytomer, internode: f64, factor: f64) -> Self {
-        Self {
-            laid: internode * p.length() * factor,
-            bearing: internode * p.scale * factor,
-        }
-    }
-
-    /// `t` of it.
-    pub fn times(self, t: f64) -> Self {
-        Self {
-            laid: self.laid * t,
-            bearing: self.bearing * t,
-        }
-    }
-
-    pub fn plus(self, o: Self) -> Self {
-        Self {
-            laid: self.laid + o.laid,
-            bearing: self.bearing + o.bearing,
-        }
-    }
-
-    pub fn minus(self, o: Self) -> Self {
-        self.plus(o.times(-1.0))
-    }
 }
 
 impl Draw {
     /// Phytomer `place` of `axis`: its own node.
-    pub fn of(axis: &Axis, place: usize, piece: Wood) -> Self {
+    pub fn of(axis: &Axis, place: usize, piece: f64) -> Self {
         let p = &axis.phytomers[place];
         Self {
             tip: up(p.tip),
@@ -98,7 +58,7 @@ impl Draw {
 /// The join of relay `i` on `parent`, inside the span of its node: `t` of
 /// the way along it, at the radius with the relay whole, and `t` of the
 /// span's grown wood.
-pub(super) fn draw(parent: &Axis, (i, relay): (usize, &Axis), join: Join, piece: Wood) -> Draw {
+pub(super) fn draw(parent: &Axis, (i, relay): (usize, &Axis), join: Join, piece: f64) -> Draw {
     let t = f64::from(join.t);
     let end = up(parent.phytomers[join.node].tip);
     let start = up(match join.node {
@@ -111,7 +71,7 @@ pub(super) fn draw(parent: &Axis, (i, relay): (usize, &Axis), join: Join, piece:
         radius: join.below,
         identity: key,
         key: crate::tree::node_key(key, 0),
-        piece: piece.times(t),
+        piece: piece * t,
         relay: Some(i),
     }
 }
