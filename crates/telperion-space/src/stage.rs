@@ -1,7 +1,9 @@
-//! The stage a build is in, for the ceiling's measurement build alone
-//! (fn-369, `scripts/wasm-ceiling.mjs`): the allocator there tags each large
-//! block with it. A tag is set at a boundary the code already has; it adds
-//! no stage. Without the `measure-ceiling` feature `at` does nothing.
+//! The stage a build is in, so a request the machine refuses where the
+//! code cannot return the refusal is still named by its stage (fn-369): the
+//! Wasm binding's allocator records it beside the bytes asked. A tag is set
+//! at a boundary the code already has; it adds no stage. Each is one static
+//! store.
+use std::sync::atomic::{AtomicU32, Ordering::Relaxed};
 
 /// Before growth: the request read and the family parsed.
 pub const BEFORE: u32 = 0;
@@ -33,20 +35,36 @@ pub const CURVE: u32 = 1012;
 /// The binding's buffers handed out.
 pub const HANDOUT: u32 = 1013;
 
-#[cfg(feature = "measure-ceiling")]
-static STAGE: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(BEFORE);
+static STAGE: AtomicU32 = AtomicU32::new(BEFORE);
 
 /// The build is in `stage` from here on.
-#[inline(always)]
 pub fn at(stage: u32) {
-    #[cfg(feature = "measure-ceiling")]
-    STAGE.store(stage, std::sync::atomic::Ordering::Relaxed);
-    #[cfg(not(feature = "measure-ceiling"))]
-    let _ = stage;
+    STAGE.store(stage, Relaxed);
 }
 
 /// The stage the build is in.
-#[cfg(feature = "measure-ceiling")]
-pub fn stage() -> u32 {
-    STAGE.load(std::sync::atomic::Ordering::Relaxed)
+pub fn now() -> u32 {
+    STAGE.load(Relaxed)
+}
+
+/// A stage's name, as a refusal states it; every growth year is `growth`.
+pub fn name(stage: u32) -> &'static str {
+    match stage {
+        BEFORE => "request",
+        1..=999 => "growth",
+        SETTLE => "settle",
+        ORDER => "lineage order",
+        ESTABLISH => "establishing",
+        CONVERT => "conversion",
+        CLOTHE => "clothing",
+        RINGS => "wood's rings",
+        FACES => "wood's mesh",
+        PREPARE => "leaf plan",
+        FOLIAGE => "foliage",
+        ORGAN => "flowers",
+        STRUCTURE => "structure transfer",
+        CURVE => "curve",
+        HANDOUT => "handout",
+        _ => "build",
+    }
 }

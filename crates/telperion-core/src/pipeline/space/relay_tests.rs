@@ -17,7 +17,7 @@ fn converted_at(preset: Preset, age: u32, seed: u32) -> Tree {
     };
     let structure = telperion_space::grow(&species, request).unwrap();
     let rows = pa_rows(&species);
-    convert(&structure, (&family.space.trunk, &rows))
+    converted(&structure, (&family.space.trunk, &rows))
 }
 
 /// The trees whose trunks dented at their relays' joins (DENTS.md).

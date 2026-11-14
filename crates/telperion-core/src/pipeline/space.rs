@@ -13,28 +13,13 @@
 //! it is the node's own.
 use super::GrowInput;
 use crate::math::Vec3;
+use crate::memory::reserve;
 use crate::tree::{
     Bloom, BudFate, Cluster, Leafing, Node, NodeIdentity, NodeKind, ShootState, Tree,
 };
 use crate::{Error, Result};
-use telperion_space::{measure, Origin, Request, Structure};
+use telperion_space::{stage, Origin, Request, Structure};
 
-/// The most phytomers a tree may keep where the pipeline runs in 32-bit
-/// Wasm, so its CPU preparation fits the 4 GB Wasm memory and a tree too
-/// large is refused by name, never a trap (fn-198 host decision 5). Measured
-/// in the harness at seed 42 (task 3, BROWSER.md): the spruce at 73 keeps
-/// 4.27M and builds, at 75 it keeps 4.48M and traps; the bound leaves the
-/// slack a page's earlier trees and other seeds take. fn-209's fine path
-/// lifts it.
-const WASM_KEPT: usize = 4_000_000;
-const KEPT: Option<usize> = if cfg!(all(
-    target_arch = "wasm32",
-    not(feature = "measure-ceiling")
-)) {
-    Some(WASM_KEPT)
-} else {
-    None
-};
 /// Where fine wood begins, as a share of the root's radius: the fine-wood
 /// measure of the pinned baseline (fn-190, BASELINE.md).
 pub(super) const STRUCTURAL: f64 = 0.05;
@@ -59,17 +44,17 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     let rows = pa_rows(species);
     let establishing = Establishing::of(&input.canopy, species, &input.space.trunk);
     let rows = (&input.space.trunk[..], &rows[..]);
-    foreseen(species, request.age, KEPT)?;
     // The engine returns its tree in its canonical lineage order, parents
     // first and siblings by lineage, whichever path built it (FINE-CONTRACT
     // decision C; fn-198 host decision 17): the conversion's node numbering
     // and a relay's girth never depend on how the tree was assembled.
     let structure = telperion_space::grow(species, request).map_err(engine)?;
-    fits(&structure, KEPT)?;
-    measure::at(measure::ESTABLISH);
+    #[cfg(feature = "measure-ceiling")]
+    crate::memory::KEPT.store(kept(&structure), std::sync::atomic::Ordering::Relaxed);
+    stage::at(stage::ESTABLISH);
     let structure = Establishing::apply(establishing, &structure, rows.0);
-    measure::at(measure::CONVERT);
-    let mut tree = convert(&structure, rows);
+    stage::at(stage::CONVERT);
+    let mut tree = convert(&structure, rows)?;
     scaled(&mut tree, input.supernatural.scale());
     Ok(tree)
 }
@@ -159,37 +144,9 @@ fn pa_rows(species: &telperion_space::Species) -> Vec<PaRow> {
         .collect()
 }
 
-/// The refusal of a tree over the browser's ceiling.
-const OVER: Error = Error::ResourceLimit(
-    "the tree keeps more than 4,000,000 phytomers, more than a browser \
-     prepares in its 4 GB Wasm memory; grow it younger",
-);
-
-/// Refuses, before it grows, a tree expected to keep more phytomers than
-/// `ceiling` (host decision 15): the cut's predictor, in milliseconds where
-/// growth takes seconds. A species whose buds read light has no expected
-/// count and is held by `fits` after growth alone.
-fn foreseen(species: &telperion_space::Species, age: u32, ceiling: Option<usize>) -> Result<()> {
-    let Some(most) = ceiling else {
-        return Ok(());
-    };
-    let expected = telperion_space::expected_kept(species, age).map_err(engine)?;
-    match expected {
-        Some(kept) if kept > most as f64 => Err(OVER),
-        _ => Ok(()),
-    }
-}
-
-/// Refuses a grown tree that keeps more phytomers than `ceiling`, before
-/// any of its preparation is allocated: a tree kept above its expectation.
-fn fits(structure: &Structure, ceiling: Option<usize>) -> Result<()> {
-    let kept: usize = structure.axes.iter().map(|a| a.phytomers.len()).sum();
-    #[cfg(feature = "measure-ceiling")]
-    crate::memory::KEPT.store(kept, std::sync::atomic::Ordering::Relaxed);
-    match ceiling {
-        Some(most) if kept > most => Err(OVER),
-        _ => Ok(()),
-    }
+/// The phytomers a grown tree keeps.
+fn kept(structure: &Structure) -> usize {
+    structure.axes.iter().map(|a| a.phytomers.len()).sum()
 }
 
 /// The engine's refusal as the pipeline's.
@@ -269,8 +226,14 @@ fn codominance(radius: f64, parent: f64) -> Option<f64> {
 /// node drawn from its own wood, is kept as a bloom (fn-253). An axis of an age that states a cluster is a
 /// short shoot: each node it draws is marked, and its last drawn node, its
 /// own tip, keeps the cluster; an axis that draws no node bears none.
-fn convert(structure: &Structure, rows: (&[usize], &[PaRow])) -> Tree {
-    unfolded(structure, rows, Unfolding::WHOLE).0
+fn convert(structure: &Structure, rows: (&[usize], &[PaRow])) -> Result<Tree> {
+    Ok(unfolded(structure, rows, Unfolding::WHOLE)?.0)
+}
+
+/// `convert`'s tree for a test, the machine's refusal a failure.
+#[cfg(test)]
+fn converted(structure: &Structure, rows: (&[usize], &[PaRow])) -> Tree {
+    convert(structure, rows).unwrap()
 }
 
 /// `convert`'s tree, its leaves drawn by `unfolding`, and each axis's
@@ -279,7 +242,7 @@ fn unfolded(
     structure: &Structure,
     (trunk, rows): (&[usize], &[PaRow]),
     unfolding: Unfolding,
-) -> (Tree, Vec<Vec<u32>>) {
+) -> Result<(Tree, Vec<Vec<u32>>)> {
     let mut nodes = vec![Node::root()];
     let mut blooms = Vec::new();
     let mut clusters = Vec::new();
@@ -308,6 +271,28 @@ fn unfolded(
     // Each axis's relays by where they join it, and each relay's join as
     // drawn: the node and its parent's first phytomer beyond it.
     let joins = join::by_parent(structure);
+    // Every store filled a node at a time, reserved once at the most nodes
+    // the tree can draw: one a phytomer, one a relay joined inside a span,
+    // and the root (fn-369). Merged phytomers draw fewer; `fitted` gives
+    // the rest back.
+    let most = 1 + kept(structure) + joins.iter().map(Vec::len).sum::<usize>();
+    reserve(&mut nodes, most, "conversion's node store")?;
+    reserve(&mut frames, most, "conversion's frame store")?;
+    reserve(&mut keys, most, "conversion's key store")?;
+    reserve(&mut lengths, most, "conversion's length store")?;
+    reserve(&mut bearing, most, "conversion's bearing store")?;
+    if stretched {
+        reserve(&mut followed, most, "conversion's followed store")?;
+    }
+    if unfolding_on {
+        reserve(&mut unfolded, most, "conversion's unfolding store")?;
+    }
+    if leafing_on {
+        reserve(&mut leafing, most, "conversion's leafing store")?;
+    }
+    if clustering {
+        reserve(&mut clustered, most, "conversion's cluster store")?;
+    }
     let mut joined: Vec<Option<(u32, usize)>> = vec![None; structure.axes.len()];
     for (i, axis) in structure.axes.iter().enumerate() {
         let start = match axis.origin {
@@ -601,13 +586,11 @@ fn unfolded(
         year: unfolding.year(structure, rows),
         ..Tree::default()
     };
-    (tree, drawn)
+    Ok((tree, drawn))
 }
 
 #[cfg(test)]
 mod bloom_tests;
-#[cfg(test)]
-mod ceiling_tests;
 #[cfg(test)]
 mod cluster_tests;
 mod establish;

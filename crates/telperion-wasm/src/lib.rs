@@ -50,7 +50,7 @@ fn status(e: &mut Engine, result: Result<Value>) -> u32 {
                 Error::InvalidInput(m) => (1, m.to_string()),
                 Error::InvalidValue { field, value } => (1, format!("{field} = {value}")),
                 Error::ResourceLimit(m) => (2, m.to_string()),
-                e @ Error::WoodMemory { .. } => (2, e.to_string()),
+                e @ Error::Memory { .. } => (2, e.to_string()),
             };
             e.metadata = json!({"error": message, "code": code})
                 .to_string()
@@ -123,6 +123,22 @@ pub extern "C" fn measured_kept() -> usize {
 }
 /// One of the measurement allocator's records as u32 words
 /// (`measured::words`), and its length in words.
+/// The request the machine refused in the last build, four u32 words
+/// (`live::REFUSED`); it reads no engine state, so it answers after a trap.
+#[cfg(any(target_arch = "wasm32", test))]
+#[no_mangle]
+pub extern "C" fn refusal_ptr() -> *const u32 {
+    live::REFUSED.as_ptr().cast()
+}
+/// A stage tag's name, as bytes and their length (`stage::name`).
+#[no_mangle]
+pub extern "C" fn stage_name_ptr(tag: u32) -> *const u8 {
+    telperion_core::memory::stage::name(tag).as_ptr()
+}
+#[no_mangle]
+pub extern "C" fn stage_name_len(tag: u32) -> usize {
+    telperion_core::memory::stage::name(tag).len()
+}
 #[cfg(all(target_arch = "wasm32", feature = "measure-ceiling"))]
 #[no_mangle]
 pub extern "C" fn measured_words(kind: u32) -> *const u32 {
@@ -144,13 +160,12 @@ pub extern "C" fn release() {
 }
 #[no_mangle]
 pub extern "C" fn build() -> u32 {
-    #[cfg(target_arch = "wasm32")]
-    telperion_core::memory::set_left(live::left);
+    #[cfg(any(target_arch = "wasm32", test))]
+    live::begin();
     ENGINE.with(|e| {
         let mut e = e.borrow_mut();
         e.output = Output::default();
-        #[cfg(feature = "measure-ceiling")]
-        telperion_core::memory::measure::at(telperion_core::memory::measure::BEFORE);
+        telperion_core::memory::stage::at(telperion_core::memory::stage::BEFORE);
         e.revision = e.revision.wrapping_add(1);
         let result = serde_json::from_slice(&e.input)
             .map_err(|_| Error::InvalidInput("malformed JSON request"))

@@ -15,7 +15,7 @@ geometry = []
 query-count = []
 # Lifts the Wasm kept-phytomer refusal so `scripts/wasm-ceiling.mjs` can find
 # where 32-bit Wasm memory traps; a measurement build only, never shipped.
-measure-ceiling = ["telperion-space/measure-ceiling"]
+measure-ceiling = []
 json = ["dep:serde", "dep:serde_json", "slotmap/serde"]
 
 [build-dependencies]

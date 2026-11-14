@@ -56,7 +56,7 @@ fn stretched(
 /// The stations the drawing prepares for `structure`'s tree.
 fn stations(family: &crate::family::Family, structure: &Structure) -> PreparedStations {
     let species = family.space.species.as_ref().unwrap();
-    let tree = convert(structure, (&family.space.trunk, &pa_rows(species)));
+    let tree = converted(structure, (&family.space.trunk, &pa_rows(species)));
     let x = executor::expand(tree, family).unwrap();
     x.stations().unwrap().expect("stations under a twig layer")
 }
@@ -96,7 +96,7 @@ fn read(
     std::collections::HashMap<u32, Option<bool>>,
 ) {
     let species = family.space.species.as_ref().unwrap();
-    let tree = convert(structure, (&family.space.trunk, &pa_rows(species)));
+    let tree = converted(structure, (&family.space.trunk, &pa_rows(species)));
     let wood = tree.bearing.iter().sum::<f64>() + tree.handed.iter().map(|h| h.length).sum::<f64>();
     let x = executor::expand(tree, family).unwrap();
     let kinds = {

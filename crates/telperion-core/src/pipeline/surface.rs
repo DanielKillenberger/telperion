@@ -9,8 +9,6 @@ mod angular;
 #[cfg(feature = "geometry")]
 mod attachment;
 #[cfg(feature = "geometry")]
-mod budget;
-#[cfg(feature = "geometry")]
 mod build;
 #[cfg(feature = "geometry")]
 mod chunks;
@@ -65,14 +63,11 @@ use {
     paths::paths,
     samples::sample_path,
 };
-/// A wood buffer the allocator refused, named with its remedy.
-const OUT_OF_MEMORY: Error = Error::ResourceLimit(
-    "the wood ran out of memory while its buffers were reserved; build it with fewer \
-     radialSegments",
-);
+/// A wood buffer of exactly `n` elements, laid out before it fills: the
+/// machine's refusal is the wood's, named with the bytes it asked for.
 fn reserved<T>(n: usize) -> Result<Vec<T>> {
     let mut out = Vec::new();
-    out.try_reserve_exact(n).map_err(|_| OUT_OF_MEMORY)?;
+    crate::memory::reserve(&mut out, n, "wood")?;
     Ok(out)
 }
 fn filled<T: Clone>(n: usize, value: T) -> Result<Vec<T>> {
@@ -352,10 +347,21 @@ mod sides_tests;
 #[cfg(test)]
 mod tests {
     #[test]
-    fn allocation_failure_is_named_with_its_remedy() {
-        let refused = super::reserved::<f32>(usize::MAX).unwrap_err();
-        assert_eq!(refused, super::OUT_OF_MEMORY);
+    fn a_wood_the_machine_cannot_hold_is_refused_with_its_bytes() {
+        let n = usize::MAX / 8;
+        let refused = super::reserved::<f32>(n).unwrap_err();
+        let needed = n as u64 * 4;
+        assert_eq!(
+            refused,
+            crate::Error::Memory {
+                store: "wood",
+                needed
+            }
+        );
         let said = refused.to_string();
-        assert!(said.contains("the wood ran out of memory") && said.contains("radialSegments"));
+        assert_eq!(
+            said,
+            format!("the wood needs {needed} bytes and the machine did not give them")
+        );
     }
 }

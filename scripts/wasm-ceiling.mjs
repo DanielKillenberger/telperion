@@ -23,7 +23,8 @@ import { fileURLToPath } from 'node:url';
  * a case, the measurement allocator's records for the trees each side of a
  * trap and the Two Trees at seed 42: the failed request, every block of
  * 16 MiB or more with its stage, and the large blocks live at the high-water
- * mark. */
+ * mark. `--reuse` builds the oak at 40 then Telperion, and Telperion
+ * twice, each pair on one engine, the memory read after each build. */
 const dist = new URL('../dist/', import.meta.url);
 const SPECIES = ['norway-spruce', 'european-beech', 'oregon-white-oak'];
 const TWO_TREES = ['telperion', 'laurelin'];
@@ -32,6 +33,17 @@ const STEP = 10;
 const OLDEST = 400;
 /** `--allocations`: the trees each side of a trap, and the Two Trees. */
 const TRACED = [['norway-spruce', 88], ['norway-spruce', 89], ['european-beech', 121], ['european-beech', 122], ['telperion'], ['laurelin']];
+/** `--reuse`: trees built one after another in one instance. */
+const REUSED = [[['oregon-white-oak', 40], ['telperion']], [['telperion'], ['telperion']]];
+
+/** Each tree of `sequence` built in turn on one engine, in a process of its
+ * own: its outcome and the memory after it. */
+function reused(module, sequence) {
+  const args = [fileURLToPath(import.meta.url), '--sequence', module, JSON.stringify(sequence)];
+  const out = execFileSync(process.execPath, args, { encoding: 'utf8', maxBuffer: 1 << 20 });
+  return JSON.parse(out.trim().split('\n').at(-1));
+}
+
 /** The stage tags of `telperion_space::measure`; growth tags its year. */
 const STAGES = { 0: 'before', 1001: 'settle', 1002: 'order', 1003: 'establish', 1004: 'convert', 1005: 'clothe', 1006: 'rings', 1007: 'faces', 1008: 'prepare', 1009: 'foliage', 1010: 'organ', 1011: 'structure', 1012: 'curve', 1013: 'handout' };
 const stage = tag => STAGES[tag] ?? `growth ${tag}`;
@@ -56,22 +68,27 @@ async function one(module, id, age, seed) {
   if (age !== undefined) family.age = age;
   family.skeleton.seed = seed;
   const engine = await TreeEngine.create(new WebAssembly.Module(readFileSync(module)));
+  // The loader replaces a trapped instance (fn-369 step 2); the trapped
+  // one's records are read first, through exports that touch no engine
+  // state, by wrapping its private replacement for this measurement alone.
+  const records = e => ({ kept: e.measured_kept() >>> 0, bytes: e.memory.buffer.byteLength, ...(e.measured_words ? { allocations: allocations(e) } : {}) });
+  let trapped;
+  const replace = Object.getPrototypeOf(engine).trapped;
+  engine.trapped = function (error) {
+    if (error instanceof WebAssembly.RuntimeError) trapped = records(this.exports);
+    return replace.call(this, error);
+  };
   const started = performance.now();
   let outcome = 'built';
   try {
     engine.build(family, { surface: true, foliage: true });
   } catch (e) {
-    if (e instanceof WebAssembly.RuntimeError) outcome = 'trapped';
-    else outcome = `refused: ${e instanceof Error ? e.message : e}`;
+    const said = e instanceof Error ? e.message : String(e);
+    outcome = trapped ? `trapped: ${said}` : `refused: ${said}`;
   }
-  // The export reads no engine state, so it answers after a trap; zero is
-  // a tree that never finished growing.
-  const e = engine['exports'];
-  const kept = e.measured_kept() >>> 0;
-  const bytes = engine.memoryBytes;
   const seconds = (performance.now() - started) / 1000;
-  const traced = e.measured_words ? { allocations: allocations(e) } : {};
-  return { id, age: family.age, seed, kept: kept || null, bytes, outcome, seconds, ...traced };
+  const { kept, ...rest } = trapped ?? records(engine['exports']);
+  return { id, age: family.age, seed, kept: kept || null, outcome, seconds, ...rest };
 }
 
 /** One case in a child process of its own. */
@@ -95,10 +112,10 @@ function row(r) {
 }
 
 /** The largest age that builds and the first that does not, at seed 42. */
-function edge(module, id) {
+function edge(module, id, from) {
   const built = age => row(child(module, id, age, 42)).outcome === 'built';
-  let low = row(child(module, id, undefined, 42));
-  if (low.outcome !== 'built') throw Error(`${id} fails at its preset age ${low.age}`);
+  let low = row(child(module, id, from, 42));
+  if (low.outcome !== 'built') throw Error(`${id} fails at age ${low.age}, where its walk starts`);
   let lowAge = low.age, high;
   for (let age = lowAge + STEP; age <= OLDEST; age += STEP) {
     if (!built(age)) { high = age; break; }
@@ -112,12 +129,32 @@ function edge(module, id) {
 }
 
 const args = process.argv.slice(2);
-if (args[0] === '--case') {
+if (args[0] === '--sequence') {
+  const { TreeEngine, PRESETS } = await import(new URL('telperion.js', dist));
+  const engine = await TreeEngine.create(new WebAssembly.Module(readFileSync(args[1])));
+  const rows = [];
+  for (const [id, age] of JSON.parse(args[2])) {
+    const family = structuredClone(PRESETS.find(p => p.id === id));
+    if (age !== undefined) family.age = age;
+    let outcome = 'built';
+    try {
+      engine.build(family, { surface: true, foliage: true });
+    } catch (e) {
+      outcome = `failed: ${e instanceof Error ? e.message : e}`;
+    }
+    rows.push({ id, age: family.age, outcome, memory: engine.memoryBytes });
+  }
+  console.log(JSON.stringify(rows));
+} else if (args[0] === '--case') {
   const [, module, id, age, seed] = args;
   console.log(JSON.stringify(await one(module, id, age === '' ? undefined : Number(age), Number(seed))));
 } else {
   const module = args[0];
   if (!module) throw Error('usage: node scripts/wasm-ceiling.mjs <measurement telperion_wasm.wasm> [species...]');
+  if (args[1] === '--reuse') {
+    for (const sequence of REUSED) console.log(JSON.stringify({ sequence: reused(module, sequence) }));
+    process.exit();
+  }
   if (args[1] === '--allocations') {
     for (const [id, age] of TRACED) console.log(JSON.stringify(child(module, id, age, 42)));
     process.exit();
@@ -125,7 +162,9 @@ if (args[0] === '--case') {
   const only = args.slice(1);
   console.log('| Tree | Age | Seed | Kept phytomers | Wasm bytes | Outcome | Bytes per kept |');
   console.log('|---|--:|--:|--:|--:|---|--:|');
-  for (const id of SPECIES.filter(s => !only.length || only.includes(s))) edge(module, id);
+  // A species may be named with the age its walk starts at: `norway-spruce@80`.
+  const walks = only.length ? only.filter(s => s !== 'two-trees').map(s => s.split('@')) : SPECIES.map(s => [s]);
+  for (const [id, from] of walks) edge(module, id, from === undefined ? undefined : Number(from));
   if (!only.length || only.includes('two-trees')) {
     for (const id of TWO_TREES) for (const seed of SEEDS) row(child(module, id, undefined, seed));
   }

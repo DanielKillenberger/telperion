@@ -202,7 +202,7 @@ impl Paused {
     fn cycles(&mut self, age: u32) -> Result<()> {
         let (phases, clock) = (&mut self.phases, &mut self.clock);
         for cycle in self.committed + 1..=age {
-            crate::measure::at(cycle);
+            crate::stage::at(cycle);
             // Every year is laid out and lit like any other: the next one,
             // where it is grown, reads its light (fn-355).
             self.g.year(cycle, true, &mut self.advanced, &mut |s| {
@@ -223,10 +223,10 @@ impl Paused {
             age: at,
             ..self.request
         };
-        crate::measure::at(crate::measure::SETTLE);
+        crate::stage::at(crate::stage::SETTLE);
         let copy = self.g.settled_copy(at);
         let grown = copy.settle(request, true, &mut |_| {})?;
-        crate::measure::at(crate::measure::ORDER);
+        crate::stage::at(crate::stage::ORDER);
         Ok(lineage_order(grown.structure))
     }
 
@@ -272,7 +272,7 @@ impl Paused {
             c.ended(&g.axes);
         }
         let mut clock = crate::clock::seconds();
-        crate::measure::at(crate::measure::SETTLE);
+        crate::stage::at(crate::stage::SETTLE);
         let settled = g.settle(request, true, &mut |s: Stage| {
             tick(&mut phases, &mut clock, s)
         })?;
@@ -280,7 +280,7 @@ impl Paused {
             c.phases = phases;
             c.retired = retired;
         }
-        crate::measure::at(crate::measure::ORDER);
+        crate::stage::at(crate::stage::ORDER);
         Ok(Cycled {
             structure: lineage_order(settled.structure),
             grown,

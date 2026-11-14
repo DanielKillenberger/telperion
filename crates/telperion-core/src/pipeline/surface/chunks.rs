@@ -169,7 +169,12 @@ impl Layout {
     /// Opens a fresh chunk unless the last one is still empty.
     fn open(&mut self) -> Result<()> {
         if self.chunks.last().is_none_or(|&n| n > 0) {
-            self.chunks.try_reserve(1).map_err(|_| OUT_OF_MEMORY)?;
+            let needed = (self.chunks.len() as u64 + 1) * size_of::<usize>() as u64;
+            let refused = |_| Error::Memory {
+                store: "wood's layout",
+                needed,
+            };
+            self.chunks.try_reserve(1).map_err(refused)?;
             self.chunks.push(0);
         }
         Ok(())

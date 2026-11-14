@@ -13,3 +13,11 @@
 - **What slowed it:** the oak's kept count peaks at 3.54 M near 140 and then falls (the light thins it), so stepping by ten years never meets a failure and walked all 37 ages to the script's 400 cap: 70 minutes of build time against 10 for the spruce and 22 for the beech.
 - **Cost:** about 65 minutes of the run's 105.
 - **What would remove it:** stop a species' walk once its kept count has fallen for two steps in a row (its peak is past), or walk by kept count rather than age.
+
+## 2026-11-14 05:24, a queued test job killed in its compile
+
+- **Doing:** step 2's narrow tests (`cargo test --profile ci`) and the clothed-tree hashes through `telperion-heavy 8 --threads 4`.
+- **What slowed it:** the job was killed 50 s after admission with exit 143 (signal 15), which the wrapper reports as "likely the 8 GB cap", while it was still compiling; the yield watcher paused and resumed at 05:22:41 and 05:24:03. Which of the two stopped it is unknown.
+- **Cost:** one admission and the compile restarted, a few minutes.
+- **What would remove it:** the wrapper naming who sent the signal (the cap, the watcher or a user stop) instead of guessing.
+- **Update 05:26:** `journalctl --user` names it: the kernel's OOM killer in the scope, at the 8 GB cap and again at 10 GB, about a minute in. The test binaries then compiled outside the queue in 27 s, so the compile was not it: the likely cause is `telperion-wasm`'s whole library suite (its `generate` tests build trees) running four at a time, which my filter did not narrow. Rerun with the wasm tests filtered to `live::`.

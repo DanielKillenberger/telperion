@@ -211,9 +211,6 @@ pub(super) fn rings_mode(
         (true, false) => Coords::Bark(out.along),
         (true, true) => Coords::Distances,
     };
-    if sweep.drawn {
-        super::budget::check(&out.layout, coords)?;
-    }
     if sweep.edges {
         at.record(&mut out.edges, &ordered, &out.layout);
     }

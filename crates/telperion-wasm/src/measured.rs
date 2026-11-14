@@ -8,7 +8,7 @@ use crate::live::{Counting, LIVE};
 use std::alloc::{GlobalAlloc, Layout};
 use std::cell::UnsafeCell;
 use std::sync::atomic::Ordering::Relaxed;
-use telperion_core::memory::measure;
+use telperion_core::memory::stage;
 
 /// The smallest block recorded: 16 MiB.
 const LARGE: usize = 16 << 20;
@@ -76,7 +76,7 @@ impl Record {
         if live <= self.high {
             return;
         }
-        (self.high, self.high_stage, self.high_pages) = (live, measure::stage(), pages());
+        (self.high, self.high_stage, self.high_pages) = (live, stage::now(), pages());
         if self.version != self.snap_version {
             self.snap = self.live;
             (self.n_snap, self.snap_version) = (self.n_live, self.version);
@@ -84,14 +84,14 @@ impl Record {
     }
     fn event(&mut self, size: usize, old: usize, ptr: *mut u8) {
         if self.seen < EVENTS {
-            let e = [size as u32, old as u32, measure::stage(), ptr as u32];
+            let e = [size as u32, old as u32, stage::now(), ptr as u32];
             self.events[self.seen] = Event(e);
         }
         self.seen += 1;
     }
     fn add(&mut self, ptr: *mut u8, size: usize) {
         if size >= LARGE && self.n_live < BLOCKS {
-            self.live[self.n_live] = Block([ptr as u32, size as u32, measure::stage()]);
+            self.live[self.n_live] = Block([ptr as u32, size as u32, stage::now()]);
             (self.n_live, self.version) = (self.n_live + 1, self.version + 1);
         }
     }
@@ -110,7 +110,7 @@ impl Record {
     }
     fn failed(&mut self, size: usize, old: usize) {
         let live = LIVE.load(Relaxed) as u32;
-        self.fail = [size as u32, old as u32, measure::stage(), live, pages(), 1];
+        self.fail = [size as u32, old as u32, stage::now(), live, pages(), 1];
     }
     fn done(&mut self, p: *mut u8, size: usize, old: Option<(*mut u8, usize)>) -> *mut u8 {
         let old_size = old.map_or(0, |o| o.1);
@@ -174,7 +174,7 @@ pub(crate) fn words(kind: u32) -> (*const u32, usize) {
                 f[3],
                 f[4],
                 f[5],
-                measure::stage(),
+                stage::now(),
                 0,
                 0,
             ];
