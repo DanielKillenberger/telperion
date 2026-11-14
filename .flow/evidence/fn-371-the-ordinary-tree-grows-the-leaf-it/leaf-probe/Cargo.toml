@@ -1,0 +1,18 @@
+# fn-370 R1: the leaf account, drawn against grown. A crate outside the
+# workspace, reaching the checkout's crates by relative path; no GPU.
+[package]
+name = "leaf-probe"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+telperion-core = { path = "../../../../crates/telperion-core" }
+telperion-space = { path = "../../../../crates/telperion-space" }
+
+[profile.ci]
+inherits = "release"
+lto = false
+codegen-units = 16

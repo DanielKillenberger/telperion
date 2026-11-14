@@ -21,9 +21,10 @@ const SEEDS: [u32; 3] = [1, 1234, 5678];
 /// ordinary tree; its short shoot's twelve years moved the beech and the
 /// Two Trees. fn-359's drawn scale for nested fades moved the ordinary
 /// tree, the oak and the beech. fn-367 deleted the coarse end of the dial
-/// with the dial; every tree here is the one its fine end held.
+/// with the dial; every tree here is the one its fine end held. fn-371's
+/// leaf of its drawn blade, 44.245 cm², moved the ordinary tree.
 const PINNED: [u64; 8] = [
-    13986120611573680668,
+    8470248290376253591,
     14944671683796001899,
     12665486350558508414,
     13924919106548380920,

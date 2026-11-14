@@ -56,8 +56,9 @@ fn every_preset_is_the_family_it_was() {
         // gave every age a shade table and the beech its full-light tables;
         // task 7 gave the ordinary tree a leaf of 15.7 cm² and the beech's
         // short shoot a life of twelve years. fn-367 deleted `/fidelity` and
-        // the oak's, spruce's and birch's coarse rows.
-        14_553_619_485_299_927_510,
+        // the oak's, spruce's and birch's coarse rows. fn-371 gave the
+        // ordinary tree the leaf of its drawn blade, 44.245 cm².
+        1_331_506_400_587_336_810,
         "{}",
         digest(&text)
     );
@@ -118,8 +119,9 @@ fn every_walk_is_the_walk_it_was() {
         // 4.6; R7 gave every age a shade table and the beech its full-light
         // tables; task 7 gave the ordinary tree a leaf of 15.7 cm² and the
         // beech's short shoot a life of twelve years. fn-367 deleted
-        // `/fidelity` and the coarse rows, which every walk carried.
-        7_879_059_221_637_557_532,
+        // `/fidelity` and the coarse rows, which every walk carried. fn-371
+        // gave the ordinary tree the leaf of its drawn blade, 44.245 cm².
+        9_604_828_268_205_602_703,
         "{}",
         digest(&text)
     );
