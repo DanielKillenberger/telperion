@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-11-14T01:25:04.762511Z",
+  "depends_on": [],
+  "id": "fn-365-the-native-entry-is-named-and-a.1",
+  "priority": null,
+  "spec": "fn-365-the-native-entry-is-named-and-a",
+  "spec_path": ".flow/tasks/fn-365-the-native-entry-is-named-and-a.1.md",
+  "status": "todo",
+  "title": "The native entry is named and a headless test grows the oak",
+  "updated_at": "2026-11-14T01:25:04.762511Z"
+}
