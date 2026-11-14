@@ -26,3 +26,16 @@
 - What hindered: the film builds every tree once for the person's bounds (`film/bounds.rs`) before it builds them all again to draw, so a five-frame probe of segment 0 cost 55.7 min wall (bounds pass 3,289 s, of it Laurelin to Telperion 1,976 s). fn-310's bounds file could not be reused: it lives in another checkout's ignored `raw/` and the engine has changed since. Also, the brief's path `.flow/evidence/fn-351-the-release-candidate/film/raw/` does not exist on this branch (the spec's directory is `fn-351-020-the-release-candidate`), and a `raw/` one level under `film/` is not covered by `.gitignore`'s `/.flow/evidence/*/raw/`; the frames went to `fn-351-020-the-release-candidate/raw/film/` instead.
 - Cost: about 55 minutes of queue time spent before the first full-film frame, and about 5 minutes finding an ignored path.
 - What would remove it: the bounds pass kept with the build it measured (the drawing pass reusing its trees, or the bounds written while drawing in a two-pass order), and the brief naming the spec's evidence directory as it is on the branch; the host decides whether either is specced.
+## 14 Nov 2026 12:40 Zurich: a 20 s measurement waited ten minutes and more for the queue (Fable, Two Trees time)
+
+- Doing: timing one Laurelin build at 80 (`early three laurelin 80 7 cycle`, 8 GB asked) to split the film's grow segment.
+- What hindered: five heavy scopes ran at once (a full gate, a frames sweep, two other measurement loops); the queue showed room of -10 GB for 8, so the run sat from 12:29 and its seconds, taken beside a full gate at load 20 to 30, are noisy.
+- Cost: over 10 minutes of waiting for one 20 s run; every later before/after run pays the same.
+- What would remove it: nothing in the repository; the host staggering measurement dispatches so that timed runs do not share the desk with a full gate.
+
+## 14 Nov 2026 13:45 Zurich: the desk at load 112 froze the measurement it had just admitted (Fable, Two Trees time)
+
+- Doing: the before/after runs and the narrow tests for `begin_whole`, queued as one 8 GB batch and one 4 GB batch.
+- What hindered: the queue showed room between -15 and 3 GB from 12:50 to 13:37, with four scopes holding claims (a full gate, two measurement loops and a frames sweep frozen since 09:35 on 36 MiB of its 6 GB claim). The 8 GB batch was admitted at 13:37 at load 67 and its scope was frozen by the watcher within minutes; at 13:44 the load was 112, most of it another project's test suites outside the queue. A waiting job cannot be told from a frozen one except by `systemctl --user status`.
+- Cost: about 55 of the task's 120 minutes waiting; three queued jobs stopped and re-queued to ask for less.
+- What would remove it: a local matter, reported and not specced: timed runs need a desk that is not running another project's suites. In the repository, `telperion-heavy` could print "frozen" for its own scope, and a frozen scope's unused claim could stop counting against the room.
