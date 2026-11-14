@@ -21,65 +21,75 @@
 </style>
 <main>
 <h1>Telperion 0.2.0, where it stands</h1>
-<p class="dim">Updated in place by the host. Last update: 14 Nov 2026, 02:15. Nothing is pushed yet; no phase after the first has landed.</p>
+<p class="dim">Updated in place by the host. Last update: 14 Nov 2026, 06:55. Nothing is pushed yet. A candidate branch is merged locally; its gate is not green yet.</p>
 
 <h2>Unmet, most important first</h2>
 <ol>
-  <li class="bad"><strong>The old oak is not yet judged in its new form, so phase 3 has not landed.</strong> Two rules are built and measured but not yet drawn: a tip is charged by its height (not by the length of wood under it), and a tip near its limit lays shorter shoots with full leaves. Measured on the first rule alone, the oak keeps its crown to 300 (leaf 590 to 1,371 m² on three seeds, where the earlier build had a bare post) but grows too big: trunk 2.2 to 3.1 m at 300 against a real open-grown oak's 1.56 to 1.92, tips at 36 to 39 m against the species' 34.8. The second rule was probed to cure that (tips at 27 m, trunk 1.7 and 2.5 m at 300 on two seeds). The trees for the sheets are waiting in the queue.</li>
-  <li class="bad"><strong>The runs stand still most of each hour.</strong> As you asked, my heavy work pauses whenever your other work uses the machine. Since about 14:40 on 13 Nov that has been most of the time; from 01:00 to 02:15 on 14 Nov nothing of mine ran. If you want the runs to finish sooner, tell me to loosen the pause rule; I will not change it myself.</li>
-  <li class="bad"><strong>The Two Trees do not fit the browser's memory ceiling with the first rule in</strong> (6.1 and 5.4 million stem units against a ceiling of 4.0 million; the test fails and is not loosened). With the second rule they shrank by a quarter in height, worse than today's, because they were being held to the beech's 40 m while their shoots are written 2.6 times the beech's. I decided their limit lengthens by the same 2.6 (no new value; with the supernatural group off they are the beech). Expected about 41 m at 80 against today's 45.5; being built. The ceiling is read again after it.</li>
-  <li class="bad"><strong>Your call, still open:</strong> is a thin living oak at 300 enough for 0.2.0, with the broad veteran crown recorded as unmet? The new rules may make the question moot; I will say once I have seen the sheets.</li>
-  <li class="bad">About half of every grown tree's stem units are dead wood still standing, and a limb that falls behind is drawn at about a fifth of its size. Both are recorded defects, not yet opened.</li>
-  <li class="bad">Old oaks carried long bare whips above the crown. Not explained; to be looked for again on the new sheets.</li>
-  <li class="bad">The new beech carries too much leaf: leaf area over crown ground area is 10.0, 12.6 and 11.6 at 40, 60 and 80, against a published 5.6 to 9.5 (closed stands, read from an abstract only). Phase 4.</li>
-  <li class="bad">The test gate on the merged branch: 1,401 passed, 3 failed, 2 timed out (13 Nov). The two time-outs were a pause of mine and pass alone. One failure was a stale test, fixed. One was the unequal-limbs value, now removed. One remains: the oak's distant-bark measure at the 4x distance, 6.00 against a limit of 5.8, because the new oak's trunk is thinner on screen. I will look at the frames for shimmer; if there is none the limit is re-measured by the test's own rule, and I list it here as a bound of yours that moved.</li>
-  <li class="bad">A sudden camera jump to a close view can draw one frame at a coarser level before the fine one arrives. This is the design as written; the test now says so. Tell me if one such frame is not acceptable.</li>
+  <li class="bad"><strong>Decision I need from you: the old oak is alive and crowned to 300, and too big.</strong> Trunk at 300: 2.20, 3.13, 2.90 m on three seeds against a real open-grown oak's 1.56 to 1.92 m; at 120: 1.15, 1.65, 1.34 m against 0.83 to 1.09. Tallest tip 36 to 39 m from 200 on against the species' recorded 34.8 m. Three attempts to hold it inside its size were refuted and withdrawn (unequal limbs; shorter shoots near the limit, which turned the limbs into bare tentacles; a steering fix). I have no fourth that rests on a source. Is this oak good enough for 0.2.0, with the size recorded as unmet? Sheet below.</li>
+  <li class="bad"><strong>Some trees are worse than on the 11 Nov build, so by your rule the phases have not landed.</strong> The Two Trees stand on slender trunks (about 1.4 to 2.1 m against 2.7 to 3.0 m) under the same crown outline. The ordinary tree is slimmer and a little sparser (trunk 14 to 17 cm against 22 to 25 cm, after a fix from 9 to 10). The birch is a little lighter (trunk 20 to 23 against 26 to 30 cm). The spruce and beech trunks are slimmer too (26 against 34 cm; 17 to 18 against 26 to 29 cm), the beech with a fuller crown. All of it follows from one rule that is right in itself: a trunk is as thick as the tree's leaf pays for. The trees grow too little leaf for the old trunks.</li>
+  <li class="bad"><strong>The test gate on the candidate is red: 1,385 passed, 7 failed, 1 timed out.</strong> Six of the eight are tests that build every preset and now run past their memory or time allowance, because the Two Trees are about 1.6 times heavier than before. I am not raising the allowances; a memory fix now in build (below) should bring them back under. One is the distant-bark measure (6.00 against 5.8), being checked on frames. One is the old browser count limit, which the same fix replaces.</li>
+  <li class="bad"><strong>Speed is far from the aim.</strong> One oak at 40 grows in 1.44 s on one thread and 0.68 s on four, against the aim of 0.1 s. Making each step cheaper with the tree unchanged gained 4 to 5% and no more. A real gain needs fewer shoots grown (the counted-foliage idea, not built) or a rewrite of how the grower stores its data.</li>
+  <li class="bad"><strong>The download is 364,870 bytes compressed against your 250,000</strong> (it was 419,983). The lowest I measured is 291,123, and that needs the voxel field to stop reading the drawn tree. A smaller build made the oak about 20% slower and was rejected. Holding or moving the limit is yours.</li>
+  <li class="bad"><strong>Leaf is not right on any species.</strong> The beech is drawn with about three times the leaf it grows, and it grows about half of what a real beech of its trunk carries. The oak draws less than it grows at 40 and more at 120. One leaf for growing and drawing needs the species work first; parked with its measurements.</li>
+  <li class="bad"><strong>Not built:</strong> counted foliage, species re-derived from sources, levels of detail for whole distant trees, the voxel grove from the tree's own cells, growth off the page's thread for the renderer (the field path already has it), the forest rig. Each has a survey with what exists and what earlier work tried.</li>
+  <li class="bad">About half of every grown tree's stem units are dead wood still standing, and a limb that falls behind is drawn at about a fifth of its size. Read in code and literature; not opened.</li>
+  <li class="bad">A sudden camera jump to a close view can draw one frame at a coarser level before the fine one arrives. This is the design as written. Tell me if one such frame is not acceptable.</li>
   <li class="bad">The fork still shows a seam, and a band remains where a stem hands over to its successor.</li>
-  <li class="bad">The ordinary tree is thinner than today's: a 9 to 11 cm trunk at 40 against 22 to 25 cm.</li>
-  <li class="bad">The Two Trees are less massive than today's: trunks of 1.15 to 1.28 m against 2.7 to 3.0 m (measured before the two new rules).</li>
-  <li class="bad">Speed. One oak at 40 takes about 1 s to grow natively against the aim of 0.1 s; drawing not remeasured. Counted foliage (phase 5) is the planned gain and is not designed yet.</li>
-  <li class="bad">The package's main module is 388 KB compressed against the 250 KB limit. Phase 6.</li>
+  <li class="bad">The runs stood still for long stretches because my heavy work pauses while your other work uses the machine, as you asked.</li>
 </ol>
 
 <h2>Met since the last update</h2>
 <ul>
-  <li class="ok">The cause of the dying old oak is found and measured: tips were charged for the length of wood beneath them, so long low limbs died although they were not tall. Charged by height, the oak at 40 is unchanged and the old oak keeps its leaf.</li>
-  <li class="ok">Old oaks that could not be grown in 24 GB now grow in at most 6.3 GB.</li>
-  <li class="ok">The natural presets at 40 moved by at most 1% under the first rule and at most 11% (the birch) under the second.</li>
-  <li class="ok">Growing to 80 at once and pausing at 40 on the way give the same tree to the bit under both rules.</li>
+  <li class="ok">The cause of the dying old oak is found and fixed: tips were charged for the length of wood beneath them, so long low limbs died although they were not tall. Charged by height, the oak at 40 is unchanged and the old oak keeps its crown. Old oaks that could not be grown in 24 GB now grow in at most 6.3 GB.</li>
+  <li class="ok">"Oak seed 7 does look like it needs fixing": on the candidate it is a sound young tree at 40 and a good open-grown oak at 80. A few thin low sprigs remain at 40. Sheet below.</li>
+  <li class="ok">The browser's memory limit is understood. Trees failed at 4 GB because one list doubled from 384 MB to 768 MB and could not find a single free block while over 1 GB sat free in pieces. Both of the Two Trees build in the browser's memory at their preset ages on every seed tried. The fix (lists sized exactly; a failed allocation becomes a refusal by name; the fixed count of 4 million removed) is in build.</li>
+  <li class="ok">The per-species coarse settings and their dial are deleted (763 lines). Nothing shipped used them, and no tree moved.</li>
+  <li class="ok">A native entry is named and documented, and a test with no GPU or browser grows the oak through it from parameter data. A growth now has one seed for wood and leaves.</li>
+  <li class="ok">A changelog exists, with a migration note for the removed dial; the docs are corrected against the merged code.</li>
+  <li class="ok">Growing to 80 at once and pausing at 40 on the way give the same tree to the bit.</li>
 </ul>
 
 <h2>Corrections to what I told you</h2>
 <ul>
-  <li>The unequal-limbs value I held on 13 Nov is ruled out, not held: it kept the old oak alive by drawing every lesser limb, leaves included, at about half size. It is removed.</li>
-  <li>"The beech's twigs are right" was wrong: the new beech is over-leafed (above).</li>
-  <li>"The grower holds four times what it keeps" compared two different trees. Measured properly, the finishing step drops 7 to 20% on every tree.</li>
-  <li>I waited 26 minutes on a gate that had already finished, because I waited for an agent's notice instead of reading the log. I now read logs by the clock.</li>
+  <li>My second old-oak rule ("a tip near its limit lays shorter shoots") was a mistake of design: a tip held at break-even is never shed and never renewed, so the limbs stall, thicken and go bare. Withdrawn, with the fix I made for the Two Trees on top of it.</li>
+  <li>The unequal-limbs value I held on 13 Nov is ruled out, not held: it kept the old oak alive by drawing every lesser limb, leaves included, at about half size.</li>
+  <li>"The beech carries too much leaf" was half the story: the drawing over-leafs it and the grower under-leafs it. And the published range I compared it with was for whole stands, not single trees.</li>
+  <li>"The spruce grows 27 times a real spruce's shoots" compared trees of different size; the real excess is nearer 1.5 to 8 times.</li>
+  <li>"The grower holds four times what it keeps" compared two different trees.</li>
+  <li>I waited 26 minutes on a gate that had already finished, because I waited for an agent's notice instead of reading the log.</li>
 </ul>
 
 <h2>Phases</h2>
 <table>
   <tr><th>Phase</th><th>State</th><th>Result</th></tr>
-  <tr><td>0. One source of truth</td><td class="ok">done</td><td>One goal (fn-351), your rulings in one file, the scoreboard drawn on today's build beside 0.1.4: 162 trees, none refused.</td></tr>
-  <tr><td>1. One grower</td><td class="ok">landed on the integration branch</td><td>The GPU grower is deleted. Rust source 202,868 to 164,423 lines; the render module 842 KB to 535 KB compressed. Full gate green (1,387 passed), review clean. Browser paths need your eyes at the end; agents cannot drive WebGPU.</td></tr>
-  <tr><td>2. Wood that lasts</td><td>built, not landed</td><td>Lands together with phase 3: no tree may be worse at a landing, and the old oak was.</td></tr>
-  <tr><td>3. A crown that renews</td><td>two rules built and measured; sheets and verdict to come</td><td>Records: <code>SURPLUS-PROBE.md</code>, <code>OLD-OAK-WOOD.md</code>, and the evidence of fn-363 and fn-364 on their branches.</td></tr>
-  <tr><td>4. Species on sources</td><td class="dim">not started</td><td>After phase 5.</td></tr>
-  <tr><td>5. Counted foliage, speed</td><td>surveyed</td><td>Ring sides done (drawn points down by 59 to 72%). Survey with six options: <code>PHASE5-SURVEY-2026-11-13.md</code>.</td></tr>
-  <tr><td>6. Drawn fast, website, entry</td><td class="dim">not started</td><td></td></tr>
-  <tr><td>7. Candidate</td><td class="dim">not started</td><td></td></tr>
+  <tr><td>0. One source of truth</td><td class="ok">done</td><td>One goal (fn-351), your rulings in one file, the scoreboard on the 11 Nov build beside 0.1.4.</td></tr>
+  <tr><td>1. One grower</td><td class="ok">landed on the integration branch</td><td>The GPU grower is deleted. Browser paths need your eyes; agents cannot drive WebGPU.</td></tr>
+  <tr><td>2. Wood that lasts</td><td>built, on the candidate branch, not landed</td><td>Trunks follow leaf; wood never thins. Young trees are slimmer than before (above).</td></tr>
+  <tr><td>3. A crown that renews</td><td>built, on the candidate branch, not landed</td><td>Charge by height; ring sides (drawn points down 59 to 72%); the easing of a stem's width. The old oak's size is unmet.</td></tr>
+  <tr><td>4. Species on sources</td><td>surveyed, not built</td><td><code>PHASE4-SURVEY.md</code>: every shoot and leaf value against its source; the ordinary tree's leaf aligned with the leaf it draws.</td></tr>
+  <tr><td>5. Counted foliage, speed</td><td>partly</td><td>Ring sides, the coarse settings deleted, one speed round. Counting itself not built.</td></tr>
+  <tr><td>6. Drawn fast, website, entry</td><td>partly</td><td>Native entry and download cut done; browser memory fix in build; the rest surveyed (<code>PHASE6-SURVEY.md</code>).</td></tr>
+  <tr><td>7. Candidate</td><td>in progress</td><td>Branch merged locally, changelog and docs written; gate, review, push and the draft pull request to come.</td></tr>
 </table>
 
-<h2>The oak before the two new rules: today's build (left), the phase as built (middle), with the removed unequal-limbs value (right)</h2>
-<p class="dim">Four seeds a sheet. Height, trunk and leaf under each tree. A grey tile is a tree that could not be drawn in 24 GB.</p>
-<h3>At 40 and 80</h3>
-<img src="phase3/row-40-80.jpg" alt="The oak at 40 and 80 in three builds">
-<h3>At 200</h3>
-<img src="phase3/row-200.jpg" alt="The oak at 200 in three builds">
-<h3>At 300</h3>
-<img src="phase3/row-300.jpg" alt="The oak at 300 in three builds">
+<h2>The old oak: the 11 Nov build, the candidate, and the withdrawn rule</h2>
+<p class="dim">Seeds 1001 and 1007 at 40, 80, 120, 200, 300, whole and leafless. The middle column is what the candidate carries.</p>
+<img src="candidate/oak.jpg" alt="The oak at five ages in three builds">
 
-<h2>The oak today, before phase 2 (the base every phase is judged against)</h2>
+<h2>The oak on seed 7</h2>
+<p class="dim">At 40 and 80, whole and leafless, on the candidate.</p>
+<img src="candidate/oak-seed-7.jpg" alt="The oak on seed 7 at 40 and 80">
+
+<h2>Beech, ordinary tree, birch and spruce: the 11 Nov build beside the candidate</h2>
+<p class="dim">First column the 11 Nov build, second the candidate; ignore the third (the withdrawn rule). The ordinary tree's fix is on the next sheet.</p>
+<img src="candidate/presets-three-columns.jpg" alt="Four presets in three builds">
+<img src="candidate/ordinary.jpg" alt="The ordinary tree before and after its leaf fix">
+
+<h2>Telperion</h2>
+<p class="dim">Second column is the candidate. The base has no tiles on seeds 1 and 7; seeds 1001 and 1007 show its heavier trunk.</p>
+<img src="candidate/telperion.jpg" alt="Telperion in four builds">
+
+<h2>The oak on the 11 Nov build (the base every phase is judged against)</h2>
 <p class="dim">Twelve seeds a row would not fit; this is the scoreboard's sheet. Ages 40, 80, 120, 200, 300.</p>
 <img src="../fn-352-the-scoreboard-a-fixed-panel-of-trees/scoreboard/base-2026-11-11/sheets/oak-whole.jpg" alt="The oak on today's build at five ages">
 
