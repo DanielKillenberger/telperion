@@ -84,7 +84,11 @@ fn cpu_seconds() -> f64 {
     // The fields after the command's closing parenthesis; utime and stime
     // are the 14th and 15th of the whole line.
     let rest = stat.rsplit_once(')').map_or("", |(_, r)| r);
-    let field = |k: usize| rest.split_whitespace().nth(k).and_then(|v| v.parse::<f64>().ok());
+    let field = |k: usize| {
+        rest.split_whitespace()
+            .nth(k)
+            .and_then(|v| v.parse::<f64>().ok())
+    };
     field(11).unwrap_or(0.0) / 100.0 + field(12).unwrap_or(0.0) / 100.0
 }
 

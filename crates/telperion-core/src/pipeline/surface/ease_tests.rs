@@ -90,7 +90,10 @@ fn two_forks_close_together_draw_no_ledge() {
     };
     let tree = stem(3.5, radius, &[(20, 0.38), (26, 0.33)]);
     let rings = trunk(&tree);
-    let fork = rings.iter().position(|s| (s.p.y - 1.0).abs() < 1e-9).unwrap();
+    let fork = rings
+        .iter()
+        .position(|s| (s.p.y - 1.0).abs() < 1e-9)
+        .unwrap();
     let mut steepest = 0.0_f64;
     for pair in rings.windows(2) {
         steepest = steepest.max((pair[0].r - pair[1].r) / (pair[1].d - pair[0].d));
@@ -135,7 +138,11 @@ fn a_run_that_never_thins_is_drawn_at_its_radii() {
 /// by at most half that thinning plus one ring's drop.
 #[test]
 fn a_stem_thinning_steadily_is_drawn_by_half_its_thinning() {
-    let tree = stem(10.0, |y| 0.3 * 0.9995_f64.powi((y / STEP).round() as i32), &[]);
+    let tree = stem(
+        10.0,
+        |y| 0.3 * 0.9995_f64.powi((y / STEP).round() as i32),
+        &[],
+    );
     let rings = trunk(&tree);
     let r: Vec<f64> = tree.nodes.iter().map(|n| n.radius).collect();
     assert!(rings.len() > 200);
@@ -150,7 +157,11 @@ fn a_stem_thinning_steadily_is_drawn_by_half_its_thinning() {
             thinning
         } + 1e-6;
         let over = rings[k].r - r[k];
-        assert!((0.0..=bound).contains(&over), "{over} over, bound {bound}, at {}", rings[k].d);
+        assert!(
+            (0.0..=bound).contains(&over),
+            "{over} over, bound {bound}, at {}",
+            rings[k].d
+        );
     }
 }
 
@@ -189,7 +200,11 @@ fn a_rings_girth_reads_only_the_wood_up_to_it_and_the_runs_end() {
             ..Tree::default()
         };
         let cut = trunk(&cut);
-        assert_eq!(cut[k].r, floored(&cut, k, whole.nodes[k].radius), "cut at ring {k}");
+        assert_eq!(
+            cut[k].r,
+            floored(&cut, k, whole.nodes[k].radius),
+            "cut at ring {k}"
+        );
     }
 }
 
@@ -200,7 +215,11 @@ fn a_rings_girth_reads_only_the_wood_up_to_it_and_the_runs_end() {
 #[test]
 fn a_run_ends_with_no_hold() {
     for (length, ends) in [(0.2, None), (0.6, Some(0.003))] {
-        let tree = stem(1.0 + length, |y| if y <= 1.0 + 1e-9 { 0.2 } else { 0.003 }, &[]);
+        let tree = stem(
+            1.0 + length,
+            |y| if y <= 1.0 + 1e-9 { 0.2 } else { 0.003 },
+            &[],
+        );
         let rings = trunk(&tree);
         let last = rings.len() - 1;
         let end = rings[last].r;
@@ -211,7 +230,11 @@ fn a_run_ends_with_no_hold() {
         }
         let shoot = rings.iter().position(|s| s.d > 1.0 + 1e-9).unwrap();
         for pair in rings[shoot - 1..].windows(2) {
-            assert!(pair[1].r <= pair[0].r, "{length}: it rises at {}", pair[1].d);
+            assert!(
+                pair[1].r <= pair[0].r,
+                "{length}: it rises at {}",
+                pair[1].d
+            );
         }
     }
 }

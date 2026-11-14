@@ -165,11 +165,12 @@ impl Grower {
         let wr = &w;
         // A kept subtree that faded out is retired at the living it was
         // kept at, which is final; only a closed one is evaluated.
-        let verdicts = crate::cores::map(todo.clone(), 16, self.threads, &|_, c| {
-            match wr.retire.fate[c] {
-                Fate::Kept(living) => Verdict::Retired(living),
-                _ => evaluate(&tree, wr, c),
-            }
+        let verdicts = crate::cores::map(todo.clone(), 16, self.threads, &|_, c| match wr
+            .retire
+            .fate[c]
+        {
+            Fate::Kept(living) => Verdict::Retired(living),
+            _ => evaluate(&tree, wr, c),
         });
         for (c, verdict) in todo.into_iter().zip(verdicts) {
             // Let go already with a fading ancestor that faded out with it.
